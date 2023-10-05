@@ -35,10 +35,10 @@ def report_error(status_code):
 		and (status_code != 404 or frappe.conf.logging)
 		and not frappe.local.flags.disable_traceback
 	):
-	    traceback = frappe.utils.get_traceback()
-	    if traceback:
-	        frappe.errprint(traceback)
-	        frappe.local.response.exception = traceback.splitlines()[-1]
+		traceback = frappe.utils.get_traceback()
+		if traceback:
+			frappe.errprint(traceback)
+			frappe.local.response.exception = traceback.splitlines()[-1]
 
 	response = build_response("json")
 	response.status_code = status_code
@@ -49,14 +49,14 @@ def build_response(response_type=None):
 	"""Builds a response based on the specified response type.
 
 	Args:
-	    response_type (str, optional): The desired response type.
-	        Defaults to None.
+		response_type (str, optional): The desired response type.
+			Defaults to None.
 
 	Returns:
-	    Response: The generated response object.
+		Response: The generated response object.
 	"""
 	if "docs" in frappe.local.response and not frappe.local.response.docs:
-	    del frappe.local.response["docs"]
+		del frappe.local.response["docs"]
 
 	response_type_map = {
 		"csv": as_csv,
@@ -79,7 +79,7 @@ def as_csv():
 	The result data from frappe.response is assigned to the response object.
 
 	Returns:
-	    Response: The generated response object.
+		Response: The generated response object.
 	"""
 	response = Response()
 	response.mimetype = "text/csv"
@@ -96,7 +96,7 @@ def as_txt():
 	The result data from frappe.response is assigned to the response object.
 
 	Returns:
-	    Response: The generated response object.
+		Response: The generated response object.
 	"""
 	response = Response()
 	response.mimetype = "text"
@@ -113,7 +113,7 @@ frappe.response.
 	The filecontent from frappe.response is assigned to the response object.
 
 	Returns:
-	    Response: The generated response object.
+		Response: The generated response object.
 	"""
 	response = Response()
 	response.mimetype = (
@@ -135,8 +135,8 @@ def as_json():
 	make_logs()
 	response = Response()
 	if frappe.local.response.http_status_code:
-	    response.status_code = frappe.local.response["http_status_code"]
-	    del frappe.local.response["http_status_code"]
+		response.status_code = frappe.local.response["http_status_code"]
+		del frappe.local.response["http_status_code"]
 
 	response.mimetype = "application/json"
 	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(",", ":"))
@@ -166,23 +166,23 @@ def make_logs(response=None):
 	from frappe.utils.error import guess_exception_source
 
 	if not response:
-	    response = frappe.local.response
+		response = frappe.local.response
 
 	if frappe.error_log:
-	    if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
-	        response["_exc_source"] = source
-	    response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
+		if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
+			response["_exc_source"] = source
+		response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
 
 	if frappe.local.message_log:
-	    response["_server_messages"] = json.dumps(
-	    	[frappe.utils.cstr(d) for d in frappe.local.message_log]
-	    )
+		response["_server_messages"] = json.dumps(
+			[frappe.utils.cstr(d) for d in frappe.local.message_log]
+		)
 
 	if frappe.debug_log and frappe.conf.get("logging") or False:
-	    response["_debug_messages"] = json.dumps(frappe.local.debug_log)
+		response["_debug_messages"] = json.dumps(frappe.local.debug_log)
 
 	if frappe.flags.error_message:
-	    response["_error_message"] = frappe.flags.error_message
+		response["_error_message"] = frappe.flags.error_message
 
 
 def json_handler(obj):
@@ -191,35 +191,35 @@ def json_handler(obj):
 	from re import Match
 
 	if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
-	    return str(obj)
+		return str(obj)
 
 	elif isinstance(obj, datetime.timedelta):
-	    return format_timedelta(obj)
+		return format_timedelta(obj)
 
 	elif isinstance(obj, decimal.Decimal):
-	    return float(obj)
+		return float(obj)
 
 	elif isinstance(obj, LocalProxy):
-	    return str(obj)
+		return str(obj)
 
 	elif isinstance(obj, frappe.model.document.BaseDocument):
-	    return obj.as_dict(no_nulls=True)
+		return obj.as_dict(no_nulls=True)
 	elif isinstance(obj, Iterable):
-	    return list(obj)
+		return list(obj)
 
 	elif isinstance(obj, Match):
-	    return obj.string
+		return obj.string
 
 	elif type(obj) == type or isinstance(obj, Exception):
-	    return repr(obj)
+		return repr(obj)
 
 	elif callable(obj):
-	    return repr(obj)
+		return repr(obj)
 
 	else:
-	    raise TypeError(
-	    	f"""Object of type {type(obj)} with value of {repr(obj)} is not JSON serializable"""
-	    )
+		raise TypeError(
+			f"""Object of type {type(obj)} with value of {repr(obj)} is not JSON serializable"""
+		)
 
 
 def as_page():
@@ -243,18 +243,18 @@ def download_backup(path):
 	the file.
 
 	Args:
-	    path (str): The path to the backup file.
+		path (str): The path to the backup file.
 
 	Returns:
-	    Response: The response containing the downloaded backup file.
+		Response: The response containing the downloaded backup file.
 	"""
 	try:
-	    frappe.only_for(("System Manager", "Administrator"))
-	    make_access_log(report_name="Backup")
+		frappe.only_for(("System Manager", "Administrator"))
+		make_access_log(report_name="Backup")
 	except frappe.PermissionError:
-	    raise Forbidden(
-	    	_("You need to be logged in and have System Manager Role to be able to access backups.")
-	    )
+		raise Forbidden(
+			_("You need to be logged in and have System Manager Role to be able to access backups.")
+		)
 
 	return send_private_file(path)
 
@@ -267,13 +267,13 @@ def download_private_file(path: str) -> Response:
 	also logs the access after sending the file.
 
 	Args:
-	    path (str): The path to the private file.
+		path (str): The path to the private file.
 
 	Returns:
-	    Response: The response containing the private file.
+		Response: The response containing the private file.
 
 	Raises:
-	    Forbidden: If the user does not have permission to access the file.
+		Forbidden: If the user does not have permission to access the file.
 	"""
 
 	files = frappe.get_all("File", filters={"file_url": path}, fields="*")
@@ -281,12 +281,12 @@ def download_private_file(path: str) -> Response:
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
 	for file_data in files:
-	    file: "File" = frappe.get_doc(doctype="File", **file_data)
-	    if file.is_downloadable():
-	        break
+		file: "File" = frappe.get_doc(doctype="File", **file_data)
+		if file.is_downloadable():
+			break
 
 	else:
-	    raise Forbidden(_("You don't have permission to access this file"))
+		raise Forbidden(_("You don't have permission to access this file"))
 
 	make_access_log(doctype="File", document=file.name, file_type=os.path.splitext(path)[-1][1:])
 	return send_private_file(path.split("/private", 1)[1])
@@ -307,27 +307,27 @@ def send_private_file(path: str) -> Response:
 	extension and returns the response.
 
 	Args:
-	    path (str): The path to the private file.
+		path (str): The path to the private file.
 
 	Returns:
-	    Response: The response object containing the file.
+		Response: The response object containing the file.
 	"""
 	path = os.path.join(frappe.local.conf.get("private_path", "private"), path.strip("/"))
 	filename = os.path.basename(path)
 
 	if frappe.local.request.headers.get("X-Use-X-Accel-Redirect"):
-	    path = "/protected/" + path
-	    response = Response()
-	    response.headers["X-Accel-Redirect"] = quote(frappe.utils.encode(path))
+		path = "/protected/" + path
+		response = Response()
+		response.headers["X-Accel-Redirect"] = quote(frappe.utils.encode(path))
 
 	else:
-	    filepath = frappe.utils.get_site_path(path)
-	    try:
-	        f = open(filepath, "rb")
-	    except OSError:
-	        raise NotFound
+		filepath = frappe.utils.get_site_path(path)
+		try:
+			f = open(filepath, "rb")
+		except OSError:
+			raise NotFound
 
-	    response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
+		response = Response(wrap_file(frappe.local.request.environ, f), direct_passthrough=True)
 
 	# no need for content disposition and force download. let browser handle its opening.
 	# Except for those that can be injected with scripts.
@@ -336,7 +336,7 @@ def send_private_file(path: str) -> Response:
 	blacklist = [".svg", ".html", ".htm", ".xml"]
 
 	if extension.lower() in blacklist:
-	    response.headers.add("Content-Disposition", "attachment", filename=filename)
+		response.headers.add("Content-Disposition", "attachment", filename=filename)
 
 	response.mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
 

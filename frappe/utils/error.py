@@ -27,8 +27,8 @@ def _is_ldap_exception(e):
 	"""
 
 	for t in type(e).__mro__:
-	    if t.__name__ == LDAP_BASE_EXCEPTION:
-	        return True
+		if t.__name__ == LDAP_BASE_EXCEPTION:
+			return True
 
 	return False
 
@@ -46,17 +46,17 @@ def log_error(
 
 	traceback = None
 	if message:
-	    if "\n" in title:  # traceback sent as title
-	        traceback, title = title, message
-	    else:
-	        traceback = message
+		if "\n" in title:  # traceback sent as title
+			traceback, title = title, message
+		else:
+			traceback = message
 
 	title = title or "Error"
 	traceback = frappe.as_unicode(traceback or frappe.get_traceback(with_context=True))
 
 	if not frappe.db:
-	    print(f"Failed to log error in db: {title}")
-	    return
+		print(f"Failed to log error in db: {title}")
+		return
 
 	error_log = frappe.get_doc(
 		doctype="Error Log",
@@ -68,9 +68,9 @@ def log_error(
 	)
 
 	if frappe.flags.read_only or defer_insert:
-	    error_log.deferred_insert()
+		error_log.deferred_insert()
 	else:
-	    return error_log.insert(ignore_permissions=True)
+		return error_log.insert(ignore_permissions=True)
 
 
 def log_error_snapshot(exception: Exception):
@@ -78,15 +78,15 @@ def log_error_snapshot(exception: Exception):
 or an LDAP exception."""
 
 	if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
-	    return
+		return
 
 	logger = frappe.logger(with_more_info=True)
 
 	try:
-	    log_error(title=str(exception), defer_insert=True)
-	    logger.error("New Exception collected in error log")
+		log_error(title=str(exception), defer_insert=True)
+		logger.error("New Exception collected in error log")
 	except Exception as e:
-	    logger.error(f"Could not take error snapshot: {e}", exc_info=True)
+		logger.error(f"Could not take error snapshot: {e}", exc_info=True)
 
 
 def get_default_args(func):
@@ -119,21 +119,21 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 
 	def decorator_raise_error_on_no_output(func):
 
-	    @functools.wraps(func)
-	    def wrapper_raise_error_on_no_output(*args, **kwargs):
-	        response = func(*args, **kwargs)
-	        if callable(keep_quiet) and keep_quiet():
-	            return response
+		@functools.wraps(func)
+		def wrapper_raise_error_on_no_output(*args, **kwargs):
+			response = func(*args, **kwargs)
+			if callable(keep_quiet) and keep_quiet():
+				return response
 
-	        default_kwargs = get_default_args(func)
-	        default_raise_error = default_kwargs.get("_raise_error")
-	        raise_error = kwargs.get("_raise_error") if "_raise_error" in kwargs else default_raise_error
+			default_kwargs = get_default_args(func)
+			default_raise_error = default_kwargs.get("_raise_error")
+			raise_error = kwargs.get("_raise_error") if "_raise_error" in kwargs else default_raise_error
 
-	        if (not response) and raise_error:
-	            frappe.throw(error_message, error_type or Exception)
-	        return response
+			if (not response) and raise_error:
+				frappe.throw(error_message, error_type or Exception)
+			return response
 
-	    return wrapper_raise_error_on_no_output
+		return wrapper_raise_error_on_no_output
 
 	return decorator_raise_error_on_no_output
 
@@ -150,20 +150,20 @@ def guess_exception_source(exception: str) -> str | None:
 
 	"""
 	with suppress(Exception):
-	    installed_apps = frappe.get_installed_apps()
-	    app_priority = {app: installed_apps.index(app) for app in installed_apps}
+		installed_apps = frappe.get_installed_apps()
+		app_priority = {app: installed_apps.index(app) for app in installed_apps}
 
-	    APP_NAME_REGEX = re.compile(r".*File.*apps/(?P<app_name>\w+)/\1/")
-	    SERVER_SCRIPT_FRAME = re.compile(r".*<serverscript>")
+		APP_NAME_REGEX = re.compile(r".*File.*apps/(?P<app_name>\w+)/\1/")
+		SERVER_SCRIPT_FRAME = re.compile(r".*<serverscript>")
 
-	    apps = Counter()
-	    for line in reversed(exception.splitlines()):
-	        if SERVER_SCRIPT_FRAME.match(line):
-	            return "Server Script"
+		apps = Counter()
+		for line in reversed(exception.splitlines()):
+			if SERVER_SCRIPT_FRAME.match(line):
+				return "Server Script"
 
-	        if matches := APP_NAME_REGEX.match(line):
-	            app_name = matches.group("app_name")
-	            apps[app_name] += app_priority.get(app_name, 0)
+			if matches := APP_NAME_REGEX.match(line):
+				app_name = matches.group("app_name")
+				apps[app_name] += app_priority.get(app_name, 0)
 
-	    if (probably_source := apps.most_common(1)) and probably_source[0][0] != "frappe":
-	        return f"{probably_source[0][0]} (app)"
+		if (probably_source := apps.most_common(1)) and probably_source[0][0] != "frappe":
+			return f"{probably_source[0][0]} (app)"

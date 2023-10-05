@@ -23,7 +23,7 @@ unwanted tags and attributes."""
 	import bleach
 
 	if not isinstance(html, str):
-	    return html
+		return html
 
 	return bleach.clean(
 		clean_script_and_style(html),
@@ -56,16 +56,16 @@ def clean_email_html(html):
 	Clean the given HTML string by removing potentially harmful elements and attributes.
 
 	Args:
-	    html (str): The HTML string to be cleaned.
+		html (str): The HTML string to be cleaned.
 
 	Returns:
-	    str: The cleaned HTML string.
+		str: The cleaned HTML string.
 	"""
 	import bleach
 	from bleach.css_sanitizer import CSSSanitizer
 
 	if not isinstance(html, str):
-	    return html
+		return html
 
 	css_sanitizer = CSSSanitizer(
 		allowed_css_properties=[
@@ -148,17 +148,17 @@ def clean_script_and_style(html):
 	Clean the HTML by removing script and style tags.
 
 	Args:
-	    html (str): The HTML string to be cleaned.
+		html (str): The HTML string to be cleaned.
 
 	Returns:
-	    str: The modified HTML string.
+		str: The modified HTML string.
 	"""
 	# remove script and style
 	from bs4 import BeautifulSoup
 
 	soup = BeautifulSoup(html, "html5lib")
 	for s in soup(["script", "style"]):
-	    s.decompose()
+		s.decompose()
 	return frappe.as_unicode(soup)
 
 
@@ -174,13 +174,13 @@ def sanitize_html(html, linkify=False):
 	from bs4 import BeautifulSoup
 
 	if not isinstance(html, str):
-	    return html
+		return html
 
 	elif is_json(html):
-	    return html
+		return html
 
 	if not bool(BeautifulSoup(html, "html.parser").find()):
-	    return html
+		return html
 
 	tags = (
 		acceptable_elements
@@ -190,9 +190,9 @@ def sanitize_html(html, linkify=False):
 	)
 
 	def attributes_filter(tag, name, value):
-	    if name.startswith("data-"):
-	        return True
-	    return name in acceptable_attributes
+		if name.startswith("data-"):
+			return True
+		return name in acceptable_attributes
 
 	attributes = {"*": attributes_filter, "svg": svg_attributes}
 	css_sanitizer = CSSSanitizer(allowed_css_properties=bleach_allowlist.all_styles)
@@ -215,17 +215,17 @@ def is_json(text):
 	Check if a given string is a valid JSON.
 
 	Args:
-	    text (str): The string to check.
+		text (str): The string to check.
 
 	Returns:
-	    bool: True if the string is a valid JSON, False otherwise.
+		bool: True if the string is a valid JSON, False otherwise.
 	"""
 	try:
-	    json.loads(text)
+		json.loads(text)
 	except ValueError:
-	    return False
+		return False
 	else:
-	    return True
+		return True
 
 
 def get_icon_html(icon, small=False):
@@ -244,28 +244,28 @@ def get_icon_html(icon, small=False):
 	the 'icon' as the class attribute.
 
 	Args:
-	    icon (str): The icon to be converted to HTML.
-	    small (bool, optional): Whether to display the icon as a small image.
-	    Defaults to False.
+		icon (str): The icon to be converted to HTML.
+		small (bool, optional): Whether to display the icon as a small image.
+		Defaults to False.
 
 	Returns:
-	    str: The HTML representation of the icon.
+		str: The HTML representation of the icon.
 	"""
 	from frappe.utils import is_image
 
 	icon = icon or ""
 
 	if icon and EMOJI_PATTERN.match(icon):
-	    return f'<span class="text-muted">{icon}</span>'
+		return f'<span class="text-muted">{icon}</span>'
 
 	if is_image(icon):
-	    return (
-	    	f"<img style='width: 16px; height: 16px;' src={escape_html(icon)!r}>"
-	    	if small
-	    	else f"<img src={escape_html(icon)!r}>"
-	    )
+		return (
+			f"<img style='width: 16px; height: 16px;' src={escape_html(icon)!r}>"
+			if small
+			else f"<img src={escape_html(icon)!r}>"
+		)
 	else:
-	    return f"<i class={escape_html(icon)!r}></i>"
+		return f"<i class={escape_html(icon)!r}></i>"
 
 
 def unescape_html(value):
@@ -276,10 +276,10 @@ def unescape_html(value):
 	the 'html' module to unescape the HTML entities in the 'value'.
 
 	Args:
-	    value (str): The value with HTML entities to be unescaped.
+		value (str): The value with HTML entities to be unescaped.
 
 	Returns:
-	    str: The value with unescaped HTML entities.
+		str: The value with unescaped HTML entities.
 	"""
 	from html import unescape
 

@@ -21,15 +21,15 @@ def validate_argument_types(func: Callable, apply_condition: Callable = lambda: 
 
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-	    """Validate argument types of whitelisted functions.
+		"""Validate argument types of whitelisted functions.
 
 		:param args: Function arguments.
 		:param kwargs: Function keyword arguments."""
 
-	    if apply_condition():
-	        args, kwargs = transform_parameter_types(func, args, kwargs)
+		if apply_condition():
+			args, kwargs = transform_parameter_types(func, args, kwargs)
 
-	    return func(*args, **kwargs)
+		return func(*args, **kwargs)
 
 	return wrapper
 
@@ -46,26 +46,26 @@ def qualified_name(obj) -> str:
 	module, qualname = discovered_type.__module__, discovered_type.__qualname__
 
 	if module in {"typing", "types"}:
-	    return obj
+		return obj
 	elif module in {"builtins"}:
-	    return qualname
+		return qualname
 	else:
-	    return f"{module}.{qualname}"
+		return f"{module}.{qualname}"
 
 
 def raise_type_error(
 	arg_name: str, arg_type: type, arg_value: object, current_exception: Exception = None
 ):
 	"""
-	    Raise a TypeError with a message that includes the name of the argument,
+		Raise a TypeError with a message that includes the name of the argument,
  the expected type and the actual type of the value passed.
 
  Args:
   arg_name (str): The name of the argument.
   arg_type (type): The expected type of the argument.
   arg_value (object): The actual value of the argument.
-	            current_exception (Exception, optional): The current exception
-	                that triggered the error. Defaults to None.
+				current_exception (Exception, optional): The current exception
+					that triggered the error. Defaults to None.
 
  Raises:
   FrappeTypeError: The TypeError exception.
@@ -107,7 +107,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 	 dict: The updated keyword arguments.
  """
 	if not (args or kwargs) or not func.__annotations__:
-	    return args, kwargs
+		return args, kwargs
 
 	from pydantic import ValidationError as PyValidationError
 
@@ -118,15 +118,15 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 	arg_names = func.__code__.co_varnames[: func.__code__.co_argcount]
 
 	if not args:
-	    prepared_args = kwargs
+		prepared_args = kwargs
 
 	elif kwargs:
-	    arg_values = args or func.__defaults__ or []
-	    prepared_args = dict(zip(arg_names, arg_values))
-	    prepared_args.update(kwargs)
+		arg_values = args or func.__defaults__ or []
+		prepared_args = dict(zip(arg_names, arg_values))
+		prepared_args.update(kwargs)
 
 	else:
-	    prepared_args = dict(zip(arg_names, args))
+		prepared_args = dict(zip(arg_names, args))
 
 	# check if type hints dont match the default values
 	func_signature = signature(func)
@@ -134,48 +134,48 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 
 	# check if the argument types are correct
 	for current_arg, current_arg_type in annotations.items():
-	    if current_arg not in prepared_args:
-	        continue
+		if current_arg not in prepared_args:
+			continue
 
-	    current_arg_value = prepared_args[current_arg]
+		current_arg_value = prepared_args[current_arg]
 
-	    # if the type is a ForwardRef or str, ignore it
-	    if isinstance(current_arg_type, (ForwardRef, str)):
-	        continue
-	    elif any(isinstance(x, (ForwardRef, str)) for x in getattr(current_arg_type, "__args__", [])):
-	        continue
+		# if the type is a ForwardRef or str, ignore it
+		if isinstance(current_arg_type, (ForwardRef, str)):
+			continue
+		elif any(isinstance(x, (ForwardRef, str)) for x in getattr(current_arg_type, "__args__", [])):
+			continue
 
-	    # allow slack for Frappe types
-	    if current_arg_type in SLACK_DICT:
-	        current_arg_type = SLACK_DICT[current_arg_type]
+		# allow slack for Frappe types
+		if current_arg_type in SLACK_DICT:
+			current_arg_type = SLACK_DICT[current_arg_type]
 
-	    param_def = func_params.get(current_arg)
+		param_def = func_params.get(current_arg)
 
-	    # add default value's type in acceptable types
-	    if param_def.default is not _empty:
-	        if isinstance(current_arg_type, tuple):
-	            if type(param_def.default) not in current_arg_type:
-	                current_arg_type += (type(param_def.default),)
-	            current_arg_type = Union[current_arg_type]
+		# add default value's type in acceptable types
+		if param_def.default is not _empty:
+			if isinstance(current_arg_type, tuple):
+				if type(param_def.default) not in current_arg_type:
+					current_arg_type += (type(param_def.default),)
+				current_arg_type = Union[current_arg_type]
 
-	        elif param_def.default != current_arg_type:
-	            current_arg_type = Union[current_arg_type, type(param_def.default)]
-	    elif isinstance(current_arg_type, tuple):
-	        current_arg_type = Union[current_arg_type]
+			elif param_def.default != current_arg_type:
+				current_arg_type = Union[current_arg_type, type(param_def.default)]
+		elif isinstance(current_arg_type, tuple):
+			current_arg_type = Union[current_arg_type]
 
-	    # validate the type set using pydantic - raise a TypeError if Validation is raised or Ellipsis is returned
-	    try:
-	        current_arg_value_after = TypeAdapter(current_arg_type).validate_python(current_arg_value)
-	    except (TypeError, PyValidationError) as e:
-	        raise_type_error(current_arg, current_arg_type, current_arg_value, current_exception=e)
+		# validate the type set using pydantic - raise a TypeError if Validation is raised or Ellipsis is returned
+		try:
+			current_arg_value_after = TypeAdapter(current_arg_type).validate_python(current_arg_value)
+		except (TypeError, PyValidationError) as e:
+			raise_type_error(current_arg, current_arg_type, current_arg_value, current_exception=e)
 
-	    if isinstance(current_arg_value_after, EllipsisType):
-	        raise_type_error(current_arg, current_arg_type, current_arg_value)
+		if isinstance(current_arg_value_after, EllipsisType):
+			raise_type_error(current_arg, current_arg_type, current_arg_value)
 
-	    # update the args and kwargs with possibly casted value
-	    if current_arg in kwargs:
-	        new_kwargs[current_arg] = current_arg_value_after
-	    else:
-	        new_args[arg_names.index(current_arg)] = current_arg_value_after
+		# update the args and kwargs with possibly casted value
+		if current_arg in kwargs:
+			new_kwargs[current_arg] = current_arg_value_after
+		else:
+			new_args[arg_names.index(current_arg)] = current_arg_value_after
 
 	return new_args, new_kwargs

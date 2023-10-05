@@ -9,20 +9,20 @@ REDIS_KEYS = ("redis_cache", "redis_queue")
 
 def is_open(scheme, hostname, port, timeout=10):
 	if scheme in ["redis", "postgres", "mariadb"]:
-	    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	    conn = (hostname, int(port))
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		conn = (hostname, int(port))
 	else:
-	    raise UrlSchemeNotSupported(scheme)
+		raise UrlSchemeNotSupported(scheme)
 
 	s.settimeout(timeout)
 	try:
-	    s.connect(conn)
-	    s.shutdown(socket.SHUT_RDWR)
-	    return True
+		s.connect(conn)
+		s.shutdown(socket.SHUT_RDWR)
+		return True
 	except OSError:
-	    return False
+		return False
 	finally:
-	    s.close()
+		s.close()
 
 
 def check_database():
@@ -38,8 +38,8 @@ def check_redis(redis_services=None):
 	services = redis_services or REDIS_KEYS
 	status = {}
 	for srv in services:
-	    url = urlparse(config[srv])
-	    status[srv] = is_open(url.scheme, url.hostname, url.port)
+		url = urlparse(config[srv])
+		status[srv] = is_open(url.scheme, url.hostname, url.port)
 	return status
 
 

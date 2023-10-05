@@ -56,551 +56,551 @@ class BackupGenerator:
 		exclude_doctypes="",
 		verbose=False,
 	):
-	    """
-	    Initialize the class instance with the provided arguments.
+		"""
+		Initialize the class instance with the provided arguments.
 
-	    Args:
-	        db_name (str): The name of the database.
-	        user (str): The user name.
-	        password (str): The password.
-	        backup_path (str, optional): The backup path.
-	        backup_path_db (str, optional): The backup path for the database.
-	        backup_path_files (str, optional): The backup path for the files.
-	        backup_path_private_files (str, optional): The backup path for the private files.
-	        db_host (str, optional): The database host.
-	        db_port (int, optional): The database port.
-	        db_type (str, optional): The type of the database.
-	        backup_path_conf (str, optional): The backup path for the configuration.
-	        ignore_conf (bool, optional): Whether to ignore the configuration.
-	        compress_files (bool, optional): Whether to compress the files.
-	        include_doctypes (str, optional): The doctypes to include.
-	        exclude_doctypes (str, optional): The doctypes to exclude.
-	        verbose (bool, optional): Whether to enable verbose mode.
-	    """
-	    global _verbose
-	    self.compress_files = compress_files or compress
-	    self.db_host = db_host
-	    self.db_port = db_port
-	    self.db_name = db_name
-	    self.db_type = db_type
-	    self.user = user
-	    self.password = password
-	    self.backup_path = backup_path
-	    self.backup_path_conf = backup_path_conf
-	    self.backup_path_db = backup_path_db
-	    self.backup_path_files = backup_path_files
-	    self.backup_path_private_files = backup_path_private_files
-	    self.ignore_conf = ignore_conf
-	    self.include_doctypes = include_doctypes
-	    self.exclude_doctypes = exclude_doctypes
-	    self.partial = False
+		Args:
+			db_name (str): The name of the database.
+			user (str): The user name.
+			password (str): The password.
+			backup_path (str, optional): The backup path.
+			backup_path_db (str, optional): The backup path for the database.
+			backup_path_files (str, optional): The backup path for the files.
+			backup_path_private_files (str, optional): The backup path for the private files.
+			db_host (str, optional): The database host.
+			db_port (int, optional): The database port.
+			db_type (str, optional): The type of the database.
+			backup_path_conf (str, optional): The backup path for the configuration.
+			ignore_conf (bool, optional): Whether to ignore the configuration.
+			compress_files (bool, optional): Whether to compress the files.
+			include_doctypes (str, optional): The doctypes to include.
+			exclude_doctypes (str, optional): The doctypes to exclude.
+			verbose (bool, optional): Whether to enable verbose mode.
+		"""
+		global _verbose
+		self.compress_files = compress_files or compress
+		self.db_host = db_host
+		self.db_port = db_port
+		self.db_name = db_name
+		self.db_type = db_type
+		self.user = user
+		self.password = password
+		self.backup_path = backup_path
+		self.backup_path_conf = backup_path_conf
+		self.backup_path_db = backup_path_db
+		self.backup_path_files = backup_path_files
+		self.backup_path_private_files = backup_path_private_files
+		self.ignore_conf = ignore_conf
+		self.include_doctypes = include_doctypes
+		self.exclude_doctypes = exclude_doctypes
+		self.partial = False
 
-	    site = frappe.local.site or frappe.generate_hash(length=8)
-	    self.site_slug = site.replace(".", "_")
-	    self.verbose = verbose
-	    self.setup_backup_directory()
-	    self.setup_backup_tables()
-	    _verbose = verbose
+		site = frappe.local.site or frappe.generate_hash(length=8)
+		self.site_slug = site.replace(".", "_")
+		self.verbose = verbose
+		self.setup_backup_directory()
+		self.setup_backup_tables()
+		_verbose = verbose
 
 	def setup_backup_directory(self):
-	    """
-	    This function sets up the backup directory for the object.
+		"""
+		This function sets up the backup directory for the object.
 
-	    If any backup paths are specified, the function creates the necessary
-	    directories if they don't already exist.
+		If any backup paths are specified, the function creates the necessary
+		directories if they don't already exist.
 
-	    """
-	    specified = (
-	    	self.backup_path
-	    	or self.backup_path_db
-	    	or self.backup_path_files
-	    	or self.backup_path_private_files
-	    	or self.backup_path_conf
-	    )
+		"""
+		specified = (
+			self.backup_path
+			or self.backup_path_db
+			or self.backup_path_files
+			or self.backup_path_private_files
+			or self.backup_path_conf
+		)
 
-	    if not specified:
-	        backups_folder = get_backup_path()
-	        if not os.path.exists(backups_folder):
-	            os.makedirs(backups_folder, exist_ok=True)
-	    else:
-	        if self.backup_path:
-	            os.makedirs(self.backup_path, exist_ok=True)
+		if not specified:
+			backups_folder = get_backup_path()
+			if not os.path.exists(backups_folder):
+				os.makedirs(backups_folder, exist_ok=True)
+		else:
+			if self.backup_path:
+				os.makedirs(self.backup_path, exist_ok=True)
 
-	        for file_path in {
-	        	self.backup_path_files,
-	        	self.backup_path_db,
-	        	self.backup_path_private_files,
-	        	self.backup_path_conf,
-	        }:
-	            if file_path:
-	                dir = os.path.dirname(file_path)
-	                os.makedirs(dir, exist_ok=True)
+			for file_path in {
+				self.backup_path_files,
+				self.backup_path_db,
+				self.backup_path_private_files,
+				self.backup_path_conf,
+			}:
+				if file_path:
+					dir = os.path.dirname(file_path)
+					os.makedirs(dir, exist_ok=True)
 
 	def setup_backup_tables(self):
-	    """
-	    Sets self.backup_includes, self.backup_excludes based on passed args
+		"""
+		Sets self.backup_includes, self.backup_excludes based on passed args
 
-	    This function retrieves the existing tables from the database and sets the
-	    'backup_includes' and 'backup_excludes' attributes of the object based on
-	    the passed arguments. It performs the following steps:
+		This function retrieves the existing tables from the database and sets the
+		'backup_includes' and 'backup_excludes' attributes of the object based on
+		the passed arguments. It performs the following steps:
 
-	    1. Retrieves the existing tables from the database.
-	    2. Defines a nested function 'get_tables' that takes a list of doctypes as
-	    input and returns a list of tables corresponding to those doctypes.
-	    3. Calls 'get_tables' with the list of doctypes obtained from the
-	    'include_doctypes' argument and assigns the result to
-	    'passed_tables['include']'.
-	    4. Calls 'get_tables' with the list of doctypes obtained from the
-	    'exclude_doctypes' argument and assigns the result to
-	    'passed_tables['exclude']'.
-	    5. Retrieves the tables specified in the 'backup.includes' setting and assigns
-	    them to 'specified_tables'.
-	    6. Constructs the 'include_tables' list by concatenating 'specified_tables'
-	    with 'base_tables' if 'specified_tables' is not empty.
-	    7. Retrieves the tables specified in the 'backup.excludes' setting and assigns
-	    them to 'conf_tables['exclude']'.
-	    8. Assigns 'passed_tables['include']' to 'self.backup_includes' and
-	    'passed_tables['exclude']' to 'self.backup_excludes'.
-	    9. Checks if neither 'self.backup_includes' nor 'self.backup_excludes' are set
-	    and 'ignore_conf' is False. If so, assigns 'conf_tables['include']' to
-	    'self.backup_includes' and 'conf_tables['exclude']' to
-	    'self.backup_excludes'.
-	    10. Sets 'self.partial' to True if either 'self.backup_includes' or
-	    'self.backup_excludes' is set and 'ignore_conf' is False, otherwise sets it to
-	    False.
-	    """
-	    existing_tables = frappe.db.get_tables()
+		1. Retrieves the existing tables from the database.
+		2. Defines a nested function 'get_tables' that takes a list of doctypes as
+		input and returns a list of tables corresponding to those doctypes.
+		3. Calls 'get_tables' with the list of doctypes obtained from the
+		'include_doctypes' argument and assigns the result to
+		'passed_tables['include']'.
+		4. Calls 'get_tables' with the list of doctypes obtained from the
+		'exclude_doctypes' argument and assigns the result to
+		'passed_tables['exclude']'.
+		5. Retrieves the tables specified in the 'backup.includes' setting and assigns
+		them to 'specified_tables'.
+		6. Constructs the 'include_tables' list by concatenating 'specified_tables'
+		with 'base_tables' if 'specified_tables' is not empty.
+		7. Retrieves the tables specified in the 'backup.excludes' setting and assigns
+		them to 'conf_tables['exclude']'.
+		8. Assigns 'passed_tables['include']' to 'self.backup_includes' and
+		'passed_tables['exclude']' to 'self.backup_excludes'.
+		9. Checks if neither 'self.backup_includes' nor 'self.backup_excludes' are set
+		and 'ignore_conf' is False. If so, assigns 'conf_tables['include']' to
+		'self.backup_includes' and 'conf_tables['exclude']' to
+		'self.backup_excludes'.
+		10. Sets 'self.partial' to True if either 'self.backup_includes' or
+		'self.backup_excludes' is set and 'ignore_conf' is False, otherwise sets it to
+		False.
+		"""
+		existing_tables = frappe.db.get_tables()
 
-	    def get_tables(doctypes):
-	        tables = []
-	        for doctype in doctypes:
-	            if not doctype:
-	                continue
-	            table = frappe.utils.get_table_name(doctype)
-	            if table in existing_tables:
-	                tables.append(table)
-	        return tables
+		def get_tables(doctypes):
+			tables = []
+			for doctype in doctypes:
+				if not doctype:
+					continue
+				table = frappe.utils.get_table_name(doctype)
+				if table in existing_tables:
+					tables.append(table)
+			return tables
 
-	    passed_tables = {
-	    	"include": get_tables(self.include_doctypes.strip().split(",")),
-	    	"exclude": get_tables(self.exclude_doctypes.strip().split(",")),
-	    }
-	    specified_tables = get_tables(frappe.conf.get("backup", {}).get("includes", []))
-	    include_tables = (specified_tables + base_tables) if specified_tables else []
+		passed_tables = {
+			"include": get_tables(self.include_doctypes.strip().split(",")),
+			"exclude": get_tables(self.exclude_doctypes.strip().split(",")),
+		}
+		specified_tables = get_tables(frappe.conf.get("backup", {}).get("includes", []))
+		include_tables = (specified_tables + base_tables) if specified_tables else []
 
-	    conf_tables = {
-	    	"include": include_tables,
-	    	"exclude": get_tables(frappe.conf.get("backup", {}).get("excludes", [])),
-	    }
+		conf_tables = {
+			"include": include_tables,
+			"exclude": get_tables(frappe.conf.get("backup", {}).get("excludes", [])),
+		}
 
-	    self.backup_includes = passed_tables["include"]
-	    self.backup_excludes = passed_tables["exclude"]
+		self.backup_includes = passed_tables["include"]
+		self.backup_excludes = passed_tables["exclude"]
 
-	    if not (self.backup_includes or self.backup_excludes) and not self.ignore_conf:
-	        self.backup_includes = self.backup_includes or conf_tables["include"]
-	        self.backup_excludes = self.backup_excludes or conf_tables["exclude"]
+		if not (self.backup_includes or self.backup_excludes) and not self.ignore_conf:
+			self.backup_includes = self.backup_includes or conf_tables["include"]
+			self.backup_excludes = self.backup_excludes or conf_tables["exclude"]
 
-	    self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
+		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
 
 	@property
 	def site_config_backup_path(self):
-	    """
-	    Property to get the backup path configuration.
+		"""
+		Property to get the backup path configuration.
 
-	    For backwards compatibility, this property returns the value of the 'backup_path_conf'
-	    attribute. If the 'backup_path_conf' attribute is not found, it returns None.
+		For backwards compatibility, this property returns the value of the 'backup_path_conf'
+		attribute. If the 'backup_path_conf' attribute is not found, it returns None.
 
-	    Returns:
-	        str: The backup path configuration.
-	    """
-	    # For backwards compatibility
-	    click.secho(
-	    	"BackupGenerator.site_config_backup_path has been deprecated in favour of"
-	    	" BackupGenerator.backup_path_conf",
-	    	fg="yellow",
-	    )
-	    return getattr(self, "backup_path_conf", None)
+		Returns:
+			str: The backup path configuration.
+		"""
+		# For backwards compatibility
+		click.secho(
+			"BackupGenerator.site_config_backup_path has been deprecated in favour of"
+			" BackupGenerator.backup_path_conf",
+			fg="yellow",
+		)
+		return getattr(self, "backup_path_conf", None)
 
 	def get_backup(self, older_than=24, ignore_files=False, force=False):
-	    """
+		"""
 		Takes a new dump if existing file is old
 		and sends the link to the file as email
 		"""
-	    # Check if file exists and is less than a day old
-	    # If not Take Dump
-	    if not force:
-	        (
-	        	last_db,
-	        	last_file,
-	        	last_private_file,
-	        	site_config_backup_path,
-	        ) = self.get_recent_backup(older_than)
-	    else:
-	        last_db, last_file, last_private_file, site_config_backup_path = (
-	        	False,
-	        	False,
-	        	False,
-	        	False,
-	        )
+		# Check if file exists and is less than a day old
+		# If not Take Dump
+		if not force:
+			(
+				last_db,
+				last_file,
+				last_private_file,
+				site_config_backup_path,
+			) = self.get_recent_backup(older_than)
+		else:
+			last_db, last_file, last_private_file, site_config_backup_path = (
+				False,
+				False,
+				False,
+				False,
+			)
 
-	    if not (
-	    	self.backup_path_conf
-	    	and self.backup_path_db
-	    	and self.backup_path_files
-	    	and self.backup_path_private_files
-	    ):
-	        self.set_backup_file_name()
+		if not (
+			self.backup_path_conf
+			and self.backup_path_db
+			and self.backup_path_files
+			and self.backup_path_private_files
+		):
+			self.set_backup_file_name()
 
-	    if not (last_db and last_file and last_private_file and site_config_backup_path):
-	        self.take_dump()
-	        self.copy_site_config()
-	        if not ignore_files:
-	            self.backup_files()
+		if not (last_db and last_file and last_private_file and site_config_backup_path):
+			self.take_dump()
+			self.copy_site_config()
+			if not ignore_files:
+				self.backup_files()
 
-	        if frappe.get_system_settings("encrypt_backup"):
-	            self.backup_encryption()
+			if frappe.get_system_settings("encrypt_backup"):
+				self.backup_encryption()
 
-	    else:
-	        self.backup_path_files = last_file
-	        self.backup_path_db = last_db
-	        self.backup_path_private_files = last_private_file
-	        self.backup_path_conf = site_config_backup_path
+		else:
+			self.backup_path_files = last_file
+			self.backup_path_db = last_db
+			self.backup_path_private_files = last_private_file
+			self.backup_path_conf = site_config_backup_path
 
 	def set_backup_file_name(self):
-	    """
-	    Set the backup file names and paths.
+		"""
+		Set the backup file names and paths.
 
-	    This function sets the backup file names based on various conditions, such as
-	    the current date and time, the site slug, whether partial backup is
-	    enabled, whether file compression is enabled, and whether backup
-	    encryption is enabled.
-	    It also assigns the backup file paths based on the backup path provided or the
-	    default backup path.
-	    """
-	    partial = "-partial" if self.partial else ""
-	    ext = "tgz" if self.compress_files else "tar"
-	    enc = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
-	    self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
+		This function sets the backup file names based on various conditions, such as
+		the current date and time, the site slug, whether partial backup is
+		enabled, whether file compression is enabled, and whether backup
+		encryption is enabled.
+		It also assigns the backup file paths based on the backup path provided or the
+		default backup path.
+		"""
+		partial = "-partial" if self.partial else ""
+		ext = "tgz" if self.compress_files else "tar"
+		enc = "-enc" if frappe.get_system_settings("encrypt_backup") else ""
+		self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
 
-	    for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup{enc}.json"
-	    for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
-	    for_public_files = f"{self.todays_date}-{self.site_slug}-files{enc}.{ext}"
-	    for_private_files = f"{self.todays_date}-{self.site_slug}-private-files{enc}.{ext}"
-	    backup_path = self.backup_path or get_backup_path()
+		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup{enc}.json"
+		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
+		for_public_files = f"{self.todays_date}-{self.site_slug}-files{enc}.{ext}"
+		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files{enc}.{ext}"
+		backup_path = self.backup_path or get_backup_path()
 
-	    if not self.backup_path_conf:
-	        self.backup_path_conf = os.path.join(backup_path, for_conf)
-	    if not self.backup_path_db:
-	        self.backup_path_db = os.path.join(backup_path, for_db)
-	    if not self.backup_path_files:
-	        self.backup_path_files = os.path.join(backup_path, for_public_files)
-	    if not self.backup_path_private_files:
-	        self.backup_path_private_files = os.path.join(backup_path, for_private_files)
+		if not self.backup_path_conf:
+			self.backup_path_conf = os.path.join(backup_path, for_conf)
+		if not self.backup_path_db:
+			self.backup_path_db = os.path.join(backup_path, for_db)
+		if not self.backup_path_files:
+			self.backup_path_files = os.path.join(backup_path, for_public_files)
+		if not self.backup_path_private_files:
+			self.backup_path_private_files = os.path.join(backup_path, for_private_files)
 
 	def backup_encryption(self):
-	    """
+		"""
 		Encrypt all the backups created using gpg.
 		"""
-	    paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
-	    for path in paths:
-	        if os.path.exists(path):
-	            cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}"
-	            try:
-	                command = cmd_string.format(
-	                	passphrase=get_or_generate_backup_encryption_key(),
-	                	filelocation=path,
-	                )
+		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
+		for path in paths:
+			if os.path.exists(path):
+				cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -c {filelocation}"
+				try:
+					command = cmd_string.format(
+						passphrase=get_or_generate_backup_encryption_key(),
+						filelocation=path,
+					)
 
-	                frappe.utils.execute_in_shell(command)
-	                os.rename(path + ".gpg", path)
+					frappe.utils.execute_in_shell(command)
+					os.rename(path + ".gpg", path)
 
-	            except Exception as err:
-	                print(err)
-	                click.secho(
-	                	"Error occurred during encryption. Files are stored without encryption.", fg="red"
-	                )
+				except Exception as err:
+					print(err)
+					click.secho(
+						"Error occurred during encryption. Files are stored without encryption.", fg="red"
+					)
 
 	def get_recent_backup(self, older_than, partial=False):
-	    """
-	    Retrieve the most recent backup files based on the provided criteria.
+		"""
+		Retrieve the most recent backup files based on the provided criteria.
 
-	    This function retrieves the most recent backup files from the backup path based
-	    on the provided 'older_than' parameter. The 'partial' parameter specifies
-	    whether partial backups should be included.
+		This function retrieves the most recent backup files from the backup path based
+		on the provided 'older_than' parameter. The 'partial' parameter specifies
+		whether partial backups should be included.
 
-	    Args:
-	        older_than (int): The time (in seconds) that a backup file should be older than.
-	        partial (bool, optional): Whether to include partial backups. Defaults to False.
+		Args:
+			older_than (int): The time (in seconds) that a backup file should be older than.
+			partial (bool, optional): Whether to include partial backups. Defaults to False.
 
-	    Returns:
-	        Tuple[str, str, str, str]: A tuple containing the most recent backup files of
-	        different types ('database', 'public', 'private', 'config').
-	    """
-	    backup_path = get_backup_path()
+		Returns:
+			Tuple[str, str, str, str]: A tuple containing the most recent backup files of
+			different types ('database', 'public', 'private', 'config').
+		"""
+		backup_path = get_backup_path()
 
-	    if not frappe.get_system_settings("encrypt_backup"):
-	        file_type_slugs = {
-	        	"database": "*-{{}}-{}database.sql.gz".format("*" if partial else ""),
-	        	"public": "*-{}-files.tar",
-	        	"private": "*-{}-private-files.tar",
-	        	"config": "*-{}-site_config_backup.json",
-	        }
-	    else:
-	        file_type_slugs = {
-	        	"database": "*-{{}}-{}database.enc.sql.gz".format("*" if partial else ""),
-	        	"public": "*-{}-files.enc.tar",
-	        	"private": "*-{}-private-files.enc.tar",
-	        	"config": "*-{}-site_config_backup.json",
-	        }
+		if not frappe.get_system_settings("encrypt_backup"):
+			file_type_slugs = {
+				"database": "*-{{}}-{}database.sql.gz".format("*" if partial else ""),
+				"public": "*-{}-files.tar",
+				"private": "*-{}-private-files.tar",
+				"config": "*-{}-site_config_backup.json",
+			}
+		else:
+			file_type_slugs = {
+				"database": "*-{{}}-{}database.enc.sql.gz".format("*" if partial else ""),
+				"public": "*-{}-files.enc.tar",
+				"private": "*-{}-private-files.enc.tar",
+				"config": "*-{}-site_config_backup.json",
+			}
 
-	    def backup_time(file_path):
-	        file_name = file_path.split(os.sep)[-1]
-	        file_timestamp = file_name.split("-", 1)[0]
-	        return timegm(datetime.strptime(file_timestamp, "%Y%m%d_%H%M%S").utctimetuple())
+		def backup_time(file_path):
+			file_name = file_path.split(os.sep)[-1]
+			file_timestamp = file_name.split("-", 1)[0]
+			return timegm(datetime.strptime(file_timestamp, "%Y%m%d_%H%M%S").utctimetuple())
 
-	    def get_latest(file_pattern):
-	        file_pattern = os.path.join(backup_path, file_pattern.format(self.site_slug))
-	        file_list = glob(file_pattern)
-	        if file_list:
-	            return max(file_list, key=backup_time)
+		def get_latest(file_pattern):
+			file_pattern = os.path.join(backup_path, file_pattern.format(self.site_slug))
+			file_list = glob(file_pattern)
+			if file_list:
+				return max(file_list, key=backup_time)
 
-	    def old_enough(file_path):
-	        if file_path:
-	            if not os.path.isfile(file_path) or is_file_old(file_path, older_than):
-	                return None
-	            return file_path
+		def old_enough(file_path):
+			if file_path:
+				if not os.path.isfile(file_path) or is_file_old(file_path, older_than):
+					return None
+				return file_path
 
-	    latest_backups = {
-	    	file_type: get_latest(pattern) for file_type, pattern in file_type_slugs.items()
-	    }
+		latest_backups = {
+			file_type: get_latest(pattern) for file_type, pattern in file_type_slugs.items()
+		}
 
-	    recent_backups = {
-	    	file_type: old_enough(file_name) for file_type, file_name in latest_backups.items()
-	    }
+		recent_backups = {
+			file_type: old_enough(file_name) for file_type, file_name in latest_backups.items()
+		}
 
-	    return (
-	    	recent_backups.get("database"),
-	    	recent_backups.get("public"),
-	    	recent_backups.get("private"),
-	    	recent_backups.get("config"),
-	    )
+		return (
+			recent_backups.get("database"),
+			recent_backups.get("public"),
+			recent_backups.get("private"),
+			recent_backups.get("config"),
+		)
 
 	def zip_files(self):
-	    """
-	    Function to zip files for backup.
+		"""
+		Function to zip files for backup.
 
-	    This function prints a deprecation warning message and then calls the
-	    backup_files function.
+		This function prints a deprecation warning message and then calls the
+		backup_files function.
 
-	    Returns:
-	        The result of the backup_files function.
-	    """
-	    # For backwards compatibility - pre v13
-	    click.secho(
-	    	"BackupGenerator.zip_files has been deprecated in favour of" " BackupGenerator.backup_files",
-	    	fg="yellow",
-	    )
-	    return self.backup_files()
+		Returns:
+			The result of the backup_files function.
+		"""
+		# For backwards compatibility - pre v13
+		click.secho(
+			"BackupGenerator.zip_files has been deprecated in favour of" " BackupGenerator.backup_files",
+			fg="yellow",
+		)
+		return self.backup_files()
 
 	def get_summary(self):
-	    """
-	    Function to get a summary of the backup files.
+		"""
+		Function to get a summary of the backup files.
 
-	    This function creates a summary dictionary containing information about the
-	    backup files. The dictionary includes the config and database paths and
-	    their sizes. If the backup_path_files and backup_path_private_files paths
-	    exist, the summary dictionary is updated to include the public and private
-	    paths and their sizes.
+		This function creates a summary dictionary containing information about the
+		backup files. The dictionary includes the config and database paths and
+		their sizes. If the backup_path_files and backup_path_private_files paths
+		exist, the summary dictionary is updated to include the public and private
+		paths and their sizes.
 
-	    Returns:
-	        dict: A dictionary containing the summary of the backup files.
-	    """
-	    summary = {
-	    	"config": {
-	    		"path": self.backup_path_conf,
-	    		"size": get_file_size(self.backup_path_conf, format=True),
-	    	},
-	    	"database": {
-	    		"path": self.backup_path_db,
-	    		"size": get_file_size(self.backup_path_db, format=True),
-	    	},
-	    }
+		Returns:
+			dict: A dictionary containing the summary of the backup files.
+		"""
+		summary = {
+			"config": {
+				"path": self.backup_path_conf,
+				"size": get_file_size(self.backup_path_conf, format=True),
+			},
+			"database": {
+				"path": self.backup_path_db,
+				"size": get_file_size(self.backup_path_db, format=True),
+			},
+		}
 
-	    if os.path.exists(self.backup_path_files) and os.path.exists(self.backup_path_private_files):
-	        summary.update(
-	        	{
-	        		"public": {
-	        			"path": self.backup_path_files,
-	        			"size": get_file_size(self.backup_path_files, format=True),
-	        		},
-	        		"private": {
-	        			"path": self.backup_path_private_files,
-	        			"size": get_file_size(self.backup_path_private_files, format=True),
-	        		},
-	        	}
-	        )
+		if os.path.exists(self.backup_path_files) and os.path.exists(self.backup_path_private_files):
+			summary.update(
+				{
+					"public": {
+						"path": self.backup_path_files,
+						"size": get_file_size(self.backup_path_files, format=True),
+					},
+					"private": {
+						"path": self.backup_path_private_files,
+						"size": get_file_size(self.backup_path_private_files, format=True),
+					},
+				}
+			)
 
-	    return summary
+		return summary
 
 	def print_summary(self):
-	    """Prints a backup summary for the site."""
-	    backup_summary = self.get_summary()
-	    print(f"Backup Summary for {frappe.local.site} at {now()}")
+		"""Prints a backup summary for the site."""
+		backup_summary = self.get_summary()
+		print(f"Backup Summary for {frappe.local.site} at {now()}")
 
-	    title = max(len(x) for x in backup_summary)
-	    path = max(len(x["path"]) for x in backup_summary.values())
+		title = max(len(x) for x in backup_summary)
+		path = max(len(x["path"]) for x in backup_summary.values())
 
-	    for _type, info in backup_summary.items():
-	        template = f"{{0:{title}}}: {{1:{path}}} {{2}}"
-	        print(template.format(_type.title(), info["path"], info["size"]))
+		for _type, info in backup_summary.items():
+			template = f"{{0:{title}}}: {{1:{path}}} {{2}}"
+			print(template.format(_type.title(), info["path"], info["size"]))
 
 	def backup_files(self):
-	    """Creates a backup of the 'public' and 'private' files."""
-	    for folder in ("public", "private"):
-	        files_path = frappe.get_site_path(folder, "files")
-	        backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
+		"""Creates a backup of the 'public' and 'private' files."""
+		for folder in ("public", "private"):
+			files_path = frappe.get_site_path(folder, "files")
+			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
 
-	        if self.compress_files:
-	            cmd_string = "self=$$; ( tar cf - {1} || kill $self ) | gzip > {0}"
-	        else:
-	            cmd_string = "tar -cf {0} {1}"
+			if self.compress_files:
+				cmd_string = "self=$$; ( tar cf - {1} || kill $self ) | gzip > {0}"
+			else:
+				cmd_string = "tar -cf {0} {1}"
 
-	        frappe.utils.execute_in_shell(
-	        	cmd_string.format(backup_path, files_path),
-	        	verbose=self.verbose,
-	        	low_priority=True,
-	        	check_exit_code=True,
-	        )
+			frappe.utils.execute_in_shell(
+				cmd_string.format(backup_path, files_path),
+				verbose=self.verbose,
+				low_priority=True,
+				check_exit_code=True,
+			)
 
 	def copy_site_config(self):
-	    """Creates a backup of the site_config.json file."""
-	    site_config_backup_path = self.backup_path_conf
-	    site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
+		"""Creates a backup of the site_config.json file."""
+		site_config_backup_path = self.backup_path_conf
+		site_config_path = os.path.join(frappe.get_site_path(), "site_config.json")
 
-	    with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
-	        n.write(c.read())
+		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
+			n.write(c.read())
 
 	def take_dump(self):
-	    """
-	    Take a backup of the database.
+		"""
+		Take a backup of the database.
 
-	    This function checks for the presence of required executables and throws an
-	    exception if any of them are missing.
-	    It generates a database header content and writes it to a backup file.
-	    Depending on the database type, it constructs a command string and executes it
-	    in a shell.
-	    The command string is responsible for taking the actual backup and appending it
-	    to the backup file.
-	    This function uses various arguments to construct the command string.
-	    Finally, it executes the command string in a shell using the 'execute_in_shell'
-	    method from the 'frappe.utils' module.
-	    """
-	    import frappe.utils
-	    from frappe.utils.change_log import get_app_branch
+		This function checks for the presence of required executables and throws an
+		exception if any of them are missing.
+		It generates a database header content and writes it to a backup file.
+		Depending on the database type, it constructs a command string and executes it
+		in a shell.
+		The command string is responsible for taking the actual backup and appending it
+		to the backup file.
+		This function uses various arguments to construct the command string.
+		Finally, it executes the command string in a shell using the 'execute_in_shell'
+		method from the 'frappe.utils' module.
+		"""
+		import frappe.utils
+		from frappe.utils.change_log import get_app_branch
 
-	    db_exc = {
-	    	"mariadb": ("mysqldump", which("mysqldump")),
-	    	"postgres": ("pg_dump", which("pg_dump")),
-	    }[self.db_type]
-	    gzip_exc = which("gzip")
+		db_exc = {
+			"mariadb": ("mysqldump", which("mysqldump")),
+			"postgres": ("pg_dump", which("pg_dump")),
+		}[self.db_type]
+		gzip_exc = which("gzip")
 
-	    if not (gzip_exc and db_exc[1]):
-	        _exc = "gzip" if not gzip_exc else db_exc[0]
-	        frappe.throw(
-	        	f"{_exc} not found in PATH! This is required to take a backup.", exc=frappe.ExecutableNotFound
-	        )
-	    db_exc = db_exc[0]
+		if not (gzip_exc and db_exc[1]):
+			_exc = "gzip" if not gzip_exc else db_exc[0]
+			frappe.throw(
+				f"{_exc} not found in PATH! This is required to take a backup.", exc=frappe.ExecutableNotFound
+			)
+		db_exc = db_exc[0]
 
-	    database_header_content = [
-	    	f"Backup generated by Frappe {frappe.__version__} on branch {get_app_branch('frappe') or 'N/A'}",
-	    	"",
-	    ]
+		database_header_content = [
+			f"Backup generated by Frappe {frappe.__version__} on branch {get_app_branch('frappe') or 'N/A'}",
+			"",
+		]
 
-	    # escape reserved characters
-	    args = frappe._dict(
-	    	[item[0], frappe.utils.esc(str(item[1]), "$ ")] for item in self.__dict__.copy().items()
-	    )
+		# escape reserved characters
+		args = frappe._dict(
+			[item[0], frappe.utils.esc(str(item[1]), "$ ")] for item in self.__dict__.copy().items()
+		)
 
-	    if self.backup_includes:
-	        backup_info = ("Backing Up Tables: ", ", ".join(self.backup_includes))
-	    elif self.backup_excludes:
-	        backup_info = ("Skipping Tables: ", ", ".join(self.backup_excludes))
+		if self.backup_includes:
+			backup_info = ("Backing Up Tables: ", ", ".join(self.backup_includes))
+		elif self.backup_excludes:
+			backup_info = ("Skipping Tables: ", ", ".join(self.backup_excludes))
 
-	    if self.partial:
-	        if self.verbose:
-	            print("".join(backup_info), "\n")
-	        database_header_content.extend(
-	        	[
-	        		f"Partial Backup of Frappe Site {frappe.local.site}",
-	        		("Backup contains: " if self.backup_includes else "Backup excludes: ") + backup_info[1],
-	        		"",
-	        	]
-	        )
+		if self.partial:
+			if self.verbose:
+				print("".join(backup_info), "\n")
+			database_header_content.extend(
+				[
+					f"Partial Backup of Frappe Site {frappe.local.site}",
+					("Backup contains: " if self.backup_includes else "Backup excludes: ") + backup_info[1],
+					"",
+				]
+			)
 
-	    generated_header = "\n".join(f"-- {x}" for x in database_header_content) + "\n"
+		generated_header = "\n".join(f"-- {x}" for x in database_header_content) + "\n"
 
-	    with gzip.open(args.backup_path_db, "wt") as f:
-	        f.write(generated_header)
+		with gzip.open(args.backup_path_db, "wt") as f:
+			f.write(generated_header)
 
-	    if self.db_type == "postgres":
-	        if self.backup_includes:
-	            args["include"] = " ".join([f"--table='public.\"{table}\"'" for table in self.backup_includes])
-	        elif self.backup_excludes:
-	            args["exclude"] = " ".join(
-	            	[f"--exclude-table-data='public.\"{table}\"'" for table in self.backup_excludes]
-	            )
+		if self.db_type == "postgres":
+			if self.backup_includes:
+				args["include"] = " ".join([f"--table='public.\"{table}\"'" for table in self.backup_includes])
+			elif self.backup_excludes:
+				args["exclude"] = " ".join(
+					[f"--exclude-table-data='public.\"{table}\"'" for table in self.backup_excludes]
+				)
 
-	        cmd_string = (
-	        	"self=$$; "
-	        	"( {db_exc} postgres://{user}:{password}@{db_host}:{db_port}/{db_name}"
-	        	" {include} {exclude} || kill $self ) | {gzip} >> {backup_path_db}"
-	        )
+			cmd_string = (
+				"self=$$; "
+				"( {db_exc} postgres://{user}:{password}@{db_host}:{db_port}/{db_name}"
+				" {include} {exclude} || kill $self ) | {gzip} >> {backup_path_db}"
+			)
 
-	    else:
-	        if self.backup_includes:
-	            args["include"] = " ".join([f"'{x}'" for x in self.backup_includes])
-	        elif self.backup_excludes:
-	            args["exclude"] = " ".join(
-	            	[f"--ignore-table='{self.db_name}.{table}'" for table in self.backup_excludes]
-	            )
+		else:
+			if self.backup_includes:
+				args["include"] = " ".join([f"'{x}'" for x in self.backup_includes])
+			elif self.backup_excludes:
+				args["exclude"] = " ".join(
+					[f"--ignore-table='{self.db_name}.{table}'" for table in self.backup_excludes]
+				)
 
-	        cmd_string = (
-	        	# Remember process of this shell and kill it if mysqldump exits w/ non-zero code
-	        	"self=$$; "
-	        	" ( {db_exc} --single-transaction --quick --lock-tables=false -u {user}"
-	        	" -p{password} {db_name} -h {db_host} -P {db_port} {include} {exclude} || kill $self ) "
-	        	" | {gzip} >> {backup_path_db}"
-	        )
+			cmd_string = (
+				# Remember process of this shell and kill it if mysqldump exits w/ non-zero code
+				"self=$$; "
+				" ( {db_exc} --single-transaction --quick --lock-tables=false -u {user}"
+				" -p{password} {db_name} -h {db_host} -P {db_port} {include} {exclude} || kill $self ) "
+				" | {gzip} >> {backup_path_db}"
+			)
 
-	    command = cmd_string.format(
-	    	user=args.user,
-	    	password=args.password,
-	    	db_exc=db_exc,
-	    	db_host=args.db_host,
-	    	db_port=args.db_port,
-	    	db_name=args.db_name,
-	    	backup_path_db=args.backup_path_db,
-	    	exclude=args.get("exclude", ""),
-	    	include=args.get("include", ""),
-	    	gzip=gzip_exc,
-	    )
+		command = cmd_string.format(
+			user=args.user,
+			password=args.password,
+			db_exc=db_exc,
+			db_host=args.db_host,
+			db_port=args.db_port,
+			db_name=args.db_name,
+			backup_path_db=args.backup_path_db,
+			exclude=args.get("exclude", ""),
+			include=args.get("include", ""),
+			gzip=gzip_exc,
+		)
 
-	    if self.verbose:
-	        print(command.replace(args.password, "*" * 10) + "\n")
+		if self.verbose:
+			print(command.replace(args.password, "*" * 10) + "\n")
 
-	    frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
+		frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
 
 	def send_email(self):
-	    """
+		"""
 		Sends the link to backup file located at erpnext/backups
 		"""
-	    from frappe.email import get_system_managers
+		from frappe.email import get_system_managers
 
-	    recipient_list = get_system_managers()
-	    db_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_db)))
-	    files_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_files)))
+		recipient_list = get_system_managers()
+		db_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_db)))
+		files_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_files)))
 
-	    msg = """Hello,
+		msg = """Hello,
 
 Your backups are ready to be downloaded.
 
@@ -609,15 +609,15 @@ Your backups are ready to be downloaded.
 
 This link will be valid for 24 hours. A new backup will be available for
 download only after 24 hours.""".format(
-	    	db_backup_url=db_backup_url,
-	    	files_backup_url=files_backup_url,
-	    )
+			db_backup_url=db_backup_url,
+			files_backup_url=files_backup_url,
+		)
 
-	    datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
-	    subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
+		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
+		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 
-	    frappe.sendmail(recipients=recipient_list, message=msg, subject=subject)
-	    return recipient_list
+		frappe.sendmail(recipients=recipient_list, message=msg, subject=subject)
+		return recipient_list
 
 
 @frappe.whitelist()
@@ -627,7 +627,7 @@ def fetch_latest_backups(partial=False):
 	Only for: System Managers
 
 	Returns:
-	    dict: relative Backup Paths
+		dict: relative Backup Paths
 	"""
 	frappe.only_for("System Manager")
 	odb = BackupGenerator(
@@ -662,34 +662,34 @@ def scheduled_backup(
 and take a new backup.
 
 	Args:
-	    older_than (int, optional): The number of days for which backups
-	        should be considered old and deleted. Defaults to 6.
-	    ignore_files (bool, optional): Whether to ignore files during the
-	        backup process. Defaults to False.
-	    backup_path (str, optional): The path where the backup should be stored.
-	    Defaults to None.
-	    backup_path_db (str, optional): The path where the database backup
-	        should be stored. Defaults to None.
-	    backup_path_files (str, optional): The path where the files backup
-	        should be stored. Defaults to None.
-	    backup_path_private_files (str, optional): The path where the private
-	        files backup should be stored. Defaults to None.
-	    backup_path_conf (str, optional): The path where the configuration
-	        backup should be stored. Defaults to None.
-	    ignore_conf (bool, optional): Whether to ignore the configuration file
-	        during the backup process. Defaults to False.
-	    include_doctypes (str, optional): A comma-separated string of doctypes
-	        to include in the backup. Defaults to "".
-	    exclude_doctypes (str, optional): A comma-separated string of doctypes
-	        to exclude from the backup. Defaults to "".
-	    compress (bool, optional): Whether to compress the backup files. Defaults to False.
-	    force (bool, optional): Whether to force the backup process even if
-	        backups already exist. Defaults to False.
-	    verbose (bool, optional): Whether to print verbose output during the
-	        backup process. Defaults to False.
+		older_than (int, optional): The number of days for which backups
+			should be considered old and deleted. Defaults to 6.
+		ignore_files (bool, optional): Whether to ignore files during the
+			backup process. Defaults to False.
+		backup_path (str, optional): The path where the backup should be stored.
+		Defaults to None.
+		backup_path_db (str, optional): The path where the database backup
+			should be stored. Defaults to None.
+		backup_path_files (str, optional): The path where the files backup
+			should be stored. Defaults to None.
+		backup_path_private_files (str, optional): The path where the private
+			files backup should be stored. Defaults to None.
+		backup_path_conf (str, optional): The path where the configuration
+			backup should be stored. Defaults to None.
+		ignore_conf (bool, optional): Whether to ignore the configuration file
+			during the backup process. Defaults to False.
+		include_doctypes (str, optional): A comma-separated string of doctypes
+			to include in the backup. Defaults to "".
+		exclude_doctypes (str, optional): A comma-separated string of doctypes
+			to exclude from the backup. Defaults to "".
+		compress (bool, optional): Whether to compress the backup files. Defaults to False.
+		force (bool, optional): Whether to force the backup process even if
+			backups already exist. Defaults to False.
+		verbose (bool, optional): Whether to print verbose output during the
+			backup process. Defaults to False.
 
 	Returns:
-	    The result of the new_backup function.
+		The result of the new_backup function.
 	"""
 	return new_backup(
 		older_than=older_than,
@@ -732,32 +732,32 @@ def new_backup(
 	'BackupGenerator' object.
 
 	Args:
-	    older_than (int, optional): The age (in hours) at which backup files
-	        are considered older and should be deleted. Defaults to 6.
-	    ignore_files (bool, optional): Whether to ignore backup files. Defaults to False.
-	    backup_path (str, optional): The path where the backup files should be stored.
-	    Defaults to None.
-	    backup_path_db (str, optional): The path where the database backup
-	        files should be stored. Defaults to None.
-	    backup_path_files (str, optional): The path where the files backup
-	        files should be stored. Defaults to None.
-	    backup_path_private_files (str, optional): The path where the private
-	        files backup files should be stored. Defaults to None.
-	    backup_path_conf (str, optional): The path where the configuration
-	        backup files should be stored. Defaults to None.
-	    ignore_conf (bool, optional): Whether to ignore the configuration backup files.
-	    Defaults to False.
-	    include_doctypes (str, optional): A comma-separated list of document
-	        types to include in the backup. Defaults to ''.
-	    exclude_doctypes (str, optional): A comma-separated list of document
-	        types to exclude from the backup. Defaults to ''.
-	    compress (bool, optional): Whether to compress the backup files. Defaults to False.
-	    force (bool, optional): Whether to force the backup even if there are
-	        no changes. Defaults to False.
-	    verbose (bool, optional): Whether to print verbose output. Defaults to False.
+		older_than (int, optional): The age (in hours) at which backup files
+			are considered older and should be deleted. Defaults to 6.
+		ignore_files (bool, optional): Whether to ignore backup files. Defaults to False.
+		backup_path (str, optional): The path where the backup files should be stored.
+		Defaults to None.
+		backup_path_db (str, optional): The path where the database backup
+			files should be stored. Defaults to None.
+		backup_path_files (str, optional): The path where the files backup
+			files should be stored. Defaults to None.
+		backup_path_private_files (str, optional): The path where the private
+			files backup files should be stored. Defaults to None.
+		backup_path_conf (str, optional): The path where the configuration
+			backup files should be stored. Defaults to None.
+		ignore_conf (bool, optional): Whether to ignore the configuration backup files.
+		Defaults to False.
+		include_doctypes (str, optional): A comma-separated list of document
+			types to include in the backup. Defaults to ''.
+		exclude_doctypes (str, optional): A comma-separated list of document
+			types to exclude from the backup. Defaults to ''.
+		compress (bool, optional): Whether to compress the backup files. Defaults to False.
+		force (bool, optional): Whether to force the backup even if there are
+			no changes. Defaults to False.
+		verbose (bool, optional): Whether to print verbose output. Defaults to False.
 
 	Returns:
-	    BackupGenerator: The 'BackupGenerator' object used for the backup.
+		BackupGenerator: The 'BackupGenerator' object used for the backup.
 	"""
 	delete_temp_backups()
 	odb = BackupGenerator(
@@ -789,11 +789,11 @@ def delete_temp_backups(older_than=24):
 	older_than = cint(frappe.conf.keep_backups_for_hours) or older_than
 	backup_path = get_backup_path()
 	if os.path.exists(backup_path):
-	    file_list = os.listdir(get_backup_path())
-	    for this_file in file_list:
-	        this_file_path = os.path.join(get_backup_path(), this_file)
-	        if is_file_old(this_file_path, older_than):
-	            os.remove(this_file_path)
+		file_list = os.listdir(get_backup_path())
+		for this_file in file_list:
+			this_file_path = os.path.join(get_backup_path(), this_file)
+			if is_file_old(this_file_path, older_than):
+				os.remove(this_file_path)
 
 
 def is_file_old(file_path, older_than=24):
@@ -804,22 +804,22 @@ def is_file_old(file_path, older_than=24):
 	False: file is new
 	"""
 	if os.path.isfile(file_path):
-	    from datetime import timedelta
+		from datetime import timedelta
 
-	    # Get timestamp of the file
-	    file_datetime = datetime.fromtimestamp(os.stat(file_path).st_ctime)
-	    if datetime.today() - file_datetime >= timedelta(hours=older_than):
-	        if _verbose:
-	            print(f"File {file_path} is older than {older_than} hours")
-	        return True
-	    else:
-	        if _verbose:
-	            print(f"File {file_path} is recent")
-	        return False
+		# Get timestamp of the file
+		file_datetime = datetime.fromtimestamp(os.stat(file_path).st_ctime)
+		if datetime.today() - file_datetime >= timedelta(hours=older_than):
+			if _verbose:
+				print(f"File {file_path} is older than {older_than} hours")
+			return True
+		else:
+			if _verbose:
+				print(f"File {file_path} is recent")
+			return False
 	else:
-	    if _verbose:
-	        print(f"File {file_path} does not exist")
-	    return True
+		if _verbose:
+			print(f"File {file_path} does not exist")
+		return True
 
 
 def get_backup_path():
@@ -841,7 +841,7 @@ configuration."""
 
 	key = frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
 	if key:
-	    return key
+		return key
 
 	key = Fernet.generate_key().decode()
 	update_site_config(BACKUP_ENCRYPTION_CONFIG_KEY, key)
@@ -855,41 +855,41 @@ class Backup:
 	decryption and rollback.
 	"""
 	def __init__(self, file_path):
-	    self.file_path = file_path
+		self.file_path = file_path
 
 	def backup_decryption(self, passphrase):
-	    """
+		"""
 		Decrypts backup at the given path using the passphrase.
 		"""
-	    if not os.path.exists(self.file_path):
-	        print("Invalid path", self.file_path)
-	        return
-	    else:
-	        file_path_with_ext = self.file_path + ".gpg"
-	        os.rename(self.file_path, file_path_with_ext)
+		if not os.path.exists(self.file_path):
+			print("Invalid path", self.file_path)
+			return
+		else:
+			file_path_with_ext = self.file_path + ".gpg"
+			os.rename(self.file_path, file_path_with_ext)
 
-	        cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
-	        command = cmd_string.format(
-	        	passphrase=passphrase,
-	        	file_location=file_path_with_ext,
-	        	decrypted_file=self.file_path,
-	        )
-	    frappe.utils.execute_in_shell(command)
+			cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
+			command = cmd_string.format(
+				passphrase=passphrase,
+				file_location=file_path_with_ext,
+				decrypted_file=self.file_path,
+			)
+		frappe.utils.execute_in_shell(command)
 
 	def decryption_rollback(self):
-	    """
+		"""
 		Checks if the decrypted file exists at the given path.
 		if exists
-		        Renames the orginal encrypted file.
+				Renames the orginal encrypted file.
 		else
-		        Removes the decrypted file and rename the original file.
+				Removes the decrypted file and rename the original file.
 		"""
-	    if os.path.exists(self.file_path + ".gpg"):
-	        if os.path.exists(self.file_path):
-	            os.remove(self.file_path)
-	        if os.path.exists(self.file_path.rstrip(".gz")):
-	            os.remove(self.file_path.rstrip(".gz"))
-	        os.rename(self.file_path + ".gpg", self.file_path)
+		if os.path.exists(self.file_path + ".gpg"):
+			if os.path.exists(self.file_path):
+				os.remove(self.file_path)
+			if os.path.exists(self.file_path.rstrip(".gz")):
+				os.remove(self.file_path.rstrip(".gz"))
+			os.rename(self.file_path + ".gpg", self.file_path)
 
 
 def backup(
@@ -908,19 +908,19 @@ def backup(
 	paths of the backed up files.
 
 	Args:
-	    with_files (bool, optional): Whether to include files in the backup. Defaults to False.
-	    backup_path_db (str, optional): The backup path for the database files.
-	    Defaults to None.
-	    backup_path_files (str, optional): The backup path for the general files.
-	    Defaults to None.
-	    backup_path_private_files (str, optional): The backup path for the
-	        private files. Defaults to None.
-	    backup_path_conf (str, optional): The backup path for the configuration files.
-	    Defaults to None.
-	    quiet (bool, optional): Whether to suppress output. Defaults to False.
+		with_files (bool, optional): Whether to include files in the backup. Defaults to False.
+		backup_path_db (str, optional): The backup path for the database files.
+		Defaults to None.
+		backup_path_files (str, optional): The backup path for the general files.
+		Defaults to None.
+		backup_path_private_files (str, optional): The backup path for the
+			private files. Defaults to None.
+		backup_path_conf (str, optional): The backup path for the configuration files.
+		Defaults to None.
+		quiet (bool, optional): Whether to suppress output. Defaults to False.
 
 	Returns:
-	    dict: A dictionary containing the paths of the backed up files.
+		dict: A dictionary containing the paths of the backed up files.
 	"""
 	odb = scheduled_backup(
 		ignore_files=not with_files,

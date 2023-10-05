@@ -23,263 +23,263 @@ class UserPermissions:
 	"""
 
 	def __init__(self, name=""):
-	    self.defaults = None
-	    self.name = name or frappe.session.get("user")
-	    self.roles = []
+		self.defaults = None
+		self.name = name or frappe.session.get("user")
+		self.roles = []
 
-	    self.all_read = []
-	    self.can_create = []
-	    self.can_select = []
-	    self.can_read = []
-	    self.can_write = []
-	    self.can_cancel = []
-	    self.can_delete = []
-	    self.can_search = []
-	    self.can_get_report = []
-	    self.can_import = []
-	    self.can_export = []
-	    self.can_print = []
-	    self.can_email = []
-	    self.allow_modules = []
-	    self.in_create = []
-	    self.setup_user()
+		self.all_read = []
+		self.can_create = []
+		self.can_select = []
+		self.can_read = []
+		self.can_write = []
+		self.can_cancel = []
+		self.can_delete = []
+		self.can_search = []
+		self.can_get_report = []
+		self.can_import = []
+		self.can_export = []
+		self.can_print = []
+		self.can_email = []
+		self.allow_modules = []
+		self.in_create = []
+		self.setup_user()
 
 	def setup_user(self):
 
-	    def get_user_doc():
-	        user = None
-	        try:
-	            user = frappe.get_doc("User", self.name).as_dict()
-	        except frappe.DoesNotExistError:
-	            pass
-	        except Exception as e:
-	            # install boo-boo
-	            if not frappe.db.is_table_missing(e):
-	                raise
+		def get_user_doc():
+			user = None
+			try:
+				user = frappe.get_doc("User", self.name).as_dict()
+			except frappe.DoesNotExistError:
+				pass
+			except Exception as e:
+				# install boo-boo
+				if not frappe.db.is_table_missing(e):
+					raise
 
-	        return user
+			return user
 
-	    if not frappe.flags.in_install_db and not frappe.flags.in_test:
-	        user_doc = frappe.cache.hget("user_doc", self.name, get_user_doc)
-	        if user_doc:
-	            self.doc = frappe.get_doc(user_doc)
+		if not frappe.flags.in_install_db and not frappe.flags.in_test:
+			user_doc = frappe.cache.hget("user_doc", self.name, get_user_doc)
+			if user_doc:
+				self.doc = frappe.get_doc(user_doc)
 
 	def get_roles(self):
-	    """get list of roles"""
-	    if not self.roles:
-	        self.roles = get_roles(self.name)
-	    return self.roles
+		"""get list of roles"""
+		if not self.roles:
+			self.roles = get_roles(self.name)
+		return self.roles
 
 	def build_doctype_map(self):
-	    """build map of special doctype properties"""
-	    self.doctype_map = {}
+		"""build map of special doctype properties"""
+		self.doctype_map = {}
 
-	    active_domains = frappe.get_active_domains()
-	    all_doctypes = frappe.get_all(
-	    	"DocType",
-	    	fields=[
-	    		"name",
-	    		"in_create",
-	    		"module",
-	    		"istable",
-	    		"issingle",
-	    		"read_only",
-	    		"restrict_to_domain",
-	    	],
-	    )
+		active_domains = frappe.get_active_domains()
+		all_doctypes = frappe.get_all(
+			"DocType",
+			fields=[
+				"name",
+				"in_create",
+				"module",
+				"istable",
+				"issingle",
+				"read_only",
+				"restrict_to_domain",
+			],
+		)
 
-	    for dt in all_doctypes:
-	        if not dt.restrict_to_domain or (dt.restrict_to_domain in active_domains):
-	            self.doctype_map[dt["name"]] = dt
+		for dt in all_doctypes:
+			if not dt.restrict_to_domain or (dt.restrict_to_domain in active_domains):
+				self.doctype_map[dt["name"]] = dt
 
 	def build_perm_map(self):
-	    """build map of permissions at level 0"""
-	    self.perm_map = {}
-	    for r in get_valid_perms():
-	        dt = r["parent"]
+		"""build map of permissions at level 0"""
+		self.perm_map = {}
+		for r in get_valid_perms():
+			dt = r["parent"]
 
-	        if dt not in self.perm_map:
-	            self.perm_map[dt] = {}
+			if dt not in self.perm_map:
+				self.perm_map[dt] = {}
 
-	        for k in frappe.permissions.rights:
-	            if not self.perm_map[dt].get(k):
-	                self.perm_map[dt][k] = r.get(k)
+			for k in frappe.permissions.rights:
+				if not self.perm_map[dt].get(k):
+					self.perm_map[dt][k] = r.get(k)
 
 	def build_permissions(self):
-	    """build lists of what the user can read / write / create
+		"""build lists of what the user can read / write / create
 		quirks:
-		        read_only => Not in Search
-		        in_create => Not in create
+				read_only => Not in Search
+				in_create => Not in create
 		"""
-	    self.build_doctype_map()
-	    self.build_perm_map()
-	    user_shared = frappe.share.get_shared_doctypes()
-	    no_list_view_link = []
-	    active_modules = get_active_modules() or []
-	    for dt in self.doctype_map:
-	        dtp = self.doctype_map[dt]
+		self.build_doctype_map()
+		self.build_perm_map()
+		user_shared = frappe.share.get_shared_doctypes()
+		no_list_view_link = []
+		active_modules = get_active_modules() or []
+		for dt in self.doctype_map:
+			dtp = self.doctype_map[dt]
 
-	        p = self.perm_map.get(dt, {})
+			p = self.perm_map.get(dt, {})
 
-	        if not p.get("read") and (dt in user_shared):
-	            p["read"] = 1
+			if not p.get("read") and (dt in user_shared):
+				p["read"] = 1
 
-	        if p.get("select"):
-	            self.can_select.append(dt)
+			if p.get("select"):
+				self.can_select.append(dt)
 
-	        if not dtp.get("istable"):
-	            if p.get("create") and not dtp.get("issingle"):
-	                if dtp.get("in_create"):
-	                    self.in_create.append(dt)
-	                else:
-	                    self.can_create.append(dt)
-	            elif p.get("write"):
-	                self.can_write.append(dt)
-	            elif p.get("read"):
-	                if dtp.get("read_only"):
-	                    # read_only = "User Cannot Search"
-	                    self.all_read.append(dt)
-	                    no_list_view_link.append(dt)
-	                else:
-	                    self.can_read.append(dt)
+			if not dtp.get("istable"):
+				if p.get("create") and not dtp.get("issingle"):
+					if dtp.get("in_create"):
+						self.in_create.append(dt)
+					else:
+						self.can_create.append(dt)
+				elif p.get("write"):
+					self.can_write.append(dt)
+				elif p.get("read"):
+					if dtp.get("read_only"):
+						# read_only = "User Cannot Search"
+						self.all_read.append(dt)
+						no_list_view_link.append(dt)
+					else:
+						self.can_read.append(dt)
 
-	        if p.get("cancel"):
-	            self.can_cancel.append(dt)
+			if p.get("cancel"):
+				self.can_cancel.append(dt)
 
-	        if p.get("delete"):
-	            self.can_delete.append(dt)
+			if p.get("delete"):
+				self.can_delete.append(dt)
 
-	        if p.get("read") or p.get("write") or p.get("create"):
-	            if p.get("report"):
-	                self.can_get_report.append(dt)
-	            for key in ("import", "export", "print", "email"):
-	                if p.get(key):
-	                    getattr(self, "can_" + key).append(dt)
+			if p.get("read") or p.get("write") or p.get("create"):
+				if p.get("report"):
+					self.can_get_report.append(dt)
+				for key in ("import", "export", "print", "email"):
+					if p.get(key):
+						getattr(self, "can_" + key).append(dt)
 
-	            if not dtp.get("istable"):
-	                if not dtp.get("issingle") and not dtp.get("read_only"):
-	                    self.can_search.append(dt)
-	                if dtp.get("module") not in self.allow_modules:
-	                    if active_modules and dtp.get("module") not in active_modules:
-	                        pass
-	                    else:
-	                        self.allow_modules.append(dtp.get("module"))
+				if not dtp.get("istable"):
+					if not dtp.get("issingle") and not dtp.get("read_only"):
+						self.can_search.append(dt)
+					if dtp.get("module") not in self.allow_modules:
+						if active_modules and dtp.get("module") not in active_modules:
+							pass
+						else:
+							self.allow_modules.append(dtp.get("module"))
 
-	    self.can_write += self.can_create
-	    self.can_write += self.in_create
-	    self.can_read += self.can_write
+		self.can_write += self.can_create
+		self.can_write += self.in_create
+		self.can_read += self.can_write
 
-	    self.shared = frappe.get_all(
-	    	"DocShare", {"user": self.name, "read": 1}, distinct=True, pluck="share_doctype"
-	    )
-	    self.can_read = list(set(self.can_read + self.shared))
-	    self.all_read += self.can_read
+		self.shared = frappe.get_all(
+			"DocShare", {"user": self.name, "read": 1}, distinct=True, pluck="share_doctype"
+		)
+		self.can_read = list(set(self.can_read + self.shared))
+		self.all_read += self.can_read
 
-	    for dt in no_list_view_link:
-	        if dt in self.can_read:
-	            self.can_read.remove(dt)
+		for dt in no_list_view_link:
+			if dt in self.can_read:
+				self.can_read.remove(dt)
 
-	    if "System Manager" in self.get_roles():
-	        self.can_import += frappe.get_all("DocType", {"allow_import": 1}, pluck="name")
-	        self.can_import += frappe.get_all(
-	        	"Property Setter",
-	        	pluck="doc_type",
-	        	filters={"property": "allow_import", "value": "1"},
-	        )
+		if "System Manager" in self.get_roles():
+			self.can_import += frappe.get_all("DocType", {"allow_import": 1}, pluck="name")
+			self.can_import += frappe.get_all(
+				"Property Setter",
+				pluck="doc_type",
+				filters={"property": "allow_import", "value": "1"},
+			)
 
-	    frappe.cache.hset("can_import", frappe.session.user, self.can_import)
+		frappe.cache.hset("can_import", frappe.session.user, self.can_import)
 
 	def get_defaults(self):
-	    """Retrieve the defaults for the given name."""
-	    import frappe.defaults
+		"""Retrieve the defaults for the given name."""
+		import frappe.defaults
 
-	    self.defaults = frappe.defaults.get_defaults(self.name)
-	    return self.defaults
+		self.defaults = frappe.defaults.get_defaults(self.name)
+		return self.defaults
 
 	def _get(self, key):
-	    """Return the value of the specified key if the user has read permissions."""
-	    if not self.can_read:
-	        self.build_permissions()
-	    return getattr(self, key)
+		"""Return the value of the specified key if the user has read permissions."""
+		if not self.can_read:
+			self.build_permissions()
+		return getattr(self, key)
 
 	def get_can_read(self):
-	    """Return a list of doctypes that the user can read."""
-	    if not self.can_read:
-	        self.build_permissions()
-	    return self.can_read
+		"""Return a list of doctypes that the user can read."""
+		if not self.can_read:
+			self.build_permissions()
+		return self.can_read
 
 	def load_user(self):
-	    """
-	    Load user data from the 'User' table and return a dictionary.
+		"""
+		Load user data from the 'User' table and return a dictionary.
 
-	    This function retrieves specific fields from the 'User' table in the database
-	    and assigns them to variables in a dictionary. It then performs some
-	    operations on the dictionary, such as checking permissions, parsing JSON,
-	    getting roles and defaults, and assigning values to certain keys. Finally,
-	    it returns the modified dictionary.
+		This function retrieves specific fields from the 'User' table in the database
+		and assigns them to variables in a dictionary. It then performs some
+		operations on the dictionary, such as checking permissions, parsing JSON,
+		getting roles and defaults, and assigning values to certain keys. Finally,
+		it returns the modified dictionary.
 
-	    Returns:
-	        dict: A dictionary containing user data.
-	    """
-	    d = frappe.db.get_value(
-	    	"User",
-	    	self.name,
-	    	[
-	    		"creation",
-	    		"desk_theme",
-	    		"document_follow_notify",
-	    		"email",
-	    		"email_signature",
-	    		"first_name",
-	    		"language",
-	    		"last_name",
-	    		"mute_sounds",
-	    		"send_me_a_copy",
-	    		"user_type",
-	    		"onboarding_status",
-	    	],
-	    	as_dict=True,
-	    )
+		Returns:
+			dict: A dictionary containing user data.
+		"""
+		d = frappe.db.get_value(
+			"User",
+			self.name,
+			[
+				"creation",
+				"desk_theme",
+				"document_follow_notify",
+				"email",
+				"email_signature",
+				"first_name",
+				"language",
+				"last_name",
+				"mute_sounds",
+				"send_me_a_copy",
+				"user_type",
+				"onboarding_status",
+			],
+			as_dict=True,
+		)
 
-	    if not self.can_read:
-	        self.build_permissions()
+		if not self.can_read:
+			self.build_permissions()
 
-	    d.name = self.name
-	    d.onboarding_status = frappe.parse_json(d.onboarding_status)
-	    d.roles = self.get_roles()
-	    d.defaults = self.get_defaults()
-	    for key in (
-	    	"can_select",
-	    	"can_create",
-	    	"can_write",
-	    	"can_read",
-	    	"can_cancel",
-	    	"can_delete",
-	    	"can_get_report",
-	    	"allow_modules",
-	    	"all_read",
-	    	"can_search",
-	    	"in_create",
-	    	"can_export",
-	    	"can_import",
-	    	"can_print",
-	    	"can_email",
-	    ):
-	        d[key] = list(set(getattr(self, key)))
+		d.name = self.name
+		d.onboarding_status = frappe.parse_json(d.onboarding_status)
+		d.roles = self.get_roles()
+		d.defaults = self.get_defaults()
+		for key in (
+			"can_select",
+			"can_create",
+			"can_write",
+			"can_read",
+			"can_cancel",
+			"can_delete",
+			"can_get_report",
+			"allow_modules",
+			"all_read",
+			"can_search",
+			"in_create",
+			"can_export",
+			"can_import",
+			"can_print",
+			"can_email",
+		):
+			d[key] = list(set(getattr(self, key)))
 
-	    d.all_reports = self.get_all_reports()
-	    return d
+		d.all_reports = self.get_all_reports()
+		return d
 
 	def get_all_reports(self):
-	    """
-	    Get all allowed reports.
+		"""
+		Get all allowed reports.
 
-	    This function calls the 'get_allowed_reports' function and returns its result.
+		This function calls the 'get_allowed_reports' function and returns its result.
 
-	    Returns:
-	        Any: The result of the 'get_allowed_reports' function.
-	    """
-	    return get_allowed_reports()
+		Returns:
+			Any: The result of the 'get_allowed_reports' function.
+		"""
+		return get_allowed_reports()
 
 
 def get_user_fullname(user: str) -> str:
@@ -315,9 +315,9 @@ def get_system_managers(only_name: bool = False) -> list[str]:
 	User = DocType("User")
 
 	if only_name:
-	    fields = [User.name]
+		fields = [User.name]
 	else:
-	    fields = [User.full_name, User.name]
+		fields = [User.full_name, User.name]
 
 	system_managers = (
 		frappe.qb.from_(User)
@@ -336,9 +336,9 @@ def get_system_managers(only_name: bool = False) -> list[str]:
 	)
 
 	if only_name:
-	    return [p.name for p in system_managers]
+		return [p.name for p in system_managers]
 	else:
-	    return [formataddr((p.full_name, p.name)) for p in system_managers]
+		return [formataddr((p.full_name, p.name)) for p in system_managers]
 
 
 def add_role(user: str, role: str) -> None:
@@ -346,8 +346,8 @@ def add_role(user: str, role: str) -> None:
 	Add a role to a user.
 
 	Args:
-	    user (str): The name of the user.
-	    role (str): The name of the role to add.
+		user (str): The name of the user.
+		role (str): The name of the role to add.
 	"""
 	frappe.get_doc("User", user).add_roles(role)
 
@@ -363,15 +363,15 @@ def add_system_manager(
 	Create a new system manager user.
 
 	Args:
-	    email (str): The email of the user.
-	    first_name (str | None, optional): The first name of the user. Defaults to None.
-	    last_name (str | None, optional): The last name of the user. Defaults to None.
-	    send_welcome_email (bool, optional): Whether to send a welcome email
-	        to the user. Defaults to False.
-	    password (str, optional): The password of the user. Defaults to None.
+		email (str): The email of the user.
+		first_name (str | None, optional): The first name of the user. Defaults to None.
+		last_name (str | None, optional): The last name of the user. Defaults to None.
+		send_welcome_email (bool, optional): Whether to send a welcome email
+			to the user. Defaults to False.
+		password (str, optional): The password of the user. Defaults to None.
 
 	Returns:
-	    User: The newly created user.
+		User: The newly created user.
 	"""
 	# add user
 	user = frappe.new_doc("User")
@@ -399,9 +399,9 @@ def add_system_manager(
 	user.add_roles(*roles)
 
 	if password:
-	    from frappe.utils.password import update_password
+		from frappe.utils.password import update_password
 
-	    update_password(user=user.name, pwd=password)
+		update_password(user=user.name, pwd=password)
 	return user
 
 
@@ -410,7 +410,7 @@ def get_enabled_system_users() -> list[dict]:
 	Get a list of enabled system users.
 
 	Returns:
-	    list[dict]: A list of dictionaries representing the enabled system users.
+		list[dict]: A list of dictionaries representing the enabled system users.
 	"""
 	return frappe.get_all(
 		"User",
@@ -428,13 +428,13 @@ def is_website_user(username: str | None = None) -> str | None:
 	Check if a user is a website user.
 
 	Args:
-	    username (str | None, optional): The username to check. If not
-	        provided, the currently logged-in user will be checked. Defaults to
-	        None.
+		username (str | None, optional): The username to check. If not
+			provided, the currently logged-in user will be checked. Defaults to
+			None.
 
 	Returns:
-	    str | None: The user type ("Website User") if the user is a website
-	    user, None otherwise.
+		str | None: The user type ("Website User") if the user is a website
+		user, None otherwise.
 	"""
 	return frappe.db.get_value("User", username or frappe.session.user, "user_type") == "Website User"
 

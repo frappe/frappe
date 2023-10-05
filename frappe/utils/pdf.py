@@ -33,15 +33,15 @@ def pdf_header_html(soup, head, content, styles, html_id, css):
 	Render the HTML for the header of the PDF document.
 
 	Args:
-	    soup (BeautifulSoup): The BeautifulSoup object representing the HTML document.
-	    head (str): The HTML content for the head of the document.
-	    content (str): The HTML content for the body of the document.
-	    styles (str): The CSS styles to be applied to the document.
-	    html_id (str): The unique identifier for the HTML document.
-	    css (str): The CSS content to be applied to the document.
+		soup (BeautifulSoup): The BeautifulSoup object representing the HTML document.
+		head (str): The HTML content for the head of the document.
+		content (str): The HTML content for the body of the document.
+		styles (str): The CSS styles to be applied to the document.
+		html_id (str): The unique identifier for the HTML document.
+		css (str): The CSS content to be applied to the document.
 
 	Returns:
-	    str: The rendered HTML for the header of the PDF document.
+		str: The rendered HTML for the header of the PDF document.
 	"""
 	return frappe.render_template(
 		"templates/print_formats/pdf_header_footer.html",
@@ -62,40 +62,40 @@ def pdf_body_html(template, args, **kwargs):
 	Render the HTML for the body of the PDF document.
 
 	Args:
-	    template (Jinja2.Template): The Jinja2 template object.
-	    args: The arguments to be passed to the template.
-	    kwargs: Additional keyword arguments to be passed to the template.
+		template (Jinja2.Template): The Jinja2 template object.
+		args: The arguments to be passed to the template.
+		kwargs: Additional keyword arguments to be passed to the template.
 
 	Returns:
-	    str: The rendered HTML for the body of the PDF document.
+		str: The rendered HTML for the body of the PDF document.
 
 	Raises:
-	    frappe.PrintFormatError: If there is an error rendering the template.
+		frappe.PrintFormatError: If there is an error rendering the template.
 	"""
 	try:
-	    return template.render(args, filters={"len": len})
+		return template.render(args, filters={"len": len})
 	except Exception as e:
-	    # Guess line number ?
-	    frappe.throw(
-	    	_("Error in print format on line {0}: {1}").format(
-	    		_guess_template_error_line_number(template), e
-	    	),
-	    	exc=frappe.PrintFormatError,
-	    	title=_("Print Format Error"),
-	    )
+		# Guess line number ?
+		frappe.throw(
+			_("Error in print format on line {0}: {1}").format(
+				_guess_template_error_line_number(template), e
+			),
+			exc=frappe.PrintFormatError,
+			title=_("Print Format Error"),
+		)
 
 
 def _guess_template_error_line_number(template) -> int | None:
 	"""Guess line on which exception occured from current traceback."""
 	with contextlib.suppress(Exception):
-	    import sys
-	    import traceback
+		import sys
+		import traceback
 
-	    _, _, tb = sys.exc_info()
+		_, _, tb = sys.exc_info()
 
-	    for frame in reversed(traceback.extract_tb(tb)):
-	        if template.filename in frame.filename:
-	            return frame.lineno
+		for frame in reversed(traceback.extract_tb(tb)):
+			if template.filename in frame.filename:
+				return frame.lineno
 
 
 def pdf_footer_html(soup, head, content, styles, html_id, css):
@@ -110,14 +110,14 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 	Convert HTML to a PDF using wkhtmltopdf.
 
 	Args:
-	    html (str): The HTML content to convert.
-	    options (dict, optional): Additional options for the conversion. Defaults to None.
-	    output (PdfWriter | None, optional): The output object to append the
-	        PDF pages to. Defaults to None.
+		html (str): The HTML content to convert.
+		options (dict, optional): Additional options for the conversion. Defaults to None.
+		output (PdfWriter | None, optional): The output object to append the
+			PDF pages to. Defaults to None.
 
 	Returns:
-	    bytes | PdfWriter | None: The PDF data as bytes if output is None, the
-	    output object if specified, or None if an error occurs.
+		bytes | PdfWriter | None: The PDF data as bytes if output is None, the
+		output object if specified, or None if an error occurs.
 	"""
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
@@ -126,45 +126,45 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 
 	filedata = ""
 	if LooseVersion(get_wkhtmltopdf_version()) > LooseVersion("0.12.3"):
-	    options.update({"disable-smart-shrinking": ""})
+		options.update({"disable-smart-shrinking": ""})
 
 	try:
-	    # wkhtmltopdf writes the pdf to stdout and errors to stderr
-	    # pdfkit v1.0.0 writes the pdf to file or returns it
-	    # stderr is written to sys.stdout if verbose=True is supplied
-	    # Set filename property to false, so no file is actually created
-	    # defaults to redirecting stdout
-	    with pipe_to_log(logger.info):
-	        filedata = pdfkit.from_string(html, False, options=options or {}, verbose=True)
+		# wkhtmltopdf writes the pdf to stdout and errors to stderr
+		# pdfkit v1.0.0 writes the pdf to file or returns it
+		# stderr is written to sys.stdout if verbose=True is supplied
+		# Set filename property to false, so no file is actually created
+		# defaults to redirecting stdout
+		with pipe_to_log(logger.info):
+			filedata = pdfkit.from_string(html, False, options=options or {}, verbose=True)
 
-	    # create in-memory binary streams from filedata and create a PdfReader object
-	    reader = PdfReader(io.BytesIO(filedata))
+		# create in-memory binary streams from filedata and create a PdfReader object
+		reader = PdfReader(io.BytesIO(filedata))
 	except OSError as e:
-	    if any([error in str(e) for error in PDF_CONTENT_ERRORS]):
-	        if not filedata:
-	            print(html, options)
-	            frappe.throw(_("PDF generation failed because of broken image links"))
+		if any([error in str(e) for error in PDF_CONTENT_ERRORS]):
+			if not filedata:
+				print(html, options)
+				frappe.throw(_("PDF generation failed because of broken image links"))
 
-	        # allow pdfs with missing images if file got created
-	        if output:
-	            output.append_pages_from_reader(reader)
-	    else:
-	        raise
+			# allow pdfs with missing images if file got created
+			if output:
+				output.append_pages_from_reader(reader)
+		else:
+			raise
 	finally:
-	    cleanup(options)
+		cleanup(options)
 
 	if "password" in options:
-	    password = options["password"]
+		password = options["password"]
 
 	if output:
-	    output.append_pages_from_reader(reader)
-	    return output
+		output.append_pages_from_reader(reader)
+		return output
 
 	writer = PdfWriter()
 	writer.append_pages_from_reader(reader)
 
 	if "password" in options:
-	    writer.encrypt(password)
+		writer.encrypt(password)
 
 	filedata = get_file_data_from_writer(writer)
 
@@ -180,10 +180,10 @@ def get_file_data_from_writer(writer_obj):
 	the stream and returns it.
 
 	Args:
-	    writer_obj: The writer object.
+		writer_obj: The writer object.
 
 	Returns:
-	    bytes: The data read from the stream.
+		bytes: The data read from the stream.
 	"""
 
 	# https://docs.python.org/3/library/io.html
@@ -210,15 +210,15 @@ def prepare_options(html, options):
 	Settings' table or the default value 'A4'.
 
 	Args:
-	    html (str): The HTML string.
-	    options (dict): The options dictionary.
+		html (str): The HTML string.
+		options (dict): The options dictionary.
 
 	Returns:
-	    tuple: A tuple containing the updated 'html' string and the updated
-	    'options' dictionary.
+		tuple: A tuple containing the updated 'html' string and the updated
+		'options' dictionary.
 	"""
 	if not options:
-	    options = {}
+		options = {}
 
 	options.update(
 		{
@@ -232,10 +232,10 @@ def prepare_options(html, options):
 	)
 
 	if not options.get("margin-right"):
-	    options["margin-right"] = "15mm"
+		options["margin-right"] = "15mm"
 
 	if not options.get("margin-left"):
-	    options["margin-left"] = "15mm"
+		options["margin-left"] = "15mm"
 
 	html, html_options = read_options_from_html(html)
 	options.update(html_options or {})
@@ -249,14 +249,14 @@ def prepare_options(html, options):
 	)
 
 	if pdf_page_size == "Custom":
-	    options["page-height"] = options.get("page-height") or frappe.db.get_single_value(
-	    	"Print Settings", "pdf_page_height"
-	    )
-	    options["page-width"] = options.get("page-width") or frappe.db.get_single_value(
-	    	"Print Settings", "pdf_page_width"
-	    )
+		options["page-height"] = options.get("page-height") or frappe.db.get_single_value(
+			"Print Settings", "pdf_page_height"
+		)
+		options["page-width"] = options.get("page-width") or frappe.db.get_single_value(
+			"Print Settings", "pdf_page_width"
+		)
 	else:
-	    options["page-size"] = pdf_page_size
+		options["page-size"] = pdf_page_size
 
 	return html, options
 
@@ -271,20 +271,20 @@ def get_cookie_options():
 	restricted to the host domain.
 
 	Returns:
-	    dict: A dictionary of options.
+		dict: A dictionary of options.
 	"""
 	options = {}
 	if frappe.session and frappe.session.sid and hasattr(frappe.local, "request"):
-	    # Use wkhtmltopdf's cookie-jar feature to set cookies and restrict them to host domain
-	    cookiejar = f"/tmp/{frappe.generate_hash()}.jar"
+		# Use wkhtmltopdf's cookie-jar feature to set cookies and restrict them to host domain
+		cookiejar = f"/tmp/{frappe.generate_hash()}.jar"
 
-	    # Remove port from request.host
-	    # https://werkzeug.palletsprojects.com/en/0.16.x/wrappers/#werkzeug.wrappers.BaseRequest.host
-	    domain = frappe.utils.get_host_name().split(":", 1)[0]
-	    with open(cookiejar, "w") as f:
-	        f.write(f"sid={frappe.session.sid}; Domain={domain};\n")
+		# Remove port from request.host
+		# https://werkzeug.palletsprojects.com/en/0.16.x/wrappers/#werkzeug.wrappers.BaseRequest.host
+		domain = frappe.utils.get_host_name().split(":", 1)[0]
+		with open(cookiejar, "w") as f:
+			f.write(f"sid={frappe.session.sid}; Domain={domain};\n")
 
-	    options["cookie-jar"] = cookiejar
+		options["cookie-jar"] = cookiejar
 
 	return options
 
@@ -303,10 +303,10 @@ def read_options_from_html(html):
 	size, orientation, and page dimensions.
 
 	Args:
-	    html (str): The HTML string.
+		html (str): The HTML string.
 
 	Returns:
-	    tuple: A tuple containing the modified HTML string and a dictionary of options.
+		tuple: A tuple containing the modified HTML string and a dictionary of options.
 	"""
 	options = {}
 	soup = BeautifulSoup(html, "html5lib")
@@ -327,13 +327,13 @@ def read_options_from_html(html):
 		"page-width",
 		"page-height",
 	):
-	    try:
-	        pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
-	        match = pattern.findall(html)
-	        if match:
-	            options[attr] = str(match[-1][3]).strip()
-	    except Exception:
-	        pass
+		try:
+			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
+			match = pattern.findall(html)
+			if match:
+				options[attr] = str(match[-1][3]).strip()
+		except Exception:
+			pass
 
 	return str(soup), options
 
@@ -343,10 +343,10 @@ def prepare_header_footer(soup):
 	Prepare the header and footer options for generating a PDF.
 
 	Args:
-	    soup (BeautifulSoup): A BeautifulSoup object representing the HTML.
+		soup (BeautifulSoup): A BeautifulSoup object representing the HTML.
 
 	Returns:
-	    dict: A dictionary containing the options for the header and footer.
+		dict: A dictionary containing the options for the header and footer.
 	"""
 	options = {}
 
@@ -358,36 +358,36 @@ def prepare_header_footer(soup):
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
-	    content = soup.find(id=html_id)
-	    if content:
-	        # there could be multiple instances of header-html/footer-html
-	        for tag in soup.find_all(id=html_id):
-	            tag.extract()
+		content = soup.find(id=html_id)
+		if content:
+			# there could be multiple instances of header-html/footer-html
+			for tag in soup.find_all(id=html_id):
+				tag.extract()
 
-	        toggle_visible_pdf(content)
-	        id_map = {"header-html": "pdf_header_html", "footer-html": "pdf_footer_html"}
-	        hook_func = frappe.get_hooks(id_map.get(html_id))
-	        html = frappe.get_attr(hook_func[-1])(
-	        	soup=soup,
-	        	head=head,
-	        	content=content,
-	        	styles=styles,
-	        	html_id=html_id,
-	        	css=css,
-	        )
+			toggle_visible_pdf(content)
+			id_map = {"header-html": "pdf_header_html", "footer-html": "pdf_footer_html"}
+			hook_func = frappe.get_hooks(id_map.get(html_id))
+			html = frappe.get_attr(hook_func[-1])(
+				soup=soup,
+				head=head,
+				content=content,
+				styles=styles,
+				html_id=html_id,
+				css=css,
+			)
 
-	        # create temp file
-	        fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.html")
-	        with open(fname, "wb") as f:
-	            f.write(html.encode("utf-8"))
+			# create temp file
+			fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.html")
+			with open(fname, "wb") as f:
+				f.write(html.encode("utf-8"))
 
-	        # {"header-html": "/tmp/frappe-pdf-random.html"}
-	        options[html_id] = fname
-	    else:
-	        if html_id == "header-html":
-	            options["margin-top"] = "15mm"
-	        elif html_id == "footer-html":
-	            options["margin-bottom"] = "15mm"
+			# {"header-html": "/tmp/frappe-pdf-random.html"}
+			options[html_id] = fname
+		else:
+			if html_id == "header-html":
+				options["margin-top"] = "15mm"
+			elif html_id == "footer-html":
+				options["margin-bottom"] = "15mm"
 
 	return options
 
@@ -400,11 +400,11 @@ def cleanup(options):
 	associated with specific keys if they exist on the file system.
 
 	Args:
-	    options (dict): A dictionary containing the options.
+		options (dict): A dictionary containing the options.
 	"""
 	for key in ("header-html", "footer-html", "cookie-jar"):
-	    if options.get(key) and os.path.exists(options[key]):
-	        os.remove(options[key])
+		if options.get(key) and os.path.exists(options[key]):
+			os.remove(options[key])
 
 
 def toggle_visible_pdf(soup):
@@ -416,15 +416,15 @@ def toggle_visible_pdf(soup):
 	the class 'hidden-pdf' from the HTML.
 
 	Args:
-	    soup (BeautifulSoup): The BeautifulSoup object.
+		soup (BeautifulSoup): The BeautifulSoup object.
 	"""
 	for tag in soup.find_all(attrs={"class": "visible-pdf"}):
-	    # remove visible-pdf class to unhide
-	    tag.attrs["class"].remove("visible-pdf")
+		# remove visible-pdf class to unhide
+		tag.attrs["class"].remove("visible-pdf")
 
 	for tag in soup.find_all(attrs={"class": "hidden-pdf"}):
-	    # remove tag from html
-	    tag.extract()
+		# remove tag from html
+		tag.extract()
 
 
 def get_wkhtmltopdf_version():
@@ -437,16 +437,16 @@ def get_wkhtmltopdf_version():
 	cache.
 
 	Returns:
-	    str: The version of wkhtmltopdf.
+		str: The version of wkhtmltopdf.
 	"""
 	wkhtmltopdf_version = frappe.cache.hget("wkhtmltopdf_version", None)
 
 	if not wkhtmltopdf_version:
-	    try:
-	        res = subprocess.check_output(["wkhtmltopdf", "--version"])
-	        wkhtmltopdf_version = res.decode("utf-8").split(" ")[1]
-	        frappe.cache.hset("wkhtmltopdf_version", None, wkhtmltopdf_version)
-	    except Exception:
-	        pass
+		try:
+			res = subprocess.check_output(["wkhtmltopdf", "--version"])
+			wkhtmltopdf_version = res.decode("utf-8").split(" ")[1]
+			frappe.cache.hset("wkhtmltopdf_version", None, wkhtmltopdf_version)
+		except Exception:
+			pass
 
 	return wkhtmltopdf_version or "0"

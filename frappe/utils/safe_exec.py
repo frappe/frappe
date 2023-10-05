@@ -42,14 +42,14 @@ class NamespaceDict(frappe._dict):
 	"""Raise AttributeError if function not found in namespace"""
 
 	def __getattr__(self, key):
-	    ret = self.get(key)
-	    if (not ret and key.startswith("__")) or (key not in self):
+		ret = self.get(key)
+		if (not ret and key.startswith("__")) or (key not in self):
 
-	        def default_function(*args, **kwargs):
-	            raise AttributeError(f"module has no attribute '{key}'")
+			def default_function(*args, **kwargs):
+				raise AttributeError(f"module has no attribute '{key}'")
 
-	        return default_function
-	    return ret
+			return default_function
+		return ret
 
 
 class FrappeTransformer(RestrictingNodeTransformer):
@@ -57,10 +57,10 @@ class FrappeTransformer(RestrictingNodeTransformer):
 	This is a class that extends the RestrictingNodeTransformer class.
 	"""
 	def check_name(self, node, name, *args, **kwargs):
-	    if name == "_dict":
-	        return
+		if name == "_dict":
+			return
 
-	    return super().check_name(node, name, *args, **kwargs)
+		return super().check_name(node, name, *args, **kwargs)
 
 
 def is_safe_exec_enabled() -> bool:
@@ -68,7 +68,7 @@ def is_safe_exec_enabled() -> bool:
 	This function checks if server scripts are enabled.
 
 	Returns:
-	    bool: True if server scripts are enabled, False otherwise.
+		bool: True if server scripts are enabled, False otherwise.
 	"""
 	# server scripts can only be enabled via common_site_config.json
 	return bool(frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY))
@@ -85,40 +85,40 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 	the `exec` function and returns the modified global and local variables.
 
 	Args:
-	    script (str): The script to be executed.
-	    _globals (dict, optional): The global variables to be updated.
-	    _locals (dict, optional): The local variables.
-	    restrict_commit_rollback (bool, optional): Whether to restrict commit
-	        and rollback operations.
+		script (str): The script to be executed.
+		_globals (dict, optional): The global variables to be updated.
+		_locals (dict, optional): The local variables.
+		restrict_commit_rollback (bool, optional): Whether to restrict commit
+			and rollback operations.
 
 	Returns:
-	    tuple: A tuple containing the modified global and local variables.
+		tuple: A tuple containing the modified global and local variables.
 	"""
 	if not is_safe_exec_enabled():
 
-	    msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
-	    docs_cta = _("Read the documentation to know more")
-	    msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
-	    frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
+		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
+		docs_cta = _("Read the documentation to know more")
+		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
+		frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
 
 	# build globals
 	exec_globals = get_safe_globals()
 	if _globals:
-	    exec_globals.update(_globals)
+		exec_globals.update(_globals)
 
 	if restrict_commit_rollback:
-	    # prevent user from using these in docevents
-	    exec_globals.frappe.db.pop("commit", None)
-	    exec_globals.frappe.db.pop("rollback", None)
-	    exec_globals.frappe.db.pop("add_index", None)
+		# prevent user from using these in docevents
+		exec_globals.frappe.db.pop("commit", None)
+		exec_globals.frappe.db.pop("rollback", None)
+		exec_globals.frappe.db.pop("add_index", None)
 
 	with safe_exec_flags(), patched_qb():
-	    # execute script compiled by RestrictedPython
-	    exec(
-	    	compile_restricted(script, filename="<serverscript>", policy=FrappeTransformer),
-	    	exec_globals,
-	    	_locals,
-	    )
+		# execute script compiled by RestrictedPython
+		exec(
+			compile_restricted(script, filename="<serverscript>", policy=FrappeTransformer),
+			exec_globals,
+			_locals,
+		)
 
 	return exec_globals, _locals
 
@@ -131,7 +131,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	_validate_safe_eval_syntax(code)
 
 	if not eval_globals:
-	    eval_globals = {}
+		eval_globals = {}
 
 	eval_globals["__builtins__"] = {}
 	eval_globals.update(WHITELISTED_SAFE_EVAL_GLOBALS)
@@ -148,8 +148,8 @@ def _validate_safe_eval_syntax(code):
 
 	tree = ast.parse(code, mode="eval")
 	for node in ast.walk(tree):
-	    if isinstance(node, BLOCKED_NODES):
-	        raise SyntaxError(f"Operation not allowed: line {node.lineno} column {node.col_offset}")
+		if isinstance(node, BLOCKED_NODES):
+			raise SyntaxError(f"Operation not allowed: line {node.lineno} column {node.col_offset}")
 
 
 @contextmanager
@@ -164,18 +164,18 @@ def get_safe_globals():
 	datautils = frappe._dict()
 
 	if frappe.db:
-	    date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
-	    time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
+		date_format = frappe.db.get_default("date_format") or "yyyy-mm-dd"
+		time_format = frappe.db.get_default("time_format") or "HH:mm:ss"
 	else:
-	    date_format = "yyyy-mm-dd"
-	    time_format = "HH:mm:ss"
+		date_format = "yyyy-mm-dd"
+		time_format = "HH:mm:ss"
 
 	add_data_utils(datautils)
 
 	form_dict = getattr(frappe.local, "form_dict", frappe._dict())
 
 	if "_" in form_dict:
-	    del frappe.local.form_dict["_"]
+		del frappe.local.form_dict["_"]
 
 	user = getattr(frappe.local, "session", None) and frappe.local.session.user or "Guest"
 
@@ -281,7 +281,7 @@ def get_safe_globals():
 	)
 
 	if frappe.response:
-	    out.frappe.response = frappe.response
+		out.frappe.response = frappe.response
 
 	out.update(safe_globals)
 
@@ -341,12 +341,12 @@ def call_with_form_dict(function, kwargs):
 	# temporarily update form_dict, to use inside below call
 	form_dict = getattr(frappe.local, "form_dict", frappe._dict())
 	if kwargs:
-	    frappe.local.form_dict = form_dict.copy().update(kwargs)
+		frappe.local.form_dict = form_dict.copy().update(kwargs)
 
 	try:
-	    return function()
+		return function()
 	finally:
-	    frappe.local.form_dict = form_dict
+		frappe.local.form_dict = form_dict
 
 
 @contextmanager
@@ -356,13 +356,13 @@ of types.ModuleType, yielding the patched environment and then restoring the
 original frappe.qb.terms if it was patched."""
 	require_patching = isinstance(frappe.qb.terms, types.ModuleType)
 	try:
-	    if require_patching:
-	        _terms = frappe.qb.terms
-	        frappe.qb.terms = _flatten(frappe.qb.terms)
-	    yield
+		if require_patching:
+			_terms = frappe.qb.terms
+			frappe.qb.terms = _flatten(frappe.qb.terms)
+		yield
 	finally:
-	    if require_patching:
-	        frappe.qb.terms = _terms
+		if require_patching:
+			frappe.qb.terms = _terms
 
 
 @lru_cache
@@ -371,8 +371,8 @@ def _flatten(module):
 objects from the original module."""
 	new_mod = NamespaceDict()
 	for name, obj in inspect.getmembers(module, lambda x: not inspect.ismodule(x)):
-	    if not name.startswith("_"):
-	        new_mod[name] = obj
+		if not name.startswith("_"):
+			new_mod[name] = obj
 	return new_mod
 
 
@@ -416,8 +416,8 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 	"""Check if SQL query is safe for running in restricted context.
 
 	Safe queries:
-	        1. Read only 'select' or 'explain' queries
-	        2. CTE on mariadb where writes are not allowed.
+			1. Read only 'select' or 'explain' queries
+			2. CTE on mariadb where writes are not allowed.
 	"""
 
 	query = query.strip().lower()
@@ -426,14 +426,14 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 	if query.startswith(whitelisted_statements) or (
 		query.startswith("with") and frappe.db.db_type == "mariadb"
 	):
-	    return True
+		return True
 
 	if throw:
-	    frappe.throw(
-	    	_("Query must be of SELECT or read-only WITH type."),
-	    	title=_("Unsafe SQL query"),
-	    	exc=frappe.PermissionError,
-	    )
+		frappe.throw(
+			_("Query must be of SELECT or read-only WITH type."),
+			title=_("Unsafe SQL query"),
+			exc=frappe.PermissionError,
+		)
 
 	return False
 
@@ -444,19 +444,19 @@ def _getitem(obj, key):
 	Allow any key to be accessed as long as it does not start with an underscore.
 
 	Args:
-	    obj: The object to access the key.
-	    key: The key to access.
+		obj: The object to access the key.
+		key: The key to access.
 
 	Returns:
-	    The value associated with the key.
+		The value associated with the key.
 
 	Raises:
-	    SyntaxError: If the key starts with an underscore.
+		SyntaxError: If the key starts with an underscore.
 	"""
 	# guard function for RestrictedPython
 	# allow any key to be accessed as long as it does not start with underscore
 	if isinstance(key, str) and key.startswith("_"):
-	    raise SyntaxError("Key starts with _")
+		raise SyntaxError("Key starts with _")
 	return obj[key]
 
 
@@ -497,12 +497,12 @@ def _getattr_for_safe_exec(object, name, default=None):
 	an underscore (safer_getattr) and is not an UNSAFE_ATTRIBUTES.
 
 	Args:
-	    object: The object from which to get the attribute.
-	    name (str): The name of the attribute to get.
-	    default: The default value to return if the attribute does not exist.
+		object: The object from which to get the attribute.
+		name (str): The name of the attribute to get.
+		default: The default value to return if the attribute does not exist.
 
 	Returns:
-	    The value of the attribute if it exists, otherwise the default value.
+		The value of the attribute if it exists, otherwise the default value.
 	"""
 	# guard function for RestrictedPython
 	# allow any key to be accessed as long as
@@ -524,12 +524,12 @@ def _get_attr_for_eval(object, name, default=ARGUMENT_NOT_SET):
 	if the attribute does not exist.
 
 	Args:
-	    object: The object from which to get the attribute.
-	    name (str): The name of the attribute to get.
-	    default: The default value to return if the attribute does not exist.
+		object: The object from which to get the attribute.
+		name (str): The name of the attribute to get.
+		default: The default value to return if the attribute does not exist.
 
 	Returns:
-	    The value of the attribute if it exists, otherwise the default value.
+		The value of the attribute if it exists, otherwise the default value.
 	"""
 	_validate_attribute_read(object, name)
 
@@ -548,21 +548,21 @@ def _validate_attribute_read(object, name):
 	If any of these conditions are not met, the appropriate exception is raised.
 
 	Args:
-	    object: The object being accessed.
-	    name (str): The name of the attribute being accessed.
+		object: The object being accessed.
+		name (str): The name of the attribute being accessed.
 
 	Raises:
-	    SyntaxError: If the attribute name is unsafe or if the object is a restricted type.
-	    AttributeError: If the attribute starts with an underscore.
+		SyntaxError: If the attribute name is unsafe or if the object is a restricted type.
+		AttributeError: If the attribute starts with an underscore.
 	"""
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
-	    raise SyntaxError(f"{name} is an unsafe attribute")
+		raise SyntaxError(f"{name} is an unsafe attribute")
 
 	if isinstance(object, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
-	    raise SyntaxError(f"Reading {object} attributes is not allowed")
+		raise SyntaxError(f"Reading {object} attributes is not allowed")
 
 	if name.startswith("_"):
-	    raise AttributeError(f'"{name}" is an invalid attribute name because it ' 'starts with "_"')
+		raise AttributeError(f'"{name}" is an invalid attribute name because it ' 'starts with "_"')
 
 
 def _write(obj):
@@ -573,10 +573,10 @@ def _write(obj):
 	SyntaxError is raised.
 
 	Args:
-	    obj: The object to be checked.
+		obj: The object to be checked.
 
 	Returns:
-	    The input object.
+		The input object.
 	"""
 	# guard function for RestrictedPython
 	if isinstance(
@@ -592,7 +592,7 @@ def _write(obj):
 			types.BuiltinFunctionType,  # covers methods
 		),
 	):
-	    raise SyntaxError(f"Not allowed to write to object {obj} of type {type(obj)}")
+		raise SyntaxError(f"Not allowed to write to object {obj} of type {type(obj)}")
 	return obj
 
 
@@ -604,11 +604,11 @@ def add_data_utils(data):
 	adds them to the given data dictionary if they are in the VALID_UTILS list.
 
 	Args:
-	    data: The data dictionary to add the objects to.
+		data: The data dictionary to add the objects to.
 	"""
 	for key, obj in frappe.utils.data.__dict__.items():
-	    if key in VALID_UTILS:
-	        data[key] = obj
+		if key in VALID_UTILS:
+			data[key] = obj
 
 
 def add_module_properties(module, data, filter_method):
@@ -619,18 +619,18 @@ def add_module_properties(module, data, filter_method):
 	the data dictionary if they pass the filter_method.
 
 	Args:
-	    module: The module containing the objects.
-	    data: The data dictionary to add the objects to.
-	    filter_method: A method that filters the objects.
+		module: The module containing the objects.
+		data: The data dictionary to add the objects to.
+		filter_method: A method that filters the objects.
 	"""
 	for key, obj in module.__dict__.items():
-	    if key.startswith("_"):
-	        # ignore
-	        continue
+		if key.startswith("_"):
+			# ignore
+			continue
 
-	    if filter_method(obj):
-	        # only allow functions
-	        data[key] = obj
+		if filter_method(obj):
+			# only allow functions
+			data[key] = obj
 
 
 VALID_UTILS = (

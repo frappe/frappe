@@ -21,12 +21,12 @@ def lazy_import(name, package=None):
 	"""
 	# Return if the module already loaded
 	if name in sys.modules:
-	    return sys.modules[name]
+		return sys.modules[name]
 
 	# Find the spec if not loaded
 	spec = importlib.util.find_spec(name, package)
 	if not spec:
-	    raise ImportError(f"Module {name} Not found.")
+		raise ImportError(f"Module {name} Not found.")
 
 	loader = importlib.util.LazyLoader(spec.loader)
 	spec.loader = loader

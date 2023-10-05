@@ -12,11 +12,11 @@ def deprecated(func):
 
 	@functools.wraps(func)
 	def wrapper(*args, **kwargs):
-	    deprecation_warning(
-	    	f"{func.__name__} is deprecated and will be removed in next major version.",
-	    	stacklevel=1,
-	    )
-	    return func(*args, **kwargs)
+		deprecation_warning(
+			f"{func.__name__} is deprecated and will be removed in next major version.",
+			stacklevel=1,
+		)
+		return func(*args, **kwargs)
 
 	return wrapper
 

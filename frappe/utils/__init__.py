@@ -234,11 +234,11 @@ def validate_url(
 	Checks whether `txt` has a valid URL string
 
 	Parameters:
-	        throw (`bool`): throws a validationError if URL is not valid
-	        valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
+			throw (`bool`): throws a validationError if URL is not valid
+			valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
 
 	Returns:
-	        bool: if `txt` represents a valid URL
+			bool: if `txt` represents a valid URL
 	"""
 	url = urlparse(txt)
 	is_valid = bool(url.netloc)
@@ -842,14 +842,14 @@ def get_db_count(*args):
 	"""
 	Pass a doctype or a series of doctypes to get the count of docs in them
 	Parameters:
-	        *args: Variable length argument list of doctype names whose doc count you need
+			*args: Variable length argument list of doctype names whose doc count you need
 
 	Returns:
-	        dict: A dict with the count values.
+			dict: A dict with the count values.
 
 	Example:
-	        via terminal:
-	                bench --site erpnext.local execute frappe.utils.get_db_count --args "['DocType', 'Communication']"
+			via terminal:
+					bench --site erpnext.local execute frappe.utils.get_db_count --args "['DocType', 'Communication']"
 	"""
 	db_count = {}
 	for doctype in args:
@@ -862,14 +862,14 @@ def call(fn, *args, **kwargs):
 	"""
 	Pass a doctype or a series of doctypes to get the count of docs in them
 	Parameters:
-	        fn: frappe function to be called
+			fn: frappe function to be called
 
 	Returns:
-	        based on the function you call: output of the function you call
+			based on the function you call: output of the function you call
 
 	Example:
-	        via terminal:
-	                bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
+			via terminal:
+					bench --site erpnext.local execute frappe.utils.call --args '''["frappe.get_all", "Activity Log"]''' --kwargs '''{"fields": ["user", "creation", "full_name"], "filters":{"Operation": "Login", "Status": "Success"}, "limit": "10"}'''
 	"""
 	return json.loads(frappe.as_json(frappe.call(fn, *args, **kwargs)))
 
@@ -916,11 +916,11 @@ def create_batch(iterable: Iterable, size: int) -> Generator[Iterable, None, Non
 	"""Convert an iterable to multiple batches of constant size of batch_size
 
 	Args:
-	        iterable (Iterable): Iterable object which is subscriptable
-	        size (int): Maximum size of batches to be generated
+			iterable (Iterable): Iterable object which is subscriptable
+			size (int): Maximum size of batches to be generated
 
 	Yields:
-	        Generator[List]: Batched iterable of maximum length `size`
+			Generator[List]: Batched iterable of maximum length `size`
 	"""
 	total_count = len(iterable)
 	for i in range(0, total_count, size):
@@ -996,10 +996,10 @@ def get_bench_relative_path(file_path):
 	"""Fixes paths relative to the bench root directory if exists and returns the absolute path
 
 	Args:
-	        file_path (str, Path): Path of a file that exists on the file system
+			file_path (str, Path): Path of a file that exists on the file system
 
 	Returns:
-	        str: Absolute path of the file_path
+			str: Absolute path of the file_path
 	"""
 	if not os.path.exists(file_path):
 		base_path = ".."
@@ -1024,16 +1024,16 @@ def groupby_metric(iterable: dict[str, list], key: str):
 	We can group the players by ranking(can be any other metric) using this function.
 
 	>>> d = {
-	        'india': [{'id':1, 'name': 'iplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'iplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'iplayer-3'}],
-	        'Aus': [{'id':1, 'name': 'aplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'aplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'aplayer-3'}]
+			'india': [{'id':1, 'name': 'iplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'iplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'iplayer-3'}],
+			'Aus': [{'id':1, 'name': 'aplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'aplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'aplayer-3'}]
 	}
 	>>> groupby(d, key='ranking')
 	{1: {'Aus': [{'id': 1, 'name': 'aplayer-1', 'ranking': 1},
-	                        {'id': 2, 'name': 'aplayer-2', 'ranking': 1}],
-	        'india': [{'id': 1, 'name': 'iplayer-1', 'ranking': 1},
-	                        {'id': 2, 'name': 'iplayer-2', 'ranking': 1}]},
+							{'id': 2, 'name': 'aplayer-2', 'ranking': 1}],
+			'india': [{'id': 1, 'name': 'iplayer-1', 'ranking': 1},
+							{'id': 2, 'name': 'iplayer-2', 'ranking': 1}]},
 	2: {'Aus': [{'id': 2, 'name': 'aplayer-3', 'ranking': 2}],
-	        'india': [{'id': 2, 'name': 'iplayer-3', 'ranking': 2}]}}
+			'india': [{'id': 2, 'name': 'iplayer-3', 'ranking': 2}]}}
 	"""
 	records = {}
 	for category, items in iterable.items():

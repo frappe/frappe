@@ -37,26 +37,26 @@ def user_to_str(date, date_format=None):
 	Convert a date to a string in the specified format.
 
 	Args:
-	    date (str): The date to be converted.
-	    date_format (str, optional): The desired format of the date. If not
-	        provided, the user's default date format is used.
+		date (str): The date to be converted.
+		date_format (str, optional): The desired format of the date. If not
+			provided, the user's default date format is used.
 
 	Returns:
-	    str: The date converted to a string in the specified format.
+		str: The date converted to a string in the specified format.
 
 	Raises:
-	    ValueError: If an invalid date or format is provided.
+		ValueError: If an invalid date or format is provided.
 	"""
 	if not date:
-	    return date
+		return date
 
 	if not date_format:
-	    date_format = get_user_date_format()
+		date_format = get_user_date_format()
 
 	try:
-	    return datetime.datetime.strptime(date, dateformats[date_format]).strftime("%Y-%m-%d")
+		return datetime.datetime.strptime(date, dateformats[date_format]).strftime("%Y-%m-%d")
 	except ValueError:
-	    raise ValueError(f"Date {date} must be in format {date_format}")
+		raise ValueError(f"Date {date} must be in format {date_format}")
 
 
 def parse_date(date):
@@ -64,8 +64,8 @@ def parse_date(date):
 	parsed_date = None
 
 	if " " in date:
-	    # as date-timestamp, remove the time part
-	    date = date.split(" ", 1)[0]
+		# as date-timestamp, remove the time part
+		date = date.split(" ", 1)[0]
 
 	# why the sorting? checking should be done in a predictable order
 	check_formats = [None] + sorted(
@@ -73,19 +73,19 @@ def parse_date(date):
 	)
 
 	for f in check_formats:
-	    try:
-	        parsed_date = user_to_str(date, f)
-	        if parsed_date:
-	            break
-	    except ValueError:
-	        pass
+		try:
+			parsed_date = user_to_str(date, f)
+			if parsed_date:
+				break
+		except ValueError:
+			pass
 
 	if not parsed_date:
-	    raise Exception(
-	    	"""Cannot understand date - '%s'.
+		raise Exception(
+			"""Cannot understand date - '%s'.
 			Try formatting it like your default format - '%s'"""
-	    	% (date, get_user_date_format())
-	    )
+			% (date, get_user_date_format())
+		)
 
 	return parsed_date
 
@@ -93,7 +93,7 @@ def parse_date(date):
 def get_user_date_format():
 	"""returns the system's user_date_format"""
 	if getattr(frappe.local, "user_date_format", None) is None:
-	    frappe.local.user_date_format = frappe.defaults.get_global_default("date_format") or "yyyy-mm-dd"
+		frappe.local.user_date_format = frappe.defaults.get_global_default("date_format") or "yyyy-mm-dd"
 
 	return frappe.local.user_date_format
 
@@ -101,9 +101,9 @@ def get_user_date_format():
 def datetime_in_user_format(date_time):
 	"""returns a formatted date and time string in the user's format"""
 	if not date_time:
-	    return ""
+		return ""
 	if isinstance(date_time, str):
-	    date_time = get_datetime(date_time)
+		date_time = get_datetime(date_time)
 	from frappe.utils import formatdate
 
 	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")
@@ -114,38 +114,38 @@ def get_dates_from_timegrain(from_date, to_date, timegrain="Daily"):
 	Get a list of dates based on the specified timegrain.
 
 	Args:
-	    from_date (str): The start date.
-	    to_date (str): The end date.
-	    timegrain (str, optional): The timegrain for the dates. Defaults to "Daily".
+		from_date (str): The start date.
+		to_date (str): The end date.
+		timegrain (str, optional): The timegrain for the dates. Defaults to "Daily".
 
 	Returns:
-	    list: A list of dates.
+		list: A list of dates.
 	"""
 	from_date = getdate(from_date)
 	to_date = getdate(to_date)
 
 	days = months = years = 0
 	if "Daily" == timegrain:
-	    days = 1
+		days = 1
 	elif "Weekly" == timegrain:
-	    days = 7
+		days = 7
 	elif "Monthly" == timegrain:
-	    months = 1
+		months = 1
 	elif "Quarterly" == timegrain:
-	    months = 3
+		months = 3
 	elif "Yearly" == timegrain:
-	    months = 1
+		months = 1
 
 	dates = [get_period_ending(from_date, timegrain)]
 
 	while getdate(dates[-1]) < getdate(to_date):
-	    if "Weekly" == timegrain:
-	        date = get_last_day_of_week(add_to_date(dates[-1], years=years, months=months, days=days))
-	    else:
-	        date = get_period_ending(
-	        	add_to_date(dates[-1], years=years, months=months, days=days), timegrain
-	        )
-	    dates.append(date)
+		if "Weekly" == timegrain:
+			date = get_last_day_of_week(add_to_date(dates[-1], years=years, months=months, days=days))
+		else:
+			date = get_period_ending(
+				add_to_date(dates[-1], years=years, months=months, days=days), timegrain
+			)
+		dates.append(date)
 	return dates
 
 
@@ -154,23 +154,23 @@ def get_from_date_from_timespan(to_date, timespan):
 	Get the start date based on the specified timespan.
 
 	Args:
-	    to_date (str): The end date.
-	    timespan (str): The timespan for the start date.
+		to_date (str): The end date.
+		timespan (str): The timespan for the start date.
 
 	Returns:
-	    str: The start date.
+		str: The start date.
 	"""
 	days = months = years = 0
 	if timespan == "Last Week":
-	    days = -7
+		days = -7
 	if timespan == "Last Month":
-	    months = -1
+		months = -1
 	elif timespan == "Last Quarter":
-	    months = -3
+		months = -3
 	elif timespan == "Last Year":
-	    years = -1
+		years = -1
 	elif timespan == "All Time":
-	    years = -50
+		years = -50
 	return add_to_date(to_date, years=years, months=months, days=days, as_datetime=True)
 
 
@@ -179,11 +179,11 @@ def get_period(date, interval="Monthly"):
 	Get the period representation of the given date based on the interval.
 
 	Args:
-	    date (datetime): The input date.
-	    interval (str, optional): The interval to calculate the period. Defaults to "Monthly".
+		date (datetime): The input date.
+		interval (str, optional): The interval to calculate the period. Defaults to "Monthly".
 
 	Returns:
-	    str: The period representation of the given date.
+		str: The period representation of the given date.
 	"""
 	date = getdate(date)
 	months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -201,13 +201,13 @@ def get_period_beginning(date, timegrain, as_str=True):
 	Get the beginning date of the period based on the input date and timegrain.
 
 	Args:
-	    date (datetime): The input date.
-	    timegrain (str): The timegrain to calculate the beginning date.
-	    as_str (bool, optional): Whether to return the date as a string or
-	        datetime object. Defaults to True.
+		date (datetime): The input date.
+		timegrain (str): The timegrain to calculate the beginning date.
+		as_str (bool, optional): Whether to return the date as a string or
+			datetime object. Defaults to True.
 
 	Returns:
-	    datetime or str: The beginning date of the period.
+		datetime or str: The beginning date of the period.
 	"""
 	return getdate(
 		{
@@ -225,11 +225,11 @@ def get_period_ending(date, timegrain):
 	Get the ending date of the period based on the input date and timegrain.
 
 	Args:
-	    date (datetime): The input date.
-	    timegrain (str): The timegrain to calculate the ending date.
+		date (datetime): The input date.
+		timegrain (str): The timegrain to calculate the ending date.
 
 	Returns:
-	    datetime: The ending date of the period.
+		datetime: The ending date of the period.
 	"""
 	return getdate(
 		{

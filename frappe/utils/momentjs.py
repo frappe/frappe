@@ -7,20 +7,20 @@ def update(tz, out):
 	updates the output dictionary with the retrieved data.
 
 	Args:
-	    tz (str): The timezone to retrieve data for.
-	    out (dict): The output dictionary to update.
+		tz (str): The timezone to retrieve data for.
+		out (dict): The output dictionary to update.
 	"""
 	ltz = data["links"].get(tz, tz)
 	zone = data["zones"].get(ltz)
 	if not zone:
-	    return
+		return
 
 	out["zones"][ltz] = zone
 	out["links"][tz] = ltz
 	for z in zone:
-	    parts = z.split(" ")
-	    if parts[1] in data["rules"]:
-	        out["rules"][parts[1]] = data["rules"][parts[1]]
+		parts = z.split(" ")
+		if parts[1] in data["rules"]:
+			out["rules"][parts[1]] = data["rules"][parts[1]]
 
 
 def get_all_timezones():
@@ -29,7 +29,7 @@ def get_all_timezones():
 	This function returns a sorted list of all timezones from the 'data' dictionary.
 
 	Returns:
-	    list: A sorted list of all timezones.
+		list: A sorted list of all timezones.
 	"""
 	return sorted(list(data["zones"]))
 

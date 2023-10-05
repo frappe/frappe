@@ -12,14 +12,14 @@ def before_install():
 	Reloads various doctypes from the 'core' and 'desk' modules.
 
 	This function is responsible for reloading the following doctypes:
-	    - doctype_state
-	    - docfield
-	    - docperm
-	    - doctype_action
-	    - doctype_link
-	    - form_tour_step
-	    - form_tour
-	    - doctype
+		- doctype_state
+		- docfield
+		- docperm
+		- doctype_action
+		- doctype_link
+		- form_tour_step
+		- form_tour
+		- doctype
 
 	This function likely performs some setup or initialization tasks before installation.
 	"""
@@ -58,14 +58,14 @@ def after_install():
 	update_password("Administrator", get_admin_password())
 
 	if not frappe.conf.skip_setup_wizard:
-	    # only set home_page if the value doesn't exist in the db
-	    if not frappe.db.get_default("desktop:home_page"):
-	        frappe.db.set_default("desktop:home_page", "setup-wizard")
-	        frappe.db.set_single_value("System Settings", "setup_complete", 0)
+		# only set home_page if the value doesn't exist in the db
+		if not frappe.db.get_default("desktop:home_page"):
+			frappe.db.set_default("desktop:home_page", "setup-wizard")
+			frappe.db.set_single_value("System Settings", "setup_complete", 0)
 
 	# clear test log
 	with open(frappe.get_site_path(".test_log"), "w") as f:
-	    f.write("")
+		f.write("")
 
 	add_standard_navbar_items()
 
@@ -77,10 +77,10 @@ def create_user_type():
 	Function to create user types if they don't already exist.
 	"""
 	for user_type in ["System User", "Website User"]:
-	    if not frappe.db.exists("User Type", user_type):
-	        frappe.get_doc({"doctype": "User Type", "name": user_type, "is_standard": 1}).insert(
-	        	ignore_permissions=True
-	        )
+		if not frappe.db.exists("User Type", user_type):
+			frappe.get_doc({"doctype": "User Type", "name": user_type, "is_standard": 1}).insert(
+				ignore_permissions=True
+			)
 
 
 def install_basic_docs():
@@ -164,10 +164,10 @@ def install_basic_docs():
 	]
 
 	for d in install_docs:
-	    try:
-	        frappe.get_doc(d).insert(ignore_if_duplicate=True)
-	    except frappe.NameError:
-	        pass
+		try:
+			frappe.get_doc(d).insert(ignore_if_duplicate=True)
+		except frappe.NameError:
+			pass
 
 
 def get_admin_password():
@@ -179,19 +179,19 @@ def get_admin_password():
 	ask_admin_password() to prompt the user for a password.
 
 	Returns:
-	    str: The administrator password.
+		str: The administrator password.
 	"""
 	def ask_admin_password():
-	    admin_password = getpass.getpass("Set Administrator password: ")
-	    admin_password2 = getpass.getpass("Re-enter Administrator password: ")
-	    if not admin_password == admin_password2:
-	        print("\nPasswords do not match")
-	        return ask_admin_password()
-	    return admin_password
+		admin_password = getpass.getpass("Set Administrator password: ")
+		admin_password2 = getpass.getpass("Re-enter Administrator password: ")
+		if not admin_password == admin_password2:
+			print("\nPasswords do not match")
+			return ask_admin_password()
+		return admin_password
 
 	admin_password = frappe.conf.get("admin_password")
 	if not admin_password:
-	    return ask_admin_password()
+		return ask_admin_password()
 	return admin_password
 
 
@@ -208,8 +208,8 @@ def before_tests():
 	Clear the cache.
 	"""
 	if len(frappe.get_installed_apps()) > 1:
-	    # don't run before tests if any other app is installed
-	    return
+		# don't run before tests if any other app is installed
+		return
 
 	frappe.db.truncate("Custom Field")
 	frappe.db.truncate("Event")
@@ -218,7 +218,7 @@ def before_tests():
 
 	# complete setup if missing
 	if not int(frappe.db.get_single_value("System Settings", "setup_complete") or 0):
-	    complete_setup_wizard()
+		complete_setup_wizard()
 
 	frappe.db.set_single_value("Website Settings", "disable_signup", 0)
 	frappe.db.commit()
@@ -253,7 +253,7 @@ def add_standard_navbar_items():
 
 	# don't add settings/help options if they're already present
 	if navbar_settings.settings_dropdown and navbar_settings.help_dropdown:
-	    return
+		return
 
 	standard_navbar_items = [
 		{
@@ -336,9 +336,9 @@ def add_standard_navbar_items():
 	navbar_settings.help_dropdown = []
 
 	for item in standard_navbar_items:
-	    navbar_settings.append("settings_dropdown", item)
+		navbar_settings.append("settings_dropdown", item)
 
 	for item in standard_help_items:
-	    navbar_settings.append("help_dropdown", item)
+		navbar_settings.append("help_dropdown", item)
 
 	navbar_settings.save()

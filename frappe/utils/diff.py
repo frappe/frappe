@@ -13,7 +13,7 @@ def get_version_diff(
 	"""
  Return the difference between the values of the specified field in two versions.
 
-	    This function takes in two versions (from_version and to_version) and a
+		This function takes in two versions (from_version and to_version) and a
  fieldname as input and returns the difference between the values of the
  specified field in the two versions. The function first retrieves the values
  of the field from the specified versions using the _get_value_from_version()
@@ -36,7 +36,7 @@ def get_version_diff(
 	after, after_timestamp = _get_value_from_version(to_version, fieldname)
 
 	if not (before and after):
-	    return ["Values not available for diff"]
+		return ["Values not available for diff"]
 
 	before = before.split("\n")
 	after = after.split("\n")
@@ -73,13 +73,13 @@ def _get_value_from_version(version_name: int | str, fieldname: str):
  """
 	version = frappe.get_list("Version", fields=["data", "modified"], filters={"name": version_name})
 	if version:
-	    data = json.loads(version[0].data)
-	    changed_fields = data.get("changed", [])
+		data = json.loads(version[0].data)
+		changed_fields = data.get("changed", [])
 
-	    # data structure of field: [fieldname, before_save, after_save]
-	    for field in changed_fields:
-	        if field[0] == fieldname:
-	            return field[2], str(version[0].modified)
+		# data structure of field: [fieldname, before_save, after_save]
+		for field in changed_fields:
+			if field[0] == fieldname:
+				return field[2], str(version[0].modified)
 
 	return None, None
 
@@ -94,16 +94,16 @@ def version_query(doctype, txt, searchfield, start, page_len, filters):
 	processes the results to return a formatted list of tuples.
 
 	Args:
-	    doctype (str): The type of document to query.
-	    txt (str): The search text to filter the results.
-	    searchfield (str): The field to search for the search text.
-	    start (int): The starting index of the results.
-	    page_len (int): The number of results per page.
-	    filters (dict): Additional filters to apply to the query.
+		doctype (str): The type of document to query.
+		txt (str): The search text to filter the results.
+		searchfield (str): The field to search for the search text.
+		start (int): The starting index of the results.
+		page_len (int): The number of results per page.
+		filters (dict): Additional filters to apply to the query.
 
 	Returns:
-	    list: A list of tuples, each containing the name, formatted modified
-	    date, and modified date of a Version object.
+		list: A list of tuples, each containing the name, formatted modified
+		date, and modified date of a Version object.
 	"""
 	results = frappe.get_list(
 		"Version",

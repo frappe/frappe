@@ -10,24 +10,24 @@ def resolve_class(*classes):
 	containing the resolved class names.
 
 	Args:
-	    *classes: The classes to be resolved.
+		*classes: The classes to be resolved.
 
 	Returns:
-	    str: A string containing the resolved class names.
+		str: A string containing the resolved class names.
 	"""
 	if classes and len(classes) == 1:
-	    classes = classes[0]
+		classes = classes[0]
 
 	if classes is None:
-	    return ""
+		return ""
 	if classes is False:
-	    return ""
+		return ""
 
 	if isinstance(classes, (list, tuple)):
-	    return " ".join(resolve_class(c) for c in classes).strip()
+		return " ".join(resolve_class(c) for c in classes).strip()
 
 	if isinstance(classes, dict):
-	    return " ".join(classname for classname in classes if classes[classname]).strip()
+		return " ".join(classname for classname in classes if classes[classname]).strip()
 
 	return classes
 
@@ -40,20 +40,20 @@ def inspect(var, render=True):
 	string representing the variable.
 
 	Args:
-	    var: The variable to be inspected.
-	    render (bool, optional): Specifies whether the variable should be rendered.
-	    Defaults to True.
+		var: The variable to be inspected.
+		render (bool, optional): Specifies whether the variable should be rendered.
+		Defaults to True.
 
 	Returns:
-	    str: A preformatted HTML string representing the variable.
+		str: A preformatted HTML string representing the variable.
 	"""
 	from frappe.utils.jinja import get_jenv
 
 	context = {"var": var}
 	if render:
-	    html = "<pre>{{ var | pprint | e }}</pre>"
+		html = "<pre>{{ var | pprint | e }}</pre>"
 	else:
-	    return ""
+		return ""
 	return get_jenv().from_string(html).render(context)
 
 
@@ -65,12 +65,12 @@ def web_block(template, values=None, **kwargs):
 	returns a web block as a list.
 
 	Args:
-	    template: The template to be used for the web block.
-	    values (list, optional): The values to be included in the web block. Defaults to None.
-	    **kwargs: Additional keyword arguments to be included in the web block.
+		template: The template to be used for the web block.
+		values (list, optional): The values to be included in the web block. Defaults to None.
+		**kwargs: Additional keyword arguments to be included in the web block.
 
 	Returns:
-	    list: A web block as a list.
+		list: A web block as a list.
 	"""
 	options = {"template": template, "values": values}
 	options.update(kwargs)
@@ -82,10 +82,10 @@ def web_blocks(blocks):
 	Generate HTML content for a list of web page blocks.
 
 	Args:
-	    blocks (list): A list of dictionaries representing web page blocks.
+		blocks (list): A list of dictionaries representing web page blocks.
 
 	Returns:
-	    str: The generated HTML content.
+		str: The generated HTML content.
 	"""
 	import frappe
 	from frappe import _, _dict, throw
@@ -93,47 +93,47 @@ def web_blocks(blocks):
 
 	web_blocks = []
 	for block in blocks:
-	    if not block.get("template"):
-	        throw(_("Web Template is not specified"))
+		if not block.get("template"):
+			throw(_("Web Template is not specified"))
 
-	    doc = _dict(
-	    	{
-	    		"doctype": "Web Page Block",
-	    		"web_template": block["template"],
-	    		"web_template_values": block.get("values", {}),
-	    		"add_top_padding": 1,
-	    		"add_bottom_padding": 1,
-	    		"add_container": 1,
-	    		"hide_block": 0,
-	    		"css_class": "",
-	    	}
-	    )
-	    doc.update(block)
-	    web_blocks.append(doc)
+		doc = _dict(
+			{
+				"doctype": "Web Page Block",
+				"web_template": block["template"],
+				"web_template_values": block.get("values", {}),
+				"add_top_padding": 1,
+				"add_bottom_padding": 1,
+				"add_container": 1,
+				"hide_block": 0,
+				"css_class": "",
+			}
+		)
+		doc.update(block)
+		web_blocks.append(doc)
 
 	out = get_web_blocks_html(web_blocks)
 
 	html = out.html
 
 	if not frappe.flags.web_block_scripts:
-	    frappe.flags.web_block_scripts = {}
-	    frappe.flags.web_block_styles = {}
+		frappe.flags.web_block_scripts = {}
+		frappe.flags.web_block_styles = {}
 
 	for template, scripts in out.scripts.items():
-	    # deduplication of scripts when web_blocks methods are used in web pages
-	    # see render_dynamic method web_page.py
-	    if template not in frappe.flags.web_block_scripts:
-	        for script in scripts:
-	            html += f"<script data-web-template='{template}'>{script}</script>"
-	        frappe.flags.web_block_scripts[template] = True
+		# deduplication of scripts when web_blocks methods are used in web pages
+		# see render_dynamic method web_page.py
+		if template not in frappe.flags.web_block_scripts:
+			for script in scripts:
+				html += f"<script data-web-template='{template}'>{script}</script>"
+			frappe.flags.web_block_scripts[template] = True
 
 	for template, styles in out.styles.items():
-	    # deduplication of styles when web_blocks methods are used in web pages
-	    # see render_dynamic method web_page.py
-	    if template not in frappe.flags.web_block_styles:
-	        for style in styles:
-	            html += f"<style data-web-template='{template}'>{style}</style>"
-	        frappe.flags.web_block_styles[template] = True
+		# deduplication of styles when web_blocks methods are used in web pages
+		# see render_dynamic method web_page.py
+		if template not in frappe.flags.web_block_styles:
+			for style in styles:
+				html += f"<style data-web-template='{template}'>{style}</style>"
+			frappe.flags.web_block_styles[template] = True
 
 	return html
 
@@ -142,10 +142,10 @@ def get_dom_id(seed=None):
 	"""Generate a unique ID for a DOM element.
 
 	Args:
-	    seed (str, optional): A seed value to generate the ID from.
+		seed (str, optional): A seed value to generate the ID from.
 
 	Returns:
-	    str: The generated ID.
+		str: The generated ID.
 	"""
 	from frappe import generate_hash
 
@@ -159,18 +159,18 @@ def include_script(path, preload=True):
 	can prefetch assets.
 
 	Args:
-	    path (str): The path of the script file.
-	    preload (bool, optional): Whether to add the path to preload headers.
+		path (str): The path of the script file.
+		preload (bool, optional): Whether to add the path to preload headers.
 
 	Returns:
-	    str: The script tag.
+		str: The script tag.
 	"""
 	path = bundled_asset(path)
 
 	if preload:
-	    import frappe
+		import frappe
 
-	    frappe.local.preload_assets["script"].append(path)
+		frappe.local.preload_assets["script"].append(path)
 
 	return f'<script type="text/javascript" src="{path}"></script>'
 
@@ -182,19 +182,19 @@ def include_style(path, rtl=None, preload=True):
 	can prefetch assets.
 
 	Args:
-	    path (str): The path of the style file.
-	    rtl (bool, optional): Whether the style file is right-to-left.
-	    preload (bool, optional): Whether to add the path to preload headers.
+		path (str): The path of the style file.
+		rtl (bool, optional): Whether the style file is right-to-left.
+		preload (bool, optional): Whether to add the path to preload headers.
 
 	Returns:
-	    str: The link tag.
+		str: The link tag.
 	"""
 	path = bundled_asset(path)
 
 	if preload:
-	    import frappe
+		import frappe
 
-	    frappe.local.preload_assets["style"].append(path)
+		frappe.local.preload_assets["style"].append(path)
 
 	return f'<link type="text/css" rel="stylesheet" href="{path}">'
 
@@ -206,20 +206,20 @@ def bundled_asset(path, rtl=None):
 	replaced with the corresponding path from the bundled assets dictionary.
 
 	Args:
-	    path (str): The original path.
-	    rtl (bool, optional): Whether the assets are right-to-left.
+		path (str): The original path.
+		rtl (bool, optional): Whether the assets are right-to-left.
 
 	Returns:
-	    str: The path of the bundled assets.
+		str: The path of the bundled assets.
 	"""
 	from frappe.utils import get_assets_json
 	from frappe.website.utils import abs_url
 
 	if ".bundle." in path and not path.startswith("/assets"):
-	    bundled_assets = get_assets_json()
-	    if path.endswith(".css") and is_rtl(rtl):
-	        path = f"rtl_{path}"
-	    path = bundled_assets.get(path) or path
+		bundled_assets = get_assets_json()
+		if path.endswith(".css") and is_rtl(rtl):
+			path = f"rtl_{path}"
+		path = bundled_assets.get(path) or path
 
 	return abs_url(path)
 
@@ -228,13 +228,13 @@ def is_rtl(rtl=None):
 	"""Check if the current language is right-to-left (RTL).
 
 	Args:
-	    rtl (bool, optional): Whether the language is right-to-left.
+		rtl (bool, optional): Whether the language is right-to-left.
 
 	Returns:
-	    bool: True if the language is RTL, False otherwise.
+		bool: True if the language is RTL, False otherwise.
 	"""
 	from frappe import local
 
 	if rtl is None:
-	    return local.lang in ["ar", "he", "fa", "ps"]
+		return local.lang in ["ar", "he", "fa", "ps"]
 	return rtl

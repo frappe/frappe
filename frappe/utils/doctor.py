@@ -12,10 +12,10 @@ def get_workers():
 	Retrieve all available workers.
 
 	Returns:
-	    list: A list of all available workers.
+		list: A list of all available workers.
 	"""
 	with Connection(get_redis_conn()):
-	    return Worker.all()
+		return Worker.all()
 
 
 def purge_pending_jobs(event=None, site=None, queue=None):
@@ -25,32 +25,32 @@ def purge_pending_jobs(event=None, site=None, queue=None):
 	five mintues and would any leave daily, hourly and weekly tasks
 
 	Args:
-	    event (str, optional): The event type to purge tasks for. Defaults to None.
-	    site (str, optional): The site to purge tasks for. Defaults to None.
-	    queue (str, optional): The queue to purge tasks from. Defaults to None.
+		event (str, optional): The event type to purge tasks for. Defaults to None.
+		site (str, optional): The site to purge tasks for. Defaults to None.
+		queue (str, optional): The queue to purge tasks from. Defaults to None.
 
 	Returns:
-	    int: The number of purged tasks.
+		int: The number of purged tasks.
 	"""
 	purged_task_count = 0
 	for _queue in get_queue_list(queue):
-	    q = get_queue(_queue)
-	    for job in q.jobs:
-	        if site and event:
-	            if job.kwargs["site"] == site and job.kwargs["event"] == event:
-	                job.delete()
-	                purged_task_count += 1
-	        elif site:
-	            if job.kwargs["site"] == site:
-	                job.delete()
-	                purged_task_count += 1
-	        elif event:
-	            if job.kwargs["event"] == event:
-	                job.delete()
-	                purged_task_count += 1
-	        else:
-	            purged_task_count += q.count
-	            q.empty()
+		q = get_queue(_queue)
+		for job in q.jobs:
+			if site and event:
+				if job.kwargs["site"] == site and job.kwargs["event"] == event:
+					job.delete()
+					purged_task_count += 1
+			elif site:
+				if job.kwargs["site"] == site:
+					job.delete()
+					purged_task_count += 1
+			elif event:
+				if job.kwargs["event"] == event:
+					job.delete()
+					purged_task_count += 1
+			else:
+				purged_task_count += q.count
+				q.empty()
 
 	return purged_task_count
 
@@ -60,33 +60,33 @@ def get_jobs_by_queue(site=None):
 	Get the number of jobs per queue and the consolidated jobs per queue by method.
 
 	Args:
-	    site (str, optional): The site to filter jobs by. Defaults to None.
+		site (str, optional): The site to filter jobs by. Defaults to None.
 
 	Returns:
-	    tuple: A tuple containing: dict: A dictionary containing the number of
-	    jobs per queue.
-	        dict: A dictionary containing the consolidated jobs per queue by method.
+		tuple: A tuple containing: dict: A dictionary containing the number of
+		jobs per queue.
+			dict: A dictionary containing the consolidated jobs per queue by method.
 	"""
 	jobs_per_queue = defaultdict(list)
 	job_count = consolidated_methods = {}
 	for queue in get_queue_list():
-	    q = get_queue(queue)
-	    for job in q.jobs:
-	        if not site:
-	            jobs_per_queue[queue].append(job.kwargs.get("method") or job.description)
-	        elif job.kwargs["site"] == site:
-	            jobs_per_queue[queue].append(job.kwargs.get("method") or job.description)
+		q = get_queue(queue)
+		for job in q.jobs:
+			if not site:
+				jobs_per_queue[queue].append(job.kwargs.get("method") or job.description)
+			elif job.kwargs["site"] == site:
+				jobs_per_queue[queue].append(job.kwargs.get("method") or job.description)
 
-	    consolidated_methods = {}
+		consolidated_methods = {}
 
-	    for method in jobs_per_queue[queue]:
-	        if method not in list(consolidated_methods):
-	            consolidated_methods[method] = 1
-	        else:
-	            consolidated_methods[method] += 1
+		for method in jobs_per_queue[queue]:
+			if method not in list(consolidated_methods):
+				consolidated_methods[method] = 1
+			else:
+				consolidated_methods[method] += 1
 
-	    job_count[queue] = len(jobs_per_queue[queue])
-	    jobs_per_queue[queue] = consolidated_methods
+		job_count[queue] = len(jobs_per_queue[queue])
+		jobs_per_queue[queue] = consolidated_methods
 
 	return jobs_per_queue, job_count
 
@@ -96,28 +96,28 @@ def get_pending_jobs(site=None):
 	Get the pending jobs per queue.
 
 	Args:
-	    site (str, optional): The site to filter jobs by. Defaults to None.
+		site (str, optional): The site to filter jobs by. Defaults to None.
 
 	Returns:
-	    dict: A dictionary containing the pending jobs per queue.
+		dict: A dictionary containing the pending jobs per queue.
 	"""
 	jobs_per_queue = defaultdict(list)
 	for queue in get_queue_list():
-	    q = get_queue(queue)
-	    for job in q.jobs:
-	        method_kwargs = job.kwargs["kwargs"] if job.kwargs["kwargs"] else ""
-	        if job.kwargs["site"] == site:
-	            jobs_per_queue[queue].append("{} {}".format(job.kwargs["method"], method_kwargs))
+		q = get_queue(queue)
+		for job in q.jobs:
+			method_kwargs = job.kwargs["kwargs"] if job.kwargs["kwargs"] else ""
+			if job.kwargs["site"] == site:
+				jobs_per_queue[queue].append("{} {}".format(job.kwargs["method"], method_kwargs))
 
 	return jobs_per_queue
 
 
 def any_job_pending(site: str) -> bool:
 	for queue in get_queue_list():
-	    q = get_queue(queue)
-	    for job_id in q.get_job_ids():
-	        if job_id.startswith(site):
-	            return True
+		q = get_queue(queue)
+		for job_id in q.get_job_ids():
+			if job_id.startswith(site):
+				return True
 	return False
 
 
@@ -127,7 +127,7 @@ def check_number_of_workers():
 
 def get_running_tasks():
 	for worker in get_workers():
-	    return worker.get_current_job()
+		return worker.get_current_job()
 
 
 def doctor(site=None):
@@ -135,44 +135,44 @@ def doctor(site=None):
 	Prints diagnostic information for the scheduler
 	"""
 	with frappe.init_site(site):
-	    workers_online = check_number_of_workers()
-	    jobs_per_queue, job_count = get_jobs_by_queue(site)
+		workers_online = check_number_of_workers()
+		jobs_per_queue, job_count = get_jobs_by_queue(site)
 
 	print("-----Checking scheduler status-----")
 	if site:
-	    sites = [site]
+		sites = [site]
 	else:
-	    sites = frappe.utils.get_sites()
+		sites = frappe.utils.get_sites()
 
 	for s in sites:
-	    frappe.init(s)
-	    frappe.connect()
+		frappe.init(s)
+		frappe.connect()
 
-	    if is_scheduler_disabled():
-	        print("Scheduler disabled for", s)
+		if is_scheduler_disabled():
+			print("Scheduler disabled for", s)
 
-	    if frappe.local.conf.maintenance_mode:
-	        print("Maintenance mode on for", s)
+		if frappe.local.conf.maintenance_mode:
+			print("Maintenance mode on for", s)
 
-	    if frappe.local.conf.pause_scheduler:
-	        print("Scheduler paused for", s)
+		if frappe.local.conf.pause_scheduler:
+			print("Scheduler paused for", s)
 
-	    if is_scheduler_inactive():
-	        print("Scheduler inactive for", s)
+		if is_scheduler_inactive():
+			print("Scheduler inactive for", s)
 
-	    frappe.destroy()
+		frappe.destroy()
 
 	# TODO improve this
 	print("Workers online:", workers_online)
 	print(f"-----{site} Jobs-----")
 	for queue in get_queue_list():
-	    if jobs_per_queue[queue]:
-	        print("Queue:", queue)
-	        print("Number of Jobs: ", job_count[queue])
-	        print("Methods:")
-	        for method, count in jobs_per_queue[queue].items():
-	            print(f"{method} : {count}")
-	        print("------------")
+		if jobs_per_queue[queue]:
+			print("Queue:", queue)
+			print("Number of Jobs: ", job_count[queue])
+			print("Methods:")
+			for method, count in jobs_per_queue[queue].items():
+				print(f"{method} : {count}")
+			print("------------")
 
 	return True
 
@@ -189,14 +189,14 @@ def pending_jobs(site=None):
 	each pending job on a new line.
 
 	Args:
-	    site (str, optional): The specific site to retrieve pending jobs for.
+		site (str, optional): The specific site to retrieve pending jobs for.
 
 	Returns:
-	    None
+		None
 	"""
 	print("-----Pending Jobs-----")
 	pending_jobs = get_pending_jobs(site)
 	for queue in get_queue_list():
-	    if pending_jobs[queue]:
-	        print(f"-----Queue :{queue}-----")
-	        print("\n".join(pending_jobs[queue]))
+		if pending_jobs[queue]:
+			print(f"-----Queue :{queue}-----")
+			print("\n".join(pending_jobs[queue]))

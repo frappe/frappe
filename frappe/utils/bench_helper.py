@@ -25,14 +25,14 @@ def get_app_groups() -> dict[str, click.Group]:
 	designed to only handle that"""
 	commands = {}
 	for app in get_apps():
-	    if app_commands := get_app_commands(app):
-	        commands |= app_commands
+		if app_commands := get_app_commands(app):
+			commands |= app_commands
 	return dict(frappe=click.group(name="frappe", commands=commands)(app_group))
 
 
 def get_app_group(app: str) -> click.Group:
 	if app_commands := get_app_commands(app):
-	    return click.group(name=app, commands=app_commands)(app_group)
+		return click.group(name=app, commands=app_commands)(app_group)
 
 
 @click.option("--site")
@@ -43,28 +43,28 @@ def get_app_group(app: str) -> click.Group:
 def app_group(ctx, site=False, force=False, verbose=False, profile=False):
 	ctx.obj = {"sites": get_sites(site), "force": force, "verbose": verbose, "profile": profile}
 	if ctx.info_name == "frappe":
-	    ctx.info_name = ""
+		ctx.info_name = ""
 
 
 def get_sites(site_arg: str) -> list[str]:
 	if site_arg == "all":
-	    return frappe.utils.get_sites()
+		return frappe.utils.get_sites()
 	elif site_arg:
-	    return [site_arg]
+		return [site_arg]
 	elif os.environ.get("FRAPPE_SITE"):
-	    return [os.environ.get("FRAPPE_SITE")]
+		return [os.environ.get("FRAPPE_SITE")]
 	elif default_site := frappe.get_conf().default_site:
-	    return [default_site]
+		return [default_site]
 	# This is not supported, just added here for warning.
 	elif (site := frappe.read_file("currentsite.txt")) and site.strip():
-	    click.secho(
-	    	dedent(
-	    		f"""
+		click.secho(
+			dedent(
+				f"""
 			WARNING: currentsite.txt is not supported anymore for setting default site. Use following command to set it as default site.
 			$ bench use {site}"""
-	    	),
-	    	fg="red",
-	    )
+			),
+			fg="red",
+		)
 
 	return []
 
@@ -72,17 +72,17 @@ def get_sites(site_arg: str) -> list[str]:
 def get_app_commands(app: str) -> dict:
 	ret = {}
 	try:
-	    app_command_module = importlib.import_module(f"{app}.commands")
+		app_command_module = importlib.import_module(f"{app}.commands")
 	except ModuleNotFoundError as e:
-	    if e.name == f"{app}.commands":
-	        return ret
-	    traceback.print_exc()
-	    return ret
+		if e.name == f"{app}.commands":
+			return ret
+		traceback.print_exc()
+		return ret
 	except Exception:
-	    traceback.print_exc()
-	    return ret
+		traceback.print_exc()
+		return ret
 	for command in getattr(app_command_module, "commands", []):
-	    ret[command.name] = command
+		ret[command.name] = command
 	return ret
 
 
@@ -91,9 +91,9 @@ def get_frappe_commands():
 	commands = list(get_app_commands("frappe"))
 
 	for app in get_apps():
-	    app_commands = get_app_commands(app)
-	    if app_commands:
-	        commands.extend(list(app_commands))
+		app_commands = get_app_commands(app)
+		if app_commands:
+			commands.extend(list(app_commands))
 
 	print(json.dumps(commands))
 
@@ -109,6 +109,6 @@ def get_apps():
 
 if __name__ == "__main__":
 	if not frappe._dev_server:
-	    warnings.simplefilter("ignore")
+		warnings.simplefilter("ignore")
 
 	main()

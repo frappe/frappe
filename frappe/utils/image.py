@@ -12,20 +12,20 @@ def resize_images(path, maxdim=700):
 	jpeg, png, or gif.
 
 	Args:
-	    path (str): The path to the directory containing the images.
-	    maxdim (int, optional): The maximum dimension of the resized images. Defaults to 700.
+		path (str): The path to the directory containing the images.
+		maxdim (int, optional): The maximum dimension of the resized images. Defaults to 700.
 	"""
 	size = (maxdim, maxdim)
 	for basepath, folders, files in os.walk(path):
-	    for fname in files:
-	        extn = fname.rsplit(".", 1)[1]
-	        if extn in ("jpg", "jpeg", "png", "gif"):
-	            im = Image.open(os.path.join(basepath, fname))
-	            if im.size[0] > size[0] or im.size[1] > size[1]:
-	                im.thumbnail(size, Image.Resampling.LANCZOS)
-	                im.save(os.path.join(basepath, fname))
+		for fname in files:
+			extn = fname.rsplit(".", 1)[1]
+			if extn in ("jpg", "jpeg", "png", "gif"):
+				im = Image.open(os.path.join(basepath, fname))
+				if im.size[0] > size[0] or im.size[1] > size[1]:
+					im.thumbnail(size, Image.Resampling.LANCZOS)
+					im.save(os.path.join(basepath, fname))
 
-	                print(f"resized {os.path.join(basepath, fname)}")
+					print(f"resized {os.path.join(basepath, fname)}")
 
 
 def strip_exif_data(content, content_type):
@@ -36,18 +36,18 @@ def strip_exif_data(content, content_type):
 	default and then extracts the binary data back into content.
 
 	Args:
-	    content (bytes): The image content.
-	    content_type (str): The content type of the image.
+		content (bytes): The image content.
+		content_type (str): The content type of the image.
 
 	Returns:
-	    Bytes: Stripped image content
+		Bytes: Stripped image content
 	"""
 
 	original_image = Image.open(io.BytesIO(content))
 	output = io.BytesIO()
 	# ref: https://stackoverflow.com/a/48248432
 	if content_type == "image/jpeg" and original_image.mode in ("RGBA", "P"):
-	    original_image = original_image.convert("RGB")
+		original_image = original_image.convert("RGB")
 
 	new_image = Image.new(original_image.mode, original_image.size)
 	new_image.putdata(list(original_image.getdata()))
@@ -64,11 +64,11 @@ def optimize_image(
 	"""
  Optimize the given image content.
 
-	    This function resizes the image to the specified maximum width and
+		This function resizes the image to the specified maximum width and
  height, optimizes it, and returns the optimized image content if it is
  smaller in size than the original content.
 
-	    If the content type is 'image/svg+xml', the function returns the content
+		If the content type is 'image/svg+xml', the function returns the content
  as it is without any modifications.
 
  Args:
@@ -80,11 +80,11 @@ def optimize_image(
   quality (optional): The quality of the optimized image. Defaults to 85.
 
  Returns:
-	            The optimized image content if it is smaller in size than the
+				The optimized image content if it is smaller in size than the
   original content, otherwise the original content.
  """
 	if content_type == "image/svg+xml":
-	    return content
+		return content
 
 	image = Image.open(io.BytesIO(content))
 	width, height = image.size

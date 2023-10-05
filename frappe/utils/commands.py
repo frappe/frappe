@@ -8,11 +8,11 @@ def get_first_party_apps():
 
 	apps = []
 	for org in ["frappe", "erpnext"]:
-	    req = requests.get(
-	    	f"https://api.github.com/users/{org}/repos", {"type": "sources", "per_page": 200}
-	    )
-	    if req.ok:
-	        apps.extend([x["name"] for x in req.json()])
+		req = requests.get(
+			f"https://api.github.com/users/{org}/repos", {"type": "sources", "per_page": 200}
+		)
+		if req.ok:
+			apps.extend([x["name"] for x in req.json()])
 	return apps
 
 
@@ -26,9 +26,9 @@ def add_line_after(function):
 	"""Adds an extra line to STDOUT after the execution of a function this decorates"""
 
 	def empty_line(*args, **kwargs):
-	    result = function(*args, **kwargs)
-	    print()
-	    return result
+		result = function(*args, **kwargs)
+		print()
+		return result
 
 	return empty_line
 
@@ -37,9 +37,9 @@ def add_line_before(function):
 	"""Adds an extra line to STDOUT before the execution of a function this decorates"""
 
 	def empty_line(*args, **kwargs):
-	    print()
-	    result = function(*args, **kwargs)
-	    return result
+		print()
+		result = function(*args, **kwargs)
+		return result
 
 	return empty_line
 
@@ -67,10 +67,10 @@ def warn(message, category=None, stacklevel=3):
 	'message', 'category', and 'stacklevel' arguments.
 
 	Args:
-	    message (str): The message to be issued as a warning.
-	    category (Warning, optional): The category of the warning (default: None).
-	    stacklevel (int, optional): The number of stack frames to skip when
-	    issuing the warning (default: 3).
+		message (str): The message to be issued as a warning.
+		category (Warning, optional): The category of the warning (default: None).
+		stacklevel (int, optional): The number of stack frames to skip when
+		issuing the warning (default: 3).
 	"""
 	from warnings import warn
 
