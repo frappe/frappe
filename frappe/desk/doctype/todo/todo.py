@@ -26,13 +26,14 @@ class ToDo(Document):
 		assignment_rule: DF.Link | None
 		color: DF.Color | None
 		date: DF.Date | None
-		description: DF.TextEditor
+		description: DF.TextEditor | None
 		priority: DF.Literal["High", "Medium", "Low"]
 		reference_name: DF.DynamicLink | None
 		reference_type: DF.Link | None
 		role: DF.Link | None
 		sender: DF.Data | None
 		status: DF.Literal["Open", "Closed", "Cancelled"]
+		subject: DF.Data
 	# end: auto-generated types
 	DocType = "ToDo"
 

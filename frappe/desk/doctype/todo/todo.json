@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_rename": 1,
  "autoname": "hash",
  "creation": "2012-07-03 13:30:35",
  "doctype": "DocType",
@@ -8,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "description_and_status",
+  "subject",
   "status",
   "priority",
   "column_break_2",
@@ -32,6 +34,15 @@
    "fieldtype": "Section Break"
   },
   {
+   "bold": 1,
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Subject",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
    "default": "Open",
    "fieldname": "status",
    "fieldtype": "Select",
@@ -42,6 +53,7 @@
    "options": "Open\nClosed\nCancelled"
   },
   {
+   "columns": 1,
    "default": "Medium",
    "fieldname": "priority",
    "fieldtype": "Select",
@@ -62,8 +74,10 @@
    "label": "Color"
   },
   {
+   "columns": 1,
    "fieldname": "date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Due Date",
    "oldfieldname": "date",
@@ -77,11 +91,11 @@
    "fieldname": "description",
    "fieldtype": "Text Editor",
    "in_global_search": 1,
+   "in_list_view": 1,
    "label": "Description",
    "oldfieldname": "description",
    "oldfieldtype": "Text",
    "print_width": "300px",
-   "reqd": 1,
    "width": "300px"
   },
   {
@@ -152,16 +166,18 @@
    "in_global_search": 1,
    "in_standard_filter": 1,
    "label": "Allocated To",
-   "options": "User"
+   "options": "User",
+   "search_index": 1
   }
  ],
  "icon": "fa fa-check",
  "idx": 2,
  "links": [],
- "modified": "2021-09-16 11:36:34.586898",
+ "modified": "2023-10-06 04:35:19.319766",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "ToDo",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -188,12 +204,13 @@
   }
  ],
  "quick_entry": 1,
- "search_fields": "description, reference_type, reference_name",
+ "search_fields": "subject, description, reference_type, reference_name",
  "sender_field": "sender",
  "sort_field": "modified",
  "sort_order": "DESC",
- "subject_field": "description",
- "title_field": "description",
+ "states": [],
+ "subject_field": "subject",
+ "title_field": "subject",
  "track_changes": 1,
  "track_seen": 1
 }

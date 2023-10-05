@@ -12,7 +12,7 @@ test_dependencies = ["User"]
 class TestToDo(FrappeTestCase):
 	def test_delete(self):
 		todo = frappe.get_doc(
-			dict(doctype="ToDo", description="test todo", assigned_by="Administrator")
+			dict(doctype="ToDo", subject="First todo", description="test todo", assigned_by="Administrator")
 		).insert()
 
 		frappe.db.delete("Deleted Document")
@@ -25,7 +25,9 @@ class TestToDo(FrappeTestCase):
 
 	def test_fetch(self):
 		todo = frappe.get_doc(
-			dict(doctype="ToDo", description="test todo", assigned_by="Administrator")
+			dict(
+				doctype="ToDo", subject="Another todo", description="test todo", assigned_by="Administrator"
+			)
 		).insert()
 		self.assertEqual(
 			todo.assigned_by_full_name, frappe.db.get_value("User", todo.assigned_by, "full_name")
@@ -58,10 +60,10 @@ class TestToDo(FrappeTestCase):
 		)
 
 	def test_todo_list_access(self):
-		create_new_todo("Test1", "testperm@example.com")
+		create_new_todo("Test1", "This is the description.", "testperm@example.com")
 
 		frappe.set_user("test4@example.com")
-		create_new_todo("Test2", "test4@example.com")
+		create_new_todo("Test2", "This is a test todo.", "test4@example.com")
 		test_user_data = DatabaseQuery("ToDo").execute()
 
 		frappe.set_user("testperm@example.com")
@@ -128,7 +130,8 @@ class TestToDo(FrappeTestCase):
 		todo = frappe.get_doc(
 			dict(
 				doctype="ToDo",
-				description="test todo",
+				subject="Launch new product",
+				description="This is a test todo.",
 				assigned_by="Administrator",
 				assigned_by_full_name="Admin",
 			)
@@ -148,6 +151,11 @@ class TestToDo(FrappeTestCase):
 		)
 
 
-def create_new_todo(description, assigned_by):
-	todo = {"doctype": "ToDo", "description": description, "assigned_by": assigned_by}
+def create_new_todo(subject, description, assigned_by):
+	todo = {
+		"doctype": "ToDo",
+		"subject": subject,
+		"description": description,
+		"assigned_by": assigned_by,
+	}
 	return frappe.get_doc(todo).insert()
