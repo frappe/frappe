@@ -137,7 +137,7 @@ class TypeExporter:
 
 		return f"from {filepath} import {class_name}", class_name
 
-	def _map_fieldtype(self, field) -> type | None:
+	def _map_fieldtype(self, field) -> str | None:
 		fieldtype = field.fieldtype.replace(" ", "")
 		field_definition = ""
 
@@ -194,7 +194,7 @@ class TypeExporter:
 
 	def _guess_indentation(
 		self,
-	) -> str:
+	) -> None:
 		from token import INDENT
 
 		with self.controller_path.open() as f:
