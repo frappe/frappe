@@ -3,63 +3,75 @@ import functools
 
 @functools.lru_cache(maxsize=1024)
 def get_first_party_apps():
-	"""Get list of all apps under orgs: frappe. erpnext from GitHub"""
-	import requests
+    """Get list of all apps under orgs: frappe. erpnext from GitHub"""
+    import requests
 
-	apps = []
-	for org in ["frappe", "erpnext"]:
-		req = requests.get(
-			f"https://api.github.com/users/{org}/repos", {"type": "sources", "per_page": 200}
-		)
-		if req.ok:
-			apps.extend([x["name"] for x in req.json()])
-	return apps
+    apps = []
+    for org in ["frappe", "erpnext"]:
+        req = requests.get(
+        	f"https://api.github.com/users/{org}/repos", {"type": "sources", "per_page": 200}
+        )
+        if req.ok:
+            apps.extend([x["name"] for x in req.json()])
+    return apps
 
 
 def render_table(data):
-	from terminaltables import AsciiTable
+    from terminaltables import AsciiTable
 
-	print(AsciiTable(data).table)
+    print(AsciiTable(data).table)
 
 
 def add_line_after(function):
-	"""Adds an extra line to STDOUT after the execution of a function this decorates"""
+    """Adds an extra line to STDOUT after the execution of a function this decorates"""
 
-	def empty_line(*args, **kwargs):
-		result = function(*args, **kwargs)
-		print()
-		return result
+    def empty_line(*args, **kwargs):
+        result = function(*args, **kwargs)
+        print()
+        return result
 
-	return empty_line
+    return empty_line
 
 
 def add_line_before(function):
-	"""Adds an extra line to STDOUT before the execution of a function this decorates"""
+    """Adds an extra line to STDOUT before the execution of a function this decorates"""
 
-	def empty_line(*args, **kwargs):
-		print()
-		result = function(*args, **kwargs)
-		return result
+    def empty_line(*args, **kwargs):
+        print()
+        result = function(*args, **kwargs)
+        return result
 
-	return empty_line
+    return empty_line
 
 
 def log(message, colour=""):
-	"""Coloured log outputs to STDOUT"""
-	colours = {
-		"nc": "\033[0m",
-		"blue": "\033[94m",
-		"green": "\033[92m",
-		"yellow": "\033[93m",
-		"red": "\033[91m",
-		"silver": "\033[90m",
-	}
-	colour = colours.get(colour, "")
-	end_line = "\033[0m"
-	print(colour + message + end_line)
+    """Coloured log outputs to STDOUT"""
+    colours = {
+    	"nc": "\033[0m",
+    	"blue": "\033[94m",
+    	"green": "\033[92m",
+    	"yellow": "\033[93m",
+    	"red": "\033[91m",
+    	"silver": "\033[90m",
+    }
+    colour = colours.get(colour, "")
+    end_line = "\033[0m"
+    print(colour + message + end_line)
 
 
 def warn(message, category=None, stacklevel=3):
-	from warnings import warn
+    """Issue a warning.
 
-	warn(message=message, category=category, stacklevel=stacklevel)
+    This function is used to issue a warning message. It imports the 'warn'
+    function from the 'warnings' module and calls it with the provided
+    'message', 'category', and 'stacklevel' arguments.
+
+    Args:
+        message (str): The message to be issued as a warning.
+        category (Warning, optional): The category of the warning (default: None).
+        stacklevel (int, optional): The number of stack frames to skip when
+        issuing the warning (default: 3).
+    """
+    from warnings import warn
+
+    warn(message=message, category=category, stacklevel=stacklevel)

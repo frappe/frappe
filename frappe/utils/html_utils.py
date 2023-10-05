@@ -18,209 +18,272 @@ EMOJI_PATTERN = re.compile(
 
 
 def clean_html(html):
-	import bleach
+    """Cleans the provided HTML by removing script and style tags, and stripping
+unwanted tags and attributes."""
+    import bleach
 
-	if not isinstance(html, str):
-		return html
+    if not isinstance(html, str):
+        return html
 
-	return bleach.clean(
-		clean_script_and_style(html),
-		tags={
-			"div",
-			"p",
-			"br",
-			"ul",
-			"ol",
-			"li",
-			"strong",
-			"b",
-			"em",
-			"i",
-			"u",
-			"table",
-			"thead",
-			"tbody",
-			"td",
-			"tr",
-		},
-		attributes=[],
-		strip=True,
-		strip_comments=True,
-	)
+    return bleach.clean(
+    	clean_script_and_style(html),
+    	tags={
+    		"div",
+    		"p",
+    		"br",
+    		"ul",
+    		"ol",
+    		"li",
+    		"strong",
+    		"b",
+    		"em",
+    		"i",
+    		"u",
+    		"table",
+    		"thead",
+    		"tbody",
+    		"td",
+    		"tr",
+    	},
+    	attributes=[],
+    	strip=True,
+    	strip_comments=True,
+    )
 
 
 def clean_email_html(html):
-	import bleach
-	from bleach.css_sanitizer import CSSSanitizer
+    """
+    Clean the given HTML string by removing potentially harmful elements and attributes.
 
-	if not isinstance(html, str):
-		return html
+    Args:
+        html (str): The HTML string to be cleaned.
 
-	css_sanitizer = CSSSanitizer(
-		allowed_css_properties=[
-			"color",
-			"border-color",
-			"width",
-			"height",
-			"max-width",
-			"background-color",
-			"border-collapse",
-			"border-radius",
-			"border",
-			"border-top",
-			"border-bottom",
-			"border-left",
-			"border-right",
-			"margin",
-			"margin-top",
-			"margin-bottom",
-			"margin-left",
-			"margin-right",
-			"padding",
-			"padding-top",
-			"padding-bottom",
-			"padding-left",
-			"padding-right",
-			"font-size",
-			"font-weight",
-			"font-family",
-			"text-decoration",
-			"line-height",
-			"text-align",
-			"vertical-align",
-			"display",
-		]
-	)
+    Returns:
+        str: The cleaned HTML string.
+    """
+    import bleach
+    from bleach.css_sanitizer import CSSSanitizer
 
-	return bleach.clean(
-		clean_script_and_style(html),
-		tags={
-			"div",
-			"p",
-			"br",
-			"ul",
-			"ol",
-			"li",
-			"strong",
-			"b",
-			"em",
-			"i",
-			"u",
-			"a",
-			"table",
-			"thead",
-			"tbody",
-			"td",
-			"tr",
-			"th",
-			"pre",
-			"code",
-			"h1",
-			"h2",
-			"h3",
-			"h4",
-			"h5",
-			"h6",
-			"button",
-			"img",
-		},
-		attributes=["border", "colspan", "rowspan", "src", "href", "style", "id"],
-		css_sanitizer=css_sanitizer,
-		protocols=["cid", "http", "https", "mailto", "data"],
-		strip=True,
-		strip_comments=True,
-	)
+    if not isinstance(html, str):
+        return html
+
+    css_sanitizer = CSSSanitizer(
+    	allowed_css_properties=[
+    		"color",
+    		"border-color",
+    		"width",
+    		"height",
+    		"max-width",
+    		"background-color",
+    		"border-collapse",
+    		"border-radius",
+    		"border",
+    		"border-top",
+    		"border-bottom",
+    		"border-left",
+    		"border-right",
+    		"margin",
+    		"margin-top",
+    		"margin-bottom",
+    		"margin-left",
+    		"margin-right",
+    		"padding",
+    		"padding-top",
+    		"padding-bottom",
+    		"padding-left",
+    		"padding-right",
+    		"font-size",
+    		"font-weight",
+    		"font-family",
+    		"text-decoration",
+    		"line-height",
+    		"text-align",
+    		"vertical-align",
+    		"display",
+    	]
+    )
+
+    return bleach.clean(
+    	clean_script_and_style(html),
+    	tags={
+    		"div",
+    		"p",
+    		"br",
+    		"ul",
+    		"ol",
+    		"li",
+    		"strong",
+    		"b",
+    		"em",
+    		"i",
+    		"u",
+    		"a",
+    		"table",
+    		"thead",
+    		"tbody",
+    		"td",
+    		"tr",
+    		"th",
+    		"pre",
+    		"code",
+    		"h1",
+    		"h2",
+    		"h3",
+    		"h4",
+    		"h5",
+    		"h6",
+    		"button",
+    		"img",
+    	},
+    	attributes=["border", "colspan", "rowspan", "src", "href", "style", "id"],
+    	css_sanitizer=css_sanitizer,
+    	protocols=["cid", "http", "https", "mailto", "data"],
+    	strip=True,
+    	strip_comments=True,
+    )
 
 
 def clean_script_and_style(html):
-	# remove script and style
-	from bs4 import BeautifulSoup
+    """
+    Clean the HTML by removing script and style tags.
 
-	soup = BeautifulSoup(html, "html5lib")
-	for s in soup(["script", "style"]):
-		s.decompose()
-	return frappe.as_unicode(soup)
+    Args:
+        html (str): The HTML string to be cleaned.
+
+    Returns:
+        str: The modified HTML string.
+    """
+    # remove script and style
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(html, "html5lib")
+    for s in soup(["script", "style"]):
+        s.decompose()
+    return frappe.as_unicode(soup)
 
 
 def sanitize_html(html, linkify=False):
-	"""
+    """
 	Sanitize HTML tags, attributes and style to prevent XSS attacks
 	Based on bleach clean, bleach whitelist and html5lib's Sanitizer defaults
 
 	Does not sanitize JSON, as it could lead to future problems
 	"""
-	import bleach
-	from bleach.css_sanitizer import CSSSanitizer
-	from bs4 import BeautifulSoup
+    import bleach
+    from bleach.css_sanitizer import CSSSanitizer
+    from bs4 import BeautifulSoup
 
-	if not isinstance(html, str):
-		return html
+    if not isinstance(html, str):
+        return html
 
-	elif is_json(html):
-		return html
+    elif is_json(html):
+        return html
 
-	if not bool(BeautifulSoup(html, "html.parser").find()):
-		return html
+    if not bool(BeautifulSoup(html, "html.parser").find()):
+        return html
 
-	tags = (
-		acceptable_elements
-		+ svg_elements
-		+ mathml_elements
-		+ ["html", "head", "meta", "link", "body", "style", "o:p"]
-	)
+    tags = (
+    	acceptable_elements
+    	+ svg_elements
+    	+ mathml_elements
+    	+ ["html", "head", "meta", "link", "body", "style", "o:p"]
+    )
 
-	def attributes_filter(tag, name, value):
-		if name.startswith("data-"):
-			return True
-		return name in acceptable_attributes
+    def attributes_filter(tag, name, value):
+        if name.startswith("data-"):
+            return True
+        return name in acceptable_attributes
 
-	attributes = {"*": attributes_filter, "svg": svg_attributes}
-	css_sanitizer = CSSSanitizer(allowed_css_properties=bleach_allowlist.all_styles)
+    attributes = {"*": attributes_filter, "svg": svg_attributes}
+    css_sanitizer = CSSSanitizer(allowed_css_properties=bleach_allowlist.all_styles)
 
-	# returns html with escaped tags, escaped orphan >, <, etc.
-	escaped_html = bleach.clean(
-		html,
-		tags=tags,
-		attributes=attributes,
-		css_sanitizer=css_sanitizer,
-		strip_comments=False,
-		protocols={"cid", "http", "https", "mailto"},
-	)
+    # returns html with escaped tags, escaped orphan >, <, etc.
+    escaped_html = bleach.clean(
+    	html,
+    	tags=tags,
+    	attributes=attributes,
+    	css_sanitizer=css_sanitizer,
+    	strip_comments=False,
+    	protocols={"cid", "http", "https", "mailto"},
+    )
 
-	return escaped_html
+    return escaped_html
 
 
 def is_json(text):
-	try:
-		json.loads(text)
-	except ValueError:
-		return False
-	else:
-		return True
+    """
+    Check if a given string is a valid JSON.
+
+    Args:
+        text (str): The string to check.
+
+    Returns:
+        bool: True if the string is a valid JSON, False otherwise.
+    """
+    try:
+        json.loads(text)
+    except ValueError:
+        return False
+    else:
+        return True
 
 
 def get_icon_html(icon, small=False):
-	from frappe.utils import is_image
+    """
+    Get the HTML representation of an icon.
 
-	icon = icon or ""
+    This function takes an 'icon' parameter and an optional 'small' parameter. It
+    first imports the 'is_image' function from the 'frappe.utils' module.
+    Then, it checks if the 'icon' meets the requirements of an emoji pattern,
+    and if so, it returns a span element with the 'icon' wrapped in a
+    text-muted class. If the 'icon' is an image, it returns an img element
+    with the 'icon' as the source attribute. The size of the image is
+    determined by the 'small' parameter. If 'small' is True, the img element
+    has a width and height of 16px, otherwise, it has no size specifications.
+    If the 'icon' is not an emoji or an image, it returns an i element with
+    the 'icon' as the class attribute.
 
-	if icon and EMOJI_PATTERN.match(icon):
-		return f'<span class="text-muted">{icon}</span>'
+    Args:
+        icon (str): The icon to be converted to HTML.
+        small (bool, optional): Whether to display the icon as a small image.
+        Defaults to False.
 
-	if is_image(icon):
-		return (
-			f"<img style='width: 16px; height: 16px;' src={escape_html(icon)!r}>"
-			if small
-			else f"<img src={escape_html(icon)!r}>"
-		)
-	else:
-		return f"<i class={escape_html(icon)!r}></i>"
+    Returns:
+        str: The HTML representation of the icon.
+    """
+    from frappe.utils import is_image
+
+    icon = icon or ""
+
+    if icon and EMOJI_PATTERN.match(icon):
+        return f'<span class="text-muted">{icon}</span>'
+
+    if is_image(icon):
+        return (
+        	f"<img style='width: 16px; height: 16px;' src={escape_html(icon)!r}>"
+        	if small
+        	else f"<img src={escape_html(icon)!r}>"
+        )
+    else:
+        return f"<i class={escape_html(icon)!r}></i>"
 
 
 def unescape_html(value):
-	from html import unescape
+    """
+    Unescape HTML entities in a given value.
 
-	return unescape(value)
+    This function takes a 'value' parameter and uses the 'unescape' function from
+    the 'html' module to unescape the HTML entities in the 'value'.
+
+    Args:
+        value (str): The value with HTML entities to be unescaped.
+
+    Returns:
+        str: The value with unescaped HTML entities.
+    """
+    from html import unescape
+
+    return unescape(value)
 
 
 # adapted from https://raw.githubusercontent.com/html5lib/html5lib-python/4aa79f113e7486c7ec5d15a6e1777bfe546d3259/html5lib/sanitizer.py
