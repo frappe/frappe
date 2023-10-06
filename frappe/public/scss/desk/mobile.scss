@@ -387,3 +387,11 @@ body {
 		}
 	}
 }
+
+@media (max-width: 412px) {
+	body[data-route^="Form"] {
+		.page-title .title-text {
+			max-width: 28vw;
+		}
+	}
+}
