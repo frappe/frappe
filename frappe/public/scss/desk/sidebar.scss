@@ -40,6 +40,11 @@ body[data-route^="Module"] .main-menu {
 .sidebar-menu {
 	.data-pill {
 		width: 100%;
+		justify-content: unset;
+		.es-icon {
+			margin: 0px 6px;
+		}
+
 	}
 	&.user-actions {
 		margin-bottom: 15px;
@@ -62,10 +67,28 @@ body[data-route^="Module"] .main-menu {
 // form sidebar
 .form-sidebar {
 	.sidebar-menu {
-		margin-bottom: var(--margin-lg);
+		margin-bottom: var(--margin-sm);
+
+		.form-sidebar-items {
+			display: flex;
+			width: 100%;
+			align-items: center;
+			justify-content: space-between;
+			flex-wrap: wrap;
+			padding-bottom: var(--padding-sm);
+
+			.icon-btn {
+				height: unset;
+			}
+		}
 	}
 
 	.form-tags {
+
+		.form-tag-row:not(:last-child) {
+			margin-bottom: var(--margin-sm);
+		}
+
 		.tag-area {
 			margin-top: -3px;
 			margin-left: -4px;
@@ -98,7 +121,7 @@ body[data-route^="Module"] .main-menu {
 			}
 
 			use.comment-icon {
-				stroke: var(--gray-500);
+				fill: var(--gray-500);
 			}
 		}
 	}
@@ -106,12 +129,12 @@ body[data-route^="Module"] .main-menu {
 	.sidebar-image-section {
 		width: min(100%, 170px);
 		cursor: pointer;
+		border-radius: var(--border-radius-lg);
 
 		.sidebar-image {
 			height: auto;
 			max-height: 170px;
 			object-fit: cover;
-			border-radius: var(--border-radius-lg);
 		}
 
 		.standard-image {
@@ -126,6 +149,8 @@ body[data-route^="Module"] .main-menu {
 		.sidebar-image,
 		.sidebar-standard-image {
 			transition: opacity 0.3s;
+			border-radius: var(--border-radius-lg);
+			border: 1px solid var(--border-color);
 		}
 
 		.sidebar-image-wrapper:hover {
@@ -158,8 +183,12 @@ body[data-route^="Module"] .main-menu {
 }
 
 .layout-side-section {
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 	padding-right: 30px;
+
+	&.hide-sidebar {
+		display: none;
+	}
 
 	> .divider {
 		display: none !important;
@@ -175,13 +204,12 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-label {
+		font-size: var(--text-xs);
+		font-weight: var(--weight-regular);
 		margin-bottom: var(--margin-sm);
-		font-weight: 500;
 		display: flex;
 		align-items: center;
 		color: var(--text-muted);
-		letter-spacing: 0.04rem;
-		font-size: var(--text-sm);
 		.icon {
 			margin: 0;
 			margin-right: var(--margin-xs);
@@ -193,7 +221,7 @@ body[data-route^="Module"] .main-menu {
 		.modified-by,
 		.created-by,
 		.pageview-count {
-			font-size: var(--text-sm);
+			@include get_textstyle("sm", "regular");
 		}
 
 		.modified-by,
@@ -345,7 +373,7 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.sidebar-action {
-		font-size: var(--text-sm);
+		@include get_textstyle("sm", "regular");
 		color: var(--primary);
 		margin-top: 10px;
 	}
@@ -376,45 +404,72 @@ body[data-route^="Module"] .main-menu {
 }
 
 .attachment-row, .form-tag-row {
-	margin-bottom: var(--margin-sm);
+	margin-bottom: 3px;
 	max-width: 100%;
 	.data-pill {
-		background-color: var(--control-bg-on-gray);
+		justify-content: space-between;
 		box-shadow: none;
+	}
+}
+.attachment-row {
+	.data-pill {
+		background-color: unset;
+		box-shadow: none;
+		padding: 0;
+		padding-left: var(--padding-md);
 	}
 }
 
 .form-tag-row {
 	margin-right: var(--margin-xs);
+	.data-pill {
+		background-color: var(--subtle-fg);
+	}
 	display: inline-flex;
 }
 
-.attachments-actions {
-	display: flex;
-	gap: 5px;
-	max-width: 100%;
+.explore-link {
+	margin-top: var(--margin-sm);
 }
 
-.explore-full-btn,
 .attachments-actions {
-	margin-bottom: var(--margin-md);
+	gap: 6px;
 }
 
 .show-all-btn {
-	margin-top: var(--margin-md);
-	text-align: center;
-}
+	--icon-stroke: var(--text-light);
+	width: 100%;
+	background-color: var(--bg-color);
+	text-align: start;
+	margin-top: var(--margin-sm);
+	margin-left: var(--margin-md);
+	margin-bottom: var(--margin-sm);
+	color: var(--text-light);
 
+}
+.form-assignments {
+	margin-top: 12px;
+}
+.form-assignments, .form-shared {
+	.assignments, .shares {
+		margin: var(--margin-xs) 0px;
+	}
+}
+.add-assignment-btn,
+.add-attachment-btn,
+.add-review-btn,
 .shares,
+.add-tags-btn,
+.share-doc-btn,
 .followed-by {
 	max-width: 100%;
 	display: block;
-}
-
-.add-review-btn,
-.share-doc-btn,
-.add-assignment-btn {
-	border-radius: 50%;
+	width: unset;
+	height: unset;
+	margin-right: 0;
+	&:focus {
+		box-shadow: none;
+	}
 }
 
 .form-reviews {
@@ -502,7 +557,7 @@ body[data-route^="Module"] .main-menu {
 .tags-placeholder {
 	margin-bottom: var(--margin-sm);
 	display: inline-block;
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 
 .shared-user {

@@ -15,7 +15,7 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 
 	Called from `open_mapped_doc` from create_new.js"""
 
-	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(method, []):
+	for hook in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(method, [])):
 		# override using the first hook
 		method = hook
 		break

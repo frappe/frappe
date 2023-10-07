@@ -12,7 +12,14 @@ from werkzeug.wrappers import Response
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, cstr, get_assets_json, get_system_timezone, md_to_html
+from frappe.utils import (
+	cint,
+	cstr,
+	get_assets_json,
+	get_build_version,
+	get_system_timezone,
+	md_to_html,
+)
 
 FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
 H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
@@ -563,10 +570,20 @@ def set_content_type(response, data, path):
 
 def add_preload_for_bundled_assets(response):
 	links = [f"<{css}>; rel=preload; as=style" for css in frappe.local.preload_assets["style"]]
-
 	links.extend(f"<{js}>; rel=preload; as=script" for js in frappe.local.preload_assets["script"])
+	links.extend(_preload_svg_headers())
+
 	if links:
 		response.headers["Link"] = ",".join(links)
+
+
+def _preload_svg_headers():
+	include_icons = frappe.get_hooks().get("app_include_icons", [])
+
+	version = get_build_version()
+	return [
+		f"</assets/{svg}?v={version}>; rel=preload; as=fetch; crossorigin" for svg in include_icons
+	]
 
 
 @lru_cache

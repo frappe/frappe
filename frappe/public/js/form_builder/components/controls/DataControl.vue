@@ -90,10 +90,10 @@ if (props.df.fieldtype === "Icon") {
 <style lang="scss" scoped>
 .selected-color {
 	background-color: transparent;
-	top: 32px !important;
+	top: 30px !important;
 }
 
 .selected-phone {
-	top: 34px !important;
+	top: 32px !important;
 }
 </style>

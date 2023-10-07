@@ -205,6 +205,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           name: Cypress
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           files: ./coverage-js-1/clover.xml,./coverage-js-2/clover.xml,./coverage-js-3/clover.xml
           verbose: true

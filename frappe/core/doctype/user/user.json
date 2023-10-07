@@ -191,7 +191,7 @@
   },
   {
    "fieldname": "time_zone",
-   "fieldtype": "Select",
+   "fieldtype": "Autocomplete",
    "label": "Time Zone"
   },
   {
@@ -762,7 +762,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2023-06-05 17:26:04.127555",
+ "modified": "2023-09-18 22:19:49.933972",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

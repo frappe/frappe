@@ -26,7 +26,7 @@ context("Awesome Bar", () => {
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "To Do");
 		cy.wait(200);
-		const name_filter = cy.findByPlaceholderText("ID");
+		const name_filter = cy.get('[data-original-title="ID"] > input');
 		name_filter.should("have.value", "%test%");
 		cy.clear_filters();
 	});

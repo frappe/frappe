@@ -48,6 +48,17 @@ context("Control Currency", () => {
 				blur_expected: "10",
 			},
 			{
+				input: "10.000",
+				number_format: "#.###,##",
+				df_options: { precision: 0 },
+				blur_expected: "10.000",
+			},
+			{
+				input: "10.000",
+				number_format: "#.###,##",
+				blur_expected: "10.000,00",
+			},
+			{
 				input: "10.101",
 				df_options: { precision: "" },
 				blur_expected: "10.1",
@@ -61,6 +72,7 @@ context("Control Currency", () => {
 				.then((frappe) => {
 					frappe.boot.sysdefaults.currency = test_case.currency;
 					frappe.boot.sysdefaults.currency_precision = test_case.default_precision ?? 2;
+					frappe.boot.sysdefaults.number_format = test_case.number_format ?? "#,###.##";
 				});
 
 			get_dialog_with_currency(test_case.df_options).as("dialog");
