@@ -14,10 +14,13 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		this.$select_buttons = this.get_select_buttons().appendTo(this.wrapper);
 		this.$load_state.appendTo(this.wrapper);
 
-		const row = this.get_column_size() === 12 ? "" : "row";
-		this.$checkbox_area = $(`<div class="checkbox-options ${row}"></div>`).appendTo(
-			this.wrapper
-		);
+		// In your implementation, you may use the 'columns' property to specify either of:
+		// - minimum column width, e.g. `"15rem"`
+		// - fixed number of columns, e.g. `3`
+		// - both minimum column width and maximum number of columns, e.g. `"15rem 5"`
+		const columns = this.df.columns;
+		this.$checkbox_area = $('<div class="checkbox-options"></div>').appendTo(this.wrapper);
+		this.$checkbox_area.get(0).style.setProperty("--checkbox-options-columns", columns);
 	}
 
 	refresh() {
@@ -145,9 +148,8 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 	}
 
 	get_checkbox_element(option) {
-		const column_size = this.get_column_size();
 		return $(`
-			<div class="checkbox unit-checkbox col-sm-${column_size}">
+			<div class="checkbox unit-checkbox">
 				<label title="${option.description || ""}">
 					<input type="checkbox" data-unit="${option.value}"></input>
 					<span class="label-area" data-unit="${option.value}">${__(option.label)}</span>
@@ -167,9 +169,5 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 			</button>
 		</div>
 		`);
-	}
-
-	get_column_size() {
-		return 12 / (+this.df.columns || 1);
 	}
 };

@@ -2,7 +2,7 @@ const verify_attachment_visibility = (document, is_private) => {
 	cy.visit(`/app/${document}`);
 
 	const assertion = is_private ? "be.checked" : "not.be.checked";
-	cy.findByRole("button", { name: "Add File" }).click();
+	cy.get(".add-attachment-btn").click();
 
 	cy.get_open_dialog()
 		.find(".file-upload-area")
@@ -27,7 +27,7 @@ const attach_file = (file, no_of_files = 1) => {
 		);
 	}
 
-	cy.findByRole("button", { name: "Add File" }).click();
+	cy.get(".add-attachment-btn").click();
 	cy.get_open_dialog().find(".file-upload-area").selectFile(files, {
 		action: "drag-drop",
 	});
@@ -62,11 +62,8 @@ context("Sidebar", () => {
 		}).then((todo) => {
 			cy.visit(`/app/todo/${todo.message.name}`);
 
-			// explore icon btn should be hidden as there are no attachments
-			cy.get(".explore-btn").should("be.hidden");
-
 			attach_file("cypress/fixtures/sample_image.jpg");
-			cy.get(".explore-btn").should("be.visible");
+			cy.get(".explore-link").should("be.visible");
 			cy.get(".show-all-btn").should("be.hidden");
 
 			// attach 10 images
@@ -75,9 +72,8 @@ context("Sidebar", () => {
 
 			// attach 1 more image to reach attachment limit
 			attach_file("cypress/fixtures/sample_attachments/attachment-11.txt");
-			cy.get(".explore-full-btn").should("be.visible");
-			cy.get(".attachments-actions").should("be.hidden");
-			cy.get(".explore-btn").should("be.hidden");
+			cy.get(".add-attachment-btn").should("be.hidden");
+			cy.get(".explore-link").should("be.visible");
 
 			// test "Show All" button
 			cy.get(".attachment-row").should("have.length", 10);
