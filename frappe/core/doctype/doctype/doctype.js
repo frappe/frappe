@@ -92,6 +92,36 @@ frappe.ui.form.on("DocType", {
 		frm.trigger("setup_default_views");
 
 		render_form_builder(frm);
+		frm.linked_field = "link_field";
+		frm.trigger("set_link_field");
+	},
+	set_link_field(frm) {
+		let doc = frm.linked_field === "field" ? frappe.unscrub(frm.child_doctype) : frm.docname;
+
+		let update_options = (options) => {
+			[frm.fields_dict.link_field_filter.grid].forEach((obj) => {
+				obj.update_docfield_property(frm.linked_field, "options", options);
+			});
+		};
+
+		get_fields_for_doctype(doc).then((fields) => {
+			let as_select_option = (df) => ({
+				label: df.label,
+				value: df.fieldname,
+			});
+			update_options(
+				frm.linked_field === "field"
+					? fields
+							.filter(
+								(field) =>
+									!["Column Break", "Section Break", "HTML"].includes(
+										field.fieldtype
+									)
+							)
+							.map(as_select_option)
+					: fields.filter((field) => field.fieldtype === "Link").map(as_select_option)
+			);
+		});
 	},
 
 	istable: (frm) => {
@@ -134,6 +164,33 @@ frappe.ui.form.on("DocField", {
 		frm.trigger("setup_default_views");
 	},
 });
+
+frappe.ui.form.on("Link Field Filter", {
+	link_field: function (frm, cdt, cdn) {
+		frm.linked_field = "field";
+		let link_field = locals[cdt][cdn].link_field;
+		frm.child_doctype = frappe
+			.get_meta(frm.docname)
+			.fields.find((df) => df.fieldname === link_field)?.options;
+		frm.trigger("set_link_field");
+	},
+	field: function (frm, cdt, cdn) {
+		frm.linked_field = "value";
+	},
+});
+
+function get_fields_for_doctype(doctype) {
+	return new Promise((resolve) => frappe.model.with_doctype(doctype, resolve)).then(() => {
+		return frappe.meta.get_docfields(doctype).filter((df) => {
+			return (
+				(frappe.model.is_value_type(df.fieldtype) &&
+					!["lft", "rgt"].includes(df.fieldname)) ||
+				["Table", "Table Multiselect"].includes(df.fieldtype) ||
+				frappe.model.layout_fields.includes(df.fieldtype)
+			);
+		});
+	});
+}
 
 function render_form_builder_message(frm) {
 	$(frm.fields_dict["try_form_builder_html"].wrapper).empty();
