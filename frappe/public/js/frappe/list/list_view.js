@@ -631,9 +631,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let subject_html = `
 			<input class="level-item list-check-all" type="checkbox"
 				title="${__("Select All")}">
-			<span class="level-item list-liked-by-me hidden-xs">
-				<span title="${__("Likes")}">${frappe.utils.icon("es-solid-heart", "sm", "like-icon")}</span>
-			</span>
 			<span class="level-item" data-sort-by="${subject_field.fieldname}"
 				title="${__("Click to sort by {0}", [subject_field.label])}">
 				${__(subject_field.label)}
@@ -667,7 +664,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			})
 			.join("");
 
-		return this.get_header_html_skeleton($columns, '<span class="list-count"></span>');
+		const right_html = `
+			<span class="list-count"></span>
+			<span class="level-item list-liked-by-me hidden-xs">
+				<span title="${__("Liked by me")}">
+					${frappe.utils.icon("es-solid-heart", "sm", "like-icon")}
+				</span>
+			</span>
+		`;
+
+		return this.get_header_html_skeleton($columns, right_html);
 	}
 
 	get_header_html_skeleton(left = "", right = "") {
@@ -909,19 +915,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		let comment_count = null;
 		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
-			comment_count = $(`<span class="comment-count"></span>`);
+			comment_count = $(`<span class="comment-count d-flex align-items-center"></span>`);
 			$(comment_count).append(`
 				${frappe.utils.icon("es-line-chat-alt")}
 				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}`);
 		}
 
 		html += `
-			<div class="level-item list-row-activity hidden-xs">
+			<div class="level-item list-row-activity hidden-xs d-flex align-items-center">
 				<div class="hidden-md hidden-xs">
 					${settings_button || assigned_to}
 				</div>
-				${modified}
+				<span class="modified">${modified}</span>
 				${comment_count ? $(comment_count).prop("outerHTML") : ""}
+				${comment_count ? '<span class="mx-2">·</span>' : ""}
+				<span class="list-row-like hidden-xs style="margin-bottom: 1px;">
+					${this.get_like_html(doc)}
+				</span>
 			</div>
 			<div class="level-item visible-xs text-right">
 				${this.get_indicator_dot(doc)}
@@ -1012,9 +1022,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		div.innerHTML = `
 			<span class="level-item select-like">
 				<input class="list-row-checkbox" type="checkbox">
-				<span class="list-row-like hidden-xs style="margin-bottom: 1px;">
-					${this.get_like_html(doc)}
-				</span>
 			</span>
 			<span class="level-item ${seen} ellipsis">
 				<a class="ellipsis"></a>
