@@ -919,7 +919,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		html += `
-			<div class="level-item list-row-activity hidden-xs d-flex align-items-center">
+			<div class="level-item list-row-activity hidden-xs">
 				<div class="hidden-md hidden-xs">
 					${settings_button || assigned_to}
 				</div>
