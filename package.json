@@ -29,7 +29,7 @@
     "express": "^4.17.1",
     "fast-deep-equal": "^2.0.1",
     "frappe-charts": "^2.0.0-rc13",
-    "frappe-datatable": "^1.16.4",
+    "frappe-datatable": "^1.17.3",
     "frappe-gantt": "^0.6.0",
     "fuse.js": "^3.4.6",
     "highlight.js": "^10.4.1",

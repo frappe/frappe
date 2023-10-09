@@ -495,6 +495,9 @@ frappe.views.FileView.grid_view =
 function redirect_to_home_if_invalid_route() {
 	const route = frappe.get_route();
 	if (route[2] === "List") {
+		// Remove List/File/List from route history to avoid redirect loop on going back
+		frappe.route_history.pop();
+
 		// if the user somehow redirects to List/File/List
 		// redirect back to Home
 		frappe.set_route("List", "File", "Home");
