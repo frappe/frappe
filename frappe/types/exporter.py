@@ -9,6 +9,7 @@ Design goal:
 
 import ast
 import inspect
+import json
 import re
 import textwrap
 import tokenize
@@ -179,7 +180,7 @@ class TypeExporter:
 				# Could be dynamic
 				return
 			options = [o.strip() for o in field.options.split("\n")]
-			return repr(options)
+			return json.dumps(options)
 
 	@staticmethod
 	def _validate_code(code) -> bool:
