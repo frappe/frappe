@@ -773,6 +773,7 @@ frappe.ui.form.Form = class FrappeForm {
 				},
 				callback: (resp) => {
 					if (!resp.exc) {
+						me.doc.proposed_doc = resp.message;
 						frappe.msgprint({
 							message: __("Changes Proposed"),
 							alert: true,
