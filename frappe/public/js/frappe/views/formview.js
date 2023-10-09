@@ -83,6 +83,8 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			if (!(locals[doctype] && locals[doctype][name])) {
 				if (name && name.substr(0, 3) === "new") {
 					this.render_new_doc(doctype, name, doctype_layout);
+				} else if (name && name.substr(0, 8) === "proposed") {
+					this.render_proposed_doc(doctype, name, doctype_layout);
 				} else {
 					frappe.show_not_found();
 				}
@@ -100,6 +102,23 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 			frappe.route_flags.replace_route = true;
 			frappe.set_route("Form", doctype_layout, new_name);
 		}
+	}
+
+	render_proposed_doc(doctype, name, doctype_layout) {
+		let proposed_doc = name.replace(`proposed-${doctype.toLowerCase()}-`, "");
+		frappe.db
+			.get_value("Proposed Document", proposed_doc, "document_json")
+			.then((doc_json) => {
+				doc_json = JSON.parse(doc_json.message.document_json);
+				let dummy_doc = frappe.model.get_new_doc(doctype, null, null, true);
+				for (let key in doc_json) {
+					dummy_doc[key] = doc_json[key];
+				}
+				dummy_doc.name = name;
+				dummy_doc.proposed_doc = proposed_doc;
+				frappe.model.add_to_locals(dummy_doc);
+				this.render(doctype_layout, dummy_doc.name);
+			});
 	}
 
 	render(doctype_layout, name) {
