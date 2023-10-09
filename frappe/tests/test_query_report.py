@@ -3,25 +3,15 @@
 
 import frappe
 import frappe.utils
-<<<<<<< HEAD
-from frappe.desk.query_report import build_xlsx_data
-=======
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.query_report import build_xlsx_data, export_query, run
-<<<<<<< HEAD
 from frappe.tests.ui_test_helpers import create_doctype
->>>>>>> 34cd943556 (test: added test for conflicting column names)
-=======
->>>>>>> 32e3198c83 (test: code cleanup)
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.xlsxutils import make_xlsx
 
 
 class TestQueryReport(FrappeTestCase):
-	@classmethod
-	def setUpClass(cls) -> None:
-		cls.enable_safe_exec()
-		return super().setUpClass()
+
 
 	def tearDown(self):
 		frappe.db.rollback()
@@ -86,8 +76,6 @@ class TestQueryReport(FrappeTestCase):
 		for row in xlsx_data:
 			# column_b should be 'str' even with composite cell value
 			self.assertEqual(type(row[1]), str)
-<<<<<<< HEAD
-=======
 
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
@@ -246,4 +234,4 @@ data = columns, result
 		except Exception as e:
 			raise e
 			frappe.db.rollback()
->>>>>>> 34cd943556 (test: added test for conflicting column names)
+
