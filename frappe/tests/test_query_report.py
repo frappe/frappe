@@ -12,7 +12,6 @@ from frappe.utils.xlsxutils import make_xlsx
 
 class TestQueryReport(FrappeTestCase):
 
-
 	def tearDown(self):
 		frappe.db.rollback()
 
