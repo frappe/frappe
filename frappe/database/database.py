@@ -254,9 +254,9 @@ class Database(object):
 
 		# info
 		if (frappe.conf.get("logging") or False) == 2:
-			frappe.log("<<<< query")
+			frappe.log("#### query")
 			frappe.log(self.mogrify(query, values))
-			frappe.log(">>>>")
+			frappe.log("####")
 
 	def mogrify(self, query, values):
 		"""build the query string with values"""
