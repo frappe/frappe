@@ -692,8 +692,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 					return me.frm.amend_doc();
 				},
 				Propose: function () {
-					if (me.frm.is_new()) return me.frm.propose_save("Propose Save", null, this);
-					else return me.frm.propose_save("Propose Update", null, this);
+					if (me.frm.is_new()) return me.frm.propose_save("Propose Save");
+					else return me.frm.propose_save("Propose Update");
 				},
 				Approve: function () {
 					return me.frm.save("Approve", null, this);
@@ -705,6 +705,14 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}[status];
 
 			this.page.set_primary_action(__(status), click, icon);
+			if (status == "Approve")
+				this.page.set_secondary_action(
+					__("Reject"),
+					function () {
+						return me.frm.reject();
+					},
+					null
+				);
 		}
 
 		this.current_status = status;

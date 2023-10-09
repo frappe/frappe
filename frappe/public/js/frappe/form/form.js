@@ -798,6 +798,12 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+	reject() {
+		let me = this;
+		me.proposed_doc = me.doc.proposed_doc;
+		me.set_proposed_document_status("Rejected");
+	}
+
 	validate_and_save(save_action, callback, btn, on_error, resolve, reject) {
 		var me = this;
 		if (!save_action) save_action = "Save";
