@@ -241,14 +241,13 @@ def propose_save(doc, is_new):
 			"document_json": frappe.as_json(doc, indent=2),
 		}
 	)
-	if doc.get("proposed_doc"):
-		frappe.db.set_value("Proposed Document", doc.proposed_doc, args_dict)
-		return doc.proposed_doc
-	else:
+	if doc.name.startswith("new"):
 		patch_doc = frappe.new_doc("Proposed Document")
 		patch_doc.update(args_dict)
 		patch_doc.insert(ignore_permissions=True)
 		return patch_doc.name
+	else:
+		frappe.db.set_value("Proposed Document", doc.proposed_doc, args_dict)
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
