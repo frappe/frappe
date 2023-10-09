@@ -764,6 +764,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	propose_save(save_action, callback, on_error) {
 		let me = this;
+		let doctype_name;
 		if (save_action == "Propose Save") {
 			frappe.call({
 				method: "frappe.client.propose_save",
@@ -773,7 +774,18 @@ frappe.ui.form.Form = class FrappeForm {
 				},
 				callback: (resp) => {
 					if (!resp.exc) {
-						me.doc.proposed_doc = resp.message;
+						if (resp.message) {
+							doctype_name = frappe.scrub(me.doctype);
+							frappe.set_route(
+								"/app/" +
+									doctype_name +
+									"/" +
+									"proposed-" +
+									doctype_name +
+									"-" +
+									resp.message
+							);
+						}
 						frappe.msgprint({
 							message: __("Changes Proposed"),
 							alert: true,
