@@ -232,15 +232,23 @@ def propose_save(doc, is_new):
 	:param doc: JSON or dict object with the properties of the document to be updated"""
 	if isinstance(doc, str):
 		doc = frappe._dict(json.loads(doc))
-	patch_doc = frappe.new_doc("Proposed Document")
-	patch_doc.document_type = doc.doctype
-	if is_new:
-		patch_doc.is_new_doc = 1
+
+	args_dict = frappe._dict(
+		{
+			"is_new_doc": is_new,
+			"document_name": doc.name,
+			"document_type": doc.doctype,
+			"document_json": frappe.as_json(doc, indent=2),
+		}
+	)
+	if doc.get("proposed_doc"):
+		frappe.db.set_value("Proposed Document", doc.proposed_doc, args_dict)
+		return doc.proposed_doc
 	else:
-		patch_doc.document_name = doc.name
-	patch_doc.document_json = frappe.as_json(doc, indent=2)
-	patch_doc.insert(ignore_permissions=True)
-	return patch_doc.as_dict()
+		patch_doc = frappe.new_doc("Proposed Document")
+		patch_doc.update(args_dict)
+		patch_doc.insert(ignore_permissions=True)
+		return patch_doc.name
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
