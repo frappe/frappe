@@ -32,15 +32,12 @@ frappe.ui.toggle_like = function($btn, doctype, name, callback) {
 			// renable click
 			$btn.css('pointer-events', 'auto');
 
-			if(!r.exc) {
-				// update in all local-buttons
-				var action_buttons = $('.like-action[data-name="'+ name.replace(/"/g, '\"')
-					+'"][data-doctype="'+ doctype.replace(/"/g, '\"')+'"]');
-
-				if(add==="Yes") {
-					action_buttons.removeClass("not-liked").addClass("liked");
-				} else {
-					action_buttons.addClass("not-liked").removeClass("liked");
+			if (!r.exc) {
+				for (const like of document.querySelectorAll(".like-action")) {
+					if (like.dataset.name === name && like.dataset.doctype === doctype) {
+						like.classList.toggle("not-liked", add === "No");
+						like.classList.toggle("liked", add === "Yes");
+					}
 				}
 
 				// update in locals (form)

@@ -653,7 +653,7 @@ def remove_from_installed_apps(context, app):
 	"-y",
 	help="To bypass confirmation prompt for uninstalling the app",
 	is_flag=True,
-	default=False,
+	default=[],
 	multiple=True,
 )
 @click.option(
