@@ -100,7 +100,7 @@ def safe_eval(code, eval_globals=None, eval_locals=None):
 	eval_globals["__builtins__"] = {}
 	eval_globals.update(WHITELISTED_SAFE_EVAL_GLOBALS)
 
-	return safe_eval(
+	return eval(
 		compile_restricted(code, filename="<safe_eval>", policy=FrappeTransformer, mode="eval"),
 		eval_globals,
 		eval_locals,
