@@ -101,7 +101,7 @@
   },
   {
    "fieldname": "url",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "URL",
    "read_only": 1
   },
@@ -129,7 +129,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-04-07 11:32:27.557548",
+ "modified": "2023-10-09 09:36:23.856188",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integration Request",
