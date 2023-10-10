@@ -581,7 +581,9 @@ def get_filtered_data(ref_doctype, columns, data, user):
 	if match_filters_per_doctype:
 		for row in data:
 			# Why linked_doctypes.get(ref_doctype)? because if column is empty, linked_doctypes[ref_doctype] is removed
-			if linked_doctypes.get(ref_doctype) and shared and row[linked_doctypes[ref_doctype]] in shared:
+			if (
+				linked_doctypes.get(ref_doctype) and shared and row.get(linked_doctypes[ref_doctype]) in shared
+			):
 				result.append(row)
 
 			elif has_match(
