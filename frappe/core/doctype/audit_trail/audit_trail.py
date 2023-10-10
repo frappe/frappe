@@ -20,6 +20,8 @@ class AuditTrail(Document):
 
 		doctype_name: DF.Link
 		document: DF.DynamicLink
+		end_date: DF.Date | None
+		start_date: DF.Date | None
 	# end: auto-generated types
 	pass
 
