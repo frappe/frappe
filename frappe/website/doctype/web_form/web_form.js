@@ -179,60 +179,69 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	render_condition_table: function (frm) {
-		// frm.set_df_property("filters_section", "hidden", 0);
-		let is_document_type = true;
-
 		let wrapper = $(frm.get_field("condition_json").wrapper).empty();
-		let table = $(`<table class="table table-bordered" style="cursor:pointer; margin:0px;">
+		let table = $(`
+			<style>
+			.table-bordered th, .table-bordered td {
+				border: none;
+				border-right: 1px solid var(--border-color);
+			}
+			.table-bordered td {
+				border-top: 1px solid var(--border-color);
+			}
+			.table thead th {
+				border-bottom: none;
+				font-weight: var(--weight-regular);
+			}
+			tr th:last-child, tr td:last-child{
+				border-right: none;
+			}
+			thead {
+				font-size: var(--text-sm);
+				color: var(--gray-600);
+				background-color: var(--subtle-fg);
+			}
+			thead th:first-child {
+				border-top-left-radius: 9px;
+			}
+			thead th:last-child {
+				border-top-right-radius: 9px;
+			}
+			</style>
+
+			<table class="table table-bordered" style="cursor:pointer; margin:0px; border-radius: 10px; border-spacing: 0; border-collapse: separate;">
 			<thead>
 				<tr>
-					<th style="width: 20%">${__("Filter")}</th>
+					<th>${__("Filter")}</th>
 					<th style="width: 20%">${__("Condition")}</th>
 					<th>${__("Value")}</th>
 				</tr>
 			</thead>
 			<tbody></tbody>
 		</table>`).appendTo(wrapper);
-		$(`<p class="text-muted small">${__("Click table to edit")}</p>`).appendTo(wrapper);
+		$(`<p class="text-muted small mt-2">${__("Click table to edit")}</p>`).appendTo(wrapper);
 
 		let filters = JSON.parse(frm.doc.condition_json || "[]");
 		let filters_set = false;
 
-		let fields = [];
-		if (is_document_type) {
-			fields = [
-				{
-					fieldtype: "HTML",
-					fieldname: "filter_area",
-				},
-			];
+		let fields = [
+			{
+				fieldtype: "HTML",
+				fieldname: "filter_area",
+			},
+		];
 
-			if (filters?.length) {
-				filters.forEach((filter) => {
-					const filter_row = $(`<tr>
+		if (filters?.length) {
+			filters.forEach((filter) => {
+				const filter_row = $(`<tr>
 							<td>${filter[1]}</td>
 							<td>${filter[2] || ""}</td>
 							<td>${filter[3]}</td>
 						</tr>`);
 
-					table.find("tbody").append(filter_row);
-				});
-				filters_set = true;
-			}
-		} else if (frm.filters.length) {
-			fields = frm.filters.filter((f) => f.fieldname);
-			fields.map((f) => {
-				if (filters[f.fieldname]) {
-					let condition = "=";
-					const filter_row = $(`<tr>
-							<td>${f.label}</td>
-							<td>${condition}</td>
-							<td>${filters[f.fieldname] || ""}</td>
-						</tr>`);
-					table.find("tbody").append(filter_row);
-					if (!filters_set) filters_set = true;
-				}
+				table.find("tbody").append(filter_row);
 			});
+			filters_set = true;
 		}
 
 		if (!filters_set) {
@@ -249,26 +258,20 @@ frappe.ui.form.on("Web Form", {
 					let values = this.get_values();
 					if (values) {
 						this.hide();
-						if (is_document_type) {
-							let filters = frm.filter_group.get_filters();
-							frm.set_value("condition_json", JSON.stringify(filters));
-						} else {
-							frm.set_value("condition_json", JSON.stringify(values));
-						}
+						let filters = frm.filter_group.get_filters();
+						frm.set_value("condition_json", JSON.stringify(filters));
 						frm.trigger("render_condition_table");
 					}
 				},
 				primary_action_label: "Set",
 			});
 
-			if (is_document_type) {
-				frm.filter_group = new frappe.ui.FilterGroup({
-					parent: dialog.get_field("filter_area").$wrapper,
-					doctype: frm.doc.doc_type,
-					on_change: () => {},
-				});
-				filters && frm.filter_group.add_filters_to_filter_group(filters);
-			}
+			frm.filter_group = new frappe.ui.FilterGroup({
+				parent: dialog.get_field("filter_area").$wrapper,
+				doctype: frm.doc.doc_type,
+				on_change: () => {},
+			});
+			filters && frm.filter_group.add_filters_to_filter_group(filters);
 
 			dialog.show();
 
