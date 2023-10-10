@@ -1605,6 +1605,20 @@ Object.assign(frappe.utils, {
 				return string;
 		}
 	},
+	// deprecated!
+	get_filter_as_json(filters) {
+		console.warn("frappe.utils.get_filter_as_json is deprecated.");
+		// convert filter array to json
+		let filter = null;
+		if (filters.length) {
+			filter = {};
+			filters.forEach((arr) => {
+				filter[arr[1]] = [arr[2], arr[3]];
+			});
+			filter = JSON.stringify(filter);
+		}
+		return filter;
+	},
 
 	process_filter_expression(filter) {
 		return new Function(`return ${filter}`)();
