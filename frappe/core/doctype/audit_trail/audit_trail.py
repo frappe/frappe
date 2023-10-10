@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.version.version import get_diff
 from frappe.model.document import Document
+from frappe.utils import compare
 
 
 class AuditTrail(Document):
@@ -64,9 +65,15 @@ class AuditTrail(Document):
 	def get_amended_documents(self):
 		amended_document_names = []
 		curr_doc = self.document
-		while curr_doc and len(amended_document_names) < 5:
+		creation = frappe.db.get_value(self.doctype_name, self.document, "creation")
+		while (
+			curr_doc
+			and len(amended_document_names) < 5
+			and compare(creation, ">=", self.start_date, "Date")
+		):
 			amended_document_names.append(curr_doc)
 			curr_doc = frappe.db.get_value(self.doctype_name, curr_doc, "amended_from")
+			creation = frappe.db.get_value(self.doctype_name, curr_doc, "creation")
 		amended_document_names = amended_document_names[::-1]
 
 		return amended_document_names
