@@ -11,10 +11,6 @@ from frappe.utils.xlsxutils import make_xlsx
 
 
 class TestQueryReport(FrappeTestCase):
-
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 
