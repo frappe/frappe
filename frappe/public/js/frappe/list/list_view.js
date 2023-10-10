@@ -1014,8 +1014,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		link.dataset.doctype = this.doctype;
 		link.dataset.name = doc.name;
 		link.href = this.get_form_link(doc);
-		link.title = value.toString();
-		link.textContent = value.toString();
+		// "Text Editor" and some other fieldtypes can have html tags in them so strip and show text.
+		// If no text is found show "No Text Found in {Field Label}"
+		let textValue = frappe.utils.html2text(value);
+		link.title = textValue;
+		link.textContent = textValue;
 
 		return div.innerHTML;
 	}
