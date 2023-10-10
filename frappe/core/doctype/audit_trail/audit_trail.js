@@ -20,6 +20,7 @@ frappe.ui.form.on("Audit Trail", {
 			return {
 				filters: {
 					amended_from: ["!=", ""],
+					creation: ["between", [frm.doc.start_date, frm.doc.end_date]],
 				},
 			};
 		});
