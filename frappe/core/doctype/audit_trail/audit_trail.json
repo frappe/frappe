@@ -6,8 +6,10 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "start_date",
   "doctype_name",
   "column_break_peck",
+  "end_date",
   "document",
   "section_break_gppi",
   "version_table",
@@ -68,13 +70,23 @@
    "fieldtype": "Section Break",
    "hidden": 1,
    "label": "Rows Removed"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start Date"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End Date"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-08-22 12:12:59.780845",
+ "modified": "2023-10-10 12:55:56.556403",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Audit Trail",
