@@ -20,22 +20,24 @@ class AuditTrail(Document):
 
 		doctype_name: DF.Link
 		document: DF.DynamicLink
-		end_date: DF.Date | None
-		start_date: DF.Date | None
+		end_date: DF.Date
+		start_date: DF.Date
 	# end: auto-generated types
 	pass
 
 	def validate(self):
-		self.validate_doctype_name()
-		self.validate_document()
+		self.validate_fields()
 
-	def validate_doctype_name(self):
-		if not self.doctype_name:
-			frappe.throw(_("{} field cannot be empty.").format(frappe.bold("Doctype")))
-
-	def validate_document(self):
-		if not self.document:
-			frappe.throw(_("{} field cannot be empty.").format(frappe.bold("Document")))
+	def validate_fields(self):
+		fields_dict = {
+			"DocType": self.doctype_name,
+			"Document": self.document,
+			"Start Date": self.start_date,
+			"End Date": self.end_date,
+		}
+		for field in fields_dict:
+			if not fields_dict[field]:
+				frappe.throw(_("{} field cannot be empty.").format(frappe.bold(field)))
 
 	@frappe.whitelist()
 	def compare_document(self):
