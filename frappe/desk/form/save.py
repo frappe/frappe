@@ -17,6 +17,10 @@ def savedocs(doc, action):
 	"""save / submit / update doclist"""
 	doc = frappe.get_doc(json.loads(doc))
 	capture_doc(doc, action)
+	if doc.doctype not in ["DocType", "File"] and doc.name.startswith(
+		"new-" + doc.doctype.lower().replace(" ", "-")
+	):
+		doc.file_relink_temp_docname = doc.name
 	set_local_name(doc)
 
 	# action

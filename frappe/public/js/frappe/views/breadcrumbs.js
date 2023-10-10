@@ -186,7 +186,14 @@ frappe.breadcrumbs = {
 
 	set_form_breadcrumb(breadcrumbs, view) {
 		const doctype = breadcrumbs.doctype;
-		const docname = frappe.get_route().slice(2).join("/");
+		let docname = frappe.get_route().slice(2).join("/");
+		if (docname.startsWith("new-" + doctype.toLowerCase().replace(/ /g, "-"))) {
+			// using docname instead of doctype to include No like Doctype Name + 1, 2, 3
+			docname = docname
+				.slice(0, -10)
+				.replace(/-/g, " ")
+				.replace(/\b\w/g, (l) => l.toUpperCase());
+		}
 		let form_route = `/app/${frappe.router.slug(doctype)}/${docname}`;
 		this.append_breadcrumb_element(form_route, __(docname));
 

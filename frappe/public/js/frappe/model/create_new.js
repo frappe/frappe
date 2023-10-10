@@ -83,7 +83,8 @@ $.extend(frappe.model, {
 		var cnt = frappe.model.new_name_count;
 		if (!cnt[doctype]) cnt[doctype] = 0;
 		cnt[doctype]++;
-		return frappe.router.slug(`new-${doctype}-${cnt[doctype]}`);
+		// random hash is added to idenity mislinked files when doc is not saved and file is uploaded.
+		return frappe.router.slug(`new-${doctype}-${cnt[doctype]}${frappe.utils.get_random(10)}`);
 	},
 
 	set_default_values: function (doc, parent_doc) {
