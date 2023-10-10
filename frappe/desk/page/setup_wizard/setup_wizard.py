@@ -159,8 +159,10 @@ def handle_setup_exception(args):
 			frappe.get_attr(hook)(traceback, args)
 
 
-def update_system_settings(args):
-	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
+def update_system_settings(args):  # nosemgrep
+	country_info = get_country_info(args.get("country"))
+	number_format = country_info.get("number_format", "#,###.##")
+	first_weekday = country_info.get("first_weekday", "Sunday")
 
 	# replace these as float number formats, as they have 0 precision
 	# and are currency number formats and not for floats
@@ -175,6 +177,7 @@ def update_system_settings(args):
 			"country": args.get("country"),
 			"language": get_language_code(args.get("language")) or "en",
 			"time_zone": args.get("timezone"),
+			"first_day_of_the_week": first_weekday,
 			"float_precision": 3,
 			"rounding_method": "Banker's Rounding",
 			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
