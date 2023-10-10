@@ -74,19 +74,21 @@
   {
    "fieldname": "start_date",
    "fieldtype": "Date",
-   "label": "Start Date"
+   "label": "Start Date",
+   "reqd": 1
   },
   {
    "fieldname": "end_date",
    "fieldtype": "Date",
-   "label": "End Date"
+   "label": "End Date",
+   "reqd": 1
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-10-10 12:55:56.556403",
+ "modified": "2023-10-10 15:20:00.558979",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Audit Trail",
