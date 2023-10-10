@@ -74,12 +74,14 @@
   {
    "fieldname": "start_date",
    "fieldtype": "Date",
-   "label": "Start Date"
+   "label": "Start Date",
+   "reqd": 1
   },
   {
    "fieldname": "end_date",
    "fieldtype": "Date",
-   "label": "End Date"
+   "label": "End Date",
+   "reqd": 1
   }
  ],
  "hide_toolbar": 1,
@@ -87,10 +89,14 @@
  "issingle": 1,
  "links": [],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2023-10-04 12:45:49.099121",
 =======
  "modified": "2023-10-10 12:55:56.556403",
 >>>>>>> 6758be3e24 (feat: start and end date filters)
+=======
+ "modified": "2023-10-10 15:20:00.558979",
+>>>>>>> 8707fbf248 (fix: make date filters mandatory)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Audit Trail",
