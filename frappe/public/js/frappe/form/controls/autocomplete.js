@@ -37,6 +37,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 	get_awesomplete_settings() {
 		var me = this;
 		return {
+			tabSelect: true,
 			minChars: 0,
 			maxItems: this.df.max_items || 99,
 			autoFirst: true,
