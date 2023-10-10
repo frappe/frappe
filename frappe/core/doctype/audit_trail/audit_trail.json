@@ -23,7 +23,7 @@
    "fieldname": "doctype_name",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Doctype",
+   "label": "DocType",
    "options": "DocType",
    "reqd": 1
   },
@@ -99,7 +99,8 @@
    "print": 1,
    "read": 1,
    "role": "System Manager",
-   "share": 1
+   "share": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",
