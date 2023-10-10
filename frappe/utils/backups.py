@@ -367,7 +367,7 @@ class BackupGenerator:
 		from frappe.utils.change_log import get_app_branch
 
 		db_exc = {
-			"mariadb": ("mysqldump", which("mysqldump")),
+			"mariadb": ("mariadb-dump", which("mariadb-dump")),
 			"postgres": ("pg_dump", which("pg_dump")),
 		}[self.db_type]
 		gzip_exc = which("gzip")
