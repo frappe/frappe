@@ -495,18 +495,14 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	}
 
 	set_badge_count_common(open_count, count, $link) {
+		const formatCount = (count) => (count > 99 ? "99+" : count);
 		if (open_count) {
-			$link
-				.find(".open-notification")
-				.removeClass("hidden")
-				.html(open_count > 99 ? "99+" : open_count);
+			$link.find(".open-notification").removeClass("hidden").html(formatCount(open_count));
 		}
 
-		if (count) {
-			$link
-				.find(".count")
-				.removeClass("hidden")
-				.text(count > 99 ? "99+" : count);
+		const net_count = count - open_count;
+		if (net_count) {
+			$link.find(".count").removeClass("hidden").text(formatCount(net_count));
 		}
 	}
 
