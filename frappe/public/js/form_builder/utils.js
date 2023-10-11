@@ -96,11 +96,15 @@ export function create_layout(fields) {
 	return layout;
 }
 
+export async function load_doctype_model(doctype) {
+	await frappe.call("frappe.desk.form.load.getdoctype", { doctype });
+}
+
 export async function get_table_columns(df, child_doctype) {
 	let table_columns = [];
 
 	if (!frappe.get_meta(df.options)) {
-		await frappe.model.with_doctype(df.options);
+		await load_doctype_model(df.options);
 	}
 	if (!child_doctype) {
 		child_doctype = frappe.get_meta(df.options);
