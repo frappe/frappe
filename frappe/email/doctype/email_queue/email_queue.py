@@ -6,7 +6,7 @@ import quopri
 import traceback
 from contextlib import suppress
 from email.parser import Parser
-from email.policy import SMTPUTF8
+from email.policy import SMTPUTF8, default
 
 import frappe
 from frappe import _, safe_encode, task
@@ -259,6 +259,19 @@ class SendMailContext:
 				)
 			else:
 				update_fields.update({"status": "Error"})
+
+				# Parse the email body to extract the subject
+				subject = Parser(policy=default).parsestr(self.queue_doc.message)["Subject"]
+
+				# Construct the notification
+				notification = frappe.new_doc("Notification Log")
+				notification.for_user = self.queue_doc.owner
+				notification.set("type", "Alert")
+				notification.from_user = self.queue_doc.owner
+				notification.document_type = self.queue_doc.doctype
+				notification.document_name = self.queue_doc.name
+				notification.subject = _("Failed to send email with subject:") + f" {subject}"
+				notification.insert()
 		else:
 			update_fields = {"status": "Sent"}
 
