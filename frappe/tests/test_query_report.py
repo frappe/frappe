@@ -188,4 +188,3 @@ data = columns, result
 		except Exception as e:
 			raise e
 			frappe.db.rollback()
-
