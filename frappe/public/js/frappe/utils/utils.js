@@ -1605,9 +1605,8 @@ Object.assign(frappe.utils, {
 				return string;
 		}
 	},
-	// deprecated!
+
 	get_filter_as_json(filters) {
-		console.warn("frappe.utils.get_filter_as_json is deprecated.");
 		// convert filter array to json
 		let filter = null;
 		if (filters.length) {
