@@ -1,7 +1,11 @@
 import doctype_with_child_table from "../fixtures/doctype_with_child_table";
 import child_table_doctype from "../fixtures/child_table_doctype";
 import child_table_doctype_1 from "../fixtures/child_table_doctype_1";
+import doctype_with_links from "../fixtures/doctype_with_links";
+import custom_submittable_doctype from "../fixtures/custom_submittable_doctype";
 import doctype_to_link from "../fixtures/doctype_to_link";
+const custom_submittable_doctype_name = custom_submittable_doctype.name;
+const doctype_with_links_name = doctype_with_links.name;
 const doctype_to_link_name = doctype_to_link.name;
 const child_table_doctype_name = child_table_doctype.name;
 
@@ -12,6 +16,8 @@ context("Dashboard links", () => {
 		cy.insert_doc("DocType", child_table_doctype, true);
 		cy.insert_doc("DocType", child_table_doctype_1, true);
 		cy.insert_doc("DocType", doctype_with_child_table, true);
+		cy.insert_doc("DocType", custom_submittable_doctype, true);
+		cy.insert_doc("DocType", doctype_with_links, true);
 		cy.insert_doc("DocType", doctype_to_link, true);
 		return cy
 			.window()
@@ -79,6 +85,56 @@ context("Dashboard links", () => {
 					.contains("Website Analytics")
 					.click();
 			});
+	});
+
+	it("Check open_links pointing to submittable doctype", () => {
+		cy.visit("/app/doctype-with-links");
+		cy.new_form(doctype_with_links_name);
+		cy.fill_field("title", "test");
+		cy.findByRole("button", { name: "Save" }).click();
+
+		// Create first linked transaction as draft
+		let selector = `[data-doctype="${custom_submittable_doctype_name}"]`;
+		cy.get(selector)
+			.find("button" + selector)
+			.click();
+		cy.fill_field("title", "Test submittable 1");
+		cy.findByRole("button", { name: "Save" }).click();
+
+		// Test first, create second linked transaction and submit
+		cy.visit("/app/doctype-with-links/test");
+		cy.get(selector).find(".count").should("not.exist");
+		cy.get(selector)
+			.find(".open-notification")
+			.should("contain", "1")
+			.siblings("button" + selector)
+			.click();
+		cy.fill_field("title", "Test submittable 2");
+		cy.findByRole("button", { name: "Save" }).click();
+		cy.findByRole("button", { name: "Submit" }).click();
+
+		// Test second, create third linked transaction and submit
+		cy.visit("/app/doctype-with-links/test");
+		cy.get(selector)
+			.find(".count")
+			.should("contain", "1")
+			.parent()
+			.siblings(".open-notification")
+			.should("contain", "1")
+			.siblings("button" + selector)
+			.click();
+		cy.fill_field("title", "Test submittable 3");
+		cy.findByRole("button", { name: "Save" }).click();
+		cy.findByRole("button", { name: "Submit" }).click();
+
+		// Test third transaction
+		cy.visit("/app/doctype-with-links/test");
+		cy.get(selector)
+			.find(".count")
+			.should("contain", "2")
+			.parent()
+			.find(".open_count")
+			.should("contain", "1");
 	});
 
 	it("check if child table is populated with linked field on creation from dashboard link", () => {

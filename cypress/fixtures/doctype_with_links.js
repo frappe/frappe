@@ -1,0 +1,45 @@
+export default {
+	name: "Doctype with Links",
+	actions: [],
+	custom: 1,
+	naming_rule: "By fieldname",
+	autoname: "field:title",
+	creation: "2023-10-11 20:17:25.261172",
+	doctype: "DocType",
+	editable_grid: 1,
+	engine: "InnoDB",
+	fields: [
+		{
+			fieldname: "title",
+			fieldtype: "Data",
+			label: "Title",
+			unique: 1,
+		},
+	],
+	links: [
+		{
+			group: "Transactions",
+			link_doctype: "Custom Submittable DocType",
+			link_fieldname: "title",
+		},
+	],
+	modified: "2023-10-11 20:17:25.261172",
+	modified_by: "Administrator",
+	module: "Custom",
+	owner: "Administrator",
+	permissions: [
+		{
+			create: 1,
+			delete: 1,
+			email: 1,
+			print: 1,
+			read: 1,
+			role: "System Manager",
+			share: 1,
+			write: 1,
+		},
+	],
+	sort_field: "modified",
+	sort_order: "ASC",
+	track_changes: 1,
+};
