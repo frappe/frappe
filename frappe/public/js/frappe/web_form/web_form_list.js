@@ -109,6 +109,12 @@ export default class WebFormList {
 	}
 
 	fetch_data() {
+		if (this.condition_json && JSON.parse(this.condition_json)) {
+			let filter = frappe.utils.get_filter_from_json(this.condition_json);
+			filter = frappe.utils.get_filter_as_json(filter);
+			this.filters = Object.assign(this.filters, JSON.parse(filter));
+		}
+
 		let args = {
 			method: "frappe.www.list.get_list_data",
 			args: {
