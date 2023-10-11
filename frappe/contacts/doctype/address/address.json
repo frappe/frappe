@@ -148,7 +148,7 @@
  "icon": "fa fa-map-marker",
  "idx": 5,
  "links": [],
- "modified": "2023-10-09 11:42:04.982763",
+ "modified": "2023-10-11 11:48:26.954934",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",
@@ -210,6 +210,7 @@
   {
    "create": 1,
    "export": 1,
+   "if_owner": 1,
    "print": 1,
    "read": 1,
    "role": "All",
