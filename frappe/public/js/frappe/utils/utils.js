@@ -1609,7 +1609,6 @@ Object.assign(frappe.utils, {
 	get_filter_as_json(filters) {
 		// convert filter array to json
 		let filter = null;
-
 		if (filters.length) {
 			filter = {};
 			filters.forEach((arr) => {
@@ -1617,8 +1616,11 @@ Object.assign(frappe.utils, {
 			});
 			filter = JSON.stringify(filter);
 		}
-
 		return filter;
+	},
+
+	process_filter_expression(filter) {
+		return new Function(`return ${filter}`)();
 	},
 
 	get_filter_from_json(filter_json, doctype) {
@@ -1628,12 +1630,22 @@ Object.assign(frappe.utils, {
 				return [];
 			}
 
-			const filters_json = new Function(`return ${filter_json}`)();
+			const filters_json = this.process_filter_expression(filter_json);
 			if (!doctype) {
 				// e.g. return {
 				//    priority: (2) ['=', 'Medium'],
 				//    status: (2) ['=', 'Open']
 				// }
+
+				// don't remove unless patch is created to convert all existing filters from object to array
+				// backward compatibility
+				if (Array.isArray(filters_json)) {
+					let filter = {};
+					filters_json.forEach((arr) => {
+						filter[arr[1]] = [arr[2], arr[3]];
+					});
+					return filter || [];
+				}
 				return filters_json || [];
 			}
 
@@ -1641,6 +1653,11 @@ Object.assign(frappe.utils, {
 			//    ['ToDo', 'status', '=', 'Open', false],
 			//    ['ToDo', 'priority', '=', 'Medium', false]
 			// ]
+			if (Array.isArray(filters_json)) {
+				return filters_json;
+			}
+			// don't remove unless patch is created to convert all existing filters from object to array
+			// backward compatibility
 			return Object.keys(filters_json).map((filter) => {
 				let val = filters_json[filter];
 				return [doctype, filter, val[0], val[1], false];
