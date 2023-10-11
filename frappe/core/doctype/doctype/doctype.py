@@ -523,6 +523,24 @@ class DocType(Document):
 				self.run_module_method("after_doctype_insert")
 
 		delete_notification_count_for(doctype=self.name)
+
+		"""Sync Doctype Layout"""
+		doctype_layouts = frappe.get_all(
+			"DocType Layout", filters={"document_type": self.name}, pluck="name"
+		)
+
+		for layout in doctype_layouts:
+			layout_doc = frappe.get_doc("DocType Layout", layout)
+			savepoint = "sync_fields_" + layout_doc.name
+			try:
+				frappe.db.savepoint(savepoint)
+				layout_doc.sync_fields()
+				layout_doc.save()
+
+			except Exception as e:
+				frappe.clear_last_message()
+				frappe.db.rollback(save_point=savepoint)
+
 		frappe.clear_cache(doctype=self.name)
 
 		# clear user cache so that on the next reload this doctype is included in boot
