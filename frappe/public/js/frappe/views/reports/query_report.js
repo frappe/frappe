@@ -1690,8 +1690,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							const insert_after_index = this.columns.findIndex(
 								(column) => column.label === values.insert_after
 							);
+
 							custom_columns.push({
-								fieldname: df.fieldname,
+								fieldname: this.columns
+									.map((column) => column.fieldname)
+									.includes(df.fieldname)
+									? df.fieldname + "-" + frappe.scrub(values.doctype)
+									: df.fieldname,
 								fieldtype: df.fieldtype,
 								label: df.label,
 								insert_after_index: insert_after_index,
@@ -1715,12 +1720,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									const custom_data = r.message;
 									const link_field =
 										this.doctype_field_map[values.doctype].fieldname;
-
 									this.add_custom_column(
 										custom_columns,
 										custom_data,
 										link_field,
-										values.field,
+										values,
 										insert_after_index
 									);
 									d.hide();
@@ -1801,13 +1805,25 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 	}
 
-	add_custom_column(custom_column, custom_data, link_field, column_field, insert_after_index) {
+	add_custom_column(
+		custom_column,
+		custom_data,
+		link_field,
+		new_column_data,
+		insert_after_index
+	) {
 		const column = this.prepare_columns(custom_column);
+		const column_field = new_column_data.field;
 
 		this.columns.splice(insert_after_index + 1, 0, column[0]);
 
 		this.data.forEach((row) => {
-			row[column_field] = custom_data[row[link_field]];
+			if (column[0].fieldname.includes("-")) {
+				row[column_field + "-" + frappe.scrub(new_column_data.doctype)] =
+					custom_data[row[link_field]];
+			} else {
+				row[column_field] = custom_data[row[link_field]];
+			}
 		});
 
 		this.render_datatable();
