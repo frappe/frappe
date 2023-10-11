@@ -142,6 +142,18 @@ class FrappeTestCase(unittest.TestCase):
 		yield
 		frappe.set_user(old_user)
 
+	@contextmanager
+	def switch_site(self, site: str):
+		"""Switch connection to different site.
+		Note: Drops current site connection completely."""
+
+		old_site = frappe.local.site
+		frappe.init(site, force=True)
+		frappe.connect()
+		yield
+		frappe.init(old_site, force=True)
+		frappe.connect()
+
 
 class MockedRequestTestCase(FrappeTestCase):
 	def setUp(self):
