@@ -385,8 +385,6 @@ def relink_files(doc, fieldname, temp_doc_name):
 			mislinked_file,
 			field={
 				"attached_to_name": doc.name,
-				"attached_to_doctype": doc.doctype,
-				"attached_to_field": fieldname,
 			},
 		)
 		return
