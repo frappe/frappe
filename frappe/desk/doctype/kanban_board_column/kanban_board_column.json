@@ -48,7 +48,7 @@
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "queue_position",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1
