@@ -44,9 +44,13 @@ def handle():
 	cmd = frappe.local.form_dict.cmd
 	data = None
 
+	if not cmd:
+		raise frappe.DoesNotExistError
 	if cmd != "login":
-		data = execute_cmd(cmd)
-
+		try:
+			data = execute_cmd(cmd)
+		except Exception:
+			raise frappe.DoesNotExistError
 	# data can be an empty string or list which are valid responses
 	if data is not None:
 		if isinstance(data, Response):
