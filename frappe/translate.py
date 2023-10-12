@@ -591,7 +591,9 @@ def get_messages_from_page(name):
 
 def get_messages_from_report(name):
 	"""Returns all translatable strings from a :class:`frappe.core.doctype.Report`"""
-	report = frappe.get_doc("Report", name, fields=["name", "ref_doctype", "query"], children={"roles": False})
+	report = frappe.get_doc(
+		"Report", name, fields=["name", "ref_doctype", "query"], children={"roles": False}
+	)
 	messages = _get_messages_from_page_or_report(
 		"Report", name, frappe.db.get_value("DocType", report.ref_doctype, "module")
 	)

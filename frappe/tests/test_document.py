@@ -67,7 +67,12 @@ class TestDocument(FrappeTestCase):
 		self.assertTrue(filter(lambda d: d.fieldname == "email", d.fields))
 
 	def test_load_some_children_some_fields(self):
-		d = frappe.get_doc("DocType", "User", children={"fields": True, "permissions": True}, fields=["name", "allow_rename"])
+		d = frappe.get_doc(
+			"DocType",
+			"User",
+			children={"fields": True, "permissions": True},
+			fields=["name", "allow_rename"],
+		)
 		self.assertEqual(d.doctype, "DocType")
 		self.assertEqual(d.name, "User")
 		self.assertEqual(d.allow_rename, 1)

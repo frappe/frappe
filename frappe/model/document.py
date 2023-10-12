@@ -120,7 +120,7 @@ class Document(BaseDocument):
 				self.flags.for_update = kwargs.get("for_update")
 				self.flags.load_from_db = kwargs.get("load_from_db", True)
 				self.flags.children = kwargs.get("children", {})
-				self.flags.fieldname = kwargs.get("fields", "*")
+				self.flags.fields = kwargs.get("fields", "*")
 
 				if self.flags.load_from_db:
 					self.load_from_db()
@@ -157,6 +157,12 @@ class Document(BaseDocument):
 		"""Load document and children from database and create properties
 		from fields"""
 		self.flags.ignore_children = True
+		if self.flags.children is None:
+			self.flags.children = {}
+
+		if self.flags.fields is None:
+			self.flags.fields = "*"
+
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
 			single_doc = frappe.db.get_singles_dict(self.doctype, for_update=self.flags.for_update)
 			if not single_doc:
@@ -174,7 +180,7 @@ class Document(BaseDocument):
 				get_value_kwargs["order_by"] = None
 
 			d = frappe.db.get_value(
-				doctype=self.doctype, filters=self.name, fieldname=self.flags.fieldname or "*", **get_value_kwargs
+				doctype=self.doctype, filters=self.name, fieldname=self.flags.fields, **get_value_kwargs
 			)
 
 			if not d:
@@ -190,7 +196,13 @@ class Document(BaseDocument):
 				# Make sure not to query the DB for a child table, if it is a virtual one.
 				# During frappe is installed, the property "is_virtual" is not available in tabDocType, so
 				# we need to filter those cases for the access to frappe.db.get_value() as it would crash otherwise.
-				if hasattr(self, "doctype") and not hasattr(self, "module") and is_virtual_doctype(df.options) and not self.flags.children.get(df.fieldname, True):
+				pick = any(self.flags.children.values())
+				if (
+					hasattr(self, "doctype")
+					and not hasattr(self, "module")
+					and is_virtual_doctype(df.options)
+					and not self.flags.children.get(df.fieldname, not pick)
+				):
 					self.set(df.fieldname, [])
 					continue
 

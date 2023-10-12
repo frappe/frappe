@@ -65,7 +65,9 @@ class MetaTags:
 		)
 
 		if route_exists:
-			website_route_meta = frappe.get_doc("Website Route Meta", route, fields=["name"], children={"meta_tags": True})
+			website_route_meta = frappe.get_doc(
+				"Website Route Meta", route, fields=["name"], children={"meta_tags": True}
+			)
 			for meta_tag in website_route_meta.meta_tags:
 				d = meta_tag.get_meta_dict()
 				self.tags.update(d)
