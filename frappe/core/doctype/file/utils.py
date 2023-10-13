@@ -397,6 +397,8 @@ def relink_mismatched_files(doc: "Document") -> None:
 	for df in attach_fields:
 		if doc.get(df.fieldname):
 			relink_files(doc, df.fieldname, doc.__temporary_name)
+	# delete temporary name after relinking is done
+	doc.delete_key("__temporary_name")
 
 
 def decode_file_content(content: bytes) -> bytes:
