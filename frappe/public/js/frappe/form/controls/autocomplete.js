@@ -118,10 +118,11 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 
 		this.$input.on("input", frappe.utils.debounce(refresh_options, 500));
 
-		this.$input.on("focus", () => {
+		this.$input.on("focus", (e) => {
 			if (!this.$input.val()) {
 				this.$input.val("");
-				this.$input.trigger("input");
+				// this.$input.trigger("input"); // flickering
+				refresh_options(e);
 			}
 		});
 
