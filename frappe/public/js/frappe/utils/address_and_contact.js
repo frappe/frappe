@@ -61,8 +61,8 @@ $.extend(frappe.contacts, {
 
 function new_record(doctype, link_doctype, link_name) {
 	return frappe.new_doc(doctype).then(() => {
-		if (cur_frm.doc.links) {
-			// avoid adding the same link twice
+		if (!cur_frm.get_field("links") || cur_frm.doc.links) {
+			// avoid adding the same link twice (only if the link field exists)
 			return;
 		}
 
