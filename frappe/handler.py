@@ -44,13 +44,9 @@ def handle():
 	cmd = frappe.local.form_dict.cmd
 	data = None
 
-	if not cmd:
-		raise frappe.DoesNotExistError
 	if cmd != "login":
-		try:
-			data = execute_cmd(cmd)
-		except Exception:
-			raise frappe.DoesNotExistError
+		data = execute_cmd(cmd)
+
 	# data can be an empty string or list which are valid responses
 	if data is not None:
 		if isinstance(data, Response):
@@ -65,6 +61,8 @@ def handle():
 
 def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""
+	if not cmd:
+		raise frappe.DoesNotExistError
 	for hook in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, [])):
 		# override using the first hook
 		cmd = hook
