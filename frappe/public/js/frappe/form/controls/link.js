@@ -245,6 +245,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				// immediately show from cache
 				me.awesomplete.list = me.$input.cache[doctype][term];
 			}
+
 			var args = {
 				txt: term,
 				doctype: doctype,
@@ -327,6 +328,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		const debounced_update_list = frappe.utils.debounce(query_and_update_list, 500);
 		this.$input.on("input", debounced_update_list);
+
+		this.$input.on("focus", (e) => {
+			if (!e.target.value) {
+				// Show results as soon as possible on focus
+				query_and_update_list(e);
+			}
+		});
 
 		this.$input.on("blur", function () {
 			if (me.selected) {
