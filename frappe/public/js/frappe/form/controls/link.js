@@ -232,101 +232,101 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		this.custom_awesomplete_filter && this.custom_awesomplete_filter(this.awesomplete);
 
-		this.$input.on(
-			"input",
-			frappe.utils.debounce(function (e) {
-				var doctype = me.get_options();
-				if (!doctype) return;
-				if (!me.$input.cache[doctype]) {
-					me.$input.cache[doctype] = {};
-				}
+		function query_and_update_list(e) {
+			var doctype = me.get_options();
+			if (!doctype) return;
+			if (!me.$input.cache[doctype]) {
+				me.$input.cache[doctype] = {};
+			}
 
-				var term = e.target.value;
+			var term = e.target.value;
 
-				if (me.$input.cache[doctype][term] != null) {
-					// immediately show from cache
-					me.awesomplete.list = me.$input.cache[doctype][term];
-				}
-				var args = {
-					txt: term,
-					doctype: doctype,
-					ignore_user_permissions: me.df.ignore_user_permissions,
-					reference_doctype: me.get_reference_doctype() || "",
-				};
+			if (me.$input.cache[doctype][term] != null) {
+				// immediately show from cache
+				me.awesomplete.list = me.$input.cache[doctype][term];
+			}
+			var args = {
+				txt: term,
+				doctype: doctype,
+				ignore_user_permissions: me.df.ignore_user_permissions,
+				reference_doctype: me.get_reference_doctype() || "",
+			};
 
-				me.set_custom_query(args);
+			me.set_custom_query(args);
 
-				frappe.call({
-					type: "POST",
-					method: "frappe.desk.search.search_link",
-					no_spinner: true,
-					args: args,
-					callback: function (r) {
-						if (!window.Cypress && !me.$input.is(":focus")) {
-							return;
-						}
-						r.message = me.merge_duplicates(r.message);
+			frappe.call({
+				type: "POST",
+				method: "frappe.desk.search.search_link",
+				no_spinner: true,
+				args: args,
+				callback: function (r) {
+					if (!window.Cypress && !me.$input.is(":focus")) {
+						return;
+					}
+					r.message = me.merge_duplicates(r.message);
 
-						// show filter description in awesomplete
-						let filter_string = me.df.filter_description
-							? me.df.filter_description
-							: args.filters
-							? me.get_filter_description(args.filters)
-							: null;
-						if (filter_string) {
+					// show filter description in awesomplete
+					let filter_string = me.df.filter_description
+						? me.df.filter_description
+						: args.filters
+						? me.get_filter_description(args.filters)
+						: null;
+					if (filter_string) {
+						r.message.push({
+							html: `<span class="text-muted" style="line-height: 1.5">${filter_string}</span>`,
+							value: "",
+							action: () => {},
+						});
+					}
+
+					if (!me.df.only_select) {
+						if (frappe.model.can_create(doctype)) {
+							// new item
 							r.message.push({
-								html: `<span class="text-muted" style="line-height: 1.5">${filter_string}</span>`,
-								value: "",
-								action: () => {},
+								html:
+									"<span class='link-option'>" +
+									"<i class='fa fa-plus' style='margin-right: 5px;'></i> " +
+									__("Create a new {0}", [__(me.get_options())]) +
+									"</span>",
+								label: __("Create a new {0}", [__(me.get_options())]),
+								value: "create_new__link_option",
+								action: me.new_doc,
 							});
 						}
 
-						if (!me.df.only_select) {
-							if (frappe.model.can_create(doctype)) {
-								// new item
-								r.message.push({
-									html:
-										"<span class='link-option'>" +
-										"<i class='fa fa-plus' style='margin-right: 5px;'></i> " +
-										__("Create a new {0}", [__(me.get_options())]) +
-										"</span>",
-									label: __("Create a new {0}", [__(me.get_options())]),
-									value: "create_new__link_option",
-									action: me.new_doc,
-								});
-							}
+						//custom link actions
+						let custom__link_options =
+							frappe.ui.form.ControlLink.link_options &&
+							frappe.ui.form.ControlLink.link_options(me);
 
-							//custom link actions
-							let custom__link_options =
-								frappe.ui.form.ControlLink.link_options &&
-								frappe.ui.form.ControlLink.link_options(me);
-
-							if (custom__link_options) {
-								r.message = r.message.concat(custom__link_options);
-							}
-
-							// advanced search
-							if (locals && locals["DocType"]) {
-								// not applicable in web forms
-								r.message.push({
-									html:
-										"<span class='link-option'>" +
-										"<i class='fa fa-search' style='margin-right: 5px;'></i> " +
-										__("Advanced Search") +
-										"</span>",
-									label: __("Advanced Search"),
-									value: "advanced_search__link_option",
-									action: me.open_advanced_search,
-								});
-							}
+						if (custom__link_options) {
+							r.message = r.message.concat(custom__link_options);
 						}
-						me.$input.cache[doctype][term] = r.message;
-						me.awesomplete.list = me.$input.cache[doctype][term];
-						me.toggle_href(doctype);
-					},
-				});
-			}, 500)
-		);
+
+						// advanced search
+						if (locals && locals["DocType"]) {
+							// not applicable in web forms
+							r.message.push({
+								html:
+									"<span class='link-option'>" +
+									"<i class='fa fa-search' style='margin-right: 5px;'></i> " +
+									__("Advanced Search") +
+									"</span>",
+								label: __("Advanced Search"),
+								value: "advanced_search__link_option",
+								action: me.open_advanced_search,
+							});
+						}
+					}
+					me.$input.cache[doctype][term] = r.message;
+					me.awesomplete.list = me.$input.cache[doctype][term];
+					me.toggle_href(doctype);
+				},
+			});
+		}
+
+		const debounced_update_list = frappe.utils.debounce(query_and_update_list, 500);
+		this.$input.on("input", debounced_update_list);
 
 		this.$input.on("blur", function () {
 			if (me.selected) {
