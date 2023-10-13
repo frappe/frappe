@@ -5,6 +5,7 @@
 		<div class="sidebar-standard-image">
 			<div class="standard-image"></div>
 		</div>
+		{% if can_write %}
 		<div class="sidebar-image-actions">
 			<div class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ __("Change") }}</a>
@@ -14,6 +15,7 @@
 				</div>
 			</div>
 		</div>
+		{% endif %}
 	</li>
 </ul>
 {% if frm.meta.beta %}
