@@ -260,7 +260,7 @@ class Document(BaseDocument):
 		:param set_child_names: Whether to set names for the child documents.
 		"""
 		if self.flags.in_print:
-			return
+			return self
 
 		self.flags.notifications_executed = []
 
