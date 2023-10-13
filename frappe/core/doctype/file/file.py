@@ -723,7 +723,7 @@ class File(Document):
 	def add_comment_in_reference_doc(self, comment_type, text):
 		if self.attached_to_doctype and self.attached_to_name:
 			try:
-				doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name, load_from_db=False)
+				doc = frappe.get_doc(self.attached_to_doctype, self.attached_to_name, children=False)
 				doc.add_comment(comment_type, text)
 			except frappe.DoesNotExistError:
 				frappe.clear_messages()
