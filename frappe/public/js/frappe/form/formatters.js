@@ -388,7 +388,7 @@ frappe.form.get_formatter = function (fieldtype) {
 
 frappe.format = function (value, df, options, doc) {
 	if (!df) df = { fieldtype: "Data" };
-	if (df.fieldname == "_user_tags") df.fieldtype = "Tag";
+	if (df.fieldname == "_user_tags") df = { ...df, fieldtype: "Tag" };
 	var fieldtype = df.fieldtype || "Data";
 
 	// format Dynamic Link as a Link
