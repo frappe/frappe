@@ -20,7 +20,8 @@ def savedocs(doc, action):
 	if doc.doctype not in ["DocType", "File"] and doc.name.startswith(
 		"new-" + doc.doctype.lower().replace(" ", "-")
 	):
-		doc.file_relink_temp_docname = doc.name
+		# required to relink missing attachments if they exist.
+		doc.__temporary_name = doc.name
 	set_local_name(doc)
 
 	# action

@@ -359,6 +359,8 @@ def attach_files_to_document(doc: "Document", event) -> None:
 
 
 def relink_files(doc, fieldname, temp_doc_name):
+	if not temp_doc_name:
+		return
 	from frappe.utils.data import add_to_date, now_datetime
 
 	"""
@@ -391,12 +393,12 @@ def relink_files(doc, fieldname, temp_doc_name):
 
 
 def relink_mismatched_files(doc: "Document") -> None:
-	if not doc.get("file_relink_temp_docname", None):
+	if not doc.get("__temporary_name", None):
 		return
 	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
 	for df in attach_fields:
 		if doc.get(df.fieldname):
-			relink_files(doc, df.fieldname, doc.file_relink_temp_docname)
+			relink_files(doc, df.fieldname, doc.__temporary_name)
 
 
 def decode_file_content(content: bytes) -> bytes:
