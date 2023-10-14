@@ -30,7 +30,7 @@
     "@vue/component-compiler": "^4.2.4",
     "@vueuse/core": "^9.5.0",
     "ace-builds": "^1.4.8",
-    "air-datepicker": "github:frappe/air-datepicker",
+    "air-datepicker": "github:badihi/air-datepicker",
     "autoprefixer": "10",
     "awesomplete": "^1.1.5",
     "bootstrap": "4.6.2",
