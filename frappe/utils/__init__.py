@@ -42,6 +42,10 @@ PHONE_NUMBER_PATTERN = re.compile(r"([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$")
 PERSON_NAME_PATTERN = re.compile(r"^[\w][\w\'\-]*( \w[\w\'\-]*)*$")
 WHITESPACE_PATTERN = re.compile(r"[\t\n\r]")
 MULTI_EMAIL_STRING_PATTERN = re.compile(r'[,\n](?=(?:[^"]|"[^"]*")*$)')
+EMAIL_MATCH_PATTERN = re.compile(
+	r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+	re.IGNORECASE,
+)
 
 
 def get_fullname(user=None):
@@ -176,21 +180,10 @@ def validate_email_address(email_str, throw=False):
 
 		else:
 			email_id = extract_email_id(e)
-			match = (
-				re.match(
-					r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
-					email_id.lower(),
-				)
-				if email_id
-				else None
-			)
+			match = EMAIL_MATCH_PATTERN.match(email_id) if email_id else None
 
 			if not match:
 				_valid = False
-			else:
-				matched = match.group(0)
-				if match:
-					match = matched == email_id.lower()
 
 		if not _valid:
 			if throw:
@@ -201,7 +194,7 @@ def validate_email_address(email_str, throw=False):
 				)
 			return None
 		else:
-			return matched
+			return email_id
 
 	out = []
 	for e in email_str.split(","):

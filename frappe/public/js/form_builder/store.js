@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { create_layout, scrub_field_names } from "./utils";
+import { create_layout, scrub_field_names, load_doctype_model } from "./utils";
 import { computed, nextTick, ref } from "vue";
 import { useDebouncedRefHistory, onKeyDown } from "@vueuse/core";
 
@@ -77,7 +77,9 @@ export const useStore = defineStore("form-builder-store", () => {
 
 		if (!get_docfields.value.length) {
 			let docfield = is_customize_form.value ? "Customize Form Field" : "DocField";
-			await frappe.model.with_doctype(docfield);
+			if (!frappe.get_meta(docfield)) {
+				await load_doctype_model(docfield);
+			}
 			let df = frappe.get_meta(docfield).fields;
 			if (is_customize_form.value) {
 				custom_docfields.value = df;
