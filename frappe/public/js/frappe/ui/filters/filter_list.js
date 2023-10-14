@@ -36,7 +36,7 @@ frappe.ui.FilterGroup = class {
 	}
 
 	hide_popover() {
-		this.filter_button.popover("hide");
+		this.filter_button?.popover("hide");
 	}
 
 	init_filter_popover() {
@@ -128,9 +128,7 @@ frappe.ui.FilterGroup = class {
 	update_filter_button() {
 		const filters_applied = this.filters.length > 0;
 		const button_label = filters_applied
-			? this.filters.length > 1
-				? __("{0} filters", [this.filters.length])
-				: __("{0} filter", [this.filters.length])
+			? __("Filters <span class='filter-label'>{0}</span>", [this.filters.length])
 			: __("Filter");
 
 		this.filter_button
@@ -140,6 +138,10 @@ frappe.ui.FilterGroup = class {
 		this.filter_button.find(".filter-icon").toggleClass("active", filters_applied);
 
 		this.filter_button.find(".button-label").html(button_label);
+		this.filter_button.attr(
+			"title",
+			`${this.filters.length} Filter${this.filters.length > 1 ? "s" : ""} Applied`
+		);
 	}
 
 	set_filter_events() {

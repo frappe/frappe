@@ -15,6 +15,7 @@ from cryptography.fernet import Fernet
 
 # imports - module imports
 import frappe
+import frappe.utils
 from frappe import conf
 from frappe.utils import cint, get_file_size, get_url, now, now_datetime
 
@@ -343,12 +344,15 @@ class BackupGenerator:
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
 
 			if self.compress_files:
-				cmd_string = "tar cf - {1} | gzip > {0}"
+				cmd_string = "self=$$; ( tar cf - {1} || kill $self ) | gzip > {0}"
 			else:
 				cmd_string = "tar -cf {0} {1}"
 
 			frappe.utils.execute_in_shell(
-				cmd_string.format(backup_path, files_path), verbose=self.verbose, low_priority=True
+				cmd_string.format(backup_path, files_path),
+				verbose=self.verbose,
+				low_priority=True,
+				check_exit_code=True,
 			)
 
 	def copy_site_config(self):
@@ -363,7 +367,7 @@ class BackupGenerator:
 		from frappe.utils.change_log import get_app_branch
 
 		db_exc = {
-			"mariadb": ("mysqldump", which("mysqldump")),
+			"mariadb": ("mariadb-dump", which("mariadb-dump") or which("mysqldump")),
 			"postgres": ("pg_dump", which("pg_dump")),
 		}[self.db_type]
 		gzip_exc = which("gzip")

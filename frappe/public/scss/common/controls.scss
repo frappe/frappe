@@ -35,7 +35,7 @@
 
 		.toggle-password {
 			position: absolute;
-			top: 4px;
+			top: 0;
 			right: 8px;
 			padding: 3px;
 			z-index: 3;
@@ -49,6 +49,7 @@ select.form-control {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
+	padding-block: 0;
 }
 
 /* table multiselect */
@@ -59,8 +60,17 @@ select.form-control {
 	height: auto;
 	padding: 10px;
 	padding-bottom: 5px;
+	gap: 6px;
 	.link-field {
 		width: 100%;
+	}
+
+	.tb-selected-value {
+		display: inline-block;
+		height: auto;
+		box-shadow: none;
+		background-color: var(--bg-color);
+		border: 1px solid var(--border-color);
 	}
 }
 
@@ -130,7 +140,7 @@ select.form-control {
 }
 
 .frappe-control {
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 	.control-label.reqd:after {
 		content: ' *';
 		color: var(--red-400);
@@ -147,7 +157,7 @@ select.form-control {
 		margin-bottom: var(--margin-sm);
 		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius);
-		font-size: var(--text-sm);
+		@include get_textstyle("sm", "regular");
 		word-wrap: break-word;
 		position: relative;
 		p:last-child {
@@ -165,7 +175,7 @@ select.form-control {
 	}
 	.action-btn {
 		position: absolute;
-		top: 4px;
+		top: 0px;
 		right: 4px;
 		padding: 3px;
 		z-index: 3;
@@ -206,6 +216,7 @@ select.form-control {
 }
 
 .ace_editor {
+	min-height: 48px;
 	background-color: var(--control-bg);
 	color: var(--text-color);
 	.ace_gutter {
@@ -234,7 +245,14 @@ select.form-control {
 		padding: 6px 10px;
 		background: var(--control-bg);
 		border-radius: var(--border-radius);
-		font-size: var(--text-md);
+		@include get_textstyle("base", "regular");
+
+		.es-icon {
+			margin-right: 8px;
+		}
+		.btn {
+			padding: 0px 8px;
+		}
 	}
 }
 
@@ -363,14 +381,6 @@ textarea.form-control {
 
 .markdown-toggle, .html-toggle {
 	margin-bottom: var(--margin-xs);
-}
-
-.tb-selected-value {
-	display: inline-block;
-	margin-right: var(--margin-xs);
-	margin-bottom: var(--margin-xs);
-	box-shadow: none;
-	border: 1px solid var(--dark-border-color);
 }
 
 .barcode-scanner {
@@ -503,10 +513,13 @@ button.data-pill {
 	height: var(--btn-height);
 	background-color: var(--fg-color);
 	border-radius: var(--border-radius);
-	padding: calc(var(--padding-xs) - 2px) var(--padding-sm);
 	color: var(--text-color);
+	background-color: var(--subtle-fg);
 	justify-content: space-between;
 	align-items: center;
+	.pill-label {
+		color: var(--text-color);
+	}
 }
 
 .capture-remove-btn {

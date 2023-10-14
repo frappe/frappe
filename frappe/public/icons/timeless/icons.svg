@@ -921,13 +921,13 @@
 	</symbol>
 
 	<symbol viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="none" id="icon-add-round">
-		<rect width="24" height="24" rx="12" fill="url(#paint0_linear_76:14)"/>
+		<rect width="24" height="24" rx="12" fill="var(--primary)"/>
 		<path d="M12 7V17" stroke="white" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M7 12H17" stroke="white" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		<defs>
 			<linearGradient id="paint0_linear_76:14" x1="0" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">
-				<stop stop-color="#2C9AF1"/>
-				<stop offset="1" stop-color="#2490EF"/>
+				<stop stop-color="var(--primary)"/>
+				<stop offset="1" stop-color="var(--primary)"/>
 			</linearGradient>
 		</defs>
 	</symbol>

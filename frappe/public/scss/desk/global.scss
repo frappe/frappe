@@ -5,7 +5,9 @@ html {
 body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	color: var(--text-light);
+	color: var(--text-muted);
+	font-weight: var(--weight-regular);
+	letter-spacing: 0.02em;
 	background-color: var(--bg-color);
 
 	&.full-width {
@@ -86,7 +88,7 @@ a.badge-hover {
 
 .bold,
 .strong {
-	font-weight: bold;
+	font-weight: var(--weight-bold);
 }
 
 pre {
@@ -188,7 +190,10 @@ h1, h2, h3, h4 {
 	color: var(--text-color);
 	margin-bottom: var(--margin-md)
 }
-
+// override default gray-900 from bootstrap to support dark mode.
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+	color: var(--heading-color);
+}
 h1, h2, h3 {
 	font-weight: bold;
 }
@@ -198,7 +203,7 @@ p {
 }
 
 .small {
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 
 h1 {
@@ -231,20 +236,14 @@ h2 {
 
 .btn-group-sm > .btn, .btn-sm {
 	padding: var(--padding-xs) var(--padding-sm);
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 }
 
 .btn-group {
 	.btn {
 		box-shadow: none;
-		outline: 1px solid var(--btn-group-border-color);
-
-		&:not(:first-child) {
-			margin-left: 1px;
-		}
-
-		&:focus {
-			outline: 2px solid var(--dark-border-color);
+		&:nth-child(2) {
+			border-left: 1px solid var(--btn-group-border-color);
 		}
 	}
 }
@@ -284,7 +283,7 @@ h2 {
 
 .input-xs {
 	height: 26px;
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 }
 
 select.input-xs {
@@ -308,14 +307,16 @@ select.input-xs {
 /* dropdowns */
 
 .dropdown-item {
-	border-radius: 4px;
+	border-radius: 8px;
+	padding : var(--dropdown-padding) !important;
 }
 
 .dropdown-menu {
 	padding: 4px;
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 	max-height: 500px;
 	overflow: auto;
+	border: 1px solid var(--subtle-accent);
 
 	.dropdown-divider {
 		margin: 4px 0;
@@ -338,7 +339,7 @@ select.input-xs {
 	}
 
 	.divider, .dropdown-divider {
-		margin: 0px;
+		margin: 4px;
 	}
 
 	:last-child {
@@ -352,7 +353,7 @@ select.input-xs {
 }
 
 .custom-control.custom-switch {
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 	line-height: 1.6;
 
 	.custom-control-input ~ .custom-control-label {
@@ -375,8 +376,7 @@ select.input-xs {
 // }
 
 .head-title {
-	font-size: var(--text-lg);
-	font-weight: 700;
+	@include get_textstyle("lg", "bold");
 	color: var(--heading-color);
 }
 
@@ -385,12 +385,16 @@ kbd {
 	font-family: var(--font-stack);
 	color: var(--text-light);
 	line-height: 1.2em;
+	letter-spacing: 0.02em;
 	height: 20px;
 	padding: 4px 8px;
 }
 
 .table {
 	color: var(--text-color);
+	th, td {
+		padding: 0.5rem;
+	}
 }
 
 .appreciation {
@@ -408,7 +412,7 @@ kbd {
 }
 
 .standard-sidebar {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 
 	.standard-sidebar-section .standard-sidebar-label {
 		margin-bottom: var(--margin-md);
@@ -417,7 +421,7 @@ kbd {
 
 	.standard-sidebar-item {
 		@include flex(flex, null, center, null);
-		font-size: var(--text-base);
+		@include get_textstyle("base", "regular");
 		padding: 8px 12px;
 		margin-bottom: 2px;
 		border-radius: var(--border-radius-md);
@@ -535,6 +539,9 @@ body.no-sidebar {
 
 .app-logo {
 	width: 24px;
+	h4 {
+		margin-top: 0;
+	}
 }
 
 .alt-pressed .alt-underline {
@@ -569,25 +576,25 @@ details > summary:focus {
 .uppercase {
 	padding-bottom: var(--padding-xs);
 	text-transform: uppercase;
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 	letter-spacing: 0.4px;
 	color: var(--text-muted);
 }
 
 .text-regular {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 }
 
 .text-medium {
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 }
 
 .text-small {
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 
 .text-large {
-	font-size: var(--text-lg);
+	@include get_textstyle("lg", "regular");
 }
 
 .disable-click {
@@ -618,7 +625,7 @@ details > summary:focus {
 }
 
 .dropdown-menu.small {
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 	min-width: 140px;
 	.dropdown-item {
 		padding: var(--padding-xs);

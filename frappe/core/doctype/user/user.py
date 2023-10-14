@@ -104,7 +104,7 @@ class User(Document):
 		simultaneous_sessions: DF.Int
 		social_logins: DF.Table[UserSocialLogin]
 		thread_notify: DF.Check
-		time_zone: DF.Literal
+		time_zone: DF.Autocomplete | None
 		unsubscribed: DF.Check
 		user_emails: DF.Table[UserEmail]
 		user_image: DF.AttachImage | None

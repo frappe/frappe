@@ -10,22 +10,12 @@
 				<option value="" disabled selected>{{ __("Select Group By...") }}</option>
 				{% for (var parent_doctype in group_by_conditions) { %}
 					{% for (var val in group_by_conditions[parent_doctype]) { %}
-						{% if (parent_doctype !== doctype) { %}
 						<option
 							data-doctype="{{parent_doctype}}"
 							value="{{group_by_conditions[parent_doctype][val].fieldname}}"
 						>
-							{{ __(group_by_conditions[parent_doctype][val].label) }}
-							({{ __(parent_doctype) }})
+							{{ __(group_by_conditions[parent_doctype][val].label || group_by_conditions[parent_doctype][val].fieldname) }}
 						</option>
-						{% } else { %}
-						<option
-							data-doctype="{{parent_doctype}}"
-							value="{{group_by_conditions[parent_doctype][val].fieldname}}"
-						>
-							{{ __(group_by_conditions[parent_doctype][val].label) }}
-						</option>
-						{% } %}
 					{% } %}
 				{% } %}
 			</select>

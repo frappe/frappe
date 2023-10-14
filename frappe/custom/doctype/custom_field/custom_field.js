@@ -25,6 +25,7 @@ frappe.ui.form.on("Custom Field", {
 		frm.toggle_enable("dt", frm.doc.__islocal);
 		frm.trigger("dt");
 		frm.toggle_reqd("label", !frm.doc.fieldname);
+		frm.trigger("add_rename_field");
 
 		if (frm.doc.is_system_generated) {
 			frm.dashboard.add_comment(
@@ -109,6 +110,29 @@ frappe.ui.form.on("Custom Field", {
 		} else {
 			frm.fields_dict["options_help"].disp_area.innerHTML = "";
 		}
+	},
+	add_rename_field(frm) {
+		frm.add_custom_button(__("Rename Fieldname"), () => {
+			frappe.prompt(
+				{
+					fieldtype: "Data",
+					label: __("Fieldname"),
+					fieldname: "fieldname",
+					reqd: 1,
+				},
+				function (data) {
+					frappe.call({
+						method: "frappe.custom.doctype.custom_field.custom_field.rename_fieldname",
+						args: {
+							custom_field: frm.doc.name,
+							fieldname: data.fieldname,
+						},
+					});
+				},
+				__("Rename Fieldname"),
+				__("Rename")
+			);
+		});
 	},
 });
 

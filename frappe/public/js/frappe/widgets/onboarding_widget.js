@@ -50,10 +50,28 @@ export default class OnboardingWidget extends Widget {
 
 		let $step = $(`<a class="onboarding-step ${status}">
 				<div class="step-title">
-					<div class="step-index step-pending">${__(index + 1)}</div>
-					<div class="step-index step-skipped">${frappe.utils.icon("tick", "xs")}</div>
-					<div class="step-index step-complete">${frappe.utils.icon("tick", "xs")}</div>
-					<div>${__(step.title)}</div>
+					<div class="step-index step-pending">${frappe.utils.icon(
+						"es-line-success",
+						"md",
+						"",
+						"",
+						"step-icon"
+					)}</div>
+					<div class="step-index step-skipped">${frappe.utils.icon(
+						"es-line-close-circle",
+						"md",
+						"",
+						"--icon-stroke: var(--gray-600);",
+						"step-icon"
+					)}</div>
+					<div class="step-index step-complete">${frappe.utils.icon(
+						"es-solid-success",
+						"md",
+						"",
+						"",
+						"step-icon"
+					)}</div>
+					<div class="step-text">${__(step.title)}</div>
 				</div>
 			</a>`);
 
@@ -556,7 +574,7 @@ export default class OnboardingWidget extends Widget {
 
 		this.action_area.empty();
 		const dismiss = $(
-			`<div class="small" style="cursor:pointer;">${__(
+			`<div class="btn btn-sm btn-secondary small" style="cursor:pointer;">${__(
 				"Dismiss",
 				null,
 				"Stop showing the onboarding widget."

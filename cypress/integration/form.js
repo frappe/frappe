@@ -101,10 +101,6 @@ context("Form", () => {
 		cy.get("@email_input2").type(valid_email, { waitForAnimations: false });
 
 		cy.get("@row1").click();
-		cy.get("@email_input1").should(($div) => {
-			const style = window.getComputedStyle($div[0]);
-			expect(style.backgroundColor).to.equal(expectBackgroundColor);
-		});
 		cy.get("@email_input1").should("have.class", "invalid");
 
 		cy.get("@row2").click();
