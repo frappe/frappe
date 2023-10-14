@@ -187,7 +187,6 @@ def search_widget(
 			from frappe.model.db_query import get_order_by
 
 			order_by_based_on_meta = get_order_by(doctype, meta)
-			# 2 is the index of _relevance column
 			order_by = f"{order_by_based_on_meta}, `tab{doctype}`.idx desc"
 
 			if not meta.translated_doctype:
@@ -218,7 +217,7 @@ def search_widget(
 				fields=formatted_fields,
 				or_filters=or_filters,
 				limit_start=start,
-				limit_page_length=None if meta.translated_doctype else page_length,
+				limit_page_length=None,
 				order_by=order_by,
 				ignore_permissions=ignore_permissions,
 				reference_doctype=reference_doctype,
@@ -242,8 +241,10 @@ def search_widget(
 			# Then it will bring the rest of the elements and sort them in lexicographical order
 			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
-			# remove _relevance from results
 			if not meta.translated_doctype:
+				# Apply page_length
+				values = values[:page_length]
+				# Remove _relevance from results
 				if as_dict:
 					for r in values:
 						r.pop("_relevance")
