@@ -195,7 +195,7 @@ def _restore_thread_locals(flags):
 
 
 @contextmanager
-def change_settings(doctype, settings_dict):
+def change_settings(doctype, settings_dict=None, /, **settings):
 	"""A context manager to ensure that settings are changed before running
 	function and restored after running it regardless of exceptions occured.
 	This is useful in tests where you want to make changes in a function but
@@ -206,7 +206,14 @@ def change_settings(doctype, settings_dict):
 	@change_settings("Print Settings", {"send_print_as_pdf": 1})
 	def test_case(self):
 	        ...
+
+	@change_settings("Print Settings", send_print_as_pdf=1)
+	def test_case(self):
+	        ...
 	"""
+
+	if settings_dict is None:
+		settings_dict = settings
 
 	try:
 		settings = frappe.get_doc(doctype)
