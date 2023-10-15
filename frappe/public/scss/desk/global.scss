@@ -7,6 +7,7 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 	color: var(--text-muted);
 	font-weight: var(--weight-regular);
+	letter-spacing: 0.02em;
 	background-color: var(--bg-color);
 
 	&.full-width {
@@ -241,14 +242,8 @@ h2 {
 .btn-group {
 	.btn {
 		box-shadow: none;
-		outline: 1px solid var(--btn-group-border-color);
-
-		&:not(:first-child) {
-			margin-left: 1px;
-		}
-
-		&:focus {
-			outline: 2px solid var(--dark-border-color);
+		&:nth-child(2) {
+			border-left: 1px solid var(--btn-group-border-color);
 		}
 	}
 }
@@ -390,6 +385,7 @@ kbd {
 	font-family: var(--font-stack);
 	color: var(--text-light);
 	line-height: 1.2em;
+	letter-spacing: 0.02em;
 	height: 20px;
 	padding: 4px 8px;
 }

@@ -257,7 +257,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-10-27 10:40:50.097481",
+ "modified": "2023-10-02 12:00:27.299156",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
@@ -381,10 +381,13 @@
    "write": 1
   },
   {
-   "permlevel": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
    "read": 1,
    "report": 1,
-   "role": "All"
+   "role": "All",
+   "write": 1
   }
  ],
  "show_title_field_in_link": 1,

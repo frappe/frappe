@@ -101,18 +101,9 @@
 .group-by-button {
 	margin: 5px;
 }
-
-.group-by-button.btn-primary-light {
-	color: var(--text-on-blue);
-	outline: 1px solid var(--bg-dark-blue);
-}
-
 .group-by-icon.active {
-	use {
-		stroke: var(--text-on-blue);
-	}
+	--icon-stroke: var(--primary);
 }
-
 .comparison-message {
 	margin-left: var(--margin-sm);
 	@include get_textstyle("base", "regular");

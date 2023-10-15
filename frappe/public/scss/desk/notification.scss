@@ -163,8 +163,10 @@
 		&::before {
 			content: '';
 			display: inline-block;
-			@include size(4px, 4px);
+			@include size(6px, 6px);
+			min-width: 6px;
 			margin-top: 16px;
+    		margin-left: 2px;
 			border-radius: 10px;
 		}
 
