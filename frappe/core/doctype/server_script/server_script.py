@@ -75,6 +75,7 @@ class ServerScript(Document):
 		return super().clear_cache()
 
 	def on_trash(self):
+		frappe.cache.delete_value("server_script_map")
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", job.name)
