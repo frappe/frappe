@@ -1,0 +1,3056 @@
+New {} releases for the following apps are available,可以使用以下應用程序的新{}版本
+Please select a Amount Field.,請選擇一個金額字段。
+Press Esc to close,按Esc鍵關閉
+"A new task, {0}, has been assigned to you by {1}. {2}",一個新的任務，{0}，已分配給您{1}。 {2}
+Email Queue records.,電子郵件隊列記錄。
+Post,文章
+Rename many items by uploading a .csv file.,通過上傳csv文件重命名多個項目。
+pause,暫停
+You are not permitted to access this page.,你不允許訪問此頁面。
+Seems ldap is not installed on system.<br>Guidelines to install ldap dependancies and python package,似乎ldap沒有安裝在系統上。 <br>安裝ldap依賴和python包的指導
+Website,網站
+You need to be logged in to access this page,您需要登錄才能訪問該頁面
+Note: Multiple sessions will be allowed in case of mobile device,注：多個會議將在移動設備的情況下，被允許
+Cannot send this email. You have crossed the sending limit of {0} emails for this month.,無法發送此郵件。你已經超過了{0}這個月的電子郵件發送限制。
+Download Files Backup,下載文件備份
+County,縣
+If Checked workflow status will not override status in list view,如果經過工作流狀態不會覆蓋列表視圖狀態
+Invalid file path: {0},無效的文件路徑：{0}
+eye-open,眼開
+Send After,發送後
+Please select a file or url,請選擇一個文件或URL,
+{0} Tree,{0}樹
+User Emails,用戶電子郵件
+Username,用戶名
+Import Zip,導入郵編
+Value too big,值過大
+DocField,DocField,
+Run Script Test,運行腳本測試
+Total Rows,總行數
+Department,部門
+Options,選項
+Cannot edit standard fields,無法編輯標準欄位
+Print Format Builder,列印格式生成器
+Calendar Name,日曆名稱
+Report Manager,報告管理
+Document States,文件規定
+Sorry! I could not find what you were looking for.,對不起！我無法找到你所期待的。
+Logs,日誌
+It is necessary to take this action today itself for the above mentioned recurring,今天有必要採取這一行動，重複上述
+This role update User Permissions for a user,這個角色更新用戶權限的用戶
+zoom-out,縮小
+Cannot open {0} when its instance is open,無法打開{0} ，當它的實例是開放的
+Table {0} cannot be empty,表{0}不能為空
+Parameter,參數
+With Ledgers,與總帳
+Images,圖片
+Reference Owner,參考者
+"If enabled, user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings",如果啟用，用戶可以使用雙因素身份驗證從任何IP地址登錄，這也可以在系統設置中為所有用戶設置
+Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01,最小的循環部分單元（硬幣）。對於如1％用於美元，因此應輸入為0.01,
+Please give a fullname.,請給一個全名。
+Beginning with,開頭
+Data Import Template,數據導入模板
+Parent,親
+"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.",如果啟用，密碼強度將根據最低密碼分數值執行。值2為中等強度，4為非常強。
+"If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.",如果啟用，密碼強度將根據最低密碼分數值執行。值2為中等強度，4為非常強。
+"""Team Members"" or ""Management""",“團隊成員”或“管理”
+Default for 'Check' type of field must be either '0' or '1',預設為“查詢”字段類型必須是'0'或'1'
+Designation,指定
+Test Runner,測試運行
+Monthly,每月一次
+Enable Incoming,啟用傳入
+Danger,危險
+Email Address,電子郵件地址
+th-large,TH-大
+Unread Notification Sent,未讀發送通知
+Export not allowed. You need {0} role to export.,不允許導出。您需要{0}的角色。
+Is Published Field,發布現場
+GCalendar Settings,GCalendar設置
+Email Group,電子郵件組
+Seen By,看到通過
+Add Multiple,添加多個
+Not a valid User Image.,不是有效的用戶映像。
+First Success Message,第一個成功消息
+Not Like,不喜歡
+Set the display label for the field,設置顯示的標籤的字段
+Incorrect value: {0} must be {1} {2},不正確的值：{0}必須是{1} {2}
+"Change field properties (hide, readonly, permission etc.)",更改欄位屬性（隱藏，唯讀權限等）
+lock,鎖
+Settings for Contact Us Page.,設定「聯絡我們」的頁面。
+Administrator Logged In,管理員登錄
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",聯絡人選項，如“銷售查詢，支持查詢”等每一個新行或以逗號分隔。
+Add a tag ...,添加標籤...
+New {0}: #{1},新{0}：＃{1}
+Select {0},選擇{0}
+Please enter Base URL,請輸入基本網址
+Repeat on Day,一天重複
+Color,顏色
+Log,日誌
+indent-right,右邊縮排
+Has Role,有作用
+Time in seconds to retain QR code image on server. Min:<strong>240</strong>,在服務器上保留QR碼圖像的秒數。最小： <strong>240</strong>
+Invalid Email Account,電子郵件帳戶無效
+Web Link,網站鏈接
+Restored,恢復
+1 minute ago,1分鐘前
+"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.",除了系統管理器，用設置用戶權限的角色權可以為其他用戶的文件類型的權限。
+Company History,公司歷史
+Reset,重啟
+volume-up,容積式
+Webhooks calling API requests into web apps,Webhook將API請求調用到Web應用程序中
+Default Print Format,預設列印格式
+Tags,標籤
+None: End of Workflow,無：結束的工作流程
+"{0} field cannot be set as unique in {1}, as there are non-unique existing values",{0}字段不能設置在{1}是獨一無二的，因為有非唯一存在的價值
+Document Types,文檔類型
+Jammu and Kashmir,查謨和克什米爾
+Workflow State Field,工作流程狀態字段
+Please sign-up or login to begin,請註冊或登錄開始
+Guest,客人
+Title Field,標題字段
+Error Log,錯誤日誌
+"Repeats like ""abcabcabc"" are only slightly harder to guess than ""abc""",重複像“ABCABCABC”只稍硬比“ABC”猜測
+"If you think this is unauthorized, please change the Administrator password.",如果你認為這是未經授權的，請更改管理員密碼。
+{0} is mandatory,{0}是強制性的
+eject,噴射
+Field {0} not found.,欄位{0}找不到。
+Owner,業主
+Visit,訪問
+Translation,翻譯
+Client,客戶
+Select Column,選擇列
+This form has been modified after you have loaded it,這種形式已被修改，你已經裝好了之後，
+User Permission for Page and Report,用戶權限的頁面和報告
+Himachal Pradesh,喜馬偕爾邦
+"If not set, the currency precision will depend on number format",如果未設置，則貨幣精度將取決於數字格式
+"If not set, the currency precision will depend on number format",如果未設置，則貨幣精度將取決於數字格式
+Import Log,導入日誌
+Embed image slideshows in website pages.,嵌入圖像的幻燈片中的網頁。
+Send,發送
+Workflow Action Name,工作流程執行名稱
+DocType can not be merged,DocType文檔類型不能合併
+Fieldtype,FIELDTYPE,
+Not a zip file,沒有一個zip文件
+"To add dynamic subject, use jinja tags like,
+
+<div><pre><code>New {{ doc.doctype }} #{{ doc.name }}</code></pre></div>",要添加動態主題，請使用jinja標籤<div><pre> <code>New {{ doc.doctype }} #{{ doc.name }}</code> </pre> </div>
+"Mandatory fields required in table {0}, Row {1}",在表{0}需要強制字段，行{1}
+Capitalization doesn't help very much.,資本沒有太大幫助。
+Friendly Title,友情標題
+Email Sent?,郵件發送？
+Toggle Chart,切換圖表
+Did not cancel,沒有取消
+Client Information,客戶信息
+Logged in as Guest or Administrator,登錄為來賓或管理員
+UNSEEN,看不見
+Braintree Settings,Braintree設置
+lowercase,小寫
+Save Filter,保存過濾器
+Helvetica,黑體
+Cannot delete {0},無法刪除{0}
+Jharkhand,恰爾肯德邦
+Newsletter has already been sent,新聞已發送
+"Login session expired, refresh page to retry",登錄會話過期，刷新頁面重試
+Email Unsubscribe,電子郵件退訂
+Select an image of approx width 150px with a transparent background for best results.,選擇約寬150像素的透明背景圖像以獲得最佳效果。
+Third Party Apps,第三方應用
+The first user will become the System Manager (you can change this later).,第一個用戶將成為系統管理器（你可以改變這個版本）。
+DocType must be Submittable for the selected Doc Event,DocType必須為所選Doc事件提交
+App Installer,應用程序安裝程序
+circle-arrow-up,圓圈箭頭向上
+Email Domain,電子郵件域名
+italic,斜體
+{0}: Cannot set Import without Create,{0} ：沒有建立則無法設定導入
+Enter url parameter for message,輸入url參數的訊息
+View report in your browser,在瀏覽器中查看報告
+Event and other calendars.,事件和其他日曆。
+All fields are necessary to submit the comment.,所有字段都必須提交評論。
+Printer Name,打印機名稱
+Drag to sort columns,拖動進行排序的列
+Widths can be set in px or %.,寬度可以在像素或％設定。
+Start,開始
+First Name,名字
+LDAP Username Field,LDAP用戶名字段
+Standard Sidebar Menu,標準工具欄菜單
+Cannot delete Home and Attachments folders,無法刪除首頁和附件的文件夾
+Files,檔
+Permissions get applied on Users based on what Roles they are assigned.,套用於用戶的權限設定是根據該用戶被指定的角色而定。
+You are not allowed to send emails related to this document,你不被允許發送與此相關的文檔的電子郵件
+Please select atleast 1 column from {0} to sort/group,請選擇從{0}進行排序/組ATLEAST 1柱
+Check this if you are testing your payment using the Sandbox API,檢查這個，如果你正在測試使用沙盒API付款
+You are not allowed to delete a standard Website Theme,你不允許刪除標準的網站主題
+Log Details,日誌詳情
+Example,例
+Webhook Header,Webhook標題
+Print Server,打印服務器
+gift,禮物
+Assign a permission level to the field.,指定該欄位的權限級別。
+Cannot Remove,無法刪除
+The resource you are looking for is not available,您正在查找的資源不可用
+Mark as Read,標記為已讀
+Disable Report,禁用報告
+Apply Text Styles,應用文本樣式
+Detailed feedback,詳細的反饋
+Pull,拉
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript的格式：frappe.query_reports [&#39;REPORTNAME&#39;] = {}
+chevron-up,人字形-上
+Allow Guest to View,允許訪客查看
+Documentation,文檔
+Delete {0} items permanently?,刪除{0}項目永久？
+Not Allowed,不允許
+Internal record of document shares,文件股內部記錄
+Comment,評論
+Postprocess Method,後處理方法
+"You can change Submitted documents by cancelling them and then, amending them.",您可以通過取消他們，然後，對其進行修正更改已提交的文件。
+Update records,更新記錄
+Invalid module path,無效的模塊路徑
+Display,顯示
+Total Subscribers,用戶總數
+"If a Role does not have access at Level 0, then higher levels are meaningless.",如果角色沒有訪問權限級別為0級，那麼更高的水平是沒有意義的。
+Save As,另存為
+Seen,可見
+Show more details,查看更多詳情
+Run scheduled jobs only if checked,僅執行勾選的排定工作
+Will only be shown if section headings are enabled,如果章節標題啟用才會顯示
+Archive,檔案
+File Upload,上傳文件
+Message,訊息
+Rating,評分
+"Print Width of the field, if the field is a column in a table",列印欄位的寬度，如果該字段是一個表中的列
+Dropbox Access Key,Dropbox Access Key,
+Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script,自定義腳本的add_fetch配置中的字段名為<b>{0}</b>
+headphones,頭戴耳機
+Password is required or select Awaiting Password,需要密碼，或者選擇等待密碼
+e.g. replies@yourcomany.com. All replies will come to this inbox.,如replies@yourcomany.com。所有答复將得出這樣的收件箱。
+Slack Webhook URL,Slack Webhook網址
+Current Mapping,當前映射
+Valid email and name required,需要有效的電子郵件和姓名
+Hide Heading,隱藏標題
+Current,當前
+Current,當前
+Groups of DocTypes,文檔類型的組
+Google Maps integration,Google地圖集成
+Reset your password,重置你的密碼
+Show Weekends,顯示週末
+remove-circle,刪除圈
+Beginner,初學者
+Is Primary Contact,是主要聯絡人
+Javascript to append to the head section of the page.,Javascript附加到頁面的head區塊。
+Not allowed to print draft documents,不允許打印文件草案
+Reset to defaults,重置為預設值
+Transition Rules,過渡規則
+Defines workflow states and rules for a document.,定義文檔工作流狀態和規則。
+Filter,過濾器
+Internal Server Error,內部服務器錯誤
+Update many values at one time.,同時更新多個值。
+Error: Document has been modified after you have opened it,錯誤：你已經打開了它之後，文件已被修改
+{0} logged out: {1},{0}登出：{1}
+{0}: Cannot set Assign Submit if not Submittable,{0} ：如果不可提交的話，便無法設為指定提交
+Facebook,Facebook,
+"Filtered by ""{0}""",通過過濾“{0}”
+Administrator,管理員
+Closed,關閉
+Blog Title,部落格標題
+Standard roles cannot be disabled,標準的角色不能被禁用
+Chat Type,聊天類型
+Newsletter,新聞
+Cannot use sub-query in order by,不能使用子查詢，以便
+Button Help,按鈕幫助
+Team Members,團隊成員
+Please attach a file or set a URL,請附上一個文件或設置一個URL,
+System Manager,系統管理器
+Permissions,權限
+Slack Webhooks for internal integration,Slack Webhooks用於內部集成
+Allow Dropbox Access,讓Dropbox的訪問
+Restore,恢復
+Auto Repeat,自動重複
+"SQL Conditions. Example: status=""Open""",SQL條件。例如：狀態=“打開”
+Get your globally recognized avatar from Gravatar.com,讓您的全球公認的化身，從Gravatar.com,
+"Your subscription expired on {0}. To renew, {1}.",您的訂閱過期於{0}。要續訂，{1}。
+plus-sign,加號
+App {0} is not installed,未安裝應用程序{0}
+Refresh,重新載入
+Public,公開
+Nothing to show,沒有顯示
+Enable Two Factor Auth,啟用雙因素認證
+[Urgent] Error while creating recurring %s for %s,[緊急] 為%s 建立定期%s 時出錯
+Liked By,喜歡通過
+Print Hide If No Value,打印隱藏如果沒有值
+yellow,黃色
+Is Published Field must be a valid fieldname,發布現場必須是有效的字段名
+Upload Attachment,上傳附件
+Block Module,封鎖模組
+New Value,新價值
+No permission to edit,無權限進行編輯
+Your email address,您的電子郵件地址
+Module,模組
+Send Alert On,發送警示在
+"Customize Label, Print Hide, Default etc.",自定義標籤，列印隱藏，預設值等。
+Please make sure the Reference Communication Docs are not circularly linked.,請確保參考通信文檔不是循環鏈接的。
+Create a New Format,建立新格式
+Unable to create bucket: {0}. Change it to a more unique name.,無法創建存儲桶：{0}。將其更改為更獨特的名稱。
+Request URL,請求URL,
+Is Table,為表
+Apply User Permission for following DocTypes,為以下DocType應用用戶權限
+Total number of emails to sync in initial sync process ,郵件的總數在初始同步過程同步
+Set Banner from Image,從圖像設置橫幅
+Global Search,全球搜索
+Global Search,全球搜索
+A new account has been created for you at {0},已經在{0}為您創建一個新的帳戶
+Instructions Emailed,電子郵件說明
+Instructions Emailed,電子郵件說明
+Enter Email Recipient(s),輸入電子郵件收件人
+Verdana,宋體
+Email Flag Queue,電子郵件標誌隊列
+Stylesheets for Print Formats,打印格式樣式表
+Can't identify open {0}. Try something else.,無法識別開{0}。嘗試別的東西。
+Reference Party,參考方
+User {0} cannot be deleted,用戶{0}無法刪除
+Currency Precision,貨幣精確度
+Currency Precision,貨幣精確度
+Another transaction is blocking this one. Please try again in a few seconds.,另一個事務阻塞這一個。請稍後再試。
+App,應用
+The attachments could not be correctly linked to the new document,附件無法正確鏈接到新文檔
+Field Name,欄位名稱
+module name...,模塊的名稱...
+Continue,繼續
+Fieldname,欄位名稱
+certificate,證書
+Tile,瓦狀圖案
+Verifying...,驗證中...
+First data column must be blank.,第一個數據列必須為空。
+Show all Versions,顯示所有版本
+Print,列印
+Dashboard,儀表板
+Unable to send emails at this time,無法在這個時候發送電子郵件
+Search or type a command,搜索或輸入命令
+Timeline Name,時間軸名稱
+Add A New Rule,添加新的規則
+Sales Master Manager,銷售主檔經理
+For Value,為價值
+Google Calendar ID,Google日曆ID,
+One Last Step,最後一步
+Import Data,導入數據
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,你想這個字段鏈接到該文檔類型（DOCTYPE）下的名稱。如客戶
+Roles Assigned,角色指定
+Search Help,搜索幫助
+Search Help,搜索幫助
+Parent Label,父標籤
+"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.",查詢已收到。我們將儘快回覆郵件。如果您有任何其他的訊息，請回覆此郵件。
+Allow GCalendar Access,允許GCalendar訪問
+Login token required,需要登錄令牌
+Repeat Till,重複直到
+New,新增
+Please set script URL on Gsuite Settings,請在Gsuite設置上設置腳本URL,
+Google Maps Settings,谷歌地圖設置
+Loading...,載入中...
+Password,密碼
+Your system is being updated. Please refresh again after a few moments,您的系統正在更新。請在一段時間後再次刷新
+Will be used in url (usually first name).,在URL（通常是第一個名字）將被使用。
+Day of Week,星期幾
+Ctrl+Enter to add comment,Ctrl + Enter以添加評論
+File Upload in Progress. Please try again in a few moments.,文件上傳正在進行中。請稍後重試。
+Edit Heading,編輯標題
+Add Subscribers,添加訂閱
+Upcoming Events for Today,近期活動今日
+Email By Document Field,電子郵件通過文檔欄位
+Domain Settings,域設置
+Upgrade,升級
+Cannot connect: {0},無法連接：{0}
+A word by itself is easy to guess.,本身一個字很容易猜到。
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,合併是唯一可能的組到組或葉節點到葉節點
+No matching records. Search something new,沒有符合條件的記錄。搜索新的東西
+Away,遠
+Fraction Units,部分單位
+{0} from {1} to {2},{0}從{1}到{2}
+Mark as Done,標為已完成
+Type,類型
+Subject,主題
+Back to Desk,回到辦公桌
+Amount Based On Field,用量以現場
+User is mandatory for Share,用戶是強制性的分享
+Hidden,隱藏
+Allow Incomplete Forms,允許不完整的表格
+PDF generation failed,PDF生成失敗
+{0} must be set first,{0}必須先設定
+Recurring Documents Failed,重複出現的文件失敗
+"Use a few words, avoid common phrases.",用幾個字，避免常用短語。
+plane,飛機
+"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",如果您上傳新的記錄，“命名系列”變成強制性的，如果存在的話。
+Get Alerts for Today,買到今天通知
+DocType can only be renamed by Administrator,DocType只能由管理員進行重命名
+Email not verified with {0},電子郵件未通過{0}驗證
+changed value of {0},的改變後的值{0}
+"If the user has any role checked,then the user becomes a ""System User"". ""System User"" has access to the desktop",如果用戶檢查了任何角色，則用戶變成“系統用戶”。 “系統用戶”可以訪問桌面
+Please check your email for verification,請檢查您的電子郵件驗證
+Fold can not be at the end of the form,折疊不能在表單的端
+Deleted Name,刪除名稱
+System and Website Users,系統和網站用戶
+Doc Status,文件狀態
+Pull Update,拉更新
+Language Code,語言代碼
+Note: By default emails for failed backups are sent.,注意：默認情況下，會發送失敗備份的電子郵件。
+"Your download is being built, this may take a few moments...",您的下載正在建立，這可能需要一些時間......
+Add Filter,新增過濾器
+SMS sent to following numbers: {0},短信發送至以下號碼：{0}
+Your rating: ,你的評分：
+Start a conversation.,開始對話。
+"Always add ""Draft"" Heading for printing draft documents",隨時添加“草案”標題打印文件草案
+Current Mapping Start,當前映射開始
+Email has been marked as spam,電子郵件已被標記為垃圾郵件
+Website Manager,網站管理
+File Upload Disconnected. Please try again.,文件上傳已斷開連接。請再試一次。
+Translations,翻譯
+You selected Draft or Cancelled documents,您選擇了草稿或已取消的文檔
+Document {0} has been set to state {1} by {2},文檔{0}已被{2}設置為狀態{1}
+Document Queued,文檔排隊
+List,名單
+Link Name,鏈接名稱
+Field {0} in row {1} cannot be hidden and mandatory without default,行{1}的欄位{0}若沒有預設值，則不能被隱藏及設為必須。
+mm/dd/yyyy,mm/dd/yyyy,
+Invalid Password: ,無效的密碼：
+Invalid Password: ,無效的密碼：
+Send document web view link in email,發送電子郵件文件Web視圖鏈接
+Your Feedback for document {0} is saved successfully,您的文檔反饋{0}保存成功
+Previous,上一筆
+{0} rows for {1},{0}的行{1}
+"Sub-currency. For e.g. ""Cent""",子貨幣。如「美分」
+Connection Name,連接名稱
+Select uploaded file,選擇上傳的文件
+Check this to make this the default letter head in all prints,勾選後，以本項作為所有列印的預設信頭
+Server,服務器
+Link,鏈接
+No file attached,沒有附加的文件
+Endpoint URL,端點URL,
+Charts,圖表
+Fill Screen,全螢幕
+Permissions are automatically applied to Standard Reports and searches.,權限會自動應用於標準報告和搜索。
+Upload Failed,上傳失敗
+Edit via Upload,通過上傳編輯
+"document type..., e.g. customer",文檔類型...，如客戶
+The Condition '{0}' is invalid,條件“{0}”無效
+barcode,條碼
+Use of sub-query or function is restricted,子查詢或功能的使用受到限制
+Add your own translations,添加您自己的翻譯
+Country Name,國家名稱
+About Us Team Member,關於我們的團隊成員
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",權限為對角色和文件類型（DocTypes）的設定值，諸如讀取、寫入、建立、刪除、提交、取消、修改、報表、匯入、匯出、列印、寄信與用戶權限設定等的權限設定。
+Image field must be a valid fieldname,圖像字段必須是有效的字段名
+Token,象徵
+ID (name) of the entity whose property is to be set,其屬性是要設定的實體的ID（名稱）
+"To renew, {0}.",要續訂，{0}。
+Website Theme Image Link,網站主題圖像鏈接
+Sidebar Items,邊欄項目
+Show as Grid,顯示為網格
+App {0} already installed,已安裝App {0}
+No Preview,沒有預覽
+exclamation-sign,驚嘆號標誌
+Show Permissions,顯示權限
+New data will be inserted.,將插入新數據。
+Timeline field must be a Link or Dynamic Link,時間軸字段必須是一個鏈接或動態鏈接
+Date Range,日期範圍
+Gantt,甘特圖
+Introduce your company to the website visitor.,對網站訪客介紹貴公司。
+"Encryption key is invalid, Please check site_config.json",加密密鑰無效，請檢查site_config.json,
+Receiver Parameter,收受方參數
+Remote Fieldname,遠程字段名稱
+Cannot change user details in demo. Please signup for a new account at https://erpnext.com,演示中無法更改用戶詳細信息。請在https://erpnext.com註冊一個新帳戶
+Please duplicate this to make changes,請複製此做出改變
+Press Enter to save,按Enter鍵保存
+PDF generation failed because of broken image links,PDF生成，因為破碎的圖像鏈接失敗
+Font Size,字體大小
+Disable Standard Email Footer,禁用標準電子郵件頁尾
+facetime-video,FaceTime的視頻
+1 comment,1條評論
+viewed,觀看
+Days Before,前幾天
+volume-down,容積式
+No Tags,沒有標籤
+List View Settings,列表視圖設置
+Send Notification to,通知發送到
+Collapsible,可折疊
+Saved,已儲存
+Options for select. Each option on a new line.,對於選擇選項。在新的一行每個選項。
+music,音樂
+Text Styles,文字樣式
+QR Code,二維碼
+Settings,設定
+Style Settings,樣式設置
+Y Axis Fields,Y軸場
+Sort field {0} must be a valid fieldname,排序字段{0}必須是有效的字段名
+Sales Manager,銷售經理
+Format Data,格式數據
+Filter Name,過濾器名稱
+Like,包含
+Customize Form Field,自定義表單域
+Chat Room Name,聊天室名稱
+Grant Type,格蘭特類型
+Check which Documents are readable by a User,勾選那些文件是用戶可讀取的
+Hub Sync ID,集線器同步ID,
+use % as wildcard,使用％作為通配符
+Quarterly,每季
+"Email Domain not configured for this account, Create one?",電子郵件域名未配置此帳戶，創建一個嗎？
+Reset Password Key,重設密碼鍵值
+Illegal Document Status for {0},{0}的非法文檔狀態
+Enable Auto Reply,啟用自動回复
+Not Seen,沒見過
+Reference DocType and Reference Name are required,參考的DocType和參考名稱是必需的
+Syntax error in template,模板語法錯誤
+Width,寬度
+Notify if unreplied,如果沒有回复的通知
+Scan the QR Code and enter the resulting code displayed.,掃描QR碼並輸入顯示的結果代碼。
+Minimum Password Score,最低密碼分數
+Minimum Password Score,最低密碼分數
+Fields,欄位
+Your organization name and address for the email footer.,您的組織名稱和地址為電子郵件的頁尾。
+S3 Backup complete!,S3備份完成！
+Developer,開發者
+Created,創建
+{0} in row {1} cannot have both URL and child items,第{1}行的{0}不能同時有URL和子項
+Root {0} cannot be deleted,root{0}無法刪除
+No comments yet,還沒有評論
+"Please setup SMS before setting it as an authentication method, via SMS Settings",請通過SMS設置將其設置為身份驗證方式之前設置短信
+Both DocType and Name required,既需要的DocType和名稱
+Cannot change docstatus from 1 to 0,不能改變docstatus從1到0,
+Take Backup Now,就拿立即備份
+Open,開
+Defines actions on states and the next step and allowed roles.,定義了國家行動和下一步和允許的角色。
+Remote Objectname,遠程對象名稱
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",作為最佳實踐，不分配相同的一組權限的規則不同角色。相反，設置多個角色，以相同的用戶。
+Please confirm your action to {0} this document.,請確認您對{0}此文檔的操作。
+Create Post,創建帖子
+Add Participants,添加參與者
+Only {0} emailed reports are allowed per user,只有{0}電子郵件報告是每個用戶可以
+Address Title,地址名稱
+Footer Items,頁腳項目
+Request Feedback,請求反饋
+Menu,選單
+DefaultValue,預設值
+User Roles,用戶角色
+Property Setter overrides a standard DocType or Field property,物業二傳手覆蓋標準的DocType或實地房產
+Cannot Update: Incorrect / Expired Link.,無法更新：不正確的／過期的鏈接。
+Better add a few more letters or another word,最好加幾個字母或一個字
+One Time Password (OTP) Registration Code from {},來自{}的一次性密碼（OTP）註冊碼
+Set Only Once,設置一次
+Email Queue Recipient,電子郵件收件人排隊
+Nagaland,那加蘭邦
+Username {0} already exists,用戶名{0}已存在
+{0}: Cannot set import as {1} is not importable,{0} ：無法設定導入，因為{1}不是可導入的
+There is an error in your Address Template {0},有一個在你的地址模板錯誤{0}
+{0} is an invalid email address in 'Recipients',{0}是“收件人”中的無效電子郵件地址
+Allow Desktop Icon,允許桌面圖標
+"target = ""_blank""",目標=“_blank”
+hdd,硬盤
+Host,主辦
+Column <b>{0}</b> already exist.,列<b>{0}</b>已經存在。
+Secret Access Key,秘密訪問密鑰
+OTP Secret has been reset. Re-registration will be required on next login.,OTP Secret已被重置。下次登錄時需要重新註冊。
+From Full Name,從全名
+You don't have access to Report: {0},您沒有訪問報告：{0}
+Send Welcome Email,發送歡迎電子郵件
+Remove Filter,刪除過濾器
+Show in filter,在過濾器中顯示
+Daman and Diu,達曼和迪烏
+Project,專案
+Personal,個人
+Bulk Rename,批次重命名
+Show as cc,顯示為CC,
+Heading,標題
+resize-vertical,調整大小－垂直
+Take Video,以視頻
+Introductory information for the Contact Us Page,聯絡我們頁面的介紹資訊
+Not in Developer Mode,不開發模式
+File backup is ready,文件備份就緒
+In Global Search,在全球搜索
+Brute Force Security,蠻力安全
+indent-left,左邊縮排
+It is risky to delete this file: {0}. Please contact your System Manager.,刪除這個文件是有風險的：{0}。請聯絡您的系統管理員。
+Currency Name,貨幣名稱
+No Emails,沒有電子郵件
+Link Expired,鏈接已過期
+"Reverting length to {0} for '{1}' in '{2}';
+							Setting the length as {3} will cause truncation of data.",將“{2}”中的“{1}”的長度恢復為{0};將長度設置為{3}將導致數據截斷。
+Select File Format,選擇文件格式
+Content Hash,內容Hash值
+Stores the JSON of last known versions of various installed apps. It is used to show release notes.,儲存最後安裝版本之應用程式的JSON。用來顯示發行說明。
+Google Font (Text),谷歌字體（文本）
+MyISAM,MyISAM數據
+Push Delete,推刪除
+{0} already unsubscribed for {1} {2},{0}已經退訂給{1} {2}
+Stopped,停止
+Did not remove,沒有刪除
+Liked,喜歡
+Send Now,立即發送
+"Standard DocType cannot have default print format, use Customize Form",標準DocType不能具有默認打印格式，請使用自定義表單
+"Standard DocType cannot have default print format, use Customize Form",標準DocType不能具有默認打印格式，請使用自定義表單
+Query,查詢
+'In List View' not allowed for type {0} in row {1},“在列表視圖中”第{1}行的類型{0}不允許
+Select the label after which you want to insert new field.,之後要插入新字段中選擇的標籤。
+Document Share Report,文檔分享舉報
+Base URL,基本網址
+Last Login,上次登錄
+You can't set 'Translatable' for field {0},您無法為字段{0}設置“可翻譯”
+Column,柱
+Chat Profile,聊天檔案
+Adds a custom field to a DocType,添加自定義字段，以一個DOCTYPE,
+Is Home Folder,是主文件夾
+{0} is not a valid Email Address,{0}不是有效的電子郵件地址
+Select atleast 1 record for printing,選擇打印ATLEAST 1紀錄
+User '{0}' already has the role '{1}',用戶“{0}”已經擁有了角色“{1}”
+Two Factor Authentication method,雙因素認證方法
+First set the name and save the record.,首先設置名稱並保存記錄。
+Unsubscribe,退訂
+Reference Name,參考名稱
+Update Translations,更新翻譯
+Activity Log,活動日誌
+Viewed By,由...觀看
+Single Types have only one record no tables associated. Values are stored in tabSingles,單一類型只有一個記錄關聯的表。值被存儲在tabSingles,
+Enable Password Policy,啟用密碼策略
+Enable Password Policy,啟用密碼策略
+"List as [{""label"": _(""Jobs""), ""route"":""jobs""}]",名單[{“標籤”：_（“作業”），“路線”：“工作”}]
+Field type cannot be changed for {0},{0}不能更改字段類型
+Rules defining transition of state in the workflow.,規則乃定義作業流程內狀態的轉變
+Folder,文件夾
+Newsletter Manager,通訊經理
+Option 1,選項1,
+Log of error during requests.,錯誤的過程中請求日誌。
+{0} has been successfully added to the Email Group.,{0}已成功添加到電子郵件組。
+Do not edit headers which are preset in the template,不要編輯模板中預設的標題
+Login Verification Code from {},登錄驗證碼從{}
+Pondicherry,本地治裡
+Import Status,導入狀態
+Make file(s) private or public?,製作文件（S）的私人或公共？
+Scheduled to send to {0},要寄送給{0}的排程
+Everyone,大家
+backward,落後
+"{0}: Only one rule allowed with the same Role, Level and {1}",{0}：只具允許有一個同的角色，級別和{1}
+Add Unsubscribe Link,添加退訂鏈接
+No comments yet. Start a new discussion.,還沒有評論。開始一個新的討論。
+"Your subscription expired on {0}. To renew, please send an email to {1}.",您的訂閱過期於{0}。要續訂，請發送電子郵件至{1}。
+Set numbering series for transactions.,設置編號系列交易。
+Configure Charts,配置圖表
+You cannot like something that you created,你可以不喜歡你創造的東西
+Last IP,最後一個IP,
+Please add a subject to your email,請在您的電子郵件中添加主題
+Renew / Upgrade,更新/升級
+A new document {0} has been shared by with you {1}.,與您分享了新的文檔{0} {1}。
+Data Migration Connector,數據遷移連接器
+Track Email Status,跟踪電子郵件狀態
+Notify Users On Every Login,每次登錄時通知用戶
+Notify Users On Every Login,每次登錄時通知用戶
+API Password,API密碼
+Enter python module or select connector type,輸入python模塊或選擇連接器類型
+Fieldname not set for Custom Field,自定義欄位之欄位名稱未設定
+Last Updated By,最後更新人
+View Subscribers,查看訂閱
+Cannot delete file as it belongs to {0} {1} for which you do not have permissions,無法刪除屬於您沒有權限的{0} {1}的文件
+Custom JS,自定義JS,
+Background Color,背景顏色
+There were errors while sending email. Please try again.,還有在發送電子郵件是錯誤的。請再試一次。
+Portal Settings,門戶網站設置
+Cannot update {0},無法更新{0}
+Mapping,製圖
+Are you sure you want to relink this communication to {0}?,您確定要重新鏈接該通信{0}？
+Send Password,發送密碼
+Server IP,服務器IP,
+You don't have the permissions to access this document,您沒有訪問此文件的權限
+Language Name,語言名稱
+Email Group Member,電子郵件組成員
+Your account has been locked and will resume after {0} seconds,您的帳戶已被鎖定，並將在{0}秒後恢復
+User Permissions are used to limit users to specific records.,用戶權限用於將用戶限製到特定的記錄。
+Value Changed,更改的值
+Duplicate name {0} {1},重複的名稱{0} {1}
+Retry,重試
+Web Form Field,網頁表單欄位
+Hide field in Report Builder,在報表生成器隱藏領域
+Edit HTML,編輯HTML,
+Please enter Redirect URL,請輸入重定向網址
+"to be generated. If delayed, you will have to manually change the ""Repeat on Day of Month"" field,
+of this",被生成。如果延遲，您將不得不手動更改“每月重複”字段
+Restore Original Permissions,恢復原始權限
+Shop,店
+Button,按鍵
+{0} is now default print format for {1} doctype,{0}現在是{1}類型的默認打印格式
+Archived Columns,歸檔列
+Default Outgoing,預設傳出
+Click on the link below to complete your registration and set a new password,點擊下面的鏈接完成註冊，並設定新密碼
+Did not add,沒有添加
+No Email Accounts Assigned,沒有電子郵件帳戶分配
+Contact Us Settings,聯絡我們的設定
+Searching ...,正在搜尋...
+Searching ...,正在搜尋...
+text-width,文字寬度
+Maximum Attachment Limit for this record reached.,此記錄最大附件限制到達。
+View Properties (via Customize Form),視圖屬性（通過自定義窗體）
+Note Seen By,注意看通過
+Try to use a longer keyboard pattern with more turns,嘗試使用更多的匝數較長的鍵盤模式
+Check Communication,檢查通信
+Rajasthan,拉賈斯坦邦
+Email Reply Help,電郵答复幫助
+Report Builder reports are managed directly by the report builder. Nothing to do.,報表生成器報表直接由報表生成器來管理。無事可做。
+Please verify your Email Address,請驗證您的郵箱地址
+none of,沒有
+Send Me A Copy,給我發一份
+App Secret Key,應用保密密鑰
+Web Site,網站
+Checked items will be shown on desktop,勾選將在桌面上顯示的項目
+{0} cannot be set for Single types,{0}不能設定為單一類型
+Data Import,數據導入
+Configure Chart,配置圖表
+{0} are currently viewing this document,{0}正在查看該文檔
+Assigned By Full Name,分配者姓名
+Report cannot be set for Single types,報告不能單類型設置
+Share URL,分享網址
+Allow Consecutive Login Attempts ,允許連續登錄嘗試
+An error occured during the payment process. Please contact us.,付款過程中發生錯誤。請聯繫我們。
+Awaiting Password,等待密碼
+Not Descendants Of,不是後代
+Settings...,設置...
+Cent,一分錢
+Compose Email,寫郵件
+"States for workflow (e.g. Draft, Approved, Cancelled).",工作流程狀態（例如草稿，已批准，已取消）。
+Allow Print for Draft,允許打印草稿
+Set Quantity,設置數量
+Submit this document to confirm,提交該文件以確認
+Unsubscribed,退訂
+Set custom roles for page and report,對於頁面和報表設置自定義角色
+Rating: ,評分：
+Can not find UIDVALIDITY in imap status response,在IMAP狀態響應找不到UIDVALIDITY,
+Dadra and Nagar Haveli,Dadra和Nagar Haveli,
+Link to the page you want to open. Leave blank if you want to make it a group parent.,鏈接到你想打開的頁面。如果你想使之成為集團母公司留空。
+Is Single,單人
+Sign Up is disabled,註冊被禁用
+{0} has left the conversation in {1} {2},{0}已經離開聊天室{1} {2}
+User ID of a Blogger,一個博客的用戶ID,
+There should remain at least one System Manager,應該保持至少一個系統管理器
+Authorization Code,授權碼
+Mention transaction completion page URL,何況交易完成後頁面的網址
+Expert,專家
+circle-arrow-right,圓圈箭頭向右
+LDAP Server Url,LDAP服務器URL,
+Cannot open instance when its {0} is open,無法打開實例時，它的{0}是開放的
+Transaction Log Report,事務日誌報告
+Send Unsubscribe Link,發送退訂鏈接
+Script Report,腳本報告
+Scopes,領域
+Company Introduction,公司簡介
+Length,長短
+Restore or permanently delete a document.,恢復或永久刪除文檔。
+Chat Profile for User {0} exists.,用戶{0}的聊天配置文件存在。
+GSuite test executed with success. GSuite integration is correctly configured,GSuite測試執行成功。 GSuite集成配置正確
+"To add dynamic subject, use jinja tags like,
+
+<div><pre><code>{{ doc.name }} Delivered</code></pre></div>",要添加動態主題，用神社標籤，如<div><pre> <code>{{ doc.name }} Delivered</code> </pre> </div>
+Invalid Search Field {0},無效的搜索字段{0}
+Modules HTML,HTML模塊
+"Track if your email has been opened by the recipient.
+<br>
+Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered ""Opened""",跟踪收件人是否已打開您的電子郵件。 <br>注意：如果您要向多個收件人發送郵件，即使有1個收件人閱讀該郵件，也會被視為“已打開”
+Missing Values Required,遺漏必須值
+Frappe,冰咖啡
+Mark as Unread,標記為未讀
+Operation,作業
+Change Label (via Custom Translation),更改標籤（通過自定義轉換）
+No permission to {0} {1} {2},無權{0} {1} {2}
+Permanent,常駐
+Permanent,常駐
+Note: Other permission rules may also apply,注：其它權限規則也可申請
+View this in your browser,查看該在你的瀏覽器
+Search Fields,搜索欄位
+OTP Issuer Name,OTP發行人名稱
+OAuth Bearer Token,OAuth的承載令牌
+No document selected,沒有選定的文檔
+You are connected to internet.,你連接到互聯網。
+Enable Social Login,啟用社交登錄
+"On {0}, {1} wrote:",在{0}，{1}中寫道：
+Cannot delete standard field. You can hide it if you want,無法刪除標準的現場。你可以將其隱藏，如果你想
+For top bar,對於頂端選單
+Auth URL Data,身份驗證URL數據
+Queued for backup. You will receive an email with the download link,排隊備份。您將收到一封包含下載鏈接的電子郵件
+Could not identify {0},無法識別{0}
+In points. Default is 9.,以點為單位。預設值是9。
+heart,心臟
+Old Password Required.,需要舊密碼
+Desk Access,台訪問
+minus,減
+Server Error: Please check your server logs or contact tech support.,服務器錯誤：請檢查您的服務器日誌或聯絡技術支持。
+Unable to load camera.,無法加載相機。
+Welcome email sent,歡迎發送電子郵件
+Let's prepare the system for first use.,讓我們準備系統首次使用。
+Already Registered,已註冊
+Float Precision,浮點數精度
+Sender Email,發件人電子郵件
+Only Administrator can edit,只有管理員可以編輯
+Editable Grid,編輯網格
+Property Setter,屬性設定器
+Allow Print,允許打印
+Mark the field as Mandatory,標記字段作為強制性
+Clicked,點擊
+No permission to '{0}' {1},沒有權限“{0}” {1}
+Scheduled to send,計劃送
+Track Seen,軌道看
+File Backup,文件備份
+This method can only be used to create a Comment,這種方法只能用於創建註釋
+No {0} found,沒有找到{0}
+Add custom forms.,添加自定義表單。
+submitted this document,提交這份文件
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,該系統提供了許多預先定義的角色。您可以添加新的角色設定更精細的權限。
+CC,CC,
+Trigger Name,觸發器名稱
+Blog Category,部落格分類
+Cannot map because following condition fails: ,無法對應，因為以下條件失敗：
+Select a Brand Image first.,首先選擇一個品牌形象。
+Active,啟用
+Insert Below,插入下方
+Blue,藍色
+All customizations will be removed. Please confirm.,所有自定義都將被刪除。請確認。
+Page HTML,頁面的HTML,
+Group name cannot be empty.,組名不能為空。
+Further nodes can be only created under 'Group' type nodes,此外節點可以在&#39;集團&#39;類型的節點上創建
+Header,頁首
+Unknown Column: {0},未知專欄： {0}
+Email By Role,電子郵件按角色
+Users with role {0}:,角色{0} 的用戶：
+Custom Format,自定義格式
+random,隨機
+Newsletter Email Group,電子郵件通訊組
+Integrations,整合
+Section Break,分節符
+Warehouse,倉庫
+Other Territory,其他領土
+Messages,訊息
+Use Different Email Login ID,使用不同的電子郵件登錄ID,
+Use Different Email Login ID,使用不同的電子郵件登錄ID,
+Must specify a Query to run,必須指定一個欲執行查詢
+"There seems to be an issue with the server's braintree configuration. Don't worry, in case of failure, the amount will get refunded to your account.",服務器的braintree配置似乎有問題。別擔心，如果失敗，這筆款項將退還給您的帳戶。
+Manage Third Party Apps,管理第三方應用
+"Language, Date and Time settings",語言，日期和時間設置
+User Email,用戶電子郵件
+Represents a User in the system.,表示系統中一個用戶。
+Label,標籤
+"The task {0}, that you assigned to {1}, has been closed.",任務{0}，您分配給{1}，已關閉。
+Please close this window,請關閉此窗口
+Print Format Type,列印格式類型
+A Lead with this Email Address should exist,與此電子郵件地址的鉛應存在
+Open Source Applications for the Web,開源網路應用程式
+Call,通話
+"Add the name of a ""Google Web Font"" e.g. ""Open Sans""",添加一個“谷歌網頁字體”的名稱，例如“打開三世”
+Request Timed Out,請求超時
+Enable / Disable Domains,啟用/禁用域
+Allow Roles,允許角色
+Hide Toolbar,隱藏工具欄
+Last Active,最後活動
+SMTP Settings for outgoing emails,SMTP設置外發郵件
+Filter List,過濾器列表
+Excel,高強
+Your password has been updated. Here is your new password,您的密碼已更新。這是您的新密碼
+Auto Reply Message,自動回复留言
+Condition,條件
+{0} hours ago,{0}小時前
+1 month ago,1個月前
+User ID,使用者 ID,
+Sent,已送出
+Simultaneous Sessions,並發會話
+Client Credentials,客戶端憑證
+Open a module or tool,打開一個模塊或工具
+Delivery Status,交貨狀態
+App Name,應用程式名稱
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",代表交易的工作流程狀態的欄位（如果不存在，一個新的隱藏的自定義欄位將被創建）
+Knowledge Base Contributor,知識庫貢獻者
+Sent Read Receipt,發送閱讀回執
+Reference Communication,參考通信
+Unsubscribe Method,退訂方法
+Related DocType,相關DocType,
+Edit to add content,編輯添加內容
+Select Languages,選擇語言
+Card Details,卡詳情
+No permission for {0},對於無許可{0}
+Advanced,先進
+Seems API Key or API Secret is wrong !!!,似乎API密鑰或API的秘密是錯誤的！
+Reference: {0} {1},參考：{0} {1}
+Attached To Name,單身者姓名
+Address Type,地址類型
+Invalid User Name or Support Password. Please rectify and try again.,無效的用戶名或支持密碼。請糾正，然後再試一次。
+Yahoo Mail,雅虎郵箱
+Your subscription will expire tomorrow.,您的訂閱將於明天到期。
+Error in Notification,通知錯誤
+User Cannot Create,無法建立使用者
+Folder {0} does not exist,文件夾{0}不存在
+Dropbox access is approved!,Dropbox的訪問被批准！
+Enter Form Type,輸入表單類型
+Missing parameter Kanban Board Name,缺少參數看板名稱
+No records tagged.,沒有記錄標記。
+Remove Field,刪除字段
+You are not connected to Internet. Retry after sometime.,你沒有連接到互聯網。在某個時間後重試。
+Send Password Update Notification,發送密碼更新通知
+"Allowing DocType, DocType. Be careful!",允許的DOCTYPE，DocType 。要小心！
+"Customized Formats for Printing, Email",自定義列印及電子郵件的格式，
+Depends On,取決於
+Green,綠
+Additional Permissions,額外的權限
+Always use Account's Email Address as Sender,始終使用帳戶的電子郵件地址作為發件人
+Login to comment,登錄發表評論
+Start entering data below this line,開始輸入數據低於此線
+changed values for {0},用於改變的值{0}
+"Email ID must be unique, Email Account already exists \
+				for {0}",電子郵件ID必須唯一，電子郵件帳戶已存在\ {0}
+retweet,轉推
+Align Labels to the Right,將標籤對齊
+Disabled,不使用
+Uploaded To Dropbox,上傳到Dropbox,
+eye-close,眼睛閉
+OAuth Provider Settings,OAuth的提供商設置
+Applications,應用
+Report this issue,報告此問題
+Adds a custom script (client or server) to a DocType,增加了一個自定義腳本（客戶端或服務器），以一個DOCTYPE,
+City/Town,市/鎮
+Connector Name,連接器名稱
+Social,社會
+Editing Row,編輯行
+Workflow Action Master,工作流操作主
+Field Type,欄位類型
+only.,整
+Route History,路線歷史
+OTP secret can only be reset by the Administrator.,OTP秘密只能由管理員重置。
+Avoid years that are associated with you.,避免了與你相關的年。
+Restrict user for specific document,限制特定文檔的用戶
+Descending,降
+Goal,目標
+Invalid Mail Server. Please rectify and try again.,無效的郵件服務器。請糾正，然後再試一次。
+"For Links, enter the DocType as range.
+For Select, enter list of Options, each on a new line.",對於鏈接，輸入文檔類型的範圍。對於選擇，輸入選項列表，每一個新的生產線。
+film,影片
+No permission to read {0},沒有權限讀取{0}
+Avoid recent years.,避免最近幾年。
+Multiple root nodes not allowed.,不允許多個根節點。
+"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.",如果啟用，用戶每次登錄時都會收到通知。如果沒有啟用，用戶只會收到一次通知。
+"If enabled, users will be notified every time they login. If not enabled, users will only be notified once.",如果啟用，用戶每次登錄時都會收到通知。如果沒有啟用，用戶只會收到一次通知。
+Invalid {0} condition,{0}條件無效
+"If checked, users will not see the Confirm Access dialog.",如果選中，用戶不會看到確認Access對話框。
+ID field is required to edit values using Report. Please select the ID field using the Column Picker,當使用報表編輯數據時，ID欄位是必須的。請使用行列選擇器來選擇ID欄位。
+Comments,評論
+Confirm,確認
+Forgot Password?,忘了密碼？
+yyyy-mm-dd,年 - 月 - 日
+Server Error,服務器錯誤
+Login Id is required,登錄ID是必需的
+Website Slideshow,網站連續播放
+No Data,無數據
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",鏈接是網站的主頁。標準鏈接（索引，登錄，產品，博客，約，接觸）
+Authentication failed while receiving emails from Email Account {0}. Message from server: {1},當接收來自帳戶{0}的電子郵件時，身份驗證失敗。從伺服器消息：{1}
+Banner Image,橫幅圖片
+Custom Field,自定義欄位
+Please specify which date field must be checked,請指定必須檢查哪些日期欄位
+Set User Permissions,設定用戶權限
+Not allowed for {0} = {1},不允許{0} = {1}
+Email Account Name,電子郵件帳戶名稱
+Something went wrong while generating dropbox access token. Please check error log for more details.,在生成dropbox訪問令牌時發生錯誤。請檢查錯誤日誌以獲取更多詳細信息。
+old_parent,old_parent,
+"Newsletters to contacts, leads.",通訊，聯絡人，線索。
+"e.g. ""Support"", ""Sales"", ""Jerry Yang""",例如“支持“，”銷售“，”傑里楊“
+Incorrect Verification code,驗證碼不正確
+Repeat Header and Footer in PDF,重複頁眉和頁腳的PDF,
+Is Default,是預設
+Connector Type,連接器類型
+Column Name cannot be empty,列名不能為空
+Error while connecting to email account {0},連接到電子郵件帳戶{0}時出錯
+fast-forward,快進
+Communication,通訊
+"Check columns to select, drag to set order.",檢查列選擇，拖放設置順序。
+This is PERMANENT action and you cannot undo. Continue?,這是永久性的行動，你不能撤消。繼續嗎？
+Login and view in Browser,在瀏覽器中登錄和查看
+Every Day,每天
+Password for Base DN,密碼基礎DN,
+Columns based on,基於列
+Enter keys to enable integration with Google GSuite,輸入密鑰以啟用與Google GSuite的集成
+move,舉
+Action Failed,操作失敗
+For User,對於用戶
+View log,查看日誌
+Assam,阿薩姆
+You have {0} days left in your subscription,您的訂閱還剩有{0}天
+Outgoing email account not correct,傳出的電子郵件帳戶不正確
+Chaining Hash,鏈接哈希
+Temperorily Disabled,Temperorily殘疾人
+Please set Email Address,請設置電子郵件地址
+Date and Number Format,日期和數字格式
+Checking one moment,檢查一個時刻
+Show Tags,顯示標籤
+HTML Editor,HTML編輯器
+"If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User",如果選中了“嚴格用戶權限”，並為用戶定義了“用戶權限”，則該鏈接的值為空的所有文檔將不會顯示給該用戶
+Billing,計費
+Not Sent,未發送
+align-justify,對齊對齊
+Middle Name (Optional),中間名（可選）
+Not Permitted,不允許
+First Transaction,第一筆交易
+You do not have enough permissions to complete the action,您沒有足夠的權限來完成動作
+No Results,沒有結果
+Scheduled to send to {0} recipients,原定發送到{0}受助人
+Cut,切
+renamed from {0} to {1},從更名{0}到{1}
+**Currency** Master,** 主要貨幣 **
+No of emails remaining to be synced,沒有剩餘的電子郵件進行同步
+Uploading,上傳
+Uploading,上傳
+Please save the document before assignment,請保存轉讓前的文件
+Click here to post bugs and suggestions,點擊這裡發布錯誤和建議
+Address and other legal information you may want to put in the footer.,地址和其他法律資訊，您可能要放在頁腳。
+Website Sidebar Item,網站側欄項目
+PayPal Settings,貝寶設置
+Select Document Type,選擇文件類型
+Cannot delete {0} as it has child nodes,無法刪除{0} ，因為它有子節點
+{0} minutes ago,{0}分鐘前
+lightblue,淺藍
+Same Field is entered more than once,相同字段不止一次輸入
+Every day events should finish on the same day.,每天的活動應該結束在同一天。
+Filter Values,過濾值
+User Tags,用戶標籤
+Fail,失敗
+download-alt,下載的Alt,
+Pull Failed,拉失敗
+Feedback Request,反饋請求
+Import Data from CSV / Excel files.,從CSV / Excel文件導入數據。
+Main Section,主區塊
+Icon,圖標
+"Hint: Include symbols, numbers and capital letters in the password",提示：在密碼中加入符號，數字和大寫字母
+"Hint: Include symbols, numbers and capital letters in the password",提示：在密碼中加入符號，數字和大寫字母
+Allow in Quick Entry,允許快速輸入
+dd/mm/yyyy,dd/mm/yyyy,
+GSuite script test,GSuite腳本測試
+Backups,備份
+Add Contact,增加聯繫人
+Optional: Always send to these ids. Each Email Address on a new row,可選：總是發送給這些ID。在新行的每個電子郵件地址
+Hide Details,隱藏詳情
+Page has expired!,頁已過期！
+Blog Settings,部落格設定
+bullhorn,擴音器
+Target,目標
+Number of Backups,備份數量
+Copyright,版權
+Invalid,無效
+Hide Footer Signup,隱藏頁腳註冊
+Write a Python file in the same folder where this is saved and return column and result.,寫一個Python文件，在這個被保存在同一文件夾中，並返回列和結果。
+Sort Field,排序欄位
+Razorpay Settings,Razorpay設置
+Edit Filter,編輯過濾器
+Field {0} of type {1} cannot be mandatory,域{0}類型{1}不能強制
+Session Expiry Mobile,會話過期移動
+Incorrect User or Password,不正確的用戶或密碼
+Search results for,為。。。。尋找結果
+Please enter Access Token URL,請輸入訪問令牌URL,
+Select To Download:,選擇要下載：
+Slack,鬆弛
+If user is the owner,如果用戶是所有者
+Activity,活動
+"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")",說明：要鏈接到另一筆在系統中的記錄，使用「#Form/Note/[Note Name]」建立鏈接。（不要使用的「http://」）
+Allow,允許
+Let's avoid repeated words and characters,讓我們避免重複的字和字符
+Delayed,延遲
+List of backups available for download,可供下載的備份目錄
+Sign up,報名
+Row {0}: Not allowed to disable Mandatory for standard fields,行{0}：不允許禁用標準域的強制性
+Output,產量
+Set Property After Alert,警報後設置屬性
+Add fields to forms.,將欄位添加到表單。
+Looks like something is wrong with this site's Paypal configuration.,看起來這個網站的Paypal配置有問題。
+File Type,文件類型
+leaf,休假
+Portal Menu Item,門戶菜單項
+Email ID,電子郵件ID,
+A list of resources which the Client App will have access to after the user allows it.<br> e.g. project,資源的列表，它的客戶端應用程序必須將用戶允許後訪問。 <br>如項目
+Translated Text,翻譯文本
+Query Options,查詢選項
+Timestamp,時間戳
+Patch Log,補丁日誌
+Local Primary Key,本地主鍵
+Welcome to {0},歡迎{0}
+Add,新增
+Sent or Received,發送或接收
+Reference Document,參考文獻
+Key,關鍵
+Contacts,往來
+Setup Complete,安裝完成
+Report of all document shares,所有的文件共享報告
+New Password,新密碼
+Filter {0} missing,過濾器{0}丟失
+Sorry! You cannot delete auto-generated comments,抱歉!不能刪除自動生成的註釋
+Style using CSS,使用CSS樣式
+Reference DocType,DocType參照
+System User,系統用戶
+Is Standard,為標準
+_report,_報告
+_report,_報告
+"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field",不要HTML編碼的HTML標籤，如&lt;SCRIPT&gt;或者就像字符&lt;或&gt;，因為他們可以在此字段中故意使用
+Specify a default value,指定一個預設值
+FavIcon,網站圖標
+At least one reply is mandatory before requesting feedback,至少有一個答复要求得到反饋前強制性
+Setup for,設置
+minus-sign,減號
+No {0} permission,無{0}的權限
+Export Custom Permissions,導出自定義權限
+Fields Multicheck,字段Multicheck,
+Login,登入
+Hi {0},{0}
+Enable Scheduled Jobs,啟用預定作業
+Notes:,注意事項：
+Status: {0},狀態：{0}
+Document Name,文件名稱
+Mark as Spam,標記為垃圾郵件
+Customize Form,自定義表單
+Entity Type,實體類型
+Mandatory field: set role for,必須填寫：用於設置角色
+Mapping Name,映射名稱
+A symbol for this currency. For e.g. $,這種貨幣的符號。例如$
+Successfully updated translations,成功更新翻譯
+Enable Automatic Backup,啟用自動備份
+Email Templates for common queries.,常見查詢的電子郵件模板。
+Permission Error,權限錯誤
+Name of {0} cannot be {1},{0}的名稱不能為{1}
+From Date,從日期
+Feedback Request for {0} is sent to {1},反饋請求{0}被發送到{1}
+Session Expired,會話已過期
+Session Expired,會話已過期
+Straight rows of keys are easy to guess,鍵的直排容易被猜中
+Phone No.,電話號碼
+fire,火
+; not allowed in condition,; 條件下不允許
+Async Task,異步任務
+picture,圖片
+Image Field,現場圖片
+Something went wrong during the token generation. Please request again an authorization code.,令牌生成過程中出現問題。請再次請求授權碼。
+Custom HTML Help,自定義HTML幫助
+See on Website,查看網站
+Next State,下一狀態
+Block Modules,封鎖模組
+Reverting length to {0} for '{1}' in '{2}'; Setting the length as {3} will cause truncation of data.,恢復長度{0}為“{1}”在“{2}”;設置長度為{3}將導致數據截斷。
+Custom CSS,自定義CSS,
+Add a comment,新增評論
+Log of error on automated events (scheduler).,登錄自動化事件（調度）的錯誤。
+Not a valid Comma Separated Value (CSV File),不是一個有效的逗號分隔值（ CSV文件）
+Postal,郵政
+Default Incoming,預設傳入信箱
+repeat,重複
+Banner,橫幅
+"If disabled, this role will be removed from all users.",如果禁用了，這個角色將會從所有用戶中刪除。
+Help on Search,搜索幫助
+Registered but disabled,註冊但被禁用
+Hide Copy,隱藏副本
+{0} must be unique,{0}必須是獨特的
+Row,列
+"CC, BCC & Email Template",CC，BCC＆電子郵件模板
+Local Fieldname,本地字段名稱
+Linked Doctypes,鏈接的文檔類型
+Track Changes,跟踪變化
+Check,查
+Offline,離線
+API Key,API密鑰
+Send unsubscribe message in email,發送電子郵件退訂消息
+Edit Title,編輯標題
+Install Apps,安裝應用程序
+Fieldname which will be the DocType for this link field.,字段名這將是在DOCTYPE這個鏈接字段。
+Documents assigned to you and by you.,分配給您和您的文檔。
+Email Signature,電子郵件簽名
+Google Analytics ID,Google Analytics（分析）的ID,
+"For help see <a href=""https://frappe.io/docs/user/en/guides/portal-development/web-forms"" target=""_blank"">Client Script API and Examples</a>","有關幫助，請參閱<a href=""https://frappe.io/docs/user/en/guides/portal-development/web-forms"" target=""_blank"">客戶端腳本API和示例</a>"
+Link to your Bootstrap theme,鏈接到你的引導主題
+Delete,刪除
+New {0},新的{0}
+Default Inbox,預設收件匣
+Make a new,建立一個新的
+PDF Page Size,PDF頁面大小
+Attach file for Import,附加文件進行導入
+Recipient Unsubscribed,收件人取消訂閱
+Is Sent,已發送
+About,關於
+"For updating, you can update only selective columns.",對於更新，您可以更新只選擇列。
+Country,國家
+Attach Document Print,附加文件列印
+Field,領域
+"Trigger on valid methods like ""before_insert"", ""after_update"", etc (will depend on the DocType selected)",像“before_insert”，“after_update”等有效方法觸發（取決於所選的文檔類型）
+Adding System Manager to this User as there must be atleast one System Manager,至少要有一名系統管理員，將該用戶設定成系統管理員
+URLs,網址
+Total Pages,總頁數
+Attach Image,附上圖片
+list-alt,列表ALT,
+Password Updated,密碼更新
+Steps to verify your login,驗證您的登錄的步驟
+Password not found,密碼未找到
+Page Length,頁面長度
+Append To is mandatory for incoming mails,追加到是強制性的傳入郵件
+Salutation,招呼
+Rejected,拒絕
+Remove Tag,刪除標籤
+Admin,管理員
+Query Report,查詢報表
+Set New Password,設定新密碼
+"%s is not a valid report format. Report format should \
+				one of the following %s",％s不是一個有效的報告格式。報告格式應\下面％S之一
+Fieldname {0} appears multiple times in rows {1},列{1}中多次出現欄位名稱{0}
+{0} from {1} to {2} in row #{3},{0}從{1}到{2}中的行＃{3}
+Expired,過期
+Seems token you are using is invalid!,似乎你使用的令牌是無效的！
+Number of columns for a field in a Grid (Total Columns in a grid should be less than 11),對於一個場的列在網格數（在網格總列應小於11）
+System,系統
+Have an account? Login,有一個賬戶？登錄
+arrow-down,箭頭向下
+User not allowed to delete {0}: {1},用戶不得刪除{0}：{1}
+{0} of {1},{1}的{0}
+Last Updated On,最後更新日期：
+Message Parameter,訊息參數
+Likes,喜歡
+Top Bar,頂欄
+Script Code,腳本代碼
+Create User Email,創建用戶電子郵件
+Create User Email,創建用戶電子郵件
+No Permissions Specified,未指定權限
+Custom Role,自定義角色
+Home/Test Folder 2,首頁/測試文件夾2,
+Please save the document before uploading.,請上傳之前保存文檔。
+Enter your password,輸入密碼
+Dropbox Access Secret,Dropbox的訪問秘密
+Social Login Provider,社交登錄提供商
+Add Another Comment,添加另一個評論
+No data found in the file. Please reattach the new file with data.,在文件中找不到數據。請用數據重新附加新文件。
+Edit DocType,編輯的DocType,
+Fold must come before a Section Break,折疊一定要來一個分節符前
+Under Development,正在開發中
+Go to the document,轉到文檔
+Customizations Reset,自定義重置
+hand-down,手向下
+GST State,消費稅狀態
+{0}: Cannot set Cancel without Submit,{0} ：沒有提交便無法設為取消
+Theme,主題
+Redirect URI Bound To Auth Code,重定向URI勢必授權碼
+Is Submittable,是可提交的
+Value for a check field can be either 0 or 1,一檢查字段值可以為0或1,
+Column Labels:,列標籤：
+Naming Series mandatory,命名系列強制性
+Red,紅
+Tag,標籤
+Script,腳本
+Document can't saved.,文件無法保存。
+My Settings,我的設定
+Text Color,文字顏色
+Backup job is already queued. You will receive an email with the download link,備份作業已經排隊。您將收到一封包含下載鏈接的電子郵件
+Invalid Request,無效請求
+This form does not have any input,這種形式沒有任何輸入
+Session Expiry must be in format {0},會話到期格式必須是{0}
+Group,組
+"Select target = ""_blank"" to open in a new page.","選擇target = ""_blank""以在新頁面中打開。"
+Database Size:,數據庫大小：
+Set Image,設置圖像
+Permanently delete {0}?,永久刪除{0} ？
+Same file has already been attached to the record,相同的文件已經附加到記錄
+{0} is not a valid Workflow State. Please update your Workflow and try again.,{0}不是有效的工作流程狀態。請更新您的工作流程，然後重試。
+wrench,扳手
+Disable Signup,禁止註冊
+Email Queue,電子郵件隊列
+Add Employees to Manage Them,加入的員工來管理它們
+Haryana,哈里亞納邦
+Roles can be set for users from their User page.,角色可以從他們的用戶頁面的用戶進行設置。
+Mandatory,強制性
+Module to Export,模塊導出
+{0}: No basic permissions set,{0} ：無基本權限設定
+Your subscription will expire on {0}.,您的訂閱將在到期{0}。
+Download link for your backup will be emailed on the following email address: {0},下載連接，您的備份將以電子郵件發送到以下電子郵件地址：{0}
+"Meaning of Submit, Cancel, Amend",的含義提交，取消，修改
+To Do,待辦事項
+Module Path,模塊路徑
+Then By (optional),再由（可選）
+Preview HTML,預覽HTML,
+query-report,查詢的報告
+Filters saved,過濾器保存
+Percent,百分比
+Please set filters,請設定篩選條件
+Linked With,連結到
+Edit Auto Email Report Settings,修改電子郵件報告設置
+Message Count,消息計數
+book,書
+Read by Recipient,由收件人閱讀
+Landing Page,著陸頁
+Error in Custom Script,錯誤自定義腳本
+{0} Name,{0}名稱
+No Permissions set for this criteria.,沒有權限設置此標準。
+Auto Email Report,自動電子郵件報告
+Delete comment?,刪除評論？
+This format is used if country specific format is not found,此格式用於如果找不到特定國家的格式
+Allow Login using Mobile Number,允許使用手機號登錄
+You do not have enough permissions to access this resource. Please contact your manager to get access.,您沒有足夠的權限來訪問該資源。請聯繫您的經理，以獲得訪問權。
+Custom,自訂
+"If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth",如果啟用，從限制IP地址登錄的用戶將不會被提示輸入雙因素身份驗證
+Get Contacts,獲取聯繫人
+Send alert if date matches this field's value,發送警示，如果日期匹配該欄位的值
+Transitions,轉換
+Login After,登錄後
+Monospace,等寬
+Printing,列印
+thumbs-up,豎起大拇指
+DocPerm,DocPerm,
+Fonts,字體
+Precision should be between 1 and 6,精度應為1和6之間
+This report was generated on {0},此報告是在{0}上生成的
+Slack Channel,鬆弛頻道
+Image Link,圖片鏈接
+Report Filters,報告過濾器
+now,現在
+step-backward,往後退
+{app_title},{ app_title }
+Please set Dropbox access keys in your site config,請在您的網站配置設定Dropbox的存取碼
+Delete this record to allow sending to this email address,刪除此記錄允許發送此郵件地址
+Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,只有必填字段所必需的新記錄。如果你願意，你可以刪除非強制性列。
+Unable to update event,無法更新事件
+Verification code has been sent to your registered email address.,驗證碼已發送到您註冊的電子郵件地址。
+Throttled,節流
+"Filter must have 4 values (doctype, fieldname, operator, value): {0}",過濾器必須有4個值（doctype，fieldname，operator，value）：{0}
+show,顯示
+Invalid field name {0},字段名稱{0}無效
+Data Migration Plan Mapping,數據遷移計劃映射
+Starting Frappé ...,開始Frappé...
+Max Length,最長長度
+map-marker,地圖標記
+Submit an Issue,提交問題
+Repeat this Event,重複此事件
+Maintenance User,維護用戶
+Sorting Preferences,排序偏好設置
+Avoid dates and years that are associated with you.,避免日期和與你相關的年。
+Amend,修改
+Is Attachments Folder,是附件文件夾
+Expand All,展開全部
+Select a chat to start messaging.,選擇一個聊天開始消息。
+Processing,處理
+Please select Entity Type first,請先選擇實體類型
+Valid Login id required.,有效的登錄ID必需的。
+Please select a valid csv file with data,請選擇有合格資料的csv檔案
+{0} un-shared this document with {1},{0}停止與{1}未共享這個文件
+"Make ""name"" searchable in Global Search",讓“名”在全球的搜索搜索
+This is an automatically generated reply,這是一個自動生成的回复
+Category Description,類別說明
+Record does not exist,記錄不存在
+Help Category,幫助分類
+User {0} is disabled,用戶{0}被禁用
+Page missing or moved,頁面丟失或移動
+Route,路線
+Razorpay Payment gateway settings,Razorpay支付網關設置
+Fetch attached images from document,從文檔中獲取附加圖像
+Name,名稱
+Skype,Skype的
+You have exceeded the max space of {0} for your plan. {1}.,您已超過{0}最大空間，為您的計劃。 {1}。
+Search the docs,搜索文檔
+Search the docs,搜索文檔
+Open Link,打開鏈接
+Your Language,你的語言
+Doctypes,文檔類型
+Query must be a SELECT,查詢必須是一個SELECT,
+Select DocType,選擇DocType,
+File size exceeded the maximum allowed size of {0} MB,文件大小超過{0} MB的最大允許大小
+Created On,創建於
+align-center,對準中心
+Is Feedback request triggered manually ?,被反饋請求手動觸發？
+Lakshadweep Islands,Lakshadweep群島
+Allow events in timeline,允許時間軸中的事件
+Can Write,可以寫
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",某些文件，如發票，一旦定稿後不應更改。對這類文件來說定稿稱為提交。您可以限制哪些角色可以提交。
+Test Email Address,測試電子郵件地址
+Sender,寄件人
+Error while evaluating Notification {0}. Please fix your template.,評估通知{0}時出錯。請修復您的模板。
+Google Apps Script,Google Apps腳本
+Leave a Comment,發表評論
+Description for search engine optimization.,說明搜索引擎優化。
+Page Break,分頁符
+Pending,擱置
+Allow only one session per user,允許每個用戶只有一個會話
+Home/Test Folder 1/Test Folder 3,首頁/測試文件夾1 /測試文件夾3,
+Select or drag across time slots to create a new event.,選擇或拖動整個時間條，以創建一個新的事件。
+In Filter,在過濾器
+Show in Module Section,在顯示模塊部分
+Footer Color,頁腳顏色
+Relink,重新鏈接
+Seems ldap is not installed on system.,似乎ldap沒有安裝在系統上。
+Invalid Reference,參考無效
+"Cannot submit feedback, please try again later",無法提交反饋，請稍後再試
+"Page to show on the website,
+",頁面顯示網站
+Seen By Table,通過看表
+Select template,選擇模板
+Logged in,登錄
+Incorrect UserId or Password,用戶ID不正確或密碼，
+Default Sending and Inbox,預設發送和收件匣
+OTP App,OTP應用程序
+Send Email for Successful Backup,發送電子郵件以成功備份
+Document ID,文件編號
+"Naming Options:
+<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>
+<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>",命名選項： <ol><li> <b>字段：[fieldname]</b> - 按字段</li><li> <b>naming_series：</b> - 通過命名系列（必須存在名為naming_series的字段</li><li> <b>提示</b> - 提示用戶輸入名稱</li><li> <b>[系列]</b> - 前綴系列（以點分隔）;例如PRE。##### </li><li> <b>格式：示例 -  {MM} morewords {fieldname1}  -  {fieldname2}  -  {#####}</b> - 將所有支撐的單詞（字段名，日期字（DD，MM，YY），系列）替換為其值。在大括號外，可以使用任何字符。 </li></ol>
+There were errors while creating the document. Please try again.,創建文檔時出錯。請再試一次。
+Image field must be of type Attach Image,圖像字段的類型必須為附著圖像
+Shared with user {0} with read access,與用戶{0}共享讀取權限
+Next Sync Token,下一個同步令牌
+Reset Permissions for {0}?,對{0}重置權限？
+S3 Backup Settings,S3備份設置
+Rows Removed,刪除行
+Attachment Removed,附件已刪除
+Recent years are easy to guess.,近年來，很容易被猜到。
+Subject Field,主題字段
+The document has been assigned to {0},該文檔已分配給{0}
+Show Full Error and Allow Reporting of Issues to the Developer,顯示完整錯誤並允許向開發人員報告問題
+Active Sessions,活動會話
+Show a description below the field,顯示下面的字段描述
+ASC,ASC,
+align-left,靠左對齊
+Defaults,預設
+Feedback Submitted,提交反饋
+Merge with existing,合併與現有的
+Link Title,鏈接標題
+Chandigarh,昌迪加爾
+DocShare,DocShare,
+Edit in full page,編輯在整頁
+Add Total Row,新增總計行列
+Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it.,請查看您註冊的電子郵件地址以獲取有關如何繼續的說明。不要關閉這個窗口，因為你必須返回它。
+For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,例如，如果你取消和修改INV004將成為一個新的文檔INV004-1。這可以幫助您跟踪每一項修正案。
+Atleast one field of Parent Document Type is mandatory,家長文件類型的至少一個字段是強制性的
+Setup Reports to be emailed at regular intervals,設置報告到定期通過電子郵件發送
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - 草案; 1 - 已呈交; 2 - 已取消
+Attached To DocType,附加於 DocType,
+Int,詮釋
+Title,標題
+"Seems issue with server's razorpay config. Don't worry, in case of failure amount will get refunded to your account.",似乎與服務器的配置razorpay問題。別擔心，在失敗量情況將得到退還到您的帳戶。
+Customize,客製化
+View Permitted Documents,查看允許的文件
+Your connection request to Google Calendar was successfully accepted,您的Google日曆連接請求已成功接受
+Chain Integrity,鏈完整性
+Please give a detailed feebdack.,請給一個詳細的feebdack。
+"1 Currency = [?] Fraction,
+For e.g. 1 USD = 100 Cent",1 貨幣= [？]  如：1美元= 100美分
+"Too many users signed up recently, so the registration is disabled. Please try back in an hour",太多用戶簽約近日，所以報名無效。請嘗試一小時後回來
+Add New Permission Rule,添加新的權限規則
+"Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed",只有（.gif注意，.JPG，.JPEG，.TIFF，.PNG，.SVG）允許的圖片擴展
+Manipur,曼尼普爾邦
+Allow Read On All Link Options,允許讀取所有鏈接選項
+Database Engine,資料庫引擎
+"Fields separated by comma (,) will be included in the ""Search By"" list of Search dialog box",字段以逗號分隔（，）將被列入“通過搜索”的搜索對話框的列表
+Please Duplicate this Website Theme to customize.,請複製此網站主題以供客製化。
+Space,空間
+Meghalaya,梅加拉亞邦
+Text Editor,文字編輯器
+Settings for About Us Page.,設定關於我們頁面。
+Recurring,經常性
+Edit Custom HTML,編輯自定義HTML,
+Error Snapshot,錯誤快照
+Remote Primary Key,遠程主鍵
+Value Change,值變動
+Showing only Numeric fields from Report,僅顯示報告中的數字字段
+Width of the input box,寬度的輸入框的
+Subsidiary,副
+In Hours,以小時為單位
+With Letterhead,與信
+Invalid Outgoing Mail Server or Port,無效的發送郵件服務器或端口
+Write,寫
+Only Administrator allowed to create Query / Script Reports,只有管理員可以創建查詢／腳本的報告
+Preview,預覽
+"Field ""value"" is mandatory. Please specify value to be updated",場“價值”是強制性的。請指定值進行更新
+Use this fieldname to generate title,使用該字段名來生成標題
+Import Email From,輸入電子郵件從
+Invite as User,邀請成為用戶
+Started,入門
+Select Attachments,選擇附件
+There were errors. Please report this.,有錯誤。請報告此。
+You are not allowed to print this document,你不允許列印此文件
+Currently updating {0},當前正在更新{0}
+Please set filters value in Report Filter table.,請設置在報告過濾表過濾器值。
+Loading Report,加載報表
+Your subscription will expire today.,您的訂閱今天將到期。
+Export All {0} rows?,導出所有{0}行？
+Standard,標準
+Preprocess Method,預處理方法
+Assignment Complete,作業完成
+New Name,新名稱
+Is First Startup,是第一次啟動
+Email Status,電子郵件狀態
+Please save the document before removing assignment,請刪除分配之前保存的文檔
+Insert Above,插入以上
+Comment can only be edited by the owner,評論只能由所有者進行編輯
+Do not send Emails,不要發送電子郵件
+Common names and surnames are easy to guess.,常見名字和姓氏很容易被猜到。
+This is similar to a commonly used password.,這類似於一個通常使用的密碼。
+Reference Party Doctype,參考方Doctype,
+Success Action,成功行動
+Not Saved,未儲存
+Test,測試
+Default Value,預設值
+Verify,確認
+Update Field,更新欄位
+Enable Chat,啟用聊天
+Base Distinguished Name (DN),基本專有名稱（DN）
+Google Maps integration is not enabled,Google地圖集成未啟用
+Leave this conversation,離開這個談話
+Options not set for link field {0},對於鏈接欄位沒有設置選項{0}
+"Must be of type ""Attach Image""",類型必須為“附加圖片”
+Unselect All,全部取消選擇
+You cannot unset 'Read Only' for field {0},你不能沒有設置&#39;只讀&#39;現場{0}
+Zero means send records updated at anytime,零表示隨時更新發送記錄
+Zero means send records updated at anytime,零表示隨時更新發送記錄
+Complete Setup,完成安裝
+asterisk,星號
+Please do not change the template headings.,請不要更改模板標題。
+Linked,鏈接
+Activity log of all users.,所有用戶的活動日誌。
+shopping-cart,購物車
+Week,週
+Not Allowed: Disabled User,不允許：禁用用戶
+Google,Google,
+Example Email Address,例如電子郵件地址
+Forgot Password,忘記密碼
+Backup Frequency,備份頻率
+User permissions should not apply for this Link,用戶權限不應該申請這個鏈接
+Invalid naming series (. missing),無效的命名序列（失踪）
+Show Attachments,顯示附件
+Language,語言
+Browser not supported,瀏覽器不支持
+Browser not supported,瀏覽器不支持
+Client URLs,客戶端網址
+{0} created successfully,{0}已成功創建
+Leave blank for new records,留空新紀錄
+List of themes for Website.,主題的網站名單。
+Logout,登出
+Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,在更高級別的權限是現場級的權限。所有領域都對他們權限級別設置，並在該權限適用於該領域中定義的規則。要隱藏或使某些領域的只讀某些角色，這是在的情況下非常有用。
+"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)",在這裡輸入靜態URL參數（如稱發件人= ERPNext，用戶名= ERPNext，密碼= 1234等）
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",如果這些指示沒有幫助，請加在GitHub Issues提出你的建議。
+bookmark,書籤
+Folder name should not include '/' (slash),文件夾名稱不應包含“/”（斜杠）
+Note,注釋
+Error Report,錯誤報告
+Export Data in CSV / Excel format.,以CSV / Excel格式導出數據。
+Authentication Apps you can use are: ,您可以使用的驗證應用程序是：
+{0} already exists. Select another name,{0}已存在。選擇其他名稱
+Feedback conditions do not match,反饋條件不匹配
+None,沒有
+Timeline field must be a valid fieldname,時間軸場必須是有效的字段名
+Session Token,會話令牌
+Symbol,符號
+Row #{0}:,列#{0}：
+New password emailed,新的密碼通過電子郵件發送
+Login not allowed at this time,在這個時候不允許登錄
+Current Mapping Action,當前映射行為
+Email Sync Option,電子郵件同步選項
+Row No,行號
+Runtime,運行時
+Introduction,介紹
+Permissions Settings,權限設置
+LDAP Email Field,LDAP電子郵件字段
+{0} List,{0}目錄
+Already in user's To Do list,已經在用戶的To Do列表
+Enable Outgoing,啟用外
+This could be because of some invalid Email Addresses in the,這可能是因為一些無效的電子郵件地址
+Fax,傳真
+Custom Tags,自定義標記
+Submitted,提交
+In Valid Request,非法請求
+Email Footer Address,電子郵件地址頁尾
+Timeline DocType,時間軸的DocType,
+Action Timeout (Seconds),動作超時（秒）
+Default Sending,預設發送
+volume-off,體積過
+Liked by {0},由喜歡{0}
+Footer Item,頁腳項目
+Download Backups,下載備份
+Home/Test Folder 1,首頁/測試文件夾1,
+Assign to me,分配給我
+Dynamic Link,動態鏈接
+Show failed jobs,顯示失敗的作業
+Details,詳細資訊
+DocType or Field,DocType或欄位
+Soft-Bounced,軟退回
+"If enabled, all users can login from any IP Address using Two Factor Auth. This can also be set only for specific user(s) in User Page",如果啟用，所有用戶都可以使用雙因素身份驗證從任何IP地址登錄。這也可以只為用戶頁面中的特定用戶設置
+Seems Publishable Key or Secret Key is wrong !!!,似乎可發布的密鑰或秘密密鑰錯誤！
+Seems Publishable Key or Secret Key is wrong !!!,似乎可發布的密鑰或秘密密鑰錯誤！
+Quick Help for Setting Permissions,設定權限快速求助
+Doctype to Assign Tags,文檔類型來分配標籤
+Show Relapses,顯示復發
+Email has been moved to trash,電子郵件已被移至垃圾桶
+Report Builder,報表生成器
+"Your session has expired, please login again to continue.",您的會話已過期，請再次登錄以繼續。
+"Your session has expired, please login again to continue.",您的會話已過期，請再次登錄以繼續。
+Invalid Subscription,訂閱無效
+Welcome Message,歡迎消息
+Webhook Headers,Webhook標題
+Upload,上載
+Advanced Control,高級控制
+Not Published,未發布
+"Actions for workflow (e.g. Approve, Cancel).",流程的操作（如批准、取消）。
+Skip rows with errors,跳過有錯誤的行
+flag,旗標
+Feedback Request is already sent to user,反饋請求已經發送到用戶
+Text Align,文本對齊
+Forward To Email Address,轉發到郵件地址
+Weekdays,平日
+Show all data,顯示所有數據
+Title field must be a valid fieldname,標題字段必須是有效的字段名
+Post Comment,發表評論
+Documents,文件
+Custom Base URL,自定義基準網址
+Get Fields,獲得領域
+Edit Profile,編輯個人資料
+Archived,存檔
+Session Expiry in Hours e.g. 06:00,連線過期的小時，例如06:00,
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): 
+myfield,
+eval:doc.myfield=='My Value'
+eval:doc.age&gt;18",該字段將顯示僅在此處定義的字段名具有值或規則是真實的（例子）：MyField的EVAL：doc.myfield ==&#39;我的價值&#39;的eval：doc.age&gt; 18,
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",一旦你設置這個，用戶將只能訪問有聯結的文檔（如博客文章）。
+Log of Scheduler Errors,日程安排程序錯誤日誌
+Bio,生物
+App Client Secret,應用程序客戶端密鑰
+Parent is the name of the document to which the data will get added to.,Parent是將數據添加到的文檔的名稱。
+Show Likes,展會喜歡
+UPPER CASE,大寫字母
+Custom HTML,自定義HTML,
+Enter folder name,輸入文件夾名稱
+Unknown User,未知用戶
+Select Role,選擇角色
+Deleted,刪除
+adjust,調整
+Sidebar Settings,側邊欄的設置
+Disable Customer Signup link in Login page,禁止客戶在登入頁面的註冊連結
+Assigned To/Owner,指派給／所有者
+arrow-left,箭頭左
+1 star being lowest & 5 stars being highest rating,1星表示最低和5星為最高評價
+Value To Be Set,價值待定
+Edit {0},編輯{0}
+First Level,第一級
+Represents the states allowed in one document and role assigned to change the state.,代表一個文檔和角色分配給改變國家允許的狀態。
+Database Name,數據庫名稱
+Refresh Form,更新表格
+Select,選擇
+File not attached,文件未附
+Connection lost. Some features might not work.,連接丟失。某些功能可能無法使用。
+"Repeats like ""aaa"" are easy to guess",像“AAA”重複很容易被猜到
+"If you set this, this Item will come in a drop-down under the selected parent.",如果您設定此項，這個項目會存在於選定的父物件的下拉選單中。
+Show Section Headings,顯示部分標題
+No template found at path: {0},沒有找到模板於路徑：{0}
+No Email Account,沒有電子郵件帳戶
+Cancelled,註銷
+Avatar,頭像
+Salesforce,銷售隊伍
+Has Web View,具有Web視圖
+"DocType's name should start with a letter and it can only consist of letters, numbers, spaces and underscores",DocType的名稱應以字母開始，它只能由字母，數字，空格和下劃線組成。
+Spam,垃圾郵件
+Integration Request,集成請求
+Dear,親愛
+Maharashtra,馬哈拉施特拉邦
+Accounts User,會計人員
+HTML for header section. Optional,標題區塊的HTML。可選
+This feature is brand new and still experimental,此功能是全新的，仍處於試驗階段
+Maximum {0} rows allowed,最多允許{0}列
+Global Unsubscribe,全球退訂
+This is a very common password.,這是一個非常普遍的密碼。
+View,視圖
+Assigned,分配
+Select Print Format,選擇列印格式
+Short keyboard patterns are easy to guess,短鍵盤模式容易被猜中
+Generate New Report,生成新報告
+Portal Menu,門戶網站菜單
+Length of {0} should be between 1 and 1000,的{0}長度應介於1和1000之間
+Search for anything,搜索任何內容
+Hostname,主機名
+Condition Detail,狀況細節
+"For currency {0}, the minimum transaction amount should be {1}",對於貨幣{0}，最小交易金額應為{1}
+Print Hide,列印隱藏
+Enter Value,輸入值
+Style,風格
+Report End Time,報告結束時間
+{0} comments,{0}評論
+Label and Type,標籤和類型
+forward,轉發
+{0} last edited this,{0}編輯此
+New Folder,新建文件夾
+Uses the Email Address mentioned in this Account as the Sender for all emails sent using this Account. ,使用這個帳戶提到發件人使用此帳戶發送的所有電子郵件的電子郵件地址。
+Toggle Charts,切換圖表
+Sub-domain provided by erpnext.com,由erpnext.com提供的子網域
+Setting up your system,設置您的系統
+Descendants Of,後裔
+dd-mm-yyyy,dd-mm-yyyy,
+Must have report permission to access this report.,必須具有報告權限訪問此報告。
+Please select Minimum Password Score,請選擇最低密碼分數
+Please select Minimum Password Score,請選擇最低密碼分數
+You have subscribed for one user free plan,您已訂閱一個用戶免費計劃
+Half-yearly,每半年一次
+Daily Event Digest is sent for Calendar Events where reminders are set.,在日曆事件中被標註提醒的事件會列入每日事件摘要的郵件內。
+Header Image,標題圖像
+View Website,查看網站
+Message to be displayed on successful completion (only for Guest users),成功完成後顯示的消息（僅限訪客用戶）
+If non standard port (e.g. 587),如果非標準端口（如587）
+Reload,重新載入
+Add your own Tag Categories,添加您自己的標籤分類
+Total,總計
+Participants,參與者
+Reference DocName,DocName參照
+Success Message,成功的訊息
+Export Customizations,導出自定義
+End Date cannot be before Start Date!,結束日期不能在開始日期之前！
+User Cannot Search,無法搜尋使用者
+Invalid Output Format,無效的輸出格式
+Cannot {0} {1},無法{0} {1}
+Apply this rule if the User is the Owner,應用此規則如果用戶是業主
+Will be your login ID,將是您的登錄ID,
+Lead Conversion Time,線索轉換時間
+Build Report,建立報告
+Notify users with a popup when they log in,通知用戶有一個彈出登錄時
+"{0} {1} does not exist, select a new target to merge","{0} {1} 不存在, 請選擇要合併的新目標"
+Python Module,Python模塊
+Google Credentials,Google憑據
+QR Code for Login Verification,用於登錄驗證的QR碼
+Add to To Do,添加到待辦事項
+Assigned To Me,指派給我
+Google GSuite Templates to integration with DocTypes,Google GSuite模板與DocTypes集成
+Logout from all devices while changing Password,更改密碼時從所有設備註銷
+Verify Password,確認密碼
+There were errors,有錯誤
+Close,關閉
+Cannot change docstatus from 0 to 2,不能改變docstatus 0-2,
+Attached To Field,附在田地上
+Roles Permission,角色權限
+Transaction Hash,事務哈希
+Snapshot View,快照視圖
+Please save the Newsletter before sending,請在發送之前保存信件
+Configure accounts for google calendar,為Google日曆配置帳戶
+Options must be a valid DocType for field {0} in row {1},選項必須是字段的有效的DocType {0}行{1}
+Edit Properties,編輯屬性
+List of patches executed,執行補丁列表
+{0} already unsubscribed,{0}已經退訂
+Show only errors,只顯示錯誤
+Banner HTML,橫幅的HTML,
+Send Email Alert,發送郵件提醒
+Please select another payment method. Razorpay does not support transactions in currency '{0}',請選擇其他付款方式。 Razorpay不支持貨幣交易“{0}”
+In Progress,進行中
+Queued for backup. It may take a few minutes to an hour.,排隊等待備份。這可能需要幾分鐘到一個小時。
+User permission already exists,用戶權限已經存在
+Register OAuth Client App,註冊OAuth客戶端應用程序
+Authentication Credentials,身份驗證憑據
+Two Factor Authentication,雙因素認證
+SMS Gateway URL,短信閘道的URL,
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1} 不能為“{2}”。它應該是“{3}”的其中一個
+Password Update,密碼更新
+Older backups will be automatically deleted,舊的備份將被自動刪除
+Invalid Access Key ID or Secret Access Key.,無效的訪問密鑰ID或秘密訪問密鑰。
+Is Globally Pinned,是全球固定的
+Conditions,條件
+Leave blank to repeat always,保持空白以保持重複
+Confirmed,確認
+Ends on,結束於
+Gateway,網關
+Not enough permission to see links,沒有足夠的權限查看鏈接
+Not enough permission to see links,沒有足夠的權限查看鏈接
+Address Title is mandatory.,地址標題是強制性的。
+"Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO",在&lt;head&gt;添加HTML網頁的部分，主要用於網站的驗證和搜索引擎優化
+Relapsed,復發
+Item cannot be added to its own descendants,項目不能被添加到自己的後代
+Expiry time of QR Code Image Page,QR碼圖像頁面的到期時間
+Show Totals,顯示總計
+Relapses,復發
+Preferred Shipping Address,偏好的送貨地址
+With Letter head,隨著信頭
+{0} created this,{0}新增此
+"If this is checked, rows with valid data will be imported and invalid rows will be dumped into a new file for you to import later.",如果選中此選項，將導入包含有效數據的行，並將無效行轉儲到新文件中以供稍後導入。
+Document is only editable by users of role,文件只有通過編輯角色的用戶
+"The task {0}, that you assigned to {1}, has been closed by {2}.",任務{0}，您分配給{1}，已被關閉{2}。
+Show Line Breaks after Sections,章節後，顯示換行符
+Read by Recipient On,由收件人閱讀
+Short Name,簡稱
+Linked with {0},與{0}關聯
+"You are selecting Sync Option as ALL, It will resync all \
+				read as well as unread message from server. This may also cause the duplication\
+				of Communication (emails).",你是所有選擇同步選項，它會重新同步所有\讀取以及未讀郵件從服務器。這也可能會導致通信（電子郵件）的重複數據刪除\。
+magnet,磁鐵
+This Currency is disabled. Enable to use in transactions,公司在以下倉庫失踪
+Blocked,受阻
+"Default: ""Contact Us""",預設：“聯絡我們”
+Purchase Manager,採購經理
+toggle Tag,切換標籤
+Sample,樣品
+Private Key,私鑰
+Every Week,每一周
+Click here to check your usage or upgrade to a higher plan,點擊此處查詢您的使用或升級到更高的計劃
+Is Mandatory Field,是必須填寫
+Website User,網站用戶
+Not equals,不等於
+Integration Request Service,集成請求服務
+Script to attach to all web pages.,腳本安裝到所有網頁。
+Allow Multiple,允許多個
+Assign,指派
+Only Send Records Updated in Last X Hours,只發送記錄在最後X小時更新
+Only Send Records Updated in Last X Hours,只發送記錄在最後X小時更新
+Feedback,反饋
+Open Translation,打開翻譯
+This email is autogenerated,此電子郵件是自動生成的
+Icon will appear on the button,圖標將顯示在按鈕上
+Socketio is not connected. Cannot upload,Socketio未連接。無法上傳
+Website Settings,網站設定
+ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference,ProTip：添加<code>Reference: {{ reference_doctype }} {{ reference_name }}</code>發送文檔引用
+App not found,未找到應用程式
+Cannot create a {0} against a child document: {1},無法創建{0}針對兒童的文檔：{1}
+Social Login Key,社交登錄密鑰
+Custom Sidebar Menu,自定義工具欄菜單
+pencil,鉛筆
+Chat messages and other notifications.,聊天訊息和其他通知。
+Insert After cannot be set as {0},插入不能設定為後{0}
+Email Account setup please enter your password for: ,電子郵件帳戶設置，請輸入您的密碼：
+hand-up,手向上
+Writers Introduction,作家簡介
+Phone,電話
+Select Document Type or Role to start.,選擇文件類型或角色開始。
+Passive,被動
+Accounts Manager,會計經理
+Select File Type,選擇文件類型
+Knowledge Base Editor,知識庫編輯器
+Page not found,找不到網頁
+Precision,精確
+Slideshow Items,幻燈片項目
+Try to avoid repeated words and characters,盡量避免重複的單詞和字符
+Workflow State,工作流程狀態
+Success! You are good to go 👍,成功！你很好去👍
+Success! You are good to go 👍,成功！你很好去👍
+My Account,我的帳戶
+Allocated To,為了分配
+Please click on the following link to set your new password,請點擊以下鏈接來設置新密碼
+Receipient,RECEIPIENT,
+Settings for Contact Us Page,設定「聯絡我們」的頁面
+Script Type,腳本類型
+Enable Print Server,啟用打印服務器
+{0} weeks ago,{0}週前
+Auto Repeat Schedule,自動重複時間表
+Footer,頁腳
+Authentication,認證
+Invalid Link,鏈接無效
+Client Script,客戶端腳本
+Show Title,顯示標題
+Property Type,屬性類型
+screenshot,屏幕截圖
+Only Administrator can save a standard report. Please rename and save.,只有管理員可以保存一個標準的報告。請重新命名並保存。
+Background Workers,背景工人
+Fieldname {0} conflicting with meta object,字段名{0}與元對象衝突
+Data,數據
+Document Status,文檔狀態
+You have made {0} of {1},你已經做了{0} {1}
+OAuth Authorization Code,OAuth的授權碼
+Not allowed to Import,不允許輸入
+Deleted DocType,刪除的DocType,
+Permission Levels,權限級別
+Tag Category,標籤分類
+"Ignoring Item {0}, because a group exists with the same name!",忽略項目{0} ，因為一組存在具有相同名字！
+Help,幫助
+Login Before,登錄前
+Insert Style,插入樣式
+Application Installer,應用程式安裝器
+New Report name,新的報告名稱
+Hide Weekends,隱藏週末
+info-sign,資訊符號
+"How should this currency be formatted? If not set, will use system defaults",此貨幣使用何種格式？如果沒有設定，將使用系統預設值。
+You need to be logged in and have System Manager Role to be able to access backups.,您需要先登錄，並具有系統管理員角色才能夠訪問備份。
+Please save before attaching.,請安裝前儲存。
+Added {0} ({1}),添加{0}（{1}）
+Default theme is set in {0},默認主題是設置{0}
+Fieldtype cannot be changed from {0} to {1} in row {2},列{2}的欄位類型不能從{0}改變為{1}
+Role Permissions,角色權限
+Intermediate,中間
+Cancelled Document restored as Draft,已取消的文檔已恢復為草稿
+Start Time,開始時間
+Cannot delete or cancel because {0} {1} is linked with {2} {3} {4},由於{0} {1}與{2} {3} {4}鏈接，無法刪除或取消
+Can Read,可閱讀
+{0} Chart,{0}圖表
+Response,回應
+Emails will be sent with next possible workflow actions,電子郵件將與下一個可能的工作流操作一起發送
+Workflow will start after saving.,工作流程將在儲存之後啟動。
+Invalid recipient address,無效的收件人地址
+step-forward,往前進
+Allow Login After Fail,允許在失敗後登錄
+Your subscription has expired.,您的訂購已過期。
+Set Role For,集角色
+The name that will appear in Google Calendar,將顯示在Google日曆中的名稱
+Direct room with {0} already exists.,已存在{0}的直接房間。
+Refreshing...,更新中...
+Starts on,開始於
+System Settings,系統設置
+Google API Credentials,Google API憑證
+Session Start Failed,會話開始失敗
+Session Start Failed,會話開始失敗
+This email was sent to {0} and copied to {1},此電子郵件發送到{0}，並複製到{1}
+th,日
+Provider Name,提供者名稱
+Create a new {0},建立一個新的{0}
+GCalendar Account,GCalendar帳戶
+Is Spam,是垃圾郵件
+Report {0},報告{0}
+Open {0},打開{0}
+Default Redirect URI,默認重定向URI,
+Recipients,受助人
+Choose authentication method to be used by all users,選擇所有用戶使用的身份驗證方法
+ok-sign,OK符號
+Deleted Documents,已刪除的文件
+The CSV format is case sensitive,CSV格式區分大小寫
+Desktop Icon already exists,桌面圖標已經存在
+Duplicate,複製
+Create and Send Newsletters,建立和發送簡訊
+Andaman and Nicobar Islands,安達曼和尼科巴群島
+Please specify which value field must be checked,請指定必須檢查哪些值欄位
+"""Parent"" signifies the parent table in which this row must be added",“父項”表示在該行必須增加父表
+Cannot send this email. You have crossed the sending limit of {0} emails for this day.,無法發送此電子郵件。您已經超過了{0}個電子郵件的發送限制。
+Apply Style,應用樣式
+Feedback Rating,反饋評級
+Shared With,隨著共享
+Attach files / urls and add in table.,附加文件/網址並添加到表格中。
+Message not setup,消息未設置
+Help Articles,幫助文章
+Type:,類型：
+Your payment has failed.,您的付款失敗。
+Karnataka,卡納塔克邦
+Module Not Found,模塊未找到
+{0}: {1} is set to state {2},{0}：{1}設置為狀態{2}
+Permitted Documents For User,對於用戶的許可文件
+"You need to have ""Share"" permission",你需要有“共享”權限
+Assignment Completed,轉讓完成
+Bulk Edit {0},批量編輯{0}
+Download Report,下載報告
+Not active,不活躍
+Settings for the About Us Page,設置關於我們頁面
+Stripe payment gateway settings,條紋支付網關設置
+Stripe payment gateway settings,條紋支付網關設置
+Generate Keys,生成密鑰
+Use the field to filter records,使用字段篩選記錄
+View Settings,視圖設置
+"Add your Employees so you can manage leaves, expenses and payroll",新增員工，所以你可以管理的葉子，費用及工資
+"If non standard port (e.g. 587). If on Google Cloud, try port 2525.",如果非標準端口（例如587）。如果在Google Cloud上，請嘗試使用端口2525。
+"Clearing end date, as it cannot be in the past for published pages.",清除結束日期，因為發布的頁面不能在過去。
+Send Me A Copy of Outgoing Emails,給我發送電子郵件的副本
+Scheduler Last Event,調度上次事件
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,新增 Google Analytics ID：如UA-89XXX57-1。請搜尋Google Analytics相關文件以獲取更多訊息。
+Password cannot be more than 100 characters long,密碼不能超過100個字符長
+App Client ID,應用程序客戶端ID,
+Kanban Board Name,看板名稱
+"Expression, Optional",表達，可選
+Copy and paste this code into and empty Code.gs in your project at script.google.com,將該代碼複製並粘貼到script.google.com中的項目中的Code.gs並將其清空
+This email was sent to {0},這封電子郵件被發送到{0}
+Hide footer in auto email reports,在自動電子郵件報告中隱藏頁腳
+Remember Last Selected Value,記得去年選定的值
+Check this to pull emails from your mailbox,勾選此選項，則從你的郵箱取出電子郵件地址
+click here,點擊這裡
+Cannot edit cancelled document,無法編輯已取消文件
+Checksum Version,校驗版本
+Unhandled Email,未處理的郵件
+Make use of longer keyboard patterns,利用較長的鍵盤模式
+Processing...,處理...
+Don't create new records,不要創建新的記錄
+Nested set error. Please contact the Administrator.,嵌套組的錯誤。請聯絡管理員。
+"Documentation Results for ""{0}""",文檔“{0}”的結果
+envelope,信封
+Option 2,選項2,
+Printing failed,打印失敗
+Email Field,電子郵件字段
+New Password Required.,需要新密碼
+{0} shared this document with {1},{0}與{1}共享這個文件
+"Setup of top navigation bar, footer and logo.",安裝程序的頂部導航欄，頁腳和徽標。
+For {0} at level {1} in {2} in row {3},{0}在水平{1}的{2}行{3}
+Preview Message,預覽消息
+User Social Login,用戶社交登錄
+Recipient,接受者
+Sales User,銷售用戶
+Drag and Drop tool to build and customize Print Formats.,拖放工具來構建和定製列印格式。
+Sikkim,錫金
+Set Chart,設置圖表
+Set,集合
+This query style is discontinued,此查詢樣式已停止
+Trigger Method,觸發方式
+Operator must be one of {0},運算符必須是{0}
+Dropbox Access Token,Dropbox訪問令牌
+align-right,靠右對齊
+Email To,發送電子郵件給
+Folder {0} is not empty,文件夾{0}非空
+Error: Value missing for {0}: {1},錯誤：{0}缺少值：{1}
+Field {0} is not selectable.,欄位{0}是不可選擇的。
+Webhook,網絡掛接
+Session Expiry,連線過期
+ban-circle,禁令圈
+Slack Webhook Error,Slack Webhook錯誤
+Unread,未讀
+Desk,辦公桌
+Filter must be a tuple or list (in a list),過濾器必須是元組或列表（在列表中）
+Write a SELECT query. Note result is not paged (all data is sent in one go).,寫一個SELECT查詢。注結果不分頁（所有數據都一氣呵成發送）。
+Attachment Limit (MB),附件限制（MB）
+Arunachal Pradesh,阿魯納恰爾邦
+Setup Auto Email,設置自動電子郵件
+Message Preview,消息預覽
+This is a top-10 common password.,這是一個前10名的通用密碼。
+User Defaults,使用者預設
+Create New,新建立
+chevron-down,人字形-下
+Email not sent to {0} (unsubscribed / disabled),電子郵件不會被發送到{0}（退訂/禁用）
+Smallest Currency Fraction Value,最小的貨幣分數值
+Assign To,指派給
+th-list,日列表
+Enable Comments,啟用評論
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),僅限此IP地址用戶。多個IP地址可以通過用逗號分隔的方式輸入。也接受部分的IP地址區段如（111.111.111）
+From,從
+Google Font (Heading),谷歌字體（標題）
+Select a group node first.,首先選擇一組節點。
+Implicit,含蓄
+"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")",作為追加對通信本的DocType（必須有田，“狀態”，“主題”）
+"URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.
+<br>e.g. http://hostname//api/method/frappe.www.login.login_via_facebook",的URI，用於接收授權代碼一旦用戶允許訪問，以及失敗的響應。通常，REST端點的客戶端應用程序暴露出來。 <br>例如http：//hostname//api/method/frappe.www.login.login_via_facebook,
+Not allowed to change {0} after submission,不允許提交後更改{0}
+Migration ID Field,遷移ID字段
+Comment Type,註釋類型
+OAuth Client,OAuth客戶端
+Users,用戶
+Timeline field Name,時間軸場名稱
+Odisha,奧里薩邦
+Report Type,報告類型
+Signature,簽名
+Loading,載入中
+"Enter keys to enable login via Facebook, Google, GitHub.",Enter鍵啟用透過Facebook、Google、GitHub登錄。
+Sent/Received Email,已發送/已接收電子郵件
+Insert new records,插入新記錄
+Unable to read file format for {0},無法讀取{0}的文件格式
+Filter Data,過濾數據
+Please attach a file first.,請先加上附檔。
+"There were some errors setting the name, please contact the administrator",有一些錯誤設定的名稱，請與管理員聯絡
+Incoming email account not correct,收到的電子郵件帳戶不正確
+"You seem to have written your name instead of your email. \
+				Please enter a valid email address so that we can get back.",你似乎寫了你的名字，而不是你的電子郵件。 \請輸入有效的電子郵件地址，以便我們可以收回。
+Website Slideshow Item,網站幻燈片項目
+Self approval is not allowed,不允許自我批准
+Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed,授予類型（ <code>{0}</code> ）和響應類型（ <code>{1}</code> ）的組合不允許
+New Message from {0},來自{0}的新訊息
+Default Role at Time of Signup,在註冊時間默認角色
+Title Case,標題案例
+Enabled email inbox for user {0},已為用戶{0}啟用電子郵件收件箱
+Data Migration Run,數據遷移運行
+Email Sent,郵件發送
+Ignore XSS Filter,忽略XSS過濾器
+Dropbox backup settings,Dropbox的備份設置
+Link Color,鏈接顏色
+User {0} cannot be disabled,用戶{0}不能被禁用
+"Dear System Manager,",親愛的系統管理器，
+{0} self assigned this task: {1},{0}自行分配此任務：{1}
+Your Country,你的國家
+In Grid View,在網格視圖
+Show Calendar,顯示日曆
+LDAP Settings,LDAP設置
+Entity Name,實體名稱
+Amending,修訂
+PayPal payment gateway settings,貝寶支付網關設置
+"{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}",{0}：“{1}”（{3}）將被截斷，因為允許的上限字符為{2}
+Response Type,響應類型
+Send enquiries to this email address,發送諮詢到這個郵箱地址
+Letter Head Name,信頭名
+Number of columns for a field in a List View or a Grid (Total Columns should be less than 11),列數在列表視圖或網格場（合計列應小於11）
+User editable form on Website.,對網站的用戶可編輯的形式。
+Back to Login,返回登陸
+Local DocType,本地DocType,
+You need write permission to rename,您需要寫入權限才能重新命名
+Use ASCII encoding for password,使用ASCII編碼作為密碼
+Karma,因果報應
+You must login to submit this form,您必須登錄才能提交此表單
+Background Image,背景圖片
+Cannot set Notification on Document Type {0},無法在文檔類型{0}上設置通知
+"Select your Country, Time Zone and Currency",選擇國家時區和貨幣
+Between,之間
+Queued,排隊
+This month,這個月
+New Custom Print Format,新自定義列印格式
+Create,建立
+Invalid Filter: {0},無效的過濾器： {0}
+no failed attempts,沒有失敗的嘗試
+refresh_token,refresh_token,
+App Access Key,應用程序訪問密鑰
+An error occured while creating recurring,創建循環時出現錯誤
+Last Message,最後的消息
+Access Token,存取 Token,
+Org History,組織歷史
+Backup Size:,備份大小：
+Auto Repeat has been {0},自動重複已經{0}
+Next Schedule Date,下一個附表日期
+Workflow Name,工作流程名稱
+Notify by Email,通過電子郵件通知
+In Standard Filter,在標準過濾器
+Allow Edit,讓編輯
+Paste,粘貼
+Doc Events,文件活動
+Based on Permissions For User,基於權限之和
+Cannot change state of Cancelled Document. Transition row {0},不能改變註銷文件的狀態。
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.",規則的狀態是如何過渡，例如下一個狀態以及何種角色允許改變狀態等。
+{0} {1} already exists,{0} {1}已經存在
+Append To can be one of {0},追加到可以是一個{0}
+Image View,圖像查看
+"Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.",似乎發生在交易過程中錯誤的。因為我們還沒有確認付款，支付寶會自動退還你這一數額。如果沒有，請給我們發郵件並註明相關ID：{0}。
+"Include symbols, numbers and capital letters in the password",在密碼中加入符號，數字和大寫字母
+"Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist",插入自定義字段“{0}”提到的後場“{1}”，標記為“{2}”不存在
+List Filter,列表過濾器
+Options {0} must be the same as doctype name {1} for the field {2},選項{0}必須與字段{2}的文檔類型名稱{1}相同
+signal,信號
+Show Print First,先顯示列印
+Make a new {0},建立一個新的{0}
+New Email Account,新的電子郵件帳戶
+Document Restored,文件恢復
+Data Export,數據導出
+Select Language...,選擇語言...
+You can't set 'Options' for field {0},您不能為字段{0}設置“選項”
+Resume Sending,發送簡歷
+Reopen,重新打開
+Purchase User,購買用戶
+Push Failed,推送失敗
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",本文件可存在的不同「狀態」。如「開啟」、「延後批准」等。
+This link is invalid or expired. Please make sure you have pasted correctly.,此鏈接是無效或過期。請確保你已經正確粘貼。
+Slideshow,連續播放
+Default Address Template cannot be deleted,預設地址模板不能被刪除
+Maintenance Manager,維護經理
+Please select another payment method. Stripe does not support transactions in currency '{0}',請選擇其他付款方式。 Stripe不支持貨幣“{0}”的交易
+Please select another payment method. Stripe does not support transactions in currency '{0}',請選擇其他付款方式。 Stripe不支持貨幣“{0}”的交易
+Move To Trash,移到廢紙簍
+Web Form Fields,網頁表單欄位
+Top Bar Text Color,最上面一欄文字顏色
+Amended From,從修訂
+Warning: Unable to find {0} in any table related to {1},警告：無法找到{0}與任何表{1}
+This document is currently queued for execution. Please try again,這份文件目前正在排隊等待執行。請再試一次
+Remove Section,刪除部分
+Change Password,更改密碼
+X Axis Field,X軸場
+Invalid Email: {0},無效的電子郵件： {0}
+Braintree payment gateway settings,Braintree支付網關設置
+Event end must be after start,活動必須在開始後才能結束
+This will log out {0} from all other devices,這將從所有其他設備註銷{0}
+You don't have permission to get a report on: {0},你無權得到一份報告：{0}
+Apply Strict User Permissions,應用嚴格的用戶權限
+Allow Bulk Edit,允許批量修改
+Allow Bulk Edit,允許批量修改
+Blog Post,網誌文章
+Advanced Search,高級搜索
+You are not permitted to view the newsletter.,您不能查看簡報。
+Password reset instructions have been sent to your email,密碼重置說明已發送到您的電子郵件
+"Level 0 is for document level permissions, \
+								higher levels for field level permissions.",級別0是用於文檔級別權限，\更高級別的字段級權限。
+Can't save the form as data import is in progress.,數據導入過程中無法保存表單。
+States,州
+Attach Print,附加列印
+Suggested Username: {0},建議用戶名：{0}
+Modules,模塊
+Set Desktop Icons,設置桌面圖標
+No {0} mail,沒有{0}郵件
+Error in uploading files,上傳文件時出錯
+Revoked,撤銷
+Sidebar and Comments,邊欄和評論
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",當您修改一個文件後，取消和保存，它會得到一個新的數字，是一個版本的舊號碼。
+"Not allowed to attach {0} document,
+				please enable Allow Print For {0} in Print Settings",不允許附加{0}文檔，請在打印設置中啟用允許打印{0}
+See the document at {0},請參閱{0}處的文檔
+Publishable Key,可發布密鑰
+Publishable Key,可發布密鑰
+Start Import,開始導入
+circle-arrow-left,圓圈箭頭向左
+Redis cache server not running. Please contact Administrator / Tech support,Redis的暫存服務器無法運行。請聯絡管理員/技術支持
+Make a new record,建立新紀錄
+Fraction,分數
+LDAP First Name Field,LDAP名現場
+for automatic creating of the recurring document to continue.,用於自動創建重複文檔以繼續。
+Select from existing attachments,從現有的附件選擇
+Field Description,欄位說明
+Name not set via Prompt,名稱未通過設置提示
+"Enter default value fields (keys) and values. If you add multiple values for a field,the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields,go to ""Customize Form"".",輸入默認值字段（鍵）和值。如果為一個字段添加多個值，則會選取第一個值。這些默認值也用於設置“匹配”權限規則。要查看字段列表，請轉到“自定義表單”。
+Email Inbox,電子郵件收件箱
+Filters Display,顯示過濾器
+Top Bar Color,頂欄顏色
+Plant,廠
+Setup,設定
+Initial Sync Count,初始同步計數
+New comment on {0} {1},新評論{0} {1}
+Timeline Field,時間軸場
+Time Zones,時區
+There must be atleast one permission rule.,有至少要包含一個允許規則。
+Get Items,找項目
+Image,圖像
+remove-sign,刪除符號
+Failed to connect to server,無法連接服務器
+There is no data to be exported,沒有要導出的數據
+Type something in the search box to search,鍵入在搜索框中輸入一些搜索
+Define workflows for forms.,定義表單流程。
+Please enter Authorize URL,請輸入授權網址
+Access Key ID,訪問密鑰ID,
+Start new Format,開始新的格式
+font,字形
+This is a top-100 common password.,這是一個頂100公共密碼。
+Please enable pop-ups,請啟用彈出窗口
+End date must be greater than start date,結束日期必須大於開始日期
+Mobile No,手機號碼
+Text Content,文本內容
+Is Custom Field,是自定義字段
+"If checked, all other workflows become inactive.",如果選中，所有其他的工作流程變得無效。
+[Label]:[Field Type]/[Options]:[Width],[標籤]：[字段類型] / [選項]：[寬]
+folder-close,文件夾閉
+Report:,報告：
+Print taxes with zero amount,打印零金額的稅
+{0} not allowed to be renamed,{0}不允許改名
+Custom Script,自定義腳本
+Reference,參考
+Assigned To,指派給
+Data Migration Mapping Detail,數據遷移映射細節
+Action,行動
+Script URL,腳本網址
+Please enter the password,請輸入密碼
+Not allowed to print cancelled documents,不允許打印文件取消
+You are not allowed to create columns,你無權來創建列
+If you don't want to create any new records while updating the older records.,如果您不想在更新舊記錄時創建新記錄。
+Info:,資訊：
+Permission Level,權限級別
+Send Notifications for Transactions I Follow,發送通知進行交易我跟隨
+"{0}: Cannot set Submit, Cancel, Amend without Write",{0} ：沒有寫入則無法設定提交，取消，修改
+Client Key,客戶端密鑰
+Are you sure you want to delete the attachment?,您確定要刪除附件？
+Thank you,謝謝
+Saving,儲存中
+Print Style Preview,列印樣式預覽
+Test_Folder,Test_Folder,
+Icons,圖標
+You are not allowed to update this Web Form Document,你不允許更新此網頁表單文件
+Emails,電子郵件
+Please select Document Type first,請先選擇文件類型
+Please set Base URL in Social Login Key for Frappe,請在Frappe的社交登錄密鑰中設置基本網址
+About Us Settings,關於我們的設置
+Website Theme,網站主題
+Api Access,Api訪問
+In List View,在列表視圖
+Invalid login or password,無效的登錄名或密碼
+Download Template,下載模板
+Add custom javascript to forms.,添加自定義的JavaScript到表單內。
+Role Permissions Manager,角色權限管理
+Name of the new Print Format,新列印格式的名稱
+Toggle Sidebar,切換邊欄
+Pull Insert,拉插入
+Mandatory:,強制性：
+Conversation Tones,對話音
+New value to be set,被設定的新值
+Days Before or After,日前或後
+Next Date's day and Repeat on Day of Month must be equal,下一個日期的一天，重複上月的天必須相等
+Select Document Types to set which User Permissions are used to limit access.,選擇文件類型來設置該用戶的權限來限制訪問。
+HTML Header & Robots,HTML頁眉和機器人
+User Permission,用戶權限
+Blog,部落格
+LDAP Not Installed,LDAP未安裝
+Download with data,下載資料
+hand-right,手向右
+Settings for OAuth Provider,對OAuth的提供商設置
+Current status,現狀
+Allow Delete,允許刪除
+Message Examples,訊息範例
+Login Required,需要登錄
+Write titles and introductions to your blog.,寫標題和介紹給你的博客。
+Email Login ID,電子郵件登錄ID,
+Email Login ID,電子郵件登錄ID,
+Addresses And Contacts,地址和聯繫方式
+Please select document type first.,請先選擇文件類型。
+Clear Error Logs,清除錯誤日誌
+Please select a rating,請選擇評分
+Reset OTP Secret,重置OTP密碼
+Notify if unreplied for (in mins),對於通知，如果沒有回复（以分鐘）
+Categorize blog posts.,分類博客文章。
+Time,時間
+Attach,附加檔案
+{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}.,{{{0}}} 不是一個有效欄位名模式。它應該是{{FIELD_NAME}}。
+Send Feedback Request only if there is at least one communication is available for the document.,發送反饋請求僅當有至少一個通信是可用於文檔。
+Permission Rules,權限規則
+Public Key,公鑰
+GSuite Settings,GSuite設置
+Links,鏈接
+Please select the Document Type.,請選擇文件類型。
+Add Child,新增子項目
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}：已呈交的記錄不能被刪除。
+new type of document,新類型的文件
+Read,閱讀
+Chhattisgarh,恰蒂斯加爾邦
+Role Permission for Page and Report,角色權限頁和報告
+Align Value,對齊值
+Old Password,舊密碼
+"To format columns, give column labels in the query.",要格式化列，給列標籤在查詢中。
+Hide,隱藏
+Don't have an account? Sign up,還沒有帳號？註冊
+Cannot remove ID field,無法刪除ID字段
+{0}: Cannot set Assign Amend if not Submittable,{0} ：如果不可提交的話，便無法設為指定修改
+Bihar,比哈爾邦
+Link DocType,連接 DocType,
+You don't have any messages yet.,你還沒有任何消息。
+Remove all customizations?,刪除所有自定義？
+Slideshow Name,幻燈片放映名稱
+Allow Rename,允許重新命名
+Duplicate Filter Name,重複的過濾器名稱
+Child Tables are shown as a Grid in other DocTypes.,子表在其他文件類型中顯示為Grid。
+Chat Room User,聊天室用戶
+Workflow State not set,工作流程狀態未設置
+The page you are looking for is missing. This could be because it is moved or there is a typo in the link.,您正在查找的頁已丟失。這可能是因為它被移動或有路段中的錯字。
+Error Code: {0},錯誤代碼：{0}
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",說明列表頁面，在純文本中，只有幾行。 （最多140個字符）
+Allow Self Approval,允許自我批准
+Event Category,活動類別
+Name Case,案例名稱
+Shared with everyone,的所有人共享
+Data missing in table,在表中的數據丟失
+Number of DB backups cannot be less than 1,數據庫備份數不能少於1,
+Only Allow Edit For,只允許編輯
+Mandatory field: {0},強制字段：{0}
+Your Name,你的名字
+Connection Success,連接成功
+InnoDB,InnoDB的
+Is Folder,在文件夾
+Feedback Ratings,反饋評級
+DocType,DocType,
+"If image is selected, color will be ignored.",如果圖像被選擇時，顏色將被忽略。
+Mute Sounds,關閉聲音
+Top Bar Item,頂欄項目
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",未知文件編碼。嘗試UTF-8，windows-1250訪問，windows-1252訪問。
+Standard Print Style cannot be changed. Please duplicate to edit.,標準打印樣式無法更改。請重複編輯。
+Robots.txt,的robots.txt,
+Sorry! Sharing with Website User is prohibited.,對不起！與網站用戶共享是禁止的。
+Add all roles,選取所有角色
+Bootstrap Theme,引導主題
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","請輸入您的電子郵件和訊息，我們
+將盡快給您回覆。謝謝！"
+Could not connect to outgoing email server,無法連接到外發郵件服務器
+Thank you for your interest in subscribing to our updates,感謝您的關注中訂閱我們的更新
+Custom Column,自定義列
+resize-full,調整大小－滿版
+off,關閉
+Report {0} is disabled,報告{0}無效
+Set Permissions,設置權限
+Set non-standard precision for a Float or Currency field,設置非標精度浮點數或貨幣領域
+Ignore attachments over this size,忽略附件超過此大小的
+Preferred Billing Address,偏好的帳單地址
+Workflow State {0} is not allowed,工作流程狀態{0}不被允許
+Too many writes in one request. Please send smaller requests,太多的寫在一個請求。請將較小的請求
+arrow-up,向上箭頭
+Expires In,過期日期在
+Allow on Submit,允許在提交
+Exception Type,異常類型
+Add code as &lt;script&gt;,添加源碼為&lt;script&gt;
+Headers,頭
+Please enter values for App Access Key and App Secret Key,為App訪問鍵和App保密密鑰請輸入值
+A log of request errors,日誌請求錯誤的
+Letter Head,信頭
+Quick Entry,快速入門
+Button Label,按鈕標籤
+UPPERCASE,大寫字母
+{0} items selected,選擇{0}項目
+Suspend Sending,暫停發送
+Drag elements from the sidebar to add. Drag them back to trash.,從側邊欄拖動的元素添加。他們拖回到垃圾桶。
+resize-small,調整大小－小
+Postal Code,郵政編碼
+Relink Communication,重新鏈接通訊
+No Active Sessions,沒有活動會話
+Route to Success Link,通往成功鏈接的路線
+Right,右邊
+User Type,用戶類型
+Ref Report DocType,參考報告DocType,
+Click table to edit,點擊表格編輯
+Client ID,客戶端ID,
+Reference Doc,參考文檔
+Keep a track of all communications,保持跟踪所有通信
+Did not save,尚未儲存
+Property,屬性
+Chart Type,圖表類型
+"Note: For best results, images must be of the same size and width must be greater than height.",注意：為達到最佳效果，圖像必須具有相同的尺寸和寬度必須大於高度。
+Auto Name,自動名稱
+Avoid sequences like abc or 6543 as they are easy to guess,避免像ABC或6543的序列，因為它們容易被猜中
+Please try again,請再試一次
+Option 3,選項3,
+Edit,編輯
+Permissions can be managed via Setup &gt; Role Permissions Manager,權限可以通過設置＆gt進行管理;角色權限管理
+Chat Operators,聊天運營商
+Pincode,PIN代碼
+Please make sure that there are no empty columns in the file.,請確保沒有空欄在文件中。
+Please ensure that your profile has an email address,請確保您的個人資料有一個電子郵件地址，
+You have unsaved changes in this form. Please save before you continue.,你在本表格未保存的更改。
+Telangana,特蘭伽納
+Default for {0} must be an option,預設為{0}必須是一種選項
+Tag Doc Category,標籤單據類別
+User Image,使用者圖片
+Emails are muted,電子郵件是靜音模式
+Google Services,Google服務
+Heading Style,標題樣式
+1 weeks ago,1週前
+Error,錯誤
+Please setup a message first,請先設置一條消息
+End Date,結束日期
+Ignore encoding errors,忽略編碼錯誤
+Column Break,分欄符
+You don't have permission to access this file,您沒有權限訪問該文件
+Save API Secret: ,保存API密碼：
+Cannot link cancelled document: {0},無法鏈接取消文件：{0}
+Cannot edit a standard report. Please duplicate and create a new report,不能編輯標準的報告。請複製並創建一個新的報告
+"Company is mandatory, as it is your company address",公司是強制性的，因為它是你的公司地址
+Select Table Columns for {0},選擇表列{0}
+Options Help,選項幫助
+Group Label,組標籤
+Report Hide,報告隱藏
+Tree view not available for {0},不適用於樹視圖{0}
+Domain,網域
+Label Help,標籤說明
+star-empty,明星空
+Next actions,下一步行動
+"Cannot edit Standard Notification. To edit, please disable this and duplicate it",無法編輯標准通知。要進行編輯，請禁用並複制它
+ok,好
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,這些值將在交易中自動更新，也將是有益的權限限制在含有這些值交易這個用戶。
+Verfication Code,驗證碼
+for generating the recurring,用於生成循環
+Webhook Request,Webhook請求
+** Failed: {0} to {1}: {2},**失敗：{0}到 {1}：{2}
+Mapping Type,映射類型
+Browse,瀏覽
+"No need for symbols, digits, or uppercase letters.",無需符號，數字和大寫字母。
+Add custom field Auto Repeat in the doctype {0},在文檔類型{0}中添加自定義字段自動重複
+Currency,貨幣
+View it in your browser,在瀏覽器查看
+Track Views,跟踪視圖
+Reset Password,重設密碼
+Please Upgrade to add more than {0} subscribers,請升級增加超過{0}用戶
+hand-left,手向左
+If you are updating/overwriting already created records.,如果您正在更新/覆蓋已經創建的記錄。
+Is Global,是全球性的
+The document could not be correctly assigned,無法正確分配文檔
+"Invalid ""depends_on"" expression",“depends_on”表達式無效
+Group Name,團隊名字
+Select Print Format to Edit,選擇編輯的列印格式
+Shipping,航運
+circle-arrow-down,圓圈箭頭向下
+Private and public Notes.,私人和公共的注意事項。
+Datetime,日期時間
+Expired link,過期鏈接
+Not a valid user,不是有效的用戶
+Please enter a valid email address.,請輸入有效的電子郵件地址。
+arrow-right,箭頭向右
+Workflow state represents the current state of a document.,工作流狀態表示文檔的當前狀態。
+Token is missing,令牌丟失
+Set Password,設置密碼
+Note: Changing the Page Name will break previous URL to this page.,注意：更改頁面名稱將會破壞此頁面的上一個URL。
+Removed {0},刪除{0}
+SMS Settings,簡訊設定
+Highlight,突出
+Fold,折
+Standard Print Format cannot be updated,標準列印格式不能被更新
+Please specify,請註明
+Bot,博特
+Help Article,幫助文章
+Page Name,網頁名稱
+Help: Field Properties,幫助：字段屬性
+Also adding the dependent currency field {0},還要添加從屬貨幣字段{0}
+Unzip,拉開拉鍊
+Incorrect value in row {0}: {1} must be {2} {3},不正確的值在列{0} ： {1}必須是{2} {3}
+Submitted Document cannot be converted back to draft. Transition row {0},提交的文件不能被轉換回起草。
+Configure your google calendar integration,配置你的谷歌日曆集成
+Deleting {0},刪除{0}
+Select an existing format to edit or start a new format.,選擇現有格式來編輯或開始一個新的格式。
+Bypass restricted IP Address check If Two Factor Auth Enabled,繞過受限制的IP地址檢查如果雙因素驗證啟用
+Created Custom Field {0} in {1},創建自定義欄位{0} {1}
+Time Zone,時區
+Special Characters are not allowed,特殊字符是不允許
+Relinked,重新鏈接
+Compact Item Print,緊湊型項目打印
+Enter url parameter for receiver nos,輸入URL參數的接收器號
+and uncheck Disabled in the Auto Repeat document,並在自動重複文檔中取消選中已禁用
+Online,線上
+Only Administrator can delete Email Queue,只有管理員可以刪除郵件隊列
+Setting this Address Template as default as there is no other default,設置此地址模板為預設當沒有其它的預設值
+Home,家
+Auto,汽車
+User can login using Email id or User Name,用戶可以使用電子郵件ID或用戶名登錄
+question-sign,問號
+"Field ""route"" is mandatory for Web Views",Web視圖必須使用字段“路由”
+Number of DB Backups,數據庫備份數
+Add Signature,添加簽名
+Left this conversation,離開了這個談話
+Background Jobs,後台作業
+ToDo,待辦事項
+No Copy,沒有複製
+qrcode,QRcode,
+Submit after importing,導入後提交
+Login with LDAP,與LDAP登錄
+Breadcrumbs,麵包屑
+If Owner,如果業主
+Push,推
+Expiration time,到期時間
+Website Sidebar,網站邊欄
+Show Sidebar,顯示側邊欄
+You need to be logged in to access this {0}.,您需要登錄才能訪問此{0}。
+Complete By,完成
+{0} by {1},{0}by {1}
+All-uppercase is almost as easy to guess as all-lowercase.,全大寫幾乎一樣容易猜到全部小寫。
+Email Fieldname,電子郵件字段名
+Top Bar Items,頂欄項目
+Print Settings,列印設置
+Yes,是的
+Client key is required,客戶端密鑰是必需的
+End Date Field,結束日期字段
+Page,頁面
+Knowledge Base,知識庫
+Value cannot be changed for {0},值不能被改變為{0}
+Is Manual,為手動
+Please find attached {0} #{1},隨函附上{0}＃{1}
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",風格代表按鈕的顏色：成功 - 綠色，危險 - 紅，逆 - 黑色，主要 - 深藍色，資訊 - 淺藍，警告 - 橙
+Row Status,行狀態
+Workflow Transition,工作流程轉換
+{0} months ago,{0}個月前
+Created By,建立者
+Dropbox Setup,Dropbox的設置
+resize-horizontal,調整大小－水平
+Content,內容
+Group Node,組節點
+Document,文件
+Series {0} already used in {1},系列{0}已經被應用在{1}
+Code,源碼
+"All possible Workflow States and roles of the workflow. Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",所有可能的工作流狀態和工作流程的作用。 Docstatus選項：0是“拯救”，1“已提交”和2“取消”
+Footer Text Color,頁腳文本顏色
+"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.",0級權限是文檔級的權限，也就是說，它們是主要用於訪問文件。
+Print Format,列印格式
+Toggle Grid View,切換網格視圖
+Make Chart,製作圖表
+Invalid payment gateway credentials,無效的支付網關憑據
+This is the template file generated with only the rows having some error. You should use this file for correction and import.,這是只有有一些錯誤的行生成的模板文件。您應該使用此文件進行更正和導入。
+Set Permissions on Document Types and Roles,在文件類型和角色設置權限
+Remote ID,遠程ID,
+No Label,無標籤
+Use socketio to upload file,使用socketio上傳文件
+Refreshing,清爽
+"""Company History""",“公司歷史”
+This document has been modified after the email was sent.,發送電子郵件後，此文檔已被修改。
+Show Report,顯示報告
+Tamil Nadu,泰米爾納德邦
+Email Rule,電子郵件規則
+"To stop sending repetitive error notifications from the system, we have checked Disabled field in the Auto Repeat document",要停止從系統發送重複性錯誤通知，我們在自動重複文檔中選中了“禁用”字段
+{0} shared this document with everyone,{0}與每個人共享該文件
+Commented on {0}: {1},評論{0}：{1}
+Your payment has been successfully registered.,您的付款已成功註冊。
+Secret Key,密鑰
+Secret Key,密鑰
+Translate {0},翻譯{0}
+Send alert if this field's value changes,發送警示，如果這個欄位的值改變
+Select a DocType to make a new format,選擇一個DOCTYPE做出新的格式
+just now,剛剛
+Apply,應用
+{0} Settings not found,{0}沒有找到設置
+Module Def,模組定義
+Data Migration Plan,數據遷移計劃
+Pages in Desk (place holders),在台頁面（佔位符）
+Collapsible Depends On,可折疊取決於
+Print Style Name,打印樣式名稱
+By,通過
+Allow page break inside tables,允許在表格分頁符
+SMTP Server,SMTP服務器
+Print Format Help,列印格式求助
+With Groups,與團體
+{0} room must have atmost one user.,{0}會議室必須至少有一個用戶。
+Limit icon choices for all users.,限制所有用戶的圖標選擇。
+restored {0} as {1},恢復{0}為{1}
+"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.",如果要更新，請選擇“覆蓋”其他現有行不會被刪除。
+Translatable,可翻譯
+Letter Head in HTML,信頭中的HTML,
+Web Form,網頁表單
+Date {0} must be in format: {1},日期{0}必須採用格式：{1}
+Org History Heading,組織歷史航向
+Sorry. You have reached the maximum user limit for your subscription. You can either disable an existing user or buy a higher subscription plan.,抱歉。您已經達到了您訂閱的最大用戶限制。您可以禁用現有用戶或購買更高的訂閱計劃。
+Allow Print for Cancelled,允許打印為已取消
+Integrations can use this field to set email delivery status,整合可以使用此欄位來設定郵件發送狀態
+Web Page Link Text,網頁鏈接文本
+System Page,系統頁面
+System Page,系統頁面
+"Set default format, page size, print style etc.",設置預設格式，頁面大小，列印樣式等。
+Customizations for <b>{0}</b> exported to:<br>{1},<b>{0}的</b>自定義已導出到： <br> {1}
+Include Search in Top Bar,包括在頂欄搜索
+Allow GSuite access,允許GSuite訪問
+Select All,全選
+Custom Translations,翻譯定制
+Progress,進展
+ by Role ,依角色
+Missing Fields,丟失的字段
+Invalid fieldname '{0}' in autoname,在自動命名無效字段名“{0}”
+Search in a document type,對文檔類型搜索
+Allow field to remain editable even after submission,讓外地甚至提交後仍然可編輯
+Role and Level,角色和級別
+Thumbnail URL,縮略圖網址
+Custom Reports,自定義報告
+Website Script,網站腳本
+If you aren't using own publish Google Apps Script webapp you can use the default https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec ,如果您沒有使用自己的發布Google Apps Script webapp，您可以使用默認的https://script.google.com/macros/s/AKfycbxIFOx3301xwtF2IFPJ4pUQGqkNF3hBiBebppWkeKn6fKZRQvk/exec,
+Customized HTML Templates for printing transactions.,定製列印交易用之 HTML 模板。
+Is Active,啟用
+No further records,沒有進一步的記錄
+Long Text,長文本
+Primary,主要的
+Please do not change the rows above {0},請不要更改上面的{0}列
+Go to this URL after completing the form (only for Guest users),完成表單後轉到此網址（僅限訪客用戶）
+More Information,更多訊息
+Field Maps,現場地圖
+Desktop Icon,桌面圖標
+Sorry! You are not permitted to view this page.,對不起！你不允許查看此頁面。
+Tip:  Double click cell to edit,提示：雙擊單元格以編輯
+bell,鐘
+Share this document with,分享這個文件
+{0} {1} cannot be a leaf node as it has children,{0} {1}不能是一個葉節點，因為它有子節點
+Info,資訊
+Please enter Client Secret before social login is enabled,在啟用社交登錄之前，請輸入客戶端密碼
+Email,電子郵件
+Thank you for your message,謝謝您的留言
+Send Read Receipt,發送閱讀回執
+Stripe Settings,條紋設置
+Stripe Settings,條紋設置
+Data Migration Mapping,數據遷移映射
+Invalid Login Token,無效的登錄令牌
+Discard,丟棄
+1 hour ago,1小時前
+Home Page,首頁
+Parent Error Snapshot,家長錯誤快照
+Filters,篩選器
+share-alt,股份ALT,
+Queue should be one of {0},隊列應該是{0}
+"<h4>Default Template</h4>
+<p>Uses <a href=""http://jinja.pocoo.org/docs/templates/"">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>
+<pre><code>{{ address_line1 }}&lt;br&gt;
+{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}
+{{ city }}&lt;br&gt;
+{% if state %}{{ state }}&lt;br&gt;{% endif -%}
+{% if pincode %} PIN:  {{ pincode }}&lt;br&gt;{% endif -%}
+{{ country }}&lt;br&gt;
+{% if phone %}Phone: {{ phone }}&lt;br&gt;{% endif -%}
+{% if fax %}Fax: {{ fax }}&lt;br&gt;{% endif -%}
+{% if email_id %}Email: {{ email_id }}&lt;br&gt;{% endif -%}
+</code></pre>","<H4>默認模板</ H4> 
+ <p> <a用途神社href=""http://jinja.pocoo.org/docs/templates/"">模板</A>和地址的所有領域（包括自定義字段如果有的話）將可</ P> 
+ <前> <代碼> {{address_line1}}＆LT; BR＆GT; 
+ {％，如果address_line2％} {{address_line2}}＆LT; BR＆GT; { ENDIF％ - ％} 
+ {{城市}}＆LT; BR＆GT; 
+ {％，如果狀態％} {{狀態}}＆LT; BR＆GT; {％ENDIF - ％} {
+％，如果PIN代碼％} PIN：{{PIN碼}}＆LT; BR＆GT; {％ENDIF - ％} 
+ {{國家}}＆LT; BR＆GT; 
+ {％，如果電話％}電話：{{電話}}＆LT; BR＆GT; { ％ENDIF - ％} 
+ {％，如果傳真％}傳真：{{傳真}}＆LT; BR＆GT; {％ENDIF - ％} 
+ {％，如果email_id％}電子郵件：{{email_id}}＆LT; BR＆GT {％ENDIF - ％} 
+ </代碼> </ PRE>"
+Start Date Field,開始日期字段
+Role Name,角色名稱
+Switch To Desk,切換到台
+Script or Query reports,腳本或查詢報告
+Workflow Document State,工作流程文件狀態
+Email Account added multiple times,電子郵件帳戶多次添加
+Hide Standard Menu,隱藏標準菜單
+Add / Manage Email Domains.,添加/管理電子郵件域。
+Cannot cancel before submitting. See Transition {0},可以在提交之前不會取消。
+Print Format {0} is disabled,列印格式{0}被禁用
+Send days before or after the reference date,之前或基準日後發送天
+Allow user to login only after this hour (0-24),允許用戶在幾小時後登入（0 - 24）
+Subscription Notification,訂閱通知
+Start Date,開始日期
+Click here to verify,點擊這裡核實
+Predictable substitutions like '@' instead of 'a' don't help very much.,可預見的替換像&#39;@&#39;而不是&#39;一&#39;不要太大幫助。
+Assigned By Me,指定由我
+Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,不是在開發模式！坐落在site_config.json或進行“自定義”的DocType。
+globe,地球
+dd.mm.yyyy,dd.mm.yyyy,
+Hide field in Standard Print Format,標準列印格式中的隱藏欄位
+Priority,優先
+Unsubscribe Param,退訂參數
+Weekly,每週
+Eg. smsgateway.com/api/send_sms.cgi,例如：。 smsgateway.com / API / send_sms.cgi,
+Allow Import (via Data Import Tool),允許導入（通過數據導入工具）
+Sr,序號
+Float,浮動
+Page Settings,頁面設置
+Submit on creation,提交關於創建
+Invalid Password,無效的密碼
+Purchase Master Manager,採購主檔經理
+Module Name,模塊名稱
+DocType is a Table / Form in the application.,DOCTYPE是一應用程式中的表格/表單。
+Authorize URL,授權URL,
+GMail,GMail的
+Party GSTIN,派對GSTIN,
+{0} Report,{0}報告
+Fetch Images,獲取圖像
+Web View,Web視圖
+Warning: This Print Format is in old style and cannot be generated via the API.,警告：此列印格式是舊式的，不能透過API生成。
+Totals,總計
+Print Width,列印寬度
+Setup Wizard,設置嚮導
+GST State Number,GST州號
+Visitor,遊客
+Allow user to login only before this hour (0-24),允許用戶在幾小時前登入（0 - 24）
+Access Token URL,訪問令牌URL,
+New Message from Website Contact Page,從網站的聯繫頁面新消息
+Reference Date,參考日期
+Please enter valid mobile nos,請輸入有效的手機號
+Some of the features might not work in your browser. Please update your browser to the latest version.,您的瀏覽器中的某些功能可能無法正常工作。請將您的瀏覽器更新到最新版本。
+Some of the features might not work in your browser. Please update your browser to the latest version.,您的瀏覽器中的某些功能可能無法正常工作。請將您的瀏覽器更新到最新版本。
+"Don't know, ask 'help'",不知道，問&#39;幫助&#39;
+Comments and Communications will be associated with this linked document,評論與通訊將與此鏈接的文檔關聯
+Filter...,過濾器...
+bold,粗體
+Status,狀態
+Client Secret,客戶秘密
+Year,年結
+ Advanced Settings,高級設置
+Please enter values for GSuite Access Key and GSuite Access Secret,請輸入GSuite Access Key和GSuite Access Secret的值
+{0} does not exist in row {1},{0}不存在的行中{1}
+Please Update SMS Settings,請更新簡訊設定
+Event Type,事件類型
+Last Known Versions,最後已知版本
+Add / Manage Email Accounts.,新增 / 管理電子郵件帳戶。
+Published,已發行
+Thank you for your email,感謝您的電子郵件
+Small Text,小文
+Allow approval for creator of the document,允許批准文檔的創建者
+API Endpoint Args,API端點參數
+Administrator accessed {0} on {1} via IP Address {2}.,管理員訪問{0}在{1}通過IP地址{2}。
+Failed while amending subscription,修改訂閱時失敗
+Equals,等號
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',選擇“動態鏈接”類型的字段都必須指向另一個鏈接字段的選項為'的DocType“
+Team Members Heading,小組成員標題
+Invalid CSV Format,CSV格式無效。
+Set Number of Backups,設置備份數量
+Please correct the,請更正
+Do not allow user to change after set the first time,在首次設定後不允許用戶更改
+1 year ago,1年以前
+Contact,聯絡人
+Third Party Authentication,第三方認證
+Banner is above the Top Menu Bar.,橫幅位於選單欄上方。
+API Secret,API揭秘
+{0} Calendar,{0}日曆
+Export Report: ,導出報告：
+in the Auto Repeat document,在“自動重複”文檔中
+Arial,Arial,
+Incomplete login details,登錄詳細信息不完整
+Models (building blocks) of the Application,該應用程序的模型（積木）
+Slideshow like display for the website,幻燈片一樣顯示的網站
+Setup Notifications based on various criteria.,基於各種標準的設置通知。
+Select Module,選擇模塊
+Search or Create a New Chat,搜索或創建一個新的聊天
+Cache Cleared,快取已清除
+New Email,新的電子郵件
+Export,出口
+Dropbox Settings,Dropbox的設置
+Recurring document creation failure,重複出現文檔創建失敗
+More content for the bottom of the page.,更多的內容的頁面的底部。
+DocType on which this Workflow is applicable.,DocType文檔類型上這個工作流是適用的。
+Enabled,啟用
+Failed to complete setup,無法完成設置
+Category Name,分類名稱
+Import Subscribers,進口認購
+PDF Settings,PDF設置
+Based On,基於
+Make Default,設為默認
+Fieldtype {0} for {1} cannot be indexed,FIELDTYPE {0} {1}不能進行索引
+Email Account,電子郵件帳戶
+Download,下載
+Blog Intro,部落格介紹
+Result,成績
+Allow Login using User Name,允許使用用戶名登錄
+Enable Report,啟用報告
+Display Depends On,顯示的內容取決於
+API Endpoint,API端點
+Insert Code,插入源碼
+Current Mapping Type,當前映射類型
+You can add dynamic properties from the document by using Jinja templating.,您可以通過使用Jinja模板從添加文件動態特性。
+Invalid limit {0},無效限制{0}
+List a document type,列出的文件類型
+"If you are uploading new records, leave the ""name"" (ID) column blank.",如果您上傳新的記錄，留下了“名”（ID）欄為空白。
+Current Mapping Delete Start,當前映射刪除開始
+Errors in Background Events,在後台活動錯誤
+No of Columns,無柱
+Calendar,日曆
+No document found for given filters,沒有找到給定過濾器的文檔
+"Another {0} with name {1} exists, select another name",另一{0}名{1}存在，選擇另一個名字
+Custom?,自定義？
+Website Theme Image,網站主題形象
+Organizational Unit,組織單位
+Timezone,時區
+Unable to load: {0},無法載入： {0}
+Backup,備用
+Read Only,只讀
+New Newsletter,新的通訊
+Send Print as PDF,發送列印為PDF,
+Amount,量
+Allowed,允許的
+There can be only one Fold in a form,只能有一個折疊的形式
+Unable to write file format for {0},無法寫入{0}的文件格式
+Restore to default settings?,恢復到默認設置？
+Invalid Home Page,無效的主頁
+Invalid Login. Try again.,登錄無效。再試一次。
+Options required for Link or Table type field {0} in row {1},行{1}中鏈接或表類型字段{0}所需的選項
+Options required for Link or Table type field {0} in row {1},行{1}中鏈接或表類型字段{0}所需的選項
+Send only if there is any data,僅發送，如果有任何數據
+Reset Filters,重設過濾器
+Totals Row,總計行
+{0}: Permission at level 0 must be set before higher levels are set,{0} ：權限在0水平必須於更高級別前設定
+Assignment closed by {0},指派作業由 {0} 結案
+Remote,遠程
+Calculate,計算
+Please select DocType first,請首先選擇的DocType,
+Confirm Your Email,確認您的電子郵件
+Or login with,或登錄
+Locals,當地人
+Communicated via {0} on {1}: {2},通過傳達{0}在{1} {2}
+{0} is required,{0}是必需的
+Send Attachements,發送附著物
+Transaction Log,事務日誌
+Perm Level,權限等級
+View document,查看文檔
+Events In Today's Calendar,活動在今天的日曆
+Web Page,網頁
+Next Action Email Template,下一行動電子郵件模板
+Blogger,部落格
+'In Global Search' not allowed for type {0} in row {1},行{1}中的類型{0}不允許“全局搜索”
+'In Global Search' not allowed for type {0} in row {1},在行 {1} 中不允許類型 {0} 的全域搜索中
+Don't Override Status,不要覆蓋狀態
+Please give a rating.,請給予評級。
+{0} Feedback Request,{0}反饋請求
+Search term,搜索詞
+The First User: You,第一個用戶：您
+Report Start Time,報告開始時間
+Export Data,導出數據
+Select Columns,選擇列
+Missing parameters for login,缺少參數登錄
+folder-open,文件夾打開
+Search Application,搜索應用程式
+Single Post (article).,單個帖子（文章）。
+Reports,報告
+No,無
+Set Value,設定值
+Hide field in form,隱藏表單域
+Webhook Data,Webhook數據
+Creating {0},創建{0}
+Illegal Access Token. Please try again,非法訪問令牌。請再試一次
+"The application has been updated to a new version, please refresh this page",該應用程序已被更新到新版本，請刷新本頁面
+Resend,重發
+Optional: The alert will be sent if this expression is true,可選：警報會在這個表達式為true發送
+Print with letterhead,打印信頭
+Raw Email,原始電子郵件
+Select records for assignment,用於分配選擇記錄
+Assigned By,由....指派
+You can use Customize Form to set levels on fields.,您可以使用自定義表格中的字段設置的水平。
+Select Your Region,選擇您的地區
+Limit Number of DB Backups,限制數據庫備份數量
+Level,級別
+Report,報告
+Amount must be greater than 0.,量必須大於0。
+{0} is saved,{0}已儲存
+User {0} cannot be renamed,用戶{0}無法重命名
+Fieldname is limited to 64 characters ({0}),字段名被限制為64個字符（{0}）
+Email Group List,電子郵件組列表
+An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org],一個圖標文件擴展名為.ico。應為16×16像素。使用圖標生成器生成。 [favicon-generator.org]
+Email Addresses,電子郵件地址
+Allow saving if mandatory fields are not filled,允許保存如果必填字段未填寫
+Order,訂購
+Ref DocType,參考的DocType,
+Please enter Client ID before social login is enabled,在啟用社交登錄之前，請輸入客戶端ID,
+Please add a rating,請添加評分
+{0}: Cannot set Amend without Cancel,{0} ：如果沒有取消便無法設為修改
+Full Page,全頁
+Is Child Table,是子表
+{0} must be one of {1},{0}必須是{1} 之一
+{0} is currently viewing this document,{0}正在查看該文檔
+Background Email Queue,背景電子郵件佇列
+Password Reset,密碼重置
+Opened,開業
+chevron-left,人字形-左
+Sending,發出
+Not allowed from this IP Address,不接受來自此IP地址
+This goes above the slideshow.,這正好幻燈片上面。
+Install Applications.,安裝應用程式。
+No alerts for today,沒有警報今天
+Send Email Print Attachments as PDF (Recommended),發送郵件列印附件為PDF格式（推薦）
+Left,左
+Looks like something is wrong with this site's payment gateway configuration. No payment has been made.,看起來像是不對這個網站的支付網關的配置。沒有已經付款。
+State,狀態
+Workflow Action,工作流程執行
+"Image Field (Must of type ""Attach Image"")",圖像字段（類型的“附加圖像”必須）
+I found these: ,我發現這些：
+Send an email reminder in the morning,在早上發送電子郵件提醒
+Published On,發表於
+Gender,性別
+Mandatory Information missing:,強制性信息丟失：
+Field '{0}' cannot be set as Unique as it has non-unique values,欄位“{0}”不能設定為唯一的，因為它具有非唯一值
+Check Request URL,檢查請求URL,
+Only 200 inserts allowed in one request,只有200將允許一個請求
+URL,網址
+Return to the Verification screen and enter the code displayed by your authentication app,返回驗證屏幕，並輸入您的身份驗證應用程序顯示的代碼
+Reference Type,參考類型
+Please enable developer mode to create new connection,請啟用開發人員模式以創建新的連接
+Repeat On,重複在
+SMS Parameter,短信參數
+for the,為了
+Marked As Spam,標記為垃圾郵件
+There is some problem with the file url: {0},有一些問題與文件的URL：{0}
+Tree,樹
+You are not allowed to print this report,您不允許打印此報告
+User Permissions,用戶權限
+warning-sign,警告符號
+Prepared Report,準備報告
+User,使用者
+"Show title in browser window as ""Prefix - title""",標題顯示在瀏覽器窗口中的“前綴 - 標題”
+Gateway Settings,網關設置
+text in document type,在文件類型的文本
+Run Tests,運行測試
+User can login using Email id or Mobile number,用戶可以使用電子郵件ID或手機號登錄
+Mark as {0},標記為{0}
+Please select a new name to rename,請選擇一個新名稱進行重命名
+Please select a new name to rename,請選擇一個新名稱進行重命名
+Invalid column,無效的列
+Data Migration,數據遷移
+API Key cannot be  regenerated,API密鑰無法重新生成
+Something went wrong,出了些問題
+Only {0} entries shown. Please filter for more specific results.,只顯示{0}條目。請過濾更具體的結果。
+Number Format,數字格式
+Event Participants,活動參與者
+Frequency,頻率
+Insert After,於後方插入
+Report Name,報告名稱
+Reverse Icon Color,反向圖標顏色
+Save,儲存
+Next Scheduled Date,下一個預定日期
+Section Heading,標題節
+Title Prefix,標題前綴
+Notifications and bulk mails will be sent from this outgoing server.,通知和大宗郵件將從此傳出服務器發送。
+cog,COG,
+Sync on Migrate,同步上遷移
+Default,預設
+{0} added,{0}已增加
+Please save the report first,請先保存報表
+{0} subscribers added,{0}用戶已新增
+star,星號
+Hub,樞紐
+values separated by commas,用逗號分隔的值
+Max width for type Currency is 100px in row {0},{0}列內的貨幣類型的最大寬度為100px,
+Please share your feedback for {0},請分享您的反饋{0}
+Content web page.,內容的網頁。
+Add a New Role,添加新角色
+Deleted Document,刪除的文檔
+Oops! Something went wrong,糟糕！出事了
+Category,類別
+Add Contacts,添加聯繫人
+Client side script extensions in Javascript,在JavaScript客戶端腳本擴展
+Guidelines to install ldap dependancies and python,要求安裝LDAP依賴關係和python,
+Records for following doctypes will be filtered,以下文檔類型的記錄將被過濾
+Blog Introduction,部落格簡介
+Office,辦公室
+This Kanban Board will be private,這看板私會
+Standard Reports,標準報告
+Email Settings,電子郵件設定
+Please Enter Your Password to Continue,請輸入您的密碼以繼續
+Please Enter Your Password to Continue,請輸入您的密碼以繼續
+Not a valid LDAP user,不是有效的LDAP用戶
+{0} not a valid State,{0}不是有效的國家
+Please select another payment method. PayPal does not support transactions in currency '{0}',請選擇其他付款方式。貝寶不支持貨幣交易“{0}”
+Search field {0} is not valid,搜索欄{0}無效
+ok-circle,OK-圈
+You can find things by asking 'find orange in customers',你可以通過問“找到橙客戶找東西
+Sorry! User should have complete access to their own record.,對不起！用戶應該擁有完全訪問他們自己的紀錄。
+Invalid Token,令牌無效
+Email Server,電子郵件伺服器
+Document Type,文件類型
+Label is mandatory,標籤是強制性的
+API Username,API用戶名
+Communication Type,通信類型
+Unique,獨特
+Service,服務
+Did not find {0} for {0} ({1}),沒有找到{0} {0} （ {1} ）
+"Oops, you are not allowed to know that",哎呀，你不能知道
+Next,下一個
+New Activity,新活動
+You have been successfully logged out,您已成功退出
+Calendar View,日曆視圖
+Edit Format,編輯格式
+Complete Registration,完成註冊
+Enable,啟用
+Home Address,家庭地址
+New {0} (Ctrl+B),新{0}（按Ctrl + B）
+Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,頂欄顏色和文本顏色是相同的。他們應該具有良好的對比度是可讀的。
+You can only upload upto 5000 records in one go. (may be less in some cases),你一次只能上最多5000條記錄。 （在某些情況下可能更少）
+Insufficient Permission for {0},{0}的權限不足
+Insufficient Permission for {0},{0}的權限不足
+Report was not saved (there were errors),報告沒有被保存（有錯誤）
+Cannot change header content,無法更改標題內容
+Print Style,列印樣式
+Not Linked to any record,未鏈接到任何記錄
+Not Linked to any record,未鏈接到任何記錄
+Import,輸入
+Social Logins,社交登錄
+Row {0}: Not allowed to enable Allow on Submit for standard fields,行{0}：不允許啟用允許對提交的標準字段
+Standard roles cannot be renamed,標準的角色不能被重命名
+Static Parameters,靜態參數
+Room,房間
+Custom Menu Items,自定義菜單項
+All Images attached to Website Slideshow should be public,所有連接到網站幻燈片的圖片應該是公開的
+chevron-right,人字形-右
+"Change type of field. (Currently, Type change is \
+						allowed among 'Currency and Float')","更改字段的類型。（目前，類型變化\
+允許中“貨幣和浮動”）"
+You need to be in developer mode to edit a Standard Web Form,你需要在開發模式編輯標準Web窗體
+Gateway Controller,網關控制器
+Link to Bootstrap CSS,鏈接來引導CSS,
+camera,相機
+Brand HTML,品牌的HTML,
+_doctype,_文件格式
+Email Template,電子郵件模板
+Header and Description,標題和描述
+Both login and password required,需要登錄名稱和密碼
+Please refresh to get the latest document.,請更新以取得最新的文檔。
+Security Settings,安全設置
+Operators,運營商
+Add Column,添加欄
+Export Report: {0},出口報告：{0}
+Filter Meta,過濾元
+Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,要顯示的文本鏈接網頁，如果這種形式有一個網頁。線路路由會自動生成基於`page_name`和`parent_website_route`
+Feedback Trigger,反饋觸發
+Not allowed for {0} = {1} in Row {2},對於{2}行中的{0} = {1}不允許
+Backup Limit,備份限制
+Message-id,郵件ID,
+Patch,補丁
+Failed,失敗
+Allow Comments,允許評論
+Background Style,背景樣式
+Bypass Two Factor Auth for users who login from restricted IP Address,為受限IP地址登錄的用戶繞過雙因素身份驗證
+{0} to stop receiving emails of this type,{0}停止接收此類型的電子郵件
+Open your authentication app on your mobile phone.,在您的手機上打開您的認證應用程序。
+merged {0} into {1},{0}合併為{1}
+mm-dd-yyyy,mm-dd-yyyy,
+New Connection,新的連接
+"Sorry, you're not authorized.",對不起，你沒有授權。
+{0} logged in,{0}已登入
+Your login id is,您的登錄ID是
+Skip Authorization,跳過授權
+Amount Field,金額字段
+Send Notifications To,發送通知給
+Max 500 records at a time,最大500條記錄在一個時間
+"If your data is in HTML, please copy paste the exact HTML code with the tags.",如果你的數據是HTML，請複製粘貼的標籤準確的HTML代碼。
+Meeting,會議
+Unable to open attached file. Did you export it as CSV?,無法打開附加的文件。你導出為CSV？
+Ignore User Permissions,忽略用戶權限
+Please ask your administrator to verify your sign-up,請向管理員詢問，以確認您的註冊
+Active Domains,活動域
+Show Log,顯示日誌
+Timespan,時間跨度
+Set as Default,設為預設
+Series List for this Transaction,本交易系列表
+Request Data,請求數據
+Please select prefix first,請先選擇前綴稱號
+This is the number of the last created transaction with this prefix,這就是以這個前綴的最後一個創建的事務數
+No address added yet.,尚未新增地址。
+Please set the series to be used.,請設置要使用的系列。
+New Contact,新建聯絡人
+Contact Details,聯絡方式
+Unable to find DocType {0},無法找到DocType {0}
+User must always select,用戶必須始終選擇
+Topic,話題
+No contacts added yet.,尚未新增聯絡人。
+Basic,基本的
+Interests,興趣
+Export Type,導出類型
+License,執照
+Region,區域
+Check this if you want to force the user to select a series before saving. There will be no default if you check this.,如果要強制用戶在儲存之前選擇了一系列，則勾選此項。如果您勾選此項，則將沒有預設值。
+Newsletters,簡訊
+Select Transaction,選擇交易
+Help HTML,HTML幫助
+Update Series Number,更新序列號
+Last Sync On,上次同步開啟

@@ -1,0 +1,494 @@
+{0}: Cannot set import as {1} is not importable,{0}: no se puede definir 'De Importación' como {1} porque no es importable,
+Heading,Título,
+Unable to load: {0},No se puede cargar : {0}
+Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Permisos en los niveles más altos son los permisos de nivel de campo. Todos los campos tienen un conjunto Nivel de permiso en su contra y las reglas definidas en el que los permisos se aplican al campo. Esto es útil en caso de que quiera ocultar o hacer cierto campo de sólo lectura para ciertas funciones.
+Select Columns,Seleccionar columnas,
+DocType is a Table / Form in the application.,El DocType es una tabla / formulario en la aplicación.
+th,o,
+Set the display label for the field,Ajuste la etiqueta de visualización para el campo,
+Sending,Envío,
+Child Tables are shown as a Grid in other DocTypes.,Las tablas secundarias se muestran como una cuadrícula en los DocTypes.
+With Ledgers,Con Libro Mayor,
+Ref DocType,Referencia Tipo de Documento,
+Print Style Preview,Vista previa de Estilo de impresión,
+Enter Form Type,Introduzca Tipo de Formulario,
+Select from existing attachments,Seleccione de archivos adjuntos existentes,
+Email By Document Field,Email Por Campo Documento,
+Banner Image,Imagen del banner,
+New {0}: #{1},Nuevo {0}: # {1}
+Enter Value,Introducir valor,
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: no se puede Presentar, Cancelar y Corregir sin Guardar"
+Insert Style,Inserte Estilo,
+th-large,-ésimo gran,
+Email Settings,Configuración del correo electrónico,
+Send Password Update Notification,Enviar contraseña Notificación de actualización,
+Select Document Type,Seleccionar el tipo de documento,
+Server Error: Please check your server logs or contact tech support.,Error de servidor : Se recomienda consultar los registros del servidor o contacte con Soporte técnico.
+Website Theme Image Link,Sitio web Imagen por tema Enlace,
+Role and Level,Función y Nivel,
+Send enquiries to this email address,Puede enviar sus preguntas a la siguiente dirección de correo electrónico,
+Sort Field,Ordenar campo,
+Then By (optional),Entonces por ( opcional)
+remove,Quitar,
+This method can only be used to create a Comment,Este método sólo se puede utilizar para crear un comentario,
+"target = ""_blank""","target = "" _blank"""
+Setup Complete,Configuración completa,
+Subsidiary,Filial,
+Service,Servicio,
+Settings for the About Us Page,Ajustes de la página Quiénes somos,
+Stop,Detenerse,
+Check which Documents are readable by a User,Marque que documentos pueden ser leídos por el usuario,
+Record does not exist,Registro no existe,
+Cannot edit cancelled document,No se puede editar un documento anulado,
+Set numbering series for transactions.,Establecer series de numeración para las transacciones.
+Submit an Issue,Presentar un problema,
+Symbol,Símbolo,
+Update Field,Actualizar Campos,
+"You can change Submitted documents by cancelling them and then, amending them.","Puede cambiar los documentos Enviados cancelándolos y luego, haciendo los cambios pertinentes."
+Team Members Heading,Miembros del Equipo Lider,
+Scheduled to send to {0} recipients,Programado para enviar a {0} destinatarios,
+Script to attach to all web pages.,Guión para unir a todas las páginas web.
+Set Value,Valor seleccionado,
+Show more details,Mostrar más detalles,
+Fieldname which will be the DocType for this link field.,Nombre de campo el cual será el DocType para enlazar el campo.
+DocType on which this Workflow is applicable.,El DocType en el presente del flujo de trabajo es aplicable.
+"If checked, all other workflows become inactive.","Si se selecciona, todos los otros flujos de trabajo se vuelven inactivos ."
+Send an email reminder in the morning,Enviar un recordatorio por correo electrónico en la mañana,
+No Copy,Sin copia,
+Edit Custom HTML,Edición de HTML personalizado,
+Your password has been updated. Here is your new password,Su contraseña se ha actualizado. Aquí está tu nueva contraseña,
+Role Name,Nombre de la Función,
+Report Hide,Ocultar Informe,
+Warning: This Print Format is in old style and cannot be generated via the API.,Advertencia: Este formato de impresión es de estilo antiguo y no se puede generar a través de la API.
+"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Si va a cargar nuevos registros, ""Secuencias"" se convierte en obligatoria, si está presente."
+Letter Head,Membretes,
+Role,Función,
+Options not set for link field {0},Las opciones no establecen para campo de enlace {0}
+Style,Estilo,
+{0} not allowed to be renamed,{0} no es permitido ser renombrado,
+Field Name,Nombre del campo,
+Adds a custom script (client or server) to a DocType,Añade un acript personalizado (cliente o servidor) a un tipo de documento,
+Report Type,Tipo de informe,
+Enable Outgoing,Habilitar saliente,
+Ignore attachments over this size,Ignorar los adjuntos mayores a este tamaño,
+In points. Default is 9.,En puntos. El valor predeterminado es 9.
+User editable form on Website.,Forma editable Usuario en el Sitio Web.
+Clear all roles,Desactive todos los roles,
+thumbs-down,pulgar hacia abajo,
+This format is used if country specific format is not found,Este formato se utiliza si no se encuentra un formato específico del país,
+{0} Tree,{0} Árbol,
+Email,Correo electrónico,
+Help on Search,Ayuda en la búsqueda,
+Left,Izquierda,
+"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)","Introduzca los parámetros de URL estáticas aquí (Ej. sender = ERPNext , nombre de usuario = ERPNext , contraseña = 1234 etc )"
+Sorry! Sharing with Website User is prohibited.,¡Lo siento! Compartir con los del Sitio Web está prohibido.
+Script,Guión,
+Refresh Form,Formulario de actualización,
+A new account has been created for you at {0},Una nueva cuenta ha sido creada para ti en {0}
+Website Script,Guión del Sitio Web,
+Reference DocType,Referencia DocType,
+Thank you,Gracias,
+Shipping,Envío,
+"How should this currency be formatted? If not set, will use system defaults","¿Cómo se debe formatear esta moneda ? Si no se establece, utilizará valores predeterminados del sistema"
+Only Administrator allowed to create Query / Script Reports,Solo el Administrador puede crear consultas / Informes de Secuencias de Comandos,
+Sidebar Items,Sidebar Artículos,
+Cannot delete {0} as it has child nodes,"No se puede eliminar {0} , ya que tiene nodos secundarios"
+Set non-standard precision for a Float or Currency field,Ajuste de precisión no estándar para Decimales  Campo de Moneda,
+eye-close,ojo -cierre,
+step-backward,paso hacia atrás,
+User Defaults,Predeterminadas del Usuario,
+Fields,Los campos,
+Success Message,Mensaje de éxito,
+Slideshow Name,Presentación Nombre,
+Row # ,Fila #
+share-alt,share- alt,
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},Formato de JavaScript: frappe.query_reports [' REPORTNAME'] = { }
+Top Bar Color and Text Color are the same. They should be have good contrast to be readable.,Top Bar en color y texto en color son los mismos. Deben tienen buen contraste para ser legible.
+"The task {0}, that you assigned to {1}, has been closed by {2}.","La tarea {0}, que asignó a {1}, ha sido cerrado por {2}."
+star-empty,- estrella vacía,
+Thank you for your email,Gracias por tu email,
+"Allowing DocType, DocType. Be careful!","Permitir DocType , tipo de documento . ¡Ten cuidado!"
+"You need to have ""Share"" permission","Usted necesita tener el permiso ""Compartir"""
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,El sistema ofrece muchas funciones predefinidas . Usted puede agregar nuevos roles para establecer permisos más finos.
+{0} {1} cannot be a leaf node as it has children,"{0} {1} no puede ser un nodo de hoja , ya que tiene los niños"
+Company,Compañía(s)
+Send alert if date matches this field's value,Envíe la alarma si la fecha coincide con el valor de este campo,
+You can add dynamic properties from the document by using Jinja templating.,Puede añadir propiedades dinámicas del documento mediante el uso de plantillas Jinja.
+Default for {0} must be an option,Predeterminado para {0} debe ser una opción,
+Options must be a valid DocType for field {0} in row {1},Las opciones deben ser validas para el DocType en el campo {0} de la linea {1}
+This is an automatically generated reply,Esta es una respuesta generada automáticamente,
+Set,conjunto,
+Workflow State,Estados de los flujos de trabajo,
+Submitted,Enviado,
+{0}: No basic permissions set,{0}: No se han asignado permisos básicos,
+"Your download is being built, this may take a few moments...","Se está generando su descarga, esto puede tardar unos minutos..."
+Download with data,Descarga de datos,
+Hide Heading,Ocultar Rubro,
+{0}: Cannot set Assign Amend if not Submittable,{0}: no se puede 'Asignar Correción' si no se puede presentar,
+Remove Section,Retire la Sección,
+Define workflows for forms.,Definir los flujos de trabajo para las formas .
+font,Fuente,
+Parent,Padre,
+Workflow,Flujo de Trabajo,
+Search in a document type,Buscar en un tipo de documento,
+Server,Servidor,
+Set Banner from Image,Establecer Banner de imagen,
+Is Single,Es Individual,
+clear,claro,
+Send alert if this field's value changes,Enviar alerta si cambia el valor de este campo,
+Must have report permission to access this report.,Debe tener permiso de informe para acceder a este informe.
+Sorry! You are not permitted to view this page.,¡Lo siento! Usted no está autorizado a ver esta página.
+Please do not change the template headings.,"Por favor, no cambiar los encabezados de la plantilla."
+Days Before or After,Días Anteriores o Posteriores,
+Content Hash,Hash contenido,
+align-left,alinear -izquierda,
+{0}: Cannot set Import without Create,{0}: no se puede establecer 'De importación' sin crearlo primero,
+Hide field in Report Builder,Ocultar campo en el Generador de Informes,
+Max width for type Currency is 100px in row {0},El ancho máximo para la moneda es 100px en la linea {0}
+{0} added,{0} agregado(s)
+Reference DocName,Referencia DocNombre,
+Saved,Guardado,
+Security,Seguridad,
+Read,Lectura,
+use % as wildcard,Use% como comodín,
+User not allowed to delete {0}: {1},El usuario no puede eliminar {0}: {1}
+Query must be a SELECT,Debe seleccionar la Consulta,
+Document Name,Nombre del documento,
+Start new Format,Comenzar una nueva Formato,
+"The task {0}, that you assigned to {1}, has been closed.","La tarea {0}, que asignó a {1}, se ha cerrado."
+Write titles and introductions to your blog.,Escribe títulos y las introducciones a tu blog .
+Roles Assigned,Funciones Asignadas,
+Adds a custom field to a DocType,Añade un campo personalizado para un tipo de documento,
+Middle Name (Optional),Segundo Nombre ( Opcional)
+Use TLS,Utilice TLS,
+Default Address Template cannot be deleted,Plantilla de la Direcciones Predeterminadas no puede eliminarse,
+Select Document Types to set which User Permissions are used to limit access.,Seleccione los Tipos de Documento para establecer los Permisos de Usuario para limitar el acceso.
+You are not allowed to delete a standard Website Theme,No se le permite eliminar un tema Sitio web estándar,
+Permissions can be managed via Setup &gt; Role Permissions Manager,Los permisos se pueden gestionar a través de Configuración > Administrador de Funciones,
+{0}: Permission at level 0 must be set before higher levels are set,{0} : Permiso en el nivel 0 se debe establecer antes de fijar niveles más altos,
+dd-mm-yyyy,dd- mm- aaaa,
+"Newsletters to contacts, leads.","Boletines para contactos, clientes potenciales ."
+Message Examples,Ejemplos de Mensajes,
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Como práctica recomendada , no asigne el mismo conjunto de permisos para diferentes funciones. En su lugar, establecer varias funciones al mismo usuario ."
+Top Bar Color,Inicio Barra Color,
+There can be only one Fold in a form,Sólo puede haber un doblez en forma,
+Shop,Tienda,
+Add Child,Agregar subcuenta,
+Roles can be set for users from their User page.,Las funciones se pueden configurar para los usuarios de su página de usuario .
+Permissions get applied on Users based on what Roles they are assigned.,Permisos han sido aplicados a los Usuarios en base a los funciones que tienen asignadas.
+Replied,Respondio,
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opciones de contacto , como "" Consultas de Ventas , Soporte de consultas"" , etc cada uno en una nueva línea o separados por comas."
+Roles,Funciones,
+Time Zones,Husos horarios,
+Website Theme Image,Sitio web Imagen por tema,
+City/Town,Ciudad/Provincia,
+Valid email and name required,Nombre y Correo Electrónico válido requerido,
+Property Setter overrides a standard DocType or Field property,Propiedad Setter se impone a una DocType estándar o propiedad Campo,
+Float,flotador,
+{0} does not exist in row {1},{0} no existe en la linea {1}
+Open,Abrir,
+Hide Copy,Copia Oculta,
+Standard Print Format cannot be updated,Formato de impresión estándar no se puede actualizar,
+** Failed: {0} to {1}: {2},** Fallo: {0} a {1}: {2}
+This form does not have any input,Esta forma no tiene ninguna entrada,
+Recurring,Periódico,
+{0} is required,{0} es necesario,
+Select an image of approx width 150px with a transparent background for best results.,Seleccione una imagen de ancho aprox 150px con fondo transparente para obtener mejores resultados .
+Tag,Etiqueta,
+Send Print as PDF,Enviar Impresión como PDF,
+Select Role,Seleccione Función,
+Data missing in table,Los datos que faltan en la tabla,
+Every day events should finish on the same day.,Los eventos deben terminar el mismo día.
+resize-vertical,cambiar el tamaño vertical,
+Reset Permissions for {0}?,Restablecer los permisos para {0} ?
+DocType or Field,DocType o campo,
+Scheduler Last Event,Programador Último Evento,
+Doc Status,Estado Doc.
+Single Types have only one record no tables associated. Values are stored in tabSingles,Tipos simples tienen sólo un registro no hay tablas asociadas . Los valores se almacenan en tabSingles,
+Make a new,Hacer una nueva,
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Una vez que haya establecido esto, los usuarios sólo tendrán acceso a los documentos que puedan (por ejemplo, Entrada de blog ) donde se encuentra la relación (por ejemplo, Blogger ) ."
+'In List View' not allowed for type {0} in row {1},No está permitido para el tipo {0} en la linea {1}
+"Change type of field. (Currently, Type change is \
+						allowed among 'Currency and Float')","Cambiar el tipo de campo. (Actual, Tipo de cambio, Cantidad permitida, Moneda, Flotante, etc)"
+"Select target = ""_blank"" to open in a new page.","Select target = "" _blank"" para abrir en una nueva página."
+"To format columns, give column labels in the query.","Para dar formato a columnas, dar títulos de las columnas en la consulta."
+Invalid naming series (. missing),Serie de nombres Inválidos (. Faltante)
+Sent or Received,Envío y de recepción,
+Edit via Upload,Editar vía Subir Archivo,
+User Tags,Nube de Etiquetas,
+text-height,text- altura,
+Text Color,Color del texto,
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Nombre del tipo de documento (DocType) el cual quiere que este campo este vinculado. por ejemplo al Cliente,
+Success URL,URL de Éxito,
+Write a Python file in the same folder where this is saved and return column and result.,Escriba un archivo de Python en la misma carpeta donde esta se guarda y devuelve la columna y el resultado.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Reglas para transición entre estados, como el siguiente estado y qué función permite cambiar de estado , etc"
+Change Password,Cambiar contraseña.
+States,Unidos,
+Email Signature,Firma Email,
+Redis cache server not running. Please contact Administrator / Tech support,"Servidor de Caché Redis no esta funcionando. Por favor, póngase en contacto con el Administrador / Soporte técnico"
+Only Allow Edit For,Sólo Permitir Editar Para,
+This goes above the slideshow.,Esto va por encima de la presentación de diapositivas.
+Footer Items,Elementos del Pie de Página,
+{0}: Cannot set Amend without Cancel,{0}: no se puede 'Corregir' sin antes cancelar,
+Your login id is,Su nombre de usuario es,
+Currency,Divisa,
+Session Expiry Mobile,Vencimiento de sesión en dispositivo mobil,
+Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,El texto que se muestra para enlazar a la página Web si esta forma dispone de una página web. Ruta Enlace automáticamente se genera en base a `page_name` y` parent_website_route`
+Setup Wizard,Asistente de configuración,
+Send Email Print Attachments as PDF (Recommended),Enviar Emails con adjuntos en formato PDF (recomendado)
+Field {0} is not selectable.,El campo {0} no se puede seleccionar .
+Select To Download:,Seleccione la descarga :
+Please attach a file or set a URL,"Por favor, adjuntar un archivo o defina una URL"
+Is Primary Contact,Es Contacto principal,
+Permitted Documents For User,Documentos permitidos para los usuarios,
+Make a new record,Hacer un Nuevo Registro,
+Script Report,Informe de secuencias de comandos,
+Label is mandatory,Etiqueta es obligatoria,
+**Currency** Master,**Moneda** Principal,
+Sunday,Domingo,
+Label Help,Etiqueta Ayuda,
+Search or type a command,Busque o escriba un comando,
+Repeat On,Repetir OK,
+Remove all customizations?,Eliminar todas las personalizaciones ?
+This Currency is disabled. Enable to use in transactions,Esta moneda está deshabilitada . Habilite el uso en las transacciones,
+Contact Us Settings,Configuración de Contáctenos,
+thumbs-up,pulgar hacia arriba,
+Introduce your company to the website visitor.,Dar a conocer su empresa al visitante del sitio Web .
+Add custom javascript to forms.,Añadir javascript personalizado las formas .
+Unread Notification Sent,Notificación No leído Enviado,
+Select a group node first.,Seleccione un nodo de grupo primero.
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Estilo representa el color del botón : Éxito - Verde , Peligro - Rojo , Inverso - Negro , Primaria - Azul Oscuro , Info - Azul Claro, Advertencia - Orange"
+Users with role {0}:,Los usuarios con función {0}:
+Same file has already been attached to the record,El mismo archivo ya se ha adjuntado al registro,
+{0}: Cannot set Cancel without Submit,{0}: no se puede 'Cancelar' sin presentarlo,
+Address Title,Dirección Título,
+Mark the field as Mandatory,Marque el campo como obligatorio,
+resize-full,cambiar a tamaño completo,
+{0} shared this document with everyone,{0} compartió este documento con todos,
+Permanently delete {0}?,Eliminar permanentemente {0} ?
+Select Print Format to Edit,Seleccione Formato de impresión a Editar,
+Sales Master Manager,Gerente de Ventas,
+You can use wildcard %,Puede utilizar caracteres comodín%
+Report was not saved (there were errors),Informe no se guardó ( hubo errores )
+"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.","Los permisos del nivel 0 son los permisos a nivel de documentos, es decir, que tienen permiso especial para los documentos."
+"Change field properties (hide, readonly, permission etc.)","Cambiar las propiedades de campo (ocultar, sólo lectura, permisos, etc)"
+Select a DocType to make a new format,Seleccione un tipo de documento para hacer un nuevo formato,
+Table {0} cannot be empty,La tabla {0} no puede estar vacío,
+Report Builder,Generador de informes,
+Represents the states allowed in one document and role assigned to change the state.,Representa los estados permitidos en un solo documento y función asignada a cambiar el estado.
+User Roles,Funciones de Usuario,
+Cannot connect: {0},No puede conectarse: {0}
+Only Administrator can save a standard report. Please rename and save.,"Sólo el administrador puede guardar un informe estándar. Por favor, cambie el nombre y guardar."
+Both DocType and Name required,Tanto DocType y Nombre son obligatorios,
+"{0}: Only one rule allowed with the same Role, Level and {1}","{0}: Sólo una regla es permitida con el mismo rol, Nivel y {1}"
+"Customize Label, Print Hide, Default etc.","Personaliza etiquetas, impresión Hide , Default , etc"
+Sort By,Ordenado por,
+No further records,No hay registros adicionales,
+Pick Columns,Seleccione columnas,
+Patch Log,Registro de Parches,
+Draft,Borrador.
+This link is invalid or expired. Please make sure you have pasted correctly.,"Este enlace no es válido o caducado. Por favor, asegúrese de que ha pegado correctamente."
+Must specify a Query to run,Debe especificar una consulta para ejecutar,
+Export not allowed. You need {0} role to export.,Exportaciones no permitido. Es necesario {0} función de exportar .
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Escriba una consulta SELECT. Nota resultado no se pagina ( todos los datos se envían en una sola vez ) .
+Repeat this Event,Repita este Evento,
+Link to the page you want to open. Leave blank if you want to make it a group parent.,Enlace a la página que desea abrir. Dejar en blanco si desea que sea un grupo padre.
+Report Name,Nombre del informe,
+minus-sign,signo menos,
+Shared with everyone,Compartido con todo el mundo,
+You can use Customize Form to set levels on fields.,Usted puede utilizar Personalizar formulario para establecer los niveles de los campos .
+Month,Mes.
+{0} in row {1} cannot have both URL and child items,{0} en la linea {1} no puede tener URL y elementos secundarios,
+Both login and password required,Se requiere tanto usuario como contraseña,
+download-alt,descargar -alt,
+Website Manager,Administrador de Página Web,
+Drag elements from the sidebar to add. Drag them back to trash.,Arrastre los elementos de la barra lateral para agregar. Arrastre de nuevo a la papelera de reciclaje.
+"Sub-currency. For e.g. ""Cent""","Sub-moneda, por ejemplo, ""Centavo"""
+exclamation-sign,signo de exclamación,
+List,Vista de árbol,
+There were errors while sending email. Please try again.,"Hubo errores al enviar el correo electrónico. Por favor, inténtelo de nuevo."
+Session Expiry must be in format {0},Vencimiento de sesión debe estar en formato {0}
+Stores the JSON of last known versions of various installed apps. It is used to show release notes.,Almacena el JSON de las últimas versiones conocidas de diferentes aplicaciones instaladas. Se utiliza para mostrar notas de la versión.
+"Meaning of Submit, Cancel, Amend","Significado de Enviar, Cancelar, Corregir"
+"Setup of top navigation bar, footer and logo.","Configuración de la barra de navegación superior , pie de página y el logotipo."
+Stopped,Detenido,
+Upload Attachment,Subir Archivos Adjuntos,
+Total Subscribers,Los suscriptores totales,
+Settings for About Us Page.,Ajustes para Nosotros Pagina .
+File Size,Tamaño del archivo,
+"Set default format, page size, print style etc.","Establecer formato por defecto, tamaño de página, el estilo de impresión, etc"
+Your organization name and address for the email footer.,Su nombre de la organización y dirección para el pie de página de correo electrónico.
+Activity log of all users.,Registro de Actividad para todos los Usuarios,
+Report Builder reports are managed directly by the report builder. Nothing to do.,Informes del Generador de informes son enviadas por el generador de informes . No hay nada que hacer.
+Top Bar Text Color,Top Bar Color del texto,
+Slideshow Items,Presentación Artículos,
+"If you set this, this Item will come in a drop-down under the selected parent.","Si usted habilita esto, el elemento creará un menú desplegable--"
+Embed image slideshows in website pages.,Presentacion de imágenes incrustadas en páginas web .
+Please select DocType first,"Por favor, seleccione DocType primero"
+Setting this Address Template as default as there is no other default,Al establecer esta plantilla de dirección por defecto ya que no hay otra manera predeterminada,
+"""Parent"" signifies the parent table in which this row must be added",'Padre' es la tabla principal en la que hay que añadir esta fila,
+You need to be logged in to access this {0}.,Tienes que estar registrado para acceder a este {0}.
+Disable Customer Signup link in Login page,Desactivar enlace de registro del cliente en la página de entrada,
+Column Name,Nombre de la columna,
+Make a new {0},Crear un nuevo {0}
+Select Document Type or Role to start.,Seleccione el Tipo de Documento o Función para empezar.
+Defines actions on states and the next step and allowed roles.,Define las acciones de los estados y el siguiente paso y funciones permitidas.
+Show Print First,Mostrar Imprimir Primera,
+Report cannot be set for Single types,Reportar no se puede configurar para los tipos individuales,
+Disable Report,Desactivar Informe,
+resize-small,cambiar el tamaño pequeño,
+question-sign,Consultar Firma,
+Multiple root nodes not allowed.,Nodos raíz múltiples no permitidos.
+Saturday,Sábado,
+Maintenance User,Mantenimiento por el Usuario,
+Scheduled to send to {0},Programado para enviar a {0}
+{0} must be set first,debe establecerse primero: {0}
+"For updating, you can update only selective columns.","Para la actualización, usted lo puede hacer solo en algunas columnas."
+Export,Exportación,
+Search,Búsqueda,
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Algunos documentos como facturas, no se deben cambiar una vez guardados. El estado final de dichos documentos se llama 'Presentado'. Puede restringir qué roles/usuarios pueden presentar documentos"
+Sorry! I could not find what you were looking for.,¡Lo siento! No pude encontrar lo que estabas buscando.
+remove-sign,Eliminar el efecto de signo,
+Please attach a file first.,Adjunte un archivo primero .
+Report this issue,Reportar Incidencia,
+New {0},Nuevo {0}
+Workflow Action,Acciones de los flujos de trabajo,
+Script Type,Guión Tipo,
+text-width,texto de ancho,
+This role update User Permissions for a user,Este función actualiza los Permisos de Usuario para un usuario,
+resize-horizontal,cambiar el tamaño horizontal,
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: registro presentado no se puede eliminar.
+Mandatory fields required in {0},Campos obligatorios requeridos en {0}
+Maximum {0} rows allowed,Máximo {0} filas permitidos,
+Import,Importación,
+"There were some errors setting the name, please contact the administrator","Había algunos errores de configuración el nombre, por favor póngase en contacto con el administrador"
+You need to be in developer mode to edit a Standard Web Form,Se requiere estar en modo desarrollador para editar un formulario web estándar.
+Google Font (Heading),Google Font (Título)
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"Las opciones de campo de tipo 'Vinculo Dinámico' debe apuntar a otro campo con propiedades ""Tipo de Documento"""
+{0}: Cannot set Assign Submit if not Submittable,{0}: no se puede 'Asignar Enviar' si no se puede presentar,
+step-forward,paso hacia adelante,
+align-justify,alinear - justificar,
+Not allowed to Import,No tiene permisos para importar,
+Open a module or tool,Abra un Módulo o Herramienta,
+Please save before attaching.,"Por favor, guarde los cambios antes de conectar"
+Parent Table,Tabla de Padres,
+Dropbox Access Key,Clave de Acceso de Dropbox,
+Missing Values Required,Valores perdidos requeridos,
+Third Party Authentication,Autenticación de socios,
+Subject,Sujeto,
+Nested set error. Please contact the Administrator.,"Error de conjunto anidado . Por favor, póngase en contacto con el Administrador."
+Set Only Once,Un único ajuste,
+Document Types,Tipos de Documento,
+Perm Level,Nivel Perm,
+"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")","Anexar como la comunicación en contra de este tipo de documento (debe tener campos, ""Estado"", ""Asunto"")"
+About Us Settings,Configuración de Acerca de Nosotros,
+Next,Próximo,
+Default,Defecto,
+Rules defining transition of state in the workflow.,Reglas que definen la transición de estado del flujo de trabajo .
+align-right,alinear a la derecha,
+italic,itálico,
+shopping-cart,carro de la compra,
+only.,exactos.
+Naming Series mandatory,Las secuencias son obligatorias,
+Sort Order,Orden de Clasificación,
+Hide field in form,Ocultar campo en forma,
+Email Sent?,Enviar Email ?
+Show a description below the field,Mostrar una descripción debajo del campo,
+Send Welcome Email,Enviar Bienvenido Email,
+"If a Role does not have access at Level 0, then higher levels are meaningless.","Si una función no tiene acceso en el Nivel 0, entonces los niveles más altos no tienen sentido ."
+Heading Style,Estilo de título,
+Newsletter has already been sent,El boletín de noticias ya ha sido enviado,
+star,estrella,
+Salutation,Saludo,
+"Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail.","Su petición ha sido recibida. Le contestaremos en breve. Si usted tiene alguna información adicional, por favor responda a este correo."
+Icon will appear on the button,Icono aparecerá en el botón,
+Share With,Comparte con,
+Posts,Mensajes,
+Field Description,Descripción del Campo,
+Root {0} cannot be deleted,Raíz {0} no se puede eliminar,
+Banner is above the Top Menu Bar.,El Banner está por sobre la barra de menú superior.
+View it in your browser,Véalo en su navegador,
+Title field must be a valid fieldname,Campo Título debe ser un nombre de campo válido,
+Enter url parameter for receiver nos,Introduzca el parámetro url para el receptor no,
+Cannot edit standard fields,No se puede editar campos estándar,
+Settings for Contact Us Page.,Ajustes para la página de contacto.
+1 hour ago,Hace 1 hora,
+th-list,th -list,
+Report {0} is disabled,Informe {0} está deshabilitado,
+"1 Currency = [?] Fraction,
+For e.g. 1 USD = 100 Cent","1 Moneda = [?] Fracción, ejem: 1 USD = 100 Centavos"
+Start entering data below this line,Empiece a introducir datos por debajo de esta línea,
+Set Permissions on Document Types and Roles,Establecer Permisos en los Tipos de Documentos y Funciones,
+Optional: The alert will be sent if this expression is true,Opcional: La alerta será enviado si esta expresión es verdadera,
+Add,Añadir,
+Add a New Role,Añadir un Nuevo Rol,
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Este documento puede estar en Diferentes ""Estados"". Como ""Abierto"", ""Pendiente de Aprobación"", etc."
+Text Align,Alineación del texto,
+Not allowed from this IP Address,No se permite desde esta dirección IP,
+Settings for Contact Us Page,Ajustes para Contáctenos Página,
+Role Permissions,Permisos de la Función,
+Role Permissions Manager,Administrador de Permisos,
+Edit HTML,Edición de HTML,
+Submitting,Presentar,
+Dropbox Access Secret,Acceso Secreto de Dropbox,
+Sorry! User should have complete access to their own record.,¡Lo siento! El usuario debe tener acceso completo a su propio récord.
+DocType can not be merged,El DocType no se puede fusionar,
+Allow on Submit,Permitir en Enviar,
+Select Print Format,Seleccionar el formato de impresión,
+"For Links, enter the DocType as range.
+For Select, enter list of Options, each on a new line.","Para enlaces, introduzca el DocType como rango. para seleccionar, ingrese lista de opciones, cada uno en una nueva línea."
+eye-open,- ojo abierto,
+Email Account Name,Correo electrónico Nombre de cuenta,
+No {0} found,{0} no encontrado,
+Posts by {0},Publicaciones por {0}
+Series {0} already used in {1},Serie {0} ya se utiliza en {1}
+Report Manager,Administrador de informes,
+Report,Informe,
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Cuando se modifique un documento después de Cancelar y guardarlo , se obtendrá un nuevo número que es una versión del antiguo número."
+Create a New Format,Crear un nuevo formato,
+Enable Incoming,Habilitar entrante,
+"If you are uploading new records, leave the ""name"" (ID) column blank.","Si va a cargar nuevos registros, deje en blanco la columna ""nombre"" (ID)"
+Single Post (article).,Mensaje Individual ( artículo).
+Address,Direcciones,
+1 minute ago,Hace 1 minuto,
+Slideshow like display for the website,Presentación como pantalla para el sitio web,
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Los permisos se establecen en las Funciones y Tipos de Documentos (llamados  DocTypes ) mediante el establecimiento de permisos  como Leer, Escribir , Crear, Eliminar , Enviar, Cancelar, Corregir, Informe , Importación, Exportación, Impresión , Correo Electrónico y Establecer Permisos de Usuario ."
+Edit Heading,Editar Rubro,
+Row {0}: Not allowed to enable Allow on Submit for standard fields,Fila {0}: No se permite habilitar Permitir en Enviar para campos estándar,
+{0} List,Listado: {0}
+Is Submittable,Es presentable--
+Disable Standard Email Footer,Desactivar pie de página estandar en Email,
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Descripción de la página perfil, en texto plano, sólo un par de líneas. (máx. 140 caracteres)"
+{0} cannot be set for Single types,{0} no se puede establecer para los tipos individuales,
+Select Table Columns for {0},Seleccionar columnas de tabla para {0}
+cog,diente,
+Select the label after which you want to insert new field.,Seleccione la etiqueta después de la cual desea insertar el nuevo campo .
+"document type..., e.g. customer","Tipo de documento ..., por ejemplo, al cliente"
+Select {0},Seleccione {0}
+Property Setter,Establecer prioridad--
+"Show title in browser window as ""Prefix - title""",Mostrar título en la ventana del navegador como &quot;Prefijo - título&quot;
+Attached To DocType,Asociado A DocType,
+Row #{0}:,Fila # {0}:
+You need to be logged in and have System Manager Role to be able to access backups.,"Necesitas estar conectado y tener la función de Administrador del Sistema, para poder tener acceso a las copias de seguridad ."
+Title Prefix,Prefijo del Título,
+Section Break,Salto de sección,
+PDF Settings,Configuración de PDF,
+Oops! Something went wrong,Oups! Algo salió mal,
+Select DocType,Seleccione tipo de documento,
+Permanently Submit {0}?,Presentar permanentemente {0}?
+"e.g. ""Support"", ""Sales"", ""Jerry Yang""","por ejemplo ""Soporte "","" Ventas "","" Jerry Yang """
+"Actions for workflow (e.g. Approve, Cancel).","Acciones para los flujos de trabajo (por ejemplo: Aprobar, Cancelar)."
+Feedback,Comentarios,
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Restringir el usuario a esta dirección IP. Todas las direcciones IP se pueden agregar separandolas con comas. También se aceptan direcciones IP parciales como ( 111.111.111 )
+Event end must be after start,Finalización del evento debe ser posterior al inicio,
+Default Inbox,Bandeja de entrada por defecto,
+Repeat Till,Repita Hasta,
+remove-circle,Eliminar el efecto de círculo,
+Sample,Muestra,
+Current status,Situación Actual,
+User must always select,Usuario elegirá siempre,
+Help HTML,Ayuda HTML,
+No contacts added yet.,No se han añadido contactos todavía,
+No address added yet.,No se ha añadido ninguna dirección todavía.
+Series List for this Transaction,Lista de series para esta transacción,
+Contact Details,Datos del Contacto,
