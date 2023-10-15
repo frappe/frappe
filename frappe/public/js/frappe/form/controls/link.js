@@ -184,6 +184,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.$input.cache = {};
 
 		this.awesomplete = new Awesomplete(me.input, {
+			tabSelect: true,
 			minChars: 0,
 			maxItems: 99,
 			autoFirst: true,

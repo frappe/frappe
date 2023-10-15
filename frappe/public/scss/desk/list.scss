@@ -94,6 +94,7 @@
 	.level-right {
 		flex: 1;
 		overflow: visible;
+		align-items: center;
 	}
 
 	.tag-col {
@@ -118,10 +119,10 @@
 
 		&> span {
 			display: inline-block;
+		}
 
-			&:not(:last-child) {
-				margin-right: 15px;
-			}
+		.modified {
+			margin-right: var(--margin-sm);
 		}
 
 		.comment-count {
@@ -131,7 +132,6 @@
 		.frappe-timestamp {
 			font-size: var(--text-xs);
 			white-space: nowrap;
-			min-width: 30px;
 		}
 
 		.list-assignments, .list-actions {
@@ -193,10 +193,6 @@ $level-margin-right: 8px;
 
 	a {
 		color: var(--text-color);
-	}
-
-	.level-item:not(.file-select) {
-		margin-right: $level-margin-right;
 	}
 
 	&.seen {
