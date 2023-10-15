@@ -193,7 +193,10 @@ def map_fields(source_doc, target_doc, table_map, source_parent):
 	for df in target_doc.meta.get("fields"):
 		if df.fieldname not in no_copy_fields:
 			# map same fields
-			val = source_doc.get(df.fieldname)
+            if df.fieldname[:7] == "custom_":
+                val = source_doc.get(df.fieldname[7:])
+            else:
+                val = source_doc.get(df.fieldname)
 			if val not in (None, ""):
 				target_doc.set(df.fieldname, val)
 
