@@ -132,7 +132,7 @@ class TestSearch(FrappeTestCase):
 
 	def test_reference_doctype(self):
 		"""search query methods should get reference_doctype if they want"""
-		search_link(
+		results = search(
 			doctype="User",
 			txt="",
 			filters=None,
@@ -140,7 +140,31 @@ class TestSearch(FrappeTestCase):
 			reference_doctype="ToDo",
 			query="frappe.tests.test_search.query_with_reference_doctype",
 		)
-		self.assertListEqual(frappe.response["results"], [])
+		self.assertListEqual(results, [])
+
+	def test_search_relevance(self):
+		results = search(
+			doctype="Language",
+			txt="e",
+			filters=None,
+			page_length=10,
+		)
+		for row in results:
+			self.assertTrue(row["value"].startswith("e"))
+
+		results = search(
+			doctype="Language",
+			txt="es",
+			filters=None,
+			page_length=10,
+		)
+		for row in results:
+			self.assertIn("es", row["value"])
+
+
+def search(*args, **kwargs):
+	search_link(*args, **kwargs)
+	return frappe.response["results"]
 
 
 @frappe.validate_and_sanitize_search_inputs

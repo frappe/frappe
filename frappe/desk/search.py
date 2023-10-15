@@ -192,12 +192,12 @@ def search_widget(
 
 			if not meta.translated_doctype:
 				formatted_fields.append(
-					"""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
+					"""(1 / locate({_txt}, `tab{doctype}`.`name`)) as `_relevance`""".format(
 						_txt=frappe.db.escape((txt or "").replace("%", "").replace("@", "")),
 						doctype=doctype,
 					)
 				)
-				order_by = f"_relevance, {order_by}"
+				order_by = f"ifnull(_relevance, -9999) desc, {order_by}"
 
 			ignore_permissions = (
 				True
