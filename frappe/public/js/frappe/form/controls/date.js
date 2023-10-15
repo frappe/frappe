@@ -59,7 +59,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		this.date_format = frappe.defaultDateFormat;
 		this.datepicker_options = {
 			language: lang,
-			calendar: 'jalali',
+			calendar: frappe.boot.user.defaults.calendar_type,
 			autoClose: true,
 			todayButton: true,
 			dateFormat: date_format,

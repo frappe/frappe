@@ -18,6 +18,7 @@
   "date_format",
   "time_format",
   "number_format",
+  "calendar_type",
   "first_day_of_the_week",
   "column_break_7",
   "float_precision",
@@ -424,6 +425,7 @@
    "label": "Include Web View Link in Email"
   },
   {
+   "collapsible": 1,
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
    "label": "Reports"
@@ -634,6 +636,14 @@
   {
    "fieldname": "column_break_uhqk",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "gregorian",
+   "fieldname": "calendar_type",
+   "fieldtype": "Select",
+   "label": "Calendar Type",
+   "options": "gregorian\njalali",
+   "reqd": 1
   }
  ],
  "icon": "fa fa-cog",

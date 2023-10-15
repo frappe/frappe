@@ -145,7 +145,7 @@ $.extend(frappe.datetime, {
 
 	str_to_user: function (val, only_time = false, only_date = false) {
 		if (!val) return "";
-		const user_date_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
+		const user_date_fmt = this.fixDateFormatForCalendar(frappe.datetime.get_user_date_fmt().toUpperCase());
 		const user_time_fmt = frappe.datetime.get_user_time_fmt();
 		let user_format = user_time_fmt;
 
@@ -170,14 +170,29 @@ $.extend(frappe.datetime, {
 		return moment(d).format("YYYY-MM-DD HH:mm:ss");
 	},
 
+	fixDateFormatForCalendar(format) {
+		switch (frappe.boot.user.defaults.calendar_type) {
+			case 'jalali':
+				return format
+					.replace(/(\W|^)YYYY(\W|$)/, '$1jYYYY$2')
+					.replace(/(\W|^)MM(\W|$)/, '$1jMM$2')
+					.replace(/(\W|^)DD(\W|$)/, '$1jDD$2')
+					.replace(/(\W|^)D(\W|$)/, '$1jD$2')
+					.replace(/(\W|^)M(\W|$)/, '$1jM$2')
+					.replace(/(\W|^)YY(\W|$)/, '$1jYY$2');
+			default:
+				return format;
+		}
+	},
+
 	user_to_str: function (val, only_time = false) {
 		var user_time_fmt = frappe.datetime.get_user_time_fmt();
 		if (only_time) {
 			return moment(val, user_time_fmt).format(frappe.defaultTimeFormat);
 		}
 
-		var user_fmt = frappe.datetime.get_user_date_fmt().toUpperCase();
-		var system_fmt = "YYYY-MM-DD";
+		var user_fmt = this.fixDateFormatForCalendar(frappe.datetime.get_user_date_fmt().toUpperCase());
+		var system_fmt = this.fixDateFormatForCalendar("YYYY-MM-DD");
 
 		if (val.indexOf(" ") !== -1) {
 			user_fmt += " " + user_time_fmt;
@@ -185,7 +200,7 @@ $.extend(frappe.datetime, {
 		}
 
 		// user_fmt.replace("YYYY", "YY")? user might only input 2 digits of the year, which should also be parsed
-		return moment(val, [user_fmt.replace("YYYY", "YY"), user_fmt])
+		return moment(val, [user_fmt, user_fmt.replace("YYYY", "YY")])
 			.locale("en")
 			.format(system_fmt);
 	},
@@ -264,7 +279,7 @@ $.extend(frappe.datetime, {
 	validate: function (d) {
 		return moment(
 			d,
-			[frappe.defaultDateFormat, frappe.defaultDatetimeFormat, frappe.defaultTimeFormat],
+			[this.fixDateFormatForCalendar(frappe.defaultDateFormat), this.fixDateFormatForCalendar(frappe.defaultDatetimeFormat), this.fixDateFormatForCalendar(frappe.defaultTimeFormat)],
 			true
 		).isValid();
 	},
