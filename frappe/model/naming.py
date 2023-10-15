@@ -309,6 +309,10 @@ def parse_naming_series(
 			part = today.strftime("%y")
 		elif e == "MM":
 			part = today.strftime("%m")
+		elif e == "MMM":
+			part = today.strftime("%b")
+		elif e == "MMMM":
+			part = today.strftime("%B")
 		elif e == "DD":
 			part = today.strftime("%d")
 		elif e == "YYYY":
