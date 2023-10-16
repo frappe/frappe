@@ -197,6 +197,34 @@ frappe.ui.form.on("Workflow", {
 });
 
 frappe.ui.form.on("Workflow Document State", {
+	state: function (_, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		delete row.workflow_builder_id;
+	},
+
+	states_remove: function (frm) {
+		frm.trigger("get_orphaned_states_and_count").then(() => {
+			frm.trigger("render_state_table");
+		});
+	},
+});
+
+frappe.ui.form.on("Workflow Transition", {
+	state: function (_, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		delete row.workflow_builder_id;
+	},
+
+	next_state: function (_, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		delete row.workflow_builder_id;
+	},
+
+	action: function (_, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		delete row.workflow_builder_id;
+	},
+
 	states_remove: function (frm) {
 		frm.trigger("get_orphaned_states_and_count").then(() => {
 			frm.trigger("render_state_table");

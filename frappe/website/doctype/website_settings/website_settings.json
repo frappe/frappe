@@ -248,7 +248,7 @@
   },
   {
    "default": "1",
-   "description": "Disable Customer Signup link in Login page",
+   "description": "Disable Signups on site. New users will have to be manually registered by system managers.",
    "fieldname": "disable_signup",
    "fieldtype": "Check",
    "label": "Disable Signup"
@@ -476,7 +476,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-12-05 04:17:56.478757",
+ "modified": "2023-10-14 11:38:47.383840",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

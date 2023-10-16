@@ -61,7 +61,7 @@ def handle():
 
 def execute_cmd(cmd, from_async=False):
 	"""execute a request as python module"""
-	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
+	for hook in reversed(frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, [])):
 		# override using the first hook
 		cmd = hook
 		break
@@ -128,6 +128,7 @@ def web_logout():
 @frappe.whitelist()
 def uploadfile():
 	ret = None
+	check_write_permission(frappe.form_dict.doctype, frappe.form_dict.docname)
 
 	try:
 		if frappe.form_dict.get("from_form"):
@@ -187,6 +188,9 @@ def upload_file():
 	optimize = frappe.form_dict.optimize
 	content = None
 
+	if not ignore_permissions:
+		check_write_permission(doctype, docname)
+
 	if "file" in files:
 		file = files["file"]
 		content = file.stream.read()
@@ -229,6 +233,20 @@ def upload_file():
 				"content": content,
 			}
 		).save(ignore_permissions=ignore_permissions)
+
+
+def check_write_permission(doctype: str = None, name: str = None):
+	check_doctype = doctype and not name
+	if doctype and name:
+		try:
+			doc = frappe.get_doc(doctype, name)
+			doc.has_permission("write")
+		except frappe.DoesNotExistError:
+			# doc has not been inserted yet, name is set to "new-some-doctype"
+			check_doctype = True
+
+	if check_doctype:
+		frappe.has_permission(doctype, "write", throw=True)
 
 
 @frappe.whitelist(allow_guest=True)

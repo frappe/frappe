@@ -19,7 +19,7 @@ frappe.xcall = function (method, params) {
 				resolve(r.message);
 			},
 			error: (r) => {
-				reject(r.message);
+				reject(r?.message);
 			},
 		});
 	});
@@ -133,6 +133,7 @@ frappe.request.call = function (opts) {
 			} else {
 				frappe.app.handle_session_expired();
 			}
+			opts.error_callback && opts.error_callback();
 		},
 		404: function (xhr) {
 			frappe.msgprint({
@@ -140,6 +141,7 @@ frappe.request.call = function (opts) {
 				indicator: "red",
 				message: __("The resource you are looking for is not available"),
 			});
+			opts.error_callback && opts.error_callback();
 		},
 		403: function (xhr) {
 			if (frappe.session.user === "Guest" && frappe.session.logged_in_user !== "Guest") {
@@ -169,6 +171,7 @@ frappe.request.call = function (opts) {
 					),
 				});
 			}
+			opts.error_callback && opts.error_callback();
 		},
 		508: function (xhr) {
 			frappe.utils.play_sound("error");
@@ -179,6 +182,7 @@ frappe.request.call = function (opts) {
 					"Another transaction is blocking this one. Please try again in a few seconds."
 				),
 			});
+			opts.error_callback && opts.error_callback();
 		},
 		413: function (data, xhr) {
 			frappe.msgprint({
@@ -188,6 +192,7 @@ frappe.request.call = function (opts) {
 					(frappe.boot.max_file_size || 5242880) / 1048576,
 				]),
 			});
+			opts.error_callback && opts.error_callback();
 		},
 		417: function (xhr) {
 			var r = xhr.responseJSON;
@@ -220,6 +225,7 @@ frappe.request.call = function (opts) {
 		},
 		502: function (xhr) {
 			frappe.msgprint(__("Internal Server Error"));
+			opts.error_callback && opts.error_callback();
 		},
 	};
 

@@ -6,8 +6,8 @@ import { useStore } from "../store";
 const props = defineProps({
 	node: {
 		type: Object,
-		required: true
-	}
+		required: true,
+	},
 });
 
 const isValidConnection = ({ source, target }) => {
@@ -25,26 +25,30 @@ let store = useStore();
 const { findNode } = useVueFlow();
 watch(
 	() => findNode(props.node.id)?.selected,
-	val => {
+	(val) => {
 		if (val) store.workflow.selected = props.node;
 	}
 );
 
 let label = computed(() => findNode(props.node.id)?.data?.state);
 
-watch(() => props.node.data, () => {
-	store.ref_history.commit();
-}, { deep: true });
+watch(
+	() => props.node.data,
+	() => {
+		store.ref_history.commit();
+	},
+	{ deep: true }
+);
 </script>
 
 <template>
-	<div class="node" tabindex="0" @click.stop="store.workflow.selected = node">
+	<div class="node" tabindex="0" @click.stop>
 		<div v-if="label" class="node-label">{{ label }}</div>
 		<div v-else class="node-placeholder text-muted">{{ __("No Label") }}</div>
 		<Handle
 			v-for="handle in ['top', 'right', 'bottom', 'left']"
 			class="handle"
-			:style="{ [handle]: '-12px'}"
+			:style="{ [handle]: '-12px' }"
 			type="source"
 			:position="handle"
 			:id="handle"

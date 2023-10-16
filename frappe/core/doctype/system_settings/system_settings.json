@@ -84,7 +84,8 @@
   "enable_telemetry",
   "files_section",
   "max_file_size",
-  "column_break_uqma"
+  "column_break_uqma",
+  "allowed_file_extensions"
  ],
  "fields": [
   {
@@ -590,12 +591,18 @@
   {
    "fieldname": "column_break_uqma",
    "fieldtype": "Column Break"
+  },
+  {
+   "description": "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG",
+   "fieldname": "allowed_file_extensions",
+   "fieldtype": "Small Text",
+   "label": "Allowed File Extensions"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-09-13 12:49:32.309521",
+ "modified": "2023-09-25 16:49:16.652874",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

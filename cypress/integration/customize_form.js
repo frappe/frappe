@@ -9,7 +9,6 @@ context("Customize Form", () => {
 		const naming_rule_default_autoname_map = {
 			"Set by user": "prompt",
 			"By fieldname": "field:",
-			'By "Naming Series" field': "naming_series:",
 			Expression: "format:",
 			"Expression (old style)": "",
 			Random: "hash",

@@ -243,13 +243,17 @@ context("Form Builder", () => {
 		cy.get(".sidebar-container .frappe-control[data-fieldname='fieldname'] input")
 			.click()
 			.as("input");
-		cy.get("@input").clear({ force: true }).type("data3");
+		cy.get(".sidebar-container .frappe-control[data-fieldname='fieldname'] input")
+			.clear({ force: true })
+			.type("data3");
 
 		cy.click_doc_primary_button("Save");
 		cy.get_open_dialog().find(".msgprint").should("contain", "appears multiple times");
 		cy.hide_dialog();
 		cy.get(first_field).click();
-		cy.get("@input").clear({ force: true });
+		cy.get(".sidebar-container .frappe-control[data-fieldname='fieldname'] input").clear({
+			force: true,
+		});
 
 		// validate reqd + hidden without default
 		cy.get(".sidebar-container .field label .label-area").contains("Mandatory").click();
