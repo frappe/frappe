@@ -18,7 +18,7 @@ class DocTypeLayout(Document):
 
 	@frappe.whitelist()
 	def sync_fields(self):
-		doctype_fields = frappe.get_meta(self.document_type).fields
+		doctype_fields = frappe.get_meta(self.document_type, cached=False).fields
 
 		if self.is_new():
 			added_fields = [field.fieldname for field in doctype_fields]
