@@ -161,6 +161,16 @@ class TestSearch(FrappeTestCase):
 		for row in results:
 			self.assertIn("es", row["value"])
 
+		# Assume that "es" is used at least 10 times, it should now be first
+		frappe.db.set_value("Language", "es", "idx", 10)
+		results = search(
+			doctype="Language",
+			txt="es",
+			filters=None,
+			page_length=10,
+		)
+		self.assertEqual("es", results[0]["value"])
+
 
 def search(*args, **kwargs):
 	search_link(*args, **kwargs)

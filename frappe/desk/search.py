@@ -188,7 +188,7 @@ def search_widget(
 
 			order_by_based_on_meta = get_order_by(doctype, meta)
 			# 2 is the index of _relevance column
-			order_by = f"{order_by_based_on_meta}, `tab{doctype}`.idx desc"
+			order_by = f"`tab{doctype}`.idx desc, {order_by_based_on_meta}"
 
 			if not meta.translated_doctype:
 				formatted_fields.append(
