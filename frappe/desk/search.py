@@ -78,16 +78,14 @@ def search_widget(
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 
-	if searchfield:
-		sanitize_searchfield(searchfield)
-
+	sanitize_searchfield(searchfield)
 	if not searchfield:
 		searchfield = "name"
 
-	standard_queries = frappe.get_hooks().standard_queries or {}
-
-	if not query and doctype in standard_queries:
-		query = standard_queries[doctype][-1]
+	if not query:
+		standard_queries = frappe.get_hooks().standard_queries or {}
+		if doctype in standard_queries:
+			query = standard_queries[doctype][-1]
 
 	if query:  # Query = custom search query i.e. python function
 		try:
@@ -117,18 +115,24 @@ def search_widget(
 
 	meta = frappe.get_meta(doctype)
 
-	if isinstance(filters, dict):
+	if filters is None:
+		filters = []
+	elif isinstance(filters, dict):
 		filters_items = filters.items()
 		filters = []
 		for key, value in filters_items:
 			filters.append(make_filter_tuple(doctype, key, value))
 
-	if filters is None:
-		filters = []
 	or_filters = []
 
 	# build from doctype
-	if txt:
+	search_fields = ["name"]
+	if meta.title_field:
+		search_fields.append(meta.title_field)
+	if meta.search_fields:
+		search_fields.extend(meta.get_search_fields())
+
+	if txt and not meta.translated_doctype:
 		field_types = {
 			"Data",
 			"Text",
@@ -139,17 +143,13 @@ def search_widget(
 			"Read Only",
 			"Text Editor",
 		}
-		search_fields = ["name"]
-		if meta.title_field:
-			search_fields.append(meta.title_field)
-
-		if meta.search_fields:
-			search_fields.extend(meta.get_search_fields())
-
 		for f in search_fields:
-			fmeta = meta.get_field(f.strip())
-			if not meta.translated_doctype and (f == "name" or (fmeta and fmeta.fieldtype in field_types)):
-				or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
+			f_stripped = f.strip()
+			if f != "name":
+				fmeta = meta.get_field(f_stripped)
+				if not fmeta or fmeta.fieldtype not in field_types:
+					continue
+			or_filters.append([doctype, f_stripped, "like", f"%{txt}%"])
 
 	if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
 		filters.append([doctype, "enabled", "=", 1])
@@ -175,7 +175,6 @@ def search_widget(
 		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
 		_relevance = f"(1 / nullif(locate({_txt}, `tab{doctype}`.`name`), 0))"
 		formatted_fields.append(f"""{_relevance} as `_relevance`""")
-		# Since we are sorting by alias postgres needs to know number of column we are sorting
 		if frappe.db.db_type == "mariadb":
 			order_by = f"ifnull(_relevance, -9999) desc, {order_by}"
 		elif frappe.db.db_type == "postgres":
