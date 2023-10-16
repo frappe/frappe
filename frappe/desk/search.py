@@ -93,7 +93,7 @@ def search_widget(
 				as_dict=as_dict,
 				reference_doctype=reference_doctype,
 			)
-		except frappe.exceptions.PermissionError as e:
+		except (frappe.PermissionError, frappe.AppNotInstalledError, ImportError) as e:
 			if frappe.local.conf.developer_mode:
 				raise e
 			else:
