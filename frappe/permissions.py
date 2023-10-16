@@ -263,6 +263,7 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None):
 				and ptype != "create"
 			):
 				perms["if_owner"][ptype] = cint(pvalue and is_owner)
+			else:
 				# has no access if not owner
 				# only provide select or read access so that user is able to at-least access list
 				# (and the documents will be filtered based on owner sin further checks)
