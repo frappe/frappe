@@ -14,9 +14,9 @@ class LinkFieldFilter(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		condition: DF.Literal
 		field: DF.Literal
 		link_field: DF.Literal
-		operator: DF.Data | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data

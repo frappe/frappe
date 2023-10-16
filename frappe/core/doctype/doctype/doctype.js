@@ -175,7 +175,23 @@ frappe.ui.form.on("Link Field Filter", {
 		frm.trigger("set_link_field");
 	},
 	field: function (frm, cdt, cdn) {
-		frm.linked_field = "value";
+		let current_doc = frappe.unscrub(locals[cdt][cdn].link_field);
+		let current_doc_field_name = locals[cdt][cdn].field;
+		let conditons = get_conditions_from_field(current_doc, current_doc_field_name);
+
+		let as_select_option = (condition) => ({
+			label: condition[1],
+			value: condition[0],
+		});
+
+		frm.fields_dict[frappe.scrub(cdt)].grid.update_docfield_property(
+			"condition",
+			"options",
+			conditons.map(as_select_option)
+		);
+		let current_df = frappe
+			.get_meta(current_doc)
+			.fields.filter((f) => f.fieldname === current_doc_field_name)[0];
 	},
 });
 
@@ -217,6 +233,43 @@ function render_form_builder_message(frm) {
 
 		$(frm.fields_dict["try_form_builder_html"].wrapper).html(message);
 	}
+}
+
+function get_conditions_from_field(doctype, fieldname) {
+	const conditions = [
+		["=", __("Equals")],
+		["!=", __("Not Equals")],
+		["like", __("Like")],
+		["not like", __("Not Like")],
+		["in", __("In")],
+		["not in", __("Not In")],
+		["is", __("Is")],
+		[">", ">"],
+		["<", "<"],
+		[">=", ">="],
+		["<=", "<="],
+		["Between", __("Between")],
+		["Timespan", __("Timespan")],
+	];
+	const invalid_conditions_map = {
+		Date: ["like", "not like"],
+		Datetime: ["like", "not like", "in", "not in", "=", "!="],
+		Data: ["Between", "Timespan"],
+		Select: ["like", "not like", "Between", "Timespan"],
+		Link: ["Between", "Timespan", ">", "<", ">=", "<="],
+		Currency: ["Between", "Timespan"],
+		Color: ["Between", "Timespan"],
+		Check: conditions.map((c) => c[0]).filter((c) => c !== "="),
+		Code: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+		"HTML Editor": ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+		"Markdown Editor": ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+		Password: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
+		Rating: ["like", "not like", "Between", "in", "not in", "Timespan"],
+		Float: ["like", "not like", "Between", "in", "not in", "Timespan"],
+	};
+	let current_df = frappe.get_meta(doctype).fields.filter((f) => f.fieldname === fieldname);
+	let invalid_conditions = invalid_conditions_map[current_df[0].fieldtype] || [];
+	return conditions.filter((c) => !invalid_conditions.includes(c[0]));
 }
 
 function render_form_builder(frm) {
