@@ -390,7 +390,7 @@ function upload_via_file_browser() {
 	}
 	close_dialog.value = true;
 	return upload_file({
-		name: selected_file.value,
+		library_file_name: selected_file.value,
 	});
 }
 function upload_via_web_link() {
@@ -518,8 +518,8 @@ function upload_file(file, i) {
 		if (file.file_name) {
 			form_data.append('file_name', file.file_name);
 		}
-		if (file.name) {
-			form_data.append('name', file.name);
+		if (file.library_file_name) {
+			form_data.append('library_file_name', file.library_file_name);
 		}
 
 		if (props.doctype && props.docname) {
