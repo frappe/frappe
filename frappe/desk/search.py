@@ -34,7 +34,7 @@ def search_link(
 	reference_doctype=None,
 	ignore_user_permissions=False,
 ):
-	search_widget(
+	results = search_widget(
 		doctype,
 		txt.strip(),
 		query,
@@ -44,9 +44,7 @@ def search_link(
 		reference_doctype=reference_doctype,
 		ignore_user_permissions=ignore_user_permissions,
 	)
-
-	frappe.response["results"] = build_for_autosuggest(frappe.response["values"], doctype=doctype)
-	del frappe.response["values"]
+	return build_for_autosuggest(results, doctype=doctype)
 
 
 # this is called by the search box
@@ -82,7 +80,7 @@ def search_widget(
 		# by method
 		try:
 			is_whitelisted(frappe.get_attr(query))
-			frappe.response["values"] = frappe.call(
+			return frappe.call(
 				query,
 				doctype,
 				txt,
@@ -95,7 +93,7 @@ def search_widget(
 			)
 		except (frappe.PermissionError, frappe.AppNotInstalledError, ImportError) as e:
 			if frappe.local.conf.developer_mode:
-				raise e
+				raise
 			else:
 				frappe.respond_as_web_page(
 					title="Invalid Method",
@@ -103,12 +101,10 @@ def search_widget(
 					indicator_color="red",
 					http_status_code=404,
 				)
-			return
-		except Exception as e:
-			raise e
-	elif not query and doctype in standard_queries:
+				return
+	elif doctype in standard_queries:
 		# from standard queries
-		search_widget(
+		return search_widget(
 			doctype=doctype,
 			txt=txt,
 			query=standard_queries[doctype][-1],
@@ -245,7 +241,7 @@ def search_widget(
 			else:
 				values = [r[:-1] for r in values]
 
-		frappe.response["values"] = values
+		return values
 
 
 def get_std_fields_list(meta, key):
