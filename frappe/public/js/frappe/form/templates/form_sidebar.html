@@ -5,6 +5,7 @@
 		<div class="sidebar-standard-image">
 			<div class="standard-image"></div>
 		</div>
+		{% if can_write %}
 		<div class="sidebar-image-actions">
 			<div class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ __("Change") }}</a>
@@ -14,6 +15,7 @@
 				</div>
 			</div>
 		</div>
+		{% endif %}
 	</li>
 </ul>
 {% if frm.meta.beta %}
@@ -39,82 +41,79 @@
 	{% } %}
 </ul>
 <ul class="list-unstyled sidebar-menu form-assignments">
-	<li class="sidebar-label">
-		{%= __("Assigned To") %}
-	</li>
-	<li class="flex flex-wrap">
-		<span class="assignments"></span>
-		<button class="add-assignment-btn data-pill btn">
-			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-add-people"></use></svg>
-			<span class="ellipsis">{%= __("Add Assignee") %}</span>
-		</button>
+	<li>
+		<span class="form-sidebar-items">
+			<span class="add-assignment-label">
+				<svg class="es-icon ml-0 icon-sm"><use href="#es-line-add-people"></use></svg>
+				<span class="ellipsis">{%= __("Assigned To") %}</span>
+			</span>
+			<button class="add-assignment-btn btn btn-link icon-btn">
+				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
+			</button>
+		</span>
+		<div class="assignments"></div>
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-attachments">
-	<li class="sidebar-label attachments-label">
-	<span class="ellipsis">{%= __("Attachments") %}</span>
-
-		<li class="explore-full-btn hidden">
-			<button class="data-pill btn">
-				<svg class="es-icon mr-2 icon-sm">
-					<use href="#es-line-folder-alt"></use>
-				</svg>
-				<span class="pill-label ellipsis">
-					{%= __("Explore Files") %}
-				</span>
-			</button>
-		</li>
-		<button class="show-all-btn hidden">
-			<svg class="es-icon icon-sm">
-				<use href="#es-line-preview"></use>
-			</svg>
-			<a href="" class="pill-label ellipsis">
-				{%= __("Show All") %}
-			</a>
-		</button>
-	</li>
 	<li class="attachments-actions">
-		<button class="data-pill btn add-attachment-btn">
-			<svg class="es-icon mr-2 icon-sm">
-				<use href="#es-line-attachment"></use>
-			</svg>
-			<span class="pill-label ellipsis">
-				{%= __("Add File") %}
+		<span class="form-sidebar-items">
+			<span>
+				<svg class="es-icon ml-0 icon-sm">
+					<use href="#es-line-attachment"></use>
+				</svg>
+				<a class="pill-label ellipsis explore-link">
+					{%= __("Attachments") %}
+				</a>
 			</span>
-		</button>
-		<button class="text-muted btn btn-default icon-btn explore-btn">
-			<svg class="es-icon icon-sm">
-				<use href="#es-line-folder-alt"></use>
-			</svg>
-		</button>
+			<button class="add-attachment-btn btn btn-link icon-btn">
+				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
+			</button>
+		</span>
 	</li>
+	<a class="show-all-btn hidden" href="">
+		<svg class="es-icon icon-sm">
+			<use href="#es-line-preview"></use>
+		</svg>
+		<span class="pill-label ellipsis">
+			{%= __("Show All") %}
+		</span>
+	</a>
 </ul>
 <ul class="list-unstyled sidebar-menu form-reviews">
-	<li class="sidebar-label reviews-label">
-		<svg class="icon icon-sm"><use href="#icon-review"></use></svg>
-		{%= __("Reviews") %}
-	</li>
-	<li class="reviews">
-		<button class="add-review-btn text-muted btn btn-default icon-btn">
-			<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
-		</button>
-	</li>
+		<li class="reviews">
+			<span class="form-sidebar-items">
+				<span>
+					<svg class="es-icon ml-0 icon-sm"><use href="#es-line-star"></use></svg>
+					<span class="ellipsis">{%= __("Reviews") %}</span>
+				</span>
+				<button class="add-review-btn btn btn-link icon-btn">
+					<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
+				</button>
+			</span>
+		</li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-tags">
-	<li class="sidebar-label tags-label">
-		{%= __("Tags") %}
-	</li>
+		<li>
+			<span class="form-sidebar-items">
+				<span>
+					<svg class="es-icon ml-0 icon-sm"><use href="#es-line-star"></use></svg>
+					<span class="tags-label ellipsis">{%= __("Tags") %}</span>
+				</span>
+			</span>
+		</li>
 </ul>
 <ul class="list-unstyled sidebar-menu form-shared">
-	<li class="sidebar-label">
-		{%= __("Share") %}
-	</li>
-	<li class="flex flex-wrap">
-		<span class="shares"></span>
-		<button class="share-doc-btn text-muted data-pill btn">
-			<svg class="es-icon mr-2 icon-sm"><use href="#es-line-share"></use></svg>
-			{%= __("Invite") %}
-		</button>
+	<li>
+		<span class="form-sidebar-items">
+			<span class="share-label">
+				<svg class="es-icon ml-0 icon-sm"><use href="#es-line-add-people"></use></svg>
+				<span class="ellipsis">{%= __("Share") %}</span>
+			</span>
+			<button class="share-doc-btn btn btn-link icon-btn">
+				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
+			</button>
+		</span>
+		<div class="shares"></div>
 	</li>
 </ul>
 <ul class="list-unstyled sidebar-menu followed-by-section">
@@ -139,21 +138,21 @@
 </ul>
 <ul class="list-unstyled sidebar-menu form-sidebar-stats">
 	<li class="flex">
-		<div class="form-stats">
+		<div class="form-stats d-flex">
 			<span class="form-stats-likes">
-				<span class="liked-by like-action">
+				<span class="liked-by like-action d-flex align-items-center">
 					<svg class="es-icon icon-sm">
 						<use href="#es-solid-heart" class="like-icon"></use>
 					</svg>
-					<span class="like-count"></span>
+					<span class="like-count ml-2"></span>
 				</span>
 			</span>
-			<span class="mx-1">·</span>
-			<a class="comments">
+			<span class="mx-2">·</span>
+			<a class="comments d-flex align-items-center">
 				<svg class="es-icon icon-sm">
 					<use href="#es-line-chat-alt" class="comment-icon"></use>
 				</svg>
-				<span class="comments-count"></span>
+				<span class="comments-count ml-2"></span>
 			</a>
 		</div>
 		<a class="form-follow text-sm">

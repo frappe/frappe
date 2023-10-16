@@ -1,43 +1,111 @@
-export function get_workflow_elements(workflow) {
+export function get_workflow_elements(workflow, workflow_data) {
 	let elements = [];
 	let states = {};
+	let actions = {};
+	let transitions = {};
+
 	let x = 150;
 	let y = 100;
 
-	function state_obj(id, data) {
-		let state = {
-			id: id.toString(),
-			type: "state",
-			position: { x: x, y: y },
-			data: data,
-		};
-		if (!states[data.state]) {
-			states[data.state] = [id, { x: x, y: y }];
+	workflow_data.forEach((node) => {
+		if (node.type == "state") {
+			states[node.id] = node;
+		} else if (node.type == "action") {
+			actions[node.id] = node;
+		} else if (node.type == "transition") {
+			transitions[`edge-${node.source}-${node.target}`] = node;
+
+			if (node.source.startsWith("action-")) {
+				const action = actions[node.source];
+				if (!action.data.to_id) {
+					action.data.to_id = node.target;
+				}
+				node.sourceNode = action;
+				node.targetNode = states[node.target];
+			} else {
+				const action = actions[node.target];
+				if (!action.data.from_id) {
+					action.data.from_id = node.source;
+				}
+				node.targetNode = action;
+				node.sourceNode = states[node.source];
+			}
 		}
-		return state;
+	});
+
+	function state_obj(id, data) {
+		let state = states[id];
+
+		if (state) {
+			state.data = data;
+		} else {
+			state = {
+				id: id.toString(),
+				type: "state",
+				position: { x, y },
+				data,
+			};
+		}
+
+		Object.assign(state, {
+			initialized: true,
+			selected: false,
+			dragging: false,
+			resizing: false,
+		});
+		return (states[id] = state);
 	}
 
 	function action_obj(id, data, position) {
-		return {
-			id: "action-" + id,
-			type: "action",
-			position: position,
-			data: data,
-		};
+		let action = actions[id];
+
+		if (action) {
+			data.from_id = action.data.from_id;
+			(data.to_id = action.data.to_id), (action.data = data);
+		} else {
+			action = {
+				id,
+				type: "action",
+				position,
+				data,
+			};
+		}
+
+		Object.assign(action, {
+			initialized: true,
+			selected: false,
+			dragging: false,
+			resizing: false,
+		});
+		return (actions[id] = action);
 	}
 
 	function transition_obj(id, source, target) {
-		return {
-			id: "edge-" + id,
-			type: "transition",
-			source: source.toString(),
-			target: target.toString(),
-			sourceHandle: "right",
-			targetHandle: "left",
-			updatable: true,
-			animated: true,
-		};
+		let transition = transitions[id];
+
+		if (!transition) {
+			transition = {
+				id,
+				type: "transition",
+				source: source.toString(),
+				target: target.toString(),
+				sourceHandle: "right",
+				targetHandle: "left",
+				updatable: true,
+				animated: true,
+			};
+		}
+
+		Object.assign(transition, {
+			initialized: true,
+			selected: false,
+			dragging: false,
+			resizing: false,
+		});
+		return (transitions[id] = transition);
 	}
+
+	let state_id = Math.max(...workflow.states.map((state) => state.workflow_builder_id || 0));
 
 	workflow.states.forEach((state, i) => {
 		x += 400;
@@ -46,38 +114,51 @@ export function get_workflow_elements(workflow) {
 			1: "Submitted",
 			2: "Cancelled",
 		};
+
+		const id = state.workflow_builder_id || ++state_id;
 		elements.push(
-			state_obj(i + 1, {
-				state: state.state,
+			state_obj(id, {
+				...state,
 				doc_status: doc_status_map[state.doc_status],
-				allow_edit: state.allow_edit,
-				update_field: state.update_field,
-				update_value: state.update_value,
-				is_optional_state: state.is_optional_state,
-				next_action_email_template: state.next_action_email_template,
-				message: state.message,
 			})
 		);
 	});
 
+	let action_id = Math.max(
+		...workflow.transitions.map(
+			(transition) => transition.workflow_builder_id?.replace("action-", "") || 0
+		)
+	);
+
 	workflow.transitions.forEach((transition, i) => {
-		let source = states[transition.state];
-		let target = states[transition.next_state];
-		let position = { x: source[1].x + 250, y: y + 20 };
+		const id = transition.workflow_builder_id || "action-" + ++action_id;
+		let action = actions[id];
+		let source, target;
+
+		if (action && action.data.from_id && action.data.to_id) {
+			source = states[action.data.from_id];
+			target = states[action.data.to_id];
+		} else {
+			source = Object.values(states).filter(
+				(state) => state.data?.state == transition.state
+			)[0];
+			target = Object.values(states).filter(
+				(state) => state.data?.state == transition.next_state
+			)[0];
+		}
+
+		let position = { x: source.position.x + 250, y: y + 20 };
 		let data = {
+			...transition,
+			from_id: source.id,
+			to_id: target.id,
 			from: transition.state,
 			to: transition.next_state,
-			action: transition.action,
-			allowed: transition.allowed,
-			allow_self_approval: transition.allow_self_approval,
-			condition: transition.condition,
 		};
 
-		let action = "action-" + (i + 1);
-
-		elements.push(action_obj(i + 1, data, position));
-		elements.push(transition_obj(source[0] + "-" + action, source[0], action));
-		elements.push(transition_obj(action + "-" + target[0], action, target[0]));
+		elements.push(action_obj(id, data, position));
+		elements.push(transition_obj("edge-" + source.id + "-" + id, source.id, id));
+		elements.push(transition_obj("edge-" + id + "-" + target.id, id, target.id));
 	});
 
 	return elements;

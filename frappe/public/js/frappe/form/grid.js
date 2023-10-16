@@ -93,12 +93,12 @@ export default class Grid {
 								data-action="delete_all_rows">
 								${__("Delete All")}
 							</button>
-							<button class="grid-add-multiple-rows btn btn-xs btn-secondary hidden">
-								${__("Add Multiple")}</a>
-							</button>
 							<!-- hack to allow firefox include this in tabs -->
 							<button class="btn btn-xs btn-secondary grid-add-row">
 								${__("Add Row")}
+							</button>
+							<button class="grid-add-multiple-rows btn btn-xs btn-secondary hidden">
+								${__("Add Multiple")}</a>
 							</button>
 						</div>
 						<div class="grid-pagination">

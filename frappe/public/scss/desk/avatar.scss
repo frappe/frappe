@@ -95,11 +95,6 @@
 	.standard-image {
 		font-size: var(--text-xs);
 	}
-
-	.avatar-empty::after {
-		content: "\002D";
-		line-height: 28px;
-	}
 }
 
 .avatar-medium {

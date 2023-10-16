@@ -182,7 +182,7 @@ class QuickListDialog extends WidgetDialog {
 	process_data(data) {
 		if (this.filter_group) {
 			let filters = this.filter_group.get_filters();
-			data.quick_list_filter = frappe.utils.get_filter_as_json(filters);
+			data.quick_list_filter = JSON.stringify(filters);
 		}
 
 		data.label = data.label ? data.label : data.document_type;
@@ -540,7 +540,7 @@ class ShortcutDialog extends WidgetDialog {
 	process_data(data) {
 		if (this.dialog.get_value("type") == "DocType" && this.filter_group) {
 			let filters = this.filter_group.get_filters();
-			data.stats_filter = frappe.utils.get_filter_as_json(filters);
+			data.stats_filter = JSON.stringify(filters);
 		}
 
 		data.label = data.label ? data.label : frappe.model.unscrub(data.link_to);
