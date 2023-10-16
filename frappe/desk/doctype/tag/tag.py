@@ -34,6 +34,7 @@ def check_user_tags(dt):
 @frappe.whitelist()
 def add_tag(tag, dt, dn, color=None):
 	"adds a new tag to a record, and creates the Tag master"
+	frappe.has_permission(dt, "write", dn, throw=True)
 	DocTags(dt).add(dn, tag)
 
 	return tag
@@ -44,11 +45,13 @@ def add_tags(tags, dt, docs, color=None):
 	"adds a new tag to a record, and creates the Tag master"
 	tags = frappe.parse_json(tags)
 	docs = frappe.parse_json(docs)
+
+	for doc in docs:
+		frappe.has_permission(dt, "write", doc, throw=True)
+
 	for doc in docs:
 		for tag in tags:
 			DocTags(dt).add(doc, tag)
-
-	# return tag
 
 
 @frappe.whitelist()
