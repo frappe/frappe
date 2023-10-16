@@ -95,7 +95,7 @@ class TestSearch(FrappeTestCase):
 
 	def test_doctype_search_in_foreign_language(self):
 		def do_search(txt: str):
-			search_link(
+			return search_link(
 				doctype="DocType",
 				txt=txt,
 				query="frappe.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
@@ -103,7 +103,6 @@ class TestSearch(FrappeTestCase):
 				page_length=20,
 				searchfield=None,
 			)
-			return frappe.response["results"]
 
 		try:
 			frappe.local.lang = "en"
