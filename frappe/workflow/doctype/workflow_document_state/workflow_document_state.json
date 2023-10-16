@@ -15,7 +15,8 @@
   "next_action_email_template",
   "allow_edit",
   "section_break_9",
-  "message"
+  "message",
+  "workflow_builder_id"
  ],
  "fields": [
   {
@@ -88,6 +89,12 @@
   {
    "fieldname": "section_break_9",
    "fieldtype": "Section Break"
+  },
+  {
+    "fieldname": "workflow_builder_id",
+    "fieldtype": "Data",
+    "hidden": 1,
+    "label": "Workflow Builder ID"
   }
  ],
  "idx": 1,

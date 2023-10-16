@@ -71,7 +71,7 @@ export default class ShortcutWidget extends Widget {
 
 		this.widget.addClass("shortcut-widget-box");
 
-		let filters = frappe.utils.get_filter_from_json(this.stats_filter);
+		let filters = frappe.utils.process_filter_expression(this.stats_filter);
 		if (this.type == "DocType" && filters) {
 			frappe.db
 				.count(this.link_to, {
@@ -90,13 +90,14 @@ export default class ShortcutWidget extends Widget {
 		};
 
 		this.action_area.empty();
-		$(frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")).appendTo(
-			this.action_area
-		);
 		const label = get_label();
 		let color = this.color && count ? this.color.toLowerCase() : "gray";
 		$(
 			`<div class="indicator-pill no-indicator-dot ellipsis ${color}">${label}</div>`
 		).appendTo(this.action_area);
+
+		$(frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")).appendTo(
+			this.action_area
+		);
 	}
 }

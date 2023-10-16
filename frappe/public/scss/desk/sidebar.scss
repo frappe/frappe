@@ -41,6 +41,9 @@ body[data-route^="Module"] .main-menu {
 	.data-pill {
 		width: 100%;
 		justify-content: unset;
+		.es-icon {
+			margin: 0px 6px;
+		}
 
 	}
 	&.user-actions {
@@ -64,14 +67,28 @@ body[data-route^="Module"] .main-menu {
 // form sidebar
 .form-sidebar {
 	.sidebar-menu {
-		margin-bottom: var(--margin-lg);
+		margin-bottom: var(--margin-sm);
+
+		.form-sidebar-items {
+			display: flex;
+			width: 100%;
+			align-items: center;
+			justify-content: space-between;
+			flex-wrap: wrap;
+			padding-bottom: var(--padding-sm);
+
+			.icon-btn {
+				height: unset;
+			}
+		}
 	}
 
 	.form-tags {
-		.form-tag-row {
-			margin-top: var(--margin-sm);
-			margin-bottom: 0;
+
+		.form-tag-row:not(:last-child) {
+			margin-bottom: var(--margin-sm);
 		}
+
 		.tag-area {
 			margin-top: -3px;
 			margin-left: -4px;
@@ -168,6 +185,10 @@ body[data-route^="Module"] .main-menu {
 .layout-side-section {
 	@include get_textstyle("base", "regular");
 	padding-right: 30px;
+
+	&.hide-sidebar {
+		display: none;
+	}
 
 	> .divider {
 		display: none !important;
@@ -383,61 +404,72 @@ body[data-route^="Module"] .main-menu {
 }
 
 .attachment-row, .form-tag-row {
-	margin-bottom: var(--margin-sm);
+	margin-bottom: 3px;
 	max-width: 100%;
 	.data-pill {
 		justify-content: space-between;
-		background-color: var(--subtle-fg);
 		box-shadow: none;
+	}
+}
+.attachment-row {
+	.data-pill {
+		background-color: unset;
+		box-shadow: none;
+		padding: 0;
+		padding-left: var(--padding-md);
 	}
 }
 
 .form-tag-row {
 	margin-right: var(--margin-xs);
+	.data-pill {
+		background-color: var(--subtle-fg);
+	}
 	display: inline-flex;
 }
 
-.attachments-actions, .explore-full-btn > .data-pill.btn {
-	display: flex;
-	max-width: 100%;
+.explore-link {
+	margin-top: var(--margin-sm);
 }
 
-.explore-full-btn,
 .attachments-actions {
-	margin-bottom: var(--margin-md);
+	gap: 6px;
 }
 
 .show-all-btn {
+	--icon-stroke: var(--text-light);
 	width: 100%;
-	border: 1px solid var(--border-color);
-	border-radius: var(--border-radius);
 	background-color: var(--bg-color);
 	text-align: start;
-	padding-left: 8px;
+	margin-top: var(--margin-sm);
+	margin-left: var(--margin-md);
 	margin-bottom: var(--margin-sm);
+	color: var(--text-light);
 
-	a.pill-label.ellipsis {
-		&:hover {
-			text-decoration: none;
-		}
-	}
+}
+.form-assignments {
+	margin-top: 12px;
 }
 .form-assignments, .form-shared {
 	.assignments, .shares {
-		margin-bottom: var(--margin-xs);
+		margin: var(--margin-xs) 0px;
 	}
 }
 .add-assignment-btn,
+.add-attachment-btn,
+.add-review-btn,
 .shares,
+.add-tags-btn,
+.share-doc-btn,
 .followed-by {
 	max-width: 100%;
 	display: block;
-}
-
-.add-review-btn,
-.share-doc-btn,
-.add-assignment-btn {
-	border-radius: 50%;
+	width: unset;
+	height: unset;
+	margin-right: 0;
+	&:focus {
+		box-shadow: none;
+	}
 }
 
 .form-reviews {

@@ -384,11 +384,12 @@ class TestValidationUtils(FrappeTestCase):
 		# Valid addresses
 		self.assertTrue(validate_email_address("someone@frappe.com"))
 		self.assertTrue(validate_email_address("someone@frappe.com, anyone@frappe.io"))
+		self.assertTrue(validate_email_address("test%201@frappe.com"))
 
 		# Invalid address
 		self.assertFalse(validate_email_address("someone"))
 		self.assertFalse(validate_email_address("someone@----.com"))
-
+		self.assertFalse(validate_email_address("test 1@frappe.com"))
 		self.assertFalse(
 			validate_email_address("test@example.com test2@example.com,undisclosed-recipient")
 		)
@@ -396,6 +397,12 @@ class TestValidationUtils(FrappeTestCase):
 		# Invalid with throw
 		self.assertRaises(
 			frappe.InvalidEmailAddressError, validate_email_address, "someone.com", throw=True
+		)
+
+		self.assertEqual(validate_email_address("Some%20One@frappe.com"), "Some%20One@frappe.com")
+		self.assertEqual(
+			validate_email_address("erp+Job%20Applicant=JA00004@frappe.com"),
+			"erp+Job%20Applicant=JA00004@frappe.com",
 		)
 
 	def test_valid_phone(self):

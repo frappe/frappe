@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import re
+from functools import partial
 
 import frappe
 from frappe.app import make_form_dict
@@ -159,7 +160,7 @@ class TestSearch(FrappeTestCase):
 
 	def test_reference_doctype(self):
 		"""search query methods should get reference_doctype if they want"""
-		search_link(
+		results = test_search(
 			doctype="User",
 			txt="",
 			filters=None,
@@ -167,7 +168,24 @@ class TestSearch(FrappeTestCase):
 			reference_doctype="ToDo",
 			query="frappe.tests.test_search.query_with_reference_doctype",
 		)
-		self.assertListEqual(frappe.response["results"], [])
+		self.assertListEqual(results, [])
+
+	def test_search_relevance(self):
+		search = partial(test_search, doctype="Language", filters=None, page_length=10)
+		for row in search(txt="e"):
+			self.assertTrue(row["value"].startswith("e"))
+
+		for row in search(txt="es"):
+			self.assertIn("es", row["value"])
+
+		# Assume that "es" is used at least 10 times, it should now be first
+		frappe.db.set_value("Language", "es", "idx", 10)
+		self.assertEqual("es", search(txt="es")[0]["value"])
+
+
+def test_search(*args, **kwargs):
+	search_link(*args, **kwargs)
+	return frappe.response["results"]
 
 
 @frappe.validate_and_sanitize_search_inputs

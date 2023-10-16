@@ -6,11 +6,12 @@ import quopri
 import traceback
 from contextlib import suppress
 from email.parser import Parser
-from email.policy import SMTPUTF8
+from email.policy import SMTPUTF8, default
 
 import frappe
 from frappe import _, safe_encode, task
 from frappe.core.utils import html2text
+from frappe.database.database import savepoint
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
@@ -259,10 +260,26 @@ class SendMailContext:
 				)
 			else:
 				update_fields.update({"status": "Error"})
+				self.notify_failed_email()
 		else:
 			update_fields = {"status": "Sent"}
 
 		self.queue_doc.update_status(**update_fields, commit=True)
+
+	@savepoint(catch=Exception)
+	def notify_failed_email(self):
+		# Parse the email body to extract the subject
+		subject = Parser(policy=default).parsestr(self.queue_doc.message)["Subject"]
+
+		# Construct the notification
+		notification = frappe.new_doc("Notification Log")
+		notification.for_user = self.queue_doc.owner
+		notification.set("type", "Alert")
+		notification.from_user = self.queue_doc.owner
+		notification.document_type = self.queue_doc.doctype
+		notification.document_name = self.queue_doc.name
+		notification.subject = _("Failed to send email with subject:") + f" {subject}"
+		notification.insert()
 
 	def update_recipient_status_to_sent(self, recipient):
 		self.sent_to_atleast_one_recipient = True
