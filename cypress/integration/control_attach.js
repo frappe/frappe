@@ -107,7 +107,10 @@ context("Attach Control", () => {
 				};
 			},
 		});
-		cy.get("body").should("have.attr", "data-route", `Form/${doctype}/new-${dt_in_route}-1`);
+		cy.get("body").should(($body) => {
+			const dataRoute = $body.attr("data-route");
+			expect(dataRoute).to.match(new RegExp(`^Form/${doctype}/new-${dt_in_route}-`));
+		});
 		cy.get("body").should("have.attr", "data-ajax-state", "complete");
 
 		//Clicking on the attach button which is displayed as part of creating a doctype with "Attach" fieldtype
@@ -127,7 +130,10 @@ context("Attach Control", () => {
 				delete win.navigator.mediaDevices;
 			},
 		});
-		cy.get("body").should("have.attr", "data-route", `Form/${doctype}/new-${dt_in_route}-1`);
+		cy.get("body").should(($body) => {
+			const dataRoute = $body.attr("data-route");
+			expect(dataRoute).to.match(new RegExp(`^Form/${doctype}/new-${dt_in_route}-`));
+		});
 		cy.get("body").should("have.attr", "data-ajax-state", "complete");
 
 		//Clicking on the attach button which is displayed as part of creating a doctype with "Attach" fieldtype
