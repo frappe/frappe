@@ -98,32 +98,26 @@ frappe.ui.form.on("DocType", {
 	},
 	set_link_field(frm) {
 		let doc = frappe.unscrub(frm.child_doctype);
-		console.log("here", doc);
-		let update_options = (options) => {
-			frm.fields_dict["filters"].grid.update_docfield_property(
-				frm.linked_field,
-				"options",
-				options
-			);
-		};
 
 		get_fields_for_doctype(doc).then((fields) => {
 			let as_select_option = (df) => ({
 				label: df.label,
 				value: df.fieldname,
 			});
-			update_options(
-				frm.linked_field === "field"
-					? fields
-							.filter(
-								(field) =>
-									!["Column Break", "Section Break", "HTML"].includes(
-										field.fieldtype
-									)
-							)
-							.map(as_select_option)
-					: fields.filter((field) => field.fieldtype === "Link").map(as_select_option)
-			);
+			if (frm.linked_field === "field") {
+				fields = fields
+					.filter(
+						(field) =>
+							!["Column Break", "Section Break", "HTML"].includes(field.fieldtype)
+					)
+					.map(as_select_option);
+			} else {
+				fields = fields
+					.filter((field) => field.fieldtype === "Link")
+					.map(as_select_option);
+			}
+
+			update_field_options(frm, frm.linked_field, fields);
 		});
 	},
 
@@ -188,14 +182,7 @@ frappe.ui.form.on("Link Field Filter", {
 			value: condition[0],
 		});
 
-		frm.fields_dict["filters"].grid.update_docfield_property(
-			"condition",
-			"options",
-			conditons.map(as_select_option)
-		);
-		let current_df = frappe
-			.get_meta(current_doc)
-			.fields.filter((f) => f.fieldname === current_doc_field_name)[0];
+		update_field_options(frm, "condition", conditons.map(as_select_option));
 	},
 });
 
@@ -210,6 +197,9 @@ function get_fields_for_doctype(doctype) {
 			);
 		});
 	});
+}
+function update_field_options(frm, fieldname, options) {
+	frm.fields_dict["filters"].grid.update_docfield_property(fieldname, "options", options);
 }
 
 function render_form_builder_message(frm) {
