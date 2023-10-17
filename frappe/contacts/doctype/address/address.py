@@ -2,10 +2,13 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+<<<<<<< HEAD
 from __future__ import unicode_literals
 
 import functools
 
+=======
+>>>>>>> fa9f67146c (refactor: Split address render function (backport #22784) (#22788))
 from jinja2 import TemplateSyntaxError
 from past.builtins import cmp
 from six import iteritems, string_types
@@ -133,19 +136,29 @@ def get_default_address(doctype, name, sort_key="is_primary_address"):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def get_address_display(address_dict):
 	if not address_dict:
+=======
+def get_address_display(address_dict: dict | str | None = None) -> str | None:
+	return render_address(address_dict)
+
+
+def render_address(address: dict | str | None, check_permissions=True) -> str | None:
+	if not address:
+>>>>>>> fa9f67146c (refactor: Split address render function (backport #22784) (#22788))
 		return
 
-	if not isinstance(address_dict, dict):
-		address = frappe.get_cached_doc("Address", address_dict)
-		address.check_permission()
-		address_dict = address.as_dict()
+	if not isinstance(address, dict):
+		address = frappe.get_cached_doc("Address", address)
+		if check_permissions:
+			address.check_permission()
+		address = address.as_dict()
 
-	name, template = get_address_templates(address_dict)
+	name, template = get_address_templates(address)
 
 	try:
-		return frappe.render_template(template, address_dict)
+		return frappe.render_template(template, address)
 	except TemplateSyntaxError:
 		frappe.throw(_("There is an error in your Address Template {0}").format(name))
 
@@ -226,8 +239,15 @@ def get_address_templates(address):
 
 def get_company_address(company):
 	ret = frappe._dict()
+<<<<<<< HEAD
 	ret.company_address = get_default_address("Company", company)
 	ret.company_address_display = get_address_display(ret.company_address)
+=======
+
+	if company:
+		ret.company_address = get_default_address("Company", company)
+		ret.company_address_display = render_address(ret.company_address, check_permissions=False)
+>>>>>>> fa9f67146c (refactor: Split address render function (backport #22784) (#22788))
 
 	return ret
 
