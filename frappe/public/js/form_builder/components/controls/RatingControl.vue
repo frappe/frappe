@@ -1,21 +1,24 @@
 <script setup>
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 const props = defineProps(["df"]);
 
 let rating = ref(null);
-let rating_control = ref(null);
+let rating_control = computed(() => {
+	if (!rating.value) return;
+	rating.value.innerHTML = "";
+
+	return frappe.ui.form.make_control({
+		parent: rating.value,
+		df: { ...props.df, hidden: 0 },
+		disabled: true,
+		render_input: true,
+		only_input: true,
+	});
+});
 
 onMounted(() => {
-	if (rating.value) {
-		rating_control.value = frappe.ui.form.make_control({
-			parent: rating.value,
-			df: { ...props.df, hidden: 0 },
-			disabled: true,
-			render_input: true,
-			only_input: true,
-		});
-	}
+	if (rating.value) rating_control.value;
 });
 
 watch(
@@ -23,9 +26,9 @@ watch(
 	(value) => {
 		if (rating_control.value) {
 			rating_control.value.df.options = value;
-			rating_control.value.make_input();
+			rating_control.value?.make_input();
 		}
-	},
+	}
 );
 </script>
 
@@ -44,5 +47,4 @@ watch(
 :deep(.rating) {
 	--star-fill: var(--yellow-300) !important;
 }
-
 </style>
