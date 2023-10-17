@@ -597,11 +597,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-09-13 12:49:32.309521",
-=======
  "modified": "2023-10-17 16:12:28.145496",
->>>>>>> 27d50bb0d1 (fix!: Enable login tracker by default)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

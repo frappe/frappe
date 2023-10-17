@@ -501,27 +501,15 @@ class LoginAttemptTracker:
 
 	@property
 	def login_failed_count(self):
-<<<<<<< HEAD
-		return frappe.cache().hget("login_failed_count", self.user_name)
+		return frappe.cache().hget("login_failed_count", self.key)
 
 	@login_failed_count.setter
 	def login_failed_count(self, count):
-		frappe.cache().hset("login_failed_count", self.user_name, count)
+		frappe.cache().hset("login_failed_count", self.key, count)
 
 	@login_failed_count.deleter
 	def login_failed_count(self):
-		frappe.cache().hdel("login_failed_count", self.user_name)
-=======
-		return frappe.cache.hget("login_failed_count", self.key)
-
-	@login_failed_count.setter
-	def login_failed_count(self, count):
-		frappe.cache.hset("login_failed_count", self.key, count)
-
-	@login_failed_count.deleter
-	def login_failed_count(self):
-		frappe.cache.hdel("login_failed_count", self.key)
->>>>>>> f4f6d97d06 (refactor: make login tracker support arbitrary keys)
+		frappe.cache().hdel("login_failed_count", self.key)
 
 	@property
 	def login_failed_time(self):
@@ -529,27 +517,15 @@ class LoginAttemptTracker:
 
 		For every user we track only First failed login attempt time within lock interval of time.
 		"""
-<<<<<<< HEAD
-		return frappe.cache().hget("login_failed_time", self.user_name)
+		return frappe.cache().hget("login_failed_time", self.key)
 
 	@login_failed_time.setter
 	def login_failed_time(self, timestamp):
-		frappe.cache().hset("login_failed_time", self.user_name, timestamp)
+		frappe.cache().hset("login_failed_time", self.key, timestamp)
 
 	@login_failed_time.deleter
 	def login_failed_time(self):
-		frappe.cache().hdel("login_failed_time", self.user_name)
-=======
-		return frappe.cache.hget("login_failed_time", self.key)
-
-	@login_failed_time.setter
-	def login_failed_time(self, timestamp):
-		frappe.cache.hset("login_failed_time", self.key, timestamp)
-
-	@login_failed_time.deleter
-	def login_failed_time(self):
-		frappe.cache.hdel("login_failed_time", self.key)
->>>>>>> f4f6d97d06 (refactor: make login tracker support arbitrary keys)
+		frappe.cache().hdel("login_failed_time", self.key)
 
 	def add_failure_attempt(self):
 		"""Log user failure attempts into the system.
