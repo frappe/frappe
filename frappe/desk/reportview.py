@@ -46,7 +46,7 @@ def get_list():
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_count():
+def get_count() -> int:
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
@@ -65,7 +65,7 @@ def execute(doctype, *args, **kwargs):
 
 
 def get_form_params():
-	"""Stringify GET request parameters."""
+	"""parse GET request parameters."""
 	data = frappe._dict(frappe.local.form_dict)
 	clean_params(data)
 	validate_args(data)

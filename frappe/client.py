@@ -32,8 +32,8 @@ def get_list(
 	limit_start=None,
 	limit_page_length=20,
 	parent=None,
-	debug=False,
-	as_dict=True,
+	debug: bool = False,
+	as_dict: bool = True,
 	or_filters=None,
 ):
 	"""Returns a list of records by filters, fields, ordering and limit
