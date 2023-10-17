@@ -63,6 +63,8 @@ def add(args=None):
 			"status": "Open",
 			"allocated_to": assign_to,
 		}
+		parent_doc = frappe.get_doc(args["doctype"], args["name"])
+		parent_doc.check_permission()
 
 		if frappe.get_all("ToDo", filters=filters):
 			users_with_duplicate_todo.append(assign_to)
@@ -174,6 +176,9 @@ def close(doctype: str, name: str, assign_to: str):
 
 def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled"):
 	"""remove from todo"""
+
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission()
 	try:
 		if not todo:
 			todo = frappe.db.get_value(
