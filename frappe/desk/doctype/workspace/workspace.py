@@ -387,7 +387,17 @@ def delete_page(page):
 	page = loads(page)
 
 	if page.get("public") and not is_workspace_manager():
-		return
+		frappe.throw(
+			_("Cannot delete public workspace without Workspace Manager role"),
+			frappe.PermissionError,
+		)
+	elif not page.get("public") and not is_workspace_manager():
+		workspace_owner = frappe.get_value("Workspace", page.get("name"), "for_user")
+		if workspace_owner != frappe.session.user:
+			frappe.throw(
+				_("Cannot delete private workspace of other users"),
+				frappe.PermissionError,
+			)
 
 	if frappe.db.exists("Workspace", page.get("name")):
 		frappe.get_doc("Workspace", page.get("name")).delete(ignore_permissions=True)
