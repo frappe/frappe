@@ -37,6 +37,7 @@ from frappe.utils import (
 )
 from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
+from frappe.email.utils import decode_sequence
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 1_00_000
@@ -144,7 +145,7 @@ class EmailServer:
 				raise
 
 	def select_imap_folder(self, folder):
-		res = self.imap.select(f'"{folder}"')
+		res = self.imap.select(f'{folder}')
 		return res[0] == "OK"  # The folder exsits TODO: handle other resoponses too
 
 	def logout(self):
@@ -162,8 +163,22 @@ class EmailServer:
 		self.uid_reindexed = False
 
 		email_list = self.get_new_mails(folder)
+		
+		num = len(email_list)
 
-		for i, uid in enumerate(email_list[:100]):
+		# reindexd or initial sync
+		if self.uid_reindexed and num > cint(self.settings.initial_sync_count):
+			# sort so that the most recent uid is on top of the list
+			email_list.reverse()
+			# process only up to initial_sync_count
+			email_list = email_list[:cint(self.settings.initial_sync_count)]
+			# resort, so that we load the oldest messages first
+			email_list.reverse()	
+
+		if num > 100:
+			num = 100
+
+		for i, uid in enumerate(email_list[:num]):
 			try:
 				self.retrieve_message(uid, i + 1)
 			except (_socket.timeout, LoginLimitExceeded):
@@ -197,13 +212,12 @@ class EmailServer:
 
 	def check_imap_uidvalidity(self, folder):
 		# compare the UIDVALIDITY of email account and imap server
-		uid_validity = self.settings.uid_validity
+		uid_validity = cint(self.settings.uid_validity)
 
 		response, message = self.imap.status(folder, "(UIDVALIDITY UIDNEXT)")
-		current_uid_validity = self.parse_imap_response("UIDVALIDITY", message[0]) or 0
+		current_uid_validity = cint(self.parse_imap_response("UIDVALIDITY", message[0]))
 
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
-		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
 
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
@@ -212,31 +226,15 @@ class EmailServer:
 				Communication.communication_medium == "Email"
 			).where(Communication.email_account == self.settings.email_account).run()
 
-			if self.settings.use_imap:
-				# new update for the IMAP Folder DocType
-				IMAPFolder = frappe.qb.DocType("IMAP Folder")
-				frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
-					IMAPFolder.uidnext, uidnext
-				).where(IMAPFolder.parent == self.settings.email_account_name).where(
-					IMAPFolder.folder_name == folder
-				).run()
-			else:
-				EmailAccount = frappe.qb.DocType("Email Account")
-				frappe.qb.update(EmailAccount).set(EmailAccount.uidvalidity, current_uid_validity).set(
-					EmailAccount.uidnext, uidnext
-				).where(EmailAccount.name == self.settings.email_account_name).run()
-
-			# uid validity not found pulling emails for first time
-			if not uid_validity:
-				self.settings.email_sync_rule = "UNSEEN"
-				return
-
-			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
-			from_uid = (
-				1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
-			)
-			# sync last 100 email
-			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
+			# new update for the IMAP Folder DocType
+			IMAPFolder = frappe.qb.DocType("IMAP Folder")
+			frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
+				IMAPFolder.uidnext, uidnext
+			).where(IMAPFolder.parent == self.settings.email_account_name).where(
+				IMAPFolder.folder_name == folder
+			).run()
+			
+			self.settings.email_sync_rule = "ALL"
 			self.uid_reindexed = True
 
 	def parse_imap_response(self, cmd, response):
@@ -401,20 +399,20 @@ class Email:
 	def set_subject(self):
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
-		self.subject = _subject[0][0] or ""
-
-		if _subject[0][1]:
-			# Encoding is known by decode_header (might also be unknown-8bit)
-			self.subject = safe_decode(self.subject, _subject[0][1])
-
-		if isinstance(self.subject, bytes):
-			# Fall back to utf-8 if the charset is unknown or decoding fails
-			# Replace invalid characters with '<?>'
-			self.subject = self.subject.decode("utf-8", "replace")
-
-		# Convert non-string (e.g. None)
-		# Truncate to 140 chars (can be used as a document name)
-		self.subject = str(self.subject).strip()[:140]
+		self.subject = decode_sequence(_subject)
+# + IgorA100 проверить !!!
+#		if _subject[0][1]:
+#			# Encoding is known by decode_header (might also be unknown-8bit)
+#			self.subject = safe_decode(self.subject, _subject[0][1])
+#
+#		if isinstance(self.subject, bytes):
+#			# Fall back to utf-8 if the charset is unknown or decoding fails
+#			# Replace invalid characters with '<?>'
+#			self.subject = self.subject.decode("utf-8", "replace")
+#
+#		# Convert non-string (e.g. None)
+#		# Truncate to 140 chars (can be used as a document name)
+#		self.subject = str(self.subject).strip()[:140]
 
 		if not self.subject:
 			self.subject = "No Subject"
@@ -622,6 +620,7 @@ class InboundMail(Email):
 		communication = self.is_exist_in_system()
 		if communication:
 			communication.update_db(uid=self.uid)
+			communication.update_db(email_account=self.email_account.email_account_name)
 			communication.reload()
 			return communication
 
