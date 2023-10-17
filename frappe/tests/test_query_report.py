@@ -3,7 +3,9 @@
 
 import frappe
 import frappe.utils
-from frappe.desk.query_report import build_xlsx_data
+from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.desk.query_report import build_xlsx_data, export_query, run
+from frappe.tests.ui_test_helpers import create_doctype
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.xlsxutils import make_xlsx
 
@@ -69,3 +71,120 @@ class TestQueryReport(FrappeTestCase):
 		for row in xlsx_data:
 			# column_b should be 'str' even with composite cell value
 			self.assertEqual(type(row[1]), str)
+
+	def test_report_for_duplicate_column_names(self):
+		"""Test report with duplicate column names"""
+
+		try:
+			fields = [
+				{"label": "First Name", "fieldname": "first_name", "fieldtype": "Data"},
+				{"label": "Last Name", "fieldname": "last_name", "fieldtype": "Data"},
+			]
+			docA = frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"name": "Doc A",
+					"module": "Core",
+					"custom": 1,
+					"autoname": "field:first_name",
+					"fields": fields,
+					"permissions": [{"role": "System Manager"}],
+				}
+			).insert(ignore_if_duplicate=True)
+
+			docB = frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"name": "Doc B",
+					"module": "Core",
+					"custom": 1,
+					"autoname": "field:last_name",
+					"fields": fields,
+					"permissions": [{"role": "System Manager"}],
+				}
+			).insert(ignore_if_duplicate=True)
+
+			for i in range(1, 3):
+				frappe.get_doc({"doctype": "Doc A", "first_name": f"John{i}", "last_name": "Doe"}).insert()
+				frappe.get_doc({"doctype": "Doc B", "last_name": f"Doe{i}", "first_name": "John"}).insert()
+
+			if not frappe.db.exists("Report", "Doc A Report"):
+				report = frappe.get_doc(
+					{
+						"doctype": "Report",
+						"ref_doctype": "Doc A",
+						"report_name": "Doc A Report",
+						"report_type": "Script Report",
+						"is_standard": "No",
+					}
+				).insert(ignore_permissions=True)
+			else:
+				report = frappe.get_doc("Report", "Doc A Report")
+
+			report.report_script = """
+result = [["Ritvik","Sardana", "Doe1"],["Shariq","Ansari", "Doe2"]]
+columns = [{
+			"label": "First Name",
+			"fieldname": "first_name",
+			"fieldtype": "Data",
+			"width": 180,
+		},
+		{
+			"label": "Last Name",
+			"fieldname": "last_name",
+			"fieldtype": "Data",
+			"width": 180,
+		},
+		{
+			"label": "Linked Field",
+			"fieldname": "linked_field",
+			"fieldtype": "Link",
+			"options": "Doc B",
+			"width": 180,
+		},
+	]
+
+data = columns, result
+				"""
+			report.save()
+
+			custom_columns = [
+				{
+					"fieldname": "first_name-Doc_B",
+					"fieldtype": "Data",
+					"label": "First Name",
+					"insert_after_index": 1,
+					"link_field": {"fieldname": "linked_field", "names": {}},
+					"doctype": "Doc B",
+					"width": 100,
+					"id": "first_name-Doc_B",
+					"name": "First Name",
+					"editable": False,
+					"compareValue": None,
+				},
+			]
+
+			response = run(
+				"Doc A Report",
+				filters={"user": "Administrator", "doctype": "Doc A"},
+				custom_columns=custom_columns,
+			)
+
+			self.assertListEqual(
+				["first_name", "last_name", "first_name-Doc_B", "linked_field"],
+				[d["fieldname"] for d in response["columns"]],
+			)
+
+			self.assertDictEqual(
+				{
+					"first_name": "Ritvik",
+					"last_name": "Sardana",
+					"linked_field": "Doe1",
+					"first_name-Doc_B": "John",
+				},
+				response["result"][0],
+			)
+
+		except Exception as e:
+			raise e
+			frappe.db.rollback()

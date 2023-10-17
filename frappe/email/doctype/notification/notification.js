@@ -50,7 +50,7 @@ frappe.notification = {
 			if (frm.doc.channel === "Email") {
 				receiver_fields = $.map(fields, function (d) {
 					// Add User and Email fields from child into select dropdown
-					if (d.fieldtype == "Table") {
+					if (frappe.model.table_fields.includes(d.fieldtype)) {
 						let child_fields = frappe.get_doc("DocType", d.options).fields;
 						return $.map(child_fields, function (df) {
 							return df.options == "Email" ||

@@ -76,7 +76,7 @@ export default class QuickListWidget extends Widget {
 			delete this.filter_group;
 		}
 
-		this.filters = frappe.utils.get_filter_from_json(this.quick_list_filter, doctype);
+		this.filters = frappe.utils.process_filter_expression(this.quick_list_filter);
 
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: this.dialog.get_field("filter_area").$wrapper,
@@ -104,7 +104,7 @@ export default class QuickListWidget extends Widget {
 			primary_action: function () {
 				let old_filter = me.quick_list_filter;
 				let filters = me.filter_group.get_filters();
-				me.quick_list_filter = frappe.utils.get_filter_as_json(filters);
+				me.quick_list_filter = JSON.parse(filters);
 
 				this.hide();
 
@@ -203,7 +203,7 @@ export default class QuickListWidget extends Widget {
 
 			fields.push("modified");
 
-			let quick_list_filter = frappe.utils.get_filter_from_json(this.quick_list_filter);
+			let quick_list_filter = frappe.utils.process_filter_expression(this.quick_list_filter);
 
 			let args = {
 				method: "frappe.desk.reportview.get",
