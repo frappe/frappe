@@ -292,7 +292,11 @@ def hide_unhide_page(page_name: str, is_hidden: bool):
 			_("Need Workspace Manager role to hide/unhide public workspaces"), frappe.PermissionError
 		)
 
-	if not page.get("public") and page.get("for_user") != frappe.session.user:
+	if (
+		not page.get("public")
+		and page.get("for_user") != frappe.session.user
+		and not is_workspace_manager()
+	):
 		frappe.throw(_("Cannot update private workspace of other users"), frappe.PermissionError)
 
 	page.is_hidden = int(is_hidden)
