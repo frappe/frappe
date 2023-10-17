@@ -67,10 +67,13 @@ class TestScheduledJobType(FrappeTestCase):
 
 	def test_cron_job(self):
 		# Daily but offset by 45 minutes
-		job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.core.doctype.log_settings.log_settings.run_log_clean_up"))
+		job = frappe.get_doc(
+			"Scheduled Job Type",
+			dict(method="frappe.core.doctype.log_settings.log_settings.run_log_clean_up"),
+		)
 		self.assertEqual(
 			job.next_execution,
-			add_to_date(None, days=1).replace(hour=0, minute=45, second=0, microsecond=0)
+			add_to_date(None, days=1).replace(hour=0, minute=45, second=0, microsecond=0),
 		)
 		# runs every 15 mins
 		job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.oauth.delete_oauth2_data"))
