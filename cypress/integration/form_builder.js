@@ -77,7 +77,8 @@ context("Form Builder", () => {
 			.as("input");
 		cy.get("@input").clear({ force: true }).type("Web Form Field", { delay: 200 });
 		cy.wait("@search_link");
-		cy.get("@input").type("{enter}").blur();
+
+		cy.get(first_field).click({ force: true });
 
 		cy.get(first_field)
 			.find(".table-controls .table-column")

@@ -48,7 +48,7 @@ if (props.df.fieldtype === "Icon") {
 			class="form-control"
 			type="text"
 			:value="value"
-			:disabled="read_only"
+			:disabled="read_only || df.read_only"
 			@input="event => $emit('update:modelValue', event.target.value)"
 		/>
 		<input
