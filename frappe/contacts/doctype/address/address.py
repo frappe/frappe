@@ -128,13 +128,13 @@ def get_address_display(address_dict: dict | str | None = None) -> str | None:
 	return render_address(address_dict)
 
 
-def render_address(address: dict | str | None, ignore_permissions=False) -> str | None:
+def render_address(address: dict | str | None, check_permissions=True) -> str | None:
 	if not address:
 		return
 
 	if not isinstance(address, dict):
 		address = frappe.get_cached_doc("Address", address)
-		if not ignore_permissions:
+		if check_permissions:
 			address.check_permission()
 		address = address.as_dict()
 
@@ -222,7 +222,7 @@ def get_company_address(company):
 
 	if company:
 		ret.company_address = get_default_address("Company", company)
-		ret.company_address_display = render_address(ret.company_address, ignore_permissions=True)
+		ret.company_address_display = render_address(ret.company_address, check_permissions=False)
 
 	return ret
 
