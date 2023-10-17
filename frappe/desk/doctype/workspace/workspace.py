@@ -242,6 +242,12 @@ def new_page(new_page):
 
 	if page.get("public") and not is_workspace_manager():
 		return
+	elif (
+		not page.get("public")
+		and page.get("for_user") != frappe.session.user
+		and not is_workspace_manager()
+	):
+		frappe.throw(_("Cannot create private workspace of other users"), frappe.PermissionError)
 
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")
