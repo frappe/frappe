@@ -93,7 +93,7 @@
   "sender_field",
   "subject_field",
   "connections_tab",
-  "link_field_filter"
+  "filters"
  ],
  "fields": [
   {
@@ -663,12 +663,13 @@
    "show_dashboard": 1
   },
   {
-   "fieldname": "link_field_filter",
+   "fieldname": "filters",
    "fieldtype": "Table",
-   "label": "Link Field Filter",
-   "options": "Link Field Filter"
+   "label": "filters",
+   "options": "DocType Filter"
   }
  ],
+ "filters": [],
  "icon": "fa fa-bolt",
  "idx": 6,
  "index_web_pages_for_search": 1,
@@ -749,7 +750,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-10-06 15:43:01.863270",
+ "modified": "2023-10-17 16:56:29.963206",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

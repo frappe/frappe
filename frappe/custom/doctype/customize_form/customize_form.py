@@ -401,6 +401,7 @@ class CustomizeForm(Document):
 			("DocType Link", "links", doctype_link_properties),
 			("DocType Action", "actions", doctype_action_properties),
 			("DocType State", "states", doctype_state_properties),
+			("DocType Filter", "filters", doctype_filter_properties),
 		):
 			has_custom = False
 			items = []
@@ -780,6 +781,12 @@ doctype_action_properties = {
 
 doctype_state_properties = {"title": "Data", "color": "Select"}
 
+doctype_filter_properties = {
+	"link_field": "Select",
+	"field": "Select",
+	"condition": "Select",
+	"value": "Data",
+}
 
 ALLOWED_FIELDTYPE_CHANGE = (
 	("Currency", "Float", "Percent"),

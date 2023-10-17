@@ -20,7 +20,7 @@ class PropertySetter(Document):
 		default_value: DF.Data | None
 		doc_type: DF.Link
 		doctype_or_field: DF.Literal[
-			"", "DocField", "DocType", "DocType Link", "DocType Action", "DocType State"
+			"", "DocField", "DocType", "DocType Link", "DocType Action", "DocType State", "DocType Filter"
 		]
 		field_name: DF.Data | None
 		is_system_generated: DF.Check

@@ -9,6 +9,7 @@ from frappe.utils.password import update_password
 
 def before_install():
 	frappe.reload_doc("core", "doctype", "doctype_state")
+	frappe.reload_doc("core", "doctype", "doctype_filter")
 	frappe.reload_doc("core", "doctype", "docfield")
 	frappe.reload_doc("core", "doctype", "docperm")
 	frappe.reload_doc("core", "doctype", "doctype_action")

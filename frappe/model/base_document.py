@@ -47,6 +47,7 @@ DOCTYPE_TABLE_FIELDS = [
 	_dict(fieldname="actions", options="DocType Action"),
 	_dict(fieldname="links", options="DocType Link"),
 	_dict(fieldname="states", options="DocType State"),
+	_dict(fieldname="filters", options="DocType Filter"),
 ]
 
 TABLE_DOCTYPES_FOR_DOCTYPE = {df["fieldname"]: df["options"] for df in DOCTYPE_TABLE_FIELDS}

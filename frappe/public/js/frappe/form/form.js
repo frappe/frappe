@@ -104,10 +104,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// navigate records keyboard shortcuts
 		this.add_form_keyboard_shortcuts();
-
 		// 2 column layout
 		this.setup_std_layout();
-
+		this.setup_filters();
 		// client script must be called after "setup" - there are no fields_dict attached to the frm otherwise
 		this.script_manager = new frappe.ui.form.ScriptManager({
 			frm: this,
@@ -272,6 +271,32 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 	}
 
+	setup_filters() {
+		if (frappe.get_meta(this.doctype).filters) {
+			let filters = frappe.get_meta(this.doctype).filters;
+			let filters_format = [];
+			filters.forEach((filter) => {
+				let filter_format = [
+					filter.link_field,
+					filter.field,
+					filter.condition,
+					filter.value,
+				];
+				filters_format.push(filter_format);
+			});
+			filters_format.forEach((filter) => {
+				this.set_query(filter[0], () => {
+					return {
+						filters: {
+							[filter[1]]: [filter[2], filter[3]],
+						},
+					};
+				});
+				console.log("here");
+			});
+		}
+	}
+
 	watch_model_updates() {
 		// watch model updates
 		var me = this;
@@ -378,7 +403,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 	refresh(docname) {
 		var switched = docname ? true : false;
-
 		removeEventListener("beforeunload", this.beforeUnloadListener, { capture: true });
 
 		if (docname) {

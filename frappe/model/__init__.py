@@ -101,6 +101,7 @@ core_doctypes_list = (
 	"DocPerm",
 	"DocType Action",
 	"DocType Link",
+	"DocType Filter",
 	"User",
 	"Role",
 	"Has Role",

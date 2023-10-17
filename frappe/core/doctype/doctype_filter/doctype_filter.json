@@ -1,0 +1,53 @@
+{
+	"actions": [],
+	"allow_rename": 1,
+	"creation": "2023-10-05 17:07:50.711810",
+	"default_view": "List",
+	"doctype": "DocType",
+	"editable_grid": 1,
+	"engine": "InnoDB",
+	"field_order": [
+	 "link_field",
+	 "field",
+	 "condition",
+	 "value"
+	],
+	"fields": [
+	 {
+	  "fieldname": "link_field",
+	  "fieldtype": "Select",
+	  "in_list_view": 1,
+	  "label": "Link Field"
+	 },
+	 {
+	  "fieldname": "field",
+	  "fieldtype": "Select",
+	  "in_list_view": 1,
+	  "label": "Field"
+	 },
+	 {
+	  "fieldname": "value",
+	  "fieldtype": "Data",
+	  "in_list_view": 1,
+	  "label": "Value"
+	 },
+	 {
+	  "fieldname": "condition",
+	  "fieldtype": "Select",
+	  "in_list_view": 1,
+	  "label": "Condition"
+	 }
+	],
+	"index_web_pages_for_search": 1,
+	"istable": 1,
+	"links": [],
+	"modified": "2023-10-16 12:01:42.705005",
+	"modified_by": "Administrator",
+	"module": "Core",
+	"name": "DocType Filter",
+	"owner": "Administrator",
+	"permissions": [],
+	"sort_field": "modified",
+	"sort_order": "DESC",
+	"states": []
+   }

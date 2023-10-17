@@ -93,15 +93,18 @@ frappe.ui.form.on("DocType", {
 
 		render_form_builder(frm);
 		frm.linked_field = "link_field";
+		frm.child_doctype = frm.docname;
 		frm.trigger("set_link_field");
 	},
 	set_link_field(frm) {
-		let doc = frm.linked_field === "field" ? frappe.unscrub(frm.child_doctype) : frm.docname;
-
+		let doc = frappe.unscrub(frm.child_doctype);
+		console.log("here", doc);
 		let update_options = (options) => {
-			[frm.fields_dict.link_field_filter.grid].forEach((obj) => {
-				obj.update_docfield_property(frm.linked_field, "options", options);
-			});
+			frm.fields_dict["filters"].grid.update_docfield_property(
+				frm.linked_field,
+				"options",
+				options
+			);
 		};
 
 		get_fields_for_doctype(doc).then((fields) => {
@@ -165,7 +168,7 @@ frappe.ui.form.on("DocField", {
 	},
 });
 
-frappe.ui.form.on("Link Field Filter", {
+frappe.ui.form.on("DocType Filter", {
 	link_field: function (frm, cdt, cdn) {
 		frm.linked_field = "field";
 		let link_field = locals[cdt][cdn].link_field;
@@ -174,6 +177,7 @@ frappe.ui.form.on("Link Field Filter", {
 			.fields.find((df) => df.fieldname === link_field)?.options;
 		frm.trigger("set_link_field");
 	},
+
 	field: function (frm, cdt, cdn) {
 		let current_doc = frappe.unscrub(locals[cdt][cdn].link_field);
 		let current_doc_field_name = locals[cdt][cdn].field;
@@ -184,7 +188,7 @@ frappe.ui.form.on("Link Field Filter", {
 			value: condition[0],
 		});
 
-		frm.fields_dict[frappe.scrub(cdt)].grid.update_docfield_property(
+		frm.fields_dict["filters"].grid.update_docfield_property(
 			"condition",
 			"options",
 			conditons.map(as_select_option)
