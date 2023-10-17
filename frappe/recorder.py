@@ -45,7 +45,7 @@ def get_current_stack_frames():
 		current = inspect.currentframe()
 		frames = inspect.getouterframes(current, context=10)
 		for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:
-			if "/apps/" in filename:
+			if "/apps/" in filename or "<serverscript>" in filename:
 				yield {
 					"filename": TRACEBACK_PATH_PATTERN.sub("", filename),
 					"lineno": lineno,
@@ -71,7 +71,9 @@ def post_process():
 
 	for request in result:
 		for call in request["calls"]:
-			formatted_query = sqlparse.format(call["query"].strip(), keyword_case="upper", reindent=True)
+			formatted_query = sqlparse.format(
+				call["query"].strip(), keyword_case="upper", reindent=True, strip_comments=True
+			)
 			call["query"] = formatted_query
 
 			# Collect EXPLAIN for executed query
@@ -193,6 +195,7 @@ def _unpatch():
 
 
 def do_not_record(function):
+	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
 		if hasattr(frappe.local, "_recorder"):
 			del frappe.local._recorder
@@ -203,6 +206,7 @@ def do_not_record(function):
 
 
 def administrator_only(function):
+	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator is allowed to use Recorder"))
@@ -274,3 +278,15 @@ def record_queries(func: Callable):
 		return ret
 
 	return wrapped
+
+
+@frappe.whitelist()
+@do_not_record
+@administrator_only
+def import_data(file: str) -> None:
+	file_doc = frappe.get_doc("File", {"file_url": file})
+	file_content = json.loads(file_doc.get_content())
+	for request in file_content:
+		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, request["uuid"], request)
+		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
+	file_doc.delete(delete_permanently=True)

@@ -7,7 +7,7 @@ import os
 import frappe
 from frappe import _, scrub
 from frappe.core.api.file import get_max_file_size
-from frappe.core.doctype.file import remove_file_by_url
+from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
@@ -18,6 +18,54 @@ from frappe.website.website_generator import WebsiteGenerator
 
 
 class WebForm(WebsiteGenerator):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.website.doctype.web_form_field.web_form_field import WebFormField
+		from frappe.website.doctype.web_form_list_column.web_form_list_column import WebFormListColumn
+
+		allow_comments: DF.Check
+		allow_delete: DF.Check
+		allow_edit: DF.Check
+		allow_incomplete: DF.Check
+		allow_multiple: DF.Check
+		allow_print: DF.Check
+		anonymous: DF.Check
+		apply_document_permissions: DF.Check
+		banner_image: DF.AttachImage | None
+		breadcrumbs: DF.Code | None
+		button_label: DF.Data | None
+		client_script: DF.Code | None
+		condition: DF.Code | None
+		custom_css: DF.Code | None
+		doc_type: DF.Link
+		introduction_text: DF.TextEditor | None
+		is_standard: DF.Check
+		list_columns: DF.Table[WebFormListColumn]
+		list_title: DF.Data | None
+		login_required: DF.Check
+		max_attachment_size: DF.Int
+		meta_description: DF.SmallText | None
+		meta_image: DF.AttachImage | None
+		meta_title: DF.Data | None
+		module: DF.Link | None
+		print_format: DF.Link | None
+		published: DF.Check
+		route: DF.Data | None
+		show_attachments: DF.Check
+		show_list: DF.Check
+		show_sidebar: DF.Check
+		success_message: DF.Text | None
+		success_title: DF.Data | None
+		success_url: DF.Data | None
+		title: DF.Data
+		web_form_fields: DF.Table[WebFormField]
+		website_sidebar: DF.Link | None
+	# end: auto-generated types
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
@@ -48,11 +96,12 @@ class WebForm(WebsiteGenerator):
 		"""Validate all fields are present"""
 		from frappe.model import no_value_fields
 
-		missing = []
 		meta = frappe.get_meta(self.doc_type)
-		for df in self.web_form_fields:
-			if df.fieldname and (df.fieldtype not in no_value_fields and not meta.has_field(df.fieldname)):
-				missing.append(df.fieldname)
+		missing = [
+			df.fieldname
+			for df in self.web_form_fields
+			if df.fieldname and (df.fieldtype not in no_value_fields and not meta.has_field(df.fieldname))
+		]
 
 		if missing:
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
@@ -151,16 +200,12 @@ def get_context(context):
 			and not frappe.form_dict.name
 			and not frappe.form_dict.is_list
 		):
-			names = frappe.db.get_values(self.doc_type, {"owner": frappe.session.user}, pluck="name")
-			for name in names:
-				if self.condition:
-					doc = frappe.get_doc(self.doc_type, name)
-					if frappe.safe_eval(self.condition, None, {"doc": doc.as_dict()}):
-						context.in_view_mode = True
-						frappe.redirect(f"/{self.route}/{name}")
-				else:
-					context.in_view_mode = True
-					frappe.redirect(f"/{self.route}/{name}")
+			condition_json = json.loads(self.condition_json) if self.condition_json else []
+			condition_json.append(["owner", "=", frappe.session.user])
+			names = frappe.get_all(self.doc_type, filters=condition_json, pluck="name")
+			if names:
+				context.in_view_mode = True
+				frappe.redirect(f"/{self.route}/{names[0]}")
 
 		# Show new form when
 		# - User is Guest
@@ -339,11 +384,7 @@ def get_context(context):
 
 	def validate_mandatory(self, doc):
 		"""Validate mandatory web form fields"""
-		missing = []
-		for f in self.web_form_fields:
-			if f.reqd and doc.get(f.fieldname) in (None, [], ""):
-				missing.append(f)
-
+		missing = [f for f in self.web_form_fields if f.reqd and doc.get(f.fieldname) in (None, [], "")]
 		if missing:
 			frappe.throw(
 				_("Mandatory Information missing:")
@@ -381,7 +422,7 @@ def get_web_form_module(doc):
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(key="web_form", limit=5, seconds=60, methods=["POST"])
+@rate_limit(key="web_form", limit=5, seconds=60)
 def accept(web_form, data):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))

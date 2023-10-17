@@ -295,7 +295,7 @@ frappe.get_data_pill = (label, target_id = null, remove_action = null, image = n
 		<button class="data-pill btn">
 			<div class="flex align-center ellipsis">
 				${image ? image : ""}
-				<span class="pill-label ${image ? "ml-2" : ""}">${label}</span>
+				<span class="pill-label">${label}</span>
 			</div>
 		</button>
 	`);
@@ -405,6 +405,7 @@ frappe.create_shadow_element = function (wrapper, html, css, js) {
 
 // bind online/offline events
 $(window).on("online", function () {
+	if (document.hidden) return;
 	frappe.show_alert({
 		indicator: "green",
 		message: __("You are connected to internet."),
@@ -412,6 +413,7 @@ $(window).on("online", function () {
 });
 
 $(window).on("offline", function () {
+	if (document.hidden) return;
 	frappe.show_alert({
 		indicator: "orange",
 		message: __("Connection lost. Some features might not work."),

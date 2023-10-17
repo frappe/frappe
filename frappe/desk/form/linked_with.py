@@ -38,6 +38,7 @@ def get_submitted_linked_docs(doctype: str, name: str) -> list[tuple]:
 	3. Searching for links is going to be a tree like structure where at every level,
 	        you will be finding documents using parent document and parent document links.
 	"""
+	frappe.has_permission(doctype, doc=name)
 	tree = SubmittableDocumentTree(doctype, name)
 	visited_documents = tree.get_all_children()
 	docs = []
@@ -407,10 +408,7 @@ def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None):
 
 def get_exempted_doctypes():
 	"""Get list of doctypes exempted from being auto-cancelled"""
-	auto_cancel_exempt_doctypes = []
-	for doctypes in frappe.get_hooks("auto_cancel_exempted_doctypes"):
-		auto_cancel_exempt_doctypes.append(doctypes)
-	return auto_cancel_exempt_doctypes
+	return list(frappe.get_hooks("auto_cancel_exempted_doctypes"))
 
 
 def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> dict[str, list]:
@@ -430,8 +428,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
 		except Exception as e:
 			if isinstance(e, frappe.DoesNotExistError):
-				if frappe.local.message_log:
-					frappe.local.message_log.pop()
+				frappe.clear_last_message()
 			continue
 		linkmeta = link_meta_bundle[0]
 
@@ -505,8 +502,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 						ret = None
 
 			except frappe.PermissionError:
-				if frappe.local.message_log:
-					frappe.local.message_log.pop()
+				frappe.clear_last_message()
 
 				continue
 
@@ -518,6 +514,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 
 @frappe.whitelist()
 def get(doctype, docname):
+	frappe.has_permission(doctype, doc=docname)
 	linked_doctypes = get_linked_doctypes(doctype=doctype)
 	return get_linked_docs(doctype=doctype, name=docname, linkinfo=linked_doctypes)
 

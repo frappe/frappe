@@ -15,7 +15,7 @@ context("List View Settings", () => {
 		cy.clear_filters();
 		cy.wait(300);
 		cy.get(".list-count").should("contain", "20 of");
-		cy.get("[href='#icon-small-message']").should("be.visible");
+		cy.get("[href='#es-line-chat-alt']").should("be.visible");
 		cy.get(".menu-btn-group button").click();
 		cy.get(".dropdown-menu li").filter(":visible").contains("List Settings").click();
 		cy.get(".modal-dialog").should("contain", "DocType Settings");
@@ -29,7 +29,7 @@ context("List View Settings", () => {
 
 		cy.get(".list-count").should("be.empty");
 		cy.get(".list-sidebar .list-tags").should("not.exist");
-		cy.get("[href='#icon-small-message']").should("not.be.visible");
+		cy.get("[href='#es-line-chat-alt']").should("not.be.visible");
 
 		cy.get(".menu-btn-group button").click({ force: true });
 		cy.get(".dropdown-menu li").filter(":visible").contains("List Settings").click();

@@ -135,33 +135,6 @@ frappe.ui.form.on("DocField", {
 	},
 });
 
-function render_form_builder_message(frm) {
-	$(frm.fields_dict["try_form_builder_html"].wrapper).empty();
-	if (!frm.is_new() && frm.fields_dict["try_form_builder_html"]) {
-		let title = __("Use Form Builder to visually edit your form layout");
-		let msg = __(
-			"You can drag and drop fields to create your form layout, add tabs, sections and columns to organize your form and update field properties all from one screen."
-		);
-
-		let message = `
-		<div class="flex form-message blue p-3">
-			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="360" src="/assets/frappe/images/form-builder.gif"></div>
-			<div>
-				<p style="font-size: var(--text-lg)">${title}</p>
-				<p>${msg}</p>
-				<div>
-					<a class="btn btn-primary btn-sm" href="/app/form-builder/${frm.doc.name}">
-						${__("Form Builder")} ${frappe.utils.icon("right", "xs")}
-					</a>
-				</div>
-			</div>
-		</div>
-		`;
-
-		$(frm.fields_dict["try_form_builder_html"].wrapper).html(message);
-	}
-}
-
 function render_form_builder(frm) {
 	if (frappe.form_builder && frappe.form_builder.doctype === frm.doc.name) {
 		frappe.form_builder.setup_page_actions();

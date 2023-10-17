@@ -14,6 +14,56 @@ from frappe.modules.export_file import delete_folder, export_to_files
 
 
 class Workspace(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.desk.doctype.workspace_chart.workspace_chart import WorkspaceChart
+		from frappe.desk.doctype.workspace_custom_block.workspace_custom_block import (
+			WorkspaceCustomBlock,
+		)
+		from frappe.desk.doctype.workspace_link.workspace_link import WorkspaceLink
+		from frappe.desk.doctype.workspace_number_card.workspace_number_card import WorkspaceNumberCard
+		from frappe.desk.doctype.workspace_quick_list.workspace_quick_list import WorkspaceQuickList
+		from frappe.desk.doctype.workspace_shortcut.workspace_shortcut import WorkspaceShortcut
+		from frappe.types import DF
+
+		charts: DF.Table[WorkspaceChart]
+		content: DF.LongText | None
+		custom_blocks: DF.Table[WorkspaceCustomBlock]
+		for_user: DF.Data | None
+		hide_custom: DF.Check
+		indicator_color: DF.Literal[
+			"green",
+			"cyan",
+			"blue",
+			"orange",
+			"yellow",
+			"gray",
+			"grey",
+			"red",
+			"pink",
+			"darkgrey",
+			"purple",
+			"light-blue",
+		]
+		is_hidden: DF.Check
+		label: DF.Data
+		links: DF.Table[WorkspaceLink]
+		module: DF.Link | None
+		number_cards: DF.Table[WorkspaceNumberCard]
+		parent_page: DF.Data | None
+		public: DF.Check
+		quick_lists: DF.Table[WorkspaceQuickList]
+		restrict_to_domain: DF.Link | None
+		roles: DF.Table[HasRole]
+		sequence_id: DF.Float
+		shortcuts: DF.Table[WorkspaceShortcut]
+		title: DF.Data
+	# end: auto-generated types
 	def validate(self):
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))
@@ -27,6 +77,13 @@ class Workspace(Document):
 				raise
 		except Exception:
 			frappe.throw(_("Content data shoud be a list"))
+
+	def clear_cache(self):
+		super().clear_cache()
+		if self.for_user:
+			frappe.cache.hdel("bootinfo", self.for_user)
+		else:
+			frappe.cache.delete_key("bootinfo")
 
 	def on_update(self):
 		if disable_saving_as_public():
@@ -185,10 +242,17 @@ def new_page(new_page):
 
 	if page.get("public") and not is_workspace_manager():
 		return
+	elif (
+		not page.get("public")
+		and page.get("for_user") != frappe.session.user
+		and not is_workspace_manager()
+	):
+		frappe.throw(_("Cannot create private workspace of other users"), frappe.PermissionError)
 
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")
 	doc.icon = page.get("icon")
+	doc.indicator_color = page.get("indicator_color")
 	doc.content = page.get("content")
 	doc.parent_page = page.get("parent_page")
 	doc.label = page.get("label")
@@ -221,13 +285,24 @@ def save_page(title, public, new_widgets, blocks):
 
 
 @frappe.whitelist()
-def update_page(name, title, icon, parent, public):
+def update_page(name, title, icon, indicator_color, parent, public):
 	public = frappe.parse_json(public)
 	doc = frappe.get_doc("Workspace", name)
+
+	if (
+		not doc.get("public")
+		and doc.get("for_user") != frappe.session.user
+		and not is_workspace_manager()
+	):
+		frappe.throw(
+			_("Need Workspace Manager role to edit private workspace of other users"),
+			frappe.PermissionError,
+		)
 
 	if doc:
 		doc.title = title
 		doc.icon = icon
+		doc.indicator_color = indicator_color
 		doc.parent_page = parent
 		if doc.public != public:
 			doc.sequence_id = frappe.db.count("Workspace", {"public": public}, cache=True)
@@ -269,7 +344,11 @@ def hide_unhide_page(page_name: str, is_hidden: bool):
 			_("Need Workspace Manager role to hide/unhide public workspaces"), frappe.PermissionError
 		)
 
-	if not page.get("public") and page.get("for_user") != frappe.session.user:
+	if (
+		not page.get("public")
+		and page.get("for_user") != frappe.session.user
+		and not is_workspace_manager()
+	):
 		frappe.throw(_("Cannot update private workspace of other users"), frappe.PermissionError)
 
 	page.is_hidden = int(is_hidden)
@@ -301,6 +380,7 @@ def duplicate_page(page_name, new_page):
 	doc = frappe.copy_doc(old_doc)
 	doc.title = new_page.get("title")
 	doc.icon = new_page.get("icon")
+	doc.indicator_color = new_page.get("indicator_color")
 	doc.parent_page = new_page.get("parent") or ""
 	doc.public = new_page.get("is_public")
 	doc.for_user = ""
@@ -327,7 +407,17 @@ def delete_page(page):
 	page = loads(page)
 
 	if page.get("public") and not is_workspace_manager():
-		return
+		frappe.throw(
+			_("Cannot delete public workspace without Workspace Manager role"),
+			frappe.PermissionError,
+		)
+	elif not page.get("public") and not is_workspace_manager():
+		workspace_owner = frappe.get_value("Workspace", page.get("name"), "for_user")
+		if workspace_owner != frappe.session.user:
+			frappe.throw(
+				_("Cannot delete private workspace of other users"),
+				frappe.PermissionError,
+			)
 
 	if frappe.db.exists("Workspace", page.get("name")):
 		frappe.get_doc("Workspace", page.get("name")).delete(ignore_permissions=True)

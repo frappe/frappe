@@ -19,6 +19,25 @@ from frappe.utils import cint, get_fullname, get_link_to_form, getdate
 
 
 class EnergyPointLog(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		points: DF.Int
+		reason: DF.Text | None
+		reference_doctype: DF.Link | None
+		reference_name: DF.Data | None
+		revert_of: DF.Link | None
+		reverted: DF.Check
+		rule: DF.Link | None
+		seen: DF.Check
+		type: DF.Literal["Auto", "Appreciation", "Criticism", "Review", "Revert"]
+		user: DF.Link
+	# end: auto-generated types
 	def validate(self):
 		self.map_milestone_reference()
 		if self.type in ["Appreciation", "Criticism"] and self.user == self.owner:
@@ -76,7 +95,7 @@ class EnergyPointLog(Document):
 		self.reverted = 1
 		self.save(ignore_permissions=True)
 
-		revert_log = frappe.get_doc(
+		return frappe.get_doc(
 			{
 				"doctype": "Energy Point Log",
 				"points": -(self.points),
@@ -88,8 +107,6 @@ class EnergyPointLog(Document):
 				"revert_of": self.name,
 			}
 		).insert(ignore_permissions=True)
-
-		return revert_log
 
 
 def get_notification_message(doc):

@@ -56,15 +56,14 @@ class RateLimiter:
 		raise frappe.TooManyRequestsError
 
 	def update(self):
-		self.end = datetime.utcnow()
-		self.duration = int((self.end - self.start).total_seconds() * 1000000)
-
+		self.record_request_end()
 		pipeline = frappe.cache.pipeline()
 		pipeline.incrby(self.key, self.duration)
 		pipeline.expire(self.key, self.window)
 		pipeline.execute()
 
 	def headers(self):
+		self.record_request_end()
 		headers = {
 			"X-RateLimit-Reset": self.reset,
 			"X-RateLimit-Limit": self.limit,
@@ -76,6 +75,12 @@ class RateLimiter:
 			headers["X-RateLimit-Used"] = self.duration
 
 		return headers
+
+	def record_request_end(self):
+		if self.end is not None:
+			return
+		self.end = datetime.utcnow()
+		self.duration = int((self.end - self.start).total_seconds() * 1000000)
 
 	def respond(self):
 		if self.rejected:
@@ -107,17 +112,14 @@ def rate_limit(
 	:returns: a decorator function that limit the number of requests per endpoint
 	"""
 
-	def ratelimit_decorator(fun):
-		@wraps(fun)
+	def ratelimit_decorator(fn):
+		@wraps(fn)
 		def wrapper(*args, **kwargs):
 			# Do not apply rate limits if method is not opted to check
-			if (
-				methods != "ALL"
-				and frappe.request
-				and frappe.request.method
-				and frappe.request.method.upper() not in methods
+			if not frappe.request or (
+				methods != "ALL" and frappe.request.method and frappe.request.method.upper() not in methods
 			):
-				return frappe.call(fun, **frappe.form_dict or kwargs)
+				return fn(*args, **kwargs)
 
 			_limit = limit() if callable(limit) else limit
 
@@ -147,7 +149,7 @@ def rate_limit(
 					_("You hit the rate limit because of too many requests. Please try after sometime.")
 				)
 
-			return frappe.call(fun, **frappe.form_dict or kwargs)
+			return fn(*args, **kwargs)
 
 		return wrapper
 

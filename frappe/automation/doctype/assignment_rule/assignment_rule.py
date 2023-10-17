@@ -12,6 +12,32 @@ from frappe.model.document import Document
 
 
 class AssignmentRule(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.automation.doctype.assignment_rule_day.assignment_rule_day import AssignmentRuleDay
+		from frappe.automation.doctype.assignment_rule_user.assignment_rule_user import (
+			AssignmentRuleUser,
+		)
+		from frappe.types import DF
+
+		assign_condition: DF.Code
+		assignment_days: DF.Table[AssignmentRuleDay]
+		close_condition: DF.Code | None
+		description: DF.SmallText
+		disabled: DF.Check
+		document_type: DF.Link
+		due_date_based_on: DF.Literal
+		field: DF.Literal
+		last_user: DF.Link | None
+		priority: DF.Int
+		rule: DF.Literal["Round Robin", "Load Balancing", "Based on Field"]
+		unassign_condition: DF.Code | None
+		users: DF.TableMultiSelect[AssignmentRuleUser]
+	# end: auto-generated types
 	def validate(self):
 		self.validate_document_types()
 		self.validate_assignment_days()
@@ -115,17 +141,20 @@ class AssignmentRule(Document):
 
 	def get_user_load_balancing(self):
 		"""Assign to the user with least number of open assignments"""
-		counts = []
-		for d in self.users:
-			counts.append(
-				dict(
-					user=d.user,
-					count=frappe.db.count(
-						"ToDo", dict(reference_type=self.document_type, allocated_to=d.user, status="Open")
+		counts = [
+			dict(
+				user=d.user,
+				count=frappe.db.count(
+					"ToDo",
+					dict(
+						reference_type=self.document_type,
+						allocated_to=d.user,
+						status="Open",
 					),
-				)
+				),
 			)
-
+			for d in self.users
+		]
 		# sort by dict value
 		sorted_counts = sorted(counts, key=lambda k: k["count"])
 

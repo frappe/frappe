@@ -31,6 +31,9 @@ frappe.setup = {
 };
 
 frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
+	if (frappe.boot.setup_complete) {
+		window.location.href = "/app";
+	}
 	let requires = frappe.boot.setup_wizard_requires || [];
 	frappe.require(requires, function () {
 		frappe.call({
@@ -399,9 +402,17 @@ frappe.setup.slides_settings = [
 			},
 			{
 				fieldname: "enable_telemetry",
-				label: __("Allow Sending Usage Data for Improving Applications"),
+				label: __("Allow sending usage data for improving applications"),
 				fieldtype: "Check",
 				default: 1,
+				depends_on: "eval:frappe.telemetry.can_enable()",
+			},
+			{
+				fieldname: "allow_recording_first_session",
+				label: __("Allow recording my first session to improve user experience"),
+				fieldtype: "Check",
+				default: 0,
+				depends_on: "eval:frappe.telemetry.can_enable()",
 			},
 		],
 
@@ -638,9 +649,15 @@ frappe.setup.utils = {
 	},
 };
 
+// https://github.com/eggert/tz/blob/main/backward add more if required.
+const TZ_BACKWARD_COMPATBILITY_MAP = {
+	"Asia/Calcutta": "Asia/Kolkata",
+};
+
 function guess_country(country_info) {
 	try {
-		const system_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+		let system_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+		system_timezone = TZ_BACKWARD_COMPATBILITY_MAP[system_timezone] || system_timezone;
 
 		for (let [country, info] of Object.entries(country_info)) {
 			let possible_timezones = (info.timezones || []).filter((t) => t == system_timezone);

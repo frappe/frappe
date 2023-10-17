@@ -1,28 +1,8 @@
-.modal .comment-field {
-	height: 300px;
-	resize: none;
-}
-
-.discussion-on-page .comment-field {
-	padding: 1rem;
-}
-
-.modal .cancel-comment {
-	display: none;
-}
-
 .modal .comment-footer div:first-child {
 	display: none;
 }
 
-.cancel-comment {
-	font-size: var(--text-sm);
-	margin-right: 0.5rem;
-	cursor: pointer;
-}
-
 .discussions-header {
-	margin: 2.5rem 0 1.25rem;
 	display: flex;
 	align-items: center;
 }
@@ -42,9 +22,9 @@
 	background-image: url(/assets/frappe/icons/timeless/search.svg);
 	background-repeat: no-repeat;
 	text-indent: 1.5rem;
-	background-position: 1rem 0.65rem;
+	background-position: 1rem 0.45rem;
 	font-size: var(--text-md);
-	padding: 0.5rem 1rem;
+	padding: 0.3rem 1rem;
 	border: 1px solid var(--dark-border-color);
 	border-radius: var(--border-radius-md);
 	margin-right: 0.5rem;
@@ -68,7 +48,13 @@
 }
 
 .reply-card {
-	margin-bottom: 1.5rem;
+	padding: 1.25rem 0;
+	border-bottom: 1px solid var(--border-color);
+}
+
+.reply-card:last-of-type {
+	border-bottom: none;
+	padding-bottom: 0;
 }
 
 .reply-card .dropdown {
@@ -79,7 +65,6 @@
 	color: var(--text-color);
 	font-size: var(--text-lg);
 	font-weight: 600;
-	margin-bottom: 0.5rem;
 }
 
 .discussion-on-page .topic-title {
@@ -88,19 +73,10 @@
 
 .discussion-on-page {
 	flex-direction: column;
-	padding: 1.5rem;
 }
 
 .submit-discussion {
 	cursor: pointer;
-}
-
-.reply-body {
-	background: var(--bg-color);
-	padding: 1rem;
-	border-radius: var(--border-radius);
-	font-size: var(--text-md);
-	color: var(--text-color);
 }
 
 .reply-actions {
@@ -137,9 +113,17 @@
 	align-items: center;
 }
 
+.discussions-section-title {
+	font-size: var(--text-2xl);
+	font-weight: var(--weight-semibold);
+	letter-spacing: 0.01em;
+	color: var(--text-color);
+	flex-grow: 1;
+}
+
 .discussion-heading {
 	font-weight: 600;
-	font-size: var(--text-3xl);
+	font-size: var(--text-lg);
 	line-height: 146%;
 	letter-spacing: -0.0175em;
 	color: var(--text-color);
@@ -179,6 +163,7 @@
 }
 
 .back-button {
+	display: flex;
 	margin-right: 1rem;
 	cursor: pointer;
 }
@@ -197,7 +182,7 @@
 }
 
 .empty-state {
-	background: var(--control-bg);
+	border: 1px solid var(--gray-300);
 	border-radius: var(--border-radius-lg);
 	padding: 2rem;
 	display: flex;
@@ -219,7 +204,7 @@
 .sidebar-parent {
 	display: flex;
 	align-items: center;
-	padding: 1.25rem;
+	padding: 1.25rem 0;
 	cursor: pointer;
 }
 
@@ -243,7 +228,7 @@
 .reply-section-header {
 	display: flex;
 	align-items: center;
-	margin-bottom: 2.5rem;
+	margin-top: 1.5rem;
 }
 
 .reply-header {
@@ -265,6 +250,44 @@
 	margin-bottom: 0;
 }
 
-.reply-body .dropdown-menu {
+.reply-header .dropdown-menu {
 	min-width: 7rem;
+}
+
+.discussions-parent .ql-editor {
+	border-radius: var(--border-radius-md);
+}
+
+.mention {
+	display: inline-block;
+	height: auto;
+	width: auto;
+	border-radius: var(--border-radius-lg);
+	border: 1px solid var(--border-color);
+	padding: 2px 5px;
+	font-size: var(--text-sm);
+	background-color: var(--fg-color);
+}
+
+.mention a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.ql-editor.read-mode .mention {
+	background-color: var(--control-bg);
+}
+
+.ql-editor.read-mode .mention a {
+	color: inherit;
+	background-color: inherit;
+}
+
+.discussion-form .form-group {
+	margin-bottom: 0;
+}
+
+.discussions-parent .ql-editor.ql-blank::before {
+	color: var(--gray-600);
+	font-style: normal;
 }

@@ -625,5 +625,28 @@ frappe.search.utils = {
 			args: args,
 		});
 	},
+	get_marketplace_apps: function (keywords) {
+		var me = this;
+		var out = [];
+		frappe.boot.marketplace_apps.forEach(function (item) {
+			var level = me.fuzzy_search(keywords, item.title) * 0.8;
+			if (level > 0) {
+				var ret = {
+					label: __("Install {0} from Marketplace", [
+						me.bolden_match_part(__(item.title), keywords),
+					]),
+					value: __("Install {0} from Marketplace", [__(item.title)]),
+					index: level,
+					route: [
+						`https://frappecloud.com/${item.route}?utm_source=awesomebar`,
+						item.name,
+					],
+				};
+
+				out.push(ret);
+			}
+		});
+		return out;
+	},
 	searchable_functions: [],
 };

@@ -17,16 +17,15 @@ def get_context(context):
 
 	blog_list = frappe.get_all(
 		"Blog Post",
-		fields=["name", "published_on", "modified", "title", "content"],
+		fields=["name", "published_on", "modified", "title", "blog_intro", "route"],
 		filters={"published": 1},
 		order_by="published_on desc",
 		limit=20,
 	)
 
 	for blog in blog_list:
-		blog_page = cstr(quote(blog.name.encode("utf-8")))
-		blog.link = urljoin(host, blog_page)
-		blog.content = escape_html(blog.content or "")
+		blog.link = urljoin(host, blog.route)
+		blog.blog_intro = escape_html(blog.blog_intro or "")
 		blog.title = escape_html(blog.title or "")
 
 	if blog_list:

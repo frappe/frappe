@@ -38,7 +38,7 @@ context("Realtime updates", () => {
 		});
 	});
 
-	it("Recieves msgprint from server", { scrollBehavior: false }, () => {
+	it("Receives msgprint from server", { scrollBehavior: false }, () => {
 		// required because immediately after load socket is still connecting.
 		// Not a deal breaker in prod
 		const msg = "msgprint sent via realtime";

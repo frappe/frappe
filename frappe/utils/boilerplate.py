@@ -11,9 +11,9 @@ import textwrap
 
 import click
 import git
+import requests
 
 import frappe
-from frappe.utils import touch_file
 
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
@@ -45,8 +45,12 @@ def _get_user_inputs(app_name):
 		},
 		"app_description": {"prompt": "App Description"},
 		"app_publisher": {"prompt": "App Publisher"},
-		"app_email": {"prompt": "App Email"},
-		"app_license": {"prompt": "App License", "default": "MIT"},
+		"app_email": {"prompt": "App Email", "validator": is_valid_email},
+		"app_license": {
+			"prompt": "App License",
+			"default": "mit",
+			"type": click.Choice(get_license_options()),
+		},
 		"create_github_workflow": {
 			"prompt": "Create GitHub Workflow action for unittests",
 			"default": False,
@@ -72,6 +76,17 @@ def _get_user_inputs(app_name):
 	return hooks
 
 
+def is_valid_email(email) -> bool:
+	from email.headerregistry import Address
+
+	try:
+		Address(addr_spec=email)
+	except Exception:
+		print("App Email should be a valid email address.")
+		return False
+	return True
+
+
 def is_valid_title(title) -> bool:
 	if not APP_TITLE_PATTERN.match(title):
 		print(
@@ -79,6 +94,26 @@ def is_valid_title(title) -> bool:
 		)
 		return False
 	return True
+
+
+def get_license_options() -> list[str]:
+	url = "https://api.github.com/licenses"
+	res = requests.get(url=url)
+	if res.status_code == 200:
+		res = res.json()
+		ids = [r.get("spdx_id") for r in res]
+		return [licencse.lower() for licencse in ids]
+
+	return ["agpl-3.0", "gpl-3.0", "mit", "custom"]
+
+
+def get_license_text(license_name: str) -> str:
+	url = f"https://api.github.com/licenses/{license_name.lower()}"
+	res = requests.get(url=url)
+	if res.status_code == 200:
+		res = res.json()
+		return res.get("body")
+	return license_name
 
 
 def _create_app_boilerplate(dest, hooks, no_git=False):
@@ -117,9 +152,9 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 				)
 			)
 		)
-
+	license_body = get_license_text(license_name=hooks.app_license)
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
-		f.write(frappe.as_unicode("License: " + hooks.app_license))
+		f.write(frappe.as_unicode(license_body))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
 		f.write(frappe.as_unicode(hooks.app_title))
@@ -330,6 +365,11 @@ app_license = "{app_license}"
 # doctype_tree_js = {{"doctype" : "public/js/doctype_tree.js"}}
 # doctype_calendar_js = {{"doctype" : "public/js/doctype_calendar.js"}}
 
+# Svg Icons
+# ------------------
+# include app icons in desk
+# app_include_icons = "{app_name}/public/icons.svg"
+
 # Home Pages
 # ----------
 
@@ -518,7 +558,8 @@ gitignore_template = """.DS_Store
 *.egg-info
 *.swp
 tags
-node_modules"""
+node_modules
+__pycache__"""
 
 github_workflow_template = """
 name: CI
@@ -555,7 +596,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: root
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+        options: --health-cmd="mariadb-admin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
       - name: Clone
@@ -593,12 +634,15 @@ jobs:
           restore-keys: |
             ${{{{ runner.os }}}}-yarn-
 
+      - name: Install MariaDB Client
+        run: sudo apt-get install mariadb-client-10.6
+
       - name: Setup
         run: |
           pip install frappe-bench
           bench init --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench
-          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
-          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+          mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+          mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
       - name: Install
         working-directory: /home/runner/frappe-bench

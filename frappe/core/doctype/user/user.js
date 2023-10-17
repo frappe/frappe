@@ -1,7 +1,7 @@
 frappe.ui.form.on("User", {
 	before_load: function (frm) {
-		var update_tz_select = function (user_language) {
-			frm.set_df_property("time_zone", "options", [""].concat(frappe.all_timezones));
+		let update_tz_options = function () {
+			frm.fields_dict.time_zone.set_data(frappe.all_timezones);
 		};
 
 		if (!frappe.all_timezones) {
@@ -9,11 +9,11 @@ frappe.ui.form.on("User", {
 				method: "frappe.core.doctype.user.user.get_timezones",
 				callback: function (r) {
 					frappe.all_timezones = r.message.timezones;
-					update_tz_select();
+					update_tz_options();
 				},
 			});
 		} else {
-			update_tz_select();
+			update_tz_options();
 		}
 	},
 
@@ -123,7 +123,8 @@ frappe.ui.form.on("User", {
 			!doc.__unsaved &&
 			frappe.all_timezones &&
 			(hasChanged(doc.language, frappe.boot.user.language) ||
-				hasChanged(doc.time_zone, frappe.boot.time_zone.user))
+				hasChanged(doc.time_zone, frappe.boot.time_zone.user) ||
+				hasChanged(doc.desk_theme, frappe.boot.user.desk_theme))
 		) {
 			frappe.msgprint(__("Refreshing..."));
 			window.location.reload();
@@ -301,7 +302,7 @@ frappe.ui.form.on("User", {
 				email: frm.doc.email,
 			},
 			callback: function (r) {
-				if (!Array.isArray(r.message)) {
+				if (!Array.isArray(r.message) || !r.message.length) {
 					frappe.route_options = {
 						email_id: frm.doc.email,
 						awaiting_password: 1,

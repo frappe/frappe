@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.permissions import AUTOMATIC_ROLES
 from frappe.utils import add_to_date, now
 
 UI_TEST_USER = "frappe@example.com"
@@ -414,7 +415,7 @@ def create_blog_post():
 		}
 	).insert(ignore_if_duplicate=True)
 
-	doc = frappe.get_doc(
+	return frappe.get_doc(
 		{
 			"name": "test-blog-attachment-post",
 			"doctype": "Blog Post",
@@ -424,8 +425,6 @@ def create_blog_post():
 			"content_type": "Rich Text",
 		},
 	).insert(ignore_if_duplicate=True)
-
-	return doc
 
 
 @whitelist_for_tests
@@ -446,10 +445,9 @@ def create_test_user(username=None):
 
 	user.reload()
 
-	blocked_roles = {"Administrator", "Guest", "All"}
 	all_roles = set(frappe.get_all("Role", pluck="name"))
 
-	for role in all_roles - blocked_roles:
+	for role in all_roles - set(AUTOMATIC_ROLES):
 		user.append("roles", {"role": role})
 
 	user.save()
@@ -582,6 +580,15 @@ def create_kanban():
 
 @whitelist_for_tests
 def create_todo(description):
+	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
+
+
+@whitelist_for_tests
+def create_todo_with_attachment_limit(description):
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	make_property_setter("ToDo", None, "max_attachments", 12, "int", for_doctype=True)
+
 	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
 
 

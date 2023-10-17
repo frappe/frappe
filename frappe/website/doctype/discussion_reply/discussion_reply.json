@@ -12,7 +12,7 @@
  "fields": [
   {
    "fieldname": "reply",
-   "fieldtype": "Long Text",
+   "fieldtype": "Text Editor",
    "in_list_view": 1,
    "label": "Reply"
   },
@@ -27,7 +27,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-28 12:09:10.875927",
+ "modified": "2021-09-28 12:09:10.875929",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Discussion Reply",
@@ -49,5 +49,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

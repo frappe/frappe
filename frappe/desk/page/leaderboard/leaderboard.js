@@ -315,10 +315,9 @@ class Leaderboard {
 			})
 			.join("");
 
-		const html = `<div class="list-headers">
-				<div class="list-item" data-list-renderer="List">${filters}</div>
-			</div>`;
-		return html;
+		return `<div class="list-headers">
+  				<div class="list-item" data-list-renderer="List">${filters}</div>
+  			</div>`;
 	}
 
 	render_list_result(items) {
@@ -330,27 +329,24 @@ class Leaderboard {
 			})
 			.join("");
 
-		let html = `<div class="result-list">
-				<div class="list-items">
-					${_html}
-				</div>
-			</div>`;
-
-		return html;
+		return `<div class="result-list">
+  				<div class="list-items">
+  					${_html}
+  				</div>
+  			</div>`;
 	}
 
 	render_message() {
 		const display_class = this.message ? "" : "hide";
-		let html = `<div class="leaderboard-empty-state ${display_class}">
-			<div class="no-result text-center">
-				<img src="/assets/frappe/images/ui-states/search-empty-state.svg"
-					alt="Empty State"
-					class="null-state"
-				>
-				<div class="empty-state-text">${this.message}</div>
-			</div>
-		</div>`;
-		return html;
+		return `<div class="leaderboard-empty-state ${display_class}">
+  			<div class="no-result text-center">
+  				<img src="/assets/frappe/images/ui-states/search-empty-state.svg"
+  					alt="Empty State"
+  					class="null-state"
+  				>
+  				<div class="empty-state-text">${this.message}</div>
+  			</div>
+  		</div>`;
 	}
 
 	get_item_html(item, index) {
@@ -367,19 +363,17 @@ class Leaderboard {
 		const name_html = item.formatted_name
 			? `<span class="text-muted ellipsis list-id">${item.formatted_name}</span>`
 			: `<a class="grey list-id ellipsis" href="${link}"> ${item.name} </a>`;
-		const html = `<div class="list-item">
-				<div class="list-item_content ellipsis list-item__content--flex-2 rank text-center">
-					<span class="text-muted ellipsis">${index}</span>
-				</div>
-				<div class="list-item_content ellipsis list-item__content--flex-2 name">
-					${name_html}
-				</div>
-				<div class="list-item_content ellipsis list-item__content--flex-2 value text-right">
-					<span class="text-muted ellipsis">${value}</span>
-				</div>
-			</div>`;
-
-		return html;
+		return `<div class="list-item">
+  				<div class="list-item_content ellipsis list-item__content--flex-2 rank text-center">
+  					<span class="text-muted ellipsis">${index}</span>
+  				</div>
+  				<div class="list-item_content ellipsis list-item__content--flex-2 name">
+  					${name_html}
+  				</div>
+  				<div class="list-item_content ellipsis list-item__content--flex-2 value text-right">
+  					<span class="text-muted ellipsis">${value}</span>
+  				</div>
+  			</div>`;
 	}
 
 	get_sidebar_item(item, icon) {

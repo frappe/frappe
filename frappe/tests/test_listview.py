@@ -71,6 +71,15 @@ class TestListView(FrappeTestCase):
 		}
 		self.assertEqual(data["Administrator"], 1)
 
+	def test_get_group_by_invalid_field(self):
+		self.assertRaises(
+			ValueError,
+			get_group_by_count,
+			"Note",
+			'[["Note Seen By","user","=","Administrator"]]',
+			"invalid_field",
+		)
+
 	def test_list_view_comment_count(self):
 		frappe.form_dict.doctype = "DocType"
 		frappe.form_dict.limit = "1"

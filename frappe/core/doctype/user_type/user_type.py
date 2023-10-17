@@ -10,6 +10,28 @@ from frappe.utils import get_link_to_form
 
 
 class UserType(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.user_document_type.user_document_type import UserDocumentType
+		from frappe.core.doctype.user_select_document_type.user_select_document_type import (
+			UserSelectDocumentType,
+		)
+		from frappe.core.doctype.user_type_module.user_type_module import UserTypeModule
+		from frappe.types import DF
+
+		apply_user_permission_on: DF.Link | None
+		custom_select_doctypes: DF.Table[UserSelectDocumentType]
+		is_standard: DF.Check
+		role: DF.Link | None
+		select_doctypes: DF.Table[UserSelectDocumentType]
+		user_doctypes: DF.Table[UserDocumentType]
+		user_id_field: DF.Literal
+		user_type_modules: DF.Table[UserTypeModule]
+	# end: auto-generated types
 	def validate(self):
 		self.set_modules()
 		self.add_select_perm_doctypes()
@@ -171,9 +193,7 @@ class UserType(Document):
 		doctypes.append("File")
 
 		for doctype in ["select_doctypes", "custom_select_doctypes"]:
-			for dt in self.get(doctype):
-				doctypes.append(dt.document_type)
-
+			doctypes.extend(dt.document_type for dt in self.get(doctype))
 		for perm in frappe.get_all(
 			"Custom DocPerm", filters={"role": self.role, "parent": ["not in", doctypes]}
 		):

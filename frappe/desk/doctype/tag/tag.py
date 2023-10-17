@@ -8,6 +8,16 @@ from frappe.utils import unique
 
 
 class Tag(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		description: DF.SmallText | None
+	# end: auto-generated types
 	pass
 
 
@@ -37,8 +47,6 @@ def add_tags(tags, dt, docs, color=None):
 	for doc in docs:
 		for tag in tags:
 			DocTags(dt).add(doc, tag)
-
-	# return tag
 
 
 @frappe.whitelist()
@@ -143,6 +151,7 @@ def update_tags(doc, tags):
 
 	:param doc: Document to be added to global tags
 	"""
+	doc.check_permission("write")
 	new_tags = {tag.strip() for tag in tags.split(",") if tag}
 	existing_tags = [
 		tag.tag
@@ -178,16 +187,19 @@ def get_documents_for_tag(tag):
 	"""
 	# remove hastag `#` from tag
 	tag = tag[1:]
-	results = []
 
 	result = frappe.get_list(
 		"Tag Link", filters={"tag": tag}, fields=["document_type", "document_name", "title", "tag"]
 	)
 
-	for res in result:
-		results.append({"doctype": res.document_type, "name": res.document_name, "content": res.title})
-
-	return results
+	return [
+		{
+			"doctype": res.document_type,
+			"name": res.document_name,
+			"content": res.title,
+		}
+		for res in result
+	]
 
 
 @frappe.whitelist()

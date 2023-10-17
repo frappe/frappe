@@ -157,7 +157,7 @@ def run_all_tests(app=None, verbose=False, profile=False, failfast=False, junit_
 
 	test_suite = unittest.TestSuite()
 	for app in apps:
-		for path, folders, files in os.walk(frappe.get_pymodule_path(app)):
+		for path, folders, files in os.walk(frappe.get_app_path(app)):
 			for dontwalk in ("locals", ".git", "public", "__pycache__"):
 				if dontwalk in folders:
 					folders.remove(dontwalk)
@@ -312,7 +312,7 @@ def _add_test(app, path, filename, verbose, test_suite=None):
 		# in /doctype/doctype/boilerplate/
 		return
 
-	app_path = frappe.get_pymodule_path(app)
+	app_path = frappe.get_app_path(app)
 	relative_path = os.path.relpath(path, app_path)
 	if relative_path == ".":
 		module_name = app

@@ -11,6 +11,7 @@ from frappe import _
 from frappe.desk.reportview import validate_args
 from frappe.model.db_query import check_parent_permission
 from frappe.utils import get_safe_filters
+from frappe.utils.deprecations import deprecated
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -31,8 +32,8 @@ def get_list(
 	limit_start=None,
 	limit_page_length=20,
 	parent=None,
-	debug=False,
-	as_dict=True,
+	debug: bool = False,
+	as_dict: bool = True,
 	or_filters=None,
 ):
 	"""Returns a list of records by filters, fields, ordering and limit
@@ -208,11 +209,7 @@ def insert_many(docs=None):
 	if len(docs) > 200:
 		frappe.throw(_("Only 200 inserts allowed in one request"))
 
-	out = []
-	for doc in docs:
-		out.append(insert_doc(doc).name)
-
-	return out
+	return [insert_doc(doc).name for doc in docs]
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -329,6 +326,7 @@ def get_password(doctype, name, fieldname):
 
 
 @frappe.whitelist()
+@deprecated
 def get_js(items):
 	"""Load JS code files.  Will also append translations
 	and extend `frappe._messages`

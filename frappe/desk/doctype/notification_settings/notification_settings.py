@@ -6,6 +6,29 @@ from frappe.model.document import Document
 
 
 class NotificationSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.desk.doctype.notification_subscribed_document.notification_subscribed_document import (
+			NotificationSubscribedDocument,
+		)
+		from frappe.types import DF
+
+		enable_email_assignment: DF.Check
+		enable_email_energy_point: DF.Check
+		enable_email_event_reminders: DF.Check
+		enable_email_mention: DF.Check
+		enable_email_notifications: DF.Check
+		enable_email_share: DF.Check
+		enabled: DF.Check
+		energy_points_system_notifications: DF.Check
+		seen: DF.Check
+		subscribed_documents: DF.TableMultiSelect[NotificationSubscribedDocument]
+		user: DF.Link | None
+	# end: auto-generated types
 	def on_update(self):
 		from frappe.desk.notifications import clear_notification_config
 
@@ -88,6 +111,21 @@ def get_permission_query_conditions(user):
 		return """(`tabNotification Settings`.name != 'Administrator')"""
 
 	return f"""(`tabNotification Settings`.name = {frappe.db.escape(user)})"""
+
+
+def has_permission(doc, ptype="read", user=None):
+	# - Administrator can access everything.
+	# - System managers can access everything except admin.
+	# - Everyone else can only access their document.
+	user = user or frappe.session.user
+
+	if user == "Administrator":
+		return True
+
+	if "System Manager" in frappe.get_roles(user):
+		return doc.name != "Administrator"
+
+	return doc.name == user
 
 
 @frappe.whitelist()

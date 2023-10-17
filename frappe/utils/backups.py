@@ -15,6 +15,7 @@ from cryptography.fernet import Fernet
 
 # imports - module imports
 import frappe
+import frappe.utils
 from frappe import conf
 from frappe.utils import cint, get_file_size, get_url, now, now_datetime
 
@@ -31,7 +32,7 @@ class BackupGenerator:
 	"""
 	This class contains methods to perform On Demand Backup
 
-	To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
+	To initialize, specify (db_name, user, password, db_file_name=None, db_host="127.0.0.1")
 	If specifying db_file_name, also append ".sql.gz"
 	"""
 
@@ -44,9 +45,9 @@ class BackupGenerator:
 		backup_path_db=None,
 		backup_path_files=None,
 		backup_path_private_files=None,
-		db_host="localhost",
+		db_host=None,
 		db_port=None,
-		db_type="mariadb",
+		db_type=None,
 		backup_path_conf=None,
 		ignore_conf=False,
 		compress_files=False,
@@ -71,11 +72,6 @@ class BackupGenerator:
 		self.include_doctypes = include_doctypes
 		self.exclude_doctypes = exclude_doctypes
 		self.partial = False
-
-		if not self.db_type:
-			self.db_type = "mariadb"
-
-		self.db_port = self.db_port or frappe.db.default_port
 
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
@@ -348,12 +344,15 @@ class BackupGenerator:
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
 
 			if self.compress_files:
-				cmd_string = "tar cf - {1} | gzip > {0}"
+				cmd_string = "self=$$; ( tar cf - {1} || kill $self ) | gzip > {0}"
 			else:
 				cmd_string = "tar -cf {0} {1}"
 
 			frappe.utils.execute_in_shell(
-				cmd_string.format(backup_path, files_path), verbose=self.verbose, low_priority=True
+				cmd_string.format(backup_path, files_path),
+				verbose=self.verbose,
+				low_priority=True,
+				check_exit_code=True,
 			)
 
 	def copy_site_config(self):
@@ -368,7 +367,7 @@ class BackupGenerator:
 		from frappe.utils.change_log import get_app_branch
 
 		db_exc = {
-			"mariadb": ("mysqldump", which("mysqldump")),
+			"mariadb": ("mariadb-dump", which("mariadb-dump") or which("mysqldump")),
 			"postgres": ("pg_dump", which("pg_dump")),
 		}[self.db_type]
 		gzip_exc = which("gzip")
@@ -430,7 +429,7 @@ class BackupGenerator:
 				args["include"] = " ".join([f"'{x}'" for x in self.backup_includes])
 			elif self.backup_excludes:
 				args["exclude"] = " ".join(
-					[f"--ignore-table='{frappe.conf.db_name}.{table}'" for table in self.backup_excludes]
+					[f"--ignore-table='{self.db_name}.{table}'" for table in self.backup_excludes]
 				)
 
 			cmd_string = (
@@ -502,9 +501,9 @@ def fetch_latest_backups(partial=False):
 		frappe.conf.db_name,
 		frappe.conf.db_name,
 		frappe.conf.db_password,
-		db_host=frappe.db.host,
-		db_type=frappe.conf.db_type,
+		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
+		db_type=frappe.conf.db_type,
 	)
 	database, public, private, config = odb.get_recent_backup(older_than=24 * 30, partial=partial)
 
@@ -529,7 +528,7 @@ def scheduled_backup(
 	"""this function is called from scheduler
 	deletes backups older than 7 days
 	takes backup"""
-	odb = new_backup(
+	return new_backup(
 		older_than=older_than,
 		ignore_files=ignore_files,
 		backup_path=backup_path,
@@ -544,7 +543,6 @@ def scheduled_backup(
 		force=force,
 		verbose=verbose,
 	)
-	return odb
 
 
 def new_backup(
@@ -567,8 +565,8 @@ def new_backup(
 		frappe.conf.db_name,
 		frappe.conf.db_name,
 		frappe.conf.db_password,
-		db_host=frappe.db.host,
-		db_port=frappe.db.port,
+		db_host=frappe.conf.db_host,
+		db_port=frappe.conf.db_port,
 		db_type=frappe.conf.db_type,
 		backup_path=backup_path,
 		backup_path_db=backup_path_db,
@@ -626,14 +624,13 @@ def is_file_old(file_path, older_than=24):
 
 
 def get_backup_path():
-	backup_path = frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
-	return backup_path
+	return frappe.utils.get_site_path(conf.get("backup_path", "private/backups"))
 
 
 @frappe.whitelist()
 def get_backup_encryption_key():
 	frappe.only_for("System Manager")
-	return frappe.conf.get(BACKUP_ENCRYPTION_CONFIG_KEY)
+	return get_or_generate_backup_encryption_key()
 
 
 def get_or_generate_backup_encryption_key():

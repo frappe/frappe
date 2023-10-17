@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from typing import Optional
-
 from jinja2 import TemplateSyntaxError
 
 import frappe
@@ -15,6 +13,45 @@ from frappe.utils import cstr
 
 
 class Address(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.dynamic_link.dynamic_link import DynamicLink
+		from frappe.types import DF
+
+		address_line1: DF.Data
+		address_line2: DF.Data | None
+		address_title: DF.Data | None
+		address_type: DF.Literal[
+			"Billing",
+			"Shipping",
+			"Office",
+			"Personal",
+			"Plant",
+			"Postal",
+			"Shop",
+			"Subsidiary",
+			"Warehouse",
+			"Current",
+			"Permanent",
+			"Other",
+		]
+		city: DF.Data
+		country: DF.Link
+		county: DF.Data | None
+		disabled: DF.Check
+		email_id: DF.Data | None
+		fax: DF.Data | None
+		is_primary_address: DF.Check
+		is_shipping_address: DF.Check
+		links: DF.Table[DynamicLink]
+		phone: DF.Data | None
+		pincode: DF.Data | None
+		state: DF.Data | None
+	# end: auto-generated types
 	def __setup__(self):
 		self.flags.linked = False
 
@@ -127,16 +164,23 @@ def get_default_address(
 
 @frappe.whitelist()
 def get_address_display(address_dict: dict | str | None) -> str | None:
-	if not address_dict:
+	return render_address(address_dict)
+
+
+def render_address(address: dict | str | None, check_permissions=True) -> str | None:
+	if not address:
 		return
 
-	if not isinstance(address_dict, dict):
-		address_dict = frappe.db.get_value("Address", address_dict, "*", as_dict=True, cache=True) or {}
+	if not isinstance(address, dict):
+		address = frappe.get_cached_doc("Address", address)
+		if check_permissions:
+			address.check_permission()
+		address = address.as_dict()
 
-	name, template = get_address_templates(address_dict)
+	name, template = get_address_templates(address)
 
 	try:
-		return frappe.render_template(template, address_dict)
+		return frappe.render_template(template, address)
 	except TemplateSyntaxError:
 		frappe.throw(_("There is an error in your Address Template {0}").format(name))
 
@@ -217,7 +261,7 @@ def get_company_address(company):
 
 	if company:
 		ret.company_address = get_default_address("Company", company)
-		ret.company_address_display = get_address_display(ret.company_address)
+		ret.company_address_display = render_address(ret.company_address, check_permissions=False)
 
 	return ret
 

@@ -22,8 +22,7 @@ def handle_not_exist(fn):
 		try:
 			return fn(*args, **kwargs)
 		except DoesNotExistError:
-			if frappe.message_log:
-				frappe.message_log.pop()
+			frappe.clear_last_message()
 			return []
 
 	return wrapper
@@ -72,9 +71,7 @@ class Workspace:
 		"""Returns true if Has Role is not set or the user is allowed."""
 		from frappe.utils import has_common
 
-		allowed = [
-			d.role for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": self.doc.name})
-		]
+		allowed = [d.role for d in self.doc.roles]
 
 		custom_roles = get_custom_allowed_roles("page", self.doc.name)
 		allowed.extend(custom_roles)
@@ -440,6 +437,7 @@ def get_workspace_sidebar_items():
 		"public",
 		"module",
 		"icon",
+		"indicator_color",
 		"is_hidden",
 	]
 	all_pages = frappe.get_all(
@@ -453,7 +451,7 @@ def get_workspace_sidebar_items():
 		try:
 			workspace = Workspace(page, True)
 			if has_access or workspace.is_permitted():
-				if page.public and (has_access or not page.is_hidden):
+				if page.public and (has_access or not page.is_hidden) and page.title != "Welcome Workspace":
 					pages.append(page)
 				elif page.for_user == frappe.session.user:
 					private_pages.append(page)
@@ -462,6 +460,10 @@ def get_workspace_sidebar_items():
 			pass
 	if private_pages:
 		pages.extend(private_pages)
+
+	if len(pages) == 0:
+		pages = [frappe.get_doc("Workspace", "Welcome Workspace").as_dict()]
+		pages[0]["label"] = _("Welcome Workspace")
 
 	return {"pages": pages, "has_access": has_access}
 
@@ -489,11 +491,15 @@ def get_custom_doctype_list(module):
 		order_by="name",
 	)
 
-	out = []
-	for d in doctypes:
-		out.append({"type": "Link", "link_type": "doctype", "link_to": d.name, "label": _(d.name)})
-
-	return out
+	return [
+		{
+			"type": "Link",
+			"link_type": "doctype",
+			"link_to": d.name,
+			"label": _(d.name),
+		}
+		for d in doctypes
+	]
 
 
 def get_custom_report_list(module):
@@ -505,23 +511,20 @@ def get_custom_report_list(module):
 		order_by="name",
 	)
 
-	out = []
-	for r in reports:
-		out.append(
-			{
-				"type": "Link",
-				"link_type": "report",
-				"doctype": r.ref_doctype,
-				"dependencies": r.ref_doctype,
-				"is_query_report": 1
-				if r.report_type in ("Query Report", "Script Report", "Custom Report")
-				else 0,
-				"label": _(r.name),
-				"link_to": r.name,
-			}
-		)
-
-	return out
+	return [
+		{
+			"type": "Link",
+			"link_type": "report",
+			"doctype": r.ref_doctype,
+			"dependencies": r.ref_doctype,
+			"is_query_report": 1
+			if r.report_type in ("Query Report", "Script Report", "Custom Report")
+			else 0,
+			"label": _(r.name),
+			"link_to": r.name,
+		}
+		for r in reports
+	]
 
 
 def save_new_widget(doc, page, blocks, new_widgets):

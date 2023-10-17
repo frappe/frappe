@@ -66,11 +66,7 @@ def find_all(list_of_dict, match_function):
 
 	        red_shapes = find_all(colored_shapes, lambda d: d['color'] == 'red')
 	"""
-	found = []
-	for entry in list_of_dict:
-		if match_function(entry):
-			found.append(entry)
-	return found
+	return [entry for entry in list_of_dict if match_function(entry)]
 
 
 def ljust_list(_list, length, fill_word=None):

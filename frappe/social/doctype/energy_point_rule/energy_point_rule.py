@@ -14,6 +14,27 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 
 
 class EnergyPointRule(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		apply_only_once: DF.Check
+		condition: DF.Code | None
+		enabled: DF.Check
+		field_to_check: DF.Literal
+		for_assigned_users: DF.Check
+		for_doc_event: DF.Literal["New", "Submit", "Cancel", "Value Change", "Custom"]
+		max_points: DF.Int
+		multiplier_field: DF.Literal
+		points: DF.Int
+		reference_doctype: DF.Link
+		rule_name: DF.Data
+		user_field: DF.Literal
+	# end: auto-generated types
 	def on_update(self):
 		frappe.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
 

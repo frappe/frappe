@@ -11,6 +11,33 @@ from frappe.utils.user import UserPermissions
 
 
 class DesktopIcon(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		_doctype: DF.Link | None
+		_report: DF.Link | None
+		app: DF.Data | None
+		blocked: DF.Check
+		category: DF.Data | None
+		color: DF.Data | None
+		custom: DF.Check
+		description: DF.SmallText | None
+		force_show: DF.Check
+		hidden: DF.Check
+		icon: DF.Data | None
+		idx: DF.Int
+		label: DF.Data | None
+		link: DF.SmallText | None
+		module_name: DF.Data | None
+		reverse: DF.Check
+		standard: DF.Check
+		type: DF.Literal["module", "list", "link", "page", "query-report"]
+	# end: auto-generated types
 	def validate(self):
 		if not self.label:
 			self.label = self.module_name
@@ -256,8 +283,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 						raise e
 					else:
 						visible_list.remove(module_name)
-						if frappe.message_log:
-							frappe.message_log.pop()
+						frappe.clear_last_message()
 
 	# set the order
 	set_order(visible_list)

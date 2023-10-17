@@ -25,7 +25,6 @@ body {
 			padding-top: 45px;
 			padding-bottom: 45px;
 			background-color: #fff;
-			box-shadow: var(--shadow-base);
 		}
 	}
 
@@ -33,6 +32,7 @@ body {
 		max-width: 400px;
 		margin: 0 auto;
 		border-radius: var(--border-radius-md);
+		border: 1px solid var(--border-color);
 
 		form {
 			max-width: 320px;
@@ -60,7 +60,7 @@ body {
 			input[type="password"] {
 				border: none;
 				color: var(--text-color);
-				font-size: var(--text-base);
+				@include get_textstyle("base", "regular");
 				background-color: var(--control-bg);
 				margin-bottom: 1rem;
 			}
@@ -74,7 +74,7 @@ body {
 			}
 
 			.form-label {
-				font-size: var(--text-base);
+				@include get_textstyle("base", "regular");
 			}
 
 			.forgot-password-message {
@@ -83,13 +83,13 @@ body {
 
 				> * {
 					color: var(--text-light);
-					font-size: var(--text-sm);
+					@include get_textstyle("sm", "regular");
 				}
 			}
 
 			.field-icon {
 				left: 9px;
-				top: 8px;
+				top: 5px;
 				position: absolute;
 				z-index: 2;
 			}
@@ -100,11 +100,18 @@ body {
 
 				input {
 					padding-left: 35px;
+					&:autofill, &:-webkit-autofill {
+						-webkit-background-clip: text;
+    					-webkit-text-fill-color: var(--text-color);
+						-webkit-box-shadow: 0 0 0 30px var(--gray-200) inset !important;
+						outline: 1px solid var(--gray-400);
+						transition: background-color 5000s ease-in-out 0s;
+					  }
 				}
 
 				.toggle-password {
 					right: 9px;
-					top: 9px;
+					top: 5px;
 					position: absolute;
 					z-index: 2;
 					cursor: pointer;
@@ -113,8 +120,7 @@ body {
 			}
 
 			.btn-login-option {
-				font-size: var(--text-md);
-				font-weight: 500;
+				@include get_textstyle("base", "medium");
 				color: var(--text-gray-700);
 				background: var(--gray-100);
 				box-shadow: none;
@@ -140,7 +146,7 @@ body {
 
 			.social-logins {
 				margin-top: var(--margin-md);
-				font-size: var(--text-md);
+				@include get_textstyle("base", "regular");
 
 				.social-login-buttons {
 					margin-top: var(--margin-md);
@@ -175,7 +181,6 @@ body {
 
 		img {
 			max-height: 42px;
-			margin-bottom: var(--margin-lg, 30px);
 		}
 
 		h4 {
@@ -188,10 +193,8 @@ body {
 	.sign-up-message {
 		margin-top: 2rem;
 		color: var(--text-light);
-		font-size: var(--text-md);
-
+		@include get_textstyle("base", "regular");
 		a {
-			font-size: var(--text-md);
 			color: var(--primary);
 		}
 	}

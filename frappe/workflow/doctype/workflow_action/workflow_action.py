@@ -23,6 +23,26 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 
 
 class WorkflowAction(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.workflow.doctype.workflow_action_permitted_role.workflow_action_permitted_role import (
+			WorkflowActionPermittedRole,
+		)
+
+		completed_by: DF.Link | None
+		completed_by_role: DF.Link | None
+		permitted_roles: DF.TableMultiSelect[WorkflowActionPermittedRole]
+		reference_doctype: DF.Link | None
+		reference_name: DF.DynamicLink | None
+		status: DF.Literal["Open", "Completed"]
+		user: DF.Link | None
+		workflow_state: DF.Data | None
+	# end: auto-generated types
 	pass
 
 
@@ -362,7 +382,12 @@ def send_workflow_action_email(users_data, doc):
 			"reference_doctype": doc.doctype,
 		}
 		email_args.update(common_args)
-		enqueue(method=frappe.sendmail, queue="short", **email_args)
+		try:
+			frappe.sendmail(**email_args)
+		except frappe.OutgoingEmailError:
+			# Emails config broken, don't bother retrying next user.
+			frappe.log_error("Failed to send workflow action email")
+			return
 
 
 def deduplicate_actions(action_list):
@@ -441,13 +466,12 @@ def filter_allowed_users(users, doc, transition):
 	"""
 	from frappe.permissions import has_permission
 
-	filtered_users = []
-	for user in users:
-		if has_approval_access(user, doc, transition) and has_permission(
-			doctype=doc, user=user, raise_exception=False
-		):
-			filtered_users.append(user)
-	return filtered_users
+	return [
+		user
+		for user in users
+		if has_approval_access(user, doc, transition)
+		and has_permission(doctype=doc, user=user, raise_exception=False)
+	]
 
 
 def get_common_email_args(doc):
@@ -462,14 +486,13 @@ def get_common_email_args(doc):
 		subject = _("Workflow Action") + f" on {doctype}: {docname}"
 		response = get_link_to_form(doctype, docname, f"{doctype}: {docname}")
 
-	common_args = {
+	return {
 		"template": "workflow_action",
 		"header": "Workflow Action",
 		"attachments": [frappe.attach_print(doctype, docname, file_name=docname, doc=doc)],
 		"subject": subject,
 		"message": response,
 	}
-	return common_args
 
 
 def get_email_template(doc):

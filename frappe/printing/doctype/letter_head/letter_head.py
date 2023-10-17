@@ -8,6 +8,30 @@ from frappe.utils import flt, is_image
 
 
 class LetterHead(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		align: DF.Literal["Left", "Right", "Center"]
+		content: DF.HTMLEditor | None
+		disabled: DF.Check
+		footer: DF.HTMLEditor | None
+		footer_align: DF.Literal["Left", "Right", "Center"]
+		footer_image: DF.AttachImage | None
+		footer_image_height: DF.Float
+		footer_image_width: DF.Float
+		footer_source: DF.Literal["Image", "HTML"]
+		image: DF.AttachImage | None
+		image_height: DF.Float
+		image_width: DF.Float
+		is_default: DF.Check
+		letter_head_name: DF.Data
+		source: DF.Literal["Image", "HTML"]
+	# end: auto-generated types
 	def before_insert(self):
 		# for better UX, let user set from attachment
 		self.source = "Image"

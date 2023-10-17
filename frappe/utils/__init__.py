@@ -21,7 +21,7 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 from urllib.parse import quote, urlparse
 
 from redis.exceptions import ConnectionError
@@ -42,6 +42,10 @@ PHONE_NUMBER_PATTERN = re.compile(r"([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$")
 PERSON_NAME_PATTERN = re.compile(r"^[\w][\w\'\-]*( \w[\w\'\-]*)*$")
 WHITESPACE_PATTERN = re.compile(r"[\t\n\r]")
 MULTI_EMAIL_STRING_PATTERN = re.compile(r'[,\n](?=(?:[^"]|"[^"]*")*$)')
+EMAIL_MATCH_PATTERN = re.compile(
+	r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+	re.IGNORECASE,
+)
 
 
 def get_fullname(user=None):
@@ -176,21 +180,10 @@ def validate_email_address(email_str, throw=False):
 
 		else:
 			email_id = extract_email_id(e)
-			match = (
-				re.match(
-					r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
-					email_id.lower(),
-				)
-				if email_id
-				else None
-			)
+			match = EMAIL_MATCH_PATTERN.match(email_id) if email_id else None
 
 			if not match:
 				_valid = False
-			else:
-				matched = match.group(0)
-				if match:
-					match = matched == email_id.lower()
 
 		if not _valid:
 			if throw:
@@ -201,7 +194,7 @@ def validate_email_address(email_str, throw=False):
 				)
 			return None
 		else:
-			return matched
+			return email_id
 
 	out = []
 	for e in email_str.split(","):
@@ -350,6 +343,7 @@ def _get_traceback_sanitizer():
 			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
 			# redact dictionary keys
 			(["_secret", dict, lambda *a, **kw: False], dict_printer),
+			(["_secret", frappe._dict, lambda *a, **kw: False], dict_printer),
 		],
 	)
 
@@ -362,10 +356,7 @@ def dict_to_str(args: dict[str, Any], sep: str = "&") -> str:
 	"""
 	Converts a dictionary to URL
 	"""
-	t = []
-	for k in list(args):
-		t.append(str(k) + "=" + quote(str(args[k] or "")))
-	return sep.join(t)
+	return sep.join(f"{str(k)}=" + quote(str(args[k] or "")) for k in list(args))
 
 
 def list_to_str(seq, sep=", "):
@@ -509,7 +500,9 @@ def get_files_path(*path, **kwargs):
 
 
 def get_bench_path():
-	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), "..", "..", ".."))
+	return os.environ.get("FRAPPE_BENCH_ROOT") or os.path.realpath(
+		os.path.join(os.path.dirname(frappe.__file__), "..", "..", "..")
+	)
 
 
 def get_bench_id():
@@ -529,7 +522,10 @@ def get_request_site_address(full_address=False):
 
 
 def get_site_url(site):
-	return f"http://{site}:{frappe.get_conf(site).webserver_port}"
+	conf = frappe.get_conf(site)
+	if conf.host_name:
+		return conf.host_name
+	return f"http://{site}:{conf.webserver_port}"
 
 
 def encode_dict(d, encoding="utf-8"):
@@ -655,6 +651,11 @@ def is_markdown(text):
 		return not NON_MD_HTML_PATTERN.search(text)
 
 
+def is_a_property(x) -> bool:
+	"""Get properties (@property, @cached_property) in a controller class"""
+	return isinstance(x, (property, functools.cached_property))
+
+
 def get_sites(sites_path=None):
 	if not sites_path:
 		sites_path = getattr(frappe.local, "sites_path", None) or "."
@@ -756,15 +757,14 @@ def get_installed_apps_info():
 	out = []
 	from frappe.utils.change_log import get_versions
 
-	for app, version_details in get_versions().items():
-		out.append(
-			{
-				"app_name": app,
-				"version": version_details.get("branch_version") or version_details.get("version"),
-				"branch": version_details.get("branch"),
-			}
-		)
-
+	out.extend(
+		{
+			"app_name": app,
+			"version": version_details.get("branch_version") or version_details.get("version"),
+			"branch": version_details.get("branch"),
+		}
+		for app, version_details in get_versions().items()
+	)
 	return out
 
 
@@ -933,8 +933,7 @@ def get_html_for_route(route):
 
 	set_request(method="GET", path=route)
 	response = get_response()
-	html = frappe.safe_decode(response.get_data())
-	return html
+	return frappe.safe_decode(response.get_data())
 
 
 def get_file_size(path, format=False):
@@ -1076,15 +1075,33 @@ def dictify(arg):
 	return arg
 
 
-def add_user_info(user, user_info):
-	if user not in user_info:
-		info = (
-			frappe.db.get_value(
-				"User", user, ["full_name", "user_image", "name", "email", "time_zone"], as_dict=True
-			)
-			or frappe._dict()
-		)
-		user_info[user] = frappe._dict(
+class _UserInfo(TypedDict):
+	fullname: str
+	image: str
+	name: str
+	email: str
+	time_zone: str
+
+
+def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserInfo]) -> None:
+	if not user:
+		return
+
+	if isinstance(user, str):
+		user = [user]
+
+	missing_users = [u for u in user if u not in user_info]
+	if not missing_users:
+		return
+
+	missing_info = frappe.get_all(
+		"User",
+		{"name": ("in", missing_users)},
+		["full_name", "user_image", "name", "email", "time_zone"],
+	)
+
+	for info in missing_info:
+		user_info.setdefault(info.name, frappe._dict()).update(
 			fullname=info.full_name or user,
 			image=info.user_image,
 			name=user,
@@ -1127,6 +1144,9 @@ class CallbackManager:
 	def add(self, func: Callable) -> None:
 		"""Add a function to queue, functions are executed in order of addition."""
 		self._functions.append(func)
+
+	def __call__(self, func: Callable) -> None:
+		self.add(func)
 
 	def run(self):
 		"""Run all functions in queue"""

@@ -46,7 +46,7 @@ def get_list():
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_count():
+def get_count() -> int:
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
@@ -65,7 +65,7 @@ def execute(doctype, *args, **kwargs):
 
 
 def get_form_params():
-	"""Stringify GET request parameters."""
+	"""parse GET request parameters."""
 	data = frappe._dict(frappe.local.form_dict)
 	clean_params(data)
 	validate_args(data)
@@ -261,10 +261,7 @@ def compress(data, args=None):
 	values = []
 	keys = list(data[0])
 	for row in data:
-		new_row = []
-		for key in keys:
-			new_row.append(row.get(key))
-		values.append(new_row)
+		values.append([row.get(key) for key in keys])
 
 		# add user info for assignments (avatar)
 		if row.get("_assign", ""):
@@ -644,11 +641,7 @@ def scrub_user_tags(tagcount):
 
 				rdict[tag] += tagdict[t]
 
-	rlist = []
-	for tag in rdict:
-		rlist.append([tag, rdict[tag]])
-
-	return rlist
+	return [[tag, rdict[tag]] for tag in rdict]
 
 
 # used in building query in queries.py

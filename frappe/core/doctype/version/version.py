@@ -9,6 +9,18 @@ from frappe.model.document import Document
 
 
 class Version(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		data: DF.Code | None
+		docname: DF.Data
+		ref_doctype: DF.Link
+	# end: auto-generated types
 	def update_version_info(self, old: Document | None, new: Document) -> bool:
 		"""Update changed info and return true if change contains useful data."""
 		if not old:
@@ -47,7 +59,7 @@ class Version(Document):
 		return json.loads(self.data)
 
 
-def get_diff(old, new, for_child=False):
+def get_diff(old, new, for_child=False, compare_cancelled=False):
 	"""Get diff between 2 document objects
 
 	If there is a change, then returns a dict like:
@@ -100,6 +112,11 @@ def get_diff(old, new, for_child=False):
 			# check rows for additions, changes
 			for i, d in enumerate(new_value):
 				old_row_name = getattr(d, old_row_name_field, None)
+				if compare_cancelled:
+					if amended_from:
+						if len(old_value) > i:
+							old_row_name = old_value[i].name
+
 				if old_row_name and old_row_name in old_rows_by_name:
 					found_rows.add(old_row_name)
 

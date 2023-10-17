@@ -35,7 +35,7 @@ context("Form", () => {
 		cy.visit("/app/todo/new");
 		cy.get_field("description", "Text Editor")
 			.type("this is a test todo", { force: true })
-			.wait(200);
+			.wait(1000);
 		cy.get(".page-title").should("contain", "Not Saved");
 		cy.intercept({
 			method: "POST",
@@ -101,10 +101,6 @@ context("Form", () => {
 		cy.get("@email_input2").type(valid_email, { waitForAnimations: false });
 
 		cy.get("@row1").click();
-		cy.get("@email_input1").should(($div) => {
-			const style = window.getComputedStyle($div[0]);
-			expect(style.backgroundColor).to.equal(expectBackgroundColor);
-		});
 		cy.get("@email_input1").should("have.class", "invalid");
 
 		cy.get("@row2").click();

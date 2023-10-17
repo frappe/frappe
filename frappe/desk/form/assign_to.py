@@ -32,7 +32,7 @@ def get(args=None):
 		filters={
 			"reference_type": args.get("doctype"),
 			"reference_name": args.get("name"),
-			"status": ("!=", "Cancelled"),
+			"status": ("not in", ("Cancelled", "Closed")),
 		},
 		limit=5,
 	)
@@ -63,6 +63,8 @@ def add(args=None):
 			"status": "Open",
 			"allocated_to": assign_to,
 		}
+		parent_doc = frappe.get_doc(args["doctype"], args["name"])
+		parent_doc.check_permission()
 
 		if frappe.get_all("ToDo", filters=filters):
 			users_with_duplicate_todo.append(assign_to)
@@ -164,8 +166,19 @@ def remove(doctype, name, assign_to):
 	return set_status(doctype, name, "", assign_to, status="Cancelled")
 
 
+@frappe.whitelist()
+def close(doctype: str, name: str, assign_to: str):
+	if assign_to != frappe.session.user:
+		frappe.throw(_("Only the assignee can complete this to-do."))
+
+	return set_status(doctype, name, "", assign_to, status="Closed")
+
+
 def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled"):
 	"""remove from todo"""
+
+	doc = frappe.get_doc(doctype, name)
+	doc.check_permission()
 	try:
 		if not todo:
 			todo = frappe.db.get_value(
@@ -187,7 +200,7 @@ def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled"):
 		pass
 
 	# clear assigned_to if field exists
-	if frappe.get_meta(doctype).get_field("assigned_to") and status == "Cancelled":
+	if frappe.get_meta(doctype).get_field("assigned_to") and status in ("Cancelled", "Closed"):
 		frappe.db.set_value(doctype, name, "assigned_to", None)
 
 	return get({"doctype": doctype, "name": name})
@@ -233,11 +246,11 @@ def notify_assignment(
 
 	if action == "CLOSE":
 		subject = _("Your assignment on {0} {1} has been removed by {2}").format(
-			frappe.bold(doc_type), get_title_html(title), frappe.bold(user_name)
+			frappe.bold(_(doc_type)), get_title_html(title), frappe.bold(user_name)
 		)
 	else:
 		user_name = frappe.bold(user_name)
-		document_type = frappe.bold(doc_type)
+		document_type = frappe.bold(_(doc_type))
 		title = get_title_html(title)
 		subject = _("{0} assigned a new task {1} {2} to you").format(user_name, document_type, title)
 

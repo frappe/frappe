@@ -254,9 +254,8 @@ def execute(context, method, args=None, kwargs=None, profile=False):
 			try:
 				ret = frappe.get_attr(method)(*args, **kwargs)
 			except Exception:
-				ret = frappe.safe_eval(
-					method + "(*args, **kwargs)", eval_globals=globals(), eval_locals=locals()
-				)
+				# eval is safe here because input is from console
+				ret = eval(method + "(*args, **kwargs)", globals(), locals())  # nosemgrep
 
 			if profile:
 				import pstats
@@ -505,9 +504,9 @@ def postgres(context, extra_args):
 
 
 def _mariadb(extra_args=None):
-	mysql = which("mysql")
+	mariadb = which("mariadb")
 	command = [
-		mysql,
+		mariadb,
 		"--port",
 		str(frappe.conf.db_port),
 		"-u",
@@ -522,7 +521,7 @@ def _mariadb(extra_args=None):
 	]
 	if extra_args:
 		command += list(extra_args)
-	os.execv(mysql, command)
+	os.execv(mariadb, command)
 
 
 def _psql(extra_args=None):
@@ -610,7 +609,7 @@ def console(context, autoreload=False):
 
 	register(_console_cleanup)
 
-	terminal = InteractiveShellEmbed()
+	terminal = InteractiveShellEmbed.instance()
 	if autoreload:
 		terminal.extension_manager.load_extension("autoreload")
 		terminal.run_line_magic("autoreload", "2")
@@ -851,6 +850,7 @@ def run_parallel_tests(
 @click.option("--headless", is_flag=True, help="Run UI Test in headless mode")
 @click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
 @click.option("--with-coverage", is_flag=True, help="Generate coverage report")
+@click.option("--browser", default="chrome", help="Browser to run tests in")
 @click.option("--ci-build-id")
 @pass_context
 def run_ui_tests(
@@ -859,12 +859,14 @@ def run_ui_tests(
 	headless=False,
 	parallel=True,
 	with_coverage=False,
+	browser="chrome",
 	ci_build_id=None,
 	cypressargs=None,
 ):
 	"Run UI tests"
 	site = get_site(context)
-	app_base_path = os.path.abspath(os.path.join(frappe.get_app_path(app), ".."))
+	frappe.init(site)
+	app_base_path = frappe.get_app_source_path(app)
 	site_url = frappe.utils.get_site_url(site)
 	admin_password = frappe.get_conf(site).admin_password
 
@@ -894,10 +896,10 @@ def run_ui_tests(
 		click.secho("Installing Cypress...", fg="yellow")
 		packages = " ".join(
 			[
-				"cypress@^10",
+				"cypress@^13",
 				"@4tw/cypress-drag-drop@^2",
 				"cypress-real-events",
-				"@testing-library/cypress@^8",
+				"@testing-library/cypress@^10",
 				"@testing-library/dom@8.17.1",
 				"@cypress/code-coverage@^3",
 			]
@@ -905,8 +907,11 @@ def run_ui_tests(
 		frappe.commands.popen(f"(cd ../frappe && yarn add {packages} --no-lockfile)")
 
 	# run for headless mode
-	run_or_open = "run --browser chrome --record" if headless else "open"
+	run_or_open = f"run --browser {browser}" if headless else "open"
 	formatted_command = f"{site_env} {password_env} {coverage_env} {cypress_path} {run_or_open}"
+
+	if os.environ.get("CYPRESS_RECORD_KEY"):
+		formatted_command += " --record"
 
 	if parallel:
 		formatted_command += " --parallel"
@@ -924,6 +929,12 @@ def run_ui_tests(
 @click.command("serve")
 @click.option("--port", default=8000)
 @click.option("--profile", is_flag=True, default=False)
+@click.option(
+	"--proxy",
+	is_flag=True,
+	default=False,
+	help="The development server may be run behind a proxy, e.g. ngrok / localtunnel",
+)
 @click.option("--noreload", "no_reload", is_flag=True, default=False)
 @click.option("--nothreading", "no_threading", is_flag=True, default=False)
 @click.option("--with-coverage", is_flag=True, default=False)
@@ -932,6 +943,7 @@ def serve(
 	context,
 	port=None,
 	profile=False,
+	proxy=False,
 	no_reload=False,
 	no_threading=False,
 	sites_path=".",
@@ -953,6 +965,7 @@ def serve(
 		frappe.app.serve(
 			port=port,
 			profile=profile,
+			proxy=proxy,
 			no_reload=no_reload,
 			no_threading=no_threading,
 			site=site,
@@ -1076,7 +1089,7 @@ def get_version(output):
 		app_info = frappe._dict()
 
 		try:
-			app_info.commit = Repo(frappe.get_app_path(app, "..")).head.object.hexsha[:7]
+			app_info.commit = Repo(frappe.get_app_source_path(app)).head.object.hexsha[:7]
 		except InvalidGitRepositoryError:
 			app_info.commit = ""
 

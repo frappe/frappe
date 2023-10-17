@@ -32,7 +32,7 @@ if (props.df.fieldtype === "Icon") {
 			<slot name="label" />
 			<slot name="actions" />
 		</div>
-		<div v-else class="label" :class="{ reqd: df.reqd }">{{ df.label }}</div>
+		<div v-else class="control-label label" :class="{ reqd: df.reqd }">{{ df.label }}</div>
 
 		<!-- data input -->
 		<input
@@ -48,7 +48,7 @@ if (props.df.fieldtype === "Icon") {
 			class="form-control"
 			type="text"
 			:value="value"
-			:disabled="read_only"
+			:disabled="read_only || df.read_only"
 			@input="event => $emit('update:modelValue', event.target.value)"
 		/>
 		<input
@@ -90,10 +90,10 @@ if (props.df.fieldtype === "Icon") {
 <style lang="scss" scoped>
 .selected-color {
 	background-color: transparent;
-	top: 32px !important;
+	top: 30px !important;
 }
 
 .selected-phone {
-	top: 34px !important;
+	top: 32px !important;
 }
 </style>

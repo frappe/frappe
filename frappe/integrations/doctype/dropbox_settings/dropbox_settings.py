@@ -24,6 +24,26 @@ ignore_list = [".DS_Store"]
 
 
 class DropboxSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		app_access_key: DF.Data | None
+		app_secret_key: DF.Password | None
+		backup_frequency: DF.Literal["", "Daily", "Weekly"]
+		dropbox_access_token: DF.Password | None
+		dropbox_refresh_token: DF.Password | None
+		enabled: DF.Check
+		file_backup: DF.Check
+		limit_no_of_backups: DF.Check
+		no_of_backups: DF.Int
+		send_email_for_successful_backup: DF.Check
+		send_notifications_to: DF.Data
+	# end: auto-generated types
 	def onload(self):
 		if not self.app_access_key and frappe.conf.dropbox_access_key:
 			self.set_onload("dropbox_setup_via_site_config", 1)
@@ -290,10 +310,7 @@ def get_dropbox_settings(redirect_uri=False):
 
 def delete_older_backups(dropbox_client, folder_path, to_keep):
 	res = dropbox_client.files_list_folder(path=folder_path)
-	files = []
-	for f in res.entries:
-		if isinstance(f, dropbox.files.FileMetadata) and "sql" in f.name:
-			files.append(f)
+	files = [f for f in res.entries if isinstance(f, dropbox.files.FileMetadata) and "sql" in f.name]
 
 	if len(files) <= to_keep:
 		return
