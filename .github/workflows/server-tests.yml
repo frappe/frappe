@@ -130,12 +130,14 @@ jobs:
           DB: ${{ matrix.db }}
 
       - name: Run Tests
-        run: cd ~/frappe-bench/sites && ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
+        run: ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
+        working-directory: /home/runner/frappe-bench/sites
         env:
           SITE: test_site
           CI_BUILD_ID: ${{ github.run_id }}
           BUILD_NUMBER: ${{ matrix.container }}
           TOTAL_BUILDS: 2
+          COVERAGE_RCFILE: /home/runner/frappe-bench/apps/frappe/.coveragerc
 
       - name: Show bench output
         if: ${{ always() }}
