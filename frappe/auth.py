@@ -18,6 +18,7 @@ from frappe.twofactor import (
 	should_run_2fa,
 )
 from frappe.utils import cint, date_diff, datetime, get_datetime, today
+from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.password import check_password
 from frappe.website.utils import get_home_page
 
@@ -446,7 +447,7 @@ def validate_ip_address(user):
 	frappe.throw(_("Access not allowed from this IP Address"), frappe.AuthenticationError)
 
 
-def get_login_attempt_tracker(user_name: str, raise_locked_exception: bool = True):
+def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True):
 	"""Get login attempt tracker instance.
 
 	:param user_name: Name of the loggedin user
@@ -460,7 +461,7 @@ def get_login_attempt_tracker(user_name: str, raise_locked_exception: bool = Tru
 		tracker_kwargs["lock_interval"] = sys_settings.allow_login_after_fail
 		tracker_kwargs["max_consecutive_login_attempts"] = sys_settings.allow_consecutive_login_attempts
 
-	tracker = LoginAttemptTracker(user_name, **tracker_kwargs)
+	tracker = LoginAttemptTracker(key, **tracker_kwargs)
 
 	if raise_locked_exception and track_login_attempts and not tracker.is_user_allowed():
 		frappe.throw(
@@ -479,7 +480,12 @@ class LoginAttemptTracker:
 	"""
 
 	def __init__(
-		self, user_name: str, max_consecutive_login_attempts: int = 3, lock_interval: int = 5 * 60
+		self,
+		key: str,
+		max_consecutive_login_attempts: int = 3,
+		lock_interval: int = 5 * 60,
+		*,
+		user_name: str = None,
 	):
 		"""Initialize the tracker.
 
@@ -487,12 +493,15 @@ class LoginAttemptTracker:
 		:param max_consecutive_login_attempts: Maximum allowed consecutive failed login attempts
 		:param lock_interval: Locking interval incase of maximum failed attempts
 		"""
-		self.user_name = user_name
+		if user_name:
+			deprecation_warning("`username` parameter is deprecated, use `key` instead.")
+		self.key = key or user_name
 		self.lock_interval = datetime.timedelta(seconds=lock_interval)
 		self.max_failed_logins = max_consecutive_login_attempts
 
 	@property
 	def login_failed_count(self):
+<<<<<<< HEAD
 		return frappe.cache().hget("login_failed_count", self.user_name)
 
 	@login_failed_count.setter
@@ -502,6 +511,17 @@ class LoginAttemptTracker:
 	@login_failed_count.deleter
 	def login_failed_count(self):
 		frappe.cache().hdel("login_failed_count", self.user_name)
+=======
+		return frappe.cache.hget("login_failed_count", self.key)
+
+	@login_failed_count.setter
+	def login_failed_count(self, count):
+		frappe.cache.hset("login_failed_count", self.key, count)
+
+	@login_failed_count.deleter
+	def login_failed_count(self):
+		frappe.cache.hdel("login_failed_count", self.key)
+>>>>>>> f4f6d97d06 (refactor: make login tracker support arbitrary keys)
 
 	@property
 	def login_failed_time(self):
@@ -509,6 +529,7 @@ class LoginAttemptTracker:
 
 		For every user we track only First failed login attempt time within lock interval of time.
 		"""
+<<<<<<< HEAD
 		return frappe.cache().hget("login_failed_time", self.user_name)
 
 	@login_failed_time.setter
@@ -518,6 +539,17 @@ class LoginAttemptTracker:
 	@login_failed_time.deleter
 	def login_failed_time(self):
 		frappe.cache().hdel("login_failed_time", self.user_name)
+=======
+		return frappe.cache.hget("login_failed_time", self.key)
+
+	@login_failed_time.setter
+	def login_failed_time(self, timestamp):
+		frappe.cache.hset("login_failed_time", self.key, timestamp)
+
+	@login_failed_time.deleter
+	def login_failed_time(self):
+		frappe.cache.hdel("login_failed_time", self.key)
+>>>>>>> f4f6d97d06 (refactor: make login tracker support arbitrary keys)
 
 	def add_failure_attempt(self):
 		"""Log user failure attempts into the system.
