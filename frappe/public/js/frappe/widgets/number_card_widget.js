@@ -223,6 +223,7 @@ export default class NumberCardWidget extends Widget {
 		let number_parts = shortened_number.split(" ");
 
 		const symbol = number_parts[1] || "";
+		number_parts[0] = window.convert_old_to_new_number_format(number_parts[0]);
 		const formatted_number = $(frappe.format(number_parts[0], df)).text();
 
 		this.formatted_number = formatted_number + " " + __(symbol);
