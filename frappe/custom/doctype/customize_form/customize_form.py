@@ -401,7 +401,7 @@ class CustomizeForm(Document):
 			("DocType Link", "links", doctype_link_properties),
 			("DocType Action", "actions", doctype_action_properties),
 			("DocType State", "states", doctype_state_properties),
-			("DocType Filter", "filters", doctype_filter_properties),
+			("Link Field Filter", "filters", doctype_filter_properties),
 		):
 			has_custom = False
 			items = []

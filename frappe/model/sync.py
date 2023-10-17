@@ -61,7 +61,8 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			"doctype_action",
 			"doctype_link",
 			"doctype_state",
-			"doctype_filter" "role",
+			"link_field_filter",
+			"role",
 			"has_role",
 			"doctype",
 		]:

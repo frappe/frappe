@@ -96,9 +96,9 @@ class DocType(Document):
 		from frappe.core.doctype.docfield.docfield import DocField
 		from frappe.core.doctype.docperm.docperm import DocPerm
 		from frappe.core.doctype.doctype_action.doctype_action import DocTypeAction
-		from frappe.core.doctype.doctype_filter.doctype_filter import DocTypeFilter
 		from frappe.core.doctype.doctype_link.doctype_link import DocTypeLink
 		from frappe.core.doctype.doctype_state.doctype_state import DocTypeState
+		from frappe.core.doctype.link_field_filter.link_field_filter import LinkFieldFilter
 		from frappe.types import DF
 
 		actions: DF.Table[DocTypeAction]
@@ -122,7 +122,7 @@ class DocType(Document):
 		email_append_to: DF.Check
 		engine: DF.Literal["InnoDB", "MyISAM"]
 		fields: DF.Table[DocField]
-		filters: DF.Table[DocTypeFilter]
+		filters: DF.Table[LinkFieldFilter]
 		force_re_route_to_default_view: DF.Check
 		has_web_view: DF.Check
 		hide_toolbar: DF.Check

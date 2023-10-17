@@ -103,7 +103,7 @@ class Meta(Document):
 			"DocType Action",
 			"DocType Link",
 			"DocType State",
-			"DocType Filter",
+			"Link Field Filter",
 		)
 	)
 	standard_set_once_fields = [
@@ -407,7 +407,7 @@ class Meta(Document):
 						d.set(ps.property, cast(ps.property_type, ps.value))
 						break
 
-			elif ps.doctype_or_field == "DocType Filter":
+			elif ps.doctype_or_field == "Link Field Filter":
 				for d in self.filters:
 					if d.name == ps.row_name:
 						d.set(ps.property, cast(ps.property_type, ps.value))
@@ -418,7 +418,7 @@ class Meta(Document):
 			("DocType Link", "links"),
 			("DocType Action", "actions"),
 			("DocType State", "states"),
-			("DocType Filter", "filters"),
+			("Link Field Filter", "filters"),
 		):
 			# ignore_ddl because the `custom` column was added later via a patch
 			for d in frappe.get_all(

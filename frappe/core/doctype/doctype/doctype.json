@@ -666,7 +666,7 @@
    "fieldname": "filters",
    "fieldtype": "Table",
    "label": "filters",
-   "options": "DocType Filter"
+   "options": "Link Field Filter"
   }
  ],
  "filters": [],
@@ -750,7 +750,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-10-17 16:56:29.963206",
+ "modified": "2023-10-17 21:50:55.292381",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

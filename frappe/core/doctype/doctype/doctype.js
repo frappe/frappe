@@ -168,7 +168,7 @@ frappe.ui.form.on("DocField", {
 	},
 });
 
-frappe.ui.form.on("DocType Filter", {
+frappe.ui.form.on("Link Field Filter", {
 	link_field: function (frm, cdt, cdn) {
 		frm.linked_field = "field";
 		let link_field = locals[cdt][cdn].link_field;
