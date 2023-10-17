@@ -161,9 +161,7 @@ class TestAuth(FrappeTestCase):
 class TestLoginAttemptTracker(FrappeTestCase):
 	def test_account_lock(self):
 		"""Make sure that account locks after `n consecutive failures"""
-		tracker = LoginAttemptTracker(
-			user_name="tester", max_consecutive_login_attempts=3, lock_interval=60
-		)
+		tracker = LoginAttemptTracker("tester", max_consecutive_login_attempts=3, lock_interval=60)
 		# Clear the cache by setting attempt as success
 		tracker.add_success_attempt()
 
@@ -183,7 +181,7 @@ class TestLoginAttemptTracker(FrappeTestCase):
 		"""Make sure that locked account gets unlocked after lock_interval of time."""
 		lock_interval = 2  # In sec
 		tracker = LoginAttemptTracker(
-			user_name="tester", max_consecutive_login_attempts=1, lock_interval=lock_interval
+			"tester", max_consecutive_login_attempts=1, lock_interval=lock_interval
 		)
 		# Clear the cache by setting attempt as success
 		tracker.add_success_attempt()
