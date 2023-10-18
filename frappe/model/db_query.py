@@ -807,7 +807,10 @@ class DatabaseQuery:
 			df = meta.get("fields", {"fieldname": f.fieldname})
 			df = df[0] if df else None
 
-			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
+			if df and (
+				df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent")
+				or getattr(df, "not_nullable", False)
+			):
 				can_be_null = False
 
 			if f.operator.lower() in ("previous", "next", "timespan"):
