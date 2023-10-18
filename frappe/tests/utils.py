@@ -6,9 +6,12 @@ from contextlib import contextmanager
 from typing import Sequence
 from unittest.mock import patch
 
+import pytz
+
 import frappe
 from frappe.model.base_document import BaseDocument
 from frappe.utils import cint
+from frappe.utils.data import convert_utc_to_timezone, get_datetime, get_system_timezone
 
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
 
@@ -112,6 +115,67 @@ class FrappeTestCase(unittest.TestCase):
 		finally:
 			frappe.db.sql = orig_sql
 
+<<<<<<< HEAD
+=======
+	@classmethod
+	def enable_safe_exec(cls) -> None:
+		"""Enable safe exec and disable them after test case is completed."""
+		from frappe.installer import update_site_config
+		from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
+
+		cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
+		update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
+
+		cls.addClassCleanup(
+			lambda: update_site_config(
+				SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=cls._common_conf
+			)
+		)
+
+	@contextmanager
+	def set_user(self, user: str):
+		old_user = frappe.session.user
+		frappe.set_user(user)
+		yield
+		frappe.set_user(old_user)
+
+	@contextmanager
+	def switch_site(self, site: str):
+		"""Switch connection to different site.
+		Note: Drops current site connection completely."""
+
+		old_site = frappe.local.site
+		frappe.init(site, force=True)
+		frappe.connect()
+		yield
+		frappe.init(old_site, force=True)
+		frappe.connect()
+
+	@contextmanager
+	def freeze_time(self, time_to_freeze, *args, **kwargs):
+		from freezegun import freeze_time
+
+		# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
+		timezone = pytz.timezone(get_system_timezone())
+		fake_time_with_tz = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
+
+		with freeze_time(fake_time_with_tz, *args, **kwargs):
+			yield
+
+
+class MockedRequestTestCase(FrappeTestCase):
+	def setUp(self):
+		import responses
+
+		self.responses = responses.RequestsMock()
+		self.responses.start()
+
+		self.addCleanup(self.responses.stop)
+		self.addCleanup(self.responses.reset)
+
+		return super().setUp()
+
+>>>>>>> 05d6f5cc8a (test: Add cold start tests)
 
 def _commit_watcher():
 	import traceback
