@@ -6,7 +6,7 @@ context("Grid Keyboard Shortcut", () => {
 	});
 	beforeEach(() => {
 		cy.reload();
-		cy.visit("/app/contact/new-contact");
+		cy.new_form("Contact");
 		cy.get('.frappe-control[data-fieldname="email_ids"]').find(".grid-add-row").click();
 		// as new names uses hash instead of numbers get row's data-name dynamically.
 		cy.get('.frappe-control[data-fieldname="email_ids"]')
