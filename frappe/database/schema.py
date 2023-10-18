@@ -3,6 +3,7 @@ import re
 import frappe
 from frappe import _
 from frappe.utils import cint, cstr, flt
+from frappe.utils.defaults import get_not_null_defaults
 
 SPECIAL_CHAR_PATTERN = re.compile(r"[\W]", flags=re.UNICODE)
 VARCHAR_CAST_PATTERN = re.compile(r"varchar\(([\d]+)\)")
@@ -98,6 +99,7 @@ class DBTable:
 				field.get("options"),
 				field.get("unique"),
 				field.get("precision"),
+				field.get("not_nullable"),
 			)
 
 	def validate(self):
@@ -175,7 +177,17 @@ class DBTable:
 
 class DbColumn:
 	def __init__(
-		self, table, fieldname, fieldtype, length, default, set_index, options, unique, precision
+		self,
+		table,
+		fieldname,
+		fieldtype,
+		length,
+		default,
+		set_index,
+		options,
+		unique,
+		precision,
+		not_nullable,
 	):
 		self.table = table
 		self.fieldname = fieldname
@@ -186,6 +198,7 @@ class DbColumn:
 		self.options = options
 		self.unique = unique
 		self.precision = precision
+		self.not_nullable = not_nullable
 
 	def get_definition(self, for_modification=False):
 		column_def = get_definition(self.fieldtype, precision=self.precision, length=self.length)
@@ -207,6 +220,12 @@ class DbColumn:
 			and not cstr(self.default).startswith(":")
 		):
 			column_def += f" default {frappe.db.escape(self.default)}"
+
+		elif self.not_nullable:
+			default_value = get_not_null_defaults(self.fieldtype)
+			if isinstance(default_value, str):
+				default_value = frappe.db.escape(default_value)
+			column_def += f" not null default {default_value}"
 
 		if self.unique and not for_modification and (column_def not in ("text", "longtext")):
 			column_def += " unique"
