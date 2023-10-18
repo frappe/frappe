@@ -31,6 +31,7 @@ from frappe.utils import (
 	sanitize_html,
 	strip_html,
 )
+from frappe.utils.defaults import get_not_null_defaults
 from frappe.utils.html_utils import unescape_html
 
 if TYPE_CHECKING:
@@ -383,6 +384,10 @@ class BaseDocument:
 
 			if ignore_nulls and not is_virtual_field and value is None:
 				continue
+
+			# If the docfield is not nullable - set a default non-null value
+			if value is None and getattr(df, "not_nullable", False):
+				value = get_not_null_defaults(df.fieldtype)
 
 			d[fieldname] = value
 
