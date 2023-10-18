@@ -444,7 +444,7 @@ frappe.PermissionEngine = class PermissionEngine {
 						{
 							fieldtype: "Select",
 							label: __("Permission Level"),
-							options: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+							options: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
 							reqd: 1,
 							fieldname: "permlevel",
 							description: __(
