@@ -216,18 +216,23 @@ def invite_user(contact):
 
 @frappe.whitelist()
 def get_contact_details(contact):
-	contact = frappe.get_doc("Contact", contact)
-	contact.check_permission()
+	frappe.has_permission("Contact")
 
-	return {
-		"contact_person": contact.get("name"),
-		"contact_display": contact.get("full_name"),
-		"contact_email": contact.get("email_id"),
-		"contact_mobile": contact.get("mobile_no"),
-		"contact_phone": contact.get("phone"),
-		"contact_designation": contact.get("designation"),
-		"contact_department": contact.get("department"),
-	}
+	fields = [
+		"name as contact_person",
+		"full_name as contact_display",
+		"email_id as contact_email",
+		"mobile_no as contact_mobile",
+		"phone as contact_phone",
+		"designation as contact_designation",
+		"department as contact_department",
+	]
+
+	return frappe.get_cached_value("Contact",
+		contact,
+		fields,
+		as_dict=True
+	)
 
 
 def update_contact(doc, method):
