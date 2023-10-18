@@ -13,7 +13,7 @@ from PIL import Image
 
 import frappe
 from frappe import _, safe_decode
-from frappe.utils import cstr, encode, get_files_path, random_string, strip
+from frappe.utils import cint, cstr, encode, get_files_path, random_string, strip
 from frappe.utils.file_manager import safe_b64decode
 from frappe.utils.image import optimize_image
 
@@ -337,7 +337,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 					"attached_to_name": doc.name,
 					"attached_to_doctype": doc.doctype,
 					"attached_to_field": df.fieldname,
-					"is_private": value.startswith("/private"),
+					"is_private": cint(value.startswith("/private")),
 				},
 			)
 			return
