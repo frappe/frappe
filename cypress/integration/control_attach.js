@@ -193,7 +193,7 @@ context("Attach Control with Failed Document Save", () => {
 	});
 	let temp_name = "";
 	let docname = "";
-	it('Checking functionality for "Attach" Where Document is not saved but File is Uploaded', () => {
+	it("Attaching a file on an unsaved document", () => {
 		//Navigating to the new form for the newly created doctype
 		cy.new_form("Test Mandatory Attach Control");
 		cy.get("body").should(($body) => {
@@ -229,7 +229,7 @@ context("Attach Control with Failed Document Save", () => {
 		});
 	});
 
-	it("Check If File was uploaded correctly", () => {
+	it("Check if file was uploaded correctly", () => {
 		cy.go_to_list("File");
 		cy.open_list_filter();
 		cy.get(".fieldname-select-area .form-control")
@@ -242,7 +242,7 @@ context("Attach Control with Failed Document Save", () => {
 		cy.get("header .level-right .list-count").should("contain.text", "1 of 1");
 	});
 
-	it("Check If File exists with temp name", () => {
+	it("Check if file exists with temporary name", () => {
 		cy.open_list_filter();
 		cy.get('input[data-fieldname="attached_to_name"]').click().clear().type(temp_name).blur();
 		cy.get(".filter-popover .apply-filters").click({ force: true });
