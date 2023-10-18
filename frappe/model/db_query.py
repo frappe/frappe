@@ -109,7 +109,6 @@ class DatabaseQuery:
 		save_user_settings=False,
 		save_user_settings_fields=False,
 		update=None,
-		add_total_row=None,
 		user_settings=None,
 		reference_doctype=None,
 		run=True,
@@ -981,7 +980,6 @@ class DatabaseQuery:
 		)
 
 	def add_user_permissions(self, user_permissions):
-		doctype_link_fields = []
 		doctype_link_fields = self.doctype_meta.get_link_fields()
 
 		# append current doctype with fieldname as 'name' as first link field
