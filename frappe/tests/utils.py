@@ -115,23 +115,6 @@ class FrappeTestCase(unittest.TestCase):
 		finally:
 			frappe.db.sql = orig_sql
 
-<<<<<<< HEAD
-=======
-	@classmethod
-	def enable_safe_exec(cls) -> None:
-		"""Enable safe exec and disable them after test case is completed."""
-		from frappe.installer import update_site_config
-		from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
-
-		cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
-		update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
-
-		cls.addClassCleanup(
-			lambda: update_site_config(
-				SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=cls._common_conf
-			)
-		)
-
 	@contextmanager
 	def set_user(self, user: str):
 		old_user = frappe.session.user
@@ -162,20 +145,6 @@ class FrappeTestCase(unittest.TestCase):
 		with freeze_time(fake_time_with_tz, *args, **kwargs):
 			yield
 
-
-class MockedRequestTestCase(FrappeTestCase):
-	def setUp(self):
-		import responses
-
-		self.responses = responses.RequestsMock()
-		self.responses.start()
-
-		self.addCleanup(self.responses.stop)
-		self.addCleanup(self.responses.reset)
-
-		return super().setUp()
-
->>>>>>> 05d6f5cc8a (test: Add cold start tests)
 
 def _commit_watcher():
 	import traceback

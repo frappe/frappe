@@ -103,18 +103,9 @@ indent = "\t"
 
 [tool.bench.dev-dependencies]
 coverage = "~=6.5.0"
-<<<<<<< HEAD
 Faker = "~=13.12.1"
 pyngrok = "~=5.0.5"
 unittest-xml-reporting = "~=3.0.4"
 watchdog = "~=2.1.9"
 hypothesis = "~=6.68.2"
-=======
-Faker = "~=18.10.1"
-pyngrok = "~=6.0.0"
-unittest-xml-reporting = "~=3.2.0"
-watchdog = "~=3.0.0"
-hypothesis = "~=6.77.0"
-responses = "==0.23.1"
 freezegun = "~=1.2.2"
->>>>>>> 05d6f5cc8a (test: Add cold start tests)
