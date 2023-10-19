@@ -25,6 +25,7 @@ class DBTable:
 		self.add_column: list[DbColumn] = []
 		self.change_type: list[DbColumn] = []
 		self.change_name: list[DbColumn] = []
+		self.change_nullability: list[DbColumn] = []
 		self.add_unique: list[DbColumn] = []
 		self.add_index: list[DbColumn] = []
 		self.drop_unique: list[DbColumn] = []
@@ -268,6 +269,10 @@ class DbColumn:
 			and not cstr(self.default).startswith(":")
 		):
 			self.table.set_default.append(self)
+
+		# nullability
+		if self.not_nullable is not None and (self.not_nullable != current_def["not_nullable"]):
+			self.table.change_nullability.append(self)
 
 		# index should be applied or dropped irrespective of type change
 		if (current_def["index"] and not self.set_index) and column_type not in ("text", "longtext"):

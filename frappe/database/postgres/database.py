@@ -392,7 +392,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			END AS type,
 			BOOL_OR(b.index) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
-			BOOL_OR(b.unique) AS unique
+			BOOL_OR(b.unique) AS unique,
+			COALESCE(a.is_nullable = 'NO', false) AS not_nullable
 			FROM information_schema.columns a
 			LEFT JOIN
 				(SELECT indexdef, tablename,
@@ -402,7 +403,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 					WHERE tablename='{table_name}') b
 				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
 			WHERE a.table_name = '{table_name}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable;
 		""".format(
 				table_name=table_name
 			),

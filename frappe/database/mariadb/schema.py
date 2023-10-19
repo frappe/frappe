@@ -3,6 +3,7 @@ from pymysql.constants.ER import DUP_ENTRY
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
+from frappe.utils.defaults import get_not_null_defaults
 
 
 class MariaDBTable(DBTable):
@@ -69,7 +70,7 @@ class MariaDBTable(DBTable):
 		add_column_query = [
 			f"ADD COLUMN `{col.fieldname}` {col.get_definition()}" for col in self.add_column
 		]
-		columns_to_modify = set(self.change_type + self.set_default)
+		columns_to_modify = set(self.change_type + self.set_default + self.change_nullability)
 		modify_column_query = [
 			f"MODIFY `{col.fieldname}` {col.get_definition(for_modification=True)}"
 			for col in columns_to_modify
@@ -102,12 +103,24 @@ class MariaDBTable(DBTable):
 				if index_record := frappe.db.get_column_index(self.table_name, col.fieldname, unique=False):
 					drop_index_query.append(f"DROP INDEX `{index_record.Key_name}`")
 
+		for col in self.change_nullability:
+			current_column = self.current_columns.get(col.fieldname.lower())
+			if col.not_nullable:
+				default_value = get_not_null_defaults(col.fieldtype)
+				if isinstance(default_value, str):
+					default_value = frappe.db.escape(default_value)
+				query = f"UPDATE `{self.table_name}` SET `{col.fieldname}`={default_value} WHERE `{col.fieldname}` IS NULL;"
+				try:
+					frappe.db.sql(query, ignore_implicit_commit=True)
+				except Exception as e:
+					print(f"Failed to alter schema using query: {query}")
+					raise
 		try:
 			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
 				if query_parts:
 					query_body = ", ".join(query_parts)
 					query = f"ALTER TABLE `{self.table_name}` {query_body}"
-					frappe.db.sql(query)
+					frappe.db.sql(query, ignore_implicit_commit=True)
 
 		except Exception as e:
 			if query := locals().get("query"):  # this weirdness is to avoid potentially unbounded vars
