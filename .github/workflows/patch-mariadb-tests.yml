@@ -134,6 +134,7 @@ jobs:
           }
 
           update_to_version 14
+          update_to_version 15
 
           echo "Updating to last commit"
           pgrep honcho | xargs kill
