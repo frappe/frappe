@@ -62,7 +62,7 @@ class TypeExporter:
 		self.controller_path = Path(inspect.getfile(get_controller(self.doctype)))
 
 	def export_types(self):
-		self._guess_indetation()
+		self._guess_indentation()
 		new_code = self._generate_code()
 		self._replace_or_add_code(new_code)
 
@@ -137,7 +137,7 @@ class TypeExporter:
 
 		return f"from {filepath} import {class_name}", class_name
 
-	def _map_fieldtype(self, field) -> type | None:
+	def _map_fieldtype(self, field) -> str | None:
 		fieldtype = field.fieldtype.replace(" ", "")
 		field_definition = ""
 
@@ -192,9 +192,9 @@ class TypeExporter:
 			frappe.msgprint(frappe._("Failed to export python type hints"), alert=True)
 			return False
 
-	def _guess_indetation(
+	def _guess_indentation(
 		self,
-	) -> str:
+	) -> None:
 		from token import INDENT
 
 		with self.controller_path.open() as f:

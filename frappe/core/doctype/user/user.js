@@ -123,7 +123,8 @@ frappe.ui.form.on("User", {
 			!doc.__unsaved &&
 			frappe.all_timezones &&
 			(hasChanged(doc.language, frappe.boot.user.language) ||
-				hasChanged(doc.time_zone, frappe.boot.time_zone.user))
+				hasChanged(doc.time_zone, frappe.boot.time_zone.user) ||
+				hasChanged(doc.desk_theme, frappe.boot.user.desk_theme))
 		) {
 			frappe.msgprint(__("Refreshing..."));
 			window.location.reload();

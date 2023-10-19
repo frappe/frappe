@@ -126,7 +126,7 @@ class TestConnectedApp(FrappeTestCase):
 		def delete_if_exists(attribute):
 			doc = getattr(self, attribute, None)
 			if doc:
-				doc.delete()
+				doc.delete(force=True)
 
 		delete_if_exists("token_cache")
 		delete_if_exists("connected_app")

@@ -5,6 +5,7 @@
 		<div class="sidebar-standard-image">
 			<div class="standard-image"></div>
 		</div>
+		{% if can_write %}
 		<div class="sidebar-image-actions">
 			<div class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ __("Change") }}</a>
@@ -14,6 +15,7 @@
 				</div>
 			</div>
 		</div>
+		{% endif %}
 	</li>
 </ul>
 {% if frm.meta.beta %}
@@ -136,21 +138,21 @@
 </ul>
 <ul class="list-unstyled sidebar-menu form-sidebar-stats">
 	<li class="flex">
-		<div class="form-stats">
+		<div class="form-stats d-flex">
 			<span class="form-stats-likes">
-				<span class="liked-by like-action">
+				<span class="liked-by like-action d-flex align-items-center">
 					<svg class="es-icon icon-sm">
 						<use href="#es-solid-heart" class="like-icon"></use>
 					</svg>
-					<span class="like-count"></span>
+					<span class="like-count ml-2"></span>
 				</span>
 			</span>
-			<span class="mx-1">·</span>
-			<a class="comments">
+			<span class="mx-2">·</span>
+			<a class="comments d-flex align-items-center">
 				<svg class="es-icon icon-sm">
 					<use href="#es-line-chat-alt" class="comment-icon"></use>
 				</svg>
-				<span class="comments-count"></span>
+				<span class="comments-count ml-2"></span>
 			</a>
 		</div>
 		<a class="form-follow text-sm">

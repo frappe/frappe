@@ -10,11 +10,14 @@ let search_text = ref("");
 let args = ref({});
 
 let docfield_df = computed(() => {
-	let fields = store.get_docfields.filter(df => {
+	let fields = store.get_docfields.filter((df) => {
 		if (in_list(frappe.model.layout_fields, df.fieldtype) || df.hidden) {
 			return false;
 		}
-		if (df.depends_on && !evaluate_depends_on_value(df.depends_on, store.form.selected_field)) {
+		if (
+			df.depends_on &&
+			!evaluate_depends_on_value(df.depends_on, store.form.selected_field)
+		) {
 			return false;
 		}
 

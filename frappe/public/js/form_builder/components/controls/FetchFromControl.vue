@@ -1,6 +1,7 @@
 <!-- Used as Fetch From Control -->
 <script setup>
 import { useStore } from "../../store";
+import { load_doctype_model } from "../../utils";
 import { ref, computed, watch } from "vue";
 import { computedAsync } from "@vueuse/core";
 
@@ -39,7 +40,7 @@ let field_df = computedAsync(async () => {
 		fieldname.value = "";
 	}
 
-	await frappe.model.with_doctype(doctype_name);
+	await load_doctype_model(doctype_name);
 
 	let fields = frappe.meta
 		.get_docfields(doctype_name, null, {
@@ -76,13 +77,20 @@ watch([() => doctype.value, () => fieldname.value], ([doctype_value, fieldname_v
 </script>
 
 <template>
-	<SelectControl :df="doctype_df" :value="doctype" :read_only="read_only" v-model="doctype" />
-	<SelectControl
-		v-if="doctype"
-		:df="field_df"
-		:read_only="read_only"
-		:value="fieldname"
-		v-model="fieldname"
-		:no_label="true"
-	/>
+	<div>
+		<SelectControl
+			:df="doctype_df"
+			:value="doctype"
+			:read_only="read_only"
+			v-model="doctype"
+		/>
+		<SelectControl
+			v-if="doctype"
+			:df="field_df"
+			:read_only="read_only"
+			:value="fieldname"
+			v-model="fieldname"
+			:no_label="true"
+		/>
+	</div>
 </template>
