@@ -128,9 +128,6 @@ jobs:
           cd ~/frappe-bench/apps/frappe
           git diff --exit-code yarn.lock
 
-      - name: Instrument Source Code
-        run: cd ~/frappe-bench/apps/frappe/ && npx nyc instrument -x 'frappe/public/dist/**' -x 'frappe/public/js/lib/**' -x '**/*.bundle.js' --compact=false --in-place frappe
-
       - name: Build
         run: cd ~/frappe-bench/ && bench build --apps frappe
 
@@ -141,27 +138,9 @@ jobs:
           bench --site test_site execute frappe.tests.ui_test_helpers.create_test_user
 
       - name: UI Tests
-        run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --with-coverage --headless --parallel --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
+        run: cd ~/frappe-bench/ && bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
-
-      - name: Stop server and wait for coverage file
-        run: |
-          ps -ef | grep "[f]rappe serve" | awk '{print $2}' | xargs kill -s SIGINT
-          sleep 5
-          ( tail -f /home/runner/frappe-bench/sites/coverage.xml & ) | grep -q "\/coverage"
-
-      - name: Upload JS coverage data
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-js-${{ matrix.container }}
-          path: /home/runner/frappe-bench/apps/frappe/.cypress-coverage/clover.xml
-
-      - name: Upload python coverage data
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-py-${{ matrix.container }}
-          path: /home/runner/frappe-bench/sites/coverage.xml
 
       - name: Show bench output
         if: ${{ always() }}
@@ -179,34 +158,3 @@ jobs:
     steps:
       - name: Pass skipped tests unconditionally
         run: "echo Skipped"
-
-  coverage:
-    name: Coverage Wrap Up
-    needs: [test, checkrun]
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone
-        uses: actions/checkout@v4
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-
-      - name: Upload python coverage data
-        uses: codecov/codecov-action@v3
-        with:
-          name: UIBackend
-          fail_ci_if_error: true
-          verbose: true
-          files: ./coverage-py-1/coverage.xml,./coverage-py-2/coverage.xml,./coverage-py-3/coverage.xml
-          flags: server-ui
-
-      - name: Upload JS coverage data
-        uses: codecov/codecov-action@v3
-        with:
-          name: Cypress
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
-          files: ./coverage-js-1/clover.xml,./coverage-js-2/clover.xml,./coverage-js-3/clover.xml
-          verbose: true
-          flags: ui-tests
