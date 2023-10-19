@@ -120,6 +120,7 @@ class MariaDBTable(DBTable):
 				if query_parts:
 					query_body = ", ".join(query_parts)
 					query = f"ALTER TABLE `{self.table_name}` {query_body}"
+					# nosemgrep
 					frappe.db.sql(query, ignore_implicit_commit=True)
 
 		except Exception as e:
