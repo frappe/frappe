@@ -1,7 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import datetime
 import itertools
 import json
 import random
@@ -14,7 +13,6 @@ from time import time
 from typing import Any
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
-from pypika.terms import Criterion, NullValue
 
 import frappe
 import frappe.defaults
@@ -151,6 +149,7 @@ class Database:
 		explain=False,
 		run=True,
 		pluck=False,
+		ignore_implicit_commit=False,
 	):
 		"""Execute a SQL query and fetch all rows.
 
@@ -163,6 +162,9 @@ class Database:
 		:param auto_commit: Commit after executing the query.
 		:param update: Update this dict to all rows (if returned `as_dict`).
 		:param run: Returns query without executing it if False.
+		:param pluck: Get the plucked field only.
+		:param ignore_implicit_commit: Ignore implicit commit warnings.
+		:param explain: Print `EXPLAIN` in error log.
 		Examples:
 
 		        # return customer names as dicts
@@ -194,7 +196,7 @@ class Database:
 			self.connect()
 
 		# in transaction validations
-		self.check_transaction_status(query)
+		self.check_transaction_status(query, ignore_implicit_commit)
 		self.clear_db_table_cache(query)
 
 		if auto_commit:
@@ -369,11 +371,11 @@ class Database:
 		self.commit()
 		self.sql(query, debug=debug)
 
-	def check_transaction_status(self, query):
+	def check_transaction_status(self, query: str, ignore_implicit_commit: bool = False):
 		"""Raises exception if more than 200,000 `INSERT`, `UPDATE` queries are
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
-		self.check_implicit_commit(query)
+		self.check_implicit_commit(query, ignore_implicit_commit)
 
 		if query and is_query_type(query, ("commit", "rollback")):
 			self.transaction_writes = 0
@@ -388,13 +390,14 @@ class Database:
 					msg += _("The changes have been reverted.") + "<br>"
 					raise frappe.TooManyWritesError(msg)
 
-	def check_implicit_commit(self, query):
+	def check_implicit_commit(self, query: str, ignore_implicit_commit: bool = False):
 		if (
-			self.transaction_writes
+			not ignore_implicit_commit
+			and self.transaction_writes
 			and query
 			and is_query_type(query, ("start", "alter", "drop", "create", "begin", "truncate"))
 		):
-			raise ImplicitCommitError("This statement can cause implicit commit")
+			raise ImplicitCommitError("This statement can cause implicit commit", query)
 
 	def fetch_as_dict(self) -> list[frappe._dict]:
 		"""Internal. Converts results to dict."""
