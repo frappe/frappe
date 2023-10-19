@@ -80,9 +80,12 @@ class ScheduledJobType(Document):
 		if not self.cron_format:
 			self.cron_format = CRON_MAP[self.frequency]
 
-		return croniter(
-			self.cron_format, get_datetime(self.last_execution or datetime(2000, 1, 1))
-		).get_next(datetime)
+		# If this is a cold start then last_execution will not be set.
+		# Creation is set as fallback because if very old fallback is set job might trigger
+		# immediately, even when it's meant to be daily.
+		# A dynamic fallback like current time might miss the scheduler interval and job will never start.
+		last_execution = get_datetime(self.last_execution or self.creation)
+		return croniter(self.cron_format, last_execution).get_next(datetime)
 
 	def execute(self):
 		self.scheduler_log = None
