@@ -107,13 +107,13 @@ class MariaDBTable(DBTable):
 			current_column = self.current_columns.get(col.fieldname.lower())
 			if col.not_nullable:
 				default_value = get_not_null_defaults(col.fieldtype)
-				if isinstance(default_value, str):
-					default_value = frappe.db.escape(default_value)
-				query = f"UPDATE `{self.table_name}` SET `{col.fieldname}`={default_value} WHERE `{col.fieldname}` IS NULL;"
 				try:
-					frappe.db.sql(query, ignore_implicit_commit=True)
+					table = frappe.qb.DocType(self.doctype)
+					frappe.qb.update(table).set(col.fieldname, default_value).where(
+						getattr(table, col.fieldname).isnull()
+					).run()
 				except Exception as e:
-					print(f"Failed to alter schema using query: {query}")
+					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
 					raise
 		try:
 			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
