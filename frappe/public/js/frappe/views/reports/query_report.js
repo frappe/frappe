@@ -1243,7 +1243,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				width: parseInt(column.width) || null,
 				editable: false,
 				compareValue: compareFn,
-				format: (value, row, column, data) => {
+				format: (value, row, column, data, for_filter = false) => {
+					if (for_filter && column?.fieldtype === "Link") {
+						return value || "";
+					}
 					if (this.report_settings.formatter) {
 						return this.report_settings.formatter(
 							value,
