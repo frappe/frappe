@@ -12,6 +12,7 @@ let component = computed(() => {
 	return props.field.df.fieldtype.replace(" ", "") + "Control";
 });
 
+
 function remove_field() {
 	if (store.is_customize_form && props.field.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
@@ -28,6 +29,7 @@ function move_fields_to_column() {
 	);
 	move_children_to_parent(props, "column", "field", current_section);
 }
+
 
 function duplicate_field() {
 	let duplicate_field = clone_field(props.field);
@@ -53,6 +55,82 @@ function duplicate_field() {
 	props.column.fields.splice(index + 1, 0, duplicate_field);
 	store.form.selected_field = duplicate_field.df;
 }
+function make_dialog (frm) {
+	frm.dialog = new frappe.ui.Dialog({
+		title: __("Select Fields"),
+		fields: [
+			{
+				fieldtype: "HTML",
+				fieldname: "filter_area",
+			},
+		],
+		primary_action: () => {
+			console.log("ku",store.filter_data["Sales Order"]);
+			let filters = frm.filter_group.get_filters()
+			let filter_format_data = {}
+			const parent_doctype = store.doctype
+			filters.forEach(filter => {
+				// Removes last element of the filter,
+				filter.pop()
+				let link_field = filter.shift()
+				let value = filter
+				// if link_field exists in filter_format_data push data to its value else create new
+				if (filter_format_data[link_field]) {
+					filter_format_data[link_field].push(value)
+				}
+				else {
+					filter_format_data = {
+						...filter_format_data,
+						[link_field]:[[value]]
+						}
+				}
+			})
+			store.update_filter_data(parent_doctype,filter_format_data)
+			frm.dialog.hide();
+		},
+		primary_action_label: __("Done"),
+	});
+};
+
+function make_filter_area (frm,doctype) {
+	frm.filter_group = new frappe.ui.FilterGroup({
+		parent: frm.dialog.get_field("filter_area").$wrapper,
+		doctype: doctype,
+		// on_change: () => {
+		// 	console.log(frm.filter_group.get_filters());
+		// },
+	});
+	// In filter_group add a filter which is ["Company", "name", "=", "FP",false]
+
+
+}
+
+function add_existing_filter(){
+	// add existing filter to filter_group
+
+}
+
+function edit_filters(){
+
+	let field_doctype = props.field.df.options;
+	const { frm } = store;
+
+	make_dialog(frm);
+	make_filter_area(frm,field_doctype);
+	frappe.model.with_doctype(field_doctype, () => {
+		frm.dialog.show();
+		frm.filter_group.add_filters_to_filter_group([
+			["Company", "name", "=", "FP",false],["Company", "name", "=", "FP"]
+		])
+		console.log(store.filter_data[frm.docname])
+		store.filter_data[frm.docname][field_doctype]?.forEach(filter => {
+			console.log(filter)
+		})
+
+	});
+	console.log(frm.filter_group.get_filters());
+}
+
 </script>
 
 <template>
@@ -88,11 +166,11 @@ function duplicate_field() {
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
 					<button
-						v-if="field.df.fieldtype == 'HTML'"
+						v-if="field.df.fieldtype == 'Link' "
 						class="btn btn-xs btn-icon"
-						@click="edit_html"
+						@click="edit_filters"
 					>
-						<div v-html="frappe.utils.icon('edit', 'sm')"></div>
+						<div v-html="frappe.utils.icon('filter', 'sm')"></div>
 					</button>
 					<button
 						v-if="column.fields.indexOf(field)"

@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { create_layout, scrub_field_names, load_doctype_model } from "./utils";
-import { computed, nextTick, ref } from "vue";
+import { computed, nextTick, ref, reactive } from "vue";
 import { useDebouncedRefHistory, onKeyDown } from "@vueuse/core";
 
 export const useStore = defineStore("form-builder-store", () => {
@@ -8,7 +8,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	let frm = ref(null);
 	let doc = ref(null);
 	let docfields = ref([]);
-	let custom_docfields = ref([]);
+	let custom_docfields = reactive([]);
 	let form = ref({
 		layout: {},
 		active_tab: null,
@@ -17,6 +17,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	let dirty = ref(false);
 	let read_only = ref(false);
 	let is_customize_form = ref(false);
+	let filter_data = reactive({});
 	let preview = ref(false);
 	let drag = ref(false);
 	let get_animation = "cubic-bezier(0.34, 1.56, 0.64, 1)";
@@ -285,6 +286,10 @@ export const useStore = defineStore("form-builder-store", () => {
 		return fields;
 	}
 
+	function update_filter_data(parent_doctype, field_data) {
+		filter_data[parent_doctype] = { ...filter_data[parent_doctype], ...field_data };
+	}
+
 	function is_df_updated(df, new_df) {
 		let df_copy = JSON.parse(JSON.stringify(df));
 		let new_df_copy = JSON.parse(JSON.stringify(new_df));
@@ -305,6 +310,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		dirty,
 		read_only,
 		is_customize_form,
+		filter_data,
 		preview,
 		drag,
 		get_animation,
@@ -320,5 +326,6 @@ export const useStore = defineStore("form-builder-store", () => {
 		get_updated_fields,
 		is_df_updated,
 		get_layout,
+		update_filter_data,
 	};
 });
