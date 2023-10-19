@@ -25,15 +25,14 @@ const UNMATCHED_LETTER_PENALTY = -1;
 
 /**
  * Does a fuzzy search to find pattern inside a string.
- * @param {*} pattern string				pattern to search for
- * @param {*} str string    				string which is being searched
- * @returns [boolean, number]   			a boolean which tells if pattern was
- *											found or not and a search score
+ * @param {*} pattern string				Pattern to search for
+ * @param {*} str string    				String being searched
+ * @returns [boolean, number, Array<number>]		A boolean whether the pattern was found or not, a search score,
+ * 							and an array with the positional match indices.
  */
 export function fuzzy_match(pattern, str) {
 	const recursion_count = 0;
 	const recursion_limit = 10;
-	const matches = [];
 	const max_matches = 256;
 
 	return fuzzy_match_recursive(
@@ -42,7 +41,7 @@ export function fuzzy_match(pattern, str) {
 		0 /* pattern_cur_index */,
 		0 /* str_curr_index */,
 		null /* src_matches */,
-		matches,
+		[] /* matches */,
 		max_matches,
 		0 /* next_match */,
 		recursion_count,
@@ -66,12 +65,12 @@ function fuzzy_match_recursive(
 
 	// Return if recursion limit is reached.
 	if (++recursion_count >= recursion_limit) {
-		return [false, out_score];
+		return [false, out_score, matches];
 	}
 
 	// Return if we reached ends of strings.
 	if (pattern_cur_index === pattern.length || str_curr_index === str.length) {
-		return [false, out_score];
+		return [false, out_score, matches];
 	}
 
 	// Recursion params
@@ -85,7 +84,7 @@ function fuzzy_match_recursive(
 		// Match found.
 		if (pattern[pattern_cur_index].toLowerCase() === str[str_curr_index].toLowerCase()) {
 			if (next_match >= max_matches) {
-				return [false, out_score];
+				return [false, out_score, matches];
 			}
 
 			if (first_match && src_matches) {
@@ -93,14 +92,13 @@ function fuzzy_match_recursive(
 				first_match = false;
 			}
 
-			const recursive_matches = [];
-			const [matched, recursive_score] = fuzzy_match_recursive(
+			const [matched, recursive_score, recursive_matches] = fuzzy_match_recursive(
 				pattern,
 				str,
 				pattern_cur_index,
 				str_curr_index + 1,
 				matches,
-				recursive_matches,
+				[] /* recursive_matches */,
 				max_matches,
 				next_match,
 				recursion_count,
@@ -170,13 +168,13 @@ function fuzzy_match_recursive(
 			// Recursive score is better than "this"
 			matches = [...best_recursive_matches];
 			out_score = best_recursive_score;
-			return [true, out_score];
+			return [true, out_score, matches];
 		} else if (matched) {
 			// "this" score is better than recursive
-			return [true, out_score];
+			return [true, out_score, matches];
 		} else {
-			return [false, out_score];
+			return [false, out_score, matches];
 		}
 	}
-	return [false, out_score];
+	return [false, out_score, matches];
 }
