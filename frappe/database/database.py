@@ -375,10 +375,11 @@ class Database:
 		"""Raises exception if more than 200,000 `INSERT`, `UPDATE` queries are
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
-		self.check_implicit_commit(query, ignore_implicit_commit)
 
-		if query and is_query_type(query, ("commit", "rollback")):
+		if query and is_query_type(query, ("start", "begin", "commit", "rollback")):
 			self.transaction_writes = 0
+
+		self.check_implicit_commit(query, ignore_implicit_commit)
 
 		if query[:6].lower() in ("update", "insert", "delete"):
 			self.transaction_writes += 1
