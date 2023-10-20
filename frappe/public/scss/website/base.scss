@@ -5,12 +5,21 @@ html {
 body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	font-size: 16px;
+	@include get_textstyle("base", "regular");
 	color: $body-color;
 	display: flex;
 	flex-direction: column;
 }
 
+kbd {
+	background-color: var(--control-bg);
+	font-family: var(--font-stack);
+	color: var(--text-light);
+	line-height: 1.2em;
+	letter-spacing: 0.02em;
+	height: 20px;
+	padding: 4px 8px;
+}
 img {
 	max-width: 100%;
 	height: auto;
@@ -86,6 +95,7 @@ h4 {
 
 	a {
 		color: $body-color;
+		text-decoration: underline !important;
 	}
 }
 
