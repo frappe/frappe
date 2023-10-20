@@ -9,7 +9,7 @@
 		let like_count = parseInt("{{ like_count or 0 }}");
 
 		let toggle_like_icon = function(active) {
-			active ? $('.like-icon').addClass('gray') : $('.like-icon').removeClass('gray');
+			active ? $('.like-icon').addClass('liked') : $('.like-icon').removeClass('liked');
 		}
 
 		$('.like-icon').append(frappe.utils.icon('es-solid-heart', 'md'))
