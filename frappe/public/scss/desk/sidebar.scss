@@ -183,7 +183,7 @@ body[data-route^="Module"] .main-menu {
 }
 
 .layout-side-section {
-	@include get_textstyle("base", "regular");
+	@include get_textstyle("sm", "regular");
 	padding-right: 30px;
 
 	&.hide-sidebar {
@@ -415,8 +415,7 @@ body[data-route^="Module"] .main-menu {
 	.data-pill {
 		background-color: unset;
 		box-shadow: none;
-		padding: 0;
-		padding-left: var(--padding-md);
+		padding:0 var(--padding-xs) 0 var(--padding-md);
 	}
 }
 
@@ -467,6 +466,11 @@ body[data-route^="Module"] .main-menu {
 	width: unset;
 	height: unset;
 	margin-right: 0;
+	padding: var(--padding-xs) !important;
+	border-radius: var(--border-radius-full);
+	&:hover {
+		background-color: var(--subtle-fg);
+	}
 	&:focus {
 		box-shadow: none;
 	}

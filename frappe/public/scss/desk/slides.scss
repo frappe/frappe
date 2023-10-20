@@ -72,11 +72,10 @@
 }
 
 .slides-wrapper {
-	width: 520px;
 	max-width: 520px;
 	background: var(--card-bg);
 	padding: var(--padding-xl);
-	border: 1px solid var(--gray-400);
+	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-md);
 
 	.slide-wrapper:focus {
