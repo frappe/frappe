@@ -241,7 +241,7 @@ class LoginManager:
 		user = User.find_by_credentials(user, pwd)
 
 		if not user:
-			self.fail("Invalid login credentials", user=_raw_user_name)
+			frappe.throw("Invalid login credentials")
 
 		# Current login flow uses cached credentials for authentication while checking OTP.
 		# Incase of OTP check, tracker for auth needs to be disabled(If not, it can remove tracker history as it is going to succeed anyway)
@@ -251,7 +251,7 @@ class LoginManager:
 
 		if not user.is_authenticated:
 			tracker and tracker.add_failure_attempt()
-			self.fail("Invalid login credentials", user=user.name)
+			frappe.throw("Invalid login credentials")
 		elif not (user.name == "Administrator" or user.enabled):
 			tracker and tracker.add_failure_attempt()
 			self.fail("Unable to log you in , Please contact bonatra support", user=user.name)
