@@ -279,31 +279,28 @@ frappe.ui.form.Form = class FrappeForm {
 			.fields.filter((field) => field.link_filters)
 			.map((field) => JSON.parse(field.link_filters));
 
-		fields_with_filters = this.formatData(fields_with_filters);
+		fields_with_filters = this.format_fields(fields_with_filters);
 
 		for (let link_field in fields_with_filters) {
 			const filters = fields_with_filters[link_field];
-			this.set_query(frappe.scrub(link_field), () => {
-				return filters;
-			});
+			this.set_query(frappe.scrub(link_field), () => filters);
 		}
 	}
 
-	formatData(data) {
+	format_fields(data) {
 		const formattedData = {};
 
-		for (const group of data) {
-			for (const condition of group) {
-				const [entity, field, operator, value, _] = condition;
-
-				if (!formattedData[entity]) {
-					formattedData[entity] = {
+		for (const d of data) {
+			for (const condition of d) {
+				const [doctype, field, operator, value, _] = condition;
+				if (!formattedData[doctype]) {
+					formattedData[doctype] = {
 						filters: {},
 					};
 				}
 
-				if (!formattedData[entity].filters[field]) {
-					formattedData[entity].filters[field] = [operator, value];
+				if (!formattedData[doctype].filters[field]) {
+					formattedData[doctype].filters[field] = [operator, value];
 				}
 			}
 		}

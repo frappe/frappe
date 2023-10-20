@@ -12,7 +12,6 @@ let component = computed(() => {
 	return props.field.df.fieldtype.replace(" ", "") + "Control";
 });
 
-let { filter_data } = store;
 
 function remove_field() {
 	if (store.is_customize_form && props.field.df.is_custom_field == 0) {
@@ -58,7 +57,7 @@ function duplicate_field() {
 }
 function make_dialog (frm) {
 	frm.dialog = new frappe.ui.Dialog({
-		title: __("Select Fields"),
+		title: __("Select Filters"),
 		fields: [
 			{
 				fieldtype: "HTML",
@@ -69,7 +68,7 @@ function make_dialog (frm) {
 			props.field.df.link_filters = JSON.stringify(frm.filter_group.get_filters());
 			frm.dialog.hide();
 		},
-		primary_action_label: __("Done")
+		primary_action_label: __("Apply")
 	});
 };
 
