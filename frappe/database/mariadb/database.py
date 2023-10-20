@@ -438,7 +438,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			db_table = MariaDBTable(doctype, meta)
 			db_table.validate()
 
-			self.commit()
+			self.commit(new_transaction=False)
 			db_table.sync()
 			self.begin()
 

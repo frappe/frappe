@@ -121,7 +121,7 @@ class MariaDBTable(DBTable):
 					query_body = ", ".join(query_parts)
 					query = f"ALTER TABLE `{self.table_name}` {query_body}"
 					# nosemgrep
-					frappe.db.sql(query, ignore_implicit_commit=True)
+					frappe.db.sql(query)
 
 		except Exception as e:
 			if query := locals().get("query"):  # this weirdness is to avoid potentially unbounded vars

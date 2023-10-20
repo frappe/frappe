@@ -95,6 +95,8 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
+		self.in_transaction = False
+
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
@@ -149,7 +151,6 @@ class Database:
 		explain=False,
 		run=True,
 		pluck=False,
-		ignore_implicit_commit=False,
 	):
 		"""Execute a SQL query and fetch all rows.
 
@@ -163,7 +164,6 @@ class Database:
 		:param update: Update this dict to all rows (if returned `as_dict`).
 		:param run: Returns query without executing it if False.
 		:param pluck: Get the plucked field only.
-		:param ignore_implicit_commit: Ignore implicit commit warnings.
 		:param explain: Print `EXPLAIN` in error log.
 		Examples:
 
@@ -196,7 +196,7 @@ class Database:
 			self.connect()
 
 		# in transaction validations
-		self.check_transaction_status(query, ignore_implicit_commit)
+		self.check_transaction_status(query)
 		self.clear_db_table_cache(query)
 
 		if auto_commit:
@@ -371,15 +371,15 @@ class Database:
 		self.commit()
 		self.sql(query, debug=debug)
 
-	def check_transaction_status(self, query: str, ignore_implicit_commit: bool = False):
+	def check_transaction_status(self, query: str):
 		"""Raises exception if more than 200,000 `INSERT`, `UPDATE` queries are
 		executed in one transaction. This is to ensure that writes are always flushed otherwise this
 		could cause the system to hang."""
 
-		if query and is_query_type(query, ("start", "begin", "commit", "rollback")):
+		if query and is_query_type(query, ("commit", "rollback")):
 			self.transaction_writes = 0
 
-		self.check_implicit_commit(query, ignore_implicit_commit)
+		self.check_implicit_commit(query)
 
 		if query[:6].lower() in ("update", "insert", "delete"):
 			self.transaction_writes += 1
@@ -391,9 +391,9 @@ class Database:
 					msg += _("The changes have been reverted.") + "<br>"
 					raise frappe.TooManyWritesError(msg)
 
-	def check_implicit_commit(self, query: str, ignore_implicit_commit: bool = False):
+	def check_implicit_commit(self, query: str):
 		if (
-			not ignore_implicit_commit
+			self.in_transaction
 			and self.transaction_writes
 			and query
 			and is_query_type(query, ("start", "alter", "drop", "create", "begin", "truncate"))
@@ -964,16 +964,24 @@ class Database:
 		read_only = read_only or frappe.flags.read_only
 		mode = "READ ONLY" if read_only else ""
 		self.sql(f"START TRANSACTION {mode}")
+		self.in_transaction = True
 
-	def commit(self):
+	def commit(self, new_transaction: bool = True):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
+		if not self.in_transaction:
+			self.logger.warn("Not in transaction, ignoring commit")
+			return
+
 		self.before_rollback.reset()
 		self.after_rollback.reset()
 
 		self.before_commit.run()
 
 		self.sql("commit")
-		self.begin()  # explicitly start a new transaction
+		self.in_transaction = False
+
+		if new_transaction:
+			self.begin()  # explicitly start a new transaction
 
 		self.after_commit.run()
 
