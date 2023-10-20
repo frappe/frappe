@@ -109,13 +109,13 @@ class TestAutoAssign(FrappeTestCase):
 	def test_assingment_on_guest_submissions(self):
 		"""Sometimes documents are inserted as guest, check if assignment rules run on them. Use case: Web Forms"""
 		with self.set_user("Guest"):
-			doc = _make_test_record(ignore_permissions=True, public=1)
+			doc = make_note({"public": 1}, ignore_permissions=True)
 
 		# check assignment to *anyone*
 		self.assertTrue(
 			frappe.db.get_value(
 				"ToDo",
-				{"reference_type": TEST_DOCTYPE, "reference_name": doc.name, "status": "Open"},
+				{"reference_type": "Note", "reference_name": doc.name, "status": "Open"},
 				"allocated_to",
 			),
 		)
@@ -389,28 +389,15 @@ def get_assignment_rule(days, assign=None):
 	return assignment_rule
 
 
-<<<<<<< HEAD
-def make_note(values=None):
+def make_note(values=None, *, ignore_permissions=False):
 	note = frappe.get_doc(dict(doctype="Note", title=random_string(10), content=random_string(20)))
-=======
-def _make_test_record(
-	*,
-	ignore_permissions=False,
-	**kwargs,
-):
-	doc = frappe.new_doc(TEST_DOCTYPE)
->>>>>>> 08b92858a3 (fix: ignore duplicate perm check on assign hooks (#22832))
 
 	if values:
 		note.update(values)
 
-<<<<<<< HEAD
-	note.insert()
+	note.insert(ignore_permissions=ignore_permissions)
 
 	return note
-=======
-	return doc.insert(ignore_permissions=ignore_permissions)
->>>>>>> 08b92858a3 (fix: ignore duplicate perm check on assign hooks (#22832))
 
 
 def create_test_doctype(doctype: str):
