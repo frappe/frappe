@@ -107,6 +107,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// 2 column layout
 		this.setup_std_layout();
+		this.setup_filters();
 
 		// client script must be called after "setup" - there are no fields_dict attached to the frm otherwise
 		this.script_manager = new frappe.ui.form.ScriptManager({
@@ -270,6 +271,24 @@ frappe.ui.form.Form = class FrappeForm {
 		this.states = new frappe.ui.form.States({
 			frm: this,
 		});
+	}
+
+	setup_filters() {
+		let field_with_filters = frappe
+			.get_meta(this.doctype)
+			.fields.filter((field) => field.filters)
+			.map((field) => JSON.parse(field.filters));
+		console.log(field_with_filters);
+
+		// 		this.set_query("Company", () => {
+		// 			return {
+		// 				filters: {
+		// 					"is_group": ["=", "1"],
+		// 				},
+		// 			};
+		// 		})
+		// 	// field_with_filters.forEach(filter => {
+		// 	// })
 	}
 
 	watch_model_updates() {

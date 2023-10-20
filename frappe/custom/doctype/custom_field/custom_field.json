@@ -15,6 +15,7 @@
   "fieldname",
   "insert_after",
   "length",
+  "filters",
   "column_break_6",
   "fieldtype",
   "precision",
@@ -444,13 +445,19 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "Filters"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-06-08 19:05:51.737234",
+ "modified": "2023-10-20 15:55:31.633950",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

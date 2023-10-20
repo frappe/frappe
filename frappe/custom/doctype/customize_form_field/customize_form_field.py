@@ -70,6 +70,7 @@ class CustomizeFormField(Document):
 			"Text Editor",
 			"Time",
 		]
+		filter: DF.LongText | None
 		hidden: DF.Check
 		hide_border: DF.Check
 		hide_days: DF.Check

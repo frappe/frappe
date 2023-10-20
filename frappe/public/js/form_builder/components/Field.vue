@@ -12,6 +12,7 @@ let component = computed(() => {
 	return props.field.df.fieldtype.replace(" ", "") + "Control";
 });
 
+let { filter_data } = store;
 
 function remove_field() {
 	if (store.is_customize_form && props.field.df.is_custom_field == 0) {
@@ -65,30 +66,10 @@ function make_dialog (frm) {
 			},
 		],
 		primary_action: () => {
-			console.log("ku",store.filter_data["Sales Order"]);
-			let filters = frm.filter_group.get_filters()
-			let filter_format_data = {}
-			const parent_doctype = store.doctype
-			filters.forEach(filter => {
-				// Removes last element of the filter,
-				filter.pop()
-				let link_field = filter.shift()
-				let value = filter
-				// if link_field exists in filter_format_data push data to its value else create new
-				if (filter_format_data[link_field]) {
-					filter_format_data[link_field].push(value)
-				}
-				else {
-					filter_format_data = {
-						...filter_format_data,
-						[link_field]:[[value]]
-						}
-				}
-			})
-			store.update_filter_data(parent_doctype,filter_format_data)
+			props.field.df.filters = JSON.stringify(frm.filter_group.get_filters());
 			frm.dialog.hide();
 		},
-		primary_action_label: __("Done"),
+		primary_action_label: __("Done")
 	});
 };
 
@@ -96,18 +77,15 @@ function make_filter_area (frm,doctype) {
 	frm.filter_group = new frappe.ui.FilterGroup({
 		parent: frm.dialog.get_field("filter_area").$wrapper,
 		doctype: doctype,
-		// on_change: () => {
-		// 	console.log(frm.filter_group.get_filters());
-		// },
+		on_change: () => {},
 	});
-	// In filter_group add a filter which is ["Company", "name", "=", "FP",false]
-
-
 }
 
-function add_existing_filter(){
-	// add existing filter to filter_group
-
+function add_existing_filter(df){
+	if (df.filters){
+		let filters = JSON.parse(df.filters);
+		return filters;
+	}
 }
 
 function edit_filters(){
@@ -119,16 +97,12 @@ function edit_filters(){
 	make_filter_area(frm,field_doctype);
 	frappe.model.with_doctype(field_doctype, () => {
 		frm.dialog.show();
-		frm.filter_group.add_filters_to_filter_group([
-			["Company", "name", "=", "FP",false],["Company", "name", "=", "FP"]
-		])
-		console.log(store.filter_data[frm.docname])
-		store.filter_data[frm.docname][field_doctype]?.forEach(filter => {
-			console.log(filter)
-		})
+		let filters = add_existing_filter(props.field.df)
+		if (filters){
+			frm.filter_group.add_filters_to_filter_group(filters);
+		}
 
 	});
-	console.log(frm.filter_group.get_filters());
 }
 
 </script>

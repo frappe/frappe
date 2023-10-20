@@ -8,7 +8,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	let frm = ref(null);
 	let doc = ref(null);
 	let docfields = ref([]);
-	let custom_docfields = reactive([]);
+	let custom_docfields = ref([]);
 	let form = ref({
 		layout: {},
 		active_tab: null,
@@ -17,7 +17,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	let dirty = ref(false);
 	let read_only = ref(false);
 	let is_customize_form = ref(false);
-	let filter_data = reactive({});
+	let filter_data = ref({});
 	let preview = ref(false);
 	let drag = ref(false);
 	let get_animation = "cubic-bezier(0.34, 1.56, 0.64, 1)";
@@ -287,7 +287,7 @@ export const useStore = defineStore("form-builder-store", () => {
 	}
 
 	function update_filter_data(parent_doctype, field_data) {
-		filter_data[parent_doctype] = { ...filter_data[parent_doctype], ...field_data };
+		filter_data = { ...filter_data, ...field_data };
 	}
 
 	function is_df_updated(df, new_df) {
