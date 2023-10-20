@@ -92,7 +92,8 @@ class AssignmentRule(Document):
 					assignment_rule=self.name,
 					notify=True,
 					date=doc.get(self.due_date_based_on) if self.due_date_based_on else None,
-				)
+				),
+				ignore_permissions=doc.flags.ignore_permissions,
 			)
 
 			# set for reference in round robin

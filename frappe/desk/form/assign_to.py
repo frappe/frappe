@@ -39,7 +39,7 @@ def get(args=None):
 
 
 @frappe.whitelist()
-def add(args=None):
+def add(args=None, *, ignore_permissions=False):
 	"""add in someone's to do list
 	args = {
 	        "assign_to": [],
@@ -63,8 +63,9 @@ def add(args=None):
 			"status": "Open",
 			"allocated_to": assign_to,
 		}
-		parent_doc = frappe.get_doc(args["doctype"], args["name"])
-		parent_doc.check_permission()
+		if not ignore_permissions:
+			parent_doc = frappe.get_doc(args["doctype"], args["name"])
+			parent_doc.check_permission()
 
 		if frappe.get_all("ToDo", filters=filters):
 			users_with_duplicate_todo.append(assign_to)
