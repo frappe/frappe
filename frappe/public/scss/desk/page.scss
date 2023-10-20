@@ -58,9 +58,13 @@
 		height: var(--btn-height);
 		margin-left: var(--margin-sm, 8px);
 		border-radius: var(--border-radius);
-		display: flex;
-		align-items: center;
-		gap: 8px;
+		line-height: 1;
+		padding: 4px 8px;
+		&, & .hidden-xs {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+		}
 	}
 	.btn:not(.icon-btn) {
 		padding: 4px 8px;
