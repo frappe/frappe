@@ -4,6 +4,9 @@ body {
 	@include media-breakpoint-up(sm) {
 		background-color: var(--bg-light-gray);
 	}
+	.web-footer {
+		display: none;
+	}
 }
 
 .for-forgot,
@@ -18,17 +21,9 @@ body {
 .for-login-with-email-link,
 .for-signup,
 .for-email-login {
-	padding: max(10vh, 60px) 0;
-
-	@include media-breakpoint-up(sm) {
-		.page-card {
-			padding-top: 45px;
-			padding-bottom: 45px;
-			background-color: #fff;
-		}
-	}
-
 	.page-card {
+		padding: 45px 10px;
+		background-color: #fff;
 		max-width: 400px;
 		margin: 0 auto;
 		border-radius: var(--border-radius-md);
@@ -100,13 +95,6 @@ body {
 
 				input {
 					padding-left: 35px;
-					&:autofill, &:-webkit-autofill {
-						-webkit-background-clip: text;
-    					-webkit-text-fill-color: var(--text-color);
-						-webkit-box-shadow: 0 0 0 30px var(--gray-200) inset !important;
-						outline: 1px solid var(--gray-400);
-						transition: background-color 5000s ease-in-out 0s;
-					  }
 				}
 
 				.toggle-password {
@@ -172,26 +160,9 @@ body {
 		}
 	}
 
-	.page-card-head {
-		margin: 0 auto;
-		text-align: center;
-		font-size: var(--text-xl);
-		font-weight: 600;
-		margin-bottom: 2.5rem;
-
-		img {
-			max-height: 42px;
-		}
-
-		h4 {
-			margin-top: 1rem;
-			font-size: var(--text-xl);
-			color: var(--text-color);
-		}
-	}
-
 	.sign-up-message {
-		margin-top: 2rem;
+		margin-top: 1rem;
+		margin-bottom: 0;
 		color: var(--text-light);
 		@include get_textstyle("base", "regular");
 		a {
@@ -222,5 +193,25 @@ body {
 		100% {
 			-webkit-transform: translateX(0);
 		}
+	}
+}
+
+.page-card-head {
+	padding: max(5vh, 30px) 0 14px 0px;
+	margin: 0 auto;
+	text-align: center;
+	font-size: var(--text-xl);
+	font-weight: 600;
+
+	img {
+		max-height: 42px;
+	}
+
+	h4 {
+		margin-top: 1rem;
+		font-size: var(--text-xl);
+		font-weight: var(--weight-semibold);
+		letter-spacing: 0.01em;
+		color: var(--text-color);
 	}
 }

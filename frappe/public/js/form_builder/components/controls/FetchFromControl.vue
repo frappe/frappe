@@ -77,13 +77,20 @@ watch([() => doctype.value, () => fieldname.value], ([doctype_value, fieldname_v
 </script>
 
 <template>
-	<SelectControl :df="doctype_df" :value="doctype" :read_only="read_only" v-model="doctype" />
-	<SelectControl
-		v-if="doctype"
-		:df="field_df"
-		:read_only="read_only"
-		:value="fieldname"
-		v-model="fieldname"
-		:no_label="true"
-	/>
+	<div>
+		<SelectControl
+			:df="doctype_df"
+			:value="doctype"
+			:read_only="read_only"
+			v-model="doctype"
+		/>
+		<SelectControl
+			v-if="doctype"
+			:df="field_df"
+			:read_only="read_only"
+			:value="fieldname"
+			v-model="fieldname"
+			:no_label="true"
+		/>
+	</div>
 </template>

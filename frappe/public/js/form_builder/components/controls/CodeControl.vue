@@ -7,43 +7,47 @@ let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
 let code = ref(null);
-let code_control = ref(null);
 let update_control = ref(true);
+
+let code_control = computed(() => {
+	if (!code.value) return;
+	code.value.innerHTML = "";
+
+	return frappe.ui.form.make_control({
+		parent: code.value,
+		df: {
+			...props.df,
+			fieldtype: "Code",
+			hidden: 0,
+			read_only: props.read_only,
+			change: () => {
+				if (update_control.value) {
+					content.value = code_control.value.get_value();
+				}
+				update_control.value = true;
+			},
+		},
+		value: content.value,
+		disabled: Boolean(slots.label) || props.read_only,
+		render_input: true,
+		only_input: Boolean(slots.label),
+	});
+});
 
 let content = computed({
 	get: () => props.modelValue,
-	set: (value) => emit('update:modelValue', value)
+	set: (value) => emit("update:modelValue", value),
 });
 
 onMounted(() => {
-	if (code.value) {
-		code_control.value = frappe.ui.form.make_control({
-			parent: code.value,
-			df: {
-				...props.df,
-				fieldtype: "Code",
-				hidden: 0,
-				read_only: props.read_only,
-				change: () => {
-					if (update_control.value) {
-						content.value = code_control.value.get_value();
-					}
-					update_control.value = true;
-				}
-			},
-			value: content.value,
-			disabled: Boolean(slots.label) || props.read_only,
-			render_input: true,
-			only_input: Boolean(slots.label),
-		});
-	}
+	if (code.value) code_control.value;
 });
 
 watch(
 	() => content.value,
 	(value) => {
 		update_control.value = false;
-		code_control.value.set_value(value);
+		code_control.value?.set_value(value);
 	}
 );
 
@@ -53,7 +57,7 @@ watch(
 		if (code_control.value) {
 			code_control.value.ace_editor_target.css("max-height", value);
 		}
-	},
+	}
 );
 </script>
 

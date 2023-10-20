@@ -5,7 +5,7 @@ context("Dashboard Chart", () => {
 	});
 
 	it("Check filter populate for child table doctype", () => {
-		cy.visit("/app/dashboard-chart/new-dashboard-chart-1");
+		cy.new_form("Dashboard Chart");
 		cy.get('[data-fieldname="parent_document_type"]').should("have.css", "display", "none");
 
 		cy.get_field("document_type", "Link");
