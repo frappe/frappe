@@ -78,7 +78,7 @@ class AssignmentRule(Document):
 
 	def do_assignment(self, doc):
 		# clear existing assignment, to reassign
-		assign_to.clear(doc.get("doctype"), doc.get("name"))
+		assign_to.clear(doc.get("doctype"), doc.get("name"), ignore_permissions=True)
 
 		user = self.get_user(doc)
 
@@ -93,7 +93,7 @@ class AssignmentRule(Document):
 					notify=True,
 					date=doc.get(self.due_date_based_on) if self.due_date_based_on else None,
 				),
-				ignore_permissions=doc.flags.ignore_permissions,
+				ignore_permissions=True,
 			)
 
 			# set for reference in round robin
@@ -105,12 +105,14 @@ class AssignmentRule(Document):
 	def clear_assignment(self, doc):
 		"""Clear assignments"""
 		if self.safe_eval("unassign_condition", doc):
-			return assign_to.clear(doc.get("doctype"), doc.get("name"))
+			return assign_to.clear(doc.get("doctype"), doc.get("name"), ignore_permissions=True)
 
 	def close_assignments(self, doc):
 		"""Close assignments"""
 		if self.safe_eval("close_condition", doc):
-			return assign_to.close_all_assignments(doc.get("doctype"), doc.get("name"))
+			return assign_to.close_all_assignments(
+				doc.get("doctype"), doc.get("name"), ignore_permissions=True
+			)
 
 	def get_user(self, doc):
 		"""

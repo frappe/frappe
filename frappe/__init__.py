@@ -1713,6 +1713,7 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 		if (a in fnargs) or varkw_exist:
 			newargs[a] = kwargs.get(a)
 
+	# WARNING: This behaviour is now  part of business logic in places, never remove.
 	newargs.pop("ignore_permissions", None)
 	newargs.pop("flags", None)
 
