@@ -15,7 +15,7 @@
   "fieldname",
   "insert_after",
   "length",
-  "filters",
+  "link_filters",
   "column_break_6",
   "fieldtype",
   "precision",
@@ -447,17 +447,17 @@
    "label": "Sort Options"
   },
   {
-   "fieldname": "filters",
+   "fieldname": "link_filters",
    "fieldtype": "Long Text",
    "hidden": 1,
-   "label": "Filters"
+   "label": "Link Filters"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-20 15:55:31.633950",
+ "modified": "2023-10-20 17:16:50.945315",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

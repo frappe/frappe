@@ -73,7 +73,6 @@ class DocField(Document):
 			"Text Editor",
 			"Time",
 		]
-		filters: DF.LongText | None
 		hidden: DF.Check
 		hide_border: DF.Check
 		hide_days: DF.Check
@@ -88,6 +87,7 @@ class DocField(Document):
 		is_virtual: DF.Check
 		label: DF.Data | None
 		length: DF.Int
+		link_filters: DF.LongText | None
 		mandatory_depends_on: DF.Code | None
 		max_height: DF.Data | None
 		no_copy: DF.Check

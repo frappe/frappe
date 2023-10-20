@@ -66,7 +66,7 @@ function make_dialog (frm) {
 			},
 		],
 		primary_action: () => {
-			props.field.df.filters = JSON.stringify(frm.filter_group.get_filters());
+			props.field.df.link_filters = JSON.stringify(frm.filter_group.get_filters());
 			frm.dialog.hide();
 		},
 		primary_action_label: __("Done")
@@ -82,8 +82,8 @@ function make_filter_area (frm,doctype) {
 }
 
 function add_existing_filter(df){
-	if (df.filters){
-		let filters = JSON.parse(df.filters);
+	if (df.link_filters){
+		let filters = JSON.parse(df.link_filters);
 		return filters;
 	}
 }

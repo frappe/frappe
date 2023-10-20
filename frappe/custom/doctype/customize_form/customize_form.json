@@ -11,6 +11,7 @@
   "properties",
   "label",
   "search_fields",
+  "link_filters",
   "column_break_5",
   "istable",
   "is_calendar_and_gantt",
@@ -385,6 +386,12 @@
    "fieldname": "form_tab",
    "fieldtype": "Tab Break",
    "label": "Form"
+  },
+  {
+   "fieldname": "link_filters",
+   "fieldtype": "Long Text",
+   "hidden": 1,
+   "label": "Link Filters"
   }
  ],
  "hide_toolbar": 1,
@@ -393,7 +400,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-08-29 12:31:55.808848",
+ "modified": "2023-10-20 17:14:39.113734",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

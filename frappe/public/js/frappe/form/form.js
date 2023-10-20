@@ -274,21 +274,41 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	setup_filters() {
-		let field_with_filters = frappe
+		let fields_with_filters = frappe
 			.get_meta(this.doctype)
-			.fields.filter((field) => field.filters)
-			.map((field) => JSON.parse(field.filters));
-		console.log(field_with_filters);
+			.fields.filter((field) => field.link_filters)
+			.map((field) => JSON.parse(field.link_filters));
 
-		// 		this.set_query("Company", () => {
-		// 			return {
-		// 				filters: {
-		// 					"is_group": ["=", "1"],
-		// 				},
-		// 			};
-		// 		})
-		// 	// field_with_filters.forEach(filter => {
-		// 	// })
+		fields_with_filters = this.formatData(fields_with_filters);
+
+		for (let link_field in fields_with_filters) {
+			const filters = fields_with_filters[link_field];
+			this.set_query(frappe.scrub(link_field), () => {
+				return filters;
+			});
+		}
+	}
+
+	formatData(data) {
+		const formattedData = {};
+
+		for (const group of data) {
+			for (const condition of group) {
+				const [entity, field, operator, value, _] = condition;
+
+				if (!formattedData[entity]) {
+					formattedData[entity] = {
+						filters: {},
+					};
+				}
+
+				if (!formattedData[entity].filters[field]) {
+					formattedData[entity].filters[field] = [operator, value];
+				}
+			}
+		}
+
+		return formattedData;
 	}
 
 	watch_model_updates() {

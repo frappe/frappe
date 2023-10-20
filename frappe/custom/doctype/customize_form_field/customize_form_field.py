@@ -70,7 +70,6 @@ class CustomizeFormField(Document):
 			"Text Editor",
 			"Time",
 		]
-		filter: DF.LongText | None
 		hidden: DF.Check
 		hide_border: DF.Check
 		hide_days: DF.Check
@@ -87,6 +86,7 @@ class CustomizeFormField(Document):
 		is_virtual: DF.Check
 		label: DF.Data | None
 		length: DF.Int
+		link_filters: DF.LongText | None
 		mandatory_depends_on: DF.Code | None
 		no_copy: DF.Check
 		non_negative: DF.Check

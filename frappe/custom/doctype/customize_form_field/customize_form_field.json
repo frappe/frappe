@@ -24,7 +24,7 @@
   "no_copy",
   "allow_in_quick_entry",
   "translatable",
-  "filter",
+  "link_filters",
   "column_break_7",
   "default",
   "precision",
@@ -474,17 +474,17 @@
    "label": "Sort Options"
   },
   {
-   "fieldname": "filter",
+   "fieldname": "link_filters",
    "fieldtype": "Long Text",
    "hidden": 1,
-   "label": "Filter"
+   "label": "Link Filters"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-20 15:57:36.187325",
+ "modified": "2023-10-20 17:15:01.663917",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",

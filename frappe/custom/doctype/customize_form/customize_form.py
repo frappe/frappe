@@ -54,6 +54,7 @@ class CustomizeForm(Document):
 		is_calendar_and_gantt: DF.Check
 		istable: DF.Check
 		label: DF.Data | None
+		link_filters: DF.LongText | None
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
