@@ -31,7 +31,7 @@
 								<textarea class="form-control" name="comment" rows=5 ></textarea>
 								<div class="text-muted small mt-1 mb-4">{{ _("Ctrl+Enter to add comment") }}</div>
 							</div>
-							<button class="btn btn-sm small" id="submit-comment">{{ _("Comment") }}</button>
+							<button class="btn btn-sm btn-primary small" id="submit-comment">{{ _("Comment") }}</button>
 						</fieldset>
 					</form>
 				</div>
@@ -44,7 +44,7 @@
 	<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
 		<div class="add-comment mb-5">
 			<div class="timeline-dot"></div>
-			<button class="btn btn-sm small add-comment-button">{{ _("Add a comment") }}</button>
+			<button class="btn btn-sm btn-primary small add-comment-button">{{ _("Add a comment") }}</button>
 		</div>
 		<div class="comment-list">
 			{% for comment in comment_list %}
@@ -208,14 +208,13 @@
 	border-radius: 50%;
 	position: absolute;
 	top: 8px;
-	left: 22px;
+	left: 23.5px;
 	background-color: var(--fg-color);
-	border: 1px solid var(--dark-border-color);
 }
 
 .timeline-dot::before {
 	content: ' ';
-	background: var(--gray-600);
+	background: var(--gray-700);
 	position: absolute;
 	top: 5px;
 	left: 5px;
@@ -237,7 +236,7 @@
 .new-comment {
 	display: flex;
 	padding: var(--padding-lg);
-	box-shadow: var(--card-shadow);
+	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-md);
 	background-color: var(--fg-color);
 }
@@ -280,11 +279,11 @@
 .comment-avatar {
 	position: absolute;
 	top: 10px;
-	left: -17px;
+	left: -13.75px;
 }
 
 .comment-content {
-	box-shadow: var(--card-shadow);
+	border: 1px solid var(--border-color);
 	background-color: var(--fg-color);
 	border-radius: var(--border-radius-md);
 	padding: var(--padding-md);

@@ -52,10 +52,14 @@
 {{ include_style('login.bundle.css') }}
 {% endblock %}
 
-{% macro logo_section() %}
+{% macro logo_section(title=null) %}
 <div class="page-card-head">
 	<img class="app-logo" src="{{ logo }}">
+	{% if title %}
+	<h4>{{ _(title)}}</h4>
+	{% else %}
 	<h4>{{ _('Login to {0}').format(app_name or _("Frappe")) }}</h4>
+	{% endif %}
 </div>
 {% endmacro %}
 
@@ -70,8 +74,8 @@
 		</div>
 	</noscript>
 	<section class='for-login'>
+		{{ logo_section() }}
 		<div class="login-content page-card">
-			{{ logo_section() }}
 			<form class="form-signin form-login" role="form">
 				{%- if social_login or login_with_email_link -%}
 				<div class="page-card-body">
@@ -120,8 +124,8 @@
 
 	{%- if social_login -%}
 	<section class='for-email-login'>
+		{{ logo_section() }}
 		<div class="login-content page-card">
-			{{ logo_section() }}
 			<form class="form-signin form-login" role="form">
 			{{ email_login_body() }}
 			</form>
@@ -135,8 +139,8 @@
 	</section>
 	{%- endif -%}
 	<section class='for-signup {{ "signup-disabled" if disable_signup else "" }}'>
+		{{ logo_section(_('Create a {0} Account').format(app_name or _("Frappe"))) }}
 		<div class="login-content page-card">
-			{{ logo_section() }}
 			{%- if not disable_signup -%}
 			{{ signup_form_template }}
 			{%- else -%}
@@ -151,11 +155,9 @@
 	</section>
 
 	<section class='for-forgot'>
+		{{ logo_section('Forgot Password') }}
 		<div class="login-content page-card">
 			<form class="form-signin form-forgot hide" role="form">
-				<div class="page-card-head">
-					<h4>{{ _('Forgot Password') }}</h4>
-				</div>
 				<div class="page-card-body">
 					<div class="email-field">
 						<input type="email" id="forgot_email" class="form-control"
@@ -185,11 +187,9 @@
 	</section>
 
 	<section class='for-login-with-email-link'>
+			{{ logo_section('Login With Email Link') }}
 		<div class="login-content page-card">
 			<form class="form-signin form-login-with-email-link hide" role="form">
-				<div class="page-card-head">
-					<h4>{{ _('Login With Email Link') }}</h4>
-				</div>
 				<div class="page-card-body">
 					<div class="email-field">
 						<input type="email" id="login_with_email_link_email" class="form-control"
