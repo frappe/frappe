@@ -117,14 +117,19 @@
 	}
 
 	.blog-feedback {
-		display: flex;
-
+		display: inline-flex;
 		.like-icon {
 			cursor: pointer;
 
-			&.gray use {
-				fill: var(--gray-600);
-				stroke: none;
+			use {
+				stroke: var(--gray-800);
+				--icon-stroke: transparent;
+			}
+		}
+		.like-icon.liked {
+			use {
+				stroke: var(--gray-800);
+				--icon-stroke: var(--red-500);
 			}
 		}
 	}
