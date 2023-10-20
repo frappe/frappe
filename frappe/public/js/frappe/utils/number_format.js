@@ -200,7 +200,9 @@ function get_number_format_info(format) {
 
 function _round(num, precision, rounding_method) {
 	rounding_method =
-		rounding_method || frappe.boot.sysdefaults?.rounding_method || "Banker's Rounding (legacy)";
+		rounding_method ||
+		frappe.boot.sysdefaults?.rounding_method ||
+		"Banker's Rounding (legacy)";
 
 	let is_negative = num < 0 ? true : false;
 
