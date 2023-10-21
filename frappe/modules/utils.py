@@ -3,9 +3,9 @@
 """
 	Utilities for using modules
 """
-from collections import defaultdict
 import json
 import os
+from collections import defaultdict
 from textwrap import dedent, indent
 from typing import TYPE_CHECKING, Union
 

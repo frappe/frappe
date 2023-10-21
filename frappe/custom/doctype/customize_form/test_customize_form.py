@@ -434,3 +434,23 @@ class TestCustomizeForm(FrappeTestCase):
 		)
 
 		self.assertEqual(field_order_property, [df.fieldname for df in frappe.get_meta("ToDo").fields])
+
+	def test_save_customization_new_field_with_module(self):
+		d = self.get_customize_form("Event")
+		d.append(
+			"fields",
+			{
+				"label": "Test Add Custom Field Via Customize Form",
+				"fieldtype": "Data",
+				"is_custom_field": 1,
+				"module": "Core",
+			},
+		)
+		d.run_method("save_customization")
+
+		custom_field_name = "Event-custom_test_add_custom_field_via_customize_form"
+		self.assertEqual(
+			frappe.db.get_value("Custom Field", custom_field_name, "module"),
+			"Core",
+		)
+		frappe.delete_doc("Custom Field", custom_field_name)
