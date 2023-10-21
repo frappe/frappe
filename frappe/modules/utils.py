@@ -3,6 +3,7 @@
 """
 	Utilities for using modules
 """
+from collections import defaultdict
 import json
 import os
 from textwrap import dedent, indent
@@ -52,6 +53,18 @@ def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
 	)
 	return frappe.get_module(module_name)
 
+def export_customization(module: str, doctype: str, custom: dict):
+	folder_path = os.path.join(get_module_path(module), "custom")
+	if not os.path.exists(folder_path):
+		os.makedirs(folder_path)
+
+	path = os.path.join(folder_path, scrub(doctype) + ".json")
+	with open(path, "w") as f:
+		f.write(frappe.as_json(custom))
+
+	frappe.msgprint(_("Customizations for <b>{0}</b> exported to:<br>{1}").format(doctype, path))
+
+	return path
 
 @frappe.whitelist()
 def export_customizations(
@@ -85,15 +98,23 @@ def export_customizations(
 		export_customizations(module, d.options, sync_on_migrate, with_permissions)
 
 	if custom["custom_fields"] or custom["property_setters"] or custom["custom_perms"]:
-		folder_path = os.path.join(get_module_path(module), "custom")
-		if not os.path.exists(folder_path):
-			os.makedirs(folder_path)
+		modules_to_export = defaultdict(list)
+		for field in custom.get("custom_fields", []):
+			if field.module:
+				modules_to_export[field.module].append(field)
 
-		path = os.path.join(folder_path, scrub(doctype) + ".json")
-		with open(path, "w") as f:
-			f.write(frappe.as_json(custom))
+		path = export_customization(module, doctype, custom)
 
-		frappe.msgprint(_("Customizations for <b>{0}</b> exported to:<br>{1}").format(doctype, path))
+		for module, fields in modules_to_export.items():
+			custom = {
+				"custom_fields": fields,
+				"property_setters": [],
+				"custom_perms": [],
+				"doctype": doctype,
+				"sync_on_migrate": sync_on_migrate,
+			}
+			export_customization(module, doctype, custom)
+
 		return path
 
 

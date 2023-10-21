@@ -10,6 +10,7 @@
   "is_system_generated",
   "label_and_type",
   "label",
+  "module",
   "fieldtype",
   "fieldname",
   "non_negative",
@@ -80,6 +81,12 @@
    "oldfieldtype": "Data",
    "search_index": 1
   },
+  {
+    "fieldname": "module",
+    "fieldtype": "Link",
+    "label": "Module (for export)",
+    "options": "Module Def"
+   },
   {
    "default": "Data",
    "fieldname": "fieldtype",

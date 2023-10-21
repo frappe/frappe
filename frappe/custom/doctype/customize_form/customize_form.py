@@ -716,6 +716,7 @@ doctype_properties = {
 docfield_properties = {
 	"idx": "Int",
 	"label": "Data",
+	"module": "Link",
 	"fieldtype": "Select",
 	"options": "Text",
 	"sort_options": "Check",
