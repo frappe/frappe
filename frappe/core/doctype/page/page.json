@@ -102,14 +102,16 @@
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2022-08-03 12:20:54.219236",
+ "modified": "2023-10-22 22:41:25.568952",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Page",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
+   "delete": 1,
    "email": 1,
    "print": 1,
    "read": 1,
