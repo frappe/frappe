@@ -130,9 +130,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 						folded = frm.layout.folded;
 					}
 
-					if (
-						is_docfield_mandatory(doc, df) && is_null(doc[docfield.fieldname])
-					) {
+					if (is_docfield_mandatory(doc, df) && is_null(doc[docfield.fieldname])) {
 						has_errors = true;
 						error_fields.push(__(df.label));
 						// scroll to field
