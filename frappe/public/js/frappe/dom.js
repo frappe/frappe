@@ -32,7 +32,26 @@ frappe.dom = {
 		// execute the script globally
 		document.getElementsByTagName("head")[0].appendChild(el);
 	},
+
+	_remove_script_and_style_cache: {},
+
 	remove_script_and_style: function (txt) {
+		// do not parse if html tag not found (for performance and cache memory reduction)
+		if (!txt || !txt.includes("<")) {
+			return txt;
+		}
+
+		// cache already processed strings since DOMParser.parseFromString is relatively slow
+		let cached = this._remove_script_and_style_cache[txt];
+		if (cached) {
+			// true means no evil tags, return string as is undisturbed
+			if (cached === true) {
+				return txt;
+			} else {
+				return cached;
+			}
+		}
+
 		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(txt, "text/html");
@@ -55,9 +74,11 @@ frappe.dom = {
 		}
 
 		if (found) {
+			this._remove_script_and_style_cache[txt] = body.innerHTML;
 			return body.innerHTML;
 		} else {
 			// don't disturb
+			this._remove_script_and_style_cache[txt] = true;
 			return txt;
 		}
 	},
