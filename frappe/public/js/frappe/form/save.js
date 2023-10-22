@@ -131,11 +131,10 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 					}
 
 					if (
-						is_docfield_mandatory(doc, df) &&
-						!frappe.model.has_value(doc.doctype, doc.name, df.fieldname)
+						is_docfield_mandatory(doc, df) && is_null(doc[docfield.fieldname])
 					) {
 						has_errors = true;
-						error_fields[error_fields.length] = __(df.label);
+						error_fields.push(__(df.label));
 						// scroll to field
 						if (!frm.scroll_set) {
 							scroll_to(doc.parentfield || df.fieldname);
