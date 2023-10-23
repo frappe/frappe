@@ -278,34 +278,34 @@ frappe.ui.form.Form = class FrappeForm {
 			.get_meta(this.doctype)
 			.fields.filter((field) => field.link_filters)
 			.map((field) => JSON.parse(field.link_filters));
-
-		fields_with_filters = this.format_fields(fields_with_filters);
+		if (fields_with_filters.length === 0) return;
+		fields_with_filters = this.parse_filters(fields_with_filters);
 
 		for (let link_field in fields_with_filters) {
 			const filters = fields_with_filters[link_field];
-			this.set_query(frappe.scrub(link_field), () => filters);
+			this.set_query(link_field, () => filters);
 		}
 	}
 
-	format_fields(data) {
-		const formattedData = {};
+	parse_filters(data) {
+		const parsed_data = {};
 
 		for (const d of data) {
 			for (const condition of d) {
 				const [doctype, field, operator, value, _] = condition;
-				if (!formattedData[doctype]) {
-					formattedData[doctype] = {
+				if (!parsed_data[doctype]) {
+					parsed_data[doctype] = {
 						filters: {},
 					};
 				}
 
-				if (!formattedData[doctype].filters[field]) {
-					formattedData[doctype].filters[field] = [operator, value];
+				if (!parsed_data[doctype].filters[field]) {
+					parsed_data[doctype].filters[field] = [operator, value];
 				}
 			}
 		}
 
-		return formattedData;
+		return parsed_data;
 	}
 
 	watch_model_updates() {

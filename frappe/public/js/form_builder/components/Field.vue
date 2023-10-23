@@ -65,7 +65,14 @@ function make_dialog (frm) {
 			},
 		],
 		primary_action: () => {
-			props.field.df.link_filters = JSON.stringify(frm.filter_group.get_filters());
+			let filters = frm.filter_group.get_filters().map(filter =>{
+				// last element is a boolean which hides the filter hence not required to store in meta
+				filter.pop()
+				filter[0] = props.field.df.fieldname
+				return filter
+			});
+
+			props.field.df.link_filters = JSON.stringify(filters);
 			frm.dialog.hide();
 		},
 		primary_action_label: __("Apply")
@@ -83,6 +90,9 @@ function make_filter_area (frm,doctype) {
 function add_existing_filter(df){
 	if (df.link_filters){
 		let filters = JSON.parse(df.link_filters);
+		filters.map(filter => {
+			filter[0] = frappe.unscrub(filter[0])
+		})
 		return filters;
 	}
 }
