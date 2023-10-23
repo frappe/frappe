@@ -33,26 +33,21 @@ frappe.dom = {
 		document.getElementsByTagName("head")[0].appendChild(el);
 	},
 
-	_remove_script_and_style_cache: {},
-
 	remove_script_and_style: function (txt) {
-		// do not parse if html tag not found (for performance and cache memory reduction)
-		if (!txt || !txt.includes("<")) {
+		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
+		const unsafe_tags = ["link"];
+
+		if (!this.unsafe_tags_regex) {
+			const evil_and_unsafe_tags = evil_tags.concat(unsafe_tags);
+			const regex_str = evil_and_unsafe_tags.map(t => `<([\\s]*)${t}`).join("|");
+			this.unsafe_tags_regex = new RegExp(regex_str, "im");
+		}
+
+		// if no unsafe tags are present return as is to prevent unncessary expensive parsing
+		if (!txt || !this.unsafe_tags_regex.test(txt)) {
 			return txt;
 		}
 
-		// cache already processed strings since DOMParser.parseFromString is relatively slow
-		let cached = this._remove_script_and_style_cache[txt];
-		if (cached) {
-			// true means no evil tags, return string as is undisturbed
-			if (cached === true) {
-				return txt;
-			} else {
-				return cached;
-			}
-		}
-
-		const evil_tags = ["script", "style", "noscript", "title", "meta", "base", "head"];
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(txt, "text/html");
 		const body = doc.body;
@@ -74,11 +69,9 @@ frappe.dom = {
 		}
 
 		if (found) {
-			this._remove_script_and_style_cache[txt] = body.innerHTML;
 			return body.innerHTML;
 		} else {
 			// don't disturb
-			this._remove_script_and_style_cache[txt] = true;
 			return txt;
 		}
 	},
