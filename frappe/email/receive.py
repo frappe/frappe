@@ -8,6 +8,7 @@ import imaplib
 import json
 import poplib
 import re
+import ssl
 import time
 from email.header import decode_header
 
@@ -92,12 +93,24 @@ class EmailServer:
 		"""Connect to IMAP"""
 		try:
 			if cint(self.settings.use_ssl):
+<<<<<<< HEAD
 				self.imap = Timed_IMAP4_SSL(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 			else:
 				self.imap = Timed_IMAP4(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+=======
+				self.imap = imaplib.IMAP4_SSL(
+					self.settings.host,
+					self.settings.incoming_port,
+					timeout=frappe.conf.pop_timeout,
+					ssl_context=ssl.create_default_context(),
+				)
+			else:
+				self.imap = imaplib.IMAP4(
+					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
+>>>>>>> a930872fd6 (fix: pass default SSL context for imap/poplib (#22873))
 				)
 
 				if cint(self.settings.use_starttls):
@@ -126,12 +139,24 @@ class EmailServer:
 		# this method return pop connection
 		try:
 			if cint(self.settings.use_ssl):
+<<<<<<< HEAD
 				self.pop = Timed_POP3_SSL(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 			else:
 				self.pop = Timed_POP3(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+=======
+				self.pop = poplib.POP3_SSL(
+					self.settings.host,
+					self.settings.incoming_port,
+					timeout=frappe.conf.pop_timeout,
+					context=ssl.create_default_context(),
+				)
+			else:
+				self.pop = poplib.POP3(
+					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
+>>>>>>> a930872fd6 (fix: pass default SSL context for imap/poplib (#22873))
 				)
 
 			if self.settings.use_oauth:
