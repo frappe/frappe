@@ -479,6 +479,13 @@ Cypress.Commands.add("click_modal_primary_button", (btn_name) => {
 		.click({ force: true });
 });
 
+Cypress.Commands.add("click_modal_custom_button", (btn_name) => {
+	cy.wait(400);
+	cy.get(".modal-footer > .custom-actions > .btn-secondary")
+		.contains(btn_name)
+		.click({ force: true });
+});
+
 Cypress.Commands.add("click_sidebar_button", (btn_name) => {
 	cy.get(".list-group-by-fields .list-link > a").contains(btn_name).click({ force: true });
 });
