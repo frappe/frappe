@@ -201,7 +201,7 @@ export const useStore = defineStore("form-builder-store", () => {
 			let fields = get_updated_fields();
 			let has_error = validate_fields(fields, doc.value.istable);
 			if (has_error) return has_error;
-			doc.value.fields = fields;
+			frm.value.set_value("fields", fields);
 			return fields;
 		} catch (e) {
 			console.error(e);
