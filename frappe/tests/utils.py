@@ -117,22 +117,26 @@ class FrappeTestCase(unittest.TestCase):
 
 	@contextmanager
 	def set_user(self, user: str):
-		old_user = frappe.session.user
-		frappe.set_user(user)
-		yield
-		frappe.set_user(old_user)
+		try:
+			old_user = frappe.session.user
+			frappe.set_user(user)
+			yield
+		finally:
+			frappe.set_user(old_user)
 
 	@contextmanager
 	def switch_site(self, site: str):
 		"""Switch connection to different site.
 		Note: Drops current site connection completely."""
 
-		old_site = frappe.local.site
-		frappe.init(site, force=True)
-		frappe.connect()
-		yield
-		frappe.init(old_site, force=True)
-		frappe.connect()
+		try:
+			old_site = frappe.local.site
+			frappe.init(site, force=True)
+			frappe.connect()
+			yield
+		finally:
+			frappe.init(old_site, force=True)
+			frappe.connect()
 
 	@contextmanager
 	def freeze_time(self, time_to_freeze, *args, **kwargs):
