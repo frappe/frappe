@@ -16,7 +16,7 @@ context("Submittable doctype", () => {
 
 		// Add a new entry via Quick Entry Form.
 		cy.fill_field("title", "Test");
-		cy.click_modal_primary_button("Save");
+		cy.click_modal_primary_button("Save as draft");
 		cy.click_modal_primary_button("Submit");
 
 		// Find the new document and cancel it.
@@ -42,7 +42,7 @@ context("Submittable doctype", () => {
 		// Dismiss Quick Entry and create a new document via full form.
 		cy.click_modal_custom_button("Edit Full Form");
 		cy.fill_field("title", "Test");
-		cy.click_doc_primary_button("Save");
+		cy.click_doc_primary_button("Save as draft");
 		cy.click_doc_primary_button("Submit");
 
 		cy.visit("/app/custom-submittable-doctype");

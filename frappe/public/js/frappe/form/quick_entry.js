@@ -153,7 +153,10 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	register_primary_action() {
 		var me = this;
-		this.dialog.set_primary_action(__("Save"), function () {
+		const button_label = frappe.model.is_submittable(me.doctype)
+			? __("Save as draft")
+			: __("Save");
+		this.dialog.set_primary_action(button_label, function () {
 			if (me.dialog.working) {
 				return;
 			}
