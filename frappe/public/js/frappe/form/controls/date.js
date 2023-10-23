@@ -87,7 +87,9 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 	}
 
 	get_input_value() {
-		return this.datepicker.formatDate(this.datepicker_options.dateFormat, this.datepicker.selectedDates[0], Date);
+		return this.datepicker.selectedDates[0]
+			? this.datepicker.formatDate(this.datepicker_options.dateFormat, this.datepicker.selectedDates[0], Date)
+			: undefined;
 	}
 
 	set_datepicker() {
