@@ -39,7 +39,7 @@ frappe.dom = {
 
 		if (!this.unsafe_tags_regex) {
 			const evil_and_unsafe_tags = evil_tags.concat(unsafe_tags);
-			const regex_str = evil_and_unsafe_tags.map(t => `<([\\s]*)${t}`).join("|");
+			const regex_str = evil_and_unsafe_tags.map((t) => `<([\\s]*)${t}`).join("|");
 			this.unsafe_tags_regex = new RegExp(regex_str, "im");
 		}
 
