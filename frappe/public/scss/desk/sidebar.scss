@@ -161,6 +161,10 @@ body[data-route^="Module"] .main-menu {
 	font-size: var(--text-md);
 	padding-right: 30px;
 
+	&.hide-sidebar {
+		display: none;
+	}
+
 	> .divider {
 		display: none !important;
 	}
