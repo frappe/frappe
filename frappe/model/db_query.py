@@ -54,7 +54,8 @@ STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 FN_PARAMS_PATTERN = re.compile(r".*?\((.*)\).*")
 SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
-QUOTE_STR_PATTERN = re.compile(r"'.*?'[ ,]*")
+# pattern to replace fn params other than column param
+FN_PARAMS_COLUMN_PATTERN = re.compile(r"[\s,]*(('.*?')|([+-]?(\d*[.])?\d+))[\s,]*")
 
 class DatabaseQuery:
 	def __init__(self, doctype, user=None):
@@ -648,7 +649,7 @@ class DatabaseQuery:
 			else:
 				# field: 'count(`tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
-				column = QUOTE_STR_PATTERN.sub("", field).split("(")[-1].split(")", 1)[0]
+				column = FN_PARAMS_COLUMN_PATTERN.sub("", field).split("(")[-1].split(")", 1)[0]
 				column = strip_alias(column).replace("`", "")
 
 			if column == "*" and not in_function("*", field):
