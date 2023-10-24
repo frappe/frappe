@@ -13,7 +13,7 @@ from PIL import Image
 
 import frappe
 from frappe import _, safe_decode
-from frappe.utils import cstr, encode, get_files_path, random_string, strip
+from frappe.utils import cint, cstr, encode, get_files_path, random_string, strip
 from frappe.utils.file_manager import safe_b64decode
 from frappe.utils.image import optimize_image
 
@@ -337,6 +337,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 					"attached_to_name": doc.name,
 					"attached_to_doctype": doc.doctype,
 					"attached_to_field": df.fieldname,
+					"is_private": cint(value.startswith("/private")),
 				},
 			)
 			return
@@ -353,6 +354,51 @@ def attach_files_to_document(doc: "Document", event) -> None:
 			file.insert(ignore_permissions=True)
 		except Exception:
 			doc.log_error("Error Attaching File")
+
+
+def relink_files(doc, fieldname, temp_doc_name):
+	if not temp_doc_name:
+		return
+	from frappe.utils.data import add_to_date, now_datetime
+
+	"""
+	Relink files attached to incorrect document name to the new document name
+	by check if file with temp name exists that was created in last 60 minutes
+	"""
+	mislinked_file = frappe.db.exists(
+		"File",
+		{
+			"file_url": doc.get(fieldname),
+			"attached_to_name": temp_doc_name,
+			"attached_to_doctype": doc.doctype,
+			"attached_to_field": fieldname,
+			"creation": (
+				"between",
+				[now_datetime() - add_to_date(date=now_datetime(), minutes=-60), now_datetime()],
+			),
+		},
+	)
+	"""If file exists, attach it to the new docname"""
+	if mislinked_file:
+		frappe.db.set_value(
+			"File",
+			mislinked_file,
+			field={
+				"attached_to_name": doc.name,
+			},
+		)
+		return
+
+
+def relink_mismatched_files(doc: "Document") -> None:
+	if not doc.get("__temporary_name", None):
+		return
+	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
+	for df in attach_fields:
+		if doc.get(df.fieldname):
+			relink_files(doc, df.fieldname, doc.__temporary_name)
+	# delete temporary name after relinking is done
+	doc.delete_key("__temporary_name")
 
 
 def decode_file_content(content: bytes) -> bytes:

@@ -8,6 +8,7 @@ from werkzeug.exceptions import NotFound
 
 import frappe
 from frappe import _, is_whitelisted, msgprint
+from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.desk.form.document_follow import follow_document
 from frappe.integrations.doctype.webhook import run_webhooks
@@ -284,6 +285,7 @@ class Document(BaseDocument):
 		# flag to prevent creation of event update log for create and update both
 		# during document creation
 		self.flags.update_log_for_doc_creation = True
+		relink_mismatched_files(self)
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
