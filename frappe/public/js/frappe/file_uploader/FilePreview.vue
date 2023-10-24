@@ -60,7 +60,7 @@ import ProgressRing from "./ProgressRing.vue";
 let emit = defineEmits(["toggle_optimize", "toggle_private", "toggle_image_cropper", "remove"]);
 
 // props
-let props = defineProps({
+const props = defineProps({
 	file: Object,
 });
 

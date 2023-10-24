@@ -9,13 +9,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
+  stable-release:
     name: Release
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        version: ["13", "14"]
+        version: ["13", "14", "15"]
 
     steps:
       - uses: octokit/request-action@v2.x

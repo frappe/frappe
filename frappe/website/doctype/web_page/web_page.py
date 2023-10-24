@@ -8,6 +8,7 @@ from jinja2.exceptions import TemplateSyntaxError
 import frappe
 from frappe import _
 from frappe.utils import get_datetime, now, quoted, strip_html
+from frappe.utils.caching import redis_cache
 from frappe.utils.jinja import render_template
 from frappe.utils.safe_exec import safe_exec
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
@@ -24,17 +25,51 @@ H_TAG_PATTERN = re.compile("<h.>")
 
 
 class WebPage(WebsiteGenerator):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.website.doctype.web_page_block.web_page_block import WebPageBlock
+
+		breadcrumbs: DF.Code | None
+		content_type: DF.Literal["Rich Text", "Markdown", "HTML", "Page Builder", "Slideshow"]
+		context_script: DF.Code | None
+		css: DF.Code | None
+		dynamic_route: DF.Check
+		dynamic_template: DF.Check
+		enable_comments: DF.Check
+		end_date: DF.Datetime | None
+		full_width: DF.Check
+		header: DF.HTMLEditor | None
+		idx: DF.Int
+		insert_style: DF.Check
+		javascript: DF.Code | None
+		main_section: DF.TextEditor | None
+		main_section_html: DF.HTMLEditor | None
+		main_section_md: DF.MarkdownEditor | None
+		meta_description: DF.SmallText | None
+		meta_image: DF.AttachImage | None
+		meta_title: DF.Data | None
+		module: DF.Link | None
+		page_blocks: DF.Table[WebPageBlock]
+		published: DF.Check
+		route: DF.Data | None
+		show_sidebar: DF.Check
+		show_title: DF.Check
+		slideshow: DF.Link | None
+		start_date: DF.Datetime | None
+		text_align: DF.Literal["Left", "Center", "Right"]
+		title: DF.Data
+		website_sidebar: DF.Link | None
+	# end: auto-generated types
 	def validate(self):
 		self.validate_dates()
 		self.set_route()
 		if not self.dynamic_route:
 			self.route = quoted(self.route)
-
-	def on_update(self):
-		super().on_update()
-
-	def on_trash(self):
-		super().on_trash()
 
 	def get_context(self, context):
 		context.main_section = get_html_content_based_on_type(self, "main_section", self.content_type)
@@ -247,3 +282,17 @@ def extract_script_and_style_tags(html):
 		style.extract()
 
 	return str(soup), scripts, styles
+
+
+@redis_cache(ttl=60 * 60)
+def get_dynamic_web_pages() -> dict[str, str]:
+	pages = frappe.get_all(
+		"Web Page",
+		fields=["name", "route", "modified"],
+		filters=dict(published=1, dynamic_route=1),
+		update={"doctype": "Web Page"},
+	)
+	get_web_pages_with_dynamic_routes = frappe.get_hooks("get_web_pages_with_dynamic_routes") or []
+	for method in get_web_pages_with_dynamic_routes:
+		pages.extend(frappe.get_attr(method)())
+	return pages

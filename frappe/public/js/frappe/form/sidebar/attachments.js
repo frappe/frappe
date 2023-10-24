@@ -1,9 +1,12 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-
 frappe.ui.form.Attachments = class Attachments {
 	constructor(opts) {
 		$.extend(this, opts);
+
+		this.attachments_page_length = 10; // show n attachments initially
+		this.show_all_attachments = false;
+
 		this.make();
 	}
 	make() {
@@ -11,7 +14,17 @@ frappe.ui.form.Attachments = class Attachments {
 		this.parent.find(".add-attachment-btn").click(function () {
 			me.new_attachment();
 		});
-		this.add_attachment_wrapper = this.parent.find(".add-attachment-btn");
+
+		this.parent.find(".explore-link").click(() => {
+			if (!this.frm.attachments.get_attachments()?.length) return;
+			frappe.open_in_new_tab = true;
+			frappe.set_route("List", "File", {
+				attached_to_doctype: this.frm.doctype,
+				attached_to_name: this.frm.docname,
+			});
+		});
+
+		this.add_attachment_wrapper = this.parent.find(".attachments-actions");
 		this.attachments_label = this.parent.find(".attachments-label");
 	}
 	max_reached(raise_exception = false) {
@@ -31,8 +44,6 @@ frappe.ui.form.Attachments = class Attachments {
 		return false;
 	}
 	refresh() {
-		var me = this;
-
 		if (this.frm.doc.__islocal) {
 			this.parent.toggle(false);
 			return;
@@ -41,13 +52,51 @@ frappe.ui.form.Attachments = class Attachments {
 		this.parent.find(".attachment-row").remove();
 
 		var max_reached = this.max_reached();
-		this.add_attachment_wrapper.toggle(!max_reached);
+		this.add_attachment_wrapper.find(".add-attachment-btn").toggle(!max_reached);
 
 		// add attachment objects
 		var attachments = this.get_attachments();
-		if (attachments.length) {
+		this.render_attachments(attachments);
+		this.setup_show_all_button(attachments);
+	}
+
+	setup_show_all_button(attachments) {
+		// show button if there is more to show and user has not clicked on "Show All"
+		let is_slicable = attachments.length > this.attachments_page_length;
+		let show = !this.show_all_attachments && is_slicable;
+
+		let show_all_btn = this.parent.find(".show-all-btn");
+		if (!show) {
+			show_all_btn.addClass("hidden");
+			return;
+		}
+
+		show_all_btn.removeClass("hidden");
+		show_all_btn.click(() => {
+			show_all_btn.addClass("hidden");
+			this.show_all_attachments = true;
+			this.refresh();
+		});
+	}
+
+	get_attachments() {
+		return this.frm.get_docinfo().attachments || [];
+	}
+
+	render_attachments(attachments) {
+		var me = this;
+		let attachments_to_render = attachments;
+
+		let is_slicable = attachments.length > this.attachments_page_length;
+		if (!this.show_all_attachments && is_slicable) {
+			// render last n attachments as they are at the top
+			let start = attachments.length - this.attachments_page_length;
+			attachments_to_render = attachments.slice(start, attachments.length);
+		}
+
+		if (attachments_to_render.length) {
 			let exists = {};
-			let unique_attachments = attachments.filter((attachment) => {
+			let unique_attachments = attachments_to_render.filter((attachment) => {
 				return Object.prototype.hasOwnProperty.call(exists, attachment.file_name)
 					? false
 					: (exists[attachment.file_name] = true);
@@ -55,13 +104,14 @@ frappe.ui.form.Attachments = class Attachments {
 			unique_attachments.forEach((attachment) => {
 				me.add_attachment(attachment);
 			});
-		} else {
+		}
+
+		if (!attachments.length) {
+			// If no attachments in totality
 			this.attachments_label.removeClass("has-attachments");
 		}
 	}
-	get_attachments() {
-		return this.frm.get_docinfo().attachments || [];
-	}
+
 	add_attachment(attachment) {
 		var file_name = attachment.file_name;
 		var file_url = this.get_file_url(attachment);
@@ -73,7 +123,9 @@ frappe.ui.form.Attachments = class Attachments {
 		var me = this;
 
 		let file_label = `
-			<a href="${file_url}" target="_blank" title="${file_name}" class="ellipsis" style="max-width: calc(100% - 43px);">
+			<a href="${file_url}" target="_blank" title="${frappe.utils.escape_html(file_name)}"
+				class="ellipsis" style="max-width: calc(100% - 43px);"
+			>
 				<span>${file_name}</span>
 			</a>`;
 
@@ -96,13 +148,14 @@ frappe.ui.form.Attachments = class Attachments {
 		}
 
 		const icon = `<a href="/app/file/${fileid}">
-				${frappe.utils.icon(attachment.is_private ? "lock" : "unlock", "sm ml-0")}
+				${frappe.utils.icon(attachment.is_private ? "es-line-lock" : "es-line-unlock", "sm ml-0")}
 			</a>`;
 
 		$(`<li class="attachment-row">`)
 			.append(frappe.get_data_pill(file_label, fileid, remove_action, icon))
-			.insertAfter(this.attachments_label.addClass("has-attachments"));
+			.insertAfter(this.add_attachment_wrapper);
 	}
+
 	get_file_url(attachment) {
 		var file_url = attachment.file_url;
 		if (!file_url) {

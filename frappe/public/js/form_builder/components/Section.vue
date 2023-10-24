@@ -6,7 +6,7 @@ import { ref } from "vue";
 import { useStore } from "../store";
 import { section_boilerplate, move_children_to_parent, confirm_dialog } from "../utils";
 
-let props = defineProps(["tab", "section"]);
+const props = defineProps(["tab", "section"]);
 let store = useStore();
 
 let hovered = ref(false);
@@ -160,8 +160,6 @@ function move_sections_to_tab() {
 						backgroundColor: section.columns.length ? null : 'var(--field-placeholder-color)'
 					}"
 					v-model="section.columns"
-					filter="[data-has-std-field='true']"
-					:prevent-on-filter="false"
 					group="columns"
 					item-key="id"
 					:animation="200"
@@ -172,8 +170,7 @@ function move_sections_to_tab() {
 						<Column
 							:section="section"
 							:column="element"
-							:data-is-custom="element.df.is_custom_field"
-							:data-has-std-field="store.has_standard_field(element)"
+							:data-is-user-generated="store.is_user_generated_field(element)"
 						/>
 					</template>
 				</draggable>

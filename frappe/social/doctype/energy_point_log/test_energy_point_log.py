@@ -26,13 +26,13 @@ class TestEnergyPointLog(FrappeTestCase):
 		settings.save()
 
 	def setUp(self):
-		frappe.cache().delete_value("energy_point_rule_map")
+		frappe.cache.delete_value("energy_point_rule_map")
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.delete("Energy Point Log")
 		frappe.db.delete("Energy Point Rule")
-		frappe.cache().delete_value("energy_point_rule_map")
+		frappe.cache.delete_value("energy_point_rule_map")
 
 	def test_user_energy_point(self):
 		frappe.set_user("test@example.com")
@@ -322,8 +322,9 @@ class TestEnergyPointLog(FrappeTestCase):
 		# do not update energy points for disabled user
 		self.assertEqual(points_after_closing_todo, energy_point_of_user)
 
-		user.enabled = 1
-		user.save()
+		with self.set_user("Administrator"):
+			user.enabled = 1
+			user.save()
 
 		created_todo.save()
 		points_after_re_saving_todo = get_points("test@example.com")

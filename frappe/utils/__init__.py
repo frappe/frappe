@@ -4,12 +4,12 @@
 import functools
 import hashlib
 import io
-import json
 import os
-import re
 import sys
 import traceback
+from collections import deque
 from collections.abc import (
+	Callable,
 	Container,
 	Generator,
 	Iterable,
@@ -19,17 +19,13 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-from gzip import GzipFile
-from typing import Any, Literal
-from urllib.parse import quote, urlparse
+from typing import TypedDict
 
-from redis.exceptions import ConnectionError
 from werkzeug.test import Client
-
-import frappe
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
+from frappe.utils.deprecations import deprecated
 from frappe.utils.html_utils import sanitize_html
 
 EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
@@ -41,6 +37,10 @@ PHONE_NUMBER_PATTERN = re.compile(r"([0-9\ \+\_\-\,\.\*\#\(\)]){1,20}$")
 PERSON_NAME_PATTERN = re.compile(r"^[\w][\w\'\-]*( \w[\w\'\-]*)*$")
 WHITESPACE_PATTERN = re.compile(r"[\t\n\r]")
 MULTI_EMAIL_STRING_PATTERN = re.compile(r'[,\n](?=(?:[^"]|"[^"]*")*$)')
+EMAIL_MATCH_PATTERN = re.compile(
+	r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+	re.IGNORECASE,
+)
 
 
 def get_fullname(user=None):
@@ -175,21 +175,10 @@ def validate_email_address(email_str, throw=False):
 
 		else:
 			email_id = extract_email_id(e)
-			match = (
-				re.match(
-					r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
-					email_id.lower(),
-				)
-				if email_id
-				else None
-			)
+			match = EMAIL_MATCH_PATTERN.match(email_id) if email_id else None
 
 			if not match:
 				_valid = False
-			else:
-				matched = match.group(0)
-				if match:
-					match = matched == email_id.lower()
 
 		if not _valid:
 			if throw:
@@ -200,7 +189,7 @@ def validate_email_address(email_str, throw=False):
 				)
 			return None
 		else:
-			return matched
+			return email_id
 
 	out = []
 	for e in email_str.split(","):
@@ -349,6 +338,7 @@ def _get_traceback_sanitizer():
 			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
 			# redact dictionary keys
 			(["_secret", dict, lambda *a, **kw: False], dict_printer),
+			(["_secret", frappe._dict, lambda *a, **kw: False], dict_printer),
 		],
 	)
 
@@ -361,10 +351,7 @@ def dict_to_str(args: dict[str, Any], sep: str = "&") -> str:
 	"""
 	Converts a dictionary to URL
 	"""
-	t = []
-	for k in list(args):
-		t.append(str(k) + "=" + quote(str(args[k] or "")))
-	return sep.join(t)
+	return sep.join(f"{str(k)}=" + quote(str(args[k] or "")) for k in list(args))
 
 
 def list_to_str(seq, sep=", "):
@@ -508,7 +495,9 @@ def get_files_path(*path, **kwargs):
 
 
 def get_bench_path():
-	return os.path.realpath(os.path.join(os.path.dirname(frappe.__file__), "..", "..", ".."))
+	return os.environ.get("FRAPPE_BENCH_ROOT") or os.path.realpath(
+		os.path.join(os.path.dirname(frappe.__file__), "..", "..", "..")
+	)
 
 
 def get_bench_id():
@@ -528,7 +517,10 @@ def get_request_site_address(full_address=False):
 
 
 def get_site_url(site):
-	return f"http://{site}:{frappe.get_conf(site).webserver_port}"
+	conf = frappe.get_conf(site)
+	if conf.host_name:
+		return conf.host_name
+	return f"http://{site}:{conf.webserver_port}"
 
 
 def encode_dict(d, encoding="utf-8"):
@@ -654,6 +646,11 @@ def is_markdown(text):
 		return not NON_MD_HTML_PATTERN.search(text)
 
 
+def is_a_property(x) -> bool:
+	"""Get properties (@property, @cached_property) in a controller class"""
+	return isinstance(x, (property, functools.cached_property))
+
+
 def get_sites(sites_path=None):
 	if not sites_path:
 		sites_path = getattr(frappe.local, "sites_path", None) or "."
@@ -755,15 +752,14 @@ def get_installed_apps_info():
 	out = []
 	from frappe.utils.change_log import get_versions
 
-	for app, version_details in get_versions().items():
-		out.append(
-			{
-				"app_name": app,
-				"version": version_details.get("branch_version") or version_details.get("version"),
-				"branch": version_details.get("branch"),
-			}
-		)
-
+	out.extend(
+		{
+			"app_name": app,
+			"version": version_details.get("branch_version") or version_details.get("version"),
+			"branch": version_details.get("branch"),
+		}
+		for app, version_details in get_versions().items()
+	)
 	return out
 
 
@@ -868,20 +864,28 @@ def call(fn, *args, **kwargs):
 
 # Following methods are aken as-is from Python 3 codebase
 # since gzip.compress and gzip.decompress are not available in Python 2.7
+
+
+@deprecated
 def gzip_compress(data, compresslevel=9):
 	"""Compress data in one shot and return the compressed string.
 	Optional argument is the compression level, in range of 0-9.
 	"""
+	from gzip import GzipFile
+
 	buf = io.BytesIO()
 	with GzipFile(fileobj=buf, mode="wb", compresslevel=compresslevel) as f:
 		f.write(data)
 	return buf.getvalue()
 
 
+@deprecated
 def gzip_decompress(data):
 	"""Decompress a gzip compressed string in one shot.
 	Return the decompressed string.
 	"""
+	from gzip import GzipFile
+
 	with GzipFile(fileobj=io.BytesIO(data)) as f:
 		return f.read()
 
@@ -928,8 +932,7 @@ def get_html_for_route(route):
 
 	set_request(method="GET", path=route)
 	response = get_response()
-	html = frappe.safe_decode(response.get_data())
-	return html
+	return frappe.safe_decode(response.get_data())
 
 
 def get_file_size(path, format=False):
@@ -950,7 +953,7 @@ def get_file_size(path, format=False):
 
 def get_build_version():
 	try:
-		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, ".build")))
+		return str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets/assets.json")))
 	except OSError:
 		# .build can sometimes not exist
 		# this is not a major problem so send fallback
@@ -969,7 +972,7 @@ def get_assets_json():
 
 	if not hasattr(frappe.local, "assets_json"):
 		if not frappe.conf.developer_mode:
-			frappe.local.assets_json = frappe.cache().get_value(
+			frappe.local.assets_json = frappe.cache.get_value(
 				"assets_json",
 				_get_assets,
 				shared=True,
@@ -1071,15 +1074,33 @@ def dictify(arg):
 	return arg
 
 
-def add_user_info(user, user_info):
-	if user not in user_info:
-		info = (
-			frappe.db.get_value(
-				"User", user, ["full_name", "user_image", "name", "email", "time_zone"], as_dict=True
-			)
-			or frappe._dict()
-		)
-		user_info[user] = frappe._dict(
+class _UserInfo(TypedDict):
+	fullname: str
+	image: str
+	name: str
+	email: str
+	time_zone: str
+
+
+def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserInfo]) -> None:
+	if not user:
+		return
+
+	if isinstance(user, str):
+		user = [user]
+
+	missing_users = [u for u in user if u not in user_info]
+	if not missing_users:
+		return
+
+	missing_info = frappe.get_all(
+		"User",
+		{"name": ("in", missing_users)},
+		["full_name", "user_image", "name", "email", "time_zone"],
+	)
+
+	for info in missing_info:
+		user_info.setdefault(info.name, frappe._dict()).update(
 			fullname=info.full_name or user,
 			image=info.user_image,
 			name=user,
@@ -1092,3 +1113,45 @@ def is_git_url(url: str) -> bool:
 	# modified to allow without the tailing .git from https://github.com/jonschlinkert/is-git-url.git
 	pattern = r"(?:git|ssh|https?|\w*@[-\w.]+):(\/\/)?(.*?)(\.git)?(\/?|\#[-\d\w._]+?)$"
 	return bool(re.match(pattern, url))
+
+
+class CallbackManager:
+	"""Manage callbacks.
+
+	```
+	# Capture callacks
+	callbacks = CallbackManager()
+
+	# Put a function call in queue
+	callbacks.add(func)
+
+	# Run all pending functions in queue
+	callbacks.run()
+
+	# Reset queue
+	callbacks.reset()
+	```
+
+	Example usage: frappe.db.after_commit
+	"""
+
+	__slots__ = ("_functions",)
+
+	def __init__(self) -> None:
+		self._functions = deque()
+
+	def add(self, func: Callable) -> None:
+		"""Add a function to queue, functions are executed in order of addition."""
+		self._functions.append(func)
+
+	def __call__(self, func: Callable) -> None:
+		self.add(func)
+
+	def run(self):
+		"""Run all functions in queue"""
+		while self._functions:
+			_func = self._functions.popleft()
+			_func()
+
+	def reset(self):
+		self._functions.clear()

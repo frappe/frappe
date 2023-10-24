@@ -11,7 +11,6 @@ def get_notification_config():
 			"Communication": {"status": "Open", "communication_type": "Communication"},
 			"ToDo": "frappe.core.notifications.get_things_todo",
 			"Event": "frappe.core.notifications.get_todays_events",
-			"Error Snapshot": {"seen": 0, "parent_error_snapshot": None},
 			"Workflow Action": {"status": "Open"},
 		},
 	}

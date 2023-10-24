@@ -11,10 +11,18 @@
 	stroke: var(--icon-stroke);
 }
 
+.es-icon {
+	@extend .icon;
+	// reverse fill and stroke because of the way es icon is drawn
+	fill: var(--icon-stroke);
+	stroke: var(--icon-fill);
+}
+
 /* like icon */
 use.like-icon {
+	--icon-stroke: transparent;
 	cursor: pointer;
-	stroke: var(--gray-500);
+	stroke: var(--gray-800);
 }
 
 #icon-file-large {
@@ -26,7 +34,7 @@ use.like-icon {
 }
 
 #icon-close {
-	fill: var(--gray-600);
+	fill: var(--invert-neutral);
 }
 
 .icon > .close-alt {
@@ -35,8 +43,8 @@ use.like-icon {
 
 .liked {
 	use.like-icon {
-		stroke: none;
-		fill: var(--red-500);
+		--icon-stroke: var(--red-500);
+		fill: var(--icon-stroke);
 	}
 }
 

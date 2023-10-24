@@ -33,19 +33,11 @@ frappe.ui.toggle_like = function ($btn, doctype, name, callback) {
 			$btn.css("pointer-events", "auto");
 
 			if (!r.exc) {
-				// update in all local-buttons
-				var action_buttons = $(
-					'.like-action[data-name="' +
-						name.replace(/"/g, '"') +
-						'"][data-doctype="' +
-						doctype.replace(/"/g, '"') +
-						'"]'
-				);
-
-				if (add === "Yes") {
-					action_buttons.removeClass("not-liked").addClass("liked");
-				} else {
-					action_buttons.addClass("not-liked").removeClass("liked");
+				for (const like of document.querySelectorAll(".like-action")) {
+					if (like.dataset.name === name && like.dataset.doctype === doctype) {
+						like.classList.toggle("not-liked", add === "No");
+						like.classList.toggle("liked", add === "Yes");
+					}
 				}
 
 				// update in locals (form)
@@ -89,7 +81,7 @@ frappe.ui.click_toggle_like = function () {
 	return false;
 };
 
-frappe.ui.setup_like_popover = ($parent, selector, check_not_liked = true) => {
+frappe.ui.setup_like_popover = ($parent, selector) => {
 	if (frappe.dom.is_touchscreen()) {
 		return;
 	}
@@ -108,20 +100,6 @@ frappe.ui.setup_like_popover = ($parent, selector, check_not_liked = true) => {
 				let liked_by = target_element.parents(".liked-by").attr("data-liked-by");
 				liked_by = liked_by ? decodeURI(liked_by) : "[]";
 				liked_by = JSON.parse(liked_by);
-
-				const user = frappe.session.user;
-				// hack
-				if (check_not_liked) {
-					if (target_element.parents(".liked-by").find(".not-liked").length) {
-						if (liked_by.indexOf(user) !== -1) {
-							liked_by.splice(liked_by.indexOf(user), 1);
-						}
-					} else {
-						if (liked_by.indexOf(user) === -1) {
-							liked_by.push(user);
-						}
-					}
-				}
 
 				if (!liked_by.length) {
 					return "";

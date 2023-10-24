@@ -10,6 +10,22 @@ from frappe.utils import is_html, strip_html_tags
 
 
 class Translation(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		context: DF.Data | None
+		contributed: DF.Check
+		contribution_docname: DF.Data | None
+		contribution_status: DF.Literal["", "Pending", "Verified", "Rejected"]
+		language: DF.Link
+		source_text: DF.Code
+		translated_text: DF.Code
+	# end: auto-generated types
 	def validate(self):
 		if is_html(self.source_text):
 			self.remove_html_from_source()
@@ -23,71 +39,7 @@ class Translation(Document):
 	def on_trash(self):
 		clear_user_translation_cache(self.language)
 
-	def contribute(self):
-		pass
-
-	def get_contribution_status(self):
-		pass
-
-
-@frappe.whitelist()
-def create_translations(translation_map, language):
-	from frappe.frappeclient import FrappeClient
-
-	translation_map = json.loads(translation_map)
-	translation_map_to_send = frappe._dict({})
-	# first create / update local user translations
-	for source_id, translation_dict in translation_map.items():
-		translation_dict = frappe._dict(translation_dict)
-		existing_doc_name = frappe.get_all(
-			"Translation",
-			{
-				"source_text": translation_dict.source_text,
-				"context": translation_dict.context or "",
-				"language": language,
-			},
-		)
-		translation_map_to_send[source_id] = translation_dict
-		if existing_doc_name:
-			frappe.db.set_value(
-				"Translation",
-				existing_doc_name[0].name,
-				{
-					"translated_text": translation_dict.translated_text,
-					"contributed": 1,
-					"contribution_status": "Pending",
-				},
-			)
-			translation_map_to_send[source_id].name = existing_doc_name[0].name
-		else:
-			doc = frappe.get_doc(
-				{
-					"doctype": "Translation",
-					"source_text": translation_dict.source_text,
-					"contributed": 1,
-					"contribution_status": "Pending",
-					"translated_text": translation_dict.translated_text,
-					"context": translation_dict.context,
-					"language": language,
-				}
-			)
-			doc.insert()
-			translation_map_to_send[source_id].name = doc.name
-
-	params = {
-		"language": language,
-		"contributor_email": frappe.session.user,
-		"contributor_name": frappe.utils.get_fullname(frappe.session.user),
-		"translation_map": json.dumps(translation_map_to_send),
-	}
-
-	translator = FrappeClient(get_translator_url())
-	added_translations = translator.post_api("translator.api.add_translations", params=params)
-
-	for local_docname, remote_docname in added_translations.items():
-		frappe.db.set_value("Translation", local_docname, "contribution_docname", remote_docname)
-
 
 def clear_user_translation_cache(lang):
-	frappe.cache().hdel(USER_TRANSLATION_KEY, lang)
-	frappe.cache().hdel(MERGED_TRANSLATION_KEY, lang)
+	frappe.cache.hdel(USER_TRANSLATION_KEY, lang)
+	frappe.cache.hdel(MERGED_TRANSLATION_KEY, lang)

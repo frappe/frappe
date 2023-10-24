@@ -1,11 +1,8 @@
 <script setup>
 import { ref, computed, nextTick } from "vue";
 import { useStore } from "../store";
-import { useVueFlow } from "@vue-flow/core";
 
 let store = useStore();
-
-let { nodes } = useVueFlow();
 
 let title = ref("Workflow Details");
 
@@ -20,33 +17,21 @@ let properties = computed(() => {
 	});
 	if (store.workflow.selected && "action" in store.workflow.selected.data) {
 		title.value = "Transition Properties";
-		return store.transitionfields.filter(df => {
-			if (in_list(["action", "allowed", "allow_self_approval", "condition"], df.fieldname)) {
-				return true;
-			}
-			return false;
-		});
+		return store.transitionfields.filter((df) =>
+			in_list(["action", "allowed", "allow_self_approval", "condition"], df.fieldname)
+		);
 	} else if (store.workflow.selected && "state" in store.workflow.selected.data) {
 		title.value = "State Properties";
-		let allow_edit = store.statefields.find(df => df.fieldname == "allow_edit");
-		store.statefields = store.statefields.filter(df => df.fieldname != "allow_edit");
+		let allow_edit = store.statefields.find((df) => df.fieldname == "allow_edit");
+		store.statefields = store.statefields.filter(
+			(df) => !in_list(["allow_edit", "workflow_builder_id"], df.fieldname)
+		);
 		store.statefields.splice(2, 0, allow_edit);
 
-		return store.statefields.filter(df => {
+		return store.statefields.filter((df) => {
 			if (df.fieldname == "doc_status") {
 				df.options = ["Draft", "Submitted", "Cancelled"];
 				df.description = "";
-			}
-			if (df.fieldname == "state") {
-				let filter = nodes.value
-					.filter(state => state.type == "state")
-					.map(node => node.data.state);
-				if (doc.value.state) {
-					filter = filter.filter(state => state !== doc.value.state);
-				}
-				df.filters = {
-					name: ["not in", filter]
-				};
 			}
 			if (df.fieldname == "update_field") {
 				df.options = store.workflow_doc_fields;
@@ -55,12 +40,9 @@ let properties = computed(() => {
 		});
 	}
 	title.value = "Workflow Details";
-	return store.workflowfields.filter(df => {
-		if (in_list(["states", "transitions", "workflow_data", "workflow_name"], df.fieldname)) {
-			return false;
-		}
-		return true;
-	});
+	return store.workflowfields.filter(
+		(df) => !in_list(["states", "transitions", "workflow_data", "workflow_name"], df.fieldname)
+	);
 });
 </script>
 

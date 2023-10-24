@@ -156,7 +156,7 @@ class TestEmail(FrappeTestCase):
 		frappe.conf.use_ssl = False
 
 	def test_expose(self):
-
+		from frappe.utils import set_request
 		from frappe.utils.verified_command import verify_request
 
 		frappe.sendmail(
@@ -199,36 +199,13 @@ class TestEmail(FrappeTestCase):
 			if content:
 				eol = "\r\n"
 
-				frappe.local.flags.signed_query_string = re.search(
+				query_string = re.search(
 					r"(?<=/api/method/frappe.email.queue.unsubscribe\?).*(?=" + eol + ")", content.decode()
 				).group(0)
+
+				set_request(method="GET", query_string=query_string)
 				self.assertTrue(verify_request())
 				break
-
-	def test_expired(self):
-		self.test_email_queue()
-		frappe.db.sql("UPDATE `tabEmail Queue` SET `modified`=(NOW() - INTERVAL '8' day)")
-
-		from frappe.email.queue import set_expiry_for_email_queue
-
-		set_expiry_for_email_queue()
-
-		email_queue = frappe.db.sql(
-			"""select name from `tabEmail Queue` where status='Expired'""", as_dict=1
-		)
-		self.assertEqual(len(email_queue), 1)
-		queue_recipients = [
-			r.recipient
-			for r in frappe.db.sql(
-				"""select recipient from `tabEmail Queue Recipient`
-			where parent = %s""",
-				email_queue[0].name,
-				as_dict=1,
-			)
-		]
-		self.assertTrue("test@example.com" in queue_recipients)
-		self.assertTrue("test1@example.com" in queue_recipients)
-		self.assertEqual(len(queue_recipients), 2)
 
 	def test_sender(self):
 		def _patched_assertion(email_account, assertion):
@@ -345,6 +322,6 @@ class TestVerifiedRequests(FrappeTestCase):
 
 		for params in test_cases:
 			signed_url = get_signed_params(params)
-			set_request(method="GET", path="?" + signed_url)
+			set_request(method="GET", query_string=signed_url)
 			self.assertTrue(verify_request())
 		frappe.local.request = None

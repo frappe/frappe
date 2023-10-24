@@ -221,9 +221,7 @@ def rebuild_node(doctype, parent, left, parent_field):
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
-	frappe.db.set_value(
-		doctype, parent, {"lft": left, "rgt": right}, for_update=False, update_modified=False
-	)
+	frappe.db.set_value(doctype, parent, {"lft": left, "rgt": right}, update_modified=False)
 
 	# return the right value of this node + 1
 	return right + 1
@@ -294,7 +292,7 @@ class NestedSet(Document):
 			update_nsm(self)
 		except frappe.DoesNotExistError:
 			if self.flags.on_rollback:
-				frappe.message_log.pop()
+				frappe.clear_last_message()
 			else:
 				raise
 
@@ -326,7 +324,6 @@ class NestedSet(Document):
 			{"old_parent": newdn},
 			{parent_field: newdn},
 			update_modified=False,
-			for_update=False,
 		)
 
 		if merge:

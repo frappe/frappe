@@ -112,12 +112,14 @@ frappe.ui.form.on("Newsletter", {
 					options: {
 						minDate: new Date(),
 					},
+					reqd: true,
 				},
 				{
 					label: __("Time"),
 					fieldname: "time",
 					fieldtype: "Select",
 					options: time_slots,
+					reqd: true,
 				},
 			],
 			primary_action_label: __("Schedule"),

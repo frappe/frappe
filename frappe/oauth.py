@@ -43,8 +43,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		# The redirect used if none has been supplied.
 		# Prefer your clients to pre register a redirect uri rather than
 		# supplying one on each authorization request.
-		redirect_uri = frappe.db.get_value("OAuth Client", client_id, "default_redirect_uri")
-		return redirect_uri
+		return frappe.db.get_value("OAuth Client", client_id, "default_redirect_uri")
 
 	def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
 		# Is the client allowed to access the requested scopes?
@@ -150,11 +149,7 @@ class OAuthWebRequestValidator(RequestValidator):
 			filters={"client": client_id, "validity": "Valid"},
 		)
 
-		checkcodes = []
-		for vcode in validcodes:
-			checkcodes.append(vcode["name"])
-
-		if code in checkcodes:
+		if code in [vcode["name"] for vcode in validcodes]:
 			request.scopes = frappe.db.get_value("OAuth Authorization Code", code, "scopes").split(
 				get_url_delimiter()
 			)
@@ -231,10 +226,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		otoken.save(ignore_permissions=True)
 		frappe.db.commit()
 
-		default_redirect_uri = frappe.db.get_value(
-			"OAuth Client", request.client["name"], "default_redirect_uri"
-		)
-		return default_redirect_uri
+		return frappe.db.get_value("OAuth Client", request.client["name"], "default_redirect_uri")
 
 	def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs):
 		# Authorization codes are use once, invalidate it when a Bearer token
@@ -375,8 +367,7 @@ class OAuthWebRequestValidator(RequestValidator):
 
 	def get_userinfo_claims(self, request):
 		user = frappe.get_doc("User", frappe.session.user)
-		userinfo = get_userinfo(user)
-		return userinfo
+		return get_userinfo(user)
 
 	def validate_id_token(self, token, scopes, request):
 		try:
@@ -548,20 +539,8 @@ def calculate_at_hash(access_token, hash_alg):
 
 
 def delete_oauth2_data():
-	# Delete Invalid Authorization Code and Revoked Token
-	commit_code, commit_token = False, False
-	code_list = frappe.get_all("OAuth Authorization Code", filters={"validity": "Invalid"})
-	token_list = frappe.get_all("OAuth Bearer Token", filters={"status": "Revoked"})
-	if len(code_list) > 0:
-		commit_code = True
-	if len(token_list) > 0:
-		commit_token = True
-	for code in code_list:
-		frappe.delete_doc("OAuth Authorization Code", code["name"])
-	for token in token_list:
-		frappe.delete_doc("OAuth Bearer Token", token["name"])
-	if commit_code or commit_token:
-		frappe.db.commit()
+	frappe.db.delete("OAuth Authorization Code", {"validity": "Invalid"})
+	frappe.db.delete("OAuth Bearer Token", {"status": "Revoked"})
 
 
 def get_client_scopes(client_id):
@@ -580,7 +559,7 @@ def get_userinfo(user):
 		else:
 			picture = urljoin(frappe_server_url, user.user_image)
 
-	userinfo = frappe._dict(
+	return frappe._dict(
 		{
 			"sub": frappe.db.get_value(
 				"User Social Login",
@@ -596,8 +575,6 @@ def get_userinfo(user):
 			"iss": frappe_server_url,
 		}
 	)
-
-	return userinfo
 
 
 def get_url_delimiter(separator_character=" "):

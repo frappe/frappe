@@ -15,8 +15,7 @@ def get_coords(doctype, filters, type):
 	elif type == "coordinates":
 		coords = return_coordinates(doctype, filters_sql)
 
-	out = convert_to_geojson(type, coords)
-	return out
+	return convert_to_geojson(type, coords)
 
 
 def convert_to_geojson(type, coords):

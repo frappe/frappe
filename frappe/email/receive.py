@@ -18,7 +18,8 @@ from email_reply_parser import EmailReplyParser
 
 import frappe
 from frappe import _, safe_decode, safe_encode
-from frappe.core.doctype.file import MaxFileSizeReachedError, get_random_filename
+from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
+from frappe.core.doctype.file.utils import get_random_filename
 from frappe.email.oauth import Oauth
 from frappe.utils import (
 	add_days,
@@ -48,10 +49,6 @@ class EmailSizeExceededError(frappe.ValidationError):
 	pass
 
 
-class EmailTimeoutError(frappe.ValidationError):
-	pass
-
-
 class LoginLimitExceeded(frappe.ValidationError):
 	pass
 
@@ -74,11 +71,11 @@ class EmailServer:
 		"""Connect to IMAP"""
 		try:
 			if cint(self.settings.use_ssl):
-				self.imap = Timed_IMAP4_SSL(
+				self.imap = imaplib.IMAP4_SSL(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 			else:
-				self.imap = Timed_IMAP4(
+				self.imap = imaplib.IMAP4(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
@@ -108,11 +105,11 @@ class EmailServer:
 		# this method return pop connection
 		try:
 			if cint(self.settings.use_ssl):
-				self.pop = Timed_POP3_SSL(
+				self.pop = poplib.POP3_SSL(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 			else:
-				self.pop = Timed_POP3(
+				self.pop = poplib.POP3(
 					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
 				)
 
@@ -169,7 +166,7 @@ class EmailServer:
 		for i, uid in enumerate(email_list[:100]):
 			try:
 				self.retrieve_message(uid, i + 1)
-			except (EmailTimeoutError, LoginLimitExceeded):
+			except (_socket.timeout, LoginLimitExceeded):
 				# get whatever messages were retrieved
 				break
 
@@ -262,7 +259,7 @@ class EmailServer:
 			else:
 				msg = self.pop.retr(msg_num)
 				self.latest_messages.append(b"\n".join(msg[1]))
-		except EmailTimeoutError:
+		except _socket.timeout:
 			# propagate this error to break the loop
 			raise
 
@@ -405,11 +402,19 @@ class Email:
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
+
 		if _subject[0][1]:
+			# Encoding is known by decode_header (might also be unknown-8bit)
 			self.subject = safe_decode(self.subject, _subject[0][1])
-		else:
-			# assume that the encoding is utf-8
-			self.subject = safe_decode(self.subject)[:140]
+
+		if isinstance(self.subject, bytes):
+			# Fall back to utf-8 if the charset is unknown or decoding fails
+			# Replace invalid characters with '<?>'
+			self.subject = self.subject.decode("utf-8", "replace")
+
+		# Convert non-string (e.g. None)
+		# Truncate to 140 chars (can be used as a document name)
+		self.subject = str(self.subject).strip()[:140]
 
 		if not self.subject:
 			self.subject = "No Subject"
@@ -430,7 +435,8 @@ class Email:
 
 		self.from_real_name = parse_addr(_from_email)[0] if "@" in _from_email else _from_email
 
-	def decode_email(self, email):
+	@staticmethod
+	def decode_email(email):
 		if not email:
 			return
 		decoded = ""
@@ -438,7 +444,7 @@ class Email:
 			frappe.as_unicode(email).replace('"', " ").replace("'", " ")
 		):
 			if encoding:
-				decoded += part.decode(encoding)
+				decoded += part.decode(encoding, "replace")
 			else:
 				decoded += safe_decode(part)
 		return decoded
@@ -459,6 +465,10 @@ class Email:
 		if content_type == "text/plain":
 			self.text_content += self.get_payload(part)
 
+			# attach txt file from received email as well aside from saving to text_content if it has filename
+			if part.get_filename():
+				self.get_attachment(part)
+
 		elif content_type == "text/html":
 			self.html_content += self.get_payload(part)
 
@@ -471,10 +481,7 @@ class Email:
 
 	def show_attached_email_headers_in_content(self, part):
 		# get the multipart/alternative message
-		try:
-			from html import escape  # python 3.x
-		except ImportError:
-			from cgi import escape  # python 2.x
+		from html import escape
 
 		message = list(part.walk())[1]
 		headers = []
@@ -853,7 +860,7 @@ class InboundMail(Email):
 		"""Remove Prefixes like 'fw', FWD', 're' etc from subject."""
 		# Match strings like "fw:", "re	:" etc.
 		regex = r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*"
-		return frappe.as_unicode(strip(re.sub(regex, "", subject, 0, flags=re.IGNORECASE)))
+		return frappe.as_unicode(strip(re.sub(regex, "", subject, count=0, flags=re.IGNORECASE)))
 
 	@staticmethod
 	def get_email_fields(doctype):
@@ -895,43 +902,3 @@ class InboundMail(Email):
 			"has_attachment": 1 if self.attachments else 0,
 			"seen": self.seen_status or 0,
 		}
-
-
-class TimerMixin:
-	def __init__(self, *args, **kwargs):
-		self.timeout = kwargs.pop("timeout", 0.0)
-		self.elapsed_time = 0.0
-		self._super.__init__(self, *args, **kwargs)
-		if self.timeout:
-			# set per operation timeout to one-fifth of total pop timeout
-			self.sock.settimeout(self.timeout / 5.0)
-
-	def _getline(self, *args, **kwargs):
-		start_time = time.monotonic()
-		ret = self._super._getline(self, *args, **kwargs)
-
-		self.elapsed_time += time.monotonic() - start_time
-		if self.timeout and self.elapsed_time > self.timeout:
-			raise EmailTimeoutError
-
-		return ret
-
-	def quit(self, *args, **kwargs):
-		self.elapsed_time = 0.0
-		return self._super.quit(self, *args, **kwargs)
-
-
-class Timed_POP3(TimerMixin, poplib.POP3):
-	_super = poplib.POP3
-
-
-class Timed_POP3_SSL(TimerMixin, poplib.POP3_SSL):
-	_super = poplib.POP3_SSL
-
-
-class Timed_IMAP4(TimerMixin, imaplib.IMAP4):
-	_super = imaplib.IMAP4
-
-
-class Timed_IMAP4_SSL(TimerMixin, imaplib.IMAP4_SSL):
-	_super = imaplib.IMAP4_SSL

@@ -25,6 +25,63 @@ from frappe.utils import cint
 
 
 class CustomizeForm(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.doctype_action.doctype_action import DocTypeAction
+		from frappe.core.doctype.doctype_link.doctype_link import DocTypeLink
+		from frappe.core.doctype.doctype_state.doctype_state import DocTypeState
+		from frappe.custom.doctype.customize_form_field.customize_form_field import CustomizeFormField
+		from frappe.types import DF
+
+		actions: DF.Table[DocTypeAction]
+		allow_auto_repeat: DF.Check
+		allow_copy: DF.Check
+		allow_import: DF.Check
+		autoname: DF.Data | None
+		default_email_template: DF.Link | None
+		default_print_format: DF.Link | None
+		default_view: DF.Literal
+		doc_type: DF.Link | None
+		editable_grid: DF.Check
+		email_append_to: DF.Check
+		fields: DF.Table[CustomizeFormField]
+		force_re_route_to_default_view: DF.Check
+		image_field: DF.Data | None
+		is_calendar_and_gantt: DF.Check
+		istable: DF.Check
+		label: DF.Data | None
+		links: DF.Table[DocTypeLink]
+		make_attachments_public: DF.Check
+		max_attachments: DF.Int
+		naming_rule: DF.Literal[
+			"",
+			"Set by user",
+			"By fieldname",
+			'By "Naming Series" field',
+			"Expression",
+			"Expression (old style)",
+			"Random",
+			"By script",
+		]
+		queue_in_background: DF.Check
+		quick_entry: DF.Check
+		search_fields: DF.Data | None
+		sender_field: DF.Data | None
+		show_preview_popup: DF.Check
+		show_title_field_in_link: DF.Check
+		sort_field: DF.Literal
+		sort_order: DF.Literal["ASC", "DESC"]
+		states: DF.Table[DocTypeState]
+		subject_field: DF.Data | None
+		title_field: DF.Data | None
+		track_changes: DF.Check
+		track_views: DF.Check
+		translated_doctype: DF.Check
+	# end: auto-generated types
 	def on_update(self):
 		frappe.db.delete("Singles", {"doctype": "Customize Form"})
 		frappe.db.delete("Customize Form Field")
@@ -35,7 +92,7 @@ class CustomizeForm(Document):
 		if not self.doc_type:
 			return
 
-		meta = frappe.get_meta(self.doc_type)
+		meta = frappe.get_meta(self.doc_type, cached=False)
 
 		self.validate_doctype(meta)
 
@@ -172,7 +229,18 @@ class CustomizeForm(Document):
 		check_email_append_to(self)
 
 		if self.flags.update_db:
-			frappe.db.updatedb(self.doc_type)
+			try:
+				frappe.db.updatedb(self.doc_type)
+			except Exception as e:
+				if frappe.db.is_db_table_size_limit(e):
+					frappe.throw(
+						_("You have hit the row size limit on database table: {0}").format(
+							"<a href='https://docs.erpnext.com/docs/v14/user/manual/en/customize-erpnext/articles/maximum-number-of-fields-in-a-form'>"
+							"Maximum Number of Fields in a Form</a>"
+						),
+						title=_("Database Table Row Size Limit"),
+					)
+				raise
 
 		if not hasattr(self, "hide_success") or not self.hide_success:
 			frappe.msgprint(_("{0} updated").format(_(self.doc_type)), alert=True)
@@ -181,7 +249,9 @@ class CustomizeForm(Document):
 
 		if self.flags.rebuild_doctype_for_global_search:
 			frappe.enqueue(
-				"frappe.utils.global_search.rebuild_for_doctype", now=True, doctype=self.doc_type
+				"frappe.utils.global_search.rebuild_for_doctype",
+				doctype=self.doc_type,
+				enqueue_after_commit=True,
 			)
 
 	def set_property_setters(self):
@@ -201,10 +271,38 @@ class CustomizeForm(Document):
 		# action and links
 		self.set_property_setters_for_actions_and_links(meta)
 
+	def set_property_setter_for_field_order(self, meta):
+		new_order = [df.fieldname for df in self.fields]
+		existing_order = getattr(meta, "field_order", None)
+		default_order = [
+			fieldname for fieldname, df in meta._fields.items() if not getattr(df, "is_custom_field", False)
+		]
+
+		if new_order == default_order:
+			if existing_order:
+				delete_property_setter(self.doc_type, "field_order")
+
+			return
+
+		if existing_order and new_order == json.loads(existing_order):
+			return
+
+		frappe.make_property_setter(
+			{
+				"doctype": self.doc_type,
+				"doctype_or_field": "DocType",
+				"property": "field_order",
+				"value": json.dumps(new_order),
+			},
+			is_system_generated=False,
+		)
+
 	def set_property_setters_for_doctype(self, meta):
 		for prop, prop_type in doctype_properties.items():
 			if self.get(prop) != meta.get(prop):
 				self.make_property_setter(prop, self.get(prop), prop_type)
+
+		self.set_property_setter_for_field_order(meta)
 
 	def set_property_setters_for_docfield(self, meta, df, meta_df):
 		for prop, prop_type in docfield_properties.items():
@@ -502,11 +600,8 @@ class CustomizeForm(Document):
 				),
 				as_dict=True,
 			)
-			links = []
 			label = df.label
-			for doc in docs:
-				links.append(frappe.utils.get_link_to_form(self.doc_type, doc.name))
-			links_str = ", ".join(links)
+			links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
 
 			if docs:
 				frappe.throw(
@@ -525,6 +620,24 @@ class CustomizeForm(Document):
 			return
 
 		reset_customization(self.doc_type)
+		self.fetch_to_customize()
+
+	@frappe.whitelist()
+	def reset_layout(self):
+		if not self.doc_type:
+			return
+
+		property_setters = frappe.get_all(
+			"Property Setter",
+			filters={"doc_type": self.doc_type, "property": ("in", ("field_order", "insert_after"))},
+			pluck="name",
+		)
+
+		if not property_setters:
+			return
+
+		frappe.db.delete("Property Setter", {"name": ("in", property_setters)})
+		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 
 	@classmethod
@@ -594,7 +707,6 @@ doctype_properties = {
 	"naming_rule": "Data",
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
-	"translate_link_fields": "Check",
 	"is_calendar_and_gantt": "Check",
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",
@@ -606,6 +718,7 @@ docfield_properties = {
 	"label": "Data",
 	"fieldtype": "Select",
 	"options": "Text",
+	"sort_options": "Check",
 	"fetch_from": "Small Text",
 	"fetch_if_empty": "Check",
 	"show_dashboard": "Check",

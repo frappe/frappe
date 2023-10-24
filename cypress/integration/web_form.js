@@ -6,7 +6,7 @@ context("Web Form", () => {
 			.window()
 			.its("frappe")
 			.then((frappe) => {
-				return frappe.xcall("frappe.tests.ui_test_helpers.clear_notes");
+				return frappe.xcall("frappe.tests.ui_test_helpers.prepare_webform_test");
 			});
 	});
 
@@ -34,7 +34,7 @@ context("Web Form", () => {
 
 		cy.url().should("include", "/note/new");
 
-		cy.request("/api/method/logout");
+		cy.call("logout");
 		cy.visit("/note");
 
 		cy.url().should("include", "/note/new");
@@ -49,6 +49,7 @@ context("Web Form", () => {
 	});
 
 	it("Login Required", () => {
+		cy.call("logout");
 		cy.login("Administrator");
 		cy.visit("/app/web-form/note");
 
@@ -99,7 +100,7 @@ context("Web Form", () => {
 		cy.visit("/note");
 		cy.url().should("include", "/note/list");
 
-		cy.get(".web-list-table thead th").contains("Name");
+		cy.get(".web-list-table thead th").contains("Sr.");
 		cy.get(".web-list-table thead th").contains("Title");
 
 		cy.visit("/app/web-form/note");
@@ -133,13 +134,17 @@ context("Web Form", () => {
 
 		cy.visit("/note");
 		cy.url().should("include", "/note/list");
+		cy.get(".web-list-table thead th").contains("Sr.");
 		cy.get(".web-list-table thead th").contains("Title");
 		cy.get(".web-list-table thead th").contains("Public");
 		cy.get(".web-list-table thead th").contains("Content");
 	});
 
 	it("Breadcrumbs", () => {
-		cy.visit("/note/Note 1");
+		cy.visit("/note");
+		cy.url().should("include", "/note/list");
+		cy.get(".web-list-table tbody tr:last").click();
+
 		cy.get(".breadcrumb-container .breadcrumb .breadcrumb-item:first a")
 			.should("contain.text", "Note")
 			.click();
@@ -154,7 +159,9 @@ context("Web Form", () => {
 		cy.get(".form-tabs .nav-item .nav-link").contains("Customization").click();
 		cy.save();
 
-		cy.visit("/note/Note 1");
+		cy.visit("/note");
+		cy.url().should("include", "/note/list");
+		cy.get(".web-list-table tbody tr:last").click();
 		cy.get(".breadcrumb-container .breadcrumb .breadcrumb-item:first a").should(
 			"contain.text",
 			"Notes"
@@ -167,7 +174,7 @@ context("Web Form", () => {
 		cy.url().should("include", "/note/list");
 
 		// Read Only Field
-		cy.get('.web-list-table tbody tr[id="Note 1"]').click();
+		cy.get(".web-list-table tbody tr:last").click();
 		cy.get('.frappe-control[data-fieldname="title"] .control-input').should(
 			"have.css",
 			"display",
@@ -183,11 +190,12 @@ context("Web Form", () => {
 
 		cy.save();
 
-		cy.visit("/note/Note 1");
-		cy.url().should("include", "/note/Note%201");
+		cy.visit("/note");
+		cy.url().should("include", "/note/list");
+		cy.get(".web-list-table tbody tr:last").click();
 
 		cy.get(".web-form-actions a").contains("Edit Response").click();
-		cy.url().should("include", "/note/Note%201/edit");
+		cy.url().should("include", "/edit");
 
 		// Editable Field
 		cy.get_field("title").should("have.value", "Note 1");
@@ -227,16 +235,14 @@ context("Web Form", () => {
 		cy.visit("/note");
 		cy.url().should("include", "/note/list");
 
-		cy.get('.web-list-table tbody tr[id="Note 1"] .list-col-checkbox input').click();
-		cy.get('.web-list-table tbody tr[id="Note 2"] .list-col-checkbox input').click();
+		cy.get(".web-list-table tbody tr:nth-child(1) .list-col-checkbox input").click();
+		cy.get(".web-list-table tbody tr:nth-child(2) .list-col-checkbox input").click();
 		cy.get(".web-list-actions button:visible").contains("Delete").click({ force: true });
 
 		cy.get(".web-list-actions button").contains("Delete").should("not.be.visible");
 
 		cy.visit("/note");
-		cy.get('.web-list-table tbody tr[id="Note 1"]').should("not.exist");
-		cy.get('.web-list-table tbody tr[id="Note 2"]').should("not.exist");
-		cy.get('.web-list-table tbody tr[id="Guest Note 1"]').should("exist");
+		cy.get(".web-list-table tbody tr:nth-child(1)").should("not.exist");
 	});
 
 	it("Navigate and Submit a WebForm", () => {

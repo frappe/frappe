@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe import get_hooks
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.website.page_renderers.static_page import StaticPage
@@ -11,10 +12,16 @@ from frappe.website.utils import build_response, clear_website_cache, get_home_p
 class TestWebsite(FrappeTestCase):
 	def setUp(self):
 		frappe.set_user("Guest")
+		self._clearRequest()
 
 	def tearDown(self):
 		frappe.db.delete("Access Log")
 		frappe.set_user("Administrator")
+		self._clearRequest()
+
+	def _clearRequest(self):
+		if hasattr(frappe.local, "request"):
+			delattr(frappe.local, "request")
 
 	def test_home_page(self):
 		frappe.set_user("Administrator")
@@ -43,20 +50,20 @@ class TestWebsite(FrappeTestCase):
 		frappe.db.set_value("Role", "home-page-test", "home_page", "")
 
 		# home page via portal settings
-		frappe.db.set_value("Portal Settings", None, "default_portal_home", "test-portal-home")
+		frappe.db.set_single_value("Portal Settings", "default_portal_home", "test-portal-home")
 
 		frappe.set_user("test-user-for-home-page@example.com")
-		frappe.cache().hdel("home_page", frappe.session.user)
+		frappe.cache.hdel("home_page", frappe.session.user)
 		self.assertEqual(get_home_page(), "test-portal-home")
 
-		frappe.db.set_value("Portal Settings", None, "default_portal_home", "")
+		frappe.db.set_single_value("Portal Settings", "default_portal_home", "")
 		clear_website_cache()
 
 		# home page via website settings
-		frappe.db.set_value("Website Settings", None, "home_page", "contact")
+		frappe.db.set_single_value("Website Settings", "home_page", "contact")
 		self.assertEqual(get_home_page(), "contact")
 
-		frappe.db.set_value("Website Settings", None, "home_page", None)
+		frappe.db.set_single_value("Website Settings", "home_page", None)
 		clear_website_cache()
 
 		# fallback homepage
@@ -66,17 +73,6 @@ class TestWebsite(FrappeTestCase):
 		frappe.set_user("Guest")
 		self.assertEqual(get_home_page(), "login")
 		frappe.set_user("Administrator")
-
-		from frappe import get_hooks
-
-		def patched_get_hooks(hook, value):
-			def wrapper(*args, **kwargs):
-				return_value = get_hooks(*args, **kwargs)
-				if args[0] == hook:
-					return_value = value
-				return return_value
-
-			return wrapper
 
 		# test homepage via hooks
 		clear_website_cache()
@@ -210,7 +206,7 @@ class TestWebsite(FrappeTestCase):
 		self.assertEqual(response.headers.get("Location"), "/courses/data")
 
 		delattr(frappe.hooks, "website_redirects")
-		frappe.cache().delete_key("app_hooks")
+		frappe.cache.delete_key("app_hooks")
 
 	def test_custom_page_renderer(self):
 		from frappe import get_hooks
@@ -340,8 +336,9 @@ class TestWebsite(FrappeTestCase):
 		FILES_TO_SKIP = choices(list(WWW.glob("**/*.py*")), k=10)
 
 		for suffix in FILES_TO_SKIP:
-			content = get_response_content(suffix.relative_to(WWW))
-			self.assertIn("404", content)
+			path: str = suffix.relative_to(WWW).as_posix()
+			content = get_response_content(path)
+			self.assertIn("<title>Not Found</title>", content)
 
 	def test_metatags(self):
 		content = get_response_content("/_test/_test_metatags")
@@ -393,6 +390,16 @@ class TestWebsite(FrappeTestCase):
 			)
 			delattr(frappe.local, "request")
 			frappe.set_user("Guest")
+
+
+def patched_get_hooks(hook, value):
+	def wrapper(*args, **kwargs):
+		return_value = get_hooks(*args, **kwargs)
+		if args[0] == hook:
+			return_value = value
+		return return_value
+
+	return wrapper
 
 
 class CustomPageRenderer:

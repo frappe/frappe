@@ -372,10 +372,11 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 				if (!$item.hasClass("print-format-builder-field")) {
 					var fieldname = $item.attr("data-fieldname");
 
+					let field;
 					if (fieldname === "_custom_html") {
-						var field = me.get_custom_html_field();
+						field = me.get_custom_html_field();
 					} else {
-						var field = frappe.meta.get_docfield(me.print_format.doc_type, fieldname);
+						field = frappe.meta.get_docfield(me.print_format.doc_type, fieldname);
 					}
 
 					var html = frappe.render_template("print_format_builder_field", {
@@ -561,7 +562,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			resize();
 		} else if (new_no_of_columns > no_of_columns) {
 			// add empty column and resize old columns
-			for (var i = no_of_columns; i < new_no_of_columns; i++) {
+			for (let i = no_of_columns; i < new_no_of_columns; i++) {
 				var col = $(
 					'<div class="section-column">\
 					<div class="print-format-builder-column"></div></div>'

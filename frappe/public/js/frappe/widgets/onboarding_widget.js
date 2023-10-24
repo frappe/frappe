@@ -33,7 +33,13 @@ export default class OnboardingWidget extends Widget {
 			this.add_step(step, index);
 		});
 
-		this.show_step(this.steps[0]);
+		let first_incomplete_step = this.steps.findIndex((s) => !s.is_skipped && !s.is_complete);
+
+		if (first_incomplete_step == -1) {
+			first_incomplete_step = 0;
+		}
+
+		this.show_step(this.steps[first_incomplete_step]);
 	}
 
 	add_step(step, index) {
@@ -44,10 +50,28 @@ export default class OnboardingWidget extends Widget {
 
 		let $step = $(`<a class="onboarding-step ${status}">
 				<div class="step-title">
-					<div class="step-index step-pending">${__(index + 1)}</div>
-					<div class="step-index step-skipped">${frappe.utils.icon("tick", "xs")}</div>
-					<div class="step-index step-complete">${frappe.utils.icon("tick", "xs")}</div>
-					<div>${__(step.title)}</div>
+					<div class="step-index step-pending">${frappe.utils.icon(
+						"es-line-success",
+						"md",
+						"",
+						"",
+						"step-icon"
+					)}</div>
+					<div class="step-index step-skipped">${frappe.utils.icon(
+						"es-line-close-circle",
+						"md",
+						"",
+						"--icon-stroke: var(--gray-600);",
+						"step-icon"
+					)}</div>
+					<div class="step-index step-complete">${frappe.utils.icon(
+						"es-solid-success",
+						"md",
+						"",
+						"",
+						"step-icon"
+					)}</div>
+					<div class="step-text">${__(step.title)}</div>
 				</div>
 			</a>`);
 
@@ -100,12 +124,12 @@ export default class OnboardingWidget extends Widget {
 			set_description();
 
 			if (step.intro_video_url) {
-				$(`<button class="btn btn-primary btn-sm">${__("Watch Tutorial")}</button>`)
+				$(`<button class="btn btn-default btn-sm">${__("Watch Tutorial")}</button>`)
 					.appendTo(this.step_footer)
 					.on("click", toggle_video);
 			} else {
 				$(
-					`<button class="btn btn-primary btn-sm">${__(
+					`<button class="btn btn-default btn-sm">${__(
 						step.action_label || step.action
 					)}</button>`
 				)
@@ -438,6 +462,7 @@ export default class OnboardingWidget extends Widget {
 		};
 
 		this.update_step_status(step, "is_complete", 1, callback);
+		this.activate_next_step(step);
 	}
 
 	skip_step(step) {
@@ -451,6 +476,16 @@ export default class OnboardingWidget extends Widget {
 		};
 
 		this.update_step_status(step, "is_skipped", 1, callback);
+		this.activate_next_step(step);
+	}
+
+	activate_next_step(step) {
+		let current_step_index = this.steps.findIndex((s) => s == step);
+		let next_step = this.steps[current_step_index + 1];
+
+		if (!next_step) return;
+
+		this.show_step(next_step);
 	}
 
 	update_step_status(step, status, value, callback) {
@@ -539,7 +574,7 @@ export default class OnboardingWidget extends Widget {
 
 		this.action_area.empty();
 		const dismiss = $(
-			`<div class="small" style="cursor:pointer;">${__(
+			`<div class="btn btn-sm btn-secondary small" style="cursor:pointer;">${__(
 				"Dismiss",
 				null,
 				"Stop showing the onboarding widget."
@@ -552,6 +587,7 @@ export default class OnboardingWidget extends Widget {
 			localStorage.setItem("dismissed-onboarding", JSON.stringify(dismissed));
 			this.delete(true, true);
 			this.widget.closest(".ce-block").hide();
+			frappe.telemetry.capture("dismissed_" + frappe.scrub(this.title), "frappe_onboarding");
 		});
 		dismiss.appendTo(this.action_area);
 	}

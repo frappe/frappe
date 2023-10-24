@@ -51,7 +51,7 @@ frappe.search.SearchDialog = class {
 				no_results_status: () => __("No Results found"),
 				get_results: (keywords, callback) => {
 					let start = 0,
-						limit = 1000;
+						limit = 100;
 					let results = frappe.search.utils.get_nav_results(keywords);
 					frappe.search.utils.get_global_results(keywords, start, limit).then(
 						(global_results) => {
@@ -59,7 +59,6 @@ frappe.search.SearchDialog = class {
 							callback(results, keywords);
 						},
 						(err) => {
-							// eslint-disable-next-line no-console
 							console.error(err);
 						}
 					);
@@ -78,7 +77,6 @@ frappe.search.SearchDialog = class {
 							callback(results, keywords);
 						},
 						(err) => {
-							// eslint-disable-next-line no-console
 							console.error(err);
 						}
 					);
@@ -177,7 +175,6 @@ frappe.search.SearchDialog = class {
 							doctype_results.length && this.add_more_results(doctype_results);
 						},
 						(err) => {
-							// eslint-disable-next-line no-console
 							console.error(err);
 						}
 					);

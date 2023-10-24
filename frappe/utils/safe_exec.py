@@ -1,3 +1,4 @@
+import ast
 import copy
 import inspect
 import json
@@ -24,12 +25,17 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.website.utils import get_next_link, get_shade, get_toc
+from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
 
 
 class ServerScriptNotEnabled(frappe.PermissionError):
 	pass
+
+
+ARGUMENT_NOT_SET = object()
+
+SAFE_EXEC_CONFIG_KEY = "server_script_enabled"
 
 
 class NamespaceDict(frappe._dict):
@@ -54,16 +60,18 @@ class FrappeTransformer(RestrictingNodeTransformer):
 		return super().check_name(node, name, *args, **kwargs)
 
 
-def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
-	# server scripts can be disabled via site_config.json
-	# they are enabled by default
-	if "server_script_enabled" in frappe.conf:
-		enabled = frappe.conf.server_script_enabled
-	else:
-		enabled = True
+def is_safe_exec_enabled() -> bool:
+	# server scripts can only be enabled via common_site_config.json
+	return bool(frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY))
 
-	if not enabled:
-		frappe.throw(_("Please Enable Server Scripts"), ServerScriptNotEnabled)
+
+def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
+	if not is_safe_exec_enabled():
+
+		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
+		docs_cta = _("Read the documentation to know more")
+		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
+		frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
 
 	# build globals
 	exec_globals = get_safe_globals()
@@ -85,6 +93,35 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		)
 
 	return exec_globals, _locals
+
+
+def safe_eval(code, eval_globals=None, eval_locals=None):
+	import unicodedata
+
+	code = unicodedata.normalize("NFKC", code)
+
+	_validate_safe_eval_syntax(code)
+
+	if not eval_globals:
+		eval_globals = {}
+
+	eval_globals["__builtins__"] = {}
+	eval_globals.update(WHITELISTED_SAFE_EVAL_GLOBALS)
+
+	return eval(
+		compile_restricted(code, filename="<safe_eval>", policy=FrappeTransformer, mode="eval"),
+		eval_globals,
+		eval_locals,
+	)
+
+
+def _validate_safe_eval_syntax(code):
+	BLOCKED_NODES = (ast.NamedExpr,)
+
+	tree = ast.parse(code, mode="eval")
+	for node in ast.walk(tree):
+		if isinstance(node, BLOCKED_NODES):
+			raise SyntaxError(f"Operation not allowed: line {node.lineno} column {node.col_offset}")
 
 
 @contextmanager
@@ -188,6 +225,10 @@ def get_safe_globals():
 				sql=read_sql,
 				commit=frappe.db.commit,
 				rollback=frappe.db.rollback,
+				after_commit=frappe.db.after_commit,
+				before_commit=frappe.db.before_commit,
+				after_rollback=frappe.db.after_rollback,
+				before_rollback=frappe.db.before_rollback,
 				add_index=frappe.db.add_index,
 			),
 			lang=getattr(frappe.local, "lang", "en"),
@@ -197,7 +238,6 @@ def get_safe_globals():
 		get_toc=get_toc,
 		get_next_link=get_next_link,
 		_=frappe._,
-		get_shade=get_shade,
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
@@ -219,7 +259,7 @@ def get_safe_globals():
 	# default writer allows write access
 	out._write_ = _write
 	out._getitem_ = _getitem
-	out._getattr_ = _getattr
+	out._getattr_ = _getattr_for_safe_exec
 
 	# allow iterators and list comprehension
 	out._getiter_ = iter
@@ -248,7 +288,7 @@ def safe_enqueue(function, **kwargs):
 	Accepts frappe.enqueue params like job_name, queue, timeout, etc.
 	in addition to params to be passed to function
 
-	:param function: whitelised function or API Method set in Server Script
+	:param function: whitelisted function or API Method set in Server Script
 	"""
 
 	return enqueue("frappe.utils.safe_exec.call_whitelisted_function", function=function, **kwargs)
@@ -331,8 +371,7 @@ def get_hooks(hook=None, default=None, app_name=None):
 def read_sql(query, *args, **kwargs):
 	"""a wrapper for frappe.db.sql to allow reads"""
 	query = str(query)
-	if frappe.flags.in_safe_exec:
-		check_safe_sql_query(query)
+	check_safe_sql_query(query)
 	return frappe.db.sql(query, *args, **kwargs)
 
 
@@ -370,40 +409,80 @@ def _getitem(obj, key):
 	return obj[key]
 
 
-def _getattr(object, name, default=None):
+UNSAFE_ATTRIBUTES = {
+	# Generator Attributes
+	"gi_frame",
+	"gi_code",
+	"gi_yieldfrom",
+	# Coroutine Attributes
+	"cr_frame",
+	"cr_code",
+	"cr_origin",
+	"cr_await",
+	# Async Generator Attributes
+	"ag_code",
+	"ag_frame",
+	# Traceback Attributes
+	"tb_frame",
+	"tb_next",
+	# Format Attributes
+	"format",
+	"format_map",
+	# Frame attributes
+	"f_back",
+	"f_builtins",
+	"f_code",
+	"f_globals",
+	"f_locals",
+	"f_trace",
+}
+
+
+def _getattr_for_safe_exec(object, name, default=None):
 	# guard function for RestrictedPython
 	# allow any key to be accessed as long as
 	# 1. it does not start with an underscore (safer_getattr)
 	# 2. it is not an UNSAFE_ATTRIBUTES
+	_validate_attribute_read(object, name)
 
-	UNSAFE_ATTRIBUTES = {
-		# Generator Attributes
-		"gi_frame",
-		"gi_code",
-		# Coroutine Attributes
-		"cr_frame",
-		"cr_code",
-		"cr_origin",
-		# Async Generator Attributes
-		"ag_code",
-		"ag_frame",
-		# Traceback Attributes
-		"tb_frame",
-		"tb_next",
-	}
+	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
 
+
+def _get_attr_for_eval(object, name, default=ARGUMENT_NOT_SET):
+	_validate_attribute_read(object, name)
+
+	# Use vanilla getattr to raise correct attribute error. Safe exec has been supressing attribute
+	# error which is bad for DX/UX in general.
+	return getattr(object, name) if default is ARGUMENT_NOT_SET else getattr(object, name, default)
+
+
+def _validate_attribute_read(object, name):
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError(f"{name} is an unsafe attribute")
 
 	if isinstance(object, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
 		raise SyntaxError(f"Reading {object} attributes is not allowed")
 
-	return RestrictedPython.Guards.safer_getattr(object, name, default=default)
+	if name.startswith("_"):
+		raise AttributeError(f'"{name}" is an invalid attribute name because it ' 'starts with "_"')
 
 
 def _write(obj):
 	# guard function for RestrictedPython
-	# allow writing to any object
+	if isinstance(
+		obj,
+		(
+			types.ModuleType,
+			types.CodeType,
+			types.TracebackType,
+			types.FrameType,
+			type,
+			types.FunctionType,  # covers lambda
+			types.MethodType,
+			types.BuiltinFunctionType,  # covers methods
+		),
+	):
+		raise SyntaxError(f"Not allowed to write to object {obj} of type {type(obj)}")
 	return obj
 
 
@@ -453,6 +532,7 @@ VALID_UTILS = (
 	"nowtime",
 	"get_first_day",
 	"get_quarter_start",
+	"get_quarter_ending",
 	"get_first_day_of_week",
 	"get_year_start",
 	"get_last_day_of_week",
@@ -533,3 +613,16 @@ VALID_UTILS = (
 	"get_user_info_for_avatar",
 	"get_abbr",
 )
+
+
+WHITELISTED_SAFE_EVAL_GLOBALS = {
+	"int": int,
+	"float": float,
+	"long": int,
+	"round": round,
+	# RestrictedPython specific overrides
+	"_getattr_": _get_attr_for_eval,
+	"_getitem_": _getitem,
+	"_getiter_": iter,
+	"_iter_unpack_sequence_": RestrictedPython.Guards.guarded_iter_unpack_sequence,
+}

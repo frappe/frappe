@@ -28,8 +28,11 @@ frappe.assets = {
 		}
 
 		if (localStorage._last_load) {
-			var not_updated_since = new Date() - new Date(localStorage._last_load);
-			if (not_updated_since < 10000 || not_updated_since > 86400000) {
+			let not_updated_since = new Date() - new Date(localStorage._last_load);
+			// Evict cache every 2 days
+			// Evict cache if page is reloaded within 10 seconds. Which could be user trying to
+			// refresh if things feel broken.
+			if ((not_updated_since < 5000 && is_reload()) || not_updated_since > 2 * 86400000) {
 				frappe.assets.clear_local_storage();
 			}
 		} else {
@@ -121,19 +124,31 @@ frappe.assets = {
 		// this is virtual page load, only get the the source
 		// *without* the template
 
-		frappe.call({
-			type: "GET",
-			method: "frappe.client.get_js",
-			args: {
-				items: items,
-			},
-			callback: function (r) {
-				$.each(items, function (i, src) {
-					frappe.assets.add(src, r.message[i]);
-				});
-				callback();
-			},
-			freeze: true,
+		if (items.length === 0) {
+			callback();
+			return;
+		}
+
+		const version_string =
+			frappe.boot.developer_mode || window.dev_server ? Date.now() : window._version_number;
+
+		async function fetch_item(item) {
+			// Add the version to the URL to bust the cache for non-bundled assets
+			let url = new URL(item, window.location.origin);
+
+			if (!item.includes(".bundle.") && !url.searchParams.get("v")) {
+				url.searchParams.append("v", version_string);
+			}
+			const response = await fetch(url.toString());
+			const body = await response.text();
+			frappe.assets.add(item, body);
+		}
+
+		frappe.dom.freeze();
+		const fetch_promises = items.map(fetch_item);
+		Promise.all(fetch_promises).then(() => {
+			frappe.dom.unfreeze();
+			callback();
 		});
 	},
 
@@ -184,3 +199,15 @@ frappe.assets = {
 		return path;
 	},
 };
+
+function is_reload() {
+	try {
+		return window.performance
+			?.getEntriesByType("navigation")
+			.map((nav) => nav.type)
+			.includes("reload");
+	} catch (e) {
+		// Safari probably
+		return true;
+	}
+}

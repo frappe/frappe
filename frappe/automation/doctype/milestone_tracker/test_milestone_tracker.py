@@ -9,7 +9,7 @@ class TestMilestoneTracker(FrappeTestCase):
 	def test_milestone(self):
 		frappe.db.delete("Milestone Tracker")
 
-		frappe.cache().delete_key("milestone_tracker_map")
+		frappe.cache.delete_key("milestone_tracker_map")
 
 		milestone_tracker = frappe.get_doc(
 			dict(doctype="Milestone Tracker", document_type="ToDo", track_field="status")

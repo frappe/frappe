@@ -3,8 +3,6 @@ name: Linters
 on:
   pull_request:
   workflow_dispatch:
-  push:
-    branches: [ develop ]
 
 permissions:
   contents: read
@@ -20,12 +18,12 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 200
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           check-latest: true
 
       - name: Check commit titles
@@ -43,7 +41,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Validate Docs
         env:
@@ -58,10 +56,11 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+          cache: pip
       - uses: pre-commit/action@v3.0.0
 
       - name: Download Semgrep rules
@@ -69,7 +68,7 @@ jobs:
 
       - name: Run Semgrep rules
         run: |
-          pip install semgrep==0.97.0
+          pip install semgrep
           semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
 
   deps-vulnerable-check:
@@ -81,7 +80,7 @@ jobs:
         with:
           python-version: '3.10'
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Cache pip
         uses: actions/cache@v3
@@ -97,4 +96,4 @@ jobs:
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
           sed -i '/dropbox/d' pyproject.toml   # Remove dropbox temporarily https://github.com/dropbox/dropbox-sdk-python/pull/456
-          pip-audit --desc on .
+          pip-audit --desc on --ignore-vuln GHSA-4xqq-73wg-5mjp .

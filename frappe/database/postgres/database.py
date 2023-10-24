@@ -107,6 +107,10 @@ class PostgresExceptionUtil:
 	def is_data_too_long(e):
 		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
 
+	@staticmethod
+	def is_db_table_size_limit(e) -> bool:
+		return False
+
 
 class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"
@@ -260,6 +264,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				ALTER COLUMN "{column}" {null_constraint}"""
 		)
 
+	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
+		table_name = get_table_name(doctype)
+		frappe.db.sql_ddl(
+			f"ALTER TABLE `{table_name}` RENAME COLUMN `{old_column_name}` TO `{new_column_name}`"
+		)
+
 	def create_auth_table(self):
 		self.sql_ddl(
 			"""create table if not exists "__Auth" (
@@ -392,6 +402,21 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				table_name=table_name
 			),
 			as_dict=1,
+		)
+
+	def get_column_type(self, doctype, column):
+		"""Returns column type from database."""
+		information_schema = frappe.qb.Schema("information_schema")
+		table = get_table_name(doctype)
+
+		return (
+			frappe.qb.from_(information_schema.columns)
+			.select(information_schema.columns.data_type)
+			.where(
+				(information_schema.columns.table_name == table)
+				& (information_schema.columns.column_name == column)
+			)
+			.run(pluck=True)[0]
 		)
 
 	def get_database_list(self):

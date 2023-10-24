@@ -9,7 +9,6 @@ import click
 # imports - module imports
 import frappe
 from frappe.commands import get_site, pass_context
-from frappe.core.doctype.log_settings.log_settings import LOG_DOCTYPES
 from frappe.exceptions import SiteNotSpecifiedError
 
 
@@ -482,43 +481,35 @@ def install_app(context, apps, force=False):
 @click.option("--format", "-f", type=click.Choice(["text", "json"]), default="text")
 @pass_context
 def list_apps(context, format):
-	"List apps in site"
+	"""
+	List apps in site.
+	"""
 
 	summary_dict = {}
 
-	def fix_whitespaces(text):
-		if site == context.sites[-1]:
-			text = text.rstrip()
-		if len(context.sites) == 1:
-			text = text.lstrip()
-		return text
+	def format_app(app):
+		name_len = max(len(app.app_name) for app in apps)
+		ver_len = max(len(app.app_version) for app in apps)
+		template = f"{{0:{name_len}}} {{1:{ver_len}}} {{2}}"
+		return template.format(app.app_name, app.app_version, app.git_branch)
 
 	for site in context.sites:
 		frappe.init(site=site)
 		frappe.connect()
 		site_title = click.style(f"{site}", fg="green") if len(context.sites) > 1 else ""
+		installed_apps_info = []
+
 		apps = frappe.get_single("Installed Applications").installed_applications
-
 		if apps:
-			name_len, ver_len = (max(len(x.get(y)) for x in apps) for y in ["app_name", "app_version"])
-			template = f"{{0:{name_len}}} {{1:{ver_len}}} {{2}}"
-
-			installed_applications = [
-				template.format(app.app_name, app.app_version, app.git_branch) for app in apps
-			]
-			applications_summary = "\n".join(installed_applications)
-			summary = f"{site_title}\n{applications_summary}\n"
-			summary_dict[site] = [app.app_name for app in apps]
-
+			installed_apps_info.extend(format_app(app) for app in apps)
 		else:
-			installed_applications = frappe.get_installed_apps()
-			applications_summary = "\n".join(installed_applications)
-			summary = f"{site_title}\n{applications_summary}\n"
-			summary_dict[site] = installed_applications
+			installed_apps_info.extend(frappe.get_installed_apps())
 
-		summary = fix_whitespaces(summary)
+		installed_apps_info_str = "\n".join(installed_apps_info)
+		summary = f"{site_title}\n{installed_apps_info_str}\n"
+		summary_dict[site] = [app.app_name for app in apps]
 
-		if format == "text" and applications_summary and summary:
+		if format == "text" and installed_apps_info and summary:
 			print(summary)
 
 		frappe.destroy()
@@ -701,9 +692,12 @@ def _use(site, sites_path="."):
 
 
 def use(site, sites_path="."):
+	from frappe.installer import update_site_config
+
 	if os.path.exists(os.path.join(sites_path, site)):
-		with open(os.path.join(sites_path, "currentsite.txt"), "w") as sitefile:
-			sitefile.write(site)
+		sites_path = os.getcwd()
+		conifg = os.path.join(sites_path, "common_site_config.json")
+		update_site_config("default_site", site, validate=False, site_config_path=conifg)
 		print(f"Current Site set to {site}")
 	else:
 		print(f"Site {site} does not exist")
@@ -929,7 +923,7 @@ def _drop_site(
 	drop_user_and_database(frappe.conf.db_name, db_root_username, db_root_password)
 
 	archived_sites_path = archived_sites_path or os.path.join(
-		frappe.get_app_path("frappe"), "..", "..", "..", "archived", "sites"
+		frappe.utils.get_bench_path(), "archived", "sites"
 	)
 	archived_sites_path = os.path.realpath(archived_sites_path)
 
@@ -1167,7 +1161,7 @@ def start_ngrok(context, bind_tls, use_default_authtoken):
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls)
 	print(f"Public URL: {tunnel.public_url}")
-	print("Inspect logs at http://localhost:4040")
+	print("Inspect logs at http://127.0.0.1:4040")
 
 	ngrok_process = ngrok.get_ngrok_process()
 	try:
@@ -1199,11 +1193,12 @@ def build_search_index(context):
 
 
 @click.command("clear-log-table")
-@click.option("--doctype", required=True, type=click.Choice(LOG_DOCTYPES), help="Log DocType")
+@click.option("--doctype", required=True, type=str, help="Log DocType")
 @click.option("--days", type=int, help="Keep records for days")
 @click.option("--no-backup", is_flag=True, default=False, help="Do not backup the table")
 @pass_context
 def clear_log_table(context, doctype, days, no_backup):
+
 	"""If any logtype table grows too large then clearing it with DELETE query
 	is not feasible in reasonable time. This command copies recent data to new
 	table and replaces current table with new smaller table.
@@ -1211,6 +1206,7 @@ def clear_log_table(context, doctype, days, no_backup):
 
 	ref: https://mariadb.com/kb/en/big-deletes/#deleting-more-than-half-a-table
 	"""
+	from frappe.core.doctype.log_settings.log_settings import LOG_DOCTYPES
 	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
 	from frappe.utils.backups import scheduled_backup
 
@@ -1275,34 +1271,36 @@ def trim_database(context, dry_run, format, no_backup, yes=False):
 		information_schema = frappe.qb.Schema("information_schema")
 		table_name = frappe.qb.Field("table_name").as_("name")
 
-		queried_result = (
+		database_tables: list[str] = (
 			frappe.qb.from_(information_schema.tables)
 			.select(table_name)
 			.where(information_schema.tables.table_schema == frappe.conf.db_name)
 			.where(information_schema.tables.table_type == "BASE TABLE")
-			.run()
+			.run(pluck=True)
 		)
-
-		database_tables = [x[0] for x in queried_result]
 		doctype_tables = frappe.get_all("DocType", pluck="name")
 
-		for x in database_tables:
-			if not x.startswith("tab"):
+		for table_name in database_tables:
+			if not table_name.startswith("tab"):
 				continue
-			doctype = x.replace("tab", "", 1)
-			if not (doctype in doctype_tables or x.startswith("__") or x in STANDARD_TABLES):
-				TABLES_TO_DROP.append(x)
+			if not (table_name.replace("tab", "", 1) in doctype_tables or table_name in STANDARD_TABLES):
+				TABLES_TO_DROP.append(table_name)
 
 		if not TABLES_TO_DROP:
 			if format == "text":
-				click.secho(f"No ghost tables found in {frappe.local.site}...Great!", fg="green")
+				click.secho(f"{site}: No ghost tables", fg="green")
 		else:
-			if not yes:
-				print("Following tables will be dropped:")
+			if format == "text":
+				print(f"{site}: Following tables will be dropped:")
 				print("\n".join(f"* {dt}" for dt in TABLES_TO_DROP))
+
+			if dry_run:
+				continue
+
+			if not yes:
 				click.confirm("Do you want to continue?", abort=True)
 
-			if not (no_backup or dry_run):
+			if not no_backup:
 				if format == "text":
 					print(f"Backing Up Tables: {', '.join(TABLES_TO_DROP)}")
 
@@ -1319,8 +1317,7 @@ def trim_database(context, dry_run, format, no_backup, yes=False):
 			for table in TABLES_TO_DROP:
 				if format == "text":
 					print(f"* Dropping Table '{table}'...")
-				if not dry_run:
-					frappe.db.sql_ddl(f"drop table `{table}`")
+				frappe.db.sql_ddl(f"drop table `{table}`")
 
 			ALL_DATA[frappe.local.site] = TABLES_TO_DROP
 		frappe.destroy()

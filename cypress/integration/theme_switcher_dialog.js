@@ -7,22 +7,30 @@ context("Theme Switcher Shortcut", () => {
 		cy.reload();
 	});
 	it("Check Toggle", () => {
-		cy.open_theme_dialog("{ctrl+shift+g}");
+		cy.open_theme_dialog();
 		cy.get(".modal-backdrop").should("exist");
-		cy.get(".theme-grid > div").first().click();
+		cy.intercept("POST", "/api/method/frappe.core.doctype.user.user.switch_theme").as(
+			"set_theme"
+		);
+		cy.findByText("Timeless Night").click();
+		cy.wait("@set_theme");
 		cy.close_theme("{ctrl+shift+g}");
 		cy.get(".modal-backdrop").should("not.exist");
 	});
 	it("Check Enter", () => {
-		cy.open_theme_dialog("{ctrl+shift+g}");
-		cy.get(".theme-grid > div").first().click();
+		cy.open_theme_dialog();
+		cy.intercept("POST", "/api/method/frappe.core.doctype.user.user.switch_theme").as(
+			"set_theme"
+		);
+		cy.findByText("Frappe Light").click();
+		cy.wait("@set_theme");
 		cy.close_theme("{enter}");
 		cy.get(".modal-backdrop").should("not.exist");
 	});
 });
 
-Cypress.Commands.add("open_theme_dialog", (shortcut_keys) => {
-	cy.get("body").type(shortcut_keys);
+Cypress.Commands.add("open_theme_dialog", () => {
+	cy.get("body").type("{ctrl+shift+g}");
 });
 Cypress.Commands.add("close_theme", (shortcut_keys) => {
 	cy.get(".modal-header").type(shortcut_keys);

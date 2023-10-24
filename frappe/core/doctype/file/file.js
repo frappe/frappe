@@ -5,6 +5,13 @@ frappe.ui.form.on("File", {
 			frm.add_custom_button(__("Download"), () => frm.trigger("download"), "fa fa-download");
 		}
 
+		if (!frm.doc.is_private) {
+			frm.dashboard.set_headline(
+				__("This file is public. It can be accessed without authentication."),
+				"orange"
+			);
+		}
+
 		frm.toggle_display("preview", false);
 
 		// preview different file types
@@ -20,25 +27,27 @@ frappe.ui.form.on("File", {
 		if (frm.doc.file_name && frm.doc.file_name.split(".").splice(-1)[0] === "zip") {
 			frm.add_custom_button(__("Unzip"), () => frm.trigger("unzip"));
 		}
+		if (frm.doc.file_url) {
+			frm.add_web_link(frm.doc.file_url, __("View file"));
+		}
 	},
 
 	preview_file: function (frm) {
 		let $preview = "";
-		let file_name = frm.doc.file_name.split("?")[0];
-		let file_extension = file_name.split(".").pop()?.toLowerCase();
+		let file_extension = frm.doc.file_type.toLowerCase();
 
 		if (frappe.utils.is_image_file(frm.doc.file_url)) {
 			$preview = $(`<div class="img_preview">
 				<img
 					class="img-responsive"
-					src="${frm.doc.file_url}"
+					src="${frappe.utils.escape_html(frm.doc.file_url)}"
 					onerror="${frm.toggle_display("preview", false)}"
 				/>
 			</div>`);
 		} else if (frappe.utils.is_video_file(frm.doc.file_url)) {
 			$preview = $(`<div class="img_preview">
 				<video width="480" height="320" controls>
-					<source src="${frm.doc.file_url}">
+					<source src="${frappe.utils.escape_html(frm.doc.file_url)}">
 					${__("Your browser does not support the video element.")}
 				</video>
 			</div>`);
@@ -49,14 +58,14 @@ frappe.ui.form.on("File", {
 						style="background:#323639;"
 						width="100%"
 						height="1190"
-						src="${frm.doc.file_url}" type="application/pdf"
+						src="${frappe.utils.escape_html(frm.doc.file_url)}" type="application/pdf"
 					>
 				</object>
 			</div>`);
 		} else if (file_extension === "mp3") {
 			$preview = $(`<div class="img_preview">
 				<audio width="480" height="60" controls>
-					<source src="${frm.doc.file_url}" type="audio/mpeg">
+					<source src="${frappe.utils.escape_html(frm.doc.file_url)}" type="audio/mpeg">
 					${__("Your browser does not support the audio element.")}
 				</audio >
 			</div>`);

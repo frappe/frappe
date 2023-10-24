@@ -14,6 +14,36 @@ from frappe.utils.background_jobs import enqueue, is_job_enqueued
 
 
 class ScheduledJobType(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		create_log: DF.Check
+		cron_format: DF.Data | None
+		frequency: DF.Literal[
+			"All",
+			"Hourly",
+			"Hourly Long",
+			"Daily",
+			"Daily Long",
+			"Weekly",
+			"Weekly Long",
+			"Monthly",
+			"Monthly Long",
+			"Cron",
+			"Yearly",
+			"Annual",
+		]
+		last_execution: DF.Datetime | None
+		method: DF.Data
+		next_execution: DF.Datetime | None
+		server_script: DF.Link | None
+		stopped: DF.Check
+	# end: auto-generated types
 	def autoname(self):
 		self.name = ".".join(self.method.split(".")[-2:])
 
@@ -69,15 +99,18 @@ class ScheduledJobType(Document):
 			"Daily Long": "0 0 * * *",
 			"Hourly": "0 * * * *",
 			"Hourly Long": "0 * * * *",
-			"All": "0/" + str((frappe.get_conf().scheduler_interval or 240) // 60) + " * * * *",
+			"All": f"*/{(frappe.get_conf().scheduler_interval or 240) // 60} * * * *",
 		}
 
 		if not self.cron_format:
 			self.cron_format = CRON_MAP[self.frequency]
 
-		return croniter(
-			self.cron_format, get_datetime(self.last_execution or datetime(2000, 1, 1))
-		).get_next(datetime)
+		# If this is a cold start then last_execution will not be set.
+		# Creation is set as fallback because if very old fallback is set job might trigger
+		# immediately, even when it's meant to be daily.
+		# A dynamic fallback like current time might miss the scheduler interval and job will never start.
+		last_execution = get_datetime(self.last_execution or self.creation)
+		return croniter(self.cron_format, last_execution).get_next(datetime)
 
 	def execute(self):
 		self.scheduler_log = None

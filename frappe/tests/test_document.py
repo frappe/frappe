@@ -21,6 +21,11 @@ class CustomTestNote(Note):
 		return now_datetime() - self.creation
 
 
+class CustomNoteWithoutProperty(Note):
+	def age(self):
+		return now_datetime() - self.creation
+
+
 class TestDocument(FrappeTestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
 		d = frappe.get_doc({"doctype": "User"})
@@ -169,6 +174,10 @@ class TestDocument(FrappeTestCase):
 		with self.assertQueryCount(0):
 			user.db_set("user_type", "Magical Wizard")
 
+	def test_new_doc_with_fields(self):
+		user = frappe.new_doc("User", first_name="wizard")
+		self.assertEqual(user.first_name, "wizard")
+
 	def test_update_after_submit(self):
 		d = self.test_insert()
 		d.starts_on = "2014-09-09"
@@ -299,8 +308,8 @@ class TestDocument(FrappeTestCase):
 		note.title = frappe.generate_hash(length=20)
 		note.insert()
 
-		def patch_note():
-			return patch("frappe.controllers", new={frappe.local.site: {"Note": CustomTestNote}})
+		def patch_note(class_=None):
+			return patch("frappe.controllers", new={frappe.local.site: {"Note": class_ or CustomTestNote}})
 
 		@contextmanager
 		def customize_note(with_options=False):
@@ -340,6 +349,14 @@ class TestDocument(FrappeTestCase):
 			self.assertIsInstance(doc.age, timedelta)
 			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
 			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
+
+		# has virtual field, but age method is not a property
+		with customize_note(), patch_note(class_=CustomNoteWithoutProperty):
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, CustomNoteWithoutProperty)
+			self.assertNotIsInstance(type(doc).age, property)
+			self.assertIsNone(doc.as_dict().get("age"))
+			self.assertIsNone(doc.get_valid_dict().get("age"))
 
 		with customize_note(with_options=True):
 			doc = frappe.get_last_doc("Note")
@@ -448,6 +465,13 @@ class TestDocument(FrappeTestCase):
 			frappe.exceptions.InvalidDates, doc.validate_from_to_dates, "start_date", "end_date"
 		)
 
+	def test_db_set_singles(self):
+		c = frappe.get_doc("Contact Us Settings")
+		key, val = "email_id", "admin1@example.com"
+		c.db_set(key, val)
+		changed_val = frappe.db.get_single_value(c.doctype, key)
+		self.assertEqual(val, changed_val)
+
 
 class TestDocumentWebView(FrappeTestCase):
 	def get(self, path, user="Guest"):
@@ -497,17 +521,34 @@ class TestDocumentWebView(FrappeTestCase):
 	def test_bulk_inserts(self):
 		from frappe.model.document import bulk_insert
 
-		doctype = "ToDo"
-		sent_todo = set()
+		doctype = "Role Profile"
+		child_field = "roles"
+		child_doctype = frappe.get_meta(doctype).get_field(child_field).options
+
+		sent_docs = set()
+		sent_child_docs = set()
 
 		def doc_generator():
-			for i in range(690):
+			for _ in range(21):
 				doc = frappe.new_doc(doctype)
-				doc.name = doc.description = frappe.generate_hash()
-				sent_todo.add(doc.name)
+				doc.role_profile = frappe.generate_hash()
+				doc.append("roles", {"role": "System Manager"})
+
+				doc.set_new_name()
+				doc.set_parent_in_children()
+
+				sent_docs.add(doc.name)
+				sent_child_docs.add(doc.roles[0].name)
+
 				yield doc
 
-		bulk_insert(doctype, doc_generator(), chunk_size=100)
+		bulk_insert(doctype, doc_generator(), chunk_size=5)
 
-		all_todos = set(frappe.get_all("ToDo", pluck="name"))
-		self.assertEqual(sent_todo - all_todos, set(), "All docs should be inserted")
+		all_docs = set(frappe.get_all(doctype, pluck="name"))
+		all_child_docs = set(
+			frappe.get_all(
+				child_doctype, filters={"parenttype": doctype, "parentfield": child_field}, pluck="name"
+			)
+		)
+		self.assertEqual(sent_docs - all_docs, set(), "All docs should be inserted")
+		self.assertEqual(sent_child_docs - all_child_docs, set(), "All child docs should be inserted")

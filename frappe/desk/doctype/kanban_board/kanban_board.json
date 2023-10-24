@@ -84,7 +84,7 @@
   }
  ],
  "links": [],
- "modified": "2022-04-13 12:10:20.284367",
+ "modified": "2023-08-28 22:29:29.569670",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Kanban Board",
@@ -93,14 +93,14 @@
  "permissions": [
   {
    "read": 1,
-   "role": "All"
+   "role": "Desk User"
   },
   {
    "create": 1,
    "delete": 1,
    "if_owner": 1,
    "read": 1,
-   "role": "All",
+   "role": "Desk User",
    "write": 1
   },
   {

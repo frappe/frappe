@@ -20,7 +20,7 @@ def get_context(context):
 	elif frappe.local.form_dict.id:
 		message_id = frappe.local.form_dict.id
 		key = f"message_id:{message_id}"
-		message = frappe.cache().get_value(key, expires=True)
+		message = frappe.cache.get_value(key, expires=True)
 		if message:
 			message_context.update(message.get("context", {}))
 			if message.get("http_status_code"):

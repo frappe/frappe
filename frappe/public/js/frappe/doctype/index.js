@@ -22,6 +22,29 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 		};
 	}
 
+	refresh() {
+		this.show_db_utilization();
+	}
+
+	show_db_utilization() {
+		const doctype = this.frm.doc.doc_type || this.frm.doc.name;
+		frappe
+			.xcall("frappe.core.doctype.doctype.doctype.get_row_size_utilization", {
+				doctype,
+			})
+			.then((r) => {
+				if (r < 50.0) return;
+				this.frm.dashboard.show_progress(
+					__("Database Row Size Utilization"),
+					r,
+					__(
+						"Database Table Row Size Utilization: {0}%, this limits number of fields you can add.",
+						[r]
+					)
+				);
+			});
+	}
+
 	max_attachments() {
 		if (!this.frm.doc.max_attachments) {
 			return;
@@ -111,8 +134,6 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 
 			setTimeout(() => (this.frm.__from_autoname = false), 500);
 		}
-
-		this.frm.set_df_property("fields", "reqd", this.frm.doc.autoname !== "Prompt");
 	}
 
 	setup_fetch_from_fields(doc, doctype, docname) {

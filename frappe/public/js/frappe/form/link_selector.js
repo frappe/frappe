@@ -19,6 +19,7 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 		var me = this;
 
 		this.start = 0;
+		this.page_length = 10;
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Select {0}", [this.doctype == "[Select]" ? __("value") : __(this.doctype)]),
 			fields: [
@@ -37,7 +38,7 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 					fieldname: "more",
 					label: __("More"),
 					click: () => {
-						me.start += 20;
+						me.start += me.page_length;
 						me.search();
 					},
 				},
@@ -65,6 +66,7 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 			txt: this.dialog.fields_dict.txt.get_value(),
 			searchfield: "name",
 			start: this.start,
+			page_length: this.page_length,
 		};
 		var me = this;
 
@@ -84,14 +86,14 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 		frappe.link_search(
 			this.doctype,
 			args,
-			function (r) {
+			function (results) {
 				var parent = me.dialog.fields_dict.results.$wrapper;
 				if (args.start === 0) {
 					parent.empty();
 				}
 
-				if (r.values.length) {
-					$.each(r.values, function (i, v) {
+				if (results.length) {
+					for (const v of results) {
 						var row = $(
 							repl(
 								'<div class="row link-select-row">\
@@ -126,7 +128,7 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 								}
 								return false;
 							});
-					});
+					}
 				} else {
 					$(
 						'<p><br><span class="text-muted">' +
@@ -146,9 +148,11 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 						});
 				}
 
-				if (r.values.length < 20) {
-					var more_btn = me.dialog.fields_dict.more.$wrapper;
+				var more_btn = me.dialog.fields_dict.more.$wrapper;
+				if (results.length < me.page_length) {
 					more_btn.hide();
+				} else {
+					more_btn.show();
 				}
 			},
 			this.dialog.get_primary_btn()
@@ -242,7 +246,7 @@ frappe.link_search = function (doctype, args, callback, btn) {
 		type: "GET",
 		args: args,
 		callback: function (r) {
-			callback && callback(r);
+			callback && callback(r.message);
 		},
 		btn: btn,
 	});

@@ -12,7 +12,7 @@
 	}
 
 	.back-to-home {
-		font-size: var(--text-base);
+		@include get_textstyle("base", "regular");
 	}
 }
 

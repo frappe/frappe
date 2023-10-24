@@ -26,6 +26,16 @@ rights = (
 )
 
 
+GUEST_ROLE = "Guest"
+ALL_USER_ROLE = "All"  # This includes website users too.
+SYSTEM_USER_ROLE = "Desk User"
+ADMIN_ROLE = "Administrator"
+
+
+# These roles are automatically assigned based on user type
+AUTOMATIC_ROLES = (GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE, ADMIN_ROLE)
+
+
 def print_has_permission_check_logs(func):
 	def inner(*args, **kwargs):
 		frappe.flags["has_permission_check_logs"] = []
@@ -48,7 +58,6 @@ def has_permission(
 	doctype,
 	ptype="read",
 	doc=None,
-	verbose=False,
 	user=None,
 	raise_exception=True,
 	*,
@@ -60,7 +69,6 @@ def has_permission(
 	:param doctype: DocType to check permission for
 	:param ptype: Permission Type to check
 	:param doc: Check User Permissions for specified document.
-	:param verbose: DEPRECATED, will be removed in a future release.
 	:param user: User to check permission for. Defaults to current user.
 	:param raise_exception:
 	        DOES NOT raise an exception.
@@ -91,13 +99,14 @@ def has_permission(
 	meta = frappe.get_meta(doctype)
 
 	if doc:
-		if isinstance(doc, str):
+		if isinstance(doc, (str, int)):
 			doc = frappe.get_doc(meta.name, doc)
 		perm = get_doc_permissions(doc, user=user, ptype=ptype).get(ptype)
 		if not perm:
-			push_perm_check_log(
-				_("User {0} does not have access to this document").format(frappe.bold(user))
-			)
+			msg = _("User {0} does not have access to this document").format(frappe.bold(user))
+			if frappe.has_permission(doc.doctype):
+				msg += f": {_(doc.doctype)} - {doc.name}"
+			push_perm_check_log(msg)
 	else:
 		if ptype == "submit" and not cint(meta.is_submittable):
 			push_perm_check_log(_("Document Type is not submittable"))
@@ -119,17 +128,24 @@ def has_permission(
 
 	def false_if_not_shared():
 		if ptype in ("read", "write", "share", "submit", "email", "print"):
-			shared = frappe.share.get_shared(
-				doctype, user, ["read" if ptype in ("email", "print") else ptype]
-			)
+
+			rights = ["read" if ptype in ("email", "print") else ptype]
 
 			if doc:
 				doc_name = get_doc_name(doc)
-				if doc_name in shared:
+				shared = frappe.share.get_shared(
+					doctype,
+					user,
+					rights=rights,
+					filters=[["share_name", "=", doc_name]],
+					limit=1,
+				)
+
+				if shared:
 					if ptype in ("read", "write", "share", "submit") or meta.permissions[0].get(ptype):
 						return True
 
-			elif shared:
+			elif frappe.share.get_shared(doctype, user, rights=rights, limit=1):
 				# if atleast one shared doc of that type, then return True
 				# this is used in db_query to check if permission on DocType
 				return True
@@ -156,7 +172,7 @@ def get_doc_permissions(doc, user=None, ptype=None):
 		return (doc.get("owner") or "").lower() == user.lower()
 
 	if has_controller_permissions(doc, ptype, user=user) is False:
-		push_perm_check_log("Not allowed via controller permission check")
+		push_perm_check_log(_("Not allowed via controller permission check"))
 		return {ptype: 0}
 
 	permissions = copy.deepcopy(get_role_permissions(meta, user=user, is_owner=is_user_owner()))
@@ -206,7 +222,7 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None):
 	if not user:
 		user = frappe.session.user
 
-	cache_key = (doctype_meta.name, user)
+	cache_key = (doctype_meta.name, user, bool(is_owner))
 
 	if user == "Administrator":
 		return allow_everything()
@@ -416,7 +432,7 @@ def get_roles(user=None, with_standard=True):
 		user = frappe.session.user
 
 	if user == "Guest" or not user:
-		return ["Guest"]
+		return [GUEST_ROLE]
 
 	def get():
 		if user == "Administrator":
@@ -426,18 +442,21 @@ def get_roles(user=None, with_standard=True):
 			roles = (
 				frappe.qb.from_(table)
 				.where(
-					(table.parenttype == "User") & (table.parent == user) & (table.role.notin(["All", "Guest"]))
+					(table.parenttype == "User") & (table.parent == user) & (table.role.notin(AUTOMATIC_ROLES))
 				)
 				.select(table.role)
 				.run(pluck=True)
 			)
-			return roles + ["All", "Guest"]
+			roles += [ALL_USER_ROLE, GUEST_ROLE]
+			if is_system_user(user):
+				roles.append(SYSTEM_USER_ROLE)
+			return roles
 
-	roles = frappe.cache().hget("roles", user, get)
+	roles = frappe.cache.hget("roles", user, get)
 
 	# filter standard if required
 	if not with_standard:
-		roles = [r for r in roles if r not in ["All", "Guest", "Administrator"]]
+		roles = [r for r in roles if r not in AUTOMATIC_ROLES]
 
 	return roles
 
@@ -527,7 +546,15 @@ def can_export(doctype, raise_exception=False):
 		return has_access
 
 
-def update_permission_property(doctype, role, permlevel, ptype, value=None, validate=True):
+def update_permission_property(
+	doctype,
+	role,
+	permlevel,
+	ptype,
+	value=None,
+	validate=True,
+	if_owner=0,
+):
 	"""Update a property in Custom Perm"""
 	from frappe.core.doctype.custom_docperm.custom_docperm import update_custom_docperm
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
@@ -535,7 +562,7 @@ def update_permission_property(doctype, role, permlevel, ptype, value=None, vali
 	out = setup_custom_perms(doctype)
 
 	custom_docperm = frappe.db.get_value(
-		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel)
+		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=if_owner)
 	)
 	if custom_docperm:
 		update_custom_docperm(custom_docperm, {ptype: value})
@@ -563,6 +590,12 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 	if frappe.db.get_value(
 		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=0)
 	):
+		frappe.msgprint(
+			_("Rule for this doctype, role, permlevel and if-owner combination already exists.").format(
+				doctype,
+			),
+			alert=True,
+		)
 		return
 
 	if not ptype:
@@ -628,8 +661,7 @@ def allow_everything():
 	returns a dict with access to everything
 	eg. {"read": 1, "write": 1, ...}
 	"""
-	perm = {ptype: 1 for ptype in rights}
-	return perm
+	return {ptype: 1 for ptype in rights}
 
 
 def get_allowed_docs_for_doctype(user_permissions, doctype):
@@ -656,7 +688,7 @@ def push_perm_check_log(log):
 	if frappe.flags.get("has_permission_check_logs") is None:
 		return
 
-	frappe.flags.get("has_permission_check_logs").append(_(log))
+	frappe.flags.get("has_permission_check_logs").append(log)
 
 
 def has_child_permission(
@@ -730,3 +762,7 @@ def has_child_permission(
 		user=user,
 		raise_exception=raise_exception,
 	)
+
+
+def is_system_user(user: str | None = None) -> bool:
+	return frappe.get_cached_value("User", user or frappe.session.user, "user_type") == "System User"

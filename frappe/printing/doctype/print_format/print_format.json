@@ -245,6 +245,7 @@
    "default": "14",
    "fieldname": "font_size",
    "fieldtype": "Int",
+   "hidden": 1,
    "label": "Font Size"
   },
   {
@@ -258,7 +259,7 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2022-11-09 15:29:46.709305",
+ "modified": "2023-08-28 20:25:09.660073",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -277,7 +278,7 @@
    "write": 1
   },
   {
-   "role": "All",
+   "role": "Desk User",
    "select": 1
   }
  ],

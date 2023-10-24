@@ -47,7 +47,7 @@ context("Control Phone", () => {
 	it("case insensitive search for country and clear search", () => {
 		let search_text = "india";
 		cy.get(".selected-phone").click().first();
-		cy.get(".phone-picker").findByRole("searchbox").click().type(search_text);
+		cy.get(".phone-picker").get(".search-phones").click().type(search_text);
 		cy.get(".phone-section .phone-wrapper:not(.hidden)").then((i) => {
 			cy.get(`.phone-section .phone-wrapper[id*="${search_text.toLowerCase()}"]`).then(
 				(countries) => {
@@ -55,9 +55,6 @@ context("Control Phone", () => {
 				}
 			);
 		});
-
-		cy.get(".phone-picker").findByRole("searchbox").clear().blur();
-		cy.get(".phone-section .phone-wrapper").should("not.have.class", "hidden");
 	});
 
 	it("existing document should render phone field with data", () => {

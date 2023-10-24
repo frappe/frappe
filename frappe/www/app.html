@@ -25,13 +25,13 @@
 		{%- endfor -%}
 	</head>
 	<body>
-		{% include "public/icons/timeless/icons.svg" %}
 		{% include "templates/includes/splash_screen.html" %}
 		<div class="main-section">
 			<header></header>
 			<div id="body"></div>
 			<footer></footer>
 		</div>
+		<div id="all-symbols" style="display:none"></div>
 		<div id="build-events-overlay"></div>
 
 		<script type="text/javascript">
@@ -45,6 +45,16 @@
 			frappe.boot = JSON.parse({{ boot }});
 			frappe._messages = frappe.boot["__messages"];
 			frappe.csrf_token = "{{ csrf_token }}";
+
+
+			{%- for path in include_icons -%}
+			fetch(`/assets/{{ path }}?v=${window._version_number}`, { credentials: "same-origin" })
+				.then((r) => r.text())
+				.then((svg) => {
+					let svg_container = document.getElementById("all-symbols");
+					svg_container.insertAdjacentHTML("beforeend", svg);
+				});
+			{%- endfor -%}
 		</script>
 
 	{% for include in include_js %}
@@ -52,7 +62,6 @@
 	{% endfor %}
 
 	{% include "templates/includes/app_analytics/google_analytics.html" %}
-	{% include "templates/includes/app_analytics/mixpanel_analytics.html" %}
 
 		{% for sound in (sounds or []) %}
 		<audio preload="auto" id="sound-{{ sound.name }}" volume={{ sound.volume or 1 }}>

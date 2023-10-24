@@ -11,6 +11,33 @@ from frappe.utils.user import UserPermissions
 
 
 class DesktopIcon(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		_doctype: DF.Link | None
+		_report: DF.Link | None
+		app: DF.Data | None
+		blocked: DF.Check
+		category: DF.Data | None
+		color: DF.Data | None
+		custom: DF.Check
+		description: DF.SmallText | None
+		force_show: DF.Check
+		hidden: DF.Check
+		icon: DF.Data | None
+		idx: DF.Int
+		label: DF.Data | None
+		link: DF.SmallText | None
+		module_name: DF.Data | None
+		reverse: DF.Check
+		standard: DF.Check
+		type: DF.Literal["module", "list", "link", "page", "query-report"]
+	# end: auto-generated types
 	def validate(self):
 		if not self.label:
 			self.label = self.module_name
@@ -28,7 +55,7 @@ def get_desktop_icons(user=None):
 	if not user:
 		user = frappe.session.user
 
-	user_icons = frappe.cache().hget("desktop_icons", user)
+	user_icons = frappe.cache.hget("desktop_icons", user)
 
 	if not user_icons:
 		fields = [
@@ -120,7 +147,7 @@ def get_desktop_icons(user=None):
 			if d.label:
 				d.label = _(d.label)
 
-		frappe.cache().hset("desktop_icons", user, user_icons)
+		frappe.cache.hset("desktop_icons", user, user_icons)
 
 	return user_icons
 
@@ -256,8 +283,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 						raise e
 					else:
 						visible_list.remove(module_name)
-						if frappe.message_log:
-							frappe.message_log.pop()
+						frappe.clear_last_message()
 
 	# set the order
 	set_order(visible_list)
@@ -313,8 +339,8 @@ def get_all_icons():
 
 
 def clear_desktop_icons_cache(user=None):
-	frappe.cache().hdel("desktop_icons", user or frappe.session.user)
-	frappe.cache().hdel("bootinfo", user or frappe.session.user)
+	frappe.cache.hdel("desktop_icons", user or frappe.session.user)
+	frappe.cache.hdel("bootinfo", user or frappe.session.user)
 
 
 def get_user_copy(module_name, user=None):
@@ -445,7 +471,7 @@ def get_module_icons(user=None):
 	if not user:
 		icons = frappe.get_all("Desktop Icon", fields="*", filters={"standard": 1}, order_by="idx")
 	else:
-		frappe.cache().hdel("desktop_icons", user)
+		frappe.cache.hdel("desktop_icons", user)
 		icons = get_user_icons(user)
 
 	for icon in icons:

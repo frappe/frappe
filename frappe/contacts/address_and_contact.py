@@ -1,77 +1,17 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import functools
-import re
-
 import frappe
 from frappe import _
 
 
-def load_address_and_contact(doc, key=None):
+def load_address_and_contact(doc, key=None) -> None:
 	"""Loads address list and contact list in `__onload`"""
-	from frappe.contacts.doctype.address.address import get_address_display, get_condensed_address
+	from frappe.contacts.doctype.address.address import get_address_display_list
+	from frappe.contacts.doctype.contact.contact import get_contact_display_list
 
-	filters = [
-		["Dynamic Link", "link_doctype", "=", doc.doctype],
-		["Dynamic Link", "link_name", "=", doc.name],
-		["Dynamic Link", "parenttype", "=", "Address"],
-	]
-	address_list = frappe.get_list("Address", filters=filters, fields=["*"], order_by="creation asc")
-
-	address_list = [a.update({"display": get_address_display(a)}) for a in address_list]
-
-	address_list = sorted(
-		address_list,
-		key=functools.cmp_to_key(
-			lambda a, b: (int(a.is_primary_address - b.is_primary_address))
-			or (1 if a.modified - b.modified else 0)
-		),
-		reverse=True,
-	)
-
-	doc.set_onload("addr_list", address_list)
-
-	contact_list = []
-	filters = [
-		["Dynamic Link", "link_doctype", "=", doc.doctype],
-		["Dynamic Link", "link_name", "=", doc.name],
-		["Dynamic Link", "parenttype", "=", "Contact"],
-	]
-	contact_list = frappe.get_list("Contact", filters=filters, fields=["*"])
-
-	for contact in contact_list:
-		contact["email_ids"] = frappe.get_all(
-			"Contact Email",
-			filters={"parenttype": "Contact", "parent": contact.name, "is_primary": 0},
-			fields=["email_id"],
-		)
-
-		contact["phone_nos"] = frappe.get_all(
-			"Contact Phone",
-			filters={
-				"parenttype": "Contact",
-				"parent": contact.name,
-				"is_primary_phone": 0,
-				"is_primary_mobile_no": 0,
-			},
-			fields=["phone"],
-		)
-
-		if contact.address:
-			address = frappe.get_doc("Address", contact.address)
-			contact["address"] = get_condensed_address(address)
-
-	contact_list = sorted(
-		contact_list,
-		key=functools.cmp_to_key(
-			lambda a, b: (int(a.is_primary_contact - b.is_primary_contact))
-			or (1 if a.modified - b.modified else 0)
-		),
-		reverse=True,
-	)
-
-	doc.set_onload("contact_list", contact_list)
+	doc.set_onload("addr_list", get_address_display_list(doc.doctype, doc.name))
+	doc.set_onload("contact_list", get_contact_display_list(doc.doctype, doc.name))
 
 
 def has_permission(doc, ptype, user):
@@ -111,21 +51,17 @@ def get_permission_query_conditions(doctype):
 		return ""
 
 	elif not links.get("permitted_links"):
-		conditions = []
-
 		# when everything is not permitted
-		for df in links.get("not_permitted_links"):
-			# like ifnull(customer, '')='' and ifnull(supplier, '')=''
-			conditions.append(f"ifnull(`tab{doctype}`.`{df.fieldname}`, '')=''")
+		conditions = [
+			f"ifnull(`tab{doctype}`.`{df.fieldname}`, '')=''" for df in links.get("not_permitted_links")
+		]
 
 		return "( " + " and ".join(conditions) + " )"
 
 	else:
-		conditions = []
-
-		for df in links.get("permitted_links"):
-			# like ifnull(customer, '')!='' or ifnull(supplier, '')!=''
-			conditions.append(f"ifnull(`tab{doctype}`.`{df.fieldname}`, '')!=''")
+		conditions = [
+			f"ifnull(`tab{doctype}`.`{df.fieldname}`, '')!=''" for df in links.get("permitted_links")
+		]
 
 		return "( " + " or ".join(conditions) + " )"
 

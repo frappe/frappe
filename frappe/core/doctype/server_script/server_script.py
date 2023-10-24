@@ -8,10 +8,59 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
-from frappe.utils.safe_exec import NamespaceDict, get_safe_globals, safe_exec
+from frappe.utils.safe_exec import NamespaceDict, get_safe_globals, is_safe_exec_enabled, safe_exec
 
 
 class ServerScript(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		allow_guest: DF.Check
+		api_method: DF.Data | None
+		cron_format: DF.Data | None
+		disabled: DF.Check
+		doctype_event: DF.Literal[
+			"Before Insert",
+			"Before Validate",
+			"Before Save",
+			"After Insert",
+			"After Save",
+			"Before Submit",
+			"After Submit",
+			"Before Cancel",
+			"After Cancel",
+			"Before Delete",
+			"After Delete",
+			"Before Save (Submitted Document)",
+			"After Save (Submitted Document)",
+			"On Payment Authorization",
+		]
+		enable_rate_limit: DF.Check
+		event_frequency: DF.Literal[
+			"All",
+			"Hourly",
+			"Daily",
+			"Weekly",
+			"Monthly",
+			"Yearly",
+			"Hourly Long",
+			"Daily Long",
+			"Weekly Long",
+			"Monthly Long",
+			"Cron",
+		]
+		module: DF.Link | None
+		rate_limit_count: DF.Int
+		rate_limit_seconds: DF.Int
+		reference_doctype: DF.Link | None
+		script: DF.Code
+		script_type: DF.Literal["DocType Event", "Scheduler Event", "Permission Query", "API"]
+	# end: auto-generated types
 	def validate(self):
 		frappe.only_for("Script Manager", True)
 		self.sync_scheduled_jobs()
@@ -19,10 +68,14 @@ class ServerScript(Document):
 		self.check_if_compilable_in_restricted_context()
 
 	def on_update(self):
-		frappe.cache().delete_value("server_script_map")
 		self.sync_scheduler_events()
 
+	def clear_cache(self):
+		frappe.cache.delete_value("server_script_map")
+		return super().clear_cache()
+
 	def on_trash(self):
+		frappe.cache.delete_value("server_script_map")
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", job.name)
@@ -52,11 +105,16 @@ class ServerScript(Document):
 	def sync_scheduler_events(self):
 		"""Create or update Scheduled Job Type documents for Scheduler Event Server Scripts"""
 		if not self.disabled and self.event_frequency and self.script_type == "Scheduler Event":
-			setup_scheduler_events(script_name=self.name, frequency=self.event_frequency)
+			cron_format = self.cron_format if self.event_frequency == "Cron" else None
+			setup_scheduler_events(
+				script_name=self.name, frequency=self.event_frequency, cron_format=cron_format
+			)
 
 	def clear_scheduled_events(self):
-		"""Deletes existing scheduled jobs by Server Script if self.event_frequency has changed"""
-		if self.script_type == "Scheduler Event" and self.has_value_changed("event_frequency"):
+		"""Deletes existing scheduled jobs by Server Script if self.event_frequency or self.cron_format has changed"""
+		if self.script_type == "Scheduler Event" and (
+			self.has_value_changed("event_frequency") or self.has_value_changed("cron_format")
+		):
 			for scheduled_job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", scheduled_job.name)
 
@@ -163,15 +221,15 @@ class ServerScript(Document):
 					out.append([key, score])
 			return out
 
-		items = frappe.cache().get_value("server_script_autocompletion_items")
+		items = frappe.cache.get_value("server_script_autocompletion_items")
 		if not items:
 			items = get_keys(get_safe_globals())
 			items = [{"value": d[0], "score": d[1]} for d in items]
-			frappe.cache().set_value("server_script_autocompletion_items", items)
+			frappe.cache.set_value("server_script_autocompletion_items", items)
 		return items
 
 
-def setup_scheduler_events(script_name, frequency):
+def setup_scheduler_events(script_name: str, frequency: str, cron_format: str | None = None):
 	"""Creates or Updates Scheduled Job Type documents based on the specified script name and frequency
 
 	Args:
@@ -188,6 +246,7 @@ def setup_scheduler_events(script_name, frequency):
 				"method": method,
 				"frequency": frequency,
 				"server_script": script_name,
+				"cron_format": cron_format,
 			}
 		).insert()
 
@@ -200,6 +259,7 @@ def setup_scheduler_events(script_name, frequency):
 			return
 
 		doc.frequency = frequency
+		doc.cron_format = cron_format
 		doc.save()
 
 		frappe.msgprint(_("Scheduled execution for script {0} has updated").format(script_name))
@@ -221,3 +281,9 @@ def execute_api_server_script(script=None, *args, **kwargs):
 	_globals, _locals = safe_exec(script.script)
 
 	return _globals.frappe.flags
+
+
+@frappe.whitelist()
+def enabled() -> bool | None:
+	if frappe.has_permission("Server Script"):
+		return is_safe_exec_enabled()

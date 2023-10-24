@@ -165,7 +165,6 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 
 		const valid_languages = Object.keys(language_map);
 		if (language && !valid_languages.includes(language)) {
-			// eslint-disable-next-line
 			console.warn(
 				`Invalid language option provided for field "${
 					this.df.label

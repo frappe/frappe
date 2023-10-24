@@ -7,7 +7,7 @@ import json
 import re
 import time
 from collections import Counter
-from typing import Callable
+from collections.abc import Callable
 
 import sqlparse
 
@@ -27,19 +27,11 @@ def sql(*args, **kwargs):
 	end_time = time.monotonic()
 
 	stack = list(get_current_stack_frames())
-	query = sqlparse.format(str(frappe.db.last_query).strip(), keyword_case="upper", reindent=True)
-
-	# Collect EXPLAIN for executed query
-	if is_query_type(query, ("select", "update", "delete")):
-		# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
-		explain_result = frappe.db._sql(f"EXPLAIN {query}", as_dict=True)
-	else:
-		explain_result = []
 
 	data = {
-		"query": query,
+		"query": str(frappe.db.last_query),
 		"stack": stack,
-		"explain_result": explain_result,
+		"explain_result": [],
 		"time": start_time,
 		"duration": float(f"{(end_time - start_time) * 1000:.3f}"),
 	}
@@ -53,7 +45,7 @@ def get_current_stack_frames():
 		current = inspect.currentframe()
 		frames = inspect.getouterframes(current, context=10)
 		for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:
-			if "/apps/" in filename:
+			if "/apps/" in filename or "<serverscript>" in filename:
 				yield {
 					"filename": TRACEBACK_PATH_PATTERN.sub("", filename),
 					"lineno": lineno,
@@ -63,9 +55,80 @@ def get_current_stack_frames():
 		pass
 
 
+def post_process():
+	"""post process all recorded values.
+
+	Any processing that can be done later should be done here to avoid overhead while
+	profiling. As of now following values are post-processed:
+	        - `EXPLAIN` output of queries.
+	        - SQLParse reformatting of queries
+	        - Mark duplicates
+	"""
+	frappe.db.rollback()
+	frappe.db.begin(read_only=True)  # Explicitly start read only transaction
+
+	result = list(frappe.cache.hgetall(RECORDER_REQUEST_HASH).values())
+
+	for request in result:
+		for call in request["calls"]:
+			formatted_query = sqlparse.format(
+				call["query"].strip(), keyword_case="upper", reindent=True, strip_comments=True
+			)
+			call["query"] = formatted_query
+
+			# Collect EXPLAIN for executed query
+			if is_query_type(formatted_query, ("select", "update", "delete")):
+				# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
+				try:
+					call["explain_result"] = frappe.db.sql(f"EXPLAIN {formatted_query}", as_dict=True)
+				except Exception:
+					pass
+		mark_duplicates(request)
+		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
+
+
+def mark_duplicates(request):
+	exact_duplicates = Counter([call["query"] for call in request["calls"]])
+
+	for sql_call in request["calls"]:
+		sql_call["normalized_query"] = normalize_query(sql_call["query"])
+
+	normalized_duplicates = Counter([call["normalized_query"] for call in request["calls"]])
+
+	for index, call in enumerate(request["calls"]):
+		call["index"] = index
+		call["exact_copies"] = exact_duplicates[call["query"]]
+		call["normalized_copies"] = normalized_duplicates[call["normalized_query"]]
+
+
+def normalize_query(query: str) -> str:
+	"""Attempt to normalize query by removing variables.
+	This gives a different view of similar duplicate queries.
+
+	Example:
+	        These two are distinct queries:
+	                `select * from user where name = 'x'`
+	                `select * from user where name = 'z'`
+
+	        But their "normalized" form would be same:
+	                `select * from user where name = ?`
+	"""
+
+	try:
+		q = sqlparse.parse(query)[0]
+		for token in q.flatten():
+			if "Token.Literal" in str(token.ttype):
+				token.value = "?"
+		return str(q)
+	except Exception as e:
+		print("Failed to normalize query ", e)
+
+	return query
+
+
 def record(force=False):
 	if __debug__:
-		if frappe.cache().get_value(RECORDER_INTERCEPT_FLAG) or force:
+		if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
 			frappe.local._recorder = Recorder()
 
 
@@ -109,25 +172,17 @@ class Recorder:
 			"duration": float(f"{(datetime.datetime.now() - self.time).total_seconds() * 1000:0.3f}"),
 			"method": self.method,
 		}
-		frappe.cache().hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
+		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
 		frappe.publish_realtime(
 			event="recorder-dump-event",
 			message=json.dumps(request_data, default=str),
 			user="Administrator",
 		)
 
-		self.mark_duplicates()
-
 		request_data["calls"] = self.calls
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
-		frappe.cache().hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
-
-	def mark_duplicates(self):
-		counts = Counter([call["query"] for call in self.calls])
-		for index, call in enumerate(self.calls):
-			call["index"] = index
-			call["exact_copies"] = counts[call["query"]]
+		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
 
 def _patch():
@@ -140,6 +195,7 @@ def _unpatch():
 
 
 def do_not_record(function):
+	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
 		if hasattr(frappe.local, "_recorder"):
 			del frappe.local._recorder
@@ -150,6 +206,7 @@ def do_not_record(function):
 
 
 def administrator_only(function):
+	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
 		if frappe.session.user != "Administrator":
 			frappe.throw(_("Only Administrator is allowed to use Recorder"))
@@ -162,21 +219,22 @@ def administrator_only(function):
 @do_not_record
 @administrator_only
 def status(*args, **kwargs):
-	return bool(frappe.cache().get_value(RECORDER_INTERCEPT_FLAG))
+	return bool(frappe.cache.get_value(RECORDER_INTERCEPT_FLAG))
 
 
 @frappe.whitelist()
 @do_not_record
 @administrator_only
 def start(*args, **kwargs):
-	frappe.cache().set_value(RECORDER_INTERCEPT_FLAG, 1)
+	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=60 * 60)
 
 
 @frappe.whitelist()
 @do_not_record
 @administrator_only
 def stop(*args, **kwargs):
-	frappe.cache().delete_value(RECORDER_INTERCEPT_FLAG)
+	frappe.cache.delete_value(RECORDER_INTERCEPT_FLAG)
+	frappe.enqueue(post_process)
 
 
 @frappe.whitelist()
@@ -184,9 +242,9 @@ def stop(*args, **kwargs):
 @administrator_only
 def get(uuid=None, *args, **kwargs):
 	if uuid:
-		result = frappe.cache().hget(RECORDER_REQUEST_HASH, uuid)
+		result = frappe.cache.hget(RECORDER_REQUEST_HASH, uuid)
 	else:
-		result = list(frappe.cache().hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
+		result = list(frappe.cache.hgetall(RECORDER_REQUEST_SPARSE_HASH).values())
 	return result
 
 
@@ -194,15 +252,15 @@ def get(uuid=None, *args, **kwargs):
 @do_not_record
 @administrator_only
 def export_data(*args, **kwargs):
-	return list(frappe.cache().hgetall(RECORDER_REQUEST_HASH).values())
+	return list(frappe.cache.hgetall(RECORDER_REQUEST_HASH).values())
 
 
 @frappe.whitelist()
 @do_not_record
 @administrator_only
 def delete(*args, **kwargs):
-	frappe.cache().delete_value(RECORDER_REQUEST_SPARSE_HASH)
-	frappe.cache().delete_value(RECORDER_REQUEST_HASH)
+	frappe.cache.delete_value(RECORDER_REQUEST_SPARSE_HASH)
+	frappe.cache.delete_value(RECORDER_REQUEST_HASH)
 
 
 def record_queries(func: Callable):
@@ -215,7 +273,20 @@ def record_queries(func: Callable):
 		ret = func(*args, **kwargs)
 		dump()
 		_unpatch()
+		post_process()
 		print("Recorded queries, open recorder to view them.")
 		return ret
 
 	return wrapped
+
+
+@frappe.whitelist()
+@do_not_record
+@administrator_only
+def import_data(file: str) -> None:
+	file_doc = frappe.get_doc("File", {"file_url": file})
+	file_content = json.loads(file_doc.get_content())
+	for request in file_content:
+		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, request["uuid"], request)
+		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
+	file_doc.delete(delete_permanently=True)

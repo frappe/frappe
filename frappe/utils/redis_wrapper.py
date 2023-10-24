@@ -34,6 +34,10 @@ class RedisWrapper(redis.Redis):
 		except redis.exceptions.ConnectionError:
 			return False
 
+	def __call__(self):
+		"""WARNING: Added for backward compatibility to support frappe.cache().method(...)"""
+		return self
+
 	def make_key(self, key, user=None, shared=False):
 		if shared:
 			return key
@@ -127,20 +131,22 @@ class RedisWrapper(redis.Redis):
 
 	def delete_value(self, keys, user=None, make_keys=True, shared=False):
 		"""Delete value, list of values."""
+		if not keys:
+			return
+
 		if not isinstance(keys, (list, tuple)):
 			keys = (keys,)
 
+		if make_keys:
+			keys = [self.make_key(k, shared=shared, user=user) for k in keys]
+
 		for key in keys:
-			if make_keys:
-				key = self.make_key(key, shared=shared)
+			frappe.local.cache.pop(key, None)
 
-			if key in frappe.local.cache:
-				del frappe.local.cache[key]
-
-			try:
-				self.delete(key)
-			except redis.exceptions.ConnectionError:
-				pass
+		try:
+			self.delete(*keys)
+		except redis.exceptions.ConnectionError:
+			pass
 
 	def lpush(self, key, value):
 		super().lpush(self.make_key(key), value)
@@ -197,7 +203,11 @@ class RedisWrapper(redis.Redis):
 
 	def exists(self, *names: str, user=None, shared=None) -> int:
 		names = [self.make_key(n, user=user, shared=shared) for n in names]
-		return super().exists(*names)
+
+		try:
+			return super().exists(*names)
+		except redis.exceptions.ConnectionError:
+			return False
 
 	def hgetall(self, name):
 		value = super().hgetall(self.make_key(name))
@@ -241,7 +251,7 @@ class RedisWrapper(redis.Redis):
 
 	def hdel_keys(self, name_starts_with, key):
 		"""Delete hash names with wildcard `*` and key"""
-		for name in frappe.cache().get_keys(name_starts_with):
+		for name in self.get_keys(name_starts_with):
 			name = name.split("|", 1)[1]
 			self.hdel(name, key)
 

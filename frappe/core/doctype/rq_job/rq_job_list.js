@@ -14,11 +14,6 @@ frappe.listview_settings["RQ Job"] = {
 			__("Actions")
 		);
 
-		if (listview.list_view_settings) {
-			listview.list_view_settings.disable_count = 1;
-			listview.list_view_settings.disable_sidebar_stats = 1;
-		}
-
 		frappe.xcall("frappe.utils.scheduler.get_scheduler_status").then(({ status }) => {
 			if (status === "active") {
 				listview.page.set_indicator(__("Scheduler: Active"), "green");
@@ -57,6 +52,6 @@ frappe.listview_settings["RQ Job"] = {
 			}
 
 			listview.refresh();
-		}, 5000);
+		}, 15000);
 	},
 };

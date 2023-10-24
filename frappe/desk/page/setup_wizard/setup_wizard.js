@@ -31,6 +31,9 @@ frappe.setup = {
 };
 
 frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
+	if (frappe.boot.setup_complete) {
+		window.location.href = "/app";
+	}
 	let requires = frappe.boot.setup_wizard_requires || [];
 	frappe.require(requires, function () {
 		frappe.call({
@@ -49,19 +52,14 @@ frappe.pages["setup-wizard"].on_page_load = function (wrapper) {
 				};
 				frappe.wizard = new frappe.setup.SetupWizard(wizard_settings);
 				frappe.setup.run_event("after_load");
-				let route = frappe.get_route();
-				if (route) {
-					frappe.wizard.show_slide(route[1]);
-				}
+				frappe.wizard.show_slide(cint(frappe.get_route()[1]));
 			},
 		});
 	});
 };
 
 frappe.pages["setup-wizard"].on_page_show = function () {
-	if (frappe.get_route()[1]) {
-		frappe.wizard && frappe.wizard.show_slide(frappe.get_route()[1]);
-	}
+	frappe.wizard && frappe.wizard.show_slide(cint(frappe.get_route()[1]));
 };
 
 frappe.setup.on("before_load", function () {
@@ -102,10 +100,13 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	handle_enter_press(e) {
 		if (e.which === frappe.ui.keyCode.ENTER) {
-			var $target = $(e.target);
-			if ($target.hasClass("prev-btn")) {
+			let $target = $(e.target);
+			if ($target.hasClass("prev-btn") || $target.hasClass("next-btn")) {
 				$target.trigger("click");
 			} else {
+				// hitting enter on autocomplete field shouldn't trigger next slide.
+				if ($target.data().fieldtype == "Autocomplete") return;
+
 				this.container.find(".next-btn").trigger("click");
 				e.preventDefault();
 			}
@@ -122,12 +123,10 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	show_slide(id) {
 		if (id === this.slides.length) {
-			// show_slide called on last slide
-			this.action_on_complete();
 			return;
 		}
 		super.show_slide(id);
-		frappe.set_route(this.page_name, id + "");
+		frappe.set_route(this.page_name, cstr(id));
 	}
 
 	show_hide_prev_next(id) {
@@ -403,9 +402,17 @@ frappe.setup.slides_settings = [
 			},
 			{
 				fieldname: "enable_telemetry",
-				label: __("Allow Sending Usage Data for Improving applications"),
+				label: __("Allow sending usage data for improving applications"),
 				fieldtype: "Check",
 				default: 1,
+				depends_on: "eval:frappe.telemetry.can_enable()",
+			},
+			{
+				fieldname: "allow_recording_first_session",
+				label: __("Allow recording my first session to improve user experience"),
+				fieldtype: "Check",
+				default: 0,
+				depends_on: "eval:frappe.telemetry.can_enable()",
 			},
 		],
 
@@ -552,15 +559,19 @@ frappe.setup.utils = {
 
 		slide.get_input("timezone").empty().add_options(data.all_timezones);
 
-		// set values if present
-		if (frappe.wizard.values.country) {
-			country_field.set_input(frappe.wizard.values.country);
-		} else if (data.default_country) {
-			country_field.set_input(data.default_country);
-		}
-
 		slide.get_field("currency").set_input(frappe.wizard.values.currency);
 		slide.get_field("timezone").set_input(frappe.wizard.values.timezone);
+
+		// set values if present
+		let country =
+			frappe.wizard.values.country ||
+			data.default_country ||
+			guess_country(frappe.setup.data.regional_data.country_info);
+
+		if (country) {
+			country_field.set_input(country);
+			$(country_field.input).change();
+		}
 	},
 
 	bind_language_events: function (slide) {
@@ -637,3 +648,22 @@ frappe.setup.utils = {
 		});
 	},
 };
+
+// https://github.com/eggert/tz/blob/main/backward add more if required.
+const TZ_BACKWARD_COMPATBILITY_MAP = {
+	"Asia/Calcutta": "Asia/Kolkata",
+};
+
+function guess_country(country_info) {
+	try {
+		let system_timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+		system_timezone = TZ_BACKWARD_COMPATBILITY_MAP[system_timezone] || system_timezone;
+
+		for (let [country, info] of Object.entries(country_info)) {
+			let possible_timezones = (info.timezones || []).filter((t) => t == system_timezone);
+			if (possible_timezones.length) return country;
+		}
+	} catch (e) {
+		console.log("Could not guess country", e);
+	}
+}

@@ -4,6 +4,7 @@ import os
 import traceback
 import warnings
 from pathlib import Path
+from textwrap import dedent
 
 import click
 
@@ -52,22 +53,31 @@ def get_sites(site_arg: str) -> list[str]:
 		return [site_arg]
 	elif os.environ.get("FRAPPE_SITE"):
 		return [os.environ.get("FRAPPE_SITE")]
-	elif os.path.exists("currentsite.txt"):
-		with open("currentsite.txt") as f:
-			if site := f.read().strip():
-				return [site]
+	elif default_site := frappe.get_conf().default_site:
+		return [default_site]
+	# This is not supported, just added here for warning.
+	elif (site := frappe.read_file("currentsite.txt")) and site.strip():
+		click.secho(
+			dedent(
+				f"""
+			WARNING: currentsite.txt is not supported anymore for setting default site. Use following command to set it as default site.
+			$ bench use {site}"""
+			),
+			fg="red",
+		)
+
 	return []
 
 
 def get_app_commands(app: str) -> dict:
 	ret = {}
-	app_path = Path("..", "apps", app, app)
-
-	if not ((app_path / "commands.py").exists() or (app_path / "commands" / "__init__.py").exists()):
-		return ret
-
 	try:
 		app_command_module = importlib.import_module(f"{app}.commands")
+	except ModuleNotFoundError as e:
+		if e.name == f"{app}.commands":
+			return ret
+		traceback.print_exc()
+		return ret
 	except Exception:
 		traceback.print_exc()
 		return ret

@@ -33,6 +33,7 @@
   "apply_strict_user_permissions",
   "column_break_21",
   "allow_guests_to_upload_files",
+  "force_web_capture_mode_for_uploads",
   "security",
   "session_expiry",
   "document_share_key_expiry",
@@ -72,13 +73,19 @@
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
+  "welcome_email_template",
+  "reset_password_template",
   "prepared_report_section",
   "max_auto_email_report_per_user",
   "system_updates_section",
   "disable_system_update_notification",
   "disable_change_log_notification",
   "telemetry_section",
-  "enable_telemetry"
+  "enable_telemetry",
+  "files_section",
+  "max_file_size",
+  "column_break_uqma",
+  "allowed_file_extensions"
  ],
  "fields": [
   {
@@ -210,7 +217,7 @@
    "label": "Security"
   },
   {
-   "default": "24:00",
+   "default": "60:00",
    "description": "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours.",
    "fieldname": "session_expiry",
    "fieldtype": "Data",
@@ -285,6 +292,7 @@
    "label": "Brute Force Security"
   },
   {
+   "default": "10",
    "fieldname": "allow_consecutive_login_attempts",
    "fieldtype": "Int",
    "label": "Allow Consecutive Login Attempts "
@@ -419,7 +427,7 @@
    "default": "1",
    "fieldname": "attach_view_link",
    "fieldtype": "Check",
-   "label": "Send document Web View link in email"
+   "label": "Include Web View Link in Email"
   },
   {
    "collapsible": 1,
@@ -548,13 +556,54 @@
    "default": "1",
    "fieldname": "enable_telemetry",
    "fieldtype": "Check",
-   "label": "Allow Sending Usage Data for Improving applications"
+   "label": "Allow Sending Usage Data for Improving Applications"
+  },
+  {
+   "fieldname": "welcome_email_template",
+   "fieldtype": "Link",
+   "label": "Welcome Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "reset_password_template",
+   "fieldtype": "Link",
+   "label": "Reset Password Template",
+   "options": "Email Template"
+  },
+  {
+   "default": "0",
+   "description": "When uploading files, force the use of the web-based image capture. If this is unchecked, the default behavior is to use the mobile native camera when use from a mobile is detected.",
+   "fieldname": "force_web_capture_mode_for_uploads",
+   "fieldtype": "Check",
+   "label": "Force Web Capture Mode for Uploads"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "files_section",
+   "fieldtype": "Section Break",
+   "label": "Files"
+  },
+  {
+   "fieldname": "max_file_size",
+   "fieldtype": "Int",
+   "label": "Max File Size (MB)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_uqma",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG",
+   "fieldname": "allowed_file_extensions",
+   "fieldtype": "Small Text",
+   "label": "Allowed File Extensions"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-04-23 11:14:59.302851",
+ "modified": "2023-10-17 16:12:28.145496",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

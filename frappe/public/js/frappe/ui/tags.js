@@ -17,11 +17,12 @@ frappe.ui.Tags = class {
 		this.$input = $(`<input class="tags-input form-control"></input>`);
 
 		this.$inputWrapper = this.get_list_element(this.$input);
-		this.$placeholder = this.get_list_element(
-			$(`<span class="tags-placeholder text-muted">${placeholder}</span>`)
-		);
+		this.$placeholder =
+			$(`<button class="add-tags-btn text-muted btn btn-link icon-btn" id="add_tags">
+				${__(placeholder)}
+			</button>`);
+		this.$placeholder.appendTo(this.$ul.find(".form-sidebar-items"));
 		this.$inputWrapper.appendTo(this.$ul);
-		this.$placeholder.appendTo(this.$ul);
 
 		this.deactivate();
 		this.bind();
@@ -69,7 +70,7 @@ frappe.ui.Tags = class {
 		if (label && label !== "" && !this.tagsList.includes(label)) {
 			let $tag = this.get_tag(label);
 			let row = this.get_list_element($tag, "form-tag-row");
-			row.insertBefore(this.$inputWrapper);
+			row.insertAfter(this.$inputWrapper);
 			this.tagsList.push(label);
 			this.onTagAdd && this.onTagAdd(label);
 		}

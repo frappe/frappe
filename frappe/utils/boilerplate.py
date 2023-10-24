@@ -11,9 +11,9 @@ import textwrap
 
 import click
 import git
+import requests
 
 import frappe
-from frappe.utils import touch_file
 
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
@@ -45,8 +45,12 @@ def _get_user_inputs(app_name):
 		},
 		"app_description": {"prompt": "App Description"},
 		"app_publisher": {"prompt": "App Publisher"},
-		"app_email": {"prompt": "App Email"},
-		"app_license": {"prompt": "App License", "default": "MIT"},
+		"app_email": {"prompt": "App Email", "validator": is_valid_email},
+		"app_license": {
+			"prompt": "App License",
+			"default": "mit",
+			"type": click.Choice(get_license_options()),
+		},
 		"create_github_workflow": {
 			"prompt": "Create GitHub Workflow action for unittests",
 			"default": False,
@@ -72,6 +76,17 @@ def _get_user_inputs(app_name):
 	return hooks
 
 
+def is_valid_email(email) -> bool:
+	from email.headerregistry import Address
+
+	try:
+		Address(addr_spec=email)
+	except Exception:
+		print("App Email should be a valid email address.")
+		return False
+	return True
+
+
 def is_valid_title(title) -> bool:
 	if not APP_TITLE_PATTERN.match(title):
 		print(
@@ -79,6 +94,26 @@ def is_valid_title(title) -> bool:
 		)
 		return False
 	return True
+
+
+def get_license_options() -> list[str]:
+	url = "https://api.github.com/licenses"
+	res = requests.get(url=url)
+	if res.status_code == 200:
+		res = res.json()
+		ids = [r.get("spdx_id") for r in res]
+		return [licencse.lower() for licencse in ids]
+
+	return ["agpl-3.0", "gpl-3.0", "mit", "custom"]
+
+
+def get_license_text(license_name: str) -> str:
+	url = f"https://api.github.com/licenses/{license_name.lower()}"
+	res = requests.get(url=url)
+	if res.status_code == 200:
+		res = res.json()
+		return res.get("body")
+	return license_name
 
 
 def _create_app_boilerplate(dest, hooks, no_git=False):
@@ -106,11 +141,8 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
 		f.write(frappe.as_unicode(init_template))
 
-	with open(os.path.join(dest, hooks.app_name, "MANIFEST.in"), "w") as f:
-		f.write(frappe.as_unicode(manifest_template.format(**hooks)))
-
-	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
-		f.write("# frappe -- https://github.com/frappe/frappe is installed via 'bench init'")
+	with open(os.path.join(dest, hooks.app_name, "pyproject.toml"), "w") as f:
+		f.write(frappe.as_unicode(pyproject_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(
@@ -120,9 +152,9 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 				)
 			)
 		)
-
+	license_body = get_license_text(license_name=hooks.app_license)
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
-		f.write(frappe.as_unicode("License: " + hooks.app_license))
+		f.write(frappe.as_unicode(license_body))
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
 		f.write(frappe.as_unicode(hooks.app_title))
@@ -132,13 +164,11 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	for key in ("app_publisher", "app_description", "app_license"):
 		hooks[key] = hooks[key].replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"')
 
-	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
-		f.write(frappe.as_unicode(setup_template.format(**hooks)))
-
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
 		f.write(frappe.as_unicode(hooks_template.format(**hooks)))
 
-	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"))
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"), "w") as f:
+		f.write(frappe.as_unicode(patches_template.format(**hooks)))
 
 	app_directory = os.path.join(dest, hooks.app_name)
 
@@ -273,38 +303,40 @@ class PatchCreator:
 		init_py.touch()
 
 
-manifest_template = """include MANIFEST.in
-include requirements.txt
-include *.json
-include *.md
-include *.py
-include *.txt
-recursive-include {app_name} *.css
-recursive-include {app_name} *.csv
-recursive-include {app_name} *.html
-recursive-include {app_name} *.ico
-recursive-include {app_name} *.js
-recursive-include {app_name} *.json
-recursive-include {app_name} *.md
-recursive-include {app_name} *.png
-recursive-include {app_name} *.py
-recursive-include {app_name} *.svg
-recursive-include {app_name} *.txt
-recursive-exclude {app_name} *.pyc"""
-
 init_template = """
 __version__ = '0.0.1'
 
 """
 
-hooks_template = """from . import __version__ as app_version
+pyproject_template = """[project]
+name = "{app_name}"
+authors = [
+    {{ name = "{app_publisher}", email = "{app_email}"}}
+]
+description = "{app_description}"
+requires-python = ">=3.10"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    # "frappe~=15.0.0" # Installed and managed by bench.
+]
 
-app_name = "{app_name}"
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+# These dependencies are only installed when developer mode is enabled
+[tool.bench.dev-dependencies]
+# package_name = "~=1.1.0"
+"""
+
+hooks_template = """app_name = "{app_name}"
 app_title = "{app_title}"
 app_publisher = "{app_publisher}"
 app_description = "{app_description}"
 app_email = "{app_email}"
 app_license = "{app_license}"
+# required_apps = []
 
 # Includes in <head>
 # ------------------
@@ -332,6 +364,11 @@ app_license = "{app_license}"
 # doctype_list_js = {{"doctype" : "public/js/doctype_list.js"}}
 # doctype_tree_js = {{"doctype" : "public/js/doctype_tree.js"}}
 # doctype_calendar_js = {{"doctype" : "public/js/doctype_calendar.js"}}
+
+# Svg Icons
+# ------------------
+# include app icons in desk
+# app_include_icons = "{app_name}/public/icons.svg"
 
 # Home Pages
 # ----------
@@ -370,6 +407,22 @@ app_license = "{app_license}"
 
 # before_uninstall = "{app_name}.uninstall.before_uninstall"
 # after_uninstall = "{app_name}.uninstall.after_uninstall"
+
+# Integration Setup
+# ------------------
+# To set up dependencies/integrations with other apps
+# Name of the app being installed is passed as an argument
+
+# before_app_install = "{app_name}.utils.before_app_install"
+# after_app_install = "{app_name}.utils.after_app_install"
+
+# Integration Cleanup
+# -------------------
+# To clean up dependencies/integrations with other apps
+# Name of the app being uninstalled is passed as an argument
+
+# before_app_uninstall = "{app_name}.utils.before_app_uninstall"
+# after_app_uninstall = "{app_name}.utils.after_app_uninstall"
 
 # Desk Notifications
 # ------------------
@@ -500,33 +553,13 @@ app_license = "{app_license}"
 # ]
 """
 
-setup_template = """from setuptools import setup, find_packages
-
-with open("requirements.txt") as f:
-	install_requires = f.read().strip().split("\\n")
-
-# get version from __version__ variable in {app_name}/__init__.py
-from {app_name} import __version__ as version
-
-setup(
-	name="{app_name}",
-	version=version,
-	description="{app_description}",
-	author="{app_publisher}",
-	author_email="{app_email}",
-	packages=find_packages(),
-	zip_safe=False,
-	include_package_data=True,
-	install_requires=install_requires
-)
-"""
-
 gitignore_template = """.DS_Store
 *.pyc
 *.egg-info
 *.swp
 tags
-node_modules"""
+node_modules
+__pycache__"""
 
 github_workflow_template = """
 name: CI
@@ -557,17 +590,13 @@ jobs:
         image: redis:alpine
         ports:
           - 11000:6379
-      redis-socketio:
-        image: redis:alpine
-        ports:
-          - 12000:6379
       mariadb:
         image: mariadb:10.6
         env:
           MYSQL_ROOT_PASSWORD: root
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+        options: --health-cmd="mariadb-admin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
     steps:
       - name: Clone
@@ -581,7 +610,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
           check-latest: true
 
       - name: Cache pip
@@ -605,12 +634,15 @@ jobs:
           restore-keys: |
             ${{{{ runner.os }}}}-yarn-
 
+      - name: Install MariaDB Client
+        run: sudo apt-get install mariadb-client-10.6
+
       - name: Setup
         run: |
           pip install frappe-bench
           bench init --skip-redis-config-generation --skip-assets --python "$(which python)" ~/frappe-bench
-          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
-          mysql --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
+          mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL character_set_server = 'utf8mb4'"
+          mariadb --host 127.0.0.1 --port 3306 -u root -proot -e "SET GLOBAL collation_server = 'utf8mb4_unicode_ci'"
 
       - name: Install
         working-directory: /home/runner/frappe-bench
@@ -631,3 +663,10 @@ jobs:
         env:
           TYPE: server
 """
+
+patches_template = """[pre_model_sync]
+# Patches added in this section will be executed before doctypes are migrated
+# Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
+
+[post_model_sync]
+# Patches added in this section will be executed after doctypes are migrated"""

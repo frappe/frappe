@@ -1,7 +1,7 @@
 frappe.ui.form.on("User", {
 	before_load: function (frm) {
-		var update_tz_select = function (user_language) {
-			frm.set_df_property("time_zone", "options", [""].concat(frappe.all_timezones));
+		let update_tz_options = function () {
+			frm.fields_dict.time_zone.set_data(frappe.all_timezones);
 		};
 
 		if (!frappe.all_timezones) {
@@ -9,11 +9,11 @@ frappe.ui.form.on("User", {
 				method: "frappe.core.doctype.user.user.get_timezones",
 				callback: function (r) {
 					frappe.all_timezones = r.message.timezones;
-					update_tz_select();
+					update_tz_options();
 				},
 			});
 		} else {
-			update_tz_select();
+			update_tz_options();
 		}
 	},
 
@@ -123,7 +123,8 @@ frappe.ui.form.on("User", {
 			!doc.__unsaved &&
 			frappe.all_timezones &&
 			(hasChanged(doc.language, frappe.boot.user.language) ||
-				hasChanged(doc.time_zone, frappe.boot.time_zone.user))
+				hasChanged(doc.time_zone, frappe.boot.time_zone.user) ||
+				hasChanged(doc.desk_theme, frappe.boot.user.desk_theme))
 		) {
 			frappe.msgprint(__("Refreshing..."));
 			window.location.reload();
@@ -271,7 +272,7 @@ frappe.ui.form.on("User", {
 
 		if (frappe.route_flags.unsaved === 1) {
 			delete frappe.route_flags.unsaved;
-			for (var i = 0; i < frm.doc.user_emails.length; i++) {
+			for (let i = 0; i < frm.doc.user_emails.length; i++) {
 				frm.doc.user_emails[i].idx = frm.doc.user_emails[i].idx + 1;
 			}
 			frm.dirty();
@@ -301,14 +302,14 @@ frappe.ui.form.on("User", {
 				email: frm.doc.email,
 			},
 			callback: function (r) {
-				if (!Array.isArray(r.message)) {
+				if (!Array.isArray(r.message) || !r.message.length) {
 					frappe.route_options = {
 						email_id: frm.doc.email,
 						awaiting_password: 1,
 						enable_incoming: 1,
 					};
 					frappe.model.with_doctype("Email Account", function (doc) {
-						var doc = frappe.model.get_new_doc("Email Account");
+						doc = frappe.model.get_new_doc("Email Account");
 						frappe.route_flags.linked_user = frm.doc.name;
 						frappe.route_flags.delete_user_from_locals = true;
 						frappe.set_route("Form", "Email Account", doc.name);

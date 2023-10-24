@@ -6,6 +6,18 @@ from frappe.model.document import Document
 
 
 class RoleProfile(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
+		from frappe.types import DF
+
+		role_profile: DF.Data
+		roles: DF.Table[HasRole]
+	# end: auto-generated types
 	def autoname(self):
 		"""set name as Role Profile name"""
 		self.name = self.role_profile

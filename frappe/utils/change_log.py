@@ -5,7 +5,6 @@ import json
 import os
 import subprocess  # nosec
 
-import requests
 from semantic_version import Version
 
 import frappe
@@ -231,6 +230,7 @@ def check_release_on_github(app: str):
 	                organization name, if the application exists, otherwise None.
 	"""
 
+	import requests
 	from giturlparse import parse
 	from giturlparse.parser import ParserError
 
@@ -267,19 +267,17 @@ def check_release_on_github(app: str):
 def add_message_to_redis(update_json):
 	# "update-message" will store the update message string
 	# "update-user-set" will be a set of users
-	cache = frappe.cache()
-	cache.set_value("update-info", json.dumps(update_json))
+	frappe.cache.set_value("update-info", json.dumps(update_json))
 	user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
 	system_managers = [user for user in user_list if "System Manager" in frappe.get_roles(user)]
-	cache.sadd("update-user-set", *system_managers)
+	frappe.cache.sadd("update-user-set", *system_managers)
 
 
 @frappe.whitelist()
 def show_update_popup():
-	cache = frappe.cache()
 	user = frappe.session.user
 
-	update_info = cache.get_value("update-info")
+	update_info = frappe.cache.get_value("update-info")
 	if not update_info:
 		return
 
@@ -287,7 +285,7 @@ def show_update_popup():
 
 	# Check if user is int the set of users to send update message to
 	update_message = ""
-	if cache.sismember("update-user-set", user):
+	if frappe.cache.sismember("update-user-set", user):
 		for update_type in updates:
 			release_links = ""
 			for app in updates[update_type]:
@@ -308,4 +306,4 @@ def show_update_popup():
 
 	if update_message:
 		frappe.msgprint(update_message, title=_("New updates are available"), indicator="green")
-		cache.srem("update-user-set", user)
+		frappe.cache.srem("update-user-set", user)

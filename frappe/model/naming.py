@@ -3,7 +3,8 @@
 
 import datetime
 import re
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Optional
 
 import frappe
 from frappe import _
@@ -15,10 +16,6 @@ if TYPE_CHECKING:
 	from frappe.model.document import Document
 	from frappe.model.meta import Meta
 
-
-# NOTE: This is used to keep track of status of sites
-# whether `log_types` have autoincremented naming set for the site or not.
-autoincremented_site_status_map = {}
 
 NAMING_SERIES_PATTERN = re.compile(r"^[\w\- \/.#{}]+$", re.UNICODE)
 BRACED_PARAMS_PATTERN = re.compile(r"(\{[\w | #]+\})")
@@ -64,8 +61,10 @@ class NamingSeries:
 				exc=InvalidNamingSeriesError,
 			)
 
-	def generate_next_name(self, doc: "Document") -> str:
-		self.validate()
+	def generate_next_name(self, doc: "Document", *, ignore_validate=False) -> str:
+		if not ignore_validate:
+			self.validate()
+
 		parts = self.series.split(".")
 		return parse_naming_series(parts, doc=doc)
 
@@ -151,7 +150,8 @@ def set_new_name(doc):
 
 	if getattr(doc, "amended_from", None):
 		_set_amended_name(doc)
-		return
+		if doc.name:
+			return
 
 	elif getattr(doc.meta, "issingle", False):
 		doc.name = doc.doctype
@@ -175,29 +175,11 @@ def set_new_name(doc):
 def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 	"""Checks if the doctype has autoincrement autoname set"""
 
-	if doctype in log_types:
-		if autoincremented_site_status_map.get(frappe.local.site) is None:
-			if (
-				frappe.db.sql(
-					f"""select data_type FROM information_schema.columns
-				where column_name = 'name' and table_name = 'tab{doctype}'"""
-				)[0][0]
-				== "bigint"
-			):
-				autoincremented_site_status_map[frappe.local.site] = 1
-				return True
-			else:
-				autoincremented_site_status_map[frappe.local.site] = 0
+	if not meta:
+		meta = frappe.get_meta(doctype)
 
-		elif autoincremented_site_status_map[frappe.local.site]:
-			return True
-
-	else:
-		if not meta:
-			meta = frappe.get_meta(doctype)
-
-		if not getattr(meta, "issingle", False) and meta.autoname == "autoincrement":
-			return True
+	if not getattr(meta, "issingle", False) and meta.autoname == "autoincrement":
+		return True
 
 	return False
 
@@ -263,7 +245,7 @@ def set_name_by_naming_series(doc):
 	doc.name = make_autoname(doc.naming_series + ".#####", "", doc)
 
 
-def make_autoname(key="", doctype="", doc=""):
+def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 	"""
 	     Creates an autoname from the given key:
 
@@ -285,7 +267,7 @@ def make_autoname(key="", doctype="", doc=""):
 		return frappe.generate_hash(length=10)
 
 	series = NamingSeries(key)
-	return series.generate_next_name(doc)
+	return series.generate_next_name(doc, ignore_validate=ignore_validate)
 
 
 def parse_naming_series(
@@ -335,11 +317,11 @@ def parse_naming_series(
 			part = determine_consecutive_week_number(today)
 		elif e == "timestamp":
 			part = str(today)
-		elif e == "FY":
-			part = frappe.defaults.get_user_default("fiscal_year")
 		elif doc and (e.startswith("{") or doc.get(e, _sentinel) is not _sentinel):
 			e = e.replace("{", "").replace("}", "")
 			part = doc.get(e)
+		elif method := has_custom_parser(e):
+			part = frappe.get_attr(method[0])(doc, e)
 		else:
 			part = e
 
@@ -349,6 +331,11 @@ def parse_naming_series(
 			name += cstr(part).strip()
 
 	return name
+
+
+def has_custom_parser(e):
+	"""Returns true if the naming series part has a custom parser"""
+	return frappe.get_hooks("naming_series_variables", {}).get(e)
 
 
 def determine_consecutive_week_number(datetime):
@@ -506,6 +493,17 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 
 
 def _set_amended_name(doc):
+	amend_naming_rule = frappe.db.get_value(
+		"Amended Document Naming Settings", {"document_type": doc.doctype}, "action", cache=True
+	)
+	if not amend_naming_rule:
+		amend_naming_rule = frappe.db.get_single_value(
+			"Document Naming Settings", "default_amend_naming", cache=True
+		)
+
+	if amend_naming_rule == "Default Naming":
+		return
+
 	am_id = 1
 	am_prefix = doc.amended_from
 	if frappe.db.get_value(doc.doctype, doc.amended_from, "amended_from"):
@@ -522,8 +520,7 @@ def _field_autoname(autoname, doc, skip_slicing=None):
 	`autoname` field starts with 'field:'
 	"""
 	fieldname = autoname if skip_slicing else autoname[6:]
-	name = (cstr(doc.get(fieldname)) or "").strip()
-	return name
+	return (cstr(doc.get(fieldname)) or "").strip()
 
 
 def _prompt_autoname(autoname, doc):
@@ -536,7 +533,7 @@ def _prompt_autoname(autoname, doc):
 		frappe.throw(_("Please set the document name"))
 
 
-def _format_autoname(autoname, doc):
+def _format_autoname(autoname: str, doc):
 	"""
 	Generate autoname by replacing all instances of braced params (fields, date params ('DD', 'MM', 'YY'), series)
 	Independent of remaining string or separators.

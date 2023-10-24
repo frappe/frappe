@@ -9,6 +9,7 @@
   "script_type",
   "reference_doctype",
   "event_frequency",
+  "cron_format",
   "doctype_event",
   "api_method",
   "allow_guest",
@@ -99,7 +100,7 @@
    "fieldtype": "Select",
    "label": "Event Frequency",
    "mandatory_depends_on": "eval:doc.script_type == \"Scheduler Event\"",
-   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long"
+   "options": "All\nHourly\nDaily\nWeekly\nMonthly\nYearly\nHourly Long\nDaily Long\nWeekly Long\nMonthly Long\nCron"
   },
   {
    "fieldname": "module",
@@ -132,6 +133,13 @@
    "fieldname": "rate_limit_seconds",
    "fieldtype": "Int",
    "label": "Time Window (Seconds)"
+  },
+  {
+   "depends_on": "eval:doc.event_frequency==='Cron'",
+   "description": "<pre>*  *  *  *  *\n\u252c  \u252c  \u252c  \u252c  \u252c\n\u2502  \u2502  \u2502  \u2502  \u2502\n\u2502  \u2502  \u2502  \u2502  \u2514 day of week (0 - 6) (0 is Sunday)\n\u2502  \u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500 month (1 - 12)\n\u2502  \u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 day of month (1 - 31)\n\u2502  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 hour (0 - 23)\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 minute (0 - 59)\n\n---\n\n* - Any value\n/ - Step values\n</pre>\n",
+   "fieldname": "cron_format",
+   "fieldtype": "Data",
+   "label": "Cron Format"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -141,7 +149,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2023-05-16 11:03:58.282680",
+ "modified": "2023-10-14 11:24:46.478533",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

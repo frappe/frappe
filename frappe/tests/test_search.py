@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import re
+from functools import partial
 
 import frappe
 from frappe.app import make_form_dict
@@ -18,10 +19,10 @@ class TestSearch(FrappeTestCase):
 			self.addCleanup(teardown_test_link_field_order, self)
 
 	def test_search_field_sanitizer(self):
-		# pass
-		search_link("DocType", "User", query=None, filters=None, page_length=20, searchfield="name")
-		result = frappe.response["results"][0]
-		self.assertTrue("User" in result["value"])
+		results = search_link(
+			"DocType", "User", query=None, filters=None, page_length=20, searchfield="name"
+		)
+		self.assertTrue("User" in results[0]["value"])
 
 		# raise exception on injection
 		for searchfield in (
@@ -66,7 +67,7 @@ class TestSearch(FrappeTestCase):
 
 	def test_link_field_order(self):
 		# Making a request to the search_link with the tree doctype
-		search_link(
+		results = search_link(
 			doctype=self.tree_doctype_name,
 			txt="all",
 			query=None,
@@ -74,23 +75,47 @@ class TestSearch(FrappeTestCase):
 			page_length=20,
 			searchfield=None,
 		)
-		result = frappe.response["results"]
 
 		# Check whether the result is sorted or not
-		self.assertEqual(self.parent_doctype_name, result[0]["value"])
+		self.assertEqual(self.parent_doctype_name, results[0]["value"])
 
 		# Check whether searching for parent also list out children
-		self.assertEqual(len(result), len(self.child_doctypes_names) + 1)
+		self.assertEqual(len(results), len(self.child_doctypes_names) + 1)
 
 	# Search for the word "pay", part of the word "pays" (country) in french.
 	def test_link_search_in_foreign_language(self):
 		try:
 			frappe.local.lang = "fr"
-			search_widget(doctype="DocType", txt="pay", page_length=20)
-			output = frappe.response["values"]
+			output = search_widget(doctype="DocType", txt="pay", page_length=20)
 
 			result = [["found" for x in y if x == "Country"] for y in output]
 			self.assertTrue(["found"] in result)
+		finally:
+			frappe.local.lang = "en"
+
+	def test_doctype_search_in_foreign_language(self):
+		def do_search(txt: str):
+			return search_link(
+				doctype="DocType",
+				txt=txt,
+				query="frappe.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
+				filters={"user": "Administrator"},
+				page_length=20,
+				searchfield=None,
+			)
+
+		try:
+			frappe.local.lang = "en"
+			results = do_search("user")
+			self.assertIn("User", [x["value"] for x in results])
+
+			frappe.local.lang = "fr"
+			results = do_search("utilisateur")
+			self.assertIn("User", [x["value"] for x in results])
+
+			frappe.local.lang = "de"
+			results = do_search("nutzer")
+			self.assertIn("User", [x["value"] for x in results])
 		finally:
 			frappe.local.lang = "en"
 
@@ -127,12 +152,12 @@ class TestSearch(FrappeTestCase):
 		self.assertListEqual(frappe.call("frappe.tests.test_search.get_data", *args, **kwargs), [])
 
 		# should not fail if query has @ symbol in it
-		search_link("User", "user@random", searchfield="name")
-		self.assertListEqual(frappe.response["results"], [])
+		results = search_link("User", "user@random", searchfield="name")
+		self.assertListEqual(results, [])
 
 	def test_reference_doctype(self):
 		"""search query methods should get reference_doctype if they want"""
-		search_link(
+		results = search_link(
 			doctype="User",
 			txt="",
 			filters=None,
@@ -140,7 +165,19 @@ class TestSearch(FrappeTestCase):
 			reference_doctype="ToDo",
 			query="frappe.tests.test_search.query_with_reference_doctype",
 		)
-		self.assertListEqual(frappe.response["results"], [])
+		self.assertListEqual(results, [])
+
+	def test_search_relevance(self):
+		search = partial(search_link, doctype="Language", filters=None, page_length=10)
+		for row in search(txt="e"):
+			self.assertTrue(row["value"].startswith("e"))
+
+		for row in search(txt="es"):
+			self.assertIn("es", row["value"])
+
+		# Assume that "es" is used at least 10 times, it should now be first
+		frappe.db.set_value("Language", "es", "idx", 10)
+		self.assertEqual("es", search(txt="es")[0]["value"])
 
 
 @frappe.validate_and_sanitize_search_inputs

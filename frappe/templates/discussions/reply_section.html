@@ -1,26 +1,28 @@
 {% if topic %}
 
 {% set replies = frappe.get_all("Discussion Reply", {"topic": topic.name},
-["reply", "owner", "creation", "name"], order_by="creation")%}
+	["reply", "owner", "creation", "name"], order_by="creation")%}
 
 {% endif %}
 
-<div class=" {% if not single_thread %} collapse {% endif %} discussion-on-page card-style" data-parent="#discussion-group"
+<div class=" {% if not single_thread %} collapse {% endif %} discussion-on-page" data-parent="#discussion-group"
 	{% if topic %} id="t{{ topic.name }}" data-topic="{{ topic.name }}" {% endif %}>
 
+	{% if not single_thread %}
 	<div class="reply-section-header">
-		{% if not single_thread %}
 		<div class="back-button">
-			<svg class="icon icon-md mr-0">
+			<svg class="icon icon-sm mr-0">
 				<use class="" href="#icon-left"></use>
 			</svg>
 		</div>
-		{% endif %}
 
 		{% if topic and topic.title %}
-		<div class="discussion-heading p-0">{{ topic.title }}</div>
+		<div class="discussion-heading p-0">
+			{{ topic.title }}
+		</div>
 		{% endif %}
 	</div>
+	{% endif %}
 
 	{% for reply in replies %}
 	{% set index = loop.index %}
