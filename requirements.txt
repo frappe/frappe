@@ -46,7 +46,7 @@ psutil~=5.8.0
 psycopg2-binary~=2.9.1
 pyasn1~=0.4.8
 pycryptodome~=3.10.1
-PyJWT~=2.0.1
+PyJWT~=2.4.0
 PyMySQL==1.0.2
 pyngrok~=5.0.5
 pyOpenSSL~=20.0.1
