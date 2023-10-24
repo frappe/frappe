@@ -15,6 +15,9 @@ def savedocs(doc, action):
 	"""save / submit / update doclist"""
 	doc = frappe.get_doc(json.loads(doc))
 	capture_doc(doc, action)
+	if doc.get("__islocal") and doc.name.startswith("new-" + doc.doctype.lower().replace(" ", "-")):
+		# required to relink missing attachments if they exist.
+		doc.__temporary_name = doc.name
 	set_local_name(doc)
 
 	# action
