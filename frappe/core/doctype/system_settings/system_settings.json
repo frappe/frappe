@@ -298,6 +298,7 @@
    "label": "Brute Force Security"
   },
   {
+   "default": "10",
    "fieldname": "allow_consecutive_login_attempts",
    "fieldtype": "Int",
    "label": "Allow Consecutive Login Attempts "
@@ -596,7 +597,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-09-13 12:49:32.309521",
+ "modified": "2023-10-17 16:12:28.145496",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

@@ -1,8 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from typing import Optional
-
 from jinja2 import TemplateSyntaxError
 
 import frappe
@@ -127,18 +125,23 @@ def get_default_address(
 
 @frappe.whitelist()
 def get_address_display(address_dict: dict | str | None = None) -> str | None:
-	if not address_dict:
+	return render_address(address_dict)
+
+
+def render_address(address: dict | str | None, check_permissions=True) -> str | None:
+	if not address:
 		return
 
-	if not isinstance(address_dict, dict):
-		address = frappe.get_cached_doc("Address", address_dict)
-		address.check_permission()
-		address_dict = address.as_dict()
+	if not isinstance(address, dict):
+		address = frappe.get_cached_doc("Address", address)
+		if check_permissions:
+			address.check_permission()
+		address = address.as_dict()
 
-	name, template = get_address_templates(address_dict)
+	name, template = get_address_templates(address)
 
 	try:
-		return frappe.render_template(template, address_dict)
+		return frappe.render_template(template, address)
 	except TemplateSyntaxError:
 		frappe.throw(_("There is an error in your Address Template {0}").format(name))
 
@@ -219,7 +222,7 @@ def get_company_address(company):
 
 	if company:
 		ret.company_address = get_default_address("Company", company)
-		ret.company_address_display = get_address_display(ret.company_address)
+		ret.company_address_display = render_address(ret.company_address, check_permissions=False)
 
 	return ret
 

@@ -362,7 +362,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		frappe.xcall(method, { args: args }).then(() => {
 			let message;
 			if (dashboard_name) {
-				let dashboard_route_html = `<a href="#dashboard-view/${dashboard_name}">${dashboard_name}</a>`;
+				let dashboard_route_html = `<a href="/app/dashboard-view/${dashboard_name}">${dashboard_name}</a>`;
 				message = __("New {0} {1} added to Dashboard {2}", [
 					__(doctype),
 					name,
@@ -1243,7 +1243,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				width: parseInt(column.width) || null,
 				editable: false,
 				compareValue: compareFn,
-				format: (value, row, column, data) => {
+				format: (value, row, column, data, for_filter = false) => {
+					if (for_filter && column?.fieldtype === "Link") {
+						return value || "";
+					}
 					if (this.report_settings.formatter) {
 						return this.report_settings.formatter(
 							value,

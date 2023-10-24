@@ -106,6 +106,20 @@ class TestAutoAssign(FrappeTestCase):
 				len(frappe.get_all("ToDo", dict(allocated_to=user, reference_type="Note"))), 10
 			)
 
+	def test_assingment_on_guest_submissions(self):
+		"""Sometimes documents are inserted as guest, check if assignment rules run on them. Use case: Web Forms"""
+		with self.set_user("Guest"):
+			doc = make_note({"public": 1}, ignore_permissions=True)
+
+		# check assignment to *anyone*
+		self.assertTrue(
+			frappe.db.get_value(
+				"ToDo",
+				{"reference_type": "Note", "reference_name": doc.name, "status": "Open"},
+				"allocated_to",
+			),
+		)
+
 	def test_based_on_field(self):
 		self.assignment_rule.rule = "Based on Field"
 		self.assignment_rule.field = "owner"
@@ -375,13 +389,13 @@ def get_assignment_rule(days, assign=None):
 	return assignment_rule
 
 
-def make_note(values=None):
+def make_note(values=None, *, ignore_permissions=False):
 	note = frappe.get_doc(dict(doctype="Note", title=random_string(10), content=random_string(20)))
 
 	if values:
 		note.update(values)
 
-	note.insert()
+	note.insert(ignore_permissions=ignore_permissions)
 
 	return note
 
