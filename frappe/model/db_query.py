@@ -1260,9 +1260,6 @@ def get_between_date_filter(value, df=None):
 		if len(value) >= 2:
 			to_date = value[1]
 
-	if not df or (df and df.fieldtype == "Datetime"):
-		to_date = add_to_date(to_date, days=1)
-
 	if df and df.fieldtype == "Datetime":
 		data = "'{}' AND '{}'".format(
 			frappe.db.format_datetime(from_date),
