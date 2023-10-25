@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-
+import configparser
+import gzip
 import json
 import os
 import re
@@ -52,7 +53,7 @@ def _new_site(
 ):
 	"""Install a new Frappe site"""
 
-	from frappe.utils import get_site_path, scheduler, touch_file
+	from frappe.utils import get_site_path, scheduler
 
 	if not force and os.path.exists(site):
 		print(f"Site {site} already exists")
@@ -793,48 +794,81 @@ def is_downgrade(sql_file_path, verbose=False):
 
 	from semantic_version import Version
 
-	head = "INSERT INTO `tabInstalled Application` VALUES"
+	backup_version = None
+	try:
+		backup_version = extract_version_from_dump(sql_file_path)
+	except Exception:
+		# Handle older backups in the same way
+		head = "INSERT INTO `tabInstalled Application` VALUES"
 
-	with open(sql_file_path) as f:
-		for line in f:
-			if head in line:
-				# 'line' (str) format: ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'your_custom_app','0.0.1','master')
-				line = line.strip().lstrip(head).rstrip(";").strip()
-				app_rows = frappe.safe_eval(line)
-				# check if iterable consists of tuples before trying to transform
-				apps_list = (
-					app_rows
-					if all(isinstance(app_row, (tuple, list, set)) for app_row in app_rows)
-					else (app_rows,)
-				)
-				# 'all_apps' (list) format: [('frappe', '12.x.x-develop ()', 'develop'), ('your_custom_app', '0.0.1', 'master')]
-				all_apps = [x[-3:] for x in apps_list]
+		with open(sql_file_path) as f:
+			for line in f:
+				if head in line:
+					# 'line' (str) format: ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'your_custom_app','0.0.1','master')
+					line = line.strip().lstrip(head).rstrip(";").strip()
+					app_rows = frappe.safe_eval(line)
+					# check if iterable consists of tuples before trying to transform
+					apps_list = (
+						app_rows
+						if all(isinstance(app_row, (tuple, list, set)) for app_row in app_rows)
+						else (app_rows,)
+					)
+					# 'all_apps' (list) format: [('frappe', '12.x.x-develop ()', 'develop'), ('your_custom_app', '0.0.1', 'master')]
+					all_apps = [x[-3:] for x in apps_list]
 
-				for app in all_apps:
-					app_name = app[0]
-					app_version = app[1].split(" ", 1)[0]
+					for app in all_apps:
+						app_name = app[0]
+						app_version = app[1].split(" ", 1)[0]
 
-					if app_name == "frappe":
-						try:
-							current_version = Version(frappe.__version__)
-							backup_version = Version(app_version[1:] if app_version[0] == "v" else app_version)
-						except ValueError:
-							return False
+						if app_name == "frappe":
+							try:
+								backup_version = app_version[1:] if app_version[0] == "v" else app_version
+								break
+							except ValueError:
+								return False
 
-						downgrade = backup_version > current_version
+	# Assume it's not a downgrade if we can't determine backup version
+	if backup_version is None:
+		return False
 
-						if verbose and downgrade:
-							print(f"Your site will be downgraded from Frappe {backup_version} to {current_version}")
+	current_version = Version(frappe.__version__)
+	downgrade = Version(backup_version) > current_version
 
-						return downgrade
+	if verbose and downgrade:
+		print(f"Your site will be downgraded from Frappe {backup_version} to {current_version}")
+
+	return downgrade
 
 
-def is_partial(sql_file_path):
-	with open(sql_file_path) as f:
-		header = " ".join(f.readline() for _ in range(5))
-		if "Partial Backup" in header:
-			return True
-	return False
+def extract_version_from_dump(sql_file_path: str) -> str | None:
+	"""
+	Extract frappe version from DB dump
+
+	:param sql_file_path: The path to the dump file
+	:return: The frappe version used to create the backup
+	"""
+	header = get_db_dump_header(sql_file_path).split("\n")
+	metadata = ""
+	if "begin frappe metadata" in header[0]:
+		for line in header[1:]:
+			if "end frappe metadata" in line:
+				break
+			metadata += line.replace("--", "").strip() + "\n"
+		parser = configparser.ConfigParser()
+		parser.read_string(metadata)
+		return parser["frappe"]["version"]
+	return None
+
+
+def is_partial(sql_file_path: str) -> bool:
+	"""
+	Function to return whether the database dump is a partial backup or not
+
+	:param sql_file_path: path to the database dump file
+	:return: True if the database dump is a partial backup, False otherwise
+	"""
+	header = get_db_dump_header(sql_file_path)
+	return "Partial Backup" in header
 
 
 def partial_restore(sql_file_path, verbose=False):
@@ -877,7 +911,7 @@ def validate_database_sql(path, _raise=True):
 		error_message = f"{path} is an empty file!"
 		empty_file = True
 
-	# dont bother checking if empty file
+	# don't bother checking if empty file
 	if not empty_file:
 		with open(path) as f:
 			for line in f:
@@ -893,3 +927,21 @@ def validate_database_sql(path, _raise=True):
 
 	if _raise and (missing_table or empty_file):
 		raise frappe.InvalidDatabaseFile
+
+
+def get_db_dump_header(file_path: str, file_bytes: int = 256) -> str:
+	"""
+	Get the header of a database dump file
+
+	:param file_path: path to the database dump file
+	:param file_bytes: number of bytes to read from the file
+	:return: The first few bytes of the file as requested
+	"""
+
+	# Use `gzip` to open the file if the extension is `.gz`
+	if file_path.endswith(".gz"):
+		with gzip.open(file_path, "rb") as f:
+			return f.read(file_bytes).decode()
+
+	with open(file_path, "rb") as f:
+		return f.read(file_bytes).decode()

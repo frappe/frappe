@@ -194,8 +194,7 @@ def _restore(
 	_backup = Backup(sql_file_path)
 
 	try:
-		decompressed_file_name = extract_sql_from_archive(sql_file_path)
-		if is_partial(decompressed_file_name):
+		if is_partial(sql_file_path):
 			click.secho(
 				"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
 				fg="red",
@@ -218,16 +217,14 @@ def _restore(
 			encryption_key = get_or_generate_backup_encryption_key()
 			_backup.backup_decryption(encryption_key)
 
-		# Rollback on unsuccessful decryrption
+		# Rollback on unsuccessful decryption
 		if not os.path.exists(sql_file_path):
 			click.secho("Decryption failed. Please provide a valid key and try again.", fg="red")
 
 			_backup.decryption_rollback()
 			sys.exit(1)
 
-		decompressed_file_name = extract_sql_from_archive(sql_file_path)
-
-		if is_partial(decompressed_file_name):
+		if is_partial(sql_file_path):
 			click.secho(
 				"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
 				fg="red",
@@ -239,15 +236,19 @@ def _restore(
 			_backup.decryption_rollback()
 			sys.exit(1)
 
-	validate_database_sql(decompressed_file_name, _raise=not force)
-
-	# dont allow downgrading to older versions of frappe without force
-	if not force and is_downgrade(decompressed_file_name, verbose=True):
+	# don't allow downgrading to older versions of frappe without force
+	if not force and is_downgrade(sql_file_path, verbose=True):
 		warn_message = (
 			"This is not recommended and may lead to unexpected behaviour. "
 			"Do you want to continue anyway?"
 		)
 		click.confirm(warn_message, abort=True)
+
+	# Extract file if its gzipped
+	decompressed_file_name = extract_sql_from_archive(sql_file_path)
+
+	# Validate the sql file
+	validate_database_sql(decompressed_file_name, _raise=not force)
 
 	try:
 		_new_site(
@@ -312,7 +313,7 @@ def _restore(
 @click.option("--encryption-key", help="Backup encryption key")
 @pass_context
 def partial_restore(context, sql_file_path, verbose, encryption_key=None):
-	from frappe.installer import extract_sql_from_archive, partial_restore
+	from frappe.installer import is_partial, partial_restore
 	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	if not os.path.exists(sql_file_path):
@@ -328,19 +329,13 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 
 	frappe.connect(site=site)
 	try:
-		decompressed_file_name = extract_sql_from_archive(sql_file_path)
-
-		with open(decompressed_file_name) as f:
-			header = " ".join(f.readline() for _ in range(5))
-
-			# Check for full backup file
-			if "Partial Backup" not in header:
-				click.secho(
-					"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
-					fg="red",
-				)
-				_backup.decryption_rollback()
-				sys.exit(1)
+		if not is_partial(sql_file_path):
+			click.secho(
+				"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
+				fg="red",
+			)
+			_backup.decryption_rollback()
+			sys.exit(1)
 
 	except UnicodeDecodeError:
 		_backup.decryption_rollback()
@@ -354,25 +349,19 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 
 		_backup.backup_decryption(key)
 
-		# Rollback on unsuccessful decryrption
+		# Rollback on unsuccessful decryption
 		if not os.path.exists(sql_file_path):
 			click.secho("Decryption failed. Please provide a valid key and try again.", fg="red")
 			_backup.decryption_rollback()
 			sys.exit(1)
 
-		decompressed_file_name = extract_sql_from_archive(sql_file_path)
-
-		with open(decompressed_file_name) as f:
-			header = " ".join(f.readline() for _ in range(5))
-
-			# Check for Full backup file.
-			if "Partial Backup" not in header:
-				click.secho(
-					"Full Backup file detected.Use `bench restore` to restore a Frappe Site.",
-					fg="red",
-				)
-				_backup.decryption_rollback()
-				sys.exit(1)
+		if not is_partial(sql_file_path):
+			click.secho(
+				"Full Backup file detected.Use `bench restore` to restore a Frappe Site.",
+				fg="red",
+			)
+			_backup.decryption_rollback()
+			sys.exit(1)
 
 	partial_restore(sql_file_path, verbose)
 
