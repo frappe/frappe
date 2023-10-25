@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.desk.reportview import export_query
+from frappe.desk.reportview import export_query, extract_fieldname
 from frappe.tests.utils import FrappeTestCase
 
 
@@ -32,3 +32,74 @@ class TestReportview(FrappeTestCase):
 					for row in reader:
 						self.assertEqual(int(row["Is Single"]), 1)
 						self.assertEqual(row["Module"], "Core")
+
+	def test_extract_fieldname(self):
+		self.assertEqual(
+			extract_fieldname("count(distinct `tabPhoto`.name) as total_count")[0],
+			"tabPhoto.name"
+		)
+
+		self.assertEqual(
+			extract_fieldname("count(`tabPhoto`.name) as total_count")[0],
+			"tabPhoto.name"
+		)
+
+		self.assertEqual(
+			extract_fieldname("count(distinct `tabPhoto`.name)")[0],
+			"tabPhoto.name"
+		)
+
+		self.assertEqual(
+			extract_fieldname("count(`tabPhoto`.name)")[0],
+			"tabPhoto.name"
+		)
+
+		self.assertEqual(
+			extract_fieldname("count(distinct `tabJob Applicant`.name) as total_count")[0],
+			"tabJob Applicant.name"
+		)
+
+		self.assertEqual(
+			extract_fieldname("(1 / nullif(locate('a', `tabAddress`.`name`), 0)) as `_relevance`")[0],
+			"tabAddress.name"
+		)
+
+		self.assertEqual(
+			extract_fieldname("(1 / nullif(locate('(a)', `tabAddress`.`name`), 0)) as `_relevance`")[0],
+			"tabAddress.name"
+		)
+
+		self.assertEqual(
+			extract_fieldname("EXTRACT(MONTH FROM date_column) AS month")[0],
+			"date_column"
+		)
+
+		self.assertEqual(
+			extract_fieldname("COUNT(*) AS count")[0],
+			"*"
+		)
+
+		self.assertEqual(
+			extract_fieldname("COUNT(1) AS count")[0],
+			"*"
+		)
+
+		self.assertEqual(
+			extract_fieldname("COUNT(1) AS count, SUM(1) AS sum")[0],
+			"*"
+		)
+
+		self.assertEqual(
+			extract_fieldname("first_name + ' ' + last_name AS full_name"),
+			["first_name", "last_name"]
+		)
+
+		self.assertEqual(
+			extract_fieldname("CONCAT(first_name, ' ', last_name) AS full_name"),
+			["first_name", "last_name"]
+		)
+
+		self.assertEqual(
+			extract_fieldname("CONCAT(id, '/', name, '/', age, '/', marks) AS student"),
+			["id", "name", "age", "marks"]
+		)

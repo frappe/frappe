@@ -14,6 +14,7 @@ from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, format_duration
+from sql_metadata import Parser
 
 
 @frappe.whitelist()
@@ -91,7 +92,7 @@ def validate_fields(data):
 	wildcard = update_wildcard_field_param(data)
 
 	for field in list(data.fields or []):
-		fieldname = extract_fieldname(field)
+		fieldname = extract_fieldname(field)[0]
 		if is_standard(fieldname):
 			continue
 
@@ -174,22 +175,13 @@ def is_standard(fieldname):
 
 
 def extract_fieldname(field):
-	for text in (",", "/*", "#"):
-		if text in field:
-			raise_invalid_field(field)
-
-	fieldname = field
-	for sep in (" as ", " AS "):
-		if sep in fieldname:
-			fieldname = fieldname.split(sep, 1)[0]
-
-	# certain functions allowed, extract the fieldname from the function
-	if fieldname.startswith("count(") or fieldname.startswith("sum(") or fieldname.startswith("avg("):
-		if not fieldname.strip().endswith(")"):
-			raise_invalid_field(field)
-		fieldname = fieldname.split("(", 1)[1][:-1]
-
-	return fieldname
+	parser = Parser(f"select {field} from dummy")
+	if not parser.columns:
+		f = field.lower()
+		if "count(" in f or "sum(" in f or "avg(" in f:
+			return ["*"]
+		raise_invalid_field(field)
+	return parser.columns
 
 
 def get_meta_and_docfield(fieldname, data):
