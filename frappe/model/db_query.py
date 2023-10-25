@@ -646,7 +646,7 @@ class DatabaseQuery:
 				continue
 
 			column = columns[0]
-			if column == "*" and not in_function("*", field):
+			if column == "*" and '*' in field and not in_function("*", field):
 				asterisk_fields.append(i)
 				continue
 
