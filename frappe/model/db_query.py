@@ -1251,6 +1251,8 @@ def get_between_date_filter(value, df=None):
 	return the formattted date as per the given example
 	[u'2017-11-01', u'2017-11-03'] => '2017-11-01 00:00:00.000000' AND '2017-11-04 00:00:00.000000'
 	"""
+	fieldtype = df and df.fieldtype or "Datetime"
+
 	from_date = frappe.utils.nowdate()
 	to_date = frappe.utils.nowdate()
 
@@ -1260,11 +1262,8 @@ def get_between_date_filter(value, df=None):
 		if len(value) >= 2:
 			to_date = value[1]
 
-	if df and df.fieldtype == "Datetime":
-		data = "'{}' AND '{}'".format(
-			frappe.db.format_datetime(from_date),
-			frappe.db.format_datetime(to_date),
-		)
+	if fieldtype == "Datetime":
+		data = f"'{frappe.db.format_datetime(from_date)}' AND '{frappe.db.format_datetime(to_date)}'"
 	else:
 		data = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
 
