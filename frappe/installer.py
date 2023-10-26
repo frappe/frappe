@@ -665,32 +665,6 @@ def remove_missing_apps():
 				frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 
 
-def extract_sql_from_archive(sql_file_path):
-	"""Return the path of an SQL file if the passed argument is the path of a gzipped
-	SQL file or an SQL file path. The path may be absolute or relative from the bench
-	root directory or the sites sub-directory.
-
-	Args:
-	        sql_file_path (str): Path of the SQL file
-
-	Return:
-	        str: Path of the decompressed SQL file
-	"""
-	from frappe.utils import get_bench_relative_path
-
-	sql_file_path = get_bench_relative_path(sql_file_path)
-	# Extract the gzip file if user has passed *.sql.gz file instead of *.sql file
-	if sql_file_path.endswith("sql.gz"):
-		decompressed_file_name = extract_sql_gzip(sql_file_path)
-	else:
-		decompressed_file_name = sql_file_path
-
-	# convert archive sql to latest compatible
-	convert_archive_content(decompressed_file_name)
-
-	return decompressed_file_name
-
-
 def convert_archive_content(sql_file_path):
 	if frappe.conf.db_type == "mariadb":
 		# ever since mariaDB 10.6, row_format COMPRESSED has been deprecated and removed
@@ -722,20 +696,6 @@ def convert_archive_content(sql_file_path):
 				w.write(line.replace("ROW_FORMAT=COMPRESSED", "ROW_FORMAT=DYNAMIC"))
 
 		old_sql_file_path.unlink()
-
-
-def extract_sql_gzip(sql_gz_path):
-	import subprocess
-
-	try:
-		original_file = sql_gz_path
-		decompressed_file = original_file.rstrip(".gz")
-		cmd = f"gzip --decompress --force < {original_file} > {decompressed_file}"
-		subprocess.check_call(cmd, shell=True)
-	except Exception:
-		raise
-
-	return decompressed_file
 
 
 def _guess_mariadb_version() -> tuple[int] | None:
@@ -872,8 +832,6 @@ def is_partial(sql_file_path: str) -> bool:
 
 
 def partial_restore(sql_file_path, verbose=False):
-	sql_file = extract_sql_from_archive(sql_file_path)
-
 	if frappe.conf.db_type == "mariadb":
 		from frappe.database.mariadb.setup_db import import_db_from_sql
 	elif frappe.conf.db_type == "postgres":
@@ -887,45 +845,44 @@ def partial_restore(sql_file_path, verbose=False):
 			fg="yellow",
 		)
 		warnings.warn(warn)
+	else:
+		click.secho("Unsupported database type", fg="red")
+		return
 
-	import_db_from_sql(source_sql=sql_file, verbose=verbose)
-
-	# Removing temporarily created file
-	if sql_file != sql_file_path:
-		os.remove(sql_file)
+	import_db_from_sql(source_sql=sql_file_path, verbose=verbose)
 
 
-def validate_database_sql(path, _raise=True):
-	"""Check if file has contents and if DefaultValue table exists
+def validate_database_sql(path: str, _raise: bool = True) -> None:
+	"""Check if file has contents and if `__Auth` table exists
 
 	Args:
 	        path (str): Path of the decompressed SQL file
 	        _raise (bool, optional): Raise exception if invalid file. Defaults to True.
 	"""
-	empty_file = False
-	missing_table = True
 
-	error_message = ""
+	if path.endswith(".gz"):
+		executable_name = "zgrep"
+	else:
+		executable_name = "grep"
 
-	if not os.path.getsize(path):
+	if os.path.getsize(path):
+		if (executable := which(executable_name)) is None:
+			frappe.throw(
+				f"`{executable_name}` not found in PATH! This is required to take a backup.",
+				exc=frappe.ExecutableNotFound,
+			)
+		try:
+			frappe.utils.execute_in_shell(f"{executable} -m1 __Auth {path}", check_exit_code=True)
+			return
+		except Exception:
+			error_message = "Table `__Auth` not found in file."
+	else:
 		error_message = f"{path} is an empty file!"
-		empty_file = True
-
-	# don't bother checking if empty file
-	if not empty_file:
-		with open(path) as f:
-			for line in f:
-				if "tabDefaultValue" in line:
-					missing_table = False
-					break
-
-		if missing_table:
-			error_message = "Table `tabDefaultValue` not found in file."
 
 	if error_message:
 		click.secho(error_message, fg="red")
 
-	if _raise and (missing_table or empty_file):
+	if _raise:
 		raise frappe.InvalidDatabaseFile
 
 
