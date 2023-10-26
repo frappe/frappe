@@ -6,6 +6,7 @@ import os
 
 import frappe
 from frappe.model.document import Document
+from frappe.modules.export_file import delete_folder
 
 
 class ModuleDef(Document):
@@ -50,6 +51,7 @@ class ModuleDef(Document):
 
 		modules = None
 		if frappe.local.module_app.get(frappe.scrub(self.name)):
+			delete_folder(self.module_name, "Module Def", self.name)
 			with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
 				content = f.read()
 				if self.name in content.splitlines():

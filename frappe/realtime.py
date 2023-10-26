@@ -16,7 +16,7 @@ def publish_progress(percent, title=None, doctype=None, docname=None, descriptio
 	publish_realtime(
 		"progress",
 		{"percent": percent, "title": title, "description": description},
-		user=frappe.session.user,
+		user=None if doctype and docname else frappe.session.user,
 		doctype=doctype,
 		docname=docname,
 	)

@@ -195,7 +195,7 @@ def get_google_calendar_object(g_calendar):
 		"token_uri": GoogleOAuth.OAUTH_URL,
 		"client_id": google_settings.client_id,
 		"client_secret": google_settings.get_password(fieldname="client_secret", raise_exception=False),
-		"scopes": "https://www.googleapis.com/auth/calendar/v3",
+		"scopes": ["https://www.googleapis.com/auth/calendar/v3"],
 	}
 
 	credentials = google.oauth2.credentials.Credentials(**credentials_dict)

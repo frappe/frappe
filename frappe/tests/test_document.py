@@ -21,6 +21,11 @@ class CustomTestNote(Note):
 		return now_datetime() - self.creation
 
 
+class CustomNoteWithoutProperty(Note):
+	def age(self):
+		return now_datetime() - self.creation
+
+
 class TestDocument(FrappeTestCase):
 	def test_get_return_empty_list_for_table_field_if_none(self):
 		d = frappe.get_doc({"doctype": "User"})
@@ -299,8 +304,8 @@ class TestDocument(FrappeTestCase):
 		note.title = frappe.generate_hash(length=20)
 		note.insert()
 
-		def patch_note():
-			return patch("frappe.controllers", new={frappe.local.site: {"Note": CustomTestNote}})
+		def patch_note(class_=None):
+			return patch("frappe.controllers", new={frappe.local.site: {"Note": class_ or CustomTestNote}})
 
 		@contextmanager
 		def customize_note(with_options=False):
@@ -340,6 +345,14 @@ class TestDocument(FrappeTestCase):
 			self.assertIsInstance(doc.age, timedelta)
 			self.assertIsInstance(doc.as_dict().get("age"), timedelta)
 			self.assertIsInstance(doc.get_valid_dict().get("age"), timedelta)
+
+		# has virtual field, but age method is not a property
+		with customize_note(), patch_note(class_=CustomNoteWithoutProperty):
+			doc = frappe.get_last_doc("Note")
+			self.assertIsInstance(doc, CustomNoteWithoutProperty)
+			self.assertNotIsInstance(type(doc).age, property)
+			self.assertIsNone(doc.as_dict().get("age"))
+			self.assertIsNone(doc.get_valid_dict().get("age"))
 
 		with customize_note(with_options=True):
 			doc = frappe.get_last_doc("Note")

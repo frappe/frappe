@@ -153,16 +153,12 @@ def get_context(context):
 			and not frappe.form_dict.name
 			and not frappe.form_dict.is_list
 		):
-			names = frappe.db.get_values(self.doc_type, {"owner": frappe.session.user}, pluck="name")
-			for name in names:
-				if self.condition:
-					doc = frappe.get_doc(self.doc_type, name)
-					if frappe.safe_eval(self.condition, None, {"doc": doc.as_dict()}):
-						context.in_view_mode = True
-						frappe.redirect(f"/{self.route}/{name}")
-				else:
-					context.in_view_mode = True
-					frappe.redirect(f"/{self.route}/{name}")
+			condition_json = json.loads(self.condition_json) if self.condition_json else []
+			condition_json.append(["owner", "=", frappe.session.user])
+			names = frappe.get_all(self.doc_type, filters=condition_json, pluck="name")
+			if names:
+				context.in_view_mode = True
+				frappe.redirect(f"/{self.route}/{names[0]}")
 
 		# Show new form when
 		# - User is Guest
@@ -383,7 +379,7 @@ def get_web_form_module(doc):
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(key="web_form", limit=5, seconds=60, methods=["POST"])
+@rate_limit(key="web_form", limit=5, seconds=60)
 def accept(web_form, data):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))

@@ -51,6 +51,31 @@ function strip_number_groups(v, number_format) {
 	return v;
 }
 
+function convert_old_to_new_number_format(v, old_number_format, new_number_format) {
+	if (!new_number_format) new_number_format = get_number_format();
+	let new_info = get_number_format_info(new_number_format);
+
+	if (!old_number_format) old_number_format = "#,###.##";
+	let old_info = get_number_format_info(old_number_format);
+
+	if (old_number_format === new_number_format) return v;
+
+	if (new_info.decimal_str == "") {
+		return strip_number_groups(v);
+	}
+
+	let v_parts = v.split(old_info.decimal_str);
+	let v_before_decimal = v_parts[0];
+	let v_after_decimal = v_parts[1] || "";
+
+	// replace old group separator with new group separator in v_before_decimal
+	let old_group_regex = new RegExp(old_info.group_sep === "." ? "\\." : old_info.group_sep, "g");
+	v_before_decimal = v_before_decimal.replace(old_group_regex, new_info.group_sep);
+
+	v = v_before_decimal + new_info.decimal_str + v_after_decimal;
+	return v;
+}
+
 frappe.number_format_info = {
 	"#,###.##": { decimal_str: ".", group_sep: "," },
 	"#.###,##": { decimal_str: ",", group_sep: "." },
@@ -175,7 +200,9 @@ function get_number_format_info(format) {
 
 function _round(num, precision, rounding_method) {
 	rounding_method =
-		rounding_method || frappe.boot.sysdefaults.rounding_method || "Banker's Rounding (legacy)";
+		rounding_method ||
+		frappe.boot.sysdefaults?.rounding_method ||
+		"Banker's Rounding (legacy)";
 
 	let is_negative = num < 0 ? true : false;
 
@@ -289,6 +316,7 @@ Object.assign(window, {
 	flt,
 	cint,
 	strip_number_groups,
+	convert_old_to_new_number_format,
 	format_currency,
 	fmt_money,
 	get_currency_symbol,

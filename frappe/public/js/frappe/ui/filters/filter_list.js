@@ -36,7 +36,7 @@ frappe.ui.FilterGroup = class {
 	}
 
 	hide_popover() {
-		this.filter_button.popover("hide");
+		this.filter_button?.popover("hide");
 	}
 
 	init_filter_popover() {

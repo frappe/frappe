@@ -20,6 +20,7 @@ class TestActivityLog(FrappeTestCase):
 			}
 		)
 
+		frappe.local.request_ip = "127.0.0.1"
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
 
@@ -61,6 +62,7 @@ class TestActivityLog(FrappeTestCase):
 			{"cmd": "login", "sid": "Guest", "pwd": "admin", "usr": "Administrator"}
 		)
 
+		frappe.local.request_ip = "127.0.0.1"
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
 

@@ -70,7 +70,7 @@
 						<div class="mt-1">{{ __('Google Drive') }}</div>
 					</button>
 				</div>
-				<div class="text-muted text-medium">
+				<div class="text-muted text-medium text-center">
 					{{ upload_notes }}
 				</div>
 			</div>
@@ -414,7 +414,7 @@ export default {
 			}
 			this.close_dialog = true;
 			return this.upload_file({
-				file_url: selected_file.file_url
+				library_file_name: selected_file.value,
 			});
 		},
 		upload_via_web_link() {
@@ -528,6 +528,10 @@ export default {
 
 				if (file.file_name) {
 					form_data.append('file_name', file.file_name);
+				}
+
+				if (file.library_file_name) {
+					form_data.append('library_file_name', file.library_file_name);
 				}
 
 				if (this.doctype && this.docname) {

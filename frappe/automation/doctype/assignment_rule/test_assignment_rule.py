@@ -106,6 +106,20 @@ class TestAutoAssign(FrappeTestCase):
 				len(frappe.get_all("ToDo", dict(allocated_to=user, reference_type="Note"))), 10
 			)
 
+	def test_assingment_on_guest_submissions(self):
+		"""Sometimes documents are inserted as guest, check if assignment rules run on them. Use case: Web Forms"""
+		with self.set_user("Guest"):
+			doc = make_note({"public": 1}, ignore_permissions=True)
+
+		# check assignment to *anyone*
+		self.assertTrue(
+			frappe.db.get_value(
+				"ToDo",
+				{"reference_type": "Note", "reference_name": doc.name, "status": "Open"},
+				"allocated_to",
+			),
+		)
+
 	def test_based_on_field(self):
 		self.assignment_rule.rule = "Based on Field"
 		self.assignment_rule.field = "owner"
@@ -276,6 +290,55 @@ class TestAutoAssign(FrappeTestCase):
 		assignment_rule.delete()
 		frappe.db.commit()  # undo changes commited by DDL
 
+	def test_submittable_assignment(self):
+		# create a submittable doctype
+		submittable_doctype = "Assignment Test Submittable"
+		create_test_doctype(submittable_doctype)
+		dt = frappe.get_doc("DocType", submittable_doctype)
+		dt.is_submittable = 1
+		dt.save()
+
+		# create a rule for the submittable doctype
+		assignment_rule = frappe.new_doc("Assignment Rule")
+		assignment_rule.name = f"For {submittable_doctype}"
+		assignment_rule.document_type = submittable_doctype
+		assignment_rule.rule = "Round Robin"
+		assignment_rule.extend("assignment_days", self.days)
+		assignment_rule.append("users", {"user": "test@example.com"})
+		assignment_rule.assign_condition = "docstatus == 1"
+		assignment_rule.unassign_condition = "docstatus == 2"
+		assignment_rule.save()
+
+		# create a submittable doc
+		doc = frappe.new_doc(submittable_doctype)
+		doc.save()
+		doc.submit()
+
+		# check if todo is created
+		todos = frappe.get_all(
+			"ToDo",
+			filters={
+				"reference_type": submittable_doctype,
+				"reference_name": doc.name,
+				"status": "Open",
+				"allocated_to": "test@example.com",
+			},
+		)
+		self.assertEqual(len(todos), 1)
+
+		# check if todo is closed on cancel
+		doc.cancel()
+		todos = frappe.get_all(
+			"ToDo",
+			filters={
+				"reference_type": submittable_doctype,
+				"reference_name": doc.name,
+				"status": "Cancelled",
+				"allocated_to": "test@example.com",
+			},
+		)
+		self.assertEqual(len(todos), 1)
+
 
 def clear_assignments():
 	frappe.db.delete("ToDo", {"reference_type": "Note"})
@@ -326,12 +389,62 @@ def get_assignment_rule(days, assign=None):
 	return assignment_rule
 
 
-def make_note(values=None):
+def make_note(values=None, *, ignore_permissions=False):
 	note = frappe.get_doc(dict(doctype="Note", title=random_string(10), content=random_string(20)))
 
 	if values:
 		note.update(values)
 
-	note.insert()
+	note.insert(ignore_permissions=ignore_permissions)
 
 	return note
+
+
+def create_test_doctype(doctype: str):
+	"""Create custom doctype."""
+	frappe.delete_doc("DocType", doctype)
+
+	frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"name": doctype,
+			"module": "Custom",
+			"custom": 1,
+			"fields": [
+				{
+					"fieldname": "expiry_date",
+					"label": "Expiry Date",
+					"fieldtype": "Date",
+				},
+				{
+					"fieldname": "notify_on_login",
+					"label": "Notify on Login",
+					"fieldtype": "Check",
+				},
+				{
+					"fieldname": "public",
+					"label": "Public",
+					"fieldtype": "Check",
+				},
+				{
+					"fieldname": "content",
+					"label": "Content",
+					"fieldtype": "Text",
+				},
+			],
+			"permissions": [
+				{
+					"create": 1,
+					"delete": 1,
+					"email": 1,
+					"export": 1,
+					"print": 1,
+					"read": 1,
+					"report": 1,
+					"role": "All",
+					"share": 1,
+					"write": 1,
+				},
+			],
+		}
+	).insert()

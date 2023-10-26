@@ -16,6 +16,7 @@ import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.document import Document
+from frappe.permissions import get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.image import optimize_image, strip_exif_data
@@ -60,6 +61,7 @@ class File(Document):
 		self.set_folder_name()
 		self.set_file_name()
 		self.validate_attachment_limit()
+		self.set_file_type()
 
 		if self.is_folder:
 			return
@@ -290,6 +292,17 @@ class File(Document):
 
 		elif not self.is_home_folder:
 			self.folder = "Home"
+
+	def set_file_type(self):
+		if self.is_folder:
+			return
+
+		file_type = mimetypes.guess_type(self.file_name)[0]
+		if not file_type:
+			return
+
+		file_extension = mimetypes.guess_extension(file_type)
+		self.file_type = file_extension.lstrip(".").upper() if file_extension else None
 
 	def validate_file_on_disk(self):
 		"""Validates existence file"""
@@ -607,10 +620,10 @@ class File(Document):
 		file_size = len(self._content or b"")
 
 		if file_size > max_file_size:
-			frappe.throw(
-				_("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576),
-				exc=MaxFileSizeReachedError,
-			)
+			msg = _("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576)
+			if frappe.has_permission("System Settings", "write"):
+				msg += ".<br>" + _("You can increase the limit from System Settings.")
+			frappe.throw(msg, exc=MaxFileSizeReachedError)
 
 		return file_size
 
@@ -695,6 +708,8 @@ class File(Document):
 				continue
 			if _file.is_folder:
 				continue
+			if not has_permission(_file, "read"):
+				continue
 			zf.writestr(_file.file_name, _file.get_content())
 		zf.close()
 		return zip_file.getvalue()
@@ -705,14 +720,13 @@ def on_doctype_update():
 
 
 def has_permission(doc, ptype=None, user=None):
-	has_access = False
 	user = user or frappe.session.user
 
 	if ptype == "create":
-		has_access = frappe.has_permission("File", "create", user=user)
+		return frappe.has_permission("File", "create", user=user)
 
-	if not doc.is_private or doc.owner in [user, "Guest"] or user == "Administrator":
-		has_access = True
+	if not doc.is_private or (user != "Guest" and doc.owner == user) or user == "Administrator":
+		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
 		attached_to_doctype = doc.attached_to_doctype
@@ -720,25 +734,29 @@ def has_permission(doc, ptype=None, user=None):
 
 		try:
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
-
-			if ptype in ["write", "create", "delete"]:
-				has_access = ref_doc.has_permission("write")
-
-				if ptype == "delete" and not has_access:
-					frappe.throw(
-						_(
-							"Cannot delete file as it belongs to {0} {1} for which you do not have permissions"
-						).format(doc.attached_to_doctype, doc.attached_to_name),
-						frappe.PermissionError,
-					)
-			else:
-				has_access = ref_doc.has_permission("read")
 		except frappe.DoesNotExistError:
-			# if parent doc is not created before file is created
-			# we cannot check its permission so we will use file's permission
-			pass
+			frappe.clear_last_message()
+			return False
 
-	return has_access
+		if ptype in ["write", "create", "delete"]:
+			return ref_doc.has_permission("write")
+		else:
+			return ref_doc.has_permission("read")
+
+	return False
+
+
+def get_permission_query_conditions(user: str = None) -> str:
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return ""
+
+	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read())
+	return f"""
+		(`tabFile`.`is_private` = 0)
+		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {user !r})
+		OR (`tabFile`.`attached_to_doctype` IN ({readable_doctypes}))
+	"""
 
 
 # Note: kept at the end to not cause circular, partial imports & maintain backwards compatibility

@@ -161,6 +161,10 @@ body[data-route^="Module"] .main-menu {
 	font-size: var(--text-md);
 	padding-right: 30px;
 
+	&.hide-sidebar {
+		display: none;
+	}
+
 	> .divider {
 		display: none !important;
 	}
@@ -389,7 +393,22 @@ body[data-route^="Module"] .main-menu {
 	display: inline-flex;
 }
 
-.add-attachment-btn,
+.attachments-actions {
+	display: flex;
+	gap: 5px;
+	max-width: 100%;
+}
+
+.explore-full-btn,
+.attachments-actions {
+	margin-bottom: var(--margin-md);
+}
+
+.show-all-btn {
+	margin-top: var(--margin-md);
+	text-align: center;
+}
+
 .shares,
 .followed-by {
 	max-width: 100%;

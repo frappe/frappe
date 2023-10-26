@@ -320,6 +320,9 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 					<span>${__("Size")}</span>
 				</div>
 				<div class="list-row-col ellipsis hidden-xs">
+					<span>${__("Type")}</span>
+				</div>
+				<div class="list-row-col ellipsis hidden-xs">
 					<span>${__("Created")}</span>
 				</div>`
 			: "";
@@ -361,14 +364,17 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 					<input class="list-row-checkbox"
 						type="checkbox" data-name="${file.name}">
 				</span>
-				<span class="level-item  ellipsis" title="${file.file_name}">
-					<a class="ellipsis" href="${route_url}" title="${file.file_name}">
+				<span class="level-item  ellipsis" title="${frappe.utils.escape_html(file.file_name)}">
+					<a class="ellipsis" href="${route_url}" title="${frappe.utils.escape_html(file.file_name)}">
 						${file.subject_html}
 					</a>
 				</span>
 			</div>
 			<div class="list-row-col ellipsis hidden-xs text-muted">
 				<span>${file_size}</span>
+			</div>
+			<div class="list-row-col ellipsis hidden-xs text-muted">
+				<span>${file.file_type || ""}</span>
 			</div>
 			<div class="list-row-col ellipsis hidden-xs text-muted">
 				<span>${this.get_creation_date(file)}</span>

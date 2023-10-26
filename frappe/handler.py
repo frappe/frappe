@@ -191,6 +191,17 @@ def upload_file():
 	optimize = frappe.form_dict.optimize
 	content = None
 
+	if frappe.form_dict.get("library_file_name", False):
+		doc = frappe.get_value(
+			"File",
+			frappe.form_dict.library_file_name,
+			["is_private", "file_url", "file_name"],
+			as_dict=True,
+		)
+		is_private = doc.is_private
+		file_url = doc.file_url
+		filename = doc.file_name
+
 	if "file" in files:
 		file = files["file"]
 		content = file.stream.read()

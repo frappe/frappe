@@ -1,6 +1,7 @@
 import json
 
 import frappe
+from frappe.client import set_value
 
 
 def get_email_accounts(user=None):
@@ -97,32 +98,32 @@ def create_email_flag_queue(names, action):
 
 
 @frappe.whitelist()
-def mark_as_closed_open(communication, status):
+def mark_as_closed_open(communication: str, status: str):
 	"""Set status to open or close"""
-	frappe.db.set_value("Communication", communication, "status", status)
+	set_value("Communication", communication, "status", status)
 
 
 @frappe.whitelist()
-def move_email(communication, email_account):
+def move_email(communication: str, email_account: str):
 	"""Move email to another email account."""
-	frappe.db.set_value("Communication", communication, "email_account", email_account)
+	set_value("Communication", communication, "email_account", email_account)
 
 
 @frappe.whitelist()
-def mark_as_trash(communication):
+def mark_as_trash(communication: str):
 	"""Set email status to trash."""
-	frappe.db.set_value("Communication", communication, "email_status", "Trash")
+	set_value("Communication", communication, "email_status", "Trash")
 
 
 @frappe.whitelist()
-def mark_as_spam(communication, sender):
+def mark_as_spam(communication: str, sender: str):
 	"""Set email status to spam."""
 	email_rule = frappe.db.get_value("Email Rule", {"email_id": sender})
 	if not email_rule:
 		frappe.get_doc({"doctype": "Email Rule", "email_id": sender, "is_spam": 1}).insert(
 			ignore_permissions=True
 		)
-	frappe.db.set_value("Communication", communication, "email_status", "Spam")
+	set_value("Communication", communication, "email_status", "Spam")
 
 
 def link_communication_to_document(

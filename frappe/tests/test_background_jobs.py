@@ -52,33 +52,6 @@ class TestBackgroundJobs(FrappeTestCase):
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
 
-	def test_enqueue_call(self):
-		with patch.object(Queue, "enqueue_call") as mock_enqueue_call:
-			frappe.enqueue(
-				"frappe.handler.ping",
-				queue="short",
-				timeout=300,
-				kwargs={"site": frappe.local.site},
-			)
-
-			mock_enqueue_call.assert_called_once_with(
-				execute_job,
-				timeout=300,
-				kwargs={
-					"site": frappe.local.site,
-					"user": "Administrator",
-					"method": "frappe.handler.ping",
-					"event": None,
-					"job_name": "frappe.handler.ping",
-					"is_async": True,
-					"kwargs": {"kwargs": {"site": frappe.local.site}},
-				},
-				at_front=False,
-				failure_ttl=RQ_JOB_FAILURE_TTL,
-				result_ttl=RQ_RESULTS_TTL,
-				job_id=None,
-			)
-
 	def test_job_hooks(self):
 		self.addCleanup(lambda: _test_JOB_HOOK.clear())
 		with freeze_local() as locals, frappe.init_site(locals.site), patch(

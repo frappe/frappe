@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, is_markdown, markdown
 from frappe.website.utils import get_comment_list
 from frappe.website.website_generator import WebsiteGenerator
@@ -110,10 +111,11 @@ def clear_website_cache(path=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def add_feedback(article, helpful):
-	field = "helpful"
-	if helpful == "No":
-		field = "not_helpful"
+@rate_limit(key="article", limit=5, seconds=60 * 60)
+def add_feedback(article: str, helpful: str):
+	if not isinstance("article", str):
+		frappe.throw(_("Invalid Article Name"))
 
+	field = "not_helpful" if helpful == "No" else "helpful"
 	value = cint(frappe.db.get_value("Help Article", article, field))
 	frappe.db.set_value("Help Article", article, field, value + 1, update_modified=False)

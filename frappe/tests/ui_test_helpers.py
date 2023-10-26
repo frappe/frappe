@@ -590,6 +590,15 @@ def create_todo(description):
 
 
 @whitelist_for_tests
+def create_todo_with_attachment_limit(description):
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	make_property_setter("ToDo", None, "max_attachments", 12, "int", for_doctype=True)
+
+	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert()
+
+
+@whitelist_for_tests
 def create_admin_kanban():
 	if not frappe.db.exists("Kanban Board", "Admin Kanban"):
 		frappe.get_doc(

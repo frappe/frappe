@@ -1,49 +1,51 @@
 <div class="clearfix"></div>
-{% for(var i=0, l=contact_list.length; i<l; i++) { %}
+{% for(const contact of contact_list) { %}
 	<div class="address-box">
 		<p class="h6 flex align-center">
-			{%= contact_list[i].first_name %} {%= contact_list[i].last_name %}
-			{% if(contact_list[i].is_primary_contact) { %}
+			{%= contact.first_name %} {%= contact.last_name %}
+			{% if(contact.is_primary_contact) { %}
 				<span class="text-muted">&nbsp;({%= __("Primary") %})</span>
 			{% } %}
-			{% if(contact_list[i].designation){ %}
-			 <span class="text-muted">&ndash; {%= contact_list[i].designation %}</span>
+			{% if(contact.designation){ %}
+			 <span class="text-muted">&ndash; {%= contact.designation %}</span>
 			{% } %}
-			<a href="/app/Form/Contact/{%= encodeURIComponent(contact_list[i].name) %}"
+			<a href="/app/Form/Contact/{%= encodeURIComponent(contact.name) %}"
 				class="btn btn-xs btn-default ml-auto">
 				{%= __("Edit") %}
 			</a>
 		</p>
-		{% if (contact_list[i].phones || contact_list[i].email_ids) { %}
+		{% if (contact.phone || contact.mobile_no || contact.phone_nos.length > 0) { %}
 		<p>
-			{% if(contact_list[i].phone) { %}
-				{%= __("Phone") %}: {%= contact_list[i].phone %}<span class="text-muted"> ({%= __("Primary") %})</span><br>
+			{% if(contact.phone) { %}
+				<a href="tel:{%= frappe.utils.escape_html(contact.phone) %}">{%= frappe.utils.escape_html(contact.phone) %}</a> &#183; <span class="text-muted">{%= __("Primary Phone") %}</span><br>
 			{% endif %}
-			{% if(contact_list[i].mobile_no) { %}
-				{%= __("Mobile No") %}: {%= contact_list[i].mobile_no %}<span class="text-muted"> ({%= __("Primary") %})</span><br>
+			{% if(contact.mobile_no) { %}
+				<a href="tel:{%= frappe.utils.escape_html(contact.mobile_no) %}">{%= frappe.utils.escape_html(contact.mobile_no) %}</a> &#183; <span class="text-muted">{%= __("Primary Mobile") %}</span><br>
 			{% endif %}
-			{% if(contact_list[i].phone_nos) { %}
-				{% for(var j=0, k=contact_list[i].phone_nos.length; j<k; j++) { %}
-					{%= __("Phone") %}: {%= contact_list[i].phone_nos[j].phone %}<br>
-				{% } %}
-			{% endif %}
-		</p>
-		<p>
-			{% if(contact_list[i].email_id) { %}
-				{%= __("Email") %}: {%= contact_list[i].email_id %}<span class="text-muted"> ({%= __("Primary") %})</span><br>
-			{% endif %}
-			{% if(contact_list[i].email_ids) { %}
-				{% for(var j=0, k=contact_list[i].email_ids.length; j<k; j++) { %}
-					{%= __("Email") %}: {%= contact_list[i].email_ids[j].email_id %}<br>
+			{% if(contact.phone_nos) { %}
+				{% for(const phone_no of contact.phone_nos) { %}
+					<a href="tel:{%= frappe.utils.escape_html(phone_no.phone) %}">{%= frappe.utils.escape_html(phone_no.phone) %}</a><br>
 				{% } %}
 			{% endif %}
 		</p>
 		{% endif %}
+		{% if (contact.email_id || contact.email_ids.length > 0) { %}
 		<p>
-		{% if (contact_list[i].address) { %}
-			{%= __("Address") %}: {%= contact_list[i].address %}<br>
-		{% endif %}
+			{% if(contact.email_id) { %}
+				<a href="mailto:{%= frappe.utils.escape_html(contact.email_id) %}">{%= frappe.utils.escape_html(contact.email_id) %}</a> &#183; <span class="text-muted">{%= __("Primary Email") %}</span><br>
+			{% endif %}
+			{% if(contact.email_ids) { %}
+				{% for(const email_id of contact.email_ids) { %}
+					<a href="mailto:{%= frappe.utils.escape_html(email_id.email_id) %}">{%= frappe.utils.escape_html(email_id.email_id) %}</a><br>
+				{% } %}
+			{% endif %}
 		</p>
+		{% endif %}
+		{% if (contact.address) { %}
+		<p>
+			{%= contact.address %}
+		</p>
+		{% endif %}
 	</div>
 {% } %}
 {% if(!contact_list.length) { %}

@@ -142,6 +142,10 @@ def sync_contacts_from_google_contacts(g_contact):
 		frappe.publish_realtime(
 			"import_google_contacts", dict(progress=idx + 1, total=len(results)), user=frappe.session.user
 		)
+		# Work-around to fix
+		# https://github.com/frappe/frappe/issues/22648
+		if not connection.get("names"):
+			continue
 
 		for name in connection.get("names"):
 			if name.get("metadata").get("primary"):

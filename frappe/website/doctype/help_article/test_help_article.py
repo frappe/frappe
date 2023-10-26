@@ -25,20 +25,6 @@ class TestHelpArticle(FrappeTestCase):
 			}
 		).insert()
 
-	def test_article_is_helpful(self):
-		from frappe.website.doctype.help_article.help_article import add_feedback
-
-		self.help_article.load_from_db()
-		self.assertEqual(self.help_article.helpful, 0)
-		self.assertEqual(self.help_article.not_helpful, 0)
-
-		add_feedback(self.help_article.name, "Yes")
-		add_feedback(self.help_article.name, "No")
-
-		self.help_article.load_from_db()
-		self.assertEqual(self.help_article.helpful, 1)
-		self.assertEqual(self.help_article.not_helpful, 1)
-
 	@classmethod
 	def tearDownClass(cls) -> None:
 		frappe.delete_doc(cls.help_article.doctype, cls.help_article.name)

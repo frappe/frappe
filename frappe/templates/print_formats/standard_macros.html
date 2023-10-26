@@ -109,7 +109,7 @@ data-fieldname="{{ df.fieldname }}" data-fieldtype="{{ df.fieldtype }}"
 <div style="padding: 10px 0px" {{ fieldmeta(df) }}>
 	{%- if df.fieldtype in ("Text", "Code", "Long Text") %}<label>{{ _(df.label) }}</label>{%- endif %}
 	{%- if df.fieldtype=="Code" %}
-		<pre class="value">{{ doc.get(df.fieldname) }}</pre>
+		<pre class="value">{{ doc.get(df.fieldname)|e }}</pre>
 	{% else -%}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc, translated=df.translatable) }}
 {% endif -%}

@@ -280,6 +280,7 @@
    "options": "DocType"
   },
   {
+   "description": "If set, only user with these roles can access this chart. If not set, DocType or Report permissions will be used.",
    "fieldname": "roles",
    "fieldtype": "Table",
    "label": "Roles",
@@ -287,7 +288,7 @@
   }
  ],
  "links": [],
- "modified": "2022-07-27 11:09:09.203236",
+ "modified": "2023-09-18 13:41:05.263676",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
@@ -319,7 +320,6 @@
    "write": 1
   },
   {
-   "create": 1,
    "email": 1,
    "export": 1,
    "print": 1,
