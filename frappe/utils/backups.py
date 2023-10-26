@@ -706,6 +706,9 @@ class Backup:
 				os.remove(self.file_path.rstrip(".gz"))
 			os.rename(self.file_path + ".gpg", self.file_path)
 
+	def __del__(self):
+		self.decryption_rollback()
+
 
 def backup(
 	with_files=False,
