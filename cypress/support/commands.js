@@ -254,7 +254,10 @@ Cypress.Commands.add("awesomebar", (text) => {
 Cypress.Commands.add("new_form", (doctype) => {
 	let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
 	cy.visit(`/app/${dt_in_route}/new`);
-	cy.get("body").should("have.attr", "data-route", `Form/${doctype}/new-${dt_in_route}-1`);
+	cy.get("body").should(($body) => {
+		const dataRoute = $body.attr("data-route");
+		expect(dataRoute).to.match(new RegExp(`^Form/${doctype}/new-${dt_in_route}-`));
+	});
 	cy.get("body").should("have.attr", "data-ajax-state", "complete");
 });
 

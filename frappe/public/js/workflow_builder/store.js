@@ -81,8 +81,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			doc.workflow_data = JSON.stringify(workflow_data);
 			await frappe.call("frappe.client.save", { doc });
 			frappe.toast("Workflow updated successfully");
-			// this change to keep the state as it is when saving
-			//fetch();
+			fetch();
 		} catch (e) {
 			console.error(e);
 		} finally {

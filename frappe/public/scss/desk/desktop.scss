@@ -551,9 +551,9 @@ body {
 		cursor: pointer;
 
 		&:hover {
-			--icon-stroke: var(--gray-600);
+			--icon-stroke: var(--invert-neutral);
 			.widget-title {
-				color: var(--gray-600) !important;
+				color: var(--invert-neutral) !important;
 			}
 		}
 
@@ -600,7 +600,7 @@ body {
 			.link-content {
 				flex: 1;
 				&:hover {
-					color: var(--gray-600);
+					color: var(--invert-neutral);
 				}
 			}
 

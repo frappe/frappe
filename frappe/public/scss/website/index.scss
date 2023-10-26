@@ -87,6 +87,7 @@
 
 .dropdown-item {
 	border-radius: $dropdown-border-radius;
+	padding : var(--dropdown-padding) !important;
 }
 
 .dropdown-item:active {
@@ -164,6 +165,10 @@
 
 a.card {
 	text-decoration: none;
+}
+
+a.card-link {
+	text-decoration: underline;
 }
 
 .hidden {
