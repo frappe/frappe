@@ -58,12 +58,34 @@ class DbManager:
 		esc = make_esc("$ ")
 		pv = which("pv")
 
+<<<<<<< HEAD
 		if pv:
 			pipe = f"{pv} {source} |"
 			source = ""
 		else:
 			pipe = ""
 			source = f"< {source}"
+=======
+		command = []
+
+		if source.endswith(".gz"):
+			if gzip := which("gzip"):
+				source = []
+				command.extend([gzip, "-cd", source, "|"])
+				if pv:
+					command.extend([pv, "|"])
+					print("Restoring Database file...")
+			else:
+				raise Exception("`gzip` not installed")
+
+		else:
+			if pv:
+				command.extend([pv, source, "|"])
+				source = []
+				print("Restoring Database file...")
+			else:
+				source = ["<", source]
+>>>>>>> 0b508e2a96 (feat(db_manager): avoid extraction of DB dump if gzipped)
 
 		if pipe:
 			print("Restoring Database file...")
