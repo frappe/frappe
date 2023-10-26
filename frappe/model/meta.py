@@ -246,7 +246,7 @@ class Meta(Document):
 		"""Get label of the given fieldname"""
 
 		if df := self.get_field(fieldname):
-			return df.label
+			return df.get("label")
 
 		if fieldname in DEFAULT_FIELD_LABELS:
 			return DEFAULT_FIELD_LABELS[fieldname]()
