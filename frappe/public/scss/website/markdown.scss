@@ -2,6 +2,9 @@
 .section-markdown > .from-markdown {
 	max-width: 50rem;
 	margin: auto;
+	a {
+		text-decoration: underline;
+	}
 }
 
 .from-markdown {

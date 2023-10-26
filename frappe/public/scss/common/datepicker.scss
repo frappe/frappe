@@ -39,6 +39,9 @@
 	&--cell {
 		&.-current- {
 			color: var(--text-color);
+			&:not(.-selected-):not(.-in-range-) {
+				font-weight: var(--weight-bold);
+			}
 
 			&.-in-range- {
 				color: var(--text-color);

@@ -244,9 +244,10 @@
   },
   {
    "default": "0",
+   "description": "If unchecked, the value will always be re-fetched on save.",
    "fieldname": "fetch_if_empty",
    "fieldtype": "Check",
-   "label": "Fetch only if value is not set"
+   "label": "Fetch on Save if Empty"
   },
   {
    "fieldname": "permissions",
@@ -571,7 +572,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-20 17:14:07.896278",
+ "modified": "2023-10-25 06:53:45.194081",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
