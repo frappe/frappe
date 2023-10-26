@@ -91,16 +91,16 @@ class DBTable:
 				continue
 
 			self.columns[field.get("fieldname")] = DbColumn(
-				self,
-				field.get("fieldname"),
-				field.get("fieldtype"),
-				field.get("length"),
-				field.get("default"),
-				field.get("search_index"),
-				field.get("options"),
-				field.get("unique"),
-				field.get("precision"),
-				field.get("not_nullable"),
+				table=self,
+				fieldname=field.get("fieldname"),
+				fieldtype=field.get("fieldtype"),
+				length=field.get("length"),
+				default=field.get("default"),
+				set_index=field.get("search_index"),
+				options=field.get("options"),
+				unique=field.get("unique"),
+				precision=field.get("precision"),
+				not_nullable=field.get("not_nullable"),
 			)
 
 	def validate(self):
@@ -179,6 +179,7 @@ class DBTable:
 class DbColumn:
 	def __init__(
 		self,
+		*,
 		table,
 		fieldname,
 		fieldtype,
