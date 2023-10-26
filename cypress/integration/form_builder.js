@@ -66,7 +66,6 @@ context("Form Builder", () => {
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
 
 		cy.wait("@search_link").then((data) => {
-			console.log(data.response.body.message[0].value);
 			expect(data.response.body.message[0].value).to.eq("Miss");
 		});
 	});
