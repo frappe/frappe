@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import contextlib
 import json
 import os
 from textwrap import dedent
@@ -41,9 +42,12 @@ def atomic(method):
 			ret = method(*args, **kwargs)
 			frappe.db.commit()
 			return ret
-		except Exception:
-			frappe.db.rollback()
-			raise
+		except Exception as e:
+			# database itself can be gone while attempting rollback.
+			# We should preserve original exception in this case.
+			with contextlib.suppress(Exception):
+				frappe.db.rollback()
+			raise e
 
 	return wrapper
 
