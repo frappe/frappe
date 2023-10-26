@@ -214,6 +214,7 @@ class CustomizeForm(Document):
 				self.make_property_setter(prop, df.get(prop), prop_type, fieldname=df.fieldname)
 
 	def allow_property_change(self, prop, meta_df, df):
+		# ALLOWED_OPTIONS_CHANGE = ("Read Only", "HTML", "Select","Data")
 		if prop == "fieldtype":
 			self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
 
