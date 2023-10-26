@@ -333,9 +333,9 @@ $.extend(frappe, {
 	},
 	make_navbar_active: function () {
 		var pathname = window.location.pathname;
-		$(".navbar-nav a.active").removeClass("active");
-		$(".navbar-nav a").each(function () {
-			var href = $(this).attr("href");
+		$(".navbar-nav li.active").removeClass("active");
+		$(".navbar-nav li").each(function () {
+			var href = $(this.getElementsByTagName("a")).attr("href");
 			if (href === pathname) {
 				$(this).addClass("active");
 				return false;
