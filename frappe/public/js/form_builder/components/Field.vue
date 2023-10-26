@@ -149,7 +149,7 @@ function edit_filters(){
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
 					<button
-						v-if="field.df.fieldtype == 'Link' "
+						v-if="field.df.fieldtype === 'Link' "
 						class="btn btn-xs btn-icon"
 						@click="edit_filters"
 					>
