@@ -5,6 +5,7 @@ import sys
 
 # imports - third party imports
 import click
+import magic
 
 # imports - module imports
 import frappe
@@ -72,12 +73,9 @@ def new_site(
 	setup_db=True,
 ):
 	"Create a new site"
-	from frappe.installer import _new_site, extract_sql_from_archive
+	from frappe.installer import _new_site
 
 	frappe.init(site=site, new_site=True)
-
-	if source_sql:
-		source_sql = extract_sql_from_archive(source_sql)
 
 	_new_site(
 		db_name,
@@ -180,11 +178,9 @@ def _restore(
 	with_public_files=None,
 	with_private_files=None,
 ):
-
 	from frappe.installer import (
 		_new_site,
 		extract_files,
-		extract_sql_from_archive,
 		is_downgrade,
 		is_partial,
 		validate_database_sql,
@@ -192,22 +188,8 @@ def _restore(
 	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	_backup = Backup(sql_file_path)
-
-	try:
-		if is_partial(sql_file_path):
-			click.secho(
-				"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
-				fg="red",
-			)
-			click.secho(
-				"Use `bench partial-restore` to restore a partial backup to an existing site.",
-				fg="yellow",
-			)
-			_backup.decryption_rollback()
-			sys.exit(1)
-
-	except UnicodeDecodeError:
-		_backup.decryption_rollback()
+	backup_mimetype = magic.from_file(sql_file_path)
+	if "cipher" in backup_mimetype:
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 			_backup.backup_decryption(encryption_key)
@@ -220,21 +202,18 @@ def _restore(
 		# Rollback on unsuccessful decryption
 		if not os.path.exists(sql_file_path):
 			click.secho("Decryption failed. Please provide a valid key and try again.", fg="red")
-
-			_backup.decryption_rollback()
 			sys.exit(1)
 
-		if is_partial(sql_file_path):
-			click.secho(
-				"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
-				fg="red",
-			)
-			click.secho(
-				"Use `bench partial-restore` to restore a partial backup to an existing site.",
-				fg="yellow",
-			)
-			_backup.decryption_rollback()
-			sys.exit(1)
+	if is_partial(sql_file_path):
+		click.secho(
+			"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
+			fg="red",
+		)
+		click.secho(
+			"Use `bench partial-restore` to restore a partial backup to an existing site.",
+			fg="yellow",
+		)
+		sys.exit(1)
 
 	# don't allow downgrading to older versions of frappe without force
 	if not force and is_downgrade(sql_file_path, verbose=True):
@@ -244,11 +223,8 @@ def _restore(
 		)
 		click.confirm(warn_message, abort=True)
 
-	# Extract file if its gzipped
-	decompressed_file_name = extract_sql_from_archive(sql_file_path)
-
 	# Validate the sql file
-	validate_database_sql(decompressed_file_name, _raise=not force)
+	validate_database_sql(sql_file_path, _raise=not force)
 
 	try:
 		_new_site(
@@ -259,20 +235,14 @@ def _restore(
 			admin_password=admin_password,
 			verbose=verbose,
 			install_apps=install_app,
-			source_sql=decompressed_file_name,
+			source_sql=sql_file_path,
 			force=True,
 			db_type=frappe.conf.db_type,
 		)
 
 	except Exception as err:
 		print(err.args[1])
-		_backup.decryption_rollback()
 		sys.exit(1)
-
-	# Removing temporarily created file
-	if decompressed_file_name != sql_file_path:
-		os.remove(decompressed_file_name)
-		_backup.decryption_rollback()
 
 	# Extract public and/or private files to the restored site, if user has given the path
 	if with_public_files:
@@ -280,26 +250,20 @@ def _restore(
 		if encryption_key:
 			_backup = Backup(with_public_files)
 			_backup.backup_decryption(encryption_key)
-			if not os.path.exists(with_public_files):
-				_backup.decryption_rollback()
 		public = extract_files(site, with_public_files)
 
 		# Removing temporarily created file
 		os.remove(public)
-		_backup.decryption_rollback()
 
 	if with_private_files:
 		# Decrypt data if there is a Key
 		if encryption_key:
 			_backup = Backup(with_private_files)
 			_backup.backup_decryption(encryption_key)
-			if not os.path.exists(with_private_files):
-				_backup.decryption_rollback()
 		private = extract_files(site, with_private_files)
 
 		# Removing temporarily created file
 		os.remove(private)
-		_backup.decryption_rollback()
 
 	success_message = "Site {} has been restored{}".format(
 		site, " with files" if (with_public_files or with_private_files) else ""
@@ -328,17 +292,9 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 	verbose = context.verbose or verbose
 
 	frappe.connect(site=site)
-	try:
-		if not is_partial(sql_file_path):
-			click.secho(
-				"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
-				fg="red",
-			)
-			_backup.decryption_rollback()
-			sys.exit(1)
-
-	except UnicodeDecodeError:
-		_backup.decryption_rollback()
+	_backup = Backup(sql_file_path)
+	backup_mimetype = magic.from_file(sql_file_path)
+	if "cipher" in backup_mimetype:
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 			key = encryption_key
@@ -352,24 +308,16 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 		# Rollback on unsuccessful decryption
 		if not os.path.exists(sql_file_path):
 			click.secho("Decryption failed. Please provide a valid key and try again.", fg="red")
-			_backup.decryption_rollback()
 			sys.exit(1)
 
-		if not is_partial(sql_file_path):
-			click.secho(
-				"Full Backup file detected.Use `bench restore` to restore a Frappe Site.",
-				fg="red",
-			)
-			_backup.decryption_rollback()
-			sys.exit(1)
+	if not is_partial(sql_file_path):
+		click.secho(
+			"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
+			fg="red",
+		)
+		sys.exit(1)
 
 	partial_restore(sql_file_path, verbose)
-
-	# Removing temporarily created file
-	_backup.decryption_rollback()
-	if os.path.exists(sql_file_path.rstrip(".gz")):
-		os.remove(sql_file_path.rstrip(".gz"))
-
 	frappe.destroy()
 
 
