@@ -64,7 +64,7 @@ export default class LinksWidget extends Widget {
 
 			return `<span class="link-content ellipsis">${
 				item.label ? item.label : item.name
-			} ${frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")} </span>`;
+			} ${frappe.utils.icon("xs", "", "", "ml-2")} </span>`;
 		};
 
 		this.link_list = this.links.map((item) => {
