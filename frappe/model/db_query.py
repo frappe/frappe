@@ -54,6 +54,7 @@ STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
 SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
 
+
 class DatabaseQuery:
 	def __init__(self, doctype, user=None):
 		self.doctype = doctype
@@ -646,8 +647,9 @@ class DatabaseQuery:
 				continue
 
 			column = columns[0]
-			if column == "*" and '*' in field and not in_function("*", field):
-				asterisk_fields.append(i)
+			if column == "*":
+				if "*" in field and not in_function("*", field):
+					asterisk_fields.append(i)
 				continue
 
 			# handle pseudo columns

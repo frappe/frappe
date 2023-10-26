@@ -35,71 +35,58 @@ class TestReportview(FrappeTestCase):
 
 	def test_extract_fieldname(self):
 		self.assertEqual(
-			extract_fieldname("count(distinct `tabPhoto`.name) as total_count")[0],
-			"tabPhoto.name"
+			extract_fieldname("count(distinct `tabPhoto`.name) as total_count")[0], "tabPhoto.name"
 		)
 
-		self.assertEqual(
-			extract_fieldname("count(`tabPhoto`.name) as total_count")[0],
-			"tabPhoto.name"
-		)
+		self.assertEqual(extract_fieldname("owner")[0], "owner")
 
-		self.assertEqual(
-			extract_fieldname("count(distinct `tabPhoto`.name)")[0],
-			"tabPhoto.name"
-		)
+		self.assertEqual(extract_fieldname("module")[0], "module")
 
-		self.assertEqual(
-			extract_fieldname("count(`tabPhoto`.name)")[0],
-			"tabPhoto.name"
-		)
+		self.assertEqual(extract_fieldname("count(`tabPhoto`.name) as total_count")[0], "tabPhoto.name")
+
+		self.assertEqual(extract_fieldname("count(distinct `tabPhoto`.name)")[0], "tabPhoto.name")
+
+		self.assertEqual(extract_fieldname("count(`tabPhoto`.name)")[0], "tabPhoto.name")
 
 		self.assertEqual(
 			extract_fieldname("count(distinct `tabJob Applicant`.name) as total_count")[0],
-			"tabJob Applicant.name"
+			"tabJob Applicant.name",
 		)
 
 		self.assertEqual(
 			extract_fieldname("(1 / nullif(locate('a', `tabAddress`.`name`), 0)) as `_relevance`")[0],
-			"tabAddress.name"
+			"tabAddress.name",
 		)
 
 		self.assertEqual(
 			extract_fieldname("(1 / nullif(locate('(a)', `tabAddress`.`name`), 0)) as `_relevance`")[0],
-			"tabAddress.name"
+			"tabAddress.name",
 		)
 
-		self.assertEqual(
-			extract_fieldname("EXTRACT(MONTH FROM date_column) AS month")[0],
-			"date_column"
-		)
+		self.assertEqual(extract_fieldname("EXTRACT(MONTH FROM date_column) AS month")[0], "date_column")
+
+		self.assertEqual(extract_fieldname("COUNT(*) AS count")[0], "*")
+
+		self.assertEqual(extract_fieldname("COUNT(1) AS count")[0], "*")
+
+		self.assertEqual(extract_fieldname("COUNT(1) AS count, SUM(1) AS sum")[0], "*")
 
 		self.assertEqual(
-			extract_fieldname("COUNT(*) AS count")[0],
-			"*"
-		)
-
-		self.assertEqual(
-			extract_fieldname("COUNT(1) AS count")[0],
-			"*"
-		)
-
-		self.assertEqual(
-			extract_fieldname("COUNT(1) AS count, SUM(1) AS sum")[0],
-			"*"
-		)
-
-		self.assertEqual(
-			extract_fieldname("first_name + ' ' + last_name AS full_name"),
-			["first_name", "last_name"]
+			extract_fieldname("first_name + ' ' + last_name AS full_name"), ["first_name", "last_name"]
 		)
 
 		self.assertEqual(
 			extract_fieldname("CONCAT(first_name, ' ', last_name) AS full_name"),
-			["first_name", "last_name"]
+			["first_name", "last_name"],
 		)
 
 		self.assertEqual(
 			extract_fieldname("CONCAT(id, '/', name, '/', age, '/', marks) AS student"),
-			["id", "name", "age", "marks"]
+			["id", "name", "age", "marks"],
+		)
+
+		self.assertEqual(extract_fieldname("tablefield.fiedname")[0], "tablefield.fiedname")
+
+		self.assertEqual(
+			extract_fieldname("`tabChild DocType`.`fiedname`")[0], "tabChild DocType.fiedname"
 		)

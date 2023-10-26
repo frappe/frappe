@@ -5,6 +5,8 @@
 
 import json
 
+from sql_metadata import Parser
+
 import frappe
 import frappe.permissions
 from frappe import _
@@ -14,7 +16,6 @@ from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, format_duration
-from sql_metadata import Parser
 
 
 @frappe.whitelist()
@@ -175,13 +176,15 @@ def is_standard(fieldname):
 
 
 def extract_fieldname(field):
-	parser = Parser(f"select {field} from dummy")
-	if not parser.columns:
+	parser = Parser(f"select {field}, frappe_dummy from dummy")
+	columns = [col for col in parser.columns if col != "frappe_dummy"]
+
+	if not columns:
 		f = field.lower()
 		if "count(" in f or "sum(" in f or "avg(" in f:
 			return ["*"]
 		raise_invalid_field(field)
-	return parser.columns
+	return columns
 
 
 def get_meta_and_docfield(fieldname, data):
@@ -226,13 +229,13 @@ def get_parenttype_and_fieldname(field, data):
 		parts = field.split(".")
 		parenttype = parts[0]
 		fieldname = parts[1]
-		if parenttype.startswith("`tab"):
-			# `tabChild DocType`.`fieldname`
-			parenttype = parenttype[4:-1]
-			fieldname = fieldname.strip("`")
+		df = frappe.get_meta(data.doctype).get_field(parenttype)
+		if not df:
+			# tabChild DocType.fieldname
+			parenttype = parenttype[3:]
 		else:
 			# tablefield.fieldname
-			parenttype = frappe.get_meta(data.doctype).get_field(parenttype).options
+			parenttype = df.options
 	else:
 		parenttype = data.doctype
 		fieldname = field.strip("`")
