@@ -61,12 +61,23 @@ class DbManager:
 
 		command = []
 
-		if pv:
-			command.extend([pv, source, "|"])
-			source = []
-			print("Restoring Database file...")
+		if source.endswith(".gz"):
+			if gzip := which("gzip"):
+				source = []
+				command.extend([gzip, "-cd", source, "|"])
+				if pv:
+					command.extend([pv, "|"])
+					print("Restoring Database file...")
+			else:
+				raise Exception("`gzip` not installed")
+
 		else:
-			source = ["<", source]
+			if pv:
+				command.extend([pv, source, "|"])
+				source = []
+				print("Restoring Database file...")
+			else:
+				source = ["<", source]
 
 		bin, args, bin_name = get_command(
 			host=frappe.conf.db_host,
