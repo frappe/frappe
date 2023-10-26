@@ -132,7 +132,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	setup_page() {
 		this.hide_sidebar = true;
-		this.hide_page_form = true;
+		this.hide_page_form = false;
 		this.hide_card_layout = true;
 		this.hide_sort_selector = true;
 		super.setup_page();
