@@ -5,7 +5,6 @@ import sys
 
 # imports - third party imports
 import click
-import magic
 
 # imports - module imports
 import frappe
@@ -188,8 +187,12 @@ def _restore(
 	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
 
 	_backup = Backup(sql_file_path)
-	backup_mimetype = magic.from_file(sql_file_path)
-	if "cipher" in backup_mimetype:
+	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
+	if err:
+		click.secho("Failed to detect type of backup file", fg="red")
+		sys.exit(1)
+
+	if "cipher" in out.decode().split(":")[-1].strip():
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 			_backup.backup_decryption(encryption_key)
@@ -293,8 +296,12 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 
 	frappe.connect(site=site)
 	_backup = Backup(sql_file_path)
-	backup_mimetype = magic.from_file(sql_file_path)
-	if "cipher" in backup_mimetype:
+	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
+	if err:
+		click.secho("Failed to detect type of backup file", fg="red")
+		sys.exit(1)
+
+	if "cipher" in out.decode().split(":")[-1].strip():
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 			key = encryption_key
