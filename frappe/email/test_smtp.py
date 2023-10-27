@@ -73,7 +73,7 @@ def create_email_account(email_id, password, enable_outgoing, default_outgoing=0
 		"enable_incoming": 1,
 		"append_to": append_to,
 		"is_dummy_password": 1,
-		"smtp_server": "127.0.0.1",
+		"smtp_server": "localhost",
 		"use_imap": 0,
 	}
 
