@@ -336,7 +336,7 @@ class BackupGenerator:
 
 		for _type, info in backup_summary.items():
 			template = f"{{0:{title}}}: {{1:{path}}} {{2}}"
-			print(template.format(_type.title(), info["path"], info["size"]))
+			print(template.format(_type.title(), os.path.abspath(info["path"]), info["size"]))
 
 	def backup_files(self):
 		for folder in ("public", "private"):
