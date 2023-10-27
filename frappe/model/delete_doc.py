@@ -252,7 +252,15 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 		if not issingle:
 			fields = ["name", "docstatus"]
-			if frappe.get_meta(link_dt).istable:
+
+			try:
+				meta = frappe.get_meta(link_dt)
+			except frappe.DoesNotExistError:
+				# This mostly happens when app do not remove their customizations, we shouldn't
+				# prevent link checks from failing in those cases
+				continue
+
+			if meta.istable:
 				fields.extend(["parent", "parenttype"])
 
 			for item in frappe.db.get_values(link_dt, {link_field: doc.name}, fields, as_dict=True):
