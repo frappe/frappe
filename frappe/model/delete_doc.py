@@ -248,37 +248,45 @@ def check_if_doc_is_linked(doc, method="Delete"):
 	for lf in link_fields:
 		link_dt, link_field, issingle = lf["parent"], lf["fieldname"], lf["issingle"]
 
-		if not issingle:
-			fields = ["name", "docstatus"]
-			if frappe.get_meta(link_dt).istable:
-				fields.extend(["parent", "parenttype"])
+		try:
+			meta = frappe.get_meta(link_dt)
+		except frappe.DoesNotExistError:
+			# This mostly happens when app do not remove their customizations, we shouldn't
+			# prevent link checks from failing in those cases
+			continue
 
-			for item in frappe.db.get_values(link_dt, {link_field: doc.name}, fields, as_dict=True):
-				# available only in child table cases
-				item_parent = getattr(item, "parent", None)
-				linked_doctype = item.parenttype if item_parent else link_dt
-
-				if linked_doctype in frappe.get_hooks("ignore_links_on_delete") or (
-					linked_doctype in ignore_linked_doctypes and method == "Cancel"
-				):
-					# don't check for communication and todo!
-					continue
-
-				if method != "Delete" and (method != "Cancel" or not DocStatus(item.docstatus).is_submitted()):
-					# don't raise exception if not
-					# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
-					continue
-				elif link_dt == doc.doctype and (item_parent or item.name) == doc.name:
-					# don't raise exception if not
-					# linked to same item or doc having same name as the item
-					continue
-				else:
-					reference_docname = item_parent or item.name
-					raise_link_exists_exception(doc, linked_doctype, reference_docname)
-
-		else:
+		if issingle:
 			if frappe.db.get_value(link_dt, None, link_field) == doc.name:
 				raise_link_exists_exception(doc, link_dt, link_dt)
+			continue
+
+		fields = ["name", "docstatus"]
+
+		if meta.istable:
+			fields.extend(["parent", "parenttype"])
+
+		for item in frappe.db.get_values(link_dt, {link_field: doc.name}, fields, as_dict=True):
+			# available only in child table cases
+			item_parent = getattr(item, "parent", None)
+			linked_doctype = item.parenttype if item_parent else link_dt
+
+			if linked_doctype in frappe.get_hooks("ignore_links_on_delete") or (
+				linked_doctype in ignore_linked_doctypes and method == "Cancel"
+			):
+				# don't check for communication and todo!
+				continue
+
+			if method != "Delete" and (method != "Cancel" or not DocStatus(item.docstatus).is_submitted()):
+				# don't raise exception if not
+				# linked to a non-cancelled doc when deleting or to a submitted doc when cancelling
+				continue
+			elif link_dt == doc.doctype and (item_parent or item.name) == doc.name:
+				# don't raise exception if not
+				# linked to same item or doc having same name as the item
+				continue
+			else:
+				reference_docname = item_parent or item.name
+				raise_link_exists_exception(doc, linked_doctype, reference_docname)
 
 
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
