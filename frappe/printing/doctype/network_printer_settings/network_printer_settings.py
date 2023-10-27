@@ -8,7 +8,7 @@ from frappe.model.document import Document
 
 class NetworkPrinterSettings(Document):
 	@frappe.whitelist()
-	def get_printers_list(self, ip="127.0.0.1", port=631):
+	def get_printers_list(self, ip="localhost", port=631):
 		printer_list = []
 		try:
 			import cups

@@ -31,7 +31,7 @@ class BackupGenerator:
 	"""
 	This class contains methods to perform On Demand Backup
 
-	To initialize, specify (db_name, user, password, db_file_name=None, db_host="127.0.0.1")
+	To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
 	If specifying db_file_name, also append ".sql.gz"
 	"""
 
