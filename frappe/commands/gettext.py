@@ -29,7 +29,9 @@ def compile_translations(context, app: str | None = None, locale: str = None):
 	compile(app, locale)
 
 
-@click.command("csv-to-po", help="Translation: migrate from CSV files (old) to PO files (new)")
+@click.command(
+	"migrate-csv-to-po", help="Translation: migrate from CSV files (old) to PO files (new)"
+)
 @click.option("--app", help="Only migrate for this app. eg: frappe")
 @click.option("--locale", help="Compile translations only for this locale. eg: de")
 @pass_context
