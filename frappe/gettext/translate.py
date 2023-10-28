@@ -12,18 +12,18 @@ from babel.messages.mofile import read_mo, write_mo
 from babel.messages.pofile import read_po, write_po
 
 import frappe
+from frappe.utils import get_bench_path
 
 DEFAULT_LANG = "en"
-LOCALE_DIR = "locale"
+PO_DIR = "locale"  # po and pot files go into [app]/locale
+POT_FILE = "main.pot"  # the app's pot file is always main.pot
 MERGED_TRANSLATION_KEY = "merged_translations"
 APP_TRANSLATION_KEY = "translations_from_apps"
 USER_TRANSLATION_KEY = "lang_user_translations"
-POT_FILE = "main.pot"
-TRANSLATION_DOMAIN = "messages"
 
 
-def get_translator(lang: str, localedir: str | None = LOCALE_DIR, context: bool | None = False):
-	t = gettext.translation(TRANSLATION_DOMAIN, localedir=localedir, languages=(lang,), fallback=True)
+def get_translator(domain: str, lang: str, localedir: str, context: bool | None = False):
+	t = gettext.translation(domain, localedir=localedir, languages=(lang,), fallback=True)
 	return t.pgettext if context else t.gettext
 
 
@@ -46,20 +46,28 @@ def new_catalog(app: str, locale: str | None = None) -> Catalog:
 	)
 
 
-def get_locales_dir(app: str) -> Path:
-	return Path(frappe.get_app_path(app)) / LOCALE_DIR
+def get_po_dir(app: str) -> Path:
+	return Path(frappe.get_app_path(app)) / PO_DIR
+
+
+def get_locale_dir() -> Path:
+	return Path(get_bench_path()) / "sites" / "assets" / "locale"
 
 
 def get_locales(app: str) -> list[str]:
-	return [locale.name for locale in get_locales_dir(app).iterdir() if locale.is_dir()]
+	return [locale.stem for locale in get_po_dir(app).iterdir() if locale.suffix == ".po"]
 
 
 def get_po_path(app: str, locale: str | None = None) -> Path:
-	return get_locales_dir(app) / locale / "LC_MESSAGES" / "messages.po"
+	return get_po_dir(app) / f"{locale}.po"
+
+
+def get_mo_path(app: str, locale: str | None = None) -> Path:
+	return get_locale_dir() / locale / "LC_MESSAGES" / f"{app}.mo"
 
 
 def get_pot_path(app: str) -> Path:
-	return get_locales_dir(app) / "main.pot"
+	return get_po_dir(app) / POT_FILE
 
 
 def get_catalog(app: str, locale: str | None = None) -> Catalog:
@@ -87,8 +95,11 @@ def write_catalog(app: str, catalog: Catalog, locale: str | None = None) -> Path
 
 
 def write_binary(app: str, catalog: Catalog, locale: str) -> Path:
-	po_path = get_po_path(app, locale)
-	mo_path = po_path.with_suffix(".mo")
+	mo_path = get_mo_path(app, locale)
+
+	if not mo_path.parent.exists():
+		mo_path.parent.mkdir(parents=True)
+
 	with open(mo_path, "wb") as mo_file:
 		write_mo(mo_file, catalog)
 
@@ -252,17 +263,15 @@ def f(msg: str, context: str = None, lang: str = DEFAULT_LANG) -> str:
 	apps = frappe.get_all_apps()
 
 	for app in apps:
-		app_path = frappe.get_pymodule_path(app)
-		locale_path = os.path.join(app_path, LOCALE_DIR)
-		has_context = context is not None
+		locale_dir = get_locale_dir()
 
-		if has_context:
-			t = get_translator(lang, localedir=locale_path, context=has_context)
+		if context is not None:
+			t = get_translator(app, lang, localedir=locale_dir, context=True)
 			r = t(context, msg)
 			if r != msg:
 				return r
 
-		t = get_translator(lang, localedir=locale_path, context=False)
+		t = get_translator(app, lang, localedir=locale_dir, context=False)
 		r = t(msg)
 
 		if r != msg:
@@ -368,14 +377,11 @@ def get_translations_from_apps(lang, apps=None):
 		translations = {}
 
 		for app in apps or frappe.get_all_apps(True):
-			app_path = frappe.get_pymodule_path(app)
-			localedir = os.path.join(app_path, LOCALE_DIR)
-			mo_files = gettext.find(TRANSLATION_DOMAIN, localedir, (lang,), True)
-
+			mo_files = gettext.find(app, get_locale_dir(), (lang,), True)
 			for file in mo_files:
 				with open(file, "rb") as f:
-					po = read_mo(f)
-					for m in po:
+					catalog = read_mo(f)
+					for m in catalog:
 						translations[m.id] = m.string
 
 		return translations
