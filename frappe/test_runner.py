@@ -74,7 +74,7 @@ def main(
 
 		# workaround! since there is no separate test db
 		frappe.clear_cache()
-		scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled()
+		scheduler_disabled_by_user = frappe.utils.scheduler.is_scheduler_disabled(verbose=False)
 		if not scheduler_disabled_by_user:
 			frappe.utils.scheduler.disable_scheduler()
 

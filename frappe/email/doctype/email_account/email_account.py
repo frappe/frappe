@@ -309,7 +309,7 @@ class EmailAccount(Document):
 		except OSError:
 			if in_receive:
 				# timeout while connecting, see receive.py connect method
-				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
+				description = frappe.clear_last_message() if frappe.message_log else "Socket Error"
 				if test_internet():
 					self.db_set("no_failed", self.no_failed + 1)
 					if self.no_failed > 2:
@@ -496,7 +496,7 @@ class EmailAccount(Document):
 							}
 						)
 					except assign_to.DuplicateToDoError:
-						frappe.message_log.pop()
+						frappe.clear_last_message()
 						pass
 			else:
 				self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)

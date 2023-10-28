@@ -463,7 +463,7 @@ class Communication(Document, CommunicationEmailMixin):
 					duplicate = True
 
 			if duplicate:
-				del self.timeline_links[:]  # make it python 2 compatible as list.clear() is python 3 only
+				self.timeline_links.clear()
 				for l in links:
 					self.add_link(link_doctype=l[0], link_name=l[1])
 

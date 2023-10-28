@@ -22,10 +22,11 @@ import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
-from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest
+from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
 from frappe.middlewares import StaticDataMiddleware
-from frappe.utils import CallbackManager, cint, get_site_name, sanitize_html
+from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
+from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.error import log_error_snapshot
 from frappe.website.serve import get_response
 
@@ -93,16 +94,20 @@ def application(request: Request):
 
 		init_request(request)
 
-		frappe.api.validate_auth()
+		validate_auth()
 
 		if request.method == "OPTIONS":
 			response = Response()
 
 		elif frappe.form_dict.cmd:
-			response = frappe.handler.handle()
+			deprecation_warning(
+				f"{frappe.form_dict.cmd}: Sending `cmd` for RPC calls is deprecated, call REST API instead `/api/method/cmd`"
+			)
+			frappe.handler.handle()
+			response = frappe.utils.response.build_response("json")
 
 		elif request.path.startswith("/api/"):
-			response = frappe.api.handle()
+			response = frappe.api.handle(request)
 
 		elif request.path.startswith("/backups"):
 			response = frappe.utils.response.download_backup(request.path)

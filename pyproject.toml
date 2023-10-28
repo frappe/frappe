@@ -24,7 +24,7 @@ dependencies = [
     "PyYAML~=6.0.1",
     "RestrictedPython~=6.2",
     "WeasyPrint==59.0",
-    "Werkzeug~=2.3.4",
+    "Werkzeug~=3.0.1",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
     "bleach-allowlist~=1.0.3",
@@ -106,3 +106,4 @@ unittest-xml-reporting = "~=3.2.0"
 watchdog = "~=3.0.0"
 hypothesis = "~=6.77.0"
 responses = "==0.23.1"
+freezegun = "~=1.2.2"

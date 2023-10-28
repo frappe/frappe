@@ -73,11 +73,11 @@ def bulk_restore(docnames):
 			restored.append(d)
 
 		except frappe.DocumentAlreadyRestored:
-			frappe.message_log.pop()
+			frappe.clear_last_message()
 			invalid.append(d)
 
 		except Exception:
-			frappe.message_log.pop()
+			frappe.clear_last_message()
 			failed.append(d)
 			frappe.db.rollback()
 

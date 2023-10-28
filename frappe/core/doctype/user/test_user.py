@@ -420,7 +420,7 @@ class TestUser(FrappeTestCase):
 			self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/")
 			update_password(old_password, old_password=new_password)
 			self.assertEqual(
-				json.loads(frappe.message_log[0]).get("message"),
+				frappe.message_log[0].get("message"),
 				"Password reset instructions have been sent to your email",
 			)
 
