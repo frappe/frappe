@@ -91,6 +91,12 @@
    "fieldname": "attachment_link",
    "fieldtype": "HTML",
    "label": "Attachment Link"
+  },
+  {
+   "fieldname": "custom_uri",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Custom Uri"
   }
  ],
  "hide_toolbar": 1,

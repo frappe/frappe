@@ -119,27 +119,30 @@ def send_notification_email(doc):
 	if doc.type == "Energy Point" and doc.email_content is None:
 		return
 
-	from frappe.utils import get_url_to_form, strip_html
+	from frappe.utils import get_url_to_custom_link, get_url_to_form, strip_html
 
 	email = frappe.db.get_value("User", doc.for_user, "email")
 	if not email:
 		return
 
-	doc_link = get_url_to_form(doc.document_type, doc.document_name)
 	header = get_email_header(doc)
 	email_subject = strip_html(doc.subject)
+	args={
+		"body_content": doc.subject,
+		"description": doc.email_content,
+	}
+	if doc.custom_uri:
+		args["doc_link"] = get_url_to_custom_link(doc.custom_uri)
+	else:
+		args["document_type"]: doc.document_type
+		args["document_name"]: doc.document_name
+		args["doc_link"]: get_url_to_form(doc.document_type, doc.document_name)
 
 	frappe.sendmail(
 		recipients=email,
 		subject=email_subject,
 		template="new_notification",
-		args={
-			"body_content": doc.subject,
-			"description": doc.email_content,
-			"document_type": doc.document_type,
-			"document_name": doc.document_name,
-			"doc_link": doc_link,
-		},
+		args=args,
 		header=[header, "orange"],
 		now=frappe.flags.in_test,
 	)
