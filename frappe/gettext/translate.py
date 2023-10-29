@@ -299,9 +299,14 @@ def get_all_translations(lang: str) -> dict[str, str]:
 
 def get_translations_from_apps(lang, apps=None):
 	"""
-	Combine all translations from `.mo` files in all `apps`. For derivative
-	languages (es-GT), take translations from the base language (es) and then
-	update translations from the child (es-GT)
+	Combine translations from installed apps.
+
+	For dialects (i.e. es_GT), take translations from the base language (i.e. es)
+	and then update with specific translations from the dialect (i.e. es_GT).
+
+	If we only have a translation with context, also use it as a translation
+	without context. This way we can provide the context for each source string
+	but don't have to create a translation for each context.
 	"""
 	if not lang or lang == DEFAULT_LANG:
 		return {}
@@ -309,13 +314,25 @@ def get_translations_from_apps(lang, apps=None):
 	def t():
 		translations = {}
 
-		for app in apps or frappe.get_all_apps(True):
-			mo_files = gettext.find(app, get_locale_dir(), (lang,), True)
+		locale_dir = get_locale_dir()
+		for app in apps or frappe.get_installed_apps():
+			mo_files = gettext.find(app, locale_dir, (lang,), True)
 			for file in mo_files:
 				with open(file, "rb") as f:
 					catalog = read_mo(f)
 					for m in catalog:
-						translations[m.id] = m.string
+						if not m.id:
+							continue
+
+						key = m.id
+						if m.context:
+							context = m.context.decode()  # context is encoded as bytes
+							translations[f"{key}:{context}"] = m.string
+							if m.id not in translations:
+								# better a translation with context than no translation
+								translations[m.id] = m.string
+						else:
+							translations[m.id] = m.string
 
 		return translations
 
@@ -343,7 +360,7 @@ def get_user_translations(lang: str) -> dict[str, str]:
 			key = t.source_text
 			value = t.translated_text
 			if t.context:
-				key += ":" + t.context
+				key += f":{t.context}"
 			user_translations[key] = value
 
 		return user_translations
