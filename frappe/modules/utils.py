@@ -53,6 +53,7 @@ def get_doc_module(module: str, doctype: str, name: str) -> "ModuleType":
 	)
 	return frappe.get_module(module_name)
 
+
 def export_customization(module: str, doctype: str, custom: dict):
 	folder_path = os.path.join(get_module_path(module), "custom")
 	if not os.path.exists(folder_path):
@@ -65,6 +66,7 @@ def export_customization(module: str, doctype: str, custom: dict):
 	frappe.msgprint(_("Customizations for <b>{0}</b> exported to:<br>{1}").format(doctype, path))
 
 	return path
+
 
 @frappe.whitelist()
 def export_customizations(
