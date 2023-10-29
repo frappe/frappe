@@ -126,6 +126,7 @@ def generate_pot(target_app: str | None = None):
 		("hooks.py", "frappe.gettext.extractors.navbar.extract"),
 		("**/report/*/*.json", "frappe.gettext.extractors.report.extract"),
 		("**/onboarding_step/*/*.json", "frappe.gettext.extractors.onboarding_step.extract"),
+		("**/module_onboarding/*/*.json", "frappe.gettext.extractors.module_onboarding.extract"),
 	]
 
 	for app in apps:
