@@ -159,63 +159,6 @@ def get_lang_dict():
 	)
 
 
-def get_dict(fortype: str, name: str | None = None) -> dict[str, str]:
-	"""Returns translation dict for a type of object.
-
-	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
-	:param name: name of the document for which assets are to be returned.
-	"""
-	fortype = fortype.lower()
-	asset_key = fortype + ":" + (name or "-")
-	translation_assets = frappe.cache.hget("translation_assets", frappe.local.lang) or {}
-
-	if asset_key not in translation_assets:
-		messages = []
-		if fortype == "doctype":
-			messages = get_messages_from_doctype(name)
-		elif fortype == "page":
-			messages = get_messages_from_page(name)
-		elif fortype == "report":
-			messages = get_messages_from_report(name)
-		elif fortype == "include":
-			messages = get_messages_from_include_files()
-		elif fortype == "jsfile":
-			messages = get_messages_from_file(name)
-		elif fortype == "boot":
-			apps = frappe.get_all_apps(True)
-			for app in apps:
-				messages.extend(get_server_messages(app))
-
-			messages += get_messages_from_navbar()
-			messages += get_messages_from_include_files()
-			messages += (
-				frappe.qb.from_("Print Format").select(PseudoColumn("'Print Format:'"), "name")
-			).run()
-			messages += (frappe.qb.from_("DocType").select(PseudoColumn("'DocType:'"), "name")).run()
-			messages += frappe.qb.from_("Role").select(PseudoColumn("'Role:'"), "name").run()
-			messages += (frappe.qb.from_("Module Def").select(PseudoColumn("'Module:'"), "name")).run()
-			messages += (
-				frappe.qb.from_("Workspace Shortcut")
-				.where(Field("format").isnotnull())
-				.select(PseudoColumn("''"), "format")
-			).run()
-			messages += (frappe.qb.from_("Onboarding Step").select(PseudoColumn("''"), "title")).run()
-
-		messages = deduplicate_messages(messages)
-		message_dict = make_dict_from_messages(messages, load_user_translation=False)
-		message_dict.update(get_dict_from_hooks(fortype, name))
-		# remove untranslated
-		message_dict = {k: v for k, v in message_dict.items() if k != v}
-		translation_assets[asset_key] = message_dict
-		frappe.cache.hset("translation_assets", frappe.local.lang, translation_assets)
-
-	translation_map: dict = translation_assets[asset_key]
-
-	translation_map.update(get_user_translations(frappe.local.lang))
-
-	return translation_map
-
-
 def get_messages_for_boot():
 	"""Return all message translations that are required on boot."""
 	messages = get_all_translations(frappe.local.lang)
@@ -258,15 +201,6 @@ def make_dict_from_messages(messages, full_dict=None, load_user_translation=True
 				out[key] = full_dict[key]
 
 	return out
-
-
-def get_lang_js(fortype: str, name: str) -> str:
-	"""Returns code snippet to be appended at the end of a JS script.
-
-	:param fortype: Type of object, e.g. `DocType`
-	:param name: Document name
-	"""
-	return f"\n\n$.extend(frappe._messages, {json.dumps(get_dict(fortype, name))})"
 
 
 def get_all_translations(lang: str) -> dict[str, str]:
