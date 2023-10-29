@@ -12,6 +12,7 @@ from babel.messages.mofile import read_mo, write_mo
 from babel.messages.pofile import read_po, write_po
 
 import frappe
+from frappe.translate import get_dict_from_hooks
 from frappe.utils import get_bench_path
 
 DEFAULT_LANG = "en"
@@ -244,30 +245,6 @@ def get_messages_for_boot():
 	messages.update(get_dict_from_hooks("boot", None))
 
 	return messages
-
-
-def get_dict_from_hooks(fortype: str, name: str) -> dict[str, str]:
-	"""
-	Get and run a custom translator method from hooks for item.
-	Hook example:
-	```
-	get_translated_dict = {
-	        ("doctype", "Global Defaults"): "frappe.geo.country_info.get_translated_dict",
-	}
-	```
-	:param fortype: Item type. eg: doctype
-	:param name: Item name. eg: User
-	:return: Dictionary with translated messages
-	"""
-	translated_dict = {}
-	hooks = frappe.get_hooks("get_translated_dict")
-
-	for (hook_fortype, fortype_name) in hooks:
-		if hook_fortype == fortype and fortype_name == name:
-			for method in hooks[(hook_fortype, fortype_name)]:
-				translated_dict.update(frappe.get_attr(method)())
-
-	return translated_dict
 
 
 def make_dict_from_messages(messages, full_dict=None, load_user_translation=True):
