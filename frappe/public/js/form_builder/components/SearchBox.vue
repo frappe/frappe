@@ -18,7 +18,7 @@
 .search-box {
 	display: flex;
 	position: relative;
-	padding: 0px 9px 9px;
+	padding: 5px;
 	background-color: var(--fg-color);
 	border-bottom: 1px solid var(--border-color);
 
@@ -28,8 +28,8 @@
 
 	.search-icon {
 		position: absolute;
-		left: 16px;
-		top: 2px;
+		left: 12px;
+		top: 7px;
 	}
 }
 </style>
