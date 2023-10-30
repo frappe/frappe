@@ -397,7 +397,7 @@ frappe.hide_progress = function () {
 };
 
 // Floating Message
-frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {}) {
+frappe.show_alert = frappe.toast = function (message, seconds=7, actions={}, align="bottom", with_sound=false) {
 	let indicator_icon_map = {
 		orange: "solid-warning",
 		yellow: "solid-warning",
@@ -413,7 +413,13 @@ frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {})
 	}
 
 	if (!$("#dialog-container").length) {
-		$('<div id="dialog-container"><div id="alert-container"></div></div>').appendTo("body");
+		$(`
+			<div id="dialog-container">
+				<div id="alert-container-top"></div>
+				<div id="alert-container-center"></div>
+				<div id="alert-container"></div>
+			</div>
+		`).appendTo("body");
 	}
 
 	let icon;
@@ -439,13 +445,19 @@ frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {})
 		</div>
 	`);
 
-	div.hide().appendTo("#alert-container").show();
+	if (align === "top") {
+		div.hide().appendTo("#alert-container-top").show();
+	} else if (align === "center") {
+		div.hide().appendTo("#alert-container-center").show();
+	} else {
+		div.hide().appendTo("#alert-container").show();
+	}
 
 	if (message.body) {
 		div.find(".alert-body").show().html(message.body);
 	}
 
-	div.find(".close, button").click(function () {
+	div.find(".close, button").on("click", function () {
 		div.addClass("out");
 		setTimeout(() => div.remove(), 800);
 		return false;
@@ -466,5 +478,6 @@ frappe.show_alert = frappe.toast = function (message, seconds = 7, actions = {})
 		return false;
 	}, seconds * 1000);
 
+	if (with_sound) frappe.utils.play_sound("alert");
 	return div;
 };

@@ -1,3 +1,25 @@
+#alert-container-top {
+	position: fixed;
+	top: 7%;
+	right: 20px;
+	z-index: 1050;
+
+	@include media-breakpoint-down(sm) {
+		right: 0;
+	}
+}
+
+#alert-container-center {
+	position: fixed;
+	top: 50%;
+	right: 20px;
+	z-index: 1050;
+
+	@include media-breakpoint-down(sm) {
+		right: 0;
+	}
+}
+
 #alert-container {
 	position: fixed;
 	bottom: 0px;
