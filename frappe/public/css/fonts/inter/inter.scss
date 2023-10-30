@@ -1,5 +1,5 @@
-/* This file is depricated use Inter.scss instead. */
-/* Backward compatibility */
+// TODO instead of making copy of inter.css find a way to import it.
+// workaround for css import as it fails for custom website_theme_template
 @font-face {
 	font-family: 'Inter V';
 	font-weight: 100 900;
