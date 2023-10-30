@@ -6,8 +6,6 @@ import { useStore } from "../store";
 
 let store = useStore();
 
-let tab_titles = [__("Field Types"), __("Field Properties")];
-let active_tab = ref(tab_titles[0]);
 let sidebar_width = ref(272);
 let sidebar_resizing = ref(false);
 
@@ -33,14 +31,6 @@ function resize(e) {
 		sidebar_width.value = 24 * 16;
 	}
 }
-
-watch(
-	() => store.form.selected_field,
-	value => {
-		active_tab.value = value ? tab_titles[1] : tab_titles[0];
-	},
-	{ deep: true }
-);
 </script>
 
 <template>
@@ -49,22 +39,7 @@ watch(
 		@mousedown="start_resize"
 	/>
 	<div class="sidebar-container" :style="{ width: `${sidebar_width}px` }">
-		<div class="tab-header">
-			<div
-				:class="['tab', active_tab == tab ? 'active' : '']"
-				v-for="(tab, i) in tab_titles"
-				:key="i"
-				@click="active_tab = tab"
-			>
-				{{ tab }}
-			</div>
-		</div>
-		<div :class="['tab-content', active_tab == tab_titles[0] ? 'active' : '']">
-			<FieldTypes />
-		</div>
-		<div :class="['tab-content', active_tab == tab_titles[1] ? 'active' : '']">
-			<FieldProperties />
-		</div>
+		<FieldProperties />
 	</div>
 </template>
 
@@ -81,7 +56,8 @@ watch(
 	z-index: 4;
 	cursor: col-resize;
 
-	&:hover, &.resizing {
+	&:hover,
+	&.resizing {
 		opacity: 1;
 	}
 }
