@@ -300,9 +300,8 @@ def get_blog_categories():
 
 
 def clear_blog_cache():
-	for blog in frappe.db.sql_list(
-		"""select route from
-		`tabBlog Post` where ifnull(published,0)=1"""
+	for blog in frappe.db.get_list(
+		"Blog Post", fields=["route"], pluck="route", filters={"published": True}
 	):
 		clear_cache(blog)
 
@@ -353,7 +352,7 @@ def get_blog_list(
 						and reference_doctype='Blog Post'
 						and reference_name=t1.name) as comments
 		from `tabBlog Post` t1, `tabBlogger` t2
-		where ifnull(t1.published,0)=1
+		where t1.published = 1
 		and t1.blogger = t2.name
 		{condition}
 		order by featured desc, published_on desc, name asc
