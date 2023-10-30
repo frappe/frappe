@@ -8,6 +8,11 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
+  "form_builder_tab",
+  "form_builder",
+  "fields_section",
+  "fields",
+  "details_tab",
   "sb0",
   "module",
   "is_submittable",
@@ -53,10 +58,6 @@
   "advanced",
   "engine",
   "migration_hash",
-  "form_builder_tab",
-  "form_builder",
-  "fields_section",
-  "fields",
   "settings_tab",
   "form_settings_section",
   "image_field",
@@ -660,6 +661,11 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
   }
  ],
  "icon": "fa fa-bolt",
@@ -742,7 +748,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-08-29 12:27:06.587523",
+ "modified": "2023-10-30 12:19:49.757126",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
