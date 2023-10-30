@@ -123,19 +123,19 @@ function move_sections_to_tab() {
 				</div>
 				<div class="section-actions" :hidden="store.read_only">
 					<button
+						class="btn btn-xs btn-section"
+						:title="__('Add section above')"
+						@click="add_section_above"
+					>
+						<div v-html="frappe.utils.icon('add', 'sm')"></div>
+					</button>
+					<button
 						v-if="tab.sections.indexOf(section)"
 						class="btn btn-xs btn-section"
 						:title="__('Move the current section and the following sections to a new tab')"
 						@click="move_sections_to_tab"
 					>
 						<div v-html="frappe.utils.icon('move', 'sm')"></div>
-					</button>
-					<button
-						class="btn btn-xs btn-section"
-						:title="__('Add section above')"
-						@click="add_section_above"
-					>
-						<div v-html="frappe.utils.icon('add', 'sm')"></div>
 					</button>
 					<button
 						class="btn btn-xs btn-section"
