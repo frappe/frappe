@@ -56,20 +56,9 @@ def query_doctypes(doctype, txt, searchfield, start, page_len, filters):
 
 	single_doctypes = [d[0] for d in frappe.db.get_values("DocType", {"issingle": 1})]
 
-<<<<<<< HEAD
-	out = []
-	for dt in can_read:
-		if txt.lower().replace("%", "") in dt.lower() and (
-			include_single_doctypes or dt not in single_doctypes
-		):
-			out.append([dt])
-
-	return out
-=======
 	return [
 		[dt]
 		for dt in can_read
 		if txt.lower().replace("%", "") in frappe._(dt).lower()
 		and (include_single_doctypes or dt not in single_doctypes)
 	]
->>>>>>> 89aab5d748 (fix(query_doctypes): Allow search in translated name (#22590))
