@@ -30,14 +30,14 @@ onMounted(() => store.fetch());
 		class="form-builder-container"
 		@click="store.form.selected_field = null"
 	>
-		<div class="form-controls" @click.stop>
-			<div class="form-sidebar">
-				<Sidebar />
-			</div>
-		</div>
 		<div class="form-container">
 			<div class="form-main" :class="[store.preview ? 'preview' : '']">
 				<Tabs />
+			</div>
+		</div>
+		<div class="form-controls" @click.stop>
+			<div class="form-sidebar">
+				<Sidebar />
 			</div>
 		</div>
 	</div>
@@ -62,7 +62,7 @@ onMounted(() => store.fetch());
 	}
 
 	.form-sidebar {
-		border-right: 1px solid var(--border-color);
+		border-left: 1px solid var(--border-color);
 		border-bottom-left-radius: var(--border-radius);
 	}
 
@@ -70,7 +70,7 @@ onMounted(() => store.fetch());
 		border-radius: var(--border-radius);
 		border: 1px solid var(--border-color);
 		background-color: var(--card-bg);
-		margin: 10px;
+		margin: 5px;
 	}
 
 	.form-sidebar,
@@ -270,7 +270,7 @@ onMounted(() => store.fetch());
 	}
 
 	.form-main > :deep(div:first-child:not(.tab-header)) {
-		max-height: calc(100vh - 160px);
+		max-height: calc(100vh - 178px);
 	}
 }
 </style>
