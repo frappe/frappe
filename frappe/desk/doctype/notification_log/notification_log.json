@@ -93,10 +93,10 @@
    "label": "Attachment Link"
   },
   {
-   "fieldname": "custom_uri",
+   "fieldname": "link",
    "fieldtype": "Data",
    "hidden": 1,
-   "label": "Custom Uri"
+   "label": "Link"
   }
  ],
  "hide_toolbar": 1,

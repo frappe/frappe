@@ -1674,10 +1674,6 @@ def get_url_to_form(doctype: str, name: str) -> str:
 	return get_url(uri=f"/app/{quoted(slug(doctype))}/{quoted(name)}")
 
 
-def get_url_to_custom_link(link_uri: str) -> str:
-	return get_url(uri=f"/app/{quoted(link_uri)}")
-
-
 def get_url_to_list(doctype: str) -> str:
 	return get_url(uri=f"/app/{quoted(slug(doctype))}")
 
