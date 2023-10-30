@@ -28,6 +28,7 @@ class PrintFormatBuilder {
 			frappe.set_route("print-format-builder-beta");
 		});
 
+<<<<<<< HEAD
 		let $vm = new Vue({
 			el: this.$wrapper.get(0),
 			render: (h) =>
@@ -48,6 +49,32 @@ class PrintFormatBuilder {
 				this.page.clear_indicator();
 				$toggle_preview_btn.show();
 				$reset_changes_btn.hide();
+=======
+		let app = createApp(PrintFormatBuilderComponent, { print_format_name: print_format });
+		SetVueGlobals(app);
+		this.$component = app.mount(this.$wrapper.get(0));
+
+		watch(
+			() => this.$component.$store.dirty,
+			(dirty) => {
+				if (dirty.value) {
+					this.page.set_indicator(__("Not Saved"), "orange");
+					$toggle_preview_btn.hide();
+					$reset_changes_btn.show();
+				} else {
+					this.page.clear_indicator();
+					$toggle_preview_btn.show();
+					$reset_changes_btn.hide();
+				}
+			},
+			{ deep: true }
+		);
+
+		watch(
+			() => this.$component.show_preview,
+			(value) => {
+				$toggle_preview_btn.text(value ? __("Hide Preview") : __("Show Preview"));
+>>>>>>> 78781952a3 (fix: Add translation to "Not Saved" state in print format builder (#22920))
 			}
 		});
 		this.$component.$watch("show_preview", (value) => {
