@@ -173,8 +173,8 @@ function delete_tab(with_children) {
 				</template>
 			</draggable>
 			<div class="empty-tab" :hidden="store.read_only">
-				<div>{{ __("Drag & Drop a section here from another tab") }}</div>
-				<div>{{ __("OR") }}</div>
+				<div v-if="has_tabs">{{ __("Drag & Drop a section here from another tab") }}</div>
+				<div v-if="has_tabs">{{ __("OR") }}</div>
 				<button class="btn btn-default btn-sm" @click="add_new_section">
 					{{ __("Add a new section") }}
 				</button>
