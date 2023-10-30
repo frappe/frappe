@@ -40,14 +40,14 @@ function is_current_tab_empty() {
 	);
 }
 
-function remove_tab() {
+function remove_tab(tab) {
 	if (store.is_customize_form && store.current_tab.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	} else if (store.has_standard_field(store.current_tab)) {
-		delete_tab();
+		delete_tab(tab);
 	} else if (is_current_tab_empty()) {
-		delete_tab(true);
+		delete_tab(tab, true);
 	} else {
 		confirm_dialog(
 			__("Delete Tab", null, "Title of confirmation dialog"),
@@ -56,30 +56,30 @@ function remove_tab() {
 				null,
 				"Confirmation dialog message"
 			),
-			() => delete_tab(),
+			() => delete_tab(tab),
 			__("Delete tab", null, "Button text"),
-			() => delete_tab(true),
+			() => delete_tab(tab, true),
 			__("Delete entire tab with sections", null, "Button text")
 		);
 	}
 }
 
-function delete_tab(with_children) {
+function delete_tab(tab, with_children) {
 	let tabs = store.form.layout.tabs;
-	let index = tabs.indexOf(store.current_tab);
+	let index = tabs.indexOf(tab);
 
 	if (!with_children) {
 		if (index > 0) {
 			let prev_tab = tabs[index - 1];
 			if (!is_current_tab_empty()) {
 				// move all sections from current tab to previous tab
-				prev_tab.sections = [...prev_tab.sections, ...store.current_tab.sections];
+				prev_tab.sections = [...prev_tab.sections, ...tab.sections];
 			}
 		} else {
 			// create a new tab and push sections to it
 			tabs.unshift({
 				df: store.get_df("Tab Break", "", __("Details")),
-				sections: store.current_tab.sections,
+				sections: tab.sections,
 				is_first: true,
 			});
 			index++;
@@ -126,7 +126,7 @@ function delete_tab(with_children) {
 					<button
 						class="remove-tab-btn btn btn-xs"
 						:title="__('Remove tab')"
-						@click.stop="remove_tab"
+						@click.stop="remove_tab(element)"
 						:hidden="store.read_only"
 					>
 						<div v-html="frappe.utils.icon('remove', 'xs')"></div>
