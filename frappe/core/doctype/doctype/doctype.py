@@ -365,16 +365,23 @@ class DocType(Document):
 							SET `{fieldname}` = source.`{source_fieldname}`
 							FROM `tab{link_doctype}` as source
 							WHERE `{link_fieldname}` = source.name
-							AND ifnull(`{fieldname}`, '')=''
 						"""
+						if df.not_nullable:
+							update_query += "AND `{fieldname}`=''"
+						else:
+							update_query += "AND ifnull(`{fieldname}`, '')=''"
+
 					else:
 						update_query = """
 							UPDATE `tab{doctype}` as target
 							INNER JOIN `tab{link_doctype}` as source
 							ON `target`.`{link_fieldname}` = `source`.`name`
 							SET `target`.`{fieldname}` = `source`.`{source_fieldname}`
-							WHERE ifnull(`target`.`{fieldname}`, '')=""
 						"""
+						if df.not_nullable:
+							update_query += "WHERE `target`.`{fieldname}`=''"
+						else:
+							update_query += "WHERE ifnull(`target`.`{fieldname}`, '')=" ""
 
 					self.flags.update_fields_to_fetch_queries.append(
 						update_query.format(
