@@ -350,7 +350,7 @@ class DocType(Document):
 
 		self.flags.update_fields_to_fetch_queries = []
 
-		new_fields_to_fetch = [df for df in new_meta.get_fields_to_fetch()]
+		new_fields_to_fetch = new_meta.get_fields_to_fetch()
 
 		if set(old_fields_to_fetch) != {df.fieldname for df in new_fields_to_fetch}:
 			for df in new_fields_to_fetch:
