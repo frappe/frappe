@@ -23,7 +23,8 @@ function start_resize() {
 function resize(e) {
 	sidebar_resizing.value = true;
 	$(".form-builder-container").addClass("resizing");
-	sidebar_width.value = e.clientX - 90;
+	let screen_width = e.view.innerWidth;
+	sidebar_width.value = screen_width - e.clientX - 90;
 
 	if (sidebar_width.value < 16 * 16) {
 		sidebar_width.value = 16 * 16;
@@ -71,7 +72,7 @@ watch(
 .sidebar-resizer {
 	position: absolute;
 	top: 0;
-	right: -6px;
+	left: -5px;
 	width: 5px;
 	height: 100%;
 	opacity: 0;
