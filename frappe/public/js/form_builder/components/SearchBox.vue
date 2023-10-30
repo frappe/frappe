@@ -5,7 +5,7 @@
 		<input
 			class="search-input form-control"
 			type="text"
-			:placeholder="__('Search fields')"
+			:placeholder="__('Search properties...')"
 			@input="event => $emit('update:modelValue', event.target.value)"
 		/>
 		<span class="search-icon">
@@ -18,9 +18,8 @@
 .search-box {
 	display: flex;
 	position: relative;
-	padding: 5px;
 	background-color: var(--fg-color);
-	border-bottom: 1px solid var(--border-color);
+	width: 100%;
 
 	.search-input {
 		padding-left: 30px;
@@ -28,8 +27,8 @@
 
 	.search-icon {
 		position: absolute;
-		left: 12px;
-		top: 7px;
+		left: 7px;
+		top: 2px;
 	}
 }
 </style>

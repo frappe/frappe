@@ -13,17 +13,7 @@ let has_tabs = computed(() => store.form.layout.tabs.length > 1);
 store.form.active_tab = store.form.layout.tabs[0].df.name;
 
 function activate_tab(tab) {
-	store.form.active_tab = tab.df.name;
-	store.form.selected_field = tab.df;
-
-	// scroll to active tab
-	nextTick(() => {
-		$(".tabs .tab.active")[0].scrollIntoView({
-			behavior: "smooth",
-			inline: "center",
-			block: "nearest",
-		});
-	});
+	store.activate_tab(tab);
 }
 
 function drag_over(tab) {
@@ -34,13 +24,7 @@ function drag_over(tab) {
 }
 
 function add_new_tab() {
-	let tab = {
-		df: store.get_df("Tab Break", "", "Tab " + (store.form.layout.tabs.length + 1)),
-		sections: [section_boilerplate()],
-	};
-
-	store.form.layout.tabs.push(tab);
-	activate_tab(tab);
+	store.add_new_tab();
 }
 
 function add_new_section() {
@@ -51,8 +35,8 @@ function add_new_section() {
 
 function is_current_tab_empty() {
 	// check if sections have columns and it contains fields
-	return !store.current_tab.sections.some(
-		section => section.columns.some(column => column.fields.length)
+	return !store.current_tab.sections.some((section) =>
+		section.columns.some((column) => column.fields.length)
 	);
 }
 
@@ -67,7 +51,11 @@ function remove_tab() {
 	} else {
 		confirm_dialog(
 			__("Delete Tab", null, "Title of confirmation dialog"),
-			__("Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab.", null, "Confirmation dialog message"),
+			__(
+				"Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab.",
+				null,
+				"Confirmation dialog message"
+			),
 			() => delete_tab(),
 			__("Delete tab", null, "Button text"),
 			() => delete_tab(true),
@@ -109,7 +97,7 @@ function delete_tab(with_children) {
 </script>
 
 <template>
-	<div class="tab-header" v-if="!(store.form.layout.tabs.length == 1 && store.read_only)">
+	<div class="tab-header" v-if="store.form.layout.tabs.length > 1">
 		<draggable
 			v-show="has_tabs"
 			class="tabs"
@@ -121,20 +109,29 @@ function delete_tab(with_children) {
 			:disabled="store.read_only"
 		>
 			<template #item="{ element }">
-				<div
-					:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
-					:title="element.df.fieldname"
-					:data-is-user-generated="store.is_user_generated_field(element)"
-					@click.stop="activate_tab(element)"
-					@dragstart="dragged = true"
-					@dragend="dragged = false"
-					@dragover="drag_over(element)"
-				>
-					<EditableInput
-						:text="element.df.label"
-						:placeholder="__('Tab Label')"
-						v-model="element.df.label"
-					/>
+				<div class="tab-container">
+					<div
+						:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
+						:title="element.df.fieldname"
+						:data-is-user-generated="store.is_user_generated_field(element)"
+						@click.stop="activate_tab(element)"
+						@dragstart="dragged = true"
+						@dragend="dragged = false"
+						@dragover="drag_over(element)"
+					>
+						<EditableInput
+							:text="element.df.label"
+							:placeholder="__('Tab Label')"
+							v-model="element.df.label"
+						/>
+					</div>
+					<button
+						class="remove-tab-btn btn btn-xs"
+						:title="__('Remove tab')"
+						@click="remove_tab"
+					>
+						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+					</button>
 				</div>
 			</template>
 		</draggable>
@@ -145,18 +142,9 @@ function delete_tab(with_children) {
 				:title="__('Add new tab')"
 				@click="add_new_tab"
 			>
-				<div v-if="has_tabs" v-html="frappe.utils.icon('add', 'sm')"></div>
-				<div class="add-btn-text" v-else>
-					{{ __("Add new tab") }}
+				<div class="add-btn-text">
+					{{ __("+ Add tab") }}
 				</div>
-			</button>
-			<button
-				v-if="has_tabs"
-				class="remove-tab-btn btn btn-xs"
-				:title="__('Remove selected tab')"
-				@click="remove_tab"
-			>
-				<div v-html="frappe.utils.icon('remove', 'sm')"></div>
 			</button>
 		</div>
 	</div>
@@ -274,6 +262,21 @@ function delete_tab(with_children) {
 			&::before {
 				border-color: var(--primary);
 			}
+		}
+	}
+
+	.tab-container {
+		display: flex;
+		align-items: center;
+
+		&:hover .remove-tab-btn {
+			display: block;
+		}
+
+		.remove-tab-btn {
+			margin-left: -5px;
+			display: none;
+			padding: 4px;
 		}
 	}
 }
