@@ -654,6 +654,7 @@
    "collapsible": 1,
    "fieldname": "fields_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Fields"
   },
   {
@@ -748,7 +749,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-10-30 12:19:49.757126",
+ "modified": "2023-10-30 12:27:18.098074",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
