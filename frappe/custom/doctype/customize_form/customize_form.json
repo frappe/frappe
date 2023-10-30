@@ -180,6 +180,7 @@
    "depends_on": "doc_type",
    "fieldname": "fields_section_break",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Fields"
   },
   {
@@ -393,7 +394,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-08-29 12:31:55.808848",
+ "modified": "2023-10-31 02:04:25.955931",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
