@@ -7,6 +7,7 @@
 	Translation tools for frappe
 """
 
+
 import functools
 import io
 import itertools
@@ -14,10 +15,8 @@ import json
 import operator
 import os
 import re
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from csv import reader, writer
-
-from pypika.terms import PseudoColumn
 
 import frappe
 from frappe.model.utils import InvalidIncludePath, render_include
@@ -161,22 +160,8 @@ def get_lang_dict():
 
 def get_messages_for_boot():
 	"""Return all message translations that are required on boot."""
-	messages = get_all_translations(frappe.local.lang)
-	messages.update(get_dict_from_hooks("boot", None))
 
-	return messages
-
-
-def get_dict_from_hooks(fortype, name):
-	translated_dict = {}
-
-	hooks = frappe.get_hooks("get_translated_dict")
-	for (hook_fortype, fortype_name) in hooks:
-		if hook_fortype == fortype and fortype_name == name:
-			for method in hooks[(hook_fortype, fortype_name)]:
-				translated_dict.update(frappe.get_attr(method)())
-
-	return translated_dict
+	return get_all_translations(frappe.local.lang)
 
 
 def make_dict_from_messages(messages, full_dict=None, load_user_translation=True):
@@ -212,13 +197,12 @@ def get_all_translations(lang: str) -> dict[str, str]:
 		return {}
 
 	def _merge_translations():
+		from frappe.geo.country_info import get_translated_dict
+
 		all_translations = get_translations_from_apps(lang).copy()
-		try:
-			# get user specific translation data
-			user_translations = get_user_translations(lang)
-			all_translations.update(user_translations)
-		except Exception:
-			pass
+		with suppress(Exception):
+			all_translations.update(get_user_translations(lang))
+			all_translations.update(get_translated_dict())
 
 		return all_translations
 
