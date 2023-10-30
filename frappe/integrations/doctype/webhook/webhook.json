@@ -18,12 +18,7 @@
   "html_condition",
   "sb_webhook",
   "request_url",
-<<<<<<< HEAD
-=======
   "timeout",
-  "is_dynamic_url",
-  "cb_webhook",
->>>>>>> 62a3a70bf8 (feat: webhook timeout (#21410))
   "request_method",
   "cb_webhook",
   "request_structure",
@@ -206,19 +201,6 @@
   {
    "fieldname": "section_break_28",
    "fieldtype": "Section Break"
-<<<<<<< HEAD
-  }
- ],
- "links": [],
- "modified": "2022-07-11 08:54:10.740512",
-=======
-  },
-  {
-   "default": "0",
-   "description": "On checking this option, URL will be treated like a jinja template string",
-   "fieldname": "is_dynamic_url",
-   "fieldtype": "Check",
-   "label": "Is Dynamic URL?"
   },
   {
    "default": "5",
@@ -229,14 +211,8 @@
    "reqd": 1
   }
  ],
- "links": [
-  {
-   "link_doctype": "Webhook Request Log",
-   "link_fieldname": "webhook"
-  }
- ],
+ "links": [],
  "modified": "2023-06-16 10:21:00.971833",
->>>>>>> 62a3a70bf8 (feat: webhook timeout (#21410))
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
