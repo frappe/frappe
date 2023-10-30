@@ -1,7 +1,7 @@
 frappe.provide("frappe.data_import");
 
 frappe.data_import.DataExporter = class DataExporter {
-	constructor(doctype, exporting_for, filetype="CSV") {
+	constructor(doctype, exporting_for, filetype = "CSV") {
 		this.doctype = doctype;
 		this.exporting_for = exporting_for;
 		frappe.model.with_doctype(doctype, () => {
@@ -9,7 +9,7 @@ frappe.data_import.DataExporter = class DataExporter {
 		});
 	}
 
-	make_dialog(filetype="CSV") {
+	make_dialog(filetype = "CSV") {
 		this.dialog = new frappe.ui.Dialog({
 			title: __("Export Data"),
 			fields: [
