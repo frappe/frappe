@@ -91,7 +91,7 @@ onMounted(() => {
 	.search-icon {
 		position: absolute;
 		left: 13px;
-		top: 11px;
+		top: 8px;
 	}
 }
 </style>
