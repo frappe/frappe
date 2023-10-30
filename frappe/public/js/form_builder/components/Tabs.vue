@@ -1,10 +1,10 @@
 <script setup>
 import Section from "./Section.vue";
 import EditableInput from "./EditableInput.vue";
-import draggable from "vuedraggable";
 import { useStore } from "../store";
 import { section_boilerplate, confirm_dialog } from "../utils";
-import { ref, computed, nextTick } from "vue";
+import draggable from "vuedraggable";
+import { ref, computed } from "vue";
 
 let store = useStore();
 

@@ -1,8 +1,7 @@
 <script setup>
-import FieldTypes from "./FieldTypes.vue";
 import FieldProperties from "./FieldProperties.vue";
-import { ref, watch } from "vue";
 import { useStore } from "../store";
+import { ref } from "vue";
 
 let store = useStore();
 
