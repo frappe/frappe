@@ -68,7 +68,16 @@ let docfield_df = computed(() => {
 </script>
 
 <template>
-	<SearchBox v-model="search_text" />
+	<div class="header">
+		<SearchBox class="flex-1" v-model="search_text" />
+		<button
+			class="btn btn-xs"
+			:title="__('Close properties')"
+			@click="store.form.selected_field = null"
+		>
+			<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+		</button>
+	</div>
 	<div class="control-data">
 		<div v-if="store.form.selected_field">
 			<div class="field" v-for="(df, i) in docfield_df" :key="i">
@@ -84,13 +93,16 @@ let docfield_df = computed(() => {
 				/>
 			</div>
 		</div>
-		<div class="empty-state" v-else>
-			<div>Select a field to edit its properties.</div>
-		</div>
 	</div>
 </template>
 
 <style lang="scss" scoped>
+.header {
+	display: flex;
+	padding: 5px;
+	gap: 5px;
+	border-bottom: 1px solid var(--border-color);
+}
 .control-data {
 	height: calc(100vh - 205px);
 	overflow-y: auto;
@@ -106,15 +118,6 @@ let docfield_df = computed(() => {
 			background-color: var(--disabled-control-bg);
 			cursor: default;
 		}
-	}
-
-	.empty-state {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 100%;
-		text-align: center;
-		color: var(--disabled-text-color);
 	}
 }
 </style>

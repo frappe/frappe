@@ -39,7 +39,21 @@ function resize(e) {
 		@mousedown="start_resize"
 	/>
 	<div class="sidebar-container" :style="{ width: `${sidebar_width}px` }">
-		<FieldProperties />
+		<FieldProperties v-if="store.form.selected_field" />
+		<div class="default-state" v-else>
+			<div class="actions" v-if="store.form.layout.tabs.length == 1">
+				<button
+					class="new-tab-btn btn btn-default btn-xs"
+					:title="__('Add new tab')"
+					@click="store.add_new_tab"
+				>
+					{{ __("+ Add tab") }}
+				</button>
+			</div>
+			<div class="empty-state">
+				<div>Select a field to edit its properties.</div>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -61,6 +75,7 @@ function resize(e) {
 		opacity: 1;
 	}
 }
+
 .tab-header {
 	display: flex;
 	justify-content: space-between;
@@ -102,6 +117,25 @@ function resize(e) {
 	display: none;
 	&.active {
 		display: block;
+	}
+}
+
+.default-state {
+	height: calc(100vh - 196px);
+
+	.actions {
+		padding: 5px;
+		display: flex;
+		justify-content: flex-end;
+		border-bottom: 1px solid var(--border-color);
+	}
+	.empty-state {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 100%;
+		text-align: center;
+		color: var(--disabled-text-color);
 	}
 }
 </style>

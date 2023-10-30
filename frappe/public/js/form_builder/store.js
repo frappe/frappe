@@ -1,5 +1,10 @@
 import { defineStore } from "pinia";
-import { create_layout, scrub_field_names, load_doctype_model } from "./utils";
+import {
+	create_layout,
+	scrub_field_names,
+	load_doctype_model,
+	section_boilerplate,
+} from "./utils";
 import { computed, nextTick, ref } from "vue";
 import { useDebouncedRefHistory, onKeyDown } from "@vueuse/core";
 
@@ -297,6 +302,31 @@ export const useStore = defineStore("form-builder-store", () => {
 		return create_layout(doc.value.fields);
 	}
 
+	// Tab actions
+	function add_new_tab() {
+		let tab = {
+			df: get_df("Tab Break", "", "Tab " + (form.value.layout.tabs.length + 1)),
+			sections: [section_boilerplate()],
+		};
+
+		form.value.layout.tabs.push(tab);
+		activate_tab(tab);
+	}
+
+	function activate_tab(tab) {
+		form.value.active_tab = tab.df.name;
+		form.value.selected_field = tab.df;
+
+		// scroll to active tab
+		nextTick(() => {
+			$(".tabs .tab.active")[0].scrollIntoView({
+				behavior: "smooth",
+				inline: "center",
+				block: "nearest",
+			});
+		});
+	}
+
 	return {
 		doctype,
 		frm,
@@ -320,5 +350,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		get_updated_fields,
 		is_df_updated,
 		get_layout,
+		add_new_tab,
+		activate_tab,
 	};
 });
