@@ -90,12 +90,7 @@ frappe.listview_settings["DocType"] = {
 								write: 1,
 							},
 						],
-						fields: [
-							{
-								label: "Title",
-								fieldtype: "Data",
-							},
-						],
+						fields: [{ fieldtype: "Section Break" }, { fieldtype: "Column Break" }],
 					})
 					.then((doc) => {
 						frappe.set_route("Form", "DocType", doc.name);
