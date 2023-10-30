@@ -1,16 +1,74 @@
 <script setup>
 import EditableInput from "./EditableInput.vue";
-import { ref, computed } from "vue";
+import Dropdown from "./Dropdown.vue";
 import { useStore } from "../store";
 import { move_children_to_parent, clone_field } from "../utils";
+import { createPopper } from "@popperjs/core";
+import { ref, computed, watch } from "vue";
 
 const props = defineProps(["column", "field"]);
-let store = useStore();
+const store = useStore();
 
-let hovered = ref(false);
-let component = computed(() => {
+const hovered = ref(false);
+const component = computed(() => {
 	return props.field.df.fieldtype.replace(" ", "") + "Control";
 });
+
+const show_fieldtype_dropdown = ref(false);
+const search_text = ref("");
+const fields = computed(() => {
+	let fields = frappe.model.all_fieldtypes
+		.filter((df) => {
+			if (in_list(frappe.model.layout_fields, df)) {
+				return false;
+			}
+			if (search_text.value) {
+				if (df.toLowerCase().includes(search_text.value.toLowerCase())) {
+					return true;
+				}
+				return false;
+			} else {
+				return true;
+			}
+		})
+		.map((df) => {
+			let out = {
+				label: df,
+				onClick: () => {
+					let new_field = {
+						df: store.get_df(df),
+						table_columns: [],
+					};
+
+					add_new_field(clone_field(new_field));
+				},
+			};
+			return out;
+		});
+	return [...fields];
+});
+
+const add_field_btn_ref = ref(null);
+const dropdown_ref = ref(null);
+const popper = ref(null);
+
+function setupPopper() {
+	if (!popper.value) {
+		popper.value = createPopper(add_field_btn_ref.value, dropdown_ref.value, {
+			placement: "bottom-end",
+			modifiers: [
+				{
+					name: "offset",
+					options: {
+						offset: [0, 4],
+					},
+				},
+			],
+		});
+	} else {
+		popper.value.update();
+	}
+}
 
 function remove_field() {
 	if (store.is_customize_form && props.field.df.is_custom_field == 0) {
@@ -23,8 +81,8 @@ function remove_field() {
 }
 
 function move_fields_to_column() {
-	let current_section = store.current_tab.sections.find(section =>
-		section.columns.find(column => column == props.column)
+	let current_section = store.current_tab.sections.find((section) =>
+		section.columns.find((column) => column == props.column)
 	);
 	move_children_to_parent(props, "column", "field", current_section);
 }
@@ -53,6 +111,27 @@ function duplicate_field() {
 	props.column.fields.splice(index + 1, 0, duplicate_field);
 	store.form.selected_field = duplicate_field.df;
 }
+
+function add_new_field(field) {
+	// insert new field after current field
+	let index = props.column.fields.indexOf(props.field);
+	props.column.fields.splice(index + 1, 0, field);
+	store.form.selected_field = field.df;
+	show_fieldtype_dropdown.value = false;
+	hovered.value = false;
+}
+
+function toggle_fieldtype_dropdown() {
+	show_fieldtype_dropdown.value = !show_fieldtype_dropdown.value;
+	search_text.value = "";
+	setupPopper();
+}
+
+watch(hovered, (val) => {
+	if (val && store.form.selected_field && store.form.selected_field != props.field.df) {
+		show_fieldtype_dropdown.value = false;
+	}
+});
 </script>
 
 <template>
@@ -60,7 +139,7 @@ function duplicate_field() {
 		:class="[
 			'field',
 			hovered ? 'hovered' : '',
-			store.selected(field.df.name) ? 'selected' : ''
+			store.selected(field.df.name) ? 'selected' : '',
 		]"
 		:title="field.df.fieldname"
 		@click.stop="store.form.selected_field = field.df"
@@ -82,17 +161,28 @@ function duplicate_field() {
 						v-model="field.df.label"
 					/>
 					<div class="reqd-asterisk" v-if="field.df.reqd">*</div>
-					<div class="help-icon" v-if="field.df.documentation_url" v-html="frappe.utils.icon('help', 'sm')"></div>
+					<div
+						class="help-icon"
+						v-if="field.df.documentation_url"
+						v-html="frappe.utils.icon('help', 'sm')"
+					></div>
 				</div>
 			</template>
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
 					<button
-						v-if="field.df.fieldtype == 'HTML'"
-						class="btn btn-xs btn-icon"
-						@click="edit_html"
+						ref="add_field_btn_ref"
+						class="add-field-btn btn btn-xs btn-icon"
+						@click="toggle_fieldtype_dropdown"
 					>
-						<div v-html="frappe.utils.icon('edit', 'sm')"></div>
+						<div v-html="frappe.utils.icon('add', 'sm')" />
+						<div class="drop-down" ref="dropdown_ref">
+							<Dropdown
+								v-if="show_fieldtype_dropdown"
+								:items="fields"
+								v-model="search_text"
+							/>
+						</div>
 					</button>
 					<button
 						v-if="column.fields.indexOf(field)"
@@ -176,5 +266,9 @@ function duplicate_field() {
 			}
 		}
 	}
+}
+
+.drop-down {
+	z-index: 99999;
 }
 </style>
