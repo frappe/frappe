@@ -641,9 +641,8 @@ class DatabaseQuery:
 			# column: 'tabPhoto.name'
 			# field: 'count(`tabPhoto`.name) as total_count'
 			# column: 'tabPhoto.name'
-			try:
-				columns = extract_fieldname(field)
-			except:
+			columns = extract_fieldname(field)
+			if not columns:
 				continue
 
 			column = columns[0]

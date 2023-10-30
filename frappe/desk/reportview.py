@@ -94,6 +94,9 @@ def validate_fields(data):
 
 	for field in list(data.fields or []):
 		fieldname = extract_fieldname(field)[0]
+		if not fieldname:
+			raise_invalid_field(fieldname)
+
 		if is_standard(fieldname):
 			continue
 
@@ -183,7 +186,7 @@ def extract_fieldname(field):
 		f = field.lower()
 		if "count(" in f or "sum(" in f or "avg(" in f:
 			return ["*"]
-		raise_invalid_field(field)
+
 	return columns
 
 
