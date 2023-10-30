@@ -95,6 +95,33 @@ class TestSearch(FrappeTestCase):
 		finally:
 			frappe.local.lang = "en"
 
+	def test_doctype_search_in_foreign_language(self):
+		def do_search(txt: str):
+			search_link(
+				doctype="DocType",
+				txt=txt,
+				query="frappe.core.report.permitted_documents_for_user.permitted_documents_for_user.query_doctypes",
+				filters={"user": "Administrator"},
+				page_length=20,
+				searchfield=None,
+			)
+			return frappe.response["results"]
+
+		try:
+			frappe.local.lang = "en"
+			results = do_search("user")
+			self.assertIn("User", [x["value"] for x in results])
+
+			frappe.local.lang = "fr"
+			results = do_search("utilisateur")
+			self.assertIn("User", [x["value"] for x in results])
+
+			frappe.local.lang = "de"
+			results = do_search("nutzer")
+			self.assertIn("User", [x["value"] for x in results])
+		finally:
+			frappe.local.lang = "en"
+
 	def test_validate_and_sanitize_search_inputs(self):
 
 		# should raise error if searchfield is injectable
