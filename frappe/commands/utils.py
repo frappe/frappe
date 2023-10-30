@@ -507,7 +507,7 @@ def postgres(context, extra_args):
 
 
 def _mariadb(extra_args=None):
-	mariadb = which("mariadb")
+	mariadb = which("mariadb") or which("mysql")
 	command = [
 		mariadb,
 		"--port",
