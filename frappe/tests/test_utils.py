@@ -194,18 +194,18 @@ class TestFilters(FrappeTestCase):
 class TestMoney(FrappeTestCase):
 	def test_money_in_words(self):
 		nums_bhd = [
-			(5000, "BHD Five Thousand only."),
-			(5000.0, "BHD Five Thousand only."),
+			(5000, "Bahraini Dinar Five Thousand only."),
+			(5000.0, "Bahraini Dinar Five Thousand only."),
 			(0.1, "One Hundred Fils only."),
-			(0, "BHD Zero only."),
+			(0, "Bahraini Dinar Zero only."),
 			("Fail", ""),
 		]
 
 		nums_ngn = [
-			(5000, "NGN Five Thousand only."),
-			(5000.0, "NGN Five Thousand only."),
+			(5000, "Nigerian Naira Five Thousand only."),
+			(5000.0, "Nigerian Naira Five Thousand only."),
 			(0.1, "Ten Kobo only."),
-			(0, "NGN Zero only."),
+			(0, "Nigerian Naira Zero only."),
 			("Fail", ""),
 		]
 
