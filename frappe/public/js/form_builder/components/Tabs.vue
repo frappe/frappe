@@ -109,28 +109,26 @@ function delete_tab(with_children) {
 			:disabled="store.read_only"
 		>
 			<template #item="{ element }">
-				<div class="tab-container">
-					<div
-						:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
-						:title="element.df.fieldname"
-						:data-is-user-generated="store.is_user_generated_field(element)"
-						@click.stop="activate_tab(element)"
-						@dragstart="dragged = true"
-						@dragend="dragged = false"
-						@dragover="drag_over(element)"
-					>
-						<EditableInput
-							:text="element.df.label"
-							:placeholder="__('Tab Label')"
-							v-model="element.df.label"
-						/>
-					</div>
+				<div
+					:class="['tab', store.form.active_tab == element.df.name ? 'active' : '']"
+					:title="element.df.fieldname"
+					:data-is-user-generated="store.is_user_generated_field(element)"
+					@click.stop="activate_tab(element)"
+					@dragstart="dragged = true"
+					@dragend="dragged = false"
+					@dragover="drag_over(element)"
+				>
+					<EditableInput
+						:text="element.df.label"
+						:placeholder="__('Tab Label')"
+						v-model="element.df.label"
+					/>
 					<button
 						class="remove-tab-btn btn btn-xs"
 						:title="__('Remove tab')"
 						@click="remove_tab"
 					>
-						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+						<div v-html="frappe.utils.icon('remove', 'xs')"></div>
 					</button>
 				</div>
 			</template>
@@ -188,7 +186,7 @@ function delete_tab(with_children) {
 .tab-header {
 	display: flex;
 	justify-content: space-between;
-	min-height: 53px;
+	min-height: 42px;
 	align-items: center;
 	background-color: var(--fg-color);
 	border-bottom: 1px solid var(--border-color);
@@ -234,8 +232,10 @@ function delete_tab(with_children) {
 	}
 
 	.tab {
+		display: flex;
+		align-items: center;
 		position: relative;
-		padding: var(--padding-md);
+		padding: 10px 18px 10px 15px;
 		color: var(--text-muted);
 		min-width: max-content;
 		cursor: pointer;
@@ -263,26 +263,22 @@ function delete_tab(with_children) {
 				border-color: var(--primary);
 			}
 		}
-	}
-
-	.tab-container {
-		display: flex;
-		align-items: center;
 
 		&:hover .remove-tab-btn {
 			display: block;
 		}
 
 		.remove-tab-btn {
-			margin-left: -5px;
+			position: absolute;
+			right: -2px;
 			display: none;
-			padding: 4px;
+			padding: 2px;
 		}
 	}
 }
 
 .tab-contents {
-	max-height: calc(100vh - 231px);
+	max-height: calc(100vh - 220px);
 	overflow-y: auto;
 	overflow-x: hidden;
 	border-radius: var(--border-radius);
