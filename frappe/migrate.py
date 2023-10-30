@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import contextlib
+import functools
 import json
 import os
 from textwrap import dedent
@@ -37,6 +38,7 @@ BENCH_START_MESSAGE = dedent(
 
 
 def atomic(method):
+	@functools.wraps(method)
 	def wrapper(*args, **kwargs):
 		try:
 			ret = method(*args, **kwargs)
