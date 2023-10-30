@@ -121,7 +121,9 @@ function resize(e) {
 }
 
 .default-state {
-	height: calc(100vh - 196px);
+	display: flex;
+	flex-direction: column;
+	height: calc(100vh - 166px);
 
 	.actions {
 		padding: 5px;
@@ -130,10 +132,10 @@ function resize(e) {
 		border-bottom: 1px solid var(--border-color);
 	}
 	.empty-state {
+		flex: 1;
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		height: 100%;
 		text-align: center;
 		color: var(--disabled-text-color);
 	}
