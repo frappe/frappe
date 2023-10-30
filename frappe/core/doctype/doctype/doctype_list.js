@@ -1,5 +1,9 @@
 frappe.listview_settings["DocType"] = {
 	primary_action: function () {
+		this.new_doctype_dialog();
+	},
+
+	new_doctype_dialog() {
 		let non_developer = frappe.session.user !== "Administrator" || !frappe.boot.developer_mode;
 		let new_d = new frappe.ui.Dialog({
 			title: __("Create New DocType"),
@@ -100,6 +104,9 @@ frappe.listview_settings["DocType"] = {
 			secondary_action_label: __("Cancel"),
 			secondary_action() {
 				new_d.hide();
+				if (frappe.get_route()[0] === "Form") {
+					frappe.set_route("List", "DocType");
+				}
 			},
 		});
 		new_d.show();
