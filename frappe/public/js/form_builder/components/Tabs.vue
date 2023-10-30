@@ -126,7 +126,7 @@ function delete_tab(with_children) {
 					<button
 						class="remove-tab-btn btn btn-xs"
 						:title="__('Remove tab')"
-						@click="remove_tab"
+						@click.stop="remove_tab"
 					>
 						<div v-html="frappe.utils.icon('remove', 'xs')"></div>
 					</button>

@@ -319,7 +319,7 @@ export const useStore = defineStore("form-builder-store", () => {
 
 		// scroll to active tab
 		nextTick(() => {
-			$(".tabs .tab.active")[0].scrollIntoView({
+			$(".tabs .tab.active")[0]?.scrollIntoView({
 				behavior: "smooth",
 				inline: "center",
 				block: "nearest",
