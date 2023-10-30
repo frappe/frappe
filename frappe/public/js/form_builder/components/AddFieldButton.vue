@@ -8,9 +8,11 @@
 		<slot>
 			{{ __("Add a field") }}
 		</slot>
-		<div class="drop-down" ref="dropdown_ref">
-			<Dropdown v-if="show" :items="fields" v-model="search_text" />
-		</div>
+		<Teleport to="#drop-down-area">
+			<div class="drop-down" ref="dropdown_ref">
+				<Dropdown v-if="show" :items="fields" v-model="search_text" />
+			</div>
+		</Teleport>
 	</button>
 </template>
 
@@ -19,7 +21,7 @@ import Dropdown from "./Dropdown.vue";
 import { useStore } from "../store";
 import { clone_field } from "../utils";
 import { createPopper } from "@popperjs/core";
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 
 const store = useStore();
 
@@ -100,7 +102,7 @@ function setupPopper() {
 function toggle_fieldtype_dropdown() {
 	show.value = !show.value;
 	search_text.value = "";
-	setTimeout(() => setupPopper());
+	nextTick(() => setupPopper());
 }
 
 function add_new_field(field) {

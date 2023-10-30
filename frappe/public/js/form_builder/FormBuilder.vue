@@ -41,6 +41,7 @@ onMounted(() => store.fetch());
 			</div>
 		</div>
 	</div>
+	<div id="drop-down-area" />
 </template>
 
 <style lang="scss" scoped>
