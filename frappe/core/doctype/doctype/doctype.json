@@ -641,6 +641,7 @@
    "label": "Settings"
   },
   {
+   "depends_on": "eval:!doc.__islocal",
    "fieldname": "form_builder_tab",
    "fieldtype": "Tab Break",
    "label": "Form"
@@ -749,7 +750,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-10-30 12:27:18.098074",
+ "modified": "2023-10-30 13:55:51.156211",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

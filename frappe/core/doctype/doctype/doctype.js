@@ -2,6 +2,12 @@
 // MIT License. See license.txt
 
 frappe.ui.form.on("DocType", {
+	onload: function (frm) {
+		if (frm.is_new()) {
+			frappe.listview_settings["DocType"].new_doctype_dialog();
+		}
+	},
+
 	before_save: function (frm) {
 		let form_builder = frappe.form_builder;
 		if (form_builder?.store) {
@@ -13,6 +19,7 @@ frappe.ui.form.on("DocType", {
 			}
 		}
 	},
+
 	after_save: function (frm) {
 		if (
 			frappe.form_builder &&
@@ -22,6 +29,7 @@ frappe.ui.form.on("DocType", {
 			frappe.form_builder.store.fetch();
 		}
 	},
+
 	refresh: function (frm) {
 		frm.set_query("role", "permissions", function (doc) {
 			if (doc.custom && frappe.session.user != "Administrator") {
