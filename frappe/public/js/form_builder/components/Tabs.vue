@@ -289,13 +289,14 @@ function delete_tab(with_children) {
 		position: relative;
 
 		&.active {
-			display: block;
+			display: flex;
 		}
 
 		.tab-content-container {
+			flex: 1;
 			min-height: 4rem;
-			background-color: var(--field-placeholder-color);
 			border-radius: var(--border-radius);
+			z-index: 1;
 
 			&:empty {
 				height: 7rem;
@@ -305,14 +306,16 @@ function delete_tab(with_children) {
 					display: flex;
 					flex-direction: column;
 					align-items: center;
+					justify-content: center;
 					position: absolute;
 					top: 0;
+					bottom: 0;
 					gap: 5px;
 					width: 100%;
 					padding: 15px;
 
-					&button:hover {
-						background-color: var(--border-color);
+					button {
+						z-index: 2;
 					}
 				}
 			}

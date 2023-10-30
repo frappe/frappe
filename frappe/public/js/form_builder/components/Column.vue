@@ -1,15 +1,17 @@
 <script setup>
 import draggable from "vuedraggable";
 import Field from "./Field.vue";
+import AddFieldButton from "./AddFieldButton.vue";
 import EditableInput from "./EditableInput.vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useStore } from "../store";
 import { move_children_to_parent, confirm_dialog } from "../utils";
 
 const props = defineProps(["section", "column"]);
-let store = useStore();
+const store = useStore();
 
-let hovered = ref(false);
+const hovered = ref(false);
+const selected = computed(() => store.selected(props.column.df.name));
 
 function add_column() {
 	// insert new column after the current column
@@ -29,7 +31,11 @@ function remove_column() {
 	} else {
 		confirm_dialog(
 			__("Delete Column", null, "Title of confirmation dialog"),
-			__("Are you sure you want to delete the column? All the fields in the column will be moved to the previous column.", null, "Confirmation dialog message"),
+			__(
+				"Are you sure you want to delete the column? All the fields in the column will be moved to the previous column.",
+				null,
+				"Confirmation dialog message"
+			),
 			() => delete_column(),
 			__("Delete column", null, "Button text"),
 			() => delete_column(true),
@@ -95,21 +101,14 @@ function move_columns_to_section() {
 
 <template>
 	<div
-		:class="[
-			'column',
-			hovered ? 'hovered' : '',
-			store.selected(column.df.name) ? 'selected' : ''
-		]"
+		:class="['column', selected ? 'selected' : hovered ? 'hovered' : '']"
 		:title="column.df.fieldname"
 		@click.stop="store.form.selected_field = column.df"
 		@mouseover.stop="hovered = true"
 		@mouseout.stop="hovered = false"
 	>
 		<div
-			:class="[
-				'column-header',
-				column.df.label ? 'has-label' : '',
-			]"
+			:class="['column-header', column.df.label ? 'has-label' : '']"
 			:hidden="!column.df.label && store.read_only"
 		>
 			<div class="column-label">
@@ -120,6 +119,9 @@ function move_columns_to_section() {
 				/>
 			</div>
 			<div class="column-actions">
+				<button class="btn btn-xs btn-icon" :title="__('Add Column')" @click="add_column">
+					<div v-html="frappe.utils.icon('add', 'sm')"></div>
+				</button>
 				<button
 					v-if="section.columns.indexOf(column)"
 					class="btn btn-xs btn-icon"
@@ -127,9 +129,6 @@ function move_columns_to_section() {
 					@click="move_columns_to_section"
 				>
 					<div v-html="frappe.utils.icon('move', 'sm')"></div>
-				</button>
-				<button class="btn btn-xs btn-icon" :title="__('Add Column')" @click="add_column">
-					<div v-html="frappe.utils.icon('add', 'sm')"></div>
 				</button>
 				<button
 					class="btn btn-xs btn-icon"
@@ -145,7 +144,6 @@ function move_columns_to_section() {
 		</div>
 		<draggable
 			class="column-container"
-			:style="{ backgroundColor: column.fields.length ? '' : 'var(--field-placeholder-color)' }"
 			v-model="column.fields"
 			group="fields"
 			:animation="200"
@@ -161,11 +159,19 @@ function move_columns_to_section() {
 				/>
 			</template>
 		</draggable>
+		<div
+			class="empty-column"
+			:hidden="store.read_only"
+			:style="store.selected(column.df.name) ? { top: '35px' } : { top: 0 }"
+		>
+			<AddFieldButton :column="column" />
+		</div>
 	</div>
 </template>
 
 <style lang="scss" scoped>
 .column {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	width: 100%;
@@ -250,6 +256,35 @@ function move_columns_to_section() {
 		flex: 1;
 		min-height: 2rem;
 		border-radius: var(--border-radius);
+		z-index: 1;
+
+		&:empty {
+			& + .empty-column {
+				display: flex;
+				justify-content: center;
+				flex-direction: column;
+				align-items: center;
+				position: absolute;
+				left: 0;
+				bottom: 0;
+				gap: 5px;
+				width: 100%;
+				padding: 15px;
+
+				button {
+					background-color: var(--bg-color);
+					z-index: 2;
+
+					&:hover {
+						background-color: var(--btn-default-hover-bg);
+					}
+				}
+			}
+		}
+
+		& + .empty-column {
+			display: none;
+		}
 	}
 }
 </style>
