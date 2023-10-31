@@ -60,6 +60,7 @@ onMounted(() => store.fetch());
 
 	.form-container {
 		flex: 1;
+		background-color: var(--disabled-control-bg);
 	}
 
 	.form-sidebar {
