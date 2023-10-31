@@ -1,7 +1,6 @@
 # Copyright (c) 2018, Frappe Technologies and contributors
 # License: MIT. See LICENSE
-
-
+import gzip
 import json
 from contextlib import suppress
 from typing import Any
@@ -13,7 +12,7 @@ from frappe.desk.form.load import get_attachments
 from frappe.desk.query_report import generate_report_result
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
-from frappe.utils import add_to_date, gzip_compress, gzip_decompress, now
+from frappe.utils import add_to_date, now
 from frappe.utils.background_jobs import enqueue
 
 # If prepared report runs for longer than this time it's automatically considered as failed
@@ -84,8 +83,8 @@ class PreparedReport(Document):
 			attached_file = frappe.get_doc("File", attachment.name)
 
 			if with_file_name:
-				return (gzip_decompress(attached_file.get_content()), attachment.file_name)
-			return gzip_decompress(attached_file.get_content())
+				return (gzip.decompress(attached_file.get_content()), attachment.file_name)
+			return gzip.decompress(attached_file.get_content())
 
 
 def generate_report(prepared_report):
@@ -222,7 +221,7 @@ def create_json_gz_file(data, dt, dn):
 		frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M")
 	)
 	encoded_content = frappe.safe_encode(frappe.as_json(data))
-	compressed_content = gzip_compress(encoded_content)
+	compressed_content = gzip.compress(encoded_content)
 
 	# Call save() file function to upload and attach the file
 	_file = frappe.get_doc(
