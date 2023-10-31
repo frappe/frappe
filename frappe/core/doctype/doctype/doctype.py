@@ -381,7 +381,7 @@ class DocType(Document):
 						if df.not_nullable:
 							update_query += "WHERE `target`.`{fieldname}`=''"
 						else:
-							update_query += "WHERE ifnull(`target`.`{fieldname}`, '')=" ""
+							update_query += "WHERE ifnull(`target`.`{fieldname}`, '')=''"
 
 					self.flags.update_fields_to_fetch_queries.append(
 						update_query.format(
