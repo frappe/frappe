@@ -188,16 +188,18 @@ def search_widget(
 
 			order_by_based_on_meta = get_order_by(doctype, meta)
 			# 2 is the index of _relevance column
-			order_by = f"{order_by_based_on_meta}, `tab{doctype}`.idx desc"
+			order_by = f"`tab{doctype}`.idx desc, {order_by_based_on_meta}"
 
 			if not meta.translated_doctype:
-				formatted_fields.append(
-					"""locate({_txt}, `tab{doctype}`.`name`) as `_relevance`""".format(
-						_txt=frappe.db.escape((txt or "").replace("%", "").replace("@", "")),
-						doctype=doctype,
-					)
-				)
-				order_by = f"_relevance, {order_by}"
+				_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
+				_relevance = f"(1 / nullif(locate({_txt}, `tab{doctype}`.`name`), 0))"
+				formatted_fields.append(f"""{_relevance} as `_relevance`""")
+				# Since we are sorting by alias postgres needs to know number of column we are sorting
+				if frappe.db.db_type == "mariadb":
+					order_by = f"ifnull(_relevance, -9999) desc, {order_by}"
+				elif frappe.db.db_type == "postgres":
+					# Since we are sorting by alias postgres needs to know number of column we are sorting
+					order_by = f"{len(formatted_fields)} desc nulls last, {order_by}"
 
 			ignore_permissions = (
 				True
