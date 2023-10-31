@@ -57,7 +57,7 @@ function duplicate_field() {
 	store.form.selected_field = duplicate_field.df;
 }
 
-onMounted(() => label_input.value.focus_on_label());
+onMounted(() => selected.value && label_input.value.focus_on_label());
 </script>
 
 <template>
