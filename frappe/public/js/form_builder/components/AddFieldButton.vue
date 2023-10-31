@@ -84,7 +84,7 @@ const popper = ref(null);
 function setupPopper() {
 	if (!popper.value) {
 		popper.value = createPopper(add_field_btn_ref.value, dropdown_ref.value, {
-			placement: "bottom-end",
+			placement: "bottom-start",
 			modifiers: [
 				{
 					name: "offset",
