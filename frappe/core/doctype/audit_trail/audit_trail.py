@@ -21,8 +21,8 @@ class AuditTrail(Document):
 
 		doctype_name: DF.Link
 		document: DF.DynamicLink
-		end_date: DF.Date
-		start_date: DF.Date
+		end_date: DF.Date | None
+		start_date: DF.Date | None
 	# end: auto-generated types
 	pass
 
@@ -33,8 +33,6 @@ class AuditTrail(Document):
 		fields_dict = {
 			"DocType": self.doctype_name,
 			"Document": self.document,
-			"Start Date": self.start_date,
-			"End Date": self.end_date,
 		}
 		for field in fields_dict:
 			if not fields_dict[field]:
@@ -63,13 +61,14 @@ class AuditTrail(Document):
 		}
 
 	def get_amended_documents(self):
+		start_date = self.get("start_date")
 		amended_document_names = []
 		curr_doc = self.document
 		creation = frappe.db.get_value(self.doctype_name, self.document, "creation")
 		while (
 			curr_doc
 			and len(amended_document_names) < 5
-			and compare(creation, ">=", self.start_date, "Date")
+			and (start_date is None or compare(creation, ">=", start_date, "Date"))
 		):
 			amended_document_names.append(curr_doc)
 			curr_doc = frappe.db.get_value(self.doctype_name, curr_doc, "amended_from")
