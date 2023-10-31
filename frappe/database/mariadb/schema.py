@@ -110,9 +110,9 @@ class MariaDBTable(DBTable):
 				try:
 					table = frappe.qb.DocType(self.doctype)
 					frappe.qb.update(table).set(col.fieldname, default_value).where(
-						getattr(table, col.fieldname).isnull()
+						table[col.fieldname].isnull()
 					).run()
-				except Exception as e:
+				except Exception:
 					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
 					raise
 		try:
