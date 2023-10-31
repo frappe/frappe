@@ -187,8 +187,4 @@ function duplicate_field() {
 		}
 	}
 }
-
-.drop-down {
-	z-index: 99999;
-}
 </style>
