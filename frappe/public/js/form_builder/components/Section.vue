@@ -2,15 +2,25 @@
 import draggable from "vuedraggable";
 import Column from "./Column.vue";
 import EditableInput from "./EditableInput.vue";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useStore } from "../store";
 import { section_boilerplate, move_children_to_parent, confirm_dialog } from "../utils";
+import { useMagicKeys, whenever } from "@vueuse/core";
 
 const props = defineProps(["tab", "section"]);
-let store = useStore();
+const store = useStore();
 
-let hovered = ref(false);
-let collapsed = ref(false);
+// delete/backspace to delete the field
+const { Backspace } = useMagicKeys();
+whenever(Backspace, (value) => {
+	if (value && selected.value) {
+		remove_section();
+	}
+});
+
+const hovered = ref(false);
+const collapsed = ref(false);
+const selected = computed(() => store.selected(props.section.df.name));
 
 function add_section_above() {
 	let index = props.tab.sections.indexOf(props.section);
@@ -19,7 +29,7 @@ function add_section_above() {
 
 function is_section_empty() {
 	return !props.section.columns.some(
-		column => (store.is_customize_form && !column.df.is_custom_field) || column.fields.length
+		(column) => (store.is_customize_form && !column.df.is_custom_field) || column.fields.length
 	);
 }
 
@@ -34,11 +44,15 @@ function remove_section() {
 	} else {
 		confirm_dialog(
 			__("Delete Section", null, "Title of confirmation dialog"),
-			__("Are you sure you want to delete the section? All the columns along with fields in the section will be moved to the previous section.", null, "Confirmation dialog message"),
+			__(
+				"Are you sure you want to delete the section? All the columns along with fields in the section will be moved to the previous section.",
+				null,
+				"Confirmation dialog message"
+			),
 			() => delete_section(),
 			__("Delete section", null, "Button text"),
 			() => delete_section(true),
-			__("Delete entire section with columns", null, "Button text")
+			__("Delete entire section with fields", null, "Button text")
 		);
 	}
 }
@@ -94,7 +108,7 @@ function move_sections_to_tab() {
 			:class="[
 				'form-section',
 				hovered ? 'hovered' : '',
-				store.selected(section.df.name) ? 'selected' : ''
+				store.selected(section.df.name) ? 'selected' : '',
 			]"
 			:title="section.df.fieldname"
 			@click.stop="select_section"
@@ -105,7 +119,7 @@ function move_sections_to_tab() {
 				:class="[
 					'section-header',
 					section.df.label || section.df.collapsible ? 'has-label' : '',
-					collapsed ? 'collapsed' : ''
+					collapsed ? 'collapsed' : '',
 				]"
 				:hidden="!section.df.label && store.read_only"
 			>
@@ -118,7 +132,7 @@ function move_sections_to_tab() {
 					<div
 						v-if="section.df.collapsible"
 						class="collapse-indicator"
-						v-html="frappe.utils.icon( collapsed ? 'down' : 'up-line', 'sm' )"
+						v-html="frappe.utils.icon(collapsed ? 'down' : 'up-line', 'sm')"
 					></div>
 				</div>
 				<div class="section-actions" :hidden="store.read_only">
@@ -132,7 +146,9 @@ function move_sections_to_tab() {
 					<button
 						v-if="tab.sections.indexOf(section)"
 						class="btn btn-xs btn-section"
-						:title="__('Move the current section and the following sections to a new tab')"
+						:title="
+							__('Move the current section and the following sections to a new tab')
+						"
 						@click="move_sections_to_tab"
 					>
 						<div v-html="frappe.utils.icon('move', 'sm')"></div>
@@ -146,12 +162,14 @@ function move_sections_to_tab() {
 					</button>
 				</div>
 			</div>
-			<div v-if="section.df.description" class="section-description">{{ section.df.description }}</div>
+			<div v-if="section.df.description" class="section-description">
+				{{ section.df.description }}
+			</div>
 			<div
 				class="section-columns"
 				:class="{
 					hidden: section.df.collapsible && collapsed,
-					'has-one-column': section.columns.length === 1
+					'has-one-column': section.columns.length === 1,
 				}"
 			>
 				<draggable

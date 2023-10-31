@@ -5,11 +5,21 @@ import { useStore } from "../store";
 import { section_boilerplate, confirm_dialog } from "../utils";
 import draggable from "vuedraggable";
 import { ref, computed } from "vue";
+import { useMagicKeys, whenever } from "@vueuse/core";
 
 const store = useStore();
 
+// delete/backspace to delete the field
+const { Backspace } = useMagicKeys();
+whenever(Backspace, (value) => {
+	if (value && selected.value) {
+		remove_tab(store.current_tab, true);
+	}
+});
+
 const remove_tab_btn = ref(null);
 const dragged = ref(false);
+const selected = computed(() => store.selected(store.current_tab.df.name));
 const has_tabs = computed(() => store.form.layout.tabs.length > 1);
 store.form.active_tab = store.form.layout.tabs[0].df.name;
 
@@ -41,9 +51,9 @@ function is_current_tab_empty() {
 	);
 }
 
-function remove_tab(tab) {
+function remove_tab(tab, force=false) {
 	// is remove_tab_btn is not visible then return
-	if (!remove_tab_btn.value?.offsetParent) return;
+	if (!remove_tab_btn.value?.offsetParent && !force) return;
 
 	if (store.is_customize_form && store.current_tab.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
@@ -63,7 +73,7 @@ function remove_tab(tab) {
 			() => delete_tab(tab),
 			__("Delete tab", null, "Button text"),
 			() => delete_tab(tab, true),
-			__("Delete entire tab with sections", null, "Button text")
+			__("Delete entire tab with fields", null, "Button text")
 		);
 	}
 }
