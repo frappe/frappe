@@ -1,97 +1,159 @@
 <template>
-	<div class="drop-down">
-		<div class="search-box">
-			<input
-				ref="searchInput"
-				class="search-input form-control"
-				type="text"
-				:placeholder="__('Search field...')"
-				@input="(event) => $emit('update:modelValue', event.target.value)"
-				:value="modelValue"
-				@click.stop
-			/>
-			<span class="search-icon">
-				<div v-html="frappe.utils.icon('search', 'sm')"></div>
-			</span>
-		</div>
-		<div class="drop-down-list">
-			<button
-				class="btn drop-down-item"
-				v-for="(item, i) in items"
-				:key="i"
-				@click.stop="(i) => item.onClick(i)"
-			>
-				<slot>{{ item.label }}</slot>
-			</button>
-		</div>
-	</div>
+	<Combobox v-model="selectedValue" nullable>
+		<ComboboxOptions class="combo-box-options" static>
+			<div class="search-box">
+				<ComboboxInput
+					ref="search"
+					class="search-input form-control"
+					type="text"
+					@change="(e) => (query = e.target.value)"
+					:value="query"
+					:placeholder="props.placeholder"
+					autocomplete="off"
+					@click.stop
+				/>
+				<button class="clear-button btn btn-sm" @click="clear_search">
+					<div v-html="frappe.utils.icon('close', 'sm')" />
+				</button>
+			</div>
+			<div class="combo-box-items">
+				<ComboboxOption
+					as="template"
+					v-for="(field, i) in filteredOptions"
+					:key="i"
+					:value="field"
+					v-slot="{ active }"
+				>
+					<li :class="['combo-box-option', active ? 'active' : '']">
+						{{ field.label }}
+					</li>
+				</ComboboxOption>
+			</div>
+		</ComboboxOptions>
+	</Combobox>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { Combobox, ComboboxInput, ComboboxOptions, ComboboxOption } from "@headlessui/vue";
+import { computed, ref, useAttrs, watch, nextTick } from "vue";
 
 const props = defineProps({
-	items: {
+	options: {
 		type: Array,
-		required: true,
+		default: [],
+	},
+	placeholder: {
+		type: String,
+		default: "",
 	},
 	modelValue: {
 		type: String,
 		default: "",
 	},
+	show: {
+		type: Boolean,
+		default: false,
+	},
 });
 
-const searchInput = ref(null);
+const emit = defineEmits(["update:modelValue", "update:show", "change"]);
+const attrs = useAttrs();
 
-onMounted(() => {
-	searchInput.value.focus();
+const query = ref(null);
+const search = ref(null);
+
+const showOptions = computed({
+	get() {
+		return props.show;
+	},
+	set(val) {
+		emit("update:show", val);
+	},
+});
+
+const selectedValue = computed({
+	get() {
+		return attrs.value;
+	},
+	set(val) {
+		query.value = "";
+		if (val) {
+			showOptions.value = false;
+		}
+		emit("change", val);
+	},
+});
+
+const filteredOptions = computed(() => {
+	return query.value
+		? props.options.filter((option) => {
+				return option.label.toLowerCase().includes(query.value.toLowerCase());
+		  })
+		: props.options;
+});
+
+function clear_search() {
+	selectedValue.value = "";
+	search.value.el.focus();
+}
+
+watch(showOptions, (val) => {
+	if (val) {
+		nextTick(() => {
+			search.value.el.focus();
+		});
+	}
 });
 </script>
 
 <style lang="scss" scoped>
-.drop-down {
-	display: inline-block;
-	background-color: var(--fg-color);
-	box-shadow: var(--shadow-base) !important;
-	border-radius: var(--border-radius-sm);
-	top: 30px;
-	right: 0;
-	width: 170px;
-	z-index: 99999999;
+.combo-box {
+	z-index: 100;
 }
 
-.drop-down-list {
-	overflow-y: auto;
-	max-height: 250px;
-	text-align: left;
-	padding: 0 6px 6px;
+.combo-box-options {
+	width: 100%;
+	background-color: var(--white);
+	border-radius: var(--border-radius-lg);
+	box-shadow: var(--shadow-2xl);
+	padding: 0;
 }
 
-.drop-down-item {
+.combo-box-option {
 	font-size: small;
 	text-align: left;
 	border-radius: var(--border-radius-sm);
-	margin: 1px 0px;
+	padding: 6px 10px;
 	width: 100%;
 
-	&:hover {
+	&:hover,
+	&.active {
 		background-color: var(--bg-light-gray);
 	}
 }
 
-.search-box {
-	padding: 6px;
-	.search-input {
-		padding-left: 30px;
-		font-size: small;
-		width: 100% !important;
-		background-color: var(--control-bg) !important;
-	}
+.combo-box-items {
+	max-height: 200px;
+	padding: 5px;
+	padding-top: 0px;
+	overflow-y: auto;
+}
 
-	.search-icon {
+.search-box {
+	position: relative;
+	padding: 6px;
+	.clear-button {
 		position: absolute;
-		left: 13px;
-		top: 8px;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		display: inline-flex;
+		justify-content: center;
+		align-items: center;
+		cursor: pointer;
+	}
+	.search-input {
+		width: 100%;
 	}
 }
 </style>

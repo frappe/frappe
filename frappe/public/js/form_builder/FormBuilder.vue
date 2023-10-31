@@ -41,7 +41,7 @@ onMounted(() => store.fetch());
 			</div>
 		</div>
 	</div>
-	<div id="drop-down-area" />
+	<div id="autocomplete-area" />
 </template>
 
 <style lang="scss" scoped>

@@ -93,11 +93,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 			</template>
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
-					<AddFieldButton
-						:column="column"
-						:field="field"
-						@update_parent="hovered = false"
-					>
+					<AddFieldButton :column="column" :field="field">
 						<div v-html="frappe.utils.icon('add', 'sm')" />
 					</AddFieldButton>
 					<button
