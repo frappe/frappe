@@ -142,7 +142,7 @@ function delete_tab(tab, with_children) {
 				@click="add_new_tab"
 			>
 				<div class="add-btn-text">
-					{{ __("+ Add tab") }}
+					{{ __("Add tab") }}
 				</div>
 			</button>
 		</div>

@@ -46,7 +46,7 @@ function resize(e) {
 					:title="__('Add new tab')"
 					@click="store.add_new_tab"
 				>
-					{{ __("+ Add tab") }}
+					{{ __("Add tab") }}
 				</button>
 			</div>
 			<div class="empty-state">

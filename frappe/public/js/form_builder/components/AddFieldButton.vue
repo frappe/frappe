@@ -10,14 +10,14 @@
 		</slot>
 		<Teleport to="#drop-down-area">
 			<div class="drop-down" ref="dropdown_ref">
-				<Dropdown v-if="show" :items="fields" v-model="search_text" />
+				<Autocomplete v-if="show" :items="fields" v-model="search_text" />
 			</div>
 		</Teleport>
 	</button>
 </template>
 
 <script setup>
-import Dropdown from "./Dropdown.vue";
+import Autocomplete from "./Autocomplete.vue";
 import { useStore } from "../store";
 import { clone_field } from "../utils";
 import { createPopper } from "@popperjs/core";

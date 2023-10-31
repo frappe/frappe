@@ -242,10 +242,6 @@ export function section_boilerplate() {
 				df: store.get_df("Column Break"),
 				fields: [],
 			},
-			{
-				df: store.get_df("Column Break"),
-				fields: [],
-			},
 		],
 	};
 }
