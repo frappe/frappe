@@ -4,9 +4,27 @@ import { useStore } from "../store";
 import { move_children_to_parent, clone_field } from "../utils";
 import { ref, computed, onMounted } from "vue";
 import AddFieldButton from "./AddFieldButton.vue";
+import { useMagicKeys, whenever } from "@vueuse/core";
 
 const props = defineProps(["column", "field"]);
 const store = useStore();
+
+const add_field_ref = ref(null);
+
+// cmd/ctrl + shift + n to open the add field autocomplete
+const { ctrl_shift_n, Backspace } = useMagicKeys();
+whenever(ctrl_shift_n, (value) => {
+	if (value && selected.value) {
+		add_field_ref.value.open();
+	}
+});
+
+// delete/backspace to delete the field
+whenever(Backspace, (value) => {
+	if (value && selected.value) {
+		remove_field();
+	}
+});
 
 const label_input = ref(null);
 const hovered = ref(false);
@@ -93,7 +111,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 			</template>
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
-					<AddFieldButton :column="column" :field="field">
+					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
 						<div v-html="frappe.utils.icon('add', 'sm')" />
 					</AddFieldButton>
 					<button
