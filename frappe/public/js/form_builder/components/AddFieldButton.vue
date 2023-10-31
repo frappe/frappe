@@ -124,6 +124,8 @@ function add_new_field(field) {
 watch(selected, (val) => {
 	if (!val) show.value = false;
 });
+
+defineExpose({ open: toggle_fieldtype_options });
 </script>
 
 <style lang="scss" scoped>
