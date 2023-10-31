@@ -6,7 +6,7 @@ import {
 	section_boilerplate,
 } from "./utils";
 import { computed, nextTick, ref } from "vue";
-import { useDebouncedRefHistory, onKeyDown } from "@vueuse/core";
+import { useDebouncedRefHistory, onKeyDown, useActiveElement } from "@vueuse/core";
 
 export const useStore = defineStore("form-builder-store", () => {
 	let doctype = ref("");
@@ -35,6 +35,15 @@ export const useStore = defineStore("form-builder-store", () => {
 	let current_tab = computed(() => {
 		return form.value.layout.tabs.find((tab) => tab.df.name == form.value.active_tab);
 	});
+
+	const active_element = useActiveElement();
+	const not_using_input = computed(
+		() =>
+			active_element.value?.readOnly ||
+			active_element.value?.disabled ||
+			(active_element.value?.tagName !== "INPUT" &&
+				active_element.value?.tagName !== "TEXTAREA")
+	);
 
 	// Actions
 	function selected(name) {
@@ -340,6 +349,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		get_animation,
 		get_docfields,
 		current_tab,
+		not_using_input,
 		selected,
 		get_df,
 		has_standard_field,

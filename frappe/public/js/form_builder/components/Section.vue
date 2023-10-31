@@ -13,7 +13,7 @@ const store = useStore();
 // delete/backspace to delete the field
 const { Backspace } = useMagicKeys();
 whenever(Backspace, (value) => {
-	if (value && selected.value) {
+	if (value && selected.value && store.not_using_input) {
 		remove_section();
 	}
 });
