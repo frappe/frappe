@@ -6,10 +6,11 @@ import { section_boilerplate, confirm_dialog } from "../utils";
 import draggable from "vuedraggable";
 import { ref, computed } from "vue";
 
-let store = useStore();
+const store = useStore();
 
-let dragged = ref(false);
-let has_tabs = computed(() => store.form.layout.tabs.length > 1);
+const remove_tab_btn = ref(null);
+const dragged = ref(false);
+const has_tabs = computed(() => store.form.layout.tabs.length > 1);
 store.form.active_tab = store.form.layout.tabs[0].df.name;
 
 function activate_tab(tab) {
@@ -41,6 +42,9 @@ function is_current_tab_empty() {
 }
 
 function remove_tab(tab) {
+	// is remove_tab_btn is not visible then return
+	if (!remove_tab_btn.value?.offsetParent) return;
+
 	if (store.is_customize_form && store.current_tab.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
@@ -124,6 +128,7 @@ function delete_tab(tab, with_children) {
 						v-model="element.df.label"
 					/>
 					<button
+						ref="remove_tab_btn"
 						class="remove-tab-btn btn btn-xs"
 						:title="__('Remove tab')"
 						@click.stop="remove_tab(element)"
