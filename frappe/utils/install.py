@@ -217,7 +217,7 @@ def add_standard_navbar_items():
 			"is_standard": 1,
 		},
 		{
-			"item_label": "Reload",
+			"item_label": "Hard Reload",
 			"item_type": "Action",
 			"action": "frappe.ui.toolbar.clear_cache()",
 			"is_standard": 1,
