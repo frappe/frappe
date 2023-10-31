@@ -72,7 +72,6 @@ defineExpose({ focus_on_label });
 
 	&:focus {
 		outline: none;
-		border-radius: var(--border-radius);
 		background-color: inherit;
 	}
 
