@@ -17,11 +17,15 @@ frappe.ui.form.on("Audit Trail", {
 		});
 
 		frm.set_query("document", () => {
+			let filters = {
+				amended_from: ["!=", ""],
+			};
+			if (frm.doc.start_date && frm.doc.end_date)
+				filters["creation"] = ["between", [frm.doc.start_date, frm.doc.end_date]];
+			else if (frm.doc.start_date) filters["creation"] = [">=", frm.doc.start_date];
+			else if (frm.doc.end_date) filters["creation"] = ["<=", frm.doc.end_date];
 			return {
-				filters: {
-					amended_from: ["!=", ""],
-					creation: ["between", [frm.doc.start_date, frm.doc.end_date]],
-				},
+				filters: filters,
 			};
 		});
 
@@ -37,6 +41,33 @@ frappe.ui.form.on("Audit Trail", {
 				},
 			});
 		});
+	},
+
+	start_date(frm) {
+		if (frm.doc.start_date > frm.doc.end_date) {
+			frm.doc.end_date = "";
+			frm.refresh_fields();
+		}
+
+		frappe.db
+			.get_value(frm.doc.doctype_name, frm.doc.document, "creation")
+			.then((creation) => {
+				if (frappe.datetime.obj_to_str(creation) < frm.doc.start_date) {
+					frm.doc.document = "";
+					frm.refresh_fields();
+				}
+			});
+	},
+
+	end_date(frm) {
+		frappe.db
+			.get_value(frm.doc.doctype_name, frm.doc.document, "creation")
+			.then((creation) => {
+				if (frappe.datetime.obj_to_str(creation) > frm.doc.end_date) {
+					frm.doc.document = "";
+					frm.refresh_fields();
+				}
+			});
 	},
 
 	render_changed_fields(frm, document_names, changed_fields) {
