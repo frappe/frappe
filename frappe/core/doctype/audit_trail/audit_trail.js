@@ -2,6 +2,17 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Audit Trail", {
+	onload(frm) {
+		let prev_route = frappe.get_prev_route();
+		if (prev_route.length > 2 && prev_route[0] == "Form" && prev_route[1] != "Audit Trail") {
+			frm.doc.doctype_name = prev_route[1];
+			frm.doc.document = prev_route[2];
+			frm.doc.start_date = "";
+			frm.doc.end_date = "";
+		}
+		frm.events.get_audit_trail_for_document(frm);
+	},
+
 	refresh(frm) {
 		frm.page.clear_indicator();
 
@@ -30,16 +41,7 @@ frappe.ui.form.on("Audit Trail", {
 		});
 
 		frm.page.set_primary_action("Compare", () => {
-			frm.call({
-				doc: frm.doc,
-				method: "compare_document",
-				callback: function (r) {
-					let document_names = r.message[0];
-					let changed_fields = r.message[1];
-					frm.events.render_changed_fields(frm, document_names, changed_fields);
-					frm.events.render_rows_added_or_removed(frm, changed_fields);
-				},
-			});
+			frm.events.get_audit_trail_for_document(frm);
 		});
 	},
 
@@ -68,6 +70,19 @@ frappe.ui.form.on("Audit Trail", {
 					frm.refresh_fields();
 				}
 			});
+	},
+
+	get_audit_trail_for_document(frm) {
+		frm.call({
+			doc: frm.doc,
+			method: "compare_document",
+			callback: function (r) {
+				let document_names = r.message[0];
+				let changed_fields = r.message[1];
+				frm.events.render_changed_fields(frm, document_names, changed_fields);
+				frm.events.render_rows_added_or_removed(frm, changed_fields);
+			},
+		});
 	},
 
 	render_changed_fields(frm, document_names, changed_fields) {
