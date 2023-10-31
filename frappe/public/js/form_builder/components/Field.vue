@@ -21,7 +21,7 @@ whenever(ctrl_shift_n, (value) => {
 
 // delete/backspace to delete the field
 whenever(Backspace, (value) => {
-	if (value && selected.value) {
+	if (value && selected.value && store.not_using_input) {
 		remove_field();
 	}
 });
