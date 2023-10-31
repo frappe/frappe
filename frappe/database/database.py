@@ -95,8 +95,6 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
-		self.in_transaction = False
-
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
 
@@ -392,8 +390,7 @@ class Database:
 
 	def check_implicit_commit(self, query: str):
 		if (
-			self.in_transaction
-			and self.transaction_writes
+			self.transaction_writes
 			and query
 			and is_query_type(query, ("start", "alter", "drop", "create", "begin", "truncate"))
 		):
@@ -963,24 +960,16 @@ class Database:
 		read_only = read_only or frappe.flags.read_only
 		mode = "READ ONLY" if read_only else ""
 		self.sql(f"START TRANSACTION {mode}")
-		self.in_transaction = True
 
-	def commit(self, new_transaction: bool = True):
+	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
-		if not self.in_transaction:
-			self.logger.warn("Not in transaction, ignoring commit")
-			return
-
 		self.before_rollback.reset()
 		self.after_rollback.reset()
 
 		self.before_commit.run()
 
 		self.sql("commit")
-		self.in_transaction = False
-
-		if new_transaction:
-			self.begin()  # explicitly start a new transaction
+		self.begin()  # explicitly start a new transaction
 
 		self.after_commit.run()
 
