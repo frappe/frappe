@@ -2,12 +2,13 @@
 import EditableInput from "./EditableInput.vue";
 import { useStore } from "../store";
 import { move_children_to_parent, clone_field } from "../utils";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import AddFieldButton from "./AddFieldButton.vue";
 
 const props = defineProps(["column", "field"]);
 const store = useStore();
 
+const label_input = ref(null);
 const hovered = ref(false);
 const selected = computed(() => store.selected(props.field.df.name));
 const component = computed(() => {
@@ -55,6 +56,8 @@ function duplicate_field() {
 	props.column.fields.splice(index + 1, 0, duplicate_field);
 	store.form.selected_field = duplicate_field.df;
 }
+
+onMounted(() => label_input.value.focus_on_label());
 </script>
 
 <template>
@@ -74,6 +77,7 @@ function duplicate_field() {
 			<template #label>
 				<div class="field-label">
 					<EditableInput
+						ref="label_input"
 						:text="field.df.label"
 						:placeholder="__('Label')"
 						:empty_label="`${__('No Label')} (${field.df.fieldtype})`"
