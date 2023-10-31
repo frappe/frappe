@@ -195,12 +195,6 @@ function delete_tab(tab, with_children) {
 	border-top-left-radius: var(--border-radius);
 	border-top-right-radius: var(--border-radius);
 
-	&:hover {
-		.tab-actions .btn {
-			opacity: 1 !important;
-		}
-	}
-
 	.tabs {
 		display: flex;
 		flex: 1;
@@ -212,7 +206,7 @@ function delete_tab(tab, with_children) {
 		margin-right: 20px;
 
 		.btn {
-			opacity: 0;
+			background-color: var(--control-bg);
 			padding: 2px;
 			margin-left: 4px;
 			box-shadow: none;
@@ -222,7 +216,7 @@ function delete_tab(tab, with_children) {
 			}
 
 			&:hover {
-				background-color: var(--border-color);
+				background-color: var(--btn-default-hover-bg);
 			}
 		}
 
