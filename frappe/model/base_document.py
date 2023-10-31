@@ -387,7 +387,10 @@ class BaseDocument:
 
 			# If the docfield is not nullable - set a default non-null value
 			if value is None and getattr(df, "not_nullable", False):
-				value = get_not_null_defaults(df.fieldtype)
+				if df.default:
+					value = df.default
+				else:
+					value = get_not_null_defaults(df.fieldtype)
 
 			d[fieldname] = value
 
