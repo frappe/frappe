@@ -1300,6 +1300,9 @@ Object.assign(frappe.utils, {
 								route += `/${item.kanban_board}`;
 							}
 							break;
+						case "Image":
+							route = `${doctype_slug}/view/image`;
+							break;
 						default:
 							route = doctype_slug;
 					}
