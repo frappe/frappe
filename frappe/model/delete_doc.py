@@ -247,6 +247,8 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 	for lf in link_fields:
 		link_dt, link_field, issingle = lf["parent"], lf["fieldname"], lf["issingle"]
+		if link_field == "amended_from":
+			continue
 
 		try:
 			meta = frappe.get_meta(link_dt)
@@ -257,7 +259,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			continue
 
 		if issingle:
-			if frappe.db.get_value(link_dt, None, link_field) == doc.name:
+			if frappe.db.get_single_value(link_dt, link_field) == doc.name:
 				raise_link_exists_exception(doc, link_dt, link_dt)
 			continue
 
