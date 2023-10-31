@@ -279,7 +279,7 @@ function delete_tab(tab, with_children) {
 }
 
 .tab-contents {
-	max-height: calc(100vh - 220px);
+	max-height: calc(100vh - 217px);
 	overflow-y: auto;
 	overflow-x: hidden;
 	border-radius: var(--border-radius);

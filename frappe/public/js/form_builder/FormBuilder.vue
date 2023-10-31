@@ -46,7 +46,7 @@ onMounted(() => store.fetch());
 
 <style lang="scss" scoped>
 .form-builder-container {
-	margin: -12px -20px -5px;
+	margin: -15px -20px -5px;
 	display: flex;
 
 	&.resizing {
@@ -269,7 +269,7 @@ onMounted(() => store.fetch());
 	}
 
 	.form-main > :deep(div:first-child:not(.tab-header)) {
-		max-height: calc(100vh - 178px);
+		max-height: calc(100vh - 175px);
 	}
 }
 </style>

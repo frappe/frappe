@@ -71,7 +71,7 @@ let docfield_df = computed(() => {
 	<div class="header">
 		<SearchBox class="flex-1" v-model="search_text" />
 		<button
-			class="btn btn-xs"
+			class="close-btn btn btn-xs"
 			:title="__('Close properties')"
 			@click="store.form.selected_field = null"
 		>
@@ -100,11 +100,14 @@ let docfield_df = computed(() => {
 .header {
 	display: flex;
 	padding: 5px;
-	gap: 5px;
 	border-bottom: 1px solid var(--border-color);
+
+	.close-btn {
+		margin-right: -5px;
+	}
 }
 .control-data {
-	height: calc(100vh - 205px);
+	height: calc(100vh - 202px);
 	overflow-y: auto;
 	padding: 8px;
 
