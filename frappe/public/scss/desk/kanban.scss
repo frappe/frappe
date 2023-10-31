@@ -360,3 +360,43 @@ body[data-route*="Kanban"] {
 		width: 100%;
 	}
 }
+
+@keyframes blink_red {
+	0% {
+	  fill: red;
+	}
+	50% {
+	  fill: transparent;
+	}
+	100% {
+	  fill: red;
+	}
+  }
+  
+  .blink-red {
+	animation: blink_red 1s ease infinite;
+	fill: red;
+  }
+  
+  @keyframes blink_green {
+	0% {
+	  fill: green;
+	}
+	50% {
+	  fill: transparent;
+	}
+	100% {
+	  fill: green;
+	}
+  }
+  
+  .blink-green {
+	animation: blink_green 1s ease infinite;
+	fill: green;
+  }
+
+  .center_elements{
+	display: flex; 
+	justify-content: space-around;
+	align-items: center;
+  }
