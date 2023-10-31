@@ -136,7 +136,7 @@ def enqueue_webhook(doc, webhook) -> None:
 				url=webhook.request_url,
 				data=json.dumps(data, default=str),
 				headers=headers,
-				timeout=5,
+				timeout=webhook.timeout or 5,
 			)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})

@@ -827,15 +827,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			frappe.model.is_numeric_field(df) ? "text-right" : "",
 		].join(" ");
 
-		const html_map = {
-			Subject: this.get_subject_html(doc),
-			Field: field_html(),
-		};
-		let column_html = html_map[col.type];
-
-		// listview_setting formatter
-		if (this.settings.formatters && this.settings.formatters[fieldname]) {
+		let column_html;
+		if (
+			this.settings.formatters &&
+			this.settings.formatters[fieldname] &&
+			col.type !== "Subject"
+		) {
 			column_html = this.settings.formatters[fieldname](value, df, doc);
+		} else {
+			column_html = {
+				Subject: this.get_subject_html(doc),
+				Field: field_html(),
+			}[col.type];
 		}
 
 		return `
