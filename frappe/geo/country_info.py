@@ -8,6 +8,7 @@ import os
 from functools import lru_cache
 
 import frappe
+from frappe.utils.deprecations import deprecated
 from frappe.utils.momentjs import get_all_timezones
 
 
@@ -38,7 +39,12 @@ def _get_country_timezone_info():
 	return {"country_info": get_all(), "all_timezones": get_all_timezones()}
 
 
+@deprecated
 def get_translated_dict():
+	return get_translated_countries()
+
+
+def get_translated_countries():
 	from babel.dates import Locale
 
 	translated_dict = {}

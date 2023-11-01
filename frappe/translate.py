@@ -197,12 +197,12 @@ def get_all_translations(lang: str) -> dict[str, str]:
 		return {}
 
 	def _merge_translations():
-		from frappe.geo.country_info import get_translated_dict
+		from frappe.geo.country_info import get_translated_countries
 
 		all_translations = get_translations_from_apps(lang).copy()
 		with suppress(Exception):
 			all_translations.update(get_user_translations(lang))
-			all_translations.update(get_translated_dict())
+			all_translations.update(get_translated_countries())
 
 		return all_translations
 
