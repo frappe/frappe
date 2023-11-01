@@ -2,7 +2,7 @@
 import Section from "./Section.vue";
 import EditableInput from "./EditableInput.vue";
 import { useStore } from "../store";
-import { section_boilerplate, confirm_dialog } from "../utils";
+import { section_boilerplate, confirm_dialog, is_touch_screen_device } from "../utils";
 import draggable from "vuedraggable";
 import { ref, computed } from "vue";
 import { useMagicKeys, whenever } from "@vueuse/core";
@@ -117,6 +117,7 @@ function delete_tab(tab, with_children) {
 			class="tabs"
 			v-model="store.form.layout.tabs"
 			group="tabs"
+			:delay="is_touch_screen_device() ? 200 : 0"
 			:animation="200"
 			:easing="store.get_animation"
 			item-key="id"
@@ -174,6 +175,7 @@ function delete_tab(tab, with_children) {
 				class="tab-content-container"
 				v-model="tab.sections"
 				group="sections"
+				:delay="is_touch_screen_device() ? 200 : 0"
 				:animation="200"
 				:easing="store.get_animation"
 				item-key="id"

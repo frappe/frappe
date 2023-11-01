@@ -5,7 +5,7 @@ import AddFieldButton from "./AddFieldButton.vue";
 import EditableInput from "./EditableInput.vue";
 import { computed, ref } from "vue";
 import { useStore } from "../store";
-import { move_children_to_parent, confirm_dialog } from "../utils";
+import { move_children_to_parent, confirm_dialog, is_touch_screen_device } from "../utils";
 import { useMagicKeys, whenever } from "@vueuse/core";
 
 const props = defineProps(["section", "column"]);
@@ -155,6 +155,7 @@ function move_columns_to_section() {
 			class="column-container"
 			v-model="column.fields"
 			group="fields"
+			:delay="is_touch_screen_device() ? 200 : 0"
 			:animation="200"
 			:easing="store.get_animation"
 			item-key="id"

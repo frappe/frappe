@@ -4,7 +4,7 @@ import Column from "./Column.vue";
 import EditableInput from "./EditableInput.vue";
 import { ref, computed } from "vue";
 import { useStore } from "../store";
-import { section_boilerplate, move_children_to_parent, confirm_dialog } from "../utils";
+import { section_boilerplate, move_children_to_parent, confirm_dialog, is_touch_screen_device } from "../utils";
 import { useMagicKeys, whenever } from "@vueuse/core";
 
 const props = defineProps(["tab", "section"]);
@@ -177,6 +177,7 @@ function move_sections_to_tab() {
 					v-model="section.columns"
 					group="columns"
 					item-key="id"
+					:delay="is_touch_screen_device() ? 200 : 0"
 					:animation="200"
 					:easing="store.get_animation"
 					:disabled="store.read_only"
