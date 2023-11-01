@@ -28,6 +28,7 @@ class TestImporter(FrappeTestCase):
 
 		self.assertEqual(doc1.description, "test description")
 		self.assertEqual(doc1.number, 1)
+		self.assertEqual(doc1.duration, 10800)
 		self.assertEqual(format_duration(doc1.duration), "3h")
 
 		self.assertEqual(doc1.table_field_1[0].child_title, "child title")
@@ -45,10 +46,12 @@ class TestImporter(FrappeTestCase):
 		self.assertEqual(doc1.table_field_1_again[1].child_date, getdate("2021-09-22"))
 
 		self.assertEqual(doc2.description, "test description 2")
+		self.assertEqual(doc2.duration, 356400)
 		self.assertEqual(format_duration(doc2.duration), "4d 3h")
 
 		self.assertEqual(doc3.another_number, 5)
-		self.assertEqual(format_duration(doc3.duration), "5d 5h 45m")
+		self.assertEqual(doc3.duration, 452700)
+		self.assertEqual(format_duration(doc3.duration), "5d 5h 45min")
 
 	def test_data_import_preview(self):
 		import_file = get_import_file("sample_import_file")

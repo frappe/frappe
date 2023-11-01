@@ -53,6 +53,7 @@ from frappe.utils.data import (
 	cstr,
 	duration_to_seconds,
 	expand_relative_urls,
+	format_duration,
 	get_datetime,
 	get_first_day_of_week,
 	get_time,
@@ -64,6 +65,7 @@ from frappe.utils.data import (
 	nowtime,
 	pretty_date,
 	rounded,
+	seconds_to_duration,
 	to_timedelta,
 	validate_python_code,
 )
@@ -592,11 +594,30 @@ class TestDateUtils(FrappeTestCase):
 	def test_add_date_utils(self):
 		self.assertEqual(add_years(datetime(2020, 1, 1), 1), datetime(2021, 1, 1))
 
-	def test_duration_to_sec(self):
-		self.assertEqual(duration_to_seconds("3h 34m 45s"), 12885)
+	def test_format_duration(self):
+		self.assertEqual(format_duration(0), "")
+		self.assertEqual(format_duration(12885), "3h 34min 45s")
+		self.assertEqual(format_duration(172800), "2d")
+		self.assertEqual(format_duration(172800, True), "48h")  # BC: hide_days
+		self.assertEqual(format_duration(37006048720), "3y 1mo 10w 12min")
+		self.assertEqual(format_duration(37006048720, {"hide_weeks": True}), "3y 1mo 70d 12min")
+		self.assertEqual(format_duration(12885.0), format_duration(12885))
+
+	def test_seconds_to_duration(self):
+		self.assertIsInstance(seconds_to_duration(37006048720, {"hide_weeks": True}), dict)
+		self.assertIsInstance(seconds_to_duration(37006048720), dict)
+		with self.assertRaises(TypeError):
+			seconds_to_duration(37006048720, {"hide_weeks"})
+		with self.assertRaises(TypeError):
+			seconds_to_duration(37006048720, True)
+
+	def test_duration_to_seconds(self):
+		self.assertEqual(duration_to_seconds(""), 0)
 		self.assertEqual(duration_to_seconds("1h"), 3600)
-		self.assertEqual(duration_to_seconds("110m"), 110 * 60)
-		self.assertEqual(duration_to_seconds("110m"), 110 * 60)
+		self.assertEqual(duration_to_seconds("3h 34m 45s"), 12885)  # BC: "m"
+		self.assertEqual(duration_to_seconds("3y 1mo 10w 12min"), 37006048720)
+		self.assertEqual(duration_to_seconds("110min"), duration_to_seconds("110m"))  # BC: "m"
+		self.assertIsInstance(duration_to_seconds("110min"), int)
 
 	def test_get_timespan_date_range(self):
 

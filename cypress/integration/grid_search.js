@@ -122,7 +122,7 @@ context("Grid Search", () => {
 		cy.get("@table")
 			.find('.grid-heading-row .search input[data-fieldtype="Duration"]')
 			.type("d");
-		cy.get("@table").find(".grid-body .rows .grid-row").should("have.length", 5);
+		cy.get("@table").find(".grid-body .rows .grid-row").should("have.length", 3);
 
 		// Date Column
 		cy.get("@table")
