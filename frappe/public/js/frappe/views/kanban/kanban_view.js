@@ -125,6 +125,12 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		return frappe.db.get_doc("Kanban Board", this.board_name).then((board) => {
 			this.board = board;
 			this.board.filters_array = JSON.parse(this.board.filters || "[]");
+			// console.log(typeof this.board.fields)
+			// if(typeof this.board.fields === "string"){
+			// 	const fields = JSON.parse(this.board.fields)
+			// 	fields.push("client_description")
+			// 	this.board.fields = JSON.stringify(fields)
+			// }
 			this.board.fields = JSON.parse(this.board.fields || "[]");
 			this.filters = this.board.filters_array;
 		});
