@@ -417,7 +417,10 @@ frappe.views.BaseList = class BaseList {
 	get_group_by() {
 		let name_field = this.fields && this.fields.find((f) => f[0] == "name");
 		if (name_field) {
-			return frappe.model.get_full_column_name(name_field[0], name_field[1]);
+			return frappe.model.get_full_column_name(name_field[0], name_field[1]).concat(
+				Object.entries(this.link_field_title_fields || {}).map(
+					(entry) => " ," + entry.join("_")
+				));
 		}
 		return null;
 	}
