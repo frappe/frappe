@@ -347,3 +347,7 @@ export function confirm_dialog(
 	d.show();
 	d.set_message(message);
 }
+
+export function is_touch_screen_device() {
+	return "ontouchstart" in document.documentElement;
+}
