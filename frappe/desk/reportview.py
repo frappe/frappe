@@ -13,7 +13,7 @@ from frappe.model import child_table_fields, default_fields, get_permitted_field
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
-from frappe.utils import add_user_info, format_duration
+from frappe.utils import add_user_info, format_duration, get_duration_options
 
 
 @frappe.whitelist()
@@ -442,7 +442,8 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 			for i in range(1, len(data)):
 				val_in_seconds = data[i][index]
 				if val_in_seconds:
-					duration_val = format_duration(val_in_seconds, df.hide_days)
+					duration_options = get_duration_options(df)
+					duration_val = format_duration(val_in_seconds, duration_options)
 					data[i][index] = duration_val
 	return data
 

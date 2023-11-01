@@ -548,6 +548,7 @@ VALID_UTILS = (
 	"format_time",
 	"format_datetime",
 	"format_duration",
+	"get_duration_options",
 	"get_weekdays",
 	"get_weekday",
 	"get_timespan_date_range",

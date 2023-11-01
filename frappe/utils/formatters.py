@@ -18,6 +18,7 @@ from frappe.utils import (
 	format_time,
 	format_timedelta,
 	formatdate,
+	get_duration_options,
 )
 
 BLOCK_TAGS_PATTERN = re.compile(r"(<br|<div|<p)")
@@ -117,8 +118,8 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 		return ", ".join(values)
 
 	elif df.get("fieldtype") == "Duration":
-		hide_days = df.hide_days
-		return format_duration(value, hide_days)
+		duration_options = get_duration_options(df)
+		return format_duration(value, duration_options)
 
 	elif df.get("fieldtype") == "Text Editor":
 		return f"<div class='ql-snow'>{value}</div>"

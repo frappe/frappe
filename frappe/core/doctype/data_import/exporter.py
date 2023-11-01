@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model import display_fieldtypes, no_value_fields
 from frappe.model import table_fields as table_fieldtypes
-from frappe.utils import flt, format_duration, groupby_metric
+from frappe.utils import flt, format_duration, get_duration_options, groupby_metric
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response
 
@@ -145,7 +145,8 @@ class Exporter:
 
 				if df.fieldtype == "Duration":
 					value = flt(value or 0)
-					value = format_duration(value, df.hide_days)
+					duration_options = get_duration_options(df)
+					value = format_duration(value, duration_options)
 
 				row[i] = value
 		return rows

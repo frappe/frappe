@@ -10,7 +10,15 @@ import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model.utils import is_virtual_doctype
-from frappe.utils import cint, cstr, format_datetime, format_duration, formatdate, parse_json
+from frappe.utils import (
+	cint,
+	cstr,
+	format_datetime,
+	format_duration,
+	formatdate,
+	get_duration_options,
+	parse_json,
+)
 from frappe.utils.csvutils import UnicodeWriter
 
 reflags = {"I": re.I, "L": re.L, "M": re.M, "U": re.U, "S": re.S, "X": re.X, "D": re.DEBUG}
@@ -431,7 +439,8 @@ class DataExporter:
 					elif fieldtype == "Datetime":
 						value = format_datetime(value)
 					elif fieldtype == "Duration":
-						value = format_duration(value, df.hide_days)
+						duration_options = get_duration_options(df)
+						value = format_duration(value, duration_options)
 
 				row[_column_start_end.start + i + 1] = value
 
