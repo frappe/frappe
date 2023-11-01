@@ -6,11 +6,6 @@ import copy
 import datetime
 import json
 import re
-<<<<<<< HEAD
-from datetime import datetime
-=======
-from collections import Counter
->>>>>>> 385fa8aaef (fix!: Correct between filtering (#22918))
 
 import frappe
 import frappe.defaults

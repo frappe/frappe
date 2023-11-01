@@ -78,8 +78,6 @@ class FrappeTestCase(unittest.TestCase):
 		else:
 			self.assertEqual(expected, actual, msg=msg)
 
-<<<<<<< HEAD
-=======
 	def normalize_html(self, code: str) -> str:
 		"""Formats HTML consistently so simple string comparisons can work on them."""
 		from bs4 import BeautifulSoup
@@ -97,7 +95,6 @@ class FrappeTestCase(unittest.TestCase):
 	def assertQueryEqual(self, first: str, second: str):
 		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
 
->>>>>>> 385fa8aaef (fix!: Correct between filtering (#22918))
 	@contextmanager
 	def assertQueryCount(self, count):
 		queries = []
