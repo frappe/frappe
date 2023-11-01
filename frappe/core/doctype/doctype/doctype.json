@@ -10,8 +10,6 @@
  "field_order": [
   "form_builder_tab",
   "form_builder",
-  "fields_section",
-  "fields",
   "settings_tab",
   "sb0",
   "module",
@@ -92,6 +90,8 @@
   "advanced",
   "engine",
   "migration_hash",
+  "fields_section",
+  "fields",
   "connections_tab"
  ],
  "fields": [
@@ -654,7 +654,6 @@
    "collapsible": 1,
    "fieldname": "fields_section",
    "fieldtype": "Section Break",
-   "hidden": 1,
    "label": "Fields"
   },
   {
@@ -744,7 +743,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-10-31 11:53:53.766322",
+ "modified": "2023-11-01 16:45:14.960949",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
