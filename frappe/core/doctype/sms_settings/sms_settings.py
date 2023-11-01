@@ -15,7 +15,7 @@ def validate_receiver_nos(receiver_list):
 	validated_receiver_list = []
 	for d in receiver_list:
 		if not d:
-			break
+			continue
 
 		# remove invalid character
 		for x in [" ", "-", "(", ")"]:

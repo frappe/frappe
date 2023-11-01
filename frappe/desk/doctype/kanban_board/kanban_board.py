@@ -83,12 +83,35 @@ def archive_restore_column(board_name, column_title, status):
 	return doc.columns
 
 
+def order_column_by_project_order(project_ordered, projects_to_order):
+    project_index_map = {}
+    for index, project in enumerate(project_ordered):
+        project_index_map[project['name']] = index
+
+    ordered_projects = {}
+    for column, project_list in projects_to_order.items():
+        sorted_project_list = sorted(project_list, key=lambda project: project_index_map.get(project, -1))
+        ordered_projects[column] = sorted_project_list
+
+    return ordered_projects
+
+
 @frappe.whitelist()
 def update_order(board_name, order):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	doctype = board.reference_doctype
-	updated_cards = []
+	if doctype == "Project":
+		projects_ordered = frappe.db.sql(""" select cast(queue_position as decimal) as queue_position, name from tabProject order by queue_position asc; """, as_dict=True)
+		order_parse = order
+		if isinstance(order, str):
+			order_parse = json.loads(order)
+		if isinstance(projects_ordered, str):
+			projects_ordered = json.dumps(projects_ordered)
+   
+		projects_ordered = order_column_by_project_order(projects_ordered, order_parse)
+		order=json.dumps(projects_ordered)
+		updated_cards = []
 
 	if not frappe.has_permission(doctype, "write"):
 		# Return board data from db

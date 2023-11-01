@@ -245,8 +245,10 @@ class DocType(Document):
 
 		self.flags.update_fields_to_fetch_queries = []
 
-		if set(old_fields_to_fetch) != {df.fieldname for df in new_meta.get_fields_to_fetch()}:
-			for df in new_meta.get_fields_to_fetch():
+		new_fields_to_fetch = [df for df in new_meta.get_fields_to_fetch()]
+
+		if set(old_fields_to_fetch) != {df.fieldname for df in new_fields_to_fetch}:
+			for df in new_fields_to_fetch:
 				if df.fieldname not in old_fields_to_fetch:
 					link_fieldname, source_fieldname = df.fetch_from.split(".", 1)
 					link_df = new_meta.get_field(link_fieldname)

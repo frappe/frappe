@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 
 from PyPDF2 import PdfWriter
 
@@ -6,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.translate import print_language
+from frappe.utils.deprecations import deprecated
 from frappe.utils.pdf import get_pdf
 
 no_cache = 1
@@ -61,7 +63,7 @@ def download_multi_pdf(
 
 	import json
 
-	output = PdfWriter()
+	pdf_writer = PdfWriter()
 
 	if isinstance(options, str):
 		options = json.loads(options)
@@ -71,12 +73,12 @@ def download_multi_pdf(
 
 		# Concatenating pdf files
 		for i, ss in enumerate(result):
-			output = frappe.get_print(
+			pdf_writer = frappe.get_print(
 				doctype,
 				ss,
 				format,
 				as_pdf=True,
-				output=output,
+				output=pdf_writer,
 				no_letterhead=no_letterhead,
 				letterhead=letterhead,
 				pdf_options=options,
@@ -88,12 +90,12 @@ def download_multi_pdf(
 		for doctype_name in doctype:
 			for doc_name in doctype[doctype_name]:
 				try:
-					output = frappe.get_print(
+					pdf_writer = frappe.get_print(
 						doctype_name,
 						doc_name,
 						format,
 						as_pdf=True,
-						output=output,
+						output=pdf_writer,
 						no_letterhead=no_letterhead,
 						letterhead=letterhead,
 						pdf_options=options,
@@ -107,19 +109,18 @@ def download_multi_pdf(
 					)
 		frappe.local.response.filename = f"{name}.pdf"
 
-	frappe.local.response.filecontent = read_multi_pdf(output)
+	with BytesIO() as merged_pdf:
+		pdf_writer.write(merged_pdf)
+		frappe.local.response.filecontent = merged_pdf.getvalue()
+
 	frappe.local.response.type = "pdf"
 
 
-def read_multi_pdf(output):
-	# Get the content of the merged pdf files
-	fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.pdf")
-	output.write(open(fname, "wb"))
-
-	with open(fname, "rb") as fileobj:
-		filedata = fileobj.read()
-
-	return filedata
+@deprecated
+def read_multi_pdf(output: PdfWriter) -> bytes:
+	with BytesIO() as merged_pdf:
+		output.write(merged_pdf)
+		return merged_pdf.getvalue()
 
 
 @frappe.whitelist(allow_guest=True)

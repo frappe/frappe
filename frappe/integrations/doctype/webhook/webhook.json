@@ -18,6 +18,7 @@
   "html_condition",
   "sb_webhook",
   "request_url",
+  "timeout",
   "request_method",
   "cb_webhook",
   "request_structure",
@@ -200,10 +201,18 @@
   {
    "fieldname": "section_break_28",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "5",
+   "description": "The number of seconds until the request expires",
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Request Timeout",
+   "reqd": 1
   }
  ],
  "links": [],
- "modified": "2022-07-11 08:54:10.740512",
+ "modified": "2023-06-16 10:21:00.971833",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
