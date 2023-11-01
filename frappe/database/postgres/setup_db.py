@@ -50,12 +50,22 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 	command = []
 
-	if pv:
-		command.extend([pv, source_sql, "|"])
-		source = []
-		print("Restoring Database file...")
+	if source_sql.endswith(".gz"):
+		if gzip := which("gzip"):
+			source = []
+			if pv:
+				command.extend([gzip, "-cd", source_sql, "|", pv, "|"])
+			else:
+				command.extend([gzip, "-cd", source_sql, "|"])
+		else:
+			raise Exception("`gzip` not installed")
 	else:
-		source = ["-f", source_sql]
+		if pv:
+			command.extend([pv, source_sql, "|"])
+			source = []
+			print("Restoring Database file...")
+		else:
+			source = ["-f", source_sql]
 
 	bin, args, bin_name = get_command(
 		host=frappe.conf.db_host,
