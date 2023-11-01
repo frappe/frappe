@@ -98,7 +98,6 @@ function add_existing_filter(df){
 }
 
 function edit_filters(){
-
 	let field_doctype = props.field.df.options;
 	const { frm } = store;
 
@@ -112,6 +111,13 @@ function edit_filters(){
 		}
 
 	});
+}
+
+
+function filter_applied(){
+	if (props.field.df.link_filters && JSON.parse(props.field.df.link_filters).length > 0){
+		return "btn-filter-applied"
+	}
 }
 
 </script>
@@ -151,8 +157,10 @@ function edit_filters(){
 					<button
 						v-if="field.df.fieldtype === 'Link' "
 						class="btn btn-xs btn-icon"
+						:class="filter_applied()"
 						@click="edit_filters"
 					>
+
 						<div v-html="frappe.utils.icon('filter', 'sm')"></div>
 					</button>
 					<button
@@ -238,4 +246,11 @@ function edit_filters(){
 		}
 	}
 }
+.btn-filter-applied {
+	background-color: var(--gray-300) !important;
+	&:hover {
+		background-color: var(--gray-400) !important;
+	}
+}
+
 </style>
