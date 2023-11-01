@@ -13,10 +13,13 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 			</div>`
 		);
 		this.$wrapper.append(this.$picker);
-		this.build_numeric_input("days", this.duration_options.hide_days);
-		this.build_numeric_input("hours", false);
-		this.build_numeric_input("minutes", false);
-		this.build_numeric_input("seconds", this.duration_options.hide_seconds);
+
+		const duration_units = ["years", "months", "weeks", "days", "hours", "minutes", "seconds"];
+		for (const unit of duration_units) {
+			const is_hidden = this.duration_options[`hide_${unit}`];
+			this.build_numeric_input(unit, is_hidden);
+		}
+
 		this.set_duration_picker_value(this.value);
 		this.$picker.hide();
 		this.bind_events();
@@ -75,12 +78,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 			// duration changed in individual boxes
 			clicked = false;
 			let duration = this.get_duration();
-			let value = frappe.utils.duration_to_seconds(
-				duration.days,
-				duration.hours,
-				duration.minutes,
-				duration.seconds
-			);
+			let value = frappe.utils.duration_to_seconds(duration);
 			this.set_value(value);
 			this.set_focus();
 		});
@@ -123,22 +121,9 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 	}
 
 	get_duration() {
-		// returns an object of days, hours, minutes and seconds from the inputs array
-		let total_duration = {
-			minutes: 0,
-			hours: 0,
-			days: 0,
-			seconds: 0,
-		};
-		if (this.inputs) {
-			total_duration.minutes = parseInt(this.inputs.minutes.val());
-			total_duration.hours = parseInt(this.inputs.hours.val());
-			if (!this.duration_options.hide_days) {
-				total_duration.days = parseInt(this.inputs.days.val());
-			}
-			if (!this.duration_options.hide_seconds) {
-				total_duration.seconds = parseInt(this.inputs.seconds.val());
-			}
+		let total_duration = {};
+		for (const [label, $input] of Object.entries(this.inputs)) {
+			total_duration[label] = parseInt($input.val());
 		}
 		return total_duration;
 	}

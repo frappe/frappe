@@ -23,7 +23,9 @@ INVALID_VALUES = ("", None)
 MAX_ROWS_IN_PREVIEW = 10
 INSERT = "Insert New Records"
 UPDATE = "Update Existing Records"
-DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
+DURATION_PATTERN = re.compile(
+	r"^(?:(\d+y)?((^|\s)\d+mo)?((^|\s)\d+w)?((^|\s)\d+d)?((^|\s)\d+h)?((^|\s)\d+(min|m))?((^|\s)\d+s)?)$"
+)
 
 
 class Importer:

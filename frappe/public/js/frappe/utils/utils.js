@@ -1112,75 +1112,62 @@ Object.assign(frappe.utils, {
 		};
 	},
 
-	get_formatted_duration(value, duration_options = null) {
-		let duration = "";
-		if (!duration_options) {
-			duration_options = {
-				hide_days: 0,
-				hide_seconds: 0,
-			};
-		}
-		if (value) {
-			let total_duration = frappe.utils.seconds_to_duration(value, duration_options);
+	duration_data: {
+		years: { factor: 12 * 1000000000, abbr: "y" },
+		months: { factor: 1000000000, abbr: "mo" },
+		weeks: { factor: 7 * 24 * 60 * 60, abbr: "w" },
+		days: { factor: 24 * 60 * 60, abbr: "d" },
+		hours: { factor: 60 * 60, abbr: "h" },
+		minutes: { factor: 60, abbr: "min" },
+		seconds: { factor: 1, abbr: "s" },
+	},
 
-			if (total_duration.days) {
-				duration += total_duration.days + __("d", null, "Days (Field: Duration)");
-			}
-			if (total_duration.hours) {
-				duration += duration.length ? " " : "";
-				duration += total_duration.hours + __("h", null, "Hours (Field: Duration)");
-			}
-			if (total_duration.minutes) {
-				duration += duration.length ? " " : "";
-				duration += total_duration.minutes + __("m", null, "Minutes (Field: Duration)");
-			}
-			if (total_duration.seconds) {
-				duration += duration.length ? " " : "";
-				duration += total_duration.seconds + __("s", null, "Seconds (Field: Duration)");
+	get_formatted_duration(value, duration_options = null) {
+		if (!value) {
+			return "";
+		}
+
+		let components = [];
+		const duration = this.seconds_to_duration(value, duration_options);
+		for (const [unit, v] of Object.entries(duration)) {
+			if (v > 0) {
+				const context = unit.toUpperCase() + " (Field: Duration)";
+				const abbr = __(this.duration_data[unit].abbr, null, context);
+				components.push(v.toString() + abbr);
 			}
 		}
-		return duration;
+		return components.join(" ");
 	},
 
 	seconds_to_duration(seconds, duration_options) {
-		const round = seconds > 0 ? Math.floor : Math.ceil;
-		const total_duration = {
-			days: round(seconds / 86400), // 60 * 60 * 24
-			hours: round((seconds % 86400) / 3600),
-			minutes: round((seconds % 3600) / 60),
-			seconds: round(seconds % 60),
-		};
-
-		if (duration_options && duration_options.hide_days) {
-			total_duration.hours = round(seconds / 3600);
-			total_duration.days = 0;
+		let total_duration = {};
+		let remaining_seconds = seconds;
+		for (const [unit, { factor }] of Object.entries(this.duration_data)) {
+			if (!duration_options?.[`hide_${unit}`]) {
+				total_duration[unit] = Math.floor(remaining_seconds / factor);
+				remaining_seconds %= factor;
+			}
 		}
-
 		return total_duration;
 	},
 
-	duration_to_seconds(days = 0, hours = 0, minutes = 0, seconds = 0) {
+	duration_to_seconds: function (units = {}) {
 		let value = 0;
-		if (days) {
-			value += days * 24 * 60 * 60;
-		}
-		if (hours) {
-			value += hours * 60 * 60;
-		}
-		if (minutes) {
-			value += minutes * 60;
-		}
-		if (seconds) {
-			value += seconds;
+		for (const [unit, { factor }] of Object.entries(this.duration_data)) {
+			value += (units[unit] || 0) * factor;
 		}
 		return value;
 	},
 
 	get_duration_options: function (docfield) {
-		return {
-			hide_days: docfield.hide_days,
-			hide_seconds: docfield.hide_seconds,
-		};
+		const options = {};
+		for (const option of Object.keys(this.duration_data)) {
+			const hideOption = `hide_${option}`;
+			if (hideOption in docfield) {
+				options[hideOption] = docfield[hideOption];
+			}
+		}
+		return options;
 	},
 
 	get_number_system: function (country) {

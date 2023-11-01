@@ -46,7 +46,9 @@ URLS_NOT_HTTP_TAG_PATTERN = re.compile(
 URL_NOTATION_PATTERN = re.compile(
 	r'(:[\s]?url)(\([\'"]?)((?!http)[^\'" >]+)([\'"]?\))'
 )  # background-image: url('/assets/...')
-DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
+DURATION_PATTERN = re.compile(
+	r"^(?:(\d+y)?((^|\s)\d+mo)?((^|\s)\d+w)?((^|\s)\d+d)?((^|\s)\d+h)?((^|\s)\d+(min|m))?((^|\s)\d+s)?)$"
+)
 HTML_TAG_PATTERN = re.compile("<[^>]+>")
 MARIADB_SPECIFIC_COMMENT = re.compile(r"#.*")
 
@@ -635,39 +637,61 @@ def format_datetime(datetime_string: DateTimeLikeObject, format_string: str | No
 	return formatted_datetime
 
 
-def format_duration(seconds, hide_days=False):
+DURATION_DATA = {
+	"years": {"factor": 12 * 1000000000, "abbr": "y"},
+	"months": {"factor": 1000000000, "abbr": "mo"},
+	"weeks": {"factor": 7 * 24 * 60 * 60, "abbr": "w"},
+	"days": {"factor": 24 * 60 * 60, "abbr": "d"},
+	"hours": {"factor": 60 * 60, "abbr": "h"},
+	"minutes": {"factor": 60, "abbr": "min"},
+	"seconds": {"factor": 1, "abbr": "s"},
+}
+
+
+def format_duration(seconds: int, duration_options: dict[str, bool] | None = None) -> str:
 	"""Converts the given duration value in float(seconds) to duration format
 
 	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
 	"""
 
+	# Be tolerant, allow set instead of dict, and bool for BC.
+	if isinstance(duration_options, set):
+		duration_options = {option: True for option in duration_options}
+	elif isinstance(duration_options, bool):
+		duration_options = {"hide_days": duration_options}
+
 	seconds = cint(seconds)
+	if not seconds:
+		return ""
 
-	total_duration = {
-		"days": math.floor(seconds / (3600 * 24)),
-		"hours": math.floor(seconds % (3600 * 24) / 3600),
-		"minutes": math.floor(seconds % 3600 / 60),
-		"seconds": math.floor(seconds % 60),
-	}
+	components = []
+	duration = seconds_to_duration(seconds, duration_options)
+	for unit, value in duration.items():
+		if value > 0:
+			abbr = DURATION_DATA[unit]["abbr"]
+			context = unit.upper() + " (Field: Duration)"
+			components.append(str(value) + frappe._(abbr, context=context))
+	return " ".join(components)
 
-	if hide_days:
-		total_duration["hours"] = math.floor(seconds / 3600)
-		total_duration["days"] = 0
 
-	duration = ""
-	if total_duration:
-		if total_duration.get("days"):
-			duration += str(total_duration.get("days")) + "d"
-		if total_duration.get("hours"):
-			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("hours")) + "h"
-		if total_duration.get("minutes"):
-			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("minutes")) + "m"
-		if total_duration.get("seconds"):
-			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("seconds")) + "s"
+def seconds_to_duration(
+	seconds: int, duration_options: dict[str, bool] | None = None
+) -> dict[str, int]:
+	"""
+	Convert the given seconds into a duration object with all unit parts that are not hidden.
+	"""
 
+	if duration_options and not isinstance(duration_options, dict):
+		raise TypeError(
+			f"duration_options should be of type 'dict', not '{type(duration_options).__name__}'"
+		)
+
+	duration = {}
+	remaining_seconds = seconds
+	for unit, data in DURATION_DATA.items():
+		if not duration_options or not duration_options.get(f"hide_{unit}"):
+			duration[unit] = int(remaining_seconds // data["factor"])
+			remaining_seconds %= data["factor"]
 	return duration
 
 
@@ -677,37 +701,38 @@ def duration_to_seconds(duration):
 	example: converts '3h 34m 45s' to 12885 (value in seconds)
 	"""
 	validate_duration_format(duration)
-	value = 0
-	if "d" in duration:
-		val = duration.split("d")
-		days = val[0]
-		value += cint(days) * 24 * 60 * 60
-		duration = val[1]
-	if "h" in duration:
-		val = duration.split("h")
-		hours = val[0]
-		value += cint(hours) * 60 * 60
-		duration = val[1]
-	if "m" in duration:
-		val = duration.split("m")
-		mins = val[0]
-		value += cint(mins) * 60
-		duration = val[1]
-	if "s" in duration:
-		val = duration.split("s")
-		secs = val[0]
-		value += cint(secs)
 
+	value = 0
+	for unit, data in DURATION_DATA.items():
+		if unit == "minutes":
+			# BC: Understand both "min" and "m", but not "mo".
+			pattern = r"(\d+)m(?!o)"
+		else:
+			pattern = r"(\d+)" + re.escape(data["abbr"])
+		match = re.search(pattern, duration)
+		if match:
+			matched_value = int(match.group(1))
+			value += matched_value * data["factor"]
 	return value
 
 
 def validate_duration_format(duration):
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
-			frappe._("Value {0} must be in the valid duration format: d h m s").format(
+			frappe._("Value {0} must be in the valid duration format: y mo w d h min s").format(
 				frappe.bold(duration)
 			)
 		)
+
+
+def get_duration_options(df) -> dict[str, bool]:
+	"""Extract duration options from docfield."""
+	options = {}
+	for unit in DURATION_DATA.keys():
+		hide_unit = f"hide_{unit}"
+		if hasattr(df, hide_unit):
+			options[hide_unit] = getattr(df, hide_unit)
+	return options
 
 
 def get_weekdays():
