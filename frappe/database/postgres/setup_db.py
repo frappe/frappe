@@ -52,10 +52,38 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 	pv = which("pv")
 
+<<<<<<< HEAD
 	_command = (
 		f"psql {frappe.conf.db_name} "
 		f"-h {frappe.conf.db_host} -p {frappe.conf.db_port!s} "
 		f"-U {frappe.conf.db_name}"
+=======
+	command = []
+
+	if source_sql.endswith(".gz"):
+		if gzip := which("gzip"):
+			source = []
+			if pv:
+				command.extend([gzip, "-cd", source_sql, "|", pv, "|"])
+			else:
+				command.extend([gzip, "-cd", source_sql, "|"])
+		else:
+			raise Exception("`gzip` not installed")
+	else:
+		if pv:
+			command.extend([pv, source_sql, "|"])
+			source = []
+			print("Restoring Database file...")
+		else:
+			source = ["-f", source_sql]
+
+	bin, args, bin_name = get_command(
+		host=frappe.conf.db_host,
+		port=frappe.conf.db_port,
+		user=frappe.conf.db_name,
+		password=frappe.conf.db_password,
+		db_name=frappe.conf.db_name,
+>>>>>>> 012b0fdb7e (fix(postgres/setup): use `gzip` to get backup contents if the file is an archive)
 	)
 
 	if pv:
