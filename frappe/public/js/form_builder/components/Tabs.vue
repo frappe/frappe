@@ -13,11 +13,10 @@ const store = useStore();
 const { Backspace } = useMagicKeys();
 whenever(Backspace, (value) => {
 	if (value && selected.value && store.not_using_input) {
-		remove_tab(store.current_tab, true);
+		remove_tab(store.current_tab, '', true);
 	}
 });
 
-const remove_tab_btn = ref(null);
 const dragged = ref(false);
 const selected = computed(() => store.selected(store.current_tab.df.name));
 const has_tabs = computed(() => store.form.layout.tabs.length > 1);
@@ -44,23 +43,23 @@ function add_new_section() {
 	store.form.selected_field = section.df;
 }
 
-function is_current_tab_empty() {
+function is_tab_empty(tab) {
 	// check if sections have columns and it contains fields
-	return !store.current_tab.sections.some((section) =>
+	return !tab.sections.some((section) =>
 		section.columns.some((column) => column.fields.length)
 	);
 }
 
-function remove_tab(tab, force=false) {
+function remove_tab(tab, event, force=false) {
 	// is remove_tab_btn is not visible then return
-	if (!remove_tab_btn.value?.offsetParent && !force) return;
+	if (!event?.currentTarget?.offsetParent && !force) return;
 
 	if (store.is_customize_form && store.current_tab.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	} else if (store.has_standard_field(store.current_tab)) {
 		delete_tab(tab);
-	} else if (is_current_tab_empty()) {
+	} else if (is_tab_empty(tab)) {
 		delete_tab(tab, true);
 	} else {
 		confirm_dialog(
@@ -85,7 +84,7 @@ function delete_tab(tab, with_children) {
 	if (!with_children) {
 		if (index > 0) {
 			let prev_tab = tabs[index - 1];
-			if (!is_current_tab_empty()) {
+			if (!is_tab_empty(tab)) {
 				// move all sections from current tab to previous tab
 				prev_tab.sections = [...prev_tab.sections, ...tab.sections];
 			}
@@ -139,10 +138,9 @@ function delete_tab(tab, with_children) {
 						v-model="element.df.label"
 					/>
 					<button
-						ref="remove_tab_btn"
 						class="remove-tab-btn btn btn-xs"
 						:title="__('Remove tab')"
-						@click.stop="remove_tab(element)"
+						@click.stop="remove_tab(element, $event)"
 						:hidden="store.read_only"
 					>
 						<div v-html="frappe.utils.icon('remove', 'xs')"></div>
