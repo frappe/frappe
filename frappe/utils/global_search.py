@@ -373,17 +373,23 @@ def sync_global_search():
 	:param flags:
 	:return:
 	"""
+	from itertools import islice
 
-	while frappe.cache.llen("global_search_queue") > 0:
-		values = get_batched_search_queue_values()
+	def get_search_queue_item_generator():
+		while frappe.cache.llen("global_search_queue") > 0:
+			yield frappe.cache.rpop("global_search_queue")
+
+	item_generator = get_search_queue_item_generator()
+	while search_items := tuple(islice(item_generator, 10_000)):
+		values = get_deduped_search_item_values(search_items)
 		sync_values(values)
 
-def get_batched_search_queue_values():
+
+def get_deduped_search_item_values(items):
 	from collections import OrderedDict
 
 	values_dict = OrderedDict()
-
-	for item in frappe.cache.rpop("global_search_queue", 10_000):
+	for item in items:
 		item_json = item.decode("utf-8")
 		item_dict = json.loads(item_json)
 		key = (item_dict["doctype"], item_dict["name"])
@@ -391,9 +397,10 @@ def get_batched_search_queue_values():
 		if key in values_dict:
 			del values_dict[key]
 
-		values_dict[key] = tuple(item_dict.values())			
-	
+		values_dict[key] = tuple(item_dict.values())
+
 	return values_dict.values()
+
 
 def sync_values(values):
 	from pypika.terms import Values
