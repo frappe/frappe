@@ -76,7 +76,11 @@ class DocField(Document):
 		hidden: DF.Check
 		hide_border: DF.Check
 		hide_days: DF.Check
+		hide_hours: DF.Check
+		hide_months: DF.Check
 		hide_seconds: DF.Check
+		hide_weeks: DF.Check
+		hide_years: DF.Check
 		ignore_user_permissions: DF.Check
 		ignore_xss_filter: DF.Check
 		in_filter: DF.Check
