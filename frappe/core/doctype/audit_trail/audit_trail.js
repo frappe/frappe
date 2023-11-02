@@ -2,18 +2,21 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Audit Trail", {
-	onload(frm) {
-		let prev_route = frappe.get_prev_route();
-		if (prev_route.length > 2 && prev_route[0] == "Form" && prev_route[1] != "Audit Trail") {
-			frm.doc.doctype_name = prev_route[1];
-			frm.doc.document = prev_route[2];
-			frm.doc.start_date = "";
-			frm.doc.end_date = "";
-		}
-		frm.events.get_audit_trail_for_document(frm);
-	},
-
 	refresh(frm) {
+		let prev_route = frappe.get_prev_route();
+		if (
+			prev_route.length > 2 &&
+			prev_route[0] == "Form" &&
+			!prev_route.includes("Audit Trail")
+		) {
+			frm.set_value("doctype_name", prev_route[1]);
+			frm.set_value("document", prev_route[2]);
+			frm.set_value("start_date", "");
+			frm.set_value("end_date", "");
+			if (frm.doc.doctype_name && frm.doc.document)
+				frm.events.get_audit_trail_for_document(frm);
+		}
+
 		frm.page.clear_indicator();
 
 		frm.disable_save();
