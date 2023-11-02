@@ -169,10 +169,13 @@ frappe.ui.Page = class Page {
 		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
 			sidebar_toggle.remove();
 		} else {
-			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip({
-				delay: { show: 600, hide: 100 },
-				trigger: "hover",
-			});
+			sidebar_toggle.attr("title", __("Toggle Sidebar"));
+			if (!frappe.is_mobile()) {
+				sidebar_toggle.tooltip({
+					delay: { show: 600, hide: 100 },
+					trigger: "hover",
+				});
+			}
 			sidebar_toggle.click(() => {
 				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
 					this.setup_overlay_sidebar();
