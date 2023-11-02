@@ -649,9 +649,16 @@ DURATION_DATA = {
 
 
 def format_duration(seconds: int, duration_options: dict[str, bool] | None = None) -> str:
-	"""Converts the given duration value in float(seconds) to duration format
+	"""
+	Converts the given duration in seconds to a formatted duration string.
+	Example: converts 12885 to '3h 34min 45s'.
 
-	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
+	Args:
+	        seconds (int): The duration in seconds.
+	        duration_options (dict, optional): Formatting options.
+	                Example: {"hide_days": True, "hide_months": True}
+	Returns:
+	        str: Formatted string with the duration broken down into all unit parts not hidden.
 	"""
 
 	# Be tolerant, allow set instead of dict, and bool for BC.
@@ -695,28 +702,34 @@ def seconds_to_duration(
 	return duration
 
 
-def duration_to_seconds(duration):
-	"""Converts the given duration formatted value to duration value in seconds
+def duration_to_seconds(duration: str) -> int:
+	"""
+	Converts formatted duration string to duration in seconds.
 
-	example: converts '3h 34m 45s' to 12885 (value in seconds)
+	Args:
+	        str: String with the duration broken down into all unit parts not hidden.
+	Returns:
+	        int: The duration in seconds.
 	"""
 	validate_duration_format(duration)
 
-	value = 0
+	total_seconds = 0
 	for unit, data in DURATION_DATA.items():
 		if unit == "minutes":
 			# BC: Understand both "min" and "m", but not "mo".
 			pattern = r"(\d+)m(?!o)"
 		else:
 			pattern = r"(\d+)" + re.escape(data["abbr"])
+
 		match = re.search(pattern, duration)
 		if match:
 			matched_value = int(match.group(1))
-			value += matched_value * data["factor"]
-	return value
+			total_seconds += matched_value * data["factor"]
+	return total_seconds
 
 
-def validate_duration_format(duration):
+def validate_duration_format(duration: str) -> None:
+	"""Validate a formatted duration string."""
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
 			frappe._("Value {0} must be in the valid duration format: y mo w d h min s").format(
@@ -725,13 +738,13 @@ def validate_duration_format(duration):
 		)
 
 
-def get_duration_options(df) -> dict[str, bool]:
+def get_duration_options(docfield: dict[str, Any]) -> dict[str, bool]:
 	"""Extract duration options from docfield."""
 	options = {}
 	for unit in DURATION_DATA.keys():
 		hide_unit = f"hide_{unit}"
-		if hasattr(df, hide_unit):
-			options[hide_unit] = getattr(df, hide_unit)
+		if hasattr(docfield, hide_unit):
+			options[hide_unit] = getattr(docfield, hide_unit)
 	return options
 
 

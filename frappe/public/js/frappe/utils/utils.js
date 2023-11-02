@@ -1122,24 +1122,40 @@ Object.assign(frappe.utils, {
 		seconds: { factor: 1, abbr: "s" },
 	},
 
-	get_formatted_duration(value, duration_options = null) {
-		if (!value) {
+	/**
+	 * Get formatted duration string.
+	 *
+	 * @param {number} seconds - Duration in seconds
+	 * @param {Object} [duration_options] - Formatting options
+	 * 	Example: { hide_days: true, hide_months: true }
+	 * @returns {string} - Formatted duration string
+	 */
+	get_formatted_duration: function (seconds, duration_options = null) {
+		if (!seconds) {
 			return "";
 		}
 
 		let components = [];
-		const duration = this.seconds_to_duration(value, duration_options);
-		for (const [unit, v] of Object.entries(duration)) {
-			if (v > 0) {
+		const duration = this.seconds_to_duration(seconds, duration_options);
+		for (const [unit, value] of Object.entries(duration)) {
+			if (value > 0) {
 				const context = unit.toUpperCase() + " (Field: Duration)";
 				const abbr = __(this.duration_data[unit].abbr, null, context);
-				components.push(v.toString() + abbr);
+				components.push(value.toString() + abbr);
 			}
 		}
 		return components.join(" ");
 	},
 
-	seconds_to_duration(seconds, duration_options) {
+	/**
+	 * Turn seconds into a duration object.
+	 *
+	 * @param {number} seconds - Duration in seconds
+	 * @param {Object} [duration_options] - Formatting options
+	 * 	Example: { hide_days: true, hide_months: true }
+	 * @returns {Object} - Duration object with each part not hidden
+	 */
+	seconds_to_duration: function (seconds, duration_options = null) {
 		let total_duration = {};
 		let remaining_seconds = seconds;
 		for (const [unit, { factor }] of Object.entries(this.duration_data)) {
@@ -1151,14 +1167,26 @@ Object.assign(frappe.utils, {
 		return total_duration;
 	},
 
+	/**
+	 * Converts various time units to seconds.
+	 *
+	 * @param {Object} units - The time units to convert.
+	 * @returns {number} - The total time in seconds.
+	 */
 	duration_to_seconds: function (units = {}) {
-		let value = 0;
+		let seconds = 0;
 		for (const [unit, { factor }] of Object.entries(this.duration_data)) {
-			value += (units[unit] || 0) * factor;
+			seconds += (units[unit] || 0) * factor;
 		}
-		return value;
+		return seconds;
 	},
 
+	/**
+	 * Retrieves duration options from a given docfield.
+	 *
+	 * @param {Object} docfield - The docfield to get options from.
+	 * @returns {Object} - The duration options.
+	 */
 	get_duration_options: function (docfield) {
 		const options = {};
 		for (const option of Object.keys(this.duration_data)) {

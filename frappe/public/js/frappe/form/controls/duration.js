@@ -5,7 +5,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 	}
 
 	make_picker() {
-		this.inputs = [];
+		this.inputs = {};
 		this.set_duration_options();
 		this.$picker = $(
 			`<div class="duration-picker">
@@ -129,12 +129,6 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 	}
 
 	is_duration_picker_set(inputs) {
-		let is_set = false;
-		Object.values(inputs).forEach((duration) => {
-			if (duration.prop("value") != 0) {
-				is_set = true;
-			}
-		});
-		return is_set;
+		return Object.values(inputs).some((input) => parseInt(input.val()) !== 0);
 	}
 };
