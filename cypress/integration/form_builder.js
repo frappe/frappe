@@ -58,16 +58,15 @@ context("Form Builder", () => {
 
 		let first_column = ".tab-content.active .section-columns-container:first .column:first";
 
-		let first_field = first_column + " .field:first";
 		let last_field = first_column + " .field:last";
 
-		let add_new_field_btn = first_field + " .field-actions .add-field-btn";
+		let add_new_field_btn = first_column + " .add-new-field-btn button";
 
 		// add new field
 		cy.get(add_new_field_btn).click();
 
 		// type table and press enter
-		cy.get(".combo-box-options:first .search-box > input").type("table{enter}");
+		cy.get(".combo-box-options:visible .search-box > input").type("table{enter}");
 
 		// save
 		cy.click_doc_primary_button("Save");
@@ -236,16 +235,15 @@ context("Form Builder", () => {
 
 		let first_column = ".tab-content.active .section-columns-container:first .column:first";
 
-		let first_field = first_column + " .field:first";
 		let last_field = first_column + " .field:last";
 
-		let add_new_field_btn = first_field + " .field-actions .add-field-btn";
+		let add_new_field_btn = first_column + " .add-new-field-btn button";
 
 		// add new field
 		cy.get(add_new_field_btn).click();
 
 		// type data and press enter
-		cy.get(".combo-box-options:first .search-box > input").type("data{enter}");
+		cy.get(".combo-box-options:visible .search-box > input").type("data{enter}");
 
 		cy.get(last_field).click();
 
