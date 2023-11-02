@@ -8,10 +8,14 @@ from six import iteritems, string_types
 """build query for doclistview and return results"""
 
 import copy
+import datetime
 import json
 import re
+<<<<<<< HEAD
 from datetime import datetime
 from typing import List
+=======
+>>>>>>> b228cb7687 (fix!: Correct between filtering (backport #22918) (#23036))
 
 import frappe
 import frappe.defaults
@@ -23,7 +27,6 @@ from frappe.model import get_permitted_fields, optional_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.utils import (
-	add_to_date,
 	cint,
 	cstr,
 	flt,
@@ -32,6 +35,10 @@ from frappe.utils import (
 	get_timespan_date_range,
 	make_filter_tuple,
 )
+<<<<<<< HEAD
+=======
+from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
+>>>>>>> b228cb7687 (fix!: Correct between filtering (backport #22918) (#23036))
 
 SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
 
@@ -737,7 +744,7 @@ class DatabaseQuery(object):
 				value = frappe.db.format_date(f.value)
 				fallback = "'0001-01-01'"
 
-			elif (df and df.fieldtype == "Datetime") or isinstance(f.value, datetime):
+			elif (df and df.fieldtype == "Datetime") or isinstance(f.value, datetime.datetime):
 				value = frappe.db.format_datetime(f.value)
 				fallback = "'0001-01-01 00:00:00'"
 
@@ -1114,10 +1121,18 @@ def has_any_user_permission_for_doctype(doctype, user, applicable_for):
 
 
 def get_between_date_filter(value, df=None):
+	"""Handle datetime filter bounds for between filter values.
+
+	If date is passed but fieldtype is datetime then
+	        from part is converted to start of day and to part is converted to end of day.
+	If any of filter part (to or from) are missing then:
+	        start or end of current day is assumed as fallback.
+	If fieldtypes match with filter values then:
+	        no change is applied.
 	"""
-	return the formattted date as per the given example
-	[u'2017-11-01', u'2017-11-03'] => '2017-11-01 00:00:00.000000' AND '2017-11-04 00:00:00.000000'
-	"""
+
+	fieldtype = df and df.fieldtype or "Datetime"
+
 	from_date = frappe.utils.nowdate()
 	to_date = frappe.utils.nowdate()
 
@@ -1127,9 +1142,12 @@ def get_between_date_filter(value, df=None):
 		if len(value) >= 2:
 			to_date = value[1]
 
-	if not df or (df and df.fieldtype == "Datetime"):
-		to_date = add_to_date(to_date, days=1)
+	# if filter value is date but fieldtype is datetime:
+	if fieldtype == "Datetime":
+		from_date = _convert_type_for_between_filters(from_date, set_time=datetime.time())
+		to_date = _convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
 
+<<<<<<< HEAD
 	if df and df.fieldtype == "Datetime":
 		data = "'%s' AND '%s'" % (
 			frappe.db.format_datetime(from_date),
@@ -1137,8 +1155,32 @@ def get_between_date_filter(value, df=None):
 		)
 	else:
 		data = "'%s' AND '%s'" % (frappe.db.format_date(from_date), frappe.db.format_date(to_date))
+=======
+	# If filter value is already datetime, do nothing.
+	if fieldtype == "Datetime":
+		cond = f"'{frappe.db.format_datetime(from_date)}' AND '{frappe.db.format_datetime(to_date)}'"
+	else:
+		cond = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
+>>>>>>> b228cb7687 (fix!: Correct between filtering (backport #22918) (#23036))
 
-	return data
+	return cond
+
+
+def _convert_type_for_between_filters(
+	value: DateTimeLikeObject, set_time: datetime.time
+) -> datetime.datetime:
+	if isinstance(value, str):
+		if " " in value.strip():
+			value = get_datetime(value)
+		else:
+			value = getdate(value)
+
+	if isinstance(value, datetime.datetime):
+		return value
+	elif isinstance(value, datetime.date):
+		return datetime.datetime.combine(value, set_time)
+
+	return value
 
 
 def get_additional_filter_field(additional_filters_config, f, value):

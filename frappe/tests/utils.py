@@ -14,10 +14,161 @@ class FrappeTestCase(unittest.TestCase):
 		frappe.db.commit()
 		return super().setUpClass()
 
+<<<<<<< HEAD
 	@classmethod
 	def tearDownClass(cls) -> None:
 		frappe.db.rollback()
 		return super().tearDownClass()
+=======
+	def assertSequenceSubset(self, larger: Sequence, smaller: Sequence, msg=None):
+		"""Assert that `expected` is a subset of `actual`."""
+		self.assertTrue(set(smaller).issubset(set(larger)), msg=msg)
+
+	# --- Frappe Framework specific assertions
+	def assertDocumentEqual(self, expected, actual):
+		"""Compare a (partial) expected document with actual Document."""
+
+		if isinstance(expected, BaseDocument):
+			expected = expected.as_dict()
+
+		for field, value in expected.items():
+			if isinstance(value, list):
+				actual_child_docs = actual.get(field)
+				self.assertEqual(len(value), len(actual_child_docs), msg=f"{field} length should be same")
+				for exp_child, actual_child in zip(value, actual_child_docs):
+					self.assertDocumentEqual(exp_child, actual_child)
+			else:
+				self._compare_field(value, actual.get(field), actual, field)
+
+	def _compare_field(self, expected, actual, doc: BaseDocument, field: str):
+		msg = f"{field} should be same."
+
+		if isinstance(expected, float):
+			precision = doc.precision(field)
+			self.assertAlmostEqual(
+				expected, actual, places=precision, msg=f"{field} should be same to {precision} digits"
+			)
+		elif isinstance(expected, (bool, int)):
+			self.assertEqual(expected, cint(actual), msg=msg)
+		elif isinstance(expected, datetime_like_types):
+			self.assertEqual(str(expected), str(actual), msg=msg)
+		else:
+			self.assertEqual(expected, actual, msg=msg)
+
+	def normalize_html(self, code: str) -> str:
+		"""Formats HTML consistently so simple string comparisons can work on them."""
+		from bs4 import BeautifulSoup
+
+		return BeautifulSoup(code, "html.parser").prettify(formatter=None)
+
+	def normalize_sql(self, query: str) -> str:
+		"""Formats SQL consistently so simple string comparisons can work on them."""
+		import sqlparse
+
+		return (
+			sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True),
+		)
+
+	def assertQueryEqual(self, first: str, second: str):
+		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
+
+	@contextmanager
+	def assertQueryCount(self, count):
+		queries = []
+
+		def _sql_with_count(*args, **kwargs):
+			ret = orig_sql(*args, **kwargs)
+			queries.append(frappe.db.last_query)
+			return ret
+
+		try:
+			orig_sql = frappe.db.sql
+			frappe.db.sql = _sql_with_count
+			yield
+			self.assertLessEqual(len(queries), count, msg="Queries executed: " + "\n\n".join(queries))
+		finally:
+			frappe.db.sql = orig_sql
+
+	@contextmanager
+	def assertRowsRead(self, count):
+		rows_read = 0
+
+		def _sql_with_count(*args, **kwargs):
+			nonlocal rows_read
+
+			ret = orig_sql(*args, **kwargs)
+			# count of last touched rows as per DB-API 2.0 https://peps.python.org/pep-0249/#rowcount
+			rows_read += cint(frappe.db._cursor.rowcount)
+			return ret
+
+		try:
+			orig_sql = frappe.db.sql
+			frappe.db.sql = _sql_with_count
+			yield
+			self.assertLessEqual(rows_read, count, msg="Queries read more rows than expected")
+		finally:
+			frappe.db.sql = orig_sql
+
+	@contextmanager
+	def set_user(self, user: str):
+		try:
+			old_user = frappe.session.user
+			frappe.set_user(user)
+			yield
+		finally:
+			frappe.set_user(old_user)
+
+	@contextmanager
+	def switch_site(self, site: str):
+		"""Switch connection to different site.
+		Note: Drops current site connection completely."""
+
+		try:
+			old_site = frappe.local.site
+			frappe.init(site, force=True)
+			frappe.connect()
+			yield
+		finally:
+			frappe.init(old_site, force=True)
+			frappe.connect()
+
+	@contextmanager
+	def freeze_time(self, time_to_freeze, *args, **kwargs):
+		from freezegun import freeze_time
+
+		# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
+		timezone = pytz.timezone(get_system_timezone())
+		fake_time_with_tz = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
+
+		with freeze_time(fake_time_with_tz, *args, **kwargs):
+			yield
+
+
+def _commit_watcher():
+	import traceback
+
+	print("Warning:, transaction committed during tests.")
+	traceback.print_stack(limit=5)
+
+
+def _rollback_db():
+	frappe.local.before_commit = []
+	frappe.local.rollback_observers = []
+	frappe.db.value_cache = {}
+	frappe.db.rollback()
+
+
+def _restore_thread_locals(flags):
+	frappe.local.flags = flags
+	frappe.local.error_log = []
+	frappe.local.message_log = []
+	frappe.local.debug_log = []
+	frappe.local.realtime_log = []
+	frappe.local.conf = frappe._dict(frappe.get_site_config())
+	frappe.local.cache = {}
+	frappe.local.lang = "en"
+	frappe.local.preload_assets = {"style": [], "script": []}
+>>>>>>> b228cb7687 (fix!: Correct between filtering (backport #22918) (#23036))
 
 
 @contextmanager
