@@ -730,7 +730,7 @@ frappe.provide("frappe.views");
 			let fields = [];
 			const render_fields = [...cur_list.board.fields]
 			if (card.column === 'Request a callback'){
-				render_fields.push(...['callback_date', 'callback_time'])
+				render_fields.push(...['customer','callback_date', 'callback_time'])
 			}
 			for (let field_name of render_fields) {
 				let field =
