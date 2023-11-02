@@ -136,10 +136,10 @@ def flush(from_test=False):
 	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 		return
 
-	for row in get_queue():
+	email_queue_batch = get_queue()
+	for row in email_queue_batch:
 		try:
-			frappe.enqueue(
-				method=send_mail,
+			send_mail(
 				email_queue_name=row.name,
 				now=from_test,
 				job_id=f"email_queue_sendmail_{row.name}",
@@ -147,7 +147,10 @@ def flush(from_test=False):
 				deduplicate=True,
 			)
 		except Exception:
+			frappe.db.rollback()
 			frappe.get_doc("Email Queue", row.name).log_error()
+		finally:
+			frappe.db.commit()
 
 
 def get_queue():
