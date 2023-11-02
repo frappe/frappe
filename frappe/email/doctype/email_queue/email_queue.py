@@ -58,7 +58,7 @@ class EmailQueue(Document):
 		return duplicate
 
 	@classmethod
-	def new(cls, doc_data, ignore_permissions=False):
+	def new(cls, doc_data, ignore_permissions=False) -> "EmailQueue":
 		data = doc_data.copy()
 		if not data.get("recipients"):
 			return
@@ -71,7 +71,7 @@ class EmailQueue(Document):
 		return doc
 
 	@classmethod
-	def find(cls, name):
+	def find(cls, name) -> "EmailQueue":
 		return frappe.get_doc(cls.DOCTYPE, name)
 
 	@classmethod
