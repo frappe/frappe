@@ -373,24 +373,27 @@ def sync_global_search():
 	:param flags:
 	:return:
 	"""
-	from collections import OrderedDict
 
 	while frappe.cache.llen("global_search_queue") > 0:
-		values_dict = OrderedDict()
+		values = get_batched_search_queue_values()
+		sync_values(values)
 
-		for item in frappe.cache.rpop("global_search_queue", 10_000):
-			item_json = item.decode("utf-8")
-			item_dict = json.loads(item_json)
-			key = (item_dict["doctype"], item_dict["name"])
+def get_batched_search_queue_values():
+	from collections import OrderedDict
 
-			if key in values_dict:
-				del values_dict[key]
+	values_dict = OrderedDict()
 
-			values_dict[key] = tuple(item_dict.values())
+	for item in frappe.cache.rpop("global_search_queue", 10_000):
+		item_json = item.decode("utf-8")
+		item_dict = json.loads(item_json)
+		key = (item_dict["doctype"], item_dict["name"])
 
+		if key in values_dict:
+			del values_dict[key]
 
-		sync_values(values_dict.values())
-
+		values_dict[key] = tuple(item_dict.values())			
+	
+	return values_dict.values()
 
 def sync_values(values):
 	from pypika.terms import Values
