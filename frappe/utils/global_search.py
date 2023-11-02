@@ -373,11 +373,42 @@ def sync_global_search():
 	:param flags:
 	:return:
 	"""
-	while frappe.cache.llen("global_search_queue") > 0:
-		# rpop to follow FIFO
-		# Last one should override all previous contents of same document
-		value = json.loads(frappe.cache.rpop("global_search_queue").decode("utf-8"))
-		sync_value(value)
+	from itertools import islice
+
+	def get_search_queue_items_generator():
+		while frappe.cache.llen("global_search_queue") > 0:
+			item_json = frappe.cache.rpop("global_search_queue").decode("utf-8")
+			item_values = json.loads(item_json).values()
+			yield tuple(item_values)
+
+	search_queue_items = get_search_queue_items_generator()
+
+	while values := tuple(islice(search_queue_items, 10_000)):
+		sync_values(values)
+
+
+def sync_values(values):
+	from pypika.terms import Values
+
+	GlobalSearch = frappe.qb.Table("__global_search")
+	conflict_fields = ["content", "published", "title", "route"]
+
+	query = (
+		frappe.qb.into(GlobalSearch).columns(["doctype", "name"] + conflict_fields).insert(*values)
+	)
+
+	if frappe.db.db_type == "postgres":
+		query.on_conflict(GlobalSearch.doctype, GlobalSearch.name)
+
+	for field in conflict_fields:
+		if frappe.db.db_type == "mariadb":
+			query.on_duplicate_key_update(GlobalSearch[field], Values(field))
+		elif frappe.db.db_type == "postgres":
+			query.do_update(GlobalSearch[field], Values(field))
+		else:
+			raise NotImplementedError
+
+	query.run()
 
 
 def sync_value_in_queue(value):
