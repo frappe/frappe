@@ -619,6 +619,14 @@ class TestDateUtils(FrappeTestCase):
 		self.assertEqual(duration_to_seconds("110min"), duration_to_seconds("110m"))  # BC: "m"
 		self.assertIsInstance(duration_to_seconds("110min"), int)
 
+	def test_duration_to_seconds_overflow(self):
+		self.assertEqual(duration_to_seconds("1653w 3d 1h 46min 39s"), 999999999)
+		# disallowed: 1,000,000,000+ from seconds to weeks
+		with self.assertRaises(ValueError) as context:
+			duration_to_seconds("1653w 3d 1h 46min 40s")
+		with self.assertRaises(ValueError) as context:
+			duration_to_seconds("1653w 3d 1h 46min 41s")
+
 	def test_get_timespan_date_range(self):
 
 		supported_timespans = [

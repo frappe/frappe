@@ -699,21 +699,25 @@ def seconds_to_duration(
 		if not duration_options or not duration_options.get(f"hide_{unit}"):
 			duration[unit] = int(remaining_seconds // data["factor"])
 			remaining_seconds %= data["factor"]
+		elif unit == "months" and remaining_seconds // data["factor"] >= 1:
+			raise ValueError("Hidden months cannot be converted into weeks.")
 	return duration
 
 
 def duration_to_seconds(duration: str) -> int:
 	"""
-	Converts formatted duration string to duration in seconds.
+	Converts formatted duration string to duration in system seconds.
 
 	Args:
 	        str: String with the duration broken down into all unit parts not hidden.
 	Returns:
-	        int: The duration in seconds.
+	        int: The duration in system seconds.
 	"""
 	validate_duration_format(duration)
 
 	total_seconds = 0
+	sum_seconds_to_weeks = 0
+	months_factor = DURATION_DATA["months"]["factor"]
 	for unit, data in DURATION_DATA.items():
 		if unit == "minutes":
 			# BC: Understand both "min" and "m", but not "mo".
@@ -723,8 +727,16 @@ def duration_to_seconds(duration: str) -> int:
 
 		match = re.search(pattern, duration)
 		if match:
-			matched_value = int(match.group(1))
-			total_seconds += matched_value * data["factor"]
+			seconds = int(match.group(1)) * data["factor"]
+			total_seconds += seconds
+
+			# Check: Seconds up to weeks should not accumulate to a system month
+			if data["factor"] < months_factor:
+				sum_seconds_to_weeks += seconds
+
+	if sum_seconds_to_weeks >= months_factor:
+		raise ValueError("Seconds to weeks overflow error.")
+
 	return total_seconds
 
 

@@ -1162,23 +1162,40 @@ Object.assign(frappe.utils, {
 			if (!duration_options?.[`hide_${unit}`]) {
 				total_duration[unit] = Math.floor(remaining_seconds / factor);
 				remaining_seconds %= factor;
+			} else if (unit === "months" && Math.floor(remaining_seconds / factor) >= 1) {
+				frappe.throw(__("Hidden months cannot be converted into weeks."));
 			}
 		}
 		return total_duration;
 	},
 
 	/**
-	 * Converts various time units to seconds.
+	 * Converts various time units to system seconds.
 	 *
 	 * @param {Object} units - The time units to convert.
-	 * @returns {number} - The total time in seconds.
+	 * @returns {number} - The total time in system seconds.
 	 */
 	duration_to_seconds: function (units = {}) {
-		let seconds = 0;
-		for (const [unit, { factor }] of Object.entries(this.duration_data)) {
-			seconds += (units[unit] || 0) * factor;
+		let total_seconds = 0;
+		let sum_seconds_to_weeks = 0;
+		const duration_data = this.duration_data;
+		const months_factor = duration_data["months"].factor;
+
+		for (const [unit, { factor }] of Object.entries(duration_data)) {
+			const seconds = (units[unit] || 0) * factor;
+			total_seconds += seconds;
+
+			// Check: Seconds up to weeks should not accumulate to a system month
+			if (factor < months_factor) {
+				sum_seconds_to_weeks += seconds;
+			}
 		}
-		return seconds;
+
+		if (sum_seconds_to_weeks >= months_factor) {
+			throw new Error("Seconds to weeks overflow error.");
+		}
+
+		return total_seconds;
 	},
 
 	/**
