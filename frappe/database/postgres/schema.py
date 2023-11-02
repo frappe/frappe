@@ -139,6 +139,23 @@ class PostgresTable(DBTable):
 			if col.fieldname != "name":
 				# if index key exists
 				drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
+
+		for col in self.change_nullability:
+			default = ""
+			if col.default:
+				default = f"DEFAULT {frappe.db.escape(col.default)}"
+			query.append(
+				f"ALTER COLUMN \"{col.fieldname}\" {'DROP' if col.not_nullable else 'SET'} NOT NULL {default}"
+			)
+			if col.not_nullable:
+				try:
+					table = frappe.qb.DocType(self.doctype)
+					frappe.qb.update(table).set(col.fieldname, col.default).where(
+						table[col.fieldname].isnull()
+					).run()
+				except Exception:
+					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
+					raise
 		try:
 			if query:
 				final_alter_query = "ALTER TABLE `{}` {}".format(self.table_name, ", ".join(query))
