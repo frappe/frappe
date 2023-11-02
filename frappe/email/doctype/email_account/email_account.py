@@ -466,7 +466,9 @@ class EmailAccount(Document):
 			"email_account": self.name,
 			"server": self.smtp_server,
 			"port": cint(self.smtp_port),
-			"login": getattr(self, "login_id", None) or self.email_id,
+			"login": getattr(self, "login_id", None)
+			or getattr(self, "connected_user", None)
+			or self.email_id,
 			"password": self._password,
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
