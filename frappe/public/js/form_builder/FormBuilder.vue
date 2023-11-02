@@ -244,6 +244,10 @@ onMounted(() => store.fetch());
 								margin-bottom: 5px;
 							}
 						}
+
+						.add-new-field-btn {
+							display: none;
+						}
 					}
 				}
 			}

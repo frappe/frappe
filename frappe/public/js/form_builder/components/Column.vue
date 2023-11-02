@@ -176,6 +176,9 @@ function move_columns_to_section() {
 		>
 			<AddFieldButton :column="column" />
 		</div>
+		<div v-if="column.fields.length" class="add-new-field-btn">
+			<AddFieldButton :field="column.fields[column.fields.length - 1]" :column="column" />
+		</div>
 	</div>
 </template>
 
@@ -207,7 +210,7 @@ function move_columns_to_section() {
 			display: flex;
 		}
 
-		.column-container {
+		.column-container:empty {
 			height: 80%;
 		}
 	}
@@ -263,12 +266,12 @@ function move_columns_to_section() {
 	}
 
 	.column-container {
-		flex: 1;
 		min-height: 2rem;
 		border-radius: var(--border-radius);
 		z-index: 1;
 
 		&:empty {
+			flex: 1;
 			& + .empty-column {
 				display: flex;
 				justify-content: center;
@@ -294,6 +297,18 @@ function move_columns_to_section() {
 
 		& + .empty-column {
 			display: none;
+		}
+	}
+
+	.add-new-field-btn {
+		padding: 10px 6px 5px;
+
+		button {
+			background-color: var(--white);
+
+			&:hover {
+				background-color: var(--btn-default-hover-bg);
+			}
 		}
 	}
 }

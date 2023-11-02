@@ -111,7 +111,13 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 			</template>
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
-					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
+					<AddFieldButton
+						v-if="column.fields.indexOf(field) != column.fields.length - 1"
+						ref="add_field_ref"
+						:field="field"
+						:column="column"
+						:tooltip="__('Add field below')"
+					>
 						<div v-html="frappe.utils.icon('add', 'sm')" />
 					</AddFieldButton>
 					<button
