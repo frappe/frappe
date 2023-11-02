@@ -2413,7 +2413,7 @@ hand-left,手向左
 If you are updating/overwriting already created records.,如果您正在更新/覆蓋已經創建的記錄。
 Is Global,是全球性的
 The document could not be correctly assigned,無法正確分配文檔
-"Invalid ""depends_on"" expression",“depends_on”表達式無效
+"Invalid ""display_if"" expression",“display_if”表達式無效
 Group Name,團隊名字
 Select Print Format to Edit,選擇編輯的列印格式
 Shipping,航運
@@ -2536,7 +2536,7 @@ Apply,應用
 Module Def,模組定義
 Data Migration Plan,數據遷移計劃
 Pages in Desk (place holders),在台頁面（佔位符）
-Collapsible Depends On,可折疊取決於
+Collapsible If,可折疊取決於
 Print Style Name,打印樣式名稱
 By,通過
 Allow page break inside tables,允許在表格分頁符
@@ -2746,7 +2746,7 @@ Blog Intro,部落格介紹
 Result,成績
 Allow Login using User Name,允許使用用戶名登錄
 Enable Report,啟用報告
-Display Depends On,顯示的內容取決於
+Display If,顯示的內容取決於
 API Endpoint,API端點
 Insert Code,插入源碼
 Current Mapping Type,當前映射類型
