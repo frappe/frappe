@@ -99,7 +99,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: in_list([\"Monthly\", \"Quarterly\", \"Half-yearly\", \"Yearly\"], doc.frequency) && !doc.repeat_on_last_day\n",
+   "display_if": "eval: in_list([\"Monthly\", \"Quarterly\", \"Half-yearly\", \"Yearly\"], doc.frequency) && !doc.repeat_on_last_day\n",
    "fieldname": "repeat_on_day",
    "fieldtype": "Int",
    "label": "Repeat on Day"
@@ -126,26 +126,26 @@
    "label": "Notify by Email"
   },
   {
-   "depends_on": "notify_by_email",
+   "display_if": "notify_by_email",
    "fieldname": "recipients",
    "fieldtype": "Small Text",
    "label": "Recipients"
   },
   {
-   "depends_on": "eval: doc.notify_by_email && doc.reference_doctype && doc.reference_document",
+   "display_if": "eval: doc.notify_by_email && doc.reference_doctype && doc.reference_document",
    "fieldname": "get_contacts",
    "fieldtype": "Button",
    "label": "Get Contacts"
   },
   {
-   "depends_on": "eval: doc.notify_by_email",
+   "display_if": "eval: doc.notify_by_email",
    "fieldname": "template",
    "fieldtype": "Link",
    "label": "Template",
    "options": "Email Template"
   },
   {
-   "depends_on": "eval: doc.notify_by_email",
+   "display_if": "eval: doc.notify_by_email",
    "description": "To add dynamic subject, use jinja tags like\n\n<div><pre><code>New {{ doc.doctype }} #{{ doc.name }}</code></pre></div>",
    "fieldname": "subject",
    "fieldtype": "Data",
@@ -153,19 +153,19 @@
   },
   {
    "default": "Please find attached {{ doc.doctype }} #{{ doc.name }}",
-   "depends_on": "eval: doc.notify_by_email",
+   "display_if": "eval: doc.notify_by_email",
    "fieldname": "message",
    "fieldtype": "Text",
    "label": "Message"
   },
   {
-   "depends_on": "eval: doc.notify_by_email && doc.reference_doctype && doc.reference_document",
+   "display_if": "eval: doc.notify_by_email && doc.reference_doctype && doc.reference_document",
    "fieldname": "preview_message",
    "fieldtype": "Button",
    "label": "Preview Message"
   },
   {
-   "depends_on": "notify_by_email",
+   "display_if": "notify_by_email",
    "fieldname": "print_format",
    "fieldtype": "Link",
    "label": "Print Format",
@@ -186,13 +186,13 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.frequency === 'Monthly'",
+   "display_if": "eval:doc.frequency === 'Monthly'",
    "fieldname": "repeat_on_last_day",
    "fieldtype": "Check",
    "label": "Repeat on Last Day of the Month"
   },
   {
-   "depends_on": "eval:doc.frequency==='Weekly';",
+   "display_if": "eval:doc.frequency==='Weekly';",
    "fieldname": "repeat_on_days",
    "fieldtype": "Table",
    "label": "Repeat on Days",
@@ -205,7 +205,7 @@
    "label": "Submit on Creation"
   },
   {
-   "depends_on": "eval:doc.frequency==='Weekly';",
+   "display_if": "eval:doc.frequency==='Weekly';",
    "fieldname": "section_break_16",
    "fieldtype": "Section Break"
   }

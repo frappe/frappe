@@ -105,19 +105,19 @@
    "read_only": 1
   },
   {
-   "depends_on": "report_name",
+   "display_if": "report_name",
    "fieldname": "show_report",
    "fieldtype": "Button",
    "label": "Show Report"
   },
   {
-   "depends_on": "reference_document",
+   "display_if": "reference_document",
    "fieldname": "show_document",
    "fieldtype": "Button",
    "label": "Show Document"
   },
   {
-   "depends_on": "eval: doc.filters != null",
+   "display_if": "eval: doc.filters != null",
    "fieldname": "filters",
    "fieldtype": "Code",
    "label": "Filters",

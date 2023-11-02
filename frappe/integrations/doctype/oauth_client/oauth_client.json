@@ -89,7 +89,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "1",
+   "collapsible_if": "1",
    "fieldname": "sb_advanced",
    "fieldtype": "Section Break",
    "label": "Advanced Settings"

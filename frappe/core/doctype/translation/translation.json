@@ -53,7 +53,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "doc.contributed",
+   "display_if": "doc.contributed",
    "fieldname": "contribution_status",
    "fieldtype": "Select",
    "label": "Contribution Status",

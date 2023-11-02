@@ -35,7 +35,7 @@
   {
    "bold": 1,
    "default": "0",
-   "depends_on": "public",
+   "display_if": "public",
    "fieldname": "notify_on_login",
    "fieldtype": "Check",
    "label": "Notify users with a popup when they log in",
@@ -44,7 +44,7 @@
   {
    "bold": 1,
    "default": "0",
-   "depends_on": "notify_on_login",
+   "display_if": "notify_on_login",
    "description": "If enabled, users will be notified every time they login. If not enabled, users will only be notified once.",
    "fieldname": "notify_on_every_login",
    "fieldtype": "Check",
@@ -52,7 +52,7 @@
    "permlevel": 1
   },
   {
-   "depends_on": "eval:doc.notify_on_login && doc.public",
+   "display_if": "eval:doc.notify_on_login && doc.public",
    "fieldname": "expire_notification_on",
    "fieldtype": "Date",
    "label": "Expire Notification On",
@@ -69,7 +69,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "notify_on_login",
+   "display_if": "notify_on_login",
    "fieldname": "seen_by_section",
    "fieldtype": "Section Break",
    "label": "Seen By",

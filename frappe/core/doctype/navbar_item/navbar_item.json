@@ -18,7 +18,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Item Label",
-   "mandatory_depends_on": "eval:doc.item_type == 'Route' || doc.item_type == 'Action'",
+   "mandatory_if": "eval:doc.item_type == 'Route' || doc.item_type == 'Action'",
    "show_days": 1,
    "show_seconds": 1
   },
@@ -29,7 +29,7 @@
    "in_list_view": 1,
    "label": "Item Type",
    "options": "Route\nAction\nSeparator",
-   "read_only_depends_on": "eval:doc.is_standard",
+   "readonly_if": "eval:doc.is_standard",
    "show_days": 1,
    "show_seconds": 1
   },
@@ -53,23 +53,23 @@
   },
   {
    "columns": 4,
-   "depends_on": "eval:doc.item_type == 'Route'",
+   "display_if": "eval:doc.item_type == 'Route'",
    "fieldname": "route",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Route",
-   "mandatory_depends_on": "eval:doc.item_type == 'Route'",
-   "read_only_depends_on": "eval:doc.is_standard",
+   "mandatory_if": "eval:doc.item_type == 'Route'",
+   "readonly_if": "eval:doc.is_standard",
    "show_days": 1,
    "show_seconds": 1
   },
   {
-   "depends_on": "eval:doc.item_type == 'Action'",
+   "display_if": "eval:doc.item_type == 'Action'",
    "fieldname": "action",
    "fieldtype": "Data",
    "label": "Action",
-   "mandatory_depends_on": "eval:doc.item_type == 'Action'",
-   "read_only_depends_on": "eval:doc.is_standard",
+   "mandatory_if": "eval:doc.item_type == 'Action'",
+   "readonly_if": "eval:doc.is_standard",
    "show_days": 1,
    "show_seconds": 1
   }

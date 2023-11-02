@@ -27,7 +27,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Client ID",
-   "mandatory_depends_on": "google_drive_picker_enabled"
+   "mandatory_if": "google_drive_picker_enabled"
   },
   {
    "fieldname": "client_secret",
@@ -40,27 +40,27 @@
    "fieldname": "api_key",
    "fieldtype": "Data",
    "label": "API Key",
-   "mandatory_depends_on": "google_drive_picker_enabled"
+   "mandatory_if": "google_drive_picker_enabled"
   },
   {
-   "depends_on": "enable",
+   "display_if": "enable",
    "fieldname": "sb_00",
    "fieldtype": "Section Break",
    "label": "OAuth Client ID"
   },
   {
-   "depends_on": "enable",
+   "display_if": "enable",
    "fieldname": "sb_01",
    "fieldtype": "Section Break",
    "label": "API Key"
   },
   {
-   "depends_on": "google_drive_picker_enabled",
+   "display_if": "google_drive_picker_enabled",
    "description": "The project number obtained from Google Cloud Console under <a href=\"https://console.cloud.google.com/iam-admin/settings\">\n\"IAM &amp; Admin\" &gt; \"Settings\"\n</a>",
    "fieldname": "app_id",
    "fieldtype": "Data",
    "label": "App ID",
-   "mandatory_depends_on": "google_drive_picker_enabled"
+   "mandatory_if": "google_drive_picker_enabled"
   },
   {
    "fieldname": "section_break_7",

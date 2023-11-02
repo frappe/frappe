@@ -135,12 +135,12 @@ class TestDocType(FrappeTestCase):
 		self.assertRaises(frappe.ValidationError, doc.save)
 
 	def test_depends_on_fields(self):
-		doc = new_doctype("Test Depends On", depends_on="eval:doc.__islocal == 0")
+		doc = new_doctype("Test Depends On", display_if="eval:doc.__islocal == 0")
 		doc.insert()
 
-		# check if the assignment operation is allowed in depends_on
+		# check if the assignment operation is allowed in display_if
 		field = doc.fields[0]
-		field.depends_on = "eval:doc.__islocal = 0"
+		field.display_if = "eval:doc.__islocal = 0"
 		self.assertRaises(frappe.ValidationError, doc.save)
 
 	def test_all_depends_on_fields_conditions(self):
@@ -149,17 +149,17 @@ class TestDocType(FrappeTestCase):
 		docfields = frappe.get_all(
 			"DocField",
 			or_filters={
-				"ifnull(depends_on, '')": ("!=", ""),
-				"ifnull(collapsible_depends_on, '')": ("!=", ""),
-				"ifnull(mandatory_depends_on, '')": ("!=", ""),
-				"ifnull(read_only_depends_on, '')": ("!=", ""),
+				"ifnull(display_if, '')": ("!=", ""),
+				"ifnull(collapsible_if, '')": ("!=", ""),
+				"ifnull(mandatory_if, '')": ("!=", ""),
+				"ifnull(readonly_if, '')": ("!=", ""),
 			},
 			fields=[
 				"parent",
-				"depends_on",
-				"collapsible_depends_on",
-				"mandatory_depends_on",
-				"read_only_depends_on",
+				"display_if",
+				"collapsible_if",
+				"mandatory_if",
+				"readonly_if",
 				"fieldname",
 				"fieldtype",
 			],
@@ -167,13 +167,13 @@ class TestDocType(FrappeTestCase):
 
 		pattern = r'[\w\.:_]+\s*={1}\s*[\w\.@\'"]+'
 		for field in docfields:
-			for depends_on in [
-				"depends_on",
-				"collapsible_depends_on",
-				"mandatory_depends_on",
-				"read_only_depends_on",
+			for display_if in [
+				"display_if",
+				"collapsible_if",
+				"mandatory_if",
+				"readonly_if",
 			]:
-				condition = field.get(depends_on)
+				condition = field.get(display_if)
 				if condition:
 					self.assertFalse(re.match(pattern, condition))
 
@@ -783,7 +783,7 @@ class TestDocType(FrappeTestCase):
 def new_doctype(
 	name: str | None = None,
 	unique: bool = False,
-	depends_on: str = "",
+	display_if: str = "",
 	fields: list[dict] | None = None,
 	custom: bool = True,
 	**kwargs,
@@ -803,7 +803,7 @@ def new_doctype(
 					"fieldname": "some_fieldname",
 					"fieldtype": "Data",
 					"unique": unique,
-					"depends_on": depends_on,
+					"display_if": display_if,
 				}
 			],
 			"permissions": [

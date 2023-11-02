@@ -51,7 +51,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.status == 'Error'",
+   "display_if": "eval:doc.status == 'Error'",
    "fieldname": "section_break_7",
    "fieldtype": "Section Break"
   },

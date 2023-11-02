@@ -244,8 +244,8 @@ frappe.ui.Filter = class {
 			this.filters_config[condition].valid_for_fieldtypes.includes(df.fieldtype)
 		) {
 			let args = {};
-			if (this.filters_config[condition].depends_on) {
-				const field_name = this.filters_config[condition].depends_on;
+			if (this.filters_config[condition].display_if) {
+				const field_name = this.filters_config[condition].display_if;
 				const filter_value = this.filter_list.get_filter_value(fieldname);
 				args[field_name] = filter_value;
 			}

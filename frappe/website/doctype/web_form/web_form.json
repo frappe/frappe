@@ -105,28 +105,28 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.anonymous",
+   "display_if": "eval:!doc.anonymous",
    "fieldname": "login_required",
    "fieldtype": "Check",
    "label": "Login Required"
   },
   {
    "default": "0",
-   "depends_on": "login_required",
+   "display_if": "login_required",
    "fieldname": "allow_edit",
    "fieldtype": "Check",
    "label": "Allow Editing After Submit"
   },
   {
    "default": "0",
-   "depends_on": "login_required",
+   "display_if": "login_required",
    "fieldname": "allow_multiple",
    "fieldtype": "Check",
    "label": "Allow Multiple Responses"
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.allow_multiple && doc.login_required",
+   "display_if": "eval: doc.allow_multiple && doc.login_required",
    "fieldname": "allow_delete",
    "fieldtype": "Check",
    "label": "Allow Delete"
@@ -138,7 +138,7 @@
    "label": "Allow Print"
   },
   {
-   "depends_on": "allow_print",
+   "display_if": "allow_print",
    "fieldname": "print_format",
    "fieldtype": "Link",
    "label": "Print Format",
@@ -146,14 +146,14 @@
   },
   {
    "default": "0",
-   "depends_on": "login_required",
+   "display_if": "login_required",
    "fieldname": "allow_comments",
    "fieldtype": "Check",
    "label": "Allow Comments"
   },
   {
    "default": "0",
-   "depends_on": "login_required",
+   "display_if": "login_required",
    "fieldname": "show_attachments",
    "fieldtype": "Check",
    "label": "Show Attachments"
@@ -233,19 +233,19 @@
   },
   {
    "default": "0",
-   "depends_on": "login_required",
+   "display_if": "login_required",
    "fieldname": "show_list",
    "fieldtype": "Check",
    "label": "Show List"
   },
   {
-   "depends_on": "eval: doc.login_required && doc.show_list",
+   "display_if": "eval: doc.login_required && doc.show_list",
    "fieldname": "list_title",
    "fieldtype": "Data",
    "label": "Title"
   },
   {
-   "depends_on": "eval: doc.login_required && doc.show_list",
+   "display_if": "eval: doc.login_required && doc.show_list",
    "fieldname": "list_columns",
    "fieldtype": "Table",
    "label": "List Columns",
@@ -301,16 +301,16 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "show_list",
-   "depends_on": "eval:!doc.anonymous",
+   "collapsible_if": "show_list",
+   "display_if": "eval:!doc.anonymous",
    "fieldname": "section_break_3",
    "fieldtype": "Section Break",
    "label": "List Settings"
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "show_sidebar",
-   "depends_on": "eval:!doc.anonymous",
+   "collapsible_if": "show_sidebar",
+   "display_if": "eval:!doc.anonymous",
    "fieldname": "section_break_4",
    "fieldtype": "Section Break",
    "label": "Sidebar Settings"
@@ -321,7 +321,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval: doc.success_title || doc.success_message || doc.success_url",
+   "collapsible_if": "eval: doc.success_title || doc.success_message || doc.success_url",
    "fieldname": "section_break_5",
    "fieldtype": "Section Break",
    "label": "After Submission"
@@ -332,7 +332,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval: doc.client_script || doc.custom_css",
+   "collapsible_if": "eval: doc.client_script || doc.custom_css",
    "fieldname": "section_break_6",
    "fieldtype": "Section Break",
    "label": "Scripting / Style"

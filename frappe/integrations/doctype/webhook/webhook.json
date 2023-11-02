@@ -113,7 +113,7 @@
    "label": "Webhook Data"
   },
   {
-   "depends_on": "eval: !doc.request_structure || doc.request_structure == \"Form URL-Encoded\"",
+   "display_if": "eval: !doc.request_structure || doc.request_structure == \"Form URL-Encoded\"",
    "fieldname": "webhook_data",
    "fieldtype": "Table",
    "label": "Data",
@@ -130,7 +130,7 @@
    "options": "\nForm URL-Encoded\nJSON"
   },
   {
-   "depends_on": "eval: doc.request_structure == \"JSON\"",
+   "display_if": "eval: doc.request_structure == \"JSON\"",
    "description": "To add dynamic values from the document, use jinja tags like\n\n<div>\n<pre><code>{ \"id\": \"{{ doc.name }}\" }</code>\n</pre>\n</div>",
    "fieldname": "webhook_json",
    "fieldtype": "Code",
@@ -149,7 +149,7 @@
    "label": "Enable Security"
   },
   {
-   "depends_on": "eval:doc.enable_security == 1",
+   "display_if": "eval:doc.enable_security == 1",
    "fieldname": "webhook_secret",
    "fieldtype": "Password",
    "label": "Webhook Secret"

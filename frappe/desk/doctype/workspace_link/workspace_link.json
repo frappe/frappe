@@ -37,20 +37,20 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.type == \"Card Break\"",
+   "display_if": "eval:doc.type == \"Card Break\"",
    "fieldname": "icon",
    "fieldtype": "Data",
    "label": "Icon"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.type == \"Card Break\"",
+   "display_if": "eval:doc.type == \"Card Break\"",
    "fieldname": "hidden",
    "fieldtype": "Check",
    "label": "Hidden"
   },
   {
-   "depends_on": "eval:doc.type == \"Link\"",
+   "display_if": "eval:doc.type == \"Link\"",
    "fieldname": "link_details_section",
    "fieldtype": "Section Break",
    "label": "Link Details"
@@ -60,18 +60,18 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Link Type",
-   "mandatory_depends_on": "eval:doc.type==\"Link\"",
+   "mandatory_if": "eval:doc.type==\"Link\"",
    "options": "DocType\nPage\nReport",
-   "read_only_depends_on": "eval:doc.type!=\"Link\""
+   "readonly_if": "eval:doc.type!=\"Link\""
   },
   {
    "fieldname": "link_to",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
    "label": "Link To",
-   "mandatory_depends_on": "eval:doc.type==\"Link\"",
+   "mandatory_if": "eval:doc.type==\"Link\"",
    "options": "link_type",
-   "read_only_depends_on": "eval:doc.type!=\"Link\""
+   "readonly_if": "eval:doc.type!=\"Link\""
   },
   {
    "fieldname": "column_break_7",
@@ -96,13 +96,13 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.link_type == \"Report\"",
+   "display_if": "eval:doc.link_type == \"Report\"",
    "fieldname": "is_query_report",
    "fieldtype": "Check",
    "label": "Is Query Report"
   },
   {
-   "depends_on": "eval:doc.type == \"Card Break\"",
+   "display_if": "eval:doc.type == \"Card Break\"",
    "fieldname": "link_count",
    "fieldtype": "Int",
    "hidden": 1,

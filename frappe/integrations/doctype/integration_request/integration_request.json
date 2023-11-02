@@ -111,7 +111,7 @@
    "label": "Response"
   },
   {
-   "depends_on": "eval:doc.reference_doctype",
+   "display_if": "eval:doc.reference_doctype",
    "fieldname": "reference_section",
    "fieldtype": "Section Break",
    "label": "Reference"

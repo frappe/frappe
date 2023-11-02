@@ -34,28 +34,28 @@
  ],
  "fields": [
   {
-   "depends_on": "eval: doc.type == 'Document Type'",
+   "display_if": "eval: doc.type == 'Document Type'",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Document Type",
-   "mandatory_depends_on": "eval: doc.type == 'Document Type'",
+   "mandatory_if": "eval: doc.type == 'Document Type'",
    "options": "DocType"
   },
   {
-   "depends_on": "eval: doc.type == 'Document Type'",
+   "display_if": "eval: doc.type == 'Document Type'",
    "fieldname": "function",
    "fieldtype": "Select",
    "label": "Function",
-   "mandatory_depends_on": "eval: doc.type == 'Document Type'",
+   "mandatory_if": "eval: doc.type == 'Document Type'",
    "options": "Count\nSum\nAverage\nMinimum\nMaximum"
   },
   {
-   "depends_on": "eval: doc.type === 'Document Type' && doc.function !== 'Count'",
+   "display_if": "eval: doc.type === 'Document Type' && doc.function !== 'Count'",
    "fieldname": "aggregate_function_based_on",
    "fieldtype": "Select",
    "label": "Aggregate Function Based On",
-   "mandatory_depends_on": "eval: doc.function !== 'Count'"
+   "mandatory_if": "eval: doc.function !== 'Count'"
   },
   {
    "fieldname": "filters_json",
@@ -99,7 +99,7 @@
   },
   {
    "default": "Daily",
-   "depends_on": "eval: doc.show_percentage_stats",
+   "display_if": "eval: doc.show_percentage_stats",
    "description": "Show percentage difference according to this time interval",
    "fieldname": "stats_time_interval",
    "fieldtype": "Select",
@@ -107,7 +107,7 @@
    "options": "Daily\nWeekly\nMonthly\nYearly"
   },
   {
-   "depends_on": "eval: doc.type == 'Document Type'",
+   "display_if": "eval: doc.type == 'Document Type'",
    "fieldname": "stats_section",
    "fieldtype": "Section Break",
    "label": "Stats"
@@ -117,14 +117,14 @@
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is Standard",
-   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+   "readonly_if": "eval: !frappe.boot.developer_mode"
   },
   {
-   "depends_on": "eval: doc.is_standard",
+   "display_if": "eval: doc.is_standard",
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
-   "mandatory_depends_on": "eval: doc.is_standard",
+   "mandatory_if": "eval: doc.is_standard",
    "options": "Module Def"
   },
   {
@@ -149,29 +149,29 @@
    "options": "Document Type\nReport\nCustom"
   },
   {
-   "depends_on": "eval: doc.type == 'Report'",
+   "display_if": "eval: doc.type == 'Report'",
    "fieldname": "report_name",
    "fieldtype": "Link",
    "label": "Report Name",
-   "mandatory_depends_on": "eval: doc.type == 'Report'",
+   "mandatory_if": "eval: doc.type == 'Report'",
    "options": "Report"
   },
   {
-   "depends_on": "eval: doc.type == 'Report'",
+   "display_if": "eval: doc.type == 'Report'",
    "fieldname": "report_field",
    "fieldtype": "Select",
    "label": "Field",
-   "mandatory_depends_on": "eval: doc.type == 'Report'"
+   "mandatory_if": "eval: doc.type == 'Report'"
   },
   {
-   "depends_on": "eval: doc.type == 'Custom'",
+   "display_if": "eval: doc.type == 'Custom'",
    "fieldname": "method",
    "fieldtype": "Data",
    "label": "Method",
-   "mandatory_depends_on": "eval: doc.type == 'Custom'"
+   "mandatory_if": "eval: doc.type == 'Custom'"
   },
   {
-   "depends_on": "eval: doc.type == 'Custom'",
+   "display_if": "eval: doc.type == 'Custom'",
    "fieldname": "custom_configuration_section",
    "fieldtype": "Section Break",
    "label": "Custom Configuration"
@@ -183,15 +183,15 @@
    "options": "JSON"
   },
   {
-   "depends_on": "eval: doc.type == 'Report'",
+   "display_if": "eval: doc.type == 'Report'",
    "fieldname": "report_function",
    "fieldtype": "Select",
    "label": "Function",
-   "mandatory_depends_on": "eval: doc.type == 'Report'",
+   "mandatory_if": "eval: doc.type == 'Report'",
    "options": "Sum\nAverage\nMinimum\nMaximum"
   },
   {
-   "depends_on": "eval: doc.type === 'Document Type'",
+   "display_if": "eval: doc.type === 'Document Type'",
    "description": "The document type selected is a child table, so the parent document type is required.",
    "fieldname": "parent_document_type",
    "fieldtype": "Link",

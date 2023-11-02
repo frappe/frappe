@@ -43,7 +43,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.is_folder",
+   "display_if": "eval:!doc.is_folder",
    "fieldname": "is_private",
    "fieldtype": "Check",
    "label": "Is Private"
@@ -90,7 +90,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:!doc.is_folder",
+   "display_if": "eval:!doc.is_folder",
    "fieldname": "file_url",
    "fieldtype": "Code",
    "label": "File URL",
@@ -118,7 +118,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:!doc.is_folder",
+   "display_if": "eval:!doc.is_folder",
    "fieldname": "section_break_8",
    "fieldtype": "Section Break"
   },

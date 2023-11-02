@@ -444,8 +444,8 @@ frappe.ui.form.Layout = class Layout {
 			if (df && df.collapsible) {
 				let collapse = true;
 
-				if (df.collapsible_depends_on) {
-					collapse = !this.evaluate_depends_on_value(df.collapsible_depends_on);
+				if (df.collapsible_if) {
+					collapse = !this.evaluate_depends_on_value(df.collapsible_if);
 				}
 
 				if (collapse && section.has_missing_mandatory()) {
@@ -659,7 +659,7 @@ frappe.ui.form.Layout = class Layout {
 
 	refresh_dependency() {
 		/**
-			Resolve "depends_on" and show / hide accordingly
+			Resolve "display_if" and show / hide accordingly
 			build dependants' dictionary
 		*/
 
@@ -669,7 +669,7 @@ frappe.ui.form.Layout = class Layout {
 
 		for (let fkey in fields) {
 			let f = fields[fkey];
-			if (f.df.depends_on || f.df.mandatory_depends_on || f.df.read_only_depends_on) {
+			if (f.df.display_if || f.df.mandatory_if || f.df.readonly_if) {
 				has_dep = true;
 				break;
 			}
@@ -681,10 +681,10 @@ frappe.ui.form.Layout = class Layout {
 		for (let i = fields.length - 1; i >= 0; i--) {
 			let f = fields[i];
 			f.guardian_has_value = true;
-			if (f.df.depends_on) {
+			if (f.df.display_if) {
 				// evaluate guardian
 
-				f.guardian_has_value = this.evaluate_depends_on_value(f.df.depends_on);
+				f.guardian_has_value = this.evaluate_depends_on_value(f.df.display_if);
 
 				// show / hide
 				if (f.guardian_has_value) {
@@ -700,16 +700,12 @@ frappe.ui.form.Layout = class Layout {
 				}
 			}
 
-			if (f.df.mandatory_depends_on) {
-				this.set_dependant_property(f.df.mandatory_depends_on, f.df.fieldname, "reqd");
+			if (f.df.mandatory_if) {
+				this.set_dependant_property(f.df.mandatory_if, f.df.fieldname, "reqd");
 			}
 
-			if (f.df.read_only_depends_on) {
-				this.set_dependant_property(
-					f.df.read_only_depends_on,
-					f.df.fieldname,
-					"read_only"
-				);
+			if (f.df.readonly_if) {
+				this.set_dependant_property(f.df.readonly_if, f.df.fieldname, "read_only");
 			}
 		}
 
@@ -771,7 +767,7 @@ frappe.ui.form.Layout = class Layout {
 					out = true;
 				}
 			} catch (e) {
-				frappe.throw(__('Invalid "depends_on" expression'));
+				frappe.throw(__('Invalid "display_if" expression'));
 			}
 		} else if (expression.substr(0, 3) == "fn:" && this.frm) {
 			out = this.frm.script_manager.trigger(

@@ -46,28 +46,28 @@
   },
   {
    "default": "1",
-   "depends_on": "enable_email_notifications",
+   "display_if": "enable_email_notifications",
    "fieldname": "enable_email_mention",
    "fieldtype": "Check",
    "label": "Mentions"
   },
   {
    "default": "1",
-   "depends_on": "enable_email_notifications",
+   "display_if": "enable_email_notifications",
    "fieldname": "enable_email_assignment",
    "fieldtype": "Check",
    "label": "Assignments"
   },
   {
    "default": "1",
-   "depends_on": "enable_email_notifications",
+   "display_if": "enable_email_notifications",
    "fieldname": "enable_email_energy_point",
    "fieldtype": "Check",
    "label": "Energy Points"
   },
   {
    "default": "1",
-   "depends_on": "enable_email_notifications",
+   "display_if": "enable_email_notifications",
    "fieldname": "enable_email_share",
    "fieldtype": "Check",
    "label": "Document Share"
@@ -101,7 +101,7 @@
   },
   {
    "default": "1",
-   "depends_on": "enable_email_notifications",
+   "display_if": "enable_email_notifications",
    "fieldname": "enable_email_event_reminders",
    "fieldtype": "Check",
    "label": "Event Reminders"

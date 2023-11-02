@@ -62,14 +62,14 @@
    "set_only_once": 1
   },
   {
-   "depends_on": "eval:doc.chart_type === 'Custom'",
+   "display_if": "eval:doc.chart_type === 'Custom'",
    "fieldname": "source",
    "fieldtype": "Link",
    "label": "Chart Source",
    "options": "Dashboard Chart Source"
   },
   {
-   "depends_on": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
+   "display_if": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
    "fieldname": "document_type",
    "fieldtype": "Link",
    "label": "Document Type",
@@ -77,13 +77,13 @@
    "set_only_once": 1
   },
   {
-   "depends_on": "eval: doc.timeseries && ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
+   "display_if": "eval: doc.timeseries && ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
    "fieldname": "based_on",
    "fieldtype": "Select",
    "label": "Time Series Based On"
   },
   {
-   "depends_on": "eval: ['Sum', 'Average'].includes(doc.chart_type)\n",
+   "display_if": "eval: ['Sum', 'Average'].includes(doc.chart_type)\n",
    "fieldname": "value_based_on",
    "fieldtype": "Select",
    "label": "Value Based On"
@@ -93,14 +93,14 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.timeseries && doc.type !== 'Heatmap'",
+   "display_if": "eval: doc.timeseries && doc.type !== 'Heatmap'",
    "fieldname": "timespan",
    "fieldtype": "Select",
    "label": "Timespan",
    "options": "Last Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
   },
   {
-   "depends_on": "eval: doc.timeseries && doc.type !== 'Heatmap'",
+   "display_if": "eval: doc.timeseries && doc.type !== 'Heatmap'",
    "fieldname": "time_interval",
    "fieldtype": "Select",
    "label": "Time Interval",
@@ -108,7 +108,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: !['Group By', 'Report'].includes(doc.chart_type)\n",
+   "display_if": "eval: !['Group By', 'Report'].includes(doc.chart_type)\n",
    "fieldname": "timeseries",
    "fieldtype": "Check",
    "label": "Time Series"
@@ -142,7 +142,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.chart_type !== 'Report' && doc.type !== 'Heatmap'",
+   "display_if": "eval: doc.chart_type !== 'Report' && doc.type !== 'Heatmap'",
    "fieldname": "color",
    "fieldtype": "Color",
    "label": "Color"
@@ -158,65 +158,65 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:doc.chart_type === 'Group By'",
+   "display_if": "eval:doc.chart_type === 'Group By'",
    "fieldname": "group_by_based_on",
    "fieldtype": "Select",
    "label": "Group By Based On"
   },
   {
    "default": "Count",
-   "depends_on": "eval:doc.chart_type === 'Group By'",
+   "display_if": "eval:doc.chart_type === 'Group By'",
    "fieldname": "group_by_type",
    "fieldtype": "Select",
    "label": "Group By Type",
    "options": "Count\nSum\nAverage"
   },
   {
-   "depends_on": "eval: ['Sum', 'Average'].includes(doc.group_by_type)",
+   "display_if": "eval: ['Sum', 'Average'].includes(doc.group_by_type)",
    "fieldname": "aggregate_function_based_on",
    "fieldtype": "Select",
    "label": "Aggregate Function Based On"
   },
   {
-   "depends_on": "eval:doc.chart_type === 'Group By'",
+   "display_if": "eval:doc.chart_type === 'Group By'",
    "fieldname": "number_of_groups",
    "fieldtype": "Int",
    "label": "Number of Groups"
   },
   {
-   "depends_on": "eval:doc.timespan === 'Select Date Range'",
+   "display_if": "eval:doc.timespan === 'Select Date Range'",
    "fieldname": "from_date",
    "fieldtype": "Date",
    "label": "From Date"
   },
   {
-   "depends_on": "eval:doc.timespan === 'Select Date Range'",
+   "display_if": "eval:doc.timespan === 'Select Date Range'",
    "fieldname": "to_date",
    "fieldtype": "Date",
    "label": "To Date"
   },
   {
-   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
+   "display_if": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
    "fieldname": "x_field",
    "fieldtype": "Select",
    "label": "X Field",
-   "mandatory_depends_on": "eval: doc.report_name && !doc.use_report_chart"
+   "mandatory_if": "eval: doc.report_name && !doc.use_report_chart"
   },
   {
-   "depends_on": "eval:doc.chart_type === 'Report'",
+   "display_if": "eval:doc.chart_type === 'Report'",
    "fieldname": "report_name",
    "fieldtype": "Link",
    "label": "Report Name",
-   "mandatory_depends_on": "eval:doc.chart_type === 'Report'",
+   "mandatory_if": "eval:doc.chart_type === 'Report'",
    "options": "Report",
    "set_only_once": 1
   },
   {
-   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
+   "display_if": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
    "fieldname": "y_axis",
    "fieldtype": "Table",
    "label": "Y Axis",
-   "mandatory_depends_on": "eval:doc.report_name && !doc.use_report_chart",
+   "mandatory_if": "eval:doc.report_name && !doc.use_report_chart",
    "options": "Dashboard Chart Field"
   },
   {
@@ -233,7 +233,7 @@
    "label": "Is Public"
   },
   {
-   "depends_on": "eval: doc.type == 'Heatmap'",
+   "display_if": "eval: doc.type == 'Heatmap'",
    "fieldname": "heatmap_year",
    "fieldtype": "Select",
    "label": "Year"
@@ -243,14 +243,14 @@
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is Standard",
-   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+   "readonly_if": "eval: !frappe.boot.developer_mode"
   },
   {
-   "depends_on": "eval: doc.is_standard",
+   "display_if": "eval: doc.is_standard",
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
-   "mandatory_depends_on": "eval: doc.is_standard",
+   "mandatory_if": "eval: doc.is_standard",
    "options": "Module Def"
   },
   {
@@ -266,13 +266,13 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.report_name",
+   "display_if": "eval: doc.report_name",
    "fieldname": "use_report_chart",
    "fieldtype": "Check",
    "label": "Use Report Chart"
   },
   {
-   "depends_on": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
+   "display_if": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
    "description": "The document type selected is a child table, so the parent document type is required.",
    "fieldname": "parent_document_type",
    "fieldtype": "Link",

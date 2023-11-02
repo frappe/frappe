@@ -106,11 +106,11 @@
   },
   {
    "default": "0",
-   "depends_on": "enable_print_server",
+   "display_if": "enable_print_server",
    "fieldname": "enable_print_server",
    "fieldtype": "Check",
    "label": "Enable Print Server",
-   "mandatory_depends_on": "enable_print_server"
+   "mandatory_if": "enable_print_server"
   },
   {
    "fieldname": "raw_printing_section",
@@ -160,13 +160,13 @@
    "label": "Font Size"
   },
   {
-   "depends_on": "eval:doc.pdf_page_size == \"Custom\"",
+   "display_if": "eval:doc.pdf_page_size == \"Custom\"",
    "fieldname": "pdf_page_height",
    "fieldtype": "Float",
    "label": "PDF Page Height (in mm)"
   },
   {
-   "depends_on": "eval:doc.pdf_page_size == \"Custom\"",
+   "display_if": "eval:doc.pdf_page_size == \"Custom\"",
    "fieldname": "pdf_page_width",
    "fieldtype": "Float",
    "label": "PDF Page Width (in mm)"

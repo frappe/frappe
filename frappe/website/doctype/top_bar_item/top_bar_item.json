@@ -58,7 +58,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.url",
+   "display_if": "eval:doc.url",
    "fieldname": "open_in_new_tab",
    "fieldtype": "Check",
    "label": "Open URL in a New Tab"

@@ -304,18 +304,18 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 						};
 					},
 					options: "Dashboard Chart",
-					depends_on: 'eval: doc.new_or_existing == "Existing Chart"',
+					display_if: 'eval: doc.new_or_existing == "Existing Chart"',
 				},
 				{
 					fieldname: "sb_2",
 					fieldtype: "Section Break",
-					depends_on: 'eval: doc.new_or_existing == "New Chart"',
+					display_if: 'eval: doc.new_or_existing == "New Chart"',
 				},
 				{
 					label: "Chart Label",
 					fieldname: "label",
 					fieldtype: "Data",
-					mandatory_depends_on: 'eval: doc.new_or_existing == "New Chart"',
+					mandatory_if: 'eval: doc.new_or_existing == "New Chart"',
 				},
 				{
 					fieldname: "cb_1",
@@ -326,13 +326,13 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					fieldname: "chart_type",
 					fieldtype: "Select",
 					options: ["Time Series", "Group By"],
-					mandatory_depends_on: 'eval: doc.new_or_existing == "New Chart"',
+					mandatory_if: 'eval: doc.new_or_existing == "New Chart"',
 				},
 				{
 					fieldname: "sb_2",
 					fieldtype: "Section Break",
 					label: "Chart Config",
-					depends_on:
+					display_if:
 						'eval: doc.chart_type == "Time Series" && doc.new_or_existing == "New Chart"',
 				},
 				{
@@ -346,7 +346,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					label: "Timespan",
 					fieldtype: "Select",
 					fieldname: "timespan",
-					depends_on: 'eval: doc.chart_type == "Time Series"',
+					display_if: 'eval: doc.chart_type == "Time Series"',
 					options: ["Last Year", "Last Quarter", "Last Month", "Last Week"],
 					default: "Last Year",
 				},
@@ -359,20 +359,20 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					fieldtype: "Select",
 					fieldname: "based_on",
 					options: fields.value_fields,
-					depends_on: 'eval: doc.chart_function=="Sum"',
+					display_if: 'eval: doc.chart_function=="Sum"',
 				},
 				{
 					label: "Time Series Based On",
 					fieldtype: "Select",
 					fieldname: "based_on",
 					options: fields.date_fields,
-					mandatory_depends_on: 'eval: doc.chart_type == "Time Series"',
+					mandatory_if: 'eval: doc.chart_type == "Time Series"',
 				},
 				{
 					label: "Time Interval",
 					fieldname: "time_interval",
 					fieldtype: "Select",
-					depends_on: 'eval: doc.chart_type == "Time Series"',
+					display_if: 'eval: doc.chart_type == "Time Series"',
 					options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
 					default: "Monthly",
 				},
@@ -380,7 +380,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					fieldname: "sb_2",
 					fieldtype: "Section Break",
 					label: "Chart Config",
-					depends_on:
+					display_if:
 						'eval: doc.chart_type == "Group By" && doc.new_or_existing == "New Chart"',
 				},
 				{
@@ -395,7 +395,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					fieldtype: "Select",
 					fieldname: "aggregate_function_based_on",
 					options: fields.aggregate_function_fields,
-					depends_on: 'eval: ["Sum", "Average"].includes(doc.group_by_type)',
+					display_if: 'eval: ["Sum", "Average"].includes(doc.group_by_type)',
 				},
 				{
 					fieldname: "cb_2",
@@ -417,14 +417,14 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 				{
 					fieldname: "sb_3",
 					fieldtype: "Section Break",
-					depends_on: 'eval: doc.new_or_existing == "New Chart"',
+					display_if: 'eval: doc.new_or_existing == "New Chart"',
 				},
 				{
 					label: "Chart Type",
 					fieldname: "type",
 					fieldtype: "Select",
 					options: ["Line", "Bar", "Percentage", "Pie"],
-					depends_on: 'eval: doc.new_or_existing == "New Chart"',
+					display_if: 'eval: doc.new_or_existing == "New Chart"',
 				},
 				{
 					fieldname: "cb_1",
@@ -434,7 +434,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 					label: "Chart Color",
 					fieldname: "color",
 					fieldtype: "Color",
-					depends_on: 'eval: doc.new_or_existing == "New Chart"',
+					display_if: 'eval: doc.new_or_existing == "New Chart"',
 				},
 			],
 			primary_action_label: __("Add"),

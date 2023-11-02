@@ -22,7 +22,7 @@
  "fields": [
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:true;",
+   "collapsible_if": "eval:true;",
    "fieldname": "html_section",
    "fieldtype": "Section Break",
    "label": "HTML"
@@ -43,7 +43,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:true;",
+   "collapsible_if": "eval:true;",
    "fieldname": "javascript_section",
    "fieldtype": "Section Break",
    "label": "Javascript"
@@ -55,7 +55,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:true;",
+   "collapsible_if": "eval:true;",
    "fieldname": "css_section",
    "fieldtype": "Section Break",
    "label": "CSS"
@@ -84,7 +84,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.private || doc.__unsaved",
+   "display_if": "eval: doc.private || doc.__unsaved",
    "fieldname": "private",
    "fieldtype": "Check",
    "label": "Private",

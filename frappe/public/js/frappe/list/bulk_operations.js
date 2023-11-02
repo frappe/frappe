@@ -63,14 +63,14 @@ export default class BulkOperations {
 					fieldtype: "Float",
 					label: __("Page Height (in mm)"),
 					fieldname: "page_height",
-					depends_on: 'eval:doc.page_size == "Custom"',
+					display_if: 'eval:doc.page_size == "Custom"',
 					default: print_settings.pdf_page_height,
 				},
 				{
 					fieldtype: "Float",
 					label: __("Page Width (in mm)"),
 					fieldname: "page_width",
-					depends_on: 'eval:doc.page_size == "Custom"',
+					display_if: 'eval:doc.page_size == "Custom"',
 					default: print_settings.pdf_page_width,
 				},
 			],
@@ -325,7 +325,7 @@ export default class BulkOperations {
 			new_df.label = __("Value");
 			new_df.onchange = show_help_text;
 
-			delete new_df.depends_on;
+			delete new_df.display_if;
 			dialogObj.replace_field("value", new_df);
 			show_help_text();
 		}

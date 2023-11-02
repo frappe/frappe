@@ -157,7 +157,7 @@ class QuickListDialog extends WidgetDialog {
 				fieldtype: "Section Break",
 				fieldname: "filter_section",
 				label: __("Add Filters"),
-				depends_on: "eval: doc.document_type",
+				display_if: "eval: doc.document_type",
 			},
 			{
 				fieldtype: "HTML",
@@ -411,8 +411,8 @@ class ShortcutDialog extends WidgetDialog {
 						this.hide_filters();
 					}
 				},
-				depends_on: (s) => s.type != "URL",
-				mandatory_depends_on: (s) => s.type != "URL",
+				display_if: (s) => s.type != "URL",
+				mandatory_if: (s) => s.type != "URL",
 			},
 			{
 				fieldtype: "Data",
@@ -420,8 +420,8 @@ class ShortcutDialog extends WidgetDialog {
 				label: "URL",
 				options: "URL",
 				default: "",
-				depends_on: (s) => s.type == "URL",
-				mandatory_depends_on: (s) => s.type == "URL",
+				display_if: (s) => s.type == "URL",
+				mandatory_if: (s) => s.type == "URL",
 			},
 			{
 				fieldtype: "Select",
@@ -432,7 +432,7 @@ class ShortcutDialog extends WidgetDialog {
 					"Which view of the associated DocType should this shortcut take you to?"
 				),
 				default: "List",
-				depends_on: (state) => {
+				display_if: (state) => {
 					if (this.dialog) {
 						let doctype = this.dialog.get_value("link_to");
 						let is_single = frappe.boot.single_types.includes(doctype);
@@ -460,11 +460,11 @@ class ShortcutDialog extends WidgetDialog {
 				fieldname: "kanban_board",
 				label: "Kanban Board",
 				options: "Kanban Board",
-				depends_on: () => {
+				display_if: () => {
 					let doc_view = this.dialog?.get_value("doc_view");
 					return doc_view == "Kanban";
 				},
-				mandatory_depends_on: () => {
+				mandatory_if: () => {
 					let doc_view = this.dialog?.get_value("doc_view");
 					return doc_view == "Kanban";
 				},
@@ -615,18 +615,18 @@ class NumberCardDialog extends WidgetDialog {
 						},
 					};
 				},
-				depends_on: 'eval: doc.new_or_existing == "Existing Card"',
+				display_if: 'eval: doc.new_or_existing == "Existing Card"',
 			},
 			{
 				fieldtype: "Section Break",
 				fieldname: "sb_1",
-				depends_on: 'eval: doc.new_or_existing == "New Card"',
+				display_if: 'eval: doc.new_or_existing == "New Card"',
 			},
 			{
 				label: __("Label"),
 				fieldname: "label",
 				fieldtype: "Data",
-				mandatory_depends_on: 'eval: doc.new_or_existing == "New Card"',
+				mandatory_if: 'eval: doc.new_or_existing == "New Card"',
 			},
 			{
 				label: __("Doctype"),
@@ -654,21 +654,21 @@ class NumberCardDialog extends WidgetDialog {
 				fieldname: "function",
 				fieldtype: "Select",
 				options: ["Count", "Sum", "Average", "Minimum", "Maximum"],
-				mandatory_depends_on: 'eval: doc.new_or_existing == "New Card"',
+				mandatory_if: 'eval: doc.new_or_existing == "New Card"',
 			},
 			{
 				label: __("Function Based On"),
 				fieldname: "aggregate_function_based_on",
 				fieldtype: "Select",
-				depends_on: "eval: doc.function !== 'Count'",
-				mandatory_depends_on:
+				display_if: "eval: doc.function !== 'Count'",
+				mandatory_if:
 					'eval: doc.function !== "Count" && doc.new_or_existing == "New Card"',
 			},
 			{
 				fieldtype: "Section Break",
 				fieldname: "sb_1",
 				label: __("Add Filters"),
-				depends_on: 'eval: doc.new_or_existing == "New Card"',
+				display_if: 'eval: doc.new_or_existing == "New Card"',
 			},
 			{
 				fieldtype: "HTML",

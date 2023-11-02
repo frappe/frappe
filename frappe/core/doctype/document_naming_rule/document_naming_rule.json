@@ -36,7 +36,7 @@
    "fieldname": "prefix",
    "fieldtype": "Data",
    "label": "Prefix",
-   "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\"",
+   "mandatory_if": "eval:doc.naming_by===\"Numbered\"",
    "reqd": 1
   },
   {
@@ -53,7 +53,7 @@
    "fieldname": "prefix_digits",
    "fieldtype": "Int",
    "label": "Digits",
-   "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\"",
+   "mandatory_if": "eval:doc.naming_by===\"Numbered\"",
    "reqd": 1
   },
   {
@@ -63,7 +63,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "conditions",
+   "collapsible_if": "conditions",
    "fieldname": "section_break_3",
    "fieldtype": "Section Break",
    "label": "Rule Conditions"

@@ -22,20 +22,20 @@
    "unique": 1
   },
   {
-   "depends_on": "eval:!doc.__islocal",
+   "display_if": "eval:!doc.__islocal",
    "description": "Note: For best results,  images must be of the same size and width must be greater than height.",
    "fieldname": "sb0",
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:!doc.__islocal",
+   "display_if": "eval:!doc.__islocal",
    "fieldname": "slideshow_items",
    "fieldtype": "Table",
    "label": "Slideshow Items",
    "options": "Website Slideshow Item"
   },
   {
-   "depends_on": "eval:!doc.__islocal",
+   "display_if": "eval:!doc.__islocal",
    "description": "This goes above the slideshow.",
    "fieldname": "header",
    "fieldtype": "HTML Editor",

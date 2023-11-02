@@ -103,7 +103,7 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.content_type === 'Rich Text'",
+   "display_if": "eval:doc.content_type === 'Rich Text'",
    "fieldname": "content",
    "fieldtype": "Text Editor",
    "ignore_xss_filter": 1,
@@ -111,14 +111,14 @@
    "label": "Content"
   },
   {
-   "depends_on": "eval:doc.content_type === 'Markdown'",
+   "display_if": "eval:doc.content_type === 'Markdown'",
    "fieldname": "content_md",
    "fieldtype": "Markdown Editor",
    "ignore_xss_filter": 1,
    "label": "Content (Markdown)"
   },
   {
-   "depends_on": "eval:doc.content_type === 'HTML'",
+   "display_if": "eval:doc.content_type === 'HTML'",
    "fieldname": "content_html",
    "fieldtype": "HTML Editor",
    "ignore_xss_filter": 1,
@@ -150,7 +150,7 @@
    "fieldname": "meta_image",
    "fieldtype": "Attach Image",
    "label": "Meta Image",
-   "mandatory_depends_on": "eval:doc.featured"
+   "mandatory_if": "eval:doc.featured"
   },
   {
    "fieldname": "section_break_20",

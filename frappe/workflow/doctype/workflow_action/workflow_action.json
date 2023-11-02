@@ -51,7 +51,7 @@
    "label": "Workflow State"
   },
   {
-   "depends_on": "eval: doc.completed_by",
+   "display_if": "eval: doc.completed_by",
    "fieldname": "completed_by",
    "fieldtype": "Link",
    "label": "Completed By User",
@@ -63,7 +63,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.completed_by_role",
+   "display_if": "eval: doc.completed_by_role",
    "fieldname": "completed_by_role",
    "fieldtype": "Link",
    "label": "Completed By Role",

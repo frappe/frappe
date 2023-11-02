@@ -49,12 +49,12 @@
             "set_only_once": 1
         },
         {
-            "depends_on": "eval:!doc.__islocal",
+            "display_if": "eval:!doc.__islocal",
             "fieldname": "import_file",
             "fieldtype": "Attach",
             "in_list_view": 1,
             "label": "Import File",
-            "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
+            "readonly_if": "eval: ['Success', 'Partial Success'].includes(doc.status)"
         },
         {
             "fieldname": "import_preview",
@@ -123,7 +123,7 @@
             "label": "Import Warnings"
         },
         {
-            "depends_on": "eval:!doc.__islocal",
+            "display_if": "eval:!doc.__islocal",
             "fieldname": "download_template",
             "fieldtype": "Button",
             "label": "Download Template"
@@ -142,21 +142,21 @@
             "label": "Show Failed Logs"
         },
         {
-            "depends_on": "eval:!doc.__islocal && !doc.import_file",
+            "display_if": "eval:!doc.__islocal && !doc.import_file",
             "fieldname": "html_5",
             "fieldtype": "HTML",
             "options": "<h5 class=\"text-muted uppercase\">Or</h5>"
         },
         {
-            "depends_on": "eval:!doc.__islocal && !doc.import_file\n",
+            "display_if": "eval:!doc.__islocal && !doc.import_file\n",
             "description": "Must be a publicly accessible Google Sheets URL",
             "fieldname": "google_sheets_url",
             "fieldtype": "Data",
             "label": "Import from Google Sheets",
-            "read_only_depends_on": "eval: ['Success', 'Partial Success'].includes(doc.status)"
+            "readonly_if": "eval: ['Success', 'Partial Success'].includes(doc.status)"
         },
         {
-            "depends_on": "eval:doc.google_sheets_url && !doc.__unsaved &&  ['Success', 'Partial Success'].includes(doc.status)",
+            "display_if": "eval:doc.google_sheets_url && !doc.__unsaved &&  ['Success', 'Partial Success'].includes(doc.status)",
             "fieldname": "refresh_google_sheet",
             "fieldtype": "Button",
             "label": "Refresh Google Sheet"

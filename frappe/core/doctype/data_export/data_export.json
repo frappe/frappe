@@ -35,7 +35,7 @@
    "reqd": 1
   },
   {
-   "depends_on": "reference_doctype",
+   "display_if": "reference_doctype",
    "fieldname": "section_break",
    "fieldtype": "Section Break"
   },

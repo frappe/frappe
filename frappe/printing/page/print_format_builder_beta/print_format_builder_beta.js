@@ -61,8 +61,8 @@ function load_print_format_builder_beta(wrapper) {
 					label: __("New Print Format Name"),
 					fieldname: "print_format_name",
 					fieldtype: "Data",
-					depends_on: (doc) => doc.action === "Create",
-					mandatory_depends_on: (doc) => doc.action === "Create",
+					display_if: (doc) => doc.action === "Create",
+					mandatory_if: (doc) => doc.action === "Create",
 				},
 				{
 					label: __("Select Print Format"),
@@ -70,7 +70,7 @@ function load_print_format_builder_beta(wrapper) {
 					fieldtype: "Link",
 					options: "Print Format",
 					only_select: 1,
-					depends_on: (doc) => doc.action === "Edit",
+					display_if: (doc) => doc.action === "Edit",
 					get_query() {
 						return {
 							filters: {
@@ -79,7 +79,7 @@ function load_print_format_builder_beta(wrapper) {
 							},
 						};
 					},
-					mandatory_depends_on: (doc) => doc.action === "Edit",
+					mandatory_if: (doc) => doc.action === "Edit",
 				},
 			],
 			primary_action_label: __("Edit"),

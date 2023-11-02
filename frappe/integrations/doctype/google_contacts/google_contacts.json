@@ -54,7 +54,7 @@
    "reqd": 1
   },
   {
-   "depends_on": "enable",
+   "display_if": "enable",
    "fieldname": "sb_00",
    "fieldtype": "Section Break",
    "label": "Google Contacts"
@@ -64,7 +64,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:!doc.__islocal",
+   "display_if": "eval:!doc.__islocal",
    "fieldname": "authorize_google_contacts_access",
    "fieldtype": "Button",
    "label": "Authorize Google Contacts Access"
@@ -76,7 +76,7 @@
    "label": "Next Sync Token"
   },
   {
-   "depends_on": "enable",
+   "display_if": "enable",
    "fieldname": "sync",
    "fieldtype": "Section Break",
    "label": "Sync"

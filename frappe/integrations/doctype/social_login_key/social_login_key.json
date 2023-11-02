@@ -41,14 +41,14 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.enable_social_login",
+   "collapsible_if": "eval:doc.enable_social_login",
    "fieldname": "client_credentials",
    "fieldtype": "Section Break",
    "label": "Client Credentials"
   },
   {
    "default": "Custom",
-   "depends_on": "eval:doc.custom!=1",
+   "display_if": "eval:doc.custom!=1",
    "fieldname": "social_login_provider",
    "fieldtype": "Select",
    "label": "Social Login Provider",
@@ -79,13 +79,13 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.custom_base_url",
+   "collapsible_if": "eval:doc.custom_base_url",
    "fieldname": "sb_identity_details",
    "fieldtype": "Section Break",
    "label": "Identity Details"
   },
   {
-   "depends_on": "eval:doc.social_login_provider==\"Custom\"",
+   "display_if": "eval:doc.social_login_provider==\"Custom\"",
    "fieldname": "icon",
    "fieldtype": "Data",
    "label": "Icon"
@@ -101,7 +101,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.social_login_provider===\"Custom\"",
+   "collapsible_if": "eval:doc.social_login_provider===\"Custom\"",
    "fieldname": "client_urls",
    "fieldtype": "Section Break",
    "label": "Client URLs"
@@ -139,7 +139,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.social_login_provider===\"Custom\"",
+   "collapsible_if": "eval:doc.social_login_provider===\"Custom\"",
    "fieldname": "client_information",
    "fieldtype": "Section Break",
    "label": "Client Information"
@@ -155,7 +155,7 @@
    "label": "Auth URL Data"
   },
   {
-   "depends_on": "eval:doc.social_login_provider===\"Custom\"",
+   "display_if": "eval:doc.social_login_provider===\"Custom\"",
    "fieldname": "user_id_property",
    "fieldtype": "Data",
    "label": "User ID Property"

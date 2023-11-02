@@ -474,9 +474,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		this.filters.forEach((filter) => {
 			filter.guardian_has_value = true;
 
-			if (filter.df.depends_on) {
+			if (filter.df.display_if) {
 				filter.guardian_has_value = this.evaluate_depends_on_value(
-					filter.df.depends_on,
+					filter.df.display_if,
 					filter.df.label
 				);
 
@@ -507,7 +507,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					out = frappe.utils.eval(expression.substr(5), { doc });
 				} catch (e) {
 					frappe.throw(
-						__('Invalid "depends_on" expression set in filter {0}', [filter_label])
+						__('Invalid "display_if" expression set in filter {0}', [filter_label])
 					);
 				}
 			} else {

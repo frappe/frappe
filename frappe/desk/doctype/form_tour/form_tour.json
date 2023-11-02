@@ -29,16 +29,16 @@
  ],
  "fields": [
   {
-   "depends_on": "eval:(!doc.ui_tour || doc.ui_tour && [\"Workspaces\", \"Page\", \"Tree\"].indexOf(doc.view_name) == -1);",
+   "display_if": "eval:(!doc.ui_tour || doc.ui_tour && [\"Workspaces\", \"Page\", \"Tree\"].indexOf(doc.view_name) == -1);",
    "fieldname": "reference_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Reference Document",
-   "mandatory_depends_on": "eval:(!doc.ui_tour)",
+   "mandatory_if": "eval:(!doc.ui_tour)",
    "options": "DocType"
   },
   {
-   "depends_on": "eval:(doc.ui_tour || doc.reference_doctype)",
+   "display_if": "eval:(doc.ui_tour || doc.reference_doctype)",
    "fieldname": "steps",
    "fieldtype": "Table",
    "label": "Steps",
@@ -58,7 +58,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:(!doc.ui_tour)",
+   "display_if": "eval:(!doc.ui_tour)",
    "fieldname": "save_on_complete",
    "fieldtype": "Check",
    "label": "Save on Completion"
@@ -70,7 +70,7 @@
    "label": "Is Standard"
   },
   {
-   "depends_on": "eval: doc.ui_tour && doc.is_standard",
+   "display_if": "eval: doc.ui_tour && doc.is_standard",
    "fetch_from": "reference_doctype.module",
    "fieldname": "module",
    "fieldtype": "Link",
@@ -84,14 +84,14 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:(!doc.ui_tour)",
+   "display_if": "eval:(!doc.ui_tour)",
    "fieldname": "first_document",
    "fieldtype": "Check",
    "label": "Show First Document Tour"
   },
   {
    "default": "0",
-   "depends_on": "eval:(!doc.ui_tour && !doc.first_document)",
+   "display_if": "eval:(!doc.ui_tour && !doc.first_document)",
    "fieldname": "include_name_field",
    "fieldtype": "Check",
    "label": "Include Name Field"
@@ -110,7 +110,7 @@
    "label": "Page Route"
   },
   {
-   "depends_on": "eval:(doc.ui_tour && doc.view_name == \"List\" && doc.list_name == \"Dashboard\")",
+   "display_if": "eval:(doc.ui_tour && doc.view_name == \"List\" && doc.list_name == \"Dashboard\")",
    "fetch_from": ".",
    "fieldname": "dashboard_name",
    "fieldtype": "Link",
@@ -118,15 +118,15 @@
    "options": "Dashboard"
   },
   {
-   "depends_on": "ui_tour",
+   "display_if": "ui_tour",
    "fieldname": "view_name",
    "fieldtype": "Select",
    "label": "View",
-   "mandatory_depends_on": "ui_tour",
+   "mandatory_if": "ui_tour",
    "options": "Workspaces\nList\nForm\nTree\nPage"
   },
   {
-   "depends_on": "eval:(doc.ui_tour && doc.view_name == \"Workspaces\")",
+   "display_if": "eval:(doc.ui_tour && doc.view_name == \"Workspaces\")",
    "fetch_from": ".",
    "fieldname": "workspace_name",
    "fieldtype": "Link",
@@ -134,26 +134,26 @@
    "options": "Workspace"
   },
   {
-   "depends_on": "eval:(doc.ui_tour && doc.view_name == \"Page\")",
+   "display_if": "eval:(doc.ui_tour && doc.view_name == \"Page\")",
    "fetch_from": ".",
    "fieldname": "page_name",
    "fieldtype": "Link",
    "label": "Select Page",
-   "mandatory_depends_on": "eval:(doc.ui_tour && doc.view_name == \"Page\")",
+   "mandatory_if": "eval:(doc.ui_tour && doc.view_name == \"Page\")",
    "options": "Page"
   },
   {
    "default": "List",
-   "depends_on": "eval:(doc.ui_tour && doc.view_name == \"List\")",
+   "display_if": "eval:(doc.ui_tour && doc.view_name == \"List\")",
    "fetch_from": ".",
    "fieldname": "list_name",
    "fieldtype": "Select",
    "label": "Select List View",
-   "mandatory_depends_on": "eval:(doc.ui_tour && doc.view_name == \"List\")",
+   "mandatory_if": "eval:(doc.ui_tour && doc.view_name == \"List\")",
    "options": "List\nReport\nDashboard\nKanban\nGantt\nCalendar\nFile\nImage\nInbox\nMap"
   },
   {
-   "depends_on": "eval:(doc.ui_tour && doc.view_name == \"List\" && doc.list_name == \"Report\")",
+   "display_if": "eval:(doc.ui_tour && doc.view_name == \"List\" && doc.list_name == \"Report\")",
    "fetch_from": ".",
    "fieldname": "report_name",
    "fieldtype": "Link",
@@ -162,7 +162,7 @@
   },
   {
    "default": "0",
-   "depends_on": "ui_tour",
+   "display_if": "ui_tour",
    "description": "The next tour will start from where the user left off.",
    "fieldname": "track_steps",
    "fieldtype": "Check",
@@ -170,7 +170,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: (doc.ui_tour && doc.view_name == \"Form\")",
+   "display_if": "eval: (doc.ui_tour && doc.view_name == \"Form\")",
    "fieldname": "new_document_form",
    "fieldtype": "Check",
    "label": "New Document Form"

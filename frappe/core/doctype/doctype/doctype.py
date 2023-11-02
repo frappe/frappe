@@ -1493,14 +1493,14 @@ def validate_fields(meta):
 	def check_illegal_depends_on_conditions(docfield):
 		"""assignment operation should not be allowed in the depends on condition."""
 		depends_on_fields = [
-			"depends_on",
-			"collapsible_depends_on",
-			"mandatory_depends_on",
-			"read_only_depends_on",
+			"display_if",
+			"collapsible_if",
+			"mandatory_if",
+			"readonly_if",
 		]
 		for field in depends_on_fields:
-			depends_on = docfield.get(field, None)
-			if depends_on and ("=" in depends_on) and DEPENDS_ON_PATTERN.match(depends_on):
+			display_if = docfield.get(field, None)
+			if display_if and ("=" in display_if) and DEPENDS_ON_PATTERN.match(display_if):
 				frappe.throw(_("Invalid {0} condition").format(frappe.unscrub(field)), frappe.ValidationError)
 
 	def check_table_multiselect_option(docfield):

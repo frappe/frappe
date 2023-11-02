@@ -1,4 +1,4 @@
-context("Depends On", () => {
+context("Display If", () => {
 	before(() => {
 		cy.login();
 		cy.visit("/app/website");
@@ -43,27 +43,27 @@ context("Depends On", () => {
 							label: "Dependant Field",
 							fieldname: "dependant_field",
 							fieldtype: "Data",
-							mandatory_depends_on: "eval:doc.test_field=='Some Value'",
-							read_only_depends_on: "eval:doc.test_field=='Some Other Value'",
+							mandatory_if: "eval:doc.test_field=='Some Value'",
+							readonly_if: "eval:doc.test_field=='Some Other Value'",
 						},
 						{
 							label: "Display Dependant Field",
 							fieldname: "display_dependant_field",
 							fieldtype: "Data",
-							depends_on: "eval:doc.test_field=='Value'",
+							display_if: "eval:doc.test_field=='Value'",
 						},
 						{
 							label: "Child Test Depends On Field",
-							fieldname: "child_test_depends_on_field",
+							fieldname: "child_test_display_if_field",
 							fieldtype: "Table",
-							read_only_depends_on: "eval:doc.test_field=='Some Other Value'",
+							readonly_if: "eval:doc.test_field=='Some Other Value'",
 							options: "Child Test Depends On",
 						},
 						{
 							label: "Dependent Tab",
 							fieldname: "dependent_tab",
 							fieldtype: "Tab Break",
-							depends_on: "eval:doc.test_field=='Show Tab'",
+							display_if: "eval:doc.test_field=='Show Tab'",
 						},
 						{
 							fieldname: "tab_section",
@@ -110,15 +110,15 @@ context("Depends On", () => {
 		cy.new_form("Test Depends On");
 		cy.fill_field("dependant_field", "Some Value");
 		//cy.fill_field('test_field', 'Some Other Value');
-		cy.get('.frappe-control[data-fieldname="child_test_depends_on_field"]').as("table");
+		cy.get('.frappe-control[data-fieldname="child_test_display_if_field"]').as("table");
 		cy.get("@table").findByRole("button", { name: "Add Row" }).click();
 		cy.get("@table").find('[data-idx="1"]').as("row1");
 		cy.get("@row1").find(".btn-open-row").click();
 		cy.get("@row1").find(".form-in-grid").as("row1-form_in_grid");
 		//cy.get('@row1-form_in_grid').find('')
-		cy.fill_table_field("child_test_depends_on_field", "1", "child_test_field", "Some Value");
+		cy.fill_table_field("child_test_display_if_field", "1", "child_test_field", "Some Value");
 		cy.fill_table_field(
-			"child_test_depends_on_field",
+			"child_test_display_if_field",
 			"1",
 			"child_dependant_field",
 			"Some Other Value"

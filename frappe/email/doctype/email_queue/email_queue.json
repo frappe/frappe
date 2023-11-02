@@ -62,7 +62,7 @@
    "options": "Not Sent\nSending\nSent\nPartially Sent\nError"
   },
   {
-   "depends_on": "eval:doc.error",
+   "display_if": "eval:doc.error",
    "fieldname": "error",
    "fieldtype": "Code",
    "label": "Error"

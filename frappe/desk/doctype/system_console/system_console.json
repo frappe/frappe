@@ -76,7 +76,7 @@
    "options": "Python\nSQL"
   },
   {
-   "depends_on": "eval:doc.type == 'SQL'",
+   "display_if": "eval:doc.type == 'SQL'",
    "fieldname": "sql_output",
    "fieldtype": "HTML",
    "label": "SQL Output"

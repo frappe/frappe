@@ -608,7 +608,7 @@ frappe.views.Workspace = class Workspace {
 					label: __("Public"),
 					fieldtype: "Check",
 					fieldname: "is_public",
-					depends_on: `eval:${this.has_access}`,
+					display_if: `eval:${this.has_access}`,
 					default: item.public,
 					onchange: function () {
 						d.set_df_property(
@@ -935,7 +935,7 @@ frappe.views.Workspace = class Workspace {
 					label: __("Public"),
 					fieldtype: "Check",
 					fieldname: "is_public",
-					depends_on: `eval:${this.has_access}`,
+					display_if: `eval:${this.has_access}`,
 					default: new_page.public,
 					onchange: function () {
 						d.set_df_property(
@@ -1180,7 +1180,7 @@ frappe.views.Workspace = class Workspace {
 					label: __("Public"),
 					fieldtype: "Check",
 					fieldname: "is_public",
-					depends_on: `eval:${this.has_access}`,
+					display_if: `eval:${this.has_access}`,
 					onchange: function () {
 						d.set_df_property(
 							"parent",

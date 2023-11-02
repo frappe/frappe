@@ -15,8 +15,8 @@ let docfield_df = computed(() => {
 			return false;
 		}
 		if (
-			df.depends_on &&
-			!evaluate_depends_on_value(df.depends_on, store.form.selected_field)
+			df.display_if &&
+			!evaluate_depends_on_value(df.display_if, store.form.selected_field)
 		) {
 			return false;
 		}

@@ -74,14 +74,14 @@
    "label": "To and CC"
   },
   {
-   "depends_on": "eval:doc.communication_type===\"Communication\"",
+   "display_if": "eval:doc.communication_type===\"Communication\"",
    "fieldname": "communication_medium",
    "fieldtype": "Select",
    "label": "Type",
    "options": "\nEmail\nChat\nPhone\nSMS\nEvent\nMeeting\nVisit\nOther"
   },
   {
-   "depends_on": "eval:doc.communication_medium===\"Email\"",
+   "display_if": "eval:doc.communication_medium===\"Email\"",
    "fieldname": "sender",
    "fieldtype": "Data",
    "in_global_search": 1,
@@ -100,21 +100,21 @@
    "options": "Email"
   },
   {
-   "depends_on": "eval:doc.communication_medium===\"Email\"",
+   "display_if": "eval:doc.communication_medium===\"Email\"",
    "fieldname": "cc",
    "fieldtype": "Code",
    "label": "CC",
    "options": "Email"
   },
   {
-   "depends_on": "eval:doc.communication_medium===\"Email\"",
+   "display_if": "eval:doc.communication_medium===\"Email\"",
    "fieldname": "bcc",
    "fieldtype": "Code",
    "label": "BCC",
    "options": "Email"
   },
   {
-   "depends_on": "eval:in_list([\"Phone\",\"SMS\"],doc.communication_medium)",
+   "display_if": "eval:in_list([\"Phone\",\"SMS\"],doc.communication_medium)",
    "fieldname": "phone_no",
    "fieldtype": "Data",
    "label": "Phone No."
@@ -173,7 +173,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.communication_type===\"Communication\"",
+   "display_if": "eval:doc.communication_type===\"Communication\"",
    "fieldname": "status",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -183,7 +183,7 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.communication_type===\"Communication\"",
+   "display_if": "eval:doc.communication_type===\"Communication\"",
    "fieldname": "sent_or_received",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -260,7 +260,7 @@
    "search_index": 1
   },
   {
-   "depends_on": "eval:doc.communication_medium===\"Email\"",
+   "display_if": "eval:doc.communication_medium===\"Email\"",
    "fieldname": "email_account",
    "fieldtype": "Link",
    "label": "Email Account",
@@ -347,7 +347,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval: doc.rating > 0",
+   "display_if": "eval: doc.rating > 0",
    "fieldname": "feedback_section",
    "fieldtype": "Section Break",
    "label": "Feedback"

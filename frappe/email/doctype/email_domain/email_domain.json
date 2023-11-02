@@ -63,7 +63,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.use_imap && !doc.use_ssl",
+   "display_if": "eval:doc.use_imap && !doc.use_ssl",
    "fieldname": "use_starttls",
    "fieldtype": "Check",
    "label": "Use STARTTLS"
@@ -107,7 +107,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.use_imap",
+   "display_if": "eval:doc.use_imap",
    "fieldname": "append_emails_to_sent_folder",
    "fieldtype": "Check",
    "label": "Append Emails to Sent Folder"

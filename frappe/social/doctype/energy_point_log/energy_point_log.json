@@ -84,7 +84,7 @@
    "label": "Reverted"
   },
   {
-   "depends_on": "eval:doc.type === 'Revert'",
+   "display_if": "eval:doc.type === 'Revert'",
    "fieldname": "revert_of",
    "fieldtype": "Link",
    "label": "Revert Of",

@@ -25,10 +25,10 @@ class CustomField(Document):
 		allow_on_submit: DF.Check
 		bold: DF.Check
 		collapsible: DF.Check
-		collapsible_depends_on: DF.Code | None
+		collapsible_if: DF.Code | None
 		columns: DF.Int
 		default: DF.Text | None
-		depends_on: DF.Code | None
+		display_if: DF.Code | None
 		description: DF.Text | None
 		dt: DF.Link
 		fetch_from: DF.SmallText | None
@@ -94,7 +94,7 @@ class CustomField(Document):
 		is_virtual: DF.Check
 		label: DF.Data | None
 		length: DF.Int
-		mandatory_depends_on: DF.Code | None
+		mandatory_if: DF.Code | None
 		module: DF.Link | None
 		no_copy: DF.Check
 		non_negative: DF.Check
@@ -105,7 +105,7 @@ class CustomField(Document):
 		print_hide_if_no_value: DF.Check
 		print_width: DF.Data | None
 		read_only: DF.Check
-		read_only_depends_on: DF.Code | None
+		readonly_if: DF.Code | None
 		report_hide: DF.Check
 		reqd: DF.Check
 		search_index: DF.Check

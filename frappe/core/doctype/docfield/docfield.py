@@ -19,10 +19,10 @@ class DocField(Document):
 		allow_on_submit: DF.Check
 		bold: DF.Check
 		collapsible: DF.Check
-		collapsible_depends_on: DF.Code | None
+		collapsible_if: DF.Code | None
 		columns: DF.Int
 		default: DF.SmallText | None
-		depends_on: DF.Code | None
+		display_if: DF.Code | None
 		description: DF.SmallText | None
 		documentation_url: DF.Data | None
 		fetch_from: DF.SmallText | None
@@ -87,7 +87,7 @@ class DocField(Document):
 		is_virtual: DF.Check
 		label: DF.Data | None
 		length: DF.Int
-		mandatory_depends_on: DF.Code | None
+		mandatory_if: DF.Code | None
 		max_height: DF.Data | None
 		no_copy: DF.Check
 		non_negative: DF.Check
@@ -103,7 +103,7 @@ class DocField(Document):
 		print_hide_if_no_value: DF.Check
 		print_width: DF.Data | None
 		read_only: DF.Check
-		read_only_depends_on: DF.Code | None
+		readonly_if: DF.Code | None
 		remember_last_selected_value: DF.Check
 		report_hide: DF.Check
 		reqd: DF.Check

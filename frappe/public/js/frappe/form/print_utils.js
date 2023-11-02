@@ -16,7 +16,7 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 			fieldtype: "Select",
 			fieldname: "letter_head",
 			label: __("Letter Head"),
-			depends_on: "with_letter_head",
+			display_if: "with_letter_head",
 			options: Object.keys(frappe.boot.letter_heads),
 			default: letter_head || default_letter_head,
 		},
@@ -43,7 +43,7 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 				label: __("Select Columns"),
 				fieldtype: "MultiCheck",
 				fieldname: "columns",
-				depends_on: "pick_columns",
+				display_if: "pick_columns",
 				columns: 2,
 				select_all: true,
 				options: pick_columns.map((df) => ({

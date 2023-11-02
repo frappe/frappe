@@ -34,13 +34,13 @@
   "fetch_if_empty",
   "show_dashboard",
   "permissions",
-  "depends_on",
+  "display_if",
   "permlevel",
   "hidden",
   "read_only",
   "collapsible",
   "allow_bulk_edit",
-  "collapsible_depends_on",
+  "collapsible_if",
   "column_break_14",
   "ignore_user_permissions",
   "allow_on_submit",
@@ -49,9 +49,9 @@
   "hide_border",
   "ignore_xss_filter",
   "property_depends_on_section",
-  "mandatory_depends_on",
+  "mandatory_if",
   "column_break_33",
-  "read_only_depends_on",
+  "readonly_if",
   "display",
   "in_filter",
   "hide_seconds",
@@ -105,7 +105,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!in_list([\"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
+   "display_if": "eval:!in_list([\"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
    "fieldname": "reqd",
    "fieldtype": "Check",
    "in_list_view": 1,
@@ -141,7 +141,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:([\"Data\", \"Select\", \"Table\", \"Text\", \"Text Editor\", \"Link\", \"Small Text\", \"Long Text\", \"Read Only\", \"Heading\", \"Dynamic Link\"].indexOf(doc.fieldtype) !== -1)",
+   "display_if": "eval:([\"Data\", \"Select\", \"Table\", \"Text\", \"Text Editor\", \"Link\", \"Small Text\", \"Long Text\", \"Read Only\", \"Heading\", \"Dynamic Link\"].indexOf(doc.fieldtype) !== -1)",
    "fieldname": "in_global_search",
    "fieldtype": "Check",
    "label": "In Global Search"
@@ -154,7 +154,7 @@
   },
   {
    "default": "1",
-   "depends_on": "eval:['Data', 'Select', 'Text', 'Small Text', 'Text Editor'].includes(doc.fieldtype)",
+   "display_if": "eval:['Data', 'Select', 'Text', 'Small Text', 'Text Editor'].includes(doc.fieldtype)",
    "fieldname": "translatable",
    "fieldtype": "Check",
    "label": "Translatable"
@@ -164,7 +164,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:in_list([\"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "display_if": "eval:in_list([\"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
    "description": "Set non-standard precision for a Float or Currency field",
    "fieldname": "precision",
    "fieldtype": "Select",
@@ -172,7 +172,7 @@
    "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
   },
   {
-   "depends_on": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'], doc.fieldtype)",
+   "display_if": "eval:in_list(['Data', 'Link', 'Dynamic Link', 'Password', 'Select', 'Read Only', 'Attach', 'Attach Image'], doc.fieldtype)",
    "fieldname": "length",
    "fieldtype": "Int",
    "label": "Length"
@@ -205,16 +205,16 @@
   },
   {
    "description": "This field will appear only if the fieldname defined here has value OR the rules are true (examples): \nmyfield\neval:doc.myfield=='My Value'\neval:doc.age&gt;18",
-   "fieldname": "depends_on",
+   "fieldname": "display_if",
    "fieldtype": "Code",
-   "label": "Depends On",
-   "oldfieldname": "depends_on",
+   "label": "Display If",
+   "oldfieldname": "display_if",
    "oldfieldtype": "Data",
    "options": "JS"
   },
   {
    "default": "0",
-   "depends_on": "eval:!in_list(['Section Break', 'Column Break', 'Tab Break'], doc.fieldtype)",
+   "display_if": "eval:!in_list(['Section Break', 'Column Break', 'Tab Break'], doc.fieldtype)",
    "fieldname": "permlevel",
    "fieldtype": "Int",
    "in_list_view": 1,
@@ -240,23 +240,23 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.fieldtype==\"Section Break\"",
+   "display_if": "eval:doc.fieldtype==\"Section Break\"",
    "fieldname": "collapsible",
    "fieldtype": "Check",
    "label": "Collapsible"
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.fieldtype == \"Table\"",
+   "display_if": "eval: doc.fieldtype == \"Table\"",
    "fieldname": "allow_bulk_edit",
    "fieldtype": "Check",
    "label": "Allow Bulk Edit"
   },
   {
-   "depends_on": "eval:doc.fieldtype==\"Section Break\"",
-   "fieldname": "collapsible_depends_on",
+   "display_if": "eval:doc.fieldtype==\"Section Break\"",
+   "fieldname": "collapsible_if",
    "fieldtype": "Code",
-   "label": "Collapsible Depends On",
+   "label": "Collapsible If",
    "options": "JS"
   },
   {
@@ -287,7 +287,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:(doc.fieldtype == 'Link')",
+   "display_if": "eval:(doc.fieldtype == 'Link')",
    "fieldname": "remember_last_selected_value",
    "fieldtype": "Check",
    "label": "Remember Last Selected Value"
@@ -337,7 +337,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:[\"Int\", \"Float\", \"Currency\", \"Percent\"].indexOf(doc.fieldtype)!==-1",
+   "display_if": "eval:[\"Int\", \"Float\", \"Currency\", \"Percent\"].indexOf(doc.fieldtype)!==-1",
    "fieldname": "print_hide_if_no_value",
    "fieldtype": "Check",
    "label": "Print Hide If No Value"
@@ -351,7 +351,7 @@
    "width": "50px"
   },
   {
-   "depends_on": "eval:parent.istable",
+   "display_if": "eval:parent.istable",
    "description": "Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)",
    "fieldname": "columns",
    "fieldtype": "Int",
@@ -387,9 +387,9 @@
    "label": "Property Depends On"
   },
   {
-   "fieldname": "mandatory_depends_on",
+   "fieldname": "mandatory_if",
    "fieldtype": "Code",
-   "label": "Mandatory Depends On",
+   "label": "Mandatory If",
    "options": "JS"
   },
   {
@@ -397,49 +397,49 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "read_only_depends_on",
+   "fieldname": "readonly_if",
    "fieldtype": "Code",
-   "label": "Read Only Depends On",
+   "label": "Read-only If",
    "options": "JS"
   },
   {
    "default": "0",
-   "depends_on": "eval:!in_list(['Table', 'Table MultiSelect'], doc.fieldtype);",
+   "display_if": "eval:!in_list(['Table', 'Table MultiSelect'], doc.fieldtype);",
    "fieldname": "in_preview",
    "fieldtype": "Check",
    "label": "In Preview"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.fieldtype=='Duration'",
+   "display_if": "eval:doc.fieldtype=='Duration'",
    "fieldname": "hide_seconds",
    "fieldtype": "Check",
    "label": "Hide Seconds"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.fieldtype=='Duration'",
+   "display_if": "eval:doc.fieldtype=='Duration'",
    "fieldname": "hide_days",
    "fieldtype": "Check",
    "label": "Hide Days"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.fieldtype=='Section Break'",
+   "display_if": "eval:doc.fieldtype=='Section Break'",
    "fieldname": "hide_border",
    "fieldtype": "Check",
    "label": "Hide Border"
   },
   {
    "default": "0",
-   "depends_on": "eval:in_list([\"Int\", \"Float\", \"Currency\"], doc.fieldtype)",
+   "display_if": "eval:in_list([\"Int\", \"Float\", \"Currency\"], doc.fieldtype)",
    "fieldname": "non_negative",
    "fieldtype": "Check",
    "label": "Non Negative"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.fieldtype=='Tab Break'",
+   "display_if": "eval:doc.fieldtype=='Tab Break'",
    "fieldname": "show_dashboard",
    "fieldtype": "Check",
    "label": "Show Dashboard"
@@ -467,7 +467,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.fieldtype === 'Select'",
+   "display_if": "eval: doc.fieldtype === 'Select'",
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"

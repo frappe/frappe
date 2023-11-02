@@ -55,7 +55,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Client Id",
-   "mandatory_depends_on": "eval:doc.redirect_uri"
+   "mandatory_if": "eval:doc.redirect_uri"
   },
   {
    "fieldname": "redirect_uri",
@@ -98,13 +98,13 @@
    "fieldname": "authorization_uri",
    "fieldtype": "Small Text",
    "label": "Authorization URI",
-   "mandatory_depends_on": "eval:doc.redirect_uri"
+   "mandatory_if": "eval:doc.redirect_uri"
   },
   {
    "fieldname": "token_uri",
    "fieldtype": "Data",
    "label": "Token URI",
-   "mandatory_depends_on": "eval:doc.redirect_uri"
+   "mandatory_if": "eval:doc.redirect_uri"
   },
   {
    "fieldname": "revocation_uri",

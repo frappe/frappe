@@ -39,7 +39,7 @@
    "in_standard_filter": 1,
    "label": "Applied On",
    "options": "\nDocField\nDocType\nDocType Link\nDocType Action\nDocType State",
-   "read_only_depends_on": "eval:!doc.__islocal",
+   "readonly_if": "eval:!doc.__islocal",
    "reqd": 1
   },
   {
@@ -63,7 +63,7 @@
    "search_index": 1
   },
   {
-   "depends_on": "eval:doc.doctype_or_field=='DocField'",
+   "display_if": "eval:doc.doctype_or_field=='DocField'",
    "description": "ID (name) of the entity whose property is to be set",
    "fieldname": "field_name",
    "fieldtype": "Data",

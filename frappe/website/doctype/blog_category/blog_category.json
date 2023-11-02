@@ -32,7 +32,7 @@
    "label": "Published"
   },
   {
-   "depends_on": "published",
+   "display_if": "published",
    "fieldname": "route",
    "fieldtype": "Data",
    "label": "Route",

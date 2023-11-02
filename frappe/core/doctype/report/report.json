@@ -91,7 +91,7 @@
    "label": "Disabled"
   },
   {
-   "depends_on": "eval: doc.is_standard == \"No\"",
+   "display_if": "eval: doc.is_standard == \"No\"",
    "fieldname": "letter_head",
    "fieldtype": "Link",
    "label": "Letter Head",
@@ -103,20 +103,20 @@
    "label": "Query / Script"
   },
   {
-   "depends_on": "eval:doc.report_type==\"Query Report\"",
+   "display_if": "eval:doc.report_type==\"Query Report\"",
    "fieldname": "query",
    "fieldtype": "Code",
    "label": "Query"
   },
   {
-   "depends_on": "eval:doc.report_type==\"Script Report\" && doc.is_standard===\"No\"",
+   "display_if": "eval:doc.report_type==\"Script Report\" && doc.is_standard===\"No\"",
    "description": "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}",
    "fieldname": "javascript",
    "fieldtype": "Code",
    "label": "Javascript"
   },
   {
-   "depends_on": "eval:doc.report_type==\"Report Builder\" || \"Custom Report\"",
+   "display_if": "eval:doc.report_type==\"Report Builder\" || \"Custom Report\"",
    "fieldname": "json",
    "fieldtype": "Code",
    "label": "JSON",
@@ -139,7 +139,7 @@
    "label": "Prepared Report"
   },
   {
-   "depends_on": "eval:(doc.report_type===\"Script Report\" \n|| doc.report_type==\"Query Report\") \n&& doc.is_standard===\"No\"",
+   "display_if": "eval:(doc.report_type===\"Script Report\" \n|| doc.report_type==\"Query Report\") \n&& doc.is_standard===\"No\"",
    "description": "Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>",
    "fieldname": "report_script",
    "fieldtype": "Code",
@@ -147,14 +147,14 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "filters",
-   "depends_on": "eval:doc.report_type != \"Custom Report\"",
+   "collapsible_if": "filters",
+   "display_if": "eval:doc.report_type != \"Custom Report\"",
    "fieldname": "filters_section",
    "fieldtype": "Section Break",
    "label": "Filters"
   },
   {
-   "depends_on": "eval:doc.report_type != \"Custom Report\"",
+   "display_if": "eval:doc.report_type != \"Custom Report\"",
    "fieldname": "filters",
    "fieldtype": "Table",
    "label": "Filters",
@@ -162,14 +162,14 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "columns",
-   "depends_on": "eval:doc.report_type != \"Custom Report\"",
+   "collapsible_if": "columns",
+   "display_if": "eval:doc.report_type != \"Custom Report\"",
    "fieldname": "columns_section",
    "fieldtype": "Section Break",
    "label": "Columns"
   },
   {
-   "depends_on": "eval:doc.report_type != \"Custom Report\"",
+   "display_if": "eval:doc.report_type != \"Custom Report\"",
    "fieldname": "columns",
    "fieldtype": "Table",
    "label": "Columns",
@@ -177,7 +177,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "javascript",
+   "collapsible_if": "javascript",
    "fieldname": "client_code_section",
    "fieldtype": "Section Break",
    "label": "Client Code"

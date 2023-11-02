@@ -69,30 +69,30 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
+   "display_if": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
    "fieldname": "reference_document",
    "fieldtype": "Link",
    "label": "Reference Document",
-   "mandatory_depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
+   "mandatory_if": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
    "options": "DocType"
   },
   {
-   "depends_on": "eval:doc.action == \"View Report\"",
+   "display_if": "eval:doc.action == \"View Report\"",
    "fieldname": "reference_report",
    "fieldtype": "Link",
    "label": "Reference Report",
-   "mandatory_depends_on": "eval:doc.action == \"View Report\"",
+   "mandatory_if": "eval:doc.action == \"View Report\"",
    "options": "Report"
   },
   {
-   "depends_on": "eval:doc.action == \"Watch Video\"",
+   "display_if": "eval:doc.action == \"Watch Video\"",
    "fieldname": "video_url",
    "fieldtype": "Data",
    "label": "Video URL",
-   "mandatory_depends_on": "eval:doc.action == \"Watch Video\""
+   "mandatory_if": "eval:doc.action == \"Watch Video\""
   },
   {
-   "depends_on": "eval:doc.action == \"View Report\"",
+   "display_if": "eval:doc.action == \"View Report\"",
    "fetch_from": "reference_report.report_type",
    "fieldname": "report_type",
    "fieldtype": "Data",
@@ -107,27 +107,27 @@
    "label": "Is Skipped"
   },
   {
-   "depends_on": "eval:doc.action == \"Update Settings\" && doc.validate_action",
+   "display_if": "eval:doc.action == \"Update Settings\" && doc.validate_action",
    "fieldname": "field",
    "fieldtype": "Select",
    "label": "Field",
-   "mandatory_depends_on": "eval:doc.action == \"Update Settings\" && doc.validate_action"
+   "mandatory_if": "eval:doc.action == \"Update Settings\" && doc.validate_action"
   },
   {
-   "depends_on": "eval:doc.action == \"Update Settings\" && doc.validate_action",
+   "display_if": "eval:doc.action == \"Update Settings\" && doc.validate_action",
    "description": "Use % for any non empty value.",
    "fieldname": "value_to_validate",
    "fieldtype": "Data",
    "label": "Value to Validate",
-   "mandatory_depends_on": "eval:doc.action == \"Update Settings\" && doc.validate_action"
+   "mandatory_if": "eval:doc.action == \"Update Settings\" && doc.validate_action"
   },
   {
-   "depends_on": "eval:doc.action == \"View Report\"",
+   "display_if": "eval:doc.action == \"View Report\"",
    "description": "This will be shown to the user in a dialog after routing to the report",
    "fieldname": "report_description",
    "fieldtype": "Data",
    "label": "Report Description",
-   "mandatory_depends_on": "eval:doc.action == \"View Report\""
+   "mandatory_if": "eval:doc.action == \"View Report\""
   },
   {
    "fetch_from": "reference_report.ref_doctype",
@@ -138,28 +138,28 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
+   "display_if": "eval:doc.action == \"Create Entry\" || doc.action == \"Update Settings\" || doc.action == \"Create Entry\" || doc.action == \"Show Form Tour\"",
    "fetch_from": "reference_document.issingle",
    "fieldname": "is_single",
    "fieldtype": "Check",
    "label": "Is Single"
   },
   {
-   "depends_on": "eval:doc.action == \"Go to Page\"",
+   "display_if": "eval:doc.action == \"Go to Page\"",
    "description": "Example: #Tree/Account",
    "fieldname": "path",
    "fieldtype": "Data",
    "label": "Path",
-   "mandatory_depends_on": "eval:doc.action == \"Go to Page\""
+   "mandatory_if": "eval:doc.action == \"Go to Page\""
   },
   {
-   "depends_on": "eval:doc.action == \"Go to Page\"",
+   "display_if": "eval:doc.action == \"Go to Page\"",
    "fieldname": "callback_title",
    "fieldtype": "Data",
    "label": "Callback Title"
   },
   {
-   "depends_on": "eval:doc.action == \"Go to Page\"",
+   "display_if": "eval:doc.action == \"Go to Page\"",
    "description": "This will be shown in a modal after routing",
    "fieldname": "callback_message",
    "fieldtype": "Small Text",
@@ -167,14 +167,14 @@
   },
   {
    "default": "1",
-   "depends_on": "eval:doc.action == \"Update Settings\"",
+   "display_if": "eval:doc.action == \"Update Settings\"",
    "fieldname": "validate_action",
    "fieldtype": "Check",
    "label": "Validate Field"
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.action == \"Create Entry\"",
+   "display_if": "eval:doc.action == \"Create Entry\"",
    "description": "Show full form instead of a quick entry modal",
    "fieldname": "show_full_form",
    "fieldtype": "Check",
@@ -203,13 +203,13 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.action==\"Create Entry\" && doc.show_full_form",
+   "display_if": "eval:doc.action==\"Create Entry\" && doc.show_full_form",
    "fieldname": "show_form_tour",
    "fieldtype": "Check",
    "label": "Show Form Tour"
   },
   {
-   "depends_on": "show_form_tour",
+   "display_if": "show_form_tour",
    "fieldname": "form_tour",
    "fieldtype": "Link",
    "label": "Form Tour",

@@ -100,7 +100,7 @@
    "label": "Add Background Image"
   },
   {
-   "depends_on": "add_background_image",
+   "display_if": "add_background_image",
    "fieldname": "background_image",
    "fieldtype": "Attach Image",
    "label": "Background Image"

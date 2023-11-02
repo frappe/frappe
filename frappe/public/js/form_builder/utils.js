@@ -218,7 +218,7 @@ export function evaluate_depends_on_value(expression, doc) {
 				out = true;
 			}
 		} catch (e) {
-			frappe.throw(__('Invalid "depends_on" expression'));
+			frappe.throw(__('Invalid "display_if" expression'));
 		}
 	} else {
 		var value = doc[expression];

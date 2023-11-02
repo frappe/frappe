@@ -15,7 +15,7 @@
  ],
  "fields": [
   {
-   "depends_on": "eval:!doc.standard",
+   "display_if": "eval:!doc.standard",
    "fieldname": "template",
    "fieldtype": "Code",
    "label": "Template",
@@ -48,7 +48,7 @@
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
-   "mandatory_depends_on": "standard",
+   "mandatory_if": "standard",
    "options": "Module Def"
   }
  ],

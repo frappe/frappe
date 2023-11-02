@@ -279,7 +279,7 @@
   },
   {
    "default": "2",
-   "depends_on": "eval:doc.enable_password_policy==1",
+   "display_if": "eval:doc.enable_password_policy==1",
    "fieldname": "minimum_password_score",
    "fieldtype": "Select",
    "label": "Minimum Password Score",
@@ -322,7 +322,7 @@
   },
   {
    "default": "0",
-   "depends_on": "enable_two_factor_auth",
+   "display_if": "enable_two_factor_auth",
    "description": "If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth",
    "fieldname": "bypass_2fa_for_retricted_ip_users",
    "fieldtype": "Check",
@@ -330,7 +330,7 @@
   },
   {
    "default": "0",
-   "depends_on": "enable_two_factor_auth",
+   "display_if": "enable_two_factor_auth",
    "description": "If enabled, all users can login from any IP Address using Two Factor Auth. This can also be set only for specific user(s) in User Page",
    "fieldname": "bypass_restrict_ip_check_if_2fa_enabled",
    "fieldtype": "Check",
@@ -345,7 +345,7 @@
    "options": "OTP App\nSMS\nEmail"
   },
   {
-   "depends_on": "eval:doc.two_factor_method == \"OTP App\"",
+   "display_if": "eval:doc.two_factor_method == \"OTP App\"",
    "description": "Time in seconds to retain QR code image on server. Min:<strong>240</strong>",
    "fieldname": "lifespan_qrcode_image",
    "fieldtype": "Int",
@@ -353,7 +353,7 @@
   },
   {
    "default": "Frappe Framework",
-   "depends_on": "enable_two_factor_auth",
+   "display_if": "enable_two_factor_auth",
    "fieldname": "otp_issuer_name",
    "fieldtype": "Data",
    "label": "OTP Issuer Name"
@@ -528,7 +528,7 @@
   },
   {
    "default": "10",
-   "depends_on": "login_with_email_link",
+   "display_if": "login_with_email_link",
    "fieldname": "login_with_email_link_expiry",
    "fieldtype": "Int",
    "label": "Login with email link expiry (in minutes)"

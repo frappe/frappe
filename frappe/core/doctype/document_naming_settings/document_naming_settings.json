@@ -33,7 +33,7 @@
    "label": "Setup Series for transactions"
   },
   {
-   "depends_on": "transaction_type",
+   "display_if": "transaction_type",
    "fieldname": "help_html",
    "fieldtype": "HTML",
    "label": "Help HTML",
@@ -41,14 +41,14 @@
   },
   {
    "default": "0",
-   "depends_on": "transaction_type",
+   "display_if": "transaction_type",
    "description": "Check this if you want to force the user to select a series before saving. There will be no default if you check this.",
    "fieldname": "user_must_always_select",
    "fieldtype": "Check",
    "label": "User must always select"
   },
   {
-   "depends_on": "transaction_type",
+   "display_if": "transaction_type",
    "fieldname": "update",
    "fieldtype": "Button",
    "label": "Update"
@@ -78,13 +78,13 @@
    "options": "update_series_start"
   },
   {
-   "depends_on": "transaction_type",
+   "display_if": "transaction_type",
    "fieldname": "naming_series_options",
    "fieldtype": "Text",
    "label": "Series List for this Transaction"
   },
   {
-   "depends_on": "transaction_type",
+   "display_if": "transaction_type",
    "description": "Get a preview of generated names with a series.",
    "fieldname": "try_naming_series",
    "fieldtype": "Data",

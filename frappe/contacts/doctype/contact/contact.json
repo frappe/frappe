@@ -175,7 +175,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval:doc.sync_with_google_contacts || doc.pulled_from_google_contacts",
+   "display_if": "eval:doc.sync_with_google_contacts || doc.pulled_from_google_contacts",
    "fieldname": "sb_00",
    "fieldtype": "Section Break",
    "label": "Google Contacts"

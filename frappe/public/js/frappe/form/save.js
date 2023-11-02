@@ -186,10 +186,10 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 
 	let is_docfield_mandatory = function (doc, df) {
 		if (df.reqd) return true;
-		if (!df.mandatory_depends_on || !doc) return;
+		if (!df.mandatory_if || !doc) return;
 
 		let out = null;
-		let expression = df.mandatory_depends_on;
+		let expression = df.mandatory_if;
 		let parent = frappe.get_meta(df.parent);
 
 		if (typeof expression === "boolean") {
@@ -203,7 +203,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 					out = true;
 				}
 			} catch (e) {
-				frappe.throw(__('Invalid "mandatory_depends_on" expression'));
+				frappe.throw(__('Invalid "mandatory_if" expression'));
 			}
 		} else {
 			var value = doc[expression];

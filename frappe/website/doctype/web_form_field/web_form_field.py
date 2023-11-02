@@ -16,7 +16,7 @@ class WebFormField(Document):
 
 		allow_read_on_all_link_options: DF.Check
 		default: DF.Data | None
-		depends_on: DF.Code | None
+		display_if: DF.Code | None
 		description: DF.Text | None
 		fieldname: DF.Literal
 		fieldtype: DF.Literal[
@@ -49,7 +49,7 @@ class WebFormField(Document):
 		]
 		hidden: DF.Check
 		label: DF.Data | None
-		mandatory_depends_on: DF.Code | None
+		mandatory_if: DF.Code | None
 		max_length: DF.Int
 		max_value: DF.Int
 		options: DF.Text | None
@@ -57,7 +57,7 @@ class WebFormField(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		read_only: DF.Check
-		read_only_depends_on: DF.Code | None
+		readonly_if: DF.Code | None
 		reqd: DF.Check
 		show_in_filter: DF.Check
 	# end: auto-generated types

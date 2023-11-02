@@ -114,7 +114,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "description": "Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended.",
    "fieldname": "is_submittable",
    "fieldtype": "Check",
@@ -132,7 +132,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "description": "Single Types have only one record no tables associated. Values are stored in tabSingles",
    "fieldname": "issingle",
    "fieldtype": "Check",
@@ -144,14 +144,14 @@
   },
   {
    "default": "1",
-   "depends_on": "istable",
+   "display_if": "istable",
    "fieldname": "editable_grid",
    "fieldtype": "Check",
    "label": "Editable Grid"
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable && !doc.issingle",
+   "display_if": "eval:!doc.istable && !doc.issingle",
    "description": "Open a dialog with mandatory fields to create a new record quickly",
    "fieldname": "quick_entry",
    "fieldtype": "Check",
@@ -163,7 +163,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "description": "If enabled, changes to the document are tracked and shown in timeline",
    "fieldname": "track_changes",
    "fieldtype": "Check",
@@ -171,7 +171,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "description": "If enabled, the document is marked as seen, the first time a user opens it",
    "fieldname": "track_seen",
    "fieldtype": "Check",
@@ -179,7 +179,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "description": "If enabled, document views are tracked, this can happen multiple times",
    "fieldname": "track_views",
    "fieldtype": "Check",
@@ -193,7 +193,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "beta",
    "fieldtype": "Check",
    "label": "Beta"
@@ -232,7 +232,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "form_settings_section",
    "fieldtype": "Section Break",
    "label": "Form Settings"
@@ -244,7 +244,7 @@
    "label": "Image Field"
   },
   {
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "description": "Comments and Communications will be associated with this linked document",
    "fieldname": "timeline_field",
    "fieldtype": "Data",
@@ -279,7 +279,7 @@
   },
   {
    "default": "1",
-   "depends_on": "eval:doc.naming_rule !== \"Autoincrement\"",
+   "display_if": "eval:doc.naming_rule !== \"Autoincrement\"",
    "fieldname": "allow_rename",
    "fieldtype": "Check",
    "label": "Allow Rename",
@@ -306,20 +306,20 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "view_settings",
    "fieldtype": "Section Break",
    "label": "View Settings"
   },
   {
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "title_field",
    "fieldtype": "Data",
    "label": "Title Field",
-   "mandatory_depends_on": "eval:doc.show_title_field_in_link"
+   "mandatory_if": "eval:doc.show_title_field_in_link"
   },
   {
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "search_fields",
    "fieldtype": "Data",
    "label": "Search Fields",
@@ -333,14 +333,14 @@
   },
   {
    "default": "modified",
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "sort_field",
    "fieldtype": "Data",
    "label": "Default Sort Field"
   },
   {
    "default": "DESC",
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "sort_order",
    "fieldtype": "Select",
    "label": "Default Sort Order",
@@ -381,7 +381,7 @@
    "label": "Make \"name\" searchable in Global Search"
   },
   {
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "sb2",
    "fieldtype": "Section Break",
    "label": "Permission Rules"
@@ -417,7 +417,7 @@
    "oldfieldtype": "Check"
   },
   {
-   "depends_on": "eval:doc.custom===0 && !doc.istable",
+   "display_if": "eval:doc.custom===0 && !doc.istable",
    "fieldname": "web_view",
    "fieldtype": "Section Break",
    "label": "Web View"
@@ -430,19 +430,19 @@
   },
   {
    "default": "0",
-   "depends_on": "has_web_view",
+   "display_if": "has_web_view",
    "fieldname": "allow_guest_to_view",
    "fieldtype": "Check",
    "label": "Allow Guest to View"
   },
   {
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "route",
    "fieldtype": "Data",
    "label": "Route"
   },
   {
-   "depends_on": "has_web_view",
+   "display_if": "has_web_view",
    "fieldname": "is_published_field",
    "fieldtype": "Data",
    "label": "Is Published Field"
@@ -456,7 +456,7 @@
   },
   {
    "default": "InnoDB",
-   "depends_on": "eval:!doc.issingle",
+   "display_if": "eval:!doc.issingle",
    "fieldname": "engine",
    "fieldtype": "Select",
    "label": "Database Engine",
@@ -464,14 +464,14 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "description": "Tree structures are implemented using Nested Set",
    "fieldname": "is_tree",
    "fieldtype": "Check",
    "label": "Is Tree"
   },
   {
-   "depends_on": "is_tree",
+   "display_if": "is_tree",
    "fieldname": "nsm_parent_field",
    "fieldtype": "Data",
    "label": "Parent Field (Tree)"
@@ -484,8 +484,8 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "actions",
-   "depends_on": "eval:!doc.istable",
+   "collapsible_if": "actions",
+   "display_if": "eval:!doc.istable",
    "fieldname": "actions_section",
    "fieldtype": "Section Break",
    "label": "Actions"
@@ -498,8 +498,8 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "links",
-   "depends_on": "eval:!doc.istable",
+   "collapsible_if": "links",
+   "display_if": "eval:!doc.istable",
    "fieldname": "links_section",
    "fieldtype": "Section Break",
    "label": "Linked Documents"
@@ -511,17 +511,17 @@
    "options": "DocType Link"
   },
   {
-   "depends_on": "email_append_to",
+   "display_if": "email_append_to",
    "fieldname": "subject_field",
    "fieldtype": "Data",
    "label": "Subject Field"
   },
   {
-   "depends_on": "email_append_to",
+   "display_if": "email_append_to",
    "fieldname": "sender_field",
    "fieldtype": "Data",
    "label": "Sender Field",
-   "mandatory_depends_on": "email_append_to"
+   "mandatory_if": "email_append_to"
   },
   {
    "default": "0",
@@ -531,7 +531,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "email_settings_sb",
    "fieldtype": "Section Break",
    "label": "Email Settings"
@@ -559,7 +559,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "has_web_view",
+   "display_if": "has_web_view",
    "fieldname": "website_search_field",
    "fieldtype": "Data",
    "label": "Website Search Field"
@@ -584,7 +584,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "fieldname": "document_states_section",
    "fieldtype": "Section Break",
    "label": "Document States"
@@ -609,7 +609,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.is_submittable",
+   "display_if": "eval: doc.is_submittable",
    "description": "Enabling this will submit documents in background",
    "fieldname": "queue_in_background",
    "fieldtype": "Check",
@@ -628,7 +628,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.istable",
+   "display_if": "eval:!doc.istable",
    "description": "Enables Calendar and Gantt views.",
    "fieldname": "is_calendar_and_gantt",
    "fieldtype": "Check",
@@ -640,7 +640,7 @@
    "label": "Settings"
   },
   {
-   "depends_on": "eval:!doc.__islocal",
+   "display_if": "eval:!doc.__islocal",
    "fieldname": "form_builder_tab",
    "fieldtype": "Tab Break",
    "label": "Form"

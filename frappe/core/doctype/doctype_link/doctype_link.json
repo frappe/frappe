@@ -50,11 +50,11 @@
    "label": "Custom"
   },
   {
-   "depends_on": "is_child_table",
+   "display_if": "is_child_table",
    "fieldname": "parent_doctype",
    "fieldtype": "Link",
    "label": "Parent DocType",
-   "mandatory_depends_on": "is_child_table",
+   "mandatory_if": "is_child_table",
    "options": "DocType"
   },
   {

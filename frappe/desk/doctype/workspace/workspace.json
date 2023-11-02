@@ -47,7 +47,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "charts",
+   "collapsible_if": "charts",
    "fieldname": "tab_break_2",
    "fieldtype": "Tab Break",
    "label": "Dashboards"
@@ -86,14 +86,14 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "shortcuts",
+   "collapsible_if": "shortcuts",
    "fieldname": "tab_break_15",
    "fieldtype": "Tab Break",
    "label": "Shortcuts"
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "links",
+   "collapsible_if": "links",
    "fieldname": "tab_break_18",
    "fieldtype": "Tab Break",
    "label": "Link Cards"
@@ -210,7 +210,7 @@
    "options": "Workspace Custom Block"
   },
   {
-   "depends_on": "doc.icon",
+   "display_if": "doc.icon",
    "fieldname": "indicator_color",
    "fieldtype": "Select",
    "label": "Indicator Color",

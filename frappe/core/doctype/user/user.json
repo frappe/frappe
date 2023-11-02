@@ -106,7 +106,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "enabled",
+   "display_if": "enabled",
    "fieldname": "section_break_3",
    "fieldtype": "Section Break",
    "label": "Basic Info"
@@ -155,7 +155,7 @@
   {
    "bold": 1,
    "default": "1",
-   "depends_on": "eval:doc.__islocal",
+   "display_if": "eval:doc.__islocal",
    "fieldname": "send_welcome_email",
    "fieldtype": "Check",
    "label": "Send Welcome Email"
@@ -204,7 +204,7 @@
    "print_hide": 1
   },
   {
-   "depends_on": "eval:in_list(['System User', 'Website User'], doc.user_type) && doc.enabled == 1",
+   "display_if": "eval:in_list(['System User', 'Website User'], doc.user_type) && doc.enabled == 1",
    "fieldname": "sb1",
    "fieldtype": "Section Break",
    "label": "Roles",
@@ -237,7 +237,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "enabled",
+   "display_if": "enabled",
    "fieldname": "short_bio",
    "fieldtype": "Tab Break",
    "label": "More Information"
@@ -305,7 +305,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval:doc.enabled && (!doc.__islocal || !cint(doc.send_welcome_email))",
+   "display_if": "eval:doc.enabled && (!doc.__islocal || !cint(doc.send_welcome_email))",
    "fieldname": "change_password",
    "fieldtype": "Section Break",
    "label": "Change Password"
@@ -360,7 +360,7 @@
   },
   {
    "default": "Daily",
-   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "display_if": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "document_follow_frequency",
    "fieldtype": "Select",
    "label": "Frequency",
@@ -368,7 +368,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "enabled",
+   "display_if": "enabled",
    "fieldname": "email_settings",
    "fieldtype": "Section Break",
    "label": "Email"
@@ -405,7 +405,7 @@
    "permlevel": 1
   },
   {
-   "depends_on": "eval:in_list(['System User'], doc.user_type)",
+   "display_if": "eval:in_list(['System User'], doc.user_type)",
    "fieldname": "sb_allow_modules",
    "fieldtype": "Section Break",
    "label": "Allow Modules",
@@ -454,7 +454,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "enabled",
+   "display_if": "enabled",
    "fieldname": "sb3",
    "fieldtype": "Section Break",
    "label": "Security Settings",
@@ -504,7 +504,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.restrict_ip && doc.restrict_ip.length",
+   "display_if": "eval:doc.restrict_ip && doc.restrict_ip.length",
    "description": "If enabled,  user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings",
    "fieldname": "bypass_restrict_ip_check_if_2fa_enabled",
    "fieldtype": "Check",
@@ -552,7 +552,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "enabled",
+   "display_if": "enabled",
    "fieldname": "third_party_authentication",
    "fieldtype": "Section Break",
    "label": "Third Party Authentication",
@@ -634,35 +634,35 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "display_if": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "follow_created_documents",
    "fieldtype": "Check",
    "label": "Auto follow documents that you create"
   },
   {
    "default": "0",
-   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "display_if": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "follow_commented_documents",
    "fieldtype": "Check",
    "label": "Auto follow documents that you comment on"
   },
   {
    "default": "0",
-   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "display_if": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "follow_liked_documents",
    "fieldtype": "Check",
    "label": "Auto follow documents that you Like"
   },
   {
    "default": "0",
-   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "display_if": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "follow_shared_documents",
    "fieldtype": "Check",
    "label": "Auto follow documents that are shared with you"
   },
   {
    "default": "0",
-   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "display_if": "eval:(doc.document_follow_notify== 1)",
    "fieldname": "follow_assigned_documents",
    "fieldtype": "Check",
    "label": "Auto follow documents that are assigned to you"

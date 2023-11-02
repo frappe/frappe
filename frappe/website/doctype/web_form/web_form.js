@@ -107,9 +107,9 @@ frappe.ui.form.on("Web Form", {
 							reqd: df.reqd,
 							default: df.default,
 							read_only: df.read_only,
-							depends_on: df.depends_on,
-							mandatory_depends_on: df.mandatory_depends_on,
-							read_only_depends_on: df.read_only_depends_on,
+							display_if: df.display_if,
+							mandatory_if: df.mandatory_if,
+							readonly_if: df.readonly_if,
 						});
 					}
 				}
@@ -325,9 +325,9 @@ frappe.ui.form.on("Web Form Field", {
 		doc.reqd = df.reqd;
 		doc.default = df.default;
 		doc.read_only = df.read_only;
-		doc.depends_on = df.depends_on;
-		doc.mandatory_depends_on = df.mandatory_depends_on;
-		doc.read_only_depends_on = df.read_only_depends_on;
+		doc.display_if = df.display_if;
+		doc.mandatory_if = df.mandatory_if;
+		doc.readonly_if = df.readonly_if;
 
 		frm.refresh_field("web_form_fields");
 	},

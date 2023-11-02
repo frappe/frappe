@@ -405,14 +405,14 @@ frappe.setup.slides_settings = [
 				label: __("Allow sending usage data for improving applications"),
 				fieldtype: "Check",
 				default: cint(frappe.telemetry.can_enable()),
-				depends_on: "eval:frappe.telemetry.can_enable()",
+				display_if: "eval:frappe.telemetry.can_enable()",
 			},
 			{
 				fieldname: "allow_recording_first_session",
 				label: __("Allow recording my first session to improve user experience"),
 				fieldtype: "Check",
 				default: 0,
-				depends_on: "eval:frappe.telemetry.can_enable()",
+				display_if: "eval:frappe.telemetry.can_enable()",
 			},
 		],
 

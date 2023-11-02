@@ -87,13 +87,13 @@
    "label": "Custom Format"
   },
   {
-   "depends_on": "custom_format",
+   "display_if": "custom_format",
    "fieldname": "section_break_6",
    "fieldtype": "Section Break"
   },
   {
    "default": "Jinja",
-   "depends_on": "custom_format",
+   "display_if": "custom_format",
    "fieldname": "print_format_type",
    "fieldtype": "Select",
    "label": "Print Format Type",
@@ -106,7 +106,7 @@
    "label": "Raw Printing"
   },
   {
-   "depends_on": "eval:!doc.raw_printing",
+   "display_if": "eval:!doc.raw_printing",
    "fieldname": "html",
    "fieldtype": "Code",
    "label": "HTML",
@@ -115,14 +115,14 @@
    "options": "HTML"
   },
   {
-   "depends_on": "raw_printing",
+   "display_if": "raw_printing",
    "description": "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language.",
    "fieldname": "raw_commands",
    "fieldtype": "Code",
    "label": "Raw Commands"
   },
   {
-   "depends_on": "eval:!doc.custom_format",
+   "display_if": "eval:!doc.custom_format",
    "fieldname": "section_break_9",
    "fieldtype": "Section Break",
    "label": "Style Settings"
@@ -156,13 +156,13 @@
    "options": "Language"
   },
   {
-   "depends_on": "eval:!doc.custom_format",
+   "display_if": "eval:!doc.custom_format",
    "fieldname": "font",
    "fieldtype": "Data",
    "label": "Google Font"
   },
   {
-   "depends_on": "eval:!doc.raw_printing",
+   "display_if": "eval:!doc.raw_printing",
    "fieldname": "css_section",
    "fieldtype": "Section Break"
   },
@@ -179,12 +179,12 @@
    "options": "<h3>Custom CSS Help</h3>\n\n<p>Notes:</p>\n\n<ol>\n<li>All field groups (label + value) are set attributes <code>data-fieldtype</code> and <code>data-fieldname</code></li>\n<li>All values are given class <code>value</code></li>\n<li>All Section Breaks are given class <code>section-break</code></li>\n<li>All Column Breaks are given class <code>column-break</code></li>\n</ol>\n\n<h4>Examples</h4>\n\n<p>1. Left align integers</p>\n\n<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; }</code></pre>\n\n<p>1. Add border to sections except the last section</p>\n\n<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n.section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
   },
   {
-   "depends_on": "custom_format",
+   "display_if": "custom_format",
    "fieldname": "section_break_13",
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "custom_format",
+   "display_if": "custom_format",
    "fieldname": "print_format_help",
    "fieldtype": "HTML",
    "label": "Print Format Help",
@@ -205,7 +205,7 @@
   },
   {
    "default": "0",
-   "depends_on": "doc_type",
+   "display_if": "doc_type",
    "description": "If checked, negative numeric values of Currency, Quantity or Count would be shown as positive",
    "fieldname": "absolute_value",
    "fieldtype": "Check",

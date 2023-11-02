@@ -180,7 +180,7 @@ frappe.report_utils = {
 				fieldname: "csv_settings",
 				label: "Settings",
 				collapsible: 1,
-				depends_on: "eval:doc.file_format=='CSV'",
+				display_if: "eval:doc.file_format=='CSV'",
 			},
 			{
 				fieldtype: "Data",
@@ -188,7 +188,7 @@ frappe.report_utils = {
 				fieldname: "csv_delimiter",
 				default: ",",
 				length: 1,
-				depends_on: "eval:doc.file_format=='CSV'",
+				display_if: "eval:doc.file_format=='CSV'",
 			},
 			{
 				fieldtype: "Select",
@@ -201,14 +201,14 @@ frappe.report_utils = {
 					{ value: 3, label: "None" },
 				],
 				default: 2,
-				depends_on: "eval:doc.file_format=='CSV'",
+				display_if: "eval:doc.file_format=='CSV'",
 			},
 			{
 				fieldtype: "Small Text",
 				label: "CSV Preview",
 				fieldname: "csv_preview",
 				read_only: 1,
-				depends_on: "eval:doc.file_format=='CSV'",
+				display_if: "eval:doc.file_format=='CSV'",
 			},
 		];
 

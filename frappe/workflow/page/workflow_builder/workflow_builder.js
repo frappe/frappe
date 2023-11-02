@@ -61,8 +61,8 @@ function load_workflow_builder(wrapper) {
 					label: __("New Workflow Name"),
 					fieldname: "workflow_name",
 					fieldtype: "Data",
-					depends_on: (doc) => doc.action === "Create",
-					mandatory_depends_on: (doc) => doc.action === "Create",
+					display_if: (doc) => doc.action === "Create",
+					mandatory_if: (doc) => doc.action === "Create",
 				},
 				{
 					label: __("Select Workflow"),
@@ -70,7 +70,7 @@ function load_workflow_builder(wrapper) {
 					fieldtype: "Link",
 					options: "Workflow",
 					only_select: 1,
-					depends_on: (doc) => doc.action === "Edit",
+					display_if: (doc) => doc.action === "Edit",
 					get_query() {
 						return {
 							filters: {
@@ -78,7 +78,7 @@ function load_workflow_builder(wrapper) {
 							},
 						};
 					},
-					mandatory_depends_on: (doc) => doc.action === "Edit",
+					mandatory_if: (doc) => doc.action === "Edit",
 				},
 			],
 			primary_action_label: __("Edit"),

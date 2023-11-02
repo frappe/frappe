@@ -83,11 +83,11 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval: doc.default_user_type == \"System User\"",
+   "display_if": "eval: doc.default_user_type == \"System User\"",
    "fieldname": "default_role",
    "fieldtype": "Link",
    "label": "Default User Role",
-   "mandatory_depends_on": "eval: doc.default_user_type == \"System User\"",
+   "mandatory_if": "eval: doc.default_user_type == \"System User\"",
    "options": "Role"
   },
   {

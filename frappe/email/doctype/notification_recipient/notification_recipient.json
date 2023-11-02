@@ -13,14 +13,14 @@
  ],
  "fields": [
   {
-   "depends_on": "eval:parent.channel=='Email'",
+   "display_if": "eval:parent.channel=='Email'",
    "description": "Optional: Always send to these ids. Each Email Address on a new row",
    "fieldname": "cc",
    "fieldtype": "Code",
    "label": "CC"
   },
   {
-   "depends_on": "eval:parent.channel=='Email'",
+   "display_if": "eval:parent.channel=='Email'",
    "fieldname": "bcc",
    "fieldtype": "Code",
    "label": "BCC"

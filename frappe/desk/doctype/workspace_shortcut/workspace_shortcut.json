@@ -30,7 +30,7 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:doc.type != \"URL\"",
+   "display_if": "eval:doc.type != \"URL\"",
    "fieldname": "link_to",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
@@ -38,7 +38,7 @@
    "options": "type"
   },
   {
-   "depends_on": "eval:doc.type == \"DocType\"",
+   "display_if": "eval:doc.type == \"DocType\"",
    "description": "Which view of the associated DocType should this shortcut take you to?",
    "fieldname": "doc_view",
    "fieldtype": "Select",
@@ -58,20 +58,20 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:frappe.boot.developer_mode",
+   "display_if": "eval:frappe.boot.developer_mode",
    "fieldname": "icon",
    "fieldtype": "Data",
    "label": "Icon"
   },
   {
-   "depends_on": "eval:frappe.boot.developer_mode",
+   "display_if": "eval:frappe.boot.developer_mode",
    "fieldname": "restrict_to_domain",
    "fieldtype": "Link",
    "label": "Restrict to Domain",
    "options": "Domain"
   },
   {
-   "depends_on": "eval:doc.type == \"DocType\"  && frappe.boot.developer_mode",
+   "display_if": "eval:doc.type == \"DocType\"  && frappe.boot.developer_mode",
    "fieldname": "section_break_5",
    "fieldtype": "Section Break",
    "label": "Count Filter"
@@ -98,7 +98,7 @@
    "label": "Format"
   },
   {
-   "depends_on": "eval:doc.type == \"URL\"",
+   "display_if": "eval:doc.type == \"URL\"",
    "fieldname": "url",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -106,7 +106,7 @@
    "options": "URL"
   },
   {
-   "depends_on": "eval:doc.doc_view == \"Kanban\"",
+   "display_if": "eval:doc.doc_view == \"Kanban\"",
    "fieldname": "kanban_board",
    "fieldtype": "Link",
    "label": "Kanban Board",

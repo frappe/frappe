@@ -31,7 +31,7 @@ frappe.ui.FieldGroup = class FieldGroup extends frappe.ui.form.Layout {
 					}
 
 					field.set_input(def_value);
-					// if default and has depends_on, render its fields.
+					// if default and has display_if, render its fields.
 					me.refresh_dependency();
 				}
 			});

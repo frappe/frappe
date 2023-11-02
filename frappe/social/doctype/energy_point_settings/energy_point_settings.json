@@ -19,7 +19,7 @@
    "label": "Enabled"
   },
   {
-   "depends_on": "enabled",
+   "display_if": "enabled",
    "fieldname": "section_break_2",
    "fieldtype": "Section Break"
   },

@@ -65,7 +65,7 @@
    "label": "Apply To All Document Types"
   },
   {
-   "depends_on": "eval:!doc.apply_to_all_doctypes",
+   "display_if": "eval:!doc.apply_to_all_doctypes",
    "fieldname": "applicable_for",
    "fieldtype": "Link",
    "in_list_view": 1,

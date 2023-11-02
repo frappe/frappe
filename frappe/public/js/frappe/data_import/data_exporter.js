@@ -51,7 +51,7 @@ frappe.data_import.DataExporter = class DataExporter {
 				{
 					fieldtype: "HTML",
 					fieldname: "filter_area",
-					depends_on: (doc) => doc.export_records === "by_filter",
+					display_if: (doc) => doc.export_records === "by_filter",
 				},
 				{
 					fieldtype: "Section Break",

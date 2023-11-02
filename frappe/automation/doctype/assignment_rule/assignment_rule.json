@@ -100,11 +100,11 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval: doc.rule !== 'Based on Field'",
+   "display_if": "eval: doc.rule !== 'Based on Field'",
    "fieldname": "users",
    "fieldtype": "Table MultiSelect",
    "label": "Users",
-   "mandatory_depends_on": "eval: doc.rule !== 'Based on Field'",
+   "mandatory_if": "eval: doc.rule !== 'Based on Field'",
    "options": "Assignment Rule User"
   },
   {
@@ -138,18 +138,18 @@
    "reqd": 1
   },
   {
-   "depends_on": "document_type",
+   "display_if": "document_type",
    "description": "Value from this field will be set as the due date in the ToDo",
    "fieldname": "due_date_based_on",
    "fieldtype": "Select",
    "label": "Due Date Based On"
   },
   {
-   "depends_on": "eval: doc.rule == 'Based on Field'",
+   "display_if": "eval: doc.rule == 'Based on Field'",
    "fieldname": "field",
    "fieldtype": "Select",
    "label": "Field",
-   "mandatory_depends_on": "eval: doc.rule == 'Based on Field'"
+   "mandatory_if": "eval: doc.rule == 'Based on Field'"
   }
  ],
  "index_web_pages_for_search": 1,

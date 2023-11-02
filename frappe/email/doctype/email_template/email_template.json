@@ -24,12 +24,12 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval:!doc.use_html",
+   "display_if": "eval:!doc.use_html",
    "fieldname": "response",
    "fieldtype": "Text Editor",
    "in_list_view": 1,
    "label": "Response",
-   "mandatory_depends_on": "eval:!doc.use_html"
+   "mandatory_if": "eval:!doc.use_html"
   },
   {
    "fieldname": "section_break_4",
@@ -48,7 +48,7 @@
    "label": "Use HTML"
   },
   {
-   "depends_on": "eval:doc.use_html",
+   "display_if": "eval:doc.use_html",
    "fieldname": "response_html",
    "fieldtype": "Code",
    "label": "Response ",

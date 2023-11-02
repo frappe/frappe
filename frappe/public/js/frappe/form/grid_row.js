@@ -709,19 +709,11 @@ export default class GridRow {
 	}
 
 	set_dependant_property(df) {
-		if (
-			!df.reqd &&
-			df.mandatory_depends_on &&
-			this.evaluate_depends_on_value(df.mandatory_depends_on)
-		) {
+		if (!df.reqd && df.mandatory_if && this.evaluate_depends_on_value(df.mandatory_if)) {
 			df.reqd = 1;
 		}
 
-		if (
-			!df.read_only &&
-			df.read_only_depends_on &&
-			this.evaluate_depends_on_value(df.read_only_depends_on)
-		) {
+		if (!df.read_only && df.readonly_if && this.evaluate_depends_on_value(df.readonly_if)) {
 			df.read_only = 1;
 		}
 	}
@@ -745,7 +737,7 @@ export default class GridRow {
 					out = true;
 				}
 			} catch (e) {
-				frappe.throw(__('Invalid "depends_on" expression'));
+				frappe.throw(__('Invalid "display_if" expression'));
 			}
 		} else if (expression.substr(0, 3) == "fn:" && this.frm) {
 			out = this.frm.script_manager.trigger(

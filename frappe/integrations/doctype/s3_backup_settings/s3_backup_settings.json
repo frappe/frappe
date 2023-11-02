@@ -34,7 +34,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Send Notifications To",
-   "mandatory_depends_on": "enabled",
+   "mandatory_if": "enabled",
    "reqd": 1
   },
   {
@@ -49,7 +49,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Backup Frequency",
-   "mandatory_depends_on": "enabled",
+   "mandatory_if": "enabled",
    "options": "Daily\nWeekly\nMonthly\nNone",
    "reqd": 1
   },
@@ -58,7 +58,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Access Key ID",
-   "mandatory_depends_on": "enabled",
+   "mandatory_if": "enabled",
    "reqd": 1
   },
   {
@@ -66,7 +66,7 @@
    "fieldtype": "Password",
    "in_list_view": 1,
    "label": "Access Key Secret",
-   "mandatory_depends_on": "enabled",
+   "mandatory_if": "enabled",
    "reqd": 1
   },
   {
@@ -80,11 +80,11 @@
    "fieldname": "bucket",
    "fieldtype": "Data",
    "label": "Bucket Name",
-   "mandatory_depends_on": "enabled",
+   "mandatory_if": "enabled",
    "reqd": 1
   },
   {
-   "depends_on": "enabled",
+   "display_if": "enabled",
    "fieldname": "api_access_section",
    "fieldtype": "Section Break",
    "label": "API Access"
@@ -94,7 +94,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "enabled",
+   "display_if": "enabled",
    "fieldname": "notification_section",
    "fieldtype": "Section Break",
    "label": "Notification"
@@ -104,7 +104,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "enabled",
+   "display_if": "enabled",
    "fieldname": "s3_bucket_details_section",
    "fieldtype": "Section Break",
    "label": "S3 Bucket Details"
@@ -114,7 +114,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "enabled",
+   "display_if": "enabled",
    "fieldname": "backup_details_section",
    "fieldtype": "Section Break",
    "label": "Backup Details"

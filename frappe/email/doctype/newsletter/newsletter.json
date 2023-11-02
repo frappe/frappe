@@ -80,12 +80,12 @@
    "reqd": 1
   },
   {
-   "depends_on": "eval: doc.content_type === 'Rich Text'",
+   "display_if": "eval: doc.content_type === 'Rich Text'",
    "fieldname": "message",
    "fieldtype": "Text Editor",
    "in_list_view": 1,
    "label": "Message",
-   "mandatory_depends_on": "eval: doc.content_type === 'Rich Text'"
+   "mandatory_if": "eval: doc.content_type === 'Rich Text'"
   },
   {
    "default": "1",
@@ -100,7 +100,7 @@
    "label": "Published"
   },
   {
-   "depends_on": "published",
+   "display_if": "published",
    "fieldname": "route",
    "fieldtype": "Data",
    "label": "Route",
@@ -118,12 +118,12 @@
    "label": "To"
   },
   {
-   "depends_on": "eval: doc.schedule_sending",
+   "display_if": "eval: doc.schedule_sending",
    "fieldname": "schedule_send",
    "fieldtype": "Datetime",
    "label": "Send Email At",
    "read_only": 1,
-   "read_only_depends_on": "eval: doc.email_sent"
+   "readonly_if": "eval: doc.email_sent"
   },
   {
    "fieldname": "content_type",
@@ -132,25 +132,25 @@
    "options": "Rich Text\nMarkdown\nHTML"
   },
   {
-   "depends_on": "eval:doc.content_type === 'Markdown'",
+   "display_if": "eval:doc.content_type === 'Markdown'",
    "fieldname": "message_md",
    "fieldtype": "Markdown Editor",
    "label": "Message (Markdown)",
-   "mandatory_depends_on": "eval:doc.content_type === 'Markdown'"
+   "mandatory_if": "eval:doc.content_type === 'Markdown'"
   },
   {
-   "depends_on": "eval:doc.content_type === 'HTML'",
+   "display_if": "eval:doc.content_type === 'HTML'",
    "fieldname": "message_html",
    "fieldtype": "HTML Editor",
    "label": "Message (HTML)",
-   "mandatory_depends_on": "eval:doc.content_type === 'HTML'"
+   "mandatory_if": "eval:doc.content_type === 'HTML'"
   },
   {
    "default": "0",
    "fieldname": "schedule_sending",
    "fieldtype": "Check",
    "label": "Schedule sending at a later time",
-   "read_only_depends_on": "eval: doc.email_sent"
+   "readonly_if": "eval: doc.email_sent"
   },
   {
    "default": "0",
@@ -194,7 +194,7 @@
    "label": "Publish as a web page"
   },
   {
-   "depends_on": "schedule_sending",
+   "display_if": "schedule_sending",
    "fieldname": "schedule_settings_section",
    "fieldtype": "Section Break",
    "label": "Scheduled Sending"
@@ -218,7 +218,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "email_sent",
+   "display_if": "email_sent",
    "fieldname": "status_section",
    "fieldtype": "Section Break",
    "label": "Status"

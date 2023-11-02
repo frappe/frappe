@@ -56,7 +56,7 @@
   },
   {
    "default": "Email",
-   "depends_on": "eval: !doc.disable_channel",
+   "display_if": "eval: !doc.disable_channel",
    "fieldname": "channel",
    "fieldtype": "Select",
    "label": "Channel",
@@ -65,12 +65,12 @@
    "set_only_once": 1
   },
   {
-   "depends_on": "eval:doc.channel=='Slack'",
+   "display_if": "eval:doc.channel=='Slack'",
    "description": "To use Slack Channel, add a <a href=\"#List/Slack%20Webhook%20URL/List\">Slack Webhook URL</a>.",
    "fieldname": "slack_webhook_url",
    "fieldtype": "Link",
    "label": "Slack Channel",
-   "mandatory_depends_on": "eval:doc.channel=='Slack'",
+   "mandatory_if": "eval:doc.channel=='Slack'",
    "options": "Slack Webhook URL"
   },
   {
@@ -79,14 +79,14 @@
    "label": "Filters"
   },
   {
-   "depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)",
+   "display_if": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)",
    "description": "To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>",
    "fieldname": "subject",
    "fieldtype": "Data",
    "ignore_xss_filter": 1,
    "in_list_view": 1,
    "label": "Subject",
-   "mandatory_depends_on": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)"
+   "mandatory_if": "eval: in_list(['Email', 'Slack', 'System Notification'], doc.channel)"
   },
   {
    "fieldname": "document_type",
@@ -106,7 +106,7 @@
    "no_copy": 1
   },
   {
-   "depends_on": "is_standard",
+   "display_if": "is_standard",
    "fieldname": "module",
    "fieldtype": "Link",
    "in_standard_filter": 1,
@@ -118,7 +118,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.document_type",
+   "display_if": "eval: doc.document_type",
    "fieldname": "event",
    "fieldtype": "Select",
    "in_list_view": 1,
@@ -128,14 +128,14 @@
    "search_index": 1
   },
   {
-   "depends_on": "eval:doc.event=='Method'",
+   "display_if": "eval:doc.event=='Method'",
    "description": "Trigger on valid methods like \"before_insert\", \"after_update\", etc (will depend on the DocType selected)",
    "fieldname": "method",
    "fieldtype": "Data",
    "label": "Trigger Method"
   },
   {
-   "depends_on": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
+   "display_if": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
    "description": "Send alert if date matches this field's value",
    "fieldname": "date_changed",
    "fieldtype": "Select",
@@ -143,21 +143,21 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
+   "display_if": "eval:doc.document_type && (doc.event==\"Days After\" || doc.event==\"Days Before\")",
    "description": "Send days before or after the reference date",
    "fieldname": "days_in_advance",
    "fieldtype": "Int",
    "label": "Days Before or After"
   },
   {
-   "depends_on": "eval:doc.document_type && doc.event==\"Value Change\"",
+   "display_if": "eval:doc.document_type && doc.event==\"Value Change\"",
    "description": "Send alert if this field's value changes",
    "fieldname": "value_changed",
    "fieldtype": "Select",
    "label": "Value Changed"
   },
   {
-   "depends_on": "eval: doc.channel == 'Email'",
+   "display_if": "eval: doc.channel == 'Email'",
    "fieldname": "sender",
    "fieldtype": "Link",
    "label": "Sender",
@@ -208,7 +208,7 @@
    "label": "Value To Be Set"
   },
   {
-   "depends_on": "eval:doc.channel !=\"Slack\"",
+   "display_if": "eval:doc.channel !=\"Slack\"",
    "fieldname": "column_break_5",
    "fieldtype": "Section Break",
    "label": "Recipients"
@@ -217,7 +217,7 @@
    "fieldname": "recipients",
    "fieldtype": "Table",
    "label": "Recipients",
-   "mandatory_depends_on": "eval:doc.channel!=='Slack' && !doc.send_to_all_assignees",
+   "mandatory_if": "eval:doc.channel!=='Slack' && !doc.send_to_all_assignees",
    "options": "Notification Recipient"
   },
   {
@@ -245,7 +245,7 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "attach_print",
+   "collapsible_if": "attach_print",
    "fieldname": "column_break_25",
    "fieldtype": "Section Break",
    "label": "Print Settings"
@@ -257,7 +257,7 @@
    "label": "Attach Print"
   },
   {
-   "depends_on": "attach_print",
+   "display_if": "attach_print",
    "fieldname": "print_format",
    "fieldtype": "Link",
    "label": "Print Format",
@@ -265,7 +265,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.channel !== 'System Notification'",
+   "display_if": "eval: doc.channel !== 'System Notification'",
    "description": "If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar.",
    "fieldname": "send_system_notification",
    "fieldtype": "Check",
@@ -273,7 +273,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.channel == 'Email'",
+   "display_if": "eval:doc.channel == 'Email'",
    "fieldname": "send_to_all_assignees",
    "fieldtype": "Check",
    "label": "Send To All Assignees"

@@ -77,7 +77,7 @@
    "options": "DocType"
   },
   {
-   "depends_on": "doc_type",
+   "display_if": "doc_type",
    "fieldname": "properties",
    "fieldtype": "Section Break"
   },
@@ -113,7 +113,7 @@
   },
   {
    "default": "0",
-   "depends_on": "istable",
+   "display_if": "istable",
    "fieldname": "editable_grid",
    "fieldtype": "Check",
    "label": "Editable Grid"
@@ -155,7 +155,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "doc_type",
+   "display_if": "doc_type",
    "fieldname": "section_break_8",
    "fieldtype": "Section Break",
    "label": "List Settings"
@@ -177,7 +177,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "doc_type",
+   "display_if": "doc_type",
    "fieldname": "fields_section_break",
    "fieldtype": "Section Break",
    "hidden": 1,
@@ -210,17 +210,17 @@
    "label": "Allow Import (via Data Import Tool)"
   },
   {
-   "depends_on": "email_append_to",
+   "display_if": "email_append_to",
    "fieldname": "subject_field",
    "fieldtype": "Data",
    "label": "Subject Field"
   },
   {
-   "depends_on": "email_append_to",
+   "display_if": "email_append_to",
    "fieldname": "sender_field",
    "fieldtype": "Data",
    "label": "Sender Field",
-   "mandatory_depends_on": "email_append_to"
+   "mandatory_if": "email_append_to"
   },
   {
    "default": "0",
@@ -236,7 +236,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "doc_type",
+   "display_if": "doc_type",
    "fieldname": "view_settings_section",
    "fieldtype": "Section Break",
    "label": "View Settings"
@@ -247,16 +247,16 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "email_append_to",
-   "depends_on": "doc_type",
+   "collapsible_if": "email_append_to",
+   "display_if": "doc_type",
    "fieldname": "email_settings_section",
    "fieldtype": "Section Break",
    "label": "Email Settings"
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "links",
-   "depends_on": "doc_type",
+   "collapsible_if": "links",
+   "display_if": "doc_type",
    "fieldname": "document_links_section",
    "fieldtype": "Section Break",
    "label": "Document Links"
@@ -269,8 +269,8 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "actions",
-   "depends_on": "doc_type",
+   "collapsible_if": "actions",
+   "display_if": "doc_type",
    "fieldname": "document_actions_section",
    "fieldtype": "Section Break",
    "label": "Document Actions"
@@ -293,7 +293,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "doc_type",
+   "display_if": "doc_type",
    "fieldname": "naming_section",
    "fieldtype": "Section Break",
    "label": "Naming"
@@ -306,8 +306,8 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "states",
-   "depends_on": "doc_type",
+   "collapsible_if": "states",
+   "display_if": "doc_type",
    "fieldname": "document_states_section",
    "fieldtype": "Section Break",
    "label": "Document States"
@@ -360,7 +360,7 @@
   },
   {
    "default": "0",
-   "depends_on": "default_view",
+   "display_if": "default_view",
    "fieldname": "force_re_route_to_default_view",
    "fieldtype": "Check",
    "label": "Force Re-route to Default View"
