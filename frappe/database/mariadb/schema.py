@@ -3,7 +3,6 @@ from pymysql.constants.ER import DUP_ENTRY
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
-from frappe.utils.defaults import get_not_null_defaults
 
 
 class MariaDBTable(DBTable):
@@ -104,12 +103,10 @@ class MariaDBTable(DBTable):
 					drop_index_query.append(f"DROP INDEX `{index_record.Key_name}`")
 
 		for col in self.change_nullability:
-			current_column = self.current_columns.get(col.fieldname.lower())
 			if col.not_nullable:
-				default_value = get_not_null_defaults(col.fieldtype)
 				try:
 					table = frappe.qb.DocType(self.doctype)
-					frappe.qb.update(table).set(col.fieldname, default_value).where(
+					frappe.qb.update(table).set(col.fieldname, col.default).where(
 						table[col.fieldname].isnull()
 					).run()
 				except Exception:
