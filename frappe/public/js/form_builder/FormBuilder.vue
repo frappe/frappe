@@ -12,7 +12,9 @@ let should_render = computed(() => {
 });
 
 let container = ref(null);
-onClickOutside(container, () => (store.form.selected_field = null));
+onClickOutside(container, () => (store.form.selected_field = null), {
+	ignore: [".combo-box-options"],
+});
 
 watch(
 	() => store.form.layout,
