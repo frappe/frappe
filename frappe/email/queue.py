@@ -146,26 +146,21 @@ def flush(from_test=False):
 	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 		return
 
-	try:
-		queued_jobs = set(get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site])
-	except Exception:
-		queued_jobs = set()
-
-	for row in get_queue():
+	email_queue_batch = get_queue()
+	for row in email_queue_batch:
 		try:
-			job_name = f"email_queue_sendmail_{row.name}"
-			if job_name not in queued_jobs:
-				frappe.enqueue(
-					method=send_mail,
-					email_queue_name=row.name,
-					now=from_test,
-					job_name=job_name,
-					queue="short",
-				)
-			else:
-				frappe.logger().debug(f"Not queueing job {job_name} because it is in queue already")
+			send_mail(
+				email_queue_name=row.name,
+				now=from_test,
+				job_id=f"email_queue_sendmail_{row.name}",
+				queue="short",
+				deduplicate=True,
+			)
 		except Exception:
+			frappe.db.rollback()
 			frappe.get_doc("Email Queue", row.name).log_error()
+		finally:
+			frappe.db.commit()
 
 
 def get_queue():
