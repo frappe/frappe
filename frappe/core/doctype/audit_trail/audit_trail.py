@@ -28,6 +28,7 @@ class AuditTrail(Document):
 
 	def validate(self):
 		self.validate_fields()
+		self.validate_document()
 
 	def validate_fields(self):
 		fields_dict = {
@@ -37,6 +38,14 @@ class AuditTrail(Document):
 		for field in fields_dict:
 			if not fields_dict[field]:
 				frappe.throw(_("{} field cannot be empty.").format(frappe.bold(field)))
+
+	def validate_document(self):
+		if not frappe.db.exists(self.doctype_name, self.document):
+			frappe.throw(
+				_("The selected document {0} is not a {1}.").format(
+					frappe.bold(self.document), frappe.bold(self.doctype_name)
+				)
+			)
 
 	@frappe.whitelist()
 	def compare_document(self):

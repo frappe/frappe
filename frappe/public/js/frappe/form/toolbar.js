@@ -474,7 +474,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			frappe.model.get_value("DocType", this.frm.doc.doctype, "track_changes")
 		) {
 			this.page.add_menu_item(
-				__("Audit Trail"),
+				__("View Audit Trail"),
 				function () {
 					me.frm.show_audit_trail();
 				},
