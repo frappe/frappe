@@ -733,12 +733,15 @@ class DatabaseQuery:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
 
 		meta = frappe.get_meta(f.doctype)
+		df = meta.get("fields", {"fieldname": f.fieldname})
+		df = df[0] if df else None
+
 		can_be_null = True
+
+		value = None
 
 		# prepare in condition
 		if f.operator.lower() in NestedSetHierarchy:
-			values = f.value or ""
-
 			# TODO: handle list and tuple
 			# if not isinstance(values, (list, tuple)):
 			# 	values = values.split(",")
@@ -784,28 +787,28 @@ class DatabaseQuery:
 				"not in" if f.operator.lower() in ("not ancestors of", "not descendants of") else "in"
 			)
 
-		elif f.operator.lower() in ("in", "not in"):
+		if f.operator.lower() in ("in", "not in"):
 			# if values contain '' or falsy values then only coalesce column
 			# for `in` query this is only required if values contain '' or values are empty.
 			# for `not in` queries we can't be sure as column values might contain null.
+			can_be_null = not getattr(df, "not_nullable", False)
 			if f.operator.lower() == "in":
-				can_be_null = not f.value or any(v is None or v == "" for v in f.value)
+				can_be_null &= not f.value or any(v is None or v == "" for v in f.value)
 
-			values = f.value or ""
-			if isinstance(values, str):
-				values = values.split(",")
+			if value is None:
+				values = f.value or ""
+				if isinstance(values, str):
+					values = values.split(",")
 
-			fallback = "''"
-			value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in values]
-			if len(value):
-				value = f"({', '.join(value)})"
-			else:
-				value = "('')"
+				fallback = "''"
+				value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in values]
+				if len(value):
+					value = f"({', '.join(value)})"
+				else:
+					value = "('')"
 
 		else:
 			escape = True
-			df = meta.get("fields", {"fieldname": f.fieldname})
-			df = df[0] if df else None
 
 			if df and (
 				df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent")
@@ -843,7 +846,7 @@ class DatabaseQuery:
 				elif f.value == "not set":
 					f.operator = "="
 					fallback = "''"
-					can_be_null = True
+					can_be_null = not getattr(df, "not_nullable", False)
 
 				value = ""
 
