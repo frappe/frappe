@@ -79,7 +79,7 @@ function duplicate_field() {
 
 function make_dialog (frm) {
 	frm.dialog = new frappe.ui.Dialog({
-		title: __("Select Filters"),
+		title: __("Set Filters"),
 		fields: [
 			{
 				fieldtype: "HTML",
@@ -97,8 +97,12 @@ function make_dialog (frm) {
 			props.field.df.link_filters = JSON.stringify(filters);
 			frm.dialog.hide();
 		},
-		primary_action_label: __("Apply")
+		primary_action_label: __("Apply"),
 	});
+	// Setting selected field in store because when we click on the dialog the selected field is set to null
+	frm.dialog.$wrapper.on("click", () => {
+		store.form.selected_field = props.field.df
+	})
 };
 
 function make_filter_area (frm,doctype) {
@@ -135,8 +139,7 @@ function edit_filters(){
 	});
 }
 
-
-function filter_applied(){
+function is_filter_applied(){
 	if (props.field.df.link_filters && JSON.parse(props.field.df.link_filters).length > 0){
 		return "btn-filter-applied"
 	}
@@ -181,7 +184,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 					<button
 						v-if="field.df.fieldtype === 'Link' "
 						class="btn btn-xs btn-icon"
-						:class="filter_applied()"
+						:class="is_filter_applied()"
 						@click="edit_filters"
 					>
 

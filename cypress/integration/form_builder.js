@@ -36,7 +36,7 @@ context("Form Builder", () => {
 	});
 
 	it("Check if Filters are applied to the link field", () => {
-		// Visit the Form Builder of the "Contact" form
+		// Visit the Form Builder
 		cy.visit(`/app/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 
@@ -57,14 +57,12 @@ context("Form Builder", () => {
 		// Save the document
 		cy.click_doc_primary_button("Save");
 
-		// Open a new contact record
-		cy.visit("/app/form-builder-doctype/new");
-
+		// Open a new Form
+		cy.new_form(doctype_name);
 		// Click on the "salutation" field
 		cy.get_field("gender").clear().click();
 
 		cy.intercept("POST", "/api/method/frappe.desk.search.search_link").as("search_link");
-
 		cy.wait("@search_link").then((data) => {
 			expect(data.response.body.message.length).to.eq(1);
 			expect(data.response.body.message[0].value).to.eq("Male");

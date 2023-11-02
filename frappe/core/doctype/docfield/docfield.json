@@ -563,8 +563,7 @@
   },
   {
    "fieldname": "link_filters",
-   "fieldtype": "Long Text",
-   "hidden": 1,
+   "fieldtype": "JSON",
    "label": "Link Filters"
   }
  ],
@@ -572,7 +571,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-25 06:53:45.194081",
+ "modified": "2023-11-02 13:19:33.956407",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
