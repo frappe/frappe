@@ -373,18 +373,23 @@ def sync_global_search():
 	:param flags:
 	:return:
 	"""
-	from itertools import islice
+	from collections import OrderedDict
 
-	def get_search_queue_items_generator():
-		while frappe.cache.llen("global_search_queue") > 0:
-			item_json = frappe.cache.rpop("global_search_queue").decode("utf-8")
-			item_values = json.loads(item_json).values()
-			yield tuple(item_values)
+	while frappe.cache.llen("global_search_queue") > 0:
+		values_dict = OrderedDict()
 
-	search_queue_items = get_search_queue_items_generator()
+		for item in frappe.cache.rpop("global_search_queue", 10_000):
+			item_json = item.decode("utf-8")
+			item_dict = json.loads(item_json)
+			key = (item_dict["doctype"], item_dict["name"])
 
-	while values := tuple(islice(search_queue_items, 10_000)):
-		sync_values(values)
+			if key in values_dict:
+				del values_dict[key]
+
+			values_dict[key] = tuple(item_dict.values())
+
+
+		sync_values(values_dict.values())
 
 
 def sync_values(values):
@@ -398,13 +403,13 @@ def sync_values(values):
 	)
 
 	if frappe.db.db_type == "postgres":
-		query.on_conflict(GlobalSearch.doctype, GlobalSearch.name)
+		query = query.on_conflict(GlobalSearch.doctype, GlobalSearch.name)
 
 	for field in conflict_fields:
 		if frappe.db.db_type == "mariadb":
-			query.on_duplicate_key_update(GlobalSearch[field], Values(field))
+			query = query.on_duplicate_key_update(GlobalSearch[field], Values(field))
 		elif frappe.db.db_type == "postgres":
-			query.do_update(GlobalSearch[field], Values(field))
+			query = query.do_update(GlobalSearch[field], Values(field))
 		else:
 			raise NotImplementedError
 
