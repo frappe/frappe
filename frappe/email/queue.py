@@ -162,7 +162,7 @@ def get_queue():
 			(status='Not Sent' or status='Partially Sent') and
 			(send_after is null or send_after < %(now)s)
 		order
-			by priority desc, creation asc
+			by priority desc, retry asc, creation asc
 		limit {batch_size}""",
 		{"now": now_datetime()},
 		as_dict=True,
