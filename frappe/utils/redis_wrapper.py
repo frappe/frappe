@@ -154,11 +154,11 @@ class RedisWrapper(redis.Redis):
 	def rpush(self, key, value):
 		super().rpush(self.make_key(key), value)
 
-	def lpop(self, key):
-		return super().lpop(self.make_key(key))
+	def lpop(self, key, count = None):
+		return super().lpop(self.make_key(key), count)
 
-	def rpop(self, key):
-		return super().rpop(self.make_key(key))
+	def rpop(self, key, count = None):
+		return super().rpop(self.make_key(key), count)
 
 	def llen(self, key):
 		return super().llen(self.make_key(key))
