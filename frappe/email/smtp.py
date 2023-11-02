@@ -61,6 +61,10 @@ class SMTPServer:
 
 	@property
 	def session(self):
+		"""Get SMTP session.
+
+		We make best effort to revive connection if it's disconnected by checking the connection
+		health before returning it to user."""
 		if self.is_session_active():
 			return self._session
 
