@@ -341,6 +341,13 @@ frappe.ui.form.on("User", {
 			frappe.ui.toolbar.clear_cache();
 		}
 	},
+	user_type: function(frm) {
+		if(frm.doc.user_type == "Website User"){
+			frm.set_value("role_profile_name", "");
+			frm.set_value("roles", []);
+			frm.roles_editor.reset();
+		}
+	},
 });
 
 frappe.ui.form.on("User Email", {
