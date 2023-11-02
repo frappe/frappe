@@ -123,9 +123,12 @@ class SMTPServer:
 		except smtplib.SMTPAuthenticationError:
 			self.throw_invalid_credentials_exception()
 
-		except OSError:
+		except OSError as e:
 			# Invalid mail server -- due to refusing connection
-			frappe.throw(_("Invalid Outgoing Mail Server or Port"), title=_("Incorrect Configuration"))
+			frappe.throw(
+				_("Invalid Outgoing Mail Server or Port: {0}").format(str(e)),
+				title=_("Incorrect Configuration"),
+			)
 
 	def is_session_active(self):
 		if self._session:
