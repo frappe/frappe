@@ -348,7 +348,7 @@ class EmailAccount(Document):
 		return frappe.get_doc(cls.DOCTYPE, name)
 
 	@classmethod
-	def find_one_by_filters(cls, **kwargs):
+	def find_one_by_filters(cls, **kwargs) -> "EmailAccount":
 		name = frappe.db.get_value(cls.DOCTYPE, kwargs)
 		return cls.find(name) if name else None
 
@@ -475,8 +475,21 @@ class EmailAccount(Document):
 		}
 
 	def get_smtp_server(self):
+		"""Get SMTPServer (wrapper around actual smtplib object) for this account.
+
+		Implementation Detail: Since SMTPServer is same for each email connection, the same *instance*
+		is returned every time this function is called from same EmailAccount object.
+		This enables reusabilty of connection for better performance."""
+		return self._smtp_server_instance
+
+	@functools.cached_property
+	def _smtp_server_instance(self):
 		config = self.sendmail_config()
 		return SMTPServer(**config)
+
+	def remove_unpicklable_values(self, state):
+		super().remove_unpicklable_values(state)
+		state.pop("_smtp_server_instance", None)
 
 	def handle_incoming_connect_error(self, description):
 		if test_internet():

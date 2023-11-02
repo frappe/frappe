@@ -31,6 +31,7 @@ from frappe.utils import (
 	sbool,
 	split_emails,
 )
+from frappe.utils.deprecations import deprecated
 from frappe.utils.verified_command import get_signed_params
 
 
@@ -213,6 +214,7 @@ class EmailQueue(Document):
 
 
 @task(queue="short")
+@deprecated
 def send_mail(email_queue_name, smtp_server_instance: SMTPServer = None):
 	"""This is equivalent to EmailQueue.send.
 
