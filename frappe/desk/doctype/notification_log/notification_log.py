@@ -131,8 +131,8 @@ def send_notification_email(doc):
 		"body_content": doc.subject,
 		"description": doc.email_content,
 	}
-	if doc.custom_uri:
-		args["doc_link"] = doc.custom_uri
+	if doc.link:
+		args["doc_link"] = doc.link
 	else:
 		args["document_type"]: doc.document_type
 		args["document_name"]: doc.document_name

@@ -11,8 +11,8 @@ frappe.ui.form.on("Notification Log", {
 	},
 
 	open_reference_document: function (frm) {
-		if (frm.doc?.custom_uri) {
-			frappe.set_route(frm.doc.custom_uri);
+		if (frm.doc?.link) {
+			frappe.set_route(frm.doc.link);
 			return;
 		}
 		const dt = frm.doc.document_type;
