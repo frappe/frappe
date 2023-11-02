@@ -772,6 +772,7 @@ def is_downgrade(sql_file_path, verbose=False):
 	from semantic_version import Version
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	with open(sql_file_path) as f:
 		header = f.readline()
 		# Example first line:
@@ -792,6 +793,10 @@ def is_downgrade(sql_file_path, verbose=False):
 	try:
 		backup_version = extract_version_from_dump(sql_file_path)
 	except Exception:
+=======
+	backup_version = extract_version_from_dump(sql_file_path)
+	if backup_version is None:
+>>>>>>> 2e382040cd (fix: simplify version detection logic)
 		# Handle older backups in the same way
 		head = "INSERT INTO `tabInstalled Application` VALUES"
 
