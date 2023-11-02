@@ -151,8 +151,10 @@ def flush(from_test=False):
 
 
 def get_queue():
+	batch_size = cint(frappe.conf.email_queue_batch_size) or 500
+
 	return frappe.db.sql(
-		"""select
+		f"""select
 			name, sender
 		from
 			`tabEmail Queue`
@@ -161,7 +163,7 @@ def get_queue():
 			(send_after is null or send_after < %(now)s)
 		order
 			by priority desc, creation asc
-		limit 500""",
+		limit {batch_size}""",
 		{"now": now_datetime()},
 		as_dict=True,
 	)
