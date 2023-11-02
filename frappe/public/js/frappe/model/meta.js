@@ -16,7 +16,7 @@ $.extend(frappe.meta, {
 		$.each(doc.fields, function (i, df) {
 			frappe.meta.add_field(df);
 		});
-		frappe.meta.sync_messages(doc);
+
 		if (doc.__print_formats) frappe.model.sync(doc.__print_formats);
 		if (doc.__workflow_docs) frappe.model.sync(doc.__workflow_docs);
 	},
@@ -279,12 +279,6 @@ $.extend(frappe.meta, {
 		}
 
 		return print_format_list;
-	},
-
-	sync_messages: function (doc) {
-		if (doc.__messages) {
-			$.extend(frappe._messages, doc.__messages);
-		}
 	},
 
 	get_field_currency: function (df, doc) {
