@@ -419,7 +419,7 @@ def sync_values(values):
 		if frappe.db.db_type == "mariadb":
 			query = query.on_duplicate_key_update(GlobalSearch[field], Values(field))
 		elif frappe.db.db_type == "postgres":
-			query = query.do_update(GlobalSearch[field], Values(field))
+			query = query.do_update(GlobalSearch[field])
 		else:
 			raise NotImplementedError
 
