@@ -349,6 +349,13 @@
 			display: none;
 		}
 	}
+
+	.editable-row {
+		.markdown-container {
+			position: relative;
+			z-index: 1;
+		}
+	}
 }
 
 @mixin base-grid() {
