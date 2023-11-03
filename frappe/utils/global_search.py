@@ -377,8 +377,8 @@ def sync_global_search():
 	from itertools import islice
 
 	def get_search_queue_item_generator():
-		while frappe.cache.llen("global_search_queue") > 0:
-			yield frappe.cache.rpop("global_search_queue")
+		while value := frappe.cache.rpop("global_search_queue"):
+			yield value
 
 	item_generator = get_search_queue_item_generator()
 	while search_items := tuple(islice(item_generator, 10_000)):
