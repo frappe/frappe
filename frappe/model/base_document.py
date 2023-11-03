@@ -562,6 +562,12 @@ class BaseDocument:
 				# unique constraint
 				self.show_unique_validation_message(e)
 
+			elif e.args[0] == 4025:
+				frappe.throw(
+					_("Invalid Filter Format. Please check if you have used the correct format for filters"),
+					title=_("Invalid Filter Format"),
+				)
+
 			else:
 				raise
 

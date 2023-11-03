@@ -94,7 +94,6 @@ function make_dialog (frm) {
 				return filter
 			});
 
-			props.field.df.link_filters = JSON.stringify(filters);
 			frm.dialog.hide();
 		},
 		primary_action_label: __("Apply"),

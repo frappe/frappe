@@ -292,7 +292,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		for (const d of data) {
 			for (const condition of d) {
-				const [doctype, field, operator, value, _] = condition;
+				const [doctype, field, operator, value] = condition;
 				if (!parsed_data[doctype]) {
 					parsed_data[doctype] = {
 						filters: {},
