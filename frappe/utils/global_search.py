@@ -11,6 +11,7 @@ import frappe
 from frappe.model.base_document import get_controller
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.data import cstr
+from frappe.utils.deprecations import deprecated
 from frappe.utils.html_utils import unescape_html
 
 HTML_TAGS_PATTERN = re.compile(r"(?s)<[\s]*(script|style).*?</\1>")
@@ -381,11 +382,11 @@ def sync_global_search():
 
 	item_generator = get_search_queue_item_generator()
 	while search_items := tuple(islice(item_generator, 10_000)):
-		values = get_deduped_search_item_values(search_items)
+		values = _get_deduped_search_item_values(search_items)
 		sync_values(values)
 
 
-def get_deduped_search_item_values(items):
+def _get_deduped_search_item_values(items):
 	from collections import OrderedDict
 
 	values_dict = OrderedDict()
@@ -393,16 +394,12 @@ def get_deduped_search_item_values(items):
 		item_json = item.decode("utf-8")
 		item_dict = json.loads(item_json)
 		key = (item_dict["doctype"], item_dict["name"])
-
-		if key in values_dict:
-			del values_dict[key]
-
 		values_dict[key] = tuple(item_dict.values())
 
 	return values_dict.values()
 
 
-def sync_values(values):
+def sync_values(values: list):
 	from pypika.terms import Values
 
 	GlobalSearch = frappe.qb.Table("__global_search")
@@ -432,10 +429,11 @@ def sync_value_in_queue(value):
 		frappe.cache.lpush("global_search_queue", json.dumps(value))
 	except redis.exceptions.ConnectionError:
 		# not connected, sync directly
-		sync_value(value)
+		sync_values((value,))
 
 
-def sync_value(value):
+@deprecated
+def sync_value(value: dict):
 	"""
 	Sync a given document to global search
 	:param value: dict of { doctype, name, content, published, title, route }
