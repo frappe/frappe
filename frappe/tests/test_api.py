@@ -282,7 +282,7 @@ class TestMethodAPI(FrappeAPITestCase):
 		response = self.get(self.method_path("frappe.auth.get_logged_user"))
 		self.assertEqual(response.status_code, 401)
 
-		authorization_token = f"NonExistentKey:INCORRECT"
+		authorization_token = "NonExistentKey:INCORRECT"
 		response = self.get(self.method_path("frappe.auth.get_logged_user"))
 		self.assertEqual(response.status_code, 401)
 
@@ -364,7 +364,7 @@ class TestWSGIApp(FrappeAPITestCase):
 			self.assertIsNone(_test_REQ_HOOK.get("before_request"))
 			self.assertIsNone(_test_REQ_HOOK.get("after_request"))
 			res = self.get("/api/method/ping")
-			self.assertEqual(res.json, {"message": "pong"})
+			self.assertEqual(res.json, {"message": "pong", "_debug_messages": '["method:ping"]'})
 			self.assertLess(_test_REQ_HOOK.get("before_request"), _test_REQ_HOOK.get("after_request"))
 
 
@@ -382,7 +382,7 @@ def after_request(*args, **kwargs):
 class TestResponse(FrappeAPITestCase):
 	def test_generate_pdf(self):
 		response = self.get(
-			f"/api/method/frappe.utils.print_format.download_pdf",
+			"/api/method/frappe.utils.print_format.download_pdf",
 			{"sid": self.sid, "doctype": "User", "name": "Guest"},
 		)
 		self.assertEqual(response.status_code, 200)
