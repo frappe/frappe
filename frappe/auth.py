@@ -19,7 +19,7 @@ from frappe.twofactor import (
 )
 from frappe.utils import cint, date_diff, datetime, get_datetime, today
 from frappe.utils.deprecations import deprecation_warning
-from frappe.utils.password import check_password
+from frappe.utils.password import check_password, get_decrypted_password
 from frappe.website.utils import get_home_page
 
 

@@ -265,10 +265,18 @@ class TestMethodAPI(FrappeAPITestCase):
 		user = frappe.get_doc("User", "Administrator")
 		api_key, api_secret = user.api_key, user.get_password("api_secret")
 		authorization_token = f"{api_key}:{api_secret}"
-		response = self.get("/api/method/frappe.auth.get_logged_user")
+		response = self.get(f"{self.METHOD_PATH}/frappe.auth.get_logged_user")
 
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.json["message"], "Administrator")
+
+		authorization_token = f"{api_key}:INCORRECT"
+		response = self.get(f"{self.METHOD_PATH}/frappe.auth.get_logged_user")
+		self.assertEqual(response.status_code, 401)
+
+		authorization_token = f"NonExistentKey:INCORRECT"
+		response = self.get(f"{self.METHOD_PATH}/frappe.auth.get_logged_user")
+		self.assertEqual(response.status_code, 401)
 
 		authorization_token = None
 
