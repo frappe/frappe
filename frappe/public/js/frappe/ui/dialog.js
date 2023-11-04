@@ -1,5 +1,6 @@
 import "./field_group";
 import "../dom";
+import "../form/grid";
 
 frappe.provide("frappe.ui");
 
@@ -91,10 +92,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				me.is_minimized = false;
 				me.hide_scrollbar(false);
 				// hide any grid row form if open
-				if (typeof frappe.ui.form.get_open_grid_form === "function") {
-					// If the function is defined, call it
-					frappe.ui.form.get_open_grid_form()?.hide_form();
-				}
+				frappe.ui.form.get_open_grid_form()?.hide_form();
 
 				if (frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1] === me) {
 					frappe.ui.open_dialogs.pop();
