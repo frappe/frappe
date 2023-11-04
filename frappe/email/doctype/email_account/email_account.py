@@ -355,7 +355,10 @@ class EmailAccount(Document):
 	@classmethod
 	def find_from_config(cls):
 		config = cls.get_account_details_from_site_config()
-		return cls.from_record(config) if config else None
+		if config:
+			account = cls.from_record(config)
+			account._from_site_config = True
+			return account
 
 	@classmethod
 	def create_dummy(cls):
