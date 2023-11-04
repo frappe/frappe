@@ -233,11 +233,7 @@ class SendMailContext:
 		self.queue_doc: EmailQueue = queue_doc
 		self.email_account_doc = queue_doc.get_email_account()
 
-		self.smtp_server = smtp_server_instance or self.email_account_doc.get_smtp_server()
-
-		# if smtp_server_instance is passed, then retain smtp session
-		# Note: smtp session will have to be manually closed
-		self.retain_smtp_session = bool(smtp_server_instance)
+		self.smtp_server: SMTPServer = smtp_server_instance or self.email_account_doc.get_smtp_server()
 
 		self.sent_to_atleast_one_recipient = any(
 			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
@@ -248,9 +244,6 @@ class SendMailContext:
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
-		if not self.retain_smtp_session:
-			self.smtp_server.quit()
-
 		if exc_type:
 			update_fields = {"error": "".join(traceback.format_tb(exc_tb))}
 			if self.queue_doc.retry < get_email_retry_limit():
