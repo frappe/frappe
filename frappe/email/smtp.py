@@ -100,6 +100,20 @@ class SMTPServer:
 				title=_("Incorrect Configuration"),
 			)
 
+<<<<<<< HEAD
+=======
+	def _enqueue_connection_closure(self):
+		if frappe.request and hasattr(frappe.request, "after_response"):
+			frappe.request.after_response.add(self.quit)
+		elif frappe.job:
+			frappe.job.after_job.add(self.quit)
+		else:
+			# Console?
+			import atexit
+
+			atexit.register(self.quit)
+
+>>>>>>> 3211a77dc8 (fix: handle emails sent from console)
 	def is_session_active(self):
 		if self._session:
 			try:
