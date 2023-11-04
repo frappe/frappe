@@ -104,12 +104,10 @@ class SMTPServer:
 			)
 
 	def _enqueue_connection_closure(self):
-		if frappe.request:
+		if frappe.request and hasattr(frappe.request, "after_response"):
 			frappe.request.after_response.add(self.quit)
-		else:
-			if not hasattr(frappe.local, "open_smtp_connections"):
-				frappe.local.open_smtp_connections = set()
-			frappe.local.open_smtp_connections.add(self)
+		elif frappe.job:
+			frappe.job.after_job.add(self.quit)
 
 	def is_session_active(self):
 		if self._session:
@@ -129,8 +127,3 @@ class SMTPServer:
 			title=_("Invalid Credentials"),
 			exc=InvalidEmailCredentials,
 		)
-
-
-def close_open_smtp_connections():
-	for conn in getattr(frappe.local, "open_smtp_connections", []):
-		conn.quit()
