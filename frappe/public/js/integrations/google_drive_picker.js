@@ -69,19 +69,19 @@ export default class GoogleDrivePicker {
 		this.pickerInited = true;
 	}
 	createPicker() {
-		const view = new google.picker.View(google.picker.ViewId.DOCS);
-		view.setMimeTypes('image/png,image/jpeg,image/jpg');
-		const picker = new google.picker.PickerBuilder()
+		this.view = new google.picker.View(google.picker.ViewId.DOCS);
+		this.view.setMimeTypes('image/png,image/jpeg,image/jpg');
+		this.picker = new google.picker.PickerBuilder()
 			.enableFeature(google.picker.Feature.NAV_HIDDEN)
 			.enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
 			.setDeveloperKey(this.developerKey)
 			.setAppId(this.appId)
 			.setOAuthToken(this.accessToken)
-			.addView(view)
+			.addView(this.view)
 			.addView(new google.picker.DocsUploadView())
 			.setCallback(this.pickerCallback)
 			.build();
-		picker.setVisible(true);
+		this.picker.setVisible(true);
 		this.setupHide();
 	}
 	setupHide() {
