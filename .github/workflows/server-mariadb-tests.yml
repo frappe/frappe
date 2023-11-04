@@ -32,6 +32,12 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
 
+      smtp_server:
+        image: rnwood/smtp4dev
+        ports:
+          - 2525:25
+          - 3000:80
+
     steps:
       - name: Clone
         uses: actions/checkout@v3

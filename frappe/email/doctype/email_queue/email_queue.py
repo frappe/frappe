@@ -139,7 +139,7 @@ class EmailQueue(Document):
 				if method := get_hook_method("override_email_send"):
 					method(self, self.sender, recipient.recipient, message)
 				else:
-					if not frappe.flags.in_test:
+					if not frappe.flags.in_test or frappe.flags.testing_email:
 						ctx.smtp_server.session.sendmail(
 							from_addr=self.sender,
 							to_addrs=recipient.recipient,
@@ -148,7 +148,7 @@ class EmailQueue(Document):
 
 				ctx.update_recipient_status_to_sent(recipient)
 
-			if frappe.flags.in_test:
+			if frappe.flags.in_test and not frappe.flags.testing_email:
 				frappe.flags.sent_mail = message
 				return
 
