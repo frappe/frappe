@@ -3,7 +3,6 @@
 
 import frappe
 from frappe import _, msgprint
-from frappe.email.smtp import SMTPServer
 from frappe.utils import cint, cstr, get_url, now_datetime
 from frappe.utils.data import getdate
 from frappe.utils.verified_command import get_signed_params, verify_request
@@ -148,15 +147,11 @@ def flush():
 	if not email_queue_batch:
 		return
 
-	opened_connections = set()
-
 	failed_email_queues = []
 	for row in email_queue_batch:
 		try:
 			email_queue: EmailQueue = frappe.get_doc("Email Queue", row.name)
-			smtp_server_instance = email_queue.get_email_account().get_smtp_server()
-			opened_connections.add(smtp_server_instance)
-			email_queue.send(smtp_server_instance=smtp_server_instance)
+			email_queue.send()
 		except Exception:
 			frappe.get_doc("Email Queue", row.name).log_error()
 			failed_email_queues.append(row.name)
@@ -165,15 +160,7 @@ def flush():
 				len(failed_email_queues) / len(email_queue_batch) > EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_PERCENT
 				and len(failed_email_queues) > EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_COUNT
 			):
-				_close_connections(opened_connections)
 				frappe.throw(_("Email Queue flushing aborted due to too many failures."))
-
-	_close_connections(opened_connections)
-
-
-def _close_connections(smtp_connections: set[SMTPServer]):
-	for conn in smtp_connections:
-		conn.quit()
 
 
 def get_queue():

@@ -90,6 +90,7 @@ class SMTPServer:
 					frappe.msgprint(res[1], raise_exception=frappe.OutgoingEmailError)
 
 			self._session = _session
+			self._enqueue_connection_closure()
 			return self._session
 
 		except smtplib.SMTPAuthenticationError:
@@ -101,6 +102,14 @@ class SMTPServer:
 				_("Invalid Outgoing Mail Server or Port: {0}").format(str(e)),
 				title=_("Incorrect Configuration"),
 			)
+
+	def _enqueue_connection_closure(self):
+		if frappe.request:
+			frappe.request.after_response.add(self.quit)
+		else:
+			if not hasattr(frappe.local, "open_smtp_connections"):
+				frappe.local.open_smtp_connections = set()
+			frappe.local.open_smtp_connections.add(self)
 
 	def is_session_active(self):
 		if self._session:
@@ -120,3 +129,8 @@ class SMTPServer:
 			title=_("Invalid Credentials"),
 			exc=InvalidEmailCredentials,
 		)
+
+
+def close_open_smtp_connections():
+	for conn in getattr(frappe.local, "open_smtp_connections", []):
+		conn.quit()
