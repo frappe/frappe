@@ -1,23 +1,6 @@
 // TODO instead of making copy of inter.css find a way to import it.
 // workaround for css import as it fails for custom website_theme_template
-@font-face {
-	font-family: 'Inter V';
-	font-weight: 100 900;
-	font-display: swap;
-	font-style: normal;
-	src: url('/assets/frappe/css/fonts/inter/Inter.var.woff2?v=3.19') format('woff2-variations'),
-	  url('/assets/frappe/css/fonts/inter/Inter.var.woff2?v=3.19') format('woff2');
-	src: url('/assets/frappe/css/fonts/inter/Inter.var.woff2?v=3.19') format('woff2') tech('variations');
-  }
-  @font-face {
-	font-family: 'Inter V';
-	font-weight: 100 900;
-	font-display: swap;
-	font-style: italic;
-	src: url('/assets/frappe/css/fonts/inter/Inter-Italic.var.woff2?v=3.19') format('woff2-variations'),
-	  url('/assets/frappe/css/fonts/inter/Inter-Italic.var.woff2?v=3.19') format('woff2');
-	src: url('/assets/frappe/css/fonts/inter/Inter-Italic.var.woff2?v=3.19') format('woff2') tech('variations');
-  }
+
 @font-face {
 	font-family: 'Inter';
 	font-display: swap;
