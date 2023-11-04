@@ -2039,6 +2039,8 @@ frappe.ui.form.Form = class FrappeForm {
 			this.active_tab_map = {};
 		}
 		this.active_tab_map[this.docname] = tab;
+
+		this.script_manager.trigger("on_tab_change");
 	}
 	get_active_tab() {
 		return this.active_tab_map && this.active_tab_map[this.docname];
