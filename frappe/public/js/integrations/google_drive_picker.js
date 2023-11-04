@@ -64,10 +64,6 @@ export default class GoogleDrivePicker {
 		gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
 		this.pickerInited = true;
 	}
-	async initializePicker() {
-		gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
-		this.pickerInited = true;
-	}
 	createPicker() {
 		this.view = new google.picker.View(google.picker.ViewId.DOCS);
 		this.view.setMimeTypes('image/png,image/jpeg,image/jpg');
