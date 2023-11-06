@@ -254,6 +254,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	hide() {
+		if (this.animate && this.animation_speed === "slow") {
+			this.$wrapper.addClass("slow");
+			$(".modal-backdrop").addClass("slow");
+		}
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
 	}
