@@ -260,6 +260,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 		try:
 			meta = frappe.get_meta(link_dt)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			# This mostly happens when app do not remove their customizations, we shouldn't
 			# prevent link checks from failing in those cases
 			continue
