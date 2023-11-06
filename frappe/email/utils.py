@@ -18,6 +18,7 @@ def get_port(doc):
 
 	return cint(doc.incoming_port)
 
+
 def decode_sequence(encoded_sequence) -> str:
 	"""
 	Decodes a encoded_sequence consisting of a tuple (string, charset_encoding). The function concatenates all chunks and returns the resulting decoded string.
@@ -28,10 +29,15 @@ def decode_sequence(encoded_sequence) -> str:
 	"""
 	from frappe import safe_decode
 	decoded_string = ""
+
 	for chunk, encoding in encoded_sequence:
 		if not isinstance(chunk, str):
 			detected_encoding = encoding if encoding is not None and encoding != 'unknown-8bit' else chardet.detect(chunk)["encoding"]
-			decoded_string += chunk.decode(detected_encoding, 'ignore')
+			detected_encoding = detected_encoding if detected_encoding is not "ascii" else "unicode_escape"
+			detected_encoding = detected_encoding if detected_encoding is not None else "UTF-8"
+
+			decoded_string += chunk.decode(detected_encoding, 'replace')
 		else:
-			decoded_string += chunk
+			decoded_string += safe_decode(param=chunk)
+
 	return decoded_string
