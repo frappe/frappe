@@ -12,7 +12,6 @@ from babel.messages.mofile import read_mo, write_mo
 from babel.messages.pofile import read_po, write_po
 
 import frappe
-from frappe.translate import get_dict_from_hooks
 from frappe.utils import get_bench_path
 
 DEFAULT_LANG = "en"
@@ -245,10 +244,7 @@ def get_messages_for_boot():
 	"""
 	Return all message translations that are required on boot
 	"""
-	messages = get_all_translations(frappe.local.lang)
-	messages.update(get_dict_from_hooks("boot", None))
-
-	return messages
+	return get_all_translations(frappe.local.lang)
 
 
 def get_all_translations(lang: str) -> dict[str, str]:
