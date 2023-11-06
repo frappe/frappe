@@ -52,7 +52,7 @@ def _new_site(
 ):
 	"""Install a new Frappe site"""
 
-	from frappe.utils import get_site_path, scheduler
+	from frappe.utils import scheduler
 
 	if not force and os.path.exists(site):
 		print(f"Site {site} already exists")
@@ -796,12 +796,21 @@ def is_downgrade(sql_file_path, verbose=False):
 =======
 	backup_version = extract_version_from_dump(sql_file_path)
 	if backup_version is None:
+<<<<<<< HEAD
 >>>>>>> 2e382040cd (fix: simplify version detection logic)
+=======
+		if sql_file_path.endswith(".sql.gz"):
+			open_method = gzip.open
+		else:
+			open_method = open
+>>>>>>> 998f2c10d6 (fix: handle older gzipped backups as well)
 		# Handle older backups in the same way
 		head = "INSERT INTO `tabInstalled Application` VALUES"
 
-		with open(sql_file_path) as f:
+		with open_method(sql_file_path) as f:
 			for line in f:
+				if isinstance(line, bytes):
+					line = line.decode("utf-8").strip()
 				if head in line:
 					# 'line' (str) format: ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'your_custom_app','0.0.1','master')
 					line = line.strip().lstrip(head).rstrip(";").strip()
@@ -831,7 +840,7 @@ def is_downgrade(sql_file_path, verbose=False):
 		return False
 
 	current_version = Version(frappe.__version__)
-	downgrade = Version(backup_version) > current_version
+	downgrade = Version(backup_version) < current_version
 
 	if verbose and downgrade:
 		print(f"Your site will be downgraded from Frappe {backup_version} to {current_version}")
