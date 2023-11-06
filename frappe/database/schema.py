@@ -94,7 +94,7 @@ class DBTable:
 				field.get("fieldtype"),
 				field.get("length"),
 				field.get("default"),
-				field.get("search_index"),
+				field.get("search_index") or field.get("fieldtype") in ("Link", "Dynamic Link"),
 				field.get("options"),
 				field.get("unique"),
 				field.get("precision"),
