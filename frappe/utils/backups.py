@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import contextlib
 
 # imports - standard imports
 import gzip
@@ -632,46 +633,29 @@ def get_or_generate_backup_encryption_key():
 	return key
 
 
-class Backup:
-	def __init__(self, file_path):
-		self.file_path = file_path
+@contextlib.contextmanager
+def decrypt_backup(file_path: str, passphrase: str):
+	if not os.path.exists(file_path):
+		print("Invalid path: ", file_path)
+		return
+	else:
+		file_path_with_ext = file_path + ".gpg"
+		os.rename(file_path, file_path_with_ext)
 
-	def backup_decryption(self, passphrase):
-		"""
-		Decrypts backup at the given path using the passphrase.
-		"""
-		if not os.path.exists(self.file_path):
-			print("Invalid path", self.file_path)
-			return
-		else:
-			file_path_with_ext = self.file_path + ".gpg"
-			os.rename(self.file_path, file_path_with_ext)
-
-			cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
-			command = cmd_string.format(
-				passphrase=passphrase,
-				file_location=file_path_with_ext,
-				decrypted_file=self.file_path,
-			)
-		frappe.utils.execute_in_shell(command)
-
-	def decryption_rollback(self):
-		"""
-		Checks if the decrypted file exists at the given path.
-		if exists
-		        Renames the orginal encrypted file.
-		else
-		        Removes the decrypted file and rename the original file.
-		"""
-		if os.path.exists(self.file_path + ".gpg"):
-			if os.path.exists(self.file_path):
-				os.remove(self.file_path)
-			if os.path.exists(self.file_path.rstrip(".gz")):
-				os.remove(self.file_path.rstrip(".gz"))
-			os.rename(self.file_path + ".gpg", self.file_path)
-
-	def __del__(self):
-		self.decryption_rollback()
+		cmd_string = "gpg --yes --passphrase {passphrase} --pinentry-mode loopback -o {decrypted_file} -d {file_location}"
+		command = cmd_string.format(
+			passphrase=passphrase,
+			file_location=file_path_with_ext,
+			decrypted_file=file_path,
+		)
+	frappe.utils.execute_in_shell(command)
+	yield
+	if os.path.exists(file_path + ".gpg"):
+		if os.path.exists(file_path):
+			os.remove(file_path)
+		if os.path.exists(file_path.rstrip(".gz")):
+			os.remove(file_path.rstrip(".gz"))
+		os.rename(file_path + ".gpg", file_path)
 
 
 def backup(
