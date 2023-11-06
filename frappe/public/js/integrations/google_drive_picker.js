@@ -67,7 +67,6 @@ export default class GoogleDrivePicker {
 	createPicker() {
 		this.view = new google.picker.View(google.picker.ViewId.DOCS);
 		this.picker = new google.picker.PickerBuilder()
-			.enableFeature(google.picker.Feature.NAV_HIDDEN)
 			.enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
 			.setDeveloperKey(this.developerKey)
 			.setAppId(this.appId)
