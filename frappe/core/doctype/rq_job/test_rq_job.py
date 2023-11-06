@@ -100,9 +100,10 @@ class TestRQJob(FrappeTestCase):
 	@timeout(20)
 	def test_job_id_dedup(self):
 		job_id = "test_dedup"
-		job = frappe.enqueue(self.BG_JOB, sleep=10, job_id=job_id)
+		job = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id)
 		self.assertTrue(is_job_enqueued(job_id))
-		stop_job(job.id)
+		self.check_status(job, "finished")
+		self.assertFalse(is_job_enqueued(job_id))
 
 	@timeout(20)
 	def test_clear_failed_jobs(self):
