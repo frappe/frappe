@@ -259,11 +259,12 @@ def get_all_translations(lang: str) -> dict[str, str]:
 		return {}
 
 	def t():
-		all_translations = get_translations_from_apps(lang)
+		from frappe.geo.country_info import get_translated_countries
+
+		all_translations = get_translations_from_apps(lang).copy()
 		with suppress(Exception):
-			# get user specific translation data
-			user_translations = get_user_translations(lang)
-			all_translations.update(user_translations)
+			all_translations.update(get_user_translations(lang))
+			all_translations.update(get_translated_countries())
 
 		return all_translations
 
