@@ -12,6 +12,7 @@ from babel.messages.mofile import read_mo, write_mo
 from babel.messages.pofile import read_po, write_po
 
 import frappe
+from frappe.translate import get_user_translations
 from frappe.utils import get_bench_path
 
 DEFAULT_LANG = "en"
@@ -314,35 +315,6 @@ def get_translations_from_apps(lang, apps=None):
 		return translations
 
 	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, shared=True, generator=t)
-
-
-def get_user_translations(lang: str) -> dict[str, str]:
-	"""
-	Get translations from db, created by user
-	:param lang: language to fetch
-	:return: translation key/value
-	"""
-	if not frappe.db:
-		frappe.connect()
-
-	def f():
-		user_translations = {}
-		translations = frappe.get_all(
-			"Translation",
-			fields=["source_text", "translated_text", "context"],
-			filters={"language": lang},
-		)
-
-		for t in translations:
-			key = t.source_text
-			value = t.translated_text
-			if t.context:
-				key += f":{t.context}"
-			user_translations[key] = value
-
-		return user_translations
-
-	return frappe.cache().hget(USER_TRANSLATION_KEY, lang, generator=f)
 
 
 def clear_cache():
