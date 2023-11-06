@@ -15,7 +15,7 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import cint
 from frappe.utils.csvutils import build_csv_response
-from frappe.utils.deprecations import deprecation_warning
+from frappe.utils.deprecations import deprecated, deprecation_warning
 from frappe.utils.image import optimize_image
 from frappe.utils.response import build_response
 
@@ -347,5 +347,4 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	add_data_to_monitor(methodname=method)
 
 
-# for backwards compatibility
-runserverobj = run_doc_method
+runserverobj = deprecated(run_doc_method)

@@ -2,9 +2,10 @@
 # License: MIT. See LICENSE
 
 import os
+import shutil
 
 import frappe
-from frappe import _, conf, safe_decode
+from frappe import _, conf, get_module_path, safe_decode
 from frappe.build import html_to_js_template
 from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.form.meta import get_code_files_via_hooks, get_js
@@ -103,7 +104,18 @@ class Page(Document):
 		return d
 
 	def on_trash(self):
+		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
+			frappe.throw(_("Deletion of this document is only permitted in developer mode."))
+
 		delete_custom_role("page", self.name)
+		frappe.db.after_commit(self.delete_folder_with_contents)
+
+	def delete_folder_with_contents(self):
+		module_path = get_module_path(self.module)
+		dir_path = os.path.join(module_path, "page", frappe.scrub(self.name))
+
+		if os.path.exists(dir_path):
+			shutil.rmtree(dir_path, ignore_errors=True)
 
 	def is_permitted(self):
 		"""Returns true if Has Role is not set or the user is allowed."""
@@ -172,11 +184,6 @@ class Page(Document):
 
 					# flag for not caching this page
 					self._dynamic_page = True
-
-		if frappe.lang != "en":
-			from frappe.translate import get_lang_js
-
-			self.script += get_lang_js("page", self.name)
 
 		for path in get_code_files_via_hooks("page_js", self.name):
 			js = get_js(path)

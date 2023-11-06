@@ -1,7 +1,12 @@
 import { defineStore } from "pinia";
-import { create_layout, scrub_field_names, load_doctype_model } from "./utils";
+import {
+	create_layout,
+	scrub_field_names,
+	load_doctype_model,
+	section_boilerplate,
+} from "./utils";
 import { computed, nextTick, ref } from "vue";
-import { useDebouncedRefHistory, onKeyDown } from "@vueuse/core";
+import { useDebouncedRefHistory, onKeyDown, useActiveElement } from "@vueuse/core";
 
 export const useStore = defineStore("form-builder-store", () => {
 	let doctype = ref("");
@@ -30,6 +35,15 @@ export const useStore = defineStore("form-builder-store", () => {
 	let current_tab = computed(() => {
 		return form.value.layout.tabs.find((tab) => tab.df.name == form.value.active_tab);
 	});
+
+	const active_element = useActiveElement();
+	const not_using_input = computed(
+		() =>
+			active_element.value?.readOnly ||
+			active_element.value?.disabled ||
+			(active_element.value?.tagName !== "INPUT" &&
+				active_element.value?.tagName !== "TEXTAREA")
+	);
 
 	// Actions
 	function selected(name) {
@@ -201,7 +215,7 @@ export const useStore = defineStore("form-builder-store", () => {
 			let fields = get_updated_fields();
 			let has_error = validate_fields(fields, doc.value.istable);
 			if (has_error) return has_error;
-			doc.value.fields = fields;
+			frm.value.set_value("fields", fields);
 			return fields;
 		} catch (e) {
 			console.error(e);
@@ -297,6 +311,31 @@ export const useStore = defineStore("form-builder-store", () => {
 		return create_layout(doc.value.fields);
 	}
 
+	// Tab actions
+	function add_new_tab() {
+		let tab = {
+			df: get_df("Tab Break", "", "Tab " + (form.value.layout.tabs.length + 1)),
+			sections: [section_boilerplate()],
+		};
+
+		form.value.layout.tabs.push(tab);
+		activate_tab(tab);
+	}
+
+	function activate_tab(tab) {
+		form.value.active_tab = tab.df.name;
+		form.value.selected_field = tab.df;
+
+		// scroll to active tab
+		nextTick(() => {
+			$(".tabs .tab.active")[0]?.scrollIntoView({
+				behavior: "smooth",
+				inline: "center",
+				block: "nearest",
+			});
+		});
+	}
+
 	return {
 		doctype,
 		frm,
@@ -310,6 +349,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		get_animation,
 		get_docfields,
 		current_tab,
+		not_using_input,
 		selected,
 		get_df,
 		has_standard_field,
@@ -320,5 +360,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		get_updated_fields,
 		is_df_updated,
 		get_layout,
+		add_new_tab,
+		activate_tab,
 	};
 });

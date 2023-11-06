@@ -61,7 +61,7 @@
 		line-height: 1;
 		padding: 4px 8px;
 		&, & .hidden-xs {
-			display: flex;
+			display: inline-flex;
 			align-items: center;
 			gap: 6px;
 		}

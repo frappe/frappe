@@ -71,7 +71,7 @@ class SubmittableDocumentTree:
 
 	def get_all_children(self):
 		"""Get all nodes of a tree except the root node (all the nested submitted
-		documents those are present in referencing tables (dependent tables).
+		documents those are present in referencing tables dependent tables).
 		"""
 		while self.to_be_visited_documents:
 			next_level_children = defaultdict(list)
@@ -101,6 +101,10 @@ class SubmittableDocumentTree:
 
 		child_docs = defaultdict(list)
 		for field in referencing_fields:
+			if field["fieldname"] == "amended_from":
+				# perf: amended_from links are always linked to cancelled documents.
+				continue
+
 			links = (
 				get_referencing_documents(
 					parent_dt,
