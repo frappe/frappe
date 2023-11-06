@@ -36,7 +36,7 @@ class PrintFormatBuilder {
 			() => this.$component.$store.dirty,
 			(dirty) => {
 				if (dirty.value) {
-					this.page.set_indicator("Not Saved", "orange");
+					this.page.set_indicator(__("Not Saved"), "orange");
 					$toggle_preview_btn.hide();
 					$reset_changes_btn.show();
 				} else {
