@@ -118,15 +118,17 @@ def generate_pot(target_app: str | None = None):
 
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	method_map = [
-		("**.py", "frappe.gettext.extractors.python.extract"),
-		("**.js", "frappe.gettext.extractors.javascript.extract"),
+		# Each file will only be processed by the first method that matches,
+		# so more specific methods should be listed first.
+		("hooks.py", "frappe.gettext.extractors.navbar.extract"),
 		("**/doctype/*/*.json", "frappe.gettext.extractors.doctype.extract"),
 		("**/workspace/*/*.json", "frappe.gettext.extractors.workspace.extract"),
-		("**.html", "frappe.gettext.extractors.jinja2.extract"),
-		("hooks.py", "frappe.gettext.extractors.navbar.extract"),
-		("**/report/*/*.json", "frappe.gettext.extractors.report.extract"),
 		("**/onboarding_step/*/*.json", "frappe.gettext.extractors.onboarding_step.extract"),
 		("**/module_onboarding/*/*.json", "frappe.gettext.extractors.module_onboarding.extract"),
+		("**/report/*/*.json", "frappe.gettext.extractors.report.extract"),
+		("**.py", "frappe.gettext.extractors.python.extract"),
+		("**.js", "frappe.gettext.extractors.javascript.extract"),
+		("**.html", "frappe.gettext.extractors.jinja2.extract"),
 	]
 
 	for app in apps:
