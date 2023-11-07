@@ -110,21 +110,8 @@ function make_dialog (frm) {
 			if (exits) {
 				frm.dialog.set_secondary_action_label(__("Reset To Default"));
 				frm.dialog.set_secondary_action(() => {
-					frappe.call({
-						method: 'frappe.custom.doctype.property_setter.property_setter.delete_property_setter',
-						args: {
-							doc_type: frm.doc.doc_type,
-							property: "link_filters",
-							fieldname: props.field.df.fieldname,
-						},
-						callback: function (r) {
-							// remove existing filters
-							frm.filter_group.clear_filters();
-							frm.dialog.hide();
-							// update the doc
+					// Add functionality to take the filters data from JSON and set it as filters
 
-						},
-					})
 				});
 			}
 		})

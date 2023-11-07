@@ -476,7 +476,6 @@
   {
    "fieldname": "link_filters",
    "fieldtype": "JSON",
-   "hidden": 1,
    "label": "Link Filters"
   }
  ],
@@ -484,7 +483,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-25 06:55:50.718441",
+ "modified": "2023-11-07 13:17:21.373626",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
