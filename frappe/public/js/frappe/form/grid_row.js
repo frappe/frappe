@@ -90,7 +90,7 @@ export default class GridRow {
 		this.wrapper
 			.find(".grid-row-check")
 			.prop("checked", this.doc ? !!this.doc.__checked : false);
-		this.grid.refresh_remove_rows_button();
+		this.grid.debounced_refresh_remove_rows_button();
 	}
 	remove() {
 		var me = this;
