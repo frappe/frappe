@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 from frappe.database.schema import DBTable, get_definition
 from frappe.utils import cint, flt
+from frappe.utils.defaults import get_not_null_defaults
 
 
 class PostgresTable(DBTable):
@@ -45,7 +46,7 @@ class PostgresTable(DBTable):
 			docstatus smallint not null default '0',
 			idx bigint not null default '0',
 			{additional_definitions}
-			)"""
+			)""",
 		)
 
 		self.create_indexes()
@@ -140,19 +141,21 @@ class PostgresTable(DBTable):
 				# if index key exists
 				drop_contraint_query += f'DROP INDEX IF EXISTS "unique_{col.fieldname}" ;'
 
+		change_nullability = []
 		for col in self.change_nullability:
-			default = ""
-			if col.default:
-				default = f"DEFAULT {frappe.db.escape(col.default)}"
-			query.append(
-				f"ALTER COLUMN \"{col.fieldname}\" {'DROP' if col.not_nullable else 'SET'} NOT NULL {default}"
+			change_nullability.append(
+				f"ALTER COLUMN \"{col.fieldname}\" {'SET' if col.not_nullable else 'DROP'} NOT NULL"
 			)
+			change_nullability.append(
+				f'ALTER COLUMN "{col.fieldname}" SET DEFAULT {col.default or frappe.db.escape(col.default)}'
+			)
+
 			if col.not_nullable:
 				try:
 					table = frappe.qb.DocType(self.doctype)
-					frappe.qb.update(table).set(col.fieldname, col.default).where(
-						table[col.fieldname].isnull()
-					).run()
+					frappe.qb.update(table).set(
+						col.fieldname, col.default or get_not_null_defaults(col.fieldtype)
+					).where(table[col.fieldname].isnull()).run()
 				except Exception:
 					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
 					raise
@@ -161,6 +164,9 @@ class PostgresTable(DBTable):
 				final_alter_query = "ALTER TABLE `{}` {}".format(self.table_name, ", ".join(query))
 				# nosemgrep
 				frappe.db.sql(final_alter_query)
+			if change_nullability:
+				# nosemgrep
+				frappe.db.sql(f"ALTER TABLE `{self.table_name}` {','.join(change_nullability)}")
 			if create_contraint_query:
 				# nosemgrep
 				frappe.db.sql(create_contraint_query)
