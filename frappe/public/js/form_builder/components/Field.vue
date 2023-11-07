@@ -110,7 +110,21 @@ function make_dialog (frm) {
 			if (exits) {
 				frm.dialog.set_secondary_action_label(__("Reset To Default"));
 				frm.dialog.set_secondary_action(() => {
-					// Add functionality to take the filters data from JSON and set it as filters
+
+					frappe.call({
+						method: "frappe.custom.doctype.customize_form.customize_form.get_link_filters_from_doc_without_customisations",
+						args: {
+							doctype: current_doctype,
+							fieldname: fieldname,
+						},
+						callback: function(r) {
+							if (r.message) {
+								props.field.df.link_filters = r.message
+								frm.filter_group.clear_filters();
+								add_existing_filter(frm,props.field.df)
+							}
+						}
+					});
 
 				});
 			}
@@ -132,13 +146,16 @@ function make_filter_area (frm,doctype) {
 	});
 }
 
-function add_existing_filter(df){
+function add_existing_filter(frm,df){
 	if (df.link_filters){
 		let filters = JSON.parse(df.link_filters);
 		filters.map(filter => {
 			filter[0] = frappe.unscrub(filter[0])
 		})
-		return filters;
+		if (filters){
+			console.log(filters,typeof filters)
+			frm.filter_group.add_filters_to_filter_group(filters);
+		}
 	}
 }
 
@@ -150,10 +167,7 @@ function edit_filters(){
 	make_filter_area(frm,field_doctype);
 	frappe.model.with_doctype(field_doctype, () => {
 		frm.dialog.show();
-		let filters = add_existing_filter(props.field.df)
-		if (filters){
-			frm.filter_group.add_filters_to_filter_group(filters);
-		}
+		add_existing_filter(frm,props.field.df)
 
 	});
 }
