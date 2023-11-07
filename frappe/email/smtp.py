@@ -108,6 +108,11 @@ class SMTPServer:
 			frappe.request.after_response.add(self.quit)
 		elif frappe.job:
 			frappe.job.after_job.add(self.quit)
+		else:
+			# Console?
+			import atexit
+
+			atexit.register(self.quit)
 
 	def is_session_active(self):
 		if self._session:
