@@ -94,10 +94,43 @@ function make_dialog (frm) {
 				return filter
 			});
 
+			props.field.df.link_filters = JSON.stringify(filters);
 			frm.dialog.hide();
 		},
 		primary_action_label: __("Apply"),
 	});
+
+	if (frm.doctype === "Customize Form") {
+		let current_doctype = frm.doc.doc_type
+		let fieldname = props.field.df.fieldname
+		let property = "link_filters"
+		let property_setter_id = current_doctype+"-"+fieldname+"-"+property
+
+		frappe.db.exists("Property Setter",property_setter_id).then(exits => {
+			if (exits) {
+				frm.dialog.set_secondary_action_label(__("Reset To Default"));
+				frm.dialog.set_secondary_action(() => {
+					frappe.call({
+						method: 'frappe.custom.doctype.property_setter.property_setter.delete_property_setter',
+						args: {
+							doc_type: frm.doc.doc_type,
+							property: "link_filters",
+							fieldname: props.field.df.fieldname,
+						},
+						callback: function (r) {
+							// remove existing filters
+							frm.filter_group.clear_filters();
+							frm.dialog.hide();
+							// update the doc
+
+						},
+					})
+				});
+			}
+		})
+	}
+
+
 	// Setting selected field in store because when we click on the dialog the selected field is set to null
 	frm.dialog.$wrapper.on("click", () => {
 		store.form.selected_field = props.field.df

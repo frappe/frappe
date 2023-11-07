@@ -54,7 +54,7 @@ class CustomizeForm(Document):
 		is_calendar_and_gantt: DF.Check
 		istable: DF.Check
 		label: DF.Data | None
-		link_filters: DF.LongText | None
+		link_filters: DF.JSON | None
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
@@ -269,9 +269,6 @@ class CustomizeForm(Document):
 
 			self.set_property_setters_for_docfield(meta, df, meta_df)
 
-		# link filters
-		self.set_property_setters_for_link_filters(meta)
-
 		# action and links
 		self.set_property_setters_for_actions_and_links(meta)
 
@@ -396,15 +393,6 @@ class CustomizeForm(Document):
 			self.flags.rebuild_doctype_for_global_search = True
 
 		return True
-
-	def set_property_setters_for_link_filters(self, meta):
-		print("------------------------------------------")
-		# get fields who have property link_filters
-		link_fields_with_filter = meta.get("fields")
-		link_fields_with_filter = list(filter(lambda x: x.get("link_filters"), link_fields_with_filter))
-		for i in link_fields_with_filter:
-			print(i.as_dict())
-		print(link_fields_with_filter)
 
 	def set_property_setters_for_actions_and_links(self, meta):
 		"""
@@ -774,6 +762,7 @@ docfield_properties = {
 	"hide_days": "Check",
 	"hide_seconds": "Check",
 	"is_virtual": "Check",
+	"link_filters": "JSON",
 }
 
 doctype_link_properties = {

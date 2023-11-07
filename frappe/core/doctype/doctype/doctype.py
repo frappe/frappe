@@ -136,6 +136,7 @@ class DocType(Document):
 		is_virtual: DF.Check
 		issingle: DF.Check
 		istable: DF.Check
+		link_filters: DF.JSON
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int

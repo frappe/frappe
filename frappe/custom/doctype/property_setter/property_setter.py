@@ -86,6 +86,7 @@ def make_property_setter(
 	return property_setter
 
 
+@frappe.whitelist(allow_guest=False)
 def delete_property_setter(doc_type, property, field_name=None, row_name=None):
 	"""delete other property setters on this, if this is new"""
 	filters = dict(doc_type=doc_type, property=property)
