@@ -164,30 +164,6 @@ def get_messages_for_boot():
 	return get_all_translations(frappe.local.lang)
 
 
-def make_dict_from_messages(messages, full_dict=None, load_user_translation=True):
-	"""Returns translated messages as a dict in Language specified in `frappe.local.lang`
-
-	:param messages: List of untranslated messages
-	"""
-	out = {}
-	if full_dict is None:
-		if load_user_translation:
-			full_dict = get_all_translations(frappe.local.lang)
-		else:
-			full_dict = get_translations_from_apps(frappe.local.lang)
-
-	for m in messages:
-		if m[1] in full_dict:
-			out[m[1]] = full_dict[m[1]]
-		# check if msg with context as key exist eg. msg:context
-		if len(m) > 2 and m[2]:
-			key = m[1] + ":" + m[2]
-			if full_dict.get(key):
-				out[key] = full_dict[key]
-
-	return out
-
-
 def get_all_translations(lang: str) -> dict[str, str]:
 	"""Load and return the entire translations dictionary for a language from apps + user translations.
 

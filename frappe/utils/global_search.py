@@ -11,7 +11,6 @@ import frappe
 from frappe.model.base_document import get_controller
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.data import cstr
-from frappe.utils.deprecations import deprecated
 from frappe.utils.html_utils import unescape_html
 
 HTML_TAGS_PATTERN = re.compile(r"(?s)<[\s]*(script|style).*?</\1>")
@@ -429,10 +428,9 @@ def sync_value_in_queue(value):
 		frappe.cache.lpush("global_search_queue", json.dumps(value))
 	except redis.exceptions.ConnectionError:
 		# not connected, sync directly
-		sync_values((value,))
+		sync_value(value)
 
 
-@deprecated
 def sync_value(value: dict):
 	"""
 	Sync a given document to global search
