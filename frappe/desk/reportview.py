@@ -220,7 +220,8 @@ def clean_params(data):
 
 def parse_json(data):
 	if isinstance(data.get("filters"), str):
-		data["filters"] = json.loads(data["filters"])
+		if len(data.get("filters")) > 0:
+			data["filters"] = json.loads(data["filters"])
 	if isinstance(data.get("or_filters"), str):
 		data["or_filters"] = json.loads(data["or_filters"])
 	if isinstance(data.get("fields"), str):
