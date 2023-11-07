@@ -221,12 +221,8 @@ function move_sections_to_tab() {
 			border-color: var(--primary);
 		}
 
-		&.selected .section-header {
-			display: flex;
-		}
-
 		.section-header {
-			display: none;
+			display: flex;
 			justify-content: space-between;
 			align-items: center;
 			padding-bottom: 0.75rem;
