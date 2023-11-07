@@ -1050,6 +1050,9 @@ export default class Grid {
 					new frappe.ui.FileUploader({
 						as_dataurl: true,
 						allow_multiple: false,
+						restrictions: {
+							allowed_file_types: [".csv"],
+						},
 						on_success(file) {
 							var data = frappe.utils.csv_to_array(
 								frappe.utils.get_decoded_string(file.dataurl)

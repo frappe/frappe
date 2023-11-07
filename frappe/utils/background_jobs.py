@@ -20,6 +20,7 @@ import frappe.monitor
 from frappe import _
 from frappe.utils import cint, cstr, get_bench_id
 from frappe.utils.commands import log
+from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.redis_queue import RedisQueue
 
 if TYPE_CHECKING:
@@ -76,7 +77,7 @@ def enqueue(
 	:param timeout: should be set according to the functions
 	:param event: this is passed to enable clearing of jobs from queues
 	:param is_async: if is_async=False, the method is executed immediately, else via a worker
-	:param job_name: can be used to name an enqueue call, which can be used to prevent duplicate calls
+	:param job_name: [DEPRECATED] can be used to name an enqueue call, which can be used to prevent duplicate calls
 	:param now: if now=True, the method is executed via frappe.call
 	:param kwargs: keyword arguments to be passed to the method
 	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
@@ -88,11 +89,12 @@ def enqueue(
 		# namespace job ids to sites
 		job_id = create_job_id(job_id)
 
+	if job_name:
+		deprecation_warning("Using enqueue with `job_name` is deprecated, use `job_id` instead.")
+
 	if not is_async and not frappe.flags.in_test:
-		print(
-			_(
-				"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead."
-			)
+		deprecation_warning(
+			"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead."
 		)
 
 	call_directly = now or (not is_async and not frappe.flags.in_test)

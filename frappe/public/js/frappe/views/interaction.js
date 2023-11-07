@@ -356,7 +356,7 @@ function get_doc_mappings() {
 				due_date: "date",
 				reference_doctype: "reference_type",
 				reference_document: "reference_name",
-				assigned_to: "owner",
+				assigned_to: "allocated_to",
 			},
 			reqd_fields: ["description"],
 			hidden_fields: ["public", "category"],

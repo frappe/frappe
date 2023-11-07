@@ -219,12 +219,12 @@ def clean_params(data):
 
 
 def parse_json(data):
-	if isinstance(data.get("filters"), str):
-		data["filters"] = json.loads(data["filters"])
-	if isinstance(data.get("or_filters"), str):
-		data["or_filters"] = json.loads(data["or_filters"])
-	if isinstance(data.get("fields"), str):
-		data["fields"] = ["*"] if data["fields"] == "*" else json.loads(data["fields"])
+	if (filters := data.get("filters")) and isinstance(filters, str):
+		data["filters"] = json.loads(filters)
+	if (or_filters := data.get("or_filters")) and isinstance(or_filters, str):
+		data["or_filters"] = json.loads(or_filters)
+	if (fields := data.get("fields")) and isinstance(fields, str):
+		data["fields"] = ["*"] if fields == "*" else json.loads(fields)
 	if isinstance(data.get("docstatus"), str):
 		data["docstatus"] = json.loads(data["docstatus"])
 	if isinstance(data.get("save_user_settings"), str):
