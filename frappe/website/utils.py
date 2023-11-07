@@ -166,7 +166,7 @@ def get_home_page_via_hooks():
 
 def get_boot_data():
 	return {
-		"lang": "en",
+		"lang": frappe.local.lang or "en",
 		"sysdefaults": {
 			"float_precision": cint(frappe.get_system_settings("float_precision")) or 3,
 			"date_format": frappe.get_system_settings("date_format") or "yyyy-mm-dd",
