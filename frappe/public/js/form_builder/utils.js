@@ -242,10 +242,6 @@ export function section_boilerplate() {
 				df: store.get_df("Column Break"),
 				fields: [],
 			},
-			{
-				df: store.get_df("Column Break"),
-				fields: [],
-			},
 		],
 	};
 }
@@ -350,4 +346,8 @@ export function confirm_dialog(
 	});
 	d.show();
 	d.set_message(message);
+}
+
+export function is_touch_screen_device() {
+	return "ontouchstart" in document.documentElement;
 }

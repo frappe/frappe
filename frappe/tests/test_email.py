@@ -5,6 +5,8 @@ import email
 import re
 from unittest.mock import patch
 
+import requests
+
 import frappe
 from frappe.email.doctype.email_account.test_email_account import TestEmailAccount
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder
@@ -52,7 +54,7 @@ class TestEmail(FrappeTestCase):
 		self.test_email_queue(send_after=1)
 		from frappe.email.queue import flush
 
-		flush(from_test=True)
+		flush()
 		email_queue = frappe.db.sql(
 			"""select name from `tabEmail Queue` where status='Sent'""", as_dict=1
 		)
@@ -62,7 +64,7 @@ class TestEmail(FrappeTestCase):
 		self.test_email_queue()
 		from frappe.email.queue import flush
 
-		flush(from_test=True)
+		flush()
 		email_queue = frappe.db.sql(
 			"""select name from `tabEmail Queue` where status='Sent'""", as_dict=1
 		)
@@ -325,3 +327,50 @@ class TestVerifiedRequests(FrappeTestCase):
 			set_request(method="GET", query_string=signed_url)
 			self.assertTrue(verify_request())
 		frappe.local.request = None
+
+
+class TestEmailIntegrationTest(FrappeTestCase):
+	"""Sends email to local SMTP server and verifies correctness.
+
+	SMTP4Dev runs as a service in unit test CI job.
+	If you need to run this test locally, you must setup SMTP4dev locally.
+
+	WARNING: SMTP4dev doesn't have stable API, it can break anytime.
+	"""
+
+	SMTP4DEV_WEB = "http://localhost:3000"
+
+	def setUp(self) -> None:
+		# Frappe code is configured to not attempting sending emails during test.
+		frappe.flags.testing_email = True
+		requests.delete(f"{self.SMTP4DEV_WEB}/api/Messages/*")
+		return super().setUp()
+
+	def tearDown(self) -> None:
+		frappe.flags.testing_email = False
+		return super().tearDown()
+
+	def get_last_sent_emails(self):
+		return requests.get(
+			f"{self.SMTP4DEV_WEB}/api/Messages?sortColumn=receivedDate&sortIsDescending=true"
+		).json()
+
+	def test_send_email(self):
+		sender = "a@example.io"
+		recipients = "b@example.io,c@example.io"
+		subject = "checking if email works"
+		content = "is email working?"
+
+		frappe.sendmail(sender=sender, recipients=recipients, subject=subject, content=content, now=True)
+		email = frappe.get_last_doc("Email Queue")
+		self.assertEqual(email.sender, sender)
+		self.assertEqual(len(email.recipients), 2)
+		self.assertEqual(email.status, "Sent")
+
+		sent_mails = self.get_last_sent_emails()
+		self.assertEqual(len(sent_mails), 2)
+
+		for sent_mail in sent_mails:
+			self.assertEqual(sent_mail["from"], sender)
+			self.assertEqual(sent_mail["subject"], subject)
+		self.assertSetEqual(set(recipients.split(",")), {m["to"] for m in sent_mails})
