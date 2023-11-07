@@ -92,7 +92,7 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	"""
 	from frappe.utils import is_html, strip_html_tags
 
-	if conf.use_gettext:
+	if conf and conf.use_gettext:
 		from frappe.gettext.translate import get_all_translations
 	else:
 		from frappe.translate import get_all_translations
