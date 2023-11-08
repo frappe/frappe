@@ -324,7 +324,7 @@ const options = computed(() => {
 
 		&.hovered,
 		&.selected {
-			border-color: var(--primary);
+			border-color: var(--border-primary);
 		}
 
 		.section-header {

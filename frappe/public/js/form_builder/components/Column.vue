@@ -84,7 +84,7 @@ const selected = computed(() => store.selected(props.column.df.name));
 
 	&.hovered,
 	&.selected {
-		border-color: var(--primary);
+		border-color: var(--border-primary);
 		border-style: solid;
 	}
 
