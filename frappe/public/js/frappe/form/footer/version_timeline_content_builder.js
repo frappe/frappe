@@ -83,21 +83,14 @@ function get_version_timeline_content(version_doc, frm) {
 				}
 			} else {
 				const df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
-				if (!is_auto_field(df)) {
-					const field_display_status = frappe.perm.get_field_display_status(
-						df,
-						null,
-						frm.perm
+				if (!hide_from_timeline(df, frm.perm)) {
+					parts.push(
+						__("{0} from {1} to {2}", [
+							__(df.label),
+							format_content_for_timeline(p[1]),
+							format_content_for_timeline(p[2]),
+						])
 					);
-					if (field_display_status === "Read" || field_display_status === "Write") {
-						parts.push(
-							__("{0} from {1} to {2}", [
-								__(df.label),
-								format_content_for_timeline(p[1]),
-								format_content_for_timeline(p[2]),
-							])
-						);
-					}
 				}
 			}
 			return parts.length < 3;
@@ -134,30 +127,22 @@ function get_version_timeline_content(version_doc, frm) {
 		let parts = [];
 		data.row_changed.every(function (row) {
 			row[3].every(function (p) {
-				var df =
+				const df =
 					frm.fields_dict[row[0]] &&
 					frappe.meta.get_docfield(
 						frm.fields_dict[row[0]].grid.doctype,
 						p[0],
 						frm.docname
 					);
-				if (!is_auto_field(df)) {
-					var field_display_status = frappe.perm.get_field_display_status(
-						df,
-						null,
-						frm.perm
+				if (!hide_from_timeline(df, frm.perm)) {
+					parts.push(
+						__("{0} from {1} to {2} in row #{3}", [
+							frappe.meta.get_label(frm.fields_dict[row[0]].grid.doctype, p[0]),
+							format_content_for_timeline(p[1]),
+							format_content_for_timeline(p[2]),
+							row[1],
+						])
 					);
-
-					if (field_display_status === "Read" || field_display_status === "Write") {
-						parts.push(
-							__("{0} from {1} to {2} in row #{3}", [
-								frappe.meta.get_label(frm.fields_dict[row[0]].grid.doctype, p[0]),
-								format_content_for_timeline(p[1]),
-								format_content_for_timeline(p[2]),
-								row[1],
-							])
-						);
-					}
 				}
 				return parts.length < 3;
 			});
@@ -195,17 +180,9 @@ function get_version_timeline_content(version_doc, frm) {
 	["added", "removed"].forEach(function (key) {
 		if (data[key] && data[key].length) {
 			let parts = (data[key] || []).map(function (p) {
-				var df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
-				if (!is_auto_field(df)) {
-					var field_display_status = frappe.perm.get_field_display_status(
-						df,
-						null,
-						frm.perm
-					);
-
-					if (field_display_status === "Read" || field_display_status === "Write") {
-						return __(frappe.meta.get_label(frm.doctype, p[0]));
-					}
+				const df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
+				if (!hide_from_timeline(df, frm.perm)) {
+					return __(frappe.meta.get_label(frm.doctype, p[0]));
 				}
 			});
 			parts = parts.filter(function (p) {
@@ -230,8 +207,12 @@ function get_version_timeline_content(version_doc, frm) {
 	return out;
 }
 
-function is_auto_field(df) {
-	return !df || df.hidden || (df.read_only && (df.fetch_from || df.no_copy));
+function hide_from_timeline(df, perm) {
+	if (!df || df.hidden || (df.read_only && (df.fetch_from || df.no_copy))) {
+		return true;
+	}
+	const field_display_status = frappe.perm.get_field_display_status(df, null, perm);
+	return !["Read", "Write"].includes(field_display_status);
 }
 
 function get_version_comment(version_doc, text) {
