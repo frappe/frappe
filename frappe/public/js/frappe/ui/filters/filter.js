@@ -271,8 +271,7 @@ frappe.ui.Filter = class {
 
 	make_field(df, old_fieldtype) {
 		let old_text = this.field ? this.field.get_value() : null;
-		this.hide_invalid_conditions(df.fieldtype, df.original_type);
-		this.toggle_nested_set_conditions(df);
+		this.rebuild_conditions(df);
 		let field_area = this.filter_edit_area.find(".filter-field").empty().get(0);
 		df.input_class = "input-xs";
 		let f = frappe.ui.form.make_control({
@@ -383,26 +382,23 @@ frappe.ui.Filter = class {
 		</div>`);
 	}
 
-	hide_invalid_conditions(fieldtype, original_type) {
-		let invalid_conditions =
-			this.invalid_condition_map[original_type] ||
-			this.invalid_condition_map[fieldtype] ||
-			[];
+	rebuild_conditions(df) {
+		let conditions = [...this.conditions];
 
-		for (let condition of this.conditions) {
-			this.filter_edit_area
-				.find(`.condition option[value="${condition[0]}"]`)
-				.toggle(!invalid_conditions.includes(condition[0]));
+		const invalid_conditions = new Set([
+			...(this.invalid_condition_map[df.original_type] || []),
+			...(this.invalid_condition_map[df.fieldtype] || []),
+		]);
+		conditions = conditions.filter(([key]) => !invalid_conditions.has(key));
+
+		if (df.fieldtype !== "Link" || !frappe.boot.nested_set_doctypes.includes(df.options)) {
+			const nested_set_keys = new Set(this.nested_set_conditions.map(([key]) => key));
+			conditions = conditions.filter(([key]) => !nested_set_keys.has(key));
 		}
-	}
 
-	toggle_nested_set_conditions(df) {
-		let show_condition =
-			df.fieldtype === "Link" && frappe.boot.nested_set_doctypes.includes(df.options);
-		this.nested_set_conditions.forEach((condition) => {
-			this.filter_edit_area
-				.find(`.condition option[value="${condition[0]}"]`)
-				.toggle(show_condition);
+		const condition_select = this.filter_edit_area.find(".condition").empty();
+		conditions.forEach(([key, label]) => {
+			condition_select.append(`<option value="${key}">${__(label)}</option>`);
 		});
 	}
 };
