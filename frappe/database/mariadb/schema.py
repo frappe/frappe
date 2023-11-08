@@ -3,6 +3,7 @@ from pymysql.constants.ER import DUP_ENTRY
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
+from frappe.utils.defaults import get_not_null_defaults
 
 
 class MariaDBTable(DBTable):
@@ -106,9 +107,9 @@ class MariaDBTable(DBTable):
 			if col.not_nullable:
 				try:
 					table = frappe.qb.DocType(self.doctype)
-					frappe.qb.update(table).set(col.fieldname, col.default).where(
-						table[col.fieldname].isnull()
-					).run()
+					frappe.qb.update(table).set(
+						col.fieldname, col.default or get_not_null_defaults(col.fieldtype)
+					).where(table[col.fieldname].isnull()).run()
 				except Exception:
 					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
 					raise
