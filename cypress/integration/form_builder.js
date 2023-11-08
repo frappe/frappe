@@ -43,7 +43,8 @@ context("Form Builder", () => {
 
 		// add new section
 		cy.get(first_section).click(15, 10);
-		cy.get(first_section).find(".section-actions button:first").click();
+		cy.get(first_section).find(".dropdown-btn:first").click();
+		cy.get(".dropdown-options:visible .dropdown-item:first").click();
 
 		// save
 		cy.click_doc_primary_button("Save");
@@ -184,12 +185,14 @@ context("Form Builder", () => {
 
 		// add new section
 		cy.get(first_section).click(15, 10);
-		cy.get(first_section).find(".section-actions button:first").click();
+		cy.get(first_section).find(".dropdown-btn:first").click();
+		cy.get(".dropdown-options:visible .dropdown-item:first").click();
 		cy.get(".tab-content.active .form-section-container").should("have.length", 2);
 
 		// add new column
-		cy.get(first_section).find(".column:first").click(15, 10);
-		cy.get(first_section).find(".column:first .column-actions button:first").click();
+		cy.get(first_section).click(15, 10);
+		cy.get(first_section).find(".dropdown-btn:first").click();
+		cy.get(".dropdown-options:visible .dropdown-item:last").click();
 		cy.get(first_section).find(".column").should("have.length", 2);
 	});
 
@@ -197,13 +200,15 @@ context("Form Builder", () => {
 		let first_section = ".tab-content.active .form-section-container:first";
 
 		// remove column
-		cy.get(first_section).find(".column:first").click(15, 10);
-		cy.get(first_section).find(".column:first .column-actions button:last").click();
+		cy.get(first_section).click(15, 10);
+		cy.get(first_section).find(".dropdown-btn:first").click();
+		cy.get(".dropdown-options:visible .dropdown-item:last").click();
 		cy.get(first_section).find(".column").should("have.length", 1);
 
 		// remove section
 		cy.get(first_section).click(15, 10);
-		cy.get(first_section).find(".section-actions button:last").click();
+		cy.get(first_section).find(".dropdown-btn:first").click();
+		cy.get(".dropdown-options:visible .dropdown-item").eq(1).click();
 		cy.get(".tab-content.active .form-section-container").should("have.length", 1);
 
 		// remove tab
