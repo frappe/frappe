@@ -145,6 +145,8 @@ class ScheduledJobType(Document):
 				dict(doctype="Scheduled Job Log", scheduled_job_type=self.name)
 			).insert(ignore_permissions=True)
 		self.scheduler_log.db_set("status", status)
+		if frappe.debug_log:
+			self.scheduler_log.db_set("debug_log", "\n".join(frappe.debug_log))
 		if status == "Failed":
 			self.scheduler_log.db_set("details", frappe.get_traceback())
 		if status == "Start":

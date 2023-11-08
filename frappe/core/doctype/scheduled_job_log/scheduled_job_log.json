@@ -7,7 +7,8 @@
  "field_order": [
   "status",
   "scheduled_job_type",
-  "details"
+  "details",
+  "debug_log"
  ],
  "fields": [
   {
@@ -35,10 +36,16 @@
    "options": "Scheduled Job Type",
    "read_only": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "debug_log",
+   "fieldtype": "Code",
+   "label": "Debug Log",
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2022-06-13 05:41:21.090972",
+ "modified": "2023-11-09 12:06:41.781270",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Log",
