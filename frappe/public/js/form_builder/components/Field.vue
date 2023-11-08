@@ -153,7 +153,6 @@ function add_existing_filter(frm,df){
 			filter[0] = frappe.unscrub(filter[0])
 		})
 		if (filters){
-			console.log(filters,typeof filters)
 			frm.filter_group.add_filters_to_filter_group(filters);
 		}
 	}
