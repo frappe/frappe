@@ -270,7 +270,7 @@ function delete_tab(tab, with_children) {
 			color: var(--text-color);
 
 			&::before {
-				border-color: var(--primary);
+				border-color: var(--border-primary);
 			}
 		}
 
