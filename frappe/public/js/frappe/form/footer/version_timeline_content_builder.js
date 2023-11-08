@@ -83,7 +83,7 @@ function get_version_timeline_content(version_doc, frm) {
 				}
 			} else {
 				const df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
-				if (df && !df.hidden) {
+				if (!is_auto_field(df)) {
 					const field_display_status = frappe.perm.get_field_display_status(
 						df,
 						null,
@@ -141,8 +141,7 @@ function get_version_timeline_content(version_doc, frm) {
 						p[0],
 						frm.docname
 					);
-
-				if (df && !df.hidden) {
+				if (!is_auto_field(df)) {
 					var field_display_status = frappe.perm.get_field_display_status(
 						df,
 						null,
@@ -197,7 +196,7 @@ function get_version_timeline_content(version_doc, frm) {
 		if (data[key] && data[key].length) {
 			let parts = (data[key] || []).map(function (p) {
 				var df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
-				if (df && !df.hidden) {
+				if (!is_auto_field(df)) {
 					var field_display_status = frappe.perm.get_field_display_status(
 						df,
 						null,
@@ -229,6 +228,10 @@ function get_version_timeline_content(version_doc, frm) {
 	});
 
 	return out;
+}
+
+function is_auto_field(df) {
+	return !df || df.hidden || (df.read_only && (df.fetch_from || df.no_copy));
 }
 
 function get_version_comment(version_doc, text) {
