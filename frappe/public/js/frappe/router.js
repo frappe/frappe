@@ -101,7 +101,7 @@ frappe.router = {
 		dashboard: "Dashboard",
 		image: "Image",
 		inbox: "Inbox",
-		file: "Home",
+		file: frappe.boot.home_folder,
 		map: "Map",
 	},
 	layout_mapped: {},

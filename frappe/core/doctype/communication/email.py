@@ -252,7 +252,7 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 			{
 				"attached_to_doctype": "Communication",
 				"attached_to_name": name,
-				"folder": "Home/Attachments",
+				"folder": frappe.db.get_value("File", {"is_attachments_folder": 1}),
 			}
 		)
 

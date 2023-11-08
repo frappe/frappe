@@ -65,7 +65,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		frappe.breadcrumbs.add({
 			type: "Custom",
 			label: __("Home"),
-			route: "/app/List/File/Home",
+			route: `/app/file/view/${frappe.boot.home_folder}`,
 		});
 	}
 
