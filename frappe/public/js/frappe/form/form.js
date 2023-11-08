@@ -280,7 +280,6 @@ frappe.ui.form.Form = class FrappeForm {
 			.map((field) => JSON.parse(field.link_filters));
 		if (fields_with_filters.length === 0) return;
 		fields_with_filters = this.parse_filters(fields_with_filters);
-
 		for (let link_field in fields_with_filters) {
 			const filters = fields_with_filters[link_field];
 			this.set_query(link_field, () => filters);
@@ -292,7 +291,8 @@ frappe.ui.form.Form = class FrappeForm {
 
 		for (const d of data) {
 			for (const condition of d) {
-				const [doctype, field, operator, value] = condition;
+				let [doctype, field, operator, value] = condition;
+				doctype = doctype.fieldname;
 				if (!parsed_data[doctype]) {
 					parsed_data[doctype] = {
 						filters: {},

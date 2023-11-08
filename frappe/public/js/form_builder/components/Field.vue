@@ -87,12 +87,17 @@ function make_dialog (frm) {
 			},
 		],
 		primary_action: () => {
+			let fieldname = props.field.df.fieldname
+			let field_option = props.field.df.options
 			let filters = frm.filter_group.get_filters().map(filter =>{
 				// last element is a boolean which hides the filter hence not required to store in meta
 				filter.pop()
-				filter[0] = props.field.df.fieldname
+
+				// filter_group component requires options and frm.set_query requires fieldname so storing both
+				filter[0] = {fieldname,field_option}
 				return filter
 			});
+
 
 			props.field.df.link_filters = JSON.stringify(filters);
 			frm.dialog.hide();
@@ -120,8 +125,11 @@ function make_dialog (frm) {
 						callback: function(r) {
 							if (r.message) {
 								props.field.df.link_filters = r.message
+
 								frm.filter_group.clear_filters();
 								add_existing_filter(frm,props.field.df)
+								// hide the secondary action button
+								frm.dialog.get_secondary_btn().addClass('hidden')
 							}
 						}
 					});
@@ -150,7 +158,8 @@ function add_existing_filter(frm,df){
 	if (df.link_filters){
 		let filters = JSON.parse(df.link_filters);
 		filters.map(filter => {
-			filter[0] = frappe.unscrub(filter[0])
+			// filter_group component requires options and frm.set_query requires fieldname
+			filter[0] = filter[0].field_option
 		})
 		if (filters){
 			frm.filter_group.add_filters_to_filter_group(filters);
