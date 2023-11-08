@@ -208,39 +208,43 @@ class DbColumn:
 		if not column_def:
 			return column_def
 
-		null = ""
+		null = True
 		default = ""
-		unique = ""
+		unique = False
 
 		if self.fieldtype in ("Check", "Int"):
-			default_value = cint(self.default) or 0
-			null = " not null"
-			default = f" default {default_value}"
+			default = cint(self.default) or 0
+			null = False
 
 		elif self.fieldtype in ("Currency", "Float", "Percent"):
-			default_value = flt(self.default) or 0
-			null = " not null"
-			default = f" default {default_value}"
+			default = flt(self.default) or 0
+			null = False
 
 		elif (
 			self.default
 			and (self.default not in frappe.db.DEFAULT_SHORTCUTS)
 			and not cstr(self.default).startswith(":")
 		):
-			default = f" default {frappe.db.escape(self.default)}"
+			default = frappe.db.escape(self.default)
 
 		if self.not_nullable and null == "":
 			if default == "":
-				default_value = get_not_null_defaults(self.fieldtype)
-				if isinstance(default_value, str):
-					default_value = frappe.db.escape(default_value)
-				default = f" default {default_value}"
-			null = " not null"
+				default = get_not_null_defaults(self.fieldtype)
+				if isinstance(default, str):
+					default = frappe.db.escape(default)
+			null = False
 
 		if self.unique and not for_modification and (column_def not in ("text", "longtext")):
-			unique = "unique"
+			unique = True
 
-		column_def += null + default + unique
+		if not null:
+			column_def += " NOT NULL"
+
+		if default:
+			column_def += f" DEFAULT {default}"
+
+		if unique:
+			column_def += " UNIQUE"
 		return column_def
 
 	def build_for_alter_table(self, current_def):
