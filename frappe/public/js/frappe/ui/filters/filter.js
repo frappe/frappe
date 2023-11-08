@@ -36,8 +36,6 @@ frappe.ui.Filter = class {
 			["not ancestors of", __("Not Ancestors Of")],
 		];
 
-		this.conditions.push(...this.nested_set_conditions);
-
 		this.invalid_condition_map = {
 			Date: ["like", "not like"],
 			Datetime: ["like", "not like", "in", "not in", "=", "!="],
@@ -57,11 +55,12 @@ frappe.ui.Filter = class {
 	}
 
 	set_conditions_from_config() {
+		this.conditions_from_config = [];
 		if (frappe.boot.additional_filters_config) {
 			this.filters_config = frappe.boot.additional_filters_config;
 			for (let key of Object.keys(this.filters_config)) {
 				const filter = this.filters_config[key];
-				this.conditions.push([key, __(filter.label)]);
+				this.conditions_from_config.push([key, __(filter.label)]);
 				for (let fieldtype of Object.keys(this.invalid_condition_map)) {
 					if (!filter.valid_for_fieldtypes.includes(fieldtype)) {
 						this.invalid_condition_map[fieldtype].push(key);
@@ -74,7 +73,11 @@ frappe.ui.Filter = class {
 	make() {
 		this.filter_edit_area = $(
 			frappe.render_template("edit_filter", {
-				conditions: this.conditions,
+				conditions: [
+					...this.conditions,
+					...this.nested_set_conditions,
+					...this.conditions_from_config,
+				],
 			})
 		);
 		this.parent && this.filter_edit_area.appendTo(this.parent.find(".filter-edit-area"));
@@ -384,17 +387,16 @@ frappe.ui.Filter = class {
 
 	rebuild_conditions(df) {
 		let conditions = [...this.conditions];
+		if (df.fieldtype === "Link" && frappe.boot.nested_set_doctypes.includes(df.options)) {
+			conditions = conditions.concat(this.nested_set_conditions);
+		}
+		conditions = conditions.concat(this.conditions_from_config);
 
 		const invalid_conditions = new Set([
 			...(this.invalid_condition_map[df.original_type] || []),
 			...(this.invalid_condition_map[df.fieldtype] || []),
 		]);
 		conditions = conditions.filter(([key]) => !invalid_conditions.has(key));
-
-		if (df.fieldtype !== "Link" || !frappe.boot.nested_set_doctypes.includes(df.options)) {
-			const nested_set_keys = new Set(this.nested_set_conditions.map(([key]) => key));
-			conditions = conditions.filter(([key]) => !nested_set_keys.has(key));
-		}
 
 		const condition_select = this.filter_edit_area.find(".condition").empty();
 		conditions.forEach(([key, label]) => {
