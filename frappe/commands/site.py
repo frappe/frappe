@@ -825,6 +825,9 @@ def use(site, sites_path="."):
 )
 @click.option("--verbose", default=False, is_flag=True, help="Add verbosity")
 @click.option("--compress", default=False, is_flag=True, help="Compress private and public files")
+@click.option(
+	"--old-backup-metadata", default=False, is_flag=True, help="Use older backup metadata"
+)
 @pass_context
 def backup(
 	context,
@@ -839,6 +842,7 @@ def backup(
 	compress=False,
 	include="",
 	exclude="",
+	old_backup_metadata=False,
 ):
 	"Backup"
 
@@ -864,6 +868,7 @@ def backup(
 				compress=compress,
 				verbose=verbose,
 				force=True,
+				old_backup_metadata=old_backup_metadata,
 			)
 		except Exception:
 			click.secho(
