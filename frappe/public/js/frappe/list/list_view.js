@@ -1470,11 +1470,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const data = frappe.utils.dict(message.keys, message.values);
 
 			if (!(data && data.length)) {
-				// this doc was changed and should not be visible
-				// in the listview according to filters applied
-				// let's remove it manually
+				// No docs returned => they are deleted or don't meet applied filters.
 				this.data = this.data.filter((d) => names.indexOf(d.name) === -1);
 				this.render_list();
+				this.render_count();
 				return;
 			}
 
