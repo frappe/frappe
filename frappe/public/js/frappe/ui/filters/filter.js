@@ -73,11 +73,7 @@ frappe.ui.Filter = class {
 	make() {
 		this.filter_edit_area = $(
 			frappe.render_template("edit_filter", {
-				conditions: [
-					...this.conditions,
-					...this.nested_set_conditions,
-					...this.conditions_from_config,
-				],
+				conditions: [], // BC
 			})
 		);
 		this.parent && this.filter_edit_area.appendTo(this.parent.find(".filter-edit-area"));
