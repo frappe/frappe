@@ -46,7 +46,7 @@ from frappe.utils import CallbackManager
 @click.option(
 	"--setup-db/--no-setup-db",
 	default=True,
-	help="Create user and database in mariadb/postgres; only boostrap if false",
+	help="Create user and database in mariadb/postgres; only bootstrap if false",
 )
 def new_site(
 	site,
