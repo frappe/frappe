@@ -1473,21 +1473,34 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return;
 		}
 
-		let extra_fields = null;
+		let extra_fields = [];
+
 		if (this.tree_report) {
-			extra_fields = [
-				{
-					label: __("Include indentation"),
-					fieldname: "include_indentation",
-					fieldtype: "Check",
-				},
-			];
+			extra_fields.push({
+				label: __("Include indentation"),
+				fieldname: "include_indentation",
+				fieldtype: "Check",
+			});
+		}
+
+		if (this.filters.length > 0) {
+			extra_fields.push({
+				label: __("Include filters"),
+				fieldname: "include_filters",
+				fieldtype: "Check",
+			});
 		}
 
 		this.export_dialog = frappe.report_utils.get_export_dialog(
 			__(this.report_name),
 			extra_fields,
-			({ file_format, include_indentation, csv_delimiter, csv_quoting }) => {
+			({
+				file_format,
+				include_indentation,
+				include_filters,
+				csv_delimiter,
+				csv_quoting,
+			}) => {
 				this.make_access_log("Export", file_format);
 
 				let filters = this.get_filter_values(true);
@@ -1513,6 +1526,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					csv_delimiter,
 					csv_quoting,
 					include_indentation,
+					include_filters,
 				};
 
 				open_url_post(frappe.request.url, args);
