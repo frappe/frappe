@@ -4,8 +4,11 @@
 frappe.ui.form.on("Number Card", {
 	refresh: function (frm) {
 		if (!frappe.boot.developer_mode && frm.doc.is_standard) {
-			frm.disable_form();
+			frm.disable_save();
+		} else {
+			frm.enable_save();
 		}
+
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.set_df_property("dynamic_filters_section", "hidden", 1);
 		frm.trigger("set_options");
@@ -19,9 +22,6 @@ frappe.ui.form.on("Number Card", {
 		}
 
 		if (frm.doc.type == "Custom") {
-			if (!frappe.boot.developer_mode) {
-				frm.disable_form();
-			}
 			frm.filters = eval(frm.doc.filters_config);
 			frm.trigger("render_filters_table");
 		}
