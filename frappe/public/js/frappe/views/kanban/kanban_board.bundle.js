@@ -96,8 +96,8 @@ frappe.provide("frappe.views");
 							});
 						},
 						function (err) {
-							console.error(err); }
-
+							console.error(err); 
+						}
 					);
 			},
 			add_card: function (context, { card_title, column_title }) {
@@ -713,7 +713,7 @@ frappe.provide("frappe.views");
 				disable_click: card._disable_click ? "disable-click" : "",
 				creation: card.creation,
 				doc_content: get_doc_content(card),
-				client_description: card.doc.client_description,
+				client_description: frappe.utils.html2text(card.doc.client_description),
 				image_url: cur_list.get_image_url(card),
 				form_link: frappe.utils.get_form_link(card.doctype, card.name),
 			};
@@ -839,7 +839,6 @@ frappe.provide("frappe.views");
 
 		function getLoanCarIcons(){
 			let html = "";
-			console.log(card.doc)
 			if(card.doc.custom_is_loan_car === null){
 				html = '<svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><style>svg{fill:#d1d1d1}</style><path d="M336 32c79.529 0 144 64.471 144 144s-64.471 144-144 144c-18.968 0-37.076-3.675-53.661-10.339L240 352h-48v64h-64v64H32v-80l170.339-170.339C195.675 213.076 192 194.968 192 176c0-79.529 64.471-144 144-144m0-32c-97.184 0-176 78.769-176 176 0 15.307 1.945 30.352 5.798 44.947L7.029 379.716A24.003 24.003 0 0 0 0 396.686V488c0 13.255 10.745 24 24 24h112c13.255 0 24-10.745 24-24v-40h40c13.255 0 24-10.745 24-24v-40h19.314c6.365 0 12.47-2.529 16.971-7.029l30.769-30.769C305.648 350.055 320.693 352 336 352c97.184 0 176-78.769 176-176C512 78.816 433.231 0 336 0zm48 108c11.028 0 20 8.972 20 20s-8.972 20-20 20-20-8.972-20-20 8.972-20 20-20m0-28c-26.51 0-48 21.49-48 48s21.49 48 48 48 48-21.49 48-48-21.49-48-48-48z"/></svg>';
 			}
