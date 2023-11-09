@@ -9,6 +9,14 @@ body {
 // 	overflow-x: hidden;  //Prevent scroll on narrow devices
 // }
 
+@media (max-width: 1024px) {
+	body[data-route^="Form"] {
+		.page-title .title-text {
+			max-width: 35vw;
+		}
+	}
+}
+
 @media(max-width: 991px) {
 	.intro-area,
 	.footnote-area {
@@ -158,8 +166,7 @@ body {
 	body[data-route^="Form"]{
 		.page-title {
 			.title-text {
-				font-size: var(--text-lg);
-				max-width: 300px;
+				@include get_textstyle("lg", "regular");
 			}
 
 			.indicator {
@@ -377,6 +384,14 @@ body {
 		}
 		.asset-details {
 			line-height: 24px; /*Height of avtar image -36px to align text center vertically*/
+		}
+	}
+}
+
+@media (max-width: 412px) {
+	body[data-route^="Form"] {
+		.page-title .title-text {
+			max-width: 28vw;
 		}
 	}
 }

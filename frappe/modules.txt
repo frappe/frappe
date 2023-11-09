@@ -10,4 +10,3 @@ Printing
 Contacts
 Social
 Automation
-Event Streaming

@@ -71,7 +71,7 @@ class SubmittableDocumentTree:
 
 	def get_all_children(self):
 		"""Get all nodes of a tree except the root node (all the nested submitted
-		documents those are present in referencing tables (dependent tables).
+		documents those are present in referencing tables dependent tables).
 		"""
 		while self.to_be_visited_documents:
 			next_level_children = defaultdict(list)
@@ -101,6 +101,10 @@ class SubmittableDocumentTree:
 
 		child_docs = defaultdict(list)
 		for field in referencing_fields:
+			if field["fieldname"] == "amended_from":
+				# perf: amended_from links are always linked to cancelled documents.
+				continue
+
 			links = (
 				get_referencing_documents(
 					parent_dt,
@@ -408,10 +412,7 @@ def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None):
 
 def get_exempted_doctypes():
 	"""Get list of doctypes exempted from being auto-cancelled"""
-	auto_cancel_exempt_doctypes = []
-	for doctypes in frappe.get_hooks("auto_cancel_exempted_doctypes"):
-		auto_cancel_exempt_doctypes.append(doctypes)
-	return auto_cancel_exempt_doctypes
+	return list(frappe.get_hooks("auto_cancel_exempted_doctypes"))
 
 
 def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> dict[str, list]:
@@ -431,8 +432,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
 		except Exception as e:
 			if isinstance(e, frappe.DoesNotExistError):
-				if frappe.local.message_log:
-					frappe.local.message_log.pop()
+				frappe.clear_last_message()
 			continue
 		linkmeta = link_meta_bundle[0]
 
@@ -506,8 +506,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 						ret = None
 
 			except frappe.PermissionError:
-				if frappe.local.message_log:
-					frappe.local.message_log.pop()
+				frappe.clear_last_message()
 
 				continue
 
@@ -533,13 +532,13 @@ def get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):
 	        {"Address": {"fieldname": "customer"}..}
 	"""
 	if without_ignore_user_permissions_enabled:
-		return frappe.cache().hget(
+		return frappe.cache.hget(
 			"linked_doctypes_without_ignore_user_permissions_enabled",
 			doctype,
 			lambda: _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled),
 		)
 	else:
-		return frappe.cache().hget("linked_doctypes", doctype, lambda: _get_linked_doctypes(doctype))
+		return frappe.cache.hget("linked_doctypes", doctype, lambda: _get_linked_doctypes(doctype))
 
 
 def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False):

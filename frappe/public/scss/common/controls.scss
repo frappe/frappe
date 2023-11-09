@@ -5,20 +5,43 @@
 @import "phone_picker";
 
 // password
-.form-control[data-fieldtype="Password"] {
-	position: inherit;
-}
+.frappe-control[data-fieldtype="Password"] {
+	.control-input-wrapper {
+		position: relative;
 
-.password-strength-indicator {
-	// TODO: Review
-	float: right;
-	padding: 15px;
-	margin-top: -41px;
-	margin-right: -7px;
-}
+		.form-control[data-fieldtype="Password"] {
+			position: inherit;
+		}
 
-.password-strength-message {
-	margin-top: -10px;
+		.password-strength-indicator {
+			display: flex;
+			align-items: center;
+			position: absolute;
+			gap: 5px;
+			top: -20px;
+			right: 0px;
+
+			.progress-text {
+				font-size: var(--text-xs);
+				font-weight: 600;
+			}
+
+			.progress {
+				background-color: var(--bg-light-gray);
+				width: 100px;
+				height: 5px;
+			}
+		}
+
+		.toggle-password {
+			position: absolute;
+			top: 0;
+			right: 8px;
+			padding: 3px;
+			z-index: 3;
+			cursor: pointer;
+		}
+	}
 }
 
 // select
@@ -26,6 +49,7 @@ select.form-control {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
+	padding-block: 0;
 }
 
 /* table multiselect */
@@ -36,8 +60,17 @@ select.form-control {
 	height: auto;
 	padding: 10px;
 	padding-bottom: 5px;
+	gap: 6px;
 	.link-field {
 		width: 100%;
+	}
+
+	.tb-selected-value {
+		display: inline-block;
+		height: auto;
+		box-shadow: none;
+		background-color: var(--bg-color);
+		border: 1px solid var(--border-color);
 	}
 }
 
@@ -107,7 +140,7 @@ select.form-control {
 }
 
 .frappe-control {
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 	.control-label.reqd:after {
 		content: ' *';
 		color: var(--red-400);
@@ -124,15 +157,25 @@ select.form-control {
 		margin-bottom: var(--margin-sm);
 		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius);
-		font-size: var(--text-sm);
+		@include get_textstyle("sm", "regular");
 		word-wrap: break-word;
+		position: relative;
 		p:last-child {
 			margin-bottom: 0;
+		}
+		.edit-btn {
+			position: absolute;
+			top: 5px;
+			right: 5px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: var(--padding-sm);
 		}
 	}
 	.action-btn {
 		position: absolute;
-		top: 4px;
+		top: 0px;
 		right: 4px;
 		padding: 3px;
 		z-index: 3;
@@ -173,6 +216,7 @@ select.form-control {
 }
 
 .ace_editor {
+	min-height: 48px;
 	background-color: var(--control-bg);
 	color: var(--text-color);
 	.ace_gutter {
@@ -201,7 +245,14 @@ select.form-control {
 		padding: 6px 10px;
 		background: var(--control-bg);
 		border-radius: var(--border-radius);
-		font-size: var(--text-md);
+		@include get_textstyle("base", "regular");
+
+		.es-icon {
+			margin-right: 8px;
+		}
+		.btn {
+			padding: 0px 8px;
+		}
 	}
 }
 
@@ -233,6 +284,10 @@ a.progress-small {
 
 .progress-bar-danger {
 	background-color: var(--red-500);
+}
+
+.progress-bar-info {
+	background-color: var(--blue-500);
 }
 
 .progress-bar-warning {
@@ -326,14 +381,6 @@ textarea.form-control {
 
 .markdown-toggle, .html-toggle {
 	margin-bottom: var(--margin-xs);
-}
-
-.tb-selected-value {
-	display: inline-block;
-	margin-right: var(--margin-xs);
-	margin-bottom: var(--margin-xs);
-	box-shadow: none;
-	border: 1px solid var(--dark-border-color);
 }
 
 .barcode-scanner {
@@ -466,10 +513,13 @@ button.data-pill {
 	height: var(--btn-height);
 	background-color: var(--fg-color);
 	border-radius: var(--border-radius);
-	padding: calc(var(--padding-xs) - 2px) var(--padding-sm);
 	color: var(--text-color);
+	background-color: var(--subtle-fg);
 	justify-content: space-between;
 	align-items: center;
+	.pill-label {
+		color: var(--text-color);
+	}
 }
 
 .capture-remove-btn {

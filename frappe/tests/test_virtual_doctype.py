@@ -7,9 +7,11 @@ import frappe.modules.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form.save import savedocs
 from frappe.model.document import Document
+from frappe.model.virtual_doctype import validate_controller
 from frappe.tests.utils import FrappeTestCase
 
 TEST_DOCTYPE_NAME = "VirtualDoctypeTest"
+TEST_CHILD_DOCTYPE_NAME = "VirtualDoctypeTestChild"
 
 
 class VirtualDoctypeTest(Document):
@@ -86,8 +88,22 @@ class TestVirtualDoctypes(FrappeTestCase):
 		frappe.flags.allow_doctype_export = True
 		cls.addClassCleanup(frappe.flags.pop, "allow_doctype_export", None)
 
-		vdt = new_doctype(name=TEST_DOCTYPE_NAME, is_virtual=1, custom=0).insert()
-		cls.addClassCleanup(vdt.delete)
+		cdt = new_doctype(name=TEST_CHILD_DOCTYPE_NAME, is_virtual=1, istable=1, custom=0).insert()
+		vdt = new_doctype(
+			name=TEST_DOCTYPE_NAME,
+			is_virtual=1,
+			custom=0,
+			fields=[
+				{
+					"label": "Child Table",
+					"fieldname": "child_table",
+					"fieldtype": "Table",
+					"options": TEST_CHILD_DOCTYPE_NAME,
+				}
+			],
+		).insert()
+		cls.addClassCleanup(vdt.delete, force=True)
+		cls.addClassCleanup(cdt.delete, force=True)
 
 		patch_virtual_doc = patch(
 			"frappe.controllers", new={frappe.local.site: {TEST_DOCTYPE_NAME: VirtualDoctypeTest}}
@@ -119,16 +135,20 @@ class TestVirtualDoctypes(FrappeTestCase):
 		docname = frappe.response.docs[0]["name"]
 
 		doc = frappe.get_doc(TEST_DOCTYPE_NAME, docname)
-		doc.some_fieldname = "New Data"
+
+		doc.update({"child_table": [{"name": "child-1", "some_fieldname": "child1-field-value"}]})
 
 		savedocs(doc.as_json(), "Save")
-
 		doc.reload()
-		self.assertEqual(doc.some_fieldname, "New Data")
+		self.assertEqual(doc.child_table[0].some_fieldname, "child1-field-value")
 
 	def test_multiple_doc_insert_and_get_list(self):
-		doc1 = frappe.get_doc(doctype=TEST_DOCTYPE_NAME, some_fieldname="first").insert()
-		doc2 = frappe.get_doc(doctype=TEST_DOCTYPE_NAME, some_fieldname="second").insert()
+		doc1 = frappe.new_doc(doctype=TEST_DOCTYPE_NAME)
+		doc1.append("child_table", {"name": "first", "some_fieldname": "first-value"})
+		doc1.insert()
+		doc2 = frappe.new_doc(doctype=TEST_DOCTYPE_NAME)
+		doc2.append("child_table", {"name": "second", "some_fieldname": "second-value"})
+		doc2.insert()
 
 		docs = {doc1.name, doc2.name}
 
@@ -145,9 +165,13 @@ class TestVirtualDoctypes(FrappeTestCase):
 		self.assertIsInstance(VirtualDoctypeTest.get_count(args), int)
 
 	def test_delete_doc(self):
-		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME, some_fieldname="data").insert()
+		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
 
 		frappe.delete_doc(doc.doctype, doc.name)
 
 		listed_docs = {d.name for d in VirtualDoctypeTest.get_list({})}
 		self.assertNotIn(doc.name, listed_docs)
+
+	def test_controller_validity(self):
+		validate_controller(TEST_DOCTYPE_NAME)
+		validate_controller(TEST_CHILD_DOCTYPE_NAME)

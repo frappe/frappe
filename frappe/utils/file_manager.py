@@ -54,19 +54,12 @@ def upload():
 
 	comment = {}
 	if dt and dn:
+		file_url = file_doc.file_url.replace("#", "%23") if file_doc.file_name else file_doc.file_url
+		icon = ' <i class="fa fa-lock text-warning"></i>' if file_doc.is_private else ""
+		file_name = file_doc.file_name or file_doc.file_url
 		comment = frappe.get_doc(dt, dn).add_comment(
 			"Attachment",
-			_("added {0}").format(
-				"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}".format(
-					**{
-						"icon": ' <i class="fa fa-lock text-warning"></i>' if file_doc.is_private else "",
-						"file_url": file_doc.file_url.replace("#", "%23")
-						if file_doc.file_name
-						else file_doc.file_url,
-						"file_name": file_doc.file_name or file_doc.file_url,
-					}
-				)
-			),
+			f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}",
 		)
 
 	return {
@@ -295,7 +288,7 @@ def remove_file(
 			ignore_permissions = True
 		if not file_name:
 			file_name = frappe.db.get_value("File", fid, "file_name")
-		comment = doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))
+		comment = doc.add_comment("Attachment Removed", file_name)
 		frappe.delete_doc(
 			"File", fid, ignore_permissions=ignore_permissions, delete_permanently=delete_permanently
 		)

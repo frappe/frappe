@@ -8,6 +8,9 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
+  "form_builder_tab",
+  "form_builder",
+  "settings_tab",
   "sb0",
   "module",
   "is_submittable",
@@ -24,12 +27,10 @@
   "custom",
   "beta",
   "is_virtual",
-  "fields_section_break",
-  "fields",
+  "queue_in_background",
   "sb1",
   "naming_rule",
   "autoname",
-  "name_case",
   "allow_rename",
   "column_break_15",
   "description",
@@ -88,7 +89,10 @@
   "website_search_field",
   "advanced",
   "engine",
-  "migration_hash"
+  "migration_hash",
+  "fields_section",
+  "fields",
+  "connections_tab"
  ],
  "fields": [
   {
@@ -189,15 +193,10 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.istable",
    "fieldname": "beta",
    "fieldtype": "Check",
    "label": "Beta"
-  },
-  {
-   "fieldname": "fields_section_break",
-   "fieldtype": "Section Break",
-   "label": "Fields",
-   "oldfieldtype": "Section Break"
   },
   {
    "fieldname": "fields",
@@ -219,15 +218,6 @@
    "label": "Auto Name",
    "oldfieldname": "autoname",
    "oldfieldtype": "Data"
-  },
-  {
-   "depends_on": "eval:doc.naming_rule !== \"Autoincrement\"",
-   "fieldname": "name_case",
-   "fieldtype": "Select",
-   "label": "Name Case",
-   "oldfieldname": "name_case",
-   "oldfieldtype": "Select",
-   "options": "\nTitle Case\nUPPER CASE"
   },
   {
    "fieldname": "column_break_15",
@@ -275,7 +265,7 @@
    "default": "0",
    "fieldname": "hide_toolbar",
    "fieldtype": "Check",
-   "label": "Hide Sidebar and Menu",
+   "label": "Hide Sidebar, Menu, and Comments",
    "oldfieldname": "hide_toolbar",
    "oldfieldtype": "Check"
   },
@@ -474,6 +464,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.istable",
    "description": "Tree structures are implemented using Nested Set",
    "fieldname": "is_tree",
    "fieldtype": "Check",
@@ -617,6 +608,14 @@
    "label": "Make Attachments Public by Default"
   },
   {
+   "default": "0",
+   "depends_on": "eval: doc.is_submittable",
+   "description": "Enabling this will submit documents in background",
+   "fieldname": "queue_in_background",
+   "fieldtype": "Check",
+   "label": "Queue in Background (BETA)"
+  },
+  {
    "fieldname": "default_view",
    "fieldtype": "Select",
    "label": "Default View"
@@ -629,10 +628,39 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.istable",
    "description": "Enables Calendar and Gantt views.",
    "fieldname": "is_calendar_and_gantt",
    "fieldtype": "Check",
    "label": "Is Calendar and Gantt"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "form_builder_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
+  },
+  {
+   "fieldname": "form_builder",
+   "fieldtype": "HTML",
+   "label": "Form Builder"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "fields_section",
+   "fieldtype": "Section Break",
+   "label": "Fields"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
   }
  ],
  "icon": "fa fa-bolt",
@@ -715,7 +743,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-08-14 17:32:23.824794",
+ "modified": "2023-11-01 16:45:14.960949",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

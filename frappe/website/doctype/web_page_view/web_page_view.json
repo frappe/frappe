@@ -12,7 +12,11 @@
   "browser_version",
   "is_unique",
   "time_zone",
-  "user_agent"
+  "user_agent",
+  "source",
+  "campaign",
+  "medium",
+  "visitor_id"
  ],
  "fields": [
   {
@@ -53,11 +57,36 @@
    "fieldname": "user_agent",
    "fieldtype": "Data",
    "label": "User Agent"
+  },
+  {
+   "fieldname": "visitor_id",
+   "fieldtype": "Data",
+   "label": "Visitor ID",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Data",
+   "label": "Source",
+   "read_only": 1
+  },
+  {
+   "fieldname": "campaign",
+   "fieldtype": "Data",
+   "label": "Campaign",
+   "read_only": 1
+  },
+  {
+   "fieldname": "medium",
+   "fieldtype": "Data",
+   "label": "Medium",
+   "read_only": 1
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-09-13 15:38:25.401797",
+ "modified": "2023-03-20 23:38:27.067285",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page View",

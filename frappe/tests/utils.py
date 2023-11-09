@@ -1,15 +1,16 @@
 import copy
 import datetime
+import os
 import signal
 import unittest
+from collections.abc import Sequence
 from contextlib import contextmanager
-from typing import Sequence
 from unittest.mock import patch
 
 import pytz
 
 import frappe
-from frappe.model.base_document import BaseDocument
+from frappe.model.base_document import BaseDocument, get_controller
 from frappe.utils import cint
 from frappe.utils.data import convert_utc_to_timezone, get_datetime, get_system_timezone
 
@@ -27,6 +28,7 @@ class FrappeTestCase(unittest.TestCase):
 	TEST_SITE = "test_site"
 
 	SHOW_TRANSACTION_COMMIT_WARNINGS = False
+	maxDiff = None  # prints long diffs but useful in CI
 
 	@classmethod
 	def setUpClass(cls) -> None:
@@ -35,7 +37,7 @@ class FrappeTestCase(unittest.TestCase):
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
-			frappe.db.add_before_commit(_commit_watcher)
+			frappe.db.before_commit.add(_commit_watcher)
 
 		# enqueue teardown actions (executed in LIFO order)
 		cls.addClassCleanup(_restore_thread_locals, copy.deepcopy(frappe.local.flags))
@@ -78,6 +80,23 @@ class FrappeTestCase(unittest.TestCase):
 		else:
 			self.assertEqual(expected, actual, msg=msg)
 
+	def normalize_html(self, code: str) -> str:
+		"""Formats HTML consistently so simple string comparisons can work on them."""
+		from bs4 import BeautifulSoup
+
+		return BeautifulSoup(code, "html.parser").prettify(formatter=None)
+
+	def normalize_sql(self, query: str) -> str:
+		"""Formats SQL consistently so simple string comparisons can work on them."""
+		import sqlparse
+
+		return (
+			sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True),
+		)
+
+	def assertQueryEqual(self, first: str, second: str):
+		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
+
 	@contextmanager
 	def assertQueryCount(self, count):
 		queries = []
@@ -115,6 +134,21 @@ class FrappeTestCase(unittest.TestCase):
 		finally:
 			frappe.db.sql = orig_sql
 
+	@classmethod
+	def enable_safe_exec(cls) -> None:
+		"""Enable safe exec and disable them after test case is completed."""
+		from frappe.installer import update_site_config
+		from frappe.utils.safe_exec import SAFE_EXEC_CONFIG_KEY
+
+		cls._common_conf = os.path.join(frappe.local.sites_path, "common_site_config.json")
+		update_site_config(SAFE_EXEC_CONFIG_KEY, 1, validate=False, site_config_path=cls._common_conf)
+
+		cls.addClassCleanup(
+			lambda: update_site_config(
+				SAFE_EXEC_CONFIG_KEY, 0, validate=False, site_config_path=cls._common_conf
+			)
+		)
+
 	@contextmanager
 	def set_user(self, user: str):
 		try:
@@ -150,6 +184,19 @@ class FrappeTestCase(unittest.TestCase):
 			yield
 
 
+class MockedRequestTestCase(FrappeTestCase):
+	def setUp(self):
+		import responses
+
+		self.responses = responses.RequestsMock()
+		self.responses.start()
+
+		self.addCleanup(self.responses.stop)
+		self.addCleanup(self.responses.reset)
+
+		return super().setUp()
+
+
 def _commit_watcher():
 	import traceback
 
@@ -158,8 +205,6 @@ def _commit_watcher():
 
 
 def _rollback_db():
-	frappe.local.before_commit = []
-	frappe.local.rollback_observers = []
 	frappe.db.value_cache = {}
 	frappe.db.rollback()
 
@@ -169,15 +214,17 @@ def _restore_thread_locals(flags):
 	frappe.local.error_log = []
 	frappe.local.message_log = []
 	frappe.local.debug_log = []
-	frappe.local.realtime_log = []
 	frappe.local.conf = frappe._dict(frappe.get_site_config())
 	frappe.local.cache = {}
 	frappe.local.lang = "en"
 	frappe.local.preload_assets = {"style": [], "script": []}
 
+	if hasattr(frappe.local, "request"):
+		delattr(frappe.local, "request")
+
 
 @contextmanager
-def change_settings(doctype, settings_dict):
+def change_settings(doctype, settings_dict=None, /, **settings):
 	"""A context manager to ensure that settings are changed before running
 	function and restored after running it regardless of exceptions occured.
 	This is useful in tests where you want to make changes in a function but
@@ -188,7 +235,14 @@ def change_settings(doctype, settings_dict):
 	@change_settings("Print Settings", {"send_print_as_pdf": 1})
 	def test_case(self):
 	        ...
+
+	@change_settings("Print Settings", send_print_as_pdf=1)
+	def test_case(self):
+	        ...
 	"""
+
+	if settings_dict is None:
+		settings_dict = settings
 
 	try:
 		settings = frappe.get_doc(doctype)
@@ -247,3 +301,21 @@ def patch_hooks(overridden_hoooks):
 
 	with patch.object(frappe, "get_hooks", patched_hooks):
 		yield
+
+
+def check_orpahned_doctypes():
+	"""Check that all doctypes in DB actually exist after patch test"""
+
+	doctypes = frappe.get_all("DocType", {"custom": 0}, pluck="name")
+	orpahned_doctypes = []
+
+	for doctype in doctypes:
+		try:
+			get_controller(doctype)
+		except ImportError:
+			orpahned_doctypes.append(doctype)
+
+	if orpahned_doctypes:
+		frappe.throw(
+			"Following doctypes exist in DB without controller.\n {}".format("\n".join(orpahned_doctypes))
+		)

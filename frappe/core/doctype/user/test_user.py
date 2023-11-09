@@ -283,7 +283,7 @@ class TestUser(FrappeTestCase):
 
 		# Clear rate limit tracker to start fresh
 		key = f"rl:{data['cmd']}:{data['user']}"
-		frappe.cache().delete(key)
+		frappe.cache.delete(key)
 
 		c = FrappeClient(url)
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
@@ -330,7 +330,7 @@ class TestUser(FrappeTestCase):
 			sign_up(random_user, random_user_name, "/welcome"),
 			(1, "Please check your email for verification"),
 		)
-		self.assertEqual(frappe.cache().hget("redirect_after_login", random_user), "/welcome")
+		self.assertEqual(frappe.cache.hget("redirect_after_login", random_user), "/welcome")
 
 		# re-register
 		self.assertTupleEqual(
@@ -386,9 +386,7 @@ class TestUser(FrappeTestCase):
 
 		# reset password
 		update_password(old_password, old_password=new_password)
-		self.assertRaisesRegex(
-			frappe.exceptions.ValidationError, "Invalid key type", update_password, "test", 1, ["like", "%"]
-		)
+		self.assertRaises(TypeError, update_password, "test", 1, ["like", "%"])
 
 		password_strength_response = {
 			"feedback": {"password_policy_validation_passed": False, "suggestions": ["Fix password"]}
@@ -422,7 +420,7 @@ class TestUser(FrappeTestCase):
 			self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/")
 			update_password(old_password, old_password=new_password)
 			self.assertEqual(
-				json.loads(frappe.message_log[0]).get("message"),
+				frappe.message_log[0].get("message"),
 				"Password reset instructions have been sent to your email",
 			)
 

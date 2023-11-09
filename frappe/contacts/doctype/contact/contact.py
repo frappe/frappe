@@ -10,11 +10,45 @@ from frappe.utils import cstr, has_gravatar
 
 
 class Contact(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.contacts.doctype.contact_email.contact_email import ContactEmail
+		from frappe.contacts.doctype.contact_phone.contact_phone import ContactPhone
+		from frappe.core.doctype.dynamic_link.dynamic_link import DynamicLink
+		from frappe.types import DF
+
+		address: DF.Link | None
+		company_name: DF.Data | None
+		department: DF.Data | None
+		designation: DF.Data | None
+		email_id: DF.Data | None
+		email_ids: DF.Table[ContactEmail]
+		first_name: DF.Data | None
+		full_name: DF.Data | None
+		gender: DF.Link | None
+		google_contacts: DF.Link | None
+		google_contacts_id: DF.Data | None
+		image: DF.AttachImage | None
+		is_primary_contact: DF.Check
+		last_name: DF.Data | None
+		links: DF.Table[DynamicLink]
+		middle_name: DF.Data | None
+		mobile_no: DF.Data | None
+		phone: DF.Data | None
+		phone_nos: DF.Table[ContactPhone]
+		pulled_from_google_contacts: DF.Check
+		salutation: DF.Link | None
+		status: DF.Literal["Passive", "Open", "Replied"]
+		sync_with_google_contacts: DF.Check
+		unsubscribed: DF.Check
+		user: DF.Link | None
+	# end: auto-generated types
 	def autoname(self):
-		# concat first and last name
-		self.name = " ".join(
-			filter(None, [cstr(self.get(f)).strip() for f in ["first_name", "last_name"]])
-		)
+		self.name = self._get_full_name()
 
 		if frappe.db.exists("Contact", self.name):
 			self.name = append_number_if_name_exists("Contact", self.name)
@@ -25,6 +59,7 @@ class Contact(Document):
 			break
 
 	def validate(self):
+		self.full_name = self._get_full_name()
 		self.set_primary_email()
 		self.set_primary("phone")
 		self.set_primary("mobile_no")
@@ -128,6 +163,9 @@ class Contact(Document):
 		if not primary_number_exists:
 			setattr(self, fieldname, "")
 
+	def _get_full_name(self) -> str:
+		return get_full_name(self.first_name, self.middle_name, self.last_name, self.company_name)
+
 
 def get_default_contact(doctype, name):
 	"""Returns default contact for the given doctype, name"""
@@ -140,7 +178,7 @@ def get_default_contact(doctype, name):
 		where
 			dl.link_doctype=%s and
 			dl.link_name=%s and
-			dl.parenttype = 'Contact'""",
+			dl.parenttype = 'Contact' """,
 		(doctype, name),
 		as_dict=True,
 	)
@@ -183,9 +221,7 @@ def get_contact_details(contact):
 
 	return {
 		"contact_person": contact.get("name"),
-		"contact_display": " ".join(
-			filter(None, [contact.get("salutation"), contact.get("first_name"), contact.get("last_name")])
-		),
+		"contact_display": contact.get("full_name"),
 		"contact_email": contact.get("email_id"),
 		"contact_mobile": contact.get("mobile_no"),
 		"contact_phone": contact.get("phone"),
@@ -223,7 +259,7 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 
 	return frappe.db.sql(
 		"""select
-			`tabContact`.name, `tabContact`.first_name, `tabContact`.last_name
+			`tabContact`.name, `tabContact`.full_name, `tabContact`.company_name
 		from
 			`tabContact`, `tabDynamic Link`
 		where
@@ -234,8 +270,8 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabContact`.`{key}` like %(txt)s
 			{mcond}
 		order by
-			if(locate(%(_txt)s, `tabContact`.name), locate(%(_txt)s, `tabContact`.name), 99999),
-			`tabContact`.idx desc, `tabContact`.name
+			if(locate(%(_txt)s, `tabContact`.full_name), locate(%(_txt)s, `tabContact`.company_name), 99999),
+			`tabContact`.idx desc, `tabContact`.full_name
 		limit %(start)s, %(page_len)s """.format(
 			mcond=get_match_cond(doctype), key=searchfield
 		),
@@ -328,3 +364,58 @@ def get_contacts_linked_from(doctype, docname, fields=None):
 		return []
 
 	return frappe.get_list("Contact", fields=fields, filters={"name": ("in", contact_names)})
+
+
+def get_full_name(
+	first: str | None = None,
+	middle: str | None = None,
+	last: str | None = None,
+	company: str | None = None,
+) -> str:
+	full_name = " ".join(filter(None, [cstr(f).strip() for f in [first, middle, last]]))
+	if not full_name and company:
+		full_name = company
+
+	return full_name
+
+
+def get_contact_display_list(doctype: str, name: str) -> list[dict]:
+	from frappe.contacts.doctype.address.address import get_condensed_address
+
+	if not frappe.has_permission("Contact", "read"):
+		return []
+
+	contact_list = frappe.get_list(
+		"Contact",
+		filters=[
+			["Dynamic Link", "link_doctype", "=", doctype],
+			["Dynamic Link", "link_name", "=", name],
+			["Dynamic Link", "parenttype", "=", "Contact"],
+		],
+		fields=["*"],
+		order_by="is_primary_contact DESC, creation ASC",
+	)
+
+	for contact in contact_list:
+		contact["email_ids"] = frappe.get_all(
+			"Contact Email",
+			filters={"parenttype": "Contact", "parent": contact.name, "is_primary": 0},
+			fields=["email_id"],
+		)
+
+		contact["phone_nos"] = frappe.get_all(
+			"Contact Phone",
+			filters={
+				"parenttype": "Contact",
+				"parent": contact.name,
+				"is_primary_phone": 0,
+				"is_primary_mobile_no": 0,
+			},
+			fields=["phone"],
+		)
+
+		if contact.address and frappe.has_permission("Address", "read"):
+			address = frappe.get_doc("Address", contact.address)
+			contact["address"] = get_condensed_address(address)
+
+	return contact_list

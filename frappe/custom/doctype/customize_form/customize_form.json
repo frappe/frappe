@@ -20,11 +20,21 @@
   "track_views",
   "allow_auto_repeat",
   "allow_import",
-  "fields_section_break",
-  "fields",
+  "queue_in_background",
   "naming_section",
   "naming_rule",
   "autoname",
+  "document_actions_section",
+  "actions",
+  "document_links_section",
+  "links",
+  "document_states_section",
+  "states",
+  "form_tab",
+  "form_builder",
+  "fields_section_break",
+  "fields",
+  "settings_tab",
   "form_settings_section",
   "image_field",
   "max_attachments",
@@ -46,12 +56,6 @@
   "email_append_to",
   "sender_field",
   "subject_field",
-  "document_actions_section",
-  "actions",
-  "document_links_section",
-  "links",
-  "document_states_section",
-  "states",
   "section_break_8",
   "sort_field",
   "column_break_10",
@@ -172,10 +176,11 @@
    "options": "ASC\nDESC"
   },
   {
+   "collapsible": 1,
    "depends_on": "doc_type",
-   "description": "Customize Label, Print Hide, Default etc.",
    "fieldname": "fields_section_break",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Fields"
   },
   {
@@ -342,6 +347,13 @@
    "label": "Make Attachments Public by Default"
   },
   {
+   "default": "0",
+   "description": "Enabling this will submit documents in background",
+   "fieldname": "queue_in_background",
+   "fieldtype": "Check",
+   "label": "Queue in Background (BETA)"
+  },
+  {
    "fieldname": "default_view",
    "fieldtype": "Select",
    "label": "Default View"
@@ -359,6 +371,21 @@
    "fieldname": "is_calendar_and_gantt",
    "fieldtype": "Check",
    "label": "Is Calendar and Gantt"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "form_builder",
+   "fieldtype": "HTML",
+   "label": "Form Builder"
+  },
+  {
+   "fieldname": "form_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
   }
  ],
  "hide_toolbar": 1,
@@ -367,7 +394,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-08-30 11:45:16.772277",
+ "modified": "2023-10-31 02:04:25.955931",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

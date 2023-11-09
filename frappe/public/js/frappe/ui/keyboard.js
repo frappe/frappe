@@ -151,7 +151,7 @@ frappe.ui.keys.get_key = function (e) {
 		key = "ctrl+" + key;
 	}
 	if (e.shiftKey) {
-		// add ctrl+ the key
+		// add shift+ the key
 		key = "shift+" + key;
 	}
 	if (e.altKey) {

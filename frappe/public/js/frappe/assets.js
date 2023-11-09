@@ -124,19 +124,31 @@ frappe.assets = {
 		// this is virtual page load, only get the the source
 		// *without* the template
 
-		frappe.call({
-			type: "GET",
-			method: "frappe.client.get_js",
-			args: {
-				items: items,
-			},
-			callback: function (r) {
-				$.each(items, function (i, src) {
-					frappe.assets.add(src, r.message[i]);
-				});
-				callback();
-			},
-			freeze: true,
+		if (items.length === 0) {
+			callback();
+			return;
+		}
+
+		const version_string =
+			frappe.boot.developer_mode || window.dev_server ? Date.now() : window._version_number;
+
+		async function fetch_item(item) {
+			// Add the version to the URL to bust the cache for non-bundled assets
+			let url = new URL(item, window.location.origin);
+
+			if (!item.includes(".bundle.") && !url.searchParams.get("v")) {
+				url.searchParams.append("v", version_string);
+			}
+			const response = await fetch(url.toString());
+			const body = await response.text();
+			frappe.assets.add(item, body);
+		}
+
+		frappe.dom.freeze();
+		const fetch_promises = items.map(fetch_item);
+		Promise.all(fetch_promises).then(() => {
+			frappe.dom.unfreeze();
+			callback();
 		});
 	},
 

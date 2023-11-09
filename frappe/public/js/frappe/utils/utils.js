@@ -372,8 +372,7 @@ Object.assign(frappe.utils, {
 	get_scroll_position: function (element, additional_offset) {
 		let header_offset =
 			$(".navbar").height() + $(".page-head:visible").height() || $(".navbar").height();
-		let scroll_top = $(element).offset().top - header_offset - cint(additional_offset);
-		return scroll_top;
+		return $(element).offset().top - header_offset - cint(additional_offset);
 	},
 	filter_dict: function (dict, filters) {
 		var ret = [];
@@ -479,7 +478,7 @@ Object.assign(frappe.utils, {
 				break;
 			case "url":
 				regExp =
-					/^((([A-Za-z0-9.+-]+:(?:\/\/)?)(?:[-;:&=\+\,\w]@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/i;
+					/^((([A-Za-z0-9.+-]+:(?:\/\/)?)(?:[-;:&=\+\,\w]@)?[A-Za-z0-9.-]+(:[0-9]+)?|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/i; // eslint-disable-line
 				break;
 			case "dateIso":
 				regExp = /^(\d{4})\D?(0[1-9]|1[0-2])\D?([12]\d|0[1-9]|3[01])$/;
@@ -790,10 +789,6 @@ Object.assign(frappe.utils, {
 		frappe.msgprint(__("Note: Changing the Page Name will break previous URL to this page."));
 	},
 
-	notify: function (subject, body, route, onclick) {
-		console.log("push notifications are evil and deprecated");
-	},
-
 	set_title: function (title) {
 		frappe._original_title = title;
 		if (frappe._title_prefix) {
@@ -1086,8 +1081,8 @@ Object.assign(frappe.utils, {
 			let expression_function = new Function(...variable_names, code);
 			return expression_function(...variables);
 		} catch (error) {
-			console.log("Error evaluating the following expression:"); // eslint-disable-line no-console
-			console.error(code); // eslint-disable-line no-console
+			console.log("Error evaluating the following expression:");
+			console.error(code);
 			throw error;
 		}
 	},
@@ -1182,11 +1177,10 @@ Object.assign(frappe.utils, {
 	},
 
 	get_duration_options: function (docfield) {
-		let duration_options = {
+		return {
 			hide_days: docfield.hide_days,
 			hide_seconds: docfield.hide_seconds,
 		};
-		return duration_options;
 	},
 
 	get_number_system: function (country) {
@@ -1200,23 +1194,32 @@ Object.assign(frappe.utils, {
 	map_defaults: {
 		center: [19.08, 72.8961],
 		zoom: 13,
-		tiles: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+		tiles: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
 		options: {
 			attribution:
 				'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
 		},
+		image_path: "/assets/frappe/images/leaflet/",
 	},
 
 	icon(icon_name, size = "sm", icon_class = "", icon_style = "", svg_class = "") {
 		let size_class = "";
+		let is_espresso = icon_name.startsWith("es-");
 
+		icon_name = is_espresso ? `${"#" + icon_name}` : `${"#icon-" + icon_name}`;
 		if (typeof size == "object") {
 			icon_style += ` width: ${size.width}; height: ${size.height}`;
 		} else {
 			size_class = `icon-${size}`;
 		}
-		return `<svg class="icon ${svg_class} ${size_class}" style="${icon_style}">
-			<use class="${icon_class}" href="#icon-${icon_name}"></use>
+		return `<svg class="${
+			is_espresso
+				? icon_name.startsWith("es-solid")
+					? "es-icon es-solid"
+					: "es-icon es-line"
+				: "icon"
+		} ${svg_class} ${size_class}" style="${icon_style}">
+			<use class="${icon_class}" href="${icon_name}"></use>
 		</svg>`;
 	},
 
@@ -1562,8 +1565,8 @@ Object.assign(frappe.utils, {
 					return title;
 				});
 		} catch (error) {
-			console.log("Error while fetching link title."); // eslint-disable-line
-			console.log(error); // eslint-disable-line
+			console.log("Error while fetching link title.");
+			console.log(error);
 			return Promise.resolve(name);
 		}
 	},
@@ -1691,5 +1694,66 @@ Object.assign(frappe.utils, {
 				},
 			});
 		},
+	},
+	generate_tracking_url() {
+		frappe.prompt(
+			[
+				{
+					fieldname: "url",
+					label: __("Web Page URL"),
+					fieldtype: "Data",
+					options: "URL",
+					reqd: 1,
+					default: localStorage.getItem("tracker_url:url"),
+				},
+				{
+					fieldname: "source",
+					label: __("Source"),
+					fieldtype: "Data",
+					default: localStorage.getItem("tracker_url:source"),
+				},
+				{
+					fieldname: "campaign",
+					label: __("Campaign"),
+					fieldtype: "Link",
+					ignore_link_validation: 1,
+					options: "Marketing Campaign",
+					default: localStorage.getItem("tracker_url:campaign"),
+				},
+				{
+					fieldname: "medium",
+					label: __("Medium"),
+					fieldtype: "Data",
+					default: localStorage.getItem("tracker_url:medium"),
+				},
+			],
+			function (data) {
+				let url = data.url;
+				localStorage.setItem("tracker_url:url", data.url);
+
+				if (data.source) {
+					url += "?source=" + data.source;
+					localStorage.setItem("tracker_url:source", data.source);
+				}
+				if (data.campaign) {
+					url += "&campaign=" + data.campaign;
+					localStorage.setItem("tracker_url:campaign", data.campaign);
+				}
+				if (data.medium) {
+					url += "&medium=" + data.medium.toLowerCase();
+					localStorage.setItem("tracker_url:medium", data.medium);
+				}
+
+				frappe.utils.copy_to_clipboard(url);
+
+				frappe.msgprint(
+					__("Tracking URL generated and copied to clipboard") +
+						": <br>" +
+						`<a href="${url}">${url.bold()}</a>`,
+					__("Here's your tracking URL")
+				);
+			},
+			__("Generate Tracking URL")
+		);
 	},
 });

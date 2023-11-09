@@ -33,13 +33,15 @@ ASSET_KEYS = (
 )
 
 
-def get_meta(doctype, cached=True):
+def get_meta(doctype, cached=True) -> "FormMeta":
 	# don't cache for developer mode as js files, templates may be edited
-	if cached and not frappe.conf.developer_mode:
-		meta = frappe.cache().hget("doctype_form_meta", doctype)
+	cached = cached and not frappe.conf.developer_mode
+	if cached:
+		meta = frappe.cache.hget("doctype_form_meta", doctype)
 		if not meta:
-			meta = FormMeta(doctype)
-			frappe.cache().hset("doctype_form_meta", doctype, meta)
+			# Cache miss - explicitly get meta from DB to avoid
+			meta = FormMeta(doctype, cached=False)
+			frappe.cache.hset("doctype_form_meta", doctype, meta)
 	else:
 		meta = FormMeta(doctype)
 
@@ -50,8 +52,8 @@ def get_meta(doctype, cached=True):
 
 
 class FormMeta(Meta):
-	def __init__(self, doctype):
-		super().__init__(doctype)
+	def __init__(self, doctype, *, cached=True):
+		self.__dict__.update(frappe.get_meta(doctype, cached=cached).__dict__)
 		self.load_assets()
 
 	def load_assets(self):
@@ -183,7 +185,6 @@ class FormMeta(Meta):
 
 	def add_search_fields(self):
 		"""add search fields found in the doctypes indicated by link fields' options"""
-		# TODO: IF field is not found replace with useful message
 		for df in self.get("fields", {"fieldtype": "Link", "options": ["!=", "[Select]"]}):
 			if df.options:
 				try:
@@ -241,9 +242,7 @@ class FormMeta(Meta):
 			workflow = frappe.get_doc("Workflow", workflow_name)
 			workflow_docs.append(workflow)
 
-			for d in workflow.get("states"):
-				workflow_docs.append(frappe.get_doc("Workflow State", d.state))
-
+			workflow_docs.extend(frappe.get_doc("Workflow State", d.state) for d in workflow.get("states"))
 		self.set("__workflow_docs", workflow_docs)
 
 	def load_templates(self):

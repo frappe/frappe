@@ -280,8 +280,7 @@ export default class ChartWidget extends Widget {
 				return frappe.report_utils.prepare_field_from_column(col);
 			});
 
-			let data = frappe.report_utils.make_chart_options(columns, result, chart_fields).data;
-			return data;
+			return frappe.report_utils.make_chart_options(columns, result, chart_fields).data;
 		}
 	}
 
@@ -460,7 +459,6 @@ export default class ChartWidget extends Widget {
 	}
 
 	set_chart_actions(actions) {
-		/* eslint-disable indent */
 		this.chart_actions = $(`<div class="chart-actions dropdown pull-right">
 			<button data-toggle="dropdown"
 				aria-haspopup="true"aria-expanded="false"

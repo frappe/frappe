@@ -9,6 +9,10 @@ from frappe.core.doctype.user_permission.user_permission import clear_user_permi
 from frappe.core.page.permission_manager.permission_manager import reset, update
 from frappe.desk.form.load import getdoc
 from frappe.permissions import (
+	ALL_USER_ROLE,
+	AUTOMATIC_ROLES,
+	GUEST_ROLE,
+	SYSTEM_USER_ROLE,
 	add_permission,
 	add_user_permission,
 	clear_user_permissions_for_doctype,
@@ -17,7 +21,6 @@ from frappe.permissions import (
 	update_permission_property,
 )
 from frappe.test_runner import make_test_records_for_doctype
-from frappe.tests.test_db_query import enable_permlevel_restrictions
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.data import now_datetime
 
@@ -89,11 +92,10 @@ class TestPermissions(FrappeTestCase):
 		self.assertFalse(post.has_permission("read"))
 		self.assertRaises(frappe.PermissionError, post.save)
 
-		with enable_permlevel_restrictions():
-			permitted_record = frappe.get_list("Blog Post", fields="*", limit=1)[0]
-			full_record = frappe.get_all("Blog Post", fields="*", limit=1)[0]
-			self.assertNotEqual(permitted_record, full_record)
-			self.assertSequenceSubset(post.meta.get_search_fields(), permitted_record)
+		permitted_record = frappe.get_list("Blog Post", fields="*", limit=1)[0]
+		full_record = frappe.get_all("Blog Post", fields="*", limit=1)[0]
+		self.assertNotEqual(permitted_record, full_record)
+		self.assertSequenceSubset(post.meta.get_search_fields(), permitted_record)
 
 	def test_user_permissions_in_doc(self):
 		add_user_permission("Blog Category", "-test-blog-category-1", "test2@example.com")
@@ -718,3 +720,28 @@ class TestPermissions(FrappeTestCase):
 		self.assertNotIn("test1@example.com", users)
 		self.assertIn("test2@example.com", users)
 		self.assertIn("test3@example.com", users)
+
+	def test_automatic_permissions(self):
+		def assertHasRole(*roles: str | tuple[str, ...]):
+			for role in roles:
+				self.assertIn(role, frappe.get_roles())
+
+		frappe.set_user("Administrator")
+		assertHasRole(*AUTOMATIC_ROLES)
+
+		frappe.set_user("Guest")
+		assertHasRole(GUEST_ROLE)
+
+		website_user = frappe.db.get_value(
+			"User",
+			{"user_type": "Website User", "enabled": 1, "name": ("not in", AUTOMATIC_ROLES)},
+		)
+		frappe.set_user(website_user)
+		assertHasRole(GUEST_ROLE, ALL_USER_ROLE)
+
+		system_user = frappe.db.get_value(
+			"User",
+			{"user_type": "System User", "enabled": 1, "name": ("not in", AUTOMATIC_ROLES)},
+		)
+		frappe.set_user(system_user)
+		assertHasRole(GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE)

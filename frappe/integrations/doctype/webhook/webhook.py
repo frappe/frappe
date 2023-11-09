@@ -20,6 +20,42 @@ WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
 
 
 class Webhook(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.integrations.doctype.webhook_data.webhook_data import WebhookData
+		from frappe.integrations.doctype.webhook_header.webhook_header import WebhookHeader
+		from frappe.types import DF
+
+		condition: DF.SmallText | None
+		enable_security: DF.Check
+		enabled: DF.Check
+		is_dynamic_url: DF.Check
+		meets_condition: DF.Data | None
+		preview_document: DF.DynamicLink | None
+		preview_request_body: DF.Code | None
+		request_method: DF.Literal["POST", "PUT", "DELETE"]
+		request_structure: DF.Literal["", "Form URL-Encoded", "JSON"]
+		request_url: DF.Data
+		timeout: DF.Int
+		webhook_data: DF.Table[WebhookData]
+		webhook_docevent: DF.Literal[
+			"after_insert",
+			"on_update",
+			"on_submit",
+			"on_cancel",
+			"on_trash",
+			"on_update_after_submit",
+			"on_change",
+		]
+		webhook_doctype: DF.Link
+		webhook_headers: DF.Table[WebhookHeader]
+		webhook_json: DF.Code | None
+		webhook_secret: DF.Password | None
+	# end: auto-generated types
 	def validate(self):
 		self.validate_docevent()
 		self.validate_condition()
@@ -30,7 +66,7 @@ class Webhook(Document):
 		self.preview_document = None
 
 	def on_update(self):
-		frappe.cache().delete_value("webhooks")
+		frappe.cache.delete_value("webhooks")
 
 	def validate_docevent(self):
 		if self.webhook_doctype:
@@ -68,10 +104,7 @@ class Webhook(Document):
 
 	def validate_repeating_fields(self):
 		"""Error when Same Field is entered multiple times in webhook_data"""
-		webhook_data = []
-		for entry in self.webhook_data:
-			webhook_data.append(entry.fieldname)
-
+		webhook_data = [entry.fieldname for entry in self.webhook_data]
 		if len(webhook_data) != len(set(webhook_data)):
 			frappe.throw(_("Same Field is entered more than once"))
 
@@ -124,32 +157,38 @@ def enqueue_webhook(doc, webhook) -> None:
 		webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
 		headers = get_webhook_headers(doc, webhook)
 		data = get_webhook_data(doc, webhook)
+
+		if webhook.is_dynamic_url:
+			request_url = frappe.render_template(webhook.request_url, get_context(doc))
+		else:
+			request_url = webhook.request_url
+
 	except Exception as e:
 		frappe.logger().debug({"enqueue_webhook_error": e})
-		log_request(webhook.name, doc.name, webhook.request_url, headers, data)
+		log_request(webhook.name, doc.name, request_url, headers, data)
 		return
 
 	for i in range(3):
 		try:
 			r = requests.request(
 				method=webhook.request_method,
-				url=webhook.request_url,
+				url=request_url,
 				data=json.dumps(data, default=str),
 				headers=headers,
 				timeout=webhook.timeout or 5,
 			)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
-			log_request(webhook.name, doc.name, webhook.request_url, headers, data, r)
+			log_request(webhook.name, doc.name, request_url, headers, data, r)
 			break
 
 		except requests.exceptions.ReadTimeout as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
-			log_request(webhook.name, doc.name, webhook.request_url, headers, data)
+			log_request(webhook.name, doc.name, request_url, headers, data)
 
 		except Exception as e:
 			frappe.logger().debug({"webhook_error": e, "try": i + 1})
-			log_request(webhook.name, doc.name, webhook.request_url, headers, data, r)
+			log_request(webhook.name, doc.name, request_url, headers, data, r)
 			sleep(3 * i + 1)
 			if i != 2:
 				continue

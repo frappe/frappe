@@ -47,6 +47,8 @@ $.extend(frappe.model, {
 			// set title field / name as name
 			if (meta.autoname && meta.autoname.indexOf("field:") !== -1) {
 				doc[meta.autoname.substr(6)] = frappe.route_options.name_field;
+			} else if (meta.autoname && meta.autoname === "prompt") {
+				doc.__newname = frappe.route_options.name_field;
 			} else if (meta.title_field) {
 				doc[meta.title_field] = frappe.route_options.name_field;
 			}
@@ -159,7 +161,6 @@ $.extend(frappe.model, {
 				if (!user_default) {
 					user_default = frappe.defaults.get_user_default(df.fieldname);
 				}
-
 				if (
 					!user_default &&
 					df.remember_last_selected_value &&

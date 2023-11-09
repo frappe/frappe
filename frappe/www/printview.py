@@ -1,11 +1,11 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import contextlib
 import copy
 import json
 import os
 import re
+from typing import TYPE_CHECKING, Optional
 
 import frappe
 from frappe import _, get_module_path
@@ -13,6 +13,10 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.utils import cint, escape_html, strip_html
 from frappe.utils.jinja_globals import is_rtl
+
+if TYPE_CHECKING:
+	from frappe.model.document import Document
+	from frappe.printing.doctype.print_format.print_format import PrintFormat
 
 no_cache = 1
 
@@ -90,13 +94,12 @@ def get_print_format_doc(print_format_name, meta):
 
 
 def get_rendered_template(
-	doc,
-	name=None,
-	print_format=None,
+	doc: "Document",
+	print_format: str | None = None,
 	meta=None,
-	no_letterhead=None,
-	letterhead=None,
-	trigger_print=False,
+	no_letterhead: bool | None = None,
+	letterhead: str | None = None,
+	trigger_print: bool = False,
 	settings=None,
 ):
 
@@ -186,7 +189,7 @@ def get_rendered_template(
 			letter_head.footer, {"doc": doc.as_dict()}
 		)
 
-	convert_markdown(doc, meta)
+	convert_markdown(doc)
 
 	args = {}
 	# extract `print_heading_template` from the first field and remove it
@@ -205,35 +208,15 @@ def get_rendered_template(
 			"print_settings": print_settings,
 		}
 	)
-
-	try:
-		html = template.render(args, filters={"len": len})
-	except Exception as e:
-		frappe.throw(
-			_("Error in print format on line {0}: {1}").format(
-				_guess_template_error_line_number(template), e
-			),
-			exc=frappe.PrintFormatError,
-			title=_("Print Format Error"),
-		)
+	hook_func = frappe.get_hooks("pdf_body_html")
+	html = frappe.get_attr(hook_func[-1])(
+		jenv=jenv, template=template, print_format=print_format, args=args
+	)
 
 	if cint(trigger_print):
 		html += trigger_print_script
 
 	return html
-
-
-def _guess_template_error_line_number(template) -> int | None:
-	"""Guess line on which exception occured from current traceback."""
-	with contextlib.suppress(Exception):
-		import sys
-		import traceback
-
-		_, _, tb = sys.exc_info()
-
-		for frame in reversed(traceback.extract_tb(tb)):
-			if template.filename in frame.filename:
-				return frame.lineno
 
 
 def set_link_titles(doc):
@@ -281,9 +264,9 @@ def set_title_values_for_table_and_multiselect_fields(meta, doc):
 			set_title_values_for_link_and_dynamic_link_fields(_meta, value, doc)
 
 
-def convert_markdown(doc, meta):
+def convert_markdown(doc: "Document"):
 	"""Convert text field values to markdown if necessary"""
-	for field in meta.fields:
+	for field in doc.meta.fields:
 		if field.fieldtype == "Text Editor":
 			value = doc.get(field.fieldname)
 			if value and "<!-- markdown -->" in value:
@@ -292,34 +275,32 @@ def convert_markdown(doc, meta):
 
 @frappe.whitelist()
 def get_html_and_style(
-	doc,
-	name=None,
-	print_format=None,
-	meta=None,
-	no_letterhead=None,
-	letterhead=None,
-	trigger_print=False,
-	style=None,
-	settings=None,
-	templates=None,
+	doc: str,
+	name: str | None = None,
+	print_format: str | None = None,
+	no_letterhead: bool | None = None,
+	letterhead: str | None = None,
+	trigger_print: bool = False,
+	style: str | None = None,
+	settings: str | None = None,
 ):
 	"""Returns `html` and `style` of print format, used in PDF etc"""
 
-	if isinstance(doc, str) and isinstance(name, str):
-		doc = frappe.get_doc(doc, name)
+	if isinstance(name, str):
+		document = frappe.get_doc(doc, name)
+	else:
+		document = frappe.get_doc(json.loads(doc))
 
-	if isinstance(doc, str):
-		doc = frappe.get_doc(json.loads(doc))
+	document.check_permission()
 
-	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
-	set_link_titles(doc)
+	print_format = get_print_format_doc(print_format, meta=document.meta)
+	set_link_titles(document)
 
 	try:
 		html = get_rendered_template(
-			doc,
-			name=name,
+			doc=document,
 			print_format=print_format,
-			meta=meta,
+			meta=document.meta,
 			no_letterhead=no_letterhead,
 			letterhead=letterhead,
 			trigger_print=trigger_print,
@@ -333,16 +314,17 @@ def get_html_and_style(
 
 
 @frappe.whitelist()
-def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang=None):
+def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: str | None = None):
 	"""Returns Rendered Raw Commands of print format, used to send directly to printer"""
 
-	if isinstance(doc, str) and isinstance(name, str):
-		doc = frappe.get_doc(doc, name)
+	if isinstance(name, str):
+		document = frappe.get_doc(doc, name)
+	else:
+		document = frappe.get_doc(json.loads(doc))
 
-	if isinstance(doc, str):
-		doc = frappe.get_doc(json.loads(doc))
+	document.check_permission()
 
-	print_format = get_print_format_doc(print_format, meta=meta or frappe.get_meta(doc.doctype))
+	print_format = get_print_format_doc(print_format, meta=document.meta)
 
 	if not print_format or (print_format and not print_format.raw_printing):
 		frappe.throw(
@@ -350,7 +332,9 @@ def get_rendered_raw_commands(doc, name=None, print_format=None, meta=None, lang
 		)
 
 	return {
-		"raw_commands": get_rendered_template(doc, name=name, print_format=print_format, meta=meta)
+		"raw_commands": get_rendered_template(
+			doc=document, name=name, print_format=print_format, meta=document.meta
+		)
 	}
 
 
@@ -385,7 +369,7 @@ def validate_key(key, doc):
 	raise frappe.exceptions.InvalidKeyError
 
 
-def get_letter_head(doc, no_letterhead, letterhead=None):
+def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None = None):
 	if no_letterhead:
 		return {}
 	if letterhead:
@@ -543,7 +527,9 @@ def has_value(df, doc):
 	return True
 
 
-def get_print_style(style=None, print_format=None, for_legacy=False):
+def get_print_style(
+	style: str | None = None, print_format: Optional["PrintFormat"] = None, for_legacy: bool = False
+):
 	print_settings = frappe.get_doc("Print Settings")
 
 	if not style:

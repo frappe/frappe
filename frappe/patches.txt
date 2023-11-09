@@ -1,4 +1,5 @@
 [pre_model_sync]
+frappe.patches.v15_0.remove_implicit_primary_key
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
 execute:frappe.utils.global_search.setup_global_search_table()
 execute:frappe.reload_doc('core', 'doctype', 'doctype_action', force=True) #2019-09-23
@@ -31,7 +32,6 @@ execute:frappe.reload_doc('core', 'doctype', 'user') #2017-10-27
 execute:frappe.reload_doc('core', 'doctype', 'report_column')
 execute:frappe.reload_doc('core', 'doctype', 'report_filter')
 execute:frappe.reload_doc('core', 'doctype', 'report') #2020-08-25
-execute:frappe.reload_doc('core', 'doctype', 'error_snapshot')
 execute:frappe.get_doc("User", "Guest").save()
 execute:frappe.delete_doc("DocType", "Control Panel", force=1)
 execute:frappe.delete_doc("DocType", "Tag")
@@ -42,7 +42,6 @@ execute:frappe.db.sql("delete from `tabProperty Setter` where `property` = 'idx'
 execute:frappe.db.sql("delete from tabSessions where user is null")
 execute:frappe.delete_doc("DocType", "Backup Manager")
 execute:frappe.permissions.reset_perms("Web Page")
-execute:frappe.permissions.reset_perms("Error Snapshot")
 execute:frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
 execute:frappe.core.doctype.language.language.update_language_names() # 2017-04-12
 execute:frappe.db.set_value("Print Settings", "Print Settings", "add_draft_heading", 1)
@@ -60,7 +59,6 @@ frappe.patches.v10_0.refactor_social_login_keys
 frappe.patches.v10_0.enable_chat_by_default_within_system_settings
 frappe.patches.v10_0.remove_custom_field_for_disabled_domain
 execute:frappe.delete_doc("Page", "chat")
-frappe.patches.v10_0.migrate_passwords_passlib
 frappe.patches.v11_0.rename_standard_reply_to_email_template
 execute:frappe.delete_doc_if_exists('Page', 'user-permissions')
 frappe.patches.v10_0.set_no_copy_to_workflow_state
@@ -72,7 +70,6 @@ frappe.patches.v11_0.rename_email_alert_to_notification #13-06-2018
 frappe.patches.v11_0.delete_duplicate_user_permissions
 frappe.patches.v11_0.set_dropbox_file_backup
 frappe.patches.v10_0.set_default_locking_time
-frappe.patches.v11_0.rename_google_maps_doctype
 frappe.patches.v10_0.modify_smallest_currency_fraction
 frappe.patches.v10_0.modify_naming_series_table
 frappe.patches.v10_0.enhance_security
@@ -157,7 +154,6 @@ frappe.patches.v13_0.set_route_for_blog_category
 frappe.patches.v13_0.enable_custom_script
 frappe.patches.v13_0.update_newsletter_content_type
 execute:frappe.db.set_value('Website Settings', 'Website Settings', {'navbar_template': 'Standard Navbar', 'footer_template': 'Standard Footer'})
-frappe.patches.v13_0.delete_event_producer_and_consumer_keys
 frappe.patches.v13_0.web_template_set_module #2020-10-05
 frappe.patches.v13_0.remove_custom_link
 execute:frappe.delete_doc("DocType", "Footer Item")
@@ -195,8 +191,10 @@ frappe.patches.v14_0.log_settings_migration
 frappe.patches.v14_0.setup_likes_from_feedback
 frappe.patches.v14_0.update_webforms
 frappe.patches.v14_0.delete_payment_gateways
-frappe.patches.v14_0.event_streaming_deprecation_warning
+frappe.patches.v15_0.remove_event_streaming
+frappe.patches.v15_0.copy_disable_prepared_report_to_prepared_report
 execute:frappe.reload_doc("desk", "doctype", "Form Tour")
+execute:frappe.delete_doc('Page', 'recorder', ignore_missing=True, force=True)
 frappe.patches.v14_0.modify_value_column_size_for_singles
 
 [post_model_sync]
@@ -216,12 +214,20 @@ frappe.patches.v14_0.delete_data_migration_tool
 frappe.patches.v14_0.set_suspend_email_queue_default
 frappe.patches.v14_0.different_encryption_key
 frappe.patches.v14_0.update_multistep_webforms
+execute:frappe.delete_doc('Page', 'background_jobs', ignore_missing=True, force=True)
 frappe.patches.v14_0.drop_unused_indexes
+frappe.patches.v15_0.drop_modified_index
+frappe.patches.v14_0.update_attachment_comment
+frappe.patches.v15_0.set_contact_full_name
+execute:frappe.delete_doc("Page", "activity", force=1)
 frappe.patches.v14_0.disable_email_accounts_with_oauth
-frappe.patches.v14_0.remove_manage_subscriptions_from_navbar
-frappe.core.doctype.system_settings.patches.set_default_rounding_method
-frappe.patches.v14_0.remove_background_jobs_from_dropdown
+execute:frappe.delete_doc("Page", "translation-tool", force=1)
 frappe.patches.v15_0.remove_prepared_report_settings_from_system_settings
+frappe.patches.v14_0.remove_manage_subscriptions_from_navbar
+frappe.patches.v15_0.remove_background_jobs_from_dropdown
 frappe.desk.doctype.form_tour.patches.introduce_ui_tours
 execute:frappe.delete_doc_if_exists("Workspace", "Customization")
+execute:frappe.db.set_single_value("Document Naming Settings", "default_amend_naming", "Amend Counter")
+frappe.patches.v15_0.move_event_cancelled_to_status
 frappe.patches.v15_0.set_file_type
+frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version

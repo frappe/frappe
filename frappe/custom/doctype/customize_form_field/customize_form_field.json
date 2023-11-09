@@ -351,7 +351,7 @@
    "width": "50px"
   },
   {
-   "depends_on": "eval:cur_frm.doc.istable",
+   "depends_on": "eval:parent.istable",
    "description": "Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)",
    "fieldname": "columns",
    "fieldtype": "Int",

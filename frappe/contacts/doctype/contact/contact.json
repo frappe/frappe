@@ -12,6 +12,7 @@
   "first_name",
   "middle_name",
   "last_name",
+  "full_name",
   "email_id",
   "user",
   "address",
@@ -52,8 +53,7 @@
    "in_global_search": 1,
    "label": "First Name",
    "oldfieldname": "first_name",
-   "oldfieldtype": "Data",
-   "reqd": 1
+   "oldfieldtype": "Data"
   },
   {
    "bold": 1,
@@ -243,6 +243,13 @@
    "fieldname": "company_name",
    "fieldtype": "Data",
    "label": "Company Name"
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Full Name",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-user",
@@ -250,11 +257,12 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-06 11:52:34.088559",
+ "modified": "2023-10-02 12:00:27.299156",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
  "name_case": "Title Case",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {
@@ -267,7 +275,6 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
-   "set_user_permissions": 1,
    "share": 1,
    "write": 1
   },
@@ -374,21 +381,18 @@
    "write": 1
   },
   {
-   "permlevel": 1,
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
    "read": 1,
    "report": 1,
-   "role": "All"
-  },
-  {
-   "create": 1,
-   "email": 1,
-   "print": 1,
-   "read": 1,
    "role": "All",
    "write": 1
   }
  ],
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
- "states": []
+ "states": [],
+ "title_field": "full_name"
 }

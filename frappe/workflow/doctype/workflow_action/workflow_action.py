@@ -23,6 +23,26 @@ from frappe.utils.verified_command import get_signed_params, verify_request
 
 
 class WorkflowAction(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.workflow.doctype.workflow_action_permitted_role.workflow_action_permitted_role import (
+			WorkflowActionPermittedRole,
+		)
+
+		completed_by: DF.Link | None
+		completed_by_role: DF.Link | None
+		permitted_roles: DF.TableMultiSelect[WorkflowActionPermittedRole]
+		reference_doctype: DF.Link | None
+		reference_name: DF.DynamicLink | None
+		status: DF.Literal["Open", "Completed"]
+		user: DF.Link | None
+		workflow_state: DF.Data | None
+	# end: auto-generated types
 	pass
 
 
@@ -62,12 +82,11 @@ def get_permission_query_conditions(user):
 
 
 def has_permission(doc, user):
-
-	user_roles = set(frappe.get_roles(user))
+	if user == "Administrator":
+		return True
 
 	permitted_roles = {permitted_role.role for permitted_role in doc.permitted_roles}
-
-	return user == "Administrator" or user_roles.intersection(permitted_roles)
+	return not permitted_roles.isdisjoint(frappe.get_roles(user))
 
 
 def process_workflow_actions(doc, state):
@@ -290,7 +309,7 @@ def update_completed_workflow_actions_using_user(doc, user=None):
 def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all(
 		"Workflow Transition",
-		fields=["allowed", "action", "state", "allow_self_approval", "next_state", "`condition`"],
+		fields=["allowed", "action", "state", "allow_self_approval", "next_state", "condition"],
 		filters=[["parent", "=", workflow_name], ["state", "=", state]],
 	)
 
@@ -447,13 +466,12 @@ def filter_allowed_users(users, doc, transition):
 	"""
 	from frappe.permissions import has_permission
 
-	filtered_users = []
-	for user in users:
-		if has_approval_access(user, doc, transition) and has_permission(
-			doctype=doc, user=user, raise_exception=False
-		):
-			filtered_users.append(user)
-	return filtered_users
+	return [
+		user
+		for user in users
+		if has_approval_access(user, doc, transition)
+		and has_permission(doctype=doc, user=user, raise_exception=False)
+	]
 
 
 def get_common_email_args(doc):
@@ -468,14 +486,13 @@ def get_common_email_args(doc):
 		subject = _("Workflow Action") + f" on {doctype}: {docname}"
 		response = get_link_to_form(doctype, docname, f"{doctype}: {docname}")
 
-	common_args = {
+	return {
 		"template": "workflow_action",
 		"header": "Workflow Action",
 		"attachments": [frappe.attach_print(doctype, docname, file_name=docname, doc=doc)],
 		"subject": subject,
 		"message": response,
 	}
-	return common_args
 
 
 def get_email_template(doc):

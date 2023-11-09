@@ -6,6 +6,21 @@ from frappe.model.document import Document
 
 
 class PortalSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.website.doctype.portal_menu_item.portal_menu_item import PortalMenuItem
+
+		custom_menu: DF.Table[PortalMenuItem]
+		default_portal_home: DF.Data | None
+		default_role: DF.Link | None
+		hide_standard_menu: DF.Check
+		menu: DF.Table[PortalMenuItem]
+	# end: auto-generated types
 	def add_item(self, item):
 		"""insert new portal menu item if route is not set, or role is different"""
 		exists = [d for d in self.get("menu", []) if d.get("route") == item.get("route")]

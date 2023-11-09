@@ -14,7 +14,6 @@ class BaseTimeline {
 		this.timeline_actions_wrapper = $(`
 			<div class="timeline-items timeline-actions">
 				<div class="timeline-item">
-					<div class="timeline-dot"></div>
 					<div class="timeline-content action-buttons"></div>
 				</div>
 			</div>
@@ -124,7 +123,7 @@ class BaseTimeline {
 		if (item.icon) {
 			timeline_item.append(`
 				<div class="timeline-badge" title='${item.title || frappe.utils.to_title_case(item.icon)}'>
-					${frappe.utils.icon(item.icon, item.icon_size || "md")}
+					${frappe.utils.icon(item.icon, item.icon_size || "md", item.icon_class || "")}
 				</div>
 			`);
 		} else if (item.timeline_badge) {
@@ -139,7 +138,7 @@ class BaseTimeline {
 		let timeline_content = timeline_item.find(".timeline-content");
 		timeline_content.append(item.content);
 		if (!item.hide_timestamp && !item.is_card) {
-			timeline_content.append(`<span> - ${comment_when(item.creation)}</span>`);
+			timeline_content.append(`<span> · ${comment_when(item.creation)}</span>`);
 		}
 		if (item.id) {
 			timeline_content.attr("id", item.id);

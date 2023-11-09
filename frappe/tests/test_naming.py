@@ -33,16 +33,13 @@ class TestNaming(FrappeTestCase):
 		if Bottle-1 exists
 		        Bottle -> Bottle-2
 		"""
+		TITLE = "Bottle"
+		DOCTYPE = "Note"
 
-		note = frappe.new_doc("Note")
-		note.title = "Test"
-		note.insert()
+		note = frappe.get_doc({"doctype": DOCTYPE, "title": TITLE}).insert()
 
-		title2 = append_number_if_name_exists("Note", "Test")
-		self.assertEqual(title2, "Test-1")
-
-		title2 = append_number_if_name_exists("Note", "Test", "title", "_")
-		self.assertEqual(title2, "Test_1")
+		self.assertEqual(append_number_if_name_exists(DOCTYPE, note.name), f"{note.name}-1")
+		self.assertEqual(append_number_if_name_exists(DOCTYPE, TITLE, "title", "_"), f"{TITLE}_1")
 
 	def test_field_autoname_name_sync(self):
 
@@ -278,8 +275,8 @@ class TestNaming(FrappeTestCase):
 		# set by passing set_name as ToDo
 		self.assertRaises(frappe.NameError, make_invalid_todo)
 
-		# set new name - Note
-		note = frappe.get_doc({"doctype": "Note", "title": "Note"})
+		# name (via title field) cannot be the same as the doctype
+		note = frappe.get_doc({"doctype": "Currency", "currency_name": "Currency"})
 		self.assertRaises(frappe.NameError, note.insert)
 
 		# case 2: set name with "New ---"

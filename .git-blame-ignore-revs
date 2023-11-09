@@ -26,5 +26,17 @@ c0c5b2ebdddbe8898ce2d5e5365f4931ff73b6bf
 # update python code to use 3.10 supported features
 81b37cb7d2160866afa2496873656afe53f0c145
 
+# mass minified JSON schema
+85e3ee940353d7b0b517b33815148672e9a8b15b
+
 # format JS files with pretter
-5d6b24f0b134fd897644086499745cd35428bc11
+40f27f908a3890c9a90d2d96794fc31fcea63c59
+
+# db.get_all -> get_all
+2eec621e95564c359ad22da79501a855c1f32b03
+
+# minor formatting fix in `user.py`
+f223bc02490902dfcc32892058f13f343d51fbaf
+
+# frappe.cache() -> frappe.cache
+fa6dc03cc87ad74e11609e7373078366fdcb3e1b

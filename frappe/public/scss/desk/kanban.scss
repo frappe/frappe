@@ -78,7 +78,7 @@
 			font-size: 12px;
 			// align-items: center;
 			.indicator-pill {
-				padding: 2px 8px;
+				padding: 2px 7px;
 				width: 20px;
 				height: 20px;
 
@@ -114,17 +114,15 @@
 		.kanban-column-title {
 			@include flex(flex, null, center, null);
 
-			font-size: var(--text-lg);
+			@include get_textstyle("lg", "regular");
 			color: var(--text-color);
-			font-weight: normal;
 			padding-right: var(--padding-xs);
 			max-width: 100%;
 
 			// margin-left: 10px;
 			.kanban-title {
-				font-size: var(--text-lg);
+				@include get_textstyle("lg", "semibold");
 				margin-left: var(--margin-sm);
-				font-weight: var(--text-bold, 600);
 			}
 		}
 
@@ -166,6 +164,8 @@
 						$padding: 0,
 						$background-color: var(--kanban-card-bg)
 					);
+					box-shadow: none;
+					border: 1px solid var(--border-color);
 
 					.kanban-image {
 						height: 125px;
@@ -219,7 +219,7 @@
 							}
 
 							.kanban-tags {
-								font-size: var(--text-sm);
+								@include get_textstyle("sm", "regular");
 								margin-bottom: 8px;
 
 								.tag-pill {
@@ -322,7 +322,7 @@
 			min-height: 65px;
 			border-radius: var(--border-radius);
 			border: 1px dashed var(--gray-400);
-			font-size: var(--text-base);
+			@include get_textstyle("base", "regular");
 
 			&:hover {
 				background-color: var(--kanban-column-bg);

@@ -2,15 +2,21 @@ import socket
 from urllib.parse import urlparse
 
 from frappe import get_conf
+from frappe.exceptions import UrlSchemeNotSupported
 
-REDIS_KEYS = ("redis_cache", "redis_queue", "redis_socketio")
+REDIS_KEYS = ("redis_cache", "redis_queue")
 
 
-def is_open(ip, port, timeout=10):
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+def is_open(scheme, hostname, port, timeout=10):
+	if scheme in ["redis", "postgres", "mariadb"]:
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		conn = (hostname, int(port))
+	else:
+		raise UrlSchemeNotSupported(scheme)
+
 	s.settimeout(timeout)
 	try:
-		s.connect((ip, int(port)))
+		s.connect(conn)
 		s.shutdown(socket.SHUT_RDWR)
 		return True
 	except OSError:
@@ -22,19 +28,18 @@ def is_open(ip, port, timeout=10):
 def check_database():
 	config = get_conf()
 	db_type = config.get("db_type", "mariadb")
-	db_host = config.get("db_host", "localhost")
+	db_host = config.get("db_host", "127.0.0.1")
 	db_port = config.get("db_port", 3306 if db_type == "mariadb" else 5432)
-	return {db_type: is_open(db_host, db_port)}
+	return {db_type: is_open(db_type, db_host, db_port)}
 
 
 def check_redis(redis_services=None):
 	config = get_conf()
 	services = redis_services or REDIS_KEYS
 	status = {}
-	for conn in services:
-		redis_url = urlparse(config.get(conn)).netloc
-		redis_host, redis_port = redis_url.split(":")
-		status[conn] = is_open(redis_host, redis_port)
+	for srv in services:
+		url = urlparse(config[srv])
+		status[srv] = is_open(url.scheme, url.hostname, url.port)
 	return status
 
 

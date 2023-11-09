@@ -22,6 +22,25 @@ from frappe.utils.backups import new_backup
 
 
 class GoogleDrive(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		authorization_code: DF.Data | None
+		backup_folder_id: DF.Data | None
+		backup_folder_name: DF.Data
+		email: DF.Data
+		enable: DF.Check
+		file_backup: DF.Check
+		frequency: DF.Literal["", "Daily", "Weekly"]
+		last_backup_on: DF.Datetime | None
+		refresh_token: DF.Data | None
+		send_email_for_successful_backup: DF.Check
+	# end: auto-generated types
 	def validate(self):
 		doc_before_save = self.get_doc_before_save()
 		if doc_before_save and doc_before_save.backup_folder_name != self.backup_folder_name:

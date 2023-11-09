@@ -18,6 +18,8 @@ frappe.ui.form.ControlRating = class ControlRating extends frappe.ui.form.Contro
 
 		$(this.input_area).html(star_template);
 
+		if (this.disabled) return;
+
 		let me = this;
 		$(this.input_area)
 			.find("svg")

@@ -17,10 +17,11 @@ from frappe.website.utils import can_cache, get_home_page
 
 
 class PathResolver:
-	__slots__ = ("path",)
+	__slots__ = ("path", "http_status_code")
 
-	def __init__(self, path):
+	def __init__(self, path, http_status_code=None):
 		self.path = path.strip("/ ")
+		self.http_status_code = http_status_code
 
 	def resolve(self):
 		"""Returns endpoint and a renderer instance that can render the endpoint"""
@@ -29,7 +30,7 @@ class PathResolver:
 			request = frappe.local.request or request
 
 		# check if the request url is in 404 list
-		if request.url and can_cache() and frappe.cache().hget("website_404", request.url):
+		if request.url and can_cache() and frappe.cache.hget("website_404", request.url):
 			return self.path, NotFoundPage(self.path)
 
 		try:
@@ -41,7 +42,7 @@ class PathResolver:
 
 		# WARN: Hardcoded for better performance
 		if endpoint == "app":
-			return endpoint, TemplatePage(endpoint, 200)
+			return endpoint, TemplatePage(endpoint, self.http_status_code)
 
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = custom_renderers + [
@@ -51,11 +52,10 @@ class PathResolver:
 			TemplatePage,
 			ListPage,
 			PrintPage,
-			NotFoundPage,
 		]
 
 		for renderer in renderers:
-			renderer_instance = renderer(endpoint, 200)
+			renderer_instance = renderer(endpoint, self.http_status_code)
 			if renderer_instance.can_render():
 				return endpoint, renderer_instance
 
@@ -92,17 +92,17 @@ def resolve_redirect(path, query_string=None):
 
 	Example:
 
-	        website_redirect = [
-	                # absolute location
-	                {"source": "/from", "target": "https://mysite/from"},
+	                website_redirect = [
+	                                # absolute location
+	                                {"source": "/from", "target": "https://mysite/from"},
 
-	                # relative location
-	                {"source": "/from", "target": "/main"},
+	                                # relative location
+	                                {"source": "/from", "target": "/main"},
 
-	                # use regex
-	                {"source": r"/from/(.*)", "target": r"/main/\1"}
-	                # use r as a string prefix if you use regex groups or want to escape any string literal
-	        ]
+	                                # use regex
+	                                {"source": r"/from/(.*)", "target": r"/main/\1"}
+	                                # use r as a string prefix if you use regex groups or want to escape any string literal
+	                ]
 	"""
 	redirects = frappe.get_hooks("website_redirects")
 	redirects += frappe.get_all("Website Route Redirect", ["source", "target"], order_by=None)
@@ -110,7 +110,7 @@ def resolve_redirect(path, query_string=None):
 	if not redirects:
 		return
 
-	redirect_to = frappe.cache().hget("website_redirects", path)
+	redirect_to = frappe.cache.hget("website_redirects", path)
 
 	if redirect_to:
 		frappe.flags.redirect_location = redirect_to
@@ -122,10 +122,15 @@ def resolve_redirect(path, query_string=None):
 		if rule.get("match_with_query_string"):
 			path_to_match = path + "?" + frappe.safe_decode(query_string)
 
-		if re.match(pattern, path_to_match):
+		try:
+			match = re.match(pattern, path_to_match)
+		except re.error as e:
+			frappe.log_error("Broken Redirect: " + pattern)
+
+		if match:
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
 			frappe.flags.redirect_location = redirect_to
-			frappe.cache().hset("website_redirects", path_to_match, redirect_to)
+			frappe.cache.hset("website_redirects", path_to_match, redirect_to)
 			raise frappe.Redirect
 
 
@@ -172,4 +177,4 @@ def get_website_rules():
 		# dont cache in development
 		return _get()
 
-	return frappe.cache().get_value("website_route_rules", _get)
+	return frappe.cache.get_value("website_route_rules", _get)

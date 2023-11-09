@@ -95,11 +95,11 @@
    "label": "Blog Intro"
   },
   {
-   "default": "Rich Text",
+   "default": "Markdown",
    "fieldname": "content_type",
    "fieldtype": "Select",
    "label": "Content Type",
-   "options": "Rich Text\nMarkdown\nHTML",
+   "options": "Markdown\nRich Text\nHTML",
    "reqd": 1
   },
   {
@@ -230,7 +230,6 @@
    "read": 1,
    "report": 1,
    "role": "Website Manager",
-   "set_user_permissions": 1,
    "share": 1,
    "write": 1
   },

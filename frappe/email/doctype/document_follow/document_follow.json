@@ -41,7 +41,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-17 09:19:28.496453",
+ "modified": "2023-08-28 22:34:53.394652",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Document Follow",
@@ -67,12 +67,13 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "All",
+   "role": "Desk User",
    "share": 1,
    "write": 1
   }
  ],
  "read_only": 1,
  "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_order": "DESC",
+ "states": []
 }

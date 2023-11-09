@@ -1,8 +1,6 @@
 import "./libs.bundle.js";
-import "./jquery-bootstrap";
 import "./frappe/class.js";
 import "./frappe/polyfill.js";
-import "./lib/moment.js";
 import "./frappe/provide.js";
 import "./frappe/translate.js";
 import "./frappe/form/formatters.js";

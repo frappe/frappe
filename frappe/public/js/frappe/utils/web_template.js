@@ -48,7 +48,7 @@ function open_web_template_values_editor(template, current_values = {}) {
 			}
 		}
 
-		let fields = [
+		return [
 			...normal_fields,
 			...table_fields.map((tf) => {
 				let data = current_values[tf.fieldname] || [];
@@ -66,7 +66,5 @@ function open_web_template_values_editor(template, current_values = {}) {
 				};
 			}),
 		];
-
-		return fields;
 	}
 }

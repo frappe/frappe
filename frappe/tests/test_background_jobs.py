@@ -5,11 +5,12 @@ from unittest.mock import patch
 from rq import Queue
 
 import frappe
-from frappe.core.page.background_jobs.background_jobs import remove_failed_jobs
+from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.background_jobs import (
 	RQ_JOB_FAILURE_TTL,
 	RQ_RESULTS_TTL,
+	create_job_id,
 	execute_job,
 	generate_qname,
 	get_redis_conn,

@@ -25,7 +25,7 @@ from frappe.model.mapper import get_mapped_doc
 from frappe.model.rename_doc import rename_doc
 from frappe.modules import scrub
 from frappe.utils.background_jobs import enqueue, get_jobs
-from frappe.website.utils import get_next_link, get_shade, get_toc
+from frappe.website.utils import get_next_link, get_toc
 from frappe.www.printview import get_visible_columns
 
 
@@ -34,6 +34,8 @@ class ServerScriptNotEnabled(frappe.PermissionError):
 
 
 ARGUMENT_NOT_SET = object()
+
+SAFE_EXEC_CONFIG_KEY = "server_script_enabled"
 
 
 class NamespaceDict(frappe._dict):
@@ -58,16 +60,18 @@ class FrappeTransformer(RestrictingNodeTransformer):
 		return super().check_name(node, name, *args, **kwargs)
 
 
-def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
-	# server scripts can be disabled via site_config.json
-	# they are enabled by default
-	if "server_script_enabled" in frappe.conf:
-		enabled = frappe.conf.server_script_enabled
-	else:
-		enabled = True
+def is_safe_exec_enabled() -> bool:
+	# server scripts can only be enabled via common_site_config.json
+	return bool(frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY))
 
-	if not enabled:
-		frappe.throw(_("Please Enable Server Scripts"), ServerScriptNotEnabled)
+
+def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
+	if not is_safe_exec_enabled():
+
+		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
+		docs_cta = _("Read the documentation to know more")
+		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
+		frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
 
 	# build globals
 	exec_globals = get_safe_globals()
@@ -221,6 +225,10 @@ def get_safe_globals():
 				sql=read_sql,
 				commit=frappe.db.commit,
 				rollback=frappe.db.rollback,
+				after_commit=frappe.db.after_commit,
+				before_commit=frappe.db.before_commit,
+				after_rollback=frappe.db.after_rollback,
+				before_rollback=frappe.db.before_rollback,
 				add_index=frappe.db.add_index,
 			),
 			lang=getattr(frappe.local, "lang", "en"),
@@ -230,7 +238,6 @@ def get_safe_globals():
 		get_toc=get_toc,
 		get_next_link=get_next_link,
 		_=frappe._,
-		get_shade=get_shade,
 		scrub=scrub,
 		guess_mimetype=mimetypes.guess_type,
 		html2text=html2text,
@@ -517,9 +524,7 @@ VALID_UTILS = (
 	"now_datetime",
 	"get_timestamp",
 	"get_eta",
-	"get_time_zone",
 	"get_system_timezone",
-	"convert_utc_to_user_timezone",
 	"convert_utc_to_system_timezone",
 	"now",
 	"nowdate",
@@ -527,6 +532,7 @@ VALID_UTILS = (
 	"nowtime",
 	"get_first_day",
 	"get_quarter_start",
+	"get_quarter_ending",
 	"get_first_day_of_week",
 	"get_year_start",
 	"get_last_day_of_week",

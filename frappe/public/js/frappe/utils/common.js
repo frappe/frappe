@@ -332,10 +332,39 @@ frappe.utils.sanitise_redirect = (url) => {
 		};
 	})();
 
+	/*
+	 * Strips out url containing the text `javascript` with or without any HTML Entities in it
+	 **/
 	const sanitise_javascript = (url) => {
-		// please do not ask how or why
-		const REGEX_SCRIPT =
-			/j[\s]*(&#x.{1,7})?a[\s]*(&#x.{1,7})?v[\s]*(&#x.{1,7})?a[\s]*(&#x.{1,7})?s[\s]*(&#x.{1,7})?c[\s]*(&#x.{1,7})?r[\s]*(&#x.{1,7})?i[\s]*(&#x.{1,7})?p[\s]*(&#x.{1,7})?t/gi;
+		/*
+		 * Written below split into parts, but actual is in one line regardless of whitespaces
+		 * /
+		 * 	j
+		 * 		\s*(&#x.{1,7})?
+		 * 	a
+		 * 		\s*(&#x.{1,7})?
+		 * 	v
+		 * 		\s*(&#x.{1,7})?
+		 * 	a
+		 * 		\s*(&#x.{1,7})?
+		 * 	s
+		 * 		\s*(&#x.{1,7})?
+		 * 	c
+		 * 		\s*(&#x.{1,7})?
+		 * 	r
+		 * 		\s*(&#x.{1,7})?
+		 * 	i
+		 * 		\s*(&#x.{1,7})?
+		 * 	p
+		 * 		\s*(&#x.{1,7})?
+		 * 	t
+		 * /gi
+		 * */
+		const REGEX_ESC_UNIT = /\s*(&#x.{1,7})?/;
+		const REGEX_SCRIPT = new RegExp(
+			Array.from("javascript").join(REGEX_ESC_UNIT.source),
+			"gi"
+		);
 
 		return url.replace(REGEX_SCRIPT, "");
 	};

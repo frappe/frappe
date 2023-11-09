@@ -54,9 +54,9 @@ def get_latest_backup_file(with_files=False):
 		frappe.conf.db_name,
 		frappe.conf.db_name,
 		frappe.conf.db_password,
-		db_host=frappe.db.host,
-		db_type=frappe.conf.db_type,
+		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
+		db_type=frappe.conf.db_type,
 	)
 	database, public, private, config = odb.get_recent_backup(older_than=24 * 30)
 
@@ -112,9 +112,9 @@ def generate_files_backup():
 		frappe.conf.db_name,
 		frappe.conf.db_name,
 		frappe.conf.db_password,
-		db_host=frappe.db.host,
-		db_type=frappe.conf.db_type,
+		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
+		db_type=frappe.conf.db_type,
 	)
 
 	backup.set_backup_file_name()

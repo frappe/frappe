@@ -82,7 +82,7 @@ frappe.ui.toolbar.Toolbar = class {
 			var breadcrumbs = route.split("/");
 
 			var links = [];
-			for (var i = 0; i < breadcrumbs.length; i++) {
+			for (let i = 0; i < breadcrumbs.length; i++) {
 				var r = route.split("/", i + 1);
 				var key = r.join("/");
 				var help_links = frappe.help.help_links[key] || [];
@@ -95,7 +95,7 @@ frappe.ui.toolbar.Toolbar = class {
 				$help_links.next().show();
 			}
 
-			for (var i = 0; i < links.length; i++) {
+			for (let i = 0; i < links.length; i++) {
 				var link = links[i];
 				var url = link.url;
 				$("<a>", {
@@ -131,11 +131,17 @@ frappe.ui.toolbar.Toolbar = class {
 		if (frappe.boot.desk_settings.search_bar) {
 			let awesome_bar = new frappe.search.AwesomeBar();
 			awesome_bar.setup("#navbar-search");
-		}
-		if (frappe.model.can_read("RQ Job")) {
-			frappe.search.utils.make_function_searchable(function () {
-				frappe.set_route("List", "RQ Job");
-			}, __("Background Jobs"));
+
+			frappe.search.utils.make_function_searchable(
+				frappe.utils.generate_tracking_url,
+				__("Generate Tracking URL")
+			);
+
+			if (frappe.model.can_read("RQ Job")) {
+				frappe.search.utils.make_function_searchable(function () {
+					frappe.set_route("List", "RQ Job");
+				}, __("Background Jobs"));
+			}
 		}
 	}
 

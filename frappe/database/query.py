@@ -60,8 +60,6 @@ class Engine:
 			self.validate_doctype()
 			self.table = frappe.qb.DocType(table)
 
-		self.validate_filters = validate_filters
-
 		if update:
 			self.query = frappe.qb.update(self.table)
 		elif into:

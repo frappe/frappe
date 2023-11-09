@@ -1,18 +1,64 @@
 # Copyright (c) 2020, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from urllib.parse import urlparse
+
 import frappe
+import frappe.utils
 from frappe.model.document import Document
 
 
 class WebPageView(Document):
-	pass
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		browser: DF.Data | None
+		browser_version: DF.Data | None
+		campaign: DF.Data | None
+		is_unique: DF.Data | None
+		medium: DF.Data | None
+		path: DF.Data | None
+		referrer: DF.Data | None
+		source: DF.Data | None
+		time_zone: DF.Data | None
+		user_agent: DF.Data | None
+		visitor_id: DF.Data | None
+	# end: auto-generated types
+	@staticmethod
+	def clear_old_logs(days=180):
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
+
+		table = frappe.qb.DocType("Web Page View")
+		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
 @frappe.whitelist(allow_guest=True)
-def make_view_log(path, referrer=None, browser=None, version=None, url=None, user_tz=None):
+def make_view_log(
+	referrer=None,
+	browser=None,
+	version=None,
+	user_tz=None,
+	source=None,
+	campaign=None,
+	medium=None,
+	visitor_id=None,
+):
 	if not is_tracking_enabled():
 		return
+
+	# real path
+	path = frappe.request.headers.get("Referer")
+
+	if not frappe.utils.is_site_link(path):
+		return
+
+	path = urlparse(path).path
 
 	request_dict = frappe.request.__dict__
 	user_agent = request_dict.get("environ", {}).get("HTTP_USER_AGENT")
@@ -20,12 +66,13 @@ def make_view_log(path, referrer=None, browser=None, version=None, url=None, use
 	if referrer:
 		referrer = referrer.split("?", 1)[0]
 
-	is_unique = True
-	if referrer.startswith(url):
-		is_unique = False
-
 	if path != "/" and path.startswith("/"):
 		path = path[1:]
+
+	if path.startswith(("api/", "app/", "assets/", "private/files/")):
+		return
+
+	is_unique = visitor_id and not bool(frappe.db.exists("Web Page View", {"visitor_id": visitor_id}))
 
 	view = frappe.new_doc("Web Page View")
 	view.path = path
@@ -35,6 +82,10 @@ def make_view_log(path, referrer=None, browser=None, version=None, url=None, use
 	view.time_zone = user_tz
 	view.user_agent = user_agent
 	view.is_unique = is_unique
+	view.source = source
+	view.campaign = campaign
+	view.medium = (medium or "").lower()
+	view.visitor_id = visitor_id
 
 	try:
 		if frappe.flags.read_only:
@@ -42,8 +93,7 @@ def make_view_log(path, referrer=None, browser=None, version=None, url=None, use
 		else:
 			view.insert(ignore_permissions=True)
 	except Exception:
-		if frappe.message_log:
-			frappe.message_log.pop()
+		frappe.clear_last_message()
 
 
 @frappe.whitelist()

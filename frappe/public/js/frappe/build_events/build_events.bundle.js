@@ -1,3 +1,4 @@
+import { createApp } from "vue";
 import BuildError from "./BuildError.vue";
 import BuildSuccess from "./BuildSuccess.vue";
 
@@ -48,11 +49,7 @@ function show_build_success(data) {
 
 	if (!success) {
 		let target = $('<div class="build-success-container">').appendTo($container).get(0);
-		let vm = new Vue({
-			el: target,
-			render: (h) => h(BuildSuccess),
-		});
-		success = vm.$children[0];
+		success = createApp(BuildSuccess).mount(target);
 	}
 	success.show(data);
 }
@@ -63,11 +60,7 @@ function show_build_error(data) {
 	}
 	if (!error) {
 		let target = $('<div class="build-error-container">').appendTo($container).get(0);
-		let vm = new Vue({
-			el: target,
-			render: (h) => h(BuildError),
-		});
-		error = vm.$children[0];
+		error = createApp(BuildError).mount(target);
 	}
 	error.show(data);
 }

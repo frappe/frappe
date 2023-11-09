@@ -9,12 +9,30 @@ from frappe.model.document import Document
 
 
 class KanbanBoard(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.desk.doctype.kanban_board_column.kanban_board_column import KanbanBoardColumn
+		from frappe.types import DF
+
+		columns: DF.Table[KanbanBoardColumn]
+		field_name: DF.Literal
+		fields: DF.Code | None
+		filters: DF.Code | None
+		kanban_board_name: DF.Data
+		private: DF.Check
+		reference_doctype: DF.Link
+		show_labels: DF.Check
+	# end: auto-generated types
 	def validate(self):
 		self.validate_column_name()
 
 	def on_change(self):
 		frappe.clear_cache(doctype=self.reference_doctype)
-		frappe.cache().delete_keys("_user_settings")
+		frappe.cache.delete_keys("_user_settings")
 
 	def before_insert(self):
 		for column in self.columns:
@@ -108,7 +126,7 @@ def update_order(board_name, order):
 			order_parse = json.loads(order)
 		if isinstance(projects_ordered, str):
 			projects_ordered = json.dumps(projects_ordered)
-   
+
 		projects_ordered = order_column_by_project_order(projects_ordered, order_parse)
 		order=json.dumps(projects_ordered)
 		updated_cards = []

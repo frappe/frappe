@@ -16,7 +16,7 @@ class Picker {
 		this.icon_picker_wrapper = $(`
 			<div class="icon-picker">
 				<div class="search-icons">
-					<input type="search" placeholder="Search for icons.." class="form-control">
+					<input type="search" placeholder="${__("Search for icons...")}" class="form-control">
 					<span class="search-icon">${frappe.utils.icon("search", "sm")}</span>
 				</div>
 				<div class="icon-section">

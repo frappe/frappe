@@ -3,11 +3,27 @@
 
 import frappe
 from frappe import _
+from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 from frappe.model.document import Document
 from frappe.utils import cint
+from frappe.utils.scheduler import is_scheduler_inactive
 
 
 class BulkUpdate(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		condition: DF.SmallText | None
+		document_type: DF.Link
+		field: DF.Literal
+		limit: DF.Int
+		update_value: DF.SmallText
+	# end: auto-generated types
 	@frappe.whitelist()
 	def bulk_update(self):
 		self.check_permission("write")
@@ -42,8 +58,12 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
 		try:
 			message = ""
 			if action == "submit" and doc.docstatus.is_draft():
-				doc.submit()
-				message = _("Submitting {0}").format(doctype)
+				if doc.meta.queue_in_background and not is_scheduler_inactive():
+					queue_submission(doc, action)
+					message = _("Queuing {0} for Submission").format(doctype)
+				else:
+					doc.submit()
+					message = _("Submitting {0}").format(doctype)
 			elif action == "cancel" and doc.docstatus.is_submitted():
 				doc.cancel()
 				message = _("Cancelling {0}").format(doctype)

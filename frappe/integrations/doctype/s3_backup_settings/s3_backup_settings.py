@@ -21,6 +21,24 @@ from frappe.utils.background_jobs import enqueue
 
 
 class S3BackupSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		access_key_id: DF.Data
+		backup_files: DF.Check
+		bucket: DF.Data
+		enabled: DF.Check
+		endpoint_url: DF.Data | None
+		frequency: DF.Literal["Daily", "Weekly", "Monthly", "None"]
+		notify_email: DF.Data
+		secret_access_key: DF.Password
+		send_email_for_successful_backup: DF.Check
+	# end: auto-generated types
 	def validate(self):
 		if not self.enabled:
 			return

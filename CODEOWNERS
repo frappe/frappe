@@ -3,5 +3,4 @@
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
 
-*           @frappe/frappe-review-team
-workspace   @shariquerik
+*                 @frappe/frappe-review-team

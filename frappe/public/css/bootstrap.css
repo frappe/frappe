@@ -2622,8 +2622,8 @@ tbody.collapse.in {
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, .15);
   border-radius: 4px;
-  -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
-          box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+  -webkit-box-shadow: 0px 0px 1px rgba(0,0,0,0.200), 0px 1px 3px rgba(0,0,0,0.050), 0px 10px 24px -3px rgba(0,0,0,0.100);
+          box-shadow: 0px 0px 1px rgba(0,0,0,0.200), 0px 1px 3px rgba(0,0,0,0.050), 0px 10px 24px -3px rgba(0,0,0,0.100);
 }
 .dropdown-menu.pull-right {
   right: 0;

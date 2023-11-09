@@ -2,6 +2,7 @@
 // MIT License. See license.txt
 import "./linked_with";
 import "./form_viewers";
+import { ReminderManager } from "./reminders";
 
 frappe.ui.form.Toolbar = class Toolbar {
 	constructor(opts) {
@@ -12,7 +13,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	refresh() {
 		this.make_menu();
-		this.make_viewers();
 		this.set_title();
 		this.page.clear_user_actions();
 		this.show_title_as_dirty();
@@ -31,11 +31,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 	}
 	set_title() {
+		let title;
 		if (this.frm.is_new()) {
-			var title = __("New {0}", [__(this.frm.meta.name)]);
+			title = __("New {0}", [__(this.frm.meta.name)]);
 		} else if (this.frm.meta.title_field) {
 			let title_field = (this.frm.doc[this.frm.meta.title_field] || "").toString().trim();
-			var title = strip_html(title_field || this.frm.docname);
+			title = strip_html(title_field || this.frm.docname);
 			if (
 				this.frm.doc.__islocal ||
 				title === this.frm.docname ||
@@ -51,7 +52,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				});
 			}
 		} else {
-			var title = this.frm.docname;
+			title = this.frm.docname;
 		}
 
 		var me = this;
@@ -112,6 +113,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		let rename_document = () => {
+			if (input_name != docname) frappe.realtime.doctype_subscribe(doctype, input_name);
 			return frappe
 				.xcall("frappe.model.rename_doc.update_document_title", {
 					doctype,
@@ -133,9 +135,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 					};
 
 					// handle document renaming queued action
-					if (input_name && new_docname == docname) {
-						frappe.socketio.doc_subscribe(doctype, input_name);
-						frappe.realtime.on("doc_update", (data) => {
+					if (input_name != docname) {
+						frappe.realtime.on("list_update", (data) => {
 							if (data.doctype == doctype && data.name == input_name) {
 								reload_form(input_name);
 								frappe.show_alert({
@@ -276,23 +277,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 	}
 
-	make_viewers() {
-		if (this.frm.viewers) {
-			return;
-		}
-		this.frm.viewers = new frappe.ui.form.FormViewers({
-			frm: this.frm,
-			parent: $('<div class="form-viewers d-flex"></div>').prependTo(
-				this.frm.page.page_actions
-			),
-		});
-	}
-
 	make_navigation() {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				"left",
+				"es-line-left-chevron",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -300,7 +289,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				"right",
+				"es-line-right-chevron",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -389,7 +378,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 				function () {
 					me.frm.copy_doc();
 				},
-				true
+				true,
+				"Shift+D"
 			);
 		}
 
@@ -426,6 +416,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		if (
 			cint(me.frm.doc.docstatus) != 1 &&
 			!me.frm.doc.__islocal &&
+			!frappe.model.is_single(me.frm.doctype) &&
 			frappe.model.can_delete(me.frm.doctype)
 		) {
 			this.page.add_menu_item(
@@ -440,6 +431,45 @@ frappe.ui.form.Toolbar = class Toolbar {
 				}
 			);
 		}
+
+		this.page.add_menu_item(
+			__("Remind Me"),
+			() => {
+				let reminder_maanger = new ReminderManager({ frm: this.frm });
+				reminder_maanger.show();
+			},
+			true,
+			{
+				shortcut: "Shift+R",
+				condition: () => !this.frm.is_new(),
+			}
+		);
+		//
+		// Undo and redo
+		this.page.add_menu_item(
+			__("Undo"),
+			() => {
+				this.frm.undo_manager.undo();
+			},
+			true,
+			{
+				shortcut: "ctrl+z",
+				condition: () => !this.frm.is_form_builder(),
+				description: __("Undo last action"),
+			}
+		);
+		this.page.add_menu_item(
+			__("Redo"),
+			() => {
+				this.frm.undo_manager.redo();
+			},
+			true,
+			{
+				shortcut: "ctrl+y",
+				condition: () => !this.frm.is_form_builder(),
+				description: __("Redo last action"),
+			}
+		);
 
 		this.make_customize_buttons();
 

@@ -12,16 +12,32 @@ from frappe.utils import cstr
 
 
 class UserPermission(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		allow: DF.Link
+		applicable_for: DF.Link | None
+		apply_to_all_doctypes: DF.Check
+		for_value: DF.DynamicLink
+		hide_descendants: DF.Check
+		is_default: DF.Check
+		user: DF.Link
+	# end: auto-generated types
 	def validate(self):
 		self.validate_user_permission()
 		self.validate_default_permission()
 
 	def on_update(self):
-		frappe.cache().hdel("user_permissions", self.user)
+		frappe.cache.hdel("user_permissions", self.user)
 		frappe.publish_realtime("update_user_permissions", user=self.user, after_commit=True)
 
 	def on_trash(self):
-		frappe.cache().hdel("user_permissions", self.user)
+		frappe.cache.hdel("user_permissions", self.user)
 		frappe.publish_realtime("update_user_permissions", user=self.user, after_commit=True)
 
 	def validate_user_permission(self):
@@ -78,7 +94,7 @@ def get_user_permissions(user=None):
 	if not user or user in ("Administrator", "Guest"):
 		return {}
 
-	cached_user_permissions = frappe.cache().hget("user_permissions", user)
+	cached_user_permissions = frappe.cache.hget("user_permissions", user)
 
 	if cached_user_permissions is not None:
 		return cached_user_permissions
@@ -114,7 +130,7 @@ def get_user_permissions(user=None):
 					add_doc_to_perm(perm, doc, False)
 
 		out = frappe._dict(out)
-		frappe.cache().hset("user_permissions", user, out)
+		frappe.cache.hset("user_permissions", user, out)
 	except frappe.db.SQLError as e:
 		if frappe.db.is_table_missing(e):
 			# called from patch
@@ -128,12 +144,10 @@ def user_permission_exists(user, allow, for_value, applicable_for=None):
 	user_permissions = get_user_permissions(user).get(allow, [])
 	if not user_permissions:
 		return None
-	has_same_user_permission = find(
+	return find(
 		user_permissions,
 		lambda perm: perm["doc"] == for_value and perm.get("applicable_for") == applicable_for,
 	)
-
-	return has_same_user_permission
 
 
 @frappe.whitelist()
@@ -155,11 +169,7 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 
 	linked_doctypes.sort()
 
-	return_list = []
-	for doctype in linked_doctypes[start:page_len]:
-		return_list.append([doctype])
-
-	return return_list
+	return [[doctype] for doctype in linked_doctypes[start:page_len]]
 
 
 def get_permitted_documents(doctype):

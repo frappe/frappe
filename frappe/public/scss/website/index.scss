@@ -1,5 +1,6 @@
-@import '../common/quill';
 @import 'variables';
+@import "../../css/fonts/inter/inter.scss";
+@import '../common/quill';
 @import '~bootstrap/scss/bootstrap';
 @import '~cropperjs/dist/cropper.min';
 @import "../common/mixins";
@@ -81,12 +82,13 @@
 
 .dropdown-menu {
 	padding: 0.25rem;
-	box-shadow: var(--shadow-lg);
+	box-shadow: var(--shadow-2xl);
 	border-color: var(--gray-200);
 }
 
 .dropdown-item {
 	border-radius: $dropdown-border-radius;
+	padding : var(--dropdown-padding) !important;
 }
 
 .dropdown-item:active {
@@ -164,6 +166,10 @@
 
 a.card {
 	text-decoration: none;
+}
+
+a.card-link {
+	text-decoration: underline;
 }
 
 .hidden {

@@ -30,6 +30,7 @@ context("Dashboard links", () => {
 		cy.visit(`/app/user/${cy.config("testUser")}`);
 
 		//To check if initially the dashboard contains only the "Contact" link and there is no counter
+		cy.select_form_tab("Connections");
 		cy.get('[data-doctype="Contact"]').should("contain", "Contact");
 
 		//Adding a new contact
@@ -42,6 +43,7 @@ context("Dashboard links", () => {
 		cy.visit(`/app/user/${cy.config("testUser")}`);
 
 		//To check if the counter for contact doc is "2" after adding additional contact
+		cy.select_form_tab("Connections");
 		cy.get('[data-doctype="Contact"] > .count').should("contain", "2");
 		cy.get('[data-doctype="Contact"]').contains("Contact").click();
 
@@ -61,8 +63,8 @@ context("Dashboard links", () => {
 
 	it("Report link in dashboard", () => {
 		cy.visit(`/app/user/${cy.config("testUser")}`);
-		cy.get('[data-doctype="Contact"]').should("contain", "Contact");
-		cy.findByText("Connections");
+		cy.select_form_tab("Connections");
+		cy.get('.document-link[data-doctype="Contact"]').contains("Contact");
 		cy.window()
 			.its("cur_frm")
 			.then((cur_frm) => {
@@ -73,8 +75,9 @@ context("Dashboard links", () => {
 					},
 				];
 				cur_frm.dashboard.render_report_links();
-				cy.get('[data-report="Website Analytics"]').contains("Website Analytics").click();
-				cy.findByText("Website Analytics");
+				cy.get('.document-link[data-report="Website Analytics"]')
+					.contains("Website Analytics")
+					.click();
 			});
 	});
 

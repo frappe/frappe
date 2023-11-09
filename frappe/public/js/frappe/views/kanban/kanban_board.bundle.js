@@ -1,6 +1,6 @@
 // TODO: Refactor for better UX
 
-import Vuex from "vuex";
+import { createStore } from "vuex";
 
 frappe.provide("frappe.views");
 
@@ -9,7 +9,7 @@ frappe.provide("frappe.views");
 
 	let columns_unwatcher = null;
 
-	var store = new Vuex.Store({
+	var store = createStore({
 		state: {
 			doctype: "",
 			board: {},
@@ -96,8 +96,8 @@ frappe.provide("frappe.views");
 							});
 						},
 						function (err) {
-							console.error(err); // eslint-disable-line
-						}
+							console.error(err); }
+
 					);
 			},
 			add_card: function (context, { card_title, column_title }) {
@@ -709,7 +709,7 @@ frappe.provide("frappe.views");
 		function make_dom() {
 			var opts = {
 				name: card.name,
-				title: frappe.utils.html2text(card.title), // card.title
+				title: frappe.utils.html2text(card.title),
 				disable_click: card._disable_click ? "disable-click" : "",
 				creation: card.creation,
 				doc_content: get_doc_content(card),
@@ -765,7 +765,7 @@ frappe.provide("frappe.views");
 					${frappe.utils.icon("small-message")}
 					${card.comment_count}
 				</span>`;
-			
+
 
 			const $assignees_group = get_assignees_group();
 

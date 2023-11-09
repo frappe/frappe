@@ -18,6 +18,29 @@ os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 
 
 class ConnectedApp(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.integrations.doctype.oauth_scope.oauth_scope import OAuthScope
+		from frappe.integrations.doctype.query_parameters.query_parameters import QueryParameters
+		from frappe.types import DF
+
+		authorization_uri: DF.SmallText | None
+		client_id: DF.Data | None
+		client_secret: DF.Password | None
+		introspection_uri: DF.Data | None
+		openid_configuration: DF.Data | None
+		provider_name: DF.Data
+		query_parameters: DF.Table[QueryParameters]
+		redirect_uri: DF.Data | None
+		revocation_uri: DF.Data | None
+		scopes: DF.Table[OAuthScope]
+		token_uri: DF.Data | None
+		userinfo_uri: DF.Data | None
+	# end: auto-generated types
 	"""Connect to a remote oAuth Server. Retrieve and store user's access token
 	in a Token Cache.
 	"""
@@ -25,7 +48,8 @@ class ConnectedApp(Document):
 	def validate(self):
 		base_url = frappe.utils.get_url()
 		callback_path = (
-			"/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/" + self.name
+			"/api/method/frappe.integrations.doctype.connected_app.connected_app.callback"
+			+ f"?app={self.name}"
 		)
 		self.redirect_uri = urljoin(base_url, callback_path)
 
@@ -125,7 +149,7 @@ class ConnectedApp(Document):
 
 
 @frappe.whitelist(methods=["GET"], allow_guest=True)
-def callback(code=None, state=None):
+def callback(code=None, state=None, app=None):
 	"""Handle client's code.
 
 	Called during the oauthorization flow by the remote oAuth2 server to
@@ -138,11 +162,7 @@ def callback(code=None, state=None):
 		frappe.local.response["location"] = "/login?" + urlencode({"redirect-to": frappe.request.url})
 		return
 
-	path = frappe.request.path[1:].split("/")
-	if len(path) != 4 or not path[3]:
-		frappe.throw(_("Invalid Parameters."))
-
-	connected_app = frappe.get_doc("Connected App", path[3])
+	connected_app = frappe.get_doc("Connected App", app)
 	token_cache = frappe.get_doc("Token Cache", connected_app.name + "-" + frappe.session.user)
 
 	if state != token_cache.state:

@@ -78,9 +78,12 @@ frappe.ui.form.Form = class FrappeForm {
 		// wrapper
 		this.wrapper = this.parent;
 		this.$wrapper = $(this.wrapper);
+
+		let is_single_column = this.doctype === "DocType" ? true : this.meta.hide_toolbar;
+
 		frappe.ui.make_app_page({
 			parent: this.wrapper,
-			single_column: this.meta.hide_toolbar,
+			single_column: is_single_column,
 		});
 		this.page = this.wrapper.page;
 		this.layout_main = this.page.main.get(0);
@@ -92,6 +95,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.toolbar = new frappe.ui.form.Toolbar({
 			frm: this,
 			page: this.page,
+		});
+
+		this.viewers = new frappe.ui.form.FormViewers({
+			frm: this,
+			parent: $('<div class="form-viewers d-flex"></div>').prependTo(this.page.page_actions),
 		});
 
 		// navigate records keyboard shortcuts
@@ -147,24 +155,18 @@ frappe.ui.form.Form = class FrappeForm {
 			condition: () => !this.is_new(),
 		});
 
-		// Undo and redo
-		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+z",
-			action: () => this.undo_manager.undo(),
-			page: this.page,
-			description: __("Undo last action"),
-		});
+		// Alternate for redo, main shortcut are present in toolbar.js
 		frappe.ui.keys.add_shortcut({
 			shortcut: "shift+ctrl+z",
 			action: () => this.undo_manager.redo(),
 			page: this.page,
 			description: __("Redo last action"),
+			condition: () => !this.is_form_builder(),
 		});
 		frappe.ui.keys.add_shortcut({
-			shortcut: "ctrl+y",
-			action: () => this.undo_manager.redo(),
-			page: this.page,
-			description: __("Redo last action"),
+			shortcut: "ctrl+p",
+			action: () => this.print_doc(),
+			description: __("Print document"),
 		});
 
 		let grid_shortcut_keys = [
@@ -449,6 +451,7 @@ frappe.ui.form.Form = class FrappeForm {
 				.toggleClass("cancelled-form", this.doc.docstatus === 2);
 
 			this.show_conflict_message();
+			this.show_submission_queue_banner();
 
 			if (frappe.boot.read_only) {
 				this.disable_form();
@@ -636,10 +639,18 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	focus_on_first_input() {
-		let first = this.form_wrapper.find(".form-layout :input:visible:first");
-		if (!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
-			first.focus();
+		const layout_wrapper = this.layout.wrapper;
+
+		// dont do anything if the current active element is inside the form
+		// user must have clicked on some element before this function trigerred
+		if (!layout_wrapper || layout_wrapper.has(":focus").length) {
+			return;
 		}
+
+		layout_wrapper
+			.find(":input:visible:first")
+			.not("[data-fieldtype^='Date']")
+			.trigger("focus");
 	}
 
 	run_after_load_hook() {
@@ -709,6 +720,7 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 			this.toolbar.refresh();
 		}
+		this.viewers.refresh();
 
 		this.dashboard.refresh();
 		frappe.breadcrumbs.update();
@@ -741,7 +753,7 @@ frappe.ui.form.Form = class FrappeForm {
 				me.show_success_action();
 			})
 			.catch((e) => {
-				console.error(e); // eslint-disable-line
+				console.error(e);
 			});
 	}
 
@@ -1355,6 +1367,13 @@ frappe.ui.form.Form = class FrappeForm {
 		return this.doc.__islocal;
 	}
 
+	is_form_builder() {
+		return (
+			in_list(["DocType", "Customize Form"], this.doctype) &&
+			this.get_active_tab().label == "Form"
+		);
+	}
+
 	get_perm(permlevel, access_type) {
 		return this.perm[permlevel] ? this.perm[permlevel][access_type] : null;
 	}
@@ -1524,7 +1543,7 @@ frappe.ui.form.Form = class FrappeForm {
 				if (this.fields_dict[fieldname].grid.grid_rows_by_docname[table_row_name]) {
 					this.fields_dict[fieldname].grid.grid_rows_by_docname[
 						table_row_name
-					].refresh_field(fieldname);
+					].refresh_field(table_field);
 				}
 			} else {
 				this.refresh_field(fieldname);
@@ -1916,7 +1935,7 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 
 		// uncollapse section
-		if (field.section.is_collapsed()) {
+		if (field.section?.is_collapsed()) {
 			field.section.collapse(false);
 		}
 
@@ -1925,7 +1944,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// focus if text field
 		if (focus) {
-			$el.find("input, select, textarea").focus();
+			setTimeout(() => {
+				$el.find("input, select, textarea").focus();
+			}, 500);
 		}
 
 		// highlight control inside field
@@ -1942,7 +1963,7 @@ frappe.ui.form.Form = class FrappeForm {
 		let docname = this.docname;
 
 		if (this.doc && !this.is_new()) {
-			frappe.socketio.doc_subscribe(doctype, docname);
+			frappe.realtime.doc_subscribe(doctype, docname);
 		}
 		frappe.realtime.off("docinfo_update");
 		frappe.realtime.on("docinfo_update", ({ doc, key, action = "update" }) => {
@@ -2018,6 +2039,8 @@ frappe.ui.form.Form = class FrappeForm {
 			this.active_tab_map = {};
 		}
 		this.active_tab_map[this.docname] = tab;
+
+		this.script_manager.trigger("on_tab_change");
 	}
 	get_active_tab() {
 		return this.active_tab_map && this.active_tab_map[this.docname];
@@ -2045,22 +2068,70 @@ frappe.ui.form.Form = class FrappeForm {
 			.filter((user) => !["Administrator", frappe.session.user].includes(user))
 			.filter(Boolean);
 	}
+
+	show_submission_queue_banner() {
+		let wrapper = this.layout.wrapper.find(".submission-queue-banner");
+
+		if (
+			!(
+				this.meta.is_submittable &&
+				this.meta.queue_in_background &&
+				!this.doc.__islocal &&
+				this.doc.docstatus === 0
+			)
+		) {
+			wrapper.length && wrapper.remove();
+			return;
+		}
+
+		if (!wrapper.length) {
+			wrapper = $('<div class="submission-queue-banner form-message">');
+			this.layout.wrapper.prepend(wrapper);
+		}
+
+		frappe
+			.call({
+				method: "frappe.core.doctype.submission_queue.submission_queue.get_latest_submissions",
+				args: { doctype: this.doctype, docname: this.docname },
+			})
+			.then((r) => {
+				if (r.message?.latest_submission) {
+					// if we are here that means some submission(s) were queued and are in queued/failed state
+					let submission_label = __("Previous Submission");
+					let secondary = "";
+					let div_class = "col-md-12";
+
+					if (r.message.exc) {
+						secondary = `: <span>${r.message.exc}</span>`;
+					} else {
+						div_class = "col-md-6";
+						secondary = `
+						</div>
+						<div class="col-md-6">
+							<a href='/app/submission-queue?ref_doctype=${encodeURIComponent(
+								this.doctype
+							)}&ref_docname=${encodeURIComponent(this.docname)}'>${__(
+							"All Submissions"
+						)}</a>
+						`;
+					}
+
+					let html = `
+					<div class="row">
+						<div class="${div_class}">
+							<a href='/app/submission-queue/${r.message.latest_submission}'>${submission_label} (${r.message.status})</a>${secondary}
+						</div>
+					</div>
+					`;
+
+					wrapper.removeClass("red").removeClass("yellow");
+					wrapper.addClass(r.message.status == "Failed" ? "red" : "yellow");
+					wrapper.html(html);
+				} else {
+					wrapper.remove();
+				}
+			});
+	}
 };
 
 frappe.validated = 0;
-// Proxy for frappe.validated
-Object.defineProperty(window, "validated", {
-	get: function () {
-		console.warn(
-			"Please use `frappe.validated` instead of `validated`. It will be deprecated soon."
-		); // eslint-disable-line
-		return frappe.validated;
-	},
-	set: function (value) {
-		console.warn(
-			"Please use `frappe.validated` instead of `validated`. It will be deprecated soon."
-		); // eslint-disable-line
-		frappe.validated = value;
-		return frappe.validated;
-	},
-});

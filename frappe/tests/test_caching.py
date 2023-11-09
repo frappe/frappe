@@ -48,8 +48,7 @@ class TestCachingUtils(FrappeTestCase):
 
 		# ensure that external service was called only once
 		# thereby return value of request_specific_api is cached
-		for _ in range(5):
-			retval.append(request_specific_api(120, 23))
+		retval.extend(request_specific_api(120, 23) for _ in range(5))
 		external_service.assert_called_once()
 		self.assertTrue(same_output_received())
 
@@ -107,7 +106,7 @@ class TestRedisCache(FrappeAPITestCase):
 		self.assertEqual(calculate_area(10), 314)
 		self.assertEqual(function_call_count, 1)
 
-		time.sleep(CACHE_TTL)
+		time.sleep(CACHE_TTL * 1.5)
 		self.assertEqual(calculate_area(10), 314)
 		self.assertEqual(function_call_count, 2)
 
@@ -163,3 +162,85 @@ class TestRedisCache(FrappeAPITestCase):
 		calculate_area(radius=10)
 		# kwargs should hit cache too
 		self.assertEqual(function_call_count, 4)
+
+	def test_global_clear_cache(self):
+		function_call_count = 0
+
+		@redis_cache()
+		def calculate_area(radius: float) -> float:
+			nonlocal function_call_count
+			function_call_count += 1
+			return 3.14 * radius**2
+
+		calculate_area(10)
+		calculate_area(10)
+		calculate_area(10)
+		self.assertEqual(function_call_count, 1)
+
+		# This is supposed to clear cache for the active site
+		frappe.clear_cache()
+		calculate_area(10)
+		self.assertEqual(function_call_count, 2)
+
+
+class TestDocumentCache(FrappeAPITestCase):
+	TEST_DOCTYPE = "User"
+	TEST_DOCNAME = "Administrator"
+	TEST_FIELD = "middle_name"
+
+	def setUp(self) -> None:
+		self.test_value = frappe.generate_hash()
+
+	def test_caching(self):
+		doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+		with self.assertQueryCount(0):
+			doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+		doc.db_set(self.TEST_FIELD, self.test_value)
+		new_doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+		self.assertIsNot(doc, new_doc)  # Shouldn't be same object from frappe.local
+		self.assertEqual(new_doc.get(self.TEST_FIELD), self.test_value)  # Cache invalidated and fetched
+		frappe.db.rollback()
+
+		doc_after_rollback = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		self.assertIsNot(new_doc, doc_after_rollback)
+		# Cache invalidated after rollback
+		self.assertNotEqual(doc_after_rollback.get(self.TEST_FIELD), self.test_value)
+
+		with self.assertQueryCount(0):
+			frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+	def test_cache_invalidation_set_value(self):
+		doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+		frappe.db.set_value(
+			self.TEST_DOCTYPE,
+			{"name": ("like", "%Admin%")},
+			self.TEST_FIELD,
+			self.test_value,
+		)
+
+		new_doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		self.assertIsNot(doc, new_doc)
+		self.assertEqual(new_doc.get(self.TEST_FIELD), self.test_value)
+
+		with self.assertQueryCount(0):
+			frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+
+
+class TestRedisWrapper(FrappeAPITestCase):
+	def test_delete_keys(self):
+
+		prefix = "test_del_"
+
+		for i in range(5):
+			frappe.cache.set_value(f"{prefix}{i}", 1)
+
+		self.assertEqual(len(frappe.cache.get_keys(prefix)), 5)
+		frappe.cache.delete_keys(prefix)
+		self.assertEqual(len(frappe.cache.get_keys(prefix)), 0)
+
+	def test_backward_compat_cache(self):
+		self.assertEqual(frappe.cache, frappe.cache())

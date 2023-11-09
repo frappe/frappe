@@ -3,9 +3,10 @@
 """build query for doclistview and return results"""
 
 import copy
+import datetime
 import json
 import re
-from datetime import datetime
+from collections import Counter
 
 import frappe
 import frappe.defaults
@@ -20,7 +21,6 @@ from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
 from frappe.utils import (
-	add_to_date,
 	cint,
 	cstr,
 	flt,
@@ -29,7 +29,7 @@ from frappe.utils import (
 	get_timespan_date_range,
 	make_filter_tuple,
 )
-from frappe.utils.data import sbool
+from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
 
 LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
 LOCATE_CAST_PATTERN = re.compile(
@@ -61,6 +61,8 @@ class DatabaseQuery:
 		self.doctype = doctype
 		self.tables = []
 		self.link_tables = []
+		self.linked_table_aliases = {}
+		self.linked_table_counter = Counter()
 		self.conditions = []
 		self.or_conditions = []
 		self.fields = None
@@ -69,6 +71,8 @@ class DatabaseQuery:
 		self.flags = frappe._dict()
 		self.reference_doctype = None
 		self.permission_map = {}
+		self.shared = []
+		self._fetch_shared_documents = False
 
 	@property
 	def doctype_meta(self):
@@ -78,7 +82,7 @@ class DatabaseQuery:
 
 	@property
 	def query_tables(self):
-		return self.tables + [d.table_name for d in self.link_tables]
+		return self.tables + [d.table_alias for d in self.link_tables]
 
 	def execute(
 		self,
@@ -267,7 +271,7 @@ class DatabaseQuery:
 
 		# left join link tables
 		for link in self.link_tables:
-			args.tables += f" {self.join} `tab{link.doctype}` on (`tab{link.doctype}`.`name` = {self.tables[0]}.`{link.fieldname}`)"
+			args.tables += f" {self.join} {link.table_name} {link.table_alias} on ({link.table_alias}.`name` = {self.tables[0]}.`{link.fieldname}`)"
 
 		if self.grouped_or_conditions:
 			self.conditions.append(f"({' or '.join(self.grouped_or_conditions)})")
@@ -350,14 +354,16 @@ class DatabaseQuery:
 				if " as " in field:
 					field, alias = field.split(" as ", 1)
 				linked_fieldname, fieldname = field.split(".", 1)
-				linked_field = self.doctype_meta.get_field(linked_fieldname)
+				linked_field = frappe.get_meta(self.doctype).get_field(linked_fieldname)
 				# this is not a link field
 				if not linked_field:
 					continue
 				linked_doctype = linked_field.options
 				if linked_field.fieldtype == "Link":
-					self.append_link_table(linked_doctype, linked_fieldname)
-				field = f"`tab{linked_doctype}`.`{fieldname}`"
+					linked_table = self.append_link_table(linked_doctype, linked_fieldname)
+					field = f"{linked_table.table_alias}.`{fieldname}`"
+				else:
+					field = f"`tab{linked_doctype}`.`{fieldname}`"
 				if alias:
 					field = f"{field} as {alias}"
 				self.fields[self.fields.index(original_field)] = field
@@ -369,9 +375,7 @@ class DatabaseQuery:
 
 			if isinstance(filters, dict):
 				fdict = filters
-				filters = []
-				for key, value in fdict.items():
-					filters.append(make_filter_tuple(self.doctype, key, value))
+				filters = [make_filter_tuple(self.doctype, key, value) for key, value in fdict.items()]
 			setattr(self, filter_name, filters)
 
 	def sanitize_fields(self):
@@ -467,11 +471,19 @@ class DatabaseQuery:
 
 				table_name = field.split(".", 1)[0]
 
+				# Check if table_name is a linked_table alias
+				for linked_table in self.link_tables:
+					if linked_table.table_alias == table_name:
+						table_name = linked_table.table_name
+						break
+
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
 				if not table_name[0] == "`":
 					table_name = f"`{table_name}`"
-				if table_name not in self.query_tables:
+				if (
+					table_name not in self.query_tables and table_name not in self.linked_table_aliases.values()
+				):
 					self.append_table(table_name)
 
 	def append_table(self, table_name):
@@ -480,14 +492,21 @@ class DatabaseQuery:
 		self.check_read_permission(doctype)
 
 	def append_link_table(self, doctype, fieldname):
-		for d in self.link_tables:
-			if d.doctype == doctype and d.fieldname == fieldname:
-				return
+		for linked_table in self.link_tables:
+			if linked_table.doctype == doctype and linked_table.fieldname == fieldname:
+				return linked_table
 
 		self.check_read_permission(doctype)
-		self.link_tables.append(
-			frappe._dict(doctype=doctype, fieldname=fieldname, table_name=f"`tab{doctype}`")
+		self.linked_table_counter.update((doctype,))
+		linked_table = frappe._dict(
+			doctype=doctype,
+			fieldname=fieldname,
+			table_name=f"`tab{doctype}`",
+			table_alias=f"`tab{doctype}_{self.linked_table_counter[doctype]}`",
 		)
+		self.linked_table_aliases[linked_table.table_alias.replace("`", "")] = linked_table.table_name
+		self.link_tables.append(linked_table)
+		return linked_table
 
 	def check_read_permission(self, doctype: str, parent_doctype: str | None = None):
 		if self.flags.ignore_permissions:
@@ -542,10 +561,7 @@ class DatabaseQuery:
 		# remove from fields
 		to_remove = []
 		for fld in self.fields:
-			for f in optional_fields:
-				if f in fld and not f in self.columns:
-					to_remove.append(fld)
-
+			to_remove.extend(fld for f in optional_fields if f in fld and f not in self.columns)
 		for fld in to_remove:
 			del self.fields[self.fields.index(fld)]
 
@@ -555,10 +571,9 @@ class DatabaseQuery:
 			if isinstance(each, str):
 				each = [each]
 
-			for element in each:
-				if element in optional_fields and element not in self.columns:
-					to_remove.append(each)
-
+			to_remove.extend(
+				each for element in each if element in optional_fields and element not in self.columns
+			)
 		for each in to_remove:
 			if isinstance(self.filters, dict):
 				del self.filters[each]
@@ -610,9 +625,7 @@ class DatabaseQuery:
 		        - Query: fields=["*"]
 		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
 		"""
-		if self.flags.ignore_permissions or not frappe.get_system_settings(
-			"apply_perm_level_on_api_calls"
-		):
+		if self.flags.ignore_permissions:
 			return
 
 		asterisk_fields = []
@@ -653,7 +666,12 @@ class DatabaseQuery:
 			# handle child / joined table fields
 			elif "." in field:
 				table, column = column.split(".", 1)
-				ch_doctype = table.replace("`", "").replace("tab", "", 1)
+				ch_doctype = table
+
+				if ch_doctype in self.linked_table_aliases:
+					ch_doctype = self.linked_table_aliases[ch_doctype]
+
+				ch_doctype = ch_doctype.replace("`", "").replace("tab", "", 1)
 
 				if wrap_grave_quotes(table) in self.query_tables:
 					permitted_child_table_fields = get_permitted_fields(
@@ -732,18 +750,30 @@ class DatabaseQuery:
 				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
 
 			# Get descendants elements of a DocType with a tree structure
-			if f.operator.lower() in ("descendants of", "not descendants of"):
-				result = frappe.get_all(
-					ref_doctype, filters={"lft": [">", lft], "rgt": ["<", rgt]}, order_by="`lft` ASC"
+			if f.operator.lower() in (
+				"descendants of",
+				"not descendants of",
+				"descendants of (inclusive)",
+			):
+				nodes = frappe.get_all(
+					ref_doctype,
+					filters={"lft": [">", lft], "rgt": ["<", rgt]},
+					order_by="`lft` ASC",
+					pluck="name",
 				)
+				if f.operator.lower() == "descendants of (inclusive)":
+					nodes += [f.value]
 			else:
 				# Get ancestor elements of a DocType with a tree structure
-				result = frappe.get_all(
-					ref_doctype, filters={"lft": ["<", lft], "rgt": [">", rgt]}, order_by="`lft` DESC"
+				nodes = frappe.get_all(
+					ref_doctype,
+					filters={"lft": ["<", lft], "rgt": [">", rgt]},
+					order_by="`lft` DESC",
+					pluck="name",
 				)
 
 			fallback = "''"
-			value = [frappe.db.escape((cstr(v.name) or "").strip(), percent=False) for v in result]
+			value = [frappe.db.escape((cstr(v)).strip(), percent=False) for v in nodes]
 			if len(value):
 				value = f"({', '.join(value)})"
 			else:
@@ -822,7 +852,7 @@ class DatabaseQuery:
 				value = frappe.db.format_date(f.value)
 				fallback = "'0001-01-01'"
 
-			elif (df and df.fieldtype == "Datetime") or isinstance(f.value, datetime):
+			elif (df and df.fieldtype == "Datetime") or isinstance(f.value, datetime.datetime):
 				value = frappe.db.format_datetime(f.value)
 				fallback = f"'{FallBackDateTimeStr}'"
 
@@ -890,8 +920,6 @@ class DatabaseQuery:
 			self.extract_tables()
 
 		role_permissions = frappe.permissions.get_role_permissions(self.doctype_meta, user=self.user)
-		self.shared = frappe.share.get_shared(self.doctype, self.user)
-
 		if (
 			not self.doctype_meta.istable
 			and not (role_permissions.get("select") or role_permissions.get("read"))
@@ -899,6 +927,7 @@ class DatabaseQuery:
 			and not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)
 		):
 			only_if_shared = True
+			self.shared = frappe.share.get_shared(self.doctype, self.user)
 			if not self.shared:
 				frappe.throw(_("No permission to read {0}").format(_(self.doctype)), frappe.PermissionError)
 			else:
@@ -907,6 +936,7 @@ class DatabaseQuery:
 		else:
 			# skip user perm check if owner constraint is required
 			if requires_owner_constraint(role_permissions):
+				self._fetch_shared_documents = True
 				self.match_conditions.append(
 					f"`tab{self.doctype}`.`owner` = {frappe.db.escape(self.user, percent=False)}"
 				)
@@ -916,6 +946,14 @@ class DatabaseQuery:
 				# get user permissions
 				user_permissions = frappe.permissions.get_user_permissions(self.user)
 				self.add_user_permissions(user_permissions)
+
+			# Only when full read access is not present fetch shared docuemnts.
+			# This is done to avoid extra query.
+			# Only following cases can require explicit addition of shared documents.
+			#    1. DocType has if_owner constraint and hence can't see shared documents
+			#    2. DocType has user permissions and hence can't see shared documents
+			if self._fetch_shared_documents:
+				self.shared = frappe.share.get_shared(self.doctype, self.user)
 
 		if as_condition:
 			conditions = ""
@@ -995,9 +1033,11 @@ class DatabaseQuery:
 					match_filters[df.get("options")] = docs
 
 		if match_conditions:
+			self._fetch_shared_documents = True
 			self.match_conditions.append(" and ".join(match_conditions))
 
 		if match_filters:
+			self._fetch_shared_documents = True
 			self.match_filters.append(match_filters)
 
 	def get_permission_query_conditions(self):
@@ -1019,7 +1059,7 @@ class DatabaseQuery:
 		return " and ".join(conditions) if conditions else ""
 
 	def set_order_by(self, args):
-		if self.order_by and self.order_by != DefaultOrderBy:
+		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
 			args.order_by = self.order_by
 		else:
 			args.order_by = ""
@@ -1194,20 +1234,6 @@ def get_order_by(doctype, meta):
 	return order_by
 
 
-def is_parent_only_filter(doctype, filters):
-	# check if filters contains only parent doctype
-	only_parent_doctype = True
-
-	if isinstance(filters, list):
-		for filter in filters:
-			if doctype not in filter:
-				only_parent_doctype = False
-			if "Between" in filter:
-				filter[3] = get_between_date_filter(flt[3])
-
-	return only_parent_doctype
-
-
 def has_any_user_permission_for_doctype(doctype, user, applicable_for):
 	user_permissions = frappe.permissions.get_user_permissions(user=user)
 	doctype_user_permissions = user_permissions.get(doctype, [])
@@ -1220,10 +1246,18 @@ def has_any_user_permission_for_doctype(doctype, user, applicable_for):
 
 
 def get_between_date_filter(value, df=None):
+	"""Handle datetime filter bounds for between filter values.
+
+	If date is passed but fieldtype is datetime then
+	        from part is converted to start of day and to part is converted to end of day.
+	If any of filter part (to or from) are missing then:
+	        start or end of current day is assumed as fallback.
+	If fieldtypes match with filter values then:
+	        no change is applied.
 	"""
-	return the formattted date as per the given example
-	[u'2017-11-01', u'2017-11-03'] => '2017-11-01 00:00:00.000000' AND '2017-11-04 00:00:00.000000'
-	"""
+
+	fieldtype = df and df.fieldtype or "Datetime"
+
 	from_date = frappe.utils.nowdate()
 	to_date = frappe.utils.nowdate()
 
@@ -1233,18 +1267,35 @@ def get_between_date_filter(value, df=None):
 		if len(value) >= 2:
 			to_date = value[1]
 
-	if not df or (df and df.fieldtype == "Datetime"):
-		to_date = add_to_date(to_date, days=1)
+	# if filter value is date but fieldtype is datetime:
+	if fieldtype == "Datetime":
+		from_date = _convert_type_for_between_filters(from_date, set_time=datetime.time())
+		to_date = _convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
 
-	if df and df.fieldtype == "Datetime":
-		data = "'{}' AND '{}'".format(
-			frappe.db.format_datetime(from_date),
-			frappe.db.format_datetime(to_date),
-		)
+	# If filter value is already datetime, do nothing.
+	if fieldtype == "Datetime":
+		cond = f"'{frappe.db.format_datetime(from_date)}' AND '{frappe.db.format_datetime(to_date)}'"
 	else:
-		data = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
+		cond = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
 
-	return data
+	return cond
+
+
+def _convert_type_for_between_filters(
+	value: DateTimeLikeObject, set_time: datetime.time
+) -> datetime.datetime:
+	if isinstance(value, str):
+		if " " in value.strip():
+			value = get_datetime(value)
+		else:
+			value = getdate(value)
+
+	if isinstance(value, datetime.datetime):
+		return value
+	elif isinstance(value, datetime.date):
+		return datetime.datetime.combine(value, set_time)
+
+	return value
 
 
 def get_additional_filter_field(additional_filters_config, f, value):

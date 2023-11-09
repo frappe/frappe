@@ -11,6 +11,20 @@ from frappe.model.workflow import get_workflow_name
 
 
 class DeletedDocument(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		data: DF.Code | None
+		deleted_doctype: DF.Data | None
+		deleted_name: DF.Data | None
+		new_name: DF.ReadOnly | None
+		restored: DF.Check
+	# end: auto-generated types
 	pass
 
 
@@ -59,11 +73,11 @@ def bulk_restore(docnames):
 			restored.append(d)
 
 		except frappe.DocumentAlreadyRestored:
-			frappe.message_log.pop()
+			frappe.clear_last_message()
 			invalid.append(d)
 
 		except Exception:
-			frappe.message_log.pop()
+			frappe.clear_last_message()
 			failed.append(d)
 			frappe.db.rollback()
 

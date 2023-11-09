@@ -17,7 +17,6 @@ query. This test can be written like this.
 
 """
 import time
-import unittest
 from unittest.mock import patch
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
@@ -30,6 +29,8 @@ from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint
 from frappe.website.path_resolver import PathResolver
+
+TEST_USER = "test@example.com"
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -47,7 +48,9 @@ class TestPerformance(FrappeTestCase):
 		self.reset_request_specific_caches()
 
 	def test_meta_caching(self):
+		frappe.clear_cache()
 		frappe.get_meta("User")
+		frappe.clear_cache(doctype="ToDo")
 
 		with self.assertQueryCount(0):
 			frappe.get_meta("User")
@@ -88,8 +91,8 @@ class TestPerformance(FrappeTestCase):
 		# check both dict and list style filters
 		filters = [{"enabled": 1}, [["enabled", "=", 1]]]
 
-		# Warm up code, becase get_list uses meta.
-		frappe.db.get_values("User", filters=filters[1], limit=1)
+		# Warm up code
+		frappe.db.get_values("User", filters=filters[0], limit=1)
 		for filter in filters:
 			with self.assertRowsRead(1):
 				self.assertEqual(1, len(frappe.db.get_values("User", filters=filter, limit=1)))
@@ -124,7 +127,7 @@ class TestPerformance(FrappeTestCase):
 		"""Ideally should be ran against gunicorn worker, though I have not seen any difference
 		when using werkzeug's run_simple for synchronous requests."""
 
-		EXPECTED_RPS = 55  # measured on GHA
+		EXPECTED_RPS = 50  # measured on GHA
 		FAILURE_THREASHOLD = 0.1
 
 		req_count = 1000
@@ -144,7 +147,6 @@ class TestPerformance(FrappeTestCase):
 			f"Possible performance regression in basic /api/Resource list  requests",
 		)
 
-	@unittest.skip("Not implemented")
 	def test_homepage_resolver(self):
 		paths = ["/", "/app"]
 		for path in paths:
@@ -156,6 +158,19 @@ class TestPerformance(FrappeTestCase):
 		from frappe.utils import get_build_version
 
 		self.assertEqual(get_build_version(), get_build_version())
+
+	def test_get_list_single_query(self):
+		"""get_list should only perform single query."""
+
+		user = frappe.get_doc("User", TEST_USER)
+
+		frappe.set_user(TEST_USER)
+		# Give full read access, no share/user perm check should be done.
+		user.add_roles("System Manager")
+
+		frappe.get_list("User")
+		with self.assertQueryCount(1):
+			frappe.get_list("User")
 
 	def test_no_ifnull_checks(self):
 		query = frappe.get_all("DocType", {"autoname": ("is", "set")}, run=0).lower()

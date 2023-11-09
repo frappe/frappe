@@ -10,6 +10,25 @@ from frappe.utils import cint, now_datetime
 
 
 class TransactionLog(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		amended_from: DF.Link | None
+		chaining_hash: DF.SmallText | None
+		checksum_version: DF.Data | None
+		data: DF.LongText | None
+		document_name: DF.Data | None
+		previous_hash: DF.SmallText | None
+		reference_doctype: DF.Data | None
+		row_index: DF.Data | None
+		timestamp: DF.Datetime | None
+		transaction_hash: DF.SmallText | None
+	# end: auto-generated types
 	def before_insert(self):
 		index = get_current_index()
 		self.row_index = index

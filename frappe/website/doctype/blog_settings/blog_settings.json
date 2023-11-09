@@ -7,11 +7,12 @@
  "field_order": [
   "blog_title",
   "blog_introduction",
+  "preview_image",
   "column_break",
   "enable_social_sharing",
-  "show_cta_in_blog",
   "allow_guest_to_comment",
   "browse_by_category",
+  "show_cta_in_blog",
   "cta_section",
   "title",
   "subtitle",
@@ -49,13 +50,13 @@
    "default": "0",
    "fieldname": "show_cta_in_blog",
    "fieldtype": "Check",
-   "label": "Show CTA in Blog"
+   "label": "Show \"Call to Action\" in Blog"
   },
   {
    "depends_on": "eval:doc.show_cta_in_blog",
    "fieldname": "cta_section",
    "fieldtype": "Section Break",
-   "label": "CTA"
+   "label": "Call to Action"
   },
   {
    "fieldname": "title",
@@ -87,7 +88,8 @@
   },
   {
    "fieldname": "section_break_12",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Rate Limits"
   },
   {
    "default": "5",
@@ -118,13 +120,18 @@
    "fieldname": "like_limit",
    "fieldtype": "Int",
    "label": "Like limit"
+  },
+  {
+   "fieldname": "preview_image",
+   "fieldtype": "Attach Image",
+   "label": "Preview Image"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-07-12 17:45:49.108398",
+ "modified": "2022-10-18 15:01:36.202010",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",

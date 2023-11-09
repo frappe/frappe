@@ -1,7 +1,6 @@
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable, get_definition
-from frappe.model import log_types
 from frappe.utils import cint, flt
 
 
@@ -30,11 +29,8 @@ class PostgresTable(DBTable):
 			)
 
 		# creating sequence(s)
-		if (
-			not self.meta.issingle and self.meta.autoname == "autoincrement"
-		) or self.doctype in log_types:
-
-			frappe.db.create_sequence(self.doctype, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
+		if not self.meta.issingle and self.meta.autoname == "autoincrement":
+			frappe.db.create_sequence(self.doctype, check_not_exists=True)
 			name_column = "name bigint primary key"
 
 		# TODO: set docstatus length
@@ -76,10 +72,7 @@ class PostgresTable(DBTable):
 		for col in self.columns.values():
 			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower()))
 
-		query = []
-
-		for col in self.add_column:
-			query.append(f"ADD COLUMN `{col.fieldname}` {col.get_definition()}")
+		query = [f"ADD COLUMN `{col.fieldname}` {col.get_definition()}" for col in self.add_column]
 
 		for col in self.change_type:
 			using_clause = ""
@@ -88,7 +81,7 @@ class PostgresTable(DBTable):
 				# involving the old values of the row
 				# read more https://www.postgresql.org/docs/9.1/sql-altertable.html
 				using_clause = f"USING {col.fieldname}::timestamp without time zone"
-			elif col.fieldtype in ("Check"):
+			elif col.fieldtype == "Check":
 				using_clause = f"USING {col.fieldname}::smallint"
 
 			query.append(

@@ -161,7 +161,7 @@ function parse_option(v) {
 		is_disabled = Boolean(v.disabled);
 		is_selected = Boolean(v.selected);
 
-		if (is_value_null && is_label_null) {
+		if (is_value_null && is_label_null && typeof v !== "object") {
 			value = v;
 			label = __(v);
 		} else {

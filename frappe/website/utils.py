@@ -12,7 +12,14 @@ from werkzeug.wrappers import Response
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import cint, get_system_timezone, md_to_html
+from frappe.utils import (
+	cint,
+	cstr,
+	get_assets_json,
+	get_build_version,
+	get_system_timezone,
+	md_to_html,
+)
 
 FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
 H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
@@ -23,15 +30,14 @@ CLEANUP_PATTERN_3 = re.compile(r"(-)\1+")
 
 
 def delete_page_cache(path):
-	cache = frappe.cache()
-	cache.delete_value("full_index")
+	frappe.cache.delete_value("full_index")
 	groups = ("website_page", "page_context")
 	if path:
 		for name in groups:
-			cache.hdel(name, path)
+			frappe.cache.hdel(name, path)
 	else:
 		for name in groups:
-			cache.delete_key(name)
+			frappe.cache.delete_key(name)
 
 
 def find_first_image(html):
@@ -127,7 +133,7 @@ def get_home_page():
 		# dont return cached homepage in development
 		return _get_home_page()
 
-	return frappe.cache().hget("home_page", frappe.session.user, _get_home_page)
+	return frappe.cache.hget("home_page", frappe.session.user, _get_home_page)
 
 
 def get_home_page_via_hooks():
@@ -160,6 +166,7 @@ def get_home_page_via_hooks():
 
 def get_boot_data():
 	return {
+		"lang": "en",
 		"sysdefaults": {
 			"float_precision": cint(frappe.get_system_settings("float_precision")) or 3,
 			"date_format": frappe.get_system_settings("date_format") or "yyyy-mm-dd",
@@ -169,11 +176,13 @@ def get_boot_data():
 			"system": get_system_timezone(),
 			"user": frappe.db.get_value("User", frappe.session.user, "time_zone") or get_system_timezone(),
 		},
+		"assets_json": get_assets_json(),
+		"sitename": frappe.local.site,
 	}
 
 
 def is_signup_disabled():
-	return frappe.db.get_single_value("Website Settings", "disable_signup", True)
+	return frappe.get_website_settings("disable_signup")
 
 
 def cleanup_page_name(title: str) -> str:
@@ -188,11 +197,6 @@ def cleanup_page_name(title: str) -> str:
 	# replace repeating hyphens
 	name = CLEANUP_PATTERN_3.sub(r"\1", name)
 	return name[:140]
-
-
-def get_shade(color, percent=None):
-	frappe.msgprint(_("get_shade method has been deprecated."))
-	return color
 
 
 def abs_url(path):
@@ -236,14 +240,11 @@ def get_next_link(route, url_prefix=None, app=None):
 
 	if next_item:
 		if next_item.route and next_item.title:
-			html = (
+			return (
 				'<p class="btn-next-wrapper">'
 				+ frappe._("Next")
 				+ ': <a class="btn-next" href="{url_prefix}{route}">{title}</a></p>'
 			).format(**next_item)
-
-			return html
-
 	return ""
 
 
@@ -294,7 +295,7 @@ def get_full_index(route=None, app=None):
 
 			return children_map
 
-		children_map = frappe.cache().get_value("website_full_index", _build)
+		children_map = frappe.cache.get_value("website_full_index", _build)
 
 		frappe.local.flags.children_map = children_map
 
@@ -358,6 +359,8 @@ def get_html_content_based_on_type(doc, fieldname, content_type):
 def clear_cache(path=None):
 	"""Clear website caches
 	:param path: (optional) for the given path"""
+	from frappe.website.router import clear_routing_cache
+
 	for key in (
 		"website_generator_routes",
 		"website_pages",
@@ -366,11 +369,13 @@ def clear_cache(path=None):
 		"languages_with_name",
 		"languages",
 	):
-		frappe.cache().delete_value(key)
+		frappe.cache.delete_value(key)
 
-	frappe.cache().delete_value("website_404")
+	clear_routing_cache()
+
+	frappe.cache.delete_value("website_404")
 	if path:
-		frappe.cache().hdel("website_redirects", path)
+		frappe.cache.hdel("website_redirects", path)
 		delete_page_cache(path)
 	else:
 		clear_sitemap()
@@ -384,7 +389,7 @@ def clear_cache(path=None):
 			"page_context",
 			"website_page",
 		):
-			frappe.cache().delete_value(key)
+			frappe.cache.delete_value(key)
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)
@@ -440,7 +445,7 @@ def get_sidebar_items(parent_sidebar, basepath=None):
 
 
 def get_portal_sidebar_items():
-	sidebar_items = frappe.cache().hget("portal_menu_items", frappe.session.user)
+	sidebar_items = frappe.cache.hget("portal_menu_items", frappe.session.user)
 	if sidebar_items is None:
 		sidebar_items = []
 		roles = frappe.get_roles()
@@ -463,7 +468,7 @@ def get_portal_sidebar_items():
 				i["enabled"] = 1
 			add_items(sidebar_items, items_via_hooks)
 
-		frappe.cache().hset("portal_menu_items", frappe.session.user, sidebar_items)
+		frappe.cache.hset("portal_menu_items", frappe.session.user, sidebar_items)
 
 	return sidebar_items
 
@@ -508,7 +513,7 @@ def cache_html(func):
 	def cache_html_decorator(*args, **kwargs):
 		if can_cache():
 			html = None
-			page_cache = frappe.cache().hget("website_page", args[0].path)
+			page_cache = frappe.cache.hget("website_page", args[0].path)
 			if page_cache and frappe.local.lang in page_cache:
 				html = page_cache[frappe.local.lang]
 			if html:
@@ -517,9 +522,9 @@ def cache_html(func):
 		html = func(*args, **kwargs)
 		context = args[0].context
 		if can_cache(context.no_cache):
-			page_cache = frappe.cache().hget("website_page", args[0].path) or {}
+			page_cache = frappe.cache.hget("website_page", args[0].path) or {}
 			page_cache[frappe.local.lang] = html
-			frappe.cache().hset("website_page", args[0].path, page_cache)
+			frappe.cache.hset("website_page", args[0].path, page_cache)
 
 		return html
 
@@ -531,14 +536,14 @@ def build_response(path, data, http_status_code, headers: dict | None = None):
 	response = Response()
 	response.data = set_content_type(response, data, path)
 	response.status_code = http_status_code
-	response.headers["X-Page-Name"] = path.encode("ascii", errors="xmlcharrefreplace")
+	response.headers["X-Page-Name"] = cstr(path.encode("ascii", errors="xmlcharrefreplace"))
 	response.headers["X-From-Cache"] = frappe.local.response.from_cache or False
 
 	add_preload_for_bundled_assets(response)
 
 	if headers:
 		for key, val in headers.items():
-			response.headers[key] = val.encode("ascii", errors="xmlcharrefreplace")
+			response.headers[key] = cstr(val.encode("ascii", errors="xmlcharrefreplace"))
 
 	return response
 
@@ -546,12 +551,10 @@ def build_response(path, data, http_status_code, headers: dict | None = None):
 def set_content_type(response, data, path):
 	if isinstance(data, dict):
 		response.mimetype = "application/json"
-		response.charset = "utf-8"
 		data = json.dumps(data)
 		return data
 
 	response.mimetype = "text/html"
-	response.charset = "utf-8"
 
 	# ignore paths ending with .com to avoid unnecessary download
 	# https://bugs.python.org/issue22347
@@ -566,17 +569,21 @@ def set_content_type(response, data, path):
 
 
 def add_preload_for_bundled_assets(response):
-
-	links = []
-
-	for css in frappe.local.preload_assets["style"]:
-		links.append(f"<{css}>; rel=preload; as=style")
-
-	for js in frappe.local.preload_assets["script"]:
-		links.append(f"<{js}>; rel=preload; as=script")
+	links = [f"<{css}>; rel=preload; as=style" for css in frappe.local.preload_assets["style"]]
+	links.extend(f"<{js}>; rel=preload; as=script" for js in frappe.local.preload_assets["script"])
+	links.extend(_preload_svg_headers())
 
 	if links:
 		response.headers["Link"] = ",".join(links)
+
+
+def _preload_svg_headers():
+	include_icons = frappe.get_hooks().get("app_include_icons", [])
+
+	version = get_build_version()
+	return [
+		f"</assets/{svg}?v={version}>; rel=preload; as=fetch; crossorigin" for svg in include_icons
+	]
 
 
 @lru_cache

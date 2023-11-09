@@ -550,8 +550,9 @@
   {
    "depends_on": "eval:!in_list([\"Tab Break\", \"Section Break\", \"Column Break\", \"Button\", \"HTML\"], doc.fieldtype)",
    "fieldname": "documentation_url",
-   "fieldtype": "Small Text",
-   "label": "Documentation URL"
+   "fieldtype": "Data",
+   "label": "Documentation URL",
+   "options": "URL"
   },
   {
    "default": "0",

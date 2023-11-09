@@ -19,7 +19,7 @@ def get_mariadb_version(version_string: str = ""):
 	# MariaDB classifies their versions as Major (1st and 2nd number), and Minor (3rd number)
 	# Example: Version 10.3.13 is Major Version = 10.3, Minor Version = 13
 	version_string = version_string or get_mariadb_variables().get("version")
-	version = version_string.split("-")[0]
+	version = version_string.split("-", 1)[0]
 	return version.rsplit(".", 1)
 
 
@@ -56,23 +56,6 @@ def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
 	root_conn.close()
 
 	bootstrap_database(db_name, verbose, source_sql)
-
-
-def setup_help_database(help_db_name):
-	dbman = DbManager(get_root_connection(frappe.flags.root_login, frappe.flags.root_password))
-	dbman.drop_database(help_db_name)
-
-	# make database
-	if not help_db_name in dbman.get_database_list():
-		try:
-			dbman.create_user(help_db_name, help_db_name)
-		except Exception as e:
-			# user already exists
-			if e.args[0] != 1396:
-				raise
-		dbman.create_database(help_db_name)
-		dbman.grant_all_privileges(help_db_name, help_db_name)
-		dbman.flush_privileges()
 
 
 def drop_user_and_database(db_name, root_login, root_password):
@@ -152,9 +135,9 @@ def check_compatible_versions():
 		version = get_mariadb_version()
 		version_tuple = tuple(int(v) for v in version[0].split("."))
 
-		if version_tuple < (10, 3):
+		if version_tuple < (10, 6):
 			click.secho(
-				f"Warning: MariaDB version {version} is less than 10.3 which is not supported by Frappe",
+				f"Warning: MariaDB version {version} is less than 10.6 which is not supported by Frappe",
 				fg="yellow",
 			)
 		elif version_tuple >= (10, 9):
@@ -183,7 +166,10 @@ def get_root_connection(root_login, root_password):
 			root_password = getpass.getpass("MySQL root password: ")
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
-			user=root_login, password=root_password
+			host=frappe.conf.db_host,
+			port=frappe.conf.db_port,
+			user=root_login,
+			password=root_password,
 		)
 
 	return frappe.local.flags.root_connection

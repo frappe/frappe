@@ -72,14 +72,14 @@ context("Timeline", () => {
 		cy.click_listview_row_item(0);
 
 		//To check if the submission of the documemt is visible in the timeline content
-		cy.get(".timeline-content").should("contain", "Frappe submitted this document");
+		cy.get(".timeline-content").should("contain", "You submitted this document");
 		cy.get('[id="page-Custom Submittable DocType"] .page-actions')
 			.findByRole("button", { name: "Cancel" })
 			.click();
 		cy.get_open_dialog().findByRole("button", { name: "Yes" }).click();
 
 		//To check if the cancellation of the documemt is visible in the timeline content
-		cy.get(".timeline-content").should("contain", "Frappe cancelled this document");
+		cy.get(".timeline-content").should("contain", "You cancelled this document");
 
 		//Deleting the document
 		cy.visit("/app/custom-submittable-doctype");

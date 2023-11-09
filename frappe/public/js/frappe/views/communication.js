@@ -140,11 +140,6 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "Select",
 				fieldname: "select_print_format",
 			},
-			{
-				label: __("Select Languages"),
-				fieldtype: "Select",
-				fieldname: "language_sel",
-			},
 			{ fieldtype: "Column Break" },
 			{
 				label: __("Select Attachments"),
@@ -194,7 +189,6 @@ frappe.views.CommunicationComposer = class {
 	prepare() {
 		this.setup_multiselect_queries();
 		this.setup_subject_and_recipients();
-		this.setup_print_language();
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
@@ -305,7 +299,6 @@ frappe.views.CommunicationComposer = class {
 				args: {
 					template_name: email_template,
 					doc: me.doc,
-					_lang: me.dialog.get_value("language_sel"),
 				},
 				callback(r) {
 					prepend_reply(r.message);
@@ -428,29 +421,6 @@ frappe.views.CommunicationComposer = class {
 			return locals["Print Format"][format];
 		} else {
 			return {};
-		}
-	}
-
-	setup_print_language() {
-		const fields = this.dialog.fields_dict;
-
-		//Load default print language from doctype
-		this.lang_code =
-			this.doc.language ||
-			this.get_print_format().default_print_language ||
-			frappe.boot.lang;
-
-		//On selection of language retrieve language code
-		const me = this;
-		$(fields.language_sel.input).change(function () {
-			me.lang_code = this.value;
-		});
-
-		// Load all languages in the select field language_sel
-		$(fields.language_sel.input).empty().add_options(frappe.get_languages());
-
-		if (this.lang_code) {
-			$(fields.language_sel.input).val(this.lang_code);
 		}
 	}
 
@@ -639,7 +609,7 @@ frappe.views.CommunicationComposer = class {
 			localforage.setItem(this.frm.doctype + this.frm.docname, message).catch((e) => {
 				if (e) {
 					// silently fail
-					console.log(e); // eslint-disable-line
+					console.log(e);
 					console.warn(
 						"[Communication] IndexedDB is full. Cannot save message as draft"
 					); // eslint-disable-line
@@ -658,10 +628,10 @@ frappe.views.CommunicationComposer = class {
 			localforage.removeItem(this.frm.doctype + this.frm.docname).catch((e) => {
 				if (e) {
 					// silently fail
-					console.log(e); // eslint-disable-line
+					console.log(e);
 					console.warn(
 						"[Communication] IndexedDB is full. Cannot save message as draft"
-					); // eslint-disable-line
+					);
 				}
 			});
 		}
@@ -704,7 +674,6 @@ frappe.views.CommunicationComposer = class {
 				sender_full_name: form_values.sender ? frappe.user.full_name() : undefined,
 				email_template: form_values.email_template,
 				attachments: selected_attachments,
-				_lang: me.lang_code,
 				read_receipt: form_values.send_read_receipt,
 				print_letterhead: me.is_print_letterhead_checked(),
 			},
@@ -732,7 +701,7 @@ frappe.views.CommunicationComposer = class {
 						try {
 							me.success(r);
 						} catch (e) {
-							console.log(e); // eslint-disable-line
+							console.log(e);
 						}
 					}
 				} else {
@@ -745,7 +714,7 @@ frappe.views.CommunicationComposer = class {
 						try {
 							me.error(r);
 						} catch (e) {
-							console.log(e); // eslint-disable-line
+							console.log(e);
 						}
 					}
 				}

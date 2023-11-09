@@ -106,6 +106,7 @@ def get_bootinfo():
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.subscription_conf = add_subscription_conf()
+	bootinfo.marketplace_apps = get_marketplace_apps()
 
 	return bootinfo
 
@@ -150,10 +151,8 @@ def get_allowed_report_names(cache=False) -> set[str]:
 
 
 def get_user_pages_or_reports(parent, cache=False):
-	_cache = frappe.cache()
-
 	if cache:
-		has_role = _cache.get_value("has_role:" + parent, user=frappe.session.user)
+		has_role = frappe.cache.get_value("has_role:" + parent, user=frappe.session.user)
 		if has_role:
 			return has_role
 
@@ -255,7 +254,7 @@ def get_user_pages_or_reports(parent, cache=False):
 			has_role.pop(r, None)
 
 	# Expire every six hours
-	_cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
+	frappe.cache.set_value("has_role:" + parent, has_role, frappe.session.user, 21600)
 	return has_role
 
 
@@ -296,8 +295,7 @@ def add_home_page(bootinfo, docs):
 		docs.append(page)
 		bootinfo["home_page"] = page.name
 	except (frappe.DoesNotExistError, frappe.PermissionError):
-		if frappe.message_log:
-			frappe.message_log.pop()
+		frappe.clear_last_message()
 		bootinfo["home_page"] = "Workspaces"
 
 
@@ -442,6 +440,32 @@ def load_currency_docs(bootinfo):
 	)
 
 	bootinfo.docs += currency_docs
+
+
+def get_marketplace_apps():
+	import requests
+
+	apps = []
+	cache_key = "frappe_marketplace_apps"
+
+	if frappe.conf.developer_mode:
+		return apps
+
+	def get_apps_from_fc():
+		remote_site = frappe.conf.frappecloud_url or "frappecloud.com"
+		request_url = f"https://{remote_site}/api/method/press.api.marketplace.get_marketplace_apps"
+		request = requests.get(request_url, timeout=2.0)
+		return request.json()["message"]
+
+	try:
+		apps = frappe.cache().get_value(cache_key, get_apps_from_fc, shared=True)
+		installed_apps = set(frappe.get_installed_apps())
+		apps = [app for app in apps if app["name"] not in installed_apps]
+	except Exception:
+		# Don't retry for a day
+		frappe.cache().set_value(cache_key, apps, shared=True, expires_in_sec=24 * 60 * 60)
+
+	return apps
 
 
 def add_subscription_conf():

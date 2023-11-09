@@ -84,13 +84,15 @@
 	</symbol>
 
 	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-arrow-up-right">
-		<path d="M2.5 9.5L9.5 2.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-		<path d="M9.50002 8V2.5H4.00002" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M2.5 9.5L9.5 2.5M9.50002 8V2.5H4.00002" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
 	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-arrow-down-left">
-		<path d="M9.5 2.5L2.5 9.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
-		<path d="M2.49999 4L2.49998 9.5L7.99998 9.5" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M9.5 2.5L2.5 9.5M2.49999 4L2.49998 9.5L7.99998 9.5" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
+	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-arrow-down-right">
+		<path d="M2.5 2.5L9.5 9.5M4 9.5h5.5v-5.5" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
 	<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" id="icon-expand">
@@ -118,6 +120,12 @@
 		<path d="M3.14886 8.08422L5.23297 6.00012L3.14886 3.91602" stroke="var(--icon-stroke)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
+	<symbol viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-external-link">
+		<path d="M9.75003 7.83333V9C9.75003 9.82843 9.07846 10.5 8.25003 10.5H3.25C2.42157 10.5 1.75 9.82843 1.75 9V4C1.75 3.17158 2.42151 2.50001 3.24993 2.50001C3.62327 2.5 4.02808 2.5 4.4167 2.5" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M6.75 1.5H10.25V4.5" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M6.75 5L9.75 2" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
 	<symbol viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" fill="#112B42" id="icon-up">
 		<path d="M3 5h6L6 2 3 5z"></path>
 		<path opacity=".5" d="M6 10l3-3H3l3 3z"></path>
@@ -131,8 +139,14 @@
 		<path d="M8 4v8M4 8h8" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
 
-	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-add">
-		<path d="M8 3v10M3 8h10" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-add">
+		<path d="M8.00209 3L8 13" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M13 8.00223L3 8" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
+	<symbol viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-remove">
+		<path d="M12.2407 12.2445L3.75736 3.75736" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M3.75736 12.2426L12.2445 3.75926" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-close">
@@ -294,7 +308,7 @@
 		<path stroke="#E24C4C" stroke-linejoin="round" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M13.2 14.4v8.571"></path>
 	</symbol>
 
-	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-external-link">
+	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-pen">
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M10.348 3.207a1 1 0 0 1 1.415 0l1.03 1.03a1 1 0 0 1 0 1.415l-6.626 6.626L2.5 13.5l1.222-3.667 6.626-6.626z" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
 
@@ -849,6 +863,13 @@
 		<path d="M15.5 10.5H12.5C11.9477 10.5 11.5 10.9477 11.5 11.5V16.5C11.5 17.0523 11.9477 17.5 12.5 17.5H15.5C16.0523 17.5 16.5 17.0523 16.5 16.5V11.5C16.5 10.9477 16.0523 10.5 15.5 10.5Z" stroke="var(--icon-stroke)" stroke-linecap="round" stroke-linejoin="round"/>
 	</symbol>
 
+	<symbol viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-workflow">
+		<path d="M15.75 2L11.25 2C10.0074 2 9 2.89543 9 4L9 8C9 9.10457 10.0074 10 11.25 10L15.75 10C16.9926 10 18 9.10457 18 8L18 4C18 2.89543 16.9926 2 15.75 2Z" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M19.75 15L15.25 15C14.0074 15 13 15.8954 13 17L13 21C13 22.1046 14.0074 23 15.25 23L19.75 23C20.9926 23 22 22.1046 22 21L22 17C22 15.8954 20.9926 15 19.75 15Z" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M8.5 6C8.5 6 4.76593 6 4.28572 6C3.8055 6 3.05612 6.06621 2.5579 6.61904C2.05968 7.17186 2 8.02125 2 8.47619C2 8.93113 2.00001 16.5238 2.00001 16.5238C2.00001 17.1805 2.20068 17.8104 2.5579 18.2747C2.91511 18.7391 3.39959 19 3.90477 19L11 19" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M9 21.5L11.5 19L9 16.5" stroke="var(--icon-stroke)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+	</symbol>
+
 	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-text">
 		<path d="M5 4V6.4H9V16H11.4V6.4H15.4V4H5Z" fill="var(--icon-stroke)" stroke="none"/>
 	</symbol>
@@ -900,13 +921,13 @@
 	</symbol>
 
 	<symbol viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="none" id="icon-add-round">
-		<rect width="24" height="24" rx="12" fill="url(#paint0_linear_76:14)"/>
+		<rect width="24" height="24" rx="12" fill="var(--primary)"/>
 		<path d="M12 7V17" stroke="white" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		<path d="M7 12H17" stroke="white" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
 		<defs>
 			<linearGradient id="paint0_linear_76:14" x1="0" y1="0" x2="0" y2="24" gradientUnits="userSpaceOnUse">
-				<stop stop-color="#2C9AF1"/>
-				<stop offset="1" stop-color="#2490EF"/>
+				<stop stop-color="var(--primary)"/>
+				<stop offset="1" stop-color="var(--primary)"/>
 			</linearGradient>
 		</defs>
 	</symbol>

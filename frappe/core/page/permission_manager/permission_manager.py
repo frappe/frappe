@@ -12,6 +12,7 @@ from frappe.core.doctype.doctype.doctype import (
 from frappe.exceptions import DoesNotExistError
 from frappe.modules.import_file import get_file_path, read_doc_from_file
 from frappe.permissions import (
+	AUTOMATIC_ROLES,
 	add_permission,
 	get_all_perms,
 	get_linked_doctypes,
@@ -43,10 +44,8 @@ def get_roles_and_doctypes():
 	restricted_roles = ["Administrator"]
 	if frappe.session.user != "Administrator":
 		custom_user_type_roles = frappe.get_all("User Type", filters={"is_standard": 0}, fields=["role"])
-		for row in custom_user_type_roles:
-			restricted_roles.append(row.role)
-
-		restricted_roles.append("All")
+		restricted_roles.extend(row.role for row in custom_user_type_roles)
+		restricted_roles.extend(AUTOMATIC_ROLES)
 
 	roles = frappe.get_all(
 		"Role",
@@ -62,8 +61,8 @@ def get_roles_and_doctypes():
 	roles_list = [{"label": _(d.get("name")), "value": d.get("name")} for d in roles]
 
 	return {
-		"doctypes": sorted(doctypes_list, key=lambda d: d["label"]),
-		"roles": sorted(roles_list, key=lambda d: d["label"]),
+		"doctypes": sorted(doctypes_list, key=lambda d: d["label"].casefold()),
+		"roles": sorted(roles_list, key=lambda d: d["label"].casefold()),
 	}
 
 
@@ -123,8 +122,14 @@ def update(doctype, role, permlevel, ptype, value=None, if_owner=0):
 	Returns:
 	        str: Refresh flag is permission is updated successfully
 	"""
+
+	def clear_cache():
+		frappe.clear_cache(doctype=doctype)
+
 	frappe.only_for("System Manager")
 	out = update_permission_property(doctype, role, permlevel, ptype, value, if_owner=if_owner)
+
+	frappe.db.after_commit.add(clear_cache)
 
 	return "refresh" if out else None
 

@@ -8,7 +8,32 @@ from frappe.utils import cstr
 
 
 class AccessLog(Document):
-	pass
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		columns: DF.HTMLEditor | None
+		export_from: DF.Data | None
+		file_type: DF.Data | None
+		filters: DF.Code | None
+		method: DF.Data | None
+		page: DF.HTMLEditor | None
+		reference_document: DF.Data | None
+		report_name: DF.Data | None
+		timestamp: DF.Datetime | None
+		user: DF.Link | None
+	# end: auto-generated types
+	@staticmethod
+	def clear_old_logs(days=30):
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
+
+		table = frappe.qb.DocType("Access Log")
+		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
 @frappe.whitelist()
@@ -35,7 +60,11 @@ def make_access_log(
 
 
 @frappe.write_only()
-@retry(stop=stop_after_attempt(3), retry=retry_if_exception_type(frappe.DuplicateEntryError))
+@retry(
+	stop=stop_after_attempt(3),
+	retry=retry_if_exception_type(frappe.DuplicateEntryError),
+	reraise=True,
+)
 def _make_access_log(
 	doctype=None,
 	document=None,
@@ -49,7 +78,7 @@ def _make_access_log(
 	user = frappe.session.user
 	in_request = frappe.request and frappe.request.method == "GET"
 
-	frappe.get_doc(
+	access_log = frappe.get_doc(
 		{
 			"doctype": "Access Log",
 			"user": user,
@@ -62,7 +91,13 @@ def _make_access_log(
 			"filters": cstr(filters) or None,
 			"columns": columns,
 		}
-	).db_insert()
+	)
+
+	if frappe.flags.read_only:
+		access_log.deferred_insert()
+		return
+	else:
+		access_log.db_insert()
 
 	# `frappe.db.commit` added because insert doesnt `commit` when called in GET requests like `printview`
 	# dont commit in test mode. It must be tempting to put this block along with the in_request in the

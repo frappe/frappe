@@ -1,7 +1,7 @@
 import os
 from io import BytesIO
 
-from PyPDF2 import PdfWriter
+from pypdf import PdfWriter
 
 import frappe
 from frappe import _

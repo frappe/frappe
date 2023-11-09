@@ -9,6 +9,7 @@ frappe.ui.form.on("Form Tour", {
 		frm.set_query("reference_doctype", () => {
 			return { filters: { istable: 0 } };
 		});
+		frm.trigger("reference_doctype");
 		frm.set_query("report_name", () => {
 			if (frm.doc.reference_doctype) {
 				return {
@@ -107,8 +108,8 @@ let add_custom_button = (frm) => {
 							tour_name: frm.doc.name,
 						},
 					});
-				},
-				delete frappe.boot.user.onboarding_status[frm.doc.name]
+					delete frappe.boot.user.onboarding_status[frm.doc.name];
+				}
 			);
 		});
 	} else {

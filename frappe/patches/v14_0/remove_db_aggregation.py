@@ -32,4 +32,4 @@ def execute():
 		for agg in ["avg", "max", "min", "sum"]:
 			script = re.sub(f"frappe.db.{agg}\\(", f"frappe.qb.{agg}(", script)
 
-		frappe.db.update("Server Script", name, "script", script)
+		frappe.db.set_value("Server Script", name, "script", script)

@@ -5,6 +5,8 @@ import email
 import re
 from unittest.mock import patch
 
+import requests
+
 import frappe
 from frappe.email.doctype.email_account.test_email_account import TestEmailAccount
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder
@@ -52,7 +54,7 @@ class TestEmail(FrappeTestCase):
 		self.test_email_queue(send_after=1)
 		from frappe.email.queue import flush
 
-		flush(from_test=True)
+		flush()
 		email_queue = frappe.db.sql(
 			"""select name from `tabEmail Queue` where status='Sent'""", as_dict=1
 		)
@@ -62,7 +64,7 @@ class TestEmail(FrappeTestCase):
 		self.test_email_queue()
 		from frappe.email.queue import flush
 
-		flush(from_test=True)
+		flush()
 		email_queue = frappe.db.sql(
 			"""select name from `tabEmail Queue` where status='Sent'""", as_dict=1
 		)
@@ -156,7 +158,7 @@ class TestEmail(FrappeTestCase):
 		frappe.conf.use_ssl = False
 
 	def test_expose(self):
-
+		from frappe.utils import set_request
 		from frappe.utils.verified_command import verify_request
 
 		frappe.sendmail(
@@ -199,36 +201,13 @@ class TestEmail(FrappeTestCase):
 			if content:
 				eol = "\r\n"
 
-				frappe.local.flags.signed_query_string = re.search(
+				query_string = re.search(
 					r"(?<=/api/method/frappe.email.queue.unsubscribe\?).*(?=" + eol + ")", content.decode()
 				).group(0)
+
+				set_request(method="GET", query_string=query_string)
 				self.assertTrue(verify_request())
 				break
-
-	def test_expired(self):
-		self.test_email_queue()
-		frappe.db.sql("UPDATE `tabEmail Queue` SET `modified`=(NOW() - INTERVAL '8' day)")
-
-		from frappe.email.queue import set_expiry_for_email_queue
-
-		set_expiry_for_email_queue()
-
-		email_queue = frappe.db.sql(
-			"""select name from `tabEmail Queue` where status='Expired'""", as_dict=1
-		)
-		self.assertEqual(len(email_queue), 1)
-		queue_recipients = [
-			r.recipient
-			for r in frappe.db.sql(
-				"""select recipient from `tabEmail Queue Recipient`
-			where parent = %s""",
-				email_queue[0].name,
-				as_dict=1,
-			)
-		]
-		self.assertTrue("test@example.com" in queue_recipients)
-		self.assertTrue("test1@example.com" in queue_recipients)
-		self.assertEqual(len(queue_recipients), 2)
 
 	def test_sender(self):
 		def _patched_assertion(email_account, assertion):
@@ -345,6 +324,53 @@ class TestVerifiedRequests(FrappeTestCase):
 
 		for params in test_cases:
 			signed_url = get_signed_params(params)
-			set_request(method="GET", path="?" + signed_url)
+			set_request(method="GET", query_string=signed_url)
 			self.assertTrue(verify_request())
 		frappe.local.request = None
+
+
+class TestEmailIntegrationTest(FrappeTestCase):
+	"""Sends email to local SMTP server and verifies correctness.
+
+	SMTP4Dev runs as a service in unit test CI job.
+	If you need to run this test locally, you must setup SMTP4dev locally.
+
+	WARNING: SMTP4dev doesn't have stable API, it can break anytime.
+	"""
+
+	SMTP4DEV_WEB = "http://localhost:3000"
+
+	def setUp(self) -> None:
+		# Frappe code is configured to not attempting sending emails during test.
+		frappe.flags.testing_email = True
+		requests.delete(f"{self.SMTP4DEV_WEB}/api/Messages/*")
+		return super().setUp()
+
+	def tearDown(self) -> None:
+		frappe.flags.testing_email = False
+		return super().tearDown()
+
+	def get_last_sent_emails(self):
+		return requests.get(
+			f"{self.SMTP4DEV_WEB}/api/Messages?sortColumn=receivedDate&sortIsDescending=true"
+		).json()
+
+	def test_send_email(self):
+		sender = "a@example.io"
+		recipients = "b@example.io,c@example.io"
+		subject = "checking if email works"
+		content = "is email working?"
+
+		frappe.sendmail(sender=sender, recipients=recipients, subject=subject, content=content, now=True)
+		email = frappe.get_last_doc("Email Queue")
+		self.assertEqual(email.sender, sender)
+		self.assertEqual(len(email.recipients), 2)
+		self.assertEqual(email.status, "Sent")
+
+		sent_mails = self.get_last_sent_emails()
+		self.assertEqual(len(sent_mails), 2)
+
+		for sent_mail in sent_mails:
+			self.assertEqual(sent_mail["from"], sender)
+			self.assertEqual(sent_mail["subject"], subject)
+		self.assertSetEqual(set(recipients.split(",")), {m["to"] for m in sent_mails})

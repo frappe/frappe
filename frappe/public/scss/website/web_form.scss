@@ -19,6 +19,10 @@
 				max-width: 800px;
 				margin: auto;
 
+				.tooltip-content {
+					display: none;
+				}
+
 				h1 {
 					font-size: 2.25rem;
 					margin-top: 0;
@@ -76,7 +80,7 @@
 								flex: 1;
 
 								.btn {
-									font-size: var(--text-base);
+									@include get_textstyle("base", "regular");
 								}
 							}
 						}
@@ -114,7 +118,7 @@
 							background-color: var(--control-bg);
 
 							@include media-breakpoint-down(sm) {
-								font-size: var(--text-sm);
+								@include get_textstyle("sm", "regular");
 							}
 						}
 
@@ -139,7 +143,7 @@
 								position: relative;
 
 								@include media-breakpoint-down(sm) {
-									font-size: var(--text-sm);
+									@include get_textstyle("sm", "regular");
 								}
 
 								&[data-fieldtype="Rating"] {
@@ -230,10 +234,10 @@
 							flex-wrap: wrap;
 
 							.btn {
-								font-size: var(--text-base);
+								@include get_textstyle("base", "regular");
 
 								@include media-breakpoint-down(sm) {
-									font-size: var(--text-sm);
+									@include get_textstyle("sm", "regular");
 								}
 							}
 
@@ -258,7 +262,7 @@
 							.center-area {
 								display: flex;
 								align-items: center;
-								font-size: var(--text-base);
+								@include get_textstyle("base", "regular");
 
 								.slides-progress {
 									display: flex;
@@ -359,7 +363,7 @@
 						justify-content: space-between;
 						gap: 6px;
 						color: var(--text-muted);
-						font-size: var(--text-md);
+						@include get_textstyle("base", "regular");
 
 						&:hover {
 							text-decoration: none;

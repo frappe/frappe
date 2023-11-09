@@ -73,6 +73,9 @@ frappe.form.formatters = {
 		}
 	},
 	Int: function (value, docfield, options) {
+		if (cstr(docfield.options).trim() === "File Size") {
+			return frappe.form.formatters.FileSize(value);
+		}
 		return frappe.form.formatters._right(value == null ? "" : cint(value), options);
 	},
 	Percent: function (value, docfield, options) {
@@ -340,10 +343,11 @@ frappe.form.formatters = {
 		return $("<div></div>").text(value).html();
 	},
 	FileSize: function (value) {
+		value = cint(value);
 		if (value > 1048576) {
-			value = flt(flt(value) / 1048576, 1) + "M";
+			return (value / 1048576).toFixed(2) + "M";
 		} else if (value > 1024) {
-			value = flt(flt(value) / 1024, 1) + "K";
+			return (value / 1024).toFixed(2) + "K";
 		}
 		return value;
 	},
@@ -353,7 +357,9 @@ frappe.form.formatters = {
 		const link_field = meta.fields.find((df) => df.fieldtype === "Link");
 		const formatted_values = rows.map((row) => {
 			const value = row[link_field.fieldname];
-			return frappe.format(value, link_field, options, row);
+			return `<span class="text-nowrap">
+				${frappe.format(value, link_field, options, row)}
+			</span>`;
 		});
 		return formatted_values.join(", ");
 	},

@@ -1,5 +1,5 @@
+import { createApp, watch } from "vue";
 import PrintFormatBuilderComponent from "./PrintFormatBuilder.vue";
-import { getStore } from "./store";
 
 class PrintFormatBuilder {
 	constructor({ wrapper, page, print_format }) {
@@ -28,31 +28,32 @@ class PrintFormatBuilder {
 			frappe.set_route("print-format-builder-beta");
 		});
 
-		let $vm = new Vue({
-			el: this.$wrapper.get(0),
-			render: (h) =>
-				h(PrintFormatBuilderComponent, {
-					props: {
-						print_format_name: print_format,
-					},
-				}),
-		});
-		this.$component = $vm.$children[0];
-		let store = getStore(print_format);
-		store.$watch("dirty", (value) => {
-			if (value) {
-				this.page.set_indicator("Not Saved", "orange");
-				$toggle_preview_btn.hide();
-				$reset_changes_btn.show();
-			} else {
-				this.page.clear_indicator();
-				$toggle_preview_btn.show();
-				$reset_changes_btn.hide();
+		let app = createApp(PrintFormatBuilderComponent, { print_format_name: print_format });
+		SetVueGlobals(app);
+		this.$component = app.mount(this.$wrapper.get(0));
+
+		watch(
+			() => this.$component.$store.dirty,
+			(dirty) => {
+				if (dirty.value) {
+					this.page.set_indicator(__("Not Saved"), "orange");
+					$toggle_preview_btn.hide();
+					$reset_changes_btn.show();
+				} else {
+					this.page.clear_indicator();
+					$toggle_preview_btn.show();
+					$reset_changes_btn.hide();
+				}
+			},
+			{ deep: true }
+		);
+
+		watch(
+			() => this.$component.show_preview,
+			(value) => {
+				$toggle_preview_btn.text(value ? __("Hide Preview") : __("Show Preview"));
 			}
-		});
-		this.$component.$watch("show_preview", (value) => {
-			$toggle_preview_btn.text(value ? __("Hide Preview") : __("Show Preview"));
-		});
+		);
 	}
 }
 

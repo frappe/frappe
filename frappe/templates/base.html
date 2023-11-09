@@ -20,8 +20,6 @@
 	>
 	{% endblock %}
 
-	<link rel="canonical" href="{{ canonical }}">
-
 	{%- block head -%}
 		{% include "templates/includes/head.html" %}
 	{%- endblock -%}
@@ -43,12 +41,13 @@
 			frappe.ready_events.push(fn);
 		}
 		window.dev_server = {{ dev_server }};
-		window.socketio_port = {{ (frappe.socketio_port or 'null') }};
+		window.socketio_port = {{ (frappe.socketio_port or 9000) }};
 		window.show_language_picker = {{ show_language_picker or 'false' }};
 	</script>
 </head>
 <body frappe-session-status="{{ 'logged-in' if frappe.session.user != 'Guest' else 'logged-out'}}" data-path="{{ path | e }}" {%- if template and template.endswith('.md') %} frappe-content-type="markdown" {%- endif %} class="{{ body_class or ''}}">
 	{% include "public/icons/timeless/icons.svg" %}
+	{% include "public/icons/espresso/icons.svg" %}
 	{%- block banner -%}
 		{% include "templates/includes/banner_extension.html" ignore missing %}
 

@@ -261,6 +261,10 @@ Cypress.Commands.add("new_form", (doctype) => {
 	cy.get("body").should("have.attr", "data-ajax-state", "complete");
 });
 
+Cypress.Commands.add("select_form_tab", (label) => {
+	cy.get(".form-tabs-list [data-toggle='tab']").contains(label).click().wait(500);
+});
+
 Cypress.Commands.add("go_to_list", (doctype) => {
 	let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
 	cy.visit(`/app/${dt_in_route}`);
@@ -391,7 +395,9 @@ Cypress.Commands.add("update_doc", (doctype, docname, args) => {
 
 Cypress.Commands.add("switch_to_user", (user) => {
 	cy.call("logout");
+	cy.wait(200);
 	cy.login(user);
+	cy.reload();
 });
 
 Cypress.Commands.add("add_role", (user, role) => {
