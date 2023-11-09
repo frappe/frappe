@@ -117,6 +117,7 @@
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is Standard",
+   "no_copy": 1,
    "read_only_depends_on": "eval: !frappe.boot.developer_mode"
   },
   {
@@ -203,10 +204,14 @@
  ],
  "links": [],
 <<<<<<< HEAD
+<<<<<<< HEAD
  "modified": "2022-06-12 15:34:38.210910",
 =======
  "modified": "2023-11-09 13:25:51.394005",
 >>>>>>> 33b23022d4 (fix: move field description to doctype definition)
+=======
+ "modified": "2023-11-09 13:44:00.280846",
+>>>>>>> 69e95edc6f (fix: don't copy value of "Is Standard")
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
