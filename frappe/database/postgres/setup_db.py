@@ -15,9 +15,6 @@ def setup_database(force, source_sql=None, verbose=False):
 	root_conn.sql(f"GRANT ALL PRIVILEGES ON DATABASE `{frappe.conf.db_name}` TO {frappe.conf.db_name}")
 	root_conn.close()
 
-	bootstrap_database(frappe.conf.db_name, verbose, source_sql=source_sql)
-	frappe.connect()
-
 
 def bootstrap_database(db_name, verbose, source_sql=None):
 	frappe.connect(db_name=db_name)
