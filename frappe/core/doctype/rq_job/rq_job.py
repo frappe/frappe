@@ -87,7 +87,9 @@ class RQJob(Document):
 		matched_job_ids = RQJob.get_matching_job_ids(args)[start : start + page_length]
 
 		conn = get_redis_conn()
-		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn)]
+		jobs = [
+			serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job
+		]
 
 		return sorted(jobs, key=lambda j: j.modified, reverse=order_desc)
 
