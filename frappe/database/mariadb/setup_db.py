@@ -18,7 +18,7 @@ def get_mariadb_version(version_string: str = ""):
 	return version.rsplit(".", 1)
 
 
-def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
+def setup_database(force, verbose, no_mariadb_socket=False):
 	frappe.local.session = frappe._dict({"user": "Administrator"})
 
 	db_name = frappe.local.conf.db_name

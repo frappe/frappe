@@ -162,7 +162,7 @@ def install_db(
 	frappe.flags.root_password = root_password
 
 	if setup:
-		setup_database(force, source_sql, verbose, no_mariadb_socket)
+		setup_database(force, verbose, no_mariadb_socket)
 
 	bootstrap_database(
 		db_name=frappe.conf.db_name,
