@@ -96,7 +96,6 @@ class HTTPRequest:
 
 
 class LoginManager:
-
 	__slots__ = ("user", "info", "full_name", "user_type", "resume")
 
 	def __init__(self):
@@ -305,8 +304,8 @@ class LoginManager:
 
 	def validate_hour(self):
 		"""check if user is logging in during restricted hours"""
-		login_before = int(frappe.db.get_value("User", self.user, "login_before", ignore=True) or 0)
-		login_after = int(frappe.db.get_value("User", self.user, "login_after", ignore=True) or 0)
+		login_before = cint(frappe.db.get_value("User", self.user, "login_before", ignore=True))
+		login_after = cint(frappe.db.get_value("User", self.user, "login_after", ignore=True))
 
 		if not (login_before or login_after):
 			return

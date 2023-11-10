@@ -252,7 +252,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		)
 		are_scopes_valid = True
 		for scp in scopes:
-			are_scopes_valid = are_scopes_valid and True if scp in client_scopes else False
+			are_scopes_valid = are_scopes_valid if scp in client_scopes else False
 
 		return is_token_valid and are_scopes_valid
 

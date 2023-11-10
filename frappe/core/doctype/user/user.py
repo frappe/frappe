@@ -872,7 +872,7 @@ def test_password_strength(
 			"Arguments `key` and `old_password` are deprecated in function `test_password_strength`."
 		)
 
-	enable_password_policy = frappe.get_system_settings("enable_password_policy") or 0
+	enable_password_policy = frappe.get_system_settings("enable_password_policy")
 
 	if not enable_password_policy:
 		return {}
@@ -885,7 +885,7 @@ def test_password_strength(
 	if new_password:
 		result = _test_password_strength(new_password, user_inputs=user_data)
 		password_policy_validation_passed = False
-		minimum_password_score = cint(frappe.get_system_settings("minimum_password_score")) or 0
+		minimum_password_score = cint(frappe.get_system_settings("minimum_password_score"))
 
 		# score should be greater than 0 and minimum_password_score
 		if result.get("score") and result.get("score") >= minimum_password_score:

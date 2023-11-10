@@ -34,6 +34,7 @@ class RQWorker(Document):
 		total_working_time: DF.Duration | None
 		utilization_percent: DF.Percent
 		worker_name: DF.Data | None
+
 	# end: auto-generated types
 	def load_from_db(self):
 
@@ -47,7 +48,7 @@ class RQWorker(Document):
 
 	@staticmethod
 	def get_list(args):
-		start = cint(args.get("start")) or 0
+		start = cint(args.get("start"))
 		page_length = cint(args.get("page_length")) or 20
 
 		workers = get_workers()

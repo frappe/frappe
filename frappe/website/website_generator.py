@@ -98,8 +98,8 @@ class WebsiteGenerator(Document):
 
 	def is_website_published(self):
 		"""Return true if published in website"""
-		if self.get_condition_field():
-			return self.get(self.get_condition_field()) and True or False
+		if data := self.get_condition_field():
+			return self.get(data) or False
 		else:
 			return True
 
@@ -141,7 +141,6 @@ class WebsiteGenerator(Document):
 			and self.is_website_published()
 			and self.meta.allow_guest_to_view
 		):
-
 			url = frappe.utils.get_url(self.route)
 			frappe.enqueue(
 				"frappe.website.doctype.website_settings.google_indexing.publish_site",

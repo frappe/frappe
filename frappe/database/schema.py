@@ -213,11 +213,11 @@ class DbColumn:
 		unique = False
 
 		if self.fieldtype in ("Check", "Int"):
-			default = cint(self.default) or 0
+			default = cint(self.default)
 			null = False
 
 		elif self.fieldtype in ("Currency", "Float", "Percent"):
-			default = flt(self.default) or 0
+			default = flt(self.default)
 			null = False
 
 		elif (
@@ -292,7 +292,7 @@ class DbColumn:
 		if (current_def["index"] and not self.set_index) and column_type not in ("text", "longtext"):
 			self.table.drop_index.append(self)
 
-		elif (not current_def["index"] and self.set_index) and not (column_type in ("text", "longtext")):
+		elif (not current_def["index"] and self.set_index) and column_type not in ("text", "longtext"):
 			self.table.add_index.append(self)
 
 	def default_changed(self, current_def):
