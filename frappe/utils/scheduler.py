@@ -73,7 +73,7 @@ def enqueue_events_for_site(site: str) -> None:
 		if is_scheduler_inactive():
 			return
 
-		enqueue_events(site=site)
+		enqueue_events()
 
 		frappe.logger("scheduler").debug(f"Queued events for site {site}")
 	except Exception as e:
@@ -85,7 +85,7 @@ def enqueue_events_for_site(site: str) -> None:
 		frappe.destroy()
 
 
-def enqueue_events(site: str) -> list[str] | None:
+def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
 		enqueued_jobs = []
 		for job_type in frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*"):
