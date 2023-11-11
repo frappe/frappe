@@ -346,7 +346,7 @@ frappe.views.Workspace = class Workspace {
 		) {
 			default_page = {
 				name: localStorage.current_page,
-				public: localStorage.is_current_page_public == "true",
+				public: localStorage.is_current_page_public != "false",
 			};
 		} else if (Object.keys(this.all_pages).length !== 0) {
 			default_page = { name: this.all_pages[0].title, public: this.all_pages[0].public };
@@ -370,8 +370,9 @@ frappe.views.Workspace = class Workspace {
 		if (this.all_pages.length) {
 			this.create_page_skeleton();
 
-			let pages =
-				page.public && this.public_pages.length ? this.public_pages : this.private_pages;
+			let pages = (
+				page.public && this.public_pages.length ? this.public_pages : this.private_pages
+			);
 			let current_page = pages.filter((p) => p.title == page.name)[0];
 			this.content = current_page && JSON.parse(current_page.content);
 
