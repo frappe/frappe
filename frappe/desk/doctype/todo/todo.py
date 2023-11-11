@@ -25,7 +25,7 @@ class ToDo(Document):
 		assigned_by_full_name: DF.ReadOnly | None
 		assignment_rule: DF.Link | None
 		color: DF.Color | None
-		date: DF.Date | None
+		date: DF.Datetime | None
 		description: DF.TextEditor
 		priority: DF.Literal["High", "Medium", "Low"]
 		reference_name: DF.DynamicLink | None

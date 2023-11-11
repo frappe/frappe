@@ -63,9 +63,9 @@
   },
   {
    "allow_in_quick_entry": 1,
-   "default": "Today",
+   "default": "Now",
    "fieldname": "date",
-   "fieldtype": "Date",
+   "fieldtype": "Datetime",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Due Date",
@@ -161,10 +161,11 @@
  "icon": "fa fa-check",
  "idx": 2,
  "links": [],
- "modified": "2023-10-05 07:44:38.476400",
+ "modified": "2023-11-11 12:01:31.664964",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "ToDo",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -195,6 +196,7 @@
  "sender_field": "sender",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "subject_field": "description",
  "title_field": "description",
  "track_changes": 1,

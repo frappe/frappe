@@ -64,6 +64,7 @@ frappe.ui.form.AssignTo = class AssignTo {
 			});
 		}
 		me.assign_to.dialog.clear();
+		me.assign_to._update_datetime_selector();
 		me.assign_to.dialog.show();
 	}
 	remove(owner) {
@@ -146,6 +147,27 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 			me.dialog.set_value("description", me.frm.doc[me.frm.meta.title_field]);
 		}
 	}
+	_update_datetime_selector() {
+		this._convert_period_to_absolute_time();
+		this.dialog.fields_dict.date.df.read_only =
+			this.dialog.get_value("complete_within") != "custom";
+		this.dialog.fields_dict.date.refresh();
+		this.dialog.fields_dict.date.datepicker?.update({
+			minDate: frappe.datetime.str_to_obj(frappe.datetime.now_datetime()),
+		});
+	}
+	_convert_period_to_absolute_time() {
+		const period = this.dialog.get_value("complete_within") || "1_hour";
+		if (period == "custom") return;
+
+		const now_time = frappe.datetime.str_to_obj(frappe.datetime.now_datetime());
+		let [magnitude, unit] = period.split("_");
+
+		let time_to_set = moment(now_time)
+			.add(magnitude, unit)
+			.format(frappe.defaultDatetimeFormat);
+		this.dialog.set_value("date", time_to_set);
+	}
 	get_fields() {
 		let me = this;
 
@@ -173,12 +195,28 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				fieldtype: "Section Break",
 			},
 			{
-				label: __("Complete By"),
-				fieldtype: "Date",
-				fieldname: "date",
+				label: __("Complete Within"),
+				fieldtype: "Select",
+				fieldname: "complete_within",
+				options: [
+					{ label: __("30 minutes"), value: "30_minutes" },
+					{ label: __("1 hour"), value: "1_hour" },
+					{ label: __("4 hours"), value: "4_hours" },
+					{ label: __("1 Day"), value: "1_day" },
+					{ label: __("Custom"), value: "custom" },
+				],
+				default: "1_hour",
+				onchange: () => {
+					me._update_datetime_selector();
+				},
 			},
 			{
 				fieldtype: "Column Break",
+			},
+			{
+				label: __("Complete By"),
+				fieldtype: "Datetime",
+				fieldname: "date",
 			},
 			{
 				label: __("Priority"),
