@@ -183,7 +183,11 @@ class BaseDocument:
 		More info: https://docs.python.org/3/library/pickle.html#handling-stateful-objects
 		"""
 
-		_dict, _slots = object.__getstate__(self)
+		_dict, _slots = self.__dict__.copy(), dict()
+		for slot in self.__slots__:
+			if hasattr(self, slot) and slot != "__dict__":
+				_slots[slot] = getattr(self, slot)
+
 		self.remove_unpicklable_values(_dict)
 
 		return _dict, _slots
