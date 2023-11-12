@@ -1291,15 +1291,15 @@ class Document(BaseDocument):
 
 		def add_to_return_value(self, new_return_value):
 			if new_return_value is None:
-				self._return_value = self.get("_return_value")
+				self.flags._return_value = self.flags.get("_return_value")
 				return
 
 			if isinstance(new_return_value, dict):
-				if not self.get("_return_value"):
-					self._return_value = {}
-				self._return_value.update(new_return_value)
+				if not self.flags.get("_return_value"):
+					self.flags._return_value = {}
+				self.flags._return_value.update(new_return_value)
 			else:
-				self._return_value = new_return_value
+				self.flags._return_value = new_return_value
 
 		def compose(fn, *hooks):
 			def runner(self, method, *args, **kwargs):
@@ -1307,7 +1307,7 @@ class Document(BaseDocument):
 				for f in hooks:
 					add_to_return_value(self, f(self, method, *args, **kwargs))
 
-				return self.__dict__.pop("_return_value", None)
+				return self.flags.pop("_return_value", None)
 
 			return runner
 
