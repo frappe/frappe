@@ -51,16 +51,14 @@ class Role(Document):
 		frappe.cache.hdel("roles", "Administrator")
 
 	def validate(self):
+		if self.disabled and self.name in STANDARD_ROLES:
+			frappe.throw(frappe._("Standard roles cannot be disabled"))
+
+	def after_validate(self):
 		if self.disabled:
-			self.disable_role()
+			self.remove_roles()
 		else:
 			self.set_desk_properties()
-
-	def disable_role(self):
-		if self.name in STANDARD_ROLES:
-			frappe.throw(frappe._("Standard roles cannot be disabled"))
-		else:
-			self.remove_roles()
 
 	def set_desk_properties(self):
 		# set if desk_access is not allowed, unset all desk properties
