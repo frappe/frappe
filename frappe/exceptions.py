@@ -96,6 +96,18 @@ class DataError(ValidationError):
 	pass
 
 
+class ProgrammingError(ValidationError):
+	def __init__(self, message):
+		self.message = message
+		super().__init__(self.message)
+
+class ReadOnlyDocument(ProgrammingError):
+	def __init__(self, repr, key):
+		super().__init__(
+			f"{repr} has been temporarily set to read-only. (raised while mutating attribute: {key})"
+		)
+
+
 class UnknownDomainError(Exception):
 	pass
 

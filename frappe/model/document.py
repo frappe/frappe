@@ -1070,18 +1070,26 @@ class Document(BaseDocument):
 
 		self.reset_seen()
 
-		# before_validate method should be executed before ignoring validations
 		if self._action in ("save", "submit"):
-			self.run_method("before_validate")
-
-		if self.flags.ignore_validate:
-			return
+			# prepares the doc for validation
+			try:
+				self.run_method("before_validate")
+			except Exception:
+				raise frappe.exceptions.ProgrammingError("before_validate may not throw / raise")
+			if not self.flags.ignore_validate:
+				self.immutable()
+				# emits user facing errors or messages
+				self.run_method("validate")
+				self.mutable()
+			# implements state mutations that depend on validated values
+			try:
+				self.run_method("after_validate")
+			except Exception:
+				raise frappe.exceptions.ProgrammingError("after_validate may not throw / raise")
 
 		if self._action == "save":
-			self.run_method("validate")
 			self.run_method("before_save")
 		elif self._action == "submit":
-			self.run_method("validate")
 			self.run_method("before_submit")
 		elif self._action == "cancel":
 			self.run_method("before_cancel")

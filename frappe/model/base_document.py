@@ -108,24 +108,42 @@ def import_controller(doctype):
 	return class_
 
 
+class ReadonlyList(tuple):
+	def __setitem__(self, key, value):
+		raise frappe.exceptions.ReadOnlyDocument(repr(self), key)
+
+	def __delitem__(self, key):
+		raise frappe.exceptions.ReadOnlyDocument(repr(self), key)
+
+
 class BaseDocument:
-	_reserved_keywords = frozenset(
-		(
-			"doctype",
-			"meta",
-			"flags",
-			"parent_doc",
-			"_table_fields",
-			"_valid_columns",
-			"_doc_before_save",
-			"_table_fieldnames",
-			"_reserved_keywords",
-			"permitted_fieldnames",
-			"dont_update_if_missing",
-		)
+	__slots__ = (
+		"__dict__",
+		"_readonly",
+		"_meta",
 	)
+	_reserved_keywords = {
+		"doctype",
+		"meta",
+		"flags",
+		"parent_doc",
+		"_table_fields",
+		"_valid_columns",
+		"_doc_before_save",
+		"_table_fieldnames",
+		"_reserved_keywords",
+		"permitted_fieldnames",
+		"dont_update_if_missing",
+		"_meta",
+		"_readonly",
+		"__dict__",
+		"__weakref__",
+		"__slots__",
+	}
 
 	def __init__(self, d):
+		self._readonly = False
+
 		if d.get("doctype"):
 			self.doctype = d["doctype"]
 
@@ -135,6 +153,20 @@ class BaseDocument:
 
 		if hasattr(self, "__setup__"):
 			self.__setup__()
+
+	def immutable(self):
+		for fieldname in self._table_fieldnames:
+			self.__dict__[fieldname] = ReadonlyList(self.__dict__[fieldname])
+			for doc in self.__dict__[fieldname]:
+				doc.immutable()
+		self._readonly = True
+
+	def mutable(self):
+		self._readonly = False
+		for fieldname in self._table_fieldnames:
+			self.__dict__[fieldname] = list(self.__dict__[fieldname])
+			for doc in self.__dict__[fieldname]:
+				doc.mutable()
 
 	@cached_property
 	def meta(self):
@@ -151,17 +183,16 @@ class BaseDocument:
 		More info: https://docs.python.org/3/library/pickle.html#handling-stateful-objects
 		"""
 
-		# Always use the dict.copy() method to avoid modifying the original state
-		state = self.__dict__.copy()
-		self.remove_unpicklable_values(state)
+		_dict, _slots = object.__getstate__(self)
+		self.remove_unpicklable_values(_dict)
 
-		return state
+		return _dict, _slots
 
-	def remove_unpicklable_values(self, state):
+	def remove_unpicklable_values(self, _dict):
 		"""Remove unpicklable values before pickling"""
 
-		state.pop("meta", None)
-		state.pop("permitted_fieldnames", None)
+		_dict.pop("meta", None)
+		_dict.pop("permitted_fieldnames", None)
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -222,7 +253,20 @@ class BaseDocument:
 	def getone(self, key, filters=None):
 		return self.get(key, filters=filters, limit=1)[0]
 
+	def __setattr__(self, name, value):
+		if getattr(self, "_readonly", False) and not name == "_readonly":
+			raise frappe.exceptions.ReadOnlyDocument(repr(self), name)
+		object.__setattr__(self, name, value)
+
+	def __delattr__(self, name):
+		if getattr(self, "_readonly", False):
+			raise frappe.exceptions.ReadOnlyDocument(repr(self), name)
+		object.__delattr__(self, name)
+
 	def set(self, key, value, as_value=False):
+		if self._readonly:
+			raise frappe.exceptions.ReadOnlyDocument(repr(self), key)
+
 		if key in self._reserved_keywords:
 			return
 
@@ -238,6 +282,8 @@ class BaseDocument:
 		self.__dict__[key] = value
 
 	def delete_key(self, key):
+		if self._readonly:
+			raise frappe.exceptions.ReadOnlyDocument(repr(self), key)
 		if key in self.__dict__:
 			del self.__dict__[key]
 
@@ -251,6 +297,8 @@ class BaseDocument:
 		                ...
 		        })
 		"""
+		if self._readonly:
+			raise frappe.exceptions.ReadOnlyDocument(repr(self), key)
 		if value is None:
 			value = {}
 
@@ -278,6 +326,8 @@ class BaseDocument:
 		# Usage: from the parent doc, pass the child table doc
 		# to remove that child doc from the child table, thus removing it from the parent doc
 		if doc.get("parentfield"):
+			if self._readonly:
+				raise frappe.exceptions.ReadOnlyDocument(repr(self), doc.get("parentfield"))
 			self.get(doc.parentfield).remove(doc)
 
 	def _init_child(self, value, key):
@@ -435,6 +485,8 @@ class BaseDocument:
 
 	@docstatus.setter
 	def docstatus(self, value):
+		if self._readonly:
+			raise frappe.exceptions.ReadOnlyDocument(repr(self), "docstatus")
 		self.__dict__["docstatus"] = DocStatus(cint(value))
 
 	def as_dict(
