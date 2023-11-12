@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import inspect
 from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
 
@@ -102,8 +103,9 @@ def import_controller(doctype):
 			else f"{doctype}: {classname} does not exist in module {module_path}"
 		)
 
-	if not issubclass(class_, BaseDocument):
-		raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
+	if inspect.isclass(class_):
+		if not issubclass(class_, BaseDocument):
+			raise ImportError(f"{doctype}: {classname} is not a subclass of BaseDocument")
 
 	return class_
 
