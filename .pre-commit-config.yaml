@@ -35,7 +35,7 @@ repos:
     rev: v2.7.1
     hooks:
       - id: prettier
-        types_or: [javascript]
+        types_or: [javascript, vue, scss]
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
@@ -44,7 +44,8 @@ repos:
                 .*boilerplate.*|
                 frappe/www/website_script.js|
                 frappe/templates/includes/.*|
-                frappe/public/js/lib/.*
+                frappe/public/js/lib/.*|
+                frappe/website/doctype/website_theme/website_theme_template.scss
             )$
 
 
