@@ -28,12 +28,13 @@ def get_list(
 	doctype,
 	fields=None,
 	filters=None,
+	group_by=None,
 	order_by=None,
 	limit_start=None,
 	limit_page_length=20,
 	parent=None,
-	debug=False,
-	as_dict=True,
+	debug: bool = False,
+	as_dict: bool = True,
 	or_filters=None,
 ):
 	"""Returns a list of records by filters, fields, ordering and limit
@@ -53,6 +54,7 @@ def get_list(
 		fields=fields,
 		filters=filters,
 		or_filters=or_filters,
+		group_by=group_by,
 		order_by=order_by,
 		limit_start=limit_start,
 		limit_page_length=limit_page_length,

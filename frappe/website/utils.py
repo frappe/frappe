@@ -182,7 +182,7 @@ def get_boot_data():
 
 
 def is_signup_disabled():
-	return frappe.db.get_single_value("Website Settings", "disable_signup", True)
+	return frappe.get_website_settings("disable_signup")
 
 
 def cleanup_page_name(title: str) -> str:

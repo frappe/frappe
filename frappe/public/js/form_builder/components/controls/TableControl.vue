@@ -1,5 +1,5 @@
 <script setup>
-import { get_table_columns } from "../../utils";
+import { get_table_columns, load_doctype_model } from "../../utils";
 import { computedAsync } from "@vueuse/core";
 
 const props = defineProps(["df"]);
@@ -7,7 +7,9 @@ const props = defineProps(["df"]);
 let table_columns = computedAsync(async () => {
 	let doctype = props.df.options;
 	if (!doctype) return [];
-	await frappe.model.with_doctype(doctype);
+	if (!frappe.get_meta(doctype)) {
+		await load_doctype_model(doctype);
+	}
 	let child_doctype = frappe.get_meta(doctype);
 	return get_table_columns(props.df, child_doctype);
 }, []);

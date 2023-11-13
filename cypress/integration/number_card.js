@@ -5,7 +5,7 @@ context("Number Card", () => {
 	});
 
 	it("Check filter populate for child table doctype", () => {
-		cy.visit("/app/number-card/new-number-card-1");
+		cy.new_form("Number Card");
 		cy.get('[data-fieldname="parent_document_type"]').should("have.css", "display", "none");
 
 		cy.get_field("document_type", "Link");

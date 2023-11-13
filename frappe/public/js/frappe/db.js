@@ -124,7 +124,7 @@ frappe.db = {
 					filters,
 				},
 				callback(r) {
-					resolve(r.results);
+					resolve(r.message);
 				},
 			});
 		});

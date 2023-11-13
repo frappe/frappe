@@ -86,14 +86,14 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 		frappe.link_search(
 			this.doctype,
 			args,
-			function (r) {
+			function (results) {
 				var parent = me.dialog.fields_dict.results.$wrapper;
 				if (args.start === 0) {
 					parent.empty();
 				}
 
-				if (r.values.length) {
-					for (const v of r.values) {
+				if (results.length) {
+					for (const v of results) {
 						var row = $(
 							repl(
 								'<div class="row link-select-row">\
@@ -149,7 +149,7 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 				}
 
 				var more_btn = me.dialog.fields_dict.more.$wrapper;
-				if (r.values.length < me.page_length) {
+				if (results.length < me.page_length) {
 					more_btn.hide();
 				} else {
 					more_btn.show();
@@ -246,7 +246,7 @@ frappe.link_search = function (doctype, args, callback, btn) {
 		type: "GET",
 		args: args,
 		callback: function (r) {
-			callback && callback(r);
+			callback && callback(r.message);
 		},
 		btn: btn,
 	});

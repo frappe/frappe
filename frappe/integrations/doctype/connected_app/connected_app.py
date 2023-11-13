@@ -48,7 +48,8 @@ class ConnectedApp(Document):
 	def validate(self):
 		base_url = frappe.utils.get_url()
 		callback_path = (
-			"/api/method/frappe.integrations.doctype.connected_app.connected_app.callback/" + self.name
+			"/api/method/frappe.integrations.doctype.connected_app.connected_app.callback"
+			+ f"?app={self.name}"
 		)
 		self.redirect_uri = urljoin(base_url, callback_path)
 
@@ -148,7 +149,7 @@ class ConnectedApp(Document):
 
 
 @frappe.whitelist(methods=["GET"], allow_guest=True)
-def callback(code=None, state=None):
+def callback(code=None, state=None, app=None):
 	"""Handle client's code.
 
 	Called during the oauthorization flow by the remote oAuth2 server to
@@ -161,11 +162,7 @@ def callback(code=None, state=None):
 		frappe.local.response["location"] = "/login?" + urlencode({"redirect-to": frappe.request.url})
 		return
 
-	path = frappe.request.path[1:].split("/")
-	if len(path) != 4 or not path[3]:
-		frappe.throw(_("Invalid Parameters."))
-
-	connected_app = frappe.get_doc("Connected App", path[3])
+	connected_app = frappe.get_doc("Connected App", app)
 	token_cache = frappe.get_doc("Token Cache", connected_app.name + "-" + frappe.session.user)
 
 	if state != token_cache.state:

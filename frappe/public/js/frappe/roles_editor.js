@@ -10,7 +10,7 @@ frappe.RoleEditor = class {
 				fieldname: "roles",
 				fieldtype: "MultiCheck",
 				select_all: true,
-				columns: 3,
+				columns: "15rem",
 				get_data: () => {
 					return frappe
 						.xcall("frappe.core.doctype.user.user.get_all_roles")

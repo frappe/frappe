@@ -1,20 +1,21 @@
 import json
 import sys
 from contextlib import contextmanager
+from functools import cached_property
 from random import choice
 from threading import Thread
 from time import time
 from unittest.mock import patch
+from urllib.parse import urljoin
 
 import requests
 from filetype import guess_mime
-from semantic_version import Version
 from werkzeug.test import TestResponse
 
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.utils import FrappeTestCase, patch_hooks
-from frappe.utils import cint, get_site_url, get_test_client
+from frappe.utils import cint, get_test_client, get_url
 
 try:
 	_site = frappe.local.site
@@ -73,34 +74,55 @@ class ThreadWithReturnValue(Thread):
 		return self._return
 
 
+resource_key = {
+	"": "resource",
+	"v1": "resource",
+	"v2": "document",
+}
+
+
 class FrappeAPITestCase(FrappeTestCase):
-	SITE = frappe.local.site
-	SITE_URL = get_site_url(SITE)
-	RESOURCE_URL = f"{SITE_URL}/api/resource"
+	version = ""  # Empty implies v1
 	TEST_CLIENT = get_test_client()
 
 	@property
+	def site_url(self):
+		return get_url()
+
+	def resource_path(self, *parts):
+		return self.get_path(resource_key[self.version], *parts)
+
+	def method_path(self, *method):
+		return self.get_path("method", *method)
+
+	def doctype_path(self, *method):
+		return self.get_path("doctype", *method)
+
+	def get_path(self, *parts):
+		return urljoin(self.site_url, "/".join(("api", self.version, *parts)))
+
+	@cached_property
 	def sid(self) -> str:
-		if not getattr(self, "_sid", None):
-			from frappe.auth import CookieManager, LoginManager
-			from frappe.utils import set_request
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
 
-			set_request(path="/")
-			frappe.local.cookie_manager = CookieManager()
-			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as("Administrator")
-			self._sid = frappe.session.sid
-
-		return self._sid
+		set_request(path="/")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		frappe.local.login_manager.login_as("Administrator")
+		return frappe.session.sid
 
 	def get(self, path: str, params: dict | None = None, **kwargs) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"data": params, **kwargs})
+		return make_request(target=self.TEST_CLIENT.get, args=(path,), kwargs={"json": params, **kwargs})
 
 	def post(self, path, data, **kwargs) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.post, args=(path,), kwargs={"data": data, **kwargs})
+		return make_request(target=self.TEST_CLIENT.post, args=(path,), kwargs={"json": data, **kwargs})
 
 	def put(self, path, data, **kwargs) -> TestResponse:
-		return make_request(target=self.TEST_CLIENT.put, args=(path,), kwargs={"data": data, **kwargs})
+		return make_request(target=self.TEST_CLIENT.put, args=(path,), kwargs={"json": data, **kwargs})
+
+	def patch(self, path, data, **kwargs) -> TestResponse:
+		return make_request(target=self.TEST_CLIENT.patch, args=(path,), kwargs={"json": data, **kwargs})
 
 	def delete(self, path, **kwargs) -> TestResponse:
 		return make_request(target=self.TEST_CLIENT.delete, args=(path,), kwargs=kwargs)
@@ -113,8 +135,9 @@ class TestResourceAPI(FrappeAPITestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		for _ in range(10):
+		for _ in range(20):
 			doc = frappe.get_doc({"doctype": "ToDo", "description": frappe.mock("paragraph")}).insert()
+			cls.GENERATED_DOCUMENTS = []
 			cls.GENERATED_DOCUMENTS.append(doc.name)
 		frappe.db.commit()
 
@@ -126,31 +149,31 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_unauthorized_call(self):
 		# test 1: fetch documents without auth
-		response = requests.get(f"{self.RESOURCE_URL}/{self.DOCTYPE}")
+		response = requests.get(self.resource_path(self.DOCTYPE))
 		self.assertEqual(response.status_code, 403)
 
 	def test_get_list(self):
 		# test 2: fetch documents without params
-		response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid})
+		response = self.get(self.resource_path(self.DOCTYPE), {"sid": self.sid})
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertIn("data", response.json)
 
 	def test_get_list_limit(self):
 		# test 3: fetch data with limit
-		response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "limit": 2})
+		response = self.get(self.resource_path(self.DOCTYPE), {"sid": self.sid, "limit": 2})
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(len(response.json["data"]), 2)
 
 	def test_get_list_dict(self):
 		# test 4: fetch response as (not) dict
-		response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "as_dict": True})
+		response = self.get(self.resource_path(self.DOCTYPE), {"sid": self.sid, "as_dict": True})
 		json = frappe._dict(response.json)
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(json.data, list)
 		self.assertIsInstance(json.data[0], dict)
 
-		response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "as_dict": False})
+		response = self.get(self.resource_path(self.DOCTYPE), {"sid": self.sid, "as_dict": False})
 		json = frappe._dict(response.json)
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(json.data, list)
@@ -158,7 +181,8 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_get_list_debug(self):
 		# test 5: fetch response with debug
-		response = self.get(f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "debug": True})
+		with suppress_stdout():
+			response = self.get(self.resource_path(self.DOCTYPE), {"sid": self.sid, "debug": True})
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("exc", response.json)
 		self.assertIsInstance(response.json["exc"], str)
@@ -167,52 +191,48 @@ class TestResourceAPI(FrappeAPITestCase):
 	def test_get_list_fields(self):
 		# test 6: fetch response with fields
 		response = self.get(
-			f"/api/resource/{self.DOCTYPE}", {"sid": self.sid, "fields": '["description"]'}
+			self.resource_path(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'}
 		)
 		self.assertEqual(response.status_code, 200)
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
 
 	def test_create_document(self):
-		# test 7: POST method on /api/resource to create doc
 		data = {"description": frappe.mock("paragraph"), "sid": self.sid}
-		response = self.post(f"/api/resource/{self.DOCTYPE}", data)
+		response = self.post(self.resource_path(self.DOCTYPE), data)
 		self.assertEqual(response.status_code, 200)
 		docname = response.json["data"]["name"]
 		self.assertIsInstance(docname, str)
 		self.GENERATED_DOCUMENTS.append(docname)
 
 	def test_update_document(self):
-		# test 8: PUT method on /api/resource to update doc
 		generated_desc = frappe.mock("paragraph")
 		data = {"description": generated_desc, "sid": self.sid}
 		random_doc = choice(self.GENERATED_DOCUMENTS)
-		desc_before_update = frappe.db.get_value(self.DOCTYPE, random_doc, "description")
 
-		response = self.put(f"/api/resource/{self.DOCTYPE}/{random_doc}", data=data)
+		response = self.put(self.resource_path(self.DOCTYPE, random_doc), data=data)
 		self.assertEqual(response.status_code, 200)
-		self.assertNotEqual(response.json["data"]["description"], desc_before_update)
+		self.assertEqual(response.json["data"]["description"], generated_desc)
+
+		response = self.get(self.resource_path(self.DOCTYPE, random_doc))
 		self.assertEqual(response.json["data"]["description"], generated_desc)
 
 	def test_delete_document(self):
-		# test 9: DELETE method on /api/resource
 		doc_to_delete = choice(self.GENERATED_DOCUMENTS)
-		response = self.delete(f"/api/resource/{self.DOCTYPE}/{doc_to_delete}")
+		response = self.delete(self.resource_path(self.DOCTYPE, doc_to_delete))
 		self.assertEqual(response.status_code, 202)
-		self.assertDictEqual(response.json, {"message": "ok"})
-		self.GENERATED_DOCUMENTS.remove(doc_to_delete)
+		self.assertDictEqual(response.json, {"data": "ok"})
 
-		non_existent_doc = frappe.generate_hash(length=12)
-		with suppress_stdout():
-			response = self.delete(f"/api/resource/{self.DOCTYPE}/{non_existent_doc}")
+		response = self.get(self.resource_path(self.DOCTYPE, doc_to_delete))
 		self.assertEqual(response.status_code, 404)
-		self.assertDictEqual(response.json, {})
+		self.GENERATED_DOCUMENTS.remove(doc_to_delete)
 
 	def test_run_doc_method(self):
 		# test 10: Run whitelisted method on doc via /api/resource
 		# status_code is 403 if no other tests are run before this - it's not logged in
-		self.post("/api/resource/Website Theme/Standard", {"run_method": "get_apps"})
-		response = self.get("/api/resource/Website Theme/Standard", {"run_method": "get_apps"})
+		self.post(self.resource_path("Website Theme", "Standard"), {"run_method": "get_apps"})
+		response = self.get(self.resource_path("Website Theme", "Standard"), {"run_method": "get_apps"})
+
 		self.assertIn(response.status_code, (403, 200))
 
 		if response.status_code == 403:
@@ -232,25 +252,16 @@ class TestResourceAPI(FrappeAPITestCase):
 
 
 class TestMethodAPI(FrappeAPITestCase):
-	METHOD_PATH = "/api/method"
-
-	def setUp(self):
-		if self._testMethodName == "test_auth_cycle":
-			from frappe.core.doctype.user.user import generate_keys
-
-			generate_keys("Administrator")
-			frappe.db.commit()
-
 	def test_ping(self):
 		# test 2: test for /api/method/ping
-		response = self.get(f"{self.METHOD_PATH}/ping")
+		response = self.get(self.method_path("ping"))
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertEqual(response.json["message"], "pong")
 
 	def test_get_user_info(self):
 		# test 3: test for /api/method/frappe.realtime.get_user_info
-		response = self.get(f"{self.METHOD_PATH}/frappe.realtime.get_user_info")
+		response = self.get(self.method_path("frappe.realtime.get_user_info"))
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertIn(response.json.get("message").get("user"), ("Administrator", "Guest"))
@@ -258,28 +269,64 @@ class TestMethodAPI(FrappeAPITestCase):
 	def test_auth_cycle(self):
 		# test 4: Pass authorization token in request
 		global authorization_token
+		generate_admin_keys()
 		user = frappe.get_doc("User", "Administrator")
 		api_key, api_secret = user.api_key, user.get_password("api_secret")
 		authorization_token = f"{api_key}:{api_secret}"
-		response = self.get("/api/method/frappe.auth.get_logged_user")
+		response = self.get(self.method_path("frappe.auth.get_logged_user"))
 
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.json["message"], "Administrator")
 
+		authorization_token = f"{api_key}:INCORRECT"
+		response = self.get(self.method_path("frappe.auth.get_logged_user"))
+		self.assertEqual(response.status_code, 401)
+
+		authorization_token = f"NonExistentKey:INCORRECT"
+		response = self.get(self.method_path("frappe.auth.get_logged_user"))
+		self.assertEqual(response.status_code, 401)
+
 		authorization_token = None
 
 	def test_404s(self):
-		response = self.get("/api/rest", {"sid": self.sid})
+		response = self.get(self.get_path("rest"), {"sid": self.sid})
 		self.assertEqual(response.status_code, 404)
-		response = self.get("/api/resource/User/NonExistent@s.com", {"sid": self.sid})
+		response = self.get(self.resource_path("User", "NonExistent@s.com"), {"sid": self.sid})
 		self.assertEqual(response.status_code, 404)
+
+	def test_logs(self):
+		method = "frappe.tests.test_api.test"
+
+		def get_message(resp, msg_type):
+			return frappe.parse_json(frappe.parse_json(frappe.parse_json(resp.json)[msg_type])[0])
+
+		expected_message = "Failed"
+		response = self.get(self.method_path(method), {"sid": self.sid, "message": expected_message})
+		self.assertEqual(get_message(response, "_server_messages").message, expected_message)
+
+		# Cause handled failured
+		with suppress_stdout():
+			response = self.get(
+				self.method_path(method), {"sid": self.sid, "message": expected_message, "fail": True}
+			)
+		self.assertEqual(get_message(response, "_server_messages").message, expected_message)
+		self.assertEqual(response.json["exc_type"], "ValidationError")
+		self.assertIn("Traceback", response.json["exc"])
+
+		# Cause handled failured
+		with suppress_stdout():
+			response = self.get(
+				self.method_path(method),
+				{"sid": self.sid, "message": expected_message, "fail": True, "handled": False},
+			)
+		self.assertNotIn("_server_messages", response.json)
+		self.assertIn("ZeroDivisionError", response.json["exception"])  # WHY?
+		self.assertIn("Traceback", response.json["exc"])
 
 
 class TestReadOnlyMode(FrappeAPITestCase):
 	"""During migration if read only mode can be enabled.
 	Test if reads work well and writes are blocked"""
-
-	REQ_PATH = "/api/resource/ToDo"
 
 	@classmethod
 	def setUpClass(cls):
@@ -290,13 +337,16 @@ class TestReadOnlyMode(FrappeAPITestCase):
 		update_site_config("maintenance_mode", 1)
 
 	def test_reads(self):
-		response = self.get(self.REQ_PATH, {"sid": self.sid})
+		response = self.get(self.resource_path("ToDo"), {"sid": self.sid})
 		self.assertEqual(response.status_code, 200)
 		self.assertIsInstance(response.json, dict)
 		self.assertIsInstance(response.json["data"], list)
 
 	def test_blocked_writes(self):
-		response = self.post(self.REQ_PATH, {"description": frappe.mock("paragraph"), "sid": self.sid})
+		with suppress_stdout():
+			response = self.post(
+				self.resource_path("ToDo"), {"description": frappe.mock("paragraph"), "sid": self.sid}
+			)
 		self.assertEqual(response.status_code, 503)
 		self.assertEqual(response.json["exc_type"], "InReadOnlyMode")
 
@@ -368,3 +418,21 @@ class TestResponse(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("text/csv", response.headers["content-type"])
 		self.assertGreater(cint(response.headers["content-length"]), 0)
+
+
+def generate_admin_keys():
+	from frappe.core.doctype.user.user import generate_keys
+
+	generate_keys("Administrator")
+	frappe.db.commit()
+
+
+@frappe.whitelist()
+def test(*, fail=False, handled=True, message="Failed"):
+	if fail:
+		if handled:
+			frappe.throw(message)
+		else:
+			1 / 0
+	else:
+		frappe.msgprint(message)

@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from functools import lru_cache, wraps
 from inspect import _empty, isclass, signature
-from types import EllipsisType
+from types import EllipsisType, NoneType
 from typing import ForwardRef, TypeVar, Union
 
 from pydantic import ConfigDict

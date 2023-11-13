@@ -132,16 +132,6 @@ def as_unicode(text: str, encoding: str = "utf-8") -> str:
 		return str(text)
 
 
-def get_lang_dict(fortype: str, name: str | None = None) -> dict[str, str]:
-	"""Returns the translated language dict for the given type and name.
-
-	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
-	:param name: name of the document for which assets are to be returned."""
-	from frappe.translate import get_dict
-
-	return get_dict(fortype, name)
-
-
 def set_user_lang(user: str, user_language: str | None = None) -> None:
 	"""Guess and set user language for the session. `frappe.local.lang`"""
 	from frappe.translate import get_user_lang
@@ -156,6 +146,7 @@ qb = local("qb")
 conf = local("conf")
 form = form_dict = local("form_dict")
 request = local("request")
+job = local("job")
 response = local("response")
 session = local("session")
 user = local("user")
@@ -169,7 +160,7 @@ lang = local("lang")
 
 # This if block is never executed when running the code. It is only used for
 # telling static code analyzer where to find dynamically defined attributes.
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
 	from werkzeug.wrappers import Request
 
 	from frappe.database.mariadb.database import MariaDBDatabase
@@ -488,9 +479,12 @@ def msgprint(
 	def _raise_exception():
 		if raise_exception:
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-				raise raise_exception(msg)
+				exc = raise_exception(msg)
 			else:
-				raise ValidationError(msg)
+				exc = ValidationError(msg)
+			if out.__frappe_exc_id:
+				exc.__frappe_exc_id = out.__frappe_exc_id
+			raise exc
 
 	if flags.mute_messages:
 		_raise_exception()
@@ -527,6 +521,7 @@ def msgprint(
 
 	if raise_exception:
 		out.raise_exception = 1
+		out.__frappe_exc_id = generate_hash()
 
 	if primary_action:
 		out.primary_action = primary_action
@@ -534,11 +529,7 @@ def msgprint(
 	if wide:
 		out.wide = wide
 
-	message_log.append(json.dumps(out))
-
-	if raise_exception and hasattr(raise_exception, "__name__"):
-		local.response["exc_type"] = raise_exception.__name__
-
+	message_log.append(out)
 	_raise_exception()
 
 
@@ -546,8 +537,8 @@ def clear_messages():
 	local.message_log = []
 
 
-def get_message_log():
-	return [json.loads(msg_out) for msg_out in local.message_log]
+def get_message_log() -> list[dict]:
+	return [msg_out for msg_out in local.message_log]
 
 
 def clear_last_message():
@@ -1225,7 +1216,7 @@ def get_doc(doctype: str, /) -> _SingleDocument:
 
 
 @overload
-def get_doc(doctype: str, name: str, /, for_update: bool | None = None) -> "Document":
+def get_doc(doctype: str, name: str, /, *, for_update: bool | None = None) -> "Document":
 	"""Retrieve DocType from DB, doctype and name must be positional argument."""
 	pass
 
@@ -1449,9 +1440,9 @@ def get_site_path(*joins):
 	"""Return path of current site.
 
 	:param *joins: Join additional path elements using `os.path.join`."""
-	from os.path import join, normpath
+	from os.path import join
 
-	return normpath(join(local.site_path, *joins))
+	return join(local.site_path, *joins)
 
 
 def get_pymodule_path(modulename, *joins):
@@ -1713,6 +1704,7 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 		if (a in fnargs) or varkw_exist:
 			newargs[a] = kwargs.get(a)
 
+	# WARNING: This behaviour is now  part of business logic in places, never remove.
 	newargs.pop("ignore_permissions", None)
 	newargs.pop("flags", None)
 

@@ -59,8 +59,6 @@ export default class Shortcut extends Block {
 			$(this.wrapper).find(".widget").addClass("shortcut edit-mode");
 			this.add_settings_button();
 			this.add_new_block_button();
-		} else {
-			$(this.wrapper).append($(`<div class="divider"></div>`));
 		}
 		return this.wrapper;
 	}

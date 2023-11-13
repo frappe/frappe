@@ -38,7 +38,7 @@ from frappe.utils.jinja_globals import bundled_asset
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
 
 _result: Result | None = None
-TEST_SITE = "commands-site-O4PN2QKA.test"  # added random string tag to avoid collisions
+TEST_SITE = "commands-site-O4PN2QK.test"  # added random string tag to avoid collisions
 CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
 
 
@@ -252,14 +252,40 @@ class TestCommands(BaseTestCommands):
 			if value:
 				self.execute(f"bench set-config {key} {value} -g")
 
+		with self.switch_site(TEST_SITE):
+			public_file = frappe.new_doc(
+				"File", file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
+			).insert()
+			private_file = frappe.new_doc(
+				"File", file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
+			).insert()
+
 		# test 1: bench restore from full backup
-		self.execute("bench --site {test_site} backup --ignore-backup-conf", site_data)
+		self.execute("bench --site {test_site} backup --ignore-backup-conf --with-files", site_data)
 		self.execute(
 			"bench --site {test_site} execute frappe.utils.backups.fetch_latest_backups",
 			site_data,
 		)
-		site_data.update({"database": json.loads(self.stdout)["database"]})
-		self.execute("bench --site {test_site} restore {database}", site_data)
+		# Destroy some data and files to verify that they are indeed being restored.
+		with self.switch_site(TEST_SITE):
+			public_file.delete_file_data_content()
+			private_file.delete_file_data_content()
+			frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabToDo`")
+			self.assertFalse(public_file.exists_on_disk())
+			self.assertFalse(private_file.exists_on_disk())
+
+		backup_data = json.loads(self.stdout)
+		site_data.update(backup_data)
+		self.execute(
+			"bench --site {test_site} restore {database} --with-public-files {public} --with-private-files {private} ",
+			site_data,
+		)
+		self.assertEqual(self.returncode, 0)
+
+		with self.switch_site(TEST_SITE):
+			self.assertTrue(frappe.db.table_exists("ToDo", cached=False))
+			self.assertTrue(public_file.exists_on_disk())
+			self.assertTrue(private_file.exists_on_disk())
 
 		# test 2: restore from partial backup
 		self.execute("bench --site {test_site} backup --exclude 'ToDo'", site_data)

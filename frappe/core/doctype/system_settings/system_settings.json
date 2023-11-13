@@ -217,7 +217,7 @@
    "label": "Security"
   },
   {
-   "default": "60:00",
+   "default": "170:00",
    "description": "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours.",
    "fieldname": "session_expiry",
    "fieldtype": "Data",
@@ -292,6 +292,7 @@
    "label": "Brute Force Security"
   },
   {
+   "default": "10",
    "fieldname": "allow_consecutive_login_attempts",
    "fieldtype": "Int",
    "label": "Allow Consecutive Login Attempts "
@@ -602,7 +603,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-09-25 16:49:16.652874",
+ "modified": "2023-10-17 16:12:28.145496",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

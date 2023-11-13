@@ -23,10 +23,7 @@ if (props.df.fieldtype === "Icon") {
 </script>
 
 <template>
-	<div
-		class="control frappe-control"
-		:class="{ editable: slots.label }"
-	>
+	<div class="control frappe-control" :class="{ editable: slots.label }">
 		<!-- label -->
 		<div v-if="slots.label" class="field-controls">
 			<slot name="label" />
@@ -48,8 +45,8 @@ if (props.df.fieldtype === "Icon") {
 			class="form-control"
 			type="text"
 			:value="value"
-			:disabled="read_only"
-			@input="event => $emit('update:modelValue', event.target.value)"
+			:disabled="read_only || df.read_only"
+			@input="(event) => $emit('update:modelValue', event.target.value)"
 		/>
 		<input
 			v-if="slots.label && df.fieldtype === 'Barcode'"

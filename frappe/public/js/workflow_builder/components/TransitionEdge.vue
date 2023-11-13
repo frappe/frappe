@@ -20,7 +20,7 @@ const props = defineProps({
 	targetNode: { type: Object, required: true },
 	markerEnd: { type: String, required: false },
 	selected: { type: Boolean, required: false },
-	data: { type: Object, required: false }
+	data: { type: Object, required: false },
 });
 
 let marker_end = {
@@ -28,7 +28,7 @@ let marker_end = {
 	width: 15,
 	height: 15,
 	strokeWidth: 1.5,
-	color: "#687178"
+	color: "#687178",
 };
 
 let marker_end_primary = {
@@ -36,12 +36,12 @@ let marker_end_primary = {
 	width: 11,
 	height: 11,
 	strokeWidth: 1.7,
-	color: "#171717"
+	color: "#171717",
 };
 
 watch(
 	() => props.selected,
-	val => {
+	(val) => {
 		let target_is_action = props.target?.startsWith("action-");
 		val && selectAction(target_is_action);
 		if (target_is_action) return;
@@ -53,7 +53,7 @@ watch(
 function selectAction(target_is_action) {
 	let action = target_is_action ? props.targetNode : props.sourceNode;
 	if (action.selected) return;
-	getSelectedNodes.value?.forEach(node => (node.selected = false));
+	getSelectedNodes.value?.forEach((node) => (node.selected = false));
 	nextTick(() => (action.selected = true));
 }
 
@@ -68,13 +68,13 @@ const d = computed(() => {
 		sourcePosition: props.sourcePosition,
 		targetPosition: props.targetPosition,
 		targetNode: props.targetNode,
-		borderRadius: 30
+		borderRadius: 30,
 	});
 });
 </script>
 <script>
 export default {
-	inheritAttrs: false
+	inheritAttrs: false,
 };
 </script>
 <template>
@@ -85,7 +85,7 @@ export default {
 			:style="{
 				transform: `translate(-50%, -50%) translate(${d[1]}px, ${d[2]}px)`,
 				borderColor: selected ? 'var(--primary)' : 'var(--gray-600)',
-				borderWidth: selected ? '1.5px' : '1px'
+				borderWidth: selected ? '1.5px' : '1px',
 			}"
 			class="access nodrag nopan"
 		>

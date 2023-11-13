@@ -5,10 +5,10 @@ import io
 import os
 import re
 import subprocess
-from distutils.version import LooseVersion
 
 import pdfkit
 from bs4 import BeautifulSoup
+from packaging.version import Version
 from pypdf import PdfReader, PdfWriter
 
 import frappe
@@ -83,7 +83,7 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 	options.update({"disable-javascript": "", "disable-local-file-access": ""})
 
 	filedata = ""
-	if LooseVersion(get_wkhtmltopdf_version()) > LooseVersion("0.12.3"):
+	if Version(get_wkhtmltopdf_version()) > Version("0.12.3"):
 		options.update({"disable-smart-shrinking": ""})
 
 	try:

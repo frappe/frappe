@@ -67,6 +67,7 @@
 .avatar {
 	display: inline-block;
 	vertical-align: middle;
+	line-height: 1;
 }
 
 .avatar-frame {
@@ -94,11 +95,6 @@
 
 	.standard-image {
 		font-size: var(--text-xs);
-	}
-
-	.avatar-empty::after {
-		content: "\002D";
-		line-height: 28px;
 	}
 }
 
@@ -169,7 +165,6 @@
 		justify-content: flex-end;
 		margin-right: var(--margin-xs);
 	}
-
 
 	.avatar-action {
 		@extend .avatar-small;

@@ -242,6 +242,12 @@ def new_page(new_page):
 
 	if page.get("public") and not is_workspace_manager():
 		return
+	elif (
+		not page.get("public")
+		and page.get("for_user") != frappe.session.user
+		and not is_workspace_manager()
+	):
+		frappe.throw(_("Cannot create private workspace of other users"), frappe.PermissionError)
 
 	doc = frappe.new_doc("Workspace")
 	doc.title = page.get("title")
@@ -282,6 +288,16 @@ def save_page(title, public, new_widgets, blocks):
 def update_page(name, title, icon, indicator_color, parent, public):
 	public = frappe.parse_json(public)
 	doc = frappe.get_doc("Workspace", name)
+
+	if (
+		not doc.get("public")
+		and doc.get("for_user") != frappe.session.user
+		and not is_workspace_manager()
+	):
+		frappe.throw(
+			_("Need Workspace Manager role to edit private workspace of other users"),
+			frappe.PermissionError,
+		)
 
 	if doc:
 		doc.title = title
@@ -328,7 +344,11 @@ def hide_unhide_page(page_name: str, is_hidden: bool):
 			_("Need Workspace Manager role to hide/unhide public workspaces"), frappe.PermissionError
 		)
 
-	if not page.get("public") and page.get("for_user") != frappe.session.user:
+	if (
+		not page.get("public")
+		and page.get("for_user") != frappe.session.user
+		and not is_workspace_manager()
+	):
 		frappe.throw(_("Cannot update private workspace of other users"), frappe.PermissionError)
 
 	page.is_hidden = int(is_hidden)
@@ -387,7 +407,17 @@ def delete_page(page):
 	page = loads(page)
 
 	if page.get("public") and not is_workspace_manager():
-		return
+		frappe.throw(
+			_("Cannot delete public workspace without Workspace Manager role"),
+			frappe.PermissionError,
+		)
+	elif not page.get("public") and not is_workspace_manager():
+		workspace_owner = frappe.get_value("Workspace", page.get("name"), "for_user")
+		if workspace_owner != frappe.session.user:
+			frappe.throw(
+				_("Cannot delete private workspace of other users"),
+				frappe.PermissionError,
+			)
 
 	if frappe.db.exists("Workspace", page.get("name")):
 		frappe.get_doc("Workspace", page.get("name")).delete(ignore_permissions=True)

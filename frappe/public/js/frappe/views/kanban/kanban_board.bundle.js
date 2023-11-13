@@ -729,7 +729,7 @@ frappe.provide("frappe.views");
 			let fields = [];
 			for (let field_name of cur_list.board.fields) {
 				let field =
-					frappe.meta.get_docfield(card.doctype, field_name, card.name) ||
+					frappe.meta.docfield_map[card.doctype]?.[field_name] ||
 					frappe.model.get_std_field(field_name);
 				let label = cur_list.board.show_labels ? `<span>${__(field.label)}: </span>` : "";
 				let value = frappe.format(card.doc[field_name], field);

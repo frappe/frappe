@@ -200,16 +200,12 @@ def get_context(context):
 			and not frappe.form_dict.name
 			and not frappe.form_dict.is_list
 		):
-			names = frappe.db.get_values(self.doc_type, {"owner": frappe.session.user}, pluck="name")
-			for name in names:
-				if self.condition:
-					doc = frappe.get_doc(self.doc_type, name)
-					if frappe.safe_eval(self.condition, None, {"doc": doc.as_dict()}):
-						context.in_view_mode = True
-						frappe.redirect(f"/{self.route}/{name}")
-				else:
-					context.in_view_mode = True
-					frappe.redirect(f"/{self.route}/{name}")
+			condition_json = json.loads(self.condition_json) if self.condition_json else []
+			condition_json.append(["owner", "=", frappe.session.user])
+			names = frappe.get_all(self.doc_type, filters=condition_json, pluck="name")
+			if names:
+				context.in_view_mode = True
+				frappe.redirect(f"/{self.route}/{names[0]}")
 
 		# Show new form when
 		# - User is Guest
@@ -262,10 +258,29 @@ def get_context(context):
 		}
 
 	def load_translations(self, context):
-		translated_messages = frappe.translate.get_dict("doctype", self.doc_type)
-		# Sr is not added by default, had to be added manually
-		translated_messages["Sr"] = _("Sr")
-		context.translated_messages = frappe.as_json(translated_messages)
+		messages = [
+			"Sr",
+			"Attach",
+			self.title,
+			self.introduction_text,
+			self.success_title,
+			self.success_message,
+			self.list_title,
+			self.button_label,
+			self.meta_title,
+			self.meta_description,
+		]
+
+		for field in self.web_form_fields:
+			messages.extend([field.label, field.description])
+			if field.fieldtype == "Select" and field.options:
+				messages.extend(field.options.split("\n"))
+
+		messages.extend(col.label for col in self.list_columns)
+
+		context.translated_messages = frappe.as_json(
+			{message: _(message) for message in messages if message}
+		)
 
 	def load_list_data(self, context):
 		if not self.list_columns:

@@ -4,7 +4,7 @@
 import json
 
 import frappe
-from frappe.integrations.utils import json_handler
+from frappe.integrations.utils import get_json, json_handler
 from frappe.model.document import Document
 
 
@@ -28,7 +28,7 @@ class IntegrationRequest(Document):
 		request_headers: DF.Code | None
 		request_id: DF.Data | None
 		status: DF.Literal["", "Queued", "Authorized", "Completed", "Cancelled", "Failed"]
-		url: DF.Data | None
+		url: DF.SmallText | None
 	# end: auto-generated types
 	def autoname(self):
 		if self.flags._name:
@@ -45,7 +45,7 @@ class IntegrationRequest(Document):
 		data = json.loads(self.data)
 		data.update(params)
 
-		self.data = json.dumps(data)
+		self.data = get_json(data)
 		self.status = status
 		self.save(ignore_permissions=True)
 		frappe.db.commit()

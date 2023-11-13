@@ -76,7 +76,7 @@ export default class QuickListWidget extends Widget {
 			delete this.filter_group;
 		}
 
-		this.filters = frappe.utils.get_filter_from_json(this.quick_list_filter, doctype);
+		this.filters = frappe.utils.process_filter_expression(this.quick_list_filter);
 
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent: this.dialog.get_field("filter_area").$wrapper,
@@ -104,7 +104,7 @@ export default class QuickListWidget extends Widget {
 			primary_action: function () {
 				let old_filter = me.quick_list_filter;
 				let filters = me.filter_group.get_filters();
-				me.quick_list_filter = frappe.utils.get_filter_as_json(filters);
+				me.quick_list_filter = JSON.parse(filters);
 
 				this.hide();
 
@@ -133,8 +133,6 @@ export default class QuickListWidget extends Widget {
 	}
 
 	setup_quick_list_item(doc) {
-		const indicator = frappe.get_indicator(doc, this.document_type);
-
 		let $quick_list_item = $(`
 			<div class="quick-list-item">
 				<div class="ellipsis left">
@@ -148,14 +146,6 @@ export default class QuickListWidget extends Widget {
 				</div>
 			</div>
 		`);
-
-		if (indicator) {
-			$(`
-				<div class="status indicator-pill ${indicator[1]} ellipsis">
-					${__(indicator[0])}
-				</div>
-			`).appendTo($quick_list_item);
-		}
 
 		$(`<div class="right-arrow">${frappe.utils.icon("right", "xs")}</div>`).appendTo(
 			$quick_list_item
@@ -203,7 +193,7 @@ export default class QuickListWidget extends Widget {
 
 			fields.push("modified");
 
-			let quick_list_filter = frappe.utils.get_filter_from_json(this.quick_list_filter);
+			let quick_list_filter = frappe.utils.process_filter_expression(this.quick_list_filter);
 
 			let args = {
 				method: "frappe.desk.reportview.get",
