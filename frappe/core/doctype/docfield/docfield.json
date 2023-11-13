@@ -104,7 +104,8 @@
    "oldfieldtype": "Select",
    "options": "Autocomplete\nAttach\nAttach Image\nBarcode\nButton\nCheck\nCode\nColor\nColumn Break\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nGeolocation\nHeading\nHTML\nHTML Editor\nIcon\nImage\nInt\nJSON\nLink\nLong Text\nMarkdown Editor\nPassword\nPercent\nPhone\nRead Only\nRating\nSection Break\nSelect\nSignature\nSmall Text\nTab Break\nTable\nTable MultiSelect\nText\nText Editor\nTime",
    "reqd": 1,
-   "search_index": 1
+   "search_index": 1,
+   "sort_options": 1
   },
   {
    "bold": 1,
@@ -416,7 +417,7 @@
    "width": "50px"
   },
   {
-   "description": "Number of columns for a field in a grid (total columns should be less than 11)",
+   "description": "Number of columns for a field in a List View or a Grid (Total Columns should be less than 11)",
    "fieldname": "columns",
    "fieldtype": "Int",
    "label": "Columns"
@@ -571,7 +572,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-11-07 12:21:57.036634",
+ "modified": "2023-11-13 11:48:51.502812",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",
