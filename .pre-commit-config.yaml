@@ -35,7 +35,7 @@ repos:
     rev: v2.7.1
     hooks:
       - id: prettier
-        types_or: [javascript]
+        types_or: [javascript, vue]
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
