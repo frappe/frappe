@@ -13,20 +13,22 @@ function get_options() {
 
 	if (typeof options == "string") {
 		options = options.split("\n") || "";
-		options = options.map(opt => {
+		options = options.map((opt) => {
 			return { label: __(opt), value: opt };
 		});
 	}
 
 	if (options?.length && typeof options[0] == "string") {
-		options = options.map(opt => {
+		options = options.map((opt) => {
 			return { label: __(opt), value: opt };
 		});
 	}
 
 	if (props.df.fieldname == "fieldtype") {
 		if (!in_list(frappe.model.layout_fields, props.modelValue)) {
-			options = options && options.filter(opt => !in_list(frappe.model.layout_fields, opt.value));
+			options =
+				options &&
+				options.filter((opt) => !in_list(frappe.model.layout_fields, opt.value));
 		} else {
 			options = [{ label: __(props.modelValue), value: props.modelValue }];
 		}
@@ -56,17 +58,17 @@ let select_control = computed(() => {
 					content.value = select_control.value.get_value();
 				}
 				update_control.value = true;
-			}
+			},
 		},
 		value: content.value,
 		render_input: true,
-		only_input: Boolean(slots.label) || props.no_label
+		only_input: Boolean(slots.label) || props.no_label,
 	});
 });
 
 let content = computed({
 	get: () => props.modelValue,
-	set: value => emit("update:modelValue", value)
+	set: (value) => emit("update:modelValue", value),
 });
 
 onMounted(() => {
@@ -75,15 +77,18 @@ onMounted(() => {
 
 watch(
 	() => content.value,
-	value => {
+	(value) => {
 		update_control.value = false;
 		select_control.value?.set_value(value);
 	}
 );
 
-watch(() => props.df.options, () => {
-	select_control.value;
-})
+watch(
+	() => props.df.options,
+	() => {
+		select_control.value;
+	}
+);
 </script>
 
 <template>

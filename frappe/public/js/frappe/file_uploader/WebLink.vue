@@ -1,9 +1,7 @@
 <template>
 	<div class="file-web-link margin-bottom">
-		<a href class="text-muted text-medium"
-			@click.prevent="emit('hide-web-link')"
-		>
-			{{ __('← Back to upload files') }}
+		<a href class="text-muted text-medium" @click.prevent="emit('hide-web-link')">
+			{{ __("← Back to upload files") }}
 		</a>
 		<div class="input-group">
 			<input
@@ -11,7 +9,7 @@
 				class="form-control"
 				:placeholder="__('Attach a web link')"
 				v-model="url"
-			>
+			/>
 		</div>
 	</div>
 </template>
