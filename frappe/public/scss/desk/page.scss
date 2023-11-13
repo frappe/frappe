@@ -10,7 +10,8 @@
 			display: none;
 		}
 
-		.sidebar-toggle-icon, .sidebar-toggle-placeholder {
+		.sidebar-toggle-icon,
+		.sidebar-toggle-placeholder {
 			@include transition(all 0.5s ease-in-out);
 		}
 
@@ -42,7 +43,6 @@
 	}
 }
 
-
 .page-container {
 	background-color: var(--bg-color);
 
@@ -60,7 +60,8 @@
 		border-radius: var(--border-radius);
 		line-height: 1;
 		padding: 4px 8px;
-		&, & .hidden-xs {
+		&,
+		& .hidden-xs {
 			display: inline-flex;
 			align-items: center;
 			gap: 6px;
@@ -69,7 +70,8 @@
 	.btn:not(.icon-btn) {
 		padding: 4px 8px;
 	}
-	.btn-primary, .btn-secondary {
+	.btn-primary,
+	.btn-secondary {
 		min-width: 40px;
 	}
 	.custom-btn-group {
@@ -90,7 +92,7 @@
 	overflow: hidden;
 	@include card($padding: 0px);
 	box-shadow: none;
-	border: 1px solid var(--border-color)
+	border: 1px solid var(--border-color);
 }
 
 .page-head {
@@ -144,7 +146,9 @@
 	}
 }
 
-.menu-btn-group, .custom-btn-group, .page-icon-group {
+.menu-btn-group,
+.custom-btn-group,
+.page-icon-group {
 	display: flex;
 	.dropdown-menu {
 		width: max-content;
@@ -159,10 +163,13 @@
 	}
 }
 .layout-main-section {
-	.frappe-list, .report-wrapper {
+	.frappe-list,
+	.report-wrapper {
 		padding: 0 var(--padding-xs);
 
-		.result, .no-result, .freeze {
+		.result,
+		.no-result,
+		.freeze {
 			min-height: #{"calc(100vh - 284px)"};
 		}
 	}

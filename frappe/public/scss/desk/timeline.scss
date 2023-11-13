@@ -9,7 +9,9 @@ $threshold: 34;
 	// doing this will prevent cssnano from converting 0px to 0
 	// clamp requires value unit to be valid
 	--zero-px: 0px;
-	top: unquote("clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
+	top: unquote(
+		"clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))"
+	);
 	left: calc(-1 * (#{$badge-size} / 2));
 	background-color: var(--timeline-badge-bg);
 	@extend .center-content;
@@ -24,7 +26,7 @@ $threshold: 34;
 		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
 	}
 	&:before {
-		content: ' ';
+		content: " ";
 		top: 90px; // TODO: get top and bottom programmatically
 		left: calc(var(--timeline-item-icon-size) / 2);
 		position: absolute;
@@ -36,18 +38,20 @@ $threshold: 34;
 		left: calc(-1.25 * var(--timeline-item-left-margin) / 2);
 		background: var(--bg-color);
 		&:before {
-			content: ' ';
+			content: " ";
 			background: var(--timeline-badge-color);
 			border-radius: 50%;
 			height: 4px;
 			width: 4px;
 		}
 	}
-	.activity-title, .timeline-actions {
+	.activity-title,
+	.timeline-actions {
 		margin-bottom: 0 !important;
 		display: flex;
 		align-items: center;
-		.show-all-activity, .timeline-item {
+		.show-all-activity,
+		.timeline-item {
 			margin-bottom: 0;
 		}
 		min-height: 60px;
@@ -105,9 +109,9 @@ $threshold: 34;
 					margin: 0 var(--margin-sm);
 				}
 
-				.content{
+				.content {
 					padding-left: 42px;
-					.mention{
+					.mention {
 						background-color: transparent;
 						border: none;
 						font-weight: var(--weight-semibold);
@@ -118,7 +122,6 @@ $threshold: 34;
 		.timeline-badge {
 			@include timeline-badge(var(--timeline-item-icon-size));
 			left: calc(-1 * var(--timeline-item-left-margin));
-
 		}
 		.timeline-load-more {
 			margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));

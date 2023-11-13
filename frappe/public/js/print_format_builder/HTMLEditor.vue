@@ -1,10 +1,7 @@
 <template>
 	<div class="html-editor">
 		<div class="d-flex justify-content-end">
-			<button
-				class="btn btn-default btn-xs btn-edit"
-				@click="toggle_edit"
-			>
+			<button class="btn btn-default btn-xs btn-edit" @click="toggle_edit">
 				{{ !editing ? buttonLabel : __("Done") }}
 			</button>
 		</div>
@@ -46,9 +43,9 @@ function toggle_edit() {
 				max_lines: 30,
 				change: () => {
 					emit("change", get_value());
-				}
+				},
 			},
-			render_input: true
+			render_input: true,
 		});
 	}
 	control.value.set_value(props.value);

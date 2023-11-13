@@ -4,7 +4,12 @@ import Column from "./Column.vue";
 import EditableInput from "./EditableInput.vue";
 import { ref, computed } from "vue";
 import { useStore } from "../store";
-import { section_boilerplate, move_children_to_parent, confirm_dialog, is_touch_screen_device } from "../utils";
+import {
+	section_boilerplate,
+	move_children_to_parent,
+	confirm_dialog,
+	is_touch_screen_device,
+} from "../utils";
 import { useMagicKeys, whenever } from "@vueuse/core";
 
 const props = defineProps(["tab", "section"]);
