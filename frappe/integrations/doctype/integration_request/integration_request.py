@@ -4,7 +4,7 @@
 import json
 
 import frappe
-from frappe.integrations.utils import json_handler
+from frappe.integrations.utils import get_json, json_handler
 from frappe.model.document import Document
 
 
@@ -45,7 +45,7 @@ class IntegrationRequest(Document):
 		data = json.loads(self.data)
 		data.update(params)
 
-		self.data = json.dumps(data)
+		self.data = get_json(data)
 		self.status = status
 		self.save(ignore_permissions=True)
 		frappe.db.commit()

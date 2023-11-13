@@ -40,7 +40,7 @@ class TestScheduler(TestCase):
 	def test_enqueue_jobs(self):
 		frappe.db.sql("update `tabScheduled Job Type` set last_execution = '2010-01-01 00:00:00'")
 
-		enqueued_jobs = enqueue_events(site=frappe.local.site)
+		enqueued_jobs = enqueue_events()
 
 		self.assertIn("frappe.desk.notifications.clear_notifications", enqueued_jobs)
 		self.assertIn("frappe.utils.change_log.check_for_update", enqueued_jobs)

@@ -160,11 +160,16 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return LazyDecode(self._cursor.query)
 
 	def get_connection(self):
-		conn = psycopg2.connect(
-			"host='{}' dbname='{}' user='{}' password='{}' port={}".format(
-				self.host, self.user, self.user, self.password, self.port
-			)
-		)
+		conn_settings = {
+			"user": self.user,
+			"dbname": self.user,
+			"host": self.host,
+			"password": self.password,
+		}
+		if self.port:
+			conn_settings["port"] = self.port
+
+		conn = psycopg2.connect(**conn_settings)
 		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
