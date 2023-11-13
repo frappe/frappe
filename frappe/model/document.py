@@ -1088,11 +1088,15 @@ class Document(BaseDocument):
 			except Exception:
 				raise frappe.exceptions.ProgrammingError("after_validate may not throw / raise")
 
-		# Other validations and mutations on cancel and update_after_submit
-		elif self._action == "cancel":
-			self.run_method("before_cancel")
-		elif self._action == "update_after_submit":
-			self.run_method("before_update_after_submit")
+		# Other validations on cancel and update_after_submit
+		elif self._action == "cancel" and not self.flags.ignore_validate:
+			self.immutable()
+			self.run_method("validate_before_cancel")
+			self.mutable()
+		elif self._action == "update_after_submit" and not self.flags.ignore_validate:
+			self.immutable()
+			self.run_method("validate_before_update_after_submit")
+			self.mutable()
 
 		self.set_title_field()
 
