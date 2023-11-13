@@ -14,7 +14,9 @@ context("Theme Switcher Shortcut", () => {
 		);
 		cy.findByText("Timeless Night").click();
 		cy.wait("@set_theme");
+		cy.get("html").should("have.attr", "data-theme-mode", "dark");
 		cy.close_theme("{ctrl+shift+g}");
+		cy.wait(400); // wait for modal to close
 		cy.get(".modal-backdrop").should("not.exist");
 	});
 	it("Check Enter", () => {
@@ -24,7 +26,9 @@ context("Theme Switcher Shortcut", () => {
 		);
 		cy.findByText("Frappe Light").click();
 		cy.wait("@set_theme");
+		cy.get("html").should("have.attr", "data-theme-mode", "light");
 		cy.close_theme("{enter}");
+		cy.wait(400); // wait for modal to close
 		cy.get(".modal-backdrop").should("not.exist");
 	});
 });
