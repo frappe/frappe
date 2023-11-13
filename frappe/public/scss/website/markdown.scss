@@ -1,7 +1,9 @@
-
 .section-markdown > .from-markdown {
 	max-width: 50rem;
 	margin: auto;
+	a {
+		text-decoration: underline;
+	}
 }
 
 .from-markdown {
@@ -28,7 +30,8 @@
 		list-style: decimal;
 	}
 
-	p, li {
+	p,
+	li {
 		line-height: 1.7;
 
 		@include media-breakpoint-up(sm) {
@@ -45,7 +48,8 @@
 		padding-bottom: 1px;
 	}
 
-	li > ul, li > ol {
+	li > ul,
+	li > ol {
 		padding-left: 1.5rem;
 	}
 
@@ -75,7 +79,8 @@
 		margin-bottom: 0;
 	}
 
-	b, strong {
+	b,
+	strong {
 		color: $gray-800;
 		font-weight: 600;
 	}

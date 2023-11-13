@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 import frappe
 from frappe.tests.utils import FrappeTestCase, change_settings
+from frappe.utils.data import now_datetime
 
 
 class TestTestUtils(FrappeTestCase):
@@ -26,6 +29,13 @@ class TestTestUtils(FrappeTestCase):
 
 		restored_settings = frappe.get_system_settings("logout_on_password_reset")
 		self.assertEqual(current_setting, restored_settings)
+
+	def test_time_freezing(self):
+		now = now_datetime()
+
+		tomorrow = now + timedelta(days=1)
+		with self.freeze_time(tomorrow):
+			self.assertEqual(now_datetime(), tomorrow)
 
 
 def tearDownModule():

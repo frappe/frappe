@@ -10,6 +10,7 @@ from werkzeug.exceptions import NotFound
 
 import frappe
 from frappe import _, is_whitelisted, msgprint
+from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.desk.form.document_follow import follow_document
 from frappe.integrations.doctype.webhook import run_webhooks
@@ -305,6 +306,7 @@ class Document(BaseDocument):
 		if self.get("amended_from"):
 			self.copy_attachments_from_amended_from()
 
+		relink_mismatched_files(self)
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
@@ -1581,6 +1583,12 @@ class Document(BaseDocument):
 		from frappe.desk.doctype.tag.tag import DocTags
 
 		DocTags(self.doctype).add(self.name, tag)
+
+	def remove_tag(self, tag):
+		"""Remove a Tag to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+
+		DocTags(self.doctype).remove(self.name, tag)
 
 	def get_tags(self):
 		"""Return a list of Tags attached to this document"""

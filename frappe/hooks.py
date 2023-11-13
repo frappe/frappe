@@ -269,11 +269,6 @@ scheduler_events = {
 	],
 }
 
-get_translated_dict = {
-	("doctype", "System Settings"): "frappe.geo.country_info.get_translated_dict",
-	("page", "setup-wizard"): "frappe.geo.country_info.get_translated_dict",
-}
-
 sounds = [
 	{"name": "email", "src": "/assets/frappe/sounds/email.mp3", "volume": 0.1},
 	{"name": "submit", "src": "/assets/frappe/sounds/submit.mp3", "volume": 0.1},
@@ -418,6 +413,7 @@ ignore_links_on_delete = [
 	"Integration Request",
 	"Unhandled Email",
 	"Webhook Request Log",
+	"Workspace",
 ]
 
 # Request Hooks

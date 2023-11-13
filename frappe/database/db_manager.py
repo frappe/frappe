@@ -57,6 +57,7 @@ class DbManager:
 
 		esc = make_esc("$ ")
 		pv = which("pv")
+		mariadb_cli = which("mariadb") or which("mysql")
 
 		if pv:
 			pipe = f"{pv} {source} |"
@@ -68,7 +69,7 @@ class DbManager:
 		if pipe:
 			print("Restoring Database file...")
 
-		command = "{pipe} mariadb -u {user} -p{password} -h{host} -P{port} {target} {source}"
+		command = "{pipe} {mariadb_cli} -u {user} -p{password} -h{host} -P{port} {target} {source}"
 		command = command.format(
 			pipe=pipe,
 			user=esc(user),
@@ -77,6 +78,7 @@ class DbManager:
 			target=esc(target),
 			source=source,
 			port=frappe.conf.db_port,
+			mariadb_cli=mariadb_cli,
 		)
 
 		os.system(command)

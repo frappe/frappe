@@ -15,7 +15,7 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import cint
 from frappe.utils.csvutils import build_csv_response
-from frappe.utils.deprecations import deprecation_warning
+from frappe.utils.deprecations import deprecated, deprecation_warning
 from frappe.utils.image import optimize_image
 from frappe.utils.response import build_response
 
@@ -187,6 +187,17 @@ def upload_file():
 	optimize = frappe.form_dict.optimize
 	content = None
 
+	if frappe.form_dict.get("library_file_name", False):
+		doc = frappe.get_value(
+			"File",
+			frappe.form_dict.library_file_name,
+			["is_private", "file_url", "file_name"],
+			as_dict=True,
+		)
+		is_private = doc.is_private
+		file_url = doc.file_url
+		filename = doc.file_name
+
 	if not ignore_permissions:
 		check_write_permission(doctype, docname)
 
@@ -336,5 +347,4 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	add_data_to_monitor(methodname=method)
 
 
-# for backwards compatibility
-runserverobj = run_doc_method
+runserverobj = deprecated(run_doc_method)

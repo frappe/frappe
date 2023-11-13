@@ -248,7 +248,7 @@ class User(Document):
 			frappe.local.login_manager.logout(user=self.name)
 
 		# toggle notifications based on the user's status
-		toggle_notifications(self.name, enable=cint(self.enabled))
+		toggle_notifications(self.name, enable=cint(self.enabled), ignore_permissions=True)
 
 	def add_system_manager_role(self):
 		if self.is_system_manager_disabled():

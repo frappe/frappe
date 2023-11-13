@@ -44,11 +44,7 @@ class HelpArticle(WebsiteGenerator):
 		clear_cache()
 
 	def update_category(self):
-		cnt = frappe.db.sql(
-			"""select count(*) from `tabHelp Article`
-			where category=%s and ifnull(published,0)=1""",
-			self.category,
-		)[0][0]
+		cnt = frappe.db.count("Help Article", filters={"category": self.category, "published": 1})
 		cat = frappe.get_doc("Help Category", self.category)
 		cat.help_articles = cnt
 		cat.save()
@@ -107,7 +103,7 @@ def get_sidebar_items():
 			from
 				`tabHelp Category`
 			where
-				ifnull(published,0)=1 and help_articles > 0
+				published = 1 and help_articles > 0
 			order by
 				help_articles desc""",
 			as_dict=True,

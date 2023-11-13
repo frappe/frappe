@@ -4,9 +4,7 @@
 import functools
 import hashlib
 import io
-import json
 import os
-import re
 import sys
 import traceback
 from collections import deque
@@ -21,16 +19,13 @@ from collections.abc import (
 )
 from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
-from typing import Any, Literal, TypedDict
-from urllib.parse import quote, urlparse
+from typing import TypedDict
 
-from redis.exceptions import ConnectionError
 from werkzeug.test import Client
-
-import frappe
 
 # utility functions like cint, int, flt, etc.
 from frappe.utils.data import *
+from frappe.utils.deprecations import deprecated
 from frappe.utils.html_utils import sanitize_html
 
 EMAIL_NAME_PATTERN = re.compile(r"[^A-Za-z0-9\u00C0-\u024F\/\_\' ]+")
@@ -869,6 +864,9 @@ def call(fn, *args, **kwargs):
 
 # Following methods are aken as-is from Python 3 codebase
 # since gzip.compress and gzip.decompress are not available in Python 2.7
+
+
+@deprecated
 def gzip_compress(data, compresslevel=9):
 	"""Compress data in one shot and return the compressed string.
 	Optional argument is the compression level, in range of 0-9.
@@ -881,6 +879,7 @@ def gzip_compress(data, compresslevel=9):
 	return buf.getvalue()
 
 
+@deprecated
 def gzip_decompress(data):
 	"""Decompress a gzip compressed string in one shot.
 	Return the decompressed string.
@@ -1102,9 +1101,9 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 
 	for info in missing_info:
 		user_info.setdefault(info.name, frappe._dict()).update(
-			fullname=info.full_name or user,
+			fullname=info.full_name or info.name,
 			image=info.user_image,
-			name=user,
+			name=info.name,
 			email=info.email,
 			time_zone=info.time_zone,
 		)

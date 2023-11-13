@@ -59,12 +59,12 @@ th.fc-widget-header {
 }
 
 // .fc-highlight {
-	// background-color: $light-yellow !important;
+// background-color: $light-yellow !important;
 // }
 
 .fc-event {
 	// border: 1px solid #E8DDFF; /* default BORDER color */
-	background-color: #E8DDFF;
+	background-color: #e8ddff;
 }
 
 .fc-time-grid-event {
@@ -137,7 +137,6 @@ th.fc-day-header {
 	// }
 }
 
-
 .fc-state-active {
 	box-shadow: none !important;
 	background: var(--gray-500) !important;
@@ -164,7 +163,8 @@ th.fc-day-header {
 }
 
 .fc-left {
-	.fc-prev-button, .fc-next-button {
+	.fc-prev-button,
+	.fc-next-button {
 		width: 28px;
 		display: flex;
 		justify-content: center;
@@ -205,4 +205,3 @@ th.fc-day-header {
 .fc-now-indicator-arrow {
 	display: none !important;
 }
-
