@@ -6,8 +6,8 @@ import { useStore } from "../store";
 const props = defineProps({
 	node: {
 		type: Object,
-		required: true
-	}
+		required: true,
+	},
 });
 
 const isValidConnection = ({ source, target }) => {
@@ -26,21 +26,25 @@ let store = useStore();
 const { edges, findNode } = useVueFlow();
 watch(
 	() => findNode(props.node.id)?.selected,
-	val => {
+	(val) => {
 		if (val) store.workflow.selected = props.node;
 
 		let connected_edges = edges.value.filter(
-			edge => edge.source === props.node.id || edge.target === props.node.id
+			(edge) => edge.source === props.node.id || edge.target === props.node.id
 		);
-		connected_edges.forEach(edge => edge.selected = val);
+		connected_edges.forEach((edge) => (edge.selected = val));
 	}
 );
 
 let label = computed(() => findNode(props.node.id)?.data?.action);
 
-watch(() => props.node.data, () => {
-	store.ref_history.commit();
-}, { deep: true });
+watch(
+	() => props.node.data,
+	() => {
+		store.ref_history.commit();
+	},
+	{ deep: true }
+);
 </script>
 
 <template>
