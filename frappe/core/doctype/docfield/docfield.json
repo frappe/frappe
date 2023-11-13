@@ -416,7 +416,7 @@
    "width": "50px"
   },
   {
-   "description": "Number of columns for a field in a List View or a Grid (Total Columns should be less than 11)",
+   "description": "Number of columns for a field in a grid (total columns should be less than 11)",
    "fieldname": "columns",
    "fieldtype": "Int",
    "label": "Columns"

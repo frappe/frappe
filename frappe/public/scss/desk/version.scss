@@ -22,7 +22,8 @@
 
 [data-theme="dark"] {
 	.version-info {
-		.danger, .success {
+		.danger,
+		.success {
 			color: var(--gray-900);
 
 			td {
