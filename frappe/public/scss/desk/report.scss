@@ -29,7 +29,7 @@
 
 .grid-report .show-zero {
 	margin: 10px;
-	display: none
+	display: none;
 }
 
 // column picker
@@ -193,9 +193,15 @@
 		color: var(--text-color);
 		font-feature-settings: "tnum";
 
-		&.green { color: var(--green-500); }
-		&.red { color: var(--red-500); }
-		&.blue { color: var(--blue-500); }
+		&.green {
+			color: var(--green-500);
+		}
+		&.red {
+			color: var(--red-500);
+		}
+		&.blue {
+			color: var(--blue-500);
+		}
 
 		// SIZE & SPACING
 		padding-top: 12px;
@@ -224,9 +230,15 @@
 			border-radius: var(--border-radius-sm, 4px);
 			border: 1px solid var(--dark-border-color);
 
-			&.green { color: var(--green-500); }
-			&.red { color: var(--red-500); }
-			&.blue { color: var(--blue-500); }
+			&.green {
+				color: var(--green-500);
+			}
+			&.red {
+				color: var(--red-500);
+			}
+			&.blue {
+				color: var(--blue-500);
+			}
 
 			// SIZE & SPACING
 			min-width: 24px;

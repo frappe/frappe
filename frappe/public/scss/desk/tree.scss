@@ -80,7 +80,8 @@
 
 // decoration
 // .tree, .tree-node {
-.tree.with-skeleton, .tree.with-skeleton .tree-node {
+.tree.with-skeleton,
+.tree.with-skeleton .tree-node {
 	position: relative;
 
 	// &.opened::before, &:last-child::after {

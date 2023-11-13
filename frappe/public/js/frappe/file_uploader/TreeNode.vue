@@ -15,8 +15,8 @@
 				:key="n.value"
 				:node="n"
 				:selected_node="selected_node"
-				@node-click="n => $emit('node-click', n)"
-				@load-more="n => $emit('load-more', n)"
+				@node-click="(n) => $emit('node-click', n)"
+				@load-more="(n) => $emit('load-more', n)"
 			/>
 			<button
 				class="btn btn-xs btn-load-more"
@@ -34,7 +34,7 @@ export default {
 	name: "TreeNode",
 	props: ["node", "selected_node"],
 	components: {
-		TreeNode: () => frappe.ui.components.TreeNode
+		TreeNode: () => frappe.ui.components.TreeNode,
 	},
 	computed: {
 		icon() {
@@ -42,15 +42,15 @@ export default {
 				open: frappe.utils.icon("folder-open", "md"),
 				closed: frappe.utils.icon("folder-normal", "md"),
 				leaf: frappe.utils.icon("primitive-dot", "xs"),
-				search: frappe.utils.icon("search")
+				search: frappe.utils.icon("search"),
 			};
 
 			if (this.node.by_search) return icons.search;
 			if (this.node.is_leaf) return icons.leaf;
 			if (this.node.open) return icons.open;
 			return icons.closed;
-		}
-	}
+		},
+	},
 };
 </script>
 <style scoped>

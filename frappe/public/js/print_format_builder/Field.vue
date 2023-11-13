@@ -7,10 +7,7 @@
 					v-if="df.fieldtype == 'HTML' && df.html"
 					v-html="df.html"
 				></div>
-				<div
-					class="custom-html"
-					v-if="df.fieldtype == 'Field Template'"
-				>
+				<div class="custom-html" v-if="df.fieldtype == 'Field Template'">
 					{{ df.label }}
 				</div>
 				<input
@@ -24,9 +21,7 @@
 					@blur="editing = false"
 				/>
 				<span v-else-if="df.label">{{ df.label }}</span>
-				<i class="text-muted" v-else>
-					{{ __("No Label") }} ({{ df.fieldname }})
-				</i>
+				<i class="text-muted" v-else> {{ __("No Label") }} ({{ df.fieldname }}) </i>
 			</div>
 			<div class="field-actions">
 				<button
@@ -45,10 +40,7 @@
 				>
 					Configure columns
 				</button>
-				<button
-					class="btn btn-xs btn-icon"
-					@click="$set(df, 'remove', true)"
-				>
+				<button class="btn btn-xs btn-icon" @click="$set(df, 'remove', true)">
 					<svg class="icon icon-sm">
 						<use href="#icon-close"></use>
 					</svg>
@@ -83,11 +75,11 @@ export default {
 	mixins: [storeMixin],
 	props: ["df"],
 	components: {
-		draggable
+		draggable,
 	},
 	data() {
 		return {
-			editing: false
+			editing: false,
 		};
 	},
 	watch: {
@@ -100,8 +92,8 @@ export default {
 			deep: true,
 			handler() {
 				this.validate_table_columns();
-			}
-		}
+			},
+		},
 	},
 	methods: {
 		edit_html() {
@@ -112,14 +104,14 @@ export default {
 						label: __("HTML"),
 						fieldname: "html",
 						fieldtype: "Code",
-						options: "HTML"
-					}
+						options: "HTML",
+					},
 				],
 				primary_action: ({ html }) => {
 					html = frappe.dom.remove_script_and_style(html);
 					this.$set(this.df, "html", html);
 					d.hide();
-				}
+				},
 			});
 			d.set_value("html", this.df.html);
 			d.show();
@@ -130,7 +122,7 @@ export default {
 				fields: [
 					{
 						fieldtype: "HTML",
-						fieldname: "columns_area"
+						fieldname: "columns_area",
 					},
 					{
 						label: "",
@@ -144,35 +136,31 @@ export default {
 								let column = this.get_column_to_add(fieldname);
 								if (column) {
 									this.df.table_columns.push(column);
-									this.$set(
-										this.df,
-										"table_columns",
-										this.df.table_columns
-									);
+									this.$set(this.df, "table_columns", this.df.table_columns);
 									dialog.set_value("add_column", "");
 								}
 							}
-						}
-					}
+						},
+					},
 				],
 				on_page_show: () => {
 					new Vue({
 						el: dialog.get_field("columns_area").$wrapper.get(0),
-						render: h =>
+						render: (h) =>
 							h(ConfigureColumnsVue, {
 								props: {
-									df: this.df
-								}
-							})
+									df: this.df,
+								},
+							}),
 					});
 				},
 				on_hide: () => {
 					this.$set(
 						this.df,
 						"table_columns",
-						this.df.table_columns.filter(col => !col.invalid_width)
+						this.df.table_columns.filter((col) => !col.invalid_width)
 					);
-				}
+				},
 			});
 			dialog.show();
 		},
@@ -181,18 +169,18 @@ export default {
 			let more_columns = [
 				{
 					label: __("Sr No."),
-					value: "idx"
-				}
+					value: "idx",
+				},
 			];
 			return more_columns.concat(
 				meta.fields
-					.map(tf => {
+					.map((tf) => {
 						if (frappe.model.no_value_type.includes(tf.fieldtype)) {
 							return;
 						}
 						return {
 							label: tf.label,
-							value: tf.fieldname
+							value: tf.fieldname,
 						};
 					})
 					.filter(Boolean)
@@ -204,8 +192,8 @@ export default {
 					label: __("Sr No."),
 					fieldtype: "Data",
 					fieldname: "idx",
-					width: 10
-				}
+					width: 10,
+				},
 			};
 
 			if (fieldname in standard_columns) {
@@ -214,7 +202,7 @@ export default {
 
 			return {
 				...frappe.meta.get_docfield(this.df.options, fieldname),
-				width: 10
+				width: 10,
 			};
 		},
 		validate_table_columns() {
@@ -233,8 +221,8 @@ export default {
 					column.invalid_width = false;
 				}
 			}
-		}
-	}
+		},
+	},
 };
 </script>
 <style>

@@ -1,26 +1,27 @@
-html, body {
+html,
+body {
 	font-size: 16px;
 }
 
 // colors
-$gray-900: #1F272E;
-$gray-800: #333C44;
-$gray-700: #505A62;
+$gray-900: #1f272e;
+$gray-800: #333c44;
+$gray-700: #505a62;
 $gray-600: #687178;
-$gray-500: #98A1A9;
-$gray-400: #C0C6CC;
-$gray-300: #DCE0E3;
-$gray-200: #EBEEF0;
-$gray-100: #F4F5F6;
-$gray-50: #F9FAFA;
+$gray-500: #98a1a9;
+$gray-400: #c0c6cc;
+$gray-300: #dce0e3;
+$gray-200: #ebeef0;
+$gray-100: #f4f5f6;
+$gray-50: #f9fafa;
 
-$primary: #2490EF;
-$danger: #E24C4C;
+$primary: #2490ef;
+$danger: #e24c4c;
 $black: #000;
 $white: #fff;
 $light: $gray-50 !default;
 $primary-light: lighten($primary, 42%) !default;
-$light-yellow: #FEF4E2;
+$light-yellow: #fef4e2;
 
 $card-box-shadow: 0px 0px 1px rgba(17, 43, 66, 0.16), 0px 1px 3px rgba(17, 43, 66, 0.1);
 
@@ -34,15 +35,15 @@ $border-radius-lg: var(--border-radius-lg);
 $nav-divider-margin-y: 4px;
 
 $container-max-widths: (
-  sm: 540px,
-  md: 840px,
-  lg: 1090px,
-  xl: 1290px
+	sm: 540px,
+	md: 840px,
+	lg: 1090px,
+	xl: 1290px,
 );
 
 $theme-colors: (
-  "primary": $primary,
-  "danger": $danger
+	"primary": $primary,
+	"danger": $danger,
 );
 
 $navbar-height: 60px;
@@ -92,7 +93,7 @@ $btn-font-weight: 400 !default;
 $btn-active-box-shadow: var(--shadow-inset);
 
 // mark
-$mark-bg: #FDF9AF;
+$mark-bg: #fdf9af;
 $mark-padding: 0;
 
 // transitions
@@ -103,7 +104,7 @@ $input-transition: none;
 $enable-shadows: true;
 $popover-border-radius: var(--border-radius);
 $popover-bg: var(--popover-bg);
-$popover-box-shadow: 	0px 2px 6px rgba(17, 43, 66, 0.08), 0px 1px 4px rgba(17, 43, 66, 0.1);
+$popover-box-shadow: 0px 2px 6px rgba(17, 43, 66, 0.08), 0px 1px 4px rgba(17, 43, 66, 0.1);
 $popover-body-padding-x: var(--padding-md);
 $popover-body-padding-y: var(--padding-md);
 $popover-border-color: var(--dark-border-color);
@@ -134,17 +135,17 @@ $dropdown-item-padding-x: var(--padding-sm);
 
 $spacer: 14px;
 $grid-breakpoints: (
-  xs: 0,
-  sm: 576px,
-  md: 768px,
-  lg: 992px,
-  xl: 1200px,
-  2xl: 1440px
+	xs: 0,
+	sm: 576px,
+	md: 768px,
+	lg: 992px,
+	xl: 1200px,
+	2xl: 1440px,
 ) !default;
 
-@import 'typography';
-@import '~bootstrap/scss/functions';
-@import '~bootstrap/scss/variables';
+@import "typography";
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
-@import 'css_variables';
-@import 'dark';
+@import "css_variables";
+@import "dark";
