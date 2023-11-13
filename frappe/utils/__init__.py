@@ -1101,9 +1101,9 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 
 	for info in missing_info:
 		user_info.setdefault(info.name, frappe._dict()).update(
-			fullname=info.full_name or user,
+			fullname=info.full_name or info.name,
 			image=info.user_image,
-			name=user,
+			name=info.name,
 			email=info.email,
 			time_zone=info.time_zone,
 		)

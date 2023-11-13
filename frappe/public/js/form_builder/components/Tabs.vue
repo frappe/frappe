@@ -13,7 +13,7 @@ const store = useStore();
 const { Backspace } = useMagicKeys();
 whenever(Backspace, (value) => {
 	if (value && selected.value && store.not_using_input) {
-		remove_tab(store.current_tab, '', true);
+		remove_tab(store.current_tab, "", true);
 	}
 });
 
@@ -45,12 +45,10 @@ function add_new_section() {
 
 function is_tab_empty(tab) {
 	// check if sections have columns and it contains fields
-	return !tab.sections.some((section) =>
-		section.columns.some((column) => column.fields.length)
-	);
+	return !tab.sections.some((section) => section.columns.some((column) => column.fields.length));
 }
 
-function remove_tab(tab, event, force=false) {
+function remove_tab(tab, event, force = false) {
 	// is remove_tab_btn is not visible then return
 	if (!event?.currentTarget?.offsetParent && !force) return;
 
@@ -270,7 +268,7 @@ function delete_tab(tab, with_children) {
 			color: var(--text-color);
 
 			&::before {
-				border-color: var(--primary);
+				border-color: var(--border-primary);
 			}
 		}
 
