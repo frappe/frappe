@@ -656,23 +656,12 @@ class EmailAccount(Document):
 			# don't try appending if enable incoming and imap is not set
 			return
 
-<<<<<<< HEAD
-		email_server.connect()
-
-		if email_server.imap:
-			try:
-				message = safe_encode(message)
-				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
-			except Exception:
-				self.log_error("Unable to add to Sent folder")
-=======
 		try:
 			email_server = self.get_incoming_server(in_receive=True)
 			message = safe_encode(message)
 			email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
 		except Exception:
 			self.log_error("Unable to add to Sent folder")
->>>>>>> 742a6082ac (fix: remove unnecessary statuses from email queue and only append emails to sent if imap is enabled)
 
 	def get_oauth_token(self):
 		if self.auth_method == "OAuth":
