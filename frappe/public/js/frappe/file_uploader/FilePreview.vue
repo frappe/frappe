@@ -1,13 +1,8 @@
 <template>
 	<div class="file-preview">
 		<div class="file-icon">
-			<img
-				v-if="is_image"
-				:src="src"
-				:alt="file.name"
-			>
-			<div class="fallback" v-else v-html="frappe.utils.icon('file', 'md')">
-			</div>
+			<img v-if="is_image" :src="src" :alt="file.name" />
+			<div class="fallback" v-else v-html="frappe.utils.icon('file', 'md')"></div>
 		</div>
 		<div>
 			<div>
@@ -24,8 +19,20 @@
 			</div>
 
 			<div class="flex config-area">
-				<label v-if="is_optimizable" class="frappe-checkbox"><input type="checkbox" :checked="optimize" @change="$emit('toggle_optimize')">Optimize</label>
-				<label class="frappe-checkbox"><input type="checkbox" :checked="file.private" @change="$emit('toggle_private')">Private</label>
+				<label v-if="is_optimizable" class="frappe-checkbox"
+					><input
+						type="checkbox"
+						:checked="optimize"
+						@change="$emit('toggle_optimize')"
+					/>Optimize</label
+				>
+				<label class="frappe-checkbox"
+					><input
+						type="checkbox"
+						:checked="file.private"
+						@change="$emit('toggle_private')"
+					/>Private</label
+				>
 			</div>
 			<div>
 				<span v-if="file.error_message" class="file-error text-danger">
@@ -45,32 +52,42 @@
 			<div v-if="uploaded" v-html="frappe.utils.icon('solid-success', 'lg')"></div>
 			<div v-if="file.failed" v-html="frappe.utils.icon('solid-error', 'lg')"></div>
 			<div class="file-action-buttons">
-				<button v-if="is_cropable" class="btn btn-crop muted" @click="$emit('toggle_image_cropper')" v-html="frappe.utils.icon('crop', 'md')"></button>
-				<button v-if="!uploaded && !file.uploading && !file.failed" class="btn muted" @click="$emit('remove')" v-html="frappe.utils.icon('delete', 'md')"></button>
+				<button
+					v-if="is_cropable"
+					class="btn btn-crop muted"
+					@click="$emit('toggle_image_cropper')"
+					v-html="frappe.utils.icon('crop', 'md')"
+				></button>
+				<button
+					v-if="!uploaded && !file.uploading && !file.failed"
+					class="btn muted"
+					@click="$emit('remove')"
+					v-html="frappe.utils.icon('delete', 'md')"
+				></button>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
-import ProgressRing from './ProgressRing.vue';
+import ProgressRing from "./ProgressRing.vue";
 export default {
-	name: 'FilePreview',
-	props: ['file'],
+	name: "FilePreview",
+	props: ["file"],
 	components: {
-		ProgressRing
+		ProgressRing,
 	},
 	data() {
 		return {
 			src: null,
-			optimize: this.file.optimize
-		}
+			optimize: this.file.optimize,
+		};
 	},
 	mounted() {
 		if (this.is_image) {
 			if (window.FileReader) {
 				let fr = new FileReader();
-				fr.onload = () => this.src = fr.result;
+				fr.onload = () => (this.src = fr.result);
 				fr.readAsDataURL(this.file.file_obj);
 			}
 		}
@@ -82,7 +99,7 @@ export default {
 		file_name(value) {
 			return value;
 			// return frappe.utils.file_name_ellipsis(value, 9);
-		}
+		},
 	},
 	computed: {
 		is_private() {
@@ -92,15 +109,20 @@ export default {
 			return this.file.request_succeeded;
 		},
 		is_image() {
-			return this.file.file_obj.type.startsWith('image');
+			return this.file.file_obj.type.startsWith("image");
 		},
 		is_optimizable() {
-			let is_svg = this.file.file_obj.type == 'image/svg+xml';
+			let is_svg = this.file.file_obj.type == "image/svg+xml";
 			return this.is_image && !is_svg && !this.uploaded && !this.file.failed;
 		},
 		is_cropable() {
-			let croppable_types = ['image/jpeg', 'image/png'];
-			return !this.uploaded && !this.file.uploading && !this.file.failed && croppable_types.includes(this.file.file_obj.type);
+			let croppable_types = ["image/jpeg", "image/png"];
+			return (
+				!this.uploaded &&
+				!this.file.uploading &&
+				!this.file.failed &&
+				croppable_types.includes(this.file.file_obj.type)
+			);
 		},
 		progress() {
 			let value = Math.round((this.file.progress * 100) / this.file.total);
@@ -108,9 +130,9 @@ export default {
 				value = 0;
 			}
 			return value;
-		}
-	}
-}
+		},
+	},
+};
 </script>
 
 <style>

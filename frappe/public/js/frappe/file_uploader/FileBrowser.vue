@@ -1,11 +1,7 @@
 <template>
 	<div class="file-browser">
 		<div>
-			<a
-				href=""
-				class="text-muted text-medium"
-				@click.prevent="$emit('hide-browser')"
-			>
+			<a href="" class="text-muted text-medium" @click.prevent="$emit('hide-browser')">
 				{{ __("← Back to upload files") }}
 			</a>
 		</div>
@@ -23,8 +19,8 @@
 				class="tree with-skeleton"
 				:node="node"
 				:selected_node="selected_node"
-				@node-click="n => toggle_node(n)"
-				@load-more="n => load_more(n)"
+				@node-click="(n) => toggle_node(n)"
+				@load-more="(n) => load_more(n)"
 			/>
 		</div>
 	</div>
@@ -35,7 +31,7 @@ import TreeNode from "./TreeNode.vue";
 export default {
 	name: "FileBrowser",
 	components: {
-		TreeNode
+		TreeNode,
 	},
 	data() {
 		return {
@@ -49,11 +45,11 @@ export default {
 				fetching: false,
 				fetched: false,
 				open: false,
-				filtered: true
+				filtered: true,
 			},
 			selected_node: {},
 			search_text: "",
-			page_length: 10
+			page_length: 10,
 		};
 	},
 	mounted() {
@@ -65,16 +61,14 @@ export default {
 				node.fetching = true;
 				node.children_start = 0;
 				node.children_loading = false;
-				this.get_files_in_folder(node.value, 0).then(
-					({ files, has_more }) => {
-						node.open = true;
-						node.children = files;
-						node.fetched = true;
-						node.fetching = false;
-						node.children_start += this.page_length;
-						node.has_more_children = has_more;
-					}
-				);
+				this.get_files_in_folder(node.value, 0).then(({ files, has_more }) => {
+					node.open = true;
+					node.children = files;
+					node.fetched = true;
+					node.fetching = false;
+					node.children_start += this.page_length;
+					node.has_more_children = has_more;
+				});
 			} else {
 				node.open = !node.open;
 				this.select_node(node);
@@ -84,14 +78,12 @@ export default {
 			if (node.has_more_children) {
 				let start = node.children_start;
 				node.children_loading = true;
-				this.get_files_in_folder(node.value, start).then(
-					({ files, has_more }) => {
-						node.children = node.children.concat(files);
-						node.children_start += this.page_length;
-						node.has_more_children = has_more;
-						node.children_loading = false;
-					}
-				);
+				this.get_files_in_folder(node.value, start).then(({ files, has_more }) => {
+					node.children = node.children.concat(files);
+					node.children_start += this.page_length;
+					node.has_more_children = has_more;
+					node.children_loading = false;
+				});
 			}
 		},
 		select_node(node) {
@@ -104,9 +96,9 @@ export default {
 				.call("frappe.core.api.file.get_files_in_folder", {
 					folder,
 					start,
-					page_length: this.page_length
+					page_length: this.page_length,
 				})
-				.then(r => {
+				.then((r) => {
 					let { files = [], has_more = false } = r.message || {};
 					files.sort((a, b) => {
 						if (a.is_folder && b.is_folder) {
@@ -120,26 +112,23 @@ export default {
 						}
 						return 0;
 					});
-					files = files.map(file => this.make_file_node(file));
+					files = files.map((file) => this.make_file_node(file));
 					return { files, has_more };
 				});
 		},
-		search_by_name: frappe.utils.debounce(function() {
+		search_by_name: frappe.utils.debounce(function () {
 			if (this.search_text === "") {
 				this.node = this.folder_node;
 				return;
 			}
 			if (this.search_text.length < 3) return;
 			frappe
-				.call(
-					"frappe.core.api.file.get_files_by_search_text",
-					{
-						text: this.search_text
-					}
-				)
-				.then(r => {
+				.call("frappe.core.api.file.get_files_by_search_text", {
+					text: this.search_text,
+				})
+				.then((r) => {
 					let files = r.message || [];
-					files = files.map(file => this.make_file_node(file));
+					files = files.map((file) => this.make_file_node(file));
 					if (!this.folder_node) {
 						this.folder_node = this.node;
 					}
@@ -149,7 +138,7 @@ export default {
 						children: files,
 						by_search: true,
 						open: true,
-						filtered: true
+						filtered: true,
 					};
 				});
 		}, 300),
@@ -168,10 +157,10 @@ export default {
 				children_start: 0,
 				open: false,
 				fetching: false,
-				filtered: true
+				filtered: true,
 			};
-		}
-	}
+		},
+	},
 };
 </script>
 

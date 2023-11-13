@@ -4,11 +4,7 @@
 			<div class="sidebar-menu">
 				<div class="sidebar-label">{{ __("Page Margins") }}</div>
 				<div class="margin-controls">
-					<div
-						class="form-group"
-						v-for="df in margins"
-						:key="df.fieldname"
-					>
+					<div class="form-group" v-for="df in margins" :key="df.fieldname">
 						<div class="clearfix">
 							<label class="control-label">
 								{{ df.label }}
@@ -21,13 +17,7 @@
 									class="form-control form-control-sm"
 									:value="print_format[df.fieldname]"
 									min="0"
-									@change="
-										e =>
-											update_margin(
-												df.fieldname,
-												e.target.value
-											)
-									"
+									@change="(e) => update_margin(df.fieldname, e.target.value)"
 								/>
 							</div>
 						</div>
@@ -43,10 +33,7 @@
 								class="form-control form-control-sm"
 								v-model="print_format.font"
 							>
-								<option
-									v-for="font in google_fonts"
-									:value="font"
-								>
+								<option v-for="font in google_fonts" :value="font">
 									{{ font }}
 								</option>
 							</select>
@@ -65,10 +52,7 @@
 								placeholder="12, 13, 14"
 								:value="print_format.font_size"
 								@change="
-									e =>
-										(print_format.font_size = parseFloat(
-											e.target.value
-										))
+									(e) => (print_format.font_size = parseFloat(e.target.value))
 								"
 							/>
 						</div>
@@ -135,16 +119,16 @@ export default {
 	data() {
 		return {
 			search_text: "",
-			google_fonts: []
+			google_fonts: [],
 		};
 	},
 	components: {
-		draggable
+		draggable,
 	},
 	mounted() {
 		let method =
 			"frappe.printing.page.print_format_builder_beta.print_format_builder_beta.get_google_fonts";
-		frappe.call(method).then(r => {
+		frappe.call(method).then((r) => {
 			this.google_fonts = r.message || [];
 			if (!this.google_fonts.includes(this.print_format.font)) {
 				this.google_fonts.push(this.print_format.font);
@@ -167,30 +151,28 @@ export default {
 				"options",
 				"table_columns",
 				"html",
-				"field_template"
+				"field_template",
 			]);
 			if (cloned.custom) {
 				// generate unique fieldnames for custom blocks
 				cloned.fieldname += "_" + frappe.utils.get_random(8);
 			}
 			return cloned;
-		}
+		},
 	},
 	computed: {
 		margins() {
 			return [
 				{ label: __("Top"), fieldname: "margin_top" },
 				{ label: __("Bottom"), fieldname: "margin_bottom" },
-				{ label: __("Left", null, 'alignment'), fieldname: "margin_left" },
-				{ label: __("Right", null, 'alignment'), fieldname: "margin_right" }
+				{ label: __("Left", null, "alignment"), fieldname: "margin_left" },
+				{ label: __("Right", null, "alignment"), fieldname: "margin_right" },
 			];
 		},
 		fields() {
 			let fields = this.meta.fields
-				.filter(df => {
-					if (
-						["Section Break", "Column Break"].includes(df.fieldtype)
-					) {
+				.filter((df) => {
+					if (["Section Break", "Column Break"].includes(df.fieldtype)) {
 						return false;
 					}
 					if (this.search_text) {
@@ -205,12 +187,12 @@ export default {
 						return true;
 					}
 				})
-				.map(df => {
+				.map((df) => {
 					let out = {
 						label: df.label,
 						fieldname: df.fieldname,
 						fieldtype: df.fieldtype,
-						options: df.options
+						options: df.options,
 					};
 					if (df.fieldtype == "Table") {
 						out.table_columns = get_table_columns(df);
@@ -224,27 +206,27 @@ export default {
 					fieldname: "custom_html",
 					fieldtype: "HTML",
 					html: "",
-					custom: 1
+					custom: 1,
 				},
 				{
 					label: __("ID (name)"),
 					fieldname: "name",
-					fieldtype: "Data"
+					fieldtype: "Data",
 				},
 				{
 					label: __("Spacer"),
 					fieldname: "spacer",
 					fieldtype: "Spacer",
-					custom: 1
+					custom: 1,
 				},
 				{
 					label: __("Divider"),
 					fieldname: "divider",
 					fieldtype: "Divider",
-					custom: 1
+					custom: 1,
 				},
 				...this.print_templates,
-				...fields
+				...fields,
 			];
 		},
 		print_templates() {
@@ -253,21 +235,18 @@ export default {
 			for (let template of templates) {
 				let df;
 				if (template.field) {
-					df = frappe.meta.get_docfield(
-						this.meta.name,
-						template.field
-					);
+					df = frappe.meta.get_docfield(this.meta.name, template.field);
 				} else {
 					df = {
 						label: template.name,
-						fieldname: frappe.scrub(template.name)
+						fieldname: frappe.scrub(template.name),
 					};
 				}
 				out.push({
 					label: `${__(df.label)} (${__("Field Template")})`,
 					fieldname: df.fieldname + "_template",
 					fieldtype: "Field Template",
-					field_template: template.name
+					field_template: template.name,
 				});
 			}
 			return out;
@@ -280,10 +259,10 @@ export default {
 				{ label: __("Top Right"), value: "Top Right" },
 				{ label: __("Bottom Left"), value: "Bottom Left" },
 				{ label: __("Bottom Center"), value: "Bottom Center" },
-				{ label: __("Bottom Right"), value: "Bottom Right" }
+				{ label: __("Bottom Right"), value: "Bottom Right" },
 			];
-		}
-	}
+		},
+	},
 };
 </script>
 

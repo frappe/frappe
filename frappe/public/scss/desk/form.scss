@@ -1,5 +1,5 @@
 @import "../common/form.scss";
-@import '~cropperjs/dist/cropper.min';
+@import "~cropperjs/dist/cropper.min";
 
 .std-form-layout > .form-layout > .form-page {
 	border-radius: var(--border-radius-md);
@@ -7,7 +7,8 @@
 	background-color: var(--card-bg);
 }
 
-.form-section, .form-dashboard-section {
+.form-section,
+.form-dashboard-section {
 	margin: 0px;
 
 	.form-section-description {
@@ -93,7 +94,8 @@
 	text-align: right;
 }
 
-.form-control:disabled, .form-control[readonly] {
+.form-control:disabled,
+.form-control[readonly] {
 	cursor: not-allowed;
 }
 

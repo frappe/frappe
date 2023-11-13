@@ -4,7 +4,9 @@
 // }
 
 .freeze-row {
-	.level-left, .level-right, .list-row-col {
+	.level-left,
+	.level-right,
+	.list-row-col {
 		height: 100%;
 		width: 100%;
 	}
@@ -41,7 +43,8 @@
 }
 
 .no-list-sidebar {
-	&[data-page-route^="List/"], [data-page-route^="List/"]{
+	&[data-page-route^="List/"],
+	[data-page-route^="List/"] {
 		@include media-breakpoint-up(md) {
 			.layout-side-section {
 				display: none;
@@ -111,7 +114,7 @@
 		justify-content: flex-end;
 		// min-width: 120px;
 
-		&> span {
+		& > span {
 			display: inline-block;
 
 			&:not(:last-child) {
@@ -129,7 +132,8 @@
 			min-width: 30px;
 		}
 
-		.list-assignments, .list-actions {
+		.list-assignments,
+		.list-actions {
 			margin-right: var(--margin-md);
 		}
 	}
@@ -140,7 +144,8 @@
 		}
 	}
 
-	.select-like, .file-select {
+	.select-like,
+	.file-select {
 		padding: 15px 0px 15px 15px;
 	}
 }
@@ -186,7 +191,8 @@ $level-margin-right: 8px;
 	}
 }
 
-.list-paging-area, .footnote-area {
+.list-paging-area,
+.footnote-area {
 	border-top: 1px solid var(--border-color);
 
 	.btn-group .btn-paging.btn-info {
@@ -198,7 +204,8 @@ $level-margin-right: 8px;
 }
 
 .frappe-card {
-	.list-paging-area, .footnote-area {
+	.list-paging-area,
+	.footnote-area {
 		padding: var(--padding-md);
 	}
 }
@@ -215,7 +222,8 @@ $level-margin-right: 8px;
 	margin-bottom: 1px;
 }
 
-input.list-check-all, input.list-row-checkbox {
+input.list-check-all,
+input.list-row-checkbox {
 	margin-top: 0px;
 	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
 }
@@ -290,12 +298,13 @@ input.list-check-all {
 		cursor: auto;
 	}
 
-	input[type=checkbox] {
+	input[type="checkbox"] {
 		margin: 0;
 		margin-right: 5px;
 	}
 
-	.liked-by, .liked-by-filter-button {
+	.liked-by,
+	.liked-by-filter-button {
 		display: inline-block;
 		width: 20px;
 		margin-right: 10px;
@@ -318,7 +327,8 @@ input.list-check-all {
 		margin-right: 5px;
 		min-width: 110px;
 
-		.list-row-modified, .avatar-small {
+		.list-row-modified,
+		.avatar-small {
 			margin-right: 10px;
 		}
 	}
@@ -393,7 +403,6 @@ input.list-check-all {
 			margin: var(--margin-xs) 0 var(--margin-xs) var(--margin-xs);
 		}
 	}
-
 }
 
 .restricted-button {
@@ -409,10 +418,7 @@ input.list-check-all {
 	}
 
 	&.btn {
-		@include button-variant(
-			$background: $light-yellow,
-			$border: darken($light-yellow, 5%),
-		);
+		@include button-variant($background: $light-yellow, $border: darken($light-yellow, 5%));
 		box-shadow: none;
 	}
 }

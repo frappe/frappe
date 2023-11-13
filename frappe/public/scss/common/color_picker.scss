@@ -19,7 +19,8 @@
 		cursor: pointer;
 	}
 
-	.color-selector, .hue-selector {
+	.color-selector,
+	.hue-selector {
 		width: 12px;
 		height: 12px;
 		background: transparent;
@@ -27,11 +28,12 @@
 		border-radius: 50%;
 		/* box-shadow: 0 0 0 1px gray, 0 0 0 3px white, 0 0 0 4px gray; */
 		border: 1px solid rgba(0, 0, 0, 0.2);
-		&::before, &::after {
+		&::before,
+		&::after {
 			position: absolute;
 			background-color: transparent;
 			border: 1px solid rgba(0, 0, 0, 0.2);
-			content: ' ';
+			content: " ";
 			border-radius: 50%;
 		}
 
@@ -74,8 +76,8 @@
 		position: relative;
 		background: linear-gradient(
 			90deg,
-			hsl(0,   100%, 50%),
-			hsl(60,  100%, 50%),
+			hsl(0, 100%, 50%),
+			hsl(60, 100%, 50%),
 			hsl(120, 100%, 50%),
 			hsl(180, 100%, 50%),
 			hsl(240, 100%, 50%),
@@ -92,7 +94,7 @@
 	}
 }
 
-.frappe-control[data-fieldtype='Color'] {
+.frappe-control[data-fieldtype="Color"] {
 	input {
 		padding-left: 38px;
 	}
@@ -108,9 +110,9 @@
 		position: absolute;
 		top: 5px;
 		left: 8px;
-		content: ' ';
+		content: " ";
 		&.no-value {
-			background: url('/assets/frappe/images/color-circle.png');
+			background: url("/assets/frappe/images/color-circle.png");
 			background-size: contain;
 		}
 	}

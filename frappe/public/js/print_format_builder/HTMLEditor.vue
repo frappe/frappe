@@ -1,10 +1,7 @@
 <template>
 	<div class="html-editor">
 		<div class="d-flex justify-content-end">
-			<button
-				class="btn btn-default btn-xs btn-edit"
-				@click="toggle_edit"
-			>
+			<button class="btn btn-default btn-xs btn-edit" @click="toggle_edit">
 				{{ !editing ? buttonLabel : __("Done") }}
 			</button>
 		</div>
@@ -18,7 +15,7 @@ export default {
 	props: ["value", "button-label"],
 	data() {
 		return {
-			editing: false
+			editing: false,
 		};
 	},
 	methods: {
@@ -40,17 +37,17 @@ export default {
 						max_lines: 30,
 						change: () => {
 							this.$emit("change", this.get_value());
-						}
+						},
 					},
-					render_input: true
+					render_input: true,
 				});
 			}
 			this.control.set_value(this.value);
 		},
 		get_value() {
 			return frappe.dom.remove_script_and_style(this.control.get_value());
-		}
-	}
+		},
+	},
 };
 </script>
 <style>

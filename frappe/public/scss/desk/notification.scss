@@ -65,7 +65,8 @@
 		max-height: 500px;
 		overflow-y: auto;
 
-		.panel-events, .panel-notifications {
+		.panel-events,
+		.panel-notifications {
 			@include size(100%, null);
 		}
 
@@ -140,10 +141,9 @@
 	justify-content: space-between;
 
 	&.unread {
-
 		&:hover {
 			.mark-as-read {
-				flex-shrink : 0;
+				flex-shrink: 0;
 				align-self: center;
 				justify-self: end;
 				width: 8px;
@@ -162,7 +162,7 @@
 		display: flex;
 
 		&::before {
-			content: '';
+			content: "";
 			display: inline-block;
 			@include size(4px, 4px);
 			margin-top: 16px;
@@ -177,7 +177,7 @@
 
 	b {
 		font-weight: 500;
-		color: var(--text-light)
+		color: var(--text-light);
 	}
 
 	.notification-timestamp {
@@ -294,7 +294,7 @@
 
 	&:hover {
 		text-decoration: none;
-		color: var(--text-color)
+		color: var(--text-color);
 	}
 }
 

@@ -12,8 +12,8 @@
 		cursor: pointer;
 
 		/* Hide scrollbar for IE, Edge and Firefox */
-		-ms-overflow-style: none;  /* IE and Edge */
-		scrollbar-width: none;  /* Firefox */
+		-ms-overflow-style: none; /* IE and Edge */
+		scrollbar-width: none; /* Firefox */
 
 		/* Hide scrollbar for Chrome, Safari and Opera */
 		&::-webkit-scrollbar {
@@ -32,7 +32,7 @@
 	.search-icons {
 		position: relative;
 
-		input[type='search'] {
+		input[type="search"] {
 			height: inherit;
 			padding-left: 30px;
 		}
@@ -50,7 +50,7 @@
 	}
 }
 
-.frappe-control[data-fieldtype='Icon'] {
+.frappe-control[data-fieldtype="Icon"] {
 	input {
 		padding-left: 40px;
 	}
@@ -62,7 +62,7 @@
 		position: absolute;
 		top: calc(50% + 1px);
 		left: 8px;
-		content: ' ';
+		content: " ";
 	}
 	.like-disabled-input {
 		.icon-value {
@@ -88,7 +88,8 @@
 	}
 }
 
-.dt-cell__edit, .filter-field {
+.dt-cell__edit,
+.filter-field {
 	.selected-icon {
 		top: 5px !important;
 	}
