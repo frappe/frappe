@@ -37,14 +37,16 @@ input[type="checkbox"] {
 		box-shadow: var(--checkbox-focus-shadow);
 	}
 
-	&.disabled-deselected, &:disabled {
+	&.disabled-deselected,
+	&:disabled {
 		background-color: var(--disabled-control-bg);
 		box-shadow: inset 0px 1px 7px rgba(0, 0, 0, 0.1);
 		border: 0.5px solid var(--gray-300);
 		pointer-events: none;
 	}
 
-	&.disabled-selected, &:disabled:checked {
+	&.disabled-selected,
+	&:disabled:checked {
 		background-color: var(--gray-500);
 		background-image: $check-icon;
 		background-size: 57%;

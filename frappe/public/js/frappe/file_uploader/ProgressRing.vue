@@ -4,7 +4,7 @@
 			:stroke-dasharray="circumference + ' ' + circumference"
 			:style="{
 				stroke: secondary,
-				strokeDashoffset: 0
+				strokeDashoffset: 0,
 			}"
 			:stroke-width="stroke"
 			fill="transparent"
@@ -16,7 +16,7 @@
 			:stroke-dasharray="circumference + ' ' + circumference"
 			:style="{
 				stroke: primary,
-				strokeDashoffset: strokeDashoffset
+				strokeDashoffset: strokeDashoffset,
 			}"
 			:stroke-width="stroke"
 			fill="transparent"
@@ -32,7 +32,7 @@
 			:style="{
 				color: 'var(--text-color)',
 				fontSize: 'var(--text-xs)',
-				fontWeight: 'var(--text-bold)'
+				fontWeight: 'var(--text-bold)',
 			}"
 		>
 			{{ progress }}%
@@ -47,7 +47,7 @@ export default {
 		secondary: String,
 		radius: Number,
 		progress: Number,
-		stroke: Number
+		stroke: Number,
 	},
 	data() {
 		const normalizedRadius = this.radius - this.stroke * 2;
@@ -55,16 +55,14 @@ export default {
 
 		return {
 			normalizedRadius,
-			circumference
+			circumference,
 		};
 	},
 	computed: {
 		strokeDashoffset() {
-			return (
-				this.circumference - (this.progress / 100) * this.circumference
-			);
-		}
-	}
+			return this.circumference - (this.progress / 100) * this.circumference;
+		},
+	},
 };
 </script>
 <style scoped>

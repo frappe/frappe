@@ -13,7 +13,7 @@
 						:class="{
 							active: isNaN(aspect_ratio)
 								? isNaN(button.value)
-								: button.value === aspect_ratio
+								: button.value === aspect_ratio,
 						}"
 						:key="button.label"
 						@click="aspect_ratio = button.value"
@@ -44,13 +44,12 @@ export default {
 	name: "ImageCropper",
 	props: ["file", "fixed_aspect_ratio"],
 	data() {
-		let aspect_ratio =
-			this.fixed_aspect_ratio != null ? this.fixed_aspect_ratio : NaN;
+		let aspect_ratio = this.fixed_aspect_ratio != null ? this.fixed_aspect_ratio : NaN;
 		return {
 			src: null,
 			cropper: null,
 			image: null,
-			aspect_ratio
+			aspect_ratio,
 		};
 	},
 	watch: {
@@ -58,7 +57,7 @@ export default {
 			if (this.cropper) {
 				this.cropper.setAspectRatio(value);
 			}
-		}
+		},
 	},
 	mounted() {
 		if (window.FileReader) {
@@ -74,7 +73,7 @@ export default {
 				scalable: false,
 				viewMode: 1,
 				data: crop_box,
-				aspectRatio: this.aspect_ratio
+				aspectRatio: this.aspect_ratio,
 			});
 			window.cropper = this.cropper;
 		};
@@ -84,37 +83,37 @@ export default {
 			return [
 				{
 					label: __("1:1"),
-					value: 1
+					value: 1,
 				},
 				{
 					label: __("4:3"),
-					value: 4 / 3
+					value: 4 / 3,
 				},
 				{
 					label: __("16:9"),
-					value: 16 / 9
+					value: 16 / 9,
 				},
 				{
 					label: __("Free"),
-					value: NaN
-				}
+					value: NaN,
+				},
 			];
-		}
+		},
 	},
 	methods: {
 		crop_image() {
 			this.file.crop_box_data = this.cropper.getData();
 			const canvas = this.cropper.getCroppedCanvas();
 			const file_type = this.file.file_obj.type;
-			canvas.toBlob(blob => {
+			canvas.toBlob((blob) => {
 				var cropped_file_obj = new File([blob], this.file.name, {
-					type: blob.type
+					type: blob.type,
 				});
 				this.file.file_obj = cropped_file_obj;
 				this.$emit("toggle_image_cropper");
 			}, file_type);
-		}
-	}
+		},
+	},
 };
 </script>
 <style>

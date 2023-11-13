@@ -15,7 +15,7 @@
 
 	.grid-static-col {
 		.static-area.reqd:after {
-			content: ' *';
+			content: " *";
 			color: var(--red-400);
 		}
 	}
@@ -44,7 +44,8 @@
 }
 
 // hide row index in 6/4 column child tables
-.form-column.col-sm-6, .form-column.col-sm-4 {
+.form-column.col-sm-6,
+.form-column.col-sm-4 {
 	.form-grid {
 		.row-index {
 			display: none;
@@ -248,7 +249,8 @@
 		margin-left: 1rem;
 	}
 
-	.grid-static-col[data-fieldtype="Code"], .grid-static-col[data-fieldtype="HTML Editor"] {
+	.grid-static-col[data-fieldtype="Code"],
+	.grid-static-col[data-fieldtype="HTML Editor"] {
 		overflow: hidden;
 
 		.static-area {
@@ -405,7 +407,8 @@
 	}
 }
 
-.grid-buttons, .grid-bulk-actions {
+.grid-buttons,
+.grid-bulk-actions {
 	display: inline-flex;
 }
 
@@ -413,7 +416,8 @@
 	padding: 0;
 }
 
-.grid-footer, .grid-custom-buttons {
+.grid-footer,
+.grid-custom-buttons {
 	padding: var(--padding-sm) 0px;
 	background-color: var(--fg-color);
 	.btn {
@@ -470,8 +474,7 @@
 }
 
 .grid-footer-toolbar {
-	padding: var(--padding-md) var(--padding-sm) var(--padding-xs)
-		var(--padding-sm);
+	padding: var(--padding-md) var(--padding-sm) var(--padding-xs) var(--padding-sm);
 	// border-top: 1px solid var(--border-color);
 	span {
 		margin-right: var(--margin-xs);
@@ -518,10 +521,10 @@
 
 @media (min-width: map-get($grid-breakpoints, "md")) {
 	.form-grid-container {
-		overflow-x: unset!important;
+		overflow-x: unset !important;
 
 		.form-grid {
-			position: unset!important;
+			position: unset !important;
 		}
 	}
 }
@@ -532,4 +535,3 @@
 		padding-right: 0 !important;
 	}
 }
-

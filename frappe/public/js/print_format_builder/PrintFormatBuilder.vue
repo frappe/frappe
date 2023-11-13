@@ -24,16 +24,16 @@ export default {
 	components: {
 		PrintFormat,
 		PrintFormatControls,
-		Preview
+		Preview,
 	},
 	data() {
 		return {
-			show_preview: false
+			show_preview: false,
 		};
 	},
 	provide() {
 		return {
-			$store: this.$store
+			$store: this.$store,
 		};
 	},
 	mounted() {
@@ -47,20 +47,16 @@ export default {
 	methods: {
 		toggle_preview() {
 			this.show_preview = !this.show_preview;
-		}
+		},
 	},
 	computed: {
 		$store() {
 			return getStore(this.print_format_name);
 		},
 		shouldRender() {
-			return Boolean(
-				this.$store.print_format &&
-					this.$store.meta &&
-					this.$store.layout
-			);
-		}
-	}
+			return Boolean(this.$store.print_format && this.$store.meta && this.$store.layout);
+		},
+	},
 };
 </script>
 

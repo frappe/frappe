@@ -1,20 +1,18 @@
-@import '../common/css_variables.scss';
+@import "../common/css_variables.scss";
 
 :root,
 [data-theme="light"] {
 	// breakpoints
-	--xxl-width: #{map-get($grid-breakpoints, '2xl')};
-	--xl-width: #{map-get($grid-breakpoints, 'xl')};
-	--lg-width: #{map-get($grid-breakpoints, 'lg')};
-	--md-width: #{map-get($grid-breakpoints, 'md')};
-	--sm-width: #{map-get($grid-breakpoints, 'sm')};
-	--xs-width: #{map-get($grid-breakpoints, 'xs')};
+	--xxl-width: #{map-get($grid-breakpoints, "2xl")};
+	--xl-width: #{map-get($grid-breakpoints, "xl")};
+	--lg-width: #{map-get($grid-breakpoints, "lg")};
+	--md-width: #{map-get($grid-breakpoints, "md")};
+	--sm-width: #{map-get($grid-breakpoints, "sm")};
+	--xs-width: #{map-get($grid-breakpoints, "xs")};
 
 	--text-bold: 500;
 
 	--navbar-height: 60px;
-
-
 
 	--appreciation-color: var(--dark-green-600);
 	--appreciation-bg: var(--dark-green-100);

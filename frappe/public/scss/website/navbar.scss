@@ -45,13 +45,12 @@
 	}
 
 	.navbar-toggler {
-		border-color: rgba(255,255,255, 0.1);
+		border-color: rgba(255, 255, 255, 0.1);
 
 		.icon {
 			stroke: none;
 		}
 	}
-
 
 	svg use {
 		--icon-stroke: white;
@@ -71,7 +70,6 @@
 		margin-left: 1rem;
 	}
 }
-
 
 .navbar.bg-dark {
 	.dropdown-menu {
@@ -109,7 +107,8 @@
 	font-weight: 500;
 
 	&:hover,
-	&:focus, &.active {
+	&:focus,
+	&.active {
 		color: $primary;
 	}
 }

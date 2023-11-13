@@ -18,10 +18,7 @@
 			:group="df.fieldname"
 			handle=".icon-drag"
 		>
-			<div
-				class="mt-2 row align-center column-row"
-				v-for="column in df.table_columns"
-			>
+			<div class="mt-2 row align-center column-row" v-for="column in df.table_columns">
 				<div class="col-8">
 					<div class="column-label d-flex align-center">
 						<div class="px-2 icon-drag ml-n2">
@@ -49,10 +46,7 @@
 						max="100"
 						step="5"
 					/>
-					<button
-						class="ml-2 btn btn-xs btn-icon"
-						@click="remove_column(column)"
-					>
+					<button class="ml-2 btn btn-xs btn-icon" @click="remove_column(column)">
 						<svg class="icon icon-sm">
 							<use href="#icon-close"></use>
 						</svg>
@@ -68,16 +62,16 @@ export default {
 	name: "ConfigureColumns",
 	props: ["df"],
 	components: {
-		draggable
+		draggable,
 	},
 	methods: {
 		remove_column(column) {
 			this.$set(
 				this.df,
 				"table_columns",
-				this.df.table_columns.filter(_column => _column !== column)
+				this.df.table_columns.filter((_column) => _column !== column)
 			);
-		}
+		},
 	},
 	computed: {
 		help_message() {
@@ -86,8 +80,8 @@ export default {
 		},
 		total_width() {
 			return this.df.table_columns.reduce((total, tf) => total + tf.width, 0);
-		}
-	}
+		},
+	},
 };
 </script>
 <style scoped>

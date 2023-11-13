@@ -199,7 +199,8 @@
 		background: var(--gray-500);
 	}
 
-	$indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple, light-blue;
+	$indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple,
+		light-blue;
 	@each $color in $indicator-colors {
 		.indicator {
 			--indicator-dot-#{"" + $color}: var(--bg-#{$color});

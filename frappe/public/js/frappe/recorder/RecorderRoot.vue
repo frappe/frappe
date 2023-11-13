@@ -1,6 +1,6 @@
 <template>
 	<keep-alive include="RecorderDetail">
-		<router-view/>
+		<router-view />
 	</keep-alive>
 </template>
 
@@ -11,7 +11,7 @@ export default {
 		async $route() {
 			frappe.router.current_route = await frappe.router.parse();
 			frappe.breadcrumbs.update();
-		}
-	}
+		},
+	},
 };
 </script>

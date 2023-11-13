@@ -20,7 +20,9 @@
 		border-bottom: 1px solid var(--border-color);
 	}
 
-	&--time-current-hours, &--time-current-minutes, &--time-current-seconds {
+	&--time-current-hours,
+	&--time-current-minutes,
+	&--time-current-seconds {
 		font-family: inherit;
 		&:after {
 			color: var(--text-color);
@@ -41,21 +43,23 @@
 			}
 		}
 
-		&.-range-from-, &.-range-to- {
-			border: 1px solid fade(#0089FF, 30%);
-			background: fade(#0089FF, 10%);
+		&.-range-from-,
+		&.-range-to- {
+			border: 1px solid fade(#0089ff, 30%);
+			background: fade(#0089ff, 10%);
 		}
 
-		&.-selected-, &.-current-.-selected- {
-			background: #0089FF;
+		&.-selected-,
+		&.-current-.-selected- {
+			background: #0089ff;
 		}
 
 		&.-in-range- {
-			background: fade(#0089FF, 5%);
+			background: fade(#0089ff, 5%);
 		}
 
 		&.-in-range-.-focus- {
-			background: fade(#0089FF, 10%);
+			background: fade(#0089ff, 10%);
 		}
 
 		&.-focus- {
@@ -63,16 +67,17 @@
 		}
 
 		&.-selected-.-focus- {
-			background: fade(#0089FF, 90%);
+			background: fade(#0089ff, 90%);
 		}
 	}
 
-	&--time, &--buttons {
+	&--time,
+	&--buttons {
 		border-top: 1px solid var(--border-color);
 	}
 
 	&--time-row {
-		background-image: linear-gradient(to right, #0089FF, #0089FF);
+		background-image: linear-gradient(to right, #0089ff, #0089ff);
 		background-repeat: no-repeat;
 		background-size: 100% 1px;
 		background-position: left 50%;
@@ -97,4 +102,3 @@
 		}
 	}
 }
-

@@ -232,7 +232,6 @@ body[data-route^="Module"] .main-menu {
 				background-color: var(--border-color);
 				opacity: 0.7;
 			}
-
 		}
 
 		@media (max-width: 767px) {
@@ -359,7 +358,7 @@ body[data-route^="Module"] .main-menu {
 			display: none;
 		}
 
-		input:not([data-fieldtype='Check']) {
+		input:not([data-fieldtype="Check"]) {
 			background: var(--control-bg-on-gray);
 		}
 
@@ -379,7 +378,8 @@ body[data-route^="Module"] .main-menu {
 	margin-bottom: 10px;
 }
 
-.attachment-row, .form-tag-row {
+.attachment-row,
+.form-tag-row {
 	margin-bottom: var(--margin-sm);
 	max-width: 100%;
 	.data-pill {

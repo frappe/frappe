@@ -2,29 +2,29 @@ $input-height: 28px !default;
 
 :root,
 [data-theme="light"] {
-	--brand-color: #0089FF;
+	--brand-color: #0089ff;
 
-	--pink-900: #5B1E34;
+	--pink-900: #5b1e34;
 	--pink-800: #702440;
-	--pink-700: #97264F;
-	--pink-600: #D2326D;
-	--pink-500: #F2508B;
-	--pink-400: #F46B9E;
-	--pink-300: #F584AE;
-	--pink-200: #FAB9D1;
-	--pink-100: #FCDCE8;
-	--pink-50 : #FEEDF3;
+	--pink-700: #97264f;
+	--pink-600: #d2326d;
+	--pink-500: #f2508b;
+	--pink-400: #f46b9e;
+	--pink-300: #f584ae;
+	--pink-200: #fab9d1;
+	--pink-100: #fcdce8;
+	--pink-50: #feedf3;
 
-	--blue-900: #1A4469;
+	--blue-900: #1a4469;
 	--blue-800: #154875;
-	--blue-700: #1366AE;
-	--blue-600: #1673C5;
-	--blue-500: #2490EF;
-	--blue-400: #50A6F2;
-	--blue-300: #7CBCF5;
-	--blue-200: #A7D3F9;
-	--blue-100: #D3E9FC;
-	--blue-50 : #F0F8FE;
+	--blue-700: #1366ae;
+	--blue-600: #1673c5;
+	--blue-500: #2490ef;
+	--blue-400: #50a6f2;
+	--blue-300: #7cbcf5;
+	--blue-200: #a7d3f9;
+	--blue-100: #d3e9fc;
+	--blue-50: #f0f8fe;
 
 	--cyan-900: #006464;
 	--cyan-800: #007272;
@@ -35,84 +35,84 @@ $input-height: 28px !default;
 	--cyan-300: #6efcfc;
 	--cyan-200: #a0f8f8;
 	--cyan-100: #c7fcfc;
-	--cyan-50 : #dafafa;
+	--cyan-50: #dafafa;
 
-	--green-900: #2D401D;
-	--green-800: #44622A;
-	--green-700: #518B21;
-	--green-600: #68AB30;
-	--green-500: #8CCF54;
-	--green-400: #A5D97A;
-	--green-300: #BCE39B;
-	--green-200: #D2ECBD;
-	--green-100: #E9F6DE;
-	--green-50 : #F4FAEE;
+	--green-900: #2d401d;
+	--green-800: #44622a;
+	--green-700: #518b21;
+	--green-600: #68ab30;
+	--green-500: #8ccf54;
+	--green-400: #a5d97a;
+	--green-300: #bce39b;
+	--green-200: #d2ecbd;
+	--green-100: #e9f6de;
+	--green-50: #f4faee;
 
-	--dark-green-900: #1F3E2B;
-	--dark-green-800: #29593B;
+	--dark-green-900: #1f3e2b;
+	--dark-green-800: #29593b;
 	--dark-green-700: #286840;
-	--dark-green-600: #2E844E;
-	--dark-green-500: #2F9D58;
-	--dark-green-400: #59B179;
-	--dark-green-300: #82C49B;
-	--dark-green-200: #ACD8BC;
-	--dark-green-100: #DFEEE5;
-	--dark-green-50: #EAF5EE;
+	--dark-green-600: #2e844e;
+	--dark-green-500: #2f9d58;
+	--dark-green-400: #59b179;
+	--dark-green-300: #82c49b;
+	--dark-green-200: #acd8bc;
+	--dark-green-100: #dfeee5;
+	--dark-green-50: #eaf5ee;
 
-	--gray-900: #1F272E;
-	--gray-800: #333C44;
-	--gray-700: #505A62;
+	--gray-900: #1f272e;
+	--gray-800: #333c44;
+	--gray-700: #505a62;
 	--gray-600: #687178;
-	--gray-500: #98A1A9;
-	--gray-400: #C0C6CC;
-	--gray-300: #DCE0E3;
-	--gray-200: #EBEEF0;
-	--gray-100: #F4F5F6;
-	--gray-50: #F9FAFA;
+	--gray-500: #98a1a9;
+	--gray-400: #c0c6cc;
+	--gray-300: #dce0e3;
+	--gray-200: #ebeef0;
+	--gray-100: #f4f5f6;
+	--gray-50: #f9fafa;
 
-	--red-900: #631D1D;
+	--red-900: #631d1d;
 	--red-800: #802121;
-	--red-700: #9B2C2C;
-	--red-600: #C53030;
-	--red-500: #E24C4C;
-	--red-400: #EC645E;
-	--red-300: #FCA4A4;
-	--red-200: #FCC8C8;
-	--red-100: #FFECEC;
-	--red-50 : #FFF5F5;
+	--red-700: #9b2c2c;
+	--red-600: #c53030;
+	--red-500: #e24c4c;
+	--red-400: #ec645e;
+	--red-300: #fca4a4;
+	--red-200: #fcc8c8;
+	--red-100: #ffecec;
+	--red-50: #fff5f5;
 
-	--yellow-900: #5F370E;
+	--yellow-900: #5f370e;
 	--yellow-800: #744210;
-	--yellow-700: #975A16;
-	--yellow-600: #B7791F;
-	--yellow-500: #D69E2E;
-	--yellow-400: #ECB64B;
-	--yellow-300: #F6C35E;
-	--yellow-200: #FAD489;
-	--yellow-100: #FEE9BF;
-	--yellow-50: #FEF4E2;
+	--yellow-700: #975a16;
+	--yellow-600: #b7791f;
+	--yellow-500: #d69e2e;
+	--yellow-400: #ecb64b;
+	--yellow-300: #f6c35e;
+	--yellow-200: #fad489;
+	--yellow-100: #fee9bf;
+	--yellow-50: #fef4e2;
 
 	--orange-900: #653019;
-	--orange-800: #7B3A1E;
-	--orange-700: #9C4621;
-	--orange-600: #CB5A2A;
-	--orange-500: #F8814F;
-	--orange-400: #F9966C;
-	--orange-300: #FDAE8C;
-	--orange-200: #FECDB8;
-	--orange-100: #FFEAE1;
-	--orange-50: #FFF5F0;
+	--orange-800: #7b3a1e;
+	--orange-700: #9c4621;
+	--orange-600: #cb5a2a;
+	--orange-500: #f8814f;
+	--orange-400: #f9966c;
+	--orange-300: #fdae8c;
+	--orange-200: #fecdb8;
+	--orange-100: #ffeae1;
+	--orange-50: #fff5f0;
 
 	--purple-900: #343360;
-	--purple-800: #45438F;
-	--purple-700: #4946BF;
-	--purple-600: #6461D6;
-	--purple-500: #8684FF;
-	--purple-400: #9897F7;
-	--purple-300: #B9B8FA;
-	--purple-200: #DAD9F7;
-	--purple-100: #EAEAFB;
-	--purple-50: #F2F2FD;
+	--purple-800: #45438f;
+	--purple-700: #4946bf;
+	--purple-600: #6461d6;
+	--purple-500: #8684ff;
+	--purple-400: #9897f7;
+	--purple-300: #b9b8fa;
+	--purple-200: #dad9f7;
+	--purple-100: #eaeafb;
+	--purple-50: #f2f2fd;
 
 	--padding-xs: 5px;
 	--padding-sm: 10px;
@@ -128,17 +128,21 @@ $input-height: 28px !default;
 	--margin-xl: 30px;
 	--margin-2xl: 40px;
 
-	--font-stack: "Inter", "-apple-system", "BlinkMacSystemFont","Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell","Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+	--font-stack: "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen",
+		"Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 
 	--text-bold: 500;
 
-	--shadow-xs:  rgba(0, 0, 0, 0.05) 0px 0.5px 0px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.05) 0px 2px 4px 0px;
+	--shadow-xs: rgba(0, 0, 0, 0.05) 0px 0.5px 0px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
+		rgba(0, 0, 0, 0.05) 0px 2px 4px 0px;
 	--shadow-sm: 0px 1px 2px rgba(25, 39, 52, 0.05), 0px 0px 4px rgba(25, 39, 52, 0.1);
 	--shadow-base: 0px 4px 8px rgba(25, 39, 52, 0.06), 0px 0px 4px rgba(25, 39, 52, 0.12);
-	--shadow-md:  0px 8px 14px rgba(25, 39, 52, 0.08), 0px 2px 6px rgba(25, 39, 52, 0.04);
-	--shadow-lg: 0px 18px 22px rgba(25, 39, 52, 0.1), 0px 1px 10px rgba(0, 0, 0, 0.06), 0px 0.5px 5px rgba(25, 39, 52, 0.04);
+	--shadow-md: 0px 8px 14px rgba(25, 39, 52, 0.08), 0px 2px 6px rgba(25, 39, 52, 0.04);
+	--shadow-lg: 0px 18px 22px rgba(25, 39, 52, 0.1), 0px 1px 10px rgba(0, 0, 0, 0.06),
+		0px 0.5px 5px rgba(25, 39, 52, 0.04);
 
-	--drop-shadow: 0px 0.5px 0px rgba(0, 0, 0, 0.05), 0px 0px 0px rgba(0, 0, 0, 0), 0px 2px 4px rgba(0, 0, 0, 0.05);
+	--drop-shadow: 0px 0.5px 0px rgba(0, 0, 0, 0.05), 0px 0px 0px rgba(0, 0, 0, 0),
+		0px 2px 4px rgba(0, 0, 0, 0.05);
 
 	--modal-shadow: var(--shadow-md);
 	--card-shadow: var(--shadow-sm);
@@ -257,7 +261,7 @@ $input-height: 28px !default;
 	--border-radius-lg: 12px;
 	--border-radius-full: 999px;
 
-	--primary-color: #2490EF;
+	--primary-color: #2490ef;
 	--btn-height: 30px;
 
 	// input
@@ -268,7 +272,7 @@ $input-height: 28px !default;
 	--checkbox-right-margin: var(--margin-xs);
 	--checkbox-size: 14px;
 	--checkbox-focus-shadow: 0 0 0 2px var(--gray-300);
-	--checkbox-gradient: linear-gradient(180deg, #4AC3F8 -124.51%, var(--primary) 100%);
+	--checkbox-gradient: linear-gradient(180deg, #4ac3f8 -124.51%, var(--primary) 100%);
 
 	// "diff" colors
 	--diff-added: var(--green-100);

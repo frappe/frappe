@@ -1,5 +1,4 @@
 .file-view {
-
 	.no-result {
 		.breadcrumbs {
 			font-size: var(--text-md);
@@ -13,7 +12,6 @@
 	}
 
 	.file-grid-view {
-
 		.file-grid.folders {
 			margin-bottom: var(--margin-2xl);
 		}
@@ -59,7 +57,6 @@
 							display: block;
 						}
 					}
-
 				}
 
 				.file-footer {
@@ -101,7 +98,6 @@
 			}
 
 			.file-wrapper:hover {
-
 				.list-row-checkbox {
 					&:before {
 						display: block;
@@ -119,9 +115,8 @@
 			}
 
 			.file-wrapper.cut {
-				border: 2px dashed var(--dark-border-color)
+				border: 2px dashed var(--dark-border-color);
 			}
 		}
 	}
-
 }

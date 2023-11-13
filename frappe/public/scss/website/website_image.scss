@@ -4,10 +4,7 @@ img {
 	position: relative;
 }
 
-@include broken-img(
-	$height: 175px,
-	$border-radius: 0,
-);
+@include broken-img($height: 175px, $border-radius: 0);
 
 .website-image-placeholder {
 	display: flex;

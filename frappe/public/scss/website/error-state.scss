@@ -7,7 +7,7 @@
 		margin: var(--margin-2xl) auto;
 
 		@include media-breakpoint-down(sm) {
-			width: 80%
+			width: 80%;
 		}
 	}
 
@@ -15,5 +15,3 @@
 		font-size: var(--text-base);
 	}
 }
-
-

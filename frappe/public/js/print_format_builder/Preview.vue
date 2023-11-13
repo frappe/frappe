@@ -45,7 +45,7 @@ export default {
 		return {
 			type: "PDF",
 			docname: null,
-			preview_loaded: false
+			preview_loaded: false,
 		};
 	},
 	mounted() {
@@ -58,9 +58,9 @@ export default {
 				options: this.doctype,
 				change: () => {
 					this.docname = this.doc_select.get_value();
-				}
+				},
 			},
-			render_input: true
+			render_input: true,
 		});
 		this.preview_type = frappe.ui.form.make_control({
 			parent: this.$refs["preview-type"],
@@ -71,13 +71,13 @@ export default {
 				options: ["PDF", "HTML"],
 				change: () => {
 					this.type = this.preview_type.get_value();
-				}
+				},
 			},
-			render_input: true
+			render_input: true,
 		});
 		this.preview_type.set_value(this.type);
 		this.get_default_docname().then(
-			docname => docname && this.doc_select.set_value(docname)
+			(docname) => docname && this.doc_select.set_value(docname)
 		);
 		this.$store.$on("after_save", () => {
 			this.refresh();
@@ -88,10 +88,10 @@ export default {
 			this.$refs.iframe.contentWindow.location.reload();
 		},
 		get_default_docname() {
-			return frappe.db.get_list(this.doctype, { limit: 1 }).then(doc => {
+			return frappe.db.get_list(this.doctype, { limit: 1 }).then((doc) => {
 				return doc.length > 0 ? doc[0].name : null;
 			});
-		}
+		},
 	},
 	computed: {
 		doctype() {
@@ -111,8 +111,8 @@ export default {
 					? `/api/method/frappe.utils.weasyprint.download_pdf`
 					: "/printpreview";
 			return `${url}?${params.toString()}`;
-		}
-	}
+		},
+	},
 };
 </script>
 <style scoped>

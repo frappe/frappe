@@ -9,7 +9,7 @@ body {
 // 	overflow-x: hidden;  //Prevent scroll on narrow devices
 // }
 
-@media(max-width: 991px) {
+@media (max-width: 991px) {
 	.intro-area,
 	.footnote-area {
 		padding: 15px;
@@ -36,7 +36,6 @@ body {
 			margin-top: var(--margin-sm);
 			margin-right: var(--margin-xs);
 		}
-
 
 		.page-head .sub-heading {
 			font-size: var(--text-xs);
@@ -72,7 +71,7 @@ body {
 		white-space: nowrap;
 		text-overflow: ellipsis;
 
-		@media(max-width: 480px) {
+		@media (max-width: 480px) {
 			li > a {
 				width: 100px;
 			}
@@ -90,7 +89,7 @@ body {
 	}
 
 	// select all except last 2
-	#navbar-breadcrumbs li:not(:nth-last-child(-n+1)) {
+	#navbar-breadcrumbs li:not(:nth-last-child(-n + 1)) {
 		display: none;
 	}
 
@@ -153,9 +152,8 @@ body {
 	// }
 }
 
-@media(max-width: 767px) {
-
-	body[data-route^="Form"]{
+@media (max-width: 767px) {
+	body[data-route^="Form"] {
 		.page-title {
 			.title-text {
 				font-size: var(--text-lg);
@@ -249,14 +247,13 @@ body {
 				top: 4px;
 
 				// bigger indicators for list
-				.indicator::before, .indicator::after {
+				.indicator::before,
+				.indicator::after {
 					height: 12px;
 					width: 12px;
 					border-radius: 12px;
 				}
-
 			}
-
 		}
 
 		.list-row-right.no-right-column {
@@ -265,7 +262,6 @@ body {
 			right: 10px;
 			left: -10px;
 			width: 100%;
-
 		}
 	}
 
@@ -339,12 +335,13 @@ body {
 						margin-right: 0;
 					}
 				}
-				.comment-header{
+				.comment-header {
 					padding: 7px 10px;
 					.links-active {
 						padding-right: 10px;
 					}
-					.reply-link, .reply-link-all {
+					.reply-link,
+					.reply-link-all {
 						margin-left: 0;
 					}
 					.asset-details {
@@ -357,10 +354,10 @@ body {
 				.reply {
 					padding: 10px;
 				}
-				.commented-on-small{
+				.commented-on-small {
 					display: inline-block;
 				}
-				.commented-on-small{
+				.commented-on-small {
 					display: inline-block;
 				}
 			}

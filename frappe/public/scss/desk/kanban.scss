@@ -162,10 +162,7 @@
 					@include flex(flex, space-between, null, column);
 					margin-top: var(--margin-sm);
 					min-height: 100px;
-					@include card(
-						$padding: 0,
-						$background-color: var(--kanban-card-bg)
-					);
+					@include card($padding: 0, $background-color: var(--kanban-card-bg));
 
 					.kanban-image {
 						height: 125px;
@@ -207,7 +204,6 @@
 						}
 
 						.kanban-card-meta {
-
 							.list-comment-count {
 								width: 30px;
 							}

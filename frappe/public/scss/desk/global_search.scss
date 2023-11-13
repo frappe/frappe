@@ -101,7 +101,9 @@
 				}
 			}
 
-			.list-more, .section-more, .results-status {
+			.list-more,
+			.section-more,
+			.results-status {
 				padding: var(--padding-sm) 0;
 				color: var(--primary);
 				font-size: var(--text-sm);

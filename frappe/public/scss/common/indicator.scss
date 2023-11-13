@@ -7,7 +7,7 @@
 }
 
 .indicator::before {
-	content: '';
+	content: "";
 	height: 6px;
 	width: 6px;
 	border-radius: var(--border-radius);
@@ -18,7 +18,7 @@
 .indicator-pill-right {
 	padding: 3px 10px;
 	font-size: var(--text-sm);
-	border-radius: var( --border-radius);
+	border-radius: var(--border-radius);
 	font-weight: 500;
 	height: 24px;
 }
@@ -34,7 +34,7 @@
 
 .indicator-pill:not(.no-indicator-dot)::before,
 .indicator-pill-right::after {
-	content:'';
+	content: "";
 	display: inline-table;
 	height: 4px;
 	width: 4px;
@@ -51,7 +51,8 @@
 	margin: 0 0 0 4px;
 }
 
-$indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple, light-blue;
+$indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple,
+	light-blue;
 @each $color in $indicator-colors {
 	.indicator.#{"" + $color} {
 		&::before,
@@ -75,11 +76,12 @@ $indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, dar
 	}
 }
 
-
 .indicator.blink {
 	animation: blink 1s linear infinite;
 }
 
 @keyframes blink {
-	50% { opacity: 0.5; }
+	50% {
+		opacity: 0.5;
+	}
 }

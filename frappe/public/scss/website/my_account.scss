@@ -50,7 +50,6 @@
 	}
 
 	.my-account-avatar {
-
 		.avatar {
 			height: 60px;
 			width: 60px;
@@ -70,8 +69,8 @@
 
 			.edit-profile-icon {
 				stroke: var(--blue-500);
+			}
 		}
-	}
 
 		.right-icon {
 			@include media-breakpoint-up(sm) {
