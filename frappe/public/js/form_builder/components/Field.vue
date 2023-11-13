@@ -166,7 +166,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 
 	&.hovered,
 	&.selected {
-		border-color: var(--primary);
+		border-color: var(--border-primary);
 		.btn.btn-icon {
 			opacity: 1 !important;
 		}

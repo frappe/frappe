@@ -8,15 +8,15 @@
 		clip: rect(0, 0, 0, 0);
 	}
 
-	&> input {
+	& > input {
 		display: block;
 	}
 
-	&> ul:empty {
+	& > ul:empty {
 		display: none;
 	}
 
-	&> ul {
+	& > ul {
 		position: absolute;
 		width: 100%;
 		list-style: none;
@@ -33,7 +33,7 @@
 		z-index: 4;
 		min-width: 250px;
 
-		&> li {
+		& > li {
 			cursor: pointer;
 			@include get_textstyle("sm", "regular");
 			padding: var(--padding-sm);
@@ -54,12 +54,13 @@
 			}
 		}
 
-		&> li .link-option {
+		& > li .link-option {
 			font-weight: normal;
 			color: var(--text-color);
 		}
 
-		&> li:hover, &> li[aria-selected=true] {
+		& > li:hover,
+		& > li[aria-selected="true"] {
 			background-color: var(--awesomplete-hover-bg);
 			color: var(--text-color);
 		}
