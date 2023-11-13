@@ -1070,6 +1070,7 @@ class Document(BaseDocument):
 
 		self.reset_seen()
 
+		# Full Validation Sequence on save and submit
 		if self._action in ("save", "submit"):
 			# prepares the doc for validation
 			try:
@@ -1087,10 +1088,7 @@ class Document(BaseDocument):
 			except Exception:
 				raise frappe.exceptions.ProgrammingError("after_validate may not throw / raise")
 
-		if self._action == "save":
-			self.run_method("before_save")
-		elif self._action == "submit":
-			self.run_method("before_submit")
+		# Other validations and mutations on cancel and update_after_submit
 		elif self._action == "cancel":
 			self.run_method("before_cancel")
 		elif self._action == "update_after_submit":
