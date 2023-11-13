@@ -4,10 +4,10 @@
 @import "../espresso/shadows";
 @import "../espresso/borders";
 
-html, body {
+html,
+body {
 	font-size: 16px;
 }
-
 
 $border-color: var(--border-color);
 $code-color: var(--purple-600);
@@ -19,15 +19,15 @@ $border-radius-lg: var(--border-radius-lg);
 $nav-divider-margin-y: 4px;
 
 $container-max-widths: (
-  sm: 540px,
-  md: 840px,
-  lg: 1090px,
-  xl: 1290px
+	sm: 540px,
+	md: 840px,
+	lg: 1090px,
+	xl: 1290px,
 );
 
 $theme-colors: (
-  "primary": $primary,
-  "danger": $danger
+	"primary": $primary,
+	"danger": $danger,
 );
 
 $navbar-height: 48px;
@@ -77,7 +77,7 @@ $btn-font-weight: 400 !default;
 $btn-active-box-shadow: var(--shadow-inset);
 
 // mark
-$mark-bg: #FDF9AF;
+$mark-bg: #fdf9af;
 $mark-padding: 0;
 
 // transitions
@@ -88,7 +88,7 @@ $input-transition: none;
 $enable-shadows: true;
 $popover-border-radius: 12px;
 $popover-bg: var(--popover-bg);
-$popover-box-shadow: 	var(--shadow-2xl);
+$popover-box-shadow: var(--shadow-2xl);
 $popover-body-padding-x: var(--padding-md);
 $popover-body-padding-y: var(--padding-md);
 $popover-border-color: transparent;
@@ -119,17 +119,17 @@ $dropdown-item-padding-x: var(--padding-sm);
 
 $spacer: 14px;
 $grid-breakpoints: (
-  xs: 0,
-  sm: 576px,
-  md: 768px,
-  lg: 992px,
-  xl: 1200px,
-  2xl: 1440px
+	xs: 0,
+	sm: 576px,
+	md: 768px,
+	lg: 992px,
+	xl: 1200px,
+	2xl: 1440px,
 ) !default;
 
-@import 'typography';
-@import '~bootstrap/scss/functions';
-@import '~bootstrap/scss/variables';
+@import "typography";
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
-@import 'css_variables';
-@import 'dark';
+@import "css_variables";
+@import "dark";

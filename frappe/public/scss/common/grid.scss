@@ -31,15 +31,17 @@
 		}
 	}
 
-	.grid-static-col, .row-check, .row-index {
+	.grid-static-col,
+	.row-check,
+	.row-index {
 		height: 32px;
 		padding: 6px 8px !important;
 	}
 	.grid-static-col {
 		padding: 6px 8px !important;
-		.static-area{
+		.static-area {
 			&.reqd:after {
-				content: ' *';
+				content: " *";
 				color: var(--red-400);
 			}
 		}
@@ -69,7 +71,8 @@
 }
 
 // hide row index in 6/4 column child tables
-.form-column.col-sm-6, .form-column.col-sm-4 {
+.form-column.col-sm-6,
+.form-column.col-sm-4 {
 	.form-grid {
 		.row-index {
 			display: none;
@@ -98,7 +101,7 @@
 
 .grid-body .data-row {
 	@include get_textstyle("sm", "regular");
-	color: var(--text-muted)
+	color: var(--text-muted);
 }
 
 .grid-empty,
@@ -219,7 +222,7 @@
 			padding: 0px !important;
 		}
 
-		.frappe-control[data-fieldtype=Select].form-group .select-icon {
+		.frappe-control[data-fieldtype="Select"].form-group .select-icon {
 			top: 9px;
 		}
 
@@ -287,7 +290,8 @@
 		margin-left: 1rem;
 	}
 
-	.grid-static-col[data-fieldtype="Code"], .grid-static-col[data-fieldtype="HTML Editor"] {
+	.grid-static-col[data-fieldtype="Code"],
+	.grid-static-col[data-fieldtype="HTML Editor"] {
 		overflow: hidden;
 
 		.static-area {
@@ -450,7 +454,8 @@
 	}
 }
 
-.grid-buttons, .grid-bulk-actions {
+.grid-buttons,
+.grid-bulk-actions {
 	display: inline-flex;
 }
 
@@ -460,7 +465,8 @@
 .grid-footer {
 	margin-top: var(--margin-sm);
 }
-.grid-footer, .grid-custom-buttons {
+.grid-footer,
+.grid-custom-buttons {
 	padding: var(--padding-sm) 0px;
 	background-color: var(--fg-color);
 	.btn {
@@ -517,8 +523,7 @@
 }
 
 .grid-footer-toolbar {
-	padding: var(--padding-md) var(--padding-sm) var(--padding-xs)
-		var(--padding-sm);
+	padding: var(--padding-md) var(--padding-sm) var(--padding-xs) var(--padding-sm);
 	// border-top: 1px solid var(--border-color);
 	span {
 		margin-right: var(--margin-xs);
@@ -565,10 +570,10 @@
 
 @media (min-width: map-get($grid-breakpoints, "md")) {
 	.form-grid-container {
-		overflow-x: unset!important;
+		overflow-x: unset !important;
 
 		.form-grid {
-			position: unset!important;
+			position: unset !important;
 		}
 	}
 }
@@ -579,4 +584,3 @@
 		padding-right: 0 !important;
 	}
 }
-
