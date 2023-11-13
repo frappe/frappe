@@ -1,5 +1,19 @@
 .tree {
 	padding: var(--padding-sm);
+	.btn-group {
+		.btn {
+			box-shadow: none;
+			outline: 1px solid var(--btn-group-border-color);
+
+			&:not(:first-child) {
+				margin-left: 1px;
+			}
+
+			&:focus {
+				outline: 2px solid var(--dark-border-color);
+			}
+		}
+	}
 }
 
 .tree li {
@@ -93,7 +107,8 @@
 
 // decoration
 // .tree, .tree-node {
-.tree.with-skeleton, .tree.with-skeleton .tree-node {
+.tree.with-skeleton,
+.tree.with-skeleton .tree-node {
 	position: relative;
 
 	// &.opened::before, &:last-child::after {

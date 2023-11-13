@@ -38,6 +38,7 @@ def get_submitted_linked_docs(doctype: str, name: str) -> list[tuple]:
 	3. Searching for links is going to be a tree like structure where at every level,
 	        you will be finding documents using parent document and parent document links.
 	"""
+	frappe.has_permission(doctype, doc=name)
 	tree = SubmittableDocumentTree(doctype, name)
 	visited_documents = tree.get_all_children()
 	docs = []
@@ -70,7 +71,7 @@ class SubmittableDocumentTree:
 
 	def get_all_children(self):
 		"""Get all nodes of a tree except the root node (all the nested submitted
-		documents those are present in referencing tables (dependent tables).
+		documents those are present in referencing tables dependent tables).
 		"""
 		while self.to_be_visited_documents:
 			next_level_children = defaultdict(list)
@@ -100,6 +101,10 @@ class SubmittableDocumentTree:
 
 		child_docs = defaultdict(list)
 		for field in referencing_fields:
+			if field["fieldname"] == "amended_from":
+				# perf: amended_from links are always linked to cancelled documents.
+				continue
+
 			links = (
 				get_referencing_documents(
 					parent_dt,
@@ -427,8 +432,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 			link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
 		except Exception as e:
 			if isinstance(e, frappe.DoesNotExistError):
-				if frappe.local.message_log:
-					frappe.local.message_log.pop()
+				frappe.clear_last_message()
 			continue
 		linkmeta = link_meta_bundle[0]
 
@@ -502,8 +506,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 						ret = None
 
 			except frappe.PermissionError:
-				if frappe.local.message_log:
-					frappe.local.message_log.pop()
+				frappe.clear_last_message()
 
 				continue
 
@@ -515,6 +518,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 
 @frappe.whitelist()
 def get(doctype, docname):
+	frappe.has_permission(doctype, doc=docname)
 	linked_doctypes = get_linked_doctypes(doctype=doctype)
 	return get_linked_docs(doctype=doctype, name=docname, linkinfo=linked_doctypes)
 

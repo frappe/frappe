@@ -1,21 +1,24 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 const props = defineProps(["df"]);
 
 let quill = ref(null);
-let quill_control = ref(null);
+let quill_control = computed(() => {
+	if (!quill.value) return;
+	quill.value.innerHTML = "";
+
+	return frappe.ui.form.make_control({
+		parent: quill.value,
+		df: { ...props.df, hidden: 0 },
+		disabled: true,
+		render_input: true,
+		only_input: true,
+	});
+});
 
 onMounted(() => {
-	if (quill.value) {
-		quill_control.value = frappe.ui.form.make_control({
-			parent: quill.value,
-			df: { ...props.df, hidden: 0 },
-			disabled: true,
-			render_input: true,
-			only_input: true,
-		});
-	}
+	if (quill.value) quill_control.value;
 });
 </script>
 

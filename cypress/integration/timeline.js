@@ -8,7 +8,7 @@ context("Timeline", () => {
 
 	it("Adding new ToDo, adding new comment, verifying comment addition & deletion and deleting ToDo", () => {
 		//Adding new ToDo
-		cy.visit("/app/todo/new-todo-1");
+		cy.new_form("ToDo");
 		cy.get('[data-fieldname="description"] .ql-editor.ql-blank')
 			.type("Test ToDo", { force: true })
 			.wait(200);

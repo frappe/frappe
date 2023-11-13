@@ -53,15 +53,13 @@ export const useStore = defineStore("workflow-builder-store", () => {
 				}));
 		}
 
-		if (
-			workflow_doc.value.workflow_data &&
-			typeof workflow_doc.value.workflow_data == "string" &&
-			JSON.parse(workflow_doc.value.workflow_data).length
-		) {
-			workflow.value.elements = JSON.parse(workflow_doc.value.workflow_data);
-		} else {
-			workflow.value.elements = get_workflow_elements(workflow_doc.value);
-		}
+		const workflow_data =
+			(workflow_doc.value.workflow_data &&
+				typeof workflow_doc.value.workflow_data == "string" &&
+				JSON.parse(workflow_doc.value.workflow_data)) ||
+			[];
+
+		workflow.value.elements = get_workflow_elements(workflow_doc.value, workflow_data);
 
 		setup_undo_redo();
 		setup_breadcrumbs();
@@ -79,8 +77,8 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			doc.states = get_updated_states();
 			doc.transitions = get_updated_transitions();
 			validate_workflow(doc);
-			clean_workflow_data();
-			doc.workflow_data = JSON.stringify(workflow.value.elements);
+			const workflow_data = clean_workflow_data();
+			doc.workflow_data = JSON.stringify(workflow_data);
 			await frappe.call("frappe.client.save", { doc });
 			frappe.toast("Workflow updated successfully");
 			fetch();
@@ -103,7 +101,28 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	function clean_workflow_data() {
-		workflow.value.elements.forEach((el) => (el.selected = false));
+		return workflow.value.elements.map((el) => {
+			const {
+				selected,
+				dragging,
+				resizing,
+				data,
+				events,
+				initialized,
+				sourceNode,
+				targetNode,
+				...obj
+			} = el;
+
+			if (el.type == "action") {
+				obj.data = {
+					from_id: data.from_id,
+					to_id: data.to_id,
+				};
+			}
+
+			return obj;
+		});
 	}
 
 	function setup_breadcrumbs() {
@@ -122,18 +141,15 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			Submitted: 1,
 			Cancelled: 2,
 		};
-		let docfield = "Workflow Document State";
-		let df = frappe.model.get_new_doc(docfield);
-		df.name = frappe.utils.get_random(8);
-		Object.assign(df, data);
-		df.doc_status = doc_status_map[data.doc_status];
-		return df;
+		data.doc_status = doc_status_map[data.doc_status];
+		return data;
 	}
 
 	function get_updated_states() {
 		let states = [];
 		workflow.value.elements.forEach((element) => {
 			if (element.type == "state") {
+				element.data.workflow_builder_id = element.id;
 				states.push(get_state_df(element.data));
 			}
 		});
@@ -141,11 +157,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 	}
 
 	function get_transition_df(data) {
-		let docfield = "Workflow Transition";
-		let df = frappe.model.get_new_doc(docfield);
-		df.name = frappe.utils.get_random(8);
-		Object.assign(df, data);
-		return df;
+		return data;
 	}
 
 	function get_updated_transitions() {
@@ -154,6 +166,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 
 		workflow.value.elements.forEach((element) => {
 			if (element.type == "action") {
+				element.data.workflow_builder_id = element.id;
 				actions.push(element);
 			}
 		});
@@ -181,21 +194,21 @@ export const useStore = defineStore("workflow-builder-store", () => {
 		return transitions;
 	}
 
-	let undo_redo_keyboard_event = onKeyDown(true, (e) => {
-		if (!ref_history.value) return;
-		if (e.ctrlKey || e.metaKey) {
-			if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
-				ref_history.value.undo();
-			} else if (e.key === "z" && e.shiftKey && ref_history.value.canRedo) {
-				ref_history.value.redo();
+	let undo_redo_keyboard_event = () =>
+		onKeyDown(true, (e) => {
+			if (!ref_history.value) return;
+			if (e.ctrlKey || e.metaKey) {
+				if (e.key === "z" && !e.shiftKey && ref_history.value.canUndo) {
+					ref_history.value.undo();
+				} else if (e.key === "z" && e.shiftKey && ref_history.value.canRedo) {
+					ref_history.value.redo();
+				}
 			}
-		}
-	});
+		});
 
 	function setup_undo_redo() {
 		ref_history.value = useManualRefHistory(workflow, { clone: true });
-
-		undo_redo_keyboard_event;
+		undo_redo_keyboard_event();
 	}
 
 	return {

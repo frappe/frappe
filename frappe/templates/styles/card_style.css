@@ -43,8 +43,9 @@
 }
 
 .page-card-head h4 {
-	font-size: 18px;
-	font-weight: 600;
+	font-size: var(--text-xl);
+	font-weight: var(--weight-semibold);
+	letter-spacing: 0.01em;
 }
 
 #reset-password .form-group {

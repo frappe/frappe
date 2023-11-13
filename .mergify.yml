@@ -9,6 +9,7 @@ pull_request_rules:
           - author!=frappe-pr-bot
           - author!=mergify[bot]
         - or:
+          - base=version-16
           - base=version-15
           - base=version-14
           - base=version-13
@@ -68,6 +69,16 @@ pull_request_rules:
       backport:
         branches:
           - version-14-hotfix
+        assignees:
+          - "{{ author }}"
+
+  - name: backport to version-15-hotfix
+    conditions:
+      - label="backport version-15-hotfix"
+    actions:
+      backport:
+        branches:
+          - version-15-hotfix
         assignees:
           - "{{ author }}"
 

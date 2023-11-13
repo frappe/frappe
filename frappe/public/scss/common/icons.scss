@@ -22,7 +22,7 @@
 use.like-icon {
 	--icon-stroke: transparent;
 	cursor: pointer;
-	stroke: var(--gray-600);
+	stroke: var(--gray-800);
 }
 
 #icon-file-large {
@@ -44,7 +44,6 @@ use.like-icon {
 .liked {
 	use.like-icon {
 		--icon-stroke: var(--red-500);
-		stroke: var(--icon-stroke);
 		fill: var(--icon-stroke);
 	}
 }

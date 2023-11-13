@@ -7,12 +7,34 @@ let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
 let link = ref(null);
-let link_control = ref(null);
 let update_control = ref(true);
+
+let link_control = computed(() => {
+	if (!link.value) return;
+	link.value.innerHTML = "";
+
+	return frappe.ui.form.make_control({
+		parent: link.value,
+		df: {
+			...props.df,
+			hidden: 0,
+			read_only: Boolean(slots.label) || props.read_only,
+			change: () => {
+				if (update_control.value) {
+					content.value = link_control.value.get_value();
+				}
+				update_control.value = true;
+			},
+		},
+		value: content.value,
+		render_input: true,
+		only_input: Boolean(slots.label),
+	});
+});
 
 let content = computed({
 	get: () => props.modelValue,
-	set: value => emit("update:modelValue", value)
+	set: (value) => emit("update:modelValue", value),
 });
 
 onMounted(() => {
@@ -27,36 +49,20 @@ onMounted(() => {
 			}
 		} else {
 			// reset filters
-			if (props.df.filters && 'istable' in props.df.filters) {
+			if (props.df.filters && "istable" in props.df.filters) {
 				delete props.df.filters.istable;
 			}
 		}
 
-		link_control.value = frappe.ui.form.make_control({
-			parent: link.value,
-			df: {
-				...props.df,
-				hidden: 0,
-				read_only: Boolean(slots.label) || props.read_only,
-				change: () => {
-					if (update_control.value) {
-						content.value = link_control.value.get_value();
-					}
-					update_control.value = true;
-				}
-			},
-			value: content.value,
-			render_input: true,
-			only_input: Boolean(slots.label)
-		});
+		link_control.value;
 	}
 });
 
 watch(
 	() => content.value,
-	value => {
+	(value) => {
 		update_control.value = false;
-		link_control.value.set_value(value);
+		link_control.value?.set_value(value);
 	}
 );
 </script>

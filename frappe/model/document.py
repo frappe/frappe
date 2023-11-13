@@ -10,6 +10,7 @@ from werkzeug.exceptions import NotFound
 
 import frappe
 from frappe import _, is_whitelisted, msgprint
+from frappe.core.doctype.file.utils import relink_mismatched_files
 from frappe.core.doctype.server_script.server_script_utils import run_server_script_for_doc_event
 from frappe.desk.form.document_follow import follow_document
 from frappe.integrations.doctype.webhook import run_webhooks
@@ -22,6 +23,7 @@ from frappe.model.workflow import set_workflow_state_on_action, validate_workflo
 from frappe.types import DF
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
+from frappe.utils.deprecations import deprecated
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
@@ -139,12 +141,6 @@ class Document(BaseDocument):
 	def is_locked(self):
 		return file_lock.lock_exists(self.get_signature())
 
-	@staticmethod
-	def whitelist(fn):
-		"""Decorator: Whitelist method to be called remotely via REST API."""
-		frappe.whitelist()(fn)
-		return fn
-
 	def load_from_db(self):
 		"""Load document and children from database and create properties
 		from fields"""
@@ -252,9 +248,15 @@ class Document(BaseDocument):
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
 
-		:param ignore_permissions: Do not check permissions if True."""
+		:param ignore_permissions: Do not check permissions if True.
+		:param ignore_links: Do not check validity of links if True.
+		:param ignore_if_duplicate: Do not raise error if a duplicate entry exists.
+		:param ignore_mandatory: Do not check missing mandatory fields if True.
+		:param set_name: Name to set for the document, if valid.
+		:param set_child_names: Whether to set names for the child documents.
+		"""
 		if self.flags.in_print:
-			return
+			return self
 
 		self.flags.notifications_executed = []
 
@@ -304,6 +306,7 @@ class Document(BaseDocument):
 		if self.get("amended_from"):
 			self.copy_attachments_from_amended_from()
 
+		relink_mismatched_files(self)
 		self.run_post_save_methods()
 		self.flags.in_insert = False
 
@@ -553,6 +556,7 @@ class Document(BaseDocument):
 		self._validate_selects()
 		self._validate_non_negative()
 		self._validate_length()
+		self._fix_rating_value()
 		self._validate_code_fields()
 		self._sync_autoname_field()
 		self._extract_images_from_text_editor()
@@ -599,6 +603,15 @@ class Document(BaseDocument):
 			if flt(self.get(df.fieldname)) < 0:
 				msg = get_msg(df)
 				frappe.throw(msg, frappe.NonNegativeError, title=_("Negative Value"))
+
+	def _fix_rating_value(self):
+		for field in self.meta.get("fields", {"fieldtype": "Rating"}):
+			value = self.get(field.fieldname)
+			if not isinstance(value, float):
+				value = flt(value)
+
+			# Make sure rating is between 0 and 1
+			self.set(field.fieldname, max(0, min(value, 1)))
 
 	def validate_workflow(self):
 		"""Validate if the workflow transition is valid"""
@@ -1000,19 +1013,16 @@ class Document(BaseDocument):
 			elif alert.event == "Method" and method == alert.method:
 				_evaluate_alert(alert)
 
-	@whitelist.__func__
 	def _submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		self.docstatus = DocStatus.submitted()
 		return self.save()
 
-	@whitelist.__func__
 	def _cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = DocStatus.cancelled()
 		return self.save()
 
-	@whitelist.__func__
 	def _rename(
 		self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True
 	):
@@ -1022,20 +1032,18 @@ class Document(BaseDocument):
 		self.name = rename_doc(doc=self, new=name, merge=merge, force=force, validate=validate_rename)
 		self.reload()
 
-	@whitelist.__func__
+	@frappe.whitelist()
 	def submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		return self._submit()
 
-	@whitelist.__func__
+	@frappe.whitelist()
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
 
-	@whitelist.__func__
-	def rename(
-		self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True
-	):
+	@frappe.whitelist()
+	def rename(self, name: str, merge=False, force=False, validate_rename=True):
 		"""Rename the document to `name`. This transforms the current object."""
 		return self._rename(name=name, merge=merge, force=force, validate_rename=validate_rename)
 
@@ -1576,6 +1584,12 @@ class Document(BaseDocument):
 
 		DocTags(self.doctype).add(self.name, tag)
 
+	def remove_tag(self, tag):
+		"""Remove a Tag to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+
+		DocTags(self.doctype).remove(self.name, tag)
+
 	def get_tags(self):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
@@ -1622,8 +1636,8 @@ def execute_action(__doctype, __name, __action, **kwargs):
 		frappe.db.rollback()
 
 		# add a comment (?)
-		if frappe.local.message_log:
-			msg = json.loads(frappe.local.message_log[-1]).get("message")
+		if frappe.message_log:
+			msg = frappe.message_log[-1].get("message")
 		else:
 			msg = "<pre><code>" + frappe.get_traceback() + "</pre></code>"
 

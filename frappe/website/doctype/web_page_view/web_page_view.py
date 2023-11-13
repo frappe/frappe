@@ -93,8 +93,7 @@ def make_view_log(
 		else:
 			view.insert(ignore_permissions=True)
 	except Exception:
-		if frappe.message_log:
-			frappe.message_log.pop()
+		frappe.clear_last_message()
 
 
 @frappe.whitelist()

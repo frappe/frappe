@@ -18,6 +18,8 @@
   "icon",
   "column_break_1",
   "base_url",
+  "configuration_section",
+  "sign_ups",
   "client_urls",
   "authorize_url",
   "access_token_url",
@@ -157,11 +159,24 @@
    "fieldname": "user_id_property",
    "fieldtype": "Data",
    "label": "User ID Property"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Configuration"
+  },
+  {
+   "description": "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected. ",
+   "fieldname": "sign_ups",
+   "fieldtype": "Select",
+   "label": "Sign ups",
+   "options": "\nAllow\nDeny"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2020-09-30 14:37:13.616002",
+ "modified": "2023-10-14 12:22:23.601130",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Social Login Key",
@@ -182,6 +197,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "provider_name",
  "track_changes": 1
 }

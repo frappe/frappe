@@ -17,14 +17,14 @@ frappe.ui.form.on("Workflow", {
 		} else {
 			title = __("Edit your workflow visually using the Workflow Builder.");
 			note = __(
-				"NOTE: Avoid making changes to the states & transitions. It will not be reflected in the Workflow Builder."
+				"NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
 			);
 			workflow_builder_url += "/" + frm.doc.name;
 		}
 
 		let message = `
 		<div class="flex">
-			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="510" src="/assets/frappe/images/workflow-builder.gif"></div>
+			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="600" src="/assets/frappe/images/workflow-builder.gif"></div>
 			<div>
 				<p style="font-size: var(--text-xl)">${title}</p>
 				<p>${msg}</p>
@@ -197,6 +197,34 @@ frappe.ui.form.on("Workflow", {
 });
 
 frappe.ui.form.on("Workflow Document State", {
+	state: function (_, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		delete row.workflow_builder_id;
+	},
+
+	states_remove: function (frm) {
+		frm.trigger("get_orphaned_states_and_count").then(() => {
+			frm.trigger("render_state_table");
+		});
+	},
+});
+
+frappe.ui.form.on("Workflow Transition", {
+	state: function (_, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		delete row.workflow_builder_id;
+	},
+
+	next_state: function (_, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		delete row.workflow_builder_id;
+	},
+
+	action: function (_, cdt, cdn) {
+		var row = locals[cdt][cdn];
+		delete row.workflow_builder_id;
+	},
+
 	states_remove: function (frm) {
 		frm.trigger("get_orphaned_states_and_count").then(() => {
 			frm.trigger("render_state_table");

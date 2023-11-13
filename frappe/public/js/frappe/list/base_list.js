@@ -313,7 +313,9 @@ frappe.views.BaseList = class BaseList {
 		this.filter_area = new FilterArea(this);
 
 		if (this.filters && this.filters.length > 0) {
-			return this.filter_area.set(this.filters);
+			return this.filter_area.set(this.filters).catch(() => {
+				this.filter_area.clear(false);
+			});
 		}
 	}
 

@@ -90,7 +90,7 @@ export default class GridRow {
 		this.wrapper
 			.find(".grid-row-check")
 			.prop("checked", this.doc ? !!this.doc.__checked : false);
-		this.grid.refresh_remove_rows_button();
+		this.grid.debounced_refresh_remove_rows_button();
 	}
 	remove() {
 		var me = this;
@@ -338,7 +338,7 @@ export default class GridRow {
 					this.open_form_button = $(`
 						<div class="btn-open-row">
 							<a>${frappe.utils.icon("edit", "xs")}</a>
-							<div class="hidden-md edit-grid-row">${__("Edit")}</div>
+							<div class="hidden-md edit-grid-row">${__("Edit", "", "Edit grid row")}</div>
 						</div>
 					`)
 						.appendTo(this.open_form_button)

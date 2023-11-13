@@ -726,8 +726,8 @@ def _guess_mariadb_version() -> tuple[int] | None:
 	# in non-interactive mode.
 	# Use db.sql("select version()") instead if connection is available.
 	with suppress(Exception):
-		mysql = which("mysql")
-		version_output = subprocess.getoutput(f"{mysql} --version")
+		mariadb = which("mariadb") or which("mysql")
+		version_output = subprocess.getoutput(f"{mariadb} --version")
 		version_regex = r"(?P<version>\d+\.\d+\.\d+)-MariaDB"
 
 		version = re.search(version_regex, version_output).group("version")

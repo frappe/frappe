@@ -504,9 +504,9 @@ def postgres(context, extra_args):
 
 
 def _mariadb(extra_args=None):
-	mysql = which("mysql")
+	mariadb = which("mariadb") or which("mysql")
 	command = [
-		mysql,
+		mariadb,
 		"--port",
 		str(frappe.conf.db_port),
 		"-u",
@@ -521,7 +521,7 @@ def _mariadb(extra_args=None):
 	]
 	if extra_args:
 		command += list(extra_args)
-	os.execv(mysql, command)
+	os.execv(mariadb, command)
 
 
 def _psql(extra_args=None):
@@ -929,6 +929,12 @@ def run_ui_tests(
 @click.command("serve")
 @click.option("--port", default=8000)
 @click.option("--profile", is_flag=True, default=False)
+@click.option(
+	"--proxy",
+	is_flag=True,
+	default=False,
+	help="The development server may be run behind a proxy, e.g. ngrok / localtunnel",
+)
 @click.option("--noreload", "no_reload", is_flag=True, default=False)
 @click.option("--nothreading", "no_threading", is_flag=True, default=False)
 @click.option("--with-coverage", is_flag=True, default=False)
@@ -937,6 +943,7 @@ def serve(
 	context,
 	port=None,
 	profile=False,
+	proxy=False,
 	no_reload=False,
 	no_threading=False,
 	sites_path=".",
@@ -958,6 +965,7 @@ def serve(
 		frappe.app.serve(
 			port=port,
 			profile=profile,
+			proxy=proxy,
 			no_reload=no_reload,
 			no_threading=no_threading,
 			site=site,

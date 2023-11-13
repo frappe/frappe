@@ -61,6 +61,10 @@ website_route_rules = [
 
 website_redirects = [
 	{"source": r"/desk(.*)", "target": r"/app\1"},
+	{
+		"source": "/.well-known/openid-configuration",
+		"target": "/api/method/frappe.integrations.oauth2.openid_configuration",
+	},
 ]
 
 base_template = "templates/base.html"
@@ -118,6 +122,7 @@ permission_query_conditions = {
 has_permission = {
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
+	"Note": "frappe.desk.doctype.note.note.has_permission",
 	"User": "frappe.core.doctype.user.user.has_permission",
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.has_permission",
 	"Number Card": "frappe.desk.doctype.number_card.number_card.has_permission",
@@ -264,11 +269,6 @@ scheduler_events = {
 	],
 }
 
-get_translated_dict = {
-	("doctype", "System Settings"): "frappe.geo.country_info.get_translated_dict",
-	("page", "setup-wizard"): "frappe.geo.country_info.get_translated_dict",
-}
-
 sounds = [
 	{"name": "email", "src": "/assets/frappe/sounds/email.mp3", "volume": 0.1},
 	{"name": "submit", "src": "/assets/frappe/sounds/submit.mp3", "volume": 0.1},
@@ -413,6 +413,7 @@ ignore_links_on_delete = [
 	"Integration Request",
 	"Unhandled Email",
 	"Webhook Request Log",
+	"Workspace",
 ]
 
 # Request Hooks

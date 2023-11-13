@@ -35,7 +35,7 @@
 
 .account-info {
 	background-color: var(--fg-color);
-	box-shadow: var(--card-shadow);
+	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius-md);
 	padding: var(--padding-sm) 25px;
 
@@ -50,7 +50,6 @@
 	}
 
 	.my-account-avatar {
-
 		.avatar {
 			height: 60px;
 			width: 60px;
@@ -70,8 +69,8 @@
 
 			.edit-profile-icon {
 				stroke: var(--blue-500);
+			}
 		}
-	}
 
 		.right-icon {
 			@include media-breakpoint-up(sm) {

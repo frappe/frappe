@@ -283,8 +283,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 						raise e
 					else:
 						visible_list.remove(module_name)
-						if frappe.message_log:
-							frappe.message_log.pop()
+						frappe.clear_last_message()
 
 	# set the order
 	set_order(visible_list)

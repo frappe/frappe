@@ -60,6 +60,7 @@ select.form-control {
 	height: auto;
 	padding: 10px;
 	padding-bottom: 5px;
+	gap: 6px;
 	.link-field {
 		width: 100%;
 	}
@@ -124,7 +125,8 @@ select.form-control {
 		}
 	}
 
-	.selectable-item:hover, .selectable-item.highlighted {
+	.selectable-item:hover,
+	.selectable-item.highlighted {
 		background-color: var(--fg-hover-color);
 	}
 
@@ -141,7 +143,7 @@ select.form-control {
 .frappe-control {
 	@include get_textstyle("base", "regular");
 	.control-label.reqd:after {
-		content: ' *';
+		content: " *";
 		color: var(--red-400);
 	}
 	.help:empty {
@@ -192,7 +194,7 @@ select.form-control {
 	}
 }
 
-.frappe-control:not([data-fieldtype='MultiSelectPills']):not([data-fieldtype='Table MultiSelect']) {
+.frappe-control:not([data-fieldtype="MultiSelectPills"]):not([data-fieldtype="Table MultiSelect"]) {
 	&.has-error {
 		input {
 			border: 1px solid var(--error-border);
@@ -204,8 +206,8 @@ select.form-control {
 	}
 }
 
-.frappe-control[data-fieldtype='MultiSelectPills'],
-.frappe-control[data-fieldtype='Table MultiSelect'] {
+.frappe-control[data-fieldtype="MultiSelectPills"],
+.frappe-control[data-fieldtype="Table MultiSelect"] {
 	&.has-error {
 		.control-input {
 			border: 1px solid var(--error-border);
@@ -256,7 +258,8 @@ select.form-control {
 }
 
 /* progress bar */
-.progress, .progress-bar {
+.progress,
+.progress-bar {
 	box-shadow: none;
 }
 
@@ -360,7 +363,8 @@ textarea.form-control {
 	overflow-wrap: break-word;
 }
 
-.frappe-control[data-fieldtype="Data"] .control-input, .control-value {
+.frappe-control[data-fieldtype="Data"] .control-input,
+.control-value {
 	position: relative;
 }
 
@@ -371,26 +375,30 @@ textarea.form-control {
 	padding: 3px;
 }
 
-.markdown-preview, .html-preview {
+.markdown-preview,
+.html-preview {
 	padding: var(--padding-md);
 	min-height: 300px;
 	max-height: 600px;
 	overflow: auto;
 }
 
-.markdown-toggle, .html-toggle {
+.markdown-toggle,
+.html-toggle {
 	margin-bottom: var(--margin-xs);
 }
 
 .barcode-scanner {
 	position: relative;
 
-	& > canvas, & > video {
+	& > canvas,
+	& > video {
 		max-width: 100%;
 		width: 100%;
 	}
 
-	canvas.drawing, canvas.drawingBuffer {
+	canvas.drawing,
+	canvas.drawingBuffer {
 		position: absolute;
 		left: 0;
 		top: 0;

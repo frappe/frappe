@@ -2,6 +2,12 @@
 // MIT License. See license.txt
 
 frappe.ui.form.on("DocType", {
+	onload: function (frm) {
+		if (frm.is_new()) {
+			frappe.listview_settings["DocType"].new_doctype_dialog();
+		}
+	},
+
 	before_save: function (frm) {
 		let form_builder = frappe.form_builder;
 		if (form_builder?.store) {
@@ -13,6 +19,7 @@ frappe.ui.form.on("DocType", {
 			}
 		}
 	},
+
 	after_save: function (frm) {
 		if (
 			frappe.form_builder &&
@@ -22,6 +29,7 @@ frappe.ui.form.on("DocType", {
 			frappe.form_builder.store.fetch();
 		}
 	},
+
 	refresh: function (frm) {
 		frm.set_query("role", "permissions", function (doc) {
 			if (doc.custom && frappe.session.user != "Administrator") {
@@ -119,6 +127,20 @@ frappe.ui.form.on("DocType", {
 	setup_default_views: (frm) => {
 		frappe.model.set_default_views_for_doctype(frm.doc.name, frm);
 	},
+
+	on_tab_change: (frm) => {
+		let current_tab = frm.get_active_tab().label;
+
+		if (current_tab === "Form") {
+			frm.footer.wrapper.hide();
+			frm.form_wrapper.find(".form-message").hide();
+			frm.form_wrapper.addClass("mb-1");
+		} else {
+			frm.footer.wrapper.show();
+			frm.form_wrapper.find(".form-message").show();
+			frm.form_wrapper.removeClass("mb-1");
+		}
+	},
 });
 
 frappe.ui.form.on("DocField", {
@@ -134,33 +156,6 @@ frappe.ui.form.on("DocField", {
 		frm.trigger("setup_default_views");
 	},
 });
-
-function render_form_builder_message(frm) {
-	$(frm.fields_dict["try_form_builder_html"].wrapper).empty();
-	if (!frm.is_new() && frm.fields_dict["try_form_builder_html"]) {
-		let title = __("Use Form Builder to visually edit your form layout");
-		let msg = __(
-			"You can drag and drop fields to create your form layout, add tabs, sections and columns to organize your form and update field properties all from one screen."
-		);
-
-		let message = `
-		<div class="flex form-message blue p-3">
-			<div class="mr-3"><img style="border-radius: var(--border-radius-md)" width="360" src="/assets/frappe/images/form-builder.gif"></div>
-			<div>
-				<p style="font-size: var(--text-lg)">${title}</p>
-				<p>${msg}</p>
-				<div>
-					<a class="btn btn-primary btn-sm" href="/app/form-builder/${frm.doc.name}">
-						${__("Form Builder")} ${frappe.utils.icon("right", "xs")}
-					</a>
-				</div>
-			</div>
-		</div>
-		`;
-
-		$(frm.fields_dict["try_form_builder_html"].wrapper).html(message);
-	}
-}
 
 function render_form_builder(frm) {
 	if (frappe.form_builder && frappe.form_builder.doctype === frm.doc.name) {

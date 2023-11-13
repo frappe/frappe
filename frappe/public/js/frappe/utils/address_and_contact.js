@@ -12,7 +12,7 @@ $.extend(frappe.contacts, {
 			$(frm.fields_dict["address_html"].wrapper)
 				.html(frappe.render_template("address_list", frm.doc.__onload))
 				.find(".btn-address")
-				.on("click", () => new_record("Address", frm.doctype, frm.doc.name));
+				.on("click", () => new_record("Address", frm.doc));
 		}
 
 		// render contact
@@ -20,7 +20,7 @@ $.extend(frappe.contacts, {
 			$(frm.fields_dict["contact_html"].wrapper)
 				.html(frappe.render_template("contact_list", frm.doc.__onload))
 				.find(".btn-contact")
-				.on("click", () => new_record("Contact", frm.doctype, frm.doc.name));
+				.on("click", () => new_record("Contact", frm.doc));
 		}
 	},
 	get_last_doc: function (frm) {
@@ -59,14 +59,12 @@ $.extend(frappe.contacts, {
 	},
 });
 
-function new_record(doctype, link_doctype, link_name) {
-	return frappe.new_doc(doctype).then(() => {
-		if (cur_frm.doc.links) {
-			// avoid adding the same link twice
-			return;
-		}
+function new_record(doctype, source_doc) {
+	frappe.dynamic_link = {
+		doctype: source_doc.doctype,
+		doc: source_doc,
+		fieldname: "name",
+	};
 
-		cur_frm.add_child("links", { link_doctype: link_doctype, link_name: link_name });
-		cur_frm.refresh_field("links");
-	});
+	return frappe.new_doc(doctype);
 }
