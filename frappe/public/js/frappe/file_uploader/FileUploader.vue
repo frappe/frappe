@@ -443,7 +443,7 @@ function check_restrictions(file) {
 
 			// otherwise this is likely an extension
 			if (type[0] === ".") {
-				return file.name.endsWith(type);
+				return file.name.toLowerCase().endsWith(type.toLowerCase());
 			}
 			return false;
 		});

@@ -43,7 +43,8 @@ context("Form Builder", () => {
 
 		// add new section
 		cy.get(first_section).click(15, 10);
-		cy.get(first_section).find(".section-actions button:first").click();
+		cy.get(first_section).find(".dropdown-btn:first").click();
+		cy.get(".dropdown-options:visible .dropdown-item:first").click();
 
 		// save
 		cy.click_doc_primary_button("Save");
@@ -58,16 +59,15 @@ context("Form Builder", () => {
 
 		let first_column = ".tab-content.active .section-columns-container:first .column:first";
 
-		let first_field = first_column + " .field:first";
 		let last_field = first_column + " .field:last";
 
-		let add_new_field_btn = first_field + " .field-actions .add-field-btn";
+		let add_new_field_btn = first_column + " .add-new-field-btn button";
 
 		// add new field
 		cy.get(add_new_field_btn).click();
 
 		// type table and press enter
-		cy.get(".combo-box-options:first .search-box > input").type("table{enter}");
+		cy.get(".combo-box-options:visible .search-box > input").type("table{enter}");
 
 		// save
 		cy.click_doc_primary_button("Save");
@@ -185,12 +185,14 @@ context("Form Builder", () => {
 
 		// add new section
 		cy.get(first_section).click(15, 10);
-		cy.get(first_section).find(".section-actions button:first").click();
+		cy.get(first_section).find(".dropdown-btn:first").click();
+		cy.get(".dropdown-options:visible .dropdown-item:first").click();
 		cy.get(".tab-content.active .form-section-container").should("have.length", 2);
 
 		// add new column
-		cy.get(first_section).find(".column:first").click(15, 10);
-		cy.get(first_section).find(".column:first .column-actions button:first").click();
+		cy.get(first_section).click(15, 10);
+		cy.get(first_section).find(".dropdown-btn:first").click();
+		cy.get(".dropdown-options:visible .dropdown-item:last").click();
 		cy.get(first_section).find(".column").should("have.length", 2);
 	});
 
@@ -198,13 +200,15 @@ context("Form Builder", () => {
 		let first_section = ".tab-content.active .form-section-container:first";
 
 		// remove column
-		cy.get(first_section).find(".column:first").click(15, 10);
-		cy.get(first_section).find(".column:first .column-actions button:last").click();
+		cy.get(first_section).click(15, 10);
+		cy.get(first_section).find(".dropdown-btn:first").click();
+		cy.get(".dropdown-options:visible .dropdown-item:last").click();
 		cy.get(first_section).find(".column").should("have.length", 1);
 
 		// remove section
 		cy.get(first_section).click(15, 10);
-		cy.get(first_section).find(".section-actions button:last").click();
+		cy.get(first_section).find(".dropdown-btn:first").click();
+		cy.get(".dropdown-options:visible .dropdown-item").eq(1).click();
 		cy.get(".tab-content.active .form-section-container").should("have.length", 1);
 
 		// remove tab
@@ -236,16 +240,15 @@ context("Form Builder", () => {
 
 		let first_column = ".tab-content.active .section-columns-container:first .column:first";
 
-		let first_field = first_column + " .field:first";
 		let last_field = first_column + " .field:last";
 
-		let add_new_field_btn = first_field + " .field-actions .add-field-btn";
+		let add_new_field_btn = first_column + " .add-new-field-btn button";
 
 		// add new field
 		cy.get(add_new_field_btn).click();
 
 		// type data and press enter
-		cy.get(".combo-box-options:first .search-box > input").type("data{enter}");
+		cy.get(".combo-box-options:visible .search-box > input").type("data{enter}");
 
 		cy.get(last_field).click();
 

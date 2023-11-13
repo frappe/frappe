@@ -111,9 +111,22 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 			</template>
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
-					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
+					<AddFieldButton
+						v-if="column.fields.indexOf(field) != column.fields.length - 1"
+						ref="add_field_ref"
+						:field="field"
+						:column="column"
+						:tooltip="__('Add field below')"
+					>
 						<div v-html="frappe.utils.icon('add', 'sm')" />
 					</AddFieldButton>
+					<button
+						class="btn btn-xs btn-icon"
+						:title="__('Duplicate field')"
+						@click.stop="duplicate_field"
+					>
+						<div v-html="frappe.utils.icon('duplicate', 'sm')"></div>
+					</button>
 					<button
 						v-if="column.fields.indexOf(field)"
 						class="btn btn-xs btn-icon"
@@ -123,13 +136,6 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						@click="move_fields_to_column"
 					>
 						<div v-html="frappe.utils.icon('move', 'sm')"></div>
-					</button>
-					<button
-						class="btn btn-xs btn-icon"
-						:title="__('Duplicate field')"
-						@click.stop="duplicate_field"
-					>
-						<div v-html="frappe.utils.icon('duplicate', 'sm')"></div>
 					</button>
 					<button
 						class="btn btn-xs btn-icon"
@@ -160,7 +166,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 
 	&.hovered,
 	&.selected {
-		border-color: var(--primary);
+		border-color: var(--border-primary);
 		.btn.btn-icon {
 			opacity: 1 !important;
 		}

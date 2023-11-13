@@ -2,11 +2,11 @@
 	<button
 		ref="add_field_btn_ref"
 		class="add-field-btn btn btn-xs btn-icon"
-		:title="__('Add field')"
+		:title="tooltip"
 		@click.stop="toggle_fieldtype_options"
 	>
 		<slot>
-			{{ __("Add a field") }}
+			{{ __("Add field") }}
 		</slot>
 		<Teleport to="#autocomplete-area">
 			<div class="autocomplete" ref="autocomplete_ref">
@@ -42,6 +42,10 @@ const props = defineProps({
 	field: {
 		type: Object,
 		default: null,
+	},
+	tooltip: {
+		type: String,
+		default: __("Add field"),
 	},
 });
 
