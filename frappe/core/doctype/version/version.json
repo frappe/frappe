@@ -1,6 +1,6 @@
 {
  "actions": [],
- "autoname": "hash",
+ "autoname": "autoincrement",
  "creation": "2014-02-20 17:22:37",
  "doctype": "DocType",
  "document_type": "Setup",
