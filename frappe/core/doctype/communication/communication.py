@@ -463,20 +463,13 @@ class Communication(Document, CommunicationEmailMixin):
 			add_contact_links_to_communication(self, contact_name)
 
 	def deduplicate_timeline_links(self):
-		if self.timeline_links:
-			links, duplicate = [], False
+		if not self.timeline_links:
+			return
 
-			for l in self.timeline_links:
-				t = (l.link_doctype, l.link_name)
-				if not t in links:
-					links.append(t)
-				else:
-					duplicate = True
-
-			if duplicate:
-				self.timeline_links.clear()
-				for l in links:
-					self.add_link(link_doctype=l[0], link_name=l[1])
+		unique_links = {(link.link_doctype, link.link_name) for link in self.timeline_links}
+		self.timeline_links = []
+		for doctype, name in unique_links:
+			self.add_link(doctype, name)
 
 	def add_link(self, link_doctype, link_name, autosave=False):
 		self.append("timeline_links", {"link_doctype": link_doctype, "link_name": link_name})
