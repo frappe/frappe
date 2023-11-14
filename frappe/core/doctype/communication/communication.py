@@ -341,7 +341,7 @@ class Communication(Document, CommunicationEmailMixin):
 				frappe.db.commit()
 
 	def parse_email_for_timeline_links(self):
-		if not frappe.db.get_value("Email Account", filters={"enable_automatic_linking": 1}):
+		if not frappe.db.get_value("Email Account", self.email_account, "enable_automatic_linking"):
 			return
 
 		for doctype, docname in parse_email([self.recipients, self.cc, self.bcc]):
