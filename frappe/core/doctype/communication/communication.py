@@ -341,7 +341,14 @@ class Communication(Document, CommunicationEmailMixin):
 				frappe.db.commit()
 
 	def parse_email_for_timeline_links(self):
-		parse_email(self, [self.recipients, self.cc, self.bcc])
+		if not frappe.db.get_value("Email Account", filters={"enable_automatic_linking": 1}):
+			return
+
+		for doctype, docname in parse_email([self.recipients, self.cc, self.bcc]):
+			if not frappe.db.get_value(doctype, docname, ignore=True):
+				continue
+
+			self.add_link(doctype, docname)
 
 	# Timeline Links
 	def set_timeline_links(self):
@@ -485,36 +492,35 @@ def add_contact_links_to_communication(communication, contact_name):
 			communication.add_link(contact_link.link_doctype, contact_link.link_name)
 
 
-def parse_email(communication, email_strings):
+def parse_email(email_strings):
 	"""
 	Parse email to add timeline links.
 	When automatic email linking is enabled, an email from email_strings can contain
 	a doctype and docname ie in the format `admin+doctype+docname@example.com` or `admin+doctype=docname@example.com`,
-	the email is parsed and doctype and docname is extracted and timeline link is added.
+	the email is parsed and doctype and docname is extracted.
 	"""
-	if not frappe.db.get_value("Email Account", filters={"enable_automatic_linking": 1}):
-		return
-
 	for email_string in email_strings:
-		if email_string:
-			for email in email_string.split(","):
-				email_username = email.split("@", 1)[0]
-				email_local_parts = email_username.split("+")
-				docname = doctype = None
-				if len(email_local_parts) == 3:
-					doctype = unquote(email_local_parts[1])
-					docname = unquote(email_local_parts[2])
+		if not email_string:
+			continue
 
-				elif len(email_local_parts) == 2:
-					document_parts = email_local_parts[1].split("=", 1)
-					if len(document_parts) != 2:
-						continue
+		for email in email_string.split(","):
+			email_username = email.split("@", 1)[0]
+			email_local_parts = email_username.split("+")
+			docname = doctype = None
+			if len(email_local_parts) == 3:
+				doctype = unquote(email_local_parts[1])
+				docname = unquote(email_local_parts[2])
 
-					doctype = unquote(document_parts[0])
-					docname = unquote(document_parts[1])
+			elif len(email_local_parts) == 2:
+				document_parts = email_local_parts[1].split("=", 1)
+				if len(document_parts) != 2:
+					continue
 
-				if doctype and docname and frappe.db.get_value(doctype, docname, ignore=True):
-					communication.add_link(doctype, docname)
+				doctype = unquote(document_parts[0])
+				docname = unquote(document_parts[1])
+
+			if doctype and docname:
+				yield doctype, docname
 
 
 def get_email_without_link(email):
