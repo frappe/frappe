@@ -350,6 +350,10 @@ class Communication(Document, CommunicationEmailMixin):
 
 			self.add_link(doctype, docname)
 
+			if not self.reference_doctype:
+				self.reference_doctype = doctype
+				self.reference_name = docname
+
 	# Timeline Links
 	def set_timeline_links(self):
 		contacts = []
