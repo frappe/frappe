@@ -77,8 +77,6 @@ class Communication(Document, CommunicationEmailMixin):
 			self.seen = 1
 			self.sent_or_received = "Sent"
 
-		self.set_status()
-
 		validate_email(self)
 
 		if self.communication_medium == "Email":
@@ -87,6 +85,9 @@ class Communication(Document, CommunicationEmailMixin):
 			self.deduplicate_timeline_links()
 
 		self.set_sender_full_name()
+
+		if self.is_new():
+			self.set_status()
 
 	def validate_reference(self):
 		if self.reference_doctype and self.reference_name:
@@ -241,9 +242,6 @@ class Communication(Document, CommunicationEmailMixin):
 		)
 
 	def set_status(self):
-		if not self.is_new():
-			return
-
 		if self.reference_doctype and self.reference_name:
 			self.status = "Linked"
 		elif self.communication_type == "Communication":
