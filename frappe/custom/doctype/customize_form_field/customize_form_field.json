@@ -24,6 +24,7 @@
   "no_copy",
   "allow_in_quick_entry",
   "translatable",
+  "link_filters",
   "column_break_7",
   "default",
   "precision",
@@ -471,13 +472,18 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
+  },
+  {
+   "fieldname": "link_filters",
+   "fieldtype": "JSON",
+   "label": "Link Filters"
   }
  ],
  "idx": 1,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-25 06:55:50.718441",
+ "modified": "2023-11-07 13:17:21.373626",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
