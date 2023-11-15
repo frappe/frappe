@@ -173,6 +173,7 @@ class Communication(Document, CommunicationEmailMixin):
 
 		if self.is_new():
 			self.set_status()
+			self.mark_email_as_spam()
 
 	def validate_reference(self):
 		if self.reference_doctype and self.reference_name:
@@ -341,15 +342,13 @@ class Communication(Document, CommunicationEmailMixin):
 		else:
 			self.status = "Closed"
 
-		# set email status to spam
-		email_rule = frappe.db.get_value("Email Rule", {"email_id": self.sender, "is_spam": 1})
+	def mark_email_as_spam(self):
 		if (
 			self.communication_type == "Communication"
 			and self.communication_medium == "Email"
-			and self.sent_or_received == "Sent"
-			and email_rule
+			and self.sent_or_received == "Received"
+			and frappe.db.exists("Email Rule", {"email_id": self.sender, "is_spam": 1})
 		):
-
 			self.email_status = "Spam"
 
 	@classmethod
