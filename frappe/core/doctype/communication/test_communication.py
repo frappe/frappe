@@ -281,6 +281,40 @@ class TestCommunication(FrappeTestCase):
 		self.assertEqual(comm_with_signature.content.count(signature), 1)
 		self.assertEqual(comm_without_signature.content.count(signature), 1)
 
+	def test_mark_as_spam(self):
+		frappe.get_doc(
+			{
+				"doctype": "Email Rule",
+				"email_id": "spammer@example.com",
+				"is_spam": 1,
+			}
+		).insert(ignore_permissions=True)
+
+		spam_comm: Communication = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_medium": "Email",
+				"subject": "This is spam",
+				"sender": "spammer@example.com",
+				"recipients": "comm_recipient@example.com",
+				"sent_or_received": "Received",
+			}
+		).insert(ignore_permissions=True)
+
+		self.assertEqual(spam_comm.email_status, "Spam")
+
+		normal_comm: Communication = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_medium": "Email",
+				"subject": "This is spam",
+				"sender": "friendlyhuman@example.com",
+				"recipients": "comm_recipient@example.com",
+				"sent_or_received": "Received",
+			}
+		).insert(ignore_permissions=True)
+		self.assertNotEqual(normal_comm.email_status, "Spam")
+
 
 class TestCommunicationEmailMixin(FrappeTestCase):
 	def new_communication(self, recipients=None, cc=None, bcc=None) -> Communication:
