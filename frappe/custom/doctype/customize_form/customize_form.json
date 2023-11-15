@@ -12,6 +12,7 @@
   "properties",
   "label",
   "search_fields",
+  "link_filters",
   "column_break_5",
   "istable",
   "is_calendar_and_gantt",
@@ -383,6 +384,7 @@
    "label": "Form"
   },
   {
+<<<<<<< HEAD
    "fieldname": "details_tab",
    "fieldtype": "Tab Break",
    "label": "Details"
@@ -392,6 +394,12 @@
    "fieldname": "sender_name_field",
    "fieldtype": "Data",
    "label": "Sender Name Field"
+=======
+   "fieldname": "link_filters",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Link Filters"
+>>>>>>> 0c4245634f (feat: Apply Filters to Link Fields Via Form Builder (#22844))
   }
  ],
  "hide_toolbar": 1,

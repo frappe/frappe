@@ -201,6 +201,18 @@ export const useStore = defineStore("form-builder-store", () => {
 					get_field_data(df)
 				);
 			}
+
+			// check if link_filters format is correct or not
+
+			if (df.link_filters) {
+				try {
+					let link_filters = JSON.parse(df.link_filters);
+				} catch (e) {
+					error_message = __(
+						`Invalid Filter Format. Try using filter icon on the field to set it correctly`
+					);
+				}
+			}
 		});
 
 		return error_message;

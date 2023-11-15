@@ -54,6 +54,7 @@ class CustomizeForm(Document):
 		is_calendar_and_gantt: DF.Check
 		istable: DF.Check
 		label: DF.Data | None
+		link_filters: DF.JSON | None
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
@@ -683,6 +684,17 @@ def is_standard_or_system_generated_field(df):
 	return not df.get("is_custom_field") or df.get("is_system_generated")
 
 
+@frappe.whitelist()
+def get_link_filters_from_doc_without_customisations(doctype, fieldname):
+	"""Get the filters of a link field from a doc without customisations
+	In backend the customisations are not applied.
+	Customisations are applied in the client side.
+	"""
+	doc = frappe.get_doc("DocType", doctype)
+	field = list(filter(lambda x: x.fieldname == fieldname, doc.fields))
+	return field[0].link_filters
+
+
 doctype_properties = {
 	"search_fields": "Data",
 	"title_field": "Data",
@@ -763,6 +775,7 @@ docfield_properties = {
 	"hide_days": "Check",
 	"hide_seconds": "Check",
 	"is_virtual": "Check",
+	"link_filters": "JSON",
 }
 
 doctype_link_properties = {
