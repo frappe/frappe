@@ -527,6 +527,7 @@ VALID_UTILS = (
 	"nowtime",
 	"get_first_day",
 	"get_quarter_start",
+	"get_quarter_ending",
 	"get_first_day_of_week",
 	"get_year_start",
 	"get_last_day_of_week",
