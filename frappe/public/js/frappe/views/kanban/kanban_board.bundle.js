@@ -318,7 +318,8 @@ frappe.provide("frappe.views");
 			store.dispatch("init", opts);
 			columns_unwatcher && columns_unwatcher();
 			store.watch((state, getters) => {
-				return state.columns;
+				console.log("watch state.columns")
+				return state.columns.map(el => el.title);
 			}, make_columns);
 			prepare();
 			make_columns();
@@ -349,6 +350,7 @@ frappe.provide("frappe.views");
 		}
 
 		function make_columns() {
+			console.log("make_columns")
 			self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
 			var columns = store.state.columns;
 
