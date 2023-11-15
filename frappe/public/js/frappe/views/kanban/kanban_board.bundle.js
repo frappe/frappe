@@ -9,288 +9,291 @@ frappe.provide("frappe.views");
 
 	let columns_unwatcher = null;
 
-	var store = createStore({
-		state: {
-			doctype: "",
-			board: {},
-			card_meta: {},
-			cards: [],
-			columns: [],
-			filters_modified: false,
-			cur_list: {},
-			empty_state: true,
-		},
-		mutations: {
-			update_state(state, obj) {
-				Object.assign(state, obj);
+	let store;
+	const init_store = () => {
+		store = createStore({
+			state: {
+				doctype: "",
+				board: {},
+				card_meta: {},
+				cards: [],
+				columns: [],
+				filters_modified: false,
+				cur_list: {},
+				empty_state: true,
 			},
-		},
-		actions: {
-			init: function (context, opts) {
-				context.commit("update_state", {
-					empty_state: true,
-				});
-				var board = opts.board;
-				var card_meta = opts.card_meta;
-				opts.card_meta = card_meta;
-				opts.board = board;
-				var cards = opts.cards.map(function (card) {
-					return prepare_card(card, opts);
-				});
-				var columns = prepare_columns(board.columns);
-				context.commit("update_state", {
-					doctype: opts.doctype,
-					board: board,
-					card_meta: card_meta,
-					cards: cards,
-					columns: columns,
-					cur_list: opts.cur_list,
-					empty_state: false,
-					wrapper: opts.wrapper,
-				});
+			mutations: {
+				update_state(state, obj) {
+					Object.assign(state, obj);
+				},
 			},
-			update_cards: function (context, cards) {
-				var state = context.state;
-				var _cards = cards
-					.map((card) => prepare_card(card, state))
-					.concat(state.cards)
-					.uniqBy((card) => card.name);
-
-				context.commit("update_state", {
-					cards: _cards,
-				});
-			},
-			add_column: function (context, col) {
-				if (frappe.model.can_create("Custom Field")) {
-					store.dispatch("update_column", { col, action: "add" });
-				} else {
-					frappe.msgprint({
-						title: __("Not permitted"),
-						message: __("You are not allowed to create columns"),
-						indicator: "red",
+			actions: {
+				init: function (context, opts) {
+					context.commit("update_state", {
+						empty_state: true,
 					});
-				}
-			},
-			archive_column: function (context, col) {
-				store.dispatch("update_column", { col, action: "archive" });
-			},
-			restore_column: function (context, col) {
-				store.dispatch("update_column", { col, action: "restore" });
-			},
-			update_column: function (context, { col, action }) {
-				var doctype = context.state.doctype;
-				var board = context.state.board;
-				fetch_customization(doctype)
-					.then(function (doc) {
-						return modify_column_field_in_c11n(doc, board, col.title, action);
-					})
-					.then(save_customization)
-					.then(function () {
-						return update_kanban_board(board.name, col.title, action);
-					})
-					.then(
-						function (r) {
-							var cols = r.message;
-							context.commit("update_state", {
-								columns: prepare_columns(cols),
-							});
-						},
-						function (err) {
-							console.error(err); 
-						}
-					);
-			},
-			add_card: function (context, { card_title, column_title }) {
-				var state = context.state;
-				var doc = frappe.model.get_new_doc(state.doctype);
-				var field = state.card_meta.title_field;
-				var quick_entry = state.card_meta.quick_entry;
-
-				var doc_fields = {};
-				doc_fields[field.fieldname] = card_title;
-				doc_fields[state.board.field_name] = column_title;
-				state.cur_list.filter_area.get().forEach(function (f) {
-					if (f[2] !== "=") return;
-					doc_fields[f[1]] = f[3];
-				});
-
-				$.extend(doc, doc_fields);
-
-				// add the card directly
-				// for better ux
-				const card = prepare_card(doc, state);
-				card._disable_click = true;
-				const cards = [...state.cards, card];
-				// remember the name which we will override later
-				const old_name = doc.name;
-				context.commit("update_state", { cards });
-
-				if (field && !quick_entry) {
-					return insert_doc(doc).then(function (r) {
-						// update the card in place with the updated doc
-						const updated_doc = r.message;
-						const index = state.cards.findIndex((card) => card.name === old_name);
-						const card = prepare_card(updated_doc, state);
-						const new_cards = state.cards.slice();
-						new_cards[index] = card;
-						context.commit("update_state", { cards: new_cards });
-						const args = {
-							new: 1,
-							name: card.name,
-							colname: updated_doc[state.board.field_name],
-						};
-						store.dispatch("update_order_for_single_card", args);
+					var board = opts.board;
+					var card_meta = opts.card_meta;
+					opts.card_meta = card_meta;
+					opts.board = board;
+					var cards = opts.cards.map(function (card) {
+						return prepare_card(card, opts);
 					});
-				} else {
-					frappe.new_doc(state.doctype, doc);
-				}
-			},
-			update_card: function (context, card) {
-				var index = -1;
-				context.state.cards.forEach(function (c, i) {
-					if (c.name === card.name) {
-						index = i;
+					var columns = prepare_columns(board.columns);
+					context.commit("update_state", {
+						doctype: opts.doctype,
+						board: board,
+						card_meta: card_meta,
+						cards: cards,
+						columns: columns,
+						cur_list: opts.cur_list,
+						empty_state: false,
+						wrapper: opts.wrapper,
+					});
+				},
+				update_cards: function (context, cards) {
+					var state = context.state;
+					var _cards = cards
+						.map((card) => prepare_card(card, state))
+						.concat(state.cards)
+						.uniqBy((card) => card.name);
+	
+					context.commit("update_state", {
+						cards: _cards,
+					});
+				},
+				add_column: function (context, col) {
+					if (frappe.model.can_create("Custom Field")) {
+						store.dispatch("update_column", { col, action: "add" });
+					} else {
+						frappe.msgprint({
+							title: __("Not permitted"),
+							message: __("You are not allowed to create columns"),
+							indicator: "red",
+						});
 					}
-				});
-				var cards = context.state.cards.slice();
-				if (index !== -1) {
-					cards.splice(index, 1, card);
-				}
-				context.commit("update_state", { cards: cards });
-			},
-			update_order_for_single_card: function (context, card) {
-				// cache original order
-				const _cards = context.state.cards.slice();
-				const _columns = context.state.columns.slice();
-				let args = {};
-				let method_name = "";
-
-				if (card.new) {
-					method_name = "add_card";
-					args = {
-						board_name: context.state.board.name,
-						docname: card.name,
-						colname: card.colname,
-					};
-				} else {
-					method_name = "update_order_for_single_card";
-					args = {
-						board_name: context.state.board.name,
-						docname: card.name,
-						from_colname: card.from_colname,
-						to_colname: card.to_colname,
-						old_index: card.old_index,
-						new_index: card.new_index,
-					};
-				}
-				frappe.dom.freeze();
-				frappe
-					.call({
-						method: method_prefix + method_name,
-						args: args,
-						callback: (r) => {
-							let board = r.message;
-							let updated_cards = [
-								{ name: card.name, column: card.to_colname || card.colname },
-							];
-							let cards = update_cards_column(updated_cards);
-							let columns = prepare_columns(board.columns);
+				},
+				archive_column: function (context, col) {
+					store.dispatch("update_column", { col, action: "archive" });
+				},
+				restore_column: function (context, col) {
+					store.dispatch("update_column", { col, action: "restore" });
+				},
+				update_column: function (context, { col, action }) {
+					var doctype = context.state.doctype;
+					var board = context.state.board;
+					fetch_customization(doctype)
+						.then(function (doc) {
+							return modify_column_field_in_c11n(doc, board, col.title, action);
+						})
+						.then(save_customization)
+						.then(function () {
+							return update_kanban_board(board.name, col.title, action);
+						})
+						.then(
+							function (r) {
+								var cols = r.message;
+								context.commit("update_state", {
+									columns: prepare_columns(cols),
+								});
+							},
+							function (err) {
+								console.error(err); 
+							}
+						);
+				},
+				add_card: function (context, { card_title, column_title }) {
+					var state = context.state;
+					var doc = frappe.model.get_new_doc(state.doctype);
+					var field = state.card_meta.title_field;
+					var quick_entry = state.card_meta.quick_entry;
+	
+					var doc_fields = {};
+					doc_fields[field.fieldname] = card_title;
+					doc_fields[state.board.field_name] = column_title;
+					state.cur_list.filter_area.get().forEach(function (f) {
+						if (f[2] !== "=") return;
+						doc_fields[f[1]] = f[3];
+					});
+	
+					$.extend(doc, doc_fields);
+	
+					// add the card directly
+					// for better ux
+					const card = prepare_card(doc, state);
+					card._disable_click = true;
+					const cards = [...state.cards, card];
+					// remember the name which we will override later
+					const old_name = doc.name;
+					context.commit("update_state", { cards });
+	
+					if (field && !quick_entry) {
+						return insert_doc(doc).then(function (r) {
+							// update the card in place with the updated doc
+							const updated_doc = r.message;
+							const index = state.cards.findIndex((card) => card.name === old_name);
+							const card = prepare_card(updated_doc, state);
+							const new_cards = state.cards.slice();
+							new_cards[index] = card;
+							context.commit("update_state", { cards: new_cards });
+							const args = {
+								new: 1,
+								name: card.name,
+								colname: updated_doc[state.board.field_name],
+							};
+							store.dispatch("update_order_for_single_card", args);
+						});
+					} else {
+						frappe.new_doc(state.doctype, doc);
+					}
+				},
+				update_card: function (context, card) {
+					var index = -1;
+					context.state.cards.forEach(function (c, i) {
+						if (c.name === card.name) {
+							index = i;
+						}
+					});
+					var cards = context.state.cards.slice();
+					if (index !== -1) {
+						cards.splice(index, 1, card);
+					}
+					context.commit("update_state", { cards: cards });
+				},
+				update_order_for_single_card: function (context, card) {
+					// cache original order
+					const _cards = context.state.cards.slice();
+					const _columns = context.state.columns.slice();
+					let args = {};
+					let method_name = "";
+	
+					if (card.new) {
+						method_name = "add_card";
+						args = {
+							board_name: context.state.board.name,
+							docname: card.name,
+							colname: card.colname,
+						};
+					} else {
+						method_name = "update_order_for_single_card";
+						args = {
+							board_name: context.state.board.name,
+							docname: card.name,
+							from_colname: card.from_colname,
+							to_colname: card.to_colname,
+							old_index: card.old_index,
+							new_index: card.new_index,
+						};
+					}
+					frappe.dom.freeze();
+					frappe
+						.call({
+							method: method_prefix + method_name,
+							args: args,
+							callback: (r) => {
+								let board = r.message;
+								let updated_cards = [
+									{ name: card.name, column: card.to_colname || card.colname },
+								];
+								let cards = update_cards_column(updated_cards);
+								let columns = prepare_columns(board.columns);
+								context.commit("update_state", {
+									cards: cards,
+									columns: columns,
+								});
+								frappe.dom.unfreeze();
+							},
+						})
+						.fail(function () {
+							// revert original order
 							context.commit("update_state", {
-								cards: cards,
-								columns: columns,
+								cards: _cards,
+								columns: _columns,
 							});
 							frappe.dom.unfreeze();
-						},
-					})
-					.fail(function () {
-						// revert original order
-						context.commit("update_state", {
-							cards: _cards,
-							columns: _columns,
 						});
-						frappe.dom.unfreeze();
+				},
+				update_order: function (context) {
+					// cache original order
+					const _cards = context.state.cards.slice();
+					const _columns = context.state.columns.slice();
+	
+					const order = {};
+					context.state.wrapper.find(".kanban-column[data-column-value]").each(function () {
+						var col_name = $(this).data().columnValue;
+						order[col_name] = [];
+						$(this)
+							.find(".kanban-card-wrapper")
+							.each(function () {
+								var card_name = decodeURIComponent($(this).data().name);
+								order[col_name].push(card_name);
+							});
 					});
-			},
-			update_order: function (context) {
-				// cache original order
-				const _cards = context.state.cards.slice();
-				const _columns = context.state.columns.slice();
-
-				const order = {};
-				context.state.wrapper.find(".kanban-column[data-column-value]").each(function () {
-					var col_name = $(this).data().columnValue;
-					order[col_name] = [];
-					$(this)
-						.find(".kanban-card-wrapper")
-						.each(function () {
-							var card_name = decodeURIComponent($(this).data().name);
-							order[col_name].push(card_name);
+	
+					frappe
+						.call({
+							method: method_prefix + "update_order",
+							args: {
+								board_name: context.state.board.name,
+								order: order,
+							},
+							callback: (r) => {
+								var board = r.message[0];
+								var updated_cards = r.message[1];
+								var cards = update_cards_column(updated_cards);
+								var columns = prepare_columns(board.columns);
+								context.commit("update_state", {
+									cards: cards,
+									columns: columns,
+								});
+							},
+						})
+						.fail(function () {
+							// revert original order
+							context.commit("update_state", {
+								cards: _cards,
+								columns: _columns,
+							});
 						});
-				});
-
-				frappe
-					.call({
-						method: method_prefix + "update_order",
-						args: {
-							board_name: context.state.board.name,
-							order: order,
-						},
-						callback: (r) => {
-							var board = r.message[0];
-							var updated_cards = r.message[1];
-							var cards = update_cards_column(updated_cards);
+				},
+				update_column_order: function (context, order) {
+					return frappe
+						.call({
+							method: method_prefix + "update_column_order",
+							args: {
+								board_name: context.state.board.name,
+								order: order,
+							},
+						})
+						.then(function (r) {
+							var board = r.message;
 							var columns = prepare_columns(board.columns);
 							context.commit("update_state", {
-								cards: cards,
 								columns: columns,
 							});
-						},
-					})
-					.fail(function () {
-						// revert original order
-						context.commit("update_state", {
-							cards: _cards,
-							columns: _columns,
 						});
-					});
-			},
-			update_column_order: function (context, order) {
-				return frappe
-					.call({
-						method: method_prefix + "update_column_order",
-						args: {
-							board_name: context.state.board.name,
-							order: order,
-						},
-					})
-					.then(function (r) {
-						var board = r.message;
-						var columns = prepare_columns(board.columns);
-						context.commit("update_state", {
-							columns: columns,
+				},
+				set_indicator: function (context, { column, color }) {
+					return frappe
+						.call({
+							method: method_prefix + "set_indicator",
+							args: {
+								board_name: context.state.board.name,
+								column_name: column.title,
+								indicator: color,
+							},
+						})
+						.then(function (r) {
+							var board = r.message;
+							var columns = prepare_columns(board.columns);
+							context.commit("update_state", {
+								columns: columns,
+							});
 						});
-					});
+				},
 			},
-			set_indicator: function (context, { column, color }) {
-				return frappe
-					.call({
-						method: method_prefix + "set_indicator",
-						args: {
-							board_name: context.state.board.name,
-							column_name: column.title,
-							indicator: color,
-						},
-					})
-					.then(function (r) {
-						var board = r.message;
-						var columns = prepare_columns(board.columns);
-						context.commit("update_state", {
-							columns: columns,
-						});
-					});
-			},
-		},
-	});
+		});
+	}
 
 	frappe.views.KanbanBoard = function (opts) {
 		var self = {};
@@ -311,6 +314,7 @@ frappe.provide("frappe.views");
 		};
 
 		function init() {
+			init_store();
 			store.dispatch("init", opts);
 			columns_unwatcher && columns_unwatcher();
 			store.watch((state, getters) => {
