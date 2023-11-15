@@ -11,6 +11,7 @@
   "properties",
   "label",
   "search_fields",
+  "link_filters",
   "column_break_5",
   "istable",
   "is_calendar_and_gantt",
@@ -385,6 +386,12 @@
    "fieldname": "form_tab",
    "fieldtype": "Tab Break",
    "label": "Form"
+  },
+  {
+   "fieldname": "link_filters",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Link Filters"
   }
  ],
  "hide_toolbar": 1,
