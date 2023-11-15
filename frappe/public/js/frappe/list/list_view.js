@@ -1672,7 +1672,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					}
 				},
 				standard: true,
-				shortcut: "Ctrl+J",
+				shortcut: "Ctrl+Y",
 			});
 		}
 
