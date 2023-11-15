@@ -111,7 +111,7 @@ def get_command(
 		else:
 			command.extend(
 				[
-					"--pager='less -SFX'",
+					"--pager=less -SFX",
 					"--safe-updates",
 					"--no-auto-rehash",
 				]

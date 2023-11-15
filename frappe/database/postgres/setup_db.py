@@ -39,6 +39,7 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 
 
 def import_db_from_sql(source_sql=None, verbose=False):
+	import shlex
 	from shutil import which
 
 	from frappe.database import get_command
@@ -73,7 +74,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 			exc=frappe.ExecutableNotFound,
 		)
 	command.append(bin)
-	command.extend(args)
+	command.append(shlex.join(args))
 	command.extend(source)
 	execute_in_shell(" ".join(command), check_exit_code=True, verbose=verbose)
 	frappe.cache.delete_keys("")  # Delete all keys associated with this site.
