@@ -86,6 +86,7 @@ class CustomizeFormField(Document):
 		is_virtual: DF.Check
 		label: DF.Data | None
 		length: DF.Int
+		link_filters: DF.JSON | None
 		mandatory_depends_on: DF.Code | None
 		no_copy: DF.Check
 		non_negative: DF.Check
