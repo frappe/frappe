@@ -239,7 +239,7 @@ frappe.ui.FilterGroup = class {
 			},
 			filter_list: this.base_list || this,
 		};
-		// debugger;
+
 		let filter = new frappe.ui.Filter(args);
 		this.filters.push(filter);
 		return filter;
