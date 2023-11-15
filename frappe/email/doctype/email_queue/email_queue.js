@@ -17,7 +17,7 @@ frappe.ui.form.on("Email Queue", {
 				});
 			});
 		} else if (frm.doc.status == "Error") {
-			let button = frm.add_custom_button("Retry Sending", function () {
+			let button = frm.add_custom_button(__("Retry Sending"), function () {
 				frm.call({
 					method: "retry_sending",
 					args: {
