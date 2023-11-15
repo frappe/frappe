@@ -1,7 +1,8 @@
 @import "../element/checkbox";
 @import "../element/radio";
 
-html, body {
+html,
+body {
 	height: 100%;
 }
 
@@ -18,7 +19,8 @@ html, body {
 		font-size: var(--text-sm);
 	}
 
-	.input-area, .disp-area {
+	.input-area,
+	.disp-area {
 		display: flex;
 	}
 }
@@ -128,7 +130,8 @@ html, body {
 .btn-link {
 	box-shadow: none !important;
 	outline: none;
-	.icon, &:hover {
+	.icon,
+	&:hover {
 		text-decoration: none !important;
 	}
 }

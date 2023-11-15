@@ -16,7 +16,8 @@
 	margin-top: 0.5rem;
 }
 
-.footer-link, .footer-child-item a {
+.footer-link,
+.footer-child-item a {
 	font-size: $font-size-sm;
 	font-weight: 500;
 	color: $gray-700;
@@ -33,7 +34,8 @@
 	}
 }
 
-.footer-col-left, .footer-col-right {
+.footer-col-left,
+.footer-col-right {
 	padding-top: 0.8rem;
 	padding-bottom: 1rem;
 	line-height: 2;
@@ -90,7 +92,8 @@
 .footer-logo-extension {
 	.input-group {
 		justify-content: flex-end;
-		#footer-subscribe-email, #footer-subscribe-button {
+		#footer-subscribe-email,
+		#footer-subscribe-button {
 			max-width: 300px;
 			border: 1px solid var(--dark-border-color);
 			box-shadow: none;

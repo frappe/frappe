@@ -24,7 +24,7 @@
 }
 
 .justify-between {
-	justify-content: space-between
+	justify-content: space-between;
 }
 
 .justify-flex-end {
@@ -51,7 +51,8 @@
 	align-items: center;
 }
 
-.level-left, .level-right {
+.level-left,
+.level-right {
 	display: flex;
 	flex-basis: auto;
 	flex-grow: 0;
@@ -82,5 +83,5 @@
 }
 
 .fill-width {
-	flex: 1
+	flex: 1;
 }

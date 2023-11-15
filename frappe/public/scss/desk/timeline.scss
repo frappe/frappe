@@ -9,7 +9,9 @@ $threshold: 34;
 	// doing this will prevent cssnano from converting 0px to 0
 	// clamp requires value unit to be valid
 	--zero-px: 0px;
-	top: unquote("clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))");
+	top: unquote(
+		"clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))"
+	);
 	left: calc(-1 * (#{$badge-size} / 2));
 	background-color: var(--fg-color);
 	border: 1px solid var(--dark-border-color);
@@ -27,7 +29,7 @@ $threshold: 34;
 	}
 
 	&:before {
-		content: ' ';
+		content: " ";
 		top: 40px; // TODO: get top and bottom programmatically
 		position: absolute;
 		border-left: 1px solid var(--dark-border-color);
@@ -36,7 +38,7 @@ $threshold: 34;
 	.timeline-dot {
 		@include timeline-badge(16px);
 		&:before {
-			content: ' ';
+			content: " ";
 			background: var(--gray-600);
 			border-radius: 50%;
 			height: 4px;
@@ -93,7 +95,7 @@ $threshold: 34;
 			}
 		}
 		.timeline-badge {
-			@include timeline-badge(var(--timeline-item-icon-size))
+			@include timeline-badge(var(--timeline-item-icon-size));
 		}
 		.timeline-load-more {
 			margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));

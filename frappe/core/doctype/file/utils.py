@@ -374,7 +374,7 @@ def relink_files(doc, fieldname, temp_doc_name):
 			"attached_to_field": fieldname,
 			"creation": (
 				"between",
-				[now_datetime() - add_to_date(date=now_datetime(), minutes=-60), now_datetime()],
+				[add_to_date(date=now_datetime(), minutes=-60), now_datetime()],
 			),
 		},
 	)

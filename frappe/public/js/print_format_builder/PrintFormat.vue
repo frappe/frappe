@@ -50,7 +50,7 @@ export default {
 		draggable,
 		PrintFormatSection,
 		LetterHeadEditor,
-		HTMLEditor
+		HTMLEditor,
 	},
 	computed: {
 		rootStyles() {
@@ -58,12 +58,12 @@ export default {
 				margin_top = 0,
 				margin_bottom = 0,
 				margin_left = 0,
-				margin_right = 0
+				margin_right = 0,
 			} = this.print_format;
 			return {
 				padding: `${margin_top}mm ${margin_right}mm ${margin_bottom}mm ${margin_left}mm`,
 				width: "210mm",
-				minHeight: "297mm"
+				minHeight: "297mm",
 			};
 		},
 		page_number_style() {
@@ -72,7 +72,7 @@ export default {
 				background: "white",
 				padding: "4px",
 				borderRadius: "var(--border-radius)",
-				border: "1px solid var(--border-color)"
+				border: "1px solid var(--border-color)",
 			};
 			if (this.print_format.page_number.includes("Top")) {
 				style.top = this.print_format.margin_top / 2 + "mm";
@@ -97,7 +97,7 @@ export default {
 			}
 
 			return style;
-		}
+		},
 	},
 	methods: {
 		add_section_above(section) {
@@ -108,8 +108,8 @@ export default {
 						label: "",
 						columns: [
 							{ label: "", fields: [] },
-							{ label: "", fields: [] }
-						]
+							{ label: "", fields: [] },
+						],
 					});
 				}
 				sections.push(_section);
@@ -119,8 +119,8 @@ export default {
 		update_letterhead_footer(val) {
 			this.letterhead.footer = val;
 			this.letterhead._dirty = true;
-		}
-	}
+		},
+	},
 };
 </script>
 

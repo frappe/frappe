@@ -251,7 +251,7 @@
 								flex: 1;
 
 								@include media-breakpoint-down(sm) {
-									order: 1
+									order: 1;
 								}
 							}
 
@@ -341,7 +341,7 @@
 								flex: 1;
 
 								@include media-breakpoint-down(sm) {
-									order: 2
+									order: 2;
 								}
 							}
 						}
@@ -491,7 +491,8 @@
 									border-top: 1px solid var(--border-color);
 									max-width: 160px;
 
-									.ql-editor, p {
+									.ql-editor,
+									p {
 										width: max-content;
 										max-width: 150px;
 										margin-bottom: 0;

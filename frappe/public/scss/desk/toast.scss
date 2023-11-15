@@ -98,7 +98,7 @@
 			color: var(--text-light);
 
 			&:hover {
-				color: var(--text-color)
+				color: var(--text-color);
 			}
 
 			&:last-child {
@@ -139,7 +139,9 @@
 }
 
 @keyframes backOutRight {
-	0% { opacity: 1; }
+	0% {
+		opacity: 1;
+	}
 
 	100% {
 		-webkit-transform: translateX(2000px);

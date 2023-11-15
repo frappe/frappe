@@ -9,8 +9,8 @@ body {
 	background-color: var(--bg-color);
 
 	&.full-width {
-	@include media-breakpoint-up(md) {
-		.container {
+		@include media-breakpoint-up(md) {
+			.container {
 				width: 90%;
 				max-width: 100%;
 			}
@@ -94,22 +94,49 @@ pre {
 	white-space: pre-wrap;
 }
 
-.col-xs-1 { @extend .col-1; }
-.col-xs-2 { @extend .col-2; }
-.col-xs-3 { @extend .col-3; }
-.col-xs-4 { @extend .col-4; }
-.col-xs-5 { @extend .col-5; }
-.col-xs-6 { @extend .col-6; }
-.col-xs-7 { @extend .col-7; }
-.col-xs-8 { @extend .col-8; }
-.col-xs-9 { @extend .col-9; }
-.col-xs-10 { @extend .col-10; }
-.col-xs-11 { @extend .col-11; }
-.col-xs-12 { @extend .col-12; }
+.col-xs-1 {
+	@extend .col-1;
+}
+.col-xs-2 {
+	@extend .col-2;
+}
+.col-xs-3 {
+	@extend .col-3;
+}
+.col-xs-4 {
+	@extend .col-4;
+}
+.col-xs-5 {
+	@extend .col-5;
+}
+.col-xs-6 {
+	@extend .col-6;
+}
+.col-xs-7 {
+	@extend .col-7;
+}
+.col-xs-8 {
+	@extend .col-8;
+}
+.col-xs-9 {
+	@extend .col-9;
+}
+.col-xs-10 {
+	@extend .col-10;
+}
+.col-xs-11 {
+	@extend .col-11;
+}
+.col-xs-12 {
+	@extend .col-12;
+}
 
-.btn-default { @extend .btn-light; }
+.btn-default {
+	@extend .btn-light;
+}
 
-.hidden-xs, .hidden-sm {
+.hidden-xs,
+.hidden-sm {
 	@include media-breakpoint-between(xs, sm) {
 		display: none !important;
 	}
@@ -171,7 +198,6 @@ img {
 	}
 }
 
-
 .hide-control {
 	@extend .d-none;
 }
@@ -184,17 +210,22 @@ img {
 	text-decoration: none !important;
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
 	color: var(--text-color);
-	margin-bottom: var(--margin-md)
+	margin-bottom: var(--margin-md);
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
 	font-weight: bold;
 }
 
 p {
-	margin-bottom: var(--margin-sm)
+	margin-bottom: var(--margin-sm);
 }
 
 .small {
@@ -229,7 +260,8 @@ h2 {
 	}
 }
 
-.btn-group-sm > .btn, .btn-sm {
+.btn-group-sm > .btn,
+.btn-sm {
 	padding: var(--padding-xs) var(--padding-sm);
 	font-size: var(--text-md);
 }
@@ -330,7 +362,8 @@ select.input-xs {
 		--icon-stroke: #{$component-active-color};
 	}
 
-	.divider, .dropdown-divider {
+	.divider,
+	.dropdown-divider {
 		margin: 0px;
 	}
 
@@ -338,7 +371,8 @@ select.input-xs {
 		&.dropdown-divider {
 			display: none;
 		}
-		.divider, .dropdown-divider {
+		.divider,
+		.dropdown-divider {
 			display: none;
 		}
 	}
@@ -488,7 +522,8 @@ kbd {
 		right: auto !important;
 		left: 5px;
 	}
-	input, textarea {
+	input,
+	textarea {
 		direction: rtl !important;
 	}
 
@@ -506,7 +541,6 @@ img.no-image {
 	width: 100%;
 	background-color: var(--bg-light-gray);
 }
-
 
 @media (min-width: 768px) {
 	.video-modal .modal-dialog {
