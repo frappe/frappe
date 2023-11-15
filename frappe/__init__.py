@@ -13,6 +13,7 @@ Read the documentation: https://frappeframework.com/docs
 import functools
 import gc
 import importlib
+import importlib.metadata
 import inspect
 import json
 import os
@@ -45,8 +46,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "15.0.0-dev"
-__title__ = "Frappe Framework"
+__version__ = importlib.metadata.version(__name__)
 
 controllers = {}
 local = Local()

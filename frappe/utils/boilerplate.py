@@ -304,7 +304,9 @@ class PatchCreator:
 
 
 init_template = """
-__version__ = '0.0.1'
+import importlib
+
+__version__ = importlib.metadata.version(__name__)
 
 """
 
@@ -316,7 +318,7 @@ authors = [
 description = "{app_description}"
 requires-python = ">=3.10"
 readme = "README.md"
-dynamic = ["version"]
+version = 0.0.1
 dependencies = [
     # "frappe~=15.0.0" # Installed and managed by bench.
 ]
