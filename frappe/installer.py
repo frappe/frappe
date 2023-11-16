@@ -778,39 +778,50 @@ def is_downgrade(sql_file_path, verbose=False):
 	from semantic_version import Version
 
 	head = "INSERT INTO `tabInstalled Application` VALUES"
+	in_block = False
+	block = ""
 
 	with open(sql_file_path) as f:
 		for line in f:
+			# 'block' (str) format:
+			# INSERT INTO `tabInstalled Application` VALUES ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),
+			# ('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'your_custom_app','0.0.1','master');
 			if head in line:
-				# 'line' (str) format: ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'your_custom_app','0.0.1','master')
-				line = line.strip().lstrip(head).rstrip(";").strip()
-				app_rows = frappe.safe_eval(line)
-				# check if iterable consists of tuples before trying to transform
-				apps_list = (
-					app_rows
-					if all(isinstance(app_row, (tuple, list, set)) for app_row in app_rows)
-					else (app_rows,)
-				)
-				# 'all_apps' (list) format: [('frappe', '12.x.x-develop ()', 'develop'), ('your_custom_app', '0.0.1', 'master')]
-				all_apps = [x[-3:] for x in apps_list]
+				block += line.strip().lstrip(head).strip()
+				in_block = True
+			elif in_block:
+				block += line.strip()
 
-				for app in all_apps:
-					app_name = app[0]
-					app_version = app[1].split(" ", 1)[0]
+			if len(block) and block[-1] == ";":
+				block = block.rstrip(";")
+				in_block = False
+				break
 
-					if app_name == "frappe":
-						try:
-							current_version = Version(frappe.__version__)
-							backup_version = Version(app_version[1:] if app_version[0] == "v" else app_version)
-						except ValueError:
-							return False
+	app_rows = frappe.safe_eval(block)
+	# check if iterable consists of tuples before trying to transform
+	apps_list = (
+		app_rows if all(isinstance(app_row, (tuple, list, set)) for app_row in app_rows) else (app_rows,)
+	)
+	# 'all_apps' (list) format: [('frappe', '12.x.x-develop ()', 'develop'), ('your_custom_app', '0.0.1', 'master')]
+	all_apps = [x[-3:] for x in apps_list]
 
-						downgrade = backup_version > current_version
+	for app in all_apps:
+		app_name = app[0]
+		app_version = app[1].split(" ", 1)[0]
 
-						if verbose and downgrade:
-							print(f"Your site will be downgraded from Frappe {backup_version} to {current_version}")
+		if app_name == "frappe":
+			try:
+				current_version = Version(frappe.__version__)
+				backup_version = Version(app_version[1:] if app_version[0] == "v" else app_version)
+			except ValueError:
+				return False
 
-						return downgrade
+			downgrade = backup_version > current_version
+
+			if verbose and downgrade:
+				print(f"Your site will be downgraded from Frappe {backup_version} to {current_version}")
+
+			return downgrade
 
 
 def is_partial(sql_file_path):
