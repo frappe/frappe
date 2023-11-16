@@ -380,20 +380,11 @@
    "fieldname": "form_tab",
    "fieldtype": "Tab Break",
    "label": "Form"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "fieldname": "link_filters",
-   "fieldtype": "JSON",
-   "hidden": 1,
-   "label": "Link Filters"
   },
   {
    "fieldname": "details_tab",
    "fieldtype": "Tab Break",
    "label": "Details"
->>>>>>> 3341333a3a (fix: combined details and settings tab in customize form)
   }
  ],
  "hide_toolbar": 1,
