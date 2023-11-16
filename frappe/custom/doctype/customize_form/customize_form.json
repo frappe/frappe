@@ -7,6 +7,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "doc_type",
   "properties",
   "label",
@@ -24,17 +25,6 @@
   "naming_section",
   "naming_rule",
   "autoname",
-  "document_actions_section",
-  "actions",
-  "document_links_section",
-  "links",
-  "document_states_section",
-  "states",
-  "fields_section_break",
-  "fields",
-  "form_tab",
-  "form_builder",
-  "settings_tab",
   "form_settings_section",
   "image_field",
   "max_attachments",
@@ -59,7 +49,17 @@
   "section_break_8",
   "sort_field",
   "column_break_10",
-  "sort_order"
+  "sort_order",
+  "document_actions_section",
+  "actions",
+  "document_links_section",
+  "links",
+  "document_states_section",
+  "states",
+  "fields_section_break",
+  "fields",
+  "form_tab",
+  "form_builder"
  ],
  "fields": [
   {
@@ -372,11 +372,6 @@
    "label": "Is Calendar and Gantt"
   },
   {
-   "fieldname": "settings_tab",
-   "fieldtype": "Tab Break",
-   "label": "Settings"
-  },
-  {
    "fieldname": "form_builder",
    "fieldtype": "HTML",
    "label": "Form Builder"
@@ -385,6 +380,20 @@
    "fieldname": "form_tab",
    "fieldtype": "Tab Break",
    "label": "Form"
+<<<<<<< HEAD
+=======
+  },
+  {
+   "fieldname": "link_filters",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Link Filters"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+>>>>>>> 3341333a3a (fix: combined details and settings tab in customize form)
   }
  ],
  "hide_toolbar": 1,
@@ -393,7 +402,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-11-07 19:25:32.656641",
+ "modified": "2023-11-16 11:23:06.427432",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
