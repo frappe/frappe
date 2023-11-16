@@ -94,7 +94,7 @@ frappe.provide("frappe.views");
 							function (r) {
 								var cols = r.message;
 								context.commit("update_state", {
-									columns: prepare_columns(cols),
+									columns: prepare_columns(cols, context.state.cards),
 								});
 							},
 							function (err) {
@@ -185,6 +185,14 @@ frappe.provide("frappe.views");
 							new_index: card.new_index,
 						};
 					}
+					if(args.from_colname === args.to_colname) {
+						context.commit("update_state", {
+							cards: _cards,
+							columns: _columns,
+						});
+						frappe.dom.unfreeze();
+						return;
+					}
 					frappe.dom.freeze();
 					frappe
 						.call({
@@ -196,11 +204,10 @@ frappe.provide("frappe.views");
 									{ name: card.name, column: card.to_colname || card.colname },
 								];
 								let cards = update_cards_column(updated_cards);
-								let columns = prepare_columns(board.columns);
 								context.commit("update_state", {
 									cards: cards,
-									columns: columns,
 								});
+								store.dispatch("update_order");
 								frappe.dom.unfreeze();
 							},
 						})
@@ -285,7 +292,7 @@ frappe.provide("frappe.views");
 						})
 						.then(function (r) {
 							var board = r.message;
-							var columns = prepare_columns(board.columns);
+							var columns = prepare_columns(board.columns, context.state.cards);
 							context.commit("update_state", {
 								columns: columns,
 							});
@@ -317,23 +324,21 @@ frappe.provide("frappe.views");
 			init_store();
 			store.dispatch("init", opts);
 			columns_unwatcher && columns_unwatcher();
-			store.watch((state, getters) => {
-				console.log("watch state.columns")
-				return state.columns.map(el => el.title);
+			store.watch((state) => {
+				return state.columns
 			}, make_columns);
 			prepare();
 			make_columns();
-			store.watch((state, getters) => {
+			store.watch((state) => {
 				return state.cur_list;
 			}, setup_restore_columns);
-			columns_unwatcher = store.watch((state, getters) => {
+			columns_unwatcher = store.watch((state) => {
 				return state.columns;
 			}, setup_restore_columns);
-			store.watch((state, getters) => {
+			store.watch((state) => {
 				return state.empty_state;
 			}, show_empty_state);
 
-			store.dispatch("update_order");
 		}
 
 		function prepare() {
@@ -350,7 +355,6 @@ frappe.provide("frappe.views");
 		}
 
 		function make_columns() {
-			console.log("make_columns")
 			self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
 			var columns = store.state.columns;
 
