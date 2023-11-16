@@ -1075,11 +1075,9 @@ def write_translations_file(app, lang, full_dict=None, app_messages=None):
 	if not app_messages:
 		return
 
-	tpath = frappe.get_app_path(app, "translations")
-	frappe.create_folder(tpath)
-	write_csv_file(
-		os.path.join(tpath, lang + ".csv"), app_messages, full_dict or get_all_translations(lang)
-	)
+	path = frappe.get_app_path(app, "translations", lang + ".csv")
+	frappe.create_folder(path)
+	write_csv_file(path, app_messages, full_dict or get_all_translations(lang))
 
 
 def send_translations(translation_dict):
