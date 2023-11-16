@@ -227,8 +227,8 @@ class DbColumn:
 		):
 			default = frappe.db.escape(self.default)
 
-		if self.not_nullable and null == "":
-			if default == "":
+		if self.not_nullable and null:
+			if default is None:
 				default = get_not_null_defaults(self.fieldtype)
 				if isinstance(default, str):
 					default = frappe.db.escape(default)
