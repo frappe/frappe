@@ -123,6 +123,5 @@ def send_welcome_email(welcome_email, email, email_group):
 		return
 
 	args = dict(email=email, email_group=email_group)
-	email_message = welcome_email.response_html if welcome_email.use_html else welcome_email.response
-	message = frappe.render_template(email_message, args)
+	message = frappe.render_template(welcome_email.response_, args)
 	frappe.sendmail(email, subject=welcome_email.subject, message=message)
