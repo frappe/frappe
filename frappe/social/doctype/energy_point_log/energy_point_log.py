@@ -187,15 +187,16 @@ def get_alert_dict(doc):
 	return alert_dict
 
 
-def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once=False):
+def create_energy_points_log(
+	ref_doctype, ref_name, doc, is_energy_point_rule=False, apply_only_once=False
+):
 	doc = frappe._dict(doc)
-
-	log_exists = check_if_log_exists(
-		ref_doctype, ref_name, doc.rule, None if apply_only_once else doc.user
-	)
-
-	if log_exists:
-		return frappe.get_doc("Energy Point Log", log_exists)
+	if is_energy_point_rule:
+		log_exists = check_if_log_exists(
+			ref_doctype, ref_name, doc.rule, None if apply_only_once else doc.user
+		)
+		if log_exists:
+			return frappe.get_doc("Energy Point Log", log_exists)
 
 	new_log = frappe.new_doc("Energy Point Log")
 	new_log.reference_doctype = ref_doctype
@@ -297,13 +298,17 @@ def review(doc, points, to_user, reason, review_type="Appreciation"):
 		frappe.msgprint(_("You do not have enough review points"))
 		return
 
+	points = abs(points)
+	if review_type != "Appreciation":
+		points = -points
+
 	review_doc = create_energy_points_log(
 		doc.doctype,
 		doc.name,
 		{
 			"type": review_type,
 			"reason": reason,
-			"points": points if review_type == "Appreciation" else -points,
+			"points": points,
 			"user": to_user,
 		},
 	)

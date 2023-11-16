@@ -44,6 +44,7 @@ class EnergyPointRule(Document):
 	def apply(self, doc):
 		if self.rule_condition_satisfied(doc):
 			multiplier = 1
+			is_energy_point_rule = True
 
 			points = self.points
 			if self.multiplier_field:
@@ -74,6 +75,7 @@ class EnergyPointRule(Document):
 						reference_doctype,
 						reference_name,
 						{"points": points, "user": user, "rule": rule},
+						is_energy_point_rule,
 						self.apply_only_once,
 					)
 			except Exception as e:
