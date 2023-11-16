@@ -209,7 +209,7 @@ class DbColumn:
 			return column_def
 
 		null = True
-		default = ""
+		default = None
 		unique = False
 
 		if self.fieldtype in ("Check", "Int"):
@@ -240,7 +240,7 @@ class DbColumn:
 		if not null:
 			column_def += " NOT NULL"
 
-		if default:
+		if default is not None:
 			column_def += f" DEFAULT {default}"
 
 		if unique:

@@ -143,12 +143,13 @@ class PostgresTable(DBTable):
 
 		change_nullability = []
 		for col in self.change_nullability:
+			default = col.default or get_not_null_defaults(col.fieldtype)
+			if isinstance(default, str):
+				default = frappe.db.escape(default)
 			change_nullability.append(
 				f"ALTER COLUMN \"{col.fieldname}\" {'SET' if col.not_nullable else 'DROP'} NOT NULL"
 			)
-			change_nullability.append(
-				f'ALTER COLUMN "{col.fieldname}" SET DEFAULT {col.default or frappe.db.escape(col.default)}'
-			)
+			change_nullability.append(f'ALTER COLUMN "{col.fieldname}" SET DEFAULT {default}')
 
 			if col.not_nullable:
 				try:
