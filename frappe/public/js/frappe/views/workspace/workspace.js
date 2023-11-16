@@ -616,6 +616,8 @@ frappe.views.Workspace = class Workspace {
 							"options",
 							this.get_value() ? me.public_parent_pages : me.private_parent_pages
 						);
+						d.set_df_property("icon", "hidden", this.get_value() ? 0 : 1);
+						d.set_df_property("indicator_color", "hidden", this.get_value() ? 1 : 0);
 					},
 				},
 				{
@@ -625,24 +627,23 @@ frappe.views.Workspace = class Workspace {
 					label: __("Icon"),
 					fieldtype: "Icon",
 					fieldname: "icon",
-					default: item.icon,
-					change: function () {
-						d.set_df_property("indicator_color", "hidden", this.get_value() ? 1 : 0);
-					},
+					default: item.public && item.icon,
+					hidden: !item.public,
 				},
 				{
 					label: __("Indicator color"),
 					fieldtype: "Select",
 					fieldname: "indicator_color",
 					options: this.indicator_colors,
-					default: item.indicator_color,
+					default: !item.public && item.indicator_color,
+					hidden: item.public,
 				},
 			],
 			primary_action_label: __("Update"),
 			primary_action: (values) => {
 				values.title = frappe.utils.escape_html(values.title);
 				let is_title_changed = values.title != old_item.title;
-				let is_section_changed = values.is_public != old_item.public;
+				let is_section_changed = Boolean(values.is_public) != Boolean(old_item.public);
 				if (
 					(is_title_changed || is_section_changed) &&
 					!this.validate_page(values, old_item)
@@ -943,6 +944,8 @@ frappe.views.Workspace = class Workspace {
 							"options",
 							this.get_value() ? me.public_parent_pages : me.private_parent_pages
 						);
+						d.set_df_property("icon", "hidden", this.get_value() ? 0 : 1);
+						d.set_df_property("indicator_color", "hidden", this.get_value() ? 1 : 0);
 					},
 				},
 				{
@@ -952,17 +955,16 @@ frappe.views.Workspace = class Workspace {
 					label: __("Icon"),
 					fieldtype: "Icon",
 					fieldname: "icon",
-					default: new_page.icon,
-					change: function () {
-						d.set_df_property("indicator_color", "hidden", this.get_value() ? 1 : 0);
-					},
+					default: new_page.public && new_page.icon,
+					hidden: !new_page.public,
 				},
 				{
 					label: __("Indicator color"),
 					fieldtype: "Select",
 					fieldname: "indicator_color",
 					options: this.indicator_colors,
-					default: new_page.indicator_color,
+					hidden: new_page.public,
+					default: !new_page.public && new_page.indicator_color,
 				},
 			],
 			primary_action_label: __("Duplicate"),
@@ -1187,6 +1189,8 @@ frappe.views.Workspace = class Workspace {
 							"options",
 							this.get_value() ? me.public_parent_pages : me.private_parent_pages
 						);
+						d.set_df_property("icon", "hidden", this.get_value() ? 0 : 1);
+						d.set_df_property("indicator_color", "hidden", this.get_value() ? 1 : 0);
 					},
 				},
 				{
@@ -1196,9 +1200,7 @@ frappe.views.Workspace = class Workspace {
 					label: __("Icon"),
 					fieldtype: "Icon",
 					fieldname: "icon",
-					change: function () {
-						d.set_df_property("indicator_color", "hidden", this.get_value() ? 1 : 0);
-					},
+					hidden: 1,
 				},
 				{
 					label: __("Indicator color"),
