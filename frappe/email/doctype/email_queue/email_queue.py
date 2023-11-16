@@ -122,31 +122,33 @@ class EmailQueue(Document):
 
 		return True
 
-	def send(self, is_background_task: bool = False, smtp_server_instance: SMTPServer = None):
+	def send(self, smtp_server_instance: SMTPServer = None):
 		"""Send emails to recipients."""
 		if not self.can_send_now():
 			return
 
-		with SendMailContext(self, is_background_task, smtp_server_instance) as ctx:
+		with SendMailContext(self, smtp_server_instance) as ctx:
 			message = None
 			for recipient in self.recipients:
-				if not recipient.is_mail_to_be_sent():
+				if recipient.is_mail_sent():
 					continue
 
 				message = ctx.build_message(recipient.recipient)
-				method = get_hook_method("override_email_send")
-				if method:
+				if method := get_hook_method("override_email_send"):
 					method(self, self.sender, recipient.recipient, message)
 				else:
 					if not frappe.flags.in_test:
-						ctx.smtp_session.sendmail(from_addr=self.sender, to_addrs=recipient.recipient, msg=message)
-					ctx.add_to_sent_list(recipient)
+						ctx.smtp_server.session.sendmail(
+							from_addr=self.sender, to_addrs=recipient.recipient, msg=message
+						)
+
+				ctx.update_recipient_status_to_sent(recipient)
 
 			if frappe.flags.in_test:
 				frappe.flags.sent_mail = message
 				return
 
-			if ctx.email_account_doc.append_emails_to_sent_folder and ctx.sent_to:
+			if ctx.email_account_doc.append_emails_to_sent_folder:
 				ctx.email_account_doc.append_email_to_sent_folder(message)
 
 	@staticmethod
@@ -176,24 +178,22 @@ class EmailQueue(Document):
 
 
 @task(queue="short")
-def send_mail(email_queue_name, is_background_task=False, smtp_server_instance: SMTPServer = None):
+def send_mail(email_queue_name, smtp_server_instance: SMTPServer = None):
 	"""This is equivalent to EmailQueue.send.
 
 	This provides a way to make sending mail as a background job.
 	"""
 	record = EmailQueue.find(email_queue_name)
-	record.send(is_background_task=is_background_task, smtp_server_instance=smtp_server_instance)
+	record.send(smtp_server_instance=smtp_server_instance)
 
 
 class SendMailContext:
 	def __init__(
 		self,
 		queue_doc: Document,
-		is_background_task: bool = False,
 		smtp_server_instance: SMTPServer = None,
 	):
 		self.queue_doc: EmailQueue = queue_doc
-		self.is_background_task = is_background_task
 		self.email_account_doc = queue_doc.get_email_account()
 
 		self.smtp_server = smtp_server_instance or self.email_account_doc.get_smtp_server()
@@ -202,7 +202,9 @@ class SendMailContext:
 		# Note: smtp session will have to be manually closed
 		self.retain_smtp_session = bool(smtp_server_instance)
 
-		self.sent_to = [rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()]
+		self.sent_to_atleast_one_recipient = any(
+			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
+		)
 
 	def __enter__(self):
 		self.queue_doc.update_status(status="Sending", commit=True)
@@ -216,53 +218,35 @@ class SendMailContext:
 			smtplib.SMTPHeloError,
 			JobTimeoutException,
 		]
+		trace = "".join(traceback.format_tb(exc_tb)) if exc_tb else None
 
 		if not self.retain_smtp_session:
 			self.smtp_server.quit()
 
-		self.log_exception(exc_type, exc_val, exc_tb)
-
 		if exc_type in exceptions:
-			email_status = "Partially Sent" if self.sent_to else "Not Sent"
-			self.queue_doc.update_status(status=email_status, commit=True)
-		elif exc_type:
-			if self.queue_doc.retry < get_email_retry_limit():
-				update_fields = {"status": "Not Sent", "retry": self.queue_doc.retry + 1}
-			else:
-				update_fields = {"status": (self.sent_to and "Partially Errored") or "Error"}
-			self.queue_doc.update_status(**update_fields, commit=True)
-		else:
-			email_status = self.is_mail_sent_to_all() and "Sent"
-			email_status = email_status or (self.sent_to and "Partially Sent") or "Not Sent"
-
 			update_fields = {
-				"status": email_status,
-				"email_account": self.email_account_doc.name
-				if self.email_account_doc.is_exists_in_db()
-				else None,
+				"status": "Partially Sent" if self.sent_to_atleast_one_recipient else "Not Sent",
+				"error": trace,
 			}
-			self.queue_doc.update_status(**update_fields, commit=True)
+		elif exc_type:
+			update_fields = {"error": trace}
+			if self.queue_doc.retry < get_email_retry_limit():
+				update_fields.update(
+					{
+						"status": "Partially Sent" if self.sent_to_atleast_one_recipient else "Not Sent",
+						"retry": self.queue_doc.retry + 1,
+					}
+				)
+			else:
+				update_fields.update({"status": "Error"})
+		else:
+			update_fields = {"status": "Sent"}
 
-	def log_exception(self, exc_type, exc_val, exc_tb):
-		if exc_type:
-			traceback_string = "".join(traceback.format_tb(exc_tb))
-			traceback_string += f"\n Queue Name: {self.queue_doc.name}"
+		self.queue_doc.update_status(**update_fields, commit=True)
 
-			self.queue_doc.log_error("Email sending failed", traceback_string)
-
-	@property
-	def smtp_session(self):
-		if frappe.flags.in_test:
-			return
-		return self.smtp_server.session
-
-	def add_to_sent_list(self, recipient):
-		# Update recipient status
+	def update_recipient_status_to_sent(self, recipient):
+		self.sent_to_atleast_one_recipient = True
 		recipient.update_db(status="Sent", commit=True)
-		self.sent_to.append(recipient.recipient)
-
-	def is_mail_sent_to_all(self):
-		return sorted(self.sent_to) == sorted(rec.recipient for rec in self.queue_doc.recipients)
 
 	def get_message_object(self, message):
 		return Parser(policy=SMTPUTF8).parsestr(message)
@@ -362,7 +346,7 @@ def retry_sending(name):
 	doc = frappe.get_doc("Email Queue", name)
 	doc.check_permission()
 
-	if doc and (doc.status == "Error" or doc.status == "Partially Errored"):
+	if doc and doc.status == "Error":
 		doc.status = "Not Sent"
 		for d in doc.recipients:
 			if d.status != "Sent":
