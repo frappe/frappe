@@ -646,7 +646,7 @@ def validate_auth_via_api_keys(authorization_header):
 			frappe.InvalidAuthorizationToken,
 		)
 	except (AttributeError, TypeError, ValueError):
-		pass
+		raise frappe.AuthenticationError
 
 
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
@@ -654,7 +654,7 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 	doctype = frappe_authorization_source or "User"
 	doc = frappe.db.get_value(doctype=doctype, filters={"api_key": api_key}, fieldname=["name"])
 	if not doc:
-		return
+		raise frappe.AuthenticationError
 	form_dict = frappe.local.form_dict
 	doc_secret = get_decrypted_password(doctype, doc, fieldname="api_secret")
 	if api_secret == doc_secret:
