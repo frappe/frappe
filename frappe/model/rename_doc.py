@@ -201,8 +201,9 @@ def rename_doc(
 	# call after_rename
 	new_doc = frappe.get_doc(doctype, new)
 
-	# copy any flags if required
-	new_doc._local = getattr(old_doc, "_local", None)
+	if validate:
+		# copy any flags if required
+		new_doc._local = getattr(old_doc, "_local", None)
 
 	new_doc.run_method("after_rename", old, new, merge)
 
