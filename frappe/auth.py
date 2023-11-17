@@ -571,7 +571,6 @@ def validate_auth():
 	authorization_header = frappe.get_request_header("Authorization", "").split(" ")
 
 	if len(authorization_header) == 2:
-		validate_auth_via_hooks()
 		validate_oauth(authorization_header)
 		validate_auth_via_api_keys(authorization_header)
 
