@@ -16,6 +16,8 @@ from frappe.utils import add_to_date, cast, nowdate, validate_email_address
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
+FORMATS = {"HTML": ".html", "Markdown": ".md", "Plain Text": ".txt"}
+
 
 class Notification(Document):
 	# begin: auto-generated types
@@ -50,6 +52,7 @@ class Notification(Document):
 		]
 		is_standard: DF.Check
 		message: DF.Code | None
+		message_type: DF.Literal["Markdown", "HTML", "Plain Text"]
 		method: DF.Data | None
 		module: DF.Link | None
 		print_format: DF.Link | None
@@ -93,19 +96,11 @@ class Notification(Document):
 	def on_update(self):
 		frappe.cache.hdel("notifications", self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
-		if path:
-			formats = [".md", ".html", ".txt"]
-
-			for ext in formats:
-				file_path = path + ext
-				if os.path.exists(file_path):
-					with open(file_path, "w") as f:
-						f.write(self.message)
-					break
-
-			else:
-				with open(path + ".md", "w") as f:
-					f.write(self.message)
+		if path and self.message:
+			extension = FORMATS.get(self.message_type, ".md")
+			file_path = path + extension
+			with open(file_path, "w") as f:
+				f.write(self.message)
 
 			# py
 			if not os.path.exists(path + ".py"):
@@ -410,23 +405,23 @@ def get_context(context):
 	def get_template(self, md_as_html=False):
 		module = get_doc_module(self.module, self.doctype, self.name)
 
-		def load_template(extn):
-			template = ""
-			template_path = os.path.join(os.path.dirname(module.__file__), frappe.scrub(self.name) + extn)
-			if os.path.exists(template_path):
-				with open(template_path) as f:
-					template = f.read()
-			return template
+		path = os.path.join(os.path.dirname(module.__file__), frappe.scrub(self.name))
+		extension = FORMATS.get(self.message_type, ".md")
+		file_path = path + extension
 
-		formats = [".html", ".md", ".txt"]
+		template = ""
 
-		for format in formats:
-			template = load_template(format)
-			if template:
-				if format == ".md" and md_as_html:
-					return frappe.utils.md_to_html(template)
-				else:
-					return template
+		if os.path.exists(file_path):
+			with open(file_path) as f:
+				template = f.read()
+
+		if not template:
+			return
+
+		if extension == ".md":
+			return frappe.utils.md_to_html(template)
+
+		return template
 
 	def load_standard_properties(self, context):
 		"""load templates and run get_context"""
