@@ -1,6 +1,7 @@
 import os
 
 import frappe
+from frappe import _
 
 
 def setup_database():
@@ -35,13 +36,11 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 
 
 def import_db_from_sql(source_sql=None, verbose=False):
+	import shlex
 	from shutil import which
-	from subprocess import PIPE, run
 
-	# we can't pass psql password in arguments in postgresql as mysql. So
-	# set password connection parameter in environment variable
-	subprocess_env = os.environ.copy()
-	subprocess_env["PGPASSWORD"] = str(frappe.conf.db_password)
+	from frappe.database import get_command
+	from frappe.utils import execute_in_shell
 
 	# bootstrap db
 	if not source_sql:
@@ -49,27 +48,33 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 	pv = which("pv")
 
-	_command = (
-		f"psql {frappe.conf.db_name} "
-		f"-h {frappe.conf.db_host} -p {str(frappe.conf.db_port)} "
-		f"-U {frappe.conf.db_name}"
-	)
+	command = []
 
 	if pv:
-		command = f"{pv} {source_sql} | " + _command
+		command.extend([pv, source_sql, "|"])
+		source = []
+		print("Restoring Database file...")
 	else:
-		command = _command + f" -f {source_sql}"
+		source = ["-f", source_sql]
 
-	print("Restoring Database file...")
-	if verbose:
-		print(command)
+	bin, args, bin_name = get_command(
+		host=frappe.conf.db_host,
+		port=frappe.conf.db_port,
+		user=frappe.conf.db_name,
+		password=frappe.conf.db_password,
+		db_name=frappe.conf.db_name,
+	)
 
-	restore_proc = run(command, env=subprocess_env, shell=True, stdout=PIPE)
-
-	if verbose:
-		print(
-			f"\nSTDOUT by psql:\n{restore_proc.stdout.decode()}\nImported from Database File: {source_sql}"
+	if not bin:
+		frappe.throw(
+			_("{} not found in PATH! This is required to restore the database.").format(bin_name),
+			exc=frappe.ExecutableNotFound,
 		)
+	command.append(bin)
+	command.append(shlex.join(args))
+	command.extend(source)
+	execute_in_shell(" ".join(command), check_exit_code=True, verbose=verbose)
+	frappe.cache.delete_keys("")  # Delete all keys associated with this site.
 
 
 def get_root_connection(root_login=None, root_password=None):
