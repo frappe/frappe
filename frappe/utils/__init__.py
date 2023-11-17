@@ -21,6 +21,8 @@ from email.header import decode_header, make_header
 from email.utils import formataddr, parseaddr
 from typing import TypedDict
 
+import semantic_version
+from packaging.version import Version
 from werkzeug.test import Client
 
 # utility functions like cint, int, flt, etc.
@@ -41,6 +43,22 @@ EMAIL_MATCH_PATTERN = re.compile(
 	r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
 	re.IGNORECASE,
 )
+
+
+def semver2pypi(version: str) -> Version:
+	"""Converts a semver version into a version from PyPI
+
+	A semver prerelease will be converted into a
+	prerelease of PyPI.
+	A semver build will be converted into a development
+	part of PyPI
+	:param semver.Version ver: the semver version
+	:return: a PyPI version
+	"""
+	ver = semantic_version.Version(version)
+	prerelease = ver.prerelease if ver.prerelease else ""
+	build = ver.build if ver.build else ""
+	return Version(f"{v}{prerelease}{build}")
 
 
 def get_fullname(user=None):
