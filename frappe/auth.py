@@ -581,6 +581,7 @@ def validate_auth():
 	if len(authorization_header) == 2:
 		validate_oauth(authorization_header)
 		validate_auth_via_api_keys(authorization_header)
+		validate_auth_via_hooks()
 
 		# If login via bearer, basic or keypair didn't work then authentication failed and we
 		# should terminate here.
@@ -653,7 +654,7 @@ def validate_auth_via_api_keys(authorization_header):
 			frappe.InvalidAuthorizationToken,
 		)
 	except (AttributeError, TypeError, ValueError):
-		raise frappe.AuthenticationError
+		pass
 
 
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
@@ -661,7 +662,7 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 	doctype = frappe_authorization_source or "User"
 	doc = frappe.db.get_value(doctype=doctype, filters={"api_key": api_key}, fieldname=["name"])
 	if not doc:
-		raise frappe.AuthenticationError
+		return
 	form_dict = frappe.local.form_dict
 	doc_secret = get_decrypted_password(doctype, doc, fieldname="api_secret")
 	if api_secret == doc_secret:
@@ -672,8 +673,6 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 		if frappe.local.login_manager.user in ("", "Guest"):
 			frappe.set_user(user)
 		frappe.local.form_dict = form_dict
-	else:
-		raise frappe.AuthenticationError
 
 
 def validate_auth_via_hooks():
