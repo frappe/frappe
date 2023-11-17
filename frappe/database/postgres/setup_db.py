@@ -54,11 +54,11 @@ def import_db_from_sql(source_sql=None, verbose=False):
 	command = []
 
 	if pv:
-		command.extend([f"{pv}", f"{source_sql}", "|"])
+		command.extend([pv, source_sql, "|"])
 		source = []
 		print("Restoring Database file...")
 	else:
-		source = ["-f", f"{source_sql}"]
+		source = ["-f", source_sql]
 
 	bin, args, bin_name = get_command(
 		host=frappe.conf.db_host,
