@@ -7,19 +7,32 @@
 from frappe.database.database import savepoint
 
 
-def setup_database(force, source_sql=None, verbose=None, no_mariadb_socket=False):
+def setup_database(force, verbose=None, no_mariadb_socket=False):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
 		import frappe.database.postgres.setup_db
 
-		return frappe.database.postgres.setup_db.setup_database(force, source_sql, verbose)
+		return frappe.database.postgres.setup_db.setup_database()
 	else:
 		import frappe.database.mariadb.setup_db
 
 		return frappe.database.mariadb.setup_db.setup_database(
-			force, source_sql, verbose, no_mariadb_socket=no_mariadb_socket
+			force, verbose, no_mariadb_socket=no_mariadb_socket
 		)
+
+
+def bootstrap_database(db_name, verbose=None, source_sql=None):
+	import frappe
+
+	if frappe.conf.db_type == "postgres":
+		import frappe.database.postgres.setup_db
+
+		return frappe.database.postgres.setup_db.bootstrap_database(db_name, verbose, source_sql)
+	else:
+		import frappe.database.mariadb.setup_db
+
+		return frappe.database.mariadb.setup_db.bootstrap_database(db_name, verbose, source_sql)
 
 
 def drop_user_and_database(db_name, root_login=None, root_password=None):

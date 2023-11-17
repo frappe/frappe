@@ -1,7 +1,7 @@
 frappe.ui.FilterGroup = class {
 	constructor(opts) {
 		$.extend(this, opts);
-		this.filters = [];
+		this.filters = this.filters || [];
 		window.fltr = this;
 		if (!this.filter_button) {
 			this.wrapper = this.parent;
@@ -239,6 +239,7 @@ frappe.ui.FilterGroup = class {
 			},
 			filter_list: this.base_list || this,
 		};
+
 		let filter = new frappe.ui.Filter(args);
 		this.filters.push(filter);
 		return filter;

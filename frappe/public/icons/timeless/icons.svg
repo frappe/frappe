@@ -815,7 +815,7 @@
 
 	<symbol viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" id="icon-duplicate">
 		<path fill-rule="evenodd" clip-rule="evenodd" d="M6.936 2a2 2 0 0 0-2 2v.649h1V4a1 1 0 0 1 1-1h5.566a1 1 0 0 1 1 1v4.595a1 1 0 0 1-1 1h-.642v1h.642a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H6.936zM3.5 5.402a2 2 0 0 0-2 2v4.595a2 2 0 0 0 2 2h5.566a2 2 0 0 0 2-2V7.402a2 2 0 0 0-2-2H3.5zm-1 2a1 1 0 0 1 1-1h5.566a1 1 0 0 1 1 1v4.595a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V7.402z"
-		stroke="none" fill="#192734"></path>
+		stroke="none" fill="var(--icon-stroke)"></path>
 	</symbol>
 
 	<symbol viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" id="icon-chart">
