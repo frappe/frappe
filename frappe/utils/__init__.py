@@ -447,7 +447,7 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 	import tempfile
 	from subprocess import Popen
 
-	if type(cmd) is list:
+	if isinstance(cmd, list):
 		# ensure it's properly escaped; only a single string argument executes via shell
 		cmd = shlex.join(cmd)
 
