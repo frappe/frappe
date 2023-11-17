@@ -68,7 +68,6 @@ def get_command(
 		user = frappe.utils.esc(user, "$ ")
 		db_name = frappe.utils.esc(db_name, "$ ")
 
-		conn_string = str
 		if password:
 			password = frappe.utils.esc(password, "$ ")
 			conn_string = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"

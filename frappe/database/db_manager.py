@@ -62,11 +62,11 @@ class DbManager:
 		command = []
 
 		if pv:
-			command.extend([f"{pv}", f"{source}", "|"])
+			command.extend([pv, source, "|"])
 			source = []
 			print("Restoring Database file...")
 		else:
-			source = ["<", f"{source}"]
+			source = ["<", source]
 
 		bin, args, bin_name = get_command(
 			host=frappe.conf.db_host,
