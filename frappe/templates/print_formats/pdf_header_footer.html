@@ -56,14 +56,28 @@
 					}
 				}
 			}
+
+			function custom_load() {
+				if (window.custom_header_footer_script) {
+					window.custom_header_footer_script();
+				}
+			}
 		</script>
+
+		{% if custom_header_footer_script -%}
+			<script>
+				window.custom_header_footer_script = function() {
+					{{ custom_header_footer_script }}
+				}
+			</script>
+		{%- endif %}
 
 		{% for tag in styles -%}
 			{{ tag | string }}
 		{%- endfor %}
 
 	</head>
-	<body onload="subst()">
+	<body onload="subst(); custom_load();">
 		<div class="print-format">
 			<div class="wrapper">
 				{% for tag in content -%}

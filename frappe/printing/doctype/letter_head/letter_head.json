@@ -20,8 +20,10 @@
   "align",
   "header_section",
   "content",
+  "header_script",
   "footer_section",
   "footer",
+  "footer_script",
   "footer_image_section",
   "footer_image",
   "footer_image_height",
@@ -162,13 +164,25 @@
    "fieldtype": "Select",
    "label": "Footer Based On",
    "options": "Image\nHTML"
+  },
+  {
+   "fieldname": "header_script",
+   "fieldtype": "Code",
+   "label": "Header Script",
+   "options": "Javascript"
+  },
+  {
+   "fieldname": "footer_script",
+   "fieldtype": "Code",
+   "label": "Footer Script",
+   "options": "Javascript"
   }
  ],
  "icon": "fa fa-font",
  "idx": 1,
  "links": [],
  "max_attachments": 3,
- "modified": "2022-06-16 23:10:46.852116",
+ "modified": "2023-11-17 15:56:24.547700",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",

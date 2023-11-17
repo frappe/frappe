@@ -2051,7 +2051,7 @@ def get_print(
 		html = get_response_content("printview")
 
 	if as_pdf:
-		return get_pdf(html, options=pdf_options, output=output)
+		return get_pdf(html, options=pdf_options, output=output, letterhead=letterhead)
 	else:
 		return html
 
@@ -2093,7 +2093,7 @@ def attach_print(
 			ext = ".pdf"
 			kwargs["as_pdf"] = True
 			content = (
-				get_pdf(html, options={"password": password} if password else None)
+				get_pdf(html, options={"password": password} if password else None, letterhead=letterhead)
 				if html
 				else get_print(doctype, name, **kwargs)
 			)
