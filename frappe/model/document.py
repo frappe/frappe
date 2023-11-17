@@ -1093,13 +1093,21 @@ class Document(BaseDocument):
 	def load_doc_before_save(self, *, raise_exception: bool = False):
 		"""load existing document from db before saving"""
 
+		for_update = True
+		if (
+			getattr(self.meta, "issingle", True)
+			and self.flags.get("for_update") != None
+			and not self.flags.for_update
+		):
+			for_update = False
+
 		self._doc_before_save = None
 
 		if self.is_new():
 			return
 
 		try:
-			self._doc_before_save = frappe.get_doc(self.doctype, self.name, for_update=True)
+			self._doc_before_save = frappe.get_doc(self.doctype, self.name, for_update=for_update)
 		except frappe.DoesNotExistError:
 			if raise_exception:
 				raise
