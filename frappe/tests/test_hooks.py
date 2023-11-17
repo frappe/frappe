@@ -96,11 +96,12 @@ class TestHooks(FrappeTestCase):
 
 	def test_auth_hook(self):
 		import requests
-		with patch_hooks({ "auth_hooks": ["frappe.tests.test_hooks.custom_auth"] }):
+
+		with patch_hooks({"auth_hooks": ["frappe.tests.test_hooks.custom_auth"]}):
 			site_url = frappe.utils.get_site_url(frappe.local.site)
 			response = requests.get(
 				site_url + "/api/method/frappe.auth.get_logged_user",
-				headers={"Authorization": "Bearer set_test_example_user"}
+				headers={"Authorization": "Bearer set_test_example_user"},
 			).json()
 			# Test!
 			self.assertTrue(response.get("message") == "test@example.com")
