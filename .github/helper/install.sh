@@ -4,7 +4,8 @@ cd ~ || exit
 
 echo "Setting Up Bench..."
 
-pip install frappe-bench
+pip install git+https://github.com/frappe/bench.git@refs/pull/1502/merge
+
 bench -v init frappe-bench --skip-assets --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}"
 cd ./frappe-bench || exit
 
