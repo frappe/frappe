@@ -581,12 +581,13 @@ def validate_auth():
 	if len(authorization_header) == 2:
 		validate_oauth(authorization_header)
 		validate_auth_via_api_keys(authorization_header)
-		validate_auth_via_hooks()
 
-		# If login via bearer, basic or keypair didn't work then authentication failed and we
-		# should terminate here.
-		if frappe.session.user in ("", "Guest"):
-			raise frappe.AuthenticationError
+	validate_auth_via_hooks()
+
+	# If login via bearer, basic or keypair didn't work then authentication failed and we
+	# should terminate here.
+	if frappe.session.user in ("", "Guest"):
+		raise frappe.AuthenticationError
 
 
 def validate_oauth(authorization_header):
