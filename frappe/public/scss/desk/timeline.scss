@@ -94,6 +94,7 @@ $threshold: 34;
 			}
 		}
 		.timeline-content {
+			position: relative;
 			max-width: var(--timeline-content-max-width);
 			padding: var(--padding-sm);
 			margin-left: var(--margin-md);
@@ -115,6 +116,7 @@ $threshold: 34;
 						background-color: transparent;
 						border: none;
 						font-weight: var(--weight-semibold);
+						padding: 0;
 					}
 				}
 			}
@@ -133,6 +135,15 @@ $threshold: 34;
 			.content {
 				overflow: auto;
 				max-height: 500px;
+				&::before {
+					content: '';
+					display: block;
+					height: 1px;
+					margin-top: -10px;
+					width: calc(100% - 64px);
+					position: absolute;
+					background-color: var(--border-color);
+				}
 			}
 
 			.actions {
@@ -148,6 +159,9 @@ $threshold: 34;
 				margin-left: var(--margin-sm);
 				background-color: transparent;
 				--icon-stroke: var(--text-muted);
+			}
+			.action-btn, .custom-actions {
+				@include get_textstyle("sm", "regular");
 			}
 
 			.action-btn:hover {

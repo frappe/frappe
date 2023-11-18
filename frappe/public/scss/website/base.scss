@@ -5,7 +5,7 @@ html {
 body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	@include get_textstyle("base", "regular");
+	@include get_textstyle("lg", "regular");
 	color: $body-color;
 	display: flex;
 	flex-direction: column;
