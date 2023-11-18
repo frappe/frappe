@@ -672,7 +672,7 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 			)
 			if value and int(value) == 1:
 				show_title_field_in_link = True
-		
+
 		if title_field and show_title_field_in_link:
 			fields.append(f"{title_field} as label")
 
