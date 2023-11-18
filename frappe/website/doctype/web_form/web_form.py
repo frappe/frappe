@@ -665,9 +665,13 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 			frappe.get_cached_value("DocType", doctype, "show_title_field_in_link") == 1
 		)
 		if not show_title_field_in_link:
-			value = frappe.get_cached_value("Property Setter", fieldname="value", filters={"property":"show_title_field_in_link","doc_type":doctype})
-			if value and int(value) == 1 :
-				show_title_field_in_link=True
+			value = frappe.get_cached_value(
+				"Property Setter",
+				fieldname="value",
+				filters={"property": "show_title_field_in_link", "doc_type": doctype},
+			)
+			if value and int(value) == 1:
+				show_title_field_in_link = True
 		
 		if title_field and show_title_field_in_link:
 			fields.append(f"{title_field} as label")
