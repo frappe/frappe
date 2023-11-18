@@ -32,6 +32,7 @@
    "width": "160px"
   },
   {
+   "default": "0",
    "description": "0 - Draft; 1 - Submitted; 2 - Cancelled",
    "fieldname": "doc_status",
    "fieldtype": "Select",

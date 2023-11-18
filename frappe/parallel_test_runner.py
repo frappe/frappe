@@ -10,7 +10,7 @@ import requests
 
 import frappe
 
-from .test_runner import SLOW_TEST_THRESHOLD, make_test_records, set_test_email_config
+from .test_runner import SLOW_TEST_THRESHOLD, make_test_records
 
 click_ctx = click.get_current_context(True)
 if click_ctx:
@@ -38,7 +38,6 @@ class ParallelTestRunner:
 		frappe.flags.in_test = True
 		frappe.clear_cache()
 		frappe.utils.scheduler.disable_scheduler()
-		set_test_email_config()
 		self.before_test_setup()
 
 	def before_test_setup(self):

@@ -69,9 +69,25 @@ def get_mapped_doc(
 
 	# main
 	if not target_doc:
-		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
+		target_doctype = table_maps[from_doctype]["doctype"]
+		if table_maps[from_doctype].get("on_parent"):
+			target_parent = table_maps[from_doctype].get("on_parent")
+			if isinstance(target_parent, str):
+				target_parent = frappe.get_doc(json.loads(target_parent))
+			target_parentfield = target_parent.get_parentfield_of_doctype(target_doctype)
+			target_doc = frappe.new_doc(
+				target_doctype, parent_doc=target_parent, parentfield=target_parentfield
+			)
+			target_parent.append(target_parentfield, target_doc)
+			ret_doc = target_parent
+		else:
+			target_doc = frappe.new_doc(target_doctype)
+			ret_doc = target_doc
 	elif isinstance(target_doc, str):
 		target_doc = frappe.get_doc(json.loads(target_doc))
+		ret_doc = target_doc
+	else:
+		ret_doc = target_doc
 
 	if (
 		not apply_strict_user_permissions
@@ -147,16 +163,14 @@ def get_mapped_doc(
 	if postprocess:
 		postprocess(source_doc, target_doc)
 
-	target_doc.set_onload("load_after_mapping", True)
+	ret_doc.set_onload("load_after_mapping", True)
 
 	if (
-		apply_strict_user_permissions
-		and not ignore_permissions
-		and not target_doc.has_permission("create")
+		apply_strict_user_permissions and not ignore_permissions and not ret_doc.has_permission("create")
 	):
-		target_doc.raise_no_permission_to("create")
+		ret_doc.raise_no_permission_to("create")
 
-	return target_doc
+	return ret_doc
 
 
 def map_doc(source_doc, target_doc, table_map, source_parent=None):
