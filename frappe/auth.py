@@ -574,12 +574,12 @@ def validate_auth():
 		validate_oauth(authorization_header)
 		validate_auth_via_api_keys(authorization_header)
 
-		# If login via bearer, basic or keypair didn't work then authentication failed and we
-		# should terminate here.
-		if frappe.session.user in ("", "Guest"):
-			raise frappe.AuthenticationError
-
 	validate_auth_via_hooks()
+
+	# If login via bearer, basic or keypair didn't work then authentication failed and we
+	# should terminate here.
+	if len(authorization_header) == 2 and frappe.session.user in ("", "Guest"):
+		raise frappe.AuthenticationError
 
 
 def validate_oauth(authorization_header):
@@ -621,7 +621,7 @@ def validate_oauth(authorization_header):
 			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
 			frappe.local.form_dict = form_dict
 	except AttributeError:
-		raise frappe.AuthenticationError
+		pass
 
 
 def validate_auth_via_api_keys(authorization_header):
