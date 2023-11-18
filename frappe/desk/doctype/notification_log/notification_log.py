@@ -25,6 +25,7 @@ class NotificationLog(Document):
 		email_content: DF.TextEditor | None
 		for_user: DF.Link | None
 		from_user: DF.Link | None
+		link: DF.Data | None
 		read: DF.Check
 		subject: DF.Text | None
 		type: DF.Literal["Mention", "Energy Point", "Assignment", "Share", "Alert"]
