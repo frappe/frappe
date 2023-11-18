@@ -665,7 +665,7 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 			frappe.db.get_value("DocType", doctype, "show_title_field_in_link", cache=1) == 1
 		)
 		if not show_title_field_in_link:
-			value = frappe.db.get_value("Property Setter", fieldname="value", filters={"property":"show_title_field_in_link","doc_type":doctype}, cache=1)
+			value = frappe.get_cached_value("Property Setter", fieldname="value", filters={"property":"show_title_field_in_link","doc_type":doctype})
 			if value and int(value) == 1 :
 				show_title_field_in_link=True
 		
