@@ -117,6 +117,7 @@
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is Standard",
+   "no_copy": 1,
    "read_only_depends_on": "eval: !frappe.boot.developer_mode"
   },
   {
@@ -165,6 +166,7 @@
   },
   {
    "depends_on": "eval: doc.type == 'Custom'",
+   "description": "Set the path to a whitelisted function that will return the data for the number card in the format:\n\n<pre class=\"small text-muted\"><code>\n{\n\t\"value\": value,\n\t\"fieldtype\": \"Currency\",\n\t\"route_options\": {\"from_date\": \"2023-05-23\"},\n\t\"route\": [\"query-report\", \"Permitted Documents For User\"]\n}</code></pre>",
    "fieldname": "method",
    "fieldtype": "Data",
    "label": "Method",
@@ -177,6 +179,7 @@
    "label": "Custom Configuration"
   },
   {
+   "description": "Set the filters here. For example:\n<pre class=\"small text-muted\"><code>\n[{\n\tfieldname: \"company\",\n\tlabel: __(\"Company\"),\n\tfieldtype: \"Link\",\n\toptions: \"Company\",\n\tdefault: frappe.defaults.get_user_default(\"Company\"),\n\treqd: 1\n},\n{\n\tfieldname: \"account\",\n\tlabel: __(\"Account\"),\n\tfieldtype: \"Link\",\n\toptions: \"Account\",\n\treqd: 1\n}]\n</code></pre>",
    "fieldname": "filters_config",
    "fieldtype": "Code",
    "label": "Filters Configuration",
@@ -200,7 +203,7 @@
   }
  ],
  "links": [],
- "modified": "2022-06-12 15:34:38.210910",
+ "modified": "2023-11-09 13:44:00.280846",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
