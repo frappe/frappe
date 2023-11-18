@@ -136,7 +136,7 @@ $threshold: 34;
 				overflow: auto;
 				max-height: 500px;
 				&::before {
-					content: '';
+					content: "";
 					display: block;
 					height: 1px;
 					margin-top: -10px;
@@ -160,7 +160,8 @@ $threshold: 34;
 				background-color: transparent;
 				--icon-stroke: var(--text-muted);
 			}
-			.action-btn, .custom-actions {
+			.action-btn,
+			.custom-actions {
 				@include get_textstyle("sm", "regular");
 			}
 
