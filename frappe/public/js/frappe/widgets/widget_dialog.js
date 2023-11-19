@@ -394,8 +394,9 @@ class ShortcutDialog extends WidgetDialog {
 								this.show_filters();
 							}
 
-							const views = ["List", "Report Builder", "Dashboard", "New", "Image"];
+							const views = ["List", "Report Builder", "Dashboard", "New"];
 							if (meta.is_tree === 1) views.push("Tree");
+							if (meta.image_field) views.push("Image");
 							if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
 
 							const response = await frappe.db.get_value(
