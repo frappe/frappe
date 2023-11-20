@@ -90,14 +90,6 @@
   {
    "fieldname": "section_break_9",
    "fieldtype": "Section Break"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "fieldname": "workflow_builder_id",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Workflow Builder ID"
   },
   {
    "default": "0",
@@ -105,7 +97,6 @@
    "fieldname": "avoid_status_override",
    "fieldtype": "Check",
    "label": "Don't Override Status"
->>>>>>> 3f70cebf65 (feat: workflow state wise status override)
   }
  ],
  "idx": 1,
