@@ -128,7 +128,7 @@ def send_notification_email(doc):
 
 	header = get_email_header(doc)
 	email_subject = strip_html(doc.subject)
-	args={
+	args = {
 		"body_content": doc.subject,
 		"description": doc.email_content,
 	}
