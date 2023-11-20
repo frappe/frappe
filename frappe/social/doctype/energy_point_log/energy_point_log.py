@@ -187,11 +187,9 @@ def get_alert_dict(doc):
 	return alert_dict
 
 
-def create_energy_points_log(
-	ref_doctype, ref_name, doc, is_energy_point_rule=False, apply_only_once=False
-):
+def create_energy_points_log(ref_doctype, ref_name, doc, apply_only_once=False):
 	doc = frappe._dict(doc)
-	if is_energy_point_rule:
+	if doc.rule:
 		log_exists = check_if_log_exists(
 			ref_doctype, ref_name, doc.rule, None if apply_only_once else doc.user
 		)
