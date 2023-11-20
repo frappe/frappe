@@ -135,9 +135,9 @@ def send_notification_email(doc):
 	if doc.link:
 		args["doc_link"] = doc.link
 	else:
-		args["document_type"]: doc.document_type
-		args["document_name"]: doc.document_name
-		args["doc_link"]: get_url_to_form(doc.document_type, doc.document_name)
+		args["document_type"] = doc.document_type
+		args["document_name"] = doc.document_name
+		args["doc_link"] = get_url_to_form(doc.document_type, doc.document_name)
 
 	frappe.sendmail(
 		recipients=email,
