@@ -133,7 +133,7 @@ def send_notification_email(doc):
 		recipients=email,
 		subject=email_subject,
 		template="new_notification",
-		args={
+		args = {
 			"body_content": doc.subject,
 			"description": doc.email_content,
 			"document_type": doc.document_type,
