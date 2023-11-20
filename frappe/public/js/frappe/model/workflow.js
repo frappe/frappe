@@ -12,12 +12,8 @@ frappe.workflow = {
 		if (wf.length) {
 			frappe.workflow.workflows[doctype] = wf[0];
 			frappe.workflow.state_fields[doctype] = wf[0].workflow_state_field;
-			frappe.workflow.avoid_status_override[doctype] = frappe.workflow.workflows[
-				doctype
-			].states
-				.filter((row) => {
-					if (row.avoid_status_override) return true;
-				})
+			frappe.workflow.avoid_status_override[doctype] = wf[0].states
+				.filter((row) => row.avoid_status_override)
 				.map((d) => d.state);
 		} else {
 			frappe.workflow.state_fields[doctype] = null;
