@@ -364,7 +364,7 @@ class TestWSGIApp(FrappeAPITestCase):
 			self.assertIsNone(_test_REQ_HOOK.get("before_request"))
 			self.assertIsNone(_test_REQ_HOOK.get("after_request"))
 			res = self.get("/api/method/ping")
-			self.assertEqual(res.json, {"message": "pong", "_debug_messages": '["method:ping"]'})
+			self.assertEqual(res.json, {"message": "pong"})
 			self.assertLess(_test_REQ_HOOK.get("before_request"), _test_REQ_HOOK.get("after_request"))
 
 

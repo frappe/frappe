@@ -5,7 +5,6 @@ import io
 import json
 import mimetypes
 import types
-import warnings
 from contextlib import contextmanager
 from functools import lru_cache
 

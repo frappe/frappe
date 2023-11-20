@@ -429,7 +429,7 @@ def print_sql(enable: bool = True) -> None:
 
 
 def log(msg: str) -> None:
-	"""Add to `debug_log` or `message_log`.
+	"""Add to `debug_log`
 
 	:param msg: Message."""
 	if not request:
