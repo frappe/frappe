@@ -487,7 +487,7 @@ kbd {
 			text-overflow: ellipsis;
 		}
 
-		&:focus {
+		&:focus-within {
 			background-color: var(--sidebar-select-color);
 			outline: 0;
 			text-decoration: none;
@@ -502,9 +502,13 @@ kbd {
 			background-color: var(--sidebar-select-color);
 		}
 
-		a {
+		> a {
 			color: var(--text-color);
 			text-decoration: none;
+
+			&:focus-visible {
+				text-decoration: underline;
+			}
 		}
 
 		svg {
