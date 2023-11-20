@@ -6,7 +6,7 @@
 			class="search-input form-control"
 			type="text"
 			:placeholder="__('Search properties...')"
-			@input="event => $emit('update:modelValue', event.target.value)"
+			@input="(event) => $emit('update:modelValue', event.target.value)"
 		/>
 		<span class="search-icon">
 			<div v-html="frappe.utils.icon('search', 'sm')"></div>

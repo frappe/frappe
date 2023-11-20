@@ -48,6 +48,11 @@ from frappe.exceptions import SiteNotSpecifiedError
 @click.option(
 	"--set-default", is_flag=True, default=False, help="Set the new site as default site"
 )
+@click.option(
+	"--setup-db/--no-setup-db",
+	default=True,
+	help="Create user and database in mariadb/postgres; only bootstrap if false",
+)
 def new_site(
 	site,
 	db_root_username=None,
@@ -64,6 +69,7 @@ def new_site(
 	db_host=None,
 	db_port=None,
 	set_default=False,
+	setup_db=True,
 ):
 	"Create a new site"
 	from frappe.installer import _new_site, extract_sql_from_archive
@@ -88,6 +94,7 @@ def new_site(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
+		setup_db=setup_db,
 	)
 
 	if set_default:

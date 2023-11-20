@@ -4,7 +4,7 @@ authors = [
     { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io"}
 ]
 description = "Metadata driven, full-stack low code web framework"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.12"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [

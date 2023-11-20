@@ -443,8 +443,13 @@ def unesc(s, esc_chars):
 
 def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=False):
 	# using Popen instead of os.system - as recommended by python docs
+	import shlex
 	import tempfile
 	from subprocess import Popen
+
+	if isinstance(cmd, list):
+		# ensure it's properly escaped; only a single string argument executes via shell
+		cmd = shlex.join(cmd)
 
 	with (tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr):
 		kwargs = {"shell": True, "stdout": stdout, "stderr": stderr}
@@ -1101,9 +1106,9 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 
 	for info in missing_info:
 		user_info.setdefault(info.name, frappe._dict()).update(
-			fullname=info.full_name or user,
+			fullname=info.full_name or info.name,
 			image=info.user_image,
-			name=user,
+			name=info.name,
 			email=info.email,
 			time_zone=info.time_zone,
 		)
