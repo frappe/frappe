@@ -121,6 +121,11 @@ class TestSafeExec(FrappeTestCase):
 		# dont Allow modifying _dict class
 		self.assertRaises(Exception, safe_exec, "_dict.x = 1")
 
+	def test_print(self):
+		test_str = frappe.generate_hash()
+		safe_exec(f"print('{test_str}')")
+		self.assertEqual(frappe.local.debug_log[-1], test_str)
+
 
 class TestNoSafeExec(FrappeTestCase):
 	def test_safe_exec_disabled_by_default(self):
