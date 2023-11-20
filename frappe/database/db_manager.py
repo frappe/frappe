@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 
 
 class DbManager:
@@ -49,35 +50,38 @@ class DbManager:
 		return self.db.sql("SHOW DATABASES", pluck=True)
 
 	@staticmethod
-	def restore_database(target, source, user, password):
-		import os
+	def restore_database(verbose, target, source, user, password):
+		import shlex
 		from shutil import which
 
-		from frappe.utils import make_esc
+		from frappe.database import get_command
+		from frappe.utils import execute_in_shell
 
-		esc = make_esc("$ ")
 		pv = which("pv")
 
+		command = []
+
 		if pv:
-			pipe = f"{pv} {source} |"
-			source = ""
-		else:
-			pipe = ""
-			source = f"< {source}"
-
-		if pipe:
+			command.extend([pv, source, "|"])
+			source = []
 			print("Restoring Database file...")
+		else:
+			source = ["<", source]
 
-		command = "{pipe} mariadb -u {user} -p{password} -h{host} -P{port} {target} {source}"
-		command = command.format(
-			pipe=pipe,
-			user=esc(user),
-			password=esc(password),
-			host=esc(frappe.conf.db_host),
-			target=esc(target),
-			source=source,
+		bin, args, bin_name = get_command(
+			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
+			user=user,
+			password=password,
+			db_name=target,
 		)
-
-		os.system(command)
+		if not bin:
+			frappe.throw(
+				_("{} not found in PATH! This is required to restore the database.").format(bin_name),
+				exc=frappe.ExecutableNotFound,
+			)
+		command.append(bin)
+		command.append(shlex.join(args))
+		command.extend(source)
+		execute_in_shell(" ".join(command), check_exit_code=True, verbose=verbose)
 		frappe.cache.delete_keys("")  # Delete all keys associated with this site.

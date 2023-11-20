@@ -37,22 +37,16 @@ Cypress.Commands.add("login", (email, password) => {
 	// cy.session clears all localStorage on new login, so we need to retain the last route
 	const session_last_route = window.localStorage.getItem("session_last_route");
 	return cy
-		.session(
-			[email, password] || "",
-			() => {
-				return cy.request({
-					url: "/api/method/login",
-					method: "POST",
-					body: {
-						usr: email,
-						pwd: password,
-					},
-				});
-			},
-			{
-				cacheAcrossSpecs: true,
-			}
-		)
+		.session([email, password] || "", () => {
+			return cy.request({
+				url: "/api/method/login",
+				method: "POST",
+				body: {
+					usr: email,
+					pwd: password,
+				},
+			});
+		})
 		.then(() => {
 			if (session_last_route) {
 				window.localStorage.setItem("session_last_route", session_last_route);
@@ -254,7 +248,10 @@ Cypress.Commands.add("awesomebar", (text) => {
 Cypress.Commands.add("new_form", (doctype) => {
 	let dt_in_route = doctype.toLowerCase().replace(/ /g, "-");
 	cy.visit(`/app/${dt_in_route}/new`);
-	cy.get("body").should("have.attr", "data-route", `Form/${doctype}/new-${dt_in_route}-1`);
+	cy.get("body").should(($body) => {
+		const dataRoute = $body.attr("data-route");
+		expect(dataRoute).to.match(new RegExp(`^Form/${doctype}/new-${dt_in_route}-`));
+	});
 	cy.get("body").should("have.attr", "data-ajax-state", "complete");
 });
 

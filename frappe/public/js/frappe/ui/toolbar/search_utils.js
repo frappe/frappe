@@ -600,40 +600,11 @@ frappe.search.utils = {
 		return { score, marked_string };
 	},
 
+	/**
+	 * @deprecated Use frappe.search.utils.fuzzy_search(subseq, str, true).marked_string instead.
+	 */
 	bolden_match_part: function (str, subseq) {
-		if (fuzzy_match(subseq, str)[0] === false) {
-			return str;
-		}
-		if (str.indexOf(subseq) == 0) {
-			var tail = str.split(subseq)[1];
-			return "<mark>" + subseq + "</mark>" + tail;
-		}
-		var rendered = "";
-		var str_orig = str;
-		var str_len = str.length;
-		str = str.toLowerCase();
-		subseq = subseq.toLowerCase();
-
-		outer: for (var i = 0, j = 0; i < subseq.length; i++) {
-			var sub_ch = subseq.charCodeAt(i);
-			while (j < str_len) {
-				if (str.charCodeAt(j) === sub_ch) {
-					var str_char = str_orig.charAt(j);
-					if (str_char === str_char.toLowerCase()) {
-						rendered += "<mark>" + subseq.charAt(i) + "</mark>";
-					} else {
-						rendered += "<mark>" + subseq.charAt(i).toUpperCase() + "</mark>";
-					}
-					j++;
-					continue outer;
-				}
-				rendered += str_orig.charAt(j);
-				j++;
-			}
-			return str_orig;
-		}
-		rendered += str_orig.slice(j);
-		return rendered;
+		return this.fuzzy_search(subseq, str, true).marked_string;
 	},
 
 	get_executables(keywords) {

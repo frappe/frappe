@@ -49,7 +49,7 @@ context("Data Control", () => {
 		cy.new_form("Test Data Control");
 
 		//Checking the URL for the new form of the doctype
-		cy.location("pathname").should("eq", "/app/test-data-control/new-test-data-control-1");
+		cy.location("pathname").should("contains", "/app/test-data-control/new-test-data-control");
 		cy.get(".title-text").should("have.text", "New Test Data Control");
 		cy.get('.frappe-control[data-fieldname="name1"]')
 			.find("label")
@@ -128,7 +128,10 @@ context("Data Control", () => {
 		cy.fill_field("phone", "9432380001", "Data");
 		cy.findByRole("button", { name: "Save" }).click({ force: true });
 		//Checking if the fields contains the data which has been filled in
-		cy.location("pathname").should("not.be", "/app/test-data-control/new-test-data-control-1");
+		cy.location("pathname").should(
+			"not.contains",
+			"/app/test-data-control/new-test-data-control"
+		);
 		cy.get_field("name1").should("have.value", "Komal");
 		cy.get_field("email").should("have.value", "komal@test.com");
 		cy.get_field("phone").should("have.value", "9432380001");

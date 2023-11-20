@@ -90,6 +90,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				me.display = false;
 				me.is_minimized = false;
 				me.hide_scrollbar(false);
+				// hide any grid row form if open
+				frappe.ui.form.get_open_grid_form?.()?.hide_form();
 
 				if (frappe.ui.open_dialogs[frappe.ui.open_dialogs.length - 1] === me) {
 					frappe.ui.open_dialogs.pop();
@@ -252,6 +254,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	hide() {
+		if (this.animate && this.animation_speed === "slow") {
+			this.$wrapper.addClass("slow");
+			$(".modal-backdrop").addClass("slow");
+		}
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
 	}

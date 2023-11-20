@@ -31,6 +31,7 @@ from frappe.utils import (
 	sbool,
 	split_emails,
 )
+from frappe.utils.deprecations import deprecated
 from frappe.utils.verified_command import get_signed_params
 
 
@@ -86,7 +87,7 @@ class EmailQueue(Document):
 		return duplicate
 
 	@classmethod
-	def new(cls, doc_data, ignore_permissions=False):
+	def new(cls, doc_data, ignore_permissions=False) -> "EmailQueue":
 		data = doc_data.copy()
 		if not data.get("recipients"):
 			return
@@ -99,7 +100,7 @@ class EmailQueue(Document):
 		return doc
 
 	@classmethod
-	def find(cls, name):
+	def find(cls, name) -> "EmailQueue":
 		return frappe.get_doc(cls.DOCTYPE, name)
 
 	@classmethod
@@ -166,14 +167,14 @@ class EmailQueue(Document):
 				if method := get_hook_method("override_email_send"):
 					method(self, self.sender, recipient.recipient, message)
 				else:
-					if not frappe.flags.in_test:
+					if not frappe.flags.in_test or frappe.flags.testing_email:
 						ctx.smtp_server.session.sendmail(
 							from_addr=self.sender, to_addrs=recipient.recipient, msg=message
 						)
 
 				ctx.update_recipient_status_to_sent(recipient)
 
-			if frappe.flags.in_test:
+			if frappe.flags.in_test and not frappe.flags.testing_email:
 				frappe.flags.sent_mail = message
 				return
 
@@ -213,6 +214,7 @@ class EmailQueue(Document):
 
 
 @task(queue="short")
+@deprecated
 def send_mail(email_queue_name, smtp_server_instance: SMTPServer = None):
 	"""This is equivalent to EmailQueue.send.
 
@@ -231,11 +233,7 @@ class SendMailContext:
 		self.queue_doc: EmailQueue = queue_doc
 		self.email_account_doc = queue_doc.get_email_account()
 
-		self.smtp_server = smtp_server_instance or self.email_account_doc.get_smtp_server()
-
-		# if smtp_server_instance is passed, then retain smtp session
-		# Note: smtp session will have to be manually closed
-		self.retain_smtp_session = bool(smtp_server_instance)
+		self.smtp_server: SMTPServer = smtp_server_instance or self.email_account_doc.get_smtp_server()
 
 		self.sent_to_atleast_one_recipient = any(
 			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
@@ -246,9 +244,6 @@ class SendMailContext:
 		return self
 
 	def __exit__(self, exc_type, exc_val, exc_tb):
-		if not self.retain_smtp_session:
-			self.smtp_server.quit()
-
 		if exc_type:
 			update_fields = {"error": "".join(traceback.format_tb(exc_tb))}
 			if self.queue_doc.retry < get_email_retry_limit():

@@ -72,6 +72,12 @@ jobs:
         ports:
           - 5432:5432
 
+      smtp_server:
+        image: rnwood/smtp4dev
+        ports:
+          - 2525:25
+          - 3000:80
+
     steps:
       - name: Clone
         uses: actions/checkout@v4
@@ -89,7 +95,7 @@ jobs:
               exit 1
           fi
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
           check-latest: true

@@ -1,12 +1,38 @@
 .navbar {
-	padding-left: 0;
-	padding-right: 0;
+	padding: 0;
+	.navbar-nav {
+		align-items: center;
+		.nav-item {
+			height: var(--navbar-height);
+			display: flex;
+			align-items: center;
+
+			&.active {
+				border-bottom: 1px solid var(--primary);
+			}
+
+			.nav-link {
+				vertical-align: middle;
+				line-height: 1;
+			}
+		}
+	}
 }
 
 @media (max-width: map-get($grid-breakpoints, "lg")) {
 	.navbar {
-		padding-left: 1rem;
-		padding-right: 1rem;
+		padding: 0 1rem;
+
+		.navbar-search {
+			width: 75vw;
+		}
+	}
+}
+@media (max-width: map-get($grid-breakpoints, "sm")) {
+	.navbar-collapse.collapse.show {
+		.navbar-nav {
+			align-items: flex-start;
+		}
 	}
 }
 
@@ -45,13 +71,12 @@
 	}
 
 	.navbar-toggler {
-		border-color: rgba(255,255,255, 0.1);
+		border-color: rgba(255, 255, 255, 0.1);
 
 		.icon {
 			stroke: none;
 		}
 	}
-
 
 	svg use {
 		--icon-stroke: white;
@@ -62,7 +87,7 @@
 	img {
 		display: inline-block;
 		max-width: 150px;
-		max-height: 25px;
+		max-height: 22px;
 	}
 }
 
@@ -71,7 +96,6 @@
 		margin-left: 1rem;
 	}
 }
-
 
 .navbar.bg-dark {
 	.dropdown-menu {
@@ -109,7 +133,8 @@
 	font-weight: 500;
 
 	&:hover,
-	&:focus, &.active {
+	&:focus,
+	&.active {
 		color: $primary;
 	}
 }
@@ -119,9 +144,14 @@
 	padding-bottom: 0px;
 }
 
-.logged-in > .nav-link {
-	max-width: 200px;
-	@extend .ellipsis;
-	max-width: 100%;
-	vertical-align: middle;
+.logged-in {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	.nav-link {
+		max-width: 200px;
+		@extend .ellipsis;
+		max-width: 100%;
+		vertical-align: middle;
+	}
 }

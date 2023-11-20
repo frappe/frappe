@@ -20,7 +20,7 @@ from frappe.twofactor import (
 )
 from frappe.utils import cint, date_diff, datetime, get_datetime, today
 from frappe.utils.deprecations import deprecation_warning
-from frappe.utils.password import check_password
+from frappe.utils.password import check_password, get_decrypted_password
 from frappe.website.utils import get_home_page
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS"))
@@ -576,6 +576,11 @@ def validate_auth():
 
 	validate_auth_via_hooks()
 
+	# If login via bearer, basic or keypair didn't work then authentication failed and we
+	# should terminate here.
+	if len(authorization_header) == 2 and frappe.session.user in ("", "Guest"):
+		raise frappe.AuthenticationError
+
 
 def validate_oauth(authorization_header):
 	"""
@@ -587,6 +592,9 @@ def validate_oauth(authorization_header):
 
 	from frappe.integrations.oauth2 import get_oauth_server
 	from frappe.oauth import get_url_delimiter
+
+	if authorization_header[0].lower() != "bearer":
+		return
 
 	form_dict = frappe.local.form_dict
 	token = authorization_header[1]
@@ -646,8 +654,10 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 	"""frappe_authorization_source to provide api key and secret for a doctype apart from User"""
 	doctype = frappe_authorization_source or "User"
 	doc = frappe.db.get_value(doctype=doctype, filters={"api_key": api_key}, fieldname=["name"])
+	if not doc:
+		raise frappe.AuthenticationError
 	form_dict = frappe.local.form_dict
-	doc_secret = frappe.utils.password.get_decrypted_password(doctype, doc, fieldname="api_secret")
+	doc_secret = get_decrypted_password(doctype, doc, fieldname="api_secret")
 	if api_secret == doc_secret:
 		if doctype == "User":
 			user = frappe.db.get_value(doctype="User", filters={"api_key": api_key}, fieldname=["name"])
@@ -656,6 +666,8 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 		if frappe.local.login_manager.user in ("", "Guest"):
 			frappe.set_user(user)
 		frappe.local.form_dict = form_dict
+	else:
+		raise frappe.AuthenticationError
 
 
 def validate_auth_via_hooks():

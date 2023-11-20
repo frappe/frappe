@@ -3,10 +3,10 @@
 """build query for doclistview and return results"""
 
 import copy
+import datetime
 import json
 import re
 from collections import Counter
-from datetime import datetime
 
 import frappe
 import frappe.defaults
@@ -21,7 +21,6 @@ from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
 from frappe.utils import (
-	add_to_date,
 	cint,
 	cstr,
 	flt,
@@ -30,7 +29,7 @@ from frappe.utils import (
 	get_timespan_date_range,
 	make_filter_tuple,
 )
-from frappe.utils.data import sbool
+from frappe.utils.data import DateTimeLikeObject, get_datetime, getdate, sbool
 
 LOCATE_PATTERN = re.compile(r"locate\([^,]+,\s*[`\"]?name[`\"]?\s*\)", flags=re.IGNORECASE)
 LOCATE_CAST_PATTERN = re.compile(
@@ -110,7 +109,6 @@ class DatabaseQuery:
 		save_user_settings=False,
 		save_user_settings_fields=False,
 		update=None,
-		add_total_row=None,
 		user_settings=None,
 		reference_doctype=None,
 		run=True,
@@ -735,12 +733,15 @@ class DatabaseQuery:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
 
 		meta = frappe.get_meta(f.doctype)
+		df = meta.get("fields", {"fieldname": f.fieldname})
+		df = df[0] if df else None
+
 		can_be_null = True
+
+		value = None
 
 		# prepare in condition
 		if f.operator.lower() in NestedSetHierarchy:
-			values = f.value or ""
-
 			# TODO: handle list and tuple
 			# if not isinstance(values, (list, tuple)):
 			# 	values = values.split(",")
@@ -786,30 +787,33 @@ class DatabaseQuery:
 				"not in" if f.operator.lower() in ("not ancestors of", "not descendants of") else "in"
 			)
 
-		elif f.operator.lower() in ("in", "not in"):
+		if f.operator.lower() in ("in", "not in"):
 			# if values contain '' or falsy values then only coalesce column
 			# for `in` query this is only required if values contain '' or values are empty.
 			# for `not in` queries we can't be sure as column values might contain null.
+			can_be_null = not getattr(df, "not_nullable", False)
 			if f.operator.lower() == "in":
-				can_be_null = not f.value or any(v is None or v == "" for v in f.value)
+				can_be_null &= not f.value or any(v is None or v == "" for v in f.value)
 
-			values = f.value or ""
-			if isinstance(values, str):
-				values = values.split(",")
+			if value is None:
+				values = f.value or ""
+				if isinstance(values, str):
+					values = values.split(",")
 
-			fallback = "''"
-			value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in values]
-			if len(value):
-				value = f"({', '.join(value)})"
-			else:
-				value = "('')"
+				fallback = "''"
+				value = [frappe.db.escape((cstr(v) or "").strip(), percent=False) for v in values]
+				if len(value):
+					value = f"({', '.join(value)})"
+				else:
+					value = "('')"
 
 		else:
 			escape = True
-			df = meta.get("fields", {"fieldname": f.fieldname})
-			df = df[0] if df else None
 
-			if df and df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent"):
+			if df and (
+				df.fieldtype in ("Check", "Float", "Int", "Currency", "Percent")
+				or getattr(df, "not_nullable", False)
+			):
 				can_be_null = False
 
 			if f.operator.lower() in ("previous", "next", "timespan"):
@@ -842,7 +846,7 @@ class DatabaseQuery:
 				elif f.value == "not set":
 					f.operator = "="
 					fallback = "''"
-					can_be_null = True
+					can_be_null = not getattr(df, "not_nullable", False)
 
 				value = ""
 
@@ -853,7 +857,7 @@ class DatabaseQuery:
 				value = frappe.db.format_date(f.value)
 				fallback = "'0001-01-01'"
 
-			elif (df and df.fieldtype == "Datetime") or isinstance(f.value, datetime):
+			elif (df and df.fieldtype == "Datetime") or isinstance(f.value, datetime.datetime):
 				value = frappe.db.format_datetime(f.value)
 				fallback = f"'{FallBackDateTimeStr}'"
 
@@ -982,7 +986,6 @@ class DatabaseQuery:
 		)
 
 	def add_user_permissions(self, user_permissions):
-		doctype_link_fields = []
 		doctype_link_fields = self.doctype_meta.get_link_fields()
 
 		# append current doctype with fieldname as 'name' as first link field
@@ -1247,10 +1250,18 @@ def has_any_user_permission_for_doctype(doctype, user, applicable_for):
 
 
 def get_between_date_filter(value, df=None):
+	"""Handle datetime filter bounds for between filter values.
+
+	If date is passed but fieldtype is datetime then
+	        from part is converted to start of day and to part is converted to end of day.
+	If any of filter part (to or from) are missing then:
+	        start or end of current day is assumed as fallback.
+	If fieldtypes match with filter values then:
+	        no change is applied.
 	"""
-	return the formattted date as per the given example
-	[u'2017-11-01', u'2017-11-03'] => '2017-11-01 00:00:00.000000' AND '2017-11-04 00:00:00.000000'
-	"""
+
+	fieldtype = df and df.fieldtype or "Datetime"
+
 	from_date = frappe.utils.nowdate()
 	to_date = frappe.utils.nowdate()
 
@@ -1260,18 +1271,35 @@ def get_between_date_filter(value, df=None):
 		if len(value) >= 2:
 			to_date = value[1]
 
-	if not df or (df and df.fieldtype == "Datetime"):
-		to_date = add_to_date(to_date, days=1)
+	# if filter value is date but fieldtype is datetime:
+	if fieldtype == "Datetime":
+		from_date = _convert_type_for_between_filters(from_date, set_time=datetime.time())
+		to_date = _convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
 
-	if df and df.fieldtype == "Datetime":
-		data = "'{}' AND '{}'".format(
-			frappe.db.format_datetime(from_date),
-			frappe.db.format_datetime(to_date),
-		)
+	# If filter value is already datetime, do nothing.
+	if fieldtype == "Datetime":
+		cond = f"'{frappe.db.format_datetime(from_date)}' AND '{frappe.db.format_datetime(to_date)}'"
 	else:
-		data = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
+		cond = f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
 
-	return data
+	return cond
+
+
+def _convert_type_for_between_filters(
+	value: DateTimeLikeObject, set_time: datetime.time
+) -> datetime.datetime:
+	if isinstance(value, str):
+		if " " in value.strip():
+			value = get_datetime(value)
+		else:
+			value = getdate(value)
+
+	if isinstance(value, datetime.datetime):
+		return value
+	elif isinstance(value, datetime.date):
+		return datetime.datetime.combine(value, set_time)
+
+	return value
 
 
 def get_additional_filter_field(additional_filters_config, f, value):

@@ -258,10 +258,29 @@ def get_context(context):
 		}
 
 	def load_translations(self, context):
-		translated_messages = frappe.translate.get_dict("doctype", self.doc_type)
-		# Sr is not added by default, had to be added manually
-		translated_messages["Sr"] = _("Sr")
-		context.translated_messages = frappe.as_json(translated_messages)
+		messages = [
+			"Sr",
+			"Attach",
+			self.title,
+			self.introduction_text,
+			self.success_title,
+			self.success_message,
+			self.list_title,
+			self.button_label,
+			self.meta_title,
+			self.meta_description,
+		]
+
+		for field in self.web_form_fields:
+			messages.extend([field.label, field.description])
+			if field.fieldtype == "Select" and field.options:
+				messages.extend(field.options.split("\n"))
+
+		messages.extend(col.label for col in self.list_columns)
+
+		context.translated_messages = frappe.as_json(
+			{message: _(message) for message in messages if message}
+		)
 
 	def load_list_data(self, context):
 		if not self.list_columns:
@@ -660,10 +679,19 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 
 		fields = ["name as value"]
 
-		title_field = frappe.db.get_value("DocType", doctype, "title_field", cache=1)
+		title_field = frappe.get_cached_value("DocType", doctype, "title_field")
 		show_title_field_in_link = (
-			frappe.db.get_value("DocType", doctype, "show_title_field_in_link", cache=1) == 1
+			frappe.get_cached_value("DocType", doctype, "show_title_field_in_link") == 1
 		)
+		if not show_title_field_in_link:
+			value = frappe.get_cached_value(
+				"Property Setter",
+				fieldname="value",
+				filters={"property": "show_title_field_in_link", "doc_type": doctype},
+			)
+			if value and int(value) == 1:
+				show_title_field_in_link = True
+
 		if title_field and show_title_field_in_link:
 			fields.append(f"{title_field} as label")
 

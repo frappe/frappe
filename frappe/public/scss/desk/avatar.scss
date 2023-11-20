@@ -67,6 +67,7 @@
 .avatar {
 	display: inline-block;
 	vertical-align: middle;
+	line-height: 1;
 }
 
 .avatar-frame {
@@ -164,7 +165,6 @@
 		justify-content: flex-end;
 		margin-right: var(--margin-xs);
 	}
-
 
 	.avatar-action {
 		@extend .avatar-small;

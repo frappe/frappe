@@ -6,19 +6,6 @@
 		{{ add_header(loop.index, layout|len, doc, letter_head, no_letterhead, footer, print_settings, print_heading_template) }}
 	</div>
 
-	{% if print_settings.repeat_header_footer %}
-	<div id="footer-html" class="visible-pdf">
-		{% if not no_letterhead and footer %}
-		<div class="letter-head-footer">
-			{{ footer }}
-		</div>
-		{% endif %}
-		<p class="text-center small page-number visible-pdf">
-			{{ _("Page {0} of {1}").format('<span class="page"></span>', '<span class="topage"></span>') }}
-		</p>
-	</div>
-	{% endif %}
-
 	{% for section in page %}
 	<div class="row section-break" data-label="{{ section.label or '' | e }}">
 		{%- if doc.print_line_breaks and loop.index != 1 -%}<hr>{%- endif -%}
@@ -35,5 +22,18 @@
 		{% endfor %}
 	</div>
 	{% endfor %}
+
+	<div {% if print_settings.repeat_header_footer %} id="footer-html" class="visible-pdf" {% endif %}>
+		{% if not no_letterhead and footer %}
+		<div class="letter-head-footer">
+			{{ footer }}
+		</div>
+		{% endif %}
+		{% if print_settings.repeat_header_footer %}
+			<p class="text-center small page-number visible-pdf">
+				{{ _("Page {0} of {1}").format('<span class="page"></span>', '<span class="topage"></span>') }}
+			</p>
+		{% endif %}
+	</div>
 </div>
 {% endfor %}
