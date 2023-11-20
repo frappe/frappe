@@ -98,8 +98,6 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Workflow Builder ID"
-<<<<<<< HEAD
-=======
   },
   {
    "default": "0",
@@ -107,17 +105,12 @@
    "fieldname": "avoid_status_override",
    "fieldtype": "Check",
    "label": "Don't Override Status"
->>>>>>> 3f70cebf65 (feat: workflow state wise status override)
   }
  ],
  "idx": 1,
  "istable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-11-16 12:10:15.472947",
-=======
  "modified": "2023-11-13 18:27:08.633239",
->>>>>>> 3f70cebf65 (feat: workflow state wise status override)
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow Document State",
