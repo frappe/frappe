@@ -161,6 +161,26 @@ frappe.ui.Page = class Page {
 		frappe.ui.keys
 			.get_shortcut_group(this.page_actions[0])
 			.add(action_btn, action_btn.find(".actions-btn-group-label"));
+
+		// https://axesslab.com/skip-links
+		this.skip_link_to_main = $("<button>")
+			.addClass("sr-only sr-only-focusable btn btn-primary-light my-2")
+			.text(__("Navigate to main content"))
+			.attr({ tabindex: 0, role: "link" })
+			.on("click", (e) => {
+				e.preventDefault();
+				const main = this.main.get(0);
+				main.setAttribute("tabindex", -1);
+				main.focus();
+				main.addEventListener(
+					"blur",
+					() => {
+						main.removeAttribute("tabindex");
+					},
+					{ once: true }
+				);
+			})
+			.appendTo(this.sidebar);
 	}
 
 	setup_sidebar_toggle() {
