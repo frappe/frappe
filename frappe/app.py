@@ -20,15 +20,7 @@ import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
-<<<<<<< HEAD
-<<<<<<< HEAD
 from frappe.core.doctype.comment.comment import update_comments_in_parent_after_request
-=======
-from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth, validate_auth_via_hooks
->>>>>>> 1ecb60f1b0 (fix: call auth hooks before validate auth)
-=======
-from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
->>>>>>> 8ea2803fbe (fix: remove raised exceptions and fail in validate_auth)
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import cint, get_site_name, sanitize_html
 from frappe.utils.data import escape_html
@@ -91,16 +83,7 @@ def application(request: Request):
 
 		init_request(request)
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 		frappe.api.validate_auth()
-=======
-		validate_auth_via_hooks()
-
-=======
->>>>>>> 8ea2803fbe (fix: remove raised exceptions and fail in validate_auth)
-		validate_auth()
->>>>>>> 1ecb60f1b0 (fix: call auth hooks before validate auth)
 
 		if request.method == "OPTIONS":
 			response = Response()
