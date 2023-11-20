@@ -96,10 +96,7 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		exec_globals.frappe.db.pop("rollback", None)
 		exec_globals.frappe.db.pop("add_index", None)
 
-	with safe_exec_flags(), patched_qb(), warnings.catch_warnings():
-		warnings.filterwarnings(
-			"ignore", message="Line None: Prints, but never reads 'printed' variable."
-		)
+	with safe_exec_flags(), patched_qb():
 		# execute script compiled by RestrictedPython
 		exec(
 			compile_restricted(script, filename="<serverscript>", policy=FrappeTransformer),
