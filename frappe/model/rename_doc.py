@@ -453,11 +453,12 @@ def get_link_fields(doctype: str) -> list[dict]:
 		cf = frappe.qb.DocType("Custom Field")
 		ps = frappe.qb.DocType("Property Setter")
 
-		st_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == df.parent).as_("issingle")
 		standard_fields = (
 			frappe.qb.from_(df)
-			.select(df.parent, df.fieldname, st_issingle)
-			.where((df.options == doctype) & (df.fieldtype == "Link"))
+			.inner_join(dt)
+			.on(df.parent == dt.name)
+			.select(df.parent, df.fieldname, dt.issingle.as_("issingle"))
+			.where((df.options == doctype) & (df.fieldtype == "Link") & (dt.is_virtual == 0))
 			.run(as_dict=True)
 		)
 
