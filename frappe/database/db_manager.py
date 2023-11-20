@@ -70,8 +70,8 @@ class DbManager:
 
 		if source.endswith(".gz"):
 			if gzip := which("gzip"):
-				source = []
 				command.extend([gzip, "-cd", source, "|"])
+				source = []
 				if pv:
 					command.extend([pv, "|"])
 					print("Restoring Database file...")
