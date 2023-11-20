@@ -51,12 +51,14 @@
    "fieldname": "address_line1",
    "fieldtype": "Data",
    "label": "Address Line 1",
+   "length": 240,
    "reqd": 1
   },
   {
    "fieldname": "address_line2",
    "fieldtype": "Data",
-   "label": "Address Line 2"
+   "label": "Address Line 2",
+   "length": 240
   },
   {
    "fieldname": "city",
@@ -148,7 +150,7 @@
  "icon": "fa fa-map-marker",
  "idx": 5,
  "links": [],
- "modified": "2023-10-30 05:50:23.912366",
+ "modified": "2023-11-20 17:28:41.698356",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",
