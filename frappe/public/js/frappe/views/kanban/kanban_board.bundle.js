@@ -370,20 +370,20 @@ frappe.provide("frappe.views");
 
 		function setup_sortable() {
 			// If no write access to board, editing board (by dragging column) should be blocked
-			if (!self.board_perms.write) return;
-
-			var sortable = new Sortable(self.$kanban_board.get(0), {
-				group: "columns",
-				animation: 150,
-				dataIdAttr: "data-column-value",
-				filter: ".add-new-column",
-				handle: ".kanban-column-title",
-				onEnd: function () {
-					var order = sortable.toArray();
-					order = order.slice(1);
-					store.dispatch("update_column_order", order);
-				},
-			});
+			// if (!self.board_perms.write) return;
+			// console.log(self.$kanban_board.get(0))
+			// var sortable = new Sortable(self.$kanban_board.get(0), {
+			// 	group: "columns",
+			// 	animation: 150,
+			// 	dataIdAttr: "data-column-value",
+			// 	filter: ".add-new-column",
+			// 	handle: ".kanban-column-title",
+			// 	onEnd: function () {
+			// 		var order = sortable.toArray();
+			// 		order = order.slice(1);
+			// 		store.dispatch("update_column_order", order);
+			// 	},
+			// });
 		}
 
 		function bind_add_column() {
@@ -590,10 +590,12 @@ frappe.provide("frappe.views");
 		function setup_sortable() {
 			// Block card dragging/record editing without 'write' access to reference doctype
 			if (!frappe.model.can_write(store.state.doctype)) return;
-
+			console.log(self.$kanban_cards.get(0))
 			Sortable.create(self.$kanban_cards.get(0), {
 				group: "cards",
 				animation: 150,
+				delay: 10,
+				handle: '.kanban-handler',
 				dataIdAttr: "data-name",
 				forceFallback: true,
 				onStart: function () {
@@ -617,6 +619,7 @@ frappe.provide("frappe.views");
 					store.dispatch("update_order_for_single_card", args);
 				},
 				onAdd: function () {},
+				filter: '.kanban-title-area a'
 			});
 		}
 
