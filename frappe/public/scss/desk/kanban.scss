@@ -184,14 +184,14 @@
 					}
 
 					.kanban-card-body {
-						cursor: grab;
 						padding: var(--padding-sm);
 
 						.kanban-title-area {
 							margin-bottom: 12px;
-							max-width: 90%;
 							font-size: var(--text-md);
 							font-weight: 500;
+							background: whitesmoke;
+							padding: .2em .5em;
 
 							.kanban-card-doc {
 								.text-muted div {
@@ -204,6 +204,10 @@
 								color: var(--text-muted);
 								margin-top: var(--margin-xs);
 							}
+						}
+
+						.kanban-handler {
+							cursor: grab;
 						}
 
 						.kanban-card-meta {
