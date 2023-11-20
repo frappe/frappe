@@ -143,17 +143,7 @@ def send_notification_email(doc):
 		recipients=email,
 		subject=email_subject,
 		template="new_notification",
-<<<<<<< HEAD
-		args={
-			"body_content": doc.subject,
-			"description": doc.email_content,
-			"document_type": doc.document_type,
-			"document_name": doc.document_name,
-			"doc_link": doc_link,
-		},
-=======
 		args=args,
->>>>>>> 90cf6bb829 (feat: Enabling Redirection to a Custom URL on Notification Click (#22956))
 		header=[header, "orange"],
 		now=frappe.flags.in_test,
 	)
