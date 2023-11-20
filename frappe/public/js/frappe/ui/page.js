@@ -192,6 +192,7 @@ frappe.ui.Page = class Page {
 			if (!frappe.is_mobile()) {
 				sidebar_toggle.attr("title", __("Toggle Sidebar"));
 			}
+			sidebar_toggle.attr("aria-label", __("Toggle Sidebar"));
 			sidebar_toggle.tooltip({
 				delay: { show: 600, hide: 100 },
 				trigger: "hover",
