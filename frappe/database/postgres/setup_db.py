@@ -81,7 +81,7 @@ def get_root_connection(root_login=None, root_password=None):
 	return frappe.local.flags.root_connection
 
 
-def drop_user_and_database(db_name, root_login, root_password):
+def drop_user_and_database(db_name, db_user, root_login, root_password):
 	root_conn = get_root_connection(
 		frappe.flags.root_login or root_login, frappe.flags.root_password or root_password
 	)
@@ -92,4 +92,4 @@ def drop_user_and_database(db_name, root_login, root_password):
 	)
 	root_conn.sql("end")
 	root_conn.sql(f"DROP DATABASE IF EXISTS {db_name}")
-	root_conn.sql(f"DROP USER IF EXISTS {db_name}")
+	root_conn.sql(f"DROP USER IF EXISTS {db_user}")

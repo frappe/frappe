@@ -496,7 +496,7 @@ def fetch_latest_backups(partial=False) -> dict:
 	frappe.only_for("System Manager")
 	odb = BackupGenerator(
 		frappe.conf.db_name,
-		frappe.conf.db_name,
+		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
@@ -563,7 +563,7 @@ def new_backup(
 	delete_temp_backups()
 	odb = BackupGenerator(
 		frappe.conf.db_name,
-		frappe.conf.db_name,
+		frappe.conf.db_user or frappe.conf.db_name,
 		frappe.conf.db_password,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,

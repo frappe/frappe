@@ -269,6 +269,10 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 
 	local.initialised = True
 
+	# Set the user as database name if not set in config
+	if local.conf and local.conf.db_name is not None and local.conf.db_user is None:
+		local.conf.db_user = local.conf.db_name
+
 
 def connect(
 	site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True
@@ -287,7 +291,7 @@ def connect(
 	local.db = get_db(
 		host=local.conf.db_host,
 		port=local.conf.db_port,
-		user=db_name or local.conf.db_name,
+		user=local.conf.db_user,
 		password=None,
 	)
 	if set_admin_as_user:

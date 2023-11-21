@@ -40,7 +40,6 @@ if TYPE_CHECKING:
 	from pymysql.connections import Connection as MariadbConnection
 	from pymysql.cursors import Cursor as MariadbCursor
 
-
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
@@ -81,7 +80,7 @@ class Database:
 		self.setup_type_map()
 		self.host = host or frappe.conf.db_host
 		self.port = port or frappe.conf.db_port
-		self.user = user or frappe.conf.db_name
+		self.user = user or frappe.conf.db_user
 		self.cur_db_name = frappe.conf.db_name
 		self._conn = None
 
@@ -104,8 +103,8 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
-		# self.db_type: str
-		# self.last_query (lazy) attribute of last sql query executed
+	# self.db_type: str
+	# self.last_query (lazy) attribute of last sql query executed
 
 	def setup_type_map(self):
 		pass
@@ -264,7 +263,8 @@ class Database:
 
 			if not (
 				ignore_ddl
-				and (self.is_missing_column(e) or self.is_table_missing(e) or self.cant_drop_field_or_key(e))
+				and (self.is_missing_column(e) or self.is_table_missing(
+				e) or self.cant_drop_field_or_key(e))
 			):
 				raise
 
@@ -377,9 +377,11 @@ class Database:
 			return self._cursor.mogrify(query, values)
 		except AttributeError:
 			if isinstance(values, dict):
-				return query % {k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()}
+				return query % {k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in
+								values.items()}
 			elif isinstance(values, (list, tuple)):
-				return query % tuple(frappe.db.escape(v) if isinstance(v, str) else v for v in values)
+				return query % tuple(
+					frappe.db.escape(v) if isinstance(v, str) else v for v in values)
 			return query, values
 
 	def lazy_mogrify(self, query: Query, values: QueryValues) -> LazyMogrify:
@@ -580,7 +582,8 @@ class Database:
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
 		out = None
-		if cache and isinstance(filters, str) and (doctype, filters, fieldname) in self.value_cache:
+		if cache and isinstance(filters, str) and (
+		doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
 		if distinct:
@@ -628,20 +631,23 @@ class Database:
 						skip_locked=skip_locked,
 					)
 				except Exception as e:
-					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
+					if ignore and (
+						frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
 						# table or column not found, return None
 						out = None
 					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
 						out = self.get_values_from_single(
-							fields, filters, doctype, as_dict, debug, update, run=run, distinct=distinct
+							fields, filters, doctype, as_dict, debug, update, run=run,
+							distinct=distinct
 						)
 
 					else:
 						raise
 			else:
 				out = self.get_values_from_single(
-					fields, filters, doctype, as_dict, debug, update, run=run, pluck=pluck, distinct=distinct
+					fields, filters, doctype, as_dict, debug, update, run=run, pluck=pluck,
+					distinct=distinct
 				)
 
 		if cache and isinstance(filters, str):
@@ -752,7 +758,8 @@ class Database:
 
 	@staticmethod
 	def _get_update_dict(
-		fieldname: str | dict, value: Any, *, modified: str, modified_by: str, update_modified: bool
+		fieldname: str | dict, value: Any, *, modified: str, modified_by: str,
+		update_modified: bool
 	) -> dict[str, Any]:
 		"""Create update dict that represents column-values to be updated."""
 		update_dict = fieldname if isinstance(fieldname, dict) else {fieldname: value}
@@ -788,7 +795,8 @@ class Database:
 		"""
 
 		to_update = self._get_update_dict(
-			fieldname, value, modified=modified, modified_by=modified_by, update_modified=update_modified
+			fieldname, value, modified=modified, modified_by=modified_by,
+			update_modified=update_modified
 		)
 
 		frappe.db.delete(

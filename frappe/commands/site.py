@@ -68,6 +68,7 @@ def new_site(
 	db_type=None,
 	db_host=None,
 	db_port=None,
+	db_user=None,
 	set_default=False,
 	setup_db=True,
 ):
@@ -91,6 +92,7 @@ def new_site(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
+		db_user=db_user,
 		setup_db=setup_db,
 	)
 
@@ -1058,7 +1060,9 @@ def _drop_site(
 			sys.exit(1)
 
 	click.secho("Dropping site database and user", fg="green")
-	drop_user_and_database(frappe.conf.db_name, db_root_username, db_root_password)
+	drop_user_and_database(
+		frappe.conf.db_name, frappe.conf.db_user, db_root_username, db_root_password
+	)
 
 	archived_sites_path = archived_sites_path or os.path.join(
 		frappe.utils.get_bench_path(), "archived", "sites"

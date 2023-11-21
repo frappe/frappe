@@ -26,6 +26,7 @@ def get_mariadb_version(version_string: str = ""):
 def setup_database(force, verbose, no_mariadb_socket=False):
 	frappe.local.session = frappe._dict({"user": "Administrator"})
 
+	db_user = frappe.conf.db_user
 	db_name = frappe.local.conf.db_name
 	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
 	dbman = DbManager(root_conn)
@@ -34,34 +35,34 @@ def setup_database(force, verbose, no_mariadb_socket=False):
 		dbman_kwargs["host"] = "%"
 
 	if force or (db_name not in dbman.get_database_list()):
-		dbman.delete_user(db_name, **dbman_kwargs)
+		dbman.delete_user(db_user, **dbman_kwargs)
 		dbman.drop_database(db_name)
 	else:
 		raise Exception(f"Database {db_name} already exists")
 
-	dbman.create_user(db_name, frappe.conf.db_password, **dbman_kwargs)
+	dbman.create_user(db_user, frappe.conf.db_password, **dbman_kwargs)
 	if verbose:
-		print("Created user %s" % db_name)
+		print("Created user %s" % db_user)
 
 	dbman.create_database(db_name)
 	if verbose:
 		print("Created database %s" % db_name)
 
-	dbman.grant_all_privileges(db_name, db_name, **dbman_kwargs)
+	dbman.grant_all_privileges(db_name, db_user, **dbman_kwargs)
 	dbman.flush_privileges()
 	if verbose:
-		print(f"Granted privileges to user {db_name} and database {db_name}")
+		print(f"Granted privileges to user {db_user} and database {db_name}")
 
 	# close root connection
 	root_conn.close()
 
 
-def drop_user_and_database(db_name, root_login, root_password):
+def drop_user_and_database(db_name, db_user, root_login, root_password):
 	frappe.local.db = get_root_connection(root_login, root_password)
 	dbman = DbManager(frappe.local.db)
 	dbman.drop_database(db_name)
-	dbman.delete_user(db_name, host="%")
-	dbman.delete_user(db_name)
+	dbman.delete_user(db_user, host="%")
+	dbman.delete_user(db_user)
 
 
 def bootstrap_database(db_name, verbose, source_sql=None):
