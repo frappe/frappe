@@ -405,15 +405,17 @@ body[data-route^="Module"] .main-menu {
 	margin-bottom: 3px;
 	max-width: 100%;
 	.data-pill {
+		@include get_textstyle("sm", "regular");
 		justify-content: space-between;
 		box-shadow: none;
+		line-height: 1;
 	}
 }
 .attachment-row {
 	.data-pill {
 		background-color: unset;
 		box-shadow: none;
-		padding: 0 var(--padding-xs) 0 var(--padding-md);
+		padding: 0 var(--padding-xs) 0 var(--padding-md) !important;
 	}
 }
 

@@ -22,6 +22,17 @@
 @media (max-width: map-get($grid-breakpoints, "lg")) {
 	.navbar {
 		padding: 0 1rem;
+
+		.navbar-search {
+			width: 75vw;
+		}
+	}
+}
+@media (max-width: map-get($grid-breakpoints, "sm")) {
+	.navbar-collapse.collapse.show {
+		.navbar-nav {
+			align-items: flex-start;
+		}
 	}
 }
 
