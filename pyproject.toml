@@ -63,7 +63,6 @@ dependencies = [
     "requests~=2.31.0",
     "rq~=1.15.1",
     "rsa>=4.1",
-    "semantic-version~=2.10.0",
     "sqlparse~=0.4.4",
     "tenacity~=8.2.2",
     "terminaltables~=3.1.10",

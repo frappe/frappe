@@ -206,14 +206,13 @@ def parse_latest_non_beta_release(response):
 	Returns
 	json   : json object pertaining to the latest non-beta release
 	"""
-	import semantic_version
 
 	version_list = [
 		release.get("tag_name").strip("v") for release in response if not release.get("prerelease")
 	]
 
 	if version_list:
-		return sorted(version_list, key=semantic_version.Version, reverse=True)[0]
+		return sorted(version_list, key=Version, reverse=True)[0]
 
 	return None
 
@@ -261,7 +260,7 @@ def check_release_on_github(app: str):
 	if r.ok:
 		latest_non_beta_release = parse_latest_non_beta_release(r.json())
 		if latest_non_beta_release:
-			return Version(frappe.utils.semver2pypi(latest_non_beta_release)), owner
+			return Version(latest_non_beta_release), owner
 
 
 def add_message_to_redis(update_json):

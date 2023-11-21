@@ -304,7 +304,7 @@ class PatchCreator:
 
 
 init_template = """
-import importlib
+import importlib.metadata
 
 __version__ = importlib.metadata.version(__name__)
 
