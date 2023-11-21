@@ -15,8 +15,8 @@ frappe.ui.Filter = class {
 		this.conditions = [
 			["=", __("Equals")],
 			["!=", __("Not Equals")],
-			["like", __("Like")],
-			["not like", __("Not Like")],
+			// ["like", __("Like")],
+			// ["not like", __("Not Like")],
 			["in", __("In")],
 			["not in", __("Not In")],
 			["is", __("Is")],
