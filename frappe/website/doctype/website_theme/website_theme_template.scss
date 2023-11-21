@@ -1,8 +1,16 @@
 {% if google_font %}
 @import url("https://fonts.googleapis.com/css2?family={{ google_font.replace(' ', '+') }}:{{ font_properties }}&display=swap");
-$font-family-sans-serif: "{{ google_font }}", -apple-system, BlinkMacSystemFont,
+// backward compatibility. deprecated in v15
+$font-family-sans-serif: "{{ google_font }}", "Inter V", "Inter", -apple-system, BlinkMacSystemFont,
 	"Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
 	"Droid Sans", "Helvetica Neue", sans-serif;
+
+// override font stack if custom font is set in website theme
+:root {
+	--font-stack: "{{ google_font }}", "Inter V", "Inter", -apple-system, BlinkMacSystemFont,
+	"Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
+	"Droid Sans", "Helvetica Neue", sans-serif !important;
+}
 {% endif -%}
 
 {% if primary_color %}$primary: {{ frappe.db.get_value('Color', primary_color, 'color') }};{% endif -%}

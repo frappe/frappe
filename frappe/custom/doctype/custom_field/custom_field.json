@@ -15,6 +15,7 @@
   "fieldname",
   "insert_after",
   "length",
+  "link_filters",
   "column_break_6",
   "fieldtype",
   "precision",
@@ -444,6 +445,12 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
+  },
+  {
+   "fieldname": "link_filters",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Link Filters"
   }
  ],
  "icon": "fa fa-glass",

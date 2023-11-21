@@ -108,7 +108,7 @@ def guess_is_path(template):
 	# if its single line and ends with a html, then its probably a path
 	if "\n" not in template and "." in template:
 		extn = template.rsplit(".")[-1]
-		if extn in ("html", "css", "scss", "py", "md", "json", "js", "xml"):
+		if extn in ("html", "css", "scss", "py", "md", "json", "js", "xml", "txt"):
 			return True
 
 	return False

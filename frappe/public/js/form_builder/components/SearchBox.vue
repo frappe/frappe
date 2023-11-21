@@ -5,8 +5,8 @@
 		<input
 			class="search-input form-control"
 			type="text"
-			:placeholder="__('Search fields')"
-			@input="event => $emit('update:modelValue', event.target.value)"
+			:placeholder="__('Search properties...')"
+			@input="(event) => $emit('update:modelValue', event.target.value)"
 		/>
 		<span class="search-icon">
 			<div v-html="frappe.utils.icon('search', 'sm')"></div>
@@ -18,9 +18,8 @@
 .search-box {
 	display: flex;
 	position: relative;
-	padding: 0px 9px 9px;
 	background-color: var(--fg-color);
-	border-bottom: 1px solid var(--border-color);
+	width: 100%;
 
 	.search-input {
 		padding-left: 30px;
@@ -28,7 +27,7 @@
 
 	.search-icon {
 		position: absolute;
-		left: 16px;
+		left: 7px;
 		top: 2px;
 	}
 }

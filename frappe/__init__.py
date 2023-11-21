@@ -132,16 +132,6 @@ def as_unicode(text: str, encoding: str = "utf-8") -> str:
 		return str(text)
 
 
-def get_lang_dict(fortype: str, name: str | None = None) -> dict[str, str]:
-	"""Returns the translated language dict for the given type and name.
-
-	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
-	:param name: name of the document for which assets are to be returned."""
-	from frappe.translate import get_dict
-
-	return get_dict(fortype, name)
-
-
 def set_user_lang(user: str, user_language: str | None = None) -> None:
 	"""Guess and set user language for the session. `frappe.local.lang`"""
 	from frappe.translate import get_user_lang
@@ -156,6 +146,7 @@ qb = local("qb")
 conf = local("conf")
 form = form_dict = local("form_dict")
 request = local("request")
+job = local("job")
 response = local("response")
 session = local("session")
 user = local("user")
@@ -438,7 +429,7 @@ def print_sql(enable: bool = True) -> None:
 
 
 def log(msg: str) -> None:
-	"""Add to `debug_log`.
+	"""Add to `debug_log`
 
 	:param msg: Message."""
 	if not request:

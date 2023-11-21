@@ -1,3 +1,5 @@
+/* This file is depricated use Inter.scss instead. */
+/* Backward compatibility */
 @font-face {
 	font-family: 'Inter V';
 	font-weight: 100 900;
@@ -6,6 +8,7 @@
 	src: url('/assets/frappe/css/fonts/inter/Inter.var.woff2?v=3.19') format('woff2-variations'),
 	  url('/assets/frappe/css/fonts/inter/Inter.var.woff2?v=3.19') format('woff2');
 	src: url('/assets/frappe/css/fonts/inter/Inter.var.woff2?v=3.19') format('woff2') tech('variations');
+	unicode-range: U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;
   }
   @font-face {
 	font-family: 'Inter V';
@@ -15,6 +18,7 @@
 	src: url('/assets/frappe/css/fonts/inter/Inter-Italic.var.woff2?v=3.19') format('woff2-variations'),
 	  url('/assets/frappe/css/fonts/inter/Inter-Italic.var.woff2?v=3.19') format('woff2');
 	src: url('/assets/frappe/css/fonts/inter/Inter-Italic.var.woff2?v=3.19') format('woff2') tech('variations');
+	unicode-range: U+0460-052F,U+1C80-1C88,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F;
   }
 @font-face {
 	font-family: 'Inter';
