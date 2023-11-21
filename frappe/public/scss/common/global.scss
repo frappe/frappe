@@ -1,7 +1,8 @@
 @import "../element/checkbox";
 @import "../element/radio";
 
-html, body {
+html,
+body {
 	height: 100%;
 	font-family: var(--font-stack);
 	font-variation-settings: "opsz" 24;
@@ -21,7 +22,8 @@ html, body {
 		color: var(--text-color);
 	}
 
-	.input-area, .disp-area {
+	.input-area,
+	.disp-area {
 		display: flex;
 	}
 }
@@ -57,7 +59,6 @@ html, body {
 		-moz-appearance: none;
 		/* for Chrome */
 		-webkit-appearance: none;
-
 	}
 
 	.select-icon {
@@ -134,7 +135,8 @@ html, body {
 .btn-link {
 	box-shadow: none !important;
 	outline: none;
-	.icon, &:hover {
+	.icon,
+	&:hover {
 		text-decoration: none !important;
 	}
 }

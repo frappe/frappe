@@ -1,5 +1,6 @@
 <template>
-	<div class="file-uploader"
+	<div
+		class="file-uploader"
 		@dragover.prevent="dragover"
 		@dragleave.prevent="dragleave"
 		@drop.prevent="dropfiles"
@@ -10,19 +11,50 @@
 		>
 			<div v-if="!is_dragging">
 				<div class="text-center">
-					{{ __('Drag and drop files here or upload from') }}
+					{{ __("Drag and drop files here or upload from") }}
 				</div>
 				<div class="mt-2 text-center">
 					<button class="btn btn-file-upload" @click="browse_files">
-						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<circle cx="15" cy="15" r="15" fill="var(--subtle-fg)"/>
-							<path d="M13.5 22V19" stroke="var(--text-color)" stroke-linecap="round" stroke-linejoin="round"/>
-							<path d="M16.5 22V19" stroke="var(--text-color)" stroke-linecap="round" stroke-linejoin="round"/>
-							<path d="M10.5 22H19.5" stroke="var(--text-color)" stroke-linecap="round" stroke-linejoin="round"/>
-							<path d="M7.5 16H22.5" stroke="var(--text-color)" stroke-linecap="round" stroke-linejoin="round"/>
-							<path d="M21 8H9C8.17157 8 7.5 8.67157 7.5 9.5V17.5C7.5 18.3284 8.17157 19 9 19H21C21.8284 19 22.5 18.3284 22.5 17.5V9.5C22.5 8.67157 21.8284 8 21 8Z" stroke="var(--text-color)" stroke-linecap="round" stroke-linejoin="round"/>
+						<svg
+							width="30"
+							height="30"
+							viewBox="0 0 30 30"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle cx="15" cy="15" r="15" fill="var(--subtle-fg)" />
+							<path
+								d="M13.5 22V19"
+								stroke="var(--text-color)"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+							<path
+								d="M16.5 22V19"
+								stroke="var(--text-color)"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+							<path
+								d="M10.5 22H19.5"
+								stroke="var(--text-color)"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+							<path
+								d="M7.5 16H22.5"
+								stroke="var(--text-color)"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+							<path
+								d="M21 8H9C8.17157 8 7.5 8.67157 7.5 9.5V17.5C7.5 18.3284 8.17157 19 9 19H21C21.8284 19 22.5 18.3284 22.5 17.5V9.5C22.5 8.67157 21.8284 8 21 8Z"
+								stroke="var(--text-color)"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
 						</svg>
-						<div class="mt-1">{{ __('My Device') }}</div>
+						<div class="mt-1">{{ __("My Device") }}</div>
 					</button>
 					<input
 						type="file"
@@ -31,37 +63,105 @@
 						@change="on_file_input"
 						:multiple="allow_multiple"
 						:accept="(restrictions.allowed_file_types || []).join(', ')"
+					/>
+					<button
+						class="btn btn-file-upload"
+						v-if="!disable_file_browser"
+						@click="show_file_browser = true"
 					>
-					<button class="btn btn-file-upload" v-if="!disable_file_browser" @click="show_file_browser = true">
-						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<circle cx="15" cy="15" r="15" fill="var(--subtle-fg)"/>
-							<path d="M13.0245 11.5H8C7.72386 11.5 7.5 11.7239 7.5 12V20C7.5 21.1046 8.39543 22 9.5 22H20.5C21.6046 22 22.5 21.1046 22.5 20V14.5C22.5 14.2239 22.2761 14 22 14H15.2169C15.0492 14 14.8926 13.9159 14.8 13.776L13.4414 11.724C13.3488 11.5841 13.1922 11.5 13.0245 11.5Z" stroke="var(--text-color)" stroke-miterlimit="10" stroke-linecap="square"/>
-							<path d="M8.87939 9.5V8.5C8.87939 8.22386 9.10325 8 9.37939 8H20.6208C20.8969 8 21.1208 8.22386 21.1208 8.5V12" stroke="var(--text-color)" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+						<svg
+							width="30"
+							height="30"
+							viewBox="0 0 30 30"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle cx="15" cy="15" r="15" fill="var(--subtle-fg)" />
+							<path
+								d="M13.0245 11.5H8C7.72386 11.5 7.5 11.7239 7.5 12V20C7.5 21.1046 8.39543 22 9.5 22H20.5C21.6046 22 22.5 21.1046 22.5 20V14.5C22.5 14.2239 22.2761 14 22 14H15.2169C15.0492 14 14.8926 13.9159 14.8 13.776L13.4414 11.724C13.3488 11.5841 13.1922 11.5 13.0245 11.5Z"
+								stroke="var(--text-color)"
+								stroke-miterlimit="10"
+								stroke-linecap="square"
+							/>
+							<path
+								d="M8.87939 9.5V8.5C8.87939 8.22386 9.10325 8 9.37939 8H20.6208C20.8969 8 21.1208 8.22386 21.1208 8.5V12"
+								stroke="var(--text-color)"
+								stroke-miterlimit="10"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
 						</svg>
-						<div class="mt-1">{{ __('Library') }}</div>
+						<div class="mt-1">{{ __("Library") }}</div>
 					</button>
-					<button class="btn btn-file-upload" v-if="allow_web_link" @click="show_web_link = true">
-						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<circle cx="15" cy="15" r="15" fill="var(--subtle-fg)"/>
-							<path d="M12.0469 17.9543L17.9558 12.0454" stroke="var(--text-color)" stroke-linecap="round" stroke-linejoin="round"/>
-							<path d="M13.8184 11.4547L15.7943 9.47873C16.4212 8.85205 17.2714 8.5 18.1578 8.5C19.0443 8.5 19.8945 8.85205 20.5214 9.47873V9.47873C21.1481 10.1057 21.5001 10.9558 21.5001 11.8423C21.5001 12.7287 21.1481 13.5789 20.5214 14.2058L18.5455 16.1818" stroke="var(--text-color)" stroke-linecap="round" stroke-linejoin="round"/>
-							<path d="M11.4547 13.8184L9.47873 15.7943C8.85205 16.4212 8.5 17.2714 8.5 18.1578C8.5 19.0443 8.85205 19.8945 9.47873 20.5214V20.5214C10.1057 21.1481 10.9558 21.5001 11.8423 21.5001C12.7287 21.5001 13.5789 21.1481 14.2058 20.5214L16.1818 18.5455" stroke="var(--text-color)" stroke-linecap="round" stroke-linejoin="round"/>
+					<button
+						class="btn btn-file-upload"
+						v-if="allow_web_link"
+						@click="show_web_link = true"
+					>
+						<svg
+							width="30"
+							height="30"
+							viewBox="0 0 30 30"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle cx="15" cy="15" r="15" fill="var(--subtle-fg)" />
+							<path
+								d="M12.0469 17.9543L17.9558 12.0454"
+								stroke="var(--text-color)"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+							<path
+								d="M13.8184 11.4547L15.7943 9.47873C16.4212 8.85205 17.2714 8.5 18.1578 8.5C19.0443 8.5 19.8945 8.85205 20.5214 9.47873V9.47873C21.1481 10.1057 21.5001 10.9558 21.5001 11.8423C21.5001 12.7287 21.1481 13.5789 20.5214 14.2058L18.5455 16.1818"
+								stroke="var(--text-color)"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+							<path
+								d="M11.4547 13.8184L9.47873 15.7943C8.85205 16.4212 8.5 17.2714 8.5 18.1578C8.5 19.0443 8.85205 19.8945 9.47873 20.5214V20.5214C10.1057 21.1481 10.9558 21.5001 11.8423 21.5001C12.7287 21.5001 13.5789 21.1481 14.2058 20.5214L16.1818 18.5455"
+								stroke="var(--text-color)"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
 						</svg>
-						<div class="mt-1">{{ __('Link') }}</div>
+						<div class="mt-1">{{ __("Link") }}</div>
 					</button>
-					<button v-if="allow_take_photo" class="btn btn-file-upload" @click="capture_image">
-						<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-							<circle cx="15" cy="15" r="15" fill="var(--subtle-fg)"/>
-							<path d="M11.5 10.5H9.5C8.67157 10.5 8 11.1716 8 12V20C8 20.8284 8.67157 21.5 9.5 21.5H20.5C21.3284 21.5 22 20.8284 22 20V12C22 11.1716 21.3284 10.5 20.5 10.5H18.5L17.3 8.9C17.1111 8.64819 16.8148 8.5 16.5 8.5H13.5C13.1852 8.5 12.8889 8.64819 12.7 8.9L11.5 10.5Z" stroke="var(--text-color)" stroke-linejoin="round"/>
-							<circle cx="15" cy="16" r="2.5" stroke="var(--text-color)"/>
+					<button
+						v-if="allow_take_photo"
+						class="btn btn-file-upload"
+						@click="capture_image"
+					>
+						<svg
+							width="30"
+							height="30"
+							viewBox="0 0 30 30"
+							fill="none"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<circle cx="15" cy="15" r="15" fill="var(--subtle-fg)" />
+							<path
+								d="M11.5 10.5H9.5C8.67157 10.5 8 11.1716 8 12V20C8 20.8284 8.67157 21.5 9.5 21.5H20.5C21.3284 21.5 22 20.8284 22 20V12C22 11.1716 21.3284 10.5 20.5 10.5H18.5L17.3 8.9C17.1111 8.64819 16.8148 8.5 16.5 8.5H13.5C13.1852 8.5 12.8889 8.64819 12.7 8.9L11.5 10.5Z"
+								stroke="var(--text-color)"
+								stroke-linejoin="round"
+							/>
+							<circle cx="15" cy="16" r="2.5" stroke="var(--text-color)" />
 						</svg>
-						<div class="mt-1">{{ __('Camera') }}</div>
+						<div class="mt-1">{{ __("Camera") }}</div>
 					</button>
-					<button v-if="google_drive_settings.enabled" class="btn btn-file-upload" @click="show_google_drive_picker">
+					<button
+						v-if="google_drive_settings.enabled"
+						class="btn btn-file-upload"
+						@click="show_google_drive_picker"
+					>
 						<svg width="30" height="30">
-							<image href="/assets/frappe/icons/social/google_drive.svg" width="30" height="30"/>
+							<image
+								href="/assets/frappe/icons/social/google_drive.svg"
+								width="30"
+								height="30"
+							/>
 						</svg>
-						<div class="mt-1">{{ __('Google Drive') }}</div>
+						<div class="mt-1">{{ __("Google Drive") }}</div>
 					</button>
 				</div>
 				<div class="text-muted text-medium text-center">
@@ -69,10 +169,13 @@
 				</div>
 			</div>
 			<div v-else>
-				{{ __('Drop files here') }}
+				{{ __("Drop files here") }}
 			</div>
 		</div>
-		<div class="file-preview-area" v-show="files.length && !show_file_browser && !show_web_link">
+		<div
+			class="file-preview-area"
+			v-show="files.length && !show_file_browser && !show_web_link"
+		>
 			<div class="file-preview-container" v-if="!show_image_cropper">
 				<FilePreview
 					v-for="(file, i) in files"
@@ -85,19 +188,16 @@
 				/>
 			</div>
 			<div class="flex align-center" v-if="show_upload_button && currently_uploading === -1">
-				<button
-					class="btn btn-primary btn-sm margin-right"
-					@click="upload_files"
-				>
+				<button class="btn btn-primary btn-sm margin-right" @click="upload_files">
 					<span v-if="files.length === 1">
-						{{ __('Upload file') }}
+						{{ __("Upload file") }}
 					</span>
 					<span v-else>
-						{{ __('Upload {0} files', [files.length]) }}
+						{{ __("Upload {0} files", [files.length]) }}
 					</span>
 				</button>
 				<div class="text-muted text-medium">
-					{{ __('Click on the lock icon to toggle public/private') }}
+					{{ __("Click on the lock icon to toggle public/private") }}
 				</div>
 			</div>
 		</div>
@@ -106,60 +206,56 @@
 			:file="files[crop_image_with_index]"
 			:fixed_aspect_ratio="restrictions.crop_image_aspect_ratio"
 			@toggle_image_cropper="toggle_image_cropper(-1)"
-			@upload_after_crop="trigger_upload=true"
+			@upload_after_crop="trigger_upload = true"
 		/>
 		<FileBrowser
 			ref="file_browser"
 			v-if="show_file_browser && !disable_file_browser"
 			@hide-browser="show_file_browser = false"
 		/>
-		<WebLink
-			ref="web_link"
-			v-if="show_web_link"
-			@hide-web-link="show_web_link = false"
-		/>
+		<WebLink ref="web_link" v-if="show_web_link" @hide-web-link="show_web_link = false" />
 	</div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue';
-import FilePreview from './FilePreview.vue';
-import FileBrowser from './FileBrowser.vue';
-import WebLink from './WebLink.vue';
-import GoogleDrivePicker from '../../integrations/google_drive_picker';
-import ImageCropper from './ImageCropper.vue';
+import { computed, ref, watch } from "vue";
+import FilePreview from "./FilePreview.vue";
+import FileBrowser from "./FileBrowser.vue";
+import WebLink from "./WebLink.vue";
+import GoogleDrivePicker from "../../integrations/google_drive_picker";
+import ImageCropper from "./ImageCropper.vue";
 
 // props
 const props = defineProps({
 	show_upload_button: {
-		default: true
+		default: true,
 	},
 	disable_file_browser: {
-		default: false
+		default: false,
 	},
 	allow_multiple: {
-		default: true
+		default: true,
 	},
 	as_dataurl: {
-		default: false
+		default: false,
 	},
 	doctype: {
-		default: null
+		default: null,
 	},
 	docname: {
-		default: null
+		default: null,
 	},
 	fieldname: {
-		default: null
+		default: null,
 	},
 	folder: {
-		default: 'Home'
+		default: "Home",
 	},
 	method: {
-		default: null
+		default: null,
 	},
 	on_success: {
-		default: null
+		default: null,
 	},
 	make_attachments_public: {
 		default: null,
@@ -169,15 +265,15 @@ const props = defineProps({
 			max_file_size: null, // 2048 -> 2KB
 			max_number_of_files: null,
 			allowed_file_types: [], // ['image/*', 'video/*', '.jpg', '.gif', '.pdf'],
-			crop_image_aspect_ratio: null // 1, 16 / 9, 4 / 3, NaN (free)
-		})
+			crop_image_aspect_ratio: null, // 1, 16 / 9, 4 / 3, NaN (free)
+		}),
 	},
 	attach_doc_image: {
-		default: false
+		default: false,
 	},
 	upload_notes: {
-		default: null // "Images or video, upto 2MB"
-	}
+		default: null, // "Images or video, upto 2MB"
+	},
 });
 
 // variables
@@ -197,7 +293,7 @@ let hide_dialog_footer = ref(false);
 let allow_take_photo = ref(false);
 let allow_web_link = ref(true);
 let google_drive_settings = ref({
-	enabled: false
+	enabled: false,
 });
 let wrapper_ready = ref(false);
 
@@ -211,14 +307,13 @@ if (frappe.user_id !== "Guest") {
 			if (!resp.exc) {
 				google_drive_settings.value = resp.message;
 			}
-		}
+		},
 	});
 }
 if (props.restrictions.max_file_size == null) {
-	frappe.call('frappe.core.api.file.get_max_file_size')
-		.then(res => {
-			props.restrictions.max_file_size = Number(res.message);
-		});
+	frappe.call("frappe.core.api.file.get_max_file_size").then((res) => {
+		props.restrictions.max_file_size = Number(res.message);
+	});
 }
 if (props.restrictions.max_number_of_files == null && props.doctype) {
 	props.restrictions.max_number_of_files = frappe.get_meta(props.doctype)?.max_attachments;
@@ -242,7 +337,7 @@ function on_file_input(e) {
 	add_files(file_input.value.files);
 }
 function remove_file(file) {
-	files.value = files.value.filter(f => f !== file);
+	files.value = files.value.filter((f) => f !== file);
 }
 function toggle_image_cropper(index) {
 	crop_image_with_index.value = show_image_cropper.value ? -1 : index;
@@ -251,7 +346,7 @@ function toggle_image_cropper(index) {
 }
 function toggle_all_private() {
 	let flag;
-	let private_values = files.value.filter(file => file.private);
+	let private_values = files.value.filter((file) => file.private);
 	if (private_values.length < files.value.length) {
 		// there are some private and some public
 		// set all to private
@@ -260,7 +355,7 @@ function toggle_all_private() {
 		// all are private, set all to public
 		flag = false;
 	}
-	files.value = files.value.map(file => {
+	files.value = files.value.map((file) => {
 		file.private = flag;
 		return file;
 	});
@@ -268,12 +363,19 @@ function toggle_all_private() {
 function show_max_files_number_warning(file) {
 	console.warn(
 		`File skipped because it exceeds the allowed specified limit of ${max_number_of_files} uploads`,
-		file,
+		file
 	);
 	if (props.doctype) {
-		MSG = __('File "{0}" was skipped because only {1} uploads are allowed for DocType "{2}"', [file.name, max_number_of_files, props.doctype])
+		MSG = __('File "{0}" was skipped because only {1} uploads are allowed for DocType "{2}"', [
+			file.name,
+			max_number_of_files,
+			props.doctype,
+		]);
 	} else {
-		MSG = __('File "{0}" was skipped because only {1} uploads are allowed', [file.name, max_number_of_files])
+		MSG = __('File "{0}" was skipped because only {1} uploads are allowed', [
+			file.name,
+			max_number_of_files,
+		]);
 	}
 	frappe.show_alert({
 		message: MSG,
@@ -283,14 +385,14 @@ function show_max_files_number_warning(file) {
 function add_files(file_array) {
 	let _files = Array.from(file_array)
 		.filter(check_restrictions)
-		.map(file => {
-			let is_image = file.type.startsWith('image');
+		.map((file) => {
+			let is_image = file.type.startsWith("image");
 			let size_kb = file.size / 1024;
 			return {
 				file_obj: file,
 				cropper_file: file,
 				crop_box_data: null,
-				optimize: size_kb > 200 && is_image && !file.type.includes('svg'),
+				optimize: size_kb > 200 && is_image && !file.type.includes("svg"),
 				name: file.name,
 				doc: null,
 				progress: 0,
@@ -306,7 +408,7 @@ function add_files(file_array) {
 	// pop extra files as per FileUploader.restrictions.max_number_of_files
 	max_number_of_files = props.restrictions.max_number_of_files;
 	if (max_number_of_files && _files.length > max_number_of_files) {
-		_files.slice(max_number_of_files).forEach(file => {
+		_files.slice(max_number_of_files).forEach((file) => {
 			show_max_files_number_warning(file, props.doctype);
 		});
 
@@ -315,8 +417,12 @@ function add_files(file_array) {
 
 	files.value = files.value.concat(_files);
 	// if only one file is allowed and crop_image_aspect_ratio is set, open cropper immediately
-	if (files.value.length === 1 && !props.allow_multiple && props.restrictions.crop_image_aspect_ratio != null) {
-		if (!files.value[0].file_obj.type.includes('svg')) {
+	if (
+		files.value.length === 1 &&
+		!props.allow_multiple &&
+		props.restrictions.crop_image_aspect_ratio != null
+	) {
+		if (!files.value[0].file_obj.type.includes("svg")) {
 			toggle_image_cropper(0);
 		}
 	}
@@ -330,14 +436,14 @@ function check_restrictions(file) {
 	if (allowed_file_types && allowed_file_types.length) {
 		is_correct_type = allowed_file_types.some((type) => {
 			// is this is a mime-type
-			if (type.includes('/')) {
+			if (type.includes("/")) {
 				if (!file.type) return false;
 				return file.type.match(type);
 			}
 
 			// otherwise this is likely an extension
-			if (type[0] === '.') {
-				return file.name.endsWith(type);
+			if (type[0] === ".") {
+				return file.name.toLowerCase().endsWith(type.toLowerCase());
 			}
 			return false;
 		});
@@ -348,17 +454,20 @@ function check_restrictions(file) {
 	}
 
 	if (!is_correct_type) {
-		console.warn('File skipped because of invalid file type', file);
+		console.warn("File skipped because of invalid file type", file);
 		frappe.show_alert({
 			message: __('File "{0}" was skipped because of invalid file type', [file.name]),
-			indicator: 'orange'
+			indicator: "orange",
 		});
 	}
 	if (!valid_file_size) {
-		console.warn('File skipped because of invalid file size', file.size, file);
+		console.warn("File skipped because of invalid file size", file.size, file);
 		frappe.show_alert({
-			message: __('File "{0}" was skipped because size exceeds {1} MB', [file.name, max_file_size / (1024 * 1024)]),
-			indicator: 'orange'
+			message: __('File "{0}" was skipped because size exceeds {1} MB', [
+				file.name,
+				max_file_size / (1024 * 1024),
+			]),
+			indicator: "orange",
 		});
 	}
 
@@ -374,17 +483,12 @@ function upload_files() {
 	if (props.as_dataurl) {
 		return return_as_dataurl();
 	}
-	return frappe.run_serially(
-		files.value.map(
-			(file, i) =>
-				() => upload_file(file, i)
-		)
-	);
+	return frappe.run_serially(files.value.map((file, i) => () => upload_file(file, i)));
 }
 function upload_via_file_browser() {
 	let selected_file = file_browser.value.selected_node;
 	if (!selected_file.value) {
-		frappe.msgprint(__('Click on a file to select it.'));
+		frappe.msgprint(__("Click on a file to select it."));
 		close_dialog.value = true;
 		return Promise.reject();
 	}
@@ -396,23 +500,22 @@ function upload_via_file_browser() {
 function upload_via_web_link() {
 	let file_url = web_link.value.url;
 	if (!file_url) {
-		frappe.msgprint(__('Invalid URL'));
+		frappe.msgprint(__("Invalid URL"));
 		close_dialog.value = true;
 		return Promise.reject();
 	}
-	file_url = decodeURI(file_url)
+	file_url = decodeURI(file_url);
 	close_dialog.value = true;
 	return upload_file({
-		file_url
+		file_url,
 	});
 }
 function return_as_dataurl() {
-	let promises = files.value.map(file =>
-		frappe.dom.file_to_base64(file.file_obj)
-			.then(dataurl => {
-				file.dataurl = dataurl;
-				props.on_success && props.on_success(file);
-			})
+	let promises = files.value.map((file) =>
+		frappe.dom.file_to_base64(file.file_obj).then((dataurl) => {
+			file.dataurl = dataurl;
+			props.on_success && props.on_success(file);
+		})
 	);
 	close_dialog.value = true;
 	return Promise.all(promises);
@@ -422,23 +525,23 @@ function upload_file(file, i) {
 
 	return new Promise((resolve, reject) => {
 		let xhr = new XMLHttpRequest();
-		xhr.upload.addEventListener('loadstart', (e) => {
+		xhr.upload.addEventListener("loadstart", (e) => {
 			file.uploading = true;
-		})
-		xhr.upload.addEventListener('progress', (e) => {
+		});
+		xhr.upload.addEventListener("progress", (e) => {
 			if (e.lengthComputable) {
 				file.progress = e.loaded;
 				file.total = e.total;
 			}
-		})
-		xhr.upload.addEventListener('load', (e) => {
+		});
+		xhr.upload.addEventListener("load", (e) => {
 			file.uploading = false;
 			resolve();
-		})
-		xhr.addEventListener('error', (e) => {
+		});
+		xhr.addEventListener("error", (e) => {
 			file.failed = true;
 			reject();
-		})
+		});
 		xhr.onreadystatechange = () => {
 			if (xhr.readyState == XMLHttpRequest.DONE) {
 				if (xhr.status === 200) {
@@ -447,10 +550,10 @@ function upload_file(file, i) {
 					let file_doc = null;
 					try {
 						r = JSON.parse(xhr.responseText);
-						if (r.message.doctype === 'File') {
+						if (r.message.doctype === "File") {
 							file_doc = r.message;
 						}
-					} catch(e) {
+					} catch (e) {
 						r = xhr.responseText;
 					}
 
@@ -460,14 +563,16 @@ function upload_file(file, i) {
 						props.on_success(file_doc, r);
 					}
 
-					if (i == files.value.length - 1 && files.value.every(file => file.request_succeeded)) {
+					if (
+						i == files.value.length - 1 &&
+						files.value.every((file) => file.request_succeeded)
+					) {
 						close_dialog.value = true;
 					}
-
 				} else if (xhr.status === 403) {
 					file.failed = true;
 					let response = JSON.parse(xhr.responseText);
-					file.error_message = `Not permitted. ${response._error_message || ''}.`;
+					file.error_message = `Not permitted. ${response._error_message || ""}.`;
 
 					try {
 						// Append server messages which are useful hint for perm issues
@@ -475,73 +580,73 @@ function upload_file(file, i) {
 
 						server_messages.forEach((m) => {
 							m = JSON.parse(m);
-							file.error_message += `\n ${m.message} `
-						})
+							file.error_message += `\n ${m.message} `;
+						});
 					} catch (e) {
-						console.warning("Failed to parse server message", e)
+						console.warning("Failed to parse server message", e);
 					}
-
-
 				} else if (xhr.status === 413) {
 					file.failed = true;
-					file.error_message = 'Size exceeds the maximum allowed file size.';
-
+					file.error_message = "Size exceeds the maximum allowed file size.";
 				} else {
 					file.failed = true;
-					file.error_message = xhr.status === 0 ? 'XMLHttpRequest Error' : `${xhr.status} : ${xhr.statusText}`;
+					file.error_message =
+						xhr.status === 0
+							? "XMLHttpRequest Error"
+							: `${xhr.status} : ${xhr.statusText}`;
 
 					let error = null;
 					try {
 						error = JSON.parse(xhr.responseText);
-					} catch(e) {
+					} catch (e) {
 						// pass
 					}
 					frappe.request.cleanup({}, error);
 				}
 			}
-		}
-		xhr.open('POST', '/api/method/upload_file', true);
-		xhr.setRequestHeader('Accept', 'application/json');
-		xhr.setRequestHeader('X-Frappe-CSRF-Token', frappe.csrf_token);
+		};
+		xhr.open("POST", "/api/method/upload_file", true);
+		xhr.setRequestHeader("Accept", "application/json");
+		xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
 
 		let form_data = new FormData();
 		if (file.file_obj) {
-			form_data.append('file', file.file_obj, file.name);
+			form_data.append("file", file.file_obj, file.name);
 		}
-		form_data.append('is_private', +file.private);
-		form_data.append('folder', props.folder);
+		form_data.append("is_private", +file.private);
+		form_data.append("folder", props.folder);
 
 		if (file.file_url) {
-			form_data.append('file_url', file.file_url);
+			form_data.append("file_url", file.file_url);
 		}
 
 		if (file.file_name) {
-			form_data.append('file_name', file.file_name);
+			form_data.append("file_name", file.file_name);
 		}
 		if (file.library_file_name) {
-			form_data.append('library_file_name', file.library_file_name);
+			form_data.append("library_file_name", file.library_file_name);
 		}
 
 		if (props.doctype && props.docname) {
-			form_data.append('doctype', props.doctype);
-			form_data.append('docname', props.docname);
+			form_data.append("doctype", props.doctype);
+			form_data.append("docname", props.docname);
 		}
 
 		if (props.fieldname) {
-			form_data.append('fieldname', props.fieldname);
+			form_data.append("fieldname", props.fieldname);
 		}
 
 		if (props.method) {
-			form_data.append('method', props.method);
+			form_data.append("method", props.method);
 		}
 
 		if (file.optimize) {
-			form_data.append('optimize', true);
+			form_data.append("optimize", true);
 		}
 
 		if (props.attach_doc_image) {
-			form_data.append('max_width', 200);
-			form_data.append('max_height', 200);
+			form_data.append("max_width", 200);
+			form_data.append("max_height", 200);
 		}
 
 		xhr.send(form_data);
@@ -550,23 +655,23 @@ function upload_file(file, i) {
 function capture_image() {
 	const capture = new frappe.ui.Capture({
 		animate: false,
-		error: true
+		error: true,
 	});
 	capture.show();
-	capture.submit(data_urls => {
-		data_urls.forEach(data_url => {
-			let filename = `capture_${frappe.datetime.now_datetime().replaceAll(/[: -]/g, '_')}.png`;
-			url_to_file(data_url, filename, 'image/png').then((file) =>
-				add_files([file])
-			);
+	capture.submit((data_urls) => {
+		data_urls.forEach((data_url) => {
+			let filename = `capture_${frappe.datetime
+				.now_datetime()
+				.replaceAll(/[: -]/g, "_")}.png`;
+			url_to_file(data_url, filename, "image/png").then((file) => add_files([file]));
 		});
 	});
 }
 function show_google_drive_picker() {
 	close_dialog.value = true;
 	let google_drive = new GoogleDrivePicker({
-		pickerCallback: data => google_drive_callback(data),
-		...google_drive_settings.value
+		pickerCallback: (data) => google_drive_callback(data),
+		...google_drive_settings.value,
 	});
 	google_drive.loadPicker();
 }
@@ -574,31 +679,36 @@ function google_drive_callback(data) {
 	if (data.action == google.picker.Action.PICKED) {
 		upload_file({
 			file_url: data.docs[0].url,
-			file_name: data.docs[0].name
+			file_name: data.docs[0].name,
 		});
 	} else if (data.action == google.picker.Action.CANCEL) {
-		cur_frm.attachments.new_attachment()
+		cur_frm.attachments.new_attachment();
 	}
 }
 function url_to_file(url, filename, mime_type) {
 	return fetch(url)
-		.then(res => res.arrayBuffer())
-		.then(buffer => new File([buffer], filename, { type: mime_type }));
+		.then((res) => res.arrayBuffer())
+		.then((buffer) => new File([buffer], filename, { type: mime_type }));
 }
 
 // computed
 let upload_complete = computed(() => {
-	return files.value.length > 0
-		&& files.value.every(
-			file => file.total !== 0 && file.progress === file.total);
+	return (
+		files.value.length > 0 &&
+		files.value.every((file) => file.total !== 0 && file.progress === file.total)
+	);
 });
 
 // watcher
-watch(files, (newvalue, oldvalue) => {
-	if (!props.allow_multiple && newvalue.length > 1) {
-		files.value = [newvalue[newvalue.length - 1]];
-	}
-}, { deep: true });
+watch(
+	files,
+	(newvalue, oldvalue) => {
+		if (!props.allow_multiple && newvalue.length > 1) {
+			files.value = [newvalue[newvalue.length - 1]];
+		}
+	},
+	{ deep: true }
+);
 
 defineExpose({
 	files,

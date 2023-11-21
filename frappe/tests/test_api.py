@@ -278,6 +278,14 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.json["message"], "Administrator")
 
+		authorization_token = f"{api_key}:INCORRECT"
+		response = self.get(self.method_path("frappe.auth.get_logged_user"))
+		self.assertEqual(response.status_code, 401)
+
+		authorization_token = f"NonExistentKey:INCORRECT"
+		response = self.get(self.method_path("frappe.auth.get_logged_user"))
+		self.assertEqual(response.status_code, 401)
+
 		authorization_token = None
 
 	def test_404s(self):

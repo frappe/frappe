@@ -8,6 +8,7 @@ import imaplib
 import json
 import poplib
 import re
+import ssl
 import time
 from contextlib import suppress
 from email.header import decode_header
@@ -72,11 +73,14 @@ class EmailServer:
 		try:
 			if cint(self.settings.use_ssl):
 				self.imap = imaplib.IMAP4_SSL(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+					self.settings.host,
+					self.settings.incoming_port,
+					timeout=frappe.conf.pop_timeout,
+					ssl_context=ssl.create_default_context(),
 				)
 			else:
 				self.imap = imaplib.IMAP4(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
 				)
 
 				if cint(self.settings.use_starttls):
@@ -106,11 +110,14 @@ class EmailServer:
 		try:
 			if cint(self.settings.use_ssl):
 				self.pop = poplib.POP3_SSL(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+					self.settings.host,
+					self.settings.incoming_port,
+					timeout=frappe.conf.pop_timeout,
+					context=ssl.create_default_context(),
 				)
 			else:
 				self.pop = poplib.POP3(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
 				)
 
 			if self.settings.use_oauth:

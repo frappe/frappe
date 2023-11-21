@@ -4,11 +4,7 @@
 			<div class="sidebar-menu">
 				<div class="sidebar-label">{{ __("Page Margins") }}</div>
 				<div class="margin-controls">
-					<div
-						class="form-group"
-						v-for="df in margins"
-						:key="df.fieldname"
-					>
+					<div class="form-group" v-for="df in margins" :key="df.fieldname">
 						<div class="clearfix">
 							<label class="control-label">
 								{{ df.label }}
@@ -21,13 +17,7 @@
 									class="form-control form-control-sm"
 									:value="print_format[df.fieldname]"
 									min="0"
-									@change="
-										e =>
-											update_margin(
-												df.fieldname,
-												e.target.value
-											)
-									"
+									@change="(e) => update_margin(df.fieldname, e.target.value)"
 								/>
 							</div>
 						</div>
@@ -43,10 +33,7 @@
 								class="form-control form-control-sm"
 								v-model="print_format.font"
 							>
-								<option
-									v-for="font in google_fonts"
-									:value="font"
-								>
+								<option v-for="font in google_fonts" :value="font">
 									{{ font }}
 								</option>
 							</select>
@@ -65,10 +52,7 @@
 								placeholder="12, 13, 14"
 								:value="print_format.font_size"
 								@change="
-									e =>
-										(print_format.font_size = parseFloat(
-											e.target.value
-										))
+									(e) => (print_format.font_size = parseFloat(e.target.value))
 								"
 							/>
 						</div>
@@ -112,10 +96,7 @@
 					item-key="id"
 				>
 					<template #item="{ element }">
-						<div
-							class="field"
-							:title="element.fieldname"
-						>
+						<div class="field" :title="element.fieldname">
 							{{ element.label }}
 						</div>
 					</template>
@@ -157,7 +138,7 @@ function clone_field(df) {
 		"options",
 		"table_columns",
 		"html",
-		"field_template"
+		"field_template",
 	]);
 	if (cloned.custom) {
 		// generate unique fieldnames for custom blocks
@@ -171,16 +152,14 @@ let margins = computed(() => {
 	return [
 		{ label: __("Top"), fieldname: "margin_top" },
 		{ label: __("Bottom"), fieldname: "margin_bottom" },
-		{ label: __("Left", null, 'alignment'), fieldname: "margin_left" },
-		{ label: __("Right", null, 'alignment'), fieldname: "margin_right" }
+		{ label: __("Left", null, "alignment"), fieldname: "margin_left" },
+		{ label: __("Right", null, "alignment"), fieldname: "margin_right" },
 	];
 });
 let fields = computed(() => {
 	let fields = meta.value.fields
-		.filter(df => {
-			if (
-				["Section Break", "Column Break"].includes(df.fieldtype)
-			) {
+		.filter((df) => {
+			if (["Section Break", "Column Break"].includes(df.fieldtype)) {
 				return false;
 			}
 			if (search_text.value) {
@@ -195,12 +174,12 @@ let fields = computed(() => {
 				return true;
 			}
 		})
-		.map(df => {
+		.map((df) => {
 			let out = {
 				label: df.label,
 				fieldname: df.fieldname,
 				fieldtype: df.fieldtype,
-				options: df.options
+				options: df.options,
 			};
 			if (df.fieldtype == "Table") {
 				out.table_columns = get_table_columns(df);
@@ -214,27 +193,27 @@ let fields = computed(() => {
 			fieldname: "custom_html",
 			fieldtype: "HTML",
 			html: "",
-			custom: 1
+			custom: 1,
 		},
 		{
 			label: __("ID (name)"),
 			fieldname: "name",
-			fieldtype: "Data"
+			fieldtype: "Data",
 		},
 		{
 			label: __("Spacer"),
 			fieldname: "spacer",
 			fieldtype: "Spacer",
-			custom: 1
+			custom: 1,
 		},
 		{
 			label: __("Divider"),
 			fieldname: "divider",
 			fieldtype: "Divider",
-			custom: 1
+			custom: 1,
 		},
 		...print_templates.value,
-		...fields
+		...fields,
 	];
 });
 let print_templates = computed(() => {
@@ -243,21 +222,18 @@ let print_templates = computed(() => {
 	for (let template of templates) {
 		let df;
 		if (template.field) {
-			df = frappe.meta.get_docfield(
-				meta.value.name,
-				template.field
-			);
+			df = frappe.meta.get_docfield(meta.value.name, template.field);
 		} else {
 			df = {
 				label: template.name,
-				fieldname: frappe.scrub(template.name)
+				fieldname: frappe.scrub(template.name),
 			};
 		}
 		out.push({
 			label: `${__(df.label)} (${__("Field Template")})`,
 			fieldname: df.fieldname + "_template",
 			fieldtype: "Field Template",
-			field_template: template.name
+			field_template: template.name,
 		});
 	}
 	return out;
@@ -270,7 +246,7 @@ let page_number_positions = computed(() => {
 		{ label: __("Top Right"), value: "Top Right" },
 		{ label: __("Bottom Left"), value: "Bottom Left" },
 		{ label: __("Bottom Center"), value: "Bottom Center" },
-		{ label: __("Bottom Right"), value: "Bottom Right" }
+		{ label: __("Bottom Right"), value: "Bottom Right" },
 	];
 });
 
@@ -278,7 +254,7 @@ let page_number_positions = computed(() => {
 onMounted(() => {
 	let method =
 		"frappe.printing.page.print_format_builder_beta.print_format_builder_beta.get_google_fonts";
-	frappe.call(method).then(r => {
+	frappe.call(method).then((r) => {
 		google_fonts.value = r.message || [];
 		if (!google_fonts.value.includes(print_format.value.font)) {
 			google_fonts.value.push(print_format.value.font);

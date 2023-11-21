@@ -45,7 +45,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "15.0.0"
+__version__ = "15.1.0"
 __title__ = "Frappe Framework"
 
 controllers = {}
@@ -156,6 +156,7 @@ qb = local("qb")
 conf = local("conf")
 form = form_dict = local("form_dict")
 request = local("request")
+job = local("job")
 response = local("response")
 session = local("session")
 user = local("user")
