@@ -1,7 +1,7 @@
 import os
 
 import frappe
-from frappe import _
+from frappe.database.db_manager import DbManager
 
 
 def setup_database():
@@ -36,55 +36,16 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 
 
 def import_db_from_sql(source_sql=None, verbose=False):
-	import shlex
-	from shutil import which
-
-	from frappe.database import get_command
-	from frappe.utils import execute_in_shell
-
-	# bootstrap db
+	if verbose:
+		print("Starting database import...")
+	db_name = frappe.conf.db_name
 	if not source_sql:
 		source_sql = os.path.join(os.path.dirname(__file__), "framework_postgres.sql")
-
-	pv = which("pv")
-
-	command = []
-
-	if source_sql.endswith(".gz"):
-		if gzip := which("gzip"):
-			source = []
-			if pv:
-				command.extend([gzip, "-cd", source_sql, "|", pv, "|"])
-			else:
-				command.extend([gzip, "-cd", source_sql, "|"])
-		else:
-			raise Exception("`gzip` not installed")
-	else:
-		if pv:
-			command.extend([pv, source_sql, "|"])
-			source = []
-			print("Restoring Database file...")
-		else:
-			source = ["-f", source_sql]
-
-	bin, args, bin_name = get_command(
-		host=frappe.conf.db_host,
-		port=frappe.conf.db_port,
-		user=frappe.conf.db_name,
-		password=frappe.conf.db_password,
-		db_name=frappe.conf.db_name,
+	DbManager(frappe.local.db).restore_database(
+		verbose, db_name, source_sql, db_name, frappe.conf.db_password
 	)
-
-	if not bin:
-		frappe.throw(
-			_("{} not found in PATH! This is required to restore the database.").format(bin_name),
-			exc=frappe.ExecutableNotFound,
-		)
-	command.append(bin)
-	command.append(shlex.join(args))
-	command.extend(source)
-	execute_in_shell(" ".join(command), check_exit_code=True, verbose=verbose)
-	frappe.cache.delete_keys("")  # Delete all keys associated with this site.
+	if verbose:
+		print("Imported from database %s" % source_sql)
 
 
 def get_root_connection(root_login=None, root_password=None):
