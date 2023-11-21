@@ -15,6 +15,7 @@ class WorkflowDocumentState(Document):
 		from frappe.types import DF
 
 		allow_edit: DF.Link
+		avoid_status_override: DF.Check
 		doc_status: DF.Literal["0", "1", "2"]
 		is_optional_state: DF.Check
 		message: DF.Text | None

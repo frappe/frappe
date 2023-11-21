@@ -478,7 +478,7 @@ class Communication(Document, CommunicationEmailMixin):
 		return self.timeline_links
 
 	def remove_link(self, link_doctype, link_name, autosave=False, ignore_permissions=True):
-		for l in self.timeline_links:
+		for l in list(self.timeline_links):
 			if l.link_doctype == link_doctype and l.link_name == link_name:
 				self.timeline_links.remove(l)
 

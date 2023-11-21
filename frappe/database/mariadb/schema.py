@@ -3,6 +3,7 @@ from pymysql.constants.ER import DUP_ENTRY
 import frappe
 from frappe import _
 from frappe.database.schema import DBTable
+from frappe.utils.defaults import get_not_null_defaults
 
 
 class MariaDBTable(DBTable):
@@ -69,7 +70,7 @@ class MariaDBTable(DBTable):
 		add_column_query = [
 			f"ADD COLUMN `{col.fieldname}` {col.get_definition()}" for col in self.add_column
 		]
-		columns_to_modify = set(self.change_type + self.set_default)
+		columns_to_modify = set(self.change_type + self.set_default + self.change_nullability)
 		modify_column_query = [
 			f"MODIFY `{col.fieldname}` {col.get_definition(for_modification=True)}"
 			for col in columns_to_modify
@@ -102,12 +103,23 @@ class MariaDBTable(DBTable):
 				if index_record := frappe.db.get_column_index(self.table_name, col.fieldname, unique=False):
 					drop_index_query.append(f"DROP INDEX `{index_record.Key_name}`")
 
+		for col in self.change_nullability:
+			if col.not_nullable:
+				try:
+					table = frappe.qb.DocType(self.doctype)
+					frappe.qb.update(table).set(
+						col.fieldname, col.default or get_not_null_defaults(col.fieldtype)
+					).where(table[col.fieldname].isnull()).run()
+				except Exception:
+					print(f"Failed to update data in {self.table_name} for {col.fieldname}")
+					raise
 		try:
 			for query_parts in [add_column_query, modify_column_query, add_index_query, drop_index_query]:
 				if query_parts:
 					query_body = ", ".join(query_parts)
 					query = f"ALTER TABLE `{self.table_name}` {query_body}"
-					frappe.db.sql(query)
+					# nosemgrep
+					frappe.db.sql_ddl(query)
 
 		except Exception as e:
 			if query := locals().get("query"):  # this weirdness is to avoid potentially unbounded vars
