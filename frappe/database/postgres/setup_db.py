@@ -1,6 +1,10 @@
 import os
 
 import frappe
+<<<<<<< HEAD
+=======
+from frappe.database.db_manager import DbManager
+>>>>>>> 3fe840fb31 (fix(postgres): make use of common helper)
 
 
 def setup_database(force, source_sql=None, verbose=False):
@@ -38,6 +42,7 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 
 
 def import_db_from_sql(source_sql=None, verbose=False):
+<<<<<<< HEAD
 	from shutil import which
 	from subprocess import PIPE, run
 
@@ -99,6 +104,18 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 	if verbose:
 		print(f"\nSTDOUT by psql:\n{restore_proc.stdout.decode()}\nImported from Database File: {source_sql}")
+=======
+	if verbose:
+		print("Starting database import...")
+	db_name = frappe.conf.db_name
+	if not source_sql:
+		source_sql = os.path.join(os.path.dirname(__file__), "framework_postgres.sql")
+	DbManager(frappe.local.db).restore_database(
+		verbose, db_name, source_sql, db_name, frappe.conf.db_password
+	)
+	if verbose:
+		print("Imported from database %s" % source_sql)
+>>>>>>> 3fe840fb31 (fix(postgres): make use of common helper)
 
 
 def get_root_connection(root_login=None, root_password=None):
