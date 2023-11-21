@@ -296,17 +296,13 @@ def review(doc, points, to_user, reason, review_type="Appreciation"):
 		frappe.msgprint(_("You do not have enough review points"))
 		return
 
-	points = abs(points)
-	if review_type != "Appreciation":
-		points = -points
-
 	review_doc = create_energy_points_log(
 		doc.doctype,
 		doc.name,
 		{
 			"type": review_type,
 			"reason": reason,
-			"points": points,
+			"points": points if review_type == "Appreciation" else -points,
 			"user": to_user,
 		},
 	)
