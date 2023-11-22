@@ -11,7 +11,7 @@ from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cstr, dict_with_keys, strip_html
+from frappe.utils import dict_with_keys, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
@@ -672,6 +672,13 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 			)
 			if value and int(value) == 1:
 				show_title_field_in_link = True
+
+		if not title_field:
+			title_field = frappe.db.get_value(
+				"Property Setter",
+				fieldname="value",
+				filters={"property": "title_field", "doc_type": doctype},
+			)
 
 		if title_field and show_title_field_in_link:
 			fields.append(f"{title_field} as label")
