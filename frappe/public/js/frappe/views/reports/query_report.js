@@ -1533,9 +1533,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					cell.content = frappe.utils.get_formatted_duration(cell.content);
 				}
 				if (include_indentation && i === 0) {
-					cell.content = "   ".repeat(row.meta.indent) + (cell.content || "");
+					cell.content = "   ".repeat(row.meta.indent) + (cell.content ?? "");
 				}
-				return cell.content || "";
+				return cell.content ?? "";
 			});
 		});
 	}
