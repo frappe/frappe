@@ -163,9 +163,12 @@ def init_request(request):
 			raise frappe.SessionStopped("Session Stopped")
 	else:
 		frappe.connect(set_admin_as_user=False)
+	if request.path.startswith("/api/method/upload_file"):
+		from frappe.core.api.file import get_max_file_size
 
-	request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 10 * 1024 * 1024
-
+		request.max_content_length = get_max_file_size()
+	else:
+		request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 25 * 1024 * 1024
 	make_form_dict(request)
 
 	if request.method != "OPTIONS":
