@@ -71,7 +71,6 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 1. [Code of Conduct](CODE_OF_CONDUCT.md)
 1. [Contribution Guidelines](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
 1. [Security Policy](SECURITY.md)
-1. [Translations](https://translate.erpnext.com)
 
 ## Resources
 
