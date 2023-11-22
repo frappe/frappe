@@ -23,7 +23,7 @@ dependencies = [
     "PyYAML~=6.0.1",
     "RestrictedPython~=6.2",
     "WeasyPrint==52.5",
-    "Werkzeug~=2.2.2",
+    "Werkzeug~=2.3.4",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.9.3",
     "bleach-allowlist~=1.0.3",
