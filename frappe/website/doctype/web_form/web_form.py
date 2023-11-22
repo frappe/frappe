@@ -11,12 +11,7 @@ from frappe.core.doctype.file import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
-<<<<<<< HEAD
-from frappe.utils import cstr, dict_with_keys, strip_html
-=======
 from frappe.utils import dict_with_keys, strip_html
-from frappe.utils.caching import redis_cache
->>>>>>> 67b74cd4bb (fix(web_form): check properties for title field as well)
 from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
 
