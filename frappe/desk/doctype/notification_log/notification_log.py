@@ -25,6 +25,7 @@ class NotificationLog(Document):
 		email_content: DF.TextEditor | None
 		for_user: DF.Link | None
 		from_user: DF.Link | None
+		link: DF.Data | None
 		read: DF.Check
 		subject: DF.Text | None
 		type: DF.Literal["Mention", "Energy Point", "Assignment", "Share", "Alert"]
@@ -125,21 +126,24 @@ def send_notification_email(doc):
 	if not email:
 		return
 
-	doc_link = get_url_to_form(doc.document_type, doc.document_name)
 	header = get_email_header(doc)
 	email_subject = strip_html(doc.subject)
+	args = {
+		"body_content": doc.subject,
+		"description": doc.email_content,
+	}
+	if doc.link:
+		args["doc_link"] = doc.link
+	else:
+		args["document_type"] = doc.document_type
+		args["document_name"] = doc.document_name
+		args["doc_link"] = get_url_to_form(doc.document_type, doc.document_name)
 
 	frappe.sendmail(
 		recipients=email,
 		subject=email_subject,
 		template="new_notification",
-		args={
-			"body_content": doc.subject,
-			"description": doc.email_content,
-			"document_type": doc.document_type,
-			"document_name": doc.document_name,
-			"doc_link": doc_link,
-		},
+		args=args,
 		header=[header, "orange"],
 		now=frappe.flags.in_test,
 	)
