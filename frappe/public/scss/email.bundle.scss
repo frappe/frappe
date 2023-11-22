@@ -346,3 +346,85 @@ blockquote {
 		margin: 5px 0;
 	}
 }
+
+.ql-editor li {
+	list-style-type: none;
+	padding-left: 1.5em;
+	position: relative;
+}
+.ql-editor li > .ql-ui:before {
+	display: inline-block;
+	margin-left: -1.5em;
+	margin-right: 0.3em;
+	text-align: right;
+	white-space: nowrap;
+	width: 1.2em;
+}
+.ql-editor li[data-list="checked"] > .ql-ui,
+.ql-editor li[data-list="unchecked"] > .ql-ui {
+	color: #777;
+}
+.ql-editor li[data-list="bullet"] > .ql-ui:before {
+	content: "\2022";
+}
+.ql-editor li[data-list="checked"] > .ql-ui:before {
+	content: "\2611";
+}
+.ql-editor li[data-list="unchecked"] > .ql-ui:before {
+	content: "\2610";
+}
+.ql-editor li[data-list="ordered"] {
+	counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+	counter-increment: list-0;
+}
+.ql-editor li[data-list="ordered"] > .ql-ui:before {
+	content: counter(list-0, decimal) ". ";
+}
+.ql-editor li[data-list="ordered"].ql-indent-1 {
+	counter-increment: list-1;
+}
+.ql-editor li[data-list="ordered"].ql-indent-1 > .ql-ui:before {
+	content: counter(list-1, lower-alpha) ". ";
+}
+.ql-editor li[data-list="ordered"].ql-indent-1 {
+	counter-reset: list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+.ql-editor li[data-list="ordered"].ql-indent-2 {
+	counter-increment: list-2;
+}
+.ql-editor li[data-list="ordered"].ql-indent-2 > .ql-ui:before {
+	content: counter(list-2, lower-roman) ". ";
+}
+.ql-editor li[data-list="ordered"].ql-indent-2 {
+	counter-reset: list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+.ql-editor li[data-list="ordered"].ql-indent-3 {
+	counter-increment: list-3;
+}
+.ql-editor li[data-list="ordered"].ql-indent-3 > .ql-ui:before {
+	content: counter(list-3, decimal) ". ";
+}
+.ql-editor li[data-list="ordered"].ql-indent-3 {
+	counter-reset: list-4 list-5 list-6 list-7 list-8 list-9;
+}
+.ql-editor .ql-indent-1:not(.ql-direction-rtl) {
+	padding-left: 3em;
+}
+
+.ql-editor li.ql-indent-1:not(.ql-direction-rtl) {
+	padding-left: 4.5em;
+}
+
+.ql-editor .ql-indent-2:not(.ql-direction-rtl) {
+	padding-left: 6em;
+}
+.ql-editor li.ql-indent-2:not(.ql-direction-rtl) {
+	padding-left: 7.5em;
+}
+
+.ql-editor .ql-indent-3:not(.ql-direction-rtl) {
+	padding-left: 9em;
+}
+.ql-editor li.ql-indent-3:not(.ql-direction-rtl) {
+	padding-left: 10.5em;
+}
