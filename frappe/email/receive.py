@@ -293,11 +293,6 @@ class EmailServer:
 					EmailAccount.uidnext, uidnext
 				).where(EmailAccount.name == self.settings.email_account_name).run()
 
-			# uid validity not found pulling emails for first time
-			if not uid_validity:
-				self.settings.email_sync_rule = "UNSEEN"
-				return
-
 			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
 			from_uid = (
 				1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
