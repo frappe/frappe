@@ -74,6 +74,7 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 
 1. [frappeframework.com](https://frappeframework.com) - Official documentation of the Frappe Framework.
 1. [frappe.school](https://frappe.school) - Pick from the various courses by the maintainers or from the community.
+1. [buildwithhussain.dev](https://buildwithhussain.dev) - Watch Frappe Framework being used in the wild to build world-class web apps.
 
 ## License
 This repository has been released under the [MIT License](LICENSE).
