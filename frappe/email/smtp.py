@@ -13,36 +13,6 @@ class InvalidEmailCredentials(frappe.ValidationError):
 	pass
 
 
-def send(email, append_to=None, retry=1):
-	"""Deprecated: Send the message or add it to Outbox Email"""
-
-	def _send(retry):
-		from frappe.email.doctype.email_account.email_account import EmailAccount
-
-		try:
-			email_account = EmailAccount.find_outgoing(match_by_doctype=append_to)
-			smtpserver = email_account.get_smtp_server()
-
-			# validate is called in as_string
-			email_body = email.as_string()
-
-			smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []), email_body)
-		except smtplib.SMTPSenderRefused:
-			frappe.throw(_("Invalid login or password"), title="Email Failed")
-			raise
-		except smtplib.SMTPRecipientsRefused:
-			frappe.msgprint(_("Invalid recipient address"), title="Email Failed")
-			raise
-		except (smtplib.SMTPServerDisconnected, smtplib.SMTPAuthenticationError):
-			if not retry:
-				raise
-			else:
-				retry = retry - 1
-				_send(retry)
-
-	_send(retry)
-
-
 class SMTPServer:
 	def __init__(
 		self,

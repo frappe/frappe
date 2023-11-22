@@ -107,6 +107,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.use_imap",
    "fieldname": "append_emails_to_sent_folder",
    "fieldtype": "Check",
    "label": "Append Emails to Sent Folder"
@@ -133,7 +134,7 @@
    "link_fieldname": "domain"
   }
  ],
- "modified": "2022-08-19 12:55:06.434541",
+ "modified": "2023-06-05 12:55:06.434541",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Domain",

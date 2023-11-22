@@ -277,6 +277,9 @@ class EmailServer:
 			).where(Communication.email_account == self.settings.email_account).run()
 
 			if self.settings.use_imap:
+				# Remove {"} quotes that are added to handle spaces in IMAP Folder names
+				if folder[0] == folder[-1] == '"':
+					folder = folder[1:-2]
 				# new update for the IMAP Folder DocType
 				IMAPFolder = frappe.qb.DocType("IMAP Folder")
 				frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
@@ -289,11 +292,6 @@ class EmailServer:
 				frappe.qb.update(EmailAccount).set(EmailAccount.uidvalidity, current_uid_validity).set(
 					EmailAccount.uidnext, uidnext
 				).where(EmailAccount.name == self.settings.email_account_name).run()
-
-			# uid validity not found pulling emails for first time
-			if not uid_validity:
-				self.settings.email_sync_rule = "UNSEEN"
-				return
 
 			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
 			from_uid = (

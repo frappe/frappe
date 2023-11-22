@@ -55,12 +55,14 @@
    "default": "Not Sent",
    "fieldname": "status",
    "fieldtype": "Select",
+   "hidden": 1,
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "\nNot Sent\nSending\nSent\nError\nExpired"
+   "options": "Not Sent\nSending\nSent\nPartially Sent\nError\nExpired"
   },
   {
+   "depends_on": "eval:doc.error",
    "fieldname": "error",
    "fieldtype": "Code",
    "label": "Error"
@@ -152,7 +154,7 @@
  "idx": 1,
  "in_create": 1,
  "links": [],
- "modified": "2023-03-16 12:15:17.850292",
+ "modified": "2023-06-08 15:31:52.789186",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Queue",

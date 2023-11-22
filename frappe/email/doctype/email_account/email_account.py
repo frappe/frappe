@@ -652,23 +652,16 @@ class EmailAccount(Document):
 				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
 
 	def append_email_to_sent_folder(self, message):
-		email_server = None
-		try:
-			email_server = self.get_incoming_server(in_receive=True)
-		except Exception:
-			self.log_error("Email Connection Error")
-
-		if not email_server:
+		if not (self.enable_incoming and self.use_imap):
+			# don't try appending if enable incoming and imap is not set
 			return
 
-		email_server.connect()
-
-		if email_server.imap:
-			try:
-				message = safe_encode(message)
-				email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
-			except Exception:
-				self.log_error("Unable to add to Sent folder")
+		try:
+			email_server = self.get_incoming_server(in_receive=True)
+			message = safe_encode(message)
+			email_server.imap.append("Sent", "\\Seen", imaplib.Time2Internaldate(time.time()), message)
+		except Exception:
+			self.log_error("Unable to add to Sent folder")
 
 	def get_oauth_token(self):
 		if self.auth_method == "OAuth":
