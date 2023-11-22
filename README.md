@@ -1,10 +1,8 @@
 <div align="center">
-	<h1>
-		<br>
-		<a href="https://frappeframework.com">
-			<img src=".github/frappe-framework-logo.svg" height="50">
-		</a>
-	</h1>
+	<picture>
+		<source media="(prefers-color-scheme: dark)" srcset=".github/frappe-framework-logo-dark.svg">
+		<img src=".github/frappe-framework-logo.svg" height="50">
+	</picture>
 	<h3>
 		a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"</a>
 	</h3>
