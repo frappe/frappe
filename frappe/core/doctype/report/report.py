@@ -130,7 +130,7 @@ class Report(Document):
 		if frappe.flags.in_import:
 			return
 
-		if self.is_standard == "Yes" and (frappe.local.conf.get("developer_mode", 0) == 1):
+		if self.is_standard == "Yes" and frappe.conf.developer_mode:
 			export_to_files(
 				record_list=[["Report", self.name]], record_module=self.module, create_init=True
 			)
