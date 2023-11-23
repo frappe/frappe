@@ -120,13 +120,19 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	render_dialog() {
 		var me = this;
+
 		this.dialog = new frappe.ui.Dialog({
 			title: __("New {0}", [__(this.doctype)]),
 			fields: this.mandatory,
 			doc: this.doc,
 		});
 
-		this.register_primary_action();
+		this.dialog.set_primary_action(__("Save"), function () {
+			if (me.dialog.get_values() && !me.dialog.working) {
+				me.insert();
+			}
+		});
+
 		!this.force && this.render_edit_in_full_page_link();
 		// ctrl+enter to save
 		this.dialog.wrapper.keydown(function (e) {
@@ -151,31 +157,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		}
 	}
 
-	register_primary_action() {
-		var me = this;
-		this.dialog.set_primary_action(__("Save"), function () {
-			if (me.dialog.working) {
-				return;
-			}
-			var data = me.dialog.get_values();
-
-			if (data) {
-				me.dialog.working = true;
-				me.insert().then(() => {
-					let messagetxt = __("New {0} {1} created", [
-						__(me.doctype),
-						this.doc.name.bold(),
-					]);
-					me.dialog.animation_speed = "slow";
-					me.dialog.hide();
-					setTimeout(function () {
-						frappe.show_alert({ message: messagetxt, indicator: "green" }, 3);
-					}, 500);
-				});
-			}
-		});
-	}
-
 	insert() {
 		let me = this;
 		return new Promise((resolve) => {
@@ -196,6 +177,11 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 							},
 						]);
 					} else {
+						const message = __("Created new {0} {1}", [
+							__(me.doctype),
+							me.doc.name.bold(),
+						]);
+						me.close_dialog_and_show_message(message);
 						me.process_after_insert(r);
 					}
 				},
@@ -216,12 +202,12 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		var me = this;
 		frappe.call({
 			method: "frappe.client.submit",
-			args: {
-				doc: doc,
-			},
+			args: { doc: doc },
 			callback: function (r) {
 				me.process_after_insert(r);
 				cur_frm && cur_frm.reload_doc();
+				const message = __("Submitted new {0} {1}", [__(me.doctype), me.doc.name.bold()]);
+				me.close_dialog_and_show_message(message);
 			},
 		});
 	}
@@ -273,6 +259,18 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 	render_edit_in_full_page_link() {
 		var me = this;
 		this.dialog.add_custom_action(__("Edit Full Form"), () => me.open_doc(true));
+	}
+
+	/**
+	 * Closes the dialog and shows a confirmation message.
+	 * @param {string} message - Message to be displayed.
+	 */
+	close_dialog_and_show_message(message) {
+		this.dialog.animation_speed = "slow";
+		this.dialog.hide();
+		setTimeout(() => {
+			frappe.show_alert({ message }, 3);
+		}, 500);
 	}
 
 	set_defaults() {
