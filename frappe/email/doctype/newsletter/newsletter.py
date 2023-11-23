@@ -244,11 +244,11 @@ def confirmed_unsubscribe(email, group):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=10, seconds=60 * 60)
-def subscribe(email, email_group=None):  # noqa
+def subscribe(email, email_group=None):
 	"""API endpoint to subscribe an email to a particular email group. Triggers a confirmation email."""
 
 	if email_group is None:
-		email_group = _("Website")
+		email_group = get_default_email_group()
 
 	# build subscription confirmation URL
 	api_endpoint = frappe.utils.get_url(
@@ -291,12 +291,15 @@ def subscribe(email, email_group=None):  # noqa
 
 
 @frappe.whitelist(allow_guest=True)
-def confirm_subscription(email, email_group=_("Website")):  # noqa
+def confirm_subscription(email, email_group=None):
 	"""API endpoint to confirm email subscription.
 	This endpoint is called when user clicks on the link sent to their mail.
 	"""
 	if not verify_request():
 		return
+
+	if email_group is None:
+		email_group = get_default_email_group()
 
 	if not frappe.db.exists("Email Group", email_group):
 		frappe.get_doc({"doctype": "Email Group", "title": email_group}).insert(ignore_permissions=True)
@@ -352,3 +355,32 @@ def send_scheduled_email():
 
 		if not frappe.flags.in_test:
 			frappe.db.commit()
+<<<<<<< HEAD
+=======
+
+
+@frappe.whitelist(allow_guest=True)
+def newsletter_email_read(recipient_email=None, reference_doctype=None, reference_name=None):
+	if not (recipient_email and reference_name):
+		return
+	verify_request()
+	try:
+		doc = frappe.get_cached_doc("Newsletter", reference_name)
+		if doc.add_viewed(recipient_email, force=True, unique_views=True):
+			newsletter = frappe.qb.DocType("Newsletter")
+			(
+				frappe.qb.update(newsletter)
+				.set(newsletter.total_views, newsletter.total_views + 1)
+				.where(newsletter.name == doc.name)
+			).run()
+
+	except Exception:
+		doc.log_error(f"Unable to mark as viewed for {recipient_email}")
+
+	finally:
+		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
+
+
+def get_default_email_group():
+	return _("Website", lang=frappe.db.get_default("language"))
+>>>>>>> 06fbe6df20 (fix: default Email Group in system language)
