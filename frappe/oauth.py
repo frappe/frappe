@@ -250,10 +250,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
 		)
-		are_scopes_valid = True
-		for scp in scopes:
-			are_scopes_valid = are_scopes_valid if scp in client_scopes else False
-
+		are_scopes_valid = all(scope in client_scopes for scope in scopes)
 		return is_token_valid and are_scopes_valid
 
 	# Token refresh request
