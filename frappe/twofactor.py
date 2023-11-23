@@ -43,10 +43,10 @@ def toggle_two_factor_auth(state, roles=None):
 
 def two_factor_is_enabled(user=None):
 	"""Returns True if 2FA is enabled."""
-	enabled = int(frappe.db.get_single_value("System Settings", "enable_two_factor_auth") or 0)
+	enabled = cint(frappe.db.get_single_value("System Settings", "enable_two_factor_auth"))
 	if enabled:
-		bypass_two_factor_auth = int(
-			frappe.db.get_single_value("System Settings", "bypass_2fa_for_retricted_ip_users") or 0
+		bypass_two_factor_auth = cint(
+			frappe.db.get_single_value("System Settings", "bypass_2fa_for_retricted_ip_users")
 		)
 		if bypass_two_factor_auth and user:
 			user_doc = frappe.get_doc("User", user)

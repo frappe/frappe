@@ -140,7 +140,7 @@ def rate_limit(
 
 			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
 
-			value = frappe.cache.get(cache_key) or 0
+			value = frappe.cache.get(cache_key)
 			if not value:
 				frappe.cache.setex(cache_key, seconds, 0)
 

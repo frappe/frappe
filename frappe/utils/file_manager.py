@@ -3,7 +3,6 @@
 
 import base64
 import hashlib
-import io
 import json
 import mimetypes
 import os
@@ -283,9 +282,7 @@ def remove_file(
 	ignore_permissions, comment = False, None
 	if attached_to_doctype and attached_to_name and not from_delete:
 		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
-		ignore_permissions = doc.has_permission("write") or False
-		if frappe.flags.in_web_form:
-			ignore_permissions = True
+		ignore_permissions = frappe.flags.in_web_form or doc.has_permission("write")
 		if not file_name:
 			file_name = frappe.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", file_name)

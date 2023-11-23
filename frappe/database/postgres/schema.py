@@ -17,7 +17,7 @@ class PostgresTable(DBTable):
 			additional_definitions += ",\n".join(column_defs)
 
 		# child table columns
-		if self.meta.get("istable") or 0:
+		if self.meta.get("istable", default=0):
 			if column_defs:
 				additional_definitions += ",\n"
 
