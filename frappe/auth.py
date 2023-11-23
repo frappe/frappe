@@ -25,6 +25,7 @@ from frappe.website.utils import get_home_page
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
+MAX_PASSWORD_SIZE = 512
 
 
 class HTTPRequest:
@@ -234,6 +235,9 @@ class LoginManager:
 			user, pwd = frappe.form_dict.get("usr"), frappe.form_dict.get("pwd")
 		if not (user and pwd):
 			self.fail(_("Incomplete login details"), user=user)
+
+		if len(pwd) > MAX_PASSWORD_SIZE:
+			self.fail(_("Password size exceeded the maximum allowed size"), user=user)
 
 		_raw_user_name = user
 		user = User.find_by_credentials(user, pwd)
