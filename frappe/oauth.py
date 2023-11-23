@@ -245,7 +245,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		)
 		token_expiration_utc = token_expiration_local.astimezone(pytz.utc)
 		is_token_valid = (
-			frappe.utils.datetime.datetime.utcnow().replace(tzinfo=pytz.utc) < token_expiration_utc
+			datetime.datetime.now(pytz.UTC) < token_expiration_utc
 		) and otoken.status != "Revoked"
 		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
