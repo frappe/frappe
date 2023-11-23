@@ -98,8 +98,8 @@ class WebsiteGenerator(Document):
 
 	def is_website_published(self):
 		"""Return true if published in website"""
-		if data := self.get_condition_field():
-			return self.get(data) or False
+		if condition_field := self.get_condition_field():
+			return self.get(condition_field) or False
 		else:
 			return True
 
