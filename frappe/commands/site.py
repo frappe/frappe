@@ -950,7 +950,7 @@ def move(dest_dir, site):
 	site_dump_exists = True
 	count = 0
 	while site_dump_exists:
-		final_new_path = new_path + str(count)
+		final_new_path = new_path + str(count or "")
 		site_dump_exists = os.path.exists(final_new_path)
 		count += 1
 
