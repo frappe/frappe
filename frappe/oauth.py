@@ -241,7 +241,17 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_bearer_token(self, token, scopes, request):
 		# Remember to check expiration and scope membership
 		otoken = frappe.get_doc("OAuth Bearer Token", token)
+<<<<<<< HEAD
 		is_token_valid = (now_datetime() < otoken.expiration_time) and otoken.status != "Revoked"
+=======
+		token_expiration_local = otoken.expiration_time.replace(
+			tzinfo=pytz.timezone(get_system_timezone())
+		)
+		token_expiration_utc = token_expiration_local.astimezone(pytz.utc)
+		is_token_valid = (
+			datetime.datetime.now(pytz.UTC) < token_expiration_utc
+		) and otoken.status != "Revoked"
+>>>>>>> f526054ae2 (refactor: Remove usage of utcnow (#23369))
 		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
 		)
