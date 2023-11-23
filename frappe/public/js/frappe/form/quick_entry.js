@@ -167,7 +167,10 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 					doc: me.dialog.doc,
 				},
 				callback: function (r) {
-					if (frappe.model.is_submittable(me.doctype)) {
+					if (
+						frappe.model.is_submittable(me.doctype) &&
+						frappe.perm.has_perm(me.doctype, 0, "submit")
+					) {
 						frappe.run_serially([
 							() => (me.dialog.working = true),
 							() => {
