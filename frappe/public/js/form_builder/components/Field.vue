@@ -176,8 +176,9 @@ function edit_filters() {
 function is_filter_applied() {
 	if (props.field.df.link_filters) {
 		try {
-			JSON.parse(props.field.df.link_filters).length > 0;
-			return "btn-filter-applied";
+			if (JSON.parse(props.field.df.link_filters).length > 0) {
+				return "btn-filter-applied";
+			}
 		} catch (error) {
 			return "";
 		}
