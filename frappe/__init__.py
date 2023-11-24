@@ -17,7 +17,6 @@ import inspect
 import json
 import os
 import re
-import unicodedata
 import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
@@ -43,7 +42,6 @@ from .utils.jinja import (
 	get_template,
 	render_template,
 )
-from .utils.lazy_loader import lazy_import
 
 __version__ = "15.0.0-dev"
 __title__ = "Frappe Framework"
@@ -418,7 +416,7 @@ def errprint(msg: str) -> None:
 
 	:param msg: Message."""
 	msg = as_unicode(msg)
-	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
+	if not request or ("cmd" not in local.form_dict) or conf.developer_mode:
 		print(msg)
 
 	error_log.append({"exc": msg})
@@ -429,11 +427,11 @@ def print_sql(enable: bool = True) -> None:
 
 
 def log(msg: str) -> None:
-	"""Add to `debug_log`.
+	"""Add to `debug_log`
 
 	:param msg: Message."""
 	if not request:
-		if conf.get("logging") or False:
+		if conf.get("logging"):
 			print(repr(msg))
 
 	debug_log.append(as_unicode(msg))
@@ -1959,7 +1957,7 @@ def get_all(doctype, *args, **kwargs):
 	        frappe.get_all("ToDo", fields=["*"], filters = [["modified", ">", "2014-01-01"]])
 	"""
 	kwargs["ignore_permissions"] = True
-	if not "limit_page_length" in kwargs:
+	if "limit_page_length" not in kwargs:
 		kwargs["limit_page_length"] = 0
 	return get_list(doctype, *args, **kwargs)
 
@@ -2008,7 +2006,7 @@ def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> s
 
 
 def are_emails_muted():
-	return flags.mute_emails or cint(conf.get("mute_emails") or 0) or False
+	return flags.mute_emails or cint(conf.get("mute_emails"))
 
 
 def get_test_records(doctype):

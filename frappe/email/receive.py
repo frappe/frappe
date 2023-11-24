@@ -233,15 +233,30 @@ class EmailServer:
 				Communication.communication_medium == "Email"
 			).where(Communication.email_account == self.settings.email_account).run()
 
-			# new update for the IMAP Folder DocType
-			IMAPFolder = frappe.qb.DocType("IMAP Folder")
-			frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
-				IMAPFolder.uidnext, uidnext
-			).where(IMAPFolder.parent == self.settings.email_account_name).where(
-				IMAPFolder.folder_name == folder
-			).run()
-			
-			self.settings.email_sync_rule = "ALL"
+
+			if self.settings.use_imap:
+				# Remove {"} quotes that are added to handle spaces in IMAP Folder names
+				if folder[0] == folder[-1] == '"':
+					folder = folder[1:-1]
+				# new update for the IMAP Folder DocType
+				IMAPFolder = frappe.qb.DocType("IMAP Folder")
+				frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
+					IMAPFolder.uidnext, uidnext
+				).where(IMAPFolder.parent == self.settings.email_account_name).where(
+					IMAPFolder.folder_name == folder
+				).run()
+			else:
+				EmailAccount = frappe.qb.DocType("Email Account")
+				frappe.qb.update(EmailAccount).set(EmailAccount.uidvalidity, current_uid_validity).set(
+					EmailAccount.uidnext, uidnext
+				).where(EmailAccount.name == self.settings.email_account_name).run()
+
+			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
+			from_uid = (
+				1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
+			)
+			# sync last 100 email
+			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
 			self.uid_reindexed = True
 
 	def parse_imap_response(self, cmd, response):

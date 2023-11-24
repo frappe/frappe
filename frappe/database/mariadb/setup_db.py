@@ -23,7 +23,7 @@ def get_mariadb_version(version_string: str = ""):
 	return version.rsplit(".", 1)
 
 
-def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
+def setup_database(force, verbose, no_mariadb_socket=False):
 	frappe.local.session = frappe._dict({"user": "Administrator"})
 
 	db_name = frappe.local.conf.db_name
@@ -55,8 +55,6 @@ def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
 	# close root connection
 	root_conn.close()
 
-	bootstrap_database(db_name, verbose, source_sql)
-
 
 def drop_user_and_database(db_name, root_login, root_password):
 	frappe.local.db = get_root_connection(root_login, root_password)
@@ -75,8 +73,8 @@ def bootstrap_database(db_name, verbose, source_sql=None):
 		sys.exit(1)
 
 	import_db_from_sql(source_sql, verbose)
-
 	frappe.connect(db_name=db_name)
+
 	if "tabDefaultValue" not in frappe.db.get_tables(cached=False):
 		from click import secho
 
@@ -97,7 +95,9 @@ def import_db_from_sql(source_sql=None, verbose=False):
 	db_name = frappe.conf.db_name
 	if not source_sql:
 		source_sql = os.path.join(os.path.dirname(__file__), "framework_mariadb.sql")
-	DbManager(frappe.local.db).restore_database(db_name, source_sql, db_name, frappe.conf.db_password)
+	DbManager(frappe.local.db).restore_database(
+		verbose, db_name, source_sql, db_name, frappe.conf.db_password
+	)
 	if verbose:
 		print("Imported from database %s" % source_sql)
 
