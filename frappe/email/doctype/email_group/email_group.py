@@ -60,6 +60,22 @@ class EmailGroup(Document):
 			self.name,
 		)[0][0]
 
+	@frappe.whitelist()
+	def preview_welcome_url(self, email: str | None = None) -> str | None:
+		"""Get Welcome URL for the email group."""
+		return self.get_welcome_url(email)
+
+	def get_welcome_url(self, email: str | None = None) -> str | None:
+		"""Get Welcome URL for the email group."""
+		if not self.welcome_url:
+			return None
+
+		return (
+			add_query_params(self.welcome_url, {"email": email, "email_group": self.name})
+			if self.add_query_parameters
+			else self.welcome_url
+		)
+
 	def on_trash(self):
 		for d in frappe.get_all("Email Group Member", "name", {"email_group": self.name}):
 			frappe.delete_doc("Email Group Member", d.name)
@@ -113,3 +129,19 @@ def send_welcome_email(welcome_email, email, email_group):
 	email_message = welcome_email.response or welcome_email.response_html
 	message = frappe.render_template(email_message, args)
 	frappe.sendmail(email, subject=welcome_email.subject, message=message)
+
+
+def add_query_params(url: str, params: dict) -> str:
+	from urllib.parse import urlencode, urlparse, urlunparse
+
+	if not params:
+		return url
+
+	query_string = urlencode(params)
+	parsed = list(urlparse(url))
+	if parsed[4]:
+		parsed[4] += f"&{query_string}"
+	else:
+		parsed[4] = query_string
+
+	return urlunparse(parsed)
