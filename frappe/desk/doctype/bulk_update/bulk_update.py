@@ -33,16 +33,22 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
 	if isinstance(docnames, str):
 		docnames = frappe.parse_json(docnames)
 
-	if len(docnames) < 10:
+	if len(docnames) < 20:
 		return _bulk_action(doctype, docnames, action, data)
-	elif len(docnames) <= 100:
+	elif len(docnames) <= 500:
 		frappe.msgprint(_("Bulk operation is enqueued in background."), alert=True)
 		frappe.enqueue(
-			_bulk_action, doctype=doctype, docnames=docnames, action=action, data=data, queue="long"
+			_bulk_action,
+			doctype=doctype,
+			docnames=docnames,
+			action=action,
+			data=data,
+			queue="short",
+			timeout=1000,
 		)
 	else:
 		frappe.throw(
-			_("Bulk operations only support up to 100 documents."), title=_("Too Many Documents")
+			_("Bulk operations only support up to 500 documents."), title=_("Too Many Documents")
 		)
 
 
