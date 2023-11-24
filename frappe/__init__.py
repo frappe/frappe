@@ -448,6 +448,8 @@ def msgprint(
 	primary_action: str = None,
 	is_minimizable: bool = False,
 	wide: bool = False,
+	*,
+	realtime=False,
 ) -> None:
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
@@ -461,6 +463,7 @@ def msgprint(
 	:param primary_action: [optional] Bind a primary server/client side action.
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
+	:param realtime: Publish message immediately using websocket.
 	"""
 	import inspect
 	import sys
@@ -527,7 +530,10 @@ def msgprint(
 	if wide:
 		out.wide = wide
 
-	message_log.append(out)
+	if realtime:
+		publish_realtime(event="msgprint", message=out)
+	else:
+		message_log.append(out)
 	_raise_exception()
 
 
