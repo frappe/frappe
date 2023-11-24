@@ -21,9 +21,18 @@ context("Awesome Bar", () => {
 	});
 
 	it("navigates to doctype list", () => {
+		// Entering singular to see if 'List' option comes first and 'New' option is present.
 		cy.get("@awesome_bar").type("todo");
 		cy.wait(100); // Wait a bit before hitting enter.
 		cy.get(".awesomplete").findByRole("listbox").should("be.visible");
+		cy.get('ul[id="awesomplete_list_1"] li').first().contains("ToDo List");
+		cy.get('ul[id="awesomplete_list_1"] li').contains("New ToDo");
+		// Add plural "s" to see if 'List' still comes first, while 'New' is gone.
+		cy.get("@awesome_bar").type("s");
+		cy.wait(100);
+		cy.get('ul[id="awesomplete_list_1"] li').first().contains("ToDos List");
+		cy.get('ul[id="awesomplete_list_1"] li').contains("New ToDo").should("not.exist");
+		// Now hit enter to open the ToDo List and see if it's there.
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "To Do");
 		cy.location("pathname").should("eq", "/app/todo");
