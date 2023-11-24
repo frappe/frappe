@@ -355,32 +355,7 @@ def send_scheduled_email():
 
 		if not frappe.flags.in_test:
 			frappe.db.commit()
-<<<<<<< HEAD
-=======
-
-
-@frappe.whitelist(allow_guest=True)
-def newsletter_email_read(recipient_email=None, reference_doctype=None, reference_name=None):
-	if not (recipient_email and reference_name):
-		return
-	verify_request()
-	try:
-		doc = frappe.get_cached_doc("Newsletter", reference_name)
-		if doc.add_viewed(recipient_email, force=True, unique_views=True):
-			newsletter = frappe.qb.DocType("Newsletter")
-			(
-				frappe.qb.update(newsletter)
-				.set(newsletter.total_views, newsletter.total_views + 1)
-				.where(newsletter.name == doc.name)
-			).run()
-
-	except Exception:
-		doc.log_error(f"Unable to mark as viewed for {recipient_email}")
-
-	finally:
-		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
 
 
 def get_default_email_group():
 	return _("Website", lang=frappe.db.get_default("language"))
->>>>>>> 06fbe6df20 (fix: default Email Group in system language)
