@@ -78,7 +78,7 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "bcc",
 			},
 			{
-				label: __("Send After"),
+				label: __("Schedule Send At"),
 				fieldtype: "Datetime",
 				fieldname: "send_after",
 			},
