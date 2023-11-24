@@ -15,7 +15,8 @@
   "attached_file",
   "attachment_link",
   "open_reference_document",
-  "from_user"
+  "from_user",
+  "link"
  ],
  "fields": [
   {
@@ -91,12 +92,18 @@
    "fieldname": "attachment_link",
    "fieldtype": "HTML",
    "label": "Attachment Link"
+  },
+  {
+   "fieldname": "link",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Link"
   }
  ],
  "hide_toolbar": 1,
  "in_create": 1,
  "links": [],
- "modified": "2023-06-14 21:20:51.197943",
+ "modified": "2023-11-18 22:40:12.145940",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Log",

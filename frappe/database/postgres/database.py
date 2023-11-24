@@ -160,11 +160,16 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return LazyDecode(self._cursor.query)
 
 	def get_connection(self):
-		conn = psycopg2.connect(
-			"host='{}' dbname='{}' user='{}' password='{}' port={}".format(
-				self.host, self.user, self.user, self.password, self.port
-			)
-		)
+		conn_settings = {
+			"user": self.user,
+			"dbname": self.user,
+			"host": self.host,
+			"password": self.password,
+		}
+		if self.port:
+			conn_settings["port"] = self.port
+
+		conn = psycopg2.connect(**conn_settings)
 		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
 
 		return conn
@@ -387,7 +392,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			END AS type,
 			BOOL_OR(b.index) AS index,
 			SPLIT_PART(COALESCE(a.column_default, NULL), '::', 1) AS default,
-			BOOL_OR(b.unique) AS unique
+			BOOL_OR(b.unique) AS unique,
+			COALESCE(a.is_nullable = 'NO', false) AS not_nullable
 			FROM information_schema.columns a
 			LEFT JOIN
 				(SELECT indexdef, tablename,
@@ -397,7 +403,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 					WHERE tablename='{table_name}') b
 				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
 			WHERE a.table_name = '{table_name}'
-			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;
+			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length, a.is_nullable;
 		""".format(
 				table_name=table_name
 			),

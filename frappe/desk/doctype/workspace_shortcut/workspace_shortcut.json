@@ -44,7 +44,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "DocType View",
-   "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban"
+   "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban\nImage"
   },
   {
    "fieldname": "column_break_4",

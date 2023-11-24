@@ -325,6 +325,9 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	get_item_link(notification_doc) {
+		if (notification_doc.link) {
+			return notification_doc.link;
+		}
 		const link_doctype = notification_doc.document_type
 			? notification_doc.document_type
 			: "Notification Log";

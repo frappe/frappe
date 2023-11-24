@@ -93,12 +93,13 @@ class SystemSettings(Document):
 		time_zone: DF.Literal
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
 		welcome_email_template: DF.Link | None
+
 	# end: auto-generated types
 	def validate(self):
 		from frappe.twofactor import toggle_two_factor_auth
 
-		enable_password_policy = cint(self.enable_password_policy) and True or False
-		minimum_password_score = cint(getattr(self, "minimum_password_score", 0)) or 0
+		enable_password_policy = cint(self.enable_password_policy)
+		minimum_password_score = cint(getattr(self, "minimum_password_score", 0))
 		if enable_password_policy and minimum_password_score <= 0:
 			frappe.throw(_("Please select Minimum Password Score"))
 		elif not enable_password_policy:
@@ -195,7 +196,7 @@ def update_last_reset_password_date():
 def load():
 	from frappe.utils.momentjs import get_all_timezones
 
-	if not "System Manager" in frappe.get_roles():
+	if "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	all_defaults = frappe.db.get_defaults()

@@ -14,6 +14,7 @@ from enum import Enum
 from typing import Any, Literal, Optional, TypeVar, Union
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
+import pytz
 from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
@@ -295,7 +296,7 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 
 
 def now_datetime():
-	dt = convert_utc_to_system_timezone(datetime.datetime.utcnow())
+	dt = convert_utc_to_system_timezone(datetime.datetime.now(pytz.UTC))
 	return dt.replace(tzinfo=None)
 
 
@@ -322,15 +323,16 @@ def get_system_timezone():
 def convert_utc_to_timezone(utc_timestamp, time_zone):
 	from pytz import UnknownTimeZoneError, timezone
 
-	utcnow = timezone("UTC").localize(utc_timestamp)
+	if utc_timestamp.tzinfo is None:
+		utc_timestamp = timezone("UTC").localize(utc_timestamp)
 	try:
-		return utcnow.astimezone(timezone(time_zone))
+		return utc_timestamp.astimezone(timezone(time_zone))
 	except UnknownTimeZoneError:
-		return utcnow
+		return utc_timestamp
 
 
 def get_datetime_in_timezone(time_zone):
-	utc_timestamp = datetime.datetime.utcnow()
+	utc_timestamp = datetime.datetime.now(pytz.UTC)
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
