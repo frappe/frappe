@@ -578,7 +578,7 @@ class EmailAccount(Document):
 				for folder in self.imap_folder:
 					if email_server.select_imap_folder(folder.folder_name):
 						email_server.settings["uid_validity"] = folder.uidvalidity
-						messages = email_server.get_messages(folder=f'{folder.folder_name}') or {}
+						messages = email_server.get_messages(folder=f'"{folder.folder_name}"') or {}
 						process_mail(messages, folder.append_to)
 			else:
 				# process the pop3 account
