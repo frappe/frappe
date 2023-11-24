@@ -198,6 +198,9 @@ def get_context(context):
 		context.boot = get_boot_data()
 		context.boot["link_title_doctypes"] = frappe.boot.get_link_title_doctypes()
 
+		context.webform_banner_image = self.banner_image
+		context.pop("banner_image", None)
+
 	def add_metatags(self, context):
 		description = self.meta_description
 
