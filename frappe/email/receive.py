@@ -38,7 +38,7 @@ from frappe.utils import (
 )
 from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
-from frappe.email.utils import decode_sequence
+from frappe.email.utils import (decode_sequence, ImapUtf7)
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 1_00_000
@@ -151,8 +151,14 @@ class EmailServer:
 				frappe.msgprint(_("Invalid User Name or Support Password. Please rectify and try again."))
 				raise
 
+	def folder_encode(self, folder):
+		# It is not yet known whether the folder name with quotes is passed to the method or not. 
+		# To select or get status a imap folder, you must send the name with quotes & encode for support in codings other than utf-8
+		folder = folder.strip('"')
+		return ImapUtf7.encode(f'"{folder}"')
+
 	def select_imap_folder(self, folder):
-		res = self.imap.select(f'{folder}')
+		res = self.imap.select(self.folder_encode(folder))
 		return res[0] == "OK"  # The folder exsits TODO: handle other resoponses too
 
 	def logout(self):
@@ -170,22 +176,8 @@ class EmailServer:
 		self.uid_reindexed = False
 
 		email_list = self.get_new_mails(folder)
-		
-		num = len(email_list)
 
-		# reindexd or initial sync
-		if self.uid_reindexed and num > cint(self.settings.initial_sync_count):
-			# sort so that the most recent uid is on top of the list
-			email_list.reverse()
-			# process only up to initial_sync_count
-			email_list = email_list[:cint(self.settings.initial_sync_count)]
-			# resort, so that we load the oldest messages first
-			email_list.reverse()	
-
-		if num > 100:
-			num = 100
-
-		for i, uid in enumerate(email_list[:num]):
+		for i, uid in enumerate(email_list[:100]):
 			try:
 				self.retrieve_message(uid, i + 1)
 			except (_socket.timeout, LoginLimitExceeded):
@@ -208,7 +200,7 @@ class EmailServer:
 
 			readonly = False if self.settings.email_sync_rule == "UNSEEN" else True
 
-			self.imap.select(folder, readonly=readonly)
+			self.imap.select(self.folder_encode(folder), readonly=readonly)
 			response, message = self.imap.uid("search", None, self.settings.email_sync_rule)
 			if message[0]:
 				email_list = message[0].split()
@@ -221,10 +213,11 @@ class EmailServer:
 		# compare the UIDVALIDITY of email account and imap server
 		uid_validity = cint(self.settings.uid_validity)
 
-		response, message = self.imap.status(folder, "(UIDVALIDITY UIDNEXT)")
+		response, message = self.imap.status(self.folder_encode(folder), "(UIDVALIDITY UIDNEXT)")
 		current_uid_validity = cint(self.parse_imap_response("UIDVALIDITY", message[0]))
 
 		uidnext = int(self.parse_imap_response("UIDNEXT", message[0]) or "1")
+		frappe.db.set_value("Email Account", self.settings.email_account, "uidnext", uidnext)
 
 		if not uid_validity or uid_validity != current_uid_validity:
 			# uidvalidity changed & all email uids are reindexed by server
@@ -233,23 +226,16 @@ class EmailServer:
 				Communication.communication_medium == "Email"
 			).where(Communication.email_account == self.settings.email_account).run()
 
-
-			if self.settings.use_imap:
-				# Remove {"} quotes that are added to handle spaces in IMAP Folder names
-				if folder[0] == folder[-1] == '"':
-					folder = folder[1:-1]
-				# new update for the IMAP Folder DocType
-				IMAPFolder = frappe.qb.DocType("IMAP Folder")
-				frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
-					IMAPFolder.uidnext, uidnext
-				).where(IMAPFolder.parent == self.settings.email_account_name).where(
-					IMAPFolder.folder_name == folder
-				).run()
-			else:
-				EmailAccount = frappe.qb.DocType("Email Account")
-				frappe.qb.update(EmailAccount).set(EmailAccount.uidvalidity, current_uid_validity).set(
-					EmailAccount.uidnext, uidnext
-				).where(EmailAccount.name == self.settings.email_account_name).run()
+			# Remove {"} quotes that are added to handle spaces in IMAP Folder names
+			if folder[0] == folder[-1] == '"':
+				folder = folder[1:-1]
+			# new update for the IMAP Folder DocType
+			IMAPFolder = frappe.qb.DocType("IMAP Folder")
+			frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
+				IMAPFolder.uidnext, uidnext
+			).where(IMAPFolder.parent == self.settings.email_account_name).where(
+				IMAPFolder.folder_name == folder
+			).run()
 
 			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
 			from_uid = (
@@ -359,7 +345,7 @@ class EmailServer:
 		if not self.connect():
 			return
 
-		self.imap.select(folder)
+		self.imap.select(self.folder_encode(folder))
 		for uid, operation in uid_list.items():
 			if not uid:
 				continue
@@ -422,7 +408,7 @@ class Email:
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = decode_sequence(_subject)
-		
+
 		if not self.subject:
 			self.subject = "No Subject"
 
@@ -626,7 +612,7 @@ class InboundMail(Email):
 		communication = self.is_exist_in_system()
 		if communication:
 			communication.update_db(uid=self.uid)
-			communication.update_db(email_account=self.email_account.email_account_name)
+			communication.update_db(email_account=self.email_account.email_account_name) #IgorA100
 			communication.reload()
 			return communication
 
