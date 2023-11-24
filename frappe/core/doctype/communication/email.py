@@ -65,6 +65,7 @@ def make(
 	:param attachments: List of File names or dicts with keys "fname" and "fcontent"
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
 	:param email_template: Template which is used to compose mail .
+	:param send_after: Send after the given datetime.
 	"""
 	if kwargs:
 		from frappe.utils.commands import warn
