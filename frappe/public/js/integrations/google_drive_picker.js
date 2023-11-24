@@ -14,28 +14,25 @@ export default class GoogleDrivePicker {
 		this.gisInited = false;
 	}
 
-	loadPicker() {
-		$.when(ajax_gapi(), ajax_gis()).done(this.libsLoaded.bind(this));
-		// load the google identity service library
-		function ajax_gis() {
-			return $.ajax({
-				method: "GET",
-				url: "https://accounts.google.com/gsi/client",
-				dataType: "script",
-				cache: true,
-			});
-		}
+	async loadPicker() {
+		await Promise.all([
+			inject_script("https://apis.google.com/js/api.js"),
+			inject_script("https://accounts.google.com/gsi/client"),
+		]);
 
-		function ajax_gapi() {
-			// load the google API library
-			$.ajax({
-				method: "GET",
-				url: "https://apis.google.com/js/api.js",
-				dataType: "script",
-				cache: true,
-			});
-		}
+		// Wait for the external scripts to run
+		await new Promise((resolve) => {
+			const interval = setInterval(() => {
+				if (typeof gapi !== "undefined" && typeof google !== "undefined") {
+					clearInterval(interval);
+					resolve();
+				}
+			}, 100);
+		});
+
+		this.libsLoaded();
 	}
+
 	libsLoaded() {
 		this.tokenClient = google.accounts.oauth2.initTokenClient({
 			client_id: this.clientId,
@@ -78,15 +75,22 @@ export default class GoogleDrivePicker {
 		this.setupHide();
 	}
 	setupHide() {
-		let bg = $(".picker-dialog-bg");
+		let bg = document.querySelectorAll(".picker-dialog-bg");
 
-		for (let el of bg) {
-			el.onclick = () => {
-				this.picker.setVisible(false);
-				this.picker.Ob({
-					action: google.picker.Action.CANCEL,
-				});
-			};
+		for (const el of bg) {
+			el.addEventListener("click", () => {
+				this.picker.dispose();
+			});
 		}
 	}
+}
+
+function inject_script(src) {
+	return new Promise((resolve, reject) => {
+		let script = document.createElement("script");
+		script.src = src;
+		script.onload = resolve;
+		script.onerror = reject;
+		document.body.appendChild(script);
+	});
 }
