@@ -1227,27 +1227,31 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 
 	contact_name = get_contact_name(user.email)
 	if not contact_name:
-		contact = frappe.get_doc(
-			{
-				"doctype": "Contact",
-				"first_name": user.first_name,
-				"last_name": user.last_name,
-				"user": user.name,
-				"gender": user.gender,
-			}
-		)
+		try:
+			contact = frappe.get_doc(
+				{
+					"doctype": "Contact",
+					"first_name": user.first_name,
+					"last_name": user.last_name,
+					"user": user.name,
+					"gender": user.gender,
+				}
+			)
 
-		if user.email:
-			contact.add_email(user.email, is_primary=True)
+			if user.email:
+				contact.add_email(user.email, is_primary=True)
 
-		if user.phone:
-			contact.add_phone(user.phone, is_primary_phone=True)
+			if user.phone:
+				contact.add_phone(user.phone, is_primary_phone=True)
 
-		if user.mobile_no:
-			contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
-		contact.insert(
-			ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory
-		)
+			if user.mobile_no:
+				contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
+
+			contact.insert(
+				ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory
+			)
+		except frappe.DuplicateEntryError:
+			pass
 	else:
 		contact = frappe.get_doc("Contact", contact_name)
 		contact.first_name = user.first_name
