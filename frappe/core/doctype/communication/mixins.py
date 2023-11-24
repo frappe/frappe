@@ -288,7 +288,7 @@ class CommunicationEmailMixin:
 			"delayed": True,
 			"communication": self.name,
 			"read_receipt": self.read_receipt,
-			"is_notification": (self.sent_or_received == "Received" and True) or False,
+			"is_notification": (self.sent_or_received == "Received"),
 			"print_letterhead": print_letterhead,
 		}
 
