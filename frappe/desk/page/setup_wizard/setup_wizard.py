@@ -84,7 +84,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 	except Exception:
 		handle_setup_exception(user_input)
 		if not is_background_task:
-			return {"status": "fail", "fail": current_task.get("fail_msg")}
+			raise
 		frappe.publish_realtime(
 			"setup_task",
 			{"status": "fail", "fail_msg": current_task.get("fail_msg")},
