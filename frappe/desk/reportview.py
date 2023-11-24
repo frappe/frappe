@@ -29,16 +29,25 @@ def get():
 	return data
 
 
+def get_projects_ordered():
+    return frappe.db.sql("""
+        SELECT
+            cast(queue_position as decimal) as queue_position,
+            name
+        FROM
+            `tabProject`
+        ORDER BY
+            queue_position ASC;
+    """, as_dict=True)
+
 @frappe.whitelist()
 @frappe.read_only()
 def get_list():
 	args = get_form_params()
-
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
 		data = controller.get_list(args)
 	else:
-		# uncompressed (refactored from frappe.model.db_query.get_list)
 		data = execute(**args)
 
 	return data
@@ -61,6 +70,8 @@ def get_count() -> int:
 
 
 def execute(doctype, *args, **kwargs):
+	projects_ordered = get_projects_ordered()
+	kwargs["order_by"] = "FIELD(name, {})".format(",".join("'{}'".format(project["name"]) for project in projects_ordered))
 	return DatabaseQuery(doctype).execute(*args, **kwargs)
 
 
