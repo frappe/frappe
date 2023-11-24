@@ -147,7 +147,12 @@ def get_mapped_doc(
 	if postprocess:
 		postprocess(source_doc, target_doc)
 
+<<<<<<< HEAD
 	target_doc.set_onload("load_after_mapping", True)
+=======
+	ret_doc.run_method("after_mapping", source_doc)
+	ret_doc.set_onload("load_after_mapping", True)
+>>>>>>> bf50952662 (fix: `after_mapping` hook to run custom mapping functions)
 
 	if (
 		apply_strict_user_permissions
