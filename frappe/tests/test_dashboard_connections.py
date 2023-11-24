@@ -5,8 +5,13 @@ from unittest.mock import patch
 
 import frappe
 import frappe.utils
+<<<<<<< HEAD
+=======
+from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.custom.doctype.customize_form.test_customize_form import TestCustomizeForm
+>>>>>>> 17cd3e9b3e (test: Custom doctype links having non std fieldname with dashboard override)
 from frappe.desk.notifications import get_open_count
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, patch_hooks
 
 
 class TestDashboardConnections(FrappeTestCase):
@@ -117,20 +122,67 @@ class TestDashboardConnections(FrappeTestCase):
 			)
 
 
+	def test_external_doctype_link_with_dashboard_override(self):
+		# add a custom links
+		todo = TestCustomizeForm().get_customize_form("ToDo")
+		todo.append("links", dict(link_doctype="Test Doctype D", link_fieldname="doclink", group="Test"))
+		todo.append("links", dict(link_doctype="Test Doctype E", link_fieldname="todo", group="Test"))
+		todo.run_method("save_customization")
+
+		# create a test doc
+		todo_doc = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
+		frappe.get_doc(dict(doctype="Test Doctype D", title="d-001", doclink=todo_doc.name)).insert()
+		frappe.get_doc(dict(doctype="Test Doctype E", title="e-001", todo=todo_doc.name)).insert()
+
+		connections = get_open_count("ToDo", todo_doc.name)["count"]
+		self.assertEqual(len(connections["external_links_found"]), 2)
+
+		# Change standard fieldname, see if all custom links still work
+		with patch_hooks(
+			{"override_doctype_dashboards": {
+				"ToDo": ["frappe.tests.test_dashboard_connections.get_dashboard_for_todo"]
+			}
+		}):
+			connections = get_open_count("ToDo", todo_doc.name)["count"]
+			self.assertEqual(len(connections["external_links_found"]), 2)
+
+		# remove the custom links
+		todo = TestCustomizeForm().get_customize_form("ToDo")
+		todo.links = todo.links[:-2]
+		todo.run_method("save_customization")
+
+
 def create_test_data():
+<<<<<<< HEAD
 	create_child_table_with_link_to_doctype_a()
 	create_child_table_with_link_to_doctype_b()
 	create_doctype_a_with_child_table_with_link_to_doctype_b()
 	create_doctype_b_with_child_table_with_link_to_doctype_a()
+=======
+	create_test_child_table_with_link_to_doctype_a()
+	create_test_child_table_with_link_to_doctype_b()
+	create_test_doctype_a_with_test_child_table_with_link_to_doctype_b()
+	create_test_doctype_b_with_test_child_table_with_link_to_doctype_a()
+	create_linked_doctypes()
+>>>>>>> 17cd3e9b3e (test: Custom doctype links having non std fieldname with dashboard override)
 	add_links_in_child_tables()
 
 
 def delete_test_data():
 	doctypes = [
+<<<<<<< HEAD
 		"Child Table With Link To Doctype A",
 		"Child Table With Link To Doctype B",
 		"Doctype A With Child Table With Link To Doctype B",
 		"Doctype B With Child Table With Link To Doctype A",
+=======
+		"Test Child Table With Link To Doctype A",
+		"Test Child Table With Link To Doctype B",
+		"Test Doctype A With Child Table With Link To Doctype B",
+		"Test Doctype B With Child Table With Link To Doctype A",
+		"Test Doctype D",
+		"Test Doctype E",
+>>>>>>> 17cd3e9b3e (test: Custom doctype links having non std fieldname with dashboard override)
 	]
 	for doctype in doctypes:
 		if frappe.db.table_exists(doctype):
@@ -283,3 +335,48 @@ def get_dashboard_for_doctype_a_with_child_table_with_link_to_doctype_b():
 	dashboard.transactions = data["transactions"]
 
 	return dashboard
+
+
+def create_linked_doctypes():
+	"""
+	Test Doctype D and Test Doctype E linked to "ToDo"
+	"""
+	new_doctype(
+		"Test Doctype D",
+		fields=[
+			{"fieldname": "title", "fieldtype": "Data", "label": "Title", "unique": 1},
+			{
+				"fieldname": "doclink",
+				"fieldtype": "Link",
+				"label": "DocLink",
+				"options": "ToDo",
+			},
+		],
+		custom=False,
+		autoname="field:title",
+		naming_rule="By fieldname",
+	).insert(ignore_if_duplicate=True)
+
+	new_doctype(
+		"Test Doctype E",
+		fields=[
+			{"fieldname": "title", "fieldtype": "Data", "label": "Title", "unique": 1},
+			{
+				"fieldname": "todo",
+				"fieldtype": "Link",
+				"label": "Linked ToDo",
+				"options": "ToDo",
+			},
+		],
+		custom=False,
+		autoname="field:title",
+		naming_rule="By fieldname",
+	).insert(ignore_if_duplicate=True)
+
+
+def get_dashboard_for_todo(data: dict):
+	return data | {
+		"heatmap": True,
+		"heatmap_message": "This is a heatmap message",
+		"fieldname": "todo",
+	}
