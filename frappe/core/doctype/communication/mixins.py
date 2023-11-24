@@ -290,6 +290,7 @@ class CommunicationEmailMixin:
 			"read_receipt": self.read_receipt,
 			"is_notification": (self.sent_or_received == "Received"),
 			"print_letterhead": print_letterhead,
+			"send_after": self.send_after,
 		}
 
 	def send_email(
