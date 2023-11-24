@@ -41,3 +41,70 @@ def decode_sequence(encoded_sequence) -> str:
 			decoded_string += safe_decode(param=chunk)
 
 	return decoded_string
+	
+	
+# from https://pypi.org/project/imap-tools/
+# Use to support other codings than utf-8 in the IMAP folder name
+class ImapUtf7:
+# ENCODING
+# --------
+	import binascii
+	
+	from typing import Iterable, MutableSequence
+	
+	@classmethod
+	def _modified_base64(cls, value: str) -> bytes:
+		return cls.binascii.b2a_base64(value.encode('utf-16be')).rstrip(b'\n=').replace(b'/', b',')
+
+
+	@classmethod
+	def _do_b64(cls, _in: Iterable[str], r: MutableSequence[bytes]):
+		if _in:
+			r.append(b'&' + cls._modified_base64(''.join(_in)) + b'-')
+		del _in[:]
+
+	@classmethod
+	def encode(cls, value: str) -> bytes:
+		res = []
+		_in = []
+		for char in value:
+			ord_c = ord(char)
+			if 0x20 <= ord_c <= 0x25 or 0x27 <= ord_c <= 0x7e:
+				cls._do_b64(_in, res)
+				res.append(char.encode())
+			elif char == '&':
+				cls._do_b64(_in, res)
+				res.append(b'&-')
+			else:
+				_in.append(char)
+		cls._do_b64(_in, res)
+		return b''.join(res)
+
+
+# DECODING
+# --------
+	@classmethod
+	def _modified_unbase64(cls, value: bytearray) -> str:
+		return cls.binascii.a2b_base64(value.replace(b',', b'/') + b'===').decode('utf-16be')
+
+
+	@classmethod
+	def decode(cls, value: bytes) -> str:
+		res = []
+		decode_arr = bytearray()
+		for char in value:
+			if char == ord('&') and not decode_arr:
+				decode_arr.append(ord('&'))
+			elif char == ord('-') and decode_arr:
+				if len(decode_arr) == 1:
+					res.append('&')
+				else:
+					res.append(cls._modified_unbase64(decode_arr[1:]))
+				decode_arr = bytearray()
+			elif decode_arr:
+				decode_arr.append(char)
+			else:
+				res.append(chr(char))
+		if decode_arr:
+			res.append(cls._modified_unbase64(decode_arr[1:]))
+		return ''.join(res)
