@@ -686,15 +686,12 @@ class Meta(Document):
 					dict(label=link.group, items=[link.parent_doctype or link.link_doctype])
 				)
 
+			if not data.fieldname and link.link_fieldname:
+				data.fieldname = link.link_fieldname
+
 			if not link.is_child_table:
-				if link.link_fieldname != data.fieldname:
-					if data.fieldname:
-						data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
-					else:
-						data.fieldname = link.link_fieldname
+				data.non_standard_fieldnames[link.link_doctype] = link.link_fieldname
 			elif link.is_child_table:
-				if not data.fieldname:
-					data.fieldname = link.link_fieldname
 				data.internal_links[link.parent_doctype] = [link.table_fieldname, link.link_fieldname]
 
 	def get_row_template(self):
