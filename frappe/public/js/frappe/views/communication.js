@@ -78,6 +78,11 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "bcc",
 			},
 			{
+				label: __("Send After"),
+				fieldtype: "Datetime",
+				fieldname: "send_after",
+			},
+			{
 				fieldtype: "Section Break",
 				fieldname: "email_template_section_break",
 				hidden: 1,
@@ -676,6 +681,7 @@ frappe.views.CommunicationComposer = class {
 				attachments: selected_attachments,
 				read_receipt: form_values.send_read_receipt,
 				print_letterhead: me.is_print_letterhead_checked(),
+				send_after: form_values.send_after ? form_values.send_after : null,
 			},
 			btn,
 			callback(r) {

@@ -106,6 +106,7 @@ class Communication(Document, CommunicationEmailMixin):
 		reference_name: DF.DynamicLink | None
 		reference_owner: DF.ReadOnly | None
 		seen: DF.Check
+		send_after: DF.Datetime | None
 		sender: DF.Data | None
 		sender_full_name: DF.Data | None
 		sent_or_received: DF.Literal["Sent", "Received"]
