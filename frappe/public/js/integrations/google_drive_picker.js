@@ -9,7 +9,6 @@ export default class GoogleDrivePicker {
 		this.developerKey = developerKey;
 		this.clientId = clientId;
 		this.tokenClient = null;
-		this.accessToken = null;
 	}
 
 	async loadPicker() {
@@ -39,7 +38,6 @@ export default class GoogleDrivePicker {
 				if (response.error !== undefined) {
 					frappe.throw(response);
 				}
-				this.accessToken = response.access_token;
 				frappe.boot.user.google_drive_token = response.access_token;
 				await this.createPicker();
 			},
@@ -62,7 +60,7 @@ export default class GoogleDrivePicker {
 		this.picker = new google.picker.PickerBuilder()
 			.setDeveloperKey(this.developerKey)
 			.setAppId(this.appId)
-			.setOAuthToken(this.accessToken)
+			.setOAuthToken(frappe.boot.user.google_drive_token)
 			.addView(this.view)
 			.addView(new google.picker.DocsUploadView())
 			.setCallback(this.pickerCallback)
