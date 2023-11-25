@@ -1,7 +1,7 @@
 /* global gapi:false, google:false */
 export default class GoogleDrivePicker {
 	constructor({ pickerCallback, enabled, appId, developerKey, clientId } = {}) {
-		this.scope = "https://www.googleapis.com/auth/drive.readonly";
+		this.scope = "https://www.googleapis.com/auth/drive.file";
 		this.pickerApiLoaded = false;
 		this.enabled = enabled;
 		this.appId = appId;
