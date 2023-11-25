@@ -87,6 +87,11 @@ export default class GoogleDrivePicker {
 
 function inject_script(src) {
 	return new Promise((resolve, reject) => {
+		if (document.querySelector(`script[src="${src}"]`) !== null) {
+			resolve();
+			return;
+		}
+
 		let script = document.createElement("script");
 		script.src = src;
 		script.onload = resolve;
