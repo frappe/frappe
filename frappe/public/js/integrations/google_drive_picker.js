@@ -10,8 +10,6 @@ export default class GoogleDrivePicker {
 		this.clientId = clientId;
 		this.tokenClient = null;
 		this.accessToken = null;
-		this.pickerInited = false;
-		this.gisInited = false;
 	}
 
 	async loadPicker() {
@@ -46,7 +44,6 @@ export default class GoogleDrivePicker {
 				await this.createPicker();
 			},
 		});
-		this.gisInited = true;
 		gapi.load("client:picker", { callback: this.initializePicker.bind(this) });
 		if (frappe.boot.user.google_drive_token === null) {
 			// Prompt the user to select a Google Account and ask for consent to share their data
@@ -59,7 +56,6 @@ export default class GoogleDrivePicker {
 	}
 	async initializePicker() {
 		gapi.client.load("https://www.googleapis.com/discovery/v1/apis/drive/v3/rest");
-		this.pickerInited = true;
 	}
 	createPicker() {
 		this.view = new google.picker.View(google.picker.ViewId.DOCS);
