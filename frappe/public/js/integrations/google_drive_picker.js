@@ -11,22 +11,17 @@ export default class GoogleDrivePicker {
 	}
 
 	async loadPicker() {
-		await Promise.all([
-			inject_script("https://apis.google.com/js/api.js"),
-			inject_script("https://accounts.google.com/gsi/client"),
-		]);
-
-		// Wait for the external scripts to run
-		await new Promise((resolve) => {
-			const interval = setInterval(() => {
-				if (typeof gapi !== "undefined" && typeof google !== "undefined") {
-					clearInterval(interval);
-					resolve();
-				}
-			}, 100);
+		inject_script("https://accounts.google.com/gsi/client").then(() => {
+			this.libsLoaded();
 		});
 
-		this.libsLoaded();
+		inject_script("https://apis.google.com/js/api.js").then(() => {
+			gapi.load("client:picker", {
+				callback: () => {
+					gapi.client.load("https://www.googleapis.com/discovery/v1/apis/drive/v3/rest");
+				},
+			});
+		});
 	}
 
 	libsLoaded() {
@@ -41,7 +36,7 @@ export default class GoogleDrivePicker {
 				await this.createPicker();
 			},
 		});
-		gapi.load("client:picker", { callback: this.initializePicker.bind(this) });
+
 		if (frappe.boot.user.google_drive_token === null) {
 			// Prompt the user to select a Google Account and ask for consent to share their data
 			// when establishing a new session.
@@ -52,9 +47,6 @@ export default class GoogleDrivePicker {
 		}
 	}
 
-	async initializePicker() {
-		gapi.client.load("https://www.googleapis.com/discovery/v1/apis/drive/v3/rest");
-	}
 	createPicker() {
 		this.view = new google.picker.View(google.picker.ViewId.DOCS);
 		this.picker = new google.picker.PickerBuilder()
