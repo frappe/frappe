@@ -8,7 +8,6 @@ export default class GoogleDrivePicker {
 		this.pickerCallback = pickerCallback;
 		this.developerKey = developerKey;
 		this.clientId = clientId;
-		this.tokenClient = null;
 	}
 
 	async loadPicker() {
@@ -31,7 +30,7 @@ export default class GoogleDrivePicker {
 	}
 
 	libsLoaded() {
-		this.tokenClient = google.accounts.oauth2.initTokenClient({
+		const tokenClient = google.accounts.oauth2.initTokenClient({
 			client_id: this.clientId,
 			scope: this.scope,
 			callback: async (response) => {
@@ -46,12 +45,13 @@ export default class GoogleDrivePicker {
 		if (frappe.boot.user.google_drive_token === null) {
 			// Prompt the user to select a Google Account and ask for consent to share their data
 			// when establishing a new session.
-			this.tokenClient.requestAccessToken({ prompt: "consent" });
+			tokenClient.requestAccessToken({ prompt: "consent" });
 		} else {
 			// Skip display of account chooser and consent dialog for an existing session.
-			this.tokenClient.requestAccessToken({ prompt: "" });
+			tokenClient.requestAccessToken({ prompt: "" });
 		}
 	}
+
 	async initializePicker() {
 		gapi.client.load("https://www.googleapis.com/discovery/v1/apis/drive/v3/rest");
 	}
