@@ -12,7 +12,7 @@ export default class GoogleDrivePicker {
 
 	async loadPicker() {
 		inject_script("https://accounts.google.com/gsi/client").then(() => {
-			this.libsLoaded();
+			this.authenticate();
 		});
 
 		inject_script("https://apis.google.com/js/api.js").then(() => {
@@ -24,7 +24,7 @@ export default class GoogleDrivePicker {
 		});
 	}
 
-	libsLoaded() {
+	authenticate() {
 		const tokenClient = google.accounts.oauth2.initTokenClient({
 			client_id: this.clientId,
 			scope: this.scope,
