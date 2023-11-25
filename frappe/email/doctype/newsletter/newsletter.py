@@ -50,10 +50,10 @@ class Newsletter(WebsiteGenerator):
 		total_recipients: DF.Int
 		total_views: DF.Int
 	# end: auto-generated types
+
 	def validate(self):
 		self.route = f"newsletters/{self.name}"
 		self.validate_sender_address()
-		self.validate_recipient_address()
 		self.validate_publishing()
 		self.validate_scheduling_date()
 
@@ -135,7 +135,6 @@ class Newsletter(WebsiteGenerator):
 	def validate_newsletter_recipients(self):
 		if not self.newsletter_recipients:
 			frappe.throw(_("Newsletter should have atleast one recipient"), exc=NoRecipientFoundError)
-		self.validate_recipient_address()
 
 	def validate_sender_address(self):
 		"""Validate self.send_from is a valid email address or not."""
@@ -144,11 +143,6 @@ class Newsletter(WebsiteGenerator):
 			self.send_from = (
 				f"{self.sender_name} <{self.sender_email}>" if self.sender_name else self.sender_email
 			)
-
-	def validate_recipient_address(self):
-		"""Validate if self.newsletter_recipients are all valid email addresses or not."""
-		for recipient in self.newsletter_recipients:
-			frappe.utils.validate_email_address(recipient, throw=True)
 
 	def validate_publishing(self):
 		if self.send_webview_link and not self.published:
