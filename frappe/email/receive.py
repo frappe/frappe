@@ -154,7 +154,10 @@ class EmailServer:
 	def folder_encode(self, folder):
 		# It is not yet known whether the folder name with quotes is passed to the method or not. 
 		# To select or get status a imap folder, you must send the name with quotes & encode for support in codings other than utf-8
-		folder = folder.strip('"')
+		if folder[0] == folder[-1] == '"':
+			folder = folder[1:-1]
+		return ImapUtf7.encode(f'"{folder}"')
+
 		return ImapUtf7.encode(f'"{folder}"')
 
 	def select_imap_folder(self, folder):
