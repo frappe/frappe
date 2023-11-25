@@ -28,6 +28,7 @@
    "in_global_search": 1,
    "in_list_view": 1,
    "label": "Email",
+   "options": "Email",
    "reqd": 1
   },
   {
@@ -40,7 +41,7 @@
   }
  ],
  "links": [],
- "modified": "2022-07-11 16:38:34.165271",
+ "modified": "2023-11-25 16:54:59.828669",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Group Member",
