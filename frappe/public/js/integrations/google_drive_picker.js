@@ -32,27 +32,22 @@ export default class GoogleDrivePicker {
 				if (response.error !== undefined) {
 					frappe.throw(response);
 				}
-				frappe.boot.user.google_drive_token = response.access_token;
-				await this.createPicker();
+
+				this.createPicker(response.access_token);
 			},
 		});
 
-		if (frappe.boot.user.google_drive_token === null) {
-			// Prompt the user to select a Google Account and ask for consent to share their data
-			// when establishing a new session.
-			tokenClient.requestAccessToken({ prompt: "consent" });
-		} else {
-			// Skip display of account chooser and consent dialog for an existing session.
-			tokenClient.requestAccessToken({ prompt: "" });
-		}
+		// Always try to get away with an empty prompt.
+		// This will still ask for consent if the user has not given it before.
+		tokenClient.requestAccessToken({ prompt: "" });
 	}
 
-	createPicker() {
+	createPicker(access_token) {
 		this.view = new google.picker.View(google.picker.ViewId.DOCS);
 		this.picker = new google.picker.PickerBuilder()
 			.setDeveloperKey(this.developerKey)
 			.setAppId(this.appId)
-			.setOAuthToken(frappe.boot.user.google_drive_token)
+			.setOAuthToken(access_token)
 			.addView(this.view)
 			.addView(new google.picker.DocsUploadView())
 			.setLocale(frappe.boot.lang)
