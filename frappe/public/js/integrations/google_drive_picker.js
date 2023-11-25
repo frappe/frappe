@@ -63,11 +63,13 @@ export default class GoogleDrivePicker {
 			.setOAuthToken(frappe.boot.user.google_drive_token)
 			.addView(this.view)
 			.addView(new google.picker.DocsUploadView())
+			.setLocale(frappe.boot.lang)
 			.setCallback(this.pickerCallback)
 			.build();
 		this.picker.setVisible(true);
 		this.setupHide();
 	}
+
 	setupHide() {
 		let bg = document.querySelectorAll(".picker-dialog-bg");
 
