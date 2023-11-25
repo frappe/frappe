@@ -15,10 +15,48 @@ from .exceptions import NewsletterAlreadySentError, NewsletterNotSavedError, NoR
 
 
 class Newsletter(WebsiteGenerator):
+<<<<<<< HEAD
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.email.doctype.newsletter_attachment.newsletter_attachment import NewsletterAttachment
+		from frappe.email.doctype.newsletter_email_group.newsletter_email_group import (
+			NewsletterEmailGroup,
+		)
+		from frappe.types import DF
+
+		attachments: DF.Table[NewsletterAttachment]
+		campaign: DF.Link | None
+		content_type: DF.Literal["Rich Text", "Markdown", "HTML"]
+		email_group: DF.Table[NewsletterEmailGroup]
+		email_sent: DF.Check
+		email_sent_at: DF.Datetime | None
+		message: DF.TextEditor | None
+		message_html: DF.HTMLEditor | None
+		message_md: DF.MarkdownEditor | None
+		published: DF.Check
+		route: DF.Data | None
+		schedule_send: DF.Datetime | None
+		schedule_sending: DF.Check
+		scheduled_to_send: DF.Int
+		send_from: DF.Data | None
+		send_unsubscribe_link: DF.Check
+		send_webview_link: DF.Check
+		sender_email: DF.Data
+		sender_name: DF.Data | None
+		subject: DF.SmallText
+		total_recipients: DF.Int
+		total_views: DF.Int
+	# end: auto-generated types
+
+>>>>>>> 563f9b00b5 (refactor: validate Newsletter recipients at source)
 	def validate(self):
 		self.route = f"newsletters/{self.name}"
 		self.validate_sender_address()
-		self.validate_recipient_address()
 		self.validate_publishing()
 
 	@property
@@ -99,7 +137,6 @@ class Newsletter(WebsiteGenerator):
 	def validate_newsletter_recipients(self):
 		if not self.newsletter_recipients:
 			frappe.throw(_("Newsletter should have atleast one recipient"), exc=NoRecipientFoundError)
-		self.validate_recipient_address()
 
 	def validate_sender_address(self):
 		"""Validate self.send_from is a valid email address or not."""
@@ -108,11 +145,6 @@ class Newsletter(WebsiteGenerator):
 			self.send_from = (
 				f"{self.sender_name} <{self.sender_email}>" if self.sender_name else self.sender_email
 			)
-
-	def validate_recipient_address(self):
-		"""Validate if self.newsletter_recipients are all valid email addresses or not."""
-		for recipient in self.newsletter_recipients:
-			frappe.utils.validate_email_address(recipient, throw=True)
 
 	def validate_publishing(self):
 		if self.send_webview_link and not self.published:
