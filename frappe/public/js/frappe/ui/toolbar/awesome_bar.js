@@ -29,16 +29,18 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				};
 			},
 			item: function (item, term) {
-				var d = this.get_item(item.value);
-				var name = __(d.label || d.value);
-				var html = "<span>" + name + "</span>";
+				const d = this.get_item(item.value);
+				const target = d.route ? frappe.router.make_url(d.route) : "#";
+				let html = `<span>${__(d.label || d.value)}</span>`;
+
 				if (d.description && d.value !== d.description) {
 					html +=
 						'<br><span class="text-muted ellipsis">' + __(d.description) + "</span>";
 				}
+
 				return $("<li></li>")
 					.data("item.autocomplete", d)
-					.html(`<a style="font-weight:normal">${html}</a>`)
+					.html(`<a style="font-weight:normal" href="${target}">${html}</a>`)
 					.get(0);
 			},
 			sort: function (a, b) {
