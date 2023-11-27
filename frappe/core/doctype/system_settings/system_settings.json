@@ -26,19 +26,20 @@
   "permissions",
   "apply_strict_user_permissions",
   "column_break_21",
+  "allow_older_web_view_links",
   "security_tab",
   "security",
   "session_expiry",
   "document_share_key_expiry",
+  "column_break_txqh",
   "deny_multiple_sessions",
   "disable_user_pass_login",
-  "column_break_13",
+  "login_methods_section",
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
+  "column_break_uhqk",
   "login_with_email_link",
   "login_with_email_link_expiry",
-  "strip_exif_metadata_from_uploaded_images",
-  "allow_older_web_view_links",
   "brute_force_security",
   "allow_consecutive_login_attempts",
   "column_break_34",
@@ -74,6 +75,7 @@
   "max_file_size",
   "allow_guests_to_upload_files",
   "force_web_capture_mode_for_uploads",
+  "strip_exif_metadata_from_uploaded_images",
   "column_break_uqma",
   "allowed_file_extensions",
   "updates_tab",
@@ -222,10 +224,6 @@
    "fieldname": "session_expiry",
    "fieldtype": "Data",
    "label": "Session Expiry (idle timeout)"
-  },
-  {
-   "fieldname": "column_break_13",
-   "fieldtype": "Column Break"
   },
   {
    "default": "0",
@@ -623,12 +621,25 @@
    "fieldname": "password_tab",
    "fieldtype": "Tab Break",
    "label": "Password"
+  },
+  {
+   "fieldname": "column_break_txqh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "login_methods_section",
+   "fieldtype": "Section Break",
+   "label": "Login Methods"
+  },
+  {
+   "fieldname": "column_break_uhqk",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-11-27 13:09:13.849522",
+ "modified": "2023-11-27 14:08:01.927794",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
