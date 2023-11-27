@@ -29,13 +29,6 @@ app_include_js = [
 	"form.bundle.js",
 	"controls.bundle.js",
 	"report.bundle.js",
-	"telemetry.bundle.js",
-]
-
-# JS code to include for error reporting
-# This is only loaded if error reporting is enabled.
-error_reporting_js = [
-	"sentry.bundle.js",
 ]
 
 app_include_css = [
