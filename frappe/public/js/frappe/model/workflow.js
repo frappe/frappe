@@ -6,11 +6,15 @@ frappe.provide("frappe.workflow");
 frappe.workflow = {
 	state_fields: {},
 	workflows: {},
+	avoid_status_override: {},
 	setup: function (doctype) {
 		var wf = frappe.get_list("Workflow", { document_type: doctype });
 		if (wf.length) {
 			frappe.workflow.workflows[doctype] = wf[0];
 			frappe.workflow.state_fields[doctype] = wf[0].workflow_state_field;
+			frappe.workflow.avoid_status_override[doctype] = wf[0].states
+				.filter((row) => row.avoid_status_override)
+				.map((d) => d.state);
 		} else {
 			frappe.workflow.state_fields[doctype] = null;
 		}

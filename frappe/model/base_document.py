@@ -31,6 +31,7 @@ from frappe.utils import (
 	sanitize_html,
 	strip_html,
 )
+from frappe.utils.defaults import get_not_null_defaults
 from frappe.utils.html_utils import unescape_html
 
 if TYPE_CHECKING:
@@ -383,6 +384,13 @@ class BaseDocument:
 
 			if ignore_nulls and not is_virtual_field and value is None:
 				continue
+
+			# If the docfield is not nullable - set a default non-null value
+			if value is None and getattr(df, "not_nullable", False):
+				if df.default:
+					value = df.default
+				else:
+					value = get_not_null_defaults(df.fieldtype)
 
 			d[fieldname] = value
 
@@ -782,8 +790,11 @@ class BaseDocument:
 					else:
 						values_to_fetch = ["name"] + [_df.fetch_from.split(".")[-1] for _df in fields_to_fetch]
 
+						# fallback to dict with field_to_fetch=None if link field value is not found
+						# (for compatibility, `values` must have same data type)
+						empty_values = _dict({value: None for value in values_to_fetch})
 						# don't cache if fetching other values too
-						values = frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True)
+						values = frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True) or empty_values
 
 				if getattr(frappe.get_meta(doctype), "issingle", 0):
 					values.name = doctype

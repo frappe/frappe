@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.recorder import get as get_recorder_data
-from frappe.utils import cint, evaluate_filters, make_filter_dict
+from frappe.utils import cint, evaluate_filters
 
 
 class Recorder(Document):
@@ -27,6 +27,7 @@ class Recorder(Document):
 		sql_queries: DF.Table[RecorderQuery]
 		time: DF.Datetime | None
 		time_in_queries: DF.Float
+
 	# end: auto-generated types
 
 	def load_from_db(self):
@@ -38,7 +39,7 @@ class Recorder(Document):
 
 	@staticmethod
 	def get_list(args):
-		start = cint(args.get("start")) or 0
+		start = cint(args.get("start"))
 		page_length = cint(args.get("page_length")) or 20
 		requests = Recorder.get_filtered_requests(args)[start : start + page_length]
 

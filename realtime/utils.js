@@ -7,11 +7,11 @@ function get_url(socket, path) {
 	}
 	let url = socket.request.headers.origin;
 	if (conf.developer_mode) {
-		let [protocal, host, port] = url.split(':');
+		let [protocol, host, port] = url.split(":");
 		if (port != conf.webserver_port) {
 			port = conf.webserver_port;
 		}
-		url = `${protocal}:${host}:${port}`;
+		url = `${protocol}:${host}:${port}`;
 	}
 	return url + path;
 }

@@ -78,8 +78,6 @@ def main(
 		if not scheduler_disabled_by_user:
 			frappe.utils.scheduler.disable_scheduler()
 
-		set_test_email_config()
-
 		if not frappe.flags.skip_before_tests:
 			if verbose:
 				print('Running "before_tests" hooks')
@@ -124,17 +122,6 @@ def main(
 		if xmloutput_fh:
 			xmloutput_fh.flush()
 			xmloutput_fh.close()
-
-
-def set_test_email_config():
-	frappe.conf.update(
-		{
-			"auto_email_id": "test@example.com",
-			"mail_server": "smtp.example.com",
-			"mail_login": "test@example.com",
-			"mail_password": "test",
-		}
-	)
 
 
 class TimeLoggingTestResult(unittest.TextTestResult):

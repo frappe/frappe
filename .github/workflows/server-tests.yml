@@ -72,6 +72,12 @@ jobs:
         ports:
           - 5432:5432
 
+      smtp_server:
+        image: rnwood/smtp4dev
+        ports:
+          - 2525:25
+          - 3000:80
+
     steps:
       - name: Clone
         uses: actions/checkout@v4
@@ -79,7 +85,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Check for valid Python & Merge Conflicts
         run: |

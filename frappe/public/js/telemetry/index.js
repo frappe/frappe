@@ -43,7 +43,7 @@ class TelemetryManager {
 	}
 
 	can_enable() {
-		return Boolean(this.telemetry_host && this.project_id);
+		return Boolean(this.telemetry_host && this.project_id && !cint(navigator.doNotTrack));
 	}
 
 	send_heartbeat() {

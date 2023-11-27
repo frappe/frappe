@@ -59,7 +59,7 @@ function refresh() {
 	iframe.value?.contentWindow.location.reload();
 }
 function get_default_docname() {
-	return frappe.db.get_list(doctype.value, { limit: 1 }).then(doc => {
+	return frappe.db.get_list(doctype.value, { limit: 1 }).then((doc) => {
 		return doc.length > 0 ? doc[0].name : null;
 	});
 }
@@ -78,9 +78,7 @@ let url = computed(() => {
 		params.append("letterhead", store.value.letterhead.name);
 	}
 	let _url =
-		type.value == "PDF"
-			? `/api/method/frappe.utils.weasyprint.download_pdf`
-			: "/printpreview";
+		type.value == "PDF" ? `/api/method/frappe.utils.weasyprint.download_pdf` : "/printpreview";
 	return `${_url}?${params.toString()}`;
 });
 
@@ -95,9 +93,9 @@ onMounted(() => {
 			options: doctype.value,
 			change: () => {
 				docname.value = doc_select.value.get_value();
-			}
+			},
 		},
-		render_input: true
+		render_input: true,
 	});
 	preview_type.value = frappe.ui.form.make_control({
 		parent: preview_type_ref.value,
@@ -108,12 +106,12 @@ onMounted(() => {
 			options: ["PDF", "HTML"],
 			change: () => {
 				type.value = preview_type.value.get_value();
-			}
+			},
 		},
-		render_input: true
+		render_input: true,
 	});
 	preview_type.value.set_value(type.value);
-	get_default_docname().then(doc_name => {
+	get_default_docname().then((doc_name) => {
 		doc_name && doc_select.value.set_value(doc_name);
 	});
 });

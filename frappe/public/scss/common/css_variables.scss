@@ -19,11 +19,9 @@ $disabled-input-height: 22px;
 	--margin-xl: 30px;
 	--margin-2xl: 40px;
 
-
 	--modal-shadow: var(--shadow-md);
 	--card-shadow: var(--shadow-sm);
 	--btn-shadow: var(--shadow-xs);
-
 
 	// navbar
 	--navbar-height: 48px;
@@ -49,8 +47,6 @@ $disabled-input-height: 22px;
 	--bg-purple: var(--purple-100);
 	--bg-pink: var(--pink-50);
 	--bg-cyan: var(--cyan-50);
-
-
 
 	--text-on-blue: var(--blue-700);
 	--text-on-light-blue: var(--blue-600);
@@ -102,6 +98,9 @@ $disabled-input-height: 22px;
 	--btn-default-bg: var(--gray-100);
 	--btn-default-hover-bg: var(--gray-300);
 
+	// Border Colors
+	--border-primary: var(--gray-900);
+
 	// Other Colors
 	--sidebar-select-color: var(--gray-200);
 
@@ -125,7 +124,6 @@ $disabled-input-height: 22px;
 	--code-block-bg: var(--gray-900);
 	--code-block-text: var(--gray-400);
 
-
 	--primary-color: var(--gray-900);
 	--btn-height: 28px;
 
@@ -140,8 +138,11 @@ $disabled-input-height: 22px;
 
 	--checkbox-focus-shadow: 0 0 0 2px var(--gray-300);
 	--checkbox-gradient: linear-gradient(180deg, var(--primary) -124.51%, var(--primary) 100%);
-	--checkbox-disabled-gradient: linear-gradient(180deg, var(--disabled-control-bg) -124.51%, var(--disabled-control-bg) 100%);
-
+	--checkbox-disabled-gradient: linear-gradient(
+		180deg,
+		var(--disabled-control-bg) -124.51%,
+		var(--disabled-control-bg) 100%
+	);
 
 	// switch
 	--switch-bg: var(--gray-300);

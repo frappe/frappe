@@ -1,8 +1,8 @@
-@import 'variables';
-@import "frappe/public/css/fonts/inter/inter.css";
-@import '../common/quill';
-@import '~bootstrap/scss/bootstrap';
-@import '~cropperjs/dist/cropper.min';
+@import "variables";
+@import "../../css/fonts/inter/inter.scss";
+@import "../common/quill";
+@import "~bootstrap/scss/bootstrap";
+@import "~cropperjs/dist/cropper.min";
 @import "../common/mixins";
 @import "../common/global";
 @import "../common/icons";
@@ -15,23 +15,22 @@
 @import "../common/indicator";
 @import "../common/controls";
 @import "../common/awesomeplete";
-@import 'base';
-@import 'multilevel_dropdown';
-@import 'website_image';
-@import 'website_avatar';
-@import 'web_form';
-@import 'page_builder';
-@import 'blog';
-@import 'markdown';
-@import 'sidebar';
-@import 'portal';
-@import 'search';
-@import 'doc';
-@import 'navbar';
-@import 'footer';
-@import 'error-state';
-@import 'my_account';
-
+@import "base";
+@import "multilevel_dropdown";
+@import "website_image";
+@import "website_avatar";
+@import "web_form";
+@import "page_builder";
+@import "blog";
+@import "markdown";
+@import "sidebar";
+@import "portal";
+@import "search";
+@import "doc";
+@import "navbar";
+@import "footer";
+@import "error-state";
+@import "my_account";
 
 .ql-editor.read-mode {
 	padding: 0;
@@ -88,7 +87,7 @@
 
 .dropdown-item {
 	border-radius: $dropdown-border-radius;
-	padding : var(--dropdown-padding) !important;
+	padding: var(--dropdown-padding) !important;
 }
 
 .dropdown-item:active {
@@ -134,7 +133,7 @@
 
 .breadcrumb-container {
 	margin-top: 1rem;
-	padding-top:  0.25rem;
+	padding-top: 0.25rem;
 }
 
 .breadcrumb {
@@ -144,8 +143,7 @@
 }
 
 .breadcrumb-item {
-	+ .breadcrumb-item
-	 {
+	+ .breadcrumb-item {
 		font-size: $font-size-sm;
 		&::before {
 			content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
@@ -153,7 +151,7 @@
 		}
 	}
 	a {
-		color: var(--text-color)
+		color: var(--text-color);
 	}
 
 	li.disabled {
@@ -168,7 +166,8 @@ a.card {
 	text-decoration: none;
 }
 
-a.card-link {
+a.card-link,
+a.card-link:hover {
 	text-decoration: underline;
 }
 
@@ -197,7 +196,7 @@ a.card-link {
 }
 
 .indicator-pill {
-	font-size: var(--font-size-xs)
+	font-size: var(--font-size-xs);
 }
 
 h4.modal-title {
@@ -252,7 +251,6 @@ h5.modal-title {
 
 .btn-xs {
 	@extend .btn-sm;
-
 }
 
 .hidden-xs {

@@ -310,7 +310,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		)
 
 	@staticmethod
-	def get_on_duplicate_update(key=None):
+	def get_on_duplicate_update():
 		return "ON DUPLICATE key UPDATE "
 
 	def get_table_columns_description(self, table_name):
@@ -329,7 +329,8 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 					and Seq_in_index = 1
 					limit 1
 			), 0) as 'index',
-			column_key = 'UNI' as 'unique'
+			column_key = 'UNI' as 'unique',
+			(is_nullable = 'NO') AS 'not_nullable'
 			from information_schema.columns as columns
 			where table_name = '{table_name}' """.format(
 				table_name=table_name

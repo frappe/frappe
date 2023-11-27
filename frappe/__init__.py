@@ -17,7 +17,6 @@ import inspect
 import json
 import os
 import re
-import unicodedata
 import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
@@ -43,7 +42,6 @@ from .utils.jinja import (
 	get_template,
 	render_template,
 )
-from .utils.lazy_loader import lazy_import
 
 __version__ = "15.0.0-dev"
 __title__ = "Frappe Framework"
@@ -132,16 +130,6 @@ def as_unicode(text: str, encoding: str = "utf-8") -> str:
 		return str(text)
 
 
-def get_lang_dict(fortype: str, name: str | None = None) -> dict[str, str]:
-	"""Returns the translated language dict for the given type and name.
-
-	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
-	:param name: name of the document for which assets are to be returned."""
-	from frappe.translate import get_dict
-
-	return get_dict(fortype, name)
-
-
 def set_user_lang(user: str, user_language: str | None = None) -> None:
 	"""Guess and set user language for the session. `frappe.local.lang`"""
 	from frappe.translate import get_user_lang
@@ -156,6 +144,7 @@ qb = local("qb")
 conf = local("conf")
 form = form_dict = local("form_dict")
 request = local("request")
+job = local("job")
 response = local("response")
 session = local("session")
 user = local("user")
@@ -427,7 +416,7 @@ def errprint(msg: str) -> None:
 
 	:param msg: Message."""
 	msg = as_unicode(msg)
-	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
+	if not request or ("cmd" not in local.form_dict) or conf.developer_mode:
 		print(msg)
 
 	error_log.append({"exc": msg})
@@ -438,11 +427,11 @@ def print_sql(enable: bool = True) -> None:
 
 
 def log(msg: str) -> None:
-	"""Add to `debug_log`.
+	"""Add to `debug_log`
 
 	:param msg: Message."""
 	if not request:
-		if conf.get("logging") or False:
+		if conf.get("logging"):
 			print(repr(msg))
 
 	debug_log.append(as_unicode(msg))
@@ -459,6 +448,8 @@ def msgprint(
 	primary_action: str = None,
 	is_minimizable: bool = False,
 	wide: bool = False,
+	*,
+	realtime=False,
 ) -> None:
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
@@ -472,6 +463,7 @@ def msgprint(
 	:param primary_action: [optional] Bind a primary server/client side action.
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
+	:param realtime: Publish message immediately using websocket.
 	"""
 	import inspect
 	import sys
@@ -538,7 +530,10 @@ def msgprint(
 	if wide:
 		out.wide = wide
 
-	message_log.append(out)
+	if realtime:
+		publish_realtime(event="msgprint", message=out)
+	else:
+		message_log.append(out)
 	_raise_exception()
 
 
@@ -1968,7 +1963,7 @@ def get_all(doctype, *args, **kwargs):
 	        frappe.get_all("ToDo", fields=["*"], filters = [["modified", ">", "2014-01-01"]])
 	"""
 	kwargs["ignore_permissions"] = True
-	if not "limit_page_length" in kwargs:
+	if "limit_page_length" not in kwargs:
 		kwargs["limit_page_length"] = 0
 	return get_list(doctype, *args, **kwargs)
 
@@ -2017,7 +2012,7 @@ def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> s
 
 
 def are_emails_muted():
-	return flags.mute_emails or cint(conf.get("mute_emails") or 0) or False
+	return flags.mute_emails or cint(conf.get("mute_emails"))
 
 
 def get_test_records(doctype):

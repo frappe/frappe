@@ -4,25 +4,25 @@ authors = [
     { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io"}
 ]
 description = "Metadata driven, full-stack low code web framework"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.13"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
-    "Babel~=2.12.1",
+    "Babel~=2.13.1",
     "Click~=8.1.7",
-    "filelock~=3.8.0",
+    "filelock~=3.13.1",
     "filetype~=1.2.0",
     "GitPython~=3.1.34",
     "Jinja2~=3.1.2",
-    "Pillow~=10.0.0",
+    "Pillow~=10.0.1",
     "PyJWT~=2.8.0",
     "PyMySQL==1.1.0",
-    "pypdf~=3.15.4",
+    "pypdf~=3.17.0",
     "PyPika~=0.48.9",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.1",
-    "RestrictedPython~=6.2",
+    "RestrictedPython~=7.0",
     "WeasyPrint==59.0",
     "Werkzeug~=3.0.1",
     "Whoosh~=2.7.4",
@@ -31,7 +31,7 @@ dependencies = [
     "bleach[css]~=6.0.0",
     "cairocffi==1.5.1",
     "chardet~=5.1.0",
-    "croniter~=1.4.1",
+    "croniter~=2.0.1",
     "cryptography~=41.0.3",
     "email-reply-parser~=0.5.12",
     "git-url-parse~=1.2.2",
@@ -57,7 +57,7 @@ dependencies = [
     "python-dateutil~=2.8.2",
     "pytz==2023.3",
     "rauth~=0.7.3",
-    "redis~=4.5.5",
+    "redis~=5.0.1",
     "hiredis~=2.2.3",
     "requests-oauthlib~=1.3.1",
     "requests~=2.31.0",

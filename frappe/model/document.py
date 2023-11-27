@@ -343,7 +343,7 @@ class Document(BaseDocument):
 		:param ignore_permissions: Do not check permissions if True.
 		:param ignore_version: Do not save version if True."""
 		if self.flags.in_print:
-			return
+			return self
 
 		self.flags.notifications_executed = []
 
@@ -1583,6 +1583,12 @@ class Document(BaseDocument):
 		from frappe.desk.doctype.tag.tag import DocTags
 
 		DocTags(self.doctype).add(self.name, tag)
+
+	def remove_tag(self, tag):
+		"""Remove a Tag to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+
+		DocTags(self.doctype).remove(self.name, tag)
 
 	def get_tags(self):
 		"""Return a list of Tags attached to this document"""

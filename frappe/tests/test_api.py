@@ -278,6 +278,14 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.json["message"], "Administrator")
 
+		authorization_token = f"{api_key}:INCORRECT"
+		response = self.get(self.method_path("frappe.auth.get_logged_user"))
+		self.assertEqual(response.status_code, 401)
+
+		authorization_token = "NonExistentKey:INCORRECT"
+		response = self.get(self.method_path("frappe.auth.get_logged_user"))
+		self.assertEqual(response.status_code, 401)
+
 		authorization_token = None
 
 	def test_404s(self):
@@ -374,7 +382,7 @@ def after_request(*args, **kwargs):
 class TestResponse(FrappeAPITestCase):
 	def test_generate_pdf(self):
 		response = self.get(
-			f"/api/method/frappe.utils.print_format.download_pdf",
+			"/api/method/frappe.utils.print_format.download_pdf",
 			{"sid": self.sid, "doctype": "User", "name": "Guest"},
 		)
 		self.assertEqual(response.status_code, 200)
