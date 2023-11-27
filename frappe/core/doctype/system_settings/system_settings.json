@@ -23,38 +23,22 @@
   "float_precision",
   "currency_precision",
   "rounding_method",
-  "sec_backup_limit",
-  "backup_limit",
-  "encrypt_backup",
-  "background_workers",
-  "enable_scheduler",
-  "dormant_days",
   "permissions",
   "apply_strict_user_permissions",
   "column_break_21",
-  "allow_guests_to_upload_files",
-  "force_web_capture_mode_for_uploads",
+  "security_tab",
   "security",
   "session_expiry",
   "document_share_key_expiry",
-  "column_break_13",
   "deny_multiple_sessions",
+  "disable_user_pass_login",
+  "column_break_13",
   "allow_login_using_mobile_number",
   "allow_login_using_user_name",
-  "disable_user_pass_login",
   "login_with_email_link",
   "login_with_email_link_expiry",
-  "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
-  "password_settings",
-  "logout_on_password_reset",
-  "force_user_to_reset_password",
-  "reset_password_link_expiry_duration",
-  "password_reset_limit",
-  "column_break_31",
-  "enable_password_policy",
-  "minimum_password_score",
   "brute_force_security",
   "allow_consecutive_login_attempts",
   "column_break_34",
@@ -66,6 +50,16 @@
   "two_factor_method",
   "lifespan_qrcode_image",
   "otp_issuer_name",
+  "password_tab",
+  "password_settings",
+  "logout_on_password_reset",
+  "force_user_to_reset_password",
+  "reset_password_link_expiry_duration",
+  "password_reset_limit",
+  "column_break_31",
+  "enable_password_policy",
+  "minimum_password_score",
+  "email_tab",
   "email",
   "email_footer_address",
   "email_retry_limit",
@@ -75,17 +69,30 @@
   "attach_view_link",
   "welcome_email_template",
   "reset_password_template",
-  "prepared_report_section",
-  "max_auto_email_report_per_user",
+  "files_tab",
+  "files_section",
+  "max_file_size",
+  "allow_guests_to_upload_files",
+  "force_web_capture_mode_for_uploads",
+  "column_break_uqma",
+  "allowed_file_extensions",
+  "updates_tab",
   "system_updates_section",
   "disable_system_update_notification",
   "disable_change_log_notification",
+  "backups_tab",
+  "sec_backup_limit",
+  "backup_limit",
+  "encrypt_backup",
+  "advanced_tab",
+  "prepared_report_section",
+  "max_auto_email_report_per_user",
+  "background_workers",
+  "enable_scheduler",
+  "dormant_days",
   "telemetry_section",
-  "enable_telemetry",
-  "files_section",
-  "max_file_size",
-  "column_break_uqma",
-  "allowed_file_extensions"
+  "allow_error_traceback",
+  "enable_telemetry"
  ],
  "fields": [
   {
@@ -126,7 +133,6 @@
    "read_only": 1
   },
   {
-   "collapsible": 1,
    "fieldname": "date_and_number_format",
    "fieldtype": "Section Break",
    "label": "Date and Number Format"
@@ -171,10 +177,8 @@
    "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
   },
   {
-   "collapsible": 1,
    "fieldname": "sec_backup_limit",
-   "fieldtype": "Section Break",
-   "label": "Backups"
+   "fieldtype": "Section Break"
   },
   {
    "default": "3",
@@ -184,7 +188,6 @@
    "label": "Number of Backups"
   },
   {
-   "collapsible": 1,
    "fieldname": "background_workers",
    "fieldtype": "Section Break",
    "label": "Background Workers"
@@ -198,7 +201,6 @@
    "label": "Enable Scheduled Jobs"
   },
   {
-   "collapsible": 1,
    "fieldname": "permissions",
    "fieldtype": "Section Break",
    "label": "Permissions"
@@ -211,10 +213,8 @@
    "label": "Apply Strict User Permissions"
   },
   {
-   "collapsible": 1,
    "fieldname": "security",
-   "fieldtype": "Section Break",
-   "label": "Security"
+   "fieldtype": "Section Break"
   },
   {
    "default": "170:00",
@@ -255,7 +255,6 @@
    "label": "Show Full Error and Allow Reporting of Issues to the Developer"
   },
   {
-   "collapsible": 1,
    "fieldname": "password_settings",
    "fieldtype": "Section Break",
    "label": "Password"
@@ -286,7 +285,6 @@
    "options": "2\n3\n4"
   },
   {
-   "collapsible": 1,
    "fieldname": "brute_force_security",
    "fieldtype": "Section Break",
    "label": "Brute Force Security"
@@ -309,7 +307,6 @@
    "label": "Allow Login After Fail"
   },
   {
-   "collapsible": 1,
    "fieldname": "two_factor_authentication",
    "fieldtype": "Section Break",
    "label": "Two Factor Authentication"
@@ -338,6 +335,7 @@
   },
   {
    "default": "OTP App",
+   "depends_on": "enable_two_factor_auth",
    "description": "Choose authentication method to be used by all users",
    "fieldname": "two_factor_method",
    "fieldtype": "Select",
@@ -345,7 +343,7 @@
    "options": "OTP App\nSMS\nEmail"
   },
   {
-   "depends_on": "eval:doc.two_factor_method == \"OTP App\"",
+   "depends_on": "eval:doc.enable_two_factor_auth && doc.two_factor_method == \"OTP App\"",
    "description": "Time in seconds to retain QR code image on server. Min:<strong>240</strong>",
    "fieldname": "lifespan_qrcode_image",
    "fieldtype": "Int",
@@ -359,10 +357,8 @@
    "label": "OTP Issuer Name"
   },
   {
-   "collapsible": 1,
    "fieldname": "email",
-   "fieldtype": "Section Break",
-   "label": "Email"
+   "fieldtype": "Section Break"
   },
   {
    "description": "Your organization name and address for the email footer.",
@@ -430,7 +426,6 @@
    "label": "Include Web View Link in Email"
   },
   {
-   "collapsible": 1,
    "fieldname": "prepared_report_section",
    "fieldtype": "Section Break",
    "label": "Reports"
@@ -456,10 +451,8 @@
    "label": "Encrypt Backups"
   },
   {
-   "collapsible": 1,
    "fieldname": "system_updates_section",
-   "fieldtype": "Section Break",
-   "label": "System Updates"
+   "fieldtype": "Section Break"
   },
   {
    "default": "0",
@@ -547,7 +540,6 @@
    "label": "Disable Document Sharing"
   },
   {
-   "collapsible": 1,
    "fieldname": "telemetry_section",
    "fieldtype": "Section Break",
    "label": "Telemetry"
@@ -578,10 +570,8 @@
    "label": "Force Web Capture Mode for Uploads"
   },
   {
-   "collapsible": 1,
    "fieldname": "files_section",
-   "fieldtype": "Section Break",
-   "label": "Files"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "max_file_size",
@@ -598,12 +588,47 @@
    "fieldname": "allowed_file_extensions",
    "fieldtype": "Small Text",
    "label": "Allowed File Extensions"
+  },
+  {
+   "fieldname": "security_tab",
+   "fieldtype": "Tab Break",
+   "label": "Login"
+  },
+  {
+   "fieldname": "email_tab",
+   "fieldtype": "Tab Break",
+   "label": "Email"
+  },
+  {
+   "fieldname": "files_tab",
+   "fieldtype": "Tab Break",
+   "label": "Files"
+  },
+  {
+   "fieldname": "updates_tab",
+   "fieldtype": "Tab Break",
+   "label": "Updates"
+  },
+  {
+   "fieldname": "backups_tab",
+   "fieldtype": "Tab Break",
+   "label": "Backups"
+  },
+  {
+   "fieldname": "advanced_tab",
+   "fieldtype": "Tab Break",
+   "label": "Advanced"
+  },
+  {
+   "fieldname": "password_tab",
+   "fieldtype": "Tab Break",
+   "label": "Password"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-10-17 16:12:28.145496",
+ "modified": "2023-11-27 13:09:13.849522",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
