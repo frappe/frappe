@@ -87,6 +87,7 @@ class Communication(Document, CommunicationEmailMixin):
 			"Expired",
 			"Sending",
 			"Read",
+			"Scheduled",
 		]
 		email_account: DF.Link | None
 		email_status: DF.Literal["Open", "Spam", "Trash"]
@@ -162,6 +163,9 @@ class Communication(Document, CommunicationEmailMixin):
 		if not self.sent_or_received:
 			self.seen = 1
 			self.sent_or_received = "Sent"
+
+		if not self.send_after:  # Handle empty string, always set NULL
+			self.send_after = None
 
 		validate_email(self)
 
@@ -342,6 +346,9 @@ class Communication(Document, CommunicationEmailMixin):
 			self.status = "Open"
 		else:
 			self.status = "Closed"
+
+		if self.send_after and self.is_new():
+			self.delivery_status = "Scheduled"
 
 	def mark_email_as_spam(self):
 		if (
