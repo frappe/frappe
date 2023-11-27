@@ -126,7 +126,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Delivery Status",
-   "options": "\nSent\nBounced\nOpened\nMarked As Spam\nRejected\nDelayed\nSoft-Bounced\nClicked\nRecipient Unsubscribed\nError\nExpired\nSending\nRead"
+   "options": "\nSent\nBounced\nOpened\nMarked As Spam\nRejected\nDelayed\nSoft-Bounced\nClicked\nRecipient Unsubscribed\nError\nExpired\nSending\nRead\nScheduled"
   },
   {
    "fieldname": "section_break_8",
@@ -401,7 +401,7 @@
  "icon": "fa fa-comment",
  "idx": 1,
  "links": [],
- "modified": "2023-11-24 16:20:34.035984",
+ "modified": "2023-11-27 20:38:27.467076",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",
