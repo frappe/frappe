@@ -24,7 +24,7 @@
 		padding: var(--padding-sm) var(--padding-md);
 		margin: 0;
 		margin-bottom: var(--margin-sm);
-		cursor: pointer;
+		cursor: default;
 
 		.collapse-indicator {
 			color: var(--text-muted);
@@ -32,6 +32,10 @@
 			position: relative;
 			padding: 0px;
 		}
+	}
+
+	.section-head.collapsible {
+		cursor: pointer;
 	}
 
 	.section-head.collapsed {
