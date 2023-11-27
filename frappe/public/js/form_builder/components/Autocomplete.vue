@@ -131,6 +131,8 @@ watch(showOptions, (val) => {
 	border-radius: var(--border-radius-sm);
 	padding: 6px 10px;
 	width: 100%;
+	cursor: pointer;
+	user-select: none;
 
 	&:hover,
 	&.active {
