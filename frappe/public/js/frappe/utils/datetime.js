@@ -170,8 +170,17 @@ $.extend(frappe.datetime, {
 		return moment(d).format("YYYY-MM-DD HH:mm:ss");
 	},
 
-	fixDateFormatForCalendar(format) {
-		switch (frappe.boot.user.defaults.calendar_type) {
+	detectCalendarOfDate(format, date) {
+		if (moment(date, format).year() < 1600){
+			return 'jalali';	
+		} else {
+			return 'gregorian';
+		}
+
+	},
+
+	fixDateFormatForCalendar(format, calendar) {
+		switch (calendar || frappe.boot.user.defaults.calendar_type) {
 			case 'jalali':
 				return format
 					.replace(/(\W|^)YYYY(\W|$)/, '$1jYYYY$2')
@@ -191,8 +200,8 @@ $.extend(frappe.datetime, {
 			return moment(val, user_time_fmt).format(frappe.defaultTimeFormat);
 		}
 
-		var user_fmt = this.fixDateFormatForCalendar(frappe.datetime.get_user_date_fmt().toUpperCase());
-		var system_fmt = this.fixDateFormatForCalendar("YYYY-MM-DD");
+		var user_fmt = this.fixDateFormatForCalendar(frappe.datetime.get_user_date_fmt().toUpperCase(), this.detectCalendarOfDate(frappe.datetime.get_user_date_fmt().toUpperCase(), val));
+		var system_fmt = "YYYY-MM-DD";
 
 		if (val.indexOf(" ") !== -1) {
 			user_fmt += " " + user_time_fmt;
