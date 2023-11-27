@@ -30,7 +30,16 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			},
 			item: function (item, term) {
 				const d = this.get_item(item.value);
-				const target = d.route ? frappe.router.make_url(d.route) : "#";
+				let target = "#";
+				if (d.route) {
+					target = frappe.router.make_url(
+						frappe.router.convert_from_standard_route(
+							frappe.router.get_route_from_arguments(
+								typeof d.route === "string" ? [d.route] : d.route
+							)
+						)
+					);
+				}
 				let html = `<span>${__(d.label || d.value)}</span>`;
 
 				if (d.description && d.value !== d.description) {
