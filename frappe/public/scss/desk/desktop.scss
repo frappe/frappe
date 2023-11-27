@@ -14,6 +14,7 @@ body {
 		font-size: var(--text-xs);
 		text-transform: uppercase;
 		cursor: pointer;
+		margin-bottom: var(--margin-xs) !important;
 
 		span {
 			pointer-events: none;
@@ -549,6 +550,7 @@ body {
 
 	&.shortcut-widget-box {
 		cursor: pointer;
+		padding: 2px 7px;
 
 		&:hover {
 			--icon-stroke: var(--invert-neutral);
@@ -1038,13 +1040,14 @@ body {
 		.item-anchor {
 			display: flex;
 			overflow: hidden;
-			padding: 4px 0px 4px 8px;
+			padding: 3px 0px 3px 8px;
 			flex: 1;
 		}
 	}
 
 	.sidebar-item-container {
 		position: relative;
+		margin-left: -10px;
 
 		&[item-is-hidden="1"] {
 			display: none;
@@ -1061,6 +1064,10 @@ body {
 			.standard-sidebar-item {
 				justify-content: start;
 			}
+		}
+
+		.indicator {
+			margin-left: 5px;
 		}
 	}
 
