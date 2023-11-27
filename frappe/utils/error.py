@@ -70,6 +70,12 @@ def log_error(
 	)
 	capture("error_logged", "frappe", properties={"title": title, "trace_id": trace_id})
 
+	if frappe.get_system_settings("enable_telemetry"):
+		from frappe.app import capture_exception
+
+		# Capture exception data if telemetry is enabled
+		capture_exception(message=f"{title}\n{traceback}")
+
 	if frappe.flags.read_only or defer_insert:
 		error_log.deferred_insert()
 	else:

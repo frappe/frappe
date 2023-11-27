@@ -22,7 +22,7 @@ import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
-from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
+from frappe.auth import UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
@@ -59,6 +59,10 @@ if frappe._tune_gc:
 	import frappe.website.path_resolver  # all the page types and resolver
 	import frappe.website.router  # Website router
 	import frappe.website.website_generator  # web page doctypes
+
+	# Import sentry only if DSN is set
+	if os.getenv("FRAPPE_SENTRY_DSN"):
+		import frappe.utils.sentry
 
 # end: module pre-loading
 
