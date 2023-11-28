@@ -73,6 +73,7 @@ export default class Section {
 		this.indicator.hide();
 
 		if (this.df.collapsible) {
+			this.head.addClass("collapsible");
 			// show / hide based on status
 			this.collapse_link = this.head.on("click", () => {
 				this.collapse();
