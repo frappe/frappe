@@ -14,8 +14,6 @@
   "column_break_5",
   "reference_doctype",
   "reference_name",
-  "link_doctype",
-  "link_name",
   "reference_owner",
   "section_break_10",
   "content",
@@ -77,18 +75,6 @@
    "options": "reference_doctype"
   },
   {
-   "fieldname": "link_doctype",
-   "fieldtype": "Link",
-   "label": "Link DocType",
-   "options": "DocType"
-  },
-  {
-   "fieldname": "link_name",
-   "fieldtype": "Dynamic Link",
-   "label": "Link Name",
-   "options": "link_doctype"
-  },
-  {
    "fieldname": "reference_owner",
    "fieldtype": "Data",
    "label": "Reference Owner",
@@ -113,7 +99,7 @@
   }
  ],
  "links": [],
- "modified": "2022-07-12 17:35:31.774137",
+ "modified": "2023-07-24 13:52:55.651462",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",

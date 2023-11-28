@@ -11,7 +11,7 @@ from oauthlib.openid import RequestValidator
 
 import frappe
 from frappe.auth import LoginManager
-from frappe.utils.data import get_system_timezone
+from frappe.utils.data import get_system_timezone, now_datetime
 
 
 class OAuthWebRequestValidator(RequestValidator):
@@ -248,13 +248,7 @@ class OAuthWebRequestValidator(RequestValidator):
 	def validate_bearer_token(self, token, scopes, request):
 		# Remember to check expiration and scope membership
 		otoken = frappe.get_doc("OAuth Bearer Token", token)
-		token_expiration_local = otoken.expiration_time.replace(
-			tzinfo=pytz.timezone(get_system_timezone())
-		)
-		token_expiration_utc = token_expiration_local.astimezone(pytz.utc)
-		is_token_valid = (
-			frappe.utils.datetime.datetime.utcnow().replace(tzinfo=pytz.utc) < token_expiration_utc
-		) and otoken.status != "Revoked"
+		is_token_valid = (now_datetime() < otoken.expiration_time) and otoken.status != "Revoked"
 		client_scopes = frappe.db.get_value("OAuth Client", otoken.client, "scopes").split(
 			get_url_delimiter()
 		)

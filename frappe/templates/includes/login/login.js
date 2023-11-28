@@ -288,8 +288,9 @@ login.login_handlers = (function () {
 			}
 		},
 		401: get_error_handler('{{ _("Invalid Login. Try again.") }}'),
-		417: get_error_handler('{{ _("Oops! Something went wrong") }}'),
-		404: get_error_handler('{{ _("User does not exist.")}}')
+		417: get_error_handler('{{ _("Oops! Something went wrong.") }}'),
+		404: get_error_handler('{{ _("User does not exist.")}}'),
+		500: get_error_handler('{{ _("Something went wrong.") }}')
 	};
 
 	return login_handlers;
