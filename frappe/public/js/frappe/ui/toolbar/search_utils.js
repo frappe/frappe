@@ -560,6 +560,18 @@ frappe.search.utils = {
 		];
 	},
 
+	match_doctype_singular_plural: function (key, doctype) {
+		const singular_match = this.fuzzy_search(key, doctype, true);
+		const plural_doctype = doctype.plural();
+		const plural_match = this.fuzzy_search(key, plural_doctype, true);
+
+		if (plural_match.score > singular_match.score) {
+			return { key, item: plural_doctype, ...plural_match };
+		} else {
+			return { key, item: doctype, ...singular_match };
+		}
+	},
+
 	fuzzy_search: function (keywords = "", _item = "", return_marked_string = false) {
 		const item = __(_item);
 
