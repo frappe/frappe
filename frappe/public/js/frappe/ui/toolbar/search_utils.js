@@ -113,22 +113,22 @@ frappe.search.utils = {
 	get_search_in_list: function (keywords) {
 		var me = this;
 		var out = [];
-		if (in_list(keywords.split(" "), "in") && keywords.slice(-2) !== "in") {
-			var parts = keywords.split(" in ");
-			frappe.boot.user.can_read.forEach(function (item) {
-				if (frappe.boot.user.can_search.includes(item)) {
-					const search_result = me.fuzzy_search(parts[1], item, true);
-					if (search_result.score) {
+		if (keywords.includes(" in ") && !keywords.trim().endsWith(" in")) {
+			const [key_val, key_dt] = keywords.split(" in ");
+			frappe.boot.user.can_read.forEach(function (doctype) {
+				if (frappe.boot.user.can_search.includes(doctype)) {
+					const match_result = me.match_doctype_singular_plural(key_dt, doctype);
+					if (match_result.score) {
 						out.push({
 							type: "In List",
 							label: __("Find {0} in {1}", [
-								__(parts[0]),
-								search_result.marked_string,
+								__(key_val),
+								match_result.marked_string,
 							]),
-							value: __("Find {0} in {1}", [__(parts[0]), __(item)]),
-							route_options: { name: ["like", "%" + parts[0] + "%"] },
-							index: 1 + search_result.score,
-							route: ["List", item],
+							value: __("Find {0} in {1}", [__(key_val), __(doctype)]),
+							route_options: { name: ["like", "%" + key_val + "%"] },
+							index: 1 + match_result.score,
+							route: ["List", doctype],
 						});
 					}
 				}
