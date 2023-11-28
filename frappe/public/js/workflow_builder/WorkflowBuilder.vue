@@ -128,6 +128,7 @@ onConnect((edge) => {
 		data: {
 			action: "",
 			allowed: "All",
+			allow_self_approval: 1,
 			from: source_node.data.state,
 			to: target_node.data.state,
 			from_id: source_node.id,

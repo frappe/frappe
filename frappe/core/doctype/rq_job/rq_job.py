@@ -59,6 +59,7 @@ class RQJob(Document):
 		]
 		time_taken: DF.Duration | None
 		timeout: DF.Duration | None
+
 	# end: auto-generated types
 	def load_from_db(self):
 		try:
@@ -79,7 +80,7 @@ class RQJob(Document):
 	@staticmethod
 	def get_list(args):
 
-		start = cint(args.get("start")) or 0
+		start = cint(args.get("start"))
 		page_length = cint(args.get("page_length")) or 20
 
 		order_desc = "desc" in args.get("order_by", "")

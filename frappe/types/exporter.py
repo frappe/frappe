@@ -162,6 +162,9 @@ class TypeExporter:
 		if field.fieldtype in non_nullable_types:
 			return False
 
+		if field.not_nullable:
+			return False
+
 		return not bool(field.reqd)
 
 	def _generic_parameters(self, field) -> str | None:
