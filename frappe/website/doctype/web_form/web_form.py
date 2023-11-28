@@ -245,6 +245,9 @@ def get_context(context):
 		context.boot = get_boot_data()
 		context.boot["link_title_doctypes"] = frappe.boot.get_link_title_doctypes()
 
+		context.webform_banner_image = self.banner_image
+		context.pop("banner_image", None)
+
 	def add_metatags(self, context):
 		description = self.meta_description
 
@@ -660,32 +663,14 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 
 		fields = ["name as value"]
 
-		title_field = frappe.get_cached_value("DocType", doctype, "title_field")
-		show_title_field_in_link = (
-			frappe.get_cached_value("DocType", doctype, "show_title_field_in_link") == 1
-		)
-		if not show_title_field_in_link:
-			value = frappe.db.get_value(
-				"Property Setter",
-				fieldname="value",
-				filters={"property": "show_title_field_in_link", "doc_type": doctype},
-			)
-			if value and int(value) == 1:
-				show_title_field_in_link = True
+		meta = frappe.get_meta(doctype)
 
-		if not title_field:
-			title_field = frappe.db.get_value(
-				"Property Setter",
-				fieldname="value",
-				filters={"property": "title_field", "doc_type": doctype},
-			)
-
-		if title_field and show_title_field_in_link:
-			fields.append(f"{title_field} as label")
+		if meta.title_field and meta.show_title_field_in_link:
+			fields.append(f"{meta.title_field} as label")
 
 		link_options = frappe.get_all(doctype, filters, fields)
 
-		if title_field and show_title_field_in_link:
+		if meta.title_field and meta.show_title_field_in_link:
 			return json.dumps(link_options, default=str)
 		else:
 			return "\n".join([str(doc.value) for doc in link_options])

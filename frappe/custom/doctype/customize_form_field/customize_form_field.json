@@ -204,7 +204,7 @@
    "label": "Permissions"
   },
   {
-   "description": "This field will appear only if the fieldname defined here has value OR the rules are true (examples): \nmyfield\neval:doc.myfield=='My Value'\neval:doc.age&gt;18",
+   "description": "This field will appear only if the fieldname defined here has value OR the rules are true (examples):\nmyfield\neval:doc.myfield=='My Value'\neval:doc.age&gt;18",
    "fieldname": "depends_on",
    "fieldtype": "Code",
    "label": "Depends On",

@@ -9,6 +9,7 @@ import frappe.defaults
 import frappe.permissions
 import frappe.share
 from frappe import STANDARD_USERS, _, msgprint, throw
+from frappe.auth import MAX_PASSWORD_SIZE
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	create_notification_settings,
@@ -822,6 +823,9 @@ def update_password(
 	        key (str, optional): Password reset key. Defaults to None.
 	        old_password (str, optional): Old password. Defaults to None.
 	"""
+
+	if len(new_password) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("Password size exceeded the maximum allowed size."))
 
 	result = test_password_strength(new_password)
 	feedback = result.get("feedback", None)

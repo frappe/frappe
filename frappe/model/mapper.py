@@ -147,6 +147,7 @@ def get_mapped_doc(
 	if postprocess:
 		postprocess(source_doc, target_doc)
 
+	target_doc.run_method("after_mapping", source_doc)
 	target_doc.set_onload("load_after_mapping", True)
 
 	if (
