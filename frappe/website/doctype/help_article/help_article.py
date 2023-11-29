@@ -41,7 +41,10 @@ class HelpArticle(WebsiteGenerator):
 
 	def on_update(self):
 		self.update_category()
+
+	def clear_cache(self):
 		clear_cache()
+		return super().clear_cache()
 
 	def update_category(self):
 		cnt = frappe.db.count("Help Article", filters={"category": self.category, "published": 1})

@@ -36,5 +36,6 @@ class HelpCategory(WebsiteGenerator):
 		if not self.route:
 			self.route = "kb/" + self.scrub(self.category_name)
 
-	def on_update(self):
+	def clear_cache(self):
 		clear_cache()
+		return super().clear_cache()
