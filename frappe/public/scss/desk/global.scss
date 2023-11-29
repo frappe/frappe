@@ -470,7 +470,7 @@ kbd {
 		@include get_textstyle("base", "regular");
 		padding: 8px 12px;
 		margin-bottom: 2px;
-		border-radius: var(--border-radius-md);
+		border-radius: var(--border-radius);
 		overflow: hidden;
 		cursor: pointer;
 
