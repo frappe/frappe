@@ -43,7 +43,7 @@ class HelpArticle(WebsiteGenerator):
 		self.update_category()
 
 	def clear_cache(self):
-		clear_cache()
+		clear_website_cache()
 		return super().clear_cache()
 
 	def update_category(self):
@@ -113,14 +113,6 @@ def get_sidebar_items():
 		)
 
 	return frappe.cache.get_value("knowledge_base:category_sidebar", _get)
-
-
-def clear_cache():
-	clear_website_cache()
-
-	from frappe.website.utils import clear_cache
-
-	clear_cache()
 
 
 def clear_website_cache(path=None):

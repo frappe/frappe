@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.website.doctype.help_article.help_article import clear_cache
+from frappe.website.doctype.help_article.help_article import clear_website_cache
 from frappe.website.website_generator import WebsiteGenerator
 
 
@@ -37,5 +37,5 @@ class HelpCategory(WebsiteGenerator):
 			self.route = "kb/" + self.scrub(self.category_name)
 
 	def clear_cache(self):
-		clear_cache()
+		clear_website_cache()
 		return super().clear_cache()
