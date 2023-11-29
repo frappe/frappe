@@ -527,18 +527,27 @@ frappe.views.CommunicationComposer = class {
 
 	get_attachment_row(attachment, checked) {
 		return $(`<p class="checkbox flex">
-			<label class="ellipsis" title="${attachment.file_name}">
+			<label title="${attachment.file_name}" style="max-width: 100%">
 				<input
 					type="checkbox"
 					data-file-name="${attachment.name}"
 					${checked ? "checked" : ""}>
 				</input>
-				<span class="ellipsis">${attachment.file_name}</span>
+				<span
+					class="ellipsis"
+					style="max-width: calc(100% - var(--checkbox-size) - var(--checkbox-right-margin) - var(--padding-xs) - 16px)"
+				>
+					${attachment.file_name}
+				</span>
+				<a
+					href="${attachment.file_url}"
+					target="_blank"
+					class="btn-link"
+					style="padding-left: var(--padding-xs)"
+				>
+					${frappe.utils.icon("link-url", "sm")}
+				</a>
 			</label>
-			&nbsp;
-			<a href="${attachment.file_url}" target="_blank" class="btn-linkF">
-				${frappe.utils.icon("link-url")}
-			</a>
 		</p>`);
 	}
 
