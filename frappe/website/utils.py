@@ -573,19 +573,16 @@ def set_content_type(response, data, path):
 def add_preload_for_bundled_assets(response):
 	links = [f"<{css}>; rel=preload; as=style" for css in frappe.local.preload_assets["style"]]
 	links.extend(f"<{js}>; rel=preload; as=script" for js in frappe.local.preload_assets["script"])
-	links.extend(_preload_svg_headers())
+
+	version = get_build_version()
+	# include_icons = frappe.get_hooks().get("app_include_icons", [])
+	links.extend(
+		f"</assets/{svg}?v={version}>; rel=preload; as=fetch; crossorigin"
+		for svg in frappe.local.preload_assets["icons"]
+	)
 
 	if links:
 		response.headers["Link"] = ",".join(links)
-
-
-def _preload_svg_headers():
-	include_icons = frappe.get_hooks().get("app_include_icons", [])
-
-	version = get_build_version()
-	return [
-		f"</assets/{svg}?v={version}>; rel=preload; as=fetch; crossorigin" for svg in include_icons
-	]
 
 
 @lru_cache

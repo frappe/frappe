@@ -45,6 +45,7 @@ def get_context(context):
 	include_js = hooks.get("app_include_js", []) + frappe.conf.get("app_include_js", [])
 	include_css = hooks.get("app_include_css", []) + frappe.conf.get("app_include_css", [])
 	include_icons = hooks.get("app_include_icons", [])
+	frappe.local.preload_assets["icons"].extend(include_icons)
 
 	context.update(
 		{
