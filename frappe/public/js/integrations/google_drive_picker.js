@@ -1,7 +1,7 @@
 /* global gapi:false, google:false */
 export default class GoogleDrivePicker {
 	constructor({ pickerCallback, enabled, appId, developerKey, clientId } = {}) {
-		this.scope = ["https://www.googleapis.com/auth/drive.readonly"];
+		this.scope = "https://www.googleapis.com/auth/drive.file";
 		this.pickerApiLoaded = false;
 		this.enabled = enabled;
 		this.appId = appId;
@@ -10,86 +10,75 @@ export default class GoogleDrivePicker {
 		this.clientId = clientId;
 	}
 
-	loadPicker() {
-		// load the google API library
-		$.ajax({
-			method: "GET",
-			url: "https://apis.google.com/js/api.js",
-			dataType: "script",
-			cache: true,
-		}).done(this.loadGapi.bind(this));
+	async loadPicker() {
+		inject_script("https://accounts.google.com/gsi/client").then(() => {
+			this.authenticate();
+		});
+
+		inject_script("https://apis.google.com/js/api.js").then(() => {
+			gapi.load("client:picker", {
+				callback: () => {
+					gapi.client.load("https://www.googleapis.com/discovery/v1/apis/drive/v3/rest");
+				},
+			});
+		});
 	}
 
-	loadGapi() {
-		// load auth and picker libraries
-		if (!frappe.boot.user.google_drive_token) {
-			gapi.load("auth", this.onAuthApiLoad.bind(this));
-		}
+	authenticate() {
+		const tokenClient = google.accounts.oauth2.initTokenClient({
+			client_id: this.clientId,
+			scope: this.scope,
+			callback: async (response) => {
+				if (response.error !== undefined) {
+					frappe.throw(response);
+				}
 
-		gapi.load("picker", this.onPickerApiLoad.bind(this));
-	}
-
-	onAuthApiLoad() {
-		gapi.auth.authorize(
-			{
-				client_id: this.clientId,
-				scope: this.scope,
-				immediate: false,
+				this.createPicker(response.access_token);
 			},
-			this.handleAuthResult.bind(this)
-		);
+		});
+
+		// Always try to get away with an empty prompt.
+		// This will still ask for consent if the user has not given it before.
+		tokenClient.requestAccessToken({ prompt: "" });
 	}
 
-	handleAuthResult(authResult) {
-		let error_map = {
-			popup_closed_by_user: __("Google Authentication was closed abruptly by the user"),
-		};
-
-		if (authResult && !authResult.error) {
-			frappe.boot.user.google_drive_token = authResult.access_token;
-			this.createPicker();
-		} else {
-			let error = error_map[authResult.error] || __("Google Authentication Error");
-			frappe.throw(error);
-		}
-	}
-
-	onPickerApiLoad() {
-		this.pickerApiLoaded = true;
-		this.createPicker();
-	}
-
-	createPicker() {
-		// Create and render a Picker object for searching images.
-		if (this.pickerApiLoaded && frappe.boot.user.google_drive_token) {
-			this.view = new google.picker.DocsView(google.picker.ViewId.DOCS)
-				.setParent("root") // show the root folder by default
-				.setIncludeFolders(true); // also show folders, not just files
-
-			this.picker = new google.picker.PickerBuilder()
-				.setAppId(this.appId)
-				.setDeveloperKey(this.developerKey)
-				.setOAuthToken(frappe.boot.user.google_drive_token)
-				.addView(this.view)
-				.setLocale(frappe.boot.lang)
-				.setCallback(this.pickerCallback)
-				.build();
-
-			this.picker.setVisible(true);
-			this.setupHide();
-		}
+	createPicker(access_token) {
+		this.view = new google.picker.View(google.picker.ViewId.DOCS);
+		this.picker = new google.picker.PickerBuilder()
+			.setDeveloperKey(this.developerKey)
+			.setAppId(this.appId)
+			.setOAuthToken(access_token)
+			.addView(this.view)
+			.addView(new google.picker.DocsUploadView())
+			.setLocale(frappe.boot.lang)
+			.setCallback(this.pickerCallback)
+			.build();
+		this.picker.setVisible(true);
+		this.setupHide();
 	}
 
 	setupHide() {
-		let bg = $(".picker-dialog-bg");
+		let bg = document.querySelectorAll(".picker-dialog-bg");
 
-		for (let el of bg) {
-			el.onclick = () => {
-				this.picker.setVisible(false);
-				this.picker.Ob({
-					action: google.picker.Action.CANCEL,
-				});
-			};
+		for (const el of bg) {
+			el.addEventListener("click", () => {
+				this.picker.dispose();
+			});
 		}
 	}
+}
+
+function inject_script(src) {
+	return new Promise((resolve, reject) => {
+		if (document.querySelector(`script[src="${src}"]`) !== null) {
+			resolve();
+			return;
+		}
+
+		let script = document.createElement("script");
+		script.src = src;
+		script.onload = resolve;
+		script.onerror = reject;
+		document.body.appendChild(script);
+	});
 }
