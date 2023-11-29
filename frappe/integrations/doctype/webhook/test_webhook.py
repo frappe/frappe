@@ -112,14 +112,14 @@ class TestWebhook(FrappeTestCase):
 		"""Test webhook trigger for enabled webhooks"""
 
 		frappe.cache.delete_value("webhooks")
-		frappe.flags.webhooks = None
 
 		# Insert the user to db
 		self.test_user.insert()
 
-		self.assertTrue("User" in frappe.flags.webhooks)
+		webhooks = frappe.cache.get_value("webhooks")
+		self.assertTrue("User" in webhooks)
 		# only 1 hook (enabled) must be queued
-		self.assertEqual(len(frappe.flags.webhooks.get("User")), 1)
+		self.assertEqual(len(webhooks.get("User")), 1)
 		self.assertTrue(self.test_user.email in frappe.flags.webhooks_executed)
 		self.assertEqual(
 			frappe.flags.webhooks_executed.get(self.test_user.email)[0], self.sample_webhooks[0].name
