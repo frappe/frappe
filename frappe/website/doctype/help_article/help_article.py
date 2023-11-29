@@ -115,7 +115,7 @@ def get_sidebar_items():
 	return frappe.cache.get_value("knowledge_base:category_sidebar", _get)
 
 
-def clear_knowledge_base_cache(path=None):
+def clear_knowledge_base_cache():
 	frappe.cache.delete_value("knowledge_base:category_sidebar")
 	frappe.cache.delete_value("knowledge_base:faq")
 
