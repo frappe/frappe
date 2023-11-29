@@ -687,13 +687,13 @@ class QueueBuilder:
 			mail.set_in_reply_to(self.in_reply_to)
 		return mail
 
-	def process(self, send_now=False):
+	def process(self, send_now=False) -> EmailQueue | None:
 		"""Build and return the email queues those are created.
 
 		Sends email incase if it is requested to send now.
 		"""
 		final_recipients = self.final_recipients()
-		queue_separately = (final_recipients and self.queue_separately) or len(final_recipients) > 20
+		queue_separately = (final_recipients and self.queue_separately) or len(final_recipients) > 100
 		if not (final_recipients + self.final_cc()):
 			return []
 
@@ -705,6 +705,7 @@ class QueueBuilder:
 			recipients = list(set(final_recipients + self.final_cc() + self.bcc))
 			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
 			send_now and q.send()
+			return q
 		else:
 			if send_now and len(final_recipients) >= 1000:
 				# force queueing if there are too many recipients to avoid timeouts
