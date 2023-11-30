@@ -55,6 +55,7 @@ class DbManager:
 
 		from frappe.utils import make_esc
 
+<<<<<<< HEAD
 		esc = make_esc("$ ")
 		pv = which("pv")
 
@@ -66,19 +67,19 @@ class DbManager:
 			pipe = ""
 			source = f"< {source}"
 =======
+=======
+>>>>>>> 6e8f32af58 (chore: don't pipe output through `pv`)
 		command = []
 
 		if source.endswith(".gz"):
 			if gzip := which("gzip"):
 				command.extend([gzip, "-cd", source, "|"])
 				source = []
-				if pv:
-					command.extend([pv, "|"])
-					print("Restoring Database file...")
 			else:
 				raise Exception("`gzip` not installed")
 
 		else:
+<<<<<<< HEAD
 			if pv:
 				command.extend([pv, source, "|"])
 				source = []
@@ -86,6 +87,9 @@ class DbManager:
 			else:
 				source = ["<", source]
 >>>>>>> 0b508e2a96 (feat(db_manager): avoid extraction of DB dump if gzipped)
+=======
+			source = ["<", source]
+>>>>>>> 6e8f32af58 (chore: don't pipe output through `pv`)
 
 		if pipe:
 			print("Restoring Database file...")
