@@ -99,19 +99,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
- "modified": "2023-10-04 12:45:49.099121",
-=======
- "modified": "2023-10-10 12:55:56.556403",
->>>>>>> 6758be3e24 (feat: start and end date filters)
-=======
- "modified": "2023-10-10 15:20:00.558979",
->>>>>>> 8707fbf248 (fix: make date filters mandatory)
-=======
  "modified": "2023-10-31 13:12:41.749483",
->>>>>>> bc693edc4e (fix: make date range filters optional)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Audit Trail",
