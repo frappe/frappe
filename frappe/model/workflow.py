@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import json
+from collections import defaultdict
 from typing import TYPE_CHECKING, Union
 
 import frappe
@@ -233,17 +234,30 @@ def get_workflow_field_value(workflow_name, field):
 
 @frappe.whitelist()
 def bulk_workflow_approval(docnames, doctype, action):
-	from collections import defaultdict
 
+	docnames = json.loads(docnames)
+	if len(docnames) < 20:
+		_bulk_workflow_action(docnames, doctype, action)
+	elif len(docnames) <= 500:
+		frappe.msgprint(_("Bulk {0} is enqueued in background.").format(action), alert=True)
+		frappe.enqueue(
+			_bulk_workflow_action,
+			docnames=docnames,
+			doctype=doctype,
+			action=action,
+			queue="short",
+			timeout=1000,
+		)
+	else:
+		frappe.throw(_("Bulk approval only support up to 500 documents."), title=_("Too Many Documents"))
+
+
+def _bulk_workflow_action(docnames, doctype, action):
 	# dictionaries for logging
 	failed_transactions = defaultdict(list)
 	successful_transactions = defaultdict(list)
 
-	# WARN: message log is cleared
-	print("Clearing frappe.message_log...")
 	frappe.clear_messages()
-
-	docnames = json.loads(docnames)
 	for (idx, docname) in enumerate(docnames, 1):
 		message_dict = {}
 		try:
@@ -308,7 +322,9 @@ def print_workflow_log(messages, title, doctype, indicator):
 				html = f"<div>{doc}</div>"
 			msg += html
 
-		frappe.msgprint(msg, title=_("Workflow Status"), indicator=indicator, is_minimizable=True)
+		frappe.msgprint(
+			msg, title=_("Workflow Status"), indicator=indicator, is_minimizable=True, realtime=True
+		)
 
 
 @frappe.whitelist()
