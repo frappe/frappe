@@ -65,19 +65,9 @@ def capture_exception(
 
 
 def add_bootinfo(bootinfo):
-	"""Called from hook, sends DSN so client side can setup error monitoring.
-
-	Config needs to be present in site_config in following format:
-
-	"error_reporting": {
-	        "sentry": {
-	                "dsn": "...",
-	                ...
-	        }
-	}
-	"""
+	"""Called from hook, sends DSN so client side can setup error monitoring."""
 	if not frappe.get_system_settings("enable_telemetry"):
 		return
 
-	if sentry_info := os.getenv("FRAPPE_SENTRY_DSN"):
-		bootinfo.sentry = sentry_info
+	if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
+		bootinfo.sentry_dsn = sentry_dsn
