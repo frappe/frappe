@@ -1,5 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import os
+
 no_cache = 1
 
 import json
@@ -46,6 +48,9 @@ def get_context(context):
 	include_css = hooks.get("app_include_css", []) + frappe.conf.get("app_include_css", [])
 	include_icons = hooks.get("app_include_icons", [])
 	frappe.local.preload_assets["icons"].extend(include_icons)
+
+	if frappe.get_system_settings("enable_telemetry") and os.getenv("FRAPPE_SENTRY_DSN"):
+		include_js.append("sentry.bundle.js")
 
 	context.update(
 		{
