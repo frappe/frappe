@@ -328,7 +328,8 @@ def export_query():
 		report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False
 	)
 	data = frappe._dict(data)
-	data.filters = form_params.filters
+	data.filters = form_params.applied_filters
+
 	if not data.columns:
 		frappe.respond_as_web_page(
 			_("No data to export"),
@@ -396,7 +397,7 @@ def build_xlsx_data(
 			if filter_value in ["", None, []]:
 				continue
 			filter_value = ", ".join(filter_value) if isinstance(filter_value, list) else cstr(filter_value)
-			filter_data.append([cstr(filter_name) + ": ", filter_value])
+			filter_data.append([cstr(filter_name), filter_value])
 		filter_data.append([])
 		result += filter_data
 
