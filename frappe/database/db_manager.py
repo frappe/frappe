@@ -57,27 +57,17 @@ class DbManager:
 		from frappe.database import get_command
 		from frappe.utils import execute_in_shell
 
-		pv = which("pv")
-
 		command = []
 
 		if source.endswith(".gz"):
 			if gzip := which("gzip"):
 				command.extend([gzip, "-cd", source, "|"])
 				source = []
-				if pv:
-					command.extend([pv, "|"])
-					print("Restoring Database file...")
 			else:
 				raise Exception("`gzip` not installed")
 
 		else:
-			if pv:
-				command.extend([pv, source, "|"])
-				source = []
-				print("Restoring Database file...")
-			else:
-				source = ["<", source]
+			source = ["<", source]
 
 		bin, args, bin_name = get_command(
 			host=frappe.conf.db_host,
