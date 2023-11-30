@@ -96,14 +96,8 @@ frappe.ui.form.on("Customize Form", {
 		frm.page.clear_icons();
 
 		if (frm.doc.doc_type) {
-<<<<<<< HEAD
-			frm.page.set_title(__("Customize Form - {0}", [frm.doc.doc_type]));
+			frm.page.set_title(__("Customize Form - {0}", [__(frm.doc.doc_type)]));
 			frappe.customize_form.set_primary_action(frm);
-=======
-			frappe.model.with_doctype(frm.doc.doc_type).then(() => {
-				frm.page.set_title(__("Customize Form - {0}", [__(frm.doc.doc_type)]));
-				frappe.customize_form.set_primary_action(frm);
->>>>>>> 7e08f003b3 (fix: translate customize form (german) (#23497))
 
 			frm.add_custom_button(
 				__("Go to {0} List", [__(frm.doc.doc_type)]),
