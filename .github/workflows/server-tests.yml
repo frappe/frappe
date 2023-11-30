@@ -132,6 +132,7 @@ jobs:
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           TYPE: server
           DB: ${{ matrix.db }}
 
@@ -142,6 +143,7 @@ jobs:
           SITE: test_site
           CI_BUILD_ID: ${{ github.run_id }}
           BUILD_NUMBER: ${{ matrix.container }}
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           TOTAL_BUILDS: 2
           COVERAGE_RCFILE: /home/runner/frappe-bench/apps/frappe/.coveragerc
 
