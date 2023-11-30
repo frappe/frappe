@@ -153,8 +153,11 @@ def remove_orphan_doctypes():
 	orphan_doctypes = []
 
 	clear_controller_cache()
+	class_overrides = frappe.get_hooks("override_doctype_class", {})
 
 	for doctype in doctype_names:
+		if doctype in class_overrides:
+			continue
 		try:
 			get_controller(doctype=doctype)
 		except ImportError:
