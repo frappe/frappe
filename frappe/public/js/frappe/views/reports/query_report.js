@@ -1512,6 +1512,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						filters
 					);
 				}
+				let applied_filters = Object.fromEntries(
+					Object.entries(filters).map(([key, value]) => [
+						frappe.query_report.get_filter(key).df.label,
+						value,
+					])
+				);
 
 				const visible_idx = this.datatable.bodyRenderer.visibleRowIndices;
 				if (visible_idx.length + 1 === this.data.length) {
@@ -1524,6 +1530,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					custom_columns: this.custom_columns.length ? this.custom_columns : [],
 					file_format_type: file_format,
 					filters: filters,
+					applied_filters: applied_filters,
 					visible_idx,
 					csv_delimiter,
 					csv_quoting,
