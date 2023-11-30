@@ -82,6 +82,11 @@
 		</span>
 	</span>
 	<div class="content">
+		{% if (doc.subject ) { %}
+			<div class="flex justify-content-around m-1" style="font-size: 1rem;">
+				<span class="underline">{{__('Subject')}} : {{doc.subject}}</span>
+			</div>
+		{% } %}
 		{{ doc.content }}
 	</div>
 	{% if (doc.attachments && doc.attachments.length) { %}
