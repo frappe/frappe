@@ -444,3 +444,18 @@ extend_bootinfo = [
 ]
 
 export_python_type_annotations = True
+
+# log doctype cleanups to automatically add in log settings
+default_log_clearing_doctypes = {
+	"Error Log": 30,
+	"Activity Log": 90,
+	"Email Queue": 30,
+	"Scheduled Job Log": 90,
+	"Route History": 90,
+	"Submission Queue": 30,
+	"Prepared Report": 30,
+	"Webhook Request Log": 30,
+	"Integration Request": 90,
+	"Unhandled Email": 30,
+	"Reminder": 30,
+}
