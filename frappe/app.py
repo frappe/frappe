@@ -22,7 +22,7 @@ import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
-from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
+from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth  # noqa
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html

@@ -120,6 +120,7 @@ jobs:
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           TYPE: ui
           DB: mariadb
 

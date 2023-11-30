@@ -187,6 +187,7 @@ def complete_setup_wizard():
 			"country": "United States",
 			"timezone": "America/New_York",
 			"currency": "USD",
+			"enable_telemtry": 1,
 		}
 	)
 
