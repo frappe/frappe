@@ -116,7 +116,13 @@ export default {
 	},
 };
 </script>
+<<<<<<< HEAD
 <style>
+=======
+
+<style scoped>
+@import "cropperjs/dist/cropper.min.css";
+>>>>>>> ba1d597e73 (fix: image cropper in RTL mode (#23492))
 img {
 	display: block;
 	max-width: 100%;
