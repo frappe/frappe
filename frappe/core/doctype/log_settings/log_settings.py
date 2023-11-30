@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import cint
 from frappe.utils.caching import site_cache
 
+<<<<<<< HEAD
 DEFAULT_LOGTYPES_RETENTION = {
 	"Error Log": 30,
 	"Activity Log": 90,
@@ -21,6 +22,8 @@ DEFAULT_LOGTYPES_RETENTION = {
 	"Webhook Request Log": 30,
 }
 
+=======
+>>>>>>> c23771475c (refactor: Use hooks to specify default log clearing (#23507))
 
 @runtime_checkable
 class LogType(Protocol):
@@ -67,12 +70,14 @@ class LogSettings(Document):
 	def add_default_logtypes(self):
 		existing_logtypes = {d.ref_doctype for d in self.logs_to_clear}
 		added_logtypes = set()
-		for logtype, retention in DEFAULT_LOGTYPES_RETENTION.items():
+		default_logtypes_retention = frappe.get_hooks("default_log_clearing_doctypes", {})
+
+		for logtype, retentions in default_logtypes_retention.items():
 			if logtype not in existing_logtypes and _supports_log_clearing(logtype):
 				if not frappe.db.exists("DocType", logtype):
 					continue
 
-				self.append("logs_to_clear", {"ref_doctype": logtype, "days": cint(retention)})
+				self.append("logs_to_clear", {"ref_doctype": logtype, "days": cint(retentions[-1])})
 				added_logtypes.add(logtype)
 
 		if added_logtypes:

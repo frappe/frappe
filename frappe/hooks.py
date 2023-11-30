@@ -438,3 +438,23 @@ extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
 ]
+<<<<<<< HEAD
+=======
+
+export_python_type_annotations = True
+
+# log doctype cleanups to automatically add in log settings
+default_log_clearing_doctypes = {
+	"Error Log": 30,
+	"Activity Log": 90,
+	"Email Queue": 30,
+	"Scheduled Job Log": 90,
+	"Route History": 90,
+	"Submission Queue": 30,
+	"Prepared Report": 30,
+	"Webhook Request Log": 30,
+	"Integration Request": 90,
+	"Unhandled Email": 30,
+	"Reminder": 30,
+}
+>>>>>>> c23771475c (refactor: Use hooks to specify default log clearing (#23507))
