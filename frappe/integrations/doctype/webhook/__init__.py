@@ -68,7 +68,7 @@ def _add_webhook_to_queue(webhook, doc):
 	# Maintain a queue and flush on commit
 	if not getattr(frappe.local, "_webhook_queue", None):
 		frappe.local._webhook_queue = []
-		frappe.db.after_commit.add(flush_webhook_execution_queue)
+		frappe.db.add_before_commit(flush_webhook_execution_queue)
 
 	frappe.local._webhook_queue.append(frappe._dict(doc=doc, webhook=webhook))
 
@@ -108,5 +108,6 @@ def flush_webhook_execution_queue():
 			"frappe.integrations.doctype.webhook.webhook.enqueue_webhook",
 			doc=instance.doc,
 			webhook=instance.webhook,
+			enqueue_after_commit=True,
 			now=frappe.flags.in_test,
 		)
