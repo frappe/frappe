@@ -396,7 +396,11 @@ def build_xlsx_data(
 		for filter_name, filter_value in filters.items():
 			if filter_value in ["", None, []]:
 				continue
-			filter_value = ", ".join(filter_value) if isinstance(filter_value, list) else cstr(filter_value)
+			filter_value = (
+				", ".join(map(lambda x: cstr(x), filter_value))
+				if isinstance(filter_value, list)
+				else cstr(filter_value)
+			)
 			filter_data.append([cstr(filter_name), filter_value])
 		filter_data.append([])
 		result += filter_data
