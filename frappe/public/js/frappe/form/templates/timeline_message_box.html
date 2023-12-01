@@ -28,16 +28,11 @@
 				</span>
 			{% } else if (doc.comment_type && doc.comment_type == "Comment") { %}
 				<span>
-<<<<<<< HEAD
-					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }} {{ __("commented") }}
-					<span class="text-muted margin-left">
-=======
 					{{ frappe.avatar(doc.owner, "avatar-medium") }}
 					<span class="ml-2" style="font-size: var(--text-base);">{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}</span>
 					<span class="text-muted">{{ __("commented") }}</span>
 					<span> . </span>
 					<span class="margin-left text-muted">
->>>>>>> a703bf398d (chore: linter fix)
 						{{ comment_when(doc.creation) }}
 					</span>
 				</span>
