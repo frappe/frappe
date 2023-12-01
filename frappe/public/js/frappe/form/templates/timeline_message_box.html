@@ -40,14 +40,8 @@
 					{{ frappe.avatar(doc.owner, "avatar-medium") }}
 				</span>
 				{% if (doc.subject ) { %}
-                    {% if (doc.subject.length >70 ){
-                        var display_subject = doc.subject.slice(0, 70) + "..."
-                    }else{
-                        var display_subject =  doc.subject
-                    }
-                    %}
-                        <span class="flex justify-content-around text-muted">{{display_subject}}</span>
-				{% } %}
+				<div class="text-muted my-1">{{doc.subject}}</div>
+			{% } %}
 				<span>
 					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
 					<div class="text-muted">
@@ -56,7 +50,7 @@
 				</span>
 			{% } %}
 		</span>
-		<span class="actions">
+		<span class="actions" style="flex-shrink: 0">
 			{% if (doc._doc_status && doc._doc_status_indicator) { %}
 			<span class="indicator-pill {%= doc._doc_status_indicator %}"
 				title="{%= __(doc._doc_status) %}"
