@@ -42,8 +42,8 @@
 				</span>
 				<div>
 					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
-                    <span> . </span>
-                    <span class="text-muted">
+					<span> . </span>
+					<span class="text-muted">
 						{{ comment_when(doc.creation) }}
 					</span>
 					{% if (doc.subject) { %}
