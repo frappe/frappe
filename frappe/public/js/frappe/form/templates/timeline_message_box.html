@@ -37,6 +37,15 @@
 				<span class="margin-right">
 					{{ frappe.avatar(doc.owner, "avatar-medium") }}
 				</span>
+				{% if (doc.subject ) { %}
+                    {% if (doc.subject.length >70 ){
+                        var display_subject = doc.subject.slice(0, 70) + "..."
+                    }else{
+                        var display_subject =  doc.subject
+                    }
+                    %}
+                        <span class="flex justify-content-around text-muted">{{display_subject}}</span>
+				{% } %}
 				<span>
 					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
 					<div class="text-muted">
@@ -80,11 +89,6 @@
 		</span>
 	</span>
 	<div class="content">
-		{% if (doc.subject ) { %}
-			<div class="flex justify-content-around m-1" style="font-size: 1rem;">
-				<span class="underline">{{__('Subject')}} : {{doc.subject}}</span>
-			</div>
-		{% } %}
 		{{ doc.content }}
 	</div>
 	{% if (doc.attachments && doc.attachments.length) { %}
