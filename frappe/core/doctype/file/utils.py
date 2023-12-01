@@ -184,7 +184,7 @@ def remove_file_by_url(file_url: str, doctype: str = None, name: str = None) -> 
 def get_content_hash(content: bytes | str) -> str:
 	if isinstance(content, str):
 		content = content.encode()
-	return hashlib.md5(content).hexdigest()  # nosec
+	return hashlib.md5(content, usedforsecurity=False).hexdigest()  # nosec
 
 
 def generate_file_name(name: str, suffix: str | None = None, is_private: bool = False) -> str:
