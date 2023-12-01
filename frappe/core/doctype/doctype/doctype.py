@@ -162,6 +162,7 @@ class DocType(Document):
 		route: DF.Data | None
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
+		sender_name_field: DF.Data | None
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
@@ -177,6 +178,7 @@ class DocType(Document):
 		translated_doctype: DF.Check
 		website_search_field: DF.Data | None
 	# end: auto-generated types
+
 	def validate(self):
 		"""Validate DocType before saving.
 
