@@ -5,7 +5,7 @@ import json
 
 import frappe
 from frappe.model.document import Document
-from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY, get_translator_url
+from frappe.translate import MERGED_TRANSLATION_KEY, USER_TRANSLATION_KEY
 from frappe.utils import is_html, strip_html_tags
 
 
