@@ -114,7 +114,7 @@ export default class QuickListWidget extends Widget {
 					me.set_body();
 				}
 			},
-			primary_action_label: __("Set"),
+			primary_action_label: __("Save"),
 		});
 
 		this.dialog.show();
