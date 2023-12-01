@@ -1606,19 +1606,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return full_url;
 	}
 
-	get_search_params() {
-		let search_params = new URLSearchParams();
-
-		this.get_filters_for_args().forEach((filter) => {
-			if (filter[2] === "=") {
-				search_params.append(filter[1], filter[3]);
-			} else {
-				search_params.append(filter[1], JSON.stringify([filter[2], filter[3]]));
-			}
-		});
-		return search_params;
-	}
-
 	get_menu_items() {
 		const doctype = this.doctype;
 		const items = [];
@@ -2013,8 +2000,38 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return actions_menu_items;
 	}
 
+	get_search_params() {
+		let search_params = new URLSearchParams();
+
+		this.get_filters_for_args().forEach((filter) => {
+			if (filter[2] === "=") {
+				search_params.append(filter[1], filter[3]);
+			} else {
+				search_params.append(filter[1], JSON.stringify([filter[2], filter[3]]));
+			}
+		});
+
+		search_params.append("_sort_by", this.sort_by);
+		search_params.append("_sort_order", this.sort_order);
+
+		return search_params;
+	}
+
+	set_sort_options_from_route_options() {
+		if (frappe.route_options?._sort_by && frappe.route_options?._sort_order) {
+			this.sort_by = frappe.route_options._sort_by;
+			this.sort_order = frappe.route_options._sort_order;
+
+			this.sort_selector.set_value(this.sort_by, this.sort_order);
+			delete frappe.route_options["_sort_by"];
+			delete frappe.route_options["_sort_order"];
+		}
+	}
+
 	parse_filters_from_route_options() {
 		const filters = [];
+
+		this.set_sort_options_from_route_options();
 
 		for (let field in frappe.route_options) {
 			let doctype = null;
