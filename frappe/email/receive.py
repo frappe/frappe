@@ -158,8 +158,6 @@ class EmailServer:
 			folder = folder[1:-1]
 		return ImapUtf7.encode(f'"{folder}"')
 
-		return ImapUtf7.encode(f'"{folder}"')
-
 	def select_imap_folder(self, folder):
 		res = self.imap.select(self.folder_encode(folder))
 		return res[0] == "OK"  # The folder exsits TODO: handle other resoponses too
