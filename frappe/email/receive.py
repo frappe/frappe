@@ -642,13 +642,11 @@ class InboundMail(Email):
 		if self.reference_document():
 			data["reference_doctype"] = self.reference_document().doctype
 			data["reference_name"] = self.reference_document().name
-		else:
-			if append_to and append_to != "Communication":
-				reference_doc = self._create_reference_document(append_to)
-				if reference_doc:
-					data["reference_doctype"] = reference_doc.doctype
-					data["reference_name"] = reference_doc.name
-			data["is_first"] = True
+		elif append_to and append_to != "Communication":
+			reference_name = self._create_reference_document(append_to)
+			if reference_name:
+				data["reference_doctype"] = append_to
+				data["reference_name"] = reference_name
 
 		if self.is_notification():
 			# Disable notifications for notification.
@@ -827,16 +825,10 @@ class InboundMail(Email):
 
 		try:
 			parent.insert(ignore_permissions=True)
+			return parent.name
 		except frappe.DuplicateEntryError:
 			# try and find matching parent
-			parent_name = frappe.db.get_value(
-				self.email_account.append_to, {email_fields.sender_field: self.from_email}
-			)
-			if parent_name:
-				parent.name = parent_name
-			else:
-				parent = None
-		return parent
+			return frappe.db.get_value(doctype, {email_fields.sender_field: self.from_email})
 
 	@staticmethod
 	def get_doc(doctype, docname, ignore_error=False):
