@@ -242,4 +242,4 @@ class TestWebhook(FrappeTestCase):
 			doc.save()
 			flush_webhook_execution_queue()
 			log = frappe.get_last_doc("Webhook Request Log")
-			self.assertEqual(len(json.loads(log.response)["json"]), 3)
+			self.assertEqual(len(json.loads(log.response)), 3)
