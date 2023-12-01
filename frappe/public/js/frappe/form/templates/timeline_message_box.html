@@ -37,15 +37,17 @@
 				<span class="margin-right">
 					{{ frappe.avatar(doc.owner, "avatar-medium") }}
 				</span>
-				{% if (doc.subject ) { %}
-				<div class="text-muted my-1">{{doc.subject}}</div>
-			{% } %}
-				<span>
+				<div>
 					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
-					<div class="text-muted">
+                    <span> . </span>
+                    <span class="text-muted">
 						{{ comment_when(doc.creation) }}
-					</div>
-				</span>
+					</span>
+                    {% if (doc.subject ) { %}
+                        <div class="text-muted my-1 ">{{doc.subject}}</div>
+                    {% } %}
+
+				</div>
 			{% } %}
 		</span>
 		<span class="actions" style="flex-shrink: 0">
