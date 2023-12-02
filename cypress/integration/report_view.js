@@ -23,17 +23,20 @@ context("Report View", () => {
 		cy.intercept("POST", "api/method/frappe.client.set_value").as("value-update");
 		cy.visit(`/app/List/${doctype_name}/Report`);
 
-		// check status column added from docstatus
-		cy.get(".dt-row-0 > .dt-cell--col-3").should("contain", "Submitted");
-		let cell = cy.get(".dt-row-0 > .dt-cell--col-4");
+		// Find the row with 'Doc 1' and check status column added from docstatus.
+		cy.findByText("Doc 1").parents(".dt-row").as("target_row");
+		cy.get("@target_row").find(".dt-cell--col-3").should("contain", "Submitted");
 
-		// select the cell
-		cell.dblclick();
-		cell.get(".dt-cell__edit--col-4").findByRole("checkbox").check({ force: true });
-		cy.get(".dt-row-0 > .dt-cell--col-3").click(); // click outside
+		// Doubleclick to edit the cell and tick 'enabled'.
+		cy.get("@target_row").find(".dt-cell--col-4").as("cell");
+		cy.get("@cell").dblclick();
+		cy.get("@cell").get(".dt-cell__edit--col-4").findByRole("checkbox").check({ force: true });
 
+		// Click outside to trigger save and wait for the POST request to complete.
+		cy.get("@target_row").find(".dt-cell--col-3").click();
 		cy.wait("@value-update");
 
+		// Verify that the 'enabled' field is updated.
 		cy.call("frappe.client.get_value", {
 			doctype: doctype_name,
 			filters: {
