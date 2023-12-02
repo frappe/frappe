@@ -65,6 +65,7 @@
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
+   "fetch_from": "ref_doctype.module",
    "options": "Module Def"
   },
   {
