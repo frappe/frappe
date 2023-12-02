@@ -483,11 +483,37 @@ Cypress.Commands.add("click_sidebar_button", (btn_name) => {
 	cy.get(".list-group-by-fields .list-link > a").contains(btn_name).click({ force: true });
 });
 
+Cypress.Commands.add("sort_latest_first", () => {
+	add_sort_latest_first();
+});
+
 Cypress.Commands.add("click_listview_row_item", (row_no) => {
+	add_sort_latest_first();
 	cy.get(".list-row > .level-left > .list-subject > .level-item > .ellipsis")
 		.eq(row_no)
 		.click({ force: true });
 });
+
+Cypress.Commands.add("select_listview_row_checkbox", (row_no) => {
+	add_sort_latest_first();
+	cy.get(".frappe-list .select-like > .list-row-checkbox").eq(row_no).click();
+});
+
+const add_sort_latest_first = () => {
+	cy.get("button.sort-selector-button").then(($button) => {
+		if (!$button.text().includes("Last Updated On")) {
+			cy.get('button[data-toggle="dropdown"]').click();
+			cy.contains("a.dropdown-item.option", "Last Updated On").click();
+			cy.wait(500);
+		}
+	});
+	cy.get("button.btn-order").then(($button) => {
+		if ($button.attr("data-value") !== "desc") {
+			$button.click();
+			cy.wait(500);
+		}
+	});
+};
 
 Cypress.Commands.add("click_listview_row_item_with_text", (text) => {
 	cy.get(".list-row > .level-left > .list-subject > .level-item > .ellipsis")
@@ -510,10 +536,6 @@ Cypress.Commands.add("click_doc_primary_button", (btn_name) => {
 
 Cypress.Commands.add("click_timeline_action_btn", (btn_name) => {
 	cy.get(".timeline-message-box .actions .action-btn").contains(btn_name).click();
-});
-
-Cypress.Commands.add("select_listview_row_checkbox", (row_no) => {
-	cy.get(".frappe-list .select-like > .list-row-checkbox").eq(row_no).click();
 });
 
 Cypress.Commands.add("click_form_section", (section_name) => {
