@@ -37,14 +37,14 @@ context("Control Phone", () => {
 
 		let phone_number = "9312672712";
 		cy.get(".selected-phone > img").click().first();
-		cy.get_field("phone").first().click({ multiple: true });
+		cy.get_field("phone").first().click();
 		cy.get(".frappe-control[data-fieldname=phone]")
 			.findByRole("textbox")
 			.first()
-			.type(phone_number, { force: true });
+			.type(phone_number);
 
 		cy.get_field("phone").first().should("have.value", phone_number);
-		cy.get_field("phone").first().blur({ force: true });
+		cy.get_field("phone").first().blur();
 		cy.wait(100);
 		cy.get("@dialog").then((dialog) => {
 			let value = dialog.get_value("phone");
