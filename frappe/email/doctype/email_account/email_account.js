@@ -159,6 +159,15 @@ frappe.ui.form.on("Email Account", {
 			delete frappe.route_flags.delete_user_from_locals;
 			delete locals["User"][frappe.route_flags.linked_user];
 		}
+
+		if (frappe.boot.developer_mode && !frm.is_dirty() && frm.doc.enable_incoming) {
+			frm.add_custom_button(__("Pull Emails"), () => {
+				frm.call({
+					method: "pull_emails",
+					args: { email_account: frm.doc.name },
+				});
+			});
+		}
 	},
 
 	authorize_api_access: function (frm) {
