@@ -71,13 +71,11 @@ class TestTranslate(FrappeTestCase):
 		try:
 			frappe.local.lang = "pt-BR"
 			self.assertEqual(_("Mobile No"), "Telefone Celular")
+			frappe.local.lang = "pt"
+			self.assertEqual(_("Mobile No"), "Nr. de Telemóvel")
 		finally:
-			try:
-				frappe.local.lang = "pt"
-				self.assertEqual(_("Mobile No"), "Nr. de Telemóvel")
-			finally:
-				frappe.local.lang = "en"
-				self.assertEqual(_("Mobile No"), "Mobile No")
+			frappe.local.lang = "en"
+			self.assertEqual(_("Mobile No"), "Mobile No")
 
 	def test_write_language_variant(self):
 		def import_export_translation(lang, updates):
