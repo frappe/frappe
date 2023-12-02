@@ -297,7 +297,7 @@ class FormTimeline extends BaseTimeline {
 		let indicator_color = "red";
 		if (in_list(["Sent", "Clicked"], doc.delivery_status)) {
 			indicator_color = "green";
-		} else if (doc.delivery_status === "Sending") {
+		} else if (["Sending", "Scheduled"].includes(doc.delivery_status)) {
 			indicator_color = "orange";
 		} else if (in_list(["Opened", "Read"], doc.delivery_status)) {
 			indicator_color = "blue";

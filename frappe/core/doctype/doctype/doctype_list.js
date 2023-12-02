@@ -101,6 +101,7 @@ frappe.listview_settings["DocType"] = {
 								role: "System Manager",
 								share: 1,
 								write: 1,
+								submit: values.is_submittable ? 1 : 0,
 							},
 						],
 						fields: [{ fieldtype: "Section Break" }],

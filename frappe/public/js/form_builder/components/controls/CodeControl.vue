@@ -7,32 +7,8 @@ let emit = defineEmits(["update:modelValue"]);
 let slots = useSlots();
 
 let code = ref(null);
+let code_control = ref(null);
 let update_control = ref(true);
-
-let code_control = computed(() => {
-	if (!code.value) return;
-	code.value.innerHTML = "";
-
-	return frappe.ui.form.make_control({
-		parent: code.value,
-		df: {
-			...props.df,
-			fieldtype: "Code",
-			hidden: 0,
-			read_only: props.read_only,
-			change: () => {
-				if (update_control.value) {
-					content.value = code_control.value.get_value();
-				}
-				update_control.value = true;
-			},
-		},
-		value: content.value,
-		disabled: Boolean(slots.label) || props.read_only,
-		render_input: true,
-		only_input: Boolean(slots.label),
-	});
-});
 
 let content = computed({
 	get: () => props.modelValue,
@@ -40,7 +16,27 @@ let content = computed({
 });
 
 onMounted(() => {
-	if (code.value) code_control.value;
+	if (code.value) {
+		code_control.value = frappe.ui.form.make_control({
+			parent: code.value,
+			df: {
+				...props.df,
+				fieldtype: "Code",
+				hidden: 0,
+				read_only: props.read_only,
+				change: () => {
+					if (update_control.value) {
+						content.value = code_control.value.get_value();
+					}
+					update_control.value = true;
+				},
+			},
+			value: content.value,
+			disabled: Boolean(slots.label) || props.read_only,
+			render_input: true,
+			only_input: Boolean(slots.label),
+		});
+	}
 });
 
 watch(

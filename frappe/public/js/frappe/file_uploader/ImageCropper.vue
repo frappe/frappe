@@ -13,7 +13,7 @@
 						:class="{
 							active: isNaN(aspect_ratio)
 								? isNaN(button.value)
-								: button.value === aspect_ratio
+								: button.value === aspect_ratio,
 						}"
 						:key="button.label"
 						@click="aspect_ratio = button.value"
@@ -63,9 +63,9 @@ function crop_image() {
 	props.file.crop_box_data = cropper.value.getData();
 	const canvas = cropper.value.getCroppedCanvas();
 	const file_type = props.file.file_obj.type;
-	canvas.toBlob(blob => {
+	canvas.toBlob((blob) => {
 		var cropped_file_obj = new File([blob], props.file.name, {
-			type: blob.type
+			type: blob.type,
 		});
 		props.file.file_obj = cropped_file_obj;
 		emit("toggle_image_cropper");
@@ -87,7 +87,7 @@ onMounted(() => {
 			scalable: false,
 			viewMode: 1,
 			data: crop_box,
-			aspectRatio: aspect_ratio.value
+			aspectRatio: aspect_ratio.value,
 		});
 		window.cropper = cropper.value;
 	};
@@ -98,33 +98,37 @@ let aspect_ratio_buttons = computed(() => {
 	return [
 		{
 			label: __("1:1"),
-			value: 1
+			value: 1,
 		},
 		{
 			label: __("4:3"),
-			value: 4 / 3
+			value: 4 / 3,
 		},
 		{
 			label: __("16:9"),
-			value: 16 / 9
+			value: 16 / 9,
 		},
 		{
 			label: __("Free"),
-			value: NaN
-		}
+			value: NaN,
+		},
 	];
 });
 
 // watcher
-watch(aspect_ratio, (value) => {
-	if (cropper.value) {
-		cropper.value.setAspectRatio(value);
-	}
-}, { deep: true });
-
+watch(
+	aspect_ratio,
+	(value) => {
+		if (cropper.value) {
+			cropper.value.setAspectRatio(value);
+		}
+	},
+	{ deep: true }
+);
 </script>
 
 <style scoped>
+@import "cropperjs/dist/cropper.min.css";
 img {
 	display: block;
 	max-width: 100%;
