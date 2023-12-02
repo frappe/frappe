@@ -6,6 +6,10 @@ context("Control Phone", () => {
 		cy.visit("/app/website");
 	});
 
+	afterEach(() => {
+		cy.clear_dialogs();
+	});
+
 	function get_dialog_with_phone() {
 		return cy.dialog({
 			title: "Phone",
@@ -50,9 +54,7 @@ context("Control Phone", () => {
 			let value = dialog.get_value("phone");
 			expect(value).to.equal("+91-" + phone_number);
 		});
-	});
 
-	it("case insensitive search for country and clear search", () => {
 		let search_text = "india";
 		cy.get(".selected-phone").click().first();
 		cy.get(".phone-picker").get(".search-phones").click().type(search_text);
