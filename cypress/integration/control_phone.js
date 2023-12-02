@@ -20,10 +20,18 @@ context("Control Phone", () => {
 
 	it("should set flag and data", () => {
 		get_dialog_with_phone().as("dialog");
+
 		cy.get(".selected-phone").click();
+		cy.wait(100);
 		cy.get(".phone-picker .phone-wrapper[id='afghanistan']").click();
+		cy.wait(100);
+		cy.get(".selected-phone .country").should("have.text", "+93");
+		cy.get(".selected-phone > img").should("have.attr", "src").and("include", "/af.svg");
+
 		cy.get(".selected-phone").click();
+		cy.wait(100);
 		cy.get(".phone-picker .phone-wrapper[id='india']").click();
+		cy.wait(100);
 		cy.get(".selected-phone .country").should("have.text", "+91");
 		cy.get(".selected-phone > img").should("have.attr", "src").and("include", "/in.svg");
 
