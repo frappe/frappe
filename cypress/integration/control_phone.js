@@ -80,7 +80,9 @@ context("Control Phone", () => {
 		// open the doc from list view
 		cy.go_to_list("Doctype With Phone");
 		cy.clear_cache();
-		cy.click_listview_row_item(0);
+		cy.findByText("Test Phone 1").click();
+
+		// verify data in the document
 		cy.title().should("eq", "Test Phone 1");
 		cy.get(".selected-phone .country").should("have.text", "+91");
 		cy.get(".selected-phone > img").should("have.attr", "src").and("include", "/in.svg");
