@@ -9,6 +9,7 @@ from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import get_messages_for_boot, send_translations, set_default_language
 from frappe.utils import cint, now, strip
 from frappe.utils.password import update_password
+from frappe import _
 
 from . import install_fixtures
 
@@ -19,8 +20,8 @@ def get_setup_stages(args):
 	# That is done by frappe after successful completion of all stages
 	stages = [
 		{
-			"status": "Updating global settings",
-			"fail_msg": "Failed to update global settings",
+			"status": _("Updating global settings"),
+			"fail_msg": _("Failed to update global settings"),
 			"tasks": [
 				{"fn": update_global_settings, "args": args, "fail_msg": "Failed to update global settings"}
 			],
