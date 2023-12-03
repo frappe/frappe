@@ -62,10 +62,11 @@
    "reqd": 1
   },
   {
+   "fetch_from": "ref_doctype.module",
+   "fetch_if_empty": 1,
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module",
-   "fetch_from": "ref_doctype.module",
    "options": "Module Def"
   },
   {
