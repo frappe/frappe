@@ -568,6 +568,12 @@ body {
 			font-weight: 500;
 			@extend .ellipsis;
 		}
+
+		&:focus-visible {
+			text-decoration: underline;
+			background-color: var(--highlight-color);
+			outline: 0;
+		}
 	}
 
 	&.links-widget-box {
@@ -616,6 +622,12 @@ body {
 				&.top > .arrow {
 					left: 20%;
 				}
+			}
+
+			&:focus-visible {
+				text-decoration: underline;
+				background-color: var(--highlight-color);
+				outline: 0;
 			}
 		}
 
