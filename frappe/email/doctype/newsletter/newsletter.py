@@ -50,10 +50,10 @@ class Newsletter(WebsiteGenerator):
 		total_recipients: DF.Int
 		total_views: DF.Int
 	# end: auto-generated types
+
 	def validate(self):
 		self.route = f"newsletters/{self.name}"
 		self.validate_sender_address()
-		self.validate_recipient_address()
 		self.validate_publishing()
 		self.validate_scheduling_date()
 
@@ -135,7 +135,6 @@ class Newsletter(WebsiteGenerator):
 	def validate_newsletter_recipients(self):
 		if not self.newsletter_recipients:
 			frappe.throw(_("Newsletter should have atleast one recipient"), exc=NoRecipientFoundError)
-		self.validate_recipient_address()
 
 	def validate_sender_address(self):
 		"""Validate self.send_from is a valid email address or not."""
@@ -144,11 +143,6 @@ class Newsletter(WebsiteGenerator):
 			self.send_from = (
 				f"{self.sender_name} <{self.sender_email}>" if self.sender_name else self.sender_email
 			)
-
-	def validate_recipient_address(self):
-		"""Validate if self.newsletter_recipients are all valid email addresses or not."""
-		for recipient in self.newsletter_recipients:
-			frappe.utils.validate_email_address(recipient, throw=True)
 
 	def validate_publishing(self):
 		if self.send_webview_link and not self.published:
@@ -308,11 +302,11 @@ def confirmed_unsubscribe(email, group):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=10, seconds=60 * 60)
-def subscribe(email, email_group=None):  # noqa
+def subscribe(email, email_group=None):
 	"""API endpoint to subscribe an email to a particular email group. Triggers a confirmation email."""
 
 	if email_group is None:
-		email_group = _("Website")
+		email_group = get_default_email_group()
 
 	# build subscription confirmation URL
 	api_endpoint = frappe.utils.get_url(
@@ -355,12 +349,15 @@ def subscribe(email, email_group=None):  # noqa
 
 
 @frappe.whitelist(allow_guest=True)
-def confirm_subscription(email, email_group=_("Website")):  # noqa
+def confirm_subscription(email, email_group=None):
 	"""API endpoint to confirm email subscription.
 	This endpoint is called when user clicks on the link sent to their mail.
 	"""
 	if not verify_request():
 		return
+
+	if email_group is None:
+		email_group = get_default_email_group()
 
 	if not frappe.db.exists("Email Group", email_group):
 		frappe.get_doc({"doctype": "Email Group", "title": email_group}).insert(ignore_permissions=True)
@@ -438,3 +435,7 @@ def newsletter_email_read(recipient_email=None, reference_doctype=None, referenc
 
 	finally:
 		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
+
+
+def get_default_email_group():
+	return _("Website", lang=frappe.db.get_default("language"))

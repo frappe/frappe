@@ -93,7 +93,6 @@ class SystemSettings(Document):
 		time_zone: DF.Literal
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
 		welcome_email_template: DF.Link | None
-
 	# end: auto-generated types
 	def validate(self):
 		from frappe.twofactor import toggle_two_factor_auth
