@@ -7,10 +7,7 @@
 					v-if="df.fieldtype == 'HTML' && df.html"
 					v-html="df.html"
 				></div>
-				<div
-					class="custom-html"
-					v-if="df.fieldtype == 'Field Template'"
-				>
+				<div class="custom-html" v-if="df.fieldtype == 'Field Template'">
 					{{ df.label }}
 				</div>
 				<input
@@ -24,9 +21,7 @@
 					@blur="editing = false"
 				/>
 				<span v-else-if="df.label">{{ df.label }}</span>
-				<i class="text-muted" v-else>
-					{{ __("No Label") }} ({{ df.fieldname }})
-				</i>
+				<i class="text-muted" v-else> {{ __("No Label") }} ({{ df.fieldname }}) </i>
 			</div>
 			<div class="field-actions">
 				<button
@@ -45,10 +40,7 @@
 				>
 					Configure columns
 				</button>
-				<button
-					class="btn btn-xs btn-icon"
-					@click="df['remove'] = true"
-				>
+				<button class="btn btn-xs btn-icon" @click="df['remove'] = true">
 					<svg class="icon icon-sm">
 						<use href="#icon-close"></use>
 					</svg>
@@ -94,14 +86,14 @@ function edit_html() {
 				label: __("HTML"),
 				fieldname: "html",
 				fieldtype: "Code",
-				options: "HTML"
-			}
+				options: "HTML",
+			},
 		],
 		primary_action: ({ html }) => {
 			html = frappe.dom.remove_script_and_style(html);
 			props.df["html"] = html;
 			d.hide();
-		}
+		},
 	});
 	d.set_value("html", props.df.html);
 	d.show();
@@ -112,7 +104,7 @@ function configure_columns() {
 		fields: [
 			{
 				fieldtype: "HTML",
-				fieldname: "columns_area"
+				fieldname: "columns_area",
 			},
 			{
 				label: "",
@@ -130,8 +122,8 @@ function configure_columns() {
 							dialog.set_value("add_column", "");
 						}
 					}
-				}
-			}
+				},
+			},
 		],
 		on_page_show: () => {
 			createApp(ConfigureColumnsVue, { df: props.df }).mount(
@@ -139,8 +131,8 @@ function configure_columns() {
 			);
 		},
 		on_hide: () => {
-			props.df["table_columns"] = props.df.table_columns.filter(col => !col.invalid_width);
-		}
+			props.df["table_columns"] = props.df.table_columns.filter((col) => !col.invalid_width);
+		},
 	});
 	dialog.show();
 }
@@ -149,18 +141,18 @@ function get_all_columns() {
 	let more_columns = [
 		{
 			label: __("Sr No."),
-			value: "idx"
-		}
+			value: "idx",
+		},
 	];
 	return more_columns.concat(
 		meta.fields
-			.map(tf => {
+			.map((tf) => {
 				if (frappe.model.no_value_type.includes(tf.fieldtype)) {
 					return;
 				}
 				return {
 					label: tf.label,
-					value: tf.fieldname
+					value: tf.fieldname,
 				};
 			})
 			.filter(Boolean)
@@ -172,8 +164,8 @@ function get_column_to_add(fieldname) {
 			label: __("Sr No."),
 			fieldtype: "Data",
 			fieldname: "idx",
-			width: 10
-		}
+			width: 10,
+		},
 	};
 
 	if (fieldname in standard_columns) {
@@ -182,7 +174,7 @@ function get_column_to_add(fieldname) {
 
 	return {
 		...frappe.meta.get_docfield(props.df.options, fieldname),
-		width: 10
+		width: 10,
 	};
 }
 function validate_table_columns() {
@@ -214,7 +206,6 @@ watch(
 	() => validate_table_columns(),
 	{ deep: true }
 );
-
 </script>
 
 <style scoped>

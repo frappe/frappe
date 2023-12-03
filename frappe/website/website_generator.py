@@ -94,12 +94,12 @@ class WebsiteGenerator(Document):
 		self.send_indexing_request("URL_DELETED")
 		# On deleting the doc, remove the page from the web_routes index
 		if self.allow_website_search_indexing():
-			remove_document_from_index(self.route)
+			frappe.enqueue(remove_document_from_index, path=self.route, enqueue_after_commit=True)
 
 	def is_website_published(self):
 		"""Return true if published in website"""
-		if self.get_condition_field():
-			return self.get(self.get_condition_field()) and True or False
+		if condition_field := self.get_condition_field():
+			return self.get(condition_field) or False
 		else:
 			return True
 
@@ -141,7 +141,6 @@ class WebsiteGenerator(Document):
 			and self.is_website_published()
 			and self.meta.allow_guest_to_view
 		):
-
 			url = frappe.utils.get_url(self.route)
 			frappe.enqueue(
 				"frappe.website.doctype.website_settings.google_indexing.publish_site",

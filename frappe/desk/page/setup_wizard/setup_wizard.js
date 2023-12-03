@@ -196,7 +196,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 					this.abort_setup(r.message.fail);
 				}
 			},
-			error: () => this.abort_setup("Error in setup"),
+			error: () => this.abort_setup(),
 		});
 	}
 
@@ -213,7 +213,11 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	abort_setup(fail_msg) {
 		this.$working_state.find(".state-icon-container").html("");
-		fail_msg = fail_msg ? fail_msg : __("Failed to complete setup");
+		fail_msg = fail_msg
+			? fail_msg
+			: frappe.last_response.setup_wizard_failure_message
+			? frappe.last_response.setup_wizard_failure_message
+			: __("Failed to complete setup");
 
 		this.update_setup_message("Could not start up: " + fail_msg);
 
@@ -404,7 +408,7 @@ frappe.setup.slides_settings = [
 				fieldname: "enable_telemetry",
 				label: __("Allow sending usage data for improving applications"),
 				fieldtype: "Check",
-				default: 1,
+				default: cint(frappe.telemetry.can_enable()),
 				depends_on: "eval:frappe.telemetry.can_enable()",
 			},
 			{
@@ -463,7 +467,7 @@ frappe.setup.slides_settings = [
 				fieldtype: "Data",
 				options: "Email",
 			},
-			{ fieldname: "password", label: __("Password"), fieldtype: "Password" },
+			{ fieldname: "password", label: __("Password"), fieldtype: "Password", length: 512 },
 		],
 
 		onload: function (slide) {

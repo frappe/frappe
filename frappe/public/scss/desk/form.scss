@@ -1,5 +1,4 @@
 @import "../common/form.scss";
-@import '~cropperjs/dist/cropper.min';
 
 .tooltip-content {
 	position: absolute;
@@ -19,10 +18,9 @@
 
 .show-tooltip .frappe-control:hover .tooltip-content {
 	opacity: 1;
-	transform: translate3d(0,0,0);
+	transform: translate3d(0, 0, 0);
 	pointer-events: auto;
 }
-
 
 .std-form-layout > .form-layout > .form-page {
 	border-radius: var(--border-radius-md);
@@ -31,7 +29,8 @@
 	background-color: var(--card-bg);
 }
 
-.form-section, .form-dashboard-section {
+.form-section,
+.form-dashboard-section {
 	margin: 0px;
 
 	.form-section-description {
@@ -48,7 +47,7 @@
 		padding: var(--padding-sm) var(--padding-md);
 		margin: 0;
 		margin-bottom: var(--margin-sm);
-		cursor: pointer;
+		cursor: default;
 
 		.collapse-indicator {
 			color: var(--text-muted);
@@ -56,6 +55,10 @@
 			position: relative;
 			padding: 0px;
 		}
+	}
+
+	.section-head.collapsible {
+		cursor: pointer;
 	}
 
 	.section-head.collapsed {
@@ -132,7 +135,8 @@
 	text-align: right;
 }
 
-.form-control:disabled, .form-control[readonly] {
+.form-control:disabled,
+.form-control[readonly] {
 	color: var(--text-muted);
 	cursor: not-allowed;
 }
@@ -336,7 +340,6 @@
 	}
 }
 [data-theme="dark"] .form-message {
-
 	&.blue {
 		@include form-message-background("blue", "dark");
 	}

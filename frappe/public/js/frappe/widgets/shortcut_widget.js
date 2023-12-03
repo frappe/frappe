@@ -71,6 +71,13 @@ export default class ShortcutWidget extends Widget {
 
 		this.widget.addClass("shortcut-widget-box");
 
+		// Make it tabbable
+		this.widget.attr({
+			role: "link",
+			tabindex: 0,
+			"aria-label": this.label,
+		});
+
 		let filters = frappe.utils.process_filter_expression(this.stats_filter);
 		if (this.type == "DocType" && filters) {
 			frappe.db

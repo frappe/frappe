@@ -28,9 +28,7 @@ function open_in_editor(location) {
 }
 function error_component(error, i) {
 	let location = data.value.error.errors[i].location;
-	let location_string = `${location.file}:${location.line}:${
-		location.column
-	}`;
+	let location_string = `${location.file}:${location.line}:${location.column}`;
 	let template = error.replace(
 		" > " + location_string,
 		` &gt; <a class="file-link" @click="open">${location_string}</a>`
@@ -41,11 +39,11 @@ function error_component(error, i) {
 		methods: {
 			open() {
 				frappe.realtime.emit("open_in_editor", location);
-			}
-		}
+			},
+		},
 	};
 }
-defineExpose({show, hide});
+defineExpose({ show, hide });
 </script>
 
 <style scoped>
@@ -58,8 +56,7 @@ defineExpose({show, hide});
 	z-index: 9999;
 	margin: 0;
 	background: rgba(0, 0, 0, 0.66);
-	--monospace: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
-		monospace;
+	--monospace: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
 	--dim: var(--gray-400);
 }
 .window {

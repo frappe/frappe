@@ -51,6 +51,11 @@ let docfield_df = computed(() => {
 			}
 		}
 
+		// show link_filters docfield only when link field is selected
+		if (df.fieldname === "link_filters" && store.form.selected_field.fieldtype !== "Link") {
+			return false;
+		}
+
 		if (search_text.value) {
 			if (
 				df.label.toLowerCase().includes(search_text.value.toLowerCase()) ||
@@ -62,13 +67,21 @@ let docfield_df = computed(() => {
 		}
 		return true;
 	});
-
 	return [...fields];
 });
 </script>
 
 <template>
-	<SearchBox v-model="search_text" />
+	<div class="header">
+		<SearchBox class="flex-1" v-model="search_text" />
+		<button
+			class="close-btn btn btn-xs"
+			:title="__('Close properties')"
+			@click="store.form.selected_field = null"
+		>
+			<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+		</button>
+	</div>
 	<div class="control-data">
 		<div v-if="store.form.selected_field">
 			<div class="field" v-for="(df, i) in docfield_df" :key="i">
@@ -88,8 +101,17 @@ let docfield_df = computed(() => {
 </template>
 
 <style lang="scss" scoped>
+.header {
+	display: flex;
+	padding: 5px;
+	border-bottom: 1px solid var(--border-color);
+
+	.close-btn {
+		margin-right: -5px;
+	}
+}
 .control-data {
-	height: calc(100vh - 150px);
+	height: calc(100vh - 202px);
 	overflow-y: auto;
 	padding: 8px;
 

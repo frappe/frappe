@@ -1,12 +1,13 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
 import json
 import os
 import traceback
 import uuid
-from datetime import datetime
 
+import pytz
 import rq
 
 import frappe
@@ -50,7 +51,7 @@ class Monitor:
 			self.data = frappe._dict(
 				{
 					"site": frappe.local.site,
-					"timestamp": datetime.utcnow(),
+					"timestamp": datetime.datetime.now(pytz.UTC),
 					"transaction_type": transaction_type,
 					"uuid": str(uuid.uuid4()),
 				}
@@ -83,7 +84,7 @@ class Monitor:
 
 		if job := rq.get_current_job():
 			self.data.uuid = job.id
-			waitdiff = self.data.timestamp - job.enqueued_at
+			waitdiff = self.data.timestamp - job.enqueued_at.replace(tzinfo=pytz.UTC)
 			self.data.job.wait = int(waitdiff.total_seconds() * 1000000)
 
 	def add_custom_data(self, **kwargs):
@@ -92,7 +93,7 @@ class Monitor:
 
 	def dump(self, response=None):
 		try:
-			timediff = datetime.utcnow() - self.data.timestamp
+			timediff = datetime.datetime.now(pytz.UTC) - self.data.timestamp
 			# Obtain duration in microseconds
 			self.data.duration = int(timediff.total_seconds() * 1000000)
 

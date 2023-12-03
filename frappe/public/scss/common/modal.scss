@@ -21,7 +21,7 @@ body.modal-open[style^="padding-right"] {
 	}
 
 	// Hide scrollbar on touch devices
-	@media(max-width: 991px) {
+	@media (max-width: 991px) {
 		scrollbar-width: none;
 		&::-webkit-scrollbar {
 			width: 0;
@@ -147,11 +147,28 @@ body.modal-open[style^="padding-right"] {
 	.hasDatepicker {
 		z-index: 1140;
 	}
-
 }
 
 .modal-backdrop.show {
 	opacity: 0.8;
+}
+
+.fade.slow {
+	transition: opacity 0.4s linear;
+}
+
+.modal.fade .modal-dialog {
+	transition: transform 0.2s ease;
+	transform: translateY(-15%);
+}
+
+.modal.fade.slow .modal-dialog {
+	transition: transform 0.4s ease;
+	transform: translateY(-25%);
+}
+
+.modal.show .modal-dialog {
+	transform: none;
 }
 
 .modal-minimize {
@@ -185,7 +202,8 @@ body.modal-open[style^="padding-right"] {
 		}
 	}
 
-	.modal-body, .modal-footer {
+	.modal-body,
+	.modal-footer {
 		display: none;
 	}
 }
@@ -226,7 +244,7 @@ body.modal-open[style^="padding-right"] {
 			margin-bottom: -24px;
 			button {
 				// same as form-control input
-				height: calc(1.5em + .7rem);
+				height: calc(1.5em + 0.7rem);
 			}
 		}
 	}
@@ -267,7 +285,7 @@ body.modal-open[style^="padding-right"] {
 	@extend .row;
 	.btn-group {
 		opacity: 0;
-		transition: opacity .3s ease-in-out;
+		transition: opacity 0.3s ease-in-out;
 
 		button {
 			display: inline-flex;

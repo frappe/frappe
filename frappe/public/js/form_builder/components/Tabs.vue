@@ -1,29 +1,29 @@
 <script setup>
 import Section from "./Section.vue";
 import EditableInput from "./EditableInput.vue";
-import draggable from "vuedraggable";
 import { useStore } from "../store";
-import { section_boilerplate, confirm_dialog } from "../utils";
-import { ref, computed, nextTick } from "vue";
+import { section_boilerplate, confirm_dialog, is_touch_screen_device } from "../utils";
+import draggable from "vuedraggable";
+import { ref, computed } from "vue";
+import { useMagicKeys, whenever } from "@vueuse/core";
 
-let store = useStore();
+const store = useStore();
 
-let dragged = ref(false);
-let has_tabs = computed(() => store.form.layout.tabs.length > 1);
+// delete/backspace to delete the field
+const { Backspace } = useMagicKeys();
+whenever(Backspace, (value) => {
+	if (value && selected.value && store.not_using_input) {
+		remove_tab(store.current_tab, "", true);
+	}
+});
+
+const dragged = ref(false);
+const selected = computed(() => store.selected(store.current_tab.df.name));
+const has_tabs = computed(() => store.form.layout.tabs.length > 1);
 store.form.active_tab = store.form.layout.tabs[0].df.name;
 
 function activate_tab(tab) {
-	store.form.active_tab = tab.df.name;
-	store.form.selected_field = tab.df;
-
-	// scroll to active tab
-	nextTick(() => {
-		$(".tabs .tab.active")[0].scrollIntoView({
-			behavior: "smooth",
-			inline: "center",
-			block: "nearest",
-		});
-	});
+	store.activate_tab(tab);
 }
 
 function drag_over(tab) {
@@ -34,13 +34,7 @@ function drag_over(tab) {
 }
 
 function add_new_tab() {
-	let tab = {
-		df: store.get_df("Tab Break", "", "Tab " + (store.form.layout.tabs.length + 1)),
-		sections: [section_boilerplate()],
-	};
-
-	store.form.layout.tabs.push(tab);
-	activate_tab(tab);
+	store.add_new_tab();
 }
 
 function add_new_section() {
@@ -49,49 +43,54 @@ function add_new_section() {
 	store.form.selected_field = section.df;
 }
 
-function is_current_tab_empty() {
+function is_tab_empty(tab) {
 	// check if sections have columns and it contains fields
-	return !store.current_tab.sections.some(
-		section => section.columns.some(column => column.fields.length)
-	);
+	return !tab.sections.some((section) => section.columns.some((column) => column.fields.length));
 }
 
-function remove_tab() {
+function remove_tab(tab, event, force = false) {
+	// is remove_tab_btn is not visible then return
+	if (!event?.currentTarget?.offsetParent && !force) return;
+
 	if (store.is_customize_form && store.current_tab.df.is_custom_field == 0) {
 		frappe.msgprint(__("Cannot delete standard field. You can hide it if you want"));
 		throw "cannot delete standard field";
 	} else if (store.has_standard_field(store.current_tab)) {
-		delete_tab();
-	} else if (is_current_tab_empty()) {
-		delete_tab(true);
+		delete_tab(tab);
+	} else if (is_tab_empty(tab)) {
+		delete_tab(tab, true);
 	} else {
 		confirm_dialog(
 			__("Delete Tab", null, "Title of confirmation dialog"),
-			__("Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab.", null, "Confirmation dialog message"),
-			() => delete_tab(),
+			__(
+				"Are you sure you want to delete the tab? All the sections along with fields in the tab will be moved to the previous tab.",
+				null,
+				"Confirmation dialog message"
+			),
+			() => delete_tab(tab),
 			__("Delete tab", null, "Button text"),
-			() => delete_tab(true),
-			__("Delete entire tab with sections", null, "Button text")
+			() => delete_tab(tab, true),
+			__("Delete entire tab with fields", null, "Button text")
 		);
 	}
 }
 
-function delete_tab(with_children) {
+function delete_tab(tab, with_children) {
 	let tabs = store.form.layout.tabs;
-	let index = tabs.indexOf(store.current_tab);
+	let index = tabs.indexOf(tab);
 
 	if (!with_children) {
 		if (index > 0) {
 			let prev_tab = tabs[index - 1];
-			if (!is_current_tab_empty()) {
+			if (!is_tab_empty(tab)) {
 				// move all sections from current tab to previous tab
-				prev_tab.sections = [...prev_tab.sections, ...store.current_tab.sections];
+				prev_tab.sections = [...prev_tab.sections, ...tab.sections];
 			}
 		} else {
 			// create a new tab and push sections to it
 			tabs.unshift({
 				df: store.get_df("Tab Break", "", __("Details")),
-				sections: store.current_tab.sections,
+				sections: tab.sections,
 				is_first: true,
 			});
 			index++;
@@ -109,12 +108,13 @@ function delete_tab(with_children) {
 </script>
 
 <template>
-	<div class="tab-header" v-if="!(store.form.layout.tabs.length == 1 && store.read_only)">
+	<div class="tab-header" v-if="store.form.layout.tabs.length > 1">
 		<draggable
 			v-show="has_tabs"
 			class="tabs"
 			v-model="store.form.layout.tabs"
 			group="tabs"
+			:delay="is_touch_screen_device() ? 200 : 0"
 			:animation="200"
 			:easing="store.get_animation"
 			item-key="id"
@@ -135,6 +135,14 @@ function delete_tab(with_children) {
 						:placeholder="__('Tab Label')"
 						v-model="element.df.label"
 					/>
+					<button
+						class="remove-tab-btn btn btn-xs"
+						:title="__('Remove tab')"
+						@click.stop="remove_tab(element, $event)"
+						:hidden="store.read_only"
+					>
+						<div v-html="frappe.utils.icon('remove', 'xs')"></div>
+					</button>
 				</div>
 			</template>
 		</draggable>
@@ -145,18 +153,9 @@ function delete_tab(with_children) {
 				:title="__('Add new tab')"
 				@click="add_new_tab"
 			>
-				<div v-if="has_tabs" v-html="frappe.utils.icon('add', 'sm')"></div>
-				<div class="add-btn-text" v-else>
-					{{ __("Add new tab") }}
+				<div class="add-btn-text">
+					{{ __("Add tab") }}
 				</div>
-			</button>
-			<button
-				v-if="has_tabs"
-				class="remove-tab-btn btn btn-xs"
-				:title="__('Remove selected tab')"
-				@click="remove_tab"
-			>
-				<div v-html="frappe.utils.icon('remove', 'sm')"></div>
 			</button>
 		</div>
 	</div>
@@ -172,6 +171,7 @@ function delete_tab(with_children) {
 				class="tab-content-container"
 				v-model="tab.sections"
 				group="sections"
+				:delay="is_touch_screen_device() ? 200 : 0"
 				:animation="200"
 				:easing="store.get_animation"
 				item-key="id"
@@ -186,8 +186,8 @@ function delete_tab(with_children) {
 				</template>
 			</draggable>
 			<div class="empty-tab" :hidden="store.read_only">
-				<div>{{ __("Drag & Drop a section here from another tab") }}</div>
-				<div>{{ __("OR") }}</div>
+				<div v-if="has_tabs">{{ __("Drag & Drop a section here from another tab") }}</div>
+				<div v-if="has_tabs">{{ __("OR") }}</div>
 				<button class="btn btn-default btn-sm" @click="add_new_section">
 					{{ __("Add a new section") }}
 				</button>
@@ -200,19 +200,13 @@ function delete_tab(with_children) {
 .tab-header {
 	display: flex;
 	justify-content: space-between;
-	min-height: 53px;
+	min-height: 42px;
 	align-items: center;
 	background-color: var(--fg-color);
 	border-bottom: 1px solid var(--border-color);
 	padding-left: var(--padding-xs);
 	border-top-left-radius: var(--border-radius);
 	border-top-right-radius: var(--border-radius);
-
-	&:hover {
-		.tab-actions .btn {
-			opacity: 1 !important;
-		}
-	}
 
 	.tabs {
 		display: flex;
@@ -225,7 +219,7 @@ function delete_tab(with_children) {
 		margin-right: 20px;
 
 		.btn {
-			opacity: 0;
+			background-color: var(--control-bg);
 			padding: 2px;
 			margin-left: 4px;
 			box-shadow: none;
@@ -235,7 +229,7 @@ function delete_tab(with_children) {
 			}
 
 			&:hover {
-				background-color: var(--border-color);
+				background-color: var(--btn-default-hover-bg);
 			}
 		}
 
@@ -246,8 +240,10 @@ function delete_tab(with_children) {
 	}
 
 	.tab {
+		display: flex;
+		align-items: center;
 		position: relative;
-		padding: var(--padding-md);
+		padding: 10px 18px 10px 15px;
 		color: var(--text-muted);
 		min-width: max-content;
 		cursor: pointer;
@@ -272,14 +268,25 @@ function delete_tab(with_children) {
 			color: var(--text-color);
 
 			&::before {
-				border-color: var(--primary);
+				border-color: var(--border-primary);
 			}
+		}
+
+		&:hover .remove-tab-btn {
+			display: block;
+		}
+
+		.remove-tab-btn {
+			position: absolute;
+			right: -2px;
+			display: none;
+			padding: 2px;
 		}
 	}
 }
 
 .tab-contents {
-	max-height: calc(100vh - 110px);
+	max-height: calc(100vh - 217px);
 	overflow-y: auto;
 	overflow-x: hidden;
 	border-radius: var(--border-radius);
@@ -290,13 +297,14 @@ function delete_tab(with_children) {
 		position: relative;
 
 		&.active {
-			display: block;
+			display: flex;
 		}
 
 		.tab-content-container {
+			flex: 1;
 			min-height: 4rem;
-			background-color: var(--field-placeholder-color);
 			border-radius: var(--border-radius);
+			z-index: 1;
 
 			&:empty {
 				height: 7rem;
@@ -306,14 +314,16 @@ function delete_tab(with_children) {
 					display: flex;
 					flex-direction: column;
 					align-items: center;
+					justify-content: center;
 					position: absolute;
 					top: 0;
+					bottom: 0;
 					gap: 5px;
 					width: 100%;
 					padding: 15px;
 
-					&button:hover {
-						background-color: var(--border-color);
+					button {
+						z-index: 2;
 					}
 				}
 			}

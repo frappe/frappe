@@ -1,6 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import io
 import os
 
 import frappe
@@ -44,9 +43,6 @@ def get_meta(doctype, cached=True) -> "FormMeta":
 			frappe.cache.hset("doctype_form_meta", doctype, meta)
 	else:
 		meta = FormMeta(doctype)
-
-	if frappe.local.lang != "en":
-		meta.set_translations(frappe.local.lang)
 
 	return meta
 
@@ -255,18 +251,6 @@ class FormMeta(Meta):
 					templates[key] = get_html_format(frappe.get_app_path(app, path))
 
 				self.set("__form_grid_templates", templates)
-
-	def set_translations(self, lang):
-		from frappe.translate import extract_messages_from_code, make_dict_from_messages
-
-		self.set("__messages", frappe.get_lang_dict("doctype", self.name))
-
-		# set translations for grid templates
-		if self.get("__form_grid_templates"):
-			for content in self.get("__form_grid_templates").values():
-				messages = extract_messages_from_code(content)
-				messages = make_dict_from_messages(messages)
-				self.get("__messages").update(messages)
 
 	def load_dashboard(self):
 		self.set("__dashboard", self.get_dashboard_data())
