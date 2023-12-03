@@ -79,7 +79,7 @@ class TestTranslate(FrappeTestCase):
 
 	def test_write_language_variant(self):
 		def import_export_translation(lang, updates):
-			path = frappe.get_app_path("frappe", "translations", lang + ".csv")
+			path = os.path.join(frappe.get_app_path("frappe", "translations"), lang + ".csv")
 			translations = get_translation_dict_from_file(path, lang, "frappe")
 			translations.update(updates)
 			write_translations_file("frappe", lang, translations)
