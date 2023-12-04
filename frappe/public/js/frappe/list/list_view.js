@@ -358,7 +358,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
-		// 3nd column: Status indicator
+		// 3rd column: Status indicator
 		if (frappe.has_indicator(this.doctype)) {
 			// indicator
 			this.columns.push({
@@ -403,7 +403,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
 
-		// 2st column: tag - normally hidden doesn't count towards total_fields
+		// 2nd column: tag - normally hidden doesn't count towards total_fields
 		this.columns.splice(1, 0, {
 			type: "Tag",
 		});
