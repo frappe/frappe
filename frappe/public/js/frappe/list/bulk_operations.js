@@ -286,17 +286,24 @@ export default class BulkOperations {
 					.then((r) => {
 						let failed = r.message || [];
 
-						if (failed.length && !r._server_messages) {
-							dialog.enable_primary_action();
-							frappe.throw(
-								__("Cannot update {0}", [
-									failed.map((f) => (f.bold ? f.bold() : f)).join(", "),
-								])
-							);
+						if (failed.length) {
+							if (!r._server_messages) {
+								dialog.enable_primary_action();
+								frappe.throw(
+									__("Cannot update {0}", [
+										failed.map((f) => (f.bold ? f.bold() : f)).join(", "),
+									])
+								);
+							}
+							if (failed.length < docnames.length) {
+								done();
+								frappe.show_alert(__("Some documents were updated."));
+							}
+						} else {
+							done();
+							frappe.show_alert(__("Updated successfully"));
 						}
-						done();
 						dialog.hide();
-						frappe.show_alert(__("Updated successfully"));
 					});
 			},
 			primary_action_label: __("Update {0} records", [docnames.length]),
