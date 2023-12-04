@@ -164,61 +164,55 @@ frappe.search.utils = {
 
 	get_doctypes: function (keywords) {
 		var me = this;
-		var out = [];
 
 		var option = function (match_result, type, route, order) {
+			const { key, item, score, marked_string } = match_result;
 			// check to skip extra list in the text
 			// eg. Price List List should be only Price List
-			let skip_list = type === "List" && match_result.item.endsWith("List");
-			if (skip_list) {
-				var label = match_result.marked_string || __(match_result.item);
-			} else {
-				label = __(`{0} ${skip_list ? "" : type}`, [
-					match_result.marked_string || __(match_result.item),
-				]);
-			}
+			const skip_list = type === "List" && item.endsWith("List");
 			return {
 				type: type,
-				label: label,
-				value: __(`{0} ${type}`, [match_result.item]),
-				index: match_result.score + order,
-				match: match_result.item,
+				label: __(`{0} ${skip_list ? "" : type}`, [marked_string]),
+				value: __(`{0} ${type}`, [item]),
+				index: score + order,
+				match: item,
 				route: route,
 			};
 		};
 
+		var out = [];
 		frappe.boot.user.can_read.forEach(function (doctype) {
 			const match_result = me.match_doctype_singular_plural(keywords, doctype);
 			const { key, item, score, marked_string } = match_result;
 
-			if (score) {
-				if (in_list(frappe.boot.single_types, doctype)) {
-					// Create "[Single DocType] Form" option.
-					out.push(option(match_result, "", ["Form", doctype, doctype], 0.05));
-				} else if (frappe.boot.user.can_search.includes(doctype)) {
-					// Create "[DocType] List" option.
-					out.push(option(match_result, "List", ["List", doctype], 0.03));
+			if (!score) {
+				return;
+			}
 
-					// Create "[Doctype] Report" option.
-					if (frappe.model.can_get_report(doctype)) {
-						out.push(
-							option(match_result, "Report", ["List", doctype, "Report"], 0.02)
-						);
-					}
-					// Create "New [DocType]" option only for an exact match (= singular).
-					const is_singular = key == keywords && item == doctype;
-					if (is_singular && in_list(frappe.boot.user.can_create, doctype)) {
-						out.push({
-							type: "New",
-							label: __("New {0}", [marked_string]),
-							value: __("New {0}", [__(doctype)]),
-							index: score + 0.01,
-							match: doctype,
-							onclick: function () {
-								frappe.new_doc(doctype, true);
-							},
-						});
-					}
+			if (in_list(frappe.boot.single_types, doctype)) {
+				// Create "[Single DocType] Form" option.
+				out.push(option(match_result, "", ["Form", doctype, doctype], 0.05));
+			} else if (frappe.boot.user.can_search.includes(doctype)) {
+				// Create "[DocType] List" option.
+				out.push(option(match_result, "List", ["List", doctype], 0.03));
+
+				// Create "[Doctype] Report" option.
+				if (frappe.model.can_get_report(doctype)) {
+					out.push(option(match_result, "Report", ["List", doctype, "Report"], 0.02));
+				}
+				// Create "New [DocType]" option only for an exact match (= singular).
+				const is_singular = key == keywords && item == doctype;
+				if (is_singular && in_list(frappe.boot.user.can_create, doctype)) {
+					out.push({
+						type: "New",
+						label: __("New {0}", [marked_string]),
+						value: __("New {0}", [__(doctype)]),
+						index: score + 0.01,
+						match: doctype,
+						onclick: function () {
+							frappe.new_doc(doctype, true);
+						},
+					});
 				}
 			}
 		});
