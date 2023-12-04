@@ -6,6 +6,33 @@ from frappe.model.document import Document
 
 
 class NotificationSettings(Document):
+<<<<<<< HEAD
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.desk.doctype.notification_subscribed_document.notification_subscribed_document import (
+			NotificationSubscribedDocument,
+		)
+		from frappe.types import DF
+
+		enable_email_assignment: DF.Check
+		enable_email_energy_point: DF.Check
+		enable_email_event_reminders: DF.Check
+		enable_email_mention: DF.Check
+		enable_email_notifications: DF.Check
+		enable_email_share: DF.Check
+		enable_email_threads_on_assigned_document: DF.Check
+		enabled: DF.Check
+		energy_points_system_notifications: DF.Check
+		seen: DF.Check
+		subscribed_documents: DF.TableMultiSelect[NotificationSubscribedDocument]
+		user: DF.Link | None
+	# end: auto-generated types
+>>>>>>> c1a3e64350 (feat: disable assigned thread notification (#23535))
 	def on_update(self):
 		from frappe.desk.notifications import clear_notification_config
 
