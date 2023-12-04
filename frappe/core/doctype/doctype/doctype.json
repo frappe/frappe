@@ -634,43 +634,12 @@
    "fieldname": "is_calendar_and_gantt",
    "fieldtype": "Check",
    "label": "Is Calendar and Gantt"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "fieldname": "settings_tab",
-   "fieldtype": "Tab Break",
-   "label": "Settings"
-  },
-  {
-   "depends_on": "eval:!doc.__islocal",
-   "fieldname": "form_builder_tab",
-   "fieldtype": "Tab Break",
-   "label": "Form"
-  },
-  {
-   "fieldname": "form_builder",
-   "fieldtype": "HTML",
-   "label": "Form Builder"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "fields_section",
-   "fieldtype": "Section Break",
-   "label": "Fields"
-  },
-  {
-   "fieldname": "connections_tab",
-   "fieldtype": "Tab Break",
-   "label": "Connections",
-   "show_dashboard": 1
   },
   {
    "depends_on": "email_append_to",
    "fieldname": "sender_name_field",
    "fieldtype": "Data",
    "label": "Sender Name Field"
->>>>>>> 35d6e70382 (feat: add sender_name_field)
   }
  ],
  "icon": "fa fa-bolt",
@@ -753,11 +722,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
-<<<<<<< HEAD
- "modified": "2023-08-14 17:32:23.824794",
-=======
  "modified": "2023-12-01 18:37:16.799471",
->>>>>>> 35d6e70382 (feat: add sender_name_field)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
