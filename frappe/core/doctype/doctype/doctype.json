@@ -670,9 +670,94 @@
    "fieldname": "sender_name_field",
    "fieldtype": "Data",
    "label": "Sender Name Field"
+>>>>>>> 35d6e70382 (feat: add sender_name_field)
   }
  ],
+ "icon": "fa fa-bolt",
+ "idx": 6,
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "group": "Views",
+   "link_doctype": "Report",
+   "link_fieldname": "ref_doctype"
+  },
+  {
+   "group": "Workflow",
+   "link_doctype": "Workflow",
+   "link_fieldname": "document_type"
+  },
+  {
+   "group": "Workflow",
+   "link_doctype": "Notification",
+   "link_fieldname": "document_type"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Custom Field",
+   "link_fieldname": "dt"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Client Script",
+   "link_fieldname": "dt"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Server Script",
+   "link_fieldname": "reference_doctype"
+  },
+  {
+   "group": "Workflow",
+   "link_doctype": "Webhook",
+   "link_fieldname": "webhook_doctype"
+  },
+  {
+   "group": "Views",
+   "link_doctype": "Print Format",
+   "link_fieldname": "doc_type"
+  },
+  {
+   "group": "Views",
+   "link_doctype": "Web Form",
+   "link_fieldname": "doc_type"
+  },
+  {
+   "group": "Views",
+   "link_doctype": "Calendar View",
+   "link_fieldname": "reference_doctype"
+  },
+  {
+   "group": "Views",
+   "link_doctype": "Kanban Board",
+   "link_fieldname": "reference_doctype"
+  },
+  {
+   "group": "Workflow",
+   "link_doctype": "Onboarding Step",
+   "link_fieldname": "reference_document"
+  },
+  {
+   "group": "Rules",
+   "link_doctype": "Auto Repeat",
+   "link_fieldname": "reference_doctype"
+  },
+  {
+   "group": "Rules",
+   "link_doctype": "Assignment Rule",
+   "link_fieldname": "document_type"
+  },
+  {
+   "group": "Rules",
+   "link_doctype": "Energy Point Rule",
+   "link_fieldname": "reference_doctype"
+  }
+ ],
+<<<<<<< HEAD
+ "modified": "2023-08-14 17:32:23.824794",
+=======
  "modified": "2023-12-01 18:37:16.799471",
+>>>>>>> 35d6e70382 (feat: add sender_name_field)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
