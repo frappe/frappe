@@ -21,7 +21,7 @@ export default class Tab {
 					data-fieldname="${this.df.fieldname}"
 					href="#${id}"
 					role="tab"
-					aria-controls="${this.label}">
+					aria-controls="${id}">
 						${__(this.label)}
 				</a>
 			</li>

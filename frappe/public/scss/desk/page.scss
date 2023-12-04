@@ -163,6 +163,8 @@
 	}
 }
 .layout-main-section {
+	scroll-margin-top: var(--navbar-height);
+
 	.frappe-list,
 	.report-wrapper {
 		padding: 0 var(--padding-xs);

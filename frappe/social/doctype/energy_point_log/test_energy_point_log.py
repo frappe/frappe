@@ -376,7 +376,7 @@ def create_a_todo(description=None):
 
 
 def get_points(user, point_type="energy_points"):
-	return _get_energy_points(user).get(point_type) or 0
+	return _get_energy_points(user).get(point_type, 0)
 
 
 def assign_users_to_todo(todo_name, users):

@@ -38,6 +38,7 @@ def log_error(
 ):
 	"""Log error to Error Log"""
 	from frappe.monitor import get_trace_id
+	from frappe.utils.sentry import capture_exception
 
 	# Parameter ALERT:
 	# the title and message may be swapped
@@ -58,14 +59,18 @@ def log_error(
 		print(f"Failed to log error in db: {title}")
 		return
 
+	trace_id = get_trace_id()
 	error_log = frappe.get_doc(
 		doctype="Error Log",
 		error=traceback,
 		method=title,
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
-		trace_id=get_trace_id(),
+		trace_id=trace_id,
 	)
+
+	# Capture exception data if telemetry is enabled
+	capture_exception(message=f"{title}\n{traceback}")
 
 	if frappe.flags.read_only or defer_insert:
 		error_log.deferred_insert()

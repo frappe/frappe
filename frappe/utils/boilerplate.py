@@ -551,6 +551,14 @@ app_license = "{app_license}"
 # auth_hooks = [
 #	"{app_name}.auth.validate"
 # ]
+
+# Automatically update python controller files with type annotations for this app.
+# export_python_type_annotations = True
+
+# default_log_clearing_doctypes = {{
+#	"Logging DocType Name": 30  # days to retain logs
+# }}
+
 """
 
 gitignore_template = """.DS_Store

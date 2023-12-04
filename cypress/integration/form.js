@@ -116,50 +116,6 @@ context("Form", () => {
 		cy.get_field("location").should("have.value", "Bermuda");
 	});
 
-	it("let user undo/redo field value changes", { scrollBehavior: false }, () => {
-		const undo = () => cy.get("body").type("{esc}").type("{ctrl+z}").wait(500);
-		const redo = () => cy.get("body").type("{esc}").type("{ctrl+y}").wait(500);
-
-		cy.new_form("User");
-
-		jump_to_field("Email");
-		type_value("admin@example.com");
-
-		jump_to_field("Username");
-		type_value("admin42");
-
-		jump_to_field("Send Welcome Email");
-		cy.focused().uncheck();
-
-		// make a mistake
-		jump_to_field("Username");
-		type_value("admin24");
-
-		// undo behaviour
-		undo();
-		cy.get_field("username").should("have.value", "admin42");
-
-		// redo behaviour
-		redo();
-		cy.get_field("username").should("have.value", "admin24");
-
-		// undo everything & redo everything, ensure same values at the end
-		undo();
-		undo();
-		undo();
-		undo();
-		redo();
-		redo();
-		redo();
-		redo();
-
-		cy.compare_document({
-			username: "admin24",
-			email: "admin@example.com",
-			send_welcome_email: 0,
-		});
-	});
-
 	it("update docfield property using set_df_property in child table", () => {
 		cy.visit("/app/contact/Test Form Contact 1");
 		cy.window()

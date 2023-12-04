@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import contextlib
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -41,7 +43,7 @@ class EmailGroup(Document):
 		added = 0
 
 		for user in frappe.get_all(doctype, [email_field, unsubscribed_field or "name"]):
-			try:
+			with contextlib.suppress(frappe.UniqueValidationError, frappe.InvalidEmailAddressError):
 				email = parse_addr(user.get(email_field))[1] if user.get(email_field) else None
 				if email:
 					frappe.get_doc(
@@ -52,10 +54,7 @@ class EmailGroup(Document):
 							"unsubscribed": user.get(unsubscribed_field) if unsubscribed_field else 0,
 						}
 					).insert(ignore_permissions=True)
-
 					added += 1
-			except frappe.UniqueValidationError:
-				pass
 
 		frappe.msgprint(_("{0} subscribers added").format(added))
 

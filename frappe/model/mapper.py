@@ -152,6 +152,9 @@ def get_mapped_doc(
 							True if target_doc.get(target_parentfield) else False
 						)
 
+					if table_map.get("ignore"):
+						continue
+
 					if table_map.get("add_if_empty") and row_exists_for_parentfield.get(target_parentfield):
 						continue
 
@@ -163,6 +166,7 @@ def get_mapped_doc(
 	if postprocess:
 		postprocess(source_doc, target_doc)
 
+	ret_doc.run_method("after_mapping", source_doc)
 	ret_doc.set_onload("load_after_mapping", True)
 
 	if (
