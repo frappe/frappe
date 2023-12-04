@@ -407,9 +407,9 @@ class OAuthWebRequestValidator(RequestValidator):
 		- OpenIDConnectHybrid
 		"""
 		if request.prompt == "login":
-			False
+			return False
 		else:
-			True
+			return True
 
 	def validate_silent_login(self, request):
 		"""Ensure session user has authorized silent OpenID login.
