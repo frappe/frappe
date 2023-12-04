@@ -37,13 +37,15 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 
 
 @frappe.whitelist()
-def get_children(doctype, parent="", **filters):
-	return _get_children(doctype, parent)
+def get_children(doctype, parent="", include_disabled=False, **filters):
+	return _get_children(doctype, parent, include_disabled)
 
 
-def _get_children(doctype, parent="", ignore_permissions=False):
+def _get_children(doctype, include_disabled, parent="", ignore_permissions=False):
 	parent_field = "parent_" + doctype.lower().replace(" ", "_")
 	filters = [[f"ifnull(`{parent_field}`,'')", "=", parent], ["docstatus", "<", 2]]
+	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
+		filters.append(["disabled", "=", False])
 
 	meta = frappe.get_meta(doctype)
 
