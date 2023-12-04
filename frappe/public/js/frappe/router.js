@@ -368,7 +368,17 @@ frappe.router = {
 				window.open(sub_path, "_blank");
 				frappe.open_in_new_tab = false;
 			} else {
-				this.push_state(sub_path);
+				try {
+					const route_options = frappe.route_options || {};
+					const query_params = Object.entries(route_options)
+						.map(
+							([key, value]) => `${key}=` + encodeURIComponent(JSON.stringify(value))
+						)
+						.join("&");
+					this.push_state(sub_path, query_params ? `?${query_params}` : "");
+				} catch (e) {
+					this.push_state(sub_path);
+				}
 			}
 			setTimeout(() => {
 				frappe.after_ajax &&
@@ -469,12 +479,19 @@ frappe.router = {
 		return "/app/" + (path_string || default_page);
 	},
 
-	push_state(url) {
-		// change the URL and call the router
-		if (window.location.pathname !== url) {
+	/**
+	 * Changes the URL and calls the router.
+	 *
+	 * @param {string} path - The desired URI path to replace or push,
+	 *    without query string. Example: "/app/todo"
+	 * @param {string} query_params - The desired query parameter string.
+	 * @returns {void}
+	 */
+	push_state(path, query_params = "") {
+		if (window.location.pathname !== path || window.location.search !== query_params) {
 			// push/replace state so the browser looks fine
 			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
-			history[method](null, null, url);
+			history[method](null, null, path);
 
 			// now process the route
 			this.route();

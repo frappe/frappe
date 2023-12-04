@@ -29,6 +29,7 @@ class PersonalDataDeletionRequest(Document):
 		deletion_steps: DF.Table[PersonalDataDeletionStep]
 		email: DF.Data
 		status: DF.Literal["Pending Verification", "Pending Approval", "On Hold", "Deleted"]
+
 	# end: auto-generated types
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
@@ -154,7 +155,7 @@ class PersonalDataDeletionRequest(Document):
 			row_data = {
 				"status": "Pending",
 				"document_type": step.get("doctype"),
-				"partial": step.get("partial") or False,
+				"partial": step.get("partial", False),
 				"fields": json.dumps(step.get("redact_fields", [])),
 				"filtered_by": step.get("filtered_by") or "",
 			}

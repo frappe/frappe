@@ -51,6 +51,11 @@ let docfield_df = computed(() => {
 			}
 		}
 
+		// show link_filters docfield only when link field is selected
+		if (df.fieldname === "link_filters" && store.form.selected_field.fieldtype !== "Link") {
+			return false;
+		}
+
 		if (search_text.value) {
 			if (
 				df.label.toLowerCase().includes(search_text.value.toLowerCase()) ||
@@ -62,7 +67,6 @@ let docfield_df = computed(() => {
 		}
 		return true;
 	});
-
 	return [...fields];
 });
 </script>

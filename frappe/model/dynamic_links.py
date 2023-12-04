@@ -13,7 +13,7 @@ dynamic_link_queries = [
 		`tabDocField`.fieldname, `tabDocField`.options
 	from `tabDocField`, `tabDocType`
 	where `tabDocField`.fieldtype='Dynamic Link' and
-	`tabDocType`.`name`=`tabDocField`.parent
+	`tabDocType`.`name`=`tabDocField`.parent and `tabDocType`.is_virtual = 0
 	order by `tabDocType`.read_only, `tabDocType`.in_create""",
 	"""select `tabCustom Field`.dt as parent,
 		`tabDocType`.read_only, `tabDocType`.in_create,

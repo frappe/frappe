@@ -17,7 +17,6 @@ import inspect
 import json
 import os
 import re
-import unicodedata
 import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
@@ -43,9 +42,8 @@ from .utils.jinja import (
 	get_template,
 	render_template,
 )
-from .utils.lazy_loader import lazy_import
 
-__version__ = "15.0.0-dev"
+__version__ = "16.0.0-dev"
 __title__ = "Frappe Framework"
 
 controllers = {}
@@ -60,6 +58,32 @@ _tune_gc = bool(sbool(os.environ.get("FRAPPE_TUNE_GC", True)))
 if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
 	warnings.simplefilter("always", PendingDeprecationWarning)
+
+# Always initialize sentry SDK if the DSN is sent
+if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
+	import sentry_sdk
+	from sentry_sdk.integrations.argv import ArgvIntegration
+	from sentry_sdk.integrations.atexit import AtexitIntegration
+	from sentry_sdk.integrations.dedupe import DedupeIntegration
+	from sentry_sdk.integrations.excepthook import ExcepthookIntegration
+	from sentry_sdk.integrations.modules import ModulesIntegration
+
+	from frappe.utils.sentry import before_send
+
+	sentry_sdk.init(
+		dsn=sentry_dsn,
+		before_send=before_send,
+		release=__version__,
+		auto_enabling_integrations=False,
+		default_integrations=False,
+		integrations=[
+			AtexitIntegration(),
+			ExcepthookIntegration(),
+			DedupeIntegration(),
+			ModulesIntegration(),
+			ArgvIntegration(),
+		],
+	)
 
 
 class _dict(dict):
@@ -165,6 +189,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
+	from frappe.email.doctype.email_queue.email_queue import EmailQueue
 	from frappe.model.document import Document
 	from frappe.query_builder.builder import MariaDB, Postgres
 	from frappe.utils.redis_wrapper import RedisWrapper
@@ -239,7 +264,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.jloader = None
 	local.cache = {}
 	local.form_dict = _dict()
-	local.preload_assets = {"style": [], "script": []}
+	local.preload_assets = {"style": [], "script": [], "icons": []}
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type)
@@ -418,7 +443,7 @@ def errprint(msg: str) -> None:
 
 	:param msg: Message."""
 	msg = as_unicode(msg)
-	if not request or (not "cmd" in local.form_dict) or conf.developer_mode:
+	if not request or ("cmd" not in local.form_dict) or conf.developer_mode:
 		print(msg)
 
 	error_log.append({"exc": msg})
@@ -429,11 +454,11 @@ def print_sql(enable: bool = True) -> None:
 
 
 def log(msg: str) -> None:
-	"""Add to `debug_log`.
+	"""Add to `debug_log`
 
 	:param msg: Message."""
 	if not request:
-		if conf.get("logging") or False:
+		if conf.get("logging"):
 			print(repr(msg))
 
 	debug_log.append(as_unicode(msg))
@@ -450,6 +475,8 @@ def msgprint(
 	primary_action: str = None,
 	is_minimizable: bool = False,
 	wide: bool = False,
+	*,
+	realtime=False,
 ) -> None:
 	"""Print a message to the user (via HTTP response).
 	Messages are sent in the `__server_messages` property in the
@@ -463,6 +490,7 @@ def msgprint(
 	:param primary_action: [optional] Bind a primary server/client side action.
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
+	:param realtime: Publish message immediately using websocket.
 	"""
 	import inspect
 	import sys
@@ -529,7 +557,10 @@ def msgprint(
 	if wide:
 		out.wide = wide
 
-	message_log.append(out)
+	if realtime:
+		publish_realtime(event="msgprint", message=out)
+	else:
+		message_log.append(out)
 	_raise_exception()
 
 
@@ -661,7 +692,7 @@ def sendmail(
 	print_letterhead=False,
 	with_container=False,
 	email_read_tracker_url=None,
-):
+) -> Optional["EmailQueue"]:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -746,7 +777,7 @@ def sendmail(
 	)
 
 	# build email queue and send the email if send_now is True.
-	builder.process(send_now=now)
+	return builder.process(send_now=now)
 
 
 whitelisted = []
@@ -1959,7 +1990,7 @@ def get_all(doctype, *args, **kwargs):
 	        frappe.get_all("ToDo", fields=["*"], filters = [["modified", ">", "2014-01-01"]])
 	"""
 	kwargs["ignore_permissions"] = True
-	if not "limit_page_length" in kwargs:
+	if "limit_page_length" not in kwargs:
 		kwargs["limit_page_length"] = 0
 	return get_list(doctype, *args, **kwargs)
 
@@ -2008,7 +2039,7 @@ def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> s
 
 
 def are_emails_muted():
-	return flags.mute_emails or cint(conf.get("mute_emails") or 0) or False
+	return flags.mute_emails or cint(conf.get("mute_emails"))
 
 
 def get_test_records(doctype):

@@ -78,6 +78,11 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "bcc",
 			},
 			{
+				label: __("Schedule Send At"),
+				fieldtype: "Datetime",
+				fieldname: "send_after",
+			},
+			{
 				fieldtype: "Section Break",
 				fieldname: "email_template_section_break",
 				hidden: 1,
@@ -522,18 +527,27 @@ frappe.views.CommunicationComposer = class {
 
 	get_attachment_row(attachment, checked) {
 		return $(`<p class="checkbox flex">
-			<label class="ellipsis" title="${attachment.file_name}">
+			<label title="${attachment.file_name}" style="max-width: 100%">
 				<input
 					type="checkbox"
 					data-file-name="${attachment.name}"
 					${checked ? "checked" : ""}>
 				</input>
-				<span class="ellipsis">${attachment.file_name}</span>
+				<span
+					class="ellipsis"
+					style="max-width: calc(100% - var(--checkbox-size) - var(--checkbox-right-margin) - var(--padding-xs) - 16px)"
+				>
+					${attachment.file_name}
+				</span>
+				<a
+					href="${attachment.file_url}"
+					target="_blank"
+					class="btn-link"
+					style="padding-left: var(--padding-xs)"
+				>
+					${frappe.utils.icon("link-url", "sm")}
+				</a>
 			</label>
-			&nbsp;
-			<a href="${attachment.file_url}" target="_blank" class="btn-linkF">
-				${frappe.utils.icon("link-url")}
-			</a>
 		</p>`);
 	}
 
@@ -676,6 +690,7 @@ frappe.views.CommunicationComposer = class {
 				attachments: selected_attachments,
 				read_receipt: form_values.send_read_receipt,
 				print_letterhead: me.is_print_letterhead_checked(),
+				send_after: form_values.send_after ? form_values.send_after : null,
 			},
 			btn,
 			callback(r) {

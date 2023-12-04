@@ -3,8 +3,8 @@
 
 import frappe
 from frappe import _
-from frappe.model import no_value_fields
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class Workflow(Document):
@@ -29,6 +29,7 @@ class Workflow(Document):
 		workflow_data: DF.JSON | None
 		workflow_name: DF.Data
 		workflow_state_field: DF.Data
+
 	# end: auto-generated types
 	def validate(self):
 		self.set_active()
@@ -69,7 +70,7 @@ class Workflow(Document):
 		docstatus_map = {}
 		states = self.get("states")
 		for d in states:
-			if not d.doc_status in docstatus_map:
+			if d.doc_status not in docstatus_map:
 				frappe.db.sql(
 					"""
 					UPDATE `tab{doctype}`
@@ -89,6 +90,10 @@ class Workflow(Document):
 		Checks if the docstatus of a state was updated.
 		If yes then the docstatus of the document with same state will be updated
 		"""
+
+		if not self.get("_update_state_docstatus"):
+			return
+
 		doc_before_save = self.get_doc_before_save()
 		before_save_states, new_states = {}, {}
 		if doc_before_save:
@@ -136,7 +141,7 @@ class Workflow(Document):
 				frappe.throw(frappe._("Cannot cancel before submitting. See Transition {0}").format(t.idx))
 
 	def set_active(self):
-		if int(self.is_active or 0):
+		if cint(self.is_active):
 			# clear all other
 			frappe.db.sql(
 				"""UPDATE `tabWorkflow` SET `is_active`=0

@@ -1,6 +1,7 @@
 import ast
 import copy
 import inspect
+import io
 import json
 import mimetypes
 import types
@@ -8,7 +9,7 @@ from contextlib import contextmanager
 from functools import lru_cache
 
 import RestrictedPython.Guards
-from RestrictedPython import compile_restricted, safe_globals
+from RestrictedPython import PrintCollector, compile_restricted, safe_globals
 from RestrictedPython.transformer import RestrictingNodeTransformer
 
 import frappe
@@ -58,6 +59,16 @@ class FrappeTransformer(RestrictingNodeTransformer):
 			return
 
 		return super().check_name(node, name, *args, **kwargs)
+
+
+class FrappePrintCollector(PrintCollector):
+	"""Collect written text, and return it when called."""
+
+	def _call_print(self, *objects, **kwargs):
+		output = io.StringIO()
+		print(*objects, file=output, **kwargs)
+		frappe.log(output.getvalue().strip())
+		output.close()
 
 
 def is_safe_exec_enabled() -> bool:
@@ -206,6 +217,8 @@ def get_safe_globals():
 			make_get_request=frappe.integrations.utils.make_get_request,
 			make_post_request=frappe.integrations.utils.make_post_request,
 			make_put_request=frappe.integrations.utils.make_put_request,
+			make_patch_request=frappe.integrations.utils.make_patch_request,
+			make_delete_request=frappe.integrations.utils.make_delete_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=get_hooks,
 			enqueue=safe_enqueue,
@@ -260,6 +273,9 @@ def get_safe_globals():
 	out._write_ = _write
 	out._getitem_ = _getitem
 	out._getattr_ = _getattr_for_safe_exec
+
+	# Allow using `print()` calls with `safe_exec()`
+	out._print_ = FrappePrintCollector
 
 	# allow iterators and list comprehension
 	out._getiter_ = iter

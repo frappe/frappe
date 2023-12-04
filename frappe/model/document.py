@@ -343,7 +343,7 @@ class Document(BaseDocument):
 		:param ignore_permissions: Do not check permissions if True.
 		:param ignore_version: Do not save version if True."""
 		if self.flags.in_print:
-			return
+			return self
 
 		self.flags.notifications_executed = []
 
