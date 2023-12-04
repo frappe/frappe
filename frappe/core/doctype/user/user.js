@@ -114,6 +114,7 @@ frappe.ui.form.on("User", {
 			return;
 		}
 
+<<<<<<< HEAD
 		if (
 			doc.name === frappe.session.user &&
 			!doc.__unsaved &&
@@ -125,6 +126,8 @@ frappe.ui.form.on("User", {
 			window.location.reload();
 		}
 
+=======
+>>>>>>> b45df8d726 (fix: Reload whenever the effective language or timezone has changed. (#22952))
 		frm.toggle_display(["sb1", "sb3", "modules_access"], false);
 
 		if (!frm.is_new()) {
@@ -330,10 +333,31 @@ frappe.ui.form.on("User", {
 			},
 		});
 	},
-	on_update: function (frm) {
-		if (frappe.boot.time_zone && frappe.boot.time_zone.user !== frm.doc.time_zone) {
-			// Clear cache after saving to refresh the values of boot.
-			frappe.ui.toolbar.clear_cache();
+	after_save: function (frm) {
+		/**
+		 * Checks whether the effective value has changed.
+		 *
+		 * @param {Array.<string>} - Tuple with new override, previous override,
+		 *   and optionally fallback.
+		 * @returns {boolean} - Whether the resulting value has effectively changed
+		 */
+		const has_effectively_changed = ([new_override, prev_override, fallback = undefined]) => {
+			const prev_effective = prev_override || fallback;
+			const new_effective = new_override || fallback;
+			return new_override !== undefined && prev_effective !== new_effective;
+		};
+
+		const doc = frm.doc;
+		const boot = frappe.boot;
+		const attr_tuples = [
+			[doc.language, boot.user.language, boot.sysdefaults.language],
+			[doc.time_zone, boot.time_zone.user, boot.time_zone.system],
+			[doc.desk_theme, boot.user.desk_theme], // No system default.
+		];
+
+		if (doc.name === frappe.session.user && attr_tuples.some(has_effectively_changed)) {
+			frappe.msgprint(__("Refreshing..."));
+			window.location.reload();
 		}
 	},
 });
