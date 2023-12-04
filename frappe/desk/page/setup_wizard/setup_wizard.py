@@ -4,12 +4,12 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import get_messages_for_boot, send_translations, set_default_language
 from frappe.utils import cint, now, strip
 from frappe.utils.password import update_password
-from frappe import _
 
 from . import install_fixtures
 
