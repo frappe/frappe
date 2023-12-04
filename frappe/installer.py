@@ -450,7 +450,6 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 def _delete_linked_documents(
 	module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool
 ) -> None:
-
 	"""Deleted all records linked with module def"""
 	for doctype, fieldname in doctype_linkfield_map.items():
 		for record in frappe.get_all(doctype, filters={fieldname: module_name}, pluck="name"):
@@ -756,40 +755,10 @@ def is_downgrade(sql_file_path, verbose=False):
 
 	backup_version = extract_version_from_dump(sql_file_path)
 	if backup_version is None:
-		if sql_file_path.endswith(".sql.gz"):
-			open_method = gzip.open
-		else:
-			open_method = open
-		# Handle older backups in the same way
-		head = "INSERT INTO `tabInstalled Application` VALUES"
-
-		with open_method(sql_file_path) as f:
-			for line in f:
-				if isinstance(line, bytes):
-					line = line.decode("utf-8").strip()
-				if head in line:
-					# 'line' (str) format: ('2056588823','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',1,'frappe','v10.1.71-74 (3c50d5e) (v10.x.x)','v10.x.x'),('855c640b8e','2020-05-11 18:21:31.488367','2020-06-12 11:49:31.079506','Administrator','Administrator',0,'Installed Applications','installed_applications','Installed Applications',2,'your_custom_app','0.0.1','master')
-					line = line.strip().lstrip(head).rstrip(";").strip()
-					app_rows = frappe.safe_eval(line)
-					# check if iterable consists of tuples before trying to transform
-					apps_list = (
-						app_rows
-						if all(isinstance(app_row, (tuple, list, set)) for app_row in app_rows)
-						else (app_rows,)
-					)
-					# 'all_apps' (list) format: [('frappe', '12.x.x-develop ()', 'develop'), ('your_custom_app', '0.0.1', 'master')]
-					all_apps = [x[-3:] for x in apps_list]
-
-					for app in all_apps:
-						app_name = app[0]
-						app_version = app[1].split(" ", 1)[0]
-
-						if app_name == "frappe":
-							try:
-								backup_version = app_version[1:] if app_version[0] == "v" else app_version
-								break
-							except ValueError:
-								return False
+		# This is likely an older backup, so try to extract another way
+		header = get_db_dump_header(sql_file_path).split("\n")
+		if "Version" in header[0]:
+			backup_version = header[0].split(":")[-1].strip()
 
 	# Assume it's not a downgrade if we can't determine backup version
 	if backup_version is None:
