@@ -45,6 +45,7 @@ frappe.ui.form.on("System Settings", {
 
 		const attr_tuples = [
 			[frm.doc.language, frappe.boot.sysdefaults.language, frappe.boot.user.language],
+			[frm.doc.rounding_method, frappe.boot.sysdefaults.rounding_method], // no user override.
 		];
 
 		if (attr_tuples.some(has_effectively_changed)) {
