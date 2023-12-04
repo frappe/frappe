@@ -128,6 +128,7 @@ watch(
 </script>
 
 <style scoped>
+@import "cropperjs/dist/cropper.min.css";
 img {
 	display: block;
 	max-width: 100%;

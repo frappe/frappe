@@ -162,7 +162,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 			if (data) {
 				me.dialog.working = true;
 				me.insert().then(() => {
-					let messagetxt = __("Created new {0} {1}", [
+					let messagetxt = __("New {0} {1} created", [
 						__(me.doctype),
 						this.doc.name.bold(),
 					]);

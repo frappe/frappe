@@ -831,6 +831,14 @@ def pull(now=False):
 				)
 
 
+@frappe.whitelist()
+def pull_emails(email_account: str) -> None:
+	"""Pull emails from given email account."""
+	frappe.has_permission("Email Account", "read", throw=True)
+
+	pull_from_email_account(email_account)
+
+
 def pull_from_email_account(email_account):
 	"""Runs within a worker process"""
 	email_account = frappe.get_doc("Email Account", email_account)

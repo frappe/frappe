@@ -92,6 +92,7 @@ class DocField(Document):
 		max_height: DF.Data | None
 		no_copy: DF.Check
 		non_negative: DF.Check
+		not_nullable: DF.Check
 		oldfieldname: DF.Data | None
 		oldfieldtype: DF.Data | None
 		options: DF.SmallText | None

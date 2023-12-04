@@ -31,6 +31,7 @@ class UserType(Document):
 		user_doctypes: DF.Table[UserDocumentType]
 		user_id_field: DF.Literal
 		user_type_modules: DF.Table[UserTypeModule]
+
 	# end: auto-generated types
 	def validate(self):
 		self.set_modules()
@@ -140,7 +141,7 @@ class UserType(Document):
 		for row in self.user_doctypes:
 			docperm = add_role_permissions(row.document_type, self.role)
 
-			values = {perm: row.get(perm) or 0 for perm in perms}
+			values = {perm: row.get(perm, default=0) for perm in perms}
 			for perm in ["print", "email", "share"]:
 				values[perm] = 1
 

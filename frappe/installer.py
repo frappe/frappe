@@ -48,6 +48,7 @@ def _new_site(
 	db_type=None,
 	db_host=None,
 	db_port=None,
+	setup_db=True,
 ):
 	"""Install a new Frappe site"""
 
@@ -66,7 +67,12 @@ def _new_site(
 	if not db_name:
 		import hashlib
 
-		db_name = "_" + hashlib.sha1(os.path.realpath(frappe.get_site_path()).encode()).hexdigest()[:16]
+		db_name = (
+			"_"
+			+ hashlib.sha1(
+				os.path.realpath(frappe.get_site_path()).encode(), usedforsecurity=False
+			).hexdigest()[:16]
+		)
 
 	try:
 		# enable scheduler post install?
@@ -91,6 +97,7 @@ def _new_site(
 			db_host=db_host,
 			db_port=db_port,
 			no_mariadb_socket=no_mariadb_socket,
+			setup=setup_db,
 		)
 
 		apps_to_install = (
@@ -128,9 +135,10 @@ def install_db(
 	db_host=None,
 	db_port=None,
 	no_mariadb_socket=False,
+	setup=True,
 ):
 	import frappe.database
-	from frappe.database import setup_database
+	from frappe.database import bootstrap_database, setup_database
 
 	if not db_type:
 		db_type = frappe.conf.db_type
@@ -152,7 +160,15 @@ def install_db(
 
 	frappe.flags.root_login = root_login
 	frappe.flags.root_password = root_password
-	setup_database(force, source_sql, verbose, no_mariadb_socket)
+
+	if setup:
+		setup_database(force, verbose, no_mariadb_socket)
+
+	bootstrap_database(
+		db_name=frappe.conf.db_name,
+		verbose=verbose,
+		source_sql=source_sql,
+	)
 
 	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
 

@@ -209,10 +209,10 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 
 	data = frappe.db.get_list(
 		doctype,
-		fields=[f"{datefield} as _unit", f"SUM({value_field})", "COUNT(*)"],
+		fields=[datefield, f"SUM({value_field})", "COUNT(*)"],
 		filters=filters,
-		group_by="_unit",
-		order_by="_unit asc",
+		group_by=datefield,
+		order_by=datefield,
 		as_list=True,
 	)
 
