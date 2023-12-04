@@ -442,7 +442,13 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 	return drop_doctypes
 
 
+<<<<<<< HEAD
 def _delete_linked_documents(module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool) -> None:
+=======
+def _delete_linked_documents(
+	module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool
+) -> None:
+>>>>>>> 43021911ff (fix: simplify parsing version for older backups)
 	"""Deleted all records linked with module def"""
 	for doctype, fieldname in doctype_linkfield_map.items():
 		for record in frappe.get_all(doctype, filters={fieldname: module_name}, pluck="name"):
@@ -797,6 +803,7 @@ def is_downgrade(sql_file_path, verbose=False):
 	backup_version = extract_version_from_dump(sql_file_path)
 	if backup_version is None:
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 2e382040cd (fix: simplify version detection logic)
 =======
 		if sql_file_path.endswith(".sql.gz"):
@@ -834,6 +841,12 @@ def is_downgrade(sql_file_path, verbose=False):
 								break
 							except ValueError:
 								return False
+=======
+		# This is likely an older backup, so try to extract another way
+		header = get_db_dump_header(sql_file_path).split("\n")
+		if "Version" in header[0]:
+			backup_version = header[0].split(":")[-1].strip()
+>>>>>>> 43021911ff (fix: simplify parsing version for older backups)
 
 	# Assume it's not a downgrade if we can't determine backup version
 	if backup_version is None:
