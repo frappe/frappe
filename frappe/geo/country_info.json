@@ -1926,7 +1926,7 @@
   "currency_fraction_units": 100,
   "currency_name": "Nepalese Rupee",
   "currency_symbol": "\u20a8",
-  "number_format": "#,###.##",
+  "number_format": "#,##,###.##",
   "timezones": [
    "Asia/Kathmandu"
   ],
