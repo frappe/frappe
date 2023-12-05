@@ -225,9 +225,17 @@ export default class BulkOperations {
 			})
 			.then((failed) => {
 				if (failed?.length) {
-					frappe.throw(
-						__("Cannot {0} {1}", [action, failed.map((f) => f.bold()).join(", ")])
-					);
+					const comma_separated_records = frappe.utils.comma_and(failed);
+					switch (action) {
+						case "submit":
+							frappe.throw(__("Cannot submit {0}.", [comma_separated_records]));
+							break;
+						case "cancel":
+							frappe.throw(__("Cannot cancel {0}.", [comma_separated_records]));
+							break;
+						default:
+							frappe.throw(__("Cannot {0} {1}.", [action, comma_separated_records]));
+					}
 				}
 				if (failed?.length < docnames.length) {
 					frappe.utils.play_sound(action);
