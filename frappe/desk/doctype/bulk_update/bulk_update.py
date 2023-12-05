@@ -25,6 +25,7 @@ class BulkUpdate(Document):
 		update_value: DF.SmallText
 
 	# end: auto-generated types
+
 	@frappe.whitelist()
 	def bulk_update(self):
 		self.check_permission("write")
@@ -46,12 +47,12 @@ class BulkUpdate(Document):
 
 
 @frappe.whitelist()
-def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
+def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, task_id=None):
 	if isinstance(docnames, str):
 		docnames = frappe.parse_json(docnames)
 
 	if len(docnames) < 20:
-		return _bulk_action(doctype, docnames, action, data)
+		return _bulk_action(doctype, docnames, action, data, task_id)
 	elif len(docnames) <= 500:
 		frappe.msgprint(_("Bulk operation is enqueued in background."), alert=True)
 		frappe.enqueue(
@@ -60,6 +61,7 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
 			docnames=docnames,
 			action=action,
 			data=data,
+			task_id=task_id,
 			queue="short",
 			timeout=1000,
 		)
@@ -67,11 +69,12 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
 		frappe.throw(_("Bulk operations only support up to 500 documents."), title=_("Too Many Documents"))
 
 
-def _bulk_action(doctype, docnames, action, data):
+def _bulk_action(doctype, docnames, action, data, task_id=None):
 	if data:
 		data = frappe.parse_json(data)
 
 	failed = []
+	num_documents = len(docnames)
 
 	for idx, docname in enumerate(docnames, 1):
 		doc = frappe.get_doc(doctype, docname)
@@ -94,7 +97,12 @@ def _bulk_action(doctype, docnames, action, data):
 			else:
 				failed.append(docname)
 			frappe.db.commit()
-			show_progress(docnames, message, idx, docname)
+			frappe.publish_progress(
+				percent=idx / num_documents * 100,
+				title=message,
+				description=docname,
+				task_id=task_id,
+			)
 
 		except Exception:
 			failed.append(docname)
