@@ -209,28 +209,28 @@ export default class BulkOperations {
 
 	submit_or_cancel(docnames, action = "submit", done = null) {
 		action = action.toLowerCase();
-		frappe
-			.call({
-				method: "frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs",
-				args: {
-					doctype: this.doctype,
-					action: action,
-					docnames: docnames,
-				},
+		const task_id = Math.random().toString(36).slice(-5);
+		frappe.realtime.task_subscribe(task_id);
+		return frappe
+			.xcall("frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs", {
+				doctype: this.doctype,
+				action: action,
+				docnames: docnames,
+				task_id: task_id,
 			})
-			.then((r) => {
-				let failed = r.message;
-				if (!failed) failed = [];
-
-				if (failed.length && !r._server_messages) {
+			.then((failed) => {
+				if (failed?.length) {
 					frappe.throw(
 						__("Cannot {0} {1}", [action, failed.map((f) => f.bold()).join(", ")])
 					);
 				}
-				if (failed.length < docnames.length) {
+				if (failed?.length < docnames.length) {
 					frappe.utils.play_sound(action);
 					if (done) done();
 				}
+			})
+			.finally(() => {
+				frappe.realtime.task_unsubscribe(task_id);
 			});
 	}
 
