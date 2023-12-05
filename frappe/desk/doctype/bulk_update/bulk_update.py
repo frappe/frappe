@@ -73,8 +73,8 @@ def _bulk_action(doctype, docnames, action, data):
 
 	failed = []
 
-	for i, d in enumerate(docnames, 1):
-		doc = frappe.get_doc(doctype, d)
+	for idx, docname in enumerate(docnames, 1):
+		doc = frappe.get_doc(doctype, docname)
 		try:
 			message = ""
 			if action == "submit" and doc.docstatus.is_draft():
@@ -92,12 +92,12 @@ def _bulk_action(doctype, docnames, action, data):
 				doc.save()
 				message = _("Updating {0}").format(doctype)
 			else:
-				failed.append(d)
+				failed.append(docname)
 			frappe.db.commit()
-			show_progress(docnames, message, i, d)
+			show_progress(docnames, message, idx, docname)
 
 		except Exception:
-			failed.append(d)
+			failed.append(docname)
 			frappe.db.rollback()
 
 	return failed
