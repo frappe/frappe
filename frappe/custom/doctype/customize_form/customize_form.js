@@ -84,7 +84,7 @@ frappe.ui.form.on("Customize Form", {
 			if (!in_list(["Table", "Table MultiSelect"], f.fieldtype)) return;
 
 			frm.add_custom_button(
-				f.options,
+				__(f.options),
 				() => frm.set_value("doc_type", f.options),
 				__("Customize Child Table")
 			);
@@ -96,7 +96,7 @@ frappe.ui.form.on("Customize Form", {
 		frm.page.clear_icons();
 
 		if (frm.doc.doc_type) {
-			frm.page.set_title(__("Customize Form - {0}", [frm.doc.doc_type]));
+			frm.page.set_title(__("Customize Form - {0}", [__(frm.doc.doc_type)]));
 			frappe.customize_form.set_primary_action(frm);
 
 			frm.add_custom_button(

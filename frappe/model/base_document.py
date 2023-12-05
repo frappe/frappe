@@ -328,18 +328,17 @@ class BaseDocument:
 					if ignore_virtual or fieldname not in self.permitted_fieldnames:
 						continue
 
-					if value is None:
-						if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
-							value = getattr(self, fieldname)
+					if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+						value = getattr(self, fieldname)
 
-						elif options := getattr(df, "options", None):
-							from frappe.utils.safe_exec import get_safe_globals
+					elif options := getattr(df, "options", None):
+						from frappe.utils.safe_exec import get_safe_globals
 
-							value = frappe.safe_eval(
-								code=options,
-								eval_globals=get_safe_globals(),
-								eval_locals={"doc": self},
-							)
+						value = frappe.safe_eval(
+							code=options,
+							eval_globals=get_safe_globals(),
+							eval_locals={"doc": self},
+						)
 
 				if isinstance(value, list) and df.fieldtype not in table_fields:
 					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label)))

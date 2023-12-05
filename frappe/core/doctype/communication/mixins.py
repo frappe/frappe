@@ -1,6 +1,9 @@
 import frappe
 from frappe import _
 from frappe.core.utils import get_parent_doc
+from frappe.desk.doctype.notification_settings.notification_settings import (
+	is_email_notifications_enabled_for_type,
+)
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.utils import get_formatted_email, get_url, parse_addr
@@ -78,7 +81,12 @@ class CommunicationEmailMixin:
 			if doc_owner := self.get_owner():
 				cc.append(doc_owner)
 			cc = set(cc) - {self.sender_mailid}
-			cc.update(self.get_assignees())
+			assignees = set(self.get_assignees())
+			# Check and remove If user disabled notifications for incoming emails on assigned document.
+			for assignee in assignees.copy():
+				if not is_email_notifications_enabled_for_type(assignee, "threads_on_assigned_document"):
+					assignees.remove(assignee)
+			cc.update(assignees)
 
 		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
 		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))

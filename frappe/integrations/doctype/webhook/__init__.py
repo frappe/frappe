@@ -4,59 +4,44 @@
 import frappe
 
 
+def get_all_webhooks():
+	# query webhooks
+	webhooks_list = frappe.get_all(
+		"Webhook",
+		fields=["name", "condition", "webhook_docevent", "webhook_doctype"],
+		filters={"enabled": True},
+	)
+
+	# make webhooks map
+	webhooks = {}
+	for w in webhooks_list:
+		webhooks.setdefault(w.webhook_doctype, []).append(w)
+
+	return webhooks
+
+
 def run_webhooks(doc, method):
 	"""Run webhooks for this method"""
+
+	frappe_flags = frappe.local.flags
+
 	if (
-		frappe.flags.in_import
-		or frappe.flags.in_patch
-		or frappe.flags.in_install
-		or frappe.flags.in_migrate
+		frappe_flags.in_import
+		or frappe_flags.in_patch
+		or frappe_flags.in_install
+		or frappe_flags.in_migrate
 	):
 		return
 
-	if frappe.flags.webhooks_executed is None:
-		frappe.flags.webhooks_executed = {}
-
-	# TODO: remove this hazardous unnecessary cache in flags
-	if frappe.flags.webhooks is None:
-		# load webhooks from cache
-		webhooks = frappe.cache().get_value("webhooks")
-		if webhooks is None:
-			# query webhooks
-			webhooks_list = frappe.get_all(
-				"Webhook",
-				fields=["name", "`condition`", "webhook_docevent", "webhook_doctype"],
-				filters={"enabled": True},
-			)
-
-			# make webhooks map for cache
-			webhooks = {}
-			for w in webhooks_list:
-				webhooks.setdefault(w.webhook_doctype, []).append(w)
-			frappe.cache().set_value("webhooks", webhooks)
-
-		frappe.flags.webhooks = webhooks
+	# load all webhooks from cache / DB
+	webhooks = frappe.cache().get_value("webhooks", get_all_webhooks)
 
 	# get webhooks for this doctype
-	webhooks_for_doc = frappe.flags.webhooks.get(doc.doctype, None)
+	webhooks_for_doc = webhooks.get(doc.doctype, None)
 
 	if not webhooks_for_doc:
 		# no webhooks, quit
 		return
-
-	def _webhook_request(webhook):
-		if webhook.name not in frappe.flags.webhooks_executed.get(doc.name, []):
-			frappe.enqueue(
-				"frappe.integrations.doctype.webhook.webhook.enqueue_webhook",
-				enqueue_after_commit=True,
-				doc=doc,
-				webhook=webhook,
-			)
-
-			# keep list of webhooks executed for this doc in this request
-			# so that we don't run the same webhook for the same document multiple times
-			# in one request
-			frappe.flags.webhooks_executed.setdefault(doc.name, []).append(webhook.name)
 
 	event_list = ["on_update", "after_insert", "on_submit", "on_cancel", "on_trash"]
 
@@ -76,4 +61,53 @@ def run_webhooks(doc, method):
 			trigger_webhook = True
 
 		if trigger_webhook and event and webhook.webhook_docevent == event:
-			_webhook_request(webhook)
+			_add_webhook_to_queue(webhook, doc)
+
+
+def _add_webhook_to_queue(webhook, doc):
+	# Maintain a queue and flush on commit
+	if not getattr(frappe.local, "_webhook_queue", None):
+		frappe.local._webhook_queue = []
+		frappe.db.add_before_commit(flush_webhook_execution_queue)
+
+	frappe.local._webhook_queue.append(frappe._dict(doc=doc, webhook=webhook))
+
+
+def flush_webhook_execution_queue():
+	"""Enqueue all pending webhook executions.
+
+	Each webhook can trigger multiple times on same document or even different instance of same
+	document. We assume that last enqueued version of document is the final document for this DB
+	transaction.
+	"""
+	if not getattr(frappe.local, "_webhook_queue", None):
+		return
+
+	uniq_hooks = set()
+	unique_last_instances = []
+
+	# reverse
+	frappe.local._webhook_queue.reverse()
+
+	# deduplicate on (doc.name, webhook.name)
+	# 'doc' holds the last instance values
+	for execution in frappe.local._webhook_queue:
+		key = (execution.webhook.get("name"), execution.doc.get("name"))
+		if key not in uniq_hooks:
+			uniq_hooks.add(key)
+			unique_last_instances.append(execution)
+
+	# Clear original queue so next enqueue computation happens correctly.
+	del frappe.local._webhook_queue
+
+	# reverse again, to get back the original order on which to execute webhooks
+	unique_last_instances.reverse()
+
+	for instance in unique_last_instances:
+		frappe.enqueue(
+			"frappe.integrations.doctype.webhook.webhook.enqueue_webhook",
+			doc=instance.doc,
+			webhook=instance.webhook,
+			enqueue_after_commit=True,
+			now=frappe.flags.in_test,
+		)
