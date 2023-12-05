@@ -55,7 +55,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 	if not source_sql:
 		source_sql = os.path.join(os.path.dirname(__file__), "framework_postgres.sql")
 	DbManager(frappe.local.db).restore_database(
-		verbose, db_name, source_sql, db_name, frappe.conf.db_password
+		verbose, db_name, source_sql, frappe.conf.db_user, frappe.conf.db_password
 	)
 	if verbose:
 		print("Imported from database %s" % source_sql)
