@@ -218,9 +218,9 @@ export default class BulkOperations {
 				docnames: docnames,
 				task_id: task_id,
 			})
-			.then((failed) => {
-				if (failed?.length) {
-					const comma_separated_records = frappe.utils.comma_and(failed);
+			.then((failed_docnames) => {
+				if (failed_docnames?.length) {
+					const comma_separated_records = frappe.utils.comma_and(failed_docnames);
 					switch (action) {
 						case "submit":
 							frappe.throw(__("Cannot submit {0}.", [comma_separated_records]));
@@ -232,7 +232,7 @@ export default class BulkOperations {
 							frappe.throw(__("Cannot {0} {1}.", [action, comma_separated_records]));
 					}
 				}
-				if (failed?.length < docnames.length) {
+				if (failed_docnames?.length < docnames.length) {
 					frappe.utils.play_sound(action);
 					if (done) done();
 				}
