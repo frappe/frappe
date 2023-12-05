@@ -430,6 +430,16 @@ def validate_link(doctype: str, docname: str, fields=None):
 			frappe.PermissionError,
 		)
 
+	if frappe.get_meta(doctype).is_virtual:
+		try:
+			frappe.get_doc(doctype, docname)
+			return frappe._dict({"name": docname})
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
+			frappe.msgprint(
+				_("Document {0} {1} does not exist").format(frappe.bold(doctype), frappe.bold(docname)),
+			)
+
 	values = frappe._dict()
 	values.name = frappe.db.get_value(doctype, docname, cache=True)
 
