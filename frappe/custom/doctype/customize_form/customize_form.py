@@ -71,6 +71,7 @@ class CustomizeForm(Document):
 		quick_entry: DF.Check
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
+		sender_name_field: DF.Data | None
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
 		sort_field: DF.Literal
@@ -82,6 +83,7 @@ class CustomizeForm(Document):
 		track_views: DF.Check
 		translated_doctype: DF.Check
 	# end: auto-generated types
+
 	def on_update(self):
 		frappe.db.delete("Singles", {"doctype": "Customize Form"})
 		frappe.db.delete("Customize Form Field")

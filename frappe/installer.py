@@ -66,7 +66,12 @@ def _new_site(
 	if not db_name:
 		import hashlib
 
-		db_name = "_" + hashlib.sha1(os.path.realpath(frappe.get_site_path()).encode()).hexdigest()[:16]
+		db_name = (
+			"_"
+			+ hashlib.sha1(
+				os.path.realpath(frappe.get_site_path()).encode(), usedforsecurity=False
+			).hexdigest()[:16]
+		)
 
 	try:
 		# enable scheduler post install?

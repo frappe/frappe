@@ -61,6 +61,32 @@ if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
 	warnings.simplefilter("always", PendingDeprecationWarning)
 
+# Always initialize sentry SDK if the DSN is sent
+if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
+	import sentry_sdk
+	from sentry_sdk.integrations.argv import ArgvIntegration
+	from sentry_sdk.integrations.atexit import AtexitIntegration
+	from sentry_sdk.integrations.dedupe import DedupeIntegration
+	from sentry_sdk.integrations.excepthook import ExcepthookIntegration
+	from sentry_sdk.integrations.modules import ModulesIntegration
+
+	from frappe.utils.sentry import before_send
+
+	sentry_sdk.init(
+		dsn=sentry_dsn,
+		before_send=before_send,
+		release=__version__,
+		auto_enabling_integrations=False,
+		default_integrations=False,
+		integrations=[
+			AtexitIntegration(),
+			ExcepthookIntegration(),
+			DedupeIntegration(),
+			ModulesIntegration(),
+			ArgvIntegration(),
+		],
+	)
+
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
@@ -249,7 +275,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.jloader = None
 	local.cache = {}
 	local.form_dict = _dict()
-	local.preload_assets = {"style": [], "script": []}
+	local.preload_assets = {"style": [], "script": [], "icons": []}
 	local.session = _dict()
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type)

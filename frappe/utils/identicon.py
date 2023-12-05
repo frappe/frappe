@@ -31,7 +31,7 @@ class Identicon:
 		"""
 		Returns a md5 numeric hash
 		"""
-		return int(md5(str_.encode("utf-8")).hexdigest(), 16)
+		return int(md5(str_.encode("utf-8"), usedforsecurity=False).hexdigest(), 16)
 
 	def calculate(self):
 		"""

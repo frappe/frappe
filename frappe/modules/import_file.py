@@ -20,7 +20,7 @@ def calculate_hash(path: str) -> str:
 	Returns:
 	        str: The calculated hash
 	"""
-	hash_md5 = hashlib.md5()
+	hash_md5 = hashlib.md5(usedforsecurity=False)
 	with open(path, "rb") as f:
 		for chunk in iter(lambda: f.read(4096), b""):
 			hash_md5.update(chunk)
