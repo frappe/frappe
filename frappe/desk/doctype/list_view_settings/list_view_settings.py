@@ -96,7 +96,7 @@ def get_default_listview_fields(doctype):
 	fields = [f.get("fieldname") for f in doctype_json.get("fields") if f.get("in_list_view")]
 
 	if meta.title_field:
-		if not meta.title_field.strip() in fields:
+		if meta.title_field.strip() not in fields:
 			fields.append(meta.title_field.strip())
 
 	return fields

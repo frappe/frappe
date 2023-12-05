@@ -620,7 +620,7 @@ class Document(BaseDocument):
 		workflow = self.meta.get_workflow()
 		if workflow:
 			validate_workflow(self)
-			if not self._action == "save":
+			if self._action != "save":
 				set_workflow_state_on_action(self, workflow, self._action)
 
 	def validate_set_only_once(self):

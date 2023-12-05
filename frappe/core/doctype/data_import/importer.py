@@ -179,7 +179,7 @@ class Importer:
 
 					log_index += 1
 
-					if not self.data_import.status == "Partial Success":
+					if self.data_import.status != "Partial Success":
 						self.data_import.db_set("status", "Partial Success")
 
 					# commit after every successful import
