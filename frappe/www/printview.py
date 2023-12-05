@@ -74,7 +74,7 @@ def get_context(context):
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"doctype": frappe.form_dict.doctype,
 		"name": frappe.form_dict.name,
-		"key": frappe.utils.strip_html(frappe.form_dict.get("key")),
+		"key": frappe.form_dict.get("key"),
 	}
 
 
