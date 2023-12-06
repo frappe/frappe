@@ -150,7 +150,7 @@ class AutoRepeat(Document):
 
 	def validate_auto_repeat_days(self):
 		auto_repeat_days = self.get_auto_repeat_days()
-		if not len(set(auto_repeat_days)) == len(auto_repeat_days):
+		if len(set(auto_repeat_days)) != len(auto_repeat_days):
 			repeated_days = get_repeated(auto_repeat_days)
 			plural = "s" if len(repeated_days) > 1 else ""
 

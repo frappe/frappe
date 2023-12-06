@@ -350,7 +350,7 @@ def get_messages_from_doctype(name):
 
 		if d.fieldtype == "Select" and d.options:
 			options = d.options.split("\n")
-			if not "icon" in options[0]:
+			if "icon" not in options[0]:
 				messages.extend(options)
 		if d.fieldtype == "HTML" and d.options:
 			messages.append(d.options)

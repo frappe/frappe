@@ -104,7 +104,7 @@ class Workflow(Document):
 
 			for key in new_states:
 				if key in before_save_states:
-					if not new_states[key].doc_status == before_save_states[key].doc_status:
+					if new_states[key].doc_status != before_save_states[key].doc_status:
 						frappe.db.set_value(
 							self.document_type,
 							{self.workflow_state_field: before_save_states[key].state},

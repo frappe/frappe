@@ -465,7 +465,7 @@ class DatabaseQuery:
 		# add tables from fields
 		if self.fields:
 			for field in self.fields:
-				if not ("tab" in field and "." in field) or any(x for x in sql_functions if x in field):
+				if "tab" not in field or "." not in field or any(x for x in sql_functions if x in field):
 					continue
 
 				table_name = field.split(".", 1)[0]
@@ -478,7 +478,7 @@ class DatabaseQuery:
 
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
-				if not table_name[0] == "`":
+				if table_name[0] != "`":
 					table_name = f"`{table_name}`"
 				if (
 					table_name not in self.query_tables and table_name not in self.linked_table_aliases.values()
@@ -927,7 +927,8 @@ class DatabaseQuery:
 		role_permissions = frappe.permissions.get_role_permissions(self.doctype_meta, user=self.user)
 		if (
 			not self.doctype_meta.istable
-			and not (role_permissions.get("select") or role_permissions.get("read"))
+			and not role_permissions.get("select")
+			and not role_permissions.get("read")
 			and not self.flags.ignore_permissions
 			and not has_any_user_permission_for_doctype(self.doctype, self.user, self.reference_doctype)
 		):
