@@ -339,6 +339,7 @@ frappe.provide("frappe.views");
 				return state.empty_state;
 			}, show_empty_state);
 
+			store.dispatch('update_order')
 		}
 
 		function prepare() {
@@ -590,7 +591,6 @@ frappe.provide("frappe.views");
 		function setup_sortable() {
 			// Block card dragging/record editing without 'write' access to reference doctype
 			if (!frappe.model.can_write(store.state.doctype)) return;
-			console.log(self.$kanban_cards.get(0))
 			Sortable.create(self.$kanban_cards.get(0), {
 				group: "cards",
 				animation: 150,
