@@ -1266,17 +1266,10 @@ frappe-charts@2.0.0-rc22:
   resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc22.tgz#9a5a747febdc381a1d4d7af96e89cf519dfba8c0"
   integrity sha512-N7f/8979wJCKjusOinaUYfMxB80YnfuVLrSkjpj4LtyqS0BGS6SuJxUnb7Jl4RWUFEIs7zEhideIKnyLeFZF4Q==
 
-<<<<<<< HEAD
-frappe-datatable@^1.17.3:
-  version "1.17.3"
-  resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.17.3.tgz#f486a0de2e977f0fe57aa65b6cc1bc2c05f94172"
-  integrity sha512-HUBwogmsExglXbBFvHnzRssHGnJlsVXv6/7KhVbdh1y3S8JH4YoRQ6q1SOaW8escTuAa2d91OVe5uJ10IbGrlA==
-=======
 frappe-datatable@^1.17.5:
   version "1.17.5"
   resolved "https://registry.yarnpkg.com/frappe-datatable/-/frappe-datatable-1.17.5.tgz#342814d7f9eb502f55639c1b09d44d9eca782f78"
   integrity sha512-FJdpsj/xACuk553FXMMqvtTQZII9P9TEtAwOiaKN+AwDAjfCO4b5vhSTmdNp2Kgf26bnZU9QVfRvh2gDtpj3OA==
->>>>>>> b483800a06 (fix: pass filter to formatter to handle custom logic)
   dependencies:
     hyperlist "^1.0.0-beta"
     lodash "^4.17.5"
