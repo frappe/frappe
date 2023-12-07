@@ -68,6 +68,7 @@ def get_bootinfo():
 	load_print(bootinfo, doclist)
 	doclist.extend(get_meta_bundle("Page"))
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
+	bootinfo.attachments_folder = frappe.db.get_value("File", {"is_attachments_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
 	bootinfo.onboarding_tours = get_onboarding_ui_tours()
