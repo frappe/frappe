@@ -376,3 +376,37 @@ class TestResponse(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertIn("text/csv", response.headers["content-type"])
 		self.assertGreater(cint(response.headers["content-length"]), 0)
+<<<<<<< HEAD
+=======
+
+		from frappe.desk.utils import provide_binary_file
+		from frappe.utils.response import build_response
+
+		filename = "دفتر الأستاذ العام"
+		encoded_filename = filename.encode("utf-8").decode("unicode-escape", "ignore") + ".xlsx"
+		provide_binary_file(filename, "xlsx", "content")
+
+		response = build_response("binary")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.headers["content-type"], "application/octet-stream")
+		self.assertGreater(cint(response.headers["content-length"]), 0)
+		self.assertEqual(response.headers["content-disposition"], f'filename="{encoded_filename}"')
+
+
+def generate_admin_keys():
+	from frappe.core.doctype.user.user import generate_keys
+
+	generate_keys("Administrator")
+	frappe.db.commit()
+
+
+@frappe.whitelist()
+def test(*, fail=False, handled=True, message="Failed"):
+	if fail:
+		if handled:
+			frappe.throw(message)
+		else:
+			1 / 0
+	else:
+		frappe.msgprint(message)
+>>>>>>> f679f65aa5 (test: unit test to check arabic filename export)
