@@ -3,11 +3,6 @@
 
 frappe.ui.form.on("Notification Settings", {
 	onload: (frm) => {
-		frappe.breadcrumbs.add({
-			label: __("Settings"),
-			route: "#modules/Settings",
-			type: "Custom",
-		});
 		frm.set_query("subscribed_documents", () => {
 			return {
 				filters: {
