@@ -1015,7 +1015,7 @@ def attach_files_to_document(doc, event):
 		try:
 			value = doc.get(df.fieldname)
 			if not (value or "").startswith(("/files", "/private/files")):
-				return
+				continue
 
 			if frappe.db.exists(
 				"File",
@@ -1026,7 +1026,7 @@ def attach_files_to_document(doc, event):
 					"attached_to_field": df.fieldname,
 				},
 			):
-				return
+				continue
 
 			frappe.get_doc(
 				doctype="File",
