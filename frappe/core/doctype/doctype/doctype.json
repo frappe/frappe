@@ -67,6 +67,7 @@
   "column_break_51",
   "email_append_to",
   "sender_field",
+  "sender_name_field",
   "subject_field",
   "sb2",
   "permissions",
@@ -529,7 +530,7 @@
    "depends_on": "email_append_to",
    "fieldname": "sender_field",
    "fieldtype": "Data",
-   "label": "Sender Field",
+   "label": "Sender Email Field",
    "mandatory_depends_on": "email_append_to"
   },
   {
@@ -633,6 +634,12 @@
    "fieldname": "is_calendar_and_gantt",
    "fieldtype": "Check",
    "label": "Is Calendar and Gantt"
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "sender_name_field",
+   "fieldtype": "Data",
+   "label": "Sender Name Field"
   }
  ],
  "icon": "fa fa-bolt",
@@ -715,7 +722,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-08-14 17:32:23.824794",
+ "modified": "2023-12-01 18:37:16.799471",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
