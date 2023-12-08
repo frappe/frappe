@@ -260,7 +260,7 @@ class CardDialog extends WidgetDialog {
 							return df.doc.link_type;
 						},
 						get_query: function (df) {
-+							if (df.link_type == "DocType") {
+							if (df.link_type == "DocType") {
 								return {
 									filters: {
 										istable: 0
