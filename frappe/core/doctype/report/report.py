@@ -184,7 +184,7 @@ class Report(Document):
 	def execute_script(self, filters):
 		# server script
 		loc = {"filters": frappe._dict(filters), "data": None, "result": None}
-		safe_exec(self.report_script, None, loc)
+		safe_exec(self.report_script, None, loc, script_filename=f"Report {self.name}")
 		if loc["data"]:
 			return loc["data"]
 		else:
