@@ -263,11 +263,11 @@ class CardDialog extends WidgetDialog {
 							if (df.link_type == "DocType") {
 								return {
 									filters: {
-										istable: 0
-									}
-								}
+										istable: 0,
+									},
+								};
 							}
-						}
+						},
 					},
 					{
 						fieldname: "column_break_7",
