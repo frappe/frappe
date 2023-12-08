@@ -304,12 +304,12 @@ def connect_replica() -> bool:
 	if local and hasattr(local, "replica_db") and hasattr(local, "primary_db"):
 		return False
 
-	user = local.conf.db_name
+	user = local.conf.db_user
 	password = local.conf.db_password
 	port = local.conf.replica_db_port
 
 	if local.conf.different_credentials_for_replica:
-		user = local.conf.replica_db_name
+		user = local.conf.replica_db_user or local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
 	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
