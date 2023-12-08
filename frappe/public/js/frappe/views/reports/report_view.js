@@ -1254,6 +1254,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		return items;
 	}
 
+	clear_checked_items() {
+		this.datatable.rowmanager.checkAll(false);
+	}
+
 	save_report(save_type) {
 		const _save_report = (name) => {
 			// callback
