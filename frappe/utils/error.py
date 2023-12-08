@@ -146,19 +146,20 @@ def guess_exception_source(exception: str) -> str | None:
 
 	- For unhandled exception last python file from apps folder is responsible.
 	- For frappe.throws the exception source is possibly present after skipping frappe.throw frames
-	- For server script the file name is `<serverscript>`
+	- For server script the file name contains SERVER_SCRIPT_FILE_PREFIX
 
 	"""
+	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
+
 	with suppress(Exception):
 		installed_apps = frappe.get_installed_apps()
 		app_priority = {app: installed_apps.index(app) for app in installed_apps}
 
 		APP_NAME_REGEX = re.compile(r".*File.*apps/(?P<app_name>\w+)/\1/")
-		SERVER_SCRIPT_FRAME = re.compile(r".*<serverscript>")
 
 		apps = Counter()
 		for line in reversed(exception.splitlines()):
-			if SERVER_SCRIPT_FRAME.match(line):
+			if SERVER_SCRIPT_FILE_PREFIX in line:
 				return "Server Script"
 
 			if matches := APP_NAME_REGEX.match(line):
