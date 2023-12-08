@@ -259,6 +259,15 @@ class CardDialog extends WidgetDialog {
 						get_options: (df) => {
 							return df.doc.link_type;
 						},
+						get_query: function (df) {
+							if (df.link_type == "DocType") {
+								return {
+									filters: {
+										istable: 0,
+									},
+								};
+							}
+						},
 					},
 					{
 						fieldname: "column_break_7",
