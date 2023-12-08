@@ -41,7 +41,7 @@ def capture_exception(
 				evt_processor = _make_wsgi_event_processor(frappe.request.environ, False)
 				scope.add_event_processor(evt_processor)
 				scope.set_tag("site", frappe.local.site)
-				scope.set_tag("user", getattr(frappe.session, "user", "Unidentified"))
+				scope.set_user({"name": getattr(frappe.session, "user", "Unidentified")})
 
 				# Extract `X-Frappe-Request-ID` to store as a separate field if its present
 				if trace_id := frappe.monitor.get_trace_id():
