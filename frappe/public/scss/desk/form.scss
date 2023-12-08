@@ -1,4 +1,7 @@
 @import "../common/form.scss";
+/*rtl:begin:ignore*/
+@import "~cropperjs/dist/cropper.min";
+/*rtl:end:ignore*/
 
 .std-form-layout > .form-layout > .form-page {
 	border-radius: var(--border-radius-md);
