@@ -464,11 +464,10 @@ class Document(BaseDocument):
 		if self.flags.name_set and not force:
 			return
 
-		meta = self.meta or frappe.get_meta(self.doctype)
-		autoname = meta.autoname or ""
+		autoname = self.meta.autoname or ""
 
 		# If autoname has set as Prompt (name)
-		if self.get("__newname") and autoname == "Prompt":
+		if self.get("__newname") and autoname.lower() == "prompt":
 			self.name = validate_name(self.doctype, self.get("__newname"))
 			self.flags.name_set = True
 			return
