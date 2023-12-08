@@ -408,7 +408,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			type: "Tag",
 		});
 
-		if (!this.settings.hide_name_column) {
+		if (
+			!this.settings.hide_name_column &&
+			this.meta.title_field &&
+			this.meta.title_field !== "name"
+		) {
 			this.columns.push({
 				type: "Field",
 				df: {
