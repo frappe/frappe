@@ -584,7 +584,7 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
-		if not tag["name"] in columns:
+		if tag["name"] not in columns:
 			continue
 		tagcount = []
 		if tag["type"] not in ["Date", "Datetime"]:

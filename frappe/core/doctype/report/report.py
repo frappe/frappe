@@ -87,7 +87,8 @@ class Report(Document):
 		if (
 			self.is_standard == "Yes"
 			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
-			and not (frappe.flags.in_migrate or frappe.flags.in_patch)
+			and not frappe.flags.in_migrate
+			and not frappe.flags.in_patch
 		):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
@@ -183,7 +184,7 @@ class Report(Document):
 	def execute_script(self, filters):
 		# server script
 		loc = {"filters": frappe._dict(filters), "data": None, "result": None}
-		safe_exec(self.report_script, None, loc)
+		safe_exec(self.report_script, None, loc, script_filename=f"Report {self.name}")
 		if loc["data"]:
 			return loc["data"]
 		else:

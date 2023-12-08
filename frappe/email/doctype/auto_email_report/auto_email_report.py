@@ -235,7 +235,7 @@ class AutoEmailReport(Document):
 		else:
 			message = self.get_html_table()
 
-		if not self.format == "HTML":
+		if self.format != "HTML":
 			attachments = [{"fname": self.get_file_name(), "fcontent": data}]
 
 		frappe.sendmail(

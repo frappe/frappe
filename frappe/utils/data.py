@@ -1596,7 +1596,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 			if not host_name:
 				host_name = "http://127.0.0.1"
 
-	if host_name and not (host_name.startswith("http://") or host_name.startswith("https://")):
+	if host_name and not host_name.startswith("http://") and not host_name.startswith("https://"):
 		host_name = "http://" + host_name
 
 	if not uri and full_address:
@@ -1605,7 +1605,8 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 
 	if (
-		not (frappe.conf.restart_supervisor_on_update or frappe.conf.restart_systemd_on_update)
+		not frappe.conf.restart_supervisor_on_update
+		and not frappe.conf.restart_systemd_on_update
 		and host_name
 		and not url_contains_port(host_name)
 		and port

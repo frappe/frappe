@@ -58,7 +58,7 @@ def _new_site(
 		print(f"Site {site} already exists")
 		sys.exit(1)
 
-	if no_mariadb_socket and not db_type == "mariadb":
+	if no_mariadb_socket and db_type != "mariadb":
 		print("--no-mariadb-socket requires db_type to be set to mariadb.")
 		sys.exit(1)
 

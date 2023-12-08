@@ -9,13 +9,16 @@ import frappe
 from frappe.utils.data import cstr
 
 
-def publish_progress(percent, title=None, doctype=None, docname=None, description=None):
+def publish_progress(
+	percent, title=None, doctype=None, docname=None, description=None, task_id=None
+):
 	publish_realtime(
 		"progress",
 		{"percent": percent, "title": title, "description": description},
 		user=None if doctype and docname else frappe.session.user,
 		doctype=doctype,
 		docname=docname,
+		task_id=task_id,
 	)
 
 
@@ -41,8 +44,11 @@ def publish_realtime(
 	if message is None:
 		message = {}
 
+	if not task_id and hasattr(frappe.local, "task_id"):
+		task_id = frappe.local.task_id
+
 	if event is None:
-		event = "task_progress" if frappe.local.task_id else "global"
+		event = "task_progress" if task_id else "global"
 	elif event == "msgprint" and not user:
 		user = frappe.session.user
 	elif event == "list_update":
@@ -50,9 +56,6 @@ def publish_realtime(
 		room = get_doctype_room(doctype)
 	elif event == "docinfo_update":
 		room = get_doc_room(doctype, docname)
-
-	if not task_id and hasattr(frappe.local, "task_id"):
-		task_id = frappe.local.task_id
 
 	if not room:
 		if task_id:

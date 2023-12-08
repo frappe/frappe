@@ -1289,7 +1289,7 @@ def trim_database(context, dry_run, format, no_backup, yes=False):
 		for table_name in database_tables:
 			if not table_name.startswith("tab"):
 				continue
-			if not (table_name.replace("tab", "", 1) in doctype_tables or table_name in STANDARD_TABLES):
+			if table_name.replace("tab", "", 1) not in doctype_tables and table_name not in STANDARD_TABLES:
 				TABLES_TO_DROP.append(table_name)
 
 		if not TABLES_TO_DROP:

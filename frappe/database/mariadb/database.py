@@ -281,7 +281,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		)
 
 	def create_global_search_table(self):
-		if not "__global_search" in self.get_tables():
+		if "__global_search" not in self.get_tables():
 			self.sql(
 				"""create table __global_search(
 				doctype varchar(100),
