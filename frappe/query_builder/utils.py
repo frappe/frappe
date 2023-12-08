@@ -116,6 +116,17 @@ def patch_query_execute():
 
 			if not check_safe_sql_query(query, throw=False):
 				callstack = inspect.stack()
+
+				# This check is required because QB can execute from anywhere and we can not
+				# reliably provide a safe version for it in server scripts.
+
+				# since query objects are patched everywhere any query.run()
+				# will have callstack like this:
+				# frame0: this function prepare_query()
+				# frame1: execute_query()
+				# frame2: frame that called `query.run()`
+				#
+				# if frame2 is server script <serverscript> is set as the filename it shouldn't be allowed.
 				if len(callstack) >= 3 and SERVER_SCRIPT_FILE_PREFIX in callstack[2].filename:
 					raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
 

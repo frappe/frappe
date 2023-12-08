@@ -159,7 +159,7 @@ class ServerScript(Document):
 			self.script,
 			_locals={"doc": doc},
 			restrict_commit_rollback=True,
-			filename=self.name,
+			script_filename=self.name,
 		)
 
 	def execute_scheduled_method(self):
@@ -171,7 +171,7 @@ class ServerScript(Document):
 		if self.script_type != "Scheduler Event":
 			raise frappe.DoesNotExistError
 
-		safe_exec(self.script, filename=self.name)
+		safe_exec(self.script, script_filename=self.name)
 
 	def get_permission_query_conditions(self, user: str) -> list[str]:
 		"""Specific to Permission Query Server Scripts
