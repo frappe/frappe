@@ -464,8 +464,10 @@ class Document(BaseDocument):
 		if self.flags.name_set and not force:
 			return
 
+		autoname = self.meta.autoname or ""
+
 		# If autoname has set as Prompt (name)
-		if self.get("__newname"):
+		if self.get("__newname") and autoname.lower() == "prompt":
 			self.name = validate_name(self.doctype, self.get("__newname"))
 			self.flags.name_set = True
 			return
