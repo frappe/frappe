@@ -28,7 +28,7 @@ class SystemConsole(Document):
 		try:
 			frappe.local.debug_log = []
 			if self.type == "Python":
-				safe_exec(self.console)
+				safe_exec(self.console, script_filename="System Console")
 				self.output = "\n".join(frappe.debug_log)
 			elif self.type == "SQL":
 				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
