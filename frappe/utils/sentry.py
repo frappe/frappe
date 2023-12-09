@@ -16,13 +16,10 @@ def before_send(event, hint):
 	return event
 
 
-def capture_exception(
-	exception: ValueError | BaseException | None = None, message: str | None = None
-) -> None:
+def capture_exception(message: str | None = None) -> None:
 	"""
 	Function to upload exception data to entry
 
-	:param exception: Exception object - if missing, try to get with sys.exc_info()
 	:param message: A message to be sent if we can't find an exception
 	"""
 	# Don't report anything if the user hasn't opted-in to telemetry
@@ -48,17 +45,16 @@ def capture_exception(
 					scope.set_tag("frappe_trace_id", trace_id)
 
 		if client := hub.client:
-			if exception is None and ((exception := sys.exc_info()[1]) is None):
-				if message:
-					sentry_capture_message(message, level="error")
-				return
-
-			event, hint = event_from_exception(
-				exception,
-				client_options=client.options,
-				mechanism={"type": "wsgi", "handled": False},
-			)
-			hub.capture_event(event, hint=hint)
+			exc_info = sys.exc_info()
+			if any(exc_info):
+				event, hint = event_from_exception(
+					exc_info,
+					client_options=client.options,
+					mechanism={"type": "wsgi", "handled": False},
+				)
+				hub.capture_event(event, hint=hint)
+			elif message:
+				sentry_capture_message(message, level="error")
 
 	except Exception:
 		frappe.logger().error("Failed to capture exception", exc_info=True)
