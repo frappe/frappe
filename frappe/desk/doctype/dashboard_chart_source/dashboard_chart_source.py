@@ -2,8 +2,10 @@
 # License: MIT. See LICENSE
 
 import os
+import shutil
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.modules import get_module_path, scrub
 from frappe.modules.export_file import export_to_files
@@ -37,3 +39,16 @@ class DashboardChartSource(Document):
 		export_to_files(
 			record_list=[[self.doctype, self.name]], record_module=self.module, create_init=True
 		)
+
+	def on_trash(self):
+		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
+			frappe.throw(_("Deletion of this document is only permitted in developer mode."))
+
+		frappe.db.after_commit(self.delete_folder_with_contents)
+
+	def delete_folder_with_contents(self):
+		module_path = get_module_path(self.module)
+		dir_path = os.path.join(module_path, "dashboard_chart_source", frappe.scrub(self.name))
+
+		if os.path.exists(dir_path):
+			shutil.rmtree(dir_path, ignore_errors=True)
