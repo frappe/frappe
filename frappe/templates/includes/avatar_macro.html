@@ -1,16 +1,16 @@
 {% macro avatar(user_id=None, css_style=None, size="avatar-small", full_name=None, image=None) %}
 {% set user_info = frappe.utils.get_user_info_for_avatar(user_id) %}
-<span class="avatar {{ size }}" title="{{ full_name or user_info.name }}" style="{{ css_style or '' }}">
+<span class="avatar {{ size }}" title="{{ full_name|e or user_info.name|e }}" style="{{ css_style or '' }}">
 	{% if image or user_info.image  %}
 	<img
 		class="avatar-frame standard-image"
 		src="{{ image or user_info.image }}"
-		title="{{ full_name or user_info.name }}">
+		title="{{ full_name|e or user_info.name|e }}">
 	</span>
 	{% else %}
 	<span
 		class="avatar-frame standard-image"
-		title="{{ full_name or user_info.name }}">
+		title="{{ full_name|e or user_info.name|e }}">
 		{{ frappe.utils.get_abbr(full_name or user_info.name).upper() }}
 	</span>
 	{% endif %}
