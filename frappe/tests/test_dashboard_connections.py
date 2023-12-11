@@ -122,7 +122,6 @@ class TestDashboardConnections(FrappeTestCase):
 				expected_open_count,
 			)
 
-
 	def test_external_doctype_link_with_dashboard_override(self):
 		# add a custom links
 		todo = TestCustomizeForm().get_customize_form("ToDo")
@@ -140,10 +139,12 @@ class TestDashboardConnections(FrappeTestCase):
 
 		# Change standard fieldname, see if all custom links still work
 		with patch_hooks(
-			{"override_doctype_dashboards": {
-				"ToDo": ["frappe.tests.test_dashboard_connections.get_dashboard_for_todo"]
+			{
+				"override_doctype_dashboards": {
+					"ToDo": ["frappe.tests.test_dashboard_connections.get_dashboard_for_todo"]
+				}
 			}
-		}):
+		):
 			connections = get_open_count("ToDo", todo_doc.name)["count"]
 			self.assertEqual(len(connections["external_links_found"]), 2)
 
