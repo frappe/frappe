@@ -18,11 +18,7 @@ def get_leaderboards():
 
 @frappe.whitelist()
 def get_energy_point_leaderboard(date_range, company=None, field=None, limit=None):
-<<<<<<< HEAD
-	all_users = frappe.db.get_all(
-=======
 	users = frappe.get_list(
->>>>>>> 2f7b9f8a5a (fix: get users for leaderboard)
 		"User",
 		filters={
 			"name": ["not in", ["Administrator", "Guest"]],
