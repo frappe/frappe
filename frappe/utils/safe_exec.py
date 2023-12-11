@@ -122,9 +122,16 @@ def _validate_safe_eval_syntax(code):
 
 @contextmanager
 def safe_exec_flags():
-	frappe.flags.in_safe_exec = True
-	yield
-	frappe.flags.in_safe_exec = False
+	if not frappe.flags.in_safe_exec:
+		frappe.flags.in_safe_exec = 0
+
+	frappe.flags.in_safe_exec += 1
+
+	try:
+		yield
+	finally:
+		# Always ensure that the flag is decremented
+		frappe.flags.in_safe_exec -= 1
 
 
 def get_safe_globals():
