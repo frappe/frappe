@@ -13,6 +13,7 @@
  "engine": "InnoDB", 
  "fields": [
   {
+<<<<<<< HEAD
    "allow_bulk_edit": 0, 
    "allow_on_submit": 0, 
    "bold": 0, 
@@ -98,4 +99,31 @@
  "sort_order": "DESC", 
  "track_changes": 1, 
  "track_seen": 0
+=======
+   "fieldname": "key",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Key"
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Value"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2023-12-11 12:20:51.949422",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Webhook Header",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+>>>>>>> e4a9431c9c (fix: change webhook header types to small text (#23722))
 }
