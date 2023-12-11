@@ -175,6 +175,9 @@ class DatabaseQuery:
 			from frappe.model.base_document import get_controller
 
 			controller = get_controller(self.doctype)
+			if not hasattr(controller, "get_list"):
+				return []
+
 			self.parse_args()
 			kwargs = {
 				"as_list": as_list,
