@@ -80,7 +80,7 @@ class Database:
 		self.setup_type_map()
 		self.host = host or frappe.conf.db_host
 		self.port = port or frappe.conf.db_port
-		self.user = user or frappe.conf.db_user
+		self.user = user or frappe.conf.db_user or frappe.conf.db_name
 		self.cur_db_name = frappe.conf.db_name
 		self._conn = None
 
@@ -583,7 +583,7 @@ class Database:
 		"""
 		out = None
 		if cache and isinstance(filters, str) and (
-		doctype, filters, fieldname) in self.value_cache:
+			doctype, filters, fieldname) in self.value_cache:
 			return self.value_cache[(doctype, filters, fieldname)]
 
 		if distinct:

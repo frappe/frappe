@@ -585,8 +585,7 @@ def make_site_config(
 			if db_port:
 				site_config["db_port"] = db_port
 
-			if db_user:
-				site_config["db_user"] = db_user
+			site_config["db_user"] = db_user or db_name
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
