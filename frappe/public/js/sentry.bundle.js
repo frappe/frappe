@@ -7,5 +7,6 @@ Sentry.init({
 	initialScope: {
 		// don't use frappe.session.user, it's set much later and will fail because of async loading
 		user: { id: frappe.boot.user.name ?? "Unidentified" },
+		tags: { site: frappe.boot.sitename },
 	},
 });

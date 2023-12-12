@@ -384,7 +384,7 @@ def validate_rename(
 	):
 		frappe.throw(_("You need write permission to rename"))
 
-	if not (force or ignore_permissions) and not meta.allow_rename:
+	if not force and not ignore_permissions and not meta.allow_rename:
 		frappe.throw(_("{0} not allowed to be renamed").format(_(doctype)))
 
 	# validate naming like it's done in doc.py

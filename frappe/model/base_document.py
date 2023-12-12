@@ -850,7 +850,7 @@ class BaseDocument:
 			return
 
 		for df in self.meta.get_select_fields():
-			if df.fieldname == "naming_series" or not (self.get(df.fieldname) and df.options):
+			if df.fieldname == "naming_series" or not self.get(df.fieldname) or not df.options:
 				continue
 
 			options = (df.options or "").split("\n")

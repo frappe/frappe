@@ -464,8 +464,10 @@ class Document(BaseDocument):
 		if self.flags.name_set and not force:
 			return
 
+		autoname = self.meta.autoname or ""
+
 		# If autoname has set as Prompt (name)
-		if self.get("__newname"):
+		if self.get("__newname") and autoname.lower() == "prompt":
 			self.name = validate_name(self.doctype, self.get("__newname"))
 			self.flags.name_set = True
 			return
@@ -620,7 +622,7 @@ class Document(BaseDocument):
 		workflow = self.meta.get_workflow()
 		if workflow:
 			validate_workflow(self)
-			if not self._action == "save":
+			if self._action != "save":
 				set_workflow_state_on_action(self, workflow, self._action)
 
 	def validate_set_only_once(self):

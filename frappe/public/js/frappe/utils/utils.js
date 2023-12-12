@@ -1172,6 +1172,8 @@ Object.assign(frappe.utils, {
 	get_number_system: function (country) {
 		if (["Bangladesh", "India", "Myanmar", "Pakistan"].includes(country)) {
 			return number_systems.indian;
+		} else if (country == "Nepal") {
+			return number_systems.nepalese;
 		} else {
 			return number_systems.default;
 		}
@@ -1204,7 +1206,7 @@ Object.assign(frappe.utils, {
 					? "es-icon es-solid"
 					: "es-icon es-line"
 				: "icon"
-		} ${svg_class} ${size_class}" style="${icon_style}">
+		} ${svg_class} ${size_class}" style="${icon_style}" aria-hidden="true">
 			<use class="${icon_class}" href="${icon_name}"></use>
 		</svg>`;
 	},

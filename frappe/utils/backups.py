@@ -136,7 +136,7 @@ class BackupGenerator:
 		self.backup_includes = passed_tables["include"]
 		self.backup_excludes = passed_tables["exclude"]
 
-		if not (self.backup_includes or self.backup_excludes) and not self.ignore_conf:
+		if not self.backup_includes and not self.backup_excludes and not self.ignore_conf:
 			self.backup_includes = self.backup_includes or conf_tables["include"]
 			self.backup_excludes = self.backup_excludes or conf_tables["exclude"]
 

@@ -463,6 +463,11 @@ kbd {
 	.standard-sidebar-section .standard-sidebar-label {
 		margin-bottom: var(--margin-md);
 		margin-top: var(--margin-sm);
+		width: 100%;
+
+		&:focus-visible {
+			text-decoration: underline;
+		}
 	}
 
 	.standard-sidebar-item {
@@ -482,7 +487,7 @@ kbd {
 			text-overflow: ellipsis;
 		}
 
-		&:focus {
+		&:focus-within {
 			background-color: var(--sidebar-select-color);
 			outline: 0;
 			text-decoration: none;
@@ -497,9 +502,13 @@ kbd {
 			background-color: var(--sidebar-select-color);
 		}
 
-		a {
+		> a {
 			color: var(--text-color);
 			text-decoration: none;
+
+			&:focus-visible {
+				text-decoration: underline;
+			}
 		}
 
 		svg {

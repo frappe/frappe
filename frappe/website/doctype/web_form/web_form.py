@@ -279,7 +279,7 @@ def get_context(context):
 			if field.fieldtype == "Select" and field.options:
 				messages.extend(field.options.split("\n"))
 
-		messages.extend(col.label for col in self.list_columns)
+		messages.extend(col.get("label") if col else "" for col in self.list_columns)
 
 		context.translated_messages = frappe.as_json(
 			{message: _(message) for message in messages if message}
