@@ -13,10 +13,17 @@ frappe.ui.form.on("Workflow", {
 
 		frm.events.update_field_options(frm);
 		frm.ignore_warning = frm.is_new() ? true : false;
+<<<<<<< HEAD
+=======
+		frm.state_status_mapping = {};
+>>>>>>> 21261e63e6 (fix: Workflow doc states not existing on new forms (#23756))
 
 		if (frm.is_new()) {
 			return;
 		}
+		frm.doc.states.forEach((row) => {
+			frm.state_status_mapping[row.state] = row.doc_status;
+		});
 
 		frm.states = null;
 		frm.trigger("make_state_table");
