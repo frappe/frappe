@@ -45,6 +45,7 @@
   "column_break_26",
   "email_append_to",
   "sender_field",
+  "sender_name_field",
   "subject_field",
   "document_actions_section",
   "actions",
@@ -214,7 +215,7 @@
    "depends_on": "email_append_to",
    "fieldname": "sender_field",
    "fieldtype": "Data",
-   "label": "Sender Field",
+   "label": "Sender Email Field",
    "mandatory_depends_on": "email_append_to"
   },
   {
@@ -359,6 +360,12 @@
    "fieldname": "is_calendar_and_gantt",
    "fieldtype": "Check",
    "label": "Is Calendar and Gantt"
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "sender_name_field",
+   "fieldtype": "Data",
+   "label": "Sender Name Field"
   }
  ],
  "hide_toolbar": 1,
@@ -367,7 +374,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-08-30 11:45:16.772277",
+ "modified": "2023-12-01 18:18:23.086134",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

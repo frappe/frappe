@@ -6,7 +6,7 @@ frappe.ready(function() {
 		var btn = $(this);
 		var data = $.extend(frappe.utils.get_query_params(), {
 			doctype: "{{ doctype }}",
-			txt: "{{ txt or '' }}",
+			txt: "{{ txt|e or '' }}",
 			limit_start: next_start,
 			pathname: location.pathname,
 		});

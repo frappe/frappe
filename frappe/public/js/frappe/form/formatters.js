@@ -146,6 +146,10 @@ frappe.form.formatters = {
 		var original_value = value;
 		let link_title = frappe.utils.get_link_title(doctype, value);
 
+		if (link_title === value) {
+			link_title = null;
+		}
+
 		if (value && value.match && value.match(/^['"].*['"]$/)) {
 			value.replace(/^.(.*).$/, "$1");
 		}

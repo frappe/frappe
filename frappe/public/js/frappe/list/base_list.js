@@ -818,7 +818,7 @@ class FilterArea {
 					value = "%" + value + "%";
 				}
 				filters.push([
-					this.list_view.doctype,
+					field.df.doctype || this.list_view.doctype,
 					field.df.fieldname,
 					field.df.condition || "=",
 					value,

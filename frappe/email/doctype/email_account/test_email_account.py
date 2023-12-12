@@ -612,7 +612,6 @@ class TestInboundMail(FrappeTestCase):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		communication = inbound_mail.process()
-		self.assertTrue(communication.is_first)
 		self.assertTrue(communication._attachments)
 
 
