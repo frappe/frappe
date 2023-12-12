@@ -96,19 +96,19 @@
 
 .frappe-control[data-fieldtype="Color"] {
 	input {
-		padding-left: 38px;
+		padding-left: 32px;
 	}
 	.control-input {
 		position: relative;
 	}
 	.selected-color {
 		cursor: pointer;
-		width: 22px;
-		height: 22px;
+		width: 16px;
+		height: 16px;
 		border-radius: 5px;
 		background-color: red;
 		position: absolute;
-		top: 5px;
+		top: 6px;
 		left: 8px;
 		content: " ";
 		&.no-value {
