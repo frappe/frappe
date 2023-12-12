@@ -23,6 +23,7 @@ class EmailTemplate(Document):
 		use_html: DF.Check
 
 	# end: auto-generated types
+
 	@property
 	def response_(self):
 		return self.response_html if self.use_html else self.response
