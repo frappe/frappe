@@ -49,13 +49,13 @@ frappe.ui.form.on("Workflow", {
 		frm.events.update_field_options(frm);
 		frm.ignore_warning = frm.is_new() ? true : false;
 		frm.state_status_mapping = {};
-		frm.doc.states.forEach((row) => {
-			frm.state_status_mapping[row.state] = row.doc_status;
-		});
 
 		if (frm.is_new()) {
 			return;
 		}
+		frm.doc.states.forEach((row) => {
+			frm.state_status_mapping[row.state] = row.doc_status;
+		});
 
 		frm.states = null;
 		frm.trigger("make_state_table");
