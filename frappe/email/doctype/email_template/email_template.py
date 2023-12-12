@@ -9,6 +9,23 @@ from frappe.utils.jinja import validate_template
 
 
 class EmailTemplate(Document):
+<<<<<<< HEAD
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		response: DF.TextEditor | None
+		response_html: DF.Code | None
+		subject: DF.Data
+		use_html: DF.Check
+	# end: auto-generated types
+
+>>>>>>> a586b5a1c6 (feat(Email Template): switch from pure HTML to Jinja highlighting)
 	@property
 	def response_(self):
 		return self.response_html if self.use_html else self.response
