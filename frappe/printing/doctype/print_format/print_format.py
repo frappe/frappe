@@ -12,6 +12,46 @@ from frappe.utils.weasyprint import download_pdf, get_html
 
 
 class PrintFormat(Document):
+<<<<<<< HEAD
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		absolute_value: DF.Check
+		align_labels_right: DF.Check
+		css: DF.Code | None
+		custom_format: DF.Check
+		default_print_language: DF.Link | None
+		disabled: DF.Check
+		doc_type: DF.Link
+		font: DF.Data | None
+		font_size: DF.Int
+		format_data: DF.Code | None
+		html: DF.Code | None
+		line_breaks: DF.Check
+		margin_bottom: DF.Float
+		margin_left: DF.Float
+		margin_right: DF.Float
+		margin_top: DF.Float
+		module: DF.Link | None
+		page_number: DF.Literal[
+			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
+		]
+		print_format_builder: DF.Check
+		print_format_builder_beta: DF.Check
+		print_format_type: DF.Literal["Jinja", "JS"]
+		raw_commands: DF.Code | None
+		raw_printing: DF.Check
+		show_section_headings: DF.Check
+		standard: DF.Literal["No", "Yes"]
+	# end: auto-generated types
+
+>>>>>>> a83b5b324b (feat(Print Format): switch from pure HTML to Jinja highlighting)
 	def onload(self):
 		templates = frappe.get_all(
 			"Print Format Field Template",
