@@ -167,11 +167,25 @@ class TestWebsite(FrappeTestCase):
 			dict(source=r"/testfrom", target=r"://testto1"),
 			dict(source=r"/testfromregex.*", target=r"://testto2"),
 			dict(source=r"/testsub/(.*)", target=r"://testto3/\1"),
+<<<<<<< HEAD
 			dict(source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True),
+=======
+			dict(
+				source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True
+			),
+			dict(
+				source="/test307",
+				target="/test",
+				redirect_http_status=307,
+			),
+>>>>>>> c8816a8b6a (fix(tests): fix redirect tests by adding new field + add another test scenario)
 		]
 
 		website_settings = frappe.get_doc("Website Settings")
-		website_settings.append("route_redirects", {"source": "/testsource", "target": "/testtarget"})
+		website_settings.append(
+			"route_redirects",
+			{"source": "/testsource", "target": "/testtarget", "redirect_http_status": 301},
+		)
 		website_settings.save()
 
 		set_request(method="GET", path="/testfrom")
@@ -202,6 +216,11 @@ class TestWebsite(FrappeTestCase):
 		response = get_response()
 		self.assertEqual(response.status_code, 301)
 		self.assertEqual(response.headers.get("Location"), "/courses/data")
+
+		set_request(method="GET", path="/test307")
+		response = get_response()
+		self.assertEqual(response.status_code, 307)
+		self.assertEqual(response.headers.get("Location"), "/test")
 
 		delattr(frappe.hooks, "website_redirects")
 		frappe.cache.delete_key("app_hooks")
