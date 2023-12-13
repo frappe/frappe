@@ -15,6 +15,7 @@
   "column_break_5",
   "backup_folder_id",
   "last_backup_on",
+  "delete_backup_before",
   "refresh_token",
   "authorization_code"
  ],
@@ -98,6 +99,11 @@
    "label": "Send Notification To",
    "options": "Email",
    "reqd": 1
+  },
+  {
+   "fieldname": "delete_backup_before",
+   "fieldtype": "Int",
+   "label": "Delete Backup Before (in Days)"
   }
  ],
  "issingle": 1,

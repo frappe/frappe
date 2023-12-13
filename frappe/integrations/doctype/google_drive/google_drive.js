@@ -39,6 +39,21 @@ frappe.ui.form.on("Google Drive", {
 						frappe.msgprint(r.message);
 					});
 			});
+			let dlt_button = frm.add_custom_button(__("Delete Backup"), function () {
+				frappe.show_alert({
+					indicator: "green",
+					message: __("Deleting in Google Drive."),
+				});
+				frappe
+					.call({
+						method: "frappe.integrations.doctype.google_drive.google_drive.delete_system_backup_to_google_drive",
+						btn: dlt_button,
+					})
+					.then((r) => {
+						frappe.msgprint(r.message);
+					});
+			});
+		
 		}
 
 		if (frm.doc.enable && frm.doc.backup_folder_name && !frm.doc.refresh_token) {

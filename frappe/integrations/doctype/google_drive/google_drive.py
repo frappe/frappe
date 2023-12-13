@@ -3,6 +3,7 @@
 
 import os
 from urllib.parse import quote
+from datetime import datetime, timedelta
 
 from apiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
@@ -158,6 +159,16 @@ def take_backup():
 	frappe.msgprint(_("Queued for backup. It may take a few minutes to an hour."))
 
 
+@frappe.whitelist()
+def delete_backup():
+	"""Enqueue longjob for taking deleting in Google Drive"""
+	enqueue(
+		"frappe.integrations.doctype.google_drive.google_drive.delete_system_backup_to_google_drive",
+		queue="long",
+		timeout=1500,
+	)
+	frappe.msgprint(_("Queued for deleting. It may take a few minutes to an hour."))
+
 def upload_system_backup_to_google_drive():
 	"""
 	Upload system backup to Google Drive
@@ -232,3 +243,60 @@ def set_progress(progress, message):
 		dict(progress=progress, total=3, message=message),
 		user=frappe.session.user,
 	)
+	
+def get_files_in_google_drive_folder(google_drive,folder_id):
+    """
+    Get a list of files in the specified Google Drive folder
+    """
+    try:
+        response = google_drive.files().list(q=f"'{folder_id}' in parents", fields="files(id,name,createdTime)").execute()
+        files = response.get('files', [])
+        return files
+    except HttpError as e:
+        frappe.throw(_("Error getting files from Google Drive folder: {0}").format(str(e)))
+
+def delete_old_backups_from_google_drive():
+
+    """
+    Delete backups from Google Drive that are older than one week
+    """
+
+    drive_settings = frappe.db.get_singles_dict("Google Drive", cast=True)
+
+    # Get Google Drive Object
+    google_drive, account = get_google_drive_object()
+
+    # Get list of files in the backup folder
+    files = get_files_in_google_drive_folder(google_drive,account.backup_folder_id)
+
+    # Calculate the date one week ago
+    days_before = datetime.now() - timedelta(days=drive_settings.delete_backup_before)
+
+    # Iterate through files and delete those older than one week
+    for file_info in files:
+        file_name = file_info['name']
+        file_id = file_info['id']
+        created_time = datetime.fromisoformat(file_info['createdTime'][:-1])  # Remove 'Z' at the end
+
+        if created_time < days_before:
+            try:
+                google_drive.files().delete(fileId=file_id).execute()
+                frappe.publish_realtime("google_drive_delete_progress", {"message": f"Deleted: {file_name}"}, user=frappe.session.user)
+            except HttpError as e:
+                frappe.publish_realtime("google_drive_delete_progress", {"message": f"Error deleting {file_name}: {str(e)}"}, user=frappe.session.user)
+
+    frappe.publish_realtime("google_drive_delete_progress", {"message": "Deletion completed"}, user=frappe.session.user)
+
+@frappe.whitelist()
+def delete_system_backup_to_google_drive():
+    """
+    Upload system backup to Google Drive
+    """
+    # ... (rest of your existing code)
+
+    # Check if deletion of old backups is required
+    enqueue(delete_old_backups_from_google_drive, queue='long', timeout=1500)
+
+    # ... (rest of your existing code)
+
+    return _("Google Drive Deletion Successful.")
