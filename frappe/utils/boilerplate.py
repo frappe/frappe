@@ -278,11 +278,6 @@ __version__ = '0.0.1'
 
 """
 
-<<<<<<< HEAD
-hooks_template = """from . import __version__ as app_version
-
-app_name = "{app_name}"
-=======
 pyproject_template = """[project]
 name = "{app_name}"
 authors = [
@@ -306,7 +301,6 @@ build-backend = "flit_core.buildapi"
 """
 
 hooks_template = """app_name = "{app_name}"
->>>>>>> 8436f775a5 (feat(DX): PEP517 compatible build in new apps (#21704))
 app_title = "{app_title}"
 app_publisher = "{app_publisher}"
 app_description = "{app_description}"
@@ -523,7 +517,6 @@ app_license = "{app_license}"
 # ]
 """
 
-<<<<<<< HEAD
 desktop_template = """from frappe import _
 
 def get_data():
@@ -536,29 +529,6 @@ def get_data():
 	]
 """
 
-setup_template = """from setuptools import setup, find_packages
-
-with open("requirements.txt") as f:
-	install_requires = f.read().strip().split("\\n")
-
-# get version from __version__ variable in {app_name}/__init__.py
-from {app_name} import __version__ as version
-
-setup(
-	name="{app_name}",
-	version=version,
-	description="{app_description}",
-	author="{app_publisher}",
-	author_email="{app_email}",
-	packages=find_packages(),
-	zip_safe=False,
-	include_package_data=True,
-	install_requires=install_requires
-)
-"""
-
-=======
->>>>>>> 8436f775a5 (feat(DX): PEP517 compatible build in new apps (#21704))
 gitignore_template = """.DS_Store
 *.pyc
 *.egg-info
