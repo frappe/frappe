@@ -39,6 +39,7 @@ frappe.ui.form.on("Google Drive", {
 						frappe.msgprint(r.message);
 					});
 			});
+			
 			let dlt_button = frm.add_custom_button(__("Delete Backup"), function () {
 				frappe.show_alert({
 					indicator: "green",
