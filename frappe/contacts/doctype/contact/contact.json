@@ -250,7 +250,11 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-10-06 11:52:34.088559",
+=======
+ "modified": "2023-12-08 15:52:37.525003",
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
@@ -389,6 +393,12 @@
   }
  ],
  "sort_field": "modified",
+<<<<<<< HEAD
  "sort_order": "ASC",
  "states": []
+=======
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "full_name"
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
 }

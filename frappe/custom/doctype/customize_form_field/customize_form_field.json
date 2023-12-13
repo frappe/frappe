@@ -477,7 +477,11 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-10-25 06:55:50.718441",
+=======
+ "modified": "2023-12-08 15:52:37.525003",
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
@@ -485,6 +489,6 @@
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": []
 }

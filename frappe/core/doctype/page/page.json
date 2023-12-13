@@ -346,6 +346,7 @@
    "set_only_once": 0, 
    "unique": 0
   }
+<<<<<<< HEAD
  ], 
  "has_web_view": 0, 
  "hide_heading": 0, 
@@ -363,6 +364,18 @@
  "module": "Core", 
  "name": "Page", 
  "owner": "Administrator", 
+=======
+ ],
+ "icon": "fa fa-file",
+ "idx": 1,
+ "links": [],
+ "modified": "2023-12-08 15:52:37.525003",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Page",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "permissions": [
   {
    "amend": 0, 
@@ -404,6 +417,7 @@
    "submit": 0, 
    "write": 1
   }
+<<<<<<< HEAD
  ], 
  "quick_entry": 0, 
  "read_only": 0, 
@@ -412,4 +426,11 @@
  "sort_order": "ASC", 
  "track_changes": 1, 
  "track_seen": 0
+=======
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
 }

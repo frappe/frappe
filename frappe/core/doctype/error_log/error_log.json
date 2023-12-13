@@ -63,7 +63,11 @@
  "idx": 1,
  "in_create": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2022-06-13 06:34:05.158606",
+=======
+ "modified": "2023-12-08 15:52:37.525003",
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Error Log",
@@ -82,7 +86,7 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": [],
  "title_field": "method"
 }

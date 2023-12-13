@@ -176,6 +176,7 @@
    "set_only_once": 0, 
    "unique": 0
   }
+<<<<<<< HEAD
  ], 
  "hide_heading": 0, 
  "hide_toolbar": 0, 
@@ -193,6 +194,18 @@
  "module": "Core", 
  "name": "Version", 
  "owner": "Administrator", 
+=======
+ ],
+ "icon": "fa fa-copy",
+ "idx": 1,
+ "in_create": 1,
+ "links": [],
+ "modified": "2023-12-08 15:52:37.525003",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Version",
+ "owner": "Administrator",
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "permissions": [
   {
    "amend": 0, 
@@ -236,6 +249,7 @@
    "submit": 0, 
    "write": 0
   }
+<<<<<<< HEAD
  ], 
  "quick_entry": 1, 
  "read_only": 0, 
@@ -244,4 +258,13 @@
  "title_field": "docname", 
  "track_changes": 1, 
  "track_seen": 0
+=======
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "docname",
+ "track_changes": 1
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
 }

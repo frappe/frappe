@@ -168,7 +168,11 @@
  "idx": 1,
  "links": [],
  "max_attachments": 3,
+<<<<<<< HEAD
  "modified": "2022-06-16 23:10:46.852116",
+=======
+ "modified": "2023-12-08 15:52:37.525003",
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
@@ -192,7 +196,7 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }

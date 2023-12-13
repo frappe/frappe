@@ -597,7 +597,11 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-10-17 16:12:28.145496",
+=======
+ "modified": "2023-12-08 15:52:37.525003",
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -613,7 +617,7 @@
  ],
  "quick_entry": 1,
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }

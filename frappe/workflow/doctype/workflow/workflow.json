@@ -99,7 +99,11 @@
  "icon": "fa fa-random",
  "idx": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2020-12-17 20:35:16.898040",
+=======
+ "modified": "2023-12-08 15:52:37.525003",
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",
@@ -118,6 +122,11 @@
  ],
  "show_name_in_global_search": 1,
  "sort_field": "modified",
+<<<<<<< HEAD
  "sort_order": "ASC",
+=======
+ "sort_order": "DESC",
+ "states": [],
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "track_changes": 1
 }

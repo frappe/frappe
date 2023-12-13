@@ -187,11 +187,16 @@
  "hide_toolbar": 0,
  "idx": 0,
  "in_create": 1,
+<<<<<<< HEAD
  "is_submittable": 0,
  "issingle": 0,
  "istable": 0,
  "max_attachments": 0,
  "modified": "2019-04-17 16:01:21.430344",
+=======
+ "links": [],
+ "modified": "2023-12-08 15:52:37.525003",
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Milestone",
@@ -222,7 +227,12 @@
  "read_only": 0,
  "show_name_in_global_search": 0,
  "sort_field": "modified",
+<<<<<<< HEAD
  "sort_order": "ASC",
+=======
+ "sort_order": "DESC",
+ "states": [],
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "title_field": "reference_type",
  "track_changes": 1,
  "track_seen": 0,

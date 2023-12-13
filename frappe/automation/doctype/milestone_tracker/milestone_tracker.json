@@ -116,6 +116,7 @@
    "unique": 0
   }
  ],
+<<<<<<< HEAD
  "has_web_view": 0,
  "hide_toolbar": 0,
  "idx": 0,
@@ -125,6 +126,10 @@
  "istable": 0,
  "max_attachments": 0,
  "modified": "2019-04-22 16:03:32.848937",
+=======
+ "links": [],
+ "modified": "2023-12-08 15:52:37.525003",
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Milestone Tracker",
@@ -155,8 +160,14 @@
  "read_only": 0,
  "show_name_in_global_search": 0,
  "sort_field": "modified",
+<<<<<<< HEAD
  "sort_order": "ASC",
  "track_changes": 1,
  "track_seen": 0,
  "track_views": 0
+=======
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+>>>>>>> 4f809630c5 (fix: Set sort_order to DESC if sort_field is modified (#23697))
 }
