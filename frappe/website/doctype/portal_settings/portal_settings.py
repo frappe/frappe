@@ -48,8 +48,8 @@ class PortalSettings(Document):
 			if self.add_item(item):
 				dirty = True
 
+		self.remove_deleted_doctype_items()
 		if dirty:
-			self.remove_deleted_doctype_items()
 			self.save()
 
 	def on_update(self):
