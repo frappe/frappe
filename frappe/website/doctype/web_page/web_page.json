@@ -338,7 +338,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2022-03-09 01:45:28.548671",
+ "modified": "2023-12-08 15:52:37.525003",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page",
@@ -357,7 +357,7 @@
  "search_fields": "title",
  "show_name_in_global_search": 1,
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": [],
  "title_field": "title",
  "track_changes": 1
