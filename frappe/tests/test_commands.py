@@ -6,7 +6,9 @@ import gzip
 import importlib
 import json
 import os
+import secrets
 import shlex
+import string
 import subprocess
 import unittest
 from contextlib import contextmanager
@@ -510,6 +512,77 @@ class TestCommands(BaseTestCommands):
 		conf = frappe.get_site_config()
 
 		self.assertEqual(conf[key], value)
+
+	def test_different_db_username(self):
+		site = frappe.generate_hash()
+		user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
+		password = frappe.generate_hash()
+		kwargs = {
+			"new_site": site,
+			"admin_password": frappe.conf.admin_password,
+			"root_password": frappe.conf.root_password,
+			"db_type": frappe.conf.db_type,
+			"db_user": user,
+			"db_password": password,
+		}
+		self.execute(
+			"bench new-site {new_site} --force --verbose "
+			"--admin-password {admin_password} "
+			"--db-root-password {root_password} "
+			"--db-type {db_type} "
+			"--db-user {db_user} "
+			"--db-password {db_password}",
+			kwargs,
+		)
+		self.assertEqual(self.returncode, 0)
+		self.execute("bench --site {new_site} show-config --format json", kwargs)
+		self.assertEqual(self.returncode, 0)
+		config = json.loads(self.stdout)
+		self.assertEqual(config[site]["db_user"], user)
+		self.assertEqual(config[site]["db_password"], password)
+		self.execute("bench drop-site {new_site} --force --db-root-password {root_password}", kwargs)
+		self.assertEqual(self.returncode, 0)
+
+	def test_existing_db_username(self):
+		site = frappe.generate_hash()
+		if (user := frappe.conf.db_user) is None:
+			user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
+			if frappe.conf.db_type == "mariadb":
+				from frappe.database.mariadb.setup_db import get_root_connection
+
+				root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
+				root_conn.sql(f"CREATE USER '{user}'@'localhost'")
+			else:
+				from frappe.database.postgres.setup_db import get_root_connection
+
+				root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
+				root_conn.sql(f"CREATE USER {user}")
+		password = frappe.conf.db_password or frappe.generate_hash()
+		kwargs = {
+			"new_site": site,
+			"admin_password": frappe.conf.admin_password,
+			"root_password": frappe.conf.root_password,
+			"db_type": frappe.conf.db_type,
+			"db_user": user,
+			"db_password": password,
+		}
+		self.execute(
+			"bench new-site {new_site} --force --verbose "
+			"--admin-password {admin_password} "
+			"--db-root-password {root_password} "
+			"--db-type {db_type} "
+			"--db-user {db_user} "
+			"--db-password {db_password}",
+			kwargs,
+		)
+		self.assertEqual(self.returncode, 0)
+		self.execute("bench --site {new_site} show-config --format json", kwargs)
+		self.assertEqual(self.returncode, 0)
+		config = json.loads(self.stdout)
+		self.assertEqual(config[site]["db_user"], user)
+		self.assertEqual(config[site]["db_password"], password)
+		self.execute("bench drop-site {new_site} --force --db-root-password {root_password}", kwargs)
+		self.assertEqual(self.returncode, 0)
 
 
 class TestBackups(BaseTestCommands):

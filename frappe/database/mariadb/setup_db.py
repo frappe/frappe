@@ -34,15 +34,20 @@ def setup_database(force, verbose, no_mariadb_socket=False):
 	if no_mariadb_socket:
 		dbman_kwargs["host"] = "%"
 
+	if dbman.does_user_exist(db_user):
+		print("User exists", db_user)
+		dbman.set_user_password(db_user, frappe.conf.db_password, **dbman_kwargs)
+		if verbose:
+			print("Re-used existing user %s" % db_user)
+	else:
+		dbman.create_user(db_user, frappe.conf.db_password, **dbman_kwargs)
+		if verbose:
+			print("Created user %s" % db_user)
+
 	if force or (db_name not in dbman.get_database_list()):
-		dbman.delete_user(db_user, **dbman_kwargs)
 		dbman.drop_database(db_name)
 	else:
 		raise Exception(f"Database {db_name} already exists")
-
-	dbman.create_user(db_user, frappe.conf.db_password, **dbman_kwargs)
-	if verbose:
-		print("Created user %s" % db_user)
 
 	dbman.create_database(db_name)
 	if verbose:

@@ -53,6 +53,7 @@ from frappe.exceptions import SiteNotSpecifiedError
 	default=True,
 	help="Create user and database in mariadb/postgres; only bootstrap if false",
 )
+@click.option("--db-user", help="Database user if you already have one")
 def new_site(
 	site,
 	db_root_username=None,
