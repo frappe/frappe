@@ -225,6 +225,8 @@ def get_context(context):
 			attachments=attachments,
 			expose_recipients="header",
 			print_letterhead=((attachments and attachments[0].get("print_letterhead")) or False),
+			add_unsubscribe_link=True,
+			unsubscribe_message=_("Unsubscribe from this {0}").format(doc.doctype),
 		)
 
 		# Add mail notification to communication list
