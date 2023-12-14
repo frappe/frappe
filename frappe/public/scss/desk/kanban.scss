@@ -367,40 +367,52 @@ body[data-route*="Kanban"] {
 
 @keyframes blink_red {
 	0% {
-	  fill: red;
+	  fill: #d14343;
+		color: #d14343;
 	}
 	50% {
-	  fill: transparent;
+		color: transparent;
+		fill: transparent
 	}
 	100% {
-	  fill: red;
+	  fill: #d14343;
+		color: #d14343;
 	}
-  }
+}
+
+.fa-light{
+	color: #d1d1d1;
+}
   
-  .blink-red {
+.blink-red {
 	animation: blink_red 1s ease infinite;
-	fill: red;
-  }
+	fill: #d14343;
+	color: #d14343;
+}
   
-  @keyframes blink_green {
+@keyframes blink_green {
 	0% {
 	  fill: green;
+		color: green;
 	}
 	50% {
-	  fill: transparent;
+		color: transparent;
+		fill: transparent
 	}
 	100% {
-	  fill: green;
+	  fill: transparent;
+		opacity: .1;
 	}
-  }
+}
   
-  .blink-green {
+.blink-green {
 	animation: blink_green 1s ease infinite;
 	fill: green;
-  }
+	color: green;
+}
 
-  .center_elements{
+.center_elements{
 	display: flex; 
 	justify-content: space-between;
 	align-items: center;
-  }
+}
