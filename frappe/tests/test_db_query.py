@@ -1017,13 +1017,17 @@ class TestDBQuery(FrappeTestCase):
 			self.assertEqual(call_args["order_by"], DefaultOrderBy)
 
 	def test_coalesce_with_in_ops(self):
-		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", "b"])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", [])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", ["a"])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [""])}, run=0))
+		self.assertNotIn("ifnull", frappe.get_all("User", {"first_name": ("in", ["a", "b"])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("in", ["a", None])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("in", ["a", ""])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("in", [])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("not in", ["a"])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("not in", [])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("not in", [""])}, run=0))
+
+		# primary key is never nullable
+		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0))
+		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0))
 
 	def test_ambiguous_linked_tables(self):
 		from frappe.desk.reportview import get
