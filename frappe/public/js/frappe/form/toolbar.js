@@ -498,6 +498,22 @@ frappe.ui.form.Toolbar = class Toolbar {
 				}
 			);
 		}
+<<<<<<< HEAD
+=======
+
+		if (
+			this.frm.doc.amended_from &&
+			frappe.model.get_value("DocType", this.frm.doc.doctype, "track_changes")
+		) {
+			this.page.add_menu_item(
+				__("View Audit Trail"),
+				function () {
+					frappe.set_route("audit-trail");
+				},
+				true
+			);
+		}
+>>>>>>> 9ec54feff9 (fix: skip using frm object for routing to audit trail (#23603))
 	}
 
 	make_customize_buttons() {
