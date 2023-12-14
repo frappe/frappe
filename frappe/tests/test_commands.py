@@ -788,6 +788,17 @@ class TestBenchBuild(BaseTestCommands):
 		)
 
 
+class TestDBUtils(BaseTestCommands):
+	def test_db_add_index(self):
+		field = "reset_password_key"
+		self.execute("bench --site {site} add-database-index --doctype User --column " + field, {})
+		frappe.db.rollback()
+		index_name = frappe.db.get_index_name((field,))
+		self.assertTrue(frappe.db.has_index("tabUser", index_name))
+		meta = frappe.get_meta("User", cached=False)
+		self.assertTrue(meta.get_field(field).search_index)
+
+
 class TestSchedulerUtils(BaseTestCommands):
 	# Retry just in case there are stuck queued jobs
 	@retry(
