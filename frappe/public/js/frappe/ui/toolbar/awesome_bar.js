@@ -355,7 +355,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					txt = txt.replace(/,/g, ".");
 					// Valid EU Format
 				}
-				const val = eval(txt).toLocaleString();
+				var val = eval(txt).toLocaleString();
 				var formatted_value = __("{0} = {1}", [txt, (val + "").bold()]);
 				this.options.push({
 					label: formatted_value,
