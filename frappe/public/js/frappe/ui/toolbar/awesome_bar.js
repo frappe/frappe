@@ -342,7 +342,20 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				txt = txt.substr(1);
 			}
 			try {
-				var val = eval(txt);
+				const hasComma = /,/.test(txt);
+				const isValidUKFormat = /(,\d{2,3})*(,\d{3})(\.\d+)?/.test(txt);
+
+				if (!hasComma) {
+					// eval function will work
+				} else if (hasComma && isValidUKFormat) {
+					txt = txt.replace(/,/g, "");
+					// Valid UK Format
+				} else {
+					txt = txt.replace(/\./g, "");
+					txt = txt.replace(/,/g, ".");
+					// Valid EU Format
+				}
+				const val = eval(txt).toLocaleString();
 				var formatted_value = __("{0} = {1}", [txt, (val + "").bold()]);
 				this.options.push({
 					label: formatted_value,
