@@ -479,6 +479,40 @@ def list_apps(context, format):
 		click.echo(frappe.as_json(summary_dict))
 
 
+@click.command("add-database-index")
+@click.option("--doctype", help="DocType on which index needs to be added")
+@click.option(
+	"--column",
+	multiple=True,
+	help="Column to index. Multiple columns will create multi-column index in given order. To create a multiple, single column index, execute the command multiple times.",
+)
+@pass_context
+def add_db_index(context, doctype, column):
+	"Adds a new DB index and creates a property setter to persist it."
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	columns = column  # correct naming
+	for site in context.sites:
+		frappe.connect(site=site)
+		try:
+			frappe.db.add_index(doctype, columns)
+			if len(columns) == 1:
+				make_property_setter(
+					doctype,
+					columns[0],
+					property="search_index",
+					value="1",
+					property_type="Check",
+					for_doctype=False,  # Applied on docfield
+				)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
 @click.command("add-system-manager")
 @click.argument("email")
 @click.option("--first-name")
@@ -1359,6 +1393,7 @@ def add_new_user(
 commands = [
 	add_system_manager,
 	add_user_for_sites,
+	add_db_index,
 	backup,
 	drop_site,
 	install_app,

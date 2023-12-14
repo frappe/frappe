@@ -761,6 +761,33 @@ class TestBenchBuild(BaseTestCommands):
 		)
 
 
+<<<<<<< HEAD
+=======
+class TestDBUtils(BaseTestCommands):
+	def test_db_add_index(self):
+		field = "reset_password_key"
+		self.execute("bench --site {site} add-database-index --doctype User --column " + field, {})
+		frappe.db.rollback()
+		index_name = frappe.db.get_index_name((field,))
+		self.assertTrue(frappe.db.has_index("tabUser", index_name))
+		meta = frappe.get_meta("User", cached=False)
+		self.assertTrue(meta.get_field(field).search_index)
+
+
+class TestSchedulerUtils(BaseTestCommands):
+	# Retry just in case there are stuck queued jobs
+	@retry(
+		retry=retry_if_exception_type(AssertionError),
+		stop=stop_after_attempt(3),
+		wait=wait_fixed(3),
+		reraise=True,
+	)
+	def test_ready_for_migrate(self):
+		with cli(frappe.commands.scheduler.ready_for_migration) as result:
+			self.assertEqual(result.exit_code, 0)
+
+
+>>>>>>> b7c2989823 (feat: `add-database-index` command to add and persist custom indexes (#23787))
 class TestCommandUtils(FrappeTestCase):
 	def test_bench_helper(self):
 		from frappe.utils.bench_helper import get_app_groups
