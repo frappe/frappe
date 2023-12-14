@@ -718,14 +718,7 @@ class DatabaseQuery:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
 
 		meta = frappe.get_meta(f.doctype)
-<<<<<<< HEAD
-		can_be_null = True
-=======
-		df = meta.get("fields", {"fieldname": f.fieldname})
-		df = df[0] if df else None
-
 		can_be_null = f.fieldname != "name"  # primary key is never nullable
->>>>>>> 687752359d (perf: Primary key is never nullable (#23788))
 
 		# prepare in condition
 		if f.operator.lower() in NestedSetHierarchy:
@@ -768,12 +761,8 @@ class DatabaseQuery:
 			# if values contain '' or falsy values then only coalesce column
 			# for `in` query this is only required if values contain '' or values are empty.
 			# for `not in` queries we can't be sure as column values might contain null.
-<<<<<<< HEAD
-=======
-			can_be_null &= not getattr(df, "not_nullable", False)
->>>>>>> 687752359d (perf: Primary key is never nullable (#23788))
 			if f.operator.lower() == "in":
-				can_be_null = not f.value or any(v is None or v == "" for v in f.value)
+				can_be_null &= not f.value or any(v is None or v == "" for v in f.value)
 
 			values = f.value or ""
 			if isinstance(values, str):
