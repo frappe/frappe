@@ -131,6 +131,11 @@ frappe.ui.form.on("Data Import", {
 				data_import_name: frm.doc.name,
 			},
 			callback: function (r) {
+				if (r.message.status === "Timed Out") {
+					frm.dashboard.set_headline(__("Import timed out, please re-try."));
+					return;
+				}
+
 				let successful_records = cint(r.message.success);
 				let failed_records = cint(r.message.failed);
 				let total_records = cint(r.message.total_records);
