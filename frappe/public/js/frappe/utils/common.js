@@ -275,7 +275,7 @@ frappe.is_mobile = function () {
 };
 
 frappe.is_large_screen = function () {
-	return $(document).width() > 1920;
+	return $(document).height() > 1180;
 };
 
 frappe.utils.xss_sanitise = function (string, options) {
