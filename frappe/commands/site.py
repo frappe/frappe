@@ -479,6 +479,130 @@ def list_apps(context, format):
 		click.echo(frappe.as_json(summary_dict))
 
 
+<<<<<<< HEAD
+=======
+@click.command("add-database-index")
+@click.option("--doctype", help="DocType on which index needs to be added")
+@click.option(
+	"--column",
+	multiple=True,
+	help="Column to index. Multiple columns will create multi-column index in given order. To create a multiple, single column index, execute the command multiple times.",
+)
+@pass_context
+def add_db_index(context, doctype, column):
+	"Adds a new DB index and creates a property setter to persist it."
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	columns = column  # correct naming
+	for site in context.sites:
+		frappe.connect(site=site)
+		try:
+			frappe.db.add_index(doctype, columns)
+			if len(columns) == 1:
+				make_property_setter(
+					doctype,
+					columns[0],
+					property="search_index",
+					value="1",
+					property_type="Check",
+					for_doctype=False,  # Applied on docfield
+				)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+@click.command("describe-database-table")
+@click.option("--doctype", help="DocType to describe")
+@click.option(
+	"--column",
+	multiple=True,
+	help="Explicitly fetch accurate cardinality from table data. This can be quite slow on large tables.",
+)
+@pass_context
+def describe_database_table(context, doctype, column):
+	"""Describes various statistics about the table.
+
+	This is useful to build integration like
+	This includes:
+	1. Schema
+	2. Indexes
+	3. stats - total count of records
+	4. if column is specified then extra stats are generated for column:
+	        Distinct values count in column
+	"""
+	import json
+
+	for site in context.sites:
+		frappe.connect(site=site)
+		try:
+			data = _extract_table_stats(doctype, column)
+			# NOTE: Do not print anything else in this to avoid clobbering the output.
+			print(json.dumps(data, indent=2))
+		finally:
+			frappe.destroy()
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
+	from frappe.utils import get_table_name
+
+	table = get_table_name(doctype, wrap_in_backticks=True)
+
+	schema = []
+	for field in frappe.db.sql(f"describe {table}", as_dict=True):
+		schema.append(
+			{
+				"column": field["Field"],
+				"type": field["Type"],
+				"is_nullable": field["Null"],
+				"default": field["Default"],
+			}
+		)
+
+	def update_cardinality(column, value):
+		for col in schema:
+			if col["column"] == column:
+				col["cardinality"] = value
+				break
+
+	indexes = []
+	for idx in frappe.db.sql(f"show index from {table}", as_dict=True):
+		indexes.append(
+			{
+				"unique": not idx["Non_unique"],
+				"cardinality": idx["Cardinality"],
+				"name": idx["Key_name"],
+				"sequence": idx["Seq_in_index"],
+				"nullable": idx["Null"],
+				"column": idx["Column_name"],
+				"type": idx["Index_type"],
+			}
+		)
+		if idx["Seq_in_index"] == 1:
+			update_cardinality(idx["Column_name"], idx["Cardinality"])
+
+	total_rows = frappe.db.count(doctype)
+
+	# fetch accurate cardinality for columns by query. WARN: This can take a lot of time.
+	for column in columns:
+		cardinality = frappe.db.sql(f"select count(distinct {column}) from {table}")[0][0]
+		update_cardinality(column, cardinality)
+
+	return {
+		"table_name": table.strip("`"),
+		"total_rows": total_rows,
+		"schema": schema,
+		"indexes": indexes,
+	}
+
+
+>>>>>>> 40e48c9ac4 (feat: `describe-database-table` to get stats about a table (#23813))
 @click.command("add-system-manager")
 @click.argument("email")
 @click.option("--first-name")
@@ -1359,6 +1483,11 @@ def add_new_user(
 commands = [
 	add_system_manager,
 	add_user_for_sites,
+<<<<<<< HEAD
+=======
+	add_db_index,
+	describe_database_table,
+>>>>>>> 40e48c9ac4 (feat: `describe-database-table` to get stats about a table (#23813))
 	backup,
 	drop_site,
 	install_app,
