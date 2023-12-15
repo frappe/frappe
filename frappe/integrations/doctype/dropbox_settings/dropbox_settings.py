@@ -310,7 +310,7 @@ def get_dropbox_settings(redirect_uri=False):
 
 def delete_older_backups(dropbox_client, folder_path, to_keep):
 	res = dropbox_client.files_list_folder(path=folder_path)
-	files = [f for f in res.entries if isinstance(f, dropbox.files.FileMetadata) and "sql" in f.name]
+	files = [f for f in res.entries if isinstance(f, dropbox.files.FileMetadata) and ("sql" in f.name or "json" in f.name)]
 
 	if len(files) <= to_keep:
 		return
