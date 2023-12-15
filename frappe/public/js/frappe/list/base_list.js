@@ -44,7 +44,7 @@ frappe.views.BaseList = class BaseList {
 		this.user_settings = frappe.get_user_settings(this.doctype);
 
 		this.start = 0;
-		this.page_length = 20;
+		this.page_length = frappe.is_large_screen() ? 100 : 20;
 		this.data = [];
 		this.method = "frappe.desk.reportview.get";
 
