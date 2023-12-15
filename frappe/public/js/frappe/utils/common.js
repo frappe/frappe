@@ -274,6 +274,10 @@ frappe.is_mobile = function () {
 	return $(document).width() < 768;
 };
 
+frappe.is_large_screen = function () {
+	return $(document).height() > 1180;
+};
+
 frappe.utils.xss_sanitise = function (string, options) {
 	// Reference - https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet
 	let sanitised = string; // un-sanitised string.
