@@ -798,6 +798,14 @@ class TestDBUtils(BaseTestCommands):
 		meta = frappe.get_meta("User", cached=False)
 		self.assertTrue(meta.get_field(field).search_index)
 
+	def test_describe_table(self):
+		self.execute("bench --site {site} describe-database-table --doctype User", {})
+		self.assertIn("user_type", self.stdout)
+
+		# Ensure that output is machine parseable
+		stats = json.loads(self.stdout)
+		self.assertIn("total_rows", stats)
+
 
 class TestSchedulerUtils(BaseTestCommands):
 	# Retry just in case there are stuck queued jobs
