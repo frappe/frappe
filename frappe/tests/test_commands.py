@@ -761,8 +761,6 @@ class TestBenchBuild(BaseTestCommands):
 		)
 
 
-<<<<<<< HEAD
-=======
 class TestDBUtils(BaseTestCommands):
 	def test_db_add_index(self):
 		field = "reset_password_key"
@@ -783,20 +781,6 @@ class TestDBUtils(BaseTestCommands):
 		self.assertIn("total_rows", stats)
 
 
-class TestSchedulerUtils(BaseTestCommands):
-	# Retry just in case there are stuck queued jobs
-	@retry(
-		retry=retry_if_exception_type(AssertionError),
-		stop=stop_after_attempt(3),
-		wait=wait_fixed(3),
-		reraise=True,
-	)
-	def test_ready_for_migrate(self):
-		with cli(frappe.commands.scheduler.ready_for_migration) as result:
-			self.assertEqual(result.exit_code, 0)
-
-
->>>>>>> 40e48c9ac4 (feat: `describe-database-table` to get stats about a table (#23813))
 class TestCommandUtils(FrappeTestCase):
 	def test_bench_helper(self):
 		from frappe.utils.bench_helper import get_app_groups

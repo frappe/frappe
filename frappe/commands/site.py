@@ -479,8 +479,6 @@ def list_apps(context, format):
 		click.echo(frappe.as_json(summary_dict))
 
 
-<<<<<<< HEAD
-=======
 @click.command("add-database-index")
 @click.option("--doctype", help="DocType on which index needs to be added")
 @click.option(
@@ -602,7 +600,6 @@ def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
 	}
 
 
->>>>>>> 40e48c9ac4 (feat: `describe-database-table` to get stats about a table (#23813))
 @click.command("add-system-manager")
 @click.argument("email")
 @click.option("--first-name")
@@ -1483,11 +1480,8 @@ def add_new_user(
 commands = [
 	add_system_manager,
 	add_user_for_sites,
-<<<<<<< HEAD
-=======
 	add_db_index,
 	describe_database_table,
->>>>>>> 40e48c9ac4 (feat: `describe-database-table` to get stats about a table (#23813))
 	backup,
 	drop_site,
 	install_app,
