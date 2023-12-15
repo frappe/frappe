@@ -1512,10 +1512,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						filters
 					);
 				}
+				let boolean_labels = { 1: __("Yes"), 0: __("No") };
 				let applied_filters = Object.fromEntries(
 					Object.entries(filters).map(([key, value]) => [
 						frappe.query_report.get_filter(key).df.label,
-						value,
+						frappe.query_report.get_filter(key).df.fieldtype == "Check"
+							? boolean_labels[value]
+							: value,
 					])
 				);
 
