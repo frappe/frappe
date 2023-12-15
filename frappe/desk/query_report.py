@@ -394,7 +394,7 @@ def build_xlsx_data(
 		filter_data = []
 		filters = data.filters
 		for filter_name, filter_value in filters.items():
-			if filter_value in ["", None, []]:
+			if not filter_value:
 				continue
 			filter_value = (
 				", ".join(map(lambda x: cstr(x), filter_value))
