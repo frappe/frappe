@@ -552,6 +552,93 @@ def add_db_index(context, doctype, column):
 		raise SiteNotSpecifiedError
 
 
+@click.command("describe-database-table")
+@click.option("--doctype", help="DocType to describe")
+@click.option(
+	"--column",
+	multiple=True,
+	help="Explicitly fetch accurate cardinality from table data. This can be quite slow on large tables.",
+)
+@pass_context
+def describe_database_table(context, doctype, column):
+	"""Describes various statistics about the table.
+
+	This is useful to build integration like
+	This includes:
+	1. Schema
+	2. Indexes
+	3. stats - total count of records
+	4. if column is specified then extra stats are generated for column:
+	        Distinct values count in column
+	"""
+	import json
+
+	for site in context.sites:
+		frappe.connect(site=site)
+		try:
+			data = _extract_table_stats(doctype, column)
+			# NOTE: Do not print anything else in this to avoid clobbering the output.
+			print(json.dumps(data, indent=2))
+		finally:
+			frappe.destroy()
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
+	from frappe.utils import get_table_name
+
+	table = get_table_name(doctype, wrap_in_backticks=True)
+
+	schema = []
+	for field in frappe.db.sql(f"describe {table}", as_dict=True):
+		schema.append(
+			{
+				"column": field["Field"],
+				"type": field["Type"],
+				"is_nullable": field["Null"],
+				"default": field["Default"],
+			}
+		)
+
+	def update_cardinality(column, value):
+		for col in schema:
+			if col["column"] == column:
+				col["cardinality"] = value
+				break
+
+	indexes = []
+	for idx in frappe.db.sql(f"show index from {table}", as_dict=True):
+		indexes.append(
+			{
+				"unique": not idx["Non_unique"],
+				"cardinality": idx["Cardinality"],
+				"name": idx["Key_name"],
+				"sequence": idx["Seq_in_index"],
+				"nullable": idx["Null"],
+				"column": idx["Column_name"],
+				"type": idx["Index_type"],
+			}
+		)
+		if idx["Seq_in_index"] == 1:
+			update_cardinality(idx["Column_name"], idx["Cardinality"])
+
+	total_rows = frappe.db.count(doctype)
+
+	# fetch accurate cardinality for columns by query. WARN: This can take a lot of time.
+	for column in columns:
+		cardinality = frappe.db.sql(f"select count(distinct {column}) from {table}")[0][0]
+		update_cardinality(column, cardinality)
+
+	return {
+		"table_name": table.strip("`"),
+		"total_rows": total_rows,
+		"schema": schema,
+		"indexes": indexes,
+	}
+
+
 @click.command("add-system-manager")
 @click.argument("email")
 @click.option("--first-name")
@@ -1465,6 +1552,7 @@ commands = [
 	add_system_manager,
 	add_user_for_sites,
 	add_db_index,
+	describe_database_table,
 	backup,
 	drop_site,
 	install_app,
