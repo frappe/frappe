@@ -2011,6 +2011,7 @@ def get_value(*args, **kwargs):
 
 
 def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> str:
+	"""Returns the JSON string representation of the given `obj`."""
 	from frappe.utils.response import json_handler
 
 	if separators is None:
