@@ -314,11 +314,17 @@ def time_diff(
 	return get_datetime(string_ed_date) - get_datetime(string_st_date)
 
 
-def time_diff_in_seconds(string_ed_date, string_st_date):
+def time_diff_in_seconds(
+	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
+) -> float:
+	"""Returns the difference between given two dates in seconds."""
 	return time_diff(string_ed_date, string_st_date).total_seconds()
 
 
-def time_diff_in_hours(string_ed_date, string_st_date):
+def time_diff_in_hours(
+	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
+) -> float:
+	"""Returns the difference between given two dates in hours."""
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
 
