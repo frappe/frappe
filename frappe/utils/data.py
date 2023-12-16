@@ -290,12 +290,12 @@ def add_years(date: DateTimeLikeObject, years: NumericType) -> DateTimeLikeObjec
 	return add_to_date(date, years=years)
 
 
-def date_diff(string_ed_date, string_st_date):
+def date_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> int:
 	"""Returns the difference between given two dates in days."""
 	return days_diff(string_ed_date, string_st_date)
 
 
-def days_diff(string_ed_date, string_st_date):
+def days_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> int:
 	"""Returns the difference between given two dates in days."""
 	return (getdate(string_ed_date) - getdate(string_st_date)).days
 
