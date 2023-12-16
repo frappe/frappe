@@ -350,7 +350,8 @@ def _get_system_timezone():
 	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
-def get_system_timezone():
+def get_system_timezone() -> str:
+	"""Returns the system timezone."""
 	if frappe.local.flags.in_test:
 		return _get_system_timezone()
 
