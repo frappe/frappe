@@ -275,15 +275,18 @@ def add_to_date(
 		return date
 
 
-def add_days(date, days):
+def add_days(date: DateTimeLikeObject, days: NumericType) -> DateTimeLikeObject:
+	"""Returns a new date after adding the given number of `days` to the given `date`."""
 	return add_to_date(date, days=days)
 
 
-def add_months(date, months):
+def add_months(date: DateTimeLikeObject, months: NumericType) -> DateTimeLikeObject:
+	"""Returns a new date after adding the given number of `months` to the given `date`."""
 	return add_to_date(date, months=months)
 
 
-def add_years(date, years):
+def add_years(date: DateTimeLikeObject, years: NumericType) -> DateTimeLikeObject:
+	"""Returns a new date after adding the given number of `years` to the given `date`."""
 	return add_to_date(date, years=years)
 
 
