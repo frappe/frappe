@@ -71,6 +71,7 @@ def get_start_of_week_index() -> int:
 
 
 def is_invalid_date_string(date_string: str) -> bool:
+	"""Returns True if the date string is invalid or None or empty."""
 	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
 	return not isinstance(date_string, str) or (
 		(not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00"))
