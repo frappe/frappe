@@ -396,6 +396,7 @@ def nowdate() -> str:
 
 
 def today() -> str:
+	"""Returns today's date in `yyyy-mm-dd` format."""
 	return nowdate()
 
 
