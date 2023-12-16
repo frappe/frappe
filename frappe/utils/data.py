@@ -341,7 +341,7 @@ def get_timestamp(date: Optional["DateTimeLikeObject"] = None) -> float:
 	return time.mktime(getdate(date).timetuple())
 
 
-def get_eta(from_time, percent_complete):
+def get_eta(from_time: DateTimeLikeObject, percent_complete) -> str:
 	diff = time_diff(now_datetime(), from_time).total_seconds()
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
