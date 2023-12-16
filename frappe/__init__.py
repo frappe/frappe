@@ -2297,7 +2297,8 @@ def get_desk_link(doctype, name):
 	return html.format(doctype=doctype, name=name, doctype_local=_(doctype))
 
 
-def bold(text):
+def bold(text: str) -> str:
+	"""Returns `text` wrapped in `<strong>` tags."""
 	return f"<strong>{text}</strong>"
 
 
