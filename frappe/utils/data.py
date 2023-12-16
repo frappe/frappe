@@ -300,13 +300,17 @@ def days_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeOb
 	return (getdate(string_ed_date) - getdate(string_st_date)).days
 
 
-def month_diff(string_ed_date, string_st_date):
+def month_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> int:
+	"""Returns the difference between given two dates in months."""
 	ed_date = getdate(string_ed_date)
 	st_date = getdate(string_st_date)
 	return (ed_date.year - st_date.year) * 12 + ed_date.month - st_date.month + 1
 
 
-def time_diff(string_ed_date, string_st_date):
+def time_diff(
+	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
+) -> datetime.timedelta:
+	"""Returns the difference between given two dates as `datetime.timedelta` object."""
 	return get_datetime(string_ed_date) - get_datetime(string_st_date)
 
 
