@@ -2322,7 +2322,7 @@ def get_website_settings(key):
 
 
 def get_system_settings(key: str):
-	"""Get the value associated with the given `key` from System Settings DocType."""
+	"""Returns the value associated with the given `key` from System Settings DocType."""
 	if not hasattr(local, "system_settings"):
 		try:
 			local.system_settings = get_cached_doc("System Settings")
