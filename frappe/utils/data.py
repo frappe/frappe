@@ -107,6 +107,16 @@ def getdate(
 def get_datetime(
 	datetime_str: Optional["DateTimeLikeObject"] = None,
 ) -> datetime.datetime | None:
+	"""Returns the below mentioned values based on the given `datetime_str`:
+
+	* If `datetime_str` is None, returns datetime object of current datetime
+	* If `datetime_str` is already a datetime object, returns the same
+	* If `datetime_str` is a timedelta object, returns the same
+	* If `datetime_str` is a list or tuple, returns a datetime object
+	* If `datetime_str` is a date object, returns a datetime object
+	* If `datetime_str` is a valid date string, returns a datetime object for the same
+	* If `datetime_str` is an invalid date string, returns None
+	"""
 
 	if datetime_str is None:
 		return now_datetime()
@@ -159,6 +169,9 @@ def get_timedelta(time: str | None = None) -> datetime.timedelta | None:
 
 
 def to_timedelta(time_str: str | datetime.time) -> datetime.timedelta:
+	"""Returns a `datetime.timedelta` object from the given string or `datetime.time` object.
+	If the given argument is not a string or a `datetime.time` object, it is returned as is.
+	"""
 	if isinstance(time_str, datetime.time):
 		time_str = str(time_str)
 
