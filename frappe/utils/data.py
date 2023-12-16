@@ -402,6 +402,16 @@ def today() -> str:
 
 
 def get_abbr(string: str, max_len: int = 2) -> str:
+	"""Returns the abbreviation of the given string.
+
+	Examples:
+
+	* "John Doe" => "JD"
+	* "Jenny Jane Doe" => "JJ" (default, `max_len` = 2)
+	* "Jenny Jane Doe" => "JJD" (`max_len` = 3)
+
+	Returns "?" if the given string is empty.
+	"""
 	abbr = ""
 	for part in string.split(" "):
 		if len(abbr) < max_len and part:
