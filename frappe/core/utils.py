@@ -86,6 +86,7 @@ def ljust_list(_list, length, fill_word=None):
 	return _list
 
 
-def html2text(html, strip_links=False, wrap=True):
+def html2text(html: str, strip_links=False, wrap=True) -> str:
+	"""Returns the given `html` as markdown text."""
 	strip = ["a"] if strip_links else None
 	return md(html, heading_style="ATX", strip=strip, wrap=wrap)
