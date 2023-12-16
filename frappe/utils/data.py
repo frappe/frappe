@@ -334,8 +334,10 @@ def now_datetime() -> datetime.datetime:
 	return dt.replace(tzinfo=None)
 
 
-def get_timestamp(date: DateTimeLikeObject) -> float:
-	"""Returns the Unix timestamp (seconds since Epoch) for the given `date`."""
+def get_timestamp(date: Optional["DateTimeLikeObject"] = None) -> float:
+	"""Returns the Unix timestamp (seconds since Epoch) for the given `date`.
+	If `date` is None, the current timestamp is returned.
+	"""
 	return time.mktime(getdate(date).timetuple())
 
 
