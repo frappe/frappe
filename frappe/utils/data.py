@@ -328,12 +328,14 @@ def time_diff_in_hours(
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
 
-def now_datetime():
+def now_datetime() -> datetime.datetime:
+	"""Returns the current datetime in system timezone."""
 	dt = convert_utc_to_system_timezone(datetime.datetime.now(pytz.UTC))
 	return dt.replace(tzinfo=None)
 
 
-def get_timestamp(date):
+def get_timestamp(date: DateTimeLikeObject) -> float:
+	"""Returns the Unix timestamp (seconds since Epoch) for the given `date`."""
 	return time.mktime(getdate(date).timetuple())
 
 
