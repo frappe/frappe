@@ -233,7 +233,7 @@ class User(Document):
 		return self.name == frappe.session.user
 
 	def set_full_name(self):
-		self.full_name = " ".join(filter(None, [self.first_name, self.last_name]))
+		self.full_name = " ".join(filter(None, [self.first_name, self.middle_name, self.last_name]))
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
