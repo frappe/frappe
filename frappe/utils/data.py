@@ -603,11 +603,28 @@ def get_quarter_ending(
 	return date.strftime(DATE_FORMAT) if as_str else date
 
 
-def get_year_ending(date) -> datetime.date:
-	"""Returns year ending of the given date"""
+@typing.overload
+def get_year_ending(
+	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
+) -> datetime.date:
+	...
+
+
+@typing.overload
+def get_year_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str:
+	...
+
+
+def get_year_ending(date: DateTimeLikeObject | None = None, as_str=False) -> datetime.date | str:
+	"""Returns the end date of the year for the given datetime like object (`date`).
+
+	If `date` is None, the current year end date is returned.
+	If `as_str` is True, the end date of the year is returned as a string in `yyyy-mm-dd` format.
+	"""
 	date = getdate(date)
 	next_year_start = datetime.date(date.year + 1, 1, 1)
-	return add_to_date(next_year_start, days=-1)
+	year_ending = add_to_date(next_year_start, days=-1)
+	return year_ending.strftime(DATE_FORMAT) if as_str else year_ending
 
 
 def get_time(
