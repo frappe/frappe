@@ -569,7 +569,26 @@ def is_last_day_of_the_month(dt):
 	return getdate(dt) == getdate(last_day_of_the_month)
 
 
-def get_quarter_ending(date):
+@typing.overload
+def get_quarter_ending(
+	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
+) -> datetime.date:
+	...
+
+
+@typing.overload
+def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str:
+	...
+
+
+def get_quarter_ending(
+	date: DateTimeLikeObject | None = None, as_str=False
+) -> str | datetime.date:
+	"""Returns the end date of the quarter for the given datetime like object (`date`).
+
+	If `date` is None, the current quarter end date is returned.
+	If `as_str` is True, the end date of the quarter is returned as a string in `yyyy-mm-dd` format.
+	"""
 	date = getdate(date)
 
 	# find the earliest quarter ending date that is after
@@ -581,7 +600,7 @@ def get_quarter_ending(date):
 			date = quarter_end_date
 			break
 
-	return date
+	return date.strftime(DATE_FORMAT) if as_str else date
 
 
 def get_year_ending(date) -> datetime.date:
