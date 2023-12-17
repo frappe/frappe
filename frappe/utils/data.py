@@ -541,7 +541,13 @@ def get_year_ending(date) -> datetime.date:
 	return add_to_date(next_year_start, days=-1)
 
 
-def get_time(time_str: str) -> datetime.time:
+def get_time(
+	time_str: str | datetime.datetime | datetime.time | datetime.timedelta,
+) -> datetime.time:
+	"""Returns a `datetime.time` object for the given `time_str`.
+
+	If the given argument is already a `datetime.time` object, it is returned as is."""
+
 	if isinstance(time_str, datetime.datetime):
 		return time_str.time()
 	elif isinstance(time_str, datetime.time):
