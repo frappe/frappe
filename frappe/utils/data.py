@@ -2181,6 +2181,7 @@ def get_string_between(start: str, string: str, end: str) -> str:
 
 
 def to_markdown(html: str) -> str:
+	"""Converts the given HTML to markdown and returns it."""
 	from html.parser import HTMLParser
 
 	from frappe.core.utils import html2text
@@ -2192,6 +2193,7 @@ def to_markdown(html: str) -> str:
 
 
 def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
+	"""Converts the given markdown text to HTML and returns it."""
 	from markdown2 import MarkdownError
 	from markdown2 import markdown as _markdown
 
@@ -2210,7 +2212,8 @@ def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
 		pass
 
 
-def markdown(markdown_text):
+def markdown(markdown_text: str) -> str:
+	"""Converts the given markdown text to HTML and returns it."""
 	return md_to_html(markdown_text)
 
 
