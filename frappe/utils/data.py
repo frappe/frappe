@@ -1574,12 +1574,14 @@ def in_words(integer: int, in_million=True) -> str:
 
 
 def is_html(text: str) -> bool:
+	"""Returns True if the given `text` contains any HTML tags."""
 	if not isinstance(text, str):
 		return False
 	return HTML_TAG_PATTERN.search(text)
 
 
 def is_image(filepath: str) -> bool:
+	"""Returns True if the given `filepath` points to an image file."""
 	from mimetypes import guess_type
 
 	# filepath can be https://example.com/bed.jpg?v=129
@@ -1696,15 +1698,27 @@ def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 	return format_timedelta(iso_datetime - now_dt, add_direction=True, locale=locale)
 
 
-def comma_or(some_list, add_quotes=True):
+def comma_or(some_list: list | tuple, add_quotes=True) -> str:
+	"""Returns the given list or tuple as a comma separated string with the last item joined by 'or'.
+	e.g. ['a', 'b', 'c'] -> 'a, b or c'
+
+	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
+	e.g. ['a', 'b', 'c'] -> "'a', 'b' or 'c'"
+	"""
 	return comma_sep(some_list, frappe._("{0} or {1}"), add_quotes)
 
 
-def comma_and(some_list, add_quotes=True):
+def comma_and(some_list: list | tuple, add_quotes=True) -> str:
+	"""Returns the given list or tuple as a comma separated string with the last item joined by 'and'.
+	e.g. ['a', 'b', 'c'] -> 'a, b and c'
+
+	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
+	e.g. ['a', 'b', 'c'] -> "'a', 'b' and 'c'"
+	"""
 	return comma_sep(some_list, frappe._("{0} and {1}"), add_quotes)
 
 
-def comma_sep(some_list, pattern, add_quotes=True):
+def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
 		some_list = [str(s) for s in list(some_list)]
@@ -1719,7 +1733,11 @@ def comma_sep(some_list, pattern, add_quotes=True):
 		return some_list
 
 
-def new_line_sep(some_list):
+def new_line_sep(some_list: list | tuple) -> str:
+	"""Returns the given list or tuple as a new line separated string.
+
+	e.g. ['', 'Paid', 'Unpaid'] -> '\n Paid\n Unpaid'
+	"""
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
 		some_list = [str(s) for s in list(some_list)]
