@@ -379,7 +379,7 @@ frappe.views.Calendar = class Calendar {
 			});
 			
 			if (typeof(d.allDay) === "undefined") {
-				d.allDay = me.field_map.allDay
+				d.allDay = me.field_map.allDay;
 			}
 
 			if (!me.field_map.convertToUserTz) d.convertToUserTz = 1;
