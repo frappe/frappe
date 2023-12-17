@@ -2223,6 +2223,10 @@ def is_subset(list_a: list, list_b: list) -> bool:
 
 
 def generate_hash(*args, **kwargs) -> str:
+	"""Generates a random hash using best available randomness source and returns it.
+
+	You can optionally provide the `length` of the hash to be generated. Default is 56.
+	"""
 	return frappe.generate_hash(*args, **kwargs)
 
 
