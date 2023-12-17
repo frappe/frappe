@@ -459,16 +459,24 @@ def get_first_day(
 
 
 @typing.overload
-def get_quarter_start(dt, as_str: Literal[False] = False) -> datetime.date:
+def get_quarter_start(
+	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
+) -> datetime.date:
 	...
 
 
 @typing.overload
-def get_quarter_start(dt, as_str: Literal[True] = False) -> str:
+def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[True] = False) -> str:
 	...
 
 
-def get_quarter_start(dt, as_str: bool = False) -> str | datetime.date:
+def get_quarter_start(
+	dt: DateTimeLikeObject | None = None, as_str: bool = False
+) -> str | datetime.date:
+	"""Returns the start date of the quarter for the given datetime like object (`dt`).
+
+	If `dt` is None, the current quarter start date is returned.
+	"""
 	date = getdate(dt)
 	quarter = (date.month - 1) // 3 + 1
 	first_date_of_quarter = datetime.date(date.year, ((quarter - 1) * 3) + 1, 1)
