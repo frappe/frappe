@@ -1877,6 +1877,10 @@ def get_link_to_report(
 
 
 def get_absolute_url(doctype: str, name: str) -> str:
+	"""Returns the absolute route for the form view of the given document in the desk.
+
+	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/app/sales-invoice/INV-00001'
+	"""
 	return f"/app/{quoted(slug(doctype))}/{quoted(name)}"
 
 
