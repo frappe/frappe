@@ -1889,6 +1889,11 @@ def get_url_to_form(doctype: str, name: str) -> str:
 
 
 def get_url_to_list(doctype: str) -> str:
+	"""Returns the absolute URL for the list view of the given document in the desk.
+
+	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
+	         returns 'https://frappe.io/app/sales-invoice'
+	"""
 	return get_url(uri=f"/app/{quoted(slug(doctype))}")
 
 
