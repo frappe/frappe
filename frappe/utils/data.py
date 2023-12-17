@@ -1828,6 +1828,10 @@ def get_host_name_from_request() -> str:
 
 
 def url_contains_port(url: str) -> bool:
+	"""Returns True if the given url contains a port number.
+
+	e.g. 'http://localhost:8000' -> True, 'http://localhost' -> False
+	"""
 	parts = url.split(":")
 	return len(parts) > 2
 
