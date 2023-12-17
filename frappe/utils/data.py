@@ -475,6 +475,16 @@ def get_quarter_start(dt, as_str: bool = False) -> str | datetime.date:
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
 
+@typing.overload
+def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date:
+	...
+
+
+@typing.overload
+def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str:
+	...
+
+
 def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
 	"""Returns the first day of the week (as per System Settings or Sunday by default) for the given datetime like object (`dt`).
 
@@ -505,6 +515,16 @@ def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
 	dt = getdate(dt)
 	date = datetime.date(dt.year, 1, 1)
 	return date.strftime(DATE_FORMAT) if as_str else date
+
+
+@typing.overload
+def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date:
+	...
+
+
+@typing.overload
+def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str:
+	...
 
 
 def get_last_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
