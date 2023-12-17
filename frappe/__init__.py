@@ -144,7 +144,7 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	return translated_string or non_translated_string
 
 
-def as_unicode(text: str, encoding: str = "utf-8") -> str:
+def as_unicode(text, encoding: str = "utf-8") -> str:
 	"""Convert to unicode if required"""
 	if isinstance(text, str):
 		return text
