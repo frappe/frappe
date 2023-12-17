@@ -358,7 +358,7 @@ def get_system_timezone() -> str:
 	return frappe.cache.get_value("time_zone", _get_system_timezone)
 
 
-def convert_utc_to_timezone(utc_timestamp, time_zone):
+def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
 	from pytz import UnknownTimeZoneError, timezone
 
 	if utc_timestamp.tzinfo is None:
@@ -369,12 +369,14 @@ def convert_utc_to_timezone(utc_timestamp, time_zone):
 		return utc_timestamp
 
 
-def get_datetime_in_timezone(time_zone):
+def get_datetime_in_timezone(time_zone: str) -> datetime.datetime:
+	"""Returns the current datetime in the given timezone (e.g. 'Asia/Kolkata')."""
 	utc_timestamp = datetime.datetime.now(pytz.UTC)
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
-def convert_utc_to_system_timezone(utc_timestamp):
+def convert_utc_to_system_timezone(utc_timestamp: datetime.datetime) -> datetime.datetime:
+	"""Returns the given UTC `datetime` timestamp in system timezone."""
 	time_zone = get_system_timezone()
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
@@ -494,7 +496,8 @@ def get_normalized_weekday_index(dt):
 	return (dt.weekday() + 1) % 7
 
 
-def get_year_start(dt, as_str=False):
+def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
+	"""Returns the start date of the year for the given date (`dt`)."""
 	dt = getdate(dt)
 	date = datetime.date(dt.year, 1, 1)
 	return date.strftime(DATE_FORMAT) if as_str else date
@@ -535,7 +538,7 @@ def get_quarter_ending(date):
 
 
 def get_year_ending(date) -> datetime.date:
-	"""returns year ending of the given date"""
+	"""Returns year ending of the given date"""
 	date = getdate(date)
 	next_year_start = datetime.date(date.year + 1, 1, 1)
 	return add_to_date(next_year_start, days=-1)
