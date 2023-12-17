@@ -421,7 +421,7 @@ def get_abbr(string: str, max_len: int = 2) -> str:
 
 
 def nowtime() -> str:
-	"""return current time in hh:mm"""
+	"""Returns current time (system timezone) in `hh:mm:ss` format."""
 	return now_datetime().strftime(TIME_FORMAT)
 
 
