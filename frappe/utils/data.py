@@ -1719,6 +1719,12 @@ def comma_and(some_list: list | tuple, add_quotes=True) -> str:
 
 
 def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:
+	"""Returns the given list or tuple as a comma separated string, with the last item joined by the given string format pattern.
+
+	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
+
+	e.g. if `some_list` is ['a', 'b', 'c'] and `pattern` is '{0} or {1}', the output will be 'a, b or c'
+	"""
 	if isinstance(some_list, (list, tuple)):
 		# list(some_list) is done to preserve the existing list
 		some_list = [str(s) for s in list(some_list)]
