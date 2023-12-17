@@ -576,6 +576,7 @@ VALID_UTILS = (
 	"get_quarter_ending",
 	"get_first_day_of_week",
 	"get_year_start",
+	"get_year_ending",
 	"get_last_day_of_week",
 	"get_last_day",
 	"get_time",
