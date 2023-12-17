@@ -518,6 +518,16 @@ def get_normalized_weekday_index(dt):
 	return (dt.weekday() + 1) % 7
 
 
+@typing.overload
+def get_year_start(dt: DateTimeLikeObject, as_str: Literal[False] = False) -> datetime.date:
+	...
+
+
+@typing.overload
+def get_year_start(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str:
+	...
+
+
 def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
 	"""Returns the start date of the year for the given date (`dt`)."""
 	dt = getdate(dt)
