@@ -25,6 +25,25 @@ from frappe.desk.utils import slug
 
 DateTimeLikeObject = Union[str, datetime.date, datetime.datetime]
 NumericType = Union[int, float]
+TimespanOptions = Literal[
+	"last week",
+	"last month",
+	"last quarter",
+	"last 6 months",
+	"last year",
+	"yesterday",
+	"today",
+	"tomorrow",
+	"this week",
+	"this month",
+	"this quarter",
+	"this year",
+	"next week",
+	"next month",
+	"next quarter",
+	"next 6 months",
+	"next year",
+]
 
 
 if typing.TYPE_CHECKING:
@@ -879,7 +898,10 @@ def get_weekday(datetime: DateTimeLikeObject | None = None) -> str:
 	return weekdays[datetime.weekday()]
 
 
-def get_timespan_date_range(timespan: str) -> tuple[datetime.datetime, datetime.datetime] | None:
+def get_timespan_date_range(
+	timespan: TimespanOptions,
+) -> tuple[datetime.datetime, datetime.datetime] | None:
+	"""Returns the date range (start_date, end_date) tuple for the given timespan."""
 	today = getdate()
 
 	match timespan:
