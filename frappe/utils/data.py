@@ -1188,7 +1188,8 @@ def ceil(s):
 	return num
 
 
-def cstr(s, encoding="utf-8"):
+def cstr(s, encoding="utf-8") -> str:
+	"""Converts the given argument to string."""
 	return frappe.as_unicode(s, encoding)
 
 
