@@ -475,7 +475,11 @@ def get_quarter_start(dt, as_str: bool = False) -> str | datetime.date:
 	return first_date_of_quarter.strftime(DATE_FORMAT) if as_str else first_date_of_quarter
 
 
-def get_first_day_of_week(dt, as_str=False):
+def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
+	"""Returns the first day of the week (as per System Settings or Sunday by default) for the given datetime like object (`dt`).
+
+	If `as_str` is True, the first day of the week is returned as a string in `yyyy-mm-dd` format.
+	"""
 	dt = getdate(dt)
 	date = dt - datetime.timedelta(days=get_week_start_offset_days(dt))
 	return date.strftime(DATE_FORMAT) if as_str else date
@@ -503,7 +507,8 @@ def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
 	return date.strftime(DATE_FORMAT) if as_str else date
 
 
-def get_last_day_of_week(dt):
+def get_last_day_of_week(dt: DateTimeLikeObject) -> datetime.date:
+	"""Returns the last day of the week (first day as per System Settings or Sunday by default) for the given datetime like object (`dt`)."""
 	dt = get_first_day_of_week(dt)
 	return dt + datetime.timedelta(days=6)
 
