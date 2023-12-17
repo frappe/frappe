@@ -565,19 +565,22 @@ def get_time(
 		raise e
 
 
-def get_datetime_str(datetime_obj) -> str:
+def get_datetime_str(datetime_obj: DateTimeLikeObject) -> str:
+	"""Returns the given datetime like object (datetime.date, datetime.datetime, string) as a string in `yyyy-mm-dd hh:mm:ss` format."""
 	if isinstance(datetime_obj, str):
 		datetime_obj = get_datetime(datetime_obj)
 	return datetime_obj.strftime(DATETIME_FORMAT)
 
 
-def get_date_str(date_obj) -> str:
+def get_date_str(date_obj: DateTimeLikeObject) -> str:
+	"""Returns the given datetime like object (datetime.date, datetime.datetime, string) as a string in `yyyy-mm-dd` format."""
 	if isinstance(date_obj, str):
 		date_obj = get_datetime(date_obj)
 	return date_obj.strftime(DATE_FORMAT)
 
 
-def get_time_str(timedelta_obj) -> str:
+def get_time_str(timedelta_obj: datetime.timedelta | str) -> str:
+	"""Returns the given timedelta object as a string in `hh:mm:ss` format."""
 	if isinstance(timedelta_obj, str):
 		timedelta_obj = to_timedelta(timedelta_obj)
 
