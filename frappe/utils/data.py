@@ -773,11 +773,19 @@ def validate_duration_format(duration):
 		)
 
 
-def get_weekdays():
+def get_weekdays() -> list[str]:
+	"""Returns a list of weekday names.
+
+	Return value: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+	"""
 	return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
-def get_weekday(datetime: datetime.datetime | None = None) -> str:
+def get_weekday(datetime: DateTimeLikeObject | None = None) -> str:
+	"""Returns the weekday name (e.g. 'Sunday') for the given datetime like object (datetime.date, datetime.datetime, string).
+
+	If `datetime` argument is not provided, the current weekday name is returned.
+	"""
 	if not datetime:
 		datetime = now_datetime()
 
