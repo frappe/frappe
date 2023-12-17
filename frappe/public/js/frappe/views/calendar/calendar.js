@@ -377,8 +377,11 @@ frappe.views.Calendar = class Calendar {
 			$.each(me.field_map, function (target, source) {
 				d[target] = d[source];
 			});
+			
+			if (typeof(d.allDay) === "undefined") {
+				d.allDay = me.field_map.allDay
+			}
 
-			if (!me.field_map.allDay) d.allDay = 1;
 			if (!me.field_map.convertToUserTz) d.convertToUserTz = 1;
 
 			// convert to user tz
