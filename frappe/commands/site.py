@@ -548,7 +548,10 @@ def describe_database_table(context, doctype, column):
 
 
 def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
-	from frappe.utils import get_table_name
+	from frappe.utils import cstr, get_table_name
+
+	def sql_bool(val):
+		return cstr(val).lower() in ("yes", "1", "true")
 
 	table = get_table_name(doctype, wrap_in_backticks=True)
 
@@ -558,7 +561,7 @@ def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
 			{
 				"column": field["Field"],
 				"type": field["Type"],
-				"is_nullable": field["Null"],
+				"is_nullable": sql_bool(field["Null"]),
 				"default": field["Default"],
 			}
 		)
@@ -573,11 +576,11 @@ def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
 	for idx in frappe.db.sql(f"show index from {table}", as_dict=True):
 		indexes.append(
 			{
-				"unique": not idx["Non_unique"],
+				"unique": not sql_bool(idx["Non_unique"]),
 				"cardinality": idx["Cardinality"],
 				"name": idx["Key_name"],
 				"sequence": idx["Seq_in_index"],
-				"nullable": idx["Null"],
+				"nullable": sql_bool(idx["Null"]),
 				"column": idx["Column_name"],
 				"type": idx["Index_type"],
 			}
