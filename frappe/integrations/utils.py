@@ -10,7 +10,9 @@ from frappe import _
 from frappe.utils import get_request_session
 
 
-def make_request(method, url, auth=None, headers=None, data=None, json=None, params=None):
+def make_request(
+	method: str, url: str, auth=None, headers=None, data=None, json=None, params=None
+):
 	auth = auth or ""
 	data = data or {}
 	headers = headers or {}
@@ -31,23 +33,71 @@ def make_request(method, url, auth=None, headers=None, data=None, json=None, par
 		raise exc
 
 
-def make_get_request(url, **kwargs):
+def make_get_request(url: str, **kwargs):
+	"""Makes a 'GET' HTTP request to the given `url` and returns processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
 	return make_request("GET", url, **kwargs)
 
 
-def make_post_request(url, **kwargs):
+def make_post_request(url: str, **kwargs):
+	"""Makes a 'POST' HTTP request to the given `url` and returns processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
 	return make_request("POST", url, **kwargs)
 
 
-def make_put_request(url, **kwargs):
+def make_put_request(url: str, **kwargs):
+	"""Makes a 'PUT' HTTP request to the given `url` and returns processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
 	return make_request("PUT", url, **kwargs)
 
 
-def make_patch_request(url, **kwargs):
+def make_patch_request(url: str, **kwargs):
+	"""Makes a 'PATCH' HTTP request to the given `url` and returns processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
 	return make_request("PATCH", url, **kwargs)
 
 
-def make_delete_request(url, **kwargs):
+def make_delete_request(url: str, **kwargs):
+	"""Makes a 'DELETE' HTTP request to the given `url` and returns processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
 	return make_request("DELETE", url, **kwargs)
 
 
