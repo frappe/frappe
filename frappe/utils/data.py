@@ -780,6 +780,10 @@ def get_weekdays():
 def get_weekday(datetime: datetime.datetime | None = None) -> str:
 	if not datetime:
 		datetime = now_datetime()
+
+	if isinstance(datetime, str):
+		datetime = get_datetime(datetime)
+
 	weekdays = get_weekdays()
 	return weekdays[datetime.weekday()]
 
