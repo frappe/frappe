@@ -507,10 +507,14 @@ def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
 	return date.strftime(DATE_FORMAT) if as_str else date
 
 
-def get_last_day_of_week(dt: DateTimeLikeObject) -> datetime.date:
-	"""Returns the last day of the week (first day as per System Settings or Sunday by default) for the given datetime like object (`dt`)."""
+def get_last_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date:
+	"""Returns the last day of the week (first day as per System Settings or Sunday by default) for the given datetime like object (`dt`).
+
+	If `as_str` is True, the last day of the week is returned as a string in `yyyy-mm-dd` format.
+	"""
 	dt = get_first_day_of_week(dt)
-	return dt + datetime.timedelta(days=6)
+	date = dt + datetime.timedelta(days=6)
+	return date.strftime(DATE_FORMAT) if as_str else date
 
 
 def get_last_day(dt):
