@@ -476,7 +476,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			this.page.add_menu_item(
 				__("View Audit Trail"),
 				function () {
-					me.frm.show_audit_trail();
+					frappe.set_route("audit-trail");
 				},
 				true
 			);

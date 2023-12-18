@@ -56,12 +56,23 @@ class Role(Document):
 		if frappe.flags.in_install:
 			return
 		if self.has_value_changed("desk_access"):
-			for user_name in get_users(self.name):
-				user = frappe.get_doc("User", user_name)
-				user_type = user.user_type
-				user.set_system_user()
-				if user_type != user.user_type:
-					user.save()
+			self.update_user_type_on_change()
+
+	def update_user_type_on_change(self):
+		"""When desk access changes, all the users that have this role need to be re-evaluated"""
+
+		users_with_role = get_users(self.name)
+
+		# perf: Do not re-evaluate users who already have same desk access that this role permits.
+		role_user_type = "System User" if self.desk_access else "Website User"
+		users_with_same_user_type = frappe.get_all("User", {"user_type": role_user_type}, pluck="name")
+
+		for user_name in set(users_with_role) - set(users_with_same_user_type):
+			user = frappe.get_doc("User", user_name)
+			user_type = user.user_type
+			user.set_system_user()
+			if user_type != user.user_type:
+				user.save()
 
 
 def get_info_based_on_role(role, field="email", ignore_permissions=False):

@@ -761,6 +761,26 @@ class TestBenchBuild(BaseTestCommands):
 		)
 
 
+class TestDBUtils(BaseTestCommands):
+	def test_db_add_index(self):
+		field = "reset_password_key"
+		self.execute("bench --site {site} add-database-index --doctype User --column " + field, {})
+		frappe.db.rollback()
+		index_name = frappe.db.get_index_name((field,))
+		self.assertTrue(frappe.db.has_index("tabUser", index_name))
+		meta = frappe.get_meta("User", cached=False)
+		self.assertTrue(meta.get_field(field).search_index)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_describe_table(self):
+		self.execute("bench --site {site} describe-database-table --doctype User", {})
+		self.assertIn("user_type", self.stdout)
+
+		# Ensure that output is machine parseable
+		stats = json.loads(self.stdout)
+		self.assertIn("total_rows", stats)
+
+
 class TestCommandUtils(FrappeTestCase):
 	def test_bench_helper(self):
 		from frappe.utils.bench_helper import get_app_groups
