@@ -146,20 +146,24 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "public", ".gitkeep"), "w") as f:
 		f.write("")
 
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"), "w") as f:
+		f.write(frappe.as_unicode(init_template))
+
+	with open(os.path.join(dest, hooks.app_name, "pyproject.toml"), "w") as f:
+		f.write(frappe.as_unicode(pyproject_template.format(**hooks)))
+
+	with open(os.path.join(dest, hooks.app_name, ".pre-commit-config.yaml"), "w") as f:
+		f.write(frappe.as_unicode(precommit_template.format(**hooks)))
+
+	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
+		f.write(frappe.as_unicode(readme_template.format(**hooks)))
+
 	license_body = get_license_text(license_name=hooks.app_license)
+	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
+		f.write(frappe.as_unicode(license_body))
 
-	TEMPLATE_MAP = {
-		"__init__.py": init_template,
-		"pyproject.toml": pyproject_template,
-		".pre-commit-config.yaml": precommit_template,
-		"README.md": readme_template,
-		"license.txt": license_body,
-		"modules.txt": hooks.app_title,
-	}
-
-	for filename, template in TEMPLATE_MAP.items():
-		with open(os.path.join(dest, hooks.app_name, filename), "w") as f:
-			f.write(frappe.as_unicode(template.format(**hooks)))
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
+		f.write(frappe.as_unicode(hooks.app_title))
 
 	# These values could contain quotes and can break string declarations
 	# So escaping them before setting variables in setup.py and hooks.py
