@@ -162,7 +162,7 @@ class EmailServer:
 		return
 
 	def get_messages(self, folder="INBOX"):
-		"""Returns new email messages."""
+		"""Return new email messages."""
 
 		self.latest_messages = []
 		self.seen_status = {}
@@ -864,7 +864,7 @@ class InboundMail(Email):
 
 	@staticmethod
 	def get_email_fields(doctype):
-		"""Returns Email related fields of a doctype."""
+		"""Return Email related fields of a doctype."""
 		fields = frappe._dict()
 
 		email_fields = ["subject_field", "sender_field", "sender_name_field"]

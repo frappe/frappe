@@ -128,14 +128,14 @@ class ServerScript(Document):
 			frappe.msgprint(str(e), title=_("Compilation warning"))
 
 	def execute_method(self) -> dict:
-		"""Specific to API endpoint Server Scripts
+		"""Specific to API endpoint Server Scripts.
 
-		Raises:
-		        frappe.DoesNotExistError: If self.script_type is not API
-		        frappe.PermissionError: If self.allow_guest is unset for API accessed by Guest user
+		Raise:
+		        frappe.DoesNotExistError: If self.script_type is not API.
+		        frappe.PermissionError: If self.allow_guest is unset for API accessed by Guest user.
 
-		Returns:
-		        dict: Evaluates self.script with frappe.utils.safe_exec.safe_exec and returns the flags set in it's safe globals
+		Return:
+		        dict: Evaluate self.script with frappe.utils.safe_exec.safe_exec and return the flags set in it's safe globals.
 		"""
 
 		if self.enable_rate_limit:
@@ -174,13 +174,13 @@ class ServerScript(Document):
 		safe_exec(self.script, script_filename=self.name)
 
 	def get_permission_query_conditions(self, user: str) -> list[str]:
-		"""Specific to Permission Query Server Scripts
+		"""Specific to Permission Query Server Scripts.
 
 		Args:
-		        user (str): Takes user email to execute script and return list of conditions
+		        user (str): Take user email to execute script and return list of conditions.
 
-		Returns:
-		        list: Returns list of conditions defined by rules in self.script
+		Return:
+		        list: Return list of conditions defined by rules in self.script.
 		"""
 		locals = {"user": user, "conditions": ""}
 		safe_exec(self.script, None, locals, script_filename=self.name)
@@ -189,12 +189,10 @@ class ServerScript(Document):
 
 	@frappe.whitelist()
 	def get_autocompletion_items(self):
-		"""Generates a list of a autocompletion strings from the context dict
+		"""Generate a list of autocompletion strings from the context dict
 		that is used while executing a Server Script.
 
-		Returns:
-		        list: Returns list of autocompletion items.
-		        For e.g., ["frappe.utils.cint", "frappe.get_all", ...]
+		e.g., ["frappe.utils.cint", "frappe.get_all", ...]
 		"""
 
 		def get_keys(obj):

@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 def get_doc(*args, **kwargs):
-	"""returns a frappe.model.Document object.
+	"""Return a `frappe.model.Document` object.
 
 	:param arg1: Document dict or DocType name.
 	:param arg2: [optional] document name.
@@ -454,7 +454,7 @@ class Document(BaseDocument):
 		return getattr(self, "_doc_before_save", None)
 
 	def has_value_changed(self, fieldname):
-		"""Returns true if value is changed before and after saving"""
+		"""Return True if value has changed before and after saving."""
 		previous = self.get_doc_before_save()
 		return previous.get(fieldname) != self.get(fieldname) if previous else True
 
@@ -924,7 +924,7 @@ class Document(BaseDocument):
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None) -> list["Document"]:
-		"""Returns all children documents from **Table** type fields in a list."""
+		"""Return all children documents from **Table** type fields in a list."""
 
 		children = []
 
@@ -977,7 +977,7 @@ class Document(BaseDocument):
 		if self.flags.notifications is None:
 
 			def _get_notifications():
-				"""returns enabled notifications for the current doctype"""
+				"""Return enabled notifications for the current doctype."""
 
 				return frappe.get_all(
 					"Notification",
@@ -1379,7 +1379,7 @@ class Document(BaseDocument):
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.get("parentfield"))))
 
 	def get_url(self):
-		"""Returns Desk URL for this document."""
+		"""Return Desk URL for this document."""
 		return get_absolute_url(self.doctype, self.name)
 
 	def add_comment(
@@ -1453,7 +1453,7 @@ class Document(BaseDocument):
 		)
 
 	def get_signature(self):
-		"""Returns signature (hash) for private URL."""
+		"""Return signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
 	def get_document_share_key(self, expires_on=None, no_expiry=False):

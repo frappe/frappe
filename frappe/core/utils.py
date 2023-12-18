@@ -7,7 +7,7 @@ import frappe
 
 
 def get_parent_doc(doc):
-	"""Returns document of `reference_doctype`, `reference_doctype`"""
+	"""Return document of `reference_doctype`, `reference_doctype`."""
 	if not hasattr(doc, "parent_doc"):
 		if doc.reference_doctype and doc.reference_name:
 			doc.parent_doc = frappe.get_doc(doc.reference_doctype, doc.reference_name)
@@ -38,8 +38,7 @@ def set_timeline_doc(doc):
 
 
 def find(list_of_dict, match_function):
-	"""Returns a dict in a list of dicts on matching the conditions
-	        provided in match function
+	"""Return a dict in a list of dicts on matching the conditions provided in match function.
 
 	Usage:
 	        list_of_dict = [{'name': 'Suraj'}, {'name': 'Aditya'}]
@@ -54,8 +53,7 @@ def find(list_of_dict, match_function):
 
 
 def find_all(list_of_dict, match_function):
-	"""Returns all matching dicts in a list of dicts.
-	        Uses matching function to filter out the dicts
+	"""Return all matching dicts in a list of dicts. Uses matching function to filter out the dicts.
 
 	Usage:
 	        colored_shapes = [
@@ -87,6 +85,6 @@ def ljust_list(_list, length, fill_word=None):
 
 
 def html2text(html: str, strip_links=False, wrap=True) -> str:
-	"""Returns the given `html` as markdown text."""
+	"""Return the given `html` as markdown text."""
 	strip = ["a"] if strip_links else None
 	return md(html, heading_style="ATX", strip=strip, wrap=wrap)

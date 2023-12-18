@@ -90,7 +90,7 @@ def get_start_of_week_index() -> int:
 
 
 def is_invalid_date_string(date_string: str) -> bool:
-	"""Returns True if the date string is invalid or None or empty."""
+	"""Return True if the date string is invalid or None or empty."""
 	# dateutil parser does not agree with dates like "0001-01-01" or "0000-00-00"
 	return not isinstance(date_string, str) or (
 		(not date_string) or (date_string or "").startswith(("0001-01-01", "0000-00-00"))
@@ -101,7 +101,7 @@ def getdate(
 	string_date: Optional["DateTimeLikeObject"] = None, parse_day_first: bool = False
 ) -> datetime.date | None:
 	"""
-	Converts string date (yyyy-mm-dd) to datetime.date object.
+	Convert string date (yyyy-mm-dd) to datetime.date object.
 	If no input is provided, current date is returned.
 	"""
 	if not string_date:
@@ -126,7 +126,7 @@ def getdate(
 def get_datetime(
 	datetime_str: Optional["DateTimeLikeObject"] = None,
 ) -> datetime.datetime | None:
-	"""Returns the below mentioned values based on the given `datetime_str`:
+	"""Return the below mentioned values based on the given `datetime_str`:
 
 	* If `datetime_str` is None, returns datetime object of current datetime
 	* If `datetime_str` is already a datetime object, returns the same
@@ -159,8 +159,9 @@ def get_datetime(
 
 
 def get_timedelta(time: str | None = None) -> datetime.timedelta | None:
-	"""Return `datetime.timedelta` object from string value of a
-	valid time format. Returns None if `time` is not a valid format
+	"""Return `datetime.timedelta` object from string value of a valid time format.
+
+	Return None if `time` is not a valid format.
 
 	Args:
 	        time (str): A valid time representation. This string is parsed
@@ -168,7 +169,7 @@ def get_timedelta(time: str | None = None) -> datetime.timedelta | None:
 	        '0:0:0', '17:21:00', '2012-01-19 17:21:00'. Checkout
 	        https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.parse
 
-	Returns:
+	Return:
 	        datetime.timedelta: Timedelta object equivalent of the passed `time` string
 	"""
 	time = time or "0:0:0"
@@ -188,7 +189,7 @@ def get_timedelta(time: str | None = None) -> datetime.timedelta | None:
 
 
 def to_timedelta(time_str: str | datetime.time) -> datetime.timedelta:
-	"""Returns a `datetime.timedelta` object from the given string or `datetime.time` object.
+	"""Return a `datetime.timedelta` object from the given string or `datetime.time` object.
 	If the given argument is not a string or a `datetime.time` object, it is returned as is.
 	"""
 	if isinstance(time_str, datetime.time):
@@ -295,32 +296,32 @@ def add_to_date(
 
 
 def add_days(date: DateTimeLikeObject, days: NumericType) -> DateTimeLikeObject:
-	"""Returns a new date after adding the given number of `days` to the given `date`."""
+	"""Return a new date after adding the given number of `days` to the given `date`."""
 	return add_to_date(date, days=days)
 
 
 def add_months(date: DateTimeLikeObject, months: NumericType) -> DateTimeLikeObject:
-	"""Returns a new date after adding the given number of `months` to the given `date`."""
+	"""Return a new date after adding the given number of `months` to the given `date`."""
 	return add_to_date(date, months=months)
 
 
 def add_years(date: DateTimeLikeObject, years: NumericType) -> DateTimeLikeObject:
-	"""Returns a new date after adding the given number of `years` to the given `date`."""
+	"""Return a new date after adding the given number of `years` to the given `date`."""
 	return add_to_date(date, years=years)
 
 
 def date_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> int:
-	"""Returns the difference between given two dates in days."""
+	"""Return the difference between given two dates in days."""
 	return days_diff(string_ed_date, string_st_date)
 
 
 def days_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> int:
-	"""Returns the difference between given two dates in days."""
+	"""Return the difference between given two dates in days."""
 	return (getdate(string_ed_date) - getdate(string_st_date)).days
 
 
 def month_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> int:
-	"""Returns the difference between given two dates in months."""
+	"""Return the difference between given two dates in months."""
 	ed_date = getdate(string_ed_date)
 	st_date = getdate(string_st_date)
 	return (ed_date.year - st_date.year) * 12 + ed_date.month - st_date.month + 1
@@ -329,32 +330,32 @@ def month_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeO
 def time_diff(
 	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
 ) -> datetime.timedelta:
-	"""Returns the difference between given two dates as `datetime.timedelta` object."""
+	"""Return the difference between given two dates as `datetime.timedelta` object."""
 	return get_datetime(string_ed_date) - get_datetime(string_st_date)
 
 
 def time_diff_in_seconds(
 	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
 ) -> float:
-	"""Returns the difference between given two dates in seconds."""
+	"""Return the difference between given two dates in seconds."""
 	return time_diff(string_ed_date, string_st_date).total_seconds()
 
 
 def time_diff_in_hours(
 	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
 ) -> float:
-	"""Returns the difference between given two dates in hours."""
+	"""Return the difference between given two dates in hours."""
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
 
 def now_datetime() -> datetime.datetime:
-	"""Returns the current datetime in system timezone."""
+	"""Return the current datetime in system timezone."""
 	dt = convert_utc_to_system_timezone(datetime.datetime.now(pytz.UTC))
 	return dt.replace(tzinfo=None)
 
 
 def get_timestamp(date: Optional["DateTimeLikeObject"] = None) -> float:
-	"""Returns the Unix timestamp (seconds since Epoch) for the given `date`.
+	"""Return the Unix timestamp (seconds since Epoch) for the given `date`.
 	If `date` is None, the current timestamp is returned.
 	"""
 	return time.mktime(getdate(date).timetuple())
@@ -370,7 +371,7 @@ def _get_system_timezone():
 
 
 def get_system_timezone() -> str:
-	"""Returns the system timezone."""
+	"""Return the system timezone."""
 	if frappe.local.flags.in_test:
 		return _get_system_timezone()
 
@@ -389,19 +390,19 @@ def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) ->
 
 
 def get_datetime_in_timezone(time_zone: str) -> datetime.datetime:
-	"""Returns the current datetime in the given timezone (e.g. 'Asia/Kolkata')."""
+	"""Return the current datetime in the given timezone (e.g. 'Asia/Kolkata')."""
 	utc_timestamp = datetime.datetime.now(pytz.UTC)
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
 def convert_utc_to_system_timezone(utc_timestamp: datetime.datetime) -> datetime.datetime:
-	"""Returns the given UTC `datetime` timestamp in system timezone."""
+	"""Return the given UTC `datetime` timestamp in system timezone."""
 	time_zone = get_system_timezone()
 	return convert_utc_to_timezone(utc_timestamp, time_zone)
 
 
 def now() -> str:
-	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
+	"""Return current datetime as `yyyy-mm-dd hh:mm:ss`."""
 	if frappe.flags.current_date:
 		return (
 			getdate(frappe.flags.current_date).strftime(DATE_FORMAT)
@@ -413,17 +414,17 @@ def now() -> str:
 
 
 def nowdate() -> str:
-	"""return current date as yyyy-mm-dd"""
+	"""Return current date as `yyyy-mm-dd`."""
 	return now_datetime().strftime(DATE_FORMAT)
 
 
 def today() -> str:
-	"""Returns today's date in `yyyy-mm-dd` format."""
+	"""Return today's date in `yyyy-mm-dd` format."""
 	return nowdate()
 
 
 def get_abbr(string: str, max_len: int = 2) -> str:
-	"""Returns the abbreviation of the given string.
+	"""Return the abbreviation of the given string.
 
 	Examples:
 
@@ -431,7 +432,7 @@ def get_abbr(string: str, max_len: int = 2) -> str:
 	* "Jenny Jane Doe" => "JJ" (default, `max_len` = 2)
 	* "Jenny Jane Doe" => "JJD" (`max_len` = 3)
 
-	Returns "?" if the given string is empty.
+	Return "?" if the given string is empty.
 	"""
 	abbr = ""
 	for part in string.split(" "):
@@ -442,7 +443,7 @@ def get_abbr(string: str, max_len: int = 2) -> str:
 
 
 def nowtime() -> str:
-	"""Returns current time (system timezone) in `hh:mm:ss` format."""
+	"""Return current time (system timezone) in `hh:mm:ss` format."""
 	return now_datetime().strftime(TIME_FORMAT)
 
 
@@ -460,9 +461,9 @@ def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[True] = False) -> s
 def get_first_day(
 	dt, d_years: int = 0, d_months: int = 0, as_str: bool = False
 ) -> str | datetime.date:
-	"""
-	Returns the first day of the month for the date specified by date object
-	Also adds `d_years` and `d_months` if specified
+	"""Return the first day of the month for the date specified by date object.
+
+	Also, add `d_years` and `d_months` if specified.
 	"""
 	dt = getdate(dt)
 
@@ -492,7 +493,7 @@ def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[True
 def get_quarter_start(
 	dt: DateTimeLikeObject | None = None, as_str: bool = False
 ) -> str | datetime.date:
-	"""Returns the start date of the quarter for the given datetime like object (`dt`).
+	"""Return the start date of the quarter for the given datetime like object (`dt`).
 
 	If `dt` is None, the current quarter start date is returned.
 	"""
@@ -513,7 +514,7 @@ def get_first_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False)
 
 
 def get_first_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
-	"""Returns the first day of the week (as per System Settings or Sunday by default) for the given datetime like object (`dt`).
+	"""Return the first day of the week (as per System Settings or Sunday by default) for the given datetime like object (`dt`).
 
 	If `as_str` is True, the first day of the week is returned as a string in `yyyy-mm-dd` format.
 	"""
@@ -548,7 +549,7 @@ def get_year_start(dt: DateTimeLikeObject, as_str: Literal[True] = False) -> str
 
 
 def get_year_start(dt: DateTimeLikeObject, as_str=False) -> str | datetime.date:
-	"""Returns the start date of the year for the given date (`dt`)."""
+	"""Return the start date of the year for the given date (`dt`)."""
 	dt = getdate(dt)
 	date = datetime.date(dt.year, 1, 1)
 	return date.strftime(DATE_FORMAT) if as_str else date
@@ -565,7 +566,7 @@ def get_last_day_of_week(dt: DateTimeLikeObject, as_str: Literal[True] = False) 
 
 
 def get_last_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date | str:
-	"""Returns the last day of the week (first day is taken from System Settings or Sunday by default) for the given datetime like object (`dt`).
+	"""Return the last day of the week (first day is taken from System Settings or Sunday by default) for the given datetime like object (`dt`).
 
 	If `as_str` is True, the last day of the week is returned as a string in `yyyy-mm-dd` format.
 	"""
@@ -575,8 +576,8 @@ def get_last_day_of_week(dt: DateTimeLikeObject, as_str=False) -> datetime.date 
 
 
 def get_last_day(dt):
-	"""
-	Returns last day of the month using:
+	"""Return last day of the month using:
+
 	`get_first_day(dt, 0, 1) + datetime.timedelta(-1)`
 	"""
 	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
@@ -603,7 +604,7 @@ def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[Tru
 def get_quarter_ending(
 	date: DateTimeLikeObject | None = None, as_str=False
 ) -> str | datetime.date:
-	"""Returns the end date of the quarter for the given datetime like object (`date`).
+	"""Return the end date of the quarter for the given datetime like object (`date`).
 
 	If `date` is None, the current quarter end date is returned.
 	If `as_str` is True, the end date of the quarter is returned as a string in `yyyy-mm-dd` format.
@@ -635,7 +636,7 @@ def get_year_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[True] 
 
 
 def get_year_ending(date: DateTimeLikeObject | None = None, as_str=False) -> datetime.date | str:
-	"""Returns the end date of the year for the given datetime like object (`date`).
+	"""Return the end date of the year for the given datetime like object (`date`).
 
 	If `date` is None, the current year end date is returned.
 	If `as_str` is True, the end date of the year is returned as a string in `yyyy-mm-dd` format.
@@ -649,7 +650,7 @@ def get_year_ending(date: DateTimeLikeObject | None = None, as_str=False) -> dat
 def get_time(
 	time_str: str | datetime.datetime | datetime.time | datetime.timedelta,
 ) -> datetime.time:
-	"""Returns a `datetime.time` object for the given `time_str`.
+	"""Return a `datetime.time` object for the given `time_str`.
 
 	If the given argument is already a `datetime.time` object, it is returned as is."""
 
@@ -668,21 +669,21 @@ def get_time(
 
 
 def get_datetime_str(datetime_obj: DateTimeLikeObject) -> str:
-	"""Returns the given datetime like object (datetime.date, datetime.datetime, string) as a string in `yyyy-mm-dd hh:mm:ss` format."""
+	"""Return the given datetime like object (datetime.date, datetime.datetime, string) as a string in `yyyy-mm-dd hh:mm:ss` format."""
 	if isinstance(datetime_obj, str):
 		datetime_obj = get_datetime(datetime_obj)
 	return datetime_obj.strftime(DATETIME_FORMAT)
 
 
 def get_date_str(date_obj: DateTimeLikeObject) -> str:
-	"""Returns the given datetime like object (datetime.date, datetime.datetime, string) as a string in `yyyy-mm-dd` format."""
+	"""Return the given datetime like object (datetime.date, datetime.datetime, string) as a string in `yyyy-mm-dd` format."""
 	if isinstance(date_obj, str):
 		date_obj = get_datetime(date_obj)
 	return date_obj.strftime(DATE_FORMAT)
 
 
 def get_time_str(timedelta_obj: datetime.timedelta | str) -> str:
-	"""Returns the given timedelta object as a string in `hh:mm:ss` format."""
+	"""Return the given timedelta object as a string in `hh:mm:ss` format."""
 	if isinstance(timedelta_obj, str):
 		timedelta_obj = to_timedelta(timedelta_obj)
 
@@ -713,7 +714,8 @@ def get_user_time_format() -> str:
 def format_date(
 	string_date=None, format_string: str | None = None, parse_day_first: bool = False
 ) -> str:
-	"""Converts the given string date to :data:`user_date_format`
+	"""Convert the given string date to :data:`user_date_format`.
+
 	User format specified in defaults
 
 	Examples:
@@ -746,7 +748,8 @@ formatdate = format_date  # For backwards compatibility
 
 
 def format_time(time_string=None, format_string: str | None = None) -> str:
-	"""Converts the given string time to :data:`user_time_format`
+	"""Convert the given string time to :data:`user_time_format`.
+
 	User format specified in defaults
 
 	Examples:
@@ -773,7 +776,7 @@ def format_time(time_string=None, format_string: str | None = None) -> str:
 
 
 def format_datetime(datetime_string: DateTimeLikeObject, format_string: str | None = None) -> str:
-	"""Converts the given string time to :data:`user_datetime_format`
+	"""Convert the given string time to :data:`user_datetime_format`
 	User format specified in defaults
 
 	Examples:
@@ -801,9 +804,9 @@ def format_datetime(datetime_string: DateTimeLikeObject, format_string: str | No
 
 
 def format_duration(seconds, hide_days=False):
-	"""Converts the given duration value in float(seconds) to duration format
+	"""Convert the given duration value in float(seconds) to duration format.
 
-	example: converts 12885 to '3h 34m 45s' where 12885 = seconds in float
+	example: convert 12885 to '3h 34m 45s' where 12885 = seconds in float
 	"""
 
 	seconds = cint(seconds)
@@ -837,9 +840,9 @@ def format_duration(seconds, hide_days=False):
 
 
 def duration_to_seconds(duration):
-	"""Converts the given duration formatted value to duration value in seconds
+	"""Convert the given duration formatted value to duration value in seconds.
 
-	example: converts '3h 34m 45s' to 12885 (value in seconds)
+	example: convert '3h 34m 45s' to 12885 (value in seconds)
 	"""
 	validate_duration_format(duration)
 	value = 0
@@ -876,15 +879,15 @@ def validate_duration_format(duration):
 
 
 def get_weekdays() -> list[str]:
-	"""Returns a list of weekday names.
+	"""Return a list of weekday names.
 
-	Return value: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+	Return value: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 	"""
 	return ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
 def get_weekday(datetime: DateTimeLikeObject | None = None) -> str:
-	"""Returns the weekday name (e.g. 'Sunday') for the given datetime like object (datetime.date, datetime.datetime, string).
+	"""Return the weekday name (e.g. 'Sunday') for the given datetime like object (datetime.date, datetime.datetime, string).
 
 	If `datetime` argument is not provided, the current weekday name is returned.
 	"""
@@ -901,7 +904,7 @@ def get_weekday(datetime: DateTimeLikeObject | None = None) -> str:
 def get_timespan_date_range(
 	timespan: TimespanOptions,
 ) -> tuple[datetime.datetime, datetime.datetime] | None:
-	"""Returns the date range (start_date, end_date) tuple for the given timespan."""
+	"""Return the date range (start_date, end_date) tuple for the given timespan."""
 	today = getdate()
 
 	match timespan:
@@ -974,8 +977,8 @@ def get_timespan_date_range(
 			return
 
 
-def global_date_format(date, format="long"):
-	"""returns localized date in the form of January 1, 2012"""
+def global_date_format(date: DateTimeLikeObject, format="long") -> str:
+	"""Return localized date in the form of 'January 1, 2012'."""
 	import babel.dates
 
 	date = getdate(date)
@@ -985,7 +988,7 @@ def global_date_format(date, format="long"):
 
 
 def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
-	"""Returns truthy value if there are common elements in lists l1 and l2"""
+	"""Return truthy value if there are common elements in lists l1 and l2."""
 	return set(l1) & set(l2)
 
 
@@ -1089,13 +1092,13 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 def flt(
 	s: NumericType | str, precision: int | None = None, rounding_method: str | None = None
 ) -> float:
-	"""Convert to float (ignoring commas in string)
+	"""Convert to float (ignoring commas in string).
 
 	:param s: Number in string or other numeric format.
 	:param precision: optional argument to specify precision for rounding.
 	:returns: Converted number in python float type.
 
-	Returns 0 if input can not be converted to float.
+	Return 0 if input can not be converted to float.
 
 	Examples:
 
@@ -1124,12 +1127,12 @@ def flt(
 
 
 def cint(s: NumericType | str, default: int = 0) -> int:
-	"""Convert to integer
+	"""Convert to integer.
 
 	:param s: Number in string or other numeric format.
 	:returns: Converted number in python integer type.
 
-	Returns default if input can not be converted to integer.
+	Return default if input cannot be converted to integer.
 
 	Examples:
 	>>> cint("100")
@@ -1144,21 +1147,8 @@ def cint(s: NumericType | str, default: int = 0) -> int:
 		return default
 
 
-def floor(s):
-	"""
-	A number representing the largest integer less than or equal to the specified number
-
-	Parameters
-	----------
-	s : int or str or Decimal object
-	        The mathematical value to be floored
-
-	Returns
-	-------
-	int
-	        number representing the largest integer less than or equal to the specified number
-
-	"""
+def floor(s: NumericType | str) -> int:
+	"""Return a number representing the largest integer less than or equal to the specified number."""
 	try:
 		num = cint(math.floor(flt(s)))
 	except Exception:
@@ -1166,21 +1156,8 @@ def floor(s):
 	return num
 
 
-def ceil(s):
-	"""
-	The smallest integer greater than or equal to the given number
-
-	Parameters
-	----------
-	s : int or str or Decimal object
-	        The mathematical value to be ceiled
-
-	Returns
-	-------
-	int
-	        smallest integer greater than or equal to the given number
-
-	"""
+def ceil(s: NumericType | str) -> int:
+	"""Return the smallest integer greater than or equal to the given number."""
 	try:
 		num = cint(math.ceil(flt(s)))
 	except Exception:
@@ -1189,12 +1166,13 @@ def ceil(s):
 
 
 def cstr(s, encoding="utf-8") -> str:
-	"""Converts the given argument to string."""
+	"""Convert the given argument to string."""
 	return frappe.as_unicode(s, encoding)
 
 
 def sbool(x: str) -> bool | Any:
-	"""Converts str object to Boolean if possible.
+	"""Convert str object to Boolean if possible.
+
 	Example:
 	        "true" becomes True
 	        "1" becomes True
@@ -1203,8 +1181,7 @@ def sbool(x: str) -> bool | Any:
 	Args:
 	        x (str): String to be converted to Bool
 
-	Returns:
-	        object: Returns Boolean or x
+	Return Boolean or x.
 	"""
 	try:
 		val = x.lower()
@@ -1361,7 +1338,7 @@ def encode(obj, encoding="utf-8"):
 
 
 def parse_val(v):
-	"""Converts to simple datatypes from SQL query results"""
+	"""Convert to simple datatypes from SQL query results."""
 	if isinstance(v, (datetime.date, datetime.datetime)):
 		v = str(v)
 	elif isinstance(v, datetime.timedelta):
@@ -1377,9 +1354,7 @@ def fmt_money(
 	currency: str | None = None,
 	format: str | None = None,
 ) -> str:
-	"""
-	Convert to string with commas for thousands, millions etc
-	"""
+	"""Convert to string with commas for thousands, millions etc."""
 	number_format = format or frappe.db.get_default("number_format") or "#,###.##"
 	if precision is None:
 		precision = cint(frappe.db.get_default("currency_precision")) or None
@@ -1485,9 +1460,7 @@ def money_in_words(
 	main_currency: str | None = None,
 	fraction_currency: str | None = None,
 ):
-	"""
-	Returns string in words with currency and fraction currency.
-	"""
+	"""Return string in words with currency and fraction currency."""
 	from frappe.utils import get_defaults
 
 	_ = frappe._
@@ -1557,9 +1530,7 @@ def money_in_words(
 # convert number to words
 #
 def in_words(integer: int, in_million=True) -> str:
-	"""
-	Returns string in words for the given integer.
-	"""
+	"""Return string in words for the given integer."""
 	from num2words import num2words
 
 	locale = "en_IN" if not in_million else frappe.local.lang
@@ -1574,14 +1545,14 @@ def in_words(integer: int, in_million=True) -> str:
 
 
 def is_html(text: str) -> bool:
-	"""Returns True if the given `text` contains any HTML tags."""
+	"""Return True if the given `text` contains any HTML tags."""
 	if not isinstance(text, str):
 		return False
 	return HTML_TAG_PATTERN.search(text)
 
 
 def is_image(filepath: str) -> bool:
-	"""Returns True if the given `filepath` points to an image file."""
+	"""Return True if the given `filepath` points to an image file."""
 	from mimetypes import guess_type
 
 	# filepath can be https://example.com/bed.jpg?v=129
@@ -1699,7 +1670,7 @@ def pretty_date(iso_datetime: datetime.datetime | str) -> str:
 
 
 def comma_or(some_list: list | tuple, add_quotes=True) -> str:
-	"""Returns the given list or tuple as a comma separated string with the last item joined by 'or'.
+	"""Return the given list or tuple as a comma separated string with the last item joined by 'or'.
 	e.g. ['a', 'b', 'c'] -> 'a, b or c'
 
 	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
@@ -1709,7 +1680,7 @@ def comma_or(some_list: list | tuple, add_quotes=True) -> str:
 
 
 def comma_and(some_list: list | tuple, add_quotes=True) -> str:
-	"""Returns the given list or tuple as a comma separated string with the last item joined by 'and'.
+	"""Return the given list or tuple as a comma separated string with the last item joined by 'and'.
 	e.g. ['a', 'b', 'c'] -> 'a, b and c'
 
 	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
@@ -1719,7 +1690,7 @@ def comma_and(some_list: list | tuple, add_quotes=True) -> str:
 
 
 def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:
-	"""Returns the given list or tuple as a comma separated string, with the last item joined by the given string format pattern.
+	"""Return the given list or tuple as a comma separated string, with the last item joined by the given string format pattern.
 
 	If `add_quotes` is True, each item in the list will be wrapped in single quotes.
 
@@ -1740,7 +1711,7 @@ def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:
 
 
 def new_line_sep(some_list: list | tuple) -> str:
-	"""Returns the given list or tuple as a new line separated string.
+	"""Return the given list or tuple as a new line separated string.
 
 	e.g. ['', 'Paid', 'Unpaid'] -> '\n Paid\n Unpaid'
 	"""
@@ -1828,7 +1799,7 @@ def get_host_name_from_request() -> str:
 
 
 def url_contains_port(url: str) -> bool:
-	"""Returns True if the given url contains a port number.
+	"""Return True if the given url contains a port number.
 
 	e.g. 'http://localhost:8000' -> True, 'http://localhost' -> False
 	"""
@@ -1877,7 +1848,7 @@ def get_link_to_report(
 
 
 def get_absolute_url(doctype: str, name: str) -> str:
-	"""Returns the absolute route for the form view of the given document in the desk.
+	"""Return the absolute route for the form view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/app/sales-invoice/INV-00001'
 	"""
@@ -1889,7 +1860,7 @@ def get_url_to_form(doctype: str, name: str) -> str:
 
 
 def get_url_to_list(doctype: str) -> str:
-	"""Returns the absolute URL for the list view of the given document in the desk.
+	"""Return the absolute URL for the list view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
 	         returns 'https://frappe.io/app/sales-invoice'
@@ -1946,7 +1917,7 @@ operator_map = {
 
 
 def evaluate_filters(doc, filters: dict | list | tuple):
-	"""Returns true if doc matches filters"""
+	"""Return True if doc matches filters."""
 	if isinstance(filters, dict):
 		for key, value in filters.items():
 			f = get_filter(None, {key: value})
@@ -1973,14 +1944,14 @@ def compare(val1: Any, condition: str, val2: Any, fieldtype: str | None = None):
 
 
 def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "frappe._dict":
-	"""Returns a _dict like
+	"""Return a `_dict` like:
 
 	{
-	        "doctype":
-	        "fieldname":
-	        "operator":
-	        "value":
-	        "fieldtype":
+	        "doctype": ...
+	        "fieldname": ...
+	        "operator": ...
+	        "value": ...
+	        "fieldtype": ...
 	}
 	"""
 	from frappe.database.utils import NestedSetHierarchy
@@ -2181,7 +2152,7 @@ def get_string_between(start: str, string: str, end: str) -> str:
 
 
 def to_markdown(html: str) -> str:
-	"""Converts the given HTML to markdown and returns it."""
+	"""Convert the given HTML to markdown and returns it."""
 	from html.parser import HTMLParser
 
 	from frappe.core.utils import html2text
@@ -2193,7 +2164,7 @@ def to_markdown(html: str) -> str:
 
 
 def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
-	"""Converts the given markdown text to HTML and returns it."""
+	"""Convert the given markdown text to HTML and returns it."""
 	from markdown2 import MarkdownError
 	from markdown2 import markdown as _markdown
 
@@ -2213,12 +2184,12 @@ def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
 
 
 def markdown(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
-	"""Converts the given markdown text to HTML and returns it."""
+	"""Convert the given markdown text to HTML and returns it."""
 	return md_to_html(markdown_text)
 
 
 def is_subset(list_a: list, list_b: list) -> bool:
-	"""Returns whether list_a is a subset of list_b"""
+	"""Return whether list_a is a subset of list_b."""
 	return len(list(set(list_a) & set(list_b))) == len(list_a)
 
 
@@ -2231,7 +2202,7 @@ def generate_hash(*args, **kwargs) -> str:
 
 
 def dict_with_keys(dict, keys):
-	"""Returns a new dict with a subset of keys"""
+	"""Return a new dict with a subset of keys."""
 	out = {}
 	for key in dict:
 		if key in keys:

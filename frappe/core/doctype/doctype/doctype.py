@@ -986,7 +986,7 @@ class DocType(Document):
 		add_column(self.name, "parentfield", "Data")
 
 	def get_max_idx(self):
-		"""Returns the highest `idx`"""
+		"""Return the highest `idx`."""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", self.name)
 		return max_idx and max_idx[0][0] or 0
 

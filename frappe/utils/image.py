@@ -20,14 +20,13 @@ def resize_images(path, maxdim=700):
 					print(f"resized {os.path.join(basepath, fname)}")
 
 
-def strip_exif_data(content, content_type):
-	"""Strips EXIF from image files which support it.
+def strip_exif_data(content, content_type) -> bytes:
+	"""Strip EXIF from image files which support it.
 
 	Works by creating a new Image object which ignores exif by
 	default and then extracts the binary data back into content.
 
-	Returns:
-	        Bytes: Stripped image content
+	Return Stripped image content.
 	"""
 
 	original_image = Image.open(io.BytesIO(content))

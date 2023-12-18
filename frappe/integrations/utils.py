@@ -34,7 +34,7 @@ def make_request(
 
 
 def make_get_request(url: str, **kwargs):
-	"""Makes a 'GET' HTTP request to the given `url` and returns processed response.
+	"""Make a 'GET' HTTP request to the given `url` and return processed response.
 
 	You can optionally pass the below parameters:
 
@@ -46,7 +46,7 @@ def make_get_request(url: str, **kwargs):
 
 
 def make_post_request(url: str, **kwargs):
-	"""Makes a 'POST' HTTP request to the given `url` and returns processed response.
+	"""Make a 'POST' HTTP request to the given `url` and return processed response.
 
 	You can optionally pass the below parameters:
 
@@ -60,7 +60,7 @@ def make_post_request(url: str, **kwargs):
 
 
 def make_put_request(url: str, **kwargs):
-	"""Makes a 'PUT' HTTP request to the given `url` and returns processed response.
+	"""Make a 'PUT' HTTP request to the given `url` and return processed response.
 
 	You can optionally pass the below parameters:
 
@@ -74,7 +74,7 @@ def make_put_request(url: str, **kwargs):
 
 
 def make_patch_request(url: str, **kwargs):
-	"""Makes a 'PATCH' HTTP request to the given `url` and returns processed response.
+	"""Make a 'PATCH' HTTP request to the given `url` and return processed response.
 
 	You can optionally pass the below parameters:
 
@@ -88,7 +88,7 @@ def make_patch_request(url: str, **kwargs):
 
 
 def make_delete_request(url: str, **kwargs):
-	"""Makes a 'DELETE' HTTP request to the given `url` and returns processed response.
+	"""Make a 'DELETE' HTTP request to the given `url` and return processed response.
 
 	You can optionally pass the below parameters:
 

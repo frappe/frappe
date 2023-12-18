@@ -30,8 +30,7 @@ def update_document_title(
 	**kwargs,
 ) -> str:
 	"""
-	Update the name or title of a document. Returns `name` if document was renamed,
-	`docname` if renaming operation was queued.
+	Update the name or title of a document. Return `name` if document was renamed, `docname` if renaming operation was queued.
 
 	:param doctype: DocType of the document
 	:param docname: Name of the document

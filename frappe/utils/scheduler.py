@@ -141,8 +141,8 @@ def disable_scheduler():
 
 
 def schedule_jobs_based_on_activity(check_time=None):
-	"""Returns True for active sites defined by Activity Log
-	Returns True for inactive sites once in 24 hours"""
+	"""Return True for active sites defined by Activity Log.
+	Also return True for inactive sites once in 24 hours."""
 	if is_dormant(check_time=check_time):
 		# ensure last job is one day old
 		last_job_timestamp = _get_last_modified_timestamp("Scheduled Job Log")

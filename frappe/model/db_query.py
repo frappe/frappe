@@ -335,7 +335,7 @@ class DatabaseQuery:
 		return args
 
 	def parse_args(self):
-		"""Convert fields and filters from strings to list, dicts"""
+		"""Convert fields and filters from strings to list, dicts."""
 		if isinstance(self.fields, str):
 			if self.fields == "*":
 				self.fields = ["*"]
@@ -715,7 +715,8 @@ class DatabaseQuery:
 			j = j + len(permitted_fields) - 1
 
 	def prepare_filter_condition(self, f):
-		"""Returns a filter condition in the format:
+		"""Return a filter condition in the format:
+
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
@@ -1339,7 +1340,7 @@ def get_date_range(operator: str, value: str):
 
 
 def requires_owner_constraint(role_permissions):
-	"""Returns True if "select" or "read" isn't available without being creator."""
+	"""Return True if "select" or "read" isn't available without being creator."""
 
 	if not role_permissions.get("has_if_owner_enabled"):
 		return

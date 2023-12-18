@@ -79,7 +79,7 @@ def get_context(context):
 
 
 def get_print_format_doc(print_format_name, meta):
-	"""Returns print format document"""
+	"""Return print format document."""
 	if not print_format_name:
 		print_format_name = frappe.form_dict.format or meta.default_print_format or "Standard"
 
@@ -265,7 +265,7 @@ def set_title_values_for_table_and_multiselect_fields(meta, doc):
 
 
 def convert_markdown(doc: "Document"):
-	"""Convert text field values to markdown if necessary"""
+	"""Convert text field values to markdown if necessary."""
 	for field in doc.meta.fields:
 		if field.fieldtype == "Text Editor":
 			value = doc.get(field.fieldname)
@@ -284,7 +284,7 @@ def get_html_and_style(
 	style: str | None = None,
 	settings: str | None = None,
 ):
-	"""Returns `html` and `style` of print format, used in PDF etc"""
+	"""Return `html` and `style` of print format, used in PDF etc."""
 
 	if isinstance(name, str):
 		document = frappe.get_doc(doc, name)
@@ -315,7 +315,7 @@ def get_html_and_style(
 
 @frappe.whitelist()
 def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: str | None = None):
-	"""Returns Rendered Raw Commands of print format, used to send directly to printer"""
+	"""Return Rendered Raw Commands of print format, used to send directly to printer."""
 
 	if isinstance(name, str):
 		document = frappe.get_doc(doc, name)
@@ -500,7 +500,7 @@ def make_layout(doc, meta, format_data=None):
 
 
 def is_visible(df, doc):
-	"""Returns True if docfield is visible in print layout and does not have print_hide set."""
+	"""Return True if docfield is visible in print layout and does not have print_hide set."""
 	if df.fieldtype in ("Section Break", "Column Break", "Button"):
 		return False
 
@@ -580,7 +580,7 @@ def get_font(print_settings, print_format=None, for_legacy=False):
 
 
 def get_visible_columns(data, table_meta, df):
-	"""Returns list of visible columns based on print_hide and if all columns have value."""
+	"""Return list of visible columns based on print_hide and if all columns have value."""
 	columns = []
 	doc = data[0] or frappe.new_doc(df.options)
 

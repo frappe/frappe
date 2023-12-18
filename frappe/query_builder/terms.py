@@ -15,24 +15,20 @@ class NamedParameterWrapper:
 		self.parameters = {}
 
 	def get_sql(self, param_value: Any, **kwargs) -> str:
-		"""returns SQL for a parameter, while adding the real value in a dict
+		"""Return SQL for a parameter, while adding the real value in a dict.
 
 		Args:
-		                param_value (Any): Value of the parameter
+		        param_value (Any): Value of the parameter
 
-		Returns:
-		                str: parameter used in the SQL query
+		Return:
+		        str: parameter used in the SQL query
 		"""
 		param_key = f"%(param{len(self.parameters) + 1})s"
 		self.parameters[param_key[2:-2]] = param_value
 		return param_key
 
 	def get_parameters(self) -> dict[str, Any]:
-		"""get dict with parameters and values
-
-		Returns:
-		                Dict[str, Any]: parameter dict
-		"""
+		"""Get dict with parameters and values."""
 		return self.parameters
 
 

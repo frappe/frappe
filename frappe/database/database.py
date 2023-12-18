@@ -123,7 +123,7 @@ class Database:
 		self._conn.select_db(db_name)
 
 	def get_connection(self):
-		"""Returns a Database connection object that conforms with https://peps.python.org/pep-0249/#connection-objects"""
+		"""Return a Database connection object that conforms with https://peps.python.org/pep-0249/#connection-objects."""
 		raise NotImplementedError
 
 	def get_database_size(self):
@@ -160,7 +160,7 @@ class Database:
 		:param ignore_ddl: Catch exception if table, column missing.
 		:param auto_commit: Commit after executing the query.
 		:param update: Update this dict to all rows (if returned `as_dict`).
-		:param run: Returns query without executing it if False.
+		:param run: Return query without executing it if False.
 		:param pluck: Get the plucked field only.
 		:param explain: Print `EXPLAIN` in error log.
 		Examples:
@@ -397,7 +397,7 @@ class Database:
 			raise ImplicitCommitError("This statement can cause implicit commit", query)
 
 	def fetch_as_dict(self) -> list[frappe._dict]:
-		"""Internal. Converts results to dict."""
+		"""Internal. Convert results to dict."""
 		result = self.last_result
 		if result:
 			keys = [column[0] for column in self._cursor.description]
@@ -410,7 +410,7 @@ class Database:
 			frappe.cache.delete_key("db_tables")
 
 	def get_description(self):
-		"""Returns result metadata."""
+		"""Return result metadata."""
 		return self._cursor.description
 
 	@staticmethod
@@ -419,7 +419,7 @@ class Database:
 		return [[value for value in row] for row in res]
 
 	def get(self, doctype, filters=None, as_dict=True, cache=False):
-		"""Returns `get_value` with fieldname='*'"""
+		"""Return `get_value` with fieldname='*'."""
 		return self.get_value(doctype, filters, "*", as_dict=as_dict, cache=cache)
 
 	def get_value(
@@ -438,7 +438,7 @@ class Database:
 		pluck=False,
 		distinct=False,
 	):
-		"""Returns a document property or list of properties.
+		"""Return a document property or list of properties.
 
 		:param doctype: DocType name.
 		:param filters: Filters like `{"x":"y"}` or name of the document. `None` if Single DocType.
@@ -510,7 +510,7 @@ class Database:
 		distinct=False,
 		limit=None,
 	):
-		"""Returns multiple document properties.
+		"""Return multiple document properties.
 
 		:param doctype: DocType name.
 		:param filters: Filters like `{"x":"y"}` or name of the document.
@@ -926,11 +926,11 @@ class Database:
 		self.set_default(key, val, user)
 
 	def get_global(self, key, user="__global"):
-		"""Returns a global key value."""
+		"""Return a global key value."""
 		return self.get_default(key, user)
 
 	def get_default(self, key, parent="__default"):
-		"""Returns default value as a list if multiple or single"""
+		"""Return default value as a list if multiple or single."""
 		d = self.get_defaults(key, parent)
 		return isinstance(d, list) and d[0] or d
 
@@ -1006,7 +1006,7 @@ class Database:
 		return self.exists("DocField", {"fieldname": fn, "parent": dt})
 
 	def table_exists(self, doctype, cached=True):
-		"""Returns True if table for given doctype exists."""
+		"""Return True if table for given doctype exists."""
 		return f"tab{doctype}" in self.get_tables(cached=cached)
 
 	def has_table(self, doctype):
@@ -1016,7 +1016,7 @@ class Database:
 		raise NotImplementedError
 
 	def a_row_exists(self, doctype):
-		"""Returns True if atleast one row exists."""
+		"""Return True if at least one row exists."""
 		return frappe.get_all(doctype, limit=1, order_by=None, as_list=True)
 
 	def exists(self, dt, dn=None, cache=False):
@@ -1055,7 +1055,7 @@ class Database:
 		return self.get_value(dt, dn, ignore=True, cache=cache, order_by=None)
 
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
-		"""Returns `COUNT(*)` for given DocType and filters."""
+		"""Return `COUNT(*)` for given DocType and filters."""
 		if cache and not filters:
 			cache_count = frappe.cache.get_value(f"doctype:count:{dt}")
 			if cache_count is not None:
@@ -1098,7 +1098,7 @@ class Database:
 		)
 
 	def get_db_table_columns(self, table) -> list[str]:
-		"""Returns list of column names from given table."""
+		"""Return list of column names from given table."""
 		columns = frappe.cache.hget("table_columns", table)
 		if columns is None:
 			information_schema = frappe.qb.Schema("information_schema")
@@ -1116,14 +1116,14 @@ class Database:
 		return columns
 
 	def get_table_columns(self, doctype):
-		"""Returns list of column names from given doctype."""
+		"""Return list of column names from given doctype."""
 		columns = self.get_db_table_columns("tab" + doctype)
 		if not columns:
 			raise self.TableMissingError("DocType", doctype)
 		return columns
 
 	def has_column(self, doctype, column):
-		"""Returns True if column exists in database."""
+		"""Return True if column exists in database."""
 		return column in self.get_table_columns(doctype)
 
 	def has_index(self, table_name, index_name):
