@@ -418,7 +418,7 @@ def scrub_html_template(content):
 
 
 def html_to_js_template(path, content):
-	"""Return HTML template content as Javascript code, by adding it to `frappe.templates`"""
+	"""Return HTML template content as Javascript code, by adding it to `frappe.templates`."""
 	return """frappe.templates["{key}"] = '{content}';\n""".format(
 		key=path.rsplit("/", 1)[-1][:-5], content=scrub_html_template(content)
 	)
