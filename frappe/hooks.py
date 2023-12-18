@@ -34,7 +34,6 @@ app_include_js = [
 app_include_css = [
 	"desk.bundle.css",
 	"report.bundle.css",
-  "https://kit.fontawesome.com/3d13c1b216.css"
 ]
 app_include_icons = [
 	"frappe/icons/timeless/icons.svg",
