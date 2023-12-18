@@ -422,11 +422,13 @@ before_request = [
 	"frappe.recorder.record",
 	"frappe.monitor.start",
 	"frappe.rate_limiter.apply",
+	"frappe.utils.sentry.set_sentry_context",
 ]
 
 # Background Job Hooks
 before_job = [
 	"frappe.monitor.start",
+	"frappe.utils.sentry.set_sentry_context",
 ]
 after_job = [
 	"frappe.monitor.stop",
