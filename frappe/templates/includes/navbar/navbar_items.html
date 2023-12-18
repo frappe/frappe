@@ -42,7 +42,7 @@
 		{%- if item.icon -%}
 			<img src="{{ item.icon }}" alt="{{ item.label }}">
 		{%- else -%}
-			{{ item.label }}
+			{{ _(item.label) }}
 		{%- endif -%}
 	</a>
 </li>
