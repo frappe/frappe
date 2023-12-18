@@ -30,11 +30,11 @@ app_include_js = [
 	"controls.bundle.js",
 	"report.bundle.js",
 	"telemetry.bundle.js",
-  "https://kit.fontawesome.com/3d13c1b216.js"
 ]
 app_include_css = [
 	"desk.bundle.css",
 	"report.bundle.css",
+  "https://kit.fontawesome.com/3d13c1b216.css"
 ]
 app_include_icons = [
 	"frappe/icons/timeless/icons.svg",
