@@ -15,6 +15,7 @@ import git
 import requests
 
 import frappe
+from frappe.utils.change_log import get_app_branch
 
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
@@ -57,6 +58,7 @@ def _get_user_inputs(app_name):
 			"default": False,
 			"type": bool,
 		},
+		"branch_name": {"prompt": "Branch Name", "default": get_app_branch("frappe")},
 	}
 
 	for property, config in new_app_config.items():
@@ -190,7 +192,7 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 			f.write(frappe.as_unicode(gitignore_template.format(app_name=hooks.app_name)))
 
 		# initialize git repository
-		app_repo = git.Repo.init(app_directory, initial_branch="develop")
+		app_repo = git.Repo.init(app_directory, initial_branch=hooks.branch_name)
 		app_repo.git.add(A=True)
 		app_repo.index.commit("feat: Initialize App")
 
@@ -774,6 +776,16 @@ ci:
 readme_template = """### {app_title}
 
 {app_description}
+
+### Installation
+
+You can install this app using the [bench](https://github.com/frappe/bench) CLI:
+
+```bash
+cd $PATH_TO_YOUR_BENCH
+bench get-app $URL_OF_THIS_REPO --branch {branch_name}
+bench install-app {app_name}
+```
 
 ### Contributing
 
