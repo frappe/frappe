@@ -152,6 +152,9 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, "pyproject.toml"), "w") as f:
 		f.write(frappe.as_unicode(pyproject_template.format(**hooks)))
 
+	with open(os.path.join(dest, hooks.app_name, ".pre-commit-config.yaml"), "w") as f:
+		f.write(frappe.as_unicode(precommit_template.format(**hooks)))
+
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(
 			frappe.as_unicode(
@@ -690,3 +693,85 @@ patches_template = """[pre_model_sync]
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated"""
+
+
+precommit_template = """exclude: 'node_modules|.git'
+default_stages: [commit]
+fail_fast: false
+
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+      - id: trailing-whitespace
+        files: "{app_name}.*"
+        exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-ast
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.9.0
+    hooks:
+      - id: pyupgrade
+        args: ['--py310-plus']
+
+  - repo: https://github.com/frappe/black
+    rev: 951ccf4d5bb0d692b457a5ebc4215d755618eb68
+    hooks:
+      - id: black
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v2.7.1
+    hooks:
+      - id: prettier
+        types_or: [javascript, vue, scss]
+        # Ignore any files that might contain jinja / bundles
+        exclude: |
+            (?x)^(
+                {app_name}/public/dist/.*|
+                .*node_modules.*|
+                .*boilerplate.*|
+                {app_name}/templates/includes/.*|
+                {app_name}/public/js/lib/.*
+            )$
+
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.44.0
+    hooks:
+      - id: eslint
+        types_or: [javascript]
+        args: ['--quiet']
+        # Ignore any files that might contain jinja / bundles
+        exclude: |
+            (?x)^(
+                {app_name}/public/dist/.*|
+                cypress/.*|
+                .*node_modules.*|
+                .*boilerplate.*|
+                {app_name}/templates/includes/.*|
+                {app_name}/public/js/lib/.*
+            )$
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+        additional_dependencies: ['flake8-bugbear',]
+
+ci:
+    autoupdate_schedule: weekly
+    skip: []
+    submodules: false
+"""
