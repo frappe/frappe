@@ -152,7 +152,7 @@ jobs:
         run: cat ~/frappe-bench/bench_start.log || true
 
       - name: Upload coverage data
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.container }}
           path: /home/runner/frappe-bench/sites/coverage.xml
