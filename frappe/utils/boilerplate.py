@@ -303,9 +303,7 @@ class PatchCreator:
 		init_py.touch()
 
 
-init_template = """
-__version__ = '0.0.1'
-
+init_template = """__version__ = "0.0.1"
 """
 
 pyproject_template = """[project]
