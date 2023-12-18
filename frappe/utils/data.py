@@ -1626,6 +1626,9 @@ def image_to_base64(image: "PILImageFile", extn: str) -> bytes:
 
 
 def pdf_to_base64(filename: str) -> bytes | None:
+	"""Return the base64 encoded string for the given PDF file.
+
+	Return None if the file is not found or is not a PDF file."""
 	from frappe.utils.file_manager import get_file_path
 
 	if "../" in filename or filename.rsplit(".")[-1] not in ["pdf", "PDF"]:
