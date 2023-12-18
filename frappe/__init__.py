@@ -1152,6 +1152,7 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
+	"""Like `frappe.get_doc`, but return from cache if available."""
 	if (key := can_cache_doc(args)) and (doc := cache.get_value(key)):
 		return doc
 

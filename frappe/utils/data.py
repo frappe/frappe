@@ -1654,6 +1654,10 @@ def strip_html(text: str) -> str:
 
 
 def escape_html(text: str) -> str:
+	"""Return the given text with HTML special characters escaped.
+
+	e.g. '<h1>Hello</h1>' -> '&lt;h1&gt;Hello&lt;/h1&gt;'
+	"""
 	if not isinstance(text, str):
 		return text
 
@@ -2133,10 +2137,20 @@ def sanitize_column(column_name: str) -> None:
 
 
 def scrub_urls(html: str) -> str:
+	"""Expand relative urls in the given `html`.
+
+	e.g. If HTML is '<a href="/files/abc.jpeg">View Image</a>' and site URL is 'https://frappe.io',
+	        returns '<a href="https://frappe.io/files/abc.jpeg">View Image</a>'.
+	"""
 	return expand_relative_urls(html)
 
 
 def expand_relative_urls(html: str) -> str:
+	"""Expand relative urls in the given `html`.
+
+	e.g. If HTML is '<a href="/files/abc.jpeg">View Image</a>' and site URL is 'https://frappe.io',
+	        returns '<a href="https://frappe.io/files/abc.jpeg">View Image</a>'.
+	"""
 	# expand relative urls
 	url = get_url()
 	if url.endswith("/"):
@@ -2162,6 +2176,10 @@ def expand_relative_urls(html: str) -> str:
 
 
 def quoted(url: str) -> str:
+	"""Return the given `url` quoted.
+
+	e.g. 'https://frappe.io/files/my Image file.jpeg' -> 'https://frappe.io/files/my%20Image%20file.jpeg'
+	"""
 	return cstr(quote(encode(cstr(url)), safe=b"~@#$&()*!+=:;,.?/'"))
 
 
@@ -2184,6 +2202,10 @@ def unique(seq: typing.Sequence["T"]) -> list["T"]:
 
 
 def strip(val: str, chars: str | None = None) -> str:
+	"""Strip the given characters from the given string.
+
+	e.g. strip(',hello,bye,', ',') -> 'hello,bye'
+	"""
 	# \ufeff is no-width-break, \u200b is no-width-space
 	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)
 
