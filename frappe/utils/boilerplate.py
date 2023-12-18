@@ -156,13 +156,8 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 		f.write(frappe.as_unicode(precommit_template.format(**hooks)))
 
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
-		f.write(
-			frappe.as_unicode(
-				"## {}\n\n{}\n\n#### License\n\n{}".format(
-					hooks.app_title, hooks.app_description, hooks.app_license
-				)
-			)
-		)
+		f.write(frappe.as_unicode(readme_template.format(**hooks)))
+
 	license_body = get_license_text(license_name=hooks.app_license)
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
 		f.write(frappe.as_unicode(license_body))
@@ -774,4 +769,13 @@ ci:
     autoupdate_schedule: weekly
     skip: []
     submodules: false
+"""
+
+readme_template = """### {app_title}
+
+{app_description}
+
+### License
+
+{app_license}
 """
