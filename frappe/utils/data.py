@@ -2212,7 +2212,7 @@ def md_to_html(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
 		pass
 
 
-def markdown(markdown_text: str) -> str:
+def markdown(markdown_text: str) -> Optional["UnicodeWithAttrs"]:
 	"""Converts the given markdown text to HTML and returns it."""
 	return md_to_html(markdown_text)
 
