@@ -39,7 +39,11 @@
 <li class="nav-item">
 	<a class="nav-link" href="{{ url }}"
 		{% if item.open_in_new_tab %} target="_blank" {% endif %}>
-		{{ _(item.label) }}
+		{%- if item.icon -%}
+			<img src="{{ item.icon }}" alt="{{ item.label }}">
+		{%- else -%}
+			{{ item.label }}
+		{%- endif -%}
 	</a>
 </li>
 {% else %}
