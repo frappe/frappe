@@ -47,6 +47,8 @@ TimespanOptions = Literal[
 
 
 if typing.TYPE_CHECKING:
+	from PIL.ImageFile import ImageFile as PILImageFile
+
 	T = TypeVar("T")
 
 
@@ -1280,6 +1282,7 @@ def _bankers_rounding(num, precision):
 
 
 def remainder(numerator: NumericType, denominator: NumericType, precision: int = 2) -> NumericType:
+	"""Return the remainder of the division of `numerator` by `denominator`."""
 	precision = cint(precision)
 	multiplier = 10**precision
 
@@ -1601,7 +1604,8 @@ def get_thumbnail_base64_for_image(src):
 	return cache().hget("thumbnail_base64", src, generator=_get_base64)
 
 
-def image_to_base64(image, extn: str) -> bytes:
+def image_to_base64(image: "PILImageFile", extn: str) -> bytes:
+	"""Return the base64 encoded string for the given PIL `ImageFile`."""
 	from io import BytesIO
 
 	buffered = BytesIO()
@@ -1735,7 +1739,7 @@ def filter_strip_join(some_list: list[str], sep: str) -> list[str]:
 
 
 def get_url(uri: str | None = None, full_address: bool = False) -> str:
-	"""get app url from request"""
+	"""Get app url from request."""
 	host_name = frappe.local.conf.host_name or frappe.local.conf.hostname
 
 	if uri and (uri.startswith("http://") or uri.startswith("https://")):
@@ -1791,6 +1795,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 
 
 def get_host_name_from_request() -> str:
+	"""Return the hostname (`request.host`) from the request headers."""
 	if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
 		protocol = (
 			"https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
@@ -1801,13 +1806,17 @@ def get_host_name_from_request() -> str:
 def url_contains_port(url: str) -> bool:
 	"""Return True if the given url contains a port number.
 
-	e.g. 'http://localhost:8000' -> True, 'http://localhost' -> False
+	e.g. 'http://localhost:8000' -> True, 'http://localhost' -> False.
 	"""
 	parts = url.split(":")
 	return len(parts) > 2
 
 
 def get_host_name() -> str:
+	"""Return the hostname of the current site.
+
+	e.g. If site is 'https://cloud.frappe.io', returns 'cloud.frappe.io'.
+	"""
 	return get_url().rsplit("//", 1)[-1]
 
 
@@ -1825,6 +1834,12 @@ def get_link_to_report(
 	doctype: str | None = None,
 	filters: dict | None = None,
 ) -> str:
+	"""
+	Return the HTML link to the given report.
+
+	e.g. get_link_to_report("Revenue Report", "Link Label") returns:
+	        "<a href='https://frappe.io/app/query-report/Revenue%20Report'>Link Label</a>".
+	"""
 	if not label:
 		label = name
 
@@ -1856,6 +1871,11 @@ def get_absolute_url(doctype: str, name: str) -> str:
 
 
 def get_url_to_form(doctype: str, name: str) -> str:
+	"""Return the absolute URL for the form view of the given document in the desk.
+
+	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
+	         returns 'https://frappe.io/app/sales-invoice/INV-00001'
+	"""
 	return get_url(uri=f"/app/{quoted(slug(doctype))}/{quoted(name)}")
 
 
@@ -1869,6 +1889,15 @@ def get_url_to_list(doctype: str) -> str:
 
 
 def get_url_to_report(name, report_type: str | None = None, doctype: str | None = None) -> str:
+	"""Return the absolute URL for the report in the desk.
+
+	e.g. when name="Sales Register" and your site URL is "https://frappe.io",
+	         returns 'https://frappe.io/app/query-report/Sales%20Register'
+
+	You can optionally pass `report_type` and `doctype` to get the URL for a Report Builder report.
+
+	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/app/sales-invoice/view/report/Revenue'
+	"""
 	if report_type == "Report Builder":
 		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report/{quoted(name)}")
 	else:
@@ -1876,6 +1905,7 @@ def get_url_to_report(name, report_type: str | None = None, doctype: str | None 
 
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
+	"""Return the absolute URL for the report in the desk with filters."""
 	if report_type == "Report Builder":
 		return get_url(uri=f"/app/{quoted(slug(doctype))}/view/report?{filters}")
 
@@ -2305,6 +2335,14 @@ class _UserInfo(typing.TypedDict):
 
 
 def get_user_info_for_avatar(user_id: str) -> _UserInfo:
+	"""Return user info for the given `user_id` suitable for use in an avatar.
+
+	e.g. {
+	        "email": "faris@frappe.io",
+	        "image": "/assets/frappe/images/ui/avatar.png",
+	        "name": "Faris Ansari"
+	}
+	"""
 	try:
 		user = frappe.get_cached_doc("User", user_id)
 		return {"email": user.email, "image": user.user_image, "name": user.full_name}
