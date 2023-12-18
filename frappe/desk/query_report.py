@@ -397,7 +397,7 @@ def build_xlsx_data(
 			if not filter_value:
 				continue
 			filter_value = (
-				", ".join(map(lambda x: cstr(x), filter_value))
+				", ".join([cstr(x) for x in filter_value])
 				if isinstance(filter_value, list)
 				else cstr(filter_value)
 			)
