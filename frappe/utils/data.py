@@ -1649,7 +1649,7 @@ _striptags_re = re.compile(r"(<!--.*?-->|<[^>]*>)")
 
 
 def strip_html(text: str) -> str:
-	"""removes anything enclosed in and including <>"""
+	"""Remove anything enclosed in and including <>."""
 	return _striptags_re.sub("", text)
 
 
@@ -1669,8 +1669,7 @@ def escape_html(text: str) -> str:
 
 
 def pretty_date(iso_datetime: datetime.datetime | str) -> str:
-	"""
-	Return a localized string representation of the delta to the current system time.
+	"""Return a localized string representation of the delta to the current system time.
 
 	For example, "1 hour ago", "2 days ago", "in 5 seconds", etc.
 	"""
@@ -1834,6 +1833,11 @@ def get_host_name() -> str:
 
 
 def get_link_to_form(doctype: str, name: str, label: str | None = None) -> str:
+	"""Return the HTML link to the given document's form view.
+
+	e.g. get_link_to_form("Sales Invoice", "INV-0001", "Link Label") returns:
+	    '<a href="https://frappe.io/app/sales-invoice/INV-0001">Link Label</a>'.
+	"""
 	if not label:
 		label = name
 
@@ -1847,11 +1851,10 @@ def get_link_to_report(
 	doctype: str | None = None,
 	filters: dict | None = None,
 ) -> str:
-	"""
-	Return the HTML link to the given report.
+	"""Return the HTML link to the given report.
 
 	e.g. get_link_to_report("Revenue Report", "Link Label") returns:
-	        "<a href='https://frappe.io/app/query-report/Revenue%20Report'>Link Label</a>".
+	        '<a href="https://frappe.io/app/query-report/Revenue%20Report">Link Label</a>'.
 	"""
 	if not label:
 		label = name
