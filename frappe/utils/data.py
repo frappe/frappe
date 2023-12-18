@@ -1563,7 +1563,17 @@ def is_image(filepath: str) -> bool:
 	return (guess_type(filepath)[0] or "").startswith("image/")
 
 
-def get_thumbnail_base64_for_image(src):
+def get_thumbnail_base64_for_image(src: str) -> dict[str, str] | None:
+	"""Return the base64 encoded string for the thumbnail of the given image source path.
+
+	Example return value:
+
+	{
+	        "base64": "data:image/ext;base64,...",
+	        "width": 50,
+	        "height": 50
+	}
+	"""
 	from os.path import exists as file_exists
 
 	from PIL import Image
