@@ -9,6 +9,7 @@ context("Control Currency", () => {
 	function get_dialog_with_currency(df_options = {}) {
 		return cy.dialog({
 			title: "Currency Check",
+			animate: false,
 			fields: [
 				{
 					fieldname: fieldname,
@@ -64,6 +65,7 @@ context("Control Currency", () => {
 				});
 
 			get_dialog_with_currency(test_case.df_options).as("dialog");
+			cy.wait(300);
 			cy.get_field(fieldname, "Currency").clear();
 			cy.wait(300);
 			cy.fill_field(fieldname, test_case.input, "Currency").blur();
