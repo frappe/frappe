@@ -8,6 +8,7 @@ import os
 import pathlib
 import re
 import textwrap
+from pathlib import Path
 
 import click
 import git
@@ -116,6 +117,13 @@ def get_license_text(license_name: str) -> str:
 	return license_name
 
 
+def copy_from_frappe(rel_path: str, new_app_path: str):
+	"""Copy files from frappe app to new app."""
+	src = Path(frappe.get_app_path("frappe", "..")) / rel_path
+	target = Path(new_app_path) / rel_path
+	Path(target).write_text(Path(src).read_text())
+
+
 def _create_app_boilerplate(dest, hooks, no_git=False):
 	frappe.create_folder(
 		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
@@ -171,6 +179,10 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 		f.write(frappe.as_unicode(patches_template.format(**hooks)))
 
 	app_directory = os.path.join(dest, hooks.app_name)
+
+	copy_from_frappe(".editorconfig", app_directory)
+	copy_from_frappe(".eslintrc", app_directory)
+	copy_from_frappe(".flake8", app_directory)
 
 	if hooks.create_github_workflow:
 		_create_github_workflow_files(dest, hooks)
