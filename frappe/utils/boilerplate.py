@@ -515,16 +515,7 @@ app_license = "{app_license}"
 # ]
 """
 
-<<<<<<< HEAD
 desktop_template = """from frappe import _
-=======
-# Automatically update python controller files with type annotations for this app.
-# export_python_type_annotations = True
-
-# default_log_clearing_doctypes = {{
-# 	"Logging DocType Name": 30  # days to retain logs
-# }}
->>>>>>> 99f0745302 (style: new app boilerplate (#23847))
 
 def get_data():
 	return [
