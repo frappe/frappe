@@ -333,7 +333,7 @@ def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: s
 
 	return {
 		"raw_commands": get_rendered_template(
-			doc=document, name=name, print_format=print_format, meta=document.meta
+			doc=document, print_format=print_format, meta=document.meta
 		)
 	}
 
