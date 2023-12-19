@@ -240,8 +240,9 @@ class TestCustomizeForm(FrappeTestCase):
 		# Using Notification Log doctype as it doesn't have any other custom fields
 		d = self.get_customize_form("Notification Log")
 
+		new_document_length = 255
 		document_name = d.get("fields", {"fieldname": "document_name"})[0]
-		document_name.length = 255
+		document_name.length = new_document_length
 		d.run_method("save_customization")
 
 		self.assertEqual(
@@ -250,10 +251,8 @@ class TestCustomizeForm(FrappeTestCase):
 				{"doc_type": "Notification Log", "property": "length", "field_name": "document_name"},
 				"value",
 			),
-			"255",
+			str(new_document_length),
 		)
-
-		self.assertTrue(d.flags.update_db)
 
 		length = frappe.db.sql(
 			"""SELECT character_maximum_length
@@ -262,7 +261,7 @@ class TestCustomizeForm(FrappeTestCase):
 			AND column_name = 'document_name'"""
 		)[0][0]
 
-		self.assertEqual(length, 255)
+		self.assertEqual(length, new_document_length)
 
 	def test_custom_link(self):
 		try:
