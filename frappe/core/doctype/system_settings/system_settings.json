@@ -639,7 +639,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-11-27 14:08:01.927794",
+ "modified": "2023-12-08 15:52:37.525003",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -655,7 +655,7 @@
  ],
  "quick_entry": 1,
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }

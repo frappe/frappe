@@ -179,6 +179,9 @@ class DatabaseQuery:
 			from frappe.model.base_document import get_controller
 
 			controller = get_controller(self.doctype)
+			if not hasattr(controller, "get_list"):
+				return []
+
 			self.parse_args()
 			kwargs = {
 				"as_list": as_list,
@@ -736,7 +739,7 @@ class DatabaseQuery:
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
 
-		can_be_null = True
+		can_be_null = f.fieldname != "name"  # primary key is never nullable
 
 		value = None
 
@@ -791,7 +794,7 @@ class DatabaseQuery:
 			# if values contain '' or falsy values then only coalesce column
 			# for `in` query this is only required if values contain '' or values are empty.
 			# for `not in` queries we can't be sure as column values might contain null.
-			can_be_null = not getattr(df, "not_nullable", False)
+			can_be_null &= not getattr(df, "not_nullable", False)
 			if f.operator.lower() == "in":
 				can_be_null &= not f.value or any(v is None or v == "" for v in f.value)
 

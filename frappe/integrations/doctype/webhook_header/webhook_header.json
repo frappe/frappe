@@ -11,20 +11,20 @@
  "fields": [
   {
    "fieldname": "key",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Key"
   },
   {
    "fieldname": "value",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Value"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2022-08-03 12:20:51.949422",
+ "modified": "2023-12-11 12:20:51.949422",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Header",
