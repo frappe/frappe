@@ -318,6 +318,7 @@ def export_query():
 	file_format_type = form_params.file_format_type
 	custom_columns = frappe.parse_json(form_params.custom_columns or "[]")
 	include_indentation = form_params.include_indentation
+	include_filters = form_params.include_filters
 	visible_idx = form_params.visible_idx
 
 	if isinstance(visible_idx, str):
@@ -327,6 +328,8 @@ def export_query():
 		report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False
 	)
 	data = frappe._dict(data)
+	data.filters = form_params.applied_filters
+
 	if not data.columns:
 		frappe.respond_as_web_page(
 			_("No data to export"),
@@ -335,7 +338,9 @@ def export_query():
 		return
 
 	format_duration_fields(data)
-	xlsx_data, column_widths = build_xlsx_data(data, visible_idx, include_indentation)
+	xlsx_data, column_widths = build_xlsx_data(
+		data, visible_idx, include_indentation, include_filters=include_filters
+	)
 
 	if file_format_type == "CSV":
 		content = get_csv_bytes(xlsx_data, csv_params)
@@ -360,7 +365,9 @@ def format_duration_fields(data: frappe._dict) -> None:
 				row[index] = format_duration(row[index])
 
 
-def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=False):
+def build_xlsx_data(
+	data, visible_idx, include_indentation, include_filters=False, ignore_visible_idx=False
+):
 	EXCEL_TYPES = (
 		str,
 		bool,
@@ -380,17 +387,34 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 		# Note: converted for faster lookups
 		visible_idx = set(visible_idx)
 
-	result = [[]]
+	result = []
 	column_widths = []
 
+	if cint(include_filters):
+		filter_data = []
+		filters = data.filters
+		for filter_name, filter_value in filters.items():
+			if not filter_value:
+				continue
+			filter_value = (
+				", ".join([cstr(x) for x in filter_value])
+				if isinstance(filter_value, list)
+				else cstr(filter_value)
+			)
+			filter_data.append([cstr(filter_name), filter_value])
+		filter_data.append([])
+		result += filter_data
+
+	column_data = []
 	for column in data.columns:
 		if column.get("hidden"):
 			continue
-		result[0].append(_(column.get("label")))
+		column_data.append(_(column.get("label")))
 		column_width = cint(column.get("width", 0))
 		# to convert into scale accepted by openpyxl
 		column_width /= 10
 		column_widths.append(column_width)
+	result.append(column_data)
 
 	# build table from result
 	for row_idx, row in enumerate(data.result):
