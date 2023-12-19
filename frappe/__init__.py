@@ -1003,7 +1003,8 @@ def has_permission(
 	parent_doctype=None,
 ):
 	"""
-	Return True if the user has permission `ptype` for given `doctype` or `doc`
+	Return True if the user has permission `ptype` for given `doctype` or `doc`.
+
 	Raise `frappe.PermissionError` if user isn't permitted and `throw` is truthy
 
 	:param doctype: DocType for which permission is to be check.
@@ -1152,7 +1153,7 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
-	"""Like `frappe.get_doc`, but return from cache if available."""
+	"""Identical to `frappe.get_doc`, but return from cache if available."""
 	if (key := can_cache_doc(args)) and (doc := cache.get_value(key)):
 		return doc
 

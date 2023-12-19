@@ -133,9 +133,8 @@ def setup_assets(assets_archive):
 	return directories_created
 
 
-def download_frappe_assets(verbose=True):
-	"""Downloads and sets up Frappe assets if they exist based on the current
-	commit HEAD.
+def download_frappe_assets(verbose=True) -> bool:
+	"""Download and set up Frappe assets if they exist based on the current commit HEAD.
 	Return True if correctly setup else return False.
 	"""
 	frappe_head = getoutput("cd ../apps/frappe && git rev-parse HEAD")
