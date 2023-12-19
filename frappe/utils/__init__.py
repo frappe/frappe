@@ -270,6 +270,11 @@ def has_gravatar(email: str) -> str:
 
 
 def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
+	"""Return gravatar URL for the given email.
+
+	If `default` is set to "404", gravatar URL will return 404 if no avatar is found.
+	If `default` is set to "mm", a placeholder image will be returned.
+	"""
 	hexdigest = hashlib.md5(
 		frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False
 	).hexdigest()
@@ -277,6 +282,9 @@ def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
 
 
 def get_gravatar(email: str) -> str:
+	"""Return gravatar URL if user has set an avatar at gravatar.com.
+
+	Else return identicon image (base64)."""
 	from frappe.utils.identicon import Identicon
 
 	return has_gravatar(email) or Identicon(email).base64()
