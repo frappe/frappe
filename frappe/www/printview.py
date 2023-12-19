@@ -93,7 +93,7 @@ def get_context(context) -> PrintContext:
 	}
 
 
-def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
+def get_print_format_doc(print_format_name: str, meta: "Meta") -> Optional["PrintFormat"]:
 	"""Return print format document."""
 	if not print_format_name:
 		print_format_name = frappe.form_dict.format or meta.default_print_format or "Standard"
@@ -110,7 +110,7 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 
 def get_rendered_template(
 	doc: "Document",
-	print_format: "PrintFormat" | None = None,
+	print_format: Optional["PrintFormat"] = None,
 	meta: "Meta" = None,
 	no_letterhead: bool | None = None,
 	letterhead: str | None = None,
