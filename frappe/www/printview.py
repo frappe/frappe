@@ -388,9 +388,7 @@ def validate_key(key: str, doc: "Document") -> None:
 	raise frappe.exceptions.InvalidKeyError
 
 
-def get_letter_head(
-	doc: "Document", no_letterhead: bool, letterhead: str | None = None
-) -> dict | "frappe._dict":
+def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None = None) -> dict:
 	if no_letterhead:
 		return {}
 	if letterhead:
