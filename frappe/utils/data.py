@@ -1452,6 +1452,12 @@ number_format_info = {
 
 
 def get_number_format_info(format: str) -> tuple[str, str, int]:
+	"""Return the decimal separator, thousands separator and precision for the given number `format` string.
+
+	e.g. get_number_format_info('1,00,000.50') -> ('.', ',', 2)
+
+	Will return ('.', ',', 2) for format strings which can't be guessed.
+	"""
 	return number_format_info.get(format) or (".", ",", 2)
 
 
