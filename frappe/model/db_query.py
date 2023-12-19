@@ -650,7 +650,7 @@ class DatabaseQuery:
 			else:
 				# field: 'count(`tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
-				column = field.split("(")[-1].split(")", 1)[0]
+				column = field.split("(", 3)[-1][::-1].split(")", 1)[-1][::-1]
 				column = strip_alias(column).replace("`", "")
 
 			if column == "*" and not in_function("*", field):
