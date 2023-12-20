@@ -827,6 +827,7 @@ def run_parallel_tests(
 @click.option("--with-coverage", is_flag=True, help="Generate coverage report")
 @click.option("--browser", default="chrome", help="Browser to run tests in")
 @click.option("--ci-build-id")
+@click.option("--spec", help="Path to the spec file. If left blank, all specs will run.")
 @pass_context
 def run_ui_tests(
 	context,
@@ -837,6 +838,7 @@ def run_ui_tests(
 	browser="chrome",
 	ci_build_id=None,
 	cypressargs=None,
+	spec=None,
 ):
 	"Run UI tests"
 	site = get_site(context)
@@ -893,6 +895,9 @@ def run_ui_tests(
 
 	if ci_build_id:
 		formatted_command += f" --ci-build-id {ci_build_id}"
+
+	if spec:
+		formatted_command += f" --spec {spec}"
 
 	if cypressargs:
 		formatted_command += " " + " ".join(cypressargs)
