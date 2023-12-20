@@ -252,7 +252,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 	for lf in link_fields:
 		link_dt, link_field, issingle = lf["parent"], lf["fieldname"], lf["issingle"]
-		if link_dt in ignored_doctypes or link_field == "amended_from":
+		if link_dt in ignored_doctypes or (link_field == "amended_from" and method == "Cancel"):
 			continue
 
 		try:
