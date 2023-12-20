@@ -753,6 +753,14 @@ class TestDBQuery(FrappeTestCase):
 			limit=50,
 		)
 
+	def test_virtual_field_get_list(self):
+		try:
+			frappe.get_list("Prepared Report", ["*"])
+			frappe.get_list("Scheduled Job Type", ["*"])
+		except Exception as e:
+			print(frappe.get_traceback())
+			self.fail("get_list not working with virtual field")
+
 	def test_pluck_name(self):
 		names = DatabaseQuery("DocType").execute(filters={"name": "DocType"}, pluck="name")
 		self.assertEqual(names, ["DocType"])

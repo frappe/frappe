@@ -635,6 +635,7 @@ class DatabaseQuery:
 			doctype=self.doctype,
 			parenttype=self.parent_doctype,
 			permission_type=self.permission_map.get(self.doctype),
+			ignore_virtual=True,
 		)
 
 		for i, field in enumerate(self.fields):
