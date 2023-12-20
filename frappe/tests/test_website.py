@@ -218,6 +218,11 @@ class TestWebsite(FrappeTestCase):
 		self.assertEqual(response.status_code, 307)
 		self.assertEqual(response.headers.get("Location"), "/test")
 
+		set_request(method="POST", path="/test307")
+		response = get_response()
+		self.assertEqual(response.status_code, 307)
+		self.assertEqual(response.headers.get("Location"), "/test")
+
 		delattr(frappe.hooks, "website_redirects")
 		frappe.cache.delete_key("app_hooks")
 

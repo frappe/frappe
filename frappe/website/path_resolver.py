@@ -115,6 +115,9 @@ def resolve_redirect(path, query_string=None):
 	redirect_to = frappe.cache.hget("website_redirects", path)
 
 	if redirect_to:
+		if isinstance(redirect_to, dict):
+			frappe.flags.redirect_location = redirect_to["path"]
+			raise frappe.Redirect(redirect_to["status_code"])
 		frappe.flags.redirect_location = redirect_to
 		raise frappe.Redirect
 
@@ -132,8 +135,11 @@ def resolve_redirect(path, query_string=None):
 		if match:
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
 			frappe.flags.redirect_location = redirect_to
-			frappe.cache.hset("website_redirects", path_to_match, redirect_to)
-			raise frappe.Redirect(rule.get("redirect_http_status", 301))
+			status_code = rule.get("redirect_http_status", 301)
+			frappe.cache.hset(
+				"website_redirects", path_to_match, {"path": redirect_to, "status_code": status_code}
+			)
+			raise frappe.Redirect(status_code)
 
 
 def resolve_path(path):
