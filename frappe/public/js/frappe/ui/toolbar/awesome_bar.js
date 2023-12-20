@@ -292,6 +292,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		// });
 
 		// REDESIGN TODO: Remove this as a selectable option
+		
 		if (txt.charAt(0) === "#") {
 			return;
 		}
@@ -342,7 +343,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				txt = txt.substr(1);
 			}
 			try {
-				var val = eval(txt).replace(/,/g,'');
+				var val = eval(txt.replace(/,/g,''));
 				var formatted_value = __("{0} = {1}", [txt, (val + "").bold()]);
 				this.options.push({
 					label: formatted_value,
