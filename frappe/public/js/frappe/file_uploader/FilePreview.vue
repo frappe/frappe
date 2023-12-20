@@ -34,6 +34,7 @@
 					/>{{ __("Private") }}</label
 				>
 			</div>
+			<FileTagsInput v-model="file.tags" :placeholder="__('Add Tags')" />
 			<div>
 				<span v-if="file.error_message" class="file-error text-danger">
 					{{ file.error_message }}
@@ -72,6 +73,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import ProgressRing from "./ProgressRing.vue";
+import FileTagsInput from "./FileTagsInput.vue";
 
 // emits
 let emit = defineEmits(["toggle_optimize", "toggle_private", "toggle_image_cropper", "remove"]);
