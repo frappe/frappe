@@ -181,7 +181,12 @@ def upload_file():
 	docname = frappe.form_dict.docname
 	fieldname = frappe.form_dict.fieldname
 	file_url = frappe.form_dict.file_url
-	folder = frappe.form_dict.folder or "Home"
+
+	if frappe.form_dict.folder and frappe.db.get_value("File", frappe.form_dict.folder):
+		folder = frappe.form_dict.folder
+	else:
+		folder = frappe.db.get_value("File", {"is_home_folder": 1})
+
 	method = frappe.form_dict.method
 	filename = frappe.form_dict.file_name
 	optimize = frappe.form_dict.optimize
