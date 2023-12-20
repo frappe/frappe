@@ -61,6 +61,7 @@ class TestLinkedWith(FrappeTestCase):
 	def tearDown(self):
 		for doctype in ["Parent DocType", "Child DocType1", "Child DocType2"]:
 			frappe.delete_doc("DocType", doctype)
+			frappe.db.commit()
 
 	def test_get_doctype_references_by_link_field(self):
 		references = linked_with.get_references_across_doctypes_by_link_field(
@@ -139,3 +140,17 @@ class TestLinkedWith(FrappeTestCase):
 		child_record.cancel()
 		child_record.delete()
 		parent_record.delete()
+
+	def test_check_delete_integrity(self):
+		"""Don't allow deleting cancelled document if amendment exists"""
+		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		doc.submit()
+		doc.cancel()
+
+		amendment = frappe.copy_doc(doc)
+		amendment.amended_from = doc.name
+		amendment.docstatus = 0
+		amendment.insert()
+		amendment.submit()
+
+		self.assertRaises(frappe.LinkExistsError, doc.delete)
