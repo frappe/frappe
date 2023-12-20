@@ -103,7 +103,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 			let _promise = null;
 			if (is_old_style) {
 				// old style arguments (doc, cdt, cdn)
-				_promise = me.frm.cscript[_function](me.frm.doc, doctype, name);
+				_promise = me.frm.cscript[_function]?.(me.frm.doc, doctype, name);
 			} else {
 				// new style (frm, doctype, name)
 				_promise = _function(me.frm, doctype, name);
