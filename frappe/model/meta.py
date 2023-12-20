@@ -574,7 +574,14 @@ class Meta(Document):
 
 		return self.high_permlevel_fields
 
-	def get_permitted_fieldnames(self, parenttype=None, *, user=None, permission_type="read"):
+	def get_permitted_fieldnames(
+		self,
+		parenttype=None,
+		*,
+		user=None,
+		permission_type="read",
+		with_virtual_fields=True,
+	):
 		"""Build list of `fieldname` with read perm level and all the higher perm levels defined.
 
 		Note: If permissions are not defined for DocType, return all the fields with value.
@@ -597,10 +604,20 @@ class Meta(Document):
 			self.get_permlevel_access(permission_type=permission_type, parenttype=parenttype, user=user)
 		)
 
+<<<<<<< HEAD
 		for df in self.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=True):
 			if df.permlevel in permlevel_access:
 				permitted_fieldnames.append(df.fieldname)
 
+=======
+		permitted_fieldnames.extend(
+			df.fieldname
+			for df in self.get_fieldnames_with_value(
+				with_field_meta=True, with_virtual_fields=with_virtual_fields
+			)
+			if df.permlevel in permlevel_access
+		)
+>>>>>>> 5deabdde21 (fix: skip virtual fields in perm level checks during DB Query)
 		return permitted_fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
