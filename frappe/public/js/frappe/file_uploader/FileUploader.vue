@@ -644,6 +644,10 @@ function upload_file(file, i) {
 			form_data.append("optimize", true);
 		}
 
+		if (Array.isArray(file.tags)) {
+			form_data.append("tags", JSON.stringify(file.tags));
+		}
+
 		if (props.attach_doc_image) {
 			form_data.append("max_width", 200);
 			form_data.append("max_height", 200);

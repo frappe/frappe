@@ -187,6 +187,14 @@ def upload_file():
 	optimize = frappe.form_dict.optimize
 	content = None
 
+	# Allow logged in user to upload files.
+	tags = None
+	if user and frappe.form_dict.tags and user.has_desk_access():
+		try:
+			tags = frappe.parse_json(frappe.form_dict.tags)
+		except ValueError:
+			pass
+
 	if frappe.form_dict.get("library_file_name", False):
 		doc = frappe.get_value(
 			"File",
@@ -230,7 +238,7 @@ def upload_file():
 		is_whitelisted(method)
 		return method()
 	else:
-		return frappe.get_doc(
+		doc = frappe.get_doc(
 			{
 				"doctype": "File",
 				"attached_to_doctype": doctype,
@@ -242,7 +250,14 @@ def upload_file():
 				"is_private": cint(is_private),
 				"content": content,
 			}
-		).save(ignore_permissions=ignore_permissions)
+		)
+		doc.save(ignore_permissions=ignore_permissions)
+
+		if isinstance(tags, list):
+			for tag in tags:
+				doc.add_tag(tag)
+
+		return doc
 
 
 def check_write_permission(doctype: str = None, name: str = None):
