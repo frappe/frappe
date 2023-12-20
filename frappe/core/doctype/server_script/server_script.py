@@ -135,7 +135,7 @@ class ServerScript(Document):
 		        frappe.PermissionError: If self.allow_guest is unset for API accessed by Guest user.
 
 		Return:
-		        dict: Evaluate self.script with frappe.utils.safe_exec.safe_exec and return the flags set in it's safe globals.
+		        dict: Evaluate self.script with frappe.utils.safe_exec.safe_exec and return the flags set in its safe globals.
 		"""
 
 		if self.enable_rate_limit:

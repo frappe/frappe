@@ -1083,7 +1083,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 
 
 def get_total_users():
-	"""Return total no. of system users."""
+	"""Return total number of system users."""
 	return flt(
 		frappe.db.sql(
 			"""SELECT SUM(`simultaneous_sessions`)
@@ -1131,7 +1131,7 @@ def get_active_users():
 
 
 def get_website_users():
-	"""Return total no. of website users."""
+	"""Return total number of website users."""
 	return frappe.db.count("User", filters={"enabled": True, "user_type": "Website User"})
 
 

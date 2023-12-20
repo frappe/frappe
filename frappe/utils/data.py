@@ -126,7 +126,7 @@ def getdate(
 
 
 def get_datetime(
-	datetime_str: Optional["DateTimeLikeObject"] = None,
+	datetime_str: "DateTimeLikeObject" | list | tuple | datetime.timedelta | None = None,
 ) -> datetime.datetime | None:
 	"""Return the below mentioned values based on the given `datetime_str`:
 
