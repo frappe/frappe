@@ -111,7 +111,8 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 					this.$input.cache[this.doctype][this.df.fieldname][e.target.value];
 				if (cached_options && cached_options.length) {
 					this.set_data(cached_options);
-				} else if (this.get_query || this.df.get_query) {
+				} 
+				if (this.get_query || this.df.get_query) {
 					this.execute_query_if_exists(e.target.value);
 				} else {
 					this.awesomplete.list = this.get_data();
