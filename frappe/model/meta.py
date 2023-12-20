@@ -565,7 +565,14 @@ class Meta(Document):
 			self.high_permlevel_fields = [df for df in self.fields if df.permlevel > 0]
 		return self.high_permlevel_fields
 
-	def get_permitted_fieldnames(self, parenttype=None, *, user=None, permission_type="read"):
+	def get_permitted_fieldnames(
+		self,
+		parenttype=None,
+		*,
+		user=None,
+		permission_type="read",
+		with_virtual_fields=True,
+	):
 		"""Build list of `fieldname` with read perm level and all the higher perm levels defined.
 
 		Note: If permissions are not defined for DocType, return all the fields with value.
@@ -590,7 +597,9 @@ class Meta(Document):
 
 		permitted_fieldnames.extend(
 			df.fieldname
-			for df in self.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=True)
+			for df in self.get_fieldnames_with_value(
+				with_field_meta=True, with_virtual_fields=with_virtual_fields
+			)
 			if df.permlevel in permlevel_access
 		)
 		return permitted_fieldnames

@@ -9,4 +9,15 @@ Sentry.init({
 		user: { id: frappe.boot.user.name ?? "Unidentified" },
 		tags: { site: frappe.boot.sitename },
 	},
+	beforeSend(event, hint) {
+		// Check if it was caused by frappe.throw()
+		if (
+			hint.originalException instanceof Error &&
+			hint.originalException.stack &&
+			hint.originalException.stack.includes("frappe.throw")
+		) {
+			return null;
+		}
+		return event;
+	},
 });
