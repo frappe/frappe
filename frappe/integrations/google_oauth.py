@@ -56,7 +56,7 @@ class GoogleOAuth:
 			frappe.throw(frappe._("Please update {} before continuing.").format(google_settings))
 
 	def authorize(self, oauth_code: str) -> dict[str, str | int]:
-		"""Returns a dict with access and refresh token.
+		"""Return a dict with access and refresh token.
 
 		:param oauth_code: code got back from google upon successful auhtorization
 		"""
@@ -99,7 +99,7 @@ class GoogleOAuth:
 		)
 
 	def get_authentication_url(self, state: dict[str, str]) -> dict[str, str]:
-		"""Returns google authentication url.
+		"""Return Google authentication url.
 
 		:param state: dict of values which you need on callback (for calling methods, redirection back to the form, doc name, etc)
 		"""
@@ -117,7 +117,7 @@ class GoogleOAuth:
 		}
 
 	def get_google_service_object(self, access_token: str, refresh_token: str):
-		"""Returns google service object"""
+		"""Return Google service object."""
 
 		credentials_dict = {
 			"token": access_token,

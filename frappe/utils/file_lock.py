@@ -37,7 +37,7 @@ def create_lock(name):
 
 
 def lock_exists(name):
-	"""Returns True if lock of the given name exists"""
+	"""Return True if lock of the given name exists."""
 	return os.path.exists(get_lock_path(name))
 
 

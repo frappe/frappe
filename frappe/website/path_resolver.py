@@ -24,7 +24,7 @@ class PathResolver:
 		self.http_status_code = http_status_code
 
 	def resolve(self):
-		"""Returns endpoint and a renderer instance that can render the endpoint"""
+		"""Return endpoint and a renderer instance that can render the endpoint."""
 		request = frappe._dict()
 		if hasattr(frappe.local, "request"):
 			request = frappe.local.request or request

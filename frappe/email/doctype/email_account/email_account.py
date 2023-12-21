@@ -237,7 +237,7 @@ class EmailAccount(Document):
 		return frappe.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
-		"""Returns logged in POP3/IMAP connection object."""
+		"""Return logged in POP3/IMAP connection object."""
 		oauth_token = self.get_oauth_token()
 		args = frappe._dict(
 			{

@@ -208,7 +208,7 @@ class Meta(Document):
 		return self._table_fields
 
 	def get_global_search_fields(self):
-		"""Returns list of fields with `in_global_search` set and `name` if set"""
+		"""Return list of fields with `in_global_search` set and `name` if set."""
 		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", no_value_fields]})
 		if getattr(self, "show_name_in_global_search", None):
 			fields.append(frappe._dict(fieldtype="Data", fieldname="name", label="Name"))
@@ -233,17 +233,17 @@ class Meta(Document):
 		return TABLE_DOCTYPES_FOR_DOCTYPE.get(fieldname)
 
 	def get_field(self, fieldname):
-		"""Return docfield from meta"""
+		"""Return docfield from meta."""
 
 		return self._fields.get(fieldname)
 
 	def has_field(self, fieldname):
-		"""Returns True if fieldname exists"""
+		"""Return True if fieldname exists."""
 
 		return fieldname in self._fields
 
 	def get_label(self, fieldname):
-		"""Get label of the given fieldname"""
+		"""Return label of the given fieldname."""
 		if df := self.get_field(fieldname):
 			return df.get("label")
 
@@ -273,8 +273,8 @@ class Meta(Document):
 		return search_fields
 
 	def get_fields_to_fetch(self, link_fieldname=None):
-		"""Returns a list of docfield objects for fields whose values
-		are to be fetched and updated for a particular link field
+		"""Return a list of docfield objects for fields whose values
+		are to be fetched and updated for a particular link field.
 
 		These fields are of type Data, Link, Text, Readonly and their
 		fetch_from property is set as `link_fieldname`.`source_fieldname`"""
@@ -624,7 +624,7 @@ class Meta(Document):
 		return permissions
 
 	def get_dashboard_data(self):
-		"""Returns dashboard setup related to this doctype.
+		"""Return dashboard setup related to this doctype.
 
 		This method will return the `data` property in the `[doctype]_dashboard.py`
 		file in the doctype's folder, along with any overrides or extensions
@@ -701,7 +701,7 @@ class Meta(Document):
 		return self.get_web_template(suffix="_list")
 
 	def get_web_template(self, suffix=""):
-		"""Returns the relative path of the row template for this doctype"""
+		"""Return the relative path of the row template for this doctype."""
 		module_name = frappe.scrub(self.module)
 		doctype = frappe.scrub(self.name)
 		template_path = frappe.get_module_path(

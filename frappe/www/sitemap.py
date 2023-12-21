@@ -32,7 +32,7 @@ def get_context(context):
 
 
 def get_public_pages_from_doctypes():
-	"""Returns pages from doctypes that are publicly accessible"""
+	"""Return pages from doctypes that are publicly accessible."""
 
 	def get_sitemap_routes():
 		routes = {}

@@ -475,11 +475,12 @@ download only after 24 hours.""".format(
 
 
 @frappe.whitelist()
-def fetch_latest_backups(partial=False):
-	"""Fetches paths of the latest backup taken in the last 30 days
-	Only for: System Managers
+def fetch_latest_backups(partial=False) -> dict:
+	"""Fetch paths of the latest backup taken in the last 30 days.
 
-	Returns:
+	Note: Only for System Managers
+
+	Return:
 	        dict: relative Backup Paths
 	"""
 	frappe.only_for("System Manager")
@@ -583,13 +584,8 @@ def delete_temp_backups(older_than=24):
 				os.remove(this_file_path)
 
 
-def is_file_old(file_path, older_than=24):
-	"""
-	Checks if file exists and is older than specified hours
-	Returns ->
-	True: file does not exist or file is old
-	False: file is new
-	"""
+def is_file_old(file_path, older_than=24) -> bool:
+	"""Return True if file exists and is older than specified hours."""
 	if os.path.isfile(file_path):
 		from datetime import timedelta
 

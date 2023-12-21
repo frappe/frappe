@@ -230,7 +230,7 @@ class User(Document):
 			frappe.cache.delete_key("users_for_mentions")
 
 	def has_website_permission(self, ptype, user, verbose=False):
-		"""Returns true if current user is the session user"""
+		"""Return True if current user is the session user."""
 		return self.name == frappe.session.user
 
 	def set_full_name(self):
@@ -686,7 +686,7 @@ class User(Document):
 		)
 
 	def get_blocked_modules(self):
-		"""Returns list of modules blocked for that user"""
+		"""Return list of modules blocked for that user."""
 		return [d.module for d in self.block_modules] if self.block_modules else []
 
 	def validate_user_email_inbox(self):
@@ -1083,7 +1083,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 
 
 def get_total_users():
-	"""Returns total no. of system users"""
+	"""Return total number of system users."""
 	return flt(
 		frappe.db.sql(
 			"""SELECT SUM(`simultaneous_sessions`)
@@ -1118,7 +1118,7 @@ def get_system_users(exclude_users: Iterable[str] | str | None = None, limit: in
 
 
 def get_active_users():
-	"""Returns No. of system users who logged in, in the last 3 days"""
+	"""Return number of system users who logged in, in the last 3 days."""
 	return frappe.db.sql(
 		"""select count(*) from `tabUser`
 		where enabled = 1 and user_type != 'Website User'
@@ -1131,12 +1131,12 @@ def get_active_users():
 
 
 def get_website_users():
-	"""Returns total no. of website users"""
+	"""Return total number of website users."""
 	return frappe.db.count("User", filters={"enabled": True, "user_type": "Website User"})
 
 
 def get_active_website_users():
-	"""Returns No. of website users who logged in, in the last 3 days"""
+	"""Return number of website users who logged in, in the last 3 days."""
 	return frappe.db.sql(
 		"""select count(*) from `tabUser`
 		where enabled = 1 and user_type = 'Website User'

@@ -42,13 +42,10 @@ class BuilderIdentificationFailed(Exception):
 
 
 def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
-	"""[return the query builder object]
+	"""Return the query builder object.
 
 	Args:
-	        type_of_db (str): [string value of the db used]
-
-	Returns:
-	        Query: [Query object]
+	        type_of_db: string value of the db used
 	"""
 	db = db_type_is(type_of_db)
 	picks = {db_type_is.MARIADB: MariaDB, db_type_is.POSTGRES: Postgres}
