@@ -54,7 +54,10 @@ def get_csv_bytes(data: list[list], csv_params: dict) -> bytes:
 def provide_binary_file(filename: str, extension: str, content: bytes) -> None:
 	"""Provide a binary file to the client."""
 	from frappe import _
+	from urllib.parse import quote, unquote
+	filename = f"{_(filename)}.{extension}"
+	filename = f"{quote(unquote(filename))}"
 
 	frappe.response["type"] = "binary"
 	frappe.response["filecontent"] = content
-	frappe.response["filename"] = f"{_(filename)}.{extension}"
+	frappe.response["filename"] = filename
