@@ -780,9 +780,9 @@ def sendmail(
 	return builder.process(send_now=now)
 
 
-whitelisted = []
-guest_methods = []
-xss_safe_methods = []
+whitelisted = set()
+guest_methods = set()
+xss_safe_methods = set()
 allowed_http_methods_for_whitelisted_func = {}
 
 
@@ -821,14 +821,14 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		else:
 			fn = validate_argument_types(fn, apply_condition=in_request_or_test)
 
-		whitelisted.append(fn)
+		whitelisted.add(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
 
 		if allow_guest:
-			guest_methods.append(fn)
+			guest_methods.add(fn)
 
 			if xss_safe:
-				xss_safe_methods.append(fn)
+				xss_safe_methods.add(fn)
 
 		return method or fn
 
