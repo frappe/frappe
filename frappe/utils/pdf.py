@@ -227,7 +227,7 @@ def read_options_from_html(html):
 	return str(soup), options
 
 
-def prepare_header_footer(soup):
+def prepare_header_footer(soup: BeautifulSoup):
 	options = {}
 
 	head = soup.find("head").contents
@@ -240,10 +240,6 @@ def prepare_header_footer(soup):
 	for html_id in ("header-html", "footer-html"):
 		content = soup.find(id=html_id)
 		if content:
-			# there could be multiple instances of header-html/footer-html
-			for tag in soup.find_all(id=html_id):
-				tag.extract()
-
 			toggle_visible_pdf(content)
 			id_map = {"header-html": "pdf_header_html", "footer-html": "pdf_footer_html"}
 			hook_func = frappe.get_hooks(id_map.get(html_id))
@@ -255,6 +251,10 @@ def prepare_header_footer(soup):
 				html_id=html_id,
 				css=css,
 			)
+
+			# there could be multiple instances of header-html/footer-html
+			for tag in soup.find_all(id=html_id):
+				tag.extract()
 
 			# create temp file
 			fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.html")
