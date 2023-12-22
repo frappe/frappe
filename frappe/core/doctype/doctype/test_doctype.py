@@ -722,6 +722,11 @@ def new_doctype(
 	unique: bool = False,
 	depends_on: str = "",
 	fields: list[dict] | None = None,
+<<<<<<< HEAD
+=======
+	custom: bool = True,
+	default: str | None = None,
+>>>>>>> 4d68a46b10 (fix: Set default child table fields on save (#23913))
 	**kwargs,
 ):
 	if not name:
@@ -739,6 +744,7 @@ def new_doctype(
 					"fieldname": "some_fieldname",
 					"fieldtype": "Data",
 					"unique": unique,
+					"default": default,
 					"depends_on": depends_on,
 				}
 			],
