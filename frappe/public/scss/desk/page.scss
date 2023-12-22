@@ -45,16 +45,17 @@
 
 .page-container {
 	background-color: var(--bg-color);
+}
 
-	.page-body.full-width {
-		width: 100%;
-		max-width: 100%;
-	}
+.page-body {
+	padding-left: 1rem;
+	padding-right: 1rem;
 }
 
 .page-actions {
 	align-items: center;
 	.btn {
+		font-size: var(--text-md);
 		height: var(--btn-height);
 		margin-left: var(--margin-sm, 8px);
 		border-radius: var(--border-radius);
@@ -86,6 +87,11 @@
 
 .layout-main-section-wrapper {
 	min-width: 0;
+	margin: 0 auto;
+}
+
+.layout-main-section-wrapper.main-container {
+	max-width: 1000px;
 }
 
 .layout-main-section.frappe-card {
@@ -97,12 +103,14 @@
 
 .page-head {
 	z-index: 6;
-	position: sticky;
+	/*position: sticky;*/
 	top: var(--navbar-height);
 	background: var(--bg-color);
 	margin-bottom: 5px;
 	transition: 0.5s top;
 	.page-head-content {
+		width: 100%;
+		margin: 0;
 		height: var(--page-head-height);
 		padding: 8px 0px;
 	}
@@ -114,7 +122,10 @@
 	display: flex;
 	flex-wrap: wrap;
 	background-color: var(--card-bg);
-	border-bottom: 1px solid var(--border-color);
+
+	.btn {
+		font-size: var(--text-md);
+	}
 
 	.form-group {
 		padding: 0px 5px;

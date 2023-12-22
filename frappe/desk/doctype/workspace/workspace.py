@@ -64,6 +64,7 @@ class Workspace(Document):
 		shortcuts: DF.Table[WorkspaceShortcut]
 		title: DF.Data
 	# end: auto-generated types
+
 	def validate(self):
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))

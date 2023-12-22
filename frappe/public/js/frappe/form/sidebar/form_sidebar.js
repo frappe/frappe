@@ -21,7 +21,7 @@ frappe.ui.form.Sidebar = class {
 
 		this.sidebar = $('<div class="form-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
 			.html(sidebar_content)
-			.appendTo(this.page.sidebar.empty());
+			.appendTo(this.frm.page.sidebar.empty());
 
 		this.comments = this.sidebar.find(".form-sidebar-stats .comments");
 		this.user_actions = this.sidebar.find(".user-actions");

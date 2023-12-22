@@ -38,7 +38,6 @@ import "./frappe/form/link_selector.js";
 import "./frappe/form/multi_select_dialog.js";
 import "./frappe/ui/dialog.js";
 import "./frappe/ui/capture.js";
-import "./frappe/ui/app_icon.js";
 import "./frappe/ui/theme_switcher.js";
 
 import "./frappe/model/model.js";

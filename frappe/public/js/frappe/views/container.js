@@ -10,7 +10,7 @@ frappe.views.Container = class Container {
 	// Container contains pages inside `#container` and manages page creation, switching
 	constructor() {
 		this.container = $("#body").get(0);
-		this.page = null; // current page
+		this.page_container = null; // current page
 		this.pagewidth = $(this.container).width();
 		this.pagemargin = 50;
 
@@ -28,27 +28,27 @@ frappe.views.Container = class Container {
 		});
 	}
 	add_page(label) {
-		var page = $('<div class="content page-container"></div>')
+		var page_container = $('<div class="content page-container"></div>')
 			.attr("id", "page-" + label)
 			.attr("data-page-route", label)
 			.hide()
 			.appendTo(this.container)
 			.get(0);
-		page.label = label;
-		frappe.pages[label] = page;
+		page_container.label = label;
+		frappe.pages[label] = page_container;
 
-		return page;
+		return page_container;
 	}
 	change_to(label) {
 		cur_page = this;
-		let page;
+		let page_container;
 		if (label.tagName) {
 			// if sent the div, get the table
-			page = label;
+			page_container = label;
 		} else {
-			page = frappe.pages[label];
+			page_container = frappe.pages[label];
 		}
-		if (!page) {
+		if (!page_container) {
 			console.log(__("Page not found") + ": " + label);
 			return;
 		}
@@ -63,26 +63,37 @@ frappe.views.Container = class Container {
 		}
 
 		// hide current
-		if (this.page && this.page != page) {
-			$(this.page).hide();
-			$(this.page).trigger("hide");
+		if (this.page_container && this.page_container != page_container) {
+			if (this.page_container.page) {
+				// frappe.ui.Page object
+				this.page_container.page.hide();
+			} else {
+				$(this.page_container).hide();
+				$(this.page_container).trigger("hide");
+			}
 		}
 
 		// show new
-		if (!this.page || this.page != page) {
-			this.page = page;
-			// $(this.page).fadeIn(300);
-			$(this.page).show();
+		if (!this.page_container || this.page_container != page_container) {
+			this.page_container = page_container;
+			if (this.page_container.page) {
+				// frappe.ui.Page object
+				this.page_container.page.show();
+			} else {
+				$(this.page_container).show();
+			}
 		}
 
 		$(document).trigger("page-change");
 
-		this.page._route = frappe.router.get_sub_path();
-		$(this.page).trigger("show");
-		!this.page.disable_scroll_to_top && frappe.utils.scroll_to(0);
+		this.page_container._route = frappe.router.get_sub_path();
+		$(this.page_container).trigger("show");
+		!this.page_container.disable_scroll_to_top && frappe.utils.scroll_to(0);
 		frappe.breadcrumbs.update();
 
-		return this.page;
+		this.page = this.page_container; // backward compatibility
+
+		return this.page_container;
 	}
 	has_sidebar() {
 		var flag = 0;

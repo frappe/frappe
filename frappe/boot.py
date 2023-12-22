@@ -48,7 +48,6 @@ def get_bootinfo():
 		bootinfo.sid = frappe.session["sid"]
 
 	bootinfo.modules = {}
-	bootinfo.module_list = []
 	load_desktop_data(bootinfo)
 	bootinfo.letter_heads = get_letter_heads()
 	bootinfo.active_domains = frappe.get_active_domains()
@@ -107,6 +106,7 @@ def get_bootinfo():
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.marketplace_apps = get_marketplace_apps()
+	bootinfo.app_info = get_app_info()
 
 	return bootinfo
 
@@ -136,6 +136,9 @@ def load_desktop_data(bootinfo):
 	bootinfo.allowed_workspaces = get_workspace_sidebar_items().get("pages")
 	bootinfo.module_wise_workspaces = get_controller("Workspace").get_module_wise_workspaces()
 	bootinfo.dashboards = frappe.get_all("Dashboard")
+	bootinfo.default_module_workspace = {
+		d.name: d.default_workspace for d in frappe.get_all("Module Def", ["name", "default_workspace"])
+	}
 
 
 def get_allowed_pages(cache=False):
@@ -473,3 +476,23 @@ def add_subscription_conf():
 		return frappe.conf.subscription
 	except Exception:
 		return ""
+
+
+def get_app_info():
+	"""Returns app info for app switcher"""
+	app_info = []
+	for app in frappe.get_installed_apps():
+		app_hooks = frappe.get_app_hooks(app)
+		values = {}
+		for key in ("app_name", "app_title", "app_logo_url", "app_priority"):
+			values[key] = app_hooks.get(key) and app_hooks[key][0] or None
+
+		# default priority
+		if not values.get("app_priority"):
+			values["app_priority"] = 10
+
+		app_info.append(values)
+
+	app_info.sort(key=lambda a: a["app_priority"])
+
+	return app_info

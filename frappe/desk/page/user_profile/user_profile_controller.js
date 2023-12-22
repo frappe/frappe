@@ -7,7 +7,7 @@ class UserProfile {
 		this.page = frappe.ui.make_app_page({
 			parent: wrapper,
 		});
-		this.sidebar = this.wrapper.find(".layout-side-section");
+		this.sidebar = this.page.sidebar;
 		this.main_section = this.wrapper.find(".layout-main-section");
 		this.wrapper.bind("show", () => {
 			this.show();

@@ -1553,7 +1553,7 @@ def get_doc_hooks():
 
 
 @request_cache
-def _load_app_hooks(app_name: str | None = None):
+def get_app_hooks(app_name: str | None = None):
 	import types
 
 	hooks = {}
@@ -1589,12 +1589,12 @@ def get_hooks(
 	:param app_name: Filter by app."""
 
 	if app_name:
-		hooks = _dict(_load_app_hooks(app_name))
+		hooks = _dict(get_app_hooks(app_name))
 	else:
 		if conf.developer_mode:
-			hooks = _dict(_load_app_hooks())
+			hooks = _dict(get_app_hooks())
 		else:
-			hooks = _dict(cache.get_value("app_hooks", _load_app_hooks))
+			hooks = _dict(cache.get_value("app_hooks", get_app_hooks))
 
 	if hook:
 		return hooks.get(hook, ([] if default == "_KEEP_DEFAULT_LIST" else default))

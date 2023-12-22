@@ -99,11 +99,8 @@ frappe.views.TreeView = class TreeView {
 			this.page.main.css({
 				"min-height": "300px",
 			});
-
-			this.page.main.addClass("frappe-card");
 		} else {
 			this.page = this.opts.page;
-			$(this.page[0]).addClass("frappe-card");
 		}
 
 		if (this.opts.show_expand_all) {

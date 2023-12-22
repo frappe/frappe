@@ -36,13 +36,132 @@ frappe.Application = class Application {
 
 		this.load_bootinfo();
 		this.load_user_permissions();
-		this.make_nav_bar();
+		this.make_navbar();
+		this.make_sidebar();
 		this.set_favicon();
 		this.set_fullwidth_if_enabled();
 		this.add_browser_class();
 		this.setup_energy_point_listeners();
 		this.setup_copy_doc_listener();
+		this.setup_theme_switcher();
+		// page container
+		this.make_page_container();
+		this.setup_onboarding_tour();
 
+		this.set_route();
+
+		$(document).trigger("startup");
+		$(document).trigger("app_ready");
+
+		this.show_notes();
+		this.show_startup_messages();
+		this.setup_version_update();
+		this.setup_build_events();
+
+		// REDESIGN-TODO: Fix preview popovers
+		this.link_preview = new frappe.ui.LinkPreview();
+	}
+
+	set_route() {
+		if (frappe.boot && localStorage.getItem("session_last_route")) {
+			frappe.set_route(localStorage.getItem("session_last_route"));
+			localStorage.removeItem("session_last_route");
+		} else {
+			// route to home page
+			frappe.router.route();
+		}
+		frappe.router.on("change", () => {
+			$(".tooltip").remove();
+		});
+	}
+
+	load_bootinfo() {
+		if (frappe.boot) {
+			this.setup_workspaces();
+			frappe.model.sync(frappe.boot.docs);
+			this.check_metadata_cache_status();
+			this.set_globals();
+			this.sync_pages();
+			frappe.router.setup();
+			this.setup_moment();
+			if (frappe.boot.print_css) {
+				frappe.dom.set_style(frappe.boot.print_css, "print-style");
+			}
+			frappe.user.name = frappe.boot.user.name;
+			frappe.router.setup();
+		} else {
+			this.set_as_guest();
+		}
+	}
+
+	setup_workspaces() {
+		frappe.modules = {};
+		frappe.workspaces = {};
+		for (let page of frappe.boot.allowed_workspaces || []) {
+			frappe.modules[page.module] = page;
+			frappe.workspaces[frappe.router.slug(page.name)] = page;
+		}
+	}
+
+	load_user_permissions() {
+		frappe.defaults.load_user_permission_from_boot();
+
+		frappe.realtime.on(
+			"update_user_permissions",
+			frappe.utils.debounce(() => {
+				frappe.defaults.update_user_permissions();
+			}, 500)
+		);
+	}
+
+	check_metadata_cache_status() {
+		if (frappe.boot.metadata_version != localStorage.metadata_version) {
+			frappe.assets.clear_local_storage();
+			frappe.assets.init_local_storage();
+		}
+	}
+
+	set_globals() {
+		frappe.session.user = frappe.boot.user.name;
+		frappe.session.logged_in_user = frappe.boot.user.name;
+		frappe.session.user_email = frappe.boot.user.email;
+		frappe.session.user_fullname = frappe.user_info().fullname;
+
+		frappe.user_defaults = frappe.boot.user.defaults;
+		frappe.user_roles = frappe.boot.user.roles;
+		frappe.sys_defaults = frappe.boot.sysdefaults;
+
+		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format
+			.replace("dd", "%d")
+			.replace("mm", "%m")
+			.replace("yyyy", "%Y");
+		frappe.boot.user.last_selected_values = {};
+	}
+
+	make_sidebar() {
+		this.sidebar = new frappe.ui.Sidebar();
+	}
+
+	setup_onboarding_tour() {
+		if (
+			!window.Cypress &&
+			frappe.boot.onboarding_tours &&
+			frappe.boot.user.onboarding_status != null
+		) {
+			let pending_tours = !frappe.boot.onboarding_tours.every(
+				(tour) => frappe.boot.user.onboarding_status[tour[0]]?.is_complete
+			);
+			if (pending_tours && frappe.boot.onboarding_tours.length > 0) {
+				frappe.require("onboarding_tours.bundle.js", () => {
+					frappe.utils.sleep(1000).then(() => {
+						frappe.ui.init_onboarding_tour();
+					});
+				});
+			}
+		}
+	}
+
+	setup_theme_switcher() {
 		frappe.ui.keys.setup();
 
 		frappe.ui.keys.add_shortcut({
@@ -70,58 +189,9 @@ frappe.Application = class Application {
 		});
 
 		frappe.ui.set_theme();
+	}
 
-		// page container
-		this.make_page_container();
-		if (
-			!window.Cypress &&
-			frappe.boot.onboarding_tours &&
-			frappe.boot.user.onboarding_status != null
-		) {
-			let pending_tours = !frappe.boot.onboarding_tours.every(
-				(tour) => frappe.boot.user.onboarding_status[tour[0]]?.is_complete
-			);
-			if (pending_tours && frappe.boot.onboarding_tours.length > 0) {
-				frappe.require("onboarding_tours.bundle.js", () => {
-					frappe.utils.sleep(1000).then(() => {
-						frappe.ui.init_onboarding_tour();
-					});
-				});
-			}
-		}
-		this.set_route();
-
-		// trigger app startup
-		$(document).trigger("startup");
-
-		$(document).trigger("app_ready");
-
-		if (frappe.boot.messages) {
-			frappe.msgprint(frappe.boot.messages);
-		}
-
-		if (frappe.user_roles.includes("System Manager")) {
-			// delayed following requests to make boot faster
-			setTimeout(() => {
-				this.show_change_log();
-				this.show_update_available();
-			}, 1000);
-		}
-
-		if (!frappe.boot.developer_mode) {
-			let console_security_message = __(
-				"Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand."
-			);
-			console.log(`%c${console_security_message}`, "font-size: large");
-		}
-
-		this.show_notes();
-
-		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
-			frappe.ui.startup_setup_dialog.pre_show();
-			frappe.ui.startup_setup_dialog.show();
-		}
-
+	setup_version_update() {
 		frappe.realtime.on("version-update", function () {
 			var dialog = frappe.msgprint({
 				message: __(
@@ -135,53 +205,32 @@ frappe.Application = class Application {
 			});
 			dialog.get_close_btn().toggle(false);
 		});
-
-		// listen to build errors
-		this.setup_build_events();
-
-		if (frappe.sys_defaults.email_user_password) {
-			var email_list = frappe.sys_defaults.email_user_password.split(",");
-			for (var u in email_list) {
-				if (email_list[u] === frappe.user.name) {
-					this.set_password(email_list[u]);
-				}
-			}
-		}
-
-		// REDESIGN-TODO: Fix preview popovers
-		this.link_preview = new frappe.ui.LinkPreview();
-	}
-
-	set_route() {
-		if (frappe.boot && localStorage.getItem("session_last_route")) {
-			frappe.set_route(localStorage.getItem("session_last_route"));
-			localStorage.removeItem("session_last_route");
-		} else {
-			// route to home page
-			frappe.router.route();
-		}
-		frappe.router.on("change", () => {
-			$(".tooltip").hide();
-		});
 	}
 
 	set_password(user) {
 		var me = this;
-		frappe.call({
-			method: "frappe.core.doctype.user.user.get_email_awaiting",
-			args: {
-				user: user,
-			},
-			callback: function (email_account) {
-				email_account = email_account["message"];
-				if (email_account) {
-					var i = 0;
-					if (i < email_account.length) {
-						me.email_password_prompt(email_account, user, i);
-					}
+		if (frappe.sys_defaults.email_user_password) {
+			var email_list = frappe.sys_defaults.email_user_password.split(",");
+			for (var u in email_list) {
+				if (email_list[u] === frappe.user.name) {
+					frappe.call({
+						method: "frappe.core.doctype.user.user.get_email_awaiting",
+						args: {
+							user: user,
+						},
+						callback: function (email_account) {
+							email_account = email_account["message"];
+							if (email_account) {
+								var i = 0;
+								if (i < email_account.length) {
+									me.email_password_prompt(email_account, user, i);
+								}
+							}
+						},
+					});
 				}
-			},
-		});
+			}
+		}
 	}
 
 	email_password_prompt(email_account, user, i) {
@@ -247,68 +296,7 @@ frappe.Application = class Application {
 		});
 		d.show();
 	}
-	load_bootinfo() {
-		if (frappe.boot) {
-			this.setup_workspaces();
-			frappe.model.sync(frappe.boot.docs);
-			this.check_metadata_cache_status();
-			this.set_globals();
-			this.sync_pages();
-			frappe.router.setup();
-			this.setup_moment();
-			if (frappe.boot.print_css) {
-				frappe.dom.set_style(frappe.boot.print_css, "print-style");
-			}
-			frappe.user.name = frappe.boot.user.name;
-			frappe.router.setup();
-		} else {
-			this.set_as_guest();
-		}
-	}
 
-	setup_workspaces() {
-		frappe.modules = {};
-		frappe.workspaces = {};
-		for (let page of frappe.boot.allowed_workspaces || []) {
-			frappe.modules[page.module] = page;
-			frappe.workspaces[frappe.router.slug(page.name)] = page;
-		}
-	}
-
-	load_user_permissions() {
-		frappe.defaults.load_user_permission_from_boot();
-
-		frappe.realtime.on(
-			"update_user_permissions",
-			frappe.utils.debounce(() => {
-				frappe.defaults.update_user_permissions();
-			}, 500)
-		);
-	}
-
-	check_metadata_cache_status() {
-		if (frappe.boot.metadata_version != localStorage.metadata_version) {
-			frappe.assets.clear_local_storage();
-			frappe.assets.init_local_storage();
-		}
-	}
-
-	set_globals() {
-		frappe.session.user = frappe.boot.user.name;
-		frappe.session.logged_in_user = frappe.boot.user.name;
-		frappe.session.user_email = frappe.boot.user.email;
-		frappe.session.user_fullname = frappe.user_info().fullname;
-
-		frappe.user_defaults = frappe.boot.user.defaults;
-		frappe.user_roles = frappe.boot.user.roles;
-		frappe.sys_defaults = frappe.boot.sysdefaults;
-
-		frappe.ui.py_date_format = frappe.boot.sysdefaults.date_format
-			.replace("dd", "%d")
-			.replace("mm", "%m")
-			.replace("yyyy", "%Y");
-		frappe.boot.user.last_selected_values = {};
-	}
 	sync_pages() {
 		// clear cached pages if timestamp is not found
 		if (localStorage["page_info"]) {
@@ -343,7 +331,7 @@ frappe.Application = class Application {
 			frappe.container = new frappe.views.Container();
 		}
 	}
-	make_nav_bar() {
+	make_navbar() {
 		// toolbar
 		if (frappe.boot && frappe.boot.home_page !== "setup-wizard") {
 			frappe.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
@@ -526,6 +514,32 @@ frappe.Application = class Application {
 		moment.user_utc_offset = moment().utcOffset();
 		if (frappe.boot.timezone_info) {
 			moment.tz.add(frappe.boot.timezone_info);
+		}
+	}
+
+	show_startup_messages() {
+		if (frappe.ui.startup_setup_dialog && !frappe.boot.setup_complete) {
+			frappe.ui.startup_setup_dialog.pre_show();
+			frappe.ui.startup_setup_dialog.show();
+		}
+
+		if (frappe.boot.messages) {
+			frappe.msgprint(frappe.boot.messages);
+		}
+
+		if (frappe.user_roles.includes("System Manager")) {
+			// delayed following requests to make boot faster
+			setTimeout(() => {
+				this.show_change_log();
+				this.show_update_available();
+			}, 1000);
+		}
+
+		if (!frappe.boot.developer_mode) {
+			let console_security_message = __(
+				"Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand."
+			);
+			console.log(`%c${console_security_message}`, "font-size: large");
 		}
 	}
 };

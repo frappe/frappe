@@ -13,7 +13,6 @@ body {
 	&.full-width {
 		@include media-breakpoint-up(md) {
 			.container {
-				width: 90%;
 				max-width: 100%;
 			}
 		}
@@ -590,6 +589,34 @@ body.no-sidebar {
 			width: 100% !important;
 		}
 	}
+}
+
+.body-section {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+}
+
+.body-sidebar {
+	width: 16.6667%;
+	flex-shrink: 0;
+	height: 100%;
+	overflow: auto;
+	padding: var(--padding-md);
+	background-color: var(--gray-50);
+	border-right: 1px solid var(--border-color);
+}
+
+.body-content {
+	height: 100%;
+	width: 100%;
+	overflow: auto;
+}
+
+.layout-main {
+	height: 100%;
 }
 
 .app-logo {

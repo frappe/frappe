@@ -39,7 +39,7 @@
   },
   {
    "description": "These are workspaces. Each module workspace provides insightful information and shortcuts on one page. \n\n<br><br>\n\nTip: You can build custom workspaces for your needs.",
-   "element_selector": ".col-lg-2.layout-side-section",
+   "element_selector": ".layout-side-section:visible",
    "fieldtype": "0",
    "has_next_condition": 0,
    "hide_buttons": 0,

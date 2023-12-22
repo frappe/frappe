@@ -166,7 +166,7 @@ frappe.views.BaseList = class BaseList {
 	setup_page() {
 		this.page = this.parent.page;
 		this.$page = $(this.parent);
-		!this.hide_card_layout && this.page.main.addClass("frappe-card");
+		!this.hide_card_layout;
 		this.page.page_form.removeClass("row").addClass("flex");
 		this.hide_page_form && this.page.page_form.hide();
 		this.hide_sidebar && this.$page.addClass("no-list-sidebar");
@@ -204,7 +204,8 @@ frappe.views.BaseList = class BaseList {
 			__("Tree View") __("Map View") */
 			this.views_menu = this.page.add_custom_button_group(
 				__("{0} View", [this.view_name]),
-				icon_map[this.view_name] || "list"
+				icon_map[this.view_name] || "list",
+				this.list_sidebar.sidebar.find(".list-view-select-container")
 			);
 			this.views_list = new frappe.views.ListViewSelect({
 				doctype: this.doctype,

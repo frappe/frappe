@@ -123,6 +123,7 @@ frappe.breadcrumbs = {
 		// try and get module from doctype or other settings
 		// then get the workspace for that module
 
+		// find the module from doctype
 		this.setup_modules();
 		var from_module = this.get_doctype_module(breadcrumbs.doctype);
 
@@ -131,6 +132,12 @@ frappe.breadcrumbs = {
 		} else if (this.preferred[breadcrumbs.doctype] !== undefined) {
 			// get preferred module for breadcrumbs
 			breadcrumbs.module = this.preferred[breadcrumbs.doctype];
+		}
+
+		// default workspace set in Module Def
+		if (frappe.boot.default_module_workspace[breadcrumbs.module]) {
+			breadcrumbs.workspace = frappe.boot.default_module_workspace[breadcrumbs.module];
+			return;
 		}
 
 		// guess from last route
@@ -146,6 +153,7 @@ frappe.breadcrumbs = {
 			}
 		}
 
+		// find in module_info
 		if (breadcrumbs.module) {
 			if (this.module_map[breadcrumbs.module]) {
 				breadcrumbs.module = this.module_map[breadcrumbs.module];
@@ -153,7 +161,6 @@ frappe.breadcrumbs = {
 
 			breadcrumbs.module_info = frappe.get_module(breadcrumbs.module);
 
-			// set workspace
 			if (
 				breadcrumbs.module_info &&
 				frappe.boot.module_wise_workspaces[breadcrumbs.module]

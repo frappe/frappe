@@ -1,8 +1,14 @@
 .navbar {
 	height: $navbar-height;
+	width: 100%;
 	background: var(--navbar-bg);
 	border-bottom: 1px solid var(--border-color);
 	padding: 0;
+	.container {
+		// navbars are full width
+		width: 100% !important;
+		max-width: 100% !important;
+	}
 	.navbar-brand {
 		margin-right: 0;
 	}

@@ -944,51 +944,48 @@ body {
 	}
 }
 
-[data-page-route="Workspaces"] {
+[data-route^="Workspaces"] {
 	@media (min-width: map-get($grid-breakpoints, "lg")) {
-		.layout-main {
-			height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
-			.layout-side-section,
-			.layout-main-section-wrapper {
-				height: 100%;
-				overflow-y: auto;
-				scrollbar-color: var(--gray-200) transparent;
+		//height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
+		.layout-side-section,
+		.layout-main-section-wrapper {
+			height: 100%;
+			overflow-y: auto;
+			scrollbar-color: var(--gray-200) transparent;
+			[data-theme="dark"] & {
+				scrollbar-color: var(--gray-800) transparent;
+			}
+
+			&::-webkit-scrollbar-track {
+				background: transparent;
+			}
+
+			&::-webkit-scrollbar-thumb {
+				background: var(--gray-200);
 				[data-theme="dark"] & {
-					scrollbar-color: var(--gray-800) transparent;
-				}
-
-				&::-webkit-scrollbar-track {
-					background: transparent;
-				}
-
-				&::-webkit-scrollbar-thumb {
-					background: var(--gray-200);
-					[data-theme="dark"] & {
-						background: var(--gray-800);
-					}
+					background: var(--gray-800);
 				}
 			}
+		}
 
-			.layout-side-section {
-				padding-right: 15px;
-			}
+		.layout-side-section {
+			padding-right: 15px;
+		}
 
-			.layout-main-section {
-				border: 1px solid var(--border-color);
-				padding: var(--padding-md);
-				margin-bottom: var(--margin-sm);
+		.layout-main-section {
+			padding: var(--padding-md);
+			margin-bottom: var(--margin-sm);
 
-				&.edit-mode {
-					background-color: var(--subtle-fg) !important;
-					.links-widget-box {
-						background-color: var(--bg-color) !important;
-					}
+			&.edit-mode {
+				background-color: var(--subtle-fg) !important;
+				.links-widget-box {
+					background-color: var(--bg-color) !important;
 				}
 			}
+		}
 
-			.desk-sidebar {
-				margin-bottom: var(--margin-2xl);
-			}
+		.desk-sidebar {
+			margin-bottom: var(--margin-2xl);
 		}
 	}
 
@@ -1033,7 +1030,7 @@ body {
 			}
 
 			.drop-icon {
-				padding: 10px 12px 10px 2px;
+				padding: 0px 12px 0px 2px;
 			}
 
 			svg {
@@ -1047,6 +1044,7 @@ body {
 
 		.sidebar-item-label {
 			flex: 1;
+			font-size: 13px;
 		}
 
 		.item-anchor {

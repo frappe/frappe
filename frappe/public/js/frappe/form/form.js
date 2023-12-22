@@ -79,11 +79,9 @@ frappe.ui.form.Form = class FrappeForm {
 		this.wrapper = this.parent;
 		this.$wrapper = $(this.wrapper);
 
-		let is_single_column = this.doctype === "DocType" ? true : this.meta.hide_toolbar;
-
 		frappe.ui.make_app_page({
 			parent: this.wrapper,
-			single_column: is_single_column,
+			narrow: true,
 		});
 		this.page = this.wrapper.page;
 		this.layout_main = this.page.main.get(0);
@@ -117,11 +115,6 @@ frappe.ui.form.Form = class FrappeForm {
 		this.watch_model_updates();
 
 		if (!this.meta.hide_toolbar && frappe.boot.desk_settings.timeline) {
-			// this.footer_tab = new frappe.ui.form.Tab(this.layout, {
-			// 	label: __("Activity"),
-			// 	fieldname: 'timeline'
-			// });
-
 			this.footer = new frappe.ui.form.Footer({
 				frm: this,
 				parent: $("<div>").appendTo(this.page.main.parent()),

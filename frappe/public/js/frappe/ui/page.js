@@ -42,7 +42,19 @@ frappe.ui.Page = class Page {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
 		this.setup_scroll_handler();
-		this.setup_sidebar_toggle();
+		if (!this.single_column) {
+			this.setup_sidebar_toggle();
+		}
+	}
+
+	show() {
+		this.wrapper.show();
+		this.sidebar?.show();
+	}
+
+	hide() {
+		this.wrapper.hide();
+		this.sidebar?.hide();
 	}
 
 	setup_scroll_handler() {
@@ -82,30 +94,18 @@ frappe.ui.Page = class Page {
 
 	add_main_section() {
 		$(frappe.render_template("page", {})).appendTo(this.wrapper);
+		this.add_view("main", $("layout-main"));
+
 		if (this.single_column) {
-			// nesting under col-sm-12 for consistency
-			this.add_view(
-				"main",
-				'<div class="row layout-main">\
-					<div class="col-md-12 layout-main-section-wrapper">\
-						<div class="layout-main-section"></div>\
-						<div class="layout-footer hide"></div>\
-					</div>\
-				</div>'
-			);
+			this.sidebar = null;
 		} else {
-			this.add_view(
-				"main",
-				`
-				<div class="row layout-main">
-					<div class="col-lg-2 layout-side-section"></div>
-					<div class="col layout-main-section-wrapper">
-						<div class="layout-main-section"></div>
-						<div class="layout-footer hide"></div>
-					</div>
-				</div>
-			`
+			this.sidebar = $(`<div class="layout-side-section"></div>`).appendTo(
+				$(".body-sidebar-content")
 			);
+		}
+
+		if (this.narrow) {
+			this.wrapper.find(".layout-main-section-wrapper").addClass("main-container");
 		}
 
 		this.setup_page();
@@ -122,7 +122,6 @@ frappe.ui.Page = class Page {
 
 		this.body = this.main = this.wrapper.find(".layout-main-section");
 		this.container = this.wrapper.find(".page-body");
-		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.footer = this.wrapper.find(".layout-footer");
 		this.indicator = this.wrapper.find(".indicator-pill");
 
@@ -148,8 +147,6 @@ frappe.ui.Page = class Page {
 			this.make_page();
 		}
 
-		this.card_layout && this.main.addClass("frappe-card");
-
 		// keyboard shortcuts
 		let menu_btn = this.menu_btn_group.find("button");
 		menu_btn.attr("title", __("Menu")).tooltip({ delay: { show: 600, hide: 100 } });
@@ -161,43 +158,20 @@ frappe.ui.Page = class Page {
 		frappe.ui.keys
 			.get_shortcut_group(this.page_actions[0])
 			.add(action_btn, action_btn.find(".actions-btn-group-label"));
-
-		// https://axesslab.com/skip-links
-		this.skip_link_to_main = $("<button>")
-			.addClass("sr-only sr-only-focusable btn btn-primary-light my-2")
-			.text(__("Navigate to main content"))
-			.attr({ tabindex: 0, role: "link" })
-			.on("click", (e) => {
-				e.preventDefault();
-				const main = this.main.get(0);
-				main.setAttribute("tabindex", -1);
-				main.focus();
-				main.addEventListener(
-					"blur",
-					() => {
-						main.removeAttribute("tabindex");
-					},
-					{ once: true }
-				);
-			})
-			.appendTo(this.sidebar);
 	}
 
 	setup_sidebar_toggle() {
 		let sidebar_toggle = $(".page-head").find(".sidebar-toggle-btn");
-		let sidebar_wrapper = this.wrapper.find(".layout-side-section");
+		let sidebar_wrapper = $(".body-sidebar");
 		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
 			sidebar_toggle.remove();
 		} else {
-			if (!frappe.is_mobile()) {
-				sidebar_toggle.attr("title", __("Toggle Sidebar"));
-			}
-			sidebar_toggle.attr("aria-label", __("Toggle Sidebar"));
-			sidebar_toggle.tooltip({
+			sidebar_toggle.attr("title", __("Toggle Sidebar")).tooltip({
 				delay: { show: 600, hide: 100 },
 				trigger: "hover",
 			});
 			sidebar_toggle.click(() => {
+				$(".tooltip").remove(); // does not automatically disappear as there is no hover event
 				if (frappe.utils.is_xs() || frappe.utils.is_sm()) {
 					this.setup_overlay_sidebar();
 				} else {
@@ -232,7 +206,7 @@ frappe.ui.Page = class Page {
 	update_sidebar_icon() {
 		let sidebar_toggle = $(".page-head").find(".sidebar-toggle-btn");
 		let sidebar_toggle_icon = sidebar_toggle.find(".sidebar-toggle-icon");
-		let sidebar_wrapper = this.wrapper.find(".layout-side-section");
+		let sidebar_wrapper = $(".body-sidebar");
 		let is_sidebar_visible = $(sidebar_wrapper).is(":visible");
 		sidebar_toggle_icon.html(
 			frappe.utils.icon(
@@ -947,6 +921,7 @@ frappe.ui.Page = class Page {
 		return this.views[name];
 	}
 	set_view(name) {
+		// page can have multiple views, e.g. "main" and "print"
 		if (this.current_view_name === name) return;
 		this.current_view && this.current_view.toggle(false);
 		this.current_view = this.views[name];

@@ -65,6 +65,8 @@ body[data-route^="Module"] .main-menu {
 
 // form sidebar
 .form-sidebar {
+	margin-top: 85px;
+
 	.sidebar-menu {
 		margin-bottom: var(--margin-sm);
 
@@ -182,7 +184,6 @@ body[data-route^="Module"] .main-menu {
 
 .layout-side-section {
 	@include get_textstyle("sm", "regular");
-	padding-right: 30px;
 
 	&.hide-sidebar {
 		display: none;
@@ -220,6 +221,7 @@ body[data-route^="Module"] .main-menu {
 		.created-by,
 		.pageview-count {
 			@include get_textstyle("sm", "regular");
+			color: var(--text-light);
 		}
 
 		.modified-by,
@@ -299,12 +301,18 @@ body[data-route^="Module"] .main-menu {
 }
 
 .list-sidebar {
+	margin-top: var(--margin-md);
+
 	.sidebar-section {
 		margin-bottom: 30px;
 	}
 
 	.list-link {
-		margin-top: var(--margin-md);
+		margin-bottom: var(--margin-md);
+	}
+
+	.btn {
+		font-size: var(--text-md);
 	}
 
 	.list-sidebar-button {
@@ -315,6 +323,14 @@ body[data-route^="Module"] .main-menu {
 
 		&:hover {
 			text-decoration: none;
+		}
+	}
+
+	.list-view-select-container {
+		padding-top: 10px;
+
+		.dropdown-item {
+			justify-content: flex-start !important;
 		}
 	}
 

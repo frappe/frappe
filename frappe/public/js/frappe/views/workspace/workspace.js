@@ -8,6 +8,7 @@ frappe.standard_pages["Workspaces"] = function () {
 		parent: wrapper,
 		name: "Workspaces",
 		title: __("Workspace"),
+		narrow: true,
 	});
 
 	frappe.workspace = new frappe.views.Workspace(wrapper);
@@ -56,7 +57,7 @@ frappe.views.Workspace = class Workspace {
 			<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm">
 				<div class="desk-sidebar list-unstyled sidebar-menu"></div>
 			</div>
-		`).appendTo(this.wrapper.find(".layout-side-section"));
+		`).appendTo(this.page.sidebar);
 		this.sidebar = list_sidebar.find(".desk-sidebar");
 		this.body = this.wrapper.find(".layout-main-section");
 	}

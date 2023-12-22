@@ -17,6 +17,7 @@ frappe.ui.toolbar.Toolbar = class {
 			$(this).closest(".dropdown-menu").prev().dropdown("toggle");
 		});
 
+		this.setup_app_switcher();
 		this.setup_awesomebar();
 		this.setup_notifications();
 		this.setup_help();
@@ -45,6 +46,8 @@ frappe.ui.toolbar.Toolbar = class {
 			frappe.ui.toolbar.toggle_full_width();
 		});
 	}
+
+	setup_app_switcher() {}
 
 	setup_help() {
 		if (!frappe.boot.desk_settings.notifications) {
@@ -152,7 +155,7 @@ frappe.ui.toolbar.Toolbar = class {
 	}
 };
 
-$.extend(frappe.ui.toolbar, {
+Object.assign(frappe.ui.toolbar, {
 	add_dropdown_button: function (parent, label, click, icon) {
 		var menu = frappe.ui.toolbar.get_menu(parent);
 		if (menu.find("li:not(.custom-menu)").length && !menu.find(".divider").length) {

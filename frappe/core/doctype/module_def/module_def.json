@@ -7,9 +7,11 @@
  "engine": "InnoDB",
  "field_order": [
   "module_name",
+  "app_name",
+  "default_workspace",
+  "column_break_rfps",
   "custom",
   "package",
-  "app_name",
   "restrict_to_domain",
   "connections_tab"
  ],
@@ -57,6 +59,16 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
+  },
+  {
+   "fieldname": "default_workspace",
+   "fieldtype": "Link",
+   "label": "Default Workspace",
+   "options": "Workspace"
+  },
+  {
+   "fieldname": "column_break_rfps",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-sitemap",
@@ -123,7 +135,7 @@
    "link_fieldname": "module"
   }
  ],
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2023-12-21 14:40:21.326422",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",
