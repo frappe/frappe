@@ -154,7 +154,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		this.update_status();
 		return Promise.resolve();
 	}
-	
+
 	update_selected_values(value) {
 		this._selected_values = this._selected_values || [];
 		let option = this._options
