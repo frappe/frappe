@@ -84,8 +84,8 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 
 		this.$list_wrapper.on("show.bs.dropdown", () => {
 			this.set_options().then(() => {
-				if (!this._selected_values || !this._selected_values.length	){
-					this._selected_values = this.process_options(this.values)
+				if (!this._selected_values || !this._selected_values.length){
+					this._selected_values = this.process_options(this.values);
 				}
 				this._options = this._selected_values
 					.concat(this._options)
@@ -138,13 +138,17 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 		}
 		//Unselect old values
 		this.values.forEach((value) => {
-			this.$list_wrapper.find(`.selectable-item[data-value=${value}]`).toggleClass("selected");
+			this.$list_wrapper
+					.find(`.selectable-item[data-value=${value}]`)
+					.toggleClass("selected");
 		});
 		this.values = value;
 		this.values.forEach((value) => {
 			this.update_selected_values(value);
 			//Select new values
-			this.$list_wrapper.find(`.selectable-item[data-value=${value}]`).toggleClass("selected");
+			this.$list_wrapper
+					.find(`.selectable-item[data-value=${value}]`)
+					.toggleClass("selected");
 		});
 		this.parse_validate_and_set_in_model("");
 		this.update_status();
@@ -194,7 +198,7 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 				return {
 					label: option,
 					value: option,
-					description:""
+					description: "",
 				};
 			}
 			if (!option.label) {
