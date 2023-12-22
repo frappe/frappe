@@ -135,7 +135,7 @@ def resolve_redirect(path, query_string=None):
 		if match:
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
 			frappe.flags.redirect_location = redirect_to
-			status_code = rule.get("redirect_http_status", 301)
+			status_code = rule.get("redirect_http_status") or 301
 			frappe.cache.hset(
 				"website_redirects", path_to_match, {"path": redirect_to, "status_code": status_code}
 			)

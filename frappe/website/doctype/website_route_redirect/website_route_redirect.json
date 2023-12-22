@@ -26,15 +26,14 @@
   {
    "default": "301",
    "fieldname": "redirect_http_status",
-   "fieldtype": "Int",
+   "fieldtype": "Select",
    "label": "Redirect HTTP Status",
-   "options": "301\n302\n307\n308",
-   "reqd": 1
+   "options": "301\n302\n307\n308"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2023-12-13 12:09:50.726082",
+ "modified": "2023-12-22 12:21:28.436139",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Route Redirect",
