@@ -44,32 +44,12 @@ class Communication(Document, CommunicationEmailMixin):
 		_user_tags: DF.Data | None
 		bcc: DF.Code | None
 		cc: DF.Code | None
-		comment_type: DF.Literal[
-			"",
-			"Comment",
-			"Like",
-			"Info",
-			"Label",
-			"Workflow",
-			"Created",
-			"Submitted",
-			"Cancelled",
-			"Updated",
-			"Deleted",
-			"Assigned",
-			"Assignment Completed",
-			"Attachment",
-			"Attachment Removed",
-			"Shared",
-			"Unshared",
-			"Relinked",
-		]
 		communication_date: DF.Datetime | None
 		communication_medium: DF.Literal[
 			"", "Email", "Chat", "Phone", "SMS", "Event", "Meeting", "Visit", "Other"
 		]
 		communication_type: DF.Literal[
-			"Communication", "Comment", "Chat", "Notification", "Feedback", "Automated Message"
+			"Communication", "Feedback", "Automated Message"
 		]
 		content: DF.TextEditor | None
 		delivery_status: DF.Literal[
@@ -221,17 +201,6 @@ class Communication(Document, CommunicationEmailMixin):
 		if self.communication_type == "Communication":
 			self.notify_change("add")
 
-		elif self.communication_type in ("Chat", "Notification"):
-			if self.reference_name == frappe.session.user:
-				message = self.as_dict()
-				message["broadcast"] = True
-				frappe.publish_realtime("new_message", message, after_commit=True)
-			else:
-				# reference_name contains the user who is addressed in the messages' page comment
-				frappe.publish_realtime(
-					"new_message", self.as_dict(), user=self.reference_name, after_commit=True
-				)
-
 	def set_signature_in_email_content(self):
 		"""Set sender's User.email_signature or default outgoing's EmailAccount.signature to the email"""
 		if not self.content:
@@ -284,9 +253,6 @@ class Communication(Document, CommunicationEmailMixin):
 		if (method := getattr(parent, "on_communication_update", None)) and callable(method):
 			parent.on_communication_update(self)
 			return
-
-		if self.comment_type != "Updated":
-			update_parent_document_on_communication(self)
 
 	def on_trash(self):
 		if self.communication_type == "Communication":
@@ -637,11 +603,6 @@ def update_parent_document_on_communication(doc):
 
 	parent = get_parent_doc(doc)
 	if not parent:
-		return
-
-	# update parent mins_to_first_communication only if we create the Email communication
-	# ignore in case of only Comment is added
-	if doc.communication_type == "Comment":
 		return
 
 	status_field = parent.meta.get_field("status")

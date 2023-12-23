@@ -24,7 +24,6 @@
   "status_section",
   "text_content",
   "communication_type",
-  "comment_type",
   "column_break_5",
   "status",
   "sent_or_received",
@@ -155,19 +154,9 @@
    "fieldname": "communication_type",
    "fieldtype": "Select",
    "label": "Communication Type",
-   "options": "Communication\nComment\nChat\nNotification\nFeedback\nAutomated Message",
+   "options": "Communication\nFeedback\nAutomated Message",
    "read_only": 1,
    "reqd": 1
-  },
-  {
-   "fieldname": "comment_type",
-   "fieldtype": "Select",
-   "hidden": 1,
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Comment Type",
-   "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nSubmitted\nCancelled\nUpdated\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared\nRelinked",
-   "read_only": 1
   },
   {
    "fieldname": "column_break_5",

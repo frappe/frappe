@@ -6,7 +6,7 @@
 		"event": "New",
 		"attach_print": 0,
 		"message": "New comment {{ doc.content }} created",
-		"condition": "doc.communication_type=='Comment'",
+		"condition": "doc.communication_type=='Communication'",
 		"recipients": [
 			{ "receiver_by_document_field": "owner" }
 		]
@@ -18,7 +18,7 @@
 		"event": "Save",
 		"attach_print": 0,
 		"message": "New comment {{ doc.content }} saved",
-		"condition": "doc.communication_type=='Comment'",
+		"condition": "doc.communication_type=='Communication'",
 		"recipients": [
 			{ "receiver_by_document_field": "owner" }
 		],
