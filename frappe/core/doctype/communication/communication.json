@@ -54,10 +54,7 @@
   "uid",
   "imap_folder",
   "email_status",
-  "has_attachment",
-  "feedback_section",
-  "rating",
-  "feedback_request"
+  "has_attachment"
  ],
  "fields": [
   {
@@ -74,9 +71,10 @@
    "label": "To and CC"
   },
   {
-   "depends_on": "eval:doc.communication_type===\"Communication\"",
    "fieldname": "communication_medium",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Type",
    "options": "\nEmail\nChat\nPhone\nSMS\nEvent\nMeeting\nVisit\nOther"
   },
@@ -153,8 +151,10 @@
    "default": "Communication",
    "fieldname": "communication_type",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Communication Type",
-   "options": "Communication\nFeedback\nAutomated Message",
+   "options": "Communication\nAutomated Message",
    "read_only": 1,
    "reqd": 1
   },
@@ -336,25 +336,6 @@
    "label": "Has  Attachment"
   },
   {
-   "collapsible": 1,
-   "depends_on": "eval: doc.rating > 0",
-   "fieldname": "feedback_section",
-   "fieldtype": "Section Break",
-   "label": "Feedback"
-  },
-  {
-   "fieldname": "rating",
-   "fieldtype": "Int",
-   "label": "Rating",
-   "read_only": 1
-  },
-  {
-   "fieldname": "feedback_request",
-   "fieldtype": "Data",
-   "label": "Feedback Request",
-   "read_only": 1
-  },
-  {
    "fieldname": "email_template",
    "fieldtype": "Link",
    "label": "Email Template",
@@ -390,7 +371,7 @@
  "icon": "fa fa-comment",
  "idx": 1,
  "links": [],
- "modified": "2023-11-27 20:38:27.467076",
+ "modified": "2023-12-23 21:46:05.422430",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",

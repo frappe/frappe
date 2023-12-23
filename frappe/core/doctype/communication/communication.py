@@ -48,9 +48,7 @@ class Communication(Document, CommunicationEmailMixin):
 		communication_medium: DF.Literal[
 			"", "Email", "Chat", "Phone", "SMS", "Event", "Meeting", "Visit", "Other"
 		]
-		communication_type: DF.Literal[
-			"Communication", "Feedback", "Automated Message"
-		]
+		communication_type: DF.Literal["Communication", "Automated Message"]
 		content: DF.TextEditor | None
 		delivery_status: DF.Literal[
 			"",
@@ -72,13 +70,11 @@ class Communication(Document, CommunicationEmailMixin):
 		email_account: DF.Link | None
 		email_status: DF.Literal["Open", "Spam", "Trash"]
 		email_template: DF.Link | None
-		feedback_request: DF.Data | None
 		has_attachment: DF.Check
 		imap_folder: DF.Data | None
 		in_reply_to: DF.Link | None
 		message_id: DF.SmallText | None
 		phone_no: DF.Data | None
-		rating: DF.Int
 		read_by_recipient: DF.Check
 		read_by_recipient_on: DF.Datetime | None
 		read_receipt: DF.Check
@@ -99,6 +95,7 @@ class Communication(Document, CommunicationEmailMixin):
 		unread_notification_sent: DF.Check
 		user: DF.Link | None
 	# end: auto-generated types
+
 	"""Communication represents an external communication like Email."""
 
 	no_feed_on_delete = True
