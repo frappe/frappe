@@ -1,6 +1,6 @@
 # Copyright (c) 2018, Frappe Technologies and contributors
 # License: MIT. See LICENSE
-
+import frappe
 from frappe.model.document import Document
 
 
@@ -23,3 +23,8 @@ class NotificationRecipient(Document):
 		receiver_by_role: DF.Link | None
 	# end: auto-generated types
 	pass
+
+	def should_receive(self, context):
+		if self.condition:
+			return frappe.safe_eval(self.condition, None, context)
+		return True

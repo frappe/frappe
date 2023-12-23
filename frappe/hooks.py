@@ -417,6 +417,25 @@ ignore_links_on_delete = [
 	"Workspace",
 ]
 
+notification_channels = {
+	"Email": {
+		"validate": "frappe.email.doctype.notification.email.validate",
+		"send": "frappe.email.doctype.notification.email.send",
+	},
+	"Slack": {
+		"validate": "frappe.email.doctype.notification.slack.validate",
+		"send": "frappe.email.doctype.notification.slack.send",
+	},
+	"System Notification": {
+		"validate": "frappe.email.doctype.notification.system_notification.validate",
+		"send": "frappe.email.doctype.notification.system_notification.send",
+	},
+	"SMS": {
+		"validate": "frappe.email.doctype.notification.sms.validate",
+		"send": "frappe.email.doctype.notification.sms.send",
+	},
+}
+
 # Request Hooks
 before_request = [
 	"frappe.recorder.record",
