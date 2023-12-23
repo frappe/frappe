@@ -1,4 +1,5 @@
 import frappe
+from frappe.core.doctype.communication.email import _make as make_communication
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.utils.jinja import validate_template
@@ -30,7 +31,22 @@ def get_receiver_list(self, doc, context):
 
 
 def send(self, doc, context):
+	msg = frappe.utils.strip_html_tags(frappe.render_template(self.message, context))
+	receiver_list = (get_receiver_list(self, doc, context),)
+
+	# Add sms notification to communication list
+	# No need to add if it is already a communication.
+	if doc.doctype != "Communication":
+		communication = make_communication(
+			doctype=doc.doctype,
+			name=doc.name,
+			content=msg,
+			subject="SMS Notification",
+			recipients=receiver_list,
+			communication_medium="SMS",
+			communication_type="Automated Message",
+		)
 	send_sms(
-		receiver_list=get_receiver_list(self, doc, context),
-		msg=frappe.utils.strip_html_tags(frappe.render_template(self.message, context)),
+		receiver_list=receiver_list,
+		msg=msg,
 	)
