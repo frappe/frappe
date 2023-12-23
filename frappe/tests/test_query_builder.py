@@ -3,6 +3,7 @@ from collections.abc import Callable
 from datetime import time
 
 import frappe
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.query_builder import Case
 from frappe.query_builder.builder import Function
 from frappe.query_builder.custom import ConstantColumn
@@ -328,22 +329,32 @@ class TestBuilderBase:
 		self.assertIsInstance(data, list)
 
 	def test_agg_funcs(self):
-		frappe.db.truncate("Communication")
+		doc = new_doctype(
+			fields=[
+				{
+					"fieldname": "number",
+					"fieldtype": "Int",
+					"label": "Number",
+					"reqd": 1,  # mandatory
+				},
+			],
+		)
+		doc.insert()
+		self.doctype_name = doc.name
+		frappe.db.truncate(self.doctype_name)
 		sample_data = {
-			"doctype": "Communication",
-			"communication_type": "Communication",
-			"content": "testing",
-			"rating": 1,
+			"doctype": self.doctype_name,
+			"number": 1,
 		}
-		frappe.get_doc(sample_data).insert()
-		sample_data["rating"] = 3
-		frappe.get_doc(sample_data).insert()
-		sample_data["rating"] = 4
-		frappe.get_doc(sample_data).insert()
-		self.assertEqual(frappe.qb.max("Communication", "rating"), 4)
-		self.assertEqual(frappe.qb.min("Communication", "rating"), 1)
-		self.assertAlmostEqual(frappe.qb.avg("Communication", "rating"), 2.666, places=2)
-		self.assertEqual(frappe.qb.sum("Communication", "rating"), 8.0)
+		frappe.get_doc(sample_data).insert(ignore_mandatory=True)
+		sample_data["number"] = 3
+		frappe.get_doc(sample_data).insert(ignore_mandatory=True)
+		sample_data["number"] = 4
+		frappe.get_doc(sample_data).insert(ignore_mandatory=True)
+		self.assertEqual(frappe.qb.max(self.doctype_name, "number"), 4)
+		self.assertEqual(frappe.qb.min(self.doctype_name, "number"), 1)
+		self.assertAlmostEqual(frappe.qb.avg(self.doctype_name, "number"), 2.666, places=2)
+		self.assertEqual(frappe.qb.sum(self.doctype_name, "number"), 8.0)
 		frappe.db.rollback()
 
 
