@@ -4,13 +4,13 @@ on: [pull_request, workflow_dispatch]
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     name: Patch Test
 
     services:
       mysql:
-        image: mariadb:10.3
+        image: mariadb:10.6
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: YES
         ports:
