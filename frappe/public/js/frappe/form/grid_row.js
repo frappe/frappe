@@ -1135,8 +1135,8 @@ export default class GridRow {
 		let ignore_fieldtypes = ["Text", "Small Text", "Code", "Text Editor", "HTML Editor"];
 		if (field.$input) {
 			field.$input.on("keydown", function (e) {
-				var { TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
-				if (!in_list([TAB, UP_ARROW, DOWN_ARROW], e.which)) {
+				var { ESCAPE, TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
+				if (!in_list([TAB, UP_ARROW, DOWN_ARROW, ESCAPE], e.which)) {
 					return;
 				}
 
@@ -1170,6 +1170,16 @@ export default class GridRow {
 					}
 					return true;
 				};
+
+				// ESC
+				if (e.which === ESCAPE && !e.shiftKey) {
+										
+					if (me.doc.__unedited) {
+						me.grid.grid_rows[me.doc.idx-1].remove();
+					}
+					
+					return false;
+				}
 
 				// TAB
 				if (e.which === TAB && !e.shiftKey) {
