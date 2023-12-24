@@ -1173,11 +1173,9 @@ export default class GridRow {
 
 				// ESC
 				if (e.which === ESCAPE && !e.shiftKey) {
-										
 					if (me.doc.__unedited) {
 						me.grid.grid_rows[me.doc.idx - 1].remove();
 					}
-					
 					return false;
 				}
 
