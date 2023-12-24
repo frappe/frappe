@@ -274,7 +274,7 @@ def _get_communications(doctype, name, start=0, limit=20):
 def get_communication_data(
 	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True
 ):
-	"""Returns list of communications for a given document"""
+	"""Return list of communications for a given document."""
 	if not fields:
 		fields = """
 			C.name, C.communication_type, C.communication_medium,

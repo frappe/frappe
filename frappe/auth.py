@@ -289,7 +289,7 @@ class LoginManager:
 	def check_password(self, user, pwd):
 		"""check password"""
 		try:
-			# returns user in correct case
+			# return user in correct case
 			return check_password(user, pwd)
 		except frappe.AuthenticationError:
 			self.fail("Incorrect password", user=user)

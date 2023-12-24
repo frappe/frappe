@@ -15,8 +15,7 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 
 	tree_method = frappe.get_attr(tree_method)
 
-	if tree_method not in frappe.whitelisted:
-		frappe.throw(_("Not Permitted"), frappe.PermissionError)
+	frappe.is_whitelisted(tree_method)
 
 	data = tree_method(doctype, parent, **filters)
 	out = [dict(parent=label, data=data)]

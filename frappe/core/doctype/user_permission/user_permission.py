@@ -173,7 +173,7 @@ def get_applicable_for_doctype_list(doctype, txt, searchfield, start, page_len, 
 
 
 def get_permitted_documents(doctype):
-	"""Returns permitted documents from the given doctype for the session user"""
+	"""Return permitted documents from the given doctype for the session user."""
 	# sort permissions in a way to make the first permission in the list to be default
 	user_perm_list = sorted(
 		get_user_permissions().get(doctype, []), key=lambda x: x.get("is_default"), reverse=True

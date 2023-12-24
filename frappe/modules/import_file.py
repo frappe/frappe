@@ -12,13 +12,10 @@ from frappe.utils import get_datetime, now
 
 
 def calculate_hash(path: str) -> str:
-	"""Calculate md5 hash of the file in binary mode
+	"""Calculate and return md5 hash of the file in binary mode.
 
 	Args:
 	        path (str): Path to the file to be hashed
-
-	Returns:
-	        str: The calculated hash
 	"""
 	hash_md5 = hashlib.md5(usedforsecurity=False)
 	with open(path, "rb") as f:
@@ -82,8 +79,8 @@ def import_file_by_path(
 	pre_process=None,
 	ignore_version: bool = None,
 	reset_permissions: bool = False,
-):
-	"""Import file from the given path
+) -> bool:
+	"""Import file from the given path.
 
 	Some conditions decide if a file should be imported or not.
 	Evaluation takes place in the order they are mentioned below.
@@ -107,8 +104,7 @@ def import_file_by_path(
 	        ignore_version (bool, optional): ignore current version. Defaults to None.
 	        reset_permissions (bool, optional): reset permissions for the file. Defaults to False.
 
-	Returns:
-	        [bool]: True if import takes place. False if it wasn't imported.
+	Return True if import takes place, False if it wasn't imported.
 	"""
 	try:
 		docs = read_doc_from_file(path)

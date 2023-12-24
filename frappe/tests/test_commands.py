@@ -43,14 +43,7 @@ CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
 
 
 def clean(value) -> str:
-	"""Strips and converts bytes to str
-
-	Args:
-	        value ([type]): [description]
-
-	Returns:
-	        [type]: [description]
-	"""
+	"""Strip and convert bytes to str."""
 	if isinstance(value, bytes):
 		value = value.decode()
 	if isinstance(value, str):
@@ -59,13 +52,13 @@ def clean(value) -> str:
 
 
 def missing_in_backup(doctypes: list, file: os.PathLike) -> list:
-	"""Returns list of missing doctypes in the backup.
+	"""Return list of missing doctypes in the backup.
 
 	Args:
 	        doctypes (list): List of DocTypes to be checked
 	        file (str): Path of the database file
 
-	Returns:
+	Return:
 	        doctypes(list): doctypes that are missing in backup
 	"""
 	predicate = 'COPY public."tab{}"' if frappe.conf.db_type == "postgres" else "CREATE TABLE `tab{}`"
@@ -76,14 +69,13 @@ def missing_in_backup(doctypes: list, file: os.PathLike) -> list:
 
 
 def exists_in_backup(doctypes: list, file: os.PathLike) -> bool:
-	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
+	"""Check if the list of doctypes exist in the database.sql.gz file supplied.
 
 	Args:
 	        doctypes (list): List of DocTypes to be checked
 	        file (str): Path of the database file
 
-	Returns:
-	        bool: True if all tables exist
+	Return True if all tables exist.
 	"""
 	missing_doctypes = missing_in_backup(doctypes, file)
 	return len(missing_doctypes) == 0
