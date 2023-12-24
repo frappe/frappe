@@ -334,7 +334,7 @@ def parse_naming_series(
 
 
 def has_custom_parser(e):
-	"""Returns true if the naming series part has a custom parser"""
+	"""Return True if the naming series part has a custom parser."""
 	return frappe.get_hooks("naming_series_variables", {}).get(e)
 
 

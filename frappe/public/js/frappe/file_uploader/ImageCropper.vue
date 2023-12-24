@@ -97,19 +97,19 @@ onMounted(() => {
 let aspect_ratio_buttons = computed(() => {
 	return [
 		{
-			label: __("1:1"),
+			label: __("1:1", null, "Image Cropper"),
 			value: 1,
 		},
 		{
-			label: __("4:3"),
+			label: __("4:3", null, "Image Cropper"),
 			value: 4 / 3,
 		},
 		{
-			label: __("16:9"),
+			label: __("16:9", null, "Image Cropper"),
 			value: 16 / 9,
 		},
 		{
-			label: __("Free"),
+			label: __("Free", null, "Image Cropper"),
 			value: NaN,
 		},
 	];

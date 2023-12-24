@@ -419,7 +419,7 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 
 	Note: All record linked linked to Module Def are also deleted.
 
-	Returns: list of deleted doctypes."""
+	Return: list of deleted doctypes."""
 	drop_doctypes = []
 
 	doctype_link_field_map = _get_module_linked_doctype_field_map()
@@ -461,7 +461,7 @@ def _delete_linked_documents(
 def _get_module_linked_doctype_field_map() -> dict[str, str]:
 	"""Get all the doctypes which have module linked with them.
 
-	returns ordered dictionary with doctype->link field mapping."""
+	Return ordered dictionary with doctype->link field mapping."""
 
 	# Hardcoded to change order of deletion
 	ordered_doctypes = [
@@ -672,7 +672,7 @@ def extract_sql_from_archive(sql_file_path):
 	Args:
 	        sql_file_path (str): Path of the SQL file
 
-	Returns:
+	Return:
 	        str: Path of the decompressed SQL file
 	"""
 	from frappe.utils import get_bench_relative_path

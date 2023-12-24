@@ -102,7 +102,7 @@
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2023-10-22 22:41:25.568952",
+ "modified": "2023-12-08 15:52:37.525003",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Page",
@@ -129,7 +129,7 @@
   }
  ],
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }

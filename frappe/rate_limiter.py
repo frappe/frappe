@@ -110,7 +110,7 @@ def rate_limit(
 	:param ip_based: flag to allow ip based rate-limiting
 	:type ip_based: Boolean
 
-	:returns: a decorator function that limit the number of requests per endpoint
+	Return: a decorator function that limit the number of requests per endpoint
 	"""
 
 	def ratelimit_decorator(fn):

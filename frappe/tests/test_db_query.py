@@ -753,6 +753,14 @@ class TestDBQuery(FrappeTestCase):
 			limit=50,
 		)
 
+	def test_virtual_field_get_list(self):
+		try:
+			frappe.get_list("Prepared Report", ["*"])
+			frappe.get_list("Scheduled Job Type", ["*"])
+		except Exception as e:
+			print(frappe.get_traceback())
+			self.fail("get_list not working with virtual field")
+
 	def test_pluck_name(self):
 		names = DatabaseQuery("DocType").execute(filters={"name": "DocType"}, pluck="name")
 		self.assertEqual(names, ["DocType"])
@@ -1017,13 +1025,17 @@ class TestDBQuery(FrappeTestCase):
 			self.assertEqual(call_args["order_by"], DefaultOrderBy)
 
 	def test_coalesce_with_in_ops(self):
-		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", "b"])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("in", [])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", ["a"])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [])}, run=0))
-		self.assertIn("ifnull", frappe.get_all("User", {"name": ("not in", [""])}, run=0))
+		self.assertNotIn("ifnull", frappe.get_all("User", {"first_name": ("in", ["a", "b"])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("in", ["a", None])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("in", ["a", ""])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("in", [])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("not in", ["a"])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("not in", [])}, run=0))
+		self.assertIn("ifnull", frappe.get_all("User", {"first_name": ("not in", [""])}, run=0))
+
+		# primary key is never nullable
+		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0))
+		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0))
 
 	def test_ambiguous_linked_tables(self):
 		from frappe.desk.reportview import get

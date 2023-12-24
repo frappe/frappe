@@ -986,7 +986,7 @@ class DocType(Document):
 		add_column(self.name, "parentfield", "Data")
 
 	def get_max_idx(self):
-		"""Returns the highest `idx`"""
+		"""Return the highest `idx`."""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", self.name)
 		return max_idx and max_idx[0][0] or 0
 
@@ -1668,22 +1668,12 @@ def validate_permissions_for_doctype(doctype, for_remove=False, alert=False):
 
 
 def clear_permissions_cache(doctype):
+	from frappe.cache_manager import clear_user_cache
+
 	frappe.clear_cache(doctype=doctype)
 	delete_notification_count_for(doctype)
-	for user in frappe.db.sql_list(
-		"""
-		SELECT
-			DISTINCT `tabHas Role`.`parent`
-		FROM
-			`tabHas Role`,
-			`tabDocPerm`
-		WHERE `tabDocPerm`.`parent` = %s
-			AND `tabDocPerm`.`role` = `tabHas Role`.`role`
-			AND `tabHas Role`.`parenttype` = 'User'
-		""",
-		doctype,
-	):
-		frappe.clear_cache(user=user)
+
+	clear_user_cache()
 
 
 def validate_permissions(doctype, for_remove=False, alert=False):

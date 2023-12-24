@@ -1276,10 +1276,6 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.set_route("print", this.doctype, this.doc.name);
 	}
 
-	show_audit_trail() {
-		frappe.set_route("audit-trail");
-	}
-
 	navigate_records(prev) {
 		let filters, sort_field, sort_order;
 		let list_view = frappe.get_list_view(this.doctype);

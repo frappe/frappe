@@ -335,7 +335,7 @@ class DatabaseQuery:
 		return args
 
 	def parse_args(self):
-		"""Convert fields and filters from strings to list, dicts"""
+		"""Convert fields and filters from strings to list, dicts."""
 		if isinstance(self.fields, str):
 			if self.fields == "*":
 				self.fields = ["*"]
@@ -635,6 +635,7 @@ class DatabaseQuery:
 			doctype=self.doctype,
 			parenttype=self.parent_doctype,
 			permission_type=self.permission_map.get(self.doctype),
+			ignore_virtual=True,
 		)
 
 		for i, field in enumerate(self.fields):
@@ -715,7 +716,8 @@ class DatabaseQuery:
 			j = j + len(permitted_fields) - 1
 
 	def prepare_filter_condition(self, f):
-		"""Returns a filter condition in the format:
+		"""Return a filter condition in the format:
+
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
@@ -739,7 +741,7 @@ class DatabaseQuery:
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
 
-		can_be_null = True
+		can_be_null = f.fieldname != "name"  # primary key is never nullable
 
 		value = None
 
@@ -794,7 +796,7 @@ class DatabaseQuery:
 			# if values contain '' or falsy values then only coalesce column
 			# for `in` query this is only required if values contain '' or values are empty.
 			# for `not in` queries we can't be sure as column values might contain null.
-			can_be_null = not getattr(df, "not_nullable", False)
+			can_be_null &= not getattr(df, "not_nullable", False)
 			if f.operator.lower() == "in":
 				can_be_null &= not f.value or any(v is None or v == "" for v in f.value)
 
@@ -1079,6 +1081,8 @@ class DatabaseQuery:
 					self.fields[0].lower().startswith("count(")
 					or self.fields[0].lower().startswith("min(")
 					or self.fields[0].lower().startswith("max(")
+					or self.fields[0].lower().startswith("sum(")
+					or self.fields[0].lower().startswith("avg(")
 				)
 				and not self.group_by
 			)
@@ -1339,7 +1343,7 @@ def get_date_range(operator: str, value: str):
 
 
 def requires_owner_constraint(role_permissions):
-	"""Returns True if "select" or "read" isn't available without being creator."""
+	"""Return True if "select" or "read" isn't available without being creator."""
 
 	if not role_permissions.get("has_if_owner_enabled"):
 		return

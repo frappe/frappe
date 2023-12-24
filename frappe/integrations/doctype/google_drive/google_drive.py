@@ -88,9 +88,7 @@ def authorize_access(reauthorize=False, code=None):
 
 
 def get_google_drive_object():
-	"""
-	Returns an object of Google Drive.
-	"""
+	"""Return an object of Google Drive."""
 	account = frappe.get_doc("Google Drive")
 	oauth_obj = GoogleOAuth("drive")
 

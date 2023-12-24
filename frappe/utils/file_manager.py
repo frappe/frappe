@@ -71,7 +71,7 @@ def upload():
 
 
 def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
-	"""returns File object (Document) from given parameters or form_dict"""
+	"""Return File object (Document) from given parameters or `form_dict`."""
 	r = frappe.form_dict
 
 	if dt is None:
@@ -328,7 +328,7 @@ def delete_file(path):
 
 
 def get_file(fname):
-	"""Returns [`file_name`, `content`] for given file name `fname`"""
+	"""Return [`file_name`, `content`] for given file name `fname`."""
 	file_path = get_file_path(fname)
 
 	# read the file
@@ -345,7 +345,7 @@ def get_file(fname):
 
 
 def get_file_path(file_name):
-	"""Returns file path from given file name"""
+	"""Return file path from given file name."""
 	if "../" in file_name:
 		return
 
