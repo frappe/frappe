@@ -41,10 +41,6 @@ Newsletter has a similar design as to how normal emails are sent except for the 
 
 Each batch is queued as a separate job (`QueueBuilder.send_emails`) into the long queue by the default worker which is then picked up by the long worker.
 
-#### `doctype/notification`
-
-Contains all logic about handling various types of notifications by the system.
-
 #### `email_body.py`
 
 Contains logic about creating the email body. We use Python's email std lib for body generation.
@@ -60,6 +56,6 @@ At the application level,
 
 `Email Queue` DocType is self-contained and stores all the errored out (along with traceback) as well as the sent/partially sent mails from the system.
 
-`Communication` DocType stores all the successfully received emails and `Unhandled Email` DocType stores all the "unhandled" ones during receiving.
+`Communication` DocType stores all the successfully sent and received emails and `Unhandled Email` DocType stores all the "unhandled" ones during receiving.
 
 Apart from these, the `Error Log` DocType also comes into help from time to time.
