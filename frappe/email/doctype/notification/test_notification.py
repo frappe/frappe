@@ -55,7 +55,8 @@ class TestNotification(FrappeTestCase):
 	def test_new_and_save(self):
 		"""Check creating a new communication triggers a notification."""
 		communication = frappe.new_doc("Communication")
-		communication.communication_type = "Comment"
+		communication.communication_type = "Communication"
+		communication.sender_full_name = "__test_notification_sender__"
 		communication.subject = "test"
 		communication.content = "test"
 		communication.insert(ignore_permissions=True)
