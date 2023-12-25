@@ -2,13 +2,19 @@
 # License: MIT. See LICENSE
 
 import json
+from typing import TYPE_CHECKING
 
 import requests
 
 import frappe
 from frappe import _
+from frappe.communications.interfaces import NotificationHandler, OutgoingCommunicationHandler
 from frappe.model.document import Document
 from frappe.utils import get_url_to_form
+
+if TYPE_CHECKING:
+	from frappe.communications.doctype.communication.communication import Communication
+	from frappe.communications.doctype.notification.notification import Notification
 
 error_messages = {
 	400: "400: Invalid Payload or User not found",
@@ -19,7 +25,7 @@ error_messages = {
 }
 
 
-class SlackWebhookURL(Document):
+class SlackWebhookURL(Document, OutgoingCommunicationHandler, NotificationHandler):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -32,7 +38,34 @@ class SlackWebhookURL(Document):
 		webhook_name: DF.Data
 		webhook_url: DF.Data
 	# end: auto-generated types
-	pass
+
+	_communication_medium = "Chat"
+
+	def _validate_communication(self, comm: Communication):
+		comm.recipients = _("Slack Channel: {}").format(comm.recipients)
+
+	def _send_implementation(self, comm: Communication):
+		res = send_slack_message(self.name, comm.content)
+
+		if res == "success":
+			return comm.recipients
+		return []
+
+	def _get_notification_recipients(
+		self, notification: Notification, doc: Document, context: dict
+	) -> list[str]:
+		"""slack channels, as currently implemented, don't implement specific recipients, we render a channel recipient for display"""
+		return [_("Slack Channel: {}").format(self.name)]
+
+	def _get_notification_sender(
+		self, notification: Notification, doc: Document, context: dict
+	) -> str:
+		return None
+
+	def _log_notification(self, notification: Notification, doc: Document, context: dict) -> bool:
+		if doc.docname == "Communication":
+			return False  # Don't log a notification from an already existing communication again
+		return True
 
 
 def send_slack_message(webhook_url, message, reference_doctype, reference_name):

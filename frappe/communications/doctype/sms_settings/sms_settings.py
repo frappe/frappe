@@ -1,13 +1,22 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import json
+from typing import TYPE_CHECKING
+
 import frappe
-from frappe import _, msgprint, throw
+from frappe import _
+from frappe.communications.interfaces import NotificationHandler, OutgoingCommunicationHandler
+from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.model.document import Document
 from frappe.utils import nowdate
 
+if TYPE_CHECKING:
+	from frappe.communications.doctype.communication.communication import Communication
+	from frappe.communications.doctype.notification.notification import Notification
 
-class SMSSettings(Document):
+
+class SMSSettings(Document, OutgoingCommunicationHandler, NotificationHandler):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -23,7 +32,59 @@ class SMSSettings(Document):
 		sms_gateway_url: DF.SmallText
 		use_post: DF.Check
 	# end: auto-generated types
-	pass
+
+	_communication_medium = "SMS"
+
+	def _validate_communication(self, comm: Communication):
+		receiver_list = json.loads(comm.recipients)
+		if not isinstance(receiver_list, list):
+			receiver_list = [receiver_list]
+
+		comm.recipients = validate_receiver_nos(receiver_list)
+		comm.content = frappe.utils.strip_html_tags(comm.content)
+
+	def _send_implementation(self, comm: Communication):
+		if not self.sms_gateway_url:
+			frappe.throw(_("Please update SMS Settings"))
+		successful = send_via_gateway(
+			{
+				"receiver_list": json.loads(comm.recipients),
+				"message": frappe.safe_decode(comm.content).encode("utf-8"),
+			}
+		)
+		return successful
+
+	def _get_notification_recipients(
+		self, notification: Notification, doc: Document, context: dict
+	) -> list[str]:
+		"""return receiver list based on the doc field and role specified"""
+		receiver_list = []
+		for recipient in notification.recipients:
+			if not recipient.should_receive(context):
+				continue
+
+			# For sending messages to the owner's mobile phone number
+			if recipient.receiver_by_document_field == "owner":
+				receiver_list += get_user_info([dict(user_name=doc.get("owner"))], "mobile_no")
+			# For sending messages to the number specified in the receiver field
+			elif recipient.receiver_by_document_field:
+				receiver_list.append(doc.get(recipient.receiver_by_document_field))
+
+			# For sending messages to specified role
+			if recipient.receiver_by_role:
+				receiver_list += get_info_based_on_role(recipient.receiver_by_role, "mobile_no")
+
+		return receiver_list
+
+	def _get_notification_sender(
+		self, notification: Notification, doc: Document, context: dict
+	) -> str:
+		return None
+
+	def _log_notification(self, notification: Notification, doc: Document, context: dict) -> bool:
+		if doc.docname == "Communication":
+			return False  # Don't log a notification from an already existing communication again
+		return True
 
 
 def validate_receiver_nos(receiver_list):
@@ -39,7 +100,7 @@ def validate_receiver_nos(receiver_list):
 		validated_receiver_list.append(d)
 
 	if not validated_receiver_list:
-		throw(_("Please enter valid mobile nos"))
+		frappe.throw(_("Please enter valid mobile nos"))
 
 	return validated_receiver_list
 
@@ -58,30 +119,6 @@ def get_contact_number(contact_name, ref_doctype, ref_name):
 	)
 
 	return number and (number[0][0] or number[0][1]) or ""
-
-
-@frappe.whitelist()
-def send_sms(receiver_list, msg, sender_name="", success_msg=True):
-
-	import json
-
-	if isinstance(receiver_list, str):
-		receiver_list = json.loads(receiver_list)
-		if not isinstance(receiver_list, list):
-			receiver_list = [receiver_list]
-
-	receiver_list = validate_receiver_nos(receiver_list)
-
-	arg = {
-		"receiver_list": receiver_list,
-		"message": frappe.safe_decode(msg).encode("utf-8"),
-		"success_msg": success_msg,
-	}
-
-	if frappe.db.get_single_value("SMS Settings", "sms_gateway_url"):
-		send_via_gateway(arg)
-	else:
-		msgprint(_("Please Update SMS Settings"))
 
 
 def send_via_gateway(arg):
@@ -106,8 +143,8 @@ def send_via_gateway(arg):
 	if len(success_list) > 0:
 		args.update(arg)
 		create_sms_log(args, success_list)
-		if arg.get("success_msg"):
-			frappe.msgprint(_("SMS sent to following numbers: {0}").format("\n" + "\n".join(success_list)))
+
+	return success_list
 
 
 def get_headers(sms_settings=None):

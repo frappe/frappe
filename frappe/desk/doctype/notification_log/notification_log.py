@@ -1,16 +1,24 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import json
+from typing import TYPE_CHECKING
+
 import frappe
 from frappe import _
+from frappe.communications.interfaces import NotificationHandler, OutgoingCommunicationHandler
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_email_notifications_enabled_for_type,
 	is_notifications_enabled,
 )
 from frappe.model.document import Document
 
+if TYPE_CHECKING:
+	from frappe.communications.doctype.communication.communication import Communication
+	from frappe.communications.doctype.notification.notification import Notification
 
-class NotificationLog(Document):
+
+class NotificationLog(Document, OutgoingCommunicationHandler, NotificationHandler):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -30,6 +38,9 @@ class NotificationLog(Document):
 		subject: DF.Text | None
 		type: DF.Literal["Mention", "Energy Point", "Assignment", "Share", "Alert"]
 	# end: auto-generated types
+
+	_communication_medium = ""
+
 	def after_insert(self):
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
@@ -46,6 +57,41 @@ class NotificationLog(Document):
 
 		table = frappe.qb.DocType("Notification Log")
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+
+	def _validate_communication(self, comm: Communication):
+		pass
+
+	def _send_implementation(self, comm: Communication):
+		users = comm.recipients
+		notification_doc = {
+			"type": "Alert",
+			"document_type": comm.reference_doctype,
+			"document_name": comm.reference_name,
+			"subject": comm.subject,
+			"from_user": comm.sender,
+			"email_content": comm.content,
+			"attached_file": comm.attachments and json.dumps(comm.attachments[0]),
+		}
+		enqueue_create_notification(users, notification_doc)
+		return users
+
+	def _get_notification_recipients(
+		self, notification: Notification, doc: Document, context: dict
+	) -> list[str]:
+		"""return receiver list based on the doc field and role specified"""
+		from email.doctype.notification.email import get_list_of_recipients
+
+		recipients, cc, bcc = get_list_of_recipients(notification, doc, context)
+		users = recipients + cc + bcc
+		return users
+
+	def _get_notification_sender(
+		self, notification: Notification, doc: Document, context: dict
+	) -> list[str]:
+		return doc.modified_by or doc.owner
+
+	def _log_notification(self, notification: Notification, doc: Document, context: dict) -> bool:
+		return False
 
 
 def get_permission_query_conditions(for_user):
