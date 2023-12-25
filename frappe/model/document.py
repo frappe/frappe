@@ -1393,7 +1393,7 @@ class Document(BaseDocument):
 	):
 		"""Add a comment to this document.
 
-		:param comment_type: e.g. `Comment`. See Communication for more info."""
+		:param comment_type: e.g. `Comment`. See Comment doctype for more info."""
 
 		return frappe.get_doc(
 			{
