@@ -159,16 +159,23 @@ class TestEmailAccount(FrappeTestCase):
 		)
 
 	def test_outgoing(self):
-		make(
+		comm_name = make(
 			subject="test-mail-000",
 			content="test mail 000",
 			recipients="test_receiver@example.com",
 			send_email=True,
 			sender="test_sender@example.com",
-		)
+		)["name"]
 
-		mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
-		self.assertTrue("test-mail-000" in mail.get("Subject"))
+		sent_mail = email.message_from_string(
+			frappe.get_doc(
+				"Email Queue",
+				{
+					"communication": comm_name,
+				},
+			).message
+		)
+		self.assertTrue("test-mail-000" in sent_mail.get("Subject"))
 
 	def test_sendmail(self):
 		frappe.sendmail(
@@ -183,7 +190,7 @@ class TestEmailAccount(FrappeTestCase):
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
 
 	def test_print_format(self):
-		make(
+		comm_name = make(
 			sender="test_sender@example.com",
 			recipients="test_recipient@example.com",
 			content="test mail 001",
@@ -192,9 +199,15 @@ class TestEmailAccount(FrappeTestCase):
 			name="_Test Email Account 1",
 			print_format="Standard",
 			send_email=True,
+		)["name"]
+		sent_mail = email.message_from_string(
+			frappe.get_doc(
+				"Email Queue",
+				{
+					"communication": comm_name,
+				},
+			).message
 		)
-
-		sent_mail = email.message_from_string(frappe.get_last_doc("Email Queue").message)
 		self.assertTrue("test-mail-002" in sent_mail.get("Subject"))
 
 	def test_threading(self):
