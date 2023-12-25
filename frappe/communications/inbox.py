@@ -132,28 +132,18 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 
 @frappe.whitelist()
 def relink(name, reference_doctype=None, reference_name=None):
-	frappe.db.sql(
-		"""update
-			`tabCommunication`
-		set
-			reference_doctype = %s,
-			reference_name = %s,
-			status = "Linked"
-		where
-			communication_type = "Communication" and
-			name = %s""",
-		(reference_doctype, reference_name, name),
-	)
+	comm = frappe.get_doc("Communication", name)
+	link_communication_to_document(comm, reference_doctype, reference_name)
 
 
 def link_communication_to_document(
-	doc, reference_doctype, reference_name, ignore_communication_links
+	comm, reference_doctype, reference_name, ignore_communication_links
 ):
 	if not ignore_communication_links:
-		doc.reference_doctype = reference_doctype
-		doc.reference_name = reference_name
-		doc.status = "Linked"
-		doc.save(ignore_permissions=True)
+		comm.reference_doctype = reference_doctype
+		comm.reference_name = reference_name
+		comm.status = "Linked"
+		comm.save(ignore_permissions=True)
 
 
 def get_email_accounts(user=None):
