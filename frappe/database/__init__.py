@@ -134,4 +134,20 @@ def get_command(
 		if extra:
 			command.extend(extra)
 
+		if frappe.conf.db_ssl_ca:
+			command.extend(
+				[
+					f"--ssl-ca={frappe.conf.db_ssl_ca}",
+				]
+			)
+			# Check if Two-Way TLS is enabled
+			# https://mariadb.com/kb/en/securing-connections-for-client-and-server/#enabling-two-way-tls-for-mariadb-clients
+			if frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
+				command.extend(
+					[
+						f"--ssl-cert={frappe.conf.db_ssl_cert}",
+						f"--ssl-key={frappe.conf.db_ssl_key}"
+					]
+				)
+
 	return bin, command, bin_name

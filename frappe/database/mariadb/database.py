@@ -132,12 +132,14 @@ class MariaDBConnectionUtil:
 		if frappe.conf.local_infile:
 			conn_settings["local_infile"] = frappe.conf.local_infile
 
-		if frappe.conf.db_ssl_ca and frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
-			conn_settings["ssl"] = {
-				"ca": frappe.conf.db_ssl_ca,
-				"cert": frappe.conf.db_ssl_cert,
-				"key": frappe.conf.db_ssl_key,
-			}
+		if frappe.conf.db_ssl_ca:
+			ssl = {"ca": frappe.conf.db_ssl_ca}
+			# Check if Two-Way TLS is enabled
+			# https://mariadb.com/kb/en/securing-connections-for-client-and-server/#enabling-two-way-tls-for-mariadb-clients
+			if frappe.conf.db_ssl_cert and frappe.conf.db_ssl_key:
+				ssl.update({"cert": frappe.conf.db_ssl_cert, "key": frappe.conf.db_ssl_key})
+			conn_settings["ssl"] = ssl
+
 		return conn_settings
 
 
