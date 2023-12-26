@@ -225,7 +225,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 	frappe.flags.has_dataurl = False
 
 	def _save_file(match):
-		data = match.group(1).split("data:")[1]
+		data = match.group(2).split("data:")[1]
 		headers, content = data.split(",")
 		mtype = headers.split(";", 1)[0]
 
@@ -266,10 +266,10 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 		file_url = _file.file_url
 		frappe.flags.has_dataurl = True
 
-		return f'<img src="{file_url}"'
+		return f'<img{match.group(1)}src="{file_url}"'
 
 	if content and isinstance(content, str):
-		content = re.sub(r'<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
+		content = re.sub(r'<img([^>]*)src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 
 	return content
 
