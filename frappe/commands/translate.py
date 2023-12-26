@@ -85,23 +85,6 @@ def update_translations(context, lang, untranslated_file, translated_file, app="
 		frappe.destroy()
 
 
-@click.command("import-translations")
-@click.argument("lang")
-@click.argument("path")
-@pass_context
-def import_translations(context, lang, path):
-	"Update translated strings"
-	import frappe.translate
-
-	site = get_site(context)
-	try:
-		frappe.init(site=site)
-		frappe.connect()
-		frappe.translate.import_translations(lang, path)
-	finally:
-		frappe.destroy()
-
-
 @click.command("migrate-translations")
 @click.argument("source-app")
 @click.argument("target-app")
@@ -122,7 +105,6 @@ def migrate_translations(context, source_app, target_app):
 commands = [
 	build_message_files,
 	get_untranslated,
-	import_translations,
 	new_language,
 	update_translations,
 	migrate_translations,

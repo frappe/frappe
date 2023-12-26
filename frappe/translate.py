@@ -1000,16 +1000,6 @@ def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS
 		write_translations_file(app_name, lang, full_dict)
 
 
-def import_translations(lang, path):
-	"""Import translations from file in standard format"""
-	clear_cache()
-	full_dict = get_all_translations(lang)
-	full_dict.update(get_translation_dict_from_file(path, lang, "import"))
-
-	for app in frappe.get_all_apps(True):
-		write_translations_file(app, lang, full_dict)
-
-
 def migrate_translations(source_app, target_app):
 	"""Migrate target-app-specific translations from source-app to target-app"""
 	clear_cache()
