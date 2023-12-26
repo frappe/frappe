@@ -2,7 +2,6 @@ import csv
 import gettext
 import os
 from collections import defaultdict
-from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
 
@@ -12,7 +11,6 @@ from babel.messages.mofile import read_mo, write_mo
 from babel.messages.pofile import read_po, write_po
 
 import frappe
-from frappe.translate import get_user_translations
 from frappe.utils import get_bench_path
 
 DEFAULT_LANG = "en"
@@ -241,42 +239,7 @@ def csv_to_po(app: str, locale: str):
 	print(f"PO file created at {po_path}")
 
 
-def get_messages_for_boot():
-	"""
-	Return all message translations that are required on boot
-	"""
-	return get_all_translations(frappe.local.lang)
-
-
-def get_all_translations(lang: str) -> dict[str, str]:
-	"""
-	Load and return the entire translations dictionary for a language from apps
-	+ user translations.
-	:param lang: Language Code, e.g. `hi`
-	:return: dictionary of key and value
-	"""
-	if not lang:
-		return {}
-
-	def t():
-		from frappe.geo.country_info import get_translated_countries
-
-		all_translations = get_translations_from_apps(lang).copy()
-		with suppress(Exception):
-			all_translations.update(get_user_translations(lang))
-			all_translations.update(get_translated_countries())
-
-		return all_translations
-
-	try:
-		return frappe.cache().hget(MERGED_TRANSLATION_KEY, lang, generator=t)
-	except Exception:
-		# People mistakenly call translation function on global variables where
-		# locals are not initialized, translations don't make much sense there
-		return {}
-
-
-def get_translations_from_apps(lang, apps=None):
+def get_translations_from_mo(lang, app):
 	"""
 	Combine translations from installed apps.
 
@@ -290,32 +253,28 @@ def get_translations_from_apps(lang, apps=None):
 	if not lang or lang == DEFAULT_LANG:
 		return {}
 
-	def t():
-		translations = {}
+	translations = {}
 
-		locale_dir = get_locale_dir()
-		for app in apps or frappe.get_installed_apps():
-			mo_files = gettext.find(app, locale_dir, (lang,), True)
-			for file in mo_files:
-				with open(file, "rb") as f:
-					catalog = read_mo(f)
-					for m in catalog:
-						if not m.id:
-							continue
+	locale_dir = get_locale_dir()
+	mo_files = gettext.find(app, locale_dir, (lang,), True)
+	for file in mo_files:
+		with open(file, "rb") as f:
+			catalog = read_mo(f)
+			for m in catalog:
+				if not m.id:
+					continue
 
-						key = m.id
-						if m.context:
-							context = m.context.decode()  # context is encoded as bytes
-							translations[f"{key}:{context}"] = m.string
-							if m.id not in translations:
-								# better a translation with context than no translation
-								translations[m.id] = m.string
-						else:
-							translations[m.id] = m.string
+				key = m.id
+				if m.context:
+					context = m.context.decode()  # context is encoded as bytes
+					translations[f"{key}:{context}"] = m.string
+					if m.id not in translations:
+						# better a translation with context than no translation
+						translations[m.id] = m.string
+				else:
+					translations[m.id] = m.string
 
-		return translations
-
-	return frappe.cache().hget(APP_TRANSLATION_KEY, lang, shared=True, generator=t)
+	return translations
 
 
 def clear_cache():

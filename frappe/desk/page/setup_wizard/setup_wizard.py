@@ -304,10 +304,7 @@ def disable_future_access():
 def load_messages(language):
 	"""Load translation messages for given language from all `setup_wizard_requires`
 	javascript files"""
-	if frappe.conf.use_gettext:
-		from frappe.gettext.translate import get_messages_for_boot
-	else:
-		from frappe.translate import get_messages_for_boot
+	from frappe.translate import get_messages_for_boot
 
 	frappe.clear_cache()
 	set_default_language(get_language_code(language))

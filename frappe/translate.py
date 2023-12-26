@@ -19,6 +19,7 @@ from contextlib import contextmanager, suppress
 from csv import reader, writer
 
 import frappe
+from frappe.gettext.translate import get_translations_from_mo
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
@@ -200,8 +201,8 @@ def get_translations_from_apps(lang, apps=None):
 
 	translations = {}
 	for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
-		path = os.path.join(frappe.get_app_path(app, "translations"), lang + ".csv")
-		translations.update(get_translation_dict_from_file(path, lang, app) or {})
+		translations.update(get_translations_from_csv(lang, app) or {})
+		translations.update(get_translations_from_mo(lang, app) or {})
 	if "-" in lang:
 		parent = lang.split("-", 1)[0]
 		parent_translations = get_translations_from_apps(parent)
@@ -211,8 +212,14 @@ def get_translations_from_apps(lang, apps=None):
 	return translations
 
 
+def get_translations_from_csv(lang, app):
+	return get_translation_dict_from_file(
+		os.path.join(frappe.get_app_path(app, "translations"), lang + ".csv"), lang, app
+	)
+
+
 def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, str]:
-	"""load translation dict from given path"""
+	"""Return translation dict from given CSV file at path"""
 	translation_map = {}
 	if os.path.exists(path):
 		csv_content = read_csv_file(path)
