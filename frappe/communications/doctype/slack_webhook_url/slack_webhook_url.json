@@ -37,7 +37,7 @@
  "links": [],
  "modified": "2021-05-12 18:24:37.810235",
  "modified_by": "Administrator",
- "module": "Integrations",
+ "module": "Communications",
  "name": "Slack Webhook URL",
  "owner": "Administrator",
  "permissions": [

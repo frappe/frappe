@@ -324,7 +324,7 @@ class SendMailContext:
 			tracker_url = get_url(f"{email_read_tracker_url}?{get_signed_params(params)}")
 
 		elif frappe.conf.use_ssl and self.email_account_doc.track_email_status:
-			tracker_url = f"{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"
+			tracker_url = f"{get_url()}/api/method/frappe.communications.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"
 
 		if tracker_url:
 			tracker_url_html = f'<img src="{tracker_url}"/>'
