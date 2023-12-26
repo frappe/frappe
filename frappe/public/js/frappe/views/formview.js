@@ -77,15 +77,16 @@ frappe.views.FormFactory = class FormFactory extends frappe.views.Factory {
 	}
 
 	fetch_and_render(doctype, name, doctype_layout) {
+		if (name && name === "new") {
+			this.render_new_doc(doctype, name, doctype_layout);
+			return;
+		}
+
 		frappe.model.with_doc(doctype, name, (name, r) => {
 			if (r && r["403"]) return; // not permitted
 
 			if (!(locals[doctype] && locals[doctype][name])) {
-				if (name && name.substr(0, 3) === "new") {
-					this.render_new_doc(doctype, name, doctype_layout);
-				} else {
-					frappe.show_not_found();
-				}
+				frappe.show_not_found();
 				return;
 			}
 			this.render(doctype_layout, name);
