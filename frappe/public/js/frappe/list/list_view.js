@@ -1085,7 +1085,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_sort_by();
 		this.setup_list_click();
 		this.setup_drag_click();
-		this.setup_tag_event();
 		this.setup_new_doc_event();
 		this.setup_check_events();
 		this.setup_like();
@@ -1400,15 +1399,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		});
 	}
 
-	setup_tag_event() {
-		this.tags_shown = false;
-		this.list_sidebar &&
-			this.list_sidebar.parent.on("click", ".list-tag-preview", () => {
-				this.tags_shown = !this.tags_shown;
-				this.toggle_tags();
-			});
-	}
-
 	setup_realtime_updates() {
 		this.pending_document_refreshes = [];
 
@@ -1559,12 +1549,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		this.update_checkbox();
 		this.toggle_actions_menu_button(this.$checks.length > 0);
-	}
-
-	toggle_tags() {
-		this.$result.find(".tag-col").toggleClass("hide");
-		const preview_label = this.tags_shown ? __("Hide Tags") : __("Show Tags");
-		this.list_sidebar.parent.find(".list-tag-preview").text(preview_label);
 	}
 
 	get_checked_items(only_docnames) {

@@ -6,7 +6,13 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		this.make_wrapper();
 
 		this.user_settings = frappe.get_user_settings(this.doctype);
-		this.group_by_fields = ["assigned_to", "owner"];
+		this.default_fields = ["_assign", "owner", "_user_tags"];
+		this.default_labels = {
+			_assign: __("Assigned To"),
+			owner: __("Created By"),
+			_user_tags: __("Tags"),
+		};
+		this.group_by_fields = [].concat(this.default_fields);
 		if (this.user_settings.group_by_fields) {
 			this.group_by_fields = this.group_by_fields.concat(this.user_settings.group_by_fields);
 		}
@@ -29,8 +35,8 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				group_by_fields || null
 			);
 			this.group_by_fields = group_by_fields
-				? ["assigned_to", "owner", ...group_by_fields]
-				: ["assigned_to", "owner"];
+				? [...this.default_fields, ...group_by_fields]
+				: this.default_fields;
 			this.render_group_by_items();
 			this.setup_dropdown();
 			d.hide();
@@ -67,10 +73,9 @@ frappe.views.ListGroupBy = class ListGroupBy {
 	render_group_by_items() {
 		let get_item_html = (fieldname) => {
 			let label, fieldtype;
-			if (fieldname === "assigned_to") {
-				label = __("Assigned To");
-			} else if (fieldname === "owner") {
-				label = __("Created By");
+
+			if (this.default_labels[fieldname]) {
+				label = this.default_labels[fieldname];
 			} else {
 				label = frappe.meta.get_label(this.doctype, fieldname);
 				let docfield = frappe.meta.get_docfield(this.doctype, fieldname);
@@ -104,9 +109,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			let fieldtype = $(e.currentTarget).find("a").attr("data-fieldtype");
 			this.get_group_by_count(fieldname).then((field_count_list) => {
 				if (field_count_list.length) {
-					let applied_filter = this.list_view.get_filter_value(
-						fieldname == "assigned_to" ? "_assign" : fieldname
-					);
+					let applied_filter = this.list_view.get_filter_value(fieldname);
 					this.render_dropdown_items(
 						field_count_list,
 						fieldtype,
@@ -164,9 +167,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		let current_filters = this.list_view.get_filters_for_args();
 
 		// remove filter of the current field
-		current_filters = current_filters.filter(
-			(f_arr) => !f_arr.includes(field === "assigned_to" ? "_assign" : field)
-		);
+		current_filters = current_filters.filter((f_arr) => !f_arr.includes(field));
 
 		let args = {
 			doctype: this.doctype,
@@ -247,7 +248,6 @@ frappe.views.ListGroupBy = class ListGroupBy {
 				typeof $target.data("value") === "string"
 					? decodeURIComponent($target.data("value").trim())
 					: $target.data("value");
-			fieldname = fieldname === "assigned_to" ? "_assign" : fieldname;
 
 			return this.list_view.filter_area.remove(fieldname).then(() => {
 				if (is_selected) return;
@@ -262,7 +262,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			operator = "is";
 			value = "not set";
 		}
-		if (fieldname === "_assign") {
+		if (["_assign", "_user_tags"].includes(fieldname)) {
 			operator = "like";
 			value = `%${value}%`;
 		}

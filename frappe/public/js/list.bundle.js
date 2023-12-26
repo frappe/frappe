@@ -18,7 +18,6 @@ import "./frappe/list/list_factory.js";
 import "./frappe/list/list_view_select.js";
 import "./frappe/list/list_sidebar.js";
 import "./frappe/list/list_sidebar.html";
-import "./frappe/list/list_sidebar_stat.html";
 import "./frappe/list/list_sidebar_group_by.js";
 import "./frappe/list/list_view_permission_restrictions.html";
 

@@ -498,150 +498,150 @@ def delete_bulk(doctype, items):
 		delete_bulk(doctype, undeleted_items)
 
 
-@frappe.whitelist()
-@frappe.read_only()
-def get_sidebar_stats(stats, doctype, filters=None):
-	if filters is None:
-		filters = []
+# @frappe.whitelist()
+# @frappe.read_only()
+# def get_sidebar_stats(stats, doctype, filters=None):
+# 	if filters is None:
+# 		filters = []
 
-	if is_virtual_doctype(doctype):
-		controller = get_controller(doctype)
-		args = {"stats": stats, "filters": filters}
-		data = controller.get_stats(args)
-	else:
-		data = get_stats(stats, doctype, filters)
+# 	if is_virtual_doctype(doctype):
+# 		controller = get_controller(doctype)
+# 		args = {"stats": stats, "filters": filters}
+# 		data = controller.get_stats(args)
+# 	else:
+# 		data = get_stats(stats, doctype, filters)
 
-	return {"stats": data}
-
-
-@frappe.whitelist()
-@frappe.read_only()
-def get_stats(stats, doctype, filters=None):
-	"""get tag info"""
-	import json
-
-	if filters is None:
-		filters = []
-	columns = json.loads(stats)
-	if filters:
-		filters = json.loads(filters)
-	results = {}
-
-	try:
-		db_columns = frappe.db.get_table_columns(doctype)
-	except (frappe.db.InternalError, frappe.db.ProgrammingError):
-		# raised when _user_tags column is added on the fly
-		# raised if its a virtual doctype
-		db_columns = []
-
-	for column in columns:
-		if column not in db_columns:
-			continue
-		try:
-			tag_count = frappe.get_list(
-				doctype,
-				fields=[column, "count(*)"],
-				filters=filters + [[column, "!=", ""]],
-				group_by=column,
-				as_list=True,
-				distinct=1,
-			)
-
-			if column == "_user_tags":
-				results[column] = scrub_user_tags(tag_count)
-				no_tag_count = frappe.get_list(
-					doctype,
-					fields=[column, "count(*)"],
-					filters=filters + [[column, "in", ("", ",")]],
-					as_list=True,
-					group_by=column,
-					order_by=column,
-				)
-
-				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
-
-				results[column].append([_("No Tags"), no_tag_count])
-			else:
-				results[column] = tag_count
-
-		except frappe.db.SQLError:
-			pass
-		except frappe.db.InternalError as e:
-			# raised when _user_tags column is added on the fly
-			pass
-
-	return results
+# 	return {"stats": data}
 
 
-@frappe.whitelist()
-def get_filter_dashboard_data(stats, doctype, filters=None):
-	"""get tags info"""
-	import json
+# @frappe.whitelist()
+# @frappe.read_only()
+# def get_stats(stats, doctype, filters=None):
+# 	"""get tag info"""
+# 	import json
 
-	tags = json.loads(stats)
-	filters = json.loads(filters or [])
-	stats = {}
+# 	if filters is None:
+# 		filters = []
+# 	columns = json.loads(stats)
+# 	if filters:
+# 		filters = json.loads(filters)
+# 	results = {}
 
-	columns = frappe.db.get_table_columns(doctype)
-	for tag in tags:
-		if tag["name"] not in columns:
-			continue
-		tagcount = []
-		if tag["type"] not in ["Date", "Datetime"]:
-			tagcount = frappe.get_list(
-				doctype,
-				fields=[tag["name"], "count(*)"],
-				filters=filters + ["ifnull(`%s`,'')!=''" % tag["name"]],
-				group_by=tag["name"],
-				as_list=True,
-			)
+# 	try:
+# 		db_columns = frappe.db.get_table_columns(doctype)
+# 	except (frappe.db.InternalError, frappe.db.ProgrammingError):
+# 		# raised when _user_tags column is added on the fly
+# 		# raised if its a virtual doctype
+# 		db_columns = []
 
-		if tag["type"] not in [
-			"Check",
-			"Select",
-			"Date",
-			"Datetime",
-			"Int",
-			"Float",
-			"Currency",
-			"Percent",
-		] and tag["name"] not in ["docstatus"]:
-			stats[tag["name"]] = list(tagcount)
-			if stats[tag["name"]]:
-				data = [
-					"No Data",
-					frappe.get_list(
-						doctype,
-						fields=[tag["name"], "count(*)"],
-						filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],
-						as_list=True,
-					)[0][1],
-				]
-				if data and data[1] != 0:
+# 	for column in columns:
+# 		if column not in db_columns:
+# 			continue
+# 		try:
+# 			tag_count = frappe.get_list(
+# 				doctype,
+# 				fields=[column, "count(*)"],
+# 				filters=filters + [[column, "!=", ""]],
+# 				group_by=column,
+# 				as_list=True,
+# 				distinct=1,
+# 			)
 
-					stats[tag["name"]].append(data)
-		else:
-			stats[tag["name"]] = tagcount
+# 			if column == "_user_tags":
+# 				results[column] = scrub_user_tags(tag_count)
+# 				no_tag_count = frappe.get_list(
+# 					doctype,
+# 					fields=[column, "count(*)"],
+# 					filters=filters + [[column, "in", ("", ",")]],
+# 					as_list=True,
+# 					group_by=column,
+# 					order_by=column,
+# 				)
 
-	return stats
+# 				no_tag_count = no_tag_count[0][1] if no_tag_count else 0
+
+# 				results[column].append([_("No Tags"), no_tag_count])
+# 			else:
+# 				results[column] = tag_count
+
+# 		except frappe.db.SQLError:
+# 			pass
+# 		except frappe.db.InternalError as e:
+# 			# raised when _user_tags column is added on the fly
+# 			pass
+
+# 	return results
 
 
-def scrub_user_tags(tagcount):
-	"""rebuild tag list for tags"""
-	rdict = {}
-	tagdict = dict(tagcount)
-	for t in tagdict:
-		if not t:
-			continue
-		alltags = t.split(",")
-		for tag in alltags:
-			if tag:
-				if tag not in rdict:
-					rdict[tag] = 0
+# @frappe.whitelist()
+# def get_filter_dashboard_data(stats, doctype, filters=None):
+# 	"""get tags info"""
+# 	import json
 
-				rdict[tag] += tagdict[t]
+# 	tags = json.loads(stats)
+# 	filters = json.loads(filters or [])
+# 	stats = {}
 
-	return [[tag, rdict[tag]] for tag in rdict]
+# 	columns = frappe.db.get_table_columns(doctype)
+# 	for tag in tags:
+# 		if tag["name"] not in columns:
+# 			continue
+# 		tagcount = []
+# 		if tag["type"] not in ["Date", "Datetime"]:
+# 			tagcount = frappe.get_list(
+# 				doctype,
+# 				fields=[tag["name"], "count(*)"],
+# 				filters=filters + ["ifnull(`%s`,'')!=''" % tag["name"]],
+# 				group_by=tag["name"],
+# 				as_list=True,
+# 			)
+
+# 		if tag["type"] not in [
+# 			"Check",
+# 			"Select",
+# 			"Date",
+# 			"Datetime",
+# 			"Int",
+# 			"Float",
+# 			"Currency",
+# 			"Percent",
+# 		] and tag["name"] not in ["docstatus"]:
+# 			stats[tag["name"]] = list(tagcount)
+# 			if stats[tag["name"]]:
+# 				data = [
+# 					"No Data",
+# 					frappe.get_list(
+# 						doctype,
+# 						fields=[tag["name"], "count(*)"],
+# 						filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],
+# 						as_list=True,
+# 					)[0][1],
+# 				]
+# 				if data and data[1] != 0:
+
+# 					stats[tag["name"]].append(data)
+# 		else:
+# 			stats[tag["name"]] = tagcount
+
+# 	return stats
+
+
+# def scrub_user_tags(tagcount):
+# 	"""rebuild tag list for tags"""
+# 	rdict = {}
+# 	tagdict = dict(tagcount)
+# 	for t in tagdict:
+# 		if not t:
+# 			continue
+# 		alltags = t.split(",")
+# 		for tag in alltags:
+# 			if tag:
+# 				if tag not in rdict:
+# 					rdict[tag] = 0
+
+# 				rdict[tag] += tagdict[t]
+
+# 	return [[tag, rdict[tag]] for tag in rdict]
 
 
 # used in building query in queries.py
