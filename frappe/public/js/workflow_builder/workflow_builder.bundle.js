@@ -49,7 +49,6 @@ class WorkflowBuilder {
 
 		// create a vue instance
 		let app = createApp(WorkflowBuilderComponent, { workflow: this.workflow });
-		SetVueGlobals(app);
 		app.use(pinia);
 
 		// create a store
@@ -58,6 +57,7 @@ class WorkflowBuilder {
 
 		// register global components
 		registerGlobalComponents(app);
+		SetVueGlobals(app);
 
 		// mount the app
 		this.$workflow_builder = app.mount(this.$wrapper.get(0));

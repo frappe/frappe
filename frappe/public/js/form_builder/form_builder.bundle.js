@@ -50,7 +50,6 @@ class FormBuilder {
 
 		// create a vue instance
 		let app = createApp(FormBuilderComponent);
-		SetVueGlobals(app);
 		app.use(pinia);
 
 		// create a store
@@ -59,6 +58,7 @@ class FormBuilder {
 
 		// register global components
 		registerGlobalComponents(app);
+		SetVueGlobals(app);
 
 		// mount the app
 		this.$form_builder = app.mount(this.$wrapper.get(0));
