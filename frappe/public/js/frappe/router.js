@@ -33,6 +33,9 @@ window.addEventListener("popstate", (e) => {
 
 // Capture all clicks so that the target is managed with push-state
 $("body").on("click", "a", function (e) {
+	if (e?.originalEvent?.defaultPrevented) {
+		return;
+	}
 	const target_element = e.currentTarget;
 	const href = target_element.getAttribute("href");
 	const is_on_same_host = target_element.hostname === window.location.hostname;
