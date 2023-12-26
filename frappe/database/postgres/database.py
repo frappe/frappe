@@ -329,7 +329,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 			self.commit()
 			db_table.sync()
-			self.begin()
+			self.commit()
 
 	@staticmethod
 	def get_on_duplicate_update(key="name"):

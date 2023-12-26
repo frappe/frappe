@@ -582,7 +582,7 @@ def get_print_style(
 def get_font(
 	print_settings: "PrintSettings", print_format: Optional["PrintFormat"] = None, for_legacy=False
 ) -> str:
-	default = 'Inter, "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif'
+	default = "var(--font-stack)"
 	if for_legacy:
 		return default
 
