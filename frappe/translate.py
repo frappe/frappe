@@ -195,10 +195,6 @@ def get_translations_from_apps(lang, apps=None):
 	"""Combine all translations from `.csv` files in all `apps`.
 	For derivative languages (es-GT), take translations from the
 	base language (es) and then update translations from the child (es-GT)"""
-
-	if lang == "en":
-		return {}
-
 	translations = {}
 	for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
 		translations.update(get_translations_from_csv(lang, app) or {})

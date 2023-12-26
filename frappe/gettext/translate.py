@@ -13,7 +13,6 @@ from babel.messages.pofile import read_po, write_po
 import frappe
 from frappe.utils import get_bench_path
 
-DEFAULT_LANG = "en"
 PO_DIR = "locale"  # po and pot files go into [app]/locale
 POT_FILE = "main.pot"  # the app's pot file is always main.pot
 
@@ -237,8 +236,7 @@ def csv_to_po(app: str, locale: str):
 
 
 def get_translations_from_mo(lang, app):
-	"""
-	Combine translations from installed apps.
+	"""Get translations from MO files.
 
 	For dialects (i.e. es_GT), take translations from the base language (i.e. es)
 	and then update with specific translations from the dialect (i.e. es_GT).
@@ -247,7 +245,7 @@ def get_translations_from_mo(lang, app):
 	without context. This way we can provide the context for each source string
 	but don't have to create a translation for each context.
 	"""
-	if not lang or lang == DEFAULT_LANG:
+	if not lang or not app:
 		return {}
 
 	translations = {}
