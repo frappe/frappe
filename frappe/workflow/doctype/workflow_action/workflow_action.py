@@ -496,9 +496,7 @@ def get_common_email_args(doc):
 
 
 def get_email_template(doc):
-	"""Returns next_action_email_template
-	for workflow state (if available) based on doc current workflow state
-	"""
+	"""Return next_action_email_template for workflow state (if available) based on doc current workflow state."""
 	workflow_name = get_workflow_name(doc.get("doctype"))
 	doc_state = get_doc_workflow_state(doc)
 	template_name = frappe.db.get_value(

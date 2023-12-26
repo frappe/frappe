@@ -237,10 +237,7 @@ class EmailAccount(Document):
 		return frappe.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
-		"""Returns logged in POP3/IMAP connection object."""
-		if frappe.cache.get_value("workers:no-internet") == True:
-			return None
-
+		"""Return logged in POP3/IMAP connection object."""
 		oauth_token = self.get_oauth_token()
 		args = frappe._dict(
 			{
@@ -309,16 +306,13 @@ class EmailAccount(Document):
 		except OSError:
 			if in_receive:
 				# timeout while connecting, see receive.py connect method
-				description = frappe.clear_last_message() if frappe.message_log else "Socket Error"
-				if test_internet():
-					self.db_set("no_failed", self.no_failed + 1)
-					if self.no_failed > 2:
-						self.handle_incoming_connect_error(description=description)
-				else:
-					frappe.cache.set_value("workers:no-internet", True)
-				return None
-			else:
-				raise
+				description = frappe.message_log.pop() if frappe.message_log else "Socket Error"
+				self.db_set("no_failed", self.no_failed + 1)
+				if self.no_failed > 2:
+					self.handle_incoming_connect_error(description=description)
+				return
+
+			raise
 
 	@property
 	def _password(self):
@@ -348,14 +342,17 @@ class EmailAccount(Document):
 		return frappe.get_doc(cls.DOCTYPE, name)
 
 	@classmethod
-	def find_one_by_filters(cls, **kwargs):
+	def find_one_by_filters(cls, **kwargs) -> "EmailAccount":
 		name = frappe.db.get_value(cls.DOCTYPE, kwargs)
 		return cls.find(name) if name else None
 
 	@classmethod
 	def find_from_config(cls):
 		config = cls.get_account_details_from_site_config()
-		return cls.from_record(config) if config else None
+		if config:
+			account = cls.from_record(config)
+			account._from_site_config = True
+			return account
 
 	@classmethod
 	def create_dummy(cls):
@@ -475,33 +472,42 @@ class EmailAccount(Document):
 		}
 
 	def get_smtp_server(self):
+		"""Get SMTPServer (wrapper around actual smtplib object) for this account.
+
+		Implementation Detail: Since SMTPServer is same for each email connection, the same *instance*
+		is returned every time this function is called from same EmailAccount object.
+		This enables reusabilty of connection for better performance."""
+		return self._smtp_server_instance
+
+	@functools.cached_property
+	def _smtp_server_instance(self):
 		config = self.sendmail_config()
 		return SMTPServer(**config)
 
-	def handle_incoming_connect_error(self, description):
-		if test_internet():
-			if self.get_failed_attempts_count() > 2:
-				self.db_set("enable_incoming", 0)
+	def remove_unpicklable_values(self, state):
+		super().remove_unpicklable_values(state)
+		state.pop("_smtp_server_instance", None)
 
-				for user in get_system_managers(only_name=True):
-					try:
-						assign_to.add(
-							{
-								"assign_to": user,
-								"doctype": self.doctype,
-								"name": self.name,
-								"description": description,
-								"priority": "High",
-								"notify": 1,
-							}
-						)
-					except assign_to.DuplicateToDoError:
-						frappe.clear_last_message()
-						pass
-			else:
-				self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
+	def handle_incoming_connect_error(self, description):
+		if self.get_failed_attempts_count() > 2:
+			self.db_set("enable_incoming", 0)
+
+			for user in get_system_managers(only_name=True):
+				try:
+					assign_to.add(
+						{
+							"assign_to": user,
+							"doctype": self.doctype,
+							"name": self.name,
+							"description": description,
+							"priority": "High",
+							"notify": 1,
+						}
+					)
+				except assign_to.DuplicateToDoError:
+					frappe.clear_last_message()
 		else:
-			frappe.cache.set_value("workers:no-internet", True)
+			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 
 	def set_failed_attempts_count(self, value):
 		frappe.cache.set(f"{self.name}:email-account-failed-attempts", value)
@@ -703,22 +709,6 @@ def get_append_to(
 	return [[d] for d in set(email_append_to_list) if txt in d]
 
 
-def test_internet(host="8.8.8.8", port=53, timeout=3):
-	"""Returns True if internet is connected
-
-	Host: 8.8.8.8 (google-public-dns-a.google.com)
-	OpenPort: 53/tcp
-	Service: domain (DNS/TCP)
-	"""
-	try:
-		socket.setdefaulttimeout(timeout)
-		socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-		return True
-	except Exception as ex:
-		print(ex.message)
-		return False
-
-
 def notify_unreplied():
 	"""Sends email notifications if there are unreplied Communications
 	and `notify_if_unreplied` is set as true."""
@@ -776,11 +766,6 @@ def pull(now=False):
 	"""Will be called via scheduler, pull emails from all enabled Email accounts."""
 	from frappe.integrations.doctype.connected_app.connected_app import has_token
 
-	if frappe.cache.get_value("workers:no-internet") == True:
-		if test_internet():
-			frappe.cache.set_value("workers:no-internet", False)
-		return
-
 	doctype = frappe.qb.DocType("Email Account")
 	email_accounts = (
 		frappe.qb.from_(doctype)
@@ -813,6 +798,14 @@ def pull(now=False):
 					job_name=job_name,
 					email_account=email_account.name,
 				)
+
+
+@frappe.whitelist()
+def pull_emails(email_account: str) -> None:
+	"""Pull emails from given email account."""
+	frappe.has_permission("Email Account", "read", throw=True)
+
+	pull_from_email_account(email_account)
 
 
 def pull_from_email_account(email_account):

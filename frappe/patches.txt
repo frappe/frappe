@@ -230,3 +230,5 @@ execute:frappe.delete_doc_if_exists("Workspace", "Customization")
 execute:frappe.db.set_single_value("Document Naming Settings", "default_amend_naming", "Amend Counter")
 frappe.patches.v15_0.move_event_cancelled_to_status
 frappe.patches.v15_0.set_file_type
+frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
+frappe.patches.v15_0.validate_newsletter_recipients

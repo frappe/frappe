@@ -21,7 +21,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 import frappe
 import frappe.monitor
 from frappe import _
-from frappe.utils import cint, cstr, get_bench_id
+from frappe.utils import CallbackManager, cint, cstr, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.redis_queue import RedisQueue
@@ -185,6 +185,7 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
 	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
 	retval = None
+
 	if is_async:
 		frappe.connect(site)
 		if os.environ.get("CI"):
@@ -198,6 +199,15 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method = frappe.get_attr(method)
 	else:
 		method_name = cstr(method.__name__)
+
+	frappe.local.job = frappe._dict(
+		site=site,
+		method=method_name,
+		job_name=job_name,
+		kwargs=kwargs,
+		user=user,
+		after_job=CallbackManager(),
+	)
 
 	for before_job_task in frappe.get_hooks("before_job"):
 		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
@@ -239,6 +249,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	finally:
 		for after_job_task in frappe.get_hooks("after_job"):
 			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
+		frappe.local.job.after_job.run()
 
 		if is_async:
 			frappe.destroy()
@@ -383,7 +394,7 @@ def get_queue_list(queue_list=None, build_queue_name=False):
 
 
 def get_workers(queue=None):
-	"""Returns a list of Worker objects tied to a queue object if queue is passed, else returns a list of all workers"""
+	"""Return a list of Worker objects tied to a queue object if queue is passed, else return a list of all workers."""
 	if queue:
 		return Worker.all(queue=queue)
 	else:
@@ -391,7 +402,7 @@ def get_workers(queue=None):
 
 
 def get_running_jobs_in_queue(queue):
-	"""Returns a list of Jobs objects that are tied to a queue object and are currently running"""
+	"""Return a list of Jobs objects that are tied to a queue object and are currently running."""
 	jobs = []
 	workers = get_workers(queue)
 	for worker in workers:
@@ -402,7 +413,7 @@ def get_running_jobs_in_queue(queue):
 
 
 def get_queue(qtype, is_async=True):
-	"""Returns a Queue object tied to a redis connection"""
+	"""Return a Queue object tied to a redis connection."""
 	validate_queue(qtype)
 	return Queue(generate_qname(qtype), connection=get_redis_conn(), is_async=is_async)
 

@@ -179,7 +179,7 @@ class Importer:
 
 					log_index += 1
 
-					if not self.data_import.status == "Partial Success":
+					if self.data_import.status != "Partial Success":
 						self.data_import.db_set("status", "Partial Success")
 
 					# commit after every successful import
@@ -514,8 +514,8 @@ class ImportFile:
 
 	def parse_next_row_for_import(self, data):
 		"""
-		Parses rows that make up a doc. A doc maybe built from a single row or multiple rows.
-		Returns the doc, rows, and data without the rows.
+		Parse rows that make up a doc. A doc maybe built from a single row or multiple rows.
+		Return the doc, rows, and data without the rows.
 		"""
 		doctypes = self.header.doctypes
 

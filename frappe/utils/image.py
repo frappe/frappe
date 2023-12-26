@@ -5,6 +5,8 @@ import os
 
 from PIL import Image
 
+import frappe
+
 
 def resize_images(path, maxdim=700):
 	size = (maxdim, maxdim)
@@ -20,14 +22,13 @@ def resize_images(path, maxdim=700):
 					print(f"resized {os.path.join(basepath, fname)}")
 
 
-def strip_exif_data(content, content_type):
-	"""Strips EXIF from image files which support it.
+def strip_exif_data(content, content_type) -> bytes:
+	"""Strip EXIF from image files which support it.
 
 	Works by creating a new Image object which ignores exif by
 	default and then extracts the binary data back into content.
 
-	Returns:
-	        Bytes: Stripped image content
+	Return Stripped image content.
 	"""
 
 	original_image = Image.open(io.BytesIO(content))
@@ -51,22 +52,25 @@ def optimize_image(
 	if content_type == "image/svg+xml":
 		return content
 
-	image = Image.open(io.BytesIO(content))
-	width, height = image.size
-	max_height = max(min(max_height, height * 0.8), 200)
-	max_width = max(min(max_width, width * 0.8), 200)
-	image_format = content_type.split("/")[1]
-	size = max_width, max_height
-	image.thumbnail(size, Image.Resampling.LANCZOS)
+	try:
+		image = Image.open(io.BytesIO(content))
+		width, height = image.size
+		max_height = max(min(max_height, height * 0.8), 200)
+		max_width = max(min(max_width, width * 0.8), 200)
+		image_format = content_type.split("/")[1]
+		size = max_width, max_height
+		image.thumbnail(size, Image.Resampling.LANCZOS)
 
-	output = io.BytesIO()
-	image.save(
-		output,
-		format=image_format,
-		optimize=optimize,
-		quality=quality,
-		save_all=True if image_format == "gif" else None,
-	)
-
-	optimized_content = output.getvalue()
-	return optimized_content if len(optimized_content) < len(content) else content
+		output = io.BytesIO()
+		image.save(
+			output,
+			format=image_format,
+			optimize=optimize,
+			quality=quality,
+			save_all=True if image_format == "gif" else None,
+		)
+		optimized_content = output.getvalue()
+		return optimized_content if len(optimized_content) < len(content) else content
+	except Exception as e:
+		frappe.msgprint(frappe._("Failed to optimize image: {0}").format(str(e)))
+		return content

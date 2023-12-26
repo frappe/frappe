@@ -59,6 +59,7 @@ class RQJob(Document):
 		]
 		time_taken: DF.Duration | None
 		timeout: DF.Duration | None
+
 	# end: auto-generated types
 	def load_from_db(self):
 		try:
@@ -79,7 +80,7 @@ class RQJob(Document):
 	@staticmethod
 	def get_list(args):
 
-		start = cint(args.get("start")) or 0
+		start = cint(args.get("start"))
 		page_length = cint(args.get("page_length")) or 20
 
 		order_desc = "desc" in args.get("order_by", "")
@@ -87,7 +88,9 @@ class RQJob(Document):
 		matched_job_ids = RQJob.get_matching_job_ids(args)[start : start + page_length]
 
 		conn = get_redis_conn()
-		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn)]
+		jobs = [
+			serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job
+		]
 
 		return sorted(jobs, key=lambda j: j.modified, reverse=order_desc)
 
@@ -149,6 +152,12 @@ def serialize_job(job: Job) -> frappe._dict:
 	if matches := re.match(r"<function (?P<func_name>.*) at 0x.*>", job_name):
 		job_name = matches.group("func_name")
 
+	exc_info = None
+
+	# Get exc_string from the job result if it exists
+	if job_result := job.latest_result():
+		exc_info = job_result.exc_string
+
 	return frappe._dict(
 		name=job.id,
 		job_id=job.id,
@@ -158,7 +167,7 @@ def serialize_job(job: Job) -> frappe._dict:
 		started_at=convert_utc_to_system_timezone(job.started_at) if job.started_at else "",
 		ended_at=convert_utc_to_system_timezone(job.ended_at) if job.ended_at else "",
 		time_taken=(job.ended_at - job.started_at).total_seconds() if job.ended_at else "",
-		exc_info=job.exc_info,
+		exc_info=exc_info,
 		arguments=frappe.as_json(job.kwargs),
 		timeout=job.timeout,
 		creation=convert_utc_to_system_timezone(job.created_at),

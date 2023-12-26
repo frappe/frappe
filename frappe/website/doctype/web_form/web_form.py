@@ -11,7 +11,7 @@ from frappe.core.doctype.file.utils import remove_file_by_url
 from frappe.desk.form.meta import get_code_files_via_hooks
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cstr, dict_with_keys, strip_html
+from frappe.utils import dict_with_keys, strip_html
 from frappe.utils.caching import redis_cache
 from frappe.website.utils import get_boot_data, get_comment_list, get_sidebar_items
 from frappe.website.website_generator import WebsiteGenerator
@@ -107,7 +107,7 @@ class WebForm(WebsiteGenerator):
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
 
 	def reset_field_parent(self):
-		"""Convert link fields to select with names as options"""
+		"""Convert link fields to select with names as options."""
 		for df in self.web_form_fields:
 			df.parent = self.doc_type
 
@@ -245,6 +245,9 @@ def get_context(context):
 		context.boot = get_boot_data()
 		context.boot["link_title_doctypes"] = frappe.boot.get_link_title_doctypes()
 
+		context.webform_banner_image = self.banner_image
+		context.pop("banner_image", None)
+
 	def add_metatags(self, context):
 		description = self.meta_description
 
@@ -258,10 +261,29 @@ def get_context(context):
 		}
 
 	def load_translations(self, context):
-		translated_messages = frappe.translate.get_dict("doctype", self.doc_type)
-		# Sr is not added by default, had to be added manually
-		translated_messages["Sr"] = _("Sr")
-		context.translated_messages = frappe.as_json(translated_messages)
+		messages = [
+			"Sr",
+			"Attach",
+			self.title,
+			self.introduction_text,
+			self.success_title,
+			self.success_message,
+			self.list_title,
+			self.button_label,
+			self.meta_title,
+			self.meta_description,
+		]
+
+		for field in self.web_form_fields:
+			messages.extend([field.label, field.description])
+			if field.fieldtype == "Select" and field.options:
+				messages.extend(field.options.split("\n"))
+
+		messages.extend(col.get("label") if col else "" for col in self.list_columns)
+
+		context.translated_messages = frappe.as_json(
+			{message: _(message) for message in messages if message}
+		)
 
 	def load_list_data(self, context):
 		if not self.list_columns:
@@ -422,7 +444,7 @@ def get_web_form_module(doc):
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(key="web_form", limit=5, seconds=60)
+@rate_limit(limit=5, seconds=60)
 def accept(web_form, data):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))
@@ -660,16 +682,14 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 
 		fields = ["name as value"]
 
-		title_field = frappe.db.get_value("DocType", doctype, "title_field", cache=1)
-		show_title_field_in_link = (
-			frappe.db.get_value("DocType", doctype, "show_title_field_in_link", cache=1) == 1
-		)
-		if title_field and show_title_field_in_link:
-			fields.append(f"{title_field} as label")
+		meta = frappe.get_meta(doctype)
+
+		if meta.title_field and meta.show_title_field_in_link:
+			fields.append(f"{meta.title_field} as label")
 
 		link_options = frappe.get_all(doctype, filters, fields)
 
-		if title_field and show_title_field_in_link:
+		if meta.title_field and meta.show_title_field_in_link:
 			return json.dumps(link_options, default=str)
 		else:
 			return "\n".join([str(doc.value) for doc in link_options])

@@ -48,6 +48,11 @@ from frappe.exceptions import SiteNotSpecifiedError
 @click.option(
 	"--set-default", is_flag=True, default=False, help="Set the new site as default site"
 )
+@click.option(
+	"--setup-db/--no-setup-db",
+	default=True,
+	help="Create user and database in mariadb/postgres; only bootstrap if false",
+)
 def new_site(
 	site,
 	db_root_username=None,
@@ -64,14 +69,12 @@ def new_site(
 	db_host=None,
 	db_port=None,
 	set_default=False,
+	setup_db=True,
 ):
 	"Create a new site"
-	from frappe.installer import _new_site, extract_sql_from_archive
+	from frappe.installer import _new_site
 
 	frappe.init(site=site, new_site=True)
-
-	if source_sql:
-		source_sql = extract_sql_from_archive(source_sql)
 
 	_new_site(
 		db_name,
@@ -88,6 +91,7 @@ def new_site(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
+		setup_db=setup_db,
 	)
 
 	if set_default:
@@ -173,74 +177,112 @@ def _restore(
 	with_public_files=None,
 	with_private_files=None,
 ):
+	from frappe.installer import extract_files
+	from frappe.utils.backups import decrypt_backup, get_or_generate_backup_encryption_key
 
-	from frappe.installer import (
-		_new_site,
-		extract_files,
-		extract_sql_from_archive,
-		is_downgrade,
-		is_partial,
-		validate_database_sql,
-	)
-	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
+	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
+	if err:
+		click.secho("Failed to detect type of backup file", fg="red")
+		sys.exit(1)
 
-	_backup = Backup(sql_file_path)
-
-	try:
-		decompressed_file_name = extract_sql_from_archive(sql_file_path)
-		if is_partial(decompressed_file_name):
-			click.secho(
-				"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
-				fg="red",
-			)
-			click.secho(
-				"Use `bench partial-restore` to restore a partial backup to an existing site.",
-				fg="yellow",
-			)
-			_backup.decryption_rollback()
-			sys.exit(1)
-
-	except UnicodeDecodeError:
-		_backup.decryption_rollback()
+	if "cipher" in out.decode().split(":")[-1].strip():
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
-			_backup.backup_decryption(encryption_key)
 
 		else:
 			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
 			encryption_key = get_or_generate_backup_encryption_key()
-			_backup.backup_decryption(encryption_key)
 
-		# Rollback on unsuccessful decryrption
-		if not os.path.exists(sql_file_path):
-			click.secho("Decryption failed. Please provide a valid key and try again.", fg="red")
+		with decrypt_backup(sql_file_path, encryption_key):
+			# Rollback on unsuccessful decryption
+			if not os.path.exists(sql_file_path):
+				click.secho("Decryption failed. Please provide a valid key and try again.", fg="red")
+				sys.exit(1)
 
-			_backup.decryption_rollback()
-			sys.exit(1)
-
-		decompressed_file_name = extract_sql_from_archive(sql_file_path)
-
-		if is_partial(decompressed_file_name):
-			click.secho(
-				"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
-				fg="red",
+			restore_backup(
+				sql_file_path,
+				site,
+				db_root_username,
+				db_root_password,
+				verbose,
+				install_app,
+				admin_password,
+				force,
 			)
-			click.secho(
-				"Use `bench partial-restore` to restore a partial backup to an existing site.",
-				fg="yellow",
-			)
-			_backup.decryption_rollback()
-			sys.exit(1)
+	else:
+		restore_backup(
+			sql_file_path,
+			site,
+			db_root_username,
+			db_root_password,
+			verbose,
+			install_app,
+			admin_password,
+			force,
+		)
 
-	validate_database_sql(decompressed_file_name, _raise=not force)
+	# Extract public and/or private files to the restored site, if user has given the path
+	if with_public_files:
+		# Decrypt data if there is a Key
+		if encryption_key:
+			with decrypt_backup(with_public_files, encryption_key):
+				public = extract_files(site, with_public_files)
+		else:
+			public = extract_files(site, with_public_files)
 
-	# dont allow downgrading to older versions of frappe without force
-	if not force and is_downgrade(decompressed_file_name, verbose=True):
+		# Removing temporarily created file
+		os.remove(public)
+
+	if with_private_files:
+		# Decrypt data if there is a Key
+		if encryption_key:
+			with decrypt_backup(with_private_files, encryption_key):
+				private = extract_files(site, with_private_files)
+		else:
+			private = extract_files(site, with_private_files)
+
+		# Removing temporarily created file
+		os.remove(private)
+
+	success_message = "Site {} has been restored{}".format(
+		site, " with files" if (with_public_files or with_private_files) else ""
+	)
+	click.secho(success_message, fg="green")
+
+
+def restore_backup(
+	sql_file_path: str,
+	site,
+	db_root_username,
+	db_root_password,
+	verbose,
+	install_app,
+	admin_password,
+	force,
+):
+	from frappe.installer import _new_site, is_downgrade, is_partial, validate_database_sql
+
+	if is_partial(sql_file_path):
+		click.secho(
+			"Partial Backup file detected. You cannot use a partial file to restore a Frappe site.",
+			fg="red",
+		)
+		click.secho(
+			"Use `bench partial-restore` to restore a partial backup to an existing site.",
+			fg="yellow",
+		)
+		sys.exit(1)
+
+	# Check if the backup is of an older version of frappe and the user hasn't specified force
+	if is_downgrade(sql_file_path, verbose=True) and not force:
 		warn_message = (
 			"This is not recommended and may lead to unexpected behaviour. "
 			"Do you want to continue anyway?"
 		)
 		click.confirm(warn_message, abort=True)
+
+	# Validate the sql file
+	validate_database_sql(sql_file_path, _raise=not force)
 
 	try:
 		_new_site(
@@ -251,52 +293,14 @@ def _restore(
 			admin_password=admin_password,
 			verbose=verbose,
 			install_apps=install_app,
-			source_sql=decompressed_file_name,
+			source_sql=sql_file_path,
 			force=True,
 			db_type=frappe.conf.db_type,
 		)
 
 	except Exception as err:
 		print(err.args[1])
-		_backup.decryption_rollback()
 		sys.exit(1)
-
-	# Removing temporarily created file
-	if decompressed_file_name != sql_file_path:
-		os.remove(decompressed_file_name)
-		_backup.decryption_rollback()
-
-	# Extract public and/or private files to the restored site, if user has given the path
-	if with_public_files:
-		# Decrypt data if there is a Key
-		if encryption_key:
-			_backup = Backup(with_public_files)
-			_backup.backup_decryption(encryption_key)
-			if not os.path.exists(with_public_files):
-				_backup.decryption_rollback()
-		public = extract_files(site, with_public_files)
-
-		# Removing temporarily created file
-		os.remove(public)
-		_backup.decryption_rollback()
-
-	if with_private_files:
-		# Decrypt data if there is a Key
-		if encryption_key:
-			_backup = Backup(with_private_files)
-			_backup.backup_decryption(encryption_key)
-			if not os.path.exists(with_private_files):
-				_backup.decryption_rollback()
-		private = extract_files(site, with_private_files)
-
-		# Removing temporarily created file
-		os.remove(private)
-		_backup.decryption_rollback()
-
-	success_message = "Site {} has been restored{}".format(
-		site, " with files" if (with_public_files or with_private_files) else ""
-	)
-	click.secho(success_message, fg="green")
 
 
 @click.command("partial-restore")
@@ -305,38 +309,23 @@ def _restore(
 @click.option("--encryption-key", help="Backup encryption key")
 @pass_context
 def partial_restore(context, sql_file_path, verbose, encryption_key=None):
-	from frappe.installer import extract_sql_from_archive, partial_restore
-	from frappe.utils.backups import Backup, get_or_generate_backup_encryption_key
+	from frappe.installer import is_partial, partial_restore
+	from frappe.utils.backups import decrypt_backup, get_or_generate_backup_encryption_key
 
 	if not os.path.exists(sql_file_path):
 		print("Invalid path", sql_file_path)
 		sys.exit(1)
 
 	site = get_site(context)
-	frappe.init(site=site)
-
-	_backup = Backup(sql_file_path)
-
 	verbose = context.verbose or verbose
-
+	frappe.init(site=site)
 	frappe.connect(site=site)
-	try:
-		decompressed_file_name = extract_sql_from_archive(sql_file_path)
+	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
+	if err:
+		click.secho("Failed to detect type of backup file", fg="red")
+		sys.exit(1)
 
-		with open(decompressed_file_name) as f:
-			header = " ".join(f.readline() for _ in range(5))
-
-			# Check for full backup file
-			if "Partial Backup" not in header:
-				click.secho(
-					"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
-					fg="red",
-				)
-				_backup.decryption_rollback()
-				sys.exit(1)
-
-	except UnicodeDecodeError:
-		_backup.decryption_rollback()
+	if "cipher" in out.decode().split(":")[-1].strip():
 		if encryption_key:
 			click.secho("Encrypted backup file detected. Decrypting using provided key.", fg="yellow")
 			key = encryption_key
@@ -345,35 +334,30 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 			click.secho("Encrypted backup file detected. Decrypting using site config.", fg="yellow")
 			key = get_or_generate_backup_encryption_key()
 
-		_backup.backup_decryption(key)
-
-		# Rollback on unsuccessful decryrption
-		if not os.path.exists(sql_file_path):
-			click.secho("Decryption failed. Please provide a valid key and try again.", fg="red")
-			_backup.decryption_rollback()
-			sys.exit(1)
-
-		decompressed_file_name = extract_sql_from_archive(sql_file_path)
-
-		with open(decompressed_file_name) as f:
-			header = " ".join(f.readline() for _ in range(5))
-
-			# Check for Full backup file.
-			if "Partial Backup" not in header:
+		with decrypt_backup(sql_file_path, key):
+			if not is_partial(sql_file_path):
 				click.secho(
-					"Full Backup file detected.Use `bench restore` to restore a Frappe Site.",
+					"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
 					fg="red",
 				)
-				_backup.decryption_rollback()
 				sys.exit(1)
 
-	partial_restore(sql_file_path, verbose)
+			partial_restore(sql_file_path, verbose)
 
-	# Removing temporarily created file
-	_backup.decryption_rollback()
-	if os.path.exists(sql_file_path.rstrip(".gz")):
-		os.remove(sql_file_path.rstrip(".gz"))
+		# Rollback on unsuccessful decryption
+		if not os.path.exists(sql_file_path):
+			click.secho("Decryption failed. Please provide a valid key and try again.", fg="red")
+			sys.exit(1)
 
+	else:
+		if not is_partial(sql_file_path):
+			click.secho(
+				"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
+				fg="red",
+			)
+			sys.exit(1)
+
+		partial_restore(sql_file_path, verbose)
 	frappe.destroy()
 
 
@@ -406,7 +390,6 @@ def _reinstall(
 	verbose=False,
 ):
 	from frappe.installer import _new_site
-	from frappe.utils.synchronization import filelock
 
 	if not yes:
 		click.confirm("This will wipe your database. Are you sure you want to reinstall?", abort=True)
@@ -516,6 +499,130 @@ def list_apps(context, format):
 
 	if format == "json":
 		click.echo(frappe.as_json(summary_dict))
+
+
+@click.command("add-database-index")
+@click.option("--doctype", help="DocType on which index needs to be added")
+@click.option(
+	"--column",
+	multiple=True,
+	help="Column to index. Multiple columns will create multi-column index in given order. To create a multiple, single column index, execute the command multiple times.",
+)
+@pass_context
+def add_db_index(context, doctype, column):
+	"Adds a new DB index and creates a property setter to persist it."
+	from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+	columns = column  # correct naming
+	for site in context.sites:
+		frappe.connect(site=site)
+		try:
+			frappe.db.add_index(doctype, columns)
+			if len(columns) == 1:
+				make_property_setter(
+					doctype,
+					columns[0],
+					property="search_index",
+					value="1",
+					property_type="Check",
+					for_doctype=False,  # Applied on docfield
+				)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+@click.command("describe-database-table")
+@click.option("--doctype", help="DocType to describe")
+@click.option(
+	"--column",
+	multiple=True,
+	help="Explicitly fetch accurate cardinality from table data. This can be quite slow on large tables.",
+)
+@pass_context
+def describe_database_table(context, doctype, column):
+	"""Describes various statistics about the table.
+
+	This is useful to build integration like
+	This includes:
+	1. Schema
+	2. Indexes
+	3. stats - total count of records
+	4. if column is specified then extra stats are generated for column:
+	        Distinct values count in column
+	"""
+	import json
+
+	for site in context.sites:
+		frappe.connect(site=site)
+		try:
+			data = _extract_table_stats(doctype, column)
+			# NOTE: Do not print anything else in this to avoid clobbering the output.
+			print(json.dumps(data, indent=2))
+		finally:
+			frappe.destroy()
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+
+def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
+	from frappe.utils import cstr, get_table_name
+
+	def sql_bool(val):
+		return cstr(val).lower() in ("yes", "1", "true")
+
+	table = get_table_name(doctype, wrap_in_backticks=True)
+
+	schema = []
+	for field in frappe.db.sql(f"describe {table}", as_dict=True):
+		schema.append(
+			{
+				"column": field["Field"],
+				"type": field["Type"],
+				"is_nullable": sql_bool(field["Null"]),
+				"default": field["Default"],
+			}
+		)
+
+	def update_cardinality(column, value):
+		for col in schema:
+			if col["column"] == column:
+				col["cardinality"] = value
+				break
+
+	indexes = []
+	for idx in frappe.db.sql(f"show index from {table}", as_dict=True):
+		indexes.append(
+			{
+				"unique": not sql_bool(idx["Non_unique"]),
+				"cardinality": idx["Cardinality"],
+				"name": idx["Key_name"],
+				"sequence": idx["Seq_in_index"],
+				"nullable": sql_bool(idx["Null"]),
+				"column": idx["Column_name"],
+				"type": idx["Index_type"],
+			}
+		)
+		if idx["Seq_in_index"] == 1:
+			update_cardinality(idx["Column_name"], idx["Cardinality"])
+
+	total_rows = frappe.db.count(doctype)
+
+	# fetch accurate cardinality for columns by query. WARN: This can take a lot of time.
+	for column in columns:
+		cardinality = frappe.db.sql(f"select count(distinct {column}) from {table}")[0][0]
+		update_cardinality(column, cardinality)
+
+	return {
+		"table_name": table.strip("`"),
+		"total_rows": total_rows,
+		"schema": schema,
+		"indexes": indexes,
+	}
 
 
 @click.command("add-system-manager")
@@ -735,6 +842,9 @@ def use(site, sites_path="."):
 )
 @click.option("--verbose", default=False, is_flag=True, help="Add verbosity")
 @click.option("--compress", default=False, is_flag=True, help="Compress private and public files")
+@click.option(
+	"--old-backup-metadata", default=False, is_flag=True, help="Use older backup metadata"
+)
 @pass_context
 def backup(
 	context,
@@ -749,6 +859,7 @@ def backup(
 	compress=False,
 	include="",
 	exclude="",
+	old_backup_metadata=False,
 ):
 	"Backup"
 
@@ -774,6 +885,7 @@ def backup(
 				compress=compress,
 				verbose=verbose,
 				force=True,
+				old_backup_metadata=old_backup_metadata,
 			)
 		except Exception:
 			click.secho(
@@ -944,9 +1056,9 @@ def move(dest_dir, site):
 	site_dump_exists = True
 	count = 0
 	while site_dump_exists:
-		final_new_path = new_path + (count and str(count) or "")
+		final_new_path = new_path + str(count or "")
 		site_dump_exists = os.path.exists(final_new_path)
-		count = int(count or 0) + 1
+		count += 1
 
 	shutil.move(old_path, final_new_path)
 	frappe.destroy()
@@ -1283,7 +1395,7 @@ def trim_database(context, dry_run, format, no_backup, yes=False):
 		for table_name in database_tables:
 			if not table_name.startswith("tab"):
 				continue
-			if not (table_name.replace("tab", "", 1) in doctype_tables or table_name in STANDARD_TABLES):
+			if table_name.replace("tab", "", 1) not in doctype_tables and table_name not in STANDARD_TABLES:
 				TABLES_TO_DROP.append(table_name)
 
 		if not TABLES_TO_DROP:
@@ -1430,6 +1542,8 @@ def add_new_user(
 commands = [
 	add_system_manager,
 	add_user_for_sites,
+	add_db_index,
+	describe_database_table,
 	backup,
 	drop_site,
 	install_app,

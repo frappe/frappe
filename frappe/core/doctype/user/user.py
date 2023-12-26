@@ -9,6 +9,7 @@ import frappe.defaults
 import frappe.permissions
 import frappe.share
 from frappe import STANDARD_USERS, _, msgprint, throw
+from frappe.auth import MAX_PASSWORD_SIZE
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 from frappe.desk.doctype.notification_settings.notification_settings import (
 	create_notification_settings,
@@ -229,7 +230,7 @@ class User(Document):
 			frappe.cache.delete_key("users_for_mentions")
 
 	def has_website_permission(self, ptype, user, verbose=False):
-		"""Returns true if current user is the session user"""
+		"""Return True if current user is the session user."""
 		return self.name == frappe.session.user
 
 	def set_full_name(self):
@@ -685,7 +686,7 @@ class User(Document):
 		)
 
 	def get_blocked_modules(self):
-		"""Returns list of modules blocked for that user"""
+		"""Return list of modules blocked for that user."""
 		return [d.module for d in self.block_modules] if self.block_modules else []
 
 	def validate_user_email_inbox(self):
@@ -823,6 +824,9 @@ def update_password(
 	        old_password (str, optional): Old password. Defaults to None.
 	"""
 
+	if len(new_password) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("Password size exceeded the maximum allowed size."))
+
 	result = test_password_strength(new_password)
 	feedback = result.get("feedback", None)
 
@@ -872,7 +876,7 @@ def test_password_strength(
 			"Arguments `key` and `old_password` are deprecated in function `test_password_strength`."
 		)
 
-	enable_password_policy = frappe.get_system_settings("enable_password_policy") or 0
+	enable_password_policy = frappe.get_system_settings("enable_password_policy")
 
 	if not enable_password_policy:
 		return {}
@@ -885,7 +889,7 @@ def test_password_strength(
 	if new_password:
 		result = _test_password_strength(new_password, user_inputs=user_data)
 		password_policy_validation_passed = False
-		minimum_password_score = cint(frappe.get_system_settings("minimum_password_score")) or 0
+		minimum_password_score = cint(frappe.get_system_settings("minimum_password_score"))
 
 		# score should be greater than 0 and minimum_password_score
 		if result.get("score") and result.get("score") >= minimum_password_score:
@@ -1079,7 +1083,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 
 
 def get_total_users():
-	"""Returns total no. of system users"""
+	"""Return total number of system users."""
 	return flt(
 		frappe.db.sql(
 			"""SELECT SUM(`simultaneous_sessions`)
@@ -1114,7 +1118,7 @@ def get_system_users(exclude_users: Iterable[str] | str | None = None, limit: in
 
 
 def get_active_users():
-	"""Returns No. of system users who logged in, in the last 3 days"""
+	"""Return number of system users who logged in, in the last 3 days."""
 	return frappe.db.sql(
 		"""select count(*) from `tabUser`
 		where enabled = 1 and user_type != 'Website User'
@@ -1127,12 +1131,12 @@ def get_active_users():
 
 
 def get_website_users():
-	"""Returns total no. of website users"""
+	"""Return total number of website users."""
 	return frappe.db.count("User", filters={"enabled": True, "user_type": "Website User"})
 
 
 def get_active_website_users():
-	"""Returns No. of website users who logged in, in the last 3 days"""
+	"""Return number of website users who logged in, in the last 3 days."""
 	return frappe.db.sql(
 		"""select count(*) from `tabUser`
 		where enabled = 1 and user_type = 'Website User'
@@ -1223,27 +1227,31 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 
 	contact_name = get_contact_name(user.email)
 	if not contact_name:
-		contact = frappe.get_doc(
-			{
-				"doctype": "Contact",
-				"first_name": user.first_name,
-				"last_name": user.last_name,
-				"user": user.name,
-				"gender": user.gender,
-			}
-		)
+		try:
+			contact = frappe.get_doc(
+				{
+					"doctype": "Contact",
+					"first_name": user.first_name,
+					"last_name": user.last_name,
+					"user": user.name,
+					"gender": user.gender,
+				}
+			)
 
-		if user.email:
-			contact.add_email(user.email, is_primary=True)
+			if user.email:
+				contact.add_email(user.email, is_primary=True)
 
-		if user.phone:
-			contact.add_phone(user.phone, is_primary_phone=True)
+			if user.phone:
+				contact.add_phone(user.phone, is_primary_phone=True)
 
-		if user.mobile_no:
-			contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
-		contact.insert(
-			ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory
-		)
+			if user.mobile_no:
+				contact.add_phone(user.mobile_no, is_primary_mobile_no=True)
+
+			contact.insert(
+				ignore_permissions=True, ignore_links=ignore_links, ignore_mandatory=ignore_mandatory
+			)
+		except frappe.DuplicateEntryError:
+			pass
 	else:
 		contact = frappe.get_doc("Contact", contact_name)
 		contact.first_name = user.first_name

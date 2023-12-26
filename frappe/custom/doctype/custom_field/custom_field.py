@@ -94,6 +94,7 @@ class CustomField(Document):
 		is_virtual: DF.Check
 		label: DF.Data | None
 		length: DF.Int
+		link_filters: DF.JSON | None
 		mandatory_depends_on: DF.Code | None
 		module: DF.Link | None
 		no_copy: DF.Check
@@ -356,7 +357,7 @@ def rename_fieldname(custom_field: str, fieldname: str):
 	if field.is_system_generated:
 		frappe.throw(_("System Generated Fields can not be renamed"))
 	if frappe.db.has_column(parent_doctype, fieldname):
-		frappe.throw(_("Can not rename as fieldname {0} is already present on DocType."))
+		frappe.throw(_("Can not rename as column {0} is already present on DocType.").format(fieldname))
 	if old_fieldname == new_fieldname:
 		frappe.msgprint(_("Old and new fieldnames are same."), alert=True)
 		return

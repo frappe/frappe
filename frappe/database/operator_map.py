@@ -17,21 +17,21 @@ def like(key: Field, value: str) -> frappe.qb:
 	        key (str): field
 	        value (str): criterion
 
-	Returns:
-	        frappe.qb: `frappe.qb object with `LIKE`
+	Return:
+	        frappe.qb: `frappe.qb` object with `LIKE`
 	"""
 	return key.like(value)
 
 
 def func_in(key: Field, value: list | tuple) -> frappe.qb:
-	"""Wrapper method for `IN`
+	"""Wrapper method for `IN`.
 
 	Args:
 	        key (str): field
 	        value (Union[int, str]): criterion
 
-	Returns:
-	        frappe.qb: `frappe.qb object with `IN`
+	Return:
+	        frappe.qb: `frappe.qb` object with `IN`
 	"""
 	if isinstance(value, str):
 		value = value.split(",")
@@ -39,27 +39,27 @@ def func_in(key: Field, value: list | tuple) -> frappe.qb:
 
 
 def not_like(key: Field, value: str) -> frappe.qb:
-	"""Wrapper method for `NOT LIKE`
+	"""Wrapper method for `NOT LIKE`.
 
 	Args:
 	        key (str): field
 	        value (str): criterion
 
-	Returns:
-	        frappe.qb: `frappe.qb object with `NOT LIKE`
+	Return:
+	        frappe.qb: `frappe.qb` object with `NOT LIKE`
 	"""
 	return key.not_like(value)
 
 
 def func_not_in(key: Field, value: list | tuple | str):
-	"""Wrapper method for `NOT IN`
+	"""Wrapper method for `NOT IN`.
 
 	Args:
 	        key (str): field
 	        value (Union[int, str]): criterion
 
-	Returns:
-	        frappe.qb: `frappe.qb object with `NOT IN`
+	Return:
+	        frappe.qb: `frappe.qb` object with `NOT IN`
 	"""
 	if isinstance(value, str):
 		value = value.split(",")
@@ -73,21 +73,21 @@ def func_regex(key: Field, value: str) -> frappe.qb:
 	        key (str): field
 	        value (str): criterion
 
-	Returns:
-	        frappe.qb: `frappe.qb object with `REGEX`
+	Return:
+	        frappe.qb: `frappe.qb` object with `REGEX`
 	"""
 	return key.regex(value)
 
 
 def func_between(key: Field, value: list | tuple) -> frappe.qb:
-	"""Wrapper method for `BETWEEN`
+	"""Wrapper method for `BETWEEN`.
 
 	Args:
 	        key (str): field
 	        value (Union[int, str]): criterion
 
-	Returns:
-	        frappe.qb: `frappe.qb object with `BETWEEN`
+	Return:
+	        frappe.qb: `frappe.qb` object with `BETWEEN`
 	"""
 	return key[slice(*value)]
 
@@ -98,14 +98,14 @@ def func_is(key, value):
 
 
 def func_timespan(key: Field, value: str) -> frappe.qb:
-	"""Wrapper method for `TIMESPAN`
+	"""Wrapper method for `TIMESPAN`.
 
 	Args:
 	        key (str): field
 	        value (str): criterion
 
-	Returns:
-	        frappe.qb: `frappe.qb object with `TIMESPAN`
+	Return:
+	        frappe.qb: `frappe.qb` object with `TIMESPAN`
 	"""
 
 	return func_between(key, get_timespan_date_range(value))

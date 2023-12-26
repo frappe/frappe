@@ -19,7 +19,7 @@
    "fieldname": "template",
    "fieldtype": "Code",
    "label": "Template",
-   "options": "HTML"
+   "options": "Jinja"
   },
   {
    "fieldname": "fields",
@@ -54,7 +54,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-04 12:38:27.656042",
+ "modified": "2023-12-12 20:01:21.524022",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template",
@@ -76,5 +76,6 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

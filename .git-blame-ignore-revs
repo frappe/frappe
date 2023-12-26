@@ -40,3 +40,6 @@ f223bc02490902dfcc32892058f13f343d51fbaf
 
 # frappe.cache() -> frappe.cache
 fa6dc03cc87ad74e11609e7373078366fdcb3e1b
+
+# Bulk refactor with sourcery
+c35476256f85271fb57584eb0a26f4d9def3caf4

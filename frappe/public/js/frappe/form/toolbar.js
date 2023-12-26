@@ -498,6 +498,19 @@ frappe.ui.form.Toolbar = class Toolbar {
 				}
 			);
 		}
+
+		if (
+			this.frm.doc.amended_from &&
+			frappe.model.get_value("DocType", this.frm.doc.doctype, "track_changes")
+		) {
+			this.page.add_menu_item(
+				__("View Audit Trail"),
+				function () {
+					frappe.set_route("audit-trail");
+				},
+				true
+			);
+		}
 	}
 
 	make_customize_buttons() {

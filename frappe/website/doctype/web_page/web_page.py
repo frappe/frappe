@@ -78,7 +78,7 @@ class WebPage(WebsiteGenerator):
 
 		if self.context_script:
 			_locals = dict(context=frappe._dict())
-			safe_exec(self.context_script, None, _locals)
+			safe_exec(self.context_script, None, _locals, script_filename=f"web page {self.name}")
 			context.update(_locals["context"])
 
 		self.render_dynamic(context)
@@ -125,7 +125,7 @@ class WebPage(WebsiteGenerator):
 			frappe.flags.web_block_styles = {}
 			try:
 				context["main_section"] = render_template(context.main_section, context)
-				if not "<!-- static -->" in context.main_section:
+				if "<!-- static -->" not in context.main_section:
 					context["no_cache"] = 1
 			except TemplateSyntaxError:
 				raise
@@ -137,13 +137,13 @@ class WebPage(WebsiteGenerator):
 		"""Build breadcrumbs template"""
 		if self.breadcrumbs:
 			context.parents = frappe.safe_eval(self.breadcrumbs, {"_": _})
-		if not "no_breadcrumbs" in context:
+		if "no_breadcrumbs" not in context:
 			if "<!-- no-breadcrumbs -->" in context.main_section:
 				context.no_breadcrumbs = 1
 
 	def set_title_and_header(self, context):
 		"""Extract and set title and header from content or context."""
-		if not "no_header" in context:
+		if "no_header" not in context:
 			if "<!-- no-header -->" in context.main_section:
 				context.no_header = 1
 
@@ -235,7 +235,7 @@ def check_publish_status():
 
 
 def get_web_blocks_html(blocks):
-	"""Converts a list of blocks into Raw HTML and extracts out their scripts for deduplication"""
+	"""Convert a list of blocks into Raw HTML and extract out their scripts for deduplication."""
 
 	out = frappe._dict(html="", scripts={}, styles={})
 	extracted_scripts = {}

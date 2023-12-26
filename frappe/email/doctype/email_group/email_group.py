@@ -1,6 +1,8 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import contextlib
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -16,10 +18,12 @@ class EmailGroup(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		add_query_parameters: DF.Check
 		confirmation_email_template: DF.Link | None
 		title: DF.Data
 		total_subscribers: DF.Int
 		welcome_email_template: DF.Link | None
+		welcome_url: DF.Data | None
 	# end: auto-generated types
 	def onload(self):
 		singles = [d.name for d in frappe.get_all("DocType", "name", {"issingle": 1})]
@@ -41,7 +45,7 @@ class EmailGroup(Document):
 		added = 0
 
 		for user in frappe.get_all(doctype, [email_field, unsubscribed_field or "name"]):
-			try:
+			with contextlib.suppress(frappe.UniqueValidationError, frappe.InvalidEmailAddressError):
 				email = parse_addr(user.get(email_field))[1] if user.get(email_field) else None
 				if email:
 					frappe.get_doc(
@@ -52,10 +56,7 @@ class EmailGroup(Document):
 							"unsubscribed": user.get(unsubscribed_field) if unsubscribed_field else 0,
 						}
 					).insert(ignore_permissions=True)
-
 					added += 1
-			except frappe.UniqueValidationError:
-				pass
 
 		frappe.msgprint(_("{0} subscribers added").format(added))
 
@@ -72,6 +73,22 @@ class EmailGroup(Document):
 			where email_group=%s""",
 			self.name,
 		)[0][0]
+
+	@frappe.whitelist()
+	def preview_welcome_url(self, email: str | None = None) -> str | None:
+		"""Get Welcome URL for the email group."""
+		return self.get_welcome_url(email)
+
+	def get_welcome_url(self, email: str | None = None) -> str | None:
+		"""Get Welcome URL for the email group."""
+		if not self.welcome_url:
+			return None
+
+		return (
+			add_query_params(self.welcome_url, {"email": email, "email_group": self.name})
+			if self.add_query_parameters
+			else self.welcome_url
+		)
 
 	def on_trash(self):
 		for d in frappe.get_all("Email Group Member", "name", {"email_group": self.name}):
@@ -123,6 +140,21 @@ def send_welcome_email(welcome_email, email, email_group):
 		return
 
 	args = dict(email=email, email_group=email_group)
-	email_message = welcome_email.response or welcome_email.response_html
-	message = frappe.render_template(email_message, args)
+	message = frappe.render_template(welcome_email.response_, args)
 	frappe.sendmail(email, subject=welcome_email.subject, message=message)
+
+
+def add_query_params(url: str, params: dict) -> str:
+	from urllib.parse import urlencode, urlparse, urlunparse
+
+	if not params:
+		return url
+
+	query_string = urlencode(params)
+	parsed = list(urlparse(url))
+	if parsed[4]:
+		parsed[4] += f"&{query_string}"
+	else:
+		parsed[4] = query_string
+
+	return urlunparse(parsed)

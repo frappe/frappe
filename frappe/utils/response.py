@@ -145,7 +145,9 @@ def as_pdf():
 def as_binary():
 	response = Response()
 	response.mimetype = "application/octet-stream"
-	response.headers.add("Content-Disposition", None, filename=frappe.response["filename"])
+	filename = frappe.response["filename"]
+	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
+	response.headers.add("Content-Disposition", None, filename=filename)
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -175,7 +177,7 @@ def _make_logs_v1():
 	if frappe.local.message_log:
 		response["_server_messages"] = json.dumps([json.dumps(d) for d in frappe.local.message_log])
 
-	if frappe.debug_log and frappe.conf.get("logging"):
+	if frappe.debug_log:
 		response["_debug_messages"] = json.dumps(frappe.local.debug_log)
 
 	if frappe.flags.error_message:
@@ -188,7 +190,7 @@ def _make_logs_v2():
 	if frappe.local.message_log:
 		response["messages"] = frappe.local.message_log
 
-	if frappe.debug_log and frappe.conf.get("logging"):
+	if frappe.debug_log:
 		response["debug"] = [{"message": m} for m in frappe.local.debug_log]
 
 

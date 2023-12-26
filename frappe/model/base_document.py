@@ -31,6 +31,7 @@ from frappe.utils import (
 	sanitize_html,
 	strip_html,
 )
+from frappe.utils.defaults import get_not_null_defaults
 from frappe.utils.html_utils import unescape_html
 
 if TYPE_CHECKING:
@@ -54,9 +55,9 @@ DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 
 
 def get_controller(doctype):
-	"""
-	Returns the locally cached **class** object of the given DocType.
-	For `custom` type, returns `frappe.model.document.Document`.
+	"""Return the locally cached **class** object of the given DocType.
+
+	For `custom` type, return `frappe.model.document.Document`.
 
 	:param doctype: DocType name as string.
 	"""
@@ -145,9 +146,9 @@ class BaseDocument:
 		return get_permitted_fields(doctype=self.doctype, parenttype=getattr(self, "parenttype", None))
 
 	def __getstate__(self):
-		"""
+		"""Return a copy of `__dict__` excluding unpicklable values like `meta`.
+
 		Called when pickling.
-		Returns a copy of `__dict__` excluding unpicklable values like `meta`.
 		More info: https://docs.python.org/3/library/pickle.html#handling-stateful-objects
 		"""
 
@@ -343,18 +344,17 @@ class BaseDocument:
 					if ignore_virtual or fieldname not in self.permitted_fieldnames:
 						continue
 
-					if value is None:
-						if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
-							value = getattr(self, fieldname)
+					if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+						value = getattr(self, fieldname)
 
-						elif options := getattr(df, "options", None):
-							from frappe.utils.safe_exec import get_safe_globals
+					elif options := getattr(df, "options", None):
+						from frappe.utils.safe_exec import get_safe_globals
 
-							value = frappe.safe_eval(
-								code=options,
-								eval_globals=get_safe_globals(),
-								eval_locals={"doc": self},
-							)
+						value = frappe.safe_eval(
+							code=options,
+							eval_globals=get_safe_globals(),
+							eval_locals={"doc": self},
+						)
 
 				if isinstance(value, list) and df.fieldtype not in table_fields:
 					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label)))
@@ -383,6 +383,13 @@ class BaseDocument:
 
 			if ignore_nulls and not is_virtual_field and value is None:
 				continue
+
+			# If the docfield is not nullable - set a default non-null value
+			if value is None and getattr(df, "not_nullable", False):
+				if df.default:
+					value = df.default
+				else:
+					value = get_not_null_defaults(df.fieldtype)
 
 			d[fieldname] = value
 
@@ -626,7 +633,7 @@ class BaseDocument:
 
 	def get_field_name_by_key_name(self, key_name):
 		"""MariaDB stores a mapping between `key_name` and `column_name`.
-		This function returns the `column_name` associated with the `key_name` passed
+		Return the `column_name` associated with the `key_name` passed.
 
 		Args:
 		        key_name (str): The name of the database index.
@@ -634,7 +641,7 @@ class BaseDocument:
 		Raises:
 		        IndexError: If the key is not found in the table.
 
-		Returns:
+		Return:
 		        str: The column name associated with the key.
 		"""
 		return frappe.db.sql(
@@ -653,12 +660,12 @@ class BaseDocument:
 		)[0].get("Column_name")
 
 	def get_label_from_fieldname(self, fieldname):
-		"""Returns the associated label for fieldname
+		"""Return the associated label for fieldname.
 
 		Args:
 		        fieldname (str): The fieldname in the DocType to use to pull the label.
 
-		Returns:
+		Return:
 		        str: The label associated with the fieldname, if found, otherwise `None`.
 		"""
 		df = self.meta.get_field(fieldname)
@@ -736,7 +743,7 @@ class BaseDocument:
 		return missing
 
 	def get_invalid_links(self, is_submittable=False):
-		"""Returns list of invalid links and also updates fetch values if not set"""
+		"""Return list of invalid links and also update fetch values if not set."""
 
 		def get_msg(df, docname):
 			# check if parentfield exists (only applicable for child table doctype)
@@ -843,7 +850,7 @@ class BaseDocument:
 			return
 
 		for df in self.meta.get_select_fields():
-			if df.fieldname == "naming_series" or not (self.get(df.fieldname) and df.options):
+			if df.fieldname == "naming_series" or not self.get(df.fieldname) or not df.options:
 				continue
 
 			options = (df.options or "").split("\n")
@@ -1105,7 +1112,7 @@ class BaseDocument:
 		return "".join(set(pwd)) == "*"
 
 	def precision(self, fieldname, parentfield=None) -> int | None:
-		"""Returns float precision for a particular field (or get global default).
+		"""Return float precision for a particular field (or get global default).
 
 		:param fieldname: Fieldname for which precision is required.
 		:param parentfield: If fieldname is in child table."""
@@ -1167,7 +1174,7 @@ class BaseDocument:
 		return format_value(val, df=df, doc=doc, currency=currency, format=format)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
-		"""Returns true if fieldname is to be hidden for print.
+		"""Return True if fieldname is to be hidden for print.
 
 		Print Hide can be set via the Print Format Builder or in the controller as a list
 		of hidden fields. Example
@@ -1196,7 +1203,8 @@ class BaseDocument:
 		return print_hide
 
 	def in_format_data(self, fieldname):
-		"""Returns True if shown via Print Format::`format_data` property.
+		"""Return True if shown via Print Format::`format_data` property.
+
 		Called from within standard print format."""
 		doc = getattr(self, "parent_doc", self)
 

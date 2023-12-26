@@ -110,7 +110,7 @@ export default class WebFormList {
 
 	fetch_data() {
 		if (this.condition_json && JSON.parse(this.condition_json)) {
-			let filter = frappe.utils.get_filter_from_json(this.condition_json);
+			let filter = frappe.utils.get_filter_from_json(this.condition_json, this.doctype);
 			filter = frappe.utils.get_filter_as_json(filter);
 			this.filters = Object.assign(this.filters, JSON.parse(filter));
 		}

@@ -90,7 +90,7 @@ export default class GridRow {
 		this.wrapper
 			.find(".grid-row-check")
 			.prop("checked", this.doc ? !!this.doc.__checked : false);
-		this.grid.refresh_remove_rows_button();
+		this.grid.debounced_refresh_remove_rows_button();
 	}
 	remove() {
 		var me = this;
@@ -902,6 +902,14 @@ export default class GridRow {
 			}, 600);
 		}
 
+		function trigger_focus(input_field, col_df) {
+			if (["Date", "Datetime"].includes(col_df.fieldtype) && col_df?.read_only) {
+				return;
+			}
+
+			input_field.trigger("focus");
+		}
+
 		var $col = $(
 			'<div class="col grid-static-col col-xs-' + colsize + " " + add_class + '"></div>'
 		)
@@ -978,7 +986,7 @@ export default class GridRow {
 						}
 					});
 
-				!input_in_focus && first_input_field.trigger("focus");
+				!input_in_focus && trigger_focus(first_input_field, $(col).data("df"));
 
 				if (event.pointerType == "touch") {
 					first_input_field.length && on_input_focus(first_input_field);

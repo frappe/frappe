@@ -73,7 +73,7 @@ def enqueue_events_for_site(site: str) -> None:
 		if is_scheduler_inactive():
 			return
 
-		enqueue_events(site=site)
+		enqueue_events()
 
 		frappe.logger("scheduler").debug(f"Queued events for site {site}")
 	except Exception as e:
@@ -85,7 +85,7 @@ def enqueue_events_for_site(site: str) -> None:
 		frappe.destroy()
 
 
-def enqueue_events(site: str) -> list[str] | None:
+def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
 		enqueued_jobs = []
 		for job_type in frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*"):
@@ -141,8 +141,8 @@ def disable_scheduler():
 
 
 def schedule_jobs_based_on_activity(check_time=None):
-	"""Returns True for active sites defined by Activity Log
-	Returns True for inactive sites once in 24 hours"""
+	"""Return True for active sites as defined by `Activity Log`.
+	Also return True for inactive sites once every 24 hours based on `Scheduled Job Log`."""
 	if is_dormant(check_time=check_time):
 		# ensure last job is one day old
 		last_job_timestamp = _get_last_modified_timestamp("Scheduled Job Log")
