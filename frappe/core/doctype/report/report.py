@@ -105,7 +105,7 @@ class Report(Document):
 				self.set("roles", roles)
 
 	def is_permitted(self):
-		"""Returns true if Has Role is not set or the user is allowed."""
+		"""Return True if `Has Role` is not set or the user is allowed."""
 		from frappe.utils import has_common
 
 		allowed = [

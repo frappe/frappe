@@ -218,7 +218,7 @@ class Engine:
 			self.query = self.query.where(operator_fn(_field, _value))
 
 	def get_function_object(self, field: str) -> "Function":
-		"""Expects field to look like 'SUM(*)' or 'name' or something similar. Returns PyPika Function object"""
+		"""Return PyPika Function object. Expect field to look like 'SUM(*)' or 'name' or something similar."""
 		func = field.split("(", maxsplit=1)[0].capitalize()
 		args_start, args_end = len(func) + 1, field.index(")")
 		args = field[args_start:args_end].split(",")

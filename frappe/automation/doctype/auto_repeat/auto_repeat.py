@@ -297,11 +297,11 @@ class AutoRepeat(Document):
 
 	def get_next_schedule_date(self, schedule_date, for_full_schedule=False):
 		"""
-		Returns the next schedule date for auto repeat after a recurring document has been created.
-		Adds required offset to the schedule_date param and returns the next schedule date.
+		Return the next schedule date for auto repeat after a recurring document has been created.
+		Add required offset to the schedule_date param and return the next schedule date.
 
 		:param schedule_date: The date when the last recurring document was created.
-		:param for_full_schedule: If True, returns the immediate next schedule date, else the full schedule.
+		:param for_full_schedule: If True, return the immediate next schedule date, else the full schedule.
 		"""
 		if month_map.get(self.frequency):
 			month_count = month_map.get(self.frequency) + month_diff(schedule_date, self.start_date) - 1

@@ -22,6 +22,7 @@ class EmailTemplate(Document):
 		subject: DF.Data
 		use_html: DF.Check
 	# end: auto-generated types
+
 	@property
 	def response_(self):
 		return self.response_html if self.use_html else self.response
@@ -48,7 +49,7 @@ class EmailTemplate(Document):
 
 @frappe.whitelist()
 def get_email_template(template_name, doc):
-	"""Returns the processed HTML of a email template with the given doc"""
+	"""Return the processed HTML of a email template with the given doc"""
 
 	email_template = frappe.get_doc("Email Template", template_name)
 	return email_template.get_formatted_email(doc)

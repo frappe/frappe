@@ -10,8 +10,8 @@ from frappe.utils import cstr
 
 @frappe.whitelist()
 def make_mapped_doc(method, source_name, selected_children=None, args=None):
-	"""Returns the mapped document calling the given mapper method.
-	Sets selected_children as flags for the `get_mapped_doc` method.
+	"""Return the mapped document calling the given mapper method.
+	Set `selected_children` as flags for the `get_mapped_doc` method.
 
 	Called from `open_mapped_doc` from create_new.js"""
 
@@ -22,8 +22,7 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 
 	method = frappe.get_attr(method)
 
-	if method not in frappe.whitelisted:
-		raise frappe.PermissionError
+	frappe.is_whitelisted(method)
 
 	if selected_children:
 		selected_children = json.loads(selected_children)
@@ -38,15 +37,15 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 
 @frappe.whitelist()
 def map_docs(method, source_names, target_doc, args=None):
-	'''Returns the mapped document calling the given mapper method
-	with each of the given source docs on the target doc
+	"""Return the mapped document calling the given mapper method with each of the given source docs on the target doc.
 
 	:param args: Args as string to pass to the mapper method
-	E.g. args: "{ 'supplier': 'XYZ' }"'''
+
+	e.g. args: "{ 'supplier': 'XYZ' }"
+	"""
 
 	method = frappe.get_attr(method)
-	if method not in frappe.whitelisted:
-		raise frappe.PermissionError
+	frappe.is_whitelisted(method)
 
 	for src in json.loads(source_names):
 		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)

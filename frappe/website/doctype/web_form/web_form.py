@@ -107,7 +107,7 @@ class WebForm(WebsiteGenerator):
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
 
 	def reset_field_parent(self):
-		"""Convert link fields to select with names as options"""
+		"""Convert link fields to select with names as options."""
 		for df in self.web_form_fields:
 			df.parent = self.doc_type
 

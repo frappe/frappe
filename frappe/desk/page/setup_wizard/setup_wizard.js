@@ -349,12 +349,16 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 	setup_telemetry_events() {
 		let me = this;
 		this.fields.filter(frappe.model.is_value_type).forEach((field) => {
-			me.get_input(field.fieldname).on("change", function () {
-				frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
-				if (field.fieldname == "enable_telemetry" && !me.get_value("enable_telemetry")) {
-					frappe.telemetry.disable();
-				}
-			});
+			field.fieldname &&
+				me.get_input(field.fieldname)?.on("change", function () {
+					frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
+					if (
+						field.fieldname == "enable_telemetry" &&
+						!me.get_value("enable_telemetry")
+					) {
+						frappe.telemetry.disable();
+					}
+				});
 		});
 	}
 };

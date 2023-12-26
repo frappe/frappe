@@ -298,7 +298,7 @@ class Communication(Document, CommunicationEmailMixin):
 
 	@staticmethod
 	def _get_emails_list(emails=None, exclude_displayname=False):
-		"""Returns list of emails from given email string.
+		"""Return list of emails from given email string.
 
 		* Removes duplicate mailids
 		* Removes display name from email address if exclude_displayname is True
@@ -309,15 +309,15 @@ class Communication(Document, CommunicationEmailMixin):
 		return [email.lower() for email in set(emails) if email]
 
 	def to_list(self, exclude_displayname=True):
-		"""Returns to list."""
+		"""Return `to` list."""
 		return self._get_emails_list(self.recipients, exclude_displayname=exclude_displayname)
 
 	def cc_list(self, exclude_displayname=True):
-		"""Returns cc list."""
+		"""Return `cc` list."""
 		return self._get_emails_list(self.cc, exclude_displayname=exclude_displayname)
 
 	def bcc_list(self, exclude_displayname=True):
-		"""Returns bcc list."""
+		"""Return `bcc` list."""
 		return self._get_emails_list(self.bcc, exclude_displayname=exclude_displayname)
 
 	def get_attachments(self):
@@ -438,7 +438,7 @@ class Communication(Document, CommunicationEmailMixin):
 				frappe.db.commit()
 
 	def parse_email_for_timeline_links(self):
-		if not frappe.db.get_value("Email Account", self.email_account, "enable_automatic_linking"):
+		if not frappe.db.get_value("Email Account", filters={"enable_automatic_linking": 1}):
 			return
 
 		for doctype, docname in parse_email([self.recipients, self.cc, self.bcc]):
@@ -615,9 +615,9 @@ def parse_email(email_strings):
 
 
 def get_email_without_link(email):
-	"""
-	returns email address without doctype links
-	returns admin@example.com for email admin+doctype+docname@example.com
+	"""Return email address without doctype links.
+
+	e.g. 'admin@example.com' is returned for email 'admin+doctype+docname@example.com'
 	"""
 	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
 		return email

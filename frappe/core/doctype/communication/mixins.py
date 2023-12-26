@@ -29,7 +29,7 @@ class CommunicationEmailMixin:
 		)
 
 	def get_email_with_displayname(self, email_address):
-		"""Returns email address after adding displayname."""
+		"""Return email address after adding displayname."""
 		display_name, email = parse_addr(email_address)
 		if display_name and display_name != email:
 			return email_address
@@ -151,7 +151,7 @@ class CommunicationEmailMixin:
 		return self.content
 
 	def get_attach_link(self, print_format):
-		"""Returns public link for the attachment via `templates/emails/print_link.html`."""
+		"""Return public link for the attachment via `templates/emails/print_link.html`."""
 		return frappe.get_template("templates/emails/print_link.html").render(
 			{
 				"url": get_url(),
