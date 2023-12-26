@@ -10,6 +10,8 @@ import frappe.translate
 from frappe import _
 from frappe.tests.utils import FrappeTestCase
 from frappe.translate import (
+	MERGED_TRANSLATION_KEY,
+	USER_TRANSLATION_KEY,
 	clear_cache,
 	extract_javascript,
 	extract_messages_from_javascript_code,
@@ -44,6 +46,17 @@ class TestTranslate(FrappeTestCase):
 		frappe.form_dict.pop("_lang", None)
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Administrator")
+
+	def test_clear_cache(self):
+		_("Trigger caching")
+
+		self.assertIsNotNone(frappe.cache.hget(USER_TRANSLATION_KEY, frappe.local.lang))
+		self.assertIsNotNone(frappe.cache.hget(MERGED_TRANSLATION_KEY, frappe.local.lang))
+
+		clear_cache()
+
+		self.assertIsNone(frappe.cache.hget(USER_TRANSLATION_KEY, frappe.local.lang))
+		self.assertIsNone(frappe.cache.hget(MERGED_TRANSLATION_KEY, frappe.local.lang))
 
 	def test_extract_message_from_file(self):
 		data = frappe.translate.get_messages_from_file(translation_string_file)

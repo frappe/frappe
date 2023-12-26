@@ -264,13 +264,9 @@ def get_user_translations(lang):
 
 def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
-	frappe.cache.delete_key("langinfo")
-
-	# clear translations saved in boot cache
-	frappe.cache.delete_key("bootinfo")
-	frappe.cache.delete_key("translation_assets")
-	frappe.cache.delete_key(USER_TRANSLATION_KEY)
-	frappe.cache.delete_key(MERGED_TRANSLATION_KEY)
+	frappe.cache.delete_value(
+		keys=["bootinfo", USER_TRANSLATION_KEY, MERGED_TRANSLATION_KEY],
+	)
 
 
 def get_messages_for_app(app, deduplicate=True):
@@ -1019,7 +1015,6 @@ def import_translations(lang, path):
 
 def migrate_translations(source_app, target_app):
 	"""Migrate target-app-specific translations from source-app to target-app"""
-	clear_cache()
 	strings_in_source_app = [m[1] for m in frappe.translate.get_messages_for_app(source_app)]
 	strings_in_target_app = [m[1] for m in frappe.translate.get_messages_for_app(target_app)]
 

@@ -16,9 +16,6 @@ from frappe.utils import get_bench_path
 DEFAULT_LANG = "en"
 PO_DIR = "locale"  # po and pot files go into [app]/locale
 POT_FILE = "main.pot"  # the app's pot file is always main.pot
-MERGED_TRANSLATION_KEY = "gettext_merged_translations"
-APP_TRANSLATION_KEY = "gettext_app_translations"
-USER_TRANSLATION_KEY = "gettext_user_translations"
 
 
 def new_catalog(app: str, locale: str | None = None) -> Catalog:
@@ -275,19 +272,6 @@ def get_translations_from_mo(lang, app):
 					translations[m.id] = m.string
 
 	return translations
-
-
-def clear_cache():
-	"""Clear all translation assets from :meth:`frappe.cache`"""
-	cache = frappe.cache()
-	cache.delete_key("langinfo")
-
-	# clear translations saved in boot cache
-	cache.delete_key("bootinfo")
-	cache.delete_key("translation_assets", shared=True)
-	cache.delete_key(APP_TRANSLATION_KEY, shared=True)
-	cache.delete_key(USER_TRANSLATION_KEY)
-	cache.delete_key(MERGED_TRANSLATION_KEY)
 
 
 def escape_percent(s: str):

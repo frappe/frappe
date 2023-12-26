@@ -11,10 +11,7 @@ class TestTranslation(FrappeTestCase):
 
 	def tearDown(self):
 		frappe.local.lang = "en"
-		if frappe.conf.use_gettext:
-			from frappe.gettext.translate import clear_cache
-		else:
-			from frappe.translate import clear_cache
+		from frappe.translate import clear_cache
 
 		clear_cache()
 
