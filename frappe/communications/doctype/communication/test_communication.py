@@ -3,8 +3,12 @@
 from typing import TYPE_CHECKING
 
 import frappe
-from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
-from frappe.core.doctype.communication.email import add_attachments
+from frappe.communications.doctype.communication.communication import (
+	Communication,
+	get_emails,
+	parse_email,
+)
+from frappe.communications.doctype.communication.email import add_attachments
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests.utils import FrappeTestCase
 

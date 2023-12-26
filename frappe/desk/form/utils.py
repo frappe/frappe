@@ -12,7 +12,7 @@ from frappe.core.doctype.file.utils import extract_images_from_html
 from frappe.desk.form.document_follow import follow_document
 
 if TYPE_CHECKING:
-	from frappe.core.doctype.comment.comment import Comment
+	from frappe.desk.doctype.comment.comment import Comment
 
 
 @frappe.whitelist(methods=["DELETE", "POST"])

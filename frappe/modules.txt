@@ -10,3 +10,4 @@ Printing
 Contacts
 Social
 Automation
+Communications

@@ -337,7 +337,7 @@
  "max_attachments": 0, 
  "modified": "2018-08-21 16:15:40.898889", 
  "modified_by": "Administrator", 
- "module": "Core", 
+ "module": "Communications",
  "name": "SMS Log", 
  "owner": "Administrator", 
  "permissions": [

@@ -6,10 +6,10 @@ import os
 
 import frappe
 from frappe import _
+from frappe.communications.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
+from frappe.communications.doctype.sms_settings.sms_settings import send_sms
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
-from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
-from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import add_to_date, cast, nowdate, validate_email_address
@@ -26,7 +26,7 @@ class Notification(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.email.doctype.notification_recipient.notification_recipient import (
+		from frappe.communications.doctype.notification_recipient.notification_recipient import (
 			NotificationRecipient,
 		)
 		from frappe.types import DF
@@ -247,7 +247,7 @@ def get_context(context):
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
 
-		from frappe.core.doctype.communication.email import _make as make_communication
+		from frappe.communications.doctype.communication.email import _make as make_communication
 
 		subject = self.subject
 		if "{" in subject:

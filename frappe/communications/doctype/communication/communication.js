@@ -143,7 +143,7 @@ frappe.ui.form.on("Communication", {
 					label: __("Reference Doctype"),
 					fieldname: "reference_doctype",
 					get_query: function () {
-						return { query: "frappe.email.get_communication_doctype" };
+						return { query: "frappe.communications..inbox.get_communication_doctype" };
 					},
 				},
 				{
@@ -166,7 +166,7 @@ frappe.ui.form.on("Communication", {
 					function () {
 						d.hide();
 						frappe.call({
-							method: "frappe.email.relink",
+							method: "frappe.communications.inbox.relink",
 							args: {
 								name: frm.doc.name,
 								reference_doctype: values["reference_doctype"],
@@ -213,7 +213,7 @@ frappe.ui.form.on("Communication", {
 			primary_action(values) {
 				d.hide();
 				frappe.call({
-					method: "frappe.email.inbox.move_email",
+					method: "frappe.communications.inbox.move_email",
 					args: {
 						communication: frm.doc.name,
 						email_account: values.email_account,
@@ -233,7 +233,7 @@ frappe.ui.form.on("Communication", {
 		var flag = "(\\SEEN)";
 
 		return frappe.call({
-			method: "frappe.email.inbox.create_email_flag_queue",
+			method: "frappe.communications.inbox.create_email_flag_queue",
 			args: {
 				names: [frm.doc.name],
 				action: action,
@@ -250,7 +250,7 @@ frappe.ui.form.on("Communication", {
 		var status = frm.doc.status == "Open" ? "Closed" : "Open";
 
 		return frappe.call({
-			method: "frappe.email.inbox.mark_as_closed_open",
+			method: "frappe.communications.inbox.mark_as_closed_open",
 			args: {
 				communication: frm.doc.name,
 				status: status,
@@ -332,7 +332,7 @@ frappe.ui.form.on("Communication", {
 
 	mark_as_spam: function (frm) {
 		frappe.call({
-			method: "frappe.email.inbox.mark_as_spam",
+			method: "frappe.communications.inbox.mark_as_spam",
 			args: {
 				communication: frm.doc.name,
 				sender: frm.doc.sender,
@@ -346,7 +346,7 @@ frappe.ui.form.on("Communication", {
 
 	move_to_trash: function (frm) {
 		frappe.call({
-			method: "frappe.email.inbox.mark_as_trash",
+			method: "frappe.communications.inbox.mark_as_trash",
 			args: {
 				communication: frm.doc.name,
 			},
