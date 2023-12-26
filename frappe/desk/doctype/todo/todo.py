@@ -136,7 +136,7 @@ class ToDo(Document):
 
 	@classmethod
 	def get_owners(cls, filters=None):
-		"""Returns list of owners after applying filters on todo's."""
+		"""Return list of owners after applying filters on ToDos."""
 		rows = frappe.get_all(cls.DocType, filters=filters or {}, fields=["allocated_to"])
 		return [parse_addr(row.allocated_to)[1] for row in rows if row.allocated_to]
 

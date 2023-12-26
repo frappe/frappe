@@ -107,7 +107,7 @@ class WebForm(WebsiteGenerator):
 			frappe.throw(_("Following fields are missing:") + "<br>" + "<br>".join(missing))
 
 	def reset_field_parent(self):
-		"""Convert link fields to select with names as options"""
+		"""Convert link fields to select with names as options."""
 		for df in self.web_form_fields:
 			df.parent = self.doc_type
 
@@ -279,7 +279,7 @@ def get_context(context):
 			if field.fieldtype == "Select" and field.options:
 				messages.extend(field.options.split("\n"))
 
-		messages.extend(col.label for col in self.list_columns)
+		messages.extend(col.get("label") if col else "" for col in self.list_columns)
 
 		context.translated_messages = frappe.as_json(
 			{message: _(message) for message in messages if message}
@@ -444,7 +444,7 @@ def get_web_form_module(doc):
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(key="web_form", limit=5, seconds=60)
+@rate_limit(limit=5, seconds=60)
 def accept(web_form, data):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))

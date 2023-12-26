@@ -191,7 +191,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		}
 
 	def get_database_size(self):
-		"""'Returns database size in MB"""
+		"""Return database size in MB."""
 		db_size = self.sql(
 			"""
 			SELECT `table_schema` as `database_name`,
@@ -281,7 +281,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		)
 
 	def create_global_search_table(self):
-		if not "__global_search" in self.get_tables():
+		if "__global_search" not in self.get_tables():
 			self.sql(
 				"""create table __global_search(
 				doctype varchar(100),
@@ -314,7 +314,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		return "ON DUPLICATE key UPDATE "
 
 	def get_table_columns_description(self, table_name):
-		"""Returns list of column and its description"""
+		"""Return list of columns with descriptions."""
 		return self.sql(
 			"""select
 			column_name as 'name',
@@ -339,7 +339,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		)
 
 	def get_column_type(self, doctype, column):
-		"""Returns column type from database."""
+		"""Return column type from database."""
 		information_schema = frappe.qb.Schema("information_schema")
 		table = get_table_name(doctype)
 
@@ -440,13 +440,13 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 			self.commit()
 			db_table.sync()
-			self.begin()
+			self.commit()
 
 	def get_database_list(self):
 		return self.sql("SHOW DATABASES", pluck=True)
 
 	def get_tables(self, cached=True):
-		"""Returns list of tables"""
+		"""Return list of tables."""
 		to_query = not cached
 
 		if cached:

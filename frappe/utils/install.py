@@ -145,7 +145,7 @@ def get_admin_password():
 	def ask_admin_password():
 		admin_password = getpass.getpass("Set Administrator password: ")
 		admin_password2 = getpass.getpass("Re-enter Administrator password: ")
-		if not admin_password == admin_password2:
+		if admin_password != admin_password2:
 			print("\nPasswords do not match")
 			return ask_admin_password()
 		return admin_password

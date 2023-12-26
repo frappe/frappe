@@ -42,13 +42,10 @@ class BuilderIdentificationFailed(Exception):
 
 
 def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
-	"""[return the query builder object]
+	"""Return the query builder object.
 
 	Args:
-	        type_of_db (str): [string value of the db used]
-
-	Returns:
-	        Query: [Query object]
+	        type_of_db: string value of the db used
 	"""
 	db = db_type_is(type_of_db)
 	picks = {db_type_is.MARIADB: MariaDB, db_type_is.POSTGRES: Postgres}
@@ -107,6 +104,8 @@ def patch_query_execute():
 	def prepare_query(query):
 		import inspect
 
+		from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
+
 		param_collector = NamedParameterWrapper()
 		query = query.get_sql(param_wrapper=param_collector)
 		if frappe.flags.in_safe_exec:
@@ -114,21 +113,20 @@ def patch_query_execute():
 
 			if not check_safe_sql_query(query, throw=False):
 				callstack = inspect.stack()
-				if len(callstack) >= 3 and ".py" in callstack[2].filename:
-					# ignore any query builder methods called from python files
-					# assumption is that those functions are whitelisted already.
 
-					# since query objects are patched everywhere any query.run()
-					# will have callstack like this:
-					# frame0: this function prepare_query()
-					# frame1: execute_query()
-					# frame2: frame that called `query.run()`
-					#
-					# if frame2 is server script <serverscript> is set as the filename
-					# it shouldn't be allowed.
-					pass
-				else:
+				# This check is required because QB can execute from anywhere and we can not
+				# reliably provide a safe version for it in server scripts.
+
+				# since query objects are patched everywhere any query.run()
+				# will have callstack like this:
+				# frame0: this function prepare_query()
+				# frame1: execute_query()
+				# frame2: frame that called `query.run()`
+				#
+				# if frame2 is server script <serverscript> is set as the filename it shouldn't be allowed.
+				if len(callstack) >= 3 and SERVER_SCRIPT_FILE_PREFIX in callstack[2].filename:
 					raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
+
 		return query, param_collector.get_parameters()
 
 	builder_class = frappe.qb._BuilderClasss

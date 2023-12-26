@@ -34,27 +34,29 @@ def get_page_info_from_web_form(path):
 	"""Query published web forms and evaluate if the route matches"""
 	from frappe.website.doctype.web_form.web_form import get_published_web_forms
 
-	rules, page_info = [], {}
 	for d in get_published_web_forms():
+		if not (path.startswith(f"{d.route}") or path.startswith(f"/{d.route}")):
+			continue
+
+		rules = []
 		rules.append(Rule(f"/{d.route}", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/list", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/new", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/<name>", endpoint=d.name))
 		rules.append(Rule(f"/{d.route}/<name>/edit", endpoint=d.name))
 		d.doctype = "Web Form"
-		page_info[d.name] = d
+		end_point = evaluate_dynamic_routes(rules, path)
 
-	end_point = evaluate_dynamic_routes(rules, path)
-	if end_point:
-		if path.endswith("/list"):
-			frappe.form_dict.is_list = True
-		elif path.endswith("/new"):
-			frappe.form_dict.is_new = True
-		elif path.endswith("/edit"):
-			frappe.form_dict.is_edit = True
-		else:
-			frappe.form_dict.is_read = True
-		return page_info[end_point]
+		if end_point:
+			if path.endswith("/list"):
+				frappe.form_dict.is_list = True
+			elif path.endswith("/new"):
+				frappe.form_dict.is_new = True
+			elif path.endswith("/edit"):
+				frappe.form_dict.is_edit = True
+			else:
+				frappe.form_dict.is_read = True
+			return d
 
 
 def evaluate_dynamic_routes(rules, path):
@@ -109,12 +111,12 @@ def get_pages_from_path(start, app, app_path):
 	if os.path.exists(start_path):
 		for basepath, folders, files in os.walk(start_path):
 			# add missing __init__.py
-			if not "__init__.py" in files and frappe.conf.get("developer_mode"):
+			if "__init__.py" not in files and frappe.conf.get("developer_mode"):
 				open(os.path.join(basepath, "__init__.py"), "a").close()
 
 			for fname in files:
 				fname = frappe.utils.cstr(fname)
-				if not "." in fname:
+				if "." not in fname:
 					continue
 				page_name, extn = fname.rsplit(".", 1)
 				if extn in ("js", "css") and os.path.exists(os.path.join(basepath, page_name + ".html")):
@@ -252,8 +254,8 @@ def setup_source(page_info):
 
 
 def get_base_template(path=None):
-	"""
-	Returns the `base_template` for given `path`.
+	"""Return the `base_template` for given `path`.
+
 	The default `base_template` for any web route is `templates/web.html` defined in `hooks.py`.
 	This can be overridden for certain routes in `custom_app/hooks.py` based on regex pattern.
 	"""

@@ -217,6 +217,8 @@ def clean_params(data):
 def parse_json(data):
 	if (filters := data.get("filters")) and isinstance(filters, str):
 		data["filters"] = json.loads(filters)
+	if (applied_filters := data.get("applied_filters")) and isinstance(applied_filters, str):
+		data["applied_filters"] = json.loads(applied_filters)
 	if (or_filters := data.get("or_filters")) and isinstance(or_filters, str):
 		data["or_filters"] = json.loads(or_filters)
 	if (fields := data.get("fields")) and isinstance(fields, str):
@@ -584,7 +586,7 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
-		if not tag["name"] in columns:
+		if tag["name"] not in columns:
 			continue
 		tagcount = []
 		if tag["type"] not in ["Date", "Datetime"]:

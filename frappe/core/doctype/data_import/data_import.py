@@ -3,6 +3,8 @@
 
 import os
 
+from rq.timeouts import JobTimeoutException
+
 import frappe
 from frappe import _
 from frappe.core.doctype.data_import.exporter import Exporter
@@ -32,11 +34,13 @@ class DataImport(Document):
 		payload_count: DF.Int
 		reference_doctype: DF.Link
 		show_failed_logs: DF.Check
-		status: DF.Literal["Pending", "Success", "Partial Success", "Error"]
+		status: DF.Literal["Pending", "Success", "Partial Success", "Error", "Timed Out"]
 		submit_after_import: DF.Check
 		template_options: DF.Code | None
 		template_warnings: DF.Code | None
+
 	# end: auto-generated types
+
 	def validate(self):
 		doc_before_save = self.get_doc_before_save()
 		if (
@@ -136,6 +140,9 @@ def start_import(data_import):
 	try:
 		i = Importer(data_import.reference_doctype, data_import=data_import)
 		i.import_data()
+	except JobTimeoutException:
+		frappe.db.rollback()
+		data_import.db_set("status", "Timed Out")
 	except Exception:
 		frappe.db.rollback()
 		data_import.db_set("status", "Error")
@@ -189,6 +196,9 @@ def download_import_log(data_import_name):
 @frappe.whitelist()
 def get_import_status(data_import_name):
 	import_status = {}
+
+	data_import = frappe.get_doc("Data Import", data_import_name)
+	import_status["status"] = data_import.status
 
 	logs = frappe.get_all(
 		"Data Import Log",

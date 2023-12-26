@@ -223,5 +223,5 @@ def provider_allows_signup(provider: str) -> bool:
 	sign_up_config = frappe.db.get_value("Social Login Key", provider, "sign_ups")
 
 	if not sign_up_config:  # fallback to global settings
-		return is_signup_disabled()
+		return not is_signup_disabled()
 	return sign_up_config == "Allow"

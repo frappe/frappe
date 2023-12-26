@@ -197,7 +197,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return str(psycopg2.extensions.QuotedString(s))
 
 	def get_database_size(self):
-		"""'Returns database size in MB"""
+		"""Return database size in MB"""
 		db_size = self.sql(
 			"SELECT (pg_database_size(%s) / 1024 / 1024) as database_size", self.db_name, as_dict=True
 		)
@@ -288,7 +288,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		)
 
 	def create_global_search_table(self):
-		if not "__global_search" in self.get_tables():
+		if "__global_search" not in self.get_tables():
 			self.sql(
 				"""create table "__global_search"(
 				doctype varchar(100),
@@ -329,7 +329,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 			self.commit()
 			db_table.sync()
-			self.begin()
+			self.commit()
 
 	@staticmethod
 	def get_on_duplicate_update(key="name"):
@@ -380,7 +380,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			)
 
 	def get_table_columns_description(self, table_name):
-		"""Returns list of column and its description"""
+		"""Return list of columns with description."""
 		# pylint: disable=W1401
 		return self.sql(
 			"""
@@ -411,7 +411,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		)
 
 	def get_column_type(self, doctype, column):
-		"""Returns column type from database."""
+		"""Return column type from database."""
 		information_schema = frappe.qb.Schema("information_schema")
 		table = get_table_name(doctype)
 

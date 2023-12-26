@@ -63,8 +63,8 @@ def has_permission(
 	*,
 	parent_doctype=None,
 ):
-	"""Returns True if user has permission `ptype` for given `doctype`.
-	If `doc` is passed, it also checks user, share and owner permissions.
+	"""Return True if user has permission `ptype` for given `doctype`.
+	If `doc` is passed, also check user, share and owner permissions.
 
 	:param doctype: DocType to check permission for
 	:param ptype: Permission Type to check
@@ -159,7 +159,7 @@ def has_permission(
 
 
 def get_doc_permissions(doc, user=None, ptype=None):
-	"""Returns a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
+	"""Return a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
 	if not user:
 		user = frappe.session.user
 
@@ -204,7 +204,7 @@ def get_doc_permissions(doc, user=None, ptype=None):
 
 def get_role_permissions(doctype_meta, user=None, is_owner=None):
 	"""
-	Returns dict of evaluated role permissions like
+	Return dict of evaluated role permissions like:
 	        {
 	                "read": 1,
 	                "write": 0,
@@ -272,7 +272,7 @@ def get_user_permissions(user):
 
 
 def has_user_permission(doc, user=None):
-	"""Returns True if User is allowed to view considering User Permissions"""
+	"""Return True if User is allowed to view considering User Permissions."""
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
 	user_permissions = get_user_permissions(user)
@@ -374,7 +374,7 @@ def has_user_permission(doc, user=None):
 
 
 def has_controller_permissions(doc, ptype, user=None):
-	"""Returns controller permissions if defined. None if not defined"""
+	"""Return controller permissions if defined, None if not defined."""
 	if not user:
 		user = frappe.session.user
 
@@ -405,7 +405,7 @@ def get_valid_perms(doctype=None, user=None):
 
 	doctypes_with_custom_perms = get_doctypes_with_custom_docperms()
 	for p in perms:
-		if not p.parent in doctypes_with_custom_perms:
+		if p.parent not in doctypes_with_custom_perms:
 			custom_perms.append(p)
 
 	if doctype:
@@ -415,7 +415,7 @@ def get_valid_perms(doctype=None, user=None):
 
 
 def get_all_perms(role):
-	"""Returns valid permissions for a given role"""
+	"""Return valid permissions for a given role."""
 	perms = frappe.get_all("DocPerm", fields="*", filters=dict(role=role))
 	custom_perms = frappe.get_all("Custom DocPerm", fields="*", filters=dict(role=role))
 	doctypes_with_custom_perms = frappe.get_all("Custom DocPerm", pluck="parent", distinct=True)
@@ -462,7 +462,7 @@ def get_roles(user=None, with_standard=True):
 
 
 def get_doctype_roles(doctype, access_type="read"):
-	"""Returns a list of roles that are allowed to access passed doctype."""
+	"""Return a list of roles that are allowed to access the given `doctype`."""
 	meta = frappe.get_meta(doctype)
 	return [d.role for d in meta.get("permissions") if d.get(access_type)]
 
@@ -474,7 +474,7 @@ def get_perms_for(roles, perm_doctype="DocPerm"):
 
 
 def get_doctypes_with_custom_docperms():
-	"""Returns all the doctypes with Custom Docperms"""
+	"""Return all the doctypes with Custom Docperms."""
 
 	doctypes = frappe.get_all("Custom DocPerm", fields=["parent"], distinct=1)
 	return [d.parent for d in doctypes]
@@ -655,22 +655,18 @@ def get_doc_name(doc):
 
 
 def allow_everything():
-	"""
-	returns a dict with access to everything
-	eg. {"read": 1, "write": 1, ...}
-	"""
+	"""Return a dict with access to everything, eg. {"read": 1, "write": 1, ...}."""
 	return {ptype: 1 for ptype in rights}
 
 
 def get_allowed_docs_for_doctype(user_permissions, doctype):
-	"""Returns all the docs from the passed user_permissions that are
-	allowed under provided doctype"""
+	"""Return all the docs from the passed `user_permissions` that are allowed under provided doctype."""
 	return filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=False)
 
 
 def filter_allowed_docs_for_doctype(user_permissions, doctype, with_default_doc=True):
-	"""Returns all the docs from the passed user_permissions that are
-	allowed under provided doctype along with default doc value if with_default_doc is set"""
+	"""Return all the docs from the passed `user_permissions` that are
+	allowed under provided doctype along with default doc value if `with_default_doc` is set."""
 	allowed_doc = []
 	default_doc = None
 	for doc in user_permissions:

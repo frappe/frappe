@@ -37,6 +37,7 @@ class ServerScriptNotEnabled(frappe.PermissionError):
 ARGUMENT_NOT_SET = object()
 
 SAFE_EXEC_CONFIG_KEY = "server_script_enabled"
+SERVER_SCRIPT_FILE_PREFIX = "<serverscript>"
 
 
 class NamespaceDict(frappe._dict):
@@ -76,7 +77,14 @@ def is_safe_exec_enabled() -> bool:
 	return bool(frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY))
 
 
-def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
+def safe_exec(
+	script: str,
+	_globals: dict | None = None,
+	_locals: dict | None = None,
+	*,
+	restrict_commit_rollback: bool = False,
+	script_filename: str | None = None,
+):
 	if not is_safe_exec_enabled():
 
 		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
@@ -95,10 +103,14 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		exec_globals.frappe.db.pop("rollback", None)
 		exec_globals.frappe.db.pop("add_index", None)
 
+	filename = SERVER_SCRIPT_FILE_PREFIX
+	if script_filename:
+		filename += f": {frappe.scrub(script_filename)}"
+
 	with safe_exec_flags(), patched_qb():
 		# execute script compiled by RestrictedPython
 		exec(
-			compile_restricted(script, filename="<serverscript>", policy=FrappeTransformer),
+			compile_restricted(script, filename=filename, policy=FrappeTransformer),
 			exec_globals,
 			_locals,
 		)
@@ -137,9 +149,16 @@ def _validate_safe_eval_syntax(code):
 
 @contextmanager
 def safe_exec_flags():
-	frappe.flags.in_safe_exec = True
-	yield
-	frappe.flags.in_safe_exec = False
+	if frappe.flags.in_safe_exec is None:
+		frappe.flags.in_safe_exec = 0
+
+	frappe.flags.in_safe_exec += 1
+
+	try:
+		yield
+	finally:
+		# Always ensure that the flag is decremented
+		frappe.flags.in_safe_exec -= 1
 
 
 def get_safe_globals():
@@ -379,7 +398,13 @@ def get_python_builtins():
 	}
 
 
-def get_hooks(hook=None, default=None, app_name=None):
+def get_hooks(hook: str = None, default=None, app_name: str = None) -> frappe._dict:
+	"""Get hooks via `app/hooks.py`
+
+	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
+	:param default: Default if no hook found.
+	:param app_name: Filter by app."""
+
 	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
 	return copy.deepcopy(hooks)
 
@@ -551,6 +576,7 @@ VALID_UTILS = (
 	"get_quarter_ending",
 	"get_first_day_of_week",
 	"get_year_start",
+	"get_year_ending",
 	"get_last_day_of_week",
 	"get_last_day",
 	"get_time",

@@ -53,7 +53,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-08-03 12:20:55.076769",
+ "modified": "2023-12-08 15:52:37.525003",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Milestone",
@@ -74,7 +74,7 @@
  ],
  "quick_entry": 1,
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": [],
  "title_field": "reference_type",
  "track_changes": 1

@@ -257,7 +257,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-02 12:00:27.299156",
+ "modified": "2023-12-08 15:52:37.525003",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
@@ -392,7 +392,7 @@
  ],
  "show_title_field_in_link": 1,
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": [],
  "title_field": "full_name"
 }

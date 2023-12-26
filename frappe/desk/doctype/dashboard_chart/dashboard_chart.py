@@ -317,7 +317,7 @@ def get_result(data, timegrain, from_date, to_date, chart_type):
 				d[1] += data[data_index][1]
 				count += data[data_index][2]
 				data_index += 1
-			if chart_type == "Average" and not count == 0:
+			if chart_type == "Average" and count != 0:
 				d[1] = d[1] / count
 			if chart_type == "Count":
 				d[1] = count

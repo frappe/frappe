@@ -66,8 +66,7 @@ def validate_template(html):
 	try:
 		jenv.from_string(html)
 	except TemplateSyntaxError as e:
-		frappe.msgprint(f"Line {e.lineno}: {e.message}")
-		frappe.throw(frappe._("Syntax error in template"))
+		frappe.throw(frappe._(f"Syntax error in template as line {e.lineno}: {e.message}"))
 
 
 def render_template(template, context=None, is_path=None, safe_render=True):
@@ -155,7 +154,7 @@ def set_filters(jenv):
 
 
 def get_jinja_hooks():
-	"""Returns a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
+	"""Return a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
 	import frappe
 
 	if not getattr(frappe.local, "site", None):

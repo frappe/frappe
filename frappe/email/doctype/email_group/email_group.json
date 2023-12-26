@@ -9,9 +9,13 @@
  "engine": "InnoDB",
  "field_order": [
   "title",
+  "column_break_oyyj",
   "total_subscribers",
+  "sign_up_and_confirmation_section",
   "confirmation_email_template",
-  "welcome_email_template"
+  "welcome_email_template",
+  "welcome_url",
+  "add_query_parameters"
  ],
  "fields": [
   {
@@ -41,6 +45,29 @@
    "fieldtype": "Link",
    "label": "Welcome Email Template",
    "options": "Email Template"
+  },
+  {
+   "fieldname": "column_break_oyyj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sign_up_and_confirmation_section",
+   "fieldtype": "Section Break",
+   "label": "Sign Up and Confirmation"
+  },
+  {
+   "description": "Redirect to this URL after successful confirmation.",
+   "fieldname": "welcome_url",
+   "fieldtype": "Data",
+   "label": "Welcome URL",
+   "options": "URL"
+  },
+  {
+   "default": "0",
+   "depends_on": "welcome_url",
+   "fieldname": "add_query_parameters",
+   "fieldtype": "Check",
+   "label": "Add Query Parameters"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -51,10 +78,11 @@
    "link_fieldname": "email_group"
   }
  ],
- "modified": "2021-06-15 11:25:13.556201",
+ "modified": "2023-11-24 18:35:17.268492",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Group",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
@@ -75,5 +103,6 @@
  "show_name_in_global_search": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
