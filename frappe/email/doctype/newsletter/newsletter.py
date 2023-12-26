@@ -301,19 +301,29 @@ def confirm_subscription(email, email_group=None):
 	if email_group is None:
 		email_group = get_default_email_group()
 
-	if not frappe.db.exists("Email Group", email_group):
-		frappe.get_doc({"doctype": "Email Group", "title": email_group}).insert(ignore_permissions=True)
+	try:
+		group = frappe.get_doc("Email Group", email_group)
+	except frappe.DoesNotExistError:
+		group = frappe.get_doc({"doctype": "Email Group", "title": email_group}).insert(
+			ignore_permissions=True
+		)
 
 	frappe.flags.ignore_permissions = True
 
 	add_subscribers(email_group, email)
 	frappe.db.commit()
 
-	frappe.respond_as_web_page(
-		_("Confirmed"),
-		_("{0} has been successfully added to the Email Group.").format(email),
-		indicator_color="green",
-	)
+	welcome_url = group.get_welcome_url(email)
+
+	if welcome_url:
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = welcome_url
+	else:
+		frappe.respond_as_web_page(
+			_("Confirmed"),
+			_("{0} has been successfully added to the Email Group.").format(email),
+			indicator_color="green",
+		)
 
 
 def get_list_context(context=None):
