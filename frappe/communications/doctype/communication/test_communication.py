@@ -8,7 +8,7 @@ from frappe.communications.doctype.communication.communication import (
 	get_emails,
 	parse_email,
 )
-from frappe.communications.doctype.communication.email import add_attachments
+from frappe.communications.email import add_attachments
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests.utils import FrappeTestCase
 

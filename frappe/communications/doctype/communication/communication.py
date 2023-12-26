@@ -12,8 +12,7 @@ from frappe import _
 from frappe.automation.doctype.assignment_rule.assignment_rule import (
 	apply as apply_assignment_rule,
 )
-from frappe.communications.doctype.communication.email import validate_email
-from frappe.communications.doctype.communication.mixins import CommunicationEmailMixin
+from frappe.communications.email import validate_email, CommunicationEmailMixin
 from frappe.contacts.doctype.contact.contact import get_contact_name
 from frappe.core.utils import get_parent_doc
 from frappe.desk.doctype.comment.comment import update_comment_in_doc

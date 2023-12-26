@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import frappe
-from frappe.communications.doctype.communication.email import make
+from frappe.communications.email import make
 from frappe.desk.form.load import get_attachments
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 from frappe.email.email_body import get_message_id

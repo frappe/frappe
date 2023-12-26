@@ -671,7 +671,7 @@ frappe.views.CommunicationComposer = class {
 		}
 
 		return frappe.call({
-			method: "frappe.communications.doctype.communication.email.make",
+			method: "frappe.communications.email.make",
 			args: {
 				recipients: form_values.recipients,
 				cc: form_values.cc,

@@ -419,7 +419,7 @@ ignore_links_on_delete = [
 
 communication_medium_handler = {
 	"System Notification": "frappe.desk.doctype.notification_log.notification_log.NotificationLog",
-	"Email": "frappe.communications.doctype.notification.notification.email.EmailNotificationHandlerAdapter",
+	"Email": "frappe.communications.email.EmailNotificationHandlerAdapter",
 	"Slack": "frappe.communications.doctype.slack_webhook_url.slack_webhook_url.SlackWebhookURL",
 	"SMS": "frappe.communications.doctype.sms_settings.sms_setting.SMSSettings",
 }
