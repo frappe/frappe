@@ -264,10 +264,7 @@ frappe.ui.FilterGroup = class {
 				let value = filter_value[3];
 				let equal = frappe.utils.arrays_equal;
 
-				if (
-					equal(f_value.slice(0, 4), filter_value.slice(0, 4)) ||
-					(Array.isArray(value) && equal(value, f_value[3]))
-				) {
+				if (equal(f_value.slice(0, 4), filter_value.slice(0, 4))) {
 					exists = true;
 				}
 			});
