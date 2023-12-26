@@ -43,16 +43,26 @@ export default class GoogleDrivePicker {
 	}
 
 	createPicker(access_token) {
+		const sharedDrivesView = new google.picker.DocsView(google.picker.ViewId.DOCS)
+				.setMode(window.google.picker.DocsViewMode.LIST)
+				.setEnableDrives(true)
+				.setIncludeFolders(true); // creates just the shared drives view
+	
+		const sharedWithMeView = new google.picker.DocsView(google.picker.ViewId.DOCS)
+				.setOwnedByMe(false); // creates just the shared with me view
+	
 		this.view = new google.picker.View(google.picker.ViewId.DOCS);
 		this.picker = new google.picker.PickerBuilder()
-			.setDeveloperKey(this.developerKey)
-			.setAppId(this.appId)
-			.setOAuthToken(access_token)
-			.addView(this.view)
-			.addView(new google.picker.DocsUploadView())
-			.setLocale(frappe.boot.lang)
-			.setCallback(this.pickerCallback)
-			.build();
+				.setDeveloperKey(this.developerKey)
+				.setAppId(this.appId)
+				.setOAuthToken(access_token)
+				.addView(this.view)
+				.addView(sharedDrivesView)
+				.addView(sharedWithMeView)
+				.addView(new google.picker.DocsUploadView())
+				.setLocale(frappe.boot.lang)
+				.setCallback(this.pickerCallback)
+				.build();
 		this.picker.setVisible(true);
 		this.setupHide();
 	}
