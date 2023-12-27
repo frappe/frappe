@@ -75,13 +75,15 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 	make_checkboxes() {
 		this.$load_state.hide();
 		this.$checkbox_area.empty();
-		this.options.forEach((option) => {
-			let checkbox = this.get_checkbox_element(option).appendTo(this.$checkbox_area);
-			if (option.danger) {
-				checkbox.find(".label-area").addClass("text-danger");
-			}
-			option.$checkbox = checkbox;
-		});
+		this.options
+			.sort((a, b) => a.label.localeCompare(b.label))
+			.forEach((option) => {
+				let checkbox = this.get_checkbox_element(option).appendTo(this.$checkbox_area);
+				if (option.danger) {
+					checkbox.find(".label-area").addClass("text-danger");
+				}
+				option.$checkbox = checkbox;
+			});
 		if (this.df.select_all) {
 			this.setup_select_all();
 		}
