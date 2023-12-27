@@ -122,6 +122,10 @@ def capture_exception(message: str | None = None) -> None:
 		if client := hub.client:
 			exc_info = sys.exc_info()
 			if any(exc_info):
+				# Don't report validation errors
+				if isinstance(exc_info[0], frappe.ValidationError):
+					return
+
 				event, hint = event_from_exception(
 					exc_info,
 					client_options=client.options,
