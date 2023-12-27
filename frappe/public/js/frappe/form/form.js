@@ -346,13 +346,20 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// using $.each to preserve df via closure
 		$.each(table_fields, function (i, df) {
-			frappe.model.on(df.options, "*", function (fieldname, value, doc) {
-				if (doc.parent == me.docname && doc.parentfield === df.fieldname) {
-					me.dirty();
-					me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
-					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			frappe.model.on(
+				df.options,
+				"*",
+				function (fieldname, value, doc, skip_dirty_trigger = false) {
+					if (doc.parent == me.docname && doc.parentfield === df.fieldname) {
+						if (!skip_dirty_trigger) {
+							me.dirty();
+						}
+
+						me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
+						return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+					}
 				}
-			});
+			);
 		});
 	}
 
@@ -1276,10 +1283,6 @@ frappe.ui.form.Form = class FrappeForm {
 		frappe.set_route("print", this.doctype, this.doc.name);
 	}
 
-	show_audit_trail() {
-		frappe.set_route("audit-trail");
-	}
-
 	navigate_records(prev) {
 		let filters, sort_field, sort_order;
 		let list_view = frappe.get_list_view(this.doctype);
@@ -1409,7 +1412,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	is_form_builder() {
 		return (
-			in_list(["DocType", "Customize Form"], this.doctype) &&
+			["DocType", "Customize Form"].includes(this.doctype) &&
 			this.get_active_tab().label == "Form"
 		);
 	}

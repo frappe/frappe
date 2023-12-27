@@ -94,7 +94,7 @@ export function get_table_columns(df) {
 	let total_width = 0;
 	for (let tf of table_fields) {
 		if (
-			!in_list(["Section Break", "Column Break"], tf.fieldtype) &&
+			!["Section Break", "Column Break"].includes(tf.fieldtype) &&
 			!tf.print_hide &&
 			df.label &&
 			total_width < 100

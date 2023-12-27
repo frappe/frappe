@@ -48,6 +48,7 @@ class PrintFormat(Document):
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
 	# end: auto-generated types
+
 	def onload(self):
 		templates = frappe.get_all(
 			"Print Format Field Template",

@@ -21,7 +21,7 @@ class OAuthProviderSettings(Document):
 
 
 def get_oauth_settings():
-	"""Returns oauth settings"""
+	"""Return OAuth settings."""
 	return frappe._dict(
 		{
 			"skip_authorization": frappe.db.get_single_value(

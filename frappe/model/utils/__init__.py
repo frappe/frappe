@@ -84,7 +84,7 @@ def render_include(content):
 
 
 def get_fetch_values(doctype, fieldname, value):
-	"""Returns fetch value dict for the given object
+	"""Return fetch value dict for the given object.
 
 	:param doctype: Target doctype
 	:param fieldname: Link fieldname selected

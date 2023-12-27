@@ -128,7 +128,7 @@ class AutoEmailReport(Document):
 			)
 
 	def get_report_content(self):
-		"""Returns file in for the report in given format"""
+		"""Return file for the report in given format."""
 		report = frappe.get_doc("Report", self.report)
 
 		self.filters = frappe.parse_json(self.filters) if self.filters else {}

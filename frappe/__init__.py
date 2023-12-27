@@ -109,7 +109,7 @@ class _dict(dict):
 
 
 def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
-	"""Returns translated string in current lang, if exists.
+	"""Return translated string in current lang, if exists.
 	Usage:
 	        _('Change')
 	        _('Change', context='Coins')
@@ -144,8 +144,8 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	return translated_string or non_translated_string
 
 
-def as_unicode(text: str, encoding: str = "utf-8") -> str:
-	"""Convert to unicode if required"""
+def as_unicode(text, encoding: str = "utf-8") -> str:
+	"""Convert to unicode if required."""
 	if isinstance(text, str):
 		return text
 	elif text is None:
@@ -327,7 +327,7 @@ def connect_replica() -> bool:
 
 
 def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> dict[str, Any]:
-	"""Returns `site_config.json` combined with `sites/common_site_config.json`.
+	"""Return `site_config.json` combined with `sites/common_site_config.json`.
 	`site_config` is a set of site wide settings like database name, password, email etc."""
 	config = _dict()
 
@@ -373,7 +373,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 
 
 def get_common_site_config(sites_path: str | None = None) -> dict[str, Any]:
-	"""Returns common site config as dictionary.
+	"""Return common site config as dictionary.
 
 	This is useful for:
 	- checking configuration which should only be allowed in common site config
@@ -432,7 +432,7 @@ def setup_redis_cache_connection():
 
 
 def get_traceback(with_context: bool = False) -> str:
-	"""Returns error traceback."""
+	"""Return error traceback."""
 	from frappe.utils import get_traceback
 
 	return get_traceback(with_context=with_context)
@@ -638,7 +638,7 @@ def get_user():
 
 
 def get_roles(username=None) -> list[str]:
-	"""Returns roles of current user."""
+	"""Return roles of current user."""
 	if not local.session or not local.session.user:
 		return ["Guest"]
 	import frappe.permissions
@@ -780,9 +780,9 @@ def sendmail(
 	return builder.process(send_now=now)
 
 
-whitelisted = []
-guest_methods = []
-xss_safe_methods = []
+whitelisted = set()
+guest_methods = set()
+xss_safe_methods = set()
 allowed_http_methods_for_whitelisted_func = {}
 
 
@@ -821,14 +821,14 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		else:
 			fn = validate_argument_types(fn, apply_condition=in_request_or_test)
 
-		whitelisted.append(fn)
+		whitelisted.add(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
 
 		if allow_guest:
-			guest_methods.append(fn)
+			guest_methods.add(fn)
 
 			if xss_safe:
-				xss_safe_methods.append(fn)
+				xss_safe_methods.add(fn)
 
 		return method or fn
 
@@ -1003,8 +1003,9 @@ def has_permission(
 	parent_doctype=None,
 ):
 	"""
-	Returns True if the user has permission `ptype` for given `doctype` or `doc`
-	Raises `frappe.PermissionError` if user isn't permitted and `throw` is truthy
+	Return True if the user has permission `ptype` for given `doctype` or `doc`.
+
+	Raise `frappe.PermissionError` if user isn't permitted and `throw` is truthy
 
 	:param doctype: DocType for which permission is to be check.
 	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
@@ -1084,7 +1085,7 @@ def has_website_permission(doc=None, ptype="read", user=None, verbose=False, doc
 
 
 def is_table(doctype: str) -> bool:
-	"""Returns True if `istable` property (indicating child Table) is set for given DocType."""
+	"""Return True if `istable` property (indicating child Table) is set for given DocType."""
 
 	def get_tables():
 		return db.get_values("DocType", filters={"istable": 1}, order_by=None, pluck=True)
@@ -1128,7 +1129,7 @@ def new_doc(
 	as_dict: bool = False,
 	**kwargs,
 ) -> "Document":
-	"""Returns a new document of the given DocType with defaults set.
+	"""Return a new document of the given DocType with defaults set.
 
 	:param doctype: DocType of the new document.
 	:param parent_doc: [optional] add to parent document.
@@ -1152,6 +1153,7 @@ def set_value(doctype, docname, fieldname, value=None):
 
 
 def get_cached_doc(*args, **kwargs) -> "Document":
+	"""Identical to `frappe.get_doc`, but return from cache if available."""
 	if (key := can_cache_doc(args)) and (doc := cache.get_value(key)):
 		return doc
 
@@ -1174,7 +1176,7 @@ def _set_document_in_cache(key: str, doc: "Document") -> None:
 def can_cache_doc(args) -> str | None:
 	"""
 	Determine if document should be cached based on get_doc params.
-	Returns cache key if doc can be cached, None otherwise.
+	Return cache key if doc can be cached, None otherwise.
 	"""
 
 	if not args:
@@ -1426,17 +1428,17 @@ def rename_doc(
 
 
 def get_module(modulename):
-	"""Returns a module object for given Python module name using `importlib.import_module`."""
+	"""Return a module object for given Python module name using `importlib.import_module`."""
 	return importlib.import_module(modulename)
 
 
 def scrub(txt: str) -> str:
-	"""Returns sluggified string. e.g. `Sales Order` becomes `sales_order`."""
+	"""Return sluggified string. e.g. `Sales Order` becomes `sales_order`."""
 	return cstr(txt).replace(" ", "_").replace("-", "_").lower()
 
 
 def unscrub(txt: str) -> str:
-	"""Returns titlified string. e.g. `sales_order` becomes `Sales Order`."""
+	"""Return titlified string. e.g. `sales_order` becomes `Sales Order`."""
 	return txt.replace("_", " ").replace("-", " ").title()
 
 
@@ -1536,7 +1538,7 @@ def get_installed_apps(*, _ensure_on_bench=False) -> list[str]:
 
 
 def get_doc_hooks():
-	"""Returns hooked methods for given doc. It will expand the dict tuple if required."""
+	"""Return hooked methods for given doc. Expand the dict tuple if required."""
 	if not hasattr(local, "doc_events_hooks"):
 		hooks = get_hooks("doc_events", {})
 		out = {}
@@ -1643,7 +1645,7 @@ def setup_module_map():
 
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
-	"""Returns items from text file as a list. Ignores empty lines."""
+	"""Return items from text file as a list. Ignore empty lines."""
 	import frappe.utils
 
 	content = read_file(path, raise_not_found=raise_not_found)
@@ -1996,7 +1998,7 @@ def get_all(doctype, *args, **kwargs):
 
 
 def get_value(*args, **kwargs):
-	"""Returns a document property or list of properties.
+	"""Return a document property or list of properties.
 
 	Alias for `frappe.db.get_value`
 
@@ -2011,6 +2013,7 @@ def get_value(*args, **kwargs):
 
 
 def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> str:
+	"""Return the JSON string representation of the given `obj`."""
 	from frappe.utils.response import json_handler
 
 	if separators is None:
@@ -2043,7 +2046,7 @@ def are_emails_muted():
 
 
 def get_test_records(doctype):
-	"""Returns list of objects from `test_records.json` in the given doctype's folder."""
+	"""Return list of objects from `test_records.json` in the given doctype's folder."""
 	from frappe.modules import get_doctype_module, get_module_path
 
 	path = os.path.join(
@@ -2276,7 +2279,7 @@ log_level = None
 def logger(
 	module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20
 ):
-	"""Returns a python logger that uses StreamHandler"""
+	"""Return a python logger that uses StreamHandler."""
 	from frappe.utils.logger import get_logger
 
 	return get_logger(
@@ -2296,7 +2299,8 @@ def get_desk_link(doctype, name):
 	return html.format(doctype=doctype, name=name, doctype_local=_(doctype))
 
 
-def bold(text):
+def bold(text: str) -> str:
+	"""Return `text` wrapped in `<strong>` tags."""
 	return f"<strong>{text}</strong>"
 
 
@@ -2319,7 +2323,8 @@ def get_website_settings(key):
 	return local.website_settings.get(key)
 
 
-def get_system_settings(key):
+def get_system_settings(key: str):
+	"""Return the value associated with the given `key` from System Settings DocType."""
 	if not hasattr(local, "system_settings"):
 		try:
 			local.system_settings = get_cached_doc("System Settings")
@@ -2338,7 +2343,7 @@ def get_active_domains():
 
 def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	"""
-	Returns a list of version information of a given DocType.
+	Return a list of version information for the given DocType.
 
 	Note: Applicable only if DocType has changes tracked.
 

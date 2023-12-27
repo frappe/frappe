@@ -86,7 +86,7 @@ let docfield_df = computed(() => {
 		<div v-if="store.form.selected_field">
 			<div class="field" v-for="(df, i) in docfield_df" :key="i">
 				<component
-					:is="df.fieldtype.replace(' ', '') + 'Control'"
+					:is="df.fieldtype.replaceAll(' ', '') + 'Control'"
 					:args="args"
 					:df="df"
 					:read_only="store.read_only"

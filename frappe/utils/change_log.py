@@ -131,7 +131,7 @@ def get_versions():
 
 
 def get_app_branch(app):
-	"""Returns branch of an app"""
+	"""Return branch of an app."""
 	try:
 		with open(os.devnull, "wb") as null_stream:
 			result = subprocess.check_output(
@@ -198,15 +198,14 @@ def check_for_update():
 	add_message_to_redis(updates)
 
 
-def parse_latest_non_beta_release(response):
-	"""
-	Parses the response JSON for all the releases and returns the latest non prerelease
+def parse_latest_non_beta_release(response: list) -> list | None:
+	"""Parse the response JSON for all the releases and return the latest non prerelease.
 
-	Parameters
+	Args:
+
 	response (list): response object returned by github
 
-	Returns
-	json   : json object pertaining to the latest non-beta release
+	Return a json object pertaining to the latest non-beta release
 	"""
 	version_list = [
 		release.get("tag_name").strip("v") for release in response if not release.get("prerelease")
@@ -218,14 +217,13 @@ def parse_latest_non_beta_release(response):
 	return None
 
 
-def check_release_on_github(app: str):
-	"""
-	Check the latest release for a given Frappe application hosted on Github.
+def check_release_on_github(app: str) -> tuple | None:
+	"""Check the latest release for a given Frappe application hosted on Github.
 
 	Args:
-	        app (str): The name of the Frappe application.
+	    app: The name of the Frappe application.
 
-	Returns:
+	Return:
 	        tuple(Version, str): The semantic version object of the latest release and the
 	                organization name, if the application exists, otherwise None.
 	"""

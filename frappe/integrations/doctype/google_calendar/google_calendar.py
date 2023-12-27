@@ -202,9 +202,7 @@ def sync(g_calendar=None):
 
 
 def get_google_calendar_object(g_calendar):
-	"""
-	Returns an object of Google Calendar along with Google Calendar doc.
-	"""
+	"""Return an object of Google Calendar along with Google Calendar doc."""
 	google_settings = frappe.get_doc("Google Settings")
 	account = frappe.get_doc("Google Calendar", g_calendar)
 
@@ -257,8 +255,8 @@ def check_google_calendar(account, google_calendar):
 
 
 def sync_events_from_google_calendar(g_calendar, method=None):
-	"""
-	Syncs Events from Google Calendar in Framework Calendar.
+	"""Sync Events from Google Calendar in Framework Calendar.
+
 	Google Calendar returns nextSyncToken when all the events in Google Calendar are fetched.
 	nextSyncToken is returned at the very last page
 	https://developers.google.com/calendar/v3/sync
@@ -685,12 +683,10 @@ def format_date_according_to_google_calendar(all_day, starts_on, ends_on=None):
 
 
 def parse_google_calendar_recurrence_rule(repeat_day_week_number, repeat_day_name):
-	"""
-	Returns (repeat_on) exact date for combination eg 4TH viz. 4th thursday of a month
-	"""
+	"""Return (repeat_on) exact date for combination eg 4TH viz. 4th thursday of a month."""
 	if repeat_day_week_number < 0:
 		# Consider a month with 5 weeks and event is to be repeated in last week of every month, google caledar considers
-		# a month has 4 weeks and hence itll return -1 for a month with 5 weeks.
+		# a month has 4 weeks and hence it'll return -1 for a month with 5 weeks.
 		repeat_day_week_number = 4
 
 	weekdays = get_weekdays()
@@ -714,9 +710,7 @@ def parse_google_calendar_recurrence_rule(repeat_day_week_number, repeat_day_nam
 
 
 def repeat_on_to_google_calendar_recurrence_rule(doc):
-	"""
-	Returns event (repeat_on) in Google Calendar format ie RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH
-	"""
+	"""Return event (repeat_on) in Google Calendar format ie RRULE:FREQ=WEEKLY;BYDAY=MO,TU,TH."""
 	recurrence = framework_frequencies.get(doc.repeat_on)
 	weekdays = get_weekdays()
 
@@ -732,8 +726,8 @@ def repeat_on_to_google_calendar_recurrence_rule(doc):
 
 
 def get_week_number(dt):
-	"""
-	Returns the week number of the month for the specified date.
+	"""Return the week number of the month for the specified date.
+
 	https://stackoverflow.com/questions/3806473/python-week-number-of-the-month/16804556
 	"""
 	from math import ceil
@@ -771,9 +765,7 @@ def get_conference_data(doc):
 
 
 def get_attendees(doc):
-	"""
-	Returns a list of dicts with attendee emails, if available in event_participants table
-	"""
+	"""Return a list of dicts with attendee emails, if available in event_participants table."""
 	attendees, email_not_found = [], []
 
 	for participant in doc.event_participants:

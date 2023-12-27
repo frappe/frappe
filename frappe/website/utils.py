@@ -251,7 +251,7 @@ def get_next_link(route, url_prefix=None, app=None):
 
 
 def get_full_index(route=None, app=None):
-	"""Returns full index of the website for www upto the n-th level"""
+	"""Return full index of the website for www upto the n-th level."""
 	from frappe.website.router import get_pages
 
 	if not frappe.local.flags.children_map:
@@ -305,7 +305,7 @@ def get_full_index(route=None, app=None):
 
 
 def extract_title(source, path):
-	"""Returns title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path"""
+	"""Return title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path."""
 	title = extract_comment_tag(source, "title")
 
 	if not title and "<h1>" in source:

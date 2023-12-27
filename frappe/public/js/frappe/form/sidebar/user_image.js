@@ -74,7 +74,7 @@ frappe.ui.form.setup_user_image_event = function (frm) {
 				}
 				field.$input.trigger("attach_doc_image");
 				// close sidebar
-				frm.page.close_sidebar();
+				frm.page.close_sidebar?.();
 			} else {
 				/// on remove event for a sidebar image wrapper remove attach file.
 				frm.attachments.remove_attachment_by_filename(
