@@ -136,6 +136,9 @@ def get_mapped_doc(
 							True if target_doc.get(target_parentfield) else False
 						)
 
+					if table_map.get("ignore"):
+						continue
+
 					if table_map.get("add_if_empty") and row_exists_for_parentfield.get(target_parentfield):
 						continue
 
