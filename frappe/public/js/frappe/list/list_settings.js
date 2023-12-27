@@ -316,7 +316,7 @@ export default class ListSettings {
 		meta.fields.forEach((field) => {
 			if (
 				field.in_list_view &&
-				!in_list(frappe.model.no_value_type, field.fieldtype) &&
+				!frappe.model.no_value_type.includes(field.fieldtype) &&
 				me.subject_field.fieldname != field.fieldname
 			) {
 				me.fields.push({
@@ -363,11 +363,11 @@ export default class ListSettings {
 		let multiselect_fields = [];
 
 		meta.fields.forEach((field) => {
-			if (!in_list(frappe.model.no_value_type, field.fieldtype)) {
+			if (!frappe.model.no_value_type.includes(field.fieldtype)) {
 				multiselect_fields.push({
 					label: field.label,
 					value: field.fieldname,
-					checked: in_list(fields, field.fieldname),
+					checked: fields.includes(field.fieldname),
 				});
 			}
 		});
@@ -384,7 +384,7 @@ export default class ListSettings {
 		}
 
 		existing_fields.forEach((column) => {
-			if (!in_list(new_fields, column)) {
+			if (!new_fields.includes(column)) {
 				removed_fields.push(column);
 			}
 		});
