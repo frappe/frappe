@@ -12,7 +12,14 @@ def setup_database(force, source_sql=None, verbose=False):
 	root_conn.sql(f"DROP USER IF EXISTS {frappe.conf.db_name}")
 	root_conn.sql(f"CREATE DATABASE `{frappe.conf.db_name}`")
 	root_conn.sql(f"CREATE user {frappe.conf.db_name} password '{frappe.conf.db_password}'")
+<<<<<<< HEAD
 	root_conn.sql(f"GRANT ALL PRIVILEGES ON DATABASE `{frappe.conf.db_name}` TO {frappe.conf.db_name}")
+=======
+	root_conn.sql("GRANT ALL PRIVILEGES ON DATABASE `{0}` TO {0}".format(frappe.conf.db_name))
+	psql_version = root_conn.sql(f"SELECT VERSION()", as_dict=True)
+	if psql_version and psql_version[0].get("version", "PostgreSQL 14").split()[1] >= "15":
+		root_conn.sql("ALTER DATABASE `{0}` OWNER TO {0}".format(frappe.conf.db_name))
+>>>>>>> 445da4319b (fix: error - permission denied for schema public from Postgres >= 15 during initial DB setup (#23799))
 	root_conn.close()
 
 	bootstrap_database(frappe.conf.db_name, verbose, source_sql=source_sql)
