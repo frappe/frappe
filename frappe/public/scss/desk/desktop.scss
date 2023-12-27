@@ -549,7 +549,7 @@ body {
 
 	&.shortcut-widget-box {
 		cursor: pointer;
-
+		align-items: flex-start;
 		&:hover {
 			--icon-stroke: var(--invert-neutral);
 			.widget-title {
