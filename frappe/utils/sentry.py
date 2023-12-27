@@ -4,7 +4,6 @@ from datetime import datetime
 
 import rq
 from sentry_sdk import capture_message as sentry_capture_message
-from sentry_sdk import configure_scope
 from sentry_sdk.hub import Hub
 from sentry_sdk.integrations import Integration
 from sentry_sdk.integrations.wsgi import _make_wsgi_event_processor
@@ -48,41 +47,49 @@ class FrappeIntegration(Integration):
 		Database.sql = sql
 
 
-def set_sentry_context():
-	with configure_scope() as scope:
-		if job := rq.get_current_job():
-			kwargs = job._kwargs
-			transaction_name = str(kwargs["method"])
-			context = frappe._dict({"scheduled": False, "wait": 0})
-			if "run_scheduled_job" in transaction_name:
-				transaction_name = kwargs.get("kwargs", {}).get("job_type", "")
-				context.scheduled = True
+def set_scope(scope):
+	if job := rq.get_current_job():
+		kwargs = job._kwargs
+		transaction_name = str(kwargs["method"])
+		context = frappe._dict({"scheduled": False, "wait": 0})
+		if "run_scheduled_job" in transaction_name:
+			transaction_name = kwargs.get("kwargs", {}).get("job_type", "")
+			context.scheduled = True
 
-			waitdiff = datetime.utcnow() - job.enqueued_at
-			context.uuid = job.id
-			context.wait = waitdiff.total_seconds()
+		waitdiff = datetime.utcnow() - job.enqueued_at
+		context.uuid = job.id
+		context.wait = waitdiff.total_seconds()
 
-			scope.set_extra("job", context)
-			scope.set_transaction_name(transaction_name)
+		scope.set_extra("job", context)
+		scope.set_transaction_name(transaction_name)
+	else:
+		if frappe.form_dict.cmd:
+			path = f"/api/method/{frappe.form_dict.cmd}"
 		else:
-			if frappe.form_dict.cmd:
-				path = f"/api/method/{frappe.form_dict.cmd}"
-			else:
-				path = frappe.request.path
+			path = frappe.request.path
 
-			scope.set_transaction_name(
-				path,
-				source=SOURCE_FOR_STYLE["endpoint"],
-			)
+		scope.set_transaction_name(
+			path,
+			source=SOURCE_FOR_STYLE["endpoint"],
+		)
 
-		scope.set_tag("site", frappe.local.site)
-		user = getattr(frappe.session, "user", "Unidentified")
-		if "@" not in user:
-			user = f"{user}@{frappe.local.site}"
-		scope.set_user({"id": user, "email": user})
-		# Extract `X-Frappe-Request-ID` to store as a separate field if its present
-		if trace_id := frappe.monitor.get_trace_id():
-			scope.set_tag("frappe_trace_id", trace_id)
+	scope.set_tag("site", frappe.local.site)
+	user = getattr(frappe.session, "user", "Unidentified")
+	if "@" not in user:
+		user = f"{user}@{frappe.local.site}"
+	scope.set_user({"id": user, "email": user})
+	# Extract `X-Frappe-Request-ID` to store as a separate field if its present
+	if trace_id := frappe.monitor.get_trace_id():
+		scope.set_tag("frappe_trace_id", trace_id)
+
+
+def set_sentry_context():
+	if not frappe.get_system_settings("enable_telemetry"):
+		return
+
+	hub = Hub.current
+	with hub.configure_scope() as scope:
+		set_scope(scope)
 
 
 def before_send(event, hint):
@@ -102,9 +109,13 @@ def capture_exception(message: str | None = None) -> None:
 		return
 	try:
 		hub = Hub.current
-
 		if frappe.request:
 			with hub.configure_scope() as scope:
+				if (
+					os.getenv("ENABLE_SENTRY_DB_MONITORING") is None
+					or os.getenv("SENTRY_TRACING_SAMPLE_RATE") is None
+				):
+					set_scope(scope)
 				evt_processor = _make_wsgi_event_processor(frappe.request.environ, False)
 				scope.add_event_processor(evt_processor)
 
