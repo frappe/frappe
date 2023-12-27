@@ -1,3 +1,5 @@
+import os
+
 from . import __version__ as app_version
 
 app_name = "frappe"
@@ -427,14 +429,19 @@ before_request = [
 	"frappe.recorder.record",
 	"frappe.monitor.start",
 	"frappe.rate_limiter.apply",
-	"frappe.utils.sentry.set_sentry_context",
 ]
 
 # Background Job Hooks
 before_job = [
 	"frappe.monitor.start",
-	"frappe.utils.sentry.set_sentry_context",
 ]
+
+if os.getenv("FRAPPE_SENTRY_DSN") and (
+	os.getenv("ENABLE_SENTRY_DB_MONITORING") or os.getenv("SENTRY_TRACING_SAMPLE_RATE")
+):
+	before_request.append("frappe.utils.sentry.set_sentry_context")
+	before_job.append("frappe.utils.sentry.set_sentry_context")
+
 after_job = [
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
