@@ -84,30 +84,39 @@ $.extend(frappe.model, {
 	},
 
 	set_default_values: function (doc, parent_doc) {
-		var doctype = doc.doctype;
-		var docfields = frappe.meta.get_docfields(doctype);
-		var updated = [];
-		for (var fid = 0; fid < docfields.length; fid++) {
-			var f = docfields[fid];
-			if (!frappe.model.no_value_type.includes(f.fieldtype) && doc[f.fieldname] == null) {
-				if (f.no_default) continue;
-				var v = frappe.model.get_default_value(f, doc, parent_doc);
-				if (v) {
-					if (["Int", "Check"].includes(f.fieldtype)) v = cint(v);
-					else if (["Currency", "Float"].includes(f.fieldtype)) v = flt(v);
+		let doctype = doc.doctype;
+		let docfields = frappe.meta.get_docfields(doctype);
+		let updated = [];
 
-					doc[f.fieldname] = v;
-					updated.push(f.fieldname);
-				} else if (
-					f.fieldtype == "Select" &&
-					f.options &&
-					typeof f.options === "string" &&
-					!["[Select]", "Loading..."].includes(f.options)
-				) {
-					doc[f.fieldname] = f.options.split("\n")[0];
-				}
+		// Table types should be initialized
+		let fieldtypes_without_default = frappe.model.no_value_type.filter(
+			(fieldtype) => !frappe.model.table_fields.includes(fieldtype)
+		);
+		docfields.forEach((f) => {
+			if (
+				fieldtypes_without_default.includes(f.fieldtype) ||
+				doc[f.fieldname] != null ||
+				f.no_default
+			) {
+				return;
 			}
-		}
+
+			let v = frappe.model.get_default_value(f, doc, parent_doc);
+			if (v) {
+				if (["Int", "Check"].includes(f.fieldtype)) v = cint(v);
+				else if (["Currency", "Float"].includes(f.fieldtype)) v = flt(v);
+
+				doc[f.fieldname] = v;
+				updated.push(f.fieldname);
+			} else if (
+				f.fieldtype == "Select" &&
+				f.options &&
+				typeof f.options === "string" &&
+				!["[Select]", "Loading..."].includes(f.options)
+			) {
+				doc[f.fieldname] = f.options.split("\n")[0];
+			}
+		});
 		return updated;
 	},
 
@@ -141,6 +150,10 @@ $.extend(frappe.model, {
 			!$.isEmptyObject(user_permissions) &&
 			df.ignore_user_permissions != 1 &&
 			allowed_records.length;
+
+		if (frappe.model.table_fields.includes(df.fieldtype)) {
+			value = [];
+		}
 
 		// don't set defaults for "User" link field using User Permissions!
 		if (df.fieldtype === "Link" && df.options !== "User") {
