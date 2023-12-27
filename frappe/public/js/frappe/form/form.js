@@ -1412,7 +1412,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	is_form_builder() {
 		return (
-			in_list(["DocType", "Customize Form"], this.doctype) &&
+			["DocType", "Customize Form"].includes(this.doctype) &&
 			this.get_active_tab().label == "Form"
 		);
 	}
