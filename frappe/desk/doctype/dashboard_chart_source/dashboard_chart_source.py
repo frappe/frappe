@@ -14,7 +14,7 @@ FOLDER_NAME = "dashboard_chart_source"
 
 
 @frappe.whitelist()
-def get_config(name):
+def get_config(name: str) -> str:
 	module, name = frappe.get_value("Dashboard Chart Source", name, ["module", "name"])
 	file = get_folder_path(module, name) / f"{scrub(name)}.js"
 	return file.read_text()
