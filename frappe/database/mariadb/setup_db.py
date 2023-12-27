@@ -28,7 +28,7 @@ def setup_database(force, verbose, no_mariadb_socket=False):
 
 	db_user = frappe.conf.db_user
 	db_name = frappe.local.conf.db_name
-	root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
+	root_conn = get_root_connection()
 	dbman = DbManager(root_conn)
 	dbman_kwargs = {}
 	if no_mariadb_socket:
@@ -62,8 +62,11 @@ def setup_database(force, verbose, no_mariadb_socket=False):
 	root_conn.close()
 
 
-def drop_user_and_database(db_name, db_user, root_login, root_password):
-	frappe.local.db = get_root_connection(root_login, root_password)
+def drop_user_and_database(
+	db_name,
+	db_user,
+):
+	frappe.local.db = get_root_connection()
 	dbman = DbManager(frappe.local.db)
 	dbman.drop_database(db_name)
 	dbman.delete_user(db_user, host="%")
@@ -109,7 +112,6 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 
 def check_database_settings():
-
 	check_compatible_versions()
 
 	# Check each expected value vs. actuals:
@@ -158,24 +160,24 @@ def check_compatible_versions():
 		)
 
 
-def get_root_connection(root_login, root_password):
-	import getpass
-
+def get_root_connection():
 	if not frappe.local.flags.root_connection:
-		if not root_login:
-			root_login = "root"
+		if not frappe.flags.root_login:
+			frappe.flags.root_login = "root"
 
-		if not root_password:
-			root_password = frappe.conf.get("root_password") or None
+		if not frappe.flags.root_password:
+			frappe.flags.root_password = frappe.conf.get("root_password") or None
 
-		if not root_password:
-			root_password = getpass.getpass("MySQL root password: ")
+		if not frappe.flags.root_password:
+			import getpass
+
+			frappe.flags.root_password = getpass.getpass("MySQL root password: ")
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
 			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
-			user=root_login,
-			password=root_password,
+			user=frappe.flags.root_login,
+			password=frappe.flags.root_password,
 		)
 
 	return frappe.local.flags.root_connection

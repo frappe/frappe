@@ -524,6 +524,7 @@ class TestCommands(BaseTestCommands):
 			"db_type": frappe.conf.db_type,
 			"db_user": user,
 			"db_password": password,
+			"db_root_username": frappe.conf.root_login,
 		}
 		self.execute(
 			"bench new-site {new_site} --force --verbose "
@@ -540,7 +541,10 @@ class TestCommands(BaseTestCommands):
 		config = json.loads(self.stdout)
 		self.assertEqual(config[site]["db_user"], user)
 		self.assertEqual(config[site]["db_password"], password)
-		self.execute("bench drop-site {new_site} --force --db-root-password {root_password}", kwargs)
+		self.execute(
+			"bench drop-site {new_site} --force --db-root-username {db_root_username} --db-root-password {root_password}",
+			kwargs,
+		)
 		self.assertEqual(self.returncode, 0)
 
 	def test_existing_db_username(self):
@@ -550,12 +554,12 @@ class TestCommands(BaseTestCommands):
 			if frappe.conf.db_type == "mariadb":
 				from frappe.database.mariadb.setup_db import get_root_connection
 
-				root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
+				root_conn = get_root_connection()
 				root_conn.sql(f"CREATE USER '{user}'@'localhost'")
 			else:
 				from frappe.database.postgres.setup_db import get_root_connection
 
-				root_conn = get_root_connection(frappe.flags.root_login, frappe.flags.root_password)
+				root_conn = get_root_connection()
 				root_conn.sql(f"CREATE USER {user}")
 		password = frappe.conf.db_password or frappe.generate_hash()
 		kwargs = {
@@ -565,6 +569,7 @@ class TestCommands(BaseTestCommands):
 			"db_type": frappe.conf.db_type,
 			"db_user": user,
 			"db_password": password,
+			"db_root_username": frappe.conf.root_login,
 		}
 		self.execute(
 			"bench new-site {new_site} --force --verbose "
@@ -581,7 +586,10 @@ class TestCommands(BaseTestCommands):
 		config = json.loads(self.stdout)
 		self.assertEqual(config[site]["db_user"], user)
 		self.assertEqual(config[site]["db_password"], password)
-		self.execute("bench drop-site {new_site} --force --db-root-password {root_password}", kwargs)
+		self.execute(
+			"bench drop-site {new_site} --force --db-root-username {db_root_username} --db-root-password {root_password}",
+			kwargs,
+		)
 		self.assertEqual(self.returncode, 0)
 
 
