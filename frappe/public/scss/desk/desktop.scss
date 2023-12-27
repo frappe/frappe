@@ -134,7 +134,7 @@ body {
 	}
 
 	.widget-head {
-		@include flex(flex, flex-start, center, null);
+		@include flex(flex, space-between, center, null);
 
 		.widget-label {
 			min-width: 0px;
@@ -551,6 +551,7 @@ body {
 	&.shortcut-widget-box {
 		cursor: pointer;
 		padding: 2px 7px;
+		align-items: flex-start;
 
 		&:hover {
 			--icon-stroke: var(--invert-neutral);
