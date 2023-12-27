@@ -154,7 +154,7 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 			<div class="checkbox unit-checkbox">
 				<label title="${option.description || ""}">
 					<input type="checkbox" data-unit="${option.value}"></input>
-					<span class="label-area" data-unit="${option.value}">${__(option.label)}</span>
+					<span class="label-area" data-unit="${option.value}">${option.label}</span>
 				</label>
 			</div>
 		`);
