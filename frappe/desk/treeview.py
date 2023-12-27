@@ -39,7 +39,7 @@ def get_all_nodes(doctype, label, parent, tree_method, **filters):
 @frappe.whitelist()
 def get_children(doctype, parent="", include_disabled=False, **filters):
 	if isinstance(include_disabled, str):
-		include_disabled = frappe.json.loads(include_disabled)
+		include_disabled = frappe.sbool(include_disabled)
 	return _get_children(doctype, parent, include_disabled=include_disabled)
 
 
