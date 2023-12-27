@@ -550,8 +550,12 @@ body {
 
 	&.shortcut-widget-box {
 		cursor: pointer;
+<<<<<<< HEAD
 		padding: 2px 7px;
 
+=======
+		align-items: flex-start;
+>>>>>>> 39136b01b6 (fix: shortcut-widget-box should have flex-start)
 		&:hover {
 			--icon-stroke: var(--invert-neutral);
 			.widget-title {
