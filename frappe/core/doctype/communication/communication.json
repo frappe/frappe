@@ -180,7 +180,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Status",
-   "options": "Open\nReplied\nClosed\nLinked",
+   "options": "\nOpen\nReplied\nClosed\nLinked",
    "reqd": 1
   },
   {
