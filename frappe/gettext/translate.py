@@ -96,6 +96,16 @@ def write_binary(app: str, catalog: Catalog, locale: str) -> Path:
 	return mo_path
 
 
+def get_method_map(app: str):
+	file_path = Path(frappe.get_app_path(app)).parent / "babel_extractors.csv"
+	if file_path.exists():
+		with open(file_path) as f:
+			reader = csv.reader(f)
+			return [(row[0], row[1]) for row in reader]
+
+	return []
+
+
 def generate_pot(target_app: str | None = None):
 	"""
 	Generate a POT (PO template) file. This file will contain only messages IDs.
@@ -111,23 +121,16 @@ def generate_pot(target_app: str | None = None):
 		return not (subdir.startswith(".") or subdir.startswith("_"))
 
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
-	method_map = [
-		# Each file will only be processed by the first method that matches,
-		# so more specific methods should be listed first.
-		("hooks.py", "frappe.gettext.extractors.navbar.extract"),
-		("**/doctype/*/*.json", "frappe.gettext.extractors.doctype.extract"),
-		("**/workspace/*/*.json", "frappe.gettext.extractors.workspace.extract"),
-		("**/onboarding_step/*/*.json", "frappe.gettext.extractors.onboarding_step.extract"),
-		("**/module_onboarding/*/*.json", "frappe.gettext.extractors.module_onboarding.extract"),
-		("**/report/*/*.json", "frappe.gettext.extractors.report.extract"),
-		("**.py", "frappe.gettext.extractors.python.extract"),
-		("**.js", "frappe.gettext.extractors.javascript.extract"),
-		("**.html", "frappe.gettext.extractors.jinja2.extract"),
-	]
+	default_method_map = get_method_map("frappe")
 
 	for app in apps:
 		app_path = frappe.get_pymodule_path(app)
 		catalog = get_catalog(app)
+
+		# Each file will only be processed by the first method that matches,
+		# so more specific methods should come first.
+		method_map = [] if app == "frappe" else get_method_map(app)
+		method_map.extend(default_method_map)
 
 		for filename, lineno, message, comments, context in extract_from_dir(
 			app_path, method_map, directory_filter=directory_filter
