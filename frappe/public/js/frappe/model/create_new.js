@@ -62,7 +62,7 @@ $.extend(frappe.model, {
 				var df = frappe.meta.has_field(doctype, fieldname);
 				if (
 					df &&
-					in_list(["Link", "Data", "Select", "Dynamic Link"], df.fieldtype) &&
+					["Link", "Data", "Select", "Dynamic Link"].includes(df.fieldtype) &&
 					!df.no_copy
 				) {
 					doc[fieldname] = value;
@@ -89,12 +89,12 @@ $.extend(frappe.model, {
 		var updated = [];
 		for (var fid = 0; fid < docfields.length; fid++) {
 			var f = docfields[fid];
-			if (!in_list(frappe.model.no_value_type, f.fieldtype) && doc[f.fieldname] == null) {
+			if (!frappe.model.no_value_type.includes(f.fieldtype) && doc[f.fieldname] == null) {
 				if (f.no_default) continue;
 				var v = frappe.model.get_default_value(f, doc, parent_doc);
 				if (v) {
-					if (in_list(["Int", "Check"], f.fieldtype)) v = cint(v);
-					else if (in_list(["Currency", "Float"], f.fieldtype)) v = flt(v);
+					if (["Int", "Check"].includes(f.fieldtype)) v = cint(v);
+					else if (["Currency", "Float"].includes(f.fieldtype)) v = flt(v);
 
 					doc[f.fieldname] = v;
 					updated.push(f.fieldname);
@@ -102,7 +102,7 @@ $.extend(frappe.model, {
 					f.fieldtype == "Select" &&
 					f.options &&
 					typeof f.options === "string" &&
-					!in_list(["[Select]", "Loading..."], f.options)
+					!["[Select]", "Loading..."].includes(f.options)
 				) {
 					doc[f.fieldname] = f.options.split("\n")[0];
 				}
@@ -280,7 +280,7 @@ $.extend(frappe.model, {
 			if (
 				df &&
 				key.substr(0, 2) != "__" &&
-				!in_list(no_copy_list, key) &&
+				!no_copy_list.includes(key) &&
 				!(df && !from_amend && cint(df.no_copy) == 1)
 			) {
 				var value = doc[key] || [];
