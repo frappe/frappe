@@ -1,8 +1,8 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import os
 import shutil
+from pathlib import Path
 
 import frappe
 from frappe import _
@@ -10,16 +10,14 @@ from frappe.model.document import Document
 from frappe.modules import get_module_path, scrub
 from frappe.modules.export_file import export_to_files
 
+FOLDER_NAME = "dashboard_chart_source"
+
 
 @frappe.whitelist()
 def get_config(name):
-	doc = frappe.get_doc("Dashboard Chart Source", name)
-	with open(
-		os.path.join(
-			get_module_path(doc.module), "dashboard_chart_source", scrub(doc.name), scrub(doc.name) + ".js"
-		),
-	) as f:
-		return f.read()
+	module, name = frappe.get_value("Dashboard Chart Source", name, ["module", "name"])
+	file = get_folder_path(module, name) / f"{scrub(name)}.js"
+	return file.read_text()
 
 
 class DashboardChartSource(Document):
@@ -47,8 +45,10 @@ class DashboardChartSource(Document):
 		frappe.db.after_commit(self.delete_folder_with_contents)
 
 	def delete_folder_with_contents(self):
-		module_path = get_module_path(self.module)
-		dir_path = os.path.join(module_path, "dashboard_chart_source", frappe.scrub(self.name))
-
-		if os.path.exists(dir_path):
+		dir_path = get_folder_path(self.module, self.name)
+		if dir_path.exists():
 			shutil.rmtree(dir_path, ignore_errors=True)
+
+
+def get_folder_path(module: str, name: str) -> Path:
+	return Path(get_module_path(module)) / FOLDER_NAME / frappe.scrub(name)
