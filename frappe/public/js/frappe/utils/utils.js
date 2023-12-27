@@ -54,6 +54,13 @@ String.prototype.plural = function (revert) {
 		"(octop)us$": "$1i",
 		"(ax|test)is$": "$1es",
 		"(us)$": "$1es",
+		"(f)oot$": "$1eet",
+		"(g)oose$": "$1eese",
+		"(sex)$": "$1es",
+		"(child)$": "$1ren",
+		"(m)an$": "$1en",
+		"(t)ooth$": "$1eeth",
+		"(pe)rson$": "$1ople",
 		"([^s]+)$": "$1s",
 	};
 
@@ -85,18 +92,14 @@ String.prototype.plural = function (revert) {
 		"(h|bl)ouses$": "$1ouse",
 		"(corpse)s$": "$1",
 		"(us)es$": "$1",
+		"(f)eet$": "$1oot",
+		"(g)eese$": "$1oose",
+		"(sex)es$": "$1",
+		"(child)ren$": "$1",
+		"(m)en$": "$1an",
+		"(t)eeth$": "$1ooth",
+		"(pe)ople$": "$1rson",
 		s$: "",
-	};
-
-	const irregular = {
-		move: "moves",
-		foot: "feet",
-		goose: "geese",
-		sex: "sexes",
-		child: "children",
-		man: "men",
-		tooth: "teeth",
-		person: "people",
 	};
 
 	const uncountable = [
@@ -115,29 +118,12 @@ String.prototype.plural = function (revert) {
 	// save some time in the case that singular and plural are the same
 	if (uncountable.indexOf(this.toLowerCase()) >= 0) return this;
 
-	// check for irregular forms
-	let word;
-	let pattern;
-	let replace;
-	for (word in irregular) {
-		if (revert) {
-			pattern = new RegExp(irregular[word] + "$", "i");
-			replace = word;
-		} else {
-			pattern = new RegExp(word + "$", "i");
-			replace = irregular[word];
-		}
-		if (pattern.test(this)) return this.replace(pattern, replace);
-	}
-
-	let array;
-	if (revert) array = singular;
-	else array = plural;
-
 	// check for matches using regular expressions
+	const array = revert ? singular : plural;
+
 	let reg;
 	for (reg in array) {
-		pattern = new RegExp(reg, "i");
+		const pattern = new RegExp(reg, "i");
 
 		if (pattern.test(this)) return this.replace(pattern, array[reg]);
 	}
@@ -1186,6 +1172,8 @@ Object.assign(frappe.utils, {
 	get_number_system: function (country) {
 		if (["Bangladesh", "India", "Myanmar", "Pakistan"].includes(country)) {
 			return number_systems.indian;
+		} else if (country == "Nepal") {
+			return number_systems.nepalese;
 		} else {
 			return number_systems.default;
 		}
@@ -1218,7 +1206,7 @@ Object.assign(frappe.utils, {
 					? "es-icon es-solid"
 					: "es-icon es-line"
 				: "icon"
-		} ${svg_class} ${size_class}" style="${icon_style}">
+		} ${svg_class} ${size_class}" style="${icon_style}" aria-hidden="true">
 			<use class="${icon_class}" href="${icon_name}"></use>
 		</svg>`;
 	},

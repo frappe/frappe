@@ -7,6 +7,7 @@ context("Control Float", () => {
 	function get_dialog_with_float() {
 		return cy.dialog({
 			title: "Float Check",
+			animate: false,
 			fields: [
 				{
 					fieldname: "float_number",
@@ -19,6 +20,7 @@ context("Control Float", () => {
 
 	it("check value changes", () => {
 		get_dialog_with_float().as("dialog");
+		cy.wait(300);
 
 		let data = get_data();
 		data.forEach((x) => {

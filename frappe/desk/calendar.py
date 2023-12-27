@@ -19,7 +19,7 @@ def update_event(args, field_map):
 
 
 def get_event_conditions(doctype, filters=None):
-	"""Returns SQL conditions with user permissions and filters for event queries"""
+	"""Return SQL conditions with user permissions and filters for event queries."""
 	from frappe.desk.reportview import get_filters_cond
 
 	if not frappe.has_permission(doctype):

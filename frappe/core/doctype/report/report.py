@@ -45,6 +45,7 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
+
 	# end: auto-generated types
 	def validate(self):
 		"""only administrator can save standard report"""
@@ -86,7 +87,8 @@ class Report(Document):
 		if (
 			self.is_standard == "Yes"
 			and not cint(getattr(frappe.local.conf, "developer_mode", 0))
-			and not (frappe.flags.in_migrate or frappe.flags.in_patch)
+			and not frappe.flags.in_migrate
+			and not frappe.flags.in_patch
 		):
 			frappe.throw(_("You are not allowed to delete Standard Report"))
 		delete_custom_role("report", self.name)
@@ -103,7 +105,7 @@ class Report(Document):
 				self.set("roles", roles)
 
 	def is_permitted(self):
-		"""Returns true if Has Role is not set or the user is allowed."""
+		"""Return True if `Has Role` is not set or the user is allowed."""
 		from frappe.utils import has_common
 
 		allowed = [
@@ -129,7 +131,7 @@ class Report(Document):
 		if frappe.flags.in_import:
 			return
 
-		if self.is_standard == "Yes" and (frappe.local.conf.get("developer_mode") or 0) == 1:
+		if self.is_standard == "Yes" and frappe.conf.developer_mode:
 			export_to_files(
 				record_list=[["Report", self.name]], record_module=self.module, create_init=True
 			)
@@ -155,7 +157,6 @@ class Report(Document):
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
 		threshold = 15
-		res = []
 
 		start_time = datetime.datetime.now()
 
@@ -183,7 +184,7 @@ class Report(Document):
 	def execute_script(self, filters):
 		# server script
 		loc = {"filters": frappe._dict(filters), "data": None, "result": None}
-		safe_exec(self.report_script, None, loc)
+		safe_exec(self.report_script, None, loc, script_filename=f"Report {self.name}")
 		if loc["data"]:
 			return loc["data"]
 		else:
@@ -382,7 +383,7 @@ class Report(Document):
 
 
 def is_prepared_report_enabled(report):
-	return cint(frappe.db.get_value("Report", report, "prepared_report")) or 0
+	return cint(frappe.db.get_value("Report", report, "prepared_report"))
 
 
 def get_report_module_dotted_path(module, report_name):

@@ -196,7 +196,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 					this.abort_setup(r.message.fail);
 				}
 			},
-			error: () => this.abort_setup("Error in setup"),
+			error: () => this.abort_setup(),
 		});
 	}
 
@@ -213,7 +213,11 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 
 	abort_setup(fail_msg) {
 		this.$working_state.find(".state-icon-container").html("");
-		fail_msg = fail_msg ? fail_msg : __("Failed to complete setup");
+		fail_msg = fail_msg
+			? fail_msg
+			: frappe.last_response.setup_wizard_failure_message
+			? frappe.last_response.setup_wizard_failure_message
+			: __("Failed to complete setup");
 
 		this.update_setup_message("Could not start up: " + fail_msg);
 
@@ -345,12 +349,16 @@ frappe.setup.SetupWizardSlide = class SetupWizardSlide extends frappe.ui.Slide {
 	setup_telemetry_events() {
 		let me = this;
 		this.fields.filter(frappe.model.is_value_type).forEach((field) => {
-			me.get_input(field.fieldname).on("change", function () {
-				frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
-				if (field.fieldname == "enable_telemetry" && !me.get_value("enable_telemetry")) {
-					frappe.telemetry.disable();
-				}
-			});
+			field.fieldname &&
+				me.get_input(field.fieldname)?.on("change", function () {
+					frappe.telemetry.capture(`${field.fieldname}_set`, "setup");
+					if (
+						field.fieldname == "enable_telemetry" &&
+						!me.get_value("enable_telemetry")
+					) {
+						frappe.telemetry.disable();
+					}
+				});
 		});
 	}
 };
@@ -463,7 +471,7 @@ frappe.setup.slides_settings = [
 				fieldtype: "Data",
 				options: "Email",
 			},
-			{ fieldname: "password", label: __("Password"), fieldtype: "Password" },
+			{ fieldname: "password", label: __("Password"), fieldtype: "Password", length: 512 },
 		],
 
 		onload: function (slide) {

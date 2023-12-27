@@ -101,9 +101,9 @@ const selected = computed(() => store.selected(props.section.df.name));
 const column = computed(() => props.section.columns[props.section.columns.length - 1]);
 
 // section
-function add_section_above() {
+function add_section_below() {
 	let index = props.tab.sections.indexOf(props.section);
-	props.tab.sections.splice(index, 0, section_boilerplate());
+	props.tab.sections.splice(index + 1, 0, section_boilerplate());
 }
 
 function is_section_empty() {
@@ -262,7 +262,7 @@ const options = computed(() => {
 		{
 			group: "Section",
 			items: [
-				{ label: "Add section above", onClick: add_section_above },
+				{ label: "Add section below", onClick: add_section_below },
 				{ label: "Remove section", onClick: remove_section },
 			],
 		},

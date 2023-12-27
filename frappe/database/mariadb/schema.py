@@ -24,7 +24,7 @@ class MariaDBTable(DBTable):
 			additional_definitions += index_defs
 
 		# child table columns
-		if self.meta.get("istable") or 0:
+		if self.meta.get("istable", default=0):
 			additional_definitions += [
 				f"parent varchar({varchar_len})",
 				f"parentfield varchar({varchar_len})",

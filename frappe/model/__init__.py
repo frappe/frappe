@@ -194,6 +194,8 @@ def get_permitted_fields(
 	parenttype: str | None = None,
 	user: str | None = None,
 	permission_type: str | None = None,
+	*,
+	ignore_virtual=False,
 ) -> list[str]:
 	meta = frappe.get_meta(doctype)
 	valid_columns = meta.get_valid_columns()
@@ -209,7 +211,10 @@ def get_permitted_fields(
 		permission_type = "select" if frappe.only_has_select_perm(doctype, user=user) else "read"
 
 	if permitted_fields := meta.get_permitted_fieldnames(
-		parenttype=parenttype, user=user, permission_type=permission_type
+		parenttype=parenttype,
+		user=user,
+		permission_type=permission_type,
+		with_virtual_fields=not ignore_virtual,
 	):
 		if permission_type == "select":
 			return permitted_fields

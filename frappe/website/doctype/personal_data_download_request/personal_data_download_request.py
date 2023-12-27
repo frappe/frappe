@@ -70,7 +70,7 @@ class PersonalDataDownloadRequest(Document):
 
 
 def get_user_data(user):
-	"""returns user data not linked to User doctype"""
+	"""Return user data not linked to `User` doctype."""
 	hooks = frappe.get_hooks("user_data_fields")
 	data = {}
 	for hook in hooks:

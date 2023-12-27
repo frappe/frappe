@@ -30,7 +30,7 @@ const label_input = ref(null);
 const hovered = ref(false);
 const selected = computed(() => store.selected(props.field.df.name));
 const component = computed(() => {
-	return props.field.df.fieldtype.replace(" ", "") + "Control";
+	return props.field.df.fieldtype.replaceAll(" ", "") + "Control";
 });
 
 function remove_field() {
@@ -174,8 +174,14 @@ function edit_filters() {
 }
 
 function is_filter_applied() {
-	if (props.field.df.link_filters && JSON.parse(props.field.df.link_filters).length > 0) {
-		return "btn-filter-applied";
+	if (props.field.df.link_filters) {
+		try {
+			if (JSON.parse(props.field.df.link_filters).length > 0) {
+				return "btn-filter-applied";
+			}
+		} catch (error) {
+			return "";
+		}
 	}
 }
 

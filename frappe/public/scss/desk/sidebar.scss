@@ -311,6 +311,7 @@ body[data-route^="Module"] .main-menu {
 		display: flex;
 		justify-content: space-between;
 		padding: 4px 8px;
+		color: var(--text-muted);
 
 		&:hover {
 			text-decoration: none;

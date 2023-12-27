@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 def get_doc(*args, **kwargs):
-	"""returns a frappe.model.Document object.
+	"""Return a `frappe.model.Document` object.
 
 	:param arg1: Document dict or DocType name.
 	:param arg2: [optional] document name.
@@ -356,6 +356,7 @@ class Document(BaseDocument):
 			return self.insert()
 
 		self.check_if_locked()
+		self._set_defaults()
 		self.check_permission("write", "save")
 
 		self.set_user_and_timestamp()
@@ -454,7 +455,7 @@ class Document(BaseDocument):
 		return getattr(self, "_doc_before_save", None)
 
 	def has_value_changed(self, fieldname):
-		"""Returns true if value is changed before and after saving"""
+		"""Return True if value has changed before and after saving."""
 		previous = self.get_doc_before_save()
 		return previous.get(fieldname) != self.get(fieldname) if previous else True
 
@@ -464,8 +465,10 @@ class Document(BaseDocument):
 		if self.flags.name_set and not force:
 			return
 
+		autoname = self.meta.autoname or ""
+
 		# If autoname has set as Prompt (name)
-		if self.get("__newname"):
+		if self.get("__newname") and autoname.lower() == "prompt":
 			self.name = validate_name(self.doctype, self.get("__newname"))
 			self.flags.name_set = True
 			return
@@ -620,7 +623,7 @@ class Document(BaseDocument):
 		workflow = self.meta.get_workflow()
 		if workflow:
 			validate_workflow(self)
-			if not self._action == "save":
+			if self._action != "save":
 				set_workflow_state_on_action(self, workflow, self._action)
 
 	def validate_set_only_once(self):
@@ -769,16 +772,18 @@ class Document(BaseDocument):
 		if frappe.flags.in_import:
 			return
 
-		new_doc = frappe.new_doc(self.doctype, as_dict=True)
-		self.update_if_missing(new_doc)
+		if self.is_new():
+			new_doc = frappe.new_doc(self.doctype, as_dict=True)
+			self.update_if_missing(new_doc)
 
 		# children
 		for df in self.meta.get_table_fields():
-			new_doc = frappe.new_doc(df.options, as_dict=True)
+			new_doc = frappe.new_doc(df.options, parent_doc=self, parentfield=df.fieldname, as_dict=True)
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				for d in value:
-					d.update_if_missing(new_doc)
+					if d.is_new():
+						d.update_if_missing(new_doc)
 
 	def check_if_latest(self):
 		"""Checks if `modified` timestamp provided by document being updated is same as the
@@ -922,7 +927,7 @@ class Document(BaseDocument):
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None) -> list["Document"]:
-		"""Returns all children documents from **Table** type fields in a list."""
+		"""Return all children documents from **Table** type fields in a list."""
 
 		children = []
 
@@ -975,7 +980,7 @@ class Document(BaseDocument):
 		if self.flags.notifications is None:
 
 			def _get_notifications():
-				"""returns enabled notifications for the current doctype"""
+				"""Return enabled notifications for the current doctype."""
 
 				return frappe.get_all(
 					"Notification",
@@ -1377,7 +1382,7 @@ class Document(BaseDocument):
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.get("parentfield"))))
 
 	def get_url(self):
-		"""Returns Desk URL for this document."""
+		"""Return Desk URL for this document."""
 		return get_absolute_url(self.doctype, self.name)
 
 	def add_comment(
@@ -1451,7 +1456,7 @@ class Document(BaseDocument):
 		)
 
 	def get_signature(self):
-		"""Returns signature (hash) for private URL."""
+		"""Return signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
 	def get_document_share_key(self, expires_on=None, no_expiry=False):

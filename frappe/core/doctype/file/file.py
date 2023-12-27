@@ -544,7 +544,7 @@ class File(Document):
 		return self._content
 
 	def get_full_path(self):
-		"""Returns file path from given file name"""
+		"""Return file path using the set file name."""
 
 		file_path = self.file_url or self.file_name
 
@@ -705,7 +705,7 @@ class File(Document):
 		return has_permission(self, "read")
 
 	def get_extension(self):
-		"""returns split filename and extension"""
+		"""Split and return filename and extension for the set `file_name`."""
 		return os.path.splitext(self.file_name)
 
 	def create_attachment_record(self):

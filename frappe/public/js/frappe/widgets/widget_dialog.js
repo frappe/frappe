@@ -259,6 +259,15 @@ class CardDialog extends WidgetDialog {
 						get_options: (df) => {
 							return df.doc.link_type;
 						},
+						get_query: function (df) {
+							if (df.link_type == "DocType") {
+								return {
+									filters: {
+										istable: 0,
+									},
+								};
+							}
+						},
 					},
 					{
 						fieldname: "column_break_7",
@@ -419,7 +428,6 @@ class ShortcutDialog extends WidgetDialog {
 				fieldtype: "Data",
 				fieldname: "url",
 				label: "URL",
-				options: "URL",
 				default: "",
 				depends_on: (s) => s.type == "URL",
 				mandatory_depends_on: (s) => s.type == "URL",
@@ -547,7 +555,11 @@ class ShortcutDialog extends WidgetDialog {
 		data.label = data.label ? data.label : frappe.model.unscrub(data.link_to);
 
 		if (data.url) {
-			!validate_url(data.url) &&
+			let _url = data.url;
+			if (data.url.startsWith("/")) {
+				_url = frappe.urllib.get_base_url() + data.url;
+			}
+			!validate_url(_url) &&
 				frappe.throw({
 					message: __("<b>{0}</b> is not a valid URL", [data.url]),
 					title: __("Invalid URL"),

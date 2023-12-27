@@ -41,11 +41,13 @@ def sql(*args, **kwargs):
 
 
 def get_current_stack_frames():
+	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
+
 	try:
 		current = inspect.currentframe()
 		frames = inspect.getouterframes(current, context=10)
 		for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:
-			if "/apps/" in filename or "<serverscript>" in filename:
+			if "/apps/" in filename or SERVER_SCRIPT_FILE_PREFIX in filename:
 				yield {
 					"filename": TRACEBACK_PATH_PATTERN.sub("", filename),
 					"lineno": lineno,

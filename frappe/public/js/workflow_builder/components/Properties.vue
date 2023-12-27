@@ -53,7 +53,7 @@ let properties = computed(() => {
 			<div v-if="doc">
 				<div class="field" v-for="df in properties" :key="df.name">
 					<component
-						:is="df.fieldtype.replace(' ', '') + 'Control'"
+						:is="df.fieldtype.replaceAll(' ', '') + 'Control'"
 						:df="df"
 						:value="doc[df.fieldname]"
 						v-model="doc[df.fieldname]"

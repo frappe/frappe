@@ -251,7 +251,7 @@ def get_next_link(route, url_prefix=None, app=None):
 
 
 def get_full_index(route=None, app=None):
-	"""Returns full index of the website for www upto the n-th level"""
+	"""Return full index of the website for www upto the n-th level."""
 	from frappe.website.router import get_pages
 
 	if not frappe.local.flags.children_map:
@@ -305,7 +305,7 @@ def get_full_index(route=None, app=None):
 
 
 def extract_title(source, path):
-	"""Returns title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path"""
+	"""Return title from `&lt;!-- title --&gt;` or &lt;h1&gt; or path."""
 	title = extract_comment_tag(source, "title")
 
 	if not title and "<h1>" in source:
@@ -573,19 +573,15 @@ def set_content_type(response, data, path):
 def add_preload_for_bundled_assets(response):
 	links = [f"<{css}>; rel=preload; as=style" for css in frappe.local.preload_assets["style"]]
 	links.extend(f"<{js}>; rel=preload; as=script" for js in frappe.local.preload_assets["script"])
-	links.extend(_preload_svg_headers())
+
+	version = get_build_version()
+	links.extend(
+		f"</assets/{svg}?v={version}>; rel=preload; as=fetch; crossorigin"
+		for svg in frappe.local.preload_assets["icons"]
+	)
 
 	if links:
 		response.headers["Link"] = ",".join(links)
-
-
-def _preload_svg_headers():
-	include_icons = frappe.get_hooks().get("app_include_icons", [])
-
-	version = get_build_version()
-	return [
-		f"</assets/{svg}?v={version}>; rel=preload; as=fetch; crossorigin" for svg in include_icons
-	]
 
 
 @lru_cache

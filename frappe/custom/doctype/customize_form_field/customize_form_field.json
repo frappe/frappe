@@ -205,7 +205,7 @@
    "label": "Permissions"
   },
   {
-   "description": "This field will appear only if the fieldname defined here has value OR the rules are true (examples): \nmyfield\neval:doc.myfield=='My Value'\neval:doc.age&gt;18",
+   "description": "This field will appear only if the fieldname defined here has value OR the rules are true (examples):\nmyfield\neval:doc.myfield=='My Value'\neval:doc.age&gt;18",
    "fieldname": "depends_on",
    "fieldtype": "Code",
    "label": "Depends On",
@@ -483,7 +483,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-11-07 13:17:21.373626",
+ "modified": "2023-12-08 15:52:37.525003",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
@@ -491,6 +491,6 @@
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": []
 }

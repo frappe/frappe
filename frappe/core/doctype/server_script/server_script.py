@@ -128,14 +128,14 @@ class ServerScript(Document):
 			frappe.msgprint(str(e), title=_("Compilation warning"))
 
 	def execute_method(self) -> dict:
-		"""Specific to API endpoint Server Scripts
+		"""Specific to API endpoint Server Scripts.
 
-		Raises:
-		        frappe.DoesNotExistError: If self.script_type is not API
-		        frappe.PermissionError: If self.allow_guest is unset for API accessed by Guest user
+		Raise:
+		        frappe.DoesNotExistError: If self.script_type is not API.
+		        frappe.PermissionError: If self.allow_guest is unset for API accessed by Guest user.
 
-		Returns:
-		        dict: Evaluates self.script with frappe.utils.safe_exec.safe_exec and returns the flags set in it's safe globals
+		Return:
+		        dict: Evaluate self.script with frappe.utils.safe_exec.safe_exec and return the flags set in its safe globals.
 		"""
 
 		if self.enable_rate_limit:
@@ -155,7 +155,12 @@ class ServerScript(Document):
 		Args:
 		        doc (Document): Executes script with for a certain document's events
 		"""
-		safe_exec(self.script, _locals={"doc": doc}, restrict_commit_rollback=True)
+		safe_exec(
+			self.script,
+			_locals={"doc": doc},
+			restrict_commit_rollback=True,
+			script_filename=self.name,
+		)
 
 	def execute_scheduled_method(self):
 		"""Specific to Scheduled Jobs via Server Scripts
@@ -166,30 +171,28 @@ class ServerScript(Document):
 		if self.script_type != "Scheduler Event":
 			raise frappe.DoesNotExistError
 
-		safe_exec(self.script)
+		safe_exec(self.script, script_filename=self.name)
 
 	def get_permission_query_conditions(self, user: str) -> list[str]:
-		"""Specific to Permission Query Server Scripts
+		"""Specific to Permission Query Server Scripts.
 
 		Args:
-		        user (str): Takes user email to execute script and return list of conditions
+		        user (str): Take user email to execute script and return list of conditions.
 
-		Returns:
-		        list: Returns list of conditions defined by rules in self.script
+		Return:
+		        list: Return list of conditions defined by rules in self.script.
 		"""
 		locals = {"user": user, "conditions": ""}
-		safe_exec(self.script, None, locals)
+		safe_exec(self.script, None, locals, script_filename=self.name)
 		if locals["conditions"]:
 			return locals["conditions"]
 
 	@frappe.whitelist()
 	def get_autocompletion_items(self):
-		"""Generates a list of a autocompletion strings from the context dict
+		"""Generate a list of autocompletion strings from the context dict
 		that is used while executing a Server Script.
 
-		Returns:
-		        list: Returns list of autocompletion items.
-		        For e.g., ["frappe.utils.cint", "frappe.get_all", ...]
+		e.g., ["frappe.utils.cint", "frappe.get_all", ...]
 		"""
 
 		def get_keys(obj):
@@ -278,7 +281,7 @@ def execute_api_server_script(script=None, *args, **kwargs):
 		raise frappe.PermissionError
 
 	# output can be stored in flags
-	_globals, _locals = safe_exec(script.script)
+	_globals, _locals = safe_exec(script.script, script_filename=script.name)
 
 	return _globals.frappe.flags
 

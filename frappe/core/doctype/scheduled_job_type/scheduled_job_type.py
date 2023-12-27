@@ -2,7 +2,8 @@
 # License: MIT. See LICENSE
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from random import randint
 
 import click
 from croniter import croniter
@@ -110,7 +111,12 @@ class ScheduledJobType(Document):
 		# immediately, even when it's meant to be daily.
 		# A dynamic fallback like current time might miss the scheduler interval and job will never start.
 		last_execution = get_datetime(self.last_execution or self.creation)
-		return croniter(self.cron_format, last_execution).get_next(datetime)
+		next_execution = croniter(self.cron_format, last_execution).get_next(datetime)
+
+		jitter = 0
+		if self.frequency in ("Hourly Long", "Daily Long"):
+			jitter = randint(1, 600)
+		return next_execution + timedelta(seconds=jitter)
 
 	def execute(self):
 		self.scheduler_log = None

@@ -786,6 +786,7 @@ def new_doctype(
 	depends_on: str = "",
 	fields: list[dict] | None = None,
 	custom: bool = True,
+	default: str | None = None,
 	**kwargs,
 ):
 	if not name:
@@ -803,6 +804,7 @@ def new_doctype(
 					"fieldname": "some_fieldname",
 					"fieldtype": "Data",
 					"unique": unique,
+					"default": default,
 					"depends_on": depends_on,
 				}
 			],

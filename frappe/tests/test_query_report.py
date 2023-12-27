@@ -22,18 +22,7 @@ class TestQueryReport(FrappeTestCase):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
 
 		# Create mock data
-		data = frappe._dict()
-		data.columns = [
-			{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
-			{"label": "Column B", "fieldname": "column_b", "width": 100, "fieldtype": "Float"},
-			{"label": "Column C", "fieldname": "column_c", "width": 150, "fieldtype": "Duration"},
-		]
-		data.result = [
-			[1.0, 3.0, 600],
-			{"column_a": 22.1, "column_b": 21.8, "column_c": 86412},
-			{"column_b": 5.1, "column_c": 53234, "column_a": 11.1},
-			[3.0, 1.5, 333],
-		]
+		data = create_mock_data()
 
 		# Define the visible rows
 		visible_idx = [0, 2, 3]
@@ -53,6 +42,27 @@ class TestQueryReport(FrappeTestCase):
 		for row in xlsx_data[1:]:
 			for cell in row:
 				self.assertIsInstance(cell, (int, float))
+
+	def test_xlsx_data_with_filters(self):
+		"""Test building xlsx data along with filters"""
+
+		# Create mock data
+		data = create_mock_data()
+		data.filters = {"Label 1": "Filter Value", "Label 2": None, "Label 3": list(range(5))}
+
+		# Define the visible rows
+		visible_idx = [0, 2, 3]
+
+		# Build the result
+		xlsx_data, column_widths = build_xlsx_data(
+			data, visible_idx, include_indentation=False, include_filters=True
+		)
+
+		# Check if unset filters are skipped | Rows - 2 filters + 1 empty + 1 column + 3 data
+		self.assertEqual(len(xlsx_data), 7)
+
+		# Check filter formatting
+		self.assertListEqual(xlsx_data[:2], [["Label 1", "Filter Value"], ["Label 3", "0, 1, 2, 3, 4"]])
 
 	def test_xlsx_export_with_composite_cell_value(self):
 		"""Test excel export using rows with composite cell value"""
@@ -236,3 +246,19 @@ data = columns, result
 		except Exception as e:
 			raise e
 			frappe.db.rollback()
+
+
+def create_mock_data():
+	data = frappe._dict()
+	data.columns = [
+		{"label": "Column A", "fieldname": "column_a", "fieldtype": "Float"},
+		{"label": "Column B", "fieldname": "column_b", "width": 100, "fieldtype": "Float"},
+		{"label": "Column C", "fieldname": "column_c", "width": 150, "fieldtype": "Duration"},
+	]
+	data.result = [
+		[1.0, 3.0, 600],
+		{"column_a": 22.1, "column_b": 21.8, "column_c": 86412},
+		{"column_b": 5.1, "column_c": 53234, "column_a": 11.1},
+		[3.0, 1.5, 333],
+	]
+	return data

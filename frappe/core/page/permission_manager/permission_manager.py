@@ -109,8 +109,10 @@ def add(parent, role, permlevel):
 
 
 @frappe.whitelist()
-def update(doctype, role, permlevel, ptype, value=None, if_owner=0):
-	"""Update role permission params
+def update(
+	doctype: str, role: str, permlevel: int, ptype: str, value=None, if_owner=0
+) -> str | None:
+	"""Update role permission params.
 
 	Args:
 	        doctype (str): Name of the DocType to update params for
@@ -119,8 +121,8 @@ def update(doctype, role, permlevel, ptype, value=None, if_owner=0):
 	        ptype (str): permission type, example "read", "delete", etc.
 	        value (None, optional): value for ptype, None indicates False
 
-	Returns:
-	        str: Refresh flag is permission is updated successfully
+	Return:
+	        str: Refresh flag if permission is updated successfully
 	"""
 
 	def clear_cache():

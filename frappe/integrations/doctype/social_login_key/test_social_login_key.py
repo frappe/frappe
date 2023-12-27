@@ -90,7 +90,7 @@ class TestSocialLoginKey(FrappeTestCase):
 
 def make_social_login_key(**kwargs):
 	kwargs["doctype"] = "Social Login Key"
-	if not "provider_name" in kwargs:
+	if "provider_name" not in kwargs:
 		kwargs["provider_name"] = "Test OAuth2 Provider"
 	return frappe.get_doc(kwargs)
 

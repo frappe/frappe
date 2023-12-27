@@ -123,7 +123,7 @@ def validate_phone_number_with_country_code(phone_number: str, fieldname: str) -
 
 
 def validate_phone_number(phone_number, throw=False):
-	"""Returns True if valid phone number"""
+	"""Return True if valid phone number."""
 	if not phone_number:
 		return False
 
@@ -139,9 +139,10 @@ def validate_phone_number(phone_number, throw=False):
 
 
 def validate_name(name, throw=False):
-	"""Returns True if the name is valid
-	valid names may have unicode and ascii characters, dash, quotes, numbers
-	anything else is considered invalid
+	"""Return True if the name is valid
+
+	* valid names may have unicode and ascii characters, dash, quotes, numbers
+	* anything else is considered invalid
 
 	Note: "Name" here is name of a person, not the primary key in Frappe doctypes.
 	"""
@@ -219,14 +220,11 @@ def validate_url(
 	valid_schemes: str | Container[str] | None = None,
 ) -> bool:
 	"""
-	Checks whether `txt` has a valid URL string
+	Return True if `txt` represents a valid URL.
 
-	Parameters:
-	        throw (`bool`): throws a validationError if URL is not valid
-	        valid_schemes (`str` or `list`): if provided checks the given URL's scheme against this
-
-	Returns:
-	        bool: if `txt` represents a valid URL
+	Args:
+	        throw: throws a validationError if URL is not valid
+	        valid_schemes: if provided checks the given URL's scheme against this
 	"""
 	url = urlparse(txt)
 	is_valid = bool(url.netloc)
@@ -252,7 +250,7 @@ def random_string(length: int) -> str:
 
 
 def has_gravatar(email: str) -> str:
-	"""Returns gravatar url if user has set an avatar at gravatar.com"""
+	"""Return gravatar url if user has set an avatar at gravatar.com."""
 	import requests
 
 	if frappe.flags.in_import or frappe.flags.in_install or frappe.flags.in_test:
@@ -272,20 +270,28 @@ def has_gravatar(email: str) -> str:
 
 
 def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
-	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8")).hexdigest()
+	"""Return gravatar URL for the given email.
+
+	If `default` is set to "404", gravatar URL will return 404 if no avatar is found.
+	If `default` is set to "mm", a placeholder image will be returned.
+	"""
+	hexdigest = hashlib.md5(
+		frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False
+	).hexdigest()
 	return f"https://secure.gravatar.com/avatar/{hexdigest}?d={default}&s=200"
 
 
 def get_gravatar(email: str) -> str:
+	"""Return gravatar URL if user has set an avatar at gravatar.com.
+
+	Else return identicon image (base64)."""
 	from frappe.utils.identicon import Identicon
 
 	return has_gravatar(email) or Identicon(email).base64()
 
 
 def get_traceback(with_context=False) -> str:
-	"""
-	Returns the traceback of the Exception
-	"""
+	"""Return the traceback of the Exception."""
 	from traceback_with_variables import iter_exc_lines
 
 	exc_type, exc_value, exc_tb = sys.exc_info()
@@ -348,9 +354,7 @@ def log(event, details):
 
 
 def dict_to_str(args: dict[str, Any], sep: str = "&") -> str:
-	"""
-	Converts a dictionary to URL
-	"""
+	"""Convert a dictionary to URL."""
 	return sep.join(f"{str(k)}=" + quote(str(args[k] or "")) for k in list(args))
 
 
@@ -381,9 +385,7 @@ def set_default(key, val):
 
 
 def remove_blanks(d: dict) -> dict:
-	"""
-	Returns d with empty ('' or None) values stripped. Mutates inplace.
-	"""
+	"""Return d with empty ('' or None) values stripped. Mutates inplace."""
 	for k, v in tuple(d.items()):
 		if v == "" or v == None:
 			del d[k]
@@ -391,14 +393,12 @@ def remove_blanks(d: dict) -> dict:
 
 
 def strip_html_tags(text):
-	"""Remove html tags from text"""
+	"""Remove html tags from the given `text`."""
 	return HTML_TAGS_PATTERN.sub("", text)
 
 
 def get_file_timestamp(fn):
-	"""
-	Returns timestamp of the given file
-	"""
+	"""Return timestamp of the given file."""
 	from frappe.utils import cint
 
 	try:
@@ -564,7 +564,7 @@ def touch_file(path):
 
 
 def get_test_client(use_cookies=True) -> Client:
-	"""Returns an test instance of the Frappe WSGI"""
+	"""Return an test instance of the Frappe WSGI."""
 	from frappe.app import application
 
 	return Client(application, use_cookies=use_cookies)
@@ -588,7 +588,7 @@ def call_hook_method(hook, *args, **kwargs):
 
 
 def is_cli() -> bool:
-	"""Returns True if current instance is being run via a terminal"""
+	"""Return True if current instance is being run via a terminal."""
 	invoked_from_terminal = False
 	try:
 		invoked_from_terminal = bool(os.get_terminal_size())
@@ -833,11 +833,12 @@ def parse_json(val):
 
 def get_db_count(*args):
 	"""
-	Pass a doctype or a series of doctypes to get the count of docs in them
+	Pass a doctype or a series of doctypes to get the count of docs in them.
+
 	Parameters:
 	        *args: Variable length argument list of doctype names whose doc count you need
 
-	Returns:
+	Return:
 	        dict: A dict with the count values.
 
 	Example:
@@ -857,7 +858,7 @@ def call(fn, *args, **kwargs):
 	Parameters:
 	        fn: frappe function to be called
 
-	Returns:
+	Return:
 	        based on the function you call: output of the function you call
 
 	Example:
@@ -910,7 +911,7 @@ def get_safe_filters(filters):
 
 
 def create_batch(iterable: Iterable, size: int) -> Generator[Iterable, None, None]:
-	"""Convert an iterable to multiple batches of constant size of batch_size
+	"""Convert an iterable to multiple batches of constant size of batch_size.
 
 	Args:
 	        iterable (Iterable): Iterable object which is subscriptable
@@ -990,12 +991,12 @@ def get_assets_json():
 
 
 def get_bench_relative_path(file_path):
-	"""Fixes paths relative to the bench root directory if exists and returns the absolute path
+	"""Fix paths relative to the bench root directory if exists and return the absolute path.
 
 	Args:
 	        file_path (str, Path): Path of a file that exists on the file system
 
-	Returns:
+	Return:
 	        str: Absolute path of the file_path
 	"""
 	if not os.path.exists(file_path):

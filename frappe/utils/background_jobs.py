@@ -394,7 +394,7 @@ def get_queue_list(queue_list=None, build_queue_name=False):
 
 
 def get_workers(queue=None):
-	"""Returns a list of Worker objects tied to a queue object if queue is passed, else returns a list of all workers"""
+	"""Return a list of Worker objects tied to a queue object if queue is passed, else return a list of all workers."""
 	if queue:
 		return Worker.all(queue=queue)
 	else:
@@ -402,7 +402,7 @@ def get_workers(queue=None):
 
 
 def get_running_jobs_in_queue(queue):
-	"""Returns a list of Jobs objects that are tied to a queue object and are currently running"""
+	"""Return a list of Jobs objects that are tied to a queue object and are currently running."""
 	jobs = []
 	workers = get_workers(queue)
 	for worker in workers:
@@ -413,7 +413,7 @@ def get_running_jobs_in_queue(queue):
 
 
 def get_queue(qtype, is_async=True):
-	"""Returns a Queue object tied to a redis connection"""
+	"""Return a Queue object tied to a redis connection."""
 	validate_queue(qtype)
 	return Queue(generate_qname(qtype), connection=get_redis_conn(), is_async=is_async)
 

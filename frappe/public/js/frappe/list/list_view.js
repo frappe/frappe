@@ -358,11 +358,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
-		this.columns.push({
-			type: "Tag",
-		});
-
-		// 2nd column: Status indicator
+		// 3rd column: Status indicator
 		if (frappe.has_indicator(this.doctype)) {
 			// indicator
 			this.columns.push({
@@ -407,6 +403,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		this.columns = this.columns.slice(0, this.list_view_settings.total_fields || total_fields);
 
+		// 2nd column: tag - normally hidden doesn't count towards total_fields
+		this.columns.splice(1, 0, {
+			type: "Tag",
+		});
+
 		if (
 			!this.settings.hide_name_column &&
 			this.meta.title_field &&
@@ -426,10 +427,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let fields_order = [];
 		let fields = JSON.parse(this.list_view_settings.fields);
 
-		//title and tags field is fixed
+		// title field is fixed
 		fields_order.push(this.columns[0]);
-		fields_order.push(this.columns[1]);
-		this.columns.splice(0, 2);
+		this.columns.splice(0, 1);
 
 		for (let fld in fields) {
 			for (let col in this.columns) {
@@ -1520,8 +1520,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.filter_area.is_being_edited()) {
 			return true;
 		}
-		// this flag is left for backward compatibility, there's no need to prevent realtime
-		// refresh. They are by default debounced now and there's no way to bypass that.
+		// this is set when a bulk operation is called from a list view which might update the list view
+		// this is to avoid the list view from refreshing a lot of times
+		// the list view is updated once after the bulk operation is complete
 		if (this.disable_list_update) {
 			return true;
 		}
@@ -1723,6 +1724,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_workflow_action_menu_items() {
 		const workflow_actions = [];
+		const me = this;
 
 		if (frappe.model.has_workflow(this.doctype)) {
 			const actions = frappe.workflow.get_all_transition_actions(this.doctype);
@@ -1731,11 +1733,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					label: __(action),
 					name: action,
 					action: () => {
-						frappe.xcall("frappe.model.workflow.bulk_workflow_approval", {
-							docnames: this.get_checked_items(true),
-							doctype: this.doctype,
-							action: action,
-						});
+						me.disable_list_update = true;
+						frappe
+							.xcall("frappe.model.workflow.bulk_workflow_approval", {
+								docnames: this.get_checked_items(true),
+								doctype: this.doctype,
+								action: action,
+							})
+							.finally(() => {
+								me.disable_list_update = false;
+							});
 					},
 					is_workflow_action: true,
 				});
@@ -1796,7 +1803,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __("Assign To", null, "Button in list view actions menu"),
 				action: () => {
+					this.disable_list_update = true;
 					bulk_operations.assign(this.get_checked_items(true), () => {
+						this.disable_list_update = false;
 						this.clear_checked_items();
 						this.refresh();
 					});
@@ -1809,7 +1818,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __("Apply Assignment Rule", null, "Button in list view actions menu"),
 				action: () => {
+					this.disable_list_update = true;
 					bulk_operations.apply_assignment_rule(this.get_checked_items(true), () => {
+						this.disable_list_update = false;
 						this.clear_checked_items();
 						this.refresh();
 					});
@@ -1822,7 +1833,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __("Add Tags", null, "Button in list view actions menu"),
 				action: () => {
+					this.disable_list_update = true;
 					bulk_operations.add_tags(this.get_checked_items(true), () => {
+						this.disable_list_update = false;
 						this.clear_checked_items();
 						this.refresh();
 					});
@@ -1859,7 +1872,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						);
 					}
 					frappe.confirm(message, () => {
+						this.disable_list_update = true;
 						bulk_operations.delete(docnames, () => {
+							this.disable_list_update = false;
 							this.clear_checked_items();
 							this.refresh();
 						});
@@ -1882,7 +1897,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 								"Title of confirmation dialog"
 							),
 							() => {
+								this.disable_list_update = true;
 								bulk_operations.submit_or_cancel(docnames, "cancel", () => {
+									this.disable_list_update = false;
 									this.clear_checked_items();
 									this.refresh();
 								});
@@ -1907,7 +1924,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 								"Title of confirmation dialog"
 							),
 							() => {
+								this.disable_list_update = true;
 								bulk_operations.submit_or_cancel(docnames, "submit", () => {
+									this.disable_list_update = false;
 									this.clear_checked_items();
 									this.refresh();
 								});
@@ -1931,7 +1950,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						}
 					});
 
+					this.disable_list_update = true;
 					bulk_operations.edit(this.get_checked_items(true), field_mappings, () => {
+						this.disable_list_update = false;
 						this.refresh();
 					});
 				},
