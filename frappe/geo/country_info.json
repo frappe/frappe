@@ -2090,7 +2090,10 @@
  "Palestinian Territory, Occupied": {
   "code": "ps",
   "number_format": "#,###.##",
-  "isd": "+970"
+  "isd": "+970",
+  "timezones": [
+    "Asia/Hebron"
+   ]
  },
  "Panama": {
   "code": "pa",
