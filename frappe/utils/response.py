@@ -56,6 +56,12 @@ def report_error(status_code):
 
 	response = build_response("json")
 	response.status_code = status_code
+
+	if not allow_traceback:
+		resp_data = response.get_json()
+		del resp_data["exc"]
+		response.data = json.dumps(resp_data).encode("utf-8")
+
 	return response
 
 
