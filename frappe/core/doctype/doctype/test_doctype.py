@@ -722,11 +722,8 @@ def new_doctype(
 	unique: bool = False,
 	depends_on: str = "",
 	fields: list[dict] | None = None,
-<<<<<<< HEAD
-=======
 	custom: bool = True,
 	default: str | None = None,
->>>>>>> 4d68a46b10 (fix: Set default child table fields on save (#23913))
 	**kwargs,
 ):
 	if not name:
@@ -737,7 +734,7 @@ def new_doctype(
 		{
 			"doctype": "DocType",
 			"module": "Core",
-			"custom": 1,
+			"custom": custom,
 			"fields": [
 				{
 					"label": "Some Field",

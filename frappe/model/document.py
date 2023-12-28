@@ -330,11 +330,7 @@ class Document(BaseDocument):
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
 
-<<<<<<< HEAD
-=======
-		self.check_if_locked()
 		self._set_defaults()
->>>>>>> 4d68a46b10 (fix: Set default child table fields on save (#23913))
 		self.check_permission("write", "save")
 
 		self.set_user_and_timestamp()
