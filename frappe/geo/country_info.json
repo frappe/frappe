@@ -2545,7 +2545,7 @@
   "currency_fraction": "Piastre",
   "currency_fraction_units": 100,
   "currency_name": "Sudanese Pound",
-  "currency_symbol": "\u20a6 or \u062c.\u0633.",
+  "currency_symbol": "\u062c.\u0633.",
   "number_format": "#,###.##",
   "timezones": [
     "Africa/Khartoum"
