@@ -8,12 +8,12 @@ from unittest.mock import patch
 import frappe
 import frappe.translate
 from frappe import _
+from frappe.gettext.extractors.javascript import extract_javascript
 from frappe.tests.utils import FrappeTestCase
 from frappe.translate import (
 	MERGED_TRANSLATION_KEY,
 	USER_TRANSLATION_KEY,
 	clear_cache,
-	extract_javascript,
 	extract_messages_from_javascript_code,
 	extract_messages_from_python_code,
 	get_language,
