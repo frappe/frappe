@@ -236,7 +236,7 @@ frappe.ui.Capture = class {
 
 	setup_remove_action() {
 		let me = this;
-		let elements = this.$template[0].getElementsByClassName("capture-remove-btn");
+		let elements = Array.from(this.$template[0].getElementsByClassName("capture-remove-btn"));
 
 		elements.forEach((el) => {
 			el.onclick = () => {
