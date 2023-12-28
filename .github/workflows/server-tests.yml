@@ -11,7 +11,6 @@ concurrency:
   group: server-develop-${{ github.event_name }}-${{ github.event.number }}
   cancel-in-progress: true
 
-
 permissions:
   # Do not change this as GITHUB_TOKEN is being used by roulette
   contents: read
@@ -48,7 +47,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+<<<<<<< HEAD
        db: ["mariadb", "postgres"]
+=======
+        db: ["mariadb", "postgres"]
+        container: [1, 2]
+>>>>>>> 00f20f43c6 (build: add setproctitle as dependency (#24007))
 
     services:
       mariadb:
@@ -84,7 +88,11 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
+<<<<<<< HEAD
           python-version: '3.11'
+=======
+          python-version: "3.12"
+>>>>>>> 00f20f43c6 (build: add setproctitle as dependency (#24007))
 
       - name: Check for valid Python & Merge Conflicts
         run: |
@@ -140,7 +148,14 @@ jobs:
 
       - name: Show bench output
         if: ${{ always() }}
-        run: cat ~/frappe-bench/bench_start.log || true
+        run: |
+          cd ~/frappe-bench
+          cat bench_start.log || true
+          cd logs
+          for f in ./*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
 
   # This is required because github still doesn't understand knowingly skipped tests
   faux-test:
@@ -151,7 +166,12 @@ jobs:
 
     strategy:
       matrix:
+<<<<<<< HEAD
        db: ["mariadb", "postgres"]
+=======
+        db: ["mariadb", "postgres"]
+        container: [1, 2]
+>>>>>>> 00f20f43c6 (build: add setproctitle as dependency (#24007))
 
     steps:
       - name: Pass skipped tests unconditionally
