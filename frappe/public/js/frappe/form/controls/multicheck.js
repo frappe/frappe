@@ -76,7 +76,7 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		this.$load_state.hide();
 		this.$checkbox_area.empty();
 		this.options
-			.sort((a, b) => a.label.localeCompare(b.label))
+			.sort((a, b) => cstr(a.label).localeCompare(cstr(b.label)))
 			.forEach((option) => {
 				let checkbox = this.get_checkbox_element(option).appendTo(this.$checkbox_area);
 				if (option.danger) {
