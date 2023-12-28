@@ -57,11 +57,6 @@ def report_error(status_code):
 	response = build_response("json")
 	response.status_code = status_code
 
-	if not allow_traceback:
-		resp_data = response.get_json()
-		resp_data.pop("exc", None)
-		response.data = json.dumps(resp_data).encode("utf-8")
-
 	return response
 
 
@@ -174,8 +169,9 @@ def _make_logs_v1():
 	from frappe.utils.error import guess_exception_source
 
 	response = frappe.local.response
+	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
 
-	if frappe.error_log:
+	if frappe.error_log and allow_traceback:
 		if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
 			response["_exc_source"] = source
 		response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
