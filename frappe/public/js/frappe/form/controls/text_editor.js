@@ -208,7 +208,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			},
 			theme: this.df.theme || "snow",
 			readOnly: this.disabled,
-			bounds: document.body,
+			bounds: this.quill_container[0],
 			placeholder: this.df.placeholder || "",
 		};
 	}
