@@ -2550,15 +2550,17 @@
  },
  "Sudan": {
   "code": "sd",
+  "currency": "SDG",
   "currency_fraction": "Piastre",
   "currency_fraction_units": 100,
-  "currency_symbol": "\u00a3",
+  "currency_name": "Sudanese Pound",
+  "currency_symbol": "\u062c.\u0633.",
   "number_format": "#,###.##",
   "timezones": [
-   "Africa/Khartoum"
+    "Africa/Khartoum"
   ],
   "isd": "+249"
- },
+},
  "Suriname": {
   "code": "sr",
   "currency": "SRD",
