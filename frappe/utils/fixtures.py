@@ -38,7 +38,7 @@ def import_fixtures(app):
 
 		file_path = frappe.get_app_path(app, "fixtures", fname)
 		try:
-			import_doc(file_path)
+			import_doc(file_path, sort=True)
 		except (ImportError, frappe.DoesNotExistError) as e:
 			# fixture syncing for missing doctypes
 			print(f"Skipping fixture syncing from the file {fname}. Reason: {e}")
@@ -67,20 +67,32 @@ def export_fixtures(app=None):
 	else:
 		apps = frappe.get_installed_apps()
 	for app in apps:
-		for fixture in frappe.get_hooks("fixtures", app_name=app):
+		fixture_auto_order = bool(next(iter(frappe.get_hooks("fixture_auto_order", app_name=app)), False))
+		fixtures = frappe.get_hooks("fixtures", app_name=app)
+		for index, fixture in enumerate(fixtures, start=1):
 			filters = None
 			or_filters = None
 			if isinstance(fixture, dict):
 				filters = fixture.get("filters")
 				or_filters = fixture.get("or_filters")
+				prefix = fixture.get("prefix")
 				fixture = fixture.get("doctype") or fixture.get("dt")
 			print(f"Exporting {fixture} app {app} filters {(filters if filters else or_filters)}")
 			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))
 
+			filename = frappe.scrub(fixture)
+			if prefix:
+				filename = f"{prefix}_{filename}"
+			if fixture_auto_order:
+				number_of_digits = len(str(len(fixtures)))
+				# add zero padding so files can be sorted lexicographically with filename.
+				file_number = str(index).zfill(number_of_digits)
+				filename = f"{file_number}_{filename}"
+
 			export_json(
 				fixture,
-				frappe.get_app_path(app, "fixtures", frappe.scrub(fixture) + ".json"),
+				frappe.get_app_path(app, "fixtures", filename + ".json"),
 				filters=filters,
 				or_filters=or_filters,
 				order_by="idx asc, creation asc",
