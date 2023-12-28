@@ -60,9 +60,16 @@ dependencies = [
     "python-dateutil~=2.8.1",
     "pytz==2022.1",
     "rauth~=0.7.3",
+<<<<<<< HEAD
     "redis~=3.5.3",
     "hiredis~=2.0.0",
     "requests-oauthlib~=1.3.0",
+=======
+    "redis~=5.0.1",
+    "hiredis~=2.2.3",
+    "setproctitle~=1.3.3",
+    "requests-oauthlib~=1.3.1",
+>>>>>>> 00f20f43c6 (build: add setproctitle as dependency (#24007))
     "requests~=2.31.0",
     "rq~=1.11.1",
     "rsa>=4.1",

@@ -22,7 +22,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+<<<<<<< HEAD
        containers: [1, 2]
+=======
+        # Make sure you modify coverage submission file list if changing this
+        container: [1, 2, 3]
+>>>>>>> 00f20f43c6 (build: add setproctitle as dependency (#24007))
 
     name: UI Tests (Cypress)
 
@@ -42,7 +47,11 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
+<<<<<<< HEAD
           python-version: '3.10'
+=======
+          python-version: "3.12"
+>>>>>>> 00f20f43c6 (build: add setproctitle as dependency (#24007))
 
       - name: Check for valid Python & Merge Conflicts
         run: |
@@ -159,6 +168,81 @@ jobs:
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
 
+<<<<<<< HEAD
       - name: Show bench console if tests failed
         if: ${{ failure() }}
         run: cat ~/frappe-bench/bench_start.log
+=======
+      - name: Stop server and wait for coverage file
+        run: |
+          ps -ef | grep "[f]rappe serve" | awk '{print $2}' | xargs kill -s SIGINT
+          sleep 5
+          ( tail -f /home/runner/frappe-bench/sites/coverage.xml & ) | grep -q "\/coverage"
+
+      - name: Upload JS coverage data
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-js-${{ matrix.container }}
+          path: /home/runner/frappe-bench/apps/frappe/.cypress-coverage/clover.xml
+
+      - name: Upload python coverage data
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-py-${{ matrix.container }}
+          path: /home/runner/frappe-bench/sites/coverage.xml
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cd ~/frappe-bench
+          cat bench_start.log || true
+          cd logs
+          for f in ./*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
+
+  faux-test:
+    runs-on: ubuntu-latest
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build != 'strawberry' && github.repository_owner == 'frappe' }}
+    name: UI Tests (Cypress)
+    strategy:
+      matrix:
+        container: [1, 2, 3]
+
+    steps:
+      - name: Pass skipped tests unconditionally
+        run: "echo Skipped"
+
+  coverage:
+    name: Coverage Wrap Up
+    needs: [test, checkrun]
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Upload python coverage data
+        uses: codecov/codecov-action@v3
+        with:
+          name: UIBackend
+          fail_ci_if_error: true
+          verbose: true
+          files: ./coverage-py-1/coverage.xml,./coverage-py-2/coverage.xml,./coverage-py-3/coverage.xml
+          flags: server-ui
+
+      - name: Upload JS coverage data
+        uses: codecov/codecov-action@v3
+        with:
+          name: Cypress
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          files: ./coverage-js-1/clover.xml,./coverage-js-2/clover.xml,./coverage-js-3/clover.xml
+          verbose: true
+          flags: ui-tests
+>>>>>>> 00f20f43c6 (build: add setproctitle as dependency (#24007))

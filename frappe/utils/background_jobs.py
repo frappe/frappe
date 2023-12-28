@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Literal, NoReturn, Union
 from uuid import uuid4
 
 import redis
+import setproctitle
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Connection, Queue, Worker
 from rq.exceptions import NoSuchJobError
@@ -187,6 +188,21 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	else:
 		method_name = cstr(method.__name__)
 
+<<<<<<< HEAD
+=======
+	actual_func_name = kwargs.get("job_type") if "run_scheduled_job" in method_name else method_name
+	setproctitle.setproctitle(f"rq: Started running {actual_func_name} at {time.time()}")
+
+	frappe.local.job = frappe._dict(
+		site=site,
+		method=method_name,
+		job_name=job_name,
+		kwargs=kwargs,
+		user=user,
+		after_job=CallbackManager(),
+	)
+
+>>>>>>> 00f20f43c6 (build: add setproctitle as dependency (#24007))
 	for before_job_task in frappe.get_hooks("before_job"):
 		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
 
