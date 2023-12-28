@@ -93,17 +93,13 @@ def watch(apps=None):
 def clear_cache(context):
 	"Clear cache, doctype cache and defaults"
 	import frappe.sessions
-	from frappe.desk.notifications import clear_notifications
-	from frappe.translate import clear_cache as clear_translations
 	from frappe.website.utils import clear_website_cache
 
 	for site in context.sites:
 		try:
 			frappe.connect(site)
 			frappe.clear_cache()
-			clear_notifications()
 			clear_website_cache()
-			clear_translations()
 		finally:
 			frappe.destroy()
 	if not context.sites:
