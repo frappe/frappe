@@ -14,18 +14,12 @@ export default class ListFilter {
 		// init dom
 		this.wrapper.html(`
 			<li class="input-area"></li>
-			<li class="sidebar-action">
-				<a class="saved-filters-preview">${__("Show Saved")}</a>
-			</li>
 			<div class="saved-filters"></div>
 		`);
 
-		this.$input_area = this.wrapper.find(".input-area");
-		this.$list_filters = this.wrapper.find(".list-filters");
-		this.$saved_filters = this.wrapper.find(".saved-filters").hide();
-		this.$saved_filters_preview = this.wrapper.find(".saved-filters-preview");
+		this.$input_area = this.wrapper.find(".input-area").toggle(false);
+		this.$saved_filters = this.wrapper.find(".saved-filters");
 		this.saved_filters_hidden = true;
-		this.toggle_saved_filters(true);
 
 		this.filter_input = frappe.ui.form.make_control({
 			df: {
@@ -45,20 +39,23 @@ export default class ListFilter {
 			parent: this.$input_area,
 			render_input: 1,
 		});
+
+		this.wrapper
+			.parent()
+			.find(".icon-add-filter")
+			.on("click", () => {
+				this.$input_area.toggle();
+			});
 	}
 
 	bind() {
 		this.bind_save_filter();
-		this.bind_toggle_saved_filters();
 		this.bind_click_filter();
 		this.bind_remove_filter();
 	}
 
 	refresh() {
 		this.get_list_filters().then(() => {
-			this.filters.length
-				? this.$saved_filters_preview.show()
-				: this.$saved_filters_preview.hide();
 			const html = this.filters.map((filter) => this.filter_template(filter));
 			this.wrapper.find(".filter-pill").remove();
 			this.$saved_filters.append(html);
@@ -74,19 +71,6 @@ export default class ListFilter {
 			<a class="ellipsis filter-name">${filter.filter_name}</a>
 			<a class="remove">${frappe.utils.icon("close")}</a>
 		</div>`;
-	}
-
-	bind_toggle_saved_filters() {
-		this.wrapper.find(".saved-filters-preview").click(() => {
-			this.toggle_saved_filters(this.saved_filters_hidden);
-		});
-	}
-
-	toggle_saved_filters(show) {
-		this.$saved_filters.toggle(show);
-		const label = show ? __("Hide Saved") : __("Show Saved");
-		this.wrapper.find(".saved-filters-preview").text(label);
-		this.saved_filters_hidden = !this.saved_filters_hidden;
 	}
 
 	bind_click_filter() {
@@ -129,7 +113,6 @@ export default class ListFilter {
 
 					this.filter_input.set_value("");
 					this.save_filter(value).then(() => this.refresh());
-					this.toggle_saved_filters(true);
 				} else {
 					let help_text = __("Press Enter to save");
 

@@ -19,7 +19,7 @@ frappe.ui.form.Sidebar = class {
 			can_write: frappe.model.can_write(this.frm.doctype, this.frm.docname),
 		});
 
-		this.sidebar = $('<div class="form-sidebar overlay-sidebar hidden-xs hidden-sm"></div>')
+		this.sidebar = $('<div class="form-sidebar"></div>')
 			.html(sidebar_content)
 			.appendTo(this.frm.page.sidebar.empty());
 

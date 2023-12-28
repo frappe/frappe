@@ -16,6 +16,6 @@ frappe.ui.Sidebar = class Sidebar {
 			<div style="display: flex; align-items: center;">
 				<svg class="es-icon icon-xs"><use href="#es-line-down"></use></svg>
 			</div>
-		</div>`).prependTo($(".body-sidebar"));
+		</div>`).prependTo($(".body-sidebar-head"));
 	}
 };

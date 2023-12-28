@@ -63,7 +63,7 @@
 	display: flex;
 	flex-direction: column;
 	outline: none;
-	padding: 4px 5px;
+	padding: 4px 0px;
 
 	&:focus {
 		.list-row {
@@ -161,7 +161,7 @@
 	background-color: var(--subtle-fg);
 	height: 30px;
 	padding: 8px, 10px, 8px, 0px;
-	margin: 8px 5px;
+	margin: 8px 0px;
 	border-radius: var(--border-radius-md);
 
 	.list-check-all {
@@ -207,8 +207,6 @@ $level-margin-right: 8px;
 
 .list-paging-area,
 .footnote-area {
-	border-top: 1px solid var(--border-color);
-
 	.btn-group {
 		border: 1px solid var(--border-color);
 		border-radius: var(--border-radius);
@@ -399,8 +397,8 @@ input.list-check-all {
 .page-form {
 	.standard-filter-section {
 		flex-wrap: wrap;
-		// width: 65%;
 		flex: 1;
+		margin-left: -5px; // compensate for padding given by filter control
 
 		.form-group {
 			min-width: 150px;
@@ -409,7 +407,7 @@ input.list-check-all {
 
 	.filter-section {
 		display: flex;
-		padding: 0 var(--padding-xs);
+		padding-left: var(--padding-xs);
 	}
 
 	.filter-selector .btn-group {

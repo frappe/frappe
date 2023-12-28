@@ -110,7 +110,7 @@
 	transition: 0.5s top;
 	.page-head-content {
 		width: 100%;
-		margin: 0;
+		// margin: 0;
 		height: var(--page-head-height);
 		padding: 8px 0px;
 	}
@@ -118,12 +118,13 @@
 
 .page-form {
 	margin: 0;
-	padding: var(--padding-sm);
+	padding-top: var(--padding-sm) 0;
 	display: flex;
 	flex-wrap: wrap;
 	background-color: var(--card-bg);
 
-	.btn {
+	.btn,
+	.form-control {
 		font-size: var(--text-md);
 	}
 
@@ -178,12 +179,17 @@
 
 	.frappe-list,
 	.report-wrapper {
-		padding: 0 var(--padding-xs);
+		padding: 0;
 
 		.result,
 		.no-result,
 		.freeze {
-			min-height: #{"calc(100vh - 284px)"};
+			padding-top: var(--padding-md);
+			min-height: #{"calc(100vh - 250px)"};
+		}
+
+		.datatable-wrapper {
+			margin-left: 5px;
 		}
 	}
 

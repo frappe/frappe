@@ -184,17 +184,19 @@ frappe.ui.Page = class Page {
 	}
 
 	setup_overlay_sidebar() {
-		this.sidebar.find(".close-sidebar").remove();
-		let overlay_sidebar = this.sidebar.find(".overlay-sidebar").addClass("opened");
-		$('<div class="close-sidebar">').hide().appendTo(this.sidebar).fadeIn();
+		$(".close-sidebar").remove();
+		let overlay_sidebar = $(".overlay-sidebar").addClass("opened");
+		$('<div class="close-sidebar">').hide().appendTo(".body-content").fadeIn();
 		let scroll_container = $("html").css("overflow-y", "hidden");
 
-		this.sidebar.find(".close-sidebar").on("click", (e) => this.close_sidebar(e));
-		this.sidebar.on("click", "button:not(.dropdown-toggle)", (e) => this.close_sidebar(e));
+		$(".close-sidebar").on("click", (e) => this.close_sidebar(e));
+		$(".body-sidebar").on("click", "button:not(.dropdown-toggle)", (e) =>
+			this.close_sidebar(e)
+		);
 
 		this.close_sidebar = () => {
 			scroll_container.css("overflow-y", "");
-			this.sidebar.find("div.close-sidebar").fadeOut(() => {
+			$("div.close-sidebar").fadeOut(() => {
 				overlay_sidebar
 					.removeClass("opened")
 					.find(".dropdown-toggle")

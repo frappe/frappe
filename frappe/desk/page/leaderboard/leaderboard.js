@@ -19,9 +19,7 @@ class Leaderboard {
 
 		this.parent = parent;
 		this.page = this.parent.page;
-		this.page.sidebar.html(
-			`<ul class="standard-sidebar leaderboard-sidebar overlay-sidebar"></ul>`
-		);
+		this.page.sidebar.html(`<ul class="standard-sidebar leaderboard-sidebar"></ul>`);
 		this.$sidebar_list = this.page.sidebar.find("ul");
 
 		this.get_leaderboard_config();

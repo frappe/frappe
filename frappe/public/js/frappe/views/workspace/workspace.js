@@ -54,7 +54,7 @@ frappe.views.Workspace = class Workspace {
 
 	prepare_container() {
 		let list_sidebar = $(`
-			<div class="list-sidebar overlay-sidebar hidden-xs hidden-sm">
+			<div class="list-sidebar">
 				<div class="desk-sidebar list-unstyled sidebar-menu"></div>
 			</div>
 		`).appendTo(this.page.sidebar);

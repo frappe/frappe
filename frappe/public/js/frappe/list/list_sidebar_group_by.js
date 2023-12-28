@@ -50,7 +50,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			</div>
 		`);
 
-		this.page.sidebar.find(".add-list-group-by a").on("click", () => {
+		this.page.sidebar.find(".icon-edit-filters").on("click", () => {
 			frappe.utils.setup_search(d.$body, ".unit-checkbox", ".label-area");
 			d.show();
 		});
@@ -61,11 +61,6 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		let html = `
 			<div class="list-group-by-fields">
 			</div>
-			<li class="add-list-group-by sidebar-action">
-				<a class="add-group-by">
-					${__("Edit Filters")}
-				</a>
-			</li>
 		`;
 		this.$wrapper.html(html);
 	}
