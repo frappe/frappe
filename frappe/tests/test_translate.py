@@ -276,6 +276,40 @@ class TestTranslate(FrappeTestCase):
 		args = get_args("""__("attr with", ["format", "replacements"])""")
 		self.assertEqual(args, "attr with")
 
+		args = get_args("""__("attr with", null, "context")""")
+		self.assertEqual(args, ("attr with", None, "context"))
+
+		args = get_args(
+			"""__(
+				"Multiline translation with format replacements and context {0} {1}",
+				[
+					"format",
+					call("replacements", {
+						"key": "value"
+					}),
+				],
+				"context"
+			)"""
+		)
+		self.assertEqual(
+			args, ("Multiline translation with format replacements and context {0} {1}", None, "context")
+		)
+
+		args = get_args(
+			"""__(
+				"Multiline translation with format replacements and no context {0} {1}",
+				[
+					"format",
+					call("replacements", {
+						"key": "value"
+					}),
+				],
+			)"""
+		)
+		self.assertEqual(
+			args, ("Multiline translation with format replacements and no context {0} {1}", None)
+		)
+
 
 def verify_translation_files(app):
 	"""Function to verify translation file syntax in app."""
