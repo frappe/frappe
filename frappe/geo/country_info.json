@@ -2089,8 +2089,17 @@
  },
  "Palestinian Territory, Occupied": {
   "code": "ps",
+  "currency": "ILS",
+  "currency_fraction": "Agora",
+  "currency_fraction_units": 100,
+  "currency_name": "New Israeli Sheqel",
+  "currency_symbol": "\u20aa",
   "number_format": "#,###.##",
-  "isd": "+970"
+  "isd": "+970",
+  "timezones": [
+    "Asia/Hebron",
+    "Asia/Jerusalem"
+   ]
  },
  "Panama": {
   "code": "pa",
