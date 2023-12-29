@@ -25,7 +25,7 @@ class DocumentPage(BaseTemplatePage):
 	def search_in_doctypes_with_web_view(self):
 		if document := _find_matching_document_webview(self.path):
 			self.doctype, self.docname = document
-			return True
+			return frappe.get_cached_doc(self.doctype, self.docname).has_permission()
 
 	def search_web_page_dynamic_routes(self):
 		d = get_page_info_from_web_page_with_dynamic_routes(self.path)
@@ -45,6 +45,7 @@ class DocumentPage(BaseTemplatePage):
 	@cache_html
 	def get_html(self):
 		self.doc = frappe.get_cached_doc(self.doctype, self.docname)
+		self.doc.check_permission()
 		self.init_context()
 		self.update_context()
 		self.post_process_context()
