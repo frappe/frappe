@@ -613,7 +613,7 @@ frappe.search.utils = {
 			const target = item.label.toLowerCase();
 			const txt = keywords.toLowerCase();
 			if (txt === target || target.indexOf(txt) === 0) {
-				const search_result = this.fuzzy_search(txt, target, true);
+				const search_result = this.fuzzy_search(txt, item.label, true);
 				results.push({
 					type: "Executable",
 					value: search_result.marked_string,
