@@ -156,7 +156,7 @@ frappe.views.CommunicationComposer = class {
 		// add from if user has access to multiple email accounts
 		const email_accounts = frappe.boot.email_accounts.filter((account) => {
 			return (
-				!in_list(["All Accounts", "Sent", "Spam", "Trash"], account.email_account) &&
+				!["All Accounts", "Sent", "Spam", "Trash"].includes(account.email_account) &&
 				account.enable_outgoing
 			);
 		});
