@@ -948,7 +948,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 	user_type_condition = "and user_type != 'Website User'"
 	if filters and filters.get("ignore_user_type") and frappe.session.data.user_type == "System User":
 		user_type_condition = ""
-		filters.pop("ignore_user_type")
+	filters and filters.pop("ignore_user_type", None)
 
 	txt = f"%{txt}%"
 	return frappe.db.sql(
