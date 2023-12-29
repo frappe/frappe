@@ -73,11 +73,9 @@ def set_scope(scope):
 			source=SOURCE_FOR_STYLE["endpoint"],
 		)
 
-	scope.set_tag("site", frappe.local.site)
+	scope.set_user({"id": frappe.local.site})
 	user = getattr(frappe.session, "user", "Unidentified")
-	if "@" not in user:
-		user = f"{user}@{frappe.local.site}"
-	scope.set_user({"id": user, "email": user})
+	scope.set_tag("frappe_user", user)
 	# Extract `X-Frappe-Request-ID` to store as a separate field if its present
 	if trace_id := frappe.monitor.get_trace_id():
 		scope.set_tag("frappe_trace_id", trace_id)
