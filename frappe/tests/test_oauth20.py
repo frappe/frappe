@@ -336,7 +336,7 @@ class TestOAuth20(unittest.TestCase):
 			id_token,
 			audience=self.client_id,
 			key=self.client_secret,
-			algorithm="HS256",
+			algorithms=["HS256"],
 		)
 
 

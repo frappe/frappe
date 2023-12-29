@@ -458,6 +458,7 @@ class OAuthWebRequestValidator(RequestValidator):
 				user = None
 				payload = jwt.decode(
 					id_token_hint,
+					algorithms=["HS256"],
 					options={
 						"verify_signature": False,
 						"verify_aud": False,
@@ -480,7 +481,7 @@ class OAuthWebRequestValidator(RequestValidator):
 						id_token_hint,
 						key=client_secret,
 						audience=client_id,
-						algorithm="HS256",
+						algorithms=["HS256"],
 						options={
 							"verify_exp": False,
 						},
