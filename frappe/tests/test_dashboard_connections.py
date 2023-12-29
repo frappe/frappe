@@ -1,15 +1,11 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import os
 from unittest.mock import patch
 
 import frappe
 import frappe.utils
-<<<<<<< HEAD
-=======
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.customize_form.test_customize_form import TestCustomizeForm
->>>>>>> 17cd3e9b3e (test: Custom doctype links having non std fieldname with dashboard override)
 from frappe.desk.notifications import get_open_count
 from frappe.tests.utils import FrappeTestCase, patch_hooks
 
@@ -154,36 +150,22 @@ class TestDashboardConnections(FrappeTestCase):
 
 
 def create_test_data():
-<<<<<<< HEAD
 	create_child_table_with_link_to_doctype_a()
 	create_child_table_with_link_to_doctype_b()
 	create_doctype_a_with_child_table_with_link_to_doctype_b()
 	create_doctype_b_with_child_table_with_link_to_doctype_a()
-=======
-	create_test_child_table_with_link_to_doctype_a()
-	create_test_child_table_with_link_to_doctype_b()
-	create_test_doctype_a_with_test_child_table_with_link_to_doctype_b()
-	create_test_doctype_b_with_test_child_table_with_link_to_doctype_a()
 	create_linked_doctypes()
->>>>>>> 17cd3e9b3e (test: Custom doctype links having non std fieldname with dashboard override)
 	add_links_in_child_tables()
 
 
 def delete_test_data():
 	doctypes = [
-<<<<<<< HEAD
 		"Child Table With Link To Doctype A",
 		"Child Table With Link To Doctype B",
 		"Doctype A With Child Table With Link To Doctype B",
 		"Doctype B With Child Table With Link To Doctype A",
-=======
-		"Test Child Table With Link To Doctype A",
-		"Test Child Table With Link To Doctype B",
-		"Test Doctype A With Child Table With Link To Doctype B",
-		"Test Doctype B With Child Table With Link To Doctype A",
 		"Test Doctype D",
 		"Test Doctype E",
->>>>>>> 17cd3e9b3e (test: Custom doctype links having non std fieldname with dashboard override)
 	]
 	for doctype in doctypes:
 		if frappe.db.table_exists(doctype):
