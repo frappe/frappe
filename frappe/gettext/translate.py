@@ -45,7 +45,11 @@ def get_locale_dir() -> Path:
 
 
 def get_locales(app: str) -> list[str]:
-	return [locale.stem for locale in get_po_dir(app).iterdir() if locale.suffix == ".po"]
+	po_dir = get_po_dir(app)
+	if not po_dir.exists():
+		return []
+
+	return [locale.stem for locale in po_dir.iterdir() if locale.suffix == ".po"]
 
 
 def get_po_path(app: str, locale: str | None = None) -> Path:
