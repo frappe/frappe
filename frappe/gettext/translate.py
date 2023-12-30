@@ -172,15 +172,15 @@ def compile(target_app: str | None = None, locale: str | None = None):
 
 	for app in apps:
 		locales = [locale] if locale else get_locales(app)
-		for locale in locales:
-			po_path = get_po_path(app, locale)
+		for current_locale in locales:
+			po_path = get_po_path(app, current_locale)
 			if not po_path.exists():
 				continue
 
 			with open(po_path, "rb") as f:
 				catalog = read_po(f)
 
-			mo_path = write_binary(app, catalog, locale)
+			mo_path = write_binary(app, catalog, current_locale)
 			print(f"MO file created at {mo_path}")
 
 
