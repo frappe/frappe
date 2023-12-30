@@ -22,7 +22,6 @@ class DocumentPage(BaseTemplatePage):
 		return False
 
 	def search_in_doctypes_with_web_view(self):
-<<<<<<< HEAD
 		for doctype in get_doctypes_with_web_view():
 			filters = dict(route=self.path)
 			meta = frappe.get_meta(doctype)
@@ -35,18 +34,13 @@ class DocumentPage(BaseTemplatePage):
 				self.docname = frappe.db.get_value(doctype, filters, "name")
 				if self.docname:
 					self.doctype = doctype
-					return True
+					doc = frappe.get_cached_doc(self.doctype, self.docname)
+					return (
+						doc.meta.allow_guest_to_view or doc.has_permission() or frappe.has_website_permission(doc)
+					)
 			except Exception as e:
 				if not frappe.db.is_missing_column(e):
 					raise e
-=======
-		if document := _find_matching_document_webview(self.path):
-			self.doctype, self.docname = document
-			doc = frappe.get_cached_doc(self.doctype, self.docname)
-			return (
-				doc.meta.allow_guest_to_view or doc.has_permission() or frappe.has_website_permission(doc)
-			)
->>>>>>> aac98f0e93 (fix: Check permissions before rendering web view (#24032) (#24035))
 
 	def search_web_page_dynamic_routes(self):
 		d = get_page_info_from_web_page_with_dynamic_routes(self.path)
