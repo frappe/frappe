@@ -151,15 +151,15 @@ def generate_pot(target_app: str | None = None):
 def new_po(locale, target_app: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
-	for target_app in apps:
-		po_path = get_po_path(target_app, locale)
+	for app in apps:
+		po_path = get_po_path(app, locale)
 		if os.path.exists(po_path):
 			print(f"{po_path} exists. Skipping")
 			continue
 
-		pot_catalog = get_catalog(target_app)
+		pot_catalog = get_catalog(app)
 		pot_catalog.locale = locale
-		po_path = write_catalog(target_app, pot_catalog, locale)
+		po_path = write_catalog(app, pot_catalog, locale)
 
 		print(f"PO file created_at {po_path}")
 		print(
