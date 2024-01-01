@@ -465,7 +465,7 @@ def install_app(context, apps, force=False):
 					print(f"App {app} is Incompatible with Site {site}{err_msg}")
 					exit_code = 1
 				except Exception as err:
-					err_msg = f": {str(err)}\n{frappe.get_traceback()}"
+					err_msg = f": {str(err)}\n{frappe.get_traceback(with_context=True)}"
 					print(f"An error occurred while installing {app}{err_msg}")
 					exit_code = 1
 
@@ -905,7 +905,7 @@ def backup(
 				fg="red",
 			)
 			if verbose:
-				print(frappe.get_traceback())
+				print(frappe.get_traceback(with_context=True))
 			exit_code = 1
 			continue
 		if frappe.get_system_settings("encrypt_backup") and frappe.get_site_config().encryption_key:
