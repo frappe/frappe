@@ -741,7 +741,8 @@ class DatabaseQuery:
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
 
-		can_be_null = f.fieldname != "name"  # primary key is never nullable
+		# primary key is never nullable, modified is usually indexed by default and always present
+		can_be_null = f.fieldname not in ("name", "modified")
 
 		value = None
 

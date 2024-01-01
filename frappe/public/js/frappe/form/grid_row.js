@@ -500,7 +500,7 @@ export default class GridRow {
 				fields.push({
 					label: column.label,
 					value: column.fieldname,
-					checked: selected_fields ? in_list(selected_fields, column.fieldname) : false,
+					checked: selected_fields ? selected_fields.includes(column.fieldname) : false,
 				});
 			}
 		});
@@ -1136,7 +1136,7 @@ export default class GridRow {
 		if (field.$input) {
 			field.$input.on("keydown", function (e) {
 				var { ESCAPE, TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
-				if (!in_list([TAB, UP_ARROW, DOWN_ARROW, ESCAPE], e.which)) {
+				if (![TAB, UP_ARROW, DOWN_ARROW, ESCAPE].includes(e.which)) {
 					return;
 				}
 
@@ -1145,7 +1145,7 @@ export default class GridRow {
 				var fieldtype = $(this).attr("data-fieldtype");
 
 				let ctrl_key = e.metaKey || e.ctrlKey;
-				if (!in_list(ignore_fieldtypes, fieldtype) && ctrl_key && e.which !== TAB) {
+				if (!ignore_fieldtypes.includes(fieldtype) && ctrl_key && e.which !== TAB) {
 					me.add_new_row_using_keys(e);
 					return;
 				}
@@ -1156,7 +1156,7 @@ export default class GridRow {
 				}
 
 				var move_up_down = function (base) {
-					if (in_list(ignore_fieldtypes, fieldtype) && !e.altKey) {
+					if (ignore_fieldtypes.includes(fieldtype) && !e.altKey) {
 						return false;
 					}
 					if (field.autocomplete_open) {
@@ -1449,8 +1449,8 @@ export default class GridRow {
 				!df.hidden &&
 				df.in_list_view &&
 				me.grid.frm.get_perm(df.permlevel, "read") &&
-				!in_list(frappe.model.layout_fields, df.fieldtype) &&
-				!in_list(blacklist, df.fieldname);
+				!frappe.model.layout_fields.includes(df.fieldtype) &&
+				!blacklist.includes(df.fieldname);
 
 			return visible ? df : null;
 		});

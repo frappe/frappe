@@ -75,7 +75,7 @@ frappe.ui.form.on("User", {
 		if (
 			frm.can_edit_roles &&
 			!frm.is_new() &&
-			in_list(["System User", "Website User"], frm.doc.user_type)
+			["System User", "Website User"].includes(frm.doc.user_type)
 		) {
 			if (!frm.roles_editor) {
 				const role_area = $('<div class="role-editor">').appendTo(
@@ -105,7 +105,7 @@ frappe.ui.form.on("User", {
 		}
 
 		if (
-			in_list(["System User", "Website User"], frm.doc.user_type) &&
+			["System User", "Website User"].includes(frm.doc.user_type) &&
 			!frm.is_new() &&
 			!frm.roles_editor &&
 			frm.can_edit_roles
