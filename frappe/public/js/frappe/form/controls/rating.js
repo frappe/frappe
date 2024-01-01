@@ -1,4 +1,4 @@
-frappe.ui.form.ControlRating = class ControlRating extends frappe.ui.form.ControlInt {
+frappe.ui.form.ControlRating = class ControlRating extends frappe.ui.form.ControlFloat {
 	make_input() {
 		super.make_input();
 		let stars = "";
