@@ -520,7 +520,7 @@ class TestCommands(BaseTestCommands):
 		kwargs = {
 			"new_site": site,
 			"admin_password": frappe.conf.admin_password,
-			"root_password": frappe.conf.root_password,
+			"root_password": frappe.conf.root_password or "",
 			"db_type": frappe.conf.db_type,
 			"db_user": user,
 			"db_password": password,
@@ -549,19 +549,18 @@ class TestCommands(BaseTestCommands):
 
 	def test_existing_db_username(self):
 		site = frappe.generate_hash()
-		if (user := frappe.conf.db_user) is None:
-			user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
-			if frappe.conf.db_type == "mariadb":
-				from frappe.database.mariadb.setup_db import get_root_connection
+		user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
+		if frappe.conf.db_type == "mariadb":
+			from frappe.database.mariadb.setup_db import get_root_connection
 
-				root_conn = get_root_connection()
-				root_conn.sql(f"CREATE USER '{user}'@'localhost'")
-			else:
-				from frappe.database.postgres.setup_db import get_root_connection
+			root_conn = get_root_connection()
+			root_conn.sql(f"CREATE USER '{user}'@'localhost'")
+		else:
+			from frappe.database.postgres.setup_db import get_root_connection
 
-				root_conn = get_root_connection()
-				root_conn.sql(f"CREATE USER {user}")
-		password = frappe.conf.db_password or frappe.generate_hash()
+			root_conn = get_root_connection()
+			root_conn.sql(f"CREATE USER {user}")
+		password = frappe.generate_hash()
 		kwargs = {
 			"new_site": site,
 			"admin_password": frappe.conf.admin_password,

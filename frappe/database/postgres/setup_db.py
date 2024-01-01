@@ -10,22 +10,22 @@ def setup_database():
 	root_conn = get_root_connection()
 	root_conn.commit()
 	root_conn.sql("end")
-	root_conn.sql(f"DROP DATABASE IF EXISTS `{frappe.conf.db_name}`")
+	root_conn.sql(f'DROP DATABASE IF EXISTS "{frappe.conf.db_name}"')
 
 	# If user exists, just update password
 	if root_conn.sql(f"SELECT 1 FROM pg_roles WHERE rolname='{frappe.conf.db_user}'"):
-		root_conn.sql(f"ALTER USER {frappe.conf.db_user} WITH PASSWORD '{frappe.conf.db_password}'")
+		root_conn.sql(f"ALTER USER \"{frappe.conf.db_user}\" WITH PASSWORD '{frappe.conf.db_password}'")
 	else:
-		root_conn.sql(f"CREATE USER {frappe.conf.db_user} WITH PASSWORD '{frappe.conf.db_password}'")
-	root_conn.sql(f"CREATE DATABASE `{frappe.conf.db_name}`")
+		root_conn.sql(f"CREATE USER \"{frappe.conf.db_user}\" WITH PASSWORD '{frappe.conf.db_password}'")
+	root_conn.sql(f'CREATE DATABASE "{frappe.conf.db_name}"')
 	root_conn.sql(
-		f"GRANT ALL PRIVILEGES ON DATABASE `{frappe.conf.db_name}` TO {frappe.conf.db_user}"
+		f'GRANT ALL PRIVILEGES ON DATABASE "{frappe.conf.db_name}" TO "{frappe.conf.db_user}"'
 	)
 	if psql_version := root_conn.sql("SELECT VERSION()", as_dict=True):
 		version_string = psql_version[0].get("version") or "PostgreSQL 14"
 		major_version = cint(re.split(r"[\w\.]", version_string)[1])
 		if major_version > 15:
-			root_conn.sql(f"ALTER DATABASE `{frappe.conf.db_name}` OWNER TO {frappe.conf.db_user}")
+			root_conn.sql(f'ALTER DATABASE "{frappe.conf.db_name}" OWNER TO "{frappe.conf.db_user}"')
 	root_conn.close()
 
 
