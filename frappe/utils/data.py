@@ -2237,6 +2237,49 @@ def get_job_name(key: str, doctype: str | None = None, doc_name: str | None = No
 	return job_name
 
 
+<<<<<<< HEAD
+=======
+def get_imaginary_pixel_response():
+	return {
+		"type": "binary",
+		"filename": "imaginary_pixel.png",
+		"filecontent": (
+			b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00"
+			b"\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\r"
+			b"IDATx\x9cc\xf8\xff\xff?\x03\x00\x08\xfc\x02\xfe\xa7\x9a\xa0"
+			b"\xa0\x00\x00\x00\x00IEND\xaeB`\x82"
+		),
+	}
+
+
+def is_site_link(link: str) -> bool:
+	if not link:
+		return False
+	if link.startswith("/"):
+		return True
+	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
+
+
+def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "email") -> str:
+	url_parts = list(urlparse(url))
+	if url_parts[0] == "mailto":
+		return url
+
+	trackers = {
+		"source": source,
+		"medium": medium,
+	}
+
+	if campaign:
+		trackers["campaign"] = campaign
+
+	query = dict(parse_qsl(url_parts[4])) | trackers
+
+	url_parts[4] = urlencode(query)
+	return urlunparse(url_parts)
+
+
+>>>>>>> deb26f1b44 (fix: View logging fails if no referrer)
 # This is used in test to count memory overhead of default imports.
 def _get_rss_memory_usage():
 	import psutil
