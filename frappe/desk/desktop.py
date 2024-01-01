@@ -565,7 +565,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 			page, json_config, e
 		)
 		doc.log_error("Could not save customization", log)
-		return False
+		raise
 
 	return True
 
