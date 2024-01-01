@@ -410,6 +410,7 @@ def install_app(context, apps, force=False):
 		frappe.init(site=site)
 		frappe.connect()
 
+<<<<<<< HEAD
 		for app in apps:
 			try:
 				_install_app(app, verbose=context.verbose, force=force)
@@ -421,6 +422,20 @@ def install_app(context, apps, force=False):
 				err_msg = f": {str(err)}\n{frappe.get_traceback()}"
 				print(f"An error occurred while installing {app}{err_msg}")
 				exit_code = 1
+=======
+		with filelock("install_app", timeout=1):
+			for app in apps:
+				try:
+					_install_app(app, verbose=context.verbose, force=force)
+				except frappe.IncompatibleApp as err:
+					err_msg = f":\n{err}" if str(err) else ""
+					print(f"App {app} is Incompatible with Site {site}{err_msg}")
+					exit_code = 1
+				except Exception as err:
+					err_msg = f": {str(err)}\n{frappe.get_traceback(with_context=True)}"
+					print(f"An error occurred while installing {app}{err_msg}")
+					exit_code = 1
+>>>>>>> 8a7707e3fa (fix(DX): store tracebacks with context (#24059))
 
 		if not exit_code:
 			frappe.db.commit()
@@ -859,7 +874,7 @@ def backup(
 				fg="red",
 			)
 			if verbose:
-				print(frappe.get_traceback())
+				print(frappe.get_traceback(with_context=True))
 			exit_code = 1
 			continue
 		if frappe.get_system_settings("encrypt_backup") and frappe.get_site_config().encryption_key:

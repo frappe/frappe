@@ -121,7 +121,7 @@ class ScheduledJobType(Document):
 			).insert(ignore_permissions=True)
 		self.scheduler_log.db_set("status", status)
 		if status == "Failed":
-			self.scheduler_log.db_set("details", frappe.get_traceback())
+			self.scheduler_log.db_set("details", frappe.get_traceback(with_context=True))
 		if status == "Start":
 			self.db_set("last_execution", now_datetime(), update_modified=False)
 		frappe.db.commit()
