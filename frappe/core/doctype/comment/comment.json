@@ -110,11 +110,11 @@
    "fieldname": "mentions",
    "fieldtype": "Table MultiSelect",
    "label": "Mentions",
-   "options": "Mentioned Users"
+   "options": "Mentioned User"
   }
  ],
  "links": [],
- "modified": "2024-01-02 13:11:31.775349",
+ "modified": "2024-01-02 20:25:41.467803",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
