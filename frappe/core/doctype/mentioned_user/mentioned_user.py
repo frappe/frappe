@@ -5,7 +5,7 @@
 from frappe.model.document import Document
 
 
-class MentionedUsers(Document):
+class MentionedUser(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 

@@ -18,7 +18,7 @@ class Comment(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.core.doctype.mentioned_users.mentioned_users import MentionedUsers
+		from frappe.core.doctype.mentioned_user.mentioned_user import MentionedUser
 		from frappe.types import DF
 
 		comment_by: DF.Data | None
@@ -46,7 +46,7 @@ class Comment(Document):
 		]
 		content: DF.HTMLEditor | None
 		ip_address: DF.Data | None
-		mentions: DF.TableMultiSelect[MentionedUsers]
+		mentions: DF.TableMultiSelect[MentionedUser]
 		published: DF.Check
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
