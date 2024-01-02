@@ -25,6 +25,9 @@ class RoleProfile(Document):
 		self.name = self.role_profile
 
 	def on_update(self):
+		self.queue_action("update_all_users", now=frappe.flags.in_test)
+
+	def update_all_users(self):
 		"""Changes in role_profile reflected across all its user"""
 		has_role = frappe.qb.DocType("Has Role")
 		user = frappe.qb.DocType("User")
