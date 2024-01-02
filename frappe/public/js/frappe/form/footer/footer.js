@@ -28,7 +28,7 @@ frappe.ui.form.Footer = class FormFooter {
 				fieldtype: "Comment",
 				fieldname: "comment",
 			},
-			on_submit: (comment) => {
+			on_submit: (comment, visible_to_mentioned_users = false, mentioned_users) => {
 				if (strip_html(comment).trim() != "" || comment.includes("img")) {
 					this.frm.comment_box.disable();
 					frappe
@@ -38,6 +38,8 @@ frappe.ui.form.Footer = class FormFooter {
 							content: comment,
 							comment_email: frappe.session.user,
 							comment_by: frappe.session.user_fullname,
+							visible_to_mentioned_users: visible_to_mentioned_users,
+							mentions: mentioned_users,
 						})
 						.then((comment) => {
 							let comment_item =
@@ -47,6 +49,7 @@ frappe.ui.form.Footer = class FormFooter {
 							this.frm.timeline.add_timeline_item(comment_item);
 							this.frm.sidebar.refresh_comments_count &&
 								this.frm.sidebar.refresh_comments_count();
+							this.refresh();
 						})
 						.finally(() => {
 							this.frm.comment_box.enable();

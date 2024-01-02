@@ -145,14 +145,28 @@ def add_comments(doc, docinfo):
 	docinfo.info_logs = []
 	docinfo.like_logs = []
 	docinfo.workflow_logs = []
-
+	filtered_comments = []
+	fields = ["name", "creation", "content", "owner", "comment_type", "visible_to_mentioned_users"]
+	if frappe.session.user != "Administrator":
+		fields.append("mentions.user")
 	comments = frappe.get_all(
 		"Comment",
-		fields=["name", "creation", "content", "owner", "comment_type"],
+		fields=fields,
 		filters={"reference_doctype": doc.doctype, "reference_name": doc.name},
 	)
+	if frappe.session.user != "Administrator":
+		for comment in comments:
+			if comment.visible_to_mentioned_users is False:
+				filtered_comments.append(comment)
+			else:
+				if comment.owner == frappe.session.user or (
+					comment.user is not None and frappe.session.user == comment.user
+				):
+					filtered_comments.append(comment)
+	else:
+		filtered_comments = comments
 
-	for c in comments:
+	for c in filtered_comments:
 		match c.comment_type:
 			case "Comment":
 				c.content = frappe.utils.markdown(c.content)

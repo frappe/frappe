@@ -613,7 +613,8 @@ class FormTimeline extends BaseTimeline {
 			edit_box.quill.enable(false);
 
 			doc.content = value;
-			this.update_comment(doc.name, value)
+			const mentions = this.get_mentioned_users(value);
+			this.update_comment(doc.name, value, mentions)
 				.then(edit_button.toggle_edit_mode)
 				.finally(() => {
 					edit_button.prop("disabled", false);
@@ -660,10 +661,21 @@ class FormTimeline extends BaseTimeline {
 			no_wrapper: true,
 		});
 	}
-
-	update_comment(name, content) {
+	get_mentioned_users(content) {
+		const comment = $(content);
+		const mention_wrapper = comment.find(".mention");
+		let mentioned_user = [];
+		if (mention_wrapper.length < 1) {
+			return "";
+		}
+		mention_wrapper.each((index, element) => {
+			mentioned_user.push($(element).data("id"));
+		});
+		return mentioned_user.join(",");
+	}
+	update_comment(name, content, mentions) {
 		return frappe
-			.xcall("frappe.desk.form.utils.update_comment", { name, content })
+			.xcall("frappe.desk.form.utils.update_comment", { name, content, mentions })
 			.then(() => {
 				frappe.utils.play_sound("click");
 			});

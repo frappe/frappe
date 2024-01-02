@@ -24,9 +24,20 @@ def remove_attach():
 
 @frappe.whitelist(methods=["POST", "PUT"])
 def add_comment(
-	reference_doctype: str, reference_name: str, content: str, comment_email: str, comment_by: str
+	reference_doctype: str,
+	reference_name: str,
+	content: str,
+	comment_email: str,
+	comment_by: str,
+	mentions: str,
+	visible_to_mentioned_users: bool = False,
 ) -> "Comment":
 	"""Allow logged user with permission to read document to add a comment"""
+	mentions = mentions.split(",")
+	mentioned_users = []
+	for mention in mentions:
+		mentioned_users.append({"user": mention})
+
 	reference_doc = frappe.get_doc(reference_doctype, reference_name)
 	reference_doc.check_permission()
 
@@ -39,6 +50,8 @@ def add_comment(
 			"comment_email": comment_email,
 			"comment_by": comment_by,
 			"content": extract_images_from_html(reference_doc, content, is_private=True),
+			"visible_to_mentioned_users": visible_to_mentioned_users,
+			"mentions": mentioned_users,
 		}
 	)
 	comment.insert(ignore_permissions=True)
@@ -50,9 +63,18 @@ def add_comment(
 
 
 @frappe.whitelist()
-def update_comment(name, content):
+def update_comment(name, content, mentions: str = ""):
 	"""allow only owner to update comment"""
 	doc = frappe.get_doc("Comment", name)
+
+	for stale_mention in doc.mentions:
+		stale_mention.delete()
+
+	mentions = mentions.split(",")
+	mentioned_users = []
+	for mention in mentions:
+		mentioned_users.append({"user": mention})
+	doc.update({"mentions": mentioned_users})
 
 	if frappe.session.user not in ["Administrator", doc.owner]:
 		frappe.throw(_("Comment can only be edited by the owner"), frappe.PermissionError)
