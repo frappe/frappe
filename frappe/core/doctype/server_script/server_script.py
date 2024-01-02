@@ -6,7 +6,18 @@ from types import FunctionType, MethodType, ModuleType
 import frappe
 from frappe import _
 from frappe.model.document import Document
+<<<<<<< HEAD
 from frappe.utils.safe_exec import NamespaceDict, get_safe_globals, safe_exec
+=======
+from frappe.rate_limiter import rate_limit
+from frappe.utils.safe_exec import (
+	FrappeTransformer,
+	NamespaceDict,
+	get_safe_globals,
+	is_safe_exec_enabled,
+	safe_exec,
+)
+>>>>>>> 2b23b8d663 (fix: validate server scripts with FrappeTransformer (#24068))
 
 
 class ServerScript(Document):
@@ -71,7 +82,7 @@ class ServerScript(Document):
 		from RestrictedPython import compile_restricted
 
 		try:
-			compile_restricted(self.script)
+			compile_restricted(self.script, policy=FrappeTransformer)
 		except Exception as e:
 			frappe.msgprint(str(e), title=_("Compilation warning"))
 
