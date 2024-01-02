@@ -18,6 +18,7 @@ class Comment(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.mentioned_users.mentioned_users import MentionedUsers
 		from frappe.types import DF
 
 		comment_by: DF.Data | None
@@ -45,12 +46,14 @@ class Comment(Document):
 		]
 		content: DF.HTMLEditor | None
 		ip_address: DF.Data | None
+		mentions: DF.TableMultiSelect[MentionedUsers]
 		published: DF.Check
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
 		reference_owner: DF.Data | None
 		seen: DF.Check
 		subject: DF.Text | None
+		visible_to_mentioned_users: DF.Check
 	# end: auto-generated types
 	def after_insert(self):
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)

@@ -11,13 +11,15 @@
   "comment_by",
   "published",
   "seen",
+  "visible_to_mentioned_users",
   "column_break_5",
   "reference_doctype",
   "reference_name",
   "reference_owner",
   "section_break_10",
   "content",
-  "ip_address"
+  "ip_address",
+  "mentions"
  ],
  "fields": [
   {
@@ -96,10 +98,23 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "IP Address"
+  },
+  {
+   "default": "0",
+   "fieldname": "visible_to_mentioned_users",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Visible to mentioned users"
+  },
+  {
+   "fieldname": "mentions",
+   "fieldtype": "Table MultiSelect",
+   "label": "Mentions",
+   "options": "Mentioned Users"
   }
  ],
  "links": [],
- "modified": "2023-07-24 13:52:55.651462",
+ "modified": "2024-01-02 13:11:31.775349",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
