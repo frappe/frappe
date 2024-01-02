@@ -116,6 +116,10 @@ def capture_exception(message: str | None = None) -> None:
 					set_scope(scope)
 				evt_processor = _make_wsgi_event_processor(frappe.request.environ, False)
 				scope.add_event_processor(evt_processor)
+				if frappe.request.is_json:
+					scope.set_context("JSON Body", frappe.request.json)
+				elif frappe.request.form:
+					scope.set_context("Form Data", frappe.request.form)
 
 		if client := hub.client:
 			exc_info = sys.exc_info()
