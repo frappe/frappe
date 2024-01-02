@@ -2485,6 +2485,8 @@ def get_imaginary_pixel_response():
 
 
 def is_site_link(link: str) -> bool:
+	if not link:
+		return False
 	if link.startswith("/"):
 		return True
 	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc

@@ -6,8 +6,8 @@ Sentry.init({
 	autoSessionTracking: false,
 	initialScope: {
 		// don't use frappe.session.user, it's set much later and will fail because of async loading
-		user: { id: frappe.boot.user.name ?? "Unidentified" },
-		tags: { site: frappe.boot.sitename },
+		user: { id: frappe.boot.sitename },
+		tags: { frappe_user: frappe.boot.user.name ?? "Unidentified" },
 	},
 	beforeSend(event, hint) {
 		// Check if it was caused by frappe.throw()

@@ -46,8 +46,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       # Make sure you modify coverage submission file list if changing this
-       container: [1, 2, 3]
+        # Make sure you modify coverage submission file list if changing this
+        container: [1, 2, 3]
 
     name: UI Tests (Cypress)
 
@@ -67,7 +67,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Check for valid Python & Merge Conflicts
         run: |
@@ -166,7 +166,14 @@ jobs:
 
       - name: Show bench output
         if: ${{ always() }}
-        run: cat ~/frappe-bench/bench_start.log || true
+        run: |
+          cd ~/frappe-bench
+          cat bench_start.log || true
+          cd logs
+          for f in ./*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
 
   faux-test:
     runs-on: ubuntu-latest
@@ -175,7 +182,7 @@ jobs:
     name: UI Tests (Cypress)
     strategy:
       matrix:
-       container: [1, 2, 3]
+        container: [1, 2, 3]
 
     steps:
       - name: Pass skipped tests unconditionally

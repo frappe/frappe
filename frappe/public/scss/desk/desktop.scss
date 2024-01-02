@@ -1034,7 +1034,7 @@ body {
 			}
 
 			.drop-icon {
-				padding: 10px 12px 10px 2px;
+				padding: 0px 12px 0px 2px;
 			}
 
 			svg {
@@ -1294,6 +1294,11 @@ body {
 
 						.h4 {
 							@include get_textstyle("xl", "semibold");
+						}
+
+						.h5 {
+							font-weight: normal;
+							color: var(--text-light);
 						}
 
 						&:focus {

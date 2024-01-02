@@ -29,6 +29,7 @@ class HelpArticle(WebsiteGenerator):
 		route: DF.Data | None
 		title: DF.Data
 	# end: auto-generated types
+
 	def validate(self):
 		self.set_route()
 
