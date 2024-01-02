@@ -249,27 +249,15 @@ frappe.ui.FilterGroup = class {
 
 	filter_exists(filter_value) {
 		// filter_value of form: [doctype, fieldname, condition, value]
-		let exists = false;
-		this.filters
+		return this.filters
 			.filter((f) => f.field)
-			.map((f) => {
+			.some((f) => {
 				let f_value = f.get_value();
 				if (filter_value.length === 2) {
-					exists = filter_value[0] === f_value[0] && filter_value[1] === f_value[1];
-					return;
+					return filter_value[0] === f_value[0] && filter_value[1] === f_value[1];
 				}
-
-				let value = filter_value[3];
-				let equal = frappe.utils.arrays_equal;
-
-				if (
-					equal(f_value.slice(0, 4), filter_value.slice(0, 4)) ||
-					(Array.isArray(value) && equal(value, f_value[3]))
-				) {
-					exists = true;
-				}
+				return frappe.utils.arrays_equal(f_value.slice(0, 4), filter_value.slice(0, 4));
 			});
-		return exists;
 	}
 
 	get_filters() {
@@ -278,7 +266,6 @@ frappe.ui.FilterGroup = class {
 			.map((f) => {
 				return f.get_value();
 			});
-		// {}: this.list.update_standard_filters(values);
 	}
 
 	update_filters() {

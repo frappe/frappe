@@ -9,7 +9,7 @@ from frappe.build import scrub_html_template
 from frappe.model.meta import Meta
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, load_doctype_module, scrub
-from frappe.utils import get_html_format
+from frappe.utils import get_bench_path, get_html_format
 from frappe.utils.data import get_link_to_form
 
 ASSET_KEYS = (
@@ -122,7 +122,9 @@ class FormMeta(Meta):
 	def _add_code(self, path, fieldname):
 		js = get_js(path)
 		if js:
-			comment = f"\n\n/* Adding {path} */\n\n"
+			bench_path = get_bench_path() + "/"
+			asset_path = path.replace(bench_path, "")
+			comment = f"\n\n/* Adding {asset_path} */\n\n"
 			sourceURL = f"\n\n//# sourceURL={scrub(self.name) + fieldname}"
 			self.set(fieldname, (self.get(fieldname) or "") + comment + js + sourceURL)
 

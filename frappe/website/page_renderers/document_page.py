@@ -34,7 +34,10 @@ class DocumentPage(BaseTemplatePage):
 				self.docname = frappe.db.get_value(doctype, filters, "name")
 				if self.docname:
 					self.doctype = doctype
-					return True
+					doc = frappe.get_cached_doc(self.doctype, self.docname)
+					return (
+						doc.meta.allow_guest_to_view or doc.has_permission() or frappe.has_website_permission(doc)
+					)
 			except Exception as e:
 				if not frappe.db.is_missing_column(e):
 					raise e
