@@ -378,7 +378,10 @@ frappe.views.Calendar = class Calendar {
 				d[target] = d[source];
 			});
 
-			if (!me.field_map.allDay) d.allDay = 1;
+			if (typeof d.allDay === "undefined") {
+				d.allDay = me.field_map.allDay;
+			}
+
 			if (!me.field_map.convertToUserTz) d.convertToUserTz = 1;
 
 			// convert to user tz
