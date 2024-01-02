@@ -1259,13 +1259,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				width: parseInt(column.width) || null,
 				editable: false,
 				compareValue: compareFn,
-				format: (value, row, column, data, filter, data1) => {
+				format: (value, row, column, data, filter) => {
 					if (this.report_settings.formatter) {
 						return this.report_settings.formatter(
 							value,
 							row,
 							column,
-							data1,
+							data,
 							format_cell,
 							filter
 						);
