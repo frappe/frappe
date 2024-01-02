@@ -478,7 +478,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			"/assets/frappe/images/ui-states/list-empty-state.svg";
 
 		const new_button = this.can_create
-			? `<p><button class="btn btn-primary btn-sm btn-new-doc hidden-xs">
+			? `<p><button class="btn btn-default btn-sm btn-new-doc hidden-xs">
 				${new_button_label}
 			</button> <button class="btn btn-primary btn-new-doc visible-xs">
 				${__("Create New", null, "Create a new document from list view")}
