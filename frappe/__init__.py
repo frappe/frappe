@@ -1694,17 +1694,14 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
 	varkw_exist = False
 
-	if hasattr(fn, "fnargs"):
-		fnargs = fn.fnargs
-	else:
-		signature = inspect.signature(fn)
-		fnargs = list(signature.parameters)
+	signature = inspect.signature(fn)
+	fnargs = list(signature.parameters)
 
-		for param_name, parameter in signature.parameters.items():
-			if parameter.kind == inspect.Parameter.VAR_KEYWORD:
-				varkw_exist = True
-				fnargs.remove(param_name)
-				break
+	for param_name, parameter in signature.parameters.items():
+		if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+			varkw_exist = True
+			fnargs.remove(param_name)
+			break
 
 	newargs = {}
 	for a in kwargs:
