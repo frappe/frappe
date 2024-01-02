@@ -107,6 +107,7 @@ frappe.router = {
 	layout_mapped: {},
 
 	is_app_route(path) {
+		if (!path) return;
 		// desk paths must begin with /app or doctype route
 		if (path.substr(0, 1) === "/") path = path.substr(1);
 		path = path.split("/");
