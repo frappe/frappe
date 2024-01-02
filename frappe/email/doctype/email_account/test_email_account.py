@@ -492,16 +492,27 @@ class TestInboundMail(FrappeTestCase):
 		"""Do not create communication record if the mail is already downloaded into the system."""
 		mail_content = self.get_test_mail(fname="incoming-1.raw")
 		message_id = Email(mail_content).message_id
-		# Create new communication record in DB
-		communication = self.new_communication(message_id=message_id)
-
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		# Create new communication record in DB
+		communication = self.new_communication(message_id=message_id, email_account=email_account)
+		total_communications = len(frappe.db.get_list("Communication"))
+
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
 		new_communication = inbound_mail.process()
 
 		# Make sure that uid is changed to new uid
 		self.assertEqual(new_communication.uid, 12345)
 		self.assertEqual(communication.name, new_communication.name)
+		self.assertEqual(total_communications, len(frappe.db.get_list("Communication")))
+
+		# Make sure record is created when it's associated with different email account
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 2")
+		inbound_mail = InboundMail(mail_content, email_account, 123456, 1)
+		new_communication = inbound_mail.process()
+
+		self.assertEqual(new_communication.uid, 123456)
+		self.assertEqual(communication.name, new_communication.name)
+		self.assertEqual(total_communications, len(frappe.db.get_list("Communication"))+1)
 
 	def test_find_parent_email_queue(self):
 		"""If the mail is reply to the already sent mail, there will be a email queue record."""

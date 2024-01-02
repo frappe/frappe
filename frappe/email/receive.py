@@ -687,7 +687,9 @@ class InboundMail(Email):
 		if not self.message_id:
 			return
 
-		return Communication.find_one_by_filters(message_id=self.message_id, order_by="creation DESC")
+		return Communication.find_one_by_filters(
+			message_id=self.message_id, email_account=self.email_account, order_by="creation DESC"
+		)
 
 	def is_sender_same_as_receiver(self):
 		return self.from_email == self.email_account.email_id
