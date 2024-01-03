@@ -170,9 +170,6 @@ def get_doc_permissions(doc, user=None, ptype=None):
 	if not user:
 		user = frappe.session.user
 
-	if frappe.is_table(doc.doctype):
-		return {"read": 1, "write": 1}
-
 	meta = frappe.get_meta(doc.doctype)
 
 	def is_user_owner():
