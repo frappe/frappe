@@ -12,7 +12,25 @@ class TestPage(FrappeTestCase):
 			frappe.NameError,
 			frappe.get_doc(dict(doctype="Page", page_name="DocType", module="Core")).insert,
 		)
+<<<<<<< HEAD
 		self.assertRaises(
 			frappe.NameError,
 			frappe.get_doc(dict(doctype="Page", page_name="Settings", module="Core")).insert,
 		)
+=======
+
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_trashing(self):
+		page = frappe.new_doc("Page", page_name=frappe.generate_hash(), module="Core").insert()
+
+		page.delete()
+		frappe.db.commit()
+
+		module_path = frappe.get_module_path(page.module)
+		dir_path = os.path.join(module_path, "page", frappe.scrub(page.name))
+
+		self.assertFalse(os.path.exists(dir_path))
+>>>>>>> 1a9aba2858 (test: remove invalid assertion (#24101))
