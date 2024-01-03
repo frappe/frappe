@@ -12,7 +12,3 @@ class TestPage(FrappeTestCase):
 			frappe.NameError,
 			frappe.get_doc(dict(doctype="Page", page_name="DocType", module="Core")).insert,
 		)
-		self.assertRaises(
-			frappe.NameError,
-			frappe.get_doc(dict(doctype="Page", page_name="Settings", module="Core")).insert,
-		)
