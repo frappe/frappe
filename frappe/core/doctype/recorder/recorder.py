@@ -19,6 +19,7 @@ class Recorder(Document):
 
 		cmd: DF.Data | None
 		duration: DF.Float
+		event_type: DF.Data | None
 		form_dict: DF.Code | None
 		method: DF.Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 		number_of_queries: DF.Int
