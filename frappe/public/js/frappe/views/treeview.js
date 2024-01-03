@@ -235,7 +235,9 @@ frappe.views.TreeView = class TreeView {
 			method: "frappe.utils.nestedset.rebuild_tree",
 			args: {
 				doctype: me.doctype,
-				parent_field: "parent_" + me.doctype.toLowerCase().replace(/ /g, "_"),
+				parent_field:
+					frappe.get_meta(me.doctype)?.nsm_parent_field ||
+					"parent_" + me.doctype.toLowerCase().replace(/ /g, "_"),
 			},
 			callback: function (r) {
 				if (!r.exc) {
