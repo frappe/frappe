@@ -139,7 +139,7 @@
    "label": "Prepared Report"
   },
   {
-   "depends_on": "eval:(doc.report_type===\"Script Report\" \n|| doc.report_type==\"Query Report\") \n&& doc.is_standard===\"No\"",
+   "depends_on": "eval:doc.report_type===\"Script Report\" && doc.is_standard===\"No\"",
    "description": "Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>",
    "fieldname": "report_script",
    "fieldtype": "Code",
@@ -186,7 +186,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-04-07 18:18:11.782178",
+ "modified": "2024-01-03 15:14:24.587669",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
