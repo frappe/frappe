@@ -108,14 +108,16 @@
    "depends_on": "eval:doc.report_type==\"Query Report\"",
    "fieldname": "query",
    "fieldtype": "Code",
-   "label": "Query"
+   "label": "Query",
+   "options": "SQL"
   },
   {
    "depends_on": "eval:doc.report_type==\"Script Report\" && doc.is_standard===\"No\"",
    "description": "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}",
    "fieldname": "javascript",
    "fieldtype": "Code",
-   "label": "Javascript"
+   "label": "Javascript",
+   "options": "Javascript"
   },
   {
    "depends_on": "eval:doc.report_type==\"Report Builder\" || \"Custom Report\"",
@@ -141,11 +143,12 @@
    "label": "Prepared Report"
   },
   {
-   "depends_on": "eval:(doc.report_type===\"Script Report\" \n|| doc.report_type==\"Query Report\") \n&& doc.is_standard===\"No\"",
+   "depends_on": "eval:doc.report_type===\"Script Report\" && doc.is_standard===\"No\"",
    "description": "Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>",
    "fieldname": "report_script",
    "fieldtype": "Code",
-   "label": "Script"
+   "label": "Script",
+   "options": "Python"
   },
   {
    "collapsible": 1,
@@ -188,7 +191,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-04-07 18:18:11.782178",
+ "modified": "2024-01-03 15:29:01.460404",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Report",
