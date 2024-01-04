@@ -151,7 +151,16 @@ class Recorder:
 			self.method = frappe.request.method
 			self.headers = dict(frappe.local.request.headers)
 			self.form_dict = frappe.local.form_dict
+			self.event_type = "HTTP Request"
+		elif frappe.job:
+			self.event_type = "Background Job"
+			self.path = frappe.job.method
+			self.cmd = None
+			self.method = None
+			self.headers = None
+			self.form_dict = None
 		else:
+			self.event_type = None
 			self.path = None
 			self.cmd = None
 			self.method = None
@@ -173,6 +182,7 @@ class Recorder:
 			"time_queries": float("{:0.3f}".format(sum(call["duration"] for call in self.calls))),
 			"duration": float(f"{(datetime.datetime.now() - self.time).total_seconds() * 1000:0.3f}"),
 			"method": self.method,
+			"event_type": self.event_type,
 		}
 		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
 		frappe.publish_realtime(
