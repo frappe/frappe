@@ -41,7 +41,7 @@
 				{{ _("Discard", null, "Button in web form") }}
 			</button>
 			<!-- submit button -->
-			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ button_label or _("Submit", null, "Button in web form") }}</button>
+			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ _(button_label) or _("Submit", null, "Button in web form") }}</button>
 		{% endif %}
 	</div>
 	{% endblock %}
