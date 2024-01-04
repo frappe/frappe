@@ -47,12 +47,6 @@ def check_admin_or_system_manager(user=None):
 def print_has_permission_check_logs(func):
 	@functools.wraps(func)
 	def inner(*args, **kwargs):
-<<<<<<< HEAD
-		frappe.flags["has_permission_check_logs"] = []
-		result = func(*args, **kwargs)
-		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
-		raise_exception = False if kwargs.get("raise_exception") is False else True
-=======
 		raise_exception = kwargs.get("raise_exception", True)
 		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
 
@@ -60,7 +54,6 @@ def print_has_permission_check_logs(func):
 			frappe.flags["has_permission_check_logs"] = []
 
 		result = func(*args, **kwargs)
->>>>>>> 3349f2b6e6 (fix: nested has_permission calls erase messages)
 
 		# print only if access denied
 		# and if user is checking his own permission
