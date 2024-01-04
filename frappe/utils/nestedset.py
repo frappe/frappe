@@ -326,7 +326,7 @@ class NestedSet(Document):
 		)
 
 		if merge:
-			rebuild_tree(self.doctype, parent_field)
+			rebuild_tree(self.doctype)
 
 	def validate_one_root(self):
 		if not self.get(self.nsm_parent_field):
