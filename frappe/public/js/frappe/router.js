@@ -37,6 +37,10 @@ $("body").on("click", "a", function (e) {
 	const href = target_element.getAttribute("href");
 	const is_on_same_host = target_element.hostname === window.location.hostname;
 
+	if (target_element.getAttribute("target") === "_blank") {
+		return;
+	}
+
 	const override = (route) => {
 		e.preventDefault();
 		frappe.set_route(route);
