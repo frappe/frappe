@@ -10,7 +10,7 @@ from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
 from frappe.query_builder import Criterion
 from frappe.query_builder.utils import DocType
-from frappe.utils import cint,flt
+from frappe.utils import cint, flt
 
 
 class NumberCard(Document):
