@@ -490,24 +490,28 @@ class EmailAccount(Document):
 
 	def handle_incoming_connect_error(self, description):
 		if self.get_failed_attempts_count() > 2:
-			self.db_set("enable_incoming", 0)
-
-			for user in get_system_managers(only_name=True):
-				try:
-					assign_to.add(
-						{
-							"assign_to": user,
-							"doctype": self.doctype,
-							"name": self.name,
-							"description": description,
-							"priority": "High",
-							"notify": 1,
-						}
-					)
-				except assign_to.DuplicateToDoError:
-					frappe.clear_last_message()
+			# This is done in background to avoid committing here.
+			frappe.enqueue(self._disable_broken_incoming_account, description=description)
 		else:
 			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
+
+	def _disable_broken_incoming_account(self, description):
+		self.db_set("enable_incoming", 0)
+
+		for user in get_system_managers(only_name=True):
+			try:
+				assign_to.add(
+					{
+						"assign_to": user,
+						"doctype": self.doctype,
+						"name": self.name,
+						"description": description,
+						"priority": "High",
+						"notify": 1,
+					}
+				)
+			except assign_to.DuplicateToDoError:
+				pass
 
 	def set_failed_attempts_count(self, value):
 		frappe.cache.set_value(f"{self.name}:email-account-failed-attempts", value)
