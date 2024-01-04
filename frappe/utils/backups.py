@@ -347,7 +347,7 @@ class BackupGenerator:
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
 
 			if self.compress_files:
-				cmd_string = "self=$$; ( tar cf - {1} || kill $self ) | gzip > {0}"
+				cmd_string = "set -o pipefail; tar cf - {1} | gzip > {0}"
 			else:
 				cmd_string = "tar -cf {0} {1}"
 
@@ -411,13 +411,6 @@ class BackupGenerator:
 		with gzip.open(self.backup_path_db, "wt") as f:
 			f.write(generated_header)
 
-		# Remember process of this shell and kill it if mysqldump exits w/ non-zero code
-		def wrap(cmd):
-			ret = ["self=$$;", "("]
-			ret.extend(cmd)
-			ret.extend(["||", "kill", "$self", ")", "|", gzip_exc, ">>", self.backup_path_db])
-			return ret
-
 		cmd = []
 		extra = []
 		if self.db_type == "mariadb":
@@ -451,7 +444,7 @@ class BackupGenerator:
 		cmd.append(bin)
 		cmd.extend(args)
 
-		command = " ".join(wrap(cmd))
+		command = " ".join(["set -o pipefail;"] + cmd + ["|", gzip_exc, ">>", self.backup_path_db])
 		if self.verbose:
 			print(command.replace(frappe.utils.esc(self.password, "$ "), "*" * 10) + "\n")
 

@@ -57,7 +57,7 @@ class DbManager:
 		from frappe.database import get_command
 		from frappe.utils import execute_in_shell
 
-		command = []
+		command = ["set -o pipefail;"]
 
 		if source.endswith(".gz"):
 			if gzip := which("gzip"):
