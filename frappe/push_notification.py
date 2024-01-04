@@ -183,12 +183,7 @@ class PushNotification:
 		:return: tuple[str, str] The API key and secret.
 		"""
 		notification_settings = frappe.get_doc("Push Notification Settings")
-		if (
-			notification_settings.api_key != ""
-			and notification_settings.api_secret != ""
-			and notification_settings.api_key is not None
-			and notification_settings.api_secret is not None
-		):
+		if notification_settings.api_key and notification_settings.api_secret:
 			return notification_settings.api_key, notification_settings.api_secret
 		else:
 			# Generate new credentials
