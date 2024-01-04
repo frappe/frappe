@@ -10,7 +10,7 @@ from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
 from frappe.query_builder import Criterion
 from frappe.query_builder.utils import DocType
-from frappe.utils import cint
+from frappe.utils import cint,flt
 
 
 class NumberCard(Document):
@@ -163,9 +163,9 @@ def get_result(doc, filters, to_date=None):
 	res = frappe.get_list(
 		doc.document_type, fields=fields, filters=filters, parent_doctype=doc.parent_document_type
 	)
-	number = res[0]["result"] if res and res[0]["result"] is not None else 0
+	number = res[0]["result"] if res else 0
 
-	return float(number)
+	return flt(number)
 
 
 @frappe.whitelist()
