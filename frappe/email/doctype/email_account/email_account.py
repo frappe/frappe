@@ -268,15 +268,15 @@ class EmailAccount(Document):
 		if not in_receive and self.use_imap:
 			email_server.imap.logout()
 
-		# reset failed attempts count
-		self.set_failed_attempts_count(0)
-
 		return email_server
 
 	def check_email_server_connection(self, email_server, in_receive):
 		# tries to connect to email server and handles failure
 		try:
 			email_server.connect()
+
+			# reset failed attempts count - do it after succesful connection
+			self.set_failed_attempts_count(0)
 		except (error_proto, imaplib.IMAP4.error) as e:
 			message = cstr(e).lower().replace(" ", "")
 			auth_error_codes = [
@@ -294,6 +294,8 @@ class EmailAccount(Document):
 				error_message = _(
 					"Authentication failed while receiving emails from Email Account: {0}."
 				).format(self.name)
+
+				error_message = _("Email Account Disabled.") + " " + error_message
 				error_message += "<br>" + _("Message from server: {0}").format(cstr(e))
 				self.handle_incoming_connect_error(description=error_message)
 				return None
@@ -489,31 +491,35 @@ class EmailAccount(Document):
 		state.pop("_smtp_server_instance", None)
 
 	def handle_incoming_connect_error(self, description):
-		if self.get_failed_attempts_count() > 2:
-			self.db_set("enable_incoming", 0)
-
-			for user in get_system_managers(only_name=True):
-				try:
-					assign_to.add(
-						{
-							"assign_to": user,
-							"doctype": self.doctype,
-							"name": self.name,
-							"description": description,
-							"priority": "High",
-							"notify": 1,
-						}
-					)
-				except assign_to.DuplicateToDoError:
-					frappe.clear_last_message()
+		if self.get_failed_attempts_count() > 5:
+			# This is done in background to avoid committing here.
+			frappe.enqueue(self._disable_broken_incoming_account, description=description)
 		else:
 			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 
+	def _disable_broken_incoming_account(self, description):
+		self.db_set("enable_incoming", 0)
+
+		for user in get_system_managers(only_name=True):
+			try:
+				assign_to.add(
+					{
+						"assign_to": [user],
+						"doctype": self.doctype,
+						"name": self.name,
+						"description": description,
+						"priority": "High",
+						"notify": 1,
+					}
+				)
+			except assign_to.DuplicateToDoError:
+				pass
+
 	def set_failed_attempts_count(self, value):
-		frappe.cache.set(f"{self.name}:email-account-failed-attempts", value)
+		frappe.cache.set_value(f"{self.name}:email-account-failed-attempts", value)
 
 	def get_failed_attempts_count(self):
-		return cint(frappe.cache.get(f"{self.name}:email-account-failed-attempts"))
+		return cint(frappe.cache.get_value(f"{self.name}:email-account-failed-attempts"))
 
 	def receive(self):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
