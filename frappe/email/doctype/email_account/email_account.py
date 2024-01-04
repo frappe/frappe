@@ -268,15 +268,15 @@ class EmailAccount(Document):
 		if not in_receive and self.use_imap:
 			email_server.imap.logout()
 
-		# reset failed attempts count
-		self.set_failed_attempts_count(0)
-
 		return email_server
 
 	def check_email_server_connection(self, email_server, in_receive):
 		# tries to connect to email server and handles failure
 		try:
 			email_server.connect()
+
+			# reset failed attempts count - do it after succesful connection
+			self.set_failed_attempts_count(0)
 		except (error_proto, imaplib.IMAP4.error) as e:
 			message = cstr(e).lower().replace(" ", "")
 			auth_error_codes = [
