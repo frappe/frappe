@@ -1,0 +1,65 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-01-04 11:36:08.013039",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "metadata_section",
+  "enable_push_notification_relay",
+  "authentication_credential_section",
+  "api_key",
+  "api_secret"
+ ],
+ "fields": [
+  {
+   "fieldname": "metadata_section",
+   "fieldtype": "Section Break",
+   "label": "Metadata"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_push_notification_relay",
+   "fieldtype": "Check",
+   "label": "Enable Push Notification Relay"
+  },
+  {
+   "fieldname": "authentication_credential_section",
+   "fieldtype": "Section Break",
+   "label": "Authentication Credential"
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key"
+  },
+  {
+   "fieldname": "api_secret",
+   "fieldtype": "Data",
+   "label": "API Secret"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-01-04 11:37:29.956799",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Push Notification Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
