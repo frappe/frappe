@@ -294,6 +294,8 @@ class EmailAccount(Document):
 				error_message = _(
 					"Authentication failed while receiving emails from Email Account: {0}."
 				).format(self.name)
+
+				error_message = _("Email Account Disabled.") + " " + error_message
 				error_message += "<br>" + _("Message from server: {0}").format(cstr(e))
 				self.handle_incoming_connect_error(description=error_message)
 				return None
@@ -489,7 +491,7 @@ class EmailAccount(Document):
 		state.pop("_smtp_server_instance", None)
 
 	def handle_incoming_connect_error(self, description):
-		if self.get_failed_attempts_count() > 2:
+		if self.get_failed_attempts_count() > 5:
 			# This is done in background to avoid committing here.
 			frappe.enqueue(self._disable_broken_incoming_account, description=description)
 		else:
@@ -502,7 +504,7 @@ class EmailAccount(Document):
 			try:
 				assign_to.add(
 					{
-						"assign_to": user,
+						"assign_to": [user],
 						"doctype": self.doctype,
 						"name": self.name,
 						"description": description,
