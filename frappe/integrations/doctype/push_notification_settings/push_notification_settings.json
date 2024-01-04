@@ -5,18 +5,12 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "metadata_section",
-  "enable_push_notification_relay",
   "authentication_credential_section",
+  "enable_push_notification_relay",
   "api_key",
   "api_secret"
  ],
  "fields": [
-  {
-   "fieldname": "metadata_section",
-   "fieldtype": "Section Break",
-   "label": "Metadata"
-  },
   {
    "default": "0",
    "fieldname": "enable_push_notification_relay",
@@ -26,7 +20,7 @@
   {
    "fieldname": "authentication_credential_section",
    "fieldtype": "Section Break",
-   "label": "Authentication Credential"
+   "label": "Authentication"
   },
   {
    "fieldname": "api_key",
@@ -35,14 +29,14 @@
   },
   {
    "fieldname": "api_secret",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
    "label": "API Secret"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-01-04 11:56:25.953147",
+ "modified": "2024-01-04 17:52:41.383109",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Push Notification Settings",

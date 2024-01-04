@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 
 import frappe
 from frappe.utils.response import Response
+from frappe import sbool
 
 from .frappeclient import FrappeClient
 
@@ -98,34 +99,34 @@ class PushNotification:
 		self,
 		user_id: str,
 		title: str,
-		content: str,
+		body: str,
 		link: str = None,
 		data=None,
-		truncate_content: bool = False,
+		truncate_body: bool = False,
 	) -> bool:
 		"""
 		Send notification to a user.
 
 		:param user_id: (str) The ID of the user. This should be user's unique identifier.
 		:param title: (str) The title of the notification.
-		:param content: (str) The body of the notification. At max 1000 characters.
+		:param body: (str) The body of the notification. At max 1000 characters.
 		:param link: (str) The link to be opened when the notification is clicked.
 		:param data: (dict) The data to be sent with the notification. This can be used to provide extra information while dealing with in-app notifications.
-		:param truncate_content: (bool) Whether to truncate the content or not. If True, the content will be truncated to 1000 characters.
+		:param truncate_body: (bool) Whether to truncate the body or not. If True, the body will be truncated to 1000 characters.
 		:return: bool True if the request queued successfully, False otherwise.
 		"""
 		if data is None:
 			data = {}
 		if link is not None and link != "":
 			data["click_action"] = link
-		if len(content) > 1000:
-			if truncate_content:
-				content = content[:1000]
+		if len(body) > 1000:
+			if truncate_body:
+				body = body[:1000]
 			else:
-				raise Exception("Content should be at max 1000 characters")
+				raise Exception("Body should be at max 1000 characters")
 		response_data = self._send_post_request(
 			"notification_relay.api.send_notification.user",
-			{"user_id": user_id, "title": title, "content": content, "data": json.dumps(data)},
+			{"user_id": user_id, "title": title, "body": body, "data": json.dumps(data)},
 		)
 		return response_data["success"]
 
@@ -133,34 +134,34 @@ class PushNotification:
 		self,
 		topic_name: str,
 		title: str,
-		content: str,
+		body: str,
 		link: str = None,
 		data=None,
-		truncate_content: bool = False,
+		truncate_body: bool = False,
 	) -> bool:
 		"""
 		Send notification to a notification topic.
 
 		:param topic_name: (str) The name of the topic. This topic should be already created.
 		:param title: (str) The title of the notification.
-		:param content: (str) The body of the notification. At max 1000 characters.
+		:param body: (str) The body of the notification. At max 1000 characters.
 		:param link: (str) The link to be opened when the notification is clicked.
 		:param data: (dict) The data to be sent with the notification. This can be used to provide extra information while dealing with in-app notifications.
-		:param truncate_content: (bool) Whether to truncate the content or not. If True, the content will be truncated to 1000 characters.
+		:param truncate_body: (bool) Whether to truncate the body or not. If True, the body will be truncated to 1000 characters.
 		:return:  bool True if the request queued successfully, False otherwise.
 		"""
 		if data is None:
 			data = {}
 		if link is not None and link != "":
 			data["click_action"] = link
-		if len(content) > 1000:
-			if truncate_content:
-				content = content[:1000]
+		if len(body) > 1000:
+			if truncate_body:
+				body = body[:1000]
 			else:
-				raise Exception("Content should be at max 1000 characters")
+				raise Exception("Body should be at max 1000 characters")
 		response_data = self._send_post_request(
 			"notification_relay.api.send_notification.topic",
-			{"topic_name": topic_name, "title": title, "content": content, "data": json.dumps(data)},
+			{"topic_name": topic_name, "title": title, "body": body, "data": json.dumps(data)},
 		)
 		return response_data["success"]
 
@@ -170,8 +171,7 @@ class PushNotification:
 
 		:return: bool True if enabled, False otherwise.
 		"""
-		notification_settings = frappe.get_doc("Push Notification Settings")
-		return notification_settings.enable_push_notification_relay
+		return sbool(frappe.db.get_single_value("Push Notification Settings", "enable_push_notification_relay"))
 
 	def _get_credential(self) -> tuple[str, str]:
 		"""
@@ -251,8 +251,7 @@ class PushNotification:
 		site_uri = urlparse(frappe.utils.get_url())
 		if site_uri.port is not None:
 			return str(site_uri.port)
-		else:
-			return ""
+		return ""
 
 
 # Webhook which will be called by the central relay server for authentication

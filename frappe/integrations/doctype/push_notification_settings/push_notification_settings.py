@@ -15,7 +15,7 @@ class PushNotificationSettings(Document):
 		from frappe.types import DF
 
 		api_key: DF.Data | None
-		api_secret: DF.Data | None
+		api_secret: DF.Password | None
 		enable_push_notification_relay: DF.Check
 	# end: auto-generated types
 
