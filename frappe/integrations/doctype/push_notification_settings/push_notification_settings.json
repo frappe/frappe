@@ -18,7 +18,7 @@
    "label": "Metadata"
   },
   {
-   "default": "1",
+   "default": "0",
    "fieldname": "enable_push_notification_relay",
    "fieldtype": "Check",
    "label": "Enable Push Notification Relay"
@@ -42,7 +42,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-01-04 11:37:29.956799",
+ "modified": "2024-01-04 11:56:25.953147",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Push Notification Settings",
