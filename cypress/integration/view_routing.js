@@ -225,8 +225,8 @@ context("View", () => {
 		});
 	});
 
-	it("Route to Settings Workspace", () => {
-		cy.visit("/app/settings");
-		cy.get(".title-text").should("contain", "Settings");
+	it("Route to Website Workspace", () => {
+		cy.visit("/app/website");
+		cy.get(".title-text").should("contain", "Website");
 	});
 });
