@@ -6,6 +6,7 @@ import frappe
 import frappe.defaults
 import frappe.permissions
 import frappe.share
+from bonatra.www.login import add_verification_tag
 from frappe import STANDARD_USERS, _, msgprint, throw
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 from frappe.desk.doctype.notification_settings.notification_settings import (
@@ -735,7 +736,7 @@ def update_password(new_password, logout_all_sessions=0, key=None, old_password=
 		"System Settings", "logout_on_password_reset"
 	)
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
-
+	add_verification_tag(user)
 	user_doc, redirect_url = reset_user_data(user)
 
 	# get redirect url from cache
