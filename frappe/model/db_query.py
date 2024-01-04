@@ -744,8 +744,12 @@ class DatabaseQuery:
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
 
-		# primary key is never nullable, modified is usually indexed by default and always present
-		can_be_null = f.fieldname not in ("name", "modified")
+		# mandatory fields are never null
+		can_be_null = not getattr(df, "reqd", False)
+
+		if can_be_null:
+			# primary key is never nullable, modified is usually indexed by default and always present
+			can_be_null = f.fieldname not in ("name", "modified")
 
 		value = None
 
