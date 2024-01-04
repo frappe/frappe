@@ -168,12 +168,8 @@ def update_move_node(doc: Document, parent_field: str):
 
 
 @frappe.whitelist()
-def rebuild_tree(doctype, parent_field=None):
-	"""Call rebuild_node for all root nodes.
-
-	The `parent_field` parameter is ignored and will be removed in v16+ (kept for backward compatibility).
-	"""
-
+def rebuild_tree(doctype: str) -> None:
+	"""Call rebuild_node for all root nodes."""
 	# Check for perm if called from client-side
 	if frappe.request and frappe.local.form_dict.cmd == "rebuild_tree":
 		frappe.only_for("System Manager")
