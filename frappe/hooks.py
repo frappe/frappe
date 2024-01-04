@@ -433,6 +433,7 @@ before_request = [
 
 # Background Job Hooks
 before_job = [
+	"frappe.recorder.record",
 	"frappe.monitor.start",
 ]
 
@@ -443,6 +444,7 @@ if os.getenv("FRAPPE_SENTRY_DSN") and (
 	before_job.append("frappe.utils.sentry.set_sentry_context")
 
 after_job = [
+	"frappe.recorder.dump",
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
 	"frappe.utils.telemetry.flush",
