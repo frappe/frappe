@@ -8,7 +8,13 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
-from frappe.utils.safe_exec import NamespaceDict, get_safe_globals, is_safe_exec_enabled, safe_exec
+from frappe.utils.safe_exec import (
+	FrappeTransformer,
+	NamespaceDict,
+	get_safe_globals,
+	is_safe_exec_enabled,
+	safe_exec,
+)
 
 
 class ServerScript(Document):
@@ -123,7 +129,7 @@ class ServerScript(Document):
 		from RestrictedPython import compile_restricted
 
 		try:
-			compile_restricted(self.script)
+			compile_restricted(self.script, policy=FrappeTransformer)
 		except Exception as e:
 			frappe.msgprint(str(e), title=_("Compilation warning"))
 

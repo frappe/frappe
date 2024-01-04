@@ -448,7 +448,7 @@ def install_app(context, apps, force=False):
 					print(f"App {app} is Incompatible with Site {site}{err_msg}")
 					exit_code = 1
 				except Exception as err:
-					err_msg = f": {str(err)}\n{frappe.get_traceback()}"
+					err_msg = f": {str(err)}\n{frappe.get_traceback(with_context=True)}"
 					print(f"An error occurred while installing {app}{err_msg}")
 					exit_code = 1
 
@@ -570,7 +570,7 @@ def describe_database_table(context, doctype, column):
 
 
 def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
-	from frappe.utils import cstr, get_table_name
+	from frappe.utils import cint, cstr, get_table_name
 
 	def sql_bool(val):
 		return cstr(val).lower() in ("yes", "1", "true")
@@ -610,7 +610,13 @@ def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
 		if idx["Seq_in_index"] == 1:
 			update_cardinality(idx["Column_name"], idx["Cardinality"])
 
-	total_rows = frappe.db.count(doctype)
+	total_rows = cint(
+		frappe.db.sql(
+			f"""select table_rows
+			   from  information_schema.tables
+			   where table_name = 'tab{doctype}'"""
+		)[0][0]
+	)
 
 	# fetch accurate cardinality for columns by query. WARN: This can take a lot of time.
 	for column in columns:
@@ -893,7 +899,7 @@ def backup(
 				fg="red",
 			)
 			if verbose:
-				print(frappe.get_traceback())
+				print(frappe.get_traceback(with_context=True))
 			exit_code = 1
 			continue
 		if frappe.get_system_settings("encrypt_backup") and frappe.get_site_config().encryption_key:

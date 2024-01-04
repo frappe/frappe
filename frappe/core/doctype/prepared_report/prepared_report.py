@@ -113,7 +113,7 @@ def generate_report(prepared_report):
 		instance.status = "Completed"
 	except Exception:
 		instance.status = "Error"
-		instance.error_message = frappe.get_traceback()
+		instance.error_message = frappe.get_traceback(with_context=True)
 
 	instance.report_end_time = frappe.utils.now()
 	instance.save(ignore_permissions=True)
