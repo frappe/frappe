@@ -433,10 +433,17 @@ class EmailAccount(Document):
 			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 
 	def set_failed_attempts_count(self, value):
+<<<<<<< HEAD
 		frappe.cache().set(f"{self.name}:email-account-failed-attempts", value)
 
 	def get_failed_attempts_count(self):
 		return cint(frappe.cache().get(f"{self.name}:email-account-failed-attempts"))
+=======
+		frappe.cache.set_value(f"{self.name}:email-account-failed-attempts", value)
+
+	def get_failed_attempts_count(self):
+		return cint(frappe.cache.get_value(f"{self.name}:email-account-failed-attempts"))
+>>>>>>> 71908f1e00 (refactor: respect multi-tenancy)
 
 	def receive(self):
 		"""Called by scheduler to receive emails from this EMail account using POP3/IMAP."""
