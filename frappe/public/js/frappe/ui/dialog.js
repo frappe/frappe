@@ -180,6 +180,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.footer.removeClass("hide");
 		this.has_primary_action = true;
 		var me = this;
+		let is_api_call_in_progress=false;
 		const primary_btn = this.get_primary_btn().removeClass("hide").html(label);
 		if (typeof click == "function") {
 			primary_btn.off("click").on("click", function () {
@@ -188,7 +189,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				// as first parameter to click callback
 				// if no values then return
 				var values = me.get_values();
-				if (!values) return;
+				if (is_api_call_in_progress || !values) return;
+				is_api_call_in_progress=true;
 				click && click.apply(me, [values]);
 			});
 		}
