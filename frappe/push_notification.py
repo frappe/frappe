@@ -194,7 +194,7 @@ class PushNotification:
 			# Generate new credentials
 			token = frappe.generate_hash(length=48)
 			# store the token in the redis cache
-			frappe.cache().set(f"{self._get_site_name}:push_relay_registration_token", token, ex=600)
+			frappe.cache().set_value(f"{self._get_site_name}:push_relay_registration_token", token, ex=600)
 			body = {
 				"endpoint": self._get_site_name,
 				"protocol": self._get_site_protocol,
@@ -258,7 +258,7 @@ class PushNotification:
 # Webhook which will be called by the central relay server for authentication
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def auth_webhook():
-	token = frappe.cache().get(f"{frappe.local.site}:push_relay_registration_token")
+	token = frappe.cache().get_value(f"{frappe.local.site}:push_relay_registration_token")
 	response = Response()
 	response.mimetype = "text/plain; charset=UTF-8"
 
