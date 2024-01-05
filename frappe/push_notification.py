@@ -2,8 +2,8 @@ import json
 from urllib.parse import urlparse
 
 import frappe
-from frappe.utils.response import Response
 from frappe import sbool
+from frappe.utils.response import Response
 
 from .frappeclient import FrappeClient
 
@@ -171,7 +171,9 @@ class PushNotification:
 
 		:return: bool True if enabled, False otherwise.
 		"""
-		return sbool(frappe.db.get_single_value("Push Notification Settings", "enable_push_notification_relay"))
+		return sbool(
+			frappe.db.get_single_value("Push Notification Settings", "enable_push_notification_relay")
+		)
 
 	def _get_credential(self) -> tuple[str, str]:
 		"""
