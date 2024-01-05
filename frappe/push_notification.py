@@ -215,7 +215,7 @@ class PushNotification:
 		:param method: (str) The method to be called on the central relay server.
 		:param params: (dict) The parameters to be sent with the request.
 		:param use_authentication: (bool) Whether to use authentication or not.
-		:return: dict Response data of the request.
+		:return: (dict) Response data of the request.
 		"""
 
 		if not self.is_enabled():
