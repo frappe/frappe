@@ -522,13 +522,13 @@ export default class GridRow {
 						data-label='${docfield.label}' data-type='${docfield.fieldtype}'>
 
 						<div class='row'>
-							<div class='col-md-1' style='padding-top: 4px;'>
+							<div class='col-1' style='padding-top: 4px;'>
 								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
 							</div>
-							<div class='col-md-8' style='padding-right:0px; padding-top: 5px;'>
+							<div class='col-6 col-md-8' style='padding-right:0px; padding-top: 5px;'>
 								${__(docfield.label)}
 							</div>
-							<div class='col-md-2' style='padding-left:0px; padding-top: 2px; margin-top:-2px;' title='${__(
+							<div class='col-3 col-md-2' style='padding-left:0px; padding-top: 2px; margin-top:-2px;' title='${__(
 								"Columns"
 							)}'>
 								<input class='form-control column-width my-1 input-xs text-right'
@@ -536,7 +536,7 @@ export default class GridRow {
 									value='${docfield.columns || cint(d.columns)}'
 									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
 							</div>
-							<div class='col-md-1' style='padding-top: 3px;'>
+							<div class='col-1' style='padding-top: 3px;'>
 								<a class='text-muted remove-field' data-fieldname='${docfield.fieldname}'>
 									<i class='fa fa-trash-o' aria-hidden='true'></i>
 								</a>
