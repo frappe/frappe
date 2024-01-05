@@ -241,9 +241,9 @@ class Exporter:
 
 	def build_response(self):
 		if self.file_type == "CSV":
-			build_csv_response(self.get_csv_array_for_export(), _(self.doctype))
+			build_csv_response(self.get_csv_array_for_export(), 'template')
 		elif self.file_type == "Excel":
-			build_xlsx_response(self.get_csv_array_for_export(), _(self.doctype))
+			build_xlsx_response(self.get_csv_array_for_export(), 'template')
 
 	def group_children_data_by_parent(self, children_data: dict[str, list]):
 		return groupby_metric(children_data, key="parent")
