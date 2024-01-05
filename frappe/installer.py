@@ -19,7 +19,6 @@ from frappe.utils import cint, is_git_url
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.synchronization import filelock
 
-
 def _is_scheduler_enabled() -> bool:
 	enable_scheduler = False
 	try:
@@ -163,10 +162,20 @@ def install_db(
 	frappe.flags.root_password = root_password
 
 	if setup:
+		database_requirements = {
+			"character_set_server": "utf8mb4",
+			"collation_server": "utf8mb4_unicode_ci",
+		}
 		setup_database(force, verbose, no_mariadb_socket)
+	else:
+		database_requirements = {
+			"character_set_database": "utf8mb4",
+			"collation_database": "utf8mb4_unicode_ci"
+		}
 
 	bootstrap_database(
 		db_name=frappe.conf.db_name,
+		database_requirements=database_requirements,
 		verbose=verbose,
 		source_sql=source_sql,
 	)

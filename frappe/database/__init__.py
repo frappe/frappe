@@ -23,7 +23,7 @@ def setup_database(force, verbose=None, no_mariadb_socket=False):
 		)
 
 
-def bootstrap_database(db_name, verbose=None, source_sql=None):
+def bootstrap_database(db_name, database_requirements, verbose=None, source_sql=None):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
@@ -33,7 +33,8 @@ def bootstrap_database(db_name, verbose=None, source_sql=None):
 	else:
 		import frappe.database.mariadb.setup_db
 
-		return frappe.database.mariadb.setup_db.bootstrap_database(db_name, verbose, source_sql)
+		return frappe.database.mariadb.setup_db.bootstrap_database(db_name, database_requirements,
+																   verbose, source_sql)
 
 
 def drop_user_and_database(db_name, root_login=None, root_password=None):
