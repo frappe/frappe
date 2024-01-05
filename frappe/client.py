@@ -13,6 +13,7 @@ from frappe.model.db_query import check_parent_permission
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import get_safe_filters
 from frappe.utils.deprecations import deprecated
+from frappe.utils.telemetry import capture_doc
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -186,6 +187,7 @@ def set_value(doctype, name, fieldname, value=None):
 		child.update(values)
 
 	doc.save()
+	capture_doc(doc)
 
 	return doc.as_dict()
 
@@ -198,6 +200,7 @@ def insert(doc=None):
 	if isinstance(doc, str):
 		doc = json.loads(doc)
 
+	capture_doc(doc)
 	return insert_doc(doc).as_dict()
 
 
@@ -225,6 +228,8 @@ def save(doc):
 
 	doc = frappe.get_doc(doc)
 	doc.save()
+
+	capture_doc(doc)
 
 	return doc.as_dict()
 
