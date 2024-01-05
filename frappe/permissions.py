@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import copy
+import functools
 
 import frappe
 import frappe.share
@@ -37,17 +38,23 @@ AUTOMATIC_ROLES = (GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE, ADMIN_ROLE)
 
 
 def print_has_permission_check_logs(func):
+	@functools.wraps(func)
 	def inner(*args, **kwargs):
-		frappe.flags["has_permission_check_logs"] = []
-		result = func(*args, **kwargs)
-		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
 		raise_exception = kwargs.get("raise_exception", True)
+		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
+
+		if raise_exception:
+			frappe.flags["has_permission_check_logs"] = []
+
+		result = func(*args, **kwargs)
 
 		# print only if access denied
 		# and if user is checking his own permission
 		if not result and self_perm_check and raise_exception:
 			msgprint(("<br>").join(frappe.flags.get("has_permission_check_logs", [])))
-		frappe.flags.pop("has_permission_check_logs", None)
+
+		if raise_exception:
+			frappe.flags.pop("has_permission_check_logs", None)
 		return result
 
 	return inner
@@ -162,9 +169,6 @@ def get_doc_permissions(doc, user=None, ptype=None):
 	"""Return a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
 	if not user:
 		user = frappe.session.user
-
-	if frappe.is_table(doc.doctype):
-		return {"read": 1, "write": 1}
 
 	meta = frappe.get_meta(doc.doctype)
 

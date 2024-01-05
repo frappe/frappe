@@ -81,7 +81,7 @@ frappe.ui.form.on("Customize Form", {
 
 	add_customize_child_table_button: function (frm) {
 		frm.doc.fields.forEach(function (f) {
-			if (!in_list(["Table", "Table MultiSelect"], f.fieldtype)) return;
+			if (!["Table", "Table MultiSelect"].includes(f.fieldtype)) return;
 
 			frm.add_custom_button(
 				__(f.options),

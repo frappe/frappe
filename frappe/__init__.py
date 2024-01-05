@@ -59,32 +59,6 @@ if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
 	warnings.simplefilter("always", PendingDeprecationWarning)
 
-# Always initialize sentry SDK if the DSN is sent
-if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
-	import sentry_sdk
-	from sentry_sdk.integrations.argv import ArgvIntegration
-	from sentry_sdk.integrations.atexit import AtexitIntegration
-	from sentry_sdk.integrations.dedupe import DedupeIntegration
-	from sentry_sdk.integrations.excepthook import ExcepthookIntegration
-	from sentry_sdk.integrations.modules import ModulesIntegration
-
-	from frappe.utils.sentry import before_send
-
-	sentry_sdk.init(
-		dsn=sentry_dsn,
-		before_send=before_send,
-		release=__version__,
-		auto_enabling_integrations=False,
-		default_integrations=False,
-		integrations=[
-			AtexitIntegration(),
-			ExcepthookIntegration(),
-			DedupeIntegration(),
-			ModulesIntegration(),
-			ArgvIntegration(),
-		],
-	)
-
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
@@ -1028,19 +1002,11 @@ def has_permission(
 	)
 
 	if throw and not out:
-		# mimics frappe.throw
 		document_label = (
 			f"{_(doctype)} {doc if isinstance(doc, str) else doc.name}" if doc else _(doctype)
 		)
-		msgprint(
-			_("No permission for {0}").format(document_label),
-			raise_exception=ValidationError,
-			title=None,
-			indicator="red",
-			is_minimizable=None,
-			wide=None,
-			as_list=False,
-		)
+		frappe.flags.error_message = _("No permission for {0}").format(document_label)
+		raise frappe.PermissionError
 
 	return out
 
@@ -1720,17 +1686,14 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
 	varkw_exist = False
 
-	if hasattr(fn, "fnargs"):
-		fnargs = fn.fnargs
-	else:
-		signature = inspect.signature(fn)
-		fnargs = list(signature.parameters)
+	signature = inspect.signature(fn)
+	fnargs = list(signature.parameters)
 
-		for param_name, parameter in signature.parameters.items():
-			if parameter.kind == inspect.Parameter.VAR_KEYWORD:
-				varkw_exist = True
-				fnargs.remove(param_name)
-				break
+	for param_name, parameter in signature.parameters.items():
+		if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+			varkw_exist = True
+			fnargs.remove(param_name)
+			break
 
 	newargs = {}
 	for a in kwargs:

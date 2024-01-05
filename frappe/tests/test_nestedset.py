@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.desk.treeview import get_children
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Max
 from frappe.tests.utils import FrappeTestCase
@@ -144,7 +145,7 @@ class TestNestedSet(FrappeTestCase):
 		leaf_node.reload()
 
 	def test_rebuild_tree(self):
-		rebuild_tree(TEST_DOCTYPE, "parent_test_tree_doctype")
+		rebuild_tree(TEST_DOCTYPE)
 		self.test_basic_tree()
 
 	def test_move_group_into_another(self):
@@ -296,3 +297,43 @@ class TestNestedSet(FrappeTestCase):
 
 		self.assertNotIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=exclusive_link)))
 		self.assertIn(record, str(frappe.qb.get_query(table=linked_doctype, filters=inclusive_link)))
+
+	def test_disabled_records_in_treeview(self):
+		"""
+		Tests the `get_children` util for showing / skipping disabled records in treeview
+		"""
+		doctype = (
+			new_doctype(
+				fields=[
+					{
+						"label": "Some Field",
+						"fieldname": "some_fieldname",
+						"fieldtype": "Data",
+					},
+					{
+						"label": "Disabled",
+						"fieldname": "disabled",
+						"fieldtype": "Check",
+					},
+				],
+				is_tree=True,
+				autoname="field:some_fieldname",
+			)
+			.insert()
+			.name
+		)
+
+		for record in [
+			{"some_fieldname": "Root", "disabled": 0, "is_group": 1},
+			{"some_fieldname": "Sub Tree 1", "disabled": 1, "parent_" + doctype: "Root", "is_group": 0},
+		]:
+			d = frappe.new_doc(doctype)
+			d.update(record)
+			d.insert()
+
+		# Check if all records are fetched when flag is set to True
+		self.assertEqual(len(get_children(doctype, include_disabled=True)), 2)
+
+		# Check if disabled records are skipped is set to False
+		# Children of disabled records are automatically skipped in recursion
+		self.assertEqual(len(get_children(doctype)), 1)
