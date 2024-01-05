@@ -57,7 +57,6 @@ class PushNotification:
 		data = self._send_post_request("notification_relay.api.topic.add", {"topic_name": topic_name})
 		return data["success"]
 
-	# Remove Topic
 	def remove_topic(self, topic_name: str) -> bool:
 		"""
 		Remove a notification topic.
@@ -81,7 +80,6 @@ class PushNotification:
 		)
 		return data["success"]
 
-	# Unsubscribe Topic (User)
 	def unsubscribe_topic(self, user_id: str, topic_name: str) -> bool:
 		"""
 		Unsubscribe a user from a topic.
@@ -191,11 +189,11 @@ class PushNotification:
 			# Generate new credentials
 			token = frappe.generate_hash(length=48)
 			# store the token in the redis cache
-			frappe.cache().set_value(f"{self._get_site_name}:push_relay_registration_token", token, ex=600)
+			frappe.cache().set_value(f"{self._site_name}:push_relay_registration_token", token, ex=600)
 			body = {
-				"endpoint": self._get_site_name,
-				"protocol": self._get_site_protocol,
-				"port": self._get_site_port,
+				"endpoint": self._site_name,
+				"protocol": self._site_protocol,
+				"port": self._site_port,
 				"token": token,
 				"webhook_route": "/api/method/frappe.push_notification.auth_webhook",
 			}
@@ -230,20 +228,19 @@ class PushNotification:
 		else:
 			client = FrappeClient(relay_server_endpoint)
 		params["project_name"] = PushNotification.project_name
-		params["site_name"] = self._get_site_name
+		params["site_name"] = self._site_name
 		return client.post_api(method, params)
 
-	# Helper methods to fetch properties
 	@property
-	def _get_site_name(self) -> str:
+	def _site_name(self) -> str:
 		return urlparse(frappe.utils.get_url()).hostname
 
 	@property
-	def _get_site_protocol(self) -> str:
+	def _site_protocol(self) -> str:
 		return urlparse(frappe.utils.get_url()).scheme
 
 	@property
-	def _get_site_port(self) -> str:
+	def _site_port(self) -> str:
 		site_uri = urlparse(frappe.utils.get_url())
 		if site_uri.port is not None:
 			return str(site_uri.port)
