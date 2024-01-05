@@ -206,7 +206,6 @@ class PushNotification:
 			notification_settings.api_key = response["credentials"]["api_key"]
 			notification_settings.api_secret = response["credentials"]["api_secret"]
 			notification_settings.save(ignore_permissions=True)
-			frappe.db.commit()
 			return notification_settings.api_key, notification_settings.api_secret
 
 	def _send_post_request(self, method: str, params: dict, use_authentication: bool = True):
@@ -269,13 +268,13 @@ def auth_webhook():
 
 
 # Subscribe and Unsubscribe API
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(methods=["POST"])
 def subscribe(fcm_token: str):
 	success, message = PushNotification().add_token(frappe.session.user, fcm_token)
 	return {"success": success, "message": message}
 
 
-@frappe.whitelist(methods=["GET"])
+@frappe.whitelist(methods=["POST"])
 def unsubscribe(fcm_token: str):
 	success, message = PushNotification().remove_token(frappe.session.user, fcm_token)
 	return {"success": success, "message": message}
