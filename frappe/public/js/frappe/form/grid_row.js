@@ -429,10 +429,10 @@ export default class GridRow {
 		$(`
 			<div class='form-group'>
 				<div class='row' style='margin:0px; margin-bottom:10px;'>
-					<div class='col-md-8'>
+					<div class='col-6 col-md-8'>
 						${__("Fieldname").bold()}
 					</div>
-					<div class='col-md-4' style='padding-left:5px;'>
+					<div class='col-6 col-md-4' style='padding-left:5px;'>
 						${__("Column Width").bold()}
 					</div>
 				</div>
