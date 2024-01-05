@@ -359,9 +359,9 @@ acorn@^7.1.1:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.4.1.tgz#feaed255973d2e77555b83dbc08851a6c63520fa"
   integrity sha512-nQyp0o1/mNdbTO1PO6kHkwSrmgZ0MT/jCCpNiwbUjGoRN4dlBhqJtoQuCnEOKzgTVwg0ZWiCoQy6SxMebQVh8A==
 
-"air-datepicker@github:badihi/air-datepicker#a8de696054ce5b70f4f6b8f9decfd15eed71ce80":
+"air-datepicker@github:badihi/air-datepicker#b425178600f11779fdd66bdd8421e785d491b8b9":
   version "2.2.3"
-  resolved "https://codeload.github.com/badihi/air-datepicker/tar.gz/a8de696054ce5b70f4f6b8f9decfd15eed71ce80"
+  resolved "https://codeload.github.com/badihi/air-datepicker/tar.gz/b425178600f11779fdd66bdd8421e785d491b8b9"
   dependencies:
     jquery ">=2.0.0 <4.0.0"
 
