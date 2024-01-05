@@ -17,7 +17,7 @@
 	{% block header_buttons %}
 	{% if allow_edit and in_view_mode %}
 		<!-- edit button -->
-		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit Response", null, "Button in web form") }}</a>
+		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit Response", context="Button in web form") }}</a>
 	{% endif %}
 
 	{% if allow_print and in_view_mode %}
@@ -38,10 +38,10 @@
 		{% if not in_view_mode %}
 			<!-- discard button -->
 			<button class="discard-btn btn btn-default btn-sm">
-				{{ _("Discard", null, "Button in web form") }}
+				{{ _("Discard", context="Button in web form") }}
 			</button>
 			<!-- submit button -->
-			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ button_label or _("Submit", null, "Button in web form") }}</button>
+			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ _(button_label, context="Button in web form") or _("Submit", context="Button in web form") }}</button>
 		{% endif %}
 	</div>
 	{% endblock %}
@@ -147,10 +147,10 @@
 				</div>
 			{% else %}
 				{% if show_list %}
-					<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", null, "Button in web form") }}</a>
+					<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", context="Button in web form") }}</a>
 				{% endif %}
 				{% if not login_required or allow_multiple %}
-					<a href="/{{ route }}/new" class="new-btn btn btn-default btn-md">{{ _("Submit another response", null, "Button in web form") }}</a>
+					<a href="/{{ route }}/new" class="new-btn btn btn-default btn-md">{{ _("Submit another response", context="Button in web form") }}</a>
 				{% endif %}
 			{% endif %}
 		</div>
