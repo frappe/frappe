@@ -1002,19 +1002,11 @@ def has_permission(
 	)
 
 	if throw and not out:
-		# mimics frappe.throw
 		document_label = (
 			f"{_(doctype)} {doc if isinstance(doc, str) else doc.name}" if doc else _(doctype)
 		)
-		msgprint(
-			_("No permission for {0}").format(document_label),
-			raise_exception=ValidationError,
-			title=None,
-			indicator="red",
-			is_minimizable=None,
-			wide=None,
-			as_list=False,
-		)
+		frappe.flags.error_message = _("No permission for {0}").format(document_label)
+		raise frappe.PermissionError
 
 	return out
 

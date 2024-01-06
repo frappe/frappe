@@ -8,6 +8,7 @@ import re
 import time
 from collections import Counter
 from collections.abc import Callable
+from enum import Enum
 
 import sqlparse
 
@@ -19,6 +20,12 @@ RECORDER_INTERCEPT_FLAG = "recorder-intercept"
 RECORDER_REQUEST_SPARSE_HASH = "recorder-requests-sparse"
 RECORDER_REQUEST_HASH = "recorder-requests"
 TRACEBACK_PATH_PATTERN = re.compile(".*/apps/")
+
+
+class RecorderEvent(str, Enum):
+	HTTP_REQUEST = "HTTP Request"
+	BACKGROUND_JOB = "Background Job"
+	INVALID = "Invalid"
 
 
 def sql(*args, **kwargs):
@@ -121,7 +128,10 @@ def normalize_query(query: str) -> str:
 		for token in q.flatten():
 			if "Token.Literal" in str(token.ttype):
 				token.value = "?"
-		return str(q)
+
+		# Transform IN parts like this: IN (?, ?, ?) -> IN (?)
+		q = re.sub(r"( IN )\(\?[\s\n\?\,]*\)", r"\1(?)", str(q), flags=re.IGNORECASE)
+		return q
 	except Exception as e:
 		print("Failed to normalize query ", e)
 
@@ -151,7 +161,16 @@ class Recorder:
 			self.method = frappe.request.method
 			self.headers = dict(frappe.local.request.headers)
 			self.form_dict = frappe.local.form_dict
+			self.event_type = RecorderEvent.HTTP_REQUEST
+		elif frappe.job:
+			self.event_type = RecorderEvent.BACKGROUND_JOB
+			self.path = frappe.job.method
+			self.cmd = None
+			self.method = None
+			self.headers = None
+			self.form_dict = None
 		else:
+			self.event_type = RecorderEvent.INVALID
 			self.path = None
 			self.cmd = None
 			self.method = None
@@ -173,6 +192,7 @@ class Recorder:
 			"time_queries": float("{:0.3f}".format(sum(call["duration"] for call in self.calls))),
 			"duration": float(f"{(datetime.datetime.now() - self.time).total_seconds() * 1000:0.3f}"),
 			"method": self.method,
+			"event_type": self.event_type,
 		}
 		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
 		frappe.publish_realtime(

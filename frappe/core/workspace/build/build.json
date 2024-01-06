@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"5nnLaQeoFa\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Your Shortcuts</b></span>\",\"col\":12}},{\"id\":\"HXRmktXYHy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"DocType\",\"col\":3}},{\"id\":\"pYALX3MwBW\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customize Form\",\"col\":3}},{\"id\":\"XC78DuYB65\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Report\",\"col\":3}},{\"id\":\"XPm50Ppq3J\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Client Script\",\"col\":3}},{\"id\":\"yoU6nWiT83\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Server Script\",\"col\":3}},{\"id\":\"5UgFESBY0N\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Print Format Builder\",\"col\":3}},{\"id\":\"0gE0s-S70E\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Learn Frappe Framework\",\"col\":3}},{\"id\":\"62hseENHbd\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"tOCrOgLW1G\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Elements</b></span>\",\"col\":12}},{\"id\":\"BIHjudL0T_\",\"type\":\"card\",\"data\":{\"card_name\":\"Modules\",\"col\":4}},{\"id\":\"cJ6CVsa8qW\",\"type\":\"card\",\"data\":{\"card_name\":\"Models\",\"col\":4}},{\"id\":\"MmEJpjEdGR\",\"type\":\"card\",\"data\":{\"card_name\":\"Views\",\"col\":4}},{\"id\":\"2ZdtgxQZqq\",\"type\":\"card\",\"data\":{\"card_name\":\"Customization\",\"col\":4}},{\"id\":\"NPFolijIcb\",\"type\":\"card\",\"data\":{\"card_name\":\"Scripting\",\"col\":4}},{\"id\":\"iK3JQ9RXJE\",\"type\":\"card\",\"data\":{\"card_name\":\"Packages\",\"col\":4}},{\"id\":\"TiO9FCUUeC\",\"type\":\"card\",\"data\":{\"card_name\":\"System Logs\",\"col\":4}}]",
+ "content": "[{\"id\":\"5nnLaQeoFa\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Get started</b><br></span>\",\"col\":12}},{\"id\":\"HXRmktXYHy\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"DocType\",\"col\":3}},{\"id\":\"pYALX3MwBW\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customize Form\",\"col\":3}},{\"id\":\"XC78DuYB65\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Report\",\"col\":3}},{\"id\":\"XPm50Ppq3J\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Client Script\",\"col\":3}},{\"id\":\"yoU6nWiT83\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Server Script\",\"col\":3}},{\"id\":\"5UgFESBY0N\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Print Format Builder\",\"col\":3}},{\"id\":\"0gE0s-S70E\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"System Settings\",\"col\":3}},{\"id\":\"62hseENHbd\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"tOCrOgLW1G\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Components to build your app</b></span>\",\"col\":12}},{\"id\":\"cJ6CVsa8qW\",\"type\":\"card\",\"data\":{\"card_name\":\"Models\",\"col\":4}},{\"id\":\"MmEJpjEdGR\",\"type\":\"card\",\"data\":{\"card_name\":\"Views\",\"col\":4}},{\"id\":\"2ZdtgxQZqq\",\"type\":\"card\",\"data\":{\"card_name\":\"Customization\",\"col\":4}},{\"id\":\"NPFolijIcb\",\"type\":\"card\",\"data\":{\"card_name\":\"Scripting\",\"col\":4}},{\"id\":\"BIHjudL0T_\",\"type\":\"card\",\"data\":{\"card_name\":\"Modules\",\"col\":4}},{\"id\":\"iK3JQ9RXJE\",\"type\":\"card\",\"data\":{\"card_name\":\"Packages\",\"col\":4}},{\"id\":\"TiO9FCUUeC\",\"type\":\"card\",\"data\":{\"card_name\":\"System Logs\",\"col\":4}}]",
  "creation": "2021-01-02 10:51:16.579957",
  "custom_blocks": [],
  "docstatus": 0,
@@ -8,7 +8,7 @@
  "for_user": "",
  "hide_custom": 0,
  "icon": "tool",
- "idx": 0,
+ "idx": 1,
  "is_hidden": 0,
  "label": "Build",
  "links": [
@@ -111,46 +111,6 @@
    "label": "Package Import",
    "link_count": 0,
    "link_to": "Package Import",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Modules",
-   "link_count": 3,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Module Def",
-   "link_count": 0,
-   "link_to": "Module Def",
-   "link_type": "DocType",
-   "onboard": 0,
-   "only_for": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Module Onboarding",
-   "link_count": 0,
-   "link_to": "Module Onboarding",
-   "link_type": "DocType",
-   "onboard": 0,
-   "only_for": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Module Profile",
-   "link_count": 0,
-   "link_to": "Module Profile",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -321,9 +281,40 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Modules",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Module Def",
+   "link_count": 0,
+   "link_to": "Module Def",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Module Onboarding",
+   "link_count": 0,
+   "link_to": "Module Onboarding",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
   }
  ],
- "modified": "2023-07-04 14:34:09.420325",
+ "modified": "2024-01-02 15:38:42.806824",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
@@ -346,8 +337,9 @@
   {
    "color": "Grey",
    "doc_view": "List",
-   "label": "Learn Frappe Framework",
-   "type": "URL",
+   "label": "System Settings",
+   "link_to": "System Settings",
+   "type": "DocType",
    "url": "https://frappe.school/courses/frappe-framework-course?utm_source=in_app"
   },
   {
