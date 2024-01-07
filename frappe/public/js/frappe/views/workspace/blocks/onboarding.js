@@ -113,7 +113,7 @@ export default class Onboarding extends Block {
 
 		if (this.data && this.data.onboarding_name) {
 			let has_data = this.make("onboarding", this.data.onboarding_name);
-			if (!has_data) return;
+			if (!has_data) return this.wrapper;
 		}
 
 		if (!this.readOnly) {
