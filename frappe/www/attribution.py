@@ -5,6 +5,7 @@ import tomllib
 import requests
 
 import frappe
+from frappe.utils.caching import redis_cache
 
 
 def get_context(context):
@@ -15,6 +16,7 @@ def get_context(context):
 	context.packages_by_app = packages_by_app
 
 
+@redis_cache(ttl=60 * 60 * 24 * 7)
 def get_app_deps(app: str):
 	dependencies = []
 
