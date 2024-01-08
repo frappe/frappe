@@ -9,6 +9,9 @@ from frappe.utils.caching import redis_cache
 
 
 def get_context(context):
+	if frappe.session.user == "Guest":
+		frappe.throw("You need to be logged in to access this page.", frappe.PermissionError)
+
 	packages_by_app = {}
 	for app in frappe.get_installed_apps():
 		packages_by_app[app] = get_app_deps(app)
