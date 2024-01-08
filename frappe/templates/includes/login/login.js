@@ -339,7 +339,7 @@ var request_otp = function (r) {
 					<span class="indicator blue" data-text="Verification">{{ _("Verification") }}</span>
 				</div>
 				<div id="otp_div"></div>
-				<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder={{ _("Verification Code") }} required="">
+				<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder="{{ _("Verification Code") }}" required="">
 				<button class="btn btn-sm btn-primary btn-block mt-3" id="verify_token">{{ _("Verify") }}</button>
 			</form>
 		</div>`
