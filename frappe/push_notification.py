@@ -189,7 +189,7 @@ class PushNotification:
 			# Generate new credentials
 			token = frappe.generate_hash(length=48)
 			# store the token in the redis cache
-			frappe.cache().set_value(f"{self._site_name}:push_relay_registration_token", token, ex=600)
+			frappe.cache().set_value(f"{self._site_name}:push_relay_registration_token", token, expires_in_sec=600)
 			body = {
 				"endpoint": self._site_name,
 				"protocol": self._site_protocol,
