@@ -39,7 +39,6 @@ class TelemetryManager {
 
 	disable() {
 		this.enabled = false;
-		posthog.opt_out_capturing();
 	}
 
 	can_enable() {
