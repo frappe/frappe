@@ -4,6 +4,9 @@ body {
 	@include media-breakpoint-up(sm) {
 		background-color: var(--bg-light-gray);
 	}
+	.page-content-wrapper {
+		min-height: calc(100vh - 220px);
+	}
 	.web-footer {
 		display: none;
 	}

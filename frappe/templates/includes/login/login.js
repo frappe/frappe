@@ -2,6 +2,7 @@
 // don't remove this line (used in test)
 
 window.disable_signup = {{ disable_signup and "true" or "false" }};
+window.show_footer_on_login = {{ show_footer_on_login and "true" or "false" }};
 
 window.login = {};
 
@@ -303,6 +304,10 @@ frappe.ready(function () {
 		window.location.hash = "#login";
 	} else {
 		$(window).trigger("hashchange");
+	}
+
+	if (window.show_footer_on_login) {
+		$("body .web-footer").show();
 	}
 
 	$(".form-signup, .form-forgot, .form-login-with-email-link").removeClass("hide");

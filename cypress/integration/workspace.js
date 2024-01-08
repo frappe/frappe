@@ -7,8 +7,8 @@ context("Workspace 2.0", () => {
 	it("Navigate to page from sidebar", () => {
 		cy.visit("/app/build");
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.sidebar-item-container[item-name="Settings"]').first().click();
-		cy.location("pathname").should("eq", "/app/settings");
+		cy.get('.sidebar-item-container[item-name="Website"]').first().click();
+		cy.location("pathname").should("eq", "/app/website");
 	});
 
 	it("Create Private Page", () => {
