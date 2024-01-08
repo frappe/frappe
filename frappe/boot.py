@@ -270,9 +270,6 @@ def get_user_info():
 	user_info = frappe._dict()
 	add_user_info(frappe.session.user, user_info)
 
-	if frappe.session.user == "Administrator" and user_info.Administrator.email:
-		user_info[user_info.Administrator.email] = user_info.Administrator
-
 	return user_info
 
 
