@@ -195,8 +195,23 @@ class DataExporter:
 		# build list of valid docfields
 		tablecolumns = []
 		table_name = "tab" + dt
+
 		for f in frappe.db.get_table_columns_description(table_name):
 			field = meta.get_field(f.name)
+			if f.name in ["owner", "creation"]:
+				std_field = next((x for x in frappe.model.std_fields if x["fieldname"] == f.name), None)
+				if std_field:
+					field = frappe._dict(
+						{
+							"fieldname": std_field.get("fieldname"),
+							"label": std_field.get("label"),
+							"fieldtype": std_field.get("fieldtype"),
+							"options": std_field.get("options"),
+							"idx": 0,
+							"parent": dt,
+						}
+					)
+
 			if field and (
 				(self.select_columns and f.name in self.select_columns[dt]) or not self.select_columns
 			):
@@ -381,7 +396,6 @@ class DataExporter:
 					)
 					for ci, child in enumerate(data_row.run(as_dict=True)):
 						self.add_data_row(rows, c["doctype"], c["parentfield"], child, ci)
-
 			for row in rows:
 				self.writer.writerow(row)
 
