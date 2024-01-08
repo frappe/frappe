@@ -184,7 +184,7 @@ class PushNotification:
 		"""
 		notification_settings = frappe.get_doc("Push Notification Settings")
 		if notification_settings.api_key and notification_settings.api_secret:
-			return notification_settings.api_key, notification_settings.api_secret
+			return notification_settings.api_key, notification_settings.get_password('api_secret')
 		else:
 			# Generate new credentials
 			token = frappe.generate_hash(length=48)
