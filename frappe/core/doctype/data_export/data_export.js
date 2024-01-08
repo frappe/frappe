@@ -141,6 +141,12 @@ const get_doctypes = (parentdt) => {
 const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 	const fields = get_fields(doctype);
 
+	frappe.model.std_fields
+		.filter((df) => ["owner", "creation"].includes(df.fieldname))
+		.forEach((df) => {
+			fields.push(df);
+		});
+
 	const options = fields.map((df) => {
 		return {
 			label: df.label,
