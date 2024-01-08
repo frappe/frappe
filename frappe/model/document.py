@@ -394,6 +394,7 @@ class Document(BaseDocument):
 
 	def update_child_table(self, fieldname, df=None):
 		"""sync child table for given fieldname"""
+<<<<<<< HEAD
 		rows = []
 		if not df:
 			df = self.meta.get_field(fieldname)
@@ -429,6 +430,37 @@ class Document(BaseDocument):
 			frappe.db.delete(
 				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname}
 			)
+=======
+		df: "DocField" = df or self.meta.get_field(fieldname)
+		all_rows = self.get(df.fieldname)
+
+		# delete rows that do not match the ones in the document
+		# if the doctype isn't in ignore_children_type flag and isn't virtual
+		if not (
+			df.options in (self.flags.ignore_children_type or ())
+			or frappe.get_meta(df.options).is_virtual == 1
+		):
+			existing_row_names = [row.name for row in all_rows if row.name and not row.is_new()]
+
+			tbl = frappe.qb.DocType(df.options)
+			qry = (
+				frappe.qb.from_(tbl)
+				.where(tbl.parent == self.name)
+				.where(tbl.parenttype == self.doctype)
+				.where(tbl.parentfield == fieldname)
+				.delete()
+			)
+
+			if existing_row_names:
+				qry = qry.where(tbl.name.notin(existing_row_names))
+
+			qry.run()
+
+		# update / insert
+		for d in all_rows:
+			d: Document
+			d.db_update()
+>>>>>>> 417fce091a (fix: delete existing children first to avoid `UniqueValidationError` (#24140))
 
 	def get_doc_before_save(self):
 		return getattr(self, "_doc_before_save", None)
