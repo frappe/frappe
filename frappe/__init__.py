@@ -175,6 +175,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
+	from frappe.email.doctype.email_queue.email_queue import EmailQueue
 	from frappe.model.document import Document
 	from frappe.query_builder.builder import MariaDB, Postgres
 	from frappe.utils.redis_wrapper import RedisWrapper
@@ -677,7 +678,7 @@ def sendmail(
 	print_letterhead=False,
 	with_container=False,
 	email_read_tracker_url=None,
-):
+) -> Optional["EmailQueue"]:
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -762,7 +763,7 @@ def sendmail(
 	)
 
 	# build email queue and send the email if send_now is True.
-	builder.process(send_now=now)
+	return builder.process(send_now=now)
 
 
 whitelisted = []
