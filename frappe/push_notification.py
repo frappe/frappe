@@ -204,7 +204,8 @@ class PushNotification:
 			notification_settings.api_key = response["credentials"]["api_key"]
 			notification_settings.api_secret = response["credentials"]["api_secret"]
 			notification_settings.save(ignore_permissions=True)
-			frappe.db.commit()
+			# GET request, hence using commit to persist changes
+			frappe.db.commit()  # nosemgrep
 			return notification_settings.api_key, notification_settings.api_secret
 
 	def _send_post_request(self, method: str, params: dict, use_authentication: bool = True):
