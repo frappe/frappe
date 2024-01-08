@@ -252,7 +252,8 @@ class PushNotification:
 # Webhook which will be called by the central relay server for authentication
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def auth_webhook():
-	token = frappe.cache().get_value(f"{frappe.local.site}:push_relay_registration_token")
+	url = urlparse(frappe.utils.get_url()).hostname
+	token = frappe.cache().get_value(f"{url}:push_relay_registration_token")
 	response = Response()
 	response.mimetype = "text/plain; charset=UTF-8"
 
