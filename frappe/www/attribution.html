@@ -1,0 +1,42 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+
+<h1>{{ _("Attribution") }}</h1>
+<p>
+    {{ _("This software is built on top of many open source packages. We would like to thank the authors of these packages for their contribution.") }}
+</p>
+
+{% for app, packages in packages_by_app.items() %}
+    <section id="{{ app }}">
+        <h2><a href="#{{ app }}">{{ app }}</a></h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <td>{{ _("Package") }}</td>
+                    <td>{{ _("Version") }}</td>
+                    <td>{{ _("License") }}</td>
+                    <td>{{ _("Author") }}</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for package in packages %}
+                <tr>
+                    <td>
+                        {% if package.homepage %}
+                            <a href="{{ (package.homepage | e) }}" target="_blank">{{ package.name | e }}</a>
+                        {% else %}
+                            {{ package.name | e }}
+                        {% endif %}
+                    </td>
+                    <td>{{ package.version | e }}</td>
+                    <td>{{ (package.license | e) or _("Unknown") }}</td>
+                    <td>{{ (package.author | e) or _("Unknown") }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endfor %}
+
+{% endblock %}
