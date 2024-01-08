@@ -366,7 +366,7 @@ def get_context(context):
 
 			# For sending messages to specified role
 			if recipient.receiver_by_role:
-				receiver_list += get_info_based_on_role(recipient.receiver_by_role, "mobile_no")
+				receiver_list += get_info_based_on_role(recipient.receiver_by_role, "mobile_no", ignore_permissions=True)
 
 		return receiver_list
 
