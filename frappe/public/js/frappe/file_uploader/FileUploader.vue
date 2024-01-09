@@ -446,6 +446,7 @@ export default {
 				files = files.slice(0, max_number_of_files);
 			}
 
+<<<<<<< HEAD
 			this.files = this.files.concat(files);
 			// if only one file is allowed and crop_image_aspect_ratio is set, open cropper immediately
 			if (
@@ -455,6 +456,177 @@ export default {
 			) {
 				if (!this.files[0].file_obj.type.includes("svg")) {
 					this.toggle_image_cropper(0);
+=======
+			// otherwise this is likely an extension
+			if (type[0] === ".") {
+				return file.name.toLowerCase().endsWith(type.toLowerCase());
+			}
+			return false;
+		});
+	}
+
+	if (max_file_size && file.size != null) {
+		valid_file_size = file.size < max_file_size;
+	}
+
+	if (!is_correct_type) {
+		console.warn("File skipped because of invalid file type", file);
+		frappe.show_alert({
+			message: __('File "{0}" was skipped because of invalid file type', [file.name]),
+			indicator: "orange",
+		});
+	}
+	if (!valid_file_size) {
+		console.warn("File skipped because of invalid file size", file.size, file);
+		frappe.show_alert({
+			message: __('File "{0}" was skipped because size exceeds {1} MB', [
+				file.name,
+				max_file_size / (1024 * 1024),
+			]),
+			indicator: "orange",
+		});
+	}
+
+	return is_correct_type && valid_file_size;
+}
+function upload_files(dialog) {
+	if (show_file_browser.value) {
+		return upload_via_file_browser();
+	}
+	if (show_web_link.value) {
+		return upload_via_web_link();
+	}
+	if (props.as_dataurl) {
+		return return_as_dataurl();
+	}
+	if (!files.value.length) {
+		frappe.msgprint(__("Please select a file first."));
+		return Promise.reject();
+	}
+
+	dialog?.get_primary_btn().prop("disabled", true);
+	dialog?.get_secondary_btn().prop("disabled", true);
+
+	return frappe.run_serially(files.value.map((file, i) => () => upload_file(file, i)));
+}
+function upload_via_file_browser() {
+	let selected_file = file_browser.value.selected_node;
+	if (!selected_file.value) {
+		frappe.msgprint(__("Click on a file to select it."));
+		close_dialog.value = true;
+		return Promise.reject();
+	}
+	close_dialog.value = true;
+	return upload_file({
+		library_file_name: selected_file.value,
+	});
+}
+function upload_via_web_link() {
+	let file_url = web_link.value.url;
+	if (!file_url) {
+		frappe.msgprint(__("Invalid URL"));
+		close_dialog.value = true;
+		return Promise.reject();
+	}
+	file_url = decodeURI(file_url);
+	close_dialog.value = true;
+	return upload_file({
+		file_url,
+	});
+}
+function return_as_dataurl() {
+	let promises = files.value.map((file) =>
+		frappe.dom.file_to_base64(file.file_obj).then((dataurl) => {
+			file.dataurl = dataurl;
+			props.on_success && props.on_success(file);
+		})
+	);
+	close_dialog.value = true;
+	return Promise.all(promises);
+}
+function upload_file(file, i) {
+	currently_uploading.value = i;
+
+	return new Promise((resolve, reject) => {
+		let xhr = new XMLHttpRequest();
+		xhr.upload.addEventListener("loadstart", (e) => {
+			file.uploading = true;
+		});
+		xhr.upload.addEventListener("progress", (e) => {
+			if (e.lengthComputable) {
+				file.progress = e.loaded;
+				file.total = e.total;
+			}
+		});
+		xhr.upload.addEventListener("load", (e) => {
+			file.uploading = false;
+			resolve();
+		});
+		xhr.addEventListener("error", (e) => {
+			file.failed = true;
+			reject();
+		});
+		xhr.onreadystatechange = () => {
+			if (xhr.readyState == XMLHttpRequest.DONE) {
+				if (xhr.status === 200) {
+					file.request_succeeded = true;
+					let r = null;
+					let file_doc = null;
+					try {
+						r = JSON.parse(xhr.responseText);
+						if (r.message.doctype === "File") {
+							file_doc = r.message;
+						}
+					} catch (e) {
+						r = xhr.responseText;
+					}
+
+					file.doc = file_doc;
+
+					if (props.on_success) {
+						props.on_success(file_doc, r);
+					}
+
+					if (
+						i == files.value.length - 1 &&
+						files.value.every((file) => file.request_succeeded)
+					) {
+						close_dialog.value = true;
+					}
+				} else if (xhr.status === 403) {
+					file.failed = true;
+					let response = JSON.parse(xhr.responseText);
+					file.error_message = `Not permitted. ${response._error_message || ""}.`;
+
+					try {
+						// Append server messages which are useful hint for perm issues
+						let server_messages = JSON.parse(response._server_messages);
+
+						server_messages.forEach((m) => {
+							m = JSON.parse(m);
+							file.error_message += `\n ${m.message} `;
+						});
+					} catch (e) {
+						console.warning("Failed to parse server message", e);
+					}
+				} else if (xhr.status === 413) {
+					file.failed = true;
+					file.error_message = "Size exceeds the maximum allowed file size.";
+				} else {
+					file.failed = true;
+					file.error_message =
+						xhr.status === 0
+							? "XMLHttpRequest Error"
+							: `${xhr.status} : ${xhr.statusText}`;
+
+					let error = null;
+					try {
+						error = JSON.parse(xhr.responseText);
+					} catch (e) {
+						// pass
+					}
+					frappe.request.cleanup({}, error);
+>>>>>>> 2da9ba820b (fix: added validation if upload is clicked without uploading file)
 				}
 			}
 		},

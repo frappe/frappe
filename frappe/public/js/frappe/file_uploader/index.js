@@ -98,9 +98,7 @@ export default class FileUploader {
 	}
 
 	upload_files() {
-		this.dialog && this.dialog.get_primary_btn().prop("disabled", true);
-		this.dialog && this.dialog.get_secondary_btn().prop("disabled", true);
-		return this.uploader.upload_files();
+		return this.uploader.upload_files(this.dialog);
 	}
 
 	make_dialog(title) {
