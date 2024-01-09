@@ -204,7 +204,7 @@ class DocType(Document):
 		self.validate_document_type()
 		validate_fields(self)
 		self.check_indexing_for_dashboard_links()
-
+		self.check_status_field_fieldtype()
 		if not self.istable:
 			validate_permissions(self)
 
@@ -226,6 +226,17 @@ class DocType(Document):
 
 		if self.default_print_format and not self.custom:
 			frappe.throw(_("Standard DocType cannot have default print format, use Customize Form"))
+
+	def check_status_field_fieldtype(self):
+		allowed_fieldtypes = ["Select", "Data", "Check"]
+		for d in self.fields:
+			if d.fieldname == "status":
+				if d.fieldtype not in allowed_fieldtypes:
+					frappe.throw(
+						_("{0} is a reserved keyword. <br> Fieldtype of {0} field must be one of {1}").format(
+							frappe.bold("status"), allowed_fieldtypes
+						)
+					)
 
 	def validate_field_name_conflicts(self):
 		"""Check if field names dont conflict with controller properties and methods"""
