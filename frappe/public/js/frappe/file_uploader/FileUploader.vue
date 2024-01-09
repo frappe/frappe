@@ -473,7 +473,7 @@ function check_restrictions(file) {
 
 	return is_correct_type && valid_file_size;
 }
-function upload_files() {
+function upload_files(dialog) {
 	if (show_file_browser.value) {
 		return upload_via_file_browser();
 	}
@@ -483,6 +483,14 @@ function upload_files() {
 	if (props.as_dataurl) {
 		return return_as_dataurl();
 	}
+	if (!files.value.length) {
+		frappe.msgprint(__("Please select a file first."));
+		return Promise.reject();
+	}
+
+	dialog?.get_primary_btn().prop("disabled", true);
+	dialog?.get_secondary_btn().prop("disabled", true);
+
 	return frappe.run_serially(files.value.map((file, i) => () => upload_file(file, i)));
 }
 function upload_via_file_browser() {
