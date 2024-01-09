@@ -70,6 +70,7 @@ ignore =
     E713,
     E712,
     B028,
+    W604,
 
 max-line-length = 200
 exclude=,test_*.py
