@@ -150,6 +150,7 @@ class TestWorkflow(FrappeTestCase):
 		self.assertEqual(workflow_actions[0].status, "Completed")
 		frappe.set_user("Administrator")
 
+<<<<<<< HEAD
 	def test_update_docstatus(self):
 		todo = create_new_todo()
 		apply_workflow(todo, "Approve")
@@ -166,6 +167,8 @@ class TestWorkflow(FrappeTestCase):
 		self.workflow.states[1].doc_status = 0
 		self.workflow.save()
 
+=======
+>>>>>>> 02031fc6f4 (fix: don't update docstatus (#24216))
 	def test_if_workflow_set_on_action(self):
 		self.workflow.states[1].doc_status = 1
 		self.workflow.save()

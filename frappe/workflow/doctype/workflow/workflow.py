@@ -15,7 +15,6 @@ class Workflow(Document):
 		self.validate_docstatus()
 
 	def on_update(self):
-		self.update_doc_status()
 		frappe.clear_cache(doctype=self.document_type)
 
 	def create_custom_field_for_workflow_state(self):
@@ -62,6 +61,7 @@ class Workflow(Document):
 
 				docstatus_map[d.doc_status] = d.state
 
+<<<<<<< HEAD
 	def update_doc_status(self):
 		"""
 		Checks if the docstatus of a state was updated.
@@ -86,6 +86,8 @@ class Workflow(Document):
 							update_modified=False,
 						)
 
+=======
+>>>>>>> 02031fc6f4 (fix: don't update docstatus (#24216))
 	def validate_docstatus(self):
 		def get_state(state):
 			for s in self.states:
