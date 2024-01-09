@@ -189,6 +189,16 @@ frappe.views.TreeView = class TreeView {
 		if (use_value == null) {
 			use_value = use_label;
 		}
+<<<<<<< HEAD
+=======
+
+		if (this.page?.inner_toolbar) {
+			this.args["include_disabled"] = this.page.inner_toolbar
+				.find("input[type='checkbox']")
+				.prop("checked");
+		}
+
+>>>>>>> c56c1cc2f7 (fix: bom creator tree view not working (#24200))
 		this.tree = new frappe.ui.Tree({
 			parent: this.body,
 			label: use_label,
