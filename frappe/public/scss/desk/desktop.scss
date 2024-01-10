@@ -636,6 +636,16 @@ body {
 			@include get_textstyle("lg", "semibold");
 			color: var(--text-color) !important;
 		}
+
+		@media (max-width: 995px) {
+			padding: 1px 8px;
+
+			.link-item {
+				&:first-child {
+					margin-top: 5px;
+				}
+			}
+		}
 	}
 
 	&.number-widget-box {
@@ -1405,6 +1415,13 @@ body {
 						&:focus {
 							outline: none;
 						}
+
+						@media (max-width: 995px) {
+							&.spacer {
+								height: 0 !important;
+								padding: 0 7px;
+							}
+						}
 					}
 				}
 			}
@@ -1488,6 +1505,10 @@ body {
 		@media (max-width: 995px) {
 			.ce-toolbar__content {
 				max-width: 760px;
+			}
+
+			.ce-block__content {
+				padding: 4px !important;
 			}
 		}
 	}
