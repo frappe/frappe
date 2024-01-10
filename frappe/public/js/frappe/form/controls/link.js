@@ -75,7 +75,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 	}
 	set_formatted_input(value) {
-		super.set_formatted_input();
+		super.set_formatted_input(value);
 		if (!value) return;
 
 		if (!this.title_value_map) {
