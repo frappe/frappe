@@ -21,12 +21,12 @@ def generate_pot_file(context, app: str | None = None):
 @click.option("--locale", help="Compile transaltions only for this locale. eg: de")
 @pass_context
 def compile_translations(context, app: str | None = None, locale: str = None):
-	from frappe.gettext.translate import compile
+	from frappe.gettext.translate import compile_translations as _compile_translations
 
 	if not app:
 		connect_to_site(context.sites[0] if context.sites else None)
 
-	compile(app, locale)
+	_compile_translations(app, locale)
 
 
 @click.command(

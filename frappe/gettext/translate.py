@@ -167,7 +167,7 @@ def new_po(locale, target_app: str | None = None):
 		)
 
 
-def compile(target_app: str | None = None, locale: str | None = None):
+def compile_translations(target_app: str | None = None, locale: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
 	for app in apps:
