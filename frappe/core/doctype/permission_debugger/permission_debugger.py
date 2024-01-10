@@ -39,7 +39,7 @@ class PermissionDebugger(Document):
 
 	@frappe.whitelist()
 	def debug(self):
-		if not (self.docname and self.ref_doctype and self.user):
+		if not (self.ref_doctype and self.user):
 			return
 
 		result = has_permission(

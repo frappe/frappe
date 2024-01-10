@@ -17,7 +17,7 @@ frappe.ui.form.on("Permission Debugger", {
 	user: call_debug,
 	permission_type: call_debug,
 	debug(frm) {
-		if (frm.doc.docname && frm.doc.ref_doctype && frm.doc.user) {
+		if (frm.doc.ref_doctype && frm.doc.user) {
 			frm.call("debug");
 		}
 	},
