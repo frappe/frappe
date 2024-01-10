@@ -632,7 +632,7 @@ def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | N
 
 	for message in extract_python(
 		io.BytesIO(code.encode()),
-		keywords=["_"],
+		keywords=["_", "_lt"],
 		comment_tags=(),
 		options={},
 	):

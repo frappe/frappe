@@ -119,6 +119,17 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 
 
 def _lt(msg: str, lang: str | None = None, context: str | None = None):
+	"""Lazily translate a string.
+
+
+	This function returns a "lazy string" which when casted to string via some operation applies
+	translation first before casting.
+
+	This is only useful for translating strings in global scope or anything that potentially runs
+	before `frappe.init()`
+
+	Note: Result is not guaranteed to equivalent to pure strings for all operations.
+	"""
 	from frappe.translate import LazyTranslate
 
 	return LazyTranslate(msg, lang, context)

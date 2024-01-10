@@ -200,6 +200,7 @@ class TestTranslate(FrappeTestCase):
 				)
 			_(not_a_string)
 			_(not_a_string, context="wat")
+			_lt("Communication")
 		"""
 		)
 		expected_output = [
@@ -209,6 +210,7 @@ class TestTranslate(FrappeTestCase):
 			(5, "name with", "name context"),
 			(6, "broken on", "new line"),
 			(10, "broken on separate line", None),
+			(15, "Communication", None),
 		]
 
 		output = extract_messages_from_python_code(code)
