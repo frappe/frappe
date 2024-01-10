@@ -7,7 +7,7 @@ import smtplib
 import traceback
 from contextlib import suppress
 from email.parser import Parser
-from email.policy import SMTPUTF8
+from email.policy import SMTP
 
 from rq.timeouts import JobTimeoutException
 
@@ -258,7 +258,7 @@ class SendMailContext:
 		recipient.update_db(status="Sent", commit=True)
 
 	def get_message_object(self, message):
-		return Parser(policy=SMTPUTF8).parsestr(message)
+		return Parser(policy=SMTP).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
 		# sourcery skip: avoid-builtin-shadow
