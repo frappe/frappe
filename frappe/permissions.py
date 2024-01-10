@@ -146,7 +146,12 @@ def has_permission(
 			push_perm_check_log(_("Document Type is not importable"), debug=debug)
 			return False
 
-		role_permissions = get_role_permissions(meta, user=user)
+		role_permissions = get_role_permissions(meta, user=user, debug=debug)
+		debug and _debug_log(
+			"User has following permissions using role permission system: "
+			+ frappe.as_json(role_permissions, indent=8)
+		)
+
 		perm = role_permissions.get(ptype)
 
 		if not perm:
