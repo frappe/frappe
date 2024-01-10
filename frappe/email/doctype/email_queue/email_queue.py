@@ -6,7 +6,7 @@ import quopri
 import traceback
 from contextlib import suppress
 from email.parser import Parser
-from email.policy import SMTPUTF8, default
+from email.policy import SMTP
 
 import frappe
 from frappe import _, safe_encode, task
@@ -269,7 +269,7 @@ class SendMailContext:
 	@savepoint(catch=Exception)
 	def notify_failed_email(self):
 		# Parse the email body to extract the subject
-		subject = Parser(policy=default).parsestr(self.queue_doc.message)["Subject"]
+		subject = Parser(policy=SMTP).parsestr(self.queue_doc.message)["Subject"]
 
 		# Construct the notification
 		notification = frappe.new_doc("Notification Log")
@@ -286,7 +286,7 @@ class SendMailContext:
 		recipient.update_db(status="Sent", commit=True)
 
 	def get_message_object(self, message):
-		return Parser(policy=SMTPUTF8).parsestr(message)
+		return Parser(policy=SMTP).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
 		# sourcery skip: avoid-builtin-shadow
