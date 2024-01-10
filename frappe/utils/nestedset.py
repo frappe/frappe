@@ -168,9 +168,10 @@ def update_move_node(doc: Document, parent_field: str):
 
 
 @frappe.whitelist()
-def rebuild_tree(doctype, parent_field):
-	"""
-	call rebuild_node for all root nodes
+def rebuild_tree(doctype, parent_field=None):
+	"""Call rebuild_node for all root nodes.
+
+	The `parent_field` parameter is ignored and will be removed in v16+ (kept for backward compatibility).
 	"""
 
 	# Check for perm if called from client-side
@@ -183,6 +184,8 @@ def rebuild_tree(doctype, parent_field):
 			_("Rebuilding of tree is not supported for {}").format(frappe.bold(doctype)),
 			title=_("Invalid Action"),
 		)
+
+	parent_field = meta.nsm_parent_field or f"parent_{frappe.scrub(doctype)}"
 
 	# get all roots
 	right = 1

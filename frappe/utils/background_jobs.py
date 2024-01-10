@@ -198,7 +198,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method_name = method
 		method = frappe.get_attr(method)
 	else:
-		method_name = cstr(method.__name__)
+		method_name = f"{method.__module__}.{method.__qualname__}"
 
 	frappe.local.job = frappe._dict(
 		site=site,
