@@ -184,12 +184,14 @@ class PushNotification:
 		"""
 		notification_settings = frappe.get_doc("Push Notification Settings")
 		if notification_settings.api_key and notification_settings.api_secret:
-			return notification_settings.api_key, notification_settings.get_password('api_secret')
+			return notification_settings.api_key, notification_settings.get_password("api_secret")
 		else:
 			# Generate new credentials
 			token = frappe.generate_hash(length=48)
 			# store the token in the redis cache
-			frappe.cache().set_value(f"{self._site_name}:push_relay_registration_token", token, expires_in_sec=600)
+			frappe.cache().set_value(
+				f"{self._site_name}:push_relay_registration_token", token, expires_in_sec=600
+			)
 			body = {
 				"endpoint": self._site_name,
 				"protocol": self._site_protocol,
