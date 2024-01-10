@@ -167,14 +167,19 @@ def new_po(locale, target_app: str | None = None):
 		)
 
 
-def compile_translations(target_app: str | None = None, locale: str | None = None):
+def compile_translations(target_app: str | None = None, locale: str | None = None, force=False):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 
 	for app in apps:
 		locales = [locale] if locale else get_locales(app)
 		for current_locale in locales:
 			po_path = get_po_path(app, current_locale)
+			mo_path = get_mo_path(app, current_locale)
 			if not po_path.exists():
+				continue
+
+			if mo_path.exists() and po_path.stat().st_mtime < mo_path.stat().st_mtime and not force:
+				print(f"MO file already up to date at {mo_path}")
 				continue
 
 			with open(po_path, "rb") as f:

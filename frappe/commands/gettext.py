@@ -18,15 +18,21 @@ def generate_pot_file(context, app: str | None = None):
 
 @click.command("compile-po-to-mo", help="Translation: compile PO files to MO files")
 @click.option("--app", help="Only compile for this app. eg: frappe")
+@click.option(
+	"--force",
+	is_flag=True,
+	default=False,
+	help="Force compile even if there are no changes to PO files",
+)
 @click.option("--locale", help="Compile transaltions only for this locale. eg: de")
 @pass_context
-def compile_translations(context, app: str | None = None, locale: str = None):
+def compile_translations(context, app: str | None = None, locale: str = None, force=False):
 	from frappe.gettext.translate import compile_translations as _compile_translations
 
 	if not app:
 		connect_to_site(context.sites[0] if context.sites else None)
 
-	_compile_translations(app, locale)
+	_compile_translations(app, locale, force=force)
 
 
 @click.command(

@@ -86,7 +86,7 @@ def build(
 
 		for app in apps:
 			print("Compiling translations for", app)
-			compile_translations(app)
+			compile_translations(app, force=force)
 
 
 @click.command("watch")
