@@ -57,4 +57,4 @@ def get_permission_query_conditions(user):
 
 
 def has_permission(doc, user):
-	return doc.public or doc.owner == user
+	return bool(doc.public or doc.owner == user)
