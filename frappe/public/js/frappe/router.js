@@ -71,6 +71,7 @@ $("body").on("click", "a", function (e) {
 			for (const [key, value] of params) {
 				frappe.route_options[key] = value;
 			}
+			frappe.route_search = target_element.search;
 		}
 		if (target_element.hash) {
 			frappe.route_hash = target_element.hash;
@@ -366,6 +367,8 @@ frappe.router = {
 			route = this.get_route_from_arguments(route);
 			route = this.convert_from_standard_route(route);
 			let sub_path = this.make_url(route);
+			sub_path += frappe.route_search || '';
+			frappe.route_search = null;
 			sub_path += frappe.route_hash || "";
 			frappe.route_hash = null;
 			if (frappe.open_in_new_tab) {
