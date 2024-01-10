@@ -452,10 +452,9 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 	for method in reversed(methods):
 		controller_permission = frappe.call(method, doc=doc, ptype=ptype, user=user, debug=debug)
 		debug and _debug_log(f"Controller permission check from {method}: {controller_permission}")
-		if controller_permission is not None:
+		if not controller_permission:
 			return bool(controller_permission)
 
-	# None of the controller hooks returned anything conclusive
 	return True
 
 

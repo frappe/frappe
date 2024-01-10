@@ -185,6 +185,7 @@ class TestAPIHooks(FrappeAPITestCase):
 def custom_has_permission(doc, ptype, user):
 	if doc.flags.dont_touch_me:
 		return False
+	return True
 
 
 def custom_auth():
