@@ -389,7 +389,7 @@ def get_tags(doctype: str, name: str) -> str:
 
 
 def get_document_email(doctype, name):
-	email = get_automatic_email_link()
+	email = get_automatic_email_link(doctype)
 	if not email:
 		return None
 
@@ -397,9 +397,9 @@ def get_document_email(doctype, name):
 	return f"{email[0]}+{quote(doctype)}={quote(cstr(name))}@{email[1]}"
 
 
-def get_automatic_email_link():
+def get_automatic_email_link(doctype):
 	return frappe.db.get_value(
-		"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id"
+		"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1, "append_to":doctype}, "email_id"
 	)
 
 
