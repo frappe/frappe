@@ -214,7 +214,6 @@ class DocType(Document):
 		self.validate_website()
 		self.validate_virtual_doctype_methods()
 		self.ensure_minimum_max_attachment_limit()
-		self.check_status_field_fieldtype()
 		validate_links_table_fieldnames(self)
 
 		if not self.is_new():
@@ -446,17 +445,6 @@ class DocType(Document):
 				title=_("Insufficient attachment limit"),
 				alert=True,
 			)
-
-	def check_status_field_fieldtype(self):
-		allowed_fieldtypes = ["Select", "Data", "Check"]
-		for d in self.fields:
-			if d.fieldname == "status":
-				if d.fieldtype not in allowed_fieldtypes:
-					frappe.throw(
-						_("{0} is a reserved keyword. <br> Fieldtype of {0} field must be one of {1}").format(
-							frappe.bold("status"), allowed_fieldtypes
-						)
-					)
 
 	def change_modified_of_parent(self):
 		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
