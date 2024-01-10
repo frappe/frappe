@@ -533,6 +533,63 @@ class TestDocumentWebView(FrappeTestCase):
 		# Logged-in user can access the page without key
 		self.assertEqual(self.get(url_without_key, "Administrator").status, "200 OK")
 
+	def test_base_class_set_correctly_on_has_web_view_change(self):
+		from pathlib import Path
+
+		from frappe.modules.utils import get_doc_path, scrub
+
+		frappe.flags.allow_doctype_export = True
+
+		frappe.delete_doc_if_exists("DocType", "Test WebViewDocType", force=1)
+		test_doctype = new_doctype(
+			"Test WebViewDocType",
+			custom=0,
+			fields=[
+				{"fieldname": "test_field", "fieldtype": "Data"},
+				{"fieldname": "route", "fieldtype": "Data"},
+				{"fieldname": "is_published", "fieldtype": "Check"},
+			],
+		)
+		test_doctype.insert()
+
+		doc_path = Path(get_doc_path(test_doctype.module, test_doctype.doctype, test_doctype.name))
+		controller_file_path = doc_path / f"{scrub(test_doctype.name)}.py"
+
+		# enable web view
+		test_doctype.has_web_view = 1
+		test_doctype.is_published_field = "is_published"
+		test_doctype.save()
+
+		# check if base class was updated to "WebsiteGenerator"
+		with open(controller_file_path) as f:
+			file_content = f.read()
+			self.assertIn(
+				"import WebsiteGenerator",
+				file_content,
+				"`WebsiteGenerator` not imported when web view is enabled!",
+			)
+			self.assertIn(
+				"(WebsiteGenerator)",
+				file_content,
+				"`Document` class not replaced with `WebsiteGenerator` when web view is enabled!",
+			)
+
+		# disable web view
+		test_doctype.has_web_view = 0
+		test_doctype.save()
+
+		# check if base class was updated to "Document" again
+		with open(controller_file_path) as f:
+			file_content = f.read()
+			self.assertIn(
+				"import Document", file_content, "`Document` not imported when web view is disabled!"
+			)
+			self.assertIn(
+				"(Document)",
+				file_content,
+				"`WebsiteGenerator` class not replaced with `Document` when web view is disabled!",
+			)
+
 	def test_bulk_inserts(self):
 		from frappe.model.document import bulk_insert
 

@@ -757,8 +757,8 @@ def is_downgrade(sql_file_path, verbose=False):
 	if backup_version is None:
 		# This is likely an older backup, so try to extract another way
 		header = get_db_dump_header(sql_file_path).split("\n")
-		if "Version" in header[0]:
-			backup_version = header[0].split(":")[-1].strip()
+		if match := re.search(r"Frappe (\d+\.\d+\.\d+)", header[0]):
+			backup_version = match.group(1)
 
 	# Assume it's not a downgrade if we can't determine backup version
 	if backup_version is None:

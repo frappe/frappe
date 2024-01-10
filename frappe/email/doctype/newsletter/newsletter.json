@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_guest_to_view": 1,
  "allow_rename": 1,
  "creation": "2013-01-10 16:34:31",
  "description": "Create and Send Newsletters",
@@ -253,7 +254,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2023-03-20 22:45:59.129630",
+ "modified": "2023-12-29 18:04:13.270523",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

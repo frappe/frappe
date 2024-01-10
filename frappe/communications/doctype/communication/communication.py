@@ -307,7 +307,7 @@ class Communication(Document, CommunicationEmailMixin):
 		emails = split_emails(emails) if isinstance(emails, str) else (emails or [])
 		if exclude_displayname:
 			return [email.lower() for email in {parse_addr(email)[1] for email in emails} if email]
-		return [email.lower() for email in set(emails) if email]
+		return [email for email in set(emails) if email]
 
 	def to_list(self, exclude_displayname=True):
 		"""Return `to` list."""

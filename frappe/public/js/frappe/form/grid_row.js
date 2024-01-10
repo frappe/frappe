@@ -429,10 +429,10 @@ export default class GridRow {
 		$(`
 			<div class='form-group'>
 				<div class='row' style='margin:0px; margin-bottom:10px;'>
-					<div class='col-md-8'>
+					<div class='col-6 col-md-8'>
 						${__("Fieldname").bold()}
 					</div>
-					<div class='col-md-4' style='padding-left:5px;'>
+					<div class='col-6 col-md-4' style='padding-left:5px;'>
 						${__("Column Width").bold()}
 					</div>
 				</div>
@@ -522,13 +522,13 @@ export default class GridRow {
 						data-label='${docfield.label}' data-type='${docfield.fieldtype}'>
 
 						<div class='row'>
-							<div class='col-md-1' style='padding-top: 4px;'>
+							<div class='col-1' style='padding-top: 4px;'>
 								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
 							</div>
-							<div class='col-md-8' style='padding-right:0px; padding-top: 5px;'>
+							<div class='col-6 col-md-8' style='padding-right:0px; padding-top: 5px;'>
 								${__(docfield.label)}
 							</div>
-							<div class='col-md-2' style='padding-left:0px; padding-top: 2px; margin-top:-2px;' title='${__(
+							<div class='col-3 col-md-2' style='padding-left:0px; padding-top: 2px; margin-top:-2px;' title='${__(
 								"Columns"
 							)}'>
 								<input class='form-control column-width my-1 input-xs text-right'
@@ -536,7 +536,7 @@ export default class GridRow {
 									value='${docfield.columns || cint(d.columns)}'
 									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
 							</div>
-							<div class='col-md-1' style='padding-top: 3px;'>
+							<div class='col-1' style='padding-top: 3px;'>
 								<a class='text-muted remove-field' data-fieldname='${docfield.fieldname}'>
 									<i class='fa fa-trash-o' aria-hidden='true'></i>
 								</a>
@@ -1135,8 +1135,8 @@ export default class GridRow {
 		let ignore_fieldtypes = ["Text", "Small Text", "Code", "Text Editor", "HTML Editor"];
 		if (field.$input) {
 			field.$input.on("keydown", function (e) {
-				var { TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
-				if (![TAB, UP_ARROW, DOWN_ARROW].includes(e.which)) {
+				var { ESCAPE, TAB, UP: UP_ARROW, DOWN: DOWN_ARROW } = frappe.ui.keyCode;
+				if (![TAB, UP_ARROW, DOWN_ARROW, ESCAPE].includes(e.which)) {
 					return;
 				}
 
@@ -1170,6 +1170,14 @@ export default class GridRow {
 					}
 					return true;
 				};
+
+				// ESC
+				if (e.which === ESCAPE && !e.shiftKey) {
+					if (me.doc.__unedited) {
+						me.grid.grid_rows[me.doc.idx - 1].remove();
+					}
+					return false;
+				}
 
 				// TAB
 				if (e.which === TAB && !e.shiftKey) {

@@ -145,7 +145,7 @@ class TestNestedSet(FrappeTestCase):
 		leaf_node.reload()
 
 	def test_rebuild_tree(self):
-		rebuild_tree(TEST_DOCTYPE, "parent_test_tree_doctype")
+		rebuild_tree(TEST_DOCTYPE)
 		self.test_basic_tree()
 
 	def test_move_group_into_another(self):

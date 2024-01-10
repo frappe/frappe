@@ -33,7 +33,7 @@ export default class QuickList extends Block {
 
 		if (this.data && this.data.quick_list_name) {
 			let has_data = this.make("quick_list", this.data.quick_list_name);
-			if (!has_data) return;
+			if (!has_data) return this.wrapper;
 		}
 
 		if (!this.readOnly) {
