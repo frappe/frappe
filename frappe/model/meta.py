@@ -22,7 +22,7 @@ from datetime import datetime
 import click
 
 import frappe
-from frappe import _
+from frappe import _, _lt
 from frappe.model import (
 	child_table_fields,
 	data_fieldtypes,
@@ -42,17 +42,17 @@ from frappe.modules import load_doctype_module
 from frappe.utils import cast, cint, cstr
 
 DEFAULT_FIELD_LABELS = {
-	"name": lambda: _("ID"),
-	"creation": lambda: _("Created On"),
-	"docstatus": lambda: _("Document Status"),
-	"idx": lambda: _("Index"),
-	"modified": lambda: _("Last Updated On"),
-	"modified_by": lambda: _("Last Updated By"),
-	"owner": lambda: _("Created By"),
-	"_user_tags": lambda: _("Tags"),
-	"_liked_by": lambda: _("Liked By"),
-	"_comments": lambda: _("Comments"),
-	"_assign": lambda: _("Assigned To"),
+	"name": _lt("ID"),
+	"creation": _lt("Created On"),
+	"docstatus": _lt("Document Status"),
+	"idx": _lt("Index"),
+	"modified": _lt("Last Updated On"),
+	"modified_by": _lt("Last Updated By"),
+	"owner": _lt("Created By"),
+	"_user_tags": _lt("Tags"),
+	"_liked_by": _lt("Liked By"),
+	"_comments": _lt("Comments"),
+	"_assign": _lt("Assigned To"),
 }
 
 
@@ -249,7 +249,7 @@ class Meta(Document):
 			return df.get("label")
 
 		if fieldname in DEFAULT_FIELD_LABELS:
-			return DEFAULT_FIELD_LABELS[fieldname]()
+			return str(DEFAULT_FIELD_LABELS[fieldname])
 
 		return "No Label"
 

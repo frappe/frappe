@@ -118,6 +118,23 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	return translated_string or non_translated_string
 
 
+def _lt(msg: str, lang: str | None = None, context: str | None = None):
+	"""Lazily translate a string.
+
+
+	This function returns a "lazy string" which when casted to string via some operation applies
+	translation first before casting.
+
+	This is only useful for translating strings in global scope or anything that potentially runs
+	before `frappe.init()`
+
+	Note: Result is not guaranteed to equivalent to pure strings for all operations.
+	"""
+	from frappe.translate import LazyTranslate
+
+	return LazyTranslate(msg, lang, context)
+
+
 def as_unicode(text, encoding: str = "utf-8") -> str:
 	"""Convert to unicode if required."""
 	if isinstance(text, str):

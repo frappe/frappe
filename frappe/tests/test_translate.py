@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import frappe
 import frappe.translate
-from frappe import _
+from frappe import _, _lt
 from frappe.gettext.extractors.javascript import extract_javascript
 from frappe.tests.utils import FrappeTestCase
 from frappe.translate import (
@@ -32,6 +32,9 @@ first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 )
 
 
+_lazy_translations = _lt("Communication")
+
+
 class TestTranslate(FrappeTestCase):
 	guest_sessions_required = [
 		"test_guest_request_language_resolution_with_cookie",
@@ -46,6 +49,7 @@ class TestTranslate(FrappeTestCase):
 		frappe.form_dict.pop("_lang", None)
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Administrator")
+		frappe.local.lang = "en"
 
 	def test_clear_cache(self):
 		_("Trigger caching")
@@ -79,7 +83,6 @@ class TestTranslate(FrappeTestCase):
 			self.assertEqual(ext_line, exp_line)
 
 	def test_read_language_variant(self):
-		frappe.local.lang = "en"
 		self.assertEqual(_("Mobile No"), "Mobile No")
 		try:
 			frappe.local.lang = "pt-BR"
@@ -91,12 +94,24 @@ class TestTranslate(FrappeTestCase):
 			self.assertEqual(_("Mobile No"), "Mobile No")
 
 	def test_translation_with_context(self):
-		try:
-			frappe.local.lang = "fr"
-			self.assertEqual(_("Change"), "Changement")
-			self.assertEqual(_("Change", context="Coins"), "la monnaie")
-		finally:
-			frappe.local.lang = "en"
+		frappe.local.lang = "fr"
+		self.assertEqual(_("Change"), "Changement")
+		self.assertEqual(_("Change", context="Coins"), "la monnaie")
+
+	def test_lazy_translations(self):
+		frappe.local.lang = "de"
+		eager_translation = _("Communication")
+		self.assertEqual(str(_lazy_translations), eager_translation)
+		self.assertRaises(NotImplementedError, lambda: _lazy_translations == "blah")
+
+		# auto casts when added or radded
+		self.assertEqual(_lazy_translations + "A", eager_translation + "A")
+		x = _lazy_translations
+		x += "A"
+		self.assertEqual(x, eager_translation + "A")
+
+		# f string usually auto-casts
+		self.assertEqual(f"{_lazy_translations}", eager_translation)
 
 	def test_request_language_resolution_with_form_dict(self):
 		"""Test for frappe.translate.get_language
@@ -185,6 +200,7 @@ class TestTranslate(FrappeTestCase):
 				)
 			_(not_a_string)
 			_(not_a_string, context="wat")
+			_lt("Communication")
 		"""
 		)
 		expected_output = [
@@ -194,6 +210,7 @@ class TestTranslate(FrappeTestCase):
 			(5, "name with", "name context"),
 			(6, "broken on", "new line"),
 			(10, "broken on separate line", None),
+			(15, "Communication", None),
 		]
 
 		output = extract_messages_from_python_code(code)

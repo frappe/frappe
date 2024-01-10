@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 from babel.messages.catalog import Catalog
-from babel.messages.extract import extract_from_dir
+from babel.messages.extract import DEFAULT_KEYWORDS, extract_from_dir
 from babel.messages.mofile import read_mo, write_mo
 from babel.messages.pofile import read_po, write_po
 
@@ -128,6 +128,9 @@ def generate_pot(target_app: str | None = None):
 	apps = [target_app] if target_app else frappe.get_all_apps(True)
 	default_method_map = get_method_map("frappe")
 
+	keywords = DEFAULT_KEYWORDS.copy()
+	keywords["_lt"] = None
+
 	for app in apps:
 		app_path = frappe.get_pymodule_path(app)
 		catalog = get_catalog(app)
@@ -138,7 +141,7 @@ def generate_pot(target_app: str | None = None):
 		method_map.extend(default_method_map)
 
 		for filename, lineno, message, comments, context in extract_from_dir(
-			app_path, method_map, directory_filter=directory_filter
+			app_path, method_map, directory_filter=directory_filter, keywords=keywords
 		):
 			if not message:
 				continue
@@ -284,6 +287,8 @@ def get_translations_from_mo(lang, app):
 
 	locale_dir = get_locale_dir()
 	mo_file = gettext.find(app, locale_dir, (lang,))
+	if not mo_file:
+		return translations
 	with open(mo_file, "rb") as f:
 		catalog = read_mo(f)
 		for m in catalog:
