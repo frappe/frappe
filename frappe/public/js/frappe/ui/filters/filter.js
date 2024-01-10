@@ -52,7 +52,9 @@ frappe.ui.Filter = class {
 			"Markdown Editor": ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
 			Password: ["Between", "Timespan", ">", "<", ">=", "<=", "in", "not in"],
 			Rating: ["like", "not like", "Between", "in", "not in", "Timespan"],
+			Int: ["like", "not like", "Between", "in", "not in", "Timespan"],
 			Float: ["like", "not like", "Between", "in", "not in", "Timespan"],
+			Percent: ["like", "not like", "Between", "in", "not in", "Timespan"],
 		};
 	}
 
@@ -454,7 +456,7 @@ frappe.ui.filter_utils = {
 	},
 
 	get_selected_label(field) {
-		if (in_list(["Link", "Dynamic Link"], field.df.fieldtype)) {
+		if (["Link", "Dynamic Link"].includes(field.df.fieldtype)) {
 			return field.get_label_value();
 		}
 	},

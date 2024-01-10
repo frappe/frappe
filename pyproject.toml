@@ -59,6 +59,7 @@ dependencies = [
     "rauth~=0.7.3",
     "redis~=5.0.1",
     "hiredis~=2.2.3",
+    "setproctitle~=1.3.3",
     "requests-oauthlib~=1.3.1",
     "requests~=2.31.0",
     "rq~=1.15.1",

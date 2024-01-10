@@ -87,7 +87,7 @@ frappe.ui.form.Control = class BaseControl {
 			if (
 				status === "Read" &&
 				is_null(value) &&
-				!in_list(["HTML", "Image", "Button"], this.df.fieldtype)
+				!["HTML", "Image", "Button"].includes(this.df.fieldtype)
 			)
 				status = "Read";
 
@@ -115,7 +115,7 @@ frappe.ui.form.Control = class BaseControl {
 
 		let value = frappe.model.get_value(this.doctype, this.docname, this.df.fieldname);
 
-		if (in_list(["Date", "Datetime"], this.df.fieldtype) && value) {
+		if (["Date", "Datetime"].includes(this.df.fieldtype) && value) {
 			value = frappe.datetime.str_to_user(value);
 		}
 
@@ -127,7 +127,7 @@ frappe.ui.form.Control = class BaseControl {
 			status === "Read" &&
 			!this.only_input &&
 			is_null(value) &&
-			!in_list(["HTML", "Image", "Button", "Geolocation"], this.df.fieldtype)
+			!["HTML", "Image", "Button", "Geolocation"].includes(this.df.fieldtype)
 		) {
 			if (explain) console.log("By Hide Read-only, null fields: None");
 			status = "None";

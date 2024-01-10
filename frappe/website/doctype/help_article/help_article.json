@@ -113,7 +113,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2022-12-15 20:05:11.317400",
+ "modified": "2024-01-02 11:34:43.594309",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Help Article",
@@ -136,10 +136,6 @@
    "read": 1,
    "role": "Knowledge Base Contributor",
    "write": 1
-  },
-  {
-   "read": 1,
-   "role": "Guest"
   }
  ],
  "sort_field": "modified",

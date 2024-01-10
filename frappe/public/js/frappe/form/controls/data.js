@@ -215,8 +215,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 	}
 	set_input_attributes() {
 		if (
-			in_list(
-				["Data", "Link", "Dynamic Link", "Password", "Select", "Read Only"],
+			["Data", "Link", "Dynamic Link", "Password", "Select", "Read Only"].includes(
 				this.df.fieldtype
 			)
 		) {

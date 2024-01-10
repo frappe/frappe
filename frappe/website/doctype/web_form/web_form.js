@@ -107,6 +107,7 @@ frappe.ui.form.on("Web Form", {
 							reqd: df.reqd,
 							default: df.default,
 							read_only: df.read_only,
+							precision: df.precision,
 							depends_on: df.depends_on,
 							mandatory_depends_on: df.mandatory_depends_on,
 							read_only_depends_on: df.read_only_depends_on,

@@ -214,7 +214,7 @@ class Document(BaseDocument):
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permtype)
 
-	def has_permission(self, permtype="read") -> bool:
+	def has_permission(self, permtype="read", *, debug=False, user=None) -> bool:
 		"""
 		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
@@ -226,7 +226,7 @@ class Document(BaseDocument):
 
 		import frappe.permissions
 
-		return frappe.permissions.has_permission(self.doctype, permtype, self)
+		return frappe.permissions.has_permission(self.doctype, permtype, self, debug=debug, user=user)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
@@ -420,36 +420,35 @@ class Document(BaseDocument):
 
 	def update_child_table(self, fieldname: str, df: Optional["DocField"] = None):
 		"""sync child table for given fieldname"""
-		rows = []
 		df: "DocField" = df or self.meta.get_field(fieldname)
-
-		for d in self.get(df.fieldname):
-			d: Document
-			d.db_update()
-			rows.append(d.name)
-
-		if (
-			df.options in (self.flags.ignore_children_type or [])
-			or frappe.get_meta(df.options).is_virtual == 1
-		):
-			# do not delete rows for this because of flags
-			# hack for docperm :(
-			return
+		all_rows = self.get(df.fieldname)
 
 		# delete rows that do not match the ones in the document
-		tbl = frappe.qb.DocType(df.options)
-		qry = (
-			frappe.qb.from_(tbl)
-			.where(tbl.parent == self.name)
-			.where(tbl.parenttype == self.doctype)
-			.where(tbl.parentfield == fieldname)
-			.delete()
-		)
+		# if the doctype isn't in ignore_children_type flag and isn't virtual
+		if not (
+			df.options in (self.flags.ignore_children_type or ())
+			or frappe.get_meta(df.options).is_virtual == 1
+		):
+			existing_row_names = [row.name for row in all_rows if row.name and not row.is_new()]
 
-		if rows:
-			qry = qry.where(tbl.name.notin(rows))
+			tbl = frappe.qb.DocType(df.options)
+			qry = (
+				frappe.qb.from_(tbl)
+				.where(tbl.parent == self.name)
+				.where(tbl.parenttype == self.doctype)
+				.where(tbl.parentfield == fieldname)
+				.delete()
+			)
 
-		qry.run()
+			if existing_row_names:
+				qry = qry.where(tbl.name.notin(existing_row_names))
+
+			qry.run()
+
+		# update / insert
+		for d in all_rows:
+			d: Document
+			d.db_update()
 
 	def get_doc_before_save(self) -> "Document":
 		return getattr(self, "_doc_before_save", None)
