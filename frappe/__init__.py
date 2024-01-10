@@ -975,6 +975,7 @@ def has_permission(
 	throw=False,
 	*,
 	parent_doctype=None,
+	debug=False,
 ):
 	"""
 	Return True if the user has permission `ptype` for given `doctype` or `doc`.
@@ -999,6 +1000,7 @@ def has_permission(
 		user=user,
 		raise_exception=throw,
 		parent_doctype=parent_doctype,
+		debug=debug,
 	)
 
 	if throw and not out:
