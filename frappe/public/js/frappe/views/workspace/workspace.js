@@ -185,6 +185,11 @@ frappe.views.Workspace = class Workspace {
 			sidebar_section.addClass("hidden");
 		}
 
+		$(".item-anchor").on("click", () => {
+			$(".list-sidebar.hidden-xs.hidden-sm").removeClass("opened");
+			$(".close-sidebar").css("display", "none");
+		});
+
 		if (
 			sidebar_section.find(".sidebar-item-container").length &&
 			sidebar_section.find("> [item-is-hidden='0']").length == 0
