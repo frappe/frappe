@@ -7,7 +7,7 @@ const jump_to_field = (field_label) => {
 		.type("{enter}")
 		.wait(200)
 		.type("{enter}")
-		.wait(500);
+		.wait(1000);
 };
 
 const type_value = (value) => {
