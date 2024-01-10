@@ -16,6 +16,7 @@ Example:
 """
 import json
 import os
+import typing
 from datetime import datetime
 
 import click
@@ -55,7 +56,7 @@ DEFAULT_FIELD_LABELS = {
 }
 
 
-def get_meta(doctype, cached=True) -> "Meta":
+def get_meta(doctype, cached=True) -> "_Meta":
 	cached = cached and isinstance(doctype, str)
 	if cached and (meta := frappe.cache.hget("doctype_meta", doctype)):
 		return meta
@@ -895,3 +896,12 @@ def _update_field_order_based_on_insert_after(field_order, insert_after_map):
 		# insert_after is an invalid fieldname, add these fields to the end
 		for fields in insert_after_map.values():
 			field_order.extend(fields)
+
+
+if typing.TYPE_CHECKING:
+	# This is DX hack to add all fields from DocType to meta for autocompletions.
+	# Meta is technically doctype + special fields on meta.
+	from frappe.core.doctype.doctype.doctype import DocType
+
+	class _Meta(Meta, DocType):
+		pass
