@@ -284,6 +284,8 @@ def get_translations_from_mo(lang, app):
 
 	locale_dir = get_locale_dir()
 	mo_file = gettext.find(app, locale_dir, (lang,))
+	if not mo_file:
+		return translations
 	with open(mo_file, "rb") as f:
 		catalog = read_mo(f)
 		for m in catalog:
