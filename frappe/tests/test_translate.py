@@ -8,10 +8,12 @@ from unittest.mock import patch
 import frappe
 import frappe.translate
 from frappe import _
+from frappe.gettext.extractors.javascript import extract_javascript
 from frappe.tests.utils import FrappeTestCase
 from frappe.translate import (
+	MERGED_TRANSLATION_KEY,
+	USER_TRANSLATION_KEY,
 	clear_cache,
-	extract_javascript,
 	extract_messages_from_javascript_code,
 	extract_messages_from_python_code,
 	get_language,
@@ -45,6 +47,17 @@ class TestTranslate(FrappeTestCase):
 		if self._testMethodName in self.guest_sessions_required:
 			frappe.set_user("Administrator")
 
+	def test_clear_cache(self):
+		_("Trigger caching")
+
+		self.assertIsNotNone(frappe.cache.hget(USER_TRANSLATION_KEY, frappe.local.lang))
+		self.assertIsNotNone(frappe.cache.hget(MERGED_TRANSLATION_KEY, frappe.local.lang))
+
+		clear_cache()
+
+		self.assertIsNone(frappe.cache.hget(USER_TRANSLATION_KEY, frappe.local.lang))
+		self.assertIsNone(frappe.cache.hget(MERGED_TRANSLATION_KEY, frappe.local.lang))
+
 	def test_extract_message_from_file(self):
 		data = frappe.translate.get_messages_from_file(translation_string_file)
 		bench_path = get_bench_path()
@@ -76,29 +89,6 @@ class TestTranslate(FrappeTestCase):
 		finally:
 			frappe.local.lang = "en"
 			self.assertEqual(_("Mobile No"), "Mobile No")
-
-	def test_write_language_variant(self):
-		def import_export_translation(lang, updates):
-			path = os.path.join(frappe.get_app_path("frappe", "translations"), lang + ".csv")
-			translations = get_translation_dict_from_file(path, lang, "frappe")
-			translations.update(updates)
-			write_translations_file("frappe", lang, translations)
-			clear_cache()
-
-		frappe.local.lang = "pt-BR"
-		self.assertEqual(_("Mobile No"), "Telefone Celular")
-		try:
-			updates = {"Mobile No": "Nr. de Telemóvel"}
-			import_export_translation("pt-BR", updates)
-			self.assertEqual(_("Mobile No"), "Nr. de Telemóvel")
-		finally:
-			try:
-				restore = {"Mobile No": "Telefone Celular"}
-				import_export_translation("pt-BR", restore)
-				self.assertEqual(_("Mobile No"), "Telefone Celular")
-			finally:
-				frappe.local.lang = "en"
-				self.assertEqual(_("Mobile No"), "Mobile No")
 
 	def test_translation_with_context(self):
 		try:
@@ -262,6 +252,40 @@ class TestTranslate(FrappeTestCase):
 
 		args = get_args("""__("attr with", ["format", "replacements"])""")
 		self.assertEqual(args, "attr with")
+
+		args = get_args("""__("attr with", null, "context")""")
+		self.assertEqual(args, ("attr with", None, "context"))
+
+		args = get_args(
+			"""__(
+				"Multiline translation with format replacements and context {0} {1}",
+				[
+					"format",
+					call("replacements", {
+						"key": "value"
+					}),
+				],
+				"context"
+			)"""
+		)
+		self.assertEqual(
+			args, ("Multiline translation with format replacements and context {0} {1}", None, "context")
+		)
+
+		args = get_args(
+			"""__(
+				"Multiline translation with format replacements and no context {0} {1}",
+				[
+					"format",
+					call("replacements", {
+						"key": "value"
+					}),
+				],
+			)"""
+		)
+		self.assertEqual(
+			args, ("Multiline translation with format replacements and no context {0} {1}", None)
+		)
 
 
 def verify_translation_files(app):
