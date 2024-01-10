@@ -170,7 +170,9 @@ class EmailQueue(Document):
 				else:
 					if not frappe.flags.in_test or frappe.flags.testing_email:
 						ctx.smtp_server.session.sendmail(
-							from_addr=self.sender, to_addrs=recipient.recipient, msg=message
+							from_addr=self.sender,
+							to_addrs=recipient.recipient,
+							msg=message.decode("utf-8").encode(),
 						)
 
 				ctx.update_recipient_status_to_sent(recipient)
@@ -296,9 +298,10 @@ class SendMailContext:
 		}
 		return map.get(placeholder_key)
 
-	def build_message(self, recipient_email):
+	def build_message(self, recipient_email) -> bytes:
 		"""Build message specific to the recipient."""
 		message = self.queue_doc.message
+
 		if not message:
 			return ""
 

@@ -253,8 +253,10 @@ def notify_assignment(
 	if not (assigned_by and allocated_to and doc_type and doc_name):
 		return
 
+	assigned_user = frappe.db.get_value("User", allocated_to, ["language", "enabled"], as_dict=True)
+
 	# return if self assigned or user disabled
-	if assigned_by == allocated_to or not frappe.db.get_value("User", allocated_to, "enabled"):
+	if assigned_by == allocated_to or not assigned_user.enabled:
 		return
 
 	# Search for email address in description -- i.e. assignee
@@ -268,7 +270,7 @@ def notify_assignment(
 		)
 	else:
 		user_name = frappe.bold(user_name)
-		document_type = frappe.bold(_(doc_type))
+		document_type = frappe.bold(_(doc_type, lang=assigned_user.language))
 		title = get_title_html(title)
 		subject = _("{0} assigned a new task {1} {2} to you").format(user_name, document_type, title)
 
