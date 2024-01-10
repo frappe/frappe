@@ -150,12 +150,13 @@ def apply_workflow(doc, action):
 @frappe.whitelist()
 def can_cancel_document(doctype):
 	workflow = get_workflow(doctype)
-	for state_doc in workflow.states:
-		if state_doc.doc_status == "2":
-			for transition in workflow.transitions:
-				if transition.next_state == state_doc.state:
-					return False
-			return True
+	cancelling_states = [s.state for s in workflow.states if s.doc_status == "2"]
+	if not cancelling_states:
+		return True
+
+	for transition in workflow.transitions:
+		if transition.next_state in cancelling_states:
+			return False
 	return True
 
 
