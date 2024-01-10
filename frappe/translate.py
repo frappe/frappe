@@ -1105,6 +1105,44 @@ def print_language(language: str):
 	frappe.local.jenv = _jenv
 
 
+@functools.total_ordering
+class LazyTranslate:
+	__slots__ = ("msg", "lang", "context")
+
+	def __init__(self, msg: str, lang: str | None = None, context: str | None = None) -> None:
+		self.msg = msg
+		self.lang = lang
+		self.context = context
+
+	@property
+	def value(self) -> str:
+		return frappe._(str(self.msg), self.lang, self.context)
+
+	def __str__(self):
+		return self.value
+
+	def __add__(self, other):
+		if isinstance(other, (str, LazyTranslate)):
+			return self.value + str(other)
+		raise NotImplementedError
+
+	def __radd__(self, other):
+		if isinstance(other, (str, LazyTranslate)):
+			return str(other) + self.value
+		return NotImplementedError
+
+	def __repr__(self) -> str:
+		return f"'{self.value}'"
+
+	# NOTE: it's required to override these methods and raise error as default behaviour will
+	# return `False` in all cases.
+	def __eq__(self, other):
+		raise NotImplementedError
+
+	def __lt__(self, other):
+		raise NotImplementedError
+
+
 # Backward compatibility
 get_full_dict = get_all_translations
 load_lang = get_translations_from_apps

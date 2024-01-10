@@ -118,6 +118,12 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	return translated_string or non_translated_string
 
 
+def _lt(msg: str, lang: str | None = None, context: str | None = None):
+	from frappe.translate import LazyTranslate
+
+	return LazyTranslate(msg, lang, context)
+
+
 def as_unicode(text, encoding: str = "utf-8") -> str:
 	"""Convert to unicode if required."""
 	if isinstance(text, str):

@@ -3,7 +3,7 @@
 
 # model __init__.py
 import frappe
-from frappe import _
+from frappe import _, _lt
 
 data_fieldtypes = (
 	"Currency",
@@ -134,22 +134,22 @@ log_types = (
 )
 
 std_fields = [
-	{"fieldname": "name", "fieldtype": "Link", "label": _("ID")},
-	{"fieldname": "owner", "fieldtype": "Link", "label": _("Created By"), "options": "User"},
-	{"fieldname": "idx", "fieldtype": "Int", "label": _("Index")},
-	{"fieldname": "creation", "fieldtype": "Datetime", "label": _("Created On")},
-	{"fieldname": "modified", "fieldtype": "Datetime", "label": _("Last Updated On")},
+	{"fieldname": "name", "fieldtype": "Link", "label": _lt("ID")},
+	{"fieldname": "owner", "fieldtype": "Link", "label": _lt("Created By"), "options": "User"},
+	{"fieldname": "idx", "fieldtype": "Int", "label": _lt("Index")},
+	{"fieldname": "creation", "fieldtype": "Datetime", "label": _lt("Created On")},
+	{"fieldname": "modified", "fieldtype": "Datetime", "label": _lt("Last Updated On")},
 	{
 		"fieldname": "modified_by",
 		"fieldtype": "Link",
-		"label": _("Last Updated By"),
+		"label": _lt("Last Updated By"),
 		"options": "User",
 	},
-	{"fieldname": "_user_tags", "fieldtype": "Data", "label": _("Tags")},
-	{"fieldname": "_liked_by", "fieldtype": "Data", "label": _("Liked By")},
-	{"fieldname": "_comments", "fieldtype": "Text", "label": _("Comments")},
-	{"fieldname": "_assign", "fieldtype": "Text", "label": _("Assigned To")},
-	{"fieldname": "docstatus", "fieldtype": "Int", "label": _("Document Status")},
+	{"fieldname": "_user_tags", "fieldtype": "Data", "label": _lt("Tags")},
+	{"fieldname": "_liked_by", "fieldtype": "Data", "label": _lt("Liked By")},
+	{"fieldname": "_comments", "fieldtype": "Text", "label": _lt("Comments")},
+	{"fieldname": "_assign", "fieldtype": "Text", "label": _lt("Assigned To")},
+	{"fieldname": "docstatus", "fieldtype": "Int", "label": _lt("Document Status")},
 ]
 
 
