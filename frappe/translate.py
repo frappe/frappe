@@ -116,9 +116,9 @@ def get_parent_language(lang: str) -> str:
 	        1. zh-TW -> zh
 	        2. sr-BA -> sr
 	"""
-	is_language_variant = "-" in lang
-	if is_language_variant:
-		return lang[: lang.index("-")]
+	for sep in ("_", "-"):
+		if sep in lang:
+			return lang.split(sep)[0]
 
 
 def get_user_lang(user: str = None) -> str:
@@ -200,9 +200,8 @@ def get_translations_from_apps(lang, apps=None):
 	for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
 		translations.update(get_translations_from_csv(lang, app) or {})
 		translations.update(get_translations_from_mo(lang, app) or {})
-	if "-" in lang:
-		parent = lang.split("-", 1)[0]
-		parent_translations = get_translations_from_apps(parent)
+	if parent := get_parent_language(lang):
+		parent_translations = get_translations_from_apps(parent, apps)
 		parent_translations.update(translations)
 		return parent_translations
 

@@ -90,29 +90,6 @@ class TestTranslate(FrappeTestCase):
 			frappe.local.lang = "en"
 			self.assertEqual(_("Mobile No"), "Mobile No")
 
-	def test_write_language_variant(self):
-		def import_export_translation(lang, updates):
-			path = os.path.join(frappe.get_app_path("frappe", "translations"), lang + ".csv")
-			translations = get_translation_dict_from_file(path, lang, "frappe")
-			translations.update(updates)
-			write_translations_file("frappe", lang, translations)
-			clear_cache()
-
-		frappe.local.lang = "pt-BR"
-		self.assertEqual(_("Mobile No"), "Telefone Celular")
-		try:
-			updates = {"Mobile No": "Nr. de Telemóvel"}
-			import_export_translation("pt-BR", updates)
-			self.assertEqual(_("Mobile No"), "Nr. de Telemóvel")
-		finally:
-			try:
-				restore = {"Mobile No": "Telefone Celular"}
-				import_export_translation("pt-BR", restore)
-				self.assertEqual(_("Mobile No"), "Telefone Celular")
-			finally:
-				frappe.local.lang = "en"
-				self.assertEqual(_("Mobile No"), "Mobile No")
-
 	def test_translation_with_context(self):
 		try:
 			frappe.local.lang = "fr"

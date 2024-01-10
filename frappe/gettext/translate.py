@@ -280,26 +280,25 @@ def get_translations_from_mo(lang, app):
 		return {}
 
 	translations = {}
+	lang = lang.replace("-", "_")  # Frappe uses dash, babel uses underscore.
 
 	locale_dir = get_locale_dir()
-	mo_files = gettext.find(app, locale_dir, (lang,), True)
-	for file in mo_files:
-		with open(file, "rb") as f:
-			catalog = read_mo(f)
-			for m in catalog:
-				if not m.id:
-					continue
+	mo_file = gettext.find(app, locale_dir, (lang,))
+	with open(mo_file, "rb") as f:
+		catalog = read_mo(f)
+		for m in catalog:
+			if not m.id:
+				continue
 
-				key = m.id
-				if m.context:
-					context = m.context.decode()  # context is encoded as bytes
-					translations[f"{key}:{context}"] = m.string
-					if m.id not in translations:
-						# better a translation with context than no translation
-						translations[m.id] = m.string
-				else:
+			key = m.id
+			if m.context:
+				context = m.context.decode()  # context is encoded as bytes
+				translations[f"{key}:{context}"] = m.string
+				if m.id not in translations:
+					# better a translation with context than no translation
 					translations[m.id] = m.string
-
+			else:
+				translations[m.id] = m.string
 	return translations
 
 
