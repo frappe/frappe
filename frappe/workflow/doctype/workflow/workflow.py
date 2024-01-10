@@ -83,37 +83,6 @@ class Workflow(Document):
 
 				docstatus_map[d.doc_status] = d.state
 
-<<<<<<< HEAD
-	def update_doc_status(self):
-		"""
-		Checks if the docstatus of a state was updated.
-		If yes then the docstatus of the document with same state will be updated
-		"""
-
-		if not self.get("_update_state_docstatus"):
-			return
-
-		doc_before_save = self.get_doc_before_save()
-		before_save_states, new_states = {}, {}
-		if doc_before_save:
-			for d in doc_before_save.states:
-				before_save_states[d.state] = d
-			for d in self.states:
-				new_states[d.state] = d
-
-			for key in new_states:
-				if key in before_save_states:
-					if not new_states[key].doc_status == before_save_states[key].doc_status:
-						frappe.db.set_value(
-							self.document_type,
-							{self.workflow_state_field: before_save_states[key].state},
-							"docstatus",
-							new_states[key].doc_status,
-							update_modified=False,
-						)
-
-=======
->>>>>>> 02031fc6f4 (fix: don't update docstatus (#24216))
 	def validate_docstatus(self):
 		def get_state(state):
 			for s in self.states:
