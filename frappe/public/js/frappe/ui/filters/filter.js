@@ -399,8 +399,7 @@ frappe.ui.Filter = class {
 	}
 
 	toggle_nested_set_conditions(df) {
-		let show_condition =
-			df.fieldtype === "Link" && frappe.boot.nested_set_doctypes.includes(df.options);
+		let show_condition = df.original_type === "Link" && frappe.boot.nested_set_doctypes.includes(df.original_options);
 		this.nested_set_conditions.forEach((condition) => {
 			this.filter_edit_area
 				.find(`.condition option[value="${condition[0]}"]`)
@@ -475,6 +474,8 @@ frappe.ui.filter_utils = {
 		// reset
 		if (df.original_type) df.fieldtype = df.original_type;
 		else df.original_type = df.fieldtype;
+		if (df.original_options) df.options = df.original_options;
+		else df.original_options = df.options;
 
 		df.description = "";
 		df.reqd = 0;
