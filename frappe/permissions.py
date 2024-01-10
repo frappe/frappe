@@ -83,7 +83,7 @@ def has_permission(
 	*,
 	parent_doctype=None,
 	debug=False,
-):
+) -> bool:
 	"""Return True if user has permission `ptype` for given `doctype`.
 	If `doc` is passed, also check user, share and owner permissions.
 
@@ -206,7 +206,7 @@ def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 	def is_user_owner():
 		return (doc.get("owner") or "").lower() == user.lower()
 
-	if has_controller_permissions(doc, ptype, user=user, debug=debug) is False:
+	if not has_controller_permissions(doc, ptype, user=user, debug=debug):
 		push_perm_check_log(_("Not allowed via controller permission check"), debug=debug)
 		return {ptype: 0}
 
@@ -436,24 +436,27 @@ def has_user_permission(doc, user=None, debug=False):
 	return True
 
 
-def has_controller_permissions(doc, ptype, user=None, debug=False):
-	"""Return controller permissions if defined, None if not defined."""
+def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
+	"""Return controller permissions if denied, True if not defined.
+
+	Controllers can only deny permission, they can not explicitly grant any permission that wasn't
+	already present."""
 	if not user:
 		user = frappe.session.user
 
 	methods = frappe.get_hooks("has_permission").get(doc.doctype, [])
 
 	if not methods:
-		return None
+		return True
 
 	for method in reversed(methods):
 		controller_permission = frappe.call(method, doc=doc, ptype=ptype, user=user, debug=debug)
 		debug and _debug_log(f"Controller permission check from {method}: {controller_permission}")
 		if controller_permission is not None:
-			return controller_permission
+			return bool(controller_permission)
 
-	# controller permissions could not decide on True or False
-	return None
+	# None of the controller hooks returned anything conclusive
+	return True
 
 
 def get_doctypes_with_read():
@@ -759,7 +762,7 @@ def has_child_permission(
 	parent_doctype=None,
 	*,
 	debug=False,
-):
+) -> bool:
 	debug and _debug_log("This doctype is a child table, permissions will be checked on parent.")
 	if isinstance(child_doc, str):
 		child_doc = frappe.db.get_value(
