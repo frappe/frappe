@@ -10,7 +10,10 @@ frappe.ui.form.on("Permission Debugger", {
 		frm.disable_save();
 	},
 	docname: call_debug,
-	ref_doctype: call_debug,
+	ref_doctype(frm) {
+		frm.doc.docname = ""; // Usually doctype change invalidates docname
+		call_debug(frm);
+	},
 	user: call_debug,
 	permission_type: call_debug,
 	debug(frm) {
