@@ -450,7 +450,7 @@ def has_controller_permissions(doc, ptype, user=None, debug=False):
 		return None
 
 	for method in reversed(methods):
-		controller_permission = frappe.call(frappe.get_attr(method), doc=doc, ptype=ptype, user=user)
+		controller_permission = frappe.call(method, doc=doc, ptype=ptype, user=user, debug=debug)
 		debug and _debug_log(f"Controller permission check from {method}: {controller_permission}")
 		if controller_permission is not None:
 			return controller_permission

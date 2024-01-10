@@ -214,7 +214,7 @@ class Document(BaseDocument):
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permtype)
 
-	def has_permission(self, permtype="read") -> bool:
+	def has_permission(self, permtype="read", *, debug=False, user=None) -> bool:
 		"""
 		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
@@ -226,7 +226,7 @@ class Document(BaseDocument):
 
 		import frappe.permissions
 
-		return frappe.permissions.has_permission(self.doctype, permtype, self)
+		return frappe.permissions.has_permission(self.doctype, permtype, self, debug=debug, user=user)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
