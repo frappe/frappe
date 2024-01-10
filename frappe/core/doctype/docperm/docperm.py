@@ -31,6 +31,8 @@ class DocPerm(Document):
 		select: DF.Check
 		share: DF.Check
 		submit: DF.Check
+		user_permission_reqd: DF.Check
 		write: DF.Check
 	# end: auto-generated types
+
 	pass

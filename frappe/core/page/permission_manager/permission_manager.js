@@ -236,9 +236,10 @@ frappe.PermissionEngine = class PermissionEngine {
 			this.set_show_users(role_cell, d.role);
 
 			if (d.permlevel === 0) {
-				// this.setup_user_permissions(d, role_cell);
 				this.setup_if_owner(d, role_cell);
 			}
+
+			this.setup_explicit_user_permissions(d, role_cell);
 
 			let cell = this.add_cell(row, d, "permlevel");
 
@@ -301,6 +302,12 @@ frappe.PermissionEngine = class PermissionEngine {
 
 	setup_if_owner(d, role_cell) {
 		this.add_check(role_cell, d, "if_owner", "Only if Creator")
+			.removeClass("col-md-4")
+			.css({ "margin-top": "15px" });
+	}
+
+	setup_explicit_user_permissions(d, role_cell) {
+		this.add_check(role_cell, d, "user_permission_reqd", "Require Explicit User Permissions")
 			.removeClass("col-md-4")
 			.css({ "margin-top": "15px" });
 	}

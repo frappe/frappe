@@ -235,7 +235,9 @@ def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 			"User is owner of document, so permissions are updated to: " + frappe.as_json(permissions)
 		)
 
-	if not has_user_permission(doc, user, debug=debug):
+	if not has_user_permission(
+		doc, user, debug=debug, require_user_permission=permissions.get("user_permission_reqd")
+	):
 		if is_user_owner():
 			# replace with owner permissions
 			permissions = permissions.get("if_owner", {})
@@ -291,11 +293,25 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None, debug=False):
 		def has_permission_without_if_owner_enabled(ptype):
 			return any(p.get(ptype, 0) and not p.get("if_owner", 0) for p in applicable_permissions)
 
-		applicable_permissions = list(
-			filter(is_perm_applicable, getattr(doctype_meta, "permissions", []))
-		)
+		_permissions = getattr(doctype_meta, "permissions", [])
+		applicable_permissions = list(filter(is_perm_applicable, _permissions))
 		has_if_owner_enabled = any(p.get("if_owner", 0) for p in applicable_permissions)
 		perms["has_if_owner_enabled"] = has_if_owner_enabled
+
+		# If Some role requires UP then user must have UP. If some other role that user has doesn't
+		# require UP then they can skip it. Automatically assigned roles can't have this.
+		# E.g.
+		# - Employee with only Employee role will require UP
+		# - Employee with Employee + HR manager role will not require UP
+		roles_requiring_up = {
+			perm.role for perm in applicable_permissions if perm.user_permission_reqd and not perm.if_owner
+		}
+		roles_not_requiring_up = {
+			perm.role
+			for perm in applicable_permissions
+			if not perm.user_permission_reqd and not perm.if_owner
+		} - set(AUTOMATIC_ROLES)
+		perms["user_permission_reqd"] = bool(roles_requiring_up and not roles_not_requiring_up)
 
 		for ptype in rights:
 			pvalue = any(p.get(ptype, 0) for p in applicable_permissions)
@@ -324,15 +340,20 @@ def get_user_permissions(user):
 	return get_user_permissions(user)
 
 
-def has_user_permission(doc, user=None, debug=False):
+def has_user_permission(doc, user=None, debug=False, require_user_permission=False):
 	"""Return True if User is allowed to view considering User Permissions."""
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
 	user_permissions = get_user_permissions(user)
 
+	no_up_message = _("You do not have any User Permission on {0}").format(frappe.bold(doc.doctype))
+
 	if not user_permissions:
 		# no user permission rules specified for this doctype
-		debug and _debug_log("User is not affected by any user permissions")
+		debug and _debug_log("User does not have any user permissions")
+		if require_user_permission:
+			push_perm_check_log(no_up_message, debug=debug)
+			return False
 		return True
 
 	# user can create own role permissions, so nothing applies
@@ -349,22 +370,24 @@ def has_user_permission(doc, user=None, debug=False):
 
 	# STEP 1: ---------------------
 	# check user permissions on self
-	if doctype in user_permissions:
-		allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(doctype, []), doctype)
+	allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(doctype, []), doctype)
 
-		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
+	# if allowed_docs is empty it states that there is no applicable permission under the current doctype
+	if not allowed_docs and require_user_permission:
+		push_perm_check_log(no_up_message, debug=debug)
+		return False
 
-		# only check if allowed_docs is not empty
-		if allowed_docs and docname not in allowed_docs:
-			# no user permissions for this doc specified
-			debug and _debug_log(
-				"User doesn't have access to this document because of User Permissions, allowed documents: "
-				+ str(allowed_docs)
-			)
-			push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname), debug=debug)
-			return False
-		else:
-			debug and _debug_log(f"User Has access to {docname} via User Permissions.")
+	# only check if allowed_docs is not empty
+	if allowed_docs and docname not in allowed_docs:
+		# no user permissions for this doc specified
+		debug and _debug_log(
+			"User doesn't have access to this document because of User Permissions, allowed documents: "
+			+ str(allowed_docs)
+		)
+		push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname), debug=debug)
+		return False
+	else:
+		debug and _debug_log(f"User Has access to {docname} via User Permissions.")
 
 	# STEP 2: ---------------------------------
 	# check user permissions in all link fields
@@ -393,6 +416,9 @@ def has_user_permission(doc, user=None, debug=False):
 
 			# get the list of all allowed values for this link
 			allowed_docs = get_allowed_docs_for_doctype(user_permissions.get(field.options, []), doctype)
+			if not allowed_docs and require_user_permission:
+				push_perm_check_log(no_up_message, debug=debug)
+				return False
 
 			if allowed_docs and d.get(field.fieldname) not in allowed_docs:
 				# restricted for this link field, and no matching values found

@@ -30,7 +30,9 @@ class CustomDocPerm(Document):
 		select: DF.Check
 		share: DF.Check
 		submit: DF.Check
+		user_permission_reqd: DF.Check
 		write: DF.Check
 	# end: auto-generated types
+
 	def on_update(self):
 		frappe.clear_cache(doctype=self.parent)
