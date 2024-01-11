@@ -75,7 +75,7 @@
  "modified": "2024-01-10 14:17:49.722593",
  "modified_by": "Administrator",
  "module": "Core",
- "name": "Permission Debugger",
+ "name": "Permission Inspector",
  "owner": "Administrator",
  "permissions": [
   {
