@@ -62,7 +62,7 @@ def report_error(status_code):
 
 def _link_error_with_message_log(error_log, exception, message_logs):
 	for message in message_logs:
-		if message.get("__frappe_exc_id") == exception.__frappe_exc_id:
+		if message.get("__frappe_exc_id") == getattr(exception, "__frappe_exc_id", None):
 			error_log.update(message)
 			message_logs.remove(message)
 			error_log.pop("raise_exception", None)
