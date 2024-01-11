@@ -450,11 +450,23 @@ frappe.ui.form.on("Data Import", {
 						} else {
 							let messages = JSON.parse(log.messages || "[]")
 								.map((m) => {
+									// If message is json string try to parse it
+									if (typeof m === "string") {
+										try {
+											m = JSON.parse(m);
+										} catch {
+											console.error(
+												"Message isn't valid json string",
+												message
+											);
+										}
+									}
 									let title = m.title ? `<strong>${m.title}</strong>` : "";
 									let message = m.message ? `<div>${m.message}</div>` : "";
 									return title + message;
 								})
 								.join("");
+
 							let id = frappe.dom.get_unique_id();
 							html = `${messages}
 								<button class="btn btn-default btn-xs" type="button" data-toggle="collapse" data-target="#${id}" aria-expanded="false" aria-controls="${id}" style="margin-top: 15px;">
