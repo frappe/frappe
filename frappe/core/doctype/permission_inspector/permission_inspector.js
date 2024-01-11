@@ -5,7 +5,7 @@ const call_debug = (frm) => {
 	frm.trigger("debug");
 };
 
-frappe.ui.form.on("Permission Debugger", {
+frappe.ui.form.on("Permission Inspector", {
 	refresh(frm) {
 		frm.disable_save();
 	},

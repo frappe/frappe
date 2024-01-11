@@ -6,7 +6,7 @@ from frappe.model.document import Document
 from frappe.permissions import _pop_debug_log, has_permission
 
 
-class PermissionDebugger(Document):
+class PermissionInspector(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
