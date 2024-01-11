@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-01-10 16:34+0553\n"
-"PO-Revision-Date: 2024-01-11 12:42\n"
+"PO-Revision-Date: 2024-01-11 13:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -46,7 +46,7 @@ msgstr "„Teammitglieder“ oder „Management“"
 
 #: public/js/frappe/form/form.js:1063
 msgid "\"amended_from\" field must be present to do an amendment."
-msgstr "Das Feld &quot;modified_from&quot; muss vorhanden sein, um eine Änderung vorzunehmen."
+msgstr "Das Feld \"amended_from\" muss vorhanden sein, um eine Änderung vorzunehmen."
 
 #: utils/csvutils.py:219
 msgid "\"{0}\" is not a valid Google Sheets URL"
