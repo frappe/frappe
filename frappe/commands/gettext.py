@@ -56,14 +56,15 @@ def csv_to_po(context, app: str | None = None, locale: str = None):
 You might want to run generate-pot-file first.""",
 )
 @click.option("--app", help="Only update for this app. eg: frappe")
+@click.option("--locale", help="Update PO files only for this locale. eg: de")
 @pass_context
-def update_po_files(context, app: str | None = None):
+def update_po_files(context, app: str | None = None, locale: str | None = None):
 	from frappe.gettext.translate import update_po
 
 	if not app:
 		connect_to_site(context.sites[0] if context.sites else None)
 
-	update_po(app)
+	update_po(app, locale=locale)
 
 
 @click.command("create-po-file", help="Translation: create a new PO file for a locale")
