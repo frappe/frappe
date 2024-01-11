@@ -105,6 +105,7 @@ def call_command(cmd, context):
 
 def get_commands():
 	# prevent circular imports
+	from .gettext import commands as gettext_commands
 	from .redis_utils import commands as redis_commands
 	from .scheduler import commands as scheduler_commands
 	from .site import commands as site_commands
@@ -113,7 +114,12 @@ def get_commands():
 
 	clickable_link = "https://frappeframework.com/docs"
 	all_commands = (
-		scheduler_commands + site_commands + translate_commands + utils_commands + redis_commands
+		scheduler_commands
+		+ site_commands
+		+ translate_commands
+		+ gettext_commands
+		+ utils_commands
+		+ redis_commands
 	)
 
 	for command in all_commands:

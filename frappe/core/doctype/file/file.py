@@ -778,11 +778,11 @@ def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
 
-def has_permission(doc, ptype=None, user=None):
+def has_permission(doc, ptype=None, user=None, debug=False):
 	user = user or frappe.session.user
 
 	if ptype == "create":
-		return frappe.has_permission("File", "create", user=user)
+		return frappe.has_permission("File", "create", user=user, debug=debug)
 
 	if not doc.is_private or (user != "Guest" and doc.owner == user) or user == "Administrator":
 		return True
@@ -798,9 +798,9 @@ def has_permission(doc, ptype=None, user=None):
 			return False
 
 		if ptype in ["write", "create", "delete"]:
-			return ref_doc.has_permission("write")
+			return ref_doc.has_permission("write", debug=debug, user=user)
 		else:
-			return ref_doc.has_permission("read")
+			return ref_doc.has_permission("read", debug=debug, user=user)
 
 	return False
 

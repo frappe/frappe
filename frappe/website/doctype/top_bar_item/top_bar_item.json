@@ -11,8 +11,7 @@
   "open_in_new_tab",
   "right",
   "column_break_5",
-  "parent_label",
-  "icon"
+  "parent_label"
  ],
  "fields": [
   {
@@ -51,12 +50,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "If Icon is set, it will be shown instead of Label",
-   "fieldname": "icon",
-   "fieldtype": "Attach Image",
-   "label": "Icon"
-  },
-  {
    "default": "0",
    "depends_on": "eval:doc.url",
    "fieldname": "open_in_new_tab",
@@ -68,12 +61,13 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2020-10-26 20:59:42.142208",
+ "modified": "2024-01-08 12:05:25.782635",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Top Bar Item",
  "owner": "Administrator",
  "permissions": [],
  "sort_field": "modified",
- "sort_order": "ASC"
+ "sort_order": "ASC",
+ "states": []
 }
