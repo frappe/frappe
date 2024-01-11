@@ -458,18 +458,15 @@ frappe.setup.slides_settings = [
 
 		onload: function (slide) {
 			if (frappe.session.user !== "Administrator") {
-				slide.form.fields_dict.email.$wrapper.toggle(false);
-				slide.form.fields_dict.password.$wrapper.toggle(false);
-
-				// remove password field
-				delete slide.form.fields_dict.password;
-
-				if (frappe.boot.user.first_name || frappe.boot.user.last_name) {
+				const { first_name, last_name, email } = frappe.boot.user;
+				if (first_name || last_name) {
 					slide.form.fields_dict.full_name.set_input(
-						[frappe.boot.user.first_name, frappe.boot.user.last_name].join(" ").trim()
+						[first_name, last_name].join(" ").trim()
 					);
 				}
-				delete slide.form.fields_dict.email;
+				slide.form.fields_dict.email.set_input(email);
+				slide.form.fields_dict.email.df.read_only = 1;
+				slide.form.fields_dict.email.refresh();
 			} else {
 				slide.form.fields_dict.email.df.reqd = 1;
 				slide.form.fields_dict.email.refresh();
