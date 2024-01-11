@@ -670,9 +670,9 @@ class EmailAccount(Document):
 				frappe.throw(_("Automatic Linking can be activated only if Incoming is enabled."))
 
 			if frappe.db.exists(
-				"Email Account", {"enable_automatic_linking": 1, "name": ("!=", self.name)}
+				"Email Account", {"enable_automatic_linking": 1, "name": ("!=", self.name),"append_to": self.append_to}
 			):
-				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
+				frappe.throw(_("Automatic Linking can be activated only once for {0} doctype.".format(self.append_to)))
 
 	def append_email_to_sent_folder(self, message):
 		if not (self.enable_incoming and self.use_imap):
