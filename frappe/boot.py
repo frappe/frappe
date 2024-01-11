@@ -237,7 +237,7 @@ def get_user_pages_or_reports(parent, cache=False):
 				has_role[p.name] = {"modified": p.modified, "title": p.title}
 
 	elif parent == "Report":
-		if not has_permission("Report", raise_exception=False):
+		if not has_permission("Report", print_logs=False):
 			return {}
 
 		reports = frappe.get_list(
