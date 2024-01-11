@@ -526,6 +526,7 @@ class DatabaseQuery:
 			ptype=ptype,
 			parent_doctype=parent_doctype or self.doctype,
 			throw=True,
+			user=self.user,
 		)
 		self.permission_map[doctype] = ptype
 
