@@ -84,7 +84,7 @@ def write_catalog(app: str, catalog: Catalog, locale: str | None = None) -> Path
 		po_path.parent.mkdir(parents=True)
 
 	with open(po_path, "wb") as f:
-		write_po(f, catalog, sort_output=True, ignore_obsolete=True)
+		write_po(f, catalog, sort_output=True, ignore_obsolete=True, width=None)
 
 	return po_path
 
