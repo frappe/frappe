@@ -69,6 +69,7 @@ def as_csv():
 	response = Response()
 	response.mimetype = "text/csv"
 	filename = f"{frappe.response['doctype']}.csv"
+	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
 	response.headers.add("Content-Disposition", "attachment", filename=filename)
 	response.data = frappe.response["result"]
 	return response
@@ -78,6 +79,7 @@ def as_txt():
 	response = Response()
 	response.mimetype = "text"
 	filename = f"{frappe.response['doctype']}.txt"
+	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
 	response.headers.add("Content-Disposition", "attachment", filename=filename)
 	response.data = frappe.response["result"]
 	return response
@@ -90,10 +92,11 @@ def as_raw():
 		or mimetypes.guess_type(frappe.response["filename"])[0]
 		or "application/unknown"
 	)
+	filename = frappe.response["filename"].encode("utf-8").decode("unicode-escape", "ignore")
 	response.headers.add(
 		"Content-Disposition",
 		frappe.response.get("display_content_as", "attachment"),
-		filename=frappe.response["filename"],
+		filename=filename,
 	)
 	response.data = frappe.response["filecontent"]
 	return response
@@ -114,7 +117,8 @@ def as_json():
 def as_pdf():
 	response = Response()
 	response.mimetype = "application/pdf"
-	response.headers.add("Content-Disposition", None, filename=frappe.response["filename"])
+	filename = frappe.response["filename"].encode("utf-8").decode("unicode-escape", "ignore")
+	response.headers.add("Content-Disposition", None, filename=filename)
 	response.data = frappe.response["filecontent"]
 	return response
 
