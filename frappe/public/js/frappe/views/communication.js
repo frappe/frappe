@@ -230,6 +230,10 @@ frappe.views.CommunicationComposer = class {
 
 		if (!this.forward && !this.recipients && this.last_email) {
 			this.recipients = this.last_email.sender;
+			// If Same user is replies to his own email, set recipients to last email recipients
+			if (this.last_email.sender == this.sender) {
+				this.recipients = this.last_email.recipients;
+			}
 			this.cc = this.last_email.cc;
 			this.bcc = this.last_email.bcc;
 		}
