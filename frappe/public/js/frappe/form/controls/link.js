@@ -22,6 +22,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		</div>`).prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find("input");
+		this.$input.get(0).frappe_control = this;
 		this.$link = this.$input_area.find(".link-btn");
 		this.$link_open = this.$link.find(".btn-open");
 		this.set_input_attributes();

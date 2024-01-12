@@ -17,7 +17,8 @@ frappe.ui.form.ControlDynamicLink = class ControlDynamicLink extends frappe.ui.f
 				input = $(cur_page.page).find(selector);
 			}
 			if (input) {
-				options = input.val();
+				// get untranslated value from control object
+				options = input.get(0).frappe_control.value;
 			}
 		} else {
 			options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);

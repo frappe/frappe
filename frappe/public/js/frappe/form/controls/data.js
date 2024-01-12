@@ -15,6 +15,8 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area);
 
+		this.$input.get(0).frappe_control = this;
+
 		this.$input.on("paste", (e) => {
 			let pasted_data = frappe.utils.get_clipboard_data(e);
 			let maxlength = this.$input.attr("maxlength");
