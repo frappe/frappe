@@ -142,6 +142,9 @@ class Database:
 	def _transform_result(self, result: list[tuple]) -> list[tuple]:
 		return result
 
+	def _clean_up(self):
+		pass
+
 	def sql(
 		self,
 		query: Query,
@@ -280,18 +283,21 @@ class Database:
 			)
 
 		if pluck:
-			return [r[0] for r in last_result]
+			last_result = [r[0] for r in last_result]
+			self._clean_up()
+			return last_result
 
 		# scrub output if required
 		if as_dict:
-			ret = self.fetch_as_dict(last_result)
+			last_result = self.fetch_as_dict(last_result)
 			if update:
-				for r in ret:
+				for r in last_result:
 					r.update(update)
-			return ret
+
 		elif as_list:
-			result = self.convert_to_lists(last_result)
-			return result
+			last_result = self.convert_to_lists(last_result)
+
+		self._clean_up()
 		return last_result
 
 	def _return_as_iterator(self, result, *, pluck, as_dict, as_list, update):
@@ -312,6 +318,8 @@ class Database:
 				yield list(row)
 		else:
 			frappe.throw(_("`as_iterator` only works with `as_list=True` or `as_dict=True`"))
+
+		self._clean_up()
 
 	def _log_query(
 		self,
