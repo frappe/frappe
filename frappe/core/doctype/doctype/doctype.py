@@ -114,7 +114,11 @@ class DocType(Document):
 		self.set("can_change_name_type", validate_autoincrement_autoname(self))
 		self.validate_document_type()
 		validate_fields(self)
+<<<<<<< HEAD
 
+=======
+		self.check_indexing_for_dashboard_links()
+>>>>>>> 1666b0104f (fix: convert status field data to String before guessing the style (#24226))
 		if not self.istable:
 			validate_permissions(self)
 

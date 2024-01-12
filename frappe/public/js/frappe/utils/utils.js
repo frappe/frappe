@@ -495,6 +495,7 @@ Object.assign(frappe.utils, {
 		var style = default_style || "default";
 		var colour = "gray";
 		if (text) {
+			text = cstr(text);
 			if (has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
 				colour = "orange";
