@@ -397,10 +397,21 @@ def get_document_email(doctype, name):
 	return f"{email[0]}+{quote(doctype)}={quote(cstr(name))}@{email[1]}"
 
 
-def get_automatic_email_link(doctype):
-	return frappe.db.get_value(
-		"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1, "append_to":doctype}, "email_id"
+def get_automatic_email_link(doctype: str) -> str | None:
+	email_account = frappe.db.get_value(
+		"Email Account",
+		{"enable_incoming": 1, "enable_automatic_linking": 1, "append_to": doctype},
+		"email_id",
 	)
+
+	if not email_account:
+		email_account = frappe.db.get_value(
+			"Email Account",
+			{"enable_incoming": 1, "enable_automatic_linking": 1},
+			"email_id",
+		)
+
+	return email_account
 
 
 def get_additional_timeline_content(doctype, docname):
