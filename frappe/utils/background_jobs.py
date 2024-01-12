@@ -262,17 +262,16 @@ def start_worker(
 	set_niceness()
 	WorkerKlass = DEQUEUE_STRATEGIES.get(strategy, Worker)
 
-	with Connection(redis_connection):
-		logging_level = "INFO"
-		if quiet:
-			logging_level = "WARNING"
-		worker = WorkerKlass(queues, name=get_worker_name(queue_name))
-		worker.work(
-			logging_level=logging_level,
-			burst=burst,
-			date_format="%Y-%m-%d %H:%M:%S",
-			log_format="%(asctime)s,%(msecs)03d %(message)s",
-		)
+	logging_level = "INFO"
+	if quiet:
+		logging_level = "WARNING"
+	worker = WorkerKlass(queues, name=get_worker_name(queue_name), connection=redis_connection)
+	worker.work(
+		logging_level=logging_level,
+		burst=burst,
+		date_format="%Y-%m-%d %H:%M:%S",
+		log_format="%(asctime)s,%(msecs)03d %(message)s",
+	)
 
 
 def get_worker_name(queue):
