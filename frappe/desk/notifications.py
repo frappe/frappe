@@ -45,7 +45,6 @@ def get_notifications():
 
 	out["open_count_doctype"] = get_notifications_for_doctypes(config, notification_count)
 	out["targets"] = get_notifications_for_targets(config, notification_percent)
-
 	return out
 
 

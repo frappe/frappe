@@ -316,3 +316,23 @@
 		}
 	}
 }
+
+.blink-bell {
+    animation: blink_bell 2s ease-in-out infinite;
+    transform-origin: center;
+	fill: #d14343;
+    color: #d14343;
+}
+
+@keyframes blink_bell {
+    0%, 100% {
+        transform: scale(1);
+		fill: #d14343;
+        color: #d14343;
+    }
+    50% {
+        transform: scale(1.3);
+		fill: green;
+        color: green;
+    }
+}

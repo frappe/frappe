@@ -30,7 +30,7 @@ class NotificationLog(Document):
 		type: DF.Literal["Mention", "Energy Point", "Assignment", "Share", "Alert"]
 	# end: auto-generated types
 	def after_insert(self):
-		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
+		frappe.publish_realtime("notification", after_commit=True, user=self.for_user, message=self.as_json() )
 		set_notifications_as_unseen(self.for_user)
 		if is_email_notifications_enabled_for_type(self.for_user, self.type):
 			try:
@@ -159,7 +159,7 @@ def get_email_header(doc):
 
 
 @frappe.whitelist()
-def get_notification_logs(limit=20):
+def get_notification_logs(limit=100):
 	notification_logs = frappe.db.get_list(
 		"Notification Log", fields=["*"], limit=limit, order_by="modified desc"
 	)
@@ -170,7 +170,22 @@ def get_notification_logs(limit=20):
 
 	for user in users:
 		frappe.utils.add_user_info(user, user_info)
-
+  
+	count_remote_diagnose = 0
+	count_callback_request = 0
+	for log in notification_logs:
+		if "subject-title" in log.get("email_content", "") and "Remote Diagnose" in log["email_content"] and log.get("read", 0) == 0:
+			count_remote_diagnose += 1
+		if "Request Callback" in log["email_content"] and log.get("read", 0) == 0:
+			count_callback_request += 1
+	alert_message = ""
+	if count_remote_diagnose > 0:
+		alert_message += f"Remote Diagnose Incoming: {count_remote_diagnose}"+" <<>> "
+	if count_callback_request > 0:
+		alert_message += f"Request a callback Incoming: {count_callback_request}\n"
+	if alert_message:
+		frappe.msgprint(alert_message.strip())
+  
 	return {"notification_logs": notification_logs, "user_info": user_info}
 
 

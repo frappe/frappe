@@ -20,7 +20,7 @@ frappe.ui.Notifications = class Notifications {
 
 		this.setup_headers();
 		this.setup_dropdown_events();
-	}
+	} 
 
 	setup_headers() {
 		// Add header actions
@@ -184,11 +184,22 @@ class NotificationsView extends BaseNotificationsView {
 		this.get_notifications_list(this.max_length).then((r) => {
 			if (!r.message) return;
 			this.dropdown_items = r.message.notification_logs;
+			this.validateContent(r.message.notification_logs)
 			frappe.update_user_info(r.message.user_info);
 			this.render_notifications_dropdown();
 			if (this.settings.seen == 0 && this.dropdown_items.length > 0) {
 				this.toggle_notification_icon(false);
 			}
+		});
+	}
+
+	validateContent(arrayDeObjetos) {
+		console.log("call function validateContent")
+		arrayDeObjetos.forEach(function(objeto) {
+		  if (objeto && objeto.email_content &&  ["Request Callback", "Remote Diagnose"].includes(objeto.email_content) && objeto.read === 0) {
+			$(".navbar").find(".notifications-icon").addClass("blink-bell");
+			$(".navbar").find(".notifications-icon").removeClass("text-muted");
+		  }
 		});
 	}
 
@@ -318,10 +329,11 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	get_notifications_list(limit) {
-		return frappe.call(
+		const response = frappe.call(
 			"frappe.desk.doctype.notification_log.notification_log.get_notification_logs",
 			{ limit: limit }
 		);
+		return response
 	}
 
 	get_item_link(notification_doc) {
@@ -350,7 +362,11 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	setup_notification_listeners() {
-		frappe.realtime.on("notification", () => {
+		frappe.realtime.on("notification", (event) => {
+			console.log(event)
+			const data = JSON.parse(event)
+			frappe.show_alert(data.subject, 43200)
+			// frappe.msgprint(data.email_content, data.subject );
 			this.toggle_notification_icon(false);
 			this.update_dropdown();
 		});
