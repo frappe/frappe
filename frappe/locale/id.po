@@ -345,9 +345,7 @@ msgstr ""
 #. Content of an HTML field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
-msgid ""
-"<div class=\"alert\">Please don't update it as it can mess up your form. "
-"Use the Customize Form View and Custom Fields to set properties!</div>"
+msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
 msgstr ""
 
 #. Content of an HTML field in DocType 'Document Naming Settings'
@@ -360,15 +358,12 @@ msgid ""
 "        <li>Each Series Prefix on a new line.</li>\n"
 "        <li>Allowed special characters are \"/\" and \"-\"</li>\n"
 "        <li>\n"
-"            Optionally, set the number of digits in the series using dot "
-"(.)\n"
-"            followed by hashes (#). For example, \".####\" means that the"
-" series\n"
+"            Optionally, set the number of digits in the series using dot (.)\n"
+"            followed by hashes (#). For example, \".####\" means that the series\n"
 "            will have four digits. Default is five digits.\n"
 "        </li>\n"
 "        <li>\n"
-"            You can also use variables in the series name by putting them"
-"\n"
+"            You can also use variables in the series name by putting them\n"
 "            between (.) dots\n"
 "            <br>\n"
 "            Supported Variables:\n"
@@ -380,8 +375,7 @@ msgid ""
 "                <li><code>.WW.</code> - Week of the year</li>\n"
 "                <li><code>.FY.</code> - Fiscal Year</li>\n"
 "                <li>\n"
-"                    <code>.{fieldname}.</code> - fieldname on the "
-"document e.g.\n"
+"                    <code>.{fieldname}.</code> - fieldname on the document e.g.\n"
 "                    <code>branch</code>\n"
 "                </li>\n"
 "            </ul>\n"
@@ -407,8 +401,7 @@ msgid ""
 "<p>Notes:</p>\n"
 "\n"
 "<ol>\n"
-"<li>All field groups (label + value) are set attributes <code>data-"
-"fieldtype</code> and <code>data-fieldname</code></li>\n"
+"<li>All field groups (label + value) are set attributes <code>data-fieldtype</code> and <code>data-fieldname</code></li>\n"
 "<li>All values are given class <code>value</code></li>\n"
 "<li>All Section Breaks are given class <code>section-break</code></li>\n"
 "<li>All Column Breaks are given class <code>column-break</code></li>\n"
@@ -418,15 +411,12 @@ msgid ""
 "\n"
 "<p>1. Left align integers</p>\n"
 "\n"
-"<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; "
-"}</code></pre>\n"
+"<pre><code>[data-fieldtype=\"Int\"] .value { text-align: left; }</code></pre>\n"
 "\n"
 "<p>1. Add border to sections except the last section</p>\n"
 "\n"
-"<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid "
-"#eee; }\n"
-".section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  "
-"}</code></pre>\n"
+"<pre><code>.section-break { padding: 30px 0px; border-bottom: 1px solid #eee; }\n"
+".section-break:last-child { padding-bottom: 0px; border-bottom: 0px;  }</code></pre>\n"
 msgstr ""
 
 #. Content of an HTML field in DocType 'Print Format'
@@ -437,33 +427,24 @@ msgid ""
 "<h3>Print Format Help</h3>\n"
 "<hr>\n"
 "<h4>Introduction</h4>\n"
-"<p>Print Formats are rendered on the server side using the Jinja "
-"Templating Language. All forms have access to the <code>doc</code> object"
-" which contains information about the document that is being formatted. "
-"You can also access common utilities via the <code>frappe</code> "
-"module.</p>\n"
-"<p>For styling, the Boostrap CSS framework is provided and you can enjoy "
-"the full range of classes.</p>\n"
+"<p>Print Formats are rendered on the server side using the Jinja Templating Language. All forms have access to the <code>doc</code> object which contains information about the document that is being formatted. You can also access common utilities via the <code>frappe</code> module.</p>\n"
+"<p>For styling, the Boostrap CSS framework is provided and you can enjoy the full range of classes.</p>\n"
 "<hr>\n"
 "<h4>References</h4>\n"
 "<ol>\n"
-"\t<li><a href=\"http://jinja.pocoo.org/docs/templates/\" "
-"target=\"_blank\">Jinja Templating Language</a></li>\n"
-"\t<li><a href=\"http://getbootstrap.com\" target=\"_blank\">Bootstrap CSS"
-" Framework</a></li>\n"
+"\t<li><a href=\"http://jinja.pocoo.org/docs/templates/\" target=\"_blank\">Jinja Templating Language</a></li>\n"
+"\t<li><a href=\"http://getbootstrap.com\" target=\"_blank\">Bootstrap CSS Framework</a></li>\n"
 "</ol>\n"
 "<hr>\n"
 "<h4>Example</h4>\n"
-"<pre><code>&lt;h3&gt;{{ doc.select_print_heading or \"Invoice\" "
-"}}&lt;/h3&gt;\n"
+"<pre><code>&lt;h3&gt;{{ doc.select_print_heading or \"Invoice\" }}&lt;/h3&gt;\n"
 "&lt;div class=\"row\"&gt;\n"
 "\t&lt;div class=\"col-md-3 text-right\"&gt;Customer Name&lt;/div&gt;\n"
 "\t&lt;div class=\"col-md-9\"&gt;{{ doc.customer_name }}&lt;/div&gt;\n"
 "&lt;/div&gt;\n"
 "&lt;div class=\"row\"&gt;\n"
 "\t&lt;div class=\"col-md-3 text-right\"&gt;Date&lt;/div&gt;\n"
-"\t&lt;div class=\"col-md-9\"&gt;{{ doc.get_formatted(\"invoice_date\") "
-"}}&lt;/div&gt;\n"
+"\t&lt;div class=\"col-md-9\"&gt;{{ doc.get_formatted(\"invoice_date\") }}&lt;/div&gt;\n"
 "&lt;/div&gt;\n"
 "&lt;table class=\"table table-bordered\"&gt;\n"
 "\t&lt;tbody&gt;\n"
@@ -485,10 +466,8 @@ msgid ""
 "\t\t\t\t{%- endif %}\n"
 "\t\t\t&lt;/td&gt;\n"
 "\t\t\t&lt;td style=\"width: 37%;\"&gt;\n"
-"\t\t\t\t&lt;div style=\"border: 0px;\"&gt;{{ row.description "
-"}}&lt;/div&gt;&lt;/td&gt;\n"
-"\t\t\t&lt;td style=\"width: 10%; text-align: right;\"&gt;{{ row.qty }} {{"
-" row.uom or row.stock_uom }}&lt;/td&gt;\n"
+"\t\t\t\t&lt;div style=\"border: 0px;\"&gt;{{ row.description }}&lt;/div&gt;&lt;/td&gt;\n"
+"\t\t\t&lt;td style=\"width: 10%; text-align: right;\"&gt;{{ row.qty }} {{ row.uom or row.stock_uom }}&lt;/td&gt;\n"
 "\t\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n"
 "\t\t\t\trow.get_formatted(\"rate\", doc) }}&lt;/td&gt;\n"
 "\t\t\t&lt;td style=\"width: 15%; text-align: right;\"&gt;{{\n"
@@ -502,14 +481,11 @@ msgid ""
 "<table class=\"table table-bordered\">\n"
 "\t<tbody>\n"
 "\t\t<tr>\n"
-"\t\t\t<td style=\"width: 30%;\"><code>doc.get_formatted(\"[fieldname]\", "
-"[parent_doc])</code></td>\n"
-"\t\t\t<td>Get document value formatted as Date, Currency, etc. Pass "
-"parent <code>doc</code> for currency type fields.</td>\n"
+"\t\t\t<td style=\"width: 30%;\"><code>doc.get_formatted(\"[fieldname]\", [parent_doc])</code></td>\n"
+"\t\t\t<td>Get document value formatted as Date, Currency, etc. Pass parent <code>doc</code> for currency type fields.</td>\n"
 "\t\t</tr>\n"
 "\t\t<tr>\n"
-"\t\t\t<td style=\"width: 30%;\"><code>frappe.db.get_value(\"[doctype]\", "
-"\"[name]\", \"fieldname\")</code></td>\n"
+"\t\t\t<td style=\"width: 30%;\"><code>frappe.db.get_value(\"[doctype]\", \"[name]\", \"fieldname\")</code></td>\n"
 "\t\t\t<td>Get value from another document.</td>\n"
 "\t\t</tr>\n"
 "\t</tbody>\n"
@@ -522,9 +498,7 @@ msgstr ""
 msgctxt "Address Template"
 msgid ""
 "<h4>Default Template</h4>\n"
-"<p>Uses <a href=\"http://jinja.pocoo.org/docs/templates/\">Jinja "
-"Templating</a> and all the fields of Address (including Custom Fields if "
-"any) will be available</p>\n"
+"<p>Uses <a href=\"http://jinja.pocoo.org/docs/templates/\">Jinja Templating</a> and all the fields of Address (including Custom Fields if any) will be available</p>\n"
 "<pre><code>{{ address_line1 }}&lt;br&gt;\n"
 "{% if address_line2 %}{{ address_line2 }}&lt;br&gt;{% endif -%}\n"
 "{{ city }}&lt;br&gt;\n"
@@ -545,8 +519,7 @@ msgid ""
 "\n"
 "<pre>Order Overdue\n"
 "\n"
-"Transaction {{ name }} has exceeded Due Date. Please take necessary "
-"action.\n"
+"Transaction {{ name }} has exceeded Due Date. Please take necessary action.\n"
 "\n"
 "Details\n"
 "\n"
@@ -556,17 +529,11 @@ msgid ""
 "\n"
 "<h4>How to get fieldnames</h4>\n"
 "\n"
-"<p>The fieldnames you can use in your email template are the fields in "
-"the document from which you are sending the email. You can find out the "
-"fields of any documents via Setup &gt; Customize Form View and selecting "
-"the document type (e.g. Sales Invoice)</p>\n"
+"<p>The fieldnames you can use in your email template are the fields in the document from which you are sending the email. You can find out the fields of any documents via Setup &gt; Customize Form View and selecting the document type (e.g. Sales Invoice)</p>\n"
 "\n"
 "<h4>Templating</h4>\n"
 "\n"
-"<p>Templates are compiled using the Jinja Templating Language. To learn "
-"more about Jinja, <a class=\"strong\" "
-"href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this "
-"documentation.</a></p>\n"
+"<p>Templates are compiled using the Jinja Templating Language. To learn more about Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this documentation.</a></p>\n"
 msgstr ""
 
 #. Content of an HTML field in DocType 'Data Import'
@@ -584,8 +551,7 @@ msgid ""
 "\n"
 "<pre>&lt;h3&gt;Order Overdue&lt;/h3&gt;\n"
 "\n"
-"&lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take "
-"necessary action.&lt;/p&gt;\n"
+"&lt;p&gt;Transaction {{ doc.name }} has exceeded Due Date. Please take necessary action.&lt;/p&gt;\n"
 "\n"
 "&lt;!-- show last comment --&gt;\n"
 "{% if comments %}\n"
@@ -606,8 +572,7 @@ msgstr ""
 msgctxt "Webhook"
 msgid ""
 "<p><strong>Condition Examples:</strong></p>\n"
-"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; "
-"40000\n"
+"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>"
 msgstr ""
 
@@ -616,8 +581,7 @@ msgstr ""
 msgctxt "Notification"
 msgid ""
 "<p><strong>Condition Examples:</strong></p>\n"
-"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; "
-"40000\n"
+"<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n"
 "</pre>\n"
 msgstr ""
 
@@ -625,11 +589,8 @@ msgstr ""
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid ""
-"<p>Multiple webforms can be created for a single doctype. Add filters "
-"specific to this webform to display correct record after "
-"submission.</p><p>For Example:</p>\n"
-"<p>If you create a separate webform every year to capture feedback from "
-"employees add a \n"
+"<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n"
+"<p>If you create a separate webform every year to capture feedback from employees add a \n"
 " field named year in doctype and add a filter <b>year = 2023</b></p>\n"
 msgstr ""
 
@@ -647,20 +608,14 @@ msgstr ""
 #: desk/doctype/custom_html_block/custom_html_block.json
 msgctxt "Custom HTML Block"
 msgid ""
-"<p>To interact with above HTML you will have to use `root_element` as a "
-"parent selector.</p><p>For example:</p><pre class=\"p-3 bg-gray-100 "
-"border-radius rounded-sm mb-0\" style=\"width: fit-content;\"><code>// "
-"here root_element is provided by default\n"
+"<p>To interact with above HTML you will have to use `root_element` as a parent selector.</p><p>For example:</p><pre class=\"p-3 bg-gray-100 border-radius rounded-sm mb-0\" style=\"width: fit-content;\"><code>// here root_element is provided by default\n"
 "let some_class_element = root_element.querySelector('.some-class');\n"
 "some_class_element.textContent = \"New content\";\n"
 "</code></pre>"
 msgstr ""
 
 #: twofactor.py:469
-msgid ""
-"<p>Your OTP secret on {0} has been reset. If you did not perform this "
-"reset and did not request it, please contact your System Administrator "
-"immediately.</p>"
+msgid "<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
 msgstr ""
 
 #. Description of a Data field in DocType 'Scheduled Job Type'
@@ -709,8 +664,7 @@ msgctxt "Workflow Transition"
 msgid ""
 "<pre><code>doc.grand_total &gt; 0</code></pre>\n"
 "\n"
-"<p>Conditions should be written in simple Python. Please use properties "
-"available in the form only.</p>\n"
+"<p>Conditions should be written in simple Python. Please use properties available in the form only.</p>\n"
 "<p>Allowed functions:\n"
 "</p><ul>\n"
 "<li>frappe.db.get_value</li>\n"
@@ -721,15 +675,11 @@ msgid ""
 "<li>frappe.utils.add_to_date</li>\n"
 "<li>frappe.utils.now</li>\n"
 "</ul>\n"
-"<p>Example: </p><pre><code>doc.creation &gt; "
-"frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, "
-"as_string=True, as_datetime=True) </code></pre><p></p>"
+"<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
 msgstr ""
 
 #: custom/doctype/custom_field/custom_field.js:39
-msgid ""
-"<strong>Warning:</strong> This field is system generated and may be "
-"overwritten by a future update. Modify it using {0} instead."
+msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
 msgstr ""
 
 #. Option for a Select field in DocType 'Document Naming Rule Condition'
@@ -752,17 +702,11 @@ msgstr ""
 
 #. Description of the Onboarding Step 'Custom Document Types'
 #: custom/onboarding_step/custom_doctype/custom_doctype.json
-msgid ""
-"A DocType (Document Type) is used to insert forms in ERPNext. Forms such "
-"as Customer, Orders, and Invoices are Doctypes in the backend. You can "
-"also create new DocTypes to create new forms in ERPNext as per your "
-"business needs."
+msgid "A DocType (Document Type) is used to insert forms in ERPNext. Forms such as Customer, Orders, and Invoices are Doctypes in the backend. You can also create new DocTypes to create new forms in ERPNext as per your business needs."
 msgstr ""
 
 #: core/doctype/doctype/doctype.py:1015
-msgid ""
-"A DocType's name should start with a letter and can only consist of "
-"letters, numbers, spaces, underscores and hyphens"
+msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
 msgstr ""
 
 #: website/doctype/blog_post/blog_post.py:93
@@ -780,12 +724,8 @@ msgstr ""
 #. Description of a Text field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
-msgid ""
-"A list of resources which the Client App will have access to after the "
-"user allows it.<br> e.g. project"
-msgstr ""
-"Sebuah daftar sumber daya yang App Klien akan memiliki akses ke setelah "
-"pengguna memungkinkan. <br> misalnya proyek"
+msgid "A list of resources which the Client App will have access to after the user allows it.<br> e.g. project"
+msgstr "Sebuah daftar sumber daya yang App Klien akan memiliki akses ke setelah pengguna memungkinkan. <br> misalnya proyek"
 
 #: templates/emails/new_user.html:5
 msgid "A new account has been created for you at {0}"
@@ -1484,12 +1424,8 @@ msgstr ""
 #. Description of a Code field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
-msgid ""
-"Added HTML in the &lt;head&gt; section of the web page, primarily used "
-"for website verification and SEO"
-msgstr ""
-"Ditambahkan HTML di bagian  dari halaman web, terutama digunakan untuk "
-"verifikasi situs dan SEO"
+msgid "Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO"
+msgstr "Ditambahkan HTML di bagian  dari halaman web, terutama digunakan untuk verifikasi situs dan SEO"
 
 #: core/doctype/log_settings/log_settings.py:82
 msgid "Added default log doctypes: {}"
@@ -1505,12 +1441,8 @@ msgid "Added {0} ({1})"
 msgstr "Ditambahkan {0} ({1})"
 
 #: core/doctype/user/user.py:271
-msgid ""
-"Adding System Manager to this User as there must be atleast one System "
-"Manager"
-msgstr ""
-"Menambahkan Pengelola Sistem untuk user ini dikarenakan minimal harus ada"
-" satu Pengelola Sistem"
+msgid "Adding System Manager to this User as there must be atleast one System Manager"
+msgstr "Menambahkan Pengelola Sistem untuk user ini dikarenakan minimal harus ada satu Pengelola Sistem"
 
 #. Label of a Section Break field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
@@ -1602,9 +1534,7 @@ msgstr "Tipe Alamat"
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Address and other legal information you may want to put in the footer."
-msgstr ""
-"Alamat dan informasi legal lainnya yang mungkin Anda ingin masukkan ke "
-"footer."
+msgstr "Alamat dan informasi legal lainnya yang mungkin Anda ingin masukkan ke footer."
 
 #: contacts/doctype/address/address.py:208
 msgid "Addresses"
@@ -1834,9 +1764,7 @@ msgstr ""
 #. Description of a Table field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
-msgid ""
-"All possible Workflow States and roles of the workflow. Docstatus "
-"Options: 0 is \"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\""
+msgid "All possible Workflow States and roles of the workflow. Docstatus Options: 0 is \"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\""
 msgstr ""
 
 #: utils/password_strength.py:187
@@ -2180,9 +2108,7 @@ msgstr "Memungkinkan pengguna untuk login hanya sebelum jam ini (0-24)"
 #. Description of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"Allow users to log in without a password, using a login link sent to "
-"their email"
+msgid "Allow users to log in without a password, using a login link sent to their email"
 msgstr ""
 
 #. Label of a Link field in DocType 'Workflow Transition'
@@ -2328,12 +2254,8 @@ msgstr "Terjadi kesalahan saat mengatur Sesi Default"
 #. Description of a Attach field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
-msgid ""
-"An icon file with .ico extension. Should be 16 x 16 px. Generated using a"
-" favicon generator. [favicon-generator.org]"
-msgstr ""
-"File icon dengan ekstensi .ico. Harus 16 x 16 px. Dihasilkan menggunakan "
-"generator favicon. [favicon-generator.org]"
+msgid "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org]"
+msgstr "File icon dengan ekstensi .ico. Harus 16 x 16 px. Dihasilkan menggunakan generator favicon. [favicon-generator.org]"
 
 #: templates/includes/oauth_confirmation.html:35
 msgid "An unexpected error occurred while authorizing {}."
@@ -2368,12 +2290,8 @@ msgid "Anonymous"
 msgstr "Anonim"
 
 #: public/js/frappe/request.js:186
-msgid ""
-"Another transaction is blocking this one. Please try again in a few "
-"seconds."
-msgstr ""
-"Transaksi lain yang menghalangi satu ini. Silakan coba lagi dalam "
-"beberapa detik."
+msgid "Another transaction is blocking this one. Please try again in a few seconds."
+msgstr "Transaksi lain yang menghalangi satu ini. Silakan coba lagi dalam beberapa detik."
 
 #: model/rename_doc.py:379
 msgid "Another {0} with name {1} exists, select another name"
@@ -2382,20 +2300,8 @@ msgstr "Lain {0} dengan nama {1} ada, pilih nama lain"
 #. Description of a Code field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
-msgid ""
-"Any string-based printer languages can be used. Writing raw commands "
-"requires knowledge of the printer's native language provided by the "
-"printer manufacturer. Please refer to the developer manual provided by "
-"the printer manufacturer on how to write their native commands. These "
-"commands are rendered on the server side using the Jinja Templating "
-"Language."
-msgstr ""
-"Bahasa printer berbasis string apa pun dapat digunakan. Menulis perintah "
-"mentah membutuhkan pengetahuan tentang bahasa asli printer yang "
-"disediakan oleh produsen printer. Silakan merujuk ke manual pengembang "
-"yang disediakan oleh pabrik printer tentang cara menulis perintah asli "
-"mereka. Perintah-perintah ini diberikan di sisi server menggunakan Bahasa"
-" Templating Jinja."
+msgid "Any string-based printer languages can be used. Writing raw commands requires knowledge of the printer's native language provided by the printer manufacturer. Please refer to the developer manual provided by the printer manufacturer on how to write their native commands. These commands are rendered on the server side using the Jinja Templating Language."
+msgstr "Bahasa printer berbasis string apa pun dapat digunakan. Menulis perintah mentah membutuhkan pengetahuan tentang bahasa asli printer yang disediakan oleh produsen printer. Silakan merujuk ke manual pengembang yang disediakan oleh pabrik printer tentang cara menulis perintah asli mereka. Perintah-perintah ini diberikan di sisi server menggunakan Bahasa Templating Jinja."
 
 #. Label of a Data field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -2510,10 +2416,7 @@ msgstr "Tambahkan Untuk dapat menjadi salah satu {0}"
 #. Description of a Link field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
-msgid ""
-"Append as communication against this DocType (must have fields: "
-"\"Sender\" and \"Subject\"). These fields can be defined in the email "
-"settings section of the appended doctype."
+msgid "Append as communication against this DocType (must have fields: \"Sender\" and \"Subject\"). These fields can be defined in the email settings section of the appended doctype."
 msgstr ""
 
 #: core/doctype/user_permission/user_permission_list.js:105
@@ -2723,15 +2626,11 @@ msgid "Arial"
 msgstr "Arial"
 
 #: desk/form/assign_to.py:102
-msgid ""
-"As document sharing is disabled, please give them the required "
-"permissions before assigning."
+msgid "As document sharing is disabled, please give them the required permissions before assigning."
 msgstr ""
 
 #: templates/emails/account_deletion_notification.html:3
-msgid ""
-"As per your request, your account and data on {0} associated with email "
-"{1} has been permanently deleted"
+msgid "As per your request, your account and data on {0} associated with email {1} has been permanently deleted"
 msgstr ""
 
 #. Label of a Code field in DocType 'Assignment Rule'
@@ -3672,12 +3571,8 @@ msgid "Backup Frequency"
 msgstr "Frekuensi Pencadangan"
 
 #: desk/page/backups/backups.py:99
-msgid ""
-"Backup job is already queued. You will receive an email with the download"
-" link"
-msgstr ""
-"Pekerjaan cadangan sudah dalam antrian. Anda akan menerima surel dengan "
-"tautan unduh"
+msgid "Backup job is already queued. You will receive an email with the download link"
+msgstr "Pekerjaan cadangan sudah dalam antrian. Anda akan menerima surel dengan tautan unduh"
 
 #. Description of a Check field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -4142,10 +4037,8 @@ msgstr ""
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid ""
-"Brand is what appears on the top-left of the toolbar. If it is an image, "
-"make sure it\n"
-"has a transparent background and use the &lt;img /&gt; tag. Keep size as "
-"200px x 30px"
+"Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\n"
+"has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px"
 msgstr ""
 
 #. Label of a Code field in DocType 'Web Form'
@@ -4311,12 +4204,8 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.js:111
 #: website/doctype/web_page/web_page.js:118
-msgid ""
-"By default the title is used as meta title, adding a value here will "
-"override it."
-msgstr ""
-"Secara default, judul digunakan sebagai judul meta, menambahkan nilai di "
-"sini akan menimpanya."
+msgid "By default the title is used as meta title, adding a value here will override it."
+msgstr "Secara default, judul digunakan sebagai judul meta, menambahkan nilai di sini akan menimpanya."
 
 #. Description of a Check field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -4567,17 +4456,13 @@ msgid "Can not rename as column {0} is already present on DocType."
 msgstr ""
 
 #: core/doctype/doctype/doctype.py:1114
-msgid ""
-"Can only change to/from Autoincrement naming rule when there is no data "
-"in the doctype"
+msgid "Can only change to/from Autoincrement naming rule when there is no data in the doctype"
 msgstr ""
 
 #. Description of a Link field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
 msgctxt "User Type"
-msgid ""
-"Can only list down the document types which has been linked to the User "
-"document type."
+msgid "Can only list down the document types which has been linked to the User document type."
 msgstr ""
 
 #: model/rename_doc.py:366
@@ -4719,9 +4604,7 @@ msgid "Cannot access file path {0}"
 msgstr ""
 
 #: public/js/workflow_builder/utils.js:183
-msgid ""
-"Cannot cancel before submitting while transitioning from <b>{0} State</b>"
-" to <b>{1} State</b>"
+msgid "Cannot cancel before submitting while transitioning from <b>{0} State</b> to <b>{1} State</b>"
 msgstr ""
 
 #: workflow/doctype/workflow/workflow.py:112
@@ -4766,9 +4649,7 @@ msgstr "Tidak dapat menghapus Rumah dan Lampiran folder"
 
 #: model/delete_doc.py:367
 msgid "Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}"
-msgstr ""
-"Tidak dapat menghapus atau membatalkan karena {0} {1} dikaitkan dengan "
-"{2} {3} {4}"
+msgstr "Tidak dapat menghapus atau membatalkan karena {0} {1} dikaitkan dengan {2} {3} {4}"
 
 #: desk/doctype/workspace/workspace.py:417
 msgid "Cannot delete private workspace of other users"
@@ -4780,18 +4661,14 @@ msgstr ""
 
 #: custom/doctype/customize_form/customize_form.js:313
 msgid "Cannot delete standard action. You can hide it if you want"
-msgstr ""
-"Tidak dapat menghapus tindakan standar. Anda bisa menyembunyikannya jika "
-"mau"
+msgstr "Tidak dapat menghapus tindakan standar. Anda bisa menyembunyikannya jika mau"
 
 #: custom/doctype/customize_form/customize_form.js:328
 msgid "Cannot delete standard document state."
 msgstr ""
 
 #: custom/doctype/customize_form/customize_form.js:276
-msgid ""
-"Cannot delete standard field <strong>{0}</strong>. You can hide it "
-"instead."
+msgid "Cannot delete standard field <strong>{0}</strong>. You can hide it instead."
 msgstr ""
 
 #: custom/doctype/customize_form/customize_form.js:298
@@ -4799,9 +4676,7 @@ msgid "Cannot delete standard link. You can hide it if you want"
 msgstr "Tidak dapat menghapus link standar. Anda bisa menyembunyikannya jika mau"
 
 #: custom/doctype/customize_form/customize_form.js:268
-msgid ""
-"Cannot delete system generated field <strong>{0}</strong>. You can hide "
-"it instead."
+msgid "Cannot delete system generated field <strong>{0}</strong>. You can hide it instead."
 msgstr ""
 
 #: public/js/frappe/list/bulk_operations.js:171
@@ -4817,12 +4692,8 @@ msgid "Cannot edit Standard Dashboards"
 msgstr ""
 
 #: email/doctype/notification/notification.py:120
-msgid ""
-"Cannot edit Standard Notification. To edit, please disable this and "
-"duplicate it"
-msgstr ""
-"Tidak dapat mengedit Pemberitahuan Standar. Untuk mengedit, nonaktifkan "
-"ini dan gandakan"
+msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
+msgstr "Tidak dapat mengedit Pemberitahuan Standar. Untuk mengedit, nonaktifkan ini dan gandakan"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.py:388
 msgid "Cannot edit Standard charts"
@@ -4830,9 +4701,7 @@ msgstr ""
 
 #: core/doctype/report/report.py:68
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
-msgstr ""
-"tidak dapat mengedit laporan standar. Silakan menggandakan dan membuat "
-"laporan baru"
+msgstr "tidak dapat mengedit laporan standar. Silakan menggandakan dan membuat laporan baru"
 
 #: model/document.py:858
 msgid "Cannot edit cancelled document"
@@ -4887,9 +4756,7 @@ msgid "Cannot set Notification on Document Type {0}"
 msgstr "Tidak dapat mengatur Pemberitahuan pada Jenis Dokumen {0}"
 
 #: core/doctype/docshare/docshare.py:69
-msgid ""
-"Cannot share {0} with submit permission as the doctype {1} is not "
-"submittable"
+msgid "Cannot share {0} with submit permission as the doctype {1} is not submittable"
 msgstr ""
 
 #: public/js/frappe/list/bulk_operations.js:226
@@ -5039,23 +4906,17 @@ msgstr "Ganti pengguna"
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
 msgid ""
-"Change the starting / current sequence number of an existing series. <br>"
+"Change the starting / current sequence number of an existing series. <br>\n"
 "\n"
-"\n"
-"Warning: Incorrectly updating counters can prevent documents from getting"
-" created. "
+"Warning: Incorrectly updating counters can prevent documents from getting created. "
 msgstr ""
 
 #: email/doctype/email_domain/email_domain.js:5
-msgid ""
-"Changing any setting will reflect on all the email accounts associated "
-"with this domain."
+msgid "Changing any setting will reflect on all the email accounts associated with this domain."
 msgstr ""
 
 #: core/doctype/system_settings/system_settings.js:62
-msgid ""
-"Changing rounding method on site with data can result in unexpected "
-"behaviour."
+msgid "Changing rounding method on site with data can result in unexpected behaviour."
 msgstr ""
 
 #. Label of a Select field in DocType 'Notification'
@@ -5189,23 +5050,14 @@ msgid "Check the Error Log for more information: {0}"
 msgstr "Periksa Log Kesalahan untuk informasi lebih lanjut: {0}"
 
 #: website/doctype/website_settings/website_settings.js:147
-msgid ""
-"Check this if you don't want users to sign up for an account on your "
-"site. Users won't get desk access unless you explicitly provide it."
-msgstr ""
-"Centang ini jika Anda tidak ingin pengguna mendaftar akun di situs Anda. "
-"Pengguna tidak akan mendapatkan akses meja kecuali Anda menyediakannya "
-"secara eksplisit."
+msgid "Check this if you don't want users to sign up for an account on your site. Users won't get desk access unless you explicitly provide it."
+msgstr "Centang ini jika Anda tidak ingin pengguna mendaftar akun di situs Anda. Pengguna tidak akan mendapatkan akses meja kecuali Anda menyediakannya secara eksplisit."
 
 #. Description of a Check field in DocType 'Document Naming Settings'
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
-msgid ""
-"Check this if you want to force the user to select a series before "
-"saving. There will be no default if you check this."
-msgstr ""
-"Periksa ini jika Anda ingin untuk memaksa pengguna untuk memilih seri "
-"sebelum menyimpan. Tidak akan ada default jika Anda memeriksa ini."
+msgid "Check this if you want to force the user to select a series before saving. There will be no default if you check this."
+msgstr "Periksa ini jika Anda ingin untuk memaksa pengguna untuk memilih seri sebelum menyimpan. Tidak akan ada default jika Anda memeriksa ini."
 
 #: email/doctype/newsletter/newsletter.js:20
 msgid "Checking broken links..."
@@ -5217,33 +5069,21 @@ msgstr "Memeriksa satu saat"
 
 #: website/doctype/website_settings/website_settings.js:140
 msgid "Checking this will enable tracking page views for blogs, web pages, etc."
-msgstr ""
-"Memeriksa ini akan mengaktifkan pelacakan tampilan halaman untuk blog, "
-"halaman web, dll."
+msgstr "Memeriksa ini akan mengaktifkan pelacakan tampilan halaman untuk blog, halaman web, dll."
 
 #. Description of a Check field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Checking this will hide custom doctypes and reports cards in Links section"
-msgstr ""
-"Memeriksa ini akan menyembunyikan jenis dokumen dan kartu laporan khusus "
-"di bagian Tautan"
+msgstr "Memeriksa ini akan menyembunyikan jenis dokumen dan kartu laporan khusus di bagian Tautan"
 
 #: website/doctype/web_page/web_page.js:78
-msgid ""
-"Checking this will publish the page on your website and it'll be visible "
-"to everyone."
-msgstr ""
-"Memeriksa ini akan menerbitkan halaman di situs web Anda dan akan "
-"terlihat oleh semua orang."
+msgid "Checking this will publish the page on your website and it'll be visible to everyone."
+msgstr "Memeriksa ini akan menerbitkan halaman di situs web Anda dan akan terlihat oleh semua orang."
 
 #: website/doctype/web_page/web_page.js:104
-msgid ""
-"Checking this will show a text area where you can write custom javascript"
-" that will run on this page."
-msgstr ""
-"Memeriksa ini akan menampilkan area teks tempat Anda dapat menulis "
-"javascript khusus yang akan berjalan di halaman ini."
+msgid "Checking this will show a text area where you can write custom javascript that will run on this page."
+msgstr "Memeriksa ini akan menampilkan area teks tempat Anda dapat menulis javascript khusus yang akan berjalan di halaman ini."
 
 #. Label of a Data field in DocType 'Transaction Log'
 #: core/doctype/transaction_log/transaction_log.json
@@ -5345,9 +5185,7 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.py:214
 msgid "Clearing end date, as it cannot be in the past for published pages."
-msgstr ""
-"Menghapus tanggal akhir, karena tidak boleh di masa lalu untuk halaman "
-"yang dipublikasikan."
+msgstr "Menghapus tanggal akhir, karena tidak boleh di masa lalu untuk halaman yang dipublikasikan."
 
 #: website/doctype/web_form/templates/web_form.html:144
 msgid "Click here"
@@ -5358,12 +5196,8 @@ msgid "Click here to verify"
 msgstr "Klik di sini untuk memverifikasi"
 
 #: integrations/doctype/google_drive/google_drive.js:46
-msgid ""
-"Click on <b>Authorize Google Drive Access</b> to authorize Google Drive "
-"Access."
-msgstr ""
-"Klik pada <b>Otorisasi Google Drive Access</b> untuk mengotorisasi Google"
-" Drive Access."
+msgid "Click on <b>Authorize Google Drive Access</b> to authorize Google Drive Access."
+msgstr "Klik pada <b>Otorisasi Google Drive Access</b> untuk mengotorisasi Google Drive Access."
 
 #: templates/emails/login_with_email_link.html:19
 msgid "Click on the button to log in to {0}"
@@ -5374,12 +5208,8 @@ msgid "Click on the link below to approve the request"
 msgstr "Klik tautan di bawah untuk menyetujui permintaan"
 
 #: templates/emails/new_user.html:7
-msgid ""
-"Click on the link below to complete your registration and set a new "
-"password"
-msgstr ""
-"Klik link di bawah ini untuk melengkapi pendaftaran Anda dan mengatur "
-"sandi baru"
+msgid "Click on the link below to complete your registration and set a new password"
+msgstr "Klik link di bawah ini untuk melengkapi pendaftaran Anda dan mengatur sandi baru"
 
 #: templates/emails/download_data.html:3
 msgid "Click on the link below to download your data"
@@ -5848,12 +5678,8 @@ msgid "Columns based on"
 msgstr "Kolom berdasarkan"
 
 #: integrations/doctype/oauth_client/oauth_client.py:43
-msgid ""
-"Combination of Grant Type (<code>{0}</code>) and Response Type "
-"(<code>{1}</code>) not allowed"
-msgstr ""
-"Kombinasi Tipe Hibah ( <code>{0}</code> ) dan Tipe Respon ( "
-"<code>{1}</code> ) tidak diperbolehkan"
+msgid "Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed"
+msgstr "Kombinasi Tipe Hibah ( <code>{0}</code> ) dan Tipe Respon ( <code>{1}</code> ) tidak diperbolehkan"
 
 #. Option for a Select field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -6199,11 +6025,9 @@ msgctxt "Document Naming Settings"
 msgid ""
 "Configure how amended documents will be named.<br>\n"
 "\n"
-"Default behaviour is to follow an amend counter which adds a number to "
-"the end of the original name indicating the amended version. <br>\n"
+"Default behaviour is to follow an amend counter which adds a number to the end of the original name indicating the amended version. <br>\n"
 "\n"
-"Default Naming will make the amended document to behave same as new "
-"documents."
+"Default Naming will make the amended document to behave same as new documents."
 msgstr ""
 
 #: www/update-password.html:30
@@ -6249,10 +6073,7 @@ msgid "Confirmed"
 msgstr "Dikonfirmasi"
 
 #: public/js/frappe/widgets/onboarding_widget.js:530
-msgid ""
-"Congratulations on completing the module setup. If you want to learn more"
-" you can refer to the documentation <a target=\"_blank\" "
-"href=\"{0}\">here</a>."
+msgid "Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target=\"_blank\" href=\"{0}\">here</a>."
 msgstr ""
 
 #: integrations/doctype/connected_app/connected_app.js:25
@@ -6390,12 +6211,8 @@ msgstr "Hubungi Kami Settings"
 #. Description of a Small Text field in DocType 'Contact Us Settings'
 #: website/doctype/contact_us_settings/contact_us_settings.json
 msgctxt "Contact Us Settings"
-msgid ""
-"Contact options, like \"Sales Query, Support Query\" etc each on a new "
-"line or separated by commas."
-msgstr ""
-"Opsi kontak, seperti \"Penjualan Query, Dukungan Query\" dll masing-"
-"masing pada baris baru atau dipisahkan dengan koma."
+msgid "Contact options, like \"Sales Query, Support Query\" etc each on a new line or separated by commas."
+msgstr "Opsi kontak, seperti \"Penjualan Query, Dukungan Query\" dll masing-masing pada baris baru atau dipisahkan dengan koma."
 
 #. Label of a Text Editor field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -6533,9 +6350,7 @@ msgstr "Status Kontribusi"
 #. Description of a Select field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
-msgid ""
-"Controls whether new users can sign up using this Social Login Key. If "
-"unset, Website Settings is respected. "
+msgid "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected. "
 msgstr ""
 
 #: public/js/frappe/utils/utils.js:1030
@@ -7125,18 +6940,12 @@ msgid "Custom Field"
 msgstr "Bidang Kustom"
 
 #: custom/doctype/custom_field/custom_field.py:216
-msgid ""
-"Custom Field {0} is created by the Administrator and can only be deleted "
-"through the Administrator account."
-msgstr ""
-"Bidang Khusus {0} dibuat oleh Administrator dan hanya dapat dihapus "
-"melalui akun Administrator."
+msgid "Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account."
+msgstr "Bidang Khusus {0} dibuat oleh Administrator dan hanya dapat dihapus melalui akun Administrator."
 
 #. Subtitle of the Module Onboarding 'Customization'
 #: custom/module_onboarding/customization/customization.json
-msgid ""
-"Custom Field, Custom Doctype, Naming Series, Role Permission, Workflow, "
-"Print Formats, Reports"
+msgid "Custom Field, Custom Doctype, Naming Series, Role Permission, Workflow, Print Formats, Reports"
 msgstr ""
 
 #: custom/doctype/custom_field/custom_field.py:260
@@ -7166,9 +6975,7 @@ msgid "Custom Group Search"
 msgstr ""
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:119
-msgid ""
-"Custom Group Search if filled needs to contain the user placeholder {0}, "
-"eg uid={0},ou=users,dc=example,dc=com"
+msgid "Custom Group Search if filled needs to contain the user placeholder {0}, eg uid={0},ou=users,dc=example,dc=com"
 msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:190
@@ -7188,9 +6995,7 @@ msgid "Custom HTML Help"
 msgstr "Custom HTML Bantuan"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:111
-msgid ""
-"Custom LDAP Directoy Selected, please ensure 'LDAP Group Member "
-"attribute' and 'Group Object Class' are entered"
+msgid "Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'Group Object Class' are entered"
 msgstr ""
 
 #. Label of a Data field in DocType 'Web Form Field'
@@ -7487,9 +7292,7 @@ msgstr "Sehari-hari"
 
 #: templates/emails/upcoming_events.html:8
 msgid "Daily Event Digest is sent for Calendar Events where reminders are set."
-msgstr ""
-"Harian Kegiatan Digest dikirim untuk Kalender Acara di mana pengingat "
-"ditetapkan."
+msgstr "Harian Kegiatan Digest dikirim untuk Kalender Acara di mana pengingat ditetapkan."
 
 #: desk/doctype/event/event.py:93
 msgid "Daily Events should finish on the Same Day."
@@ -7751,9 +7554,7 @@ msgid "Database Table Row Size Limit"
 msgstr ""
 
 #: public/js/frappe/doctype/index.js:40
-msgid ""
-"Database Table Row Size Utilization: {0}%, this limits number of fields "
-"you can add."
+msgid "Database Table Row Size Utilization: {0}%, this limits number of fields you can add."
 msgstr ""
 
 #: desk/report/todo/todo.py:38 email/doctype/newsletter/newsletter.js:109
@@ -8152,9 +7953,7 @@ msgstr ""
 
 #: core/doctype/doctype/doctype.py:1327
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
-msgstr ""
-"Default untuk jenis bidang &#39;Cek&#39; {0} harus berupa &#39;0&#39; "
-"atau &#39;1&#39;"
+msgstr "Default untuk jenis bidang &#39;Cek&#39; {0} harus berupa &#39;0&#39; atau &#39;1&#39;"
 
 #: core/doctype/doctype/doctype.py:1340
 msgid "Default value for {0} must be in the list of options."
@@ -8488,19 +8287,13 @@ msgstr "Deskripsi"
 #. Description of a Small Text field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
-msgid ""
-"Description for listing page, in plain text, only a couple of lines. (max"
-" 200 characters)"
-msgstr ""
-"Deskripsi untuk halaman daftar, dalam teks biasa, hanya beberapa baris. "
-"(maks 200 karakter)"
+msgid "Description for listing page, in plain text, only a couple of lines. (max 200 characters)"
+msgstr "Deskripsi untuk halaman daftar, dalam teks biasa, hanya beberapa baris. (maks 200 karakter)"
 
 #. Description of a Section Break field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
-msgid ""
-"Description to inform the user about any action that is going to be "
-"performed"
+msgid "Description to inform the user about any action that is going to be performed"
 msgstr ""
 
 #. Label of a Data field in DocType 'Contact'
@@ -8604,12 +8397,8 @@ msgstr ""
 #. Description of a Section Break field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
-msgid ""
-"Different \"States\" this document can exist in. Like \"Open\", \"Pending"
-" Approval\" etc."
-msgstr ""
-"Berbeda \"Negara\" dokumen ini dapat eksis masuk Like \"Open\", "
-"\"Menunggu Persetujuan\" dll"
+msgid "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc."
+msgstr "Berbeda \"Negara\" dokumen ini dapat eksis masuk Like \"Open\", \"Menunggu Persetujuan\" dll"
 
 #. Label of a Int field in DocType 'Document Naming Rule'
 #: core/doctype/document_naming_rule/document_naming_rule.json
@@ -8910,12 +8699,9 @@ msgstr "DocShare"
 
 #: workflow/doctype/workflow/workflow.js:264
 msgid ""
-"DocStatus of the following states have "
-"changed:<br><strong>{0}</strong><br>\n"
-"\t\t\t\tDo you want to update the docstatus of existing documents in "
-"those states?<br>\n"
-"\t\t\t\tThis does not undo any effect bought in by the document's "
-"existing docstatus.\n"
+"DocStatus of the following states have changed:<br><strong>{0}</strong><br>\n"
+"\t\t\t\tDo you want to update the docstatus of existing documents in those states?<br>\n"
+"\t\t\t\tThis does not undo any effect bought in by the document's existing docstatus.\n"
 "\t\t\t\t"
 msgstr ""
 
@@ -9014,12 +8800,8 @@ msgid "DocType"
 msgstr "DocType"
 
 #: core/doctype/doctype/doctype.py:1528
-msgid ""
-"DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast "
-"one Link field"
-msgstr ""
-"DocType <b>{0} yang</b> disediakan untuk bidang <b>{1}</b> harus memiliki"
-" minimal satu bidang Tautan"
+msgid "DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field"
+msgstr "DocType <b>{0} yang</b> disediakan untuk bidang <b>{1}</b> harus memiliki minimal satu bidang Tautan"
 
 #. Name of a DocType
 #: core/doctype/doctype_action/doctype_action.json
@@ -9662,13 +9444,8 @@ msgstr "Domain HTML"
 #. Description of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
-msgid ""
-"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like "
-"&lt; or &gt;, as they could be intentionally used in this field"
-msgstr ""
-"Jangan tag HTML Encode HTML seperti &lt;script&gt; atau hanya karakter "
-"seperti &lt;atau&gt;, karena mereka dapat sengaja digunakan dalam bidang "
-"ini"
+msgid "Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field"
+msgstr "Jangan tag HTML Encode HTML seperti &lt;script&gt; atau hanya karakter seperti &lt;atau&gt;, karena mereka dapat sengaja digunakan dalam bidang ini"
 
 #: public/js/frappe/data_import/import_preview.js:268
 msgid "Don't Import"
@@ -9695,17 +9472,13 @@ msgstr "Jangan Kirim Email"
 #. Description of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
-msgid ""
-"Don't encode HTML tags like &lt;script&gt; or just characters like &lt; "
-"or &gt;, as they could be intentionally used in this field"
+msgid "Don't encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field"
 msgstr ""
 
 #. Description of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
-msgid ""
-"Don't encode HTML tags like &lt;script&gt; or just characters like &lt; "
-"or &gt;, as they could be intentionally used in this field"
+msgid "Don't encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field"
 msgstr ""
 
 #: www/login.html:119 www/login.html:135 www/update-password.html:34
@@ -9976,11 +9749,7 @@ msgstr "Template Dinamis"
 
 #. Description of the Onboarding Step 'Setup Naming Series'
 #: custom/onboarding_step/naming_series/naming_series.json
-msgid ""
-"Each document created in ERPNext can have a unique ID generated for it, "
-"using a prefix defined for it. Though each document has some prefix pre-"
-"configured, you can further customize it using tools like Naming Series "
-"Tool and Document Naming Rule.\n"
+msgid "Each document created in ERPNext can have a unique ID generated for it, using a prefix defined for it. Though each document has some prefix pre-configured, you can further customize it using tools like Naming Series Tool and Document Naming Rule.\n"
 msgstr ""
 
 #: core/page/dashboard_view/dashboard_view.js:169
@@ -10272,9 +10041,7 @@ msgid "Email Account added multiple times"
 msgstr "Akun surel ditambahkan beberapa kali"
 
 #: email/smtp.py:42
-msgid ""
-"Email Account not setup. Please create a new Email Account from Settings "
-"> Email Account"
+msgid "Email Account not setup. Please create a new Email Account from Settings > Email Account"
 msgstr ""
 
 #: desk/page/setup_wizard/setup_wizard.js:470 www/complete_signup.html:11
@@ -10766,9 +10533,7 @@ msgstr "Aktifkan mode pengembang untuk membuat Template Web standar"
 #. Description of a Check field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
-msgid ""
-"Enable email notification for any comment or likes received on your Blog "
-"Post."
+msgid "Enable email notification for any comment or likes received on your Blog Post."
 msgstr ""
 
 #. Description of a Check field in DocType 'Form Tour Step'
@@ -10893,9 +10658,7 @@ msgid "Enables Calendar and Gantt views."
 msgstr ""
 
 #: email/doctype/email_account/email_account.js:232
-msgid ""
-"Enabling auto reply on an incoming email account will send automated "
-"replies to all the synchronized emails. Do you wish to continue?"
+msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
 msgstr ""
 
 #. Description of a Check field in DocType 'Customize Form'
@@ -11069,16 +10832,8 @@ msgstr ""
 #. Description of a Table field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
-msgid ""
-"Enter default value fields (keys) and values. If you add multiple values "
-"for a field, the first one will be picked. These defaults are also used "
-"to set \"match\" permission rules. To see list of fields, go to "
-"\"Customize Form\"."
-msgstr ""
-"Masukkan bidang nilai default (kunci) dan nilai-nilai. Jika Anda "
-"menambahkan beberapa nilai untuk field, yang pertama akan dijemput. "
-"Default ini juga digunakan untuk mengatur &quot;pertandingan&quot; aturan"
-" izin. Untuk melihat daftar bidang, pergi ke &quot;Customize Form&quot;."
+msgid "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set \"match\" permission rules. To see list of fields, go to \"Customize Form\"."
+msgstr "Masukkan bidang nilai default (kunci) dan nilai-nilai. Jika Anda menambahkan beberapa nilai untuk field, yang pertama akan dijemput. Default ini juga digunakan untuk mengatur &quot;pertandingan&quot; aturan izin. Untuk melihat daftar bidang, pergi ke &quot;Customize Form&quot;."
 
 #: public/js/frappe/views/file/file_view.js:111
 msgid "Enter folder name"
@@ -11087,12 +10842,8 @@ msgstr "Masukkan nama folder"
 #. Description of a Table field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
 msgctxt "SMS Settings"
-msgid ""
-"Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, "
-"password=1234 etc.)"
-msgstr ""
-"Entrikan parameter url statis di sini (Misalnya pengirim = ERPNext, "
-"username = ERPNext, password = 1234 dll)"
+msgid "Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)"
+msgstr "Entrikan parameter url statis di sini (Misalnya pengirim = ERPNext, username = ERPNext, password = 1234 dll)"
 
 #. Description of a Data field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
@@ -11203,22 +10954,8 @@ msgid "Error Message"
 msgstr "Pesan eror"
 
 #: public/js/frappe/form/print_utils.js:126
-msgid ""
-"Error connecting to QZ Tray Application...<br><br> You need to have QZ "
-"Tray application installed and running, to use the Raw Print "
-"feature.<br><br><a target=\"_blank\" "
-"href=\"https://qz.io/download/\">Click here to Download and install QZ "
-"Tray</a>.<br> <a target=\"_blank\" "
-"href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-"
-"printing\">Click here to learn more about Raw Printing</a>."
-msgstr ""
-"Kesalahan menyambung ke Aplikasi Baki QZ ... <br><br> Anda harus "
-"menginstal dan menjalankan aplikasi Baki QZ, untuk menggunakan fitur Raw "
-"Print. <br><br> <a href=\"https://qz.io/download/\" "
-"target=\"_blank\">Klik di sini untuk Mengunduh dan menginstal Baki QZ</a>"
-" . <br> <a href=\"https://erpnext.com/docs/user/manual/en/setting-"
-"up/print/raw-printing\" target=\"_blank\">Klik di sini untuk mempelajari "
-"lebih lanjut tentang Pencetakan Mentah</a> ."
+msgid "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=\"_blank\" href=\"https://qz.io/download/\">Click here to Download and install QZ Tray</a>.<br> <a target=\"_blank\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\">Click here to learn more about Raw Printing</a>."
+msgstr "Kesalahan menyambung ke Aplikasi Baki QZ ... <br><br> Anda harus menginstal dan menjalankan aplikasi Baki QZ, untuk menggunakan fitur Raw Print. <br><br> <a href=\"https://qz.io/download/\" target=\"_blank\">Klik di sini untuk Mengunduh dan menginstal Baki QZ</a> . <br> <a href=\"https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing\" target=\"_blank\">Klik di sini untuk mempelajari lebih lanjut tentang Pencetakan Mentah</a> ."
 
 #: email/doctype/email_domain/email_domain.py:32
 msgid "Error connecting via IMAP/POP3: {e}"
@@ -11256,9 +10993,7 @@ msgstr "Kesalahan saat menyambung ke akun email {0}"
 
 #: email/doctype/notification/notification.py:504
 msgid "Error while evaluating Notification {0}. Please fix your template."
-msgstr ""
-"Kesalahan saat mengevaluasi Pemberitahuan {0}. Silakan perbaiki template "
-"Anda."
+msgstr "Kesalahan saat mengevaluasi Pemberitahuan {0}. Silakan perbaiki template Anda."
 
 #: model/document.py:808
 msgid "Error: Document has been modified after you have opened it"
@@ -11338,12 +11073,9 @@ msgstr "Acara Dalam Kalender Hari ini"
 #. Description of the Onboarding Step 'Create Custom Fields'
 #: custom/onboarding_step/custom_field/custom_field.json
 msgid ""
-"Every form in ERPNext has a standard set of fields. If you need to "
-"capture some information, but there is no standard Field available for "
-"it, you can insert Custom Field for it.\n"
+"Every form in ERPNext has a standard set of fields. If you need to capture some information, but there is no standard Field available for it, you can insert Custom Field for it.\n"
 "\n"
-"Once custom fields are added, you can use them for reports and analytics "
-"charts as well.\n"
+"Once custom fields are added, you can use them for reports and analytics charts as well.\n"
 msgstr ""
 
 #. Label of a Check field in DocType 'DocShare'
@@ -11391,9 +11123,7 @@ msgstr "Contoh: 00001"
 #. Description of a Data field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"Example: Setting this to 24:00 will log out a user if they are not active"
-" for 24:00 hours."
+msgid "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours."
 msgstr ""
 
 #. Description of a Small Text field in DocType 'Assignment Rule'
@@ -11969,12 +11699,8 @@ msgstr ""
 #. Description of a Data field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
-msgid ""
-"Field that represents the Workflow State of the transaction (if field is "
-"not present, a new hidden Custom Field will be created)"
-msgstr ""
-"Kolom yang mewakili Status Alur Kerja transaksi (jika kolom tidak "
-"tersedia, Kolom Kustom yang tersembunyi akan dibuat)"
+msgid "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)"
+msgstr "Kolom yang mewakili Status Alur Kerja transaksi (jika kolom tidak tersedia, Kolom Kustom yang tersembunyi akan dibuat)"
 
 #. Label of a Select field in DocType 'Milestone Tracker'
 #: automation/doctype/milestone_tracker/milestone_tracker.json
@@ -12138,12 +11864,8 @@ msgstr ""
 #. Description of a Data field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
-msgid ""
-"Fields separated by comma (,) will be included in the \"Search By\" list "
-"of Search dialog box"
-msgstr ""
-"Fields dipisahkan dengan koma (,) akan dimasukkan dalam &quot;Cari "
-"Dengan&quot; daftar pencarian kotak dialog"
+msgid "Fields separated by comma (,) will be included in the \"Search By\" list of Search dialog box"
+msgstr "Fields dipisahkan dengan koma (,) akan dimasukkan dalam &quot;Cari Dengan&quot; daftar pencarian kotak dialog"
 
 #. Label of a Data field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -12470,15 +12192,8 @@ msgstr "filter tersimpan"
 #. Description of a Code field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
-msgid ""
-"Filters will be accessible via <code>filters</code>. <br><br>Send output "
-"as <code>result = [result]</code>, or for old style <code>data = "
-"[columns], [result]</code>"
-msgstr ""
-"Filter akan dapat diakses melalui <code>filters</code> .<br><br> Kirim "
-"keluaran sebagai <code>result = [result]</code> , atau untuk <code>data ="
-" [columns], [result]</code> gaya lama <code>data = [columns], "
-"[result]</code>"
+msgid "Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>"
+msgstr "Filter akan dapat diakses melalui <code>filters</code> .<br><br> Kirim keluaran sebagai <code>result = [result]</code> , atau untuk <code>data = [columns], [result]</code> gaya lama <code>data = [columns], [result]</code>"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:556
 msgid "Find '{0}' in ..."
@@ -12891,12 +12606,8 @@ msgstr "Untuk nilai"
 
 #: public/js/frappe/views/reports/query_report.js:1958
 #: public/js/frappe/views/reports/report_view.js:96
-msgid ""
-"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values "
-"between 5 & 10)."
-msgstr ""
-"Untuk perbandingan, gunakan&gt; 5, &lt;10 atau = 324. Untuk rentang, "
-"gunakan 5:10 (untuk nilai antara 5 &amp; 10)."
+msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
+msgstr "Untuk perbandingan, gunakan&gt; 5, &lt;10 atau = 324. Untuk rentang, gunakan 5:10 (untuk nilai antara 5 &amp; 10)."
 
 #: printing/page/print_format_builder/print_format_builder.js:744
 msgid "For example: If you want to include the document ID, use {0}"
@@ -12911,26 +12622,14 @@ msgstr "Misalnya: {} Buka"
 #. Description of a Code field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
-msgid ""
-"For help see <a href=\"https://frappeframework.com/docs/user/en/guides"
-"/portal-development/web-forms\" target=\"_blank\">Client Script API and "
-"Examples</a>"
-msgstr ""
-"Untuk bantuan, lihat <a "
-"href=\"https://frappeframework.com/docs/user/en/guides/portal-development"
-"/web-forms\" target=\"_blank\">API dan Contoh Skrip Klien</a>"
+msgid "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>"
+msgstr "Untuk bantuan, lihat <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">API dan Contoh Skrip Klien</a>"
 
 #. Description of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
-msgid ""
-"For more information, <a class=\"text-muted\" "
-"href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-"
-"emails-to-document\">click here</a>."
-msgstr ""
-"Untuk informasi lebih lanjut, <a class=\"text-muted\" "
-"href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-"
-"emails-to-document\">klik di sini</a> ."
+msgid "For more information, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">click here</a>."
+msgstr "Untuk informasi lebih lanjut, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">klik di sini</a> ."
 
 #: integrations/doctype/google_settings/google_settings.js:7
 msgid "For more information, {0}."
@@ -12939,9 +12638,7 @@ msgstr "Untuk informasi lebih lanjut, {0}."
 #. Description of a Small Text field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
-msgid ""
-"For multiple addresses, enter the address on different line. e.g. "
-"test@test.com ⏎ test1@test.com"
+msgid "For multiple addresses, enter the address on different line. e.g. test@test.com ⏎ test1@test.com"
 msgstr ""
 
 #: core/doctype/data_export/exporter.py:199
@@ -13494,9 +13191,7 @@ msgstr ""
 #. Description of a Check field in DocType 'Notification Settings'
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
-msgid ""
-"Get notified when an email is received on any of the documents assigned "
-"to you."
+msgid "Get notified when an email is received on any of the documents assigned to you."
 msgstr ""
 
 #. Description of a Attach Image field in DocType 'User'
@@ -13652,56 +13347,32 @@ msgid "Google Calendar"
 msgstr "Kalender Google"
 
 #: integrations/doctype/google_calendar/google_calendar.py:781
-msgid ""
-"Google Calendar - Contact / email not found. Did not add attendee for "
-"-<br>{0}"
+msgid "Google Calendar - Contact / email not found. Did not add attendee for -<br>{0}"
 msgstr ""
 
 #: integrations/doctype/google_calendar/google_calendar.py:251
 msgid "Google Calendar - Could not create Calendar for {0}, error code {1}."
-msgstr ""
-"Google Kalender - Tidak dapat membuat Kalender untuk {0}, kode kesalahan "
-"{1}."
+msgstr "Google Kalender - Tidak dapat membuat Kalender untuk {0}, kode kesalahan {1}."
 
 #: integrations/doctype/google_calendar/google_calendar.py:575
-msgid ""
-"Google Calendar - Could not delete Event {0} from Google Calendar, error "
-"code {1}."
-msgstr ""
-"Kalender Google - Tidak dapat menghapus Acara {0} dari Kalender Google, "
-"kode kesalahan {1}."
+msgid "Google Calendar - Could not delete Event {0} from Google Calendar, error code {1}."
+msgstr "Kalender Google - Tidak dapat menghapus Acara {0} dari Kalender Google, kode kesalahan {1}."
 
 #: integrations/doctype/google_calendar/google_calendar.py:288
-msgid ""
-"Google Calendar - Could not fetch event from Google Calendar, error code "
-"{0}."
-msgstr ""
-"Kalender Google - Tidak dapat mengambil acara dari Kalender Google, kode "
-"kesalahan {0}."
+msgid "Google Calendar - Could not fetch event from Google Calendar, error code {0}."
+msgstr "Kalender Google - Tidak dapat mengambil acara dari Kalender Google, kode kesalahan {0}."
 
 #: integrations/doctype/google_contacts/google_contacts.py:229
-msgid ""
-"Google Calendar - Could not insert contact in Google Contacts {0}, error "
-"code {1}."
-msgstr ""
-"Kalender Google - Tidak dapat memasukkan kontak ke dalam Kontak Google "
-"{0}, kode kesalahan {1}."
+msgid "Google Calendar - Could not insert contact in Google Contacts {0}, error code {1}."
+msgstr "Kalender Google - Tidak dapat memasukkan kontak ke dalam Kontak Google {0}, kode kesalahan {1}."
 
 #: integrations/doctype/google_calendar/google_calendar.py:458
-msgid ""
-"Google Calendar - Could not insert event in Google Calendar {0}, error "
-"code {1}."
-msgstr ""
-"Kalender Google - Tidak dapat menyisipkan acara di Kalender Google {0}, "
-"kode kesalahan {1}."
+msgid "Google Calendar - Could not insert event in Google Calendar {0}, error code {1}."
+msgstr "Kalender Google - Tidak dapat menyisipkan acara di Kalender Google {0}, kode kesalahan {1}."
 
 #: integrations/doctype/google_calendar/google_calendar.py:542
-msgid ""
-"Google Calendar - Could not update Event {0} in Google Calendar, error "
-"code {1}."
-msgstr ""
-"Kalender Google - Tidak dapat memperbarui Acara {0} di Kalender Google, "
-"kode kesalahan {1}."
+msgid "Google Calendar - Could not update Event {0} in Google Calendar, error code {1}."
+msgstr "Kalender Google - Tidak dapat memperbarui Acara {0} di Kalender Google, kode kesalahan {1}."
 
 #. Label of a Data field in DocType 'Event'
 #: desk/doctype/event/event.json
@@ -13746,20 +13417,12 @@ msgid "Google Contacts"
 msgstr "Kontak Google"
 
 #: integrations/doctype/google_contacts/google_contacts.py:136
-msgid ""
-"Google Contacts - Could not sync contacts from Google Contacts {0}, error"
-" code {1}."
-msgstr ""
-"Google Kontak - Tidak dapat menyinkronkan kontak dari Google Kontak {0}, "
-"kode kesalahan {1}."
+msgid "Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}."
+msgstr "Google Kontak - Tidak dapat menyinkronkan kontak dari Google Kontak {0}, kode kesalahan {1}."
 
 #: integrations/doctype/google_contacts/google_contacts.py:291
-msgid ""
-"Google Contacts - Could not update contact in Google Contacts {0}, error "
-"code {1}."
-msgstr ""
-"Google Kontak - Tidak dapat memperbarui kontak di Google Kontak {0}, kode"
-" kesalahan {1}."
+msgid "Google Contacts - Could not update contact in Google Contacts {0}, error code {1}."
+msgstr "Google Kontak - Tidak dapat memperbarui kontak di Google Kontak {0}, kode kesalahan {1}."
 
 #. Label of a Data field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
@@ -13782,15 +13445,11 @@ msgstr "Google Drive"
 
 #: integrations/doctype/google_drive/google_drive.py:118
 msgid "Google Drive - Could not create folder in Google Drive - Error Code {0}"
-msgstr ""
-"Google Drive - Tidak dapat membuat folder di Google Drive - Kode "
-"Kesalahan {0}"
+msgstr "Google Drive - Tidak dapat membuat folder di Google Drive - Kode Kesalahan {0}"
 
 #: integrations/doctype/google_drive/google_drive.py:134
 msgid "Google Drive - Could not find folder in Google Drive - Error Code {0}"
-msgstr ""
-"Google Drive - Tidak dapat menemukan folder di Google Drive - Kode "
-"Kesalahan {0}"
+msgstr "Google Drive - Tidak dapat menemukan folder di Google Drive - Kode Kesalahan {0}"
 
 #: integrations/doctype/google_drive/google_drive.py:196
 msgid "Google Drive - Could not locate - {0}"
@@ -13851,12 +13510,8 @@ msgid "Google Sheets URL is invalid or not publicly accessible."
 msgstr "URL Google Spreadsheet tidak valid atau tidak dapat diakses publik."
 
 #: utils/csvutils.py:204
-msgid ""
-"Google Sheets URL must end with \"gid={number}\". Copy and paste the URL "
-"from the browser address bar and try again."
-msgstr ""
-"URL Google Spreadsheet harus diakhiri dengan &quot;gid = {number}&quot;. "
-"Salin dan tempel URL dari bilah alamat browser dan coba lagi."
+msgid "Google Sheets URL must end with \"gid={number}\". Copy and paste the URL from the browser address bar and try again."
+msgstr "URL Google Spreadsheet harus diakhiri dengan &quot;gid = {number}&quot;. Salin dan tempel URL dari bilah alamat browser dan coba lagi."
 
 #. Label of a HTML field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -14303,9 +13958,7 @@ msgstr "Bantuan Pencarian"
 #. Description of a Text Editor field in DocType 'Note'
 #: desk/doctype/note/note.json
 msgctxt "Note"
-msgid ""
-"Help: To link to another record in the system, use \"/app/note/[Note "
-"Name]\" as the Link URL. (don't use \"http://\")"
+msgid "Help: To link to another record in the system, use \"/app/note/[Note Name]\" as the Link URL. (don't use \"http://\")"
 msgstr ""
 
 #. Label of a Int field in DocType 'Help Article'
@@ -14691,12 +14344,8 @@ msgstr "Batas tarif per jam untuk membuat tautan pengaturan ulang kata sandi"
 #. Description of a Select field in DocType 'Currency'
 #: geo/doctype/currency/currency.json
 msgctxt "Currency"
-msgid ""
-"How should this currency be formatted? If not set, will use system "
-"defaults"
-msgstr ""
-"Bagaimana seharusnya mata uang ini akan diformat? Jika tidak diatur, akan"
-" menggunakan default sistem"
+msgid "How should this currency be formatted? If not set, will use system defaults"
+msgstr "Bagaimana seharusnya mata uang ini akan diformat? Jika tidak diatur, akan menggunakan default sistem"
 
 #: core/doctype/data_import/importer.py:1120
 #: core/doctype/data_import/importer.py:1126
@@ -14725,9 +14374,7 @@ msgstr "ID (nama) dari entitas yang properti harus ditetapkan"
 #. Description of a Data field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
 msgctxt "Web Page Block"
-msgid ""
-"IDs must contain only alphanumeric characters, not contain spaces, and "
-"should be unique."
+msgid "IDs must contain only alphanumeric characters, not contain spaces, and should be unique."
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Email Account'
@@ -14852,30 +14499,20 @@ msgstr "idx"
 #. Description of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"If Apply Strict User Permission is checked and User Permission is defined"
-" for a DocType for a User, then all the documents where value of the link"
-" is blank, will not be shown to that User"
-msgstr ""
-"Jika Menerapkan Izin Pengguna yang Ketik dicentang dan Izin Pengguna "
-"ditetapkan untuk DocType untuk Pengguna, maka semua dokumen yang nilai "
-"linknya kosong, tidak akan ditampilkan ke User tersebut."
+msgid "If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User"
+msgstr "Jika Menerapkan Izin Pengguna yang Ketik dicentang dan Izin Pengguna ditetapkan untuk DocType untuk Pengguna, maka semua dokumen yang nilai linknya kosong, tidak akan ditampilkan ke User tersebut."
 
 #. Description of a Check field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "If Checked workflow status will not override status in list view"
-msgstr ""
-"Jika dicentang, status alur kerja tidak akan menimpa status di tampilan "
-"daftar"
+msgstr "Jika dicentang, status alur kerja tidak akan menimpa status di tampilan daftar"
 
 #. Description of a Check field in DocType 'Workflow Document State'
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "If Checked workflow status will not override status in list view"
-msgstr ""
-"Jika dicentang, status alur kerja tidak akan menimpa status di tampilan "
-"daftar"
+msgstr "Jika dicentang, status alur kerja tidak akan menimpa status di tampilan daftar"
 
 #: core/doctype/doctype/doctype.py:1706
 msgid "If Owner"
@@ -14890,9 +14527,7 @@ msgstr "Jika dicentang, semua alur kerja lain menjadi tidak aktif."
 #. Description of a Check field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
-msgid ""
-"If checked, negative numeric values of Currency, Quantity or Count would "
-"be shown as positive"
+msgid "If checked, negative numeric values of Currency, Quantity or Count would be shown as positive"
 msgstr ""
 
 #. Description of a Check field in DocType 'OAuth Client'
@@ -14910,32 +14545,20 @@ msgstr "Jika dinonaktifkan, peran ini akan dihapus dari semua pengguna."
 #. Description of a Check field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
-msgid ""
-"If enabled,  user can login from any IP Address using Two Factor Auth, "
-"this can also be set for all users in System Settings"
-msgstr ""
-"Jika diaktifkan, pengguna dapat masuk dari Alamat IP apa pun menggunakan "
-"Two Factor Auth, ini juga dapat diatur untuk semua pengguna di Pengaturan"
-" Sistem"
+msgid "If enabled,  user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings"
+msgstr "Jika diaktifkan, pengguna dapat masuk dari Alamat IP apa pun menggunakan Two Factor Auth, ini juga dapat diatur untuk semua pengguna di Pengaturan Sistem"
 
 #. Description of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"If enabled, all users can login from any IP Address using Two Factor "
-"Auth. This can also be set only for specific user(s) in User Page"
-msgstr ""
-"Jika diaktifkan, semua pengguna dapat masuk dari Alamat IP apa pun "
-"menggunakan Autentikasi Dua Faktor. Ini juga dapat diatur hanya untuk "
-"pengguna tertentu di Halaman Pengguna"
+msgid "If enabled, all users can login from any IP Address using Two Factor Auth. This can also be set only for specific user(s) in User Page"
+msgstr "Jika diaktifkan, semua pengguna dapat masuk dari Alamat IP apa pun menggunakan Autentikasi Dua Faktor. Ini juga dapat diatur hanya untuk pengguna tertentu di Halaman Pengguna"
 
 #. Description of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "If enabled, changes to the document are tracked and shown in timeline"
-msgstr ""
-"Jika diaktifkan, perubahan pada dokumen dilacak dan ditampilkan dalam "
-"timeline"
+msgstr "Jika diaktifkan, perubahan pada dokumen dilacak dan ditampilkan dalam timeline"
 
 #. Description of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -14947,50 +14570,31 @@ msgstr "Jika diaktifkan, tampilan dokumen dilacak, ini dapat terjadi beberapa ka
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "If enabled, the document is marked as seen, the first time a user opens it"
-msgstr ""
-"Jika diaktifkan, dokumen ditandai sebagai terlihat, pertama kali pengguna"
-" membukanya"
+msgstr "Jika diaktifkan, dokumen ditandai sebagai terlihat, pertama kali pengguna membukanya"
 
 #. Description of a Check field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
-msgid ""
-"If enabled, the notification will show up in the notifications dropdown "
-"on the top right corner of the navigation bar."
-msgstr ""
-"Jika diaktifkan, notifikasi akan muncul di drop-down notifikasi di sudut "
-"kanan atas bilah navigasi."
+msgid "If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar."
+msgstr "Jika diaktifkan, notifikasi akan muncul di drop-down notifikasi di sudut kanan atas bilah navigasi."
 
 #. Description of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"If enabled, the password strength will be enforced based on the Minimum "
-"Password Score value. A value of 2 being medium strong and 4 being very "
-"strong."
-msgstr ""
-"Jika diaktifkan, kekuatan kata sandi akan diberlakukan berdasarkan nilai "
-"Skor Minimum Kata Sandi. Nilai 2 menjadi medium kuat dan 4 sangat kuat."
+msgid "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong."
+msgstr "Jika diaktifkan, kekuatan kata sandi akan diberlakukan berdasarkan nilai Skor Minimum Kata Sandi. Nilai 2 menjadi medium kuat dan 4 sangat kuat."
 
 #. Description of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"If enabled, users who login from Restricted IP Address, won't be prompted"
-" for Two Factor Auth"
-msgstr ""
-"Jika diaktifkan, pengguna yang masuk dari Alamat IP Terbatas, tidak akan "
-"diminta untuk Autentikasi Dua Faktor"
+msgid "If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth"
+msgstr "Jika diaktifkan, pengguna yang masuk dari Alamat IP Terbatas, tidak akan diminta untuk Autentikasi Dua Faktor"
 
 #. Description of a Check field in DocType 'Note'
 #: desk/doctype/note/note.json
 msgctxt "Note"
-msgid ""
-"If enabled, users will be notified every time they login. If not enabled,"
-" users will only be notified once."
-msgstr ""
-"Jika diaktifkan, pengguna akan diberitahu setiap kali mereka login. Jika "
-"tidak diaktifkan, pengguna hanya akan diberitahu satu kali."
+msgid "If enabled, users will be notified every time they login. If not enabled, users will only be notified once."
+msgstr "Jika diaktifkan, pengguna akan diberitahu setiap kali mereka login. Jika tidak diaktifkan, pengguna hanya akan diberitahu satu kali."
 
 #. Description of a Data field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
@@ -15002,9 +14606,7 @@ msgstr "Jika port non standar (misalnya 587)"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "If non standard port (e.g. 587). If on Google Cloud, try port 2525."
-msgstr ""
-"Jika port non standar (misalnya 587). Jika di Google Cloud, coba port "
-"2525."
+msgstr "Jika port non standar (misalnya 587). Jika di Google Cloud, coba port 2525."
 
 #. Description of a Data field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -15027,29 +14629,20 @@ msgstr "Jika tidak diset, presisi mata uang akan tergantung pada format angka"
 #. Description of a Table field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
-msgid ""
-"If set, only user with these roles can access this chart. If not set, "
-"DocType or Report permissions will be used."
+msgid "If set, only user with these roles can access this chart. If not set, DocType or Report permissions will be used."
 msgstr ""
 
 #. Description of a Code field in DocType 'Energy Point Rule'
 #: social/doctype/energy_point_rule/energy_point_rule.json
 msgctxt "Energy Point Rule"
-msgid ""
-"If the condition is satisfied user will be rewarded with the points. eg. "
-"doc.status == 'Closed'\n"
+msgid "If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'\n"
 msgstr ""
 
 #. Description of a Link field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
-msgid ""
-"If the user has any role checked, then the user becomes a \"System "
-"User\". \"System User\" has access to the desktop"
-msgstr ""
-"Jika pengguna memiliki peran apapun diperiksa, maka pengguna menjadi "
-"&quot;Sistem Pengguna&quot;. &quot;Sistem Pengguna&quot; memiliki akses "
-"ke desktop"
+msgid "If the user has any role checked, then the user becomes a \"System User\". \"System User\" has access to the desktop"
+msgstr "Jika pengguna memiliki peran apapun diperiksa, maka pengguna menjadi &quot;Sistem Pengguna&quot;. &quot;Sistem Pengguna&quot; memiliki akses ke desktop"
 
 #. Description of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -15082,17 +14675,11 @@ msgid "If user is the owner"
 msgstr "Jika pengguna adalah pemilik"
 
 #: core/doctype/data_export/exporter.py:206
-msgid ""
-"If you are updating, please select \"Overwrite\" else existing rows will "
-"not be deleted."
-msgstr ""
-"Jika Anda memperbarui, silahkan pilih \"Overwrite\" baris lain yang ada "
-"tidak akan dihapus."
+msgid "If you are updating, please select \"Overwrite\" else existing rows will not be deleted."
+msgstr "Jika Anda memperbarui, silahkan pilih \"Overwrite\" baris lain yang ada tidak akan dihapus."
 
 #: core/doctype/data_export/exporter.py:190
-msgid ""
-"If you are uploading new records, \"Naming Series\" becomes mandatory, if"
-" present."
+msgid "If you are uploading new records, \"Naming Series\" becomes mandatory, if present."
 msgstr "Jika Anda mengunggah data baru, \"Seri Penamaan\" menjadi wajib, jika ada."
 
 #: core/doctype/data_export/exporter.py:187
@@ -15100,9 +14687,7 @@ msgid "If you are uploading new records, leave the \"name\" (ID) column blank."
 msgstr "Jika Anda mengunggah catatan baru, biarkan kolom \"nama\" (ID) kosong."
 
 #: utils/password.py:200
-msgid ""
-"If you have recently restored the site you may need to copy the site "
-"config contaning original Encryption Key."
+msgid "If you have recently restored the site you may need to copy the site config contaning original Encryption Key."
 msgstr ""
 
 #: core/doctype/doctype/doctype.js:80
@@ -15112,30 +14697,18 @@ msgstr ""
 #. Description of a Select field in DocType 'Top Bar Item'
 #: website/doctype/top_bar_item/top_bar_item.json
 msgctxt "Top Bar Item"
-msgid ""
-"If you set this, this Item will come in a drop-down under the selected "
-"parent."
-msgstr ""
-"Jika Anda mengatur ini, item ini akan datang dalam drop-down di bawah "
-"induk yang dipilih."
+msgid "If you set this, this Item will come in a drop-down under the selected parent."
+msgstr "Jika Anda mengatur ini, item ini akan datang dalam drop-down di bawah induk yang dipilih."
 
 #: templates/emails/administrator_logged_in.html:3
-msgid ""
-"If you think this is unauthorized, please change the Administrator "
-"password."
-msgstr ""
-"Jika Anda pikir ini adalah tidak sah, silakan mengubah password "
-"Administrator."
+msgid "If you think this is unauthorized, please change the Administrator password."
+msgstr "Jika Anda pikir ini adalah tidak sah, silakan mengubah password Administrator."
 
 #. Description of a Code field in DocType 'Translation'
 #: core/doctype/translation/translation.json
 msgctxt "Translation"
-msgid ""
-"If your data is in HTML, please copy paste the exact HTML code with the "
-"tags."
-msgstr ""
-"Jika data Anda di HTML, silahkan copy paste kode HTML yang tepat dengan "
-"tag."
+msgid "If your data is in HTML, please copy paste the exact HTML code with the tags."
+msgstr "Jika data Anda di HTML, silahkan copy paste kode HTML yang tepat dengan tag."
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -15452,11 +15025,7 @@ msgstr "Dalam berhari-hari"
 
 #. Description of the Onboarding Step 'Setup Limited Access for a User'
 #: custom/onboarding_step/role_permissions/role_permissions.json
-msgid ""
-"In ERPNext, you can add your Employees as Users, and give them restricted"
-" access. Tools like Role Permission and User Permission allow you to "
-"define rules which give restricted access to the user to masters and "
-"transactions."
+msgid "In ERPNext, you can add your Employees as Users, and give them restricted access. Tools like Role Permission and User Permission allow you to define rules which give restricted access to the user to masters and transactions."
 msgstr ""
 
 #. Label of a Check field in DocType 'Customize Form Field'
@@ -15567,12 +15136,7 @@ msgstr "Di Standard Filter"
 
 #. Description of the Onboarding Step 'Generate Custom Reports'
 #: custom/onboarding_step/report_builder/report_builder.json
-msgid ""
-"In each module, you will find a host of single-click reports, ranging "
-"from financial statements to sales and purchase analytics and stock "
-"tracking reports. If a required new report is not available out-of-the-"
-"box, you can create custom reports in ERPNext by pulling values from the "
-"same multiple ERPNext tables.\n"
+msgid "In each module, you will find a host of single-click reports, ranging from financial statements to sales and purchase analytics and stock tracking reports. If a required new report is not available out-of-the-box, you can create custom reports in ERPNext by pulling values from the same multiple ERPNext tables.\n"
 msgstr ""
 
 #. Description of a Float field in DocType 'Print Settings'
@@ -15818,12 +15382,8 @@ msgid "Insert After cannot be set as {0}"
 msgstr "Masukkan Setelah tidak dapat ditetapkan sebagai {0}"
 
 #: custom/doctype/custom_field/custom_field.py:242
-msgid ""
-"Insert After field '{0}' mentioned in Custom Field '{1}', with label "
-"'{2}', does not exist"
-msgstr ""
-"Masukkan Setelah bidang &#39;{0}&#39; disebutkan dalam Custom Field "
-"&#39;{1}&#39;, dengan label &#39;{2}&#39;, tidak ada"
+msgid "Insert After field '{0}' mentioned in Custom Field '{1}', with label '{2}', does not exist"
+msgstr "Masukkan Setelah bidang &#39;{0}&#39; disebutkan dalam Custom Field &#39;{1}&#39;, dengan label &#39;{2}&#39;, tidak ada"
 
 #: public/js/frappe/views/reports/report_view.js:364
 msgid "Insert Column Before {0}"
@@ -15959,9 +15519,7 @@ msgstr "Integrasi"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Integrations can use this field to set email delivery status"
-msgstr ""
-"Integrasi dapat menggunakan kolom ini untuk menetapkan status pengiriman "
-"surel"
+msgstr "Integrasi dapat menggunakan kolom ini untuk menetapkan status pengiriman surel"
 
 #. Option for a Select field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -16083,9 +15641,7 @@ msgid "Invalid File URL"
 msgstr ""
 
 #: public/js/form_builder/store.js:216
-msgid ""
-"Invalid Filter Format for field {0} of type {1}. Try using filter icon on"
-" the field to set it correctly"
+msgid "Invalid Filter Format for field {0} of type {1}. Try using filter icon on the field to set it correctly"
 msgstr ""
 
 #: utils/dashboard.py:61
@@ -16165,9 +15721,7 @@ msgstr "URL tidak valid"
 
 #: email/receive.py:150
 msgid "Invalid User Name or Support Password. Please rectify and try again."
-msgstr ""
-"Valid Nama Pengguna atau Dukungan Password. Harap memperbaiki dan coba "
-"lagi."
+msgstr "Valid Nama Pengguna atau Dukungan Password. Harap memperbaiki dan coba lagi."
 
 #: integrations/doctype/webhook/webhook.py:116
 msgid "Invalid Webhook Secret"
@@ -16630,9 +16184,7 @@ msgstr ""
 
 #: core/doctype/file/utils.py:155 utils/file_manager.py:315
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
-msgstr ""
-"Hal ini berisiko untuk menghapus file ini: {0}. Silahkan hubungi System "
-"Manager Anda."
+msgstr "Hal ini berisiko untuk menghapus file ini: {0}. Silahkan hubungi System Manager Anda."
 
 #. Label of a Data field in DocType 'Navbar Item'
 #: core/doctype/navbar_item/navbar_item.json
@@ -17008,9 +16560,7 @@ msgid "LDAP Search String"
 msgstr "LDAP Cari String"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:127
-msgid ""
-"LDAP Search String must be enclosed in '()' and needs to contian the user"
-" placeholder {0}, eg sAMAccountName={0}"
+msgid "LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
@@ -17527,9 +17077,7 @@ msgid "Length"
 msgstr "Panjangnya"
 
 #: public/js/frappe/ui/chart.js:11
-msgid ""
-"Length of passed data array is greater than value of maximum allowed "
-"label points!"
+msgid "Length of passed data array is greater than value of maximum allowed label points!"
 msgstr ""
 
 #: database/schema.py:133
@@ -17635,12 +17183,8 @@ msgid "Level"
 msgstr "Level"
 
 #: core/page/permission_manager/permission_manager.js:450
-msgid ""
-"Level 0 is for document level permissions, higher levels for field level "
-"permissions."
-msgstr ""
-"Level 0 untuk izin tingkat dokumen, tingkat yang lebih tinggi untuk izin "
-"tingkat bidang."
+msgid "Level 0 is for document level permissions, higher levels for field level permissions."
+msgstr "Level 0 untuk izin tingkat dokumen, tingkat yang lebih tinggi untuk izin tingkat bidang."
 
 #. Label of a Data field in DocType 'Review Level'
 #: social/doctype/review_level/review_level.json
@@ -17945,20 +17489,14 @@ msgstr ""
 #. Description of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
-msgid ""
-"Link that is the website home page. Standard Links (home, login, "
-"products, blog, about, contact)"
+msgid "Link that is the website home page. Standard Links (home, login, products, blog, about, contact)"
 msgstr ""
 
 #. Description of a Data field in DocType 'Top Bar Item'
 #: website/doctype/top_bar_item/top_bar_item.json
 msgctxt "Top Bar Item"
-msgid ""
-"Link to the page you want to open. Leave blank if you want to make it a "
-"group parent."
-msgstr ""
-"Link ke halaman yang ingin Anda buka. Kosongkan jika Anda ingin "
-"membuatnya kelompok orang tua."
+msgid "Link to the page you want to open. Leave blank if you want to make it a group parent."
+msgstr "Link ke halaman yang ingin Anda buka. Kosongkan jika Anda ingin membuatnya kelompok orang tua."
 
 #. Option for a Select field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
@@ -18094,17 +17632,13 @@ msgstr "Daftar jenis dokumen"
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
-msgstr ""
-"Daftar sebagai [{ &quot;label&quot;: _ ( &quot;Jobs&quot;), "
-"&quot;rute&quot;: &quot;pekerjaan&quot;}]"
+msgstr "Daftar sebagai [{ &quot;label&quot;: _ ( &quot;Jobs&quot;), &quot;rute&quot;: &quot;pekerjaan&quot;}]"
 
 #. Description of a Code field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
-msgstr ""
-"Daftar sebagai [{ &quot;label&quot;: _ ( &quot;Jobs&quot;), "
-"&quot;rute&quot;: &quot;pekerjaan&quot;}]"
+msgstr "Daftar sebagai [{ &quot;label&quot;: _ ( &quot;Jobs&quot;), &quot;rute&quot;: &quot;pekerjaan&quot;}]"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:526
 msgid "Lists"
@@ -18276,9 +17810,7 @@ msgid "Login and view in Browser"
 msgstr "Login dan lihat di Browser"
 
 #: website/doctype/web_form/web_form.js:358
-msgid ""
-"Login is required to see web form list view. Enable {0} to see list "
-"settings"
+msgid "Login is required to see web form list view. Enable {0} to see list settings"
 msgstr ""
 
 #: auth.py:322 auth.py:325
@@ -18477,9 +18009,7 @@ msgstr ""
 #. Description of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"Make sure to configure a Social Login Key before disabling to prevent "
-"lockout"
+msgid "Make sure to configure a Social Login Key before disabling to prevent lockout"
 msgstr ""
 
 #: utils/password_strength.py:94
@@ -18599,12 +18129,8 @@ msgstr "Kolom Peta"
 #. Description of a Check field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
-msgid ""
-"Map route parameters into form variables. Example "
-"<code>/project/&lt;name&gt;</code>"
-msgstr ""
-"Petakan parameter rute ke dalam variabel formulir. Contoh "
-"<code>/project/&lt;name&gt;</code>"
+msgid "Map route parameters into form variables. Example <code>/project/&lt;name&gt;</code>"
+msgstr "Petakan parameter rute ke dalam variabel formulir. Contoh <code>/project/&lt;name&gt;</code>"
 
 #: core/doctype/data_import/importer.py:877
 msgid "Mapping column {0} to field {1}"
@@ -18799,8 +18325,7 @@ msgstr ""
 #: social/doctype/energy_point_rule/energy_point_rule.json
 msgctxt "Energy Point Rule"
 msgid ""
-"Maximum points allowed after multiplying points with the multiplier value"
-"\n"
+"Maximum points allowed after multiplying points with the multiplier value\n"
 "(Note: For no limit leave this field empty or set 0)"
 msgstr ""
 
@@ -18876,9 +18401,7 @@ msgstr "Merger dengan yang ada"
 
 #: utils/nestedset.py:310
 msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
-msgstr ""
-"Penggabungan ini hanya mungkin antara kelompok-to-Grup atau Leaf Node-to-"
-"Leaf Node"
+msgstr "Penggabungan ini hanya mungkin antara kelompok-to-Grup atau Leaf Node-to-Leaf Node"
 
 #: public/js/frappe/ui/messages.js:175
 #: public/js/frappe/views/communication.js:110 www/message.html:3
@@ -19728,9 +19251,7 @@ msgstr ""
 #. Description of a Data field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgctxt "Form Tour Step"
-msgid ""
-"Mozilla doesn't support :has() so you can pass parent selector here as "
-"workaround"
+msgid "Mozilla doesn't support :has() so you can pass parent selector here as workaround"
 msgstr ""
 
 #: utils/nestedset.py:334
@@ -19752,9 +19273,7 @@ msgstr "Harus berupa URL Google Spreadsheet yang dapat diakses publik"
 #. Description of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
-msgid ""
-"Must be enclosed in '()' and include '{0}', which is a placeholder for "
-"the user/login name. i.e. (&(objectclass=user)(uid={0}))"
+msgid "Must be enclosed in '()' and include '{0}', which is a placeholder for the user/login name. i.e. (&(objectclass=user)(uid={0}))"
 msgstr ""
 
 #. Description of a Data field in DocType 'Customize Form'
@@ -19809,18 +19328,13 @@ msgid "MyISAM"
 msgstr "MyISAM"
 
 #: workflow/doctype/workflow/workflow.js:19
-msgid ""
-"NOTE: If you add states or transitions in the table, it will be reflected"
-" in the Workflow Builder but you will have to position them manually. "
-"Also Workflow Builder is currently in <b>BETA</b>."
+msgid "NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
 msgstr ""
 
 #. Description of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
-msgid ""
-"NOTE: This box is due for depreciation. Please re-setup LDAP to work with"
-" the newer settings"
+msgid "NOTE: This box is due for depreciation. Please re-setup LDAP to work with the newer settings"
 msgstr ""
 
 #: public/js/frappe/form/layout.js:75
@@ -19864,12 +19378,8 @@ msgid "Name cannot contain special characters like {0}"
 msgstr "Nama tidak boleh berisi karakter khusus seperti {0}"
 
 #: custom/doctype/custom_field/custom_field.js:91
-msgid ""
-"Name of the Document Type (DocType) you want this field to be linked to. "
-"e.g. Customer"
-msgstr ""
-"Nama Tipe Dokumen (DocType) Anda ingin bidang ini dapat dihubungkan "
-"dengan. misalnya Pelanggan"
+msgid "Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer"
+msgstr "Nama Tipe Dokumen (DocType) Anda ingin bidang ini dapat dihubungkan dengan. misalnya Pelanggan"
 
 #: printing/page/print_format_builder/print_format_builder.js:117
 msgid "Name of the new Print Format"
@@ -19906,15 +19416,8 @@ msgstr "Penamaan"
 msgctxt "DocType"
 msgid ""
 "Naming Options:\n"
-"<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>autoincrement</b> "
-"- Uses Databases' Auto Increment feature</li><li><b>naming_series:</b> - "
-"By Naming Series (field called naming_series must be "
-"present)</li><li><b>Prompt</b> - Prompt user for a "
-"name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for"
-" example PRE.#####</li>\n"
-"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> "
-"- Replace all braced words (fieldnames, date words (DD, MM, YY), series) "
-"with their value. Outside braces, any characters can be used.</li></ol>"
+"<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>autoincrement</b> - Uses Databases' Auto Increment feature</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present)</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n"
+"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>"
 msgstr ""
 
 #. Description of a Data field in DocType 'Customize Form'
@@ -19922,14 +19425,8 @@ msgstr ""
 msgctxt "Customize Form"
 msgid ""
 "Naming Options:\n"
-"<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b>"
-" - By Naming Series (field called naming_series must be "
-"present)</li><li><b>Prompt</b> - Prompt user for a "
-"name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for"
-" example PRE.#####</li>\n"
-"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> "
-"- Replace all braced words (fieldnames, date words (DD, MM, YY), series) "
-"with their value. Outside braces, any characters can be used.</li></ol>"
+"<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present)</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n"
+"<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>"
 msgstr ""
 
 #. Label of a Select field in DocType 'Customize Form'
@@ -20534,24 +20031,16 @@ msgid "No data to export"
 msgstr "Tidak ada data untuk diekspor"
 
 #: contacts/doctype/address/address.py:251
-msgid ""
-"No default Address Template found. Please create a new one from Setup > "
-"Printing and Branding > Address Template."
-msgstr ""
-"Templat Alamat default tidak ditemukan. Harap buat yang baru dari "
-"Setup&gt; Printing and Branding&gt; Address Template."
+msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
+msgstr "Templat Alamat default tidak ditemukan. Harap buat yang baru dari Setup&gt; Printing and Branding&gt; Address Template."
 
 #: public/js/frappe/ui/toolbar/search.js:71
 msgid "No documents found tagged with {0}"
 msgstr "Tidak ditemukan dokumen yang ditandai dengan {0}"
 
 #: public/js/frappe/views/inbox/inbox_view.js:21
-msgid ""
-"No email account associated with the User. Please add an account under "
-"User > Email Inbox."
-msgstr ""
-"Tidak ada akun email yang dikaitkan dengan Pengguna. Silakan tambahkan "
-"akun di bawah Pengguna&gt; Kotak Masuk Email."
+msgid "No email account associated with the User. Please add an account under User > Email Inbox."
+msgstr "Tidak ada akun email yang dikaitkan dengan Pengguna. Silakan tambahkan akun di bawah Pengguna&gt; Kotak Masuk Email."
 
 #: utils/file_manager.py:143
 msgid "No file attached"
@@ -20809,12 +20298,8 @@ msgid "Not allowed for {0}: {1}"
 msgstr "Tidak diizinkan untuk {0}: {1}"
 
 #: email/doctype/notification/notification.py:388
-msgid ""
-"Not allowed to attach {0} document, please enable Allow Print For {0} in "
-"Print Settings"
-msgstr ""
-"Tidak diizinkan melampirkan dokumen {0}, harap aktifkan Izinkan "
-"Pencetakan Untuk {0} di Setelan Cetak"
+msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
+msgstr "Tidak diizinkan melampirkan dokumen {0}, harap aktifkan Izinkan Pencetakan Untuk {0} di Setelan Cetak"
 
 #: core/doctype/doctype/doctype.py:338
 msgid "Not allowed to create custom Virtual DocType."
@@ -20842,9 +20327,7 @@ msgstr "Tidak dalam Mode Developer"
 
 #: core/doctype/doctype/doctype.py:332
 msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
-msgstr ""
-"Tidak dalam Mode Pengembang! Diatur dalam site_config.json atau membuat "
-"DOCTYPE 'Custom'."
+msgstr "Tidak dalam Mode Pengembang! Diatur dalam site_config.json atau membuat DOCTYPE 'Custom'."
 
 #: api/v1.py:88 api/v1.py:93
 #: core/doctype/system_settings/system_settings.py:199 handler.py:109
@@ -20894,9 +20377,7 @@ msgstr "Catatan: Secara default email untuk cadangan gagal dikirim."
 
 #: public/js/frappe/utils/utils.js:775
 msgid "Note: Changing the Page Name will break previous URL to this page."
-msgstr ""
-"Catatan: Mengubah Nama Halaman akan mematahkan URL sebelumnya ke halaman "
-"ini."
+msgstr "Catatan: Mengubah Nama Halaman akan mematahkan URL sebelumnya ke halaman ini."
 
 #: core/doctype/user/user.js:25
 msgid "Note: Etc timezones have their signs reversed."
@@ -20905,12 +20386,8 @@ msgstr ""
 #. Description of a Section Break field in DocType 'Website Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
 msgctxt "Website Slideshow"
-msgid ""
-"Note: For best results,  images must be of the same size and width must "
-"be greater than height."
-msgstr ""
-"Catatan: Untuk hasil terbaik, gambar harus memiliki ukuran dan lebar yang"
-" sama harus lebih besar dari tinggi."
+msgid "Note: For best results,  images must be of the same size and width must be greater than height."
+msgstr "Catatan: Untuk hasil terbaik, gambar harus memiliki ukuran dan lebar yang sama harus lebih besar dari tinggi."
 
 #. Description of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -20919,9 +20396,7 @@ msgid "Note: Multiple sessions will be allowed in case of mobile device"
 msgstr "Catatan: Beberapa sesi akan diizinkan dalam kasus perangkat mobile"
 
 #: website/web_form/request_to_delete_data/request_to_delete_data.js:8
-msgid ""
-"Note: Your request for account deletion will be fulfilled within {0} "
-"hours."
+msgid "Note: Your request for account deletion will be fulfilled within {0} hours."
 msgstr ""
 
 #: core/doctype/data_export/exporter.py:183
@@ -21157,39 +20632,25 @@ msgstr ""
 #. Description of a Int field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
-msgid ""
-"Number of columns for a field in a Grid (Total Columns in a grid should "
-"be less than 11)"
-msgstr ""
-"Jumlah kolom untuk lapangan di Grid (Jumlah Kolom dalam kotak harus "
-"kurang dari 11)"
+msgid "Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)"
+msgstr "Jumlah kolom untuk lapangan di Grid (Jumlah Kolom dalam kotak harus kurang dari 11)"
 
 #. Description of a Int field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
-msgid ""
-"Number of columns for a field in a List View or a Grid (Total Columns "
-"should be less than 11)"
-msgstr ""
-"Jumlah kolom untuk bidang dalam Daftar View atau Grid (Jumlah Kolom harus"
-" kurang dari 11)"
+msgid "Number of columns for a field in a List View or a Grid (Total Columns should be less than 11)"
+msgstr "Jumlah kolom untuk bidang dalam Daftar View atau Grid (Jumlah Kolom harus kurang dari 11)"
 
 #. Description of a Int field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
-msgid ""
-"Number of columns for a field in a List View or a Grid (Total Columns "
-"should be less than 11)"
-msgstr ""
-"Jumlah kolom untuk bidang dalam Daftar View atau Grid (Jumlah Kolom harus"
-" kurang dari 11)"
+msgid "Number of columns for a field in a List View or a Grid (Total Columns should be less than 11)"
+msgstr "Jumlah kolom untuk bidang dalam Daftar View atau Grid (Jumlah Kolom harus kurang dari 11)"
 
 #. Description of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"Number of days after which the document Web View link shared on email "
-"will be expired"
+msgid "Number of days after which the document Web View link shared on email will be expired"
 msgstr ""
 
 #. Option for a Select field in DocType 'Email Account'
@@ -21246,9 +20707,7 @@ msgid "OAuth Scope"
 msgstr ""
 
 #: email/doctype/email_account/email_account.js:187
-msgid ""
-"OAuth has been enabled but not authorised. Please use \"Authorise API "
-"Access\" button to do the same."
+msgid "OAuth has been enabled but not authorised. Please use \"Authorise API Access\" button to do the same."
 msgstr ""
 
 #: templates/includes/oauth_confirmation.html:39
@@ -21279,9 +20738,7 @@ msgstr ""
 
 #: twofactor.py:487
 msgid "OTP Secret has been reset. Re-registration will be required on next login."
-msgstr ""
-"OTP Secret telah di-reset. Registrasi ulang akan diminta pada login "
-"berikutnya."
+msgstr "OTP Secret telah di-reset. Registrasi ulang akan diminta pada login berikutnya."
 
 #. Option for a Select field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -21383,22 +20840,14 @@ msgid "Onboarding complete"
 msgstr ""
 
 #: core/doctype/doctype/doctype_list.js:28
-msgid ""
-"Once submitted, submittable documents cannot be changed. They can only be"
-" Cancelled and Amended."
-msgstr ""
-"Setelah dikirimkan, dokumen yang dapat dikirim tidak dapat diubah. Mereka"
-" hanya dapat Dibatalkan dan Diubah."
+msgid "Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended."
+msgstr "Setelah dikirimkan, dokumen yang dapat dikirim tidak dapat diubah. Mereka hanya dapat Dibatalkan dan Diubah."
 
 #. Description of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
-msgid ""
-"Once submitted, submittable documents cannot be changed. They can only be"
-" Cancelled and Amended."
-msgstr ""
-"Setelah dikirimkan, dokumen yang dapat dikirim tidak dapat diubah. Mereka"
-" hanya dapat Dibatalkan dan Diubah."
+msgid "Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended."
+msgstr "Setelah dikirimkan, dokumen yang dapat dikirim tidak dapat diubah. Mereka hanya dapat Dibatalkan dan Diubah."
 
 #: www/complete_signup.html:7
 msgid "One Last Step"
@@ -21413,9 +20862,7 @@ msgid "One of"
 msgstr "Satu dari"
 
 #: public/js/frappe/views/workspace/workspace.js:1312
-msgid ""
-"One of the child page with name {0} already exist in {1} Section. Please "
-"update the name of the child page first before moving"
+msgid "One of the child page with name {0} already exist in {1} Section. Please update the name of the child page first before moving"
 msgstr ""
 
 #: client.py:213
@@ -21432,9 +20879,7 @@ msgstr "Hanya Administrator dapat mengedit"
 
 #: core/doctype/report/report.py:71
 msgid "Only Administrator can save a standard report. Please rename and save."
-msgstr ""
-"Hanya Administrator dapat menyimpan laporan standar. Silahkan mengubah "
-"nama dan simpan."
+msgstr "Hanya Administrator dapat menyimpan laporan standar. Silahkan mengubah nama dan simpan."
 
 #: recorder.py:234
 msgid "Only Administrator is allowed to use Recorder"
@@ -21471,9 +20916,7 @@ msgstr ""
 #. Description of a Data field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgctxt "S3 Backup Settings"
-msgid ""
-"Only change this if you want to use other S3 compatible object storage "
-"backends."
+msgid "Only change this if you want to use other S3 compatible object storage backends."
 msgstr ""
 
 #. Label of a Link field in DocType 'Workspace Link'
@@ -21483,12 +20926,8 @@ msgid "Only for"
 msgstr ""
 
 #: core/doctype/data_export/exporter.py:194
-msgid ""
-"Only mandatory fields are necessary for new records. You can delete non-"
-"mandatory columns if you wish."
-msgstr ""
-"Hanya bidang wajib diperlukan untuk catatan baru. Anda dapat menghapus "
-"kolom non-wajib jika Anda inginkan."
+msgid "Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish."
+msgstr "Hanya bidang wajib diperlukan untuk catatan baru. Anda dapat menghapus kolom non-wajib jika Anda inginkan."
 
 #: contacts/doctype/contact/contact.py:129
 #: contacts/doctype/contact/contact.py:153
@@ -21730,12 +21169,8 @@ msgid "Options"
 msgstr "Pilihan"
 
 #: core/doctype/doctype/doctype.py:1317
-msgid ""
-"Options 'Dynamic Link' type of field must point to another Link Field "
-"with options as 'DocType'"
-msgstr ""
-"Jenis Options 'Dynamic Link' lapangan harus mengarah ke Link Field lain "
-"dengan pilihan sebagai 'DocType'"
+msgid "Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"
+msgstr "Jenis Options 'Dynamic Link' lapangan harus mengarah ke Link Field lain dengan pilihan sebagai 'DocType'"
 
 #. Label of a HTML field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -22798,9 +22233,7 @@ msgstr "Silakan Gandakan situs ini Tema untuk menyesuaikan."
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:159
 msgid "Please Install the ldap3 library via pip to use ldap functionality."
-msgstr ""
-"Silakan Instal perpustakaan ldap3 melalui pip untuk menggunakan "
-"fungsionalitas ldap."
+msgstr "Silakan Instal perpustakaan ldap3 melalui pip untuk menggunakan fungsionalitas ldap."
 
 #: public/js/frappe/views/reports/query_report.js:307
 msgid "Please Set Chart"
@@ -22859,17 +22292,11 @@ msgid "Please check your email login credentials."
 msgstr ""
 
 #: twofactor.py:246
-msgid ""
-"Please check your registered email address for instructions on how to "
-"proceed. Do not close this window as you will have to return to it."
-msgstr ""
-"Silakan periksa alamat email terdaftar Anda untuk petunjuk cara "
-"melanjutkan. Jangan tutup jendela ini karena Anda harus kembali kesini."
+msgid "Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it."
+msgstr "Silakan periksa alamat email terdaftar Anda untuk petunjuk cara melanjutkan. Jangan tutup jendela ini karena Anda harus kembali kesini."
 
 #: twofactor.py:291
-msgid ""
-"Please click on the following link and follow the instructions on the "
-"page. {0}"
+msgid "Please click on the following link and follow the instructions on the page. {0}"
 msgstr ""
 
 #: templates/emails/password_reset.html:2
@@ -22909,9 +22336,7 @@ msgid "Please duplicate this to make changes"
 msgstr "Silakan duplikat ini untuk membuat perubahan"
 
 #: core/doctype/system_settings/system_settings.py:145
-msgid ""
-"Please enable atleast one Social Login Key or LDAP or Login With Email "
-"Link before disabling username/password based login."
+msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 msgstr ""
 
 #: desk/doctype/notification_log/notification_log.js:45
@@ -23000,12 +22425,8 @@ msgid "Please login to post a comment."
 msgstr ""
 
 #: core/doctype/communication/communication.py:210
-msgid ""
-"Please make sure the Reference Communication Docs are not circularly "
-"linked."
-msgstr ""
-"Harap pastikan Dokumen Komunikasi Referensi tidak terhubung secara "
-"sirkuler."
+msgid "Please make sure the Reference Communication Docs are not circularly linked."
+msgstr "Harap pastikan Dokumen Komunikasi Referensi tidak terhubung secara sirkuler."
 
 #: model/document.py:810
 msgid "Please refresh to get the latest document."
@@ -23123,21 +22544,15 @@ msgstr ""
 
 #: desk/doctype/dashboard/dashboard.py:125
 msgid "Please set the following documents in this Dashboard as standard first."
-msgstr ""
-"Harap tetapkan dokumen berikut di Dasbor ini sebagai standar terlebih "
-"dahulu."
+msgstr "Harap tetapkan dokumen berikut di Dasbor ini sebagai standar terlebih dahulu."
 
 #: core/doctype/document_naming_settings/document_naming_settings.py:121
 msgid "Please set the series to be used."
 msgstr "Silakan mengatur seri yang akan digunakan."
 
 #: core/doctype/system_settings/system_settings.py:116
-msgid ""
-"Please setup SMS before setting it as an authentication method, via SMS "
-"Settings"
-msgstr ""
-"Tolong atur SMS sebelum menyetelnya sebagai metode otentikasi, melalui "
-"Pengaturan SMS"
+msgid "Please setup SMS before setting it as an authentication method, via SMS Settings"
+msgstr "Tolong atur SMS sebelum menyetelnya sebagai metode otentikasi, melalui Pengaturan SMS"
 
 #: automation/doctype/auto_repeat/auto_repeat.js:102
 msgid "Please setup a message first"
@@ -23342,9 +22757,7 @@ msgstr "Presisi harus antara 1 dan 6"
 
 #: utils/password_strength.py:191
 msgid "Predictable substitutions like '@' instead of 'a' don't help very much."
-msgstr ""
-"substitusi diprediksi seperti &#39;@&#39; bukan &#39;a&#39; tidak "
-"membantu banyak."
+msgstr "substitusi diprediksi seperti &#39;@&#39; bukan &#39;a&#39; tidak membantu banyak."
 
 #. Label of a Check field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -23632,10 +23045,7 @@ msgstr "Cetak Format {0} dinonaktifkan"
 
 #. Description of the Onboarding Step 'Customize Print Formats'
 #: custom/onboarding_step/print_format/print_format.json
-msgid ""
-"Print Formats allow you can define looks for documents when printed or "
-"converted to PDF. You can also create a custom Print Format using drag-"
-"and-drop tools."
+msgid "Print Formats allow you can define looks for documents when printed or converted to PDF. You can also create a custom Print Format using drag-and-drop tools."
 msgstr ""
 
 #. Name of a DocType
@@ -23864,12 +23274,8 @@ msgstr "Swasta"
 #. Description of a Text Editor field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
-msgid ""
-"ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name "
-"}}</code> to send document reference"
-msgstr ""
-"Protip: Tambahkan <code>Reference: {{ reference_doctype }} {{ "
-"reference_name }}</code> referensi dokumen untuk mengirim"
+msgid "ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference"
+msgstr "Protip: Tambahkan <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> referensi dokumen untuk mengirim"
 
 #: core/doctype/document_naming_rule/document_naming_rule.js:22
 msgid "Proceed"
@@ -23939,10 +23345,7 @@ msgstr "Jenis properti"
 #. Description of a Small Text field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"Provide a list of allowed file extensions for file uploads. Each line "
-"should contain one allowed file type. If unset, all file extensions are "
-"allowed. Example: <br>CSV<br>JPG<br>PNG"
+msgid "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG"
 msgstr ""
 
 #. Label of a Data field in DocType 'User Social Login'
@@ -24318,9 +23721,7 @@ msgstr ""
 #: integrations/doctype/google_drive/google_drive.py:156
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.py:81
 msgid "Queued for backup. It may take a few minutes to an hour."
-msgstr ""
-"Diantrikan untuk dicadangan. Mungkin memakan waktu beberapa menit sampai "
-"satu jam."
+msgstr "Diantrikan untuk dicadangan. Mungkin memakan waktu beberapa menit sampai satu jam."
 
 #: desk/page/backups/backups.py:96
 msgid "Queued for backup. You will receive an email with the download link"
@@ -24797,12 +24198,8 @@ msgid "Redirects"
 msgstr ""
 
 #: sessions.py:148
-msgid ""
-"Redis cache server not running. Please contact Administrator / Tech "
-"support"
-msgstr ""
-"Cache server Redis tidak berjalan. Silahkan hubungi Administrator / "
-"dukungan Tech"
+msgid "Redis cache server not running. Please contact Administrator / Tech support"
+msgstr "Cache server Redis tidak berjalan. Silahkan hubungi Administrator / dukungan Tech"
 
 #: public/js/frappe/form/toolbar.js:462
 msgid "Redo"
@@ -25480,9 +24877,7 @@ msgstr "Mengulangi seperti &quot;aaa&quot; mudah ditebak"
 
 #: utils/password_strength.py:107
 msgid "Repeats like \"abcabcabc\" are only slightly harder to guess than \"abc\""
-msgstr ""
-"Mengulangi seperti &quot;abcabcabc&quot; hanya sedikit lebih sulit untuk "
-"menebak dari &quot;abc&quot;"
+msgstr "Mengulangi seperti &quot;abcabcabc&quot; hanya sedikit lebih sulit untuk menebak dari &quot;abc&quot;"
 
 #: public/js/frappe/form/sidebar/form_sidebar.js:135
 msgid "Repeats {0}"
@@ -25701,9 +25096,7 @@ msgid "Report Name"
 msgstr "Nama Laporan"
 
 #: desk/doctype/number_card/number_card.py:65
-msgid ""
-"Report Name, Report Field and Fucntion are required to create a number "
-"card"
+msgid "Report Name, Report Field and Fucntion are required to create a number card"
 msgstr ""
 
 #. Label of a Data field in DocType 'Onboarding Step'
@@ -25737,9 +25130,7 @@ msgstr "Laporan tidak dapat ditetapkan untuk jenis Tunggal"
 #: desk/doctype/dashboard_chart/dashboard_chart.js:208
 #: desk/doctype/number_card/number_card.js:191
 msgid "Report has no data, please modify the filters or change the Report Name"
-msgstr ""
-"Laporan tidak memiliki data, harap modifikasi filter atau ubah Nama "
-"Laporan"
+msgstr "Laporan tidak memiliki data, harap modifikasi filter atau ubah Nama Laporan"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:196
 #: desk/doctype/number_card/number_card.js:186
@@ -25768,9 +25159,7 @@ msgstr "Laporan tidak disimpan (ada kesalahan)"
 
 #: public/js/frappe/views/reports/query_report.js:1831
 msgid "Report with more than 10 columns looks better in Landscape mode."
-msgstr ""
-"Laporan dengan lebih dari 10 kolom terlihat lebih baik dalam mode "
-"Lansekap."
+msgstr "Laporan dengan lebih dari 10 kolom terlihat lebih baik dalam mode Lansekap."
 
 #: public/js/frappe/ui/toolbar/search_utils.js:235
 #: public/js/frappe/ui/toolbar/search_utils.js:236
@@ -26106,14 +25495,8 @@ msgstr "Batasi ke Domain"
 #. Description of a Small Text field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
-msgid ""
-"Restrict user from this IP address only. Multiple IP addresses can be "
-"added by separating with commas. Also accepts partial IP addresses like "
-"(111.111.111)"
-msgstr ""
-"Membatasi pengguna dari alamat IP ini saja. Beberapa alamat IP dapat "
-"ditambahkan dengan memisahkan dengan koma. Juga menerima alamat IP "
-"parsial seperti (111.111.111)"
+msgid "Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)"
+msgstr "Membatasi pengguna dari alamat IP ini saja. Beberapa alamat IP dapat ditambahkan dengan memisahkan dengan koma. Juga menerima alamat IP parsial seperti (111.111.111)"
 
 #: public/js/frappe/list/list_view.js:172
 msgctxt "Title of message showing restrictions in list view"
@@ -26144,12 +25527,8 @@ msgid "Retry Sending"
 msgstr ""
 
 #: www/qrcode.html:15
-msgid ""
-"Return to the Verification screen and enter the code displayed by your "
-"authentication app"
-msgstr ""
-"Kembali ke layar Verifikasi dan masukkan kode yang ditampilkan oleh "
-"aplikasi autentikasi Anda"
+msgid "Return to the Verification screen and enter the code displayed by your authentication app"
+msgstr "Kembali ke layar Verifikasi dan masukkan kode yang ditampilkan oleh aplikasi autentikasi Anda"
 
 #. Label of a Check field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -26181,12 +25560,8 @@ msgid "Reverted"
 msgstr "Dikembalikan"
 
 #: database/schema.py:162
-msgid ""
-"Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} "
-"will cause truncation of data."
-msgstr ""
-"Mengembalikan panjang ke {0} untuk &#39;{1}&#39; dalam &#39;{2}&#39;. "
-"Menyetel panjang sebagai {3} akan menyebabkan pemotongan data."
+msgid "Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} will cause truncation of data."
+msgstr "Mengembalikan panjang ke {0} untuk &#39;{1}&#39; dalam &#39;{2}&#39;. Menyetel panjang sebagai {3} akan menyebabkan pemotongan data."
 
 #. Option for a Select field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
@@ -26658,9 +26033,7 @@ msgid "Row"
 msgstr "Baris"
 
 #: core/doctype/doctype/doctype.py:1772 core/doctype/doctype/doctype.py:1782
-msgid ""
-"Row # {0}: Non administrator user can not set the role {1} to the custom "
-"doctype"
+msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
 msgstr ""
 
 #: model/base_document.py:868
@@ -26695,9 +26068,7 @@ msgstr "Baris {0}: Tidak diizinkan untuk menonaktifkan Wajib untuk bidang standa
 
 #: custom/doctype/customize_form/customize_form.py:337
 msgid "Row {0}: Not allowed to enable Allow on Submit for standard fields"
-msgstr ""
-"Baris {0}: Tidak diizinkan untuk mengaktifkan Memungkinkan Submit untuk "
-"bidang standar"
+msgstr "Baris {0}: Tidak diizinkan untuk mengaktifkan Memungkinkan Submit untuk bidang standar"
 
 #. Label of a Section Break field in DocType 'Audit Trail'
 #: core/doctype/audit_trail/audit_trail.json
@@ -26736,9 +26107,7 @@ msgid "Rule Name"
 msgstr "Nama aturan"
 
 #: permissions.py:660
-msgid ""
-"Rule for this doctype, role, permlevel and if-owner combination already "
-"exists."
+msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
 msgstr ""
 
 #. Group in DocType's connections
@@ -26756,20 +26125,14 @@ msgstr "Aturan yang mendefinisikan transisi status dalam alur kerja."
 #. Description of a Section Break field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
-msgid ""
-"Rules for how states are transitions, like next state and which role is "
-"allowed to change state etc."
-msgstr ""
-"Aturan untuk bagaimana negara adalah transisi, seperti negara berikutnya "
-"dan mana peran diperbolehkan untuk mengubah keadaan dll"
+msgid "Rules for how states are transitions, like next state and which role is allowed to change state etc."
+msgstr "Aturan untuk bagaimana negara adalah transisi, seperti negara berikutnya dan mana peran diperbolehkan untuk mengubah keadaan dll"
 
 #. Description of a Int field in DocType 'Document Naming Rule'
 #: core/doctype/document_naming_rule/document_naming_rule.json
 msgctxt "Document Naming Rule"
 msgid "Rules with higher priority number will be applied first."
-msgstr ""
-"Aturan dengan nomor prioritas lebih tinggi akan diterapkan terlebih "
-"dahulu."
+msgstr "Aturan dengan nomor prioritas lebih tinggi akan diterapkan terlebih dahulu."
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -27070,9 +26433,7 @@ msgid "Saving Customization..."
 msgstr ""
 
 #: desk/doctype/module_onboarding/module_onboarding.js:8
-msgid ""
-"Saving this will export this document as well as the steps linked here as"
-" json."
+msgid "Saving this will export this document as well as the steps linked here as json."
 msgstr ""
 
 #: public/js/form_builder/store.js:228
@@ -27773,12 +27134,8 @@ msgstr ""
 #. Description of a Attach Image field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
-msgid ""
-"Select an image of approx width 150px with a transparent background for "
-"best results."
-msgstr ""
-"Pilih gambar lebar kira-kira 150px dengan latar belakang transparan untuk"
-" hasil terbaik."
+msgid "Select an image of approx width 150px with a transparent background for best results."
+msgstr "Pilih gambar lebar kira-kira 150px dengan latar belakang transparan untuk hasil terbaik."
 
 #: public/js/frappe/list/bulk_operations.js:34
 msgid "Select atleast 1 record for printing"
@@ -28294,9 +27651,7 @@ msgid "Server Script"
 msgstr "Skrip Server"
 
 #: utils/safe_exec.py:90
-msgid ""
-"Server Scripts are disabled. Please enable server scripts from bench "
-"configuration."
+msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
 msgstr ""
 
 #: core/doctype/server_script/server_script.js:32
@@ -28377,12 +27732,8 @@ msgstr "Setel Bagan"
 #. Description of a Code field in DocType 'Dashboard'
 #: desk/doctype/dashboard/dashboard.json
 msgctxt "Dashboard"
-msgid ""
-"Set Default Options for all charts on this Dashboard (Ex: \"colors\": "
-"[\"#d1d8dd\", \"#ff5858\"])"
-msgstr ""
-"Tetapkan Opsi Default untuk semua bagan di Dasbor ini (Mis: "
-"&quot;warna&quot;: [&quot;# d1d8dd&quot;, &quot;# ff5858&quot;])"
+msgid "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])"
+msgstr "Tetapkan Opsi Default untuk semua bagan di Dasbor ini (Mis: &quot;warna&quot;: [&quot;# d1d8dd&quot;, &quot;# ff5858&quot;])"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:467
 #: desk/doctype/number_card/number_card.js:361
@@ -28548,8 +27899,7 @@ msgstr ""
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid ""
-"Set the path to a whitelisted function that will return the data for the "
-"number card in the format:\n"
+"Set the path to a whitelisted function that will return the data for the number card in the format:\n"
 "\n"
 "<pre class=\"small text-muted\"><code>\n"
 "{\n"
@@ -28562,9 +27912,7 @@ msgstr ""
 
 #: contacts/doctype/address_template/address_template.py:32
 msgid "Setting this Address Template as default as there is no other default"
-msgstr ""
-"Mengatur Template Alamat ini sebagai default karena tidak ada standar "
-"lainnya"
+msgstr "Mengatur Template Alamat ini sebagai default karena tidak ada standar lainnya"
 
 #: desk/doctype/global_search_settings/global_search_settings.py:85
 msgid "Setting up Global Search documents."
@@ -29131,9 +28479,7 @@ msgstr "Pendaftaran telah dinonaktifkan untuk situs web ini."
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgctxt "Assignment Rule"
 msgid "Simple Python Expression, Example: Status in (\"Closed\", \"Cancelled\")"
-msgstr ""
-"Ekspresi Python Sederhana, Contoh: Status dalam (&quot;Ditutup&quot;, "
-"&quot;Dibatalkan&quot;)"
+msgstr "Ekspresi Python Sederhana, Contoh: Status dalam (&quot;Ditutup&quot;, &quot;Dibatalkan&quot;)"
 
 #. Description of a Code field in DocType 'Assignment Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
@@ -29145,9 +28491,7 @@ msgstr "Ekspresi Python Sederhana, Contoh: Status dalam (&quot;Tidak Valid&quot;
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgctxt "Assignment Rule"
 msgid "Simple Python Expression, Example: status == 'Open' and type == 'Bug'"
-msgstr ""
-"Ekspresi Python Sederhana, Contoh: status == &#39;Open&#39; dan ketik == "
-"&#39;Bug&#39;"
+msgstr "Ekspresi Python Sederhana, Contoh: status == &#39;Open&#39; dan ketik == &#39;Bug&#39;"
 
 #. Label of a Int field in DocType 'User'
 #: core/doctype/user/user.json
@@ -29160,27 +28504,17 @@ msgid "Single DocTypes cannot be customized."
 msgstr "Single DocTypes tidak dapat dikustomisasi."
 
 #: core/doctype/doctype/doctype_list.js:51
-msgid ""
-"Single Types have only one record no tables associated. Values are stored"
-" in tabSingles"
-msgstr ""
-"Jenis tunggal hanya memiliki satu record tabel tidak terkait. Nilai yang "
-"disimpan dalam tabSingles"
+msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
+msgstr "Jenis tunggal hanya memiliki satu record tabel tidak terkait. Nilai yang disimpan dalam tabSingles"
 
 #. Description of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
-msgid ""
-"Single Types have only one record no tables associated. Values are stored"
-" in tabSingles"
-msgstr ""
-"Jenis tunggal hanya memiliki satu record tabel tidak terkait. Nilai yang "
-"disimpan dalam tabSingles"
+msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
+msgstr "Jenis tunggal hanya memiliki satu record tabel tidak terkait. Nilai yang disimpan dalam tabSingles"
 
 #: database/database.py:230
-msgid ""
-"Site is running in read only mode for maintenance or site update, this "
-"action can not be performed right now. Please try again later."
+msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
 msgstr ""
 
 #: public/js/onboarding_tours/onboarding_tours.js:18
@@ -29320,12 +28654,8 @@ msgstr "Terkecil Mata Fraksi Nilai"
 #. Description of a Currency field in DocType 'Currency'
 #: geo/doctype/currency/currency.json
 msgctxt "Currency"
-msgid ""
-"Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it"
-" should be entered as 0.01"
-msgstr ""
-"Terkecil Unit beredar fraksi (koin). Untuk misalnya 1 sen untuk USD dan "
-"harus dimasukkan sebagai 0,01"
+msgid "Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01"
+msgstr "Terkecil Unit beredar fraksi (koin). Untuk misalnya 1 sen untuk USD dan harus dimasukkan sebagai 0,01"
 
 #. Name of a DocType
 #: website/doctype/social_link_settings/social_link_settings.json
@@ -29368,24 +28698,16 @@ msgid "Soft-Bounced"
 msgstr "Soft-Terpental"
 
 #: public/js/frappe/desk.js:20
-msgid ""
-"Some of the features might not work in your browser. Please update your "
-"browser to the latest version."
-msgstr ""
-"Beberapa fitur mungkin tidak bekerja di browser anda. Perbarui browser "
-"anda ke versi terbaru."
+msgid "Some of the features might not work in your browser. Please update your browser to the latest version."
+msgstr "Beberapa fitur mungkin tidak bekerja di browser anda. Perbarui browser anda ke versi terbaru."
 
 #: public/js/frappe/views/translation_manager.js:101
 msgid "Something went wrong"
 msgstr "Ada yang salah"
 
 #: integrations/doctype/google_calendar/google_calendar.py:116
-msgid ""
-"Something went wrong during the token generation. Click on {0} to "
-"generate a new one."
-msgstr ""
-"Sesuatu yang salah terjadi selama pembuatan token. Klik pada {0} untuk "
-"menghasilkan yang baru."
+msgid "Something went wrong during the token generation. Click on {0} to generate a new one."
+msgstr "Sesuatu yang salah terjadi selama pembuatan token. Klik pada {0} untuk menghasilkan yang baru."
 
 #: public/js/frappe/views/pageview.js:110
 msgid "Sorry! I could not find what you were looking for."
@@ -29487,13 +28809,8 @@ msgid "Special Characters are not allowed"
 msgstr "Karakter spesial tidak diperbolehkan"
 
 #: model/naming.py:58
-msgid ""
-"Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed "
-"in naming series {0}"
-msgstr ""
-"Karakter Khusus kecuali &quot;-&quot;, &quot;#&quot;, &quot;.&quot;, "
-"&quot;/&quot;, &quot;{{&quot; Dan &quot;}}&quot; tidak diizinkan dalam "
-"rangkaian penamaan {0}"
+msgid "Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}"
+msgstr "Karakter Khusus kecuali &quot;-&quot;, &quot;#&quot;, &quot;.&quot;, &quot;/&quot;, &quot;{{&quot; Dan &quot;}}&quot; tidak diizinkan dalam rangkaian penamaan {0}"
 
 #. Label of a Attach Image field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -29561,9 +28878,7 @@ msgstr ""
 
 #: core/doctype/doctype/doctype.py:228
 msgid "Standard DocType cannot have default print format, use Customize Form"
-msgstr ""
-"DocType standar tidak dapat memiliki format cetak standar, gunakan "
-"Customize Form"
+msgstr "DocType standar tidak dapat memiliki format cetak standar, gunakan Customize Form"
 
 #: desk/doctype/dashboard/dashboard.py:59
 msgid "Standard Not Set"
@@ -29960,12 +29275,8 @@ msgstr "Terhenti"
 #. Description of a Text field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
-msgid ""
-"Stores the JSON of last known versions of various installed apps. It is "
-"used to show release notes."
-msgstr ""
-"Toko JSON dari versi terakhir yang diketahui dari berbagai aplikasi yang "
-"diinstal. Hal ini digunakan untuk menunjukkan catatan rilis."
+msgid "Stores the JSON of last known versions of various installed apps. It is used to show release notes."
+msgstr "Toko JSON dari versi terakhir yang diketahui dari berbagai aplikasi yang diinstal. Hal ini digunakan untuk menunjukkan catatan rilis."
 
 #. Description of a Datetime field in DocType 'User'
 #: core/doctype/user/user.json
@@ -30008,12 +29319,8 @@ msgstr "Pengaturan Style"
 #. Description of a Select field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
-msgid ""
-"Style represents the button color: Success - Green, Danger - Red, Inverse"
-" - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange"
-msgstr ""
-"Gaya merupakan tombol warna: Sukses - Hijau, Danger - Red, Inverse - "
-"Black, Primer - Dark Blue, Info - Light Blue, Peringatan - Jeruk"
+msgid "Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange"
+msgstr "Gaya merupakan tombol warna: Sukses - Hijau, Danger - Red, Inverse - Black, Primer - Dark Blue, Info - Light Blue, Peringatan - Jeruk"
 
 #. Label of a Tab Break field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
@@ -30118,12 +29425,8 @@ msgid "Subject Field"
 msgstr "Bidang Subjek"
 
 #: core/doctype/doctype/doctype.py:1878
-msgid ""
-"Subject Field type should be Data, Text, Long Text, Small Text, Text "
-"Editor"
-msgstr ""
-"Jenis Bidang Subjek harus Data, Teks, Teks Panjang, Teks Kecil, Editor "
-"Teks"
+msgid "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"
+msgstr "Jenis Bidang Subjek harus Data, Teks, Teks Panjang, Teks Kecil, Editor Teks"
 
 #. Name of a DocType
 #: core/doctype/submission_queue/submission_queue.json
@@ -30251,14 +29554,10 @@ msgstr "Dikirim"
 
 #: workflow/doctype/workflow/workflow.py:106
 msgid "Submitted Document cannot be converted back to draft. Transition row {0}"
-msgstr ""
-"Dikirim Dokumen tidak dapat dikonversi kembali untuk menyusun. Transisi "
-"baris {0}"
+msgstr "Dikirim Dokumen tidak dapat dikonversi kembali untuk menyusun. Transisi baris {0}"
 
 #: public/js/workflow_builder/utils.js:176
-msgid ""
-"Submitted document cannot be converted back to draft while transitioning "
-"from <b>{0} State</b> to <b>{1} State</b>"
+msgid "Submitted document cannot be converted back to draft while transitioning from <b>{0} State</b> to <b>{1} State</b>"
 msgstr ""
 
 #: public/js/frappe/form/save.js:10
@@ -30405,15 +29704,11 @@ msgid "Successfully {0} 1 record."
 msgstr ""
 
 #: core/doctype/data_import/data_import.js:156
-msgid ""
-"Successfully {0} {1} record out of {2}. Click on Export Errored Rows, fix"
-" the errors and import again."
+msgid "Successfully {0} {1} record out of {2}. Click on Export Errored Rows, fix the errors and import again."
 msgstr ""
 
 #: core/doctype/data_import/data_import.js:161
-msgid ""
-"Successfully {0} {1} records out of {2}. Click on Export Errored Rows, "
-"fix the errors and import again."
+msgid "Successfully {0} {1} records out of {2}. Click on Export Errored Rows, fix the errors and import again."
 msgstr ""
 
 #: core/doctype/data_import/data_import.js:151
@@ -31107,8 +30402,7 @@ msgstr "Format CSV bersifat case sensitive"
 #: integrations/doctype/google_settings/google_settings.json
 msgctxt "Google Settings"
 msgid ""
-"The Client ID obtained from the Google Cloud Console under <a "
-"href=\"https://console.cloud.google.com/apis/credentials\">\n"
+"The Client ID obtained from the Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\n"
 "\"APIs &amp; Services\" &gt; \"Credentials\"\n"
 "</a>"
 msgstr ""
@@ -31122,15 +30416,11 @@ msgid "The File URL you've entered is incorrect"
 msgstr ""
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:364
-msgid ""
-"The User record for this request has been auto-deleted due to inactivity "
-"by system admins."
+msgid "The User record for this request has been auto-deleted due to inactivity by system admins."
 msgstr ""
 
 #: public/js/frappe/desk.js:127
-msgid ""
-"The application has been updated to a new version, please refresh this "
-"page"
+msgid "The application has been updated to a new version, please refresh this page"
 msgstr "Aplikasi ini telah diperbarui ke versi baru, harap perbarui halaman ini"
 
 #. Description of a Data field in DocType 'System Settings'
@@ -31147,8 +30437,7 @@ msgstr "Lampiran tidak dapat dikaitkan dengan benar ke dokumen baru"
 #: integrations/doctype/google_settings/google_settings.json
 msgctxt "Google Settings"
 msgid ""
-"The browser API key obtained from the Google Cloud Console under <a "
-"href=\"https://console.cloud.google.com/apis/credentials\">\n"
+"The browser API key obtained from the Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\n"
 "\"APIs &amp; Services\" &gt; \"Credentials\"\n"
 "</a>"
 msgstr ""
@@ -31158,14 +30447,8 @@ msgid "The changes have been reverted."
 msgstr ""
 
 #: core/doctype/data_import/importer.py:962
-msgid ""
-"The column {0} has {1} different date formats. Automatically setting {2} "
-"as the default format as it is the most common. Please change other "
-"values in this column to this format."
-msgstr ""
-"Kolom {0} memiliki {1} format tanggal yang berbeda. Secara otomatis "
-"menyetel {2} sebagai format bawaan karena ini yang paling umum. Harap "
-"ubah nilai lain di kolom ini ke format ini."
+msgid "The column {0} has {1} different date formats. Automatically setting {2} as the default format as it is the most common. Please change other values in this column to this format."
+msgstr "Kolom {0} memiliki {1} format tanggal yang berbeda. Secara otomatis menyetel {2} sebagai format bawaan karena ini yang paling umum. Harap ubah nilai lain di kolom ini ke format ini."
 
 #: templates/includes/comments/comments.py:34
 msgid "The comment cannot be empty"
@@ -31182,17 +30465,13 @@ msgstr "Dokumen telah ditetapkan ke {0}"
 #. Description of a Link field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
-msgid ""
-"The document type selected is a child table, so the parent document type "
-"is required."
+msgid "The document type selected is a child table, so the parent document type is required."
 msgstr ""
 
 #. Description of a Link field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
-msgid ""
-"The document type selected is a child table, so the parent document type "
-"is required."
+msgid "The document type selected is a child table, so the parent document type is required."
 msgstr ""
 
 #: core/doctype/user_type/user_type.py:109
@@ -31224,24 +30503,12 @@ msgid "The link you trying to login is invalid or expired."
 msgstr ""
 
 #: website/doctype/web_page/web_page.js:125
-msgid ""
-"The meta description is an HTML attribute that provides a brief summary "
-"of a web page. Search engines such as Google often display the meta "
-"description in search results, which can influence click-through rates."
-msgstr ""
-"Deskripsi meta adalah atribut HTML yang memberikan ringkasan singkat dari"
-" halaman web. Mesin pencari seperti Google sering menampilkan deskripsi "
-"meta dalam hasil pencarian, yang dapat mempengaruhi rasio klik-tayang."
+msgid "The meta description is an HTML attribute that provides a brief summary of a web page. Search engines such as Google often display the meta description in search results, which can influence click-through rates."
+msgstr "Deskripsi meta adalah atribut HTML yang memberikan ringkasan singkat dari halaman web. Mesin pencari seperti Google sering menampilkan deskripsi meta dalam hasil pencarian, yang dapat mempengaruhi rasio klik-tayang."
 
 #: website/doctype/web_page/web_page.js:132
-msgid ""
-"The meta image is unique image representing the content of the page. "
-"Images for this Card should be at least 280px in width, and at least "
-"150px in height."
-msgstr ""
-"Gambar meta adalah gambar unik yang mewakili konten halaman. Gambar untuk"
-" Kartu ini harus memiliki lebar minimal 280 piksel, dan tinggi minimal "
-"150 piksel."
+msgid "The meta image is unique image representing the content of the page. Images for this Card should be at least 280px in width, and at least 150px in height."
+msgstr "Gambar meta adalah gambar unik yang mewakili konten halaman. Gambar untuk Kartu ini harus memiliki lebar minimal 280 piksel, dan tinggi minimal 150 piksel."
 
 #. Description of a Data field in DocType 'Google Calendar'
 #: integrations/doctype/google_calendar/google_calendar.json
@@ -31270,17 +30537,14 @@ msgid "The password of your account has expired."
 msgstr "Kata sandi akun Anda telah kedaluwarsa."
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:395
-msgid ""
-"The process for deletion of {0} data associated with {1} has been "
-"initiated."
+msgid "The process for deletion of {0} data associated with {1} has been initiated."
 msgstr "Proses penghapusan {0} data yang terkait dengan {1} telah dimulai."
 
 #. Description of a Data field in DocType 'Google Settings'
 #: integrations/doctype/google_settings/google_settings.json
 msgctxt "Google Settings"
 msgid ""
-"The project number obtained from Google Cloud Console under <a "
-"href=\"https://console.cloud.google.com/iam-admin/settings\">\n"
+"The project number obtained from Google Cloud Console under <a href=\"https://console.cloud.google.com/iam-admin/settings\">\n"
 "\"IAM &amp; Admin\" &gt; \"Settings\"\n"
 "</a>"
 msgstr ""
@@ -31324,9 +30588,7 @@ msgid "The user from this field will be rewarded points"
 msgstr "Pengguna dari bidang ini akan diberi poin penghargaan"
 
 #: public/js/frappe/form/controls/data.js:24
-msgid ""
-"The value you pasted was {0} characters long. Max allowed characters is "
-"{1}."
+msgid "The value you pasted was {0} characters long. Max allowed characters is {1}."
 msgstr ""
 
 #. Description of a Small Text field in DocType 'Webhook'
@@ -31438,14 +30700,8 @@ msgstr ""
 #. Description of a Section Break field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
-msgid ""
-"These values will be automatically updated in transactions and also will "
-"be useful to restrict permissions for this user on transactions "
-"containing these values."
-msgstr ""
-"Nilai-nilai ini akan otomatis diperbarui dalam transaksi dan akan berguna"
-" jika membatasi hak akses pengguna ini terhadap transaksi-transaksi yang "
-"mengandung nilai-nilai ini."
+msgid "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values."
+msgstr "Nilai-nilai ini akan otomatis diperbarui dalam transaksi dan akan berguna jika membatasi hak akses pengguna ini terhadap transaksi-transaksi yang mengandung nilai-nilai ini."
 
 #: www/third_party_apps.html:3 www/third_party_apps.html:13
 msgid "Third Party Apps"
@@ -31494,10 +30750,7 @@ msgid "This chart will be available to all Users if this is set"
 msgstr "Bagan ini akan tersedia untuk semua Pengguna jika ini disetel"
 
 #: desk/doctype/workspace/workspace.js:23
-msgid ""
-"This document allows you to edit limited fields. For all kinds of "
-"workspace customization, use the Edit button located on the workspace "
-"page"
+msgid "This document allows you to edit limited fields. For all kinds of workspace customization, use the Edit button located on the workspace page"
 msgstr ""
 
 #: social/doctype/energy_point_log/energy_point_log.py:90
@@ -31527,16 +30780,14 @@ msgstr "Email ini otomatis terkirim"
 #: printing/doctype/network_printer_settings/network_printer_settings.py:29
 msgid ""
 "This feature can not be used as dependencies are missing.\n"
-"\t\t\t\tPlease contact your system manager to enable this by installing "
-"pycups!"
+"\t\t\t\tPlease contact your system manager to enable this by installing pycups!"
 msgstr ""
 
 #. Description of a Code field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid ""
-"This field will appear only if the fieldname defined here has value OR "
-"the rules are true (examples):\n"
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples):\n"
 "myfield\n"
 "eval:doc.myfield=='My Value'\n"
 "eval:doc.age&gt;18"
@@ -31567,12 +30818,8 @@ msgid "This goes above the slideshow."
 msgstr "Ini berjalan di atas slideshow."
 
 #: public/js/frappe/views/reports/query_report.js:1995
-msgid ""
-"This is a background report. Please set the appropriate filters and then "
-"generate a new one."
-msgstr ""
-"Ini adalah laporan latar belakang. Harap atur filter yang sesuai dan "
-"kemudian buat yang baru."
+msgid "This is a background report. Please set the appropriate filters and then generate a new one."
+msgstr "Ini adalah laporan latar belakang. Harap atur filter yang sesuai dan kemudian buat yang baru."
 
 #: utils/password_strength.py:162
 msgid "This is a top-10 common password."
@@ -31615,12 +30862,8 @@ msgid "This link has already been activated for verification."
 msgstr "Tautan ini telah diaktifkan untuk verifikasi."
 
 #: utils/verified_command.py:49
-msgid ""
-"This link is invalid or expired. Please make sure you have pasted "
-"correctly."
-msgstr ""
-"Link ini tidak valid atau kedaluwarsa. Pastikan Anda telah disisipkan "
-"dengan benar."
+msgid "This link is invalid or expired. Please make sure you have pasted correctly."
+msgstr "Link ini tidak valid atau kedaluwarsa. Pastikan Anda telah disisipkan dengan benar."
 
 #: printing/page/print/print.js:403
 msgid "This may get printed on multiple pages"
@@ -31635,9 +30878,7 @@ msgid "This newsletter is scheduled to be sent on {0}"
 msgstr ""
 
 #: email/doctype/newsletter/newsletter.js:50
-msgid ""
-"This newsletter was scheduled to send on a later date. Are you sure you "
-"want to send it now?"
+msgid "This newsletter was scheduled to send on a later date. Are you sure you want to send it now?"
 msgstr ""
 
 #: templates/emails/auto_email_report.html:57
@@ -31657,15 +30898,11 @@ msgid "This site is in read only mode, full functionality will be restored soon.
 msgstr ""
 
 #: core/doctype/doctype/doctype.js:76
-msgid ""
-"This site is running in developer mode. Any change made here will be "
-"updated in code."
+msgid "This site is running in developer mode. Any change made here will be updated in code."
 msgstr ""
 
 #: website/doctype/web_page/web_page.js:71
-msgid ""
-"This title will be used as the title of the webpage as well as in meta "
-"tags"
+msgid "This title will be used as the title of the webpage as well as in meta tags"
 msgstr "Judul ini akan digunakan sebagai judul halaman web serta tag meta"
 
 #: public/js/frappe/form/controls/base_input.js:120
@@ -31673,12 +30910,8 @@ msgid "This value is fetched from {0}'s {1} field"
 msgstr ""
 
 #: website/doctype/web_page/web_page.js:85
-msgid ""
-"This will be automatically generated when you publish the page, you can "
-"also enter a route yourself if you wish"
-msgstr ""
-"Ini akan dibuat secara otomatis saat Anda mempublikasikan halaman, Anda "
-"juga dapat memasukkan rute sendiri jika Anda mau"
+msgid "This will be automatically generated when you publish the page, you can also enter a route yourself if you wish"
+msgstr "Ini akan dibuat secara otomatis saat Anda mempublikasikan halaman, Anda juga dapat memasukkan rute sendiri jika Anda mau"
 
 #. Description of a Small Text field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
@@ -31690,9 +30923,7 @@ msgstr "Ini akan ditampilkan dalam modal setelah perutean"
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
 msgid "This will be shown to the user in a dialog after routing to the report"
-msgstr ""
-"Ini akan ditampilkan kepada pengguna dalam dialog setelah dirutekan ke "
-"laporan"
+msgstr "Ini akan ditampilkan kepada pengguna dalam dialog setelah dirutekan ke laporan"
 
 #: www/third_party_apps.html:21
 msgid "This will log out {0} from all other devices"
@@ -31707,9 +30938,7 @@ msgid "This will reset this tour and show it to all users. Are you sure?"
 msgstr ""
 
 #: core/doctype/rq_job/rq_job.js:15
-msgid ""
-"This will terminate the job immediately and might be dangerous, are you "
-"sure? "
+msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr ""
 
 #: core/doctype/user/user.py:1208
@@ -31877,12 +31106,8 @@ msgstr ""
 #. Description of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"Time in seconds to retain QR code image on server. "
-"Min:<strong>240</strong>"
-msgstr ""
-"Waktu dalam hitungan detik untuk mempertahankan gambar QR code di server."
-" Min: <strong>240</strong>"
+msgid "Time in seconds to retain QR code image on server. Min:<strong>240</strong>"
+msgstr "Waktu dalam hitungan detik untuk mempertahankan gambar QR code di server. Min: <strong>240</strong>"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.py:413
 msgid "Time series based on is required to create a dashboard chart"
@@ -32222,18 +31447,14 @@ msgstr "Untuk dan CC"
 
 #: automation/doctype/auto_repeat/auto_repeat.js:35
 msgid "To configure Auto Repeat, enable \"Allow Auto Repeat\" from {0}."
-msgstr ""
-"Untuk mengonfigurasi Ulangi Otomatis, aktifkan &quot;Izinkan Ulangi "
-"Otomatis&quot; dari {0}."
+msgstr "Untuk mengonfigurasi Ulangi Otomatis, aktifkan &quot;Izinkan Ulangi Otomatis&quot; dari {0}."
 
 #: www/login.html:73
 msgid "To enable it follow the instructions in the following link: {0}"
 msgstr "Untuk mengaktifkannya ikuti instruksi di tautan berikut: {0}"
 
 #: desk/doctype/onboarding_step/onboarding_step.js:18
-msgid ""
-"To export this step as JSON, link it in a Onboarding document and save "
-"the document."
+msgid "To export this step as JSON, link it in a Onboarding document and save the document."
 msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:783
@@ -32251,9 +31472,7 @@ msgid "To print output use <code>print(text)</code>"
 msgstr ""
 
 #: core/doctype/user_type/user_type.py:295
-msgid ""
-"To set the role {0} in the user {1}, kindly set the {2} field as {3} in "
-"one of the {4} record."
+msgid "To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
 msgstr ""
 
 #: integrations/doctype/google_calendar/google_calendar.js:8
@@ -32271,17 +31490,13 @@ msgstr "Untuk menggunakan Google Drive, aktifkan {0}."
 #. Description of a Check field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
-msgid ""
-"To use Google Indexing, enable <a href=\"/app/google-settings\">Google "
-"Settings</a>."
+msgid "To use Google Indexing, enable <a href=\"/app/google-settings\">Google Settings</a>."
 msgstr ""
 
 #. Description of a Link field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
-msgid ""
-"To use Slack Channel, add a <a "
-"href=\"#List/Slack%20Webhook%20URL/List\">Slack Webhook URL</a>."
+msgid "To use Slack Channel, add a <a href=\"#List/Slack%20Webhook%20URL/List\">Slack Webhook URL</a>."
 msgstr ""
 
 #: public/js/frappe/utils/diffview.js:43
@@ -32397,12 +31612,8 @@ msgid "Too many changes to database in single action."
 msgstr ""
 
 #: core/doctype/user/user.py:984
-msgid ""
-"Too many users signed up recently, so the registration is disabled. "
-"Please try back in an hour"
-msgstr ""
-"Terlalu banyak pengguna mendaftar baru, sehingga pendaftaran "
-"dinonaktifkan. Silakan coba kembali dalam satu jam"
+msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
+msgstr "Terlalu banyak pengguna mendaftar baru, sehingga pendaftaran dinonaktifkan. Silakan coba kembali dalam satu jam"
 
 #. Name of a Workspace
 #. Label of a Card Break in the Tools Workspace
@@ -32590,8 +31801,7 @@ msgctxt "Email Account"
 msgid ""
 "Track if your email has been opened by the recipient.\n"
 "<br>\n"
-"Note: If you're sending to multiple recipients, even if 1 recipient reads"
-" the email, it'll be considered \"Opened\""
+"Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered \"Opened\""
 msgstr ""
 
 #: public/js/frappe/utils/utils.js:1744
@@ -32720,12 +31930,8 @@ msgstr ""
 #. Description of a Data field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
-msgid ""
-"Trigger on valid methods like \"before_insert\", \"after_update\", etc "
-"(will depend on the DocType selected)"
-msgstr ""
-"Memicu pada metode yang valid seperti \"before_insert\", "
-"\"after_update\", dll (tergantung pada DocType yang dipilih)"
+msgid "Trigger on valid methods like \"before_insert\", \"after_update\", etc (will depend on the DocType selected)"
+msgstr "Memicu pada metode yang valid seperti \"before_insert\", \"after_update\", dll (tergantung pada DocType yang dipilih)"
 
 #: public/js/frappe/widgets/onboarding_widget.js:323
 msgid "Try Again"
@@ -32743,9 +31949,7 @@ msgstr "Cobalah untuk menghindari kata-kata berulang dan karakter"
 
 #: utils/password_strength.py:100
 msgid "Try to use a longer keyboard pattern with more turns"
-msgstr ""
-"Cobalah untuk menggunakan pola keyboard yang lebih lama dengan lebih "
-"banyak berubah"
+msgstr "Cobalah untuk menggunakan pola keyboard yang lebih lama dengan lebih banyak berubah"
 
 #. Option for a Select field in DocType 'Assignment Rule Day'
 #: automation/doctype/assignment_rule_day/assignment_rule_day.json
@@ -32957,11 +32161,8 @@ msgstr "TAK TERLIHAT"
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid ""
-"URIs for receiving authorization code once the user allows access, as "
-"well as failure responses. Typically a REST endpoint exposed by the "
-"Client App.\n"
-"<br>e.g. "
-"http://hostname/api/method/frappe.integrations.oauth2_logins.login_via_facebook"
+"URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.\n"
+"<br>e.g. http://hostname/api/method/frappe.integrations.oauth2_logins.login_via_facebook"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Integration Request'
@@ -33036,9 +32237,7 @@ msgid "Unable to read file format for {0}"
 msgstr "Tidak dapat membaca format file untuk {0}"
 
 #: core/doctype/communication/email.py:173
-msgid ""
-"Unable to send mail because of a missing email account. Please setup "
-"default Email Account from Settings > Email Account"
+msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 msgstr ""
 
 #: public/js/frappe/views/calendar/calendar.js:439
@@ -33346,9 +32545,7 @@ msgid "Updating"
 msgstr "Memperbarui"
 
 #: email/doctype/email_queue/email_queue.py:403
-msgid ""
-"Updating Email Queue Statuses. The emails will be picked up in the next "
-"scheduled run."
+msgid "Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."
 msgstr ""
 
 #: core/doctype/document_naming_rule/document_naming_rule.js:17
@@ -33937,9 +33134,7 @@ msgid "User with email address {0} does not exist"
 msgstr ""
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:224
-msgid ""
-"User with email: {0} does not exist in the system. Please ask 'System "
-"Administrator' to create the user for you."
+msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr ""
 
 #: core/doctype/user/user.py:504
@@ -33960,9 +33155,7 @@ msgstr "Pengguna {0} tidak memiliki akses ke dokumen ini"
 
 #: permissions.py:159
 msgid "User {0} does not have doctype access via role permission for document {1}"
-msgstr ""
-"Pengguna {0} tidak memiliki akses doctype melalui izin peran untuk "
-"dokumen {1}"
+msgstr "Pengguna {0} tidak memiliki akses doctype melalui izin peran untuk dokumen {1}"
 
 #: templates/emails/data_deletion_approval.html:1
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:108
@@ -34030,13 +33223,8 @@ msgid "Uses system's theme to switch between light and dark mode"
 msgstr ""
 
 #: public/js/frappe/desk.js:112
-msgid ""
-"Using this console may allow attackers to impersonate you and steal your "
-"information. Do not enter or paste code that you do not understand."
-msgstr ""
-"Menggunakan konsol ini dapat memungkinkan penyerang meniru identitas Anda"
-" dan mencuri informasi Anda. Jangan masukkan atau tempel kode yang tidak "
-"Anda mengerti."
+msgid "Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand."
+msgstr "Menggunakan konsol ini dapat memungkinkan penyerang meniru identitas Anda dan mencuri informasi Anda. Jangan masukkan atau tempel kode yang tidak Anda mengerti."
 
 #. Label of a Percent field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -34161,12 +33349,8 @@ msgid "Value for a check field can be either 0 or 1"
 msgstr "Nilai untuk bidang pemeriksaan dapat berupa 0 atau 1"
 
 #: custom/doctype/customize_form/customize_form.py:611
-msgid ""
-"Value for field {0} is too long in {1}. Length should be lesser than {2} "
-"characters"
-msgstr ""
-"Nilai untuk bidang {0} terlalu panjang di {1}. Panjang harus kurang dari "
-"{2} karakter"
+msgid "Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
+msgstr "Nilai untuk bidang {0} terlalu panjang di {1}. Panjang harus kurang dari {2} karakter"
 
 #: model/base_document.py:360
 msgid "Value for {0} cannot be a list"
@@ -34382,9 +33566,7 @@ msgid "Virtual DocType {} requires a static method called {} found {}"
 msgstr ""
 
 #: model/virtual_doctype.py:91
-msgid ""
-"Virtual DocType {} requires overriding an instance method called {} found"
-" {}"
+msgid "Virtual DocType {} requires overriding an instance method called {} found {}"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'DocField'
@@ -34427,16 +33609,12 @@ msgstr "Peringatan"
 
 #: public/js/frappe/model/meta.js:179
 msgid "Warning: Unable to find {0} in any table related to {1}"
-msgstr ""
-"Peringatan: Tidak dapat menemukan {0} dalam tabel mana pun yang terkait "
-"dengan {1}"
+msgstr "Peringatan: Tidak dapat menemukan {0} dalam tabel mana pun yang terkait dengan {1}"
 
 #. Description of a Int field in DocType 'Document Naming Rule'
 #: core/doctype/document_naming_rule/document_naming_rule.json
 msgctxt "Document Naming Rule"
-msgid ""
-"Warning: Updating counter may lead to document name conflicts if not done"
-" properly"
+msgid "Warning: Updating counter may lead to document name conflicts if not done properly"
 msgstr ""
 
 #: website/doctype/help_article/templates/help_article.html:24
@@ -34450,25 +33628,16 @@ msgid "Watch Video"
 msgstr "Menonton video"
 
 #: desk/doctype/workspace/workspace.js:38
-msgid ""
-"We do not allow editing of this document. Simply click the Edit button on"
-" the workspace page to make your workspace editable and customize it as "
-"you wish"
+msgid "We do not allow editing of this document. Simply click the Edit button on the workspace page to make your workspace editable and customize it as you wish"
 msgstr ""
 
 #: templates/emails/delete_data_confirmation.html:2
 msgid "We have received a request for deletion of {0} data associated with: {1}"
-msgstr ""
-"Kami telah menerima permintaan penghapusan {0} data yang terkait dengan: "
-"{1}"
+msgstr "Kami telah menerima permintaan penghapusan {0} data yang terkait dengan: {1}"
 
 #: templates/emails/download_data.html:2
-msgid ""
-"We have received a request from you to download your {0} data associated "
-"with: {1}"
-msgstr ""
-"Kami telah menerima permintaan dari Anda untuk mengunduh {0} data Anda "
-"yang terkait dengan: {1}"
+msgid "We have received a request from you to download your {0} data associated with: {1}"
+msgstr "Kami telah menerima permintaan dari Anda untuk mengunduh {0} data Anda yang terkait dengan: {1}"
 
 #: public/js/frappe/form/controls/password.js:88
 msgid "Weak"
@@ -35017,23 +34186,13 @@ msgstr "Selamat Datang di {0}"
 #. Description of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"When enabled this will allow guests to upload files to your application, "
-"You can enable this if you wish to collect files from user without having"
-" them to log in, for example in job applications web form."
-msgstr ""
-"Ketika diaktifkan ini akan memungkinkan para tamu untuk mengunggah file "
-"ke aplikasi Anda, Anda dapat mengaktifkan ini jika Anda ingin "
-"mengumpulkan file dari pengguna tanpa harus mereka masuk, misalnya dalam "
-"formulir web aplikasi pekerjaan."
+msgid "When enabled this will allow guests to upload files to your application, You can enable this if you wish to collect files from user without having them to log in, for example in job applications web form."
+msgstr "Ketika diaktifkan ini akan memungkinkan para tamu untuk mengunggah file ke aplikasi Anda, Anda dapat mengaktifkan ini jika Anda ingin mengumpulkan file dari pengguna tanpa harus mereka masuk, misalnya dalam formulir web aplikasi pekerjaan."
 
 #. Description of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"When uploading files, force the use of the web-based image capture. If "
-"this is unchecked, the default behavior is to use the mobile native "
-"camera when use from a mobile is detected."
+msgid "When uploading files, force the use of the web-based image capture. If this is unchecked, the default behavior is to use the mobile native camera when use from a mobile is detected."
 msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:440
@@ -35105,12 +34264,8 @@ msgstr "Hanya akan ditampilkan jika judul bagian diaktifkan"
 #. Description of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
-msgid ""
-"Will run scheduled jobs only once a day for inactive sites. Default 4 "
-"days if set to 0."
-msgstr ""
-"Akan menjalankan pekerjaan terjadwal hanya sekali sehari untuk situs "
-"tidak aktif. Default 4 hari jika diatur ke 0."
+msgid "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0."
+msgstr "Akan menjalankan pekerjaan terjadwal hanya sekali sehari untuk situs tidak aktif. Default 4 hari jika diatur ke 0."
 
 #: public/js/frappe/form/print_utils.js:13
 msgid "With Letter head"
@@ -35207,10 +34362,7 @@ msgid "Workflow Builder ID"
 msgstr ""
 
 #: workflow/doctype/workflow/workflow.js:11
-msgid ""
-"Workflow Builder allows you to create workflows visually. You can drag "
-"and drop states and link them to create transitions. Also you can update "
-"thieir properties from the sidebar."
+msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update thieir properties from the sidebar."
 msgstr ""
 
 #. Label of a JSON field in DocType 'Workflow'
@@ -35266,10 +34418,7 @@ msgstr "Transisi Alur Kerja"
 
 #. Description of the Onboarding Step 'Setup Approval Workflows'
 #: custom/onboarding_step/workflows/workflows.json
-msgid ""
-"Workflows allow you to define custom rules for the approval process of a "
-"particular document in ERPNext. You can also set complex Workflow Rules "
-"and set approval conditions."
+msgid "Workflows allow you to define custom rules for the approval process of a particular document in ERPNext. You can also set complex Workflow Rules and set approval conditions."
 msgstr ""
 
 #. Name of a DocType
@@ -35553,17 +34702,11 @@ msgid "You are connected to internet."
 msgstr "Anda terhubung ke internet."
 
 #: permissions.py:414
-msgid ""
-"You are not allowed to access this {0} record because it is linked to {1}"
-" '{2}' in field {3}"
-msgstr ""
-"Anda tidak diizinkan untuk mengakses catatan {0} ini karena itu terkait "
-"dengan {1} '{2}' di bidang {3}"
+msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
+msgstr "Anda tidak diizinkan untuk mengakses catatan {0} ini karena itu terkait dengan {1} '{2}' di bidang {3}"
 
 #: permissions.py:403
-msgid ""
-"You are not allowed to access this {0} record because it is linked to {1}"
-" '{2}' in row {3}, field {4}"
+msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
 msgstr ""
 
 #: public/js/frappe/views/kanban/kanban_board.bundle.js:69
@@ -35615,22 +34758,15 @@ msgid "You are not permitted to access this resource."
 msgstr ""
 
 #: public/js/frappe/form/sidebar/document_follow.js:131
-msgid ""
-"You are now following this document. You will receive daily updates via "
-"email. You can change this in User Settings."
-msgstr ""
-"Anda sekarang mengikuti dokumen ini. Anda akan menerima pembaruan harian "
-"melalui email. Anda dapat mengubahnya di Pengaturan Pengguna."
+msgid "You are now following this document. You will receive daily updates via email. You can change this in User Settings."
+msgstr "Anda sekarang mengikuti dokumen ini. Anda akan menerima pembaruan harian melalui email. Anda dapat mengubahnya di Pengaturan Pengguna."
 
 #: core/doctype/installed_applications/installed_applications.py:59
 msgid "You are only allowed to update order, do not remove or add apps."
 msgstr ""
 
 #: email/doctype/email_account/email_account.js:221
-msgid ""
-"You are selecting Sync Option as ALL, It will resync all read as well as "
-"unread message from server. This may also cause the duplication of "
-"Communication (emails)."
+msgid "You are selecting Sync Option as ALL, It will resync all read as well as unread message from server. This may also cause the duplication of Communication (emails)."
 msgstr ""
 
 #: public/js/frappe/form/footer/form_timeline.js:413
@@ -35639,12 +34775,8 @@ msgid "You attached {0}"
 msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:741
-msgid ""
-"You can add dynamic properties from the document by using Jinja "
-"templating."
-msgstr ""
-"Anda dapat menambahkan properti dinamis dari dokumen dengan menggunakan "
-"template Jinja."
+msgid "You can add dynamic properties from the document by using Jinja templating."
+msgstr "Anda dapat menambahkan properti dinamis dari dokumen dengan menggunakan template Jinja."
 
 #: templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
@@ -35687,12 +34819,8 @@ msgid "You can only upload JPG, PNG, PDF, TXT or Microsoft documents."
 msgstr ""
 
 #: core/doctype/data_export/exporter.py:201
-msgid ""
-"You can only upload upto 5000 records in one go. (may be less in some "
-"cases)"
-msgstr ""
-"Anda hanya dapat mengunggah hingga 5000 data sekaligus. (Mungkin kurang "
-"dalam beberapa kasus)"
+msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"
+msgstr "Anda hanya dapat mengunggah hingga 5000 data sekaligus. (Mungkin kurang dalam beberapa kasus)"
 
 #: desk/query_report.py:336
 msgid "You can try changing the filters of your report."
@@ -35763,12 +34891,8 @@ msgid "You do not have Read or Select Permissions for {}"
 msgstr ""
 
 #: public/js/frappe/request.js:174
-msgid ""
-"You do not have enough permissions to access this resource. Please "
-"contact your manager to get access."
-msgstr ""
-"Anda tidak memiliki izin yang cukup untuk mengakses sumber ini. Silahkan "
-"hubungi manajer Anda untuk mendapatkan akses."
+msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
+msgstr "Anda tidak memiliki izin yang cukup untuk mengakses sumber ini. Silahkan hubungi manajer Anda untuk mendapatkan akses."
 
 #: app.py:355
 msgid "You do not have enough permissions to complete the action"
@@ -35844,9 +34968,7 @@ msgstr ""
 
 #: public/js/frappe/model/create_new.js:332
 msgid "You have unsaved changes in this form. Please save before you continue."
-msgstr ""
-"Anda belum menyimpan perubahan pada formulir ini. Silakan simpan sebelum "
-"Anda melanjutkan."
+msgstr "Anda belum menyimpan perubahan pada formulir ini. Silakan simpan sebelum Anda melanjutkan."
 
 #: core/doctype/log_settings/log_settings.py:127
 msgid "You have unseen {0}"
@@ -35857,9 +34979,7 @@ msgid "You haven't created a {0} yet"
 msgstr ""
 
 #: rate_limiter.py:150
-msgid ""
-"You hit the rate limit because of too many requests. Please try after "
-"sometime."
+msgid "You hit the rate limit because of too many requests. Please try after sometime."
 msgstr ""
 
 #: public/js/frappe/form/footer/form_timeline.js:149
@@ -35888,12 +35008,8 @@ msgid "You need to be in developer mode to edit a Standard Web Form"
 msgstr "Anda perlu berada dalam mode developer untuk mengedit Formulir Web Standar"
 
 #: utils/response.py:255
-msgid ""
-"You need to be logged in and have System Manager Role to be able to "
-"access backups."
-msgstr ""
-"Anda harus login dan memiliki Peran Manager Sistem untuk dapat mengakses "
-"back-up."
+msgid "You need to be logged in and have System Manager Role to be able to access backups."
+msgstr "Anda harus login dan memiliki Peran Manager Sistem untuk dapat mengakses back-up."
 
 #: www/me.py:13 www/third_party_apps.py:10
 msgid "You need to be logged in to access this page"
@@ -35938,9 +35054,7 @@ msgstr "Tampaknya Anda baik untuk pergi!"
 
 #: public/js/frappe/list/bulk_operations.js:29
 msgid "You selected Draft or Cancelled documents"
-msgstr ""
-"Anda memilih dokumen yang masih bersifat Rancangan atau yang telah "
-"Dibatalkan"
+msgstr "Anda memilih dokumen yang masih bersifat Rancangan atau yang telah Dibatalkan"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:48
 msgctxt "Form timeline"
@@ -36020,12 +35134,8 @@ msgid "Your organization name and address for the email footer."
 msgstr "Nama dan alamat organisasi Anda untuk footer email."
 
 #: templates/emails/auto_reply.html:2
-msgid ""
-"Your query has been received. We will reply back shortly. If you have any"
-" additional information, please reply to this mail."
-msgstr ""
-"Permintaan Anda telah diterima. Kami akan segera menanggapi. Jika Anda "
-"memiliki informasi tambahan, silakan balas email ini."
+msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
+msgstr "Permintaan Anda telah diterima. Kami akan segera menanggapi. Jika Anda memiliki informasi tambahan, silakan balas email ini."
 
 #: app.py:346
 msgid "Your session has expired, please login again to continue."
@@ -37909,17 +37019,11 @@ msgid "{0} does not exist in row {1}"
 msgstr "{0} tidak ada di baris {1}"
 
 #: database/mariadb/schema.py:131 database/postgres/schema.py:184
-msgid ""
-"{0} field cannot be set as unique in {1}, as there are non-unique "
-"existing values"
-msgstr ""
-"{0} field tidak dapat ditetapkan sebagai unik di {1}, karena ada nilai-"
-"nilai yang non-unik"
+msgid "{0} field cannot be set as unique in {1}, as there are non-unique existing values"
+msgstr "{0} field tidak dapat ditetapkan sebagai unik di {1}, karena ada nilai-nilai yang non-unik"
 
 #: core/doctype/data_import/importer.py:1017
-msgid ""
-"{0} format could not be determined from the values in this column. "
-"Defaulting to {1}."
+msgid "{0} format could not be determined from the values in this column. Defaulting to {1}."
 msgstr ""
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:97
@@ -38061,12 +37165,8 @@ msgid "{0} is not a valid Phone Number"
 msgstr "{0} bukan Nomor Telepon yang valid"
 
 #: model/workflow.py:186
-msgid ""
-"{0} is not a valid Workflow State. Please update your Workflow and try "
-"again."
-msgstr ""
-"{0} bukan Status Alur Kerja yang valid. Perbarui Alur Kerja anda dan coba"
-" lagi."
+msgid "{0} is not a valid Workflow State. Please update your Workflow and try again."
+msgstr "{0} bukan Status Alur Kerja yang valid. Perbarui Alur Kerja anda dan coba lagi."
 
 #: permissions.py:793
 msgid "{0} is not a valid parent DocType for {1}"
@@ -38077,12 +37177,8 @@ msgid "{0} is not a valid parentfield for {1}"
 msgstr ""
 
 #: email/doctype/auto_email_report/auto_email_report.py:109
-msgid ""
-"{0} is not a valid report format. Report format should one of the "
-"following {1}"
-msgstr ""
-"{0} bukan format laporan yang valid. Format laporan harus salah satu dari"
-" yang berikut {1}"
+msgid "{0} is not a valid report format. Report format should one of the following {1}"
+msgstr "{0} bukan format laporan yang valid. Format laporan harus salah satu dari yang berikut {1}"
 
 #: core/doctype/file/file.py:483
 msgid "{0} is not a zip file"
@@ -38369,12 +37465,8 @@ msgid "{0} {1} not found"
 msgstr "{0} {1} tidak ditemukan"
 
 #: model/delete_doc.py:231
-msgid ""
-"{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it "
-"first."
-msgstr ""
-"{0} {1}: Rekaman yang Dikirim tidak dapat dihapus. Anda harus {2} "
-"Membatalkan {3} dulu."
+msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
+msgstr "{0} {1}: Rekaman yang Dikirim tidak dapat dihapus. Anda harus {2} Membatalkan {3} dulu."
 
 #: model/base_document.py:988
 msgid "{0}, Row {1}"
@@ -38382,9 +37474,7 @@ msgstr "{0}, Baris {1}"
 
 #: model/base_document.py:993
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
-msgstr ""
-"{0}: '{1}' ({3}) akan terpotong, karena karakter maksimum yang diizinkan "
-"adalah {2}"
+msgstr "{0}: '{1}' ({3}) akan terpotong, karena karakter maksimum yang diizinkan adalah {2}"
 
 #: core/doctype/doctype/doctype.py:1741
 msgid "{0}: Cannot set Amend without Cancel"
@@ -38408,35 +37498,23 @@ msgstr "{0}: Tidak dapat melakukan Impor tanpa dibuat terlebih dahulu"
 
 #: core/doctype/doctype/doctype.py:1739
 msgid "{0}: Cannot set Submit, Cancel, Amend without Write"
-msgstr ""
-"{0}: Tidak dapat mengatur Pengajuan, Pembatalan, Perubahan tanpa "
-"Pencatatan"
+msgstr "{0}: Tidak dapat mengatur Pengajuan, Pembatalan, Perubahan tanpa Pencatatan"
 
 #: core/doctype/doctype/doctype.py:1763
 msgid "{0}: Cannot set import as {1} is not importable"
 msgstr "{0}: Tidak dapat melakukan impor karena {1} bukan data yang dapat diimpor"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:393
-msgid ""
-"{0}: Failed to attach new recurring document. To enable attaching "
-"document in the auto repeat notification email, enable {1} in Print "
-"Settings"
-msgstr ""
-"{0}: Gagal melampirkan dokumen berulang baru. Untuk mengaktifkan "
-"melampirkan dokumen di email pemberitahuan ulangi otomatis, aktifkan {1} "
-"di Pengaturan Cetak"
+msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
+msgstr "{0}: Gagal melampirkan dokumen berulang baru. Untuk mengaktifkan melampirkan dokumen di email pemberitahuan ulangi otomatis, aktifkan {1} di Pengaturan Cetak"
 
 #: core/doctype/doctype/doctype.py:1377
 msgid "{0}: Field '{1}' cannot be set as Unique as it has non-unique values"
-msgstr ""
-"{0}: Field &#39;{1}&#39; tidak dapat ditetapkan sebagai Unik karena "
-"memiliki nilai-nilai non-unik"
+msgstr "{0}: Field &#39;{1}&#39; tidak dapat ditetapkan sebagai Unik karena memiliki nilai-nilai non-unik"
 
 #: core/doctype/doctype/doctype.py:1285
 msgid "{0}: Field {1} in row {2} cannot be hidden and mandatory without default"
-msgstr ""
-"{0}: Bidang {1} berturut-turut {2} tidak dapat disembunyikan dan wajib "
-"tanpa default"
+msgstr "{0}: Bidang {1} berturut-turut {2} tidak dapat disembunyikan dan wajib tanpa default"
 
 #: core/doctype/doctype/doctype.py:1244
 msgid "{0}: Field {1} of type {2} cannot be mandatory"
@@ -38456,9 +37534,7 @@ msgstr "{0}: Tidak ada perizinan dasar yang ditetapkan"
 
 #: core/doctype/doctype/doctype.py:1712
 msgid "{0}: Only one rule allowed with the same Role, Level and {1}"
-msgstr ""
-"{0}: Hanya satu aturan diperbolehkan dengan Peran yang sama, Tingkat dan "
-"{1}"
+msgstr "{0}: Hanya satu aturan diperbolehkan dengan Peran yang sama, Tingkat dan {1}"
 
 #: core/doctype/doctype/doctype.py:1266
 msgid "{0}: Options must be a valid DocType for field {1} in row {2}"
@@ -38466,9 +37542,7 @@ msgstr "{0}: Opsi harus berupa DocType yang valid untuk bidang {1} di baris {2}"
 
 #: core/doctype/doctype/doctype.py:1255
 msgid "{0}: Options required for Link or Table type field {1} in row {2}"
-msgstr ""
-"{0}: Opsi yang diperlukan untuk bidang jenis Tautan atau jenis tabel {1} "
-"di baris {2}"
+msgstr "{0}: Opsi yang diperlukan untuk bidang jenis Tautan atau jenis tabel {1} di baris {2}"
 
 #: core/doctype/doctype/doctype.py:1273
 msgid "{0}: Options {1} must be the same as doctype name {2} for the field {3}"
@@ -38476,9 +37550,7 @@ msgstr "{0}: Opsi {1} harus sama dengan nama doctype {2} untuk isian {3}"
 
 #: core/doctype/doctype/doctype.py:1727
 msgid "{0}: Permission at level 0 must be set before higher levels are set"
-msgstr ""
-"{0}: Izin pada tingkat 0 harus ditetapkan sebelum tingkat yang lebih "
-"tinggi ditetapkan"
+msgstr "{0}: Izin pada tingkat 0 harus ditetapkan sebelum tingkat yang lebih tinggi ditetapkan"
 
 #: public/js/frappe/form/controls/data.js:50
 msgid "{0}: You can increase the limit for the field if required via {1}"

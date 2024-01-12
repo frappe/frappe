@@ -22,12 +22,18 @@ def extract(fileobj, *args, **kwargs):
 
 	for field in fields:
 		fieldtype = field.get("fieldtype")
+		label = field.get("label")
 
-		if label := field.get("label"):
+		if label:
 			messages.append((label, f"Label of a {fieldtype} field in DocType '{doctype}'"))
+			_label = label
+		else:
+			_label = field.get("fieldname")
 
 		if description := field.get("description"):
-			messages.append((description, f"Description of a {fieldtype} field in DocType '{doctype}'"))
+			messages.append(
+				(description, f"Description of the '{_label}' ({fieldtype}) field in DocType '{doctype}'")
+			)
 
 		if message := field.get("options"):
 			if fieldtype == "Select":
@@ -37,10 +43,16 @@ def extract(fileobj, *args, **kwargs):
 					continue
 
 				messages.extend(
-					(option, f"Option for a Select field in DocType '{doctype}'") for option in select_options
+					(
+						option,
+						f"Option for the '{_label}' ({fieldtype}) field in DocType '{doctype}'",
+					)
+					for option in select_options
 				)
 			elif fieldtype == "HTML":
-				messages.append((message, f"Content of an HTML field in DocType '{doctype}'"))
+				messages.append(
+					(message, f"Content of the '{_label}' ({fieldtype}) field in DocType '{doctype}'")
+				)
 
 	for link in links:
 		if group := link.get("group"):

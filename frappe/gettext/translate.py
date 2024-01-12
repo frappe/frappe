@@ -84,7 +84,7 @@ def write_catalog(app: str, catalog: Catalog, locale: str | None = None) -> Path
 		po_path.parent.mkdir(parents=True)
 
 	with open(po_path, "wb") as f:
-		write_po(f, catalog, sort_output=True, ignore_obsolete=True)
+		write_po(f, catalog, sort_output=True, ignore_obsolete=True, width=None)
 
 	return po_path
 
@@ -133,7 +133,7 @@ def generate_pot(target_app: str | None = None):
 
 	for app in apps:
 		app_path = frappe.get_pymodule_path(app)
-		catalog = get_catalog(app)
+		catalog = new_catalog(app)
 
 		# Each file will only be processed by the first method that matches,
 		# so more specific methods should come first.
