@@ -394,44 +394,7 @@ class Document(BaseDocument):
 
 	def update_child_table(self, fieldname, df=None):
 		"""sync child table for given fieldname"""
-<<<<<<< HEAD
-		rows = []
-		if not df:
-			df = self.meta.get_field(fieldname)
-
-		for d in self.get(df.fieldname):
-			d.db_update()
-			rows.append(d.name)
-
-		if (
-			df.options in (self.flags.ignore_children_type or [])
-			or frappe.get_meta(df.options).is_virtual == 1
-		):
-			# do not delete rows for this because of flags
-			# hack for docperm :(
-			return
-
-		if rows:
-			# select rows that do not match the ones in the document
-			deleted_rows = frappe.db.sql(
-				"""select name from `tab{}` where parent=%s
-				and parenttype=%s and parentfield=%s
-				and name not in ({})""".format(
-					df.options, ",".join(["%s"] * len(rows))
-				),
-				[self.name, self.doctype, fieldname] + rows,
-			)
-			if len(deleted_rows) > 0:
-				# delete rows that do not match the ones in the document
-				frappe.db.delete(df.options, {"name": ("in", tuple(row[0] for row in deleted_rows))})
-
-		else:
-			# no rows found, delete all rows
-			frappe.db.delete(
-				df.options, {"parent": self.name, "parenttype": self.doctype, "parentfield": fieldname}
-			)
-=======
-		df: "DocField" = df or self.meta.get_field(fieldname)
+		df = df or self.meta.get_field(fieldname)
 		all_rows = self.get(df.fieldname)
 
 		# delete rows that do not match the ones in the document
@@ -458,9 +421,7 @@ class Document(BaseDocument):
 
 		# update / insert
 		for d in all_rows:
-			d: Document
 			d.db_update()
->>>>>>> 417fce091a (fix: delete existing children first to avoid `UniqueValidationError` (#24140))
 
 	def get_doc_before_save(self):
 		return getattr(self, "_doc_before_save", None)
