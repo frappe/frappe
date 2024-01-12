@@ -73,7 +73,7 @@ class PushNotification:
 
 		:param user_id: (str) The ID of the user. This should be user's unique identifier.
 		:param topic_name: (str) The name of the topic. This topic should be already created.
-		:return:
+		:return: bool True if successful, False otherwise.
 		"""
 		data = self._send_post_request(
 			"notification_relay.api.topic.subscribe", {"user_id": user_id, "topic_name": topic_name}
@@ -146,11 +146,11 @@ class PushNotification:
 		:param link: (str) The link to be opened when the notification is clicked.
 		:param data: (dict) The data to be sent with the notification. This can be used to provide extra information while dealing with in-app notifications.
 		:param truncate_body: (bool) Whether to truncate the body or not. If True, the body will be truncated to 1000 characters.
-		:return:  bool True if the request queued successfully, False otherwise.
+		:return: bool True if the request queued successfully, False otherwise.
 		"""
 		if data is None:
 			data = {}
-		if link is not None and link != "":
+		if link:
 			data["click_action"] = link
 		if len(body) > 1000:
 			if truncate_body:
@@ -185,30 +185,30 @@ class PushNotification:
 		notification_settings = frappe.get_doc("Push Notification Settings")
 		if notification_settings.api_key and notification_settings.api_secret:
 			return notification_settings.api_key, notification_settings.get_password("api_secret")
-		else:
-			# Generate new credentials
-			token = frappe.generate_hash(length=48)
-			# store the token in the redis cache
-			frappe.cache().set_value(
-				f"{self._site_name}:push_relay_registration_token", token, expires_in_sec=600
-			)
-			body = {
-				"endpoint": self._site_name,
-				"protocol": self._site_protocol,
-				"port": self._site_port,
-				"token": token,
-				"webhook_route": "/api/method/frappe.push_notification.auth_webhook",
-			}
-			response = self._send_post_request("notification_relay.api.auth.get_credential", body, False)
-			success = response["success"]
-			if not success:
-				raise Exception(response["message"])
-			notification_settings.api_key = response["credentials"]["api_key"]
-			notification_settings.api_secret = response["credentials"]["api_secret"]
-			notification_settings.save(ignore_permissions=True)
-			# GET request, hence using commit to persist changes
-			frappe.db.commit()  # nosemgrep
-			return notification_settings.api_key, notification_settings.api_secret
+
+		# Generate new credentials
+		token = frappe.generate_hash(length=48)
+		# store the token in the redis cache
+		frappe.cache().set_value(
+			f"{self._site_name}:push_relay_registration_token", token, expires_in_sec=600
+		)
+		body = {
+			"endpoint": self._site_name,
+			"protocol": self._site_protocol,
+			"port": self._site_port,
+			"token": token,
+			"webhook_route": "/api/method/frappe.push_notification.auth_webhook",
+		}
+		response = self._send_post_request("notification_relay.api.auth.get_credential", body, False)
+		success = response["success"]
+		if not success:
+			raise Exception(response["message"])
+		notification_settings.api_key = response["credentials"]["api_key"]
+		notification_settings.api_secret = response["credentials"]["api_secret"]
+		notification_settings.save(ignore_permissions=True)
+		# GET request, hence using commit to persist changes
+		frappe.db.commit()  # nosemgrep
+		return notification_settings.api_key, notification_settings.api_secret.get_password("api_secret")
 
 	def _send_post_request(self, method: str, params: dict, use_authentication: bool = True):
 		"""
