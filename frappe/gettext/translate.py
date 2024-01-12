@@ -133,7 +133,7 @@ def generate_pot(target_app: str | None = None):
 
 	for app in apps:
 		app_path = frappe.get_pymodule_path(app)
-		catalog = get_catalog(app)
+		catalog = new_catalog(app)
 
 		# Each file will only be processed by the first method that matches,
 		# so more specific methods should come first.
