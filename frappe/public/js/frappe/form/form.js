@@ -1469,8 +1469,8 @@ frappe.ui.form.Form = class FrappeForm {
 				"li > a.grey-link > span",
 				menu_item_label
 			)
-			.parent()
-			.parent();
+			?.parent()
+			?.parent();
 
 		if ($linkBody) {
 			// If last button, remove divider too
