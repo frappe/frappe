@@ -227,3 +227,8 @@ frappe.desk.doctype.form_tour.patches.introduce_ui_tours
 execute:frappe.delete_doc_if_exists("Workspace", "Customization")
 frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
+<<<<<<< HEAD
+=======
+frappe.patches.v15_0.validate_newsletter_recipients
+frappe.patches.v15_0.sanitize_workspace_titles
+>>>>>>> 9c91f79170 (fix: sanitize html instead of escaping when creating/updating workspace (#24284))
