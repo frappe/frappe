@@ -8,7 +8,6 @@ import re
 import time
 from collections import Counter
 from collections.abc import Callable
-from enum import Enum
 
 import sqlparse
 
@@ -20,12 +19,6 @@ RECORDER_INTERCEPT_FLAG = "recorder-intercept"
 RECORDER_REQUEST_SPARSE_HASH = "recorder-requests-sparse"
 RECORDER_REQUEST_HASH = "recorder-requests"
 TRACEBACK_PATH_PATTERN = re.compile(".*/apps/")
-
-
-class RecorderEvent(str, Enum):
-	HTTP_REQUEST = "HTTP Request"
-	BACKGROUND_JOB = "Background Job"
-	INVALID = "Invalid"
 
 
 def sql(*args, **kwargs):
@@ -161,16 +154,16 @@ class Recorder:
 			self.method = frappe.request.method
 			self.headers = dict(frappe.local.request.headers)
 			self.form_dict = frappe.local.form_dict
-			self.event_type = RecorderEvent.HTTP_REQUEST
+			self.event_type = "HTTP Request"
 		elif frappe.job:
-			self.event_type = RecorderEvent.BACKGROUND_JOB
+			self.event_type = "Background Job"
 			self.path = frappe.job.method
 			self.cmd = None
 			self.method = None
 			self.headers = None
 			self.form_dict = None
 		else:
-			self.event_type = RecorderEvent.INVALID
+			self.event_type = None
 			self.path = None
 			self.cmd = None
 			self.method = None

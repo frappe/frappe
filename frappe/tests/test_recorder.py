@@ -122,13 +122,7 @@ class TestRecorder(FrappeTestCase):
 		frappe.recorder.post_process()
 
 		requests = frappe.recorder.get()
-		request = frappe.recorder.get(
-			next(
-				request
-				for request in requests
-				if request["event_type"] == frappe.recorder.RecorderEvent.HTTP_REQUEST
-			)["uuid"]
-		)
+		request = frappe.recorder.get(requests[0]["uuid"])
 
 		for query, call in zip(queries, request["calls"]):
 			self.assertEqual(call["exact_copies"], query[1])
