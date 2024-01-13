@@ -9,17 +9,11 @@ from .frappeclient import FrappeClient
 
 
 class PushNotification:
-	project_name = ""
-
-	@staticmethod
-	def set_project(project_name: str) -> None:
+	def __init__(self, project_name: str):
 		"""
-		Set the project name.
-
-		:param project_name:  (str) The name of the project.
-		:return:
+		:param project_name: (str) The name of the project.
 		"""
-		PushNotification.project_name = project_name
+		self.project_name = project_name
 
 	def add_token(self, user_id: str, token: str) -> tuple[bool, str]:
 		"""
@@ -231,7 +225,7 @@ class PushNotification:
 			client = FrappeClient(relay_server_endpoint, api_key=api_key, api_secret=api_secret)
 		else:
 			client = FrappeClient(relay_server_endpoint)
-		params["project_name"] = PushNotification.project_name
+		params["project_name"] = self.project_name
 		params["site_name"] = self._site_name
 		return client.post_api(method, params)
 
@@ -271,12 +265,12 @@ def auth_webhook():
 
 # Subscribe and Unsubscribe API
 @frappe.whitelist(methods=["GET"])
-def subscribe(fcm_token: str):
-	success, message = PushNotification().add_token(frappe.session.user, fcm_token)
+def subscribe(fcm_token: str, project_name: str):
+	success, message = PushNotification(project_name).add_token(frappe.session.user, fcm_token)
 	return {"success": success, "message": message}
 
 
 @frappe.whitelist(methods=["GET"])
-def unsubscribe(fcm_token: str):
-	success, message = PushNotification().remove_token(frappe.session.user, fcm_token)
+def unsubscribe(fcm_token: str, project_name: str):
+	success, message = PushNotification(project_name).remove_token(frappe.session.user, fcm_token)
 	return {"success": success, "message": message}
