@@ -394,15 +394,18 @@ def get_redis_conn(username=None, password=None):
 			return _redis_queue_conn
 		else:
 			return RedisQueue.get_connection(**cred)
-	except (redis.exceptions.AuthenticationError, redis.exceptions.ResponseError):
+	except redis.exceptions.AuthenticationError:
 		log(
 			f'Wrong credentials used for {cred.username or "default user"}. '
 			"You can reset credentials using `bench create-rq-users` CLI and restart the server",
 			colour="red",
 		)
 		raise
-	except Exception:
-		log(f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}", colour="red")
+	except Exception as e:
+		log(
+			f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}. Redis reported error: {str(e)}",
+			colour="red",
+		)
 		raise
 
 
