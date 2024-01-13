@@ -29,13 +29,6 @@
 			min-width: 28px;
 		}
 	}
-
-	@media (max-width: 995px) {
-		height: calc(var(--btn-height) * 1.2) !important;
-		&.icon-btn {
-			min-width: 34px !important;
-		}
-	}
 }
 
 .btn-secondary-dark {

@@ -162,7 +162,6 @@ build/Release
 
 # Dependency directories
 node_modules/
-.yarn/
 jspm_packages/
 
 # Typescript v1 declaration files
