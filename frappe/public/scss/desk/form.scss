@@ -424,6 +424,7 @@
 		align-items: center;
 
 		.nav-item {
+			white-space: nowrap;
 			@include get_textstyle("base", "regular");
 			.nav-link {
 				color: var(--text-muted);
