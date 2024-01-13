@@ -341,11 +341,7 @@
 		align-items: center;
 
 		.nav-item {
-<<<<<<< HEAD
-=======
 			white-space: nowrap;
-			@include get_textstyle("base", "regular");
->>>>>>> 880c01c4ae (fix(mobile-ui): tabs should scroll instead of stack (#24309))
 			.nav-link {
 				color: var(--text-muted);
 				padding: var(--padding-md) 0;
