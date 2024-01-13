@@ -336,7 +336,12 @@
 	border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
 
 	.form-tabs {
+		flex-wrap: nowrap;
+		overflow: overlay;
+		align-items: center;
+
 		.nav-item {
+			white-space: nowrap;
 			.nav-link {
 				color: var(--text-muted);
 				padding: var(--padding-md) 0;
