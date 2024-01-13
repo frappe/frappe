@@ -25,6 +25,7 @@ context("List View", () => {
 			"Edit",
 			"Export",
 			"Assign To",
+			"Clear Assignment",
 			"Apply Assignment Rule",
 			"Add Tags",
 			"Print",
