@@ -189,6 +189,7 @@ def get_all_translations(lang: str) -> dict[str, str]:
 	except Exception:
 		# People mistakenly call translation function on global variables
 		# where locals are not initalized, translations dont make much sense there
+		frappe.logger().error("Unable to load translations", exc_info=True)
 		return {}
 
 

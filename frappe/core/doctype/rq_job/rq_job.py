@@ -59,8 +59,8 @@ class RQJob(Document):
 		]
 		time_taken: DF.Duration | None
 		timeout: DF.Duration | None
-
 	# end: auto-generated types
+
 	def load_from_db(self):
 		try:
 			job = Job.fetch(self.name, connection=get_redis_conn())
