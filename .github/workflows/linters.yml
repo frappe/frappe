@@ -1,3 +1,4 @@
+# When updating this file, please also update the linter_workflow_template in frappe/utils/boilerplate.py
 name: Linters
 
 on:
