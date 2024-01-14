@@ -1,7 +1,17 @@
 const fs = require("fs");
 const path = require("path");
+<<<<<<< HEAD
 const redis = require("redis");
 const bench_path = path.resolve(__dirname, "..", "..");
+=======
+const redis = require("@redis/client");
+let bench_path;
+if (process.env.FRAPPE_BENCH_ROOT) {
+	bench_path = process.env.FRAPPE_BENCH_ROOT;
+} else {
+	bench_path = path.resolve(__dirname, "..", "..");
+}
+>>>>>>> 93bbe615ba (chore: use env variables in esbuilds)
 
 function get_conf() {
 	// defaults
