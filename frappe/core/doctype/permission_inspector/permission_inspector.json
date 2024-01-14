@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "beta": 1,
+ "creation": "2024-01-03 17:43:27.257317",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "ref_doctype",
+  "column_break_mcqo",
+  "docname",
+  "column_break_xbrd",
+  "user",
+  "column_break_nvaa",
+  "permission_type",
+  "section_break_hkjp",
+  "output"
+ ],
+ "fields": [
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "docname",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Document",
+   "options": "ref_doctype"
+  },
+  {
+   "fieldname": "column_break_mcqo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_xbrd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_hkjp",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "output",
+   "fieldtype": "Code",
+   "label": "Output",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_nvaa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "permission_type",
+   "fieldtype": "Select",
+   "label": "Permission Type",
+   "options": "read\nwrite\ncreate\ndelete\nsubmit\ncancel\nselect\namend\nprint\nemail\nreport\nimport\nexport\nshare"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_virtual": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-01-10 14:17:49.722593",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Permission Inspector",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

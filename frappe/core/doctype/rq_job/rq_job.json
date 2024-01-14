@@ -2,7 +2,7 @@
  "actions": [],
  "allow_copy": 1,
  "autoname": "field:job_id",
- "creation": "2022-09-10 16:19:37.934903",
+ "creation": "2023-03-22 20:05:22.962044",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -104,10 +104,11 @@
    "fieldtype": "Section Break"
   }
  ],
+ "hide_toolbar": 1,
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2022-09-11 05:27:50.878534",
+ "modified": "2024-01-13 10:38:40.230972",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "RQ Job",

@@ -934,7 +934,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>
 			</div>
 			<div class="level-item visible-xs text-right">
-				${this.get_indicator_dot(doc)}
+				${this.get_indicator_html(doc)}
 			</div>
 		`;
 
@@ -1814,6 +1814,30 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const bulk_assignment_clear = () => {
+			return {
+				label: __("Clear Assignment", null, "Button in list view actions menu"),
+				action: () => {
+					frappe.confirm(
+						"Are you sure you want to clear the assignments?",
+						() => {
+							this.disable_list_update = true;
+							bulk_operations.clear_assignment(this.get_checked_items(true), () => {
+								this.disable_list_update = false;
+								this.clear_checked_items();
+								this.refresh();
+							});
+						},
+						() => {
+							this.clear_checked_items();
+							this.refresh();
+						}
+					);
+				},
+				standard: true,
+			};
+		};
+
 		const bulk_assignment_rule = () => {
 			return {
 				label: __("Apply Assignment Rule", null, "Button in list view actions menu"),
@@ -1982,6 +2006,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// bulk assignment
 		actions_menu_items.push(bulk_assignment());
 
+		actions_menu_items.push(bulk_assignment_clear());
+
 		actions_menu_items.push(bulk_assignment_rule());
 
 		actions_menu_items.push(bulk_add_tags());
@@ -2016,9 +2042,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	parse_filters_from_route_options() {
 		const filters = [];
 
-		for (let field in frappe.route_options) {
+		let params = new URLSearchParams(window.location.search);
+		if (!params.toString() && frappe.route_options) {
+			params = new Map(Object.entries(frappe.route_options));
+		}
+
+		params.forEach((value, field) => {
 			let doctype = null;
-			let value = frappe.route_options[field];
 
 			let value_array;
 			if ($.isArray(value) && value[0].startsWith("[") && value[0].endsWith("]")) {
@@ -2060,7 +2090,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					filters.push([doctype, field, "=", value]);
 				}
 			}
-		}
+		});
 
 		return filters;
 	}
