@@ -319,7 +319,7 @@ def restore_backup(
 		)
 
 	except Exception as err:
-		print(err.args[1])
+		print(err)
 		sys.exit(1)
 
 
