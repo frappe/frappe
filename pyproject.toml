@@ -77,13 +77,8 @@ dependencies = [
     "markdownify~=0.11.2",
 
     # integration dependencies
-<<<<<<< HEAD
     "boto3~=1.18.49",
-    "dropbox~=11.36.0",
-=======
-    "boto3~=1.28.10",
     "dropbox~=11.36.2",
->>>>>>> cfae292d3e (chore: bump dropbox)
     "google-api-python-client~=2.2.0",
     "google-auth-httplib2~=0.1.0",
     "google-auth-oauthlib~=0.4.4",
