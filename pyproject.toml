@@ -77,7 +77,7 @@ dependencies = [
 
     # integration dependencies
     "boto3~=1.28.10",
-    "dropbox~=11.36.0",
+    "dropbox~=11.36.2",
     "google-api-python-client~=2.2.0",
     "google-auth-oauthlib~=0.4.4",
     "google-auth~=1.29.0",
