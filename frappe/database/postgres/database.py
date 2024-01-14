@@ -162,10 +162,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def get_connection(self):
 		conn_settings = {
 			"user": self.user,
-			"dbname": self.user,
 			"host": self.host,
 			"password": self.password,
 		}
+		if self.user not in (frappe.flags.root_login, "root"):
+			conn_settings["dbname"] = self.cur_db_name
 		if self.port:
 			conn_settings["port"] = self.port
 
@@ -199,7 +200,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def get_database_size(self):
 		"""Return database size in MB"""
 		db_size = self.sql(
-			"SELECT (pg_database_size(%s) / 1024 / 1024) as database_size", self.db_name, as_dict=True
+			"SELECT (pg_database_size(%s) / 1024 / 1024) as database_size", self.cur_db_name, as_dict=True
 		)
 		return db_size[0].get("database_size")
 
@@ -219,7 +220,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			where table_catalog='{}'
 				and table_type = 'BASE TABLE'
 				and table_schema='{}'""".format(
-					frappe.conf.db_name, frappe.conf.get("db_schema", "public")
+					self.cur_db_name, frappe.conf.get("db_schema", "public")
 				)
 			)
 		]
