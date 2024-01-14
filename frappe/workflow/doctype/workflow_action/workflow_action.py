@@ -470,7 +470,7 @@ def filter_allowed_users(users, doc, transition):
 		user
 		for user in users
 		if has_approval_access(user, doc, transition)
-		and has_permission(doctype=doc, user=user, raise_exception=False)
+		and has_permission(doctype=doc, user=user, print_logs=False)
 	]
 
 

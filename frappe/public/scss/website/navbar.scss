@@ -29,7 +29,7 @@
 	}
 }
 @media (max-width: map-get($grid-breakpoints, "sm")) {
-	.navbar-collapse.collapse.show {
+	.navbar-collapse {
 		.navbar-nav {
 			align-items: flex-start;
 		}

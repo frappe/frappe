@@ -7,7 +7,7 @@ import frappe
 from frappe import _
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
-from frappe.translate import get_messages_for_boot, send_translations, set_default_language
+from frappe.translate import send_translations, set_default_language
 from frappe.utils import cint, now, strip
 from frappe.utils.password import update_password
 
@@ -157,7 +157,7 @@ def get_setup_complete_hooks(args):
 def handle_setup_exception(args):
 	frappe.db.rollback()
 	if args:
-		traceback = frappe.get_traceback()
+		traceback = frappe.get_traceback(with_context=True)
 		print(traceback)
 		for hook in frappe.get_hooks("setup_wizard_exception"):
 			frappe.get_attr(hook)(traceback, args)
@@ -304,6 +304,8 @@ def disable_future_access():
 def load_messages(language):
 	"""Load translation messages for given language from all `setup_wizard_requires`
 	javascript files"""
+	from frappe.translate import get_messages_for_boot
+
 	frappe.clear_cache()
 	set_default_language(get_language_code(language))
 	frappe.db.commit()

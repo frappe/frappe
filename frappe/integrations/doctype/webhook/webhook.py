@@ -153,15 +153,14 @@ def get_context(doc):
 
 
 def enqueue_webhook(doc, webhook) -> None:
+	request_url = headers = data = None
 	try:
 		webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
-		headers = get_webhook_headers(doc, webhook)
-		data = get_webhook_data(doc, webhook)
-
+		request_url = webhook.request_url
 		if webhook.is_dynamic_url:
 			request_url = frappe.render_template(webhook.request_url, get_context(doc))
-		else:
-			request_url = webhook.request_url
+		headers = get_webhook_headers(doc, webhook)
+		data = get_webhook_data(doc, webhook)
 
 	except Exception as e:
 		frappe.logger().debug({"enqueue_webhook_error": e})

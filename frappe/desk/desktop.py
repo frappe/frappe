@@ -417,8 +417,11 @@ def get_workspace_sidebar_items():
 	blocked_modules = frappe.get_doc("User", frappe.session.user).get_blocked_modules()
 	blocked_modules.append("Dummy Module")
 
+	# adding None to allowed_domains to include pages without domain restriction
+	allowed_domains = [None] + frappe.get_active_domains()
+
 	filters = {
-		"restrict_to_domain": ["in", frappe.get_active_domains()],
+		"restrict_to_domain": ["in", allowed_domains],
 		"module": ["not in", blocked_modules],
 	}
 
@@ -565,7 +568,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 			page, json_config, e
 		)
 		doc.log_error("Could not save customization", log)
-		return False
+		raise
 
 	return True
 

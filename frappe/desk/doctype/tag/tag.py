@@ -109,7 +109,7 @@ class DocTags:
 			tags = ""
 		else:
 			tl = unique(filter(lambda x: x, tl))
-			tags = "," + ",".join(tl)
+			tags = ",".join(tl)
 		try:
 			frappe.db.sql(
 				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)

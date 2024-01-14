@@ -47,6 +47,7 @@ def build(
 ):
 	"Compile JS and CSS source files"
 	from frappe.build import bundle, download_frappe_assets
+	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
 	frappe.init("")
@@ -77,6 +78,16 @@ def build(
 			save_metafiles=save_metafiles,
 		)
 
+		if apps and isinstance(apps, str):
+			apps = apps.split(",")
+
+		if not apps:
+			apps = frappe.get_all_apps()
+
+		for app in apps:
+			print("Compiling translations for", app)
+			compile_translations(app, force=force)
+
 
 @click.command("watch")
 @click.option("--apps", help="Watch assets for specific apps")
@@ -93,14 +104,12 @@ def watch(apps=None):
 def clear_cache(context):
 	"Clear cache, doctype cache and defaults"
 	import frappe.sessions
-	from frappe.desk.notifications import clear_notifications
 	from frappe.website.utils import clear_website_cache
 
 	for site in context.sites:
 		try:
 			frappe.connect(site)
 			frappe.clear_cache()
-			clear_notifications()
 			clear_website_cache()
 		finally:
 			frappe.destroy()
