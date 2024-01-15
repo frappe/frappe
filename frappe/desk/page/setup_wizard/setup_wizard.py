@@ -12,7 +12,7 @@ from frappe.utils.password import update_password
 from . import install_fixtures
 
 
-def get_setup_stages(args):
+def get_setup_stages(args):  # nosemgrep
 
 	# App setup stage functions should not include frappe.db.commit
 	# That is done by frappe after successful completion of all stages
@@ -99,7 +99,7 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 		frappe.flags.in_setup_wizard = False
 
 
-def update_global_settings(args):
+def update_global_settings(args):  # nosemgrep
 	if args.language and args.language != "English":
 		set_default_language(get_language_code(args.lang))
 		frappe.db.commit()
@@ -114,25 +114,26 @@ def update_global_settings(args):
 >>>>>>> 49bbd0d1d7 (fix(setup wizard): allow setting user password for an existing user)
 
 
-def run_post_setup_complete(args):
+def run_post_setup_complete(args):  # nosemgrep
 	disable_future_access()
 	frappe.db.commit()
 	frappe.clear_cache()
 
 
-def run_setup_success(args):
+def run_setup_success(args):  # nosemgrep
 	for hook in frappe.get_hooks("setup_wizard_success"):
 		frappe.get_attr(hook)(args)
 	install_fixtures.install()
 
 
-def get_stages_hooks(args):
+def get_stages_hooks(args):  # nosemgrep
 	stages = []
 	for method in frappe.get_hooks("setup_wizard_stages"):
 		stages += frappe.get_attr(method)(args)
 	return stages
 
 
+<<<<<<< HEAD
 def get_setup_complete_hooks(args):
 	stages = []
 	for method in frappe.get_hooks("setup_wizard_complete"):
@@ -146,9 +147,26 @@ def get_setup_complete_hooks(args):
 			}
 		)
 	return stages
+=======
+def get_setup_complete_hooks(args):  # nosemgrep
+	return [
+		{
+			"status": "Executing method",
+			"fail_msg": "Failed to execute method",
+			"tasks": [
+				{
+					"fn": frappe.get_attr(method),
+					"args": args,
+					"fail_msg": "Failed to execute method",
+				}
+			],
+		}
+		for method in frappe.get_hooks("setup_wizard_complete")
+	]
+>>>>>>> 53c5383f52 (chore: silence semgrep warnings for overusing args)
 
 
-def handle_setup_exception(args):
+def handle_setup_exception(args):  # nosemgrep
 	frappe.db.rollback()
 	if args:
 		traceback = frappe.get_traceback()
@@ -157,7 +175,7 @@ def handle_setup_exception(args):
 			frappe.get_attr(hook)(traceback, args)
 
 
-def update_system_settings(args):
+def update_system_settings(args):  # nosemgrep
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
 
 	# replace these as float number formats, as they have 0 precision
@@ -225,7 +243,17 @@ def create_or_update_user(args):  # nosemgrep
 		update_password(email, args.get("password"))
 
 
+<<<<<<< HEAD
 def parse_args(args):
+=======
+def set_timezone(args):  # nosemgrep
+	if args.get("timezone"):
+		for name in frappe.STANDARD_USERS:
+			frappe.db.set_value("User", name, "time_zone", args.get("timezone"))
+
+
+def parse_args(args):  # nosemgrep
+>>>>>>> 53c5383f52 (chore: silence semgrep warnings for overusing args)
 	if not args:
 		args = frappe.local.form_dict
 	if isinstance(args, str):
@@ -317,7 +345,7 @@ def load_user_details():
 	}
 
 
-def prettify_args(args):
+def prettify_args(args):  # nosemgrep
 	# remove attachments
 	for key, val in args.items():
 		if isinstance(val, str) and "data:image" in val:
@@ -331,7 +359,7 @@ def prettify_args(args):
 	return pretty_args
 
 
-def email_setup_wizard_exception(traceback, args):
+def email_setup_wizard_exception(traceback, args):  # nosemgrep
 	if not frappe.conf.setup_wizard_exception_email:
 		return
 
@@ -376,7 +404,7 @@ def email_setup_wizard_exception(traceback, args):
 	)
 
 
-def log_setup_wizard_exception(traceback, args):
+def log_setup_wizard_exception(traceback, args):  # nosemgrep
 	with open("../logs/setup-wizard.log", "w+") as setup_log:
 		setup_log.write(traceback)
 		setup_log.write(json.dumps(args))
