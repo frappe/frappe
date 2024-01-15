@@ -174,9 +174,10 @@ def get_notification_logs(limit=100):
 	count_remote_diagnose = 0
 	count_callback_request = 0
 	for log in notification_logs:
-		if "subject-title" in log.get("email_content", "") and "Remote Diagnose" in log["email_content"] and log.get("read", 0) == 0:
+		email_content = log.get("email_content")
+		if email_content is not None and "subject-title" in email_content and "Remote Diagnose" in email_content and log.get("read", 0) == 0:
 			count_remote_diagnose += 1
-		if "Request Callback" in log["email_content"] and log.get("read", 0) == 0:
+		if email_content is not None and "Request Callback" in email_content and log.get("read", 0) == 0:
 			count_callback_request += 1
 	alert_message = ""
 	if count_remote_diagnose > 0:
