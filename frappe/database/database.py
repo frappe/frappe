@@ -10,7 +10,7 @@ import traceback
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
-from typing import Any
+from typing import TYPE_CHECKING, Any, Union
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
@@ -33,6 +33,13 @@ from frappe.utils import CallbackManager
 from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
 from frappe.utils.deprecations import deprecation_warning
+
+if TYPE_CHECKING:
+	from psycopg2 import connection as PostgresConnection
+	from psycopg2 import cursor as PostgresCursor
+	from pymysql.connections import Connection as MariadbConnection
+	from pymysql.cursors import Cursor as MariadbCursor
+
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
@@ -73,7 +80,7 @@ class Database:
 		self.host = host or frappe.conf.db_host
 		self.port = port or frappe.conf.db_port
 		self.user = user or frappe.conf.db_name
-		self.db_name = frappe.conf.db_name
+		self.cur_db_name = frappe.conf.db_name
 		self._conn = None
 
 		if ac_name:
@@ -103,9 +110,8 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		self.cur_db_name = self.user
-		self._conn = self.get_connection()
-		self._cursor = self._conn.cursor()
+		self._conn: Union["MariadbConnection", "PostgresConnection"] = self.get_connection()
+		self._cursor: Union["MariadbCursor", "PostgresCursor"] = self._conn.cursor()
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -121,6 +127,7 @@ class Database:
 	def use(self, db_name):
 		"""`USE` db_name."""
 		self._conn.select_db(db_name)
+		self.cur_db_name = db_name
 
 	def get_connection(self):
 		"""Return a Database connection object that conforms with https://peps.python.org/pep-0249/#connection-objects."""
@@ -134,6 +141,9 @@ class Database:
 
 	def _transform_result(self, result: list[tuple]) -> list[tuple]:
 		return result
+
+	def _clean_up(self):
+		pass
 
 	def sql(
 		self,
@@ -149,6 +159,7 @@ class Database:
 		explain=False,
 		run=True,
 		pluck=False,
+		as_iterator=False,
 	):
 		"""Execute a SQL query and fetch all rows.
 
@@ -163,6 +174,7 @@ class Database:
 		:param run: Return query without executing it if False.
 		:param pluck: Get the plucked field only.
 		:param explain: Print `EXPLAIN` in error log.
+		:param as_iterator: Returns iterator over results instead of fetching all results at once.
 		Examples:
 
 		        # return customer names as dicts
@@ -264,21 +276,50 @@ class Database:
 		if not self._cursor.description:
 			return ()
 
-		self.last_result = self._transform_result(self._cursor.fetchall())
+		last_result = self._transform_result(self._cursor.fetchall())
+		if as_iterator:
+			return self._return_as_iterator(
+				last_result, pluck=pluck, as_dict=as_dict, as_list=as_list, update=update
+			)
 
 		if pluck:
-			return [r[0] for r in self.last_result]
+			last_result = [r[0] for r in last_result]
+			self._clean_up()
+			return last_result
 
 		# scrub output if required
 		if as_dict:
-			ret = self.fetch_as_dict()
+			last_result = self.fetch_as_dict(last_result)
 			if update:
-				for r in ret:
+				for r in last_result:
 					r.update(update)
-			return ret
+
 		elif as_list:
-			return self.convert_to_lists(self.last_result)
-		return self.last_result
+			last_result = self.convert_to_lists(last_result)
+
+		self._clean_up()
+		return last_result
+
+	def _return_as_iterator(self, result, *, pluck, as_dict, as_list, update):
+		if pluck:
+			for row in result:
+				yield row[0]
+
+		elif as_dict:
+			keys = [column[0] for column in self._cursor.description]
+			for row in result:
+				row = frappe._dict(zip(keys, row))
+				if update:
+					row.update(update)
+				yield row
+
+		elif as_list:
+			for row in result:
+				yield list(row)
+		else:
+			frappe.throw(_("`as_iterator` only works with `as_list=True` or `as_dict=True`"))
+
+		self._clean_up()
 
 	def _log_query(
 		self,
@@ -396,9 +437,8 @@ class Database:
 		):
 			raise ImplicitCommitError("This statement can cause implicit commit", query)
 
-	def fetch_as_dict(self) -> list[frappe._dict]:
+	def fetch_as_dict(self, result) -> list[frappe._dict]:
 		"""Internal. Convert results to dict."""
-		result = self.last_result
 		if result:
 			keys = [column[0] for column in self._cursor.description]
 
