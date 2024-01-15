@@ -47,7 +47,11 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 				data[0].forEach((column) => {
 					fieldnames.push(this.get_field(column));
 					var df = frappe.meta.get_docfield(doctype, this.get_field(column));
-					fieldtypes.push(df.fieldtype);
+					if (df) {
+						fieldtypes.push(df.fieldtype);
+					} else {
+						fieldtypes.push("");
+					}
 				});
 				data.shift();
 			} else {
@@ -62,7 +66,11 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 					) {
 						fieldnames.push(column.fieldname);
 						var df = frappe.meta.get_docfield(doctype, column.fieldname);
-						fieldtypes.push(df.fieldtype);
+						if (df) {
+							fieldtypes.push(df.fieldtype);
+						} else {
+							fieldtypes.push("");
+						}
 						target_column_matched = true;
 					}
 				});
