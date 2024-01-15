@@ -63,8 +63,16 @@ class TestEmailAccount(FrappeTestCase):
 	def test_unread_notification(self):
 		self.test_incoming()
 
+		todo = frappe.get_last_doc("ToDo")
+
 		comm = frappe.new_doc(
-			"Communication", {"sender": "test_sender@example.com", "subject": "test unread reminder"}
+			"Communication",
+			sender="test_sender@example.com",
+			subject="test unread reminder",
+			sent_or_received="Received",
+			reference_doctype=todo.doctype,
+			reference_name=todo.name,
+			email_account="_Test Email Account 1",
 		)
 		comm.insert()
 		comm.db_set("creation", datetime.now() - timedelta(seconds=30 * 60))
