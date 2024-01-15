@@ -61,8 +61,6 @@ class TestEmailAccount(FrappeTestCase):
 		self.assertTrue(frappe.db.get_value(comm.reference_doctype, comm.reference_name, "name"))
 
 	def test_unread_notification(self):
-		self.test_incoming()
-
 		todo = frappe.get_last_doc("ToDo")
 
 		comm = frappe.new_doc(
