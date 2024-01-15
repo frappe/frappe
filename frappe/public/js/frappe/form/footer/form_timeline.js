@@ -66,7 +66,7 @@ class FormTimeline extends BaseTimeline {
 				.append(
 					`
 					<div class="d-flex align-items-center show-all-activity">
-						<span style="color: var(--text-light); margin:0px 6px;">Show all activity</span>
+						<span style="color: var(--text-light); margin:0px 6px;">${__("Show all activity")}</span>
 						<label class="switch">
 							<input type="checkbox">
 							<span class="slider round"></span>
