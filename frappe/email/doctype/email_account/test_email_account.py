@@ -13,11 +13,7 @@ from frappe.desk.form.load import get_attachments
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 from frappe.email.email_body import get_message_id
 from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
-from frappe.test_runner import make_test_records
 from frappe.tests.utils import FrappeTestCase
-
-make_test_records("User")
-make_test_records("Email Account")
 
 
 class TestEmailAccount(FrappeTestCase):
@@ -67,7 +63,10 @@ class TestEmailAccount(FrappeTestCase):
 	def test_unread_notification(self):
 		self.test_incoming()
 
-		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		comm = frappe.new_doc(
+			"Communication", {"sender": "test_sender@example.com", "subject": "test unread reminder"}
+		)
+		comm.insert()
 		comm.db_set("creation", datetime.now() - timedelta(seconds=30 * 60))
 
 		frappe.db.delete("Email Queue")
