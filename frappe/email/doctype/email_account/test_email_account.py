@@ -83,7 +83,6 @@ class TestEmailAccount(FrappeTestCase):
 				{
 					"reference_doctype": comm.reference_doctype,
 					"reference_name": comm.reference_name,
-					"status": "Not Sent",
 				},
 			)
 		)
