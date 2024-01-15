@@ -226,6 +226,9 @@ class BackupGenerator:
 		"""
 		Encrypt all the backups created using gpg.
 		"""
+		if which("gpg") is None:
+			click.secho("Please install `gpg` and ensure its available in your PATH", fg="red")
+			sys.exit(1)
 		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
 		for path in paths:
 			if os.path.exists(path):
@@ -661,6 +664,9 @@ class Backup:
 			print("Invalid path", self.file_path)
 			return
 		else:
+			if which("gpg") is None:
+				click.secho("Please install `gpg` and ensure its available in your PATH", fg="red")
+				sys.exit(1)
 			file_path_with_ext = self.file_path + ".gpg"
 			os.rename(self.file_path, file_path_with_ext)
 
