@@ -43,13 +43,14 @@
   {
    "fieldname": "editor_state",
    "fieldtype": "JSON",
+   "hidden": 1,
    "label": "Editor State",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-01-15 22:20:58.087093",
+ "modified": "2024-01-15 22:29:23.152498",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Drawing",
