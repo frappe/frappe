@@ -1,32 +1,24 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import time
 
 import sqlparse
 
 import frappe
 import frappe.recorder
 from frappe.recorder import normalize_query
-from frappe.tests.utils import FrappeTestCase, timeout
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
-from frappe.utils.doctor import any_job_pending
 from frappe.website.serve import get_response_content
 
 
 class TestRecorder(FrappeTestCase):
 	def setUp(self):
-		self.wait_for_background_jobs()
 		frappe.recorder.stop()
 		frappe.recorder.delete()
 		set_request()
 		frappe.recorder.start()
 		frappe.recorder.record()
-
-	@timeout
-	def wait_for_background_jobs(self):
-		while any_job_pending(frappe.local.site):
-			time.sleep(1)
 
 	def stop_recording(self):
 		frappe.recorder.dump()

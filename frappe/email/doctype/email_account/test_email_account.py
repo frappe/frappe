@@ -63,8 +63,8 @@ class TestEmailAccount(FrappeTestCase):
 	def test_unread_notification(self):
 		todo = frappe.get_last_doc("ToDo")
 
-		comm = frappe.new_doc(
-			"Communication",
+		comm = frappe.get_doc(
+			doctype="Communication",
 			sender="test_sender@example.com",
 			subject="test unread reminder",
 			sent_or_received="Received",
