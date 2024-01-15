@@ -641,6 +641,9 @@ def get_or_generate_backup_encryption_key():
 
 @contextlib.contextmanager
 def decrypt_backup(file_path: str, passphrase: str):
+	if which("gpg") is None:
+		click.secho("Please install `gpg` and ensure its available in your PATH", fg="red")
+		sys.exit(1)
 	if not os.path.exists(file_path):
 		print("Invalid path: ", file_path)
 		return
