@@ -106,6 +106,59 @@ class TestRQJob(FrappeTestCase):
 		self.assertFalse(is_job_enqueued(job_id))
 
 	@timeout(20)
+<<<<<<< HEAD
+=======
+	def test_auto_job_dedup(self):
+		job_id = "test_dedup"
+		job1 = frappe.enqueue(self.BG_JOB, sleep=2, job_id=job_id, deduplicate=True)
+		job2 = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id, deduplicate=True)
+		self.assertIsNone(job2)
+		self.check_status(job1, "finished")  # wait
+
+		# Failed jobs last longer, subsequent job should still pass with same ID.
+		job3 = frappe.enqueue(self.BG_JOB, fail=True, job_id=job_id, deduplicate=True)
+		self.check_status(job3, "failed")
+		job4 = frappe.enqueue(self.BG_JOB, sleep=1, job_id=job_id, deduplicate=True)
+		self.check_status(job4, "finished")
+
+	@timeout(20)
+	def test_enqueue_after_commit(self):
+		job_id = frappe.generate_hash()
+
+		frappe.enqueue(self.BG_JOB, enqueue_after_commit=True, job_id=job_id)
+		self.assertIsNone(get_job_status(job_id))
+
+		frappe.db.commit()
+		self.assertIsNotNone(get_job_status(job_id))
+
+		job_id = frappe.generate_hash()
+		frappe.enqueue(self.BG_JOB, enqueue_after_commit=True, job_id=job_id)
+		self.assertIsNone(get_job_status(job_id))
+
+		frappe.db.rollback()
+		self.assertIsNone(get_job_status(job_id))
+
+		frappe.db.commit()
+		self.assertIsNone(get_job_status(job_id))
+
+	@timeout(20)
+	def test_memory_usage(self):
+		if frappe.db.db_type != "mariadb":
+			return
+		job = frappe.enqueue("frappe.utils.data._get_rss_memory_usage")
+		self.check_status(job, "finished")
+
+		rss = job.latest_result().return_value
+		msg = """Memory usage of simple background job increased. Potential root cause can be a newly added python module import. Check and move them to approriate file/function to avoid loading the module by default."""
+
+		# If this starts failing analyze memory usage using memray or some equivalent tool to find
+		# offending imports/function calls.
+		# Refer this PR: https://github.com/frappe/frappe/pull/21467
+		LAST_MEASURED_USAGE = 41
+		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
+
+	@timeout(20)
+>>>>>>> d5d9b12472 (test: flaky server tests (#24301))
 	def test_clear_failed_jobs(self):
 		limit = 10
 		update_site_config("rq_failed_jobs_limit", limit)

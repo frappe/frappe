@@ -1,37 +1,50 @@
 # Copyright (c) 2019, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import time
+
 import sqlparse
 
 import frappe
 import frappe.recorder
 from frappe.recorder import normalize_query
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import set_request
+from frappe.utils.doctor import any_job_pending
 from frappe.website.serve import get_response_content
 
 
 class TestRecorder(FrappeTestCase):
 	def setUp(self):
+		self.wait_for_background_jobs()
 		frappe.recorder.stop()
 		frappe.recorder.delete()
 		set_request()
 		frappe.recorder.start()
 		frappe.recorder.record()
 
-	def test_start(self):
+	@timeout
+	def wait_for_background_jobs(self):
+		while any_job_pending(frappe.local.site):
+			time.sleep(1)
+
+	def stop_recording(self):
 		frappe.recorder.dump()
+		frappe.recorder.stop()
+
+	def test_start(self):
+		self.stop_recording()
 		requests = frappe.recorder.get()
 		self.assertEqual(len(requests), 1)
 
 	def test_do_not_record(self):
 		frappe.recorder.do_not_record(frappe.get_all)("DocType")
-		frappe.recorder.dump()
+		self.stop_recording()
 		requests = frappe.recorder.get()
 		self.assertEqual(len(requests), 0)
 
 	def test_get(self):
-		frappe.recorder.dump()
+		self.stop_recording()
 
 		requests = frappe.recorder.get()
 		self.assertEqual(len(requests), 1)
@@ -40,7 +53,7 @@ class TestRecorder(FrappeTestCase):
 		self.assertTrue(request)
 
 	def test_delete(self):
-		frappe.recorder.dump()
+		self.stop_recording()
 
 		requests = frappe.recorder.get()
 		self.assertEqual(len(requests), 1)
@@ -51,7 +64,7 @@ class TestRecorder(FrappeTestCase):
 		self.assertEqual(len(requests), 0)
 
 	def test_record_without_sql_queries(self):
-		frappe.recorder.dump()
+		self.stop_recording()
 
 		requests = frappe.recorder.get()
 		request = frappe.recorder.get(requests[0]["uuid"])
@@ -60,7 +73,7 @@ class TestRecorder(FrappeTestCase):
 
 	def test_record_with_sql_queries(self):
 		frappe.get_all("DocType")
-		frappe.recorder.dump()
+		self.stop_recording()
 
 		requests = frappe.recorder.get()
 		request = frappe.recorder.get(requests[0]["uuid"])
@@ -70,8 +83,7 @@ class TestRecorder(FrappeTestCase):
 	def test_explain(self):
 		frappe.db.sql("SELECT * FROM tabDocType")
 		frappe.db.sql("COMMIT")
-		frappe.recorder.dump()
-		frappe.recorder.post_process()
+		self.stop_recording()
 
 		requests = frappe.recorder.get()
 		request = frappe.recorder.get(requests[0]["uuid"])
@@ -90,8 +102,7 @@ class TestRecorder(FrappeTestCase):
 		for query in queries:
 			frappe.db.sql(query[sql_dialect])
 
-		frappe.recorder.dump()
-		frappe.recorder.post_process()
+		self.stop_recording()
 
 		requests = frappe.recorder.get()
 		request = frappe.recorder.get(requests[0]["uuid"])
@@ -115,8 +126,7 @@ class TestRecorder(FrappeTestCase):
 		for query in queries:
 			frappe.db.sql(query[0])
 
-		frappe.recorder.dump()
-		frappe.recorder.post_process()
+		self.stop_recording()
 
 		requests = frappe.recorder.get()
 		request = frappe.recorder.get(requests[0]["uuid"])

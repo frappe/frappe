@@ -7,7 +7,11 @@ import json
 import re
 import time
 from collections import Counter
+<<<<<<< HEAD
 from typing import Callable
+=======
+from collections.abc import Callable
+>>>>>>> d5d9b12472 (test: flaky server tests (#24301))
 
 import sqlparse
 
@@ -150,7 +154,20 @@ class Recorder:
 			self.method = frappe.request.method
 			self.headers = dict(frappe.local.request.headers)
 			self.form_dict = frappe.local.form_dict
+<<<<<<< HEAD
 		else:
+=======
+			self.event_type = "HTTP Request"
+		elif frappe.job:
+			self.event_type = "Background Job"
+			self.path = frappe.job.method
+			self.cmd = None
+			self.method = None
+			self.headers = None
+			self.form_dict = None
+		else:
+			self.event_type = None
+>>>>>>> d5d9b12472 (test: flaky server tests (#24301))
 			self.path = None
 			self.cmd = None
 			self.method = None
@@ -232,8 +249,13 @@ def start(*args, **kwargs):
 @do_not_record
 @administrator_only
 def stop(*args, **kwargs):
+<<<<<<< HEAD
 	frappe.cache().delete_value(RECORDER_INTERCEPT_FLAG)
 	frappe.enqueue(post_process)
+=======
+	frappe.cache.delete_value(RECORDER_INTERCEPT_FLAG)
+	frappe.enqueue(post_process, now=frappe.flags.in_test)
+>>>>>>> d5d9b12472 (test: flaky server tests (#24301))
 
 
 @frappe.whitelist()
