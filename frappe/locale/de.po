@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-01-12 01:53+0053\n"
-"PO-Revision-Date: 2024-01-15 11:31\n"
+"PO-Revision-Date: 2024-01-15 13:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -1662,7 +1662,7 @@ msgstr "Nach dem Speichern (Übermitteltes Dokument)"
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "After Submission"
-msgstr ""
+msgstr "Nach dem Buchen"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -1699,7 +1699,7 @@ msgstr "Aufmerksam"
 #. Label of a Card Break in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "Alerts and Notifications"
-msgstr ""
+msgstr "Warnungen und Benachrichtigungen"
 
 #. Label of a Select field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
