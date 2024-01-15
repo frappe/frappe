@@ -7,14 +7,18 @@
  "engine": "InnoDB",
  "field_order": [
   "svg",
+  "column_break_fdvr",
+  "svg_preview",
+  "editor_state",
   "editor_section",
   "drawing_editor"
  ],
  "fields": [
   {
    "fieldname": "svg",
-   "fieldtype": "HTML Editor",
-   "label": "SVG"
+   "fieldtype": "Code",
+   "label": "SVG",
+   "read_only": 1
   },
   {
    "collapsible": 1,
@@ -26,11 +30,26 @@
    "fieldname": "drawing_editor",
    "fieldtype": "HTML",
    "label": "Drawing Editor"
+  },
+  {
+   "fieldname": "column_break_fdvr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "svg_preview",
+   "fieldtype": "HTML",
+   "label": "SVG Preview"
+  },
+  {
+   "fieldname": "editor_state",
+   "fieldtype": "JSON",
+   "label": "Editor State",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-01-15 19:16:28.584598",
+ "modified": "2024-01-15 22:20:58.087093",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Drawing",

@@ -14,7 +14,8 @@ class Drawing(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		svg: DF.HTMLEditor | None
+		editor_state: DF.JSON | None
+		svg: DF.Code | None
 	# end: auto-generated types
 
 	pass
