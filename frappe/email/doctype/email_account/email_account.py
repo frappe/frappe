@@ -498,6 +498,8 @@ class EmailAccount(Document):
 			self.set_failed_attempts_count(self.get_failed_attempts_count() + 1)
 
 	def _disable_broken_incoming_account(self, description):
+		if frappe.flags.in_test:
+			return
 		self.db_set("enable_incoming", 0)
 
 		for user in get_system_managers(only_name=True):
