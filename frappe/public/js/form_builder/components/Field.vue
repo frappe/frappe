@@ -185,6 +185,14 @@ function is_filter_applied() {
 	}
 }
 
+function open_child_doctype() {
+	if (!props.field.df.options) {
+		frappe.msgprint(__("Please add a Doctype in the options field"));
+		return;
+	}
+	window.open(`/app/doctype/${props.field.df.options}`, "_blank");
+}
+
 onMounted(() => selected.value && label_input.value.focus_on_label());
 </script>
 
@@ -228,6 +236,14 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						@click="edit_filters"
 					>
 						<div v-html="frappe.utils.icon('filter', 'sm')"></div>
+					</button>
+					<button
+						v-if="field.df.fieldtype === 'Table'"
+						class="btn btn-xs btn-icon"
+						@click="open_child_doctype"
+						:title="__(`Edit ${field.df.options} Doctype`)"
+					>
+						<div v-html="frappe.utils.icon('arrow-up-right', 'sm')"></div>
 					</button>
 					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
 						<div v-html="frappe.utils.icon('add', 'sm')" />

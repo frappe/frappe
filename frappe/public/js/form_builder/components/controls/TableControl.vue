@@ -13,6 +13,15 @@ let table_columns = computedAsync(async () => {
 	let child_doctype = frappe.get_meta(doctype);
 	return get_table_columns(props.df, child_doctype);
 }, []);
+
+function open_new_doctype_dialog() {
+	let new_doctype = window.open("/app/doctype", "_blank");
+	//window.open returns a window object of the newly opened tab,
+	setTimeout(() => {
+		// to perform any action on the new tab, we need to wait for the tab to load hence the setTimeout
+		new_doctype.document.querySelector("[data-label='Add DocType']").click();
+	}, 100);
+}
 </script>
 
 <template>
@@ -46,7 +55,15 @@ let table_columns = computedAsync(async () => {
 				:alt="__('Grid Empty State')"
 				class="grid-empty-illustration"
 			/>
-			{{ __("No Data") }}
+			<!-- render this button when there are no columns, which means that options is not added for the table -->
+			<button
+				class="btn btn-xs btn-secondary"
+				@click="open_new_doctype_dialog"
+				v-if="!table_columns.length"
+			>
+				{{ __("Create New Doctype") }}
+			</button>
+			<p v-else>{{ __("No Data") }}</p>
 		</div>
 
 		<!-- description -->
