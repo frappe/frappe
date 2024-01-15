@@ -14,6 +14,8 @@ import random
 import time
 from typing import NoReturn
 
+import setproctitle
+
 # imports - module imports
 import frappe
 from frappe.utils import cint, get_datetime, get_sites, now_datetime
@@ -31,6 +33,10 @@ def cprint(*args, **kwargs):
 		pass
 
 
+def _proctitle(message):
+	setproctitle.setproctitle(f"frappe-scheduler: {message}")
+
+
 def start_scheduler() -> NoReturn:
 	"""Run enqueue_events_for_all_sites based on scheduler tick.
 	Specify scheduler_interval in seconds in common_site_config.json"""
@@ -39,6 +45,7 @@ def start_scheduler() -> NoReturn:
 	set_niceness()
 
 	while True:
+		_proctitle("idle")
 		time.sleep(tick)
 		enqueue_events_for_all_sites()
 
@@ -68,6 +75,7 @@ def enqueue_events_for_site(site: str) -> None:
 		frappe.logger("scheduler").error(f"Exception in Enqueue Events for Site {site}", exc_info=True)
 
 	try:
+		_proctitle(f"scheduling events for {site}")
 		frappe.init(site=site)
 		frappe.connect()
 		if is_scheduler_inactive():

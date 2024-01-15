@@ -122,7 +122,13 @@ class TestRecorder(FrappeTestCase):
 		frappe.recorder.post_process()
 
 		requests = frappe.recorder.get()
-		request = frappe.recorder.get(requests[0]["uuid"])
+		request = frappe.recorder.get(
+			next(
+				request
+				for request in requests
+				if request["event_type"] == frappe.recorder.RecorderEvent.HTTP_REQUEST
+			)["uuid"]
+		)
 
 		for query, call in zip(queries, request["calls"]):
 			self.assertEqual(call["exact_copies"], query[1])
@@ -152,6 +158,7 @@ class TestQueryNormalization(FrappeTestCase):
 			"select * from `user` where a > 5": "select * from `user` where a > ?",
 			"select `name` from `user`": "select `name` from `user`",
 			"select `name` from `user` limit 10": "select `name` from `user` limit ?",
+			"select `name` from `user` where name in ('a', 'b', 'c')": "select `name` from `user` where name in (?)",
 		}
 
 		for query, normalized in test_cases.items():

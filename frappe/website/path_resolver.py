@@ -38,7 +38,11 @@ class PathResolver:
 		except frappe.Redirect as e:
 			return frappe.flags.redirect_location, RedirectPage(self.path, e.http_status_code)
 
-		endpoint = resolve_path(self.path)
+		if frappe.get_hooks("website_path_resolver"):
+			for handler in frappe.get_hooks("website_path_resolver"):
+				endpoint = frappe.get_attr(handler)(self.path)
+		else:
+			endpoint = resolve_path(self.path)
 
 		# WARN: Hardcoded for better performance
 		if endpoint == "app":
@@ -135,7 +139,7 @@ def resolve_redirect(path, query_string=None):
 		if match:
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
 			frappe.flags.redirect_location = redirect_to
-			status_code = rule.get("redirect_http_status", 301)
+			status_code = rule.get("redirect_http_status") or 301
 			frappe.cache.hset(
 				"website_redirects", path_to_match, {"path": redirect_to, "status_code": status_code}
 			)

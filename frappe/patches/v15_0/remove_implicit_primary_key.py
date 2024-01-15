@@ -44,7 +44,7 @@ def _is_implicit_int_pk(doctype: str) -> bool:
 	values = ()
 	if frappe.db.db_type == "mariadb":
 		query += " and table_schema = %s"
-		values = (frappe.db.db_name,)
+		values = (frappe.db.cur_db_name,)
 
 	col_type = frappe.db.sql(query, values)
 	return bool(col_type and col_type[0][0] == "bigint")

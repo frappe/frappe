@@ -57,14 +57,15 @@ class DbManager:
 		from frappe.database import get_command
 		from frappe.utils import execute_in_shell
 
-		pv = which("pv")
+		command = ["set -o pipefail;"]
 
-		command = []
+		if source.endswith(".gz"):
+			if gzip := which("gzip"):
+				command.extend([gzip, "-cd", source, "|"])
+				source = []
+			else:
+				raise Exception("`gzip` not installed")
 
-		if pv:
-			command.extend([pv, source, "|"])
-			source = []
-			print("Restoring Database file...")
 		else:
 			source = ["<", source]
 

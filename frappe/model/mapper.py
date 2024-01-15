@@ -22,8 +22,7 @@ def make_mapped_doc(method, source_name, selected_children=None, args=None):
 
 	method = frappe.get_attr(method)
 
-	if method not in frappe.whitelisted:
-		raise frappe.PermissionError
+	frappe.is_whitelisted(method)
 
 	if selected_children:
 		selected_children = json.loads(selected_children)
@@ -46,8 +45,7 @@ def map_docs(method, source_names, target_doc, args=None):
 	"""
 
 	method = frappe.get_attr(method)
-	if method not in frappe.whitelisted:
-		raise frappe.PermissionError
+	frappe.is_whitelisted(method)
 
 	for src in json.loads(source_names):
 		_args = (src, target_doc, json.loads(args)) if args else (src, target_doc)

@@ -73,7 +73,7 @@ class Database:
 		self.host = host or frappe.conf.db_host
 		self.port = port or frappe.conf.db_port
 		self.user = user or frappe.conf.db_name
-		self.db_name = frappe.conf.db_name
+		self.cur_db_name = frappe.conf.db_name
 		self._conn = None
 
 		if ac_name:
@@ -103,7 +103,6 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		self.cur_db_name = self.user
 		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
 
@@ -121,6 +120,7 @@ class Database:
 	def use(self, db_name):
 		"""`USE` db_name."""
 		self._conn.select_db(db_name)
+		self.cur_db_name = db_name
 
 	def get_connection(self):
 		"""Return a Database connection object that conforms with https://peps.python.org/pep-0249/#connection-objects."""
@@ -437,6 +437,7 @@ class Database:
 		run=True,
 		pluck=False,
 		distinct=False,
+		skip_locked=False,
 	):
 		"""Return a document property or list of properties.
 
@@ -447,6 +448,10 @@ class Database:
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
 		:param order_by: Column to order by
+		:param cache: Use cached results fetched during current job/request
+		:param pluck: pluck first column instead of returning as nested list or dict.
+		:param for_update: All the affected/read rows will be locked.
+		:param skip_locked: Skip selecting currently locked rows.
 
 		Example:
 
@@ -477,6 +482,7 @@ class Database:
 			pluck=pluck,
 			distinct=distinct,
 			limit=1,
+			skip_locked=skip_locked,
 		)
 
 		if not run:
@@ -509,6 +515,7 @@ class Database:
 		pluck=False,
 		distinct=False,
 		limit=None,
+		skip_locked=False,
 	):
 		"""Return multiple document properties.
 
@@ -548,6 +555,8 @@ class Database:
 				distinct=distinct,
 				limit=limit,
 				as_dict=as_dict,
+				skip_locked=skip_locked,
+				for_update=for_update,
 			)
 
 		else:
@@ -568,11 +577,12 @@ class Database:
 						debug=debug,
 						order_by=order_by,
 						update=update,
-						for_update=for_update,
 						run=run,
 						pluck=pluck,
 						distinct=distinct,
 						limit=limit,
+						for_update=for_update,
+						skip_locked=skip_locked,
 					)
 				except Exception as e:
 					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
@@ -806,6 +816,7 @@ class Database:
 		order_by=None,
 		update=None,
 		for_update=False,
+		skip_locked=False,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -816,6 +827,7 @@ class Database:
 			filters=filters,
 			order_by=order_by,
 			for_update=for_update,
+			skip_locked=skip_locked,
 			fields=fields,
 			distinct=distinct,
 			limit=limit,
@@ -839,6 +851,8 @@ class Database:
 		distinct=False,
 		limit=None,
 		as_dict=False,
+		for_update=False,
+		skip_locked=False,
 	):
 		if names := list(filter(None, names)):
 			return frappe.qb.get_query(
@@ -849,6 +863,8 @@ class Database:
 				distinct=distinct,
 				limit=limit,
 				validate_filters=True,
+				for_update=for_update,
+				skip_locked=skip_locked,
 			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
 		return {}
 

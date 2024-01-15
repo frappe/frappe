@@ -196,6 +196,27 @@ export default class BulkOperations {
 		}
 	}
 
+	clear_assignment(docnames, done) {
+		if (docnames.length > 0) {
+			frappe
+				.call({
+					method: "frappe.desk.form.assign_to.remove_multiple",
+					args: {
+						doctype: this.doctype,
+						names: docnames,
+						ignore_permissions: true,
+					},
+					freeze: true,
+					freeze_message: "Removing assignments...",
+				})
+				.then(() => {
+					done();
+				});
+		} else {
+			frappe.msgprint(__("Select records for removing assignment"));
+		}
+	}
+
 	apply_assignment_rule(docnames, done) {
 		if (docnames.length > 0) {
 			frappe

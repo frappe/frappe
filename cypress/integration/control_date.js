@@ -7,6 +7,7 @@ context("Date Control", () => {
 	function get_dialog(date_field_options) {
 		return cy.dialog({
 			title: "Date",
+			animate: false,
 			fields: [
 				{
 					label: "Date",
@@ -75,6 +76,8 @@ context("Date Control", () => {
 
 		//Verifying if clicking on "Today" button matches today's date
 		cy.window().then((win) => {
+			// `expect` can not wait like `should`
+			cy.wait(500);
 			expect(win.cur_dialog.fields_dict.date.value).to.be.equal(
 				win.frappe.datetime.get_today()
 			);

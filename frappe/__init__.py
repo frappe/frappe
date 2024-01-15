@@ -59,32 +59,6 @@ if _dev_server:
 	warnings.simplefilter("always", DeprecationWarning)
 	warnings.simplefilter("always", PendingDeprecationWarning)
 
-# Always initialize sentry SDK if the DSN is sent
-if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
-	import sentry_sdk
-	from sentry_sdk.integrations.argv import ArgvIntegration
-	from sentry_sdk.integrations.atexit import AtexitIntegration
-	from sentry_sdk.integrations.dedupe import DedupeIntegration
-	from sentry_sdk.integrations.excepthook import ExcepthookIntegration
-	from sentry_sdk.integrations.modules import ModulesIntegration
-
-	from frappe.utils.sentry import before_send
-
-	sentry_sdk.init(
-		dsn=sentry_dsn,
-		before_send=before_send,
-		release=__version__,
-		auto_enabling_integrations=False,
-		default_integrations=False,
-		integrations=[
-			AtexitIntegration(),
-			ExcepthookIntegration(),
-			DedupeIntegration(),
-			ModulesIntegration(),
-			ArgvIntegration(),
-		],
-	)
-
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
@@ -142,6 +116,23 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 		translated_string = all_translations.get(msg)
 
 	return translated_string or non_translated_string
+
+
+def _lt(msg: str, lang: str | None = None, context: str | None = None):
+	"""Lazily translate a string.
+
+
+	This function returns a "lazy string" which when casted to string via some operation applies
+	translation first before casting.
+
+	This is only useful for translating strings in global scope or anything that potentially runs
+	before `frappe.init()`
+
+	Note: Result is not guaranteed to equivalent to pure strings for all operations.
+	"""
+	from frappe.translate import LazyTranslate
+
+	return LazyTranslate(msg, lang, context)
 
 
 def as_unicode(text, encoding: str = "utf-8") -> str:
@@ -780,9 +771,9 @@ def sendmail(
 	return builder.process(send_now=now)
 
 
-whitelisted = []
-guest_methods = []
-xss_safe_methods = []
+whitelisted = set()
+guest_methods = set()
+xss_safe_methods = set()
 allowed_http_methods_for_whitelisted_func = {}
 
 
@@ -821,14 +812,14 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None):
 		else:
 			fn = validate_argument_types(fn, apply_condition=in_request_or_test)
 
-		whitelisted.append(fn)
+		whitelisted.add(fn)
 		allowed_http_methods_for_whitelisted_func[fn] = methods
 
 		if allow_guest:
-			guest_methods.append(fn)
+			guest_methods.add(fn)
 
 			if xss_safe:
-				xss_safe_methods.append(fn)
+				xss_safe_methods.add(fn)
 
 		return method or fn
 
@@ -1001,6 +992,7 @@ def has_permission(
 	throw=False,
 	*,
 	parent_doctype=None,
+	debug=False,
 ):
 	"""
 	Return True if the user has permission `ptype` for given `doctype` or `doc`.
@@ -1023,24 +1015,17 @@ def has_permission(
 		ptype,
 		doc=doc,
 		user=user,
-		raise_exception=throw,
+		print_logs=throw,
 		parent_doctype=parent_doctype,
+		debug=debug,
 	)
 
 	if throw and not out:
-		# mimics frappe.throw
 		document_label = (
 			f"{_(doctype)} {doc if isinstance(doc, str) else doc.name}" if doc else _(doctype)
 		)
-		msgprint(
-			_("No permission for {0}").format(document_label),
-			raise_exception=ValidationError,
-			title=None,
-			indicator="red",
-			is_minimizable=None,
-			wide=None,
-			as_list=False,
-		)
+		frappe.flags.error_message = _("No permission for {0}").format(document_label)
+		raise frappe.PermissionError
 
 	return out
 
@@ -1720,17 +1705,14 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	# Ref: https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind
 	varkw_exist = False
 
-	if hasattr(fn, "fnargs"):
-		fnargs = fn.fnargs
-	else:
-		signature = inspect.signature(fn)
-		fnargs = list(signature.parameters)
+	signature = inspect.signature(fn)
+	fnargs = list(signature.parameters)
 
-		for param_name, parameter in signature.parameters.items():
-			if parameter.kind == inspect.Parameter.VAR_KEYWORD:
-				varkw_exist = True
-				fnargs.remove(param_name)
-				break
+	for param_name, parameter in signature.parameters.items():
+		if parameter.kind == inspect.Parameter.VAR_KEYWORD:
+			varkw_exist = True
+			fnargs.remove(param_name)
+			break
 
 	newargs = {}
 	for a in kwargs:

@@ -1052,7 +1052,7 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 	user_type_condition = "and user_type != 'Website User'"
 	if filters and filters.get("ignore_user_type") and frappe.session.data.user_type == "System User":
 		user_type_condition = ""
-		filters.pop("ignore_user_type")
+	filters and filters.pop("ignore_user_type", None)
 
 	txt = f"%{txt}%"
 	return frappe.db.sql(
@@ -1157,6 +1157,7 @@ def has_permission(doc, user):
 	if (user != "Administrator") and (doc.name in STANDARD_USERS):
 		# dont allow non Administrator user to view / edit Administrator user
 		return False
+	return True
 
 
 def notify_admin_access_to_system_manager(login_manager=None):

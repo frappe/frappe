@@ -168,11 +168,8 @@ def update_move_node(doc: Document, parent_field: str):
 
 
 @frappe.whitelist()
-def rebuild_tree(doctype, parent_field):
-	"""
-	call rebuild_node for all root nodes
-	"""
-
+def rebuild_tree(doctype: str) -> None:
+	"""Call rebuild_node for all root nodes."""
 	# Check for perm if called from client-side
 	if frappe.request and frappe.local.form_dict.cmd == "rebuild_tree":
 		frappe.only_for("System Manager")
@@ -183,6 +180,8 @@ def rebuild_tree(doctype, parent_field):
 			_("Rebuilding of tree is not supported for {}").format(frappe.bold(doctype)),
 			title=_("Invalid Action"),
 		)
+
+	parent_field = meta.nsm_parent_field or f"parent_{frappe.scrub(doctype)}"
 
 	# get all roots
 	right = 1
@@ -327,7 +326,7 @@ class NestedSet(Document):
 		)
 
 		if merge:
-			rebuild_tree(self.doctype, parent_field)
+			rebuild_tree(self.doctype)
 
 	def validate_one_root(self):
 		if not self.get(self.nsm_parent_field):

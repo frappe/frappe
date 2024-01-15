@@ -6,16 +6,17 @@ context("Navigation", () => {
 	});
 	it("Navigate to route with hash in document name", () => {
 		cy.insert_doc(
-			"ToDo",
+			"Client Script",
 			{
 				__newname: "ABC#123",
-				description: "Test this",
+				dt: "User",
+				script: "console.log('ran')",
+				enabled: 0,
 			},
 			true
 		);
-		cy.visit(`/app/todo/${encodeURIComponent("ABC#123")}`);
-		cy.title().should("eq", "Test this - ABC#123");
-		cy.get_field("description", "Text Editor").contains("Test this");
+		cy.visit(`/app/client-script/${encodeURIComponent("ABC#123")}`);
+		cy.title().should("eq", "ABC#123");
 		cy.go("back");
 		cy.title().should("eq", "Website");
 	});

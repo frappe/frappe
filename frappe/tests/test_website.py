@@ -180,7 +180,11 @@ class TestWebsite(FrappeTestCase):
 		website_settings = frappe.get_doc("Website Settings")
 		website_settings.append(
 			"route_redirects",
-			{"source": "/testsource", "target": "/testtarget", "redirect_http_status": 301},
+			{"source": "/testsource", "target": "/testtarget"},
+		)
+		website_settings.append(
+			"route_redirects",
+			{"source": "/testdoc307", "target": "/testtarget", "redirect_http_status": 307},
 		)
 		website_settings.save()
 
@@ -206,6 +210,11 @@ class TestWebsite(FrappeTestCase):
 		set_request(method="GET", path="/testsource")
 		response = get_response()
 		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get("Location"), "/testtarget")
+
+		set_request(method="GET", path="/testdoc307")
+		response = get_response()
+		self.assertEqual(response.status_code, 307)
 		self.assertEqual(response.headers.get("Location"), "/testtarget")
 
 		set_request(method="GET", path="/courses/course?course=data")

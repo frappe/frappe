@@ -124,7 +124,7 @@ class MariaDBConnectionUtil:
 		}
 
 		if self.user not in (frappe.flags.root_login, "root"):
-			conn_settings["database"] = self.user
+			conn_settings["database"] = self.cur_db_name
 
 		if self.port:
 			conn_settings["port"] = int(self.port)
@@ -198,7 +198,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			SUM(`data_length` + `index_length`) / 1024 / 1024 AS `database_size`
 			FROM information_schema.tables WHERE `table_schema` = %s GROUP BY `table_schema`
 			""",
-			self.db_name,
+			self.cur_db_name,
 			as_dict=True,
 		)
 
@@ -440,7 +440,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 			self.commit()
 			db_table.sync()
-			self.begin()
+			self.commit()
 
 	def get_database_list(self):
 		return self.sql("SHOW DATABASES", pluck=True)
