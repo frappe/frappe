@@ -86,7 +86,7 @@ def patch_query_execute():
 		return result
 
 	def execute_child_queries(queries, result):
-		if not result or not isinstance(result[0], dict) or not result[0].name:
+		if not queries or not result or not isinstance(result[0], dict) or not result[0].name:
 			return
 		parent_names = [d.name for d in result]
 		for child_query in queries:
