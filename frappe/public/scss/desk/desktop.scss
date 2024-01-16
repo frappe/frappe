@@ -636,6 +636,16 @@ body {
 			@include get_textstyle("lg", "semibold");
 			color: var(--text-color) !important;
 		}
+
+		@media (max-width: 995px) {
+			padding: 1px 8px;
+
+			.link-item {
+				&:first-child {
+					margin-top: 5px;
+				}
+			}
+		}
 	}
 
 	&.number-widget-box {
@@ -1264,6 +1274,10 @@ body {
 					height: 100%;
 					padding: 7px;
 
+					@media (max-width: 995px) {
+						padding: 7px 3px;
+					}
+
 					& > div {
 						height: 100%;
 					}
@@ -1404,6 +1418,13 @@ body {
 
 						&:focus {
 							outline: none;
+						}
+
+						@media (max-width: 995px) {
+							&.spacer {
+								height: 0 !important;
+								padding: 0 7px;
+							}
 						}
 					}
 				}
