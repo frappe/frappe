@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-01-12 01:53+0053\n"
-"PO-Revision-Date: 2024-01-15 13:06\n"
+"PO-Revision-Date: 2024-01-16 13:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -4176,7 +4176,7 @@ msgstr "Massen-Update"
 
 #: model/workflow.py:253
 msgid "Bulk approval only support up to 500 documents."
-msgstr ""
+msgstr "Massengenehmigung unterstützt nur bis zu 500 Dokumente."
 
 #: desk/doctype/bulk_update/bulk_update.py:57
 msgid "Bulk operation is enqueued in background."
@@ -4184,7 +4184,7 @@ msgstr ""
 
 #: desk/doctype/bulk_update/bulk_update.py:70
 msgid "Bulk operations only support up to 500 documents."
-msgstr ""
+msgstr "Massenvorgänge unterstützen nur bis zu 500 Dokumente."
 
 #: model/workflow.py:243
 msgid "Bulk {0} is enqueued in background."
@@ -4248,7 +4248,7 @@ msgstr "Standardmäßig wird der Titel als Metatitel verwendet. Wenn Sie hier ei
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgctxt "S3 Backup Settings"
 msgid "By default, emails are only sent for failed backups."
-msgstr ""
+msgstr "E-Mails werden standardmäßig nur für fehlgeschlagene Sicherungen versendet."
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -32259,7 +32259,7 @@ msgstr "Typ"
 
 #: public/js/frappe/form/controls/comment.js:78
 msgid "Type a reply / comment"
-msgstr ""
+msgstr "Geben Sie eine Antwort/einen Kommentar ein"
 
 #: templates/includes/search_template.html:51
 msgid "Type something in the search box to search"
