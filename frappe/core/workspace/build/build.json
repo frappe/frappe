@@ -13,7 +13,181 @@
  "label": "Build",
  "links": [
   {
-   "description": "Configure reports and print formats for your doctypes and build insightful dashboards. Group your doctypes under workspaces for easier navigation.",
+   "description": "Customize properties, naming, fields and more for standard doctypes",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customization",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Customize Form",
+   "link_count": 0,
+   "link_to": "Customize Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Custom Field",
+   "link_count": 0,
+   "link_to": "Custom Field",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Custom Translation",
+   "link_count": 0,
+   "link_to": "Translation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Navbar Settings",
+   "link_count": 0,
+   "link_to": "Navbar Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "description": "Group your custom doctypes under modules",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Modules",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Module Def",
+   "link_count": 0,
+   "link_to": "Module Def",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Module Onboarding",
+   "link_count": 0,
+   "link_to": "Module Onboarding",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "description": "Monitor logs for errors, background jobs, communications, and user activity",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "System Logs",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Background Jobs",
+   "link_count": 0,
+   "link_to": "RQ Job",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Scheduled Jobs Logs",
+   "link_count": 0,
+   "link_to": "Scheduled Job Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Error Logs",
+   "link_count": 0,
+   "link_to": "Error Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Communication Logs",
+   "link_count": 0,
+   "link_to": "Communication",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Activity Log",
+   "link_count": 0,
+   "link_to": "Activity Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "description": "Create new forms and views with doctypes. Set up multi-level workflows for approval",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Models",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "DocType",
+   "link_count": 0,
+   "link_to": "DocType",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Workflow",
+   "link_count": 0,
+   "link_to": "Workflow",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "description": "Build your own reports, print formats, and dashboards. Create personalized workspaces for easier navigation",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Modules",
@@ -116,11 +290,11 @@
    "type": "Link"
   },
   {
-   "description": "Customize properties, naming, fields and more for standard doctypes",
+   "description": "Packages are lightweight apps (collection of Module Defs) that can be created, imported, or released right from the UI",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Customization",
-   "link_count": 4,
+   "label": "Packages",
+   "link_count": 2,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -128,9 +302,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Customize Form",
+   "label": "Package",
    "link_count": 0,
-   "link_to": "Customize Form",
+   "link_to": "Package",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -138,35 +312,15 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Custom Field",
+   "label": "Package Import",
    "link_count": 0,
-   "link_to": "Custom Field",
+   "link_to": "Package Import",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   },
   {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Custom Translation",
-   "link_count": 0,
-   "link_to": "Translation",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Navbar Settings",
-   "link_count": 0,
-   "link_to": "Navbar Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "description": "Automate processes and add extra functionality to doctypes using scripts and background jobs.",
+   "description": "Automate processes and extend standard functionality using scripts and background jobs",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Scripting",
@@ -207,6 +361,7 @@
    "onboard": 0,
    "only_for": "",
    "type": "Link"
+<<<<<<< HEAD
   },
   {
    "description": "Group your custom doctypes under modules",
@@ -370,6 +525,11 @@
  ],
  "modified": "2024-01-16 12:53:07.278671",
 >>>>>>> 0b584814d4 (feat: add card descriptions for Build workspace)
+=======
+  }
+ ],
+ "modified": "2024-01-16 15:45:02.341142",
+>>>>>>> c4fa8ea34c (chore: set concise card descriptions)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
