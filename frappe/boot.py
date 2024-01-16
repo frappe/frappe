@@ -237,7 +237,7 @@ def get_user_pages_or_reports(parent, cache=False):
 				has_role[p.name] = {"modified": p.modified, "title": p.title}
 
 	elif parent == "Report":
-		if not has_permission("Report", raise_exception=False):
+		if not has_permission("Report", print_logs=False):
 			return {}
 
 		reports = frappe.get_list(
@@ -269,9 +269,6 @@ def get_user_info():
 	# get info for current user
 	user_info = frappe._dict()
 	add_user_info(frappe.session.user, user_info)
-
-	if frappe.session.user == "Administrator" and user_info.Administrator.email:
-		user_info[user_info.Administrator.email] = user_info.Administrator
 
 	return user_info
 

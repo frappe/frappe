@@ -48,7 +48,7 @@ def clear_sessions(user=None, keep_current=False, force=False):
 
 
 def get_sessions_to_clear(user=None, keep_current=False):
-	"""Returns sessions of the current user. Called at login / logout
+	"""Return sessions of the current user. Called at login / logout.
 
 	:param user: user name (default: current user)
 	:param keep_current: keep current session (default: false)
@@ -109,7 +109,7 @@ def clear_all_sessions(reason=None):
 
 
 def get_expired_sessions():
-	"""Returns list of expired sessions"""
+	"""Return list of expired sessions."""
 
 	sessions = frappe.qb.DocType("Sessions")
 	return (

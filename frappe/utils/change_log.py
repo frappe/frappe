@@ -129,7 +129,7 @@ def get_versions():
 
 
 def get_app_branch(app):
-	"""Returns branch of an app"""
+	"""Return branch of an app."""
 	try:
 		with open(os.devnull, "wb") as null_stream:
 			result = subprocess.check_output(
@@ -166,13 +166,19 @@ def check_for_update():
 	apps = get_versions()
 
 	for app in apps:
-		app_details = check_release_on_github(app)
-		if not app_details:
+		remote_url = get_remote_url(app)
+		if not remote_url:
 			continue
 
-		github_version, org_name = app_details
-		# Get local instance's current version or the app
+		owner, repo = parse_github_url(remote_url)
+		if not owner or not repo:
+			continue
 
+		github_version, org_name = check_release_on_github(owner, repo)
+		if not github_version or not org_name:
+			continue
+
+		# Get local instance's current version or the app
 		branch_version = (
 			apps[app]["branch_version"].split(" ", 1)[0] if apps[app].get("branch_version", "") else ""
 		)
@@ -196,15 +202,14 @@ def check_for_update():
 	add_message_to_redis(updates)
 
 
-def parse_latest_non_beta_release(response):
-	"""
-	Parses the response JSON for all the releases and returns the latest non prerelease
+def parse_latest_non_beta_release(response: list) -> list | None:
+	"""Parse the response JSON for all the releases and return the latest non prerelease.
 
-	Parameters
+	Args:
+
 	response (list): response object returned by github
 
-	Returns
-	json   : json object pertaining to the latest non-beta release
+	Return a json object pertaining to the latest non-beta release
 	"""
 
 	version_list = [
@@ -217,43 +222,15 @@ def parse_latest_non_beta_release(response):
 	return None
 
 
-def check_release_on_github(app: str):
-	"""
-	Check the latest release for a given Frappe application hosted on Github.
-
-	Args:
-	        app (str): The name of the Frappe application.
-
-	Returns:
-	        tuple(Version, str): The semantic version object of the latest release and the
-	                organization name, if the application exists, otherwise None.
-	"""
-
+def check_release_on_github(owner: str, repo: str) -> tuple[Version, str] | tuple[None, None]:
+	"""Check the latest release for a repo URL on GitHub."""
 	import requests
-	from giturlparse import parse
-	from giturlparse.parser import ParserError
 
-	try:
-		# Check if repo remote is on github
-		remote_url = subprocess.check_output(f"cd ../apps/{app} && git ls-remote --get-url", shell=True)
-	except subprocess.CalledProcessError:
-		# Passing this since some apps may not have git initialized in them
-		return
+	if not owner:
+		raise ValueError("Owner cannot be empty")
 
-	if isinstance(remote_url, bytes):
-		remote_url = remote_url.decode()
-
-	try:
-		parsed_url = parse(remote_url)
-	except ParserError:
-		# Invalid URL
-		return
-
-	if parsed_url.resource != "github.com":
-		return
-
-	owner = parsed_url.owner
-	repo = parsed_url.name
+	if not repo:
+		raise ValueError("Repo cannot be empty")
 
 	# Get latest version from GitHub
 	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
@@ -261,6 +238,43 @@ def check_release_on_github(app: str):
 		latest_non_beta_release = parse_latest_non_beta_release(r.json())
 		if latest_non_beta_release:
 			return Version(latest_non_beta_release), owner
+
+	return None, None
+
+
+def parse_github_url(remote_url: str) -> tuple[str, str] | tuple[None, None]:
+	"""Parse the remote URL to get the owner and repo name."""
+	import re
+
+	if not remote_url:
+		raise ValueError("Remote URL cannot be empty")
+
+	pattern = r"github\.com[:/](.+)\/([^\.]+)"
+	match = re.search(pattern, remote_url)
+
+	return (match[1], match[2]) if match else (None, None)
+
+
+def get_remote_url(app: str) -> str | None:
+	"""Get the remote URL of the app."""
+	if not app:
+		raise ValueError("App cannot be empty")
+
+	if app not in frappe.get_installed_apps(_ensure_on_bench=True):
+		raise ValueError("This app is not installed")
+
+	app_path = frappe.get_app_path(app, "..")
+	try:
+		# Check if repo has a remote URL
+		remote_url = subprocess.check_output(f"cd {app_path} && git ls-remote --get-url", shell=True)
+	except subprocess.CalledProcessError:
+		# Some apps may not have git initialized or not hosted somewhere
+		return None
+
+	if isinstance(remote_url, bytes):
+		remote_url = remote_url.decode()
+
+	return remote_url
 
 
 def add_message_to_redis(update_json):

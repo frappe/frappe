@@ -118,9 +118,10 @@ class DocField(Document):
 		width: DF.Data | None
 	# end: auto-generated types
 	def get_link_doctype(self):
-		"""Returns the Link doctype for the docfield (if applicable)
-		if fieldtype is Link: Returns "options"
-		if fieldtype is Table MultiSelect: Returns "options" of the Link field in the Child Table
+		"""Return the Link doctype for the `docfield` (if applicable).
+
+		* If fieldtype is Link: Return "options".
+		* If fieldtype is Table MultiSelect: Return "options" of the Link field in the Child Table.
 		"""
 		if self.fieldtype == "Link":
 			return self.options

@@ -151,7 +151,7 @@ class SiteMigration:
 				frappe.get_attr(fn)()
 
 	def required_services_running(self) -> bool:
-		"""Returns True if all required services are running. Returns False and prints
+		"""Return True if all required services are running. Return False and print
 		instructions to stdout when required services are not available.
 		"""
 		service_status = check_connection(redis_services=["redis_cache"])

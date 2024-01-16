@@ -74,9 +74,7 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 
 
 def get_google_contacts_object(g_contact):
-	"""
-	Returns an object of Google Calendar along with Google Calendar doc.
-	"""
+	"""Return an object of Google Calendar along with Google Calendar doc."""
 	account = frappe.get_doc("Google Contacts", g_contact)
 	oauth_obj = GoogleOAuth("contacts")
 

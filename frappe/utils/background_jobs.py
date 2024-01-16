@@ -9,6 +9,7 @@ from typing import Any, NoReturn
 from uuid import uuid4
 
 import redis
+import setproctitle
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Callback, Queue, Worker
 from rq.exceptions import NoSuchJobError
@@ -198,7 +199,10 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method_name = method
 		method = frappe.get_attr(method)
 	else:
-		method_name = cstr(method.__name__)
+		method_name = f"{method.__module__}.{method.__qualname__}"
+
+	actual_func_name = kwargs.get("job_type") if "run_scheduled_job" in method_name else method_name
+	setproctitle.setproctitle(f"rq: Started running {actual_func_name} at {time.time()}")
 
 	frappe.local.job = frappe._dict(
 		site=site,
@@ -287,6 +291,49 @@ def start_worker(
 	logging_level = "INFO"
 	if quiet:
 		logging_level = "WARNING"
+
+	# Always initialize sentry SDK if the DSN is sent
+	if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
+		import sentry_sdk
+		from sentry_sdk.integrations.argv import ArgvIntegration
+		from sentry_sdk.integrations.atexit import AtexitIntegration
+		from sentry_sdk.integrations.dedupe import DedupeIntegration
+		from sentry_sdk.integrations.excepthook import ExcepthookIntegration
+		from sentry_sdk.integrations.modules import ModulesIntegration
+		from sentry_sdk.integrations.rq import RqIntegration
+
+		from frappe.utils.sentry import FrappeIntegration, before_send
+
+		integrations = [
+			AtexitIntegration(),
+			ExcepthookIntegration(),
+			DedupeIntegration(),
+			ModulesIntegration(),
+			ArgvIntegration(),
+			RqIntegration(),
+		]
+
+		experiments = {}
+		kwargs = {}
+
+		if os.getenv("ENABLE_SENTRY_DB_MONITORING"):
+			integrations.append(FrappeIntegration())
+			experiments["record_sql_params"] = True
+
+		if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
+			kwargs["traces_sample_rate"] = float(tracing_sample_rate)
+
+		sentry_sdk.init(
+			dsn=sentry_dsn,
+			before_send=before_send,
+			attach_stacktrace=True,
+			release=frappe.__version__,
+			auto_enabling_integrations=False,
+			default_integrations=False,
+			integrations=integrations,
+			_experiments=experiments,
+			**kwargs,
+		)
 
 	worker = Worker(queues, name=get_worker_name(queue_name), connection=redis_connection)
 	worker.work(
@@ -394,7 +441,7 @@ def get_queue_list(queue_list=None, build_queue_name=False):
 
 
 def get_workers(queue=None):
-	"""Returns a list of Worker objects tied to a queue object if queue is passed, else returns a list of all workers"""
+	"""Return a list of Worker objects tied to a queue object if queue is passed, else return a list of all workers."""
 	if queue:
 		return Worker.all(queue=queue)
 	else:
@@ -402,7 +449,7 @@ def get_workers(queue=None):
 
 
 def get_running_jobs_in_queue(queue):
-	"""Returns a list of Jobs objects that are tied to a queue object and are currently running"""
+	"""Return a list of Jobs objects that are tied to a queue object and are currently running."""
 	jobs = []
 	workers = get_workers(queue)
 	for worker in workers:
@@ -413,7 +460,7 @@ def get_running_jobs_in_queue(queue):
 
 
 def get_queue(qtype, is_async=True):
-	"""Returns a Queue object tied to a redis connection"""
+	"""Return a Queue object tied to a redis connection."""
 	validate_queue(qtype)
 	return Queue(generate_qname(qtype), connection=get_redis_conn(), is_async=is_async)
 
@@ -459,15 +506,18 @@ def get_redis_conn(username=None, password=None):
 			return get_redis_connection_without_auth()
 		else:
 			return RedisQueue.get_connection(**cred)
-	except (redis.exceptions.AuthenticationError, redis.exceptions.ResponseError):
+	except redis.exceptions.AuthenticationError:
 		log(
 			f'Wrong credentials used for {cred.username or "default user"}. '
 			"You can reset credentials using `bench create-rq-users` CLI and restart the server",
 			colour="red",
 		)
 		raise
-	except Exception:
-		log(f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}", colour="red")
+	except Exception as e:
+		log(
+			f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}. Redis reported error: {str(e)}",
+			colour="red",
+		)
 		raise
 
 

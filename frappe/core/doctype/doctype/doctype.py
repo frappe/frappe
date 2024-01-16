@@ -204,7 +204,6 @@ class DocType(Document):
 		self.validate_document_type()
 		validate_fields(self)
 		self.check_indexing_for_dashboard_links()
-
 		if not self.istable:
 			validate_permissions(self)
 
@@ -234,6 +233,7 @@ class DocType(Document):
 			"DocPerm",
 			"Custom Field",
 			"Customize Form Field",
+			"Web Form Field",
 			"DocField",
 		]
 
@@ -593,7 +593,7 @@ class DocType(Document):
 		if not self.has_value_changed("has_web_view"):
 			return
 
-		despaced_name = self.name.replace(" ", "_")
+		despaced_name = self.name.replace(" ", "")
 		scrubbed_name = frappe.scrub(self.name)
 		scrubbed_module = frappe.scrub(self.module)
 		controller_path = frappe.get_module_path(
@@ -986,7 +986,7 @@ class DocType(Document):
 		add_column(self.name, "parentfield", "Data")
 
 	def get_max_idx(self):
-		"""Returns the highest `idx`"""
+		"""Return the highest `idx`."""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", self.name)
 		return max_idx and max_idx[0][0] or 0
 
@@ -1668,22 +1668,12 @@ def validate_permissions_for_doctype(doctype, for_remove=False, alert=False):
 
 
 def clear_permissions_cache(doctype):
+	from frappe.cache_manager import clear_user_cache
+
 	frappe.clear_cache(doctype=doctype)
 	delete_notification_count_for(doctype)
-	for user in frappe.db.sql_list(
-		"""
-		SELECT
-			DISTINCT `tabHas Role`.`parent`
-		FROM
-			`tabHas Role`,
-			`tabDocPerm`
-		WHERE `tabDocPerm`.`parent` = %s
-			AND `tabDocPerm`.`role` = `tabHas Role`.`role`
-			AND `tabHas Role`.`parenttype` = 'User'
-		""",
-		doctype,
-	):
-		frappe.clear_cache(user=user)
+
+	clear_user_cache()
 
 
 def validate_permissions(doctype, for_remove=False, alert=False):

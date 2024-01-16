@@ -154,7 +154,7 @@ def set_filters(jenv):
 
 
 def get_jinja_hooks():
-	"""Returns a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
+	"""Return a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
 	import frappe
 
 	if not getattr(frappe.local, "site", None):

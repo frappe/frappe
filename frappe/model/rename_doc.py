@@ -4,6 +4,7 @@ from types import NoneType
 from typing import TYPE_CHECKING
 
 import frappe
+import frappe.permissions
 from frappe import _, bold
 from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
@@ -30,8 +31,7 @@ def update_document_title(
 	**kwargs,
 ) -> str:
 	"""
-	Update the name or title of a document. Returns `name` if document was renamed,
-	`docname` if renaming operation was queued.
+	Update the name or title of a document. Return `name` if document was renamed, `docname` if renaming operation was queued.
 
 	:param doctype: DocType of the document
 	:param docname: Name of the document
@@ -380,7 +380,7 @@ def validate_rename(
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
 	if not (
-		ignore_permissions or frappe.permissions.has_permission(doctype, "write", raise_exception=False)
+		ignore_permissions or frappe.permissions.has_permission(doctype, "write", print_logs=False)
 	):
 		frappe.throw(_("You need write permission to rename"))
 

@@ -14,6 +14,8 @@ import random
 import time
 from typing import NoReturn
 
+import setproctitle
+
 # imports - module imports
 import frappe
 from frappe.utils import cint, get_datetime, get_sites, now_datetime
@@ -31,6 +33,10 @@ def cprint(*args, **kwargs):
 		pass
 
 
+def _proctitle(message):
+	setproctitle.setproctitle(f"frappe-scheduler: {message}")
+
+
 def start_scheduler() -> NoReturn:
 	"""Run enqueue_events_for_all_sites based on scheduler tick.
 	Specify scheduler_interval in seconds in common_site_config.json"""
@@ -39,6 +45,7 @@ def start_scheduler() -> NoReturn:
 	set_niceness()
 
 	while True:
+		_proctitle("idle")
 		time.sleep(tick)
 		enqueue_events_for_all_sites()
 
@@ -68,6 +75,7 @@ def enqueue_events_for_site(site: str) -> None:
 		frappe.logger("scheduler").error(f"Exception in Enqueue Events for Site {site}", exc_info=True)
 
 	try:
+		_proctitle(f"scheduling events for {site}")
 		frappe.init(site=site)
 		frappe.connect()
 		if is_scheduler_inactive():
@@ -141,8 +149,8 @@ def disable_scheduler():
 
 
 def schedule_jobs_based_on_activity(check_time=None):
-	"""Returns True for active sites defined by Activity Log
-	Returns True for inactive sites once in 24 hours"""
+	"""Return True for active sites as defined by `Activity Log`.
+	Also return True for inactive sites once every 24 hours based on `Scheduled Job Log`."""
 	if is_dormant(check_time=check_time):
 		# ensure last job is one day old
 		last_job_timestamp = _get_last_modified_timestamp("Scheduled Job Log")

@@ -43,6 +43,8 @@ frappe.ui.form.FormTour = class FormTour {
 			}
 		}
 
+		if (!this.tour.steps) return;
+
 		if (on_finish) this.on_finish = on_finish;
 
 		this.init_driver();

@@ -38,7 +38,7 @@ def get_list(
 	as_dict: bool = True,
 	or_filters=None,
 ):
-	"""Returns a list of records by filters, fields, ordering and limit
+	"""Return a list of records by filters, fields, ordering and limit.
 
 	:param doctype: DocType of the data to be queried
 	:param fields: fields to be returned. Default is `name`
@@ -74,7 +74,7 @@ def get_count(doctype, filters=None, debug=False, cache=False):
 
 @frappe.whitelist()
 def get(doctype, name=None, filters=None, parent=None):
-	"""Returns a document by name or filters
+	"""Return a document by name or filters.
 
 	:param doctype: DocType of the document to be returned
 	:param name: return document of this `name`
@@ -97,7 +97,7 @@ def get(doctype, name=None, filters=None, parent=None):
 
 @frappe.whitelist()
 def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False, parent=None):
-	"""Returns a value form a document
+	"""Return a value from a document.
 
 	:param doctype: DocType to be queried
 	:param fieldname: Field to be returned (default `name`)
@@ -296,7 +296,7 @@ def bulk_update(docs):
 
 @frappe.whitelist()
 def has_permission(doctype, docname, perm_type="read"):
-	"""Returns a JSON with data whether the document has the requested permission
+	"""Return a JSON with data whether the document has the requested permission.
 
 	:param doctype: DocType of the document to be checked
 	:param docname: `name` of the document to be checked
@@ -307,7 +307,7 @@ def has_permission(doctype, docname, perm_type="read"):
 
 @frappe.whitelist()
 def get_doc_permissions(doctype, docname):
-	"""Returns an evaluated document permissions dict like `{"read":1, "write":1}`
+	"""Return an evaluated document permissions dict like `{"read":1, "write":1}`.
 
 	:param doctype: DocType of the document to be evaluated
 	:param docname: `name` of the document to be evaluated
@@ -354,7 +354,7 @@ def get_js(items):
 
 @frappe.whitelist(allow_guest=True)
 def get_time_zone():
-	"""Returns default time zone"""
+	"""Return the default time zone."""
 	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
 
 
@@ -466,8 +466,7 @@ def validate_link(doctype: str, docname: str, fields=None):
 
 
 def insert_doc(doc) -> "Document":
-	"""Inserts document and returns parent document object with appended child document
-	if `doc` is child document else returns the inserted document object
+	"""Insert document and return parent document object with appended child document if `doc` is child document else return the inserted document object.
 
 	:param doc: doc to insert (dict)"""
 

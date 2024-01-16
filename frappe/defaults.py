@@ -79,7 +79,7 @@ def is_a_user_permission_key(key):
 
 
 def not_in_user_permission(key, value, user=None):
-	# returns true or false based on if value exist in user permission
+	# return true or false based on if value exist in user permission
 	user = user or frappe.session.user
 	user_permission = get_user_permissions(user).get(frappe.unscrub(key)) or []
 

@@ -156,7 +156,7 @@ frappe.views.CommunicationComposer = class {
 		// add from if user has access to multiple email accounts
 		const email_accounts = frappe.boot.email_accounts.filter((account) => {
 			return (
-				!in_list(["All Accounts", "Sent", "Spam", "Trash"], account.email_account) &&
+				!["All Accounts", "Sent", "Spam", "Trash"].includes(account.email_account) &&
 				account.enable_outgoing
 			);
 		});
@@ -230,6 +230,10 @@ frappe.views.CommunicationComposer = class {
 
 		if (!this.forward && !this.recipients && this.last_email) {
 			this.recipients = this.last_email.sender;
+			// If same user replies to their own email, set recipients to last email recipients
+			if (this.last_email.sender == this.sender) {
+				this.recipients = this.last_email.recipients;
+			}
 			this.cc = this.last_email.cc;
 			this.bcc = this.last_email.bcc;
 		}

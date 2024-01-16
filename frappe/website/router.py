@@ -254,8 +254,8 @@ def setup_source(page_info):
 
 
 def get_base_template(path=None):
-	"""
-	Returns the `base_template` for given `path`.
+	"""Return the `base_template` for given `path`.
+
 	The default `base_template` for any web route is `templates/web.html` defined in `hooks.py`.
 	This can be overridden for certain routes in `custom_app/hooks.py` based on regex pattern.
 	"""

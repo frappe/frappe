@@ -16,12 +16,13 @@ Example:
 """
 import json
 import os
+import typing
 from datetime import datetime
 
 import click
 
 import frappe
-from frappe import _
+from frappe import _, _lt
 from frappe.model import (
 	child_table_fields,
 	data_fieldtypes,
@@ -41,21 +42,21 @@ from frappe.modules import load_doctype_module
 from frappe.utils import cast, cint, cstr
 
 DEFAULT_FIELD_LABELS = {
-	"name": lambda: _("ID"),
-	"creation": lambda: _("Created On"),
-	"docstatus": lambda: _("Document Status"),
-	"idx": lambda: _("Index"),
-	"modified": lambda: _("Last Updated On"),
-	"modified_by": lambda: _("Last Updated By"),
-	"owner": lambda: _("Created By"),
-	"_user_tags": lambda: _("Tags"),
-	"_liked_by": lambda: _("Liked By"),
-	"_comments": lambda: _("Comments"),
-	"_assign": lambda: _("Assigned To"),
+	"name": _lt("ID"),
+	"creation": _lt("Created On"),
+	"docstatus": _lt("Document Status"),
+	"idx": _lt("Index"),
+	"modified": _lt("Last Updated On"),
+	"modified_by": _lt("Last Updated By"),
+	"owner": _lt("Created By"),
+	"_user_tags": _lt("Tags"),
+	"_liked_by": _lt("Liked By"),
+	"_comments": _lt("Comments"),
+	"_assign": _lt("Assigned To"),
 }
 
 
-def get_meta(doctype, cached=True) -> "Meta":
+def get_meta(doctype, cached=True) -> "_Meta":
 	cached = cached and isinstance(doctype, str)
 	if cached and (meta := frappe.cache.hget("doctype_meta", doctype)):
 		return meta
@@ -208,7 +209,7 @@ class Meta(Document):
 		return self._table_fields
 
 	def get_global_search_fields(self):
-		"""Returns list of fields with `in_global_search` set and `name` if set"""
+		"""Return list of fields with `in_global_search` set and `name` if set."""
 		fields = self.get("fields", {"in_global_search": 1, "fieldtype": ["not in", no_value_fields]})
 		if getattr(self, "show_name_in_global_search", None):
 			fields.append(frappe._dict(fieldtype="Data", fieldname="name", label="Name"))
@@ -233,22 +234,22 @@ class Meta(Document):
 		return TABLE_DOCTYPES_FOR_DOCTYPE.get(fieldname)
 
 	def get_field(self, fieldname):
-		"""Return docfield from meta"""
+		"""Return docfield from meta."""
 
 		return self._fields.get(fieldname)
 
 	def has_field(self, fieldname):
-		"""Returns True if fieldname exists"""
+		"""Return True if fieldname exists."""
 
 		return fieldname in self._fields
 
 	def get_label(self, fieldname):
-		"""Get label of the given fieldname"""
+		"""Return label of the given fieldname."""
 		if df := self.get_field(fieldname):
 			return df.get("label")
 
 		if fieldname in DEFAULT_FIELD_LABELS:
-			return DEFAULT_FIELD_LABELS[fieldname]()
+			return str(DEFAULT_FIELD_LABELS[fieldname])
 
 		return "No Label"
 
@@ -273,8 +274,8 @@ class Meta(Document):
 		return search_fields
 
 	def get_fields_to_fetch(self, link_fieldname=None):
-		"""Returns a list of docfield objects for fields whose values
-		are to be fetched and updated for a particular link field
+		"""Return a list of docfield objects for fields whose values
+		are to be fetched and updated for a particular link field.
 
 		These fields are of type Data, Link, Text, Readonly and their
 		fetch_from property is set as `link_fieldname`.`source_fieldname`"""
@@ -565,7 +566,14 @@ class Meta(Document):
 			self.high_permlevel_fields = [df for df in self.fields if df.permlevel > 0]
 		return self.high_permlevel_fields
 
-	def get_permitted_fieldnames(self, parenttype=None, *, user=None, permission_type="read"):
+	def get_permitted_fieldnames(
+		self,
+		parenttype=None,
+		*,
+		user=None,
+		permission_type="read",
+		with_virtual_fields=True,
+	):
 		"""Build list of `fieldname` with read perm level and all the higher perm levels defined.
 
 		Note: If permissions are not defined for DocType, return all the fields with value.
@@ -590,7 +598,9 @@ class Meta(Document):
 
 		permitted_fieldnames.extend(
 			df.fieldname
-			for df in self.get_fieldnames_with_value(with_field_meta=True, with_virtual_fields=True)
+			for df in self.get_fieldnames_with_value(
+				with_field_meta=True, with_virtual_fields=with_virtual_fields
+			)
 			if df.permlevel in permlevel_access
 		)
 		return permitted_fieldnames
@@ -615,7 +625,7 @@ class Meta(Document):
 		return permissions
 
 	def get_dashboard_data(self):
-		"""Returns dashboard setup related to this doctype.
+		"""Return dashboard setup related to this doctype.
 
 		This method will return the `data` property in the `[doctype]_dashboard.py`
 		file in the doctype's folder, along with any overrides or extensions
@@ -692,7 +702,7 @@ class Meta(Document):
 		return self.get_web_template(suffix="_list")
 
 	def get_web_template(self, suffix=""):
-		"""Returns the relative path of the row template for this doctype"""
+		"""Return the relative path of the row template for this doctype."""
 		module_name = frappe.scrub(self.module)
 		doctype = frappe.scrub(self.name)
 		template_path = frappe.get_module_path(
@@ -886,3 +896,12 @@ def _update_field_order_based_on_insert_after(field_order, insert_after_map):
 		# insert_after is an invalid fieldname, add these fields to the end
 		for fields in insert_after_map.values():
 			field_order.extend(fields)
+
+
+if typing.TYPE_CHECKING:
+	# This is DX hack to add all fields from DocType to meta for autocompletions.
+	# Meta is technically doctype + special fields on meta.
+	from frappe.core.doctype.doctype.doctype import DocType
+
+	class _Meta(Meta, DocType):
+		pass

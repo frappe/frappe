@@ -114,13 +114,13 @@ export default class ListSettings {
 					data-label="${me.fields[idx].label}" data-type="${me.fields[idx].type}">
 
 					<div class="row">
-						<div class="col-md-1">
+						<div class="col-1">
 							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
-						<div class="col-md-10" style="padding-left:0px;">
+						<div class="col-10" style="padding-left:0px;">
 							${me.fields[idx].label}
 						</div>
-						<div class="col-md-1 ${can_remove}">
+						<div class="col-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
 								${frappe.utils.icon("delete", "xs")}
 							</a>
@@ -316,7 +316,7 @@ export default class ListSettings {
 		meta.fields.forEach((field) => {
 			if (
 				field.in_list_view &&
-				!in_list(frappe.model.no_value_type, field.fieldtype) &&
+				!frappe.model.no_value_type.includes(field.fieldtype) &&
 				me.subject_field.fieldname != field.fieldname
 			) {
 				me.fields.push({
@@ -363,11 +363,11 @@ export default class ListSettings {
 		let multiselect_fields = [];
 
 		meta.fields.forEach((field) => {
-			if (!in_list(frappe.model.no_value_type, field.fieldtype)) {
+			if (!frappe.model.no_value_type.includes(field.fieldtype)) {
 				multiselect_fields.push({
 					label: field.label,
 					value: field.fieldname,
-					checked: in_list(fields, field.fieldname),
+					checked: fields.includes(field.fieldname),
 				});
 			}
 		});
@@ -384,7 +384,7 @@ export default class ListSettings {
 		}
 
 		existing_fields.forEach((column) => {
-			if (!in_list(new_fields, column)) {
+			if (!new_fields.includes(column)) {
 				removed_fields.push(column);
 			}
 		});

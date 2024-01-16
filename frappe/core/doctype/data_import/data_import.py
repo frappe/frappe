@@ -241,9 +241,11 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 	i.import_data()
 
 
-def import_doc(path, pre_process=None):
+def import_doc(path, pre_process=None, sort=False):
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
+		if sort:
+			files.sort()
 	else:
 		files = [path]
 

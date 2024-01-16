@@ -335,7 +335,7 @@ class DatabaseQuery:
 		return args
 
 	def parse_args(self):
-		"""Convert fields and filters from strings to list, dicts"""
+		"""Convert fields and filters from strings to list, dicts."""
 		if isinstance(self.fields, str):
 			if self.fields == "*":
 				self.fields = ["*"]
@@ -521,14 +521,13 @@ class DatabaseQuery:
 
 	def _set_permission_map(self, doctype: str, parent_doctype: str | None = None):
 		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
-		val = frappe.has_permission(
+		frappe.has_permission(
 			doctype,
 			ptype=ptype,
 			parent_doctype=parent_doctype or self.doctype,
+			throw=True,
+			user=self.user,
 		)
-		if not val:
-			frappe.flags.error_message = _("Insufficient Permission for {0}").format(frappe.bold(doctype))
-			raise frappe.PermissionError(doctype)
 		self.permission_map[doctype] = ptype
 
 	def set_field_tables(self):
@@ -635,6 +634,7 @@ class DatabaseQuery:
 			doctype=self.doctype,
 			parenttype=self.parent_doctype,
 			permission_type=self.permission_map.get(self.doctype),
+			ignore_virtual=True,
 		)
 
 		for i, field in enumerate(self.fields):
@@ -715,7 +715,8 @@ class DatabaseQuery:
 			j = j + len(permitted_fields) - 1
 
 	def prepare_filter_condition(self, f):
-		"""Returns a filter condition in the format:
+		"""Return a filter condition in the format:
+
 		ifnull(`tabDocType`.`fieldname`, fallback) operator "value"
 		"""
 
@@ -739,7 +740,8 @@ class DatabaseQuery:
 		df = meta.get("fields", {"fieldname": f.fieldname})
 		df = df[0] if df else None
 
-		can_be_null = f.fieldname != "name"  # primary key is never nullable
+		# primary key is never nullable, modified is usually indexed by default and always present
+		can_be_null = f.fieldname not in ("name", "modified")
 
 		value = None
 
@@ -1079,6 +1081,8 @@ class DatabaseQuery:
 					self.fields[0].lower().startswith("count(")
 					or self.fields[0].lower().startswith("min(")
 					or self.fields[0].lower().startswith("max(")
+					or self.fields[0].lower().startswith("sum(")
+					or self.fields[0].lower().startswith("avg(")
 				)
 				and not self.group_by
 			)
@@ -1339,7 +1343,7 @@ def get_date_range(operator: str, value: str):
 
 
 def requires_owner_constraint(role_permissions):
-	"""Returns True if "select" or "read" isn't available without being creator."""
+	"""Return True if "select" or "read" isn't available without being creator."""
 
 	if not role_permissions.get("has_if_owner_enabled"):
 		return

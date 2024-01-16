@@ -42,13 +42,10 @@ class BuilderIdentificationFailed(Exception):
 
 
 def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
-	"""[return the query builder object]
+	"""Return the query builder object.
 
 	Args:
-	        type_of_db (str): [string value of the db used]
-
-	Returns:
-	        Query: [Query object]
+	        type_of_db: string value of the db used
 	"""
 	db = db_type_is(type_of_db)
 	picks = {db_type_is.MARIADB: MariaDB, db_type_is.POSTGRES: Postgres}
@@ -89,7 +86,7 @@ def patch_query_execute():
 		return result
 
 	def execute_child_queries(queries, result):
-		if not result or not isinstance(result[0], dict) or not result[0].name:
+		if not queries or not result or not isinstance(result[0], dict) or not result[0].name:
 			return
 		parent_names = [d.name for d in result]
 		for child_query in queries:

@@ -247,7 +247,7 @@ frappe.ui.toolbar.setup_session_defaults = function () {
 			fields = JSON.parse(data.message);
 			let perms = frappe.perm.get_perm("Session Default Settings");
 			//add settings button only if user is a System Manager or has permission on 'Session Default Settings'
-			if (in_list(frappe.user_roles, "System Manager") || perms[0].read == 1) {
+			if (frappe.user_roles.includes("System Manager") || perms[0].read == 1) {
 				fields[fields.length] = {
 					fieldname: "settings",
 					fieldtype: "Button",
