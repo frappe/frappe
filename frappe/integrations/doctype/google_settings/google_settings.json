@@ -39,8 +39,7 @@
    "description": "The browser API key obtained from the Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\n\"APIs &amp; Services\" &gt; \"Credentials\"\n</a>",
    "fieldname": "api_key",
    "fieldtype": "Data",
-   "label": "API Key",
-   "mandatory_depends_on": "google_drive_picker_enabled"
+   "label": "API Key"
   },
   {
    "depends_on": "enable",
@@ -76,7 +75,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2021-06-29 18:26:07.094851",
+ "modified": "2024-01-16 13:19:22.365362",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Settings",
@@ -96,5 +95,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }

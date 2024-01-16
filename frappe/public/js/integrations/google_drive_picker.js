@@ -1,12 +1,11 @@
 /* global gapi:false, google:false */
 export default class GoogleDrivePicker {
-	constructor({ pickerCallback, enabled, appId, developerKey, clientId } = {}) {
+	constructor({ pickerCallback, enabled, appId, clientId } = {}) {
 		this.scope = "https://www.googleapis.com/auth/drive.file";
 		this.pickerApiLoaded = false;
 		this.enabled = enabled;
 		this.appId = appId;
 		this.pickerCallback = pickerCallback;
-		this.developerKey = developerKey;
 		this.clientId = clientId;
 	}
 
@@ -45,7 +44,6 @@ export default class GoogleDrivePicker {
 	createPicker(access_token) {
 		this.view = new google.picker.View(google.picker.ViewId.DOCS);
 		this.picker = new google.picker.PickerBuilder()
-			.setDeveloperKey(this.developerKey)
 			.setAppId(this.appId)
 			.setOAuthToken(access_token)
 			.addView(this.view)
