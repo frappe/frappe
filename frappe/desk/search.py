@@ -209,6 +209,7 @@ def search_widget(
 					and has_permission(
 						doctype,
 						ptype="select" if frappe.only_has_select_perm(doctype) else "read",
+						parent_doctype=reference_doctype,
 					)
 				)
 			)
