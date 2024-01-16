@@ -44,7 +44,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "DocType View",
-   "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban"
+   "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban\nImage"
   },
   {
    "fieldname": "column_break_4",
@@ -102,8 +102,7 @@
    "fieldname": "url",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "URL",
-   "options": "URL"
+   "label": "URL"
   },
   {
    "depends_on": "eval:doc.doc_view == \"Kanban\"",
@@ -116,7 +115,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-07-18 16:12:53.546430",
+ "modified": "2023-11-27 14:13:38.489737",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Shortcut",

@@ -39,11 +39,15 @@ class TelemetryManager {
 
 	disable() {
 		this.enabled = false;
-		posthog.opt_out_capturing();
 	}
 
 	can_enable() {
-		return Boolean(this.telemetry_host && this.project_id);
+		if (cint(navigator.doNotTrack)) {
+			return false;
+		}
+		let posthog_available = Boolean(this.telemetry_host && this.project_id);
+		let sentry_available = Boolean(frappe.boot.sentry_dsn);
+		return posthog_available || sentry_available;
 	}
 
 	send_heartbeat() {

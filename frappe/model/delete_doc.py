@@ -245,20 +245,28 @@ def check_if_doc_is_linked(doc, method="Delete"):
 	from frappe.model.rename_doc import get_link_fields
 
 	link_fields = get_link_fields(doc.doctype)
-	ignore_linked_doctypes = doc.get("ignore_linked_doctypes") or []
+	ignored_doctypes = set()
+
+	if method == "Cancel" and (doc_ignore_flags := doc.get("ignore_linked_doctypes")):
+		ignored_doctypes.update(doc_ignore_flags)
+	if method == "Delete":
+		ignored_doctypes.update(frappe.get_hooks("ignore_links_on_delete"))
 
 	for lf in link_fields:
 		link_dt, link_field, issingle = lf["parent"], lf["fieldname"], lf["issingle"]
+		if link_dt in ignored_doctypes or (link_field == "amended_from" and method == "Cancel"):
+			continue
 
 		try:
 			meta = frappe.get_meta(link_dt)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			# This mostly happens when app do not remove their customizations, we shouldn't
 			# prevent link checks from failing in those cases
 			continue
 
 		if issingle:
-			if frappe.db.get_value(link_dt, None, link_field) == doc.name:
+			if frappe.db.get_single_value(link_dt, link_field) == doc.name:
 				raise_link_exists_exception(doc, link_dt, link_dt)
 			continue
 
@@ -270,12 +278,9 @@ def check_if_doc_is_linked(doc, method="Delete"):
 		for item in frappe.db.get_values(link_dt, {link_field: doc.name}, fields, as_dict=True):
 			# available only in child table cases
 			item_parent = getattr(item, "parent", None)
-			linked_doctype = item.parenttype if item_parent else link_dt
+			linked_parent_doctype = item.parenttype if item_parent else link_dt
 
-			if linked_doctype in frappe.get_hooks("ignore_links_on_delete") or (
-				linked_doctype in ignore_linked_doctypes and method == "Cancel"
-			):
-				# don't check for communication and todo!
+			if linked_parent_doctype in ignored_doctypes:
 				continue
 
 			if method != "Delete" and (method != "Cancel" or not DocStatus(item.docstatus).is_submitted()):
@@ -288,7 +293,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 				continue
 			else:
 				reference_docname = item_parent or item.name
-				raise_link_exists_exception(doc, linked_doctype, reference_docname)
+				raise_link_exists_exception(doc, linked_parent_doctype, reference_docname)
 
 
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):

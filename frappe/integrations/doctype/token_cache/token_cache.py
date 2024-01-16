@@ -1,7 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from datetime import datetime, timedelta
+import datetime
 
 import pytz
 
@@ -73,8 +73,8 @@ class TokenCache(Document):
 		system_timezone = pytz.timezone(get_system_timezone())
 		modified = frappe.utils.get_datetime(self.modified)
 		modified = system_timezone.localize(modified)
-		expiry_utc = modified.astimezone(pytz.utc) + timedelta(seconds=self.expires_in)
-		now_utc = datetime.utcnow().replace(tzinfo=pytz.utc)
+		expiry_utc = modified.astimezone(pytz.utc) + datetime.timedelta(seconds=self.expires_in)
+		now_utc = datetime.datetime.now(pytz.utc)
 		return cint((expiry_utc - now_utc).total_seconds())
 
 	def is_expired(self):

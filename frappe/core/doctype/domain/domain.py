@@ -4,6 +4,7 @@
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class Domain(Document):
@@ -28,7 +29,7 @@ class Domain(Document):
 		self.setup_properties()
 		self.set_values()
 
-		if not int(frappe.defaults.get_defaults().setup_complete or 0):
+		if not cint(frappe.defaults.get_defaults().setup_complete):
 			# if setup not complete, setup desktop etc.
 			self.setup_sidebar_items()
 			self.set_default_portal_role()

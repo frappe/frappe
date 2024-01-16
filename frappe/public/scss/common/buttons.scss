@@ -24,7 +24,8 @@
 		height: var(--btn-height);
 		padding: 0px;
 		@extend .center-content;
-		&.btn-default, &.btn-secondary {
+		&.btn-default,
+		&.btn-secondary {
 			min-width: 28px;
 		}
 	}
@@ -41,7 +42,9 @@
 	);
 
 	color: $white;
-	&:hover, &:active, &:focus {
+	&:hover,
+	&:active,
+	&:focus {
 		color: $white;
 	}
 	.icon {
@@ -61,7 +64,8 @@
 	);
 
 	color: var(--primary);
-	&:hover, &:active {
+	&:hover,
+	&:active {
 		color: var(--primary);
 	}
 
@@ -73,7 +77,8 @@
 .btn.btn-secondary {
 	background-color: var(--control-bg);
 	color: var(--text-color);
-	&:hover, &:active {
+	&:hover,
+	&:active {
 		background-color: var(--btn-default-hover-bg);
 		color: var(--text-color);
 	}
@@ -82,7 +87,8 @@
 .btn.btn-default {
 	background-color: var(--control-bg);
 	color: var(--text-color);
-	&:hover, &:active {
+	&:hover,
+	&:active {
 		background: var(--btn-default-hover-bg);
 		color: var(--text-color);
 	}
@@ -112,6 +118,7 @@
 	border: 0;
 	font-size: inherit;
 	background-color: inherit;
+	text-align: inherit;
 }
 
 [data-theme="dark"] {
@@ -120,7 +127,7 @@
 		box-shadow: none;
 	}
 	.btn-primary:active {
-			color: var(--gray-900) !important;
-			background-color: var(--invert-neutral) !important;
+		color: var(--gray-900) !important;
+		background-color: var(--invert-neutral) !important;
 	}
 }

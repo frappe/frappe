@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 
 def get_doc(*args, **kwargs):
-	"""returns a frappe.model.Document object.
+	"""Return a `frappe.model.Document` object.
 
 	:param arg1: Document dict or DocType name.
 	:param arg2: [optional] document name.
@@ -214,7 +214,7 @@ class Document(BaseDocument):
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permtype)
 
-	def has_permission(self, permtype="read") -> bool:
+	def has_permission(self, permtype="read", *, debug=False, user=None) -> bool:
 		"""
 		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
@@ -226,7 +226,7 @@ class Document(BaseDocument):
 
 		import frappe.permissions
 
-		return frappe.permissions.has_permission(self.doctype, permtype, self)
+		return frappe.permissions.has_permission(self.doctype, permtype, self, debug=debug, user=user)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
@@ -343,7 +343,7 @@ class Document(BaseDocument):
 		:param ignore_permissions: Do not check permissions if True.
 		:param ignore_version: Do not save version if True."""
 		if self.flags.in_print:
-			return
+			return self
 
 		self.flags.notifications_executed = []
 
@@ -356,6 +356,7 @@ class Document(BaseDocument):
 			return self.insert()
 
 		self.check_if_locked()
+		self._set_defaults()
 		self.check_permission("write", "save")
 
 		self.set_user_and_timestamp()
@@ -419,42 +420,41 @@ class Document(BaseDocument):
 
 	def update_child_table(self, fieldname: str, df: Optional["DocField"] = None):
 		"""sync child table for given fieldname"""
-		rows = []
 		df: "DocField" = df or self.meta.get_field(fieldname)
-
-		for d in self.get(df.fieldname):
-			d: Document
-			d.db_update()
-			rows.append(d.name)
-
-		if (
-			df.options in (self.flags.ignore_children_type or [])
-			or frappe.get_meta(df.options).is_virtual == 1
-		):
-			# do not delete rows for this because of flags
-			# hack for docperm :(
-			return
+		all_rows = self.get(df.fieldname)
 
 		# delete rows that do not match the ones in the document
-		tbl = frappe.qb.DocType(df.options)
-		qry = (
-			frappe.qb.from_(tbl)
-			.where(tbl.parent == self.name)
-			.where(tbl.parenttype == self.doctype)
-			.where(tbl.parentfield == fieldname)
-			.delete()
-		)
+		# if the doctype isn't in ignore_children_type flag and isn't virtual
+		if not (
+			df.options in (self.flags.ignore_children_type or ())
+			or frappe.get_meta(df.options).is_virtual == 1
+		):
+			existing_row_names = [row.name for row in all_rows if row.name and not row.is_new()]
 
-		if rows:
-			qry = qry.where(tbl.name.notin(rows))
+			tbl = frappe.qb.DocType(df.options)
+			qry = (
+				frappe.qb.from_(tbl)
+				.where(tbl.parent == self.name)
+				.where(tbl.parenttype == self.doctype)
+				.where(tbl.parentfield == fieldname)
+				.delete()
+			)
 
-		qry.run()
+			if existing_row_names:
+				qry = qry.where(tbl.name.notin(existing_row_names))
+
+			qry.run()
+
+		# update / insert
+		for d in all_rows:
+			d: Document
+			d.db_update()
 
 	def get_doc_before_save(self) -> "Document":
 		return getattr(self, "_doc_before_save", None)
 
 	def has_value_changed(self, fieldname):
-		"""Returns true if value is changed before and after saving"""
+		"""Return True if value has changed before and after saving."""
 		previous = self.get_doc_before_save()
 		return previous.get(fieldname) != self.get(fieldname) if previous else True
 
@@ -464,8 +464,10 @@ class Document(BaseDocument):
 		if self.flags.name_set and not force:
 			return
 
+		autoname = self.meta.autoname or ""
+
 		# If autoname has set as Prompt (name)
-		if self.get("__newname"):
+		if self.get("__newname") and autoname.lower() == "prompt":
 			self.name = validate_name(self.doctype, self.get("__newname"))
 			self.flags.name_set = True
 			return
@@ -620,7 +622,7 @@ class Document(BaseDocument):
 		workflow = self.meta.get_workflow()
 		if workflow:
 			validate_workflow(self)
-			if not self._action == "save":
+			if self._action != "save":
 				set_workflow_state_on_action(self, workflow, self._action)
 
 	def validate_set_only_once(self):
@@ -769,16 +771,18 @@ class Document(BaseDocument):
 		if frappe.flags.in_import:
 			return
 
-		new_doc = frappe.new_doc(self.doctype, as_dict=True)
-		self.update_if_missing(new_doc)
+		if self.is_new():
+			new_doc = frappe.new_doc(self.doctype, as_dict=True)
+			self.update_if_missing(new_doc)
 
 		# children
 		for df in self.meta.get_table_fields():
-			new_doc = frappe.new_doc(df.options, as_dict=True)
+			new_doc = frappe.new_doc(df.options, parent_doc=self, parentfield=df.fieldname, as_dict=True)
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				for d in value:
-					d.update_if_missing(new_doc)
+					if d.is_new():
+						d.update_if_missing(new_doc)
 
 	def check_if_latest(self):
 		"""Checks if `modified` timestamp provided by document being updated is same as the
@@ -922,7 +926,7 @@ class Document(BaseDocument):
 			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None) -> list["Document"]:
-		"""Returns all children documents from **Table** type fields in a list."""
+		"""Return all children documents from **Table** type fields in a list."""
 
 		children = []
 
@@ -975,7 +979,7 @@ class Document(BaseDocument):
 		if self.flags.notifications is None:
 
 			def _get_notifications():
-				"""returns enabled notifications for the current doctype"""
+				"""Return enabled notifications for the current doctype."""
 
 				return frappe.get_all(
 					"Notification",
@@ -1377,7 +1381,7 @@ class Document(BaseDocument):
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.get("parentfield"))))
 
 	def get_url(self):
-		"""Returns Desk URL for this document."""
+		"""Return Desk URL for this document."""
 		return get_absolute_url(self.doctype, self.name)
 
 	def add_comment(
@@ -1451,7 +1455,7 @@ class Document(BaseDocument):
 		)
 
 	def get_signature(self):
-		"""Returns signature (hash) for private URL."""
+		"""Return signature (hash) for private URL."""
 		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
 
 	def get_document_share_key(self, expires_on=None, no_expiry=False):

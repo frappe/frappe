@@ -109,7 +109,7 @@ def get(
 	refresh=None,
 ):
 	if chart_name:
-		chart = frappe.get_doc("Dashboard Chart", chart_name)
+		chart: DashboardChart = frappe.get_doc("Dashboard Chart", chart_name)
 	else:
 		chart = frappe._dict(frappe.parse_json(chart))
 
@@ -207,13 +207,14 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 	filters.append([doctype, datefield, ">=", from_date, False])
 	filters.append([doctype, datefield, "<=", to_date, False])
 
-	data = frappe.db.get_list(
+	data = frappe.get_list(
 		doctype,
-		fields=[f"{datefield} as _unit", f"SUM({value_field})", "COUNT(*)"],
+		fields=[datefield, f"SUM({value_field})", "COUNT(*)"],
 		filters=filters,
-		group_by="_unit",
-		order_by="_unit asc",
+		group_by=datefield,
+		order_by=datefield,
 		as_list=True,
+		parent_doctype=chart.parent_document_type,
 	)
 
 	result = get_result(data, timegrain, from_date, to_date, chart.chart_type)
@@ -317,7 +318,7 @@ def get_result(data, timegrain, from_date, to_date, chart_type):
 				d[1] += data[data_index][1]
 				count += data[data_index][2]
 				data_index += 1
-			if chart_type == "Average" and not count == 0:
+			if chart_type == "Average" and count != 0:
 				d[1] = d[1] / count
 			if chart_type == "Count":
 				d[1] = count

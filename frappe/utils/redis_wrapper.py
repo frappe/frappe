@@ -72,8 +72,8 @@ class RedisWrapper(redis.Redis):
 			return None
 
 	def get_value(self, key, generator=None, user=None, expires=False, shared=False):
-		"""Returns cache value. If not found and generator function is
-		        given, it will call the generator.
+		"""Return cache value. If not found and generator function is
+		        given, call the generator.
 
 		:param key: Cache key.
 		:param generator: Function to be called to generate a value if `None` is returned.
@@ -266,23 +266,23 @@ class RedisWrapper(redis.Redis):
 		super().sadd(self.make_key(name), *values)
 
 	def srem(self, name, *values):
-		"""Remove a specific member/list of members from the set"""
+		"""Remove a specific member/list of members from the set."""
 		super().srem(self.make_key(name), *values)
 
 	def sismember(self, name, value):
-		"""Returns True or False based on if a given value is present in the set"""
+		"""Return True or False based on if a given value is present in the set."""
 		return super().sismember(self.make_key(name), value)
 
 	def spop(self, name):
-		"""Removes and returns a random member from the set"""
+		"""Remove and returns a random member from the set."""
 		return super().spop(self.make_key(name))
 
 	def srandmember(self, name, count=None):
-		"""Returns a random member from the set"""
+		"""Return a random member from the set."""
 		return super().srandmember(self.make_key(name))
 
 	def smembers(self, name):
-		"""Return all members of the set"""
+		"""Return all members of the set."""
 		return super().smembers(self.make_key(name))
 
 	def ft(self, index_name="idx"):

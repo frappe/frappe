@@ -2,17 +2,16 @@ import json
 import os
 import subprocess
 import sys
-from shutil import which
 
 import click
 
 import frappe
+from frappe import _
 from frappe.commands import get_site, pass_context
 from frappe.coverage import CodeCoverage
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import cint, update_progress_bar
 
-find_executable = which  # backwards compatibility
 EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 
 
@@ -48,6 +47,7 @@ def build(
 ):
 	"Compile JS and CSS source files"
 	from frappe.build import bundle, download_frappe_assets
+	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
 	frappe.init("")
@@ -78,6 +78,16 @@ def build(
 			save_metafiles=save_metafiles,
 		)
 
+		if apps and isinstance(apps, str):
+			apps = apps.split(",")
+
+		if not apps:
+			apps = frappe.get_all_apps()
+
+		for app in apps:
+			print("Compiling translations for", app)
+			compile_translations(app, force=force)
+
 
 @click.command("watch")
 @click.option("--apps", help="Watch assets for specific apps")
@@ -94,14 +104,12 @@ def watch(apps=None):
 def clear_cache(context):
 	"Clear cache, doctype cache and defaults"
 	import frappe.sessions
-	from frappe.desk.notifications import clear_notifications
 	from frappe.website.utils import clear_website_cache
 
 	for site in context.sites:
 		try:
 			frappe.connect(site)
 			frappe.clear_cache()
-			clear_notifications()
 			clear_website_cache()
 		finally:
 			frappe.destroy()
@@ -465,19 +473,11 @@ def database(context, extra_args):
 	Enter into the Database console for given site.
 	"""
 	site = get_site(context)
-	if not site:
-		raise SiteNotSpecifiedError
 	frappe.init(site=site)
-	if frappe.conf.db_type == "mariadb":
-		_mariadb(extra_args=extra_args)
-	elif frappe.conf.db_type == "postgres":
-		_psql(extra_args=extra_args)
+	_enter_console(extra_args=extra_args)
 
 
-@click.command(
-	"mariadb",
-	context_settings=EXTRA_ARGS_CTX,
-)
+@click.command("mariadb", context_settings=EXTRA_ARGS_CTX)
 @click.argument("extra_args", nargs=-1)
 @pass_context
 def mariadb(context, extra_args):
@@ -485,10 +485,9 @@ def mariadb(context, extra_args):
 	Enter into mariadb console for a given site.
 	"""
 	site = get_site(context)
-	if not site:
-		raise SiteNotSpecifiedError
 	frappe.init(site=site)
-	_mariadb(extra_args=extra_args)
+	frappe.conf.db_type = "mariadb"
+	_enter_console(extra_args=extra_args)
 
 
 @click.command("postgres", context_settings=EXTRA_ARGS_CTX)
@@ -500,42 +499,27 @@ def postgres(context, extra_args):
 	"""
 	site = get_site(context)
 	frappe.init(site=site)
-	_psql(extra_args=extra_args)
+	frappe.conf.db_type = "postgres"
+	_enter_console(extra_args=extra_args)
 
 
-def _mariadb(extra_args=None):
-	mariadb = which("mariadb") or which("mysql")
-	command = [
-		mariadb,
-		"--port",
-		str(frappe.conf.db_port),
-		"-u",
-		frappe.conf.db_name,
-		f"-p{frappe.conf.db_password}",
-		frappe.conf.db_name,
-		"-h",
-		frappe.conf.db_host,
-		"--pager=less -SFX",
-		"--safe-updates",
-		"-A",
-	]
-	if extra_args:
-		command += list(extra_args)
-	os.execv(mariadb, command)
+def _enter_console(extra_args=None):
+	from frappe.database import get_command
 
-
-def _psql(extra_args=None):
-	psql = which("psql")
-
-	host = frappe.conf.db_host
-	port = frappe.conf.db_port
-	env = os.environ.copy()
-	env["PGPASSWORD"] = frappe.conf.db_password
-	conn_string = f"postgresql://{frappe.conf.db_name}@{host}:{port}/{frappe.conf.db_name}"
-	psql_cmd = [psql, conn_string]
-	if extra_args:
-		psql_cmd = psql_cmd + list(extra_args)
-	subprocess.run(psql_cmd, check=True, env=env)
+	bin, args, bin_name = get_command(
+		host=frappe.conf.db_host,
+		port=frappe.conf.db_port,
+		user=frappe.conf.db_name,
+		password=frappe.conf.db_password,
+		db_name=frappe.conf.db_name,
+		extra=list(extra_args) if extra_args else [],
+	)
+	if not bin:
+		frappe.throw(
+			_("{} not found in PATH! This is required to access the console.").format(bin_name),
+			exc=frappe.ExecutableNotFound,
+		)
+	os.execv(bin, [bin] + args)
 
 
 @click.command("jupyter")

@@ -12,6 +12,7 @@
   "enable_email_notifications",
   "enable_email_mention",
   "enable_email_assignment",
+  "enable_email_threads_on_assigned_document",
   "enable_email_energy_point",
   "enable_email_share",
   "enable_email_event_reminders",
@@ -105,12 +106,20 @@
    "fieldname": "enable_email_event_reminders",
    "fieldtype": "Check",
    "label": "Event Reminders"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_email_notifications",
+   "description": "Get notified when an email is received on any of the documents assigned to you.",
+   "fieldname": "enable_email_threads_on_assigned_document",
+   "fieldtype": "Check",
+   "label": "Email Threads on Assigned Document"
   }
  ],
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-11-24 14:45:31.931154",
+ "modified": "2023-12-01 12:46:15.490640",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
@@ -132,5 +141,6 @@
  "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

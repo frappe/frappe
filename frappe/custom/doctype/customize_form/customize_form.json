@@ -7,10 +7,12 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "doc_type",
   "properties",
   "label",
   "search_fields",
+  "link_filters",
   "column_break_5",
   "istable",
   "is_calendar_and_gantt",
@@ -24,17 +26,6 @@
   "naming_section",
   "naming_rule",
   "autoname",
-  "document_actions_section",
-  "actions",
-  "document_links_section",
-  "links",
-  "document_states_section",
-  "states",
-  "form_tab",
-  "form_builder",
-  "fields_section_break",
-  "fields",
-  "settings_tab",
   "form_settings_section",
   "image_field",
   "max_attachments",
@@ -55,11 +46,22 @@
   "column_break_26",
   "email_append_to",
   "sender_field",
+  "sender_name_field",
   "subject_field",
   "section_break_8",
   "sort_field",
   "column_break_10",
-  "sort_order"
+  "sort_order",
+  "document_actions_section",
+  "actions",
+  "document_links_section",
+  "links",
+  "document_states_section",
+  "states",
+  "fields_section_break",
+  "fields",
+  "form_tab",
+  "form_builder"
  ],
  "fields": [
   {
@@ -218,7 +220,7 @@
    "depends_on": "email_append_to",
    "fieldname": "sender_field",
    "fieldtype": "Data",
-   "label": "Sender Field",
+   "label": "Sender Email Field",
    "mandatory_depends_on": "email_append_to"
   },
   {
@@ -372,11 +374,6 @@
    "label": "Is Calendar and Gantt"
   },
   {
-   "fieldname": "settings_tab",
-   "fieldtype": "Tab Break",
-   "label": "Settings"
-  },
-  {
    "fieldname": "form_builder",
    "fieldtype": "HTML",
    "label": "Form Builder"
@@ -385,6 +382,23 @@
    "fieldname": "form_tab",
    "fieldtype": "Tab Break",
    "label": "Form"
+  },
+  {
+   "fieldname": "link_filters",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Link Filters"
+  },
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "depends_on": "email_append_to",
+   "fieldname": "sender_name_field",
+   "fieldtype": "Data",
+   "label": "Sender Name Field"
   }
  ],
  "hide_toolbar": 1,
@@ -393,7 +407,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-08-29 12:31:55.808848",
+ "modified": "2023-12-01 18:18:23.086134",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

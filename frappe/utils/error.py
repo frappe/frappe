@@ -38,6 +38,7 @@ def log_error(
 ):
 	"""Log error to Error Log"""
 	from frappe.monitor import get_trace_id
+	from frappe.utils.sentry import capture_exception
 
 	# Parameter ALERT:
 	# the title and message may be swapped
@@ -58,14 +59,18 @@ def log_error(
 		print(f"Failed to log error in db: {title}")
 		return
 
+	trace_id = get_trace_id()
 	error_log = frappe.get_doc(
 		doctype="Error Log",
 		error=traceback,
 		method=title,
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
-		trace_id=get_trace_id(),
+		trace_id=trace_id,
 	)
+
+	# Capture exception data if telemetry is enabled
+	capture_exception(message=f"{title}\n{traceback}")
 
 	if frappe.flags.read_only or defer_insert:
 		error_log.deferred_insert()
@@ -141,19 +146,20 @@ def guess_exception_source(exception: str) -> str | None:
 
 	- For unhandled exception last python file from apps folder is responsible.
 	- For frappe.throws the exception source is possibly present after skipping frappe.throw frames
-	- For server script the file name is `<serverscript>`
+	- For server script the file name contains SERVER_SCRIPT_FILE_PREFIX
 
 	"""
+	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
+
 	with suppress(Exception):
 		installed_apps = frappe.get_installed_apps()
 		app_priority = {app: installed_apps.index(app) for app in installed_apps}
 
 		APP_NAME_REGEX = re.compile(r".*File.*apps/(?P<app_name>\w+)/\1/")
-		SERVER_SCRIPT_FRAME = re.compile(r".*<serverscript>")
 
 		apps = Counter()
 		for line in reversed(exception.splitlines()):
-			if SERVER_SCRIPT_FRAME.match(line):
+			if SERVER_SCRIPT_FILE_PREFIX in line:
 				return "Server Script"
 
 			if matches := APP_NAME_REGEX.match(line):

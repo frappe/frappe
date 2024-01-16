@@ -53,7 +53,8 @@ class WebsiteTheme(Document):
 		if (
 			not self.custom
 			and frappe.local.conf.get("developer_mode")
-			and not (frappe.flags.in_import or frappe.flags.in_test)
+			and not frappe.flags.in_import
+			and not frappe.flags.in_test
 		):
 
 			self.export_doc()

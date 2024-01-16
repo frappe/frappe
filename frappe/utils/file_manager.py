@@ -3,7 +3,6 @@
 
 import base64
 import hashlib
-import io
 import json
 import mimetypes
 import os
@@ -72,7 +71,7 @@ def upload():
 
 
 def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
-	"""returns File object (Document) from given parameters or form_dict"""
+	"""Return File object (Document) from given parameters or `form_dict`."""
 	r = frappe.form_dict
 
 	if dt is None:
@@ -283,9 +282,7 @@ def remove_file(
 	ignore_permissions, comment = False, None
 	if attached_to_doctype and attached_to_name and not from_delete:
 		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
-		ignore_permissions = doc.has_permission("write") or False
-		if frappe.flags.in_web_form:
-			ignore_permissions = True
+		ignore_permissions = frappe.flags.in_web_form or doc.has_permission("write")
 		if not file_name:
 			file_name = frappe.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", file_name)
@@ -331,7 +328,7 @@ def delete_file(path):
 
 
 def get_file(fname):
-	"""Returns [`file_name`, `content`] for given file name `fname`"""
+	"""Return [`file_name`, `content`] for given file name `fname`."""
 	file_path = get_file_path(fname)
 
 	# read the file
@@ -348,7 +345,7 @@ def get_file(fname):
 
 
 def get_file_path(file_name):
-	"""Returns file path from given file name"""
+	"""Return file path from given file name."""
 	if "../" in file_name:
 		return
 
@@ -384,7 +381,7 @@ def get_file_path(file_name):
 def get_content_hash(content):
 	if isinstance(content, str):
 		content = content.encode()
-	return hashlib.md5(content).hexdigest()
+	return hashlib.md5(content, usedforsecurity=False).hexdigest()
 
 
 def get_file_name(fname, optional_suffix):

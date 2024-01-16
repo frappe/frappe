@@ -12,9 +12,11 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, cast, is_html, nowdate, validate_email_address
+from frappe.utils import add_to_date, cast, nowdate, validate_email_address
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
+
+FORMATS = {"HTML": ".html", "Markdown": ".md", "Plain Text": ".txt"}
 
 
 class Notification(Document):
@@ -50,6 +52,7 @@ class Notification(Document):
 		]
 		is_standard: DF.Check
 		message: DF.Code | None
+		message_type: DF.Literal["Markdown", "HTML", "Plain Text"]
 		method: DF.Data | None
 		module: DF.Link | None
 		print_format: DF.Link | None
@@ -93,11 +96,11 @@ class Notification(Document):
 	def on_update(self):
 		frappe.cache.hdel("notifications", self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
-		if path:
-			# js
-			if not os.path.exists(path + ".md") and not os.path.exists(path + ".html"):
-				with open(path + ".md", "w") as f:
-					f.write(self.message)
+		if path and self.message:
+			extension = FORMATS.get(self.message_type, ".md")
+			file_path = path + extension
+			with open(file_path, "w") as f:
+				f.write(self.message)
 
 			# py
 			if not os.path.exists(path + ".py"):
@@ -363,7 +366,9 @@ def get_context(context):
 
 			# For sending messages to specified role
 			if recipient.receiver_by_role:
-				receiver_list += get_info_based_on_role(recipient.receiver_by_role, "mobile_no")
+				receiver_list += get_info_based_on_role(
+					recipient.receiver_by_role, "mobile_no", ignore_permissions=True
+				)
 
 		return receiver_list
 
@@ -399,18 +404,26 @@ def get_context(context):
 				}
 			]
 
-	def get_template(self):
+	def get_template(self, md_as_html=False):
 		module = get_doc_module(self.module, self.doctype, self.name)
 
-		def load_template(extn):
-			template = ""
-			template_path = os.path.join(os.path.dirname(module.__file__), frappe.scrub(self.name) + extn)
-			if os.path.exists(template_path):
-				with open(template_path) as f:
-					template = f.read()
-			return template
+		path = os.path.join(os.path.dirname(module.__file__), frappe.scrub(self.name))
+		extension = FORMATS.get(self.message_type, ".md")
+		file_path = path + extension
 
-		return load_template(".html") or load_template(".md")
+		template = ""
+
+		if os.path.exists(file_path):
+			with open(file_path) as f:
+				template = f.read()
+
+		if not template:
+			return
+
+		if extension == ".md":
+			return frappe.utils.md_to_html(template)
+
+		return template
 
 	def load_standard_properties(self, context):
 		"""load templates and run get_context"""
@@ -421,10 +434,7 @@ def get_context(context):
 				if out:
 					context.update(out)
 
-		self.message = self.get_template()
-
-		if not is_html(self.message):
-			self.message = frappe.utils.md_to_html(self.message)
+		self.message = self.get_template(md_as_html=True)
 
 	def on_trash(self):
 		frappe.cache.hdel("notifications", self.document_type)
@@ -497,8 +507,7 @@ def evaluate_alert(doc: Document, alert, event):
 		frappe.throw(message, title=_("Error in Notification"))
 	except Exception as e:
 		title = str(e)
-		message = frappe.get_traceback()
-		frappe.log_error(message=message, title=title)
+		frappe.log_error(title=title)
 
 		msg = f"<details><summary>{title}</summary>{message}</details>"
 		frappe.throw(msg, title=_("Error in Notification"))

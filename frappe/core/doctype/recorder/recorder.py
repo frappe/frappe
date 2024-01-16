@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.recorder import get as get_recorder_data
-from frappe.utils import cint, evaluate_filters, make_filter_dict
+from frappe.utils import cint, evaluate_filters
 
 
 class Recorder(Document):
@@ -19,6 +19,7 @@ class Recorder(Document):
 
 		cmd: DF.Data | None
 		duration: DF.Float
+		event_type: DF.Data | None
 		form_dict: DF.Code | None
 		method: DF.Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 		number_of_queries: DF.Int
@@ -38,7 +39,7 @@ class Recorder(Document):
 
 	@staticmethod
 	def get_list(args):
-		start = cint(args.get("start")) or 0
+		start = cint(args.get("start"))
 		page_length = cint(args.get("page_length")) or 20
 		requests = Recorder.get_filtered_requests(args)[start : start + page_length]
 

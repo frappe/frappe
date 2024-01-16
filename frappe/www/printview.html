@@ -18,7 +18,7 @@
 			{{ _("Print") }}
 		</a>
 		<a class="p-2"
-			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype}}&name={{name}}&key={{key}}">
+			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|e}}&name={{name|e}}&key={{key|e}}">
 			{{ _('Get PDF') }}
 		</a>
 	</div>

@@ -6,6 +6,7 @@ from frappe import _
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 from frappe.model.document import Document
 from frappe.utils import cint
+from frappe.utils.deprecations import deprecated
 from frappe.utils.scheduler import is_scheduler_inactive
 
 
@@ -24,6 +25,7 @@ class BulkUpdate(Document):
 		limit: DF.Int
 		update_value: DF.SmallText
 	# end: auto-generated types
+
 	@frappe.whitelist()
 	def bulk_update(self):
 		self.check_permission("write")
@@ -45,16 +47,39 @@ class BulkUpdate(Document):
 
 
 @frappe.whitelist()
-def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
-	docnames = frappe.parse_json(docnames)
+def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None, task_id=None):
+	if isinstance(docnames, str):
+		docnames = frappe.parse_json(docnames)
 
+	if len(docnames) < 20:
+		return _bulk_action(doctype, docnames, action, data, task_id)
+	elif len(docnames) <= 500:
+		frappe.msgprint(_("Bulk operation is enqueued in background."), alert=True)
+		frappe.enqueue(
+			_bulk_action,
+			doctype=doctype,
+			docnames=docnames,
+			action=action,
+			data=data,
+			task_id=task_id,
+			queue="short",
+			timeout=1000,
+		)
+	else:
+		frappe.throw(
+			_("Bulk operations only support up to 500 documents."), title=_("Too Many Documents")
+		)
+
+
+def _bulk_action(doctype, docnames, action, data, task_id=None):
 	if data:
 		data = frappe.parse_json(data)
 
 	failed = []
+	num_documents = len(docnames)
 
-	for i, d in enumerate(docnames, 1):
-		doc = frappe.get_doc(doctype, d)
+	for idx, docname in enumerate(docnames, 1):
+		doc = frappe.get_doc(doctype, docname)
 		try:
 			message = ""
 			if action == "submit" and doc.docstatus.is_draft():
@@ -72,18 +97,23 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
 				doc.save()
 				message = _("Updating {0}").format(doctype)
 			else:
-				failed.append(d)
+				failed.append(docname)
 			frappe.db.commit()
-			show_progress(docnames, message, i, d)
+			frappe.publish_progress(
+				percent=idx / num_documents * 100,
+				title=message,
+				description=docname,
+				task_id=task_id,
+			)
 
 		except Exception:
-			failed.append(d)
+			failed.append(docname)
 			frappe.db.rollback()
 
 	return failed
 
 
+@deprecated
 def show_progress(docnames, message, i, description):
 	n = len(docnames)
-	if n >= 10:
-		frappe.publish_progress(float(i) * 100 / n, title=message, description=description)
+	frappe.publish_progress(float(i) * 100 / n, title=message, description=description)

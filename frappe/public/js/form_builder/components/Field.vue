@@ -1,15 +1,36 @@
 <script setup>
 import EditableInput from "./EditableInput.vue";
-import { ref, computed } from "vue";
 import { useStore } from "../store";
 import { move_children_to_parent, clone_field } from "../utils";
+import { ref, computed, onMounted } from "vue";
+import AddFieldButton from "./AddFieldButton.vue";
+import { useMagicKeys, whenever } from "@vueuse/core";
 
 const props = defineProps(["column", "field"]);
-let store = useStore();
+const store = useStore();
 
-let hovered = ref(false);
-let component = computed(() => {
-	return props.field.df.fieldtype.replace(" ", "") + "Control";
+const add_field_ref = ref(null);
+
+// cmd/ctrl + shift + n to open the add field autocomplete
+const { ctrl_shift_n, Backspace } = useMagicKeys();
+whenever(ctrl_shift_n, (value) => {
+	if (value && selected.value) {
+		add_field_ref.value.open();
+	}
+});
+
+// delete/backspace to delete the field
+whenever(Backspace, (value) => {
+	if (value && selected.value && store.not_using_input) {
+		remove_field();
+	}
+});
+
+const label_input = ref(null);
+const hovered = ref(false);
+const selected = computed(() => store.selected(props.field.df.name));
+const component = computed(() => {
+	return props.field.df.fieldtype.replaceAll(" ", "") + "Control";
 });
 
 function remove_field() {
@@ -23,8 +44,8 @@ function remove_field() {
 }
 
 function move_fields_to_column() {
-	let current_section = store.current_tab.sections.find(section =>
-		section.columns.find(column => column == props.column)
+	let current_section = store.current_tab.sections.find((section) =>
+		section.columns.find((column) => column == props.column)
 	);
 	move_children_to_parent(props, "column", "field", current_section);
 }
@@ -53,15 +74,123 @@ function duplicate_field() {
 	props.column.fields.splice(index + 1, 0, duplicate_field);
 	store.form.selected_field = duplicate_field.df;
 }
+
+function make_dialog(frm) {
+	frm.dialog = new frappe.ui.Dialog({
+		title: __("Set Filters"),
+		fields: [
+			{
+				fieldtype: "HTML",
+				fieldname: "filter_area",
+			},
+		],
+		primary_action: () => {
+			let fieldname = props.field.df.fieldname;
+			let field_option = props.field.df.options;
+			let filters = frm.filter_group.get_filters().map((filter) => {
+				// last element is a boolean which hides the filter hence not required to store in meta
+				filter.pop();
+
+				// filter_group component requires options and frm.set_query requires fieldname so storing both
+				filter[0] = { fieldname, field_option };
+				return filter;
+			});
+
+			props.field.df.link_filters = JSON.stringify(filters);
+			frm.dialog.hide();
+		},
+		primary_action_label: __("Apply"),
+	});
+
+	if (frm.doctype === "Customize Form") {
+		let current_doctype = frm.doc.doc_type;
+		let fieldname = props.field.df.fieldname;
+		let property = "link_filters";
+		let property_setter_id = current_doctype + "-" + fieldname + "-" + property;
+
+		frappe.db.exists("Property Setter", property_setter_id).then((exits) => {
+			if (exits) {
+				frm.dialog.set_secondary_action_label(__("Reset To Default"));
+				frm.dialog.set_secondary_action(() => {
+					frappe.call({
+						method: "frappe.custom.doctype.customize_form.customize_form.get_link_filters_from_doc_without_customisations",
+						args: {
+							doctype: current_doctype,
+							fieldname: fieldname,
+						},
+						callback: function (r) {
+							if (r.message) {
+								props.field.df.link_filters = r.message;
+
+								frm.filter_group.clear_filters();
+								add_existing_filter(frm, props.field.df);
+								// hide the secondary action button
+								frm.dialog.get_secondary_btn().addClass("hidden");
+							}
+						},
+					});
+				});
+			}
+		});
+	}
+
+	// Setting selected field in store because when we click on the dialog the selected field is set to null
+	frm.dialog.$wrapper.on("click", () => {
+		store.form.selected_field = props.field.df;
+	});
+}
+
+function make_filter_area(frm, doctype) {
+	frm.filter_group = new frappe.ui.FilterGroup({
+		parent: frm.dialog.get_field("filter_area").$wrapper,
+		doctype: doctype,
+		on_change: () => {},
+	});
+}
+
+function add_existing_filter(frm, df) {
+	if (df.link_filters) {
+		let filters = JSON.parse(df.link_filters);
+		filters.map((filter) => {
+			// filter_group component requires options and frm.set_query requires fieldname
+			filter[0] = filter[0].field_option;
+		});
+		if (filters) {
+			frm.filter_group.add_filters_to_filter_group(filters);
+		}
+	}
+}
+
+function edit_filters() {
+	let field_doctype = props.field.df.options;
+	const { frm } = store;
+
+	make_dialog(frm);
+	make_filter_area(frm, field_doctype);
+	frappe.model.with_doctype(field_doctype, () => {
+		frm.dialog.show();
+		add_existing_filter(frm, props.field.df);
+	});
+}
+
+function is_filter_applied() {
+	if (props.field.df.link_filters) {
+		try {
+			if (JSON.parse(props.field.df.link_filters).length > 0) {
+				return "btn-filter-applied";
+			}
+		} catch (error) {
+			return "";
+		}
+	}
+}
+
+onMounted(() => selected.value && label_input.value.focus_on_label());
 </script>
 
 <template>
 	<div
-		:class="[
-			'field',
-			hovered ? 'hovered' : '',
-			store.selected(field.df.name) ? 'selected' : ''
-		]"
+		:class="['field', selected ? 'selected' : hovered ? 'hovered' : '']"
 		:title="field.df.fieldname"
 		@click.stop="store.form.selected_field = field.df"
 		@mouseover.stop="hovered = true"
@@ -76,24 +205,33 @@ function duplicate_field() {
 			<template #label>
 				<div class="field-label">
 					<EditableInput
+						ref="label_input"
 						:text="field.df.label"
 						:placeholder="__('Label')"
 						:empty_label="`${__('No Label')} (${field.df.fieldtype})`"
 						v-model="field.df.label"
 					/>
 					<div class="reqd-asterisk" v-if="field.df.reqd">*</div>
-					<div class="help-icon" v-if="field.df.documentation_url" v-html="frappe.utils.icon('help', 'sm')"></div>
+					<div
+						class="help-icon"
+						v-if="field.df.documentation_url"
+						v-html="frappe.utils.icon('help', 'sm')"
+					></div>
 				</div>
 			</template>
 			<template #actions>
 				<div class="field-actions" :hidden="store.read_only">
 					<button
-						v-if="field.df.fieldtype == 'HTML'"
+						v-if="field.df.fieldtype === 'Link'"
 						class="btn btn-xs btn-icon"
-						@click="edit_html"
+						:class="is_filter_applied()"
+						@click="edit_filters"
 					>
-						<div v-html="frappe.utils.icon('edit', 'sm')"></div>
+						<div v-html="frappe.utils.icon('filter', 'sm')"></div>
 					</button>
+					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
+						<div v-html="frappe.utils.icon('add', 'sm')" />
+					</AddFieldButton>
 					<button
 						v-if="column.fields.indexOf(field)"
 						class="btn btn-xs btn-icon"
@@ -104,10 +242,18 @@ function duplicate_field() {
 					>
 						<div v-html="frappe.utils.icon('move', 'sm')"></div>
 					</button>
-					<button class="btn btn-xs btn-icon" @click.stop="duplicate_field">
+					<button
+						class="btn btn-xs btn-icon"
+						:title="__('Duplicate field')"
+						@click.stop="duplicate_field"
+					>
 						<div v-html="frappe.utils.icon('duplicate', 'sm')"></div>
 					</button>
-					<button class="btn btn-xs btn-icon" @click.stop="remove_field">
+					<button
+						class="btn btn-xs btn-icon"
+						:title="__('Remove field')"
+						@click.stop="remove_field"
+					>
 						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
 					</button>
 				</div>
@@ -132,7 +278,7 @@ function duplicate_field() {
 
 	&.hovered,
 	&.selected {
-		border-color: var(--primary);
+		border-color: var(--border-primary);
 		.btn.btn-icon {
 			opacity: 1 !important;
 		}
@@ -175,6 +321,12 @@ function duplicate_field() {
 				}
 			}
 		}
+	}
+}
+.btn-filter-applied {
+	background-color: var(--gray-300) !important;
+	&:hover {
+		background-color: var(--gray-400) !important;
 	}
 }
 </style>

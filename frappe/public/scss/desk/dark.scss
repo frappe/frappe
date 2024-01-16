@@ -19,7 +19,7 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	--icon-stroke: var(--gray-300);
 
 	// Error colors
-	--error-bg: var(--red-70);
+	--error-bg: var(--red-800);
 	--error-border: var(--red-400);
 
 	// Layout Colors
@@ -45,7 +45,8 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	--btn-default-hover-bg: var(--gray-700);
 	--btn-primary: var(--gray-300);
 
-
+	// Border Colors
+	--border-primary: var(--gray-200);
 
 	// Background Text Color Pairs
 	--bg-blue: var(--blue-600);
@@ -127,15 +128,24 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 
 	// checkbox
 	--checkbox-color: var(--neutral-white);
-	--checkbox-gradient: linear-gradient(180deg, var(--neutral-white) -124.51%, var(--neutral-white) 100%);
-	--checkbox-disabled-gradient: linear-gradient(180deg, var(--gray-600) -124.51%, var(--gray-600) 100%);
+	--checkbox-gradient: linear-gradient(
+		180deg,
+		var(--neutral-white) -124.51%,
+		var(--neutral-white) 100%
+	);
+	--checkbox-disabled-gradient: linear-gradient(
+		180deg,
+		var(--gray-600) -124.51%,
+		var(--gray-600) 100%
+	);
 	--checkbox-focus-shadow: var(--focus-default);
 
 	input[type="checkbox"] {
 		&:checked {
 			background-image: $check-icon-dark, var(--checkbox-gradient);
 		}
-		&.disabled-selected, &:disabled:checked {
+		&.disabled-selected,
+		&:disabled:checked {
 			background-image: $check-icon-dark, var(--checkbox-disabled-gradient);
 		}
 		&.disabled-deselected {
@@ -151,7 +161,6 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	--date-active-text: var(--gray-100);
 	--date-active-bg: var(--gray-700);
 	--date-range-bg: var(--subtle-fg);
-
 
 	// grid
 	.grid-body .editable-row {
@@ -245,7 +254,8 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 		background: var(--gray-500);
 	}
 
-	$indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple, light-blue;
+	$indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple,
+		light-blue;
 	@each $color in $indicator-colors {
 		.indicator {
 			--indicator-dot-#{"" + $color}: var(--bg-#{$color});

@@ -48,10 +48,14 @@ frappe.ui.form.on("Workflow", {
 
 		frm.events.update_field_options(frm);
 		frm.ignore_warning = frm.is_new() ? true : false;
+		frm.state_status_mapping = {};
 
 		if (frm.is_new()) {
 			return;
 		}
+		frm.doc.states.forEach((row) => {
+			frm.state_status_mapping[row.state] = row.doc_status;
+		});
 
 		frm.states = null;
 		frm.trigger("make_state_table");
@@ -59,7 +63,7 @@ frappe.ui.form.on("Workflow", {
 			frm.trigger("render_state_table");
 		});
 	},
-	validate: (frm) => {
+	validate: async (frm) => {
 		if (frm.doc.is_active && (!frm.doc.states.length || !frm.doc.transitions.length)) {
 			let message = "Workflow must have atleast one state and transition";
 			frappe.throw({
@@ -72,6 +76,23 @@ frappe.ui.form.on("Workflow", {
 		if (frm.ignore_warning) {
 			return;
 		}
+
+		let updated_states = [];
+		frm.doc.states.forEach((row) => {
+			if (
+				frm.state_status_mapping[row.state] &&
+				frm.state_status_mapping[row.state] !== row.doc_status
+			) {
+				updated_states.push(row.state);
+			}
+		});
+
+		if (updated_states.length) {
+			frm.doc._update_state_docstatus = await create_docstatus_change_warning(
+				updated_states
+			);
+		}
+
 		return frm.trigger("get_orphaned_states_and_count").then(() => {
 			if (frm.states && frm.states.length) {
 				frappe.validated = false;
@@ -231,3 +252,19 @@ frappe.ui.form.on("Workflow Transition", {
 		});
 	},
 });
+
+async function create_docstatus_change_warning(updated_states) {
+	return await new Promise((resolve) => {
+		frappe.confirm(
+			__(
+				`DocStatus of the following states have changed:<br><strong>{0}</strong><br>
+				Do you want to update the docstatus of existing documents in those states?<br>
+				This does not undo any effect bought in by the document's existing docstatus.
+				`,
+				[updated_states.join(", ")]
+			),
+			() => resolve(true),
+			() => resolve(false)
+		);
+	});
+}

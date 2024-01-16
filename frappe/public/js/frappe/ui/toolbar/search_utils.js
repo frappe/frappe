@@ -113,7 +113,7 @@ frappe.search.utils = {
 	get_search_in_list: function (keywords) {
 		var me = this;
 		var out = [];
-		if (in_list(keywords.split(" "), "in") && keywords.slice(-2) !== "in") {
+		if (keywords.split(" ").includes("in") && keywords.slice(-2) !== "in") {
 			var parts = keywords.split(" in ");
 			frappe.boot.user.can_read.forEach(function (item) {
 				if (frappe.boot.user.can_search.includes(item)) {
@@ -190,11 +190,11 @@ frappe.search.utils = {
 			({ score, marked_string } = search_result);
 			if (score) {
 				target = item;
-				if (in_list(frappe.boot.single_types, item)) {
+				if (frappe.boot.single_types.includes(item)) {
 					out.push(option("", ["Form", item, item], 0.05));
 				} else if (frappe.boot.user.can_search.includes(item)) {
 					// include 'making new' option
-					if (in_list(frappe.boot.user.can_create, item)) {
+					if (frappe.boot.user.can_create.includes(item)) {
 						var match = item;
 						out.push({
 							type: "New",
@@ -600,40 +600,11 @@ frappe.search.utils = {
 		return { score, marked_string };
 	},
 
+	/**
+	 * @deprecated Use frappe.search.utils.fuzzy_search(subseq, str, true).marked_string instead.
+	 */
 	bolden_match_part: function (str, subseq) {
-		if (fuzzy_match(subseq, str)[0] === false) {
-			return str;
-		}
-		if (str.indexOf(subseq) == 0) {
-			var tail = str.split(subseq)[1];
-			return "<mark>" + subseq + "</mark>" + tail;
-		}
-		var rendered = "";
-		var str_orig = str;
-		var str_len = str.length;
-		str = str.toLowerCase();
-		subseq = subseq.toLowerCase();
-
-		outer: for (var i = 0, j = 0; i < subseq.length; i++) {
-			var sub_ch = subseq.charCodeAt(i);
-			while (j < str_len) {
-				if (str.charCodeAt(j) === sub_ch) {
-					var str_char = str_orig.charAt(j);
-					if (str_char === str_char.toLowerCase()) {
-						rendered += "<mark>" + subseq.charAt(i) + "</mark>";
-					} else {
-						rendered += "<mark>" + subseq.charAt(i).toUpperCase() + "</mark>";
-					}
-					j++;
-					continue outer;
-				}
-				rendered += str_orig.charAt(j);
-				j++;
-			}
-			return str_orig;
-		}
-		rendered += str_orig.slice(j);
-		return rendered;
+		return this.fuzzy_search(subseq, str, true).marked_string;
 	},
 
 	get_executables(keywords) {
@@ -642,7 +613,7 @@ frappe.search.utils = {
 			const target = item.label.toLowerCase();
 			const txt = keywords.toLowerCase();
 			if (txt === target || target.indexOf(txt) === 0) {
-				const search_result = this.fuzzy_search(txt, target, true);
+				const search_result = this.fuzzy_search(txt, item.label, true);
 				results.push({
 					type: "Executable",
 					value: search_result.marked_string,

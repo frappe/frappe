@@ -41,11 +41,13 @@ def sql(*args, **kwargs):
 
 
 def get_current_stack_frames():
+	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
+
 	try:
 		current = inspect.currentframe()
 		frames = inspect.getouterframes(current, context=10)
 		for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:
-			if "/apps/" in filename or "<serverscript>" in filename:
+			if "/apps/" in filename or SERVER_SCRIPT_FILE_PREFIX in filename:
 				yield {
 					"filename": TRACEBACK_PATH_PATTERN.sub("", filename),
 					"lineno": lineno,
@@ -119,7 +121,10 @@ def normalize_query(query: str) -> str:
 		for token in q.flatten():
 			if "Token.Literal" in str(token.ttype):
 				token.value = "?"
-		return str(q)
+
+		# Transform IN parts like this: IN (?, ?, ?) -> IN (?)
+		q = re.sub(r"( IN )\(\?[\s\n\?\,]*\)", r"\1(?)", str(q), flags=re.IGNORECASE)
+		return q
 	except Exception as e:
 		print("Failed to normalize query ", e)
 
@@ -149,7 +154,16 @@ class Recorder:
 			self.method = frappe.request.method
 			self.headers = dict(frappe.local.request.headers)
 			self.form_dict = frappe.local.form_dict
+			self.event_type = "HTTP Request"
+		elif frappe.job:
+			self.event_type = "Background Job"
+			self.path = frappe.job.method
+			self.cmd = None
+			self.method = None
+			self.headers = None
+			self.form_dict = None
 		else:
+			self.event_type = None
 			self.path = None
 			self.cmd = None
 			self.method = None
@@ -171,6 +185,7 @@ class Recorder:
 			"time_queries": float("{:0.3f}".format(sum(call["duration"] for call in self.calls))),
 			"duration": float(f"{(datetime.datetime.now() - self.time).total_seconds() * 1000:0.3f}"),
 			"method": self.method,
+			"event_type": self.event_type,
 		}
 		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
 		frappe.publish_realtime(
@@ -234,7 +249,7 @@ def start(*args, **kwargs):
 @administrator_only
 def stop(*args, **kwargs):
 	frappe.cache.delete_value(RECORDER_INTERCEPT_FLAG)
-	frappe.enqueue(post_process)
+	frappe.enqueue(post_process, now=frappe.flags.in_test)
 
 
 @frappe.whitelist()

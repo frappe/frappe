@@ -1,10 +1,11 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
 from collections.abc import Callable
-from datetime import datetime
 from functools import wraps
 
+import pytz
 from werkzeug.wrappers import Response
 
 import frappe
@@ -34,7 +35,7 @@ class RateLimiter:
 		self.limit = int(limit * 1000000)
 		self.window = window
 
-		self.start = datetime.utcnow()
+		self.start = datetime.datetime.now(pytz.UTC)
 		timestamp = int(frappe.utils.now_datetime().timestamp())
 
 		self.window_number, self.spent = divmod(timestamp, self.window)
@@ -79,7 +80,7 @@ class RateLimiter:
 	def record_request_end(self):
 		if self.end is not None:
 			return
-		self.end = datetime.utcnow()
+		self.end = datetime.datetime.now(pytz.UTC)
 		self.duration = int((self.end - self.start).total_seconds() * 1000000)
 
 	def respond(self):
@@ -109,7 +110,7 @@ def rate_limit(
 	:param ip_based: flag to allow ip based rate-limiting
 	:type ip_based: Boolean
 
-	:returns: a decorator function that limit the number of requests per endpoint
+	Return: a decorator function that limit the number of requests per endpoint
 	"""
 
 	def ratelimit_decorator(fn):
@@ -139,7 +140,7 @@ def rate_limit(
 
 			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
 
-			value = frappe.cache.get(cache_key) or 0
+			value = frappe.cache.get(cache_key)
 			if not value:
 				frappe.cache.setex(cache_key, seconds, 0)
 

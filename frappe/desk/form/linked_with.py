@@ -71,7 +71,7 @@ class SubmittableDocumentTree:
 
 	def get_all_children(self):
 		"""Get all nodes of a tree except the root node (all the nested submitted
-		documents those are present in referencing tables (dependent tables).
+		documents those are present in referencing tables dependent tables).
 		"""
 		while self.to_be_visited_documents:
 			next_level_children = defaultdict(list)
@@ -101,6 +101,10 @@ class SubmittableDocumentTree:
 
 		child_docs = defaultdict(list)
 		for field in referencing_fields:
+			if field["fieldname"] == "amended_from":
+				# perf: amended_from links are always linked to cancelled documents.
+				continue
+
 			links = (
 				get_referencing_documents(
 					parent_dt,
@@ -127,7 +131,7 @@ class SubmittableDocumentTree:
 		return self._references_across_doctypes.get(doctype, [])
 
 	def get_document_sources(self):
-		"""Returns list of doctypes from where we access submittable documents."""
+		"""Return list of doctypes from where we access submittable documents."""
 		return list(set(self.get_link_sources() + [self.root_doctype]))
 
 	def get_link_sources(self):
@@ -135,7 +139,7 @@ class SubmittableDocumentTree:
 		return list(set(self.get_submittable_doctypes()) - set(get_exempted_doctypes() or []))
 
 	def get_submittable_doctypes(self) -> list[str]:
-		"""Returns list of submittable doctypes."""
+		"""Return list of submittable doctypes."""
 		if not self._submittable_doctypes:
 			self._submittable_doctypes = frappe.get_all(
 				"DocType", {"is_submittable": 1}, pluck="name", order_by=None
@@ -144,7 +148,7 @@ class SubmittableDocumentTree:
 
 
 def get_child_tables_of_doctypes(doctypes: list[str] = None):
-	"""Returns child tables by doctype."""
+	"""Return child tables by doctype."""
 	filters = [["fieldtype", "=", "Table"]]
 	filters_for_docfield = filters
 	filters_for_customfield = filters
@@ -383,7 +387,7 @@ def validate_linked_doc(docinfo, ignore_doctypes_on_cancel_all=None):
 	        docinfo (dict): The document to check for submitted and non-exempt from auto-cancel
 	        ignore_doctypes_on_cancel_all (list) - List of doctypes to ignore while cancelling.
 
-	Returns:
+	Return:
 	        bool: True if linked document passes all validations, else False
 	"""
 	# ignore doctype to cancel

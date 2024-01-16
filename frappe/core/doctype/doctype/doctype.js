@@ -2,6 +2,12 @@
 // MIT License. See license.txt
 
 frappe.ui.form.on("DocType", {
+	onload: function (frm) {
+		if (frm.is_new() && !frm.doc?.fields) {
+			frappe.listview_settings["DocType"].new_doctype_dialog();
+		}
+	},
+
 	before_save: function (frm) {
 		let form_builder = frappe.form_builder;
 		if (form_builder?.store) {
@@ -13,6 +19,7 @@ frappe.ui.form.on("DocType", {
 			}
 		}
 	},
+
 	after_save: function (frm) {
 		if (
 			frappe.form_builder &&
@@ -22,6 +29,7 @@ frappe.ui.form.on("DocType", {
 			frappe.form_builder.store.fetch();
 		}
 	},
+
 	refresh: function (frm) {
 		frm.set_query("role", "permissions", function (doc) {
 			if (doc.custom && frappe.session.user != "Administrator") {
@@ -118,6 +126,20 @@ frappe.ui.form.on("DocType", {
 
 	setup_default_views: (frm) => {
 		frappe.model.set_default_views_for_doctype(frm.doc.name, frm);
+	},
+
+	on_tab_change: (frm) => {
+		let current_tab = frm.get_active_tab().label;
+
+		if (current_tab === "Form") {
+			frm.footer.wrapper.hide();
+			frm.form_wrapper.find(".form-message").hide();
+			frm.form_wrapper.addClass("mb-1");
+		} else {
+			frm.footer.wrapper.show();
+			frm.form_wrapper.find(".form-message").show();
+			frm.form_wrapper.removeClass("mb-1");
+		}
 	},
 });
 

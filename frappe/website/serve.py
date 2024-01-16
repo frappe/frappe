@@ -16,8 +16,8 @@ def get_response(path=None, http_status_code=200):
 		path_resolver = PathResolver(path, http_status_code)
 		endpoint, renderer_instance = path_resolver.resolve()
 		response = renderer_instance.render()
-	except frappe.Redirect:
-		return RedirectPage(endpoint or path, http_status_code).render()
+	except frappe.Redirect as e:
+		return RedirectPage(endpoint or path, e.http_status_code).render()
 	except frappe.PermissionError as e:
 		response = NotPermittedPage(endpoint, http_status_code, exception=e).render()
 	except frappe.PageDoesNotExistError:

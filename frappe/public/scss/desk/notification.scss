@@ -64,7 +64,8 @@
 		max-height: 450px;
 		overflow-y: auto;
 
-		.panel-events, .panel-notifications {
+		.panel-events,
+		.panel-notifications {
 			@include size(100%, null);
 		}
 
@@ -134,23 +135,22 @@
 
 .recent-item.notification-item {
 	padding: 10px 10px 10px 0px;
-	margin:  10px 10px 10px 10px;
+	margin: 10px 10px 10px 10px;
 	justify-content: space-between;
 
 	&.unread {
-
-		&:hover {
-			.mark-as-read {
-				flex-shrink : 0;
-				align-self: center;
-				justify-self: end;
-				width: 8px;
-				height: 8px;
-				border: 2px solid var(--invert-neutral);
-				border-radius: 1000px;
-			}
+		.mark-as-read {
+			flex-shrink: 0;
+			align-self: center;
+			justify-self: end;
+			width: 8px;
+			height: 8px;
 		}
 
+		&:hover .mark-as-read {
+			border: 2px solid var(--invert-neutral);
+			border-radius: 1000px;
+		}
 		.notification-body::before {
 			background: var(--invert-neutral);
 		}
@@ -161,12 +161,12 @@
 		gap: 10px;
 
 		&::before {
-			content: '';
+			content: "";
 			display: inline-block;
 			@include size(6px, 6px);
 			min-width: 6px;
 			margin-top: 16px;
-    		margin-left: 2px;
+			margin-left: 2px;
 			border-radius: 10px;
 		}
 
@@ -177,7 +177,7 @@
 
 	b {
 		font-weight: 500;
-		color: var(--text-light)
+		color: var(--text-light);
 	}
 
 	.notification-timestamp {
@@ -293,7 +293,7 @@
 
 	&:hover {
 		text-decoration: none;
-		color: var(--text-color)
+		color: var(--text-color);
 	}
 }
 

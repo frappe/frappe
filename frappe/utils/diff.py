@@ -48,10 +48,19 @@ def _get_value_from_version(version_name: int | str, fieldname: str):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def version_query(doctype, txt, searchfield, start, page_len, filters):
+	version_filters = {
+		"docname": filters["docname"],
+		"ref_doctype": filters["ref_doctype"],
+	}
+
+	if fieldname := filters.get("fieldname"):
+		# This helps filter version logs which contain changes to the field.
+		version_filters["data"] = ("LIKE", f'%"{fieldname}"%')
+
 	results = frappe.get_list(
 		"Version",
 		fields=["name", "modified"],
-		filters=filters,
+		filters=version_filters,
 		limit_start=start,
 		limit_page_length=page_len,
 		order_by="modified desc",

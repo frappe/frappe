@@ -7,7 +7,7 @@ import json
 import mimetypes
 import os
 import sys
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 from urllib.parse import quote
 
 import werkzeug.utils
@@ -56,12 +56,13 @@ def report_error(status_code):
 
 	response = build_response("json")
 	response.status_code = status_code
+
 	return response
 
 
 def _link_error_with_message_log(error_log, exception, message_logs):
 	for message in message_logs:
-		if message.get("__frappe_exc_id") == exception.__frappe_exc_id:
+		if message.get("__frappe_exc_id") == getattr(exception, "__frappe_exc_id", None):
 			error_log.update(message)
 			message_logs.remove(message)
 			error_log.pop("raise_exception", None)
@@ -91,6 +92,7 @@ def as_csv():
 	response = Response()
 	response.mimetype = "text/csv"
 	filename = f"{frappe.response['doctype']}.csv"
+	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
 	response.headers.add("Content-Disposition", "attachment", filename=filename)
 	response.data = frappe.response["result"]
 	return response
@@ -100,6 +102,7 @@ def as_txt():
 	response = Response()
 	response.mimetype = "text"
 	filename = f"{frappe.response['doctype']}.txt"
+	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
 	response.headers.add("Content-Disposition", "attachment", filename=filename)
 	response.data = frappe.response["result"]
 	return response
@@ -112,10 +115,11 @@ def as_raw():
 		or mimetypes.guess_type(frappe.response["filename"])[0]
 		or "application/unknown"
 	)
+	filename = frappe.response["filename"].encode("utf-8").decode("unicode-escape", "ignore")
 	response.headers.add(
 		"Content-Disposition",
 		frappe.response.get("display_content_as", "attachment"),
-		filename=frappe.response["filename"],
+		filename=filename,
 	)
 	response.data = frappe.response["filecontent"]
 	return response
@@ -137,7 +141,8 @@ def as_json():
 def as_pdf():
 	response = Response()
 	response.mimetype = "application/pdf"
-	response.headers.add("Content-Disposition", None, filename=frappe.response["filename"])
+	filename = frappe.response["filename"].encode("utf-8").decode("unicode-escape", "ignore")
+	response.headers.add("Content-Disposition", None, filename=filename)
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -145,7 +150,9 @@ def as_pdf():
 def as_binary():
 	response = Response()
 	response.mimetype = "application/octet-stream"
-	response.headers.add("Content-Disposition", None, filename=frappe.response["filename"])
+	filename = frappe.response["filename"]
+	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
+	response.headers.add("Content-Disposition", None, filename=filename)
 	response.data = frappe.response["filecontent"]
 	return response
 
@@ -166,8 +173,9 @@ def _make_logs_v1():
 	from frappe.utils.error import guess_exception_source
 
 	response = frappe.local.response
+	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
 
-	if frappe.error_log:
+	if frappe.error_log and allow_traceback:
 		if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
 			response["_exc_source"] = source
 		response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
@@ -175,7 +183,7 @@ def _make_logs_v1():
 	if frappe.local.message_log:
 		response["_server_messages"] = json.dumps([json.dumps(d) for d in frappe.local.message_log])
 
-	if frappe.debug_log and frappe.conf.get("logging"):
+	if frappe.debug_log:
 		response["_debug_messages"] = json.dumps(frappe.local.debug_log)
 
 	if frappe.flags.error_message:
@@ -188,7 +196,7 @@ def _make_logs_v2():
 	if frappe.local.message_log:
 		response["messages"] = frappe.local.message_log
 
-	if frappe.debug_log and frappe.conf.get("logging"):
+	if frappe.debug_log:
 		response["debug"] = [{"message": m} for m in frappe.local.debug_log]
 
 

@@ -107,6 +107,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// 2 column layout
 		this.setup_std_layout();
+		this.setup_filters();
 
 		// client script must be called after "setup" - there are no fields_dict attached to the frm otherwise
 		this.script_manager = new frappe.ui.form.ScriptManager({
@@ -272,6 +273,41 @@ frappe.ui.form.Form = class FrappeForm {
 		});
 	}
 
+	setup_filters() {
+		let fields_with_filters = frappe
+			.get_meta(this.doctype)
+			.fields.filter((field) => field.link_filters)
+			.map((field) => JSON.parse(field.link_filters));
+		if (fields_with_filters.length === 0) return;
+		fields_with_filters = this.parse_filters(fields_with_filters);
+		for (let link_field in fields_with_filters) {
+			const filters = fields_with_filters[link_field];
+			this.set_query(link_field, () => filters);
+		}
+	}
+
+	parse_filters(data) {
+		const parsed_data = {};
+
+		for (const d of data) {
+			for (const condition of d) {
+				let [doctype, field, operator, value] = condition;
+				doctype = doctype.fieldname;
+				if (!parsed_data[doctype]) {
+					parsed_data[doctype] = {
+						filters: {},
+					};
+				}
+
+				if (!parsed_data[doctype].filters[field]) {
+					parsed_data[doctype].filters[field] = [operator, value];
+				}
+			}
+		}
+
+		return parsed_data;
+	}
+
 	watch_model_updates() {
 		// watch model updates
 		var me = this;
@@ -310,13 +346,20 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// using $.each to preserve df via closure
 		$.each(table_fields, function (i, df) {
-			frappe.model.on(df.options, "*", function (fieldname, value, doc) {
-				if (doc.parent == me.docname && doc.parentfield === df.fieldname) {
-					me.dirty();
-					me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
-					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			frappe.model.on(
+				df.options,
+				"*",
+				function (fieldname, value, doc, skip_dirty_trigger = false) {
+					if (doc.parent == me.docname && doc.parentfield === df.fieldname) {
+						if (!skip_dirty_trigger) {
+							me.dirty();
+						}
+
+						me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
+						return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+					}
 				}
-			});
+			);
 		});
 	}
 
@@ -1369,7 +1412,7 @@ frappe.ui.form.Form = class FrappeForm {
 
 	is_form_builder() {
 		return (
-			in_list(["DocType", "Customize Form"], this.doctype) &&
+			["DocType", "Customize Form"].includes(this.doctype) &&
 			this.get_active_tab().label == "Form"
 		);
 	}
@@ -1413,9 +1456,28 @@ frappe.ui.form.Form = class FrappeForm {
 		this.custom_buttons = {};
 	}
 
-	//Remove specific custom button by button Label
+	// Remove specific custom button by button Label
 	remove_custom_button(label, group) {
 		this.page.remove_inner_button(label, group);
+
+		// Remove actions from menu
+		delete this.custom_buttons[label];
+		let menu_item_label = group ? `${group} > ${label}` : label;
+		let $linkBody = this.page
+			.is_in_group_button_dropdown(
+				this.page.menu,
+				"li > a.grey-link > span",
+				menu_item_label
+			)
+			?.parent()
+			?.parent();
+
+		if ($linkBody) {
+			// If last button, remove divider too
+			let $divider = $linkBody.next(".dropdown-divider");
+			if ($divider) $divider.remove();
+			$linkBody.remove();
+		}
 	}
 
 	scroll_to_element() {
@@ -2039,6 +2101,8 @@ frappe.ui.form.Form = class FrappeForm {
 			this.active_tab_map = {};
 		}
 		this.active_tab_map[this.docname] = tab;
+
+		this.script_manager.trigger("on_tab_change");
 	}
 	get_active_tab() {
 		return this.active_tab_map && this.active_tab_map[this.docname];

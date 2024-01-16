@@ -1,6 +1,9 @@
 import frappe
 from frappe import _
 from frappe.core.utils import get_parent_doc
+from frappe.desk.doctype.notification_settings.notification_settings import (
+	is_email_notifications_enabled_for_type,
+)
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.utils import get_formatted_email, get_url, parse_addr
@@ -26,7 +29,7 @@ class CommunicationEmailMixin:
 		)
 
 	def get_email_with_displayname(self, email_address):
-		"""Returns email address after adding displayname."""
+		"""Return email address after adding displayname."""
 		display_name, email = parse_addr(email_address)
 		if display_name and display_name != email:
 			return email_address
@@ -78,7 +81,12 @@ class CommunicationEmailMixin:
 			if doc_owner := self.get_owner():
 				cc.append(doc_owner)
 			cc = set(cc) - {self.sender_mailid}
-			cc.update(self.get_assignees())
+			assignees = set(self.get_assignees())
+			# Check and remove If user disabled notifications for incoming emails on assigned document.
+			for assignee in assignees.copy():
+				if not is_email_notifications_enabled_for_type(assignee, "threads_on_assigned_document"):
+					assignees.remove(assignee)
+			cc.update(assignees)
 
 		cc = set(cc) - set(self.filter_thread_notification_disbled_users(cc))
 		cc = cc - set(self.mail_recipients(is_inbound_mail_communcation=is_inbound_mail_communcation))
@@ -143,7 +151,7 @@ class CommunicationEmailMixin:
 		return self.content
 
 	def get_attach_link(self, print_format):
-		"""Returns public link for the attachment via `templates/emails/print_link.html`."""
+		"""Return public link for the attachment via `templates/emails/print_link.html`."""
 		return frappe.get_template("templates/emails/print_link.html").render(
 			{
 				"url": get_url(),
@@ -288,8 +296,9 @@ class CommunicationEmailMixin:
 			"delayed": True,
 			"communication": self.name,
 			"read_receipt": self.read_receipt,
-			"is_notification": (self.sent_or_received == "Received" and True) or False,
+			"is_notification": (self.sent_or_received == "Received"),
 			"print_letterhead": print_letterhead,
+			"send_after": self.send_after,
 		}
 
 	def send_email(

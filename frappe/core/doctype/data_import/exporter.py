@@ -144,8 +144,7 @@ class Exporter:
 				value = doc.get(df.fieldname, None)
 
 				if df.fieldtype == "Duration":
-					value = flt(value or 0)
-					value = format_duration(value, df.hide_days)
+					value = format_duration(flt(value), df.hide_days)
 
 				row[i] = value
 		return rows

@@ -6,7 +6,7 @@ from urllib.parse import quote
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import encode, get_request_site_address
+from frappe.utils import cint, encode, get_request_site_address
 from frappe.website.utils import get_boot_data
 
 
@@ -56,6 +56,7 @@ class WebsiteSettings(Document):
 		robots_txt: DF.Code | None
 		route_redirects: DF.Table[WebsiteRouteRedirect]
 		show_account_deletion_link: DF.Check
+		show_footer_on_login: DF.Check
 		show_language_picker: DF.Check
 		splash_image: DF.AttachImage | None
 		subdomain: DF.SmallText | None
@@ -64,6 +65,7 @@ class WebsiteSettings(Document):
 		website_theme: DF.Link | None
 		website_theme_image_link: DF.Code | None
 	# end: auto-generated types
+
 	def validate(self):
 		self.validate_top_bar_items()
 		self.validate_footer_items()
@@ -216,7 +218,7 @@ def get_website_settings(context=None):
 		"linked_in_share",
 		"disable_signup",
 	]:
-		context[k] = int(context.get(k) or 0)
+		context[k] = cint(context.get(k))
 
 	if settings.address:
 		context["footer_address"] = settings.address

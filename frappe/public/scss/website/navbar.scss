@@ -22,6 +22,17 @@
 @media (max-width: map-get($grid-breakpoints, "lg")) {
 	.navbar {
 		padding: 0 1rem;
+
+		.navbar-search {
+			width: 75vw;
+		}
+	}
+}
+@media (max-width: map-get($grid-breakpoints, "sm")) {
+	.navbar-collapse {
+		.navbar-nav {
+			align-items: flex-start;
+		}
 	}
 }
 
@@ -60,13 +71,12 @@
 	}
 
 	.navbar-toggler {
-		border-color: rgba(255,255,255, 0.1);
+		border-color: rgba(255, 255, 255, 0.1);
 
 		.icon {
 			stroke: none;
 		}
 	}
-
 
 	svg use {
 		--icon-stroke: white;
@@ -86,7 +96,6 @@
 		margin-left: 1rem;
 	}
 }
-
 
 .navbar.bg-dark {
 	.dropdown-menu {
@@ -124,7 +133,8 @@
 	font-weight: 500;
 
 	&:hover,
-	&:focus, &.active {
+	&:focus,
+	&.active {
 		color: $primary;
 	}
 }
@@ -136,8 +146,8 @@
 
 .logged-in {
 	display: flex;
-    justify-content: center;
-    align-items: center;
+	justify-content: center;
+	align-items: center;
 	.nav-link {
 		max-width: 200px;
 		@extend .ellipsis;

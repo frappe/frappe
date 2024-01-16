@@ -119,7 +119,7 @@ export async function get_table_columns(df, child_doctype) {
 		1,
 	]);
 	for (let tf of table_fields) {
-		if (!in_list(frappe.model.layout_fields, tf.fieldtype) && tf.in_list_view && tf.label) {
+		if (!frappe.model.layout_fields.includes(tf.fieldtype) && tf.in_list_view && tf.label) {
 			let colsize;
 
 			if (tf.columns) {
@@ -242,10 +242,6 @@ export function section_boilerplate() {
 				df: store.get_df("Column Break"),
 				fields: [],
 			},
-			{
-				df: store.get_df("Column Break"),
-				fields: [],
-			},
 		],
 	};
 }
@@ -285,7 +281,7 @@ export function scrub_field_names(fields) {
 					if (d.fieldname.endsWith("?")) {
 						d.fieldname = d.fieldname.slice(0, -1);
 					}
-					if (in_list(frappe.model.restricted_fields, d.fieldname)) {
+					if (frappe.model.restricted_fields.includes(d.fieldname)) {
 						d.fieldname = d.fieldname + "1";
 					}
 					if (d.fieldtype == "Section Break") {
@@ -302,7 +298,7 @@ export function scrub_field_names(fields) {
 						frappe.utils.get_random(4);
 				}
 			} else {
-				if (in_list(frappe.model.restricted_fields, d.fieldname)) {
+				if (frappe.model.restricted_fields.includes(d.fieldname)) {
 					frappe.throw(__("Fieldname {0} is restricted", [d.fieldname]));
 				}
 			}
@@ -350,4 +346,8 @@ export function confirm_dialog(
 	});
 	d.show();
 	d.set_message(message);
+}
+
+export function is_touch_screen_device() {
+	return "ontouchstart" in document.documentElement;
 }
