@@ -1,4 +1,5 @@
 import re
+from contextlib import contextmanager
 
 import pymysql
 from pymysql.constants import ER, FIELD_TYPE
@@ -525,3 +526,15 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		if est_row_size:
 			return int(est_row_size[0][0])
+
+	@contextmanager
+	def unbuffered_cursor(self):
+		from pymysql.cursors import SSCursor
+
+		try:
+			original_cursor = self._cursor
+			new_cursor = self._cursor = self._conn.cursor(SSCursor)
+			yield
+		finally:
+			self._cursor = original_cursor
+			new_cursor.close()
