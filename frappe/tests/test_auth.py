@@ -22,6 +22,7 @@ def add_user(email, password, username=None, mobile_no=None):
 		dict(doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no)
 	).insert()
 	user.new_password = password
+	user.simultaneous_sessions = 1
 	user.add_roles("System Manager")
 	frappe.db.commit()
 
@@ -212,12 +213,12 @@ class TestSessionExpirty(FrappeAPITestCase):
 			seconds_elapsed = expiry_in * step / 100
 
 			time_now = add_to_date(session_created, seconds=seconds_elapsed, as_string=True)
-			with patch("frappe.utils.now", return_value=time_now):
+			with self.freeze_time(time_now):
 				data = s.get_session_data_from_db()
 				self.assertEqual(data.user, "Administrator")
 
 		# 1% higher should immediately expire
-		time_now = add_to_date(session_created, seconds=expiry_in * 1.01, as_string=True)
-		with patch("frappe.utils.now", return_value=time_now):
+		time_of_expiry = add_to_date(session_created, seconds=expiry_in * 1.01, as_string=True)
+		with self.freeze_time(time_of_expiry):
 			self.assertIn(sid, get_expired_sessions())
 			self.assertFalse(s.get_session_data_from_db())
