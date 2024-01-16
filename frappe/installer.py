@@ -49,6 +49,7 @@ def _new_site(
 	db_type=None,
 	db_host=None,
 	db_port=None,
+	db_user=None,
 	setup_db=True,
 ):
 	"""Install a new Frappe site"""
@@ -97,6 +98,7 @@ def _new_site(
 			db_type=db_type,
 			db_host=db_host,
 			db_port=db_port,
+			db_user=db_user,
 			no_mariadb_socket=no_mariadb_socket,
 			setup=setup_db,
 		)
@@ -135,6 +137,7 @@ def install_db(
 	db_type=None,
 	db_host=None,
 	db_port=None,
+	db_user=None,
 	no_mariadb_socket=False,
 	setup=True,
 ):
@@ -156,6 +159,7 @@ def install_db(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
+		db_user=db_user,
 	)
 	frappe.flags.in_install_db = True
 
@@ -533,11 +537,23 @@ def init_singles():
 
 
 def make_conf(
-	db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None
+	db_name=None,
+	db_password=None,
+	site_config=None,
+	db_type=None,
+	db_host=None,
+	db_port=None,
+	db_user=None,
 ):
 	site = frappe.local.site
 	make_site_config(
-		db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port
+		db_name,
+		db_password,
+		site_config,
+		db_type=db_type,
+		db_host=db_host,
+		db_port=db_port,
+		db_user=db_user,
 	)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
@@ -545,7 +561,13 @@ def make_conf(
 
 
 def make_site_config(
-	db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None
+	db_name=None,
+	db_password=None,
+	site_config=None,
+	db_type=None,
+	db_host=None,
+	db_port=None,
+	db_user=None,
 ):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
@@ -562,6 +584,8 @@ def make_site_config(
 
 			if db_port:
 				site_config["db_port"] = db_port
+
+			site_config["db_user"] = db_user or db_name
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
