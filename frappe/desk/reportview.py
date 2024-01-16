@@ -5,6 +5,8 @@
 
 import json
 
+from sql_metadata import Parser
+
 import frappe
 import frappe.permissions
 from frappe import _
@@ -91,7 +93,10 @@ def validate_fields(data):
 	wildcard = update_wildcard_field_param(data)
 
 	for field in list(data.fields or []):
-		fieldname = extract_fieldname(field)
+		fieldname = extract_fieldnames(field)[0]
+		if not fieldname:
+			raise_invalid_field(fieldname)
+
 		if is_standard(fieldname):
 			continue
 
@@ -173,23 +178,16 @@ def is_standard(fieldname):
 	)
 
 
-def extract_fieldname(field):
-	for text in (",", "/*", "#"):
-		if text in field:
-			raise_invalid_field(field)
+def extract_fieldnames(field):
+	parser = Parser(f"select {field}, _frappe_dummy from _dummy")
+	columns = [col for col in parser.columns if col != "_frappe_dummy"]
 
-	fieldname = field
-	for sep in (" as ", " AS "):
-		if sep in fieldname:
-			fieldname = fieldname.split(sep, 1)[0]
+	if not columns:
+		f = field.lower()
+		if "count(" in f or "sum(" in f or "avg(" in f:
+			return ["*"]
 
-	# certain functions allowed, extract the fieldname from the function
-	if fieldname.startswith("count(") or fieldname.startswith("sum(") or fieldname.startswith("avg("):
-		if not fieldname.strip().endswith(")"):
-			raise_invalid_field(field)
-		fieldname = fieldname.split("(", 1)[1][:-1]
-
-	return fieldname
+	return columns
 
 
 def get_meta_and_docfield(fieldname, data):
@@ -236,13 +234,13 @@ def get_parenttype_and_fieldname(field, data):
 		parts = field.split(".")
 		parenttype = parts[0]
 		fieldname = parts[1]
-		if parenttype.startswith("`tab"):
-			# `tabChild DocType`.`fieldname`
-			parenttype = parenttype[4:-1]
-			fieldname = fieldname.strip("`")
+		df = frappe.get_meta(data.doctype).get_field(parenttype)
+		if not df:
+			# tabChild DocType.fieldname
+			parenttype = parenttype[3:]
 		else:
 			# tablefield.fieldname
-			parenttype = frappe.get_meta(data.doctype).get_field(parenttype).options
+			parenttype = df.options
 	else:
 		parenttype = data.doctype
 		fieldname = field.strip("`")
