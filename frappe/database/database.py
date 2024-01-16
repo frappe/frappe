@@ -112,14 +112,9 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-<<<<<<< HEAD
 		self.cur_db_name = self.user
-		self._conn = self.get_connection()
-		self._cursor = self._conn.cursor()
-=======
 		self._conn: Union["MariadbConnection", "PostgresConnection"] = self.get_connection()
 		self._cursor: Union["MariadbCursor", "PostgresCursor"] = self._conn.cursor()
->>>>>>> 588157df74 (feat: `frappe.db.sql` results as iterator)
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -178,14 +173,10 @@ class Database:
 		:param ignore_ddl: Catch exception if table, column missing.
 		:param auto_commit: Commit after executing the query.
 		:param update: Update this dict to all rows (if returned `as_dict`).
-<<<<<<< HEAD
-		:param run: Returns query without executing it if False.
-=======
 		:param run: Return query without executing it if False.
 		:param pluck: Get the plucked field only.
 		:param explain: Print `EXPLAIN` in error log.
 		:param as_iterator: Returns iterator over results instead of fetching all results at once.
->>>>>>> 588157df74 (feat: `frappe.db.sql` results as iterator)
 		Examples:
 
 		        # return customer names as dicts
@@ -448,14 +439,8 @@ class Database:
 		):
 			raise ImplicitCommitError("This statement can cause implicit commit")
 
-<<<<<<< HEAD
-	def fetch_as_dict(self) -> list[frappe._dict]:
-		"""Internal. Converts results to dict."""
-		result = self.last_result
-=======
 	def fetch_as_dict(self, result) -> list[frappe._dict]:
 		"""Internal. Convert results to dict."""
->>>>>>> 588157df74 (feat: `frappe.db.sql` results as iterator)
 		if result:
 			keys = [column[0] for column in self._cursor.description]
 
