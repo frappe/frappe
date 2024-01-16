@@ -36,7 +36,7 @@ export default class LinksWidget extends Widget {
 			description.popover({
 				trigger: "hover",
 				placement: "top",
-				content: () => `<div class="card-description small">${this.description}</div>`,
+				content: () => `<div class="card-description small">${__(this.description)}</div>`,
 				html: true,
 			});
 		}
