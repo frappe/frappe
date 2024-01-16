@@ -25,8 +25,8 @@ frappe.ui.form.Sidebar = class {
 
 		this.comments = this.sidebar.find(".form-sidebar-stats .comments");
 		this.user_actions = this.sidebar.find(".user-actions");
-		this.image_section = this.sidebar.find(".sidebar-image-section");
-		this.image_wrapper = this.image_section.find(".sidebar-image-wrapper");
+		this.image_section = this.sidebar.find(".display-image-section");
+		this.image_wrapper = this.image_section.find(".display-image-wrapper");
 		this.make_assignments();
 		this.make_attachments();
 		this.make_review();
@@ -57,6 +57,18 @@ frappe.ui.form.Sidebar = class {
 				me.refresh_like();
 			});
 		});
+
+		$(window).resize(this.move_image_based_on_screen_width);
+		$(document).ready(this.move_image_based_on_screen_width);
+	}
+
+	move_image_based_on_screen_width() {
+		const $imageSection = $(".display-image-section:visible");
+		if (window.innerWidth < 995 && !$imageSection.parent().hasClass("form-section")) {
+			$imageSection.prependTo($(".row.form-section.visible-section:visible").first());
+		} else if (window.innerWidth >= 995 && !$imageSection.parent().hasClass("form-sidebar")) {
+			$imageSection.prependTo(".form-sidebar:visible").first();
+		}
 	}
 
 	setup_keyboard_shortcuts() {

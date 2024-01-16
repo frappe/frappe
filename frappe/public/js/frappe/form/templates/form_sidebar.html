@@ -1,17 +1,17 @@
 <ul class="list-unstyled sidebar-menu user-actions hidden"></ul>
-<ul class="list-unstyled sidebar-menu sidebar-image-section hide">
-	<li class="sidebar-image-wrapper">
-		<img class="sidebar-image">
-		<div class="sidebar-standard-image">
+<ul class="list-unstyled sidebar-menu display-image-section hide">
+	<li class="display-image-wrapper">
+		<img class="display-image">
+		<div class="display-standard-image">
 			<div class="standard-image"></div>
 		</div>
 		{% if can_write %}
-		<div class="sidebar-image-actions">
+		<div class="display-image-actions">
 			<div class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ __("Change") }}</a>
 				<div class="dropdown-menu" role="menu">
-					<a class="dropdown-item sidebar-image-change">{{ __("Upload") }}</a>
-					<a class="dropdown-item sidebar-image-remove">{{ __("Remove") }}</a>
+					<a class="dropdown-item display-image-change">{{ __("Upload") }}</a>
+					<a class="dropdown-item display-image-remove">{{ __("Remove") }}</a>
 				</div>
 			</div>
 		</div>

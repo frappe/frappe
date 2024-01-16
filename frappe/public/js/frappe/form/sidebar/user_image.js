@@ -3,7 +3,7 @@ frappe.ui.form.set_user_image = function (frm) {
 	var image_field = frm.meta.image_field;
 	var image = frm.doc[image_field];
 	var title_image = frm.page.$title_area.find(".title-image");
-	var image_actions = frm.sidebar.image_wrapper.find(".sidebar-image-actions");
+	var image_actions = frm.sidebar.image_wrapper.find(".display-image-actions");
 
 	image_section.toggleClass("hide", image_field ? false : true);
 	title_image.toggleClass("hide", image_field ? false : true);
@@ -16,28 +16,28 @@ frappe.ui.form.set_user_image = function (frm) {
 	if (image) {
 		image = window.cordova && image.indexOf("http") === -1 ? frappe.base_url + image : image;
 
-		image_section.find(".sidebar-image").attr("src", image).removeClass("hide");
+		image_section.find(".display-image").attr("src", image).removeClass("hide");
 
-		image_section.find(".sidebar-standard-image").addClass("hide");
+		image_section.find(".display-standard-image").addClass("hide");
 
 		title_image.css("background-image", `url("${image}")`).html("");
 
-		image_actions.find(".sidebar-image-change, .sidebar-image-remove").show();
+		image_actions.find(".display-image-change, .display-image-remove").show();
 	} else {
-		image_section.find(".sidebar-image").attr("src", null).addClass("hide");
+		image_section.find(".display-image").attr("src", null).addClass("hide");
 
 		var title = frm.get_title();
 
 		image_section
-			.find(".sidebar-standard-image")
+			.find(".display-standard-image")
 			.removeClass("hide")
 			.find(".standard-image")
 			.html(frappe.get_abbr(title));
 
 		title_image.css("background-image", "").html(frappe.get_abbr(title));
 
-		image_actions.find(".sidebar-image-change").show();
-		image_actions.find(".sidebar-image-remove").hide();
+		image_actions.find(".display-image-change").show();
+		image_actions.find(".display-image-remove").hide();
 	}
 };
 
@@ -50,12 +50,12 @@ frappe.ui.form.setup_user_image_event = function (frm) {
 	}
 
 	if (frm.meta.image_field && !frm.fields_dict[frm.meta.image_field].df.read_only) {
-		frm.sidebar.image_wrapper.on("click", ":not(.sidebar-image-actions)", (e) => {
+		frm.sidebar.image_wrapper.on("click", ":not(.display-image-actions)", (e) => {
 			let $target = $(e.currentTarget);
 			if ($target.is("a.dropdown-toggle, .dropdown")) {
 				return;
 			}
-			let dropdown = frm.sidebar.image_wrapper.find(".sidebar-image-actions .dropdown");
+			let dropdown = frm.sidebar.image_wrapper.find(".display-image-actions .dropdown");
 			dropdown.toggleClass("open");
 			e.stopPropagation();
 		});
@@ -64,11 +64,11 @@ frappe.ui.form.setup_user_image_event = function (frm) {
 	// bind click on image_wrapper
 	frm.sidebar.image_wrapper.on(
 		"click",
-		".sidebar-image-change, .sidebar-image-remove",
+		".display-image-change, .display-image-remove",
 		function (e) {
 			let $target = $(e.currentTarget);
 			var field = frm.get_field(frm.meta.image_field);
-			if ($target.is(".sidebar-image-change")) {
+			if ($target.is(".display-image-change")) {
 				if (!field.$input) {
 					field.make_input();
 				}
