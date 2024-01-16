@@ -625,7 +625,7 @@ class DatabaseQuery:
 		        - Query: fields=["*"]
 		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
 		"""
-		from frappe.desk.reportview import extract_fieldname
+		from frappe.desk.reportview import extract_fieldnames
 
 		if self.flags.ignore_permissions:
 			return
@@ -643,7 +643,7 @@ class DatabaseQuery:
 			# column: 'tabPhoto.name'
 			# field: 'count(`tabPhoto`.name) as total_count'
 			# column: 'tabPhoto.name'
-			columns = extract_fieldname(field)
+			columns = extract_fieldnames(field)
 			if not columns:
 				continue
 

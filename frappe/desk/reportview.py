@@ -93,7 +93,7 @@ def validate_fields(data):
 	wildcard = update_wildcard_field_param(data)
 
 	for field in list(data.fields or []):
-		fieldname = extract_fieldname(field)[0]
+		fieldname = extract_fieldnames(field)[0]
 		if not fieldname:
 			raise_invalid_field(fieldname)
 
@@ -178,9 +178,9 @@ def is_standard(fieldname):
 	)
 
 
-def extract_fieldname(field):
-	parser = Parser(f"select {field}, frappe_dummy from dummy")
-	columns = [col for col in parser.columns if col != "frappe_dummy"]
+def extract_fieldnames(field):
+	parser = Parser(f"select {field}, _frappe_dummy from _dummy")
+	columns = [col for col in parser.columns if col != "_frappe_dummy"]
 
 	if not columns:
 		f = field.lower()
