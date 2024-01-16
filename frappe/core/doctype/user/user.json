@@ -458,7 +458,7 @@
    "read_only": 1
   },
   {
-   "default": "1",
+   "default": "2",
    "fieldname": "simultaneous_sessions",
    "fieldtype": "Int",
    "label": "Simultaneous Sessions"
