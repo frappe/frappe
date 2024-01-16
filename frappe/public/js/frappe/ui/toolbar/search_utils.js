@@ -113,7 +113,7 @@ frappe.search.utils = {
 	get_search_in_list: function (keywords) {
 		var me = this;
 		var out = [];
-		if (in_list(keywords.split(" "), "in") && keywords.slice(-2) !== "in") {
+		if (keywords.split(" ").includes("in") && keywords.slice(-2) !== "in") {
 			var parts = keywords.split(" in ");
 			frappe.boot.user.can_read.forEach(function (item) {
 				if (frappe.boot.user.can_search.includes(item)) {
@@ -190,11 +190,11 @@ frappe.search.utils = {
 			({ score, marked_string } = search_result);
 			if (score) {
 				target = item;
-				if (in_list(frappe.boot.single_types, item)) {
+				if (frappe.boot.single_types.includes(item)) {
 					out.push(option("", ["Form", item, item], 0.05));
 				} else if (frappe.boot.user.can_search.includes(item)) {
 					// include 'making new' option
-					if (in_list(frappe.boot.user.can_create, item)) {
+					if (frappe.boot.user.can_create.includes(item)) {
 						var match = item;
 						out.push({
 							type: "New",

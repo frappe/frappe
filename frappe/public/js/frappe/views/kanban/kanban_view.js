@@ -229,7 +229,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 		this.meta.fields.forEach((df) => {
 			const is_valid_field =
-				in_list(["Data", "Text", "Small Text", "Text Editor"], df.fieldtype) && !df.hidden;
+				["Data", "Text", "Small Text", "Text Editor"].includes(df.fieldtype) && !df.hidden;
 
 			if (is_valid_field && !title_field) {
 				// can be mapped to textarea

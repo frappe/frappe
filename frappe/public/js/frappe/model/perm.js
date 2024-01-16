@@ -240,7 +240,7 @@ $.extend(frappe.perm, {
 			// fields updated by workflow must be read-only
 			if (
 				cint(cur_frm.read_only) ||
-				in_list(cur_frm.states.update_fields, df.fieldname) ||
+				cur_frm.states.update_fields.includes(df.fieldname) ||
 				df.fieldname == cur_frm.state_fieldname
 			) {
 				status = "Read";

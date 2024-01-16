@@ -507,8 +507,7 @@ def has_permission(doc, ptype, user):
 			return
 
 		if doc.reference_doctype and doc.reference_name:
-			if frappe.has_permission(doc.reference_doctype, ptype="read", doc=doc.reference_name):
-				return True
+			return frappe.has_permission(doc.reference_doctype, ptype="read", doc=doc.reference_name)
 
 
 def get_permission_query_conditions_for_communication(user):

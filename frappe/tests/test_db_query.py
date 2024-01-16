@@ -104,6 +104,7 @@ class TestDBQuery(FrappeTestCase):
 				"doctype": "DocType",
 				"name": "Parent DocType 1",
 				"module": "Custom",
+				"autoname": "Prompt",
 				"custom": 1,
 				"fields": [
 					{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
@@ -122,6 +123,7 @@ class TestDBQuery(FrappeTestCase):
 			{
 				"doctype": "DocType",
 				"name": "Parent DocType 2",
+				"autoname": "Prompt",
 				"module": "Custom",
 				"custom": 1,
 				"fields": [

@@ -203,7 +203,6 @@ class DocType(Document):
 		self.validate_document_type()
 		validate_fields(self)
 		self.check_indexing_for_dashboard_links()
-
 		if not self.istable:
 			validate_permissions(self)
 

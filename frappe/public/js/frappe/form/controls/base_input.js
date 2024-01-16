@@ -138,7 +138,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 	set_disp_area(value) {
 		if (
-			in_list(["Currency", "Int", "Float"], this.df.fieldtype) &&
+			["Currency", "Int", "Float"].includes(this.df.fieldtype) &&
 			(this.value === 0 || value === 0)
 		) {
 			// to set the 0 value in readonly for currency, int, float field
@@ -172,7 +172,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		if (
 			!this.df.label ||
 			!this.df?.documentation_url ||
-			in_list(unsupported_fieldtypes, this.df.fieldtype)
+			unsupported_fieldtypes.includes(this.df.fieldtype)
 		)
 			return;
 
@@ -217,7 +217,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		let invalid = !!this.df.invalid;
 		if (this.grid) {
 			this.$wrapper.parents(".grid-static-col").toggleClass("invalid", invalid);
-			this.$input.toggleClass("invalid", invalid);
+			this.$input?.toggleClass("invalid", invalid);
 			this.grid_row.columns[this.df.fieldname].is_invalid = invalid;
 		} else {
 			this.$wrapper.toggleClass("has-error", invalid);

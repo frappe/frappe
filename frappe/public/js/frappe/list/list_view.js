@@ -755,7 +755,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			: value;
 
 		let translated_doctypes = frappe.boot?.translated_doctypes || [];
-		if (in_list(translated_doctypes, df.options)) {
+		if (translated_doctypes.includes(df.options)) {
 			value_display = __(value_display);
 		}
 
@@ -934,7 +934,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>
 			</div>
 			<div class="level-item visible-xs text-right">
-				${this.get_indicator_dot(doc)}
+				${this.get_indicator_html(doc)}
 			</div>
 		`;
 
