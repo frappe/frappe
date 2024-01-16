@@ -15,6 +15,7 @@ export default class LinksWidget extends Widget {
 			link_count: this.links.length,
 			label: this.label,
 			hidden: this.hidden,
+			description: this.description,
 		};
 	}
 
@@ -24,6 +25,22 @@ export default class LinksWidget extends Widget {
 			this.options.links = this.links;
 		}
 		this.widget.addClass("links-widget-box");
+
+		if (this.description) {
+			const description = $(`
+				<button class="btn-reset card-description-btn ml-2">
+					${frappe.utils.icon("help", "sm")}
+				</button>
+			`).appendTo(this.widget.find(".widget-title"));
+
+			description.popover({
+				trigger: "hover",
+				placement: "top",
+				content: () => `<div class="card-description small">${this.description}</div>`,
+				html: true,
+			});
+		}
+
 		const is_link_disabled = (item) => {
 			return item.dependencies && item.incomplete_dependencies;
 		};
