@@ -6,25 +6,6 @@ from frappe.model.document import Document
 
 
 class GoogleSettings(Document):
-<<<<<<< HEAD
-=======
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
-
-	from typing import TYPE_CHECKING
-
-	if TYPE_CHECKING:
-		from frappe.types import DF
-
-		api_key: DF.Data | None
-		app_id: DF.Data | None
-		client_id: DF.Data | None
-		client_secret: DF.Password | None
-		enable: DF.Check
-		google_drive_picker_enabled: DF.Check
-	# end: auto-generated types
-
->>>>>>> c17f014ef4 (refactor: remove redundant API Key from Google Picker)
 	pass
 
 
