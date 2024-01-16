@@ -522,14 +522,13 @@ class DatabaseQuery:
 
 	def _set_permission_map(self, doctype: str, parent_doctype: str | None = None):
 		ptype = "select" if frappe.only_has_select_perm(doctype) else "read"
-		val = frappe.has_permission(
+		frappe.has_permission(
 			doctype,
 			ptype=ptype,
 			parent_doctype=parent_doctype or self.doctype,
+			throw=True,
+			user=self.user,
 		)
-		if not val:
-			frappe.flags.error_message = _("Insufficient Permission for {0}").format(frappe.bold(doctype))
-			raise frappe.PermissionError(doctype)
 		self.permission_map[doctype] = ptype
 
 	def set_field_tables(self):
@@ -1059,6 +1058,8 @@ class DatabaseQuery:
 					self.fields[0].lower().startswith("count(")
 					or self.fields[0].lower().startswith("min(")
 					or self.fields[0].lower().startswith("max(")
+					or self.fields[0].lower().startswith("sum(")
+					or self.fields[0].lower().startswith("avg(")
 				)
 				and not self.group_by
 			)

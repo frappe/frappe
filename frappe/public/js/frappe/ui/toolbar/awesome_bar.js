@@ -301,7 +301,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		var route = frappe.get_route();
 		if (route[0] === "List" && txt.indexOf(" in") === -1) {
 			// search in title field
-			var meta = frappe.get_meta(frappe.container.page.list_view.doctype);
+			const doctype = frappe.container.page?.list_view?.doctype;
+			if (!doctype) return;
+			var meta = frappe.get_meta(doctype);
 			var search_field = meta.title_field || "name";
 			var options = {};
 			options[search_field] = ["like", "%" + txt + "%"];

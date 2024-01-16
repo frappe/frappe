@@ -912,7 +912,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				${comment_count}
 			</div>
 			<div class="level-item visible-xs text-right">
-				${this.get_indicator_dot(doc)}
+				${this.get_indicator_html(doc)}
 			</div>
 		`;
 

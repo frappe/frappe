@@ -227,3 +227,4 @@ frappe.desk.doctype.form_tour.patches.introduce_ui_tours
 execute:frappe.delete_doc_if_exists("Workspace", "Customization")
 frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
+frappe.patches.v15_0.sanitize_workspace_titles
