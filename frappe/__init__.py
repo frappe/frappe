@@ -325,8 +325,10 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	sites_path = sites_path or getattr(local, "sites_path", None)
 	site_path = site_path or getattr(local, "site_path", None)
 
+	common_config = get_common_site_config(sites_path)
+
 	if sites_path:
-		config.update(get_common_site_config(sites_path))
+		config.update(common_config)
 
 	if site_path:
 		site_config = os.path.join(site_path, "site_config.json")
@@ -337,7 +339,15 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 				click.secho(f"{local.site}/site_config.json is invalid", fg="red")
 				print(error)
 		elif local.site and not local.flags.new_site:
-			raise IncorrectSitePath(f"{local.site} does not exist")
+			error_msg = f"{local.site} does not exist."
+			if common_config.developer_mode:
+				from frappe.utils import get_sites
+
+				all_sites = get_sites()
+				error_msg += "\n\nSites on this bench:\n"
+				error_msg += "\n".join(f"* {site}" for site in all_sites)
+
+			raise IncorrectSitePath(error_msg)
 
 	# Generalized env variable overrides and defaults
 	def db_default_ports(db_type):
@@ -1015,7 +1025,7 @@ def has_permission(
 		ptype,
 		doc=doc,
 		user=user,
-		raise_exception=throw,
+		print_logs=throw,
 		parent_doctype=parent_doctype,
 		debug=debug,
 	)

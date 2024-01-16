@@ -187,7 +187,7 @@ frappe.ui.Page = class Page {
 		let sidebar_toggle = $(".page-head").find(".sidebar-toggle-btn");
 		let sidebar_wrapper = this.wrapper.find(".layout-side-section");
 		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
-			sidebar_toggle.remove();
+			sidebar_toggle.last().remove();
 		} else {
 			if (!frappe.is_mobile()) {
 				sidebar_toggle.attr("title", __("Toggle Sidebar"));

@@ -934,7 +934,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>
 			</div>
 			<div class="level-item visible-xs text-right">
-				${this.get_indicator_dot(doc)}
+				${this.get_indicator_html(doc)}
 			</div>
 		`;
 
@@ -1814,6 +1814,30 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			};
 		};
 
+		const bulk_assignment_clear = () => {
+			return {
+				label: __("Clear Assignment", null, "Button in list view actions menu"),
+				action: () => {
+					frappe.confirm(
+						__("Are you sure you want to clear the assignments?"),
+						() => {
+							this.disable_list_update = true;
+							bulk_operations.clear_assignment(this.get_checked_items(true), () => {
+								this.disable_list_update = false;
+								this.clear_checked_items();
+								this.refresh();
+							});
+						},
+						() => {
+							this.clear_checked_items();
+							this.refresh();
+						}
+					);
+				},
+				standard: true,
+			};
+		};
+
 		const bulk_assignment_rule = () => {
 			return {
 				label: __("Apply Assignment Rule", null, "Button in list view actions menu"),
@@ -1981,6 +2005,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		// bulk assignment
 		actions_menu_items.push(bulk_assignment());
+
+		actions_menu_items.push(bulk_assignment_clear());
 
 		actions_menu_items.push(bulk_assignment_rule());
 

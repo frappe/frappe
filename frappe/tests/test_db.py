@@ -57,6 +57,17 @@ class TestDB(FrappeTestCase):
 			frappe.db.rollback(save_point=savepoint)
 			self.fail("Long running queries not timing out")
 
+	def test_skip_locking(self):
+		first_conn = frappe.local.db
+		name = frappe.db.get_value("User", "Administrator", "name", for_update=True, skip_locked=True)
+		self.assertEqual(name, "Administrator")
+
+		frappe.connect()  # Create a 2nd connection
+		second_conn = frappe.local.db
+		self.assertIsNot(first_conn, second_conn)
+		name = frappe.db.get_value("User", "Administrator", "name", for_update=True, skip_locked=True)
+		self.assertFalse(name)
+
 	@patch.dict(frappe.conf, {"http_timeout": 20, "enable_db_statement_timeout": 1})
 	def test_db_timeout_computation(self):
 		set_request(method="GET", path="/")
@@ -968,3 +979,31 @@ class TestReplicaConnections(FrappeTestCase):
 
 			outer()
 			self.assertEqual(write_connection, db_id())
+
+
+class TestSqlIterator(FrappeTestCase):
+	def test_db_sql_iterator(self):
+		test_queries = [
+			"select * from `tabCountry` order by name",
+			"select code from `tabCountry` order by name",
+			"select code from `tabCountry` order by name limit 5",
+		]
+
+		for query in test_queries:
+			self.assertEqual(
+				frappe.db.sql(query, as_dict=True),
+				list(frappe.db.sql(query, as_dict=True, as_iterator=True)),
+				msg=f"{query=} results not same as iterator",
+			)
+
+			self.assertEqual(
+				frappe.db.sql(query, pluck=True),
+				list(frappe.db.sql(query, pluck=True, as_iterator=True)),
+				msg=f"{query=} results not same as iterator",
+			)
+
+			self.assertEqual(
+				frappe.db.sql(query, as_list=True),
+				list(frappe.db.sql(query, as_list=True, as_iterator=True)),
+				msg=f"{query=} results not same as iterator",
+			)

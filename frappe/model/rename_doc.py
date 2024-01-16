@@ -4,6 +4,7 @@ from types import NoneType
 from typing import TYPE_CHECKING
 
 import frappe
+import frappe.permissions
 from frappe import _, bold
 from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
@@ -379,7 +380,7 @@ def validate_rename(
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
 	if not (
-		ignore_permissions or frappe.permissions.has_permission(doctype, "write", raise_exception=False)
+		ignore_permissions or frappe.permissions.has_permission(doctype, "write", print_logs=False)
 	):
 		frappe.throw(_("You need write permission to rename"))
 

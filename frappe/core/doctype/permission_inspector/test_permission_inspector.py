@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestPermissionDebugger(FrappeTestCase):
+class TestPermissionInspector(FrappeTestCase):
 	pass

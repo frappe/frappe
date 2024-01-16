@@ -40,20 +40,20 @@ AUTOMATIC_ROLES = (GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE, ADMIN_ROLE)
 def print_has_permission_check_logs(func):
 	@functools.wraps(func)
 	def inner(*args, **kwargs):
-		raise_exception = kwargs.get("raise_exception", True)
+		print_logs = kwargs.get("print_logs", True)
 		self_perm_check = True if not kwargs.get("user") else kwargs.get("user") == frappe.session.user
 
-		if raise_exception:
+		if print_logs:
 			frappe.flags["has_permission_check_logs"] = []
 
 		result = func(*args, **kwargs)
 
 		# print only if access denied
 		# and if user is checking his own permission
-		if not result and self_perm_check and raise_exception:
+		if not result and self_perm_check and print_logs:
 			msgprint(("<br>").join(frappe.flags.get("has_permission_check_logs", [])))
 
-		if raise_exception:
+		if print_logs:
 			frappe.flags.pop("has_permission_check_logs", None)
 		return result
 
@@ -79,9 +79,9 @@ def has_permission(
 	ptype="read",
 	doc=None,
 	user=None,
-	raise_exception=True,
 	*,
 	parent_doctype=None,
+	print_logs=True,
 	debug=False,
 ) -> bool:
 	"""Return True if user has permission `ptype` for given `doctype`.
@@ -91,11 +91,8 @@ def has_permission(
 	:param ptype: Permission Type to check
 	:param doc: Check User Permissions for specified document.
 	:param user: User to check permission for. Defaults to current user.
-	:param raise_exception:
-	        DOES NOT raise an exception.
-	        If not False, will display a message using frappe.msgprint
+	:param print_logs: If True, will display a message using frappe.msgprint
 	                which explains why the permission check failed.
-
 	:param parent_doctype:
 	        Required when checking permission for a child DocType (unless doc is specified)
 	"""
@@ -120,7 +117,13 @@ def has_permission(
 
 	if frappe.is_table(doctype):
 		return has_child_permission(
-			doctype, ptype, doc, user, raise_exception, parent_doctype, debug=debug
+			doctype,
+			ptype,
+			doc,
+			user,
+			parent_doctype,
+			debug=debug,
+			print_logs=print_logs,
 		)
 
 	meta = frappe.get_meta(doctype)
@@ -757,10 +760,10 @@ def has_child_permission(
 	ptype="read",
 	child_doc=None,
 	user=None,
-	raise_exception=True,
 	parent_doctype=None,
 	*,
 	debug=False,
+	print_logs=True,
 ) -> bool:
 	debug and _debug_log("This doctype is a child table, permissions will be checked on parent.")
 	if isinstance(child_doc, str):
@@ -832,7 +835,7 @@ def has_child_permission(
 		ptype=ptype,
 		doc=child_doc and getattr(child_doc, "parent_doc", child_doc.parent),
 		user=user,
-		raise_exception=raise_exception,
+		print_logs=print_logs,
 		debug=debug,
 	)
 
