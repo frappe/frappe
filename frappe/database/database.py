@@ -9,6 +9,10 @@ import string
 import traceback
 from contextlib import contextmanager, suppress
 from time import time
+<<<<<<< HEAD
+=======
+from typing import TYPE_CHECKING, Any, Union
+>>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
 
 from pypika.terms import Criterion, NullValue
 
@@ -31,10 +35,19 @@ from frappe.utils import cast as cast_fieldtype
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
 from frappe.utils.deprecations import deprecated, deprecation_warning
 
+if TYPE_CHECKING:
+	from psycopg2 import connection as PostgresConnection
+	from psycopg2 import cursor as PostgresCursor
+	from pymysql.connections import Connection as MariadbConnection
+	from pymysql.cursors import Cursor as MariadbCursor
+
+
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
+
+SQL_ITERATOR_BATCH_SIZE = 100
 
 
 class Database:
@@ -112,9 +125,14 @@ class Database:
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
 		self.cur_db_name = self.user
+<<<<<<< HEAD
 		self._conn = self.get_connection()
 		self._cursor = self._conn.cursor()
 		frappe.local.rollback_observers = []
+=======
+		self._conn: Union["MariadbConnection", "PostgresConnection"] = self.get_connection()
+		self._cursor: Union["MariadbCursor", "PostgresCursor"] = self._conn.cursor()
+>>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -144,6 +162,9 @@ class Database:
 	def _transform_result(self, result: list[tuple]) -> list[tuple]:
 		return result
 
+	def _clean_up(self):
+		pass
+
 	def sql(
 		self,
 		query: Query,
@@ -159,6 +180,7 @@ class Database:
 		explain=False,
 		run=True,
 		pluck=False,
+		as_iterator=False,
 	):
 		"""Execute a SQL query and fetch all rows.
 
@@ -172,7 +194,12 @@ class Database:
 		:param as_utf8: Encode values as UTF 8.
 		:param auto_commit: Commit after executing the query.
 		:param update: Update this dict to all rows (if returned `as_dict`).
-		:param run: Returns query without executing it if False.
+		:param run: Return query without executing it if False.
+		:param pluck: Get the plucked field only.
+		:param explain: Print `EXPLAIN` in error log.
+		:param as_iterator: Returns iterator over results instead of fetching all results at once.
+		        This should be used with unbuffered cursor as default cursors used by pymysql and postgres
+		        buffer the results internally. See `Database.unbuffered_cursor`.
 		Examples:
 
 		        # return customer names as dicts
@@ -267,10 +294,14 @@ class Database:
 		if not self._cursor.description:
 			return ()
 
-		self.last_result = self._transform_result(self._cursor.fetchall())
+		if as_iterator:
+			return self._return_as_iterator(pluck=pluck, as_dict=as_dict, as_list=as_list, update=update)
 
+		last_result = self._transform_result(self._cursor.fetchall())
 		if pluck:
-			return [r[0] for r in self.last_result]
+			last_result = [r[0] for r in last_result]
+			self._clean_up()
+			return last_result
 
 		if as_utf8:
 			deprecation_warning("as_utf8 parameter is deprecated and will be removed in version 15.")
@@ -279,14 +310,49 @@ class Database:
 
 		# scrub output if required
 		if as_dict:
+<<<<<<< HEAD
 			ret = self.fetch_as_dict(formatted, as_utf8)
+=======
+			last_result = self.fetch_as_dict(last_result)
+>>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
 			if update:
-				for r in ret:
+				for r in last_result:
 					r.update(update)
+<<<<<<< HEAD
 			return ret
 		elif as_list or as_utf8:
 			return self.convert_to_lists(self.last_result, formatted, as_utf8)
 		return self.last_result
+=======
+
+		elif as_list:
+			last_result = self.convert_to_lists(last_result)
+
+		self._clean_up()
+		return last_result
+
+	def _return_as_iterator(self, *, pluck, as_dict, as_list, update):
+		while result := self._transform_result(self._cursor.fetchmany(SQL_ITERATOR_BATCH_SIZE)):
+			if pluck:
+				for row in result:
+					yield row[0]
+
+			elif as_dict:
+				keys = [column[0] for column in self._cursor.description]
+				for row in result:
+					row = frappe._dict(zip(keys, row))
+					if update:
+						row.update(update)
+					yield row
+
+			elif as_list:
+				for row in result:
+					yield list(row)
+			else:
+				frappe.throw(_("`as_iterator` only works with `as_list=True` or `as_dict=True`"))
+
+		self._clean_up()
+>>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
 
 	def _log_query(
 		self,
@@ -404,9 +470,14 @@ class Database:
 		):
 			raise ImplicitCommitError("This statement can cause implicit commit")
 
+<<<<<<< HEAD
 	def fetch_as_dict(self, formatted=0, as_utf8=0) -> list[frappe._dict]:
 		"""Internal. Converts results to dict."""
 		result = self.last_result
+=======
+	def fetch_as_dict(self, result) -> list[frappe._dict]:
+		"""Internal. Convert results to dict."""
+>>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
 		if result:
 			keys = [column[0] for column in self._cursor.description]
 
@@ -1373,6 +1444,22 @@ def enqueue_jobs_after_commit():
 		frappe.flags.enqueue_after_commit = []
 
 	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
+		raise NotImplementedError
+
+	@contextmanager
+	def unbuffered_cursor(self):
+		"""Context manager to temporarily use unbuffered cursor.
+
+		Using this with `as_iterator=True` provides O(1) memory usage while reading large result sets.
+
+		NOTE: You MUST do entire result set processing in the context, otherwise underlying cursor
+		will be switched and you'll not get complete results.
+
+		Usage:
+		        with frappe.db.unbuffered_cursor():
+		                for row in frappe.db.sql("query with huge result", as_iterator=True):
+		                        continue # Do some processing.
+		"""
 		raise NotImplementedError
 
 
