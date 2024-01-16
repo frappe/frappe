@@ -136,6 +136,46 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 		}
 	}
 
+	validate_fetch_from(doc, doctype, docname) {
+		const row = frappe.get_doc(doctype, docname);
+		if (!row.fetch_from) return;
+		let [dt, fn] = row.fetch_from.split(".");
+		let fieldname = fn;
+		let doc_type = dt;
+
+		let doctypes = this.frm.doc.fields
+			.filter((df) => df.fieldtype == "Link")
+			.filter((df) => df.options && df.fieldname != row.fieldname)
+			.sort((a, b) => a.options.localeCompare(b.options))
+			.map((df) => ({
+				label: `${df.options} (${df.fieldname})`,
+				value: df.fieldname,
+			}));
+		if (!doctypes.find((d) => d.value === doc_type)) {
+			frappe.show_alert({
+				message: __(
+					`<b>Fetch From</b>: Doctype <b>${doc_type}</b> is not linked to <b>${doc.doc_type}</b> or does not exist`
+				),
+				indicator: "error",
+			});
+			return;
+		}
+		let link_field = doc.fields.find((df) => df.fieldname === doc_type);
+		let link_doctype = link_field.options;
+
+		frappe.model.with_doctype(link_doctype, () => {
+			let df = frappe.meta.get_docfield(link_doctype, fieldname);
+			if (!df) {
+				frappe.show_alert({
+					message: __(
+						`<b>Fetch From</b>: Doctype <b>${link_doctype}</b> doesn't have field <b>${fieldname}</b>`
+					),
+					indicator: "error",
+				});
+			}
+		});
+	}
+
 	setup_fetch_from_fields(doc, doctype, docname) {
 		let frm = this.frm;
 		// Render two select fields for Fetch From instead of Small Text for better UX
@@ -166,6 +206,9 @@ frappe.model.DocTypeController = class DocTypeController extends frappe.ui.form.
 				label: `${df.options} (${df.fieldname})`,
 				value: df.fieldname,
 			}));
+
+		this.validate_fetch_from(frm.doc, doctype, docname);
+
 		$doctype_select.add_options([
 			{ label: __("Select DocType"), value: "", selected: true },
 			...doctypes,

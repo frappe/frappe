@@ -64,12 +64,18 @@ watch(
 	() => props.value,
 	(value) => {
 		[doctype.value, fieldname.value] = value?.split(".") || ["", ""];
+		let dt = store.form.selected_field.doctype;
+		let dn = store.form.selected_field.name;
+		store.frm.trigger("validate_fetch_from", dt, dn);
 	},
 	{ immediate: true }
 );
 
 watch([() => doctype.value, () => fieldname.value], ([doctype_value, fieldname_value]) => {
 	let [doctype_name, field_name] = props.value?.split(".") || ["", ""];
+	let dt = store.form.selected_field.doctype;
+	let dn = store.form.selected_field.name;
+	store.frm.trigger("validate_fetch_from", dt, dn);
 	if (doctype_value != doctype_name || fieldname_value != field_name) {
 		emit("update:modelValue", `${doctype_value}.${fieldname_value}`);
 	}
