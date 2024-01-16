@@ -4,6 +4,7 @@ import { useStore } from "../store";
 import { move_children_to_parent, clone_field } from "../utils";
 import { ref, computed, onMounted } from "vue";
 import AddFieldButton from "./AddFieldButton.vue";
+import NavigateIcon from "./icons/NavigateIcon.vue";
 import { useMagicKeys, whenever } from "@vueuse/core";
 
 const props = defineProps(["column", "field"]);
@@ -237,17 +238,17 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 					>
 						<div v-html="frappe.utils.icon('filter', 'sm')"></div>
 					</button>
+					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
+						<div v-html="frappe.utils.icon('add', 'sm')" />
+					</AddFieldButton>
 					<button
 						v-if="field.df.fieldtype === 'Table'"
 						class="btn btn-xs btn-icon"
 						@click="open_child_doctype"
 						:title="__(`Edit ${field.df.options} Doctype`)"
 					>
-						<div v-html="frappe.utils.icon('arrow-up-right', 'sm')"></div>
+						<NavigateIcon />
 					</button>
-					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
-						<div v-html="frappe.utils.icon('add', 'sm')" />
-					</AddFieldButton>
 					<button
 						v-if="column.fields.indexOf(field)"
 						class="btn btn-xs btn-icon"
@@ -255,9 +256,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 							__('Move the current field and the following fields to a new column')
 						"
 						@click="move_fields_to_column"
-					>
-						<div v-html="frappe.utils.icon('move', 'sm')"></div>
-					</button>
+					></button>
 					<button
 						class="btn btn-xs btn-icon"
 						:title="__('Duplicate field')"

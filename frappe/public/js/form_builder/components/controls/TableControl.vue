@@ -14,13 +14,8 @@ let table_columns = computedAsync(async () => {
 	return get_table_columns(props.df, child_doctype);
 }, []);
 
-function open_new_doctype_dialog() {
-	let new_doctype = window.open("/app/doctype", "_blank");
-	//window.open returns a window object of the newly opened tab,
-	setTimeout(() => {
-		// to perform any action on the new tab, we need to wait for the tab to load hence the setTimeout
-		new_doctype.document.querySelector("[data-label='Add DocType']").click();
-	}, 100);
+function open_new_child_doctype_dialog() {
+	frappe.listview_settings["DocType"].new_doctype_dialog({ is_child: 1 });
 }
 </script>
 
@@ -58,10 +53,10 @@ function open_new_doctype_dialog() {
 			<!-- render this button when there are no columns, which means that options is not added for the table -->
 			<button
 				class="btn btn-xs btn-secondary"
-				@click="open_new_doctype_dialog"
+				@click="open_new_child_doctype_dialog"
 				v-if="!table_columns.length"
 			>
-				{{ __("Create New Doctype") }}
+				{{ __("Create a New Child Doctype") }}
 			</button>
 			<p v-else>{{ __("No Data") }}</p>
 		</div>

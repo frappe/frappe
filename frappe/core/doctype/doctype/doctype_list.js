@@ -3,8 +3,9 @@ frappe.listview_settings["DocType"] = {
 		this.new_doctype_dialog();
 	},
 
-	new_doctype_dialog() {
+	new_doctype_dialog(args) {
 		let non_developer = frappe.session.user !== "Administrator" || !frappe.boot.developer_mode;
+		let prefill_child = args?.is_child || 0;
 		let fields = [
 			{
 				label: __("DocType Name"),
@@ -36,6 +37,7 @@ frappe.listview_settings["DocType"] = {
 				fieldtype: "Check",
 				description: __("Child Tables are shown as a Grid in other DocTypes"),
 				depends_on: "eval:!doc.is_submittable && !doc.issingle",
+				default: prefill_child,
 			},
 			{
 				label: __("Editable Grid"),
