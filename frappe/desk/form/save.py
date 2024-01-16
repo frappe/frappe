@@ -14,6 +14,7 @@ from frappe.utils.telemetry import capture_doc
 
 @frappe.whitelist()
 def savedocs(doc, action):
+	createStatusChangedTimeLine(json.loads(doc))
 	"""save / submit / update doclist"""
 	doc = frappe.get_doc(json.loads(doc))
 	capture_doc(doc, action)
@@ -29,7 +30,6 @@ def savedocs(doc, action):
 		"Update": DocStatus.submitted(),
 		"Cancel": DocStatus.cancelled(),
 	}[action]
-
 	if doc.docstatus.is_submitted():
 		if action == "Submit" and doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, action)
@@ -45,7 +45,27 @@ def savedocs(doc, action):
 	add_data_to_monitor(doctype=doc.doctype, action=action)
 	frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
 
-
+@frappe.whitelist()
+def createStatusChangedTimeLine(doc):
+	project_name = doc['name']
+	database_status = frappe.db.sql("select status from tabProject where name = '"+project_name+"'", as_dict=True)
+	current_status = database_status[0]['status']
+	new_status = doc['status']
+	user = doc['modified_by']
+	if(current_status != new_status):
+		comment = frappe.new_doc("Comment")
+		comment.update(
+		{
+			"comment_type": "Comment",
+			"reference_doctype": "Project",
+			"reference_name": project_name,
+			"comment_email": "",
+			"comment_by": "",
+			"content": "<div class=\"ql-editor read-mode\"><p>Project updated. From: " + current_status + " TO: " + new_status + ". modified by: " + user + "</p></div>"
+		})
+		comment.insert(ignore_permissions=True)
+  
+  
 @frappe.whitelist()
 def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_state=None):
 	"""cancel a doclist"""
@@ -72,6 +92,8 @@ def send_updated_docs(doc):
 
 
 def set_local_name(doc):
+    
+
 	def _set_local_name(d):
 		if doc.get("__islocal") or d.get("__islocal"):
 			d.localname = d.name
