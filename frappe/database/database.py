@@ -784,7 +784,7 @@ class Database:
 		Example:
 
 		        # Update the `deny_multiple_sessions` field in System Settings DocType.
-		        company = frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
+		        frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
 		"""
 
 		to_update = self._get_update_dict(
