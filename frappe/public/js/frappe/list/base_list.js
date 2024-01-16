@@ -733,15 +733,17 @@ class FilterArea {
 		this.standard_filters_wrapper = this.list_view.page.page_form.find(
 			".standard-filter-section"
 		);
-		let fields = [
-			{
+		let fields = [];
+
+		if (!this.list_view.settings.hide_name_filter) {
+			fields.push({
 				fieldtype: "Data",
 				label: "ID",
 				condition: "like",
 				fieldname: "name",
 				onchange: () => this.refresh_list_view(),
-			},
-		];
+			});
+		}
 
 		if (this.list_view.custom_filter_configs) {
 			this.list_view.custom_filter_configs.forEach((config) => {
