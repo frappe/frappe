@@ -22,6 +22,7 @@ def add_user(email, password, username=None, mobile_no=None):
 		dict(doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no)
 	).insert()
 	user.new_password = password
+	user.simultaneous_sessions = 1
 	user.add_roles("System Manager")
 	frappe.db.commit()
 
