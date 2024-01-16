@@ -4,7 +4,6 @@ import { useStore } from "../store";
 import { move_children_to_parent, clone_field } from "../utils";
 import { ref, computed, onMounted } from "vue";
 import AddFieldButton from "./AddFieldButton.vue";
-import NavigateIcon from "./icons/NavigateIcon.vue";
 import { useMagicKeys, whenever } from "@vueuse/core";
 
 const props = defineProps(["column", "field"]);
@@ -247,7 +246,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						@click="open_child_doctype"
 						:title="__(`Edit ${field.df.options} Doctype`)"
 					>
-						<NavigateIcon />
+						<div v-html="frappe.utils.icon('up-right-external', 'sm')"></div>
 					</button>
 					<button
 						v-if="column.fields.indexOf(field)"
