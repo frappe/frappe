@@ -87,10 +87,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return this.is_translatable() ? __(value) : value;
 	}
 	is_translatable() {
-		return in_list(frappe.boot?.translated_doctypes || [], this.get_options());
+		return frappe.boot?.translated_doctypes || [].includes(this.get_options());
 	}
 	is_title_link() {
-		return in_list(frappe.boot?.link_title_doctypes || [], this.get_options());
+		return frappe.boot?.link_title_doctypes || [].includes(this.get_options());
 	}
 	async set_link_title(value) {
 		const doctype = this.get_options();

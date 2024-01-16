@@ -890,7 +890,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	get_columns_for_picker() {
 		let out = {};
 
-		const standard_fields_filter = (df) => !in_list(frappe.model.no_value_type, df.fieldtype);
+		const standard_fields_filter = (df) => !frappe.model.no_value_type.includes(df.fieldtype);
 
 		let doctype_fields = frappe.meta
 			.get_docfields(this.doctype)

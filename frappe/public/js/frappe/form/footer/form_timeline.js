@@ -295,11 +295,11 @@ class FormTimeline extends BaseTimeline {
 
 	set_communication_doc_status(doc) {
 		let indicator_color = "red";
-		if (in_list(["Sent", "Clicked"], doc.delivery_status)) {
+		if (["Sent", "Clicked"].includes(doc.delivery_status)) {
 			indicator_color = "green";
 		} else if (["Sending", "Scheduled"].includes(doc.delivery_status)) {
 			indicator_color = "orange";
-		} else if (in_list(["Opened", "Read"], doc.delivery_status)) {
+		} else if (["Opened", "Read"].includes(doc.delivery_status)) {
 			indicator_color = "blue";
 		} else if (doc.delivery_status == "Error") {
 			indicator_color = "red";
