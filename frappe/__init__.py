@@ -327,12 +327,15 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 	if site:
 		init(site)
 
+	assert db_name or local.conf.db_name, "site must be fully initialized, db_name missing"
+	assert local.conf.db_password, "site must be fully initialized, db_password missing"
+
 	local.db = get_db(
 		host=local.conf.db_host,
 		port=local.conf.db_port,
-		user=db_name or local.conf.db_name,
+		user=local.conf.db_name or db_name,
 		password=local.conf.db_password,
-		cur_db_name=db_name or local.conf.db_name,
+		cur_db_name=local.conf.db_name or db_name,
 	)
 	if set_admin_as_user:
 		set_user("Administrator")
