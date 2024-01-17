@@ -1,14 +1,12 @@
 import re
-from collections import defaultdict
 from contextlib import contextmanager
 from decimal import Decimal
-from typing import TYPE_CHECKING
 
 import mariadb
 import pymysql
 from mariadb.constants import ERR, FIELD_TYPE
 from pymysql.constants import ER
-from pymysql.converters import conversions, escape_sequence, escape_string
+from pymysql.converters import escape_sequence, escape_string
 
 import frappe
 from frappe.database.database import Database, QueryValues
@@ -195,9 +193,7 @@ class MariaDBCursorPatchUtil:
 		return _result
 
 
-class MariaDBDatabase(
-	MariaDBCursorPatchUtil, MariaDBConnectionUtil, MariaDBExceptionUtil, Database
-):
+class MariaDBDatabase(MariaDBCursorPatchUtil, MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
 	# NOTE: using a very small cache - as during backup, if the sequence was used in anyform,
 	# it drops the cache and uses the next non cached value in setval query and
@@ -209,7 +205,7 @@ class MariaDBDatabase(
 	SEQUENCE_CACHE = 50
 	CONVERSION_MAP = {
 		FIELD_TYPE.NEWDECIMAL: float,
-		FIELD_TYPE.DATETIME: get_datetime,
+		# FIELD_TYPE.DATETIME: get_datetime,
 		UnicodeWithAttrs: escape_string,
 	}
 	default_port = "3306"
