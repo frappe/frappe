@@ -2,9 +2,9 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import weakref
 from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
-import weakref
 
 import frappe
 from frappe import _, _dict
@@ -263,8 +263,8 @@ class BaseDocument:
 		ret_value = self._init_child(value, key)
 		table.append(ret_value)
 
-		# reference parent document
-		ret_value.parent_doc = self
+		# reference parent document but with weak reference, parent_doc will be deleted if self is garbage collected.
+		ret_value.parent_doc = weakref.ref(self)
 
 		return ret_value
 
@@ -279,8 +279,7 @@ class BaseDocument:
 
 	@parent_doc.setter
 	def parent_doc(self, value):
-		if isinstance(value, BaseDocument):
-			self._parent_doc = weakref.ref(value)
+		self._parent_doc = value
 
 	@parent_doc.deleter
 	def parent_doc(self):

@@ -196,5 +196,4 @@ class TestPerformance(FrappeTestCase):
 
 	def test_no_cyclic_references(self):
 		doc = frappe.get_doc("User", "Administrator")
-		gc.collect()
 		self.assertEqual(sys.getrefcount(doc), 2)  # Note: This always returns +1
