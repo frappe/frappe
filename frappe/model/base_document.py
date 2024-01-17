@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import weakref
 from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
 
@@ -162,6 +163,7 @@ class BaseDocument:
 
 		state.pop("meta", None)
 		state.pop("permitted_fieldnames", None)
+		state.pop("_parent_doc", None)
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -260,10 +262,27 @@ class BaseDocument:
 		ret_value = self._init_child(value, key)
 		table.append(ret_value)
 
-		# reference parent document
-		ret_value.parent_doc = self
+		# reference parent document but with weak reference, parent_doc will be deleted if self is garbage collected.
+		ret_value.parent_doc = weakref.ref(self)
 
 		return ret_value
+
+	@property
+	def parent_doc(self):
+		parent_doc_ref = getattr(self, "_parent_doc", None)
+
+		if isinstance(parent_doc_ref, BaseDocument):
+			return parent_doc_ref
+		elif isinstance(parent_doc_ref, weakref.ReferenceType):
+			return parent_doc_ref()
+
+	@parent_doc.setter
+	def parent_doc(self, value):
+		self._parent_doc = value
+
+	@parent_doc.deleter
+	def parent_doc(self):
+		self._parent_doc = None
 
 	def extend(self, key, value):
 		try:
@@ -1219,7 +1238,7 @@ class BaseDocument:
 				ref_doc = frappe.new_doc(self.doctype)
 			else:
 				# get values from old doc
-				if self.get("parent_doc"):
+				if self.parent_doc:
 					parent_doc = self.parent_doc.get_latest()
 					child_docs = [d for d in parent_doc.get(self.parentfield) if d.name == self.name]
 					if not child_docs:
