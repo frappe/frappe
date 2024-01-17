@@ -7,13 +7,8 @@ import frappe
 
 
 def get_parent_doc(doc):
-<<<<<<< HEAD
-	"""Returns document of `reference_doctype`, `reference_doctype`"""
-	if not hasattr(doc, "parent_doc"):
-=======
 	"""Return document of `reference_doctype`, `reference_doctype`."""
 	if not getattr(doc, "parent_doc", None):
->>>>>>> c177431557 (perf: `Document` objects without circular references (#17080))
 		if doc.reference_doctype and doc.reference_name:
 			doc.parent_doc = frappe.get_doc(doc.reference_doctype, doc.reference_name)
 		else:
