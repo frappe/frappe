@@ -170,7 +170,6 @@ def install_db(
 		setup_database(force, verbose, no_mariadb_socket)
 
 	bootstrap_database(
-		db_name=frappe.conf.db_name,
 		verbose=verbose,
 		source_sql=source_sql,
 	)

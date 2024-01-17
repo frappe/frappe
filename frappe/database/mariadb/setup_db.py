@@ -73,17 +73,17 @@ def drop_user_and_database(
 	dbman.delete_user(db_user)
 
 
-def bootstrap_database(db_name, verbose, source_sql=None):
+def bootstrap_database(verbose, source_sql=None):
 	import sys
 
-	frappe.connect(db_name=db_name)
+	frappe.connect()
 	if not check_database_settings():
 		print("Database settings do not match expected values; stopping database setup.")
 		sys.exit(1)
 
 	import_db_from_sql(source_sql, verbose)
-	frappe.connect(db_name=db_name)
 
+	frappe.connect()
 	if "tabDefaultValue" not in frappe.db.get_tables(cached=False):
 		from click import secho
 
