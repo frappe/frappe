@@ -4,7 +4,6 @@
 """build query for doclistview and return results"""
 
 import json
-from functools import lru_cache
 
 from sql_metadata import Parser
 
@@ -179,7 +178,6 @@ def is_standard(fieldname):
 	)
 
 
-@lru_cache
 def extract_fieldnames(field):
 	parser = Parser(f"select {field}, _frappe_dummy from _dummy")
 	columns = [col for col in parser.columns if col != "_frappe_dummy"]
