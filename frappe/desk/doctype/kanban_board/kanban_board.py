@@ -159,7 +159,6 @@ def update_order_for_single_card(
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	doctype = board.reference_doctype
-
 	frappe.has_permission(doctype, "write", throw=True)
 
 	fieldname = board.field_name
@@ -170,18 +169,8 @@ def update_order_for_single_card(
 	from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
 	to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
 	user = board.modified_by
-	if(from_colname != to_colname):
-			comment = frappe.new_doc("Comment")
-			comment.update(
-			{
-				"comment_type": "Comment",
-				"reference_doctype": "Project",
-				"reference_name": docname,
-				"comment_email": "",
-				"comment_by": "",
-				"content": "<div class=\"ql-editor read-mode\"><p>Project updated. From: " + from_colname + " TO: " + to_colname + ". Modified by: " + user + "</p></div>"
-			})
-			comment.insert(ignore_permissions=True)
+	if(doctype == "Project"):
+		createStatusChangedComment(from_colname, to_colname, docname, user)
 	if from_colname == to_colname:
 		from_col_order = to_col_order
 
@@ -197,6 +186,19 @@ def update_order_for_single_card(
 
 	return board
 
+def createStatusChangedComment(from_colname, to_colname, docname, user):
+	if(from_colname != to_colname):
+			comment = frappe.new_doc("Comment")
+			comment.update(
+			{
+				"comment_type": "Comment",
+				"reference_doctype": "Project",
+				"reference_name": docname,
+				"comment_email": "",
+				"comment_by": "",
+				"content": "<div class=\"ql-editor read-mode\"><p>Project updated. From: " + from_colname + " TO: " + to_colname + ". Modified by: " + user + "</p></div>"
+			})
+			comment.insert(ignore_permissions=True)
 
 def get_kanban_column_order_and_index(board, colname):
 	for i, col in enumerate(board.columns):
