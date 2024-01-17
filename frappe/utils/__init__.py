@@ -263,12 +263,12 @@ def has_gravatar(email):
 
 	gravatar_url = f"https://secure.gravatar.com/avatar/{hexdigest}?d=404&s=200"
 	try:
-		res = requests.get(gravatar_url)
+		res = requests.get(gravatar_url, timeout=5)
 		if res.status_code == 200:
 			return gravatar_url
 		else:
 			return ""
-	except requests.exceptions.ConnectionError:
+	except requests.exceptions.RequestException:
 		return ""
 
 
