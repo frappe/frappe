@@ -190,6 +190,11 @@ def is_standard(fieldname):
 
 @lru_cache
 def extract_fieldnames(field):
+	from frappe.database.schema import SPECIAL_CHAR_PATTERN
+
+	if not SPECIAL_CHAR_PATTERN.findall(field):
+		return [field]
+
 	parser = Parser(f"select {field}, _frappe_dummy from _dummy")
 	columns = [col for col in parser.columns if col != "_frappe_dummy"]
 
