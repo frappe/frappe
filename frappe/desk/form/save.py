@@ -62,7 +62,7 @@ def createStatusChangedTimeLine(doc):
 				"reference_name": project_name,
 				"comment_email": "",
 				"comment_by": "",
-				"content": "<div class=\"ql-editor read-mode\"><p>Project updated. From: " + current_status + " TO: " + new_status + ". modified by: " + user + "</p></div>"
+				"content": "<div class=\"ql-editor read-mode\"><p>Project updated. From: " + current_status + " TO: " + new_status + ". Modified by: " + user + "</p></div>"
 			})
 			comment.insert(ignore_permissions=True)
   
