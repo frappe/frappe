@@ -1,5 +1,6 @@
 frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.ControlData {
 	static html_element = "select";
+	static trigger_change_on_input_event = false;
 	make_input() {
 		super.make_input();
 

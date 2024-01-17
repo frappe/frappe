@@ -5,6 +5,7 @@ import contextlib
 # imports - standard imports
 import gzip
 import os
+import sys
 from calendar import timegm
 from datetime import datetime
 from glob import glob
@@ -225,6 +226,9 @@ class BackupGenerator:
 		"""
 		Encrypt all the backups created using gpg.
 		"""
+		if which("gpg") is None:
+			click.secho("Please install `gpg` and ensure its available in your PATH", fg="red")
+			sys.exit(1)
 		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
 		for path in paths:
 			if os.path.exists(path):
@@ -492,7 +496,7 @@ def fetch_latest_backups(partial=False) -> dict:
 	frappe.only_for("System Manager")
 	odb = BackupGenerator(
 		frappe.conf.db_name,
-		frappe.conf.db_name,
+		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
@@ -559,7 +563,7 @@ def new_backup(
 	delete_temp_backups()
 	odb = BackupGenerator(
 		frappe.conf.db_name,
-		frappe.conf.db_name,
+		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
@@ -640,6 +644,9 @@ def get_or_generate_backup_encryption_key():
 
 @contextlib.contextmanager
 def decrypt_backup(file_path: str, passphrase: str):
+	if which("gpg") is None:
+		click.secho("Please install `gpg` and ensure its available in your PATH", fg="red")
+		sys.exit(1)
 	if not os.path.exists(file_path):
 		print("Invalid path: ", file_path)
 		return

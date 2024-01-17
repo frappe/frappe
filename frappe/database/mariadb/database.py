@@ -1,4 +1,5 @@
 import re
+from contextlib import contextmanager
 
 import pymysql
 from pymysql.constants import ER, FIELD_TYPE
@@ -124,7 +125,7 @@ class MariaDBConnectionUtil:
 		}
 
 		if self.user not in (frappe.flags.root_login, "root"):
-			conn_settings["database"] = self.user
+			conn_settings["database"] = self.cur_db_name
 
 		if self.port:
 			conn_settings["port"] = int(self.port)
@@ -198,7 +199,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			SUM(`data_length` + `index_length`) / 1024 / 1024 AS `database_size`
 			FROM information_schema.tables WHERE `table_schema` = %s GROUP BY `table_schema`
 			""",
-			self.db_name,
+			self.cur_db_name,
 			as_dict=True,
 		)
 
@@ -208,6 +209,13 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		self.last_query = self._cursor._executed
 		self._log_query(self.last_query, debug, explain, query)
 		return self.last_query
+
+	def _clean_up(self):
+		# PERF: Erase internal references of pymysql to trigger GC as soon as
+		# results are consumed.
+		self._cursor._result = None
+		self._cursor._rows = None
+		self._cursor.connection._result = None
 
 	@staticmethod
 	def escape(s, percent=True):
@@ -518,3 +526,15 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		if est_row_size:
 			return int(est_row_size[0][0])
+
+	@contextmanager
+	def unbuffered_cursor(self):
+		from pymysql.cursors import SSCursor
+
+		try:
+			original_cursor = self._cursor
+			new_cursor = self._cursor = self._conn.cursor(SSCursor)
+			yield
+		finally:
+			self._cursor = original_cursor
+			new_cursor.close()

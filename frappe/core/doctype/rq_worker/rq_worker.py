@@ -34,8 +34,8 @@ class RQWorker(Document):
 		total_working_time: DF.Duration | None
 		utilization_percent: DF.Percent
 		worker_name: DF.Data | None
-
 	# end: auto-generated types
+
 	def load_from_db(self):
 
 		all_workers = get_workers()

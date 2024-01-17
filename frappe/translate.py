@@ -19,6 +19,8 @@ from contextlib import contextmanager, suppress
 from csv import reader, writer
 
 import frappe
+from frappe.gettext.extractors.javascript import extract_javascript
+from frappe.gettext.translate import get_translations_from_mo
 from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
@@ -114,9 +116,9 @@ def get_parent_language(lang: str) -> str:
 	        1. zh-TW -> zh
 	        2. sr-BA -> sr
 	"""
-	is_language_variant = "-" in lang
-	if is_language_variant:
-		return lang[: lang.index("-")]
+	for sep in ("_", "-"):
+		if sep in lang:
+			return lang.split(sep)[0]
 
 
 def get_user_lang(user: str = None) -> str:
@@ -187,6 +189,7 @@ def get_all_translations(lang: str) -> dict[str, str]:
 	except Exception:
 		# People mistakenly call translation function on global variables
 		# where locals are not initalized, translations dont make much sense there
+		frappe.logger().error("Unable to load translations", exc_info=True)
 		return {}
 
 
@@ -194,25 +197,26 @@ def get_translations_from_apps(lang, apps=None):
 	"""Combine all translations from `.csv` files in all `apps`.
 	For derivative languages (es-GT), take translations from the
 	base language (es) and then update translations from the child (es-GT)"""
-
-	if lang == "en":
-		return {}
-
 	translations = {}
 	for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
-		path = os.path.join(frappe.get_app_path(app, "translations"), lang + ".csv")
-		translations.update(get_translation_dict_from_file(path, lang, app) or {})
-	if "-" in lang:
-		parent = lang.split("-", 1)[0]
-		parent_translations = get_translations_from_apps(parent)
+		translations.update(get_translations_from_csv(lang, app) or {})
+		translations.update(get_translations_from_mo(lang, app) or {})
+	if parent := get_parent_language(lang):
+		parent_translations = get_translations_from_apps(parent, apps)
 		parent_translations.update(translations)
 		return parent_translations
 
 	return translations
 
 
+def get_translations_from_csv(lang, app):
+	return get_translation_dict_from_file(
+		os.path.join(frappe.get_app_path(app, "translations"), lang + ".csv"), lang, app
+	)
+
+
 def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, str]:
-	"""load translation dict from given path"""
+	"""Return translation dict from given CSV file at path"""
 	translation_map = {}
 	if os.path.exists(path):
 		csv_content = read_csv_file(path)
@@ -257,13 +261,9 @@ def get_user_translations(lang):
 
 def clear_cache():
 	"""Clear all translation assets from :meth:`frappe.cache`"""
-	frappe.cache.delete_key("langinfo")
-
-	# clear translations saved in boot cache
-	frappe.cache.delete_key("bootinfo")
-	frappe.cache.delete_key("translation_assets")
-	frappe.cache.delete_key(USER_TRANSLATION_KEY)
-	frappe.cache.delete_key(MERGED_TRANSLATION_KEY)
+	frappe.cache.delete_value(
+		keys=["bootinfo", USER_TRANSLATION_KEY, MERGED_TRANSLATION_KEY],
+	)
 
 
 def get_messages_for_app(app, deduplicate=True):
@@ -633,7 +633,7 @@ def extract_messages_from_python_code(code: str) -> list[tuple[int, str, str | N
 
 	for message in extract_python(
 		io.BytesIO(code.encode()),
-		keywords=["_"],
+		keywords=["_", "_lt"],
 		comment_tags=(),
 		options={},
 	):
@@ -674,147 +674,6 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 		messages.append((lineno, source_text, context))
 
 	return messages
-
-
-def extract_javascript(code, keywords=("__",), options=None):
-	"""Extract messages from JavaScript source code.
-
-	This is a modified version of babel's JS parser. Reused under BSD license.
-	License: https://github.com/python-babel/babel/blob/master/LICENSE
-
-	Changes from upstream:
-	- Preserve arguments, babel's parser flattened all values in args,
-	  we need order because we use different syntax for translation
-	  which can contain 2nd arg which is array of many values. If
-	  argument is non-primitive type then value is NOT returned in
-	  args.
-	  E.g. __("0", ["1", "2"], "3") -> ("0", None, "3")
-	- remove comments support
-	- changed signature to accept string directly.
-
-	:param code: code as string
-	:param keywords: a list of keywords (i.e. function names) that should be
-	                 recognized as translation functions
-	:param options: a dictionary of additional options (optional)
-	                Supported options are:
-	                * `template_string` -- set to false to disable ES6
-	                                       template string support.
-	"""
-	from babel.messages.jslexer import Token, tokenize, unquote_string
-
-	if options is None:
-		options = {}
-
-	funcname = message_lineno = None
-	messages = []
-	last_argument = None
-	concatenate_next = False
-	last_token = None
-	call_stack = -1
-
-	# Tree level = depth inside function call tree
-	#  Example: __("0", ["1", "2"], "3")
-	# Depth         __()
-	#             /   |   \
-	#   0       "0" [...] "3"  <- only 0th level strings matter
-	#                /  \
-	#   1          "1"  "2"
-	tree_level = 0
-	opening_operators = {"[", "{"}
-	closing_operators = {"]", "}"}
-	all_container_operators = opening_operators.union(closing_operators)
-	dotted = any("." in kw for kw in keywords)
-
-	for token in tokenize(
-		code,
-		jsx=True,
-		template_string=options.get("template_string", True),
-		dotted=dotted,
-	):
-		if (  # Turn keyword`foo` expressions into keyword("foo") calls:
-			funcname
-			and (last_token and last_token.type == "name")  # have a keyword...
-			and token.type  # we've seen nothing after the keyword...
-			== "template_string"  # this is a template string
-		):
-			message_lineno = token.lineno
-			messages = [unquote_string(token.value)]
-			call_stack = 0
-			tree_level = 0
-			token = Token("operator", ")", token.lineno)
-
-		if token.type == "operator" and token.value == "(":
-			if funcname:
-				message_lineno = token.lineno
-				call_stack += 1
-
-		elif call_stack >= 0 and token.type == "operator" and token.value in all_container_operators:
-			if token.value in opening_operators:
-				tree_level += 1
-			if token.value in closing_operators:
-				tree_level -= 1
-
-		elif call_stack == -1 and token.type == "linecomment" or token.type == "multilinecomment":
-			pass  # ignore comments
-
-		elif funcname and call_stack == 0:
-			if token.type == "operator" and token.value == ")":
-				if last_argument is not None:
-					messages.append(last_argument)
-				if len(messages) > 1:
-					messages = tuple(messages)
-				elif messages:
-					messages = messages[0]
-				else:
-					messages = None
-
-				if messages is not None:
-					yield (message_lineno, funcname, messages)
-
-				funcname = message_lineno = last_argument = None
-				concatenate_next = False
-				messages = []
-				call_stack = -1
-				tree_level = 0
-
-			elif token.type in ("string", "template_string"):
-				new_value = unquote_string(token.value)
-				if tree_level > 0:
-					pass
-				elif concatenate_next:
-					last_argument = (last_argument or "") + new_value
-					concatenate_next = False
-				else:
-					last_argument = new_value
-
-			elif token.type == "operator":
-				if token.value == ",":
-					if last_argument is not None:
-						messages.append(last_argument)
-						last_argument = None
-					else:
-						if tree_level == 0:
-							messages.append(None)
-					concatenate_next = False
-				elif token.value == "+":
-					concatenate_next = True
-
-		elif call_stack > 0 and token.type == "operator" and token.value == ")":
-			call_stack -= 1
-			tree_level = 0
-
-		elif funcname and call_stack == -1:
-			funcname = None
-
-		elif (
-			call_stack == -1
-			and token.type == "name"
-			and token.value in keywords
-			and (last_token is None or last_token.type != "name" or last_token.value != "function")
-		):
-			funcname = token.value
-
-		last_token = token
 
 
 def extract_messages_from_code(code):
@@ -1012,7 +871,6 @@ def import_translations(lang, path):
 
 def migrate_translations(source_app, target_app):
 	"""Migrate target-app-specific translations from source-app to target-app"""
-	clear_cache()
 	strings_in_source_app = [m[1] for m in frappe.translate.get_messages_for_app(source_app)]
 	strings_in_target_app = [m[1] for m in frappe.translate.get_messages_for_app(target_app)]
 
@@ -1246,6 +1104,44 @@ def print_language(language: str):
 	# restore original values
 	frappe.local.lang = _lang
 	frappe.local.jenv = _jenv
+
+
+@functools.total_ordering
+class LazyTranslate:
+	__slots__ = ("msg", "lang", "context")
+
+	def __init__(self, msg: str, lang: str | None = None, context: str | None = None) -> None:
+		self.msg = msg
+		self.lang = lang
+		self.context = context
+
+	@property
+	def value(self) -> str:
+		return frappe._(str(self.msg), self.lang, self.context)
+
+	def __str__(self):
+		return self.value
+
+	def __add__(self, other):
+		if isinstance(other, (str, LazyTranslate)):
+			return self.value + str(other)
+		raise NotImplementedError
+
+	def __radd__(self, other):
+		if isinstance(other, (str, LazyTranslate)):
+			return str(other) + self.value
+		return NotImplementedError
+
+	def __repr__(self) -> str:
+		return f"'{self.value}'"
+
+	# NOTE: it's required to override these methods and raise error as default behaviour will
+	# return `False` in all cases.
+	def __eq__(self, other):
+		raise NotImplementedError
+
+	def __lt__(self, other):
+		raise NotImplementedError
 
 
 # Backward compatibility

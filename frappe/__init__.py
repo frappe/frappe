@@ -118,6 +118,23 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	return translated_string or non_translated_string
 
 
+def _lt(msg: str, lang: str | None = None, context: str | None = None):
+	"""Lazily translate a string.
+
+
+	This function returns a "lazy string" which when casted to string via some operation applies
+	translation first before casting.
+
+	This is only useful for translating strings in global scope or anything that potentially runs
+	before `frappe.init()`
+
+	Note: Result is not guaranteed to equivalent to pure strings for all operations.
+	"""
+	from frappe.translate import LazyTranslate
+
+	return LazyTranslate(msg, lang, context)
+
+
 def as_unicode(text, encoding: str = "utf-8") -> str:
 	"""Convert to unicode if required."""
 	if isinstance(text, str):
@@ -252,6 +269,10 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 
 	local.initialised = True
 
+	# Set the user as database name if not set in config
+	if local.conf and local.conf.db_name is not None and local.conf.db_user is None:
+		local.conf.db_user = local.conf.db_name
+
 
 def connect(
 	site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True
@@ -270,7 +291,7 @@ def connect(
 	local.db = get_db(
 		host=local.conf.db_host,
 		port=local.conf.db_port,
-		user=db_name or local.conf.db_name,
+		user=local.conf.db_user or db_name,
 		password=None,
 	)
 	if set_admin_as_user:
@@ -283,12 +304,12 @@ def connect_replica() -> bool:
 	if local and hasattr(local, "replica_db") and hasattr(local, "primary_db"):
 		return False
 
-	user = local.conf.db_name
+	user = local.conf.db_user
 	password = local.conf.db_password
 	port = local.conf.replica_db_port
 
 	if local.conf.different_credentials_for_replica:
-		user = local.conf.replica_db_name
+		user = local.conf.replica_db_user or local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
 	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
@@ -308,8 +329,10 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	sites_path = sites_path or getattr(local, "sites_path", None)
 	site_path = site_path or getattr(local, "site_path", None)
 
+	common_config = get_common_site_config(sites_path)
+
 	if sites_path:
-		config.update(get_common_site_config(sites_path))
+		config.update(common_config)
 
 	if site_path:
 		site_config = os.path.join(site_path, "site_config.json")
@@ -320,7 +343,15 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 				click.secho(f"{local.site}/site_config.json is invalid", fg="red")
 				print(error)
 		elif local.site and not local.flags.new_site:
-			raise IncorrectSitePath(f"{local.site} does not exist")
+			error_msg = f"{local.site} does not exist."
+			if common_config.developer_mode:
+				from frappe.utils import get_sites
+
+				all_sites = get_sites()
+				error_msg += "\n\nSites on this bench:\n"
+				error_msg += "\n".join(f"* {site}" for site in all_sites)
+
+			raise IncorrectSitePath(error_msg)
 
 	# Generalized env variable overrides and defaults
 	def db_default_ports(db_type):
@@ -975,6 +1006,7 @@ def has_permission(
 	throw=False,
 	*,
 	parent_doctype=None,
+	debug=False,
 ):
 	"""
 	Return True if the user has permission `ptype` for given `doctype` or `doc`.
@@ -997,8 +1029,9 @@ def has_permission(
 		ptype,
 		doc=doc,
 		user=user,
-		raise_exception=throw,
+		print_logs=throw,
 		parent_doctype=parent_doctype,
+		debug=debug,
 	)
 
 	if throw and not out:
