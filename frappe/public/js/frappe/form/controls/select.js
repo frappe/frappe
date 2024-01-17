@@ -110,7 +110,7 @@ frappe.ui.form.add_options = function (input, options_list, sort) {
 
 	let options = options_list.map((raw_option) => parse_option(raw_option));
 	if (sort) {
-		options = options.sort((a, b) => a.label.localeCompare(b.label));
+		options = options.sort((a, b) => cstr(a.label).localeCompare(cstr(b.label)));
 	}
 
 	options
