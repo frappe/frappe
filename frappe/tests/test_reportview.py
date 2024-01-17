@@ -39,6 +39,7 @@ class TestReportview(FrappeTestCase):
 		)
 
 		self.assertEqual(extract_fieldnames("owner")[0], "owner")
+		self.assertEqual(extract_fieldnames("from")[0], "from")
 
 		self.assertEqual(extract_fieldnames("module")[0], "module")
 
@@ -63,9 +64,7 @@ class TestReportview(FrappeTestCase):
 			"tabAddress.name",
 		)
 
-		self.assertEqual(
-			extract_fieldnames("EXTRACT(MONTH FROM date_column) AS month")[0], "date_column"
-		)
+		self.assertEqual(extract_fieldnames("EXTRACT(MONTH FROM date_column) AS month")[0], "date_column")
 
 		self.assertEqual(extract_fieldnames("COUNT(*) AS count")[0], "*")
 
@@ -89,6 +88,4 @@ class TestReportview(FrappeTestCase):
 
 		self.assertEqual(extract_fieldnames("tablefield.fiedname")[0], "tablefield.fiedname")
 
-		self.assertEqual(
-			extract_fieldnames("`tabChild DocType`.`fiedname`")[0], "tabChild DocType.fiedname"
-		)
+		self.assertEqual(extract_fieldnames("`tabChild DocType`.`fiedname`")[0], "tabChild DocType.fiedname")
