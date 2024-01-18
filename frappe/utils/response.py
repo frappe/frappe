@@ -47,19 +47,6 @@ def report_error(status_code):
 	return response
 
 
-<<<<<<< HEAD
-=======
-def _link_error_with_message_log(error_log, exception, message_logs):
-	for message in list(message_logs):
-		if message.get("__frappe_exc_id") == getattr(exception, "__frappe_exc_id", None):
-			error_log.update(message)
-			message_logs.remove(message)
-			error_log.pop("raise_exception", None)
-			error_log.pop("__frappe_exc_id", None)
-			return
-
-
->>>>>>> ee6743c26b (fix: avoid mutating list while iterating over it (#24438))
 def build_response(response_type=None):
 	if "docs" in frappe.local.response and not frappe.local.response.docs:
 		del frappe.local.response["docs"]
