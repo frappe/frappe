@@ -1147,8 +1147,21 @@ def rebuild_global_search(context, static_pages=False):
 		raise SiteNotSpecifiedError
 
 
+@click.command("can-use-cached")
+def can_use_cached() -> None:
+	"""
+	Used by bench to check if the installed version of Frappe supports
+	installing apps from cached get-app artifacts.
+
+	Bench just checks the exit code for this command, if it is not
+	present then the call to this command will error out.
+	"""
+	click.secho("yes", fg="green")
+
+
 commands = [
 	build,
+	can_use_cached,
 	clear_cache,
 	clear_website_cache,
 	database,
