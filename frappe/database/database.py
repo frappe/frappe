@@ -40,11 +40,12 @@ if TYPE_CHECKING:
 	from pymysql.connections import Connection as MariadbConnection
 	from pymysql.cursors import Cursor as MariadbCursor
 
-
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
+
+SQL_ITERATOR_BATCH_SIZE = 100
 
 
 class Database:
@@ -79,7 +80,7 @@ class Database:
 		self.setup_type_map()
 		self.host = host or frappe.conf.db_host
 		self.port = port or frappe.conf.db_port
-		self.user = user or frappe.conf.db_name
+		self.user = user or frappe.conf.db_user or frappe.conf.db_name
 		self.cur_db_name = frappe.conf.db_name
 		self._conn = None
 
@@ -102,8 +103,8 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
-		# self.db_type: str
-		# self.last_query (lazy) attribute of last sql query executed
+	# self.db_type: str
+	# self.last_query (lazy) attribute of last sql query executed
 
 	def setup_type_map(self):
 		pass
@@ -175,6 +176,8 @@ class Database:
 		:param pluck: Get the plucked field only.
 		:param explain: Print `EXPLAIN` in error log.
 		:param as_iterator: Returns iterator over results instead of fetching all results at once.
+		        This should be used with unbuffered cursor as default cursors used by pymysql and postgres
+		        buffer the results internally. See `Database.unbuffered_cursor`.
 		Examples:
 
 		        # return customer names as dicts
@@ -276,12 +279,10 @@ class Database:
 		if not self._cursor.description:
 			return ()
 
-		last_result = self._transform_result(self._cursor.fetchall())
 		if as_iterator:
-			return self._return_as_iterator(
-				last_result, pluck=pluck, as_dict=as_dict, as_list=as_list, update=update
-			)
+			return self._return_as_iterator(pluck=pluck, as_dict=as_dict, as_list=as_list, update=update)
 
+		last_result = self._transform_result(self._cursor.fetchall())
 		if pluck:
 			last_result = [r[0] for r in last_result]
 			self._clean_up()
@@ -300,24 +301,25 @@ class Database:
 		self._clean_up()
 		return last_result
 
-	def _return_as_iterator(self, result, *, pluck, as_dict, as_list, update):
-		if pluck:
-			for row in result:
-				yield row[0]
+	def _return_as_iterator(self, *, pluck, as_dict, as_list, update):
+		while result := self._transform_result(self._cursor.fetchmany(SQL_ITERATOR_BATCH_SIZE)):
+			if pluck:
+				for row in result:
+					yield row[0]
 
-		elif as_dict:
-			keys = [column[0] for column in self._cursor.description]
-			for row in result:
-				row = frappe._dict(zip(keys, row))
-				if update:
-					row.update(update)
-				yield row
+			elif as_dict:
+				keys = [column[0] for column in self._cursor.description]
+				for row in result:
+					row = frappe._dict(zip(keys, row))
+					if update:
+						row.update(update)
+					yield row
 
-		elif as_list:
-			for row in result:
-				yield list(row)
-		else:
-			frappe.throw(_("`as_iterator` only works with `as_list=True` or `as_dict=True`"))
+			elif as_list:
+				for row in result:
+					yield list(row)
+			else:
+				frappe.throw(_("`as_iterator` only works with `as_list=True` or `as_dict=True`"))
 
 		self._clean_up()
 
@@ -781,7 +783,7 @@ class Database:
 		Example:
 
 		        # Update the `deny_multiple_sessions` field in System Settings DocType.
-		        company = frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
+		        frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
 		"""
 
 		to_update = self._get_update_dict(
@@ -1342,6 +1344,22 @@ class Database:
 		raise NotImplementedError
 
 	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
+		raise NotImplementedError
+
+	@contextmanager
+	def unbuffered_cursor(self):
+		"""Context manager to temporarily use unbuffered cursor.
+
+		Using this with `as_iterator=True` provides O(1) memory usage while reading large result sets.
+
+		NOTE: You MUST do entire result set processing in the context, otherwise underlying cursor
+		will be switched and you'll not get complete results.
+
+		Usage:
+		        with frappe.db.unbuffered_cursor():
+		                for row in frappe.db.sql("query with huge result", as_iterator=True):
+		                        continue # Do some processing.
+		"""
 		raise NotImplementedError
 
 

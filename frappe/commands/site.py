@@ -53,6 +53,7 @@ from frappe.exceptions import SiteNotSpecifiedError
 	default=True,
 	help="Create user and database in mariadb/postgres; only bootstrap if false",
 )
+@click.option("--db-user", help="Database user if you already have one")
 def new_site(
 	site,
 	db_root_username=None,
@@ -68,6 +69,7 @@ def new_site(
 	db_type=None,
 	db_host=None,
 	db_port=None,
+	db_user=None,
 	set_default=False,
 	setup_db=True,
 ):
@@ -91,6 +93,7 @@ def new_site(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
+		db_user=db_user,
 		setup_db=setup_db,
 	)
 
@@ -319,7 +322,7 @@ def restore_backup(
 		)
 
 	except Exception as err:
-		print(err.args[1])
+		print(err)
 		sys.exit(1)
 
 
@@ -1058,7 +1061,11 @@ def _drop_site(
 			sys.exit(1)
 
 	click.secho("Dropping site database and user", fg="green")
-	drop_user_and_database(frappe.conf.db_name, db_root_username, db_root_password)
+
+	frappe.flags.root_login = db_root_username
+	frappe.flags.root_password = db_root_password
+
+	drop_user_and_database(frappe.conf.db_name, frappe.conf.db_user)
 
 	archived_sites_path = archived_sites_path or os.path.join(
 		frappe.utils.get_bench_path(), "archived", "sites"
@@ -1336,7 +1343,6 @@ def build_search_index(context):
 @click.option("--no-backup", is_flag=True, default=False, help="Do not backup the table")
 @pass_context
 def clear_log_table(context, doctype, days, no_backup):
-
 	"""If any logtype table grows too large then clearing it with DELETE query
 	is not feasible in reasonable time. This command copies recent data to new
 	table and replaces current table with new smaller table.
