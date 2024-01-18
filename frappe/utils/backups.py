@@ -661,13 +661,15 @@ def decrypt_backup(file_path: str, passphrase: str):
 			decrypted_file=file_path,
 		)
 	frappe.utils.execute_in_shell(command)
-	yield
-	if os.path.exists(file_path + ".gpg"):
-		if os.path.exists(file_path):
-			os.remove(file_path)
-		if os.path.exists(file_path.rstrip(".gz")):
-			os.remove(file_path.rstrip(".gz"))
-		os.rename(file_path + ".gpg", file_path)
+	try:
+		yield
+	finally:
+		if os.path.exists(file_path_with_ext):
+			if os.path.exists(file_path):
+				os.remove(file_path)
+			if os.path.exists(file_path.rstrip(".gz")):
+				os.remove(file_path.rstrip(".gz"))
+			os.rename(file_path_with_ext, file_path)
 
 
 def backup(
