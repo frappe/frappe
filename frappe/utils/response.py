@@ -61,7 +61,7 @@ def report_error(status_code):
 
 
 def _link_error_with_message_log(error_log, exception, message_logs):
-	for message in message_logs:
+	for message in list(message_logs):
 		if message.get("__frappe_exc_id") == getattr(exception, "__frappe_exc_id", None):
 			error_log.update(message)
 			message_logs.remove(message)
