@@ -274,13 +274,25 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 		local.conf.db_user = local.conf.db_name
 
 
-def connect(db_name: str | None = None, set_admin_as_user: bool = True) -> None:
+def connect(
+	site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True
+) -> None:
 	"""Connect to site database instance.
 
+	:param site: (Deprecated) If site is given, calls `frappe.init`.
 	:param db_name: Optional. Will use from `site_config.json`.
 	:param set_admin_as_user: Set Administrator as current user.
 	"""
 	from frappe.database import get_db
+
+	if site:
+		from frappe.utils.deprecations import deprecation_warning
+
+		deprecation_warning(
+			"Calling frappe.connect with the site argument is deprecated and will be removed in next major version. "
+			"Instead, explicitly invoke frappe.init(site) prior to calling frappe.connect(), if initializing the site is necessary."
+		)
+		init(site)
 
 	local.db = get_db(
 		host=local.conf.db_host,
