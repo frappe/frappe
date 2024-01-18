@@ -40,6 +40,7 @@ EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 	"--using-cached",
 	is_flag=True,
 	default=False,
+	envvar="USING_CACHED",
 	help="Skips build and uses cached build artifacts (cache is set by Bench). Ignored if developer_mode enabled.",
 )
 def build(
@@ -1147,21 +1148,8 @@ def rebuild_global_search(context, static_pages=False):
 		raise SiteNotSpecifiedError
 
 
-@click.command("can-use-cached")
-def can_use_cached() -> None:
-	"""
-	Used by bench to check if the installed version of Frappe supports
-	installing apps from cached get-app artifacts.
-
-	Bench just checks the exit code for this command, if it is not
-	present then the call to this command will error out.
-	"""
-	click.secho("yes", fg="green")
-
-
 commands = [
 	build,
-	can_use_cached,
 	clear_cache,
 	clear_website_cache,
 	database,
