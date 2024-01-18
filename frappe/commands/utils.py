@@ -635,7 +635,7 @@ def console(context, autoreload=False):
 	all_apps = frappe.get_installed_apps()
 	failed_to_import = []
 
-	for app in all_apps:
+	for app in list(all_apps):
 		try:
 			locals()[app] = __import__(app)
 		except ModuleNotFoundError:

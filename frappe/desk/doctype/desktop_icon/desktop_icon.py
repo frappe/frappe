@@ -243,7 +243,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 		frappe.db.sql("update `tabDesktop Icon` set blocked=0, hidden=1 where standard=1")
 
 	# set as visible if present, or add icon
-	for module_name in visible_list:
+	for module_name in list(visible_list):
 		name = frappe.db.get_value("Desktop Icon", {"module_name": module_name})
 		if name:
 			frappe.db.set_value("Desktop Icon", name, "hidden", 0)

@@ -53,7 +53,7 @@ class Comment(Document):
 
 	def remove_comment_from_cache(self):
 		_comments = get_comments_from_parent(self)
-		for c in _comments:
+		for c in list(_comments):
 			if c.get("name") == self.name:
 				_comments.remove(c)
 
