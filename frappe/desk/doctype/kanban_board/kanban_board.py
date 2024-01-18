@@ -220,7 +220,7 @@ def update_column_order(board_name, order):
 	new_columns = []
 
 	for col in order:
-		for column in old_columns:
+		for column in list(old_columns):
 			if col == column.column_name:
 				new_columns.append(column)
 				old_columns.remove(column)
