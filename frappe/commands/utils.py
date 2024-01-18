@@ -108,7 +108,8 @@ def clear_cache(context):
 
 	for site in context.sites:
 		try:
-			frappe.connect(site)
+			frappe.init(site=site)
+			frappe.connect()
 			frappe.clear_cache()
 			clear_website_cache()
 		finally:
@@ -601,7 +602,7 @@ def console(context, autoreload=False):
 	all_apps = frappe.get_installed_apps()
 	failed_to_import = []
 
-	for app in all_apps:
+	for app in list(all_apps):
 		try:
 			locals()[app] = __import__(app)
 		except ModuleNotFoundError:

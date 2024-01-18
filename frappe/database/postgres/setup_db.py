@@ -63,19 +63,17 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 def get_root_connection():
 	if not frappe.local.flags.root_connection:
-		if not frappe.flags.root_login:
-			frappe.flags.root_login = frappe.conf.get("root_login") or None
+		from getpass import getpass
 
 		if not frappe.flags.root_login:
-			frappe.flags.root_login = input("Enter postgres super user: ")
+			frappe.flags.root_login = (
+				frappe.conf.get("root_login") or input("Enter postgres super user [postgres]: ") or "postgres"
+			)
 
 		if not frappe.flags.root_password:
-			frappe.flags.root_password = frappe.conf.get("root_password") or None
-
-		if not frappe.flags.root_password:
-			from getpass import getpass
-
-			frappe.flags.root_password = getpass("Postgres super user password: ")
+			frappe.flags.root_password = frappe.conf.get("root_password") or getpass(
+				"Postgres super user password: "
+			)
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
 			host=frappe.conf.db_host,

@@ -51,7 +51,7 @@ jobs:
           python $GITHUB_WORKSPACE/.github/helper/documentation.py $PR_NUMBER
 
   linter:
-    name: 'Frappe Linter'
+    name: 'Semgrep Rules'
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 
@@ -61,7 +61,6 @@ jobs:
         with:
           python-version: '3.10'
           cache: pip
-      - uses: pre-commit/action@v3.0.0
 
       - name: Download Semgrep rules
         run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
