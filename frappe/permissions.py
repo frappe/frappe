@@ -300,16 +300,10 @@ def has_user_permission(doc, user=None):
 	if get_role_permissions("User Permission", user=user).get("write"):
 		return True
 
-<<<<<<< HEAD
-	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
-=======
 	# don't apply strict user permissions for single doctypes since they contain empty link fields
 	apply_strict_user_permissions = (
 		False if doc.meta.issingle else frappe.get_system_settings("apply_strict_user_permissions")
 	)
-	if apply_strict_user_permissions:
-		debug and _debug_log("Strict user permissions will be applied")
->>>>>>> f74939eb0c (fix: skip strict user perms for single doctypes)
 
 	doctype = doc.get("doctype")
 	docname = doc.get("name")
