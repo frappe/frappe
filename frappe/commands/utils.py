@@ -108,7 +108,8 @@ def clear_cache(context):
 
 	for site in context.sites:
 		try:
-			frappe.connect(site)
+			frappe.init(site=site)
+			frappe.connect()
 			frappe.clear_cache()
 			clear_website_cache()
 		finally:
