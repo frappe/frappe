@@ -186,10 +186,7 @@ function is_filter_applied() {
 }
 
 function open_child_doctype() {
-	if (!props.field.df.options) {
-		frappe.msgprint(__("Please add a Doctype in the options field"));
-		return;
-	}
+	if (!props.field?.df?.options) return;
 	window.open(`/app/doctype/${props.field.df.options}`, "_blank");
 }
 
@@ -224,7 +221,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						class="help-icon"
 						v-if="field.df.documentation_url"
 						v-html="frappe.utils.icon('help', 'sm')"
-					></div>
+					/>
 				</div>
 			</template>
 			<template #actions>
@@ -235,19 +232,11 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						:class="is_filter_applied()"
 						@click="edit_filters"
 					>
-						<div v-html="frappe.utils.icon('filter', 'sm')"></div>
+						<div v-html="frappe.utils.icon('filter', 'sm')" />
 					</button>
 					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
 						<div v-html="frappe.utils.icon('add', 'sm')" />
 					</AddFieldButton>
-					<button
-						v-if="field.df.fieldtype === 'Table'"
-						class="btn btn-xs btn-icon"
-						@click="open_child_doctype"
-						:title="__(`Edit ${field.df.options} Doctype`)"
-					>
-						<div v-html="frappe.utils.icon('up-right-external', 'sm')"></div>
-					</button>
 					<button
 						v-if="column.fields.indexOf(field)"
 						class="btn btn-xs btn-icon"
@@ -255,20 +244,30 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 							__('Move the current field and the following fields to a new column')
 						"
 						@click="move_fields_to_column"
-					></button>
+					>
+						<div v-html="frappe.utils.icon('move', 'sm')" />
+					</button>
 					<button
 						class="btn btn-xs btn-icon"
 						:title="__('Duplicate field')"
 						@click.stop="duplicate_field"
 					>
-						<div v-html="frappe.utils.icon('duplicate', 'sm')"></div>
+						<div v-html="frappe.utils.icon('duplicate', 'sm')" />
+					</button>
+					<button
+						v-if="field.df.fieldtype === 'Table' && field.df.options"
+						class="btn btn-xs btn-icon"
+						@click="open_child_doctype"
+						:title="__(`Edit ${field.df.options} Doctype`)"
+					>
+						<div v-html="frappe.utils.icon('external-link', 'sm')" />
 					</button>
 					<button
 						class="btn btn-xs btn-icon"
 						:title="__('Remove field')"
 						@click.stop="remove_field"
 					>
-						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+						<div v-html="frappe.utils.icon('remove', 'sm')" />
 					</button>
 				</div>
 			</template>

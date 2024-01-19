@@ -56,7 +56,7 @@ function open_new_child_doctype_dialog() {
 				@click="open_new_child_doctype_dialog"
 				v-if="!table_columns.length"
 			>
-				{{ __("Create a New Child Doctype") }}
+				{{ __("Create Child Doctype") }}
 			</button>
 			<p v-else>{{ __("No Data") }}</p>
 		</div>
