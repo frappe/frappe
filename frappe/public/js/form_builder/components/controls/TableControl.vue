@@ -2,7 +2,7 @@
 import { get_table_columns, load_doctype_model } from "../../utils";
 import { computedAsync } from "@vueuse/core";
 
-const props = defineProps(["df"]);
+const props = defineProps(["df", "is-customize-form"]);
 
 let table_columns = computedAsync(async () => {
 	let doctype = props.df.options;
@@ -15,7 +15,10 @@ let table_columns = computedAsync(async () => {
 }, []);
 
 function open_new_child_doctype_dialog() {
-	frappe.listview_settings["DocType"].new_doctype_dialog({ is_child: 1 });
+	let is_custom = props.isCustomizeForm;
+	frappe.model.with_doctype("DocType").then(() => {
+		frappe.listview_settings["DocType"].new_doctype_dialog({ is_child: 1, is_custom });
+	});
 }
 </script>
 

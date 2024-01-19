@@ -204,6 +204,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 		<component
 			:is="component"
 			:df="field.df"
+			:is-customize-form="store.is_customize_form"
 			:data-fieldname="field.df.fieldname"
 			:data-fieldtype="field.df.fieldtype"
 		>

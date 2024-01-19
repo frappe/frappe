@@ -12,6 +12,7 @@ frappe.listview_settings["DocType"] = {
 			is_virtual = 0,
 			is_single = 0,
 			is_tree = 0,
+			is_custom = 0,
 			editable_grid = 1,
 		} = args || {};
 
@@ -81,7 +82,7 @@ frappe.listview_settings["DocType"] = {
 				label: __("Custom?"),
 				fieldname: "custom",
 				fieldtype: "Check",
-				default: non_developer,
+				default: non_developer || is_custom,
 				read_only: non_developer,
 			},
 		];
