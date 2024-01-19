@@ -21,6 +21,7 @@ class WebPageView(Document):
 		browser: DF.Data | None
 		browser_version: DF.Data | None
 		campaign: DF.Data | None
+		extra_data: DF.Code | None
 		is_unique: DF.Data | None
 		medium: DF.Data | None
 		path: DF.Data | None
@@ -107,6 +108,7 @@ def _make_view_log(
 	campaign=None,
 	medium=None,
 	visitor_id=None,
+	data=None,
 ):
 	"""
 	Implementation for frappe.website.log_event on the "Web Page View" event
@@ -126,6 +128,7 @@ def _make_view_log(
 	view.campaign = campaign
 	view.medium = (medium or "").lower()
 	view.visitor_id = visitor_id
+	view.extra_data = data
 	return view
 
 

@@ -19,6 +19,7 @@ def log_event(
 	campaign=None,
 	medium=None,
 	visitor_id=None,
+	data=None,
 ):
 	"""
 	Can be used via /api/method/frappe.website.log_event to log analytical events.
@@ -70,6 +71,7 @@ def log_event(
 			campaign=campaign,
 			medium=medium,
 			visitor_id=visitor_id,
+			data=data,
 		)
 
 	try:

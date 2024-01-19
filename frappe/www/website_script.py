@@ -16,6 +16,7 @@ def get_context(context):
 	if js:
 		context.javascript += "\n" + js
 
+	context["tracking_data_capture_js"] = get_setting("tracking_data_capture_js")
 	if not frappe.conf.developer_mode:
 		context["google_analytics_id"] = get_setting("google_analytics_id")
 		context["google_analytics_anonymize_ip"] = get_setting("google_analytics_anonymize_ip")

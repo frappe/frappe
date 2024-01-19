@@ -62,14 +62,16 @@
   "edit_footer_template_values",
   "integrations",
   "analytics_section",
+  "built_in_analytics_column",
   "enable_view_tracking",
+  "tracking_data_capture_js",
+  "column_break_17",
+  "google_analytics_id",
+  "google_analytics_anonymize_ip",
   "enable_google_indexing",
   "authorize_api_indexing_access",
   "indexing_refresh_token",
   "indexing_authorization_code",
-  "column_break_17",
-  "google_analytics_id",
-  "google_analytics_anonymize_ip",
   "account_deletion_settings_section",
   "auto_account_deletion",
   "show_account_deletion_link",
@@ -227,7 +229,8 @@
   },
   {
    "fieldname": "column_break_17",
-   "fieldtype": "Column Break"
+   "fieldtype": "Column Break",
+   "label": "Google Analytics"
   },
   {
    "fieldname": "misc_section",
@@ -472,6 +475,19 @@
    "label": "Analytics"
   },
   {
+   "description": "In addition to <code>window</code> and <code>document</code>, these pre-parsed convenience objects are also in scope: <code>q</code> (query params), <code>m</code> (meta tags) &amp; <code>c</code> (first party cookies). Assign the result to <code>const r = {...}</code>.<br><small>Use this to capture additional tracking data, such as for example Click IDs and others. They will be stored in a <code>data</code> json field on each registered event.</small>",
+   "fieldname": "tracking_data_capture_js",
+   "placeholder": "const r = {}",
+   "fieldtype": "Code",
+   "label": "Javascript Tracking Data Capture",
+   "options": "Javascript"
+  },
+  {
+   "fieldname": "built_in_analytics_column",
+   "fieldtype": "Column Break",
+   "label": "Built In Analytics"
+  },
+  {
    "default": "0",
    "fieldname": "show_footer_on_login",
    "fieldtype": "Check",
@@ -483,7 +499,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-01-08 11:50:34.750809",
+ "modified": "2024-01-19 14:50:12.595304",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

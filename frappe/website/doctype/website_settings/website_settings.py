@@ -62,6 +62,7 @@ class WebsiteSettings(Document):
 		subdomain: DF.SmallText | None
 		title_prefix: DF.Data | None
 		top_bar_items: DF.Table[TopBarItem]
+		tracking_data_capture_js: DF.Code | None
 		website_theme: DF.Link | None
 		website_theme_image_link: DF.Code | None
 	# end: auto-generated types
