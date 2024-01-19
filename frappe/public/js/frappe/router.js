@@ -250,7 +250,7 @@ frappe.router = {
 			standard_route = ["Tree", doctype_route.doctype];
 		} else {
 			let new_route = this.list_views_route[_route.toLowerCase()];
-			let re_route = route[2].toLowerCase() !== new_route.toLowerCase();
+			let re_route = route[2].toLowerCase() !== new_route?.toLowerCase();
 
 			if (re_route) {
 				/**
