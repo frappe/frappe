@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 import frappe
 import frappe.utils
 from frappe.model.document import Document
+from frappe.utils.deprecations import deprecated
 
 
 class WebPageView(Document):
@@ -38,6 +39,7 @@ class WebPageView(Document):
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
+@deprecated
 @frappe.whitelist(allow_guest=True)
 def make_view_log(
 	referrer=None,
@@ -72,13 +74,51 @@ def make_view_log(
 	if path.startswith(("api/", "app/", "assets/", "private/files/")):
 		return
 
+	doc = _make_view_log(
+		path,
+		referrer,
+		browser,
+		version,
+		user_tz,
+		user_agent,
+		source,
+		campaign,
+		medium,
+		visitor_id,
+	)
+
+	try:
+		if frappe.flags.read_only:
+			doc.deferred_insert()
+		else:
+			doc.insert(ignore_permissions=True)
+	except Exception:
+		frappe.clear_last_message()
+
+
+def _make_view_log(
+	path=None,
+	referrer=None,
+	browser=None,
+	browser_version=None,
+	user_tz=None,
+	user_agent=None,
+	source=None,
+	campaign=None,
+	medium=None,
+	visitor_id=None,
+):
+	"""
+	Implementation for frappe.website.log_event on the "Web Page View" event
+	"""
+
 	is_unique = visitor_id and not bool(frappe.db.exists("Web Page View", {"visitor_id": visitor_id}))
 
 	view = frappe.new_doc("Web Page View")
 	view.path = path
 	view.referrer = referrer
 	view.browser = browser
-	view.browser_version = version
+	view.browser_version = browser_version
 	view.time_zone = user_tz
 	view.user_agent = user_agent
 	view.is_unique = is_unique
@@ -86,14 +126,7 @@ def make_view_log(
 	view.campaign = campaign
 	view.medium = (medium or "").lower()
 	view.visitor_id = visitor_id
-
-	try:
-		if frappe.flags.read_only:
-			view.deferred_insert()
-		else:
-			view.insert(ignore_permissions=True)
-	except Exception:
-		frappe.clear_last_message()
+	return view
 
 
 @frappe.whitelist()
