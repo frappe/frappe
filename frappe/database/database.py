@@ -73,27 +73,20 @@ class Database:
 		host=None,
 		user=None,
 		password=None,
-		ac_name=None,
-		use_default=0,
 		port=None,
+		cur_db_name=None,
 	):
 		self.setup_type_map()
-		self.host = host or frappe.conf.db_host
-		self.port = port or frappe.conf.db_port
-		self.user = user or frappe.conf.db_user or frappe.conf.db_name
-		self.cur_db_name = frappe.conf.db_name
+		self.host = host
+		self.port = port
+		self.user = user
+		self.password = password
+		self.cur_db_name = cur_db_name
 		self._conn = None
-
-		if ac_name:
-			self.user = ac_name or frappe.conf.db_name
-
-		if use_default:
-			self.user = frappe.conf.db_name
 
 		self.transaction_writes = 0
 		self.auto_commit_on_many_writes = 0
 
-		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
 		self.logger = frappe.logger("database")
 		self.logger.setLevel("WARNING")
