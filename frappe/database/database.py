@@ -71,9 +71,9 @@ class Database:
 	def __init__(
 		self,
 		host=None,
-		port=None,
 		user=None,
 		password=None,
+		port=None,
 		cur_db_name=None,
 	):
 		self.setup_type_map()

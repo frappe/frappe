@@ -56,12 +56,12 @@ def get_db(host=None, port=None, user=None, password=None, cur_db_name=None):
 		import frappe.database.postgres.database
 
 		return frappe.database.postgres.database.PostgresDatabase(
-			host, port, user, password, cur_db_name
+			host, user, password, port, cur_db_name
 		)
 	else:
 		import frappe.database.mariadb.database
 
-		return frappe.database.mariadb.database.MariaDBDatabase(host, port, user, password, cur_db_name)
+		return frappe.database.mariadb.database.MariaDBDatabase(host, user, password, port, cur_db_name)
 
 
 def get_command(
