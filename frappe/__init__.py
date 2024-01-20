@@ -295,6 +295,7 @@ def connect(
 		init(site)
 
 	local.db = get_db(
+		socket=local.conf.db_socket,
 		host=local.conf.db_host,
 		port=local.conf.db_port,
 		user=local.conf.db_user or db_name or local.conf.db_name,
@@ -320,6 +321,7 @@ def connect_replica() -> bool:
 		password = local.conf.replica_db_password
 
 	local.replica_db = get_db(
+		socket=None,
 		host=local.conf.replica_host,
 		port=port,
 		user=user,
@@ -382,6 +384,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 		os.environ.get("FRAPPE_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
 	)
 	config["db_type"] = os.environ.get("FRAPPE_DB_TYPE") or config.get("db_type") or "mariadb"
+	config["db_socket"] = os.environ.get("FRAPPE_DB_SOCKET") or config.get("db_socket") or None
 	config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
 	config["db_port"] = (
 		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
