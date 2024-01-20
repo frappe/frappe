@@ -173,14 +173,18 @@ class BaseTestCommands(FrappeTestCase):
 		cmd_config = {
 			"test_site": TEST_SITE,
 			"admin_password": frappe.conf.admin_password,
-			"root_login": frappe.conf.root_login,
-			"root_password": frappe.conf.root_password,
 			"db_type": frappe.conf.db_type,
+			"db_root_username": frappe.conf.root_login,
+			"db_root_password": frappe.conf.root_password,
 		}
 
 		if not os.path.exists(os.path.join(TEST_SITE, "site_config.json")):
 			cls.execute(
-				"bench new-site {test_site} --admin-password {admin_password} --db-type" " {db_type}",
+				"bench new-site {test_site} "
+				"--admin-password {admin_password} "
+				"--db-root-username {db_root_username} "
+				"--db-root-password {db_root_password} "
+				"--db-type {db_type}",
 				cmd_config,
 			)
 
