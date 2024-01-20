@@ -239,9 +239,6 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 
 
 def get_user_translations(lang):
-	if not frappe.db:
-		frappe.connect()
-
 	def _read_from_db():
 		user_translations = {}
 		translations = frappe.get_all(
@@ -1053,9 +1050,6 @@ def get_all_languages(with_language_name: bool = False) -> list:
 
 	def get_all_language_with_name():
 		return frappe.get_all("Language", ["language_code", "language_name"], {"enabled": 1})
-
-	if not frappe.db:
-		frappe.connect()
 
 	if with_language_name:
 		return frappe.cache.get_value("languages_with_name", get_all_language_with_name)
