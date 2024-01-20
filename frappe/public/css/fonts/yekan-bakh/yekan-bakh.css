@@ -1,0 +1,63 @@
+@font-face {
+	font-family: Yekan Bakh;
+	font-style: normal;
+	font-weight: 100;
+	src: url('/assets/frappe/css/fonts/yekan-bakh/YekanBakhFaNum-thin.woff') format('woff'),   
+	url('/assets/frappe/css/fonts/yekan-bakh/YekanBakhFaNum-thin.woff2') format('woff2');		
+}
+
+@font-face {
+	font-family: Yekan Bakh;
+	font-style: normal;
+	font-weight: 300;
+	src: url('/assets/frappe/css/fonts/yekan-bakh/YekanBakhFaNum-Light.woff') format('woff'),   
+	url('/assets/frappe/css/fonts/yekan-bakh/YekanBakhFaNum-Light.woff2') format('woff2');	
+}
+
+@font-face {
+	font-family: Yekan Bakh;
+	font-style: normal;
+	font-weight: normal;
+	src: url('/assets/frappe/css/fonts/yekan-bakh/YekanBakhFaNum-Regular.woff') format('woff'),   
+	url('/assets/frappe/css/fonts/yekan-bakh/YekanBakhFaNum-Regular.woff2') format('woff2');		 
+}
+
+@font-face {
+	font-family: Yekan Bakh;
+	font-style: normal;
+	font-weight: 600;
+	src: url('/assets/frappe/css/fonts/yekan-bakh/YekanBakhFaNum-SemiBold.woff') format('woff'),   
+	url('/assets/frappe/css/fonts/yekan-bakh/YekanBakhFaNum-SemiBold.woff2') format('woff2');		 
+}
+
+@font-face {
+	font-family: Yekan Bakh;
+	font-style: normal;
+	font-weight: bold;
+	src: url('/assets/frappe/css/fonts/yekan-bakh/YekanBakhFaNum-Bold.woff') format('woff'),   
+	url('/assets/frappe/css/fonts/yekan-bakh/YekanBakhFaNum-Bold.woff2') format('woff2'); 
+}
+
+@font-face {
+	font-family: Yekan Bakh;
+	font-style: normal;
+	font-weight: 800;
+	src: url('/assets/frappe/css/fonts/yekan-bakh/Yekan Bakh-ExtraBold.woff') format('woff'),   
+	url('/assets/frappe/css/fonts/yekan-bakh/Yekan Bakh-ExtraBold.woff2') format('woff2');		 
+}
+
+@font-face {
+	font-family: Yekan Bakh;
+	font-style: normal;
+	font-weight: 900;
+	src: url('/assets/frappe/css/fonts/yekan-bakh/Yekan Bakh-Black.woff') format('woff'),   
+	url('/assets/frappe/css/fonts/yekan-bakh/Yekan Bakh-Black.woff2') format('woff2');		 
+}
+
+@font-face {
+	font-family: Yekan Bakh;
+	font-style: normal;
+	font-weight: 950;
+	src: url('/assets/frappe/css/fonts/yekan-bakh/Yekan Bakh-ExtraBlack.woff') format('woff'),   
+	url('/assets/frappe/css/fonts/yekan-bakh/Yekan Bakh-ExtraBlack.woff2') format('woff2');		 
+}
