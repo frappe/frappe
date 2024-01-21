@@ -304,7 +304,7 @@ def connect(
 	local.db = get_db(
 		host=local.conf.db_host,
 		port=local.conf.db_port,
-		user=local.conf.db_user or db_name or local.conf.db_name,
+		user=db_name or local.conf.db_user,
 		password=local.conf.db_password,
 		cur_db_name=db_name or local.conf.db_name,
 	)
