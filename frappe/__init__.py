@@ -269,10 +269,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 
 	local.initialised = True
 
-	# Set the user as database name if not set in config
-	if local.conf and local.conf.db_name is not None and local.conf.db_user is None:
-		local.conf.db_user = local.conf.db_name
-
 
 def connect(
 	site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True
@@ -397,6 +393,9 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	config["db_port"] = (
 		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
 	)
+
+	# Set the user as database name if not set in config
+	config["db_user"] = config.get("db_user") or config.get("db_name")
 
 	return config
 
