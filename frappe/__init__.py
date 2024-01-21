@@ -301,6 +301,10 @@ def connect(
 			"Instead, explicitly invoke frappe.init(site) with the right config prior to calling frappe.connect(), if necessary."
 		)
 
+	assert db_name or local.conf.db_user, "site must be fully initialized, db_user missing"
+	assert db_name or local.conf.db_name, "site must be fully initialized, db_name missing"
+	assert local.conf.db_password, "site must be fully initialized, db_password missing"
+
 	local.db = get_db(
 		host=local.conf.db_host,
 		port=local.conf.db_port,
