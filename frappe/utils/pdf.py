@@ -24,7 +24,7 @@ PDF_CONTENT_ERRORS = [
 ]
 
 
-def pdf_header_html(soup, head, content, styles, html_id, css, script=None):
+def pdf_header_html(soup, head, content, styles, html_id, css):
 	return frappe.render_template(
 		"templates/print_formats/pdf_header_footer.html",
 		{
@@ -35,7 +35,6 @@ def pdf_header_html(soup, head, content, styles, html_id, css, script=None):
 			"css": css,
 			"lang": frappe.local.lang,
 			"layout_direction": "rtl" if is_rtl() else "ltr",
-			"custom_header_footer_script": script,
 		},
 	)
 
@@ -67,15 +66,15 @@ def _guess_template_error_line_number(template) -> int | None:
 				return frame.lineno
 
 
-def pdf_footer_html(soup, head, content, styles, html_id, css, script=None):
+def pdf_footer_html(soup, head, content, styles, html_id, css):
 	return pdf_header_html(
-		soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css, script=script
+		soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css
 	)
 
 
-def get_pdf(html, options=None, output: PdfWriter | None = None, letterhead: str | None = None):
+def get_pdf(html, options=None, output: PdfWriter | None = None):
 	html = scrub_urls(html)
-	html, options = prepare_options(html, options, letterhead=letterhead)
+	html, options = prepare_options(html, options)
 
 	options.update({"disable-javascript": "", "disable-local-file-access": ""})
 
@@ -134,7 +133,7 @@ def get_file_data_from_writer(writer_obj):
 	return stream.read()
 
 
-def prepare_options(html, options, letterhead: str | None = None):
+def prepare_options(html, options):
 	if not options:
 		options = {}
 
@@ -156,7 +155,7 @@ def prepare_options(html, options, letterhead: str | None = None):
 	if not options.get("margin-left"):
 		options["margin-left"] = "15mm"
 
-	html, html_options = read_options_from_html(html, letterhead=letterhead)
+	html, html_options = read_options_from_html(html)
 	options.update(html_options or {})
 
 	# cookies
@@ -197,11 +196,11 @@ def get_cookie_options():
 	return options
 
 
-def read_options_from_html(html, letterhead: str | None = None):
+def read_options_from_html(html):
 	options = {}
 	soup = BeautifulSoup(html, "html5lib")
 
-	options.update(prepare_header_footer(soup, letterhead=letterhead))
+	options.update(prepare_header_footer(soup))
 
 	toggle_visible_pdf(soup)
 
@@ -228,7 +227,7 @@ def read_options_from_html(html, letterhead: str | None = None):
 	return str(soup), options
 
 
-def prepare_header_footer(soup: BeautifulSoup, letterhead: str | None = None):
+def prepare_header_footer(soup: BeautifulSoup):
 	options = {}
 
 	head = soup.find("head").contents
@@ -239,13 +238,8 @@ def prepare_header_footer(soup: BeautifulSoup, letterhead: str | None = None):
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
-		content = soup.find(id=html_id)
-		if content:
-			field = "header_script" if html_id == "header-html" else "footer_script"
-			script = frappe.db.get_value("Letter Head", letterhead, field) if letterhead else None
-
+		if content := soup.find(id=html_id):
 			toggle_visible_pdf(content)
-
 			id_map = {"header-html": "pdf_header_html", "footer-html": "pdf_footer_html"}
 			hook_func = frappe.get_hooks(id_map.get(html_id))
 			html = frappe.get_attr(hook_func[-1])(
@@ -255,7 +249,6 @@ def prepare_header_footer(soup: BeautifulSoup, letterhead: str | None = None):
 				styles=styles,
 				html_id=html_id,
 				css=css,
-				script=script,
 			)
 
 			# there could be multiple instances of header-html/footer-html
