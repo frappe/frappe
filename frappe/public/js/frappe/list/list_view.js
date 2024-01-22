@@ -633,7 +633,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				title="${__("Select All")}">
 			<span class="level-item" data-sort-by="${subject_field.fieldname}"
 				title="${__("Click to sort by {0}", [subject_field.label])}">
-				${__(subject_field.label)}
+				<span class="hidden-sm">${__(subject_field.label)}</span><span class="hidden-lg">Details</span>
 			</span>
 		`;
 		const $columns = this.columns
@@ -697,7 +697,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_left_html(doc) {
-		return this.columns.map((col) => this.get_column_html(col, doc)).join("");
+		let field_columns = this.columns.filter(({ type }) => type === "Field").slice(0, 4);
+		const mobile_row = `<div class="container row-container hidden-lg">
+			<div class="row">
+				<div class="col-12 subject">
+					<strong>${doc[this.columns[0].df.fieldname]}</strong>
+				</div>
+				<div class="col-12 fields">
+					<p>${field_columns.map((col) => doc[col.df.fieldname]).join(" &bull; ")}</p>
+				</div>
+			</div>
+		</div>`;
+		return this.columns.map((col) => this.get_column_html(col, doc)).join("") + mobile_row;
 	}
 
 	get_right_html(doc) {
@@ -1023,7 +1034,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<span class="level-item select-like">
 				<input class="list-row-checkbox" type="checkbox">
 			</span>
-			<span class="level-item ${seen} ellipsis">
+			<span class="level-item ${seen} ellipsis hidden-sm">
 				<a class="ellipsis"></a>
 			</span>
 		`;

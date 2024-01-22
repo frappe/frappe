@@ -81,6 +81,29 @@
 	@include get_textstyle("base", "regular");
 	border-radius: var(--border-radius-md);
 
+	@media (max-width: 768px) {
+		height: fit-content;
+		padding-top: 4.5px;
+		padding-bottom: 4.5px;
+
+		.fields {
+			padding-top: 2px;
+
+			p {
+				margin-bottom: 0;
+			}
+		}
+
+		.list-row-col {
+			flex-basis: auto;
+			margin-right: 4px;
+		}
+
+		.row-container {
+			padding-left: 0;
+		}
+	}
+
 	&:hover:not(.list-row-head) {
 		background-color: var(--highlight-color);
 	}
