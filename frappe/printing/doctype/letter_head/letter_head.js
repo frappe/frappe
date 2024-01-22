@@ -27,22 +27,24 @@ frappe.ui.form.on("Letter Head", {
 	},
 });
 
-const INSTRUCTIONS = `<h4>Letter Head Scripts</h4>
-<p>Header/Footer scripts can be used to add dynamic behaviours.</p>
+const INSTRUCTIONS = `<h4>${__("Letter Head Scripts")}</h4>
+<p>${__("Header/Footer scripts can be used to add dynamic behaviours.")}</p>
 <pre>
 <code>
-// The following Header Script will add the current date to an element in 'Header HTML' with class "header-content"
+// ${__(
+	"The following Header Script will add the current date to an element in 'Header HTML' with class 'header-content'"
+)}
 var el = document.getElementsByClassName("header-content");
 if (el.length > 0) {
 	el[0].textContent += " " + new Date().toGMTString();
 }
 </code>
 </pre>
-<p>You can also access wkhtmltopdf variables (valid only in PDF print):</p>
+<p>${__("You can also access wkhtmltopdf variables (valid only in PDF print):")}</p>
 <pre>
 <code>
-// Get Header and Footer wkhtmltopdf variables
-// Snippet and more variables: https://wkhtmltopdf.org/usage/wkhtmltopdf.txt
+// ${__("Get Header and Footer wkhtmltopdf variables")}
+// ${__("Snippet and more variables:  {0}", ["https://wkhtmltopdf.org/usage/wkhtmltopdf.txt"])}
 var vars = {};
 var query_strings_from_url = document.location.search.substring(1).split('&');
 for (var query_string in query_strings_from_url) {
