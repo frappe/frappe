@@ -320,12 +320,15 @@ def export_query():
 	include_indentation = form_params.include_indentation
 	include_filters = form_params.include_filters
 	visible_idx = form_params.visible_idx
+	parent_field = form_params.parent_field
+	is_tree = form_params.is_tree
 
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
 
 	data = run(
-		report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False
+		report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False,
+		is_tree=is_tree, parent_field=parent_field
 	)
 	data = frappe._dict(data)
 	data.filters = form_params.applied_filters

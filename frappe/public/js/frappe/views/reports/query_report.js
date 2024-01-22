@@ -1532,6 +1532,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					file_format_type: file_format,
 					filters: filters,
 					applied_filters: applied_filters,
+					is_tree: this.report_settings.tree,
+					parent_field: this.report_settings.parent_field,
 					visible_idx,
 					csv_delimiter,
 					csv_quoting,
