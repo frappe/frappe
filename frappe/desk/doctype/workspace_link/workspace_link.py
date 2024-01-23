@@ -15,7 +15,7 @@ class WorkspaceLink(Document):
 		from frappe.types import DF
 
 		dependencies: DF.Data | None
-		description: DF.SmallText | None
+		description: DF.HTMLEditor | None
 		hidden: DF.Check
 		icon: DF.Data | None
 		is_query_report: DF.Check

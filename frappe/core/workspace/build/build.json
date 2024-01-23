@@ -155,101 +155,6 @@
    "type": "Link"
   },
   {
-   "description": "Create new forms and views with doctypes. Set up multi-level workflows for approval",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Models",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "DocType",
-   "link_count": 0,
-   "link_to": "DocType",
-   "link_type": "DocType",
-   "onboard": 0,
-   "only_for": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Workflow",
-   "link_count": 0,
-   "link_to": "Workflow",
-   "link_type": "DocType",
-   "onboard": 0,
-   "only_for": "",
-   "type": "Link"
-  },
-  {
-   "description": "Build your own reports, print formats, and dashboards. Create personalized workspaces for easier navigation",
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Views",
-   "link_count": 5,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Report",
-   "link_count": 0,
-   "link_to": "Report",
-   "link_type": "DocType",
-   "onboard": 0,
-   "only_for": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Print Format",
-   "link_count": 0,
-   "link_to": "Print Format",
-   "link_type": "DocType",
-   "onboard": 0,
-   "only_for": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Workspace",
-   "link_count": 0,
-   "link_to": "Workspace",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Dashboard",
-   "link_count": 0,
-   "link_to": "Dashboard",
-   "link_type": "DocType",
-   "onboard": 0,
-   "only_for": "",
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Dashboard Chart",
-   "link_count": 0,
-   "link_to": "Dashboard Chart",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
    "description": "Packages are lightweight apps (collection of Module Defs) that can be created, imported, or released right from the UI",
    "hidden": 0,
    "is_query_report": 0,
@@ -321,9 +226,104 @@
    "onboard": 0,
    "only_for": "",
    "type": "Link"
+  },
+  {
+   "description": "Build your own reports, print formats, and dashboards. Create personalized workspaces for easier navigation",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Views",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Report",
+   "link_count": 0,
+   "link_to": "Report",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Print Format",
+   "link_count": 0,
+   "link_to": "Print Format",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Workspace",
+   "link_count": 0,
+   "link_to": "Workspace",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Dashboard",
+   "link_count": 0,
+   "link_to": "Dashboard",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Dashboard Chart",
+   "link_count": 0,
+   "link_to": "Dashboard Chart",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "description": "Create new forms and views with doctypes. Set up multi-level workflows for approval",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Models",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "DocType",
+   "link_count": 0,
+   "link_to": "DocType",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Workflow",
+   "link_count": 0,
+   "link_to": "Workflow",
+   "link_type": "DocType",
+   "onboard": 0,
+   "only_for": "",
+   "type": "Link"
   }
  ],
- "modified": "2024-01-16 15:45:02.341142",
+ "modified": "2024-01-23 17:27:44.769958",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
