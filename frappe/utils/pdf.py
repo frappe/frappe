@@ -23,9 +23,9 @@ PDF_CONTENT_ERRORS = [
 ]
 
 
-def get_pdf(html, options=None, output: PdfWriter | None = None, letterhead: str | None = None):
+def get_pdf(html, options=None, output: PdfWriter | None = None):
 	html = scrub_urls(html)
-	html, options = prepare_options(html, options, letterhead=letterhead)
+	html, options = prepare_options(html, options)
 
 	options.update({"disable-javascript": "", "disable-local-file-access": ""})
 
@@ -84,7 +84,7 @@ def get_file_data_from_writer(writer_obj):
 	return stream.read()
 
 
-def prepare_options(html, options, letterhead: str | None = None):
+def prepare_options(html, options):
 	if not options:
 		options = {}
 
@@ -106,7 +106,7 @@ def prepare_options(html, options, letterhead: str | None = None):
 	if not options.get("margin-left"):
 		options["margin-left"] = "15mm"
 
-	html, html_options = read_options_from_html(html, letterhead=letterhead)
+	html, html_options = read_options_from_html(html)
 	options.update(html_options or {})
 
 	# cookies
@@ -147,11 +147,11 @@ def get_cookie_options():
 	return options
 
 
-def read_options_from_html(html, letterhead: str | None = None):
+def read_options_from_html(html):
 	options = {}
 	soup = BeautifulSoup(html, "html5lib")
 
-	options.update(prepare_header_footer(soup, letterhead=letterhead))
+	options.update(prepare_header_footer(soup))
 
 	toggle_visible_pdf(soup)
 
@@ -178,7 +178,7 @@ def read_options_from_html(html, letterhead: str | None = None):
 	return str(soup), options
 
 
-def prepare_header_footer(soup: BeautifulSoup, letterhead: str | None = None):
+def prepare_header_footer(soup: BeautifulSoup):
 	options = {}
 
 	head = soup.find("head").contents
@@ -189,13 +189,7 @@ def prepare_header_footer(soup: BeautifulSoup, letterhead: str | None = None):
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
-		content = soup.find(id=html_id)
-		if content:
-			script = None
-			if letterhead:
-				field = "header_script" if html_id == "header-html" else "footer_script"
-				script = frappe.db.get_value("Letter Head", letterhead, field)
-
+		if content := soup.find(id=html_id):
 			toggle_visible_pdf(content)
 			html = frappe.render_template(
 				"templates/print_formats/pdf_header_footer.html",
@@ -207,7 +201,6 @@ def prepare_header_footer(soup: BeautifulSoup, letterhead: str | None = None):
 					"css": css,
 					"lang": frappe.local.lang,
 					"layout_direction": "rtl" if is_rtl() else "ltr",
-					"custom_header_footer_script": script,
 				},
 			)
 
