@@ -1,11 +1,7 @@
 <template>
 	<div class="file-browser">
 		<div>
-			<a
-				href=""
-				class="text-muted text-medium"
-				@click.prevent="emit('hide-browser')"
-			>
+			<a href="" class="text-muted text-medium" @click.prevent="emit('hide-browser')">
 				{{ __("← Back to upload files") }}
 			</a>
 		</div>
@@ -23,8 +19,8 @@
 				class="tree with-skeleton"
 				:node="node"
 				:selected_node="selected_node"
-				@node-click="n => toggle_node(n)"
-				@load-more="n => load_more(n)"
+				@node-click="(n) => toggle_node(n)"
+				@load-more="(n) => load_more(n)"
 			/>
 		</div>
 	</div>
@@ -48,7 +44,7 @@ let node = ref({
 	fetching: false,
 	fetched: false,
 	open: false,
-	filtered: true
+	filtered: true,
 });
 let selected_node = ref({});
 let search_text = ref("");
@@ -61,16 +57,14 @@ function toggle_node(node) {
 		node.fetching = true;
 		node.children_start = 0;
 		node.children_loading = false;
-		get_files_in_folder(node.value, 0).then(
-			({ files, has_more }) => {
-				node.open = true;
-				node.children = files;
-				node.fetched = true;
-				node.fetching = false;
-				node.children_start += page_length.value;
-				node.has_more_children = has_more;
-			}
-		);
+		get_files_in_folder(node.value, 0).then(({ files, has_more }) => {
+			node.open = true;
+			node.children = files;
+			node.fetched = true;
+			node.fetching = false;
+			node.children_start += page_length.value;
+			node.has_more_children = has_more;
+		});
 	} else {
 		node.open = !node.open;
 		select_node(node);
@@ -80,14 +74,12 @@ function load_more(node) {
 	if (node.has_more_children) {
 		let start = node.children_start;
 		node.children_loading = true;
-		get_files_in_folder(node.value, start).then(
-			({ files, has_more }) => {
-				node.children = node.children.concat(files);
-				node.children_start += page_length.value;
-				node.has_more_children = has_more;
-				node.children_loading = false;
-			}
-		);
+		get_files_in_folder(node.value, start).then(({ files, has_more }) => {
+			node.children = node.children.concat(files);
+			node.children_start += page_length.value;
+			node.has_more_children = has_more;
+			node.children_loading = false;
+		});
 	}
 }
 function select_node(node) {
@@ -100,9 +92,9 @@ function get_files_in_folder(folder, start) {
 		.call("frappe.core.api.file.get_files_in_folder", {
 			folder,
 			start,
-			page_length: page_length.value
+			page_length: page_length.value,
 		})
-		.then(r => {
+		.then((r) => {
 			let { files = [], has_more = false } = r.message || {};
 			files.sort((a, b) => {
 				if (a.is_folder && b.is_folder) {
@@ -116,7 +108,7 @@ function get_files_in_folder(folder, start) {
 				}
 				return 0;
 			});
-			files = files.map(file => make_file_node(file));
+			files = files.map((file) => make_file_node(file));
 			return { files, has_more };
 		});
 }
@@ -127,15 +119,12 @@ function search_by_name() {
 	}
 	if (search_text.value.length < 3) return;
 	frappe
-		.call(
-			"frappe.core.api.file.get_files_by_search_text",
-			{
-				text: search_text.value
-			}
-		)
-		.then(r => {
+		.call("frappe.core.api.file.get_files_by_search_text", {
+			text: search_text.value,
+		})
+		.then((r) => {
 			let files = r.message || [];
-			files = files.map(file => make_file_node(file));
+			files = files.map((file) => make_file_node(file));
 			if (!folder_node.value) {
 				folder_node.value = node.value;
 			}
@@ -145,7 +134,7 @@ function search_by_name() {
 				children: files,
 				by_search: true,
 				open: true,
-				filtered: true
+				filtered: true,
 			};
 		});
 }
@@ -164,7 +153,7 @@ function make_file_node(file) {
 		children_start: 0,
 		open: false,
 		fetching: false,
-		filtered: true
+		filtered: true,
 	};
 }
 

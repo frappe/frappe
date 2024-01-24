@@ -87,6 +87,7 @@ class Communication(Document, CommunicationEmailMixin):
 			"Expired",
 			"Sending",
 			"Read",
+			"Scheduled",
 		]
 		email_account: DF.Link | None
 		email_status: DF.Literal["Open", "Spam", "Trash"]
@@ -106,6 +107,7 @@ class Communication(Document, CommunicationEmailMixin):
 		reference_name: DF.DynamicLink | None
 		reference_owner: DF.ReadOnly | None
 		seen: DF.Check
+		send_after: DF.Datetime | None
 		sender: DF.Data | None
 		sender_full_name: DF.Data | None
 		sent_or_received: DF.Literal["Sent", "Received"]
@@ -162,7 +164,8 @@ class Communication(Document, CommunicationEmailMixin):
 			self.seen = 1
 			self.sent_or_received = "Sent"
 
-		self.set_status()
+		if not self.send_after:  # Handle empty string, always set NULL
+			self.send_after = None
 
 		validate_email(self)
 
@@ -172,6 +175,10 @@ class Communication(Document, CommunicationEmailMixin):
 			self.deduplicate_timeline_links()
 
 		self.set_sender_full_name()
+
+		if self.is_new():
+			self.set_status()
+			self.mark_email_as_spam()
 
 	def validate_reference(self):
 		if self.reference_doctype and self.reference_name:
@@ -291,7 +298,7 @@ class Communication(Document, CommunicationEmailMixin):
 
 	@staticmethod
 	def _get_emails_list(emails=None, exclude_displayname=False):
-		"""Returns list of emails from given email string.
+		"""Return list of emails from given email string.
 
 		* Removes duplicate mailids
 		* Removes display name from email address if exclude_displayname is True
@@ -299,18 +306,18 @@ class Communication(Document, CommunicationEmailMixin):
 		emails = split_emails(emails) if isinstance(emails, str) else (emails or [])
 		if exclude_displayname:
 			return [email.lower() for email in {parse_addr(email)[1] for email in emails} if email]
-		return [email.lower() for email in set(emails) if email]
+		return [email for email in set(emails) if email]
 
 	def to_list(self, exclude_displayname=True):
-		"""Returns to list."""
+		"""Return `to` list."""
 		return self._get_emails_list(self.recipients, exclude_displayname=exclude_displayname)
 
 	def cc_list(self, exclude_displayname=True):
-		"""Returns cc list."""
+		"""Return `cc` list."""
 		return self._get_emails_list(self.cc, exclude_displayname=exclude_displayname)
 
 	def bcc_list(self, exclude_displayname=True):
-		"""Returns bcc list."""
+		"""Return `bcc` list."""
 		return self._get_emails_list(self.bcc, exclude_displayname=exclude_displayname)
 
 	def get_attachments(self):
@@ -333,9 +340,6 @@ class Communication(Document, CommunicationEmailMixin):
 		)
 
 	def set_status(self):
-		if not self.is_new():
-			return
-
 		if self.reference_doctype and self.reference_name:
 			self.status = "Linked"
 		elif self.communication_type == "Communication":
@@ -343,15 +347,16 @@ class Communication(Document, CommunicationEmailMixin):
 		else:
 			self.status = "Closed"
 
-		# set email status to spam
-		email_rule = frappe.db.get_value("Email Rule", {"email_id": self.sender, "is_spam": 1})
+		if self.send_after and self.is_new():
+			self.delivery_status = "Scheduled"
+
+	def mark_email_as_spam(self):
 		if (
 			self.communication_type == "Communication"
 			and self.communication_medium == "Email"
-			and self.sent_or_received == "Sent"
-			and email_rule
+			and self.sent_or_received == "Received"
+			and frappe.db.exists("Email Rule", {"email_id": self.sender, "is_spam": 1})
 		):
-
 			self.email_status = "Spam"
 
 	@classmethod
@@ -433,7 +438,18 @@ class Communication(Document, CommunicationEmailMixin):
 				frappe.db.commit()
 
 	def parse_email_for_timeline_links(self):
-		parse_email(self, [self.recipients, self.cc, self.bcc])
+		if not frappe.db.get_value("Email Account", filters={"enable_automatic_linking": 1}):
+			return
+
+		for doctype, docname in parse_email([self.recipients, self.cc, self.bcc]):
+			if not frappe.db.get_value(doctype, docname, ignore=True):
+				continue
+
+			self.add_link(doctype, docname)
+
+			if not self.reference_doctype:
+				self.reference_doctype = doctype
+				self.reference_name = docname
 
 	# Timeline Links
 	def set_timeline_links(self):
@@ -452,20 +468,13 @@ class Communication(Document, CommunicationEmailMixin):
 			add_contact_links_to_communication(self, contact_name)
 
 	def deduplicate_timeline_links(self):
-		if self.timeline_links:
-			links, duplicate = [], False
+		if not self.timeline_links:
+			return
 
-			for l in self.timeline_links:
-				t = (l.link_doctype, l.link_name)
-				if not t in links:
-					links.append(t)
-				else:
-					duplicate = True
-
-			if duplicate:
-				self.timeline_links.clear()
-				for l in links:
-					self.add_link(link_doctype=l[0], link_name=l[1])
+		unique_links = {(link.link_doctype, link.link_name) for link in self.timeline_links}
+		self.timeline_links = []
+		for doctype, name in unique_links:
+			self.add_link(doctype, name)
 
 	def add_link(self, link_doctype, link_name, autosave=False):
 		self.append("timeline_links", {"link_doctype": link_doctype, "link_name": link_name})
@@ -477,7 +486,7 @@ class Communication(Document, CommunicationEmailMixin):
 		return self.timeline_links
 
 	def remove_link(self, link_doctype, link_name, autosave=False, ignore_permissions=True):
-		for l in self.timeline_links:
+		for l in list(self.timeline_links):
 			if l.link_doctype == link_doctype and l.link_name == link_name:
 				self.timeline_links.remove(l)
 
@@ -492,14 +501,17 @@ def on_doctype_update():
 	frappe.db.add_index("Communication", ["message_id(140)"])
 
 
-def has_permission(doc, ptype, user):
+def has_permission(doc, ptype, user=None, debug=False):
 	if ptype == "read":
 		if doc.reference_doctype == "Communication" and doc.reference_name == doc.name:
-			return
+			return True
 
 		if doc.reference_doctype and doc.reference_name:
-			if frappe.has_permission(doc.reference_doctype, ptype="read", doc=doc.reference_name):
-				return True
+			return frappe.has_permission(
+				doc.reference_doctype, ptype="read", doc=doc.reference_name, user=user, debug=debug
+			)
+
+	return True
 
 
 def get_permission_query_conditions_for_communication(user):
@@ -574,42 +586,41 @@ def add_contact_links_to_communication(communication, contact_name):
 			communication.add_link(contact_link.link_doctype, contact_link.link_name)
 
 
-def parse_email(communication, email_strings):
+def parse_email(email_strings):
 	"""
 	Parse email to add timeline links.
 	When automatic email linking is enabled, an email from email_strings can contain
 	a doctype and docname ie in the format `admin+doctype+docname@example.com` or `admin+doctype=docname@example.com`,
-	the email is parsed and doctype and docname is extracted and timeline link is added.
+	the email is parsed and doctype and docname is extracted.
 	"""
-	if not frappe.db.get_value("Email Account", filters={"enable_automatic_linking": 1}):
-		return
-
 	for email_string in email_strings:
-		if email_string:
-			for email in email_string.split(","):
-				email_username = email.split("@", 1)[0]
-				email_local_parts = email_username.split("+")
-				docname = doctype = None
-				if len(email_local_parts) == 3:
-					doctype = unquote(email_local_parts[1])
-					docname = unquote(email_local_parts[2])
+		if not email_string:
+			continue
 
-				elif len(email_local_parts) == 2:
-					document_parts = email_local_parts[1].split("=", 1)
-					if len(document_parts) != 2:
-						continue
+		for email in email_string.split(","):
+			email_username = email.split("@", 1)[0]
+			email_local_parts = email_username.split("+")
+			docname = doctype = None
+			if len(email_local_parts) == 3:
+				doctype = unquote(email_local_parts[1])
+				docname = unquote(email_local_parts[2])
 
-					doctype = unquote(document_parts[0])
-					docname = unquote(document_parts[1])
+			elif len(email_local_parts) == 2:
+				document_parts = email_local_parts[1].split("=", 1)
+				if len(document_parts) != 2:
+					continue
 
-				if doctype and docname and frappe.db.get_value(doctype, docname, ignore=True):
-					communication.add_link(doctype, docname)
+				doctype = unquote(document_parts[0])
+				docname = unquote(document_parts[1])
+
+			if doctype and docname:
+				yield doctype, docname
 
 
 def get_email_without_link(email):
-	"""
-	returns email address without doctype links
-	returns admin@example.com for email admin+doctype+docname@example.com
+	"""Return email address without doctype links.
+
+	e.g. 'admin@example.com' is returned for email 'admin+doctype+docname@example.com'
 	"""
 	if not frappe.get_all("Email Account", filters={"enable_automatic_linking": 1}):
 		return email
@@ -654,7 +665,10 @@ def update_parent_document_on_communication(doc):
 
 def update_first_response_time(parent, communication):
 	if parent.meta.has_field("first_response_time") and not parent.get("first_response_time"):
-		if is_system_user(communication.sender):
+		if (
+			is_system_user(communication.sender)
+			or frappe.get_cached_value("User", frappe.session.user, "user_type") == "System User"
+		):
 			if communication.sent_or_received == "Sent":
 				first_responded_on = communication.creation
 				if parent.meta.has_field("first_responded_on"):

@@ -68,7 +68,7 @@ class Workspace:
 		)
 
 	def is_permitted(self):
-		"""Returns true if Has Role is not set or the user is allowed."""
+		"""Return true if `Has Role` is not set or the user is allowed."""
 		from frappe.utils import has_common
 
 		allowed = [d.role for d in self.doc.roles]
@@ -383,13 +383,12 @@ class Workspace:
 @frappe.whitelist()
 @frappe.read_only()
 def get_desktop_page(page):
-	"""Applies permissions, customizations and returns the configruration for a page
-	on desk.
+	"""Apply permissions, customizations and return the configuration for a page on desk.
 
 	Args:
 	        page (json): page data
 
-	Returns:
+	Return:
 	        dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
 	try:
@@ -418,8 +417,11 @@ def get_workspace_sidebar_items():
 	blocked_modules = frappe.get_doc("User", frappe.session.user).get_blocked_modules()
 	blocked_modules.append("Dummy Module")
 
+	# adding None to allowed_domains to include pages without domain restriction
+	allowed_domains = [None] + frappe.get_active_domains()
+
 	filters = {
-		"restrict_to_domain": ["in", frappe.get_active_domains()],
+		"restrict_to_domain": ["in", allowed_domains],
 		"module": ["not in", blocked_modules],
 	}
 
@@ -503,7 +505,7 @@ def get_custom_doctype_list(module):
 
 
 def get_custom_report_list(module):
-	"""Returns list on new style reports for modules."""
+	"""Return list on new style reports for modules."""
 	reports = frappe.get_all(
 		"Report",
 		fields=["name", "ref_doctype", "report_type"],
@@ -566,7 +568,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 			page, json_config, e
 		)
 		doc.log_error("Could not save customization", log)
-		return False
+		raise
 
 	return True
 
@@ -617,14 +619,14 @@ def new_widget(config, doctype, parentfield):
 
 
 def prepare_widget(config, doctype, parentfield):
-	"""Create widget child table entries with parent details
+	"""Create widget child table entries with parent details.
 
 	Args:
 	        config (dict): Dictionary containing widget config
 	        doctype (string): Doctype name of the child table
 	        parentfield (string): Parent field for the child table
 
-	Returns:
+	Return:
 	        TYPE: List of Document objects
 	"""
 	if not config:

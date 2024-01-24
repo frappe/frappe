@@ -470,7 +470,7 @@ def filter_allowed_users(users, doc, transition):
 		user
 		for user in users
 		if has_approval_access(user, doc, transition)
-		and has_permission(doctype=doc, user=user, raise_exception=False)
+		and has_permission(doctype=doc, user=user, print_logs=False)
 	]
 
 
@@ -496,9 +496,7 @@ def get_common_email_args(doc):
 
 
 def get_email_template(doc):
-	"""Returns next_action_email_template
-	for workflow state (if available) based on doc current workflow state
-	"""
+	"""Return next_action_email_template for workflow state (if available) based on doc current workflow state."""
 	workflow_name = get_workflow_name(doc.get("doctype"))
 	doc_state = get_doc_workflow_state(doc)
 	template_name = frappe.db.get_value(

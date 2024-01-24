@@ -14,6 +14,7 @@ body {
 		font-size: var(--text-xs);
 		text-transform: uppercase;
 		cursor: pointer;
+		margin-bottom: var(--margin-xs) !important;
 
 		span {
 			pointer-events: none;
@@ -133,7 +134,7 @@ body {
 	}
 
 	.widget-head {
-		@include flex(flex, flex-start, center, null);
+		@include flex(flex, space-between, center, null);
 
 		.widget-label {
 			min-width: 0px;
@@ -549,6 +550,8 @@ body {
 
 	&.shortcut-widget-box {
 		cursor: pointer;
+		align-items: flex-start;
+		padding: 2px 7px;
 
 		&:hover {
 			--icon-stroke: var(--invert-neutral);
@@ -566,10 +569,15 @@ body {
 			font-weight: 500;
 			@extend .ellipsis;
 		}
+
+		&:focus-visible {
+			text-decoration: underline;
+			background-color: var(--highlight-color);
+			outline: 0;
+		}
 	}
 
 	&.links-widget-box {
-
 		.widget-head .widget-label .widget-title svg {
 			margin: 2px;
 			margin-right: 12px !important;
@@ -587,7 +595,6 @@ body {
 			margin-bottom: 0px;
 			border-radius: var(--border-radius-md);
 			cursor: pointer;
-
 
 			&:first-child {
 				margin-top: 12px;
@@ -616,6 +623,12 @@ body {
 				&.top > .arrow {
 					left: 20%;
 				}
+			}
+
+			&:focus-visible {
+				text-decoration: underline;
+				background-color: var(--highlight-color);
+				outline: 0;
 			}
 		}
 
@@ -722,14 +735,17 @@ body {
 	}
 
 	&.quick-list-widget-box {
-		.list-loading-state, .list-no-data-state {
+		.list-loading-state,
+		.list-no-data-state {
 			display: flex;
 			justify-content: center;
 			align-items: center;
 			height: 202px;
 		}
 
-		.refresh-list, .filter-list, .add-new {
+		.refresh-list,
+		.filter-list,
+		.add-new {
 			background-color: var(--btn-default-bg);
 			cursor: pointer;
 
@@ -933,7 +949,8 @@ body {
 	@media (min-width: map-get($grid-breakpoints, "lg")) {
 		.layout-main {
 			height: calc(100vh - var(--navbar-height) - var(--page-head-height) - 5px);
-			.layout-side-section, .layout-main-section-wrapper {
+			.layout-side-section,
+			.layout-main-section-wrapper {
 				height: 100%;
 				overflow-y: auto;
 				scrollbar-color: var(--gray-200) transparent;
@@ -988,7 +1005,7 @@ body {
 		padding: var(--padding-sm);
 	}
 
-	.block-menu-item-icon svg{
+	.block-menu-item-icon svg {
 		width: 18px;
 		height: 18px;
 		margin-right: 5px;
@@ -1011,12 +1028,13 @@ body {
 				display: none;
 			}
 
-			.setting-btn, .duplicate-page {
+			.setting-btn,
+			.duplicate-page {
 				display: none;
 			}
 
 			.drop-icon {
-				padding: 10px 12px 10px 2px;
+				padding: 0px 12px 0px 2px;
 			}
 
 			svg {
@@ -1035,13 +1053,14 @@ body {
 		.item-anchor {
 			display: flex;
 			overflow: hidden;
-			padding: 4px 0px 4px 8px;
+			padding: 3px 0px 3px 8px;
 			flex: 1;
 		}
 	}
 
 	.sidebar-item-container {
 		position: relative;
+		margin-left: -10px;
 
 		&[item-is-hidden="1"] {
 			display: none;
@@ -1059,11 +1078,14 @@ body {
 				justify-content: start;
 			}
 		}
+
+		.indicator {
+			margin-left: 5px;
+		}
 	}
 
 	.desk-sidebar {
 		&.show-hidden-workspaces {
-
 			.unhide-workspace-btn {
 				display: none;
 			}
@@ -1094,14 +1116,16 @@ body {
 
 		.standard-sidebar-section.show-control {
 			.desk-sidebar-item.standard-sidebar-item {
-
-				&:hover, &.selected {
+				&:hover,
+				&.selected {
 					.drag-handle {
 						display: inline-block;
 						background-color: var(--bg-color);
 					}
 
-					.setting-btn, .duplicate-page, .unhide-workspace-btn {
+					.setting-btn,
+					.duplicate-page,
+					.unhide-workspace-btn {
 						display: inline-block;
 						margin-right: 8px;
 					}
@@ -1113,18 +1137,16 @@ body {
 				}
 
 				.block-click {
-					pointer-events:none;
+					pointer-events: none;
 				}
 			}
 		}
 	}
 
-
 	// widgets
 	.widget.number-widget-box {
 		border: 1px solid var(--border-color);
 	}
-
 
 	.codex-editor__loader {
 		display: none !important;
@@ -1133,7 +1155,7 @@ body {
 	.codex-editor {
 		min-height: 630px;
 
-		.codex-editor__redactor{
+		.codex-editor__redactor {
 			display: flex;
 			flex-wrap: wrap;
 			flex-direction: row;
@@ -1168,20 +1190,24 @@ body {
 				}
 
 				.edit-mode {
-					.widget-control > *, .paragraph-control > * {
+					.widget-control > *,
+					.paragraph-control > * {
 						width: 0px;
 						visibility: hidden;
 						opacity: 0;
 						transition: visibility 0s, opacity 0.5s ease-in-out;
 					}
 
-					.link-item, .quick-list-item, .see-all {
+					.link-item,
+					.quick-list-item,
+					.see-all {
 						pointer-events: none;
 					}
 				}
 
 				&:hover {
-					.widget-control > *, .new-block-button {
+					.widget-control > *,
+					.new-block-button {
 						width: auto;
 						visibility: visible;
 						opacity: 1;
@@ -1201,7 +1227,8 @@ body {
 							opacity: 1;
 						}
 
-						&.shortcut, &.header {
+						&.shortcut,
+						&.header {
 							background-color: var(--fg-color) !important;
 						}
 
@@ -1237,7 +1264,7 @@ body {
 					height: 100%;
 					padding: 7px;
 
-					&> div {
+					& > div {
 						height: 100%;
 					}
 
@@ -1248,7 +1275,7 @@ body {
 					.resizer {
 						width: 10px;
 						height: 100%;
-						position:absolute;
+						position: absolute;
 						right: 0;
 						bottom: 0;
 						cursor: col-resize;
@@ -1267,6 +1294,11 @@ body {
 
 						.h4 {
 							@include get_textstyle("xl", "semibold");
+						}
+
+						.h5 {
+							font-weight: normal;
+							color: var(--text-light);
 						}
 
 						&:focus {
@@ -1383,7 +1415,6 @@ body {
 		}
 
 		.ce-toolbar {
-
 			&.ce-toolbar--opened {
 				display: none;
 			}
@@ -1403,7 +1434,8 @@ body {
 			.ce-settings {
 				width: fit-content;
 
-				.ce-settings__button, .cdx-settings-button {
+				.ce-settings__button,
+				.cdx-settings-button {
 					color: #707684;
 
 					.icon {
@@ -1415,19 +1447,20 @@ body {
 					color: #388ae5;
 				}
 
-				.cdx-settings-button.disabled{
+				.cdx-settings-button.disabled {
 					pointer-events: none;
-					opacity: .5
+					opacity: 0.5;
 				}
-				.cdx-settings-sidebar{
+				.cdx-settings-sidebar {
 					position: absolute;
 					right: 100%;
-					top:0;
+					top: 0;
 					background: #fff;
 					width: 108px;
 					height: 145px;
-					box-shadow: 0 3px 15px -3px rgba(13,20,33,.13);
-					border-radius: 0 4px 4px 0;z-index: 0;
+					box-shadow: 0 3px 15px -3px rgba(13, 20, 33, 0.13);
+					border-radius: 0 4px 4px 0;
+					z-index: 0;
 				}
 			}
 
@@ -1436,7 +1469,8 @@ body {
 			}
 		}
 
-		.ce-inline-tool, .ce-inline-toolbar__dropdown {
+		.ce-inline-tool,
+		.ce-inline-toolbar__dropdown {
 			.icon {
 				fill: currentColor;
 			}
@@ -1456,11 +1490,10 @@ body {
 				max-width: 760px;
 			}
 		}
-
 	}
 
 	.cdx-marker {
-		background: rgba(245,235,111,0.29);
+		background: rgba(245, 235, 111, 0.29);
 		padding: 3px 0;
 	}
 
@@ -1515,5 +1548,4 @@ body {
 	.dropdown-item-icon {
 		margin-right: 5px;
 	}
-
 }

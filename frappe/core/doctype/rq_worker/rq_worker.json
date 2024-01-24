@@ -110,10 +110,11 @@
    "label": "Utilization %"
   }
  ],
+ "hide_toolbar": 1,
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2022-11-24 14:50:48.511706",
+ "modified": "2024-01-13 10:36:13.034784",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "RQ Worker",

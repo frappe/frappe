@@ -37,6 +37,10 @@ $("body").on("click", "a", function (e) {
 	const href = target_element.getAttribute("href");
 	const is_on_same_host = target_element.hostname === window.location.hostname;
 
+	if (target_element.getAttribute("target") === "_blank") {
+		return;
+	}
+
 	const override = (route) => {
 		e.preventDefault();
 		frappe.set_route(route);
@@ -107,6 +111,7 @@ frappe.router = {
 	layout_mapped: {},
 
 	is_app_route(path) {
+		if (!path) return;
 		// desk paths must begin with /app or doctype route
 		if (path.substr(0, 1) === "/") path = path.substr(1);
 		path = path.split("/");
@@ -249,7 +254,7 @@ frappe.router = {
 			standard_route = ["Tree", doctype_route.doctype];
 		} else {
 			let new_route = this.list_views_route[_route.toLowerCase()];
-			let re_route = route[2].toLowerCase() !== new_route.toLowerCase();
+			let re_route = route[2].toLowerCase() !== new_route?.toLowerCase();
 
 			if (re_route) {
 				/**
@@ -368,7 +373,17 @@ frappe.router = {
 				window.open(sub_path, "_blank");
 				frappe.open_in_new_tab = false;
 			} else {
-				this.push_state(sub_path);
+				try {
+					const route_options = frappe.route_options || {};
+					const query_params = Object.entries(route_options)
+						.map(
+							([key, value]) => `${key}=` + encodeURIComponent(JSON.stringify(value))
+						)
+						.join("&");
+					this.push_state(sub_path, query_params ? `?${query_params}` : "");
+				} catch (e) {
+					this.push_state(sub_path);
+				}
 			}
 			setTimeout(() => {
 				frappe.after_ajax &&
@@ -469,12 +484,19 @@ frappe.router = {
 		return "/app/" + (path_string || default_page);
 	},
 
-	push_state(url) {
-		// change the URL and call the router
-		if (window.location.pathname !== url) {
+	/**
+	 * Changes the URL and calls the router.
+	 *
+	 * @param {string} path - The desired URI path to replace or push,
+	 *    without query string. Example: "/app/todo"
+	 * @param {string} query_params - The desired query parameter string.
+	 * @returns {void}
+	 */
+	push_state(path, query_params = "") {
+		if (window.location.pathname !== path || window.location.search !== query_params) {
 			// push/replace state so the browser looks fine
 			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
-			history[method](null, null, url);
+			history[method](null, null, path);
 
 			// now process the route
 			this.route();

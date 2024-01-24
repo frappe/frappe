@@ -544,7 +544,7 @@ class File(Document):
 		return self._content
 
 	def get_full_path(self):
-		"""Returns file path from given file name"""
+		"""Return file path using the set file name."""
 
 		file_path = self.file_url or self.file_name
 
@@ -705,7 +705,7 @@ class File(Document):
 		return has_permission(self, "read")
 
 	def get_extension(self):
-		"""returns split filename and extension"""
+		"""Split and return filename and extension for the set `file_name`."""
 		return os.path.splitext(self.file_name)
 
 	def create_attachment_record(self):
@@ -778,11 +778,11 @@ def on_doctype_update():
 	frappe.db.add_index("File", ["attached_to_doctype", "attached_to_name"])
 
 
-def has_permission(doc, ptype=None, user=None):
+def has_permission(doc, ptype=None, user=None, debug=False):
 	user = user or frappe.session.user
 
 	if ptype == "create":
-		return frappe.has_permission("File", "create", user=user)
+		return frappe.has_permission("File", "create", user=user, debug=debug)
 
 	if not doc.is_private or (user != "Guest" and doc.owner == user) or user == "Administrator":
 		return True
@@ -798,9 +798,9 @@ def has_permission(doc, ptype=None, user=None):
 			return False
 
 		if ptype in ["write", "create", "delete"]:
-			return ref_doc.has_permission("write")
+			return ref_doc.has_permission("write", debug=debug, user=user)
 		else:
-			return ref_doc.has_permission("read")
+			return ref_doc.has_permission("read", debug=debug, user=user)
 
 	return False
 

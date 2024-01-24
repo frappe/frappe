@@ -1,3 +1,5 @@
+import os
+
 from . import __version__ as app_version
 
 app_name = "frappe"
@@ -31,6 +33,7 @@ app_include_js = [
 	"report.bundle.js",
 	"telemetry.bundle.js",
 ]
+
 app_include_css = [
 	"desk.bundle.css",
 	"report.bundle.css",
@@ -425,9 +428,18 @@ before_request = [
 
 # Background Job Hooks
 before_job = [
+	"frappe.recorder.record",
 	"frappe.monitor.start",
 ]
+
+if os.getenv("FRAPPE_SENTRY_DSN") and (
+	os.getenv("ENABLE_SENTRY_DB_MONITORING") or os.getenv("SENTRY_TRACING_SAMPLE_RATE")
+):
+	before_request.append("frappe.utils.sentry.set_sentry_context")
+	before_job.append("frappe.utils.sentry.set_sentry_context")
+
 after_job = [
+	"frappe.recorder.dump",
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
 	"frappe.utils.telemetry.flush",
@@ -436,6 +448,99 @@ after_job = [
 extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
+	"frappe.utils.sentry.add_bootinfo",
 ]
 
 export_python_type_annotations = True
+
+standard_navbar_items = [
+	{
+		"item_label": "My Profile",
+		"item_type": "Route",
+		"route": "/app/user-profile",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "My Settings",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.route_to_user()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Session Defaults",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.setup_session_defaults()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Reload",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.clear_cache()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "View Website",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.view_website()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Toggle Full Width",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.toggle_full_width()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Toggle Theme",
+		"item_type": "Action",
+		"action": "new frappe.ui.ThemeSwitcher().show()",
+		"is_standard": 1,
+	},
+	{
+		"item_type": "Separator",
+		"is_standard": 1,
+		"item_label": "",
+	},
+	{
+		"item_label": "Log out",
+		"item_type": "Action",
+		"action": "frappe.app.logout()",
+		"is_standard": 1,
+	},
+]
+
+standard_help_items = [
+	{
+		"item_label": "About",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.show_about()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Keyboard Shortcuts",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.show_shortcuts(event)",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Frappe Support",
+		"item_type": "Route",
+		"route": "https://frappe.io/support",
+		"is_standard": 1,
+	},
+]
+
+# log doctype cleanups to automatically add in log settings
+default_log_clearing_doctypes = {
+	"Error Log": 30,
+	"Activity Log": 90,
+	"Email Queue": 30,
+	"Scheduled Job Log": 90,
+	"Route History": 90,
+	"Submission Queue": 30,
+	"Prepared Report": 30,
+	"Webhook Request Log": 30,
+	"Integration Request": 90,
+	"Unhandled Email": 30,
+	"Reminder": 30,
+}

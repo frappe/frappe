@@ -66,7 +66,7 @@ class FormTimeline extends BaseTimeline {
 				.append(
 					`
 					<div class="d-flex align-items-center show-all-activity">
-						<span style="color: var(--text-light); margin:0px 6px;">Show all activity</span>
+						<span style="color: var(--text-light); margin:0px 6px;">${__("Show all activity")}</span>
 						<label class="switch">
 							<input type="checkbox">
 							<span class="slider round"></span>
@@ -295,11 +295,11 @@ class FormTimeline extends BaseTimeline {
 
 	set_communication_doc_status(doc) {
 		let indicator_color = "red";
-		if (in_list(["Sent", "Clicked"], doc.delivery_status)) {
+		if (["Sent", "Clicked"].includes(doc.delivery_status)) {
 			indicator_color = "green";
-		} else if (doc.delivery_status === "Sending") {
+		} else if (["Sending", "Scheduled"].includes(doc.delivery_status)) {
 			indicator_color = "orange";
-		} else if (in_list(["Opened", "Read"], doc.delivery_status)) {
+		} else if (["Opened", "Read"].includes(doc.delivery_status)) {
 			indicator_color = "blue";
 		} else if (doc.delivery_status == "Error") {
 			indicator_color = "red";

@@ -1,10 +1,9 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from typing import TYPE_CHECKING
-from urllib.parse import quote
 
 import frappe
-from frappe.core.doctype.communication.communication import Communication, get_emails
+from frappe.core.doctype.communication.communication import Communication, get_emails, parse_email
 from frappe.core.doctype.communication.email import add_attachments
 from frappe.email.doctype.email_queue.email_queue import EmailQueue
 from frappe.tests.utils import FrappeTestCase
@@ -219,36 +218,25 @@ class TestCommunication(FrappeTestCase):
 		self.assertIn(comm_note_1.name, data)
 		self.assertIn(comm_note_2.name, data)
 
-	def test_link_in_email(self):
-		create_email_account()
+	def test_parse_email(self):
+		to = "Jon Doe <jon.doe@example.org>"
+		cc = """=?UTF-8?Q?Max_Mu=C3=9F?= <max.muss@examle.org>,
+	erp+Customer+that%20company@example.org"""
+		bcc = ""
 
-		notes = {}
-		for i in range(2):
-			frappe.delete_doc_if_exists("Note", f"test document link in email {i}")
-			notes[i] = frappe.get_doc(
-				{
-					"doctype": "Note",
-					"title": f"test document link in email {i}",
-				}
-			).insert(ignore_permissions=True)
+		results = list(parse_email([to, cc, bcc]))
+		self.assertEqual([("Customer", "that company")], results)
 
-		comm = frappe.get_doc(
-			{
-				"doctype": "Communication",
-				"communication_medium": "Email",
-				"subject": "Document Link in Email",
-				"sender": "comm_sender@example.com",
-				"recipients": f'comm_recipient+{quote("Note")}+{quote(notes[0].name)}@example.com,comm_recipient+{quote("Note")}={quote(notes[1].name)}@example.com',
-			}
-		).insert(ignore_permissions=True)
+		results = list(parse_email([to, bcc]))
+		self.assertEqual(results, [])
 
-		doc_links = [
-			(timeline_link.link_doctype, timeline_link.link_name) for timeline_link in comm.timeline_links
-		]
-		self.assertIn(("Note", notes[0].name), doc_links)
-		self.assertIn(("Note", notes[1].name), doc_links)
+		to = "jane.doe+A+Test@example.org"
+		cc = ""
+		bcc = "=?UTF-8?Q?Max_Mu=C3=9F?= <max.muss+Note=Very%20important@examle.org>"
+		results = list(parse_email([to, cc, bcc]))
+		self.assertEqual([("A", "Test"), ("Note", "Very important")], results)
 
-	def test_parse_emails(self):
+	def test_get_emails(self):
 		emails = get_emails(
 			[
 				"comm_recipient+DocType+DocName@example.com",
@@ -292,6 +280,40 @@ class TestCommunication(FrappeTestCase):
 		self.assertEqual(comm_with_signature.content, comm_without_signature.content)
 		self.assertEqual(comm_with_signature.content.count(signature), 1)
 		self.assertEqual(comm_without_signature.content.count(signature), 1)
+
+	def test_mark_as_spam(self):
+		frappe.get_doc(
+			{
+				"doctype": "Email Rule",
+				"email_id": "spammer@example.com",
+				"is_spam": 1,
+			}
+		).insert(ignore_permissions=True)
+
+		spam_comm: Communication = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_medium": "Email",
+				"subject": "This is spam",
+				"sender": "spammer@example.com",
+				"recipients": "comm_recipient@example.com",
+				"sent_or_received": "Received",
+			}
+		).insert(ignore_permissions=True)
+
+		self.assertEqual(spam_comm.email_status, "Spam")
+
+		normal_comm: Communication = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_medium": "Email",
+				"subject": "This is spam",
+				"sender": "friendlyhuman@example.com",
+				"recipients": "comm_recipient@example.com",
+				"sent_or_received": "Received",
+			}
+		).insert(ignore_permissions=True)
+		self.assertNotEqual(normal_comm.email_status, "Spam")
 
 
 class TestCommunicationEmailMixin(FrappeTestCase):

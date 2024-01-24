@@ -44,7 +44,7 @@ frappe.views.BaseList = class BaseList {
 		this.user_settings = frappe.get_user_settings(this.doctype);
 
 		this.start = 0;
-		this.page_length = 20;
+		this.page_length = frappe.is_large_screen() ? 100 : 20;
 		this.data = [];
 		this.method = "frappe.desk.reportview.get";
 
@@ -739,15 +739,17 @@ class FilterArea {
 		this.standard_filters_wrapper = this.list_view.page.page_form.find(
 			".standard-filter-section"
 		);
-		let fields = [
-			{
+		let fields = [];
+
+		if (!this.list_view.settings.hide_name_filter) {
+			fields.push({
 				fieldtype: "Data",
 				label: "ID",
 				condition: "like",
 				fieldname: "name",
 				onchange: () => this.refresh_list_view(),
-			},
-		];
+			});
+		}
 
 		if (this.list_view.custom_filter_configs) {
 			this.list_view.custom_filter_configs.forEach((config) => {
@@ -831,7 +833,7 @@ class FilterArea {
 					value = "%" + value + "%";
 				}
 				filters.push([
-					this.list_view.doctype,
+					field.df.doctype || this.list_view.doctype,
 					field.df.fieldname,
 					field.df.condition || "=",
 					value,

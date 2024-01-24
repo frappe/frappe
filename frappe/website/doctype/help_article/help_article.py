@@ -29,6 +29,7 @@ class HelpArticle(WebsiteGenerator):
 		route: DF.Data | None
 		title: DF.Data
 	# end: auto-generated types
+
 	def validate(self):
 		self.set_route()
 
@@ -41,7 +42,10 @@ class HelpArticle(WebsiteGenerator):
 
 	def on_update(self):
 		self.update_category()
-		clear_cache()
+
+	def clear_cache(self):
+		clear_knowledge_base_cache()
+		return super().clear_cache()
 
 	def update_category(self):
 		cnt = frappe.db.count("Help Article", filters={"category": self.category, "published": 1})
@@ -112,15 +116,7 @@ def get_sidebar_items():
 	return frappe.cache.get_value("knowledge_base:category_sidebar", _get)
 
 
-def clear_cache():
-	clear_website_cache()
-
-	from frappe.website.utils import clear_cache
-
-	clear_cache()
-
-
-def clear_website_cache(path=None):
+def clear_knowledge_base_cache():
 	frappe.cache.delete_value("knowledge_base:category_sidebar")
 	frappe.cache.delete_value("knowledge_base:faq")
 

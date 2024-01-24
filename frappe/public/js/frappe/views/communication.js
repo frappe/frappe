@@ -78,6 +78,11 @@ frappe.views.CommunicationComposer = class {
 				fieldname: "bcc",
 			},
 			{
+				label: __("Schedule Send At"),
+				fieldtype: "Datetime",
+				fieldname: "send_after",
+			},
+			{
 				fieldtype: "Section Break",
 				fieldname: "email_template_section_break",
 				hidden: 1,
@@ -151,7 +156,7 @@ frappe.views.CommunicationComposer = class {
 		// add from if user has access to multiple email accounts
 		const email_accounts = frappe.boot.email_accounts.filter((account) => {
 			return (
-				!in_list(["All Accounts", "Sent", "Spam", "Trash"], account.email_account) &&
+				!["All Accounts", "Sent", "Spam", "Trash"].includes(account.email_account) &&
 				account.enable_outgoing
 			);
 		});
@@ -225,6 +230,10 @@ frappe.views.CommunicationComposer = class {
 
 		if (!this.forward && !this.recipients && this.last_email) {
 			this.recipients = this.last_email.sender;
+			// If same user replies to their own email, set recipients to last email recipients
+			if (this.last_email.sender == this.sender) {
+				this.recipients = this.last_email.recipients;
+			}
 			this.cc = this.last_email.cc;
 			this.bcc = this.last_email.bcc;
 		}
@@ -522,18 +531,27 @@ frappe.views.CommunicationComposer = class {
 
 	get_attachment_row(attachment, checked) {
 		return $(`<p class="checkbox flex">
-			<label class="ellipsis" title="${attachment.file_name}">
+			<label title="${attachment.file_name}" style="max-width: 100%">
 				<input
 					type="checkbox"
 					data-file-name="${attachment.name}"
 					${checked ? "checked" : ""}>
 				</input>
-				<span class="ellipsis">${attachment.file_name}</span>
+				<span
+					class="ellipsis"
+					style="max-width: calc(100% - var(--checkbox-size) - var(--checkbox-right-margin) - var(--padding-xs) - 16px)"
+				>
+					${attachment.file_name}
+				</span>
+				<a
+					href="${attachment.file_url}"
+					target="_blank"
+					class="btn-link"
+					style="padding-left: var(--padding-xs)"
+				>
+					${frappe.utils.icon("link-url", "sm")}
+				</a>
 			</label>
-			&nbsp;
-			<a href="${attachment.file_url}" target="_blank" class="btn-linkF">
-				${frappe.utils.icon("link-url")}
-			</a>
 		</p>`);
 	}
 
@@ -676,6 +694,7 @@ frappe.views.CommunicationComposer = class {
 				attachments: selected_attachments,
 				read_receipt: form_values.send_read_receipt,
 				print_letterhead: me.is_print_letterhead_checked(),
+				send_after: form_values.send_after ? form_values.send_after : null,
 			},
 			btn,
 			callback(r) {

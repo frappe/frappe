@@ -160,6 +160,8 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			JSON: "ace/mode/json",
 			Golang: "ace/mode/golang",
 			Go: "ace/mode/golang",
+			Jinja: "ace/mode/django",
+			SQL: "ace/mode/sql",
 		};
 		const language = this.df.options;
 

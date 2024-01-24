@@ -254,12 +254,13 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 	for lf in link_fields:
 		link_dt, link_field, issingle = lf["parent"], lf["fieldname"], lf["issingle"]
-		if link_dt in ignored_doctypes or link_field == "amended_from":
+		if link_dt in ignored_doctypes or (link_field == "amended_from" and method == "Cancel"):
 			continue
 
 		try:
 			meta = frappe.get_meta(link_dt)
 		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
 			# This mostly happens when app do not remove their customizations, we shouldn't
 			# prevent link checks from failing in those cases
 			continue

@@ -1,4 +1,5 @@
 import re
+from contextlib import contextmanager
 
 import pymysql
 from pymysql.constants import ER, FIELD_TYPE
@@ -123,8 +124,8 @@ class MariaDBConnectionUtil:
 			"use_unicode": True,
 		}
 
-		if self.user not in (frappe.flags.root_login, "root"):
-			conn_settings["database"] = self.user
+		if self.cur_db_name:
+			conn_settings["database"] = self.cur_db_name
 
 		if self.port:
 			conn_settings["port"] = int(self.port)
@@ -191,14 +192,14 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		}
 
 	def get_database_size(self):
-		"""'Returns database size in MB"""
+		"""Return database size in MB."""
 		db_size = self.sql(
 			"""
 			SELECT `table_schema` as `database_name`,
 			SUM(`data_length` + `index_length`) / 1024 / 1024 AS `database_size`
 			FROM information_schema.tables WHERE `table_schema` = %s GROUP BY `table_schema`
 			""",
-			self.db_name,
+			self.cur_db_name,
 			as_dict=True,
 		)
 
@@ -208,6 +209,13 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		self.last_query = self._cursor._executed
 		self._log_query(self.last_query, debug, explain, query)
 		return self.last_query
+
+	def _clean_up(self):
+		# PERF: Erase internal references of pymysql to trigger GC as soon as
+		# results are consumed.
+		self._cursor._result = None
+		self._cursor._rows = None
+		self._cursor.connection._result = None
 
 	@staticmethod
 	def escape(s, percent=True):
@@ -281,7 +289,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		)
 
 	def create_global_search_table(self):
-		if not "__global_search" in self.get_tables():
+		if "__global_search" not in self.get_tables():
 			self.sql(
 				"""create table __global_search(
 				doctype varchar(100),
@@ -310,11 +318,11 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		)
 
 	@staticmethod
-	def get_on_duplicate_update(key=None):
+	def get_on_duplicate_update():
 		return "ON DUPLICATE key UPDATE "
 
 	def get_table_columns_description(self, table_name):
-		"""Returns list of column and its description"""
+		"""Return list of columns with descriptions."""
 		return self.sql(
 			"""select
 			column_name as 'name',
@@ -329,7 +337,8 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 					and Seq_in_index = 1
 					limit 1
 			), 0) as 'index',
-			column_key = 'UNI' as 'unique'
+			column_key = 'UNI' as 'unique',
+			(is_nullable = 'NO') AS 'not_nullable'
 			from information_schema.columns as columns
 			where table_name = '{table_name}' """.format(
 				table_name=table_name
@@ -338,7 +347,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		)
 
 	def get_column_type(self, doctype, column):
-		"""Returns column type from database."""
+		"""Return column type from database."""
 		information_schema = frappe.qb.Schema("information_schema")
 		table = get_table_name(doctype)
 
@@ -439,13 +448,13 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 			self.commit()
 			db_table.sync()
-			self.begin()
+			self.commit()
 
 	def get_database_list(self):
 		return self.sql("SHOW DATABASES", pluck=True)
 
 	def get_tables(self, cached=True):
-		"""Returns list of tables"""
+		"""Return list of tables."""
 		to_query = not cached
 
 		if cached:
@@ -517,3 +526,15 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 		if est_row_size:
 			return int(est_row_size[0][0])
+
+	@contextmanager
+	def unbuffered_cursor(self):
+		from pymysql.cursors import SSCursor
+
+		try:
+			original_cursor = self._cursor
+			new_cursor = self._cursor = self._conn.cursor(SSCursor)
+			yield
+		finally:
+			self._cursor = original_cursor
+			new_cursor.close()

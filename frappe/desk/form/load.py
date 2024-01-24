@@ -274,7 +274,7 @@ def _get_communications(doctype, name, start=0, limit=20):
 def get_communication_data(
 	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True
 ):
-	"""Returns list of communications for a given document"""
+	"""Return list of communications for a given document."""
 	if not fields:
 		fields = """
 			C.name, C.communication_type, C.communication_medium,
@@ -437,7 +437,7 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
 
 		meta = frappe.get_meta(doctype)
-		if not meta or not (meta.title_field and meta.show_title_field_in_link):
+		if not meta or not meta.title_field or not meta.show_title_field_in_link:
 			continue
 
 		link_title = frappe.db.get_value(

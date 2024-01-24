@@ -276,7 +276,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			).options;
 			columns[0].push({
 				fieldtype: "Check",
-				label: __("Select {0}", [this.child_doctype]),
+				label: __("Select {0}", [__(this.child_doctype)]),
 				fieldname: "allow_child_item_selection",
 				onchange: this.toggle_child_selection.bind(this),
 			});

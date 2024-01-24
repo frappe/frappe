@@ -22,7 +22,7 @@ import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
-from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
+from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth  # noqa
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
@@ -140,7 +140,7 @@ def application(request: Request):
 
 		try:
 			run_after_request_hooks(request, response)
-		except Exception as e:
+		except Exception:
 			# We can not handle exceptions safely here.
 			frappe.logger().error("Failed to run after request hook", exc_info=True)
 
@@ -179,9 +179,12 @@ def init_request(request):
 			raise frappe.SessionStopped("Session Stopped")
 	else:
 		frappe.connect(set_admin_as_user=False)
+	if request.path.startswith("/api/method/upload_file"):
+		from frappe.core.api.file import get_max_file_size
 
-	request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 10 * 1024 * 1024
-
+		request.max_content_length = get_max_file_size()
+	else:
+		request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 25 * 1024 * 1024
 	make_form_dict(request)
 
 	if request.method != "OPTIONS":
@@ -283,11 +286,11 @@ def set_cors_headers(response):
 	response.headers.extend(cors_headers)
 
 
-def make_form_dict(request):
+def make_form_dict(request: Request):
 	import json
 
 	request_data = request.get_data(as_text=True)
-	if "application/json" in (request.content_type or "") and request_data:
+	if request_data and request.is_json:
 		args = json.loads(request_data)
 	else:
 		args = {}
@@ -299,9 +302,8 @@ def make_form_dict(request):
 
 	frappe.local.form_dict = frappe._dict(args)
 
-	if "_" in frappe.local.form_dict:
-		# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
-		frappe.local.form_dict.pop("_")
+	# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
+	frappe.local.form_dict.pop("_", None)
 
 
 def handle_exception(e):
@@ -416,6 +418,50 @@ def sync_database(rollback: bool) -> bool:
 			rollback = False
 
 	return rollback
+
+
+# Always initialize sentry SDK if the DSN is sent
+if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
+	import sentry_sdk
+	from sentry_sdk.integrations.argv import ArgvIntegration
+	from sentry_sdk.integrations.atexit import AtexitIntegration
+	from sentry_sdk.integrations.dedupe import DedupeIntegration
+	from sentry_sdk.integrations.excepthook import ExcepthookIntegration
+	from sentry_sdk.integrations.modules import ModulesIntegration
+	from sentry_sdk.integrations.wsgi import SentryWsgiMiddleware
+
+	from frappe.utils.sentry import FrappeIntegration, before_send
+
+	integrations = [
+		AtexitIntegration(),
+		ExcepthookIntegration(),
+		DedupeIntegration(),
+		ModulesIntegration(),
+		ArgvIntegration(),
+	]
+
+	experiments = {}
+	kwargs = {}
+
+	if os.getenv("ENABLE_SENTRY_DB_MONITORING"):
+		integrations.append(FrappeIntegration())
+		experiments["record_sql_params"] = True
+
+	if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
+		kwargs["traces_sample_rate"] = float(tracing_sample_rate)
+		application = SentryWsgiMiddleware(application)
+
+	sentry_sdk.init(
+		dsn=sentry_dsn,
+		before_send=before_send,
+		attach_stacktrace=True,
+		release=frappe.__version__,
+		auto_enabling_integrations=False,
+		default_integrations=False,
+		integrations=integrations,
+		_experiments=experiments,
+		**kwargs,
+	)
 
 
 def serve(

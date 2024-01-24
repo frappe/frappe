@@ -81,8 +81,17 @@ function fuzzy_match_recursive(
 	// Loop through pattern and str looking for a match.
 	let first_match = true;
 	while (pattern_cur_index < pattern.length && str_curr_index < str.length) {
+		// Normalize and compare individual characters
+		const normalized_pattern_char = pattern[pattern_cur_index]
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "")
+			.toLowerCase();
+		const normalized_str_char = str[str_curr_index]
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "")
+			.toLowerCase();
 		// Match found.
-		if (pattern[pattern_cur_index].toLowerCase() === str[str_curr_index].toLowerCase()) {
+		if (normalized_pattern_char === normalized_str_char) {
 			if (next_match >= max_matches) {
 				return [false, out_score, matches];
 			}

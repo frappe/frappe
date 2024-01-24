@@ -158,7 +158,7 @@ export default class Grid {
 		if (
 			!this.df.label ||
 			!this.df?.documentation_url ||
-			in_list(unsupported_fieldtypes, this.df.fieldtype)
+			unsupported_fieldtypes.includes(this.df.fieldtype)
 		)
 			return;
 
@@ -309,6 +309,11 @@ export default class Grid {
 			select_all_checkbox_checked && this.data.length > this.get_selected_children().length;
 		this.remove_all_rows_button.toggleClass("hidden", !show_delete_all_btn);
 	}
+
+	debounced_refresh_remove_rows_button = frappe.utils.debounce(
+		this.refresh_remove_rows_button,
+		100
+	);
 
 	get_selected() {
 		return (this.grid_rows || [])
@@ -680,7 +685,7 @@ export default class Grid {
 	get_modal_data() {
 		return this.df.get_data
 			? this.df.get_data().filter((data) => {
-					if (!this.deleted_docs || !in_list(this.deleted_docs, data.name)) {
+					if (!this.deleted_docs || !this.deleted_docs.includes(data.name)) {
 						return data;
 					}
 			  })
@@ -935,7 +940,7 @@ export default class Grid {
 				!df.hidden &&
 				(this.editable_fields || df.in_list_view) &&
 				((this.frm && this.frm.get_perm(df.permlevel, "read")) || !this.frm) &&
-				!in_list(frappe.model.layout_fields, df.fieldtype)
+				!frappe.model.layout_fields.includes(df.fieldtype)
 			) {
 				if (df.columns) {
 					df.colsize = df.columns;
@@ -1082,6 +1087,9 @@ export default class Grid {
 					new frappe.ui.FileUploader({
 						as_dataurl: true,
 						allow_multiple: false,
+						restrictions: {
+							allowed_file_types: [".csv"],
+						},
 						on_success(file) {
 							var data = frappe.utils.csv_to_array(
 								frappe.utils.get_decoded_string(file.dataurl)

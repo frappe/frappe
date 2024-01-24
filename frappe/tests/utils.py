@@ -201,7 +201,7 @@ def _commit_watcher():
 	import traceback
 
 	print("Warning:, transaction committed during tests.")
-	traceback.print_stack(limit=5)
+	traceback.print_stack(limit=10)
 
 
 def _rollback_db():
@@ -217,7 +217,7 @@ def _restore_thread_locals(flags):
 	frappe.local.conf = frappe._dict(frappe.get_site_config())
 	frappe.local.cache = {}
 	frappe.local.lang = "en"
-	frappe.local.preload_assets = {"style": [], "script": []}
+	frappe.local.preload_assets = {"style": [], "script": [], "icons": []}
 
 	if hasattr(frappe.local, "request"):
 		delattr(frappe.local, "request")
@@ -226,7 +226,7 @@ def _restore_thread_locals(flags):
 @contextmanager
 def change_settings(doctype, settings_dict=None, /, **settings):
 	"""A context manager to ensure that settings are changed before running
-	function and restored after running it regardless of exceptions occured.
+	function and restored after running it regardless of exceptions occurred.
 	This is useful in tests where you want to make changes in a function but
 	don't retain those changes.
 	import and use as decorator to cover full function or using `with` statement.

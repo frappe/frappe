@@ -15,6 +15,7 @@
   "fieldname",
   "insert_after",
   "length",
+  "link_filters",
   "column_break_6",
   "fieldtype",
   "precision",
@@ -444,13 +445,19 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
+  },
+  {
+   "fieldname": "link_filters",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Link Filters"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-25 06:55:10.713382",
+ "modified": "2023-12-08 15:52:37.525003",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
@@ -481,7 +488,7 @@
  ],
  "search_fields": "dt,label,fieldtype,options",
  "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }

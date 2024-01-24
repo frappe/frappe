@@ -41,6 +41,10 @@ frappe.ui.form.on("System Console", {
 				frm.get_field("sql_output").html("");
 			}
 		}
+
+		const field = frm.get_field("console");
+		field.df.options = frm.doc.type;
+		field.set_language();
 	},
 
 	render_sql_output: function (frm) {

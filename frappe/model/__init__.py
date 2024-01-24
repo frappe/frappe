@@ -3,6 +3,7 @@
 
 # model __init__.py
 import frappe
+from frappe import _, _lt
 
 data_fieldtypes = (
 	"Currency",
@@ -132,6 +133,25 @@ log_types = (
 	"Console Log",
 )
 
+std_fields = [
+	{"fieldname": "name", "fieldtype": "Link", "label": _lt("ID")},
+	{"fieldname": "owner", "fieldtype": "Link", "label": _lt("Created By"), "options": "User"},
+	{"fieldname": "idx", "fieldtype": "Int", "label": _lt("Index")},
+	{"fieldname": "creation", "fieldtype": "Datetime", "label": _lt("Created On")},
+	{"fieldname": "modified", "fieldtype": "Datetime", "label": _lt("Last Updated On")},
+	{
+		"fieldname": "modified_by",
+		"fieldtype": "Link",
+		"label": _lt("Last Updated By"),
+		"options": "User",
+	},
+	{"fieldname": "_user_tags", "fieldtype": "Data", "label": _lt("Tags")},
+	{"fieldname": "_liked_by", "fieldtype": "Data", "label": _lt("Liked By")},
+	{"fieldname": "_comments", "fieldtype": "Text", "label": _lt("Comments")},
+	{"fieldname": "_assign", "fieldtype": "Text", "label": _lt("Assigned To")},
+	{"fieldname": "docstatus", "fieldtype": "Int", "label": _lt("Document Status")},
+]
+
 
 def delete_fields(args_dict, delete=0):
 	"""
@@ -194,6 +214,8 @@ def get_permitted_fields(
 	parenttype: str | None = None,
 	user: str | None = None,
 	permission_type: str | None = None,
+	*,
+	ignore_virtual=False,
 ) -> list[str]:
 	meta = frappe.get_meta(doctype)
 	valid_columns = meta.get_valid_columns()
@@ -209,7 +231,10 @@ def get_permitted_fields(
 		permission_type = "select" if frappe.only_has_select_perm(doctype, user=user) else "read"
 
 	if permitted_fields := meta.get_permitted_fieldnames(
-		parenttype=parenttype, user=user, permission_type=permission_type
+		parenttype=parenttype,
+		user=user,
+		permission_type=permission_type,
+		with_virtual_fields=not ignore_virtual,
 	):
 		if permission_type == "select":
 			return permitted_fields

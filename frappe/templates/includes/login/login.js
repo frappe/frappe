@@ -2,6 +2,7 @@
 // don't remove this line (used in test)
 
 window.disable_signup = {{ disable_signup and "true" or "false" }};
+window.show_footer_on_login = {{ show_footer_on_login and "true" or "false" }};
 
 window.login = {};
 
@@ -287,8 +288,9 @@ login.login_handlers = (function () {
 			}
 		},
 		401: get_error_handler('{{ _("Invalid Login. Try again.") }}'),
-		417: get_error_handler('{{ _("Oops! Something went wrong") }}'),
-		404: get_error_handler('{{ _("User does not exist.")}}')
+		417: get_error_handler('{{ _("Oops! Something went wrong.") }}'),
+		404: get_error_handler('{{ _("User does not exist.")}}'),
+		500: get_error_handler('{{ _("Something went wrong.") }}')
 	};
 
 	return login_handlers;
@@ -302,6 +304,10 @@ frappe.ready(function () {
 		window.location.hash = "#login";
 	} else {
 		$(window).trigger("hashchange");
+	}
+
+	if (window.show_footer_on_login) {
+		$("body .web-footer").show();
 	}
 
 	$(".form-signup, .form-forgot, .form-login-with-email-link").removeClass("hide");
@@ -333,13 +339,14 @@ var request_otp = function (r) {
 					<span class="indicator blue" data-text="Verification">{{ _("Verification") }}</span>
 				</div>
 				<div id="otp_div"></div>
-				<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder={{ _("Verification Code") }} required="" autofocus="">
+				<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder="{{ _("Verification Code") }}" required="">
 				<button class="btn btn-sm btn-primary btn-block mt-3" id="verify_token">{{ _("Verify") }}</button>
 			</form>
 		</div>`
 	);
 	// add event handler for submit button
 	verify_token();
+	$("#login_token").get(0)?.focus();
 }
 
 var continue_otp_app = function (setup, qrcode) {

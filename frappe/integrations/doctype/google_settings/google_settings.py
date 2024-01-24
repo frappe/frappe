@@ -21,6 +21,7 @@ class GoogleSettings(Document):
 		enable: DF.Check
 		google_drive_picker_enabled: DF.Check
 	# end: auto-generated types
+
 	pass
 
 
@@ -34,6 +35,5 @@ def get_file_picker_settings():
 	return {
 		"enabled": True,
 		"appId": google_settings.app_id,
-		"developerKey": google_settings.api_key,
 		"clientId": google_settings.client_id,
 	}

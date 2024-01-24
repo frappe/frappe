@@ -46,8 +46,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       # Make sure you modify coverage submission file list if changing this
-       container: [1, 2, 3]
+        # Make sure you modify coverage submission file list if changing this
+        container: [1, 2, 3]
 
     name: UI Tests (Cypress)
 
@@ -65,9 +65,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.12"
 
       - name: Check for valid Python & Merge Conflicts
         run: |
@@ -87,7 +87,7 @@ jobs:
           echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
 
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
@@ -99,7 +99,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -108,7 +108,7 @@ jobs:
             ${{ runner.os }}-yarn-ui-
 
       - name: Cache cypress binary
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/Cypress
           key: ${{ runner.os }}-cypress
@@ -120,6 +120,7 @@ jobs:
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           TYPE: ui
           DB: mariadb
 
@@ -165,7 +166,14 @@ jobs:
 
       - name: Show bench output
         if: ${{ always() }}
-        run: cat ~/frappe-bench/bench_start.log || true
+        run: |
+          cd ~/frappe-bench
+          cat bench_start.log || true
+          cd logs
+          for f in ./*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
 
   faux-test:
     runs-on: ubuntu-latest
@@ -174,7 +182,7 @@ jobs:
     name: UI Tests (Cypress)
     strategy:
       matrix:
-       container: [1, 2, 3]
+        container: [1, 2, 3]
 
     steps:
       - name: Pass skipped tests unconditionally

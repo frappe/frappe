@@ -128,7 +128,7 @@ class AutoEmailReport(Document):
 			)
 
 	def get_report_content(self):
-		"""Returns file in for the report in given format"""
+		"""Return file for the report in given format."""
 		report = frappe.get_doc("Report", self.report)
 
 		self.filters = frappe.parse_json(self.filters) if self.filters else {}
@@ -235,7 +235,7 @@ class AutoEmailReport(Document):
 		else:
 			message = self.get_html_table()
 
-		if not self.format == "HTML":
+		if self.format != "HTML":
 			attachments = [{"fname": self.get_file_name(), "fcontent": data}]
 
 		frappe.sendmail(

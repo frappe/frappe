@@ -4,6 +4,7 @@ from types import NoneType
 from typing import TYPE_CHECKING
 
 import frappe
+import frappe.permissions
 from frappe import _, bold
 from frappe.model.document import Document
 from frappe.model.dynamic_links import get_dynamic_link_map
@@ -30,8 +31,7 @@ def update_document_title(
 	**kwargs,
 ) -> str:
 	"""
-	Update the name or title of a document. Returns `name` if document was renamed,
-	`docname` if renaming operation was queued.
+	Update the name or title of a document. Return `name` if document was renamed, `docname` if renaming operation was queued.
 
 	:param doctype: DocType of the document
 	:param docname: Name of the document
@@ -201,8 +201,9 @@ def rename_doc(
 	# call after_rename
 	new_doc = frappe.get_doc(doctype, new)
 
-	# copy any flags if required
-	new_doc._local = getattr(old_doc, "_local", None)
+	if validate:
+		# copy any flags if required
+		new_doc._local = getattr(old_doc, "_local", None)
 
 	new_doc.run_method("after_rename", old, new, merge)
 
@@ -379,11 +380,11 @@ def validate_rename(
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
 	if not (
-		ignore_permissions or frappe.permissions.has_permission(doctype, "write", raise_exception=False)
+		ignore_permissions or frappe.permissions.has_permission(doctype, "write", print_logs=False)
 	):
 		frappe.throw(_("You need write permission to rename"))
 
-	if not (force or ignore_permissions) and not meta.allow_rename:
+	if not force and not ignore_permissions and not meta.allow_rename:
 		frappe.throw(_("{0} not allowed to be renamed").format(_(doctype)))
 
 	# validate naming like it's done in doc.py
@@ -463,11 +464,12 @@ def get_link_fields(doctype: str) -> list[dict]:
 		cf = frappe.qb.DocType("Custom Field")
 		ps = frappe.qb.DocType("Property Setter")
 
-		st_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == df.parent).as_("issingle")
 		standard_fields = (
 			frappe.qb.from_(df)
-			.select(df.parent, df.fieldname, st_issingle)
-			.where((df.options == doctype) & (df.fieldtype == "Link"))
+			.inner_join(dt)
+			.on(df.parent == dt.name)
+			.select(df.parent, df.fieldname, dt.issingle.as_("issingle"))
+			.where((df.options == doctype) & (df.fieldtype == "Link") & (dt.is_virtual == 0))
 			.run(as_dict=True)
 		)
 

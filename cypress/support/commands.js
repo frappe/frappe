@@ -37,22 +37,16 @@ Cypress.Commands.add("login", (email, password) => {
 	// cy.session clears all localStorage on new login, so we need to retain the last route
 	const session_last_route = window.localStorage.getItem("session_last_route");
 	return cy
-		.session(
-			[email, password] || "",
-			() => {
-				return cy.request({
-					url: "/api/method/login",
-					method: "POST",
-					body: {
-						usr: email,
-						pwd: password,
-					},
-				});
-			},
-			{
-				cacheAcrossSpecs: true,
-			}
-		)
+		.session([email, password] || "", () => {
+			return cy.request({
+				url: "/api/method/login",
+				method: "POST",
+				body: {
+					usr: email,
+					pwd: password,
+				},
+			});
+		})
 		.then(() => {
 			if (session_last_route) {
 				window.localStorage.setItem("session_last_route", session_last_route);
@@ -455,27 +449,8 @@ Cypress.Commands.add("click_menu_button", (name) => {
 });
 
 Cypress.Commands.add("clear_filters", () => {
-	let has_filter = false;
-	cy.intercept({
-		method: "POST",
-		url: "api/method/frappe.model.utils.user_settings.save",
-	}).as("filter-saved");
-	cy.get(".filter-section .filter-button").click({ force: true });
-	cy.wait(300);
-	cy.get(".filter-popover").should("exist");
-	cy.get(".filter-popover").then((popover) => {
-		if (popover.find("input.input-with-feedback")[0].value != "") {
-			has_filter = true;
-		}
-	});
-	cy.get(".filter-popover").find(".clear-filters").click();
-	cy.get(".filter-section .filter-button").click();
-	cy.window()
-		.its("cur_list")
-		.then((cur_list) => {
-			cur_list && cur_list.filter_area && cur_list.filter_area.clear();
-			has_filter && cy.wait("@filter-saved");
-		});
+	cy.get(".filter-x-button").click({ force: true });
+	cy.wait(500);
 });
 
 Cypress.Commands.add("click_modal_primary_button", (btn_name) => {

@@ -4,13 +4,10 @@
 import copy
 import json
 import os
-
-# imports - standard imports
 import re
 import shutil
 from typing import TYPE_CHECKING, Union
 
-# imports - module imports
 import frappe
 from frappe import _
 from frappe.cache_manager import clear_controller_cache, clear_user_cache
@@ -136,6 +133,7 @@ class DocType(Document):
 		is_virtual: DF.Check
 		issingle: DF.Check
 		istable: DF.Check
+		link_filters: DF.JSON
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
@@ -161,6 +159,7 @@ class DocType(Document):
 		route: DF.Data | None
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
+		sender_name_field: DF.Data | None
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
@@ -176,6 +175,7 @@ class DocType(Document):
 		translated_doctype: DF.Check
 		website_search_field: DF.Data | None
 	# end: auto-generated types
+
 	def validate(self):
 		"""Validate DocType before saving.
 
@@ -201,7 +201,6 @@ class DocType(Document):
 		self.validate_document_type()
 		validate_fields(self)
 		self.check_indexing_for_dashboard_links()
-
 		if not self.istable:
 			validate_permissions(self)
 
@@ -231,6 +230,7 @@ class DocType(Document):
 			"DocPerm",
 			"Custom Field",
 			"Customize Form Field",
+			"Web Form Field",
 			"DocField",
 		]
 
@@ -289,7 +289,7 @@ class DocType(Document):
 		if not [d.fieldname for d in self.fields if d.in_list_view]:
 			cnt = 0
 			for d in self.fields:
-				if d.reqd and not d.hidden and not d.fieldtype in not_allowed_in_list_view:
+				if d.reqd and not d.hidden and d.fieldtype not in not_allowed_in_list_view:
 					d.in_list_view = 1
 					cnt += 1
 					if cnt == 4:
@@ -304,7 +304,7 @@ class DocType(Document):
 	def check_indexing_for_dashboard_links(self):
 		"""Enable indexing for outgoing links used in dashboard"""
 		for d in self.fields:
-			if d.fieldtype == "Link" and not (d.unique or d.search_index):
+			if d.fieldtype == "Link" and not d.unique and not d.search_index:
 				referred_as_link = frappe.db.exists(
 					"DocType Link",
 					{"parent": d.options, "link_doctype": self.name, "link_fieldname": d.fieldname},
@@ -364,16 +364,23 @@ class DocType(Document):
 							SET `{fieldname}` = source.`{source_fieldname}`
 							FROM `tab{link_doctype}` as source
 							WHERE `{link_fieldname}` = source.name
-							AND ifnull(`{fieldname}`, '')=''
 						"""
+						if df.not_nullable:
+							update_query += "AND `{fieldname}`=''"
+						else:
+							update_query += "AND ifnull(`{fieldname}`, '')=''"
+
 					else:
 						update_query = """
 							UPDATE `tab{doctype}` as target
 							INNER JOIN `tab{link_doctype}` as source
 							ON `target`.`{link_fieldname}` = `source`.`name`
 							SET `target`.`{fieldname}` = `source`.`{source_fieldname}`
-							WHERE ifnull(`target`.`{fieldname}`, '')=""
 						"""
+						if df.not_nullable:
+							update_query += "WHERE `target`.`{fieldname}`=''"
+						else:
+							update_query += "WHERE ifnull(`target`.`{fieldname}`, '')=''"
 
 					self.flags.update_fields_to_fetch_queries.append(
 						update_query.format(
@@ -404,7 +411,7 @@ class DocType(Document):
 
 		if self.has_web_view:
 			# route field must be present
-			if not "route" in [d.fieldname for d in self.fields]:
+			if "route" not in [d.fieldname for d in self.fields]:
 				frappe.throw(_('Field "route" is mandatory for Web Views'), title="Missing Field")
 
 			# clear website cache
@@ -583,7 +590,7 @@ class DocType(Document):
 		if not self.has_value_changed("has_web_view"):
 			return
 
-		despaced_name = self.name.replace(" ", "_")
+		despaced_name = self.name.replace(" ", "")
 		scrubbed_name = frappe.scrub(self.name)
 		scrubbed_module = frappe.scrub(self.module)
 		controller_path = frappe.get_module_path(
@@ -976,7 +983,7 @@ class DocType(Document):
 		add_column(self.name, "parentfield", "Data")
 
 	def get_max_idx(self):
-		"""Returns the highest `idx`"""
+		"""Return the highest `idx`."""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", self.name)
 		return max_idx and max_idx[0][0] or 0
 
@@ -1257,7 +1264,7 @@ def validate_fields(meta):
 						),
 						WrongOptionsDoctypeLinkError,
 					)
-				elif not (options == d.options):
+				elif options != d.options:
 					frappe.throw(
 						_("{0}: Options {1} must be the same as doctype name {2} for the field {3}").format(
 							docname, d.options, options, d.label
@@ -1505,7 +1512,7 @@ def validate_fields(meta):
 
 	def check_table_multiselect_option(docfield):
 		"""check if the doctype provided in Option has atleast 1 Link field"""
-		if not docfield.fieldtype == "Table MultiSelect":
+		if docfield.fieldtype != "Table MultiSelect":
 			return
 
 		doctype = docfield.options
@@ -1571,7 +1578,7 @@ def validate_fields(meta):
 				title=_("Invalid Option"),
 			)
 
-		if not (meta.is_virtual == child_doctype_meta.is_virtual):
+		if meta.is_virtual != child_doctype_meta.is_virtual:
 			error_msg = " should be virtual." if meta.is_virtual else " cannot be virtual."
 			frappe.throw(
 				_("Child Table {0} for field {1}" + error_msg).format(
@@ -1604,7 +1611,6 @@ def validate_fields(meta):
 
 		check_illegal_characters(d.fieldname)
 		check_invalid_fieldnames(meta.get("name"), d.fieldname)
-		check_unique_fieldname(meta.get("name"), d.fieldname)
 		check_fieldname_length(d.fieldname)
 		check_hidden_and_mandatory(meta.get("name"), d)
 		check_unique_and_text(meta.get("name"), d)
@@ -1614,6 +1620,7 @@ def validate_fields(meta):
 		validate_data_field_type(d)
 
 		if not frappe.flags.in_migrate:
+			check_unique_fieldname(meta.get("name"), d.fieldname)
 			check_link_table_options(meta.get("name"), d)
 			check_illegal_mandatory(meta.get("name"), d)
 			check_dynamic_link_options(d)
@@ -1658,22 +1665,12 @@ def validate_permissions_for_doctype(doctype, for_remove=False, alert=False):
 
 
 def clear_permissions_cache(doctype):
+	from frappe.cache_manager import clear_user_cache
+
 	frappe.clear_cache(doctype=doctype)
 	delete_notification_count_for(doctype)
-	for user in frappe.db.sql_list(
-		"""
-		SELECT
-			DISTINCT `tabHas Role`.`parent`
-		FROM
-			`tabHas Role`,
-			`tabDocPerm`
-		WHERE `tabDocPerm`.`parent` = %s
-			AND `tabDocPerm`.`role` = `tabHas Role`.`role`
-			AND `tabHas Role`.`parenttype` = 'User'
-		""",
-		doctype,
-	):
-		frappe.clear_cache(user=user)
+
+	clear_user_cache()
 
 
 def validate_permissions(doctype, for_remove=False, alert=False):
@@ -1883,7 +1880,7 @@ def check_email_append_to(doc):
 	if doc.sender_field and not sender_field:
 		frappe.throw(_("Select a valid Sender Field for creating documents from Email"))
 
-	if not sender_field.options == "Email":
+	if sender_field.options != "Email":
 		frappe.throw(_("Sender Field should have Email in options"))
 
 

@@ -1,14 +1,23 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from typing import TYPE_CHECKING
+
 from zxcvbn import zxcvbn
 from zxcvbn.scoring import ALL_UPPER, START_UPPER
 
 import frappe
-from frappe import _
+from frappe import _, _lt
+
+if TYPE_CHECKING:
+	from collections.abc import Iterable
+
+	from zxcvbn import _Result
+	from zxcvbn.feedback import _Feedback as PasswordStrengthFeedback
+	from zxcvbn.matching import _Match
 
 
-def test_password_strength(password, user_inputs=None):
+def test_password_strength(password: str, user_inputs: "Iterable[object]" = None) -> "_Result":
 	"""Wrapper around zxcvbn.password_strength"""
 	if len(password) > 128:
 		# zxcvbn takes forever when checking long, random passwords.
@@ -27,20 +36,19 @@ def test_password_strength(password, user_inputs=None):
 # see license for feedback code at https://github.com/sans-serif/python-zxcvbn/blob/master/LICENSE.txt
 # -------------------------------------------
 
+
 # Default feedback value
-default_feedback = {
+default_feedback: "PasswordStrengthFeedback" = {
 	"warning": "",
 	"suggestions": [
-		_("Use a few words, avoid common phrases."),
-		_("No need for symbols, digits, or uppercase letters."),
+		_lt("Use a few words, avoid common phrases."),
+		_lt("No need for symbols, digits, or uppercase letters."),
 	],
 }
 
 
-def get_feedback(score, sequence):
-	"""
-	Returns the feedback dictionary consisting of ("warning","suggestions") for the given sequences.
-	"""
+def get_feedback(score: int, sequence: list) -> "PasswordStrengthFeedback":
+	"""Return the feedback dictionary consisting of ("warning","suggestions") for the given sequences."""
 	global default_feedback
 	minimum_password_score = int(
 		frappe.db.get_single_value("System Settings", "minimum_password_score") or 2
@@ -69,10 +77,8 @@ def get_feedback(score, sequence):
 	return feedback
 
 
-def get_match_feedback(match, is_sole_match):
-	"""
-	Returns feedback as a dictionary for a certain match
-	"""
+def get_match_feedback(match: "_Match", is_sole_match: bool) -> "PasswordStrengthFeedback":
+	"""Return feedback as a dictionary for a certain match."""
 
 	def fun_bruteforce():
 		# Define a number of functions that are used in a look up dictionary
@@ -142,10 +148,10 @@ def get_match_feedback(match, is_sole_match):
 		return pattern_fn()
 
 
-def get_dictionary_match_feedback(match, is_sole_match):
-	"""
-	Returns feedback for a match that is found in a dictionary
-	"""
+def get_dictionary_match_feedback(
+	match: "_Match", is_sole_match: bool
+) -> "PasswordStrengthFeedback":
+	"""Return feedback for a match that is found in a dictionary."""
 	warning = ""
 	suggestions = []
 

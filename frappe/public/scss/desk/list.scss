@@ -4,7 +4,9 @@
 // }
 
 .freeze-row {
-	.level-left, .level-right, .list-row-col {
+	.level-left,
+	.level-right,
+	.list-row-col {
 		height: 100%;
 		width: 100%;
 	}
@@ -41,7 +43,8 @@
 }
 
 .no-list-sidebar {
-	&[data-page-route^="List/"], [data-page-route^="List/"]{
+	&[data-page-route^="List/"],
+	[data-page-route^="List/"] {
 		@include media-breakpoint-up(md) {
 			.layout-side-section {
 				display: none;
@@ -67,7 +70,6 @@
 			background-color: var(--highlight-color);
 		}
 	}
-
 }
 
 .list-row {
@@ -117,7 +119,7 @@
 		justify-content: flex-end;
 		// min-width: 120px;
 
-		&> span {
+		& > span {
 			display: inline-block;
 		}
 
@@ -135,7 +137,8 @@
 			white-space: nowrap;
 		}
 
-		.list-assignments, .list-actions {
+		.list-assignments,
+		.list-actions {
 			margin-right: var(--margin-md);
 		}
 	}
@@ -146,7 +149,8 @@
 		}
 	}
 
-	.select-like, .file-select {
+	.select-like,
+	.file-select {
 		padding-left: 11px;
 	}
 }
@@ -155,10 +159,10 @@
 	@extend .list-row;
 	cursor: default;
 	background-color: var(--subtle-fg);
-    height: 30px;
+	height: 30px;
 	padding: 8px, 10px, 8px, 0px;
-	margin: 8px 5px;
-    border-radius: var(--border-radius-md);
+	margin: 8px 5px 0px 5px;
+	border-radius: var(--border-radius-md);
 
 	.list-check-all {
 		margin-left: 11px;
@@ -201,7 +205,8 @@ $level-margin-right: 8px;
 	}
 }
 
-.list-paging-area, .footnote-area {
+.list-paging-area,
+.footnote-area {
 	border-top: 1px solid var(--border-color);
 
 	.btn-group {
@@ -214,7 +219,7 @@ $level-margin-right: 8px;
 			background-color: var(--bg-color);
 			color: var(--text-color);
 			font-weight: var(--weight-medium);
-	   }
+		}
 	}
 	.btn-paging {
 		background-color: var(--gray-50);
@@ -222,7 +227,8 @@ $level-margin-right: 8px;
 }
 
 .frappe-card {
-	.list-paging-area, .footnote-area {
+	.list-paging-area,
+	.footnote-area {
 		padding: var(--padding-md);
 	}
 }
@@ -239,7 +245,8 @@ $level-margin-right: 8px;
 	margin-bottom: 1px;
 }
 
-input.list-check-all, input.list-row-checkbox {
+input.list-check-all,
+input.list-row-checkbox {
 	margin-top: 0px;
 	margin-bottom: 0px;
 	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
@@ -315,12 +322,13 @@ input.list-check-all {
 		cursor: auto;
 	}
 
-	input[type=checkbox] {
+	input[type="checkbox"] {
 		margin: 0;
 		margin-right: 5px;
 	}
 
-	.liked-by, .liked-by-filter-button {
+	.liked-by,
+	.liked-by-filter-button {
 		display: inline-block;
 		width: 20px;
 		margin-right: 10px;
@@ -343,7 +351,8 @@ input.list-check-all {
 		margin-right: 5px;
 		min-width: 110px;
 
-		.list-row-modified, .avatar-small {
+		.list-row-modified,
+		.avatar-small {
 			margin-right: 10px;
 		}
 	}
@@ -425,7 +434,6 @@ input.list-check-all {
 			margin: var(--margin-xs) 0 var(--margin-xs) var(--margin-xs);
 		}
 	}
-
 }
 
 .restricted-button {
@@ -441,10 +449,7 @@ input.list-check-all {
 	}
 
 	&.btn {
-		@include button-variant(
-			$background: $light-yellow,
-			$border: darken($light-yellow, 5%),
-		);
+		@include button-variant($background: $light-yellow, $border: darken($light-yellow, 5%));
 		box-shadow: none;
 	}
 }

@@ -47,6 +47,7 @@ class Engine:
 		delete: bool = False,
 		*,
 		validate_filters: bool = False,
+		skip_locked: bool = False,
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
@@ -83,7 +84,7 @@ class Engine:
 			self.query = self.query.distinct()
 
 		if for_update:
-			self.query = self.query.for_update()
+			self.query = self.query.for_update(skip_locked=skip_locked)
 
 		if group_by:
 			self.query = self.query.groupby(group_by)
@@ -218,7 +219,7 @@ class Engine:
 			self.query = self.query.where(operator_fn(_field, _value))
 
 	def get_function_object(self, field: str) -> "Function":
-		"""Expects field to look like 'SUM(*)' or 'name' or something similar. Returns PyPika Function object"""
+		"""Return PyPika Function object. Expect field to look like 'SUM(*)' or 'name' or something similar."""
 		func = field.split("(", maxsplit=1)[0].capitalize()
 		args_start, args_end = len(func) + 1, field.index(")")
 		args = field[args_start:args_end].split(",")

@@ -4,6 +4,7 @@ import getpass
 
 import frappe
 from frappe.geo.doctype.country.country import import_country_and_currency
+from frappe.utils import cint
 from frappe.utils.password import update_password
 
 
@@ -144,7 +145,7 @@ def get_admin_password():
 	def ask_admin_password():
 		admin_password = getpass.getpass("Set Administrator password: ")
 		admin_password2 = getpass.getpass("Re-enter Administrator password: ")
-		if not admin_password == admin_password2:
+		if admin_password != admin_password2:
 			print("\nPasswords do not match")
 			return ask_admin_password()
 		return admin_password
@@ -166,7 +167,7 @@ def before_tests():
 	frappe.clear_cache()
 
 	# complete setup if missing
-	if not int(frappe.db.get_single_value("System Settings", "setup_complete") or 0):
+	if not cint(frappe.db.get_single_value("System Settings", "setup_complete")):
 		complete_setup_wizard()
 
 	frappe.db.set_single_value("Website Settings", "disable_signup", 0)
@@ -186,6 +187,7 @@ def complete_setup_wizard():
 			"country": "United States",
 			"timezone": "America/New_York",
 			"currency": "USD",
+			"enable_telemtry": 1,
 		}
 	)
 
@@ -197,90 +199,13 @@ def add_standard_navbar_items():
 	if navbar_settings.settings_dropdown and navbar_settings.help_dropdown:
 		return
 
-	standard_navbar_items = [
-		{
-			"item_label": "My Profile",
-			"item_type": "Route",
-			"route": "/app/user-profile",
-			"is_standard": 1,
-		},
-		{
-			"item_label": "My Settings",
-			"item_type": "Action",
-			"action": "frappe.ui.toolbar.route_to_user()",
-			"is_standard": 1,
-		},
-		{
-			"item_label": "Session Defaults",
-			"item_type": "Action",
-			"action": "frappe.ui.toolbar.setup_session_defaults()",
-			"is_standard": 1,
-		},
-		{
-			"item_label": "Reload",
-			"item_type": "Action",
-			"action": "frappe.ui.toolbar.clear_cache()",
-			"is_standard": 1,
-		},
-		{
-			"item_label": "View Website",
-			"item_type": "Action",
-			"action": "frappe.ui.toolbar.view_website()",
-			"is_standard": 1,
-		},
-		{
-			"item_label": "Toggle Full Width",
-			"item_type": "Action",
-			"action": "frappe.ui.toolbar.toggle_full_width()",
-			"is_standard": 1,
-		},
-		{
-			"item_label": "Toggle Theme",
-			"item_type": "Action",
-			"action": "new frappe.ui.ThemeSwitcher().show()",
-			"is_standard": 1,
-		},
-		{
-			"item_type": "Separator",
-			"is_standard": 1,
-			"item_label": "",
-		},
-		{
-			"item_label": "Log out",
-			"item_type": "Action",
-			"action": "frappe.app.logout()",
-			"is_standard": 1,
-		},
-	]
-
-	standard_help_items = [
-		{
-			"item_label": "About",
-			"item_type": "Action",
-			"action": "frappe.ui.toolbar.show_about()",
-			"is_standard": 1,
-		},
-		{
-			"item_label": "Keyboard Shortcuts",
-			"item_type": "Action",
-			"action": "frappe.ui.toolbar.show_shortcuts(event)",
-			"is_standard": 1,
-		},
-		{
-			"item_label": "Frappe Support",
-			"item_type": "Route",
-			"route": "https://frappe.io/support",
-			"is_standard": 1,
-		},
-	]
-
 	navbar_settings.settings_dropdown = []
 	navbar_settings.help_dropdown = []
 
-	for item in standard_navbar_items:
+	for item in frappe.get_hooks("standard_navbar_items"):
 		navbar_settings.append("settings_dropdown", item)
 
-	for item in standard_help_items:
+	for item in frappe.get_hooks("standard_help_items"):
 		navbar_settings.append("help_dropdown", item)
 
 	navbar_settings.save()

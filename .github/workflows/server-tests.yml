@@ -11,7 +11,6 @@ concurrency:
   group: server-develop-${{ github.event_name }}-${{ github.event.number }}
   cancel-in-progress: true
 
-
 permissions:
   # Do not change this as GITHUB_TOKEN is being used by roulette
   contents: read
@@ -48,8 +47,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       db: ["mariadb", "postgres"]
-       container: [1, 2]
+        db: ["mariadb", "postgres"]
+        container: [1, 2]
 
     services:
       mariadb:
@@ -72,14 +71,20 @@ jobs:
         ports:
           - 5432:5432
 
+      smtp_server:
+        image: rnwood/smtp4dev
+        ports:
+          - 2525:25
+          - 3000:80
+
     steps:
       - name: Clone
         uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.12"
 
       - name: Check for valid Python & Merge Conflicts
         run: |
@@ -99,7 +104,7 @@ jobs:
           echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
 
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
@@ -111,7 +116,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -126,6 +131,7 @@ jobs:
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           TYPE: server
           DB: ${{ matrix.db }}
 
@@ -136,12 +142,20 @@ jobs:
           SITE: test_site
           CI_BUILD_ID: ${{ github.run_id }}
           BUILD_NUMBER: ${{ matrix.container }}
+          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           TOTAL_BUILDS: 2
           COVERAGE_RCFILE: /home/runner/frappe-bench/apps/frappe/.coveragerc
 
       - name: Show bench output
         if: ${{ always() }}
-        run: cat ~/frappe-bench/bench_start.log || true
+        run: |
+          cd ~/frappe-bench
+          cat bench_start.log || true
+          cd logs
+          for f in ./*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
@@ -158,8 +172,8 @@ jobs:
 
     strategy:
       matrix:
-       db: ["mariadb", "postgres"]
-       container: [1, 2]
+        db: ["mariadb", "postgres"]
+        container: [1, 2]
 
     steps:
       - name: Pass skipped tests unconditionally
