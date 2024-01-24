@@ -15,6 +15,7 @@ class WorkspaceLink(Document):
 		from frappe.types import DF
 
 		dependencies: DF.Data | None
+		description: DF.HTMLEditor | None
 		hidden: DF.Check
 		icon: DF.Data | None
 		is_query_report: DF.Check
@@ -29,4 +30,5 @@ class WorkspaceLink(Document):
 		parenttype: DF.Data
 		type: DF.Literal["Link", "Card Break"]
 	# end: auto-generated types
+
 	pass
