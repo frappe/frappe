@@ -198,7 +198,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method_name = method
 		method = frappe.get_attr(method)
 	else:
-		method_name = cstr(method.__name__)
+		method_name = f"{method.__module__}.{method.__qualname__}"
 
 	frappe.local.job = frappe._dict(
 		site=site,
@@ -268,6 +268,7 @@ def start_worker(
 	if not strategy:
 		strategy = DequeueStrategy.DEFAULT
 
+	_start_sentry()
 	_freeze_gc()
 
 	with frappe.init_site():
@@ -287,49 +288,6 @@ def start_worker(
 	logging_level = "INFO"
 	if quiet:
 		logging_level = "WARNING"
-
-	# Always initialize sentry SDK if the DSN is sent
-	if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
-		import sentry_sdk
-		from sentry_sdk.integrations.argv import ArgvIntegration
-		from sentry_sdk.integrations.atexit import AtexitIntegration
-		from sentry_sdk.integrations.dedupe import DedupeIntegration
-		from sentry_sdk.integrations.excepthook import ExcepthookIntegration
-		from sentry_sdk.integrations.modules import ModulesIntegration
-		from sentry_sdk.integrations.rq import RqIntegration
-
-		from frappe.utils.sentry import FrappeIntegration, before_send
-
-		integrations = [
-			AtexitIntegration(),
-			ExcepthookIntegration(),
-			DedupeIntegration(),
-			ModulesIntegration(),
-			ArgvIntegration(),
-			RqIntegration(),
-		]
-
-		experiments = {}
-		kwargs = {}
-
-		if os.getenv("ENABLE_SENTRY_DB_MONITORING"):
-			integrations.append(FrappeIntegration())
-			experiments["record_sql_params"] = True
-
-		if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
-			kwargs["traces_sample_rate"] = float(tracing_sample_rate)
-
-		sentry_sdk.init(
-			dsn=sentry_dsn,
-			before_send=before_send,
-			attach_stacktrace=True,
-			release=frappe.__version__,
-			auto_enabling_integrations=False,
-			default_integrations=False,
-			integrations=integrations,
-			_experiments=experiments,
-			**kwargs,
-		)
 
 	worker = Worker(queues, name=get_worker_name(queue_name), connection=redis_connection)
 	worker.work(
@@ -352,6 +310,7 @@ def start_worker_pool(
 	WARNING: This feature is considered "EXPERIMENTAL".
 	"""
 
+	_start_sentry()
 	_freeze_gc()
 
 	with frappe.init_site():
@@ -502,15 +461,18 @@ def get_redis_conn(username=None, password=None):
 			return get_redis_connection_without_auth()
 		else:
 			return RedisQueue.get_connection(**cred)
-	except (redis.exceptions.AuthenticationError, redis.exceptions.ResponseError):
+	except redis.exceptions.AuthenticationError:
 		log(
 			f'Wrong credentials used for {cred.username or "default user"}. '
 			"You can reset credentials using `bench create-rq-users` CLI and restart the server",
 			colour="red",
 		)
 		raise
-	except Exception:
-		log(f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}", colour="red")
+	except Exception as e:
+		log(
+			f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}. Redis reported error: {str(e)}",
+			colour="red",
+		)
 		raise
 
 
@@ -615,3 +577,50 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 		for job_ids in create_batch(failed_jobs, 100):
 			for job_obj in Job.fetch_many(job_ids=job_ids, connection=connection):
 				job_obj and fail_registry.remove(job_obj, delete_job=True)
+
+
+def _start_sentry():
+	sentry_dsn = os.getenv("FRAPPE_SENTRY_DSN")
+	if not sentry_dsn:
+		return
+
+	import sentry_sdk
+	from sentry_sdk.integrations.argv import ArgvIntegration
+	from sentry_sdk.integrations.atexit import AtexitIntegration
+	from sentry_sdk.integrations.dedupe import DedupeIntegration
+	from sentry_sdk.integrations.excepthook import ExcepthookIntegration
+	from sentry_sdk.integrations.modules import ModulesIntegration
+	from sentry_sdk.integrations.rq import RqIntegration
+
+	from frappe.utils.sentry import FrappeIntegration, before_send
+
+	integrations = [
+		AtexitIntegration(),
+		ExcepthookIntegration(),
+		DedupeIntegration(),
+		ModulesIntegration(),
+		ArgvIntegration(),
+		RqIntegration(),
+	]
+
+	experiments = {}
+	kwargs = {}
+
+	if os.getenv("ENABLE_SENTRY_DB_MONITORING"):
+		integrations.append(FrappeIntegration())
+		experiments["record_sql_params"] = True
+
+	if tracing_sample_rate := os.getenv("SENTRY_TRACING_SAMPLE_RATE"):
+		kwargs["traces_sample_rate"] = float(tracing_sample_rate)
+
+	sentry_sdk.init(
+		dsn=sentry_dsn,
+		before_send=before_send,
+		attach_stacktrace=True,
+		release=frappe.__version__,
+		auto_enabling_integrations=False,
+		default_integrations=False,
+		integrations=integrations,
+		_experiments=experiments,
+		**kwargs,
+	)

@@ -141,7 +141,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 				["Communication", "sent_or_received", "=", "Sent", true],
 				["Communication", "email_status", "not in", "Spam,Trash", true],
 			]);
-		} else if (in_list(["Spam", "Trash"], email_account)) {
+		} else if (["Spam", "Trash"].includes(email_account)) {
 			filters = default_filters.concat([
 				["Communication", "email_status", "=", email_account, true],
 				["Communication", "email_account", "in", frappe.boot.all_accounts, true],
@@ -167,7 +167,7 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 	get_no_result_message() {
 		var email_account = this.email_account;
 		var args;
-		if (in_list(["Spam", "Trash"], email_account)) {
+		if (["Spam", "Trash"].includes(email_account)) {
 			return __("No {0} mail", [email_account]);
 		} else if (!email_account && !frappe.boot.email_accounts.length) {
 			// email account is not configured

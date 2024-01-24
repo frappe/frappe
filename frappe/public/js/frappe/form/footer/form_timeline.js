@@ -66,7 +66,7 @@ class FormTimeline extends BaseTimeline {
 				.append(
 					`
 					<div class="d-flex align-items-center show-all-activity">
-						<span style="color: var(--text-light); margin:0px 6px;">Show all activity</span>
+						<span style="color: var(--text-light); margin:0px 6px;">${__("Show all activity")}</span>
 						<label class="switch">
 							<input type="checkbox">
 							<span class="slider round"></span>
@@ -295,11 +295,11 @@ class FormTimeline extends BaseTimeline {
 
 	set_communication_doc_status(doc) {
 		let indicator_color = "red";
-		if (in_list(["Sent", "Clicked"], doc.delivery_status)) {
+		if (["Sent", "Clicked"].includes(doc.delivery_status)) {
 			indicator_color = "green";
 		} else if (["Sending", "Scheduled"].includes(doc.delivery_status)) {
 			indicator_color = "orange";
-		} else if (in_list(["Opened", "Read"], doc.delivery_status)) {
+		} else if (["Opened", "Read"].includes(doc.delivery_status)) {
 			indicator_color = "blue";
 		} else if (doc.delivery_status == "Error") {
 			indicator_color = "red";
@@ -550,11 +550,34 @@ class FormTimeline extends BaseTimeline {
 			title: communication_doc ? __("Reply") : null,
 			last_email: communication_doc,
 			subject: communication_doc && communication_doc.subject,
+			reply_all: reply_all,
 		};
 
-		if (communication_doc && reply_all) {
-			args.cc = communication_doc.cc;
-			args.bcc = communication_doc.bcc;
+		const email_accounts = frappe.boot.email_accounts
+			.filter((account) => {
+				return (
+					!["All Accounts", "Sent", "Spam", "Trash"].includes(account.email_account) &&
+					account.enable_outgoing
+				);
+			})
+			.map((e) => e.email_id);
+
+		if (communication_doc && args.is_a_reply) {
+			args.cc = "";
+			if (
+				email_accounts.includes(frappe.session.user_email) &&
+				communication_doc.sender != frappe.session.user_email
+			) {
+				// add recipients to cc if replying sender is different from last email
+				const recipients = communication_doc.recipients.split(",").map((r) => r.trim());
+				args.cc =
+					recipients.filter((r) => r != frappe.session.user_email).join(", ") + ", ";
+			}
+			if (reply_all) {
+				// if reply_all then add cc and bcc as well.
+				args.cc += communication_doc.cc;
+				args.bcc = communication_doc.bcc;
+			}
 		}
 
 		if (this.frm.doctype === "Communication") {

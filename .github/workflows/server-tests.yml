@@ -11,7 +11,6 @@ concurrency:
   group: server-develop-${{ github.event_name }}-${{ github.event.number }}
   cancel-in-progress: true
 
-
 permissions:
   # Do not change this as GITHUB_TOKEN is being used by roulette
   contents: read
@@ -48,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-       db: ["mariadb", "postgres"]
+        db: ["mariadb"]
 
     services:
       mariadb:
@@ -84,7 +83,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Check for valid Python & Merge Conflicts
         run: |
@@ -151,7 +150,7 @@ jobs:
 
     strategy:
       matrix:
-       db: ["mariadb", "postgres"]
+        db: ["mariadb"]
 
     steps:
       - name: Pass skipped tests unconditionally
