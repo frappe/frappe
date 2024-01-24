@@ -1705,6 +1705,7 @@ Object.assign(frappe.utils, {
 					fieldname: "source",
 					label: __("Source"),
 					fieldtype: "Data",
+					description: "The referrer (e.g. google, newsletter)",
 					default: localStorage.getItem("tracker_url:source"),
 				},
 				{
@@ -1719,7 +1720,15 @@ Object.assign(frappe.utils, {
 					fieldname: "medium",
 					label: __("Medium"),
 					fieldtype: "Data",
+					description: "Marketing medium (e.g. cpc, banner, email)",
 					default: localStorage.getItem("tracker_url:medium"),
+				},
+				{
+					fieldname: "content",
+					label: __("Content"),
+					fieldtype: "Data",
+					description: "Use to differentiate ad variants (e.g. A/B testing)",
+					default: localStorage.getItem("tracker_url:content"),
 				},
 			],
 			function (data) {
@@ -1727,16 +1736,20 @@ Object.assign(frappe.utils, {
 				localStorage.setItem("tracker_url:url", data.url);
 
 				if (data.source) {
-					url += "?source=" + data.source;
+					url += "?utm_source=" + data.source;
 					localStorage.setItem("tracker_url:source", data.source);
 				}
 				if (data.campaign) {
-					url += "&campaign=" + data.campaign;
+					url += "&utm_campaign=" + data.campaign;
 					localStorage.setItem("tracker_url:campaign", data.campaign);
 				}
 				if (data.medium) {
-					url += "&medium=" + data.medium.toLowerCase();
+					url += "&utm_medium=" + data.medium.toLowerCase();
 					localStorage.setItem("tracker_url:medium", data.medium);
+				}
+				if (data.medium) {
+					url += "&utm_content=" + data.content;
+					localStorage.setItem("tracker_url:content", data.content);
 				}
 
 				frappe.utils.copy_to_clipboard(url);
