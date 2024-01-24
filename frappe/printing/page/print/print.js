@@ -384,13 +384,13 @@ frappe.ui.form.PrintView = class {
 		this.print_wrapper.find(".preview-beta-wrapper").hide();
 		this.print_wrapper.find(".print-preview-wrapper").show();
 
-		const $print_format = this.print_wrapper.find("iframe");
-		this.$print_format_body = $print_format.contents();
 		this.get_print_html((out) => {
 			if (!out.html) {
 				out.html = this.get_no_preview_html();
 			}
 
+			const $print_format = this.print_wrapper.find("iframe");
+			this.$print_format_body = $print_format.contents();
 			this.setup_print_format_dom(out, $print_format);
 
 			const print_height = $print_format.get(0).offsetHeight;
