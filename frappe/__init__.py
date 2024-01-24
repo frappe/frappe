@@ -395,7 +395,9 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	)
 
 	# Set the user as database name if not set in config
-	config["db_user"] = config.get("db_user") or config.get("db_name")
+	config["db_user"] = (
+		os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
+	)
 
 	return config
 
