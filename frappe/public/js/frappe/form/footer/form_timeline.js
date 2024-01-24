@@ -527,11 +527,34 @@ class FormTimeline extends BaseTimeline {
 			title: communication_doc ? __("Reply") : null,
 			last_email: communication_doc,
 			subject: communication_doc && communication_doc.subject,
+			reply_all: reply_all,
 		};
 
-		if (communication_doc && reply_all) {
-			args.cc = communication_doc.cc;
-			args.bcc = communication_doc.bcc;
+		const email_accounts = frappe.boot.email_accounts
+			.filter((account) => {
+				return (
+					!["All Accounts", "Sent", "Spam", "Trash"].includes(account.email_account) &&
+					account.enable_outgoing
+				);
+			})
+			.map((e) => e.email_id);
+
+		if (communication_doc && args.is_a_reply) {
+			args.cc = "";
+			if (
+				email_accounts.includes(frappe.session.user_email) &&
+				communication_doc.sender != frappe.session.user_email
+			) {
+				// add recipients to cc if replying sender is different from last email
+				const recipients = communication_doc.recipients.split(",").map((r) => r.trim());
+				args.cc =
+					recipients.filter((r) => r != frappe.session.user_email).join(", ") + ", ";
+			}
+			if (reply_all) {
+				// if reply_all then add cc and bcc as well.
+				args.cc += communication_doc.cc;
+				args.bcc = communication_doc.bcc;
+			}
 		}
 
 		if (this.frm.doctype === "Communication") {
