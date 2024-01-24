@@ -119,6 +119,7 @@ frappe.ui.form.on("Custom Field", {
 					label: __("Fieldname"),
 					fieldname: "fieldname",
 					reqd: 1,
+					default: frm.doc.fieldname,
 				},
 				function (data) {
 					frappe.call({
