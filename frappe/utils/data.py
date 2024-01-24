@@ -1532,7 +1532,7 @@ def money_in_words(
 				+ fraction_currency
 			)
 
-	return out + " " + _("only.")
+	return _("{0} only.", context="Money in words").format(out)
 
 
 #

@@ -36,6 +36,13 @@ EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
 	default=False,
 	help="Saves esbuild metafiles for built assets. Useful for analyzing bundle size. More info: https://esbuild.github.io/api/#metafile",
 )
+@click.option(
+	"--using-cached",
+	is_flag=True,
+	default=False,
+	envvar="USING_CACHED",
+	help="Skips build and uses cached build artifacts (cache is set by Bench). Ignored if developer_mode enabled.",
+)
 def build(
 	app=None,
 	apps=None,
@@ -44,6 +51,7 @@ def build(
 	verbose=False,
 	force=False,
 	save_metafiles=False,
+	using_cached=False,
 ):
 	"Compile JS and CSS source files"
 	from frappe.build import bundle, download_frappe_assets
@@ -69,6 +77,9 @@ def build(
 		if production:
 			mode = "production"
 
+		if development:
+			using_cached = False
+
 		bundle(
 			mode,
 			apps=apps,
@@ -76,6 +87,7 @@ def build(
 			verbose=verbose,
 			skip_frappe=skip_frappe,
 			save_metafiles=save_metafiles,
+			using_cached=using_cached,
 		)
 
 		if apps and isinstance(apps, str):
@@ -108,7 +120,8 @@ def clear_cache(context):
 
 	for site in context.sites:
 		try:
-			frappe.connect(site)
+			frappe.init(site=site)
+			frappe.connect()
 			frappe.clear_cache()
 			clear_website_cache()
 		finally:
@@ -601,7 +614,7 @@ def console(context, autoreload=False):
 	all_apps = frappe.get_installed_apps()
 	failed_to_import = []
 
-	for app in all_apps:
+	for app in list(all_apps):
 		try:
 			locals()[app] = __import__(app)
 		except ModuleNotFoundError:

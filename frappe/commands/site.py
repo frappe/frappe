@@ -53,6 +53,7 @@ from frappe.exceptions import SiteNotSpecifiedError
 	default=True,
 	help="Create user and database in mariadb/postgres; only bootstrap if false",
 )
+@click.option("--db-user", help="Database user if you already have one")
 def new_site(
 	site,
 	db_root_username=None,
@@ -68,6 +69,7 @@ def new_site(
 	db_type=None,
 	db_host=None,
 	db_port=None,
+	db_user=None,
 	set_default=False,
 	setup_db=True,
 ):
@@ -91,6 +93,7 @@ def new_site(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
+		db_user=db_user,
 		setup_db=setup_db,
 	)
 
@@ -319,7 +322,7 @@ def restore_backup(
 		)
 
 	except Exception as err:
-		print(err.args[1])
+		print(err)
 		sys.exit(1)
 
 
@@ -339,7 +342,7 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 	site = get_site(context)
 	verbose = context.verbose or verbose
 	frappe.init(site=site)
-	frappe.connect(site=site)
+	frappe.connect()
 	err, out = frappe.utils.execute_in_shell(f"file {sql_file_path}", check_exit_code=True)
 	if err:
 		click.secho("Failed to detect type of backup file", fg="red")
@@ -535,7 +538,8 @@ def add_db_index(context, doctype, column):
 
 	columns = column  # correct naming
 	for site in context.sites:
-		frappe.connect(site=site)
+		frappe.init(site=site)
+		frappe.connect()
 		try:
 			frappe.db.add_index(doctype, columns)
 			if len(columns) == 1:
@@ -577,7 +581,8 @@ def describe_database_table(context, doctype, column):
 	import json
 
 	for site in context.sites:
-		frappe.connect(site=site)
+		frappe.init(site=site)
+		frappe.connect()
 		try:
 			data = _extract_table_stats(doctype, column)
 			# NOTE: Do not print anything else in this to avoid clobbering the output.
@@ -663,7 +668,8 @@ def add_system_manager(context, email, first_name, last_name, send_welcome_email
 	import frappe.utils.user
 
 	for site in context.sites:
-		frappe.connect(site=site)
+		frappe.init(site=site)
+		frappe.connect()
 		try:
 			frappe.utils.user.add_system_manager(email, first_name, last_name, send_welcome_email, password)
 			frappe.db.commit()
@@ -689,7 +695,8 @@ def add_user_for_sites(
 	import frappe.utils.user
 
 	for site in context.sites:
-		frappe.connect(site=site)
+		frappe.init(site=site)
+		frappe.connect()
 		try:
 			add_new_user(email, first_name, last_name, user_type, send_welcome_email, password, add_role)
 			frappe.db.commit()
@@ -1058,7 +1065,11 @@ def _drop_site(
 			sys.exit(1)
 
 	click.secho("Dropping site database and user", fg="green")
-	drop_user_and_database(frappe.conf.db_name, db_root_username, db_root_password)
+
+	frappe.flags.root_login = db_root_username
+	frappe.flags.root_password = db_root_password
+
+	drop_user_and_database(frappe.conf.db_name, frappe.conf.db_user)
 
 	archived_sites_path = archived_sites_path or os.path.join(
 		frappe.utils.get_bench_path(), "archived", "sites"
@@ -1336,7 +1347,6 @@ def build_search_index(context):
 @click.option("--no-backup", is_flag=True, default=False, help="Do not backup the table")
 @pass_context
 def clear_log_table(context, doctype, days, no_backup):
-
 	"""If any logtype table grows too large then clearing it with DELETE query
 	is not feasible in reasonable time. This command copies recent data to new
 	table and replaces current table with new smaller table.
