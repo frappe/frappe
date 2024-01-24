@@ -126,9 +126,9 @@ function configure_columns() {
 			},
 		],
 		on_page_show: () => {
-			createApp(ConfigureColumnsVue, { df: props.df }).mount(
-				dialog.get_field("columns_area").$wrapper.get(0)
-			);
+			const app = createApp(ConfigureColumnsVue, { df: props.df });
+			SetVueGlobals(app);
+			app.mount(dialog.get_field("columns_area").$wrapper.get(0));
 		},
 		on_hide: () => {
 			props.df["table_columns"] = props.df.table_columns.filter((col) => !col.invalid_width);
