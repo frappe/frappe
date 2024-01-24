@@ -13,7 +13,7 @@ from frappe.utils.password import update_password
 from . import install_fixtures
 
 
-def get_setup_stages(args):
+def get_setup_stages(args):  # nosemgrep
 
 	# App setup stage functions should not include frappe.db.commit
 	# That is done by frappe after successful completion of all stages
@@ -103,18 +103,18 @@ def process_setup_stages(stages, user_input, is_background_task=False):
 		frappe.flags.in_setup_wizard = False
 
 
-def update_global_settings(args):
+def update_global_settings(args):  # nosemgrep
 	if args.language and args.language != "English":
 		set_default_language(get_language_code(args.lang))
 		frappe.db.commit()
 	frappe.clear_cache()
 
 	update_system_settings(args)
-	update_user_name(args)
+	create_or_update_user(args)
 	set_timezone(args)
 
 
-def run_post_setup_complete(args):
+def run_post_setup_complete(args):  # nosemgrep
 	disable_future_access()
 	frappe.db.commit()
 	frappe.clear_cache()
@@ -123,20 +123,20 @@ def run_post_setup_complete(args):
 	frappe.get_cached_doc("System Settings") and frappe.get_doc("System Settings")
 
 
-def run_setup_success(args):
+def run_setup_success(args):  # nosemgrep
 	for hook in frappe.get_hooks("setup_wizard_success"):
 		frappe.get_attr(hook)(args)
 	install_fixtures.install()
 
 
-def get_stages_hooks(args):
+def get_stages_hooks(args):  # nosemgrep
 	stages = []
 	for method in frappe.get_hooks("setup_wizard_stages"):
 		stages += frappe.get_attr(method)(args)
 	return stages
 
 
-def get_setup_complete_hooks(args):
+def get_setup_complete_hooks(args):  # nosemgrep
 	return [
 		{
 			"status": "Executing method",
@@ -153,7 +153,7 @@ def get_setup_complete_hooks(args):
 	]
 
 
-def handle_setup_exception(args):
+def handle_setup_exception(args):  # nosemgrep
 	frappe.db.rollback()
 	if args:
 		traceback = frappe.get_traceback(with_context=True)
@@ -162,7 +162,7 @@ def handle_setup_exception(args):
 			frappe.get_attr(hook)(traceback, args)
 
 
-def update_system_settings(args):
+def update_system_settings(args):  # nosemgrep
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
 
 	# replace these as float number formats, as they have 0 precision
@@ -193,72 +193,51 @@ def update_system_settings(args):
 		frappe.db.set_default("session_recording_start", now())
 
 
-def update_user_name(args):
+def create_or_update_user(args):  # nosemgrep
+	email = args.get("email")
+	if not email:
+		return
+
 	first_name, last_name = args.get("full_name", ""), ""
 	if " " in first_name:
 		first_name, last_name = first_name.split(" ", 1)
 
-	if args.get("email"):
-		if frappe.db.exists("User", args.get("email")):
-			# running again
-			return
-
-		args["name"] = args.get("email")
-
+	if user := frappe.db.get_value("User", email, ["first_name", "last_name"], as_dict=True):
+		if user.first_name != first_name or user.last_name != last_name:
+			(
+				frappe.qb.update("User")
+				.set("first_name", first_name)
+				.set("last_name", last_name)
+				.set("full_name", args.get("full_name"))
+			).run()
+	else:
 		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True
-		doc = frappe.get_doc(
+
+		user = frappe.new_doc("User")
+		user.update(
 			{
-				"doctype": "User",
-				"email": args.get("email"),
+				"email": email,
 				"first_name": first_name,
 				"last_name": last_name,
 			}
 		)
+		user.append_roles(*_get_default_roles())
+		user.flags.no_welcome_mail = True
+		user.insert()
 
-		doc.append_roles(*_get_default_roles())
-		doc.flags.no_welcome_mail = True
-		doc.insert()
 		frappe.flags.mute_emails = _mute_emails
-		update_password(args.get("email"), args.get("password"))
 
-	elif first_name:
-		args.update({"name": frappe.session.user, "first_name": first_name, "last_name": last_name})
-
-		frappe.db.sql(
-			"""update `tabUser` SET first_name=%(first_name)s,
-			last_name=%(last_name)s WHERE name=%(name)s""",
-			args,
-		)
-
-	if args.get("attach_user"):
-		attach_user = args.get("attach_user").split(",")
-		if len(attach_user) == 3:
-			filename, filetype, content = attach_user
-			_file = frappe.get_doc(
-				{
-					"doctype": "File",
-					"file_name": filename,
-					"attached_to_doctype": "User",
-					"attached_to_name": args.get("name"),
-					"content": content,
-					"decode": True,
-				}
-			)
-			_file.save()
-			fileurl = _file.file_url
-			frappe.db.set_value("User", args.get("name"), "user_image", fileurl)
-
-	if args.get("name"):
-		add_all_roles_to(args.get("name"))
+	if args.get("password"):
+		update_password(email, args.get("password"))
 
 
-def set_timezone(args):
+def set_timezone(args):  # nosemgrep
 	if args.get("timezone"):
 		for name in frappe.STANDARD_USERS:
 			frappe.db.set_value("User", name, "time_zone", args.get("timezone"))
 
 
-def parse_args(args):
+def parse_args(args):  # nosemgrep
 	if not args:
 		args = frappe.local.form_dict
 	if isinstance(args, str):
@@ -341,7 +320,7 @@ def load_user_details():
 	}
 
 
-def prettify_args(args):
+def prettify_args(args):  # nosemgrep
 	# remove attachments
 	for key, val in args.items():
 		if isinstance(val, str) and "data:image" in val:
@@ -354,7 +333,7 @@ def prettify_args(args):
 	return pretty_args
 
 
-def email_setup_wizard_exception(traceback, args):
+def email_setup_wizard_exception(traceback, args):  # nosemgrep
 	if not frappe.conf.setup_wizard_exception_email:
 		return
 
@@ -399,7 +378,7 @@ def email_setup_wizard_exception(traceback, args):
 	)
 
 
-def log_setup_wizard_exception(traceback, args):
+def log_setup_wizard_exception(traceback, args):  # nosemgrep
 	with open("../logs/setup-wizard.log", "w+") as setup_log:
 		setup_log.write(traceback)
 		setup_log.write(json.dumps(args))

@@ -1284,6 +1284,11 @@ body {
 							@include get_textstyle("xl", "semibold");
 						}
 
+						.h5 {
+							font-weight: normal;
+							color: var(--text-light);
+						}
+
 						&:focus {
 							outline: none;
 						}

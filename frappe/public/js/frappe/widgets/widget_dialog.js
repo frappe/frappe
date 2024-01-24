@@ -219,7 +219,13 @@ class CardDialog extends WidgetDialog {
 			{
 				fieldtype: "Data",
 				fieldname: "label",
-				label: "Label",
+				label: __("Label"),
+			},
+			{
+				fieldtype: "HTML Editor",
+				fieldname: "description",
+				label: __("Description"),
+				max_height: "7rem",
 			},
 			{
 				fieldname: "links",
@@ -231,17 +237,6 @@ class CardDialog extends WidgetDialog {
 					return me.values ? JSON.parse(me.values.links) : [];
 				},
 				fields: [
-					{
-						fieldname: "label",
-						fieldtype: "Data",
-						in_list_view: 1,
-						label: "Label",
-					},
-					{
-						fieldname: "icon",
-						fieldtype: "Icon",
-						label: "Icon",
-					},
 					{
 						fieldname: "link_type",
 						fieldtype: "Select",
@@ -268,6 +263,17 @@ class CardDialog extends WidgetDialog {
 								};
 							}
 						},
+					},
+					{
+						fieldname: "label",
+						fieldtype: "Data",
+						in_list_view: 1,
+						label: "Label",
+					},
+					{
+						fieldname: "icon",
+						fieldtype: "Icon",
+						label: "Icon",
 					},
 					{
 						fieldname: "column_break_7",

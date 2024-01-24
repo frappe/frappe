@@ -186,6 +186,7 @@ class Workspace(Document):
 					"label": card.get("label"),
 					"type": "Card Break",
 					"icon": card.get("icon"),
+					"description": card.get("description"),
 					"hidden": card.get("hidden") or False,
 					"link_count": card.get("link_count"),
 					"idx": 1 if not self.links else self.links[-1].idx + 1,
