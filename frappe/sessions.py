@@ -67,13 +67,14 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 	offset = 0
 	if user == frappe.session.user:
 		simultaneous_sessions = frappe.db.get_value("User", user, "simultaneous_sessions") or 1
-		offset = simultaneous_sessions - 1
+		offset = simultaneous_sessions
 
 	session = frappe.qb.DocType("Sessions")
 	session_id = frappe.qb.from_(session).where(
 		(session.user == user) & (session.device.isin(device))
 	)
 	if keep_current:
+		offset = max(0, offset - 1)
 		session_id = session_id.where(session.sid != frappe.session.sid)
 
 	query = (
