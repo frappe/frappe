@@ -31,7 +31,11 @@ from frappe.utils import (
 	today,
 )
 from frappe.utils.deprecations import deprecated
-from frappe.utils.password import check_password, get_password_reset_limit
+from frappe.utils.password import (
+	check_password,
+	get_password_reset_duration,
+	get_password_reset_limit,
+)
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import is_signup_disabled
@@ -1018,7 +1022,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=get_password_reset_limit, seconds=24 * 60 * 60)
+@rate_limit(limit=get_password_reset_limit, seconds=get_password_reset_duration)
 def reset_password(user: str) -> str:
 	if user == "Administrator":
 		return "not allowed"

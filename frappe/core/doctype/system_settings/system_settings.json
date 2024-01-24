@@ -57,6 +57,7 @@
   "force_user_to_reset_password",
   "reset_password_link_expiry_duration",
   "password_reset_limit",
+  "password_reset_limit_duration",
   "column_break_31",
   "enable_password_policy",
   "minimum_password_score",
@@ -400,7 +401,7 @@
   },
   {
    "default": "3",
-   "description": "Hourly rate limit for generating password reset links",
+   "description": "Limit for generating password reset links based on Reset limit duration",
    "fieldname": "password_reset_limit",
    "fieldtype": "Int",
    "label": "Password Reset Link Generation Limit"
@@ -634,12 +635,18 @@
   {
    "fieldname": "column_break_uhqk",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "86400",
+   "fieldname": "password_reset_limit_duration",
+   "fieldtype": "Int",
+   "label": "Password Reset Limit Duration (in secs)"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2024-01-24 12:19:46.784355",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

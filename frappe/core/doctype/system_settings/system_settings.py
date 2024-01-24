@@ -81,6 +81,7 @@ class SystemSettings(Document):
 		]
 		otp_issuer_name: DF.Data | None
 		password_reset_limit: DF.Int
+		password_reset_limit_duration: DF.Int
 		reset_password_link_expiry_duration: DF.Duration | None
 		reset_password_template: DF.Link | None
 		rounding_method: DF.Literal[
@@ -94,6 +95,7 @@ class SystemSettings(Document):
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
 		welcome_email_template: DF.Link | None
 	# end: auto-generated types
+
 	def validate(self):
 		from frappe.twofactor import toggle_two_factor_auth
 
