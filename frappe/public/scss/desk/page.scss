@@ -84,6 +84,10 @@
 	}
 }
 
+html[dir=rtl] .prev-doc svg, html[dir=rtl] .next-doc svg {
+    transform: rotate(180deg);
+}
+
 .layout-main-section-wrapper {
 	min-width: 0;
 }
