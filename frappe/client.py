@@ -437,8 +437,6 @@ def validate_link(from_doctype: str, from_name: str, to_doctype: str, doctype: s
 		values.from_doctype = from_doctype
 		values.from_name = from_name
 		values.to_doctype = to_doctype
-  
-	print("========================================================> validate_link values ", values)
 
 	fields = frappe.parse_json(fields)
 	if not values.name or not fields:

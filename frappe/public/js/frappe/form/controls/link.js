@@ -155,8 +155,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		const doc_parent = this.doc.parent
 		const doc_doctype = this.doc.doctype
 		
-		console.log("new_doc: ",doc_parenttype,doc_parent, doc_doctype)
-		
 		linkStore.setFromName(doc_parent)
 		linkStore.setFromDoctype(doc_parenttype)
 		linkStore.setToDoctype(doc_doctype)
@@ -620,7 +618,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		// to avoid unnecessary request
 		if (value) {
-			console.log("==========> name: ", linkStore.getFromName(), " - from: ", linkStore.getFromDoctype(), " - to: ", linkStore.getToDoctype())
 			return frappe
 				.xcall("frappe.client.validate_link", {
 					from_doctype: linkStore.getFromDoctype(),
