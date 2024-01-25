@@ -8,6 +8,7 @@ from frappe.database.db_manager import DbManager
 REQUIRED_MARIADB_CONFIG = {
 	"character_set_server": "utf8mb4",
 	"collation_server": "utf8mb4_unicode_ci",
+	"innodb_compression_default": "ON",
 }
 
 
