@@ -320,7 +320,7 @@ frappe.search.SearchDialog = class {
 	get_link(result) {
 		let link = "";
 		if (result.route) {
-			link = `href="/app/${result.route.join("/")}"`;
+			link = `href="${frappe.router.make_url(result.route)}"`;
 		} else if (result.data_path) {
 			link = `data-path=${result.data_path}"`;
 		}
