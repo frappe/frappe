@@ -57,7 +57,7 @@ Custom?,سفارشی؟,
 Date Format,قالب تاریخ,
 Datetime,زمان قرار,
 Day,روز,
-Default Letter Head,پیش فرض سر نامه,
+Default Letter Head,پیش فرض سربرگ نامه,
 Defaults,پیش فرض,
 Delivery Status,تحویل وضعیت,
 Department,بخش,
@@ -86,9 +86,9 @@ Failed,شکست خورد,
 Fax,فکس,
 Feedback,باز خورد,
 Female,زن,
-Field Name,نام درست,
+Field Name,نام فیلد,
 Fieldname,Fieldname,
-Fields,زمینه,
+Fields,فیلدها,
 First Name,نام,
 Frequency,فرکانس,
 Friday,جمعه,
@@ -106,9 +106,9 @@ Hourly,ساعتی,
 Hub Sync ID,شناسه همگام سازی هاب,
 IP Address,نشانی آیپی,
 Image,تصویر,
-Image View,تصویر مشخصات,
-Import Data,واردات داده ها,
-Import Log,واردات ورود,
+Image View,نمای تصویر,
+Import Data,درون‌ریزی داده‌ها,
+Import Log,درون‌ریزی لاگ,
 Inactive,غیر فعال,
 Insert,درج,
 Interests,منافع,
@@ -116,11 +116,11 @@ Introduction,معرفی,
 Is Active,فعال است,
 Is Completed,به اتمام است,
 Is Default,آیا پیش فرض,
-Kanban Board,Kanban و انجمن,
+Kanban Board,بورد کانبان,
 Label,برچسب,
 Language Name,نام زبان,
 Last Name,نام خانوادگی,
-Leaderboard,رهبران,
+Leaderboard,ذی‌نفعان,
 Letter Head,نامه سر,
 Level,سطح,
 Limit,حد,
@@ -173,13 +173,13 @@ Please set Email Address,لطفا آدرس ایمیل,
 Portal Settings,تنظیمات پورتال,
 Preview,پیش نمایش,
 Primary,اولیه,
-Print Format,چاپ فرمت,
+Print Format,فرمت چاپ,
 Print Settings,تنظیمات چاپ,
 Print taxes with zero amount,مالیات را با مقدار صفر چاپ کنید,
 Private,خصوصی,
 Property,خاصیت,
 Public,عمومی,
-Published,منتشر,
+Published,منتشر شده,
 Purchase Manager,مدیر خرید,
 Purchase Master Manager,خرید استاد مدیر,
 Purchase User,خرید کاربر,
@@ -232,11 +232,11 @@ Source,منبع,
 Source Name,نام منبع,
 Standard,استاندارد,
 Start Date,تاریخ شروع,
-Start Import,شروع واردات,
-State,دولت,
+Start Import,شروع درون‌ریزی,
+State,وضعیت,
 Stopped,متوقف,
 Subject,موضوع,
-Submit,ثبت کردن,
+Submit,ثبت,
 Summary,خلاصه,
 Sunday,یکشنبه,
 System Manager,سیستم مدیریت,
@@ -274,7 +274,7 @@ old_parent,old_parent,
 """Parent"" signifies the parent table in which this row must be added",&quot;پدر و مادر&quot; به معنای جدول پدر و مادر است که در آن این ردیف باید اضافه شده,
 """Team Members"" or ""Management""",&quot;اعضای تیم&quot; یا &quot;مدیریت&quot;,
 &lt;head&gt; HTML,HTML,
-'In Global Search' not allowed for type {0} in row {1},«در جهانی جستجو برای نوع مجاز نیست {0} در ردیف {1},
+'In Global Search' not allowed for type {0} in row {1},«در جستجوی کلی برای نوع مجاز نیست {0} در ردیف {1},
 'In List View' not allowed for type {0} in row {1},'نمایش لیستی'  برای نوع {0} در ردیف {1} مجاز نیست,
 'Recipients' not specified,&quot;گیرندگان&quot; مشخص نشده اند,
 (Ctrl + G),(Ctrl + G),
@@ -302,8 +302,8 @@ API Password,API رمز عبور,
 API Secret,API راز,
 API Username,API نام کاربری,
 ASC,ASC,
-About Us Settings,درباره ما تنظیمات,
-About Us Team Member,درباره ما تیم کاربران,
+About Us Settings,تنظیمات درباره ما,
+About Us Team Member,اعضای تیم درباره ما,
 Accept Payment,پذیرش پرداخت,
 Access Key ID,شناسه دسترسی,
 Access Token URL,URL توالی دسترسی,
@@ -339,7 +339,7 @@ Add a tag ...,اضافه کردن یک تگ ...,
 Add all roles,اضافه کردن تمام نقش,
 Add custom forms.,اضافه کردن فرم های سفارشی.,
 Add custom javascript to forms.,اضافه کردن سفارشی جاوا اسکریپت برای فرم.,
-Add fields to forms.,اضافه کردن زمینه های به اشکال.,
+Add fields to forms.,اضافه کردن فیلدها به فرم‌ها.,
 Add meta tags to your web pages,برچسب های متا را به صفحات وب خود اضافه کنید,
 Add script for Child Table,اسکریپت را برای جدول کودک اضافه کنید,
 Add to table,اضافه کردن به جدول,
@@ -353,7 +353,7 @@ Address Title is mandatory.,عنوان نشانی الزامی است.,
 Address and other legal information you may want to put in the footer.,نشانی و دیگر اطلاعات حقوقی شما ممکن است بخواهید در پایین صفحه قرار داده است.,
 Addresses And Contacts,آدرس و اطلاعات تماس,
 Adds a client custom script to a DocType,اسکریپت سفارشی مشتری را به DocType اضافه می کند,
-Adds a custom field to a DocType,می افزاید: درست سفارشی را به یک DOCTYPE,
+Adds a custom field to a DocType,می افزاید: فیلد سفارشی را به یک DOCTYPE,
 Admin,مدیر,
 Administrator Logged In,خارج شده است در مدیر,
 Administrator accessed {0} on {1} via IP Address {2}.,مدیر دیده {0} در {1} از طریق آدرس IP {2}.,
@@ -373,8 +373,8 @@ Allow Comments,اجازه ارسال نظر,
 Allow Consecutive Login Attempts ,اجازه ورود تلاشهای پی در پی,
 Allow Dropbox Access,اجازه دسترسی Dropbox به,
 Allow Edit,اجازه ویرایش,
-Allow Guest to View,اجازه مهمان نمایش,
-Allow Import (via Data Import Tool),اجازه واردات (از طریق وارد کردن داده ها ابزار),
+Allow Guest to View,اجازه به مهمان برای مشاهده,
+Allow Import (via Data Import Tool),اجازه درون‌ریزی (از طریق ابزار درون‌ریزی داده‌ها),
 Allow Incomplete Forms,اجازه می دهد فرم های ناقص,
 Allow Login After Fail,اجازه ورود پس از شکست,
 Allow Login using Mobile Number,اجازه ورود به سیستم با استفاده از شماره موبایل,
@@ -387,14 +387,14 @@ Allow Print for Draft,اجازه چاپ برای پیش نویس,
 Allow Read On All Link Options,اجازه خواندن در تمام گزینه های لینک,
 Allow Rename,اجازه تغییر نام,
 Allow Roles,اجازه نقش,
-Allow Self Approval,اجازه تصویب خود را,
-Allow approval for creator of the document,برای تایید سند اجازه دهید اجازه دهید,
+Allow Self Approval,اجازه تایید توسط خود,
+Allow approval for creator of the document,اجازه تأیید برای ایجادکننده سند,
 Allow events in timeline,اجازه وقایع در جدول زمانی,
-Allow in Quick Entry,اجازه ورود سریع,
+Allow in Quick Entry,اجازه ثبت سریع اطلاعات,
 Allow on Submit,اجازه می دهد در ارسال,
 Allow only one session per user,اجازه می دهد تنها یک جلسه در هر کاربر,
 Allow page break inside tables,اجازه قطع صفحه در داخل جداول,
-Allow saving if mandatory fields are not filled,اجازه می دهد صرفه جویی اگر زمینه های اجباری است نه,
+Allow saving if mandatory fields are not filled,اجازه می دهد ذخیره شود اگر فیلدهای اجباری پر نشده اند,
 Allow user to login only after this hour (0-24),اجازه می دهد تا کاربر را به تنها پس از این ساعت ورود (0-24),
 Allow user to login only before this hour (0-24),کاربر مجاز به ورود فقط قبل از این ساعت (0-24),
 Allowed,مجاز,
@@ -430,7 +430,7 @@ App {0} is not installed,نرم افزار {0} نصب نشده است,
 Append To,اضافه به,
 Append To can be one of {0},اضافه به می تواند یکی از {0},
 Append To is mandatory for incoming mails,اضافه به ایمیل های دریافتی را برای الزامی است,
-"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")",اضافه به ارتباطات در برابر این DOCTYPE (باید زمینه های، &quot;وضعیت&quot; داشته باشد، &quot;موضوع&quot;),
+"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")",اضافه به ارتباطات در برابر این DOCTYPE (باید فیلدهای، &quot;وضعیت&quot; داشته باشد، &quot;موضوع&quot;),
 Applicable Document Types,انواع اسناد قابل اجرا,
 Apply,درخواست,
 Apply Strict User Permissions,درخواست ویرایش کاربر اکید,
@@ -466,7 +466,7 @@ Assignment Rule User,کاربر قانون انتساب,
 Assignment Rules,قوانین واگذاری,
 Assignment closed by {0},انتساب بسته های {0},
 Assignment for {0} {1},تخصیص برای {0} {1},
-Atleast one field of Parent Document Type is mandatory,یکی از زمینه های اصلی نوع سند اصلی، اجباری است,
+Atleast one field of Parent Document Type is mandatory,یکی از فیلدهای اصلی نوع سند اصلی، اجباری است,
 Attach,ضمیمه کردن,
 Attach Document Print,ضمیمه کردن یک سند چاپ,
 Attach Image,ضمیمه تصویر,
@@ -490,9 +490,9 @@ Authorization Code,کد مجوز,
 Authorize URL,مجاز URL,
 Authorized,مجاز,
 Auto,خودکار,
-Auto Email Report,خودرو گزارش ایمیل,
-Auto Name,نام خودرو,
-Auto Reply Message,خودکار پاسخ پیام,
+Auto Email Report,گزارش ایمیل خودکار,
+Auto Name,نام خودکار,
+Auto Reply Message,پیام پاسخ خودکار,
 Auto assignment failed: {0},انتصاب خودکار انجام نشد: {0},
 Automatically Assign Documents to Users,اختصاص اسناد به صورت خودکار به کاربران,
 Automation,اتوماسیون,
@@ -533,12 +533,12 @@ Block Module,بلوک ماژول,
 Block Modules,ماژول بلوک,
 Blocked,مسدود,
 Blog,وبلاگ,
-Blog Category,بلاگ مطالب مجموعه,
-Blog Intro,وبلاگ معرفی,
-Blog Introduction,وبلاگ مقدمه,
-Blog Post,وبلاگ پست,
+Blog Category,دسته‌بندی وبلاگ,
+Blog Intro,معرفی وبلاگ,
+Blog Introduction,مقدمه وبلاگ,
+Blog Post,پست وبلاگ,
 Blog Settings,تنظیمات وبلاگ,
-Blog Title,وبلاگ عنوان,
+Blog Title,عنوان وبلاگ,
 Blogger,وبلاگ نویس,
 Bot,ربات,
 Both DocType and Name required,هر دو DOCTYPE و نام مورد نیاز,
@@ -555,7 +555,7 @@ Build Report,ساخت گزارش,
 Bulk Delete,حذف فله,
 Bulk Edit {0},فله ویرایش {0},
 Bulk Rename,فله تغییر نام,
-Bulk Update,به روز رسانی فله,
+Bulk Update,به‌روزرسانی انبوه,
 Button,دکمه,
 Button Help,دکمه راهنما,
 Button Label,برچسب را فشار دهید,
@@ -568,7 +568,7 @@ CSV,CSV,
 Cache Cleared,حافظه کش پاک شد,
 Calculate,محاسبه,
 Calendar Name,نام تقویم,
-Calendar View,نمایش تقویم,
+Calendar View,نمای تقویمی,
 Call,دعوت,
 Can Read,خوانش پذیر,
 Can Share,می توانید به اشتراک بگذارید,
@@ -596,7 +596,7 @@ Cannot delete {0} as it has child nodes,نمی توانید حذف کنید {0} 
 "Cannot edit Standard Notification. To edit, please disable this and duplicate it",می توانید اعلان استاندارد را ویرایش کنید برای ویرایش، لطفا این را غیر فعال کنید و آن را کپی کنید,
 Cannot edit a standard report. Please duplicate and create a new report,می توانید یک گزارش استاندارد را ویرایش کنید. لطفا کپی و ایجاد یک گزارش جدید,
 Cannot edit cancelled document,می توانید سند را لغو ویرایش کنید,
-Cannot edit standard fields,می تواند زمینه های استاندارد را ویرایش کنید,
+Cannot edit standard fields,می تواند فیلدهای استاندارد را ویرایش کنید,
 Cannot have multiple printers mapped to a single print format.,نمی توان چندین چاپگر را در یک قالب چاپی نقشه برداری کرد.,
 Cannot link cancelled document: {0},می توانید سند را لغو پیوند نمی: {0},
 Cannot map because following condition fails: ,نمی توانید نقشه به دلیل شرایط زیر نتواند:,
@@ -613,7 +613,7 @@ Card Details,جزئیات کارت,
 Categorize blog posts.,دسته بندی پست های وبلاگ.,
 Category Description,رده توضیحات,
 Cent,در صد,
-"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",اسناد خاص، مانند یک فاکتور، نباید تغییر کنند یک بار نهایی است. دولت نهایی برای چنین اسناد ارائه شده نامیده می شود. شما می توانید محدود است که نقش می توانید ارسال کنید.,
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",اسناد خاص، مانند یک فاکتور، نباید تغییر کنند یک بار نهایی است. وضعیت نهایی برای چنین اسناد ارائه شده نامیده می شود. شما می توانید محدود است که نقش می توانید تایید کنید.,
 Chain Integrity,یکپارچگی زنجیره,
 Chaining Hash,هش چینی,
 Change Label (via Custom Translation),تغییر برچسب (از طریق سفارشی ترجمه),
@@ -636,7 +636,7 @@ Chat Room Name,نام اتاق چت,
 Chat Room User,کاربر چت اتاق,
 Chat Token,مکالمه چت,
 Chat Type,نوع چت,
-Chat messages and other notifications.,پیام های چت و دیگر اطلاعیه ها.,
+Chat messages and other notifications.,پیام های چت و دیگر نوتیفیکیشن‌ها.,
 Check,بررسی,
 Check Request URL,بررسی URL درخواست,
 "Check columns to select, drag to set order.",بررسی ستون را انتخاب کنید، کشیدن به راه سفارش.,
@@ -708,7 +708,7 @@ Connection Success,موفقیت اتصال,
 Connection lost. Some features might not work.,ارتباط از دست رفته برخی از ویژگی های ممکن است کار نکند.,
 Connector Name,نام اتصال,
 Connector Type,نوع اتصال,
-Contact Us Settings,تماس با ما تنظیمات,
+Contact Us Settings,تنظیمات تماس با ما,
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",گزینه های تماس، مانند &quot;فروش پرس و جو، پشتیبانی پرس و جو&quot; و غیره که هر کدام در یک خط جدید و یا از هم جدا شده توسط کاما.,
 Contacts,اطلاعات تماس,
 Content (HTML),محتوا (HTML),
@@ -732,11 +732,11 @@ Create Post,ایجاد پست,
 Create User Email,ایجاد کاربر ایمیل,
 Create a New Format,ایجاد یک قالب جدید,
 Create a new record,یک رکورد جدید ایجاد کنید,
-Create a new {0},ایجاد جدید {0},
+Create a new {0},ایجاد {0} جدید,
 Create and Send Newsletters,ایجاد و ارسال خبرنامه,
 Create and manage newsletter,خبرنامه را ایجاد و مدیریت کنید,
 Created,ایجاد شده,
-Created Custom Field {0} in {1},ایجاد درست سفارشی {0} در {1},
+Created Custom Field {0} in {1},ایجاد فیلد سفارشی {0} در {1},
 Created On,ایجاد شده در,
 Criticism,نقد,
 Criticize,نقد کنید,
@@ -756,25 +756,25 @@ Custom,رسم,
 Custom Base URL,URL اصلی سفارشی,
 Custom CSS,CSS سفارشی,
 Custom DocPerm,DocPerm سفارشی,
-Custom Field,درست سفارشی,
-Custom Fields can only be added to a standard DocType.,زمینه های سفارشی فقط می توانند به یک DocType استاندارد اضافه شوند.,
-Custom Fields cannot be added to core DocTypes.,زمینه های سفارشی را نمی توان به DocTypes اصلی اضافه کرد.,
+Custom Field,فیلد سفارشی,
+Custom Fields can only be added to a standard DocType.,فیلدهای سفارشی فقط می توانند به یک DocType استاندارد اضافه شوند.,
+Custom Fields cannot be added to core DocTypes.,فیلدهای سفارشی را نمی توان به DocTypes اصلی اضافه کرد.,
 Custom Format,قالب های سفارشی,
 Custom HTML Help,سفارشی HTML راهنما,
 Custom JS,JS سفارشی,
 Custom Menu Items,آیتم های منو سفارشی,
 Custom Report,گزارش سفارشی,
-Custom Reports,گزارش های سفارشی,
+Custom Reports,گزارش‌های سفارشی,
 Custom Role,نقش سفارشی,
-Custom Script,سفارشی اسکریپت,
+Custom Script,اسکریپت سفارشی,
 Custom Sidebar Menu,منو سفارشی نوار,
 Custom Translations,ترجمه های سفارشی,
 Customization,سفارشی سازی,
 Customizations Reset,تنظیم مجدد تنظیمات,
 Customizations for <b>{0}</b> exported to:<br>{1},سفارشی سازی برای <b>{0}</b> به: <br> {1},
-Customize Form,سفارشی کردن فرم,
-Customize Form Field,سفارشی کردن فرم درست,
-"Customize Label, Print Hide, Default etc.",سفارشی کردن برچسب، چاپ مخفی، پیش فرض و غیره,
+Customize Form,سفارشی‌سازی فرم,
+Customize Form Field,سفارشی‌سازی فیلدهای فرم,
+"Customize Label, Print Hide, Default etc.",سفارشی‌سازی برچسب، چاپ مخفی، پیش فرض و غیره,
 Customize...,شخصی سازی...,
 "Customized Formats for Printing, Email",فرمت سفارشی برای چاپ، ایمیل,
 Customized HTML Templates for printing transactions.,سفارشی قالب HTML برای انجام معاملات چاپ.,
@@ -789,9 +789,9 @@ Dashboard Chart Source,منبع نمودار داشبورد,
 Dashboard Name,نام داشبورد,
 Dashboards,داشبورد,
 Data,داده,
-Data Export,صادرات داده,
-Data Import,واردات داده,
-Data Import Template,داده الگو واردات,
+Data Export,برون‌ریزی داده,
+Data Import,درون‌ریزی داده,
+Data Import Template,الگوی درون‌ریزی داده,
 Data Migration,مهاجرت داده,
 Data Migration Connector,اتصال مهاجرت داده,
 Data Migration Mapping,نقشه برداری مهاجرت داده,
@@ -816,19 +816,19 @@ Default Address Template cannot be deleted,به طور پیش فرض آدرس ا
 Default Inbox,صندوق ورودی پیش فرض,
 Default Incoming,به طور پیش فرض ورودی,
 Default Outgoing,به طور پیش فرض خروجی,
-Default Print Format,به طور پیش فرض فرمت چاپ,
+Default Print Format,فرمت چاپ پیشفرض,
 Default Print Language,زبان چاپ پیش فرض,
 Default Redirect URI,به طور پیش فرض تغییر مسیر URI,
 Default Role at Time of Signup,نقش پیش فرض در زمان ثبت نام,
 Default Sending,به طور پیش فرض ارسال,
 Default Sending and Inbox,به طور پیش فرض ارسال و صندوق,
-Default Sort Field,زمینه مرتب سازی پیش فرض,
+Default Sort Field,فیلد مرتب سازی پیش فرض,
 Default Sort Order,ترتیب مرتب سازی پیش فرض,
 Default Value,مقدار پیش فرض,
 "Default: ""Contact Us""",به طور پیش فرض: &quot;تماس با ما&quot;,
 DefaultValue,مقدار پیش فرض,
 Define workflows for forms.,تعریف گردش کار برای فرم.,
-Defines actions on states and the next step and allowed roles.,را معرفی می کند اقدامات در ایالات و گام بعدی و نقش مجاز می باشد.,
+Defines actions on states and the next step and allowed roles.,را معرفی می کند اقدامات در وضعیت و گام بعدی و نقش مجاز می باشد.,
 Defines workflow states and rules for a document.,تعریف وضعیت های گردش کار و قوانین برای یک سند,
 Delayed,به تاخیر افتاده,
 Delete Data,حذف داده ها,
@@ -852,7 +852,7 @@ Did not add,آیا اضافه کنید,
 Did not cancel,آیا لغو,
 Did not find {0} for {0} ({1}),آیا پیدا کند {0} برای {0} ({1}),
 Did not remove,آیا حذف کنید,
-"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",متفاوت &quot;ایالات&quot; این سند در تواند وجود داشته باشد. مانند &quot;باز کردن&quot;، &quot;در انتظار تأیید&quot; و غیره,
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",متفاوت &quot;وضعیت‌های&quot; این سند در تواند وجود داشته باشد. مانند &quot;باز کردن&quot;، &quot;در انتظار تأیید&quot; و غیره,
 Direct,مستقیم,
 Direct room with {0} already exists.,اتاق مستقیم با {0} در حال حاضر وجود دارد.,
 Disable Auto Refresh,تازه کردن خودکار را غیرفعال کنید,
@@ -890,7 +890,7 @@ Document Follow Notification,اعلان را دنبال کنید,
 Document Queued,سند صف,
 Document Restored,سند ترمیم,
 Document Share Report,سند اشتراک گزارش,
-Document States,ایالات سند,
+Document States,وضعیت‌های سند,
 Document Type is not importable,نوع سند قابل وارد نیست,
 Document Type is not submittable,نوع سند قابل ارسال نیست,
 Document Type to Track,نوع سند برای ردیابی,
@@ -901,7 +901,7 @@ Documents,اسناد,
 Documents assigned to you and by you.,اسناد به شما اختصاص داده و توسط شما.,
 Domain Settings,تنظیمات دامنه,
 Domains HTML,دامنه HTML,
-"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field",آیا دستورات HTML رمز HTML مانند &lt;script&gt; به و یا فقط شخصیت های مانند &lt;یا&gt;، به عنوان آنها می تواند به عمد در این زمینه استفاده می شود,
+"Don't HTML Encode HTML tags like &lt;script&gt; or just characters like &lt; or &gt;, as they could be intentionally used in this field",آیا دستورات HTML رمز HTML مانند &lt;script&gt; به و یا فقط شخصیت های مانند &lt;یا&gt;، به عنوان آنها می تواند به عمد در این فیلد استفاده می شود,
 Don't Override Status,هنوز وضعیت باطل نیست,
 Don't create new records,سوابق جدید ایجاد نکنید,
 Don't have an account? Sign up,هنوز حساب کاربری ندارید؟ ثبت نام,
@@ -932,8 +932,8 @@ Edit DocType,ویرایش DOCTYPE,
 Edit Filter,ویرایش فیلتر,
 Edit Format,ویرایش قالب,
 Edit HTML,ویرایش HTML,
-Edit Heading,ویرایش سرنویس,
-Edit Properties,ویرایش ویژگیها,
+Edit Heading,ویرایش سربرگ,
+Edit Properties,ویرایش ویژگی‌ها,
 Edit to add content,ویرایش برای اضافه کردن مطالب,
 Edit {0},ویرایش {0},
 Editable Grid,قابل ویرایش شبکه,
@@ -995,7 +995,7 @@ Energy Point Settings,تنظیمات نقطه انرژی,
 Energy Points,نقاط انرژی,
 Enter Email Recipient(s),را وارد کنید ایمیل دریافت کننده (بازدید کنندگان),
 Enter Form Type,را وارد کنید فرم نوع,
-"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to ""Customize Form"".",زمینه مقدار پیش فرض (کلید) و ارزش های را وارد کنید. اگر شما اضافه چندین مقدار را برای یک میدان، یکی از اولین برداشت خواهد شد. این پیش فرض نیز استفاده می شود را به مجموعه &quot;مسابقه&quot; قوانین اجازه. برای دیدن لیستی از زمینه ها، به &quot;فرم سفارشی&quot; بروید.,
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to ""Customize Form"".",فیلد مقدار پیش فرض (کلید) و ارزش های را وارد کنید. اگر شما اضافه چندین مقدار را برای یک میدان، یکی از اولین برداشت خواهد شد. این پیش فرض نیز استفاده می شود را به مجموعه &quot;مسابقه&quot; قوانین اجازه. برای دیدن لیستی از فیلدها، به &quot;فرم سفارشی&quot; بروید.,
 Enter folder name,نام پوشه را وارد کنید,
 "Enter keys to enable login via Facebook, Google, GitHub.",کلید را وارد کنید برای فعال کردن ورود از طریق فیس بوک، گوگل، گیتهاب.,
 Enter python module or select connector type,ماژول پایتون را وارد کنید یا نوع اتصال را انتخاب کنید,
@@ -1034,12 +1034,12 @@ Expiration time,زمان انقضا,
 Expire Notification On,منقضی اطلاع رسانی در,
 Expires In,منقضی می شود در,
 Expiry time of QR Code Image Page,زمان انقضای کد QR صفحه کد,
-Export All {0} rows?,صادرات همه صفر {0} ردیف,
-Export Custom Permissions,صادرات و ویرایش سفارشی,
-Export Customizations,تغییرات صادرات,
-Export Data,صادرات داده ها,
-Export Data in CSV / Excel format.,صادرات داده ها در قالب CSV / اکسل.,
-Export Report: {0},گزارش صادرات: {0},
+Export All {0} rows?,برون ریزی همه ردیف های {0},
+Export Custom Permissions,خروجی دسترسی های سفارشی,
+Export Customizations,شخصی‌سازی‌های خروجی,
+Export Data,خروجی داده ها,
+Export Data in CSV / Excel format.,خروجی داده ها در قالب CSV / اکسل.,
+Export Report: {0},گزارش خروجی: {0},
 Expose Recipients,افشای دریافت کنندگان,
 "Expression, Optional",بیان، اختیاری,
 Facebook,فیس بوک,
@@ -1057,17 +1057,16 @@ Fetch attached images from document,عکسها را از سند متصل کنی�
 Field Description,درست شرح,
 Field Maps,نقشه های زمین,
 Field Type,نوع درست,
-"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",درست است که نشان دهنده دولت گردش کار از معامله (در صورت درست وجود ندارد، پنهان یک میدان جدید سفارشی ایجاد خواهد شد),
-Field to Track,زمینه برای پیگیری,
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","فیلدی که وضعیت گردش کار تراکنش را نمایش می‌دهد (اگر فیلد موجود نباشد، یک فیلد سفارشی پنهان جدید ایجاد خواهد شد)",
 Field type cannot be changed for {0},نوع درست می توانید برای عوض نمی شوند {0},
 Field {0} not found.,درست {0} یافت نشد.,
 Fieldname is limited to 64 characters ({0}),FIELDNAME به 64 کاراکتر محدود ({0}),
-Fieldname not set for Custom Field,Fieldname برای درست سفارشی تنظیم نشده,
-Fieldname which will be the DocType for this link field.,Fieldname خواهد شد که DOCTYPE برای این زمینه لینک کنید.,
+Fieldname not set for Custom Field,Fieldname برای فیلد سفارشی تنظیم نشده,
+Fieldname which will be the DocType for this link field.,Fieldname خواهد شد که DOCTYPE برای این فیلد لینک کنید.,
 Fieldname {0} cannot have special characters like {1},Fieldname {0} می تواند از کاراکترهای خاص مانند ندارد {1},
 Fieldname {0} conflicting with meta object,FIELDNAME {0} متضاد با شی متا,
-Fields Multicheck,زمینه های چندگانه,
-"Fields separated by comma (,) will be included in the ""Search By"" list of Search dialog box",زمینه های از هم جدا شده با کاما (،) خواهد شد در شامل &quot;جستجو بر اساس&quot; لیستی از جعبه محاوره جستجو,
+Fields Multicheck,فیلدهای چندگانه,
+"Fields separated by comma (,) will be included in the ""Search By"" list of Search dialog box",فیلدهای از هم جدا شده با کاما (،) در لیست &quot;جستجو بر اساس&quot; صفحه جستجو قرار خواهند گرفت.,
 Fieldtype,Fieldtype,
 Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype می تواند از عوض نمی شوند {0} به {1} در ردیف {2},
 File '{0}' not found,فایل {0} &quot;یافت نشد,
@@ -1115,8 +1114,8 @@ Folder name should not include '/' (slash),نام پوشه باید شامل ا�
 Folder {0} is not empty,پوشه {0} خالی نیست,
 Follow,دنبال کردن,
 Followed by,به دنبال,
-Following fields are missing:,زمینه های زیر را از دست رفته:,
-Following fields have missing values:,زمینه زیر را داشته باشد ارزش از دست رفته:,
+Following fields are missing:,فیلدهای زیر از بین رفته:,
+Following fields have missing values:,فیلدهای زیر مقادیر از بین رفته دارند:,
 Font,فونت,
 Font Size,اندازه فونت,
 Fonts,فونت ها,
@@ -1166,11 +1165,11 @@ Geo,ژئو,
 Geolocation,موقعیت جغرافیایی,
 Get Alerts for Today,دریافت هشدار برای امروز,
 Get Contacts,دریافت تماس ها,
-Get Fields,دریافت زمینه,
+Get Fields,دریافت فیلدها,
 Get your globally recognized avatar from Gravatar.com,دریافت نماد جهانی به رسمیت شناخته خود را از Gravatar.com,
 GitHub,گیتهاب,
 Give Review Points,امتیازات نقد بدهید,
-Global Unsubscribe,جهانی لغو عضویت,
+Global Unsubscribe,کلی لغو عضویت,
 Go to the document,به سند بروید,
 Go to this URL after completing the form (only for Guest users),بعد از تکمیل فرم به این نشانی اینترنتی بروید (فقط برای کاربران مهمان),
 Go to {0},برو به {0},
@@ -1204,17 +1203,17 @@ Headers,سربرگ ها,
 Heading,عنوان,
 Hello {0},سلام {0},
 Hello!,سلام!,
-Help Articles,راهنما مقاله,
-Help Category,راهنما رده,
+Help Articles,مقالات راهنما,
+Help Category,دسته راهنما,
 Help on Search,کمک در جستجو,
 "Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")",راهنما: لینک به رکورد دیگری در سیستم، استفاده از &quot;# فرم / توجه / [توجه داشته باشید نام]&quot; را به عنوان URL لینک. (استفاده نمی &quot;از http: //&quot;),
 Helvetica,Helvetica,
 Hi {0},سلام {0},
-Hide Copy,مخفی کپی,
-Hide Footer Signup,مخفی پاورقی ثبت نام,
+Hide Copy,مخفی‌کردن کپی,
+Hide Footer Signup,مخفی‌کردن پاورقی(فوتر) ثبت نام,
 Hide Sidebar and Menu,نوار کناری و فهرست را مخفی کنید,
 Hide Standard Menu,مخفی کردن منو استاندارد,
-Hide Weekends,پنهان کردن آخر هفته ها,
+Hide Weekends,پنهان کردن آخر هفته‌ها,
 Hide details,پنهان کردن جزئیات,
 Hide footer in auto email reports,پنهان کردن پاورقی در گزارش خودکار ایمیل,
 Higher priority rule will be applied first,قانون اولویت بالاتر ابتدا اعمال می شود,
@@ -1275,20 +1274,20 @@ Illegal Access Token. Please try again,غیر قانونی دسترسی به ر�
 Illegal Document Status for {0},وضعیت سند غیرقانونی برای {0},
 Image Field,تصویر درست,
 Image Link,لینک تصویر,
-Image field must be a valid fieldname,تصویر زمینه باید یک FIELDNAME معتبر باشد,
-Image field must be of type Attach Image,تصویر زمینه باید از این نوع باشد ضمیمه تصویر,
+Image field must be a valid fieldname,فیلد تصویر باید یک FIELDNAME معتبر باشد,
+Image field must be of type Attach Image,فیلد تصویر باید از این نوع باشد ضمیمه تصویر,
 Images,تصاویر,
 Implicit,ضمنی,
-Import,واردات,
-Import Email From,واردات از ایمیل,
-Import Status,وضعیت واردات,
-Import Subscribers,مشترکین واردات,
+Import,درون‌ریزی,
+Import Email From,درون‌ریزی از ایمیل,
+Import Status,وضعیت درون‌ریزی,
+Import Subscribers,مشترکین درون‌ریزی,
 Import Zip,وارد کردن زیپ,
 In Filter,در فیلتر,
-In Global Search,در جهانی جستجو,
+In Global Search,در جستجوی کلی,
 In Grid View,در شبکه نمایش,
 In Hours,در ساعت,
-In List View,در فهرست نمایش,
+In List View,در نمای لیستی,
 In Preview,در پیش نمایش,
 In Reply To,در پاسخ به,
 In Standard Filter,در فیلتر استاندارد,
@@ -1323,8 +1322,8 @@ Int,هوشمند,
 Integration Request,درخواست پاسخ به ادغام,
 Integration Request Service,یکپارچه سازی خدمات درخواست پاسخ به,
 Integration Type,نوع ادغام,
-Integrations,یکپارچگی,
-Integrations can use this field to set email delivery status,یکپارچگی می توانید این زمینه برای تنظیم وضعیت تحویل ایمیل استفاده,
+Integrations,‌یکپارچه‌سازی‌ها,
+Integrations can use this field to set email delivery status,یکپارچه‌سازی‌ها می توانند از این فیلد برای تنظیم وضعیت تحویل ایمیل استفاده کنند,
 Internal Server Error,خطای سرور داخلی,
 Internal record of document shares,رکورد داخلی از سهام سند,
 Introduce your company to the website visitor.,معرفی شرکت خود را به بازدید کننده وب سایت.,
@@ -1361,11 +1360,11 @@ Inverse,معکوس,
 Is,است,
 Is Attachments Folder,فایل های پیوست پوشه است,
 Is Child Table,آیا میز کودک,
-Is Custom Field,آیا درست سفارشی,
+Is Custom Field,آیا فیلد سفارشی است,
 Is First Startup,اولین راه اندازی است,
 Is Folder,است پوشه,
-Is Global,جهانی است,
-Is Globally Pinned,در سطح جهانی قرار دارد,
+Is Global,کلی است,
+Is Globally Pinned,در سطح کلی قرار دارد,
 Is Home Folder,صفحه اصلی پوشه است,
 Is Mandatory Field,آیا فیلد اجباری,
 Is Pinned,پین شده است,
@@ -1377,7 +1376,9 @@ Is Single,آیا تنها,
 Is Spam,اسپم,
 Is Standard,آیا استاندارد,
 Is Submittable,Submittable است,
-Is Table,است جدول,
+Is Table,جدول است,
+Is Calendar and Gantt,تقویم و گانت‌چارت است,
+Enables Calendar and Gantt views.,فعالسازی نماهای تقویم و گانت‌چارت,
 Is Your Company Address,آیا شرکت شما در نشانی,
 It is risky to delete this file: {0}. Please contact your System Manager.,این خطرناک است این فایل را حذف کنید: {0}. لطفا با مدیر سیستم تماس بگیرید.,
 Item cannot be added to its own descendants,مورد می تواند به بازماندگان خود را اضافه نمی شوند,
@@ -1387,9 +1388,9 @@ JavaScript Format: frappe.query_reports['REPORTNAME'] = {},جاوا اسکریپ
 Javascript to append to the head section of the page.,جاوا اسکریپت برای اضافه به بخش سر صفحه استفاده کنید.,
 Jinja,جینجا,
 John Doe,جان دو,
-Kanban,Kanban و,
-Kanban Board Column,ستون Kanban و انجمن,
-Kanban Board Name,نام Kanban و انجمن,
+Kanban,کانبان,
+Kanban Board Column,ستون بورد کانبان,
+Kanban Board Name,نام بورد کانبان,
 Karma,اعتبار,
 Keep track of all update feeds,پیگیری تمام فید های به روز رسانی را دنبال کنید,
 Keeps track of all communications,همه ارتباطات را پیگیری می کند,
@@ -1414,7 +1415,7 @@ Language,زبان,
 Language Code,کد زبان,
 "Language, Date and Time settings",تنظیمات زبان، تاریخ و زمان,
 Last Active,آخرین فعالیت,
-Last IP,تاریخ و زمان آخرین IP,
+Last IP,آخرین IP,
 Last Known Versions,تاریخ و زمان آخرین شناخته شده,
 Last Login,تاریخ و زمان آخرین ورود,
 Last Message,آخرین پیام,
@@ -1430,7 +1431,7 @@ Last Updated On,آخرین بروز رسانی در,
 Last User,آخرین کاربر,
 Last Week,هفته گذشته,
 Last Year,سال گذشته,
-Last synced {0},آخرین همگام سازی شده {0},
+Last synced {0},آخرین همگام سازی {0},
 Leave a Comment,پیام بگذارید,
 Leave blank to repeat always,فیلد را خالی بگذارید به تکرار همیشه,
 Leave this conversation,ترک این گفتگو,
@@ -1440,10 +1441,10 @@ Length of {0} should be between 1 and 1000,طول {0} باید بین 1 و 1000 
 Let's avoid repeated words and characters,بیایید اجتناب از تکرار کلمات و شخصیت,
 Let's prepare the system for first use.,اجازه دهید سیستم آماده برای استفاده است.,
 Letter,نامه,
-Letter Head Based On,نامه سر مبتنی بر,
-Letter Head Image,تصویر نامه سر,
-Letter Head Name,نام سر نامه,
-Letter Head in HTML,سر نامه در HTML,
+Letter Head Based On,سربرگ نامه بر پایه,
+Letter Head Image,تصویر سربرگ نامه,
+Letter Head Name,نام سربرگ نامه,
+Letter Head in HTML,سربرگ نامه در HTML,
 Level Name,نام سطح,
 Liked,دوست داشت,
 Liked By,پسندیده شده توسط,
@@ -1463,7 +1464,7 @@ Linked with {0},مرتبط با {0},
 Links,لینک,
 List,فهرست,
 List Filter,لیست فیلتر,
-List View Setting,تنظیم لیست نمایش,
+List View Setting,تنظیم نمایش لیستی,
 List a document type,لیست یک نوع سند,
 "List as [{""label"": _(""Jobs""), ""route"":""jobs""}]",لیست را به عنوان [{ &quot;برچسب&quot;: _ ( &quot;جابز&quot;)، &quot;مسیر&quot;: &quot;شغل&quot;}],
 List of backups available for download,فهرست پشتیبان گیری برای دانلود در دسترس,
@@ -1490,7 +1491,7 @@ Login Verification Code from {},وارد کردن کد تأیید از {},
 Login and view in Browser,ورود و مشاهده در مرورگر,
 Login not allowed at this time,ورود در این زمان مجاز نیست,
 "Login session expired, refresh page to retry",جلسه ورود به پایان رسید، صفحه را دوباره امتحان کنید تا دوباره امتحان کنید,
-Login to comment,ورود به اظهار نظر,
+Login to comment,ورود برای ثبت نظر,
 Login token required,ورود به سیستم مورد نیاز,
 Login with LDAP,ورود LDAP,
 Logout,خارج شدن,
@@ -1500,14 +1501,14 @@ Looks like something is wrong with this site's payment gateway configuration. No
 "Looks like something went wrong during the transaction. Since we haven't confirmed the payment, Paypal will automatically refund you this amount. If it doesn't, please send us an email and mention the Correlation ID: {0}.",نظر می رسد چیزی در معامله را اشتباه رفت. از آنجا که ما پرداخت را اعلام نکرده اند، پی پال به طور خودکار شما این مقدار بازپرداخت. اگر آن را ندارد، لطفا به ما ایمیل بفرستید و ذکر ID همبستگی: {0}.,
 Madam,خانم,
 Main Section,بخش اصلی,
-"Make ""name"" searchable in Global Search",را &quot;نام&quot; جستجو در جهانی جستجو,
+"Make ""name"" searchable in Global Search",را &quot;نام&quot; جستجو در جستجوی کلی,
 Make use of longer keyboard patterns,استفاده از الگوهای صفحه کلید دیگر,
 Manage Third Party Apps,مدیریت برنامه های شخص ثالث,
 Mandatory Information missing:,اطلاعات اجباری از دست رفته:,
 Mandatory field: set role for,فیلد اجباری: نقش تعیین شده برای,
 Mandatory field: {0},فیلد اجباری: {0},
-"Mandatory fields required in table {0}, Row {1}",زمینه های اجباری مورد نیاز در جدول {0}، ردیف {1},
-Mandatory fields required in {0},زمینه های مورد نیاز اجباری در {0},
+"Mandatory fields required in table {0}, Row {1}",فیلدهای اجباری مورد نیاز در جدول {0}، ردیف {1},
+Mandatory fields required in {0},فیلدهای مورد نیاز اجباری در {0},
 Mandatory:,اجباری:,
 Mapping Name,نام نقشه گذاری,
 Mappings,نقشه ها,
@@ -1546,17 +1547,17 @@ Milestone,نقطه عطف,
 Milestone Tracker,ردیاب نقطه عطف,
 Minimum Password Score,حداقل کلمه عبور,
 Miss,از دست دادن,
-Missing Fields,زمینه های از دست رفته,
-Missing parameter Kanban Board Name,نام پاراگراف Kanban نامعتبر است,
+Missing Fields,فیلدهای از بین رفته,
+Missing parameter Kanban Board Name,نام بورد کانبان پارامتری نامعتبر است,
 Missing parameters for login,پارامترهای از دست رفته برای ورود,
 Models (building blocks) of the Application,مدل های (بلوک های ساختمان) از نرم افزار,
 Modified By,تغییر داده شده توسط,
 Module,ماژول,
-Module Def,ماژول دف,
-Module Name,ماژول نام,
+Module Def,تعریف ماژول,
+Module Name,نام ماژول,
 Module Not Found,ماژول پیدا نشد,
 Module Path,راه ماژول,
-Module to Export,ماژول برای صادرات,
+Module to Export,ماژول برای برون ریزی,
 Modules HTML,ماژول HTML,
 Monospace,عرض,
 More articles on {0},مقالات بیشتر در {0},
@@ -1569,17 +1570,17 @@ Mr,آقای,
 Mrs,خانم,
 Ms,خانم,
 Multiple root nodes not allowed.,چند گره ریشه پذیر نیست.,
-Multiplier Field,زمینه چند برابر,
+Multiplier Field,فیلد ضریب,
 "Must be of type ""Attach Image""",باید از این نوع باشد &quot;ضمیمه تصویر&quot;,
 Must have report permission to access this report.,باید گزارش اجازه دسترسی به این گزارش داشته باشد.,
 Must specify a Query to run,باید یک پرس و جو مشخص برای اجرای,
-Mute Sounds,برای تلفن های موبایل بیصدا,
+Mute Sounds,بی‌صدا کردن صداها و نوتیفیکیشن‌ها,
 MyISAM,MyISAM از,
 Name Case,نام مورد,
 Name cannot contain special characters like {0},نام می تواند شامل کاراکترهای خاص مانند {0},
 Name not set via prompt,نام و نام خانوادگی از طریق فوری تنظیم نشده,
-Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,نام نوع سند (DOCTYPE) شما می خواهید این زمینه به مرتبط هستند. به عنوان مثال با مشتری,
-Name of the new Print Format,نام جدید فرمت چاپ,
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,نام نوع سند (DOCTYPE) شما می خواهید این فیلد به مرتبط هستند. به عنوان مثال با مشتری,
+Name of the new Print Format,نام فرمت چاپ جدید,
 Name of {0} cannot be {1},نام {0} نمی تواند {1},
 Names and surnames by themselves are easy to guess.,نام و نام خانوادگی خود به خود به راحتی حدس زده.,
 Naming,نامگذاری,
@@ -1590,12 +1591,12 @@ New Activity,فعالیت جدید,
 New Chat,گپ جدید,
 New Comment on {0}: {1},نظر جدید در {0}: {1},
 New Connection,اتصال جدید,
-New Custom Print Format,جدید سفارشی چاپ فرمت,
+New Custom Print Format,فرمت چاپ سفارشی جدید,
 New Email,ایمیل جدید,
 New Email Account,حساب پست الکترونیک جدید,
 New Event,رویداد جدید,
 New Folder,فولدر جدید,
-New Kanban Board,هیئت مدیره جدید از Kanban,
+New Kanban Board,بورد کانبان جدید,
 New Message from Website Contact Page,پیام جدید از وب سایت تماس با ما صفحه,
 New Name,نام جدید,
 New Newsletter,عضویت در خبرنامه جدید,
@@ -1638,7 +1639,7 @@ No comments yet,بدون نظر,
 No comments yet. Start a new discussion.,بدون نظر. شروع یک بحث جدید.,
 No data found in the file. Please reattach the new file with data.,هیچ داده ای در فایل یافت نشد لطفا فایل جدید با داده را دوباره نصب کنید.,
 No document found for given filters,هیچ سند پیدا شده برای فیلتر های داده,
-"No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type ""Select"".",هیچ فیلدی یافت نشد که بتوان از آن به عنوان ستون Kanban استفاده کرد. برای افزودن فیلد سفارشی از نوع &quot;Select&quot; از فرم سفارشی سازی استفاده کنید.,
+"No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type ""Select"".",هیچ فیلدی یافت نشد که بتوان از آن به عنوان ستون کانبان استفاده کرد. برای افزودن فیلد سفارشی از نوع &quot;Select&quot; از فرم سفارشی سازی استفاده کنید.,
 No file attached,بدون فایل پیوست,
 No further records,هیچ پرونده بیشتر,
 No matching records. Search something new,هیچ پرونده تطبیق است. جستجو چیزی جدید,
@@ -1677,7 +1678,7 @@ Not a zip file,نه یک فایل فشرده,
 Not allowed for {0}: {1},برای {0} مجاز نیست: {1},
 "You are not allowed to access {0} because it is linked to {1} '{2}' in row {3}, field {4}",شما مجاز به دسترسی به {0} به دلیل اینکه در ردیف {3}، فیلد {4} به {1} &#39;{2}&#39; در ارتباط است،,
 You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3},شما مجاز به دسترسی به این {0} رکورد به دلیل اینکه در فیلد {3} به {1} &#39;{2}&#39; در ارتباط است،,
-Not allowed to Import,مجاز به واردات,
+Not allowed to Import,مجاز به درون‌ریزی,
 Not allowed to change {0} after submission,مجاز به تغییر {0} پس از ارسال,
 Not allowed to print cancelled documents,مجاز به چاپ اسناد لغو,
 Not allowed to print draft documents,مجاز به چاپ اسناد پیش نویس,
@@ -1690,23 +1691,23 @@ Note: By default emails for failed backups are sent.,توجه: به طور پی�
 Note: Changing the Page Name will break previous URL to this page.,توجه: تغییر نام صفحه خواهد URL قبلی به این صفحه را بشکند.,
 "Note: For best results,  images must be of the same size and width must be greater than height.",توجه: برای بهترین نتیجه ، تصاویر باید با یک اندازه باشند و عرض باید بیشتر از ارتفاع باشد.,
 Note: Multiple sessions will be allowed in case of mobile device,توجه داشته باشید: جلسات متعدد خواهد شد در صورت از دستگاه تلفن همراه اجازه,
-Nothing to show,هیچ چیز برای نشان دادن,
-Nothing to update,هیچ چیز برای به روزرسانی نیست,
-Notification,اطلاع,
-Notification Recipient,گیرنده اعلان,
-Notification Tones,صدای اعلان,
-Notifications,اطلاعیه,
+Nothing to show,چیزی برای نشان دادن وجود ندارد,
+Nothing to update,چیزی برای به روزرسانی وجود ندارد,
+Notification,نوتیفیکیشن,
+Notification Recipient,گیرنده نوتیفیکیشن,
+Notification Tones,صدای نوتیفیکیشن,
+Notifications,نوتیفیکیشن‌ها,
 Notifications and bulk mails will be sent from this outgoing server.,اخبار و ایمیل فله خواهد شد از این سرور خروجی ارسال می شود.,
 Notify Users On Every Login,اطلاع کاربران در هر ورود,
-Notify if unreplied,اطلاع عنوانهای بدون پاسخ,
-Notify if unreplied for (in mins),اطلاع عنوانهای بدون پاسخ برای (در دقیقه),
+Notify if unreplied,اطلاع عنوان‌های بدون پاسخ,
+Notify if unreplied for (in mins),اطلاع عنوان‌های بدون پاسخ برای (در دقیقه),
 Notify users with a popup when they log in,کاربران آگاه کن با یک پنجره زمانی که آنها وارد سیستم شوید,
 Number Format,ساختار شماره,
 Number of Backups,تعداد پشتیبان گیری,
 Number of DB Backups,تعداد پشتیبان گیری DB,
 Number of DB backups cannot be less than 1,تعداد پشتیبان گیری DB نمی تواند کمتر از 1 باشد,
 Number of columns for a field in a Grid (Total Columns in a grid should be less than 11),تعداد ستون ها برای یک میدان در یک شبکه (مجموع ستون در یک شبکه باید کمتر از 11 باشد),
-Number of columns for a field in a List View or a Grid (Total Columns should be less than 11),تعداد ستون ها برای یک میدان در یک لیست نمایش و یا یک شبکه (مجموع ستون باید کمتر از 11 باشد),
+Number of columns for a field in a List View or a Grid (Total Columns should be less than 11),تعداد ستون ها برای یک میدان در نمایش لیستی و یا یک شبکه (مجموع ستون باید کمتر از 11 باشد),
 OAuth Authorization Code,OAuth حفظ کد مجوز,
 OAuth Bearer Token,OAuth حفظ حامل رمز,
 OAuth Client,OAuth حفظ مشتری,
@@ -1741,10 +1742,10 @@ Oops! Something went wrong,وای! چیزی را اشتباه رفت,
 Open Link,لینک گسترش,
 Open Source Applications for the Web,نرم افزار منبع باز برای وب,
 Open Translation,باز کردن ترجمه,
-Open a dialog with mandatory fields to create a new record quickly,با زمینه های اجباری یک گفتگو باز کنید تا سریعاً یک رکورد جدید ایجاد کنید,
+Open a dialog with mandatory fields to create a new record quickly,با فیلدهای اجباری یک گفتگو باز کنید تا سریعاً یک رکورد جدید ایجاد کنید,
 Open a module or tool,باز کردن یک ماژول یا ابزار,
 Open your authentication app on your mobile phone.,برنامه تأیید صحت خود را بر روی تلفن همراه خود باز کنید.,
-Open {0},گسترش {0},
+Open {0},باز {0},
 Opened,افتتاح شد,
 Operator must be one of {0},اپراتور باید یکی از شود {0},
 Option 1,انتخاب 1,
@@ -1752,7 +1753,7 @@ Option 2,انتخاب 2,
 Option 3,انتخاب 3,
 Optional: Always send to these ids. Each Email Address on a new row,اختیاری: همیشه به این شناسه را ارسال کنید. هر آدرس ایمیل در یک ردیف جدید,
 Optional: The alert will be sent if this expression is true,اختیاری: هشدار ارسال خواهد شد اگر این عبارت درست است,
-Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',نوع گزینه ها &quot;پویا لینک از زمینه باید به دیگری درست لینک با گزینه به عنوان&quot; DOCTYPE &quot;اشاره,
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',نوع گزینه ها &quot;پویا لینک از فیلد باید به دیگری درست لینک با گزینه به عنوان&quot; DOCTYPE &quot;اشاره,
 Options Help,گزینه های راهنما,
 Options for select. Each option on a new line.,گزینه برای انتخاب. هر گزینه را در یک خط جدید است.,
 Options not set for link field {0},گزینه ها برای درست تنظیم نشده لینک {0},
@@ -1811,17 +1812,17 @@ Percent,در صد,
 Percent Complete,درصد کامل,
 Perm Level,سطح پرم,
 Permanent,دائمي,
-Permanently Cancel {0}?,به طور دائم لغو {0}؟,
-Permanently Submit {0}?,به طور دائمی ثبت کردن {0}؟,
-Permanently delete {0}?,حذف دائم {0}؟,
+Permanently Cancel {0}?,لغو دائمی {0}؟,
+Permanently Submit {0}?,تایید دائمی {0}؟,
+Permanently delete {0}?,حذف دائمی {0}؟,
 Permission Error,خطای مجوز,
 Permission Level,سطح اجازه,
 Permission Levels,سطح اجازه,
 Permission Rules,مشاهده قوانین اجازه,
 Permissions,مجوز,
 Permissions are automatically applied to Standard Reports and searches.,مجوز به طور خودکار به گزارش های استاندارد و جستجو اعمال می شود.,
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",مجوز بر نقش ها و انواع سند (به نام DocTypes) با تنظیم حقوق مانند مجموعه خواندن، نوشتن، ایجاد، حذف، ارسال، لغو، اصلاح، گزارش، واردات، صادرات، چاپ، ایمیل و تنظیم کاربر مجوز.,
-Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,مجوز در سطوح بالاتر می مجوزهای سطح درست. تمام زمینه ها یک مجموعه سطح اجازه علیه آنها و قوانین تعریف شده در آن دسترسی به زمینه اعمال می شود. این در مورد مفید است که شما می خواهید برای مخفی کردن و یا به آن درست خاص فقط خواندنی برای نقش خاص.,
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",مجوز بر نقش ها و انواع سند (به نام DocTypes) با تنظیم حقوق مانند مجموعه خواندن، نوشتن، ایجاد، حذف، ارسال، لغو، اصلاح، گزارش، درون‌ریزی، برون‌ریزی، چاپ، ایمیل و تنظیم کاربر مجوز.,
+Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,مجوز در سطوح بالاتر می مجوزهای سطح درست. تمام فیلدها یک مجموعه سطح اجازه علیه آنها و قوانین تعریف شده در آن دسترسی به فیلد اعمال می شود. این در مورد مفید است که شما می خواهید برای مخفی کردن و یا به آن درست خاص فقط خواندنی برای نقش خاص.,
 "Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.",مجوز در سطح 0 مجوزهای سطح سند، به عنوان مثال آنها اولیه برای دسترسی به سند می باشد.,
 Permissions get applied on Users based on what Roles they are assigned.,مجوز های بر روی کاربران بر اساس آنچه نقش آن اختصاص داده می شود.,
 Personal,شخصی,
@@ -1841,7 +1842,7 @@ Please attach an image file to set HTML,لطفاً برای تنظیم HTML فا
 Please check your email for verification,لطفا ایمیل خود را تایید بررسی,
 Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it.,لطفا آدرس ایمیل ثبت شده خود را برای دستورالعمل هایی درباره نحوه ادامه انجام دهید. این پنجره را بسته نگذارید زیرا باید به آن بازگردید.,
 Please close this window,لطفا این پنجره را ببندید,
-Please confirm your action to {0} this document.,لطفا اقدام خود را به {0} این سند تایید کنید,
+Please confirm your action to {0} this document.,لطفا اقدام خود را برای {0} این سند تایید کنید,
 Please do not change the rows above {0},لطفا ردیف بالا تغییر نمی {0},
 Please do not change the template headings.,لطفا عنوان الگو را تغییر دهید.,
 Please duplicate this to make changes,لطفا این تکراری برای ایجاد تغییرات,
@@ -1879,7 +1880,7 @@ Please select the Document Type.,لطفا نوع سند را انتخاب کنی
 Please set Base URL in Social Login Key for Frappe,لطفا URL پایه را در کلید ورود اجتماعی برای Frappe تنظیم کنید,
 Please set Dropbox access keys in your site config,لطفا کلیدهای دسترسی Dropbox به پیکربندی در سایت خود تنظیم,
 Please set a printer mapping for this print format in the Printer Settings,لطفاً یک نقشه‌ی چاپگر برای این قالب چاپ را در تنظیمات چاپگر تنظیم کنید,
-Please set filters,لطفا فیلتر تنظیم,
+Please set filters,لطفا فیلتر را تنظیم کنید,
 Please set filters value in Report Filter table.,لطفا مقدار فیلتر در جدول گزارش فیلتر تنظیم شده است.,
 "Please setup SMS before setting it as an authentication method, via SMS Settings",لطفا تنظیمات SMS را قبل از تنظیم آن به عنوان یک روش تأیید اعتبار، از طریق تنظیمات SMS,
 Please setup a message first,لطفا ابتدا پیام را راه اندازی کنید,
@@ -1916,19 +1917,19 @@ Previous,قبلی,
 Previous Hash,هش قبلی,
 Primary Color,رنگ اصلی,
 Print Documents,اسناد چاپ,
-Print Format Builder,چاپ فرمت ساز,
-Print Format Help,چاپ فرمت راهنما,
+Print Format Builder,فرمت ساز چاپ,
+Print Format Help,فرمت چاپ راهنما,
 Print Format Type,چاپ نوع فرمت,
-Print Format {0} is disabled,چاپ فرمت {0} غیر فعال است,
+Print Format {0} is disabled,فرمت چاپ {0} غیر فعال است,
 Print Hide,چاپ مخفی,
 Print Hide If No Value,چاپ مخفی کردن اگر هیچ ارزش,
 Print Sent to the printer!,چاپ ارسال شده به چاپگر!,
 Print Server,سرور چاپ,
 Print Style,چاپ سبک,
 Print Style Name,نام سبک چاپ,
-Print Style Preview,چاپ سبک پیشنمایش,
+Print Style Preview,پیش‌نمایش فرم چاپ,
 Print Width,چاپ عرض,
-"Print Width of the field, if the field is a column in a table",چاپ عرض این زمینه، اگر درست یک ستون در یک جدول است,
+"Print Width of the field, if the field is a column in a table",چاپ عرض این فیلد، اگر فیلد یک ستون در یک جدول است,
 Print with letterhead,چاپ با سربرگ,
 Printer,چاپگر,
 Printer Mapping,نقشه برداری چاپگر,
@@ -2010,7 +2011,7 @@ Relapses,عود,
 Relink,پیوند دهید,
 Relink Communication,ارتباطات پیوند دهید,
 Relinked,Relinked,
-Reload,بازنگری,
+Reload,بارگذاری مجدد,
 Remember Last Selected Value,به یاد داشته باشید آخرین مقدار انتخاب شده,
 Remote,از راه دور,
 Remote Fieldname,نام فیلد Remote,
@@ -2049,7 +2050,7 @@ Report {0},گزارش {0},
 Report {0} is disabled,گزارش {0} غیر فعال است,
 Report:,گزارش:,
 Represents a User in the system.,نشان دهنده یک کاربر در سیستم.,
-Represents the states allowed in one document and role assigned to change the state.,نشان دهنده ایالات مجاز در یک سند و نقش داده شده به تغییر دولت است.,
+Represents the states allowed in one document and role assigned to change the state.,نشان دهنده وضعیت‌های مجاز در یک سند و نقش داده شده به تغییر وضعیت است.,
 Request Timed Out,درخواست به پایان رسیده,
 Request URL,درخواست URL,
 Require Trusted Certificate,به گواهینامه معتبر احتیاج دارید,
@@ -2079,8 +2080,8 @@ Revert,برگرداندن,
 Revert Of,برگرداندن از,
 Reverted,برگردانده شد,
 Review Level,سطح بررسی,
-Review Levels,بررسی سطوح,
-Review Points,نقد و بررسی امتیازات,
+Review Levels,سطوح بررسی,
+Review Points,امتیازات نقد و بررسی,
 Reviews,بررسی ها,
 Revoke,لغو,
 Revoked,لغو,
@@ -2105,14 +2106,14 @@ Row Index,شاخص ردیف,
 Row No,ردیف شماره,
 Row Status,وضعیت ردیف,
 Row Values Changed,ارزش ردیف ها تغییر,
-Row {0}: Not allowed to disable Mandatory for standard fields,ردیف {0}: مجاز نیست که برای زمینه های استاندارد اجباری باشد,
-Row {0}: Not allowed to enable Allow on Submit for standard fields,ردیف {0}: مجاز به فعال کردن اجازه در زمینه های استاندارد ثبت کردن,
+Row {0}: Not allowed to disable Mandatory for standard fields,ردیف {0}: مجاز نیست که برای فیلدهای استاندارد اجباری باشد,
+Row {0}: Not allowed to enable Allow on Submit for standard fields,ردیف {0}: مجاز به فعال کردن اجازه در فیلدهای استاندارد ثبت کردن,
 Rows Added,ردیف اضافه شده,
 Rows Removed,ردیف حذف,
 Rule,قانون,
 Rule Name,نام قانون,
-Rules defining transition of state in the workflow.,مشاهده قوانین تعریف انتقال دولت در کاری می باشد.,
-"Rules for how states are transitions, like next state and which role is allowed to change state etc.",مشاهده قوانین برای چه ایالات انتقال، مانند حالت بعدی و نقش هستند مجاز به تغییر دولت و غیره,
+Rules defining transition of state in the workflow.,قوانین تعریف انتقال وضعیت در گردش‌کار را تعریف می‌کنند.,
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.",مشاهده قوانین برای چگونگی وضعیت‌های انتقال، مانند حالت بعدی و اینکه چه نقشی مجاز به تغییر وضعیت و غیره است,
 Run,اجرا کن,
 Run scheduled jobs only if checked,اجرای شغل برنامه ریزی شده تنها در صورتی چک,
 S3 Backup Settings,S3 تنظیمات پشتیبان گیری,
@@ -2134,14 +2135,14 @@ Save Filter,ذخیره فیلتر,
 Save Report,ذخیره گزارش,
 Save filters,فیلترها را ذخیره کنید,
 Saving,پس انداز,
-Saving...,صرفه جویی در...,
+Saving...,در حال ذخیره کردن...,
 Scan the QR Code and enter the resulting code displayed.,اسکن کد QR و کد نتیجه نمایش داده شده را وارد کنید.,
 Scopes,حوزه,
 Script,خط,
 Script Report,گزارش اسکریپت,
 Script or Query reports,اسکریپت یا پرس و جو گزارش,
 Script to attach to all web pages.,اسکریپت به ضمیمه به تمام صفحات وب است.,
-Search Fields,زمینه جستجو,
+Search Fields,فیلدهای جستجو,
 Search Help,جستجو راهنما,
 Search field {0} is not valid,قسمت جستجو {0} معتبر نیست,
 Search for '{0}',جستجو برای &#39;{0},
@@ -2154,7 +2155,7 @@ Search...,جستجو کردن...,
 Searching,جستجوکردن,
 Searching ...,جستجوکردن ...,
 Section Break,شکستن بخش,
-Section Heading,بخش سرنویس,
+Section Heading,بخش سربرگ,
 Security,امنیت,
 Security Settings,تنظیمات امنیتی,
 See all past reports.,تمام گزارش های گذشته را مشاهده کنید,
@@ -2193,7 +2194,7 @@ Select an image of approx width 150px with a transparent background for best res
 Select atleast 1 record for printing,حداقل 1 رکورد برای چاپ انتخاب کنید,
 Select or drag across time slots to create a new event.,انتخاب و یا کشیدن در سراسر شکاف زمان برای ایجاد یک رویداد جدید.,
 Select records for assignment,انتخاب پرونده برای انتساب,
-Select the label after which you want to insert new field.,برچسب و پس از آن شما می خواهید برای وارد کردن زمینه های جدید را انتخاب کنید.,
+Select the label after which you want to insert new field.,برچسب و پس از آن شما می خواهید برای وارد کردن فیلدهای جدید را انتخاب کنید.,
 "Select your Country, Time Zone and Currency",انتخاب کشور خود، منطقه زمانی و ارز,
 Select {0},انتخاب {0},
 Self approval is not allowed,تصویب خود مجاز نیست,
@@ -2209,8 +2210,8 @@ Send Print as PDF,ارسال چاپ به عنوان PDF,
 Send Read Receipt,ارسال رسید خواندن,
 Send Unsubscribe Link,ارسال پیوند لغو اشتراک,
 Send Welcome Email,ارسال ایمیل به انجمن خوش آمدید,
-Send alert if date matches this field's value,ارسال هشدار در صورت عضویت مسابقات ارزش این زمینه را,
-Send alert if this field's value changes,ارسال هشدار در صورت تغییرات ارزش این زمینه را,
+Send alert if date matches this field's value,ارسال هشدار در صورت تطبیق مقدار این فیلد با تاریخ,
+Send alert if this field's value changes,ارسال هشدار در صورت تغییرات مقدار این فیلد,
 Send an email reminder in the morning,ارسال یک ایمیل به یادآوری در صبح,
 Send days before or after the reference date,ارسال روز قبل یا بعد از تاریخ مرجع,
 Send enquiries to this email address,ارسال سوالات به این آدرس ایمیل,
@@ -2278,7 +2279,7 @@ Show Dashboard,نمایش داشبورد,
 Show Full Error and Allow Reporting of Issues to the Developer,نمایش خطا کامل و اجازه گزارش مسائل به توسعه,
 Show Line Breaks after Sections,نمایش فواصل خط بعد از بخش ها,
 Show Permissions,نمایش و ویرایش,
-Show Preview Popup,نمایش پیش نمایش پنجره,
+Show Preview Popup,نمایش پنجره پیش نمایش,
 Show Relapses,نمایش عود,
 Show Report,نمایش گزارش,
 Show Section Headings,نمایش سرفصل بخش,
@@ -2313,11 +2314,11 @@ Skip rows with errors,ردیف ها را با اشتباه پر کن,
 Skype,اسکایپ,
 Slack,لاغر,
 Slack Channel,کانال اسلک,
-Slack Webhook Error,خطای Webhook Slack,
-Slack Webhook URL,نشانی اینترنتی وب کم سرعت,
+Slack Webhook Error,خطای Slack Webhook,
+Slack Webhook URL,نشانی اینترنتی Slacl Webhook,
 Slack Webhooks for internal integration,مدیران انبوه داخلی برای ادغام داخلی,
-Slideshow Items,اسلاید نمایش,
-Slideshow Name,نام نمایش به صورت اسلاید,
+Slideshow Items,آیتم‌های اسلایدشو,
+Slideshow Name,نام اسلایدشو,
 Slideshow like display for the website,نمایش به صورت اسلاید مانند صفحه نمایش برای وب سایت,
 Small Text,متن کوچک,
 Smallest Currency Fraction Value,کوچکترین ارز ارزش کسر,
@@ -2335,7 +2336,7 @@ Something went wrong while generating dropbox access token. Please check error l
 Sorry! I could not find what you were looking for.,با عرض پوزش! من می توانم پیدا کردن آنچه شما دنبال شد.,
 Sorry! Sharing with Website User is prohibited.,با عرض پوزش! به اشتراک گذاری با وب سایت کاربر ممنوع است.,
 Sorry! User should have complete access to their own record.,با عرض پوزش! کاربر باید دسترسی کامل به رکورد خود را دارند.,
-Sorry! You are not permitted to view this page.,با عرض پوزش! برای مشاهده این صفحه شما مجاز نیست.,
+Sorry! You are not permitted to view this page.,با عرض پوزش! شما مجاز بع مشاهده این صفحه نیستید.,
 "Sorry, you're not authorized.",با عرض پوزش، شما مجاز نیستید,
 Sort Field,مرتب کردن بر اساس درست,
 Sort Order,ترتیب,
@@ -2360,8 +2361,8 @@ StartTLS,StartTLS,
 Started,آغاز شده,
 Starting Frappe ...,شروع Frappe ...,
 Starts on,شروع می شود در,
-States,ایالات,
-"States for workflow (e.g. Draft, Approved, Cancelled).",ایالات به طور (به عنوان مثال پیش نویس، مصوب، منتفی شد).,
+States,وضعیت‌ها,
+"States for workflow (e.g. Draft, Approved, Cancelled).",وضعیت‌ها به طور (به عنوان مثال پیش نویس، مصوب، منتفی شد).,
 Static Parameters,پارامترهای استاتیک,
 Stats based on last month's performance (from {0} to {1}),آمار بر اساس عملکرد ماه گذشته (از {0} تا {1}),
 Stats based on last week's performance (from {0} to {1}),آمار بر اساس عملکرد هفته گذشته (از {0} تا {1}),
@@ -2378,10 +2379,10 @@ Stylesheets for Print Formats,Stylesheets برای فرمت های چاپ,
 "Sub-currency. For e.g. ""Cent""",زیر ارز. برای مثال &quot;سنت&quot;,
 Sub-domain provided by erpnext.com,زیر دامنه ارائه شده توسط erpnext.com,
 Subdomain,زیر دامنه,
-Subject Field,زمینه موضوع,
+Subject Field,فیلد موضوع,
 Submit after importing,ارسال پس از وارد کردن,
 Submit an Issue,ثبت کردن شماره,
-Submit this document to confirm,ارسال این سند را به اعلام,
+Submit this document to confirm,برای نهایی شدن، این سند را تایید کنید,
 Submit {0} documents?,ارسال اسناد {0}؟,
 Submitting {0},ارسال {0},
 Submitted Document cannot be converted back to draft. Transition row {0},سند فرستاده ممکن نیست تبدیل به پیش نویس است. ردیف گذار {0},
@@ -2445,12 +2446,12 @@ The name that will appear in Google Calendar,نامی که در Google Calendar 
 The process for deletion of {0} data associated with {1} has been initiated.,روند حذف داده های {0} مرتبط با {1} آغاز شده است.,
 The resource you are looking for is not available,منابع شما به دنبال برای در دسترس نیست,
 The system provides many pre-defined roles. You can add new roles to set finer permissions.,سیستم بسیاری از نقش های از پیش تعریف شده را فراهم می کند. شما می توانید نقش های جدید اضافه برای تنظیم دسترسی ظریف.,
-The user from this field will be rewarded points,کاربر از این زمینه امتیازات دریافت می کند,
+The user from this field will be rewarded points,کاربر از این فیلد امتیازات دریافت می کند,
 Theme,موضوع,
 Theme URL,آدرس URL تم,
 There can be only one Fold in a form,می تواند تنها یک در یک فرم ریختن (فولد) وجود دارد,
 There is an error in your Address Template {0},یک خطا در آدرس الگو شما وجود دارد {0},
-There is no data to be exported,هیچ اطلاعاتی برای صادرات وجود ندارد,
+There is no data to be exported,هیچ اطلاعاتی برای برون‌ریزی وجود ندارد,
 There is some problem with the file url: {0},بعضی از مشکل با آدرس فایل وجود دارد: {0},
 There must be atleast one permission rule.,باید حداقل حکومت یک مجوز وجود داشته باشد.,
 "There seems to be an issue with the server's braintree configuration. Don't worry, in case of failure, the amount will get refunded to your account.",به نظر می رسد یک مشکل با پیکربندی braintree سرور وجود دارد. نگران نباشید، درصورت خرابی، مقدار به حساب شما بازپرداخت می شود.,
@@ -2462,9 +2463,9 @@ There were errors while sending email. Please try again.,بودند خطاهای
 "There were some errors setting the name, please contact the administrator",برخی از خطاهای تنظیم نام وجود دارد، لطفا با مدیر تماس بگیرید,
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,این مقادیر به طور خودکار در معاملات روز رسانی و نیز برای محدود کردن دسترسی این کاربر در معاملات حاوی این مقادیر مفید باشد.,
 Third Party Apps,برنامه های شخص ثالث,
-Third Party Authentication,سوم حزب احراز هویت,
+Third Party Authentication,احراز هویت با واسطه,
 This Currency is disabled. Enable to use in transactions,این ارز غیر فعال است. را قادر به استفاده در معاملات,
-This Kanban Board will be private,این هیئت مدیره Kanban خصوصی خواهد بود,
+This Kanban Board will be private,این بورد کانبان خصوصی خواهد بود,
 This document cannot be reverted,این سند قابل بازگشت نیست,
 This document has been modified after the email was sent.,این سند پس از ارسال ایمیل اصلاح شده است.,
 This document has been reverted,این سند برگردانده شده است,
@@ -2473,7 +2474,7 @@ This email is autogenerated,این ایمیل بصورت خودکار ساخته
 This email was sent to {0},این ایمیل فرستاده شد {0},
 This email was sent to {0} and copied to {1},این ایمیل {0} به فرستاده شد و کپی شده را به {1},
 This feature is brand new and still experimental,این قابلیت با نام تجاری جدید و هنوز هم تجربی است,
-This field will appear only if the fieldname defined here has value OR the rules are true (examples):\nmyfield\neval:doc.myfield=='My Value'\neval:doc.age&gt;18,در این زمینه به نظر می رسد تنها در صورتی که FIELDNAME تعریف شده در اینجا دارای ارزش و یا قوانین واقعی (مثال): myfield محاسبه-: doc.myfield == &#39;ارزش من &quot;تابع eval: doc.age&gt; 18,
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): \nmyfield\neval:doc.myfield=='My Value'\neval:doc.age&gt;18,در این فیلد به نظر می رسد تنها در صورتی که FIELDNAME تعریف شده در اینجا دارای ارزش و یا قوانین واقعی (مثال): myfield محاسبه-: doc.myfield == &#39;ارزش من &quot;تابع eval: doc.age&gt; 18,
 This form does not have any input,این شکل هیچ ورودی ندارد,
 This form has been modified after you have loaded it,این فرم اصلاح شده است بعد از شما آن لود شده,
 This format is used if country specific format is not found,این قالب استفاده شده است اگر قالب خاص کشور یافت نشد,
@@ -2517,13 +2518,13 @@ Title Field,عنوان درست,
 Title Prefix,عنوان پیشوند,
 Title field must be a valid fieldname,عنوان درست باید fieldname معتبر باشد,
 To Date Field,به قسمت Date,
-To Do,انجام دادن,
+To Do,وظایف,
 To User,به کاربر,
 "To add dynamic subject, use jinja tags like\n\n<div><pre><code>New {{ doc.doctype }} #{{ doc.name }}</code></pre></div>","برای اضافه کردن موضوع پویا، از برچسب جینجا مانند <div style=""""><pre style=""""> <code>New {{ doc.doctype }} #{{ doc.name }}</code> </pre> </div>",
 "To add dynamic subject, use jinja tags like\n\n<div><pre><code>{{ doc.name }} Delivered</code></pre></div>","برای افزودن موضوع پویا، استفاده از تگ های Jinja به مانند <div style=""""><pre style=""""> <code>{{ doc.name }} Delivered</code> </pre> </div>",
 To and CC,به و CC,
 "To get the updated report, click on {0}.",برای دریافت گزارش به روز، روی {0} کلیک کنید.,
-ToDo,انجام دادن,
+ToDo,وظایف,
 Today,امروز,
 Toggle Chart,تعویض نمودار,
 Toggle Charts,تعویض نمودارها,
@@ -2536,25 +2537,25 @@ Too many writes in one request. Please send smaller requests,بیش از حد ب
 Top Bar Item,مورد بالا نوار,
 Top Bar Items,موارد بالا نوار,
 Top Performer,عمل کننده عالی,
-Top Reviewer,داور برتر,
+Top Reviewer,بررسی کننده برتر,
 Top {0},بالا {0},
 Total Pages,تعداد صفحات,
 Total Rows,مجموع ردیف ها,
 Total Subscribers,مجموع مشترکین,
 Total number of emails to sync in initial sync process ,تعداد کل ایمیل های برای همگام سازی در فرآیند همگام سازی اولیه,
 Totals Row,ردیف مجموع,
-Track Changes,تغییرات مسیر,
-Track Email Status,ردیابی وضعیت ایمیل,
-Track Field,زمینه پیگیری,
-Track Seen,آهنگ دیده,
-Track Views,مشاهدات پیگیری,
+Track Changes,رصد تغییرات,
+Track Email Status,رصد وضعیت ایمیل,
+Track Field,رصد فیلد,
+Track Seen,رصد بازدید,
+Track Views,رصد بازدیدها,
 "Track if your email has been opened by the recipient.\n<br>\nNote: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered ""Opened""",پیگیری کنید که ایمیل شما توسط گیرنده باز شده است. <br> توجه: اگر به چند گیرنده ارسال می کنید، حتی اگر یک گیرنده ایمیل را بخواند، آن را &quot;Opened&quot;,
 Track milestones for any document,نقاط عطف را برای هر مدرک ردیابی کنید,
 Transaction Hash,هش تراش,
 Transaction Log,ورود تراکنش,
 Transaction Log Report,گزارش گزارش تراکنش,
-Transition Rules,مشاهده قوانین گذار,
-Transitions,انتقال,
+Transition Rules,قوانین انتقال,
+Transitions,انتقال‌ها,
 Translatable,ترجمه شده,
 Translate {0},ترجمه {0},
 Translated Text,متن ترجمه شده,
@@ -2581,7 +2582,7 @@ URLs,URL ها,
 Unable to find attachment {0},قادر به پیدا کردن پیوست {0},
 Unable to load camera.,بارگیری دوربین امکان پذیر نیست,
 Unable to load: {0},قادر به بارگیری: {0},
-Unable to open attached file. Did you export it as CSV?,قادر به باز کردن فایل های پیوست شده. آیا شما آن را صادرات به عنوان CSV؟,
+Unable to open attached file. Did you export it as CSV?,قادر به باز کردن فایل های پیوست شده نیست. آیا شما آن را به عنوان CSV برون ریزی کرده اید؟,
 Unable to read file format for {0},قادر به خواندن فرمت فایل برای {0},
 Unable to send emails at this time,قادر به ارسال ایمیل های در این زمان,
 Unable to update event,به روز نمی شود رویداد,
@@ -2691,7 +2692,7 @@ View List,نمایش فهرست,
 View Log,مشاهده ورود به سیستم,
 View Permitted Documents,مشاهده اسناد مجاز,
 View Properties (via Customize Form),نمایش خواص (از طریق فرم سفارشی),
-View Settings,نمایش تنظیمات,
+View Settings,تنظیمات نمایش,
 View Website,مشاهده وب سایت,
 View document,مشاهده سند,
 View report in your browser,مشاهده گزارش در مرورگر خود,
@@ -2709,7 +2710,7 @@ Web Page,صفحه وب,
 Web Page Link Text,لینک وب صفحه متن,
 Web Site,سایت اینترنتی,
 Web View,مشاهده وب سایت,
-Webhook,چکمه وب,
+Webhook,Webhook,
 Webhook Data,داده های Webhook,
 Webhook Header,هدر Webhook,
 Webhook Headers,سربرگ های وب,
@@ -2722,8 +2723,8 @@ Website Route Redirect,تغییر مسیر مسیر وب سایت,
 Website Script,وب سایت اسکریپت,
 Website Sidebar,نوار وب سایت,
 Website Sidebar Item,وب سایت نوار مورد,
-Website Slideshow,وب سایت نمایش به صورت اسلاید,
-Website Slideshow Item,وب سایت نمایش به صورت اسلاید مورد,
+Website Slideshow,اسلایدشو وب سایت,
+Website Slideshow Item,آیتم اسلایدشو وبسایت,
 Website Theme,قالب های سایت,
 Website Theme Image,وب سایت تم تصویر,
 Website Theme Image Link,وب سایت لینک تم تصویر,
@@ -2751,7 +2752,7 @@ Write,نوشتن,
 Wrong fieldname <b>{0}</b> in add_fetch configuration of custom script,نام فیلد اشتباه <b>{0}</b> در add_fetch پیکربندی اسکریپت سفارشی,
 X Axis Field,حوزه X محور,
 XLSX,XLSX,
-Y Axis Fields,زمینه های Y محور,
+Y Axis Fields,فیلدهای محور Y,
 Yahoo Mail,ایمیل یاهو,
 Yandex.Mail,Yandex.Mail,
 Yesterday,دیروز,
@@ -2771,12 +2772,12 @@ You can also copy-paste this ,همچنین می توانید این مورد ر�
 "You can change Submitted documents by cancelling them and then, amending them.",شما می توانید اسناد ارائه شده را به وسیله لغو آنها و سپس، اصلاح آنها  تغییر دهید.,
 You can find things by asking 'find orange in customers',شما می توانید همه چیز را با پرسیدن &#39;پیدا کردن پرتقال در مشتریان پیدا,
 You can only upload upto 5000 records in one go. (may be less in some cases),شما فقط می توانید تا 5000 پرونده در یک آپلود کنید. (ممکن  است  در برخی از موارد کمتر باشد),
-You can use Customize Form to set levels on fields.,شما می توانید فرم سفارشی را به مجموعه سطح در زمینه استفاده کنید.,
+You can use Customize Form to set levels on fields.,شما می توانید فرم سفارشی را برای تنظیم سطح‌بندی‌ها در فیلدها استفاده کنید.,
 You can use wildcard %,استفاده کنید wildcard شما می توانید از ٪,
 You can't set 'Options' for field {0},شما نمی توانید گزینه &#39;Options&#39; را برای فیلد {0} تنظیم کنید,
 You can't set 'Translatable' for field {0},شما نمی توانید &#39;Translatable&#39; را برای فیلد {0} تنظیم کنید,
 You cannot give review points to yourself,شما نمی توانید نکات نقد و بررسی به خودتان بدهید,
-You cannot unset 'Read Only' for field {0},شما نمی توانید تنظیم نشده فقط خواندنی برای فیلد{0} بگذارید,
+You cannot unset 'Read Only' for field {0},شما نمی توانید "حالت فقط خواندنی" را برای فیلد{0} بردارید,
 You do not have enough permissions to access this resource. Please contact your manager to get access.,شما اجازه به اندازه کافی برای دسترسی به این منبع را ندارید. لطفا با مدیر شما برای دسترسی.,
 You do not have enough permissions to complete the action,شما اجازه اندازه کافی برای تکمیل عمل ندارد,
 You do not have enough points,شما امتیاز کافی ندارید,
@@ -2996,7 +2997,7 @@ zoom-in,بزرگنمایی,
 zoom-out,کوچک نمایی,
 {0} Calendar,{0} تقویم,
 {0} Chart,{0} نمودار,
-{0} Dashboard,{0} داشبورد,
+{0} Dashboard,داشبورد {0},
 {0} List,{0} فهرست,
 {0} Modules,{0} ماژول,
 {0} Report,{0} گزارش,
@@ -3035,7 +3036,7 @@ zoom-out,کوچک نمایی,
 {0} is an invalid email address in 'Recipients',{0} یک آدرس ایمیل نا معتبردر «گیرندگان» است,
 {0} is not a raw printing format.,{0} یک قالب چاپی خام نیست.,
 {0} is not a valid Email Address,{0} یک آدرس ایمیل معتبر نیست,
-{0} is not a valid Workflow State. Please update your Workflow and try again.,{0} دولت کار جریان معتبر نیست. لطفا گردش کار خود را به روز کنید و دوباره امتحان کنید.,
+{0} is not a valid Workflow State. Please update your Workflow and try again.,{0} وضعیت جریان کار معتبر نیست. لطفا گردش کار خود را به روز کنید و دوباره امتحان کنید.,
 {0} is now default print format for {1} doctype,{0} است فرمت چاپ پیش فرض برای {1} DOCTYPE,
 {0} is saved,{0} ذخیره شده,
 {0} items selected,{0} آیتم های انتخاب شده,
@@ -3046,7 +3047,7 @@ zoom-out,کوچک نمایی,
 {0} must be one of {1},{0} باید یکی از {1},
 {0} must be set first,{0} باید اول تنطیم شود,
 {0} must be unique,{0} باید منحصر به فرد باشد,
-{0} not a valid State,{0} نه دولت معتبر,
+{0} not a valid State,{0} یک وضعیت معتبر نیست,
 {0} not allowed to be renamed,{0} مجاز به تغییر نام نمی باشد,
 {0} not found,{0} یافت نشد,
 {0} of {1},{0} از {1},
@@ -3059,7 +3060,7 @@ zoom-out,کوچک نمایی,
 {0} room must have atmost one user.,{0} اتاق باید حداقل یک کاربر داشته باشد.,
 {0} rows for {1},{0} ردیف برای {1},
 {0} saved successfully,{0} با موفقیت ذخیره شد,
-{0} self assigned this task: {1},{0} خود این وظیفه را اختصاص داده است: {1},
+{0} self assigned this task: {1},{0} ین وظیفه را به خود اختصاص داده است: {1},
 {0} shared this document with everyone,{0} این سند با همه به اشتراک گذاشته شده است,
 {0} shared this document with {1},{0} این سند را با {1} به اشتراک گذارده است,
 {0} subscribers added,{0} مشترک افزوده شد,
@@ -3080,7 +3081,7 @@ zoom-out,کوچک نمایی,
 {0}: Cannot set Amend without Cancel,{0}: آیا می توانم تنظیم نشده اصلاح بدون لغو,
 {0}: Cannot set Assign Amend if not Submittable,{0}: آیا می توانم تنظیم نشده اختصاص اصلاح اگر Submittable نمی,
 {0}: Cannot set Assign Submit if not Submittable,{0}: آیا می توانم تنظیم نشده اختصاص ثبت کردن اگر Submittable نمی,
-{0}: Cannot set Cancel without Submit,{0}: آیا می توانم تنظیم نشده لغو بدون ارسال,
+{0}: Cannot set Cancel without Submit,{0}: نمی‌توانم لغو را تنظیم کنم بدون ثبت,
 {0}: Cannot set Import without Create,{0}: می توانید وارد مجموعه بدون ایجاد کنید,
 "{0}: Cannot set Submit, Cancel, Amend without Write",{0}: آیا می توانم تنظیم نشده ارسال، لغو، اصلاح بدون نوشتن,
 {0}: Cannot set import as {1} is not importable,{0}: می تواند واردات را تنظیم کنید به عنوان {1} است واردات نه,
@@ -3099,7 +3100,7 @@ The password of your account has expired.,گذرواژه حساب شما منق�
 Workflow State transition not allowed from {0} to {1},انتقال پروتکل Workflow از {0} به {1} مجاز نیست,
 {0} must be after {1},{0} باید پس از {1},
 {0}: Field '{1}' cannot be set as Unique as it has non-unique values,{0}: فیلد &#39;{1}&#39; نمی تواند به عنوان منحصر به فرد تنظیم شود زیرا دارای مقادیر غیر منحصر به فرد است,
-{0}: Field {1} in row {2} cannot be hidden and mandatory without default,{0}: زمینه {1} در ردیف {2} نمی تواند بدون پیش فرض پنهان و اجباری شود,
+{0}: Field {1} in row {2} cannot be hidden and mandatory without default,{0}: فیلد {1} در ردیف {2} نمی تواند بدون پیش فرض پنهان و اجباری شود,
 {0}: Field {1} of type {2} cannot be mandatory,{0}: فیلد {1} نوع {2} نمی تواند اجباری باشد,
 {0}: Fieldname {1} appears multiple times in rows {2},{0}: نام فیلد {1} چند بار در ردیف ظاهر می شود {2},
 {0}: Fieldtype {1} for {2} cannot be unique,{0}: Fieldtype {1} برای {2} نمی تواند منحصر به فرد باشد,
@@ -3110,8 +3111,8 @@ Workflow State transition not allowed from {0} to {1},انتقال پروتکل 
 Make {0},{0} را ایجاد کنید,
 A user who posts blogs.,کاربری که وبلاگ ها را ارسال می کند.,
 Applying: {0},اعمال: {0},
-Fieldname {0} is restricted,نام زمینه {0} محدود شده است,
-Is Optional State,دولت اختیاری است,
+Fieldname {0} is restricted,نام فیلد {0} محدود شده است,
+Is Optional State,وضعیت اختیاری است,
 No values to show,هیچ مقداری برای نشان دادن وجود ندارد,
 View Ref,مشاهده Ref,
 Workflow Action is not created for optional states,Actionflow Action برای حالتهای اختیاری ایجاد نمی شود,
@@ -3132,13 +3133,13 @@ Access Log,ورود به سیستم,
 Access not allowed from this IP Address,دسترسی از این آدرس IP مجاز نیست,
 Action Type,نوع عمل,
 Activity Log by ,فعالیت توسط,
-Add Fields,زمینه ها را اضافه کنید,
+Add Fields,فیلدها را اضافه کنید,
 Administration,مدیریت,
 After Cancel,بعد از لغو,
 After Delete,بعد از حذف,
 After Save,بعد از ذخیره,
 After Save (Submitted Document),پس از ذخیره (سند ارائه شده),
-After Submit,بعد از ارسال,
+After Submit,بعد از ثبت,
 Aggregate Function Based On,عملکرد کل بر اساس,
 Aggregate Function field is required to create a dashboard chart,برای ایجاد نمودار داشبورد ، باید از قسمت عملکرد توابع استفاده کنید,
 All Records,همه رکوردها,
@@ -3149,7 +3150,7 @@ Allow Google Contacts Access,دسترسی مخاطبین Google را مجاز ک
 Allow Google Drive Access,به Google اجازه دسترسی به درایو,
 Allow Guest,مجاز بودن مهمان,
 Allow Guests to Upload Files,به مهمانها اجازه دهید پرونده ها را بارگذاری کنند,
-Also adding the status dependency field {0},همچنین افزودن زمینه وابستگی به وضعیت {0,
+Also adding the status dependency field {0},همچنین افزودن وضعیت به فیلد {0} بستگی دارد,
 An error occurred while setting Session Defaults,هنگام تنظیم جلسات پیش فرض خطایی روی داد,
 Annual,سالیانه,
 Append Emails to Sent Folder,ایمیل را به پوشه ارسال شده اضافه کنید,
@@ -3184,7 +3185,7 @@ Before Delete,قبل از حذف,
 Before Insert,قبل از درج,
 Before Save,قبل از ذخیره,
 Before Save (Submitted Document),قبل از ذخیره (سند ارائه شده),
-Before Submit,قبل از ارسال,
+Before Submit,قبل از ثبت,
 Blank Template,الگوی خالی,
 Callback URL,URL پاسخ به تماس,
 Cancel All Documents,همه اسناد را لغو کنید,
@@ -3203,7 +3204,7 @@ Click on the link below to approve the request,برای تأیید درخواس�
 Click on the lock icon to toggle public/private,برای جابجایی عمومی / خصوصی روی نماد قفل کلیک کنید,
 Click on {0} to generate Refresh Token.,برای تولید Refresh Token روی {0 کلیک کنید.,
 Close Condition,شرایط نزدیک,
-Columns / Fields,ستون ها / زمینه ها,
+Columns / Fields,ستون ها / فیلدها,
 "Configure notifications for mentions, assignments, energy points and more.",پیکربندی اعلان ها برای موارد ذکر شده ، تکالیف ، نقاط انرژی و موارد دیگر.,
 Contact Email,تماس با ایمیل,
 Contact Numbers,شماره تماس,
@@ -3214,11 +3215,11 @@ Contribute Translations,به ترجمه ها کمک کنید,
 Contributed,مشارکت کرد,
 Controller method get_razorpay_order missing,روش کنترل get_razorpay_order وجود ندارد,
 Copied to clipboard.,در کلیپ بورد کپی شد.,
-Core Modules {0} cannot be searched in Global Search.,ماژول های اصلی {0} در جستجوی جهانی قابل جستجو نیست.,
+Core Modules {0} cannot be searched in Global Search.,ماژول های اصلی {0} در جستجوی کلی قابل جستجو نیست.,
 Could not create Razorpay order. Please contact Administrator,سفارش Razorpay ایجاد نشد. لطفا با سرپرست تماس بگیرید,
 Could not create razorpay order,سفارش ریش تراپ امکان پذیر نیست,
 Create Log,ورود به سیستم,
-Create your first {0},اولین your 0 خود را ایجاد کنید,
+Create your first {0},اولین {0} خود را ایجاد کنید,
 Created {0} records successfully.,سوابق با موفقیت {0 Cre ایجاد شد.,
 Cron,کرون,
 Cron Format,قالب کرون,
@@ -3240,21 +3241,21 @@ Document Type Mapping,نگاشت نوع نقشه,
 Document Type {0} has been repeated.,نوع سند {0} تکرار شده است.,
 Document renamed from {0} to {1},سند از {0} به 1 {تغییر نام داد,
 Document type is required to create a dashboard chart,برای ایجاد نمودار داشبورد نوع سند لازم است,
-Documentation Link,پیوند اسناد,
+Documentation Link,پیوند مستندات,
 Don't Import,وارد نکنید,
-Don't Send Emails,ایمیل ارسال نکنید,
+Don't Send Emails,عدم ارسال ایمیل,
 "Drag and drop files, ",فایل ها را بکشید و رها کنید ،,
 Drop,رها کردن,
 Drop Here,رها کن اینجا,
-Drop files here,فایلها را اینجا رها کنید,
+Drop files here,فایل‌ها را اینجا رها کنید,
 Dynamic Template,الگوی پویا,
 ERPNext Role,نقش ERPNext,
-Email / Notifications,ایمیل / اطلاعیه ها,
+Email / Notifications,ایمیل / نوتیفیکیشن‌ها,
 Email Account setup please enter your password for: {0},راه اندازی حساب ایمیل لطفا رمز ورود خود را وارد کنید برای: {0,
 Email Address whose Google Contacts are to be synced.,آدرس ایمیلی که مخاطبین Google آنها باید همگام شوند.,
 "Email ID must be unique, Email Account already exists for {0}",شناسه ایمیل باید منحصر به فرد باشد ، حساب ایمیل قبلاً {0 already وجود دارد,
 Email IDs,ایمیل شناسه,
-Enable Allow Auto Repeat for the doctype {0} in Customize Form,فعال کردن اجازه تکرار خودکار برای doctype {0 در فرم سفارشی سازی را فعال کنید,
+Enable Allow Auto Repeat for the doctype {0} in Customize Form,فعال‌سازی گزینه 'اجازه تکرار خودکار' برای داک تایپ {0} در سفارشی‌سازی فرم,
 Enable Automatic Linking in Documents,پیوند خودکار را در اسناد فعال کنید,
 Enable Email Notifications,اعلان های ایمیل را فعال کنید,
 Enable Google API in Google Settings.,Google API را در تنظیمات Google فعال کنید.,
@@ -3274,17 +3275,17 @@ Event Subscriber,مشترکین رویداد,
 Event Sync Log,ورود به سیستم همگام سازی رویداد,
 Event Synced with Google Calendar.,همگام سازی رویداد با تقویم Google.,
 Event Update Log,گزارش بروزرسانی رویداد,
-Export 1 record,صادرات 1 رکورد,
-Export Errored Rows,صادرات ردیف خطا,
-Export From,صادرات از,
-Export Type,نوع صادرات,
-Export {0} records,صادرات {0} سوابق,
+Export 1 record,برون ریزی 1 رکورد,
+Export Errored Rows,برون ریزی ردیف خطا خورده,
+Export From,برون ریزی از,
+Export Type,نوع برون ریزی,
+Export {0} records,برون ریزی {0} سابقه,
 Failed to connect to the Event Producer site. Retry after some time.,اتصال به سایت سازنده رویداد انجام نشد. پس از مدتی دوباره امتحان کنید.,
 Failed to create an Event Consumer or an Event Consumer for the current site is already registered.,ایجاد یک Consumer یا رویداد مصرف کننده برای سایت فعلی انجام نشد ، قبلاً ثبت شده است.,
 Failure,شکست,
-Fetching default Global Search documents.,واکشی اسناد پیش فرض جستجوی جهانی.,
+Fetching default Global Search documents.,واکشی اسناد پیش فرض جستجوی کلی.,
 Fetching posts...,در حال واگذاری پست ها ...,
-Field To Check,زمینه برای بررسی,
+Field To Check,فیلد برای بررسی,
 File Information,اطلاعات پرونده,
 Filter By,محدود شده توسط,
 Filtered Records,سوابق فیلتر شده,
@@ -3299,10 +3300,10 @@ Form URL-Encoded,فرم رمزگذاری شده URL,
 Frequently Visited Links,پیوندهای مکرر بازدید شده,
 From Date,از تاریخ,
 From User,از کاربر,
-Global Search DocType,DocType جستجوی جهانی,
-Global Search Document Types Reset.,تنظیم مجدد انواع اسناد جستجوی جهانی.,
-Global Search Settings,تنظیمات جستجوی جهانی,
-Global Shortcuts,میانبرهای جهانی,
+Global Search DocType,DocType جستجوی کلی,
+Global Search Document Types Reset.,تنظیم مجدد انواع اسناد جستجوی کلی.,
+Global Search Settings,تنظیمات جستجوی کلی,
+Global Shortcuts,میانبرهای کلی,
 Go,رفتن,
 Go to next record,به رکورد بعدی بروید,
 Go to previous record,به رکورد قبلی بروید,
@@ -3337,8 +3338,8 @@ Group By,دسته بندی بر اساس,
 Group By Based On,گروه بر اساس,
 Group By Type,گروه براساس نوع,
 Group By field is required to create a dashboard chart,برای ساخت نمودار داشبورد ، گروه به فیلد مورد نیاز است,
-HH:mm,HH: میلی متر,
-HH:mm:ss,HH: mm: ss,
+HH:mm,ساعت:دقیقه,
+HH:mm:ss,ساعت:دقیقه:ثانیه,
 HOOK-.####,قلاب-.####,
 HTML Page,صفحه HTML,
 Has Mapping,نقشه برداری دارد,
@@ -3348,15 +3349,15 @@ If the document has different field names on the Producer and Consumer's end che
 If this is checked the documents will have the same name as they have on the Event Producer's site,اگر این بررسی شود ، اسناد به همان نامی که در سایت تولید کننده رویداد دارند ، دارند,
 Illegal SQL Query,جستجوی غیرقانونی SQL,
 Import File,وارد کردن پرونده,
-Import Log Preview,پیش نمایش ورود به سیستم واردات,
-Import Preview,پیش نمایش واردات,
-Import Progress,پیشرفت واردات,
-Import Type,نوع واردات,
-Import Warnings,هشدارهای واردات,
-"Import template should be of type .csv, .xlsx or .xls",الگوی واردات باید از نوع ccv ، xxx یا xx باشد,
-Import template should contain a Header and atleast one row.,الگوی واردات باید حاوی یک هدر و حداقل یک ردیف باشد.,
-Importing {0} of {1},واردات {0} از 1 {,
-"Importing {0} of {1}, {2}",واردات {0} از 1 {} ، {2,
+Import Log Preview,درون‌ریزی پیش نمایش لاگ,
+Import Preview,پیش نمایش درون‌ریزی,
+Import Progress,پیشرفت درون‌ریزی,
+Import Type,نوع درون‌ریزی,
+Import Warnings,هشدارهای درون‌ریزی,
+"Import template should be of type .csv, .xlsx or .xls",الگوی درون‌ریزی باید از نوع ccv ، xxx یا xx باشد,
+Import template should contain a Header and atleast one row.,الگوی درون‌ریزی باید حاوی یک هدر و حداقل یک ردیف باشد.,
+Importing {0} of {1},درون‌ریزی {0} از 1 {,
+"Importing {0} of {1}, {2}",درون‌ریزی {0} از 1 {} ، {2,
 Include indentation,تورفتگی را درج کنید,
 Incoming Change,تغییر ورودی,
 Invalid Filter Value,مقدار فیلتر نامعتبر است,
@@ -3372,16 +3373,16 @@ Is Tree,درخت است,
 JSON Request Body,JSON درخواست بدن,
 Javascript is disabled on your browser,جاوا اسکریپت بر روی مرورگر شما غیر فعال شده است,
 Job,کار,
-Jump to field,پرش به میدان,
+Jump to field,پرش به فیلد,
 Keyboard Shortcuts,میانبرهای صفحه کلید,
 LDAP Group,گروه LDAP,
-LDAP Group Field,زمینه گروهی LDAP,
+LDAP Group Field,فیلد گروهی LDAP,
 LDAP Group Mapping,نقشه برداری گروه LDAP,
 LDAP Group Mappings,نگاشتهای گروه LDAP,
 LDAP Last Name Field,قسمت نام خانوادگی LDAP,
-LDAP Middle Name Field,زمینه نام میانی LDAP,
-LDAP Mobile Field,زمینه موبایل LDAP,
-LDAP Phone Field,زمینه تلفن LDAP,
+LDAP Middle Name Field,فیلد نام میانی LDAP,
+LDAP Mobile Field,فیلد موبایل LDAP,
+LDAP Phone Field,فیلد تلفن LDAP,
 LDAP User Creation and Mapping,ایجاد و نقشه برداری کاربر LDAP,
 Landscape,چشم انداز,
 Last,آخر,
@@ -3392,7 +3393,7 @@ Last Update,اخرین بروزرسانی,
 Last refreshed,آخرین تجدید,
 Link Document Type,نوع سند پیوند,
 Link Fieldname,پیوند نام فیلد,
-Loading import file...,بارگیری پرونده واردات ...,
+Loading import file...,بارگذاری فایل درون‌ریزی ...,
 Local Document Type,نوع سند محلی,
 Log Data,اطلاعات ورود به سیستم,
 Main Section (HTML),بخش اصلی (HTML),
@@ -3400,10 +3401,10 @@ Main Section (Markdown),بخش اصلی (Markdown),
 "Maintains a Log of all inserts, updates and deletions on Event Producer site for documents that have consumers.",ثبت اسناد درج ، به روزرسانی و حذف در سایت سازنده رویداد برای اسنادی که مصرف کننده دارند.,
 Maintains a log of every event consumed along with the status of the sync and a Resync button in case sync fails.,ثبت هر رویدادی که به همراه وضعیت همگام سازی مصرف می شود و یک دکمه Resync در همگام سازی پرونده از بین می رود.,
 Make all attachments private,همه پیوست ها را خصوصی کنید,
-Mandatory Depends On,اجباری بستگی دارد,
+Mandatory Depends On,اجباری شدنش بستگی دارد به,
 Map Columns,ستون های نقشه,
-Map columns from {0} to fields in {1},نقشه ستونها از {0 تا زمینه ها در {1,
-Mapping column {0} to field {1},ستون نقشه برداری {0} تا فیلد {1,
+Map columns from {0} to fields in {1},تطبیق ستون‌ها از {0} به فیلدها در {1},
+Mapping column {0} to field {1},تظبیق دادن ستون {0} به فیلد {1},
 Mark all as Read,همه را به عنوان خوانده شده علامت بزن,
 Maximum Points,حداکثر امتیاز,
 Maximum points allowed after multiplying points with the multiplier value\n(Note: For no limit leave this field empty or set 0),حداکثر امتیاز مجاز بعد از ضرب امتیاز با مقدار ضرب (توجه: بدون محدودیت این قسمت را خالی بگذارید یا 0 را تنظیم کنید),
@@ -3426,7 +3427,7 @@ No Upcoming Events,هیچ رویدادی در آینده,
 No activity,بدون فعالیت,
 No conditions provided,هیچ شرطی ارائه نشده است,
 No contacts linked to document,هیچ تماسی با سند مرتبط نیست,
-No data to export,داده ای برای صادرات وجود ندارد,
+No data to export,داده ای برای برون‌ریزی وجود ندارد,
 No documents found tagged with {0},هیچ سندی با برچسب 0 {یافت نشد,
 No failed logs,هیچ سیاهههای مربوط به شکست خورده,
 No filters found,هیچ فیلتر یافت نشد,
@@ -3435,8 +3436,8 @@ No more posts,پست دیگری وجود ندارد,
 No new Google Contacts synced.,هیچ مخاطب Google جدیدی همگام سازی نشده است.,
 No pending or current jobs for this site,هیچ مشکلی در انتظار یا فعلی برای این سایت نیست,
 No posts yet,هنوز پستی ارسال نشده است,
-No records will be exported,هیچ سابقه ای صادر نمی شود,
-No results found for {0} in Global Search,در جستجوی جهانی هیچ نتیجه ای برای {0 یافت نشد,
+No records will be exported,هیچ سابقه ای برون‌ریزی نمی شود,
+No results found for {0} in Global Search,در جستجوی کلی هیچ نتیجه ای برای {0} یافت نشد,
 No user found,هیچ کاربری یافت نشد,
 Notification Log,ورود به سیستم اطلاع رسانی,
 Notification Settings,تنظیمات اعلان,
@@ -3454,8 +3455,8 @@ Open Settings,تنظیمات را باز کنید,
 Open list item,باز کردن مورد لیست,
 Organizational Unit for Users,واحد سازمانی برای کاربران,
 Page Shortcuts,میانبرهای صفحه,
-Parent Field (Tree),زمینه والدین (درخت),
-Parent Field must be a valid fieldname,زمینه والدین باید یک نام فیلد معتبر باشد,
+Parent Field (Tree),فیلد والد (درخت),
+Parent Field must be a valid fieldname,فیلد والد باید یک نام فیلد معتبر باشد,
 Pin Globally,پین در سطح جهان,
 Places,اماکن,
 Please check the filter values set for Dashboard Chart: {},لطفا مقادیر فیلتر تعیین شده برای نمودار داشبورد را بررسی کنید: {},
@@ -3475,7 +3476,7 @@ Pulled from Google Contacts,از مخاطبین Google کشیده شد,
 Push to Google Calendar,به تقویم Google فشار دهید,
 Push to Google Contacts,به مخاطبین Google فشار دهید,
 Queue / Worker,صف / کارگر,
-RAW Information Log,گزارش اطلاعات RAW,
+RAW Information Log,گزارش اطلاعات خام,
 Raw Printing Settings...,تنظیمات چاپ خام ...,
 Read Only Depends On,فقط بخوانید بستگی دارد,
 Recent Activity,فعالیت اخیر,
@@ -3484,7 +3485,7 @@ Reload File,بارگیری مجدد پرونده,
 Remote Document Type,نوع سند از راه دور,
 "Renamed files and replaced code in controllers, please check!",تغییر پرونده ها و جایگزین کردن کد در کنترل کننده ها ، لطفاً بررسی کنید!,
 Repeat on Last Day of the Month,در آخرین روز از ماه تکرار کنید,
-Repeats {0},تکرار {0,
+Repeats {0},تکرارها {0},
 Report Information,گزارش اطلاعات,
 Report with more than 10 columns looks better in Landscape mode.,گزارش با بیش از 10 ستون در حالت Landscape بهتر به نظر می رسد.,
 Request Structure,درخواست ساختار,
@@ -3492,7 +3493,7 @@ Restricted,محصور,
 Restrictions,محدودیت های,
 Resync,راه اندازی مجدد,
 Row Number,شماره ردیف,
-Row {0},ردیف {0,
+Row {0},ردیف {0},
 Run Jobs only Daily if Inactive For (Days),اگر غیرفعال برای (روزها) کارها را فقط روزانه انجام دهید,
 SMS was not sent. Please contact Administrator.,پیامکی ارسال نشد. لطفا با سرپرست تماس بگیرید.,
 Saved Successfully,با موفقیت ذخیره شد,
@@ -3508,7 +3509,7 @@ Search Source Text,متن منبع جستجو,
 Search by filename or extension,با نام پرونده یا پسوند جستجو کنید,
 Select Date Range,محدوده تاریخ را انتخاب کنید,
 Select Field,فیلد را انتخاب کنید,
-Select Field...,انتخاب زمینه ...,
+Select Field...,انتخاب فیلد ...,
 Select Filters,فیلترها را انتخاب کنید,
 Select Google Calendar to which event should be synced.,تقویم Google را انتخاب کنید که در آن رویداد باید همگام سازی شود.,
 Select Google Contacts to which contact should be synced.,مخاطبین Google را انتخاب کنید که مخاطب با آنها همگام شود.,
@@ -3520,12 +3521,12 @@ Select multiple list items,موارد چند لیست را انتخاب کنید
 Send an email to {0} to link it here,برای پیوند دادن به اینجا ، ایمیل خود را به {0 ارسال کنید,
 Server Action,اقدام سرور,
 Server Script,اسکریپت سرور,
-Session Default,جلسه پیش فرض,
+Session Default,صفحه پیش فرض,
 Session Default Settings,تنظیمات پیش فرض جلسه,
-Session Defaults,جلسه پیش فرض,
-Session Defaults Saved,جلسه پیش فرض ذخیره شده است,
+Session Defaults,پیش فرض‌های صفحه,
+Session Defaults Saved,پیش فرض‌های صفحه ذخیره شده است,
 Set as Default Theme,به عنوان موضوع پیش فرض تنظیم شود,
-Setting up Global Search documents.,تنظیم اسناد جستجوی جهانی.,
+Setting up Global Search documents.,تنظیم اسناد جستجوی کلی.,
 Show Document,نمایش سند,
 Show Failed Logs,نمایش سیاهههای مربوط به شکست خورده,
 Show Keyboard Shortcuts,میانبرهای صفحه کلید را نمایش دهید,
@@ -3539,7 +3540,7 @@ Skipping column {0},پرش ستون {0},
 Social Home,خانه اجتماعی,
 Some columns might get cut off when printing to PDF. Try to keep number of columns under 10.,ممکن است برخی از ستون ها هنگام چاپ به PDF قطع شوند. سعی کنید تعداد ستون ها را زیر 10 نگه دارید.,
 Something went wrong during the token generation. Click on {0} to generate a new one.,در طول تولید نشانه ها مشکلی پیش آمد. برای تولید یک محصول جدید روی {0 کلیک کنید.,
-Submit After Import,ارسال پس از واردات,
+Submit After Import,ثبت پس از درون‌ریزی,
 Submitting...,در حال ارسال ...,
 Success! You are good to go 👍,موفقیت! شما خوب هستید که بروید,
 Successful Transactions,معاملات موفق,
@@ -3617,7 +3618,7 @@ Verification code email not sent. Please contact Administrator.,ایمیل تأ�
 Verified,تأیید شده,
 Verifier,تأییدکننده,
 View Full Log,مشاهده کامل گزارش,
-"View Log of all print, download and export events",مشاهده همه رویدادهای چاپ ، بارگیری و صادرات,
+"View Log of all print, download and export events",مشاهده همه رویدادهای چاپ ، بارگیری و برون‌ریزی,
 Visit Web Page,بازدید از صفحه وب,
 Webhook Secret,راز وب,
 Webhook Security,امنیت Webhook,
@@ -3626,7 +3627,7 @@ Weekly Long,طولانی هفتگی,
 "When enabled this will allow guests to upload files to your application, You can enable this if you wish to collect files from user without having them to log in, for example in job applications web form.",با فعال کردن این امکان میهمان ها می توانند فایل ها را در برنامه شما بارگذاری کنند ، اگر می خواهید پرونده هایی را از کاربر جمع کنید بدون اینکه آنها مجبور به ورود به سیستم باشند ، این کار را فعال کنید ، به عنوان مثال در فرم برنامه های کاربردی شغلی.,
 Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0.,مشاغل برنامه ریزی شده را فقط یک بار در روز برای سایتهای غیرفعال انجام می دهد. 4 روز پیش فرض در صورت تنظیم 0.,
 Workflow Status,وضعیت گردش کار,
-You are not allowed to export {} doctype,شما مجاز به صادرات ty} doctype نیستید,
+You are not allowed to export {} doctype,شما مجاز به برون‌ریزی ty} doctype نیستید,
 You can try changing the filters of your report.,می توانید فیلترهای گزارش خود را تغییر دهید.,
 You do not have permissions to cancel all linked documents.,شما اجازه لغو کلیه اسناد مرتبط را ندارید.,
 You need to create these first: ,ابتدا باید این موارد را ایجاد کنید:,
@@ -3635,7 +3636,7 @@ You need to install pycups to use this feature!,برای استفاده از ا�
 Your Target,هدف شما,
 "browse,",مرور کردن،,
 cancelled this document {0},این سند را ed 0 cancel لغو کرد,
-changed value of {0} {1},مقدار تغییر یافته از} 0}} 1,
+changed value of {0} {1},مقدار تغییر یافته از {0} به {1},
 changed values for {0} {1},مقادیر تغییر یافته برای {0 {1,
 choose an,را انتخاب کنید,
 empty,خالی,
@@ -3656,13 +3657,13 @@ via Data Import,از طریق وارد کردن داده,
 {0} is not a valid report format. Report format should one of the following {1},{0} یک قالب گزارش معتبر نیست. قالب گزارش باید یکی از موارد زیر {1 باشد,
 {0} mentioned you in a comment in {1} {2},{0} شما را در نظری در {1} {2} ذکر کرده است,
 {0} of {1} ({2} rows with children),{0} از 1 {} (2 {ردیف با کودکان),
-{0} records will be exported,} 0} سوابق صادر می شود,
+{0} records will be exported,سوابق {0} صادر خواهد شد,
 {0} shared a document {1} {2} with you,{0 a یک سند {1} {2} را با شما به اشتراک گذاشت,
 {0} should not be same as {1},{0} نباید برابر با {1 باشد,
 {0} translations pending,{0} ترجمه در انتظار,
-{0} {1} is linked with the following submitted documents: {2},{0} {1 with با اسناد ارائه شده زیر مرتبط است: {2,
+{0} {1} is linked with the following submitted documents: {2},{0} {1} با اسناد ارائه شده زیر مرتبط است: {2},
 "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings",{0}: پیوست سند تکراری جدید انجام نشد. برای فعال کردن پیوست سند در ایمیل اعلان تکرار خودکار ، Print 1} را در تنظیمات چاپ فعال کنید,
-{0}: Fieldname cannot be one of {1},{0: نام زمینه نمی تواند یکی از {1} باشد,
+{0}: Fieldname cannot be one of {1},{0}: نام فیلد نمی تواند یکی از {1} باشد,
 {} Complete,{} کامل,
 ← Back to upload files,← بازگشت به بارگذاری پرونده ها,
 Activity,فعالیت,
@@ -3688,7 +3689,7 @@ Continue,ادامه,
 Country,کشور,
 Creating {0},ایجاد {0},
 Currency,پول,
-Customize,سفارشی,
+Customize,سفارشی‌سازی,
 Daily,روزانه,
 Date,تاریخ,
 Dear,عزیز,
@@ -3707,8 +3708,8 @@ Enter Value,ارزش را وارد کنید,
 Entity Type,نوع سازمان,
 Error,خطا,
 Expired,تمام شده,
-Export,صادرات,
-Export not allowed. You need {0} role to export.,صادرات پذیر نیست. شما {0} نقش به صادرات نیاز دارید.,
+Export,برون‌ریزی,
+Export not allowed. You need {0} role to export.,قابل برون‌ریزی نیست. شما به نقش {0} برای برون‌ریزی نیاز دارید.,
 Field,رشته,
 File Manager,مدیریت فایل,
 Filters,فیلترها,
@@ -3717,9 +3718,9 @@ Goal,هدف,
 Group,گروه,
 Group Node,گره گروه,
 Help,کمک,
-Help Article,راهنما مقاله,
+Help Article,مقاله راهنما,
 Home,خانه,
-Import Data from CSV / Excel files.,واردات داده ها از فایل های CSV / اکسل.,
+Import Data from CSV / Excel files.,درون‌ریزی داده‌ها از فایل های CSV / اکسل.,
 In Progress,در حال پیش رفت,
 Intermediate,حد واسط,
 Invite as User,دعوت به عنوان کاربر,
@@ -3746,7 +3747,7 @@ Priority,اولویت,
 Project,پروژه,
 Quarterly,فصلنامه,
 Queued,صف,
-Quick Entry,ورود سریع,
+Quick Entry,ثبت سریع اطلاعات,
 Reason,دلیل,
 Refreshing,تازه کردن,
 Rename,تغییر نام,
@@ -3768,7 +3769,7 @@ Sr,SR,
 Start,شروع,
 Start Time,زمان شروع,
 Status,وضعیت,
-Submitted,ارسال شده,
+Submitted,ثبت شده,
 Tag,برچسب زدن,
 Template,قالب,
 Thursday,پنج شنبه,
@@ -3777,7 +3778,7 @@ Total,کل,
 Totals,مجموع,
 Tuesday,سهشنبه,
 Type,نوع,
-Update,به روز رسانی,
+Update,به‌روزرسانی,
 User {0} is disabled,کاربر {0} غیر فعال است,
 Users and Permissions,کاربران و ویرایش,
 Warehouse,مخزن,
@@ -3789,7 +3790,7 @@ and,و,
 {0} Name,{0} نام,
 {0} is required,{0} مورد نیاز است,
 ALL,همه,
-Attach File,ضمیمهی فایل,
+Attach File,ضمیمه‌ی فایل,
 Barcode,بارکد,
 Beginning with,شروع با,
 Bold,جسورانه,
@@ -3848,7 +3849,7 @@ Desktop,دسکتاپ,
 Usage Info,اطلاعات استفاده,
 Download Backups,دانلود پشتیبان گیری,
 Recorder,ضبط کننده,
-Role Permissions Manager,مدیر دسترسی نقش,
+Role Permissions Manager,مدیریت دسترسی نقش‌ها,
 Translation Tool,ابزار ترجمه,
 Awaiting password,در انتظار رمز عبور,
 Current status,وضعیت فعلی,
@@ -3856,14 +3857,14 @@ Download template,قالب بارگیری,
 Edit in full page,ویرایش در صفحه کامل,
 Email Id,آدرس ایمیل,
 Email address,آدرس ایمیل,
-Ends on,به پایان می رسد در,
+Ends on,به پایان می رسد در تاریخ,
 Half-yearly,نیم سال,
 Hidden,پنهان,
 Javascript,جاوا اسکریپت,
 Ldap settings,تنظیمات Ldap,
 Mobile number,شماره موبایل,
 Mx,Mx,
-No,بدون,
+No,نه,
 Not found,پیدا نشد,
 Notes:,یادداشت:,
 Notify by email,با رایانامه آگاه کن,
@@ -3957,12 +3958,12 @@ Please Set Chart,لطفا نمودار را تنظیم کنید,
 Please create chart first,لطفا ابتدا نمودار را ایجاد کنید,
 "Report has no data, please modify the filters or change the Report Name",گزارش فاقد داده است ، لطفاً فیلترها را تغییر دهید یا نام گزارش را تغییر دهید,
 Select Dashboard,داشبورد را انتخاب کنید,
-Y Field,Y زمینه,
+Y Field,Y فیلد,
 You need to be in developer mode to edit this document,برای ویرایش این سند باید در حالت توسعه دهنده باشید,
 Cards,کارت,
 Community Contribution,مشارکت در انجمن,
 Count Filter,تعداد فیلترها,
-Dashboard Chart Field,زمینه نمودار داشبورد,
+Dashboard Chart Field,فیلد نمودار داشبورد,
 Desk Card,میز کار,
 Desk Chart,نمودار میز,
 Desk Page,صفحه میز,
@@ -3972,22 +3973,22 @@ Disable User Customization,سفارشی سازی کاربر را غیرفعال 
 For example: {} Open,به عنوان مثال: {} باز کنید,
 Link Cards,کارتهای پیوند,
 Link To,پیوند به,
-Onboarding,شبانه روزی,
+Onboarding,معرفی,
 Percentage,در صد,
 Pie,پای,
 Pin To Bottom,پین به پایین,
 Pin To Top,پین به بالا,
 Restrict to Domain,محدود به DOMAIN,
 Shortcuts,میانبرها,
-X Field,X زمینه,
+X Field,X فیلد,
 Y Axis,محور Y,
 workspace,فضای کاری,
 Setup > User,تنظیم&gt; کاربر,
-Setup > Customize Form,تنظیم&gt; سفارشی کردن فرم,
+Setup > Customize Form,تنظیم&gt; سفارشی‌سازی فرم,
 Setup > User Permissions,تنظیم&gt; مجوزهای کاربر,
 "Error connecting to QZ Tray Application...<br><br> You need to have QZ Tray application installed and running, to use the Raw Print feature.<br><br><a target=""_blank"" href=""https://qz.io/download/"">Click here to Download and install QZ Tray</a>.<br> <a target=""_blank"" href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"">Click here to learn more about Raw Printing</a>.","خطایی در اتصال به برنامه سینی QZ Tray ... <br><br> برای استفاده از ویژگی خام چاپ ، باید برنامه QT Tray را نصب و اجرا کنید. <br><br> <a href=""https://qz.io/download/"" target=""_blank"">برای بارگیری و نصب QZ Tray اینجا کلیک کنید</a> . <br> <a href=""https://erpnext.com/docs/user/manual/en/setting-up/print/raw-printing"" target=""_blank"">برای کسب اطلاعات بیشتر در مورد چاپ خام اینجا کلیک کنید</a> .",
 No email account associated with the User. Please add an account under User > Email Inbox.,هیچ حساب ایمیل مرتبط با کاربر نیست. لطفاً یک حساب کاربری در زیر کاربر&gt; صندوق ورودی ایمیل اضافه کنید.,
-"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).",برای مقایسه ، از&gt; 5 ، &lt;10 یا 324 استفاده کنید. برای محدوده ها ، از 5:10 (برای مقادیر بین 5 تا 10) استفاده کنید.,
+"For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10).",برای فیلتر ، از&gt; 5 ، &lt;10 یا 324 استفاده کنید. برای فیلتر در یک محدوده ، از 5:10 (برای مقادیر بین 5 تا 10) استفاده کنید.,
 No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template.,هیچ الگوی پیش فرض آدرس یافت نشد. لطفاً یک مورد جدید از Setup&gt; چاپ و برندسازی&gt; الگوی آدرس ایجاد کنید.,
 Please setup default Email Account from Setup > Email > Email Account,لطفاً حساب پیش فرض پست الکترونیکی را از تنظیم&gt; ایمیل&gt; حساب ایمیل تنظیم کنید,
 Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,حساب ایمیل تنظیم نشده است. لطفاً یک حساب کاربری جدید از طریق تنظیم&gt; ایمیل&gt; حساب ایمیل ایجاد کنید,
@@ -4006,8 +4007,8 @@ Allow document creation via Email,ایجاد سند از طریق ایمیل م�
 Sender Field,قسمت فرستنده,
 Logout All Sessions on Password Reset,از کلیه جلسات با بازنشانی گذرواژه خارج شوید,
 Logout From All Devices After Changing Password,پس از تغییر رمز ورود از همه دستگاه ها خارج شوید,
-Send Notifications For Documents Followed By Me,اعلان ها را برای اسنادی که توسط من دنبال شده ارسال کنید,
-Send Notifications For Email Threads,اعلان ها را برای موضوعات ایمیل ارسال کنید,
+Send Notifications For Documents Followed By Me,نوتیفیکیشن‌ها را برای اسنادی که توسط من دنبال شده ارسال کن,
+Send Notifications For Email Threads,نوتیفیکیشن‌ها را برای موضوعات ایمیل ارسال کن,
 Bypass Restricted IP Address Check If Two Factor Auth Enabled,بایپس آدرس IP محدود شده را بررسی کنید که آیا دو فاکتور فعال هستند,
 Reset LDAP Password,رمز عبور LDAP را بازنشانی کنید,
 Confirm New Password,رمز ورود جدید را تأیید کنید,
@@ -4031,7 +4032,7 @@ Report Document Error,گزارش خطای سند,
 Only Options allowed for Data field are:,فقط گزینه های مجاز برای قسمت داده عبارتند از:,
 Select a valid Subject field for creating documents from Email,یک قسمت معتبر Subject برای ایجاد اسناد از طریق Email انتخاب کنید,
 "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor",نوع فیلد موضوع باید داده ، متن ، متن طولانی ، متن کوچک ، ویرایشگر متن باشد,
-Select a valid Sender Field for creating documents from Email,یک زمینه فرستنده معتبر برای ایجاد اسناد از طریق ایمیل انتخاب کنید,
+Select a valid Sender Field for creating documents from Email,یک فیلد فرستنده معتبر برای ایجاد اسناد از طریق ایمیل انتخاب کنید,
 Sender Field should have Email in options,قسمت فرستنده باید گزینه ایمیل داشته باشد,
 Password changed successfully.,رمز عبور با موفقیت تغییر کرد,
 Failed to change password.,رمز عبور تغییر نکرد,
@@ -4089,11 +4090,11 @@ Navbar,نوار,
 Source Message,پیام منبع,
 Translated Message,پیام ترجمه شده,
 Using this console may allow attackers to impersonate you and steal your information. Do not enter or paste code that you do not understand.,استفاده از این کنسول ممکن است به مهاجمان اجازه دهد تا شما را جعل کنند و اطلاعات شما را بدزدند. کدی را وارد نکنید که نمی فهمید.,
-{0} m,{0} متر,
+{0} m,{0} دقیقه,
 {0} h,{0} ساعت,
-{0} d,{0} د,
+{0} d,{0} روز,
 {0} w,{0} هفته,
-{0} M,{0} م,
+{0} M,{0} ماه,
 {0} y,{0} سال,
 yesterday,دیروز,
 {0} years ago,{0} سال پیش,
@@ -4112,7 +4113,7 @@ by Role,توسط نقش,
 Document is only editable by users with role,سند فقط توسط کاربران با نقش قابل ویرایش است,
 {0}: Other permission rules may also apply,{0}: ممکن است سایر قوانین اجازه نیز اعمال شود,
 {0} Web page views,{0} بازدید از صفحه,
-Expand,بسط دادن,
+Expand,گسترش دادن,
 Collapse,سقوط - فروپاشی,
 "Invalid Bearer token, please provide a valid access token with prefix 'Bearer'.",رمز حامل نامعتبر است ، لطفاً یک رمز دسترسی معتبر با پیشوند &quot;حامل&quot; ارائه دهید.,
 "Failed to decode token, please provide a valid base64-encoded token.",رمزگشایی رمز رمزگذاری نشد ، لطفاً یک رمز معتبر رمزگذاری شده با پایگاه 64 ارائه دهید.,
@@ -4201,7 +4202,7 @@ Invalid Option,گزینه نامعتبر است,
 Request Body consists of an invalid JSON structure,Request Body از یک ساختار JSON نامعتبر تشکیل شده است,
 Invalid JSON,JSON نامعتبر است,
 Party GSTIN,حزب GSTIN,
-GST State,دولت GST,
+GST State,مالیات ارزش افزوده,
 Andaman and Nicobar Islands,جزایر آندامان و نیکوبار,
 Andhra Pradesh,آندرا پرادش,
 Arunachal Pradesh,آروناچال پرادش,
@@ -4239,7 +4240,7 @@ Tripura,تریپورا,
 Uttar Pradesh,اوتار پرادش,
 Uttarakhand,اوتاراکند,
 West Bengal,بنگال غربی,
-GST State Number,شماره ایالت GST,
+GST State Number,شماره مالیات بر ارزش افزوده,
 Import from Google Sheets,وارد کردن از Google Sheets,
 Must be a publicly accessible Google Sheets URL,باید یک نشانی اینترنتی Google Sheets در دسترس عموم باشد,
 Refresh Google Sheet,Google Sheet را تازه کنید,
@@ -4248,7 +4249,7 @@ Import File Errors and Warnings,خطاها و هشدارهای پرونده را
 "Successfully imported {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.",{0} رکورد از {1} با موفقیت وارد شد. روی Export Errored Rows کلیک کنید ، خطاها را برطرف کرده و دوباره وارد کنید.,
 "Successfully updated {0} records out of {1}. Click on Export Errored Rows, fix the errors and import again.",{0} سوابق از {1} با موفقیت به روز شد. روی Export Errored Rows کلیک کنید ، خطاها را برطرف کرده و دوباره وارد کنید.,
 "Successfully updated {0} record out of {1}. Click on Export Errored Rows, fix the errors and import again.",{0} ضبط از {1} با موفقیت به روز شد. روی Export Errored Rows کلیک کنید ، خطاها را برطرف کرده و دوباره وارد کنید.,
-Data Import Legacy,میراث واردات داده,
+Data Import Legacy,میراث درون‌ریزی داده,
 Documents restored successfully,اسناد با موفقیت بازیابی شدند,
 Documents that were already restored,اسنادی که قبلاً بازیابی شده بودند,
 Documents that failed to restore,اسنادی که موفق به بازیابی نشدند,
@@ -4315,11 +4316,11 @@ Hide Custom DocTypes and Reports,انواع Doc و گزارش های سفارش�
 Checking this will hide custom doctypes and reports cards in Links section,با بررسی این موارد ، انواع Doctypes و گزارش های سفارشی در بخش پیوندها پنهان می شوند,
 DocType View,نمایش DocType,
 Which view of the associated DocType should this shortcut take you to?,این میانبر شما را به کدام نمای DocType مرتبط می رساند؟,
-List View Settings,تنظیمات نمایش لیست,
+List View Settings,تنظیمات نمایش لیستی,
 Maximum Number of Fields,حداکثر تعداد فیلدها,
-Module Onboarding,ماژول Onboarding,
+Module Onboarding,ماژول معرفی,
 System managers are allowed by default,مدیران سیستم به طور پیش فرض مجاز هستند,
-Documentation URL,URL اسناد,
+Documentation URL,آدرس مستندات,
 Is Complete,کامل است,
 Alert,هشدار,
 Document Link,پیوند سند,
@@ -4334,7 +4335,7 @@ Onboarding Permission,مجوز پردازنده,
 Onboarding Step,مرحله پردازنده,
 Is Skipped,رد شده است,
 Create Entry,ورودی ایجاد کنید,
-Update Settings,به روز رسانی تنظیمات,
+Update Settings,به‌روزرسانی تنظیمات,
 Show Form Tour,نمایش تور فرم,
 View Report,مشاهده گزارش,
 Go to Page,به صفحه بروید,
@@ -4368,11 +4369,11 @@ Message (Markdown),پیام (علامت گذاری),
 Message (HTML),پیام (HTML),
 Send Attachments,ارسال پیوست ها,
 Testing,آزمایش کردن,
-System Notification,اعلان سیستم,
+System Notification,نوتیفیکیشن سیستم,
 Twilio Number,شماره Twilio,
 "To use WhatsApp for Business, initialize <a href=""#Form/Twilio Settings"">Twilio Settings</a>.","برای استفاده از WhatsApp برای تجارت ، <a href=""#Form/Twilio Settings"">تنظیمات Twilio را</a> اولیه <a href=""#Form/Twilio Settings"">کنید</a> .",
 "To use Slack Channel, add a <a href=""#List/Slack%20Webhook%20URL/List"">Slack Webhook URL</a>.","برای استفاده از Slack Channel ، یک <a href=""#List/Slack%20Webhook%20URL/List"">URL Slack Webhook</a> اضافه <a href=""#List/Slack%20Webhook%20URL/List"">کنید</a> .",
-Send System Notification,اعلان سیستم را ارسال کنید,
+Send System Notification,نوتیفیکیشن سیستم ارسال کن,
 "If enabled, the notification will show up in the notifications dropdown on the top right corner of the navigation bar.",در صورت فعال بودن ، اعلان در منوی کشویی اعلان ها در گوشه سمت راست بالای نوار پیمایش نشان داده می شود.,
 Send To All Assignees,ارسال به همه مأموران,
 Receiver By Document Field,گیرنده توسط قسمت سند,
@@ -4455,7 +4456,7 @@ Check this if you don't want users to sign up for an account on your site. Users
 URL to go to on clicking the slideshow image,URL را کلیک کنید تا با کلیک بر روی تصویر نمایش اسلاید ، کلیک کنید,
 Custom Overrides,لغو سفارشی,
 Ignored Apps,برنامه های نادیده گرفته شده,
-Include Theme from Apps,طرح زمینه را از برنامه ها وارد کنید,
+Include Theme from Apps,طرح زمینه را از برنامه‌ها وارد کنید,
 Website Theme Ignore App,تم وب سایت برنامه را نادیده بگیرید,
 Are you sure you want to save this document?,آیا مطمئن هستید که می خواهید این سند را ذخیره کنید؟,
 Refresh All,تازه کردن همه,
@@ -4477,7 +4478,7 @@ Oops,اوه,
 Skip Step,مرحله را رد کنید,
 "You're doing great, let's take you back to the onboarding page.",شما عالی هستید ، بیایید شما را به صفحه پردازنده برگردانیم.,
 Good Work 🎉,کار خوب,
-Submit this document to complete this step.,برای تکمیل این مرحله این سند را ارسال کنید.,
+Submit this document to complete this step.,برای تکمیل این مرحله این سند را تایید کنید.,
 Great,عالی,
 You may continue with onboarding,شما ممکن است با پردازنده ادامه دهید,
 You seem good to go!,شما به نظر خوب رفتن!,
@@ -4661,7 +4662,7 @@ Number Cards,کارت های شماره,
 Function Based On,عملکرد مبتنی بر,
 Add Filters,فیلترها را اضافه کنید,
 Skip,پرش,
-Dismiss,رد,
+Dismiss,رد کردن,
 Value cannot be negative for,مقدار نمی تواند برای منفی باشد,
 Value cannot be negative for {0}: {1},مقدار برای {0} نمی تواند منفی باشد: {1},
 Negative Value,ارزش منفی,
@@ -4720,11 +4721,11 @@ Shop,فروشگاه,
 Subsidiary,فرعی,
 There is some problem with the file url: {0},بعضی از مشکل با آدرس فایل وجود دارد: {0},
 "Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}",{0} کاراکترهای خاص به جز &quot;-&quot; ، &quot;#&quot; ، &quot;.&quot; ، &quot;/&quot; ، &quot;{{&quot; و &quot;}}&quot; در سریال نامگذاری مجاز نیستند,
-Export Type,نوع صادرات,
+Export Type,نوع برون‌ریزی,
 Last Sync On,آخرین همگام سازی در,
 Webhook Secret,راز وب,
 Back to Home,بازگشت به خانه,
-Customize,سفارشی,
+Customize,سفارشی‌سازی,
 Edit Profile,ویرایش پروفایل,
 File Manager,مدیریت فایل,
 Invite as User,دعوت به عنوان کاربر,
@@ -4740,7 +4741,7 @@ You,شما,
 {0} Name,{0} نام,
 Bold,جسورانه,
 Center,مرکز,
-Comment,اظهار نظر,
+Comment,ثبت نظر,
 Not Found,پیدا نشد,
 User Id,شناسه کاربر,
 Position,موقعیت,
@@ -4757,7 +4758,7 @@ User must always select,کاربر همیشه باید انتخاب کنید,
 Check this if you want to force the user to select a series before saving. There will be no default if you check this.,بررسی این اگر شما می خواهید به زور کاربر برای انتخاب یک سری قبل از ذخیره. خواهد شد وجود ندارد به طور پیش فرض اگر شما این تیک بزنید.,
 Prefix,پیشوند,
 This is the number of the last created transaction with this prefix,این تعداد از آخرین معامله ایجاد شده با این پیشوند است,
-Update Series Number,به روز رسانی سری شماره,
+Update Series Number,به‌روزرسانی سری شماره,
 Validation Error,خطای اعتبار سنجی,
 Andaman and Nicobar Islands,جزایر آندامان و نیکوبار,
 Andhra Pradesh,آندرا پرادش,
@@ -4799,3 +4800,155 @@ West Bengal,بنگال غربی,
 Published on,منتشر شده در,
 Bottom,پایین,
 Top,بالا,
+Select Kanban,انتخاب کانبان,
+Kanban View,نمای کانبان,
+Ceate New Kanban Board,ایجاد تخته کانبان جدید,
+List View,نمای لیستی,
+You haven't created a {0} yet,هنوز هیچ {0}‌ای نساخته‌اید,
+edited this ,این را ویرایش کرده,
+Column Width,عرض ستون,
+Fieldname,نام فیلد,
+Configure Columns,تنظیم ستون‌ها,
++ Add / Remove Columns,+ افزودن / حذف ستون‌ها,
+Reset to default,بازگشت به پیش‌فرض,
+{0} submitted this document,{0} این سند را ثبت کرد,
+removed rows for {0},ردیف‌ها را برای {0} حذف کرد,
+added rows for {0},ردیف‌ها را برای {0} اضافه کرد,
+No {0} found with matching filters. Clear filters to see all {0}.,هیچ {0}ی مطابق با فیلترها پیدا نشد. برای مشاهده همه {0}‌ها فیلترها را پاک کنید.,
+Dashboard View,نمای داشبوردی,
+Customize Dashboard,شخصی‌سازی داشبورد,
+Reset Dashboard Customizations,بازنشانی شخصی‌سازی داشبورد,
+erpnext,چارچوب,
+Documentation,مستندات,
+User Forum,انجمن کاربران,
+Report an Issue,گزارش مشکل,
+About,درباره نرم افزار,
+Frappe Support,پشتیبانی فراپه,
+My Profile,پروفایل من,
+My Settings,تنظیمات من,
+Toggle Full Width,تغییر نمای تمام عرض,
+Toggle Theme,تغییر پوسته,
+Log out,خروج,
+Overview,نمای کلی,
+No activities to show,هیچ فعالیتی برای نمایش وجود ندارد,
+Rank,رتبه,
+Monthly Rank,رتبه ماهیانه,
+Loading user profile...,بارگذاری پروفایل کاربر...,
+{} Available,{} در دسترس,
+{} Pending,{} در انتظار,
+{}  To Receive,{} برای دریافت,
+{}  To Deliver,{} برای تحویل,
+{} Open,{} باز,
+{} Assigned,{} تفویض شده,
+Copy to Clipboard,کپی در کلیپ بورد,
+Available,در دسترس,
+{}  Available,{} در دسترس,
+{} To Bill,{} آماده تسویه,
+Sort Ascending,مرتب سازی صعودی,
+Sort Descending,مرتب سازی نزولی,
+Reset sorting,تنظیم مجدد مرتب سازی,
+Remove column,حذف ستون,
+{} Published,{} منتشر شده,
+{} Active,{} فعال,
+Apply Filters,اعمال فیلترها,
+Add a Filter,افزودن فیلتر,
+{0} changed value of {1},{0} مقدار {1} را تغییر داد,
+{0} created this,{0} این را ایجاد کرده است,
+You created this,شما این را ایجاد کردید,
+Edit Full Form,ویرایش فرم کامل,
+Frappe School,مدرسه فراپه,
+Create New Kanban Board,ایجاد یک بورد کانبان جدید,
+Type a reply / comment,یک پاسخ / نظر بنویسید,
+Remind Me,به من یادآوری کن,
+Undo,بازگشت,
+Redo,تکرار,
+You last edited this,آخرین ویرایش شما:,
+All possible Workflow States and roles of the workflow. Docstatus Options: 0 is "Saved", 1 is "Submitted" and 2 is "Cancelled",همه حالت های گردش کار ممکن و نقش های گردش کار. گزینه های وضعیت سند: 0 "ذخیره شده"، 1 "ارسال شده" و 2 "لغو شده" است,
+Next Document,سند بعدی,
+Previous Document,سند قبلی,
+Filters {},{} فیلترها,
+Filters {0},{0} فیلترها,
+Filters ,فیلترها ,
+{0} Filters,{0} فیلترها,
+Add {0},افزودن {0},
+Report View,نمای گزارش,
+Desk Theme,قالب میز کار,
+Desk Settings,تنظیمات میز کار,
+Light,روشن,
+Dark,تیره,
+Automatic,خودکار,
+Auto follow documents that you create,دنبال‌کردن خودکار اسنادی که ایجاد می کنید,
+Auto follow documents that you comment on,دنبال کردن خودکار اسنادی که در مورد آنها نظر می دهید,
+Auto follow documents that you Like,دنبال‌کردن خودکار اسنادی که دوست دارید دنبال کنید (لایک می‌کنید),
+Auto follow documents that are assigned to you,دنبال‌کردن خودکار اسنادی که به شما تفویض(اختصاص داده) شده است,
+Auto follow documents that are shared with you,دنبال کردن خودکار اسنادی که با شما به اشتراک گذاشته شده است,
+System User,کاربر سیستم,
+Website User,کاربر وبسایت,
+Profile,پروفایل,
+Edit Filters,ویرایش فیلترها,
+Document Saved,سند ذخیره شد,
+You changed the value of {0} from {1} to {2} ,شما مقدار {0} را از {1} به {2} تغییر دادید,
+You changed the value of,شما مقدار,
+You changed the value of ,شما مقدار,
+You last edited this,شما این را ویرایش کردید,
+Show Preview,مشاهده پیش نمایش,
+Hide Preview,مخفی‌کردن پیش نمایش,
+Select a field to edit its properties.,یک فیلد را برای تغییر ویژگی‌هایش انتخاب کنید.,
+Add tab,افزودن تب,
+Reset Layout,تنظیم مجدد چیدمان,
+Reset All Customizations,تنظیم مجدد همه شخصی‌سازی‌ها,
+Set by user,تنظیم توسط کاربر,
+By fieldname,توسط نام فیلد,
+By script,توسط کد اسکریپت,
+Naming Rule,شرایط نام گذاری,
+Saving Customization...,ذخیره شخصی‌سازی,
+Reload List,بارگزاری مجدد لیست,
+Add Tags,افزودن برچسب‌ها,
+By "Naming Series" field,توسط "سری‌های نام‌گذاری" فیلد,
+Customize Child Table,شخصی‌سازی جدول زیرمجموعه,
+Default Email Template,قالب پیشفرض ایمیل,
+Sender Name Field,فیلد نام ارسال کننده,
+If unchecked, the value will always be re-fetched on save.,اگر تیک نخورده باشد، مقدار همیشه در زمان ذخیره مجدداً به روزرسانی خواهد شد.,
+Fetch on Save if Empty,در صورت خالی بودن، در زمان ذخیره، به روزرسانی شود,
+Delete {0} item permanently?,آیا میخواهید این {0} آیتم را برای همیشه پاک کنید؟,
+Spacer,فاصله‌گذار,
+Shortcut,میانبر,
+Quick List,لیست سریع,
+Custom Block,بلوک سفارشی,
+Templates,قالب‌ها,
+Shrink,کوچک‌تر کردن,
+Move Up,انتقال به بالا,
+Move Down,انتقال به پایین,
+Choose a block or continue typing,یک بلوک را انتخاب کنید یا به تایپ کردن ادامه دهید,
+Customizations Discarded,تغییرات سفارشی نادیده گرفته شده,
+No changes made on the page,هیچ تغییری در صفحه ایجاد نشد,
+Drag and drop files here or upload from,فایل‌ها را بکشید و اینجا رها کنید یا بارگذاری کنید از,
+Library,کتابخانه,
+My Device,دستگاه من,
+Set all private,همه را خصوصی تنظیم کنید,
+Set all public,همه را عمومی تنظیم کنید,
+Footer Based On,پاورقی بر پایه,
+Method Not Allowed,این شیوه مجاز نیست,
+Not Permitted,مجاز نیست,
+Log in to access this page.,برای دسترسی به این صفحه وارد شوید,
+Home,خانه,
+Login,ورود,
+Connection lost. Some features might not work.,اتصال به اینترنت از دست رفت. ممکن است برخی ویژگی‌ها کار نکند.,
+Login to Frappe,ورود به نرم افزار,
+Login with Email Link,ورود با لینک ایمیل,
+Switch Theme,تعویض قالب,
+Frappe Light,حالت روز,
+Timeless Night,حالت شب,
+Custom Block Name,نام بلوک دلخواه,
+Forgot Password?,فراموشی رمز عبور؟,
+Login to Frappe,ورود به نرم افزار,
+Log in to access this page.,برای دسترسی به این صفحه، وارد شوید.,
+No New notifications,هیچ اعلان جدیدی وجود ندارد,
+Looks like you haven’t received any notifications.,به نظر می‌آید که هنوز هیچ اعلانی دریافت نکرده‌اید.,
+There are no upcoming events for you.,رویدادی برای شما در روزهای آتی وجود ندارد.,
+Event Reminders,یادآوری‌های رویداد,
+System Notifications,اعلان‌های سامانه,
+Get notified when an email is received on any of the documents assigned to you.,هنگامی که ایمیلی بر روی هر یک از اسناد تفویض شده به شما، دریافت می‌شود شما مطلع شوید.,
+Email Threads on Assigned Document,موضوعات ایمیل درباره اسناد اختصاص داده شده,
+First Day of the Week,اولین روز هفته,
+Rounding Method,روش گرد کردن,
