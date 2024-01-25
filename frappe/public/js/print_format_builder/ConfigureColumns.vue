@@ -18,8 +18,8 @@
 			:group="df.fieldname"
 			handle=".icon-drag"
 		>
-			<template #item="{ element }">
-				<div class="mt-2 row align-center column-row" v-for="column in df.table_columns">
+			<template #item="{ element: column }">
+				<div class="mt-2 row align-center column-row">
 					<div class="col-8">
 						<div class="column-label d-flex align-center">
 							<div class="px-2 icon-drag ml-n2">
