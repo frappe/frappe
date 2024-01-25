@@ -1560,17 +1560,26 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 	}
 
+    get_filter_string(filter){
+        let filter_string = ""
+        if(filter[0] != this.doctype){
+            // FIXME: This will not work if a doctype has the same DocType as ChildTable twice!
+            // This is an issue with the filter area, since filter_area.get() gives the ChildTables DocType instead of the fieldname
+            filter_string += filter[0] + ".";
+        }
+        filter_string += filter[1] + "=";
+        if (filter[2] === "=") {
+            filter_string += encodeURIComponent(filter[3]);
+        } else {
+            filter_string += encodeURIComponent(JSON.stringify([filter[2], filter[3]]))
+        }
+        return filter_string;
+    }
+
 	get_url_with_filters() {
 		const query_params = this.get_filters_for_args()
 			.map((filter) => {
-				if (filter[2] === "=") {
-					return `${filter[1]}=${encodeURIComponent(filter[3])}`;
-				}
-				return [
-					filter[1],
-					"=",
-					encodeURIComponent(JSON.stringify([filter[2], filter[3]])),
-				].join("");
+                return this.get_filter_string(filter);
 			})
 			.join("&");
 
