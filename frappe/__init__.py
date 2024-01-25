@@ -261,11 +261,13 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
 	setup_redis_cache_connection()
-	setup_module_map()
 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
+
+	if site:
+		setup_module_map()
 
 	local.initialised = True
 
@@ -1644,7 +1646,8 @@ def setup_module_map():
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
-		for app in get_all_apps(with_internal_apps=True):
+
+		for app in get_installed_apps(_ensure_on_bench=True):
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
