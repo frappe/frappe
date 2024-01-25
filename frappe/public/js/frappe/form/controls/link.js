@@ -5,11 +5,14 @@
 // custom queries
 // add_fetches
 import Awesomplete from "awesomplete";
-
+import LinkStore from "../../store/link"
 frappe.ui.form.recent_link_validations = {};
-
+const linkStore = new LinkStore();
 frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlData {
-	static trigger_change_on_input_event = false;
+	
+	static trigger_change_on_input_event = false;  
+	
+
 	make_input() {
 		var me = this;
 		$(`<div class="link-field ui-front" style="position: relative;">
@@ -148,6 +151,20 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return false;
 	}
 	new_doc() {
+		const doc_parenttype = this.doc.parenttype
+		const doc_parent = this.doc.parent
+		const doc_doctype = this.doc.doctype
+		
+		console.log("new_doc: ",doc_parenttype,doc_parent, doc_doctype)
+		
+		linkStore.setFromName(doc_parent)
+		linkStore.setFromDoctype(doc_parenttype)
+		linkStore.setToDoctype(doc_doctype)
+
+		if(doc_parenttype === "Project" && ["Project Quotation", "Project Invoice"].includes(doc_doctype) ){
+			localStorage.setItem("autosave", JSON.stringify({from_name: doc_parent, from_doctype: doc_parenttype, to_doctype: doc_doctype, is_saved: false}))
+		}
+
 		var doctype = this.get_options();
 		var me = this;
 
@@ -582,7 +599,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		const fetch_map = this.fetch_map;
 		const columns_to_fetch = Object.values(fetch_map);
-
 		// if default and no fetch, no need to validate
 		if (!columns_to_fetch.length && df.__default_value === value) {
 			return value;
@@ -604,8 +620,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		// to avoid unnecessary request
 		if (value) {
+			console.log("==========> name: ", linkStore.getFromName(), " - from: ", linkStore.getFromDoctype(), " - to: ", linkStore.getToDoctype())
 			return frappe
 				.xcall("frappe.client.validate_link", {
+					from_doctype: linkStore.getFromDoctype(),
+					from_name: linkStore.getFromName(),
+					to_doctype: linkStore.getToDoctype(),
 					doctype: options,
 					docname: value,
 					fields: columns_to_fetch,
@@ -642,3 +662,6 @@ if (Awesomplete) {
 		});
 	};
 }
+
+
+

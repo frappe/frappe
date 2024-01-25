@@ -415,7 +415,7 @@ def is_document_amended(doctype, docname):
 
 
 @frappe.whitelist()
-def validate_link(doctype: str, docname: str, fields=None):
+def validate_link(from_doctype: str, from_name: str, to_doctype: str, doctype: str, docname: str, fields=None):
 	if not isinstance(doctype, str):
 		frappe.throw(_("DocType must be a string"))
 
@@ -433,6 +433,13 @@ def validate_link(doctype: str, docname: str, fields=None):
 	values = frappe._dict()
 	values.name = frappe.db.get_value(doctype, docname, cache=True)
 
+	if(from_doctype is not None and from_name is not None and to_doctype is not None):
+		values.from_doctype = from_doctype
+		values.from_name = from_name
+		values.to_doctype = to_doctype
+  
+	print("========================================================> validate_link values ", values)
+
 	fields = frappe.parse_json(fields)
 	if not values.name or not fields:
 		return values
@@ -448,7 +455,6 @@ def validate_link(doctype: str, docname: str, fields=None):
 			title=_("Cannot Fetch Values"),
 			indicator="orange",
 		)
-
 	return values
 
 
