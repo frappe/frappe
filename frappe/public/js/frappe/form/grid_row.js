@@ -1105,7 +1105,7 @@ export default class GridRow {
 		if (!field.df.onchange_modified) {
 			var field_on_change_function = field.df.onchange;
 			field.df.onchange = (e) => {
-				field_on_change_function && field_on_change_function(e?e:field);
+				field_on_change_function && field_on_change_function(e || field);
 				this.refresh_field(field.df.fieldname);
 			};
 
