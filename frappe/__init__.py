@@ -1651,6 +1651,9 @@ def setup_module_map():
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
+				if module in local.module_app:
+					print(f"WARNING: module `{module}` found in apps `{local.module_app[module]}` and `{app}`")
+
 				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
