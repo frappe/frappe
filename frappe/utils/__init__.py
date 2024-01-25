@@ -261,12 +261,12 @@ def has_gravatar(email: str) -> str:
 
 	gravatar_url = get_gravatar_url(email, "404")
 	try:
-		res = requests.get(gravatar_url)
+		res = requests.get(gravatar_url, timeout=5)
 		if res.status_code == 200:
 			return gravatar_url
 		else:
 			return ""
-	except requests.exceptions.ConnectionError:
+	except requests.exceptions.RequestException:
 		return ""
 
 

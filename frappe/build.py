@@ -229,6 +229,7 @@ def bundle(
 	skip_frappe=False,
 	files=None,
 	save_metafiles=False,
+	using_cached=False,
 ):
 	"""concat / minify js files"""
 	setup()
@@ -246,7 +247,10 @@ def bundle(
 	if files:
 		command += " --files {files}".format(files=",".join(files))
 
-	command += " --run-build-command"
+	if using_cached:
+		command += " --using-cached"
+	else:
+		command += " --run-build-command"
 
 	if save_metafiles:
 		command += " --save-metafiles"

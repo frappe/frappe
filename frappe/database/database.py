@@ -40,7 +40,6 @@ if TYPE_CHECKING:
 	from pymysql.connections import Connection as MariadbConnection
 	from pymysql.cursors import Cursor as MariadbCursor
 
-
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
@@ -74,27 +73,20 @@ class Database:
 		host=None,
 		user=None,
 		password=None,
-		ac_name=None,
-		use_default=0,
 		port=None,
+		cur_db_name=None,
 	):
 		self.setup_type_map()
-		self.host = host or frappe.conf.db_host
-		self.port = port or frappe.conf.db_port
-		self.user = user or frappe.conf.db_name
-		self.cur_db_name = frappe.conf.db_name
+		self.host = host
+		self.port = port
+		self.user = user
+		self.password = password
+		self.cur_db_name = cur_db_name
 		self._conn = None
-
-		if ac_name:
-			self.user = ac_name or frappe.conf.db_name
-
-		if use_default:
-			self.user = frappe.conf.db_name
 
 		self.transaction_writes = 0
 		self.auto_commit_on_many_writes = 0
 
-		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
 		self.logger = frappe.logger("database")
 		self.logger.setLevel("WARNING")
@@ -104,8 +96,8 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
-		# self.db_type: str
-		# self.last_query (lazy) attribute of last sql query executed
+	# self.db_type: str
+	# self.last_query (lazy) attribute of last sql query executed
 
 	def setup_type_map(self):
 		pass
@@ -784,7 +776,7 @@ class Database:
 		Example:
 
 		        # Update the `deny_multiple_sessions` field in System Settings DocType.
-		        company = frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
+		        frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
 		"""
 
 		to_update = self._get_update_dict(
