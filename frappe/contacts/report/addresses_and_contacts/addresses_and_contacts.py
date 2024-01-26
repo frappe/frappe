@@ -38,7 +38,7 @@ def get_columns(filters):
 		"Address Line 1",
 		"Address Line 2",
 		"City",
-		"State",
+		"State/Province",
 		"Postal Code",
 		"Country",
 		"Is Primary Address:Check",
