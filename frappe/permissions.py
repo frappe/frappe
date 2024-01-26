@@ -196,13 +196,8 @@ def has_permission(
 	return bool(perm)
 
 
-<<<<<<< HEAD
-def get_doc_permissions(doc, user=None, ptype=None):
-	"""Returns a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
-=======
 def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 	"""Return a dict of evaluated permissions for given `doc` like `{"read":1, "write":1}`"""
->>>>>>> 3a8fc90961 (feat: permission debugger (#24239))
 	if not user:
 		user = frappe.session.user
 
@@ -329,13 +324,8 @@ def get_user_permissions(user):
 	return get_user_permissions(user)
 
 
-<<<<<<< HEAD
-def has_user_permission(doc, user=None):
-	"""Returns True if User is allowed to view considering User Permissions"""
-=======
 def has_user_permission(doc, user=None, debug=False):
 	"""Return True if User is allowed to view considering User Permissions."""
->>>>>>> 3a8fc90961 (feat: permission debugger (#24239))
 	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
 
 	user_permissions = get_user_permissions(user)
@@ -350,16 +340,12 @@ def has_user_permission(doc, user=None, debug=False):
 		debug and _debug_log("User permission bypassed because user can modify user permissions.")
 		return True
 
-<<<<<<< HEAD
 	# don't apply strict user permissions for single doctypes since they contain empty link fields
 	apply_strict_user_permissions = (
 		False if doc.meta.issingle else frappe.get_system_settings("apply_strict_user_permissions")
 	)
-=======
-	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
 	if apply_strict_user_permissions:
 		debug and _debug_log("Strict user permissions will be applied")
->>>>>>> 3a8fc90961 (feat: permission debugger (#24239))
 
 	doctype = doc.get("doctype")
 	docname = doc.get("name")
@@ -453,13 +439,8 @@ def has_user_permission(doc, user=None, debug=False):
 	return True
 
 
-<<<<<<< HEAD
-def has_controller_permissions(doc, ptype, user=None):
-	"""Returns controller permissions if defined. None if not defined"""
-=======
 def has_controller_permissions(doc, ptype, user=None, debug=False):
 	"""Return controller permissions if defined, None if not defined."""
->>>>>>> 3a8fc90961 (feat: permission debugger (#24239))
 	if not user:
 		user = frappe.session.user
 
