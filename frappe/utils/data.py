@@ -1355,18 +1355,12 @@ def money_in_words(
 		out = _(main_currency, context="Currency") + " " + _("Zero")
 	# 0.XX
 	elif main == "0":
-		out = _(in_words(fraction, in_million).title()) + " " + fraction_currency
+		out = in_words(fraction, in_million).title() + " " + fraction_currency
 	else:
-		out = _(main_currency, context="Currency") + " " + _(in_words(main, in_million).title())
+		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
 		if cint(fraction):
 			out = (
-				out
-				+ " "
-				+ _("and")
-				+ " "
-				+ _(in_words(fraction, in_million).title())
-				+ " "
-				+ fraction_currency
+				out + " " + _("and") + " " + in_words(fraction, in_million).title() + " " + fraction_currency
 			)
 
 	return out + " " + _("only.")
