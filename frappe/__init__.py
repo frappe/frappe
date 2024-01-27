@@ -269,26 +269,37 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 
 	local.initialised = True
 
+	# Set the user as database name if not set in config
+	if local.conf and local.conf.db_name is not None and local.conf.db_user is None:
+		local.conf.db_user = local.conf.db_name
+
 
 def connect(
 	site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True
 ) -> None:
 	"""Connect to site database instance.
 
-	:param site: If site is given, calls `frappe.init`.
+	:param site: (Deprecated) If site is given, calls `frappe.init`.
 	:param db_name: Optional. Will use from `site_config.json`.
 	:param set_admin_as_user: Set Administrator as current user.
 	"""
 	from frappe.database import get_db
 
 	if site:
+		from frappe.utils.deprecations import deprecation_warning
+
+		deprecation_warning(
+			"Calling frappe.connect with the site argument is deprecated and will be removed in next major version. "
+			"Instead, explicitly invoke frappe.init(site) prior to calling frappe.connect(), if initializing the site is necessary."
+		)
 		init(site)
 
 	local.db = get_db(
 		host=local.conf.db_host,
 		port=local.conf.db_port,
-		user=db_name or local.conf.db_name,
-		password=None,
+		user=local.conf.db_user or db_name or local.conf.db_name,
+		password=local.conf.db_password,
+		cur_db_name=db_name or local.conf.db_name,
 	)
 	if set_admin_as_user:
 		set_user("Administrator")
@@ -300,15 +311,21 @@ def connect_replica() -> bool:
 	if local and hasattr(local, "replica_db") and hasattr(local, "primary_db"):
 		return False
 
-	user = local.conf.db_name
+	user = local.conf.db_user
 	password = local.conf.db_password
 	port = local.conf.replica_db_port
 
 	if local.conf.different_credentials_for_replica:
-		user = local.conf.replica_db_name
+		user = local.conf.replica_db_user or local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
+	local.replica_db = get_db(
+		host=local.conf.replica_host,
+		port=port,
+		user=user,
+		password=password,
+		cur_db_name=local.conf.db_name,
+	)
 
 	# swap db connections
 	local.primary_db = local.db
@@ -325,8 +342,10 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	sites_path = sites_path or getattr(local, "sites_path", None)
 	site_path = site_path or getattr(local, "site_path", None)
 
+	common_config = get_common_site_config(sites_path)
+
 	if sites_path:
-		config.update(get_common_site_config(sites_path))
+		config.update(common_config)
 
 	if site_path:
 		site_config = os.path.join(site_path, "site_config.json")
@@ -337,7 +356,15 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 				click.secho(f"{local.site}/site_config.json is invalid", fg="red")
 				print(error)
 		elif local.site and not local.flags.new_site:
-			raise IncorrectSitePath(f"{local.site} does not exist")
+			error_msg = f"{local.site} does not exist."
+			if common_config.developer_mode:
+				from frappe.utils import get_sites
+
+				all_sites = get_sites()
+				error_msg += "\n\nSites on this bench:\n"
+				error_msg += "\n".join(f"* {site}" for site in all_sites)
+
+			raise IncorrectSitePath(error_msg)
 
 	# Generalized env variable overrides and defaults
 	def db_default_ports(db_type):

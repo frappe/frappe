@@ -61,7 +61,7 @@ frappe.ui.form.on("Web Form", {
 
 		if (!frm.doc.web_form_fields) {
 			frm.scroll_to_field("web_form_fields");
-			frappe.throw(__("Atleast one field is required in Web Form Fields Table"));
+			frappe.throw(__("At least one field is required in Web Form Fields Table"));
 		}
 
 		let page_break_count = frm.doc.web_form_fields.filter(
