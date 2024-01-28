@@ -24,6 +24,7 @@
     "to_date_field",
     "column_break_17",
     "dynamic_date_period",
+    "use_first_day_of_period",
     "email_settings",
     "email_to",
     "day_of_week",
@@ -208,7 +209,7 @@
      "label": "Use Current Period Dates"
     }
    ],
-   "modified": "2021-01-28 15:59:43.151995",
+   "modified": "2024-01-28 22:05:30.010922",
    "modified_by": "Administrator",
    "module": "Email",
    "name": "Auto Email Report",
