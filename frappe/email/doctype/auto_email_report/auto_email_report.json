@@ -25,6 +25,7 @@
   "to_date_field",
   "column_break_17",
   "dynamic_date_period",
+  "use_first_day_of_period",
   "email_settings",
   "email_to",
   "day_of_week",
@@ -207,10 +208,17 @@
    "fieldtype": "Link",
    "label": "Sender",
    "options": "Email Account"
+  },
+  {
+   "default": "0",
+   "description": "This will get From Date based on First Day of Current Period",
+   "fieldname": "use_first_day_of_period",
+   "fieldtype": "Check",
+   "label": "Use Current Period Dates"
   }
  ],
  "links": [],
- "modified": "2022-09-08 15:31:55.031023",
+ "modified": "2024-01-29 00:12:58.732568",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Auto Email Report",
