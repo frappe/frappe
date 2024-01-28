@@ -95,7 +95,7 @@ class PushNotification:
 		link: str = None,
 		data=None,
 		truncate_body: bool = True,
-		strip_html: bool = True
+		strip_html: bool = True,
 	) -> bool:
 		"""
 		Send notification to a user.
@@ -134,7 +134,7 @@ class PushNotification:
 		link: str = None,
 		data=None,
 		truncate_body: bool = True,
-		strip_html: bool = True
+		strip_html: bool = True,
 	) -> bool:
 		"""
 		Send notification to a notification topic.
