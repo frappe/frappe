@@ -94,7 +94,8 @@ class PushNotification:
 		body: str,
 		link: str = None,
 		data=None,
-		truncate_body: bool = False,
+		truncate_body: bool = True,
+		strip_html: bool = True
 	) -> bool:
 		"""
 		Send notification to a user.
@@ -105,6 +106,7 @@ class PushNotification:
 		:param link: (str) The link to be opened when the notification is clicked.
 		:param data: (dict) The data to be sent with the notification. This can be used to provide extra information while dealing with in-app notifications.
 		:param truncate_body: (bool) Whether to truncate the body or not. If True, the body will be truncated to 1000 characters.
+		:param strip_html: (bool) Whether to strip HTML tags from the body or not.
 		:return: bool True if the request queued successfully, False otherwise.
 		"""
 		if data is None:
@@ -116,6 +118,8 @@ class PushNotification:
 				body = body[:1000]
 			else:
 				raise Exception("Body should be at max 1000 characters")
+		if strip_html:
+			body = frappe.utils.strip_html(body)
 		response_data = self._send_post_request(
 			"notification_relay.api.send_notification.user",
 			{"user_id": user_id, "title": title, "body": body, "data": json.dumps(data)},
