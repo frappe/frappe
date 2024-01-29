@@ -180,13 +180,13 @@ class TestBoilerPlate(unittest.TestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	def test_new_patch_util(self):
-		user_inputs = {
-			"app_name": "frappe",
-			"doctype": "User",
-			"docstring": "Delete all users",
-			"file_name": "",  # Accept default
-			"patch_folder_confirmation": "Y",
-		}
+		user_inputs = [
+			"frappe",  # app name
+			"User",  # doctype
+			"Delete all users",  # docstring
+			"",  # file_name: accept default
+			"Y",  # confirm patch folder
+		]
 
 		patches_txt = pathlib.Path(pathlib.Path(frappe.get_app_path("frappe", "patches.txt")))
 		original_patches = patches_txt.read_text()
