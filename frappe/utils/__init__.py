@@ -5,6 +5,7 @@ import functools
 import hashlib
 import io
 import os
+import shutil
 import sys
 import traceback
 from collections import deque
@@ -260,12 +261,12 @@ def has_gravatar(email: str) -> str:
 
 	gravatar_url = get_gravatar_url(email, "404")
 	try:
-		res = requests.get(gravatar_url)
+		res = requests.get(gravatar_url, timeout=5)
 		if res.status_code == 200:
 			return gravatar_url
 		else:
 			return ""
-	except requests.exceptions.ConnectionError:
+	except requests.exceptions.RequestException:
 		return ""
 
 
@@ -452,7 +453,12 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 		cmd = shlex.join(cmd)
 
 	with (tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr):
-		kwargs = {"shell": True, "stdout": stdout, "stderr": stderr}
+		kwargs = {
+			"shell": True,
+			"stdout": stdout,
+			"stderr": stderr,
+			"executable": shutil.which("bash") or "/bin/bash",
+		}
 
 		if low_priority:
 			kwargs["preexec_fn"] = lambda: os.nice(10)

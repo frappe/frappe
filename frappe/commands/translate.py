@@ -34,7 +34,8 @@ def new_language(context, lang_code, app):
 		raise Exception("--site is required")
 
 	# init site
-	frappe.connect(site=context["sites"][0])
+	frappe.init(site=context["sites"][0])
+	frappe.connect()
 	frappe.translate.write_translations_file(app, lang_code)
 
 	print(

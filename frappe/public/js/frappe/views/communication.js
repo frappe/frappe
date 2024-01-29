@@ -172,10 +172,15 @@ frappe.views.CommunicationComposer = class {
 				reqd: 1,
 				fieldname: "sender",
 				options: this.user_email_accounts,
+				onchange: () => {
+					this.setup_recipients_if_reply();
+				},
 			});
 			//Preselect email senders if there is only one
 			if (this.user_email_accounts.length == 1) {
 				this["sender"] = this.user_email_accounts;
+			} else if (this.user_email_accounts.includes(frappe.session.user_email)) {
+				this["sender"] = frappe.session.user_email;
 			}
 		}
 
@@ -225,11 +230,52 @@ frappe.views.CommunicationComposer = class {
 		});
 	}
 
+	setup_recipients_if_reply() {
+		if (!this.is_a_reply || !this.last_email) return;
+		let sender = this.dialog.get_value("sender");
+		if (!sender) return;
+		const fields = {
+			recipients: this.dialog.fields_dict.recipients,
+			cc: this.dialog.fields_dict.cc,
+			bcc: this.dialog.fields_dict.bcc,
+		};
+		// If same user replies to their own email, set recipients to last email recipients
+		if (this.last_email.sender == sender) {
+			fields.recipients.set_value(this.last_email.recipients);
+			if (this.reply_all) {
+				fields.cc.set_value(this.last_email.cc);
+				fields.bcc.set_value(this.last_email.bcc);
+			}
+		} else {
+			fields.recipients.set_value(this.last_email.sender);
+			if (this.reply_all) {
+				// if sending reply add ( last email's recipients - sender's email_id ) to cc.
+				const recipients = this.last_email.recipients.split(",").map((r) => r.trim());
+				if (!this.cc) {
+					this.cc = "";
+				}
+				const cc_array = this.cc.split(",").map((r) => r.trim());
+				if (this.cc && !this.cc.endsWith(", ")) {
+					this.cc += ", ";
+				}
+				this.cc += recipients
+					.filter((r) => !cc_array.includes(r) && r != sender)
+					.join(", ");
+				this.cc = this.cc.replace(sender + ", ", "");
+				fields.cc.set_value(this.cc);
+			}
+		}
+	}
+
 	setup_subject_and_recipients() {
 		this.subject = this.subject || "";
 
 		if (!this.forward && !this.recipients && this.last_email) {
 			this.recipients = this.last_email.sender;
+			// If same user replies to their own email, set recipients to last email recipients
+			if (this.last_email.sender == this.sender) {
+				this.recipients = this.last_email.recipients;
+			}
 			this.cc = this.last_email.cc;
 			this.bcc = this.last_email.bcc;
 		}

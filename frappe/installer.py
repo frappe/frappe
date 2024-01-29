@@ -49,6 +49,7 @@ def _new_site(
 	db_type=None,
 	db_host=None,
 	db_port=None,
+	db_user=None,
 	setup_db=True,
 ):
 	"""Install a new Frappe site"""
@@ -63,7 +64,7 @@ def _new_site(
 		print("--no-mariadb-socket requires db_type to be set to mariadb.")
 		sys.exit(1)
 
-	frappe.init(site=site)
+	frappe.init(site=site, site_ready=False)
 
 	if not db_name:
 		import hashlib
@@ -97,6 +98,7 @@ def _new_site(
 			db_type=db_type,
 			db_host=db_host,
 			db_port=db_port,
+			db_user=db_user,
 			no_mariadb_socket=no_mariadb_socket,
 			setup=setup_db,
 		)
@@ -135,6 +137,7 @@ def install_db(
 	db_type=None,
 	db_host=None,
 	db_port=None,
+	db_user=None,
 	no_mariadb_socket=False,
 	setup=True,
 ):
@@ -156,6 +159,7 @@ def install_db(
 		db_type=db_type,
 		db_host=db_host,
 		db_port=db_port,
+		db_user=db_user,
 	)
 	frappe.flags.in_install_db = True
 
@@ -533,19 +537,37 @@ def init_singles():
 
 
 def make_conf(
-	db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None
+	db_name=None,
+	db_password=None,
+	site_config=None,
+	db_type=None,
+	db_host=None,
+	db_port=None,
+	db_user=None,
 ):
 	site = frappe.local.site
 	make_site_config(
-		db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port
+		db_name,
+		db_password,
+		site_config,
+		db_type=db_type,
+		db_host=db_host,
+		db_port=db_port,
+		db_user=db_user,
 	)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
-	frappe.init(site, sites_path=sites_path)
+	frappe.init(site, sites_path=sites_path, site_ready=False)
 
 
 def make_site_config(
-	db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None
+	db_name=None,
+	db_password=None,
+	site_config=None,
+	db_type=None,
+	db_host=None,
+	db_port=None,
+	db_user=None,
 ):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = get_site_config_path()
@@ -562,6 +584,8 @@ def make_site_config(
 
 			if db_port:
 				site_config["db_port"] = db_port
+
+			site_config["db_user"] = db_user or db_name
 
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
@@ -757,8 +781,8 @@ def is_downgrade(sql_file_path, verbose=False):
 	if backup_version is None:
 		# This is likely an older backup, so try to extract another way
 		header = get_db_dump_header(sql_file_path).split("\n")
-		if "Version" in header[0]:
-			backup_version = header[0].split(":")[-1].strip()
+		if match := re.search(r"Frappe (\d+\.\d+\.\d+)", header[0]):
+			backup_version = match.group(1)
 
 	# Assume it's not a downgrade if we can't determine backup version
 	if backup_version is None:

@@ -23,15 +23,15 @@ class TestContact(FrappeTestCase):
 
 	def test_check_default_phone_and_mobile(self):
 		phones = [
-			{"phone": "+91 0000000000", "is_primary_phone": 0, "is_primary_mobile_no": 0},
-			{"phone": "+91 0000000001", "is_primary_phone": 0, "is_primary_mobile_no": 0},
-			{"phone": "+91 0000000002", "is_primary_phone": 1, "is_primary_mobile_no": 0},
-			{"phone": "+91 0000000003", "is_primary_phone": 0, "is_primary_mobile_no": 1},
+			{"phone": "+91 0000000010", "is_primary_phone": 0, "is_primary_mobile_no": 0},
+			{"phone": "+91 0000000011", "is_primary_phone": 0, "is_primary_mobile_no": 0},
+			{"phone": "+91 0000000012", "is_primary_phone": 1, "is_primary_mobile_no": 0},
+			{"phone": "+91 0000000013", "is_primary_phone": 0, "is_primary_mobile_no": 1},
 		]
 		contact = create_contact("Phone", "Mr", phones=phones)
 
-		self.assertEqual(contact.phone, "+91 0000000002")
-		self.assertEqual(contact.mobile_no, "+91 0000000003")
+		self.assertEqual(contact.phone, "+91 0000000012")
+		self.assertEqual(contact.mobile_no, "+91 0000000013")
 
 	def test_get_full_name(self):
 		self.assertEqual(get_full_name(first="John"), "John")

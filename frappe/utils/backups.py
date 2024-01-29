@@ -5,6 +5,7 @@ import contextlib
 # imports - standard imports
 import gzip
 import os
+import sys
 from calendar import timegm
 from datetime import datetime
 from glob import glob
@@ -225,6 +226,9 @@ class BackupGenerator:
 		"""
 		Encrypt all the backups created using gpg.
 		"""
+		if which("gpg") is None:
+			click.secho("Please install `gpg` and ensure its available in your PATH", fg="red")
+			sys.exit(1)
 		paths = (self.backup_path_db, self.backup_path_files, self.backup_path_private_files)
 		for path in paths:
 			if os.path.exists(path):
@@ -347,7 +351,7 @@ class BackupGenerator:
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
 
 			if self.compress_files:
-				cmd_string = "self=$$; ( tar cf - {1} || kill $self ) | gzip > {0}"
+				cmd_string = "set -o pipefail; tar cf - {1} | gzip > {0}"
 			else:
 				cmd_string = "tar -cf {0} {1}"
 
@@ -411,13 +415,6 @@ class BackupGenerator:
 		with gzip.open(self.backup_path_db, "wt") as f:
 			f.write(generated_header)
 
-		# Remember process of this shell and kill it if mysqldump exits w/ non-zero code
-		def wrap(cmd):
-			ret = ["self=$$;", "("]
-			ret.extend(cmd)
-			ret.extend(["||", "kill", "$self", ")", "|", gzip_exc, ">>", self.backup_path_db])
-			return ret
-
 		cmd = []
 		extra = []
 		if self.db_type == "mariadb":
@@ -451,7 +448,7 @@ class BackupGenerator:
 		cmd.append(bin)
 		cmd.extend(args)
 
-		command = " ".join(wrap(cmd))
+		command = " ".join(["set -o pipefail;"] + cmd + ["|", gzip_exc, ">>", self.backup_path_db])
 		if self.verbose:
 			print(command.replace(frappe.utils.esc(self.password, "$ "), "*" * 10) + "\n")
 
@@ -499,7 +496,7 @@ def fetch_latest_backups(partial=False) -> dict:
 	frappe.only_for("System Manager")
 	odb = BackupGenerator(
 		frappe.conf.db_name,
-		frappe.conf.db_name,
+		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
@@ -566,7 +563,7 @@ def new_backup(
 	delete_temp_backups()
 	odb = BackupGenerator(
 		frappe.conf.db_name,
-		frappe.conf.db_name,
+		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
@@ -647,6 +644,9 @@ def get_or_generate_backup_encryption_key():
 
 @contextlib.contextmanager
 def decrypt_backup(file_path: str, passphrase: str):
+	if which("gpg") is None:
+		click.secho("Please install `gpg` and ensure its available in your PATH", fg="red")
+		sys.exit(1)
 	if not os.path.exists(file_path):
 		print("Invalid path: ", file_path)
 		return
@@ -661,13 +661,15 @@ def decrypt_backup(file_path: str, passphrase: str):
 			decrypted_file=file_path,
 		)
 	frappe.utils.execute_in_shell(command)
-	yield
-	if os.path.exists(file_path + ".gpg"):
-		if os.path.exists(file_path):
-			os.remove(file_path)
-		if os.path.exists(file_path.rstrip(".gz")):
-			os.remove(file_path.rstrip(".gz"))
-		os.rename(file_path + ".gpg", file_path)
+	try:
+		yield
+	finally:
+		if os.path.exists(file_path_with_ext):
+			if os.path.exists(file_path):
+				os.remove(file_path)
+			if os.path.exists(file_path.rstrip(".gz")):
+				os.remove(file_path.rstrip(".gz"))
+			os.rename(file_path_with_ext, file_path)
 
 
 def backup(

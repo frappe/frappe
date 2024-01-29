@@ -429,10 +429,10 @@ export default class GridRow {
 		$(`
 			<div class='form-group'>
 				<div class='row' style='margin:0px; margin-bottom:10px;'>
-					<div class='col-md-8'>
+					<div class='col-6 col-md-8'>
 						${__("Fieldname").bold()}
 					</div>
-					<div class='col-md-4' style='padding-left:5px;'>
+					<div class='col-6 col-md-4' style='padding-left:5px;'>
 						${__("Column Width").bold()}
 					</div>
 				</div>
@@ -461,6 +461,7 @@ export default class GridRow {
 					fieldname: "fields",
 					options: docfields,
 					columns: 2,
+					sort_options: false,
 				},
 			],
 		});
@@ -495,12 +496,31 @@ export default class GridRow {
 
 		const show_field = (f) => always_allow.includes(f) || !blocked_fields.includes(f);
 
+		// First, add selected fields
+		selected_fields.forEach((selectedField) => {
+			const selectedColumn = this.docfields.find(
+				(column) => column.fieldname === selectedField
+			);
+			if (selectedColumn && !selectedColumn.hidden && show_field(selectedColumn.fieldtype)) {
+				fields.push({
+					label: selectedColumn.label,
+					value: selectedColumn.fieldname,
+					checked: true,
+				});
+			}
+		});
+
+		// Then, add the rest of the fields
 		this.docfields.forEach((column) => {
-			if (!column.hidden && show_field(column.fieldtype)) {
+			if (
+				!selected_fields.includes(column.fieldname) &&
+				!column.hidden &&
+				show_field(column.fieldtype)
+			) {
 				fields.push({
 					label: column.label,
 					value: column.fieldname,
-					checked: selected_fields ? selected_fields.includes(column.fieldname) : false,
+					checked: false,
 				});
 			}
 		});
@@ -522,13 +542,13 @@ export default class GridRow {
 						data-label='${docfield.label}' data-type='${docfield.fieldtype}'>
 
 						<div class='row'>
-							<div class='col-md-1' style='padding-top: 4px;'>
+							<div class='col-1' style='padding-top: 4px;'>
 								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
 							</div>
-							<div class='col-md-8' style='padding-right:0px; padding-top: 5px;'>
+							<div class='col-6 col-md-8' style='padding-right:0px; padding-top: 5px;'>
 								${__(docfield.label)}
 							</div>
-							<div class='col-md-2' style='padding-left:0px; padding-top: 2px; margin-top:-2px;' title='${__(
+							<div class='col-3 col-md-2' style='padding-left:0px; padding-top: 2px; margin-top:-2px;' title='${__(
 								"Columns"
 							)}'>
 								<input class='form-control column-width my-1 input-xs text-right'
@@ -536,7 +556,7 @@ export default class GridRow {
 									value='${docfield.columns || cint(d.columns)}'
 									data-fieldname='${docfield.fieldname}' style='background-color: var(--modal-bg); display: inline'>
 							</div>
-							<div class='col-md-1' style='padding-top: 3px;'>
+							<div class='col-1' style='padding-top: 3px;'>
 								<a class='text-muted remove-field' data-fieldname='${docfield.fieldname}'>
 									<i class='fa fa-trash-o' aria-hidden='true'></i>
 								</a>

@@ -1,5 +1,6 @@
 frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.ControlData {
 	static html_element = "select";
+	static trigger_change_on_input_event = false;
 	make_input() {
 		super.make_input();
 
@@ -110,7 +111,7 @@ frappe.ui.form.add_options = function (input, options_list, sort) {
 
 	let options = options_list.map((raw_option) => parse_option(raw_option));
 	if (sort) {
-		options = options.sort((a, b) => a.label.localeCompare(b.label));
+		options = options.sort((a, b) => cstr(a.label).localeCompare(cstr(b.label)));
 	}
 
 	options

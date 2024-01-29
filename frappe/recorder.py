@@ -249,7 +249,7 @@ def start(*args, **kwargs):
 @administrator_only
 def stop(*args, **kwargs):
 	frappe.cache.delete_value(RECORDER_INTERCEPT_FLAG)
-	frappe.enqueue(post_process)
+	frappe.enqueue(post_process, now=frappe.flags.in_test)
 
 
 @frappe.whitelist()

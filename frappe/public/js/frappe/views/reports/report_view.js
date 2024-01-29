@@ -111,10 +111,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		//Setup groupby for reports
 		this.group_by_control = new frappe.ui.GroupBy(this);
-		if (this.report_doc && this.report_doc.json.group_by) {
+		if (this.report_doc?.json?.group_by) {
 			this.group_by_control.apply_settings(this.report_doc.json.group_by);
-		}
-		if (this.view_user_settings && this.view_user_settings.group_by) {
+		} else if (this.view_user_settings?.group_by) {
 			this.group_by_control.apply_settings(this.view_user_settings.group_by);
 		}
 	}

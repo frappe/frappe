@@ -16,7 +16,7 @@ class DbManager:
 	def create_user(self, user, password, host=None):
 		host = host or self.get_current_host()
 		password_predicate = f" IDENTIFIED BY '{password}'" if password else ""
-		self.db.sql(f"CREATE USER '{user}'@'{host}'{password_predicate}")
+		self.db.sql(f"CREATE USER IF NOT EXISTS '{user}'@'{host}'{password_predicate}")
 
 	def delete_user(self, target, host=None):
 		host = host or self.get_current_host()
@@ -57,7 +57,7 @@ class DbManager:
 		from frappe.database import get_command
 		from frappe.utils import execute_in_shell
 
-		command = []
+		command = ["set -o pipefail;"]
 
 		if source.endswith(".gz"):
 			if gzip := which("gzip"):

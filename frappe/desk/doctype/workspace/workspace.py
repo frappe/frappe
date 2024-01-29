@@ -11,6 +11,7 @@ from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
 from frappe.modules.export_file import delete_folder, export_to_files
+from frappe.utils import strip_html
 
 
 class Workspace(Document):
@@ -65,6 +66,8 @@ class Workspace(Document):
 		title: DF.Data
 	# end: auto-generated types
 	def validate(self):
+		self.title = strip_html(self.title)
+
 		if self.public and not is_workspace_manager() and not disable_saving_as_public():
 			frappe.throw(_("You need to be Workspace Manager to edit this document"))
 		if self.has_value_changed("title"):
@@ -183,6 +186,7 @@ class Workspace(Document):
 					"label": card.get("label"),
 					"type": "Card Break",
 					"icon": card.get("icon"),
+					"description": card.get("description"),
 					"hidden": card.get("hidden") or False,
 					"link_count": card.get("link_count"),
 					"idx": 1 if not self.links else self.links[-1].idx + 1,
@@ -275,6 +279,8 @@ def save_page(title, public, new_widgets, blocks):
 	pages = frappe.get_all("Workspace", filters=filters)
 	if pages:
 		doc = frappe.get_doc("Workspace", pages[0])
+	else:
+		frappe.throw(_("Workspace not found"), frappe.DoesNotExistError)
 
 	doc.content = blocks
 
