@@ -211,7 +211,7 @@
   },
   {
    "default": "0",
-   "description": "To use From Date based on First Day of Current Period",
+To begin the date range at the start of the chosen period. For example, if 'Year' is selected as the period, the report will start from January 1st of the current year.
    "fieldname": "use_first_day_of_period",
    "fieldtype": "Check",
    "label": "Use First Day of Period"
