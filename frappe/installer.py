@@ -64,7 +64,7 @@ def _new_site(
 		print("--no-mariadb-socket requires db_type to be set to mariadb.")
 		sys.exit(1)
 
-	frappe.init(site=site)
+	frappe.init(site=site, site_ready=False)
 
 	if not db_name:
 		import hashlib
@@ -557,7 +557,7 @@ def make_conf(
 	)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
-	frappe.init(site, sites_path=sites_path)
+	frappe.init(site, sites_path=sites_path, site_ready=False)
 
 
 def make_site_config(

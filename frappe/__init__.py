@@ -202,8 +202,19 @@ if TYPE_CHECKING:  # pragma: no cover
 # end: static analysis hack
 
 
-def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) -> None:
-	"""Initialize frappe for the current site. Reset thread locals `frappe.local`"""
+def init(
+	site: str, sites_path: str = ".", new_site: bool = False, force=False, site_ready: bool = True
+) -> None:
+	"""
+	Initialize frappe for the current site. Reset thread locals `frappe.local`
+
+	:param site: Site name.
+	:param sites_path: Path to sites directory.
+	:param new_site: Sets a flag to indicate a new site.
+	:param force: Force initialization if already previously run.
+	:param site_ready: Any init during site installation should set this to False.
+
+	"""
 	if getattr(local, "initialised", None) and not force:
 		return
 
@@ -267,7 +278,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 		patch_query_aggregation()
 
 	if site:
-		setup_module_map()
+		setup_module_map(site_ready)
 
 	local.initialised = True
 
@@ -1638,8 +1649,13 @@ def append_hook(target, key, value):
 		target[key].extend(value)
 
 
-def setup_module_map():
-	"""Rebuild map of all modules (internal)."""
+def setup_module_map(site_ready: bool = True):
+	"""
+	Rebuild map of all modules (internal).
+
+	:param site_ready: If the site isn't fully ready yet - install is still going on, we can't
+	fetch apps from site DB. Fallback to fetching all apps on bench for module map temporarily.
+	"""
 	if conf.db_name:
 		local.app_modules = cache.get_value("app_modules")
 		local.module_app = cache.get_value("module_app")
@@ -1647,7 +1663,12 @@ def setup_module_map():
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
 
-		for app in get_installed_apps(_ensure_on_bench=True):
+		if site_ready:
+			apps = get_installed_apps(_ensure_on_bench=True)
+		else:
+			apps = get_all_apps()
+
+		for app in apps:
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
