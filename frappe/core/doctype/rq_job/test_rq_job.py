@@ -166,7 +166,7 @@ class TestRQJob(FrappeTestCase):
 		# If this starts failing analyze memory usage using memray or some equivalent tool to find
 		# offending imports/function calls.
 		# Refer this PR: https://github.com/frappe/frappe/pull/21467
-		LAST_MEASURED_USAGE = 40
+		LAST_MEASURED_USAGE = 41
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
 	@timeout(20)

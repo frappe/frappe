@@ -52,7 +52,7 @@ def get_latest_backup_file(with_files=False):
 
 	odb = BackupGenerator(
 		frappe.conf.db_name,
-		frappe.conf.db_name,
+		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
@@ -110,7 +110,7 @@ def generate_files_backup():
 
 	backup = BackupGenerator(
 		frappe.conf.db_name,
-		frappe.conf.db_name,
+		frappe.conf.db_user,
 		frappe.conf.db_password,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
