@@ -4,11 +4,12 @@ import tomllib
 from pathlib import Path
 
 import frappe
+from frappe import _
 
 
 def get_context(context):
 	if frappe.session.user == "Guest":
-		frappe.throw("You need to be logged in to access this page.", frappe.PermissionError)
+		frappe.throw(_("You need to be logged in to access this page."), frappe.PermissionError)
 
 	apps = []
 	for app in frappe.get_installed_apps():
