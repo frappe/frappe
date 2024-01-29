@@ -1,0 +1,26 @@
+name: Pre-commit
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: precommit-frappe-${{ github.event_name }}-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  linter:
+    name: 'precommit'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - uses: pre-commit/action@v3.0.0

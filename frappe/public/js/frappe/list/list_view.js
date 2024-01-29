@@ -1819,7 +1819,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				label: __("Clear Assignment", null, "Button in list view actions menu"),
 				action: () => {
 					frappe.confirm(
-						"Are you sure you want to clear the assignments?",
+						__("Are you sure you want to clear the assignments?"),
 						() => {
 							this.disable_list_update = true;
 							bulk_operations.clear_assignment(this.get_checked_items(true), () => {
