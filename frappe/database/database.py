@@ -9,10 +9,7 @@ import string
 import traceback
 from contextlib import contextmanager, suppress
 from time import time
-<<<<<<< HEAD
-=======
 from typing import TYPE_CHECKING, Any, Union
->>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
 
 from pypika.terms import Criterion, NullValue
 
@@ -125,14 +122,9 @@ class Database:
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
 		self.cur_db_name = self.user
-<<<<<<< HEAD
-		self._conn = self.get_connection()
-		self._cursor = self._conn.cursor()
-		frappe.local.rollback_observers = []
-=======
 		self._conn: Union["MariadbConnection", "PostgresConnection"] = self.get_connection()
 		self._cursor: Union["MariadbCursor", "PostgresCursor"] = self._conn.cursor()
->>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
+		frappe.local.rollback_observers = []
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -310,23 +302,12 @@ class Database:
 
 		# scrub output if required
 		if as_dict:
-<<<<<<< HEAD
-			ret = self.fetch_as_dict(formatted, as_utf8)
-=======
-			last_result = self.fetch_as_dict(last_result)
->>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
+			last_result = self.fetch_as_dict(last_result, as_utf8=as_utf8)
 			if update:
 				for r in last_result:
 					r.update(update)
-<<<<<<< HEAD
-			return ret
-		elif as_list or as_utf8:
-			return self.convert_to_lists(self.last_result, formatted, as_utf8)
-		return self.last_result
-=======
-
 		elif as_list:
-			last_result = self.convert_to_lists(last_result)
+			last_result = self.convert_to_lists(last_result, as_utf8=as_utf8)
 
 		self._clean_up()
 		return last_result
@@ -352,7 +333,6 @@ class Database:
 				frappe.throw(_("`as_iterator` only works with `as_list=True` or `as_dict=True`"))
 
 		self._clean_up()
->>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
 
 	def _log_query(
 		self,
@@ -470,14 +450,8 @@ class Database:
 		):
 			raise ImplicitCommitError("This statement can cause implicit commit")
 
-<<<<<<< HEAD
-	def fetch_as_dict(self, formatted=0, as_utf8=0) -> list[frappe._dict]:
-		"""Internal. Converts results to dict."""
-		result = self.last_result
-=======
-	def fetch_as_dict(self, result) -> list[frappe._dict]:
+	def fetch_as_dict(self, result, as_utf8=False) -> list[frappe._dict]:
 		"""Internal. Convert results to dict."""
->>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
 		if result:
 			keys = [column[0] for column in self._cursor.description]
 

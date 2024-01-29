@@ -16,17 +16,11 @@ dependencies = [
     "GitPython~=3.1.34",
     "Jinja2~=3.1.2",
     "Pillow~=10.0.1",
-<<<<<<< HEAD
     "PyJWT~=2.4.0",
-    "PyMySQL==1.0.3",
-    "PyPDF2~=2.1.0",
-=======
-    "PyJWT~=2.8.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
-    "PyMySQL==1.1.0",
-    "pypdf~=3.17.0",
->>>>>>> 99a3a35c22 (feat: `frappe.db.sql` results `as_iterator` (backport #19810) (#24346))
+    "PyMySQL==1.0.3",
+    "PyPDF2~=2.1.0",
     "PyPika~=0.48.9",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.1",
