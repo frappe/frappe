@@ -116,6 +116,7 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				condition: this.doctype != "File",
 				action: () => this.setup_kanban_boards(),
 				current_view_handler: () => {
+					console.log("=========================================>kanban 119 ")
 					frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) =>
 						this.setup_kanban_switcher(kanbans)
 					);
@@ -181,30 +182,31 @@ frappe.views.ListViewSelect = class ListViewSelect {
 	}
 
 	setup_kanban_switcher(kanbans) {
-		const kanban_switcher = this.page.add_custom_button_group(
-			__("Select Kanban"),
-			null,
-			this.list_view.$filter_section
-		);
-
-		kanbans.map((k) => {
-			this.page.add_custom_menu_item(
-				kanban_switcher,
-				k.name,
-				() => this.set_route("kanban", k.name),
-				false
+		if(this.doctype !== "Project"){
+			const kanban_switcher = this.page.add_custom_button_group(
+				__("Select Kanban"),
+				null,
+				this.list_view.$filter_section
 			);
-		});
-
-		let perms = this.list_view.board_perms;
-		let can_create = perms ? perms.create : true;
-		if (can_create) {
-			this.page.add_custom_menu_item(
-				kanban_switcher,
-				__("Create New Kanban Board"),
-				() => frappe.views.KanbanView.show_kanban_dialog(this.doctype),
-				true
-			);
+			kanbans.map((k) => {
+				this.page.add_custom_menu_item(
+					kanban_switcher,
+					k.name,
+					() => this.set_route("kanban", k.name),
+					false
+				);
+			});
+	
+			let perms = this.list_view.board_perms;
+			let can_create = perms ? perms.create : true;
+			if (can_create) {
+				this.page.add_custom_menu_item(
+					kanban_switcher,
+					__("Create New Kanban Board"),
+					() => frappe.views.KanbanView.show_kanban_dialog(this.doctype),
+					true
+				);
+			}
 		}
 	}
 
