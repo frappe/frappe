@@ -11,7 +11,7 @@ import frappe
 from frappe.core.utils import find
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.database import savepoint
-from frappe.database.database import Database, get_query_execution_timeout
+from frappe.database.database import get_query_execution_timeout
 from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
@@ -769,23 +769,6 @@ class TestDBSetValue(FrappeTestCase):
 		cached_doc = frappe.get_cached_doc(self.todo2.doctype, self.todo2.name)
 		self.assertEqual(cached_doc.description, description)
 
-	def test_update_alias(self):
-		args = (self.todo1.doctype, self.todo1.name, "description", "Updated by `test_update_alias`")
-		kwargs = {
-			"for_update": False,
-			"modified": None,
-			"modified_by": None,
-			"update_modified": True,
-			"debug": False,
-		}
-
-		self.assertTrue("return self.set_value(" in inspect.getsource(frappe.db.update))
-
-		with patch.object(Database, "set_value") as set_value:
-			frappe.db.update(*args, **kwargs)
-			set_value.assert_called_once()
-			set_value.assert_called_with(*args, **kwargs)
-
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
@@ -944,3 +927,36 @@ class TestReplicaConnections(FrappeTestCase):
 
 			outer()
 			self.assertEqual(write_connection, db_id())
+
+
+class TestSqlIterator(FrappeTestCase):
+	def test_db_sql_iterator(self):
+		test_queries = [
+			"select * from `tabCountry` order by name",
+			"select code from `tabCountry` order by name",
+			"select code from `tabCountry` order by name limit 5",
+		]
+
+		for query in test_queries:
+			self.assertEqual(
+				frappe.db.sql(query, as_dict=True),
+				list(frappe.db.sql(query, as_dict=True, as_iterator=True)),
+				msg=f"{query=} results not same as iterator",
+			)
+
+			self.assertEqual(
+				frappe.db.sql(query, pluck=True),
+				list(frappe.db.sql(query, pluck=True, as_iterator=True)),
+				msg=f"{query=} results not same as iterator",
+			)
+
+			self.assertEqual(
+				frappe.db.sql(query, as_list=True),
+				list(frappe.db.sql(query, as_list=True, as_iterator=True)),
+				msg=f"{query=} results not same as iterator",
+			)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_unbuffered_cursor(self):
+		with frappe.db.unbuffered_cursor():
+			self.test_db_sql_iterator()
