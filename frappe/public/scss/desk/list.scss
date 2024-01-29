@@ -80,6 +80,38 @@
 	-webkit-transition: color 0.2s;
 	@include get_textstyle("base", "regular");
 	border-radius: var(--border-radius-md);
+	.mobile-seprator {
+		display: none;
+	}
+	@media (max-width: map-get($grid-breakpoints, "md")) {
+		@include get_textstyle("2xs", "regular");
+		height: fit-content;
+		padding-top: 4.5px;
+		padding-bottom: 4.5px;
+
+		.mobile-seprator {
+			display: inline;
+		}
+		.level-left {
+			flex-wrap: wrap;
+			min-width: 100%;
+		}
+
+		.list-subject {
+			flex: 1;
+			width: 100%;
+			min-width: 100%;
+		}
+
+		.list-row-col {
+			flex: none;
+			margin: 0 2px;
+			*,
+			* > * {
+				display: inline-block;
+			}
+		}
+	}
 
 	&:hover:not(.list-row-head) {
 		background-color: var(--highlight-color);
@@ -91,7 +123,7 @@
 
 	.level-left {
 		flex: 4;
-		min-width: 80%;
+		min-width: 75%;
 	}
 	.level-right {
 		flex: 1;
@@ -169,6 +201,10 @@
 	}
 	.list-subject {
 		font-weight: normal;
+	}
+
+	.list-row-col {
+		margin: 0;
 	}
 
 	.checkbox-actions {
