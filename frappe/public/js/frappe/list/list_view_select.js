@@ -116,7 +116,6 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				condition: this.doctype != "File",
 				action: () => this.setup_kanban_boards(),
 				current_view_handler: () => {
-					console.log("=========================================>kanban 119 ")
 					frappe.views.KanbanView.get_kanbans(this.doctype).then((kanbans) =>
 						this.setup_kanban_switcher(kanbans)
 					);
