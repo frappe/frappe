@@ -124,8 +124,20 @@ def update(doctype, role, permlevel, ptype, value=None, if_owner=0):
 	        str: Refresh flag is permission is updated successfully
 	"""
 	frappe.only_for("System Manager")
+
+	if ptype == "report" and value == "1" and if_owner == "1":
+		frappe.throw(_("Cannot set 'Report' permission if 'Only If Creator' permission is set"))
+
 	out = update_permission_property(doctype, role, permlevel, ptype, value, if_owner=if_owner)
 
+<<<<<<< HEAD
+=======
+	if ptype == "if_owner" and value == "1":
+		update_permission_property(doctype, role, permlevel, "report", "0", if_owner=value)
+
+	frappe.db.after_commit.add(clear_cache)
+
+>>>>>>> d89cec362c (fix: do not allow to set if_owner & report perm together)
 	return "refresh" if out else None
 
 
