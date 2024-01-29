@@ -461,6 +461,7 @@ export default class GridRow {
 					fieldname: "fields",
 					options: docfields,
 					columns: 2,
+					sort_options: false,
 				},
 			],
 		});
@@ -495,12 +496,31 @@ export default class GridRow {
 
 		const show_field = (f) => always_allow.includes(f) || !blocked_fields.includes(f);
 
+		// First, add selected fields
+		selected_fields.forEach((selectedField) => {
+			const selectedColumn = this.docfields.find(
+				(column) => column.fieldname === selectedField
+			);
+			if (selectedColumn && !selectedColumn.hidden && show_field(selectedColumn.fieldtype)) {
+				fields.push({
+					label: selectedColumn.label,
+					value: selectedColumn.fieldname,
+					checked: true,
+				});
+			}
+		});
+
+		// Then, add the rest of the fields
 		this.docfields.forEach((column) => {
-			if (!column.hidden && show_field(column.fieldtype)) {
+			if (
+				!selected_fields.includes(column.fieldname) &&
+				!column.hidden &&
+				show_field(column.fieldtype)
+			) {
 				fields.push({
 					label: column.label,
 					value: column.fieldname,
-					checked: selected_fields ? in_list(selected_fields, column.fieldname) : false,
+					checked: false,
 				});
 			}
 		});
