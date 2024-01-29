@@ -238,7 +238,13 @@ def prepare_header_footer(soup: BeautifulSoup):
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
-		if content := soup.find(id=html_id):
+		if content := soup.find(id=html_id).extract():
+			# `header/footer-html` are extracted, rendered as html
+			# and passed in wkhtmltopdf options (as '--header/footer-html')
+			# Remove instances of them from main content for render_template
+			for tag in soup.find_all(id=html_id):
+				tag.extract()
+
 			toggle_visible_pdf(content)
 			id_map = {"header-html": "pdf_header_html", "footer-html": "pdf_footer_html"}
 			hook_func = frappe.get_hooks(id_map.get(html_id))
@@ -250,10 +256,6 @@ def prepare_header_footer(soup: BeautifulSoup):
 				html_id=html_id,
 				css=css,
 			)
-
-			# there could be multiple instances of header-html/footer-html
-			for tag in soup.find_all(id=html_id):
-				tag.extract()
 
 			# create temp file
 			fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.html")
