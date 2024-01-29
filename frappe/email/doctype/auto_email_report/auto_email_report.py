@@ -217,18 +217,10 @@ class AutoEmailReport(Document):
 		to_date = today()
 		
 		if self.use_first_day_of_period:
-			from_date_value = {
-				"Daily": ("days", -1),
-				"Weekly": ("weeks", 0),
-				"Monthly": ("months", 0),
-				"Quarterly": ("months", 0),
-				"Half Yearly": ("months", 0),
-				"Yearly": ("years", 0),
-			}[self.dynamic_date_period]
-
-			from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
-			
-			if self.dynamic_date_period == "Weekly":
+			from_date = to_date
+			if self.dynamic_date_period == "Daily":
+				from_date = add_to_date(to_date, days=-1)
+			elif self.dynamic_date_period == "Weekly":
 				from_date = get_first_day_of_week(from_date)
 			elif self.dynamic_date_period == "Monthly":
 				from_date = get_first_day(from_date)
