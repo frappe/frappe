@@ -230,6 +230,9 @@ def get_permitted_fields(
 	if permission_type is None:
 		permission_type = "select" if frappe.only_has_select_perm(doctype, user=user) else "read"
 
+	meta_fields = meta.default_fields.copy()
+	optional_meta_fields = [x for x in optional_fields if x in valid_columns]
+
 	if permitted_fields := meta.get_permitted_fieldnames(
 		parenttype=parenttype,
 		user=user,
@@ -239,15 +242,12 @@ def get_permitted_fields(
 		if permission_type == "select":
 			return permitted_fields
 
-		meta_fields = meta.default_fields.copy()
-		optional_meta_fields = [x for x in optional_fields if x in valid_columns]
-
 		if meta.istable:
 			meta_fields.extend(child_table_fields)
 
 		return meta_fields + permitted_fields + optional_meta_fields
 
-	return []
+	return meta_fields + optional_meta_fields
 
 
 def is_default_field(fieldname: str) -> bool:
