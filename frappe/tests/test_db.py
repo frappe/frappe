@@ -769,23 +769,6 @@ class TestDBSetValue(FrappeTestCase):
 		cached_doc = frappe.get_cached_doc(self.todo2.doctype, self.todo2.name)
 		self.assertEqual(cached_doc.description, description)
 
-	def test_update_alias(self):
-		args = (self.todo1.doctype, self.todo1.name, "description", "Updated by `test_update_alias`")
-		kwargs = {
-			"for_update": False,
-			"modified": None,
-			"modified_by": None,
-			"update_modified": True,
-			"debug": False,
-		}
-
-		self.assertTrue("return self.set_value(" in inspect.getsource(frappe.db.update))
-
-		with patch.object(Database, "set_value") as set_value:
-			frappe.db.update(*args, **kwargs)
-			set_value.assert_called_once()
-			set_value.assert_called_with(*args, **kwargs)
-
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
