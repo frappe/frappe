@@ -93,6 +93,7 @@ class PushNotification:
 		title: str,
 		body: str,
 		link: str = None,
+		icon: str = None,
 		data=None,
 		truncate_body: bool = True,
 		strip_html: bool = True,
@@ -104,6 +105,7 @@ class PushNotification:
 		:param title: (str) The title of the notification.
 		:param body: (str) The body of the notification. At max 1000 characters.
 		:param link: (str) The link to be opened when the notification is clicked.
+		:param icon: (str) The icon to be shown in the notification.
 		:param data: (dict) The data to be sent with the notification. This can be used to provide extra information while dealing with in-app notifications.
 		:param truncate_body: (bool) Whether to truncate the body or not. If True, the body will be truncated to 1000 characters.
 		:param strip_html: (bool) Whether to strip HTML tags from the body or not.
@@ -111,8 +113,10 @@ class PushNotification:
 		"""
 		if data is None:
 			data = {}
-		if link is not None and link != "":
+		if link:
 			data["click_action"] = link
+		if icon:
+			data["notification_icon"] = icon
 		if len(body) > 1000:
 			if truncate_body:
 				body = body[:1000]
@@ -132,6 +136,7 @@ class PushNotification:
 		title: str,
 		body: str,
 		link: str = None,
+		icon: str = None,
 		data=None,
 		truncate_body: bool = True,
 		strip_html: bool = True,
@@ -143,6 +148,7 @@ class PushNotification:
 		:param title: (str) The title of the notification.
 		:param body: (str) The body of the notification. At max 1000 characters.
 		:param link: (str) The link to be opened when the notification is clicked.
+		:param icon: (str) The icon to be shown in the notification.
 		:param data: (dict) The data to be sent with the notification. This can be used to provide extra information while dealing with in-app notifications.
 		:param truncate_body: (bool) Whether to truncate the body or not. If True, the body will be truncated to 1000 characters.
 		:param strip_html: (bool) Whether to strip HTML tags from the body or not.
@@ -152,6 +158,8 @@ class PushNotification:
 			data = {}
 		if link:
 			data["click_action"] = link
+		if icon:
+			data["notification_icon"] = icon
 		if len(body) > 1000:
 			if truncate_body:
 				body = body[:1000]
