@@ -189,7 +189,13 @@ def prepare_header_footer(soup: BeautifulSoup):
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
-		if content := soup.find(id=html_id):
+		if content := soup.find(id=html_id).extract():
+			# `header/footer-html` are extracted, rendered as html
+			# and passed in wkhtmltopdf options (as '--header/footer-html')
+			# Remove instances of them from main content for render_template
+			for tag in soup.find_all(id=html_id):
+				tag.extract()
+
 			toggle_visible_pdf(content)
 			html = frappe.render_template(
 				"templates/print_formats/pdf_header_footer.html",
@@ -203,12 +209,6 @@ def prepare_header_footer(soup: BeautifulSoup):
 					"layout_direction": "rtl" if is_rtl() else "ltr",
 				},
 			)
-
-			# `header/footer-html` are extracted, rendered as html
-			# and passed in wkhtmltopdf options (as '--header/footer-html')
-			# Remove instances of them from main content after render_template
-			for tag in soup.find_all(id=html_id):
-				tag.extract()
 
 			# create temp file
 			fname = os.path.join("/tmp", f"frappe-pdf-{frappe.generate_hash()}.html")
