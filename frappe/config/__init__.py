@@ -1,5 +1,11 @@
 import frappe
 from frappe import _
+from frappe.desk.moduleview import (
+	config_exists,
+	get_data,
+	get_module_link_items_from_list,
+	get_onboard_items,
+)
 
 
 def get_modules_from_all_apps_for_user(user=None):
@@ -20,6 +26,9 @@ def get_modules_from_all_apps_for_user(user=None):
 		# Apply onboarding status
 		if module_name in empty_tables_by_module:
 			module["onboard_present"] = 1
+
+		# Set defaults links
+		module["links"] = get_onboard_items(module["app"], frappe.scrub(module_name))[:5]
 
 	return allowed_modules_list
 

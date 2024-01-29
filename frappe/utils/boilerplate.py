@@ -134,6 +134,12 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 
 	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"))
 
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "desktop.py"), "w") as f:
+		f.write(frappe.as_unicode(desktop_template.format(**hooks)))
+
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "docs.py"), "w") as f:
+		f.write(frappe.as_unicode(docs_template.format(**hooks)))
+
 	app_directory = os.path.join(dest, hooks.app_name)
 
 	if hooks.create_github_workflow:
@@ -509,7 +515,6 @@ app_license = "{app_license}"
 # ]
 """
 
-<<<<<<< HEAD
 desktop_template = """from frappe import _
 
 def get_data():
@@ -520,27 +525,6 @@ def get_data():
 			"label": _("{app_title}")
 		}}
 	]
-=======
-setup_template = """from setuptools import setup, find_packages
-
-with open("requirements.txt") as f:
-	install_requires = f.read().strip().split("\\n")
-
-# get version from __version__ variable in {app_name}/__init__.py
-from {app_name} import __version__ as version
-
-setup(
-	name="{app_name}",
-	version=version,
-	description="{app_description}",
-	author="{app_publisher}",
-	author_email="{app_email}",
-	packages=find_packages(),
-	zip_safe=False,
-	include_package_data=True,
-	install_requires=install_requires
-)
->>>>>>> eebf7e1fff (chore: dead code removal (#18410))
 """
 
 gitignore_template = """.DS_Store
@@ -548,7 +532,21 @@ gitignore_template = """.DS_Store
 *.egg-info
 *.swp
 tags
-node_modules"""
+{app_name}/docs/current
+node_modules/"""
+
+docs_template = '''"""
+Configuration for docs
+"""
+
+# source_link = "https://github.com/[org_name]/{app_name}"
+# headline = "App that does everything"
+# sub_heading = "Yes, you got that right the first time, everything"
+
+def get_context(context):
+	context.brand_html = "{app_title}"
+'''
+
 
 github_workflow_template = """
 name: CI
