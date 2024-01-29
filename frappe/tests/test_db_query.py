@@ -1269,6 +1269,50 @@ class TestReportView(FrappeTestCase):
 		response = execute_cmd("frappe.desk.reportview.get")
 		self.assertListEqual(response["keys"], ["field_label", "field_name", "_aggregate_column"])
 
+<<<<<<< HEAD
+=======
+	def test_reportview_get_permlevel_system_users(self):
+		with setup_patched_blog_post(), setup_test_user(set_user=True):
+			frappe.local.request = frappe._dict()
+			frappe.local.request.method = "POST"
+			frappe.local.form_dict = frappe._dict(
+				{
+					"doctype": "Blog Post",
+					"fields": ["published", "title", "`tabTest Child`.`test_field`"],
+				}
+			)
+
+			# even if * is passed, fields which are not accessible should be filtered out
+			response = execute_cmd("frappe.desk.reportview.get")
+			self.assertListEqual(response["keys"], ["title"])
+			frappe.local.form_dict = frappe._dict(
+				{
+					"doctype": "Blog Post",
+					"fields": ["*"],
+				}
+			)
+
+			response = execute_cmd("frappe.desk.reportview.get")
+			self.assertNotIn("published", response["keys"])
+
+			# If none of the fields are accessible then result should be empty
+			self.assertEqual(frappe.get_list("Blog Post", "published"), [])
+
+	def test_reportview_get_admin(self):
+		# Admin should be able to see access all fields
+		with setup_patched_blog_post():
+			frappe.local.request = frappe._dict()
+			frappe.local.request.method = "POST"
+			frappe.local.form_dict = frappe._dict(
+				{
+					"doctype": "Blog Post",
+					"fields": ["published", "title", "`tabTest Child`.`test_field`"],
+				}
+			)
+			response = execute_cmd("frappe.desk.reportview.get")
+			self.assertListEqual(response["keys"], ["published", "title", "test_field"])
+
+>>>>>>> 3bea50d519 (fix: Return empty result if no perm level access (#24591))
 
 def add_child_table_to_blog_post():
 	child_table = frappe.get_doc(
