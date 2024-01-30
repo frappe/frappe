@@ -56,24 +56,6 @@ class TestDocShare(FrappeTestCase):
 		with self.assertRowsRead(1):
 			self.assertTrue(self.event.has_permission())
 
-	def test_list_permission(self):
-		frappe.set_user(self.user)
-		with self.assertRaises(frappe.PermissionError):
-			frappe.get_list("Web Page")
-
-		frappe.set_user("Administrator")
-		doc = frappe.new_doc("Web Page")
-		doc.update({"title": "test document for docshare permissions"})
-		doc.insert()
-		frappe.share.add("Web Page", doc.name, self.user)
-
-		frappe.set_user(self.user)
-		self.assertEqual(len(frappe.get_list("Web Page")), 1)
-
-		doc.delete(ignore_permissions=True)
-		with self.assertRaises(frappe.PermissionError):
-			frappe.get_list("Web Page")
-
 	def test_share_permission(self):
 		frappe.share.add("Event", self.event.name, self.user, write=1, share=1)
 

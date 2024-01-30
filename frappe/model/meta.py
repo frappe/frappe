@@ -604,27 +604,15 @@ class Meta(Document):
 			self.get_permlevel_access(permission_type=permission_type, parenttype=parenttype, user=user)
 		)
 
-<<<<<<< HEAD
+		if 0 not in permlevel_access and permission_type in ("read", "select"):
+			if frappe.share.get_shared(self.name, user, rights=[permission_type], limit=1):
+				permlevel_access.add(0)
+
 		for df in self.get_fieldnames_with_value(
 			with_field_meta=True, with_virtual_fields=with_virtual_fields
 		):
 			if df.permlevel in permlevel_access:
 				permitted_fieldnames.append(df.fieldname)
-
-=======
-		if 0 not in permlevel_access and permission_type in ("read", "select"):
-			if frappe.share.get_shared(self.name, user, rights=[permission_type], limit=1):
-				permlevel_access.add(0)
-
-		permitted_fieldnames.extend(
-			df.fieldname
-			for df in self.get_fieldnames_with_value(
-				with_field_meta=True, with_virtual_fields=with_virtual_fields
-			)
-			if df.permlevel in permlevel_access
-		)
->>>>>>> 88b44555f1 (fix(meta): Allow level 0 fields if a doc has been shared with user backport #23904 (#24595))
-		return permitted_fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = []
