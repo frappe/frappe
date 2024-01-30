@@ -9,6 +9,7 @@ from frappe.cache_manager import clear_doctype_map, get_doctype_map
 from frappe.desk.form import assign_to
 from frappe.model import log_types
 from frappe.model.document import Document
+from frappe.utils.data import comma_and
 
 
 class AssignmentRule(Document):
@@ -29,14 +30,10 @@ class AssignmentRule(Document):
 
 	def validate_assignment_days(self):
 		assignment_days = self.get_assignment_days()
-
 		if len(set(assignment_days)) != len(assignment_days):
-			repeated_days = get_repeated(assignment_days)
-			plural = "s" if len(repeated_days) > 1 else ""
-
 			frappe.throw(
-				_("Assignment Day{0} {1} has been repeated.").format(
-					plural, frappe.bold(", ".join(repeated_days))
+				_("The following Assignment Days have been repeated: {0}").format(
+					comma_and([_(day) for day in get_repeated(assignment_days)], add_quotes=False)
 				)
 			)
 
