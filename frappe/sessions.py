@@ -423,7 +423,7 @@ def get_expired_threshold():
 
 
 def get_expiry_period():
-	exp_sec = frappe.defaults.get_global_default("session_expiry") or "06:00:00"
+	exp_sec = frappe.defaults.get_global_default("session_expiry") or "240:00:00"
 
 	# incase seconds is missing
 	if len(exp_sec.split(":")) == 2:

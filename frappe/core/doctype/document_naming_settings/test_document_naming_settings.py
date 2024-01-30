@@ -40,8 +40,8 @@ class TestNamingSeries(FrappeTestCase):
 
 	def get_valid_serieses(self):
 		VALID_SERIES = ["SINV-", "SI-.{field}.", "SI-#.###", ""]
-		exisiting_series = self.dns.get_transactions_and_prefixes()["prefixes"]
-		return VALID_SERIES + exisiting_series
+		existing_series = self.dns.get_transactions_and_prefixes()["prefixes"]
+		return VALID_SERIES + existing_series
 
 	def test_naming_preview(self):
 		self.dns.transaction_type = self.ns_doctype

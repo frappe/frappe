@@ -1255,6 +1255,9 @@ class TestReportView(FrappeTestCase):
 			response = execute_cmd("frappe.desk.reportview.get")
 			self.assertNotIn("published", response["keys"])
 
+			# If none of the fields are accessible then result should be empty
+			self.assertEqual(frappe.get_list("Blog Post", "published"), [])
+
 	def test_reportview_get_admin(self):
 		# Admin should be able to see access all fields
 		with setup_patched_blog_post():

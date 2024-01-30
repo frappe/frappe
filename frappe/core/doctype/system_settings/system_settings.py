@@ -61,6 +61,7 @@ class SystemSettings(Document):
 		hide_footer_in_auto_email_reports: DF.Check
 		language: DF.Link
 		lifespan_qrcode_image: DF.Int
+		link_field_results_limit: DF.Int
 		login_with_email_link: DF.Check
 		login_with_email_link_expiry: DF.Int
 		logout_on_password_reset: DF.Check
@@ -94,6 +95,7 @@ class SystemSettings(Document):
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
 		welcome_email_template: DF.Link | None
 	# end: auto-generated types
+
 	def validate(self):
 		from frappe.twofactor import toggle_two_factor_auth
 
@@ -129,6 +131,13 @@ class SystemSettings(Document):
 		self.validate_user_pass_login()
 		self.validate_backup_limit()
 		self.validate_file_extensions()
+
+		if self.link_field_results_limit > 50:
+			self.link_field_results_limit = 50
+			label = _(self.meta.get_label("link_field_results_limit"))
+			frappe.msgprint(
+				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
+			)
 
 	def validate_user_pass_login(self):
 		if not self.disable_user_pass_login:

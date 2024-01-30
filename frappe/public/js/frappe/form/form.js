@@ -1463,20 +1463,20 @@ frappe.ui.form.Form = class FrappeForm {
 		// Remove actions from menu
 		delete this.custom_buttons[label];
 		let menu_item_label = group ? `${group} > ${label}` : label;
-		let $linkBody = this.page
-			.is_in_group_button_dropdown(
-				this.page.menu,
-				"li > a.grey-link > span",
-				menu_item_label
-			)
-			?.parent()
-			?.parent();
+		let $btn = this.page.is_in_group_button_dropdown(
+			this.page.menu,
+			"li > a.grey-link > span",
+			menu_item_label
+		);
 
-		if ($linkBody) {
-			// If last button, remove divider too
-			let $divider = $linkBody.next(".dropdown-divider");
-			if ($divider) $divider.remove();
-			$linkBody.remove();
+		if ($btn) {
+			let $linkBody = $btn.parent().parent();
+			if ($linkBody) {
+				// If last button, remove divider too
+				let $divider = $linkBody.next(".dropdown-divider");
+				if ($divider) $divider.remove();
+				$linkBody.remove();
+			}
 		}
 	}
 

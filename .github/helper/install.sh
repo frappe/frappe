@@ -66,6 +66,6 @@ bench --site test_site reinstall --yes
 
 if [ "$TYPE" == "server" ]
 then
-  # wait till assets are built succesfully
+  # wait till assets are built successfully
   wait $build_pid
 fi

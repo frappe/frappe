@@ -438,7 +438,7 @@ class LDAP_TestCase:
 			for user_role in updated_user_roles:  # match each users role mapped to ldap groups
 				self.assertTrue(
 					role_to_group_map[user_role] in test_user_data[test_user],
-					f"during sync_roles(), the user was given role {user_role} which should not have occured",
+					f"during sync_roles(), the user was given role {user_role} which should not have occurred",
 				)
 
 	@mock_ldap_connection

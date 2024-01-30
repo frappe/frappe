@@ -196,6 +196,9 @@ def update_system_settings(args):  # nosemgrep
 
 def create_or_update_user(args):  # nosemgrep
 	email = args.get("email")
+	if not email:
+		return
+
 	first_name, last_name = args.get("full_name", ""), ""
 	if " " in first_name:
 		first_name, last_name = first_name.split(" ", 1)

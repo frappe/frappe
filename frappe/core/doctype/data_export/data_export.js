@@ -41,7 +41,7 @@ const can_export = (frm) => {
 	if (!doctype) {
 		frappe.msgprint(__("Please select the Document Type."));
 	} else if (!parent_multicheck_options.length) {
-		frappe.msgprint(__("Atleast one field of Parent Document Type is mandatory"));
+		frappe.msgprint(__("At least one field of Parent Document Type is mandatory"));
 	} else {
 		is_valid_form = true;
 	}

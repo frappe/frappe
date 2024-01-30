@@ -506,13 +506,7 @@ frappe.ui.form.on("Data Import", {
 	},
 
 	show_import_log(frm) {
-		if (!frm.doc.show_failed_logs) {
-			frm.toggle_display("import_log_preview", false);
-			return;
-		}
-
 		frm.toggle_display("import_log_section", false);
-		frm.toggle_display("import_log_preview", true);
 
 		if (frm.import_in_progress) {
 			return;

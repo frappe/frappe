@@ -16,21 +16,7 @@ class DbManager:
 	def create_user(self, user, password, host=None):
 		host = host or self.get_current_host()
 		password_predicate = f" IDENTIFIED BY '{password}'" if password else ""
-		self.db.sql(f"CREATE USER '{user}'@'{host}'{password_predicate}")
-
-	def does_user_exist(self, username: str, host: str | None = None) -> bool:
-		return (
-			self.db.sql(
-				f"SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = '{username}' and "
-				f"host = '{host or self.get_current_host()}')"
-			)[0][0]
-			== 1
-		)
-
-	def set_user_password(self, username: str, password: str, host: str | None = None) -> None:
-		self.db.sql(
-			f"SET PASSWORD FOR '{username}'@'{host or self.get_current_host()}' = PASSWORD('{password}')"
-		)
+		self.db.sql(f"CREATE USER IF NOT EXISTS '{user}'@'{host}'{password_predicate}")
 
 	def delete_user(self, target, host=None):
 		host = host or self.get_current_host()

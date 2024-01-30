@@ -59,27 +59,43 @@ frappe.search.utils = {
 		});
 
 		find(values, keywords, function (match) {
-			var out = {
-				route: match[1],
-			};
-			if (match[1][0] === "Form") {
-				if (match[1].length > 2 && match[1][1] !== match[1][2]) {
-					out.label = __(match[1][1]) + " " + match[1][2].bold();
-					out.value = __(match[1][1]) + " " + match[1][2];
+			const route = match[1];
+			const out = { route: route };
+
+			if (route[0] === "Form") {
+				const doctype = route[1];
+				if (route.length > 2 && doctype !== route[2]) {
+					const docname = route[2];
+					out.label = __(doctype) + " " + docname.bold();
+					out.value = __(doctype) + " " + docname;
 				} else {
-					out.label = __(match[1][1]).bold();
-					out.value = __(match[1][1]);
+					out.label = __(doctype).bold();
+					out.value = __(doctype);
 				}
 			} else if (
-				["List", "Tree", "Workspaces", "query-report"].includes(match[1][0]) &&
-				match[1].length > 1
+				["List", "Tree", "Workspaces", "query-report"].includes(route[0]) &&
+				route.length > 1
 			) {
-				var type = match[1][0],
-					label = type;
-				if (type === "Workspaces") label = "Workspace";
-				else if (type === "query-report" || match[1][2] === "Report") label = "Report";
-				out.label = __(`{0} ${label}`, [__(match[1][1]).bold()]);
-				out.value = __(`{0} ${label}`, [__(match[1][1])]);
+				const view_type = route[0];
+				const view_name = route[1];
+				switch (view_type) {
+					case "List":
+						out.label = __("{0} List", [__(view_name).bold()]);
+						out.value = __("{0} List", [__(view_name)]);
+						break;
+					case "Tree":
+						out.label = __("{0} Tree", [__(view_name).bold()]);
+						out.value = __("{0} Tree", [__(view_name)]);
+						break;
+					case "Workspaces":
+						out.label = __("{0} Workspace", [__(view_name).bold()]);
+						out.value = __("{0} Workspace", [__(view_name)]);
+						break;
+					case "query-report":
+						out.label = __("{0} Report", [__(view_name).bold()]);
+						out.value = __("{0} Report", [__(view_name)]);
+						break;
+				}
 			} else if (match[0]) {
 				out.label = match[0].bold();
 				out.value = match[0];

@@ -13,13 +13,14 @@ frappe.ui.form.on("Google Drive", {
 
 		frappe.realtime.on("upload_to_google_drive", (data) => {
 			if (data.progress) {
+				const progress_title = __("Uploading to Google Drive");
 				frm.dashboard.show_progress(
-					"Uploading to Google Drive",
+					progress_title,
 					(data.progress / data.total) * 100,
-					__("{0}", [data.message])
+					data.message
 				);
 				if (data.progress === data.total) {
-					frm.dashboard.hide_progress("Uploading to Google Drive");
+					frm.dashboard.hide_progress(progress_title);
 				}
 			}
 		});

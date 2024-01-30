@@ -596,6 +596,10 @@ class Meta(Document):
 			self.get_permlevel_access(permission_type=permission_type, parenttype=parenttype, user=user)
 		)
 
+		if 0 not in permlevel_access and permission_type in ("read", "select"):
+			if frappe.share.get_shared(self.name, user, rights=[permission_type], limit=1):
+				permlevel_access.add(0)
+
 		permitted_fieldnames.extend(
 			df.fieldname
 			for df in self.get_fieldnames_with_value(

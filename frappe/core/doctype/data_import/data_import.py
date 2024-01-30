@@ -38,7 +38,6 @@ class DataImport(Document):
 		submit_after_import: DF.Check
 		template_options: DF.Code | None
 		template_warnings: DF.Code | None
-
 	# end: auto-generated types
 
 	def validate(self):

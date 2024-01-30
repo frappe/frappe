@@ -219,7 +219,13 @@ class CardDialog extends WidgetDialog {
 			{
 				fieldtype: "Data",
 				fieldname: "label",
-				label: "Label",
+				label: __("Label"),
+			},
+			{
+				fieldtype: "HTML Editor",
+				fieldname: "description",
+				label: __("Description"),
+				max_height: "7rem",
 			},
 			{
 				fieldname: "links",

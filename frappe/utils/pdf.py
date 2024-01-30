@@ -54,7 +54,7 @@ def pdf_body_html(template, args, **kwargs):
 
 
 def _guess_template_error_line_number(template) -> int | None:
-	"""Guess line on which exception occured from current traceback."""
+	"""Guess line on which exception occurred from current traceback."""
 	with contextlib.suppress(Exception):
 		import sys
 		import traceback
