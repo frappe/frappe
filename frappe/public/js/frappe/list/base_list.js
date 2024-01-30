@@ -182,7 +182,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_title() {
-		this.page.set_title(this.page_title);
+		this.page.set_title(this.page_title, null, true, "", this.meta.description);
 	}
 
 	setup_view_menu() {
