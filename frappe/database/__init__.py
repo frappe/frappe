@@ -60,12 +60,7 @@ def get_command(
 		else:
 			bin, bin_name = which("psql"), "psql"
 
-		host = frappe.utils.esc(host, "$ ")
-		user = frappe.utils.esc(user, "$ ")
-		db_name = frappe.utils.esc(db_name, "$ ")
-
 		if password:
-			password = frappe.utils.esc(password, "$ ")
 			conn_string = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
 		else:
 			conn_string = f"postgresql://{user}@{host}:{port}/{db_name}"
@@ -81,10 +76,6 @@ def get_command(
 		else:
 			bin, bin_name = which("mariadb") or which("mysql"), "mariadb"
 
-		host = frappe.utils.esc(host, "$ ")
-		user = frappe.utils.esc(user, "$ ")
-		db_name = frappe.utils.esc(db_name, "$ ")
-
 		command = [
 			f"--user={user}",
 			f"--host={host}",
@@ -92,7 +83,6 @@ def get_command(
 		]
 
 		if password:
-			password = frappe.utils.esc(password, "$ ")
 			command.append(f"--password={password}")
 
 		if dump:
