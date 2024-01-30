@@ -11,7 +11,7 @@ from frappe.utils import get_request_session
 
 
 def make_request(
-	method: str, url: str, auth=None, headers=None, data=None, json=None, params=None
+	method: str, url: str, auth=None, headers=None, data=None, json=None, params=None, response_body=True
 ):
 	auth = auth or ""
 	data = data or {}
@@ -24,10 +24,14 @@ def make_request(
 		)
 		frappe.flags.integration_request.raise_for_status()
 
-		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
-			return parse_qs(frappe.flags.integration_request.text)
-
-		return frappe.flags.integration_request.json()
+		if response_body:
+			if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
+				return parse_qs(frappe.flags.integration_request.text)
+	
+			return frappe.flags.integration_request.json()
+		else:
+			return True
+			
 	except Exception as exc:
 		frappe.log_error()
 		raise exc
@@ -55,6 +59,7 @@ def make_post_request(url: str, **kwargs):
 	* `json`: JSON to be passed in the request.
 	* `params`: Query parameters to be passed in the request.
 	* `auth`: Auth credentials.
+ 	* `response_body`: False => Prevents an error if response body is empty. Default = True
 	"""
 	return make_request("POST", url, **kwargs)
 
@@ -69,6 +74,7 @@ def make_put_request(url: str, **kwargs):
 	* `json`: JSON to be passed in the request.
 	* `params`: Query parameters to be passed in the request.
 	* `auth`: Auth credentials.
+  	* `response_body`: False => Prevents an error if response body is empty. Default = True
 	"""
 	return make_request("PUT", url, **kwargs)
 
@@ -83,6 +89,7 @@ def make_patch_request(url: str, **kwargs):
 	* `json`: JSON to be passed in the request.
 	* `params`: Query parameters to be passed in the request.
 	* `auth`: Auth credentials.
+  	* `response_body`: False => Prevents an error if response body is empty. Default = True
 	"""
 	return make_request("PATCH", url, **kwargs)
 
@@ -97,6 +104,7 @@ def make_delete_request(url: str, **kwargs):
 	* `json`: JSON to be passed in the request.
 	* `params`: Query parameters to be passed in the request.
 	* `auth`: Auth credentials.
+  	* `response_body`: False => Prevents an error if response body is empty. Default = True
 	"""
 	return make_request("DELETE", url, **kwargs)
 
