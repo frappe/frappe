@@ -226,7 +226,7 @@ def _restore_thread_locals(flags):
 @contextmanager
 def change_settings(doctype, settings_dict=None, /, **settings):
 	"""A context manager to ensure that settings are changed before running
-	function and restored after running it regardless of exceptions occured.
+	function and restored after running it regardless of exceptions occurred.
 	This is useful in tests where you want to make changes in a function but
 	don't retain those changes.
 	import and use as decorator to cover full function or using `with` statement.
