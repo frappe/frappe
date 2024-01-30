@@ -94,7 +94,9 @@
   "dormant_days",
   "telemetry_section",
   "allow_error_traceback",
-  "enable_telemetry"
+  "enable_telemetry",
+  "search_section",
+  "link_field_results_limit"
  ],
  "fields": [
   {
@@ -634,12 +636,24 @@
   {
    "fieldname": "column_break_uhqk",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "search_section",
+   "fieldtype": "Section Break",
+   "label": "Search"
+  },
+  {
+   "default": "10",
+   "fieldname": "link_field_results_limit",
+   "fieldtype": "Int",
+   "label": "Link Field Results Limit",
+   "non_negative": 1
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2024-01-26 11:29:20.924425",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
