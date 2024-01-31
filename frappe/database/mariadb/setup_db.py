@@ -5,11 +5,6 @@ import click
 import frappe
 from frappe.database.db_manager import DbManager
 
-REQUIRED_MARIADB_CONFIG = {
-	"character_set_server": "utf8mb4",
-	"collation_server": "utf8mb4_unicode_ci",
-}
-
 
 def get_mariadb_variables():
 	return frappe._dict(frappe.db.sql("show variables"))
@@ -67,11 +62,11 @@ def drop_user_and_database(
 	dbman.delete_user(db_user)
 
 
-def bootstrap_database(db_name, verbose, source_sql=None):
+ def bootstrap_database(db_name, db_requirements, verbose, source_sql=None):
 	import sys
 
 	frappe.connect(db_name=db_name)
-	if not check_database_settings():
+	if not check_database_settings(db_requirements):
 		print("Database settings do not match expected values; stopping database setup.")
 		sys.exit(1)
 
@@ -105,13 +100,13 @@ def import_db_from_sql(source_sql=None, verbose=False):
 		print("Imported from database %s" % source_sql)
 
 
-def check_database_settings():
+def check_database_settings(db_requirements):
 	check_compatible_versions()
 
 	# Check each expected value vs. actuals:
 	mariadb_variables = get_mariadb_variables()
 	result = True
-	for key, expected_value in REQUIRED_MARIADB_CONFIG.items():
+	for key, expected_value in db_requirements.items():
 		if mariadb_variables.get(key) != expected_value:
 			print(
 				"For key %s. Expected value %s, found value %s"
