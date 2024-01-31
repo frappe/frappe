@@ -14,11 +14,7 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.utils import FrappeTestCase, patch_hooks
-<<<<<<< HEAD
-from frappe.utils import cint, get_site_url, get_test_client
-=======
 from frappe.utils import cint, get_site_url, get_test_client, get_url
->>>>>>> dedadbb0d9 (perf: optional faster perm check for files)
 
 try:
 	_site = frappe.local.site
@@ -394,8 +390,6 @@ class TestResponse(FrappeAPITestCase):
 		self.assertEqual(response.headers["content-type"], "application/octet-stream")
 		self.assertGreater(cint(response.headers["content-length"]), 0)
 		self.assertEqual(response.headers["content-disposition"], f'filename="{encoded_filename}"')
-<<<<<<< HEAD
-=======
 
 	def test_download_private_file_with_unique_url(self):
 		test_content = frappe.generate_hash()
@@ -411,22 +405,3 @@ class TestResponse(FrappeAPITestCase):
 
 		self.assertEqual(self.get(file.unique_url, {"sid": self.sid}).text, test_content)
 		self.assertEqual(self.get(file.file_url, {"sid": self.sid}).text, test_content)
-
-
-def generate_admin_keys():
-	from frappe.core.doctype.user.user import generate_keys
-
-	generate_keys("Administrator")
-	frappe.db.commit()
-
-
-@frappe.whitelist()
-def test(*, fail=False, handled=True, message="Failed"):
-	if fail:
-		if handled:
-			frappe.throw(message)
-		else:
-			1 / 0
-	else:
-		frappe.msgprint(message)
->>>>>>> dedadbb0d9 (perf: optional faster perm check for files)
