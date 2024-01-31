@@ -42,6 +42,8 @@ jobs:
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' && github.repository_owner == 'frappe' }}
     timeout-minutes: 60
+    env:
+      NODE_ENV: "production"
 
     strategy:
       fail-fast: false
@@ -87,7 +89,7 @@ jobs:
           echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
 
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
@@ -99,7 +101,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -108,7 +110,7 @@ jobs:
             ${{ runner.os }}-yarn-ui-
 
       - name: Cache cypress binary
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/Cypress
           key: ${{ runner.os }}-cypress

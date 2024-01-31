@@ -197,11 +197,7 @@ def map_fields(source_doc, target_doc, table_map, source_parent):
 			for d in source_doc.meta.get("fields")
 			if (d.no_copy == 1 or d.fieldtype in table_fields)
 		]
-		+ [
-			d.fieldname
-			for d in target_doc.meta.get("fields")
-			if (d.no_copy == 1 or d.fieldtype in table_fields)
-		]
+		+ [d.fieldname for d in target_doc.meta.get("fields") if (d.fieldtype in table_fields)]
 		+ list(default_fields)
 		+ list(child_table_fields)
 		+ list(table_map.get("field_no_map", []))

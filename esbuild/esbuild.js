@@ -63,6 +63,11 @@ const argv = yargs
 		description:
 			"Saves esbuild metafiles for built assets. Useful for analyzing bundle size. More info: https://esbuild.github.io/api/#metafile",
 	})
+	.option("using-cached", {
+		type: "boolean",
+		description:
+			"Skips build and uses cached build artifacts to update assets.json (used by Bench)",
+	})
 	.example("node esbuild --apps frappe,erpnext", "Run build only for frappe and erpnext")
 	.example(
 		"node esbuild --files frappe/website.bundle.js,frappe/desk.bundle.js",
@@ -85,6 +90,7 @@ const NODE_PATHS = [].concat(
 	// import js file of any app if you provide the full path
 	app_list.map((app) => path.resolve(apps_path, app)).filter(fs.existsSync)
 );
+const USING_CACHED = Boolean(argv["using-cached"]);
 
 execute().catch((e) => {
 	console.error(e);
@@ -98,6 +104,12 @@ if (WATCH_MODE) {
 
 async function execute() {
 	console.time(TOTAL_BUILD_TIME);
+	if (USING_CACHED) {
+		await update_assets_json_from_built_assets(APPS);
+		await update_assets_json_in_cache();
+		console.timeEnd(TOTAL_BUILD_TIME);
+		process.exit(0);
+	}
 
 	let results;
 	try {
@@ -125,6 +137,44 @@ async function execute() {
 	RUN_BUILD_COMMAND && run_build_command_for_apps(APPS);
 	if (!WATCH_MODE) {
 		process.exit(0);
+	}
+}
+
+async function update_assets_json_from_built_assets(apps) {
+	const assets = await get_assets_json_path_and_obj(false);
+	const assets_rtl = await get_assets_json_path_and_obj(true);
+
+	for (const app in apps) {
+		await update_assets_obj(app, assets.obj, assets_rtl.obj);
+	}
+
+	for (const { obj, path } of [assets, assets_rtl]) {
+		const data = JSON.stringify(obj, null, 4);
+		await fs.promises.writeFile(path, data);
+	}
+}
+
+async function update_assets_obj(app, assets, assets_rtl) {
+	const app_path = path.join(apps_path, app, app);
+	const dist_path = path.join(app_path, "public, dist");
+	const files = await glob("**/*.bundle.*.{js,css}", { cwd: dist_path });
+	const prefix = path.join("/", "assets", app, "dist");
+
+	// eg: "js/marketplace.bundle.6SCSPSGQ.js"
+	for (const file of files) {
+		// eg: [ "marketplace", "bundle", "6SCSPSGQ", "js" ]
+		const parts = path.parse(file).base.split(".");
+
+		// eg: "marketplace.bundle.js"
+		const key = [...parts.slice(0, -2), parts.at(-1)].join(".");
+
+		// eg: "js/marketplace.bundle.6SCSPSGQ.js"
+		const value = path.join(prefix, file);
+		if (file.includes("-rtl")) {
+			assets_rtl[`rtl_${key}`] = value;
+		} else {
+			assets[key] = value;
+		}
 	}
 }
 
@@ -390,14 +440,7 @@ async function write_assets_json(metafile) {
 		}
 	}
 
-	let assets_json_path = path.resolve(assets_path, `assets${rtl ? "-rtl" : ""}.json`);
-	let assets_json;
-	try {
-		assets_json = await fs.promises.readFile(assets_json_path, "utf-8");
-	} catch (error) {
-		assets_json = "{}";
-	}
-	assets_json = JSON.parse(assets_json);
+	let { obj: assets_json, path: assets_json_path } = await get_assets_json_path_and_obj(rtl);
 	// update with new values
 	let new_assets_json = Object.assign({}, assets_json, out);
 	curr_assets_json = new_assets_json;
@@ -429,6 +472,19 @@ async function update_assets_json_in_cache() {
 	client.del("assets_json", (err) => {
 		client.unref();
 	});
+}
+
+async function get_assets_json_path_and_obj(is_rtl) {
+	const file_name = is_rtl ? "assets-rtl.json" : "assets.json";
+	const assets_json_path = path.resolve(assets_path, file_name);
+	let assets_json;
+	try {
+		assets_json = await fs.promises.readFile(assets_json_path, "utf-8");
+	} catch (error) {
+		assets_json = "{}";
+	}
+	assets_json = JSON.parse(assets_json);
+	return { obj: assets_json, path: assets_json_path };
 }
 
 function run_build_command_for_apps(apps) {

@@ -465,7 +465,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			? __("No {0} found with matching filters. Clear filters to see all {0}.", [
 					__(this.doctype),
 			  ])
+			: this.meta.description
+			? __(this.meta.description)
 			: __("You haven't created a {0} yet", [__(this.doctype)]);
+
 		let new_button_label = has_filters_set
 			? __("Create a new {0}", [__(this.doctype)], "Create a new document from list view")
 			: __(
@@ -1819,7 +1822,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				label: __("Clear Assignment", null, "Button in list view actions menu"),
 				action: () => {
 					frappe.confirm(
-						"Are you sure you want to clear the assignments?",
+						__("Are you sure you want to clear the assignments?"),
 						() => {
 							this.disable_list_update = true;
 							bulk_operations.clear_assignment(this.get_checked_items(true), () => {

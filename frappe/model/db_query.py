@@ -217,6 +217,10 @@ class DatabaseQuery:
 		args = self.prepare_args()
 		args.limit = self.add_limit()
 
+		if not args.fields:
+			# apply_fieldlevel_read_permissions has likely removed ALL the fields that user asked for
+			return []
+
 		if args.conditions:
 			args.conditions = "where " + args.conditions
 
@@ -754,7 +758,7 @@ class DatabaseQuery:
 			ref_doctype = field.options if field else f.doctype
 			lft, rgt = "", ""
 			if f.value:
-				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"])
+				lft, rgt = frappe.db.get_value(ref_doctype, f.value, ["lft", "rgt"]) or (0, 0)
 
 			# Get descendants elements of a DocType with a tree structure
 			if f.operator.lower() in (
