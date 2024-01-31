@@ -89,9 +89,22 @@ def main(
 				doctype, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output
 			)
 		elif module_def:
-			doctypes = frappe.db.get_list(
-				"DocType", filters={"module": module_def, "istable": 0}, pluck="name"
+			doctypes = []
+			doctypes_ = frappe.get_list(
+				"DocType",
+				filters={"module": module_def, "istable": 0},
+				fields=["name", "module"],
+				as_list=True,
 			)
+			for doctype, module in doctypes_:
+				test_module = get_module_name(doctype, module, "test_", app=app)
+				try:
+					importlib.import_module(test_module)
+				except Exception:
+					pass
+				else:
+					doctypes.append(doctype)
+
 			ret = run_tests_for_doctype(
 				doctypes, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output
 			)
