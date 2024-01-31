@@ -44,7 +44,10 @@ from .utils.jinja import (
 	render_template,
 )
 
-__version__ = importlib.metadata.version(__name__)
+# correct way:
+# __version__ = importlib.metadata.version(__name__)
+# compat with bench:
+__version__ = "16.0.0-dev"
 
 controllers = {}
 local = Local()
