@@ -744,7 +744,7 @@ class InboundMail(Email):
 		content = self.content
 		for file in attachments:
 			if file.name in self.cid_map and self.cid_map[file.name]:
-				content = content.replace(f"cid:{self.cid_map[file.name]}", file.file_url)
+				content = content.replace(f"cid:{self.cid_map[file.name]}", file.unique_url)
 		return content
 
 	def is_notification(self):

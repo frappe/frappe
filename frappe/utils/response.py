@@ -225,7 +225,12 @@ def download_private_file(path: str) -> Response:
 	if frappe.session.user == "Guest":
 		raise Forbidden(_("You don't have permission to access this file"))
 
-	files = frappe.get_all("File", filters={"file_url": path}, fields="*")
+	filters = {"file_url": path}
+	if frappe.form_dict.fid:
+		filters["name"] = str(frappe.form_dict.fid)
+
+	files = frappe.get_all("File", filters=filters, fields="*")
+
 	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable

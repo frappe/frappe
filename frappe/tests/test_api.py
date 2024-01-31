@@ -14,7 +14,7 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.utils import FrappeTestCase, patch_hooks
-from frappe.utils import cint, get_site_url, get_test_client
+from frappe.utils import cint, get_site_url, get_test_client, get_url
 
 try:
 	_site = frappe.local.site
@@ -390,3 +390,18 @@ class TestResponse(FrappeAPITestCase):
 		self.assertEqual(response.headers["content-type"], "application/octet-stream")
 		self.assertGreater(cint(response.headers["content-length"]), 0)
 		self.assertEqual(response.headers["content-disposition"], f'filename="{encoded_filename}"')
+
+	def test_download_private_file_with_unique_url(self):
+		test_content = frappe.generate_hash()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": test_content,
+				"content": test_content,
+				"is_private": 1,
+			}
+		)
+		file.insert()
+
+		self.assertEqual(self.get(file.unique_url, {"sid": self.sid}).text, test_content)
+		self.assertEqual(self.get(file.file_url, {"sid": self.sid}).text, test_content)
