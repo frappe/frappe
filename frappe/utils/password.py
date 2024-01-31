@@ -240,4 +240,4 @@ def get_encryption_key():
 
 
 def get_password_reset_limit():
-	return frappe.db.get_single_value("System Settings", "password_reset_limit") or 0
+	return frappe.get_system_settings("password_reset_limit") or 3
