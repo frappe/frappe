@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-01-29 18:10+0053\n"
-"PO-Revision-Date: 2024-01-30 19:01\n"
+"PO-Revision-Date: 2024-01-31 19:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -13301,7 +13301,7 @@ msgstr "Weitere Knoten können nur unter Knoten vom Typ \"Gruppe\" erstellt werd
 
 #: core/doctype/communication/communication.js:291
 msgid "Fw: {0}"
-msgstr ""
+msgstr "Fw: {0}"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
@@ -15588,13 +15588,13 @@ msgstr "Index Webseiten für die Suche"
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Indexing authorization code"
-msgstr ""
+msgstr "Indiziere Autorisierungscode"
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Indexing refresh token"
-msgstr ""
+msgstr "Indiziere Aktualisierungstoken"
 
 #. Label of a Select field in DocType 'Kanban Board Column'
 #: desk/doctype/kanban_board_column/kanban_board_column.json
@@ -15634,7 +15634,7 @@ msgstr "Info"
 
 #: core/doctype/data_export/exporter.py:144
 msgid "Info:"
-msgstr ""
+msgstr "Info:"
 
 #. Label of a Select field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -15958,7 +15958,7 @@ msgstr "Ungültiger Nummernkreis: {}"
 
 #: core/doctype/rq_job/rq_job.py:122
 msgid "Invalid Operation"
-msgstr ""
+msgstr "Ungültige Operation"
 
 #: core/doctype/doctype/doctype.py:1578 core/doctype/doctype/doctype.py:1587
 msgid "Invalid Option"
@@ -16017,7 +16017,7 @@ msgstr "Ungültiges Webhook Geheimnis"
 
 #: desk/reportview.py:150
 msgid "Invalid aggregate function"
-msgstr ""
+msgstr "Ungültige Aggregatfunktion"
 
 #: public/js/frappe/views/reports/report_view.js:373
 msgid "Invalid column"
@@ -21955,13 +21955,13 @@ msgstr "Übergeordnetes Feld"
 
 #: core/doctype/doctype/doctype.py:911
 msgid "Parent Field (Tree)"
-msgstr "Elternfeld (Baum)"
+msgstr "Übergeordnetes Feld (Baum)"
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Parent Field (Tree)"
-msgstr "Elternfeld (Baum)"
+msgstr "Übergeordnetes Feld (Baum)"
 
 #: core/doctype/doctype/doctype.py:917
 msgid "Parent Field must be a valid fieldname"
@@ -21975,7 +21975,7 @@ msgstr "Übergeordnete Bezeichnung"
 
 #: core/doctype/doctype/doctype.py:1144
 msgid "Parent Missing"
-msgstr ""
+msgstr "Stammeintrag fehlt"
 
 #. Label of a Data field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -22001,7 +22001,7 @@ msgstr "Das übergeordnete Feld wurde in {0}: {1} nicht angegeben"
 
 #: client.py:476
 msgid "Parenttype, Parent and Parentfield are required to insert a child record"
-msgstr ""
+msgstr "Übergeordneter Typ, übergeordnetes Element und übergeordnetes Feld sind erforderlich, um einen untergeordneten Datensatz einzufügen"
 
 #. Label of a Check field in DocType 'Personal Data Deletion Step'
 #: website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
