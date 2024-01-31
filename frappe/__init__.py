@@ -304,9 +304,9 @@ def connect(
 	local.db = get_db(
 		host=local.conf.db_host,
 		port=local.conf.db_port,
-		user=db_name or local.conf.db_user,
+		user=local.conf.db_user or db_name,
 		password=local.conf.db_password,
-		cur_db_name=db_name or local.conf.db_name,
+		cur_db_name=local.conf.db_name or db_name,
 	)
 	if set_admin_as_user:
 		set_user("Administrator")
