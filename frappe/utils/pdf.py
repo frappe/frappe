@@ -238,7 +238,8 @@ def prepare_header_footer(soup: BeautifulSoup):
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
-		if content := soup.find(id=html_id).extract():
+		if content := soup.find(id=html_id):
+			content = content.extract()
 			# `header/footer-html` are extracted, rendered as html
 			# and passed in wkhtmltopdf options (as '--header/footer-html')
 			# Remove instances of them from main content for render_template
