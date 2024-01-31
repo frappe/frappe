@@ -88,7 +88,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 	}
 
-	push_menu_items() {
+	async push_menu_items() {
 		if (this.board_perms.write) {
 			this.menu_items.push({
 				label: __("Save filters"),
@@ -111,6 +111,19 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				},
 			});
 		}
+
+		const { auto_move_paused }  = await frappe.db.get_doc('Queue Settings')
+
+		this.menu_items.push({
+			label: __(`Queue line move is ${auto_move_paused? 'Paused' : 'Runing'} <br> "Click to change"`),
+			action: () => {
+				frappe.confirm(__(`Please confirm you want to <b>${auto_move_paused? 'Unpause': 'Pause'}</b> the queue auto move.`), () => {
+					console.log(this)
+					frappe.db.set_value('Queue Settings', 'Queue Settings','auto_move_paused', auto_move_paused? 0 : 1)
+					location.reload()
+				})
+			}
+		})
 	}
 
 	setup_paging_area() {
