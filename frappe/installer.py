@@ -167,10 +167,20 @@ def install_db(
 	frappe.flags.root_password = root_password
 
 	if setup:
+		db_requirements = {
+			"character_set_server": "utf8mb4",
+			"collation_server": "utf8mb4_unicode_ci",
+		}
 		setup_database(force, verbose, no_mariadb_socket)
+	else:
+		db_requirements = {
+			"character_set_database": "utf8mb4",
+			"collation_database": "utf8mb4_unicode_ci",
+		}
 
 	bootstrap_database(
 		db_name=frappe.conf.db_name,
+		db_requirements=db_requirements,
 		verbose=verbose,
 		source_sql=source_sql,
 	)
