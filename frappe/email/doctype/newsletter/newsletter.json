@@ -252,11 +252,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-03-20 22:45:59.129630",
-=======
  "modified": "2024-01-30 14:05:50.645802",
->>>>>>> 53d6d156ec (chore: cleanup doctype descriptions (#24609))
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",
