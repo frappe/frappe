@@ -131,6 +131,7 @@ def delete_doc(
 					doctype=doc.doctype,
 					name=doc.name,
 					now=frappe.flags.in_test,
+					enqueue_after_commit=True,
 				)
 
 		# clear cache for Document
