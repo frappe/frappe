@@ -1736,18 +1736,18 @@ Object.assign(frappe.utils, {
 				let url = data.url;
 				localStorage.setItem("tracker_url:url", data.url);
 
-				url += "?utm_source=" + data.source;
+				url += "?utm_source=" + encodeURIComponent(data.source);
 				localStorage.setItem("tracker_url:source", data.source);
 				if (data.campaign) {
-					url += "&utm_campaign=" + data.campaign;
+					url += "&utm_campaign=" + encodeURIComponent(data.campaign);
 					localStorage.setItem("tracker_url:campaign", data.campaign);
 				}
 				if (data.medium) {
-					url += "&utm_medium=" + data.medium;
+					url += "&utm_medium=" + encodeURIComponent(data.medium);
 					localStorage.setItem("tracker_url:medium", data.medium);
 				}
 				if (data.medium) {
-					url += "&utm_content=" + data.content;
+					url += "&utm_content=" + encodeURIComponent(data.content);
 					localStorage.setItem("tracker_url:content", data.content);
 				}
 
