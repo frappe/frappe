@@ -6,6 +6,7 @@ from urllib.parse import quote
 import frappe
 from frappe.model.document import get_controller
 from frappe.utils import get_url, nowdate
+from frappe.utils.caching import redis_cache
 from frappe.website.router import get_pages
 
 no_cache = 1
@@ -31,42 +32,40 @@ def get_context(context):
 	return {"links": links}
 
 
+@redis_cache(ttl=6 * 60 * 60)
 def get_public_pages_from_doctypes():
 	"""Returns pages from doctypes that are publicly accessible"""
 
-	def get_sitemap_routes():
-		routes = {}
-		doctypes_with_web_view = frappe.get_all(
-			"DocType",
-			filters={"has_web_view": True, "allow_guest_to_view": True},
-			pluck="name",
-		)
+	routes = {}
+	doctypes_with_web_view = frappe.get_all(
+		"DocType",
+		filters={"has_web_view": True, "allow_guest_to_view": True},
+		pluck="name",
+	)
 
-		for doctype in doctypes_with_web_view:
-			controller = get_controller(doctype)
-			meta = frappe.get_meta(doctype)
-			condition_field = meta.is_published_field or controller.website.condition_field
+	for doctype in doctypes_with_web_view:
+		controller = get_controller(doctype)
+		meta = frappe.get_meta(doctype)
+		condition_field = meta.is_published_field or controller.website.condition_field
 
-			if not condition_field:
-				continue
+		if not condition_field:
+			continue
 
-			try:
-				res = frappe.get_all(
-					doctype,
-					fields=["route", "name", "modified"],
-					filters={condition_field: True},
-				)
-			except Exception as e:
-				if not frappe.db.is_missing_column(e):
-					raise e
+		try:
+			res = frappe.get_all(
+				doctype,
+				fields=["route", "name", "modified"],
+				filters={condition_field: True},
+			)
+		except Exception as e:
+			if not frappe.db.is_missing_column(e):
+				raise e
 
-			for r in res:
-				routes[r.route] = {
-					"doctype": doctype,
-					"name": r.name,
-					"modified": r.modified,
-				}
+		for r in res:
+			routes[r.route] = {
+				"doctype": doctype,
+				"name": r.name,
+				"modified": r.modified,
+			}
 
-		return routes
-
-	return frappe.cache.get_value("sitemap_routes", get_sitemap_routes)
+	return routes
