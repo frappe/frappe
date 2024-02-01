@@ -144,7 +144,7 @@ class RedisWrapper(redis.Redis):
 			frappe.local.cache.pop(key, None)
 
 		try:
-			self.delete(*keys)
+			self.unlink(*keys)
 		except redis.exceptions.ConnectionError:
 			pass
 
