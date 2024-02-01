@@ -13,6 +13,16 @@ class RoleProfile(Document):
 		self.name = self.role_profile
 
 	def on_update(self):
+<<<<<<< HEAD
+=======
+		self.queue_action(
+			"update_all_users",
+			now=frappe.flags.in_test or frappe.flags.in_install,
+			enqueue_after_commit=True,
+		)
+
+	def update_all_users(self):
+>>>>>>> c479a038a8 (fix: Avoid enqueueing during install (#24679))
 		"""Changes in role_profile reflected across all its user"""
 		has_role = frappe.qb.DocType("Has Role")
 		user = frappe.qb.DocType("User")
