@@ -81,10 +81,11 @@
 	@include get_textstyle("base", "regular");
 	border-radius: var(--border-radius-md);
 
-	@media (max-width: 768px) {
+	@media (max-width: map-get($grid-breakpoints, "md")) {
 		height: fit-content;
 		padding-top: 4.5px;
 		padding-bottom: 4.5px;
+		@include get_textstyle("2xs", "regular");
 
 		.fields {
 			padding-top: 2px;
