@@ -697,18 +697,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_left_html(doc) {
-		let field_columns = this.columns.filter(({ type }) => type === "Field").slice(0, 4);
-		const mobile_row = `<div class="container row-container hidden-lg">
-			<div class="row">
-				<div class="col-12 subject">
-					<strong>${doc[this.columns[0].df.fieldname]}</strong>
-				</div>
-				<div class="col-12 fields">
-					<p>${field_columns.map((col) => doc[col.df.fieldname]).join(" &bull; ")}</p>
-				</div>
-			</div>
-		</div>`;
-		return this.columns.map((col) => this.get_column_html(col, doc)).join("") + mobile_row;
+		const columns_for_mobile = this.columns.filter((col) => col.type === "Field");
+		return this.columns
+			.map((col) => this.get_column_html(col, doc, columns_for_mobile))
+			.join("");
 	}
 
 	get_right_html(doc) {
@@ -716,13 +708,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_list_row_html(doc) {
-		return this.get_list_row_html_skeleton(this.get_left_html(doc), this.get_right_html(doc));
+		return this.get_list_row_html_skeleton(
+			this.get_checkbox_html(doc),
+			this.get_left_html(doc),
+			this.get_right_html(doc)
+		);
 	}
 
-	get_list_row_html_skeleton(left = "", right = "") {
+	get_list_row_html_skeleton(checkbox = "", left = "", right = "") {
 		return `
 			<div class="list-row-container" tabindex="1">
 				<div class="level list-row">
+					${checkbox}
 					<div class="level-left ellipsis">
 						${left}
 					</div>
@@ -734,7 +731,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		`;
 	}
 
-	get_column_html(col, doc) {
+	get_checkbox_html(doc) {
+		const div = document.createElement("div");
+		div.innerHTML = `
+			<span class="level-item select-like">
+				<input class="list-row-checkbox" class="margin: 0 4px;" type="checkbox">
+			</span>
+		`;
+		const checkbox = div.querySelector(".list-row-checkbox");
+		checkbox.dataset.doctype = this.doctype;
+		checkbox.dataset.name = doc.name;
+
+		return div.innerHTML;
+	}
+	get_column_html(col, doc, columns_for_mobile) {
+		const mobile_index = columns_for_mobile.indexOf(col);
 		if (col.type === "Status" || col.df?.options == "Workflow State") {
 			let show_workflow_state = col.df?.options == "Workflow State";
 			return `
@@ -843,12 +854,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return `<span class="ellipsis"
 				title="${__(label)}: ${frappe.utils.escape_html(_value)}">
 				${html}
+				${
+					col.type !== "Subject" &&
+					0 <= mobile_index <= 2 &&
+					columns_for_mobile.length - 1 != mobile_index
+						? "<span class='mobile-seprator'>&bull;</span>"
+						: ""
+				}
 			</span>`;
 		};
 
 		const class_map = {
 			Subject: "list-subject level",
-			Field: "hidden-xs",
+			Field: mobile_index > 2 ? "hidden-xs" : "",
 		};
 		const css_class = [
 			"list-row-col ellipsis",
@@ -1030,18 +1048,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const seen = this.get_seen_class(doc);
 
 		const div = document.createElement("div");
+
 		div.innerHTML = `
-			<span class="level-item select-like">
-				<input class="list-row-checkbox" type="checkbox">
-			</span>
-			<span class="level-item ${seen} ellipsis hidden-sm">
+			<span class="level-item ${seen} ellipsis">
 				<a class="ellipsis"></a>
 			</span>
 		`;
-
-		const checkbox = div.querySelector(".list-row-checkbox");
-		checkbox.dataset.doctype = this.doctype;
-		checkbox.dataset.name = doc.name;
 
 		const link = div.querySelector(".level-item a");
 		link.dataset.doctype = this.doctype;
