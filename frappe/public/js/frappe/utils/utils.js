@@ -1705,6 +1705,7 @@ Object.assign(frappe.utils, {
 					fieldname: "source",
 					label: __("Source"),
 					fieldtype: "Data",
+					reqd: 1,
 					description: "The referrer (e.g. google, newsletter)",
 					default: localStorage.getItem("tracker_url:source"),
 				},
@@ -1735,10 +1736,8 @@ Object.assign(frappe.utils, {
 				let url = data.url;
 				localStorage.setItem("tracker_url:url", data.url);
 
-				if (data.source) {
-					url += "?utm_source=" + data.source;
-					localStorage.setItem("tracker_url:source", data.source);
-				}
+				url += "?utm_source=" + data.source;
+				localStorage.setItem("tracker_url:source", data.source);
 				if (data.campaign) {
 					url += "&utm_campaign=" + data.campaign;
 					localStorage.setItem("tracker_url:campaign", data.campaign);

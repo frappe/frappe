@@ -2486,15 +2486,21 @@ def is_site_link(link: str) -> bool:
 	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
 
 
-def add_trackers_to_url(url: str, source: str, campaign: str, medium: str, content: str) -> str:
+def add_trackers_to_url(
+	url: str,
+	source: str,
+	campaign: str | None = None,
+	medium: str | None = None,
+	content: str | None = None,
+) -> str:
 	url_parts = list(urlparse(url))
 	if url_parts[0] == "mailto":
 		return url
 
-	trackers = {
-		"utm_source": source,
-		"utm_medium": medium,
-	}
+	trackers = {"utm_source": source}
+
+	if medium:
+		trackers["utm_medium"] = medium
 
 	if campaign:
 		trackers["utm_campaign"] = campaign
