@@ -214,9 +214,9 @@
   {
    "allow_in_quick_entry": 1,
    "fieldname": "role_profile_name",
-   "fieldtype": "Link",
+   "fieldtype": "Table MultiSelect",
    "label": "Role Profile",
-   "options": "Role Profile",
+   "options": "User Role Profile",
    "permlevel": 1
   },
   {
@@ -762,7 +762,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2023-09-18 22:19:49.933972",
+ "modified": "2024-01-29 13:45:47.666498",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

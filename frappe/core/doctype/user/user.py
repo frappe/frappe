@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import json
 from collections.abc import Iterable
 from datetime import timedelta
 
@@ -48,6 +49,7 @@ class User(Document):
 		from frappe.core.doctype.defaultvalue.defaultvalue import DefaultValue
 		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.core.doctype.user_email.user_email import UserEmail
+		from frappe.core.doctype.user_role_profile.user_role_profile import UserRoleProfile
 		from frappe.core.doctype.user_social_login.user_social_login import UserSocialLogin
 		from frappe.types import DF
 
@@ -98,7 +100,7 @@ class User(Document):
 		redirect_url: DF.SmallText | None
 		reset_password_key: DF.Data | None
 		restrict_ip: DF.SmallText | None
-		role_profile_name: DF.Link | None
+		role_profile_name: DF.TableMultiSelect[UserRoleProfile]
 		roles: DF.Table[HasRole]
 		send_me_a_copy: DF.Check
 		send_welcome_email: DF.Check
@@ -112,6 +114,7 @@ class User(Document):
 		user_type: DF.Link | None
 		username: DF.Data | None
 	# end: auto-generated types
+
 	__new_password = None
 
 	def __setup__(self):
@@ -176,10 +179,13 @@ class User(Document):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
 	def populate_role_profile_roles(self):
+		roles = []
 		if self.role_profile_name:
-			role_profile = frappe.get_doc("Role Profile", self.role_profile_name)
+			for role_profile in self.role_profile_name:
+				role_profile = frappe.get_doc("Role Profile", role_profile.role_profile)
+				roles.extend([role.role for role in role_profile.roles])
 			self.set("roles", [])
-			self.append_roles(*[role.role for role in role_profile.roles])
+			self.append_roles(*roles)
 
 	@deprecated
 	def validate_roles(self):
@@ -818,10 +824,10 @@ def update_password(
 	"""Update password for the current user.
 
 	Args:
-	        new_password (str): New password.
-	        logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
-	        key (str, optional): Password reset key. Defaults to None.
-	        old_password (str, optional): Old password. Defaults to None.
+	                new_password (str): New password.
+	                logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
+	                key (str, optional): Password reset key. Defaults to None.
+	                old_password (str, optional): Old password. Defaults to None.
 	"""
 
 	if len(new_password) > MAX_PASSWORD_SIZE:
@@ -1210,8 +1216,16 @@ def throttle_user_creation():
 
 
 @frappe.whitelist()
-def get_role_profile(role_profile: str):
-	return frappe.get_doc("Role Profile", {"role_profile": role_profile}).roles
+def get_role_profile(role_profile):
+	profiles = json.loads(role_profile)
+	roles = []
+	for profile in profiles:
+		role = frappe.get_doc("Role Profile", {"role_profile": profile.get("role_profile")}).roles
+		roles.extend(role)
+
+	print(roles)
+	return roles
+	# return frappe.get_doc("Role Profile", {"role_profile": role_profile}).roles
 
 
 @frappe.whitelist()
