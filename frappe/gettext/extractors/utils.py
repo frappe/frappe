@@ -1,7 +1,6 @@
 import re
 
 import frappe
-from frappe.model.utils import InvalidIncludePath, render_include
 
 TRANSLATE_PATTERN = re.compile(
 	r"_\(\s*"  # starts with literal `_(`, ignore following whitespace/newlines
@@ -35,6 +34,8 @@ def extract_messages_from_code(code):
 	:param code: code from which translatable files are to be extracted
 	"""
 	from jinja2 import TemplateError
+
+	from frappe.model.utils import InvalidIncludePath, render_include
 
 	try:
 		code = frappe.as_unicode(render_include(code))
