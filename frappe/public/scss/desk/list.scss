@@ -113,6 +113,30 @@
 		}
 	}
 
+	@media (max-width: map-get($grid-breakpoints, "md")) {
+		height: fit-content;
+		padding-top: 4.5px;
+		padding-bottom: 4.5px;
+		@include get_textstyle("2xs", "regular");
+
+		.fields {
+			padding-top: 2px;
+
+			p {
+				margin-bottom: 0;
+			}
+		}
+
+		.list-row-col {
+			flex-basis: auto;
+			margin-right: 4px;
+		}
+
+		.row-container {
+			padding-left: 0;
+		}
+	}
+
 	&:hover:not(.list-row-head) {
 		background-color: var(--highlight-color);
 	}

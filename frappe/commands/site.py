@@ -76,7 +76,7 @@ def new_site(
 	"Create a new site"
 	from frappe.installer import _new_site
 
-	frappe.init(site=site, new_site=True)
+	frappe.init(site=site, new_site=True, site_ready=False)
 
 	_new_site(
 		db_name,
@@ -417,7 +417,7 @@ def _reinstall(
 	if not yes:
 		click.confirm("This will wipe your database. Are you sure you want to reinstall?", abort=True)
 	try:
-		frappe.init(site=site)
+		frappe.init(site=site, site_ready=False)
 		frappe.connect()
 		frappe.clear_cache()
 		installed = frappe.get_installed_apps()
@@ -429,7 +429,7 @@ def _reinstall(
 			frappe.db.close()
 		frappe.destroy()
 
-	frappe.init(site=site)
+	frappe.init(site=site, site_ready=False)
 
 	_new_site(
 		frappe.conf.db_name,
@@ -726,7 +726,6 @@ def disable_user(context, email):
 @pass_context
 def migrate(context, skip_failing=False, skip_search_index=False):
 	"Run patches, sync schema and rebuild files/translations"
-	from traceback_with_variables import activate_by_import
 
 	from frappe.migrate import SiteMigration
 

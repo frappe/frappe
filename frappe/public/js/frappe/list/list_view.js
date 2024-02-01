@@ -633,7 +633,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				title="${__("Select All")}">
 			<span class="level-item" data-sort-by="${subject_field.fieldname}"
 				title="${__("Click to sort by {0}", [subject_field.label])}">
-				${__(subject_field.label)}
+				<span class="hidden-sm">${__(subject_field.label)}</span><span class="hidden-lg">Details</span>
 			</span>
 		`;
 		const $columns = this.columns
