@@ -131,12 +131,12 @@ class EmailQueue(Document):
 	def attachments_list(self):
 		return json.loads(self.attachments) if self.attachments else []
 
-	def get_email_account(self):
+	def get_email_account(self, raise_error=False):
 		if self.email_account:
 			return frappe.get_cached_doc("Email Account", self.email_account)
 
 		return EmailAccount.find_outgoing(
-			match_by_email=self.sender, match_by_doctype=self.reference_doctype
+			match_by_email=self.sender, match_by_doctype=self.reference_doctype, _raise_error=raise_error
 		)
 
 	def is_to_be_sent(self):
@@ -233,7 +233,7 @@ class SendMailContext:
 		smtp_server_instance: SMTPServer = None,
 	):
 		self.queue_doc: EmailQueue = queue_doc
-		self.email_account_doc = queue_doc.get_email_account()
+		self.email_account_doc = queue_doc.get_email_account(raise_error=True)
 
 		self.smtp_server: SMTPServer = smtp_server_instance or self.email_account_doc.get_smtp_server()
 
@@ -733,7 +733,7 @@ class QueueBuilder:
 			recipients = list(set([r] + self.final_cc() + self.bcc))
 			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
 			if not smtp_server_instance:
-				email_account = q.get_email_account()
+				email_account = q.get_email_account(raise_error=True)
 				smtp_server_instance = email_account.get_smtp_server()
 
 			with suppress(Exception):
