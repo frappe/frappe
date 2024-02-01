@@ -1842,8 +1842,10 @@ def get_link_to_form(doctype: str, name: str, label: str | None = None) -> str:
 	e.g. get_link_to_form("Sales Invoice", "INV-0001", "Link Label") returns:
 	    '<a href="https://frappe.io/app/sales-invoice/INV-0001">Link Label</a>'.
 	"""
+	from frappe import _
+
 	if not label:
-		label = name
+		label = _(doctype) if doctype == name else name
 
 	return f"""<a href="{get_url_to_form(doctype, name)}">{label}</a>"""
 
