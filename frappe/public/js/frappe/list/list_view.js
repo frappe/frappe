@@ -378,7 +378,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					if (frappe.has_indicator(this.doctype) && df.fieldname === "status") {
 						return false;
 					}
-					if (!df.in_list_view) {
+					if (!df.in_list_view || df.is_virtual) {
 						return false;
 					}
 					return df.fieldname !== this.meta.title_field;
