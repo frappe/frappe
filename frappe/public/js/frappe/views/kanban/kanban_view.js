@@ -160,9 +160,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		const { auto_move_paused }  = await frappe.db.get_doc('Queue Settings')
 		setTimeout(() => {
 			const exists = document.querySelector('div[id*="Kanban"] div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end #queue-freeze')
+			console.log({exists})
 			if (!exists){
 				const container = document.querySelector('div.no-list-sidebar div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
-				console.log(container);
+				console.log({container});
 				const input = document.createElement('input')
 				const label = document.createElement('label')
 				label.setAttribute('style', 'margin: 0')
