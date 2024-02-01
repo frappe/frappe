@@ -1222,10 +1222,7 @@ def get_role_profile(role_profile):
 	for profile in profiles:
 		role = frappe.get_doc("Role Profile", {"role_profile": profile.get("role_profile")}).roles
 		roles.extend(role)
-
-	print(roles)
 	return roles
-	# return frappe.get_doc("Role Profile", {"role_profile": role_profile}).roles
 
 
 @frappe.whitelist()
