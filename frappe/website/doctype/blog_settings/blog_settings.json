@@ -1,7 +1,7 @@
 {
  "actions": [],
  "creation": "2013-03-11 17:48:16",
- "description": "Blog Settings",
+ "description": "Settings to control blog categories and interactions like comments and likes",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -131,7 +131,7 @@
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-10-18 15:01:36.202010",
+ "modified": "2024-01-30 14:13:12.477755",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Blog Settings",

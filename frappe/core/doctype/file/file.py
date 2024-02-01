@@ -756,6 +756,13 @@ class File(Document):
 		self.save_file(content=optimized_content, overwrite=True)
 		self.save()
 
+	@property
+	def unique_url(self) -> str:
+		"""Unique URL contains file ID in URL to speed up permisison checks."""
+		from urllib.parse import urlencode
+
+		return self.file_url + "?" + urlencode({"fid": self.name})
+
 	@staticmethod
 	def zip_files(files):
 		zip_file = io.BytesIO()

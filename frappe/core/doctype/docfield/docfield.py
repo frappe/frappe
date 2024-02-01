@@ -117,6 +117,7 @@ class DocField(Document):
 		unique: DF.Check
 		width: DF.Data | None
 	# end: auto-generated types
+
 	def get_link_doctype(self):
 		"""Return the Link doctype for the `docfield` (if applicable).
 

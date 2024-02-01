@@ -20,35 +20,11 @@ from csv import reader, writer
 
 import frappe
 from frappe.gettext.extractors.javascript import extract_javascript
+from frappe.gettext.extractors.utils import extract_messages_from_code, is_translatable
 from frappe.gettext.translate import get_translations_from_mo
-from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
 
-TRANSLATE_PATTERN = re.compile(
-	r"_\(\s*"  # starts with literal `_(`, ignore following whitespace/newlines
-	# BEGIN: message search
-	r"([\"']{,3})"  # start of message string identifier - allows: ', ", """, '''; 1st capture group
-	r"(?P<message>((?!\1).)*)"  # Keep matching until string closing identifier is met which is same as 1st capture group
-	r"\1"  # match exact string closing identifier
-	# END: message search
-	# BEGIN: python context search
-	r"(\s*,\s*context\s*=\s*"  # capture `context=` with ignoring whitespace
-	r"([\"'])"  # start of context string identifier; 5th capture group
-	r"(?P<py_context>((?!\5).)*)"  # capture context string till closing id is found
-	r"\5"  # match context string closure
-	r")?"  # match 0 or 1 context strings
-	# END: python context search
-	# BEGIN: JS context search
-	r"(\s*,\s*(.)*?\s*(,\s*"  # skip message format replacements: ["format", ...] | null | []
-	r"([\"'])"  # start of context string; 11th capture group
-	r"(?P<js_context>((?!\11).)*)"  # capture context string till closing id is found
-	r"\11"  # match context string closure
-	r")*"
-	r")*"  # match one or more context string
-	# END: JS context search
-	r"\s*\)"  # Closing function call ignore leading whitespace/newlines
-)
 REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
 CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
 
@@ -676,59 +652,6 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 	return messages
 
 
-def extract_messages_from_code(code):
-	"""
-	Extracts translatable strings from a code file
-	:param code: code from which translatable files are to be extracted
-	"""
-	from jinja2 import TemplateError
-
-	try:
-		code = frappe.as_unicode(render_include(code))
-
-	# Exception will occur when it encounters John Resig's microtemplating code
-	except (TemplateError, ImportError, InvalidIncludePath, OSError) as e:
-		if isinstance(e, InvalidIncludePath):
-			frappe.clear_last_message()
-
-	messages = []
-
-	for m in TRANSLATE_PATTERN.finditer(code):
-		message = m.group("message")
-		context = m.group("py_context") or m.group("js_context")
-		pos = m.start()
-
-		if is_translatable(message):
-			messages.append([pos, message, context])
-
-	return add_line_number(messages, code)
-
-
-def is_translatable(m):
-	if (
-		re.search("[a-zA-Z]", m)
-		and not m.startswith("fa fa-")
-		and not m.endswith("px")
-		and not m.startswith("eval:")
-	):
-		return True
-	return False
-
-
-def add_line_number(messages, code):
-	ret = []
-	messages = sorted(messages, key=lambda x: x[0])
-	newlines = [m.start() for m in re.compile(r"\n").finditer(code)]
-	line = 1
-	newline_i = 0
-	for pos, message, context in messages:
-		while newline_i < len(newlines) and pos > newlines[newline_i]:
-			line += 1
-			newline_i += 1
-		ret.append([line, message, context])
-	return ret
-
-
 def read_csv_file(path):
 	"""Read CSV file and return as list of list
 
@@ -1104,44 +1027,6 @@ def print_language(language: str):
 	# restore original values
 	frappe.local.lang = _lang
 	frappe.local.jenv = _jenv
-
-
-@functools.total_ordering
-class LazyTranslate:
-	__slots__ = ("msg", "lang", "context")
-
-	def __init__(self, msg: str, lang: str | None = None, context: str | None = None) -> None:
-		self.msg = msg
-		self.lang = lang
-		self.context = context
-
-	@property
-	def value(self) -> str:
-		return frappe._(str(self.msg), self.lang, self.context)
-
-	def __str__(self):
-		return self.value
-
-	def __add__(self, other):
-		if isinstance(other, (str, LazyTranslate)):
-			return self.value + str(other)
-		raise NotImplementedError
-
-	def __radd__(self, other):
-		if isinstance(other, (str, LazyTranslate)):
-			return str(other) + self.value
-		return NotImplementedError
-
-	def __repr__(self) -> str:
-		return f"'{self.value}'"
-
-	# NOTE: it's required to override these methods and raise error as default behaviour will
-	# return `False` in all cases.
-	def __eq__(self, other):
-		raise NotImplementedError
-
-	def __lt__(self, other):
-		raise NotImplementedError
 
 
 # Backward compatibility
