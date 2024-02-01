@@ -824,10 +824,10 @@ def update_password(
 	"""Update password for the current user.
 
 	Args:
-	                new_password (str): New password.
-	                logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
-	                key (str, optional): Password reset key. Defaults to None.
-	                old_password (str, optional): Old password. Defaults to None.
+			new_password (str): New password.
+			logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
+			key (str, optional): Password reset key. Defaults to None.
+			old_password (str, optional): Old password. Defaults to None.
 	"""
 
 	if len(new_password) > MAX_PASSWORD_SIZE:
