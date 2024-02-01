@@ -43,6 +43,8 @@ jobs:
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     timeout-minutes: 60
+    env:
+      NODE_ENV: "production"
 
     strategy:
       fail-fast: false
