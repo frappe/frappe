@@ -1836,13 +1836,16 @@ def get_host_name() -> str:
 	return get_url().rsplit("//", 1)[-1]
 
 
-def get_link_to_form(doctype: str, name: str, label: str | None = None) -> str:
+def get_link_to_form(doctype: str, name: str | None = None, label: str | None = None) -> str:
 	"""Return the HTML link to the given document's form view.
 
 	e.g. get_link_to_form("Sales Invoice", "INV-0001", "Link Label") returns:
 	    '<a href="https://frappe.io/app/sales-invoice/INV-0001">Link Label</a>'.
 	"""
 	from frappe import _
+
+	if not name:
+		name = doctype
 
 	if not label:
 		label = _(doctype) if doctype == name else name
