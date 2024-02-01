@@ -109,4 +109,5 @@ class CustomizeFormField(Document):
 		unique: DF.Check
 		width: DF.Data | None
 	# end: auto-generated types
+
 	pass

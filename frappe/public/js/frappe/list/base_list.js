@@ -132,7 +132,9 @@ frappe.views.BaseList = class BaseList {
 			frappe.meta.has_field(doctype, fieldname) ||
 			fieldname === "_seen";
 
-		if (!is_valid_field) {
+		let is_virtual = this.meta.fields.find((df) => df.fieldname == fieldname)?.is_virtual;
+
+		if (!is_valid_field || is_virtual) {
 			return;
 		}
 
