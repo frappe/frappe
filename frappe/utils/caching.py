@@ -154,11 +154,10 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Calla
 			func_call_key = func_key + "::" + str(__generate_request_cache_key(args, kwargs))
 			if frappe.cache.exists(func_call_key):
 				return frappe.cache.get_value(func_call_key, user=user)
-			else:
-				val = func(*args, **kwargs)
-				ttl = getattr(func, "ttl", 3600)
-				frappe.cache.set_value(func_call_key, val, expires_in_sec=ttl, user=user)
-				return val
+			val = func(*args, **kwargs)
+			ttl = getattr(func, "ttl", 3600)
+			frappe.cache.set_value(func_call_key, val, expires_in_sec=ttl, user=user)
+			return val
 
 		return redis_cache_wrapper
 
