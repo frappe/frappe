@@ -158,27 +158,29 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 
 		const { auto_move_paused }  = await frappe.db.get_doc('Queue Settings')
-		const exists = document.querySelector('div[id*="Kanban"] div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end #queue-freeze')
-		if (!exists){
-			const container = document.querySelector('div.no-list-sidebar div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
-			const input = document.createElement('input')
-			const label = document.createElement('label')
-			label.setAttribute('style', 'margin: 0')
-			label.setAttribute('id', 'queue-freeze')
-			label.innerText = ' freeze queue positions '
-			label.appendChild(input)
-			input.setAttribute('type', 'checkbox')
-			if (auto_move_paused) {
-				input.setAttribute('checked', 'checked')
-			}
-			container.prepend(label);
-			input.addEventListener('change', (event) => {
-				frappe.db.set_value('Queue Settings', 'Queue Settings','auto_move_paused', auto_move_paused? 0 : 1)
-				.then(()=> {
-					frappe.msgprint(__('Status updated successfully'));
+		setTimeout(() => {
+			const exists = document.querySelector('div[id*="Kanban"] div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end #queue-freeze')
+			if (!exists){
+				const container = document.querySelector('div.no-list-sidebar div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
+				const input = document.createElement('input')
+				const label = document.createElement('label')
+				label.setAttribute('style', 'margin: 0')
+				label.setAttribute('id', 'queue-freeze')
+				label.innerText = ' freeze queue positions '
+				label.appendChild(input)
+				input.setAttribute('type', 'checkbox')
+				if (auto_move_paused) {
+					input.setAttribute('checked', 'checked')
+				}
+				container.prepend(label);
+				input.addEventListener('change', (event) => {
+					frappe.db.set_value('Queue Settings', 'Queue Settings','auto_move_paused', auto_move_paused? 0 : 1)
+					.then(()=> {
+						frappe.msgprint(__('Status updated successfully'));
+					})
 				})
-			})
-		}
+			}
+		}, 500);
 	}
 
 	render_list() {}
