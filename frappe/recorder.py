@@ -1,9 +1,12 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import cProfile
 import datetime
 import functools
 import inspect
+import io
 import json
+import pstats
 import re
 import time
 from collections import Counter
@@ -148,6 +151,8 @@ class Recorder:
 		self.uuid = frappe.generate_hash(length=10)
 		self.time = datetime.datetime.now()
 		self.calls = []
+		self.profiler = cProfile.Profile()
+		self.profiler.enable()
 		if frappe.request:
 			self.path = frappe.request.path
 			self.cmd = frappe.local.form_dict.cmd or ""
@@ -176,6 +181,13 @@ class Recorder:
 		self.calls.append(data)
 
 	def dump(self):
+		self.profiler.disable()
+
+		profiler_output = io.StringIO()
+		pstats.Stats(self.profiler, stream=profiler_output).strip_dirs().sort_stats(
+			"cumulative"
+		).print_stats()
+
 		request_data = {
 			"uuid": self.uuid,
 			"path": self.path,
@@ -197,6 +209,8 @@ class Recorder:
 		request_data["calls"] = self.calls
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
+		request_data["profile"] = profiler_output.getvalue()
+		profiler_output.close()
 		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
 
