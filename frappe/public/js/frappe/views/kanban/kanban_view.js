@@ -180,7 +180,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 					})
 				})
 			}
-		}, 500);
+		}, 1500);
 	}
 
 	render_list() {}
