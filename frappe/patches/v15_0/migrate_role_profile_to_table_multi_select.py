@@ -7,8 +7,7 @@ def execute():
 	for user in role_profiles:
 		if not user.role_profile_name:
 			continue
+		user_role_profile = [{"role_profile": user.role_profile_name}]
 		user = frappe.get_doc("User", user.name)
-		new_role_profiles = []
-		new_role_profiles.append({"role_profile": user.role_profile_name})
-		user.update({"role_profile_name": new_role_profiles})
+		user.update({"role_profile_name": user_role_profile})
 		user.save()
