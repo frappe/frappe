@@ -66,7 +66,7 @@ def render_include(content):
 		if "{% include" in content:
 			paths = INCLUDE_DIRECTIVE_PATTERN.findall(content)
 			if not paths:
-				frappe.throw(_("Invalid include path"), InvalidIncludePath)
+				raise InvalidIncludePath
 
 			for path in paths:
 				app, app_path = path.split("/", 1)
