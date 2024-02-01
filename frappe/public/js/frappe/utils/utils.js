@@ -1743,7 +1743,7 @@ Object.assign(frappe.utils, {
 					localStorage.setItem("tracker_url:campaign", data.campaign);
 				}
 				if (data.medium) {
-					url += "&utm_medium=" + data.medium.toLowerCase();
+					url += "&utm_medium=" + data.medium;
 					localStorage.setItem("tracker_url:medium", data.medium);
 				}
 				if (data.medium) {
