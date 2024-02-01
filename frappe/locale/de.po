@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-01-29 18:10+0053\n"
-"PO-Revision-Date: 2024-01-31 19:11\n"
+"PO-Revision-Date: 2024-02-01 12:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -17198,7 +17198,7 @@ msgstr "Vergangenes Quartal"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Last Reset Password Key Generated On"
-msgstr ""
+msgstr "Letzter Schlüssel zum Zurücksetzen des Passworts Erzeugt am"
 
 #. Label of a Datetime field in DocType 'Google Contacts'
 #: integrations/doctype/google_contacts/google_contacts.json
@@ -17698,7 +17698,7 @@ msgstr "Link abgelaufen"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Link Field Results Limit"
-msgstr ""
+msgstr "Max. Anzahl Vorschläge in Verknüpfungsfeld"
 
 #. Label of a Data field in DocType 'DocType Link'
 #: core/doctype/doctype_link/doctype_link.json
@@ -22325,7 +22325,7 @@ msgstr "Berechtigungsfehler"
 #. Name of a DocType
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "Permission Inspector"
-msgstr ""
+msgstr "Berechtigungsinspektor"
 
 #: core/page/permission_manager/permission_manager.js:446
 msgid "Permission Level"
@@ -23983,7 +23983,7 @@ msgstr "Abfragebericht"
 
 #: utils/safe_exec.py:437
 msgid "Query must be of SELECT or read-only WITH type."
-msgstr ""
+msgstr "Die Abfrage muss vom Typ SELECT oder Read-Only WITH sein."
 
 #. Label of a Select field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -30889,7 +30889,7 @@ msgstr "Der Feldname, den Sie im Angehängten Feld angegeben haben, ist ungülti
 
 #: automation/doctype/assignment_rule/assignment_rule.py:61
 msgid "The following Assignment Days have been repeated: {0}"
-msgstr ""
+msgstr "Die folgenden Zuweisungs-Tage wurden wiederholt: {0}"
 
 #: core/doctype/data_import/importer.py:1035
 msgid "The following values are invalid: {0}. Values must be one of {1}"
@@ -31559,7 +31559,7 @@ msgstr "Zeitleiste"
 #: core/doctype/activity_log/activity_log.json
 msgctxt "Activity Log"
 msgid "Timeline DocType"
-msgstr ""
+msgstr "Timeline-DocType"
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
