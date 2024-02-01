@@ -253,8 +253,10 @@ def notify_assignment(
 	if not (assigned_by and allocated_to and doc_type and doc_name):
 		return
 
+	assigned_user = frappe.db.get_value("User", allocated_to, ["language", "enabled"], as_dict=True)
+
 	# return if self assigned or user disabled
-	if assigned_by == allocated_to or not frappe.db.get_value("User", allocated_to, "enabled"):
+	if assigned_by == allocated_to or not assigned_user.enabled:
 		return
 
 	# Search for email address in description -- i.e. assignee
@@ -263,14 +265,16 @@ def notify_assignment(
 	description_html = f"<div>{description}</div>" if description else None
 
 	if action == "CLOSE":
-		subject = _("Your assignment on {0} {1} has been removed by {2}").format(
-			frappe.bold(_(doc_type)), get_title_html(title), frappe.bold(user_name)
-		)
+		subject = _(
+			"Your assignment on {0} {1} has been removed by {2}", lang=assigned_user.language
+		).format(frappe.bold(_(doc_type)), get_title_html(title), frappe.bold(user_name))
 	else:
 		user_name = frappe.bold(user_name)
-		document_type = frappe.bold(_(doc_type))
+		document_type = frappe.bold(_(doc_type, lang=assigned_user.language))
 		title = get_title_html(title)
-		subject = _("{0} assigned a new task {1} {2} to you").format(user_name, document_type, title)
+		subject = _("{0} assigned a new task {1} {2} to you", lang=assigned_user.language).format(
+			user_name, document_type, title
+		)
 
 	notification_doc = {
 		"type": "Assignment",

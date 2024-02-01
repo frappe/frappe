@@ -6,7 +6,7 @@ import quopri
 import traceback
 from contextlib import suppress
 from email.parser import Parser
-from email.policy import SMTPUTF8, default
+from email.policy import SMTP
 
 import frappe
 from frappe import _, safe_encode, task
@@ -170,7 +170,9 @@ class EmailQueue(Document):
 				else:
 					if not frappe.flags.in_test or frappe.flags.testing_email:
 						ctx.smtp_server.session.sendmail(
-							from_addr=self.sender, to_addrs=recipient.recipient, msg=message
+							from_addr=self.sender,
+							to_addrs=recipient.recipient,
+							msg=message.decode("utf-8").encode(),
 						)
 
 				ctx.update_recipient_status_to_sent(recipient)
@@ -267,7 +269,7 @@ class SendMailContext:
 	@savepoint(catch=Exception)
 	def notify_failed_email(self):
 		# Parse the email body to extract the subject
-		subject = Parser(policy=default).parsestr(self.queue_doc.message)["Subject"]
+		subject = Parser(policy=SMTP).parsestr(self.queue_doc.message)["Subject"]
 
 		# Construct the notification
 		notification = frappe.new_doc("Notification Log")
@@ -284,7 +286,7 @@ class SendMailContext:
 		recipient.update_db(status="Sent", commit=True)
 
 	def get_message_object(self, message):
-		return Parser(policy=SMTPUTF8).parsestr(message)
+		return Parser(policy=SMTP).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
 		# sourcery skip: avoid-builtin-shadow
@@ -296,9 +298,10 @@ class SendMailContext:
 		}
 		return map.get(placeholder_key)
 
-	def build_message(self, recipient_email):
+	def build_message(self, recipient_email) -> bytes:
 		"""Build message specific to the recipient."""
 		message = self.queue_doc.message
+
 		if not message:
 			return ""
 
