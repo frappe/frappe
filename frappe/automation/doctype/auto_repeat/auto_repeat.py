@@ -550,7 +550,7 @@ def get_auto_repeat_doctypes(doctype, txt, searchfield, start, page_len, filters
 	docs += [r.name for r in res]
 	docs = set(list(docs))
 
-	return [[d] for d in docs]
+	return [[d] for d in docs if txt in d]
 
 
 @frappe.whitelist()

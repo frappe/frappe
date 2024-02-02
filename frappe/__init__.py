@@ -305,10 +305,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 
 	local.initialised = True
 
-	# Set the user as database name if not set in config
-	if local.conf and local.conf.db_name is not None and local.conf.db_user is None:
-		local.conf.db_user = local.conf.db_name
-
 
 def connect(
 	site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True
@@ -316,7 +312,7 @@ def connect(
 	"""Connect to site database instance.
 
 	:param site: (Deprecated) If site is given, calls `frappe.init`.
-	:param db_name: Optional. Will use from `site_config.json`.
+	:param db_name: (Deprecated) Optional. Will use from `site_config.json`.
 	:param set_admin_as_user: Set Administrator as current user.
 	"""
 	from frappe.database import get_db
@@ -329,13 +325,24 @@ def connect(
 			"Instead, explicitly invoke frappe.init(site) prior to calling frappe.connect(), if initializing the site is necessary."
 		)
 		init(site)
+	if db_name:
+		from frappe.utils.deprecations import deprecation_warning
+
+		deprecation_warning(
+			"Calling frappe.connect with the db_name argument is deprecated and will be removed in next major version. "
+			"Instead, explicitly invoke frappe.init(site) with the right config prior to calling frappe.connect(), if necessary."
+		)
+
+	assert db_name or local.conf.db_user, "site must be fully initialized, db_user missing"
+	assert db_name or local.conf.db_name, "site must be fully initialized, db_name missing"
+	assert local.conf.db_password, "site must be fully initialized, db_password missing"
 
 	local.db = get_db(
 		host=local.conf.db_host,
 		port=local.conf.db_port,
-		user=local.conf.db_user or db_name or local.conf.db_name,
+		user=local.conf.db_user or db_name,
 		password=local.conf.db_password,
-		cur_db_name=db_name or local.conf.db_name,
+		cur_db_name=local.conf.db_name or db_name,
 	)
 	if set_admin_as_user:
 		set_user("Administrator")
@@ -421,6 +428,11 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
 	config["db_port"] = (
 		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
+	)
+
+	# Set the user as database name if not set in config
+	config["db_user"] = (
+		os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
 	)
 
 	return config

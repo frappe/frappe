@@ -725,12 +725,8 @@ class User(Document):
 		3. If allow_login_using_user_name is set, you can use username while finding the user.
 		"""
 
-		login_with_mobile = cint(
-			frappe.db.get_single_value("System Settings", "allow_login_using_mobile_number")
-		)
-		login_with_username = cint(
-			frappe.db.get_single_value("System Settings", "allow_login_using_user_name")
-		)
+		login_with_mobile = cint(frappe.get_system_settings("allow_login_using_mobile_number"))
+		login_with_username = cint(frappe.get_system_settings("allow_login_using_user_name"))
 
 		or_filters = [{"name": user_name}]
 		if login_with_mobile:
@@ -840,8 +836,8 @@ def update_password(
 	else:
 		user = res["user"]
 
-	logout_all_sessions = cint(logout_all_sessions) or frappe.db.get_single_value(
-		"System Settings", "logout_on_password_reset"
+	logout_all_sessions = cint(logout_all_sessions) or frappe.get_system_settings(
+		"logout_on_password_reset"
 	)
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
 
@@ -933,7 +929,7 @@ def _get_user_for_update_password(key, old_password):
 		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
 			reset_password_link_expiry = cint(
-				frappe.db.get_single_value("System Settings", "reset_password_link_expiry_duration")
+				frappe.get_system_settings("reset_password_link_expiry_duration")
 			)
 			if (
 				reset_password_link_expiry
