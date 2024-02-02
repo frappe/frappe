@@ -202,18 +202,12 @@ class SendMailContext:
 		smtp_server_instance: SMTPServer = None,
 	):
 		self.queue_doc: EmailQueue = queue_doc
-<<<<<<< HEAD
-		self.email_account_doc = queue_doc.get_email_account(raise_error=True)
-
-		self.smtp_server = smtp_server_instance or self.email_account_doc.get_smtp_server()
 
 		# if smtp_server_instance is passed, then retain smtp session
 		# Note: smtp session will have to be manually closed
 		self.retain_smtp_session = bool(smtp_server_instance)
 
-=======
 		self.smtp_server: SMTPServer = smtp_server_instance
->>>>>>> dae99eb53c (fix: Fetch SMTP server inside context)
 		self.sent_to_atleast_one_recipient = any(
 			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
 		)
