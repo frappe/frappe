@@ -21,6 +21,14 @@ frappe.ui.form.on("Print Format", {
 		frm.toggle_display("standard", frappe.boot.developer_mode);
 		frm.trigger("hide_absolute_value_field");
 	},
+	standard: function (frm) {
+		if (
+			frm.doc.standard == "Yes" &&
+			(frm.doc.print_format_builder || frm.doc.print_format_builder_beta) == 1
+		) {
+			frm.set_value("print_from_file", 0);
+		}
+	},
 	render_buttons: function (frm) {
 		frm.page.clear_inner_toolbar();
 		if (!frm.is_new()) {

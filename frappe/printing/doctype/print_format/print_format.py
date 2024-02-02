@@ -43,6 +43,7 @@ class PrintFormat(Document):
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_type: DF.Literal["Jinja", "JS"]
+		print_from_file: DF.Check
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		show_section_headings: DF.Check

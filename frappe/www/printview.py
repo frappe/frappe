@@ -179,7 +179,7 @@ def get_rendered_template(
 
 			template = "standard"
 
-		elif print_format.standard == "Yes":
+		elif print_format.standard == "Yes" and cint(print_format.print_from_file) == 1:
 			template = get_template_from_string()
 
 		else:
