@@ -255,10 +255,16 @@ class RedisWrapper(redis.Redis):
 		"""
 		_name = self.make_key(name, shared=shared)
 
-		if not isinstance(keys, (list, tuple)):
-			keys = (keys,)
-
 		name_in_local_cache = _name in frappe.local.cache
+
+		if not isinstance(keys, list | tuple):
+			if name_in_local_cache and keys in frappe.local.cache[_name]:
+				del frappe.local.cache[_name][keys]
+			if pipeline:
+				pipeline.hdel(_name, keys)
+			else:
+				super().hdel(_name, keys)
+			return
 
 		local_pipeline = False
 
