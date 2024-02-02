@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING, Any, Literal, Optional, overload
 import click
 from werkzeug.local import Local, release_local
 
+import frappe
 from frappe.query_builder import (
 	get_query,
 	get_query_builder,
@@ -247,8 +248,13 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 	local.qb.get_query = get_query
+<<<<<<< HEAD
 	local.qb.engine = _dict(get_query=get_query)  # for backward compatiblity
 	setup_module_map()
+=======
+	setup_redis_cache_connection()
+	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
+>>>>>>> 986e8bc766 (feat: include only installed apps in module map in certain scenarios)
 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
@@ -1528,7 +1534,7 @@ def append_hook(target, key, value):
 		target[key].extend(value)
 
 
-def setup_module_map():
+def setup_module_map(include_all_apps=True):
 	"""Rebuild map of all modules (internal)."""
 	_cache = cache()
 
@@ -1538,10 +1544,18 @@ def setup_module_map():
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
-		for app in get_all_apps(with_internal_apps=True):
+		if include_all_apps:
+			apps = get_all_apps(with_internal_apps=True)
+		else:
+			apps = get_installed_apps(_ensure_on_bench=True)
+		for app in apps:
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
+				if module in local.module_app:
+					print(
+						f"WARNING: module `{module}` found in apps `{local.module_app[module]}` and `{app}`"
+					)
 				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
