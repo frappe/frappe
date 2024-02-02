@@ -17,6 +17,7 @@ import inspect
 import json
 import os
 import re
+import traceback
 import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
@@ -434,6 +435,18 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	config["db_user"] = (
 		os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
 	)
+
+	# Allow externally extending the config with hooks
+	if extra_config := config.get("extra_config"):
+		if isinstance(extra_config, str):
+			extra_config = [extra_config]
+		for hook in extra_config:
+			try:
+				module, method = hook.rsplit(".", 1)
+				config |= getattr(importlib.import_module(module), method)()
+			except Exception:
+				print(f"Config hook {hook} failed")
+				traceback.print_exc()
 
 	return config
 
