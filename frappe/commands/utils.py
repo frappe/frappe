@@ -772,9 +772,6 @@ def run_tests(
 			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
 			return
 
-		frappe.flags.skip_before_tests = skip_before_tests
-		frappe.flags.skip_test_records = skip_test_records
-
 		ret = frappe.test_runner.main(
 			site,
 			app,
@@ -789,6 +786,8 @@ def run_tests(
 			doctype_list_path=doctype_list_path,
 			failfast=failfast,
 			case=case,
+			skip_test_records=skip_test_records,
+			skip_before_tests=skip_before_tests,
 		)
 
 		if len(ret.failures) == 0 and len(ret.errors) == 0:

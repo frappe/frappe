@@ -51,12 +51,17 @@ def main(
 	doctype_list_path=None,
 	failfast=False,
 	case=None,
+	skip_test_records=False,
+	skip_before_tests=False,
 ):
 	global unittest_runner
 
 	frappe.init(site=site)
 	if not frappe.db:
 		frappe.connect()
+
+	frappe.flags.skip_before_tests = skip_before_tests
+	frappe.flags.skip_test_records = skip_test_records
 
 	if doctype_list_path:
 		app, doctype_list_path = doctype_list_path.split(os.path.sep, 1)
