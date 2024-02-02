@@ -7,7 +7,7 @@ import smtplib
 import traceback
 from contextlib import suppress
 from email.parser import Parser
-from email.policy import SMTPUTF8
+from email.policy import SMTP
 
 from rq.timeouts import JobTimeoutException
 
@@ -140,7 +140,9 @@ class EmailQueue(Document):
 				else:
 					if not frappe.flags.in_test:
 						ctx.smtp_server.session.sendmail(
-							from_addr=self.sender, to_addrs=recipient.recipient, msg=message
+							from_addr=self.sender,
+							to_addrs=recipient.recipient,
+							msg=message.decode("utf-8").encode(),
 						)
 
 				ctx.update_recipient_status_to_sent(recipient)
@@ -256,7 +258,7 @@ class SendMailContext:
 		recipient.update_db(status="Sent", commit=True)
 
 	def get_message_object(self, message):
-		return Parser(policy=SMTPUTF8).parsestr(message)
+		return Parser(policy=SMTP).parsestr(message)
 
 	def message_placeholder(self, placeholder_key):
 		# sourcery skip: avoid-builtin-shadow
@@ -268,9 +270,10 @@ class SendMailContext:
 		}
 		return map.get(placeholder_key)
 
-	def build_message(self, recipient_email):
+	def build_message(self, recipient_email) -> bytes:
 		"""Build message specific to the recipient."""
 		message = self.queue_doc.message
+
 		if not message:
 			return ""
 
