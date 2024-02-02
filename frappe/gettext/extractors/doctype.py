@@ -39,13 +39,9 @@ def extract(fileobj, *args, **kwargs):
 				(description, f"Description of the '{_label}' ({fieldtype}) field in DocType '{doctype}'")
 			)
 
-		if message := field.get("options"):
+		if message := field.get("translatable") and field.get("options"):
 			if fieldtype == "Select":
 				select_options = [option for option in message.split("\n") if option and not option.isdigit()]
-
-				if select_options and "icon" in select_options[0]:
-					continue
-
 				messages.extend(
 					(
 						option,
