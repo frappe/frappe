@@ -143,7 +143,7 @@ frappe.ui.form.on("Communication", {
 					label: __("Reference Doctype"),
 					fieldname: "reference_doctype",
 					get_query: function () {
-						return { query: "frappe.communications..inbox.get_communication_doctype" };
+						return { query: "frappe.communications.inbox.get_communication_doctype" };
 					},
 				},
 				{
