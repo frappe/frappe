@@ -1520,7 +1520,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	avoid_realtime_update() {
-		if (this.filter_area.is_being_edited()) {
+		if (this.filter_area?.is_being_edited()) {
 			return true;
 		}
 		// this is set when a bulk operation is called from a list view which might update the list view
