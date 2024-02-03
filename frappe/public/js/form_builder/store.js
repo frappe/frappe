@@ -85,8 +85,13 @@ export const useStore = defineStore("form-builder-store", () => {
 
 	async function fetch() {
 		doc.value = frm.value.doc;
-		if (doctype.value.startsWith("new-doctype-") && !doc.value.fields) {
-			doc.value.fields = [get_df("Data", "", __("Title"))];
+		if (doctype.value.startsWith("new-doctype-") && !doc.value.fields?.length) {
+			frappe.model.with_doctype("DocType").then(() => {
+				frappe.listview_settings["DocType"].new_doctype_dialog();
+			});
+			// redirect to /doctype
+			frappe.set_route("List", "DocType");
+			return;
 		}
 
 		if (!get_docfields.value.length) {
