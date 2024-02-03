@@ -2,9 +2,9 @@
 # License: MIT. See LICENSE
 
 import calendar
+import datetime
 from datetime import timedelta
 from email.utils import formataddr
-import datetime
 
 import frappe
 from frappe import _
@@ -15,18 +15,18 @@ from frappe.utils import (
 	add_to_date,
 	cint,
 	format_time,
+	get_first_day,
+	get_first_day_of_week,
 	get_link_to_form,
+	get_quarter_start,
 	get_url_to_report,
+	get_year_start,
+	getdate,
 	global_date_format,
 	now,
 	now_datetime,
 	today,
 	validate_email_address,
-	get_first_day_of_week,
-	get_first_day,
-	get_quarter_start,
-	get_year_start,
-	getdate,
 )
 from frappe.utils.csvutils import to_csv
 from frappe.utils.xlsxutils import make_xlsx
@@ -215,7 +215,7 @@ class AutoEmailReport(Document):
 		self.filters = frappe.parse_json(self.filters)
 
 		to_date = today()
-		
+
 		if self.use_first_day_of_period:
 			from_date = to_date
 			if self.dynamic_date_period == "Daily":
@@ -244,7 +244,7 @@ class AutoEmailReport(Document):
 
 			from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
 			self.set_date_filters(from_date, to_date)
-		
+
 	def set_date_filters(self, from_date, to_date):
 		self.filters[self.from_date_field] = from_date
 		self.filters[self.to_date_field] = to_date
@@ -361,19 +361,22 @@ def update_field_types(columns):
 			col.options = ""
 	return columns
 
+
 DATE_FORMAT = "%Y-%m-%d"
+
+
 def get_half_year_start(as_str=False):
-    """
-    Returns the first day of the current half-year based on the current date.
-    """
-    today_date = getdate(today())
+	"""
+	Returns the first day of the current half-year based on the current date.
+	"""
+	today_date = getdate(today())
 
-    half_year = 1 if today_date.month <= 6 else 2
+	half_year = 1 if today_date.month <= 6 else 2
 
-    year = today_date.year if half_year == 1 else today_date.year + 1
-    month = 1 if half_year == 1 else 7
-    day = 1
+	year = today_date.year if half_year == 1 else today_date.year + 1
+	month = 1 if half_year == 1 else 7
+	day = 1
 
-    result_date = datetime.date(year, month, day)
+	result_date = datetime.date(year, month, day)
 
-    return result_date if not as_str else result_date.strftime(DATE_FORMAT)
+	return result_date if not as_str else result_date.strftime(DATE_FORMAT)
