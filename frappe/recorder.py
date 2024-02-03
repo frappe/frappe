@@ -11,6 +11,7 @@ import re
 import time
 from collections import Counter
 from collections.abc import Callable
+from dataclasses import dataclass
 
 import sqlparse
 
@@ -19,17 +20,37 @@ from frappe import _
 from frappe.database.database import is_query_type
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
+RECORDER_CONFIG_FLAG = "recorder-config"
 RECORDER_REQUEST_SPARSE_HASH = "recorder-requests-sparse"
 RECORDER_REQUEST_HASH = "recorder-requests"
 TRACEBACK_PATH_PATTERN = re.compile(".*/apps/")
+RECORDER_AUTO_DISABLE = 5 * 60
 
 
-def sql(*args, **kwargs):
+@dataclass
+class RecorderConfig:
+	record_sql: bool = True
+	capture_stack: bool = True
+	profile: bool = False
+	explain: bool = True
+	filter: str = "/"
+
+	def store(self):
+		frappe.cache.set_value(RECORDER_CONFIG_FLAG, self, expires_in_sec=RECORDER_AUTO_DISABLE)
+
+	@classmethod
+	def retrieve(cls):
+		return frappe.cache.get_value(RECORDER_CONFIG_FLAG) or cls()
+
+
+def record_sql(*args, **kwargs):
 	start_time = time.monotonic()
 	result = frappe.db._sql(*args, **kwargs)
 	end_time = time.monotonic()
 
-	stack = list(get_current_stack_frames())
+	stack = []
+	if frappe.local._recorder.config.capture_stack:
+		stack = list(get_current_stack_frames())
 
 	data = {
 		"query": str(frappe.db.last_query),
@@ -72,6 +93,7 @@ def post_process():
 	frappe.db.rollback()
 	frappe.db.begin(read_only=True)  # Explicitly start read only transaction
 
+	config = RecorderConfig.retrieve()
 	result = list(frappe.cache.hgetall(RECORDER_REQUEST_HASH).values())
 
 	for request in result:
@@ -82,7 +104,7 @@ def post_process():
 			call["query"] = formatted_query
 
 			# Collect EXPLAIN for executed query
-			if is_query_type(formatted_query, ("select", "update", "delete")):
+			if config.explain and is_query_type(formatted_query, ("select", "update", "delete")):
 				# Only SELECT/UPDATE/DELETE queries can be "EXPLAIN"ed
 				try:
 					call["explain_result"] = frappe.db.sql(f"EXPLAIN {formatted_query}", as_dict=True)
@@ -148,11 +170,17 @@ def dump():
 
 class Recorder:
 	def __init__(self):
+		self.config = RecorderConfig.retrieve()
 		self.uuid = frappe.generate_hash(length=10)
 		self.time = datetime.datetime.now()
 		self.calls = []
-		self.profiler = cProfile.Profile()
-		self.profiler.enable()
+		self._patched_sql = False
+
+		self.profiler = None
+		if self.config.profile:
+			self.profiler = cProfile.Profile()
+			self.profiler.enable()
+
 		if frappe.request:
 			self.path = frappe.request.path
 			self.cmd = frappe.local.form_dict.cmd or ""
@@ -175,18 +203,32 @@ class Recorder:
 			self.headers = None
 			self.form_dict = None
 
-		_patch()
+		if self.config.record_sql:
+			self._patch_sql()
+			self._patched_sql = True
 
 	def register(self, data):
 		self.calls.append(data)
 
-	def dump(self):
-		self.profiler.disable()
+	def cleanup(self):
+		if self.profiler:
+			self.profiler.disable()
+		if self._patched_sql:
+			self._unpatch_sql()
 
-		profiler_output = io.StringIO()
-		pstats.Stats(self.profiler, stream=profiler_output).strip_dirs().sort_stats(
-			"cumulative"
-		).print_stats()
+	def process_profiler(self):
+		if self.config.profile or self.profiler:
+			self.profiler.disable()
+			profiler_output = io.StringIO()
+			pstats.Stats(self.profiler, stream=profiler_output).strip_dirs().sort_stats(
+				"cumulative"
+			).print_stats()
+			profile = profiler_output.getvalue()
+			profiler_output.close()
+			return profile
+
+	def dump(self):
+		profiler_output = self.process_profiler()
 
 		request_data = {
 			"uuid": self.uuid,
@@ -209,26 +251,28 @@ class Recorder:
 		request_data["calls"] = self.calls
 		request_data["headers"] = self.headers
 		request_data["form_dict"] = self.form_dict
-		request_data["profile"] = profiler_output.getvalue()
-		profiler_output.close()
+		request_data["profile"] = profiler_output
 		frappe.cache.hset(RECORDER_REQUEST_HASH, self.uuid, request_data)
 
+		if self.config.record_sql:
+			self._unpatch_sql()
 
-def _patch():
-	frappe.db._sql = frappe.db.sql
-	frappe.db.sql = sql
+	@staticmethod
+	def _patch_sql():
+		frappe.db._sql = frappe.db.sql
+		frappe.db.sql = record_sql
 
-
-def _unpatch():
-	frappe.db.sql = frappe.db._sql
+	@staticmethod
+	def _unpatch_sql():
+		frappe.db.sql = frappe.db._sql
 
 
 def do_not_record(function):
 	@functools.wraps(function)
 	def wrapper(*args, **kwargs):
 		if hasattr(frappe.local, "_recorder"):
+			frappe.local._recorder.cleanup()
 			del frappe.local._recorder
-			frappe.db.sql = frappe.db._sql
 		return function(*args, **kwargs)
 
 	return wrapper
@@ -254,8 +298,23 @@ def status(*args, **kwargs):
 @frappe.whitelist()
 @do_not_record
 @administrator_only
-def start(*args, **kwargs):
-	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=60 * 60)
+def start(
+	record_sql: bool = True,
+	profile: bool = False,
+	capture_stack: bool = True,
+	explain: bool = True,
+	filter: str = "/",
+	*args,
+	**kwargs,
+):
+	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=RECORDER_AUTO_DISABLE)
+	RecorderConfig(
+		record_sql=int(record_sql),
+		profile=int(profile),
+		capture_stack=int(capture_stack),
+		explain=int(explain),
+		filter=filter,
+	).store()
 
 
 @frappe.whitelist()
@@ -301,7 +360,7 @@ def record_queries(func: Callable):
 		frappe.local._recorder.path = f"Function call: {func.__module__}.{func.__qualname__}"
 		ret = func(*args, **kwargs)
 		dump()
-		_unpatch()
+		Recorder._unpatch_sql()
 		post_process()
 		print("Recorded queries, open recorder to view them.")
 		return ret

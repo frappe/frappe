@@ -88,16 +88,88 @@ frappe.listview_settings["Recorder"] = {
 	},
 
 	setup_recorder_controls(listview) {
+		let me = this;
 		listview.page.set_primary_action(listview.enabled ? __("Stop") : __("Start"), () => {
-			frappe.call({
-				method: listview.enabled ? "frappe.recorder.stop" : "frappe.recorder.start",
-				callback: function () {
-					listview.refresh();
-				},
-			});
-			listview.enabled = !listview.enabled;
-			this.refresh_controls(listview);
+			if (listview.enabled) {
+				me.stop_recorder(listview);
+			} else {
+				me.start_recorder(listview);
+			}
 		});
+	},
+
+	stop_recorder(listview) {
+		let me = this;
+		frappe.xcall("frappe.recorder.stop", {}).then(() => {
+			listview.refresh();
+			listview.enabled = false;
+			me.refresh_controls(listview);
+		});
+	},
+
+	start_recorder(listview) {
+		let me = this;
+		frappe.prompt(
+			[
+				{
+					fieldtype: "Section Break",
+					fieldname: "sql_section",
+					label: "SQL",
+				},
+				{
+					fieldname: "record_sql",
+					fieldtype: "Check",
+					label: "Record SQL Queries",
+					default: 1,
+				},
+				{
+					fieldname: "explain",
+					fieldtype: "Check",
+					label: "Generate EXPLAIN for SQL queries",
+					default: 1,
+				},
+				{
+					fieldname: "capture_stack",
+					fieldtype: "Check",
+					label: "Capture callstack of SQL queries",
+					default: 1,
+				},
+				{
+					fieldtype: "Section Break",
+					fieldname: "python_section",
+					label: "Python",
+				},
+				{
+					fieldname: "profile",
+					fieldtype: "Check",
+					label: "Run cProfile",
+					default: 0,
+					description:
+						"Warning: cProfile adds a lot of overhead. For best results, disable stack capturing when using cProfile.",
+				},
+				{
+					fieldtype: "Section Break",
+					fieldname: "filter_section",
+				},
+				{
+					fieldname: "filter",
+					fieldtype: "Data",
+					label: "Filter Path",
+					default: "/",
+					description:
+						"This will be used for filtering paths which will be recorded. You can use this to avoid slowing down other traffic. e.g. <code>/api/method/erpnext</code>",
+				},
+			],
+			(values) => {
+				frappe.xcall("frappe.recorder.start", values).then(() => {
+					listview.refresh();
+					listview.enabled = true;
+					me.refresh_controls(listview);
+				});
+			},
+			__("Configure Recorder"),
+			__("Start Recordig")
+		);
 	},
 
 	update_indicators(listview) {
