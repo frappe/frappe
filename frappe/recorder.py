@@ -1,7 +1,6 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import cProfile
-import datetime
 import functools
 import inspect
 import io
@@ -18,6 +17,7 @@ import sqlparse
 import frappe
 from frappe import _
 from frappe.database.database import is_query_type
+from frappe.utils import now_datetime
 
 RECORDER_INTERCEPT_FLAG = "recorder-intercept"
 RECORDER_CONFIG_FLAG = "recorder-config"
@@ -48,6 +48,10 @@ class RecorderConfig:
 	@classmethod
 	def retrieve(cls):
 		return frappe.cache.get_value(RECORDER_CONFIG_FLAG) or cls()
+
+	@staticmethod
+	def delete():
+		frappe.cache.delete_value(RECORDER_CONFIG_FLAG)
 
 
 def record_sql(*args, **kwargs):
@@ -120,6 +124,8 @@ def post_process():
 		mark_duplicates(request)
 		frappe.cache.hset(RECORDER_REQUEST_HASH, request["uuid"], request)
 
+	config.delete()
+
 
 def mark_duplicates(request):
 	exact_duplicates = Counter([call["query"] for call in request["calls"]])
@@ -166,7 +172,7 @@ def normalize_query(query: str) -> str:
 def record(force=False):
 	if __debug__:
 		if frappe.cache.get_value(RECORDER_INTERCEPT_FLAG) or force:
-			frappe.local._recorder = Recorder()
+			frappe.local._recorder = Recorder(force=force)
 
 
 def dump():
@@ -176,12 +182,17 @@ def dump():
 
 
 class Recorder:
-	def __init__(self):
+	def __init__(self, force=False):
 		self.config = RecorderConfig.retrieve()
 		self.calls = []
 		self._patched_sql = False
 		self.profiler = None
 		self._recording = True
+		self.force = force
+		self.cmd = None
+		self.method = None
+		self.headers = None
+		self.form_dict = None
 
 		if (
 			self.config.record_requests
@@ -201,12 +212,14 @@ class Recorder:
 			self.method = None
 			self.headers = None
 			self.form_dict = None
-		else:
+		elif not self.force:
 			self._recording = False
 			return
+		else:
+			self.event_type = "Function Call"
 
 		self.uuid = frappe.generate_hash(length=10)
-		self.time = datetime.datetime.now()
+		self.time = now_datetime()
 
 		if self.config.record_sql:
 			self._patch_sql()
@@ -248,7 +261,7 @@ class Recorder:
 			"time": self.time,
 			"queries": len(self.calls),
 			"time_queries": float("{:0.3f}".format(sum(call["duration"] for call in self.calls))),
-			"duration": float(f"{(datetime.datetime.now() - self.time).total_seconds() * 1000:0.3f}"),
+			"duration": float(f"{(now_datetime() - self.time).total_seconds() * 1000:0.3f}"),
 			"method": self.method,
 			"event_type": self.event_type,
 		}

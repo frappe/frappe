@@ -127,8 +127,9 @@ frappe.listview_settings["Recorder"] = {
 					label: "Request path filter",
 					default: "/",
 					depends_on: "record_requests",
-					description:
-						"This will be used for filtering paths which will be recorded. You can use this to avoid slowing down other traffic. e.g. <code>/api/method/erpnext</code>",
+					description: `This will be used for filtering paths which will be recorded.
+						You can use this to avoid slowing down other traffic.
+						e.g. <code>/api/method/erpnext</code>. Leave it empty to record every request.`,
 				},
 				{
 					fieldtype: "Column Break",
@@ -148,8 +149,9 @@ frappe.listview_settings["Recorder"] = {
 					label: "Background Jobs filter",
 					default: "",
 					depends_on: "record_jobs",
-					description:
-						"This will be used for filtering jobs which will be recorded. You can use this to avoid slowing down other jobs. e.g. <code>email_queue.pull</code>",
+					description: `This will be used for filtering jobs which will be recorded.
+						You can use this to avoid slowing down other jobs. e.g. <code>email_queue.pull</code>.
+						Leave it empty to record every job.`,
 				},
 				{
 					fieldtype: "Section Break",
