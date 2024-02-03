@@ -10,12 +10,7 @@ frappe.listview_settings["Recorder"] = {
 		}
 
 		listview.page.add_button(__("Clear"), () => {
-			frappe.call({
-				method: "frappe.recorder.delete",
-				callback: function () {
-					listview.refresh();
-				},
-			});
+			frappe.xcall("frappe.recorder.delete").then(listview.refresh);
 		});
 
 		listview.page.add_menu_item(__("Import"), () => {
@@ -113,13 +108,58 @@ frappe.listview_settings["Recorder"] = {
 			[
 				{
 					fieldtype: "Section Break",
+					fieldname: "req_job_section",
+				},
+				{
+					fieldtype: "Column Break",
+					fieldname: "web_request_columns",
+					label: "Web Requests",
+				},
+				{
+					fieldname: "record_requests",
+					fieldtype: "Check",
+					label: "Record Web Requests",
+					default: 1,
+				},
+				{
+					fieldname: "request_filter",
+					fieldtype: "Data",
+					label: "Request path filter",
+					default: "/",
+					depends_on: "record_requests",
+					description:
+						"This will be used for filtering paths which will be recorded. You can use this to avoid slowing down other traffic. e.g. <code>/api/method/erpnext</code>",
+				},
+				{
+					fieldtype: "Column Break",
+					fieldname: "background_col",
+					label: "Background Jobs",
+				},
+
+				{
+					fieldname: "record_jobs",
+					fieldtype: "Check",
+					label: "Record Background Jobs",
+					default: 1,
+				},
+				{
+					fieldname: "jobs_filter",
+					fieldtype: "Data",
+					label: "Background Jobs filter",
+					default: "",
+					depends_on: "record_jobs",
+					description:
+						"This will be used for filtering jobs which will be recorded. You can use this to avoid slowing down other jobs. e.g. <code>email_queue.pull</code>",
+				},
+				{
+					fieldtype: "Section Break",
 					fieldname: "sql_section",
 					label: "SQL",
 				},
 				{
 					fieldname: "record_sql",
 					fieldtype: "Check",
-					label: "Record SQL Queries",
+					label: "Record SQL queries",
 					default: 1,
 				},
 				{
@@ -146,18 +186,6 @@ frappe.listview_settings["Recorder"] = {
 					default: 0,
 					description:
 						"Warning: cProfile adds a lot of overhead. For best results, disable stack capturing when using cProfile.",
-				},
-				{
-					fieldtype: "Section Break",
-					fieldname: "filter_section",
-				},
-				{
-					fieldname: "filter",
-					fieldtype: "Data",
-					label: "Filter Path",
-					default: "/",
-					description:
-						"This will be used for filtering paths which will be recorded. You can use this to avoid slowing down other traffic. e.g. <code>/api/method/erpnext</code>",
 				},
 			],
 			(values) => {

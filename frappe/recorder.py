@@ -29,11 +29,18 @@ RECORDER_AUTO_DISABLE = 5 * 60
 
 @dataclass
 class RecorderConfig:
-	record_sql: bool = True
-	capture_stack: bool = True
-	profile: bool = False
-	explain: bool = True
-	filter: str = "/"
+	record_requests: bool = True  # Record web request
+	record_jobs: bool = True  # record background jobs
+	record_sql: bool = True  # Record SQL queries
+	capture_stack: bool = True  # Recod call stack of SQL queries
+	profile: bool = False  # Run cProfile
+	explain: bool = True  # Provide explain output of SQL queries
+	request_filter: str = "/"  # Filter request paths
+	jobs_filter: str = ""  # Filter background jobs
+
+	def __post_init__(self):
+		if not (self.record_jobs or self.record_requests):
+			frappe.throw("You must record one of jobs or requests")
 
 	def store(self):
 		frappe.cache.set_value(RECORDER_CONFIG_FLAG, self, expires_in_sec=RECORDER_AUTO_DISABLE)
@@ -171,24 +178,23 @@ def dump():
 class Recorder:
 	def __init__(self):
 		self.config = RecorderConfig.retrieve()
-		self.uuid = frappe.generate_hash(length=10)
-		self.time = datetime.datetime.now()
 		self.calls = []
 		self._patched_sql = False
-
 		self.profiler = None
-		if self.config.profile:
-			self.profiler = cProfile.Profile()
-			self.profiler.enable()
+		self._recording = True
 
-		if frappe.request:
+		if (
+			self.config.record_requests
+			and frappe.request
+			and self.config.request_filter in frappe.request.path
+		):
 			self.path = frappe.request.path
 			self.cmd = frappe.local.form_dict.cmd or ""
 			self.method = frappe.request.method
 			self.headers = dict(frappe.local.request.headers)
 			self.form_dict = frappe.local.form_dict
 			self.event_type = "HTTP Request"
-		elif frappe.job:
+		elif self.config.record_jobs and frappe.job and self.config.jobs_filter in frappe.job.method:
 			self.event_type = "Background Job"
 			self.path = frappe.job.method
 			self.cmd = None
@@ -196,16 +202,19 @@ class Recorder:
 			self.headers = None
 			self.form_dict = None
 		else:
-			self.event_type = None
-			self.path = None
-			self.cmd = None
-			self.method = None
-			self.headers = None
-			self.form_dict = None
+			self._recording = False
+			return
+
+		self.uuid = frappe.generate_hash(length=10)
+		self.time = datetime.datetime.now()
 
 		if self.config.record_sql:
 			self._patch_sql()
 			self._patched_sql = True
+
+		if self.config.profile:
+			self.profiler = cProfile.Profile()
+			self.profiler.enable()
 
 	def register(self, data):
 		self.calls.append(data)
@@ -228,6 +237,8 @@ class Recorder:
 			return profile
 
 	def dump(self):
+		if not self._recording:
+			return
 		profiler_output = self.process_profiler()
 
 		request_data = {
@@ -242,11 +253,6 @@ class Recorder:
 			"event_type": self.event_type,
 		}
 		frappe.cache.hset(RECORDER_REQUEST_SPARSE_HASH, self.uuid, request_data)
-		frappe.publish_realtime(
-			event="recorder-dump-event",
-			message=json.dumps(request_data, default=str),
-			user="Administrator",
-		)
 
 		request_data["calls"] = self.calls
 		request_data["headers"] = self.headers
@@ -299,22 +305,28 @@ def status(*args, **kwargs):
 @do_not_record
 @administrator_only
 def start(
+	record_jobs: bool = True,
+	record_requests: bool = True,
 	record_sql: bool = True,
 	profile: bool = False,
 	capture_stack: bool = True,
 	explain: bool = True,
-	filter: str = "/",
+	request_filter: str = "/",
+	jobs_filter: str = "",
 	*args,
 	**kwargs,
 ):
-	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=RECORDER_AUTO_DISABLE)
 	RecorderConfig(
+		record_requests=int(record_requests),
+		record_jobs=int(record_jobs),
 		record_sql=int(record_sql),
 		profile=int(profile),
 		capture_stack=int(capture_stack),
 		explain=int(explain),
-		filter=filter,
+		request_filter=request_filter,
+		jobs_filter=jobs_filter,
 	).store()
+	frappe.cache.set_value(RECORDER_INTERCEPT_FLAG, 1, expires_in_sec=RECORDER_AUTO_DISABLE)
 
 
 @frappe.whitelist()
