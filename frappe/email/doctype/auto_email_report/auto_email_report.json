@@ -25,6 +25,7 @@
   "to_date_field",
   "column_break_17",
   "dynamic_date_period",
+  "use_first_day_of_period",
   "email_settings",
   "email_to",
   "day_of_week",
@@ -207,10 +208,18 @@
    "fieldtype": "Link",
    "label": "Sender",
    "options": "Email Account"
+  },
+  {
+   "default": "0",
+   "description": "To begin the date range at the start of the chosen period. For example, if 'Year' is selected as the period, the report will start from January 1st of the current year.",
+   "fieldname": "use_first_day_of_period",
+   "fieldtype": "Check",
+   "depends_on": "eval: doc.dynamic_date_period != 'Daily'",
+   "label": "Use First Day of Period"
   }
  ],
  "links": [],
- "modified": "2022-09-08 15:31:55.031023",
+ "modified": "2024-01-29 11:42:27.433958",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Auto Email Report",
