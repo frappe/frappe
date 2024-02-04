@@ -42,11 +42,14 @@ export default class GoogleDrivePicker {
 	}
 
 	createPicker(access_token) {
-		this.view = new google.picker.View(google.picker.ViewId.DOCS);
+		const docsView = new google.picker.DocsView();
+		docsView.setParent("root"); // show the root folder by default
+		docsView.setIncludeFolders(true); // also show folders, not just files
+
 		this.picker = new google.picker.PickerBuilder()
 			.setAppId(this.appId)
 			.setOAuthToken(access_token)
-			.addView(this.view)
+			.addView(docsView)
 			.addView(new google.picker.DocsUploadView())
 			.setLocale(frappe.boot.lang)
 			.setCallback(this.pickerCallback)
