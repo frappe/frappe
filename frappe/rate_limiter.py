@@ -138,7 +138,7 @@ def rate_limit(
 			if not identity:
 				frappe.throw(_("Either key or IP flag is required."))
 
-			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
+			cache_key = frappe.cache.make_key(f"rl:{frappe.form_dict.cmd}:{identity}")
 
 			value = frappe.cache.get(cache_key)
 			if not value:

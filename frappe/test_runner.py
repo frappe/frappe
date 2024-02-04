@@ -38,6 +38,7 @@ def xmlrunner_wrapper(output):
 
 
 def main(
+	site=None,
 	app=None,
 	module=None,
 	doctype=None,
@@ -50,8 +51,17 @@ def main(
 	doctype_list_path=None,
 	failfast=False,
 	case=None,
+	skip_test_records=False,
+	skip_before_tests=False,
 ):
 	global unittest_runner
+
+	frappe.init(site=site)
+	if not frappe.db:
+		frappe.connect()
+
+	frappe.flags.skip_before_tests = skip_before_tests
+	frappe.flags.skip_test_records = skip_test_records
 
 	if doctype_list_path:
 		app, doctype_list_path = doctype_list_path.split(os.path.sep, 1)
@@ -68,9 +78,6 @@ def main(
 	try:
 		frappe.flags.print_messages = verbose
 		frappe.flags.in_test = True
-
-		if not frappe.db:
-			frappe.connect()
 
 		# workaround! since there is no separate test db
 		frappe.clear_cache()
@@ -89,9 +96,22 @@ def main(
 				doctype, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output
 			)
 		elif module_def:
-			doctypes = frappe.db.get_list(
-				"DocType", filters={"module": module_def, "istable": 0}, pluck="name"
+			doctypes = []
+			doctypes_ = frappe.get_list(
+				"DocType",
+				filters={"module": module_def, "istable": 0},
+				fields=["name", "module"],
+				as_list=True,
 			)
+			for doctype, module in doctypes_:
+				test_module = get_module_name(doctype, module, "test_", app=app)
+				try:
+					importlib.import_module(test_module)
+				except Exception:
+					pass
+				else:
+					doctypes.append(doctype)
+
 			ret = run_tests_for_doctype(
 				doctypes, verbose, tests, force, profile, failfast=failfast, junit_xml_output=junit_xml_output
 			)
@@ -329,9 +349,6 @@ def _add_test(app, path, filename, verbose, test_suite=None):
 
 
 def make_test_records(doctype, verbose=0, force=False, commit=False):
-	if not frappe.db:
-		frappe.connect()
-
 	if frappe.flags.skip_test_records:
 		return
 

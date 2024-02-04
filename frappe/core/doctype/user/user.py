@@ -725,12 +725,8 @@ class User(Document):
 		3. If allow_login_using_user_name is set, you can use username while finding the user.
 		"""
 
-		login_with_mobile = cint(
-			frappe.db.get_single_value("System Settings", "allow_login_using_mobile_number")
-		)
-		login_with_username = cint(
-			frappe.db.get_single_value("System Settings", "allow_login_using_user_name")
-		)
+		login_with_mobile = cint(frappe.get_system_settings("allow_login_using_mobile_number"))
+		login_with_username = cint(frappe.get_system_settings("allow_login_using_user_name"))
 
 		or_filters = [{"name": user_name}]
 		if login_with_mobile:
@@ -840,8 +836,8 @@ def update_password(
 	else:
 		user = res["user"]
 
-	logout_all_sessions = cint(logout_all_sessions) or frappe.db.get_single_value(
-		"System Settings", "logout_on_password_reset"
+	logout_all_sessions = cint(logout_all_sessions) or frappe.get_system_settings(
+		"logout_on_password_reset"
 	)
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
 
@@ -933,7 +929,7 @@ def _get_user_for_update_password(key, old_password):
 		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
 			reset_password_link_expiry = cint(
-				frappe.db.get_single_value("System Settings", "reset_password_link_expiry_duration")
+				frappe.get_system_settings("reset_password_link_expiry_duration")
 			)
 			if (
 				reset_password_link_expiry
@@ -1018,7 +1014,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=get_password_reset_limit, seconds=24 * 60 * 60)
+@rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
 def reset_password(user: str) -> str:
 	if user == "Administrator":
 		return "not allowed"
@@ -1254,34 +1250,37 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 		except frappe.DuplicateEntryError:
 			pass
 	else:
-		contact = frappe.get_doc("Contact", contact_name)
-		contact.first_name = user.first_name
-		contact.last_name = user.last_name
-		contact.gender = user.gender
+		try:
+			contact = frappe.get_doc("Contact", contact_name)
+			contact.first_name = user.first_name
+			contact.last_name = user.last_name
+			contact.gender = user.gender
 
-		# Add mobile number if phone does not exists in contact
-		if user.phone and not any(new_contact.phone == user.phone for new_contact in contact.phone_nos):
-			# Set primary phone if there is no primary phone number
-			contact.add_phone(
-				user.phone,
-				is_primary_phone=not any(
-					new_contact.is_primary_phone == 1 for new_contact in contact.phone_nos
-				),
-			)
+			# Add mobile number if phone does not exists in contact
+			if user.phone and not any(new_contact.phone == user.phone for new_contact in contact.phone_nos):
+				# Set primary phone if there is no primary phone number
+				contact.add_phone(
+					user.phone,
+					is_primary_phone=not any(
+						new_contact.is_primary_phone == 1 for new_contact in contact.phone_nos
+					),
+				)
 
-		# Add mobile number if mobile does not exists in contact
-		if user.mobile_no and not any(
-			new_contact.phone == user.mobile_no for new_contact in contact.phone_nos
-		):
-			# Set primary mobile if there is no primary mobile number
-			contact.add_phone(
-				user.mobile_no,
-				is_primary_mobile_no=not any(
-					new_contact.is_primary_mobile_no == 1 for new_contact in contact.phone_nos
-				),
-			)
+			# Add mobile number if mobile does not exists in contact
+			if user.mobile_no and not any(
+				new_contact.phone == user.mobile_no for new_contact in contact.phone_nos
+			):
+				# Set primary mobile if there is no primary mobile number
+				contact.add_phone(
+					user.mobile_no,
+					is_primary_mobile_no=not any(
+						new_contact.is_primary_mobile_no == 1 for new_contact in contact.phone_nos
+					),
+				)
 
-		contact.save(ignore_permissions=True)
+			contact.save(ignore_permissions=True)
+		except frappe.TimestampMismatchError:
+			raise frappe.RetryBackgroundJobError
 
 
 def get_restricted_ip_list(user):
