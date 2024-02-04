@@ -14,10 +14,11 @@ frappe.notification = {
 			let get_select_options = function (df, parent_field) {
 				// Append parent_field name along with fieldname for child table fields
 				let select_value = parent_field ? df.fieldname + "," + parent_field : df.fieldname;
+				let path = parent_field ? parent_field + " > " + df.fieldname : df.fieldname;
 
 				return {
 					value: select_value,
-					label: df.fieldname + " (" + __(df.label, null, df.parent) + ")",
+					label: path + " (" + __(df.label, null, df.parent) + ")",
 				};
 			};
 
@@ -49,28 +50,30 @@ frappe.notification = {
 			frm.set_df_property("date_changed", "options", get_date_change_options());
 
 			let receiver_fields = [];
-			if (frm.doc.channel === "Email") {
-				receiver_fields = $.map(fields, function (d) {
-					// Add User and Email fields from child into select dropdown
-					if (frappe.model.table_fields.includes(d.fieldtype)) {
-						let child_fields = frappe.get_doc("DocType", d.options).fields;
-						return $.map(child_fields, function (df) {
-							return df.options == "Email" ||
-								(df.options == "User" && df.fieldtype == "Link")
-								? get_select_options(df, d.fieldname)
-								: null;
+			let find_receiver_fields = function (extra) {
+				let predicate = function (df) {
+					return extra(df) || (df.options == "User" && df.fieldtype == "Link");
+				};
+				let extract = function (df) {
+					// Add recipients from child doctypes into select dropdown
+					if (frappe.model.table_fields.includes(df.fieldtype)) {
+						let child_fields = frappe.get_doc("DocType", df.options).fields;
+						return $.map(child_fields, function (cdf) {
+							return predicate(cdf) ? get_select_options(cdf, df.fieldname) : null;
 						});
-						// Add User and Email fields from parent into select dropdown
 					} else {
-						return d.options == "Email" ||
-							(d.options == "User" && d.fieldtype == "Link")
-							? get_select_options(d)
-							: null;
+						return predicate(df) ? get_select_options(df) : null;
 					}
+				};
+				return $.map(fields, extract);
+			};
+			if (frm.doc.channel === "Email") {
+				receiver_fields = find_receiver_fields(function (df) {
+					return df.options == "Email";
 				});
 			} else if (["WhatsApp", "SMS"].includes(frm.doc.channel)) {
-				receiver_fields = $.map(fields, function (d) {
-					return d.options == "Phone" ? get_select_options(d) : null;
+				receiver_fields = find_receiver_fields(function (df) {
+					return df.options == "Phone" || df.options == "Mobile";
 				});
 			}
 
