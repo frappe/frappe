@@ -679,8 +679,7 @@ class Document(BaseDocument):
 		return same
 
 	def apply_fieldlevel_read_permissions(self):
-		"""Remove values the user is not allowed to read (called when loading in desk)"""
-
+		"""Remove values the user is not allowed to read."""
 		if frappe.session.user == "Administrator":
 			return
 
