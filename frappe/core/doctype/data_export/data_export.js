@@ -41,7 +41,7 @@ const can_export = (frm) => {
 	if (!doctype) {
 		frappe.msgprint(__("Please select the Document Type."));
 	} else if (!parent_multicheck_options.length) {
-		frappe.msgprint(__("Atleast one field of Parent Document Type is mandatory"));
+		frappe.msgprint(__("At least one field of Parent Document Type is mandatory"));
 	} else {
 		is_valid_form = true;
 	}
@@ -153,7 +153,7 @@ const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 
 	const options = fields.map((df) => {
 		return {
-			label: df.label,
+			label: __(df.label),
 			value: df.fieldname,
 			danger: df.reqd,
 			checked: 1,
@@ -163,7 +163,7 @@ const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 	const multicheck_control = frappe.ui.form.make_control({
 		parent: parent_wrapper,
 		df: {
-			label: doctype,
+			label: __(doctype),
 			fieldname: doctype + "_fields",
 			fieldtype: "MultiCheck",
 			options: options,

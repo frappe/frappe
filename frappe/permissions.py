@@ -343,7 +343,10 @@ def has_user_permission(doc, user=None, debug=False):
 		debug and _debug_log("User permission bypassed because user can modify user permissions.")
 		return True
 
-	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+	# don't apply strict user permissions for single doctypes since they contain empty link fields
+	apply_strict_user_permissions = (
+		False if doc.meta.issingle else frappe.get_system_settings("apply_strict_user_permissions")
+	)
 	if apply_strict_user_permissions:
 		debug and _debug_log("Strict user permissions will be applied")
 

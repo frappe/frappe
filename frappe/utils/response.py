@@ -61,7 +61,7 @@ def report_error(status_code):
 
 
 def _link_error_with_message_log(error_log, exception, message_logs):
-	for message in message_logs:
+	for message in list(message_logs):
 		if message.get("__frappe_exc_id") == getattr(exception, "__frappe_exc_id", None):
 			error_log.update(message)
 			message_logs.remove(message)
@@ -265,7 +265,15 @@ def download_backup(path):
 def download_private_file(path: str) -> Response:
 	"""Checks permissions and sends back private file"""
 
-	files = frappe.get_all("File", filters={"file_url": path}, fields="*")
+	if frappe.session.user == "Guest":
+		raise Forbidden(_("You don't have permission to access this file"))
+
+	filters = {"file_url": path}
+	if frappe.form_dict.fid:
+		filters["name"] = str(frappe.form_dict.fid)
+
+	files = frappe.get_all("File", filters=filters, fields="*")
+
 	# this file might be attached to multiple documents
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
