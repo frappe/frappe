@@ -23,6 +23,7 @@ class Note(Document):
 		seen_by: DF.Table[NoteSeenBy]
 		title: DF.Data
 	# end: auto-generated types
+
 	def validate(self):
 		if self.notify_on_login and not self.expire_notification_on:
 			# expire this notification in a week (default)

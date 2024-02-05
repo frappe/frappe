@@ -329,23 +329,17 @@ def month_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeO
 	return (ed_date.year - st_date.year) * 12 + ed_date.month - st_date.month + 1
 
 
-def time_diff(
-	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
-) -> datetime.timedelta:
+def time_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> datetime.timedelta:
 	"""Return the difference between given two dates as `datetime.timedelta` object."""
 	return get_datetime(string_ed_date) - get_datetime(string_st_date)
 
 
-def time_diff_in_seconds(
-	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
-) -> float:
+def time_diff_in_seconds(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> float:
 	"""Return the difference between given two dates in seconds."""
 	return time_diff(string_ed_date, string_st_date).total_seconds()
 
 
-def time_diff_in_hours(
-	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
-) -> float:
+def time_diff_in_hours(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> float:
 	"""Return the difference between given two dates in hours."""
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
@@ -460,9 +454,7 @@ def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[True] = False) -> s
 
 
 # TODO: first arg
-def get_first_day(
-	dt, d_years: int = 0, d_months: int = 0, as_str: bool = False
-) -> str | datetime.date:
+def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False) -> str | datetime.date:
 	"""Return the first day of the month for the date specified by date object.
 
 	Also, add `d_years` and `d_months` if specified.
@@ -481,9 +473,7 @@ def get_first_day(
 
 
 @typing.overload
-def get_quarter_start(
-	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
-) -> datetime.date:
+def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False) -> datetime.date:
 	...
 
 
@@ -492,9 +482,7 @@ def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[True
 	...
 
 
-def get_quarter_start(
-	dt: DateTimeLikeObject | None = None, as_str: bool = False
-) -> str | datetime.date:
+def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: bool = False) -> str | datetime.date:
 	"""Return the start date of the quarter for the given datetime like object (`dt`).
 
 	If `dt` is None, the current quarter start date is returned.
@@ -592,9 +580,7 @@ def is_last_day_of_the_month(dt):
 
 
 @typing.overload
-def get_quarter_ending(
-	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
-) -> datetime.date:
+def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False) -> datetime.date:
 	...
 
 
@@ -603,9 +589,7 @@ def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[Tru
 	...
 
 
-def get_quarter_ending(
-	date: DateTimeLikeObject | None = None, as_str=False
-) -> str | datetime.date:
+def get_quarter_ending(date: DateTimeLikeObject | None = None, as_str=False) -> str | datetime.date:
 	"""Return the end date of the quarter for the given datetime like object (`date`).
 
 	If `date` is None, the current quarter end date is returned.
@@ -626,9 +610,7 @@ def get_quarter_ending(
 
 
 @typing.overload
-def get_year_ending(
-	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
-) -> datetime.date:
+def get_year_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False) -> datetime.date:
 	...
 
 
@@ -713,9 +695,7 @@ def get_user_time_format() -> str:
 	return frappe.local.user_time_format or "HH:mm:ss"
 
 
-def format_date(
-	string_date=None, format_string: str | None = None, parse_day_first: bool = False
-) -> str:
+def format_date(string_date=None, format_string: str | None = None, parse_day_first: bool = False) -> str:
 	"""Convert the given string date to :data:`user_date_format`.
 
 	User format specified in defaults
@@ -874,9 +854,7 @@ def duration_to_seconds(duration):
 def validate_duration_format(duration):
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
-			frappe._("Value {0} must be in the valid duration format: d h m s").format(
-				frappe.bold(duration)
-			)
+			frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration))
 		)
 
 
@@ -984,9 +962,7 @@ def global_date_format(date: DateTimeLikeObject, format="long") -> str:
 	import babel.dates
 
 	date = getdate(date)
-	return babel.dates.format_date(
-		date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format
-	)
+	return babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format)
 
 
 def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
@@ -1091,9 +1067,7 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	...
 
 
-def flt(
-	s: NumericType | str, precision: int | None = None, rounding_method: str | None = None
-) -> float:
+def flt(s: NumericType | str, precision: int | None = None, rounding_method: str | None = None) -> float:
 	"""Convert to float (ignoring commas in string).
 
 	:param s: Number in string or other numeric format.
@@ -1813,9 +1787,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 def get_host_name_from_request() -> str:
 	"""Return the hostname (`request.host`) from the request headers."""
 	if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
-		protocol = (
-			"https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
-		)
+		protocol = "https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
 		return protocol + frappe.local.request.host
 
 
@@ -1868,7 +1840,8 @@ def get_link_to_report(
 		for k, v in filters.items():
 			if isinstance(v, list):
 				conditions.extend(
-					str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]') for value in v
+					str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]')
+					for value in v
 				)
 			else:
 				conditions.append(str(k) + "=" + str(v))
@@ -2060,7 +2033,6 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 		# verify fieldname belongs to the doctype
 		meta = frappe.get_meta(f.doctype)
 		if not meta.has_field(f.fieldname):
-
 			# try and match the doctype name from child tables
 			for df in meta.get_table_fields():
 				if frappe.get_meta(df.options).has_field(f.fieldname):
@@ -2390,9 +2362,7 @@ def get_user_info_for_avatar(user_id: str) -> _UserInfo:
 		return {"email": user_id, "image": "", "name": user_id}
 
 
-def validate_python_code(
-	string: str, fieldname: str | None = None, is_expression: bool = True
-) -> None:
+def validate_python_code(string: str, fieldname: str | None = None, is_expression: bool = True) -> None:
 	"""Validate python code fields by using compile_command to ensure that expression is valid python.
 
 	args:

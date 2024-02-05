@@ -46,7 +46,6 @@ class TestUser(FrappeTestCase):
 		self.assertTrue(user.user_type == "Website User")
 
 	def test_get_users_by_role(self):
-
 		role = "System Manager"
 		sys_managers = get_info_based_on_role(role, field="name")
 

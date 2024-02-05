@@ -157,9 +157,7 @@ class TestServerScript(FrappeTestCase):
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(
-			AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert
-		)
+		self.assertRaises(AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert)
 
 		server_script.disabled = 1
 		server_script.save()
@@ -169,9 +167,7 @@ class TestServerScript(FrappeTestCase):
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(
-			AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert
-		)
+		self.assertRaises(AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert)
 
 		server_script.disabled = 1
 		server_script.save()

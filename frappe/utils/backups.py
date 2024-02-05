@@ -283,13 +283,9 @@ class BackupGenerator:
 					return None
 				return file_path
 
-		latest_backups = {
-			file_type: get_latest(pattern) for file_type, pattern in file_type_slugs.items()
-		}
+		latest_backups = {file_type: get_latest(pattern) for file_type, pattern in file_type_slugs.items()}
 
-		recent_backups = {
-			file_type: old_enough(file_name) for file_type, file_name in latest_backups.items()
-		}
+		recent_backups = {file_type: old_enough(file_name) for file_type, file_name in latest_backups.items()}
 
 		return (
 			recent_backups.get("database"),

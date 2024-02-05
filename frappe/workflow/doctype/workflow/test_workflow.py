@@ -221,9 +221,7 @@ def create_todo_workflow():
 	)
 	workflow.append(
 		"transitions",
-		dict(
-			state="Rejected", action="Review", next_state="Pending", allowed="All", allow_self_approval=1
-		),
+		dict(state="Rejected", action="Review", next_state="Pending", allowed="All", allow_self_approval=1),
 	)
 	workflow.insert(ignore_permissions=True)
 

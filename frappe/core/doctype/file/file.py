@@ -61,6 +61,7 @@ class File(Document):
 		uploaded_to_dropbox: DF.Check
 		uploaded_to_google_drive: DF.Check
 	# end: auto-generated types
+
 	no_feed_on_delete = True
 
 	def __init__(self, *args, **kwargs):
@@ -369,9 +370,7 @@ class File(Document):
 			return
 
 		if self.file_type not in allowed_extensions.splitlines():
-			frappe.throw(
-				_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed
-			)
+			frappe.throw(_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed)
 
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
@@ -710,9 +709,7 @@ class File(Document):
 
 	def create_attachment_record(self):
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
-		file_url = (
-			quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
-		)
+		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
 		file_name = self.file_name or self.file_url
 
 		self.add_comment_in_reference_doc(

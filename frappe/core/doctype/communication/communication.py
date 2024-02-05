@@ -119,6 +119,7 @@ class Communication(Document, CommunicationEmailMixin):
 		unread_notification_sent: DF.Check
 		user: DF.Link | None
 	# end: auto-generated types
+
 	"""Communication represents an external communication like Email."""
 
 	no_feed_on_delete = True
@@ -133,7 +134,6 @@ class Communication(Document, CommunicationEmailMixin):
 			and self.uid
 			and self.uid != -1
 		):
-
 			email_flag_queue = frappe.db.get_value(
 				"Email Flag Queue", {"communication": self.name, "is_completed": 0}
 			)

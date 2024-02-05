@@ -67,9 +67,7 @@ def _guess_template_error_line_number(template) -> int | None:
 
 
 def pdf_footer_html(soup, head, content, styles, html_id, css):
-	return pdf_header_html(
-		soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css
-	)
+	return pdf_header_html(soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css)
 
 
 def get_pdf(html, options=None, output: PdfWriter | None = None):
@@ -121,7 +119,6 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 
 
 def get_file_data_from_writer(writer_obj):
-
 	# https://docs.python.org/3/library/io.html
 	stream = io.BytesIO()
 	writer_obj.write(stream)

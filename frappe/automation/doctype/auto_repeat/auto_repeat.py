@@ -70,6 +70,7 @@ class AutoRepeat(Document):
 		submit_on_creation: DF.Check
 		template: DF.Link | None
 	# end: auto-generated types
+
 	def validate(self):
 		self.update_status()
 		self.validate_reference_doctype()

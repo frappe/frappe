@@ -29,9 +29,7 @@ class WorkflowPermissionError(frappe.ValidationError):
 def get_workflow_name(doctype):
 	workflow_name = frappe.cache.hget("workflow", doctype)
 	if workflow_name is None:
-		workflow_name = frappe.db.get_value(
-			"Workflow", {"document_type": doctype, "is_active": 1}, "name"
-		)
+		workflow_name = frappe.db.get_value("Workflow", {"document_type": doctype, "is_active": 1}, "name")
 		frappe.cache.hset("workflow", doctype, workflow_name or "")
 
 	return workflow_name
@@ -94,9 +92,7 @@ def is_transition_condition_satisfied(transition, doc) -> bool:
 	if not transition.condition:
 		return True
 	else:
-		return frappe.safe_eval(
-			transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict())
-		)
+		return frappe.safe_eval(transition.condition, get_workflow_safe_globals(), dict(doc=doc.as_dict()))
 
 
 @frappe.whitelist()
@@ -216,9 +212,7 @@ def get_workflow(doctype) -> "Workflow":
 
 
 def has_approval_access(user, doc, transition):
-	return (
-		user == "Administrator" or transition.get("allow_self_approval") or user != doc.get("owner")
-	)
+	return user == "Administrator" or transition.get("allow_self_approval") or user != doc.get("owner")
 
 
 def get_workflow_state_field(workflow_name):
@@ -235,7 +229,6 @@ def get_workflow_field_value(workflow_name, field):
 
 @frappe.whitelist()
 def bulk_workflow_approval(docnames, doctype, action):
-
 	docnames = json.loads(docnames)
 	if len(docnames) < 20:
 		_bulk_workflow_action(docnames, doctype, action)
@@ -259,7 +252,7 @@ def _bulk_workflow_action(docnames, doctype, action):
 	successful_transactions = defaultdict(list)
 
 	frappe.clear_messages()
-	for (idx, docname) in enumerate(docnames, 1):
+	for idx, docname in enumerate(docnames, 1):
 		message_dict = {}
 		try:
 			show_progress(docnames, _("Applying: {0}").format(action), idx, docname)
@@ -334,7 +327,7 @@ def get_common_transition_actions(docs, doctype):
 	if isinstance(docs, str):
 		docs = json.loads(docs)
 	try:
-		for (i, doc) in enumerate(docs, 1):
+		for i, doc in enumerate(docs, 1):
 			if not doc.get("doctype"):
 				doc["doctype"] = doctype
 			actions = [

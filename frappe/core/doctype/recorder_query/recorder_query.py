@@ -23,9 +23,10 @@ class RecorderQuery(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		query: DF.Data
+		query: DF.Data | None
 		stack: DF.Text | None
 	# end: auto-generated types
+
 	pass
 
 	def db_insert(self, *args, **kwargs):

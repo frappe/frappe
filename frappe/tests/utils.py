@@ -90,9 +90,7 @@ class FrappeTestCase(unittest.TestCase):
 		"""Formats SQL consistently so simple string comparisons can work on them."""
 		import sqlparse
 
-		return (
-			sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True),
-		)
+		return (sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True),)
 
 	def assertQueryEqual(self, first: str, second: str):
 		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))

@@ -129,9 +129,9 @@ class Cast_(Function):
 
 def _aggregate(function, dt, fieldname, filters, **kwargs):
 	return (
-		frappe.qb.get_query(dt, filters=filters, fields=[function(PseudoColumn(fieldname))]).run(
-			**kwargs
-		)[0][0]
+		frappe.qb.get_query(dt, filters=filters, fields=[function(PseudoColumn(fieldname))]).run(**kwargs)[0][
+			0
+		]
 		or 0
 	)
 

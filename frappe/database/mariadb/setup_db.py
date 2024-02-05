@@ -164,9 +164,7 @@ def get_root_connection():
 			)
 
 		if not frappe.flags.root_password:
-			frappe.flags.root_password = frappe.conf.get("root_password") or getpass(
-				"MySQL root password: "
-			)
+			frappe.flags.root_password = frappe.conf.get("root_password") or getpass("MySQL root password: ")
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
 			host=frappe.conf.db_host,

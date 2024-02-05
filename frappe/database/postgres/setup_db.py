@@ -18,9 +18,7 @@ def setup_database():
 	else:
 		root_conn.sql(f"CREATE USER \"{frappe.conf.db_user}\" WITH PASSWORD '{frappe.conf.db_password}'")
 	root_conn.sql(f'CREATE DATABASE "{frappe.conf.db_name}"')
-	root_conn.sql(
-		f'GRANT ALL PRIVILEGES ON DATABASE "{frappe.conf.db_name}" TO "{frappe.conf.db_user}"'
-	)
+	root_conn.sql(f'GRANT ALL PRIVILEGES ON DATABASE "{frappe.conf.db_name}" TO "{frappe.conf.db_user}"')
 	if psql_version := root_conn.sql("SELECT VERSION()", as_dict=True):
 		version_string = psql_version[0].get("version") or "PostgreSQL 14"
 		major_version = cint(re.split(r"[\w\.]", version_string)[1])
@@ -30,7 +28,6 @@ def setup_database():
 
 
 def bootstrap_database(verbose, source_sql=None):
-
 	frappe.connect()
 	import_db_from_sql(source_sql, verbose)
 

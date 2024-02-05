@@ -89,15 +89,11 @@ def update_add_node(doc, parent, parent_field):
 	frappe.qb.update(Table).set(Table.rgt, Table.rgt + 2).where(Table.rgt >= right).run()
 	frappe.qb.update(Table).set(Table.lft, Table.lft + 2).where(Table.lft >= right).run()
 
-	if (
-		frappe.qb.from_(Table).select("*").where((Table.lft == right) | (Table.rgt == right + 1)).run()
-	):
+	if frappe.qb.from_(Table).select("*").where((Table.lft == right) | (Table.rgt == right + 1)).run():
 		frappe.throw(_("Nested set error. Please contact the Administrator."))
 
 	# update index of new node
-	frappe.qb.update(Table).set(Table.lft, right).set(Table.rgt, right + 1).where(
-		Table.name == name
-	).run()
+	frappe.qb.update(Table).set(Table.lft, right).set(Table.rgt, right + 1).where(Table.name == name).run()
 	return right
 
 
@@ -162,9 +158,9 @@ def update_move_node(doc: Document, parent_field: str):
 		new_diff = max_rgt + 1 - doc.lft
 
 	# bring back from dark side
-	frappe.qb.update(Table).set(Table.lft, -Table.lft + new_diff).set(
-		Table.rgt, -Table.rgt + new_diff
-	).where(Table.lft < 0).run()
+	frappe.qb.update(Table).set(Table.lft, -Table.lft + new_diff).set(Table.rgt, -Table.rgt + new_diff).where(
+		Table.lft < 0
+	).run()
 
 
 @frappe.whitelist()
@@ -228,9 +224,7 @@ def rebuild_node(doctype, parent, left, parent_field):
 
 def validate_loop(doctype, name, lft, rgt):
 	"""check if item not an ancestor (loop)"""
-	if name in frappe.get_all(
-		doctype, filters={"lft": ["<=", lft], "rgt": [">=", rgt]}, pluck="name"
-	):
+	if name in frappe.get_all(doctype, filters={"lft": ["<=", lft], "rgt": [">=", rgt]}, pluck="name"):
 		frappe.throw(_("Item cannot be added to its own descendants"), NestedSetRecursionError)
 
 
@@ -354,9 +348,7 @@ class NestedSet(Document):
 
 	def get_children(self) -> Iterator["NestedSet"]:
 		"""Return a generator that yields child Documents."""
-		child_names = frappe.get_list(
-			self.doctype, filters={self.nsm_parent_field: self.name}, pluck="name"
-		)
+		child_names = frappe.get_list(self.doctype, filters={self.nsm_parent_field: self.name}, pluck="name")
 		for name in child_names:
 			yield frappe.get_doc(self.doctype, name)
 
@@ -369,9 +361,7 @@ def get_root_of(doctype):
 	t1 = Table.as_("t1")
 	t2 = Table.as_("t2")
 
-	node_query = SubQuery(
-		frappe.qb.from_(t2).select(Count("*")).where((t2.lft < t1.lft) & (t2.rgt > t1.rgt))
-	)
+	node_query = SubQuery(frappe.qb.from_(t2).select(Count("*")).where((t2.lft < t1.lft) & (t2.rgt > t1.rgt)))
 	result = frappe.qb.from_(t1).select(t1.name).where((node_query == 0) & (t1.rgt > t1.lft)).run()
 
 	return result[0][0] if result else None

@@ -20,6 +20,7 @@ class RoleProfile(Document):
 		role_profile: DF.Data
 		roles: DF.Table[HasRole]
 	# end: auto-generated types
+
 	def autoname(self):
 		"""set name as Role Profile name"""
 		self.name = self.role_profile
