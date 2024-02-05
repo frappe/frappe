@@ -28,7 +28,6 @@ class TestRQJob(FrappeTestCase):
 		self.assertEqual(frappe.get_doc("RQ Job", job.id).status, status)
 
 	def test_serialization(self):
-
 		job = frappe.enqueue(method=self.BG_JOB, queue="short")
 		rq_job = frappe.get_doc("RQ Job", job.id)
 
@@ -57,7 +56,6 @@ class TestRQJob(FrappeTestCase):
 		self.assertEqual(rq_job.job_name, "test_func")
 
 	def test_get_list_filtering(self):
-
 		# Check failed job clearning and filtering
 		remove_failed_jobs()
 		jobs = RQJob.get_list({"filters": [["RQ Job", "status", "=", "failed"]]})
@@ -112,9 +110,7 @@ class TestRQJob(FrappeTestCase):
 
 		jobs = [frappe.enqueue(method=self.BG_JOB, queue="short", fail=True) for _ in range(limit * 2)]
 		self.check_status(jobs[-1], "failed")
-		self.assertLessEqual(
-			RQJob.get_count({"filters": [["RQ Job", "status", "=", "failed"]]}), limit * 1.1
-		)
+		self.assertLessEqual(RQJob.get_count({"filters": [["RQ Job", "status", "=", "failed"]]}), limit * 1.1)
 
 
 def test_func(fail=False, sleep=0):

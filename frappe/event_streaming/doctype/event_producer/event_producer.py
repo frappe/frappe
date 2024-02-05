@@ -45,7 +45,10 @@ class EventProducer(Document):
 					frappe.throw(_("Please set API Key and Secret on the producer and consumer sites first."))
 				else:
 					doc_before_save = self.get_doc_before_save()
-					if doc_before_save.api_key != self.api_key or doc_before_save.api_secret != self.api_secret:
+					if (
+						doc_before_save.api_key != self.api_key
+						or doc_before_save.api_secret != self.api_secret
+					):
 						return
 
 					self.update_event_consumer()
@@ -170,7 +173,9 @@ class EventProducer(Document):
 				for entry in self.producer_doctypes:
 					if entry.has_mapping:
 						# if mapping, subscribe to remote doctype on consumer's site
-						ref_doctype = frappe.db.get_value("Document Type Mapping", entry.mapping, "remote_doctype")
+						ref_doctype = frappe.db.get_value(
+							"Document Type Mapping", entry.mapping, "remote_doctype"
+						)
 					else:
 						ref_doctype = entry.ref_doctype
 
@@ -446,7 +451,9 @@ def sync_dependencies(document, producer_site):
 				child_doc = producer_site.get_doc(entry.doctype, entry.name)
 				if child_doc:
 					child_doc = frappe._dict(child_doc)
-					set_dependencies(child_doc, frappe.get_meta(entry.doctype).get_link_fields(), producer_site)
+					set_dependencies(
+						child_doc, frappe.get_meta(entry.doctype).get_link_fields(), producer_site
+					)
 
 	def sync_link_dependencies(doc, link_fields, producer_site):
 		set_dependencies(doc, link_fields, producer_site)

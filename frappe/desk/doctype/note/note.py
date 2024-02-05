@@ -16,7 +16,6 @@ class Note(Document):
 
 	def validate(self):
 		if self.notify_on_login and not self.expire_notification_on:
-
 			# expire this notification in a week (default)
 			self.expire_notification_on = frappe.utils.add_days(self.creation, 7)
 

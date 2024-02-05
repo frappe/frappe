@@ -361,9 +361,7 @@ def insert_event_to_calendar(account, event, recurrence=None):
 		"pulled_from_google_calendar": 1,
 	}
 	calendar_event.update(
-		google_calendar_to_repeat_on(
-			recurrence=recurrence, start=event.get("start"), end=event.get("end")
-		)
+		google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end"))
 	)
 	frappe.get_doc(calendar_event).insert(ignore_permissions=True)
 
@@ -377,9 +375,7 @@ def update_event_in_calendar(account, event, recurrence=None):
 	calendar_event.description = event.get("description")
 	calendar_event.google_meet_link = event.get("hangoutLink")
 	calendar_event.update(
-		google_calendar_to_repeat_on(
-			recurrence=recurrence, start=event.get("start"), end=event.get("end")
-		)
+		google_calendar_to_repeat_on(recurrence=recurrence, start=event.get("start"), end=event.get("end"))
 	)
 	calendar_event.save(ignore_permissions=True)
 
@@ -763,9 +759,7 @@ def get_attendees(doc):
 		if participant.get("email"):
 			attendees.append({"email": participant.email})
 		else:
-			email_not_found.append(
-				{"dt": participant.reference_doctype, "dn": participant.reference_docname}
-			)
+			email_not_found.append({"dt": participant.reference_doctype, "dn": participant.reference_docname})
 
 	if email_not_found:
 		frappe.msgprint(

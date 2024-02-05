@@ -31,7 +31,6 @@ class LDAP_TestCase:
 	def mock_ldap_connection(f):
 		@functools.wraps(f)
 		def wrapped(self, *args, **kwargs):
-
 			with mock.patch(
 				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap",
 				return_value=self.connection,
@@ -279,7 +278,8 @@ class LDAP_TestCase:
 					)
 
 					self.assertTrue(
-						kwargs["raise_exceptions"], "ldap3.Connection must raise exceptions for error handling"
+						kwargs["raise_exceptions"],
+						"ldap3.Connection must raise exceptions for error handling",
 					)
 
 					self.assertTrue(
@@ -474,7 +474,9 @@ class LDAP_TestCase:
 				# Existing user
 				self.test_class.create_or_update_user(self.user1doc, test_user_data[test_user])
 
-				self.assertTrue(sync_roles_method.called, "User roles need to be updated for an existing user")
+				self.assertTrue(
+					sync_roles_method.called, "User roles need to be updated for an existing user"
+				)
 				self.assertTrue(
 					update_user_fields_method.called, "User fields need to be updated for an existing user"
 				)
@@ -550,9 +552,7 @@ class LDAP_TestCase:
 			if (
 				"ACCESS:test3" in search_filter
 			):  # posix.user does not have str in ldap.description auth should fail
-
 				with self.assertRaises(frappe.exceptions.ValidationError) as display_massage:
-
 					self.test_class.authenticate("posix.user", "posix_user_password")
 
 				self.assertTrue(str(display_massage.exception).lower() == "invalid username or password")

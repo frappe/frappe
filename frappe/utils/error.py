@@ -229,9 +229,7 @@ def get_error_snapshot_path():
 def get_default_args(func):
 	"""Get default arguments of a function from its signature."""
 	signature = inspect.signature(func)
-	return {
-		k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty
-	}
+	return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
 
 def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
@@ -247,8 +245,8 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 	:type keep_quiet: function
 
 	>>> @raise_error_on_no_output("Ingradients missing")
-	... def get_indradients(_raise_error=1): return
-	...
+	... def get_indradients(_raise_error=1):
+	...     return
 	>>> get_ingradients()
 	`Exception Name`: Ingradients missing
 	"""

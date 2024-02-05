@@ -11,9 +11,7 @@ class EmailUnsubscribe(Document):
 		if not self.global_unsubscribe and not (self.reference_doctype and self.reference_name):
 			frappe.throw(_("Reference DocType and Reference Name are required"), frappe.MandatoryError)
 
-		if not self.global_unsubscribe and frappe.db.get_value(
-			self.doctype, self.name, "global_unsubscribe"
-		):
+		if not self.global_unsubscribe and frappe.db.get_value(self.doctype, self.name, "global_unsubscribe"):
 			frappe.throw(_("Delete this record to allow sending to this email address"))
 
 		if self.global_unsubscribe:

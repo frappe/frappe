@@ -33,9 +33,7 @@ class RedisQueue:
 		username = "default"
 		conn = cls.get_connection(username, cur_password)
 		password = "+" + (new_password or conn.acl_genpass())
-		conn.acl_setuser(
-			username=username, enabled=True, reset_passwords=reset_passwords, passwords=password
-		)
+		conn.acl_setuser(username=username, enabled=True, reset_passwords=reset_passwords, passwords=password)
 		return password[1:]
 
 	@classmethod

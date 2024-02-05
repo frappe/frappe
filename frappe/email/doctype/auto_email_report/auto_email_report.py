@@ -146,7 +146,6 @@ class AutoEmailReport(Document):
 			frappe.throw(_("Invalid Output Format"))
 
 	def get_html_table(self, columns=None, data=None):
-
 		date_time = global_date_format(now()) + " " + format_time(now())
 		report_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
 

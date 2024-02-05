@@ -16,7 +16,6 @@ class ToDo(Document):
 	def validate(self):
 		self._assignment = None
 		if self.is_new():
-
 			if self.assigned_by == self.allocated_to:
 				assignment_message = frappe._("{0} self assigned this task: {1}").format(
 					get_fullname(self.assigned_by), self.description
@@ -60,9 +59,7 @@ class ToDo(Document):
 
 	def delete_communication_links(self):
 		# unlink todo from linked comments
-		return frappe.db.delete(
-			"Communication Link", {"link_doctype": self.doctype, "link_name": self.name}
-		)
+		return frappe.db.delete("Communication Link", {"link_doctype": self.doctype, "link_name": self.name})
 
 	def update_in_reference(self):
 		if not (self.reference_type and self.reference_name):

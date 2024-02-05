@@ -316,9 +316,9 @@ def extract_title(source, path):
 		# make title from name
 		title = (
 			os.path.basename(
-				path.rsplit(".",)[
-					0
-				].rstrip("/")
+				path.rsplit(
+					".",
+				)[0].rstrip("/")
 			)
 			.replace("_", " ")
 			.replace("-", " ")
@@ -564,7 +564,6 @@ def set_content_type(response, data, path):
 
 
 def add_preload_for_bundled_assets(response):
-
 	links = []
 
 	for css in frappe.local.preload_assets["style"]:

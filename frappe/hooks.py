@@ -78,9 +78,7 @@ on_session_creation = [
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 ]
 
-on_logout = (
-	"frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
-)
+on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 
 # permissions
 
@@ -120,9 +118,7 @@ has_permission = {
 	"Prepared Report": "frappe.core.doctype.prepared_report.prepared_report.has_permission",
 }
 
-has_website_permission = {
-	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
-}
+has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
 
 jinja = {
 	"methods": "frappe.utils.jinja_globals",
@@ -138,9 +134,7 @@ standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
 doc_events = {
 	"*": {
-		"after_insert": [
-			"frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"
-		],
+		"after_insert": ["frappe.event_streaming.doctype.event_update_log.event_update_log.notify_consumers"],
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.core.doctype.activity_log.feed.update_feed",

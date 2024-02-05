@@ -124,9 +124,7 @@ def backup_to_dropbox(upload_db_backup=True):
 	return did_not_upload, list(set(error_log))
 
 
-def upload_from_folder(
-	path, is_private, dropbox_folder, dropbox_client, did_not_upload, error_log
-):
+def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not_upload, error_log):
 	if not os.path.exists(path):
 		return
 

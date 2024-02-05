@@ -169,9 +169,7 @@ def raise_invalid_field(fieldname):
 def is_standard(fieldname):
 	if "." in fieldname:
 		fieldname = fieldname.split(".")[1].strip("`")
-	return (
-		fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
-	)
+	return fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
 
 
 def extract_fieldname(field):
@@ -383,7 +381,6 @@ def export_query():
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
-
 		# convert to csv
 		import csv
 
@@ -401,7 +398,6 @@ def export_query():
 		frappe.response["doctype"] = title
 
 	elif file_format_type == "Excel":
-
 		from frappe.utils.xlsxutils import make_xlsx
 
 		xlsx_file = make_xlsx(data, doctype)
@@ -507,7 +503,9 @@ def delete_bulk(doctype, items):
 			if len(items) >= 5:
 				frappe.publish_realtime(
 					"progress",
-					dict(progress=[i + 1, len(items)], title=_("Deleting {0}").format(doctype), description=d),
+					dict(
+						progress=[i + 1, len(items)], title=_("Deleting {0}").format(doctype), description=d
+					),
 					user=frappe.session.user,
 				)
 			# Commit after successful deletion
@@ -638,7 +636,6 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 					)[0][1],
 				]
 				if data and data[1] != 0:
-
 					stats[tag["name"]].append(data)
 		else:
 			stats[tag["name"]] = tagcount
@@ -678,17 +675,13 @@ def get_match_cond(doctype, as_condition=True):
 
 
 def build_match_conditions(doctype, user=None, as_condition=True):
-	match_conditions = DatabaseQuery(doctype, user=user).build_match_conditions(
-		as_condition=as_condition
-	)
+	match_conditions = DatabaseQuery(doctype, user=user).build_match_conditions(as_condition=as_condition)
 	if as_condition:
 		return match_conditions.replace("%", "%%")
 	return match_conditions
 
 
-def get_filters_cond(
-	doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False
-):
+def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with_match_conditions=False):
 	if isinstance(filters, str):
 		filters = json.loads(filters)
 
@@ -714,7 +707,6 @@ def get_filters_cond(
 					"between",
 					"is",
 				):
-
 					flt.append([doctype, f[0], f[1][0], f[1][1]])
 				else:
 					flt.append([doctype, f[0], "=", f[1]])

@@ -14,7 +14,6 @@ def create_sequence(
 	min_value: int = 0,
 	max_value: int = 0,
 ) -> str:
-
 	query = "create sequence" if not temporary else "create temporary sequence"
 	sequence_name = scrub(doctype_name + slug)
 
@@ -73,7 +72,6 @@ def get_next_val(doctype_name: str, slug: str = "_id_seq") -> int:
 def set_next_val(
 	doctype_name: str, next_val: int, *, slug: str = "_id_seq", is_val_used: bool = False
 ) -> None:
-
 	is_val_used = "false" if not is_val_used else "true"
 
 	db.multisql(

@@ -114,9 +114,7 @@ class TestEventProducer(FrappeTestCase):
 		producer_doc = insert_into_producer(producer, "test different name sync")
 		self.pull_producer_data()
 		self.assertTrue(
-			frappe.db.exists(
-				"ToDo", {"remote_docname": producer_doc.name, "remote_site_name": producer_url}
-			)
+			frappe.db.exists("ToDo", {"remote_docname": producer_doc.name, "remote_site_name": producer_url})
 		)
 
 		reset_configuration(producer_url)

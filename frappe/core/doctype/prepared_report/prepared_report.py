@@ -162,9 +162,7 @@ def process_filters_for_prepared_report(filters):
 def create_json_gz_file(data, dt, dn):
 	# Storing data in CSV file causes information loss
 	# Reports like P&L Statement were completely unsuable because of this
-	json_filename = "{}.json.gz".format(
-		frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M")
-	)
+	json_filename = "{}.json.gz".format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
 	encoded_content = frappe.safe_encode(frappe.as_json(data))
 	compressed_content = gzip_compress(encoded_content)
 
