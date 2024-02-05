@@ -262,7 +262,6 @@ class TestNestedSet(FrappeTestCase):
 		self.assertFalse(frappe.db.exists(TEST_DOCTYPE, "Root Node"))
 
 	def test_desc_filters(self):
-
 		linked_doctype = (
 			new_doctype(
 				fields=[

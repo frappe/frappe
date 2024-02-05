@@ -47,6 +47,7 @@ class PrintFormat(Document):
 		raw_printing: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
+
 	# end: auto-generated types
 	def onload(self):
 		templates = frappe.get_all(
@@ -68,7 +69,6 @@ class PrintFormat(Document):
 			and not frappe.local.conf.get("developer_mode")
 			and not (frappe.flags.in_import or frappe.flags.in_test)
 		):
-
 			frappe.throw(frappe._("Standard Print Format cannot be updated"))
 
 		# old_doc_type is required for clearing item cache
@@ -83,9 +83,7 @@ class PrintFormat(Document):
 			validate_template(self.html)
 
 		if self.custom_format and self.raw_printing and not self.raw_commands:
-			frappe.throw(
-				_("{0} are required").format(frappe.bold(_("Raw Commands"))), frappe.MandatoryError
-			)
+			frappe.throw(_("{0} are required").format(frappe.bold(_("Raw Commands"))), frappe.MandatoryError)
 
 		if self.custom_format and not self.html and not self.raw_printing:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("HTML"))), frappe.MandatoryError)

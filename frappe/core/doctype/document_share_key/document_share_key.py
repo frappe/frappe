@@ -20,6 +20,7 @@ class DocumentShareKey(Document):
 		key: DF.Data | None
 		reference_docname: DF.DynamicLink | None
 		reference_doctype: DF.Link | None
+
 	# end: auto-generated types
 	def before_insert(self):
 		self.key = frappe.generate_hash(length=randrange(25, 35))

@@ -28,6 +28,7 @@ class WebPageView(Document):
 		time_zone: DF.Data | None
 		user_agent: DF.Data | None
 		visitor_id: DF.Data | None
+
 	# end: auto-generated types
 	@staticmethod
 	def clear_old_logs(days=180):

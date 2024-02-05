@@ -133,7 +133,6 @@ class Communication(Document, CommunicationEmailMixin):
 			and self.uid
 			and self.uid != -1
 		):
-
 			email_flag_queue = frappe.db.get_value(
 				"Email Flag Queue", {"communication": self.name, "is_completed": 0}
 			)

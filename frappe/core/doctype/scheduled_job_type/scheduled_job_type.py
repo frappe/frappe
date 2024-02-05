@@ -43,6 +43,7 @@ class ScheduledJobType(Document):
 		next_execution: DF.Datetime | None
 		server_script: DF.Link | None
 		stopped: DF.Check
+
 	# end: auto-generated types
 	def autoname(self):
 		self.name = ".".join(self.method.split(".")[-2:])
@@ -228,9 +229,7 @@ def insert_single_event(frequency: str, event: str, cron_format: str = None):
 		}
 	)
 
-	if not frappe.db.exists(
-		"Scheduled Job Type", {"method": event, "frequency": frequency, **cron_expr}
-	):
+	if not frappe.db.exists("Scheduled Job Type", {"method": event, "frequency": frequency, **cron_expr}):
 		savepoint = "scheduled_job_type_creation"
 		try:
 			frappe.db.savepoint(savepoint)

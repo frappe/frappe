@@ -84,7 +84,6 @@ class TestPerformance(FrappeTestCase):
 			)
 
 	def test_controller_caching(self):
-
 		get_controller("User")
 		with self.assertQueryCount(0):
 			get_controller("User")

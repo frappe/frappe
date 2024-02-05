@@ -91,9 +91,7 @@ on_session_creation = [
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 ]
 
-on_logout = (
-	"frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
-)
+on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 
 # PDF
 pdf_header_html = "frappe.utils.pdf.pdf_header_html"
@@ -139,9 +137,7 @@ has_permission = {
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
 }
 
-has_website_permission = {
-	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
-}
+has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
 
 jinja = {
 	"methods": "frappe.utils.jinja_globals",

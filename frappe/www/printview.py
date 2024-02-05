@@ -102,7 +102,6 @@ def get_rendered_template(
 	trigger_print: bool = False,
 	settings=None,
 ):
-
 	print_settings = frappe.get_single("Print Settings").as_dict()
 	print_settings.update(settings or {})
 
@@ -180,9 +179,7 @@ def get_rendered_template(
 	letter_head = frappe._dict(get_letter_head(doc, no_letterhead, letterhead) or {})
 
 	if letter_head.content:
-		letter_head.content = frappe.utils.jinja.render_template(
-			letter_head.content, {"doc": doc.as_dict()}
-		)
+		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
 		if letter_head.header_script:
 			letter_head.content += f"""
 				<script>
@@ -191,9 +188,7 @@ def get_rendered_template(
 			"""
 
 	if letter_head.footer:
-		letter_head.footer = frappe.utils.jinja.render_template(
-			letter_head.footer, {"doc": doc.as_dict()}
-		)
+		letter_head.footer = frappe.utils.jinja.render_template(letter_head.footer, {"doc": doc.as_dict()})
 		if letter_head.footer_script:
 			letter_head.footer += f"""
 				<script>
@@ -221,9 +216,7 @@ def get_rendered_template(
 		}
 	)
 	hook_func = frappe.get_hooks("pdf_body_html")
-	html = frappe.get_attr(hook_func[-1])(
-		jenv=jenv, template=template, print_format=print_format, args=args
-	)
+	html = frappe.get_attr(hook_func[-1])(jenv=jenv, template=template, print_format=print_format, args=args)
 
 	if cint(trigger_print):
 		html += trigger_print_script
@@ -344,9 +337,7 @@ def get_rendered_raw_commands(doc: str, name: str | None = None, print_format: s
 		)
 
 	return {
-		"raw_commands": get_rendered_template(
-			doc=document, print_format=print_format, meta=document.meta
-		)
+		"raw_commands": get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
 	}
 
 
@@ -407,9 +398,7 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 
 def get_print_format(doctype, print_format):
 	if print_format.disabled:
-		frappe.throw(
-			_("Print Format {0} is disabled").format(print_format.name), frappe.DoesNotExistError
-		)
+		frappe.throw(_("Print Format {0} is disabled").format(print_format.name), frappe.DoesNotExistError)
 
 	# server, find template
 	module = print_format.module or frappe.db.get_value("DocType", doctype, "module")

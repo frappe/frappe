@@ -145,9 +145,7 @@ def handle_response(
 	raise_err: bool = False,
 ):
 	if "error" in response:
-		frappe.log_error(
-			frappe._(error_title), frappe._(response.get("error_description", error_message))
-		)
+		frappe.log_error(frappe._(error_title), frappe._(response.get("error_description", error_message)))
 
 		if raise_err:
 			frappe.throw(frappe._(error_title), GoogleAuthenticationError, frappe._(error_message))
@@ -158,9 +156,7 @@ def handle_response(
 
 
 def is_valid_access_token(access_token: str) -> bool:
-	response = get(
-		"https://oauth2.googleapis.com/tokeninfo", params={"access_token": access_token}
-	).json()
+	response = get("https://oauth2.googleapis.com/tokeninfo", params={"access_token": access_token}).json()
 
 	if "error" in response:
 		return False
@@ -196,6 +192,4 @@ def callback(state: str, code: str = None, error: str = None) -> None:
 			)
 
 	frappe.local.response["type"] = "redirect"
-	frappe.local.response[
-		"location"
-	] = f"{redirect}?{failure_query_param if error else success_query_param}"
+	frappe.local.response["location"] = f"{redirect}?{failure_query_param if error else success_query_param}"

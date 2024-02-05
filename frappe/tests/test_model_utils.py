@@ -26,9 +26,7 @@ class TestModelUtils(FrappeTestCase):
 		user = "test@example.com"
 		full_name = frappe.db.get_value("User", user, "full_name")
 
-		self.assertEqual(
-			get_fetch_values(doctype, "assigned_by", user), {"assigned_by_full_name": full_name}
-		)
+		self.assertEqual(get_fetch_values(doctype, "assigned_by", user), {"assigned_by_full_name": full_name})
 
 	def test_get_permitted_fields(self):
 		# Administrator should have access to all fields in ToDo

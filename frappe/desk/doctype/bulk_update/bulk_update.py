@@ -23,6 +23,7 @@ class BulkUpdate(Document):
 		field: DF.Literal
 		limit: DF.Int
 		update_value: DF.SmallText
+
 	# end: auto-generated types
 	@frappe.whitelist()
 	def bulk_update(self):
@@ -63,9 +64,7 @@ def submit_cancel_or_update_docs(doctype, docnames, action="submit", data=None):
 			timeout=1000,
 		)
 	else:
-		frappe.throw(
-			_("Bulk operations only support up to 500 documents."), title=_("Too Many Documents")
-		)
+		frappe.throw(_("Bulk operations only support up to 500 documents."), title=_("Too Many Documents"))
 
 
 def _bulk_action(doctype, docnames, action, data):

@@ -7,10 +7,7 @@ from frappe.utils.data import cstr
 
 
 @frappe.whitelist()
-def get_version_diff(
-	from_version: int | str, to_version: int | str, fieldname: str = "script"
-) -> list[str]:
-
+def get_version_diff(from_version: int | str, to_version: int | str, fieldname: str = "script") -> list[str]:
 	before, before_timestamp = _get_value_from_version(from_version, fieldname)
 	after, after_timestamp = _get_value_from_version(to_version, fieldname)
 

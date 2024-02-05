@@ -171,9 +171,7 @@ def is_dormant(check_time=None):
 
 
 def _get_last_modified_timestamp(doctype):
-	timestamp = frappe.db.get_value(
-		doctype, filters={}, fieldname="modified", order_by="modified desc"
-	)
+	timestamp = frappe.db.get_value(doctype, filters={}, fieldname="modified", order_by="modified desc")
 	if timestamp:
 		return get_datetime(timestamp)
 

@@ -23,6 +23,7 @@ class Language(Document):
 		flag: DF.Data | None
 		language_code: DF.Data
 		language_name: DF.Data
+
 	# end: auto-generated types
 	def validate(self):
 		validate_with_regex(self.language_code, "Language Code")

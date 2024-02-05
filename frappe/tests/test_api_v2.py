@@ -70,9 +70,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 	def test_get_list_fields(self):
 		# test 6: fetch response with fields
-		response = self.get(
-			self.resource_path(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'}
-		)
+		response = self.get(self.resource_path(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'})
 		self.assertEqual(response.status_code, 200)
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
@@ -205,9 +203,7 @@ class TestMethodAPIV2(FrappeAPITestCase):
 		method = "frappe.tests.test_api.test"
 
 		expected_message = "Failed v2"
-		response = self.get(
-			self.method_path(method), {"sid": self.sid, "message": expected_message}
-		).json
+		response = self.get(self.method_path(method), {"sid": self.sid, "message": expected_message}).json
 
 		self.assertIsInstance(response["messages"], list)
 		self.assertEqual(response["messages"][0]["message"], expected_message)

@@ -222,9 +222,7 @@ class TestSameContent(FrappeTestCase):
 		doctype, docname = make_test_doc()
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
-		limit_property = make_property_setter(
-			"ToDo", None, "max_attachments", 1, "int", for_doctype=True
-		)
+		limit_property = make_property_setter("ToDo", None, "max_attachments", 1, "int", for_doctype=True)
 		file1 = frappe.get_doc(
 			{
 				"doctype": "File",
@@ -451,9 +449,7 @@ class TestFile(FrappeTestCase):
 
 		test_file.file_url = None
 		test_file.file_name = "/usr/bin/man"
-		self.assertRaisesRegex(
-			ValidationError, "There is some problem with the file url", test_file.validate
-		)
+		self.assertRaisesRegex(ValidationError, "There is some problem with the file url", test_file.validate)
 
 		test_file.file_url = None
 		test_file.file_name = "_file"
@@ -670,9 +666,7 @@ class TestAttachmentsAccess(FrappeTestCase):
 
 		frappe.set_user("test4@example.com")
 		user_files = [file.file_name for file in get_files_in_folder("Home")["files"]]
-		user_attachments_files = [
-			file.file_name for file in get_files_in_folder("Home/Attachments")["files"]
-		]
+		user_attachments_files = [file.file_name for file in get_files_in_folder("Home/Attachments")["files"]]
 
 		self.assertIn("test_sm_standalone.txt", system_manager_files)
 		self.assertNotIn("test_sm_standalone.txt", user_files)

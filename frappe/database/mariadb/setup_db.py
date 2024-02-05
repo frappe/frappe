@@ -103,7 +103,6 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 
 def check_database_settings():
-
 	check_compatible_versions()
 
 	# Check each expected value vs. actuals:

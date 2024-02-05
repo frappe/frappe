@@ -17,6 +17,7 @@ class ViewLog(Document):
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
 		viewed_by: DF.Data | None
+
 	# end: auto-generated types
 	@staticmethod
 	def clear_old_logs(days=180):

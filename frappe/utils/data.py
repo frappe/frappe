@@ -105,7 +105,6 @@ def getdate(
 def get_datetime(
 	datetime_str: Optional["DateTimeLikeObject"] = None,
 ) -> datetime.datetime | None:
-
 	if datetime_str is None:
 		return now_datetime()
 
@@ -385,9 +384,7 @@ def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[True] = False) -> s
 
 
 # TODO: first arg
-def get_first_day(
-	dt, d_years: int = 0, d_months: int = 0, as_str: bool = False
-) -> str | datetime.date:
+def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False) -> str | datetime.date:
 	"""
 	Returns the first day of the month for the date specified by date object
 	Also adds `d_years` and `d_months` if specified
@@ -545,9 +542,7 @@ def get_user_time_format() -> str:
 	return frappe.local.user_time_format or "HH:mm:ss"
 
 
-def format_date(
-	string_date=None, format_string: str | None = None, parse_day_first: bool = False
-) -> str:
+def format_date(string_date=None, format_string: str | None = None, parse_day_first: bool = False) -> str:
 	"""Converts the given string date to :data:`user_date_format`
 	User format specified in defaults
 
@@ -704,9 +699,7 @@ def duration_to_seconds(duration):
 def validate_duration_format(duration):
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
-			frappe._("Value {0} must be in the valid duration format: d h m s").format(
-				frappe.bold(duration)
-			)
+			frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration))
 		)
 
 
@@ -799,9 +792,7 @@ def global_date_format(date, format="long"):
 	import babel.dates
 
 	date = getdate(date)
-	return babel.dates.format_date(
-		date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format
-	)
+	return babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format)
 
 
 def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
@@ -906,9 +897,7 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	...
 
 
-def flt(
-	s: NumericType | str, precision: int | None = None, rounding_method: str | None = None
-) -> float:
+def flt(s: NumericType | str, precision: int | None = None, rounding_method: str | None = None) -> float:
 	"""Convert to float (ignoring commas in string)
 
 	:param s: Number in string or other numeric format.
@@ -1609,9 +1598,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 
 def get_host_name_from_request() -> str:
 	if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
-		protocol = (
-			"https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
-		)
+		protocol = "https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
 		return protocol + frappe.local.request.host
 
 
@@ -1646,7 +1633,8 @@ def get_link_to_report(
 		for k, v in filters.items():
 			if isinstance(v, list):
 				conditions.extend(
-					str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]') for value in v
+					str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]')
+					for value in v
 				)
 			else:
 				conditions.append(str(k) + "=" + str(v))
@@ -1814,7 +1802,6 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 		# verify fieldname belongs to the doctype
 		meta = frappe.get_meta(f.doctype)
 		if not meta.has_field(f.fieldname):
-
 			# try and match the doctype name from child tables
 			for df in meta.get_table_fields():
 				if frappe.get_meta(df.options).has_field(f.fieldname):
@@ -2111,9 +2098,7 @@ def get_user_info_for_avatar(user_id: str) -> _UserInfo:
 		return {"email": user_id, "image": "", "name": user_id}
 
 
-def validate_python_code(
-	string: str, fieldname: str | None = None, is_expression: bool = True
-) -> None:
+def validate_python_code(string: str, fieldname: str | None = None, is_expression: bool = True) -> None:
 	"""Validate python code fields by using compile_command to ensure that expression is valid python.
 
 	args:

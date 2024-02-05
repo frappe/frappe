@@ -37,6 +37,7 @@ class DesktopIcon(Document):
 		reverse: DF.Check
 		standard: DF.Check
 		type: DF.Literal["module", "list", "link", "page", "query-report"]
+
 	# end: auto-generated types
 	def validate(self):
 		if not self.label:
@@ -96,9 +97,7 @@ def get_desktop_icons(user=None):
 				icon.blocked = 1
 			standard_map[icon.module_name] = icon
 
-		user_icons = frappe.get_all(
-			"Desktop Icon", fields=fields, filters={"standard": 0, "owner": user}
-		)
+		user_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 0, "owner": user})
 
 		# update hidden property
 		for icon in user_icons:
@@ -126,7 +125,6 @@ def get_desktop_icons(user=None):
 		user_icon_names = [icon.module_name for icon in user_icons]
 		for standard_icon in standard_icons:
 			if standard_icon.module_name not in user_icon_names:
-
 				# if blocked, hidden too!
 				if standard_icon.blocked:
 					standard_icon.hidden = 1
@@ -174,9 +172,7 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", st
 
 	else:
 		idx = (
-			frappe.db.sql("select max(idx) from `tabDesktop Icon` where owner=%s", frappe.session.user)[0][
-				0
-			]
+			frappe.db.sql("select max(idx) from `tabDesktop Icon` where owner=%s", frappe.session.user)[0][0]
 			or frappe.db.sql("select count(*) from `tabDesktop Icon` where standard=1")[0][0]
 		)
 
@@ -333,8 +329,7 @@ def set_hidden(module_name, user=None, hidden=1):
 
 def get_all_icons():
 	return [
-		d.module_name
-		for d in frappe.get_all("Desktop Icon", filters={"standard": 1}, fields=["module_name"])
+		d.module_name for d in frappe.get_all("Desktop Icon", filters={"standard": 1}, fields=["module_name"])
 	]
 
 

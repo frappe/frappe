@@ -112,9 +112,7 @@ def get_commands():
 	from .utils import commands as utils_commands
 
 	clickable_link = "https://frappeframework.com/docs"
-	all_commands = (
-		scheduler_commands + site_commands + translate_commands + utils_commands + redis_commands
-	)
+	all_commands = scheduler_commands + site_commands + translate_commands + utils_commands + redis_commands
 
 	for command in all_commands:
 		if not command.help:

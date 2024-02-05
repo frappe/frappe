@@ -19,6 +19,7 @@ class CustomRole(Document):
 		ref_doctype: DF.Data | None
 		report: DF.Link | None
 		roles: DF.Table[HasRole]
+
 	# end: auto-generated types
 	def validate(self):
 		if self.report and not self.ref_doctype:
