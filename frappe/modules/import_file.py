@@ -38,7 +38,7 @@ ignore_doctypes = [""]
 
 
 def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_permissions=False):
-	if type(module) is list:
+	if isinstance(module, list):
 		return [
 			import_file(
 				m[0],
@@ -209,11 +209,7 @@ def import_doc(
 	docdict["__islocal"] = 1
 
 	controller = get_controller(docdict["doctype"])
-	if (
-		controller
-		and hasattr(controller, "prepare_for_import")
-		and callable(getattr(controller, "prepare_for_import"))
-	):
+	if controller and hasattr(controller, "prepare_for_import") and callable(controller.prepare_for_import):
 		controller.prepare_for_import(docdict)
 
 	doc = frappe.get_doc(docdict)

@@ -105,7 +105,7 @@ def import_from(name, doctype):
 
 @frappe.whitelist()
 def add_subscribers(name, email_list):
-	if not isinstance(email_list, (list, tuple)):
+	if not isinstance(email_list, list | tuple):
 		email_list = email_list.replace(",", "\n").split("\n")
 
 	template = frappe.db.get_value("Email Group", name, "welcome_email_template")

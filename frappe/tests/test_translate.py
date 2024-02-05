@@ -74,7 +74,7 @@ class TestTranslate(FrappeTestCase):
 			msg=f"Mismatched output:\nExpected: {expected_output}\nFound: {data}",
 		)
 
-		for extracted, expected in zip(data, expected_output):
+		for extracted, expected in zip(data, expected_output, strict=False):
 			ext_filename, ext_message, ext_context, ext_line = extracted
 			exp_message, exp_context, exp_line = expected
 			self.assertEqual(ext_filename, exp_filename)
@@ -214,7 +214,7 @@ class TestTranslate(FrappeTestCase):
 
 		output = extract_messages_from_python_code(code)
 		self.assertEqual(len(expected_output), len(output))
-		for expected, actual in zip(expected_output, output):
+		for expected, actual in zip(expected_output, output, strict=False):
 			with self.subTest():
 				self.assertEqual(expected, actual)
 
@@ -251,7 +251,7 @@ class TestTranslate(FrappeTestCase):
 		output = extract_messages_from_javascript_code(code)
 
 		self.assertEqual(len(expected_output), len(output))
-		for expected, actual in zip(expected_output, output):
+		for expected, actual in zip(expected_output, output, strict=False):
 			with self.subTest():
 				self.assertEqual(expected, actual)
 

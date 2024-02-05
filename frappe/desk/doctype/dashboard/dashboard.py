@@ -124,9 +124,7 @@ def get_non_standard_warning_message(non_standard_docs_map):
 	def get_html(docs, doctype):
 		html = f"<p>{frappe.bold(doctype)}</p>"
 		for doc in docs:
-			html += '<div><a href="/app/Form/{doctype}/{doc}">{doc}</a></div>'.format(
-				doctype=doctype, doc=doc
-			)
+			html += f'<div><a href="/app/Form/{doctype}/{doc}">{doc}</a></div>'
 		html += "<br>"
 		return html
 
