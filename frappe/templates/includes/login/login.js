@@ -169,13 +169,8 @@ login.signup = function () {
 
 
 // Login
-<<<<<<< HEAD
 login.call = function (args, callback) {
-	login.set_status('{{ _("Verifying...") }}', 'blue');
-=======
-login.call = function (args, callback, url="/") {
 	login.set_status({{ _("Verifying...") | tojson }}, 'blue');
->>>>>>> 11baf6e03c (fix(login): Escape translated strings (#24431))
 
 	return frappe.call({
 		type: "POST",
