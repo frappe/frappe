@@ -493,3 +493,11 @@ class TestMisc(FrappeTestCase):
 
 		DocType = Table("DocType")
 		self.assertEqual(DocType.get_sql(), "DocType")
+
+	def test_union(self):
+		user = frappe.qb.DocType("User")
+		role = frappe.qb.DocType("Role")
+		users = frappe.qb.from_(user).select(user.name)
+		roles = frappe.qb.from_(role).select(role.name)
+
+		self.assertEqual(set(users.run() + roles.run()), set((users + roles).run()))
