@@ -87,7 +87,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return this.is_translatable() ? __(value) : value;
 	}
 	is_translatable() {
-		return frappe.boot?.translated_doctypes || [].includes(this.get_options());
+		return (frappe.boot?.translated_doctypes || []).includes(this.get_options());
 	}
 	is_title_link() {
 		return (frappe.boot?.link_title_doctypes || []).includes(this.get_options());
