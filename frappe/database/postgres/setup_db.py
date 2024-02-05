@@ -11,7 +11,7 @@ def setup_database(force, source_sql=None, verbose=False):
 	root_conn.sql(f"DROP USER IF EXISTS {frappe.conf.db_name}")
 	root_conn.sql(f"CREATE DATABASE `{frappe.conf.db_name}`")
 	root_conn.sql(f"CREATE user {frappe.conf.db_name} password '{frappe.conf.db_password}'")
-	root_conn.sql("GRANT ALL PRIVILEGES ON DATABASE `{0}` TO {0}".format(frappe.conf.db_name))
+	root_conn.sql(f"GRANT ALL PRIVILEGES ON DATABASE `{frappe.conf.db_name}` TO {frappe.conf.db_name}")
 	root_conn.close()
 
 	bootstrap_database(frappe.conf.db_name, verbose, source_sql=source_sql)
@@ -54,7 +54,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 	_command = (
 		f"psql {frappe.conf.db_name} "
-		f"-h {frappe.conf.db_host} -p {str(frappe.conf.db_port)} "
+		f"-h {frappe.conf.db_host} -p {frappe.conf.db_port!s} "
 		f"-U {frappe.conf.db_name}"
 	)
 

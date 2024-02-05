@@ -63,10 +63,10 @@ def enqueue(
 	now: bool = False,
 	enqueue_after_commit: bool = False,
 	*,
-	on_success: Callable = None,
-	on_failure: Callable = None,
+	on_success: Callable | None = None,
+	on_failure: Callable | None = None,
 	at_front: bool = False,
-	job_id: str = None,
+	job_id: str | None = None,
 	deduplicate=False,
 	**kwargs,
 ) -> Job | Any:
@@ -259,7 +259,7 @@ def start_worker(
 	rq_password: str | None = None,
 	burst: bool = False,
 	strategy: DequeueStrategy | None = DequeueStrategy.DEFAULT,
-) -> NoReturn | None:  # pragma: no cover
+) -> None:  # pragma: no cover
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 
 	if not strategy:
@@ -345,9 +345,7 @@ def get_worker_name(queue):
 
 	if queue:
 		# hostname.pid is the default worker name
-		name = "{uuid}.{hostname}.{pid}.{queue}".format(
-			uuid=uuid4().hex, hostname=socket.gethostname(), pid=os.getpid(), queue=queue
-		)
+		name = f"{uuid4().hex}.{socket.gethostname()}.{os.getpid()}.{queue}"
 
 	return name
 
@@ -467,7 +465,7 @@ def get_redis_conn(username=None, password=None):
 		raise
 	except Exception as e:
 		log(
-			f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}. Redis reported error: {str(e)}",
+			f"Please make sure that Redis Queue runs @ {frappe.get_conf().redis_queue}. Redis reported error: {e!s}",
 			colour="red",
 		)
 		raise

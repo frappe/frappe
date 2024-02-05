@@ -575,10 +575,9 @@ class User(Document):
 			has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
 			for field in has_fields:
 				frappe.db.sql(
-					"""UPDATE `%s`
-					SET `%s` = %s
-					WHERE `%s` = %s"""
-					% (tab, field, "%s", field, "%s"),
+					"""UPDATE `{}`
+					SET `{}` = {}
+					WHERE `{}` = {}""".format(tab, field, "%s", field, "%s"),
 					(new_name, old_name),
 				)
 
@@ -621,7 +620,7 @@ class User(Document):
 
 	def ensure_unique_roles(self):
 		exists = []
-		for i, d in enumerate(self.get("roles")):
+		for d in self.get("roles"):
 			if (not d.role) or (d.role in exists):
 				self.get("roles").remove(d)
 			else:
@@ -807,7 +806,7 @@ def get_perm_info(role):
 
 @frappe.whitelist(allow_guest=True)
 def update_password(
-	new_password: str, logout_all_sessions: int = 0, key: str = None, old_password: str = None
+	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
 ):
 	"""Update password for the current user.
 
@@ -1179,7 +1178,7 @@ def handle_password_test_fail(feedback: dict):
 	suggestions = feedback.get("suggestions", [])
 	warning = feedback.get("warning", "")
 
-	frappe.throw(msg=" ".join([warning] + suggestions), title=_("Invalid Password"))
+	frappe.throw(msg=" ".join([warning, *suggestions]), title=_("Invalid Password"))
 
 
 def update_gravatar(name):

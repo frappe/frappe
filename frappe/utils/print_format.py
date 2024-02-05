@@ -70,7 +70,7 @@ def download_multi_pdf(doctype, name, format=None, no_letterhead=False, letterhe
 		result = json.loads(name)
 
 		# Concatenating pdf files
-		for i, ss in enumerate(result):
+		for ss in result:
 			pdf_writer = frappe.get_print(
 				doctype,
 				ss,

@@ -668,7 +668,7 @@ class InboundMail(Email):
 		# replace inline images
 		content = self.content
 		for file in attachments:
-			if file.name in self.cid_map and self.cid_map[file.name]:
+			if self.cid_map.get(file.name):
 				content = content.replace(f"cid:{self.cid_map[file.name]}", file.unique_url)
 		return content
 

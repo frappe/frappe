@@ -143,7 +143,7 @@ def split_by_weight(work, weights, chunk_count):
 	chunk_no = 0
 	chunk_weight = 0
 
-	for task, weight in zip(work, weights):
+	for task, weight in zip(work, weights, strict=False):
 		if chunk_weight > expected_weight:
 			chunk_weight = 0
 			chunk_no += 1

@@ -188,8 +188,8 @@ def get_doc_path(module: str, doctype: str, name: str) -> str:
 
 def reload_doc(
 	module: str,
-	dt: str = None,
-	dn: str = None,
+	dt: str | None = None,
+	dn: str | None = None,
 	force: bool = False,
 	reset_permissions: bool = False,
 ):

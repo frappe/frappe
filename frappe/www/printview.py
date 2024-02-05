@@ -453,7 +453,7 @@ def make_layout(doc, meta, format_data=None):
 
 		if df.fieldtype == "Section Break" or page == []:
 			if len(page) > 1:
-				if page[-1]["has_data"] == False:
+				if not page[-1]["has_data"]:
 					# truncate last section if empty
 					del page[-1]
 

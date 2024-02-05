@@ -81,7 +81,7 @@ def get_current_stack_frames():
 	try:
 		current = inspect.currentframe()
 		frames = inspect.getouterframes(current, context=10)
-		for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:
+		for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:  # noqa: B007
 			if "/apps/" in filename or SERVER_SCRIPT_FILE_PREFIX in filename:
 				yield {
 					"filename": TRACEBACK_PATH_PATTERN.sub("", filename),

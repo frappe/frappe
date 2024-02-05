@@ -22,7 +22,7 @@ class DomainSettings(Document):
 		active_domains = [d.domain for d in self.active_domains]
 		added = False
 		for d in domains:
-			if not d in active_domains:
+			if d not in active_domains:
 				self.append("active_domains", dict(domain=d))
 				added = True
 

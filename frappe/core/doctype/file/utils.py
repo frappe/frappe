@@ -169,7 +169,7 @@ def delete_file(path: str) -> None:
 			os.remove(path)
 
 
-def remove_file_by_url(file_url: str, doctype: str = None, name: str = None) -> "Document":
+def remove_file_by_url(file_url: str, doctype: str | None = None, name: str | None = None) -> "Document":
 	if doctype and name:
 		fid = frappe.db.get_value(
 			"File", {"file_url": file_url, "attached_to_doctype": doctype, "attached_to_name": name}
@@ -276,7 +276,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 	return content
 
 
-def get_random_filename(content_type: str = None) -> str:
+def get_random_filename(content_type: str | None = None) -> str:
 	extn = None
 	if content_type:
 		extn = mimetypes.guess_extension(content_type)
@@ -413,7 +413,7 @@ def decode_file_content(content: bytes) -> bytes:
 	return safe_b64decode(content)
 
 
-def find_file_by_url(path: str, name: str = None) -> Optional["File"]:
+def find_file_by_url(path: str, name: str | None = None) -> Optional["File"]:
 	filters = {"file_url": str(path)}
 	if name:
 		filters["name"] = str(name)
