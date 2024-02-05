@@ -100,7 +100,7 @@ class User(Document):
 		redirect_url: DF.SmallText | None
 		reset_password_key: DF.Data | None
 		restrict_ip: DF.SmallText | None
-		role_profile_name: DF.TableMultiSelect[UserRoleProfile]
+		role_profiles: DF.TableMultiSelect[UserRoleProfile]
 		roles: DF.Table[HasRole]
 		send_me_a_copy: DF.Check
 		send_welcome_email: DF.Check
@@ -584,8 +584,8 @@ class User(Document):
 			for field in has_fields:
 				frappe.db.sql(
 					"""UPDATE `%s`
-					SET `%s` = %s
-					WHERE `%s` = %s"""
+                    SET `%s` = %s
+                    WHERE `%s` = %s"""
 					% (tab, field, "%s", field, "%s"),
 					(new_name, old_name),
 				)
@@ -820,10 +820,10 @@ def update_password(
 	"""Update password for the current user.
 
 	Args:
-			new_password (str): New password.
-			logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
-			key (str, optional): Password reset key. Defaults to None.
-			old_password (str, optional): Old password. Defaults to None.
+	    new_password (str): New password.
+	    logout_all_sessions (int, optional): If set to 1, all other sessions will be logged out. Defaults to 0.
+	    key (str, optional): Password reset key. Defaults to None.
+	    old_password (str, optional): Old password. Defaults to None.
 	"""
 
 	if len(new_password) > MAX_PASSWORD_SIZE:
@@ -1059,21 +1059,21 @@ def user_query(doctype, txt, searchfield, start, page_len, filters):
 	txt = f"%{txt}%"
 	return frappe.db.sql(
 		"""SELECT `name`, CONCAT_WS(' ', first_name, middle_name, last_name)
-		FROM `tabUser`
-		WHERE `enabled`=1
-			{user_type_condition}
-			AND `docstatus` < 2
-			AND `name` NOT IN ({standard_users})
-			AND ({key} LIKE %(txt)s
-				OR CONCAT_WS(' ', first_name, middle_name, last_name) LIKE %(txt)s)
-			{fcond} {mcond}
-		ORDER BY
-			CASE WHEN `name` LIKE %(txt)s THEN 0 ELSE 1 END,
-			CASE WHEN concat_ws(' ', first_name, middle_name, last_name) LIKE %(txt)s
-				THEN 0 ELSE 1 END,
-			NAME asc
-		LIMIT %(page_len)s OFFSET %(start)s
-	""".format(
+        FROM `tabUser`
+        WHERE `enabled`=1
+            {user_type_condition}
+            AND `docstatus` < 2
+            AND `name` NOT IN ({standard_users})
+            AND ({key} LIKE %(txt)s
+                OR CONCAT_WS(' ', first_name, middle_name, last_name) LIKE %(txt)s)
+            {fcond} {mcond}
+        ORDER BY
+            CASE WHEN `name` LIKE %(txt)s THEN 0 ELSE 1 END,
+            CASE WHEN concat_ws(' ', first_name, middle_name, last_name) LIKE %(txt)s
+                THEN 0 ELSE 1 END,
+            NAME asc
+        LIMIT %(page_len)s OFFSET %(start)s
+    """.format(
 			user_type_condition=user_type_condition,
 			standard_users=", ".join(frappe.db.escape(u) for u in STANDARD_USERS),
 			key=searchfield,
@@ -1089,10 +1089,10 @@ def get_total_users():
 	return flt(
 		frappe.db.sql(
 			"""SELECT SUM(`simultaneous_sessions`)
-		FROM `tabUser`
-		WHERE `enabled` = 1
-		AND `user_type` = 'System User'
-		AND `name` NOT IN ({})""".format(
+        FROM `tabUser`
+        WHERE `enabled` = 1
+        AND `user_type` = 'System User'
+        AND `name` NOT IN ({})""".format(
 				", ".join(["%s"] * len(STANDARD_USERS))
 			),
 			STANDARD_USERS,
@@ -1123,9 +1123,9 @@ def get_active_users():
 	"""Return number of system users who logged in, in the last 3 days."""
 	return frappe.db.sql(
 		"""select count(*) from `tabUser`
-		where enabled = 1 and user_type != 'Website User'
-		and name not in ({})
-		and hour(timediff(now(), last_active)) < 72""".format(
+        where enabled = 1 and user_type != 'Website User'
+        and name not in ({})
+        and hour(timediff(now(), last_active)) < 72""".format(
 			", ".join(["%s"] * len(STANDARD_USERS))
 		),
 		STANDARD_USERS,
@@ -1141,8 +1141,8 @@ def get_active_website_users():
 	"""Return number of website users who logged in, in the last 3 days."""
 	return frappe.db.sql(
 		"""select count(*) from `tabUser`
-		where enabled = 1 and user_type = 'Website User'
-		and hour(timediff(now(), last_active)) < 72"""
+        where enabled = 1 and user_type = 'Website User'
+        and hour(timediff(now(), last_active)) < 72"""
 	)[0][0]
 
 
