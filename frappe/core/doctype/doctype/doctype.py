@@ -1353,7 +1353,7 @@ def validate_fields(meta):
 			d.search_index = 0
 
 		if getattr(d, "unique", False):
-			if d.fieldtype not in ("Data", "Link", "Read Only"):
+			if d.fieldtype not in ("Data", "Link", "Read Only", "Int"):
 				frappe.throw(
 					_("{0}: Fieldtype {1} for {2} cannot be unique").format(docname, d.fieldtype, d.label),
 					NonUniqueError,
