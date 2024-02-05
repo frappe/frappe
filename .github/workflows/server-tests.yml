@@ -48,8 +48,6 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        db: ["mariadb"]
 
     services:
       mariadb:
@@ -133,7 +131,7 @@ jobs:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
           AFTER: ${{ env.GITHUB_EVENT_PATH.after }}
           TYPE: server
-          DB: ${{ matrix.db }}
+          DB: 'mariadb'
 
       - name: Run Tests
         run: bench --site test_site run-parallel-tests
@@ -149,10 +147,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build != 'strawberry' }}
-
-    strategy:
-      matrix:
-        db: ["mariadb"]
 
     steps:
       - name: Pass skipped tests unconditionally
