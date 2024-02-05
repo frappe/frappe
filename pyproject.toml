@@ -99,15 +99,6 @@ line-length = 110
 indent-style = "tab"
 docstring-code-format = true
 
-[tool.isort]
-line_length = 110
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-indent = "\t"
-
 [tool.bench.dev-dependencies]
 coverage = "~=6.5.0"
 Faker = "~=13.12.1"
