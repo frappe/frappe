@@ -2048,10 +2048,7 @@ def get_print(
 	if not html:
 		html = get_response_content("printview")
 
-	if as_pdf:
-		return get_pdf(html, options=pdf_options, output=output)
-	else:
-		return html
+	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
 def attach_print(

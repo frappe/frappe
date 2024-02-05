@@ -180,11 +180,23 @@ def get_rendered_template(
 		letter_head.content = frappe.utils.jinja.render_template(
 			letter_head.content, {"doc": doc.as_dict()}
 		)
+		if letter_head.header_script:
+			letter_head.content += f"""
+				<script>
+					{ letter_head.header_script }
+				</script>
+			"""
 
 	if letter_head.footer:
 		letter_head.footer = frappe.utils.jinja.render_template(
 			letter_head.footer, {"doc": doc.as_dict()}
 		)
+		if letter_head.footer_script:
+			letter_head.footer += f"""
+				<script>
+					{ letter_head.footer_script }
+				</script>
+			"""
 
 	convert_markdown(doc, meta)
 
@@ -388,13 +400,24 @@ def validate_key(key, doc):
 def get_letter_head(doc, no_letterhead, letterhead=None):
 	if no_letterhead:
 		return {}
-	if letterhead:
-		return frappe.db.get_value("Letter Head", letterhead, ["content", "footer"], as_dict=True)
-	if doc.get("letter_head"):
-		return frappe.db.get_value("Letter Head", doc.letter_head, ["content", "footer"], as_dict=True)
+
+	letterhead_name = letterhead or doc.get("letter_head")
+	if letterhead_name:
+		return frappe.db.get_value(
+			"Letter Head",
+			letterhead_name,
+			["content", "footer", "header_script", "footer_script"],
+			as_dict=True,
+		)
 	else:
 		return (
-			frappe.db.get_value("Letter Head", {"is_default": 1}, ["content", "footer"], as_dict=True) or {}
+			frappe.db.get_value(
+				"Letter Head",
+				{"is_default": 1},
+				["content", "footer", "header_script", "footer_script"],
+				as_dict=True,
+			)
+			or {}
 		)
 
 

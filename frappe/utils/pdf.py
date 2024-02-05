@@ -178,7 +178,7 @@ def read_options_from_html(html):
 	return str(soup), options
 
 
-def prepare_header_footer(soup):
+def prepare_header_footer(soup: BeautifulSoup):
 	options = {}
 
 	head = soup.find("head").contents
@@ -189,9 +189,11 @@ def prepare_header_footer(soup):
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
-		content = soup.find(id=html_id)
-		if content:
-			# there could be multiple instances of header-html/footer-html
+		if content := soup.find(id=html_id):
+			content = content.extract()
+			# `header/footer-html` are extracted, rendered as html
+			# and passed in wkhtmltopdf options (as '--header/footer-html')
+			# Remove instances of them from main content for render_template
 			for tag in soup.find_all(id=html_id):
 				tag.extract()
 
