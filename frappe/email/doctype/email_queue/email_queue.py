@@ -102,12 +102,12 @@ class EmailQueue(Document):
 	def attachments_list(self):
 		return json.loads(self.attachments) if self.attachments else []
 
-	def get_email_account(self):
+	def get_email_account(self, raise_error=False):
 		if self.email_account:
 			return frappe.get_cached_doc("Email Account", self.email_account)
 
 		return EmailAccount.find_outgoing(
-			match_by_email=self.sender, match_by_doctype=self.reference_doctype
+			match_by_email=self.sender, match_by_doctype=self.reference_doctype, _raise_error=raise_error
 		)
 
 	def is_to_be_sent(self):
@@ -129,6 +129,7 @@ class EmailQueue(Document):
 			return
 
 		with SendMailContext(self, smtp_server_instance) as ctx:
+			ctx.fetch_smtp_server()
 			message = None
 			for recipient in self.recipients:
 				if recipient.is_mail_sent():
@@ -203,17 +204,20 @@ class SendMailContext:
 		smtp_server_instance: SMTPServer = None,
 	):
 		self.queue_doc: EmailQueue = queue_doc
-		self.email_account_doc = queue_doc.get_email_account()
-
-		self.smtp_server = smtp_server_instance or self.email_account_doc.get_smtp_server()
 
 		# if smtp_server_instance is passed, then retain smtp session
 		# Note: smtp session will have to be manually closed
 		self.retain_smtp_session = bool(smtp_server_instance)
 
+		self.smtp_server: SMTPServer = smtp_server_instance
 		self.sent_to_atleast_one_recipient = any(
 			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
 		)
+
+	def fetch_smtp_server(self):
+		self.email_account_doc = self.queue_doc.get_email_account(raise_error=True)
+		if not self.smtp_server:
+			self.smtp_server = self.email_account_doc.get_smtp_server()
 
 	def __enter__(self):
 		self.queue_doc.update_status(status="Sending", commit=True)
@@ -688,7 +692,7 @@ class QueueBuilder:
 			recipients = list(set([r] + self.final_cc() + self.bcc))
 			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
 			if not smtp_server_instance:
-				email_account = q.get_email_account()
+				email_account = q.get_email_account(raise_error=True)
 				smtp_server_instance = email_account.get_smtp_server()
 
 			with suppress(Exception):
