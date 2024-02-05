@@ -367,7 +367,6 @@ def clear_cache(path=None):
 		"website_generator_routes",
 		"website_pages",
 		"website_full_index",
-		"sitemap_routes",
 		"languages_with_name",
 		"languages",
 	):
