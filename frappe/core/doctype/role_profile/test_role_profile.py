@@ -7,7 +7,7 @@ test_dependencies = ["Role"]
 
 
 class TestRoleProfile(FrappeTestCase):
-	def test_make_new_role_profile(self):
+	def test_make_new_role_profiles(self):
 		frappe.delete_doc_if_exists("Role Profile", "Test 1", force=1)
 		new_role_profile = frappe.get_doc(dict(doctype="Role Profile", role_profile="Test 1")).insert()
 
@@ -22,6 +22,8 @@ class TestRoleProfile(FrappeTestCase):
 		random_user = frappe.mock("email")
 		random_user_name = frappe.mock("name")
 
+		user_role_profile = [{"role_profile": "Test 1"}]
+
 		random_user = frappe.get_doc(
 			{
 				"doctype": "User",
@@ -29,9 +31,10 @@ class TestRoleProfile(FrappeTestCase):
 				"enabled": 1,
 				"first_name": random_user_name,
 				"new_password": "Eastern_43A1W",
-				"role_profile_name": "Test 1",
+				"role_profiles": user_role_profile,
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
 		self.assertListEqual(
 			[role.role for role in random_user.roles], [role.role for role in new_role_profile.roles]
 		)
