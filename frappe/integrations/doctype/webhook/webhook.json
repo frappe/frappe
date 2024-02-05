@@ -90,7 +90,7 @@
   },
   {
    "fieldname": "request_url",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Request URL",
    "reqd": 1
@@ -211,8 +211,18 @@
    "reqd": 1
   }
  ],
+<<<<<<< HEAD
  "links": [],
  "modified": "2023-06-16 10:21:00.971833",
+=======
+ "links": [
+  {
+   "link_doctype": "Webhook Request Log",
+   "link_fieldname": "webhook"
+  }
+ ],
+ "modified": "2024-02-05 17:49:50.203001",
+>>>>>>> 063e30964d (fix: Use `TEXT` type for Webhook URLs to support large URLs)
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

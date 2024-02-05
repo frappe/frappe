@@ -20,6 +20,46 @@ WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
 
 
 class Webhook(Document):
+<<<<<<< HEAD
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.integrations.doctype.webhook_data.webhook_data import WebhookData
+		from frappe.integrations.doctype.webhook_header.webhook_header import WebhookHeader
+		from frappe.types import DF
+
+		condition: DF.SmallText | None
+		enable_security: DF.Check
+		enabled: DF.Check
+		is_dynamic_url: DF.Check
+		meets_condition: DF.Data | None
+		preview_document: DF.DynamicLink | None
+		preview_request_body: DF.Code | None
+		request_method: DF.Literal["POST", "PUT", "DELETE"]
+		request_structure: DF.Literal["", "Form URL-Encoded", "JSON"]
+		request_url: DF.SmallText
+		timeout: DF.Int
+		webhook_data: DF.Table[WebhookData]
+		webhook_docevent: DF.Literal[
+			"after_insert",
+			"on_update",
+			"on_submit",
+			"on_cancel",
+			"on_trash",
+			"on_update_after_submit",
+			"on_change",
+		]
+		webhook_doctype: DF.Link
+		webhook_headers: DF.Table[WebhookHeader]
+		webhook_json: DF.Code | None
+		webhook_secret: DF.Password | None
+	# end: auto-generated types
+
+>>>>>>> 063e30964d (fix: Use `TEXT` type for Webhook URLs to support large URLs)
 	def validate(self):
 		self.validate_docevent()
 		self.validate_condition()
