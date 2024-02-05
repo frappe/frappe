@@ -65,6 +65,7 @@ class DatabaseQuery:
 		self.linked_table_counter = Counter()
 		self.conditions = []
 		self.or_conditions = []
+		self.grouped_or_filters = []
 		self.fields = None
 		self.user = user or frappe.session.user
 		self.ignore_ifnull = False
@@ -89,6 +90,7 @@ class DatabaseQuery:
 		fields=None,
 		filters=None,
 		or_filters=None,
+		grouped_or_filters=None,
 		docstatus=None,
 		group_by=None,
 		order_by=DefaultOrderBy,
@@ -148,6 +150,7 @@ class DatabaseQuery:
 
 		self.filters = filters or []
 		self.or_filters = or_filters or []
+		self.grouped_or_filters = grouped_or_filters or []
 		self.docstatus = docstatus or []
 		self.group_by = group_by
 		self.order_by = order_by
@@ -384,6 +387,20 @@ class DatabaseQuery:
 				filters = [make_filter_tuple(self.doctype, key, value) for key, value in fdict.items()]
 			setattr(self, filter_name, filters)
 
+		grouped_or_filters = self.grouped_or_filters
+		if isinstance(grouped_or_filters, str):
+			grouped_or_filters = json.loads(grouped_or_filters)
+		if isinstance(grouped_or_filters, list):
+			multi_filters = []
+			for filters in grouped_or_filters:
+				if isinstance(filters, dict):
+					fdict = filters
+					filters = [make_filter_tuple(self.doctype, key, value) for key, value in fdict.items()]
+				multi_filters.append(filters)
+			self.grouped_or_filters = multi_filters
+		else:
+			self.grouped_or_filters = []
+
 	def sanitize_fields(self):
 		"""
 		regex : ^.*[,();].*
@@ -590,6 +607,12 @@ class DatabaseQuery:
 		self.grouped_or_conditions = []
 		self.build_filter_conditions(self.filters, self.conditions)
 		self.build_filter_conditions(self.or_filters, self.grouped_or_conditions)
+
+		for filters in self.grouped_or_filters:
+			conditions = []
+			self.build_filter_conditions(filters, conditions)
+			if conditions:
+				self.grouped_or_conditions.append(' and '.join(conditions))
 
 		# match conditions
 		if not self.flags.ignore_permissions:

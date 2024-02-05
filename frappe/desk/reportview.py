@@ -81,6 +81,9 @@ def validate_args(data):
 		validate_filters(data, data.filters)
 	if data.or_filters:
 		validate_filters(data, data.or_filters)
+	if data.grouped_or_filters:
+		for filters in data.grouped_or_filters:
+			validate_filters(data, filters)
 
 	data.strict = None
 
@@ -221,6 +224,8 @@ def parse_json(data):
 		data["applied_filters"] = json.loads(applied_filters)
 	if (or_filters := data.get("or_filters")) and isinstance(or_filters, str):
 		data["or_filters"] = json.loads(or_filters)
+	if (grouped_or_filters := data.get("grouped_or_filters")) and isinstance(grouped_or_filters, str):
+		data["grouped_or_filters"] = json.loads(grouped_or_filters)
 	if (fields := data.get("fields")) and isinstance(fields, str):
 		data["fields"] = ["*"] if fields == "*" else json.loads(fields)
 	if isinstance(data.get("docstatus"), str):
