@@ -319,9 +319,9 @@ def extract_title(source, path):
 		# make title from name
 		title = (
 			os.path.basename(
-				path.rsplit(".",)[
-					0
-				].rstrip("/")
+				path.rsplit(
+					".",
+				)[0].rstrip("/")
 			)
 			.replace("_", " ")
 			.replace("-", " ")

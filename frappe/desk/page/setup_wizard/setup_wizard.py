@@ -14,7 +14,6 @@ from . import install_fixtures
 
 
 def get_setup_stages(args):  # nosemgrep
-
 	# App setup stage functions should not include frappe.db.commit
 	# That is done by frappe after successful completion of all stages
 	stages = [
@@ -34,9 +33,7 @@ def get_setup_stages(args):  # nosemgrep
 			# post executing hooks
 			"status": "Wrapping up",
 			"fail_msg": "Failed to complete setup",
-			"tasks": [
-				{"fn": run_post_setup_complete, "args": args, "fail_msg": "Failed to complete setup"}
-			],
+			"tasks": [{"fn": run_post_setup_complete, "args": args, "fail_msg": "Failed to complete setup"}],
 		}
 	)
 

@@ -18,6 +18,7 @@ class ClientScript(Document):
 		module: DF.Link | None
 		script: DF.Code | None
 		view: DF.Literal["List", "Form"]
+
 	# end: auto-generated types
 	def on_update(self):
 		frappe.clear_cache(doctype=self.dt)

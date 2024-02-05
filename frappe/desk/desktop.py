@@ -176,7 +176,6 @@ class Workspace:
 
 	def _prepare_item(self, item):
 		if item.dependencies:
-
 			dependencies = [dep.strip() for dep in item.dependencies.split(",")]
 
 			incomplete_dependencies = [d for d in dependencies if not self._doctype_contains_a_record(d)]
@@ -203,8 +202,7 @@ class Workspace:
 		from frappe.utils import has_common
 
 		allowed = [
-			d.role
-			for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": custom_block_name})
+			d.role for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": custom_block_name})
 		]
 
 		if not allowed:
@@ -545,9 +543,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 				new_widget(widgets.custom_block, "Workspace Custom Block", "custom_blocks")
 			)
 		if widgets.number_card:
-			doc.number_cards.extend(
-				new_widget(widgets.number_card, "Workspace Number Card", "number_cards")
-			)
+			doc.number_cards.extend(new_widget(widgets.number_card, "Workspace Number Card", "number_cards"))
 		if widgets.card:
 			doc.build_links_table_from_card(widgets.card)
 
@@ -565,9 +561,7 @@ def save_new_widget(doc, page, blocks, new_widgets):
 		page: {}
 		config: {}
 		exception: {}
-		""".format(
-			page, json_config, e
-		)
+		""".format(page, json_config, e)
 		doc.log_error("Could not save customization", log)
 		return False
 

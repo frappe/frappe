@@ -41,6 +41,7 @@ class NumberCard(Document):
 		show_percentage_stats: DF.Check
 		stats_time_interval: DF.Literal["Daily", "Weekly", "Monthly", "Yearly"]
 		type: DF.Literal["Document Type", "Report", "Custom"]
+
 	# end: auto-generated types
 	def autoname(self):
 		if not self.name:
@@ -87,9 +88,7 @@ def get_permission_query_conditions(user=None):
 	doctype_condition = False
 	module_condition = False
 
-	allowed_doctypes = [
-		frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()
-	]
+	allowed_doctypes = [frappe.db.escape(doctype) for doctype in frappe.permissions.get_doctypes_with_read()]
 	allowed_modules = [
 		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
 	]
@@ -100,17 +99,13 @@ def get_permission_query_conditions(user=None):
 		)
 	if allowed_modules:
 		module_condition = """`tabNumber Card`.`module` in ({allowed_modules})
-			or `tabNumber Card`.`module` is NULL""".format(
-			allowed_modules=",".join(allowed_modules)
-		)
+			or `tabNumber Card`.`module` is NULL""".format(allowed_modules=",".join(allowed_modules))
 
 	return """
 		{doctype_condition}
 		and
 		{module_condition}
-	""".format(
-		doctype_condition=doctype_condition, module_condition=module_condition
-	)
+	""".format(doctype_condition=doctype_condition, module_condition=module_condition)
 
 
 def has_permission(doc, ptype, user):

@@ -42,9 +42,7 @@ class AutoEmailReport(Document):
 		from frappe.types import DF
 
 		data_modified_till: DF.Int
-		day_of_week: DF.Literal[
-			"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-		]
+		day_of_week: DF.Literal["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 		description: DF.TextEditor | None
 		dynamic_date_period: DF.Literal[
 			"", "Daily", "Weekly", "Monthly", "Quarterly", "Half Yearly", "Yearly"
@@ -190,7 +188,6 @@ class AutoEmailReport(Document):
 			frappe.throw(_("Invalid Output Format"))
 
 	def get_html_table(self, columns=None, data=None):
-
 		date_time = global_date_format(now()) + " " + format_time(now())
 		report_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
 

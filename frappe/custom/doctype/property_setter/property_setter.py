@@ -29,6 +29,7 @@ class PropertySetter(Document):
 		property_type: DF.Data | None
 		row_name: DF.Data | None
 		value: DF.SmallText | None
+
 	# end: auto-generated types
 	def autoname(self):
 		self.name = "{doctype}-{field}-{property}".format(

@@ -39,6 +39,7 @@ class FormTour(Document):
 		ui_tour: DF.Check
 		view_name: DF.Literal["Workspaces", "List", "Form", "Tree", "Page"]
 		workspace_name: DF.Link | None
+
 	# end: auto-generated types
 	def before_save(self):
 		if self.is_standard and not self.module:
@@ -98,9 +99,7 @@ def update_user_status(value, step):
 		app="frappe_ui_tours",
 		properties={"is_completed": tour.is_completed},
 	)
-	frappe.db.set_value(
-		"User", frappe.session.user, "onboarding_status", value, update_modified=False
-	)
+	frappe.db.set_value("User", frappe.session.user, "onboarding_status", value, update_modified=False)
 
 	frappe.cache.hdel("bootinfo", frappe.session.user)
 

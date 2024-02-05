@@ -13,9 +13,7 @@ def execute():
 		# get user_settings for each user
 		settings = frappe.db.sql(
 			"select * from `__UserSettings` \
-			where user={}".format(
-				frappe.db.escape(user.user)
-			),
+			where user={}".format(frappe.db.escape(user.user)),
 			as_dict=True,
 		)
 

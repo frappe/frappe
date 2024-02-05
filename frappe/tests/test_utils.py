@@ -102,7 +102,8 @@ class TestFilters(FrappeTestCase):
 		)
 		self.assertFalse(
 			evaluate_filters(
-				{"doctype": "User", "status": "Open", "name": "Test 1"}, {"status": "Closed", "name": "Test 1"}
+				{"doctype": "User", "status": "Open", "name": "Test 1"},
+				{"status": "Closed", "name": "Test 1"},
 			)
 		)
 
@@ -247,9 +248,7 @@ class TestDataManipulation(FrappeTestCase):
 		self.assertTrue(f'<a href="{url}/about">Test link 2</a>' in html)
 		self.assertTrue(f'<a href="{url}/login">Test link 3</a>' in html)
 		self.assertTrue(f'<img src="{url}/assets/frappe/test.jpg">' in html)
-		self.assertTrue(
-			f"style=\"background-image: url('{url}/assets/frappe/bg.jpg') !important\"" in html
-		)
+		self.assertTrue(f"style=\"background-image: url('{url}/assets/frappe/bg.jpg') !important\"" in html)
 		self.assertTrue('<a href="mailto:test@example.com">email</a>' in html)
 
 
@@ -369,9 +368,7 @@ class TestValidationUtils(FrappeTestCase):
 		# Scheme validation
 		self.assertFalse(validate_url("https://google.com", valid_schemes="http"))
 		self.assertTrue(validate_url("ftp://frappe.cloud", valid_schemes=["https", "ftp"]))
-		self.assertFalse(
-			validate_url("bolo://frappe.io", valid_schemes=("http", "https", "ftp", "ftps"))
-		)
+		self.assertFalse(validate_url("bolo://frappe.io", valid_schemes=("http", "https", "ftp", "ftps")))
 		self.assertRaises(
 			frappe.ValidationError, validate_url, "gopher://frappe.io", valid_schemes="https", throw=True
 		)
@@ -390,14 +387,10 @@ class TestValidationUtils(FrappeTestCase):
 		self.assertFalse(validate_email_address("someone"))
 		self.assertFalse(validate_email_address("someone@----.com"))
 		self.assertFalse(validate_email_address("test 1@frappe.com"))
-		self.assertFalse(
-			validate_email_address("test@example.com test2@example.com,undisclosed-recipient")
-		)
+		self.assertFalse(validate_email_address("test@example.com test2@example.com,undisclosed-recipient"))
 
 		# Invalid with throw
-		self.assertRaises(
-			frappe.InvalidEmailAddressError, validate_email_address, "someone.com", throw=True
-		)
+		self.assertRaises(frappe.InvalidEmailAddressError, validate_email_address, "someone.com", throw=True)
 
 		self.assertEqual(validate_email_address("Some%20One@frappe.com"), "Some%20One@frappe.com")
 		self.assertEqual(
@@ -429,9 +422,7 @@ class TestValidationUtils(FrappeTestCase):
 
 class TestImage(FrappeTestCase):
 	def test_strip_exif_data(self):
-		original_image = Image.open(
-			frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg")
-		)
+		original_image = Image.open(frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"))
 		original_image_content = open(
 			frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"), mode="rb"
 		).read()
@@ -443,9 +434,7 @@ class TestImage(FrappeTestCase):
 		self.assertNotEqual(original_image._getexif(), new_image._getexif())
 
 	def test_optimize_image(self):
-		image_file_path = frappe.get_app_path(
-			"frappe", "tests", "data", "sample_image_for_optimization.jpg"
-		)
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		content_type = guess_type(image_file_path)[0]
 		original_content = open(image_file_path, mode="rb").read()
 
@@ -539,20 +528,12 @@ class TestDateUtils(FrappeTestCase):
 			)
 
 		# Sunday as start of the week
-		self.assertEqual(
-			frappe.utils.get_first_day_of_week("2020-12-25"), frappe.utils.getdate("2020-12-20")
-		)
-		self.assertEqual(
-			frappe.utils.get_first_day_of_week("2020-12-21"), frappe.utils.getdate("2020-12-20")
-		)
+		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-25"), frappe.utils.getdate("2020-12-20"))
+		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-21"), frappe.utils.getdate("2020-12-20"))
 
 	def test_last_day_of_week(self):
-		self.assertEqual(
-			frappe.utils.get_last_day_of_week("2020-12-24"), frappe.utils.getdate("2020-12-26")
-		)
-		self.assertEqual(
-			frappe.utils.get_last_day_of_week("2020-12-28"), frappe.utils.getdate("2021-01-02")
-		)
+		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-24"), frappe.utils.getdate("2020-12-26"))
+		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-28"), frappe.utils.getdate("2021-01-02"))
 
 	def test_is_last_day_of_the_month(self):
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-24"), False)
@@ -599,7 +580,6 @@ class TestDateUtils(FrappeTestCase):
 		self.assertEqual(duration_to_seconds("110m"), 110 * 60)
 
 	def test_get_timespan_date_range(self):
-
 		supported_timespans = [
 			"last week",
 			"last month",
@@ -730,9 +710,7 @@ class TestTimeDeltaUtils(FrappeTestCase):
 		self.assertEqual(format_timedelta(timedelta(hours=10)), "10:00:00")
 		self.assertEqual(format_timedelta(timedelta(hours=100)), "100:00:00")
 		self.assertEqual(format_timedelta(timedelta(seconds=100, microseconds=129)), "0:01:40.000129")
-		self.assertEqual(
-			format_timedelta(timedelta(seconds=100, microseconds=12212199129)), "3:25:12.199129"
-		)
+		self.assertEqual(format_timedelta(timedelta(seconds=100, microseconds=12212199129)), "3:25:12.199129")
 
 	def test_parse_timedelta(self):
 		self.assertEqual(parse_timedelta("0:0:0"), timedelta(seconds=0))

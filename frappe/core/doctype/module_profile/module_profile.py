@@ -16,6 +16,7 @@ class ModuleProfile(Document):
 
 		block_modules: DF.Table[BlockModule]
 		module_profile_name: DF.Data
+
 	# end: auto-generated types
 	def onload(self):
 		from frappe.config import get_modules_from_all_apps

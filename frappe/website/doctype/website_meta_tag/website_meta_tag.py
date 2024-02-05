@@ -19,6 +19,7 @@ class WebsiteMetaTag(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		value: DF.Text
+
 	# end: auto-generated types
 	def get_content(self):
 		# can't have new lines in meta content

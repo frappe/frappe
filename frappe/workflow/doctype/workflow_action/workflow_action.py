@@ -76,9 +76,7 @@ def get_permission_query_conditions(user):
 	return """(`tabWorkflow Action`.`name` in ({permitted_workflow_actions})
 		or `tabWorkflow Action`.`user`={user})
 		and `tabWorkflow Action`.`status`='Open'
-	""".format(
-		permitted_workflow_actions=permitted_workflow_actions, user=frappe.db.escape(user)
-	)
+	""".format(permitted_workflow_actions=permitted_workflow_actions, user=frappe.db.escape(user))
 
 
 def has_permission(doc, user):
@@ -101,14 +99,10 @@ def process_workflow_actions(doc, state):
 	if is_workflow_action_already_created(doc):
 		return
 
-	update_completed_workflow_actions(
-		doc, workflow=workflow, workflow_state=get_doc_workflow_state(doc)
-	)
+	update_completed_workflow_actions(doc, workflow=workflow, workflow_state=get_doc_workflow_state(doc))
 	clear_doctype_notifications("Workflow Action")
 
-	next_possible_transitions = get_next_possible_transitions(
-		workflow, get_doc_workflow_state(doc), doc
-	)
+	next_possible_transitions = get_next_possible_transitions(workflow, get_doc_workflow_state(doc), doc)
 
 	if not next_possible_transitions:
 		return
@@ -121,9 +115,7 @@ def process_workflow_actions(doc, state):
 	create_workflow_actions_for_roles(roles, doc)
 
 	if send_email_alert(workflow):
-		enqueue(
-			send_workflow_action_email, queue="short", users_data=list(user_data_map.values()), doc=doc
-		)
+		enqueue(send_workflow_action_email, queue="short", users_data=list(user_data_map.values()), doc=doc)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -400,9 +392,7 @@ def deduplicate_actions(action_list):
 
 
 def get_workflow_action_url(action, doc, user):
-	apply_action_method = (
-		"/api/method/frappe.workflow.doctype.workflow_action.workflow_action.apply_action"
-	)
+	apply_action_method = "/api/method/frappe.workflow.doctype.workflow_action.workflow_action.apply_action"
 
 	params = {
 		"doctype": doc.get("doctype"),

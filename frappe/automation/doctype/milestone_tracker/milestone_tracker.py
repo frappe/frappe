@@ -19,6 +19,7 @@ class MilestoneTracker(Document):
 		disabled: DF.Check
 		document_type: DF.Link
 		track_field: DF.Literal
+
 	# end: auto-generated types
 	def on_update(self):
 		frappe.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
