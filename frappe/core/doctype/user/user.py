@@ -180,8 +180,8 @@ class User(Document):
 
 	def populate_role_profile_roles(self):
 		roles = []
-		if self.role_profile_name:
-			for role_profile in self.role_profile_name:
+		if self.role_profiles:
+			for role_profile in self.role_profiles:
 				role_profile = frappe.get_doc("Role Profile", role_profile.role_profile)
 				roles.extend([role.role for role in role_profile.roles])
 			self.set("roles", [])
@@ -1212,8 +1212,8 @@ def throttle_user_creation():
 
 
 @frappe.whitelist()
-def get_role_profile(role_profile):
-	profiles = json.loads(role_profile)
+def get_role_profiles(role_profiles):
+	profiles = json.loads(role_profiles)
 	roles = []
 	for profile in profiles:
 		role = frappe.get_doc("Role Profile", {"role_profile": profile.get("role_profile")}).roles

@@ -27,12 +27,12 @@ frappe.ui.form.on("User", {
 		}
 	},
 
-	role_profile_name: function (frm) {
-		if (frm.doc.role_profile_name) {
+	role_profiles: function (frm) {
+		if (frm.doc.role_profiles) {
 			frappe.call({
-				method: "frappe.core.doctype.user.user.get_role_profile",
+				method: "frappe.core.doctype.user.user.get_role_profiles",
 				args: {
-					role_profile: frm.doc.role_profile_name,
+					role_profiles: frm.doc.role_profiles,
 				},
 				callback: function (data) {
 					frm.set_value("roles", []);
