@@ -99,6 +99,7 @@ export default class ListSettings {
 		let wrapper = fields_html.$wrapper[0];
 		let fields = ``;
 		let total_fields = me.dialog.get_values().total_fields || me.settings.total_fields;
+		let label_count = {};
 
 		for (let idx in me.fields) {
 			if (idx == parseInt(total_fields)) {
@@ -107,10 +108,21 @@ export default class ListSettings {
 			let is_sortable = idx == 0 ? `` : `sortable`;
 			let show_sortable_handle = idx == 0 ? `hide` : ``;
 			let can_remove = idx == 0 || is_status_field(me.fields[idx]) ? `hide` : ``;
+	
+			let label = me.fields[idx].label;
+			let field_name = me.fields[idx].fieldname;
+	
+			// Check if label is repeated
+			if (label_count[label]) {
+				label = `${label} (${field_name})`;
+			} 
+			else {
+				label_count[label] = 1;
+			}
 
 			fields += `
 				<div class="control-input flex align-center form-control fields_order ${is_sortable}"
-					style="display: block; margin-bottom: 5px;" data-fieldname="${me.fields[idx].fieldname}"
+					style="display: block; margin-bottom: 5px;" data-fieldname="${field_name}"
 					data-label="${me.fields[idx].label}" data-type="${me.fields[idx].type}">
 
 					<div class="row">
@@ -118,10 +130,10 @@ export default class ListSettings {
 							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
 						<div class="col-10" style="padding-left:0px;">
-							${me.fields[idx].label}
+							${label}
 						</div>
 						<div class="col-1 ${can_remove}">
-							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
+							<a class="text-muted remove-field" data-fieldname="${field_name}">
 								${frappe.utils.icon("delete", "xs")}
 							</a>
 						</div>
