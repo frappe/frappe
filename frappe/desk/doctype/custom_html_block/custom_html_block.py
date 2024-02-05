@@ -22,6 +22,7 @@ class CustomHTMLBlock(Document):
 		script: DF.Code | None
 		style: DF.Code | None
 	# end: auto-generated types
+
 	pass
 
 

@@ -113,9 +113,7 @@ class TestUser(FrappeTestCase):
 
 		frappe.db.set_single_value("Website Settings", "_test", "_test_val")
 		self.assertEqual(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
-		self.assertEqual(
-			frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val"
-		)
+		self.assertEqual(frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
 
 	def test_high_permlevel_validations(self):
 		user = frappe.get_meta("User")
@@ -192,9 +190,7 @@ class TestUser(FrappeTestCase):
 		# Score 1; should now fail
 		result = test_password_strength("bee2ve")
 		self.assertEqual(result["feedback"]["password_policy_validation_passed"], False)
-		self.assertRaises(
-			frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"]
-		)
+		self.assertRaises(frappe.exceptions.ValidationError, handle_password_test_fail, result["feedback"])
 		self.assertRaises(
 			frappe.exceptions.ValidationError, handle_password_test_fail, result
 		)  # test backwards compatibility
@@ -333,9 +329,7 @@ class TestUser(FrappeTestCase):
 		self.assertEqual(frappe.cache.hget("redirect_after_login", random_user), "/welcome")
 
 		# re-register
-		self.assertTupleEqual(
-			sign_up(random_user, random_user_name, "/welcome"), (0, "Already Registered")
-		)
+		self.assertTupleEqual(sign_up(random_user, random_user_name, "/welcome"), (0, "Already Registered"))
 
 		# disabled user
 		user = frappe.get_doc("User", random_user)
@@ -393,9 +387,7 @@ class TestUser(FrappeTestCase):
 		}
 
 		# password strength failure test
-		with patch.object(
-			user_module, "test_password_strength", return_value=password_strength_response
-		):
+		with patch.object(user_module, "test_password_strength", return_value=password_strength_response):
 			self.assertRaisesRegex(
 				frappe.exceptions.ValidationError,
 				"Fix password",

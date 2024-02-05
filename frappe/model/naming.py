@@ -115,9 +115,7 @@ class NamingSeries:
 		if frappe.db.get_value("Series", prefix, "name", order_by="name") is None:
 			frappe.qb.into(Series).insert(prefix, 0).columns("name", "current").run()
 
-		(
-			frappe.qb.update(Series).set(Series.current, cint(new_count)).where(Series.name == prefix)
-		).run()
+		(frappe.qb.update(Series).set(Series.current, cint(new_count)).where(Series.name == prefix)).run()
 
 	def get_current_value(self) -> int:
 		prefix = self.get_prefix()
@@ -276,7 +274,6 @@ def parse_naming_series(
 	doc: Optional["Document"] = None,
 	number_generator: Callable[[str, int], str] | None = None,
 ) -> str:
-
 	"""Parse the naming series and get next name.
 
 	args:
@@ -411,9 +408,7 @@ def revert_series_if_last(key, name, doc=None):
 
 	count = cint(name.replace(prefix, ""))
 	series = DocType("Series")
-	current = (
-		frappe.qb.from_(series).where(series.name == prefix).for_update().select("current")
-	).run()
+	current = (frappe.qb.from_(series).where(series.name == prefix).for_update().select("current")).run()
 
 	if current and current[0][0] == count:
 		frappe.db.sql("UPDATE `tabSeries` SET `current` = `current` - 1 WHERE `name`=%s", prefix)
@@ -431,7 +426,6 @@ def get_default_naming_series(doctype: str) -> str | None:
 
 
 def validate_name(doctype: str, name: int | str):
-
 	if not name:
 		frappe.throw(_("No Name Specified for {0}").format(doctype))
 
@@ -456,9 +450,7 @@ def validate_name(doctype: str, name: int | str):
 	special_characters = "<>"
 	if re.findall(f"[{special_characters}]+", name):
 		message = ", ".join(f"'{c}'" for c in special_characters)
-		frappe.throw(
-			_("Name cannot contain special characters like {0}").format(message), frappe.NameError
-		)
+		frappe.throw(_("Name cannot contain special characters like {0}").format(message), frappe.NameError)
 
 	return name
 

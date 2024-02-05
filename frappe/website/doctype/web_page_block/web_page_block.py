@@ -31,4 +31,5 @@ class WebPageBlock(Document):
 		web_template: DF.Link | None
 		web_template_values: DF.Code | None
 	# end: auto-generated types
+
 	pass

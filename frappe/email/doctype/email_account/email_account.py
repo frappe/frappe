@@ -96,9 +96,7 @@ class EmailAccount(Document):
 		password: DF.Password | None
 		send_notification_to: DF.SmallText | None
 		send_unsubscribe_message: DF.Check
-		service: DF.Literal[
-			"", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"
-		]
+		service: DF.Literal["", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"]
 		signature: DF.TextEditor | None
 		smtp_port: DF.Data | None
 		smtp_server: DF.Data | None
@@ -111,7 +109,9 @@ class EmailAccount(Document):
 		use_ssl_for_outgoing: DF.Check
 		use_starttls: DF.Check
 		use_tls: DF.Check
+		validate_ssl_certificate: DF.Check
 	# end: auto-generated types
+
 	DOCTYPE = "Email Account"
 
 	def autoname(self):
@@ -671,9 +671,7 @@ class EmailAccount(Document):
 			if not self.enable_incoming:
 				frappe.throw(_("Automatic Linking can be activated only if Incoming is enabled."))
 
-			if frappe.db.exists(
-				"Email Account", {"enable_automatic_linking": 1, "name": ("!=", self.name)}
-			):
+			if frappe.db.exists("Email Account", {"enable_automatic_linking": 1, "name": ("!=", self.name)}):
 				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
 
 	def append_email_to_sent_folder(self, message):
@@ -695,9 +693,7 @@ class EmailAccount(Document):
 
 
 @frappe.whitelist()
-def get_append_to(
-	doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None
-):
+def get_append_to(doctype=None, txt=None, searchfield=None, start=None, page_len=None, filters=None):
 	txt = txt if txt else ""
 
 	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}
@@ -749,7 +745,8 @@ def notify_unreplied():
 					{
 						"creation": (
 							">",
-							datetime.now() - timedelta(seconds=(email_account.unreplied_for_mins or 30) * 60 * 3),
+							datetime.now()
+							- timedelta(seconds=(email_account.unreplied_for_mins or 30) * 60 * 3),
 						)
 					},
 				],
@@ -842,9 +839,7 @@ def get_max_email_uid(email_account):
 		return cint(result[0].get("uid", 0)) + 1
 
 
-def setup_user_email_inbox(
-	email_account, awaiting_password, email_id, enable_outgoing, used_oauth
-):
+def setup_user_email_inbox(email_account, awaiting_password, email_id, enable_outgoing, used_oauth):
 	"""setup email inbox for user"""
 	from frappe.core.doctype.user.user import ask_pass_update
 
@@ -873,9 +868,7 @@ def setup_user_email_inbox(
 
 		# check if inbox is alreay configured
 		user_inbox = (
-			frappe.db.get_value(
-				"User Email", {"email_account": email_account, "parent": user_name}, ["name"]
-			)
+			frappe.db.get_value("User Email", {"email_account": email_account, "parent": user_name}, ["name"])
 			or None
 		)
 
@@ -889,9 +882,7 @@ def setup_user_email_inbox(
 		UserEmail = frappe.qb.DocType("User Email")
 		frappe.qb.update(UserEmail).set(UserEmail.awaiting_password, (awaiting_password or 0)).set(
 			UserEmail.enable_outgoing, (enable_outgoing or 0)
-		).set(UserEmail.used_oauth, (used_oauth or 0)).where(
-			UserEmail.email_account == email_account
-		).run()
+		).set(UserEmail.used_oauth, (used_oauth or 0)).where(UserEmail.email_account == email_account).run()
 
 	else:
 		users = " and ".join([frappe.bold(user.get("name")) for user in user_names])
@@ -904,9 +895,7 @@ def remove_user_email_inbox(email_account):
 	if not email_account:
 		return
 
-	users = frappe.get_all(
-		"User Email", filters={"email_account": email_account}, fields=["parent as name"]
-	)
+	users = frappe.get_all("User Email", filters={"email_account": email_account}, fields=["parent as name"])
 
 	for user in users:
 		doc = frappe.get_doc("User", user.get("name"))

@@ -10,9 +10,7 @@ from frappe import _
 from frappe.utils import get_request_session
 
 
-def make_request(
-	method: str, url: str, auth=None, headers=None, data=None, json=None, params=None
-):
+def make_request(method: str, url: str, auth=None, headers=None, data=None, json=None, params=None):
 	auth = auth or ""
 	data = data or {}
 	headers = headers or {}
