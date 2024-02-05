@@ -9,5 +9,5 @@ def execute():
 			continue
 		user_role_profile = [{"role_profile": user.role_profile_name}]
 		user = frappe.get_doc("User", user.name)
-		user.update({"role_profile_name": user_role_profile})
+		user.update({"role_profiles": user_role_profile})
 		user.save()
