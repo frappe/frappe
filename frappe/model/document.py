@@ -687,7 +687,7 @@ class Document(BaseDocument):
 		for table_field in self.meta.get_table_fields():
 			all_fields += frappe.get_meta(table_field.options).fields or []
 
-		if all(df.permlevel <= 0 for df in all_fields):
+		if all(df.permlevel == 0 for df in all_fields):
 			return
 
 		has_access_to = self.get_permlevel_access("read")
