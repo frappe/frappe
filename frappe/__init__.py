@@ -17,6 +17,7 @@ import inspect
 import json
 import os
 import re
+import traceback
 import unicodedata
 import warnings
 from collections.abc import Callable
@@ -354,6 +355,18 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	config["db_port"] = (
 		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
 	)
+
+	# Allow externally extending the config with hooks
+	if extra_config := config.get("extra_config"):
+		if isinstance(extra_config, str):
+			extra_config = [extra_config]
+		for hook in extra_config:
+			try:
+				module, method = hook.rsplit(".", 1)
+				config |= getattr(importlib.import_module(module), method)()
+			except Exception:
+				print(f"Config hook {hook} failed")
+				traceback.print_exc()
 
 	return config
 
