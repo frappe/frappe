@@ -35,12 +35,14 @@ class RoleProfile(Document):
 		"""Changes in role_profile reflected across all its user"""
 		has_role = frappe.qb.DocType("Has Role")
 		user = frappe.qb.DocType("User")
-
+		user_role_profile = frappe.qb.DocType("User Role Profile")
 		all_current_roles = (
 			frappe.qb.from_(user)
 			.join(has_role)
 			.on(user.name == has_role.parent)
-			.where(user.role_profile_name == self.name)
+			.join(user_role_profile)
+			.on(user.name == user_role_profile.parent)
+			.where(user_role_profile.role_profile == self.name)
 			.select(user.name, has_role.role)
 		).run()
 
