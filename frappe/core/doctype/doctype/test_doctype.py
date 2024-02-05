@@ -773,6 +773,30 @@ class TestDocType(FrappeTestCase):
 		self.assertTrue(doctype.fields[1].in_list_view)
 		frappe.delete_doc("DocType", doctype.name)
 
+	def test_single_doctype_defaults(self):
+		single = new_doctype(issingle=True).insert()
+
+		# init single
+		frappe.new_doc(single.name).save()
+
+		new_fields = (
+			("new_data_field", "Data", frappe.generate_hash()),
+			("new_int_field", "Int", 42),
+			("new_float_field", "Float", 4.2),
+		)
+
+		for fieldname, fieldtype, default in new_fields:
+			single.append(
+				"fields",
+				{
+					"fieldname": fieldname,
+					"fieldtype": fieldtype,
+					"default": str(default),
+				},
+			)
+			single.save()
+			self.assertEqual(frappe.get_doc(single.name).get(fieldname), default)
+
 
 def new_doctype(
 	name: str | None = None,

@@ -397,6 +397,22 @@ class DocType(Document):
 			for query in self.flags.update_fields_to_fetch_queries:
 				frappe.db.sql(query)
 
+	def update_defaults_for_new_single_fields(self):
+		"""Set default value for newly added fields as current value for single doctypes."""
+		if not self.get("issingle"):
+			return
+		current_doc = frappe.db.get_singles_dict(self.name)
+
+		for field in self.fields:
+			if field.fieldtype in no_value_fields or field.fieldname in current_doc:
+				continue
+			frappe.db.set_single_value(
+				self.name,
+				field.fieldname,
+				field.default,
+				update_modified=False,
+			)
+
 	def validate_document_type(self):
 		if self.document_type == "Transaction":
 			self.document_type = "Document"
@@ -539,6 +555,7 @@ class DocType(Document):
 		delete_notification_count_for(doctype=self.name)
 
 		frappe.clear_cache(doctype=self.name)
+		self.update_defaults_for_new_single_fields()
 
 		# clear user cache so that on the next reload this doctype is included in boot
 		clear_user_cache(frappe.session.user)
