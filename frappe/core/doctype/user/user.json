@@ -25,6 +25,7 @@
   "user_image",
   "roles_permissions_tab",
   "sb1",
+  "role_profile_name",
   "role_profiles",
   "roles_html",
   "roles",
@@ -211,6 +212,15 @@
    "permlevel": 1,
    "read_only": 1
   },
+  {
+    "allow_in_quick_entry": 0,
+    "fieldname": "role_profile_name",
+    "fieldtype": "Link",
+    "label": "Role Profile",
+    "options": "Role Profile",
+    "permlevel": 1,
+    "hidden": 1
+   },
   {
    "fieldname": "roles_html",
    "fieldtype": "HTML",
