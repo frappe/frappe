@@ -132,6 +132,9 @@ class SystemSettings(Document):
 		self.validate_backup_limit()
 		self.validate_file_extensions()
 
+		if not self.link_field_results_limit:
+			self.link_field_results_limit = 10
+
 		if self.link_field_results_limit > 50:
 			self.link_field_results_limit = 50
 			label = _(self.meta.get_label("link_field_results_limit"))

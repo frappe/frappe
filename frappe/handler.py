@@ -250,7 +250,7 @@ def check_write_permission(doctype: str = None, name: str = None):
 	if doctype and name:
 		try:
 			doc = frappe.get_doc(doctype, name)
-			doc.has_permission("write")
+			doc.check_permission("write")
 		except frappe.DoesNotExistError:
 			# doc has not been inserted yet, name is set to "new-some-doctype"
 			check_doctype = True
