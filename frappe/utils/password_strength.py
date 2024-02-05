@@ -50,9 +50,7 @@ default_feedback: "PasswordStrengthFeedback" = {
 def get_feedback(score: int, sequence: list) -> "PasswordStrengthFeedback":
 	"""Return the feedback dictionary consisting of ("warning","suggestions") for the given sequences."""
 	global default_feedback
-	minimum_password_score = int(
-		frappe.db.get_single_value("System Settings", "minimum_password_score") or 2
-	)
+	minimum_password_score = int(frappe.get_system_settings("minimum_password_score") or 2)
 
 	# Starting feedback
 	if len(sequence) == 0:

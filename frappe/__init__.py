@@ -17,6 +17,7 @@ import inspect
 import json
 import os
 import re
+import traceback
 import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
@@ -130,9 +131,45 @@ def _lt(msg: str, lang: str | None = None, context: str | None = None):
 
 	Note: Result is not guaranteed to equivalent to pure strings for all operations.
 	"""
-	from frappe.translate import LazyTranslate
+	return _LazyTranslate(msg, lang, context)
 
-	return LazyTranslate(msg, lang, context)
+
+@functools.total_ordering
+class _LazyTranslate:
+	__slots__ = ("msg", "lang", "context")
+
+	def __init__(self, msg: str, lang: str | None = None, context: str | None = None) -> None:
+		self.msg = msg
+		self.lang = lang
+		self.context = context
+
+	@property
+	def value(self) -> str:
+		return _(str(self.msg), self.lang, self.context)
+
+	def __str__(self):
+		return self.value
+
+	def __add__(self, other):
+		if isinstance(other, (str, _LazyTranslate)):
+			return self.value + str(other)
+		raise NotImplementedError
+
+	def __radd__(self, other):
+		if isinstance(other, (str, _LazyTranslate)):
+			return str(other) + self.value
+		return NotImplementedError
+
+	def __repr__(self) -> str:
+		return f"'{self.value}'"
+
+	# NOTE: it's required to override these methods and raise error as default behaviour will
+	# return `False` in all cases.
+	def __eq__(self, other):
+		raise NotImplementedError
+
+	def __lt__(self, other):
+		raise NotImplementedError
 
 
 def as_unicode(text, encoding: str = "utf-8") -> str:
@@ -269,10 +306,6 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 
 	local.initialised = True
 
-	# Set the user as database name if not set in config
-	if local.conf and local.conf.db_name is not None and local.conf.db_user is None:
-		local.conf.db_user = local.conf.db_name
-
 
 def connect(
 	site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True
@@ -280,7 +313,7 @@ def connect(
 	"""Connect to site database instance.
 
 	:param site: (Deprecated) If site is given, calls `frappe.init`.
-	:param db_name: Optional. Will use from `site_config.json`.
+	:param db_name: (Deprecated) Optional. Will use from `site_config.json`.
 	:param set_admin_as_user: Set Administrator as current user.
 	"""
 	from frappe.database import get_db
@@ -293,12 +326,24 @@ def connect(
 			"Instead, explicitly invoke frappe.init(site) prior to calling frappe.connect(), if initializing the site is necessary."
 		)
 		init(site)
+	if db_name:
+		from frappe.utils.deprecations import deprecation_warning
+
+		deprecation_warning(
+			"Calling frappe.connect with the db_name argument is deprecated and will be removed in next major version. "
+			"Instead, explicitly invoke frappe.init(site) with the right config prior to calling frappe.connect(), if necessary."
+		)
+
+	assert db_name or local.conf.db_user, "site must be fully initialized, db_user missing"
+	assert db_name or local.conf.db_name, "site must be fully initialized, db_name missing"
+	assert local.conf.db_password, "site must be fully initialized, db_password missing"
 
 	local.db = get_db(
 		host=local.conf.db_host,
 		port=local.conf.db_port,
 		user=local.conf.db_user or db_name,
-		password=None,
+		password=local.conf.db_password,
+		cur_db_name=local.conf.db_name or db_name,
 	)
 	if set_admin_as_user:
 		set_user("Administrator")
@@ -318,7 +363,13 @@ def connect_replica() -> bool:
 		user = local.conf.replica_db_user or local.conf.replica_db_name
 		password = local.conf.replica_db_password
 
-	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
+	local.replica_db = get_db(
+		host=local.conf.replica_host,
+		port=port,
+		user=user,
+		password=password,
+		cur_db_name=local.conf.db_name,
+	)
 
 	# swap db connections
 	local.primary_db = local.db
@@ -379,6 +430,23 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	config["db_port"] = (
 		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
 	)
+
+	# Set the user as database name if not set in config
+	config["db_user"] = (
+		os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
+	)
+
+	# Allow externally extending the config with hooks
+	if extra_config := config.get("extra_config"):
+		if isinstance(extra_config, str):
+			extra_config = [extra_config]
+		for hook in extra_config:
+			try:
+				module, method = hook.rsplit(".", 1)
+				config |= getattr(importlib.import_module(module), method)()
+			except Exception:
+				print(f"Config hook {hook} failed")
+				traceback.print_exc()
 
 	return config
 

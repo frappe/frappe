@@ -1518,21 +1518,15 @@ def money_in_words(
 		out = _(main_currency, context="Currency") + " " + _("Zero")
 	# 0.XX
 	elif main == "0":
-		out = _(in_words(fraction, in_million).title()) + " " + fraction_currency
+		out = in_words(fraction, in_million).title() + " " + fraction_currency
 	else:
-		out = _(main_currency, context="Currency") + " " + _(in_words(main, in_million).title())
+		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
 		if cint(fraction):
 			out = (
-				out
-				+ " "
-				+ _("and")
-				+ " "
-				+ _(in_words(fraction, in_million).title())
-				+ " "
-				+ fraction_currency
+				out + " " + _("and") + " " + in_words(fraction, in_million).title() + " " + fraction_currency
 			)
 
-	return out + " " + _("only.")
+	return _("{0} only.", context="Money in words").format(out)
 
 
 #
@@ -2492,18 +2486,27 @@ def is_site_link(link: str) -> bool:
 	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
 
 
-def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "email") -> str:
+def add_trackers_to_url(
+	url: str,
+	source: str,
+	campaign: str | None = None,
+	medium: str | None = None,
+	content: str | None = None,
+) -> str:
 	url_parts = list(urlparse(url))
 	if url_parts[0] == "mailto":
 		return url
 
-	trackers = {
-		"source": source,
-		"medium": medium,
-	}
+	trackers = {"utm_source": source}
+
+	if medium:
+		trackers["utm_medium"] = medium
 
 	if campaign:
-		trackers["campaign"] = campaign
+		trackers["utm_campaign"] = campaign
+
+	if content:
+		trackers["utm_content"] = content
 
 	query = dict(parse_qsl(url_parts[4])) | trackers
 

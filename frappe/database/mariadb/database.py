@@ -124,7 +124,7 @@ class MariaDBConnectionUtil:
 			"use_unicode": True,
 		}
 
-		if self.user not in (frappe.flags.root_login, "root"):
+		if self.cur_db_name:
 			conn_settings["database"] = self.cur_db_name
 
 		if self.port:
@@ -383,6 +383,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				WHERE Column_name = "{fieldname}"
 					AND Seq_in_index = 1
 					AND Non_unique={int(not unique)}
+					AND Index_type != 'FULLTEXT'
 				""",
 			as_dict=True,
 		)

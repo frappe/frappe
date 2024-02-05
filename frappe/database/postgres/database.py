@@ -161,12 +161,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_connection(self):
 		conn_settings = {
+			"dbname": self.cur_db_name,
 			"user": self.user,
 			"host": self.host,
 			"password": self.password,
 		}
-		if self.user not in (frappe.flags.root_login, "root"):
-			conn_settings["dbname"] = self.cur_db_name
 		if self.port:
 			conn_settings["port"] = self.port
 

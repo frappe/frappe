@@ -239,7 +239,7 @@ def check_google_calendar(account, google_calendar):
 			# If no Calendar ID create a new Calendar
 			calendar = {
 				"summary": account.calendar_name,
-				"timeZone": frappe.db.get_single_value("System Settings", "time_zone"),
+				"timeZone": frappe.get_system_settings("time_zone"),
 			}
 			created_calendar = google_calendar.calendars().insert(body=calendar).execute()
 			frappe.db.set_value(

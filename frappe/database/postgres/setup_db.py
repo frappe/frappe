@@ -29,11 +29,12 @@ def setup_database():
 	root_conn.close()
 
 
-def bootstrap_database(db_name, verbose, source_sql=None):
-	frappe.connect(db_name=db_name)
-	import_db_from_sql(source_sql, verbose)
-	frappe.connect(db_name=db_name)
+def bootstrap_database(verbose, source_sql=None):
 
+	frappe.connect()
+	import_db_from_sql(source_sql, verbose)
+
+	frappe.connect()
 	if "tabDefaultValue" not in frappe.db.get_tables():
 		import sys
 
@@ -80,6 +81,7 @@ def get_root_connection():
 			port=frappe.conf.db_port,
 			user=frappe.flags.root_login,
 			password=frappe.flags.root_password,
+			cur_db_name=frappe.flags.root_login,
 		)
 
 	return frappe.local.flags.root_connection

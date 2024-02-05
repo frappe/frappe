@@ -370,6 +370,8 @@ class BackupGenerator:
 			n.write(c.read())
 
 	def take_dump(self):
+		import shlex
+
 		import frappe.utils
 		from frappe.utils.change_log import get_app_branch
 
@@ -419,15 +421,15 @@ class BackupGenerator:
 		extra = []
 		if self.db_type == "mariadb":
 			if self.backup_includes:
-				extra.extend([f"'{x}'" for x in self.backup_includes])
+				extra.extend(self.backup_includes)
 			elif self.backup_excludes:
-				extra.extend([f"--ignore-table='{self.db_name}.{table}'" for table in self.backup_excludes])
+				extra.extend([f"--ignore-table={self.db_name}.{table}" for table in self.backup_excludes])
 
 		elif self.db_type == "postgres":
 			if self.backup_includes:
-				extra.extend([f"--table='public.\"{table}\"'" for table in self.backup_includes])
+				extra.extend([f'--table=public."{table}"' for table in self.backup_includes])
 			elif self.backup_excludes:
-				extra.extend([f"--exclude-table-data='public.\"{table}\"'" for table in self.backup_excludes])
+				extra.extend([f'--exclude-table-data=public."{table}"' for table in self.backup_excludes])
 
 		from frappe.database import get_command
 
@@ -446,11 +448,11 @@ class BackupGenerator:
 				exc=frappe.ExecutableNotFound,
 			)
 		cmd.append(bin)
-		cmd.extend(args)
+		cmd.append(shlex.join(args))
 
 		command = " ".join(["set -o pipefail;"] + cmd + ["|", gzip_exc, ">>", self.backup_path_db])
 		if self.verbose:
-			print(command.replace(frappe.utils.esc(self.password, "$ "), "*" * 10) + "\n")
+			print(command.replace(shlex.quote(self.password), "*" * 10) + "\n")
 
 		frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
 
@@ -661,13 +663,15 @@ def decrypt_backup(file_path: str, passphrase: str):
 			decrypted_file=file_path,
 		)
 	frappe.utils.execute_in_shell(command)
-	yield
-	if os.path.exists(file_path + ".gpg"):
-		if os.path.exists(file_path):
-			os.remove(file_path)
-		if os.path.exists(file_path.rstrip(".gz")):
-			os.remove(file_path.rstrip(".gz"))
-		os.rename(file_path + ".gpg", file_path)
+	try:
+		yield
+	finally:
+		if os.path.exists(file_path_with_ext):
+			if os.path.exists(file_path):
+				os.remove(file_path)
+			if os.path.exists(file_path.rstrip(".gz")):
+				os.remove(file_path.rstrip(".gz"))
+			os.rename(file_path_with_ext, file_path)
 
 
 def backup(
