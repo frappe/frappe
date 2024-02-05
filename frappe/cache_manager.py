@@ -39,7 +39,6 @@ global_cache_keys = (
 	"domain_restricted_doctypes",
 	"domain_restricted_pages",
 	"information_schema:counts",
-	"sitemap_routes",
 	"db_tables",
 	"server_script_autocompletion_items",
 ) + doctype_map_keys
