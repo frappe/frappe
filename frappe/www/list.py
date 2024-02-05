@@ -228,7 +228,12 @@ def get_list(
 	if txt:
 		if meta.search_fields:
 			for f in meta.get_search_fields():
-				if f == "name" or meta.get_field(f).fieldtype in ("Data", "Text", "Small Text", "Text Editor"):
+				if f == "name" or meta.get_field(f).fieldtype in (
+					"Data",
+					"Text",
+					"Small Text",
+					"Text Editor",
+				):
 					or_filters.append([doctype, f, "like", "%" + txt + "%"])
 		else:
 			if isinstance(filters, dict):

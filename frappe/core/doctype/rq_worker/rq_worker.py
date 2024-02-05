@@ -14,7 +14,6 @@ from frappe.utils.background_jobs import get_workers
 
 class RQWorker(Document):
 	def load_from_db(self):
-
 		all_workers = get_workers()
 		workers = [w for w in all_workers if w.pid == cint(self.name)]
 		if not workers:

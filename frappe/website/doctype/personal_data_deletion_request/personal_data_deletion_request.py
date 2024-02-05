@@ -220,7 +220,6 @@ class PersonalDataDeletionRequest(Document):
 		filter_by_meta = meta.get_field(filter_by)
 
 		if filter_by_meta and filter_by_meta.fieldtype != "Link":
-
 			if self.email in doc[filter_by]:
 				value = re.sub(self.full_name_regex, self.anonymization_value_map["Data"], doc[filter_by])
 				value = re.sub(self.email_regex, self.anon, value)

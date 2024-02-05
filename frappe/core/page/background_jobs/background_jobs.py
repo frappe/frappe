@@ -19,7 +19,6 @@ def get_info(view=None, queue_timeout=None, job_status=None) -> list[dict]:
 	jobs = []
 
 	def add_job(job: "Job", queue: str) -> None:
-
 		if job.kwargs.get("site") == frappe.local.site:
 			job_info = {
 				"job_name": job.kwargs.get("kwargs", {}).get("playbook_method")

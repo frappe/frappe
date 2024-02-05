@@ -178,9 +178,7 @@ class TestReportview(FrappeTestCase):
 		self.assertEqual(results2[0].child_title, "parent 2 child record 1")
 
 	def test_link_field_syntax(self):
-		todo = frappe.get_doc(
-			doctype="ToDo", description="Test ToDo", allocated_to="Administrator"
-		).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="Test ToDo", allocated_to="Administrator").insert()
 		result = frappe.get_all(
 			"ToDo",
 			filters={"name": todo.name},
@@ -828,7 +826,10 @@ class TestReportview(FrappeTestCase):
 			self.assertEqual(len(data[0]), 1)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "`tabTest Child`.`test_field`"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "`tabTest Child`.`test_field`"],
+				limit=1,
 			)
 			self.assertFalse("test_field" in data[0])
 			self.assertTrue("name" in data[0])
@@ -862,9 +863,7 @@ class TestReportview(FrappeTestCase):
 			self.assertIsInstance(data[0]["abhi"], datetime.datetime)
 			self.assertEqual(len(data[0]), 2)
 
-			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "'LABEL'"], limit=1
-			)
+			data = frappe.get_list("Blog Post", filters={"published": 1}, fields=["name", "'LABEL'"], limit=1)
 			self.assertTrue("name" in data[0])
 			self.assertTrue("LABEL" in data[0].values())
 			self.assertEqual(len(data[0]), 2)
@@ -1027,9 +1026,7 @@ class TestReportview(FrappeTestCase):
 				SELECT name
 				FROM `tabDashboard Settings`
 				WHERE {condition}
-			""".format(
-				condition=permission_query_conditions
-			),
+			""".format(condition=permission_query_conditions),
 			as_dict=1,
 		)[0]
 

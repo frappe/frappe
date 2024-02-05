@@ -53,9 +53,7 @@ class TestEmail(FrappeTestCase):
 		from frappe.email.queue import flush
 
 		flush(from_test=True)
-		email_queue = frappe.db.sql(
-			"""select name from `tabEmail Queue` where status='Sent'""", as_dict=1
-		)
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 0)
 
 	def test_flush(self):
@@ -63,9 +61,7 @@ class TestEmail(FrappeTestCase):
 		from frappe.email.queue import flush
 
 		flush(from_test=True)
-		email_queue = frappe.db.sql(
-			"""select name from `tabEmail Queue` where status='Sent'""", as_dict=1
-		)
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
 			r.recipient
@@ -131,9 +127,7 @@ class TestEmail(FrappeTestCase):
 			expose_recipients="footer",
 			now=True,
 		)
-		email_queue = frappe.db.sql(
-			"""select name from `tabEmail Queue` where status='Sent'""", as_dict=1
-		)
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
 			r.recipient
@@ -156,7 +150,6 @@ class TestEmail(FrappeTestCase):
 		frappe.conf.use_ssl = False
 
 	def test_expose(self):
-
 		from frappe.utils.verified_command import verify_request
 
 		frappe.sendmail(
@@ -170,9 +163,7 @@ class TestEmail(FrappeTestCase):
 			unsubscribe_message="Unsubscribe",
 			now=True,
 		)
-		email_queue = frappe.db.sql(
-			"""select name from `tabEmail Queue` where status='Sent'""", as_dict=1
-		)
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Sent'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
 			r.recipient
@@ -213,9 +204,7 @@ class TestEmail(FrappeTestCase):
 
 		set_expiry_for_email_queue()
 
-		email_queue = frappe.db.sql(
-			"""select name from `tabEmail Queue` where status='Expired'""", as_dict=1
-		)
+		email_queue = frappe.db.sql("""select name from `tabEmail Queue` where status='Expired'""", as_dict=1)
 		self.assertEqual(len(email_queue), 1)
 		queue_recipients = [
 			r.recipient

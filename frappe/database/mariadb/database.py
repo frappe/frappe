@@ -297,9 +297,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				unique `doctype_name` (doctype, name))
 				COLLATE=utf8mb4_unicode_ci
 				ENGINE=MyISAM
-				CHARACTER SET=utf8mb4""".format(
-					self.VARCHAR_LEN
-				)
+				CHARACTER SET=utf8mb4""".format(self.VARCHAR_LEN)
 			)
 
 	def create_user_settings_table(self):
@@ -334,23 +332,17 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			), 0) as 'index',
 			column_key = 'UNI' as 'unique'
 			from information_schema.columns as columns
-			where table_name = '{table_name}' """.format(
-				table_name=table_name
-			),
+			where table_name = '{table_name}' """.format(table_name=table_name),
 			as_dict=1,
 		)
 
 	def has_index(self, table_name, index_name):
 		return self.sql(
 			"""SHOW INDEX FROM `{table_name}`
-			WHERE Key_name='{index_name}'""".format(
-				table_name=table_name, index_name=index_name
-			)
+			WHERE Key_name='{index_name}'""".format(table_name=table_name, index_name=index_name)
 		)
 
-	def get_column_index(
-		self, table_name: str, fieldname: str, unique: bool = False
-	) -> frappe._dict | None:
+	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False) -> frappe._dict | None:
 		"""Check if column exists for a specific fields in specified order.
 
 		This differs from db.has_index because it doesn't rely on index name but columns inside an

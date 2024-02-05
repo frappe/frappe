@@ -22,9 +22,7 @@ class NavbarSettings(Document):
 			if item.is_standard
 		]
 
-		after_save_items = [
-			item for item in self.help_dropdown + self.settings_dropdown if item.is_standard
-		]
+		after_save_items = [item for item in self.help_dropdown + self.settings_dropdown if item.is_standard]
 
 		if not frappe.flags.in_patch and (len(before_save_items) > len(after_save_items)):
 			frappe.throw(_("Please hide the standard navbar items instead of deleting them"))

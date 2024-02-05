@@ -123,12 +123,11 @@ class TestSearch(FrappeTestCase):
 			frappe.local.lang = "en"
 
 	def test_validate_and_sanitize_search_inputs(self):
-
 		# should raise error if searchfield is injectable
 		self.assertRaises(
 			frappe.DataError,
 			get_data,
-			*("User", "Random", "select * from tabSessions) --", "1", "10", dict())
+			*("User", "Random", "select * from tabSessions) --", "1", "10", dict()),
 		)
 
 		# page_len and start should be converted to int
@@ -195,9 +194,7 @@ def get_data(doctype, txt, searchfield, start, page_len, filters):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-def query_with_reference_doctype(
-	doctype, txt, searchfield, start, page_len, filters, reference_doctype=None
-):
+def query_with_reference_doctype(doctype, txt, searchfield, start, page_len, filters, reference_doctype=None):
 	return []
 
 
@@ -269,7 +266,6 @@ class TestWebsiteSearch(FrappeTestCase):
 		return response
 
 	def test_basic_search(self):
-
 		no_search = self.get("/search")
 		self.assertEqual(no_search.status_code, 200)
 

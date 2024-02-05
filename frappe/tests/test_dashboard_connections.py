@@ -101,7 +101,11 @@ class TestDashboardConnections(FrappeTestCase):
 		expected_open_count = {
 			"count": {
 				"external_links_found": [
-					{"doctype": "Doctype B With Child Table With Link To Doctype A", "open_count": 0, "count": 1}
+					{
+						"doctype": "Doctype B With Child Table With Link To Doctype A",
+						"open_count": 0,
+						"count": 1,
+					}
 				],
 				"internal_links_found": [],
 			}
@@ -180,9 +184,7 @@ def create_child_table_with_link_to_doctype_a():
 			"name": "Child Table With Link To Doctype A",
 			"module": "Custom",
 			"autoname": "field:title",
-			"fields": [
-				{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1, "unique": 1}
-			],
+			"fields": [{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1, "unique": 1}],
 			"istable": 1,
 			"naming_rule": "By fieldname",
 			"permissions": [{"role": "System Manager"}],
@@ -197,9 +199,7 @@ def create_child_table_with_link_to_doctype_b():
 			"name": "Child Table With Link To Doctype B",
 			"module": "Custom",
 			"autoname": "field:title",
-			"fields": [
-				{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1, "unique": 1}
-			],
+			"fields": [{"fieldname": "title", "fieldtype": "Data", "label": "Title", "reqd": 1, "unique": 1}],
 			"istable": 1,
 			"naming_rule": "By fieldname",
 			"permissions": [{"role": "System Manager"}],
@@ -208,9 +208,7 @@ def create_child_table_with_link_to_doctype_b():
 
 
 def add_links_in_child_tables():
-	child_table_with_link_to_doctype_a = frappe.get_doc(
-		"DocType", "Child Table With Link To Doctype A"
-	)
+	child_table_with_link_to_doctype_a = frappe.get_doc("DocType", "Child Table With Link To Doctype A")
 	if len(child_table_with_link_to_doctype_a.fields) == 1:
 		child_table_with_link_to_doctype_a.append(
 			"fields",
@@ -224,9 +222,7 @@ def add_links_in_child_tables():
 		)
 		child_table_with_link_to_doctype_a.save()
 
-	child_table_with_link_to_doctype_b = frappe.get_doc(
-		"DocType", "Child Table With Link To Doctype B"
-	)
+	child_table_with_link_to_doctype_b = frappe.get_doc("DocType", "Child Table With Link To Doctype B")
 	if len(child_table_with_link_to_doctype_b.fields) == 1:
 		child_table_with_link_to_doctype_b.append(
 			"fields",

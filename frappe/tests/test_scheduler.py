@@ -92,9 +92,7 @@ class TestScheduler(TestCase):
 		)
 
 
-def get_test_job(
-	method="frappe.tests.test_scheduler.test_timeout_10", frequency="All"
-) -> ScheduledJobType:
+def get_test_job(method="frappe.tests.test_scheduler.test_timeout_10", frequency="All") -> ScheduledJobType:
 	if not frappe.db.exists("Scheduled Job Type", dict(method=method)):
 		job = frappe.get_doc(
 			dict(

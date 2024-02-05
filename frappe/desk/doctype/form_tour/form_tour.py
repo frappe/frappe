@@ -64,9 +64,7 @@ def update_user_status(value, step):
 		app="frappe_ui_tours",
 		properties={"is_completed": tour.is_completed},
 	)
-	frappe.db.set_value(
-		"User", frappe.session.user, "onboarding_status", value, update_modified=False
-	)
+	frappe.db.set_value("User", frappe.session.user, "onboarding_status", value, update_modified=False)
 
 	frappe.cache().hdel("bootinfo", frappe.session.user)
 

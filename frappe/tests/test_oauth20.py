@@ -356,9 +356,7 @@ def check_valid_openid_response(access_token=None):
 
 
 def login(session):
-	session.post(
-		get_full_url("/api/method/login"), data={"usr": "test@example.com", "pwd": "Eastern_43A1W"}
-	)
+	session.post(get_full_url("/api/method/login"), data={"usr": "test@example.com", "pwd": "Eastern_43A1W"})
 
 
 def get_full_url(endpoint):

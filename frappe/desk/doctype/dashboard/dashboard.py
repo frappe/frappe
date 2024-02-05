@@ -17,9 +17,7 @@ class Dashboard(Document):
 			# make all other dashboards non-default
 			DashBoard = DocType("Dashboard")
 
-			frappe.qb.update(DashBoard).set(DashBoard.is_default, 0).where(
-				DashBoard.name != self.name
-			).run()
+			frappe.qb.update(DashBoard).set(DashBoard.is_default, 0).where(DashBoard.name != self.name).run()
 
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files(
@@ -101,9 +99,7 @@ def get_permitted_cards(dashboard_name):
 
 def get_non_standard_charts_in_dashboard(dashboard):
 	non_standard_charts = [doc.name for doc in frappe.get_list("Dashboard Chart", {"is_standard": 0})]
-	return [
-		chart_link.chart for chart_link in dashboard.charts if chart_link.chart in non_standard_charts
-	]
+	return [chart_link.chart for chart_link in dashboard.charts if chart_link.chart in non_standard_charts]
 
 
 def get_non_standard_cards_in_dashboard(dashboard):

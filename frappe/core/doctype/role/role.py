@@ -101,9 +101,7 @@ def get_user_info(users, field="email"):
 def get_users(role):
 	return [
 		d.parent
-		for d in frappe.get_all(
-			"Has Role", filters={"role": role, "parenttype": "User"}, fields=["parent"]
-		)
+		for d in frappe.get_all("Has Role", filters={"role": role, "parenttype": "User"}, fields=["parent"])
 	]
 
 

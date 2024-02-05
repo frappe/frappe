@@ -16,9 +16,7 @@ class EventUpdateLog(Document):
 		)
 		jobs = get_jobs()
 		if not jobs or enqueued_method not in jobs[frappe.local.site]:
-			frappe.enqueue(
-				enqueued_method, doctype=self.ref_doctype, queue="long", enqueue_after_commit=True
-			)
+			frappe.enqueue(enqueued_method, doctype=self.ref_doctype, queue="long", enqueue_after_commit=True)
 
 
 def notify_consumers(doc, event):

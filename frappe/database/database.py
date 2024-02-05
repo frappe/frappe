@@ -387,7 +387,9 @@ class Database:
 			return self._cursor.mogrify(query, values)
 		except AttributeError:
 			if isinstance(values, dict):
-				return query % {k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()}
+				return query % {
+					k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()
+				}
 			elif isinstance(values, (list, tuple)):
 				return query % tuple(frappe.db.escape(v) if isinstance(v, str) else v for v in values)
 			return query, values
@@ -834,9 +836,7 @@ class Database:
 		df = frappe.get_meta(doctype).get_field(fieldname)
 
 		if not df:
-			frappe.throw(
-				_("Invalid field name: {0}").format(frappe.bold(fieldname)), self.InvalidColumnName
-			)
+			frappe.throw(_("Invalid field name: {0}").format(frappe.bold(fieldname)), self.InvalidColumnName)
 
 		val = cast_fieldtype(df.fieldtype, val)
 

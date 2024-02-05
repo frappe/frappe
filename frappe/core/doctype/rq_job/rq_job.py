@@ -57,7 +57,6 @@ class RQJob(Document):
 
 	@staticmethod
 	def get_list(args):
-
 		start = cint(args.get("start")) or 0
 		page_length = cint(args.get("page_length")) or 20
 

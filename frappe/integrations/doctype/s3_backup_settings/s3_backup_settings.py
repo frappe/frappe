@@ -94,7 +94,7 @@ def take_backups_s3(retry_count=0):
 				"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_s3",
 				queue="long",
 				timeout=1500,
-				**args
+				**args,
 			)
 		else:
 			notify()

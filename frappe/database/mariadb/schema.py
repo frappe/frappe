@@ -38,10 +38,7 @@ class MariaDBTable(DBTable):
 			)
 
 		# creating sequence(s)
-		if (
-			not self.meta.issingle and self.meta.autoname == "autoincrement"
-		) or self.doctype in log_types:
-
+		if (not self.meta.issingle and self.meta.autoname == "autoincrement") or self.doctype in log_types:
 			frappe.db.create_sequence(self.doctype, check_not_exists=True, cache=frappe.db.SEQUENCE_CACHE)
 
 			# NOTE: not used nextval func as default as the ability to restore
@@ -86,9 +83,7 @@ class MariaDBTable(DBTable):
 			)
 
 		for col in self.add_unique:
-			modify_column_query.append(
-				f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)"
-			)
+			modify_column_query.append(f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)")
 
 		for col in self.add_index:
 			# if index key does not exists
@@ -124,9 +119,9 @@ class MariaDBTable(DBTable):
 			if e.args[0] == DUP_ENTRY:
 				fieldname = str(e).split("'")[-2]
 				frappe.throw(
-					_("{0} field cannot be set as unique in {1}, as there are non-unique existing values").format(
-						fieldname, self.table_name
-					)
+					_(
+						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
+					).format(fieldname, self.table_name)
 				)
 
 			raise

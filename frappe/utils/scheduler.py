@@ -64,9 +64,7 @@ def enqueue_events_for_all_sites():
 
 def enqueue_events_for_site(site):
 	def log_and_raise():
-		error_message = "Exception in Enqueue Events for Site {}\n{}".format(
-			site, frappe.get_traceback()
-		)
+		error_message = f"Exception in Enqueue Events for Site {site}\n{frappe.get_traceback()}"
 		frappe.logger("scheduler").error(error_message)
 
 	try:
@@ -175,9 +173,7 @@ def is_dormant(check_time=None):
 
 
 def _get_last_modified_timestamp(doctype):
-	timestamp = frappe.db.get_value(
-		doctype, filters={}, fieldname="modified", order_by="modified desc"
-	)
+	timestamp = frappe.db.get_value(doctype, filters={}, fieldname="modified", order_by="modified desc")
 	if timestamp:
 		return get_datetime(timestamp)
 

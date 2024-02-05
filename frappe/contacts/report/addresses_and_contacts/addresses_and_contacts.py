@@ -76,12 +76,8 @@ def get_reference_addresses_and_contact(reference_doctype, reference_name):
 
 	for d in reference_list:
 		reference_details.setdefault(d, frappe._dict())
-	reference_details = get_reference_details(
-		reference_doctype, "Address", reference_list, reference_details
-	)
-	reference_details = get_reference_details(
-		reference_doctype, "Contact", reference_list, reference_details
-	)
+	reference_details = get_reference_details(reference_doctype, "Address", reference_list, reference_details)
+	reference_details = get_reference_details(reference_doctype, "Contact", reference_list, reference_details)
 
 	for reference_name, details in reference_details.items():
 		addresses = details.get("address", [])

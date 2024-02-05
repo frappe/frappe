@@ -70,18 +70,13 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 		offset = simultaneous_sessions
 
 	session = frappe.qb.DocType("Sessions")
-	session_id = frappe.qb.from_(session).where(
-		(session.user == user) & (session.device.isin(device))
-	)
+	session_id = frappe.qb.from_(session).where((session.user == user) & (session.device.isin(device)))
 	if keep_current:
 		offset = max(0, offset - 1)
 		session_id = session_id.where(session.sid != frappe.session.sid)
 
 	query = (
-		session_id.select(session.sid)
-		.offset(offset)
-		.limit(100)
-		.orderby(session.lastupdate, order=Order.desc)
+		session_id.select(session.sid).offset(offset).limit(100).orderby(session.lastupdate, order=Order.desc)
 	)
 
 	return query.run(pluck=True)
@@ -99,9 +94,7 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	frappe.cache().hdel("last_db_session_update", sid)
 	if sid and not user:
 		table = frappe.qb.DocType("Sessions")
-		user_details = (
-			frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
-		)
+		user_details = frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
 		if user_details:
 			user = user_details[0].get("user")
 
@@ -214,9 +207,7 @@ class Session:
 	__slots__ = ("user", "device", "user_type", "full_name", "data", "time_diff", "sid")
 
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
-		self.sid = cstr(
-			frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest"))
-		)
+		self.sid = cstr(frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest")))
 		self.user = user
 		self.device = frappe.form_dict.get("device") or "desktop"
 		self.user_type = user_type
@@ -290,9 +281,7 @@ class Session:
 				Sessions.status,
 				Sessions.device,
 			)
-			.insert(
-				(str(self.data["data"]), self.data["user"], now, self.data["sid"], "Active", self.device)
-			)
+			.insert((str(self.data["data"]), self.data["user"], now, self.data["sid"], "Active", self.device))
 		).run()
 		frappe.cache().hset("session", self.data.sid, self.data)
 

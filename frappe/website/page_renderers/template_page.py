@@ -202,9 +202,7 @@ class TemplatePage(BaseTemplatePage):
 			and "</body>" not in self.source
 		):
 			self.source = """{{% extends "{0}" %}}
-				{{% block page_content %}}{1}{{% endblock %}}""".format(
-				context.base_template, self.source
-			)
+				{{% block page_content %}}{1}{{% endblock %}}""".format(context.base_template, self.source)
 
 		self.set_properties_via_comments()
 
