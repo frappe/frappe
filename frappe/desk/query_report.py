@@ -291,9 +291,9 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 		try:
 			if data := json.loads(doc.get_prepared_data().decode("utf-8")):
 				report_data = get_report_data(doc, data)
-		except Exception:
+		except Exception as e:
 			doc.log_error("Prepared report render failed")
-			frappe.msgprint(_("Prepared report render failed"))
+			frappe.msgprint(_("Prepared report render failed") + f": {str(e)}")
 			doc = None
 
 	return report_data | {"prepared_report": True, "doc": doc}
