@@ -362,6 +362,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 				WHERE Column_name = "{fieldname}"
 					AND Seq_in_index = 1
 					AND Non_unique={int(not unique)}
+					AND Index_type != 'FULLTEXT'
 				""",
 			as_dict=True,
 		)
