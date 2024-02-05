@@ -203,7 +203,7 @@ jobs:
         uses: actions/download-artifact@v3
 
       - name: Upload python coverage data
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           name: UIBackend
           fail_ci_if_error: true
@@ -212,7 +212,7 @@ jobs:
           flags: server-ui
 
       - name: Upload JS coverage data
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           name: Cypress
           token: ${{ secrets.CODECOV_TOKEN }}
