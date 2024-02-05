@@ -679,23 +679,15 @@ class Document(BaseDocument):
 		return same
 
 	def apply_fieldlevel_read_permissions(self):
-		"""Remove values the user is not allowed to read (called when loading in desk)"""
-
+		"""Remove values the user is not allowed to read."""
 		if frappe.session.user == "Administrator":
 			return
-
-		has_higher_permlevel = False
 
 		all_fields = self.meta.fields.copy()
 		for table_field in self.meta.get_table_fields():
 			all_fields += frappe.get_meta(table_field.options).fields or []
 
-		for df in all_fields:
-			if df.permlevel > 0:
-				has_higher_permlevel = True
-				break
-
-		if not has_higher_permlevel:
+		if all(df.permlevel == 0 for df in all_fields):
 			return
 
 		has_access_to = self.get_permlevel_access("read")
