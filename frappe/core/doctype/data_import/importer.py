@@ -149,7 +149,7 @@ class Importer:
 
 					if self.console:
 						update_progress_bar(
-							f"Importing ({self.import_type.split()[0]}) for doctype {self.doctype}: {total_payload_count} records",
+							f"Importing {self.doctype}: {total_payload_count} records",
 							current_index - 1,
 							total_payload_count,
 						)
