@@ -86,7 +86,7 @@ if __name__ == "__main__":
 	app = "frappe"
 	site = os.environ.get("SITE") or "test_site"
 	use_orchestrator = bool(os.environ.get("ORCHESTRATOR_URL"))
-	with_coverage = json.loads(os.environ.get("WITH_COVERAGE").lower() or "true")
+	with_coverage = json.loads(os.environ.get("WITH_COVERAGE", "true").lower())
 	build_number = 1
 	total_builds = 1
 
