@@ -2,6 +2,7 @@
 # MIT License. See LICENSE
 import os
 from pathlib import Path
+import json
 
 STANDARD_INCLUSIONS = ["*.py"]
 
@@ -85,6 +86,7 @@ if __name__ == "__main__":
 	app = "frappe"
 	site = os.environ.get("SITE") or "test_site"
 	use_orchestrator = bool(os.environ.get("ORCHESTRATOR_URL"))
+	with_coverage = json.loads(os.environ.get("WITH_COVERAGE", "true").lower())
 	build_number = 1
 	total_builds = 1
 
@@ -98,7 +100,7 @@ if __name__ == "__main__":
 	except Exception:
 		pass
 
-	with CodeCoverage(with_coverage=True, app=app):
+	with CodeCoverage(with_coverage=with_coverage, app=app):
 		if use_orchestrator:
 			from frappe.parallel_test_runner import ParallelTestWithOrchestrator
 
