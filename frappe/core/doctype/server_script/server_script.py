@@ -45,6 +45,8 @@ class ServerScript(Document):
 			"Before Save (Submitted Document)",
 			"After Save (Submitted Document)",
 			"On Payment Authorization",
+			"On Payment Paid",
+			"On Payment Failed",
 		]
 		enable_rate_limit: DF.Check
 		event_frequency: DF.Literal[
