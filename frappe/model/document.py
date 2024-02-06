@@ -35,6 +35,7 @@ if TYPE_CHECKING:
 
 
 DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatically
+DOCUMENT_LOCK_SOFT_EXPIRY = 60 * 60  # Let users force-unlock after 60 minutes
 
 
 def get_doc(*args, **kwargs):
@@ -1524,9 +1525,25 @@ class Document(BaseDocument):
 		try:
 			self.lock()
 		except frappe.DocumentLockedError:
+			# Allow unlocking if created more than 60 minutes ago
+			primary_action = None
+			if file_lock.lock_age(self.get_signature()) > DOCUMENT_LOCK_SOFT_EXPIRY:
+				primary_action = {
+					"label": "Force Unlock",
+					"server_action": "frappe.model.document.unlock_document",
+					"hide_on_success": True,
+					"args": {
+						"doctype": self.doctype,
+						"name": self.name,
+					},
+				}
+
 			frappe.throw(
-				_("This document is currently queued for execution. Please try again"),
+				_(
+					"This document is currently locked and queued for execution. Please try again after some time."
+				),
 				title=_("Document Queued"),
+				primary_action=primary_action,
 			)
 
 		return enqueue(
@@ -1711,3 +1728,9 @@ def _document_values_generator(
 			ignore_virtual=True,
 		)
 		yield tuple(doc_values.get(col) for col in columns)
+
+
+@frappe.whitelist()
+def unlock_document(doctype: str, name: str):
+	frappe.get_doc(doctype, name).unlock()
+	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
