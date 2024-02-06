@@ -44,11 +44,7 @@ def lock_exists(name):
 
 def lock_age(name) -> float:
 	"""Return time in seconds since lock was created."""
-	mtime = Path(get_lock_path(name)).stat().st_mtime
-	if not mtime:
-		return None
-
-	return time() - mtime
+	return time() - Path(get_lock_path(name)).stat().st_mtime
 
 
 def check_lock(path, timeout=600):
