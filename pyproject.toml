@@ -33,13 +33,8 @@ dependencies = [
     "bleach[css]~=6.0.0",
     "cairocffi==1.5.1",
     "chardet~=5.1.0",
-<<<<<<< HEAD
     "croniter~=1.4.1",
-    "cryptography~=41.0.3",
-=======
-    "croniter~=2.0.1",
     "cryptography~=42.0.0",
->>>>>>> ddcf654423 (chore(deps): bump cryptography)
     "email-reply-parser~=0.5.12",
     "git-url-parse~=1.2.2",
     "gunicorn~=21.2.0",
@@ -58,7 +53,7 @@ dependencies = [
     "premailer~=3.10.0",
     "psutil~=5.9.5",
     "psycopg2-binary~=2.9.1",
-    "pyOpenSSL~=23.2.0",
+    "pyOpenSSL~=24.0.0",
     "pydantic==2.3.0",
     "pyotp~=2.8.0",
     "python-dateutil~=2.8.2",
