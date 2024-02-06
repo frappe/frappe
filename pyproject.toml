@@ -33,8 +33,13 @@ dependencies = [
     "bleach[css]~=6.0.0",
     "cairocffi==1.5.1",
     "chardet~=5.1.0",
+<<<<<<< HEAD
     "croniter~=1.4.1",
     "cryptography~=41.0.3",
+=======
+    "croniter~=2.0.1",
+    "cryptography~=42.0.0",
+>>>>>>> ddcf654423 (chore(deps): bump cryptography)
     "email-reply-parser~=0.5.12",
     "git-url-parse~=1.2.2",
     "gunicorn~=21.2.0",
