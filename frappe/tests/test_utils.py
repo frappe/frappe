@@ -59,6 +59,7 @@ from frappe.utils.data import (
 	get_time,
 	get_timedelta,
 	get_timespan_date_range,
+	get_url_to_form,
 	get_year_ending,
 	getdate,
 	now_datetime,
@@ -981,6 +982,10 @@ class TestMiscUtils(FrappeTestCase):
 		installed_apps = [app["app_name"] for app in info["installed_apps"]]
 		self.assertIn("frappe", installed_apps)
 		self.assertGreaterEqual(len(info["users"]), 1)
+
+	def test_get_url_to_form(self):
+		self.assertTrue(get_url_to_form("System Settings").endswith("/app/system-settings"))
+		self.assertTrue(get_url_to_form("User", "Test User").endswith("/app/user/Test%20User"))
 
 	def test_safe_json_load(self):
 		self.assertEqual(safe_json_loads("{}"), {})
