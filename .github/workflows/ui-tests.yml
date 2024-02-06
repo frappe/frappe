@@ -206,6 +206,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           name: UIBackend
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           verbose: true
           files: ./coverage-py-1/coverage.xml,./coverage-py-2/coverage.xml,./coverage-py-3/coverage.xml

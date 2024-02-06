@@ -197,6 +197,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           name: Server
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           verbose: true
           flags: server
