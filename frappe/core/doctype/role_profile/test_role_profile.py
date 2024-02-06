@@ -76,7 +76,7 @@ class TestRoleProfile(FrappeTestCase):
 		self.assertEqual(role_profile_one.roles[0].role, "_Test Role 1")
 		self.assertEqual(role_profile_two.roles[1].role, "_Test Role 3")
 
-		# user with a role profile
+		# create user with a role profile
 
 		user_one = frappe.get_doc(
 			{
@@ -130,6 +130,4 @@ class TestRoleProfile(FrappeTestCase):
 		role_profile.save()
 
 		user.reload()
-		self.assertListEqual(
-			[role.role for role in user.roles], [role.role for role in role_profile.roles]
-		)
+		self.assertListEqual([role.role for role in user.roles], [role.role for role in role_profile.roles])
