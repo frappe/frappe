@@ -88,7 +88,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 	}
 
-	push_menu_items() {
+	async push_menu_items() {
 		if (this.board_perms.write) {
 			this.menu_items.push({
 				label: __("Save filters"),
@@ -151,11 +151,38 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this._add_field(this.card_meta.title_field);
 	}
 
-	before_render() {
+	async before_render() {
 		frappe.model.user_settings.save(this.doctype, "last_view", this.view_name);
 		this.save_view_user_settings({
 			last_kanban_board: this.board_name,
 		});
+
+		const { auto_move_paused }  = await frappe.db.get_doc('Queue Settings')
+		setTimeout(() => {
+			const exists = document.querySelector('div[id*="Kanban"] div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end #queue-freeze')
+			console.log({exists})
+			if (!exists){
+				const container = document.querySelector('div.no-list-sidebar div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
+				console.log({container});
+				const input = document.createElement('input')
+				const label = document.createElement('label')
+				label.setAttribute('style', 'margin: 0')
+				label.setAttribute('id', 'queue-freeze')
+				label.innerText = ' freeze queue positions '
+				label.appendChild(input)
+				input.setAttribute('type', 'checkbox')
+				if (auto_move_paused) {
+					input.setAttribute('checked', 'checked')
+				}
+				container.prepend(label);
+				input.addEventListener('change', (event) => {
+					frappe.db.set_value('Queue Settings', 'Queue Settings','auto_move_paused', auto_move_paused? 0 : 1)
+					.then(()=> {
+						frappe.msgprint(__('Status updated successfully'));
+					})
+				})
+			}
+		}, 1500);
 	}
 
 	render_list() {}
