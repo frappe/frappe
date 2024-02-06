@@ -1438,7 +1438,7 @@ class Document(BaseDocument):
 
 	def get_signature(self):
 		"""Return signature (hash) for private URL."""
-		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
+		return hashlib.sha224(f"{self.doctype}:{self.name}".encode(), usedforsecurity=False).hexdigest()
 
 	def get_document_share_key(self, expires_on=None, no_expiry=False):
 		if no_expiry:
