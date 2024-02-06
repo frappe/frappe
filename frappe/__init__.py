@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
 import click
 from werkzeug.local import Local, release_local
 
+import frappe
 from frappe.query_builder import (
 	get_query,
 	get_query_builder,
@@ -298,7 +299,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
 	setup_redis_cache_connection()
-	setup_module_map()
+	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
@@ -659,11 +660,18 @@ def throw(
 	is_minimizable: bool = False,
 	wide: bool = False,
 	as_list: bool = False,
+	primary_action=None,
 ) -> None:
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
-	:param exc: Exception class. Default `frappe.ValidationError`"""
+	:param exc: Exception class. Default `frappe.ValidationError`
+	:param title: [optional] Message title. Default: "Message".
+	:param is_minimizable: [optional] Allow users to minimize the modal
+	:param wide: [optional] Show wide modal
+	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
+	:param primary_action: [optional] Bind a primary server/client side action.
+	"""
 	msgprint(
 		msg,
 		raise_exception=exc,
@@ -672,6 +680,7 @@ def throw(
 		is_minimizable=is_minimizable,
 		wide=wide,
 		as_list=as_list,
+		primary_action=primary_action,
 	)
 
 
@@ -1684,7 +1693,7 @@ def append_hook(target, key, value):
 		target[key].extend(value)
 
 
-def setup_module_map():
+def setup_module_map(include_all_apps=True):
 	"""Rebuild map of all modules (internal)."""
 	if conf.db_name:
 		local.app_modules = cache.get_value("app_modules")
@@ -1692,10 +1701,18 @@ def setup_module_map():
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
-		for app in get_all_apps(with_internal_apps=True):
+		if include_all_apps:
+			apps = get_all_apps(with_internal_apps=True)
+		else:
+			apps = get_installed_apps(_ensure_on_bench=True)
+		for app in apps:
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
+				if module in local.module_app:
+					print(
+						f"WARNING: module `{module}` found in apps `{local.module_app[module]}` and `{app}`"
+					)
 				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
