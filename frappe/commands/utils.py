@@ -791,7 +791,12 @@ def run_tests(
 @click.option("--app", help="For App", default="frappe")
 @click.option("--build-number", help="Build number", default=1)
 @click.option("--total-builds", help="Total number of builds", default=1)
-@click.option("--with-coverage", is_flag=True, help="Build coverage file")
+@click.option(
+	"--with-coverage",
+	is_flag=True,
+	help="Build coverage file",
+	envvar="CAPTURE_COVERAGE",
+)
 @click.option("--use-orchestrator", is_flag=True, help="Use orchestrator to run parallel tests")
 @click.option("--dry-run", is_flag=True, default=False, help="Dont actually run tests")
 @pass_context
