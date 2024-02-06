@@ -122,10 +122,8 @@ class PostgresTable(DBTable):
 
 		for col in self.add_unique:
 			# if index key not exists
-			create_contraint_query += (
-				'CREATE UNIQUE INDEX IF NOT EXISTS "unique_{index_name}" ON `{table_name}`(`{field}`);'.format(
-					index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
-				)
+			create_contraint_query += 'CREATE UNIQUE INDEX IF NOT EXISTS "unique_{index_name}" ON `{table_name}`(`{field}`);'.format(
+				index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
 			)
 
 		drop_contraint_query = ""
@@ -181,9 +179,9 @@ class PostgresTable(DBTable):
 			elif frappe.db.is_duplicate_entry(e):
 				fieldname = str(e).split("'")[-2]
 				frappe.throw(
-					_("{0} field cannot be set as unique in {1}, as there are non-unique existing values").format(
-						fieldname, self.table_name
-					)
+					_(
+						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
+					).format(fieldname, self.table_name)
 				)
 			else:
 				raise e

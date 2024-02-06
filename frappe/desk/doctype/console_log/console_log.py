@@ -18,4 +18,5 @@ class ConsoleLog(Document):
 		script: DF.Code | None
 		type: DF.Data | None
 	# end: auto-generated types
+
 	pass

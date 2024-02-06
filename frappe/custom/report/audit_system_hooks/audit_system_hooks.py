@@ -18,9 +18,7 @@ def get_columns():
 
 	# Each app is shown in order as a column
 	installed_apps = frappe.get_installed_apps(_ensure_on_bench=True)
-	columns += [
-		{"label": app, "fieldname": app, "fieldtype": values_field_type} for app in installed_apps
-	]
+	columns += [{"label": app, "fieldname": app, "fieldtype": values_field_type} for app in installed_apps]
 
 	return columns
 

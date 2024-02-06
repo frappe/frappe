@@ -89,9 +89,7 @@ class WebsiteAnalytics:
 				WHERE creation BETWEEN %s AND %s
 				GROUP BY DATE_FORMAT({0}, %s)
 				ORDER BY creation
-			""".format(
-			field
-		)
+			""".format(field)
 
 		values = (date_format, self.filters.from_date, self.filters.to_date, date_format)
 
@@ -117,9 +115,7 @@ class WebsiteAnalytics:
 				WHERE  coalesce("tabWeb Page View".{0}, '0001-01-01') BETWEEN %s AND %s
 				GROUP BY date_trunc(%s, {0})
 				ORDER BY date
-			""".format(
-			field
-		)
+			""".format(field)
 
 		values = (granularity, self.filters.from_date, self.filters.to_date, granularity)
 

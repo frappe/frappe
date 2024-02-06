@@ -26,7 +26,11 @@ class TestPackage(FrappeTestCase):
 		self.assertTrue(
 			os.path.exists(
 				frappe.get_site_path(
-					"packages", "test-package", "test_module_for_package", "doctype", "test_doctype_for_package"
+					"packages",
+					"test-package",
+					"test_module_for_package",
+					"doctype",
+					"test_doctype_for_package",
 				)
 			)
 		)
@@ -49,9 +53,7 @@ class TestPackage(FrappeTestCase):
 def make_test_package():
 	if not frappe.db.exists("Package", "Test Package"):
 		frappe.get_doc(
-			dict(
-				doctype="Package", name="Test Package", package_name="test-package", readme="# Test Package"
-			)
+			dict(doctype="Package", name="Test Package", package_name="test-package", readme="# Test Package")
 		).insert()
 
 

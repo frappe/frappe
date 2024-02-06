@@ -21,7 +21,7 @@ dependencies = [
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.0",
     "pypdf~=3.17.0",
-    "PyPika~=0.48.9",
+    "PyPika==0.48.9",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.1",
     "RestrictedPython~=7.0",
@@ -88,17 +88,12 @@ dependencies = [
 requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
-[tool.black]
-line-length = 99
+[tool.ruff]
+line-length = 110
 
-[tool.isort]
-line_length = 99
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-indent = "\t"
+[tool.ruff.format]
+indent-style = "tab"
+docstring-code-format = true
 
 [tool.bench.dev-dependencies]
 coverage = "~=6.5.0"

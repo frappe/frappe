@@ -9,7 +9,6 @@ class TestTestUtils(FrappeTestCase):
 	SHOW_TRANSACTION_COMMIT_WARNINGS = True
 
 	def test_document_assertions(self):
-
 		currency = frappe.new_doc("Currency")
 		currency.currency_name = "STONKS"
 		currency.smallest_currency_fraction_value = 0.420_001

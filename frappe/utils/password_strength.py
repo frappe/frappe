@@ -146,9 +146,7 @@ def get_match_feedback(match: "_Match", is_sole_match: bool) -> "PasswordStrengt
 		return pattern_fn()
 
 
-def get_dictionary_match_feedback(
-	match: "_Match", is_sole_match: bool
-) -> "PasswordStrengthFeedback":
+def get_dictionary_match_feedback(match: "_Match", is_sole_match: bool) -> "PasswordStrengthFeedback":
 	"""Return feedback for a match that is found in a dictionary."""
 	warning = ""
 	suggestions = []

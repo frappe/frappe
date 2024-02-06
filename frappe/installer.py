@@ -104,9 +104,7 @@ def _new_site(
 			setup=setup_db,
 		)
 
-		apps_to_install = (
-			["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
-		)
+		apps_to_install = ["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 
 		for app in apps_to_install:
 			# NOTE: not using force here for 2 reasons:
@@ -451,9 +449,7 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 	return drop_doctypes
 
 
-def _delete_linked_documents(
-	module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool
-) -> None:
+def _delete_linked_documents(module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool) -> None:
 	"""Deleted all records linked with module def"""
 	for doctype, fieldname in doctype_linkfield_map.items():
 		for record in frappe.get_all(doctype, filters={fieldname: module_name}, pluck="name"):

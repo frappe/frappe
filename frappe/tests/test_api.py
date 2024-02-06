@@ -190,9 +190,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_get_list_fields(self):
 		# test 6: fetch response with fields
-		response = self.get(
-			self.resource_path(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'}
-		)
+		response = self.get(self.resource_path(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'})
 		self.assertEqual(response.status_code, 200)
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
@@ -236,9 +234,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertIn(response.status_code, (403, 200))
 
 		if response.status_code == 403:
-			self.assertTrue(
-				set(response.json.keys()) == {"exc_type", "exception", "exc", "_server_messages"}
-			)
+			self.assertTrue(set(response.json.keys()) == {"exc_type", "exception", "exc", "_server_messages"})
 			self.assertEqual(response.json.get("exc_type"), "PermissionError")
 			self.assertEqual(
 				response.json.get("exception"), "frappe.exceptions.PermissionError: Not permitted"

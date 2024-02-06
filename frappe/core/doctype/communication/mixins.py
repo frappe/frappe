@@ -239,9 +239,7 @@ class CommunicationEmailMixin:
 		if not emails:
 			return []
 
-		return frappe.get_all(
-			"User", pluck="email", filters={"email": ["in", emails], "thread_notify": 0}
-		)
+		return frappe.get_all("User", pluck="email", filters={"email": ["in", emails], "thread_notify": 0})
 
 	@staticmethod
 	def filter_disabled_users(emails):
@@ -259,7 +257,6 @@ class CommunicationEmailMixin:
 		print_letterhead=None,
 		is_inbound_mail_communcation=None,
 	) -> dict:
-
 		outgoing_email_account = self.get_outgoing_email_account()
 		if not outgoing_email_account:
 			return {}
@@ -270,9 +267,7 @@ class CommunicationEmailMixin:
 		cc = self.get_mail_cc_with_displayname(
 			is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=send_me_a_copy
 		)
-		bcc = self.get_mail_bcc_with_displayname(
-			is_inbound_mail_communcation=is_inbound_mail_communcation
-		)
+		bcc = self.get_mail_bcc_with_displayname(is_inbound_mail_communcation=is_inbound_mail_communcation)
 
 		if not (recipients or cc):
 			return {}

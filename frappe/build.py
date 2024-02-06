@@ -378,9 +378,7 @@ def make_asset_dirs(hard_link=False):
 	symlinks = generate_assets_map()
 
 	for source, target in symlinks.items():
-		start_message = unstrip(
-			f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}"
-		)
+		start_message = unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
 		fail_message = unstrip(f"Cannot {'copy' if hard_link else 'link'} {source} to {target}")
 
 		# Used '\r' instead of '\x1b[1K\r' to print entire lines in smaller terminal sizes

@@ -173,9 +173,7 @@ class User(Document):
 		if self.language == "Loading...":
 			self.language = None
 
-		if (self.name not in ["Administrator", "Guest"]) and (
-			not self.get_social_login_userid("frappe")
-		):
+		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
 	def populate_role_profile_roles(self):
@@ -273,7 +271,6 @@ class User(Document):
 			and not self.get_other_system_managers()
 			and cint(frappe.db.get_single_value("System Settings", "setup_complete"))
 		):
-
 			msgprint(_("Adding System Manager to this User as there must be atleast one System Manager"))
 			self.append("roles", {"doctype": "Has Role", "role": "System Manager"})
 
@@ -417,7 +414,6 @@ class User(Document):
 		return (self.first_name or "") + (self.first_name and " " or "") + (self.last_name or "")
 
 	def password_reset_mail(self, link):
-
 		reset_password_template = frappe.db.get_system_setting("reset_password_template")
 
 		self.send_login_mail(
@@ -677,9 +673,7 @@ class User(Document):
 
 		if not username:
 			# @firstname_last_name
-			username = _check_suggestion(
-				frappe.scrub("{} {}".format(self.first_name, self.last_name or ""))
-			)
+			username = _check_suggestion(frappe.scrub("{} {}".format(self.first_name, self.last_name or "")))
 
 		if username:
 			frappe.msgprint(_("Suggested Username: {0}").format(username))
@@ -687,9 +681,7 @@ class User(Document):
 		return username
 
 	def username_exists(self, username=None):
-		return frappe.db.get_value(
-			"User", {"username": username or self.username, "name": ("!=", self.name)}
-		)
+		return frappe.db.get_value("User", {"username": username or self.username, "name": ("!=", self.name)})
 
 	def get_blocked_modules(self):
 		"""Return list of modules blocked for that user."""
@@ -842,9 +834,7 @@ def update_password(
 	else:
 		user = res["user"]
 
-	logout_all_sessions = cint(logout_all_sessions) or frappe.get_system_settings(
-		"logout_on_password_reset"
-	)
+	logout_all_sessions = cint(logout_all_sessions) or frappe.get_system_settings("logout_on_password_reset")
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
@@ -867,9 +857,7 @@ def update_password(
 
 
 @frappe.whitelist(allow_guest=True)
-def test_password_strength(
-	new_password: str, key=None, old_password=None, user_data: tuple | None = None
-):
+def test_password_strength(new_password: str, key=None, old_password=None, user_data: tuple | None = None):
 	from frappe.utils.deprecations import deprecation_warning
 	from frappe.utils.password_strength import test_password_strength as _test_password_strength
 
@@ -1089,12 +1077,10 @@ def get_total_users():
 	return flt(
 		frappe.db.sql(
 			"""SELECT SUM(`simultaneous_sessions`)
-        FROM `tabUser`
-        WHERE `enabled` = 1
-        AND `user_type` = 'System User'
-        AND `name` NOT IN ({})""".format(
-				", ".join(["%s"] * len(STANDARD_USERS))
-			),
+		FROM `tabUser`
+		WHERE `enabled` = 1
+		AND `user_type` = 'System User'
+		AND `name` NOT IN ({})""".format(", ".join(["%s"] * len(STANDARD_USERS))),
 			STANDARD_USERS,
 		)[0][0]
 	)
@@ -1123,11 +1109,9 @@ def get_active_users():
 	"""Return number of system users who logged in, in the last 3 days."""
 	return frappe.db.sql(
 		"""select count(*) from `tabUser`
-        where enabled = 1 and user_type != 'Website User'
-        and name not in ({})
-        and hour(timediff(now(), last_active)) < 72""".format(
-			", ".join(["%s"] * len(STANDARD_USERS))
-		),
+		where enabled = 1 and user_type != 'Website User'
+		and name not in ({})
+		and hour(timediff(now(), last_active)) < 72""".format(", ".join(["%s"] * len(STANDARD_USERS))),
 		STANDARD_USERS,
 	)[0][0]
 
@@ -1168,7 +1152,6 @@ def notify_admin_access_to_system_manager(login_manager=None):
 		and login_manager.user == "Administrator"
 		and frappe.local.conf.notify_admin_access_to_system_manager
 	):
-
 		site = '<a href="{0}" target="_blank">{0}</a>'.format(frappe.local.request.host_url)
 		date_and_time = "<b>{}</b>".format(format_datetime(now_datetime(), format_string="medium"))
 		ip_address = frappe.local.request_ip

@@ -25,6 +25,7 @@ class EmailGroup(Document):
 		welcome_email_template: DF.Link | None
 		welcome_url: DF.Data | None
 	# end: auto-generated types
+
 	def onload(self):
 		singles = [d.name for d in frappe.get_all("DocType", "name", {"issingle": 1})]
 		self.get("__onload").import_types = [

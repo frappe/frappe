@@ -86,7 +86,6 @@ def safe_exec(
 	script_filename: str | None = None,
 ):
 	if not is_safe_exec_enabled():
-
 		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
 		docs_cta = _("Read the documentation to know more")
 		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
@@ -338,9 +337,7 @@ def call_whitelisted_function(function, **kwargs):
 def run_script(script, **kwargs):
 	"""run another server script"""
 
-	return call_with_form_dict(
-		lambda: frappe.get_doc("Server Script", script).execute_method(), kwargs
-	)
+	return call_with_form_dict(lambda: frappe.get_doc("Server Script", script).execute_method(), kwargs)
 
 
 def call_with_form_dict(function, kwargs):
