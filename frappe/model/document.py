@@ -21,13 +21,15 @@ from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF
-from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
+from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
 from frappe.utils.data import get_absolute_url
-from frappe.utils.deprecations import deprecated
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
+
+
+DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatically
 
 
 def get_doc(*args, **kwargs):
@@ -1517,6 +1519,9 @@ class Document(BaseDocument):
 		signature = self.get_signature()
 		if file_lock.lock_exists(signature):
 			lock_exists = True
+			if file_lock.lock_age(signature) > DOCUMENT_LOCK_EXPIRTY:
+				file_lock.delete_lock(signature)
+				lock_exists = False
 			if timeout:
 				for i in range(timeout):
 					time.sleep(1)
