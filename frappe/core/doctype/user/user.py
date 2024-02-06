@@ -191,7 +191,9 @@ class User(Document):
 		self.populate_role_profile_roles()
 
 	def move_role_profile_name_to_role_profiles(self):
-		if not self.role_profile_name:
+		if not self.role_profile_name or any(
+			(profile.role_profile == self.role_profile_name) for profile in self.role_profiles
+		):
 			return
 		profile_exists = frappe.db.exists(
 			"User Role Profile",
@@ -208,7 +210,7 @@ class User(Document):
 				}
 			)
 			user_role_profile.save(ignore_permissions=True)
-		self.role_profiles.append(user_role_profile)
+			self.role_profiles.append(user_role_profile)
 
 	def validate_allowed_modules(self):
 		if self.module_profile:
