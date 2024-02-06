@@ -120,7 +120,6 @@ def filter_by_restrict_to_domain(data):
 	for d in data:
 		_items = []
 		for item in d.get("items", []):
-
 			item_type = item.get("type")
 			item_name = item.get("name")
 
@@ -240,7 +239,6 @@ def apply_permissions(data):
 				or (item.type == "report" and item.name in allowed_reports)
 				or item.type == "help"
 			):
-
 				new_items.append(item)
 
 		if new_items:

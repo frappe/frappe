@@ -47,9 +47,7 @@ class SocialLoginKey(Document):
 		if not self.redirect_url:
 			frappe.throw(_("Please enter Redirect URL"), exc=RedirectUrlNotSetError)
 		if self.enable_social_login and not self.client_id:
-			frappe.throw(
-				_("Please enter Client ID before social login is enabled"), exc=ClientIDNotSetError
-			)
+			frappe.throw(_("Please enter Client ID before social login is enabled"), exc=ClientIDNotSetError)
 		if self.enable_social_login and not self.client_secret:
 			frappe.throw(
 				_("Please enter Client Secret before social login is enabled"), exc=ClientSecretNotSetError

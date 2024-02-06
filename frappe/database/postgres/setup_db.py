@@ -70,9 +70,7 @@ def import_db_from_sql(source_sql=None, verbose=False):
 	restore_proc = run(command, env=subprocess_env, shell=True, stdout=PIPE)
 
 	if verbose:
-		print(
-			f"\nSTDOUT by psql:\n{restore_proc.stdout.decode()}\nImported from Database File: {source_sql}"
-		)
+		print(f"\nSTDOUT by psql:\n{restore_proc.stdout.decode()}\nImported from Database File: {source_sql}")
 
 
 def setup_help_database(help_db_name):
@@ -100,9 +98,7 @@ def get_root_connection(root_login=None, root_password=None):
 
 			root_password = getpass("Postgres super user password: ")
 
-		frappe.local.flags.root_connection = frappe.database.get_db(
-			user=root_login, password=root_password
-		)
+		frappe.local.flags.root_connection = frappe.database.get_db(user=root_login, password=root_password)
 
 	return frappe.local.flags.root_connection
 

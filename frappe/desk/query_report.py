@@ -105,9 +105,7 @@ def generate_report_result(
 			columns.insert(custom_column["insert_after_index"] + 1, custom_column)
 
 	# all columns which are not in original report
-	report_custom_columns = [
-		column for column in columns if column["fieldname"] not in report_column_names
-	]
+	report_custom_columns = [column for column in columns if column["fieldname"] not in report_column_names]
 
 	if report_custom_columns:
 		result = add_custom_column_data(report_custom_columns, result)
@@ -309,9 +307,9 @@ def get_prepared_report_result(report, filters, dn=None, user=None):
 		try:
 			if data := json.loads(doc.get_prepared_data().decode("utf-8")):
 				report_data = get_report_data(doc, data)
-		except Exception:
+		except Exception as e:
 			doc.log_error("Prepared report render failed")
-			frappe.msgprint(_("Prepared report render failed"))
+			frappe.msgprint(_("Prepared report render failed") + f": {str(e)}")
 			doc = None
 
 	return report_data | {"prepared_report": True, "doc": doc}
@@ -498,7 +496,6 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 
 @frappe.whitelist()
 def get_data_for_custom_field(doctype, field, names=None):
-
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(doctype), frappe.PermissionError)
 
@@ -508,9 +505,7 @@ def get_data_for_custom_field(doctype, field, names=None):
 			names = frappe.json.loads(names)
 		filters.update({"name": ["in", names]})
 
-	value_map = frappe._dict(
-		frappe.get_list(doctype, filters=filters, fields=["name", field], as_list=1)
-	)
+	value_map = frappe._dict(frappe.get_list(doctype, filters=filters, fields=["name", field], as_list=1))
 	return value_map
 
 
@@ -591,7 +586,9 @@ def get_filtered_data(ref_doctype, columns, data, user):
 		for row in data:
 			# Why linked_doctypes.get(ref_doctype)? because if column is empty, linked_doctypes[ref_doctype] is removed
 			if (
-				linked_doctypes.get(ref_doctype) and shared and row.get(linked_doctypes[ref_doctype]) in shared
+				linked_doctypes.get(ref_doctype)
+				and shared
+				and row.get(linked_doctypes[ref_doctype]) in shared
 			):
 				result.append(row)
 

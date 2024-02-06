@@ -445,9 +445,7 @@ class TestPermissions(FrappeTestCase):
 		# should be applicable for across all doctypes
 		add_user_permission("Blogger", "_Test Blogger", "test2@example.com")
 		# should be applicable only while accessing Blog Post
-		add_user_permission(
-			"Blogger", "_Test Blogger 1", "test2@example.com", applicable_for="Blog Post"
-		)
+		add_user_permission("Blogger", "_Test Blogger 1", "test2@example.com", applicable_for="Blog Post")
 		# should be applicable only while accessing User
 		add_user_permission("Blogger", "_Test Blogger 2", "test2@example.com", applicable_for="User")
 

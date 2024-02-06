@@ -165,9 +165,7 @@ class Engine:
 
 		if not isinstance(_field, str):
 			pass
-		elif not self.validate_filters and (
-			dynamic_field := DynamicTableField.parse(field, self.doctype)
-		):
+		elif not self.validate_filters and (dynamic_field := DynamicTableField.parse(field, self.doctype)):
 			# apply implicit join if link field's field is referenced
 			self.query = dynamic_field.apply_join(self.query)
 			_field = dynamic_field.field
@@ -250,7 +248,11 @@ class Engine:
 							)
 
 				field = (
-					(Field(initial_fields) if "`" not in initial_fields else PseudoColumnMapper(initial_fields))
+					(
+						Field(initial_fields)
+						if "`" not in initial_fields
+						else PseudoColumnMapper(initial_fields)
+					)
 					if not has_primitive_operator
 					else field
 				)

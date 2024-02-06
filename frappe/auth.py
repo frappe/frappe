@@ -56,9 +56,7 @@ class HTTPRequest:
 
 	def set_request_ip(self):
 		if frappe.get_request_header("X-Forwarded-For"):
-			frappe.local.request_ip = (
-				frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]
-			).strip()
+			frappe.local.request_ip = (frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]).strip()
 
 		elif frappe.get_request_header("REMOTE_ADDR"):
 			frappe.local.request_ip = frappe.get_request_header("REMOTE_ADDR")
@@ -98,7 +96,6 @@ class HTTPRequest:
 
 
 class LoginManager:
-
 	__slots__ = ("user", "info", "full_name", "user_type", "resume")
 
 	def __init__(self):
@@ -107,9 +104,7 @@ class LoginManager:
 		self.full_name = None
 		self.user_type = None
 
-		if (
-			frappe.local.form_dict.get("cmd") == "login" or frappe.local.request.path == "/api/method/login"
-		):
+		if frappe.local.form_dict.get("cmd") == "login" or frappe.local.request.path == "/api/method/login":
 			if self.login() is False:
 				return
 			self.resume = False
@@ -138,9 +133,7 @@ class LoginManager:
 		self.authenticate(user=user, pwd=pwd)
 		if self.force_user_to_reset_password():
 			doc = frappe.get_doc("User", self.user)
-			frappe.local.response["redirect_to"] = doc.reset_password(
-				send_email=False, password_expired=True
-			)
+			frappe.local.response["redirect_to"] = doc.reset_password(send_email=False, password_expired=True)
 			frappe.local.response["message"] = "Password Reset"
 			return False
 
@@ -412,9 +405,7 @@ def get_logged_user():
 def clear_cookies():
 	if hasattr(frappe.local, "session"):
 		frappe.session.sid = ""
-	frappe.local.cookie_manager.delete_cookie(
-		["full_name", "user_id", "sid", "user_image", "system_user"]
-	)
+	frappe.local.cookie_manager.delete_cookie(["full_name", "user_id", "sid", "user_image", "system_user"])
 
 
 def validate_ip_address(user):

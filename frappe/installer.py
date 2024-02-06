@@ -92,9 +92,7 @@ def _new_site(
 		db_port=db_port,
 		no_mariadb_socket=no_mariadb_socket,
 	)
-	apps_to_install = (
-		["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
-	)
+	apps_to_install = ["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 
 	for app in apps_to_install:
 		# NOTE: not using force here for 2 reasons:
@@ -431,10 +429,7 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 	return drop_doctypes
 
 
-def _delete_linked_documents(
-	module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool
-) -> None:
-
+def _delete_linked_documents(module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool) -> None:
 	"""Deleted all records linked with module def"""
 	for doctype, fieldname in doctype_linkfield_map.items():
 		for record in frappe.get_all(doctype, filters={fieldname: module_name}, pluck="name"):
@@ -517,13 +512,9 @@ def init_singles():
 			continue
 
 
-def make_conf(
-	db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None
-):
+def make_conf(db_name=None, db_password=None, site_config=None, db_type=None, db_host=None, db_port=None):
 	site = frappe.local.site
-	make_site_config(
-		db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port
-	)
+	make_site_config(db_name, db_password, site_config, db_type=db_type, db_host=db_host, db_port=db_port)
 	sites_path = frappe.local.sites_path
 	frappe.destroy()
 	frappe.init(site, sites_path=sites_path)

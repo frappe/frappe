@@ -81,7 +81,6 @@ def run_all(skip_failing: bool = False, patch_type: PatchType | None = None) -> 
 
 
 def get_all_patches(patch_type: PatchType | None = None) -> list[str]:
-
 	if patch_type and not isinstance(patch_type, PatchType):
 		frappe.throw(f"Unsupported patch type specified: {patch_type}")
 

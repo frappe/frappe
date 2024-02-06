@@ -5,7 +5,6 @@ from frappe.www.printview import get_html_and_style
 
 class PrintViewTest(FrappeTestCase):
 	def test_print_view_without_errors(self):
-
 		user = frappe.get_last_doc("User")
 
 		messages_before = frappe.get_message_log()

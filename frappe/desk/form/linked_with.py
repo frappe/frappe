@@ -84,7 +84,9 @@ class SubmittableDocumentTree:
 				child_docs = self.get_next_level_children(parent_dt, parent_docs)
 				self.visited_documents[parent_dt].extend(parent_docs)
 				for linked_dt, linked_names in child_docs.items():
-					not_visited_child_docs = set(linked_names) - set(self.visited_documents.get(linked_dt, []))
+					not_visited_child_docs = set(linked_names) - set(
+						self.visited_documents.get(linked_dt, [])
+					)
 					next_level_children[linked_dt].extend(not_visited_child_docs)
 
 			self.to_be_visited_documents = next_level_children
@@ -203,9 +205,7 @@ def get_references_across_doctypes(
 			each["child_table"] for each in itertools.chain(*child_tables_by_doctype.values())
 		]
 
-	references_by_link_fields = get_references_across_doctypes_by_link_field(
-		to_doctypes, limit_link_doctypes
-	)
+	references_by_link_fields = get_references_across_doctypes_by_link_field(to_doctypes, limit_link_doctypes)
 	references_by_dlink_fields = get_references_across_doctypes_by_dynamic_link_field(
 		to_doctypes, limit_link_doctypes
 	)
@@ -342,18 +342,14 @@ def get_referencing_documents(
 		return {from_table: frappe.get_all(from_table, filters, pluck="name", order_by=None)}
 
 	filters.extend(child_filters or [])
-	res = frappe.get_all(
-		from_table, filters=filters, fields=["name", "parenttype", "parent"], order_by=None
-	)
+	res = frappe.get_all(from_table, filters=filters, fields=["name", "parenttype", "parent"], order_by=None)
 	documents = defaultdict(list)
 
 	for parent, rows in itertools.groupby(res, key=lambda row: row["parenttype"]):
 		if allowed_parents and parent not in allowed_parents:
 			continue
 		filters = (parent_filters or []) + [["name", "in", tuple(row.parent for row in rows)]]
-		documents[parent].extend(
-			frappe.get_all(parent, filters=filters, pluck="name", order_by=None) or []
-		)
+		documents[parent].extend(frappe.get_all(parent, filters=filters, pluck="name", order_by=None) or [])
 	return documents
 
 
@@ -459,7 +455,9 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 
 			try:
 				if link.get("filters"):
-					ret = frappe.get_all(doctype=dt, fields=fields, filters=link.get("filters"), order_by=None)
+					ret = frappe.get_all(
+						doctype=dt, fields=fields, filters=link.get("filters"), order_by=None
+					)
 
 				elif link.get("get_parent"):
 					ret = None
@@ -468,7 +466,9 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 					if not frappe.get_meta(doctype).istable:
 						continue
 
-					me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True, order_by=None)
+					me = frappe.db.get_value(
+						doctype, name, ["parenttype", "parent"], as_dict=True, order_by=None
+					)
 					if me and me.parenttype == dt:
 						ret = frappe.get_all(
 							doctype=dt, fields=fields, filters=[[dt, "name", "=", me.parent]], order_by=None
@@ -482,7 +482,9 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 
 					# dynamic link
 					if link.get("doctype_fieldname"):
-						filters.append([link.get("child_doctype"), link.get("doctype_fieldname"), "=", doctype])
+						filters.append(
+							[link.get("child_doctype"), link.get("doctype_fieldname"), "=", doctype]
+						)
 
 					ret = frappe.get_all(
 						doctype=dt,
@@ -579,16 +581,13 @@ def _get_linked_doctypes(doctype, without_ignore_user_permissions_enabled=False)
 
 
 def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
-
 	filters = [["fieldtype", "=", "Link"], ["options", "=", doctype]]
 	if without_ignore_user_permissions_enabled:
 		filters.append(["ignore_user_permissions", "!=", 1])
 
 	# find links of parents
 	links = frappe.get_all("DocField", fields=["parent", "fieldname"], filters=filters, as_list=1)
-	links += frappe.get_all(
-		"Custom Field", fields=["dt as parent", "fieldname"], filters=filters, as_list=1
-	)
+	links += frappe.get_all("Custom Field", fields=["dt as parent", "fieldname"], filters=filters, as_list=1)
 
 	ret = {}
 

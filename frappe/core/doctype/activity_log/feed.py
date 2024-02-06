@@ -81,16 +81,16 @@ def get_feed_match_conditions(user=None, doctype="Comment"):
 			"""(`tab{doctype}`.reference_doctype is null
 			or `tab{doctype}`.reference_doctype = ''
 			or `tab{doctype}`.reference_doctype
-			in ({values}))""".format(
-				doctype=doctype, values=", ".join(can_read_doctypes)
-			)
+			in ({values}))""".format(doctype=doctype, values=", ".join(can_read_doctypes))
 		]
 
 		if user_permissions:
 			can_read_docs = []
 			for dt, obj in user_permissions.items():
 				for n in obj:
-					can_read_docs.append("{}|{}".format(frappe.db.escape(dt), frappe.db.escape(n.get("doc", ""))))
+					can_read_docs.append(
+						"{}|{}".format(frappe.db.escape(dt), frappe.db.escape(n.get("doc", "")))
+					)
 
 			if can_read_docs:
 				conditions.append(

@@ -91,9 +91,7 @@ class Page(Document):
 		"""Returns true if Has Role is not set or the user is allowed."""
 		from frappe.utils import has_common
 
-		allowed = [
-			d.role for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": self.name})
-		]
+		allowed = [d.role for d in frappe.get_all("Has Role", fields=["role"], filters={"parent": self.name})]
 
 		custom_roles = get_custom_allowed_roles("page", self.name)
 		allowed.extend(custom_roles)
@@ -140,7 +138,9 @@ class Page(Document):
 						try:
 							out = frappe.get_attr(
 								"{app}.{module}.page.{page}.{page}.get_context".format(
-									app=frappe.local.module_app[scrub(self.module)], module=scrub(self.module), page=page_name
+									app=frappe.local.module_app[scrub(self.module)],
+									module=scrub(self.module),
+									page=page_name,
 								)
 							)(context)
 

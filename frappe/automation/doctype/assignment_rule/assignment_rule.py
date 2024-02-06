@@ -24,9 +24,7 @@ class AssignmentRule(Document):
 
 	def validate_document_types(self):
 		if self.document_type == "ToDo":
-			frappe.throw(
-				_("Assignment Rule is not allowed on {0} document type").format(frappe.bold("ToDo"))
-			)
+			frappe.throw(_("Assignment Rule is not allowed on {0} document type").format(frappe.bold("ToDo")))
 
 	def validate_assignment_days(self):
 		assignment_days = self.get_assignment_days()
@@ -328,9 +326,7 @@ def update_due_date(doc, state=None):
 		rule_doc = frappe.get_cached_doc("Assignment Rule", rule.get("name"))
 		due_date_field = rule_doc.due_date_based_on
 		field_updated = (
-			doc.meta.has_field(due_date_field)
-			and doc.has_value_changed(due_date_field)
-			and rule.get("name")
+			doc.meta.has_field(due_date_field) and doc.has_value_changed(due_date_field) and rule.get("name")
 		)
 
 		if field_updated:

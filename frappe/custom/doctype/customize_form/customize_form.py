@@ -274,9 +274,7 @@ class CustomizeForm(Document):
 			)
 			and (df.get(prop) == 0)
 		):
-			frappe.msgprint(
-				_("Row {0}: Not allowed to disable Mandatory for standard fields").format(df.idx)
-			)
+			frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields").format(df.idx))
 			return False
 
 		elif (
@@ -343,7 +341,9 @@ class CustomizeForm(Document):
 					original = frappe.get_doc(doctype, d.name)
 					for prop, prop_type in field_map.items():
 						if d.get(prop) != original.get(prop):
-							self.make_property_setter(prop, d.get(prop), prop_type, apply_on=doctype, row_name=d.name)
+							self.make_property_setter(
+								prop, d.get(prop), prop_type, apply_on=doctype, row_name=d.name
+							)
 					items.append(d.name)
 				else:
 					# custom - just insert/update
@@ -452,9 +452,7 @@ class CustomizeForm(Document):
 			if not is_standard_or_system_generated_field(df):
 				frappe.delete_doc("Custom Field", df.name)
 
-	def make_property_setter(
-		self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None
-	):
+	def make_property_setter(self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None):
 		delete_property_setter(self.doc_type, prop, fieldname, row_name)
 
 		property_value = self.get_existing_property_value(prop, fieldname)
@@ -527,9 +525,7 @@ class CustomizeForm(Document):
 				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
 				FROM `tab{doctype}`
 				WHERE LENGTH({fieldname}) > {max_length}
-			""".format(
-					fieldname=fieldname, doctype=self.doc_type, max_length=max_length
-				),
+			""".format(fieldname=fieldname, doctype=self.doc_type, max_length=max_length),
 				as_dict=True,
 			)
 			links = []

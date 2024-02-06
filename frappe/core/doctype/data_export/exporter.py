@@ -166,9 +166,7 @@ class DataExporter:
 		self.writer.writerow([_("Notes:")])
 		self.writer.writerow([_("Please do not change the template headings.")])
 		self.writer.writerow([_("First data column must be blank.")])
-		self.writer.writerow(
-			[_('If you are uploading new records, leave the "name" (ID) column blank.')]
-		)
+		self.writer.writerow([_('If you are uploading new records, leave the "name" (ID) column blank.')])
 		self.writer.writerow(
 			[_('If you are uploading new records, "Naming Series" becomes mandatory, if present.')]
 		)
@@ -235,7 +233,9 @@ class DataExporter:
 							"label": "Parent",
 							"fieldtype": "Data",
 							"reqd": 1,
-							"info": _("Parent is the name of the document to which the data will get added to."),
+							"info": _(
+								"Parent is the name of the document to which the data will get added to."
+							),
 						}
 					),
 					True,

@@ -134,9 +134,7 @@ class TestClient(FrappeTestCase):
 			"accept": "application/json",
 			"content-type": "application/json",
 		}
-		url = (
-			f"http://{frappe.local.site}:{frappe.conf.webserver_port}/api/method/frappe.client.get_list"
-		)
+		url = f"http://{frappe.local.site}:{frappe.conf.webserver_port}/api/method/frappe.client.get_list"
 		res = requests.post(url, json=params, headers=headers)
 		self.assertEqual(res.status_code, 200)
 		data = res.json()

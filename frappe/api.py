@@ -205,9 +205,7 @@ def validate_oauth(authorization_header):
 	req = frappe.request
 	parsed_url = urlparse(req.url)
 	access_token = {"access_token": token}
-	uri = (
-		parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
-	)
+	uri = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
 	http_method = req.method
 	headers = req.headers
 	body = req.get_data()
