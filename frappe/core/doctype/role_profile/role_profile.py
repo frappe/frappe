@@ -34,26 +34,16 @@ class RoleProfile(Document):
 
 	def update_all_users(self):
 		"""Changes in role_profile reflected across all its user"""
-		has_role = frappe.qb.DocType("Has Role")
-		user = frappe.qb.DocType("User")
-		user_role_profile = frappe.qb.DocType("User Role Profile")
-		all_current_roles = (
-			frappe.qb.from_(user)
-			.join(has_role)
-			.on(user.name == has_role.parent)
-			.join(user_role_profile)
-			.on(user.name == user_role_profile.parent)
-			.where(user_role_profile.role_profile == self.name)
-			.select(user.name, has_role.role)
-		).run()
-
-		user_roles = defaultdict(set)
-		for user, role in all_current_roles:
-			user_roles[user].add(role)
-
-		role_profile_roles = {role.role for role in self.roles}
-		for user, roles in user_roles.items():
-			if roles != role_profile_roles:
-				user = frappe.get_doc("User", user)
-				user.roles = []
-				user.add_roles(*role_profile_roles)
+		users = frappe.get_list("User Role Profile", filters={"role_profile": self.name}, pluck="parent")
+		for user in users:
+			role_profile_roles = []
+			user = frappe.get_doc("User", user)
+			for role_profile in user.role_profiles:
+				if self.name == role_profile.role_profile:
+					continue
+				profile = frappe.get_doc("Role Profile", role_profile.role_profile)
+				role_profile_roles.extend([role.role for role in profile.roles])
+			role_profile_roles.extend([role.role for role in self.roles])
+			role_profile_roles = list(set(role_profile_roles))
+			user.roles = []
+			user.add_roles(*role_profile_roles)
