@@ -144,6 +144,7 @@ jobs:
           SITE: test_site
           CI_BUILD_ID: ${{ github.run_id }}
           BUILD_NUMBER: ${{ matrix.container }}
+          WITH_COVERAGE: ${{ github.event_name != 'pull_request' }}
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           TOTAL_BUILDS: 2
           COVERAGE_RCFILE: /home/runner/frappe-bench/apps/frappe/.coveragerc
@@ -161,6 +162,7 @@ jobs:
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
+        if: github.event_name != 'pull_request'
         with:
           name: coverage-${{ matrix.db }}-${{ matrix.container }}
           path: /home/runner/frappe-bench/sites/coverage.xml
@@ -185,7 +187,7 @@ jobs:
     name: Coverage Wrap Up
     needs: [test, checkrun]
     runs-on: ubuntu-latest
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' && github.event_name != 'pull_request' }}
     steps:
       - name: Clone
         uses: actions/checkout@v4
