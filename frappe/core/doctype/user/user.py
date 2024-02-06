@@ -100,6 +100,7 @@ class User(Document):
 		redirect_url: DF.SmallText | None
 		reset_password_key: DF.Data | None
 		restrict_ip: DF.SmallText | None
+		role_profile_name: DF.Link | None
 		role_profiles: DF.TableMultiSelect[UserRoleProfile]
 		roles: DF.Table[HasRole]
 		send_me_a_copy: DF.Check
@@ -155,6 +156,7 @@ class User(Document):
 			self.validate_email_type(self.email)
 			self.validate_email_type(self.name)
 		self.add_system_manager_role()
+		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()
 		self.check_roles_added()
 		self.set_system_user()
@@ -169,7 +171,6 @@ class User(Document):
 		self.validate_allowed_modules()
 		self.validate_user_image()
 		self.set_time_zone()
-
 		if self.language == "Loading...":
 			self.language = None
 
@@ -188,6 +189,26 @@ class User(Document):
 	@deprecated
 	def validate_roles(self):
 		self.populate_role_profile_roles()
+
+	def move_role_profile_name_to_role_profiles(self):
+		if not self.role_profile_name:
+			return
+		profile_exists = frappe.db.exists(
+			"User Role Profile",
+			{"parent": self.name, "role_profile": self.role_profile_name, "parenttype": "User"},
+		)
+		if not profile_exists:
+			user_role_profile = frappe.get_doc(
+				{
+					"doctype": "User Role Profile",
+					"role_profile": self.role_profile_name,
+					"parent": self.name,
+					"parenttype": "User",
+					"parentfield": "role_profiles",
+				}
+			)
+			user_role_profile.save(ignore_permissions=True)
+		self.role_profiles.append(user_role_profile)
 
 	def validate_allowed_modules(self):
 		if self.module_profile:

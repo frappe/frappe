@@ -7,7 +7,7 @@ def execute():
 		"User", filters={"role_profile_name": ["is", "set"]}, fields=["name", "role_profile_name"]
 	)
 	user_profiles = get_records_to_insert(users)
-	bulk_insert("User Role Profile", user_profiles)
+	bulk_insert("User Role Profile", user_profiles, ignore_duplicates=True)
 
 
 def get_records_to_insert(users):
