@@ -18,9 +18,18 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
+<<<<<<< HEAD
 from frappe.utils import cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
+=======
+from frappe.types import DF
+from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
+from frappe.utils.data import get_absolute_url
+>>>>>>> d616341ad4 (fix: Auto delete very old document locks)
 from frappe.utils.global_search import update_global_search
+
+
+DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatically
 
 
 def get_doc(*args, **kwargs):
@@ -1483,6 +1492,9 @@ class Document(BaseDocument):
 		signature = self.get_signature()
 		if file_lock.lock_exists(signature):
 			lock_exists = True
+			if file_lock.lock_age(signature) > DOCUMENT_LOCK_EXPIRTY:
+				file_lock.delete_lock(signature)
+				lock_exists = False
 			if timeout:
 				for _i in range(timeout):
 					time.sleep(1)
