@@ -62,7 +62,6 @@ def get_contact_number(contact_name, ref_doctype, ref_name):
 
 @frappe.whitelist()
 def send_sms(receiver_list, msg, sender_name="", success_msg=True):
-
 	import json
 
 	if isinstance(receiver_list, str):

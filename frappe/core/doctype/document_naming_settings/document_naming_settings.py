@@ -35,17 +35,16 @@ class DocumentNamingSettings(Document):
 		transaction_type: DF.Autocomplete | None
 		try_naming_series: DF.Data | None
 		user_must_always_select: DF.Check
+
 	# end: auto-generated types
 	@frappe.whitelist()
 	def get_transactions_and_prefixes(self):
-
 		transactions = self._get_transactions()
 		prefixes = self._get_prefixes(transactions)
 
 		return {"transactions": transactions, "prefixes": prefixes}
 
 	def _get_transactions(self) -> list[str]:
-
 		readable_doctypes = set(get_doctypes_with_read())
 
 		standard = frappe.get_all("DocField", {"fieldname": "naming_series"}, "parent", pluck="parent")
@@ -218,9 +217,7 @@ class DocumentNamingSettings(Document):
 		previous_value = naming_series.get_current_value()
 		naming_series.update_counter(self.current_value)
 
-		self.create_version_log_for_change(
-			naming_series.get_prefix(), previous_value, self.current_value
-		)
+		self.create_version_log_for_change(naming_series.get_prefix(), previous_value, self.current_value)
 
 		frappe.msgprint(
 			_("Series counter for {} updated to {} successfully").format(self.prefix, self.current_value),

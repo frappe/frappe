@@ -29,6 +29,7 @@ class GoogleContacts(Document):
 		pull_from_google_contacts: DF.Check
 		push_to_google_contacts: DF.Check
 		refresh_token: DF.Password | None
+
 	# end: auto-generated types
 	def validate(self):
 		if not frappe.db.get_single_value("Google Settings", "enable"):
@@ -178,12 +179,14 @@ def sync_contacts_from_google_contacts(g_contact):
 
 				for email in connection.get("emailAddresses", []):
 					contact.add_email(
-						email_id=email.get("value"), is_primary=1 if email.get("metadata").get("primary") else 0
+						email_id=email.get("value"),
+						is_primary=1 if email.get("metadata").get("primary") else 0,
 					)
 
 				for phone in connection.get("phoneNumbers", []):
 					contact.add_phone(
-						phone=phone.get("value"), is_primary_phone=1 if phone.get("metadata").get("primary") else 0
+						phone=phone.get("value"),
+						is_primary_phone=1 if phone.get("metadata").get("primary") else 0,
 					)
 
 				contact.insert(ignore_permissions=True)

@@ -1,6 +1,5 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-
 import email.utils
 import os
 import re
@@ -136,8 +135,8 @@ class EMail:
 		self.subject = subject
 		self.expose_recipients = expose_recipients
 
-		self.msg_root = MIMEMultipart("mixed", policy=policy.SMTPUTF8)
-		self.msg_alternative = MIMEMultipart("alternative", policy=policy.SMTPUTF8)
+		self.msg_root = MIMEMultipart("mixed", policy=policy.SMTP)
+		self.msg_alternative = MIMEMultipart("alternative", policy=policy.SMTP)
 		self.msg_root.attach(self.msg_alternative)
 		self.cc = cc or []
 		self.bcc = bcc or []
@@ -186,7 +185,7 @@ class EMail:
 		"""
 		from email.mime.text import MIMEText
 
-		part = MIMEText(message, "plain", "utf-8", policy=policy.SMTPUTF8)
+		part = MIMEText(message, "plain", "utf-8", policy=policy.SMTP)
 		self.msg_alternative.attach(part)
 
 	def set_part_html(self, message, inline_images):
@@ -199,9 +198,9 @@ class EMail:
 			message, _inline_images = replace_filename_with_cid(message)
 
 			# prepare parts
-			msg_related = MIMEMultipart("related", policy=policy.SMTPUTF8)
+			msg_related = MIMEMultipart("related", policy=policy.SMTP)
 
-			html_part = MIMEText(message, "html", "utf-8", policy=policy.SMTPUTF8)
+			html_part = MIMEText(message, "html", "utf-8", policy=policy.SMTP)
 			msg_related.attach(html_part)
 
 			for image in _inline_images:
@@ -215,20 +214,18 @@ class EMail:
 
 			self.msg_alternative.attach(msg_related)
 		else:
-			self.msg_alternative.attach(MIMEText(message, "html", "utf-8", policy=policy.SMTPUTF8))
+			self.msg_alternative.attach(MIMEText(message, "html", "utf-8", policy=policy.SMTP))
 
 	def set_html_as_text(self, html):
 		"""Set plain text from HTML"""
 		self.set_text(to_markdown(html))
 
-	def set_message(
-		self, message, mime_type="text/html", as_attachment=0, filename="attachment.html"
-	):
+	def set_message(self, message, mime_type="text/html", as_attachment=0, filename="attachment.html"):
 		"""Append the message with MIME content to the root node (as attachment)"""
 		from email.mime.text import MIMEText
 
 		maintype, subtype = mime_type.split("/")
-		part = MIMEText(message, _subtype=subtype, policy=policy.SMTPUTF8)
+		part = MIMEText(message, _subtype=subtype, policy=policy.SMTP)
 
 		if as_attachment:
 			part.add_header("Content-Disposition", "attachment", filename=filename)
@@ -244,9 +241,7 @@ class EMail:
 
 		self.add_attachment(_file.file_name, content)
 
-	def add_attachment(
-		self, fname, fcontent, content_type=None, parent=None, content_id=None, inline=False
-	):
+	def add_attachment(self, fname, fcontent, content_type=None, parent=None, content_id=None, inline=False):
 		"""add attachment"""
 
 		if not parent:
@@ -342,7 +337,7 @@ class EMail:
 		"""validate, build message and convert to string"""
 		self.validate()
 		self.make()
-		return self.msg_root.as_string(policy=policy.SMTPUTF8)
+		return self.msg_root.as_string(policy=policy.SMTP)
 
 
 def get_formatted_html(
@@ -356,7 +351,6 @@ def get_formatted_html(
 	sender=None,
 	with_container=False,
 ):
-
 	email_account = email_account or EmailAccount.find_outgoing(match_by_email=sender)
 
 	rendered_email = frappe.get_template("templates/emails/standard.html").render(
@@ -519,9 +513,7 @@ def replace_filename_with_cid(message):
 
 		content_id = random_string(10)
 
-		inline_images.append(
-			{"filename": filename, "filecontent": filecontent, "content_id": content_id}
-		)
+		inline_images.append({"filename": filename, "filecontent": filecontent, "content_id": content_id})
 
 		message = re.sub(f"""embed=['"]{re.escape(img_path)}['"]""", f'src="cid:{content_id}"', message)
 

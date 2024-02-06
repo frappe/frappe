@@ -65,7 +65,6 @@ def delete_doc(
 		doc = None
 		if doctype == "DocType":
 			if for_reload:
-
 				try:
 					doc = frappe.get_doc(doctype, name)
 				except frappe.DoesNotExistError:
@@ -92,7 +91,10 @@ def delete_doc(
 				frappe.conf.developer_mode
 				and not doc.custom
 				and not (
-					for_reload or frappe.flags.in_migrate or frappe.flags.in_install or frappe.flags.in_uninstall
+					for_reload
+					or frappe.flags.in_migrate
+					or frappe.flags.in_install
+					or frappe.flags.in_uninstall
 				)
 			):
 				try:
@@ -133,6 +135,7 @@ def delete_doc(
 					doctype=doc.doctype,
 					name=doc.name,
 					now=frappe.flags.in_test,
+					enqueue_after_commit=True,
 				)
 
 		# clear cache for Document
@@ -299,7 +302,6 @@ def check_if_doc_is_linked(doc, method="Delete"):
 def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 	"""Raise `frappe.LinkExistsError` if the document is dynamically linked"""
 	for df in get_dynamic_link_map().get(doc.doctype, []):
-
 		ignore_linked_doctypes = doc.get("ignore_linked_doctypes") or []
 
 		if df.parent in frappe.get_hooks("ignore_links_on_delete") or (
@@ -328,9 +330,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 			df["table"] = ", `parent`, `parenttype`, `idx`" if meta.istable else ""
 			for refdoc in frappe.db.sql(
 				"""select `name`, `docstatus` {table} from `tab{parent}` where
-				{options}=%s and {fieldname}=%s""".format(
-					**df
-				),
+				{options}=%s and {fieldname}=%s""".format(**df),
 				(doc.doctype, doc.name),
 				as_dict=True,
 			):
@@ -355,9 +355,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 
 def raise_link_exists_exception(doc, reference_doctype, reference_docname, row=""):
 	doc_link = '<a href="/app/Form/{0}/{1}">{1}</a>'.format(doc.doctype, doc.name)
-	reference_link = '<a href="/app/Form/{0}/{1}">{1}</a>'.format(
-		reference_doctype, reference_docname
-	)
+	reference_link = '<a href="/app/Form/{0}/{1}">{1}</a>'.format(reference_doctype, reference_docname)
 
 	# hack to display Single doctype only once in message
 	if reference_doctype == reference_docname:
@@ -414,9 +412,7 @@ def clear_references(
 		set
 			{1}=NULL, {2}=NULL
 		where
-			{1}=%s and {2}=%s""".format(
-			doctype, reference_doctype_field, reference_name_field
-		),  # nosec
+			{1}=%s and {2}=%s""".format(doctype, reference_doctype_field, reference_name_field),  # nosec
 		(reference_doctype, reference_name),
 	)
 

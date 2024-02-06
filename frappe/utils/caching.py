@@ -139,7 +139,6 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Calla
 	"""
 
 	def wrapper(func: Callable = None) -> Callable:
-
 		func_key = f"{func.__module__}.{func.__qualname__}"
 
 		def clear_cache():

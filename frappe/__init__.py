@@ -17,6 +17,7 @@ import inspect
 import json
 import os
 import re
+import traceback
 import unicodedata
 import warnings
 from collections.abc import Callable
@@ -265,9 +266,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.initialised = True
 
 
-def connect(
-	site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True
-) -> None:
+def connect(site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True) -> None:
 	"""Connect to site database instance.
 
 	:param site: If site is given, calls `frappe.init`.
@@ -354,6 +353,18 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	config["db_port"] = (
 		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
 	)
+
+	# Allow externally extending the config with hooks
+	if extra_config := config.get("extra_config"):
+		if isinstance(extra_config, str):
+			extra_config = [extra_config]
+		for hook in extra_config:
+			try:
+				module, method = hook.rsplit(".", 1)
+				config |= getattr(importlib.import_module(module), method)()
+			except Exception:
+				print(f"Config hook {hook} failed")
+				traceback.print_exc()
 
 	return config
 
@@ -827,9 +838,7 @@ def is_whitelisted(method):
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or is_guest and method not in guest_methods:
 		summary = _("You are not permitted to access this resource.")
-		detail = _("Function {0} is not whitelisted.").format(
-			bold(f"{method.__module__}.{method.__name__}")
-		)
+		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"
 		throw(msg, PermissionError, title="Method Not Allowed")
 
@@ -844,7 +853,6 @@ def is_whitelisted(method):
 def read_only():
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
-
 			# frappe.read_only could be called from nested functions, in such cases don't swap the
 			# connection again.
 			switched_connection = False
@@ -1015,9 +1023,7 @@ def has_permission(
 	)
 
 	if throw and not out:
-		document_label = (
-			f"{_(doctype)} {doc if isinstance(doc, str) else doc.name}" if doc else _(doctype)
-		)
+		document_label = f"{_(doctype)} {doc if isinstance(doc, str) else doc.name}" if doc else _(doctype)
 		frappe.flags.error_message = _("No permission for {0}").format(document_label)
 		raise frappe.PermissionError
 
@@ -1191,9 +1197,7 @@ def clear_document_cache(doctype: str, name: str | None = None) -> None:
 		delattr(local, "website_settings")
 
 
-def get_cached_value(
-	doctype: str, name: str, fieldname: str = "name", as_dict: bool = False
-) -> Any:
+def get_cached_value(doctype: str, name: str, fieldname: str = "name", as_dict: bool = False) -> Any:
 	try:
 		doc = get_cached_doc(doctype, name)
 	except DoesNotExistError:
@@ -1559,9 +1563,7 @@ def _load_app_hooks(app_name: str | None = None):
 	return hooks
 
 
-def get_hooks(
-	hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None
-) -> _dict:
+def get_hooks(hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None) -> _dict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
@@ -1662,11 +1664,7 @@ def read_file(path, raise_not_found=False):
 def get_attr(method_string: str) -> Any:
 	"""Get python method object from its name."""
 	app_name = method_string.split(".", 1)[0]
-	if (
-		not local.flags.in_uninstall
-		and not local.flags.in_install
-		and app_name not in get_installed_apps()
-	):
+	if not local.flags.in_uninstall and not local.flags.in_install and app_name not in get_installed_apps():
 		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
 
 	modulename = ".".join(method_string.split(".")[:-1])
@@ -1688,7 +1686,8 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	"""Remove any kwargs that are not supported by the function.
 
 	Example:
-	        >>> def fn(a=1, b=2): pass
+	        >>> def fn(a=1, b=2):
+	        ...     pass
 
 	        >>> get_newargs(fn, {"a": 2, "c": 1})
 	                {"a": 2}
@@ -2250,9 +2249,7 @@ loggers = {}
 log_level = None
 
 
-def logger(
-	module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20
-):
+def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
 	"""Returns a python logger that uses StreamHandler"""
 	from frappe.utils.logger import get_logger
 
@@ -2267,9 +2264,7 @@ def logger(
 
 
 def get_desk_link(doctype, name):
-	html = (
-		'<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
-	)
+	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
 	return html.format(doctype=doctype, name=name, doctype_local=_(doctype))
 
 
@@ -2320,7 +2315,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	Note: Applicable only if DocType has changes tracked.
 
 	Example
-	>>> frappe.get_version('User', 'foobar@gmail.com')
+	>>> frappe.get_version("User", "foobar@gmail.com")
 	>>>
 	[
 	        {

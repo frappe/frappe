@@ -15,7 +15,6 @@ from frappe.utils.data import get_system_timezone, now_datetime
 
 
 class OAuthWebRequestValidator(RequestValidator):
-
 	# Pre- and post-authorization.
 	def validate_client_id(self, client_id, request, *args, **kwargs):
 		# Simple validity check, does client exist? Not banned?
@@ -73,7 +72,6 @@ class OAuthWebRequestValidator(RequestValidator):
 	# Post-authorization
 
 	def save_authorization_code(self, client_id, code, request, *args, **kwargs):
-
 		cookie_dict = get_cookie_dict_from_headers(request)
 
 		oac = frappe.new_doc("OAuth Authorization Code")
@@ -295,9 +293,7 @@ class OAuthWebRequestValidator(RequestValidator):
 		- Refresh Token Grant
 		"""
 
-		otoken = frappe.get_doc(
-			"OAuth Bearer Token", {"refresh_token": refresh_token, "status": "Active"}
-		)
+		otoken = frappe.get_doc("OAuth Bearer Token", {"refresh_token": refresh_token, "status": "Active"})
 
 		if not otoken:
 			return False

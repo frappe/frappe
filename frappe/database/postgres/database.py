@@ -213,9 +213,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			from information_schema.tables
 			where table_catalog='{}'
 				and table_type = 'BASE TABLE'
-				and table_schema='{}'""".format(
-					frappe.conf.db_name, frappe.conf.get("db_schema", "public")
-				)
+				and table_schema='{}'""".format(frappe.conf.db_name, frappe.conf.get("db_schema", "public"))
 			)
 		]
 
@@ -292,9 +290,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				content text,
 				route varchar({0}),
 				published int not null default 0,
-				unique (doctype, name))""".format(
-					self.VARCHAR_LEN
-				)
+				unique (doctype, name))""".format(self.VARCHAR_LEN)
 			)
 
 	def create_user_settings_table(self):
@@ -338,9 +334,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def has_index(self, table_name, index_name):
 		return self.sql(
 			"""SELECT 1 FROM pg_indexes WHERE tablename='{table_name}'
-			and indexname='{index_name}' limit 1""".format(
-				table_name=table_name, index_name=index_name
-			)
+			and indexname='{index_name}' limit 1""".format(table_name=table_name, index_name=index_name)
 		)
 
 	def add_index(self, doctype: str, fields: list, index_name: str = None):
@@ -398,9 +392,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 				ON SUBSTRING(b.indexdef, '(.*)') LIKE CONCAT('%', a.column_name, '%')
 			WHERE a.table_name = '{table_name}'
 			GROUP BY a.column_name, a.data_type, a.column_default, a.character_maximum_length;
-		""".format(
-				table_name=table_name
-			),
+		""".format(table_name=table_name),
 			as_dict=1,
 		)
 

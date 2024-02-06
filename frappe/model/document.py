@@ -318,9 +318,7 @@ class Document(BaseDocument):
 		if hasattr(self, "__unsaved"):
 			delattr(self, "__unsaved")
 
-		if not (
-			frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard
-		):
+		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
 				follow_document(self.doctype, self.name, frappe.session.user)
 		return self
@@ -398,7 +396,6 @@ class Document(BaseDocument):
 
 		# loop through attachments
 		for attach_item in get_attachments(self.doctype, self.amended_from):
-
 			# save attachments to new doc
 			_file = frappe.get_doc(
 				{
@@ -601,7 +598,6 @@ class Document(BaseDocument):
 		for df in self.meta.get(
 			"fields", {"non_negative": ("=", 1), "fieldtype": ("in", ["Int", "Float", "Currency"])}
 		):
-
 			if flt(self.get(df.fieldname)) < 0:
 				msg = get_msg(df)
 				frappe.throw(msg, frappe.NonNegativeError, title=_("Negative Value"))
@@ -679,23 +675,15 @@ class Document(BaseDocument):
 		return same
 
 	def apply_fieldlevel_read_permissions(self):
-		"""Remove values the user is not allowed to read (called when loading in desk)"""
-
+		"""Remove values the user is not allowed to read."""
 		if frappe.session.user == "Administrator":
 			return
-
-		has_higher_permlevel = False
 
 		all_fields = self.meta.fields.copy()
 		for table_field in self.meta.get_table_fields():
 			all_fields += frappe.get_meta(table_field.options).fields or []
 
-		for df in all_fields:
-			if df.permlevel > 0:
-				has_higher_permlevel = True
-				break
-
-		if not has_higher_permlevel:
+		if all(df.permlevel == 0 for df in all_fields):
 			return
 
 		has_access_to = self.get_permlevel_access("read")
@@ -745,9 +733,7 @@ class Document(BaseDocument):
 		roles = frappe.get_roles()
 
 		for perm in self.get_permissions():
-			if (
-				perm.role in roles and perm.get(permission_type) and perm.permlevel not in allowed_permlevels
-			):
+			if perm.role in roles and perm.get(permission_type) and perm.permlevel not in allowed_permlevels:
 				allowed_permlevels.append(perm.permlevel)
 
 		return allowed_permlevels
@@ -1027,9 +1013,7 @@ class Document(BaseDocument):
 		self.docstatus = DocStatus.cancelled()
 		return self.save()
 
-	def _rename(
-		self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True
-	):
+	def _rename(self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document. Triggers frappe.rename_doc, then reloads."""
 		from frappe.model.rename_doc import rename_doc
 
@@ -1170,11 +1154,7 @@ class Document(BaseDocument):
 			after_commit=True,
 		)
 
-		if (
-			not self.meta.get("read_only")
-			and not self.meta.get("issingle")
-			and not self.meta.get("istable")
-		):
+		if not self.meta.get("read_only") and not self.meta.get("issingle") and not self.meta.get("istable"):
 			data = {"doctype": self.doctype, "name": self.name, "user": frappe.session.user}
 			frappe.publish_realtime("list_update", data, after_commit=True)
 
@@ -1418,7 +1398,9 @@ class Document(BaseDocument):
 
 			if user not in _seen:
 				_seen.append(user)
-				frappe.db.set_value(self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False)
+				frappe.db.set_value(
+					self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False
+				)
 				frappe.local.flags.commit = True
 
 	def add_viewed(self, user=None, force=False, unique_views=False):

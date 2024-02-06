@@ -51,6 +51,7 @@ class Comment(Document):
 		reference_owner: DF.Data | None
 		seen: DF.Check
 		subject: DF.Text | None
+
 	# end: auto-generated types
 	def after_insert(self):
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)

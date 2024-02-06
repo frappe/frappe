@@ -22,11 +22,15 @@ class Note(Document):
 		public: DF.Check
 		seen_by: DF.Table[NoteSeenBy]
 		title: DF.Data
+
 	# end: auto-generated types
 	def validate(self):
 		if self.notify_on_login and not self.expire_notification_on:
 			# expire this notification in a week (default)
 			self.expire_notification_on = frappe.utils.add_days(self.creation, 7)
+
+		if not self.public and self.notify_on_login:
+			self.notify_on_login = 0
 
 		if not self.content:
 			self.content = "<span></span>"

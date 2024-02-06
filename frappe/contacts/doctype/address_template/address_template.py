@@ -19,6 +19,7 @@ class AddressTemplate(Document):
 		country: DF.Link
 		is_default: DF.Check
 		template: DF.Code | None
+
 	# end: auto-generated types
 	def validate(self):
 		validate_template(self.template)

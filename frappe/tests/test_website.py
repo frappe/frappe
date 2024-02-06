@@ -167,9 +167,7 @@ class TestWebsite(FrappeTestCase):
 			dict(source=r"/testfrom", target=r"://testto1"),
 			dict(source=r"/testfromregex.*", target=r"://testto2"),
 			dict(source=r"/testsub/(.*)", target=r"://testto3/\1"),
-			dict(
-				source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True
-			),
+			dict(source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True),
 		]
 
 		website_settings = frappe.get_doc("Website Settings")
@@ -273,9 +271,7 @@ class TestWebsite(FrappeTestCase):
 
 		content = get_response_content("/_test/_test_folder/_test_page")
 		# test if {next} was rendered
-		self.assertIn(
-			'Next: <a class="btn-next" href="/_test/_test_folder/_test_toc">Test TOC</a>', content
-		)
+		self.assertIn('Next: <a class="btn-next" href="/_test/_test_folder/_test_toc">Test TOC</a>', content)
 
 	def test_colocated_assets(self):
 		content = get_response_content("/_test/_test_folder/_test_page")
@@ -386,7 +382,8 @@ class TestWebsite(FrappeTestCase):
 			)
 			self.assertIn('<link type="text/css" rel="stylesheet" href="/test_app_include.css">', content)
 			self.assertIn(
-				'<link type="text/css" rel="stylesheet" href="/test_app_include_via_site_config.css">', content
+				'<link type="text/css" rel="stylesheet" href="/test_app_include_via_site_config.css">',
+				content,
 			)
 			delattr(frappe.local, "request")
 			frappe.set_user("Guest")

@@ -26,6 +26,7 @@ class ModuleOnboarding(Document):
 		subtitle: DF.Data
 		success_message: DF.Data
 		title: DF.Data
+
 	# end: auto-generated types
 	def on_update(self):
 		if frappe.conf.developer_mode:

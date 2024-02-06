@@ -31,6 +31,7 @@ class TokenCache(Document):
 		success_uri: DF.Data | None
 		token_type: DF.Data | None
 		user: DF.Link | None
+
 	# end: auto-generated types
 	def get_auth_header(self):
 		if self.access_token:

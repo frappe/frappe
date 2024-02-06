@@ -18,6 +18,7 @@ class HasRole(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		role: DF.Link | None
+
 	# end: auto-generated types
 	def before_insert(self):
 		if frappe.db.exists("Has Role", {"parent": self.parent, "role": self.role}):

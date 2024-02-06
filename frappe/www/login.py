@@ -123,7 +123,6 @@ def login_via_token(login_token: str):
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=5, seconds=60 * 60)
 def send_login_link(email: str):
-
 	if not frappe.get_system_settings("login_with_email_link"):
 		return
 
@@ -149,9 +148,7 @@ def _generate_temporary_login_link(email: str, expiry: int):
 	assert isinstance(email, str)
 
 	if not frappe.db.exists("User", email):
-		frappe.throw(
-			_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError
-		)
+		frappe.throw(_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError)
 	key = frappe.generate_hash()
 	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
 

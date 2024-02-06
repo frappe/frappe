@@ -16,6 +16,7 @@ class DomainSettings(Document):
 		from frappe.types import DF
 
 		active_domains: DF.Table[HasDomain]
+
 	# end: auto-generated types
 	def set_active_domains(self, domains):
 		active_domains = [d.domain for d in self.active_domains]

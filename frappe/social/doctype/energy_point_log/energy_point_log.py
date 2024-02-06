@@ -37,6 +37,7 @@ class EnergyPointLog(Document):
 		seen: DF.Check
 		type: DF.Literal["Auto", "Appreciation", "Criticism", "Review", "Revert"]
 		user: DF.Link
+
 	# end: auto-generated types
 	def validate(self):
 		self.map_milestone_reference()
@@ -62,7 +63,6 @@ class EnergyPointLog(Document):
 		if self.type != "Review" and frappe.get_cached_value(
 			"Notification Settings", self.user, "energy_points_system_notifications"
 		):
-
 			reference_user = self.user if self.type == "Auto" else self.owner
 			notification_doc = {
 				"type": "Energy Point",
@@ -271,9 +271,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 		{conditions}
 		GROUP BY `user`
 		ORDER BY `energy_points` DESC
-	""".format(
-			conditions=conditions, given_points_condition=given_points_condition
-		),
+	""".format(conditions=conditions, given_points_condition=given_points_condition),
 		values=values,
 		as_dict=1,
 	)

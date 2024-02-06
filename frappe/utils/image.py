@@ -47,9 +47,7 @@ def strip_exif_data(content, content_type):
 	return content
 
 
-def optimize_image(
-	content, content_type, max_width=1024, max_height=768, optimize=True, quality=85
-):
+def optimize_image(content, content_type, max_width=1024, max_height=768, optimize=True, quality=85):
 	if content_type == "image/svg+xml":
 		return content
 

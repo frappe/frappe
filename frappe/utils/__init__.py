@@ -272,9 +272,7 @@ def has_gravatar(email: str) -> str:
 
 
 def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
-	hexdigest = hashlib.md5(
-		frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False
-	).hexdigest()
+	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False).hexdigest()
 	return f"https://secure.gravatar.com/avatar/{hexdigest}?d={default}&s=200"
 
 
@@ -448,7 +446,7 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 	import tempfile
 	from subprocess import Popen
 
-	with (tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr):
+	with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
 		kwargs = {"shell": True, "stdout": stdout, "stderr": stderr}
 
 		if low_priority:
@@ -1021,7 +1019,7 @@ def groupby_metric(iterable: dict[str, list], key: str):
 	        'india': [{'id':1, 'name': 'iplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'iplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'iplayer-3'}],
 	        'Aus': [{'id':1, 'name': 'aplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'aplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'aplayer-3'}]
 	}
-	>>> groupby(d, key='ranking')
+	>>> groupby(d, key="ranking")
 	{1: {'Aus': [{'id': 1, 'name': 'aplayer-1', 'ranking': 1},
 	                        {'id': 2, 'name': 'aplayer-2', 'ranking': 1}],
 	        'india': [{'id': 1, 'name': 'iplayer-1', 'ranking': 1},

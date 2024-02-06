@@ -54,7 +54,6 @@ class TestNamingSeries(FrappeTestCase):
 		serieses = self.dns.preview_series().split("\n")
 
 	def test_get_transactions(self):
-
 		naming_info = self.dns.get_transactions_and_prefixes()
 		self.assertIn(self.ns_doctype, naming_info["transactions"])
 

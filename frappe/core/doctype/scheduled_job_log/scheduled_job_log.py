@@ -19,6 +19,7 @@ class ScheduledJobLog(Document):
 		details: DF.Code | None
 		scheduled_job_type: DF.Link
 		status: DF.Literal["Scheduled", "Complete", "Failed"]
+
 	# end: auto-generated types
 	@staticmethod
 	def clear_old_logs(days=90):

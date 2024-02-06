@@ -29,6 +29,7 @@ class Workflow(Document):
 		workflow_data: DF.JSON | None
 		workflow_name: DF.Data
 		workflow_state_field: DF.Data
+
 	# end: auto-generated types
 	def validate(self):
 		self.set_active()
@@ -75,9 +76,7 @@ class Workflow(Document):
 					SET `{field}` = %s
 					WHERE ifnull(`{field}`, '') = ''
 					AND `docstatus` = %s
-				""".format(
-						doctype=self.document_type, field=self.workflow_state_field
-					),
+				""".format(doctype=self.document_type, field=self.workflow_state_field),
 					(d.state, d.doc_status),
 				)
 
@@ -102,9 +101,9 @@ class Workflow(Document):
 
 			if state.doc_status == "1" and next_state.doc_status == "0":
 				frappe.throw(
-					frappe._("Submitted Document cannot be converted back to draft. Transition row {0}").format(
-						t.idx
-					)
+					frappe._(
+						"Submitted Document cannot be converted back to draft. Transition row {0}"
+					).format(t.idx)
 				)
 
 			if state.doc_status == "0" and next_state.doc_status == "2":

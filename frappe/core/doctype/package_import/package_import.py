@@ -26,6 +26,7 @@ class PackageImport(Document):
 		attach_package: DF.Attach | None
 		force: DF.Check
 		log: DF.Code | None
+
 	# end: auto-generated types
 	def validate(self):
 		if self.activate:

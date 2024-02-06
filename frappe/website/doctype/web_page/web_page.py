@@ -64,6 +64,7 @@ class WebPage(WebsiteGenerator):
 		text_align: DF.Literal["Left", "Center", "Right"]
 		title: DF.Data
 		website_sidebar: DF.Link | None
+
 	# end: auto-generated types
 	def validate(self):
 		self.validate_dates()

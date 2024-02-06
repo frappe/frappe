@@ -84,9 +84,7 @@ class SystemSettings(Document):
 		password_reset_limit: DF.Int
 		reset_password_link_expiry_duration: DF.Duration | None
 		reset_password_template: DF.Link | None
-		rounding_method: DF.Literal[
-			"Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"
-		]
+		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]
 		session_expiry: DF.Data | None
 		setup_complete: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
@@ -132,6 +130,9 @@ class SystemSettings(Document):
 		self.validate_backup_limit()
 		self.validate_file_extensions()
 
+		if not self.link_field_results_limit:
+			self.link_field_results_limit = 10
+
 		if self.link_field_results_limit > 50:
 			self.link_field_results_limit = 50
 			label = _(self.meta.get_label("link_field_results_limit"))
@@ -145,9 +146,7 @@ class SystemSettings(Document):
 
 		social_login_enabled = frappe.db.exists("Social Login Key", {"enable_social_login": 1})
 		ldap_enabled = frappe.db.get_single_value("LDAP Settings", "enabled")
-		login_with_email_link_enabled = frappe.db.get_single_value(
-			"System Settings", "login_with_email_link"
-		)
+		login_with_email_link_enabled = frappe.db.get_single_value("System Settings", "login_with_email_link")
 
 		if not (social_login_enabled or ldap_enabled or login_with_email_link_enabled):
 			frappe.throw(

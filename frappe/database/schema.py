@@ -123,7 +123,6 @@ class DBTable:
 				)
 
 			if "varchar" in frappe.db.type_map.get(col.fieldtype, ()):
-
 				# validate length range
 				new_length = cint(col.length) or cint(frappe.db.VARCHAR_LEN)
 				if not (1 <= new_length <= 1000):
@@ -174,9 +173,7 @@ class DBTable:
 
 
 class DbColumn:
-	def __init__(
-		self, table, fieldname, fieldtype, length, default, set_index, options, unique, precision
-	):
+	def __init__(self, table, fieldname, fieldtype, length, default, set_index, options, unique, precision):
 		self.table = table
 		self.fieldname = fieldname
 		self.fieldtype = fieldtype
@@ -355,9 +352,7 @@ def get_definition(fieldtype, precision=None, length=None):
 	return coltype
 
 
-def add_column(
-	doctype, column_name, fieldtype, precision=None, length=None, default=None, not_null=False
-):
+def add_column(doctype, column_name, fieldtype, precision=None, length=None, default=None, not_null=False):
 	if column_name in frappe.db.get_table_columns(doctype):
 		# already exists
 		return

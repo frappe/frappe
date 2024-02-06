@@ -378,7 +378,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					if (frappe.has_indicator(this.doctype) && df.fieldname === "status") {
 						return false;
 					}
-					if (!df.in_list_view) {
+					if (!df.in_list_view || df.is_virtual) {
 						return false;
 					}
 					return df.fieldname !== this.meta.title_field;
@@ -1520,7 +1520,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	avoid_realtime_update() {
-		if (this.filter_area.is_being_edited()) {
+		if (this.filter_area?.is_being_edited()) {
 			return true;
 		}
 		// this is set when a bulk operation is called from a list view which might update the list view

@@ -319,9 +319,9 @@ def extract_title(source, path):
 		# make title from name
 		title = (
 			os.path.basename(
-				path.rsplit(".",)[
-					0
-				].rstrip("/")
+				path.rsplit(
+					".",
+				)[0].rstrip("/")
 			)
 			.replace("_", " ")
 			.replace("-", " ")
@@ -367,7 +367,6 @@ def clear_cache(path=None):
 		"website_generator_routes",
 		"website_pages",
 		"website_full_index",
-		"sitemap_routes",
 		"languages_with_name",
 		"languages",
 	):

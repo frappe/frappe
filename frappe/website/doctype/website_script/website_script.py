@@ -17,6 +17,7 @@ class WebsiteScript(Document):
 		from frappe.types import DF
 
 		javascript: DF.Code | None
+
 	# end: auto-generated types
 	def on_update(self):
 		"""clear cache"""

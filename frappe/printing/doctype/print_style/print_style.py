@@ -19,6 +19,7 @@ class PrintStyle(Document):
 		preview: DF.AttachImage | None
 		print_style_name: DF.Data
 		standard: DF.Check
+
 	# end: auto-generated types
 	def validate(self):
 		if (
@@ -26,7 +27,6 @@ class PrintStyle(Document):
 			and not frappe.local.conf.get("developer_mode")
 			and not (frappe.flags.in_import or frappe.flags.in_test)
 		):
-
 			frappe.throw(frappe._("Standard Print Style cannot be changed. Please duplicate to edit."))
 
 	def on_update(self):

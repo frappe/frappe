@@ -42,6 +42,7 @@ class Role(Document):
 		timeline: DF.Check
 		two_factor_auth: DF.Check
 		view_switcher: DF.Check
+
 	# end: auto-generated types
 	def before_rename(self, old, new, merge=False):
 		if old in STANDARD_ROLES:
@@ -125,9 +126,7 @@ def get_user_info(users, field="email"):
 def get_users(role):
 	return [
 		d.parent
-		for d in frappe.get_all(
-			"Has Role", filters={"role": role, "parenttype": "User"}, fields=["parent"]
-		)
+		for d in frappe.get_all("Has Role", filters={"role": role, "parenttype": "User"}, fields=["parent"])
 	]
 
 

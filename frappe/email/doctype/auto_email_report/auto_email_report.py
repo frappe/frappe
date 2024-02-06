@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import calendar
+import datetime
 from datetime import timedelta
 from email.utils import formataddr
 
@@ -14,8 +15,13 @@ from frappe.utils import (
 	add_to_date,
 	cint,
 	format_time,
+	get_first_day,
+	get_first_day_of_week,
 	get_link_to_form,
+	get_quarter_start,
 	get_url_to_report,
+	get_year_start,
+	getdate,
 	global_date_format,
 	now,
 	now_datetime,
@@ -36,9 +42,7 @@ class AutoEmailReport(Document):
 		from frappe.types import DF
 
 		data_modified_till: DF.Int
-		day_of_week: DF.Literal[
-			"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-		]
+		day_of_week: DF.Literal["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 		description: DF.TextEditor | None
 		dynamic_date_period: DF.Literal[
 			"", "Daily", "Weekly", "Monthly", "Quarterly", "Half Yearly", "Yearly"
@@ -57,8 +61,10 @@ class AutoEmailReport(Document):
 		send_if_data: DF.Check
 		sender: DF.Link | None
 		to_date_field: DF.Literal
+		use_first_day_of_period: DF.Check
 		user: DF.Link
 	# end: auto-generated types
+
 	def autoname(self):
 		self.name = _(self.report)
 		if frappe.db.exists("Auto Email Report", self.name):
@@ -182,7 +188,6 @@ class AutoEmailReport(Document):
 			frappe.throw(_("Invalid Output Format"))
 
 	def get_html_table(self, columns=None, data=None):
-
 		date_time = global_date_format(now()) + " " + format_time(now())
 		report_doctype = frappe.db.get_value("Report", self.report, "ref_doctype")
 
@@ -207,17 +212,37 @@ class AutoEmailReport(Document):
 		self.filters = frappe.parse_json(self.filters)
 
 		to_date = today()
-		from_date_value = {
-			"Daily": ("days", -1),
-			"Weekly": ("weeks", -1),
-			"Monthly": ("months", -1),
-			"Quarterly": ("months", -3),
-			"Half Yearly": ("months", -6),
-			"Yearly": ("years", -1),
-		}[self.dynamic_date_period]
 
-		from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
+		if self.use_first_day_of_period:
+			from_date = to_date
+			if self.dynamic_date_period == "Daily":
+				from_date = add_to_date(to_date, days=-1)
+			elif self.dynamic_date_period == "Weekly":
+				from_date = get_first_day_of_week(from_date)
+			elif self.dynamic_date_period == "Monthly":
+				from_date = get_first_day(from_date)
+			elif self.dynamic_date_period == "Quarterly":
+				from_date = get_quarter_start(from_date)
+			elif self.dynamic_date_period == "Half Yearly":
+				from_date = get_half_year_start(from_date)
+			elif self.dynamic_date_period == "Yearly":
+				from_date = get_year_start(from_date)
 
+			self.set_date_filters(from_date, to_date)
+		else:
+			from_date_value = {
+				"Daily": ("days", -1),
+				"Weekly": ("weeks", -1),
+				"Monthly": ("months", -1),
+				"Quarterly": ("months", -3),
+				"Half Yearly": ("months", -6),
+				"Yearly": ("years", -1),
+			}[self.dynamic_date_period]
+
+			from_date = add_to_date(to_date, **{from_date_value[0]: from_date_value[1]})
+			self.set_date_filters(from_date, to_date)
+
+	def set_date_filters(self, from_date, to_date):
 		self.filters[self.from_date_field] = from_date
 		self.filters[self.to_date_field] = to_date
 
@@ -332,3 +357,23 @@ def update_field_types(columns):
 			col.fieldtype = "Data"
 			col.options = ""
 	return columns
+
+
+DATE_FORMAT = "%Y-%m-%d"
+
+
+def get_half_year_start(as_str=False):
+	"""
+	Returns the first day of the current half-year based on the current date.
+	"""
+	today_date = getdate(today())
+
+	half_year = 1 if today_date.month <= 6 else 2
+
+	year = today_date.year if half_year == 1 else today_date.year + 1
+	month = 1 if half_year == 1 else 7
+	day = 1
+
+	result_date = datetime.date(year, month, day)
+
+	return result_date if not as_str else result_date.strftime(DATE_FORMAT)

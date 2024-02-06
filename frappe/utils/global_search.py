@@ -55,8 +55,7 @@ def get_doctypes_with_global_search(with_child_tables=True):
 		doctypes = [
 			d.name
 			for d in global_search_doctypes
-			if module_app.get(frappe.scrub(d.module))
-			and module_app[frappe.scrub(d.module)] in installed_apps
+			if module_app.get(frappe.scrub(d.module)) and module_app[frappe.scrub(d.module)] in installed_apps
 		]
 
 		return doctypes
@@ -196,7 +195,9 @@ def get_children_data(doctype, meta):
 			child_search_fields.setdefault(child.options, search_fields)
 			child_fieldnames = get_selected_fields(child_meta, search_fields)
 			child_records = frappe.get_all(
-				child.options, fields=child_fieldnames, filters={"docstatus": ["!=", 1], "parenttype": doctype}
+				child.options,
+				fields=child_fieldnames,
+				filters={"docstatus": ["!=", 1], "parenttype": doctype},
 			)
 
 			for record in child_records:
@@ -220,15 +221,11 @@ def insert_values_for_multiple_docs(all_contents):
 			{
 				"mariadb": """INSERT IGNORE INTO `__global_search`
 				(doctype, name, content, published, title, route)
-				VALUES {} """.format(
-					", ".join(batch_values)
-				),
+				VALUES {} """.format(", ".join(batch_values)),
 				"postgres": """INSERT INTO `__global_search`
 				(doctype, name, content, published, title, route)
 				VALUES {}
-				ON CONFLICT("name", "doctype") DO NOTHING""".format(
-					", ".join(batch_values)
-				),
+				ON CONFLICT("name", "doctype") DO NOTHING""".format(", ".join(batch_values)),
 			}
 		)
 
@@ -242,11 +239,7 @@ def update_global_search(doc):
 	if frappe.local.conf.get("disable_global_search"):
 		return
 
-	if (
-		doc.docstatus > 1
-		or (doc.meta.has_field("enabled") and not doc.get("enabled"))
-		or doc.get("disabled")
-	):
+	if doc.docstatus > 1 or (doc.meta.has_field("enabled") and not doc.get("enabled")) or doc.get("disabled"):
 		return
 
 	content = [
@@ -404,9 +397,7 @@ def sync_values(values: list):
 	GlobalSearch = frappe.qb.Table("__global_search")
 	conflict_fields = ["content", "published", "title", "route"]
 
-	query = (
-		frappe.qb.into(GlobalSearch).columns(["doctype", "name"] + conflict_fields).insert(*values)
-	)
+	query = frappe.qb.into(GlobalSearch).columns(["doctype", "name"] + conflict_fields).insert(*values)
 
 	if frappe.db.db_type == "postgres":
 		query = query.on_conflict(GlobalSearch.doctype, GlobalSearch.name)
@@ -561,9 +552,7 @@ def web_search(text: str, scope: str | None = None, start: int = 0, limit: int =
 		mariadb_conditions += "MATCH(`content`) AGAINST ({} IN BOOLEAN MODE)".format(
 			frappe.db.escape("+" + text + "*")
 		)
-		postgres_conditions += 'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({})'.format(
-			frappe.db.escape(text)
-		)
+		postgres_conditions += f'TO_TSVECTOR("content") @@ PLAINTO_TSQUERY({frappe.db.escape(text)})'
 
 		values = {"scope": "".join([scope, "%"]) if scope else "", "limit": limit, "start": start}
 

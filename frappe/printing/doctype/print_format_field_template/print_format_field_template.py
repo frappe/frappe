@@ -21,6 +21,7 @@ class PrintFormatFieldTemplate(Document):
 		standard: DF.Check
 		template: DF.Code | None
 		template_file: DF.Data | None
+
 	# end: auto-generated types
 	def validate(self):
 		if self.standard and not (frappe.conf.developer_mode or frappe.flags.in_patch):

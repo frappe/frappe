@@ -33,9 +33,7 @@ def send_email(success, service_name, doctype, email_field, error_status=None):
 <h3>Backup Upload Failed!</h3>
 <p>Oops, your automated backup to {} failed.</p>
 <p>Error message: {}</p>
-<p>Please contact your system manager for more information.</p>""".format(
-			service_name, error_status
-		)
+<p>Please contact your system manager for more information.</p>""".format(service_name, error_status)
 
 	frappe.sendmail(recipients=recipients, subject=subject, message=message)
 

@@ -73,6 +73,7 @@ class EmailDomain(Document):
 		use_ssl_for_outgoing: DF.Check
 		use_starttls: DF.Check
 		use_tls: DF.Check
+
 	# end: auto-generated types
 	def validate(self):
 		"""Validate POP3/IMAP and SMTP connections."""

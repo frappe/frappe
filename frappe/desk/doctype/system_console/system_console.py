@@ -22,6 +22,7 @@ class SystemConsole(Document):
 		output: DF.Code | None
 		show_processlist: DF.Check
 		type: DF.Literal["Python", "SQL"]
+
 	# end: auto-generated types
 	def run(self):
 		frappe.only_for("System Manager")

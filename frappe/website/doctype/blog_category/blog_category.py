@@ -19,6 +19,7 @@ class BlogCategory(WebsiteGenerator):
 		published: DF.Check
 		route: DF.Data | None
 		title: DF.Data
+
 	# end: auto-generated types
 	def autoname(self):
 		# to override autoname of WebsiteGenerator

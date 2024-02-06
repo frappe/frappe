@@ -30,9 +30,7 @@ class WebsiteGenerator(Document):
 			self.name = self.scrubbed_title()
 
 	def onload(self):
-		self.get("__onload").update(
-			{"is_website_generator": True, "published": self.is_website_published()}
-		)
+		self.get("__onload").update({"is_website_generator": True, "published": self.is_website_published()})
 
 	def validate(self):
 		self.set_route()
@@ -141,7 +139,6 @@ class WebsiteGenerator(Document):
 			and self.is_website_published()
 			and self.meta.allow_guest_to_view
 		):
-
 			url = frappe.utils.get_url(self.route)
 			frappe.enqueue(
 				"frappe.website.doctype.website_settings.google_indexing.publish_site",

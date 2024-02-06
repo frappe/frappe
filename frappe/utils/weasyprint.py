@@ -14,9 +14,7 @@ def download_pdf(doctype, name, print_format, letterhead=None):
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
-	frappe.local.response.filename = "{name}.pdf".format(
-		name=name.replace(" ", "-").replace("/", "-")
-	)
+	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = pdf
 	frappe.local.response.type = "pdf"
 
@@ -89,9 +87,7 @@ class PrintFormatGenerator:
 		return self.get_main_html()
 
 	def get_main_html(self):
-		self.context.css = frappe.render_template(
-			"templates/print_format/print_format.css", self.context
-		)
+		self.context.css = frappe.render_template("templates/print_format/print_format.css", self.context)
 		return frappe.render_template("templates/print_format/print_format.html", self.context)
 
 	def get_header_footer_html(self):

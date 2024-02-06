@@ -18,6 +18,7 @@ class NetworkPrinterSettings(Document):
 		port: DF.Int
 		printer_name: DF.Literal
 		server_ip: DF.Data
+
 	# end: auto-generated types
 	@frappe.whitelist()
 	def get_printers_list(self, ip="127.0.0.1", port=631):

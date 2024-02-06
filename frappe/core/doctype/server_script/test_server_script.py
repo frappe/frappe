@@ -157,9 +157,7 @@ class TestServerScript(FrappeTestCase):
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(
-			AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert
-		)
+		self.assertRaises(AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert)
 
 		server_script.disabled = 1
 		server_script.save()
@@ -169,9 +167,7 @@ class TestServerScript(FrappeTestCase):
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(
-			AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert
-		)
+		self.assertRaises(AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert)
 
 		server_script.disabled = 1
 		server_script.save()
@@ -238,7 +234,6 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		script.execute_method()
 
 	def test_server_script_rate_limiting(self):
-		# why not
 		script1 = frappe.get_doc(
 			doctype="Server Script",
 			name="rate_limited_server_script",
