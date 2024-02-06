@@ -1844,11 +1844,8 @@ def get_link_to_form(doctype: str, name: str | None = None, label: str | None = 
 	"""
 	from frappe import _
 
-	if not name:
-		name = doctype
-
 	if not label:
-		label = _(doctype) if doctype == name else name
+		label = name or _(doctype)
 
 	return f"""<a href="{get_url_to_form(doctype, name)}">{label}</a>"""
 
@@ -1895,13 +1892,18 @@ def get_absolute_url(doctype: str, name: str) -> str:
 	return f"/app/{quoted(slug(doctype))}/{quoted(name)}"
 
 
-def get_url_to_form(doctype: str, name: str) -> str:
+def get_url_to_form(doctype: str, name: str | None = None) -> str:
 	"""Return the absolute URL for the form view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
 	         returns 'https://frappe.io/app/sales-invoice/INV-00001'
 	"""
-	return get_url(uri=f"/app/{quoted(slug(doctype))}/{quoted(name)}")
+	if not name:
+		uri = f"/app/{quoted(slug(doctype))}"
+	else:
+		uri = f"/app/{quoted(slug(doctype))}/{quoted(name)}"
+
+	return get_url(uri=uri)
 
 
 def get_url_to_list(doctype: str) -> str:
