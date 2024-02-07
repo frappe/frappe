@@ -115,8 +115,7 @@ export default class ListSettings {
 			// Check if label is repeated
 			if (label_count[label]) {
 				label = `${label} (${field_name})`;
-			} 
-			else {
+			} else {
 				label_count[label] = 1;
 			}
 
