@@ -36,9 +36,7 @@ def add_random_children(doc: "Document", fieldname: str, rows, randomize: dict, 
 def get_random(doctype: str, filters: dict = None, doc: bool = False):
 	condition = []
 	if filters:
-		condition.extend(
-			"{}='{}'".format(key, str(val).replace("'", "'")) for key, val in filters.items()
-		)
+		condition.extend("{}='{}'".format(key, str(val).replace("'", "'")) for key, val in filters.items())
 	condition = " where " + " and ".join(condition) if condition else ""
 
 	out = frappe.db.multisql(

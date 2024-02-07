@@ -30,9 +30,7 @@ def get_modules_from_all_apps():
 
 
 def get_modules_from_app(app):
-	return frappe.get_all(
-		"Module Def", filters={"app_name": app}, fields=["module_name", "app_name as app"]
-	)
+	return frappe.get_all("Module Def", filters={"app_name": app}, fields=["module_name", "app_name as app"])
 
 
 def get_all_empty_tables_by_module():

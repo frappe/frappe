@@ -103,10 +103,7 @@ class Importer:
 		log_index = 0
 
 		# Do not remove rows in case of retry after an error or pending data import
-		if (
-			self.data_import.status == "Partial Success"
-			and len(import_log) >= self.data_import.payload_count
-		):
+		if self.data_import.status == "Partial Success" and len(import_log) >= self.data_import.payload_count:
 			# remove previous failures from import log only in case of retry after partial success
 			import_log = [log for log in import_log if log.get("success")]
 
@@ -152,8 +149,8 @@ class Importer:
 
 					if self.console:
 						update_progress_bar(
-							f"Importing {total_payload_count} records",
-							current_index,
+							f"Importing {self.doctype}: {total_payload_count} records",
+							current_index - 1,
 							total_payload_count,
 						)
 					elif total_payload_count > 5:
@@ -622,7 +619,9 @@ class Row:
 		if len_row != len_columns:
 			less_than_columns = len_row < len_columns
 			message = (
-				"Row has less values than columns" if less_than_columns else "Row has more values than columns"
+				"Row has less values than columns"
+				if less_than_columns
+				else "Row has more values than columns"
 			)
 			self.warnings.append(
 				{
@@ -989,9 +988,7 @@ class Column:
 		if self.df.fieldtype == "Link":
 			# find all values that dont exist
 			values = list({cstr(v) for v in self.column_values if v})
-			exists = [
-				cstr(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})
-			]
+			exists = [cstr(d.name) for d in frappe.get_all(self.df.options, filters={"name": ("in", values)})]
 			not_exists = list(set(values) - set(exists))
 			if not_exists:
 				missing_values = ", ".join(not_exists)
@@ -1236,9 +1233,7 @@ def get_item_at_index(_list, i, default=None):
 
 
 def get_user_format(date_format):
-	return (
-		date_format.replace("%Y", "yyyy").replace("%y", "yy").replace("%m", "mm").replace("%d", "dd")
-	)
+	return date_format.replace("%Y", "yyyy").replace("%y", "yy").replace("%m", "mm").replace("%d", "dd")
 
 
 def df_as_json(df):

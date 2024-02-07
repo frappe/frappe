@@ -31,8 +31,8 @@ class UserType(Document):
 		user_doctypes: DF.Table[UserDocumentType]
 		user_id_field: DF.Literal
 		user_type_modules: DF.Table[UserTypeModule]
-
 	# end: auto-generated types
+
 	def validate(self):
 		self.set_modules()
 		self.add_select_perm_doctypes()
@@ -333,7 +333,6 @@ def apply_permissions_for_non_standard_user_type(doc, method=None):
 				"User Permission", {"user": doc.get(data[1]), "allow": data[0], "for_value": doc.name}, "name"
 			)
 		):
-
 			perm_data = frappe.db.get_value(
 				"User Permission", {"allow": doc.doctype, "for_value": doc.name}, ["name", "user"]
 			)

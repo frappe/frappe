@@ -14,9 +14,7 @@ def execute():
 				* from `__UserSettings`
 			where
 				user='{user}'
-		""".format(
-				user=user.user
-			),
+		""".format(user=user.user),
 			as_dict=True,
 		)
 

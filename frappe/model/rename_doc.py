@@ -60,9 +60,7 @@ def update_document_title(
 
 	title_field = doc.meta.get_title_field()
 
-	title_updated = (
-		updated_title and (title_field != "name") and (updated_title != doc.get(title_field))
-	)
+	title_updated = updated_title and (title_field != "name") and (updated_title != doc.get(title_field))
 	name_updated = updated_name and (updated_name != doc.name)
 
 	queue = kwargs.get("queue") or "default"
@@ -213,9 +211,7 @@ def rename_doc(
 	if merge:
 		new_doc.add_comment("Edit", _("merged {0} into {1}").format(frappe.bold(old), frappe.bold(new)))
 	else:
-		new_doc.add_comment(
-			"Edit", _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new))
-		)
+		new_doc.add_comment("Edit", _("renamed from {0} to {1}").format(frappe.bold(old), frappe.bold(new)))
 
 	if merge:
 		frappe.delete_doc(doctype, old)
@@ -358,9 +354,7 @@ def validate_rename(
 		_SAVE_POINT = f"validate_rename_{frappe.generate_hash(length=8)}"
 		frappe.db.savepoint(_SAVE_POINT)
 
-	exists = (
-		frappe.qb.from_(doctype).where(Field("name") == new).for_update().select("name").run(pluck=True)
-	)
+	exists = frappe.qb.from_(doctype).where(Field("name") == new).for_update().select("name").run(pluck=True)
 	exists = exists[0] if exists else None
 
 	if not frappe.db.exists(doctype, old):
@@ -379,9 +373,7 @@ def validate_rename(
 	if not merge and exists and not ignore_if_exists:
 		frappe.throw(_("Another {0} with name {1} exists, select another name").format(doctype, new))
 
-	if not (
-		ignore_permissions or frappe.permissions.has_permission(doctype, "write", print_logs=False)
-	):
+	if not (ignore_permissions or frappe.permissions.has_permission(doctype, "write", print_logs=False)):
 		frappe.throw(_("You need write permission to rename"))
 
 	if not force and not ignore_permissions and not meta.allow_rename:
@@ -481,9 +473,7 @@ def get_link_fields(doctype: str) -> list[dict]:
 			.run(as_dict=True)
 		)
 
-		ps_issingle = (
-			frappe.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
-		)
+		ps_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
 		property_setter_fields = (
 			frappe.qb.from_(ps)
 			.select(ps.doc_type.as_("parent"), ps.field_name.as_("fieldname"), ps_issingle)
@@ -562,9 +552,7 @@ def get_select_fields(old: str, new: str) -> list[dict]:
 	)
 
 	# remove fields whose options have been changed using property setter
-	ps_issingle = (
-		frappe.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
-	)
+	ps_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
 	property_setter_select_fields = (
 		frappe.qb.from_(ps)
 		.select(ps.doc_type.as_("parent"), ps.field_name.as_("fieldname"), ps_issingle)
@@ -593,17 +581,13 @@ def update_select_field_values(old: str, new: str):
 		& (DocField.options.like(f"%\n{old}%") | DocField.options.like(f"%{old}\n%"))
 	).run()
 
-	frappe.qb.update(CustomField).set(
-		CustomField.options, Replace(CustomField.options, old, new)
-	).where(
+	frappe.qb.update(CustomField).set(CustomField.options, Replace(CustomField.options, old, new)).where(
 		(CustomField.fieldtype == "Select")
 		& (CustomField.dt != new)
 		& (CustomField.options.like(f"%\n{old}%") | CustomField.options.like(f"%{old}\n%"))
 	).run()
 
-	frappe.qb.update(PropertySetter).set(
-		PropertySetter.value, Replace(PropertySetter.value, old, new)
-	).where(
+	frappe.qb.update(PropertySetter).set(PropertySetter.value, Replace(PropertySetter.value, old, new)).where(
 		(PropertySetter.property == "options")
 		& (PropertySetter.field_name.notnull())
 		& (PropertySetter.doc_type != new)
@@ -659,9 +643,7 @@ def rename_dynamic_links(doctype: str, old: str, new: str):
 			).run()
 
 
-def bulk_rename(
-	doctype: str, rows: list[list] | None = None, via_console: bool = False
-) -> list[str] | None:
+def bulk_rename(doctype: str, rows: list[list] | None = None, via_console: bool = False) -> list[str] | None:
 	"""Bulk rename documents
 
 	:param doctype: DocType to be renamed

@@ -232,7 +232,6 @@ class TestDocumentCache(FrappeAPITestCase):
 
 class TestRedisWrapper(FrappeAPITestCase):
 	def test_delete_keys(self):
-
 		prefix = "test_del_"
 
 		for i in range(5):

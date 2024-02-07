@@ -21,13 +21,16 @@ from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF
-from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
+from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
 from frappe.utils.data import get_absolute_url
-from frappe.utils.deprecations import deprecated
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
+
+
+DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatically
+DOCUMENT_LOCK_SOFT_EXPIRY = 60 * 60  # Let users force-unlock after 60 minutes
 
 
 def get_doc(*args, **kwargs):
@@ -318,9 +321,7 @@ class Document(BaseDocument):
 		if hasattr(self, "__unsaved"):
 			delattr(self, "__unsaved")
 
-		if not (
-			frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard
-		):
+		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
 				follow_document(self.doctype, self.name, frappe.session.user)
 		return self
@@ -398,7 +399,6 @@ class Document(BaseDocument):
 
 		# loop through attachments
 		for attach_item in get_attachments(self.doctype, self.amended_from):
-
 			# save attachments to new doc
 			_file = frappe.get_doc(
 				{
@@ -601,7 +601,6 @@ class Document(BaseDocument):
 		for df in self.meta.get(
 			"fields", {"non_negative": ("=", 1), "fieldtype": ("in", ["Int", "Float", "Currency"])}
 		):
-
 			if flt(self.get(df.fieldname)) < 0:
 				msg = get_msg(df)
 				frappe.throw(msg, frappe.NonNegativeError, title=_("Negative Value"))
@@ -737,9 +736,7 @@ class Document(BaseDocument):
 		roles = frappe.get_roles()
 
 		for perm in self.get_permissions():
-			if (
-				perm.role in roles and perm.get(permission_type) and perm.permlevel not in allowed_permlevels
-			):
+			if perm.role in roles and perm.get(permission_type) and perm.permlevel not in allowed_permlevels:
 				allowed_permlevels.append(perm.permlevel)
 
 		return allowed_permlevels
@@ -1019,9 +1016,7 @@ class Document(BaseDocument):
 		self.docstatus = DocStatus.cancelled()
 		return self.save()
 
-	def _rename(
-		self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True
-	):
+	def _rename(self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document. Triggers frappe.rename_doc, then reloads."""
 		from frappe.model.rename_doc import rename_doc
 
@@ -1162,11 +1157,7 @@ class Document(BaseDocument):
 			after_commit=True,
 		)
 
-		if (
-			not self.meta.get("read_only")
-			and not self.meta.get("issingle")
-			and not self.meta.get("istable")
-		):
+		if not self.meta.get("read_only") and not self.meta.get("issingle") and not self.meta.get("istable"):
 			data = {"doctype": self.doctype, "name": self.name, "user": frappe.session.user}
 			frappe.publish_realtime("list_update", data, after_commit=True)
 
@@ -1410,7 +1401,9 @@ class Document(BaseDocument):
 
 			if user not in _seen:
 				_seen.append(user)
-				frappe.db.set_value(self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False)
+				frappe.db.set_value(
+					self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False
+				)
 				frappe.local.flags.commit = True
 
 	def add_viewed(self, user=None, force=False, unique_views=False):
@@ -1448,7 +1441,7 @@ class Document(BaseDocument):
 
 	def get_signature(self):
 		"""Return signature (hash) for private URL."""
-		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
+		return hashlib.sha224(f"{self.doctype}:{self.name}".encode(), usedforsecurity=False).hexdigest()
 
 	def get_document_share_key(self, expires_on=None, no_expiry=False):
 		if no_expiry:
@@ -1506,9 +1499,25 @@ class Document(BaseDocument):
 		try:
 			self.lock()
 		except frappe.DocumentLockedError:
+			# Allow unlocking if created more than 60 minutes ago
+			primary_action = None
+			if file_lock.lock_age(self.get_signature()) > DOCUMENT_LOCK_SOFT_EXPIRY:
+				primary_action = {
+					"label": "Force Unlock",
+					"server_action": "frappe.model.document.unlock_document",
+					"hide_on_success": True,
+					"args": {
+						"doctype": self.doctype,
+						"name": self.name,
+					},
+				}
+
 			frappe.throw(
-				_("This document is currently queued for execution. Please try again"),
+				_(
+					"This document is currently locked and queued for execution. Please try again after some time."
+				),
 				title=_("Document Queued"),
+				primary_action=primary_action,
 			)
 
 		return enqueue(
@@ -1527,6 +1536,9 @@ class Document(BaseDocument):
 		signature = self.get_signature()
 		if file_lock.lock_exists(signature):
 			lock_exists = True
+			if file_lock.lock_age(signature) > DOCUMENT_LOCK_EXPIRTY:
+				file_lock.delete_lock(signature)
+				lock_exists = False
 			if timeout:
 				for i in range(timeout):
 					time.sleep(1)
@@ -1696,3 +1708,9 @@ def _document_values_generator(
 			ignore_virtual=True,
 		)
 		yield tuple(doc_values.get(col) for col in columns)
+
+
+@frappe.whitelist()
+def unlock_document(doctype: str, name: str):
+	frappe.get_doc(doctype, name).unlock()
+	frappe.msgprint(frappe._("Document Unlocked"), alert=True)

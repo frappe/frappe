@@ -78,6 +78,7 @@ class Event(Document):
 		tuesday: DF.Check
 		wednesday: DF.Check
 	# end: auto-generated types
+
 	def validate(self):
 		if not self.starts_on:
 			self.starts_on = now_datetime()
@@ -88,9 +89,7 @@ class Event(Document):
 		if self.starts_on and self.ends_on:
 			self.validate_from_to_dates("starts_on", "ends_on")
 
-		if (
-			self.repeat_on == "Daily" and self.ends_on and getdate(self.starts_on) != getdate(self.ends_on)
-		):
+		if self.repeat_on == "Daily" and self.ends_on and getdate(self.starts_on) != getdate(self.ends_on):
 			frappe.throw(_("Daily Events should finish on the Same Day."))
 
 		if self.sync_with_google_calendar and not self.google_calendar:
@@ -359,9 +358,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 		)
 
 		new_event.starts_on = date + " " + e.starts_on.split(" ")[1]
-		new_event.ends_on = new_event.ends_on = (
-			enddate + " " + e.ends_on.split(" ")[1] if e.ends_on else None
-		)
+		new_event.ends_on = new_event.ends_on = enddate + " " + e.ends_on.split(" ")[1] if e.ends_on else None
 
 		add_events.append(new_event)
 
@@ -536,12 +533,9 @@ def delete_events(ref_type, ref_name, delete_event=False):
 
 # Close events if ends_on or repeat_till is less than now_datetime
 def set_status_of_events():
-	events = frappe.get_list(
-		"Event", filters={"status": "Open"}, fields=["name", "ends_on", "repeat_till"]
-	)
+	events = frappe.get_list("Event", filters={"status": "Open"}, fields=["name", "ends_on", "repeat_till"])
 	for event in events:
 		if (event.ends_on and getdate(event.ends_on) < getdate(nowdate())) or (
 			event.repeat_till and getdate(event.repeat_till) < getdate(nowdate())
 		):
-
 			frappe.db.set_value("Event", event.name, "status", "Closed")

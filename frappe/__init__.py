@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
 import click
 from werkzeug.local import Local, release_local
 
+import frappe
 from frappe.query_builder import (
 	get_query,
 	get_query_builder,
@@ -298,7 +299,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
 	setup_redis_cache_connection()
-	setup_module_map()
+	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
@@ -307,9 +308,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.initialised = True
 
 
-def connect(
-	site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True
-) -> None:
+def connect(site: str | None = None, db_name: str | None = None, set_admin_as_user: bool = True) -> None:
 	"""Connect to site database instance.
 
 	:param site: (Deprecated) If site is given, calls `frappe.init`.
@@ -432,9 +431,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	)
 
 	# Set the user as database name if not set in config
-	config["db_user"] = (
-		os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
-	)
+	config["db_user"] = os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
 
 	# Allow externally extending the config with hooks
 	if extra_config := config.get("extra_config"):
@@ -663,11 +660,18 @@ def throw(
 	is_minimizable: bool = False,
 	wide: bool = False,
 	as_list: bool = False,
+	primary_action=None,
 ) -> None:
 	"""Throw execption and show message (`msgprint`).
 
 	:param msg: Message.
-	:param exc: Exception class. Default `frappe.ValidationError`"""
+	:param exc: Exception class. Default `frappe.ValidationError`
+	:param title: [optional] Message title. Default: "Message".
+	:param is_minimizable: [optional] Allow users to minimize the modal
+	:param wide: [optional] Show wide modal
+	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
+	:param primary_action: [optional] Bind a primary server/client side action.
+	"""
 	msgprint(
 		msg,
 		raise_exception=exc,
@@ -676,6 +680,7 @@ def throw(
 		is_minimizable=is_minimizable,
 		wide=wide,
 		as_list=as_list,
+		primary_action=primary_action,
 	)
 
 
@@ -920,9 +925,7 @@ def is_whitelisted(method):
 	is_guest = session["user"] == "Guest"
 	if method not in whitelisted or is_guest and method not in guest_methods:
 		summary = _("You are not permitted to access this resource.")
-		detail = _("Function {0} is not whitelisted.").format(
-			bold(f"{method.__module__}.{method.__name__}")
-		)
+		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"
 		throw(msg, PermissionError, title="Method Not Allowed")
 
@@ -937,7 +940,6 @@ def is_whitelisted(method):
 def read_only():
 	def innfn(fn):
 		def wrapper_fn(*args, **kwargs):
-
 			# frappe.read_only could be called from nested functions, in such cases don't swap the
 			# connection again.
 			switched_connection = False
@@ -1109,9 +1111,7 @@ def has_permission(
 	)
 
 	if throw and not out:
-		document_label = (
-			f"{_(doctype)} {doc if isinstance(doc, str) else doc.name}" if doc else _(doctype)
-		)
+		document_label = f"{_(doctype)} {doc if isinstance(doc, str) else doc.name}" if doc else _(doctype)
 		frappe.flags.error_message = _("No permission for {0}").format(document_label)
 		raise frappe.PermissionError
 
@@ -1286,9 +1286,7 @@ def clear_document_cache(doctype: str, name: str | None = None) -> None:
 		delattr(local, "website_settings")
 
 
-def get_cached_value(
-	doctype: str, name: str, fieldname: str = "name", as_dict: bool = False
-) -> Any:
+def get_cached_value(doctype: str, name: str, fieldname: str = "name", as_dict: bool = False) -> Any:
 	try:
 		doc = get_cached_doc(doctype, name)
 	except DoesNotExistError:
@@ -1654,9 +1652,7 @@ def _load_app_hooks(app_name: str | None = None):
 	return hooks
 
 
-def get_hooks(
-	hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None
-) -> _dict:
+def get_hooks(hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None) -> _dict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
@@ -1697,7 +1693,7 @@ def append_hook(target, key, value):
 		target[key].extend(value)
 
 
-def setup_module_map():
+def setup_module_map(include_all_apps=True):
 	"""Rebuild map of all modules (internal)."""
 	if conf.db_name:
 		local.app_modules = cache.get_value("app_modules")
@@ -1705,10 +1701,18 @@ def setup_module_map():
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
-		for app in get_all_apps(with_internal_apps=True):
+		if include_all_apps:
+			apps = get_all_apps(with_internal_apps=True)
+		else:
+			apps = get_installed_apps(_ensure_on_bench=True)
+		for app in apps:
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
+				if module in local.module_app:
+					print(
+						f"WARNING: module `{module}` found in apps `{local.module_app[module]}` and `{app}`"
+					)
 				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
@@ -1757,11 +1761,7 @@ def read_file(path, raise_not_found=False):
 def get_attr(method_string: str) -> Any:
 	"""Get python method object from its name."""
 	app_name = method_string.split(".", 1)[0]
-	if (
-		not local.flags.in_uninstall
-		and not local.flags.in_install
-		and app_name not in get_installed_apps()
-	):
+	if not local.flags.in_uninstall and not local.flags.in_install and app_name not in get_installed_apps():
 		throw(_("App {0} is not installed").format(app_name), AppNotInstalledError)
 
 	modulename = ".".join(method_string.split(".")[:-1])
@@ -1783,7 +1783,8 @@ def get_newargs(fn: Callable, kwargs: dict[str, Any]) -> dict[str, Any]:
 	"""Remove any kwargs that are not supported by the function.
 
 	Example:
-	        >>> def fn(a=1, b=2): pass
+	        >>> def fn(a=1, b=2):
+	        ...     pass
 
 	        >>> get_newargs(fn, {"a": 2, "c": 1})
 	                {"a": 2}
@@ -2346,9 +2347,7 @@ loggers = {}
 log_level = None
 
 
-def logger(
-	module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20
-):
+def logger(module=None, with_more_info=False, allow_site=True, filter=None, max_size=100_000, file_count=20):
 	"""Return a python logger that uses StreamHandler."""
 	from frappe.utils.logger import get_logger
 
@@ -2363,9 +2362,7 @@ def logger(
 
 
 def get_desk_link(doctype, name):
-	html = (
-		'<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
-	)
+	html = '<a href="/app/Form/{doctype}/{name}" style="font-weight: bold;">{doctype_local} {name}</a>'
 	return html.format(doctype=doctype, name=name, doctype_local=_(doctype))
 
 
@@ -2418,7 +2415,7 @@ def get_version(doctype, name, limit=None, head=False, raise_err=True):
 	Note: Applicable only if DocType has changes tracked.
 
 	Example
-	>>> frappe.get_version('User', 'foobar@gmail.com')
+	>>> frappe.get_version("User", "foobar@gmail.com")
 	>>>
 	[
 	        {

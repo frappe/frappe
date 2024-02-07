@@ -43,6 +43,7 @@ class OnboardingStep(Document):
 		value_to_validate: DF.Data | None
 		video_url: DF.Data | None
 	# end: auto-generated types
+
 	def before_export(self, doc):
 		doc.is_complete = 0
 		doc.is_skipped = 0

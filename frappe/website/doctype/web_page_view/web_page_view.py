@@ -20,6 +20,7 @@ class WebPageView(Document):
 		browser: DF.Data | None
 		browser_version: DF.Data | None
 		campaign: DF.Data | None
+		content: DF.Data | None
 		is_unique: DF.Data | None
 		medium: DF.Data | None
 		path: DF.Data | None
@@ -29,6 +30,7 @@ class WebPageView(Document):
 		user_agent: DF.Data | None
 		visitor_id: DF.Data | None
 	# end: auto-generated types
+
 	@staticmethod
 	def clear_old_logs(days=180):
 		from frappe.query_builder import Interval

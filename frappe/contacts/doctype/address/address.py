@@ -52,6 +52,7 @@ class Address(Document):
 		pincode: DF.Data | None
 		state: DF.Data | None
 	# end: auto-generated types
+
 	def __setup__(self):
 		self.flags.linked = False
 
@@ -140,9 +141,7 @@ def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
 
 
 @frappe.whitelist()
-def get_default_address(
-	doctype: str, name: str | None, sort_key: str = "is_primary_address"
-) -> str | None:
+def get_default_address(doctype: str, name: str | None, sort_key: str = "is_primary_address") -> str | None:
 	"""Return default Address name for the given doctype, name."""
 	if sort_key not in ["is_shipping_address", "is_primary_address"]:
 		return None

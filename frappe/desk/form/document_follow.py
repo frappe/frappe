@@ -141,7 +141,9 @@ def get_message_for_user(frequency, user):
 				{
 					"reference_docname": document_follow.ref_docname,
 					"reference_doctype": document_follow.ref_doctype,
-					"reference_url": get_url_to_form(document_follow.ref_doctype, document_follow.ref_docname),
+					"reference_url": get_url_to_form(
+						document_follow.ref_doctype, document_follow.ref_docname
+					),
 				}
 			)
 	return message, valid_document_follows

@@ -184,7 +184,6 @@ class TestTranslate(FrappeTestCase):
 		verify_translation_files("frappe")
 
 	def test_python_extractor(self):
-
 		code = textwrap.dedent(
 			"""
 			frappe._("attr")
@@ -220,7 +219,6 @@ class TestTranslate(FrappeTestCase):
 				self.assertEqual(expected, actual)
 
 	def test_js_extractor(self):
-
 		code = textwrap.dedent(
 			"""
 			__("attr")

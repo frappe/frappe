@@ -49,8 +49,7 @@ def get_queues_timeout():
 		"default": default_timeout,
 		"long": 1500,
 		**{
-			worker: config.get("timeout", default_timeout)
-			for worker, config in custom_workers_config.items()
+			worker: config.get("timeout", default_timeout) for worker, config in custom_workers_config.items()
 		},
 	}
 
@@ -163,9 +162,7 @@ def enqueue(
 	return enqueue_call()
 
 
-def enqueue_doc(
-	doctype, name=None, method=None, queue="default", timeout=300, now=False, **kwargs
-):
+def enqueue_doc(doctype, name=None, method=None, queue="default", timeout=300, now=False, **kwargs):
 	"""Enqueue a method to be run on a document"""
 	return enqueue(
 		"frappe.utils.background_jobs.run_doc_method",

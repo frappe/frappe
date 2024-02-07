@@ -154,9 +154,7 @@ def start_import(data_import):
 
 
 @frappe.whitelist()
-def download_template(
-	doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"
-):
+def download_template(doctype, export_fields=None, export_records=None, export_filters=None, file_type="CSV"):
 	"""
 	Download template from Exporter
 	        :param doctype: Document Type
