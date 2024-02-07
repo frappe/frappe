@@ -108,10 +108,10 @@ export default class ListSettings {
 			let is_sortable = idx == 0 ? `` : `sortable`;
 			let show_sortable_handle = idx == 0 ? `hide` : ``;
 			let can_remove = idx == 0 || is_status_field(me.fields[idx]) ? `hide` : ``;
-	
+
 			let label = me.fields[idx].label;
 			let field_name = me.fields[idx].fieldname;
-	
+
 			// Check if label is repeated
 			if (label_count[label]) {
 				label = `${label} (${field_name})`;
