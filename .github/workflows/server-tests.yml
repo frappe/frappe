@@ -141,6 +141,7 @@ jobs:
         run: ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
         working-directory: /home/runner/frappe-bench/sites
         env:
+          PYTHONFAULTHANDLER: 1
           SITE: test_site
           CI_BUILD_ID: ${{ github.run_id }}
           BUILD_NUMBER: ${{ matrix.container }}
