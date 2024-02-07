@@ -66,9 +66,8 @@ def parse_date(date):
 
 	if not parsed_date:
 		raise Exception(
-			"""Cannot understand date - '%s'.
-			Try formatting it like your default format - '%s'"""
-			% (date, get_user_date_format())
+			f"""Cannot understand date - '{date}'.
+			Try formatting it like your default format - '{get_user_date_format()}'"""
 		)
 
 	return parsed_date

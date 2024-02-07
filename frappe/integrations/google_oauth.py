@@ -39,7 +39,7 @@ class GoogleOAuth:
 		self.domain = domain.lower()
 		self.scopes = (
 			" ".join(_SCOPES[self.domain])
-			if isinstance(_SCOPES[self.domain], (list, tuple))
+			if isinstance(_SCOPES[self.domain], list | tuple)
 			else _SCOPES[self.domain]
 		)
 

@@ -88,14 +88,13 @@ class Page(Document):
 			if not os.path.exists(path + ".js"):
 				with open(path + ".js", "w") as f:
 					f.write(
-						"""frappe.pages['%s'].on_page_load = function(wrapper) {
-	var page = frappe.ui.make_app_page({
+						f"""frappe.pages['{self.name}'].on_page_load = function(wrapper) {{
+	var page = frappe.ui.make_app_page({{
 		parent: wrapper,
-		title: '%s',
+		title: '{self.title}',
 		single_column: true
-	});
-}"""
-						% (self.name, self.title)
+	}});
+}}"""
 					)
 
 	def as_dict(self, no_nulls=False):

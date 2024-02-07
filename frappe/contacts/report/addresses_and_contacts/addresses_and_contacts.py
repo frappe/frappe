@@ -52,7 +52,6 @@ def get_columns(filters):
 
 
 def get_data(filters):
-	data = []
 	reference_doctype = filters.get("reference_doctype")
 	reference_name = filters.get("reference_name")
 

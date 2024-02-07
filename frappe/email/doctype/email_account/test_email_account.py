@@ -413,9 +413,12 @@ class TestEmailAccount(FrappeTestCase):
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_get_inbound_mails(
-		email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None
+		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
 	):
 		from frappe.email.receive import EmailServer
+
+		if messages is None:
+			messages = {}
 
 		def get_mocked_messages(**kwargs):
 			return messages.get(kwargs["folder"], {})
@@ -427,7 +430,12 @@ class TestEmailAccount(FrappeTestCase):
 
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
-	def mocked_email_receive(email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None):
+	def mocked_email_receive(
+		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
+	):
+		if messages is None:
+			messages = {}
+
 		def get_mocked_messages(**kwargs):
 			return messages.get(kwargs["folder"], {})
 

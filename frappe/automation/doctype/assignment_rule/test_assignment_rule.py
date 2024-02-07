@@ -104,7 +104,7 @@ class TestAutoAssign(FrappeTestCase):
 			frappe.db.delete("ToDo", {"name": d.name})
 
 		# add 5 more assignments
-		for i in range(5):
+		for _ in range(5):
 			_make_test_record(public=1)
 
 		# check if each user still has 10 assignments

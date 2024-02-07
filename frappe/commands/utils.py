@@ -556,7 +556,7 @@ def jupyter(context):
 		os.mkdir(jupyter_notebooks_path)
 	bin_path = os.path.abspath("../env/bin")
 	print(
-		"""
+		f"""
 Starting Jupyter notebook
 Run the following in your first cell to connect notebook to frappe
 ```
@@ -566,7 +566,7 @@ frappe.connect()
 frappe.local.lang = frappe.db.get_default('lang')
 frappe.db.connect()
 ```
-	""".format(site=site, sites_path=sites_path)
+	"""
 	)
 	os.execv(
 		f"{bin_path}/jupyter",

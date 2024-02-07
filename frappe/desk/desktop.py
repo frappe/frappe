@@ -559,11 +559,11 @@ def save_new_widget(doc, page, blocks, new_widgets):
 		json_config = widgets and dumps(widgets, sort_keys=True, indent=4)
 
 		# Error log body
-		log = """
-		page: {}
-		config: {}
-		exception: {}
-		""".format(page, json_config, e)
+		log = f"""
+		page: {page}
+		config: {json_config}
+		exception: {e}
+		"""
 		doc.log_error("Could not save customization", log)
 		raise
 

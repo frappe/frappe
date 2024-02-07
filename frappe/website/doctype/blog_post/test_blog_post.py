@@ -84,7 +84,7 @@ class TestBlogPost(FrappeTestCase):
 		# Create some Blog Posts for a Blog Category
 		category_title, blogs, BLOG_COUNT = "List Category", [], 4
 
-		for index in range(BLOG_COUNT):
+		for _ in range(BLOG_COUNT):
 			blog = make_test_blog(category_title)
 			blogs.append(blog)
 

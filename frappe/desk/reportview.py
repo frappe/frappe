@@ -199,7 +199,7 @@ def get_meta_and_docfield(fieldname, data):
 
 def update_wildcard_field_param(data):
 	if (isinstance(data.fields, str) and data.fields == "*") or (
-		isinstance(data.fields, (list, tuple)) and len(data.fields) == 1 and data.fields[0] == "*"
+		isinstance(data.fields, list | tuple) and len(data.fields) == 1 and data.fields[0] == "*"
 	):
 		data.fields = get_permitted_fields(data.doctype, parenttype=data.parenttype)
 		return True
@@ -390,10 +390,10 @@ def append_totals_row(data):
 
 	for row in data:
 		for i in range(len(row)):
-			if isinstance(row[i], (float, int)):
+			if isinstance(row[i], float | int):
 				totals[i] = (totals[i] or 0) + row[i]
 
-	if not isinstance(totals[0], (int, float)):
+	if not isinstance(totals[0], int | float):
 		totals[0] = "Total"
 
 	data.append(totals)
@@ -568,7 +568,7 @@ def get_stats(stats, doctype, filters=None):
 
 		except frappe.db.SQLError:
 			pass
-		except frappe.db.InternalError as e:
+		except frappe.db.InternalError:
 			# raised when _user_tags column is added on the fly
 			pass
 
@@ -673,7 +673,7 @@ def get_filters_cond(doctype, filters, conditions, ignore_permissions=None, with
 			for f in filters:
 				if isinstance(f[1], str) and f[1][0] == "!":
 					flt.append([doctype, f[0], "!=", f[1][1:]])
-				elif isinstance(f[1], (list, tuple)) and f[1][0].lower() in (
+				elif isinstance(f[1], list | tuple) and f[1][0].lower() in (
 					"=",
 					">",
 					"<",

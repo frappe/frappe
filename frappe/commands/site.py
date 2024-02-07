@@ -1036,7 +1036,7 @@ def _drop_site(
 				f"Error: The operation has stopped because backup of {site}'s database failed.",
 				f"Reason: {str(err)}\n",
 				"Fix the issue and try again.",
-				"Hint: Use 'bench drop-site {0} --force' to force the removal of {0}".format(site),
+				f"Hint: Use 'bench drop-site {site} --force' to force the removal of {site}",
 			]
 			click.echo("\n".join(messages))
 			sys.exit(1)

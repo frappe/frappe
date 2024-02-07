@@ -155,5 +155,5 @@ def get_json(obj):
 
 
 def json_handler(obj):
-	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+	if isinstance(obj, datetime.date | datetime.timedelta | datetime.datetime):
 		return str(obj)

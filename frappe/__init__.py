@@ -152,12 +152,12 @@ class _LazyTranslate:
 		return self.value
 
 	def __add__(self, other):
-		if isinstance(other, (str, _LazyTranslate)):
+		if isinstance(other, str | _LazyTranslate):
 			return self.value + str(other)
 		raise NotImplementedError
 
 	def __radd__(self, other):
-		if isinstance(other, (str, _LazyTranslate)):
+		if isinstance(other, str | _LazyTranslate):
 			return str(other) + self.value
 		return NotImplementedError
 
@@ -1300,7 +1300,7 @@ def get_cached_value(doctype: str, name: str, fieldname: str = "name", as_dict: 
 
 	values = [doc.get(f) for f in fieldname]
 	if as_dict:
-		return _dict(zip(fieldname, values))
+		return _dict(zip(fieldname, values, strict=False))
 	return values
 
 
@@ -1644,7 +1644,7 @@ def _load_app_hooks(app_name: str | None = None):
 			raise
 
 		def _is_valid_hook(obj):
-			return not isinstance(obj, (types.ModuleType, types.FunctionType, type))
+			return not isinstance(obj, types.ModuleType | types.FunctionType | type)
 
 		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
 			if not key.startswith("_"):
@@ -1904,7 +1904,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	if not ignore_no_copy:
 		remove_no_copy_fields(newdoc)
 
-	for i, d in enumerate(newdoc.get_all_children()):
+	for d in newdoc.get_all_children():
 		d.set("__islocal", 1)
 
 		for fieldname in fields_to_clear:
@@ -2493,7 +2493,7 @@ def mock(type, size=1, locale="en"):
 	if type not in dir(fake):
 		raise ValueError("Not a valid mock type.")
 	else:
-		for i in range(size):
+		for _ in range(size):
 			data = getattr(fake, type)()
 			results.append(data)
 
@@ -2507,7 +2507,7 @@ def validate_and_sanitize_search_inputs(fn):
 	def wrapper(*args, **kwargs):
 		from frappe.desk.search import sanitize_searchfield
 
-		kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
+		kwargs.update(dict(zip(fn.__code__.co_varnames, args, strict=False)))
 		sanitize_searchfield(kwargs["searchfield"])
 		kwargs["start"] = cint(kwargs["start"])
 		kwargs["page_len"] = cint(kwargs["page_len"])
@@ -2520,7 +2520,7 @@ def validate_and_sanitize_search_inputs(fn):
 	return wrapper
 
 
-from frappe.utils.error import log_error  # noqa: backward compatibility
+from frappe.utils.error import log_error  # noqa
 
 if _tune_gc:
 	# generational GC gets triggered after certain allocs (g0) which is 700 by default.

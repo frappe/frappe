@@ -60,7 +60,7 @@ class FrappeTestCase(unittest.TestCase):
 			if isinstance(value, list):
 				actual_child_docs = actual.get(field)
 				self.assertEqual(len(value), len(actual_child_docs), msg=f"{field} length should be same")
-				for exp_child, actual_child in zip(value, actual_child_docs):
+				for exp_child, actual_child in zip(value, actual_child_docs, strict=False):
 					self.assertDocumentEqual(exp_child, actual_child)
 			else:
 				self._compare_field(value, actual.get(field), actual, field)
@@ -73,7 +73,7 @@ class FrappeTestCase(unittest.TestCase):
 			self.assertAlmostEqual(
 				expected, actual, places=precision, msg=f"{field} should be same to {precision} digits"
 			)
-		elif isinstance(expected, (bool, int)):
+		elif isinstance(expected, bool | int):
 			self.assertEqual(expected, cint(actual), msg=msg)
 		elif isinstance(expected, datetime_like_types):
 			self.assertEqual(str(expected), str(actual), msg=msg)

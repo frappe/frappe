@@ -137,7 +137,7 @@ class File(Document):
 		if not self.attached_to_doctype:
 			return
 
-		if not self.attached_to_name or not isinstance(self.attached_to_name, (str, int)):
+		if not self.attached_to_name or not isinstance(self.attached_to_name, str | int):
 			frappe.throw(_("Attached To Name must be a string or an integer"), frappe.ValidationError)
 
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
