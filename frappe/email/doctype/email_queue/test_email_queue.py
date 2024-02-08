@@ -87,9 +87,7 @@ class TestEmailQueue(FrappeTestCase):
 		def get_server(q):
 			return q.get_email_account().get_smtp_server()
 
-		self.assertIs(
-			get_server(frappe.new_doc("Email Queue")), get_server(frappe.new_doc("Email Queue"))
-		)
+		self.assertIs(get_server(frappe.new_doc("Email Queue")), get_server(frappe.new_doc("Email Queue")))
 
 		q1 = frappe.new_doc("Email Queue", email_account="_Test Email Account 1")
 		q2 = frappe.new_doc("Email Queue", email_account="_Test Email Account 1")

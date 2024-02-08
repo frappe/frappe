@@ -38,6 +38,7 @@ class EnergyPointLog(Document):
 		type: DF.Literal["Auto", "Appreciation", "Criticism", "Review", "Revert"]
 		user: DF.Link
 	# end: auto-generated types
+
 	def validate(self):
 		self.map_milestone_reference()
 		if self.type in ["Appreciation", "Criticism"] and self.user == self.owner:
@@ -62,7 +63,6 @@ class EnergyPointLog(Document):
 		if self.type != "Review" and frappe.get_cached_value(
 			"Notification Settings", self.user, "energy_points_system_notifications"
 		):
-
 			reference_user = self.user if self.type == "Auto" else self.owner
 			notification_doc = {
 				"type": "Energy Point",
@@ -257,7 +257,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 		values.from_date = from_date
 
 	points_list = frappe.db.sql(
-		"""
+		f"""
 		SELECT
 			SUM(CASE WHEN `type` != 'Review' THEN `points` ELSE 0 END) AS energy_points,
 			SUM(CASE WHEN `type` = 'Review' THEN `points` ELSE 0 END) AS review_points,
@@ -271,9 +271,7 @@ def get_user_energy_and_review_points(user=None, from_date=None, as_dict=True):
 		{conditions}
 		GROUP BY `user`
 		ORDER BY `energy_points` DESC
-	""".format(
-			conditions=conditions, given_points_condition=given_points_condition
-		),
+	""",
 		values=values,
 		as_dict=1,
 	)

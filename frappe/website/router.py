@@ -109,7 +109,7 @@ def get_pages_from_path(start, app, app_path):
 	pages = {}
 	start_path = os.path.join(app_path, start)
 	if os.path.exists(start_path):
-		for basepath, folders, files in os.walk(start_path):
+		for basepath, folders, files in os.walk(start_path):  # noqa: B007
 			# add missing __init__.py
 			if "__init__.py" not in files and frappe.conf.get("developer_mode"):
 				open(os.path.join(basepath, "__init__.py"), "a").close()
@@ -322,7 +322,9 @@ def clear_routing_cache():
 	from frappe.website.doctype.web_form.web_form import get_published_web_forms
 	from frappe.website.doctype.web_page.web_page import get_dynamic_web_pages
 	from frappe.website.page_renderers.document_page import _find_matching_document_webview
+	from frappe.www.sitemap import get_public_pages_from_doctypes
 
 	_find_matching_document_webview.clear_cache()
 	get_dynamic_web_pages.clear_cache()
 	get_published_web_forms.clear_cache()
+	get_public_pages_from_doctypes.clear_cache()

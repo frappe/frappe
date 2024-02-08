@@ -134,22 +134,22 @@ log_types = (
 )
 
 std_fields = [
-	{"fieldname": "name", "fieldtype": "Link", "label": _lt("ID")},
-	{"fieldname": "owner", "fieldtype": "Link", "label": _lt("Created By"), "options": "User"},
-	{"fieldname": "idx", "fieldtype": "Int", "label": _lt("Index")},
-	{"fieldname": "creation", "fieldtype": "Datetime", "label": _lt("Created On")},
-	{"fieldname": "modified", "fieldtype": "Datetime", "label": _lt("Last Updated On")},
+	{"fieldname": "name", "fieldtype": "Link", "label": "ID"},
+	{"fieldname": "owner", "fieldtype": "Link", "label": "Created By", "options": "User"},
+	{"fieldname": "idx", "fieldtype": "Int", "label": "Index"},
+	{"fieldname": "creation", "fieldtype": "Datetime", "label": "Created On"},
+	{"fieldname": "modified", "fieldtype": "Datetime", "label": "Last Updated On"},
 	{
 		"fieldname": "modified_by",
 		"fieldtype": "Link",
-		"label": _lt("Last Updated By"),
+		"label": "Last Updated By",
 		"options": "User",
 	},
-	{"fieldname": "_user_tags", "fieldtype": "Data", "label": _lt("Tags")},
-	{"fieldname": "_liked_by", "fieldtype": "Data", "label": _lt("Liked By")},
-	{"fieldname": "_comments", "fieldtype": "Text", "label": _lt("Comments")},
-	{"fieldname": "_assign", "fieldtype": "Text", "label": _lt("Assigned To")},
-	{"fieldname": "docstatus", "fieldtype": "Int", "label": _lt("Document Status")},
+	{"fieldname": "_user_tags", "fieldtype": "Data", "label": "Tags"},
+	{"fieldname": "_liked_by", "fieldtype": "Data", "label": "Liked By"},
+	{"fieldname": "_comments", "fieldtype": "Text", "label": "Comments"},
+	{"fieldname": "_assign", "fieldtype": "Text", "label": "Assigned To"},
+	{"fieldname": "docstatus", "fieldtype": "Int", "label": "Document Status"},
 ]
 
 

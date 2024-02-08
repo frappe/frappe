@@ -33,9 +33,7 @@ class TestScheduledJobType(FrappeTestCase):
 		# check if jobs are synced after change in hooks
 		updated_scheduler_events = {"hourly": ["frappe.email.queue.flush"]}
 		sync_jobs(updated_scheduler_events)
-		updated_scheduled_job = frappe.get_doc(
-			"Scheduled Job Type", {"method": "frappe.email.queue.flush"}
-		)
+		updated_scheduled_job = frappe.get_doc("Scheduled Job Type", {"method": "frappe.email.queue.flush"})
 		self.assertEqual(updated_scheduled_job.frequency, "Hourly")
 
 	def test_daily_job(self):

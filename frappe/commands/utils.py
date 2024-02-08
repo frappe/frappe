@@ -437,14 +437,10 @@ def import_doc(context, path, force=False):
 	default="Insert",
 	help="Insert New Records or Update Existing Records",
 )
-@click.option(
-	"--submit-after-import", default=False, is_flag=True, help="Submit document after importing it"
-)
+@click.option("--submit-after-import", default=False, is_flag=True, help="Submit document after importing it")
 @click.option("--mute-emails", default=True, is_flag=True, help="Mute emails during import")
 @pass_context
-def data_import(
-	context, file_path, doctype, import_type=None, submit_after_import=False, mute_emails=True
-):
+def data_import(context, file_path, doctype, import_type=None, submit_after_import=False, mute_emails=True):
 	"Import documents in bulk from CSV or XLSX using data import"
 	from frappe.core.doctype.data_import.data_import import import_file
 
@@ -560,7 +556,7 @@ def jupyter(context):
 		os.mkdir(jupyter_notebooks_path)
 	bin_path = os.path.abspath("../env/bin")
 	print(
-		"""
+		f"""
 Starting Jupyter notebook
 Run the following in your first cell to connect notebook to frappe
 ```
@@ -570,9 +566,7 @@ frappe.connect()
 frappe.local.lang = frappe.db.get_default('lang')
 frappe.db.connect()
 ```
-	""".format(
-			site=site, sites_path=sites_path
-		)
+	"""
 	)
 	os.execv(
 		f"{bin_path}/jupyter",
@@ -630,9 +624,7 @@ def console(context, autoreload=False):
 	terminal()
 
 
-@click.command(
-	"transform-database", help="Change tables' internal settings changing engine and row formats"
-)
+@click.command("transform-database", help="Change tables' internal settings changing engine and row formats")
 @click.option(
 	"--table",
 	required=True,
@@ -731,9 +723,7 @@ def transform_database(context, table, engine, row_format, failfast):
 @click.option("--profile", is_flag=True, default=False)
 @click.option("--coverage", is_flag=True, default=False)
 @click.option("--skip-test-records", is_flag=True, default=False, help="Don't create test records")
-@click.option(
-	"--skip-before-tests", is_flag=True, default=False, help="Don't run before tests hook"
-)
+@click.option("--skip-before-tests", is_flag=True, default=False, help="Don't run before tests hook")
 @click.option("--junit-xml-output", help="Destination file path for junit xml report")
 @click.option(
 	"--failfast", is_flag=True, default=False, help="Stop the test run on the first error or failure"
@@ -772,12 +762,8 @@ def run_tests(
 			click.secho(f"bench --site {site} set-config allow_tests true", fg="green")
 			return
 
-		frappe.init(site=site)
-
-		frappe.flags.skip_before_tests = skip_before_tests
-		frappe.flags.skip_test_records = skip_test_records
-
 		ret = frappe.test_runner.main(
+			site,
 			app,
 			module,
 			doctype,
@@ -790,6 +776,8 @@ def run_tests(
 			doctype_list_path=doctype_list_path,
 			failfast=failfast,
 			case=case,
+			skip_test_records=skip_test_records,
+			skip_before_tests=skip_before_tests,
 		)
 
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
@@ -803,7 +791,12 @@ def run_tests(
 @click.option("--app", help="For App", default="frappe")
 @click.option("--build-number", help="Build number", default=1)
 @click.option("--total-builds", help="Total number of builds", default=1)
-@click.option("--with-coverage", is_flag=True, help="Build coverage file")
+@click.option(
+	"--with-coverage",
+	is_flag=True,
+	help="Build coverage file",
+	envvar="CAPTURE_COVERAGE",
+)
 @click.option("--use-orchestrator", is_flag=True, help="Use orchestrator to run parallel tests")
 @click.option("--dry-run", is_flag=True, default=False, help="Dont actually run tests")
 @pass_context
@@ -985,7 +978,9 @@ def request(context, args=None, path=None):
 			frappe.connect()
 			if args:
 				if "?" in args:
-					frappe.local.form_dict = frappe._dict([a.split("=") for a in args.split("?")[-1].split("&")])
+					frappe.local.form_dict = frappe._dict(
+						[a.split("=") for a in args.split("?")[-1].split("&")]
+					)
 				else:
 					frappe.local.form_dict = frappe._dict()
 
@@ -1009,9 +1004,7 @@ def request(context, args=None, path=None):
 @click.command("make-app")
 @click.argument("destination")
 @click.argument("app_name")
-@click.option(
-	"--no-git", is_flag=True, default=False, help="Do not initialize git repository for the app"
-)
+@click.option("--no-git", is_flag=True, default=False, help="Do not initialize git repository for the app")
 def make_app(destination, app_name, no_git=False):
 	"Creates a boilerplate app"
 	from frappe.utils.boilerplate import make_boilerplate
@@ -1032,9 +1025,7 @@ def create_patch():
 @click.command("set-config")
 @click.argument("key")
 @click.argument("value")
-@click.option(
-	"-g", "--global", "global_", is_flag=True, default=False, help="Set value in bench config"
-)
+@click.option("-g", "--global", "global_", is_flag=True, default=False, help="Set value in bench config")
 @click.option("-p", "--parse", is_flag=True, default=False, help="Evaluate as Python Object")
 @pass_context
 def set_config(context, key, value, global_=False, parse=False):
@@ -1111,9 +1102,7 @@ def get_version(output):
 
 
 @click.command("rebuild-global-search")
-@click.option(
-	"--static-pages", is_flag=True, default=False, help="Rebuild global search for static pages"
-)
+@click.option("--static-pages", is_flag=True, default=False, help="Rebuild global search for static pages")
 @pass_context
 def rebuild_global_search(context, static_pages=False):
 	"""Setup help table in the current site (called after migrate)"""

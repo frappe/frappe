@@ -21,4 +21,5 @@ class WorkspaceQuickList(Document):
 		parenttype: DF.Data
 		quick_list_filter: DF.Code | None
 	# end: auto-generated types
+
 	pass

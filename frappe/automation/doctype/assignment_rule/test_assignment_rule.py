@@ -104,7 +104,7 @@ class TestAutoAssign(FrappeTestCase):
 			frappe.db.delete("ToDo", {"name": d.name})
 
 		# add 5 more assignments
-		for i in range(5):
+		for _ in range(5):
 			_make_test_record(public=1)
 
 		# check if each user still has 10 assignments
@@ -138,7 +138,9 @@ class TestAutoAssign(FrappeTestCase):
 			# check if auto assigned to doc owner, test1@example.com
 			self.assertEqual(
 				frappe.db.get_value(
-					"ToDo", dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"), "owner"
+					"ToDo",
+					dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"),
+					"owner",
 				),
 				test_user,
 			)

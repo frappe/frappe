@@ -20,35 +20,11 @@ from csv import reader, writer
 
 import frappe
 from frappe.gettext.extractors.javascript import extract_javascript
+from frappe.gettext.extractors.utils import extract_messages_from_code, is_translatable
 from frappe.gettext.translate import get_translations_from_mo
-from frappe.model.utils import InvalidIncludePath, render_include
 from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
 
-TRANSLATE_PATTERN = re.compile(
-	r"_\(\s*"  # starts with literal `_(`, ignore following whitespace/newlines
-	# BEGIN: message search
-	r"([\"']{,3})"  # start of message string identifier - allows: ', ", """, '''; 1st capture group
-	r"(?P<message>((?!\1).)*)"  # Keep matching until string closing identifier is met which is same as 1st capture group
-	r"\1"  # match exact string closing identifier
-	# END: message search
-	# BEGIN: python context search
-	r"(\s*,\s*context\s*=\s*"  # capture `context=` with ignoring whitespace
-	r"([\"'])"  # start of context string identifier; 5th capture group
-	r"(?P<py_context>((?!\5).)*)"  # capture context string till closing id is found
-	r"\5"  # match context string closure
-	r")?"  # match 0 or 1 context strings
-	# END: python context search
-	# BEGIN: JS context search
-	r"(\s*,\s*(.)*?\s*(,\s*"  # skip message format replacements: ["format", ...] | null | []
-	r"([\"'])"  # start of context string; 11th capture group
-	r"(?P<js_context>((?!\11).)*)"  # capture context string till closing id is found
-	r"\11"  # match context string closure
-	r")*"
-	r")*"  # match one or more context string
-	# END: JS context search
-	r"\s*\)"  # Closing function call ignore leading whitespace/newlines
-)
 REPORT_TRANSLATE_PATTERN = re.compile('"([^:,^"]*):')
 CSV_STRIP_WHITESPACE_PATTERN = re.compile(r"{\s?([0-9]+)\s?}")
 
@@ -228,9 +204,7 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 			elif len(item) in [2, 3]:
 				translation_map[item[0]] = strip(item[1])
 			elif item:
-				msg = "Bad translation in '{app}' for language '{lang}': {values}".format(
-					app=app, lang=lang, values=cstr(item)
-				)
+				msg = f"Bad translation in '{app}' for language '{lang}': {cstr(item)}"
 				frappe.log_error(message=msg, title="Error in translation file")
 				if throw:
 					frappe.throw(msg, title="Error in translation file")
@@ -239,9 +213,6 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 
 
 def get_user_translations(lang):
-	if not frappe.db:
-		frappe.connect()
-
 	def _read_from_db():
 		user_translations = {}
 		translations = frappe.get_all(
@@ -572,7 +543,7 @@ def get_all_messages_from_js_files(app_name=None):
 	messages = []
 	for app in [app_name] if app_name else frappe.get_installed_apps(_ensure_on_bench=True):
 		if os.path.exists(frappe.get_app_path(app, "public")):
-			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):
+			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):  # noqa: B007
 				if "frappe/public/js/lib" in basepath:
 					continue
 
@@ -674,59 +645,6 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 		messages.append((lineno, source_text, context))
 
 	return messages
-
-
-def extract_messages_from_code(code):
-	"""
-	Extracts translatable strings from a code file
-	:param code: code from which translatable files are to be extracted
-	"""
-	from jinja2 import TemplateError
-
-	try:
-		code = frappe.as_unicode(render_include(code))
-
-	# Exception will occur when it encounters John Resig's microtemplating code
-	except (TemplateError, ImportError, InvalidIncludePath, OSError) as e:
-		if isinstance(e, InvalidIncludePath):
-			frappe.clear_last_message()
-
-	messages = []
-
-	for m in TRANSLATE_PATTERN.finditer(code):
-		message = m.group("message")
-		context = m.group("py_context") or m.group("js_context")
-		pos = m.start()
-
-		if is_translatable(message):
-			messages.append([pos, message, context])
-
-	return add_line_number(messages, code)
-
-
-def is_translatable(m):
-	if (
-		re.search("[a-zA-Z]", m)
-		and not m.startswith("fa fa-")
-		and not m.endswith("px")
-		and not m.startswith("eval:")
-	):
-		return True
-	return False
-
-
-def add_line_number(messages, code):
-	ret = []
-	messages = sorted(messages, key=lambda x: x[0])
-	newlines = [m.start() for m in re.compile(r"\n").finditer(code)]
-	line = 1
-	newline_i = 0
-	for pos, message, context in messages:
-		while newline_i < len(newlines) and pos > newlines[newline_i]:
-			line += 1
-			newline_i += 1
-		ret.append([line, message, context])
-	return ret
 
 
 def read_csv_file(path):
@@ -841,8 +759,8 @@ def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS
 	for key, value in zip(
 		frappe.get_file_items(untranslated_file, ignore_empty_lines=False),
 		frappe.get_file_items(translated_file, ignore_empty_lines=False),
+		strict=False,
 	):
-
 		# undo hack in get_untranslated
 		translation_dict[restore_newlines(key)] = restore_newlines(value)
 
@@ -935,9 +853,7 @@ def write_translations_file(app, lang, full_dict=None, app_messages=None):
 
 	tpath = frappe.get_app_path(app, "translations")
 	frappe.create_folder(tpath)
-	write_csv_file(
-		os.path.join(tpath, lang + ".csv"), app_messages, full_dict or get_all_translations(lang)
-	)
+	write_csv_file(os.path.join(tpath, lang + ".csv"), app_messages, full_dict or get_all_translations(lang))
 
 
 def send_translations(translation_dict):
@@ -1054,9 +970,6 @@ def get_all_languages(with_language_name: bool = False) -> list:
 	def get_all_language_with_name():
 		return frappe.get_all("Language", ["language_code", "language_name"], {"enabled": 1})
 
-	if not frappe.db:
-		frappe.connect()
-
 	if with_language_name:
 		return frappe.cache.get_value("languages_with_name", get_all_language_with_name)
 	else:
@@ -1083,7 +996,7 @@ def print_language(language: str):
 
 	```
 	with print_language("de"):
-	    html = frappe.get_print( ... )
+	    html = frappe.get_print(...)
 	```
 	"""
 	if not language or language == frappe.local.lang:
@@ -1104,44 +1017,6 @@ def print_language(language: str):
 	# restore original values
 	frappe.local.lang = _lang
 	frappe.local.jenv = _jenv
-
-
-@functools.total_ordering
-class LazyTranslate:
-	__slots__ = ("msg", "lang", "context")
-
-	def __init__(self, msg: str, lang: str | None = None, context: str | None = None) -> None:
-		self.msg = msg
-		self.lang = lang
-		self.context = context
-
-	@property
-	def value(self) -> str:
-		return frappe._(str(self.msg), self.lang, self.context)
-
-	def __str__(self):
-		return self.value
-
-	def __add__(self, other):
-		if isinstance(other, (str, LazyTranslate)):
-			return self.value + str(other)
-		raise NotImplementedError
-
-	def __radd__(self, other):
-		if isinstance(other, (str, LazyTranslate)):
-			return str(other) + self.value
-		return NotImplementedError
-
-	def __repr__(self) -> str:
-		return f"'{self.value}'"
-
-	# NOTE: it's required to override these methods and raise error as default behaviour will
-	# return `False` in all cases.
-	def __eq__(self, other):
-		raise NotImplementedError
-
-	def __lt__(self, other):
-		raise NotImplementedError
 
 
 # Backward compatibility

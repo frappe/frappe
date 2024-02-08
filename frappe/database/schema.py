@@ -126,7 +126,6 @@ class DBTable:
 				)
 
 			if "varchar" in frappe.db.type_map.get(col.fieldtype, ()):
-
 				# validate length range
 				new_length = cint(col.length) or cint(frappe.db.VARCHAR_LEN)
 				if not (1 <= new_length <= 1000):
@@ -145,9 +144,7 @@ class DBTable:
 					try:
 						# check for truncation
 						max_length = frappe.db.sql(
-							"""SELECT MAX(CHAR_LENGTH(`{fieldname}`)) FROM `tab{doctype}`""".format(
-								fieldname=col.fieldname, doctype=self.doctype
-							)
+							f"""SELECT MAX(CHAR_LENGTH(`{col.fieldname}`)) FROM `tab{self.doctype}`"""
 						)
 
 					except frappe.db.InternalError as e:
@@ -393,9 +390,7 @@ def get_definition(fieldtype, precision=None, length=None):
 	return coltype
 
 
-def add_column(
-	doctype, column_name, fieldtype, precision=None, length=None, default=None, not_null=False
-):
+def add_column(doctype, column_name, fieldtype, precision=None, length=None, default=None, not_null=False):
 	if column_name in frappe.db.get_table_columns(doctype):
 		# already exists
 		return

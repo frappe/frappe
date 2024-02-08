@@ -21,4 +21,5 @@ class ContactPhone(Document):
 		parenttype: DF.Data
 		phone: DF.Data
 	# end: auto-generated types
+
 	pass

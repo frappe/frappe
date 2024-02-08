@@ -25,12 +25,7 @@ def run_webhooks(doc, method):
 
 	frappe_flags = frappe.local.flags
 
-	if (
-		frappe_flags.in_import
-		or frappe_flags.in_patch
-		or frappe_flags.in_install
-		or frappe_flags.in_migrate
-	):
+	if frappe_flags.in_import or frappe_flags.in_patch or frappe_flags.in_install or frappe_flags.in_migrate:
 		return
 
 	# load all webhooks from cache / DB

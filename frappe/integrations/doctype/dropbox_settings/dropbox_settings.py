@@ -44,6 +44,7 @@ class DropboxSettings(Document):
 		send_email_for_successful_backup: DF.Check
 		send_notifications_to: DF.Data
 	# end: auto-generated types
+
 	def onload(self):
 		if not self.app_access_key and frappe.conf.dropbox_access_key:
 			self.set_onload("dropbox_setup_via_site_config", 1)
@@ -105,7 +106,7 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 		if isinstance(error_log, str):
 			error_message = error_log + "\n" + frappe.get_traceback()
 		else:
-			file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log)]
+			file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log, strict=False)]
 			error_message = "\n".join(file_and_error) + "\n" + frappe.get_traceback()
 
 		send_email(False, "Dropbox", "Dropbox Settings", "send_notifications_to", error_message)
@@ -144,9 +145,7 @@ def backup_to_dropbox(upload_db_backup=True):
 	return did_not_upload, list(set(error_log))
 
 
-def upload_from_folder(
-	path, is_private, dropbox_folder, dropbox_client, did_not_upload, error_log
-):
+def upload_from_folder(path, is_private, dropbox_folder, dropbox_client, did_not_upload, error_log):
 	if not os.path.exists(path):
 		return
 
