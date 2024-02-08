@@ -37,6 +37,7 @@ def bootstrap_database(db_name, db_requirements, verbose=None, source_sql=None):
 			db_name, db_requirements, verbose, source_sql
 		)
 
+
 def drop_user_and_database(db_name, db_user):
 	import frappe
 
