@@ -588,7 +588,7 @@ frappe.ui.Page = class Page {
 		if (!$group.length) {
 			$group = $(
 				`<div class="inner-group-button" data-label="${encodeURIComponent(label)}">
-					<button type="button" class="btn btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<button type="button" class="btn btn-primary" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 						${label}
 						${frappe.utils.icon("select", "xs")}
 					</button>
