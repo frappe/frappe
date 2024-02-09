@@ -18,7 +18,8 @@ from frappe.core.api.file import (
 	unzip_file,
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-from frappe.core.doctype.file.utils import delete_file, get_extension
+from frappe.core.doctype.file.utils import get_extension
+from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_files_path, set_request
@@ -739,6 +740,48 @@ class TestFileUtils(FrappeTestCase):
 		).insert()
 		filename = frappe.db.exists("File", {"attached_to_name": todo.name})
 		self.assertIn(f'<img src="{frappe.get_doc("File", filename).file_url}', todo.description)
+
+	def test_extract_images_from_comment(self):
+		"""
+		Ensure that images are extracted from comments and become private attachments.
+		"""
+		is_private = not frappe.get_meta("ToDo").make_attachments_public
+		test_doc = frappe.get_doc(dict(doctype="ToDo", description="comment test")).insert()
+		comment = add_comment(
+			"ToDo",
+			test_doc.name,
+			'<div class="ql-editor read-mode"><img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="></div>',
+			frappe.session.user,
+			frappe.session.user,
+		)
+
+		self.assertTrue(
+			frappe.db.exists("File", {"attached_to_name": test_doc.name, "is_private": is_private})
+		)
+		self.assertRegex(comment.content, r"<img src=\"(.*)/files/pix\.png(.*)\">")
+
+	def test_extract_images_from_communication(self):
+		"""
+		Ensure that images are extracted from communication and become public attachments.
+		"""
+		is_private = not frappe.get_meta("Communication").make_attachments_public
+		communication = frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"communication_medium": "Email",
+				"content": '<div class="ql-editor read-mode"><img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="></div>',
+				"recipients": "to <to@test.com>",
+				"cc": None,
+				"bcc": None,
+				"sender": "sender@test.com",
+			}
+		).insert(ignore_permissions=True)
+
+		self.assertTrue(
+			frappe.db.exists("File", {"attached_to_name": communication.name, "is_private": is_private})
+		)
+		self.assertRegex(communication.content, r"<img src=\"(.*)/files/pix\.png(.*)\">")
 
 	def test_create_new_folder(self):
 		folder = create_new_folder("test_folder", "Home")
