@@ -60,7 +60,7 @@ def import_custom_scripts(app):
 		)
 
 
-def export_fixtures(app=None):
+def export_fixtures(app=None,prefix=None):
 	"""Export fixtures as JSON to `[app]/fixtures`"""
 	if app:
 		apps = [app]
