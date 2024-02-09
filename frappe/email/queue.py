@@ -6,6 +6,11 @@ from frappe import _, msgprint
 from frappe.utils import cint, cstr, get_url, now_datetime
 from frappe.utils.verified_command import get_signed_params, verify_request
 
+# After this percent of failures in every batch, entire batch is aborted.
+# This usually indicates a systemic failure so we shouldn't keep trying to send emails.
+EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_PERCENT = 0.33
+EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_COUNT = 10
+
 
 def get_emails_sent_this_month(email_account=None):
 	"""Get count of emails sent from a specific email account.
@@ -133,7 +138,7 @@ def return_unsubscribed_page(email, doctype, name):
 	)
 
 
-def flush(from_test=False):
+def flush():
 	"""flush email queue, every time: called from scheduler"""
 	from frappe.email.doctype.email_queue.email_queue import send_mail
 	from frappe.utils.background_jobs import get_jobs
@@ -141,31 +146,27 @@ def flush(from_test=False):
 	# To avoid running jobs inside unit tests
 	if frappe.are_emails_muted():
 		msgprint(_("Emails are muted"))
-		from_test = True
 
 	if cint(frappe.db.get_default("suspend_email_queue")) == 1:
 		return
 
-	try:
-		queued_jobs = set(get_jobs(site=frappe.local.site, key="job_name")[frappe.local.site])
-	except Exception:
-		queued_jobs = set()
+	email_queue_batch = get_queue()
+	if not email_queue_batch:
+		return
 
-	for row in get_queue():
+	failed_email_queues = []
+	for row in email_queue_batch:
 		try:
-			job_name = f"email_queue_sendmail_{row.name}"
-			if job_name not in queued_jobs:
-				frappe.enqueue(
-					method=send_mail,
-					email_queue_name=row.name,
-					now=from_test,
-					job_name=job_name,
-					queue="short",
-				)
-			else:
-				frappe.logger().debug(f"Not queueing job {job_name} because it is in queue already")
+			send_mail(email_queue_name=row.name)
 		except Exception:
 			frappe.get_doc("Email Queue", row.name).log_error()
+			failed_email_queues.append(row.name)
+			if (
+				len(failed_email_queues) / len(email_queue_batch)
+				> EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_PERCENT
+				and len(failed_email_queues) > EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_COUNT
+			):
+				frappe.throw(_("Email Queue flushing aborted due to too many failures."))
 
 
 def get_queue():
