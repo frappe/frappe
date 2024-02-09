@@ -213,14 +213,13 @@
    "read_only": 1
   },
   {
-    "allow_in_quick_entry": 0,
-    "fieldname": "role_profile_name",
-    "fieldtype": "Link",
-    "label": "Role Profile",
-    "options": "Role Profile",
-    "permlevel": 1,
-    "hidden": 1
-   },
+   "fieldname": "role_profile_name",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Role Profile",
+   "options": "Role Profile",
+   "permlevel": 1
+  },
   {
    "fieldname": "roles_html",
    "fieldtype": "HTML",
@@ -772,7 +771,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-02-05 13:27:12.424675",
+ "modified": "2024-02-09 19:34:51.081079",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

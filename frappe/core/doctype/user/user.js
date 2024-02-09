@@ -28,10 +28,14 @@ frappe.ui.form.on("User", {
 	},
 
 	role_profiles: function (frm) {
-		if (frm.doc.role_profiles) {
+		if (frm.doc.role_profiles && frm.doc.role_profiles.length) {
+			frm.roles_editor.disable = 1;
 			frm.call("populate_role_profile_roles").then(() => {
 				frm.roles_editor.show();
 			});
+		} else {
+			frm.roles_editor.disable = 0;
+			frm.roles_editor.show();
 		}
 	},
 
@@ -74,7 +78,7 @@ frappe.ui.form.on("User", {
 				frm.roles_editor = new frappe.RoleEditor(
 					role_area,
 					frm,
-					frm.doc.role_profile_name ? 1 : 0
+					frm.doc.role_profiles && frm.doc.role_profiles.length ? 1 : 0
 				);
 
 				if (frm.doc.user_type == "System User") {
@@ -214,7 +218,8 @@ frappe.ui.form.on("User", {
 			frm.trigger("enabled");
 
 			if (frm.roles_editor && frm.can_edit_roles) {
-				frm.roles_editor.disable = frm.doc.role_profile_name ? 1 : 0;
+				frm.roles_editor.disable =
+					frm.doc.role_profiles && frm.doc.role_profiles.length ? 1 : 0;
 				frm.roles_editor.show();
 			}
 
