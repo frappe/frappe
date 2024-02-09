@@ -282,7 +282,12 @@ def download_private_file(path: str) -> Response:
 		raise Forbidden(_("You don't have permission to access this file"))
 
 	make_access_log(doctype="File", document=file.name, file_type=os.path.splitext(path)[-1][1:])
-	return send_private_file(path.split("/private", 1)[1])
+	response = send_private_file(path.split("/private", 1)[1])
+
+	if frappe.form_dict.hash:
+		response.cache_control.max_age = 31536000
+
+	return response
 
 
 def send_private_file(path: str) -> Response:

@@ -759,7 +759,10 @@ class File(Document):
 		from urllib.parse import urlencode
 
 		if self.is_private:
-			return self.file_url + "?" + urlencode({"fid": self.name})
+			params = {"fid": self.name}  # quickly idenify exact file by filename
+			if self.content_hash:
+				params["hash"] = self.content_hash  # for cache-eviction
+			return self.file_url + "?" + urlencode(params)
 		else:
 			return self.file_url
 
