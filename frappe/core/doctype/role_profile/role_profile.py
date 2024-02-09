@@ -30,20 +30,12 @@ class RoleProfile(Document):
 			"update_all_users",
 			now=frappe.flags.in_test or frappe.flags.in_install,
 			enqueue_after_commit=True,
+			queue="long",
 		)
 
 	def update_all_users(self):
 		"""Changes in role_profile reflected across all its user"""
-		users = frappe.get_list("User Role Profile", filters={"role_profile": self.name}, pluck="parent")
+		users = frappe.get_all("User Role Profile", filters={"role_profile": self.name}, pluck="parent")
 		for user in users:
-			role_profile_roles = []
 			user = frappe.get_doc("User", user)
-			for role_profile in user.role_profiles:
-				if self.name == role_profile.role_profile:
-					continue
-				profile = frappe.get_doc("Role Profile", role_profile.role_profile)
-				role_profile_roles.extend([role.role for role in profile.roles])
-			role_profile_roles.extend([role.role for role in self.roles])
-			role_profile_roles = list(set(role_profile_roles))
-			user.roles = []
-			user.add_roles(*role_profile_roles)
+			user.save()  # resaving syncs roles
