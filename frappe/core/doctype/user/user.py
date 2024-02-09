@@ -178,11 +178,11 @@ class User(Document):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
 	def populate_role_profile_roles(self):
-		roles = []
+		roles = set()
 		if self.role_profiles:
 			for role_profile in self.role_profiles:
-				role_profile = frappe.get_doc("Role Profile", role_profile.role_profile)
-				roles.extend([role.role for role in role_profile.roles])
+				role_profile = frappe.get_cached_doc("Role Profile", role_profile.role_profile)
+				roles.update(role.role for role in role_profile.roles)
 			self.set("roles", [])
 			self.append_roles(*roles)
 
@@ -612,7 +612,7 @@ class User(Document):
 
 	def append_roles(self, *roles):
 		"""Add roles to user"""
-		current_roles = [d.role for d in self.get("roles")]
+		current_roles = {d.role for d in self.get("roles")}
 		for role in roles:
 			if role in current_roles:
 				continue
