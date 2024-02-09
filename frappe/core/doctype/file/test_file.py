@@ -717,7 +717,7 @@ class TestAttachmentsAccess(FrappeTestCase):
 
 class TestFileUtils(FrappeTestCase):
 	def test_extract_images_from_doc(self):
-		is_private = not frappe.db.get_value("DocType", "ToDo", "make_attachments_public")
+		is_private = not frappe.get_meta("ToDo").make_attachments_public
 
 		# with filename in data URI
 		todo = frappe.get_doc(
