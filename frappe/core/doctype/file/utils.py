@@ -261,7 +261,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 			}
 		)
 		_file.save(ignore_permissions=True)
-		file_url = _file.file_url
+		file_url = _file.unique_url
 		frappe.flags.has_dataurl = True
 
 		return f'<img src="{file_url}"'
