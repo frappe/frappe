@@ -260,11 +260,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2021-10-12 17:52:41.167107",
-=======
  "modified": "2023-12-12 19:59:37.133301",
->>>>>>> a83b5b324b (feat(Print Format): switch from pure HTML to Jinja highlighting)
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

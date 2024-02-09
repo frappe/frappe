@@ -12,25 +12,6 @@ from frappe.website.utils import clear_cache
 
 
 class WebTemplate(Document):
-<<<<<<< HEAD
-=======
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
-
-	from typing import TYPE_CHECKING
-
-	if TYPE_CHECKING:
-		from frappe.types import DF
-		from frappe.website.doctype.web_template_field.web_template_field import WebTemplateField
-
-		fields: DF.Table[WebTemplateField]
-		module: DF.Link | None
-		standard: DF.Check
-		template: DF.Code | None
-		type: DF.Literal["Component", "Section", "Navbar", "Footer"]
-	# end: auto-generated types
-
->>>>>>> 468f3c6738 (feat(Web Template): switch from pure HTML to Jinja highlighting)
 	def validate(self):
 		if self.standard and not (frappe.conf.developer_mode or frappe.flags.in_patch):
 			frappe.throw(_("Enable developer mode to create a standard Web Template"))
