@@ -717,6 +717,8 @@ class TestAttachmentsAccess(FrappeTestCase):
 
 class TestFileUtils(FrappeTestCase):
 	def test_extract_images_from_doc(self):
+		is_private = not frappe.db.get_value("DocType", "ToDo", "make_attachments_public")
+
 		# with filename in data URI
 		todo = frappe.get_doc(
 			{
@@ -724,9 +726,9 @@ class TestFileUtils(FrappeTestCase):
 				"description": 'Test <img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">',
 			}
 		).insert()
-		self.assertTrue(frappe.db.exists("File", {"attached_to_name": todo.name}))
-		self.assertIn('<img src="/files/pix.png">', todo.description)
-		self.assertListEqual(get_attached_images("ToDo", [todo.name])[todo.name], ["/files/pix.png"])
+		self.assertTrue(frappe.db.exists("File", {"attached_to_name": todo.name, "is_private": is_private}))
+		self.assertIn('<img src="/private/files/pix.png">', todo.description)
+		self.assertListEqual(get_attached_images("ToDo", [todo.name])[todo.name], ["/private/files/pix.png"])
 
 		# without filename in data URI
 		todo = frappe.get_doc(
