@@ -752,6 +752,43 @@ class TestMiscUtils(FrappeTestCase):
 			self.assertEqual(output, expand_relative_urls(input))
 
 
+<<<<<<< HEAD
+=======
+class TestTypingValidations(FrappeTestCase):
+	ERR_REGEX = "^Argument '.*' should be of type '.*' but got '.*' instead.$"
+
+	def test_validate_whitelisted_api(self):
+		@frappe.whitelist()
+		def simple(string: str, number: int):
+			return
+
+		@frappe.whitelist()
+		def varkw(string: str, **kwargs):
+			return
+
+		test_cases = [
+			(simple, (object(), object()), {}),
+			(varkw, (object(),), {"xyz": object()}),
+		]
+
+		for fn, args, kwargs in test_cases:
+			with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+				fn(*args, **kwargs)
+
+	def test_validate_whitelisted_doc_method(self):
+		report = frappe.get_last_doc("Report")
+
+		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+			report.toggle_disable(["disable"])
+
+		current_value = report.disabled
+		changed_value = not current_value
+
+		report.toggle_disable(changed_value)
+		report.toggle_disable(current_value)
+
+
+>>>>>>> ef923e4cc9 (test: use known functions for testing)
 class TestTBSanitization(FrappeTestCase):
 	def test_traceback_sanitzation(self):
 		try:
