@@ -465,12 +465,10 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 
 	if exists:
 		last = frappe.db.sql(
-			"""SELECT `{fieldname}` FROM `tab{doctype}`
-			WHERE `{fieldname}` {regex_character} %s
+			f"""SELECT `{fieldname}` FROM `tab{doctype}`
+			WHERE `{fieldname}` {frappe.db.REGEX_CHARACTER} %s
 			ORDER BY length({fieldname}) DESC,
-			`{fieldname}` DESC LIMIT 1""".format(
-				doctype=doctype, fieldname=fieldname, regex_character=frappe.db.REGEX_CHARACTER
-			),
+			`{fieldname}` DESC LIMIT 1""",
 			regex,
 		)
 

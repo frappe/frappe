@@ -106,7 +106,7 @@ def take_backup_to_dropbox(retry_count=0, upload_db_backup=True):
 		if isinstance(error_log, str):
 			error_message = error_log + "\n" + frappe.get_traceback()
 		else:
-			file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log)]
+			file_and_error = [" - ".join(f) for f in zip(did_not_upload, error_log, strict=False)]
 			error_message = "\n".join(file_and_error) + "\n" + frappe.get_traceback()
 
 		send_email(False, "Dropbox", "Dropbox Settings", "send_notifications_to", error_message)

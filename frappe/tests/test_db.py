@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import datetime
-import inspect
 from math import ceil
 from random import choice
 from unittest.mock import patch
@@ -17,7 +16,7 @@ from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, cint, now, random_string, set_request
+from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.testutils import clear_custom_fields
 
 
@@ -437,7 +436,7 @@ class TestDB(FrappeTestCase):
 		frappe.db.MAX_WRITES_PER_TRANSACTION = 1
 		note = frappe.get_last_doc("ToDo")
 		note.description = "changed"
-		with self.assertRaises(frappe.TooManyWritesError) as tmw:
+		with self.assertRaises(frappe.TooManyWritesError):
 			note.save()
 
 		frappe.db.MAX_WRITES_PER_TRANSACTION = Database.MAX_WRITES_PER_TRANSACTION

@@ -1,8 +1,8 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
+import json
 import os
 from pathlib import Path
-import json
 
 STANDARD_INCLUSIONS = ["*.py"]
 

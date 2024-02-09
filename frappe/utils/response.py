@@ -205,7 +205,7 @@ def json_handler(obj):
 	from collections.abc import Iterable
 	from re import Match
 
-	if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
+	if isinstance(obj, datetime.date | datetime.datetime | datetime.time):
 		return str(obj)
 
 	elif isinstance(obj, datetime.timedelta):

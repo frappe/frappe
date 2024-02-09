@@ -46,7 +46,11 @@ from frappe.utils import (
 	validate_phone_number_with_country_code,
 	validate_url,
 )
-from frappe.utils.change_log import check_release_on_github, get_remote_url, parse_github_url
+from frappe.utils.change_log import (
+	check_release_on_github,
+	get_remote_url,
+	parse_github_url,
+)
 from frappe.utils.data import (
 	add_to_date,
 	add_years,
@@ -98,7 +102,8 @@ class TestFilters(FrappeTestCase):
 	def test_multiple_dict(self):
 		self.assertTrue(
 			evaluate_filters(
-				{"doctype": "User", "status": "Open", "name": "Test 1"}, {"status": "Open", "name": "Test 1"}
+				{"doctype": "User", "status": "Open", "name": "Test 1"},
+				{"status": "Open", "name": "Test 1"},
 			)
 		)
 		self.assertFalse(
@@ -139,12 +144,14 @@ class TestFilters(FrappeTestCase):
 	def test_lt_gt(self):
 		self.assertTrue(
 			evaluate_filters(
-				{"doctype": "User", "status": "Open", "age": 20}, {"status": "Open", "age": (">", 10)}
+				{"doctype": "User", "status": "Open", "age": 20},
+				{"status": "Open", "age": (">", 10)},
 			)
 		)
 		self.assertFalse(
 			evaluate_filters(
-				{"doctype": "User", "status": "Open", "age": 20}, {"status": "Open", "age": (">", 30)}
+				{"doctype": "User", "status": "Open", "age": 20},
+				{"status": "Open", "age": (">", 30)},
 			)
 		)
 
@@ -152,12 +159,14 @@ class TestFilters(FrappeTestCase):
 		# date fields
 		self.assertTrue(
 			evaluate_filters(
-				{"doctype": "User", "birth_date": "2023-02-28"}, [("User", "birth_date", ">", "01-04-2022")]
+				{"doctype": "User", "birth_date": "2023-02-28"},
+				[("User", "birth_date", ">", "01-04-2022")],
 			)
 		)
 		self.assertFalse(
 			evaluate_filters(
-				{"doctype": "User", "birth_date": "2023-02-28"}, [("User", "birth_date", "<", "28-02-2023")]
+				{"doctype": "User", "birth_date": "2023-02-28"},
+				[("User", "birth_date", "<", "28-02-2023")],
 			)
 		)
 
@@ -176,7 +185,12 @@ class TestFilters(FrappeTestCase):
 		)
 
 	def test_like_not_like(self):
-		doc = {"doctype": "User", "username": "test_abc", "prefix": "startswith", "suffix": "endswith"}
+		doc = {
+			"doctype": "User",
+			"username": "test_abc",
+			"prefix": "startswith",
+			"suffix": "endswith",
+		}
 
 		test_cases = [
 			([["username", "like", "test"]], True),
@@ -371,7 +385,11 @@ class TestValidationUtils(FrappeTestCase):
 		self.assertTrue(validate_url("ftp://frappe.cloud", valid_schemes=["https", "ftp"]))
 		self.assertFalse(validate_url("bolo://frappe.io", valid_schemes=("http", "https", "ftp", "ftps")))
 		self.assertRaises(
-			frappe.ValidationError, validate_url, "gopher://frappe.io", valid_schemes="https", throw=True
+			frappe.ValidationError,
+			validate_url,
+			"gopher://frappe.io",
+			valid_schemes="https",
+			throw=True,
 		)
 
 	def test_valid_email(self):
@@ -391,7 +409,12 @@ class TestValidationUtils(FrappeTestCase):
 		self.assertFalse(validate_email_address("test@example.com test2@example.com,undisclosed-recipient"))
 
 		# Invalid with throw
-		self.assertRaises(frappe.InvalidEmailAddressError, validate_email_address, "someone.com", throw=True)
+		self.assertRaises(
+			frappe.InvalidEmailAddressError,
+			validate_email_address,
+			"someone.com",
+			throw=True,
+		)
 
 		self.assertEqual(validate_email_address("Some%20One@frappe.com"), "Some%20One@frappe.com")
 		self.assertEqual(
@@ -425,7 +448,8 @@ class TestImage(FrappeTestCase):
 	def test_strip_exif_data(self):
 		original_image = Image.open(frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"))
 		original_image_content = open(
-			frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"), mode="rb"
+			frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"),
+			mode="rb",
 		).read()
 
 		new_image_content = strip_exif_data(original_image_content, "image/jpeg")
@@ -522,19 +546,33 @@ class TestDateUtils(FrappeTestCase):
 		# Monday as start of the week
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
 			self.assertEqual(
-				frappe.utils.get_first_day_of_week("2020-12-25"), frappe.utils.getdate("2020-12-21")
+				frappe.utils.get_first_day_of_week("2020-12-25"),
+				frappe.utils.getdate("2020-12-21"),
 			)
 			self.assertEqual(
-				frappe.utils.get_first_day_of_week("2020-12-20"), frappe.utils.getdate("2020-12-14")
+				frappe.utils.get_first_day_of_week("2020-12-20"),
+				frappe.utils.getdate("2020-12-14"),
 			)
 
 		# Sunday as start of the week
-		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-25"), frappe.utils.getdate("2020-12-20"))
-		self.assertEqual(frappe.utils.get_first_day_of_week("2020-12-21"), frappe.utils.getdate("2020-12-20"))
+		self.assertEqual(
+			frappe.utils.get_first_day_of_week("2020-12-25"),
+			frappe.utils.getdate("2020-12-20"),
+		)
+		self.assertEqual(
+			frappe.utils.get_first_day_of_week("2020-12-21"),
+			frappe.utils.getdate("2020-12-20"),
+		)
 
 	def test_last_day_of_week(self):
-		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-24"), frappe.utils.getdate("2020-12-26"))
-		self.assertEqual(frappe.utils.get_last_day_of_week("2020-12-28"), frappe.utils.getdate("2021-01-02"))
+		self.assertEqual(
+			frappe.utils.get_last_day_of_week("2020-12-24"),
+			frappe.utils.getdate("2020-12-26"),
+		)
+		self.assertEqual(
+			frappe.utils.get_last_day_of_week("2020-12-28"),
+			frappe.utils.getdate("2021-01-02"),
+		)
 
 	def test_is_last_day_of_the_month(self):
 		self.assertEqual(frappe.utils.is_last_day_of_the_month("2020-12-24"), False)
@@ -674,7 +712,14 @@ class TestResponse(FrappeTestCase):
 			"time_types": [
 				date(year=2020, month=12, day=2),
 				datetime(
-					year=2020, month=12, day=2, hour=23, minute=23, second=23, microsecond=23, tzinfo=pytz.utc
+					year=2020,
+					month=12,
+					day=2,
+					hour=23,
+					minute=23,
+					second=23,
+					microsecond=23,
+					tzinfo=pytz.utc,
 				),
 				time(hour=23, minute=23, second=23, microsecond=23, tzinfo=pytz.utc),
 				timedelta(days=10, hours=12, minutes=120, seconds=10),
@@ -699,7 +744,7 @@ class TestResponse(FrappeTestCase):
 
 		self.assertTrue(all([isinstance(x, str) for x in processed_object["time_types"]]))
 		self.assertTrue(all([isinstance(x, float) for x in processed_object["float"]]))
-		self.assertTrue(all([isinstance(x, (list, str)) for x in processed_object["iter"]]))
+		self.assertTrue(all([isinstance(x, list | str) for x in processed_object["iter"]]))
 		self.assertIsInstance(processed_object["string"], str)
 		with self.assertRaises(TypeError):
 			json.dumps(BAD_OBJECT, default=json_handler)
@@ -711,13 +756,17 @@ class TestTimeDeltaUtils(FrappeTestCase):
 		self.assertEqual(format_timedelta(timedelta(hours=10)), "10:00:00")
 		self.assertEqual(format_timedelta(timedelta(hours=100)), "100:00:00")
 		self.assertEqual(format_timedelta(timedelta(seconds=100, microseconds=129)), "0:01:40.000129")
-		self.assertEqual(format_timedelta(timedelta(seconds=100, microseconds=12212199129)), "3:25:12.199129")
+		self.assertEqual(
+			format_timedelta(timedelta(seconds=100, microseconds=12212199129)),
+			"3:25:12.199129",
+		)
 
 	def test_parse_timedelta(self):
 		self.assertEqual(parse_timedelta("0:0:0"), timedelta(seconds=0))
 		self.assertEqual(parse_timedelta("10:0:0"), timedelta(hours=10))
 		self.assertEqual(
-			parse_timedelta("7 days, 0:32:18.192221"), timedelta(days=7, seconds=1938, microseconds=192221)
+			parse_timedelta("7 days, 0:32:18.192221"),
+			timedelta(days=7, seconds=1938, microseconds=192221),
 		)
 		self.assertEqual(parse_timedelta("7 days, 0:32:18"), timedelta(days=7, seconds=1938))
 
@@ -982,16 +1031,25 @@ class TestMiscUtils(FrappeTestCase):
 
 
 class TestTypingValidations(FrappeTestCase):
-	ERR_REGEX = f"^Argument '.*' should be of type '.*' but got '.*' instead.$"
+	ERR_REGEX = "^Argument '.*' should be of type '.*' but got '.*' instead.$"
 
 	def test_validate_whitelisted_api(self):
-		from inspect import signature
+		@frappe.whitelist()
+		def simple(string: str, number: int):
+			return
 
-		whitelisted_fn = next(x for x in frappe.whitelisted if x.__annotations__)
-		bad_params = (object(),) * len(signature(whitelisted_fn).parameters)
+		@frappe.whitelist()
+		def varkw(string: str, **kwargs):
+			return
 
-		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
-			whitelisted_fn(*bad_params)
+		test_cases = [
+			(simple, (object(), object()), {}),
+			(varkw, (object(),), {"xyz": object()}),
+		]
+
+		for fn, args, kwargs in test_cases:
+			with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+				fn(*args, **kwargs)
 
 	def test_validate_whitelisted_doc_method(self):
 		report = frappe.get_last_doc("Report")
@@ -1009,9 +1067,9 @@ class TestTypingValidations(FrappeTestCase):
 class TestTBSanitization(FrappeTestCase):
 	def test_traceback_sanitzation(self):
 		try:
-			password = "42"
-			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
-			args = frappe._dict({"password": "42", "pwd": "42", "safe": "safe_value"})
+			password = "42"  # noqa: F841
+			args = {"password": "42", "pwd": "42", "safe": "safe_value"}  # noqa: F841
+			args = frappe._dict({"password": "42", "pwd": "42", "safe": "safe_value"})  # noqa: F841
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)
@@ -1100,7 +1158,10 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(3.35, 1, rounding_method=rounding_method), 3.4)
 
 	@change_settings("System Settings", {"rounding_method": "Commercial Rounding"})
-	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
+	@given(
+		st.decimals(min_value=-1e8, max_value=1e8),
+		st.integers(min_value=-2, max_value=4),
+	)
 	def test_normal_rounding_property(self, number, precision):
 		with localcontext() as ctx:
 			ctx.rounding = ROUND_HALF_UP
@@ -1165,7 +1226,10 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(flt(-3.35, 1, rounding_method=rounding_method), -3.4)
 
 	@change_settings("System Settings", {"rounding_method": "Banker's Rounding"})
-	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
+	@given(
+		st.decimals(min_value=-1e8, max_value=1e8),
+		st.integers(min_value=-2, max_value=4),
+	)
 	def test_bankers_rounding_property(self, number, precision):
 		self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
 
@@ -1173,10 +1237,13 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(frappe.get_system_settings("rounding_method"), "Banker's Rounding")
 
 
-class TestTypingValidations(FrappeTestCase):
+class TestArgumentTypingValidations(FrappeTestCase):
 	def test_validate_argument_types(self):
 		from frappe.core.doctype.doctype.doctype import DocType
-		from frappe.utils.typing_validations import FrappeTypeError, validate_argument_types
+		from frappe.utils.typing_validations import (
+			FrappeTypeError,
+			validate_argument_types,
+		)
 
 		@validate_argument_types
 		def test_simple_types(a: int, b: float, c: bool):

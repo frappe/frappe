@@ -489,7 +489,7 @@ class LDAP_TestCase:
 	@mock_ldap_connection
 	def test_get_ldap_attributes(self):
 		method_return = self.test_class.get_ldap_attributes()
-		self.assertTrue(type(method_return) is list)
+		self.assertTrue(isinstance(method_return, list))
 
 	@mock_ldap_connection
 	def test_fetch_ldap_groups(self):
@@ -599,7 +599,7 @@ class LDAP_TestCase:
 		test_ldap_entry = self.connection.entries[0]
 		method_return = self.test_class.convert_ldap_entry_to_dict(test_ldap_entry)
 
-		self.assertTrue(type(method_return) is dict)  # must be dict
+		self.assertTrue(isinstance(method_return, dict))  # must be dict
 		self.assertTrue(len(method_return) == 6)  # there are 6 fields in mock_ldap for use
 
 

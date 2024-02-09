@@ -286,9 +286,9 @@ def get_communication_data(
 	conditions = ""
 	if after:
 		# find after a particular date
-		conditions += """
-			AND C.creation > {}
-		""".format(after)
+		conditions += f"""
+			AND C.creation > {after}
+		"""
 
 	if doctype == "User":
 		conditions += """
@@ -296,23 +296,23 @@ def get_communication_data(
 		"""
 
 	# communications linked to reference_doctype
-	part1 = """
+	part1 = f"""
 		SELECT {fields}
 		FROM `tabCommunication` as C
 		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
-	""".format(fields=fields, conditions=conditions)
+	"""
 
 	# communications linked in Timeline Links
-	part2 = """
+	part2 = f"""
 		SELECT {fields}
 		FROM `tabCommunication` as C
 		INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
 		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
-	""".format(fields=fields, conditions=conditions)
+	"""
 
 	return frappe.db.sql(
 		"""

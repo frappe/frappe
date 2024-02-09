@@ -214,7 +214,7 @@ def get_references_across_doctypes(
 	for k, v in references_by_dlink_fields.items():
 		references.setdefault(k, []).extend(v)
 
-	for doctype, links in references.items():
+	for links in references.values():
 		for link in links:
 			link["is_child"] = link["doctype"] in all_child_tables
 	return references

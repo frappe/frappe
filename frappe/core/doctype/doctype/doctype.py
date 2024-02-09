@@ -1363,11 +1363,9 @@ def validate_fields(meta):
 
 			if not d.get("__islocal") and frappe.db.has_column(d.parent, d.fieldname):
 				has_non_unique_values = frappe.db.sql(
-					"""select `{fieldname}`, count(*)
-					from `tab{doctype}` where ifnull(`{fieldname}`, '') != ''
-					group by `{fieldname}` having count(*) > 1 limit 1""".format(
-						doctype=d.parent, fieldname=d.fieldname
-					)
+					f"""select `{d.fieldname}`, count(*)
+					from `tab{d.parent}` where ifnull(`{d.fieldname}`, '') != ''
+					group by `{d.fieldname}` having count(*) > 1 limit 1"""
 				)
 
 				if has_non_unique_values and has_non_unique_values[0][0]:
@@ -1541,7 +1539,7 @@ def validate_fields(meta):
 			field.options = "\n".join(options_list)
 
 	def scrub_fetch_from(field):
-		if hasattr(field, "fetch_from") and getattr(field, "fetch_from"):
+		if hasattr(field, "fetch_from") and field.fetch_from:
 			field.fetch_from = field.fetch_from.strip("\n").strip()
 
 	def validate_data_field_type(docfield):
@@ -1826,7 +1824,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 				r.desk_access = 1
 				r.flags.ignore_mandatory = r.flags.ignore_permissions = True
 				r.insert()
-	except frappe.DoesNotExistError as e:
+	except frappe.DoesNotExistError:
 		pass
 	except frappe.db.ProgrammingError as e:
 		if frappe.db.is_table_missing(e):

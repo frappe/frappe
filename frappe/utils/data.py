@@ -11,7 +11,7 @@ import time
 import typing
 from code import compile_command
 from enum import Enum
-from typing import Any, Literal, Optional, TypeVar, Union
+from typing import Any, Literal, Optional, TypeVar
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
 import pytz
@@ -23,8 +23,8 @@ from dateutil.relativedelta import relativedelta
 import frappe
 from frappe.desk.utils import slug
 
-DateTimeLikeObject = Union[str, datetime.date, datetime.datetime]
-NumericType = Union[int, float]
+DateTimeLikeObject = str | datetime.date | datetime.datetime
+NumericType = int | float
 TimespanOptions = Literal[
 	"last week",
 	"last month",
@@ -142,10 +142,10 @@ def get_datetime(
 	if datetime_str is None:
 		return now_datetime()
 
-	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
+	if isinstance(datetime_str, datetime.datetime | datetime.timedelta):
 		return datetime_str
 
-	elif isinstance(datetime_str, (list, tuple)):
+	elif isinstance(datetime_str, list | tuple):
 		return datetime.datetime(datetime_str)
 
 	elif isinstance(datetime_str, datetime.date):
@@ -1316,7 +1316,7 @@ def encode(obj, encoding="utf-8"):
 
 def parse_val(v):
 	"""Convert to simple datatypes from SQL query results."""
-	if isinstance(v, (datetime.date, datetime.datetime)):
+	if isinstance(v, datetime.date | datetime.datetime):
 		v = str(v)
 	elif isinstance(v, datetime.timedelta):
 		v = ":".join(str(v).split(":")[:2])
@@ -1690,7 +1690,7 @@ def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:
 
 	e.g. if `some_list` is ['a', 'b', 'c'] and `pattern` is '{0} or {1}', the output will be 'a, b or c'
 	"""
-	if isinstance(some_list, (list, tuple)):
+	if isinstance(some_list, list | tuple):
 		# list(some_list) is done to preserve the existing list
 		some_list = [str(s) for s in list(some_list)]
 		if not some_list:
@@ -1709,7 +1709,7 @@ def new_line_sep(some_list: list | tuple) -> str:
 
 	e.g. ['', 'Paid', 'Unpaid'] -> '\n Paid\n Unpaid'
 	"""
-	if isinstance(some_list, (list, tuple)):
+	if isinstance(some_list, list | tuple):
 		# list(some_list) is done to preserve the existing list
 		some_list = [str(s) for s in list(some_list)]
 		if not some_list:
@@ -1947,7 +1947,7 @@ def evaluate_filters(doc, filters: dict | list | tuple):
 			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 				return False
 
-	elif isinstance(filters, (list, tuple)):
+	elif isinstance(filters, list | tuple):
 		for d in filters:
 			f = get_filter(None, d)
 			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
@@ -1984,7 +1984,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 		key, value = next(iter(f.items()))
 		f = make_filter_tuple(doctype, key, value)
 
-	if not isinstance(f, (list, tuple)):
+	if not isinstance(f, list | tuple):
 		frappe.throw(frappe._("Filter must be a tuple or list (in a list)"))
 
 	if len(f) == 3:
@@ -2051,7 +2051,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 
 def make_filter_tuple(doctype, key, value):
 	"""return a filter tuple like [doctype, key, operator, value]"""
-	if isinstance(value, (list, tuple)):
+	if isinstance(value, list | tuple):
 		return [doctype, key, value[0], value[1]]
 	else:
 		return [doctype, key, "=", value]

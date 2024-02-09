@@ -602,10 +602,9 @@ class User(Document):
 			has_fields = [d.get("name") for d in desc if d.get("name") in ["owner", "modified_by"]]
 			for field in has_fields:
 				frappe.db.sql(
-					"""UPDATE `%s`
-                    SET `%s` = %s
-                    WHERE `%s` = %s"""
-					% (tab, field, "%s", field, "%s"),
+					"""UPDATE `{}`
+					SET `{}` = {}
+					WHERE `{}` = {}""".format(tab, field, "%s", field, "%s"),
 					(new_name, old_name),
 				)
 
@@ -648,7 +647,7 @@ class User(Document):
 
 	def ensure_unique_roles(self):
 		exists = []
-		for i, d in enumerate(self.get("roles")):
+		for d in self.get("roles"):
 			if (not d.role) or (d.role in exists):
 				self.get("roles").remove(d)
 			else:
@@ -909,6 +908,7 @@ def test_password_strength(new_password: str, key=None, old_password=None, user_
 			password_policy_validation_passed = True
 
 		result["feedback"]["password_policy_validation_passed"] = password_policy_validation_passed
+		result.pop("password", None)
 		return result
 
 

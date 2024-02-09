@@ -350,9 +350,7 @@ def get_worker_name(queue):
 
 	if queue:
 		# hostname.pid is the default worker name
-		name = "{uuid}.{hostname}.{pid}.{queue}".format(
-			uuid=uuid4().hex, hostname=socket.gethostname(), pid=os.getpid(), queue=queue
-		)
+		name = f"{uuid4().hex}.{socket.gethostname()}.{os.getpid()}.{queue}"
 
 	return name
 
