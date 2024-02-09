@@ -3,7 +3,7 @@ from frappe.model.document import bulk_insert
 
 
 def execute():
-	users = frappe.get_list(
+	users = frappe.get_all(
 		"User", filters={"role_profile_name": ["is", "set"]}, fields=["name", "role_profile_name"]
 	)
 	user_profiles = get_records_to_insert(users)
