@@ -758,7 +758,10 @@ class File(Document):
 		"""Unique URL contains file ID in URL to speed up permisison checks."""
 		from urllib.parse import urlencode
 
-		return self.file_url + "?" + urlencode({"fid": self.name})
+		if self.is_private:
+			return self.file_url + "?" + urlencode({"fid": self.name})
+		else:
+			return self.file_url
 
 	@staticmethod
 	def zip_files(files):
