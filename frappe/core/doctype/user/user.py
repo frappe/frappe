@@ -31,7 +31,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-from frappe.utils.deprecations import deprecated
+from frappe.utils.deprecations import deprecated, deprecation_warning
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
@@ -191,26 +191,22 @@ class User(Document):
 		self.populate_role_profile_roles()
 
 	def move_role_profile_name_to_role_profiles(self):
-		if not self.role_profile_name or any(
-			(profile.role_profile == self.role_profile_name) for profile in self.role_profiles
-		):
+		"""This handles old role_profile_name field if programatically set.
+
+		This behaviour will be remoed in future versions."""
+		if not self.role_profile_name:
 			return
-		profile_exists = frappe.db.exists(
-			"User Role Profile",
-			{"parent": self.name, "role_profile": self.role_profile_name, "parenttype": "User"},
+
+		current_role_profiles = [r.role_profile for r in self.role_profiles]
+		if self.role_profile_name in current_role_profiles:
+			self.role_profile_name = None
+			return
+
+		deprecation_warning(
+			"The field `role_profile_name` is deprecated and will be removed in v16, use `role_profiles` child table instead."
 		)
-		if not profile_exists:
-			user_role_profile = frappe.get_doc(
-				{
-					"doctype": "User Role Profile",
-					"role_profile": self.role_profile_name,
-					"parent": self.name,
-					"parenttype": "User",
-					"parentfield": "role_profiles",
-				}
-			)
-			user_role_profile.save(ignore_permissions=True)
-			self.role_profiles.append(user_role_profile)
+		self.append("role_profiles", {"role_profile": self.role_profile_name})
+		self.role_profile_name = None
 
 	def validate_allowed_modules(self):
 		if self.module_profile:

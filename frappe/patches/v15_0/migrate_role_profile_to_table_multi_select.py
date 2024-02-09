@@ -8,6 +8,7 @@ def execute():
 	)
 	user_profiles = get_records_to_insert(users)
 	bulk_insert("User Role Profile", user_profiles, ignore_duplicates=True)
+	frappe.db.set_value("User", {}, "role_profile_name", None)
 
 
 def get_records_to_insert(users):
