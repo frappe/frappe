@@ -26,6 +26,7 @@
   "roles_permissions_tab",
   "sb1",
   "role_profile_name",
+  "role_profiles",
   "roles_html",
   "roles",
   "sb_allow_modules",
@@ -212,9 +213,9 @@
    "read_only": 1
   },
   {
-   "allow_in_quick_entry": 1,
    "fieldname": "role_profile_name",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Role Profile",
    "options": "Role Profile",
    "permlevel": 1
@@ -700,6 +701,14 @@
    "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Onboarding Status"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "role_profiles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Role Profiles",
+   "options": "User Role Profile",
+   "permlevel": 1
   }
  ],
  "icon": "fa fa-user",
@@ -762,7 +771,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2023-09-18 22:19:49.933972",
+ "modified": "2024-02-09 19:34:51.081079",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
