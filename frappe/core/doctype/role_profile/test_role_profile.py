@@ -9,7 +9,7 @@ test_dependencies = ["Role"]
 class TestRoleProfile(FrappeTestCase):
 	def test_make_new_role_profiles(self):
 		frappe.delete_doc_if_exists("Role Profile", "Test 1", force=1)
-		new_role_profile = frappe.get_doc(dict(doctype="Role Profile", role_profile="Test 1")).insert()
+		new_role_profile = frappe.get_doc(doctype="Role Profile", role_profile="Test 1").insert()
 
 		self.assertEqual(new_role_profile.role_profile, "Test 1")
 
@@ -52,20 +52,20 @@ class TestRoleProfile(FrappeTestCase):
 		frappe.delete_doc_if_exists("Role Profile", "_Test Role Profile 1", force=1)
 		frappe.delete_doc_if_exists("Role Profile", "_Test Role Profile 2", force=1)
 
-		role_profile_one = frappe.get_doc(
-			dict(doctype="Role Profile", role_profile="_Test Role Profile 1")
-		).insert(ignore_if_duplicate=True)
-		role_profile_two = frappe.get_doc(
-			dict(doctype="Role Profile", role_profile="_Test Role Profile 2")
-		).insert(ignore_if_duplicate=True)
+		role_profile_one = frappe.get_doc(doctype="Role Profile", role_profile="_Test Role Profile 1").insert(
+			ignore_if_duplicate=True
+		)
+		role_profile_two = frappe.get_doc(doctype="Role Profile", role_profile="_Test Role Profile 2").insert(
+			ignore_if_duplicate=True
+		)
 
 		self.assertEqual(role_profile_one.role_profile, "_Test Role Profile 1")
 		self.assertEqual(role_profile_two.role_profile, "_Test Role Profile 2")
 
 		# Create new role for test
-		frappe.get_doc(dict(doctype="Role", role_name="_Test Role 1")).insert(ignore_if_duplicate=True)
-		frappe.get_doc(dict(doctype="Role", role_name="_Test Role 2")).insert(ignore_if_duplicate=True)
-		frappe.get_doc(dict(doctype="Role", role_name="_Test Role 3")).insert(ignore_if_duplicate=True)
+		frappe.get_doc(doctype="Role", role_name="_Test Role 1").insert(ignore_if_duplicate=True)
+		frappe.get_doc(doctype="Role", role_name="_Test Role 2").insert(ignore_if_duplicate=True)
+		frappe.get_doc(doctype="Role", role_name="_Test Role 3").insert(ignore_if_duplicate=True)
 		# add role
 		role_profile_one.update({"roles": [{"role": "_Test Role 1"}, {"role": "_Test Role 2"}]})
 		role_profile_one.save()

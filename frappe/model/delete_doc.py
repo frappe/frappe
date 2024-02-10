@@ -164,13 +164,11 @@ def add_to_deleted_document(doc):
 	"""Add this document to Deleted Document table. Called after delete"""
 	if doc.doctype != "Deleted Document" and frappe.flags.in_install != "frappe":
 		frappe.get_doc(
-			dict(
-				doctype="Deleted Document",
-				deleted_doctype=doc.doctype,
-				deleted_name=doc.name,
-				data=doc.as_json(),
-				owner=frappe.session.user,
-			)
+			doctype="Deleted Document",
+			deleted_doctype=doc.doctype,
+			deleted_name=doc.name,
+			data=doc.as_json(),
+			owner=frappe.session.user,
 		).db_insert()
 
 

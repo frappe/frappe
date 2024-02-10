@@ -34,7 +34,7 @@ class TestUser(FrappeTestCase):
 
 	def test_user_type(self):
 		new_user = frappe.get_doc(
-			dict(doctype="User", email="test-for-type@example.com", first_name="Tester")
+			doctype="User", email="test-for-type@example.com", first_name="Tester"
 		).insert(ignore_if_duplicate=True)
 		self.assertEqual(new_user.user_type, "Website User")
 
@@ -151,7 +151,7 @@ class TestUser(FrappeTestCase):
 
 	def test_delete_user(self):
 		new_user = frappe.get_doc(
-			dict(doctype="User", email="test-for-delete@example.com", first_name="Tester Delete User")
+			doctype="User", email="test-for-delete@example.com", first_name="Tester Delete User"
 		).insert(ignore_if_duplicate=True)
 		self.assertEqual(new_user.user_type, "Website User")
 

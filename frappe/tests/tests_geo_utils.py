@@ -9,7 +9,7 @@ from frappe.tests.utils import FrappeTestCase
 class TestGeoUtils(FrappeTestCase):
 	def setUp(self):
 		self.todo = frappe.get_doc(
-			dict(doctype="ToDo", description="Test description", assigned_by="Administrator")
+			doctype="ToDo", description="Test description", assigned_by="Administrator"
 		).insert()
 
 		self.test_location_dict = {

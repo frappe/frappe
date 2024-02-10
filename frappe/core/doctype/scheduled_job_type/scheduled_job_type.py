@@ -149,7 +149,7 @@ class ScheduledJobType(Document):
 			return
 		if not self.scheduler_log:
 			self.scheduler_log = frappe.get_doc(
-				dict(doctype="Scheduled Job Log", scheduled_job_type=self.name)
+				doctype="Scheduled Job Log", scheduled_job_type=self.name
 			).insert(ignore_permissions=True)
 		self.scheduler_log.db_set("status", status)
 		if frappe.debug_log:

@@ -79,7 +79,7 @@ class Domain(Document):
 			for role_name in self.data.restricted_roles:
 				user.append("roles", {"role": role_name})
 				if not frappe.db.get_value("Role", role_name):
-					frappe.get_doc(dict(doctype="Role", role_name=role_name)).insert()
+					frappe.get_doc(doctype="Role", role_name=role_name).insert()
 					continue
 
 				role = frappe.get_doc("Role", role_name)
