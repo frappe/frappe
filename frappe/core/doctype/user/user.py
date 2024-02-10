@@ -178,13 +178,17 @@ class User(Document):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
 	def populate_role_profile_roles(self):
-		roles = set()
-		if self.role_profiles:
-			for role_profile in self.role_profiles:
-				role_profile = frappe.get_cached_doc("Role Profile", role_profile.role_profile)
-				roles.update(role.role for role in role_profile.roles)
-			self.set("roles", [])
-			self.append_roles(*roles)
+		if not self.role_profiles:
+			return
+
+		new_roles = set()
+		for role_profile in self.role_profiles:
+			role_profile = frappe.get_cached_doc("Role Profile", role_profile.role_profile)
+			new_roles.update(role.role for role in role_profile.roles)
+
+		# Remove invalid roles and add new ones
+		self.roles = [r for r in self.roles if r.role in new_roles]
+		self.append_roles(*new_roles)
 
 	@deprecated
 	def validate_roles(self):
