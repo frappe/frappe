@@ -163,6 +163,7 @@ class User(Document):
 		self.set_full_name()
 		self.check_enable_disable()
 		self.ensure_unique_roles()
+		self.ensure_unique_role_profiles()
 		self.remove_all_roles_for_guest()
 		self.validate_username()
 		self.remove_disabled_roles()
@@ -646,12 +647,18 @@ class User(Document):
 				self.get("roles").remove(role)
 
 	def ensure_unique_roles(self):
-		exists = []
-		for d in self.get("roles"):
+		exists = set()
+		for d in list(self.roles):
 			if (not d.role) or (d.role in exists):
-				self.get("roles").remove(d)
-			else:
-				exists.append(d.role)
+				self.roles.remove(d)
+			exists.add(d.role)
+
+	def ensure_unique_role_profiles(self):
+		seen = set()
+		for rp in list(self.role_profiles):
+			if rp.role_profile in seen:
+				self.role_profiles.remove(rp)
+			seen.add(rp.role_profile)
 
 	def validate_username(self):
 		if not self.username and self.is_new() and self.first_name:
