@@ -29,19 +29,8 @@ frappe.ui.form.on("User", {
 
 	role_profiles: function (frm) {
 		if (frm.doc.role_profiles) {
-			frappe.call({
-				method: "frappe.core.doctype.user.user.get_role_profiles",
-				args: {
-					role_profiles: frm.doc.role_profiles,
-				},
-				callback: function (data) {
-					frm.set_value("roles", []);
-					$.each(data.message || [], function (i, v) {
-						var d = frm.add_child("roles");
-						d.role = v.role;
-					});
-					frm.roles_editor.show();
-				},
+			frm.call("populate_role_profile_roles").then(() => {
+				frm.roles_editor.show();
 			});
 		}
 	},

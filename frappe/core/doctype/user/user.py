@@ -178,6 +178,7 @@ class User(Document):
 		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
+	@frappe.whitelist()
 	def populate_role_profile_roles(self):
 		if not self.role_profiles:
 			return
@@ -1222,16 +1223,6 @@ def throttle_user_creation():
 
 	if frappe.db.get_creation_count("User", 60) > frappe.local.conf.get("throttle_user_limit", 60):
 		frappe.throw(_("Throttled"))
-
-
-@frappe.whitelist()
-def get_role_profiles(role_profiles):
-	profiles = json.loads(role_profiles)
-	roles = []
-	for profile in profiles:
-		role = frappe.get_doc("Role Profile", {"role_profile": profile.get("role_profile")}).roles
-		roles.extend(role)
-	return roles
 
 
 @frappe.whitelist()
