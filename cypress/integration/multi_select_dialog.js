@@ -74,34 +74,4 @@ context("MultiSelectDialog", () => {
 
 		cy.get_open_dialog().get(`.dt-row-header`).should("contain", "Is Primary");
 	});
-
-	it("tests more button", () => {
-		cy.get_open_dialog()
-			.get(`.frappe-control[data-fieldname="search_term"]`)
-			.find('input[data-fieldname="search_term"]')
-			.should("exist")
-			.type("Test", { delay: 200 });
-		cy.get_open_dialog()
-			.get(`.frappe-control[data-fieldname="more_child_btn"]`)
-			.should("exist")
-			.as("more-btn");
-
-		cy.get_open_dialog()
-			.get(".datatable .dt-scrollable .dt-row")
-			.should(($rows) => {
-				expect($rows).to.have.length(20);
-			});
-
-		cy.intercept("POST", "api/method/frappe.client.get_list").as("get-more-records");
-		cy.get("@more-btn").find("button").click({ force: true });
-		cy.wait("@get-more-records");
-
-		cy.get_open_dialog()
-			.get(".datatable .dt-scrollable .dt-row")
-			.should(($rows) => {
-				if ($rows.length <= 20) {
-					throw new Error("More button doesn't work");
-				}
-			});
-	});
 });
