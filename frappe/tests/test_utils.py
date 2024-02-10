@@ -63,6 +63,7 @@ from frappe.utils.data import (
 	get_time,
 	get_timedelta,
 	get_timespan_date_range,
+	get_url_to_form,
 	get_year_ending,
 	getdate,
 	now_datetime,
@@ -1009,6 +1010,10 @@ class TestMiscUtils(FrappeTestCase):
 		self.assertIn("frappe", installed_apps)
 		self.assertGreaterEqual(len(info["users"]), 1)
 
+	def test_get_url_to_form(self):
+		self.assertTrue(get_url_to_form("System Settings").endswith("/app/system-settings"))
+		self.assertTrue(get_url_to_form("User", "Test User").endswith("/app/user/Test%20User"))
+
 	def test_safe_json_load(self):
 		self.assertEqual(safe_json_loads("{}"), {})
 		self.assertEqual(safe_json_loads("{ /}"), "{ /}")
@@ -1034,13 +1039,22 @@ class TestTypingValidations(FrappeTestCase):
 	ERR_REGEX = "^Argument '.*' should be of type '.*' but got '.*' instead.$"
 
 	def test_validate_whitelisted_api(self):
-		from inspect import signature
+		@frappe.whitelist()
+		def simple(string: str, number: int):
+			return
 
-		whitelisted_fn = next(x for x in frappe.whitelisted if x.__annotations__)
-		bad_params = (object(),) * len(signature(whitelisted_fn).parameters)
+		@frappe.whitelist()
+		def varkw(string: str, **kwargs):
+			return
 
-		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
-			whitelisted_fn(*bad_params)
+		test_cases = [
+			(simple, (object(), object()), {}),
+			(varkw, (object(),), {"xyz": object()}),
+		]
+
+		for fn, args, kwargs in test_cases:
+			with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+				fn(*args, **kwargs)
 
 	def test_validate_whitelisted_doc_method(self):
 		report = frappe.get_last_doc("Report")

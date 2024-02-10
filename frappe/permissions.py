@@ -564,16 +564,14 @@ def add_user_permission(
 			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
 
 		frappe.get_doc(
-			dict(
-				doctype="User Permission",
-				user=user,
-				allow=doctype,
-				for_value=name,
-				is_default=is_default,
-				applicable_for=applicable_for,
-				apply_to_all_doctypes=0 if applicable_for else 1,
-				hide_descendants=hide_descendants,
-			)
+			doctype="User Permission",
+			user=user,
+			allow=doctype,
+			for_value=name,
+			is_default=is_default,
+			applicable_for=applicable_for,
+			apply_to_all_doctypes=0 if applicable_for else 1,
+			hide_descendants=hide_descendants,
 		).insert(ignore_permissions=ignore_permissions)
 
 

@@ -116,12 +116,10 @@ class PackageRelease(Document):
 
 		# make attachment
 		file = frappe.get_doc(
-			dict(
-				doctype="File",
-				file_url="/" + os.path.join("files", filename),
-				attached_to_doctype=self.doctype,
-				attached_to_name=self.name,
-			)
+			doctype="File",
+			file_url="/" + os.path.join("files", filename),
+			attached_to_doctype=self.doctype,
+			attached_to_name=self.name,
 		)
 
 		file.flags.ignore_duplicate_entry_error = True
