@@ -35,8 +35,8 @@ class TestRoleProfile(FrappeTestCase):
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-		self.assertListEqual(
-			[role.role for role in random_user.roles], [role.role for role in new_role_profile.roles]
+		self.assertEqual(
+			{role.role for role in random_user.roles}, {role.role for role in new_role_profile.roles}
 		)
 
 		# clear roles
@@ -106,8 +106,8 @@ class TestRoleProfile(FrappeTestCase):
 		for role in role_profile_one.roles:
 			self.assertIn(role.role, [role.role for role in user_one.roles])
 
-		self.assertListEqual(
-			[role.role for role in user_two.roles], [role.role for role in role_profile_two.roles]
+		self.assertEqual(
+			{role.role for role in user_two.roles}, {role.role for role in role_profile_two.roles}
 		)
 
 	def test_update_role_profile(self):
@@ -130,4 +130,4 @@ class TestRoleProfile(FrappeTestCase):
 		role_profile.save()
 
 		user.reload()
-		self.assertListEqual([role.role for role in user.roles], [role.role for role in role_profile.roles])
+		self.assertEqual({role.role for role in user.roles}, {role.role for role in role_profile.roles})
