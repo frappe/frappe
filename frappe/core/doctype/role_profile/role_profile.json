@@ -39,10 +39,11 @@
  "links": [
   {
    "link_doctype": "User",
-   "link_fieldname": "role_profile_name"
+   "link_fieldname": "role_profile",
+   "table_fieldname": "role_profiles"
   }
  ],
- "modified": "2021-12-03 15:45:45.270963",
+ "modified": "2024-02-10 12:22:24.803943",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role Profile",
@@ -75,6 +76,7 @@
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "role_profile",
  "track_changes": 1
 }
