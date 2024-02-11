@@ -3,6 +3,7 @@
 
 import base64
 import datetime
+import hashlib
 import json
 import math
 import operator
@@ -2011,6 +2012,13 @@ def is_subset(list_a: list, list_b: list) -> bool:
 
 def generate_hash(*args, **kwargs) -> str:
 	return frappe.generate_hash(*args, **kwargs)
+
+
+def sha256_hash(input: str | bytes) -> str:
+	"""Return hash of the string using sha256 algorithm."""
+	if isinstance(input, str):
+		input = input.encode()
+	return hashlib.sha256(input).hexdigest()
 
 
 def dict_with_keys(dict, keys):

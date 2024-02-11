@@ -49,6 +49,11 @@ from frappe.utils.data import (
 	now_datetime,
 	nowtime,
 	rounded,
+<<<<<<< HEAD
+=======
+	sha256_hash,
+	to_timedelta,
+>>>>>>> 4c925e0325 (refactor: Reset password flow)
 	validate_python_code,
 )
 from frappe.utils.dateutils import get_dates_from_timegrain
@@ -914,3 +919,101 @@ class TestRounding(FrappeTestCase):
 	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
 	def test_bankers_rounding_property(self, number, precision):
 		self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
+<<<<<<< HEAD
+=======
+
+	def test_default_rounding(self):
+		self.assertEqual(frappe.get_system_settings("rounding_method"), "Banker's Rounding")
+
+
+class TestArgumentTypingValidations(FrappeTestCase):
+	def test_validate_argument_types(self):
+		from frappe.core.doctype.doctype.doctype import DocType
+		from frappe.utils.typing_validations import (
+			FrappeTypeError,
+			validate_argument_types,
+		)
+
+		@validate_argument_types
+		def test_simple_types(a: int, b: float, c: bool):
+			return a, b, c
+
+		@validate_argument_types
+		def test_sequence(a: str, b: list[dict] | None = None, c: dict[str, int] | None = None):
+			return a, b, c
+
+		@validate_argument_types
+		def test_doctypes(a: DocType | dict):
+			return a
+
+		self.assertEqual(test_simple_types(True, 2.0, True), (1, 2.0, True))
+		self.assertEqual(test_simple_types(1, 2, 1), (1, 2.0, True))
+		self.assertEqual(test_simple_types(1.0, 2, 1), (1, 2.0, True))
+		self.assertEqual(test_simple_types(1, 2, "1"), (1, 2.0, True))
+		with self.assertRaises(FrappeTypeError):
+			test_simple_types(1, 2, "a")
+		with self.assertRaises(FrappeTypeError):
+			test_simple_types(1, 2, None)
+
+		self.assertEqual(test_sequence("a", [{"a": 1}], {"a": 1}), ("a", [{"a": 1}], {"a": 1}))
+		self.assertEqual(test_sequence("a", None, None), ("a", None, None))
+		self.assertEqual(test_sequence("a", [{"a": 1}], None), ("a", [{"a": 1}], None))
+		self.assertEqual(test_sequence("a", None, {"a": 1}), ("a", None, {"a": 1}))
+		self.assertEqual(test_sequence("a", [{"a": 1}], {"a": "1.0"}), ("a", [{"a": 1}], {"a": 1}))
+		with self.assertRaises(FrappeTypeError):
+			test_sequence("a", [{"a": 1}], True)
+
+		doctype = frappe.get_last_doc("DocType")
+		self.assertEqual(test_doctypes(doctype), doctype)
+		self.assertEqual(test_doctypes(doctype.as_dict()), doctype.as_dict())
+		with self.assertRaises(FrappeTypeError):
+			test_doctypes("a")
+
+
+class TestChangeLog(FrappeTestCase):
+	def test_check_release_on_github(self):
+		from semantic_version import Version
+
+		version, owner = check_release_on_github("frappe", "frappe")
+
+		self.assertIsInstance(version, Version)
+		self.assertEqual(owner, "frappe")
+
+		self.assertRaises(ValueError, check_release_on_github, owner=None, repo=None)
+		self.assertRaises(ValueError, check_release_on_github, owner=None, repo="frappe")
+		self.assertRaises(ValueError, check_release_on_github, owner="frappe", repo=None)
+
+	def test_get_remote_url(self):
+		self.assertIsInstance(get_remote_url("frappe"), str)
+		self.assertRaises(ValueError, get_remote_url, app=None)
+		self.assertRaises(ValueError, get_remote_url, app="this_doesnt_exist")
+
+	def test_parse_github_url(self):
+		# using erpnext as repo in order to be different from the owner
+		owner, repo = parse_github_url("https://github.com/frappe/erpnext.git")
+		self.assertEqual(owner, "frappe")
+		self.assertEqual(repo, "erpnext")
+
+		owner, repo = parse_github_url("https://github.com/frappe/erpnext")
+		self.assertEqual(owner, "frappe")
+		self.assertEqual(repo, "erpnext")
+
+		owner, repo = parse_github_url("git@github.com:frappe/erpnext.git")
+		self.assertEqual(owner, "frappe")
+		self.assertEqual(repo, "erpnext")
+
+		owner, repo = parse_github_url("https://gitlab.com/gitlab-org/gitlab")
+		self.assertIsNone(owner)
+		self.assertIsNone(repo)
+
+		self.assertRaises(ValueError, parse_github_url, remote_url=None)
+
+
+class TestCrypto(FrappeTestCase):
+	def test_hashing(self):
+		self.assertEqual(sha256_hash(""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+		self.assertEqual(
+			sha256_hash(b"The quick brown fox jumps over the lazy dog"),
+			"d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592",
+		)
+>>>>>>> 4c925e0325 (refactor: Reset password flow)
