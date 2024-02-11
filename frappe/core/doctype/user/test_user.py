@@ -417,7 +417,9 @@ class TestUser(FrappeTestCase):
 			test_user = frappe.get_doc("User", "test2@example.com")
 			self.assertEqual(reset_password(user="test2@example.com"), None)
 			test_user.reload()
-			self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/")
+			link = sendmail.call_args_list[0].kwargs["args"]["link"]
+			key = parse_qs(urlparse(link).query)["key"][0]
+			self.assertEqual(update_password(new_password, key=key), "/")
 			update_password(old_password, old_password=new_password)
 			self.assertEqual(
 				frappe.message_log[0].get("message"),
