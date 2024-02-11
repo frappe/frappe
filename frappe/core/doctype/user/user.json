@@ -329,6 +329,7 @@
    "hidden": 1,
    "label": "Reset Password Key",
    "no_copy": 1,
+   "permlevel": 1,
    "print_hide": 1,
    "read_only": 1
   },
@@ -627,6 +628,7 @@
    "fieldtype": "Datetime",
    "hidden": 1,
    "label": "Last Reset Password Key Generated On",
+   "permlevel": 1,
    "read_only": 1
   },
   {
@@ -771,7 +773,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-02-09 19:34:51.081079",
+ "modified": "2024-02-11 13:16:29.574666",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
