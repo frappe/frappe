@@ -24,22 +24,27 @@ function authenticate_with_frappe(socket, next) {
 	}
 
 	let cookies = cookie.parse(socket.request.headers.cookie);
+	let authorization_header = socket.request.headers.authorization;
 
-	if (!cookies.sid) {
-		next(new Error("No sid transmitted."));
+	if (!cookies.sid && !authorization_header) {
+		next(new Error("No authentication method used. Use cookie or authorization header."));
 		return;
 	}
 
-	request
-		.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"))
+	let auth_req = request.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"));
+	if (cookies.sid) {
+		auth_req = auth_req.query({ sid: cookies.sid });
+	} else {
+		auth_req = auth_req.set("Authorization", authorization_header);
+	}
+
+	auth_req
 		.type("form")
-		.query({
-			sid: cookies.sid,
-		})
 		.then((res) => {
 			socket.user = res.body.message.user;
 			socket.user_type = res.body.message.user_type;
 			socket.sid = cookies.sid;
+			socket.authorization_header = authorization_header;
 			next();
 		})
 		.catch((e) => {
