@@ -59,6 +59,7 @@ Otherwise, check the server logs and ensure that all the required services are r
 	frappe.flags.touched_tables = set()
 
 	try:
+		frappe.cache().delete_keys("")
 		add_column(doctype="DocType", column_name="migration_hash", fieldtype="Data")
 		frappe.flags.in_migrate = True
 
