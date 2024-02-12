@@ -23,7 +23,7 @@ function authenticate_with_frappe(socket, next) {
 		return;
 	}
 
-	let cookies = cookie.parse(socket.request.headers.cookie);
+	let cookies = cookie.parse(socket.request.headers.cookie || "");
 	let authorization_header = socket.request.headers.authorization;
 
 	if (!cookies.sid && !authorization_header) {
