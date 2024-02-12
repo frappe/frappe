@@ -463,23 +463,6 @@ def get_doc_workflow_state(doc):
 	return doc.get(workflow_state_field)
 
 
-<<<<<<< HEAD
-def filter_allowed_users(users, doc, transition):
-	"""Filters list of users by checking if user has access to doc and
-	if the user satisfies 'workflow transision self approval' condition
-	"""
-	from frappe.permissions import has_permission
-
-	return [
-		user
-		for user in users
-		if has_approval_access(user, doc, transition)
-		and has_permission(doctype=doc, user=user, raise_exception=False)
-	]
-
-
-=======
->>>>>>> 140a01e2cf (perf: cache permission results)
 def get_common_email_args(doc):
 	doctype = doc.get("doctype")
 	docname = doc.get("name")
