@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-01-29 18:10+0053\n"
-"PO-Revision-Date: 2024-02-02 13:35\n"
+"PO-Revision-Date: 2024-02-12 06:02\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -8523,7 +8523,7 @@ msgstr "Beschreibung, um den Benutzer über eine Aktion zu informieren, die durc
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Designation"
-msgstr "Bezeichnung"
+msgstr ""
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
