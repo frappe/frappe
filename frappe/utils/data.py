@@ -811,16 +811,20 @@ def format_duration(seconds, hide_days=False):
 	duration = ""
 	if total_duration:
 		if total_duration.get("days"):
-			duration += str(total_duration.get("days")) + "d"
+			unit = frappe._("d", context="Days (Field: Duration)")
+			duration += str(total_duration.get("days")) + unit
 		if total_duration.get("hours"):
+			unit = frappe._("h", context="Hours (Field: Duration)")
 			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("hours")) + "h"
+			duration += str(total_duration.get("hours")) + unit
 		if total_duration.get("minutes"):
+			unit = frappe._("m", context="Minutes (Field: Duration)")
 			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("minutes")) + "m"
+			duration += str(total_duration.get("minutes")) + unit
 		if total_duration.get("seconds"):
+			unit = frappe._("s", context="Seconds (Field: Duration)")
 			duration += " " if len(duration) else ""
-			duration += str(total_duration.get("seconds")) + "s"
+			duration += str(total_duration.get("seconds")) + unit
 
 	return duration
 
