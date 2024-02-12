@@ -28,12 +28,8 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-<<<<<<< HEAD
-from frappe.utils.deprecations import deprecated
-=======
 from frappe.utils.data import sha256_hash
-from frappe.utils.deprecations import deprecated, deprecation_warning
->>>>>>> 4c925e0325 (refactor: Reset password flow)
+from frappe.utils.deprecations import deprecated
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
@@ -916,20 +912,11 @@ def sign_up(email, full_name, redirect_to):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
-<<<<<<< HEAD
-def reset_password(user):
-	if user == "Administrator":
-		return "not allowed"
-
-	try:
-		user = frappe.get_doc("User", user)
-=======
 def reset_password(user: str) -> str:
 	try:
 		user: User = frappe.get_doc("User", user)
 		if user.name == "Administrator":
 			return "not allowed"
->>>>>>> 4c925e0325 (refactor: Reset password flow)
 		if not user.enabled:
 			return "disabled"
 

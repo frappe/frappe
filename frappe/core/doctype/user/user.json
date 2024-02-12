@@ -618,15 +618,6 @@
    "options": "Module Profile"
   },
   {
-<<<<<<< HEAD
-    "description": "Stores the datetime when the last reset password key was generated.",
-    "fieldname": "last_reset_password_key_generated_on",
-    "fieldtype": "Datetime",
-    "hidden": 1,
-    "label": "Last Reset Password Key Generated On",
-    "read_only": 1
-   },
-=======
    "description": "Stores the datetime when the last reset password key was generated.",
    "fieldname": "last_reset_password_key_generated_on",
    "fieldtype": "Datetime",
@@ -635,7 +626,6 @@
    "permlevel": 1,
    "read_only": 1
   },
->>>>>>> 4c925e0325 (refactor: Reset password flow)
   {
    "fieldname": "column_break_75",
    "fieldtype": "Column Break"
@@ -743,11 +733,7 @@
    "link_fieldname": "user"
   }
  ],
-<<<<<<< HEAD
- "modified": "2023-06-05 17:26:04.127555",
-=======
  "modified": "2024-02-11 13:16:29.574666",
->>>>>>> 4c925e0325 (refactor: Reset password flow)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

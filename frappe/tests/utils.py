@@ -192,11 +192,7 @@ def _restore_thread_locals(flags):
 
 
 @contextmanager
-<<<<<<< HEAD
-def change_settings(doctype, settings_dict):
-=======
 def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
->>>>>>> 38565a80e3 (test: redo reset password tests)
 	"""A context manager to ensure that settings are changed before running
 	function and restored after running it regardless of exceptions occured.
 	This is useful in tests where you want to make changes in a function but
@@ -210,6 +206,8 @@ def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
 	"""
 
 	try:
+		if settings_dict is None:
+			settings_dict = settings
 		settings = frappe.get_doc(doctype)
 		# remember setting
 		previous_settings = copy.deepcopy(settings_dict)
