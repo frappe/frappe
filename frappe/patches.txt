@@ -232,10 +232,5 @@ frappe.patches.v15_0.move_event_cancelled_to_status
 frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
 frappe.patches.v15_0.validate_newsletter_recipients
-<<<<<<< HEAD
 frappe.patches.v15_0.sanitize_workspace_titles
-=======
-frappe.patches.v15_0.sanitize_workspace_titles
-frappe.patches.v15_0.migrate_role_profile_to_table_multi_select
 frappe.core.doctype.user.patches.hash_reset_password_tokens
->>>>>>> 4c925e0325 (refactor: Reset password flow)

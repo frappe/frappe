@@ -39,14 +39,8 @@ class TestUser(FrappeTestCase):
 		return parse_qs(urlparse(link).query)["key"][0]
 
 	def test_user_type(self):
-<<<<<<< HEAD
-		new_user = frappe.get_doc(
-			dict(doctype="User", email="test-for-type@example.com", first_name="Tester")
-		).insert(ignore_if_duplicate=True)
-=======
 		user_id = frappe.generate_hash() + "@example.com"
 		new_user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
->>>>>>> 38565a80e3 (test: redo reset password tests)
 		self.assertEqual(new_user.user_type, "Website User")
 
 		# social login userid for frappe

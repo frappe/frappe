@@ -30,12 +30,8 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-<<<<<<< HEAD
-from frappe.utils.deprecations import deprecated
-=======
 from frappe.utils.data import sha256_hash
-from frappe.utils.deprecations import deprecated, deprecation_warning
->>>>>>> 4c925e0325 (refactor: Reset password flow)
+from frappe.utils.deprecations import deprecated
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers

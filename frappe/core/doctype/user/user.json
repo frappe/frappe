@@ -764,11 +764,7 @@
    "link_fieldname": "user"
   }
  ],
-<<<<<<< HEAD
- "modified": "2023-09-18 22:19:49.933972",
-=======
  "modified": "2024-02-11 13:16:29.574666",
->>>>>>> 4c925e0325 (refactor: Reset password flow)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
