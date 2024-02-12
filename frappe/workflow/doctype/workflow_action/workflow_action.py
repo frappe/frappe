@@ -116,7 +116,13 @@ def process_workflow_actions(doc, state):
 	create_workflow_actions_for_roles(roles, doc)
 
 	if send_email_alert(workflow):
-		enqueue(send_workflow_action_email, queue="short", users_data=list(user_data_map.values()), doc=doc)
+		enqueue(
+			send_workflow_action_email,
+			queue="short",
+			users_data=list(user_data_map.values()),
+			doc=doc,
+			enqueue_after_commit=True,
+		)
 
 
 @frappe.whitelist(allow_guest=True)
