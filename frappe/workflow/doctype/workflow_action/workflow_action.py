@@ -108,7 +108,8 @@ def process_workflow_actions(doc, state):
 	if not next_possible_transitions:
 		return
 
-	user_data_map, roles = get_users_next_action_data(next_possible_transitions, doc)
+	roles = {t.allowed for t in next_possible_transitions}
+	user_data_map = get_users_next_action_data(next_possible_transitions, doc)
 
 	if not user_data_map:
 		return
@@ -327,10 +328,8 @@ def get_next_possible_transitions(workflow_name, state, doc=None):
 
 
 def get_users_next_action_data(transitions, doc):
-	roles = set()
 	user_data_map = {}
 	for transition in transitions:
-		roles.add(transition.allowed)
 		users = get_users_with_role(transition.allowed)
 		filtered_users = filter_allowed_users(users, doc, transition)
 		for user in filtered_users:
@@ -350,7 +349,7 @@ def get_users_next_action_data(transitions, doc):
 					}
 				)
 			)
-	return user_data_map, roles
+	return user_data_map
 
 
 def create_workflow_actions_for_roles(roles, doc):
