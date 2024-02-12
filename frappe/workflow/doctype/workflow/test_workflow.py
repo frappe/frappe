@@ -21,6 +21,7 @@ class TestWorkflow(FrappeTestCase):
 	def setUp(self):
 		self.workflow = create_todo_workflow()
 		frappe.set_user("Administrator")
+<<<<<<< HEAD
 		if self._testMethodName == "test_if_workflow_actions_were_processed_using_user":
 			if not frappe.db.has_column("Workflow Action", "user"):
 				# mariadb would raise this statement would create an implicit commit
@@ -50,6 +51,11 @@ class TestWorkflow(FrappeTestCase):
 					}
 				)
 				frappe.cache().delete_value("table_columns")
+=======
+
+	def tearDown(self):
+		frappe.delete_doc("Workflow", "Test ToDo")
+>>>>>>> 8c5aaeb437 (test: avoid fiddling with workflow action columns)
 
 	def test_default_condition(self):
 		"""test default condition is set"""
