@@ -42,6 +42,11 @@ frappe.ui.form.Sidebar = class {
 		frappe.ui.form.setup_user_image_event(this.frm);
 
 		this.refresh();
+		$(document).ready(() => {
+			const mobileImage = $(".display-image-section:visible").clone().addClass("hidden-lg");
+			mobileImage.find("img").removeClass("hidden-sm").addClass("hidden-lg");
+			mobileImage.prependTo($(".row.form-section.visible-section:visible").first());
+		});
 	}
 
 	bind_events() {
@@ -57,18 +62,6 @@ frappe.ui.form.Sidebar = class {
 				me.refresh_like();
 			});
 		});
-
-		$(window).resize(this.move_image_based_on_screen_width);
-		$(document).ready(this.move_image_based_on_screen_width);
-	}
-
-	move_image_based_on_screen_width() {
-		const $imageSection = $(".display-image-section:visible");
-		if (window.innerWidth < 995 && !$imageSection.parent().hasClass("form-section")) {
-			$imageSection.prependTo($(".row.form-section.visible-section:visible").first());
-		} else if (window.innerWidth >= 995 && !$imageSection.parent().hasClass("form-sidebar")) {
-			$imageSection.prependTo(".form-sidebar:visible").first();
-		}
 	}
 
 	setup_keyboard_shortcuts() {
