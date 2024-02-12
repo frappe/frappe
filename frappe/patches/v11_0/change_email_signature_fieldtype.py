@@ -5,9 +5,7 @@ import frappe
 
 
 def execute():
-	signatures = frappe.db.get_list(
-		"User", {"email_signature": ["!=", ""]}, ["name", "email_signature"]
-	)
+	signatures = frappe.db.get_list("User", {"email_signature": ["!=", ""]}, ["name", "email_signature"])
 	frappe.reload_doc("core", "doctype", "user")
 	for d in signatures:
 		signature = d.get("email_signature")

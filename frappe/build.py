@@ -177,9 +177,6 @@ def symlink(target, link_name, overwrite=False):
 	if not overwrite:
 		return os.symlink(target, link_name)
 
-	# os.replace() may fail if files are on different filesystems
-	link_dir = os.path.dirname(link_name)
-
 	# Create link to target with temporary filename
 	while True:
 		temp_link_name = f"tmp{frappe.generate_hash()}"
@@ -378,9 +375,7 @@ def make_asset_dirs(hard_link=False):
 	symlinks = generate_assets_map()
 
 	for source, target in symlinks.items():
-		start_message = unstrip(
-			f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}"
-		)
+		start_message = unstrip(f"{'Copying assets from' if hard_link else 'Linking'} {source} to {target}")
 		fail_message = unstrip(f"Cannot {'copy' if hard_link else 'link'} {source} to {target}")
 
 		# Used '\r' instead of '\x1b[1K\r' to print entire lines in smaller terminal sizes

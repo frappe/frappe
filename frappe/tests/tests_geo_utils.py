@@ -9,7 +9,7 @@ from frappe.tests.utils import FrappeTestCase
 class TestGeoUtils(FrappeTestCase):
 	def setUp(self):
 		self.todo = frappe.get_doc(
-			dict(doctype="ToDo", description="Test description", assigned_by="Administrator")
+			doctype="ToDo", description="Test description", assigned_by="Administrator"
 		).insert()
 
 		self.test_location_dict = {
@@ -41,14 +41,10 @@ class TestGeoUtils(FrappeTestCase):
 		self.assertEqual(coords, {"type": "FeatureCollection", "features": []})
 
 	def test_get_coords_from_not_existable_location(self):
-		self.assertRaises(
-			frappe.ValidationError, get_coords, "ToDo", self.test_filter_todo, "location_field"
-		)
+		self.assertRaises(frappe.ValidationError, get_coords, "ToDo", self.test_filter_todo, "location_field")
 
 	def test_get_coords_from_not_existable_coords(self):
-		self.assertRaises(
-			frappe.ValidationError, get_coords, "ToDo", self.test_filter_todo, "coordinates"
-		)
+		self.assertRaises(frappe.ValidationError, get_coords, "ToDo", self.test_filter_todo, "coordinates")
 
 	def tearDown(self):
 		self.todo.delete()

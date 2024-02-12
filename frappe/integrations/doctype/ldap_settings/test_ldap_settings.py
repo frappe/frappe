@@ -31,7 +31,6 @@ class LDAP_TestCase:
 	def mock_ldap_connection(f):
 		@functools.wraps(f)
 		def wrapped(self, *args, **kwargs):
-
 			with mock.patch(
 				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap",
 				return_value=self.connection,
@@ -279,7 +278,8 @@ class LDAP_TestCase:
 					)
 
 					self.assertTrue(
-						kwargs["raise_exceptions"], "ldap3.Connection must raise exceptions for error handling"
+						kwargs["raise_exceptions"],
+						"ldap3.Connection must raise exceptions for error handling",
 					)
 
 					self.assertTrue(
@@ -479,7 +479,9 @@ class LDAP_TestCase:
 				# Existing user
 				self.test_class.create_or_update_user(self.user1doc, test_user_data[test_user])
 
-				self.assertTrue(sync_roles_method.called, "User roles need to be updated for an existing user")
+				self.assertTrue(
+					sync_roles_method.called, "User roles need to be updated for an existing user"
+				)
 				self.assertTrue(
 					update_user_fields_method.called, "User fields need to be updated for an existing user"
 				)
@@ -487,7 +489,7 @@ class LDAP_TestCase:
 	@mock_ldap_connection
 	def test_get_ldap_attributes(self):
 		method_return = self.test_class.get_ldap_attributes()
-		self.assertTrue(type(method_return) is list)
+		self.assertTrue(isinstance(method_return, list))
 
 	@mock_ldap_connection
 	def test_fetch_ldap_groups(self):
@@ -555,9 +557,7 @@ class LDAP_TestCase:
 			if (
 				"ACCESS:test3" in search_filter
 			):  # posix.user does not have str in ldap.description auth should fail
-
 				with self.assertRaises(frappe.exceptions.ValidationError) as display_massage:
-
 					self.test_class.authenticate("posix.user", "posix_user_password")
 
 				self.assertTrue(str(display_massage.exception).lower() == "invalid username or password")
@@ -599,7 +599,7 @@ class LDAP_TestCase:
 		test_ldap_entry = self.connection.entries[0]
 		method_return = self.test_class.convert_ldap_entry_to_dict(test_ldap_entry)
 
-		self.assertTrue(type(method_return) is dict)  # must be dict
+		self.assertTrue(isinstance(method_return, dict))  # must be dict
 		self.assertTrue(len(method_return) == 6)  # there are 6 fields in mock_ldap for use
 
 

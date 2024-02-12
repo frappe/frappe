@@ -19,4 +19,5 @@ class WorkflowActionPermittedRole(Document):
 		parenttype: DF.Data
 		role: DF.Link | None
 	# end: auto-generated types
+
 	pass

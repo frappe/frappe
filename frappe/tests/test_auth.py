@@ -19,7 +19,7 @@ from frappe.www.login import _generate_temporary_login_link
 def add_user(email, password, username=None, mobile_no=None):
 	first_name = email.split("@", 1)[0]
 	user = frappe.get_doc(
-		dict(doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no)
+		doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no
 	).insert()
 	user.new_password = password
 	user.simultaneous_sessions = 1
@@ -133,7 +133,6 @@ class TestAuth(FrappeTestCase):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
 	def test_login_with_email_link(self):
-
 		user = self.test_user_email
 
 		# Logs in
@@ -188,9 +187,7 @@ class TestLoginAttemptTracker(FrappeTestCase):
 	def test_account_unlock(self):
 		"""Make sure that locked account gets unlocked after lock_interval of time."""
 		lock_interval = 2  # In sec
-		tracker = LoginAttemptTracker(
-			"tester", max_consecutive_login_attempts=1, lock_interval=lock_interval
-		)
+		tracker = LoginAttemptTracker("tester", max_consecutive_login_attempts=1, lock_interval=lock_interval)
 		# Clear the cache by setting attempt as success
 		tracker.add_success_attempt()
 

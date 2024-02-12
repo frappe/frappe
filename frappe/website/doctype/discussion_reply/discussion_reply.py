@@ -18,6 +18,7 @@ class DiscussionReply(Document):
 		reply: DF.TextEditor | None
 		topic: DF.Link | None
 	# end: auto-generated types
+
 	def on_update(self):
 		frappe.publish_realtime(
 			event="update_message",

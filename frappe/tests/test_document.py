@@ -123,9 +123,7 @@ class TestDocument(FrappeTestCase):
 
 	def test_text_editor_field(self):
 		try:
-			frappe.get_doc(
-				doctype="Activity Log", subject="test", message='<img src="test.png" />'
-			).insert()
+			frappe.get_doc(doctype="Activity Log", subject="test", message='<img src="test.png" />').insert()
 		except frappe.MandatoryError:
 			self.fail("Text Editor false positive mandatory error")
 
@@ -329,7 +327,9 @@ class TestDocument(FrappeTestCase):
 		@contextmanager
 		def customize_note(with_options=False):
 			options = (
-				"frappe.utils.now_datetime() - frappe.utils.get_datetime(doc.creation)" if with_options else ""
+				"frappe.utils.now_datetime() - frappe.utils.get_datetime(doc.creation)"
+				if with_options
+				else ""
 			)
 			custom_field = frappe.get_doc(
 				{

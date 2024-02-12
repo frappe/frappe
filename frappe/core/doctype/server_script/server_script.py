@@ -45,6 +45,8 @@ class ServerScript(Document):
 			"Before Save (Submitted Document)",
 			"After Save (Submitted Document)",
 			"On Payment Authorization",
+			"On Payment Paid",
+			"On Payment Failed",
 		]
 		enable_rate_limit: DF.Check
 		event_frequency: DF.Literal[
@@ -67,6 +69,7 @@ class ServerScript(Document):
 		script: DF.Code
 		script_type: DF.Literal["DocType Event", "Scheduler Event", "Permission Query", "API"]
 	# end: auto-generated types
+
 	def validate(self):
 		frappe.only_for("Script Manager", True)
 		self.sync_scheduled_jobs()
@@ -207,7 +210,7 @@ class ServerScript(Document):
 				if key.startswith("_"):
 					continue
 				value = obj[key]
-				if isinstance(value, (NamespaceDict, dict)) and value:
+				if isinstance(value, NamespaceDict | dict) and value:
 					if key == "form_dict":
 						out.append(["form_dict", 7])
 						continue
@@ -219,7 +222,7 @@ class ServerScript(Document):
 						score = 0
 					elif isinstance(value, ModuleType):
 						score = 10
-					elif isinstance(value, (FunctionType, MethodType)):
+					elif isinstance(value, FunctionType | MethodType):
 						score = 9
 					elif isinstance(value, type):
 						score = 8

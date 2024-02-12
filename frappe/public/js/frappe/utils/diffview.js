@@ -20,6 +20,7 @@ frappe.ui.DiffView = class DiffView {
 				docname: this.docname,
 				ref_doctype: this.doctype,
 				fieldname: this.fieldname,
+				page_len: 100,
 			},
 		});
 		const onchange = () => this.compute_diff();

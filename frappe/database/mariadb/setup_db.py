@@ -65,17 +65,17 @@ def drop_user_and_database(
 	dbman.delete_user(db_user)
 
 
-def bootstrap_database(db_name, verbose, source_sql=None):
+def bootstrap_database(verbose, source_sql=None):
 	import sys
 
-	frappe.connect(db_name=db_name)
+	frappe.connect()
 	if not check_database_settings():
 		print("Database settings do not match expected values; stopping database setup.")
 		sys.exit(1)
 
 	import_db_from_sql(source_sql, verbose)
-	frappe.connect(db_name=db_name)
 
+	frappe.connect()
 	if "tabDefaultValue" not in frappe.db.get_tables(cached=False):
 		from click import secho
 
@@ -111,10 +111,7 @@ def check_database_settings():
 	result = True
 	for key, expected_value in REQUIRED_MARIADB_CONFIG.items():
 		if mariadb_variables.get(key) != expected_value:
-			print(
-				"For key %s. Expected value %s, found value %s"
-				% (key, expected_value, mariadb_variables.get(key))
-			)
+			print(f"For key {key}. Expected value {expected_value}, found value {mariadb_variables.get(key)}")
 			result = False
 
 	if not result:
@@ -162,9 +159,7 @@ def get_root_connection():
 			)
 
 		if not frappe.flags.root_password and not frappe.conf.db_socket:
-			frappe.flags.root_password = frappe.conf.get("root_password") or getpass(
-				"MySQL root password: "
-			)
+			frappe.flags.root_password = frappe.conf.get("root_password") or getpass("MySQL root password: ")
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
 			socket=frappe.conf.db_socket,

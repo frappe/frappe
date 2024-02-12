@@ -32,9 +32,7 @@ def export_module_json(doc: "Document", is_standard: bool, module: str) -> str |
 		from frappe.modules.export_file import export_to_files
 
 		# json
-		export_to_files(
-			record_list=[[doc.doctype, doc.name]], record_module=module, create_init=is_standard
-		)
+		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module, create_init=is_standard)
 
 		return os.path.join(
 			frappe.get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name)
@@ -75,9 +73,7 @@ def export_customizations(
 	}
 
 	if with_permissions:
-		custom["custom_perms"] = frappe.get_all(
-			"Custom DocPerm", fields="*", filters={"parent": doctype}
-		)
+		custom["custom_perms"] = frappe.get_all("Custom DocPerm", fields="*", filters={"parent": doctype})
 
 	# also update the custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
@@ -246,9 +242,7 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 	return doctype_python_modules[key]
 
 
-def get_module_name(
-	doctype: str, module: str, prefix: str = "", suffix: str = "", app: str | None = None
-):
+def get_module_name(doctype: str, module: str, prefix: str = "", suffix: str = "", app: str | None = None):
 	app = scrub(app or get_module_app(module))
 	module = scrub(module)
 	doctype = scrub(doctype)

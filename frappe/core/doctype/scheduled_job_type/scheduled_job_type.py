@@ -45,6 +45,7 @@ class ScheduledJobType(Document):
 		server_script: DF.Link | None
 		stopped: DF.Check
 	# end: auto-generated types
+
 	def autoname(self):
 		self.name = ".".join(self.method.split(".")[-2:])
 
@@ -148,7 +149,7 @@ class ScheduledJobType(Document):
 			return
 		if not self.scheduler_log:
 			self.scheduler_log = frappe.get_doc(
-				dict(doctype="Scheduled Job Log", scheduled_job_type=self.name)
+				doctype="Scheduled Job Log", scheduled_job_type=self.name
 			).insert(ignore_permissions=True)
 		self.scheduler_log.db_set("status", status)
 		if frappe.debug_log:
@@ -236,9 +237,7 @@ def insert_single_event(frequency: str, event: str, cron_format: str = None):
 		}
 	)
 
-	if not frappe.db.exists(
-		"Scheduled Job Type", {"method": event, "frequency": frequency, **cron_expr}
-	):
+	if not frappe.db.exists("Scheduled Job Type", {"method": event, "frequency": frequency, **cron_expr}):
 		savepoint = "scheduled_job_type_creation"
 		try:
 			frappe.db.savepoint(savepoint)

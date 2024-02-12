@@ -24,6 +24,7 @@ class Recorder(Document):
 		method: DF.Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 		number_of_queries: DF.Int
 		path: DF.Data | None
+		profile: DF.Code | None
 		request_headers: DF.Code | None
 		sql_queries: DF.Table[RecorderQuery]
 		time: DF.Datetime | None

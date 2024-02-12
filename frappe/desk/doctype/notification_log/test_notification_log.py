@@ -30,9 +30,7 @@ class TestNotificationLog(FrappeTestCase):
 		self.assertEqual(log_type, "Share")
 
 		email = get_last_email_queue()
-		content = "Subject: {} shared a document ToDo".format(
-			frappe.utils.get_fullname(frappe.session.user)
-		)
+		content = f"Subject: {frappe.utils.get_fullname(frappe.session.user)} shared a document ToDo"
 		self.assertTrue(content in email.message)
 
 

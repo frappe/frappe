@@ -45,12 +45,10 @@ def send_message(sender, message, subject="Website Query"):
 
 	# add to to-do ?
 	frappe.get_doc(
-		dict(
-			doctype="Communication",
-			sender=sender,
-			subject=_("New Message from Website Contact Page"),
-			sent_or_received="Received",
-			content=message,
-			status="Open",
-		)
+		doctype="Communication",
+		sender=sender,
+		subject=_("New Message from Website Contact Page"),
+		sent_or_received="Received",
+		content=message,
+		status="Open",
 	).insert(ignore_permissions=True)

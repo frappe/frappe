@@ -72,7 +72,6 @@ def search_widget(
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
 ):
-
 	start = cint(start)
 
 	if isinstance(filters, str):
@@ -319,9 +318,7 @@ def get_users_for_mentions():
 
 
 def get_user_groups():
-	return frappe.get_all(
-		"User Group", fields=["name as id", "name as value"], update={"is_group": True}
-	)
+	return frappe.get_all("User Group", fields=["name as id", "name as value"], update={"is_group": True})
 
 
 @frappe.whitelist()

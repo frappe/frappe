@@ -134,7 +134,7 @@ class RedisWrapper(redis.Redis):
 		if not keys:
 			return
 
-		if not isinstance(keys, (list, tuple)):
+		if not isinstance(keys, list | tuple):
 			keys = (keys,)
 
 		if make_keys:

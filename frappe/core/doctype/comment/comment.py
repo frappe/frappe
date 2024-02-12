@@ -52,6 +52,7 @@ class Comment(Document):
 		seen: DF.Check
 		subject: DF.Text | None
 	# end: auto-generated types
+
 	def after_insert(self):
 		notify_mentions(self.reference_doctype, self.reference_name, self.content)
 		self.notify_change("add")

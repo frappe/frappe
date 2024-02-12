@@ -54,9 +54,7 @@ class RQJob(Document):
 		job_name: DF.Data | None
 		queue: DF.Literal["default", "short", "long"]
 		started_at: DF.Datetime | None
-		status: DF.Literal[
-			"queued", "started", "finished", "failed", "deferred", "scheduled", "canceled"
-		]
+		status: DF.Literal["queued", "started", "finished", "failed", "deferred", "scheduled", "canceled"]
 		time_taken: DF.Duration | None
 		timeout: DF.Duration | None
 	# end: auto-generated types
@@ -79,7 +77,6 @@ class RQJob(Document):
 
 	@staticmethod
 	def get_list(args):
-
 		start = cint(args.get("start"))
 		page_length = cint(args.get("page_length")) or 20
 
@@ -88,9 +85,7 @@ class RQJob(Document):
 		matched_job_ids = RQJob.get_matching_job_ids(args)[start : start + page_length]
 
 		conn = get_redis_conn()
-		jobs = [
-			serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job
-		]
+		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job]
 
 		return sorted(jobs, key=lambda j: j.modified, reverse=order_desc)
 

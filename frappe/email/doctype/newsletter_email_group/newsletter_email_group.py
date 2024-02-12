@@ -19,4 +19,5 @@ class NewsletterEmailGroup(Document):
 		parenttype: DF.Data
 		total_subscribers: DF.ReadOnly | None
 	# end: auto-generated types
+
 	pass

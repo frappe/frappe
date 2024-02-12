@@ -76,6 +76,7 @@ class SiteMigration:
 		"""Complete setup required for site migration"""
 		frappe.flags.touched_tables = set()
 		self.touched_tables_file = frappe.get_site_path("touched_tables.json")
+		frappe.clear_cache()
 		add_column(doctype="DocType", column_name="migration_hash", fieldtype="Data")
 		clear_global_cache()
 

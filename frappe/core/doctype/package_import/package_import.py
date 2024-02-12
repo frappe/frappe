@@ -27,6 +27,7 @@ class PackageImport(Document):
 		force: DF.Check
 		log: DF.Code | None
 	# end: auto-generated types
+
 	def validate(self):
 		if self.activate:
 			self.import_package()

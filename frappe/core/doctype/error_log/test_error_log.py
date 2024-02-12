@@ -52,15 +52,21 @@ _THROW_EXC = """
  frappe.exceptions.ValidationError: what
 """
 
-TEST_EXCEPTIONS = {
-	"erpnext (app)": _RAW_EXC,
-	"erpnext (app)": _THROW_EXC,
-}
+TEST_EXCEPTIONS = (
+	(
+		"erpnext (app)",
+		_RAW_EXC,
+	),
+	(
+		"erpnext (app)",
+		_THROW_EXC,
+	),
+)
 
 
 class TestExceptionSourceGuessing(FrappeTestCase):
 	@patch.object(frappe, "get_installed_apps", return_value=["frappe", "erpnext", "3pa"])
 	def test_exc_source_guessing(self, _installed_apps):
-		for source, exc in TEST_EXCEPTIONS.items():
+		for source, exc in TEST_EXCEPTIONS:
 			result = guess_exception_source(exc)
 			self.assertEqual(result, source)

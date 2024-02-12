@@ -11,7 +11,7 @@ def resolve_class(*classes):
 	if classes is False:
 		return ""
 
-	if isinstance(classes, (list, tuple)):
+	if isinstance(classes, list | tuple):
 		return " ".join(resolve_class(c) for c in classes).strip()
 
 	if isinstance(classes, dict):

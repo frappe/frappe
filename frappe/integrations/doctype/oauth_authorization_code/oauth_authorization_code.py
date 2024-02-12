@@ -25,4 +25,5 @@ class OAuthAuthorizationCode(Document):
 		user: DF.Link | None
 		validity: DF.Literal["Valid", "Invalid"]
 	# end: auto-generated types
+
 	pass

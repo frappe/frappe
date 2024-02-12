@@ -43,3 +43,9 @@ fa6dc03cc87ad74e11609e7373078366fdcb3e1b
 
 # Bulk refactor with sourcery
 c35476256f85271fb57584eb0a26f4d9def3caf4
+
+# black+isort -> ruff
+de9ac897482013f5464a05f3c171da0072619c3a
+
+# flake8 -> ruff + ruff config update
+26ae0f3460f29116e0c083d57eee9f33763237ea

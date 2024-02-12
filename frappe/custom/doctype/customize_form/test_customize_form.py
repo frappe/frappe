@@ -69,27 +69,21 @@ class TestCustomizeForm(FrappeTestCase):
 	def test_save_customization_property(self):
 		d = self.get_customize_form("Event")
 		self.assertEqual(
-			frappe.db.get_value(
-				"Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"
-			),
+			frappe.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
 			None,
 		)
 
 		d.allow_copy = 1
 		d.run_method("save_customization")
 		self.assertEqual(
-			frappe.db.get_value(
-				"Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"
-			),
+			frappe.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
 			"1",
 		)
 
 		d.allow_copy = 0
 		d.run_method("save_customization")
 		self.assertEqual(
-			frappe.db.get_value(
-				"Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"
-			),
+			frappe.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
 			None,
 		)
 
@@ -340,9 +334,7 @@ class TestCustomizeForm(FrappeTestCase):
 
 		frappe.clear_cache()
 		user_group = frappe.get_meta("Event")
-		self.assertFalse(
-			[d.name for d in (user_group.links or []) if d.link_doctype == "User Group Member"]
-		)
+		self.assertFalse([d.name for d in (user_group.links or []) if d.link_doctype == "User Group Member"])
 
 	def test_custom_action(self):
 		test_route = "/app/List/DocType"

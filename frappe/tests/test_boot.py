@@ -49,14 +49,12 @@ class TestPermissionQueries(FrappeTestCase):
 
 		# Add permission query such that each user can only see their own custom reports
 		frappe.get_doc(
-			dict(
-				doctype="Server Script",
-				name="test_report_permission_query",
-				script_type="Permission Query",
-				reference_doctype="Report",
-				script="""conditions = f"(`tabReport`.is_standard = 'Yes' or `tabReport`.owner = '{frappe.session.user}')"
+			doctype="Server Script",
+			name="test_report_permission_query",
+			script_type="Permission Query",
+			reference_doctype="Report",
+			script="""conditions = f"(`tabReport`.is_standard = 'Yes' or `tabReport`.owner = '{frappe.session.user}')"
 				""",
-			)
 		).insert()
 
 		# Create a ToDo custom report with test user

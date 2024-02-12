@@ -41,7 +41,7 @@ class TestAutoRepeat(FrappeTestCase):
 
 	def test_daily_auto_repeat(self):
 		todo = frappe.get_doc(
-			dict(doctype="ToDo", description="test recurring todo", assigned_by="Administrator")
+			doctype="ToDo", description="test recurring todo", assigned_by="Administrator"
 		).insert()
 
 		doc = make_auto_repeat(reference_document=todo.name)
@@ -53,9 +53,7 @@ class TestAutoRepeat(FrappeTestCase):
 		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
 		self.assertEqual(todo.auto_repeat, doc.name)
 
-		new_todo = frappe.db.get_value(
-			"ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name"
-		)
+		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
 
 		new_todo = frappe.get_doc("ToDo", new_todo)
 
@@ -63,7 +61,7 @@ class TestAutoRepeat(FrappeTestCase):
 
 	def test_weekly_auto_repeat(self):
 		todo = frappe.get_doc(
-			dict(doctype="ToDo", description="test weekly todo", assigned_by="Administrator")
+			doctype="ToDo", description="test weekly todo", assigned_by="Administrator"
 		).insert()
 
 		doc = make_auto_repeat(
@@ -81,9 +79,7 @@ class TestAutoRepeat(FrappeTestCase):
 		todo = frappe.get_doc(doc.reference_doctype, doc.reference_document)
 		self.assertEqual(todo.auto_repeat, doc.name)
 
-		new_todo = frappe.db.get_value(
-			"ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name"
-		)
+		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
 
 		new_todo = frappe.get_doc("ToDo", new_todo)
 
@@ -91,7 +87,7 @@ class TestAutoRepeat(FrappeTestCase):
 
 	def test_weekly_auto_repeat_with_weekdays(self):
 		todo = frappe.get_doc(
-			dict(doctype="ToDo", description="test auto repeat with weekdays", assigned_by="Administrator")
+			doctype="ToDo", description="test auto repeat with weekdays", assigned_by="Administrator"
 		).insert()
 
 		weekdays = list(week_map.keys())
@@ -121,15 +117,13 @@ class TestAutoRepeat(FrappeTestCase):
 		end_date = add_months(start_date, 12)
 
 		todo = frappe.get_doc(
-			dict(doctype="ToDo", description="test recurring todo", assigned_by="Administrator")
+			doctype="ToDo", description="test recurring todo", assigned_by="Administrator"
 		).insert()
 
 		self.monthly_auto_repeat("ToDo", todo.name, start_date, end_date)
 		# test without end_date
 		todo = frappe.get_doc(
-			dict(
-				doctype="ToDo", description="test recurring todo without end_date", assigned_by="Administrator"
-			)
+			doctype="ToDo", description="test recurring todo without end_date", assigned_by="Administrator"
 		).insert()
 		self.monthly_auto_repeat("ToDo", todo.name, start_date)
 
@@ -165,11 +159,7 @@ class TestAutoRepeat(FrappeTestCase):
 
 	def test_email_notification(self):
 		todo = frappe.get_doc(
-			dict(
-				doctype="ToDo",
-				description="Test recurring notification attachment",
-				assigned_by="Administrator",
-			)
+			doctype="ToDo", description="Test recurring notification attachment", assigned_by="Administrator"
 		).insert()
 
 		doc = make_auto_repeat(
@@ -183,21 +173,15 @@ class TestAutoRepeat(FrappeTestCase):
 		create_repeated_entries(data)
 		frappe.db.commit()
 
-		new_todo = frappe.db.get_value(
-			"ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name"
-		)
+		new_todo = frappe.db.get_value("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}, "name")
 
-		email_queue = frappe.db.exists(
-			"Email Queue", dict(reference_doctype="ToDo", reference_name=new_todo)
-		)
+		email_queue = frappe.db.exists("Email Queue", dict(reference_doctype="ToDo", reference_name=new_todo))
 		self.assertTrue(email_queue)
 
 	def test_next_schedule_date(self):
 		current_date = getdate(today())
 		todo = frappe.get_doc(
-			dict(
-				doctype="ToDo", description="test next schedule date for monthly", assigned_by="Administrator"
-			)
+			doctype="ToDo", description="test next schedule date for monthly", assigned_by="Administrator"
 		).insert()
 		doc = make_auto_repeat(
 			frequency="Monthly", reference_document=todo.name, start_date=add_months(today(), -2)
@@ -208,9 +192,7 @@ class TestAutoRepeat(FrappeTestCase):
 		self.assertTrue(doc.next_schedule_date >= current_date)
 
 		todo = frappe.get_doc(
-			dict(
-				doctype="ToDo", description="test next schedule date for daily", assigned_by="Administrator"
-			)
+			doctype="ToDo", description="test next schedule date for daily", assigned_by="Administrator"
 		).insert()
 		doc = make_auto_repeat(
 			frequency="Daily", reference_document=todo.name, start_date=add_days(today(), -2)
@@ -222,7 +204,7 @@ class TestAutoRepeat(FrappeTestCase):
 		create_submittable_doctype(doctype)
 
 		current_date = getdate()
-		submittable_doc = frappe.get_doc(dict(doctype=doctype, test="test submit on creation")).insert()
+		submittable_doc = frappe.get_doc(doctype=doctype, test="test submit on creation").insert()
 		submittable_doc.submit()
 		doc = make_auto_repeat(
 			frequency="Daily",

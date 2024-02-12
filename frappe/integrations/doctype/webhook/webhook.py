@@ -39,7 +39,7 @@ class Webhook(Document):
 		preview_request_body: DF.Code | None
 		request_method: DF.Literal["POST", "PUT", "DELETE"]
 		request_structure: DF.Literal["", "Form URL-Encoded", "JSON"]
-		request_url: DF.Data
+		request_url: DF.SmallText
 		timeout: DF.Int
 		webhook_data: DF.Table[WebhookData]
 		webhook_docevent: DF.Literal[
@@ -56,6 +56,7 @@ class Webhook(Document):
 		webhook_json: DF.Code | None
 		webhook_secret: DF.Password | None
 	# end: auto-generated types
+
 	def validate(self):
 		self.validate_docevent()
 		self.validate_condition()

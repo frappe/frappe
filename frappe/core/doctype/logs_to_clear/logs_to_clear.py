@@ -20,4 +20,5 @@ class LogsToClear(Document):
 		parenttype: DF.Data
 		ref_doctype: DF.Link
 	# end: auto-generated types
+
 	pass

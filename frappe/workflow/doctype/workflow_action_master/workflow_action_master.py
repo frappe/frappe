@@ -15,4 +15,5 @@ class WorkflowActionMaster(Document):
 
 		workflow_action_name: DF.Data
 	# end: auto-generated types
+
 	pass

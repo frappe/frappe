@@ -53,8 +53,8 @@ class BlogPost(WebsiteGenerator):
 		read_time: DF.Int
 		route: DF.Data | None
 		title: DF.Data
-
 	# end: auto-generated types
+
 	@frappe.whitelist()
 	def make_route(self):
 		if not self.route:
@@ -301,17 +301,13 @@ def get_blog_categories():
 
 
 def clear_blog_cache():
-	for blog in frappe.db.get_list(
-		"Blog Post", fields=["route"], pluck="route", filters={"published": True}
-	):
+	for blog in frappe.db.get_list("Blog Post", fields=["route"], pluck="route", filters={"published": True}):
 		clear_cache(blog)
 
 	clear_cache("writers")
 
 
-def get_blog_list(
-	doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None
-):
+def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20, order_by=None):
 	conditions = []
 	if filters and filters.get("blog_category"):
 		category = filters.get("blog_category")

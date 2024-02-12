@@ -26,6 +26,7 @@ class OAuthClient(Document):
 		skip_authorization: DF.Check
 		user: DF.Link | None
 	# end: auto-generated types
+
 	def validate(self):
 		self.client_id = self.name
 		if not self.client_secret:

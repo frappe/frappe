@@ -19,4 +19,5 @@ class EventParticipants(Document):
 		reference_docname: DF.DynamicLink
 		reference_doctype: DF.Link
 	# end: auto-generated types
+
 	pass

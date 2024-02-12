@@ -28,6 +28,7 @@ class DocShare(Document):
 		user: DF.Link | None
 		write: DF.Check
 	# end: auto-generated types
+
 	no_feed_on_delete = True
 
 	def validate(self):
@@ -58,13 +59,10 @@ class DocShare(Document):
 		if not self.flags.ignore_share_permission and not frappe.has_permission(
 			self.share_doctype, "share", self.get_doc()
 		):
-
 			frappe.throw(_('You need to have "Share" permission'), frappe.PermissionError)
 
 	def check_is_submittable(self):
-		if self.submit and not cint(
-			frappe.db.get_value("DocType", self.share_doctype, "is_submittable")
-		):
+		if self.submit and not cint(frappe.db.get_value("DocType", self.share_doctype, "is_submittable")):
 			frappe.throw(
 				_("Cannot share {0} with submit permission as the doctype {1} is not submittable").format(
 					frappe.bold(self.share_name), frappe.bold(self.share_doctype)

@@ -20,6 +20,7 @@ class Country(Document):
 		time_format: DF.Data | None
 		time_zones: DF.Text | None
 	# end: auto-generated types
+
 	# NOTE: During installation country docs are bulk inserted.
 	pass
 

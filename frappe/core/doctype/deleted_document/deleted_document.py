@@ -25,6 +25,7 @@ class DeletedDocument(Document):
 		new_name: DF.ReadOnly | None
 		restored: DF.Check
 	# end: auto-generated types
+
 	pass
 
 	@staticmethod

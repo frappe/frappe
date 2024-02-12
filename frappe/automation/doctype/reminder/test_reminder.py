@@ -10,7 +10,6 @@ from frappe.utils import add_to_date, now_datetime
 
 class TestReminder(FrappeTestCase):
 	def test_reminder(self):
-
 		description = "TEST_REMINDER"
 
 		create_new_reminder(

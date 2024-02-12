@@ -49,9 +49,9 @@ class TestPersonalDataDeletionRequest(FrappeTestCase):
 		self.assertEqual(self.delete_request.status, "Deleted")
 
 	def test_unverified_record_removal(self):
-		date_time_obj = datetime.strptime(
-			self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f"
-		) + timedelta(days=-7)
+		date_time_obj = datetime.strptime(self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f") + timedelta(
+			days=-7
+		)
 		self.delete_request.db_set("creation", date_time_obj)
 		self.delete_request.db_set("status", "Pending Verification")
 
@@ -60,9 +60,9 @@ class TestPersonalDataDeletionRequest(FrappeTestCase):
 
 	def test_process_auto_request(self):
 		frappe.db.set_single_value("Website Settings", "auto_account_deletion", "1")
-		date_time_obj = datetime.strptime(
-			self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f"
-		) + timedelta(hours=-2)
+		date_time_obj = datetime.strptime(self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f") + timedelta(
+			hours=-2
+		)
 		self.delete_request.db_set("creation", date_time_obj)
 		self.delete_request.db_set("status", "Pending Approval")
 

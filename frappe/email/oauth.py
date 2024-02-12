@@ -15,7 +15,6 @@ class Oauth:
 		access_token: str,
 		mechanism: str = "XOAUTH2",
 	) -> None:
-
 		self.email_account = email_account
 		self.email = email
 		self._mechanism = mechanism

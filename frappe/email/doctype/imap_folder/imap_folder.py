@@ -22,4 +22,5 @@ class IMAPFolder(Document):
 		uidnext: DF.Data | None
 		uidvalidity: DF.Data | None
 	# end: auto-generated types
+
 	pass

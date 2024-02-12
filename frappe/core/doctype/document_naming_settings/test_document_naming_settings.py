@@ -54,7 +54,6 @@ class TestNamingSeries(FrappeTestCase):
 		serieses = self.dns.preview_series().split("\n")
 
 	def test_get_transactions(self):
-
 		naming_info = self.dns.get_transactions_and_prefixes()
 		self.assertIn(self.ns_doctype, naming_info["transactions"])
 
@@ -90,16 +89,12 @@ class TestNamingSeries(FrappeTestCase):
 		self.dns.update_amendment_rule()
 
 		submittable_doc = frappe.get_doc(
-			dict(doctype=self.ns_doctype, some_fieldname="test doc with submit")
+			doctype=self.ns_doctype, some_fieldname="test doc with submit"
 		).submit()
 		submittable_doc.cancel()
 
 		amended_doc = frappe.get_doc(
-			dict(
-				doctype=self.ns_doctype,
-				some_fieldname="test doc with submit",
-				amended_from=submittable_doc.name,
-			)
+			doctype=self.ns_doctype, some_fieldname="test doc with submit", amended_from=submittable_doc.name
 		).insert()
 
 		self.assertIn(submittable_doc.name, amended_doc.name)
@@ -109,10 +104,6 @@ class TestNamingSeries(FrappeTestCase):
 		self.dns.update_amendment_rule()
 
 		new_amended_doc = frappe.get_doc(
-			dict(
-				doctype=self.ns_doctype,
-				some_fieldname="test doc with submit",
-				amended_from=submittable_doc.name,
-			)
+			doctype=self.ns_doctype, some_fieldname="test doc with submit", amended_from=submittable_doc.name
 		).insert()
 		self.assertNotIn(submittable_doc.name, new_amended_doc.name)

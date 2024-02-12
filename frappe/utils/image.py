@@ -10,7 +10,7 @@ import frappe
 
 def resize_images(path, maxdim=700):
 	size = (maxdim, maxdim)
-	for basepath, folders, files in os.walk(path):
+	for basepath, folders, files in os.walk(path):  # noqa: B007
 		for fname in files:
 			extn = fname.rsplit(".", 1)[1]
 			if extn in ("jpg", "jpeg", "png", "gif"):
@@ -46,9 +46,7 @@ def strip_exif_data(content, content_type) -> bytes:
 	return content
 
 
-def optimize_image(
-	content, content_type, max_width=1024, max_height=768, optimize=True, quality=85
-):
+def optimize_image(content, content_type, max_width=1024, max_height=768, optimize=True, quality=85):
 	if content_type == "image/svg+xml":
 		return content
 

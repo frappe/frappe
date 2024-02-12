@@ -20,7 +20,9 @@
   "section_break_sgro",
   "form_dict",
   "section_break_9jhm",
-  "sql_queries"
+  "sql_queries",
+  "section_break_optn",
+  "profile"
  ],
  "fields": [
   {
@@ -107,6 +109,16 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Event Type"
+  },
+  {
+   "fieldname": "section_break_optn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "profile",
+   "fieldtype": "Code",
+   "label": "cProfile Output",
+   "read_only": 1
   }
  ],
  "hide_toolbar": 1,
@@ -114,7 +126,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2024-01-03 16:45:47.110048",
+ "modified": "2024-02-01 22:13:26.505174",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Recorder",

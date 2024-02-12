@@ -37,4 +37,5 @@ class WebTemplateField(Document):
 		parenttype: DF.Data
 		reqd: DF.Check
 	# end: auto-generated types
+
 	pass

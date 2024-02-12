@@ -28,6 +28,7 @@ class UserPermission(Document):
 		is_default: DF.Check
 		user: DF.Link
 	# end: auto-generated types
+
 	def validate(self):
 		self.validate_user_permission()
 		self.validate_default_permission()
@@ -120,7 +121,6 @@ def get_user_permissions(user=None):
 			fields=["allow", "for_value", "applicable_for", "is_default", "hide_descendants"],
 			filters=dict(user=user),
 		):
-
 			meta = frappe.get_meta(perm.allow)
 			add_doc_to_perm(perm, perm.for_value, perm.is_default)
 
@@ -259,9 +259,7 @@ def add_user_permissions(data):
 		return 1
 	elif len(data.applicable_doctypes) > 0 and data.apply_to_all_doctypes != 1:
 		remove_apply_to_all(data.user, data.doctype, data.docname)
-		update_applicable(
-			perm_applied_docs, data.applicable_doctypes, data.user, data.doctype, data.docname
-		)
+		update_applicable(perm_applied_docs, data.applicable_doctypes, data.user, data.doctype, data.docname)
 		for applicable in data.applicable_doctypes:
 			if applicable not in perm_applied_docs:
 				insert_user_perm(

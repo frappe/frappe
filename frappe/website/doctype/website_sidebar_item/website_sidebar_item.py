@@ -21,4 +21,5 @@ class WebsiteSidebarItem(Document):
 		route: DF.Data | None
 		title: DF.Data
 	# end: auto-generated types
+
 	pass

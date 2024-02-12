@@ -3,9 +3,7 @@ from frappe.desk.doctype.notification_log.notification_log import make_notificat
 
 
 def execute():
-	if frappe.get_all(
-		"Email Account", {"auth_method": "OAuth", "connected_user": ["is", "set"]}, limit=1
-	):
+	if frappe.get_all("Email Account", {"auth_method": "OAuth", "connected_user": ["is", "set"]}, limit=1):
 		return
 
 	# Setting awaiting password to 1 for email accounts where Oauth is enabled.

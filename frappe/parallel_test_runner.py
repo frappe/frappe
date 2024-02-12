@@ -143,7 +143,7 @@ def split_by_weight(work, weights, chunk_count):
 	chunk_no = 0
 	chunk_weight = 0
 
-	for task, weight in zip(work, weights):
+	for task, weight in zip(work, weights, strict=False):
 		if chunk_weight > expected_weight:
 			chunk_weight = 0
 			chunk_no += 1
@@ -274,9 +274,7 @@ class ParallelTestWithOrchestrator(ParallelTestRunner):
 
 	def register_instance(self):
 		test_spec_list = get_all_tests(self.app)
-		response_data = self.call_orchestrator(
-			"register-instance", data={"test_spec_list": test_spec_list}
-		)
+		response_data = self.call_orchestrator("register-instance", data={"test_spec_list": test_spec_list})
 		self.is_master = response_data.get("is_master")
 
 	def get_next_test(self):

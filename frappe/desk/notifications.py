@@ -25,7 +25,7 @@ def get_notifications():
 		"open_count_doctype": {},
 		"targets": {},
 	}
-	if frappe.flags.in_install or not frappe.db.get_single_value("System Settings", "setup_complete"):
+	if frappe.flags.in_install or not frappe.get_system_settings("setup_complete"):
 		return out
 
 	config = get_notification_config()
@@ -130,7 +130,9 @@ def get_notifications_for_targets(config, notification_percent):
 					for doc in doc_list:
 						value = doc[value_field]
 						target = doc[target_field]
-						doc_target_percents[doctype][doc.name] = (value / target * 100) if value < target else 100
+						doc_target_percents[doctype][doc.name] = (
+							(value / target * 100) if value < target else 100
+						)
 
 	return doc_target_percents
 
@@ -281,7 +283,7 @@ def get_open_count(doctype, name, items=None):
 				try:
 					external_links_data_for_d = get_external_links(d, name, links)
 					out["external_links_found"].append(external_links_data_for_d)
-				except Exception as e:
+				except Exception:
 					out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
 		else:
 			external_links_data_for_d = get_external_links(d, name, links)

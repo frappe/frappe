@@ -65,7 +65,7 @@ def get_language(lang_list: list = None) -> str:
 		if preferred_language_cookie in lang_set:
 			return preferred_language_cookie
 
-		parent_language = get_parent_language(language)
+		parent_language = get_parent_language(preferred_language_cookie)
 		if parent_language in lang_set:
 			return parent_language
 
@@ -204,9 +204,7 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 			elif len(item) in [2, 3]:
 				translation_map[item[0]] = strip(item[1])
 			elif item:
-				msg = "Bad translation in '{app}' for language '{lang}': {values}".format(
-					app=app, lang=lang, values=cstr(item)
-				)
+				msg = f"Bad translation in '{app}' for language '{lang}': {cstr(item)}"
 				frappe.log_error(message=msg, title="Error in translation file")
 				if throw:
 					frappe.throw(msg, title="Error in translation file")
@@ -215,9 +213,6 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 
 
 def get_user_translations(lang):
-	if not frappe.db:
-		frappe.connect()
-
 	def _read_from_db():
 		user_translations = {}
 		translations = frappe.get_all(
@@ -548,7 +543,7 @@ def get_all_messages_from_js_files(app_name=None):
 	messages = []
 	for app in [app_name] if app_name else frappe.get_installed_apps(_ensure_on_bench=True):
 		if os.path.exists(frappe.get_app_path(app, "public")):
-			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):
+			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):  # noqa: B007
 				if "frappe/public/js/lib" in basepath:
 					continue
 
@@ -764,8 +759,8 @@ def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS
 	for key, value in zip(
 		frappe.get_file_items(untranslated_file, ignore_empty_lines=False),
 		frappe.get_file_items(translated_file, ignore_empty_lines=False),
+		strict=False,
 	):
-
 		# undo hack in get_untranslated
 		translation_dict[restore_newlines(key)] = restore_newlines(value)
 
@@ -858,9 +853,7 @@ def write_translations_file(app, lang, full_dict=None, app_messages=None):
 
 	tpath = frappe.get_app_path(app, "translations")
 	frappe.create_folder(tpath)
-	write_csv_file(
-		os.path.join(tpath, lang + ".csv"), app_messages, full_dict or get_all_translations(lang)
-	)
+	write_csv_file(os.path.join(tpath, lang + ".csv"), app_messages, full_dict or get_all_translations(lang))
 
 
 def send_translations(translation_dict):
@@ -977,9 +970,6 @@ def get_all_languages(with_language_name: bool = False) -> list:
 	def get_all_language_with_name():
 		return frappe.get_all("Language", ["language_code", "language_name"], {"enabled": 1})
 
-	if not frappe.db:
-		frappe.connect()
-
 	if with_language_name:
 		return frappe.cache.get_value("languages_with_name", get_all_language_with_name)
 	else:
@@ -1006,7 +996,7 @@ def print_language(language: str):
 
 	```
 	with print_language("de"):
-	    html = frappe.get_print( ... )
+	    html = frappe.get_print(...)
 	```
 	"""
 	if not language or language == frappe.local.lang:

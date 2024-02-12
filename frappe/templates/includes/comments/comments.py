@@ -39,9 +39,7 @@ def add_comment(comment, comment_email, comment_by, reference_doctype, reference
 		return False
 
 	doc = frappe.get_doc(reference_doctype, reference_name)
-	comment = doc.add_comment(
-		text=clean_html(comment), comment_email=comment_email, comment_by=comment_by
-	)
+	comment = doc.add_comment(text=clean_html(comment), comment_email=comment_email, comment_by=comment_by)
 
 	comment.db_set("published", 1)
 

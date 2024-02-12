@@ -54,4 +54,5 @@ class FormTourStep(Document):
 		title: DF.Data
 		ui_tour: DF.Check
 	# end: auto-generated types
+
 	pass

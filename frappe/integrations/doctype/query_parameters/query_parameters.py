@@ -20,4 +20,5 @@ class QueryParameters(Document):
 		parenttype: DF.Data
 		value: DF.Data
 	# end: auto-generated types
+
 	pass

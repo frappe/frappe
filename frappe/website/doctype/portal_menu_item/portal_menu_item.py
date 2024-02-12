@@ -24,4 +24,5 @@ class PortalMenuItem(Document):
 		target: DF.Data | None
 		title: DF.Data
 	# end: auto-generated types
+
 	pass

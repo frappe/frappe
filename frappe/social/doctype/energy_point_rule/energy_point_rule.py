@@ -35,6 +35,7 @@ class EnergyPointRule(Document):
 		rule_name: DF.Data
 		user_field: DF.Literal
 	# end: auto-generated types
+
 	def on_update(self):
 		frappe.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
 
@@ -76,7 +77,7 @@ class EnergyPointRule(Document):
 						{"points": points, "user": user, "rule": rule},
 						self.apply_only_once,
 					)
-			except Exception as e:
+			except Exception:
 				self.log_error("Energy points failed")
 
 	def rule_condition_satisfied(self, doc):

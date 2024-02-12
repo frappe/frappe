@@ -237,9 +237,7 @@ class EmailServer:
 				).where(EmailAccount.name == self.settings.email_account_name).run()
 
 			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
-			from_uid = (
-				1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
-			)
+			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
 			# sync last 100 email
 			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
 			self.uid_reindexed = True
@@ -445,9 +443,7 @@ class Email:
 		if not email:
 			return
 		decoded = ""
-		for part, encoding in decode_header(
-			frappe.as_unicode(email).replace('"', " ").replace("'", " ")
-		):
+		for part, encoding in decode_header(frappe.as_unicode(email).replace('"', " ").replace("'", " ")):
 			if encoding:
 				decoded += part.decode(encoding, "replace")
 			else:
@@ -850,9 +846,7 @@ class InboundMail(Email):
 	@staticmethod
 	def get_users_linked_to_account(email_account):
 		"""Get list of users who linked to Email account."""
-		users = frappe.get_all(
-			"User Email", filters={"email_account": email_account.name}, fields=["parent"]
-		)
+		users = frappe.get_all("User Email", filters={"email_account": email_account.name}, fields=["parent"])
 		return list({user.get("parent") for user in users})
 
 	@staticmethod

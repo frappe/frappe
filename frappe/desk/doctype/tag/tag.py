@@ -18,6 +18,7 @@ class Tag(Document):
 
 		description: DF.SmallText | None
 	# end: auto-generated types
+
 	pass
 
 
@@ -173,9 +174,7 @@ def update_tags(doc, tags):
 
 	deleted_tags = list(set(existing_tags) - set(new_tags))
 	for tag in deleted_tags:
-		frappe.db.delete(
-			"Tag Link", {"document_type": doc.doctype, "document_name": doc.name, "tag": tag}
-		)
+		frappe.db.delete("Tag Link", {"document_type": doc.doctype, "document_name": doc.name, "tag": tag})
 
 
 @frappe.whitelist()

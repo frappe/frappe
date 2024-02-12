@@ -50,9 +50,7 @@ class TestWebForm(FrappeTestCase):
 
 		accept("manage-events", json.dumps(doc))
 
-		self.assertEqual(
-			frappe.db.get_value("Event", self.event_name, "description"), doc.get("description")
-		)
+		self.assertEqual(frappe.db.get_value("Event", self.event_name, "description"), doc.get("description"))
 
 	def test_webform_render(self):
 		set_request(method="GET", path="manage-events/new")

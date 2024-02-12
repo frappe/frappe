@@ -14,10 +14,11 @@ class WebhookHeader(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		key: DF.Data | None
+		key: DF.SmallText | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		value: DF.Data | None
+		value: DF.SmallText | None
 	# end: auto-generated types
+
 	pass

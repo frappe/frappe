@@ -24,6 +24,7 @@ class AuditTrail(Document):
 		end_date: DF.Date | None
 		start_date: DF.Date | None
 	# end: auto-generated types
+
 	pass
 
 	def validate(self):

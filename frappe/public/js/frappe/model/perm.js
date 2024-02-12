@@ -203,7 +203,7 @@ $.extend(frappe.perm, {
 
 		// permission
 		if (p) {
-			if (p.write && !df.disabled) {
+			if (p.write && !df.disabled && !df.is_virtual) {
 				status = "Write";
 			} else if (p.read) {
 				status = "Read";

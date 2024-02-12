@@ -19,4 +19,5 @@ class TagLink(Document):
 		tag: DF.Link | None
 		title: DF.Data | None
 	# end: auto-generated types
+
 	pass

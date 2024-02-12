@@ -757,7 +757,7 @@ frappe.ui.Page = class Page {
 		return this.$title_area;
 	}
 
-	set_title(title, icon = null, strip = true, tab_title = "") {
+	set_title(title, icon = null, strip = true, tab_title = "", tooltip_label = "") {
 		if (!title) title = "";
 		if (strip) {
 			title = strip_html(title);
@@ -769,7 +769,11 @@ frappe.ui.Page = class Page {
 		}
 		let title_wrapper = this.$title_area.find(".title-text");
 		title_wrapper.html(title);
-		title_wrapper.attr("title", this.title);
+		title_wrapper.attr("title", tooltip_label || this.title);
+
+		if (tooltip_label) {
+			title_wrapper.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+		}
 	}
 
 	set_title_sub(txt) {

@@ -22,6 +22,7 @@ class EnergyPointSettings(Document):
 		point_allocation_periodicity: DF.Literal["Daily", "Weekly", "Monthly"]
 		review_levels: DF.Table[ReviewLevel]
 	# end: auto-generated types
+
 	pass
 
 
@@ -32,9 +33,7 @@ def is_energy_point_enabled():
 def allocate_review_points():
 	settings = frappe.get_single("Energy Point Settings")
 
-	if not can_allocate_today(
-		settings.last_point_allocation_date, settings.point_allocation_periodicity
-	):
+	if not can_allocate_today(settings.last_point_allocation_date, settings.point_allocation_periodicity):
 		return
 
 	user_point_map = {}

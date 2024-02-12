@@ -56,9 +56,7 @@ def execute():
 					(`idx`, `name`, `parentfield`, `parenttype`, `parent`, `link_doctype`, `link_name`, `creation`,
 					`modified`, `modified_by`)
 				VALUES {}
-			""".format(
-					", ".join([d for d in values])
-				)
+			""".format(", ".join([d for d in values]))
 			)
 
 			values = []

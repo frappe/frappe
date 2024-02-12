@@ -21,6 +21,7 @@ class DocumentShareKey(Document):
 		reference_docname: DF.DynamicLink | None
 		reference_doctype: DF.Link | None
 	# end: auto-generated types
+
 	def before_insert(self):
 		self.key = frappe.generate_hash(length=randrange(25, 35))
 		if not self.expires_on and not self.flags.no_expiry:

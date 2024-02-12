@@ -377,8 +377,13 @@ frappe.provide("frappe.views");
 		}
 
 		function bind_add_column() {
-			if (!self.board_perms.write) {
+			let doctype = self.cur_list.doctype;
+			let fieldname = self.cur_list.board.field_name;
+			const is_custom_field = frappe.meta.get_docfield(doctype, fieldname)?.is_custom_field;
+
+			if (!self.board_perms.write || !is_custom_field) {
 				// If no write access to board, editing board (by adding column) should be blocked
+				// If standard field then users can't add options
 				self.$kanban_board.find(".add-new-column").remove();
 				return;
 			}

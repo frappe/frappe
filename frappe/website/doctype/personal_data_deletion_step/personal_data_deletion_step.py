@@ -23,4 +23,5 @@ class PersonalDataDeletionStep(Document):
 		partial: DF.Check
 		status: DF.Literal["Pending", "Deleted"]
 	# end: auto-generated types
+
 	pass

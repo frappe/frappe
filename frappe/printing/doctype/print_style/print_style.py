@@ -20,6 +20,7 @@ class PrintStyle(Document):
 		print_style_name: DF.Data
 		standard: DF.Check
 	# end: auto-generated types
+
 	def validate(self):
 		if (
 			self.standard == 1
@@ -27,7 +28,6 @@ class PrintStyle(Document):
 			and not frappe.flags.in_import
 			and not frappe.flags.in_test
 		):
-
 			frappe.throw(frappe._("Standard Print Style cannot be changed. Please duplicate to edit."))
 
 	def on_update(self):

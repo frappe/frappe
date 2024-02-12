@@ -26,9 +26,7 @@ class DocumentPage(BaseTemplatePage):
 		if document := _find_matching_document_webview(self.path):
 			self.doctype, self.docname = document
 			doc = frappe.get_cached_doc(self.doctype, self.docname)
-			return (
-				doc.meta.allow_guest_to_view or doc.has_permission() or frappe.has_website_permission(doc)
-			)
+			return doc.meta.allow_guest_to_view or doc.has_permission() or frappe.has_website_permission(doc)
 
 	def search_web_page_dynamic_routes(self):
 		d = get_page_info_from_web_page_with_dynamic_routes(self.path)
@@ -96,7 +94,13 @@ def _find_matching_document_webview(route: str) -> tuple[str, str] | None:
 			filters[condition_field] = 1
 
 		try:
-			docname = frappe.db.get_value(doctype, filters, "name")
+			docname = None
+			if meta.is_virtual:
+				if doclist := frappe.get_all(doctype, filters=filters, fields=["name"], limit=1):
+					docname = doclist[0].get("name")
+			else:
+				docname = frappe.db.get_value(doctype, filters, "name")
+
 			if docname:
 				return (doctype, docname)
 		except Exception as e:

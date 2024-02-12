@@ -91,9 +91,7 @@ class TestDocumentFollow(FrappeTestCase):
 		frappe.set_user(user.name)
 		event = get_event()
 
-		add_comment(
-			event.doctype, event.name, "This is a test comment", "Administrator@example.com", "Bosh"
-		)
+		add_comment(event.doctype, event.name, "This is a test comment", "Administrator@example.com", "Bosh")
 
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertTrue(documents_followed)
@@ -103,9 +101,7 @@ class TestDocumentFollow(FrappeTestCase):
 		frappe.set_user(user.name)
 		event = get_event()
 
-		add_comment(
-			event.doctype, event.name, "This is a test comment", "Administrator@example.com", "Bosh"
-		)
+		add_comment(event.doctype, event.name, "This is a test comment", "Administrator@example.com", "Bosh")
 
 		documents_followed = get_events_followed_by_user(event.name, user.name)
 		self.assertFalse(documents_followed)

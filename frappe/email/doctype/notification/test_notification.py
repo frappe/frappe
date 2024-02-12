@@ -87,9 +87,7 @@ class TestNotification(FrappeTestCase):
 			)
 		)
 
-		self.assertEqual(
-			frappe.db.get_value("Communication", communication.name, "subject"), "__testing__"
-		)
+		self.assertEqual(frappe.db.get_value("Communication", communication.name, "subject"), "__testing__")
 
 	def test_condition(self):
 		"""Check notification is triggered based on a condition."""
@@ -263,7 +261,6 @@ class TestNotification(FrappeTestCase):
 		)
 
 	def test_cc_jinja(self):
-
 		frappe.db.delete("User", {"email": "test_jinja@example.com"})
 		frappe.db.delete("Email Queue")
 		frappe.db.delete("Email Queue Recipient")
@@ -282,9 +279,7 @@ class TestNotification(FrappeTestCase):
 			)
 		)
 
-		self.assertTrue(
-			frappe.db.get_value("Email Queue Recipient", {"recipient": "test_jinja@example.com"})
-		)
+		self.assertTrue(frappe.db.get_value("Email Queue Recipient", {"recipient": "test_jinja@example.com"}))
 
 		frappe.db.delete("User", {"email": "test_jinja@example.com"})
 		frappe.db.delete("Email Queue")

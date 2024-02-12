@@ -50,9 +50,7 @@ class Exporter:
 		self.add_data()
 
 	def get_all_exportable_fields(self):
-		child_table_fields = [
-			df.fieldname for df in self.meta.fields if df.fieldtype in table_fieldtypes
-		]
+		child_table_fields = [df.fieldname for df in self.meta.fields if df.fieldtype in table_fieldtypes]
 
 		meta = frappe.get_meta(self.doctype)
 		exportable_fields = frappe._dict({})
@@ -206,9 +204,7 @@ class Exporter:
 			if is_parent:
 				label = _(df.label or df.fieldname)
 			else:
-				label = (
-					f"{_(df.label or df.fieldname)} ({_(df.child_table_df.label or df.child_table_df.fieldname)})"
-				)
+				label = f"{_(df.label or df.fieldname)} ({_(df.child_table_df.label or df.child_table_df.fieldname)})"
 
 			if label in header:
 				# this label is already in the header,

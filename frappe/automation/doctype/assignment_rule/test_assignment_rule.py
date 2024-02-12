@@ -104,7 +104,7 @@ class TestAutoAssign(FrappeTestCase):
 			frappe.db.delete("ToDo", {"name": d.name})
 
 		# add 5 more assignments
-		for i in range(5):
+		for _ in range(5):
 			_make_test_record(public=1)
 
 		# check if each user still has 10 assignments
@@ -138,7 +138,9 @@ class TestAutoAssign(FrappeTestCase):
 			# check if auto assigned to doc owner, test1@example.com
 			self.assertEqual(
 				frappe.db.get_value(
-					"ToDo", dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"), "owner"
+					"ToDo",
+					dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"),
+					"owner",
 				),
 				test_user,
 			)
@@ -247,17 +249,15 @@ class TestAutoAssign(FrappeTestCase):
 		frappe.db.delete("Assignment Rule")
 
 		assignment_rule = frappe.get_doc(
-			dict(
-				name="Assignment with Due Date",
-				doctype="Assignment Rule",
-				document_type=TEST_DOCTYPE,
-				assign_condition="public == 0",
-				due_date_based_on="expiry_date",
-				assignment_days=self.days,
-				users=[
-					dict(user="test@example.com"),
-				],
-			)
+			name="Assignment with Due Date",
+			doctype="Assignment Rule",
+			document_type=TEST_DOCTYPE,
+			assign_condition="public == 0",
+			due_date_based_on="expiry_date",
+			assignment_days=self.days,
+			users=[
+				dict(user="test@example.com"),
+			],
 		).insert()
 
 		expiry_date = frappe.utils.add_days(frappe.utils.nowdate(), 2)
@@ -349,39 +349,35 @@ def get_assignment_rule(days, assign=None):
 		assign = ["public == 1", "notify_on_login == 1"]
 
 	assignment_rule = frappe.get_doc(
-		dict(
-			name=f"For {TEST_DOCTYPE} 1",
-			doctype="Assignment Rule",
-			priority=0,
-			document_type=TEST_DOCTYPE,
-			assign_condition=assign[0],
-			unassign_condition="public == 0 or notify_on_login == 1",
-			close_condition='"Closed" in content',
-			rule="Round Robin",
-			assignment_days=days[0],
-			users=[
-				dict(user="test@example.com"),
-				dict(user="test1@example.com"),
-				dict(user="test2@example.com"),
-			],
-		)
+		name=f"For {TEST_DOCTYPE} 1",
+		doctype="Assignment Rule",
+		priority=0,
+		document_type=TEST_DOCTYPE,
+		assign_condition=assign[0],
+		unassign_condition="public == 0 or notify_on_login == 1",
+		close_condition='"Closed" in content',
+		rule="Round Robin",
+		assignment_days=days[0],
+		users=[
+			dict(user="test@example.com"),
+			dict(user="test1@example.com"),
+			dict(user="test2@example.com"),
+		],
 	).insert()
 
 	frappe.delete_doc_if_exists("Assignment Rule", f"For {TEST_DOCTYPE} 2")
 
 	# 2nd rule
 	frappe.get_doc(
-		dict(
-			name=f"For {TEST_DOCTYPE} 2",
-			doctype="Assignment Rule",
-			priority=1,
-			document_type=TEST_DOCTYPE,
-			assign_condition=assign[1],
-			unassign_condition="notify_on_login == 0",
-			rule="Round Robin",
-			assignment_days=days[1],
-			users=[dict(user="test3@example.com")],
-		)
+		name=f"For {TEST_DOCTYPE} 2",
+		doctype="Assignment Rule",
+		priority=1,
+		document_type=TEST_DOCTYPE,
+		assign_condition=assign[1],
+		unassign_condition="notify_on_login == 0",
+		rule="Round Robin",
+		assignment_days=days[1],
+		users=[dict(user="test3@example.com")],
 	).insert()
 
 	return assignment_rule

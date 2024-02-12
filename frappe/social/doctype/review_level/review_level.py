@@ -21,4 +21,5 @@ class ReviewLevel(Document):
 		review_points: DF.Int
 		role: DF.Link
 	# end: auto-generated types
+
 	pass

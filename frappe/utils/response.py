@@ -205,7 +205,7 @@ def json_handler(obj):
 	from collections.abc import Iterable
 	from re import Match
 
-	if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
+	if isinstance(obj, datetime.date | datetime.datetime | datetime.time):
 		return str(obj)
 
 	elif isinstance(obj, datetime.timedelta):
@@ -232,18 +232,14 @@ def json_handler(obj):
 		return repr(obj)
 
 	else:
-		raise TypeError(
-			f"""Object of type {type(obj)} with value of {repr(obj)} is not JSON serializable"""
-		)
+		raise TypeError(f"""Object of type {type(obj)} with value of {repr(obj)} is not JSON serializable""")
 
 
 def as_page():
 	"""print web page"""
 	from frappe.website.serve import get_response
 
-	return get_response(
-		frappe.response["route"], http_status_code=frappe.response.get("http_status_code")
-	)
+	return get_response(frappe.response["route"], http_status_code=frappe.response.get("http_status_code"))
 
 
 def redirect():

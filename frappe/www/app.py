@@ -19,9 +19,7 @@ CLOSING_SCRIPT_TAG_PATTERN = re.compile(r"</script\>")
 def get_context(context):
 	if frappe.session.user == "Guest":
 		frappe.throw(_("Log in to access this page."), frappe.PermissionError)
-	elif (
-		frappe.db.get_value("User", frappe.session.user, "user_type", order_by=None) == "Website User"
-	):
+	elif frappe.db.get_value("User", frappe.session.user, "user_type", order_by=None) == "Website User":
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	hooks = frappe.get_hooks()

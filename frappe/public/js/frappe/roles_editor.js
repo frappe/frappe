@@ -40,6 +40,7 @@ frappe.RoleEditor = class {
 				role && this.show_permissions(role);
 				e.preventDefault();
 			});
+			this.set_enable_disable();
 		};
 	}
 	set_enable_disable() {

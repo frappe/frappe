@@ -65,6 +65,7 @@ class EmailQueue(Document):
 		unsubscribe_method: DF.Data | None
 		unsubscribe_param: DF.Data | None
 	# end: auto-generated types
+
 	DOCTYPE = "Email Queue"
 
 	def set_recipients(self, recipients):
@@ -195,9 +196,7 @@ class EmailQueue(Document):
 
 		# Delete queue table
 		(
-			frappe.qb.from_(email_queue)
-			.delete()
-			.where(email_queue.modified < (Now() - Interval(days=days)))
+			frappe.qb.from_(email_queue).delete().where(email_queue.modified < (Now() - Interval(days=days)))
 		).run()
 
 		# delete child tables, note that this has potential to leave some orphan
@@ -305,9 +304,7 @@ class SendMailContext:
 		if not message:
 			return ""
 
-		message = message.replace(
-			self.message_placeholder("tracker"), self.get_tracker_str(recipient_email)
-		)
+		message = message.replace(self.message_placeholder("tracker"), self.get_tracker_str(recipient_email))
 		message = message.replace(
 			self.message_placeholder("unsubscribe_url"), self.get_unsubscribe_str(recipient_email)
 		)
@@ -411,11 +408,9 @@ def bulk_retry(queues):
 	)
 
 	email_queue = frappe.qb.DocType("Email Queue")
-	frappe.qb.update(email_queue).set(email_queue.status, "Not Sent").set(
-		email_queue.modified, now()
-	).set(email_queue.modified_by, frappe.session.user).where(
-		email_queue.name.isin(queues) & email_queue.status == "Error"
-	).run()
+	frappe.qb.update(email_queue).set(email_queue.status, "Not Sent").set(email_queue.modified, now()).set(
+		email_queue.modified_by, frappe.session.user
+	).where(email_queue.name.isin(queues) & email_queue.status == "Error").run()
 
 
 @frappe.whitelist()
@@ -434,9 +429,7 @@ def toggle_sending(enable):
 
 def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
-	frappe.db.add_index(
-		"Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush"
-	)
+	frappe.db.add_index("Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush")
 
 	frappe.db.add_index("Email Queue", ["message_id(140)"])
 

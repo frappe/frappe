@@ -21,6 +21,7 @@ class Version(Document):
 		docname: DF.Data
 		ref_doctype: DF.Link
 	# end: auto-generated types
+
 	def update_version_info(self, old: Document | None, new: Document) -> bool:
 		"""Update changed info and return true if change contains useful data."""
 		if not old:

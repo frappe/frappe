@@ -220,9 +220,7 @@ class TestDocType(FrappeTestCase):
 			self.assertListEqual(
 				[f["fieldname"] for f in test_doctype_json["fields"]], test_doctype_json["field_order"]
 			)
-			self.assertListEqual(
-				[f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order
-			)
+			self.assertListEqual([f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order)
 			self.assertListEqual(test_doctype_json["field_order"], initial_fields_order)
 
 			# remove field_order to test reload_doc/sync/migrate is backwards compatible without field_order
@@ -246,9 +244,7 @@ class TestDocType(FrappeTestCase):
 			self.assertListEqual(
 				[f["fieldname"] for f in test_doctype_json["fields"]], test_doctype_json["field_order"]
 			)
-			self.assertListEqual(
-				[f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order
-			)
+			self.assertListEqual([f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order)
 			self.assertListEqual(test_doctype_json["field_order"], initial_fields_order)
 
 			# reorder fields: swap row 1 and 3
@@ -259,9 +255,7 @@ class TestDocType(FrappeTestCase):
 			# assert that reordering fields only affects `field_order` rather than `fields` attr
 			test_doctype.save()
 			test_doctype_json = frappe.get_file_json(path)
-			self.assertListEqual(
-				[f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order
-			)
+			self.assertListEqual([f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order)
 			self.assertListEqual(
 				test_doctype_json["field_order"], ["field_3", "field_2", "field_1", "field_4"]
 			)
