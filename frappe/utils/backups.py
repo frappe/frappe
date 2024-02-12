@@ -125,24 +125,17 @@ class BackupGenerator:
 					tables.append(table)
 			return tables
 
-		passed_tables = {
-			"include": get_tables(self.include_doctypes.strip().split(",")),
-			"exclude": get_tables(self.exclude_doctypes.strip().split(",")),
-		}
-		specified_tables = get_tables(frappe.conf.get("backup", {}).get("includes", []))
-		include_tables = (specified_tables + base_tables) if specified_tables else []
+		self.backup_includes = get_tables(self.include_doctypes.strip().split(","))
+		self.backup_excludes = get_tables(self.exclude_doctypes.strip().split(","))
 
-		conf_tables = {
-			"include": include_tables,
-			"exclude": get_tables(frappe.conf.get("backup", {}).get("excludes", [])),
-		}
+		if not self.ignore_conf:
+			backup_conf = frappe.conf.get("backup", {})
+			if not self.backup_includes:
+				specified_tables = get_tables(backup_conf.get("includes", []))
+				self.backup_includes = (specified_tables + base_tables) if specified_tables else []
 
-		self.backup_includes = passed_tables["include"]
-		self.backup_excludes = passed_tables["exclude"]
-
-		if not self.backup_includes and not self.backup_excludes and not self.ignore_conf:
-			self.backup_includes = self.backup_includes or conf_tables["include"]
-			self.backup_excludes = self.backup_excludes or conf_tables["exclude"]
+			if not self.backup_excludes:
+				self.backup_excludes = get_tables(backup_conf.get("excludes", []))
 
 		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
 
