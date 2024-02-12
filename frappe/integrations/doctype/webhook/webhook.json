@@ -8,6 +8,7 @@
  "field_order": [
   "sb_doc_events",
   "webhook_doctype",
+  "webhook_queue",
   "cb_doc_events",
   "webhook_docevent",
   "enabled",
@@ -213,6 +214,11 @@
    "fieldtype": "Int",
    "label": "Request Timeout",
    "reqd": 1
+  },
+  {
+   "fieldname": "webhook_queue",
+   "fieldtype": "Autocomplete",
+   "label": "Webhook Queue"
   }
  ],
  "links": [
@@ -221,7 +227,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-02-05 17:49:50.203001",
+ "modified": "2024-02-12 10:35:21.811887",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

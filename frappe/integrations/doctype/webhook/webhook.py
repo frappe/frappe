@@ -13,6 +13,7 @@ import requests
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils.background_jobs import get_queues_timeout
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
@@ -54,6 +55,7 @@ class Webhook(Document):
 		webhook_doctype: DF.Link
 		webhook_headers: DF.Table[WebhookHeader]
 		webhook_json: DF.Code | None
+		webhook_queue: DF.Autocomplete | None
 		webhook_secret: DF.Password | None
 	# end: auto-generated types
 
@@ -252,3 +254,10 @@ def get_webhook_data(doc, webhook):
 		data = json.loads(data)
 
 	return data
+
+
+@frappe.whitelist()
+def get_all_queues():
+	"""Fetches all workers and returns a list of available queue names."""
+
+	return get_queues_timeout().keys()

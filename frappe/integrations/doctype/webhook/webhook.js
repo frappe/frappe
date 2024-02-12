@@ -76,11 +76,27 @@ frappe.webhook = {
 			}
 		}
 	},
+
+	set_webhook_queue: (frm) => {
+		frappe.model.with_doctype(frm.doc.webhook_doctype, () => {
+			// get list of queue names
+			frm.call({
+				method: "get_all_queues",
+				freeze: true,
+				callback: (r) => {
+					if (r.message) {
+						frm.fields_dict.webhook_queue.set_data(r.message);
+					}
+				},
+			});
+		});
+	},
 };
 
 frappe.ui.form.on("Webhook", {
 	refresh: (frm) => {
 		frappe.webhook.set_fieldname_select(frm);
+		frappe.webhook.set_webhook_queue(frm);
 	},
 
 	request_structure: (frm) => {
