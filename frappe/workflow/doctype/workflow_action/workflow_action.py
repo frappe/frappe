@@ -303,9 +303,19 @@ def get_next_possible_transitions(workflow_name, state, doc=None):
 
 def get_users_next_action_data(transitions, doc):
 	user_data_map = {}
+
+	@frappe.request_cache
+	def user_has_permission(user: str) -> bool:
+		from frappe.permissions import has_permission
+
+		return has_permission(doctype=doc, user=user, print_logs=False)
+
 	for transition in transitions:
 		users = get_users_with_role(transition.allowed)
-		filtered_users = filter_allowed_users(users, doc, transition)
+		filtered_users = [
+			user for user in users if has_approval_access(user, doc, transition) and user_has_permission(user)
+		]
+
 		for user in filtered_users:
 			if not user_data_map.get(user):
 				user_data_map[user] = frappe._dict(
@@ -433,6 +443,7 @@ def get_doc_workflow_state(doc):
 	return doc.get(workflow_state_field)
 
 
+<<<<<<< HEAD
 def filter_allowed_users(users, doc, transition):
 	"""Filters list of users by checking if user has access to doc and
 	if the user satisfies 'workflow transision self approval' condition
@@ -448,6 +459,8 @@ def filter_allowed_users(users, doc, transition):
 	return filtered_users
 
 
+=======
+>>>>>>> 140a01e2cf (perf: cache permission results)
 def get_common_email_args(doc):
 	doctype = doc.get("doctype")
 	docname = doc.get("name")
