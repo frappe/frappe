@@ -35,6 +35,37 @@ frappe.notification = {
 				]);
 			};
 
+			let get_receiver_fields = function (
+				is_extra_receiver_field = (_) => {
+					return false;
+				}
+			) {
+				// finds receiver fields from the fields or any child table
+				// by default finds any link to the User doctype
+				// however an additional optional predicate can be passed as argument
+				// to find additional fields
+				let is_receiver_field = function (df) {
+					return (
+						is_extra_receiver_field(df) ||
+						(df.options == "User" && df.fieldtype == "Link")
+					);
+				};
+				let extract_receiver_field = function (df) {
+					// Add recipients from child doctypes into select dropdown
+					if (frappe.model.table_fields.includes(df.fieldtype)) {
+						let child_fields = frappe.get_doc("DocType", df.options).fields;
+						return $.map(child_fields, function (cdf) {
+							return is_receiver_field(cdf)
+								? get_select_options(cdf, df.fieldname)
+								: null;
+						});
+					} else {
+						return is_receiver_field(df) ? get_select_options(df) : null;
+					}
+				};
+				return $.map(fields, extract_receiver_field);
+			};
+
 			let fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
 			let options = $.map(fields, function (d) {
 				return frappe.model.no_value_type.includes(d.fieldtype)
@@ -50,30 +81,13 @@ frappe.notification = {
 			frm.set_df_property("date_changed", "options", get_date_change_options());
 
 			let receiver_fields = [];
-			let find_receiver_fields = function (extra) {
-				let predicate = function (df) {
-					return extra(df) || (df.options == "User" && df.fieldtype == "Link");
-				};
-				let extract = function (df) {
-					// Add recipients from child doctypes into select dropdown
-					if (frappe.model.table_fields.includes(df.fieldtype)) {
-						let child_fields = frappe.get_doc("DocType", df.options).fields;
-						return $.map(child_fields, function (cdf) {
-							return predicate(cdf) ? get_select_options(cdf, df.fieldname) : null;
-						});
-					} else {
-						return predicate(df) ? get_select_options(df) : null;
-					}
-				};
-				return $.map(fields, extract);
-			};
 			if (frm.doc.channel === "Email") {
-				receiver_fields = find_receiver_fields(function (df) {
+				receiver_fields = get_receiver_fields(fields, function (df) {
 					return df.options == "Email";
 				});
 			} else if (["WhatsApp", "SMS"].includes(frm.doc.channel)) {
-				receiver_fields = find_receiver_fields(function (df) {
-					return df.options == "Phone" || df.options == "Mobile";
+				receiver_fields = get_receiver_fields(fields, function (df) {
+					df.options == "Phone" || df.options == "Mobile";
 				});
 			}
 
