@@ -21,35 +21,9 @@ class TestWorkflow(FrappeTestCase):
 	def setUp(self):
 		self.workflow = create_todo_workflow()
 		frappe.set_user("Administrator")
-		if self._testMethodName == "test_if_workflow_actions_were_processed_using_user":
-			if not frappe.db.has_column("Workflow Action", "user"):
-				# mariadb would raise this statement would create an implicit commit
-				# if we do not commit before alter statement
-				# nosemgrep
-				frappe.db.commit()
-				frappe.db.multisql(
-					{
-						"mariadb": "ALTER TABLE `tabWorkflow Action` ADD COLUMN user varchar(140)",
-						"postgres": 'ALTER TABLE "tabWorkflow Action" ADD COLUMN "user" varchar(140)',
-					}
-				)
-				frappe.cache().delete_value("table_columns")
 
 	def tearDown(self):
 		frappe.delete_doc("Workflow", "Test ToDo")
-		if self._testMethodName == "test_if_workflow_actions_were_processed_using_user":
-			if frappe.db.has_column("Workflow Action", "user"):
-				# mariadb would raise this statement would create an implicit commit
-				# if we do not commit before alter statement
-				# nosemgrep
-				frappe.db.commit()
-				frappe.db.multisql(
-					{
-						"mariadb": "ALTER TABLE `tabWorkflow Action` DROP COLUMN user",
-						"postgres": 'ALTER TABLE "tabWorkflow Action" DROP COLUMN "user"',
-					}
-				)
-				frappe.cache().delete_value("table_columns")
 
 	def test_default_condition(self):
 		"""test default condition is set"""
