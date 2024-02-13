@@ -131,8 +131,10 @@ class BackupGenerator:
 		if not self.ignore_conf:
 			backup_conf = frappe.conf.get("backup", {})
 			if not self.backup_includes:
-				specified_tables = get_tables(backup_conf.get("includes", []))
-				self.backup_includes = (specified_tables + base_tables) if specified_tables else []
+				if specified_tables := get_tables(backup_conf.get("includes", [])):
+					self.backup_includes = specified_tables + base_tables
+				else:
+					self.backup_includes = []
 
 			if not self.backup_excludes:
 				self.backup_excludes = get_tables(backup_conf.get("excludes", []))
