@@ -32,6 +32,9 @@ def setup_database(force, verbose):
 	dbman = DbManager(root_conn)
 	dbman_kwargs = {}
 
+	if frappe.flags.maridab_user_host_login_scope is not None:
+		dbman_kwargs["host"] = frappe.flags.maridab_user_host_login_scope
+
 	dbman.create_user(db_user, frappe.conf.db_password, **dbman_kwargs)
 	if verbose:
 		print(f"Created or updated user {db_user}")

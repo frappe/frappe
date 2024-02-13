@@ -36,6 +36,20 @@ from frappe.exceptions import SiteNotSpecifiedError
 	envvar="MYSQL_UNIX_PORT",
 	help="Database socket for MariaDB or PostgreSQL",
 )
+@click.option(
+	"--no-mariadb-socket",
+	is_flag=True,
+	default=False,
+	help="DEPRECATED: Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket",
+)
+@click.option(
+	"--mariadb-user-host-login-scope",
+	help=(
+		"Set the mariadb host for the user login scope if you don't want to use the current host as login "
+		"scope which typically is ''@'localhost' - may be used when initializing a user on a remote host. "
+		"See the mariadb docs on account names for more info."
+	),
+)
 @click.option("--admin-password", help="Administrator password for new site", default=None)
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
 @click.option("--force", help="Force restore if site/database already exists", is_flag=True, default=False)
@@ -56,6 +70,8 @@ def new_site(
 	verbose=False,
 	source_sql=None,
 	force=None,
+	no_mariadb_socket=False,
+	mariadb_user_host_login_scope=False,
 	install_app=None,
 	db_name=None,
 	db_password=None,
@@ -69,6 +85,17 @@ def new_site(
 ):
 	"Create a new site"
 	from frappe.installer import _new_site
+
+	if no_mariadb_socket:
+		click.secho(
+			"--no-mariadb-socket is DEPRECATED; "
+			"use --mariadb-user-host-login-scope='%' (wildcard) or --mariadb-user-host-login-scope=<myhostscope>, instead. "
+			"The name of this option was misleading: it had nothing to do with sockets.",
+			fg="yellow",
+		)
+		frappe.flags.mariadb_user_host_login_scope = "%"
+	if mariadb_user_host_login_scope:
+		frappe.flags.mariadb_user_host_login_scope = mariadb_user_host_login_scope
 
 	frappe.init(site=site, new_site=True)
 
