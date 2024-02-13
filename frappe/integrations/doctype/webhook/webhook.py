@@ -259,5 +259,6 @@ def get_webhook_data(doc, webhook):
 @frappe.whitelist()
 def get_all_queues():
 	"""Fetches all workers and returns a list of available queue names."""
+	frappe.only_for("System Manager")
 
 	return get_queues_timeout().keys()
