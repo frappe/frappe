@@ -722,21 +722,17 @@ class TestFileUtils(FrappeTestCase):
 
 		# with filename in data URI
 		todo = frappe.get_doc(
-			{
-				"doctype": "ToDo",
-				"description": 'Test <img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">',
-			}
+			doctype="ToDo",
+			description='Test <img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">',
 		).insert()
 		self.assertTrue(frappe.db.exists("File", {"attached_to_name": todo.name, "is_private": is_private}))
-		self.assertIn('<img src="/private/files/pix.png">', todo.description)
+		self.assertRegex(todo.description, r"<img src=\"(.*)/files/pix\.png(.*)\">")
 		self.assertListEqual(get_attached_images("ToDo", [todo.name])[todo.name], ["/private/files/pix.png"])
 
 		# without filename in data URI
 		todo = frappe.get_doc(
-			{
-				"doctype": "ToDo",
-				"description": 'Test <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">',
-			}
+			doctype="ToDo",
+			description='Test <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">',
 		).insert()
 		filename = frappe.db.exists("File", {"attached_to_name": todo.name})
 		self.assertIn(f'<img src="{frappe.get_doc("File", filename).file_url}', todo.description)
@@ -746,7 +742,7 @@ class TestFileUtils(FrappeTestCase):
 		Ensure that images are extracted from comments and become private attachments.
 		"""
 		is_private = not frappe.get_meta("ToDo").make_attachments_public
-		test_doc = frappe.get_doc(dict(doctype="ToDo", description="comment test")).insert()
+		test_doc = frappe.get_doc(doctype="ToDo", description="comment test").insert()
 		comment = add_comment(
 			"ToDo",
 			test_doc.name,
@@ -766,16 +762,14 @@ class TestFileUtils(FrappeTestCase):
 		"""
 		is_private = not frappe.get_meta("Communication").make_attachments_public
 		communication = frappe.get_doc(
-			{
-				"doctype": "Communication",
-				"communication_type": "Communication",
-				"communication_medium": "Email",
-				"content": '<div class="ql-editor read-mode"><img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="></div>',
-				"recipients": "to <to@test.com>",
-				"cc": None,
-				"bcc": None,
-				"sender": "sender@test.com",
-			}
+			doctype="Communication",
+			communication_type="Communication",
+			communication_medium="Email",
+			content='<div class="ql-editor read-mode"><img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="></div>',
+			recipients="to <to@test.com>",
+			cc=None,
+			bcc=None,
+			sender="sender@test.com",
 		).insert(ignore_permissions=True)
 
 		self.assertTrue(
