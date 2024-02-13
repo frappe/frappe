@@ -129,12 +129,11 @@ class MariaDBConnectionUtil:
 			conn_settings["unix_socket"] = self.socket
 		else:
 			conn_settings["host"] = self.host
+			if self.port:
+				conn_settings["port"] = int(self.port)
 
 		if self.password:
 			conn_settings["password"] = self.password
-
-		if not self.socket and self.port:
-			conn_settings["port"] = int(self.port)
 
 		if frappe.conf.local_infile:
 			conn_settings["local_infile"] = frappe.conf.local_infile
