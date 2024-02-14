@@ -984,13 +984,22 @@ class TestTypingValidations(FrappeTestCase):
 	ERR_REGEX = f"^Argument '.*' should be of type '.*' but got '.*' instead.$"
 
 	def test_validate_whitelisted_api(self):
-		from inspect import signature
+		@frappe.whitelist()
+		def simple(string: str, number: int):
+			return
 
-		whitelisted_fn = next(x for x in frappe.whitelisted if x.__annotations__)
-		bad_params = (object(),) * len(signature(whitelisted_fn).parameters)
+		@frappe.whitelist()
+		def varkw(string: str, **kwargs):
+			return
 
-		with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
-			whitelisted_fn(*bad_params)
+		test_cases = [
+			(simple, (object(), object()), {}),
+			(varkw, (object(),), {"xyz": object()}),
+		]
+
+		for fn, args, kwargs in test_cases:
+			with self.assertRaisesRegex(frappe.FrappeTypeError, self.ERR_REGEX):
+				fn(*args, **kwargs)
 
 	def test_validate_whitelisted_doc_method(self):
 		report = frappe.get_last_doc("Report")

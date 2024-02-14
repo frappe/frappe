@@ -56,10 +56,10 @@ def version_query(doctype, txt, searchfield, start, page_len, filters):
 
 	results = frappe.get_list(
 		"Version",
-		fields=["name", "modified"],
+		fields=["name", "modified", "owner"],
 		filters=version_filters,
 		limit_start=start,
 		limit_page_length=page_len,
 		order_by="modified desc",
 	)
-	return [(d.name, pretty_date(d.modified), d.modified) for d in results]
+	return [(d.name, pretty_date(d.modified), d.modified, d.owner) for d in results]
