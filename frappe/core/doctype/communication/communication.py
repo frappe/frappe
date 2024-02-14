@@ -13,10 +13,10 @@ from frappe.automation.doctype.assignment_rule.assignment_rule import (
 	apply as apply_assignment_rule,
 )
 from frappe.contacts.doctype.contact.contact import get_contact_name
-from frappe.core.doctype.comment.comment import update_comment_in_doc
 from frappe.core.doctype.communication.email import validate_email
 from frappe.core.doctype.communication.mixins import CommunicationEmailMixin
 from frappe.core.utils import get_parent_doc
+from frappe.desk.doctype.comment.comment import update_comment_in_doc
 from frappe.model.document import Document
 from frappe.utils import (
 	cstr,
