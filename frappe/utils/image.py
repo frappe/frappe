@@ -53,21 +53,11 @@ def optimize_image(
 	if content_type == "image/svg+xml":
 		return content
 
-<<<<<<< HEAD
-	image = Image.open(io.BytesIO(content))
-	image_format = content_type.split("/")[1]
-	size = max_width, max_height
-	image.thumbnail(size, Image.Resampling.LANCZOS)
-=======
 	try:
 		image = Image.open(io.BytesIO(content))
-		width, height = image.size
-		max_height = max(min(max_height, height * 0.8), 200)
-		max_width = max(min(max_width, width * 0.8), 200)
 		image_format = content_type.split("/")[1]
 		size = max_width, max_height
 		image.thumbnail(size, Image.Resampling.LANCZOS)
->>>>>>> 3524cae48e (fix: ignore and gracefully handle img optimization failure)
 
 		output = io.BytesIO()
 		image.save(
