@@ -784,6 +784,7 @@ def test_password_strength(new_password, key=None, old_password=None, user_data=
 			password_policy_validation_passed = True
 
 		result["feedback"]["password_policy_validation_passed"] = password_policy_validation_passed
+		result.pop("password", None)
 		return result
 
 

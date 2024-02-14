@@ -25,7 +25,10 @@ class Note(Document):
 
 
 @frappe.whitelist()
-def mark_as_seen(note):
+def mark_as_seen(note: str):
+	if not isinstance(note, str):
+		raise ValueError("note must be a string")
+
 	note = frappe.get_doc("Note", note)
 	if frappe.session.user not in [d.user for d in note.seen_by]:
 		note.append("seen_by", {"user": frappe.session.user})

@@ -52,12 +52,12 @@
    "fieldname": "response_html",
    "fieldtype": "Code",
    "label": "Response ",
-   "options": "HTML"
+   "options": "Jinja"
   }
  ],
  "icon": "fa fa-comment",
  "links": [],
- "modified": "2023-01-02 03:56:48.437280",
+ "modified": "2023-12-12 20:01:07.080625",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Template",

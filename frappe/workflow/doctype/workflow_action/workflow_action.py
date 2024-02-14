@@ -87,15 +87,17 @@ def process_workflow_actions(doc, state):
 	if not next_possible_transitions:
 		return
 
-	user_data_map, roles = get_users_next_action_data(next_possible_transitions, doc)
-
-	if not user_data_map:
-		return
-
+	roles = {t.allowed for t in next_possible_transitions}
 	create_workflow_actions_for_roles(roles, doc)
 
 	if send_email_alert(workflow):
-		enqueue(send_workflow_action_email, queue="short", users_data=list(user_data_map.values()), doc=doc)
+		enqueue(
+			send_workflow_action_email,
+			queue="short",
+			doc=doc,
+			transitions=next_possible_transitions,
+			enqueue_after_commit=True,
+		)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -300,12 +302,20 @@ def get_next_possible_transitions(workflow_name, state, doc=None):
 
 
 def get_users_next_action_data(transitions, doc):
-	roles = set()
 	user_data_map = {}
+
+	@frappe.request_cache
+	def user_has_permission(user: str) -> bool:
+		from frappe.permissions import has_permission
+
+		return has_permission(doctype=doc, user=user, print_logs=False)
+
 	for transition in transitions:
-		roles.add(transition.allowed)
 		users = get_users_with_role(transition.allowed)
-		filtered_users = filter_allowed_users(users, doc, transition)
+		filtered_users = [
+			user for user in users if has_approval_access(user, doc, transition) and user_has_permission(user)
+		]
+
 		for user in filtered_users:
 			if not user_data_map.get(user):
 				user_data_map[user] = frappe._dict(
@@ -323,10 +333,12 @@ def get_users_next_action_data(transitions, doc):
 					}
 				)
 			)
-	return user_data_map, roles
+	return user_data_map
 
 
 def create_workflow_actions_for_roles(roles, doc):
+	if not roles:
+		return
 	workflow_action = frappe.get_doc(
 		{
 			"doctype": "Workflow Action",
@@ -343,7 +355,8 @@ def create_workflow_actions_for_roles(roles, doc):
 	workflow_action.insert(ignore_permissions=True)
 
 
-def send_workflow_action_email(users_data, doc):
+def send_workflow_action_email(doc, transitions):
+	users_data = get_users_next_action_data(transitions, doc)
 	common_args = get_common_email_args(doc)
 	message = common_args.pop("message", None)
 	for d in users_data:
@@ -428,21 +441,6 @@ def get_doc_workflow_state(doc):
 	workflow_name = get_workflow_name(doc.get("doctype"))
 	workflow_state_field = get_workflow_state_field(workflow_name)
 	return doc.get(workflow_state_field)
-
-
-def filter_allowed_users(users, doc, transition):
-	"""Filters list of users by checking if user has access to doc and
-	if the user satisfies 'workflow transision self approval' condition
-	"""
-	from frappe.permissions import has_permission
-
-	filtered_users = []
-	for user in users:
-		if has_approval_access(user, doc, transition) and has_permission(
-			doctype=doc, user=user, raise_exception=False
-		):
-			filtered_users.append(user)
-	return filtered_users
 
 
 def get_common_email_args(doc):

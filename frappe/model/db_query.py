@@ -739,7 +739,9 @@ class DatabaseQuery:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
 
 		meta = frappe.get_meta(f.doctype)
-		can_be_null = f.fieldname != "name"  # primary key is never nullable
+
+		# primary key is never nullable, modified is usually indexed by default and always present
+		can_be_null = f.fieldname not in ("name", "modified")
 
 		# prepare in condition
 		if f.operator.lower() in NestedSetHierarchy:
