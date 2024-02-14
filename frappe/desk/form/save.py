@@ -50,21 +50,22 @@ def createStatusChangedComment(doc):
 	if(doc['doctype'] == "Project"):
 		project_name = doc['name']
 		database_status = frappe.db.sql("select status from tabProject where name = '"+project_name+"'", as_dict=True)
-		current_status = database_status[0]['status']
-		new_status = doc['status']
-		user = doc['modified_by']
-		if(current_status != new_status):
-			comment = frappe.new_doc("Comment")
-			comment.update(
-			{
-				"comment_type": "Comment",
-				"reference_doctype": "Project",
-				"reference_name": project_name,
-				"comment_email": "",
-				"comment_by": "",
-				"content": "<div class=\"ql-editor read-mode\"><p>Project updated. From: " + current_status + " TO: " + new_status + ". Modified by: " + user + "</p></div>"
-			})
-			comment.insert(ignore_permissions=True)
+		if(len(database_status)> 0):
+			current_status = database_status[0]['status']
+			new_status = doc['status']
+			user = doc['modified_by']
+			if(current_status != new_status):
+				comment = frappe.new_doc("Comment")
+				comment.update(
+				{
+					"comment_type": "Comment",
+					"reference_doctype": "Project",
+					"reference_name": project_name,
+					"comment_email": "",
+					"comment_by": "",
+					"content": "<div class=\"ql-editor read-mode\"><p>Project updated. From: " + current_status + " TO: " + new_status + ". Modified by: " + user + "</p></div>"
+				})
+				comment.insert(ignore_permissions=True)
   
   
 @frappe.whitelist()
