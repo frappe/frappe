@@ -169,7 +169,7 @@ frappe.ui.form.on("Notification", {
 		if (["Days Before", "Days After"].includes(frm.doc.event)) {
 			frm.add_custom_button(__("Get Alerts for Today"), function () {
 				frappe.call({
-					method: "frappe.email.doctype.notification.notification.get_documents_for_today",
+					method: "frappe.communications.doctype.notification.notification.get_documents_for_today",
 					args: {
 						notification: frm.doc.name,
 					},

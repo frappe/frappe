@@ -644,7 +644,7 @@ class EmailAccount(Document):
 
 	def send_auto_reply(self, communication, email):
 		"""Send auto reply if set."""
-		from frappe.core.doctype.communication.email import (
+		from frappe.communications.doctype.communication.email import (
 			set_incoming_outgoing_accounts,
 		)
 

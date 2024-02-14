@@ -401,9 +401,9 @@
  "icon": "fa fa-comment",
  "idx": 1,
  "links": [],
- "modified": "2023-11-27 20:38:27.467076",
+ "modified": "2023-12-25 11:33:16.542108",
  "modified_by": "Administrator",
- "module": "Core",
+ "module": "Communications",
  "name": "Communication",
  "owner": "Administrator",
  "permissions": [

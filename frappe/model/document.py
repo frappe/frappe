@@ -963,7 +963,7 @@ class Document(BaseDocument):
 		if self.flags.notifications_executed is None:
 			self.flags.notifications_executed = []
 
-		from frappe.email.doctype.notification.notification import evaluate_alert
+		from frappe.communications.doctype.notification.notification import evaluate_alert
 
 		if self.flags.notifications is None:
 

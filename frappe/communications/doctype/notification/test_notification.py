@@ -224,7 +224,7 @@ class TestNotification(FrappeTestCase):
 		frappe.set_user("Administrator")
 		frappe.get_doc(
 			"Scheduled Job Type",
-			dict(method="frappe.email.doctype.notification.notification.trigger_daily_alerts"),
+			dict(method="frappe.communications.doctype.notification.notification.trigger_daily_alerts"),
 		).execute()
 
 		# not today, so no alert
@@ -249,7 +249,7 @@ class TestNotification(FrappeTestCase):
 
 		frappe.get_doc(
 			"Scheduled Job Type",
-			dict(method="frappe.email.doctype.notification.notification.trigger_daily_alerts"),
+			dict(method="frappe.communications.doctype.notification.notification.trigger_daily_alerts"),
 		).execute()
 
 		# today so show alert

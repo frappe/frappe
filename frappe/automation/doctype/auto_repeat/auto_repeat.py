@@ -8,11 +8,11 @@ from dateutil.relativedelta import relativedelta
 import frappe
 from frappe import _
 from frappe.automation.doctype.assignment_rule.assignment_rule import get_repeated
+from frappe.communications.doctype.communication.email import make
 from frappe.contacts.doctype.contact.contact import (
 	get_contacts_linked_from,
 	get_contacts_linking_to,
 )
-from frappe.core.doctype.communication.email import make
 from frappe.desk.form import assign_to
 from frappe.model.document import Document
 from frappe.utils import (

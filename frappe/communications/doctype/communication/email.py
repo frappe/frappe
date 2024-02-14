@@ -21,7 +21,7 @@ from frappe.utils import (
 )
 
 if TYPE_CHECKING:
-	from frappe.core.doctype.communication.communication import Communication
+	from frappe.communications.doctype.communication.communication import Communication
 
 
 @frappe.whitelist()
@@ -71,7 +71,7 @@ def make(
 		from frappe.utils.commands import warn
 
 		warn(
-			f"Options {kwargs} used in frappe.core.doctype.communication.email.make "
+			f"Options {kwargs} used in frappe.communications.doctype.communication.email.make "
 			"are deprecated or unsupported",
 			category=DeprecationWarning,
 		)

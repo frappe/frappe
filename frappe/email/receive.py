@@ -678,7 +678,7 @@ class InboundMail(Email):
 
 	def is_exist_in_system(self):
 		"""Check if this email already exists in the system(as communication document)."""
-		from frappe.core.doctype.communication.communication import Communication
+		from frappe.communications.doctype.communication.communication import Communication
 
 		if not self.message_id:
 			return
@@ -721,7 +721,7 @@ class InboundMail(Email):
 		3. Sender sent a reply but reply is on top of what (s)he sent before,
 		        then parent record exists directly in communication.
 		"""
-		from frappe.core.doctype.communication.communication import Communication
+		from frappe.communications.doctype.communication.communication import Communication
 
 		if self._parent_communication is not None:
 			return self._parent_communication

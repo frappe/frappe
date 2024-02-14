@@ -26,7 +26,7 @@ class Notification(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.email.doctype.notification_recipient.notification_recipient import (
+		from frappe.communications.doctype.notification_recipient.notification_recipient import (
 			NotificationRecipient,
 		)
 		from frappe.types import DF
@@ -248,7 +248,7 @@ def get_context(context):
 	def send_an_email(self, doc, context):
 		from email.utils import formataddr
 
-		from frappe.core.doctype.communication.email import _make as make_communication
+		from frappe.communications.doctype.communication.email import _make as make_communication
 
 		subject = self.subject
 		if "{" in subject:
