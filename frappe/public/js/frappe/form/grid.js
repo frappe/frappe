@@ -833,9 +833,7 @@ export default class Grid {
 					acc[d.fieldname] = d.default;
 					return acc;
 				}, {});
-				this.df.data.push(
-					$.extend({ idx: this.df.data.length + 1, __islocal: true }, defaults)
-				);
+				this.df.data.push({ idx: this.df.data.length + 1, __islocal: true, ...defaults});
 				this.refresh();
 			}
 
