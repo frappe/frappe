@@ -12,6 +12,7 @@ from contextlib import suppress
 from shutil import which
 
 import click
+from semantic_version import Version
 
 import frappe
 from frappe.defaults import _clear_cache
@@ -771,21 +772,14 @@ def is_downgrade(sql_file_path, verbose=False):
 	if frappe.conf.db_type != "mariadb":
 		return False
 
-	from semantic_version import Version
-
-	backup_version = extract_version_from_dump(sql_file_path)
-	if backup_version is None:
-		# This is likely an older backup, so try to extract another way
-		header = get_db_dump_header(sql_file_path).split("\n")
-		if match := re.search(r"Frappe (\d+\.\d+\.\d+)", header[0]):
-			backup_version = match.group(1)
+	backup_version = get_backup_version(sql_file_path) or get_old_backup_version(sql_file_path)
+	current_version = Version(frappe.__version__)
 
 	# Assume it's not a downgrade if we can't determine backup version
 	if backup_version is None:
 		return False
 
-	current_version = Version(frappe.__version__)
-	is_downgrade = Version(backup_version) > current_version
+	is_downgrade = backup_version > current_version
 
 	if verbose and is_downgrade:
 		print(f"Your site will be downgraded from Frappe {current_version} to {backup_version}")
@@ -793,7 +787,15 @@ def is_downgrade(sql_file_path, verbose=False):
 	return is_downgrade
 
 
-def extract_version_from_dump(sql_file_path: str) -> str | None:
+def get_old_backup_version(sql_file_path: str) -> Version | None:
+	header = get_db_dump_header(sql_file_path).split("\n")
+	if match := re.search(r"Frappe (\d+\.\d+\.\d+)", header[0]):
+		backup_version = match[1]
+
+	return Version(backup_version) if backup_version else None
+
+
+def get_backup_version(sql_file_path: str) -> Version | None:
 	"""
 	Extract frappe version from DB dump
 
@@ -809,7 +811,8 @@ def extract_version_from_dump(sql_file_path: str) -> str | None:
 			metadata += line.replace("--", "").strip() + "\n"
 		parser = configparser.ConfigParser()
 		parser.read_string(metadata)
-		return parser["frappe"]["version"]
+		return Version(parser["frappe"]["version"])
+
 	return None
 
 
