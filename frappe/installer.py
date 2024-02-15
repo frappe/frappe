@@ -765,10 +765,11 @@ def extract_files(site_name, file_path):
 
 
 def is_downgrade(sql_file_path, verbose=False):
-	"""checks if input db backup will get downgraded on current bench"""
+	"""Check if input db backup will get downgraded on current bench
 
-	# This function is only tested with mariadb
-	# TODO: Add postgres support
+	This function is only tested with mariadb.
+	TODO: Add postgres support
+	"""
 	if frappe.conf.db_type != "mariadb":
 		return False
 
@@ -788,6 +789,10 @@ def is_downgrade(sql_file_path, verbose=False):
 
 
 def get_old_backup_version(sql_file_path: str) -> Version | None:
+	"""Return the frappe version used to create the specified database dump.
+
+	This methods supports older versions of Frappe wich used a different format.
+	"""
 	header = get_db_dump_header(sql_file_path).split("\n")
 	if match := re.search(r"Frappe (\d+\.\d+\.\d+)", header[0]):
 		backup_version = match[1]
@@ -796,12 +801,7 @@ def get_old_backup_version(sql_file_path: str) -> Version | None:
 
 
 def get_backup_version(sql_file_path: str) -> Version | None:
-	"""
-	Extract frappe version from DB dump
-
-	:param sql_file_path: The path to the dump file
-	:return: The frappe version used to create the backup
-	"""
+	"""Return the frappe version used to create the specified database dump."""
 	header = get_db_dump_header(sql_file_path).split("\n")
 	metadata = ""
 	if "begin frappe metadata" in header[0]:
