@@ -785,7 +785,7 @@ def is_downgrade(sql_file_path, verbose=False):
 		return False
 
 	current_version = Version(frappe.__version__)
-	downgrade = Version(backup_version) < current_version
+	downgrade = Version(backup_version) > current_version
 
 	if verbose and downgrade:
 		print(f"Your site will be downgraded from Frappe {current_version} to {backup_version}")
