@@ -111,40 +111,36 @@ class BackupGenerator:
 					dir = os.path.dirname(file_path)
 					os.makedirs(dir, exist_ok=True)
 
+	def _set_existing_tables(self):
+		"""Ensure self._existing_tables is set."""
+		if not hasattr(self, "_existing_tables"):
+			self._existing_tables = frappe.db.get_tables()
+
 	def setup_backup_tables(self):
-		"""Sets self.backup_includes, self.backup_excludes based on passed args"""
-		existing_tables = frappe.db.get_tables()
+		"""Set self.backup_includes, self.backup_excludes based on include_doctypes, exclude_doctypes"""
+		self._set_existing_tables()
 
-		def get_tables(doctypes):
-			tables = []
-			for doctype in doctypes:
-				if not doctype:
-					continue
-				table = frappe.utils.get_table_name(doctype)
-				if table in existing_tables:
-					tables.append(table)
-			return tables
+		self.backup_includes = _get_tables(self.include_doctypes.strip().split(","), self._existing_tables)
+		self.backup_excludes = _get_tables(self.exclude_doctypes.strip().split(","), self._existing_tables)
 
-		passed_tables = {
-			"include": get_tables(self.include_doctypes.strip().split(",")),
-			"exclude": get_tables(self.exclude_doctypes.strip().split(",")),
-		}
-		specified_tables = get_tables(frappe.conf.get("backup", {}).get("includes", []))
-		include_tables = (specified_tables + base_tables) if specified_tables else []
-
-		conf_tables = {
-			"include": include_tables,
-			"exclude": get_tables(frappe.conf.get("backup", {}).get("excludes", [])),
-		}
-
-		self.backup_includes = passed_tables["include"]
-		self.backup_excludes = passed_tables["exclude"]
-
-		if not self.backup_includes and not self.backup_excludes and not self.ignore_conf:
-			self.backup_includes = self.backup_includes or conf_tables["include"]
-			self.backup_excludes = self.backup_excludes or conf_tables["exclude"]
-
+		self.set_backup_tables_from_config()
 		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
+
+	def set_backup_tables_from_config(self):
+		"""Set self.backup_includes, self.backup_excludes based on site config"""
+		if self.ignore_conf:
+			return
+
+		backup_conf = frappe.conf.get("backup", {})
+		self._set_existing_tables()
+		if not self.backup_includes:
+			if specified_tables := _get_tables(backup_conf.get("includes", []), self._existing_tables):
+				self.backup_includes = specified_tables + base_tables
+			else:
+				self.backup_includes = []
+
+		if not self.backup_excludes:
+			self.backup_excludes = _get_tables(backup_conf.get("excludes", []), self._existing_tables)
 
 	@property
 	def site_config_backup_path(self):
@@ -477,6 +473,18 @@ download only after 24 hours."""
 
 		frappe.sendmail(recipients=recipient_list, message=msg, subject=subject)
 		return recipient_list
+
+
+def _get_tables(doctypes: list[str], existing_tables: list[str]) -> list[str]:
+	"""Return a list of tables for the given doctypes that exist in the database."""
+	tables = []
+	for doctype in doctypes:
+		if not doctype:
+			continue
+		table = frappe.utils.get_table_name(doctype)
+		if table in existing_tables:
+			tables.append(table)
+	return tables
 
 
 @frappe.whitelist()
