@@ -47,6 +47,7 @@ class Contact(Document):
 		unsubscribed: DF.Check
 		user: DF.Link | None
 	# end: auto-generated types
+
 	def autoname(self):
 		self.name = self._get_full_name()
 
@@ -248,17 +249,14 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.desk.reportview import get_match_cond
 
 	doctype = "Contact"
-	if (
-		not frappe.get_meta(doctype).get_field(searchfield)
-		and searchfield not in frappe.db.DEFAULT_COLUMNS
-	):
+	if not frappe.get_meta(doctype).get_field(searchfield) and searchfield not in frappe.db.DEFAULT_COLUMNS:
 		return []
 
 	link_doctype = filters.pop("link_doctype")
 	link_name = filters.pop("link_name")
 
 	return frappe.db.sql(
-		"""select
+		f"""select
 			`tabContact`.name, `tabContact`.full_name, `tabContact`.company_name
 		from
 			`tabContact`, `tabDynamic Link`
@@ -267,14 +265,12 @@ def contact_query(doctype, txt, searchfield, start, page_len, filters):
 			`tabDynamic Link`.parenttype = 'Contact' and
 			`tabDynamic Link`.link_doctype = %(link_doctype)s and
 			`tabDynamic Link`.link_name = %(link_name)s and
-			`tabContact`.`{key}` like %(txt)s
-			{mcond}
+			`tabContact`.`{searchfield}` like %(txt)s
+			{get_match_cond(doctype)}
 		order by
 			if(locate(%(_txt)s, `tabContact`.full_name), locate(%(_txt)s, `tabContact`.company_name), 99999),
 			`tabContact`.idx desc, `tabContact`.full_name
-		limit %(start)s, %(page_len)s """.format(
-			mcond=get_match_cond(doctype), key=searchfield
-		),
+		limit %(start)s, %(page_len)s """,
 		{
 			"txt": "%" + txt + "%",
 			"_txt": txt.replace("%", ""),
@@ -291,8 +287,7 @@ def address_query(links):
 	import json
 
 	links = [
-		{"link_doctype": d.get("link_doctype"), "link_name": d.get("link_name")}
-		for d in json.loads(links)
+		{"link_doctype": d.get("link_doctype"), "link_name": d.get("link_name")} for d in json.loads(links)
 	]
 	result = []
 
@@ -335,9 +330,7 @@ def get_contact_with_phone_number(number):
 
 
 def get_contact_name(email_id):
-	contact = frappe.get_all(
-		"Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1
-	)
+	contact = frappe.get_all("Contact Email", filters={"email_id": email_id}, fields=["parent"], limit=1)
 	return contact[0].parent if contact else None
 
 

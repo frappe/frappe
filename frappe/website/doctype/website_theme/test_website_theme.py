@@ -30,7 +30,6 @@ class TestWebsiteTheme(FrappeTestCase):
 			google_font="Inter",
 			custom_scss="body { font-size: 16.5px; }",  # this will get minified!
 		) as theme:
-
 			theme_path = frappe.get_site_path("public", theme.theme_url[1:])
 			with open(theme_path) as theme_file:
 				css = theme_file.read()

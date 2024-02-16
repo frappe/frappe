@@ -27,6 +27,7 @@ class KanbanBoard(Document):
 		reference_doctype: DF.Link
 		show_labels: DF.Check
 	# end: auto-generated types
+
 	def validate(self):
 		self.validate_column_name()
 
@@ -51,9 +52,7 @@ def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
 
-	return """(`tabKanban Board`.private=0 or `tabKanban Board`.owner={user})""".format(
-		user=frappe.db.escape(user)
-	)
+	return f"""(`tabKanban Board`.private=0 or `tabKanban Board`.owner={frappe.db.escape(user)})"""
 
 
 def has_permission(doc, ptype, user):
@@ -130,9 +129,7 @@ def update_order(board_name, order):
 
 
 @frappe.whitelist()
-def update_order_for_single_card(
-	board_name, docname, from_colname, to_colname, old_index, new_index
-):
+def update_order_for_single_card(board_name, docname, from_colname, to_colname, old_index, new_index):
 	"""Save the order of cards in columns"""
 	board = frappe.get_doc("Kanban Board", board_name)
 	doctype = board.reference_doctype

@@ -111,14 +111,14 @@ class TestServerScript(FrappeTestCase):
 		frappe.cache.delete_value("server_script_map")
 
 	def test_doctype_event(self):
-		todo = frappe.get_doc(dict(doctype="ToDo", description="hello")).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="hello").insert()
 		self.assertEqual(todo.status, "Open")
 
-		todo = frappe.get_doc(dict(doctype="ToDo", description="test todo")).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="test todo").insert()
 		self.assertEqual(todo.status, "Closed")
 
 		self.assertRaises(
-			frappe.ValidationError, frappe.get_doc(dict(doctype="ToDo", description="validate me")).insert
+			frappe.ValidationError, frappe.get_doc(doctype="ToDo", description="validate me").insert
 		)
 
 	def test_api(self):
@@ -157,9 +157,7 @@ class TestServerScript(FrappeTestCase):
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(
-			AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert
-		)
+		self.assertRaises(AttributeError, frappe.get_doc(doctype="ToDo", description="test me").insert)
 
 		server_script.disabled = 1
 		server_script.save()
@@ -169,9 +167,7 @@ class TestServerScript(FrappeTestCase):
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(
-			AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert
-		)
+		self.assertRaises(AttributeError, frappe.get_doc(doctype="ToDo", description="test me").insert)
 
 		server_script.disabled = 1
 		server_script.save()
@@ -222,7 +218,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			name="test_nested_scripts_1",
 			script_type="API",
 			api_method="test_nested_scripts_1",
-			script=f"""log("nothing")""",
+			script="""log("nothing")""",
 		)
 		script.insert()
 		script.execute_method()
@@ -232,13 +228,12 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			name="test_nested_scripts_2",
 			script_type="API",
 			api_method="test_nested_scripts_2",
-			script=f"""frappe.call("test_nested_scripts_1")""",
+			script="""frappe.call("test_nested_scripts_1")""",
 		)
 		script.insert()
 		script.execute_method()
 
 	def test_server_script_rate_limiting(self):
-		# why not
 		script1 = frappe.get_doc(
 			doctype="Server Script",
 			name="rate_limited_server_script",

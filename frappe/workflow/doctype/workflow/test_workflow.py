@@ -21,35 +21,9 @@ class TestWorkflow(FrappeTestCase):
 	def setUp(self):
 		self.workflow = create_todo_workflow()
 		frappe.set_user("Administrator")
-		if self._testMethodName == "test_if_workflow_actions_were_processed_using_user":
-			if not frappe.db.has_column("Workflow Action", "user"):
-				# mariadb would raise this statement would create an implicit commit
-				# if we do not commit before alter statement
-				# nosemgrep
-				frappe.db.commit()
-				frappe.db.multisql(
-					{
-						"mariadb": "ALTER TABLE `tabWorkflow Action` ADD COLUMN user varchar(140)",
-						"postgres": 'ALTER TABLE "tabWorkflow Action" ADD COLUMN "user" varchar(140)',
-					}
-				)
-				frappe.cache.delete_value("table_columns")
 
 	def tearDown(self):
 		frappe.delete_doc("Workflow", "Test ToDo")
-		if self._testMethodName == "test_if_workflow_actions_were_processed_using_user":
-			if frappe.db.has_column("Workflow Action", "user"):
-				# mariadb would raise this statement would create an implicit commit
-				# if we do not commit before alter statement
-				# nosemgrep
-				frappe.db.commit()
-				frappe.db.multisql(
-					{
-						"mariadb": "ALTER TABLE `tabWorkflow Action` DROP COLUMN user",
-						"postgres": 'ALTER TABLE "tabWorkflow Action" DROP COLUMN "user"',
-					}
-				)
-				frappe.cache.delete_value("table_columns")
 
 	def test_default_condition(self):
 		"""test default condition is set"""
@@ -183,7 +157,7 @@ def create_todo_workflow():
 	TEST_ROLE = "Test Approver"
 
 	if not frappe.db.exists("Role", TEST_ROLE):
-		frappe.get_doc(dict(doctype="Role", role_name=TEST_ROLE)).insert(ignore_if_duplicate=True)
+		frappe.get_doc(doctype="Role", role_name=TEST_ROLE).insert(ignore_if_duplicate=True)
 		if frappe.db.exists("User", UI_TEST_USER):
 			frappe.get_doc("User", UI_TEST_USER).add_roles(TEST_ROLE)
 
@@ -221,9 +195,7 @@ def create_todo_workflow():
 	)
 	workflow.append(
 		"transitions",
-		dict(
-			state="Rejected", action="Review", next_state="Pending", allowed="All", allow_self_approval=1
-		),
+		dict(state="Rejected", action="Review", next_state="Pending", allowed="All", allow_self_approval=1),
 	)
 	workflow.insert(ignore_permissions=True)
 
@@ -231,4 +203,4 @@ def create_todo_workflow():
 
 
 def create_new_todo():
-	return frappe.get_doc(dict(doctype="ToDo", description="workflow " + random_string(10))).insert()
+	return frappe.get_doc(doctype="ToDo", description="workflow " + random_string(10)).insert()

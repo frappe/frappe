@@ -9,9 +9,7 @@ import frappe
 from frappe.utils.data import cstr
 
 
-def publish_progress(
-	percent, title=None, doctype=None, docname=None, description=None, task_id=None
-):
+def publish_progress(percent, title=None, doctype=None, docname=None, description=None, task_id=None):
 	publish_realtime(
 		"progress",
 		{"percent": percent, "title": title, "description": description},
