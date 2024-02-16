@@ -808,7 +808,7 @@ class FilterArea {
 
 					return {
 						fieldtype: fieldtype,
-						label: __(df.label),
+						label: __(df.label, null, df.parent),
 						options: options,
 						fieldname: df.fieldname,
 						condition: condition,

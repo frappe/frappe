@@ -653,13 +653,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					html = subject_html;
 				} else {
 					const fieldname = col.df?.fieldname;
-					const attrs = fieldname
-						? ` data-sort-by="${fieldname}"
-							title="${__("Click to sort by {0}", [col.df?.label])}"`
-						: "";
-					html = `<span ${attrs}>
-						${__(col.df?.label || col.type)}
-					</span>`;
+					const label = __(col.df?.label || col.type, null, col.df?.parent);
+					const title = __("Click to sort by {0}", [label]);
+					const attrs = fieldname ? `data-sort-by="${fieldname}" title="${title}"` : "";
+					html = `<span ${attrs}>${label}</span>`;
 				}
 
 				return `<div class="${classes}">${html}</div>
