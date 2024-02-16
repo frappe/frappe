@@ -175,18 +175,18 @@ def get_notification_logs(limit=100):
 	count_callback_request = 0
 	for log in notification_logs:
 		email_content = log.get("email_content")
-		if email_content is not None and "subject-title" in email_content and "Remote Diagnose" in email_content and log.get("read", 0) == 0:
+		if email_content is not None and "Remote Diagnose" in email_content and log.get("read", 0) == 0:
 			count_remote_diagnose += 1
 		if email_content is not None and "Request Callback" in email_content and log.get("read", 0) == 0:
 			count_callback_request += 1
 	alert_message = ""
 	if count_remote_diagnose > 0:
-		alert_message += f"Remote Diagnose Incoming: {count_remote_diagnose}"+" <<>> "
+		alert_message += f"Remote Diagnose Incoming: {count_remote_diagnose}"+" <br>"
 	if count_callback_request > 0:
-		alert_message += f"Request a callback Incoming: {count_callback_request}\n"
+		alert_message += f"Request a Callback Incoming: {count_callback_request} <br>"
 	if alert_message:
-		frappe.msgprint(alert_message.strip())
-  
+		alert_message += f" <span style= 'font-size: smaller;font-weight: bolder;'>Note: To hide this notification. click on notifications icon and mark all as read</span> "
+		frappe.msgprint(title='Reminder Notification.',  indicator= 'green', msg= alert_message)
 	return {"notification_logs": notification_logs, "user_info": user_info}
 
 
