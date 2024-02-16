@@ -745,6 +745,10 @@ frappe.provide("frappe.views");
 			if (card.column === 'Request a callback'){
 				render_fields.push(...['customer','callback_date', 'callback_time'])
 			}
+			if(card.column == 'In parking'){
+				render_fields.push(...['bring_car_date'])
+			}
+			
 			for (let field_name of render_fields) {
 				let field =
 					frappe.meta.docfield_map[card.doctype]?.[field_name] ||
