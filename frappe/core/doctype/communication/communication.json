@@ -79,7 +79,7 @@
    "fieldname": "communication_medium",
    "fieldtype": "Select",
    "label": "Type",
-   "options": "\nEmail\nChat\nPhone\nSMS\nEvent\nMeeting\nVisit\nOther"
+   "options": "\nEmail\nChat\nPhone\nSMS\nMail\nEvent\nMeeting\nVisit\nOther"
   },
   {
    "depends_on": "eval:doc.communication_medium===\"Email\"",
