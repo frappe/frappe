@@ -60,7 +60,7 @@ class FrappeTestCase(unittest.TestCase):
 			if isinstance(value, list):
 				actual_child_docs = actual.get(field)
 				self.assertEqual(len(value), len(actual_child_docs), msg=f"{field} length should be same")
-				for exp_child, actual_child in zip(value, actual_child_docs):
+				for exp_child, actual_child in zip(value, actual_child_docs, strict=False):
 					self.assertDocumentEqual(exp_child, actual_child)
 			else:
 				self._compare_field(value, actual.get(field), actual, field)
@@ -73,7 +73,7 @@ class FrappeTestCase(unittest.TestCase):
 			self.assertAlmostEqual(
 				expected, actual, places=precision, msg=f"{field} should be same to {precision} digits"
 			)
-		elif isinstance(expected, (bool, int)):
+		elif isinstance(expected, bool | int):
 			self.assertEqual(expected, cint(actual), msg=msg)
 		elif isinstance(expected, datetime_like_types):
 			self.assertEqual(str(expected), str(actual), msg=msg)
@@ -90,9 +90,7 @@ class FrappeTestCase(unittest.TestCase):
 		"""Formats SQL consistently so simple string comparisons can work on them."""
 		import sqlparse
 
-		return (
-			sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True),
-		)
+		return (sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True),)
 
 	def assertQueryEqual(self, first: str, second: str):
 		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
@@ -224,9 +222,9 @@ def _restore_thread_locals(flags):
 
 
 @contextmanager
-def change_settings(doctype, settings_dict=None, /, **settings):
+def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
 	"""A context manager to ensure that settings are changed before running
-	function and restored after running it regardless of exceptions occured.
+	function and restored after running it regardless of exceptions occurred.
 	This is useful in tests where you want to make changes in a function but
 	don't retain those changes.
 	import and use as decorator to cover full function or using `with` statement.
@@ -257,6 +255,8 @@ def change_settings(doctype, settings_dict=None, /, **settings):
 		settings.save(ignore_permissions=True)
 		# singles are cached by default, clear to avoid flake
 		frappe.db.value_cache[settings] = {}
+		if commit:
+			frappe.db.commit()
 		yield  # yield control to calling function
 
 	finally:
@@ -265,6 +265,8 @@ def change_settings(doctype, settings_dict=None, /, **settings):
 		for key, value in previous_settings.items():
 			setattr(settings, key, value)
 		settings.save(ignore_permissions=True)
+		if commit:
+			frappe.db.commit()
 
 
 def timeout(seconds=30, error_message="Test timed out."):

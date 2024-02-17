@@ -18,9 +18,7 @@ def setup_database():
 	else:
 		root_conn.sql(f"CREATE USER \"{frappe.conf.db_user}\" WITH PASSWORD '{frappe.conf.db_password}'")
 	root_conn.sql(f'CREATE DATABASE "{frappe.conf.db_name}"')
-	root_conn.sql(
-		f'GRANT ALL PRIVILEGES ON DATABASE "{frappe.conf.db_name}" TO "{frappe.conf.db_user}"'
-	)
+	root_conn.sql(f'GRANT ALL PRIVILEGES ON DATABASE "{frappe.conf.db_name}" TO "{frappe.conf.db_user}"')
 	if psql_version := root_conn.sql("SELECT VERSION()", as_dict=True):
 		version_string = psql_version[0].get("version") or "PostgreSQL 14"
 		major_version = cint(re.split(r"[\w\.]", version_string)[1])
@@ -29,11 +27,11 @@ def setup_database():
 	root_conn.close()
 
 
-def bootstrap_database(db_name, verbose, source_sql=None):
-	frappe.connect(db_name=db_name)
+def bootstrap_database(verbose, source_sql=None):
+	frappe.connect()
 	import_db_from_sql(source_sql, verbose)
-	frappe.connect(db_name=db_name)
 
+	frappe.connect()
 	if "tabDefaultValue" not in frappe.db.get_tables():
 		import sys
 
@@ -63,25 +61,24 @@ def import_db_from_sql(source_sql=None, verbose=False):
 
 def get_root_connection():
 	if not frappe.local.flags.root_connection:
-		if not frappe.flags.root_login:
-			frappe.flags.root_login = frappe.conf.get("root_login") or None
+		from getpass import getpass
 
 		if not frappe.flags.root_login:
-			frappe.flags.root_login = input("Enter postgres super user: ")
+			frappe.flags.root_login = (
+				frappe.conf.get("root_login") or input("Enter postgres super user [postgres]: ") or "postgres"
+			)
 
 		if not frappe.flags.root_password:
-			frappe.flags.root_password = frappe.conf.get("root_password") or None
-
-		if not frappe.flags.root_password:
-			from getpass import getpass
-
-			frappe.flags.root_password = getpass("Postgres super user password: ")
+			frappe.flags.root_password = frappe.conf.get("root_password") or getpass(
+				"Postgres super user password: "
+			)
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
 			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
 			user=frappe.flags.root_login,
 			password=frappe.flags.root_password,
+			cur_db_name=frappe.flags.root_login,
 		)
 
 	return frappe.local.flags.root_connection

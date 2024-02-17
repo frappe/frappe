@@ -121,9 +121,7 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
 		with_init=True,
 	)
-	frappe.create_folder(
-		os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True
-	)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "www"))
 	frappe.create_folder(
 		os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "pages"), with_init=True
@@ -147,9 +145,7 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
 		f.write(
 			frappe.as_unicode(
-				"## {}\n\n{}\n\n#### License\n\n{}".format(
-					hooks.app_title, hooks.app_description, hooks.app_license
-				)
+				f"## {hooks.app_title}\n\n{hooks.app_description}\n\n#### License\n\n{hooks.app_license}"
 			)
 		)
 	license_body = get_license_text(license_name=hooks.app_license)

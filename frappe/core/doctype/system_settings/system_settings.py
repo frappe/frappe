@@ -61,6 +61,7 @@ class SystemSettings(Document):
 		hide_footer_in_auto_email_reports: DF.Check
 		language: DF.Link
 		lifespan_qrcode_image: DF.Int
+		link_field_results_limit: DF.Int
 		login_with_email_link: DF.Check
 		login_with_email_link_expiry: DF.Int
 		logout_on_password_reset: DF.Check
@@ -83,9 +84,7 @@ class SystemSettings(Document):
 		password_reset_limit: DF.Int
 		reset_password_link_expiry_duration: DF.Duration | None
 		reset_password_template: DF.Link | None
-		rounding_method: DF.Literal[
-			"Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"
-		]
+		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]
 		session_expiry: DF.Data | None
 		setup_complete: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
@@ -94,6 +93,7 @@ class SystemSettings(Document):
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
 		welcome_email_template: DF.Link | None
 	# end: auto-generated types
+
 	def validate(self):
 		from frappe.twofactor import toggle_two_factor_auth
 
@@ -130,15 +130,23 @@ class SystemSettings(Document):
 		self.validate_backup_limit()
 		self.validate_file_extensions()
 
+		if not self.link_field_results_limit:
+			self.link_field_results_limit = 10
+
+		if self.link_field_results_limit > 50:
+			self.link_field_results_limit = 50
+			label = _(self.meta.get_label("link_field_results_limit"))
+			frappe.msgprint(
+				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
+			)
+
 	def validate_user_pass_login(self):
 		if not self.disable_user_pass_login:
 			return
 
 		social_login_enabled = frappe.db.exists("Social Login Key", {"enable_social_login": 1})
 		ldap_enabled = frappe.db.get_single_value("LDAP Settings", "enabled")
-		login_with_email_link_enabled = frappe.db.get_single_value(
-			"System Settings", "login_with_email_link"
-		)
+		login_with_email_link_enabled = frappe.db.get_single_value("System Settings", "login_with_email_link")
 
 		if not (social_login_enabled or ldap_enabled or login_with_email_link_enabled):
 			frappe.throw(

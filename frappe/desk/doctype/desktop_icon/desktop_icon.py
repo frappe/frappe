@@ -37,8 +37,8 @@ class DesktopIcon(Document):
 		reverse: DF.Check
 		standard: DF.Check
 		type: DF.Literal["module", "list", "link", "page", "query-report"]
-
 	# end: auto-generated types
+
 	def validate(self):
 		if not self.label:
 			self.label = self.module_name
@@ -97,9 +97,7 @@ def get_desktop_icons(user=None):
 				icon.blocked = 1
 			standard_map[icon.module_name] = icon
 
-		user_icons = frappe.get_all(
-			"Desktop Icon", fields=fields, filters={"standard": 0, "owner": user}
-		)
+		user_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 0, "owner": user})
 
 		# update hidden property
 		for icon in user_icons:
@@ -127,7 +125,6 @@ def get_desktop_icons(user=None):
 		user_icon_names = [icon.module_name for icon in user_icons]
 		for standard_icon in standard_icons:
 			if standard_icon.module_name not in user_icon_names:
-
 				# if blocked, hidden too!
 				if standard_icon.blocked:
 					standard_icon.hidden = 1
@@ -175,9 +172,7 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", st
 
 	else:
 		idx = (
-			frappe.db.sql("select max(idx) from `tabDesktop Icon` where owner=%s", frappe.session.user)[0][
-				0
-			]
+			frappe.db.sql("select max(idx) from `tabDesktop Icon` where owner=%s", frappe.session.user)[0][0]
 			or frappe.db.sql("select count(*) from `tabDesktop Icon` where standard=1")[0][0]
 		)
 
@@ -271,7 +266,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 		frappe.db.sql("update `tabDesktop Icon` set blocked=0, hidden=1 where standard=1")
 
 	# set as visible if present, or add icon
-	for module_name in visible_list:
+	for module_name in list(visible_list):
 		name = frappe.db.get_value("Desktop Icon", {"module_name": module_name})
 		if name:
 			frappe.db.set_value("Desktop Icon", name, "hidden", 0)
@@ -334,8 +329,7 @@ def set_hidden(module_name, user=None, hidden=1):
 
 def get_all_icons():
 	return [
-		d.module_name
-		for d in frappe.get_all("Desktop Icon", filters={"standard": 1}, fields=["module_name"])
+		d.module_name for d in frappe.get_all("Desktop Icon", filters={"standard": 1}, fields=["module_name"])
 	]
 
 

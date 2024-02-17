@@ -15,7 +15,7 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.utils import FrappeTestCase, patch_hooks
-from frappe.utils import cint, get_test_client, get_url
+from frappe.utils import cint, get_site_url, get_test_client, get_url
 
 try:
 	_site = frappe.local.site
@@ -54,7 +54,9 @@ def patch_request_header(key, *args, **kwargs):
 
 
 class ThreadWithReturnValue(Thread):
-	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, *, site=None):
+	def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, site=None):
+		if kwargs is None:
+			kwargs = {}
 		Thread.__init__(self, group, target, name, args, kwargs)
 		self._return = None
 		self.site = site or _site
@@ -190,9 +192,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_get_list_fields(self):
 		# test 6: fetch response with fields
-		response = self.get(
-			self.resource_path(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'}
-		)
+		response = self.get(self.resource_path(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'})
 		self.assertEqual(response.status_code, 200)
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
@@ -236,9 +236,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertIn(response.status_code, (403, 200))
 
 		if response.status_code == 403:
-			self.assertTrue(
-				set(response.json.keys()) == {"exc_type", "exception", "exc", "_server_messages"}
-			)
+			self.assertTrue(set(response.json.keys()) == {"exc_type", "exception", "exc", "_server_messages"})
 			self.assertEqual(response.json.get("exc_type"), "PermissionError")
 			self.assertEqual(
 				response.json.get("exception"), "frappe.exceptions.PermissionError: Not permitted"
@@ -431,6 +429,21 @@ class TestResponse(FrappeAPITestCase):
 		self.assertEqual(response.headers["content-type"], "application/octet-stream")
 		self.assertGreater(cint(response.headers["content-length"]), 0)
 		self.assertEqual(response.headers["content-disposition"], f'filename="{encoded_filename}"')
+
+	def test_download_private_file_with_unique_url(self):
+		test_content = frappe.generate_hash()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": test_content,
+				"content": test_content,
+				"is_private": 1,
+			}
+		)
+		file.insert()
+
+		self.assertEqual(self.get(file.unique_url, {"sid": self.sid}).text, test_content)
+		self.assertEqual(self.get(file.file_url, {"sid": self.sid}).text, test_content)
 
 
 def generate_admin_keys():

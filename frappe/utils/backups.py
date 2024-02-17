@@ -111,40 +111,36 @@ class BackupGenerator:
 					dir = os.path.dirname(file_path)
 					os.makedirs(dir, exist_ok=True)
 
+	def _set_existing_tables(self):
+		"""Ensure self._existing_tables is set."""
+		if not hasattr(self, "_existing_tables"):
+			self._existing_tables = frappe.db.get_tables()
+
 	def setup_backup_tables(self):
-		"""Sets self.backup_includes, self.backup_excludes based on passed args"""
-		existing_tables = frappe.db.get_tables()
+		"""Set self.backup_includes, self.backup_excludes based on include_doctypes, exclude_doctypes"""
+		self._set_existing_tables()
 
-		def get_tables(doctypes):
-			tables = []
-			for doctype in doctypes:
-				if not doctype:
-					continue
-				table = frappe.utils.get_table_name(doctype)
-				if table in existing_tables:
-					tables.append(table)
-			return tables
+		self.backup_includes = _get_tables(self.include_doctypes.strip().split(","), self._existing_tables)
+		self.backup_excludes = _get_tables(self.exclude_doctypes.strip().split(","), self._existing_tables)
 
-		passed_tables = {
-			"include": get_tables(self.include_doctypes.strip().split(",")),
-			"exclude": get_tables(self.exclude_doctypes.strip().split(",")),
-		}
-		specified_tables = get_tables(frappe.conf.get("backup", {}).get("includes", []))
-		include_tables = (specified_tables + base_tables) if specified_tables else []
-
-		conf_tables = {
-			"include": include_tables,
-			"exclude": get_tables(frappe.conf.get("backup", {}).get("excludes", [])),
-		}
-
-		self.backup_includes = passed_tables["include"]
-		self.backup_excludes = passed_tables["exclude"]
-
-		if not self.backup_includes and not self.backup_excludes and not self.ignore_conf:
-			self.backup_includes = self.backup_includes or conf_tables["include"]
-			self.backup_excludes = self.backup_excludes or conf_tables["exclude"]
-
+		self.set_backup_tables_from_config()
 		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
+
+	def set_backup_tables_from_config(self):
+		"""Set self.backup_includes, self.backup_excludes based on site config"""
+		if self.ignore_conf:
+			return
+
+		backup_conf = frappe.conf.get("backup", {})
+		self._set_existing_tables()
+		if not self.backup_includes:
+			if specified_tables := _get_tables(backup_conf.get("includes", []), self._existing_tables):
+				self.backup_includes = specified_tables + base_tables
+			else:
+				self.backup_includes = []
+
+		if not self.backup_excludes:
+			self.backup_excludes = _get_tables(backup_conf.get("excludes", []), self._existing_tables)
 
 	@property
 	def site_config_backup_path(self):
@@ -283,13 +279,9 @@ class BackupGenerator:
 					return None
 				return file_path
 
-		latest_backups = {
-			file_type: get_latest(pattern) for file_type, pattern in file_type_slugs.items()
-		}
+		latest_backups = {file_type: get_latest(pattern) for file_type, pattern in file_type_slugs.items()}
 
-		recent_backups = {
-			file_type: old_enough(file_name) for file_type, file_name in latest_backups.items()
-		}
+		recent_backups = {file_type: old_enough(file_name) for file_type, file_name in latest_backups.items()}
 
 		return (
 			recent_backups.get("database"),
@@ -370,6 +362,8 @@ class BackupGenerator:
 			n.write(c.read())
 
 	def take_dump(self):
+		import shlex
+
 		import frappe.utils
 		from frappe.utils.change_log import get_app_branch
 
@@ -419,15 +413,15 @@ class BackupGenerator:
 		extra = []
 		if self.db_type == "mariadb":
 			if self.backup_includes:
-				extra.extend([f"'{x}'" for x in self.backup_includes])
+				extra.extend(self.backup_includes)
 			elif self.backup_excludes:
-				extra.extend([f"--ignore-table='{self.db_name}.{table}'" for table in self.backup_excludes])
+				extra.extend([f"--ignore-table={self.db_name}.{table}" for table in self.backup_excludes])
 
 		elif self.db_type == "postgres":
 			if self.backup_includes:
-				extra.extend([f"--table='public.\"{table}\"'" for table in self.backup_includes])
+				extra.extend([f'--table=public."{table}"' for table in self.backup_includes])
 			elif self.backup_excludes:
-				extra.extend([f"--exclude-table-data='public.\"{table}\"'" for table in self.backup_excludes])
+				extra.extend([f'--exclude-table-data=public."{table}"' for table in self.backup_excludes])
 
 		from frappe.database import get_command
 
@@ -446,11 +440,11 @@ class BackupGenerator:
 				exc=frappe.ExecutableNotFound,
 			)
 		cmd.append(bin)
-		cmd.extend(args)
+		cmd.append(shlex.join(args))
 
 		command = " ".join(["set -o pipefail;"] + cmd + ["|", gzip_exc, ">>", self.backup_path_db])
 		if self.verbose:
-			print(command.replace(frappe.utils.esc(self.password, "$ "), "*" * 10) + "\n")
+			print(command.replace(shlex.quote(self.password), "*" * 10) + "\n")
 
 		frappe.utils.execute_in_shell(command, low_priority=True, check_exit_code=True)
 
@@ -464,7 +458,7 @@ class BackupGenerator:
 		db_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_db)))
 		files_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_files)))
 
-		msg = """Hello,
+		msg = f"""Hello,
 
 Your backups are ready to be downloaded.
 
@@ -472,16 +466,25 @@ Your backups are ready to be downloaded.
 2. [Click here to download the files backup]({files_backup_url})
 
 This link will be valid for 24 hours. A new backup will be available for
-download only after 24 hours.""".format(
-			db_backup_url=db_backup_url,
-			files_backup_url=files_backup_url,
-		)
+download only after 24 hours."""
 
 		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 
 		frappe.sendmail(recipients=recipient_list, message=msg, subject=subject)
 		return recipient_list
+
+
+def _get_tables(doctypes: list[str], existing_tables: list[str]) -> list[str]:
+	"""Return a list of tables for the given doctypes that exist in the database."""
+	tables = []
+	for doctype in doctypes:
+		if not doctype:
+			continue
+		table = frappe.utils.get_table_name(doctype)
+		if table in existing_tables:
+			tables.append(table)
+	return tables
 
 
 @frappe.whitelist()
@@ -661,13 +664,15 @@ def decrypt_backup(file_path: str, passphrase: str):
 			decrypted_file=file_path,
 		)
 	frappe.utils.execute_in_shell(command)
-	yield
-	if os.path.exists(file_path + ".gpg"):
-		if os.path.exists(file_path):
-			os.remove(file_path)
-		if os.path.exists(file_path.rstrip(".gz")):
-			os.remove(file_path.rstrip(".gz"))
-		os.rename(file_path + ".gpg", file_path)
+	try:
+		yield
+	finally:
+		if os.path.exists(file_path_with_ext):
+			if os.path.exists(file_path):
+				os.remove(file_path)
+			if os.path.exists(file_path.rstrip(".gz")):
+				os.remove(file_path.rstrip(".gz"))
+			os.rename(file_path_with_ext, file_path)
 
 
 def backup(

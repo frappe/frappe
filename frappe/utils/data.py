@@ -3,6 +3,7 @@
 
 import base64
 import datetime
+import hashlib
 import json
 import math
 import operator
@@ -11,7 +12,7 @@ import time
 import typing
 from code import compile_command
 from enum import Enum
-from typing import Any, Literal, Optional, TypeVar, Union
+from typing import Any, Literal, Optional, TypeVar
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunparse
 
 import pytz
@@ -23,8 +24,8 @@ from dateutil.relativedelta import relativedelta
 import frappe
 from frappe.desk.utils import slug
 
-DateTimeLikeObject = Union[str, datetime.date, datetime.datetime]
-NumericType = Union[int, float]
+DateTimeLikeObject = str | datetime.date | datetime.datetime
+NumericType = int | float
 TimespanOptions = Literal[
 	"last week",
 	"last month",
@@ -142,10 +143,10 @@ def get_datetime(
 	if datetime_str is None:
 		return now_datetime()
 
-	if isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
+	if isinstance(datetime_str, datetime.datetime | datetime.timedelta):
 		return datetime_str
 
-	elif isinstance(datetime_str, (list, tuple)):
+	elif isinstance(datetime_str, list | tuple):
 		return datetime.datetime(datetime_str)
 
 	elif isinstance(datetime_str, datetime.date):
@@ -329,23 +330,17 @@ def month_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeO
 	return (ed_date.year - st_date.year) * 12 + ed_date.month - st_date.month + 1
 
 
-def time_diff(
-	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
-) -> datetime.timedelta:
+def time_diff(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> datetime.timedelta:
 	"""Return the difference between given two dates as `datetime.timedelta` object."""
 	return get_datetime(string_ed_date) - get_datetime(string_st_date)
 
 
-def time_diff_in_seconds(
-	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
-) -> float:
+def time_diff_in_seconds(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> float:
 	"""Return the difference between given two dates in seconds."""
 	return time_diff(string_ed_date, string_st_date).total_seconds()
 
 
-def time_diff_in_hours(
-	string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject
-) -> float:
+def time_diff_in_hours(string_ed_date: DateTimeLikeObject, string_st_date: DateTimeLikeObject) -> float:
 	"""Return the difference between given two dates in hours."""
 	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
@@ -460,9 +455,7 @@ def get_first_day(dt, d_years=0, d_months=0, as_str: Literal[True] = False) -> s
 
 
 # TODO: first arg
-def get_first_day(
-	dt, d_years: int = 0, d_months: int = 0, as_str: bool = False
-) -> str | datetime.date:
+def get_first_day(dt, d_years: int = 0, d_months: int = 0, as_str: bool = False) -> str | datetime.date:
 	"""Return the first day of the month for the date specified by date object.
 
 	Also, add `d_years` and `d_months` if specified.
@@ -481,9 +474,7 @@ def get_first_day(
 
 
 @typing.overload
-def get_quarter_start(
-	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
-) -> datetime.date:
+def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False) -> datetime.date:
 	...
 
 
@@ -492,9 +483,7 @@ def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: Literal[True
 	...
 
 
-def get_quarter_start(
-	dt: DateTimeLikeObject | None = None, as_str: bool = False
-) -> str | datetime.date:
+def get_quarter_start(dt: DateTimeLikeObject | None = None, as_str: bool = False) -> str | datetime.date:
 	"""Return the start date of the quarter for the given datetime like object (`dt`).
 
 	If `dt` is None, the current quarter start date is returned.
@@ -592,9 +581,7 @@ def is_last_day_of_the_month(dt):
 
 
 @typing.overload
-def get_quarter_ending(
-	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
-) -> datetime.date:
+def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False) -> datetime.date:
 	...
 
 
@@ -603,9 +590,7 @@ def get_quarter_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[Tru
 	...
 
 
-def get_quarter_ending(
-	date: DateTimeLikeObject | None = None, as_str=False
-) -> str | datetime.date:
+def get_quarter_ending(date: DateTimeLikeObject | None = None, as_str=False) -> str | datetime.date:
 	"""Return the end date of the quarter for the given datetime like object (`date`).
 
 	If `date` is None, the current quarter end date is returned.
@@ -626,9 +611,7 @@ def get_quarter_ending(
 
 
 @typing.overload
-def get_year_ending(
-	dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False
-) -> datetime.date:
+def get_year_ending(dt: DateTimeLikeObject | None = None, as_str: Literal[False] = False) -> datetime.date:
 	...
 
 
@@ -713,9 +696,7 @@ def get_user_time_format() -> str:
 	return frappe.local.user_time_format or "HH:mm:ss"
 
 
-def format_date(
-	string_date=None, format_string: str | None = None, parse_day_first: bool = False
-) -> str:
+def format_date(string_date=None, format_string: str | None = None, parse_day_first: bool = False) -> str:
 	"""Convert the given string date to :data:`user_date_format`.
 
 	User format specified in defaults
@@ -874,9 +855,7 @@ def duration_to_seconds(duration):
 def validate_duration_format(duration):
 	if not DURATION_PATTERN.match(duration):
 		frappe.throw(
-			frappe._("Value {0} must be in the valid duration format: d h m s").format(
-				frappe.bold(duration)
-			)
+			frappe._("Value {0} must be in the valid duration format: d h m s").format(frappe.bold(duration))
 		)
 
 
@@ -984,9 +963,7 @@ def global_date_format(date: DateTimeLikeObject, format="long") -> str:
 	import babel.dates
 
 	date = getdate(date)
-	return babel.dates.format_date(
-		date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format
-	)
+	return babel.dates.format_date(date, locale=(frappe.local.lang or "en").replace("-", "_"), format=format)
 
 
 def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
@@ -1091,9 +1068,7 @@ def flt(s: NumericType | str, precision: int | None = None) -> float:
 	...
 
 
-def flt(
-	s: NumericType | str, precision: int | None = None, rounding_method: str | None = None
-) -> float:
+def flt(s: NumericType | str, precision: int | None = None, rounding_method: str | None = None) -> float:
 	"""Convert to float (ignoring commas in string).
 
 	:param s: Number in string or other numeric format.
@@ -1342,7 +1317,7 @@ def encode(obj, encoding="utf-8"):
 
 def parse_val(v):
 	"""Convert to simple datatypes from SQL query results."""
-	if isinstance(v, (datetime.date, datetime.datetime)):
+	if isinstance(v, datetime.date | datetime.datetime):
 		v = str(v)
 	elif isinstance(v, datetime.timedelta):
 		v = ":".join(str(v).split(":")[:2])
@@ -1518,21 +1493,15 @@ def money_in_words(
 		out = _(main_currency, context="Currency") + " " + _("Zero")
 	# 0.XX
 	elif main == "0":
-		out = _(in_words(fraction, in_million).title()) + " " + fraction_currency
+		out = in_words(fraction, in_million).title() + " " + fraction_currency
 	else:
-		out = _(main_currency, context="Currency") + " " + _(in_words(main, in_million).title())
+		out = _(main_currency, context="Currency") + " " + in_words(main, in_million).title()
 		if cint(fraction):
 			out = (
-				out
-				+ " "
-				+ _("and")
-				+ " "
-				+ _(in_words(fraction, in_million).title())
-				+ " "
-				+ fraction_currency
+				out + " " + _("and") + " " + in_words(fraction, in_million).title() + " " + fraction_currency
 			)
 
-	return out + " " + _("only.")
+	return _("{0} only.", context="Money in words").format(out)
 
 
 #
@@ -1722,7 +1691,7 @@ def comma_sep(some_list: list | tuple, pattern: str, add_quotes=True) -> str:
 
 	e.g. if `some_list` is ['a', 'b', 'c'] and `pattern` is '{0} or {1}', the output will be 'a, b or c'
 	"""
-	if isinstance(some_list, (list, tuple)):
+	if isinstance(some_list, list | tuple):
 		# list(some_list) is done to preserve the existing list
 		some_list = [str(s) for s in list(some_list)]
 		if not some_list:
@@ -1741,7 +1710,7 @@ def new_line_sep(some_list: list | tuple) -> str:
 
 	e.g. ['', 'Paid', 'Unpaid'] -> '\n Paid\n Unpaid'
 	"""
-	if isinstance(some_list, (list, tuple)):
+	if isinstance(some_list, list | tuple):
 		# list(some_list) is done to preserve the existing list
 		some_list = [str(s) for s in list(some_list)]
 		if not some_list:
@@ -1819,9 +1788,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 def get_host_name_from_request() -> str:
 	"""Return the hostname (`request.host`) from the request headers."""
 	if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
-		protocol = (
-			"https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
-		)
+		protocol = "https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
 		return protocol + frappe.local.request.host
 
 
@@ -1842,14 +1809,16 @@ def get_host_name() -> str:
 	return get_url().rsplit("//", 1)[-1]
 
 
-def get_link_to_form(doctype: str, name: str, label: str | None = None) -> str:
+def get_link_to_form(doctype: str, name: str | None = None, label: str | None = None) -> str:
 	"""Return the HTML link to the given document's form view.
 
 	e.g. get_link_to_form("Sales Invoice", "INV-0001", "Link Label") returns:
 	    '<a href="https://frappe.io/app/sales-invoice/INV-0001">Link Label</a>'.
 	"""
+	from frappe import _
+
 	if not label:
-		label = name
+		label = name or _(doctype)
 
 	return f"""<a href="{get_url_to_form(doctype, name)}">{label}</a>"""
 
@@ -1874,7 +1843,8 @@ def get_link_to_report(
 		for k, v in filters.items():
 			if isinstance(v, list):
 				conditions.extend(
-					str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]') for value in v
+					str(k) + "=" + '["' + str(value[0] + '"' + "," + '"' + str(value[1]) + '"]')
+					for value in v
 				)
 			else:
 				conditions.append(str(k) + "=" + str(v))
@@ -1896,13 +1866,18 @@ def get_absolute_url(doctype: str, name: str) -> str:
 	return f"/app/{quoted(slug(doctype))}/{quoted(name)}"
 
 
-def get_url_to_form(doctype: str, name: str) -> str:
+def get_url_to_form(doctype: str, name: str | None = None) -> str:
 	"""Return the absolute URL for the form view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
 	         returns 'https://frappe.io/app/sales-invoice/INV-00001'
 	"""
-	return get_url(uri=f"/app/{quoted(slug(doctype))}/{quoted(name)}")
+	if not name:
+		uri = f"/app/{quoted(slug(doctype))}"
+	else:
+		uri = f"/app/{quoted(slug(doctype))}/{quoted(name)}"
+
+	return get_url(uri=uri)
 
 
 def get_url_to_list(doctype: str) -> str:
@@ -1980,7 +1955,7 @@ def evaluate_filters(doc, filters: dict | list | tuple):
 			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 				return False
 
-	elif isinstance(filters, (list, tuple)):
+	elif isinstance(filters, list | tuple):
 		for d in filters:
 			f = get_filter(None, d)
 			if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
@@ -2017,7 +1992,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 		key, value = next(iter(f.items()))
 		f = make_filter_tuple(doctype, key, value)
 
-	if not isinstance(f, (list, tuple)):
+	if not isinstance(f, list | tuple):
 		frappe.throw(frappe._("Filter must be a tuple or list (in a list)"))
 
 	if len(f) == 3:
@@ -2066,7 +2041,6 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 		# verify fieldname belongs to the doctype
 		meta = frappe.get_meta(f.doctype)
 		if not meta.has_field(f.fieldname):
-
 			# try and match the doctype name from child tables
 			for df in meta.get_table_fields():
 				if frappe.get_meta(df.options).has_field(f.fieldname):
@@ -2085,7 +2059,7 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 
 def make_filter_tuple(doctype, key, value):
 	"""return a filter tuple like [doctype, key, operator, value]"""
-	if isinstance(value, (list, tuple)):
+	if isinstance(value, list | tuple):
 		return [doctype, key, value[0], value[1]]
 	else:
 		return [doctype, key, "=", value]
@@ -2275,6 +2249,13 @@ def generate_hash(*args, **kwargs) -> str:
 	return frappe.generate_hash(*args, **kwargs)
 
 
+def sha256_hash(input: str | bytes) -> str:
+	"""Return hash of the string using sha256 algorithm."""
+	if isinstance(input, str):
+		input = input.encode()
+	return hashlib.sha256(input).hexdigest()
+
+
 def dict_with_keys(dict, keys):
 	"""Return a new dict with a subset of keys."""
 	out = {}
@@ -2396,9 +2377,7 @@ def get_user_info_for_avatar(user_id: str) -> _UserInfo:
 		return {"email": user_id, "image": "", "name": user_id}
 
 
-def validate_python_code(
-	string: str, fieldname: str | None = None, is_expression: bool = True
-) -> None:
+def validate_python_code(string: str, fieldname: str | None = None, is_expression: bool = True) -> None:
 	"""Validate python code fields by using compile_command to ensure that expression is valid python.
 
 	args:
@@ -2492,18 +2471,27 @@ def is_site_link(link: str) -> bool:
 	return urlparse(link).netloc == urlparse(frappe.utils.get_url()).netloc
 
 
-def add_trackers_to_url(url: str, source: str, campaign: str, medium: str = "email") -> str:
+def add_trackers_to_url(
+	url: str,
+	source: str,
+	campaign: str | None = None,
+	medium: str | None = None,
+	content: str | None = None,
+) -> str:
 	url_parts = list(urlparse(url))
 	if url_parts[0] == "mailto":
 		return url
 
-	trackers = {
-		"source": source,
-		"medium": medium,
-	}
+	trackers = {"utm_source": source}
+
+	if medium:
+		trackers["utm_medium"] = medium
 
 	if campaign:
-		trackers["campaign"] = campaign
+		trackers["utm_campaign"] = campaign
+
+	if content:
+		trackers["utm_content"] = content
 
 	query = dict(parse_qsl(url_parts[4])) | trackers
 

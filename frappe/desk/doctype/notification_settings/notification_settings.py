@@ -30,6 +30,7 @@ class NotificationSettings(Document):
 		subscribed_documents: DF.TableMultiSelect[NotificationSubscribedDocument]
 		user: DF.Link | None
 	# end: auto-generated types
+
 	def on_update(self):
 		from frappe.desk.notifications import clear_notification_config
 

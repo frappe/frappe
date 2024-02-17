@@ -13,21 +13,71 @@
  "label": "Build",
  "links": [
   {
+   "description": "Customize properties, naming, fields and more for standard doctypes",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Models",
-   "link_count": 0,
+   "label": "Customization",
+   "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
-   "only_for": "",
    "type": "Card Break"
   },
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "DocType",
+   "label": "Customize Form",
    "link_count": 0,
-   "link_to": "DocType",
+   "link_to": "Customize Form",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Custom Field",
+   "link_count": 0,
+   "link_to": "Custom Field",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Custom Translation",
+   "link_count": 0,
+   "link_to": "Translation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Navbar Settings",
+   "link_count": 0,
+   "link_to": "Navbar Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "description": "Group your custom doctypes under modules",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Modules",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Module Def",
+   "link_count": 0,
+   "link_to": "Module Def",
    "link_type": "DocType",
    "onboard": 0,
    "only_for": "",
@@ -36,22 +86,112 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Workflow",
+   "label": "Module Onboarding",
    "link_count": 0,
-   "link_to": "Workflow",
+   "link_to": "Module Onboarding",
    "link_type": "DocType",
    "onboard": 0,
    "only_for": "",
    "type": "Link"
   },
   {
+   "description": "Monitor logs for errors, background jobs, communications, and user activity",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "System Logs",
+   "link_count": 5,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Background Jobs",
+   "link_count": 0,
+   "link_to": "RQ Job",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Scheduled Jobs Logs",
+   "link_count": 0,
+   "link_to": "Scheduled Job Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Error Logs",
+   "link_count": 0,
+   "link_to": "Error Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Communication Logs",
+   "link_count": 0,
+   "link_to": "Communication",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Activity Log",
+   "link_count": 0,
+   "link_to": "Activity Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "description": "Packages are lightweight apps (collection of Module Defs) that can be created, imported, or released right from the UI",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Packages",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Package",
+   "link_count": 0,
+   "link_to": "Package",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Package Import",
+   "link_count": 0,
+   "link_to": "Package Import",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "description": "Automate processes and extend standard functionality using scripts and background jobs",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Scripting",
-   "link_count": 0,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
-   "only_for": "",
    "type": "Card Break"
   },
   {
@@ -88,38 +228,12 @@
    "type": "Link"
   },
   {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Packages",
-   "link_count": 2,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Package",
-   "link_count": 0,
-   "link_to": "Package",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Package Import",
-   "link_count": 0,
-   "link_to": "Package Import",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
+   "description": "Build your own reports, print formats, and dashboards. Create personalized workspaces for easier navigation",
    "hidden": 0,
    "is_query_report": 0,
    "label": "Views",
    "link_count": 5,
+   "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
   },
@@ -177,115 +291,10 @@
    "type": "Link"
   },
   {
+   "description": "Create new forms and views with doctypes. Set up multi-level workflows for approval",
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Customization",
-   "link_count": 4,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Customize Form",
-   "link_count": 0,
-   "link_to": "Customize Form",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Custom Field",
-   "link_count": 0,
-   "link_to": "Custom Field",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Custom Translation",
-   "link_count": 0,
-   "link_to": "Translation",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Navbar Settings",
-   "link_count": 0,
-   "link_to": "Navbar Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "System Logs",
-   "link_count": 5,
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Background Jobs",
-   "link_count": 0,
-   "link_to": "RQ Job",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Scheduled Jobs Logs",
-   "link_count": 0,
-   "link_to": "Scheduled Job Log",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Error Logs",
-   "link_count": 0,
-   "link_to": "Error Log",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Communication Logs",
-   "link_count": 0,
-   "link_to": "Communication",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Activity Log",
-   "link_count": 0,
-   "link_to": "Activity Log",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Modules",
+   "label": "Models",
    "link_count": 2,
    "link_type": "DocType",
    "onboard": 0,
@@ -294,9 +303,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Module Def",
+   "label": "DocType",
    "link_count": 0,
-   "link_to": "Module Def",
+   "link_to": "DocType",
    "link_type": "DocType",
    "onboard": 0,
    "only_for": "",
@@ -305,16 +314,16 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Module Onboarding",
+   "label": "Workflow",
    "link_count": 0,
-   "link_to": "Module Onboarding",
+   "link_to": "Workflow",
    "link_type": "DocType",
    "onboard": 0,
    "only_for": "",
    "type": "Link"
   }
  ],
- "modified": "2024-01-02 15:38:42.806824",
+ "modified": "2024-01-23 17:27:44.769958",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Build",
@@ -325,7 +334,7 @@
  "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
- "sequence_id": 16.0,
+ "sequence_id": 27.0,
  "shortcuts": [
   {
    "color": "Grey",

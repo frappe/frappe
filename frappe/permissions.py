@@ -105,9 +105,7 @@ def has_permission(
 		return True
 
 	if ptype == "share" and frappe.get_system_settings("disable_document_sharing"):
-		debug and _debug_log(
-			"User can't share because sharing is disabled globally from system settings"
-		)
+		debug and _debug_log("User can't share because sharing is disabled globally from system settings")
 		return False
 
 	if not doc and hasattr(doctype, "doctype"):
@@ -129,7 +127,7 @@ def has_permission(
 	meta = frappe.get_meta(doctype)
 
 	if doc:
-		if isinstance(doc, (str, int)):
+		if isinstance(doc, str | int):
 			doc = frappe.get_doc(meta.name, doc)
 		perm = get_doc_permissions(doc, user=user, ptype=ptype, debug=debug).get(ptype)
 		if not perm:
@@ -213,9 +211,7 @@ def get_doc_permissions(doc, user=None, ptype=None, debug=False):
 		push_perm_check_log(_("Not allowed via controller permission check"), debug=debug)
 		return {ptype: 0}
 
-	permissions = copy.deepcopy(
-		get_role_permissions(meta, user=user, is_owner=is_user_owner(), debug=debug)
-	)
+	permissions = copy.deepcopy(get_role_permissions(meta, user=user, is_owner=is_user_owner(), debug=debug))
 
 	debug and _debug_log(
 		"User has following permissions using role permission system: "
@@ -294,9 +290,7 @@ def get_role_permissions(doctype_meta, user=None, is_owner=None, debug=False):
 		def has_permission_without_if_owner_enabled(ptype):
 			return any(p.get(ptype, 0) and not p.get("if_owner", 0) for p in applicable_permissions)
 
-		applicable_permissions = list(
-			filter(is_perm_applicable, getattr(doctype_meta, "permissions", []))
-		)
+		applicable_permissions = list(filter(is_perm_applicable, getattr(doctype_meta, "permissions", [])))
 		has_if_owner_enabled = any(p.get("if_owner", 0) for p in applicable_permissions)
 		perms["has_if_owner_enabled"] = has_if_owner_enabled
 
@@ -343,7 +337,10 @@ def has_user_permission(doc, user=None, debug=False):
 		debug and _debug_log("User permission bypassed because user can modify user permissions.")
 		return True
 
-	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
+	# don't apply strict user permissions for single doctypes since they contain empty link fields
+	apply_strict_user_permissions = (
+		False if doc.meta.issingle else frappe.get_system_settings("apply_strict_user_permissions")
+	)
 	if apply_strict_user_permissions:
 		debug and _debug_log("Strict user permissions will be applied")
 
@@ -382,7 +379,6 @@ def has_user_permission(doc, user=None, debug=False):
 
 		# check all link fields for user permissions
 		for field in meta.get_link_fields():
-
 			if field.ignore_user_permissions:
 				continue
 
@@ -511,7 +507,9 @@ def get_roles(user=None, with_standard=True):
 			roles = (
 				frappe.qb.from_(table)
 				.where(
-					(table.parenttype == "User") & (table.parent == user) & (table.role.notin(AUTOMATIC_ROLES))
+					(table.parenttype == "User")
+					& (table.parent == user)
+					& (table.role.notin(AUTOMATIC_ROLES))
 				)
 				.select(table.role)
 				.run(pluck=True)
@@ -566,16 +564,14 @@ def add_user_permission(
 			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
 
 		frappe.get_doc(
-			dict(
-				doctype="User Permission",
-				user=user,
-				allow=doctype,
-				for_value=name,
-				is_default=is_default,
-				applicable_for=applicable_for,
-				apply_to_all_doctypes=0 if applicable_for else 1,
-				hide_descendants=hide_descendants,
-			)
+			doctype="User Permission",
+			user=user,
+			allow=doctype,
+			for_value=name,
+			is_default=is_default,
+			applicable_for=applicable_for,
+			apply_to_all_doctypes=0 if applicable_for else 1,
+			hide_descendants=hide_descendants,
 		).insert(ignore_permissions=ignore_permissions)
 
 

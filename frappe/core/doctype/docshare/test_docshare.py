@@ -56,6 +56,24 @@ class TestDocShare(FrappeTestCase):
 		with self.assertRowsRead(1):
 			self.assertTrue(self.event.has_permission())
 
+	def test_list_permission(self):
+		frappe.set_user(self.user)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_list("Web Page")
+
+		frappe.set_user("Administrator")
+		doc = frappe.new_doc("Web Page")
+		doc.update({"title": "test document for docshare permissions"})
+		doc.insert()
+		frappe.share.add("Web Page", doc.name, self.user)
+
+		frappe.set_user(self.user)
+		self.assertEqual(len(frappe.get_list("Web Page")), 1)
+
+		doc.delete(ignore_permissions=True)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_list("Web Page")
+
 	def test_share_permission(self):
 		frappe.share.add("Event", self.event.name, self.user, write=1, share=1)
 
@@ -118,9 +136,7 @@ class TestDocShare(FrappeTestCase):
 		doctype = "Test DocShare with Submit"
 		create_submittable_doctype(doctype, submit_perms=0)
 
-		submittable_doc = frappe.get_doc(
-			dict(doctype=doctype, test="test docshare with submit")
-		).insert()
+		submittable_doc = frappe.get_doc(doctype=doctype, test="test docshare with submit").insert()
 
 		frappe.set_user(self.user)
 		self.assertFalse(frappe.has_permission(doctype, "submit", user=self.user))
@@ -129,15 +145,11 @@ class TestDocShare(FrappeTestCase):
 		frappe.share.add(doctype, submittable_doc.name, self.user, submit=1)
 
 		frappe.set_user(self.user)
-		self.assertTrue(
-			frappe.has_permission(doctype, "submit", doc=submittable_doc.name, user=self.user)
-		)
+		self.assertTrue(frappe.has_permission(doctype, "submit", doc=submittable_doc.name, user=self.user))
 
 		# test cascade
 		self.assertTrue(frappe.has_permission(doctype, "read", doc=submittable_doc.name, user=self.user))
-		self.assertTrue(
-			frappe.has_permission(doctype, "write", doc=submittable_doc.name, user=self.user)
-		)
+		self.assertTrue(frappe.has_permission(doctype, "write", doc=submittable_doc.name, user=self.user))
 
 		frappe.share.remove(doctype, submittable_doc.name, self.user)
 

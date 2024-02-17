@@ -29,9 +29,7 @@ def update_linked_doctypes(
 		)
 
 
-def get_fetch_fields(
-	doctype: str, linked_to: str, ignore_doctypes: list | None = None
-) -> list[dict]:
+def get_fetch_fields(doctype: str, linked_to: str, ignore_doctypes: list | None = None) -> list[dict]:
 	"""
 	doctype = Master DocType in which the changes are being made
 	linked_to = DocType name of the field thats being updated in Master

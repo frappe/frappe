@@ -382,6 +382,11 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_delete.indexOf(doctype) !== -1;
 	},
 
+	can_submit: function (doctype) {
+		if (!doctype) return false;
+		return frappe.boot.user.can_submit.indexOf(doctype) !== -1;
+	},
+
 	can_cancel: function (doctype) {
 		if (!doctype) return false;
 		return frappe.boot.user.can_cancel.indexOf(doctype) !== -1;

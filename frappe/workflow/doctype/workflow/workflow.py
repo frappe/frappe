@@ -29,8 +29,8 @@ class Workflow(Document):
 		workflow_data: DF.JSON | None
 		workflow_name: DF.Data
 		workflow_state_field: DF.Data
-
 	# end: auto-generated types
+
 	def validate(self):
 		self.set_active()
 		self.create_custom_field_for_workflow_state()
@@ -71,14 +71,12 @@ class Workflow(Document):
 		for d in states:
 			if d.doc_status not in docstatus_map:
 				frappe.db.sql(
-					"""
-					UPDATE `tab{doctype}`
-					SET `{field}` = %s
-					WHERE ifnull(`{field}`, '') = ''
+					f"""
+					UPDATE `tab{self.document_type}`
+					SET `{self.workflow_state_field}` = %s
+					WHERE ifnull(`{self.workflow_state_field}`, '') = ''
 					AND `docstatus` = %s
-				""".format(
-						doctype=self.document_type, field=self.workflow_state_field
-					),
+				""",
 					(d.state, d.doc_status),
 				)
 
@@ -103,9 +101,9 @@ class Workflow(Document):
 
 			if state.doc_status == "1" and next_state.doc_status == "0":
 				frappe.throw(
-					frappe._("Submitted Document cannot be converted back to draft. Transition row {0}").format(
-						t.idx
-					)
+					frappe._(
+						"Submitted Document cannot be converted back to draft. Transition row {0}"
+					).format(t.idx)
 				)
 
 			if state.doc_status == "0" and next_state.doc_status == "2":

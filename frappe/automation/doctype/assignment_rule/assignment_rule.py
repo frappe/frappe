@@ -9,6 +9,7 @@ from frappe.cache_manager import clear_doctype_map, get_doctype_map
 from frappe.desk.form import assign_to
 from frappe.model import log_types
 from frappe.model.document import Document
+from frappe.utils.data import comma_and
 
 
 class AssignmentRule(Document):
@@ -38,6 +39,7 @@ class AssignmentRule(Document):
 		unassign_condition: DF.Code | None
 		users: DF.TableMultiSelect[AssignmentRuleUser]
 	# end: auto-generated types
+
 	def validate(self):
 		self.validate_document_types()
 		self.validate_assignment_days()
@@ -49,20 +51,14 @@ class AssignmentRule(Document):
 
 	def validate_document_types(self):
 		if self.document_type == "ToDo":
-			frappe.throw(
-				_("Assignment Rule is not allowed on {0} document type").format(frappe.bold("ToDo"))
-			)
+			frappe.throw(_("Assignment Rule is not allowed on {0} document type").format(frappe.bold("ToDo")))
 
 	def validate_assignment_days(self):
 		assignment_days = self.get_assignment_days()
-
 		if len(set(assignment_days)) != len(assignment_days):
-			repeated_days = get_repeated(assignment_days)
-			plural = "s" if len(repeated_days) > 1 else ""
-
 			frappe.throw(
-				_("Assignment Day{0} {1} has been repeated.").format(
-					plural, frappe.bold(", ".join(repeated_days))
+				_("The following Assignment Days have been repeated: {0}").format(
+					comma_and([_(day) for day in get_repeated(assignment_days)], add_quotes=False)
 				)
 			)
 
@@ -360,9 +356,7 @@ def update_due_date(doc, state=None):
 		rule_doc = frappe.get_cached_doc("Assignment Rule", rule.get("name"))
 		due_date_field = rule_doc.due_date_based_on
 		field_updated = (
-			doc.meta.has_field(due_date_field)
-			and doc.has_value_changed(due_date_field)
-			and rule.get("name")
+			doc.meta.has_field(due_date_field) and doc.has_value_changed(due_date_field) and rule.get("name")
 		)
 
 		if field_updated:

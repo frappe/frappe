@@ -4,13 +4,15 @@ import base64
 import binascii
 from urllib.parse import quote, urlencode, urlparse
 
+from werkzeug.wrappers import Response
+
 import frappe
 import frappe.database
 import frappe.utils
 import frappe.utils.user
 from frappe import _
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-from frappe.sessions import Session, clear_sessions, delete_session
+from frappe.sessions import Session, clear_sessions, delete_session, get_expiry_in_seconds
 from frappe.translate import get_language
 from frappe.twofactor import (
 	authenticate_for_2factor,
@@ -59,9 +61,7 @@ class HTTPRequest:
 
 	def set_request_ip(self):
 		if frappe.get_request_header("X-Forwarded-For"):
-			frappe.local.request_ip = (
-				frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]
-			).strip()
+			frappe.local.request_ip = (frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]).strip()
 
 		elif frappe.get_request_header("REMOTE_ADDR"):
 			frappe.local.request_ip = frappe.get_request_header("REMOTE_ADDR")
@@ -105,9 +105,7 @@ class LoginManager:
 		self.full_name = None
 		self.user_type = None
 
-		if (
-			frappe.local.form_dict.get("cmd") == "login" or frappe.local.request.path == "/api/method/login"
-		):
+		if frappe.local.form_dict.get("cmd") == "login" or frappe.local.request.path == "/api/method/login":
 			if self.login() is False:
 				return
 			self.resume = False
@@ -136,9 +134,7 @@ class LoginManager:
 		self.authenticate(user=user, pwd=pwd)
 		if self.force_user_to_reset_password():
 			doc = frappe.get_doc("User", self.user)
-			frappe.local.response["redirect_to"] = doc.reset_password(
-				send_email=False, password_expired=True
-			)
+			frappe.local.response["redirect_to"] = doc.reset_password(send_email=False, password_expired=True)
 			frappe.local.response["message"] = "Password Reset"
 			return False
 
@@ -272,9 +268,7 @@ class LoginManager:
 		if self.user in frappe.STANDARD_USERS:
 			return False
 
-		reset_pwd_after_days = cint(
-			frappe.db.get_single_value("System Settings", "force_user_to_reset_password")
-		)
+		reset_pwd_after_days = cint(frappe.get_system_settings("force_user_to_reset_password"))
 
 		if reset_pwd_after_days:
 			last_password_reset_date = (
@@ -356,12 +350,19 @@ class CookieManager:
 		if not frappe.local.session.get("sid"):
 			return
 
-		# sid expires in 3 days
-		expires = datetime.datetime.now() + datetime.timedelta(days=3)
 		if frappe.session.sid:
-			self.set_cookie("sid", frappe.session.sid, expires=expires, httponly=True)
+			self.set_cookie("sid", frappe.session.sid, max_age=get_expiry_in_seconds(), httponly=True)
 
-	def set_cookie(self, key, value, expires=None, secure=False, httponly=False, samesite="Lax"):
+	def set_cookie(
+		self,
+		key,
+		value,
+		expires=None,
+		secure=False,
+		httponly=False,
+		samesite="Lax",
+		max_age=None,
+	):
 		if not secure and hasattr(frappe.local, "request"):
 			secure = frappe.local.request.scheme == "https"
 
@@ -371,15 +372,16 @@ class CookieManager:
 			"secure": secure,
 			"httponly": httponly,
 			"samesite": samesite,
+			"max_age": max_age,
 		}
 
 	def delete_cookie(self, to_delete):
-		if not isinstance(to_delete, (list, tuple)):
+		if not isinstance(to_delete, list | tuple):
 			to_delete = [to_delete]
 
 		self.to_delete.extend(to_delete)
 
-	def flush_cookies(self, response):
+	def flush_cookies(self, response: Response):
 		for key, opts in self.cookies.items():
 			response.set_cookie(
 				key,
@@ -388,6 +390,7 @@ class CookieManager:
 				secure=opts.get("secure"),
 				httponly=opts.get("httponly"),
 				samesite=opts.get("samesite"),
+				max_age=opts.get("max_age"),
 			)
 
 		# expires yesterday!
@@ -404,9 +407,7 @@ def get_logged_user():
 def clear_cookies():
 	if hasattr(frappe.local, "session"):
 		frappe.session.sid = ""
-	frappe.local.cookie_manager.delete_cookie(
-		["full_name", "user_id", "sid", "user_image", "system_user"]
-	)
+	frappe.local.cookie_manager.delete_cookie(["full_name", "user_id", "sid", "user_image", "system_user"])
 
 
 def validate_ip_address(user):
@@ -604,9 +605,7 @@ def validate_oauth(authorization_header):
 	req = frappe.request
 	parsed_url = urlparse(req.url)
 	access_token = {"access_token": token}
-	uri = (
-		parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
-	)
+	uri = parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path + "?" + urlencode(access_token)
 	http_method = req.method
 	headers = req.headers
 	body = req.get_data()
