@@ -177,7 +177,6 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 
 	copy_from_frappe(".editorconfig", app_directory)
 	copy_from_frappe(".eslintrc", app_directory)
-	copy_from_frappe(".flake8", app_directory)
 
 	if hooks.create_github_workflow:
 		_create_github_workflow_files(dest, hooks)
@@ -343,6 +342,41 @@ build-backend = "flit_core.buildapi"
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "F",
+    "E",
+    "W",
+    "I",
+    "UP",
+    "B",
+]
+ignore = [
+    "B017", # assertRaises(Exception) - should be more specific
+    "B018", # useless expression, not assigned to anything
+    "B023", # function doesn't bind loop variable - will have last iteration's value
+    "B904", # raise inside except without from
+    "E101", # indentation contains mixed spaces and tabs
+    "E402", # module level import not at top of file
+    "E501", # line too long
+    "E741", # ambiguous variable name
+    "F401", # "unused" imports
+    "F403", # can't detect undefined names from * import
+    "F405", # can't detect undefined names from * import
+    "F722", # syntax error in forward type annotation
+    "F821", # undefined name
+    "W191", # indentation contains tabs
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "tab"
+docstring-code-format = true
 """
 
 hooks_template = """app_name = "{app_name}"
@@ -715,16 +749,15 @@ repos:
       - id: check-yaml
       - id: debug-statements
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.9.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.2.0
     hooks:
-      - id: pyupgrade
-        args: ['--py310-plus']
+      - id: ruff
+        name: "Run ruff linter and apply fixes"
+        args: ["--fix"]
 
-  - repo: https://github.com/frappe/black
-    rev: 951ccf4d5bb0d692b457a5ebc4215d755618eb68
-    hooks:
-      - id: black
+      - id: ruff-format
+        name: "Format Python code"
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.7.1
@@ -758,17 +791,6 @@ repos:
                 {app_name}/templates/includes/.*|
                 {app_name}/public/js/lib/.*
             )$
-
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
-    hooks:
-      - id: flake8
-        additional_dependencies: ['flake8-bugbear',]
 
 ci:
     autoupdate_schedule: weekly
@@ -864,9 +886,7 @@ pre-commit install
 
 Pre-commit is configured to use the following tools for checking and formatting your code:
 
-- black
-- isort
-- flake8
+- ruff
 - eslint
 - prettier
 - pyupgrade
