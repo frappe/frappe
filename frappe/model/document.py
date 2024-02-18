@@ -3,6 +3,12 @@
 import hashlib
 import json
 import time
+<<<<<<< HEAD
+=======
+from collections.abc import Generator, Iterable
+from datetime import date, datetime, timedelta
+from typing import TYPE_CHECKING, Any, Optional
+>>>>>>> a1cb19c820 (fix: ensure has_value_changed works for datetime, date and timedelta fields)
 
 from werkzeug.exceptions import NotFound
 
@@ -18,8 +24,14 @@ from frappe.model.docstatus import DocStatus
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
+<<<<<<< HEAD
 from frappe.utils import cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url
+=======
+from frappe.types import DF
+from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
+from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
+>>>>>>> a1cb19c820 (fix: ensure has_value_changed works for datetime, date and timedelta fields)
 from frappe.utils.global_search import update_global_search
 
 
@@ -424,7 +436,21 @@ class Document(BaseDocument):
 	def has_value_changed(self, fieldname):
 		"""Returns true if value is changed before and after saving"""
 		previous = self.get_doc_before_save()
-		return previous.get(fieldname) != self.get(fieldname) if previous else True
+
+		if not previous:
+			return True
+
+		previous_value = previous.get(fieldname)
+		current_value = self.get(fieldname)
+
+		if isinstance(previous_value, datetime):
+			current_value = get_datetime(current_value)
+		elif isinstance(previous_value, date):
+			current_value = getdate(current_value)
+		elif isinstance(previous_value, timedelta):
+			current_value = get_timedelta(current_value)
+
+		return previous_value != current_value
 
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""

@@ -482,6 +482,7 @@ class TestDateUtils(FrappeTestCase):
 		self.assertIsInstance(get_timedelta(str(datetime_input)), timedelta)
 		self.assertIsInstance(get_timedelta(str(timedelta_input)), timedelta)
 		self.assertIsInstance(get_timedelta(str(time_input)), timedelta)
+		self.assertIsInstance(get_timedelta(get_timedelta("100:2:12")), timedelta)
 
 	def test_date_from_timegrain(self):
 		start_date = getdate("2021-01-01")
