@@ -14,11 +14,9 @@ frappe.webhook = {
 							!frappe.model.table_fields.includes(d.fieldtype)
 						) {
 							return null;
-						} else if (d.fieldtype === "Currency" || d.fieldtype === "Float") {
-							return { label: d.label, value: d.fieldname };
 						} else {
 							return {
-								label: `${__(d.label)} (${d.fieldtype})`,
+								label: `${__(d.label, null, d.parent)} (${__(d.fieldtype)})`,
 								value: d.fieldname,
 							};
 						}
@@ -28,10 +26,12 @@ frappe.webhook = {
 				// add meta fields
 				for (let field of frappe.model.std_fields) {
 					if (field.fieldname == "name") {
-						fields.unshift({ label: "Name (Doc Name)", value: "name" });
+						fields.unshift({ label: __("Name (Doc Name)"), value: "name" });
 					} else {
 						fields.push({
-							label: `${__(field.label)} (${field.fieldtype})`,
+							label: `${__(field.label, null, field.parent)} (${__(
+								field.fieldtype
+							)})`,
 							value: field.fieldname,
 						});
 					}

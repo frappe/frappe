@@ -401,7 +401,7 @@ def has_user_permission(doc, user=None, debug=False):
 						_(field.options),
 						d.get(field.fieldname) or _("empty"),
 						d.idx,
-						_(field.label) if field.label else field.fieldname,
+						_(field.label, context=field.parent) if field.label else field.fieldname,
 					)
 				else:
 					# "You are not allowed to access Company 'Restricted Company' in field Reference Type"
@@ -411,7 +411,7 @@ def has_user_permission(doc, user=None, debug=False):
 						_(meta.doctype),
 						_(field.options),
 						d.get(field.fieldname) or _("empty"),
-						_(field.label) if field.label else field.fieldname,
+						_(field.label, context=field.parent) if field.label else field.fieldname,
 					)
 
 				push_perm_check_log(msg, debug=debug)

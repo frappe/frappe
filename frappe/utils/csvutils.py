@@ -134,7 +134,7 @@ def check_record(d):
 				if val not in docfield.options.split("\n"):
 					frappe.throw(
 						_("{0} must be one of {1}").format(
-							_(docfield.label), comma_or(docfield.options.split("\n"))
+							_(docfield.label, context=docfield.parent), comma_or(docfield.options.split("\n"))
 						)
 					)
 

@@ -335,7 +335,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						columns_in_picker = columns[this.doctype]
 							.filter((df) => !this.is_column_added(df))
 							.map((df) => ({
-								label: __(df.label),
+								label: __(df.label, null, df.parent),
 								value: df.fieldname,
 							}));
 
@@ -345,7 +345,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							columns[cdt]
 								.filter((df) => !this.is_column_added(df))
 								.map((df) => ({
-									label: __(df.label) + ` (${cdt})`,
+									label: __(df.label, null, df.parent) + ` (${cdt})`,
 									value: df.fieldname + "," + cdt,
 								}))
 								.forEach((df) => columns_in_picker.push(df));
@@ -962,7 +962,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					return !df.hidden && df.fieldname !== "name";
 				})
 				.map((df) => ({
-					label: __(df.label),
+					label: __(df.label, null, df.parent),
 					value: df.fieldname,
 					checked: this.fields.find(
 						(f) => f[0] === df.fieldname && f[1] === this.doctype
@@ -978,7 +978,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			const cdt = df.options;
 
 			dialog_fields.push({
-				label: __(df.label) + ` (${__(cdt)})`,
+				label: __(df.label, null, df.parent) + ` (${__(cdt)})`,
 				fieldname: df.options,
 				fieldtype: "MultiCheck",
 				columns: 2,
@@ -987,7 +987,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						return !df.hidden;
 					})
 					.map((df) => ({
-						label: __(df.label),
+						label: __(df.label, null, df.parent),
 						value: df.fieldname,
 						checked: this.fields.find((f) => f[0] === df.fieldname && f[1] === cdt),
 					})),
@@ -1076,7 +1076,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 		if (!docfield || docfield.report_hide) return;
 
-		let title = __(docfield.label);
+		let title = __(docfield.label, null, docfield.parent);
 		if (doctype !== this.doctype) {
 			title += ` (${__(doctype)})`;
 		}
