@@ -591,11 +591,11 @@ class Document(BaseDocument):
 					_("Row"),
 					self.idx,
 					_("Value cannot be negative for"),
-					frappe.bold(_(df.label)),
+					frappe.bold(_(df.label, context=df.parent)),
 				)
 			else:
 				return _("Value cannot be negative for {0}: {1}").format(
-					_(df.parent), frappe.bold(_(df.label))
+					_(df.parent), frappe.bold(_(df.label, context=df.parent))
 				)
 
 		for df in self.meta.get(

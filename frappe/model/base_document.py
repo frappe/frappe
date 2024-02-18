@@ -376,7 +376,7 @@ class BaseDocument:
 						)
 
 				if isinstance(value, list) and df.fieldtype not in table_fields:
-					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label)))
+					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label, context=df.parent)))
 
 				if df.fieldtype == "Check":
 					value = 1 if cint(value) else 0
@@ -719,7 +719,9 @@ class BaseDocument:
 
 		def get_msg(df):
 			if df.fieldtype in table_fields:
-				return "{}: {}: {}".format(_("Error"), _("Data missing in table"), _(df.label))
+				return "{}: {}: {}".format(
+					_("Error"), _("Data missing in table"), _(df.label, context=df.parent)
+				)
 
 			# check if parentfield exists (only applicable for child table doctype)
 			elif self.get("parentfield"):
@@ -729,10 +731,10 @@ class BaseDocument:
 					_("Row"),
 					self.idx,
 					_("Value missing for"),
-					_(df.label),
+					_(df.label, context=df.parent),
 				)
 
-			return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label))
+			return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label, context=df.parent))
 
 		def has_content(df):
 			value = cstr(self.get(df.fieldname))
@@ -767,9 +769,9 @@ class BaseDocument:
 		def get_msg(df, docname):
 			# check if parentfield exists (only applicable for child table doctype)
 			if self.get("parentfield"):
-				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
+				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label, context=df.parent), docname)
 
-			return f"{_(df.label)}: {docname}"
+			return f"{_(df.label, context=df.parent)}: {docname}"
 
 		invalid_links = []
 		cancelled_links = []
@@ -1014,7 +1016,7 @@ class BaseDocument:
 
 		frappe.throw(
 			_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(
-				reference, _(df.label), max_length, value
+				reference, _(df.label, context=df.parent), max_length, value
 			),
 			frappe.CharacterLengthExceededError,
 			title=_("Value too big"),
@@ -1049,7 +1051,7 @@ class BaseDocument:
 					frappe.throw(
 						_("{0} Not allowed to change {1} after submission from {2} to {3}").format(
 							f"Row #{self.idx}:" if self.get("parent") else "",
-							frappe.bold(_(df.label)),
+							frappe.bold(_(df.label, context=df.parent)),
 							frappe.bold(db_value),
 							frappe.bold(self_value),
 						),
