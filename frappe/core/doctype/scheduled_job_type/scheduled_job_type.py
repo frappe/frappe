@@ -5,9 +5,10 @@ import json
 from datetime import datetime
 
 import click
-from croniter import croniter
+from croniter import CroniterBadCronError, croniter
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
@@ -22,7 +23,22 @@ class ScheduledJobType(Document):
 			# force logging for all events other than continuous ones (ALL)
 			self.create_log = 1
 
+<<<<<<< HEAD
 	def enqueue(self, force=False):
+=======
+		if self.frequency == "Cron":
+			if not self.cron_format:
+				frappe.throw(_("Cron format is required for job types with Cron frequency."))
+			try:
+				croniter(self.cron_format)
+			except CroniterBadCronError:
+				frappe.throw(
+					_("{0} is not a valid Cron expression.").format(f"<code>{self.cron_format}</code>"),
+					title=_("Bad Cron Expression"),
+				)
+
+	def enqueue(self, force=False) -> bool:
+>>>>>>> e88c078c9d (fix: validate cron format)
 		# enqueue event if last execution is done
 		if self.is_event_due() or force:
 			if frappe.flags.enqueued_jobs:
