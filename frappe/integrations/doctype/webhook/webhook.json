@@ -8,7 +8,6 @@
  "field_order": [
   "sb_doc_events",
   "webhook_doctype",
-  "webhook_queue",
   "cb_doc_events",
   "webhook_docevent",
   "enabled",
@@ -18,8 +17,9 @@
   "html_condition",
   "sb_webhook",
   "request_url",
-  "timeout",
   "is_dynamic_url",
+  "timeout",
+  "webhook_queue",
   "cb_webhook",
   "request_method",
   "request_structure",
@@ -212,8 +212,7 @@
    "description": "The number of seconds until the request expires",
    "fieldname": "timeout",
    "fieldtype": "Int",
-   "label": "Request Timeout",
-   "reqd": 1
+   "label": "Request Timeout"
   },
   {
    "fieldname": "webhook_queue",
@@ -227,7 +226,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-02-12 10:35:21.811887",
+ "modified": "2024-02-19 11:39:46.529574",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
