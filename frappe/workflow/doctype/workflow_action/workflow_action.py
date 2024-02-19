@@ -329,7 +329,7 @@ def get_users_next_action_data(transitions, doc):
 	def user_has_permission(user: str) -> bool:
 		from frappe.permissions import has_permission
 
-		return has_permission(doctype=doc, user=user, print_logs=False)
+		return has_permission(doctype=doc, user=user)
 
 	for transition in transitions:
 		users = get_users_with_role(transition.allowed)
@@ -380,10 +380,10 @@ def send_workflow_action_email(doc, transitions):
 	users_data = get_users_next_action_data(transitions, doc)
 	common_args = get_common_email_args(doc)
 	message = common_args.pop("message", None)
-	for d in users_data:
+	for user, data in users_data.items():
 		email_args = {
-			"recipients": [d.get("email")],
-			"args": {"actions": list(deduplicate_actions(d.get("possible_actions"))), "message": message},
+			"recipients": [data.get("email")],
+			"args": {"actions": list(deduplicate_actions(data.get("possible_actions"))), "message": message},
 			"reference_name": doc.name,
 			"reference_doctype": doc.doctype,
 		}
