@@ -162,7 +162,7 @@ class TestAuth(FrappeTestCase):
 		client = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
 
 		expiry_time = next(x for x in client.session.cookies if x.name == "sid").expires
-		current_time = datetime.datetime.now(tz=datetime.UTC).timestamp()
+		current_time = datetime.datetime.utcnow().timestamp()
 		self.assertAlmostEqual(get_expiry_in_seconds(), expiry_time - current_time, delta=60 * 60)
 
 

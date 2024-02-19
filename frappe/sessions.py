@@ -455,7 +455,6 @@ def get_expired_threshold(device):
 	return add_to_date(now, seconds=-expiry_in_seconds, as_string=True)
 
 
-<<<<<<< HEAD
 def get_expiry_period(device="desktop"):
 	if device == "mobile":
 		key = "session_expiry_mobile"
@@ -465,10 +464,6 @@ def get_expiry_period(device="desktop"):
 		default = "06:00:00"
 
 	exp_sec = frappe.defaults.get_global_default(key) or default
-=======
-def get_expiry_period():
-	exp_sec = frappe.defaults.get_global_default("session_expiry") or "240:00:00"
->>>>>>> 70a6a8334f (fix: set same cookie expiry as client side (#24560))
 
 	# incase seconds is missing
 	if len(exp_sec.split(":")) == 2:

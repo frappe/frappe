@@ -10,12 +10,7 @@ import frappe.utils
 import frappe.utils.user
 from frappe import _
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
-<<<<<<< HEAD
-from frappe.modules.patch_handler import check_session_stopped
-from frappe.sessions import Session, clear_sessions, delete_session
-=======
 from frappe.sessions import Session, clear_sessions, delete_session, get_expiry_in_seconds
->>>>>>> 70a6a8334f (fix: set same cookie expiry as client side (#24560))
 from frappe.translate import get_language
 from frappe.twofactor import (
 	authenticate_for_2factor,
@@ -365,13 +360,9 @@ class CookieManager:
 			return
 
 		if frappe.session.sid:
-<<<<<<< HEAD
-			self.set_cookie("sid", frappe.session.sid, expires=expires, httponly=True)
+			self.set_cookie("sid", frappe.session.sid, max_age=get_expiry_in_seconds(), httponly=True)
 		if frappe.session.session_country:
 			self.set_cookie("country", frappe.session.session_country)
-=======
-			self.set_cookie("sid", frappe.session.sid, max_age=get_expiry_in_seconds(), httponly=True)
->>>>>>> 70a6a8334f (fix: set same cookie expiry as client side (#24560))
 
 	def set_cookie(
 		self,
