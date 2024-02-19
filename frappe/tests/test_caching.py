@@ -2,6 +2,7 @@ import time
 from unittest.mock import MagicMock
 
 import frappe
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.caching import redis_cache, request_cache, site_cache
@@ -194,7 +195,7 @@ class TestDocumentCache(FrappeAPITestCase):
 		self.test_value = frappe.generate_hash()
 
 	def test_caching(self):
-		doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
+		frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
 
 		with self.assertQueryCount(0):
 			doc = frappe.get_cached_doc(self.TEST_DOCTYPE, self.TEST_DOCNAME)
@@ -242,6 +243,80 @@ class TestRedisWrapper(FrappeAPITestCase):
 		self.assertEqual(len(frappe.cache.get_keys(prefix)), 5)
 		frappe.cache.delete_keys(prefix)
 		self.assertEqual(len(frappe.cache.get_keys(prefix)), 0)
+
+	def test_hash(self):
+		key = "test_hash"
+
+		# Confirm that there's no data initially
+		exists = frappe.cache.exists(key)
+		self.assertFalse(exists)
+
+		# Insert 5 key-value pairs
+		for i in range(5):
+			frappe.cache.hset(key, f"key_{i}", f"value_{i}")
+
+		# Check that we have 5 values
+		values = frappe.cache.hgetall(key)
+		self.assertEqual(len(values), 5)
+
+		# Check that each value matches
+		for i in range(5):
+			value = frappe.cache.hget(key, f"key_{i}")
+			self.assertEqual(value, f"value_{i}")
+
+		# Check the keys themselves
+		keys = frappe.cache.hkeys(key)
+		for i in range(5):
+			self.assertIn(f"key_{i}".encode(), keys)
+
+		# Delete a single key and check that we still have the remaining 4
+		frappe.cache.hdel(key, "key_1")
+		values = frappe.cache.hgetall(key)
+		self.assertEqual(len(values), 4)
+
+		# Delete 2 keys and check that we still have the remaining 2
+		frappe.cache.hdel(key, ["key_2", "key_3"])
+		values = frappe.cache.hgetall(key)
+		self.assertEqual(len(values), 2)
+
+		# Delete the hash itself and confirm that there's no data
+		frappe.cache.delete_value(key)
+		exists = frappe.cache.exists(key)
+		self.assertFalse(exists)
+
+	def test_user_cache_clear(self):
+		from frappe.cache_manager import user_cache_keys
+
+		# Set some keys that a user's cache would usually have
+		user1 = frappe.utils.random_string(10)
+		user2 = frappe.utils.random_string(10)
+		for key in user_cache_keys:
+			frappe.cache.hset(key, user1, key)
+			frappe.cache.hset(key, user2, key)
+
+		frappe.clear_cache(user=user1)
+
+		# Check that the keys for user1 are gone
+		for key in user_cache_keys:
+			self.assertFalse(frappe.cache.hexists(key, user1))
+			self.assertTrue(frappe.cache.hexists(key, user2))
+
+	def test_doctype_cache_clear(self):
+		from frappe.cache_manager import doctype_cache_keys
+
+		# Set some keys that a user's cache would usually have
+		doctype1 = new_doctype(frappe.utils.random_string(10))
+		doctype2 = new_doctype(frappe.utils.random_string(10))
+		for key in doctype_cache_keys:
+			frappe.cache.hset(key, doctype1.name, key)
+			frappe.cache.hset(key, doctype2.name, key)
+
+		frappe.clear_cache(doctype=doctype1.name)
+
+		# Check that the keys for doctype1 are gone
+		for key in doctype_cache_keys:
+			self.assertFalse(frappe.cache.hexists(key, doctype1.name))
+			self.assertTrue(frappe.cache.hexists(key, doctype2.name))
 
 	def test_backward_compat_cache(self):
 		self.assertEqual(frappe.cache, frappe.cache())
