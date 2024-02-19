@@ -1,7 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import datetime
 import time
-from unittest.mock import patch
 
 import requests
 
@@ -11,7 +11,7 @@ from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_site_url, now
+from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date
 from frappe.www.login import _generate_temporary_login_link
 
@@ -156,6 +156,13 @@ class TestAuth(FrappeTestCase):
 				break
 		else:
 			self.fail("Rate limting not working")
+
+	def test_correct_cookie_expiry_set(self):
+		client = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
+
+		expiry_time = next(x for x in client.session.cookies if x.name == "sid").expires
+		current_time = datetime.datetime.utcnow().timestamp()
+		self.assertAlmostEqual(get_expiry_in_seconds(), expiry_time - current_time, delta=60 * 60)
 
 
 class TestLoginAttemptTracker(FrappeTestCase):
