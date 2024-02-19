@@ -39,7 +39,7 @@ class TestGlobalSearch(FrappeTestCase):
 
 		for text in phrases:
 			frappe.get_doc(
-				dict(doctype="Event", subject=text, repeat_on="Monthly", starts_on=now_datetime())
+				doctype="Event", subject=text, repeat_on="Monthly", starts_on=now_datetime()
 			).insert()
 
 		global_search.sync_global_search()

@@ -65,6 +65,7 @@ class WebPage(WebsiteGenerator):
 		title: DF.Data
 		website_sidebar: DF.Link | None
 	# end: auto-generated types
+
 	def validate(self):
 		self.validate_dates()
 		self.set_route()

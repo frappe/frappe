@@ -84,7 +84,7 @@ class TestBlogPost(FrappeTestCase):
 		# Create some Blog Posts for a Blog Category
 		category_title, blogs, BLOG_COUNT = "List Category", [], 4
 
-		for index in range(BLOG_COUNT):
+		for _ in range(BLOG_COUNT):
 			blog = make_test_blog(category_title)
 			blogs.append(blog)
 
@@ -180,20 +180,16 @@ def scrub(text):
 def make_test_blog(category_title="Test Blog Category"):
 	category_name = scrub(category_title)
 	if not frappe.db.exists("Blog Category", category_name):
-		frappe.get_doc(dict(doctype="Blog Category", title=category_title)).insert()
+		frappe.get_doc(doctype="Blog Category", title=category_title).insert()
 	if not frappe.db.exists("Blogger", "test-blogger"):
-		frappe.get_doc(
-			dict(doctype="Blogger", short_name="test-blogger", full_name="Test Blogger")
-		).insert()
+		frappe.get_doc(doctype="Blogger", short_name="test-blogger", full_name="Test Blogger").insert()
 
 	return frappe.get_doc(
-		dict(
-			doctype="Blog Post",
-			blog_category=category_name,
-			blogger="test-blogger",
-			title=random_string(20),
-			route=random_string(20),
-			content=random_string(20),
-			published=1,
-		)
+		doctype="Blog Post",
+		blog_category=category_name,
+		blogger="test-blogger",
+		title=random_string(20),
+		route=random_string(20),
+		content=random_string(20),
+		published=1,
 	).insert()

@@ -44,9 +44,7 @@ class TestRequestPersonalData(FrappeTestCase):
 
 		self.assertEqual(file_count, 1)
 
-		email_queue = frappe.get_all(
-			"Email Queue", fields=["message"], order_by="creation DESC", limit=1
-		)
+		email_queue = frappe.get_all("Email Queue", fields=["message"], order_by="creation DESC", limit=1)
 		self.assertIn(frappe._("Download Your Data"), email_queue[0].message)
 
 		frappe.db.delete("Email Queue")

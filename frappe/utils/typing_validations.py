@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from functools import lru_cache, wraps
 from inspect import _empty, isclass, signature
-from types import EllipsisType, NoneType
+from types import EllipsisType
 from typing import ForwardRef, TypeVar, Union
 
 from pydantic import ConfigDict
@@ -52,9 +52,7 @@ def qualified_name(obj) -> str:
 		return f"{module}.{qualname}"
 
 
-def raise_type_error(
-	arg_name: str, arg_type: type, arg_value: object, current_exception: Exception = None
-):
+def raise_type_error(arg_name: str, arg_type: type, arg_value: object, current_exception: Exception = None):
 	"""
 	Raise a TypeError with a message that includes the name of the argument, the expected type
 	and the actual type of the value passed.
@@ -95,11 +93,11 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 
 	elif kwargs:
 		arg_values = args or func.__defaults__ or []
-		prepared_args = dict(zip(arg_names, arg_values))
+		prepared_args = dict(zip(arg_names, arg_values, strict=False))
 		prepared_args.update(kwargs)
 
 	else:
-		prepared_args = dict(zip(arg_names, args))
+		prepared_args = dict(zip(arg_names, args, strict=False))
 
 	# check if type hints dont match the default values
 	func_signature = signature(func)
@@ -113,9 +111,9 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		current_arg_value = prepared_args[current_arg]
 
 		# if the type is a ForwardRef or str, ignore it
-		if isinstance(current_arg_type, (ForwardRef, str)):
+		if isinstance(current_arg_type, ForwardRef | str):
 			continue
-		elif any(isinstance(x, (ForwardRef, str)) for x in getattr(current_arg_type, "__args__", [])):
+		elif any(isinstance(x, ForwardRef | str) for x in getattr(current_arg_type, "__args__", [])):
 			continue
 
 		# allow slack for Frappe types
@@ -129,12 +127,12 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 			if isinstance(current_arg_type, tuple):
 				if type(param_def.default) not in current_arg_type:
 					current_arg_type += (type(param_def.default),)
-				current_arg_type = Union[current_arg_type]
+				current_arg_type = Union[current_arg_type]  # noqa: UP007
 
 			elif param_def.default != current_arg_type:
-				current_arg_type = Union[current_arg_type, type(param_def.default)]
+				current_arg_type = Union[current_arg_type, type(param_def.default)]  # noqa: UP007
 		elif isinstance(current_arg_type, tuple):
-			current_arg_type = Union[current_arg_type]
+			current_arg_type = Union[current_arg_type]  # noqa: UP007
 
 		# validate the type set using pydantic - raise a TypeError if Validation is raised or Ellipsis is returned
 		try:

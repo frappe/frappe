@@ -546,7 +546,7 @@ export default class GridRow {
 								<a style='cursor: grabbing;'>${frappe.utils.icon("drag", "xs")}</a>
 							</div>
 							<div class='col-6 col-md-8' style='padding-right:0px; padding-top: 5px;'>
-								${__(docfield.label)}
+								${__(docfield.label, null, docfield.parent)}
 							</div>
 							<div class='col-3 col-md-2' style='padding-left:0px; padding-top: 2px; margin-top:-2px;' title='${__(
 								"Columns"
@@ -694,7 +694,7 @@ export default class GridRow {
 
 			let txt = this.doc
 				? frappe.format(this.doc[df.fieldname], df, null, this.doc)
-				: __(df.label);
+				: __(df.label, null, df.parent);
 
 			if (this.doc && df.fieldtype === "Select") {
 				txt = __(txt);
@@ -1077,7 +1077,7 @@ export default class GridRow {
 
 					let txt = this.doc
 						? frappe.format(this.doc[df.fieldname], df, null, this.doc)
-						: __(df.label);
+						: __(df.label, null, df.parent);
 
 					this.refresh_field(df.fieldname, txt);
 				}

@@ -15,7 +15,7 @@ register_with_external_service = MagicMock(return_value=True)
 def request_specific_api(a: list | tuple | dict | int, b: int) -> int:
 	# API that takes very long to return a result
 	todays_value = external_service()
-	if not isinstance(a, (int, float)):
+	if not isinstance(a, int | float):
 		a = 1
 	return a**b * todays_value
 
@@ -44,7 +44,9 @@ class TestCachingUtils(FrappeTestCase):
 			frappe.get_last_doc("DocType"),
 			frappe._dict(),
 		]
-		same_output_received = lambda: all([x for x in set(retval) if x == retval[0]])
+
+		def same_output_received():
+			return all([x for x in set(retval) if x == retval[0]])
 
 		# ensure that external service was called only once
 		# thereby return value of request_specific_api is cached
@@ -232,7 +234,6 @@ class TestDocumentCache(FrappeAPITestCase):
 
 class TestRedisWrapper(FrappeAPITestCase):
 	def test_delete_keys(self):
-
 		prefix = "test_del_"
 
 		for i in range(5):

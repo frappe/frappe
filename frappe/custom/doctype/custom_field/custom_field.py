@@ -115,6 +115,7 @@ class CustomField(Document):
 		unique: DF.Check
 		width: DF.Data | None
 	# end: auto-generated types
+
 	def autoname(self):
 		self.set_fieldname()
 		self.name = self.dt + "-" + self.fieldname
@@ -222,9 +223,7 @@ class CustomField(Document):
 		frappe.db.delete("Property Setter", {"doc_type": self.dt, "field_name": self.fieldname})
 
 		# update doctype layouts
-		doctype_layouts = frappe.get_all(
-			"DocType Layout", filters={"document_type": self.dt}, pluck="name"
-		)
+		doctype_layouts = frappe.get_all("DocType Layout", filters={"document_type": self.dt}, pluck="name")
 
 		for layout in doctype_layouts:
 			layout_doc = frappe.get_doc("DocType Layout", layout)
@@ -260,7 +259,7 @@ def get_fields_label(doctype=None):
 		return frappe.msgprint(_("Custom Fields can only be added to a standard DocType."))
 
 	return [
-		{"value": df.fieldname or "", "label": _(df.label) if df.label else ""}
+		{"value": df.fieldname or "", "label": _(df.label, context=df.parent) if df.label else ""}
 		for df in frappe.get_meta(doctype).get("fields")
 	]
 
@@ -374,9 +373,7 @@ def rename_fieldname(custom_field: str, fieldname: str):
 	frappe.clear_cache()
 
 
-def _update_fieldname_references(
-	field: CustomField, old_fieldname: str, new_fieldname: str
-) -> None:
+def _update_fieldname_references(field: CustomField, old_fieldname: str, new_fieldname: str) -> None:
 	# Passwords are stored in auth table, so column name needs to be updated there.
 	if field.fieldtype == "Password":
 		Auth = frappe.qb.Table("__Auth")
