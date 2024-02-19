@@ -7,9 +7,6 @@ from typing import TYPE_CHECKING, Optional
 from urllib.parse import unquote
 
 import filetype
-import requests
-import requests.exceptions
-from PIL import Image
 
 import frappe
 from frappe import _, safe_decode
@@ -86,6 +83,8 @@ def get_extension(
 
 
 def get_local_image(file_url: str) -> tuple["ImageFile", str, str]:
+	from PIL import Image
+
 	if file_url.startswith("/private"):
 		file_url_path = (file_url.lstrip("/"),)
 	else:
@@ -116,7 +115,10 @@ def get_local_image(file_url: str) -> tuple["ImageFile", str, str]:
 
 
 def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
-	# download
+	import requests
+	import requests.exceptions
+	from PIL import Image
+
 	file_url = frappe.utils.get_url(file_url)
 	r = requests.get(file_url, stream=True)
 	try:
