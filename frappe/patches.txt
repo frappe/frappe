@@ -233,4 +233,3 @@ frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
 frappe.patches.v15_0.validate_newsletter_recipients
 frappe.patches.v15_0.sanitize_workspace_titles
-frappe.core.doctype.user.patches.hash_reset_password_tokens
