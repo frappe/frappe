@@ -81,6 +81,10 @@ frappe.webhook = {
 frappe.ui.form.on("Webhook", {
 	refresh: (frm) => {
 		frappe.webhook.set_fieldname_select(frm);
+		frm.set_query(
+			"background_jobs_queue",
+			"frappe.integrations.doctype.webhook.webhook.get_all_queues"
+		);
 	},
 
 	request_structure: (frm) => {
