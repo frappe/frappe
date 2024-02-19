@@ -60,11 +60,12 @@ class ServerScript(Document):
 
 	def clear_scheduled_events(self):
 		"""Deletes existing scheduled jobs by Server Script if self.event_frequency or self.cron_format has changed"""
-		if self.script_type == "Scheduler Event" and (
-			self.has_value_changed("event_frequency") or self.has_value_changed("cron_format")
-		):
+		if (
+			self.script_type == "Scheduler Event"
+			and (self.has_value_changed("event_frequency") or self.has_value_changed("cron_format"))
+		) or (self.has_value_changed("script_type") and self.script_type != "Scheduler Event"):
 			for scheduled_job in self.scheduled_jobs:
-				frappe.delete_doc("Scheduled Job Type", scheduled_job.name)
+				frappe.delete_doc("Scheduled Job Type", scheduled_job.name, delete_permanently=1)
 
 	def check_if_compilable_in_restricted_context(self):
 		"""Check compilation errors and send them back as warnings."""
