@@ -732,16 +732,18 @@ class Database:
 
 			if not run:
 				return r
-			if as_dict:
-				if r:
-					r = frappe._dict(r)
-					if update:
-						r.update(update)
-					return [r]
-				else:
-					return []
-			else:
-				return r and [[i[1] for i in r]] or []
+
+			if not r:
+				return []
+
+			r = frappe._dict(r)
+			if update:
+				r.update(update)
+
+			if not as_dict:
+				return [[r.get(field) for field in fields]]
+
+			return [r]
 
 	def get_singles_dict(self, doctype, debug=False, *, for_update=False, cast=False):
 		"""Get Single DocType as dict.
