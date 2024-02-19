@@ -185,7 +185,7 @@ def get_notification_logs(limit=100):
 	if count_callback_request > 0:
 		alert_message += f"Request a Callback Incoming: {count_callback_request} <br>"
 	if alert_message:
-		alert_message += f" <span style= 'font-size: smaller;font-weight: bolder;'>Note: To hide this notification. click on notifications icon and mark all as read</span> "
+		alert_message += f" <span style= 'font-size: smaller;font-weight: bolder;'>Note: To hide this notification. click on notifications icon and mark all as read or one by one</span> "
 		frappe.msgprint(title='Reminder Notification.',  indicator= 'green', msg= alert_message)
 	return {"notification_logs": notification_logs, "user_info": user_info}
 

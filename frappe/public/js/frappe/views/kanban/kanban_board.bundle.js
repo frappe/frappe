@@ -745,7 +745,7 @@ frappe.provide("frappe.views");
 			if (card.column === 'Request a callback'){
 				render_fields.push(...['customer','callback_date', 'callback_time'])
 			}
-			if(card.column == 'In parking'){
+			if(card.column == 'In parking' || card.column == 'In queue'){
 				render_fields.push(...['bring_car_date'])
 			}
 			
