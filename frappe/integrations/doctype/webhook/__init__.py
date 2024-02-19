@@ -8,7 +8,7 @@ def get_all_webhooks():
 	# query webhooks
 	webhooks_list = frappe.get_all(
 		"Webhook",
-		fields=["name", "condition", "webhook_docevent", "webhook_doctype", "webhook_queue"],
+		fields=["name", "condition", "webhook_docevent", "webhook_doctype", "background_jobs_queue"],
 		filters={"enabled": True},
 	)
 
@@ -104,5 +104,5 @@ def flush_webhook_execution_queue():
 			doc=instance.doc,
 			webhook=instance.webhook,
 			now=frappe.flags.in_test,
-			queue=instance.webhook.webhook_queue or "default",
+			queue=instance.webhook.background_jobs_queue or "default",
 		)

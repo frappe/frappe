@@ -31,6 +31,7 @@ class Webhook(Document):
 		from frappe.integrations.doctype.webhook_header.webhook_header import WebhookHeader
 		from frappe.types import DF
 
+		background_jobs_queue: DF.Autocomplete | None
 		condition: DF.SmallText | None
 		enable_security: DF.Check
 		enabled: DF.Check
@@ -55,7 +56,6 @@ class Webhook(Document):
 		webhook_doctype: DF.Link
 		webhook_headers: DF.Table[WebhookHeader]
 		webhook_json: DF.Code | None
-		webhook_queue: DF.Autocomplete | None
 		webhook_secret: DF.Password | None
 	# end: auto-generated types
 

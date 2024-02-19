@@ -19,7 +19,7 @@
   "request_url",
   "is_dynamic_url",
   "timeout",
-  "webhook_queue",
+  "background_jobs_queue",
   "cb_webhook",
   "request_method",
   "request_structure",
@@ -215,9 +215,9 @@
    "label": "Request Timeout"
   },
   {
-   "fieldname": "webhook_queue",
+   "fieldname": "background_jobs_queue",
    "fieldtype": "Autocomplete",
-   "label": "Webhook Queue"
+   "label": "Background Jobs Queue"
   }
  ],
  "links": [
@@ -226,7 +226,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-02-19 11:39:46.529574",
+ "modified": "2024-02-19 11:40:58.387233",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
