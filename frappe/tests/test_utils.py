@@ -64,6 +64,7 @@ from frappe.utils.data import (
 	nowtime,
 	pretty_date,
 	rounded,
+	sha256_hash,
 	to_timedelta,
 	validate_python_code,
 )
@@ -1221,3 +1222,12 @@ class TestTypingValidations(FrappeTestCase):
 		self.assertEqual(test_doctypes(doctype.as_dict()), doctype.as_dict())
 		with self.assertRaises(FrappeTypeError):
 			test_doctypes("a")
+
+
+class TestCrypto(FrappeTestCase):
+	def test_hashing(self):
+		self.assertEqual(sha256_hash(""), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+		self.assertEqual(
+			sha256_hash(b"The quick brown fox jumps over the lazy dog"),
+			"d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592",
+		)
