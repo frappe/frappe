@@ -405,7 +405,7 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	set_tab_as_active() {
-		let frm_active_tab = this?.frm.get_active_tab?.();
+		let frm_active_tab = this.frm?.get_active_tab?.();
 		if (frm_active_tab) {
 			frm_active_tab.set_active();
 		} else if (this.tabs.length) {
