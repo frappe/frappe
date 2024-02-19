@@ -3,6 +3,7 @@
 import json
 import time
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 import frappe
 import frappe.exceptions
@@ -17,7 +18,7 @@ from frappe.core.doctype.user.user import (
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_url
 
 user_module = frappe.core.doctype.user.user
@@ -32,10 +33,14 @@ class TestUser(FrappeTestCase):
 		frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
 		frappe.set_user("Administrator")
 
+	@staticmethod
+	def reset_password(user) -> str:
+		link = user.reset_password()
+		return parse_qs(urlparse(link).query)["key"][0]
+
 	def test_user_type(self):
-		new_user = frappe.get_doc(
-			dict(doctype="User", email="test-for-type@example.com", first_name="Tester")
-		).insert(ignore_if_duplicate=True)
+		user_id = frappe.generate_hash() + "@example.com"
+		new_user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
 		self.assertEqual(new_user.user_type, "Website User")
 
 		# social login userid for frappe
@@ -269,11 +274,8 @@ class TestUser(FrappeTestCase):
 		"""
 		self.assertListEqual(extract_mentions(comment), ["test@example.com", "test1@example.com"])
 
+	@change_settings("System Settings", commit=True, password_reset_limit=1)
 	def test_rate_limiting_for_reset_password(self):
-		# Allow only one reset request for a day
-		frappe.db.set_single_value("System Settings", "password_reset_limit", 1)
-		frappe.db.commit()
-
 		url = get_url()
 		data = {"cmd": "frappe.core.doctype.user.user.reset_password", "user": "test@test.com"}
 
@@ -351,6 +353,7 @@ class TestUser(FrappeTestCase):
 				"/signup",
 			)
 
+	@change_settings("System Settings", password_reset_limit=6)
 	def test_reset_password(self):
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
@@ -363,12 +366,11 @@ class TestUser(FrappeTestCase):
 		frappe.local.login_manager = LoginManager()
 		# used by rate limiter when calling reset_password
 		frappe.local.request_ip = "127.0.0.69"
-		frappe.db.set_single_value("System Settings", "password_reset_limit", 6)
 
 		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", "testpassword@example.com")
-		test_user.reset_password()
-		self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/app")
+		key = self.reset_password(test_user)
+		self.assertEqual(update_password(new_password, key=key), "/app")
 		self.assertEqual(
 			update_password(new_password, key="wrong_key"),
 			"The reset password link has either been used before or is invalid",
@@ -411,7 +413,9 @@ class TestUser(FrappeTestCase):
 			test_user = frappe.get_doc("User", "test2@example.com")
 			self.assertEqual(reset_password(user="test2@example.com"), None)
 			test_user.reload()
-			self.assertEqual(update_password(new_password, key=test_user.reset_password_key), "/")
+			link = sendmail.call_args_list[0].kwargs["args"]["link"]
+			key = parse_qs(urlparse(link).query)["key"][0]
+			self.assertEqual(update_password(new_password, key=key), "/")
 			update_password(old_password, old_password=new_password)
 			self.assertEqual(
 				json.loads(frappe.message_log[0]).get("message"),
@@ -437,16 +441,16 @@ class TestUser(FrappeTestCase):
 			sorted(m.get("module_name") for m in get_modules_from_all_apps()),
 		)
 
+	@change_settings("System Settings", reset_password_link_expiry_duration=1)
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
-		# set the reset password expiry to 1 second
-		frappe.db.set_single_value("System Settings", "reset_password_link_expiry_duration", 1)
 		frappe.set_user("testpassword@example.com")
 		test_user = frappe.get_doc("User", "testpassword@example.com")
-		test_user.reset_password()
-		time.sleep(1)  # sleep for 1 sec to expire the reset link
+		key = self.reset_password(test_user)
+		time.sleep(1)
+
 		self.assertEqual(
-			update_password(new_password, key=test_user.reset_password_key),
+			update_password(new_password, key=key),
 			"The reset password link has been expired",
 		)
 

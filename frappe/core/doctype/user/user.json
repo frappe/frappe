@@ -323,6 +323,7 @@
    "hidden": 1,
    "label": "Reset Password Key",
    "no_copy": 1,
+   "permlevel": 1,
    "print_hide": 1,
    "read_only": 1
   },
@@ -617,13 +618,14 @@
    "options": "Module Profile"
   },
   {
-    "description": "Stores the datetime when the last reset password key was generated.",
-    "fieldname": "last_reset_password_key_generated_on",
-    "fieldtype": "Datetime",
-    "hidden": 1,
-    "label": "Last Reset Password Key Generated On",
-    "read_only": 1
-   },
+   "description": "Stores the datetime when the last reset password key was generated.",
+   "fieldname": "last_reset_password_key_generated_on",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Last Reset Password Key Generated On",
+   "permlevel": 1,
+   "read_only": 1
+  },
   {
    "fieldname": "column_break_75",
    "fieldtype": "Column Break"
@@ -731,7 +733,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2023-06-05 17:26:04.127555",
+ "modified": "2024-02-11 13:16:29.574666",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
