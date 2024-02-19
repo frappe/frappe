@@ -138,4 +138,8 @@ def format_value(value, df=None, doc=None, currency=None, translated=False, form
 
 		return doc.__link_titles.get(f"{doctype}::{value}", value)
 
+	elif df.get("fieldtype") == "Select":
+		if isinstance(value, str):
+			return frappe._(value, context=df.parent or "")
+
 	return value
