@@ -20,10 +20,7 @@ from csv import reader, writer
 from pypika.terms import PseudoColumn
 
 import frappe
-<<<<<<< HEAD
 from frappe.model.utils import InvalidIncludePath, render_include
-=======
->>>>>>> 0a886b7ca8 (perf: defer imports during CLI)
 from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
 
@@ -309,8 +306,6 @@ def get_translations_from_apps(lang, apps=None):
 		return {}
 
 	translations = {}
-	from frappe.gettext.translate import get_translations_from_mo
-
 	for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
 		path = os.path.join(frappe.get_app_path(app, "translations"), lang + ".csv")
 		translations.update(get_translation_dict_from_file(path, lang, app) or {})
@@ -448,8 +443,6 @@ def get_messages_from_navbar():
 def get_messages_from_doctype(name):
 	"""Extract all translatable messages for a doctype. Includes labels, Python code,
 	Javascript code, html templates"""
-	from frappe.gettext.extractors.utils import is_translatable
-
 	messages = []
 	meta = frappe.get_meta(name)
 
@@ -490,7 +483,6 @@ def get_messages_from_doctype(name):
 
 def get_messages_from_workflow(doctype=None, app_name=None):
 	assert doctype or app_name, "doctype or app_name should be provided"
-	from frappe.gettext.extractors.utils import is_translatable
 
 	# translations for Workflows
 	workflows = []
@@ -560,8 +552,6 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 
 
 def get_messages_from_custom_fields(app_name):
-	from frappe.gettext.extractors.utils import is_translatable
-
 	fixtures = frappe.get_hooks("fixtures", app_name=app_name) or []
 	custom_fields = []
 
@@ -601,13 +591,7 @@ def get_messages_from_page(name):
 
 
 def get_messages_from_report(name):
-<<<<<<< HEAD
 	"""Returns all translatable strings from a :class:`frappe.core.doctype.Report`"""
-=======
-	"""Return all translatable strings from a :class:`frappe.core.doctype.Report`."""
-	from frappe.gettext.extractors.utils import is_translatable
-
->>>>>>> 0a886b7ca8 (perf: defer imports during CLI)
 	report = frappe.get_doc("Report", name)
 	messages = _get_messages_from_page_or_report(
 		"Report", name, frappe.db.get_value("DocType", report.ref_doctype, "module")
@@ -711,9 +695,6 @@ def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 
 	:param path: path of the code file
 	"""
-
-	from frappe.gettext.extractors.utils import extract_messages_from_code
-
 	frappe.flags.setdefault("scanned_files", set())
 	# TODO: Find better alternative
 	# To avoid duplicate scan
@@ -780,7 +761,6 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 	"""Extracts translatable strings from JavaScript code using babel."""
 
 	messages = []
-	from frappe.gettext.extractors.javascript import extract_javascript
 
 	for message in extract_javascript(
 		code,
