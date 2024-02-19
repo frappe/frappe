@@ -122,8 +122,7 @@ class ServerScript(Document):
 		if (
 			self.script_type == "Scheduler Event"
 			and (self.has_value_changed("event_frequency") or self.has_value_changed("cron_format"))
-			or (self.has_value_changed("script_type") and self.script_type != "Scheduler Event")
-		):
+		) or (self.has_value_changed("script_type") and self.script_type != "Scheduler Event"):
 			for scheduled_job in self.scheduled_jobs:
 				frappe.delete_doc("Scheduled Job Type", scheduled_job.name, delete_permanently=1)
 
