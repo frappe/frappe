@@ -1468,7 +1468,10 @@ frappe.ui.form.Form = class FrappeForm {
 		$.each(fields_list, function (i, fname) {
 			var docfield = frappe.meta.docfield_map[doctype][fname];
 			if (docfield) {
-				var label = __(docfield.label || "").replace(/\([^\)]*\)/g, ""); // eslint-disable-line
+				var label = __(docfield.label || "", null, docfield.parent).replace(
+					/\([^\)]*\)/g,
+					""
+				); // eslint-disable-line
 				if (parentfield) {
 					grid_field_label_map[doctype + "-" + fname] =
 						label.trim() + " (" + __(currency) + ")";
