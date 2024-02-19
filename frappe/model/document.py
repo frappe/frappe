@@ -4,7 +4,6 @@ import hashlib
 import json
 import time
 from collections.abc import Generator, Iterable
-from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Optional
 
 from werkzeug.exceptions import NotFound
@@ -456,6 +455,8 @@ class Document(BaseDocument):
 
 	def has_value_changed(self, fieldname):
 		"""Return True if value has changed before and after saving."""
+		from datetime import date, datetime, timedelta
+
 		previous = self.get_doc_before_save()
 
 		if not previous:
