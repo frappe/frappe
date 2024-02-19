@@ -10,7 +10,6 @@ import zipfile
 from urllib.parse import quote, unquote
 
 from PIL import Image, ImageFile, ImageOps
-from requests.exceptions import HTTPError, SSLError
 
 import frappe
 from frappe import _
@@ -428,6 +427,8 @@ class File(Document):
 		suffix: str = "small",
 		crop: bool = False,
 	) -> str:
+		from requests.exceptions import HTTPError, SSLError
+
 		if not self.file_url:
 			return
 
