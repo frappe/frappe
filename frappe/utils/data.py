@@ -127,16 +127,10 @@ def get_datetime(
 		return parser.parse(datetime_str)
 
 
-<<<<<<< HEAD
-def get_timedelta(time: str | None = None) -> datetime.timedelta | None:
-	"""Return `datetime.timedelta` object from string value of a
-	valid time format. Returns None if `time` is not a valid format
-=======
 def get_timedelta(time: str | datetime.timedelta | None = None) -> datetime.timedelta | None:
 	"""Return `datetime.timedelta` object from string value of a valid time format.
 
 	Return None if `time` is not a valid format.
->>>>>>> a1cb19c820 (fix: ensure has_value_changed works for datetime, date and timedelta fields)
 
 	Args:
 	        time (str | datetime.timedelta): A valid time representation. This string is parsed
