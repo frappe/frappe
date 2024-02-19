@@ -183,6 +183,13 @@ class TestDB(FrappeTestCase):
 		# teardown
 		clear_custom_fields("Print Settings")
 
+	def test_get_single_value_destructuring(self):
+		[[lang, date_format]] = frappe.db.get_values_from_single(
+			["language", "date_format"], None, "System Settings"
+		)
+		self.assertEqual(lang, frappe.db.get_single_value("System Settings", "language"))
+		self.assertEqual(date_format, frappe.db.get_single_value("System Settings", "date_format"))
+
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
 		frappe.flags.touched_tables = set()
