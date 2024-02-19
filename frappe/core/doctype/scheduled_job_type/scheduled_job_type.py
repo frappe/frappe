@@ -23,9 +23,6 @@ class ScheduledJobType(Document):
 			# force logging for all events other than continuous ones (ALL)
 			self.create_log = 1
 
-<<<<<<< HEAD
-	def enqueue(self, force=False):
-=======
 		if self.frequency == "Cron":
 			if not self.cron_format:
 				frappe.throw(_("Cron format is required for job types with Cron frequency."))
@@ -38,7 +35,6 @@ class ScheduledJobType(Document):
 				)
 
 	def enqueue(self, force=False) -> bool:
->>>>>>> e88c078c9d (fix: validate cron format)
 		# enqueue event if last execution is done
 		if self.is_event_due() or force:
 			if frappe.flags.enqueued_jobs:
