@@ -286,15 +286,9 @@ def get_communication_data(
 	conditions = ""
 	if after:
 		# find after a particular date
-<<<<<<< HEAD
 		conditions += """
-			AND C.creation > {}
+			AND C.communication_date > {}
 		""".format(after)
-=======
-		conditions += f"""
-			AND C.communication_date > {after}
-		"""
->>>>>>> 10bd9a7efd (fix: use communication date in timeline)
 
 	if doctype == "User":
 		conditions += """
