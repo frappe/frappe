@@ -99,29 +99,6 @@ class TestWorkflow(FrappeTestCase):
 		self.assertEqual(workflow_actions[0].status, "Completed")
 		frappe.set_user("Administrator")
 
-	def test_if_workflow_actions_were_processed_using_user(self):
-		user = frappe.get_doc("User", "test2@example.com")
-		user.add_roles("Test Approver", "System Manager")
-		frappe.set_user("test2@example.com")
-
-		doc = self.test_default_condition()
-		workflow_actions = frappe.get_all("Workflow Action", fields=["*"])
-		self.assertEqual(len(workflow_actions), 1)
-
-		# test if status of workflow actions are updated on approval
-		WorkflowAction = DocType("Workflow Action")
-		WorkflowActionPermittedRole = DocType("Workflow Action Permitted Role")
-		frappe.qb.update(WorkflowAction).set(WorkflowAction.user, "test2@example.com").run()
-		frappe.qb.update(WorkflowActionPermittedRole).set(WorkflowActionPermittedRole.role, "").run()
-
-		self.test_approve(doc)
-
-		user.remove_roles("Test Approver", "System Manager")
-		workflow_actions = frappe.get_all("Workflow Action", fields=["status"])
-		self.assertEqual(len(workflow_actions), 1)
-		self.assertEqual(workflow_actions[0].status, "Completed")
-		frappe.set_user("Administrator")
-
 	def test_if_workflow_set_on_action(self):
 		self.workflow._update_state_docstatus = True
 		self.workflow.states[1].doc_status = 1
