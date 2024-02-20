@@ -184,6 +184,10 @@ class User(Document):
 		if not self.role_profiles:
 			return
 
+		if self.name in STANDARD_USERS:
+			self.role_profiles = []
+			return
+
 		new_roles = set()
 		for role_profile in self.role_profiles:
 			role_profile = frappe.get_cached_doc("Role Profile", role_profile.role_profile)
