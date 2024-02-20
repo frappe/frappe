@@ -15,6 +15,7 @@ class WebTemplateField(Document):
 		from frappe.types import DF
 
 		default: DF.SmallText | None
+		dynamic_template: DF.Check
 		fieldname: DF.Data | None
 		fieldtype: DF.Literal[
 			"Attach Image",

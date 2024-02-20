@@ -124,6 +124,15 @@ class WebTemplate(Document):
 			values = {}
 		values = frappe.parse_json(values)
 		values.update({"values": values})
+
+		dynamic_values = {}
+		for field in self.get("fields", {"dynamic_template": 1}):
+			k = field.fieldname
+			if k in values:
+				dynamic_values[k] = frappe.render_template(values[k], values)
+
+		values.update(dynamic_values)
+
 		template = self.get_template(self.standard)
 
 		return frappe.render_template(template, values)

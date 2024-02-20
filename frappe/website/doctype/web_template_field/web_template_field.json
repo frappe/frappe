@@ -9,6 +9,7 @@
   "fieldname",
   "fieldtype",
   "reqd",
+  "dynamic_template",
   "options",
   "default"
  ],
@@ -50,11 +51,18 @@
    "fieldname": "default",
    "fieldtype": "Small Text",
    "label": "Default"
+  },
+  {
+   "default": "0",
+   "fieldname": "dynamic_template",
+   "fieldtype": "Check",
+   "label": "Dynamic Template",
+   "depends_on": "eval:doc.fieldtype?.match?.(/Data|Text|Editor/)"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2020-10-26 17:38:40.798713",
+ "modified": "2024-02-20 12:01:55.162363",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Template Field",
@@ -63,5 +71,6 @@
  "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
