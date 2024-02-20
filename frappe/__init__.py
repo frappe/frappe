@@ -2310,22 +2310,6 @@ def enqueue(*args, **kwargs):
 
 	return frappe.utils.background_jobs.enqueue(*args, **kwargs)
 
-def enqueue_at(*args, **kwargs):
-    """
-    Enqueue method to be scheduled and executed using a background worker
-    :param method: method string or method object
-    :param datetime: datetime at which the job should be executed
-    :param queue: (optional) should be either long, default or short
-    :param timeout: (optional) should be set according to the functions
-    :param event: this is passed to enable clearing of jobs from queues
-    :param is_async: (optional) if is_async=False, the method is executed immediately, else via a worker
-    :param job_name: (optional) can be used to name an enqueue call, which can be used to prevent duplicate calls
-    :param kwargs: keyword arguments to be passed to the method
-    """
-    import frappe.utils.background_jobs
-
-    return frappe.utils.background_jobs.enqueue_at(*args, **kwargs)
-
 
 def task(**task_kwargs):
 	def decorator_task(f):
