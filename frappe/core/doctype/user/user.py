@@ -28,6 +28,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
+from frappe.utils.data import sha256_hash
 from frappe.utils.deprecations import deprecated
 from frappe.utils.password import check_password, get_password_reset_limit
 from frappe.utils.password import update_password as _update_password
@@ -297,10 +298,11 @@ class User(Document):
 		pass
 
 	def reset_password(self, send_email=False, password_expired=False):
-		from frappe.utils import get_url, random_string
+		from frappe.utils import get_url
 
-		key = random_string(32)
-		self.db_set("reset_password_key", key)
+		key = frappe.generate_hash()
+		hashed_key = sha256_hash(key)
+		self.db_set("reset_password_key", hashed_key)
 		self.db_set("last_reset_password_key_generated_on", now_datetime())
 
 		url = "/update-password?key=" + key
@@ -817,8 +819,9 @@ def _get_user_for_update_password(key, old_password):
 	# verify old password
 	result = frappe._dict()
 	if key:
+		hashed_key = sha256_hash(key)
 		user = frappe.db.get_value(
-			"User", {"reset_password_key": key}, ["name", "last_reset_password_key_generated_on"]
+			"User", {"reset_password_key": hashed_key}, ["name", "last_reset_password_key_generated_on"]
 		)
 		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
@@ -909,12 +912,11 @@ def sign_up(email, full_name, redirect_to):
 
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
-def reset_password(user):
-	if user == "Administrator":
-		return "not allowed"
-
+def reset_password(user: str) -> str:
 	try:
-		user = frappe.get_doc("User", user)
+		user: User = frappe.get_doc("User", user)
+		if user.name == "Administrator":
+			return "not allowed"
 		if not user.enabled:
 			return "disabled"
 

@@ -23,7 +23,7 @@
 					{% } %}
 
 					<div class="text-muted">
-						{{ comment_when(doc.creation) }}
+						{{ comment_when(doc.communication_date) }}
 					</div>
 				</span>
 			{% } else if (doc.comment_type && doc.comment_type == "Comment") { %}
@@ -33,7 +33,7 @@
 					<span class="text-muted">{{ __("commented") }}</span>
 					<span> . </span>
 					<span class="margin-left text-muted">
-						{{ comment_when(doc.creation) }}
+						{{ comment_when(doc.communication_date) }}
 					</span>
 				</span>
 			{% } else { %}
@@ -44,7 +44,7 @@
 					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
 					<span> . </span>
 					<span class="text-muted">
-						{{ comment_when(doc.creation) }}
+						{{ comment_when(doc.communication_date) }}
 					</span>
 					{% if (doc.subject) { %}
 						<div class="text-muted my-1">{{doc.subject}}</div>
