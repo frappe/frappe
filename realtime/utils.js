@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-=======
-const { get_conf } = require("../node_utils");
-const conf = get_conf();
 const request = require("superagent");
 
->>>>>>> 11ea7e4179 (feat: socketio using authorization headers)
 function get_url(socket, path) {
 	if (!path) {
 		path = "";
