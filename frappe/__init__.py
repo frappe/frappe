@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+import copy
 import functools
 import gc
 import importlib
@@ -2174,6 +2175,8 @@ def get_print(
 	from frappe.utils.pdf import get_pdf
 	from frappe.website.serve import get_response_content
 
+	original_form_dict = copy.deepcopy(local.form_dict)
+
 	local.form_dict.doctype = doctype
 	local.form_dict.name = name
 	local.form_dict.format = print_format
@@ -2187,6 +2190,7 @@ def get_print(
 		pdf_options["password"] = password
 
 	html = get_response_content("printview")
+	local.form_dict = original_form_dict
 	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
