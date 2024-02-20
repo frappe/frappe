@@ -132,3 +132,7 @@ ignore = [
 quote-style = "double"
 indent-style = "tab"
 docstring-code-format = true
+
+[tool.pylint]
+disable = "all"
+enable = "E1123"

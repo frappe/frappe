@@ -66,6 +66,15 @@ repos:
                 frappe/public/js/lib/.*
             )$
 
+  - repo: https://github.com/pylint-dev/pylint
+    rev: v3.0.3
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [ python ]
+
 ci:
     autoupdate_schedule: weekly
     skip: []
