@@ -19,11 +19,12 @@ class TestWorkflow(FrappeTestCase):
 		make_test_records("User")
 
 	def setUp(self):
+		frappe.db.delete("Workflow Action")
 		self.workflow = create_todo_workflow()
 		frappe.set_user("Administrator")
 
 	def tearDown(self):
-		frappe.delete_doc("Workflow", "Test ToDo")
+		frappe.delete_doc("Workflow", "Test ToDo", ignore_permissions=True)
 
 	def test_default_condition(self):
 		"""test default condition is set"""
@@ -82,7 +83,6 @@ class TestWorkflow(FrappeTestCase):
 		self.assertListEqual(actions, ["Review"])
 
 	def test_if_workflow_actions_were_processed_using_role(self):
-		frappe.db.delete("Workflow Action")
 		user = frappe.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
 		frappe.set_user("test2@example.com")
@@ -94,14 +94,12 @@ class TestWorkflow(FrappeTestCase):
 		# test if status of workflow actions are updated on approval
 		self.test_approve(doc)
 		user.remove_roles("Test Approver", "System Manager")
-		workflow_actions = frappe.get_all("Workflow Action", fields=["status"])
+		workflow_actions = frappe.get_all("Workflow Action", fields=["*"])
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
 		frappe.set_user("Administrator")
 
 	def test_if_workflow_actions_were_processed_using_user(self):
-		frappe.db.delete("Workflow Action")
-
 		user = frappe.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
 		frappe.set_user("test2@example.com")
@@ -152,7 +150,7 @@ def create_todo_workflow():
 	from frappe.tests.ui_test_helpers import UI_TEST_USER
 
 	if frappe.db.exists("Workflow", "Test ToDo"):
-		frappe.delete_doc("Workflow", "Test ToDo")
+		frappe.delete_doc("Workflow", "Test ToDo", ignore_permissions=True)
 
 	TEST_ROLE = "Test Approver"
 

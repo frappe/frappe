@@ -381,7 +381,7 @@ def send_workflow_action_email(doc, transitions):
 	users_data = get_users_next_action_data(transitions, doc)
 	common_args = get_common_email_args(doc)
 	message = common_args.pop("message", None)
-	for user, data in users_data.items():  # noqa: B007
+	for data in users_data.values():
 		email_args = {
 			"recipients": [data.get("email")],
 			"args": {"actions": list(deduplicate_actions(data.get("possible_actions"))), "message": message},
