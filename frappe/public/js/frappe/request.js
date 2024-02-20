@@ -122,6 +122,7 @@ frappe.call = function (opts) {
 		silent: opts.silent,
 		api_version: opts.api_version,
 		url,
+		dataType: opts.data_type,
 	});
 };
 
@@ -279,7 +280,7 @@ frappe.request.call = function (opts) {
 	return $.ajax(ajax_args)
 		.done(function (data, textStatus, xhr) {
 			try {
-				if (typeof data === "string") data = JSON.parse(data);
+				if (typeof data === "string" && ajax_args.dataType === "json") data = JSON.parse(data);
 
 				// sync attached docs
 				if (data.docs || data.docinfo) {
