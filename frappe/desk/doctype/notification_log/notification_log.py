@@ -181,11 +181,11 @@ def get_notification_logs(limit=100):
 			count_callback_request += 1
 	alert_message = ""
 	if count_remote_diagnose > 0:
-		alert_message += f"Remote Diagnose Incoming: {count_remote_diagnose}"+" <br>"
+		alert_message += f"Incoming Diagnostics Scheduled."+"<br>"
 	if count_callback_request > 0:
-		alert_message += f"Request a Callback Incoming: {count_callback_request} <br>"
+		alert_message += f"Incoming Request a Callback Scheduled.<br>"
 	if alert_message:
-		alert_message += f" <span style= 'font-size: smaller;font-weight: bolder;'>Note: To hide this notification. click on notifications icon and mark all as read or one by one</span> "
+		alert_message += f" <span style= 'font-size: smaller;font-weight: bolder;'>Note:  Please hide this notification by clicking on the notifications icon and marking all as read, or one by one.</span> "
 		frappe.msgprint(title='Reminder Notification.',  indicator= 'green', msg= alert_message)
 	return {"notification_logs": notification_logs, "user_info": user_info}
 
