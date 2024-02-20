@@ -153,7 +153,7 @@ const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 
 	const options = fields.map((df) => {
 		return {
-			label: df.label,
+			label: __(df.label, null, df.parent),
 			value: df.fieldname,
 			danger: df.reqd,
 			checked: 1,

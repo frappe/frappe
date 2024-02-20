@@ -108,7 +108,7 @@ class EmailDomain(Document):
 			conn_method = poplib.POP3_SSL if self.use_ssl else poplib.POP3
 
 		self.use_starttls = cint(self.use_imap and self.use_starttls and not self.use_ssl)
-		incoming_conn = conn_method(self.email_server, port=self.incoming_port)
+		incoming_conn = conn_method(self.email_server, port=self.incoming_port, timeout=30)
 		incoming_conn.logout() if self.use_imap else incoming_conn.quit()
 
 	@handle_error("outgoing")
@@ -121,4 +121,4 @@ class EmailDomain(Document):
 		elif self.use_tls:
 			self.smtp_port = self.smtp_port or 587
 
-		conn_method((self.smtp_server or ""), cint(self.smtp_port) or 0).quit()
+		conn_method((self.smtp_server or ""), cint(self.smtp_port), timeout=30).quit()

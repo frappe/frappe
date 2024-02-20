@@ -92,7 +92,7 @@ function get_version_timeline_content(version_doc, frm) {
 					if (field_display_status === "Read" || field_display_status === "Write") {
 						parts.push(
 							__("{0} from {1} to {2}", [
-								__(df.label),
+								__(df.label, null, df.parent),
 								format_content_for_timeline(p[1]),
 								format_content_for_timeline(p[2]),
 							])
