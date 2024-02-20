@@ -1,5 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from unittest.mock import patch
+
 import frappe
 from frappe.model.workflow import (
 	WorkflowTransitionError,
@@ -19,11 +21,14 @@ class TestWorkflow(FrappeTestCase):
 		make_test_records("User")
 
 	def setUp(self):
+		self.patcher = patch("frappe.attach_print", return_value={})
+		self.patcher.start()
 		frappe.db.delete("Workflow Action")
 		self.workflow = create_todo_workflow()
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		self.patcher.stop()
 		frappe.delete_doc("Workflow", "Test ToDo")
 
 	def test_default_condition(self):
