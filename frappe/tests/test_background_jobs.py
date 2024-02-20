@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import time
 from contextlib import contextmanager
 from unittest.mock import patch
@@ -71,6 +72,40 @@ class TestBackgroundJobs(FrappeTestCase):
 			)
 			self.assertEqual(r, "pong")
 			self.assertLess(_test_JOB_HOOK.get("before_job"), _test_JOB_HOOK.get("after_job"))
+
+	def test_enqueue_at(self):
+		kwargs = {
+			"method": "frappe.handler.ping",
+			"queue": "short",
+		}
+
+		# give worker something to work on first so that get_position doesn't return None
+		frappe.enqueue(**kwargs)
+
+		# test enqueue with at_front=True
+		instant_job = frappe.enqueue(**kwargs)
+		scheduled_job = frappe.enqueue_at(**kwargs, enqueue_datetime = datetime.now() + timedelta(days=1))
+
+		# lesser is earlier
+		self.assertTrue(instant_job.get_position() < scheduled_job.get_position())
+
+		self.assertTrue(instant_job.get_status() != "SCHEDULED")
+		self.assertTrue(scheduled_job.get_status() == "SCHEDULED")
+
+	def test_enqueue_at_no_datetime(self):
+		kwargs = {
+			"method": "frappe.handler.ping",
+			"queue": "short",
+		}
+
+		# give worker something to work on first so that get_position doesn't return None
+		frappe.enqueue(**kwargs)
+
+		# test enqueue with at_front=True
+		schedule_job = frappe.enqueue_at(**kwargs)
+		#  waiting for 20 seconds to make sure the job is scheduled
+		time.sleep(20)
+		self.assertTrue(schedule_job.get_status() != "SCHEDULED")
 
 
 def fail_function():

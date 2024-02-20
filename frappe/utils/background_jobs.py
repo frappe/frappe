@@ -1,3 +1,4 @@
+from datetime import datetime
 import gc
 import os
 import socket
@@ -162,6 +163,118 @@ def enqueue(
 	return enqueue_call()
 
 
+def enqueue_at(
+	method: str | Callable,
+    datetime = datetime().now(),
+	queue: str = "default",
+	timeout: int | None = None,
+	event=None,
+	is_async: bool = True,
+	job_name: str | None = None,
+	now: bool = False,
+	enqueue_after_commit: bool = False,
+	*,
+	on_success: Callable = None,
+	on_failure: Callable = None,
+	at_front: bool = False,
+	job_id: str = None,
+	deduplicate=False,
+	**kwargs,
+) -> Job | Any:
+	"""
+	Enqueue method to be executed using a background worker
+
+	:param method: method string or method object
+	:param datetime: datetime at which the job should be executed
+	:param queue: should be either long, default or short
+	:param timeout: should be set according to the functions
+	:param event: this is passed to enable clearing of jobs from queues
+	:param is_async: if is_async=False, the method is executed immediately, else via a worker
+	:param job_name: [DEPRECATED] can be used to name an enqueue call, which can be used to prevent duplicate calls
+	:param now: if now=True, the method is executed via frappe.call
+	:param kwargs: keyword arguments to be passed to the method
+	:param deduplicate: do not re-queue job if it's already queued, requires job_id.
+	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
+	"""
+	# To handle older implementations
+	is_async = kwargs.pop("async", is_async)
+
+	if deduplicate:
+		if not job_id:
+			frappe.throw(_("`job_id` paramater is required for deduplication."))
+		job = get_job(job_id)
+		if job and job.get_status() in (JobStatus.QUEUED, JobStatus.STARTED, JobStatus.SCHEDULED):
+			frappe.logger().debug(f"Not queueing job {job.id} because it is in queue already")
+			return
+		elif job:
+			# delete job to avoid argument issues related to job args
+			# https://github.com/rq/rq/issues/793
+			job.delete()
+
+		# If job exists and is completed then delete it before re-queue
+
+	# namespace job ids to sites
+	job_id = create_job_id(job_id)
+
+	if job_name:
+		deprecation_warning("Using enqueue with `job_name` is deprecated, use `job_id` instead.")
+
+	if not is_async and not frappe.flags.in_test:
+		deprecation_warning(
+			"Using enqueue with is_async=False outside of tests is not recommended, use now=True instead."
+		)
+
+	call_directly = now or (not is_async and not frappe.flags.in_test)
+	if call_directly:
+		return frappe.call(method, **kwargs)
+
+	try:
+		q = get_queue(queue, is_async=is_async)
+	except ConnectionError:
+		if frappe.local.flags.in_migrate:
+			# If redis is not available during migration, execute the job directly
+			print(f"Redis queue is unreachable: Executing {method} synchronously")
+			return frappe.call(method, **kwargs)
+
+		raise
+
+	if not timeout:
+		timeout = get_queues_timeout().get(queue) or 300
+
+	queue_args = {
+		"site": frappe.local.site,
+		"user": frappe.session.user,
+		"method": method,
+		"event": event,
+		"job_name": job_name or cstr(method),
+		"is_async": is_async,
+		"kwargs": kwargs,
+	}
+
+	on_failure = on_failure or truncate_failed_registry
+
+	def enqueue_call():
+		return q.enqueue_at(
+			datetime,
+			execute_job,
+			on_success=Callback(func=on_success) if on_success else None,
+			on_failure=Callback(func=on_failure) if on_failure else None,
+			timeout=timeout,
+			kwargs=queue_args,
+			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+			job_id=job_id,
+			at_front=at_front,
+			on_failure=truncate_failed_registry
+		)
+
+	if enqueue_after_commit:
+		frappe.db.after_commit.add(enqueue_call)
+		return
+
+	return enqueue_call()
+
+
 def enqueue_doc(doctype, name=None, method=None, queue="default", timeout=300, now=False, **kwargs):
 	"""Enqueue a method to be run on a document"""
 	return enqueue(
@@ -264,6 +377,7 @@ def start_worker(
 	rq_password: str | None = None,
 	burst: bool = False,
 	strategy: DequeueStrategy | None = DequeueStrategy.DEFAULT,
+	with_scheduler = True,
 ) -> NoReturn | None:  # pragma: no cover
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 
@@ -298,6 +412,7 @@ def start_worker(
 		date_format="%Y-%m-%d %H:%M:%S",
 		log_format="%(asctime)s,%(msecs)03d %(message)s",
 		dequeue_strategy=strategy,
+		with_scheduler=with_scheduler,
 	)
 
 
