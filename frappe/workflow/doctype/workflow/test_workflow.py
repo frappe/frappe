@@ -1,5 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from unittest.mock import patch
+
 import frappe
 from frappe.model.workflow import (
 	WorkflowTransitionError,
@@ -19,10 +21,14 @@ class TestWorkflow(FrappeTestCase):
 		make_test_records("User")
 
 	def setUp(self):
+		self.patcher = patch("frappe.attach_print", return_value={})
+		self.patcher.start()
+		frappe.db.delete("Workflow Action")
 		self.workflow = create_todo_workflow()
-		frappe.set_user("Administrator")
 
 	def tearDown(self):
+		frappe.set_user("Administrator")
+		self.patcher.stop()
 		frappe.delete_doc("Workflow", "Test ToDo")
 
 	def test_default_condition(self):
@@ -82,7 +88,6 @@ class TestWorkflow(FrappeTestCase):
 		self.assertListEqual(actions, ["Review"])
 
 	def test_if_workflow_actions_were_processed_using_role(self):
-		frappe.db.delete("Workflow Action")
 		user = frappe.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
 		frappe.set_user("test2@example.com")
@@ -94,14 +99,11 @@ class TestWorkflow(FrappeTestCase):
 		# test if status of workflow actions are updated on approval
 		self.test_approve(doc)
 		user.remove_roles("Test Approver", "System Manager")
-		workflow_actions = frappe.get_all("Workflow Action", fields=["status"])
+		workflow_actions = frappe.get_all("Workflow Action", fields=["*"])
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
-		frappe.set_user("Administrator")
 
 	def test_if_workflow_actions_were_processed_using_user(self):
-		frappe.db.delete("Workflow Action")
-
 		user = frappe.get_doc("User", "test2@example.com")
 		user.add_roles("Test Approver", "System Manager")
 		frappe.set_user("test2@example.com")
@@ -166,7 +168,7 @@ def create_todo_workflow():
 	workflow.document_type = "ToDo"
 	workflow.workflow_state_field = "workflow_state"
 	workflow.is_active = 1
-	workflow.send_email_alert = 0
+	workflow.send_email_alert = 1
 	workflow.append("states", dict(state="Pending", allow_edit="All"))
 	workflow.append(
 		"states",
