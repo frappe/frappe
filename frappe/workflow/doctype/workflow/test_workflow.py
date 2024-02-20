@@ -21,10 +21,10 @@ class TestWorkflow(FrappeTestCase):
 	def setUp(self):
 		frappe.db.delete("Workflow Action")
 		self.workflow = create_todo_workflow()
-		frappe.set_user("Administrator")
 
 	def tearDown(self):
-		frappe.delete_doc("Workflow", "Test ToDo", ignore_permissions=True)
+		frappe.set_user("Administrator")
+		frappe.delete_doc("Workflow", "Test ToDo")
 
 	def test_default_condition(self):
 		"""test default condition is set"""
@@ -97,7 +97,6 @@ class TestWorkflow(FrappeTestCase):
 		workflow_actions = frappe.get_all("Workflow Action", fields=["*"])
 		self.assertEqual(len(workflow_actions), 1)
 		self.assertEqual(workflow_actions[0].status, "Completed")
-		frappe.set_user("Administrator")
 
 	def test_if_workflow_actions_were_processed_using_user(self):
 		user = frappe.get_doc("User", "test2@example.com")
@@ -150,7 +149,7 @@ def create_todo_workflow():
 	from frappe.tests.ui_test_helpers import UI_TEST_USER
 
 	if frappe.db.exists("Workflow", "Test ToDo"):
-		frappe.delete_doc("Workflow", "Test ToDo", ignore_permissions=True)
+		frappe.delete_doc("Workflow", "Test ToDo")
 
 	TEST_ROLE = "Test Approver"
 
