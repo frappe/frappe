@@ -166,7 +166,7 @@ def create_todo_workflow():
 	workflow.document_type = "ToDo"
 	workflow.workflow_state_field = "workflow_state"
 	workflow.is_active = 1
-	workflow.send_email_alert = 0
+	workflow.send_email_alert = 1
 	workflow.append("states", dict(state="Pending", allow_edit="All"))
 	workflow.append(
 		"states",
