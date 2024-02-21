@@ -445,21 +445,12 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "fieldname": "link_filters",
-   "fieldtype": "JSON",
-   "hidden": 1,
-   "label": "Link Filters"
   },
   {
    "default": "0",
    "fieldname": "show_dashboard",
    "fieldtype": "Check",
    "label": "Show Dashboard"
->>>>>>> dab06f33b1 (fix: add show_dashboard field on custom fields (#24984))
   }
  ],
  "icon": "fa fa-glass",
