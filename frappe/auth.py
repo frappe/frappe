@@ -158,8 +158,10 @@ class LoginManager:
 		self.info = frappe.get_cached_value(
 			"User", self.user, ["user_type", "first_name", "last_name", "user_image"], as_dict=1
 		)
-
-		self.user_type = self.info.user_type
+		try:
+			self.user_type = self.info.user_type
+		except AttributeError:
+			pass
 
 	def setup_boot_cache(self):
 		frappe.cache_manager.build_table_count_cache()
