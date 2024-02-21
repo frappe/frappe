@@ -1,0 +1,104 @@
+{
+ "actions": [],
+ "creation": "2013-03-19 12:02:15",
+ "description": "Settings for the About Us Page",
+ "doctype": "DocType",
+ "document_type": "Other",
+ "engine": "InnoDB",
+ "field_order": [
+  "page_title",
+  "company_introduction",
+  "sb0",
+  "company_history_heading",
+  "company_history",
+  "sb1",
+  "team_members_heading",
+  "team_members_subtitle",
+  "team_members",
+  "footer"
+ ],
+ "fields": [
+  {
+   "description": "Introduce your company to the website visitor.",
+   "fieldname": "company_introduction",
+   "fieldtype": "Text Editor",
+   "in_list_view": 1,
+   "label": "Company Introduction"
+  },
+  {
+   "fieldname": "sb0",
+   "fieldtype": "Section Break",
+   "label": "Org History"
+  },
+  {
+   "description": "\"Company History\"",
+   "fieldname": "company_history_heading",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Org History Heading"
+  },
+  {
+   "fieldname": "company_history",
+   "fieldtype": "Table",
+   "label": "Org History",
+   "options": "Company History"
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break",
+   "label": "Team Members"
+  },
+  {
+   "description": "\"Team Members\" or \"Management\"",
+   "fieldname": "team_members_heading",
+   "fieldtype": "Data",
+   "label": "Team Members Heading"
+  },
+  {
+   "fieldname": "team_members",
+   "fieldtype": "Table",
+   "label": "Team Members",
+   "options": "About Us Team Member"
+  },
+  {
+   "description": "More content for the bottom of the page.",
+   "fieldname": "footer",
+   "fieldtype": "Text Editor",
+   "label": "Footer"
+  },
+  {
+   "fieldname": "page_title",
+   "fieldtype": "Data",
+   "label": "Page Title"
+  },
+  {
+   "fieldname": "team_members_subtitle",
+   "fieldtype": "Small Text",
+   "label": "Team Members Subtitle"
+  }
+ ],
+ "icon": "fa fa-group",
+ "idx": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-10-12 13:26:20.277859",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "About Us Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

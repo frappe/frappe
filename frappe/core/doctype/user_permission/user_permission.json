@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2017-07-17 14:25:27.881871",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "allow",
+  "for_value",
+  "column_break_3",
+  "is_default",
+  "advanced_control_section",
+  "apply_to_all_doctypes",
+  "applicable_for",
+  "column_break_9",
+  "hide_descendants"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "allow",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Allow",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "for_value",
+   "fieldtype": "Dynamic Link",
+   "ignore_user_permissions": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "For Value",
+   "options": "allow",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "label": "Is Default"
+  },
+  {
+   "fieldname": "advanced_control_section",
+   "fieldtype": "Section Break",
+   "label": "Advanced Control"
+  },
+  {
+   "default": "1",
+   "fieldname": "apply_to_all_doctypes",
+   "fieldtype": "Check",
+   "label": "Apply To All Document Types"
+  },
+  {
+   "depends_on": "eval:!doc.apply_to_all_doctypes",
+   "fieldname": "applicable_for",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Applicable For",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Hide descendant records of <b>For Value</b>.",
+   "fieldname": "hide_descendants",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Hide Descendants"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "links": [],
+ "modified": "2022-01-03 11:25:03.726150",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Permission",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "user",
+ "track_changes": 1
+}

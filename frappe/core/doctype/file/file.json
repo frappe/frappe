@@ -1,0 +1,224 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2012-12-12 11:19:22",
+ "default_view": "File",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "file_name",
+  "is_private",
+  "column_break_7jmm",
+  "file_type",
+  "preview",
+  "preview_html",
+  "section_break_5",
+  "is_home_folder",
+  "is_attachments_folder",
+  "file_size",
+  "column_break_5",
+  "file_url",
+  "thumbnail_url",
+  "folder",
+  "is_folder",
+  "section_break_8",
+  "attached_to_doctype",
+  "column_break_10",
+  "attached_to_name",
+  "attached_to_field",
+  "old_parent",
+  "content_hash",
+  "uploaded_to_dropbox",
+  "uploaded_to_google_drive"
+ ],
+ "fields": [
+  {
+   "fieldname": "file_name",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "label": "File Name",
+   "oldfieldname": "file_name",
+   "oldfieldtype": "Data",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.is_folder",
+   "fieldname": "is_private",
+   "fieldtype": "Check",
+   "label": "Is Private"
+  },
+  {
+   "fieldname": "preview",
+   "fieldtype": "Section Break",
+   "label": "Preview"
+  },
+  {
+   "fieldname": "preview_html",
+   "fieldtype": "HTML",
+   "label": "Preview HTML"
+  },
+  {
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_home_folder",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Home Folder"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_attachments_folder",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Attachments Folder"
+  },
+  {
+   "fieldname": "file_size",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "File Size",
+   "length": 20,
+   "options": "File Size",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:!doc.is_folder",
+   "fieldname": "file_url",
+   "fieldtype": "Code",
+   "label": "File URL",
+   "read_only": 1
+  },
+  {
+   "fieldname": "thumbnail_url",
+   "fieldtype": "Small Text",
+   "label": "Thumbnail URL",
+   "read_only": 1
+  },
+  {
+   "fieldname": "folder",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Folder",
+   "options": "File",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_folder",
+   "fieldtype": "Check",
+   "label": "Is Folder",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:!doc.is_folder",
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "attached_to_doctype",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Attached To DocType",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "attached_to_name",
+   "fieldtype": "Data",
+   "label": "Attached To Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "attached_to_field",
+   "fieldtype": "Data",
+   "label": "Attached To Field",
+   "read_only": 1
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "old_parent"
+  },
+  {
+   "fieldname": "content_hash",
+   "fieldtype": "Data",
+   "label": "Content Hash",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "uploaded_to_dropbox",
+   "fieldtype": "Check",
+   "label": "Uploaded To Dropbox",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "uploaded_to_google_drive",
+   "fieldtype": "Check",
+   "label": "Uploaded To Google Drive",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_7jmm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "file_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "File Type",
+   "read_only": 1
+  }
+ ],
+ "force_re_route_to_default_view": 1,
+ "icon": "fa fa-file",
+ "idx": 1,
+ "links": [],
+ "modified": "2023-12-08 15:52:37.525003",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "File",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "All",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "file_name",
+ "track_changes": 1
+}

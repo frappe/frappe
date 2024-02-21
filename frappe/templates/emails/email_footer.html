@@ -1,0 +1,33 @@
+<div class="email-footer-container text-muted">
+	<!-- email_account_footer -->
+	{% if email_account_footer %}
+	<div class="email-account-footer">
+		{{ email_account_footer }}
+	</div>
+	{% endif %}
+
+	<!-- sender_address -->
+	{% if sender_address %}
+	<div class="sender-address">
+		{% for line in sender_address.splitlines(True) %}
+		<div>{{ line }}</div>
+		{% endfor %}
+	</div>
+	{% endif %}
+
+	<!--unsubscribe link here-->
+
+	<div class="email-pixel">
+		<!--email_open_check-->
+	</div>
+
+	<!-- default_mail_footer -->
+	{% if default_mail_footer %}
+	<div class="default-mail-footer">
+		{% for line in default_mail_footer %}
+		<div>{{ line }}</div>
+		{% endfor %}
+	</div>
+	{% endif %}
+
+</div>

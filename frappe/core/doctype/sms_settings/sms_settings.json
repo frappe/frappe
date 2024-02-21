@@ -1,0 +1,80 @@
+{
+ "actions": [],
+ "allow_copy": 1,
+ "creation": "2013-01-10 16:34:24",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sms_gateway_url",
+  "message_parameter",
+  "receiver_parameter",
+  "static_parameters_section",
+  "parameters",
+  "use_post"
+ ],
+ "fields": [
+  {
+   "description": "Eg. smsgateway.com/api/send_sms.cgi",
+   "fieldname": "sms_gateway_url",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "SMS Gateway URL",
+   "reqd": 1
+  },
+  {
+   "description": "Enter url parameter for message",
+   "fieldname": "message_parameter",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Message Parameter",
+   "reqd": 1
+  },
+  {
+   "description": "Enter url parameter for receiver nos",
+   "fieldname": "receiver_parameter",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Receiver Parameter",
+   "reqd": 1
+  },
+  {
+   "fieldname": "static_parameters_section",
+   "fieldtype": "Column Break",
+   "width": "50%"
+  },
+  {
+   "description": "Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)",
+   "fieldname": "parameters",
+   "fieldtype": "Table",
+   "label": "Static Parameters",
+   "options": "SMS Parameter"
+  },
+  {
+   "default": "0",
+   "fieldname": "use_post",
+   "fieldtype": "Check",
+   "label": "Use POST"
+  }
+ ],
+ "icon": "fa fa-cog",
+ "idx": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2021-09-21 19:45:26.809793",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "SMS Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta name="viewport" content="width=device-width" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>{{ subject or "" }}</title>
+</head>
+
+<body>
+	<table class="body-table {% if header or with_container %} with-container {% endif %}" cellpadding="0" cellspacing="0">
+		<tr>
+			<td class="body-content" align="center" valign="top">
+				<table class="email-container" border="0" cellpadding="0" cellspacing="0"
+					width="{% if header %} 600 {% else %} 100% {% endif %}">
+					{% if brand_logo %}
+					<tr>
+						<td width="40" align="left" valign="middle">
+							<a href="{{ site_url or 'https://frappeframework.com' }}">
+								<img
+									src="{{ brand_logo or '/assets/frappe/images/frappe-framework-logo.png' }}"
+									height="40"
+									class="brand-logo"
+								/>
+							</a>
+						</td>
+					</tr>
+					{% endif %}
+					<tr>
+						<td valign="top">
+							{{ header or "" }}
+						</td>
+					</tr>
+					<tr>
+						<td valign="top">
+							<table class="email-body" border="0" cellpadding="0" cellspacing="0" width="100%">
+								<tr>
+									<td valign="top">
+										<p>{{ content }}</p>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						<td valign="top">
+							<table class="email-footer" border="0" cellpadding="0" cellspacing="0" width="100%">
+								<tr>
+									<td valign="top" data-email-footer="true">
+										{{ footer }}
+									</td>
+								</tr>
+								<tr>
+									<td valign="top">
+										<div class="print-html">{{ print_html or "" }}</div>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+</body>
+
+</html>

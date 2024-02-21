@@ -1,0 +1,28 @@
+<div class="kanban-column" data-column-value="{{title}}">
+	<div class="kanban-column-header">
+		<span class="kanban-column-title">
+			<span class="indicator-pill {{indicator}}"></span>
+			<span class="kanban-title ellipsis" title="{{title}}">{{ __(title) }}</span>
+		</span>
+		<div class="column-options dropdown pull-right">
+			<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<svg class="icon icon-sm">
+					<use href="#icon-dot-horizontal"></use>
+				</svg>
+			</a>
+			<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
+				<li><a class="dropdown-item" data-action="archive">{{ __("Archive") }}</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="add-card">
+		<div class="ellipsis">
+			+ {{ __("Add {0}", [__(doctype)]) }}
+		</div>
+	</div>
+	<div class="kanban-card new-card-area">
+		<textarea name="title"></textarea>
+	</div>
+	<div class="kanban-cards">
+	</div>
+</div>

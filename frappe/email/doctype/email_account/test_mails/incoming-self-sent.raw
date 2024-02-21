@@ -1,0 +1,91 @@
+Delivered-To: test_receiver@example.com
+Received: by 10.96.153.227 with SMTP id vj3csp416144qdb;
+        Mon, 15 Sep 2014 03:35:07 -0700 (PDT)
+X-Received: by 10.66.119.103 with SMTP id kt7mr36981968pab.95.1410777306321;
+        Mon, 15 Sep 2014 03:35:06 -0700 (PDT)
+Return-Path: <test@example.com>
+Received: from mail-pa0-x230.google.com (mail-pa0-x230.google.com [2607:f8b0:400e:c03::230])
+        by mx.google.com with ESMTPS id dg10si22178346pdb.115.2014.09.15.03.35.06
+        for <test_receiver@example.com>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Mon, 15 Sep 2014 03:35:06 -0700 (PDT)
+Received-SPF: pass (google.com: domain of test@example.com designates 2607:f8b0:400e:c03::230 as permitted sender) client-ip=2607:f8b0:400e:c03::230;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of test@example.com designates 2607:f8b0:400e:c03::230 as permitted sender) smtp.mail=test@example.com;
+       dkim=pass header.i=@gmail.com;
+       dmarc=pass (p=NONE dis=NONE) header.from=gmail.com
+Received: by mail-pa0-f48.google.com with SMTP id hz1so6118714pad.21
+        for <test_receiver@example.com>; Mon, 15 Sep 2014 03:35:06 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=from:content-type:subject:message-id:date:to:mime-version;
+        bh=rwiLijtF3lfy9M6cP/7dv2Hm7NJuBwFZn1OFsN8Tlvs=;
+        b=x7U4Ny3Kz2ULRJ7a04NDBrBTVhP2ImIB9n3LVNGQDnDonPUM5Ro/wZcxPTVnBWZ2L1
+         o1bGfP+lhBrvYUlHsd5r4FYC0Uvpad6hbzLr0DGUQgPTxW4cGKbtDEAq+BR2JWd9f803
+         vdjSWdGk8w2dt2qbngTqIZkm5U2XWjICDOAYuPIseLUgCFwi9lLyOSARFB7mjAa2YL7Q
+         Nswk7mbWU1hbnHP6jaBb0m8QanTc7Up944HpNDRxIrB1ZHgKzYhXtx8nhnOx588ZGIAe
+         E6tyG8IwogR11vLkkrBhtMaOme9PohYx4F1CSTiwspmDCadEzJFGRe//lEXKmZHAYH6g
+         90Zg==
+X-Received: by 10.70.38.135 with SMTP id g7mr22078275pdk.100.1410777305744;
+        Mon, 15 Sep 2014 03:35:05 -0700 (PDT)
+Return-Path: <test@example.com>
+Received: from [192.168.0.100] ([27.106.4.70])
+        by mx.google.com with ESMTPSA id zr6sm11025126pbc.50.2014.09.15.03.35.02
+        for <test_receiver@example.com>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Mon, 15 Sep 2014 03:35:04 -0700 (PDT)
+From: Rushabh Mehta <test@example.com>
+Content-Type: multipart/alternative; boundary="Apple-Mail=_57F71261-5C3A-43F6-918B-4438B96F61AA"
+Subject: test mail 🦄🌈😎
+Message-Id: <9143999C-8456-4399-9CF1-4A2DA9DD7711@gmail.com>
+Date: Mon, 15 Sep 2014 16:04:57 +0530
+To: Rushabh Mehta <test_receiver@example.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+X-Mailer: Apple Mail (2.1878.6)
+
+
+--Apple-Mail=_57F71261-5C3A-43F6-918B-4438B96F61AA
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=us-ascii
+
+test mail
+
+
+
+@rushabh_mehta
+https://erpnext.org
+
+
+--Apple-Mail=_57F71261-5C3A-43F6-918B-4438B96F61AA
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html;
+	charset=us-ascii
+
+<html><head><meta http-equiv=3D"Content-Type" content=3D"text/html =
+charset=3Dus-ascii"></head><body style=3D"word-wrap: break-word; =
+-webkit-nbsp-mode: space; -webkit-line-break: after-white-space;">test =
+mail<br><div apple-content-edited=3D"true">
+<div style=3D"color: rgb(0, 0, 0); letter-spacing: normal; orphans: =
+auto; text-align: start; text-indent: 0px; text-transform: none; =
+white-space: normal; widows: auto; word-spacing: 0px; =
+-webkit-text-stroke-width: 0px; word-wrap: break-word; =
+-webkit-nbsp-mode: space; -webkit-line-break: after-white-space;"><div =
+style=3D"color: rgb(0, 0, 0); font-family: Helvetica; font-style: =
+normal; font-variant: normal; font-weight: normal; letter-spacing: =
+normal; line-height: normal; orphans: 2; text-align: -webkit-auto; =
+text-indent: 0px; text-transform: none; white-space: normal; widows: 2; =
+word-spacing: 0px; -webkit-text-stroke-width: 0px; word-wrap: =
+break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
+after-white-space;"><br><br><br>@rushabh_mehta</div><div style=3D"color: =
+rgb(0, 0, 0); font-family: Helvetica; font-style: normal; font-variant: =
+normal; font-weight: normal; letter-spacing: normal; line-height: =
+normal; orphans: 2; text-align: -webkit-auto; text-indent: 0px; =
+text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; =
+-webkit-text-stroke-width: 0px; word-wrap: break-word; =
+-webkit-nbsp-mode: space; -webkit-line-break: after-white-space;"><a =
+href=3D"https://erpnext.org">https://erpnext.org</a><br></div></div>
+</div>
+<br></body></html>=
+
+--Apple-Mail=_57F71261-5C3A-43F6-918B-4438B96F61AA--

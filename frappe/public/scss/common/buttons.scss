@@ -1,0 +1,133 @@
+.center-content {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.btn {
+	border: none;
+	&:not(.btn-md):not(.btn-lg) {
+		padding: 4px 8px;
+	}
+	border-radius: var(--border-radius);
+	box-shadow: none;
+	@include get_textstyle("base", "regular");
+
+	&:active {
+		// override #dadada that comes from bootstrap (probably) to support dark theme.
+		color: var(--text-color) !important;
+		background-color: var(--control-bg) !important;
+		box-shadow: var(--focus-default) !important;
+	}
+
+	&.icon-btn {
+		height: var(--btn-height);
+		padding: 0px;
+		@extend .center-content;
+		&.btn-default,
+		&.btn-secondary {
+			min-width: 28px;
+		}
+	}
+}
+
+.btn-secondary-dark {
+	@include button-variant(
+		$background: $gray-600,
+		$border: $gray-600,
+		$hover-background: lighten($gray-600, 1%),
+		$hover-border: $gray-600,
+		$active-background: lighten($gray-600, 1%),
+		$active-border: darken($gray-600, 12.5%)
+	);
+
+	color: $white;
+	&:hover,
+	&:active,
+	&:focus {
+		color: $white;
+	}
+	.icon {
+		--icon-stroke: currentColor;
+	}
+}
+
+.btn-primary-light {
+	@include button-variant(
+		// not happy with this
+		$background: $gray-300,
+		$border: $gray-800,
+		$hover-background: $gray-200,
+		$hover-border: $gray-300,
+		$active-background: $gray-300,
+		$active-border: $gray-200
+	);
+
+	color: var(--primary);
+	&:hover,
+	&:active {
+		color: var(--primary);
+	}
+
+	&:focus {
+		box-shadow: var(--focus-default);
+	}
+}
+
+.btn.btn-secondary {
+	background-color: var(--control-bg);
+	color: var(--text-color);
+	&:hover,
+	&:active {
+		background-color: var(--btn-default-hover-bg);
+		color: var(--text-color);
+	}
+}
+
+.btn.btn-default {
+	background-color: var(--control-bg);
+	color: var(--text-color);
+	&:hover,
+	&:active {
+		background: var(--btn-default-hover-bg);
+		color: var(--text-color);
+	}
+}
+
+.btn.btn-primary {
+	background-color: var(--btn-primary);
+	color: var(--neutral);
+	white-space: nowrap;
+	--icon-stroke: currentColor;
+	--icon-fill-bg: var(--btn-primary);
+
+	&:active {
+		color: var(--gray-100) !important;
+		background-color: var(--invert-neutral) !important;
+	}
+}
+
+.btn.btn-danger {
+	background-color: var(--danger);
+	color: $white;
+}
+
+.btn-reset {
+	padding: 0;
+	margin: 0;
+	border: 0;
+	font-size: inherit;
+	background-color: inherit;
+	text-align: inherit;
+}
+
+[data-theme="dark"] {
+	.btn-primary-light {
+		background-color: var(--bg-dark-gray);
+		box-shadow: none;
+	}
+	.btn-primary:active {
+		color: var(--gray-900) !important;
+		background-color: var(--invert-neutral) !important;
+	}
+}

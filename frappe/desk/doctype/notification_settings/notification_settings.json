@@ -1,0 +1,146 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2019-09-11 22:15:44.851526",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "subscribed_documents",
+  "column_break_3",
+  "enable_email_notifications",
+  "enable_email_mention",
+  "enable_email_assignment",
+  "enable_email_threads_on_assigned_document",
+  "enable_email_energy_point",
+  "enable_email_share",
+  "enable_email_event_reminders",
+  "user",
+  "seen",
+  "system_notifications_section",
+  "energy_points_system_notifications"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "subscribed_documents",
+   "fieldtype": "Table MultiSelect",
+   "label": "Open Documents",
+   "options": "Notification Subscribed Document"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Section Break",
+   "label": "Email Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_email_notifications",
+   "fieldtype": "Check",
+   "label": "Enable Email Notifications"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_email_notifications",
+   "fieldname": "enable_email_mention",
+   "fieldtype": "Check",
+   "label": "Mentions"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_email_notifications",
+   "fieldname": "enable_email_assignment",
+   "fieldtype": "Check",
+   "label": "Assignments"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_email_notifications",
+   "fieldname": "enable_email_energy_point",
+   "fieldtype": "Check",
+   "label": "Energy Points"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_email_notifications",
+   "fieldname": "enable_email_share",
+   "fieldtype": "Check",
+   "label": "Document Share"
+  },
+  {
+   "default": "__user",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "seen",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Seen"
+  },
+  {
+   "fieldname": "system_notifications_section",
+   "fieldtype": "Section Break",
+   "label": "System Notifications"
+  },
+  {
+   "default": "1",
+   "fieldname": "energy_points_system_notifications",
+   "fieldtype": "Check",
+   "label": "Energy Points"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_email_notifications",
+   "fieldname": "enable_email_event_reminders",
+   "fieldtype": "Check",
+   "label": "Event Reminders"
+  },
+  {
+   "default": "1",
+   "depends_on": "enable_email_notifications",
+   "description": "Get notified when an email is received on any of the documents assigned to you.",
+   "fieldname": "enable_email_threads_on_assigned_document",
+   "fieldtype": "Check",
+   "label": "Email Threads on Assigned Document"
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-12-01 12:46:15.490640",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Notification Settings",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

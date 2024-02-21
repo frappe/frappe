@@ -1,0 +1,100 @@
+//styles for my account and edit-profile page
+@include media-breakpoint-up(sm) {
+	body[data-path="me"],
+	body[data-path="list"],
+	body[data-path="update-profile"] {
+		background-color: var(--bg-color);
+	}
+}
+
+@include media-breakpoint-down(sm) {
+	#page-me {
+		.side-list {
+			.list-group {
+				display: none;
+			}
+		}
+	}
+}
+
+.my-account-header {
+	color: var(--gray-900);
+	margin-bottom: var(--margin-lg);
+	font-weight: bold;
+
+	@include media-breakpoint-down(sm) {
+		margin-left: -1rem;
+	}
+}
+
+.my-account-container {
+	max-width: 800px;
+	margin: auto;
+	margin-bottom: 4rem;
+}
+
+.account-info {
+	background-color: var(--fg-color);
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md);
+	padding: var(--padding-sm) 25px;
+
+	@include media-breakpoint-down(sm) {
+		padding: 0;
+	}
+
+	.my-account-name,
+	.my-account-item {
+		color: var(--gray-900);
+		font-weight: var(--weight-medium);
+	}
+
+	.my-account-avatar {
+		.avatar {
+			height: 60px;
+			width: 60px;
+		}
+	}
+
+	.my-account-item-desc {
+		color: var(--gray-700);
+		@include get_textstyle("base", "regular");
+	}
+
+	.my-account-item-link {
+		@include get_textstyle("base", "regular");
+
+		a {
+			text-decoration: none;
+
+			.edit-profile-icon {
+				stroke: var(--blue-500);
+			}
+		}
+
+		.right-icon {
+			@include media-breakpoint-up(sm) {
+				display: none;
+			}
+		}
+
+		.item-link-text {
+			@include media-breakpoint-down(sm) {
+				display: none;
+			}
+		}
+	}
+
+	.col {
+		padding: var(--padding-md) 0;
+		border-bottom: 1px solid var(--border-color);
+
+		.form-group {
+			margin-right: var(--margin-lg);
+		}
+	}
+
+	:last-child {
+		border: 0;
+	}
+}

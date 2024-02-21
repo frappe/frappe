@@ -1,0 +1,20 @@
+{
+ "creation": "2013-01-01 11:00:01.000000", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "fa fa-lock", 
+ "idx": 1, 
+ "modified": "2013-07-11 14:43:43.000000", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "permission-manager", 
+ "owner": "Administrator", 
+ "page_name": "permission-manager", 
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ], 
+ "standard": "Yes", 
+ "title": "Role Permissions Manager"
+}

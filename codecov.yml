@@ -1,0 +1,60 @@
+codecov:
+  require_ci_to_pass: yes
+
+coverage:
+  range: 60..90
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0.5%
+        flags:
+          - server
+    patch:
+      default:
+        target: 85%
+        threshold: 0%
+        only_pulls: true
+        if_ci_failed: ignore
+        flags:
+          - server
+
+comment:
+  layout: "diff, flags"
+  require_changes: true
+  show_critical_paths: true
+
+flags:
+  server:
+    paths:
+      - "**/*.py"
+    carryforward: true
+  ui-tests:
+    paths:
+      - "**/*.js"
+    carryforward: true
+  server-ui:
+    paths:
+      - "**/*.py"
+    carryforward: true
+
+profiling:
+   critical_files_paths:
+      - /frappe/api.py
+      - /frappe/app.py
+      - /frappe/auth.py
+      - /frappe/boot.py
+      - /frappe/client.py
+      - /frappe/handler.py
+      - /frappe/migrate.py
+      - /frappe/sessions.py
+      - /frappe/utils/*
+      - /frappe/desk/reportview.py
+      - /frappe/desk/form/*
+      - /frappe/model/*
+      - /frappe/core/doctype/doctype/*
+      - /frappe/core/doctype/data_import/*
+      - /frappe/core/doctype/user/*
+      - /frappe/core/doctype/user/*
+      - /frappe/query_builder/*
+      - /frappe/database/*

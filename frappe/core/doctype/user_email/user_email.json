@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "creation": "2016-03-30 10:04:25.828742",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "email_account",
+  "email_id",
+  "column_break_3",
+  "awaiting_password",
+  "used_oauth",
+  "enable_outgoing"
+ ],
+ "fields": [
+  {
+   "fieldname": "email_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Email Account",
+   "options": "Email Account",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "email_account.email_id",
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "label": "Email ID",
+   "options": "Email",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fetch_from": "email_account.awaiting_password",
+   "fieldname": "awaiting_password",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Awaiting Password",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fetch_from": "email_account.enable_outgoing",
+   "fieldname": "enable_outgoing",
+   "fieldtype": "Check",
+   "label": "Enable Outgoing",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "used_oauth",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Used OAuth",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2022-06-03 14:25:46.944733",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Email",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

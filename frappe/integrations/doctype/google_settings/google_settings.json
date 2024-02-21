@@ -1,0 +1,100 @@
+{
+ "actions": [],
+ "creation": "2019-06-14 00:08:37.255003",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable",
+  "sb_00",
+  "client_id",
+  "client_secret",
+  "sb_01",
+  "api_key",
+  "section_break_7",
+  "google_drive_picker_enabled",
+  "app_id"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable"
+  },
+  {
+   "description": "The Client ID obtained from the Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\n\"APIs &amp; Services\" &gt; \"Credentials\"\n</a>",
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Client ID",
+   "mandatory_depends_on": "google_drive_picker_enabled"
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "Client Secret"
+  },
+  {
+   "description": "The browser API key obtained from the Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\n\"APIs &amp; Services\" &gt; \"Credentials\"\n</a>",
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key"
+  },
+  {
+   "depends_on": "enable",
+   "fieldname": "sb_00",
+   "fieldtype": "Section Break",
+   "label": "OAuth Client ID"
+  },
+  {
+   "depends_on": "enable",
+   "fieldname": "sb_01",
+   "fieldtype": "Section Break",
+   "label": "API Key"
+  },
+  {
+   "depends_on": "google_drive_picker_enabled",
+   "description": "The project number obtained from Google Cloud Console under <a href=\"https://console.cloud.google.com/iam-admin/settings\">\n\"IAM &amp; Admin\" &gt; \"Settings\"\n</a>",
+   "fieldname": "app_id",
+   "fieldtype": "Data",
+   "label": "App ID",
+   "mandatory_depends_on": "google_drive_picker_enabled"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break",
+   "label": "Google Drive Picker"
+  },
+  {
+   "default": "0",
+   "fieldname": "google_drive_picker_enabled",
+   "fieldtype": "Check",
+   "label": "Google Drive Picker Enabled"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-01-16 13:19:22.365362",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Google Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

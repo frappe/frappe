@@ -1,0 +1,46 @@
+<div class="print-format-builder-field"
+	{% if(field.print_hide) { %}style="background-color: #F7FAFC; color: #8D99A6;"
+		title="{{ __("Hidden") }}"{% } %}
+	data-fieldname="{%= field.fieldname %}"
+	data-label="{{ __(field.label, context=field.parent) }}"
+
+	{% if field.align %}data-align="{{ field.align }}"{% endif %}
+	data-fieldtype="{%= field.fieldtype %}"
+	{% if(field.fieldtype==="Table") { %}
+		data-columns="{%= me.get_visible_columns_string(field) %}"
+		data-doctype="{%= field.options %}"
+	{% } %}>
+	{% if !in_list(["Table", "HTML", "Custom HTML"], field.fieldtype) %}
+	<a class="field-settings pull-right">
+		<span>
+			<svg class="icon icon-sm"><use href="#icon-setting-gear"></use></svg>
+		</span>
+	</a>
+	<span class="drag-handle">
+		<svg class="icon icon-xs"><use href="#icon-drag"></use></svg>
+	</span>
+	{% endif %}
+	{% if(field.fieldtype==="Custom HTML") { %}
+		<div class="text-right">
+			<a class="edit-html btn btn-default btn-xs">
+				{%= __("Edit HTML") %}</a>
+		</div>
+		<div class="html-content"
+			{% if field.custom_html_id!==undefined %}
+				data-custom-html-id={{ field.custom_html_id }}{% endif %}>
+			{{ field.options || me.get_no_content() }}</div>
+	{% } else { %}
+		{% if(field.fieldtype==="Table") { %}
+			<span class="drag-handle">
+				<svg class="icon icon-xs"><use href="#icon-drag"></use></svg>
+			</span>
+			<span class="field-label">{{ __(field.label, context=field.parent) || __(field.fieldname) }}
+				<span> ({%= __("Table") %})</span>
+			</span>
+			<a class="pull-right select-columns btn btn-default btn-xs">
+				{%= __("Select Columns") %}</a>
+		{% } else { %}
+			<span class="field-label">{{ __(field.label, context=field.parent) }}</span>
+		{% } %}
+	{% } %}
+</div>

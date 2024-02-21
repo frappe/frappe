@@ -1,0 +1,113 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "hash",
+ "creation": "2015-02-04 04:33:36.330477",
+ "description": "Internal record of document shares",
+ "doctype": "DocType",
+ "document_type": "System",
+ "engine": "InnoDB",
+ "field_order": [
+  "user",
+  "share_doctype",
+  "share_name",
+  "read",
+  "write",
+  "share",
+  "submit",
+  "everyone",
+  "notify_by_email"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "search_index": 1
+  },
+  {
+   "fieldname": "share_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "share_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Document Name",
+   "options": "share_doctype",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "read",
+   "fieldtype": "Check",
+   "label": "Read"
+  },
+  {
+   "default": "0",
+   "fieldname": "write",
+   "fieldtype": "Check",
+   "label": "Write"
+  },
+  {
+   "default": "0",
+   "fieldname": "share",
+   "fieldtype": "Check",
+   "label": "Share"
+  },
+  {
+   "default": "0",
+   "fieldname": "everyone",
+   "fieldtype": "Check",
+   "label": "Everyone",
+   "search_index": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "notify_by_email",
+   "fieldtype": "Check",
+   "label": "Notify by email",
+   "print_hide": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "submit",
+   "fieldtype": "Check",
+   "label": "Submit"
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2023-06-15 18:02:51.877533",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "DocShare",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "import": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

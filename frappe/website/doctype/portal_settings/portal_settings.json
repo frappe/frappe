@@ -1,0 +1,79 @@
+{
+ "actions": [],
+ "creation": "2016-03-30 01:40:20.001775",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "default_role",
+  "default_portal_home",
+  "standard_menu_items",
+  "hide_standard_menu",
+  "menu",
+  "custom_sidebar_menu",
+  "custom_menu"
+ ],
+ "fields": [
+  {
+   "fieldname": "default_role",
+   "fieldtype": "Link",
+   "label": "Default Role at Time of Signup",
+   "options": "Role"
+  },
+  {
+   "fieldname": "standard_menu_items",
+   "fieldtype": "Section Break",
+   "label": "Standard Sidebar Menu"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_standard_menu",
+   "fieldtype": "Check",
+   "label": "Hide Standard Menu"
+  },
+  {
+   "fieldname": "menu",
+   "fieldtype": "Table",
+   "label": "Portal Menu",
+   "options": "Portal Menu Item"
+  },
+  {
+   "fieldname": "custom_sidebar_menu",
+   "fieldtype": "Section Break",
+   "label": "Custom Sidebar Menu"
+  },
+  {
+   "fieldname": "custom_menu",
+   "fieldtype": "Table",
+   "label": "Custom Menu Items",
+   "options": "Portal Menu Item"
+  },
+  {
+   "description": "Example: \"/desk\"",
+   "fieldname": "default_portal_home",
+   "fieldtype": "Data",
+   "label": "Default Portal Home"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2020-08-06 15:43:36.387050",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Portal Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

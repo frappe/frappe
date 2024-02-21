@@ -1,0 +1,18 @@
+<ul class="dropdown-menu dropdown-menu-right">
+{% if top_bar_items -%}
+	{%- for page in top_bar_items -%}
+		{% if not page.parent_label and not page.right -%}
+			{% include "templates/includes/navbar/navbar_link.html" %}
+		{%- endif -%}
+	{%- endfor %}
+{%- endif %}
+{%- for page in top_bar_items -%}
+	{% if not page.parent_label and page.right -%}
+		{% include "templates/includes/navbar/navbar_link.html" %}
+	{%- endif -%}
+{%- endfor %}
+{% block navbar_right_extension %}{% endblock %}
+<li class="divider"></li>
+{% include "templates/includes/navbar/navbar_search.html" %}
+{% include "templates/includes/navbar/dropdown_login.html" %}
+</ul>

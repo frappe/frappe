@@ -1,0 +1,26 @@
+<div class="filter-box">
+	<div class="visible-xs flex justify-flex-end">
+		<span class="remove-filter">
+			{{ __("Remove") }}
+		</span>
+	</div>
+	<div class="list_filter row">
+		<div class="fieldname-select-area col-sm-4 ui-front form-group"></div>
+		<div class="col-sm-3 form-group">
+			<select class="condition form-control input-xs">
+				{% for condition in conditions %}
+				<option value="{{condition[0]}}">{{ condition[1] }}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div class="col-sm-4 form-group">
+			<div class="filter-field"></div>
+			<div class="text-muted small filter-description"></div>
+		</div>
+		<div class="remove-filter col-sm-1 text-center hidden-xs">
+			<svg class="icon icon-sm">
+				<use href="#icon-close" class="close"></use>
+			</svg>
+		</div>
+	</div>
+</div>

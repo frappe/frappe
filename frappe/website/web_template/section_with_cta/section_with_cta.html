@@ -1,0 +1,26 @@
+<div class="section-cta-container">
+	<div class="section-cta">
+		<h2 class="title mt-0">{{ _(title) }}</h2>
+		{%- if subtitle -%}
+		<p class="subtitle">{{ _(subtitle) }}</p>
+		{%- endif -%}
+		<div class="mt-3">
+			<h4 class="action">
+				<a href="{{ cta_url }}" class="no-decoration">{{ _(cta_label) }}
+					<svg class="icon icon-md"><use href="#icon-right"></use></svg>
+				</a>
+			</h4>
+		</div>
+		{%- if cta_description -%}
+		<div class="description">
+			{{ _(cta_description) }}
+		</div>
+		{%- endif -%}
+	</div>
+	{%- if show_confetti -%}
+		<div class="confetti confetti-1"></div>
+		<div class="confetti confetti-2"></div>
+		<div class="confetti confetti-3"></div>
+	{%- endif -%}
+	{% if cta_url %}<a href="{{ cta_url }}" class="stretched-link"></a>{% endif %}
+</div>

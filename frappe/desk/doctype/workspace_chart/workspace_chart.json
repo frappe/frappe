@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "creation": "2020-01-23 13:44:03.882158",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "chart_name",
+  "label"
+ ],
+ "fields": [
+  {
+   "fieldname": "chart_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Chart Name",
+   "options": "Dashboard Chart",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2021-01-12 13:13:25.781925",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Workspace Chart",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

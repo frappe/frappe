@@ -1,0 +1,21 @@
+<div class="filter-searchbox">
+	<input type="text" class="form-control input-sm filter-fields" name="filter-fields"
+		placeholder="{%= __("Filter...") %}">
+</div>
+<div class="print-format-builder-sidebar-fields">
+	{% for (var i=0, l=fields.length; i < l; i++) { var f = fields[i]; %}
+		{% if(!in_list(["Section Break", "Tab Break", "Column Break", "Fold"], f.fieldtype)) { %}
+		<div class="print-format-builder-field-placeholder"
+			data-fieldname="{%= f.fieldname %}">
+			<div title="{{f.label}}" class="field-label btn btn-default btn-sm sidebar-field ellipsis
+				{%= (f.fieldtype==="Custom HTML") ? "sidebar-custom-field" : "" %}"
+				style="display: inline-block">
+				<span class="drag-handle">
+					<svg class="icon icon-xs"><use href="#icon-drag"></use></svg>
+				</span>
+				{%= __(f.label) || __(f.fieldname) %}
+			</div>
+		</div>
+		{% } %}
+	{% } %}
+</div>

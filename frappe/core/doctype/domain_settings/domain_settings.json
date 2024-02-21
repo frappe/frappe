@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "creation": "2017-05-03 16:28:11.295095",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "active_domains_sb",
+  "domains_html",
+  "active_domains"
+ ],
+ "fields": [
+  {
+   "fieldname": "active_domains_sb",
+   "fieldtype": "Section Break",
+   "label": "Active Domains"
+  },
+  {
+   "fieldname": "domains_html",
+   "fieldtype": "HTML",
+   "label": "Domains HTML"
+  },
+  {
+   "fieldname": "active_domains",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Active Domains",
+   "options": "Has Domain",
+   "read_only": 1
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-08-03 12:20:53.256607",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Domain Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

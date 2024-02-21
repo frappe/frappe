@@ -1,0 +1,54 @@
+{
+ "autoname": "field:domain",
+ "creation": "2017-05-03 15:07:39.752820",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "domain"
+ ],
+ "fields": [
+  {
+   "fieldname": "domain",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Domain",
+   "reqd": 1,
+   "unique": 1
+  }
+ ],
+ "modified": "2020-09-18 17:26:09.703215",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Domain",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "search_fields": "domain",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "domain"
+}

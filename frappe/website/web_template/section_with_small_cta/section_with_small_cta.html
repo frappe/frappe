@@ -1,0 +1,20 @@
+<div class="section-cta-container">
+	<div class="section-small-cta">
+		<div>
+			<h3 class="section-title">{{ title or '' }}</h3>
+			{%- if subtitle -%}
+			<p class="subtitle">{{ subtitle }}</p>
+			{%- endif -%}
+		</div>
+		<div>
+			{%- if cta_label and cta_url -%}
+			<h4 class="action">
+				<a href="{{ cta_url }}" class="no-decoration">{{ cta_label }}
+					<svg class="icon icon-md"><use href="#icon-right"></use></svg>
+				</a>
+			</h4>
+			{%- endif -%}
+		</div>
+	</div>
+	{% if cta_url %}<a href="{{ cta_url }}" class="stretched-link"></a>{% endif %}
+</div>

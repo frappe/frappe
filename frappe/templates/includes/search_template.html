@@ -1,0 +1,52 @@
+<h1>{{ title }}</h1>
+
+{%- macro search_results_section(results, title, has_more) -%}
+	<div class="col-sm-6">
+		<div class="search-result">
+			{% if title %}
+			<h3 class="mb-6">{{ title }}</h3>
+			{% endif %}
+
+			{% include "templates/includes/search_result.html" %}
+		</div>
+		{% if has_more %}
+		<button class='btn btn-light btn-sm btn-more'>{{ _("More") }}</button>
+		{% endif %}
+	</div>
+{%- endmacro %}
+
+<div class="row mb-12">
+	<div class="col-sm-6">
+		<form action="{{ route }}">
+			<div class="input-group">
+				<input name="q" class="form-control" type="text" value="{{ query or ''}}"
+					placeholder="{{ _('Search...') }}">
+				<div class="input-group-append">
+					<button type="submit" class="btn btn-sm btn-primary btn-search">
+						{{ _('Search') }}
+					</button>
+				</div>
+			</div>
+			{% if frappe.form_dict.scope %}
+				<input type="text" hidden name="scope" value="{{ frappe.utils.escape_html(frappe.form_dict.scope) }}">
+			{% endif %}
+		</form>
+	</div>
+</div>
+
+{% if results %}
+	<div class="row">
+	{{ search_results_section(results, "", has_more) }}
+	</div>
+{% elif results_sections %}
+	<div class="row">
+		{% for section in results_sections %}
+			{{ search_results_section(section.results, section.title) }}
+		{% endfor %}
+	</div>
+
+{% elif query %}
+	<p class='text-muted'>{{ _("No matching records. Search something new") }}
+{% else %}
+	<p class='text-muted'>{{ _("Type something in the search box to search") }}
+{% endif %}

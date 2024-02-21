@@ -1,0 +1,13 @@
+{% macro make_select(css_class=None, options=None, attributes=None, value=None) %}
+<select class="form-control{% if css_class %} {{ css_class }}{% endif %}" {% if attributes -%}
+	{% for key, value in attributes.iteritems() -%}
+	{{ key }}="{{ value }}" {% endfor %}{% endif %}>
+	{% if options -%}
+	{% for option in options -%}
+    {% set option_value = option.value if option is mapping else option %}
+	<option value="{{ option_value }}"
+        {{  "selected" if value == option_value else "" }}>{{ _(option.label if option is mapping else option) }}</option>
+	{%- endfor %}
+	{%- endif %}
+</select>
+{% endmacro %}

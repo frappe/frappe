@@ -1,0 +1,30 @@
+{
+ "actions": [],
+ "creation": "2020-07-15 22:08:14.616585",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "scope"
+ ],
+ "fields": [
+  {
+   "fieldname": "scope",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Scope"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2020-07-15 22:15:18.930632",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "OAuth Scope",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

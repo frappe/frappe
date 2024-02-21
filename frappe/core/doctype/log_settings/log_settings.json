@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "creation": "2020-10-08 12:12:21.694424",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "logs_to_clear"
+ ],
+ "fields": [
+  {
+   "fieldname": "logs_to_clear",
+   "fieldtype": "Table",
+   "label": "Logs to Clear",
+   "options": "Logs To Clear"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2022-06-11 02:17:30.803721",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Log Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

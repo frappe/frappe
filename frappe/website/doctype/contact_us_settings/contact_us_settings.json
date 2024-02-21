@@ -1,0 +1,143 @@
+{
+ "actions": [],
+ "creation": "2013-02-21 20:12:42",
+ "description": "Settings for Contact Us Page",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "introduction_section",
+  "forward_to_email",
+  "heading",
+  "introduction",
+  "query_options",
+  "address",
+  "address_title",
+  "address_line1",
+  "address_line2",
+  "city",
+  "state",
+  "pincode",
+  "country",
+  "column_break_14",
+  "phone",
+  "email_id",
+  "skype"
+ ],
+ "fields": [
+  {
+   "fieldname": "introduction_section",
+   "fieldtype": "Section Break",
+   "label": "Introduction"
+  },
+  {
+   "description": "Send enquiries to this email address",
+   "fieldname": "forward_to_email",
+   "fieldtype": "Data",
+   "label": "Forward To Email Address",
+   "options": "Email"
+  },
+  {
+   "description": "Default: \"Contact Us\"",
+   "fieldname": "heading",
+   "fieldtype": "Data",
+   "label": "Heading"
+  },
+  {
+   "description": "Introductory information for the Contact Us Page",
+   "fieldname": "introduction",
+   "fieldtype": "Text Editor",
+   "label": "Introduction"
+  },
+  {
+   "description": "Contact options, like \"Sales Query, Support Query\" etc each on a new line or separated by commas.",
+   "fieldname": "query_options",
+   "fieldtype": "Small Text",
+   "label": "Query Options"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Section Break",
+   "label": "Address"
+  },
+  {
+   "bold": 1,
+   "fieldname": "address_title",
+   "fieldtype": "Data",
+   "label": "Address Title"
+  },
+  {
+   "fieldname": "address_line1",
+   "fieldtype": "Data",
+   "label": "Address Line 1"
+  },
+  {
+   "fieldname": "address_line2",
+   "fieldtype": "Data",
+   "label": "Address Line 2"
+  },
+  {
+   "fieldname": "city",
+   "fieldtype": "Data",
+   "label": "City"
+  },
+  {
+   "fieldname": "state",
+   "fieldtype": "Data",
+   "label": "State"
+  },
+  {
+   "fieldname": "pincode",
+   "fieldtype": "Data",
+   "label": "Pincode"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Data",
+   "label": "Country"
+  },
+  {
+   "fieldname": "column_break_14",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "label": "Email Id",
+   "options": "Email"
+  },
+  {
+   "fieldname": "skype",
+   "fieldtype": "Data",
+   "label": "Skype"
+  }
+ ],
+ "icon": "fa fa-cog",
+ "idx": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2021-03-02 17:42:32.947404",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Contact Us Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

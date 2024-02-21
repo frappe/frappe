@@ -1,0 +1,79 @@
+.icon {
+	display: inline-block;
+	font-size: 0;
+	width: 20px;
+	height: 20px;
+	margin: 0 auto;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: 50% 50%;
+	fill: var(--icon-fill);
+	stroke: var(--icon-stroke);
+}
+
+.es-icon {
+	@extend .icon;
+	// reverse fill and stroke because of the way es icon is drawn
+	fill: var(--icon-stroke);
+	stroke: var(--icon-fill);
+}
+
+/* like icon */
+use.like-icon {
+	--icon-stroke: transparent;
+	cursor: pointer;
+	stroke: var(--gray-800);
+}
+
+#icon-file-large {
+	stroke: none;
+}
+
+#icon-folder-normal-large {
+	stroke: none;
+}
+
+#icon-close {
+	fill: var(--invert-neutral);
+}
+
+.icon > .close-alt {
+	fill: var(--gray-500);
+}
+
+.liked {
+	use.like-icon {
+		--icon-stroke: var(--red-500);
+		fill: var(--icon-stroke);
+	}
+}
+
+.icon-xs {
+	width: 12px;
+	height: 12px;
+}
+
+.icon-sm {
+	width: 16px;
+	height: 16px;
+}
+
+.icon-base,
+.icon-md {
+	width: 20px;
+	height: 20px;
+}
+
+.icon-lg {
+	width: 24px;
+	height: 24px;
+}
+
+.icon-xl {
+	width: 75px;
+	height: 75px;
+}
+
+.no-stroke {
+	stroke: none;
+}

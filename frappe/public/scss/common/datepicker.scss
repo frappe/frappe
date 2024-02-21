@@ -1,0 +1,117 @@
+/*rtl:begin:ignore*/
+@import "~air-datepicker/dist/css/datepicker.min";
+/*rtl:end:ignore*/
+
+.datepicker {
+	direction: ltr;
+	font-family: inherit;
+	z-index: 9999 !important;
+	background: var(--fg-color);
+	color: var(--text-color);
+	border-radius: var(--border-radius-lg);
+	border: 1px solid var(--border-color);
+	box-shadow: var(--shadow-2xl);
+	position: fixed;
+
+	&.active {
+		position: absolute;
+	}
+
+	&--nav {
+		border-bottom: 1px solid var(--border-color);
+	}
+	&--nav-title:hover,
+	&--nav-action:hover {
+		background-color: var(--fg-hover-color);
+	}
+
+	&--time-current-hours,
+	&--time-current-minutes,
+	&--time-current-seconds {
+		font-family: inherit;
+		&:after {
+			color: var(--text-color);
+			background-color: var(--fg-hover-color);
+		}
+	}
+
+	&--day-name {
+		color: var(--text-color);
+	}
+
+	&--cell {
+		&.-current- {
+			color: var(--text-color);
+			&:not(.-selected-):not(.-in-range-) {
+				font-weight: var(--weight-bold);
+			}
+
+			&.-in-range- {
+				color: var(--text-color);
+			}
+		}
+
+		&.-range-from-,
+		&.-range-to- {
+			border: 1px solid var(--border-color);
+			background: var(--date-range-bg);
+		}
+
+		&.-selected-,
+		&.-current-.-selected- {
+			color: var(--date-active-text);
+			background: var(--date-active-bg);
+			border-radius: var(--border-radius-tiny);
+		}
+
+		&.-in-range- {
+			color: var(--text-color);
+			background: var(--date-range-bg);
+		}
+
+		&.-in-range-.-focus- {
+			color: var(--date-active-text);
+			background: var(--date-active-bg);
+		}
+
+		&.-focus- {
+			background-color: var(--fg-hover-color);
+		}
+
+		&.-selected-.-focus- {
+			color: var(--date-active-text);
+			background: var(--date-active-bg);
+		}
+	}
+
+	&--time,
+	&--buttons {
+		border-top: 1px solid var(--border-color);
+	}
+
+	&--time-row {
+		background-image: linear-gradient(to right, var(--gray-900), var(--gray-900));
+		background-repeat: no-repeat;
+		background-size: 100% 1px;
+		background-position: left 50%;
+	}
+
+	&--time-row:first-child {
+		margin: 0;
+	}
+
+	&--pointer {
+		background: var(--fg-color);
+		border-top-right-radius: 2px;
+		border: 1px var(--border-color);
+		border-style: solid solid hidden hidden;
+	}
+
+	&--button {
+		color: var(--text-color);
+		&:hover {
+			color: var(--text-color);
+			background-color: var(--fg-hover-color);
+		}
+	}
+}

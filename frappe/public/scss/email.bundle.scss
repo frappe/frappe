@@ -1,0 +1,430 @@
+$white: #fff;
+$gray-900: #1f272e;
+$gray-800: #333c44;
+$gray-700: #505a62;
+$gray-600: #687178;
+$gray-500: #98a1a9;
+$gray-400: #c0c6cc;
+$gray-300: #dce0e3;
+$gray-200: #ebeef0;
+$gray-100: #f4f5f6;
+$gray-50: #f9fafa;
+$primary: #2490ef;
+
+$blue-500: #2d95f0;
+
+$text-color: $gray-900;
+$border-color: $gray-100;
+$dark-border-color: $gray-200;
+$font-stack: "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+	"Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+$text-muted: $gray-600;
+$text-extra-muted: $gray-400;
+$border-radius: 6px;
+$border-radius-sm: 4px;
+$border-radius-lg: 8px;
+
+$orange-bg: #ffeae1;
+$orange-color: #cb5a2a;
+
+body {
+	line-height: 1.5;
+	color: $text-color;
+}
+
+a {
+	color: $blue-500;
+}
+
+p {
+	margin: 1em 0 !important;
+}
+
+.with-container {
+	p {
+		margin: 5px 0 !important;
+	}
+}
+
+.ql-editor {
+	white-space: normal;
+	p {
+		margin: 0 !important;
+	}
+}
+
+hr {
+	border-top: 1px solid $border-color;
+}
+
+.body-table {
+	border-collapse: collapse;
+	table-layout: fixed;
+	margin: 0 auto;
+	border-spacing: 0;
+	height: 100% !important;
+	width: 100% !important;
+	font-weight: normal;
+	font-family: $font-stack;
+	font-size: 14px;
+	line-height: 1.4;
+	.brand-logo {
+		margin: auto;
+		text-align: center;
+		border: 0;
+		outline: none;
+		text-decoration: none;
+		max-height: 40px;
+		width: auto;
+		margin-bottom: 10px;
+	}
+	td {
+		font-family: $font-stack;
+	}
+
+	.body-content {
+		padding: 20px 0;
+	}
+}
+
+.email-header,
+.email-body,
+.email-footer {
+	width: 100% !important;
+	min-width: 100% !important;
+}
+
+.email-body {
+	font-size: 14px;
+	color: $text-color;
+	.gray-container {
+		background-color: $gray-50;
+		border-radius: $border-radius-lg;
+		padding: 25px 15px;
+	}
+}
+
+.email-footer {
+	font-size: 12px;
+	line-height: 20px;
+}
+
+.email-header {
+	.brand-image {
+		width: 24px;
+		height: 24px;
+		display: block;
+	}
+}
+
+.email-header-title {
+	margin-top: 20px !important;
+	font-size: 20px;
+	font-weight: 600;
+}
+
+.body-table.with-container {
+	background-color: $gray-100;
+	color: $text-color;
+	.body-content {
+		padding: 60px 40px;
+	}
+	.email-container {
+		max-width: 600px;
+		border-spacing: 0;
+		padding: 30px;
+		border-radius: $border-radius-lg;
+		overflow: hidden;
+		background-color: white;
+		.email-body {
+			border-radius: 0 0 4px 4px;
+			border-top: none;
+			tr {
+				border-collapse: collapse;
+				border-bottom: none;
+			}
+		}
+	}
+
+	.email-footer {
+		border-top: none;
+	}
+}
+
+@media only screen and (max-width: 700px) {
+	.body-table.with-container {
+		.body-content {
+			padding: 30px 20px;
+		}
+		.email-container {
+			padding: 20px;
+			width: auto;
+		}
+	}
+}
+
+.email-footer-container {
+	margin-top: 40px;
+
+	& > div:not(:last-child) {
+		margin-bottom: 5px;
+	}
+}
+
+.email-unsubscribe a {
+	color: $text-muted;
+	text-decoration: underline;
+}
+
+.btn {
+	text-decoration: none;
+	padding: 4px 20px;
+	font-size: 13px;
+	border: 1px solid;
+	border-radius: $border-radius;
+	color: $white;
+	background-color: $gray-500;
+	border-color: transparent;
+	display: inline-block;
+	line-height: 20px;
+
+	&.btn-primary {
+		color: #fff;
+		background-color: $primary;
+	}
+}
+
+.table {
+	width: 100%;
+	border-collapse: collapse;
+
+	td,
+	th {
+		padding: 8px;
+		line-height: 1.42857143;
+		vertical-align: top;
+		border-top: 1px solid $border-color;
+		text-align: left;
+	}
+
+	th {
+		font-weight: bold;
+	}
+
+	& > thead > tr > th {
+		vertical-align: middle;
+		border-bottom: 2px solid $border-color;
+	}
+
+	& > thead:first-child > tr:first-child > th {
+		border-top: none;
+	}
+
+	&.table-bordered {
+		border: 1px solid $border-color;
+
+		td,
+		th {
+			border: 1px solid $border-color;
+		}
+	}
+}
+
+.more-info {
+	font-size: 80% !important;
+	color: $text-muted !important;
+	padding-top: 10px;
+}
+
+.text-right {
+	text-align: right !important;
+}
+
+.text-center {
+	text-align: center !important;
+}
+
+.text-muted {
+	color: $text-muted !important;
+}
+
+.text-extra-muted {
+	color: $text-muted !important;
+}
+
+.text-small {
+	font-size: 12px;
+}
+
+.text-medium {
+	font-size: 13px;
+}
+
+.text-regular {
+	font-size: 14px;
+}
+
+.text-lg {
+	font-size: 16px;
+}
+
+.text-xl {
+	font-size: 18px;
+}
+
+.text-2xl {
+	font-size: 20px;
+}
+
+.text-bold {
+	font-weight: bold;
+}
+
+.screenshot {
+	box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+	border: 1px solid $border-color;
+	margin: 8px 0;
+	max-width: 100%;
+}
+
+.list-unstyled {
+	list-style-type: none;
+	padding: 0;
+}
+
+/* auto email report */
+.report-title {
+	margin-bottom: 20px;
+}
+
+/* csslint ignore:end */
+.avatar {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.avatar-frame {
+	display: inline-block;
+	width: 100%;
+	height: 100%;
+	background-repeat: no-repeat;
+	background-position: center center;
+	border-radius: 50%;
+	background-color: $orange-bg;
+	font-size: 12px;
+}
+
+.avatar img {
+	max-width: 100%;
+	max-height: 100%;
+	border-radius: 50%;
+}
+
+.avatar .standard-image {
+	border-radius: 50%;
+	border: none;
+}
+
+.standard-image {
+	background-color: $orange-bg;
+	color: $orange-color;
+	font-weight: normal;
+	width: 40px;
+	height: 40px;
+	text-align: center;
+	vertical-align: middle;
+	line-height: 40px;
+	font-size: 12px;
+}
+
+blockquote {
+	padding: 1px 15px;
+	position: relative;
+	margin-left: 0px;
+	border-left: 2px solid $gray-300;
+	p {
+		margin: 5px 0;
+	}
+}
+
+.ql-editor li {
+	list-style-type: none;
+	padding-left: 1.5em;
+	position: relative;
+}
+.ql-editor li > .ql-ui:before {
+	display: inline-block;
+	margin-left: -1.5em;
+	margin-right: 0.3em;
+	text-align: right;
+	white-space: nowrap;
+	width: 1.2em;
+}
+.ql-editor li[data-list="checked"] > .ql-ui,
+.ql-editor li[data-list="unchecked"] > .ql-ui {
+	color: #777;
+}
+.ql-editor li[data-list="bullet"] > .ql-ui:before {
+	content: "\2022";
+}
+.ql-editor li[data-list="checked"] > .ql-ui:before {
+	content: "\2611";
+}
+.ql-editor li[data-list="unchecked"] > .ql-ui:before {
+	content: "\2610";
+}
+.ql-editor li[data-list="ordered"] {
+	counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+	counter-increment: list-0;
+}
+.ql-editor li[data-list="ordered"] > .ql-ui:before {
+	content: counter(list-0, decimal) ". ";
+}
+.ql-editor li[data-list="ordered"].ql-indent-1 {
+	counter-increment: list-1;
+}
+.ql-editor li[data-list="ordered"].ql-indent-1 > .ql-ui:before {
+	content: counter(list-1, lower-alpha) ". ";
+}
+.ql-editor li[data-list="ordered"].ql-indent-1 {
+	counter-reset: list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+.ql-editor li[data-list="ordered"].ql-indent-2 {
+	counter-increment: list-2;
+}
+.ql-editor li[data-list="ordered"].ql-indent-2 > .ql-ui:before {
+	content: counter(list-2, lower-roman) ". ";
+}
+.ql-editor li[data-list="ordered"].ql-indent-2 {
+	counter-reset: list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+}
+.ql-editor li[data-list="ordered"].ql-indent-3 {
+	counter-increment: list-3;
+}
+.ql-editor li[data-list="ordered"].ql-indent-3 > .ql-ui:before {
+	content: counter(list-3, decimal) ". ";
+}
+.ql-editor li[data-list="ordered"].ql-indent-3 {
+	counter-reset: list-4 list-5 list-6 list-7 list-8 list-9;
+}
+.ql-editor .ql-indent-1:not(.ql-direction-rtl) {
+	padding-left: 3em;
+}
+
+.ql-editor li.ql-indent-1:not(.ql-direction-rtl) {
+	padding-left: 4.5em;
+}
+
+.ql-editor .ql-indent-2:not(.ql-direction-rtl) {
+	padding-left: 6em;
+}
+.ql-editor li.ql-indent-2:not(.ql-direction-rtl) {
+	padding-left: 7.5em;
+}
+
+.ql-editor .ql-indent-3:not(.ql-direction-rtl) {
+	padding-left: 9em;
+}
+.ql-editor li.ql-indent-3:not(.ql-direction-rtl) {
+	padding-left: 10.5em;
+}

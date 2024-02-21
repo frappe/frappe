@@ -1,0 +1,20 @@
+{
+ "action": "Watch Video",
+ "creation": "2021-11-23 13:58:58.530044",
+ "description": "Workflows allow you to define custom rules for the approval process of a particular document in ERPNext. You can also set complex Workflow Rules and set approval conditions.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2021-11-24 15:04:14.632144",
+ "modified_by": "Administrator",
+ "name": "Workflows",
+ "owner": "Administrator",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Setup Approval Workflows",
+ "validate_action": 1,
+ "video_url": "https://youtu.be/yObJUg9FxFs"
+}

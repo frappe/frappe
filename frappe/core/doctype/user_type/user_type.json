@@ -1,0 +1,145 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2021-01-13 01:48:02.378548",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "is_standard",
+  "section_break_2",
+  "role",
+  "column_break_4",
+  "apply_user_permission_on",
+  "user_id_field",
+  "section_break_6",
+  "user_doctypes",
+  "custom_select_doctypes",
+  "select_doctypes",
+  "allowed_modules_section",
+  "user_type_modules"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "depends_on": "eval: frappe.boot.developer_mode",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+  },
+  {
+   "depends_on": "eval: !doc.is_standard",
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break",
+   "label": "Document Types and Permissions"
+  },
+  {
+   "depends_on": "eval: !doc.is_standard",
+   "fieldname": "user_doctypes",
+   "fieldtype": "Table",
+   "label": "Document Types",
+   "mandatory_depends_on": "eval: !doc.is_standard",
+   "options": "User Document Type"
+  },
+  {
+   "depends_on": "eval: !doc.is_standard",
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Role",
+   "mandatory_depends_on": "eval: !doc.is_standard",
+   "options": "Role"
+  },
+  {
+   "fieldname": "select_doctypes",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Document Types (Select Permissions Only)",
+   "options": "User Select Document Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: !doc.is_standard",
+   "description": "Can only list down the document types which has been linked to the User document type.",
+   "fieldname": "apply_user_permission_on",
+   "fieldtype": "Link",
+   "label": "Apply User Permission On",
+   "mandatory_depends_on": "eval: !doc.is_standard",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval: !doc.is_standard",
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "depends_on": "apply_user_permission_on",
+   "fieldname": "user_id_field",
+   "fieldtype": "Select",
+   "label": "User Id Field",
+   "mandatory_depends_on": "eval: !doc.is_standard"
+  },
+  {
+   "depends_on": "eval: !doc.is_standard",
+   "fieldname": "allowed_modules_section",
+   "fieldtype": "Section Break",
+   "label": "Allowed Modules"
+  },
+  {
+   "fieldname": "user_type_modules",
+   "fieldtype": "Table",
+   "label": "User Type Module",
+   "no_copy": 1,
+   "options": "User Type Module",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "custom_select_doctypes",
+   "fieldtype": "Table",
+   "label": "Custom Document Types (Select Permission)",
+   "options": "User Select Document Type"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2022-06-09 14:00:36.820306",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Type",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -1,0 +1,81 @@
+{
+ "actions": [],
+ "creation": "2016-12-29 12:59:48.638970",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "deleted_name",
+  "deleted_doctype",
+  "column_break_3",
+  "restored",
+  "new_name",
+  "section_break_6",
+  "data"
+ ],
+ "fields": [
+  {
+   "fieldname": "deleted_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Deleted Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deleted_doctype",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Deleted DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "restored",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Restored",
+   "read_only": 1
+  },
+  {
+   "fieldname": "new_name",
+   "fieldtype": "Read Only",
+   "label": "New Name"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "Code",
+   "label": "Data",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2022-06-13 05:50:58.314908",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Deleted Document",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "deleted_name",
+ "track_changes": 1
+}

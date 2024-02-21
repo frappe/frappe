@@ -1,0 +1,55 @@
+{%- set slideshow = frappe.get_doc('Website Slideshow', website_slideshow) -%}
+{%- set slides = slideshow.slideshow_items -%}
+{%- set slideshow_id = 'id-' + frappe.utils.generate_hash(length=12) -%}
+
+{{ slideshow.header or '' }}
+
+<div id="{{ slideshow_id }}" class="carousel slide" data-ride="carousel">
+	{% if slides | len > 1 %}
+	<!-- Indicators -->
+	<ol class="carousel-indicators">
+		{% for slide in slides %}
+		<li {%- if slide.idx == 1 %} class="active" {% endif %} data-target="#{{ slideshow_id }}"
+			data-slide-to="{{ slide.idx - 1 }}">
+		</li>
+		{% endfor %}
+	</ol>
+	{% endif %}
+
+	<!-- Wrapper for slides -->
+	<div class="carousel-inner">
+		{% for slide in slides %}
+		<div class="{% if slide.idx == 1 %} active {% endif %} item carousel-item">
+			<a href="{{ slide.url or '' }}">
+				<img class="d-block w-100" src="{{ slide.image }}" />
+			</a>
+			{% if slide.heading or slide.description %}
+			<div class="carousel-caption d-none d-md-block">
+				{% if slide.heading %}<h4>{{ slide.heading }}</h4>{% endif %}
+				{% if slide.description %}<p>{{ slide.description }}</p>{% endif %}
+			</div>
+			{% endif %}
+		</div>
+		{% endfor %}
+	</div>
+
+	<!-- Controls -->
+	{% if slides | len > 1 %}
+	<a class="carousel-control-prev" href="#{{ slideshow_id }}" data-slide="prev" role="button">
+		<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+		<span class="sr-only">{{ _('Previous') }}</span>
+	</a>
+	<a class="carousel-control-next" href="#{{ slideshow_id }}" data-slide="next" role="button">
+		<span class="carousel-control-next-icon" aria-hidden="true"></span>
+		<span class="sr-only">{{ _('Next') }}</span>
+	</a>
+	{% endif %}
+</div>
+
+<script>
+	frappe.ready(function () {
+		$('.carousel').carousel({
+			interval: 5000
+		})
+	});
+</script>

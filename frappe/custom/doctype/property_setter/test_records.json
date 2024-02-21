@@ -1,0 +1,10 @@
+[
+ {
+  "doc_type": "User",
+  "doctype_or_field": "DocField",
+  "field_name": "location",
+  "property": "in_list_view",
+  "property_type": "Check",
+  "value": "1"
+ }
+]

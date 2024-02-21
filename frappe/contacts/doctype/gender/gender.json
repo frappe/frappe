@@ -1,0 +1,48 @@
+{
+ "actions": [],
+ "autoname": "field:gender",
+ "creation": "2017-04-10 12:11:36.526508",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "gender"
+ ],
+ "fields": [
+  {
+   "fieldname": "gender",
+   "fieldtype": "Data",
+   "label": "Gender",
+   "unique": 1
+  }
+ ],
+ "links": [],
+ "modified": "2022-08-05 18:33:28.043370",
+ "modified_by": "Administrator",
+ "module": "Contacts",
+ "name": "Gender",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "translated_doctype": 1
+}

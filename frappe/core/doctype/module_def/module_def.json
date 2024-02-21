@@ -1,0 +1,166 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:module_name",
+ "creation": "2013-01-10 16:34:03",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "module_name",
+  "custom",
+  "package",
+  "app_name",
+  "restrict_to_domain",
+  "connections_tab"
+ ],
+ "fields": [
+  {
+   "fieldname": "module_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Module Name",
+   "oldfieldname": "module_name",
+   "oldfieldtype": "Data",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "depends_on": "eval:!doc.custom",
+   "fieldname": "app_name",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "App Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "restrict_to_domain",
+   "fieldtype": "Link",
+   "label": "Restrict To Domain",
+   "options": "Domain"
+  },
+  {
+   "default": "0",
+   "fieldname": "custom",
+   "fieldtype": "Check",
+   "label": "Custom"
+  },
+  {
+   "depends_on": "custom",
+   "fieldname": "package",
+   "fieldtype": "Link",
+   "label": "Package",
+   "options": "Package"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  }
+ ],
+ "icon": "fa fa-sitemap",
+ "idx": 1,
+ "links": [
+  {
+   "group": "DocType",
+   "link_doctype": "DocType",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "DocType",
+   "link_doctype": "Client Script",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "DocType",
+   "link_doctype": "Server Script",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "Website",
+   "link_doctype": "Web Page",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "Website",
+   "link_doctype": "Web Template",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "Website",
+   "link_doctype": "Website Theme",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "Website",
+   "link_doctype": "Web Form",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Workspace",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Custom Field",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Property Setter",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Print Format",
+   "link_fieldname": "module"
+  },
+  {
+   "group": "Customization",
+   "link_doctype": "Notification",
+   "link_fieldname": "module"
+  }
+ ],
+ "modified": "2023-12-08 15:52:37.525003",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Module Def",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "select": 1
+  }
+ ],
+ "show_name_in_global_search": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

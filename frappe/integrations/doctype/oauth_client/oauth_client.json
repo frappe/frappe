@@ -1,0 +1,144 @@
+{
+ "actions": [],
+ "creation": "2016-08-24 14:07:21.955052",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "client_id",
+  "app_name",
+  "user",
+  "cb_1",
+  "client_secret",
+  "skip_authorization",
+  "sb_1",
+  "scopes",
+  "cb_3",
+  "redirect_uris",
+  "default_redirect_uri",
+  "sb_advanced",
+  "grant_type",
+  "cb_2",
+  "response_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "label": "App Client ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "label": "App Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "User",
+   "options": "User"
+  },
+  {
+   "fieldname": "cb_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Data",
+   "label": "App Client Secret",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "If checked, users will not see the Confirm Access dialog.",
+   "fieldname": "skip_authorization",
+   "fieldtype": "Check",
+   "label": "Skip Authorization"
+  },
+  {
+   "fieldname": "sb_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "all openid",
+   "description": "A list of resources which the Client App will have access to after the user allows it.<br> e.g. project",
+   "fieldname": "scopes",
+   "fieldtype": "Text",
+   "label": "Scopes",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "URIs for receiving authorization code once the user allows access, as well as failure responses. Typically a REST endpoint exposed by the Client App.\n<br>e.g. http://hostname/api/method/frappe.integrations.oauth2_logins.login_via_facebook",
+   "fieldname": "redirect_uris",
+   "fieldtype": "Text",
+   "label": "Redirect URIs"
+  },
+  {
+   "fieldname": "default_redirect_uri",
+   "fieldtype": "Data",
+   "label": "Default Redirect URI",
+   "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "1",
+   "fieldname": "sb_advanced",
+   "fieldtype": "Section Break",
+   "label": "Advanced Settings"
+  },
+  {
+   "fieldname": "grant_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Grant Type",
+   "options": "Authorization Code\nImplicit"
+  },
+  {
+   "fieldname": "cb_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Code",
+   "fieldname": "response_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Response Type",
+   "options": "Code\nToken"
+  }
+ ],
+ "links": [],
+ "modified": "2023-07-17 07:06:35.765981",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "OAuth Client",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "app_name",
+ "track_changes": 1
+}

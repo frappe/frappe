@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "autoname": "format:Log on {timestamp}",
+ "creation": "2020-08-18 19:56:12.336427",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "script",
+  "type",
+  "committed"
+ ],
+ "fields": [
+  {
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Script",
+   "read_only": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Type",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "committed",
+   "fieldtype": "Check",
+   "label": "Committed",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-09-19 13:02:56.332137",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Console Log",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

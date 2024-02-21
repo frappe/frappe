@@ -1,0 +1,169 @@
+{
+ "actions": [],
+ "beta": 1,
+ "creation": "2019-01-24 15:51:06.362222",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "provider_name",
+  "cb_00",
+  "openid_configuration",
+  "sb_client_credentials_section",
+  "client_id",
+  "redirect_uri",
+  "cb_01",
+  "client_secret",
+  "sb_scope_section",
+  "scopes",
+  "sb_endpoints_section",
+  "authorization_uri",
+  "token_uri",
+  "revocation_uri",
+  "cb_02",
+  "userinfo_uri",
+  "introspection_uri",
+  "section_break_18",
+  "query_parameters"
+ ],
+ "fields": [
+  {
+   "fieldname": "provider_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Provider Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "openid_configuration",
+   "fieldtype": "Data",
+   "label": "OpenID Configuration"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sb_client_credentials_section",
+   "fieldtype": "Section Break",
+   "label": "Client Credentials"
+  },
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Client Id",
+   "mandatory_depends_on": "eval:doc.redirect_uri"
+  },
+  {
+   "fieldname": "redirect_uri",
+   "fieldtype": "Data",
+   "label": "Redirect URI",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_01",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Password",
+   "label": "Client Secret"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sb_scope_section",
+   "fieldtype": "Section Break",
+   "label": "Scopes"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "sb_endpoints_section",
+   "fieldtype": "Section Break",
+   "label": "Endpoints"
+  },
+  {
+   "fieldname": "cb_02",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "scopes",
+   "fieldtype": "Table",
+   "label": "Scopes",
+   "options": "OAuth Scope"
+  },
+  {
+   "fieldname": "authorization_uri",
+   "fieldtype": "Small Text",
+   "label": "Authorization URI",
+   "mandatory_depends_on": "eval:doc.redirect_uri"
+  },
+  {
+   "fieldname": "token_uri",
+   "fieldtype": "Data",
+   "label": "Token URI",
+   "mandatory_depends_on": "eval:doc.redirect_uri"
+  },
+  {
+   "fieldname": "revocation_uri",
+   "fieldtype": "Data",
+   "label": "Revocation URI"
+  },
+  {
+   "fieldname": "userinfo_uri",
+   "fieldtype": "Data",
+   "label": "Userinfo URI"
+  },
+  {
+   "fieldname": "introspection_uri",
+   "fieldtype": "Data",
+   "label": "Introspection URI"
+  },
+  {
+   "fieldname": "section_break_18",
+   "fieldtype": "Section Break",
+   "label": "Extra Parameters"
+  },
+  {
+   "fieldname": "query_parameters",
+   "fieldtype": "Table",
+   "label": "Query Parameters",
+   "options": "Query Parameters"
+  }
+ ],
+ "links": [
+  {
+   "link_doctype": "Token Cache",
+   "link_fieldname": "connected_app"
+  }
+ ],
+ "modified": "2022-01-07 05:28:45.073041",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Connected App",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "provider_name",
+ "track_changes": 1
+}

@@ -1,0 +1,146 @@
+{
+ "actions": [],
+ "allow_guest_to_view": 1,
+ "allow_import": 1,
+ "creation": "2014-10-30 14:25:53.780105",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "category",
+  "published",
+  "column_break_4",
+  "author",
+  "level",
+  "section_break_7",
+  "content",
+  "likes",
+  "route",
+  "section_break_cww5",
+  "helpful",
+  "cb_00",
+  "not_helpful"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "category",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Category",
+   "options": "Help Category",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "label": "Published"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "user_fullname",
+   "fieldname": "author",
+   "fieldtype": "Data",
+   "label": "Author"
+  },
+  {
+   "fieldname": "level",
+   "fieldtype": "Select",
+   "label": "Level",
+   "options": "Beginner\nIntermediate\nExpert"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Text Editor",
+   "in_global_search": 1,
+   "label": "Content",
+   "reqd": 1
+  },
+  {
+   "fieldname": "likes",
+   "fieldtype": "Int",
+   "label": "Likes",
+   "read_only": 1
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "label": "Route"
+  },
+  {
+   "default": "0",
+   "fieldname": "helpful",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Helpful",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb_00",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "not_helpful",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Not Helpful",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_cww5",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "has_web_view": 1,
+ "icon": "icon-file-alt",
+ "index_web_pages_for_search": 1,
+ "is_published_field": "published",
+ "links": [],
+ "modified": "2024-01-02 11:34:43.594309",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Help Article",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Knowledge Base Editor",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Knowledge Base Contributor",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

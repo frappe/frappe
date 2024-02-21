@@ -1,0 +1,24 @@
+<style>
+	{% include "templates/print_format/print_format_font.css" %}
+
+	@media print {
+		header {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: {{ body_width | int }}mm;
+			padding-top: {{ print_format.margin_top | int }}mm;
+			padding-left: {{ print_format.margin_left | int }}mm;
+			padding-right: {{ print_format.margin_right | int }}mm;
+		}
+	}
+</style>
+<header>
+	{%- if letterhead -%}
+	{{ frappe.render_template(letterhead.content, {'doc': doc}) }}
+	{%- endif -%}
+
+	{%- if layout.header -%}
+	{{ frappe.render_template(layout.header, {'doc': doc}) }}
+	{%- endif -%}
+</header>

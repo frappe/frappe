@@ -1,0 +1,51 @@
+.table {
+	margin-bottom: 0px;
+	margin-top: 0px;
+	border-radius: var(--border-radius-md);
+}
+
+thead {
+	border: none;
+	background-color: var(--control-bg);
+	border-radius: var(--border-radius-md);
+}
+
+thead > tr {
+	border-radius: var(--border-radius-md);
+}
+
+thead > tr > th:first-child {
+	border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+}
+thead > tr > th:last-child {
+	border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+}
+
+/* Space between thead and tbody */
+/* tbody:before {
+	content: "@";
+	display: block;
+	line-height: var(--margin-md);
+	text-indent: -99999px;
+} */
+
+td[data-fieldname="permissions"] > .row > .col-md-4 {
+	margin-bottom: var(--margin-sm);
+}
+
+tbody > tr {
+	border-top: 1px solid var(--border-color);
+}
+
+tbody > tr:first-child {
+	border-top: none;
+}
+
+button.btn-remove-perm {
+	box-shadow: none;
+	padding: var(--padding-xs) var(--padding-xs);
+}
+
+button.btn-remove-perm > svg > use {
+	stroke: var(--white);
+}

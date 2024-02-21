@@ -1,0 +1,181 @@
+$threshold: 34;
+
+@mixin timeline-badge($badge-size) {
+	width: $badge-size;
+	height: $badge-size;
+	border-radius: 50%;
+	font-size: var(--text-xs);
+	position: absolute;
+	// doing this will prevent cssnano from converting 0px to 0
+	// clamp requires value unit to be valid
+	--zero-px: 0px;
+	top: unquote(
+		"clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))"
+	);
+	left: calc(-1 * (#{$badge-size} / 2));
+	background-color: var(--timeline-badge-bg);
+	@extend .center-content;
+	--icon-stroke: var(--timeline-badge-color);
+}
+
+.new-timeline {
+	position: relative;
+	padding-top: var(--padding-lg);
+
+	@include media-breakpoint-down(xs) {
+		padding-left: calc(var(--padding-sm) + var(--timeline-item-icon-size) / 2);
+	}
+	&:before {
+		content: " ";
+		top: 90px; // TODO: get top and bottom programmatically
+		left: calc(var(--timeline-item-icon-size) / 2);
+		position: absolute;
+		border-left: 1px solid var(--dark-border-color);
+		bottom: calc(-1 * var(--timeline-item-bottom-margin) + 25px);
+	}
+	.timeline-dot {
+		@include timeline-badge(16px);
+		left: calc(-1.25 * var(--timeline-item-left-margin) / 2);
+		background: var(--bg-color);
+		&:before {
+			content: " ";
+			background: var(--timeline-badge-color);
+			border-radius: 50%;
+			height: 4px;
+			width: 4px;
+		}
+	}
+	.activity-title,
+	.timeline-actions {
+		margin-bottom: 0 !important;
+		display: flex;
+		align-items: center;
+		.show-all-activity,
+		.timeline-item {
+			margin-bottom: 0;
+		}
+		min-height: 60px;
+		margin-left: 0px !important;
+		background-color: var(--bg-color);
+		padding-left: 0px;
+		.timeline-content {
+			padding-left: var(--timeline-item-left-margin);
+		}
+		h4 {
+			flex: auto;
+			margin-bottom: 0;
+			font-weight: 700;
+		}
+	}
+	.timeline-item {
+		@include get_textstyle("base", "regular");
+		position: relative;
+		margin-left: var(--timeline-item-left-margin);
+		margin-bottom: var(--timeline-item-bottom-margin);
+		b {
+			color: var(--text-color);
+			@include get_textstyle("base", "medium");
+		}
+		.action-buttons {
+			display: inline-flex;
+			white-space: nowrap;
+			overflow: auto;
+			.action-btn {
+				margin-left: var(--margin-md);
+				display: flex;
+				align-items: center;
+				line-height: var(--text-xl);
+				.icon {
+					margin-right: var(--margin-xs);
+				}
+			}
+			.action-btn:first-of-type {
+				margin-left: 0;
+			}
+		}
+		.timeline-content {
+			position: relative;
+			max-width: var(--timeline-content-max-width);
+			padding: var(--padding-sm);
+			margin-left: var(--margin-md);
+			&.frappe-card {
+				color: var(--text-neutral);
+				background-color: var(--bg-color);
+				box-shadow: none;
+				border: 1px solid var(--border-color);
+				margin: calc(var(--timeline-item-bottom-margin) + var(--padding-md)) 0;
+				margin-left: var(--margin-lg);
+
+				.action-btn {
+					margin: 0 var(--margin-sm);
+				}
+
+				.content {
+					padding-left: 42px;
+					.mention {
+						background-color: transparent;
+						border: none;
+						font-weight: var(--weight-semibold);
+						padding: 0;
+					}
+				}
+			}
+		}
+		.timeline-badge {
+			@include timeline-badge(var(--timeline-item-icon-size));
+			left: calc(-1 * var(--timeline-item-left-margin));
+		}
+		.timeline-load-more {
+			margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));
+			width: var(--timeline-content-max-width);
+			text-align: center;
+		}
+
+		.timeline-message-box {
+			.content {
+				overflow: auto;
+				max-height: 500px;
+				&::before {
+					content: "";
+					display: block;
+					height: 1px;
+					margin-top: -10px;
+					width: calc(100% - 64px);
+					position: absolute;
+					background-color: var(--border-color);
+				}
+			}
+
+			.actions {
+				display: flex;
+				> *:not(.indicator-pill) {
+					color: var(--text-muted);
+				}
+			}
+
+			.action-btn {
+				padding: 0;
+				padding-bottom: 0;
+				margin-left: var(--margin-sm);
+				background-color: transparent;
+				--icon-stroke: var(--text-muted);
+			}
+			.action-btn,
+			.custom-actions {
+				@include get_textstyle("sm", "regular");
+			}
+
+			.action-btn:hover {
+				text-decoration: none;
+				--icon-stroke: var(--text-color);
+			}
+		}
+		.comment-edit-box {
+			background-color: var(--control-bg);
+			border: 1px solid var(--border-color);
+			border-radius: var(--border-radius-sm);
+			margin-top: var(--margin-sm);
+			--icon-stroke: var(--text-color);
+		}
+	}
+}

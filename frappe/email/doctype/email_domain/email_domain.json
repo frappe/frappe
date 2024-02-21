@@ -1,0 +1,157 @@
+{
+ "actions": [],
+ "autoname": "field:domain_name",
+ "creation": "2016-03-29 10:50:48.848239",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "email_settings",
+  "domain_name",
+  "mailbox_settings",
+  "email_server",
+  "use_imap",
+  "use_ssl",
+  "use_starttls",
+  "column_break_9",
+  "incoming_port",
+  "attachment_limit",
+  "outgoing_mail_settings",
+  "smtp_server",
+  "use_tls",
+  "use_ssl_for_outgoing",
+  "column_break_18",
+  "smtp_port",
+  "append_emails_to_sent_folder"
+ ],
+ "fields": [
+  {
+   "fieldname": "email_settings",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "domain_name",
+   "fieldtype": "Data",
+   "label": "Domain Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "mailbox_settings",
+   "fieldtype": "Section Break",
+   "label": "Incoming Settings"
+  },
+  {
+   "description": "e.g. pop.gmail.com / imap.gmail.com",
+   "fieldname": "email_server",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Incoming Server",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "use_imap",
+   "fieldtype": "Check",
+   "label": "Use IMAP"
+  },
+  {
+   "default": "0",
+   "fieldname": "use_ssl",
+   "fieldtype": "Check",
+   "label": "Use SSL"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.use_imap && !doc.use_ssl",
+   "fieldname": "use_starttls",
+   "fieldtype": "Check",
+   "label": "Use STARTTLS"
+  },
+  {
+   "description": "Ignore attachments over this size",
+   "fieldname": "attachment_limit",
+   "fieldtype": "Int",
+   "label": "Attachment Limit (MB)"
+  },
+  {
+   "fieldname": "outgoing_mail_settings",
+   "fieldtype": "Section Break",
+   "label": "Outgoing Settings"
+  },
+  {
+   "description": "e.g. smtp.gmail.com",
+   "fieldname": "smtp_server",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Outgoing Server",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "use_tls",
+   "fieldtype": "Check",
+   "label": "Use TLS"
+  },
+  {
+   "description": "If non standard port (e.g. 587)",
+   "fieldname": "smtp_port",
+   "fieldtype": "Data",
+   "label": "Port"
+  },
+  {
+   "description": "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)",
+   "fieldname": "incoming_port",
+   "fieldtype": "Data",
+   "label": "Port"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.use_imap",
+   "fieldname": "append_emails_to_sent_folder",
+   "fieldtype": "Check",
+   "label": "Append Emails to Sent Folder"
+  },
+  {
+   "default": "0",
+   "fieldname": "use_ssl_for_outgoing",
+   "fieldtype": "Check",
+   "label": "Use SSL"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "icon": "icon-inbox",
+ "links": [
+  {
+   "link_doctype": "Email Account",
+   "link_fieldname": "domain"
+  }
+ ],
+ "modified": "2023-06-05 12:55:06.434541",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Email Domain",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

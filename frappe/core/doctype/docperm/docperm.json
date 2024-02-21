@@ -1,0 +1,221 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2013-02-22 01:27:33",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "role_and_level",
+  "role",
+  "if_owner",
+  "column_break_2",
+  "permlevel",
+  "section_break_4",
+  "select",
+  "read",
+  "write",
+  "create",
+  "delete",
+  "column_break_8",
+  "submit",
+  "cancel",
+  "amend",
+  "additional_permissions",
+  "report",
+  "export",
+  "import",
+  "column_break_19",
+  "share",
+  "print",
+  "email"
+ ],
+ "fields": [
+  {
+   "fieldname": "role_and_level",
+   "fieldtype": "Section Break",
+   "label": "Role and Level"
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Role",
+   "oldfieldname": "role",
+   "oldfieldtype": "Link",
+   "options": "Role",
+   "print_width": "150px",
+   "reqd": 1,
+   "width": "150px"
+  },
+  {
+   "default": "0",
+   "description": "Apply this rule if the User is the Owner",
+   "fieldname": "if_owner",
+   "fieldtype": "Check",
+   "label": "If user is the owner"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "permlevel",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Level",
+   "oldfieldname": "permlevel",
+   "oldfieldtype": "Int",
+   "print_width": "40px",
+   "width": "40px"
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break",
+   "label": "Permissions"
+  },
+  {
+   "default": "1",
+   "fieldname": "read",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Read",
+   "oldfieldname": "read",
+   "oldfieldtype": "Check",
+   "print_width": "32px",
+   "width": "32px"
+  },
+  {
+   "default": "1",
+   "fieldname": "write",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Write",
+   "oldfieldname": "write",
+   "oldfieldtype": "Check",
+   "print_width": "32px",
+   "width": "32px"
+  },
+  {
+   "default": "1",
+   "fieldname": "create",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Create",
+   "oldfieldname": "create",
+   "oldfieldtype": "Check",
+   "print_width": "32px",
+   "width": "32px"
+  },
+  {
+   "default": "1",
+   "fieldname": "delete",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Delete"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "submit",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Submit",
+   "oldfieldname": "submit",
+   "oldfieldtype": "Check",
+   "print_width": "32px",
+   "width": "32px"
+  },
+  {
+   "default": "0",
+   "fieldname": "cancel",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Cancel",
+   "oldfieldname": "cancel",
+   "oldfieldtype": "Check",
+   "print_width": "32px",
+   "width": "32px"
+  },
+  {
+   "default": "0",
+   "fieldname": "amend",
+   "fieldtype": "Check",
+   "label": "Amend",
+   "oldfieldname": "amend",
+   "oldfieldtype": "Check",
+   "print_width": "32px",
+   "width": "32px"
+  },
+  {
+   "fieldname": "additional_permissions",
+   "fieldtype": "Section Break",
+   "label": "Additional Permissions"
+  },
+  {
+   "default": "1",
+   "fieldname": "report",
+   "fieldtype": "Check",
+   "label": "Report",
+   "print_width": "32px",
+   "width": "32px"
+  },
+  {
+   "default": "1",
+   "fieldname": "export",
+   "fieldtype": "Check",
+   "label": "Export"
+  },
+  {
+   "default": "0",
+   "fieldname": "import",
+   "fieldtype": "Check",
+   "label": "Import"
+  },
+  {
+   "fieldname": "column_break_19",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "share",
+   "fieldtype": "Check",
+   "label": "Share"
+  },
+  {
+   "default": "1",
+   "fieldname": "print",
+   "fieldtype": "Check",
+   "label": "Print"
+  },
+  {
+   "default": "1",
+   "fieldname": "email",
+   "fieldtype": "Check",
+   "label": "Email"
+  },
+  {
+   "default": "0",
+   "fieldname": "select",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Select"
+  }
+ ],
+ "idx": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-02-20 13:21:45.071310",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "DocPerm",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "ASC"
+}

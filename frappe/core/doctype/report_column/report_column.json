@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "creation": "2020-01-14 11:28:37.583656",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "fieldname",
+  "label",
+  "fieldtype",
+  "options",
+  "width"
+ ],
+ "fields": [
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fieldname",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fieldname": "fieldtype",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Fieldtype",
+   "options": "Check\nCurrency\nData\nDate\nDatetime\nDuration\nDynamic Link\nFloat\nFold\nInt\nLink\nSelect\nTime",
+   "reqd": 1
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Data",
+   "label": "Options"
+  },
+  {
+   "fieldname": "width",
+   "fieldtype": "Int",
+   "label": "Width"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2020-09-03 10:52:03.895817",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Report Column",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

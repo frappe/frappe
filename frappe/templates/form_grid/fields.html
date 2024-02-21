@@ -1,0 +1,46 @@
+{% if(doc) { %}
+	<div class="row" style="background-color: #{%= {
+		"Fold": "b8c2cc",
+		"Section Break": "D9F6FF",
+		"Column Break": "f5f7fa"
+	}[doc.fieldtype] || "fff" %}; padding: 10px; margin: -10px -15px;">
+		<div class="col-sm-4">
+			{% if (doc.fieldtype==="Section Break") { %}<strong>{% } %}
+				{% if (doc.reqd) { %}<span class="text-danger">{% } %}
+				{% if (doc.bold) { %}<b>{% } %}
+				{% if (doc.hidden) { %}
+					<span class="text-muted"><i class="fa fa-eye-close"></i>{% } %}
+					{% if(doc.fieldtype==="Link") { %}<i class="fa fa-link"></i>{% } %}
+                    {% if(doc.in_list_view) { %} <i class="fa fa-list"></i>{% } %}
+					{% if(doc.fieldtype==="Table") { %}<i class="fa fa-th"></i>{% } %}
+					{%= doc.label %}
+				{% if (doc.hidden) { %}</span>{% } %}
+				{% if (doc.reqd) { %}</span>{% } %}
+				{% if (doc.bold) { %}</b>{% } %}
+			{% if (doc.fieldtype=="Section Break") { %}</strong>{% } %}
+			{% if (doc.description) { %}<p class="text-muted small">{%= doc.description %}</p>{% } %}
+		</div>
+		<div class="col-sm-3">
+			{%= doc.fieldtype %}
+			<br><span class="small">{%= doc.fieldname %}</span>
+		</div>
+		<div class="col-sm-4 grid-static-col">
+			{%= doc.options && doc.options.split("\n").join("<br>") || "" %}
+			{% if(doc["default"]) { %}
+			<br>{%= __("Default") %}: <strong>{%= doc["default"] %}</strong>
+			{% } %}
+		</div>
+	</div>
+{% } else { %}
+	<div class="row">
+		<div class="col-sm-4">
+			{%= __("Label") %}
+		</div>
+		<div class="col-sm-4">
+			{%= __("Field Type") %}
+		</div>
+		<div class="col-sm-4">
+			{%= __("Options") %}
+		</div>
+	</div>
+{% } %}

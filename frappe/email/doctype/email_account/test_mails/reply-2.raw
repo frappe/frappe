@@ -1,0 +1,45 @@
+Return-Path: <test_sender@example.com>
+Received: from [192.168.0.100] ([27.106.4.70])
+        by mx.google.com with ESMTPSA id n15sm4041161pdj.34.2014.09.15.23.48.02
+        for <test_sender@example.com>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Mon, 15 Sep 2014 23:48:04 -0700 (PDT)
+From: Rushabh Mehta <test_sender@example.com>
+X-Google-Original-From: Rushabh Mehta <test_receiver@example.com>
+Content-Type: multipart/alternative; boundary="Apple-Mail=_C996D08F-7A29-4DA2-99B3-17133FA73040"
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Subject: weird subject ddwdf23r2
+Date: Tue, 16 Sep 2014 12:17:58 +0530
+References: <54A4EFFA-AD17-456A-9851-9715574DF0C9@gmail.com>
+To: Rushabh Mehta <test_sender@example.com>
+X-Mailer: Apple Mail (2.1878.6)
+
+
+--Apple-Mail=_C996D08F-7A29-4DA2-99B3-17133FA73040
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=us-ascii
+
+test-reply-2
+
+
+On 16-Sep-2014, at 11:57 am, Rushabh Mehta <test_sender@example.com> wrote:
+
+> with attachment
+>
+> <erpnext-conf-14.png>
+>
+>
+
+
+--Apple-Mail=_C996D08F-7A29-4DA2-99B3-17133FA73040
+Content-Transfer-Encoding: 7bit
+Content-Type: text/html;
+	charset=us-ascii
+
+<html><head><meta http-equiv="Content-Type" content="text/html charset=us-ascii"></head><body style="word-wrap: break-word; -webkit-nbsp-mode: space; -webkit-line-break: after-white-space;">test-reply<br><div apple-content-edited="true">
+<br><br></div><div><div>On 16-Sep-2014, at 11:57 am, Rushabh Mehta &lt;<a href="mailto:test_sender@example.com">test_sender@example.com</a>&gt; wrote:</div><br class="Apple-interchange-newline"><blockquote type="cite"><meta http-equiv="Content-Type" content="text/html charset=us-ascii"><div style="word-wrap: break-word; -webkit-nbsp-mode: space; -webkit-line-break: after-white-space;"><div>with attachment</div><br><div apple-content-edited="true">
+<div style="letter-spacing: normal; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; word-wrap: break-word; -webkit-nbsp-mode: space; -webkit-line-break: after-white-space;"><div style="font-family: Helvetica; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: -webkit-auto; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; word-wrap: break-word; -webkit-nbsp-mode: space; -webkit-line-break: after-white-space;"><span>&lt;erpnext-conf-14.png&gt;</span><br><br></div></div>
+</div>
+<br></div></blockquote></div><br></body></html>
+--Apple-Mail=_C996D08F-7A29-4DA2-99B3-17133FA73040--

@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "allow_copy": 1,
+ "autoname": "field:email_id",
+ "creation": "2017-03-13 09:20:56.387135",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "email_id",
+  "is_spam"
+ ],
+ "fields": [
+  {
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "label": "Email ID",
+   "options": "Email",
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_spam",
+   "fieldtype": "Check",
+   "label": "Is Spam"
+  }
+ ],
+ "links": [],
+ "modified": "2022-08-03 12:20:51.443237",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Email Rule",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

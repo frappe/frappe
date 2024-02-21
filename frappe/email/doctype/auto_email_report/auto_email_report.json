@@ -1,0 +1,258 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2016-09-01 01:34:34.985457",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "report",
+  "user",
+  "enabled",
+  "column_break_4",
+  "report_type",
+  "reference_report",
+  "filter_data",
+  "send_if_data",
+  "data_modified_till",
+  "no_of_rows",
+  "report_filters",
+  "filters_display",
+  "filters",
+  "filter_meta",
+  "dynamic_report_filters_section",
+  "from_date_field",
+  "to_date_field",
+  "column_break_17",
+  "dynamic_date_period",
+  "use_first_day_of_period",
+  "email_settings",
+  "email_to",
+  "day_of_week",
+  "column_break_13",
+  "sender",
+  "frequency",
+  "format",
+  "section_break_15",
+  "description"
+ ],
+ "fields": [
+  {
+   "fieldname": "report",
+   "fieldtype": "Link",
+   "label": "Report",
+   "options": "Report",
+   "reqd": 1
+  },
+  {
+   "default": "User",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "Based on Permissions For User",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "report.report_type",
+   "fieldname": "report_type",
+   "fieldtype": "Read Only",
+   "label": "Report Type"
+  },
+  {
+   "fieldname": "filter_data",
+   "fieldtype": "Section Break",
+   "label": "Filter Data"
+  },
+  {
+   "default": "1",
+   "fieldname": "send_if_data",
+   "fieldtype": "Check",
+   "label": "Send only if there is any data"
+  },
+  {
+   "depends_on": "eval:doc.report_type=='Report Builder'",
+   "description": "Zero means send records updated at anytime",
+   "fieldname": "data_modified_till",
+   "fieldtype": "Int",
+   "label": "Only Send Records Updated in Last X Hours"
+  },
+  {
+   "default": "100",
+   "depends_on": "eval:doc.report_type=='Report Builder'",
+   "fieldname": "no_of_rows",
+   "fieldtype": "Int",
+   "label": "No of Rows (Max 500)"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.report_type !== 'Report Builder'",
+   "fieldname": "report_filters",
+   "fieldtype": "Section Break",
+   "label": "Report Filters"
+  },
+  {
+   "fieldname": "filters_display",
+   "fieldtype": "HTML",
+   "label": "Filters Display"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Text",
+   "hidden": 1,
+   "label": "Filters"
+  },
+  {
+   "fieldname": "filter_meta",
+   "fieldtype": "Text",
+   "hidden": 1,
+   "label": "Filter Meta",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.report_type !== 'Report Builder'",
+   "fieldname": "dynamic_report_filters_section",
+   "fieldtype": "Section Break",
+   "label": "Dynamic Report Filters"
+  },
+  {
+   "fieldname": "from_date_field",
+   "fieldtype": "Select",
+   "label": "From Date Field"
+  },
+  {
+   "fieldname": "to_date_field",
+   "fieldtype": "Select",
+   "label": "To Date Field"
+  },
+  {
+   "fieldname": "column_break_17",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dynamic_date_period",
+   "fieldtype": "Select",
+   "label": "Period",
+   "options": "\nDaily\nWeekly\nMonthly\nQuarterly\nHalf Yearly\nYearly"
+  },
+  {
+   "fieldname": "email_settings",
+   "fieldtype": "Section Break",
+   "label": "Email Settings"
+  },
+  {
+   "description": "For multiple addresses, enter the address on different line. e.g. test@test.com \u23ce test1@test.com",
+   "fieldname": "email_to",
+   "fieldtype": "Small Text",
+   "label": "Email To",
+   "reqd": 1
+  },
+  {
+   "default": "Monday",
+   "depends_on": "eval:doc.frequency=='Weekly'",
+   "fieldname": "day_of_week",
+   "fieldtype": "Select",
+   "label": "Day of Week",
+   "options": "Monday\nTuesday\nWednesday\nThursday\nFriday\nSaturday\nSunday"
+  },
+  {
+   "fieldname": "column_break_13",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Frequency",
+   "options": "Daily\nWeekdays\nWeekly\nMonthly",
+   "reqd": 1
+  },
+  {
+   "fieldname": "format",
+   "fieldtype": "Select",
+   "label": "Format",
+   "options": "HTML\nXLSX\nCSV",
+   "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_15",
+   "fieldtype": "Section Break",
+   "label": "Message"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Message"
+  },
+  {
+   "fetch_from": "report.reference_report",
+   "fieldname": "reference_report",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Reference Report",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sender",
+   "fieldtype": "Link",
+   "label": "Sender",
+   "options": "Email Account"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.dynamic_date_period != 'Daily'",
+   "description": "To begin the date range at the start of the chosen period. For example, if 'Year' is selected as the period, the report will start from January 1st of the current year.",
+   "fieldname": "use_first_day_of_period",
+   "fieldtype": "Check",
+   "label": "Use First Day of Period"
+  }
+ ],
+ "links": [],
+ "modified": "2024-02-04 13:31:08.624648",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Auto Email Report",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Report Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

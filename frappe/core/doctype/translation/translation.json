@@ -1,0 +1,111 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "hash",
+ "creation": "2016-02-17 12:21:16.175465",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "contributed",
+  "language",
+  "section_break_4",
+  "source_text",
+  "context",
+  "column_break_6",
+  "translated_text",
+  "section_break_6",
+  "contribution_status",
+  "contribution_docname"
+ ],
+ "fields": [
+  {
+   "fieldname": "language",
+   "fieldtype": "Link",
+   "label": "Language",
+   "options": "Language",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "context",
+   "fieldtype": "Data",
+   "label": "Context"
+  },
+  {
+   "default": "0",
+   "fieldname": "contributed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Contributed",
+   "read_only": 1
+  },
+  {
+   "depends_on": "doc.contributed",
+   "fieldname": "contribution_status",
+   "fieldtype": "Select",
+   "label": "Contribution Status",
+   "options": "\nPending\nVerified\nRejected",
+   "read_only": 1
+  },
+  {
+   "fieldname": "contribution_docname",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Contribution Document Name",
+   "read_only": 1
+  },
+  {
+   "description": "If your data is in HTML, please copy paste the exact HTML code with the tags.",
+   "fieldname": "source_text",
+   "fieldtype": "Code",
+   "label": "Source Text",
+   "reqd": 1
+  },
+  {
+   "fieldname": "translated_text",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Translated Text",
+   "reqd": 1
+  }
+ ],
+ "links": [],
+ "modified": "2022-07-04 06:53:54.997004",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Translation",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "source_text",
+ "track_changes": 1
+}

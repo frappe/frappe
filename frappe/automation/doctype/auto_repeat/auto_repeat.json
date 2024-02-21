@@ -1,0 +1,262 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "format:AUT-AR-{#####}",
+ "creation": "2018-03-09 11:22:31.192349",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_1",
+  "disabled",
+  "section_break_3",
+  "reference_doctype",
+  "reference_document",
+  "submit_on_creation",
+  "column_break_5",
+  "start_date",
+  "end_date",
+  "section_break_10",
+  "frequency",
+  "repeat_on_day",
+  "repeat_on_last_day",
+  "column_break_12",
+  "next_schedule_date",
+  "section_break_16",
+  "repeat_on_days",
+  "notification",
+  "notify_by_email",
+  "recipients",
+  "get_contacts",
+  "template",
+  "subject",
+  "message",
+  "preview_message",
+  "print_format",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_document",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Document",
+   "no_copy": 1,
+   "options": "reference_doctype",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Start Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "End Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "frequency",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Frequency",
+   "options": "\nDaily\nWeekly\nMonthly\nQuarterly\nHalf-yearly\nYearly",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: in_list([\"Monthly\", \"Quarterly\", \"Half-yearly\", \"Yearly\"], doc.frequency) && !doc.repeat_on_last_day\n",
+   "fieldname": "repeat_on_day",
+   "fieldtype": "Int",
+   "label": "Repeat on Day"
+  },
+  {
+   "fieldname": "next_schedule_date",
+   "fieldtype": "Date",
+   "label": "Next Schedule Date",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "notification",
+   "fieldtype": "Section Break",
+   "label": "Notification"
+  },
+  {
+   "default": "0",
+   "fieldname": "notify_by_email",
+   "fieldtype": "Check",
+   "label": "Notify by Email"
+  },
+  {
+   "depends_on": "notify_by_email",
+   "fieldname": "recipients",
+   "fieldtype": "Small Text",
+   "label": "Recipients"
+  },
+  {
+   "depends_on": "eval: doc.notify_by_email && doc.reference_doctype && doc.reference_document",
+   "fieldname": "get_contacts",
+   "fieldtype": "Button",
+   "label": "Get Contacts"
+  },
+  {
+   "depends_on": "eval: doc.notify_by_email",
+   "fieldname": "template",
+   "fieldtype": "Link",
+   "label": "Template",
+   "options": "Email Template"
+  },
+  {
+   "depends_on": "eval: doc.notify_by_email",
+   "description": "To add dynamic subject, use jinja tags like\n\n<div><pre><code>New {{ doc.doctype }} #{{ doc.name }}</code></pre></div>",
+   "fieldname": "subject",
+   "fieldtype": "Data",
+   "label": "Subject"
+  },
+  {
+   "default": "Please find attached {{ doc.doctype }} #{{ doc.name }}",
+   "depends_on": "eval: doc.notify_by_email",
+   "fieldname": "message",
+   "fieldtype": "Text",
+   "label": "Message"
+  },
+  {
+   "depends_on": "eval: doc.notify_by_email && doc.reference_doctype && doc.reference_document",
+   "fieldname": "preview_message",
+   "fieldtype": "Button",
+   "label": "Preview Message"
+  },
+  {
+   "depends_on": "notify_by_email",
+   "fieldname": "print_format",
+   "fieldtype": "Link",
+   "label": "Print Format",
+   "options": "Print Format"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "\nActive\nDisabled\nCompleted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.frequency === 'Monthly'",
+   "fieldname": "repeat_on_last_day",
+   "fieldtype": "Check",
+   "label": "Repeat on Last Day of the Month"
+  },
+  {
+   "depends_on": "eval:doc.frequency==='Weekly';",
+   "fieldname": "repeat_on_days",
+   "fieldtype": "Table",
+   "label": "Repeat on Days",
+   "options": "Auto Repeat Day"
+  },
+  {
+   "default": "0",
+   "fieldname": "submit_on_creation",
+   "fieldtype": "Check",
+   "label": "Submit on Creation"
+  },
+  {
+   "depends_on": "eval:doc.frequency==='Weekly';",
+   "fieldname": "section_break_16",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "links": [],
+ "modified": "2021-01-12 09:24:49.719611",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Auto Repeat",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "reference_document",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "reference_document",
+ "track_changes": 1
+}

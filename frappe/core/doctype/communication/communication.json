@@ -1,0 +1,468 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2013-01-29 10:47:14",
+ "default_view": "List",
+ "description": "Keeps track of all communications",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "email_append_to": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "subject",
+  "section_break_10",
+  "communication_medium",
+  "sender",
+  "column_break_4",
+  "recipients",
+  "cc",
+  "bcc",
+  "phone_no",
+  "delivery_status",
+  "section_break_8",
+  "content",
+  "status_section",
+  "text_content",
+  "communication_type",
+  "comment_type",
+  "column_break_5",
+  "status",
+  "sent_or_received",
+  "additional_info",
+  "communication_date",
+  "read_receipt",
+  "send_after",
+  "column_break_14",
+  "sender_full_name",
+  "read_by_recipient",
+  "read_by_recipient_on",
+  "reference_section",
+  "reference_doctype",
+  "reference_name",
+  "reference_owner",
+  "email_account",
+  "in_reply_to",
+  "user",
+  "column_break_27",
+  "email_template",
+  "unread_notification_sent",
+  "seen",
+  "_user_tags",
+  "timeline_links_sections",
+  "timeline_links",
+  "email_inbox",
+  "message_id",
+  "uid",
+  "imap_folder",
+  "email_status",
+  "has_attachment",
+  "feedback_section",
+  "rating",
+  "feedback_request"
+ ],
+ "fields": [
+  {
+   "fieldname": "subject",
+   "fieldtype": "Small Text",
+   "in_global_search": 1,
+   "label": "Subject",
+   "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break",
+   "label": "To and CC"
+  },
+  {
+   "depends_on": "eval:doc.communication_type===\"Communication\"",
+   "fieldname": "communication_medium",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "\nEmail\nChat\nPhone\nSMS\nEvent\nMeeting\nVisit\nOther"
+  },
+  {
+   "depends_on": "eval:doc.communication_medium===\"Email\"",
+   "fieldname": "sender",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "label": "From",
+   "length": 255,
+   "options": "Email"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "recipients",
+   "fieldtype": "Code",
+   "label": "To",
+   "options": "Email"
+  },
+  {
+   "depends_on": "eval:doc.communication_medium===\"Email\"",
+   "fieldname": "cc",
+   "fieldtype": "Code",
+   "label": "CC",
+   "options": "Email"
+  },
+  {
+   "depends_on": "eval:doc.communication_medium===\"Email\"",
+   "fieldname": "bcc",
+   "fieldtype": "Code",
+   "label": "BCC",
+   "options": "Email"
+  },
+  {
+   "depends_on": "eval:in_list([\"Phone\",\"SMS\"],doc.communication_medium)",
+   "fieldname": "phone_no",
+   "fieldtype": "Data",
+   "label": "Phone No."
+  },
+  {
+   "description": "Integrations can use this field to set email delivery status",
+   "fieldname": "delivery_status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Delivery Status",
+   "options": "\nSent\nBounced\nOpened\nMarked As Spam\nRejected\nDelayed\nSoft-Bounced\nClicked\nRecipient Unsubscribed\nError\nExpired\nSending\nRead\nScheduled"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Text Editor",
+   "label": "Message",
+   "width": "400"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "fieldname": "text_content",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Text Content"
+  },
+  {
+   "default": "Communication",
+   "fieldname": "communication_type",
+   "fieldtype": "Select",
+   "label": "Communication Type",
+   "options": "Communication\nComment\nChat\nNotification\nFeedback\nAutomated Message",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "comment_type",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Comment Type",
+   "options": "\nComment\nLike\nInfo\nLabel\nWorkflow\nCreated\nSubmitted\nCancelled\nUpdated\nDeleted\nAssigned\nAssignment Completed\nAttachment\nAttachment Removed\nShared\nUnshared\nRelinked",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.communication_type===\"Communication\"",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nReplied\nClosed\nLinked",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.communication_type===\"Communication\"",
+   "fieldname": "sent_or_received",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Sent or Received",
+   "options": "Sent\nReceived",
+   "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "additional_info",
+   "fieldtype": "Section Break",
+   "label": "More Information"
+  },
+  {
+   "default": "Now",
+   "fieldname": "communication_date",
+   "fieldtype": "Datetime",
+   "label": "Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "read_receipt",
+   "fieldtype": "Check",
+   "label": "Sent Read Receipt",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_14",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sender_full_name",
+   "fieldtype": "Data",
+   "label": "From Full Name",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "read_by_recipient",
+   "fieldtype": "Check",
+   "label": "Read by Recipient",
+   "read_only": 1
+  },
+  {
+   "fieldname": "read_by_recipient_on",
+   "fieldtype": "Datetime",
+   "label": "Read by Recipient On",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "reference_section",
+   "fieldtype": "Section Break",
+   "label": "Reference"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Name",
+   "options": "reference_doctype"
+  },
+  {
+   "fetch_from": "reference_name.owner",
+   "fieldname": "reference_owner",
+   "fieldtype": "Read Only",
+   "label": "Reference Owner",
+   "search_index": 1
+  },
+  {
+   "depends_on": "eval:doc.communication_medium===\"Email\"",
+   "fieldname": "email_account",
+   "fieldtype": "Link",
+   "label": "Email Account",
+   "options": "Email Account",
+   "read_only": 1
+  },
+  {
+   "fieldname": "in_reply_to",
+   "fieldtype": "Link",
+   "label": "In Reply To",
+   "options": "Communication",
+   "read_only": 1
+  },
+  {
+   "default": "__user",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_27",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "unread_notification_sent",
+   "fieldtype": "Check",
+   "label": "Unread Notification Sent",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "seen",
+   "fieldtype": "Check",
+   "label": "Seen",
+   "read_only": 1
+  },
+  {
+   "fieldname": "_user_tags",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "User Tags",
+   "no_copy": 1,
+   "print_hide": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "email_inbox",
+   "fieldtype": "Section Break",
+   "label": "Email Inbox",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "message_id",
+   "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
+   "label": "Message ID",
+   "length": 995,
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "uid",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "UID",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "email_status",
+   "fieldtype": "Select",
+   "label": "Email Status",
+   "options": "Open\nSpam\nTrash"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_attachment",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Has  Attachment"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval: doc.rating > 0",
+   "fieldname": "feedback_section",
+   "fieldtype": "Section Break",
+   "label": "Feedback"
+  },
+  {
+   "fieldname": "rating",
+   "fieldtype": "Int",
+   "label": "Rating",
+   "read_only": 1
+  },
+  {
+   "fieldname": "feedback_request",
+   "fieldtype": "Data",
+   "label": "Feedback Request",
+   "read_only": 1
+  },
+  {
+   "fieldname": "email_template",
+   "fieldtype": "Link",
+   "label": "Email Template",
+   "options": "Email Template",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "timeline_links_sections",
+   "fieldtype": "Section Break",
+   "label": "Timeline Links"
+  },
+  {
+   "fieldname": "timeline_links",
+   "fieldtype": "Table",
+   "label": "Timeline Links",
+   "options": "Communication Link",
+   "permlevel": 2
+  },
+  {
+   "fieldname": "imap_folder",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "IMAP Folder",
+   "read_only": 1
+  },
+  {
+   "fieldname": "send_after",
+   "fieldtype": "Datetime",
+   "label": "Send After"
+  }
+ ],
+ "icon": "fa fa-comment",
+ "idx": 1,
+ "links": [],
+ "modified": "2023-11-27 20:38:27.467076",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Communication",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "permlevel": 2,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Inbox User"
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "search_fields": "subject",
+ "sender_field": "sender",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "subject_field": "subject",
+ "title_field": "subject",
+ "track_changes": 1,
+ "track_seen": 1
+}

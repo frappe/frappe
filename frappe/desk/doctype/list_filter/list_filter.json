@@ -1,0 +1,62 @@
+{
+ "actions": [],
+ "creation": "2018-02-22 15:10:24.401801",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "filter_name",
+  "reference_doctype",
+  "for_user",
+  "filters"
+ ],
+ "fields": [
+  {
+   "fieldname": "filter_name",
+   "fieldtype": "Data",
+   "label": "Filter Name"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "for_user",
+   "fieldtype": "Link",
+   "label": "For User",
+   "options": "User"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Long Text",
+   "label": "Filters"
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2023-08-28 22:32:51.465521",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "List Filter",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

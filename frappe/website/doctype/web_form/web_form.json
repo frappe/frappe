@@ -1,0 +1,417 @@
+{
+ "actions": [],
+ "creation": "2014-09-01 14:08:48.624556",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "form_tab",
+  "title",
+  "route",
+  "published",
+  "column_break_vdhm",
+  "doc_type",
+  "module",
+  "is_standard",
+  "section_break_1",
+  "introduction_text",
+  "web_form_fields",
+  "settings_tab",
+  "login_required",
+  "allow_multiple",
+  "allow_edit",
+  "allow_delete",
+  "anonymous",
+  "column_break_2",
+  "apply_document_permissions",
+  "allow_print",
+  "print_format",
+  "allow_comments",
+  "show_attachments",
+  "allow_incomplete",
+  "section_break_2",
+  "max_attachment_size",
+  "condition_section",
+  "condition_description",
+  "condition_json",
+  "section_break_3",
+  "list_setting_message",
+  "show_list",
+  "list_title",
+  "list_columns",
+  "section_break_4",
+  "show_sidebar",
+  "website_sidebar",
+  "customization_tab",
+  "button_label",
+  "banner_image",
+  "column_break_3",
+  "breadcrumbs",
+  "section_break_5",
+  "success_title",
+  "success_url",
+  "column_break_4",
+  "success_message",
+  "meta_section",
+  "meta_title",
+  "meta_description",
+  "column_break_khxs",
+  "meta_image",
+  "section_break_6",
+  "client_script",
+  "custom_css"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "no_copy": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "route",
+   "fieldtype": "Data",
+   "label": "Route",
+   "unique": 1
+  },
+  {
+   "fieldname": "doc_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Select DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard"
+  },
+  {
+   "default": "0",
+   "fieldname": "published",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Published"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.anonymous",
+   "fieldname": "login_required",
+   "fieldtype": "Check",
+   "label": "Login Required"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "allow_edit",
+   "fieldtype": "Check",
+   "label": "Allow Editing After Submit"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "allow_multiple",
+   "fieldtype": "Check",
+   "label": "Allow Multiple Responses"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.allow_multiple && doc.login_required",
+   "fieldname": "allow_delete",
+   "fieldtype": "Check",
+   "label": "Allow Delete"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_print",
+   "fieldtype": "Check",
+   "label": "Allow Print"
+  },
+  {
+   "depends_on": "allow_print",
+   "fieldname": "print_format",
+   "fieldtype": "Link",
+   "label": "Print Format",
+   "options": "Print Format"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "allow_comments",
+   "fieldtype": "Check",
+   "label": "Allow Comments"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "show_attachments",
+   "fieldtype": "Check",
+   "label": "Show Attachments"
+  },
+  {
+   "default": "0",
+   "description": "Allow saving if mandatory fields are not filled",
+   "fieldname": "allow_incomplete",
+   "fieldtype": "Check",
+   "label": "Allow Incomplete Forms"
+  },
+  {
+   "fieldname": "introduction_text",
+   "fieldtype": "Text Editor",
+   "ignore_xss_filter": 1,
+   "label": "Introduction"
+  },
+  {
+   "fieldname": "web_form_fields",
+   "fieldtype": "Table",
+   "label": "Web Form Fields",
+   "options": "Web Form Field"
+  },
+  {
+   "fieldname": "max_attachment_size",
+   "fieldtype": "Int",
+   "label": "Max Attachment Size (in MB)"
+  },
+  {
+   "description": "For help see <a href=\"https://frappeframework.com/docs/user/en/guides/portal-development/web-forms\" target=\"_blank\">Client Script API and Examples</a>",
+   "fieldname": "client_script",
+   "fieldtype": "Code",
+   "label": "Client Script"
+  },
+  {
+   "default": "Save",
+   "fieldname": "button_label",
+   "fieldtype": "Data",
+   "label": "Submit Button Label"
+  },
+  {
+   "description": "Message to be displayed on successful completion",
+   "fieldname": "success_message",
+   "fieldtype": "Text",
+   "label": "Success Message"
+  },
+  {
+   "description": "Go to this URL after completing the form",
+   "fieldname": "success_url",
+   "fieldtype": "Data",
+   "label": "Success URL"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_sidebar",
+   "fieldtype": "Check",
+   "label": "Show Sidebar"
+  },
+  {
+   "description": "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]",
+   "fieldname": "breadcrumbs",
+   "fieldtype": "Code",
+   "label": "Breadcrumbs",
+   "max_height": "140px"
+  },
+  {
+   "fieldname": "custom_css",
+   "fieldtype": "Code",
+   "label": "Custom CSS",
+   "options": "CSS"
+  },
+  {
+   "default": "0",
+   "fieldname": "apply_document_permissions",
+   "fieldtype": "Check",
+   "label": "Apply Document Permissions"
+  },
+  {
+   "default": "0",
+   "depends_on": "login_required",
+   "fieldname": "show_list",
+   "fieldtype": "Check",
+   "label": "Show List"
+  },
+  {
+   "depends_on": "eval: doc.login_required && doc.show_list",
+   "fieldname": "list_title",
+   "fieldtype": "Data",
+   "label": "Title"
+  },
+  {
+   "depends_on": "eval: doc.login_required && doc.show_list",
+   "fieldname": "list_columns",
+   "fieldtype": "Table",
+   "label": "List Columns",
+   "options": "Web Form List Column"
+  },
+  {
+   "fieldname": "website_sidebar",
+   "fieldtype": "Link",
+   "label": "Website Sidebar",
+   "options": "Website Sidebar"
+  },
+  {
+   "fieldname": "list_setting_message",
+   "fieldtype": "HTML",
+   "label": "List Setting Message"
+  },
+  {
+   "fieldname": "customization_tab",
+   "fieldtype": "Tab Break",
+   "label": "Customization"
+  },
+  {
+   "fieldname": "success_title",
+   "fieldtype": "Data",
+   "label": "Success Title"
+  },
+  {
+   "fieldname": "banner_image",
+   "fieldtype": "Attach Image",
+   "label": "Banner Image"
+  },
+  {
+   "fieldname": "form_tab",
+   "fieldtype": "Tab Break",
+   "label": "Form"
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "show_list",
+   "depends_on": "eval:!doc.anonymous",
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "List Settings"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "show_sidebar",
+   "depends_on": "eval:!doc.anonymous",
+   "fieldname": "section_break_4",
+   "fieldtype": "Section Break",
+   "label": "Sidebar Settings"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.success_title || doc.success_message || doc.success_url",
+   "fieldname": "section_break_5",
+   "fieldtype": "Section Break",
+   "label": "After Submission"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.client_script || doc.custom_css",
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "label": "Scripting / Style"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "meta_section",
+   "fieldtype": "Section Break",
+   "label": "Meta"
+  },
+  {
+   "fieldname": "meta_title",
+   "fieldtype": "Data",
+   "label": "Meta Title"
+  },
+  {
+   "fieldname": "meta_description",
+   "fieldtype": "Small Text",
+   "label": "Meta Description"
+  },
+  {
+   "fieldname": "column_break_khxs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "meta_image",
+   "fieldtype": "Attach Image",
+   "label": "Meta Image"
+  },
+  {
+   "fieldname": "column_break_vdhm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Receive anonymous response",
+   "fieldname": "anonymous",
+   "fieldtype": "Check",
+   "label": "Anonymous"
+  },
+  {
+   "fieldname": "condition_description",
+   "fieldtype": "HTML",
+   "label": "Condition Description",
+   "options": "<p>Multiple webforms can be created for a single doctype. Add filters specific to this webform to display correct record after submission.</p><p>For Example:</p>\n<p>If you create a separate webform every year to capture feedback from employees add a \n field named year in doctype and add a filter <b>year = 2023</b></p>\n"
+  },
+  {
+   "fieldname": "condition_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "condition_json",
+   "fieldtype": "JSON",
+   "label": "Condition JSON"
+  }
+ ],
+ "has_web_view": 1,
+ "icon": "icon-edit",
+ "is_published_field": "published",
+ "links": [],
+ "modified": "2023-10-10 12:51:18.341792",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Form",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

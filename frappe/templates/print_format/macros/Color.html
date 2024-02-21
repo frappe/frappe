@@ -1,0 +1,8 @@
+{% extends "templates/print_format/macros/Data.html" %}
+
+{%- block value -%}
+<div class="value">
+    <div class="color-square" style="background-color: {{ value }};"></div>
+    {{ value }}
+</div>
+{%- endblock -%}

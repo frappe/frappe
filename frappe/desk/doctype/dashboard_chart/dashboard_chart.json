@@ -1,0 +1,336 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:chart_name",
+ "creation": "2019-01-10 12:28:06.282875",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "is_standard",
+  "module",
+  "chart_name",
+  "chart_type",
+  "report_name",
+  "use_report_chart",
+  "x_field",
+  "y_axis",
+  "source",
+  "document_type",
+  "parent_document_type",
+  "based_on",
+  "value_based_on",
+  "group_by_type",
+  "group_by_based_on",
+  "aggregate_function_based_on",
+  "number_of_groups",
+  "column_break_6",
+  "is_public",
+  "heatmap_year",
+  "timespan",
+  "from_date",
+  "to_date",
+  "time_interval",
+  "timeseries",
+  "type",
+  "filters_section",
+  "filters_json",
+  "dynamic_filters_section",
+  "dynamic_filters_json",
+  "chart_options_section",
+  "custom_options",
+  "column_break_2",
+  "color",
+  "section_break_10",
+  "last_synced_on",
+  "roles"
+ ],
+ "fields": [
+  {
+   "fieldname": "chart_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Chart Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "chart_type",
+   "fieldtype": "Select",
+   "label": "Chart Type",
+   "options": "Count\nSum\nAverage\nGroup By\nCustom\nReport",
+   "set_only_once": 1
+  },
+  {
+   "depends_on": "eval:doc.chart_type === 'Custom'",
+   "fieldname": "source",
+   "fieldtype": "Link",
+   "label": "Chart Source",
+   "options": "Dashboard Chart Source"
+  },
+  {
+   "depends_on": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "label": "Document Type",
+   "options": "DocType",
+   "set_only_once": 1
+  },
+  {
+   "depends_on": "eval: doc.timeseries && ['Count', 'Sum', 'Average'].includes(doc.chart_type)",
+   "fieldname": "based_on",
+   "fieldtype": "Select",
+   "label": "Time Series Based On"
+  },
+  {
+   "depends_on": "eval: ['Sum', 'Average'].includes(doc.chart_type)\n",
+   "fieldname": "value_based_on",
+   "fieldtype": "Select",
+   "label": "Value Based On"
+  },
+  {
+   "fieldname": "column_break_6",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.timeseries && doc.type !== 'Heatmap'",
+   "fieldname": "timespan",
+   "fieldtype": "Select",
+   "label": "Timespan",
+   "options": "Last Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range"
+  },
+  {
+   "depends_on": "eval: doc.timeseries && doc.type !== 'Heatmap'",
+   "fieldname": "time_interval",
+   "fieldtype": "Select",
+   "label": "Time Interval",
+   "options": "Yearly\nQuarterly\nMonthly\nWeekly\nDaily"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: !['Group By', 'Report'].includes(doc.chart_type)\n",
+   "fieldname": "timeseries",
+   "fieldtype": "Check",
+   "label": "Time Series"
+  },
+  {
+   "fieldname": "filters_section",
+   "fieldtype": "Section Break",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "filters_json",
+   "fieldtype": "Code",
+   "label": "Filters JSON",
+   "options": "JSON",
+   "reqd": 1
+  },
+  {
+   "fieldname": "chart_options_section",
+   "fieldtype": "Section Break",
+   "label": "Chart Options"
+  },
+  {
+   "default": "Line",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "label": "Type",
+   "options": "Line\nBar\nPercentage\nPie\nDonut\nHeatmap"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.chart_type !== 'Report' && doc.type !== 'Heatmap'",
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "Color"
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "last_synced_on",
+   "fieldtype": "Datetime",
+   "label": "Last Synced On",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.chart_type === 'Group By'",
+   "fieldname": "group_by_based_on",
+   "fieldtype": "Select",
+   "label": "Group By Based On"
+  },
+  {
+   "default": "Count",
+   "depends_on": "eval:doc.chart_type === 'Group By'",
+   "fieldname": "group_by_type",
+   "fieldtype": "Select",
+   "label": "Group By Type",
+   "options": "Count\nSum\nAverage"
+  },
+  {
+   "depends_on": "eval: ['Sum', 'Average'].includes(doc.group_by_type)",
+   "fieldname": "aggregate_function_based_on",
+   "fieldtype": "Select",
+   "label": "Aggregate Function Based On"
+  },
+  {
+   "depends_on": "eval:doc.chart_type === 'Group By'",
+   "fieldname": "number_of_groups",
+   "fieldtype": "Int",
+   "label": "Number of Groups"
+  },
+  {
+   "depends_on": "eval:doc.timespan === 'Select Date Range'",
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date"
+  },
+  {
+   "depends_on": "eval:doc.timespan === 'Select Date Range'",
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date"
+  },
+  {
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
+   "fieldname": "x_field",
+   "fieldtype": "Select",
+   "label": "X Field",
+   "mandatory_depends_on": "eval: doc.report_name && !doc.use_report_chart"
+  },
+  {
+   "depends_on": "eval:doc.chart_type === 'Report'",
+   "fieldname": "report_name",
+   "fieldtype": "Link",
+   "label": "Report Name",
+   "mandatory_depends_on": "eval:doc.chart_type === 'Report'",
+   "options": "Report",
+   "set_only_once": 1
+  },
+  {
+   "depends_on": "eval:doc.chart_type == 'Report' && doc.report_name && !doc.use_report_chart",
+   "fieldname": "y_axis",
+   "fieldtype": "Table",
+   "label": "Y Axis",
+   "mandatory_depends_on": "eval:doc.report_name && !doc.use_report_chart",
+   "options": "Dashboard Chart Field"
+  },
+  {
+   "description": "Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"]",
+   "fieldname": "custom_options",
+   "fieldtype": "Code",
+   "label": "Custom Options"
+  },
+  {
+   "default": "0",
+   "description": "This chart will be available to all Users if this is set",
+   "fieldname": "is_public",
+   "fieldtype": "Check",
+   "label": "Is Public"
+  },
+  {
+   "depends_on": "eval: doc.type == 'Heatmap'",
+   "fieldname": "heatmap_year",
+   "fieldtype": "Select",
+   "label": "Year"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+  },
+  {
+   "depends_on": "eval: doc.is_standard",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "mandatory_depends_on": "eval: doc.is_standard",
+   "options": "Module Def"
+  },
+  {
+   "fieldname": "dynamic_filters_json",
+   "fieldtype": "Code",
+   "label": "Dynamic Filters JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "dynamic_filters_section",
+   "fieldtype": "Section Break",
+   "label": "Dynamic Filters"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.report_name",
+   "fieldname": "use_report_chart",
+   "fieldtype": "Check",
+   "label": "Use Report Chart"
+  },
+  {
+   "depends_on": "eval: doc.chart_type !== 'Custom' && doc.chart_type !== 'Report'",
+   "description": "The document type selected is a child table, so the parent document type is required.",
+   "fieldname": "parent_document_type",
+   "fieldtype": "Link",
+   "label": "Parent Document Type",
+   "options": "DocType"
+  },
+  {
+   "description": "If set, only user with these roles can access this chart. If not set, DocType or Report permissions will be used.",
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "label": "Roles",
+   "options": "Has Role"
+  }
+ ],
+ "links": [],
+ "modified": "2023-09-18 13:41:05.263676",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Dashboard Chart",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Dashboard Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

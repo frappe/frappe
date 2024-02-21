@@ -1,0 +1,181 @@
+<ul class="list-unstyled sidebar-menu user-actions hidden"></ul>
+<ul class="list-unstyled sidebar-menu sidebar-image-section hide">
+	<li class="sidebar-image-wrapper">
+		<img class="sidebar-image">
+		<div class="sidebar-standard-image">
+			<div class="standard-image"></div>
+		</div>
+		{% if can_write %}
+		<div class="sidebar-image-actions">
+			<div class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ __("Change") }}</a>
+				<div class="dropdown-menu" role="menu">
+					<a class="dropdown-item sidebar-image-change">{{ __("Upload") }}</a>
+					<a class="dropdown-item sidebar-image-remove">{{ __("Remove") }}</a>
+				</div>
+			</div>
+		</div>
+		{% endif %}
+	</li>
+</ul>
+{% if frm.meta.beta %}
+<div class="sidebar-menu">
+	<p><label class="indicator-pill yellow" title="{{ __("This feature is brand new and still experimental") }}">{{ __("Experimental") }}</label></p>
+	<p><a class="small text-muted" href="https://github.com/frappe/{{ frappe.boot.module_app[frappe.scrub(frm.meta.module)] }}/issues/new"
+			target="_blank">
+		{{ __("Click here to post bugs and suggestions") }}</a></p>
+
+</div>
+{% endif %}
+<ul class="list-unstyled sidebar-menu sidebar-rating hide">
+	<li style="position: relative;">
+		<a class="strong badge-hover">
+			<span>{%= __("Feedback") %}</span>
+		</a>
+	</li>
+	<li class="rating-icons"></li>
+</ul>
+<ul class="list-unstyled sidebar-menu hidden">
+	{% if (frappe.help.has_help(doctype)) { %}
+	<li><a class="help-link list-link" data-doctype="{{ doctype }}">{{ __("Help") }}</a></li>
+	{% } %}
+</ul>
+<ul class="list-unstyled sidebar-menu form-assignments">
+	<li>
+		<span class="form-sidebar-items">
+			<span class="add-assignment-label">
+				<svg class="es-icon ml-0 icon-sm"><use href="#es-line-add-people"></use></svg>
+				<span class="ellipsis">{%= __("Assigned To") %}</span>
+			</span>
+			<button class="add-assignment-btn btn btn-link icon-btn">
+				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
+			</button>
+		</span>
+		<div class="assignments"></div>
+	</li>
+</ul>
+<ul class="list-unstyled sidebar-menu form-attachments">
+	<li class="attachments-actions">
+		<span class="form-sidebar-items">
+			<span>
+				<svg class="es-icon ml-0 icon-sm">
+					<use href="#es-line-attachment"></use>
+				</svg>
+				<a class="pill-label ellipsis explore-link">
+					{%= __("Attachments") %}
+				</a>
+			</span>
+			<button class="add-attachment-btn btn btn-link icon-btn">
+				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
+			</button>
+		</span>
+	</li>
+	<a class="show-all-btn hidden" href="">
+		<svg class="es-icon icon-sm">
+			<use href="#es-line-preview"></use>
+		</svg>
+		<span class="pill-label ellipsis">
+			{%= __("Show All") %}
+		</span>
+	</a>
+</ul>
+<ul class="list-unstyled sidebar-menu form-reviews">
+		<li class="reviews">
+			<span class="form-sidebar-items">
+				<span>
+					<svg class="es-icon ml-0 icon-sm"><use href="#es-line-star"></use></svg>
+					<span class="ellipsis">{%= __("Reviews") %}</span>
+				</span>
+				<button class="add-review-btn btn btn-link icon-btn">
+					<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
+				</button>
+			</span>
+		</li>
+</ul>
+<ul class="list-unstyled sidebar-menu form-tags">
+		<li>
+			<span class="form-sidebar-items">
+				<span>
+					<svg class="es-icon ml-0 icon-sm"><use href="#es-line-tag"></use></svg>
+					<span class="tags-label ellipsis">{%= __("Tags") %}</span>
+				</span>
+			</span>
+		</li>
+</ul>
+<ul class="list-unstyled sidebar-menu form-shared">
+	<li>
+		<span class="form-sidebar-items">
+			<span class="share-label">
+				<svg class="es-icon ml-0 icon-sm"><use href="#es-line-add-people"></use></svg>
+				<span class="ellipsis">{%= __("Share") %}</span>
+			</span>
+			<button class="share-doc-btn btn btn-link icon-btn">
+				<svg class="es-icon icon-sm"><use href="#es-line-add"></use></svg>
+			</button>
+		</span>
+		<div class="shares"></div>
+	</li>
+</ul>
+<ul class="list-unstyled sidebar-menu followed-by-section">
+	<li class="sidebar-label followed-by-label hidden">
+		<svg class="icon icon-sm">
+			<use href="#icon-link-url" class="like-icon"></use>
+		</svg>
+		{%= __("Followed by") %}
+	</li>
+	<li class="followed-by"></li>
+	<li class="document-follow">
+		<a class="badge-hover follow-document-link hidden">
+			{%= __("Follow") %}
+		</a>
+		<a class="badge-hover unfollow-document-link hidden">
+			{%= __("Unfollow") %}
+		</a>
+	</li>
+</ul>
+<ul class="list-unstyled sidebar-menu">
+	<a><li class="auto-repeat-status"><li></a>
+</ul>
+<ul class="list-unstyled sidebar-menu form-sidebar-stats">
+	<li class="flex">
+		<div class="form-stats d-flex">
+			<span class="form-stats-likes">
+				<span class="liked-by like-action d-flex align-items-center">
+					<svg class="es-icon icon-sm">
+						<use href="#es-solid-heart" class="like-icon"></use>
+					</svg>
+					<span class="like-count ml-2"></span>
+				</span>
+			</span>
+			<span class="mx-2">·</span>
+			<a class="comments d-flex align-items-center">
+				<svg class="es-icon icon-sm">
+					<use href="#es-line-chat-alt" class="comment-icon"></use>
+				</svg>
+				<span class="comments-count ml-2"></span>
+			</a>
+		</div>
+		<a class="form-follow text-sm">
+			Follow
+		</a>
+	</li>
+</ul>
+<hr>
+<!-- <ul class="list-unstyled sidebar-menu">
+	<li class="liked-by-parent">
+		<span class="liked-by like-action">
+			<svg class="icon icon-sm">
+				<use href="#icon-heart" class="like-icon"></use>
+			</svg>
+			<span class="likes-count"></span>
+		</span>
+	</li>
+</ul> -->
+<ul class="list-unstyled sidebar-menu text-muted">
+	<li class="pageview-count"></li>
+	<li class="modified-by"></li>
+	<li class="created-by"></li>
+</ul>
+{% if(frappe.get_form_sidebar_extension) { %}
+	{{ frappe.get_form_sidebar_extension() }}
+{% } %}

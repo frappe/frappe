@@ -1,0 +1,197 @@
+{% extends "templates/web.html" %}
+
+{% block meta_block %}
+	{% include "templates/includes/meta_block.html" %}
+{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block header %}
+	{% if webform_banner_image %}
+		<!-- banner image -->
+		<img class="web-form-banner-image" src="{{ webform_banner_image }}" alt="Banner Image">
+	{% endif %}
+{% endblock %}
+
+{% macro header_buttons() %}
+	{% block header_buttons %}
+	{% if allow_edit and in_view_mode %}
+		<!-- edit button -->
+		<a href="/{{ route }}/{{ doc_name }}/edit" class="edit-button btn btn-default btn-sm">{{ _("Edit Response", context="Button in web form") }}</a>
+	{% endif %}
+
+	{% if allow_print and in_view_mode %}
+		{% set print_format_url = "/printview?doctype=" + doc_type + "&name=" + doc_name + "&format=" + (print_format or "standard") %}
+		<!-- print button -->
+		<a href="{{ print_format_url }}" target="_blank" class="print-btn btn btn-default btn-sm ml-2">
+			<svg class="icon icon-sm"><use href="#icon-printer"></use></svg>
+		</a>
+	{% endif %}
+	{% endblock %}
+{% endmacro %}
+
+{% macro action_buttons() %}
+	{% block actions_buttons %}
+	<div class="left-area"></div>
+	<div class="center-area paging"></div>
+	<div class="right-area">
+		{% if not in_view_mode %}
+			<!-- discard button -->
+			<button class="discard-btn btn btn-default btn-sm">
+				{{ _("Discard", context="Button in web form") }}
+			</button>
+			<!-- submit button -->
+			<button type="submit" class="submit-btn btn btn-primary btn-sm ml-2">{{ _(button_label, context="Button in web form") or _("Submit", context="Button in web form") }}</button>
+		{% endif %}
+	</div>
+	{% endblock %}
+{% endmacro %}
+
+{% block page_content %}
+	<!-- web form container -->
+	<div class="web-form-container">
+		<!-- breadcrumb -->
+		{% if not webform_banner_image and has_header and login_required and show_list %}
+			{% include "templates/includes/breadcrumbs.html" %}
+			{% else %}
+				<div style="height: 3rem"></div>
+		{% endif %}
+
+		<!-- header -->
+		<div class="web-form-header">
+			{% if webform_banner_image and has_header and login_required and show_list %}
+				{% include "templates/includes/breadcrumbs.html" %}
+			{% endif %}
+			<div class="web-form-head">
+				<div class="title">
+					<div class="web-form-title ellipsis">
+						{% if show_list and not is_new %}
+							<h1 class="ellipsis">{{ _(web_form_title) }}</h1>
+							<p class="ellipsis">{{ _(title) }}</p>
+						{% else %}
+							<h1 class="ellipsis">{{ _(title) }}</h1>
+						{% endif %}
+					</div>
+					<span class="indicator-pill orange hide">{{ _("Not Saved") }}</span>
+					<div class="web-form-actions">
+						{{ header_buttons() }}
+					</div>
+				</div>
+				{% if introduction_text and (is_new or in_edit_mode)  %}
+					<div class="web-form-introduction">{{ introduction_text }}</div>
+				{% endif %}
+			</div>
+		</div>
+
+		<!-- main card -->
+		<form role="form" class="web-form">
+			<div class="web-form-body">
+				<div class="web-form-wrapper">
+					{% include "website/doctype/web_form/templates/web_form_skeleton.html" %}
+				</div>
+			</div>
+			<div class="web-form-footer">
+				<div class="web-form-actions">
+					{{ action_buttons() }}
+				</div>
+			</div>
+		</form>
+
+		<!-- attachments -->
+		{% if show_attachments and not is_new and attachments %}
+			<div class="attachments">
+				<h5 class="mb-3">{{ _("Attachments") }}</h5>
+				{% for attachment in attachments %}
+					<a class="attachment attachment-link" href="{{ attachment.file_url }}" target="blank">
+						<div class="file-name ellipsis">
+							<svg class="icon icon-sm"><use href="#icon-attachment"></use></svg>
+							<span>{{ attachment.file_name }}</span>
+						</div>
+						<div class="file-size">{{ attachment.file_size }}</div>
+					</a>
+				{% endfor %}
+			</div>
+		{% endif %} {# attachments #}
+
+		<!-- comments -->
+		{% if allow_comments and not is_new and not is_list -%}
+			<div class="comments">
+				<h3>{{ _("Comments") }}</h3>
+				{% include 'templates/includes/comments/comments.html' %}
+			</div>
+		{%- else -%}
+			<div style="height: 3rem"></div>
+		{%- endif %} {# comments #}
+	</div>
+
+	<!-- success page -->
+	<div class="success-page hide">
+		<div class="success-header">
+			<svg class="success-icon icon">
+				<use href="#icon-solid-success"></use>
+			</svg>
+			<h2 class="success-title">{{ _(success_title) or _("Submitted") }}</h2>
+		</div>
+
+		<div class="success-body">
+			<p class="success-message">{{ _(success_message) or _("Thank you for spending your valuable time to fill this form") }}</p>
+		</div>
+
+		<div class="success-footer">
+			{% if success_url %}
+				<div class="success_url_message">
+					<p>
+						{% set success_link = '<a href="{0}">{1}</a>'.format(success_url, _("Click here")) %}
+						{{ _("{0} if you are not redirected within {1} seconds").format(success_link, '<span class="time">5</span>') }}
+					</p>
+				</div>
+			{% else %}
+				{% if show_list %}
+					<a href="/{{ route }}/list" class="show-list-button btn btn-default btn-md">{{ _("See previous responses", context="Button in web form") }}</a>
+				{% endif %}
+				{% if not login_required or allow_multiple %}
+					<a href="/{{ route }}/new" class="new-btn btn btn-default btn-md">{{ _("Submit another response", context="Button in web form") }}</a>
+				{% endif %}
+			{% endif %}
+		</div>
+	</div>
+
+{% endblock page_content %}
+
+{% block script %}
+	<script>
+		frappe.boot = {{ boot }};
+		frappe._messages = {{ translated_messages }};
+		frappe.web_form_doc = {{ web_form_doc | json }};
+		frappe.reference_doc = {{ reference_doc | json }};
+	</script>
+	{{ include_script("web_form.bundle.js") }}
+
+	<script>
+		{% if client_script %}
+			frappe.init_client_script = () => {
+				try {
+					{{ client_script }}
+				} catch(e) {
+					console.error('Error in web form client script');
+					console.error(e);
+				}
+			}
+		{% endif %}
+
+		{% if script is defined %}
+			{{ script }}
+		{% endif %}
+	</script>
+{% endblock script %}
+
+{% block style %}
+	<style>
+		{% if style is defined %}
+			{{ style }}
+		{% endif %}
+		{% if custom_css %}
+			{{ custom_css }}
+		{% endif %}
+	</style>
+{% endblock %}

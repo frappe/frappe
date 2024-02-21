@@ -1,0 +1,138 @@
+Return-path: <test_sender@example.com>
+Envelope-to: test_receiver@example.com
+Delivery-date: Tue, 09 Feb 2016 14:53:22 +0800
+Received: from 23-59-23-10.perm.iinet.net.au ([23.59.23.10]:56280)
+	by webcloud85.au.syrahost.com with esmtp (Exim 4.86)
+	(envelope-from <test_sender@example.com>)
+	id 1aT2As-003QlT-B0
+	for test_receiver@example.com; Tue, 09 Feb 2016 14:53:22 +0800
+From: <test_sender@example.com>
+To: <test_receiver@example.com>
+Subject: test email
+Date: Tue, 9 Feb 2016 14:53:13 +0800
+Message-ID: <000001d16306$8b9e5c60$a2db1520$@ia-group.com.au>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_0005_01D16349.99C37120"
+X-Mailer: Microsoft Outlook 14.0
+Thread-Index: AdFjBjqdYnxyziyBQVK9mLTYYu+9Og==
+Content-Language: en-au
+
+This is a multipart message in MIME format.
+
+------=_NextPart_000_0005_01D16349.99C37120
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_001_0006_01D16349.99C37120"
+
+
+------=_NextPart_001_0006_01D16349.99C37120
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+4th test email
+
+
+------=_NextPart_001_0006_01D16349.99C37120
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40"><head><meta =
+http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii"><meta name=3DGenerator content=3D"Microsoft Word 14 =
+(filtered medium)"><style><!--
+/* Font Definitions */
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:0 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+/* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";
+	mso-fareast-language:EN-US;}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+.MsoChpDefault
+	{mso-style-type:export-only;
+	font-size:10.0pt;}
+@page WordSection1
+	{size:612.0pt 792.0pt;
+	margin:72.0pt 72.0pt 72.0pt 72.0pt;}
+div.WordSection1
+	{page:WordSection1;}
+--></style><!--[if gte mso 9]><xml>
+<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+<o:shapelayout v:ext=3D"edit">
+<o:idmap v:ext=3D"edit" data=3D"1" />
+</o:shapelayout></xml><![endif]--></head><body lang=3DEN-AU link=3Dblue =
+vlink=3Dpurple><div class=3DWordSection1><p =
+class=3DMsoNormal>4<sup>th</sup> test email =
+<o:p></o:p></p></div></body></html>
+------=_NextPart_001_0006_01D16349.99C37120--
+
+------=_NextPart_000_0005_01D16349.99C37120
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment
+
+Received: from 23-59-23-10.perm.iinet.net.au ([23.59.23.10]:49772 helo=DESKTOP7C66I2M)
+	by webcloud85.au.syrahost.com with esmtpsa (TLSv1.2:DHE-RSA-AES256-GCM-SHA384:256)
+	(Exim 4.86)
+	(envelope-from <test_sender@example.com>)
+	id 1aOEtO-003tI4-Kv
+	for test_receiver@example.com; Wed, 27 Jan 2016 09:27:30 +0800
+Return-Path: <test_sender@example.com>
+From: "Microsoft Outlook" <test_sender@example.com>
+To: <test_receiver@example.com>
+Subject: Microsoft Outlook Test Message
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0001_01D16349.99C25FB0"
+X-Mailer: Microsoft Outlook 14.0
+Thread-Index: AdFYoeN8x8wUI/+QSoCJkp33NKPVmw==
+
+This is a multipart message in MIME format.
+
+------=_NextPart_000_0001_01D16349.99C25FB0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+This is an e-mail message sent automatically by Microsoft Outlook while =
+testing the settings for your account.=20
+
+------=_NextPart_000_0001_01D16349.99C25FB0
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dutf-8">
+This is an e-mail message sent automatically by Microsoft Outlook while =
+testing the settings for your account.
+
+------=_NextPart_000_0001_01D16349.99C25FB0--
+
+------=_NextPart_000_0005_01D16349.99C37120--

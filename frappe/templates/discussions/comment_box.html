@@ -1,0 +1,32 @@
+<form class="discussion-form">
+
+	{% if not single_thread %}
+	<div class="form-group">
+		<div class="control-input-wrapper">
+			<div class="control-input">
+				<input type="text" autocomplete="off" class="input-with-feedback form-control topic-title"
+					data-fieldtype="Data" data-fieldname="feedback_comments" placeholder="{{ _('Type title') }}"
+					spellcheck="false"></input>
+			</div>
+		</div>
+	</div>
+	{% endif %}
+
+	<div class="form-group">
+		<div class="control-input-wrapper">
+			<div class="control-input">
+				<div class="discussions-comment"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="comment-footer">
+		<div class="small flex-grow-1">
+			{{ _("Cmd+Enter to add comment") }}
+		</div>
+
+		<div class="btn btn-sm btn-default submit-discussion pull-right mb-1">
+			{{ _("Post") }}
+		</div>
+	</div>
+</form>

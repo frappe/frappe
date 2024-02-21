@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "creation": "2017-12-02 13:01:20.507112",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "provider",
+  "section_break_0",
+  "username",
+  "column_break_0",
+  "userid"
+ ],
+ "fields": [
+  {
+   "fieldname": "provider",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Provider",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_0",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Username",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "userid",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "User ID",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2022-08-03 12:20:53.800689",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Social Login",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

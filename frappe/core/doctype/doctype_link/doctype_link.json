@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "creation": "2019-09-24 11:41:25.291377",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "link_doctype",
+  "link_fieldname",
+  "parent_doctype",
+  "table_fieldname",
+  "group",
+  "hidden",
+  "is_child_table",
+  "custom"
+ ],
+ "fields": [
+  {
+   "fieldname": "link_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Link DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "link_fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Link Fieldname",
+   "reqd": 1
+  },
+  {
+   "fieldname": "group",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Group"
+  },
+  {
+   "default": "0",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "label": "Hidden"
+  },
+  {
+   "default": "0",
+   "fieldname": "custom",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Custom"
+  },
+  {
+   "depends_on": "is_child_table",
+   "fieldname": "parent_doctype",
+   "fieldtype": "Link",
+   "label": "Parent DocType",
+   "mandatory_depends_on": "is_child_table",
+   "options": "DocType"
+  },
+  {
+   "default": "0",
+   "fetch_from": "link_doctype.istable",
+   "fieldname": "is_child_table",
+   "fieldtype": "Check",
+   "label": "Is Child Table",
+   "read_only": 1
+  },
+  {
+   "fieldname": "table_fieldname",
+   "fieldtype": "Data",
+   "label": "Table Fieldname"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-07-31 15:23:12.237491",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "DocType Link",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

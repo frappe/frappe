@@ -1,0 +1,41 @@
+{
+ "actions": [],
+ "creation": "2019-05-29 01:24:29.585060",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ldap_group",
+  "erpnext_role"
+ ],
+ "fields": [
+  {
+   "fieldname": "ldap_group",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "LDAP Group",
+   "reqd": 1
+  },
+  {
+   "fieldname": "erpnext_role",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User Role",
+   "options": "Role",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2022-07-07 16:28:44.828514",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "LDAP Group Mapping",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

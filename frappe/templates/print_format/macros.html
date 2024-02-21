@@ -1,0 +1,13 @@
+{% macro render_field(df, doc) %}
+{%- set value = doc.get(df.fieldname) -%}
+{% include ['templates/print_format/macros/' + df.renderer + '.html', 'templates/print_format/macros/Data.html'] ignore missing %}
+{% endmacro %}
+
+{% macro field_attributes(df) %}
+{%- if df.fieldname -%}
+data-fieldname="{{ df.fieldname }}"
+{%- endif %}
+{% if df.fieldtype -%}
+data-fieldtype="{{ df.fieldtype }}"
+{%- endif -%}
+{% endmacro %}

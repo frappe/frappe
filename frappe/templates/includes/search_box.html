@@ -1,0 +1,28 @@
+<form class="form-inline search-box justify-content-end">
+	<input type="text" class="item-search-input form-control" placeholder="{{ _("Search...") }}" autocomplete="off">
+</form>
+
+<script>
+frappe.ready(function() {
+	if(frappe.utils.get_url_arg("search")) {
+		$(".item-search-results").html('{{ _("Search results for") + ": " + html2text(frappe.form_dict.search or "") | e | trim }}');
+		$(".item-search").toggle(false);
+		$(".clear").toggle(true);
+	}
+	var thread = null;
+	function find_result(t) {
+		var search_link = "{{ search_link or '' }}" || location.pathname;
+		window.location.href=search_link + "?search=" + t;
+	}
+
+	$(".item-search-input").keyup(function(e) {
+		if(e.which===13) {
+			find_result($(this).val());
+		}
+	});
+	$('.octicon-search').on('click', function() {
+		find_result($(".item-search-input").val());
+	})
+	$(".form-search").on("submit", function() { return false; });
+});
+</script>

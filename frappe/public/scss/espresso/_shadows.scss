@@ -1,0 +1,29 @@
+:root {
+	// Drop Shadows
+	--shadow-xs: rgba(0, 0, 0, 0.05) 0px 0.5px 0px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
+		rgba(0, 0, 0, 0.05) 0px 2px 4px 0px;
+	--shadow-sm: 0px 1px 2px rgba(0, 0, 0, 0.1);
+	--shadow-base: 0px 0px 1px rgba(0, 0, 0, 0.45), 0px 1px 2px rgba(0, 0, 0, 0.1);
+	--shadow-md: 0px 0px 1px rgba(0, 0, 0, 0.12), 0px 0.5px 2px rgba(0, 0, 0, 0.15),
+		0px 2px 3px rgba(0, 0, 0, 0.16);
+	--shadow-lg: 0px 0px 1px rgba(0, 0, 0, 0.35), 0px 6px 8px -4px rgba(0, 0, 0, 0.1);
+	--shadow-xl: 0px 0px 1px rgba(0, 0, 0, 0.19), 0px 1px 2px rgba(0, 0, 0, 0.07),
+		0px 6px 15px -5px rgba(0, 0, 0, 0.11);
+	--shadow-2xl: 0px 0px 1px rgba(0, 0, 0, 0.2), 0px 1px 3px rgba(0, 0, 0, 0.05),
+		0px 10px 24px -3px rgba(0, 0, 0, 0.1);
+
+	// Input Focus Rings
+	--focus-default: 0px 0px 0px 2px #c9c9c9;
+	--focus-blue: 0px 0px 0px 2px #65b9fc;
+	--focus-green: 0px 0px 0px 2px #5bb98c;
+	--focus-yellow: 0px 0px 0px 2px #fff0ad;
+	--focus-red: 0px 0px 0px 2px #eb9091;
+
+	// Custom Shadows
+	--custom-status: 0px 0px 0px 1.5px #ffffff;
+	--custom-shadow-sm: 0px 1px 4px rgba(0, 0, 0, 0.1);
+
+	// Revisit and remove if unused
+	--drop-shadow: 0px 0.5px 0px rgba(0, 0, 0, 0.05), 0px 0px 0px rgba(0, 0, 0, 0),
+		0px 2px 4px rgba(0, 0, 0, 0.05);
+}

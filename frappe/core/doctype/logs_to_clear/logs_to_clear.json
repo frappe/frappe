@@ -1,0 +1,43 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2022-06-11 02:02:39.472511",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "ref_doctype",
+  "days"
+ ],
+ "fields": [
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Log DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "default": "30",
+   "fieldname": "days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Clear Logs After (days)",
+   "non_negative": 1,
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2022-06-13 02:51:36.857786",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Logs To Clear",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

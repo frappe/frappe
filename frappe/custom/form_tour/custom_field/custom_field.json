@@ -1,0 +1,79 @@
+{
+ "creation": "2021-11-23 12:22:32.922700",
+ "docstatus": 0,
+ "doctype": "Form Tour",
+ "first_document": 0,
+ "idx": 0,
+ "include_name_field": 0,
+ "is_standard": 1,
+ "modified": "2021-11-24 19:15:34.244244",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Custom Field",
+ "owner": "Administrator",
+ "reference_doctype": "Custom Field",
+ "save_on_complete": 1,
+ "steps": [
+  {
+   "description": "Select a Document for which you want the Custom Field",
+   "field": "",
+   "fieldname": "dt",
+   "fieldtype": "Link",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Document",
+   "parent_field": "",
+   "position": "Right",
+   "title": "Document"
+  },
+  {
+   "description": "Enter a Label for this field",
+   "field": "",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Label",
+   "parent_field": "",
+   "position": "Right",
+   "title": "Label"
+  },
+  {
+   "description": "Select the label after which you want to insert new field.",
+   "field": "",
+   "fieldname": "insert_after",
+   "fieldtype": "Select",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Insert After",
+   "parent_field": "",
+   "position": "Right",
+   "title": "Insert After"
+  },
+  {
+   "description": "Select an appropriate Field Type that suits your requirements",
+   "field": "",
+   "fieldname": "fieldtype",
+   "fieldtype": "Select",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Field Type",
+   "parent_field": "",
+   "position": "Left",
+   "title": "Field Type"
+  },
+  {
+   "description": "Check this to make it a mandatory field",
+   "field": "",
+   "fieldname": "reqd",
+   "fieldtype": "Check",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Is Mandatory Field",
+   "parent_field": "",
+   "position": "Left",
+   "title": "Is Mandatory Field"
+  }
+ ],
+ "title": "Custom Field"
+}

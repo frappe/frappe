@@ -1,0 +1,22 @@
+{
+ "action": "Watch Video",
+ "action_label": "Learn more about Report Builders",
+ "creation": "2021-11-24 17:04:18.762838",
+ "description": "In each module, you will find a host of single-click reports, ranging from financial statements to sales and purchase analytics and stock tracking reports. If a required new report is not available out-of-the-box, you can create custom reports in ERPNext by pulling values from the same multiple ERPNext tables.\n",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2021-11-24 17:04:18.762838",
+ "modified_by": "Administrator",
+ "name": "Report Builder",
+ "owner": "Administrator",
+ "reference_document": "Report",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Generate Custom Reports",
+ "validate_action": 1,
+ "video_url": "https://youtu.be/TxJGUNarcQs"
+}

@@ -1,0 +1,31 @@
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+
+<div class="section-with-features">
+	{%- if title -%}
+	<h2 class="section-title">{{ title }}</h2>
+	{%- endif -%}
+	{%- if subtitle -%}
+	<p class="section-description">{{ subtitle }}</p>
+	{%- endif -%}
+
+	<div class="section-features" data-columns="{{ columns or 3 }}">
+		{%- for testimonial in testimonials -%}
+		<div class="section-feature">
+			<div>
+				{%- if testimonial.content -%}
+				<p class="feature-content">{{ testimonial.content }}</p>
+				{%- endif -%}
+			</div>
+			<div class="testimonial-author">
+				{{  avatar(full_name=testimonial.full_name, image=testimonial.image, size='avatar-medium') }}
+				<p>
+					{{ testimonial.full_name }}
+					{%- if testimonial.designation -%}
+					<br>{{ testimonial.designation }}
+					{%- endif -%}
+				</p>
+			</div>
+		</div>
+		{%- endfor -%}
+	</div>
+</div>

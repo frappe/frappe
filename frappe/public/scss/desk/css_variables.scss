@@ -1,0 +1,54 @@
+@import "../common/css_variables.scss";
+
+:root,
+[data-theme="light"] {
+	// breakpoints
+	--xxl-width: #{map-get($grid-breakpoints, "2xl")};
+	--xl-width: #{map-get($grid-breakpoints, "xl")};
+	--lg-width: #{map-get($grid-breakpoints, "lg")};
+	--md-width: #{map-get($grid-breakpoints, "md")};
+	--sm-width: #{map-get($grid-breakpoints, "sm")};
+	--xs-width: #{map-get($grid-breakpoints, "xs")};
+
+	--appreciation-color: var(--green-600);
+	--appreciation-bg: var(--green-100);
+	--criticism-color: var(--red-600);
+	--criticism-bg: var(--red-100);
+
+	// Error colors
+	--error-bg: var(--red-50);
+	--error-border: var(--red-400);
+
+	// page
+	--page-head-height: 60px;
+	--page-bottom-margin: 60px;
+
+	// checkbox
+	--checkbox-right-margin: var(--margin-xs);
+	--checkbox-size: 14px;
+	--checkbox-focus-shadow: var(--focus-default);
+
+	// date-picker
+	--date-active-text: var(--gray-100);
+	--date-active-bg: var(--gray-900);
+	--date-range-bg: var(--subtle-fg);
+
+	// timeline
+	--timeline-item-icon-size: 30px;
+	--timeline-item-left-margin: var(--margin-lg);
+	--timeline-item-bottom-margin: var(--margin-sm);
+	--timeline-content-max-width: 700px;
+	--timeline-left-padding: calc(var(--padding-xl) + var(--timeline-item-icon-size) / 2);
+	--timeline-badge-color: var(--gray-900);
+	--timeline-badge-bg: var(--gray-100);
+
+	// mentions
+	--user-mention-bg-color: var(--fg-color);
+	--group-mention-bg-color: var(--bg-purple);
+
+	// skeleton
+	--skeleton-bg: var(--gray-100);
+
+	// progress bar
+	--progress-bar-bg: var(--primary);
+}

@@ -1,0 +1,80 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:language_code",
+ "creation": "2014-08-22 16:12:17.249590",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "language_code",
+  "language_name",
+  "flag",
+  "based_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "language_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Language Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "language_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Language Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "flag",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Flag"
+  },
+  {
+   "fieldname": "based_on",
+   "fieldtype": "Link",
+   "label": "Based On",
+   "options": "Language"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  }
+ ],
+ "icon": "fa fa-globe",
+ "in_create": 1,
+ "links": [],
+ "modified": "2023-04-13 13:48:38.127995",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Language",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "role": "All",
+   "read": 1
+  }
+ ],
+ "search_fields": "language_name",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "language_name",
+ "track_changes": 1
+}

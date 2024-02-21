@@ -1,0 +1,84 @@
+.indicator,
+.indicator-pill,
+.indicator-pill-right,
+.indicator-pill-round {
+	display: inline-flex;
+	align-items: center;
+}
+
+.indicator::before {
+	content: "";
+	height: 8px;
+	width: 8px;
+	border-radius: var(--border-radius);
+	margin: 0px 8px 0px 0px;
+}
+.indicator-pill,
+.indicator-pill-right {
+	@include get_textstyle("sm", "regular");
+	padding: 4.5px 8px;
+	border-radius: var(--border-radius-full);
+	height: 20px;
+}
+
+.indicator-pill-round {
+	@include get_textstyle("sm", "regular");
+	justify-content: center;
+	border-radius: 50%;
+	width: 24px;
+	height: 24px;
+}
+
+.indicator-pill:not(.no-indicator-dot)::before,
+.indicator-pill-right::after {
+	content: "";
+	display: inline-table;
+	height: 6px;
+	width: 6px;
+	border-radius: 50%;
+	margin-right: 6px;
+}
+
+.indicator-pill.no-margin::before,
+.indicator-pill-right.no-margin::after {
+	margin-right: 0px;
+}
+
+.indicator-pill-right::after {
+	margin: 0 0 0 4px;
+}
+
+$indicator-colors: green, cyan, blue, orange, yellow, gray, grey, red, pink, darkgrey, purple,
+	light-blue;
+@each $color in $indicator-colors {
+	.indicator.#{"" + $color} {
+		&::before,
+		&::after {
+			background: var(--indicator-dot-#{$color});
+		}
+	}
+
+	.indicator-pill.#{"" + $color},
+	.indicator-pill-right.#{"" + $color},
+	.indicator-pill-round.#{"" + $color} {
+		background: var(--bg-#{$color});
+		color: var(--text-on-#{$color});
+		&::before,
+		&::after {
+			background: var(--text-on-#{$color});
+		}
+	}
+	.indicator {
+		--indicator-dot-#{"" + $color}: var(--text-on-#{$color});
+	}
+}
+
+.indicator.blink {
+	animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+	50% {
+		opacity: 0.5;
+	}
+}

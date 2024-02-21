@@ -1,0 +1,16 @@
+<table class="table table-bordered" style="margin: 0;">
+	<thead>
+		<th>{{ __("Field") }}</th>
+		<th>{{ __("Value") }}</th>
+	</thead>
+	<tbody>
+		{% for (let condition of condition_list ) { %}
+			{% for (let key in condition) { %}
+			<tr>
+				<td>{{ __(key) }}</td>
+				<td>{{ frappe.utils.comma_or(condition[key]) }}</td>
+			</tr>
+			{% } %}
+		{% } %}
+	</tbody>
+</table>

@@ -1,0 +1,16 @@
+.tag-pill {
+	background-color: var(--gray-200);
+	border-radius: var(--border-radius);
+	display: inline-block;
+	padding: 3px 10px;
+	color: var(--text-muted);
+	height: 24px;
+	width: 60px;
+	vertical-align: middle;
+}
+
+[data-theme="dark"] {
+	.tag-pill {
+		background-color: var(--gray-900);
+	}
+}

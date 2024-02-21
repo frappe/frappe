@@ -1,0 +1,511 @@
+{
+ "actions": [
+  {
+   "action": "frappe.sessions.clear",
+   "action_type": "Server Action",
+   "label": "Clear Cache"
+  }
+ ],
+ "creation": "2013-04-30 12:58:46",
+ "doctype": "DocType",
+ "document_type": "Other",
+ "engine": "InnoDB",
+ "field_order": [
+  "home_tab",
+  "sb0",
+  "home_page",
+  "cb4",
+  "title_prefix",
+  "misc_section",
+  "app_name",
+  "disable_signup",
+  "show_footer_on_login",
+  "column_break_9",
+  "app_logo",
+  "section_break_6",
+  "website_theme",
+  "website_theme_image",
+  "website_theme_image_link",
+  "navbar_tab",
+  "brand",
+  "banner_image",
+  "splash_image",
+  "brand_html",
+  "set_banner_from_image",
+  "favicon",
+  "top_bar",
+  "top_bar_items",
+  "hide_login",
+  "navbar_search",
+  "show_language_picker",
+  "navbar_template_section",
+  "navbar_template",
+  "navbar_template_values",
+  "edit_navbar_template_values",
+  "call_to_action",
+  "call_to_action_url",
+  "banner",
+  "banner_html",
+  "footer_tab",
+  "footer",
+  "footer_items",
+  "footer_details_section",
+  "copyright",
+  "footer_logo",
+  "hide_footer_signup",
+  "column_break_37",
+  "address",
+  "footer_powered",
+  "custom_footer_section",
+  "footer_template",
+  "footer_template_values",
+  "edit_footer_template_values",
+  "integrations",
+  "analytics_section",
+  "enable_view_tracking",
+  "enable_google_indexing",
+  "authorize_api_indexing_access",
+  "indexing_refresh_token",
+  "indexing_authorization_code",
+  "column_break_17",
+  "google_analytics_id",
+  "google_analytics_anonymize_ip",
+  "account_deletion_settings_section",
+  "auto_account_deletion",
+  "show_account_deletion_link",
+  "section_break_38",
+  "subdomain",
+  "head_html",
+  "robots_txt",
+  "redirects_tab",
+  "route_redirects"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb0",
+   "fieldtype": "Section Break",
+   "label": "Landing Page"
+  },
+  {
+   "description": "Link that is the website home page. Standard Links (home, login, products, blog, about, contact)",
+   "fieldname": "home_page",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Home Page"
+  },
+  {
+   "fieldname": "cb4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Show title in browser window as \"Prefix - title\"",
+   "fieldname": "title_prefix",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title Prefix"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "label": "Theme"
+  },
+  {
+   "default": "Standard",
+   "fieldname": "website_theme",
+   "fieldtype": "Link",
+   "label": "Website Theme",
+   "options": "Website Theme"
+  },
+  {
+   "fieldname": "website_theme_image",
+   "fieldtype": "Image",
+   "hidden": 1,
+   "label": "Website Theme Image",
+   "options": "website_theme_image_link"
+  },
+  {
+   "fieldname": "website_theme_image_link",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Website Theme image link"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "brand",
+   "fieldtype": "Section Break",
+   "label": "Brand"
+  },
+  {
+   "description": "Select an image of approx width 150px with a transparent background for best results.",
+   "fieldname": "banner_image",
+   "fieldtype": "Attach Image",
+   "label": "Brand Image"
+  },
+  {
+   "description": "Brand is what appears on the top-left of the toolbar. If it is an image, make sure it\nhas a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
+   "fieldname": "brand_html",
+   "fieldtype": "Code",
+   "label": "Brand HTML",
+   "options": "HTML"
+  },
+  {
+   "fieldname": "set_banner_from_image",
+   "fieldtype": "Button",
+   "label": "Set Banner from Image"
+  },
+  {
+   "fieldname": "top_bar",
+   "fieldtype": "Section Break",
+   "label": "Navbar"
+  },
+  {
+   "default": "0",
+   "fieldname": "navbar_search",
+   "fieldtype": "Check",
+   "label": "Include Search in Top Bar"
+  },
+  {
+   "fieldname": "top_bar_items",
+   "fieldtype": "Table",
+   "label": "Top Bar Items",
+   "options": "Top Bar Item"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "banner_html",
+   "fieldname": "banner",
+   "fieldtype": "Section Break",
+   "label": "Banner"
+  },
+  {
+   "description": "Banner is above the Top Menu Bar.",
+   "fieldname": "banner_html",
+   "fieldtype": "Code",
+   "label": "Banner HTML",
+   "options": "HTML"
+  },
+  {
+   "collapsible_depends_on": "footer_items",
+   "fieldname": "footer",
+   "fieldtype": "Section Break",
+   "label": "Footer Items"
+  },
+  {
+   "fieldname": "copyright",
+   "fieldtype": "Data",
+   "label": "Copyright"
+  },
+  {
+   "description": "Address and other legal information you may want to put in the footer.",
+   "fieldname": "address",
+   "fieldtype": "Small Text",
+   "label": "Address",
+   "max_height": "8rem"
+  },
+  {
+   "fieldname": "footer_items",
+   "fieldtype": "Table",
+   "label": "Footer Items",
+   "options": "Top Bar Item"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_footer_signup",
+   "fieldtype": "Check",
+   "label": "Hide footer signup"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "integrations",
+   "fieldtype": "Tab Break",
+   "label": "Integrations"
+  },
+  {
+   "fieldname": "google_analytics_id",
+   "fieldtype": "Data",
+   "label": "Google Analytics ID"
+  },
+  {
+   "fieldname": "column_break_17",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "misc_section",
+   "fieldtype": "Section Break",
+   "label": "Login Page"
+  },
+  {
+   "description": "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [favicon-generator.org]",
+   "fieldname": "favicon",
+   "fieldtype": "Attach",
+   "label": "FavIcon"
+  },
+  {
+   "description": "Sub-domain provided by erpnext.com",
+   "fieldname": "subdomain",
+   "fieldtype": "Small Text",
+   "label": "Subdomain",
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "description": "New users will have to be manually registered by system managers.",
+   "fieldname": "disable_signup",
+   "fieldtype": "Check",
+   "label": "Disable signups"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_38",
+   "fieldtype": "Tab Break",
+   "label": "Header, Robots"
+  },
+  {
+   "description": "Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO",
+   "fieldname": "head_html",
+   "fieldtype": "Code",
+   "label": "&lt;head&gt; HTML",
+   "options": "HTML"
+  },
+  {
+   "fieldname": "robots_txt",
+   "fieldtype": "Code",
+   "label": "Robots.txt"
+  },
+  {
+   "fieldname": "route_redirects",
+   "fieldtype": "Table",
+   "label": "Route Redirects",
+   "options": "Website Route Redirect"
+  },
+  {
+   "default": "0",
+   "description": "To use Google Indexing, enable <a href=\"/app/google-settings\">Google Settings</a>.",
+   "fieldname": "enable_google_indexing",
+   "fieldtype": "Check",
+   "label": "Enable Google indexing"
+  },
+  {
+   "fieldname": "indexing_refresh_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Indexing refresh token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "indexing_authorization_code",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Indexing authorization code",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.enable_google_indexing",
+   "fieldname": "authorize_api_indexing_access",
+   "fieldtype": "Button",
+   "label": "Authorize API Indexing  Access"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_view_tracking",
+   "fieldtype": "Check",
+   "label": "Enable in-app website tracking"
+  },
+  {
+   "fieldname": "footer_logo",
+   "fieldtype": "Attach Image",
+   "label": "Footer Logo"
+  },
+  {
+   "fieldname": "call_to_action",
+   "fieldtype": "Data",
+   "label": "Call To Action"
+  },
+  {
+   "fieldname": "call_to_action_url",
+   "fieldtype": "Data",
+   "label": "Call To Action URL"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_login",
+   "fieldtype": "Check",
+   "label": "Hide Login"
+  },
+  {
+   "fieldname": "navbar_template",
+   "fieldtype": "Link",
+   "label": "Navbar Template",
+   "options": "Web Template"
+  },
+  {
+   "fieldname": "navbar_template_values",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Navbar Template Values",
+   "options": "JSON"
+  },
+  {
+   "depends_on": "eval:doc.navbar_template && doc.navbar_template !== 'Standard Navbar'",
+   "fieldname": "edit_navbar_template_values",
+   "fieldtype": "Button",
+   "label": "Edit Values"
+  },
+  {
+   "fieldname": "footer_template",
+   "fieldtype": "Link",
+   "label": "Footer Template",
+   "options": "Web Template"
+  },
+  {
+   "fieldname": "footer_template_values",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Footer Template Values",
+   "options": "JSON"
+  },
+  {
+   "depends_on": "eval:doc.footer_template && doc.footer_template !== 'Standard Footer'",
+   "fieldname": "edit_footer_template_values",
+   "fieldtype": "Button",
+   "label": "Edit Values"
+  },
+  {
+   "default": "1",
+   "fieldname": "google_analytics_anonymize_ip",
+   "fieldtype": "Check",
+   "label": "Google Analytics anonymise IP"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_language_picker",
+   "fieldtype": "Check",
+   "label": "Show Language Picker"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "navbar_template",
+   "fieldname": "navbar_template_section",
+   "fieldtype": "Section Break",
+   "label": "Navbar Template"
+  },
+  {
+   "default": "Frappe",
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "label": "App Name"
+  },
+  {
+   "fieldname": "app_logo",
+   "fieldtype": "Attach Image",
+   "label": "App Logo"
+  },
+  {
+   "fieldname": "account_deletion_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Account Deletion Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_account_deletion_link",
+   "fieldtype": "Check",
+   "label": "Show account deletion link in My Account page"
+  },
+  {
+   "default": "72",
+   "fieldname": "auto_account_deletion",
+   "fieldtype": "Int",
+   "label": "Automatically delete account within (hours)"
+  },
+  {
+   "fieldname": "footer_powered",
+   "fieldtype": "Small Text",
+   "label": "Footer \"Powered By\"",
+   "max_height": "2rem"
+  },
+  {
+   "fieldname": "splash_image",
+   "fieldtype": "Attach Image",
+   "label": "Splash Image"
+  },
+  {
+   "fieldname": "home_tab",
+   "fieldtype": "Tab Break",
+   "label": "Home"
+  },
+  {
+   "fieldname": "navbar_tab",
+   "fieldtype": "Tab Break",
+   "label": "Navbar"
+  },
+  {
+   "fieldname": "footer_tab",
+   "fieldtype": "Tab Break",
+   "label": "Footer"
+  },
+  {
+   "fieldname": "footer_details_section",
+   "fieldtype": "Section Break",
+   "label": "Footer Details"
+  },
+  {
+   "fieldname": "column_break_37",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "custom_footer_section",
+   "fieldtype": "Section Break",
+   "label": "Custom Footer"
+  },
+  {
+   "fieldname": "redirects_tab",
+   "fieldtype": "Tab Break",
+   "label": "Redirects"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "analytics_section",
+   "fieldtype": "Section Break",
+   "label": "Analytics"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_footer_on_login",
+   "fieldtype": "Check",
+   "label": "Show footer on login"
+  }
+ ],
+ "icon": "fa fa-cog",
+ "idx": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-01-08 11:50:34.750809",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Website Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Website Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "All"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

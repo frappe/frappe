@@ -1,0 +1,50 @@
+{% if slideshow %}
+{{ slideshow_header or '' }}
+
+<div id="the-carousel" class="carousel slide" data-ride="carousel">
+	{% if slides | len > 1 %}
+	<!-- Indicators -->
+	<ol class="carousel-indicators">
+		{% for slide in slides %}
+		<li data-target="#the-carousel" data-slide-to="{{ loop.index }}"
+			{%- if loop.index==0 %}class="active"{% endif %}></li>
+		{% endfor %}
+	</ol>
+	{% endif %}
+
+	<!-- Wrapper for slides -->
+	<div class="carousel-inner">
+		{% for slide in slides %}
+		<div class="{% if slide.idx==1 %}active{% endif %} item carousel-item">
+			<img class="d-block w-100" src="{{ slide.image }}" />
+			{% if slide.heading or slide.description %}
+			<div class="carousel-caption d-none d-md-block">
+				{% if slide.heading %}<h4>{{ slide.heading }}</h4>{% endif %}
+				{% if slide.description %}<p>{{ slide.description }}</p>{% endif %}
+			</div>
+			{% endif %}
+		</div>
+		{% endfor %}
+	</div>
+
+	<!-- Controls -->
+	{% if slides | len > 1 %}
+	<a class="carousel-control-prev" href="#the-carousel" data-slide="prev" role="button">
+		<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+		<span class="sr-only">{{ _('Previous') }}</span>
+	</a>
+	<a class="carousel-control-next" href="#the-carousel" data-slide="next" role="button">
+		<span class="carousel-control-next-icon" aria-hidden="true"></span>
+		<span class="sr-only">{{ _('Next') }}</span>
+	</a>
+	{% endif %}
+</div>
+
+<script>
+	frappe.ready(function () {
+		$('.carousel').carousel({
+			interval: 5000
+		})
+	});
+</script>
+{% endif %}

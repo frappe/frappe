@@ -1,0 +1,64 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Error{% endblock %}
+
+{%- block head_include %}
+<link rel="stylesheet" href="/assets/frappe/css/hljs-night-owl.css">
+{% endblock -%}
+
+
+{% block page_content %}
+<style>
+	.error-content {
+		border-radius: 8px;
+		background-color: #f5f7fa;
+		margin: 3rem auto;
+	}
+
+	code::-webkit-scrollbar {
+		display: none;
+	}
+	{% include "templates/styles/card_style.css"%}
+</style>
+<script></script>
+<div class="page-card">
+	<div class="page-card-head">
+		<span class="indicator red">{{ error_title }}</span>
+	</div>
+	<p>{{ error_message }}</p>
+	<div>
+		<a href="/" class="btn btn-primary btn-sm">{{ _("Home") }}</a>
+	</div>
+</div>
+<p class="text-muted text-center small" style="margin-top: -20px;">
+	{{ _("Error Code: {0}").format(http_status_code) }}
+</p>
+<div class="text-center mt-3">
+	<p class="text-muted text-center small">
+		If you don't know what just happened, and wish to file a ticket
+		please </br> <b>copy the error below </b> and share it.
+	</p>
+	<button class="btn btn-xs btn-secondary text-muted small view-error" >{{ _("Show Error") if not dev_server else _("Hide Error") }}</a>
+</div>
+
+<div class="error-content {{ 'hidden' if not dev_server else '' }}">
+	<pre><code>{{ error }}</code></pre>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+	let toggle_button = $(".view-error");
+	let error_log = $(".error-content");
+
+	toggle_button.on('click', () => {
+		if (error_log.hasClass("hidden")) {
+			toggle_button.html(`{{ _("Hide Error") }}`);
+			error_log.removeClass("hidden");
+		} else {
+			toggle_button.html(`{{ _("Show Error") }}`);
+			error_log.addClass("hidden");
+		}
+	})
+</script>
+{% endblock %}

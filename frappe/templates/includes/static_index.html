@@ -1,0 +1,12 @@
+
+<div class="row">
+	<div class="col-md-8">
+		<ol>
+			{% for item in items %}
+			<li>
+				<a href="{% if relative_links %}{{ item.route }}{% else %}/{{ item.route }}{% endif %}{{ item.extn or '' }}">{{ item.title }}</a>
+			</li>
+			{% endfor %}
+		</ol>
+	</div>
+</div>

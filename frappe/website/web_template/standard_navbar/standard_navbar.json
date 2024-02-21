@@ -1,0 +1,13 @@
+{
+ "creation": "2020-08-19 17:49:37.288380",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [],
+ "idx": 0,
+ "modified": "2020-08-19 17:50:44.342765",
+ "modified_by": "Administrator",
+ "name": "Standard Navbar",
+ "owner": "Administrator",
+ "standard": 1,
+ "type": "Navbar"
+}

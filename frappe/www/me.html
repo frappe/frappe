@@ -1,0 +1,82 @@
+{% from "frappe/templates/includes/avatar_macro.html" import avatar %}
+{% extends "templates/web.html" %}
+{% block title %}
+{{ _("My Account") }}
+{% endblock %}
+{% block page_content %}
+<div class="my-account-container">
+<h3 class="my-account-header">{{_("My Account") }}</h3>
+<div class="row account-info d-flex flex-column">
+	<div class="col d-flex justify-content-between align-items-center">
+		<div>
+			<span class="my-account-avatar">
+				{{avatar(current_user.name)}}
+			</span>
+			<span class="my-account-name ml-4">
+				{{current_user.full_name }}
+			</span>
+		</div>
+		<div>
+			<span class="my-account-item-link">
+				<a href="/update-profile/{{ user }}">
+					<svg class="edit-profile-icon icon icon-md">
+						<use href="#icon-edit">
+						</use>
+					</svg>
+					<span class="item-link-text pl-2">
+						{{_("Edit Profile") }}
+					</span>
+				</a>
+			</span>
+		</div>
+	</div>
+	<div class="col d-flex justify-content-between align-items-center">
+		<span>
+			<div class="my-account-item">{{_("Reset Password") }}</div>
+			<div class="my-account-item-desc">{{_("Reset the password for your account") }}</div>
+		</span>
+		<span class="my-account-item-link">
+			<a href="/update-password">
+				<svg class="right-icon icon icon-md">
+					<use href="#icon-right">
+					</use>
+				</svg>
+				<span class="item-link-text">{{_("Reset Password") }}</span>
+			</a>
+		</span>
+	</div>
+	<div class="col d-flex justify-content-between align-items-center">
+		<span>
+			<div class="my-account-item">{{_("Manage third party apps") }}</div>
+			<div class="my-account-item-desc">{{_("To manage your authorized third party apps") }}</div>
+		</span>
+		<span class="my-account-item-link">
+			<a href="/third_party_apps">
+				<svg class="right-icon icon icon-md">
+					<use href="#icon-right">
+					</use>
+				</svg>
+				<span class="item-link-text">{{_("Manage your apps") }}</span>
+			</a>
+		</span>
+	</div>
+	{% if frappe.db.get_single_value("Website Settings", "show_account_deletion_link") %}
+	<div class="col d-flex justify-content-between align-items-center">
+		<span>
+			<div class="my-account-item">{{_("Request Account Deletion") }}</div>
+			<div class="my-account-item-desc">{{_("Send a request to delete your account") }}</div>
+		</span>
+		<span class="my-account-item-link">
+			<a href="/request-for-account-deletion?new=1">
+				<svg class="right-icon icon icon-md">
+					<use href="#icon-right">
+					</use>
+				</svg>
+				<span class="item-link-text">{{_("Delete Account") }}</span>
+			</a>
+		</span>
+	</div>
+	{% endif %}
+</div>
+</div>
+{% endblock %}

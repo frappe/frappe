@@ -1,0 +1,24 @@
+{% macro footer_link(item) %}
+<a href="{{ item.url | abs_url }}" {% if item.open_in_new_tab %} target="_blank" {% endif %} class="footer-link" rel="noreferrer">
+	{%- if item.icon -%}
+	<img src="{{ item.icon }}" alt="{{ item.label }}">
+	{%- else -%}
+	{{ item.label }}
+	{%- endif -%}
+</a>
+{% endmacro %}
+<div class="footer-links">
+	<div class="row">
+		<div class="footer-col-left col-sm-6">
+			{%- for item in footer_items if item.label and not (item.parent_label or item.child_items) and not item.right %}
+			{{ footer_link(item) }}
+			{% endfor -%}
+		</div>
+
+		<div class="footer-col-right col-sm-6">
+			{%- for item in footer_items if item.label and not (item.parent_label or item.child_items) and item.right %}
+			{{ footer_link(item) }}
+			{% endfor -%}
+		</div>
+	</div>
+</div>

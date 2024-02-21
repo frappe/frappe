@@ -1,0 +1,34 @@
+<div class="frappe-list">
+	<div class="list-filters" style="display: none;">
+	</div>
+
+	<div style="margin-bottom:9px" class="list-toolbar-wrapper hide">
+		<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;">
+		</div>
+	</div>
+    <div style="clear:both"></div>
+	<div class="no-result text-center" style="display: none;">
+		{%= no_result_message %}
+	</div>
+	<div class="result">
+		<div class="list-headers"></div>
+        <div class="list-loading text-center">
+        	{%= frappe.messages.get_waiting_message(__("Loading") + "..." ) %}
+        </div>
+		<div class="result-list"></div>
+	</div>
+	<div class="list-paging-area">
+		<div class="row">
+			<div class="col-xs-6">
+				<div class="btn-group btn-group-paging">
+					<button type="button" class="btn btn-default btn-sm btn-info" data-value="20">20</button>
+					<button type="button" class="btn btn-default btn-sm" data-value="100">100</button>
+					<button type="button" class="btn btn-default btn-sm" data-value="500">500</button>
+				</div>
+			</div>
+			<div class="col-xs-6 text-right">
+				<button class="btn btn-default btn-more btn-sm">{%= _more %}...</button>
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,109 @@
+{
+ "actions": [],
+ "creation": "2021-01-13 01:51:40.158521",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "column_break_2",
+  "is_custom",
+  "permissions_section",
+  "read",
+  "write",
+  "create",
+  "column_break_8",
+  "submit",
+  "cancel",
+  "amend",
+  "delete"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "permissions_section",
+   "fieldtype": "Section Break",
+   "label": "Role Permissions"
+  },
+  {
+   "default": "1",
+   "fieldname": "read",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Read"
+  },
+  {
+   "default": "0",
+   "fieldname": "write",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Write"
+  },
+  {
+   "default": "0",
+   "fieldname": "create",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Create"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fetch_from": "document_type.custom",
+   "fieldname": "is_custom",
+   "fieldtype": "Check",
+   "label": "Is Custom",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "submit",
+   "fieldtype": "Check",
+   "label": "Submit"
+  },
+  {
+   "default": "0",
+   "fieldname": "cancel",
+   "fieldtype": "Check",
+   "label": "Cancel"
+  },
+  {
+   "default": "0",
+   "fieldname": "amend",
+   "fieldtype": "Check",
+   "label": "Amend"
+  },
+  {
+   "default": "0",
+   "fieldname": "delete",
+   "fieldtype": "Check",
+   "label": "Delete"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2021-03-16 00:32:24.414313",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Document Type",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

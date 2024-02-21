@@ -1,0 +1,26 @@
+{% if sub_title %}
+<h4 class="text-muted">{{ sub_title }}</h4>
+{% endif %}
+{% if not result -%}
+	<div class="empty-apps-state">
+		<img class="empty-list-icon" src="/assets/frappe/images/ui-states/list-empty-state.svg"/>
+		<div class="mt-4">{{ no_result_message or _("Nothing to show") }}</div>
+	</div>
+{% else %}
+	<div class="website-list" data-doctype="{{ doctype }}"
+		data-txt="{{ txt|e or '[notxt]'  }}">
+		<!-- {% if not hide_filters -%}
+			{% include "templates/includes/list/filters.html" %}
+		{%- endif %} -->
+		{% if result_heading_template %}{% include result_heading_template %}{% endif %}
+
+		<div class="result">
+			{% for item in result %}
+				{{ item }}
+			{% endfor %}
+		</div>
+		<div class="more-block py-6 {% if not show_more -%} hidden {%- endif %}">
+			<button class="btn btn-light btn-more btn-sm">{{ _("More") }}</button>
+		</div>
+	</div>
+{%- endif %}

@@ -1,0 +1,82 @@
+{% macro render_sidebar_item(item) %}
+<li class="{{ 'sidebar-group' if item.group_title else 'sidebar-item' }}">
+	{%- if item.group_title -%}
+
+	<h6>{{ item.group_title }}</h6>
+	{{ render_sidebar_items(item.group_items) }}
+
+	{%- else -%}
+
+	{% if item.type != 'input' %}
+	{%- set item_route = item.route[1:] if item.route[0] == '/' else item.route -%}
+	<a href="{{ item.route }}" class="{{ 'active' if pathname == item_route else '' }}"
+		{% if item.target %}target="{{ item.target }}" {% endif %}>
+		{{ _(item.title or item.label) }}
+	</a>
+	{% else %}
+	<form action='{{ item.route }}' class="mr-4">
+		<input name='q' class='form-control' type='text' style="outline: none"
+			placeholder="{{ _(item.title or item.label) }}">
+	</form>
+	{% endif %}
+
+	{%- endif -%}
+</li>
+{% endmacro %}
+
+{% macro render_sidebar_items(items) %}
+{%- if items | len > 0 -%}
+<ul class="list-unstyled">
+	{% for item in items -%}
+	{{ render_sidebar_item(item) }}
+	{%- endfor %}
+</ul>
+{%- endif -%}
+{% endmacro %}
+
+{% macro my_account() %}
+{% if frappe.user != 'Guest' %}
+<ul class="list-unstyled">
+	<li class="sidebar-item">
+		<a href="/me">{{ _("My Account") }}</a>
+	</li>
+</ul>
+{% endif %}
+{% endmacro %}
+
+<div class="web-sidebar">
+	{% if sidebar_title %}
+	<li class="title">
+		{{ sidebar_title }}
+	</li>
+	{% endif %}
+	<div class="sidebar-items">
+		{{ render_sidebar_items(sidebar_items) }}
+		{{ my_account() }}
+	</div>
+</div>
+
+<script>
+	frappe.ready(function () {
+		$('.sidebar-item a').each(function (index) {
+			const active_class = 'active'
+			const non_active_class = ''
+			let page_href = window.location.href;
+			if (page_href.indexOf('#') !== -1) {
+				page_href = page_href.slice(0, page_href.indexOf('#'));
+			}
+			if (this.href.trim() == page_href) {
+				$(this).removeClass(non_active_class).addClass(active_class);
+			} else {
+				$(this).removeClass(active_class).addClass(non_active_class);
+			}
+		});
+
+		// scroll the active sidebar item into view
+		let active_sidebar_item = $('.sidebar-item a.active');
+		if (active_sidebar_item.length > 0) {
+			active_sidebar_item.get(0)
+				.scrollIntoView({behavior: "auto", block: "center", inline: "nearest"});
+		}
+	});
+</script>

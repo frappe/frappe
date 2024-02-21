@@ -1,0 +1,61 @@
+{
+ "actions": [],
+ "autoname": "format:{document_type}-{track_field}",
+ "creation": "2019-04-17 09:36:41.774774",
+ "description": "Track milestones for any document",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "document_type",
+  "track_field",
+  "disabled"
+ ],
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Document Type to Track",
+   "options": "DocType",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "track_field",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Field to Track",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  }
+ ],
+ "links": [],
+ "modified": "2023-12-08 15:52:37.525003",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Milestone Tracker",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

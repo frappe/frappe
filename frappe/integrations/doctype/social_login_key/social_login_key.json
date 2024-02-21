@@ -1,0 +1,203 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2017-11-18 15:36:09.676722",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enable_social_login",
+  "client_credentials",
+  "social_login_provider",
+  "client_id",
+  "column_break_0",
+  "provider_name",
+  "client_secret",
+  "sb_identity_details",
+  "icon",
+  "column_break_1",
+  "base_url",
+  "configuration_section",
+  "sign_ups",
+  "client_urls",
+  "authorize_url",
+  "access_token_url",
+  "column_break_3",
+  "redirect_url",
+  "api_endpoint",
+  "custom_base_url",
+  "client_information",
+  "api_endpoint_args",
+  "auth_url_data",
+  "user_id_property"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable_social_login",
+   "fieldtype": "Check",
+   "label": "Enable Social Login"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.enable_social_login",
+   "fieldname": "client_credentials",
+   "fieldtype": "Section Break",
+   "label": "Client Credentials"
+  },
+  {
+   "default": "Custom",
+   "depends_on": "eval:doc.custom!=1",
+   "fieldname": "social_login_provider",
+   "fieldtype": "Select",
+   "label": "Social Login Provider",
+   "options": "Custom\nFacebook\nFrappe\nGitHub\nGoogle\nOffice 365\nSalesforce\nfairlogin",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "label": "Client ID"
+  },
+  {
+   "fieldname": "column_break_0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "provider_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Provider Name",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Password",
+   "label": "Client Secret"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.custom_base_url",
+   "fieldname": "sb_identity_details",
+   "fieldtype": "Section Break",
+   "label": "Identity Details"
+  },
+  {
+   "depends_on": "eval:doc.social_login_provider==\"Custom\"",
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Base URL"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.social_login_provider===\"Custom\"",
+   "fieldname": "client_urls",
+   "fieldtype": "Section Break",
+   "label": "Client URLs"
+  },
+  {
+   "fieldname": "authorize_url",
+   "fieldtype": "Data",
+   "label": "Authorize URL"
+  },
+  {
+   "fieldname": "access_token_url",
+   "fieldtype": "Data",
+   "label": "Access Token URL"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "redirect_url",
+   "fieldtype": "Data",
+   "label": "Redirect URL"
+  },
+  {
+   "fieldname": "api_endpoint",
+   "fieldtype": "Data",
+   "label": "API Endpoint"
+  },
+  {
+   "default": "0",
+   "fieldname": "custom_base_url",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Custom Base URL"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.social_login_provider===\"Custom\"",
+   "fieldname": "client_information",
+   "fieldtype": "Section Break",
+   "label": "Client Information"
+  },
+  {
+   "fieldname": "api_endpoint_args",
+   "fieldtype": "Code",
+   "label": "API Endpoint Args"
+  },
+  {
+   "fieldname": "auth_url_data",
+   "fieldtype": "Code",
+   "label": "Auth URL Data"
+  },
+  {
+   "depends_on": "eval:doc.social_login_provider===\"Custom\"",
+   "fieldname": "user_id_property",
+   "fieldtype": "Data",
+   "label": "User ID Property"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Configuration"
+  },
+  {
+   "description": "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected. ",
+   "fieldname": "sign_ups",
+   "fieldtype": "Select",
+   "label": "Sign ups",
+   "options": "\nAllow\nDeny"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-10-14 12:22:23.601130",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Social Login Key",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "provider_name",
+ "track_changes": 1
+}

@@ -1,0 +1,21 @@
+{
+ "action": "Create Entry",
+ "action_label": "Learn more about creating new DocTypes",
+ "creation": "2021-11-23 12:30:04.407568",
+ "description": "A DocType (Document Type) is used to insert forms in ERPNext. Forms such as Customer, Orders, and Invoices are Doctypes in the backend. You can also create new DocTypes to create new forms in ERPNext as per your business needs.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 0,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2021-11-23 12:30:04.407568",
+ "modified_by": "Administrator",
+ "name": "Custom Doctype",
+ "owner": "Administrator",
+ "reference_document": "DocType",
+ "show_form_tour": 1,
+ "show_full_form": 1,
+ "title": "Custom Document Types",
+ "validate_action": 1
+}

@@ -1,0 +1,83 @@
+{
+ "actions": [],
+ "autoname": "Prompt",
+ "creation": "2017-10-23 13:02:10.295824",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "reference_doctype",
+  "subject_field",
+  "start_date_field",
+  "end_date_field",
+  "column_break_5",
+  "all_day"
+ ],
+ "fields": [
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "subject_field",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Subject Field",
+   "reqd": 1
+  },
+  {
+   "fieldname": "start_date_field",
+   "fieldtype": "Select",
+   "label": "Start Date Field",
+   "reqd": 1
+  },
+  {
+   "fieldname": "end_date_field",
+   "fieldtype": "Select",
+   "label": "End Date Field",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "all_day",
+   "fieldtype": "Check",
+   "label": "All Day"
+  }
+ ],
+ "links": [],
+ "modified": "2023-08-28 22:29:39.662726",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Calendar View",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Desk User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

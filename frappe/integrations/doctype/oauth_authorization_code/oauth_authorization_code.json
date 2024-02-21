@@ -1,0 +1,112 @@
+{
+ "actions": [],
+ "autoname": "field:authorization_code",
+ "creation": "2016-08-24 14:12:13.647159",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "client",
+  "user",
+  "scopes",
+  "authorization_code",
+  "expiration_time",
+  "redirect_uri_bound_to_authorization_code",
+  "validity",
+  "nonce",
+  "code_challenge",
+  "code_challenge_method"
+ ],
+ "fields": [
+  {
+   "fieldname": "client",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Client",
+   "options": "OAuth Client",
+   "read_only": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scopes",
+   "fieldtype": "Text",
+   "label": "Scopes",
+   "read_only": 1
+  },
+  {
+   "fieldname": "authorization_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Authorization Code",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "expiration_time",
+   "fieldtype": "Datetime",
+   "label": "Expiration time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "redirect_uri_bound_to_authorization_code",
+   "fieldtype": "Data",
+   "label": "Redirect URI Bound To Auth Code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "validity",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Validity",
+   "options": "Valid\nInvalid",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nonce",
+   "fieldtype": "Data",
+   "label": "nonce",
+   "read_only": 1
+  },
+  {
+   "fieldname": "code_challenge",
+   "fieldtype": "Data",
+   "label": "Code Challenge",
+   "read_only": 1
+  },
+  {
+   "fieldname": "code_challenge_method",
+   "fieldtype": "Select",
+   "label": "Code challenge method",
+   "options": "\ns256\nplain",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2021-04-26 07:23:02.980612",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "OAuth Authorization Code",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

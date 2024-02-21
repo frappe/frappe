@@ -1,0 +1,55 @@
+{
+ "actions": [],
+ "creation": "2016-10-19 12:26:42.569185",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "column_name",
+  "status",
+  "indicator",
+  "order"
+ ],
+ "fields": [
+  {
+   "fieldname": "column_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Column Name"
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Active\nArchived"
+  },
+  {
+   "default": "Gray",
+   "fieldname": "indicator",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Indicator",
+   "options": "Blue\nCyan\nGray\nGreen\nLight Blue\nOrange\nPink\nPurple\nRed\nRed\nYellow"
+  },
+  {
+   "fieldname": "order",
+   "fieldtype": "Code",
+   "label": "Order"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2021-12-14 13:13:38.804259",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Kanban Board Column",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

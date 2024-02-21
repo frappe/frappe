@@ -1,0 +1,198 @@
+{
+ "actions": [],
+ "creation": "2014-07-17 06:54:20.782907",
+ "doctype": "DocType",
+ "document_type": "System",
+ "engine": "InnoDB",
+ "field_order": [
+  "pdf_settings",
+  "send_print_as_pdf",
+  "repeat_header_footer",
+  "column_break_4",
+  "pdf_page_size",
+  "pdf_page_height",
+  "pdf_page_width",
+  "view_link_in_email",
+  "with_letterhead",
+  "allow_print_for_draft",
+  "add_draft_heading",
+  "column_break_10",
+  "allow_page_break_inside_tables",
+  "allow_print_for_cancelled",
+  "server_printer",
+  "enable_print_server",
+  "raw_printing_section",
+  "enable_raw_printing",
+  "print_style_section",
+  "print_style",
+  "print_style_preview",
+  "section_break_8",
+  "font",
+  "font_size"
+ ],
+ "fields": [
+  {
+   "fieldname": "pdf_settings",
+   "fieldtype": "Section Break",
+   "label": "PDF Settings"
+  },
+  {
+   "default": "1",
+   "description": "Send Email Print Attachments as PDF (Recommended)",
+   "fieldname": "send_print_as_pdf",
+   "fieldtype": "Check",
+   "label": "Send Print as PDF"
+  },
+  {
+   "default": "1",
+   "fieldname": "repeat_header_footer",
+   "fieldtype": "Check",
+   "label": "Repeat Header and Footer"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "A4",
+   "fieldname": "pdf_page_size",
+   "fieldtype": "Select",
+   "label": "PDF Page Size",
+   "options": "A0\nA1\nA2\nA3\nA4\nA5\nA6\nA7\nA8\nA9\nB0\nB1\nB2\nB3\nB4\nB5\nB6\nB7\nB8\nB9\nB10\nC5E\nComm10E\nDLE\nExecutive\nFolio\nLedger\nLegal\nLetter\nTabloid\nCustom"
+  },
+  {
+   "fieldname": "view_link_in_email",
+   "fieldtype": "Section Break",
+   "label": "Page Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "with_letterhead",
+   "fieldtype": "Check",
+   "label": "Print with letterhead"
+  },
+  {
+   "default": "1",
+   "fieldname": "allow_print_for_draft",
+   "fieldtype": "Check",
+   "label": "Allow Print for Draft"
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "add_draft_heading",
+   "fieldtype": "Check",
+   "label": "Always add \"Draft\" Heading for printing draft documents"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_page_break_inside_tables",
+   "fieldtype": "Check",
+   "label": "Allow page break inside tables"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_print_for_cancelled",
+   "fieldtype": "Check",
+   "label": "Allow Print for Cancelled"
+  },
+  {
+   "fieldname": "server_printer",
+   "fieldtype": "Section Break",
+   "label": "Print Server"
+  },
+  {
+   "default": "0",
+   "depends_on": "enable_print_server",
+   "fieldname": "enable_print_server",
+   "fieldtype": "Check",
+   "label": "Enable Print Server",
+   "mandatory_depends_on": "enable_print_server"
+  },
+  {
+   "fieldname": "raw_printing_section",
+   "fieldtype": "Section Break",
+   "label": "Raw Printing"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_raw_printing",
+   "fieldtype": "Check",
+   "label": "Enable Raw Printing"
+  },
+  {
+   "fieldname": "print_style_section",
+   "fieldtype": "Section Break",
+   "label": "Print Style"
+  },
+  {
+   "default": "Redesign",
+   "fieldname": "print_style",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Print Style",
+   "options": "Print Style"
+  },
+  {
+   "fieldname": "print_style_preview",
+   "fieldtype": "HTML",
+   "label": "Print Style Preview"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break",
+   "label": "Fonts"
+  },
+  {
+   "default": "Default",
+   "fieldname": "font",
+   "fieldtype": "Select",
+   "label": "Font",
+   "options": "Default\nHelvetica Neue\nArial\nHelvetica\nInter\nVerdana\nMonospace"
+  },
+  {
+   "description": "In points. Default is 9.",
+   "fieldname": "font_size",
+   "fieldtype": "Float",
+   "label": "Font Size"
+  },
+  {
+   "depends_on": "eval:doc.pdf_page_size == \"Custom\"",
+   "fieldname": "pdf_page_height",
+   "fieldtype": "Float",
+   "label": "PDF Page Height (in mm)"
+  },
+  {
+   "depends_on": "eval:doc.pdf_page_size == \"Custom\"",
+   "fieldname": "pdf_page_width",
+   "fieldtype": "Float",
+   "label": "PDF Page Width (in mm)"
+  }
+ ],
+ "icon": "fa fa-cog",
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2023-05-30 14:55:25.740691",
+ "modified_by": "Administrator",
+ "module": "Printing",
+ "name": "Print Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

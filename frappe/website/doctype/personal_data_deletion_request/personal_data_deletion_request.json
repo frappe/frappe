@@ -1,0 +1,70 @@
+{
+ "actions": [],
+ "creation": "2019-02-12 15:11:52.201733",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "email",
+  "status",
+  "anonymization_matrix",
+  "deletion_steps"
+ ],
+ "fields": [
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Email",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "default": "Pending Verification",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Pending Verification\nPending Approval\nOn Hold\nDeleted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "anonymization_matrix",
+   "fieldtype": "Code",
+   "label": "Anonymization Matrix",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "deletion_steps",
+   "fieldtype": "Table",
+   "label": "Deletion Steps ",
+   "options": "Personal Data Deletion Step"
+  }
+ ],
+ "links": [],
+ "modified": "2021-12-16 10:39:27.058371",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Personal Data Deletion Request",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

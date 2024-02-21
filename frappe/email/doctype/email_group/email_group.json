@@ -1,0 +1,108 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2015-03-18 06:08:32.729800",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "column_break_oyyj",
+  "total_subscribers",
+  "sign_up_and_confirmation_section",
+  "confirmation_email_template",
+  "welcome_email_template",
+  "welcome_url",
+  "add_query_parameters"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "no_copy": 1,
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_subscribers",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Total Subscribers",
+   "read_only": 1
+  },
+  {
+   "fieldname": "confirmation_email_template",
+   "fieldtype": "Link",
+   "label": "Confirmation Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "welcome_email_template",
+   "fieldtype": "Link",
+   "label": "Welcome Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "column_break_oyyj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sign_up_and_confirmation_section",
+   "fieldtype": "Section Break",
+   "label": "Sign Up and Confirmation"
+  },
+  {
+   "description": "Redirect to this URL after successful confirmation.",
+   "fieldname": "welcome_url",
+   "fieldtype": "Data",
+   "label": "Welcome URL",
+   "options": "URL"
+  },
+  {
+   "default": "0",
+   "depends_on": "welcome_url",
+   "fieldname": "add_query_parameters",
+   "fieldtype": "Check",
+   "label": "Add Query Parameters"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "group": "Members",
+   "link_doctype": "Email Group Member",
+   "link_fieldname": "email_group"
+  }
+ ],
+ "modified": "2023-11-24 18:35:17.268492",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Email Group",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Newsletter Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "show_name_in_global_search": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

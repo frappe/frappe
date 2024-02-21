@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "creation": "2014-09-01 14:14:14.292173",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "fieldname",
+  "fieldtype",
+  "label",
+  "allow_read_on_all_link_options",
+  "reqd",
+  "read_only",
+  "show_in_filter",
+  "hidden",
+  "column_break_4",
+  "options",
+  "max_length",
+  "max_value",
+  "precision",
+  "property_depends_on_section",
+  "depends_on",
+  "mandatory_depends_on",
+  "column_break_16",
+  "read_only_depends_on",
+  "section_break_6",
+  "description",
+  "column_break_8",
+  "default"
+ ],
+ "fields": [
+  {
+   "fieldname": "fieldname",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Field"
+  },
+  {
+   "fieldname": "fieldtype",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Fieldtype",
+   "options": "Attach\nAttach Image\nCheck\nCurrency\nColor\nData\nDate\nDatetime\nDuration\nFloat\nHTML\nInt\nLink\nPassword\nPhone\nRating\nSelect\nSignature\nSmall Text\nText\nText Editor\nTable\nTime\nSection Break\nColumn Break\nPage Break"
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Custom Label"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.fieldtype === 'Link'",
+   "fieldname": "allow_read_on_all_link_options",
+   "fieldtype": "Check",
+   "label": "Allow Read On All Link Options"
+  },
+  {
+   "default": "0",
+   "fieldname": "reqd",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Mandatory"
+  },
+  {
+   "fieldname": "depends_on",
+   "fieldtype": "Code",
+   "label": "Display Depends On"
+  },
+  {
+   "default": "0",
+   "fieldname": "read_only",
+   "fieldtype": "Check",
+   "label": "Read Only"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_in_filter",
+   "fieldtype": "Check",
+   "label": "Show in filter"
+  },
+  {
+   "default": "0",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "label": "Hidden"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Options"
+  },
+  {
+   "fieldname": "max_length",
+   "fieldtype": "Int",
+   "label": "Max Length"
+  },
+  {
+   "depends_on": "eval:doc.fieldtype=='Int'",
+   "fieldname": "max_value",
+   "fieldtype": "Int",
+   "label": "Max Value"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "default",
+   "fieldtype": "Data",
+   "label": "Default"
+  },
+  {
+   "fieldname": "property_depends_on_section",
+   "fieldtype": "Section Break",
+   "label": "Property Depends On"
+  },
+  {
+   "fieldname": "mandatory_depends_on",
+   "fieldtype": "Code",
+   "label": "Mandatory Depends On",
+   "options": "JS"
+  },
+  {
+   "fieldname": "column_break_16",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "read_only_depends_on",
+   "fieldtype": "Code",
+   "label": "Read Only Depends On",
+   "options": "JS"
+  },
+  {
+   "depends_on": "eval:in_list([\"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "description": "Set non-standard precision for a Float or Currency field",
+   "fieldname": "precision",
+   "fieldtype": "Select",
+   "label": "Precision",
+   "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2024-01-08 13:21:06.272248",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Form Field",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,675 @@
+{
+ "actions": [],
+ "creation": "2022-01-06 03:18:16.326761",
+ "doctype": "DocType",
+ "document_type": "System",
+ "engine": "InnoDB",
+ "field_order": [
+  "localization",
+  "app_name",
+  "country",
+  "language",
+  "column_break_3",
+  "time_zone",
+  "enable_onboarding",
+  "setup_complete",
+  "disable_document_sharing",
+  "date_and_number_format",
+  "date_format",
+  "time_format",
+  "number_format",
+  "first_day_of_the_week",
+  "column_break_7",
+  "float_precision",
+  "currency_precision",
+  "rounding_method",
+  "permissions",
+  "apply_strict_user_permissions",
+  "column_break_21",
+  "allow_older_web_view_links",
+  "security_tab",
+  "security",
+  "session_expiry",
+  "document_share_key_expiry",
+  "column_break_txqh",
+  "deny_multiple_sessions",
+  "disable_user_pass_login",
+  "login_methods_section",
+  "allow_login_using_mobile_number",
+  "allow_login_using_user_name",
+  "column_break_uhqk",
+  "login_with_email_link",
+  "login_with_email_link_expiry",
+  "brute_force_security",
+  "allow_consecutive_login_attempts",
+  "column_break_34",
+  "allow_login_after_fail",
+  "two_factor_authentication",
+  "enable_two_factor_auth",
+  "bypass_2fa_for_retricted_ip_users",
+  "bypass_restrict_ip_check_if_2fa_enabled",
+  "two_factor_method",
+  "lifespan_qrcode_image",
+  "otp_issuer_name",
+  "password_tab",
+  "password_settings",
+  "logout_on_password_reset",
+  "force_user_to_reset_password",
+  "reset_password_link_expiry_duration",
+  "password_reset_limit",
+  "column_break_31",
+  "enable_password_policy",
+  "minimum_password_score",
+  "email_tab",
+  "email",
+  "email_footer_address",
+  "email_retry_limit",
+  "column_break_18",
+  "disable_standard_email_footer",
+  "hide_footer_in_auto_email_reports",
+  "attach_view_link",
+  "welcome_email_template",
+  "reset_password_template",
+  "files_tab",
+  "files_section",
+  "max_file_size",
+  "allow_guests_to_upload_files",
+  "force_web_capture_mode_for_uploads",
+  "strip_exif_metadata_from_uploaded_images",
+  "column_break_uqma",
+  "allowed_file_extensions",
+  "updates_tab",
+  "system_updates_section",
+  "disable_system_update_notification",
+  "disable_change_log_notification",
+  "backups_tab",
+  "sec_backup_limit",
+  "backup_limit",
+  "encrypt_backup",
+  "advanced_tab",
+  "prepared_report_section",
+  "max_auto_email_report_per_user",
+  "background_workers",
+  "enable_scheduler",
+  "dormant_days",
+  "telemetry_section",
+  "allow_error_traceback",
+  "enable_telemetry",
+  "search_section",
+  "link_field_results_limit"
+ ],
+ "fields": [
+  {
+   "fieldname": "localization",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "country",
+   "fieldtype": "Link",
+   "label": "Country",
+   "options": "Country"
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Language",
+   "options": "Language",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "time_zone",
+   "fieldtype": "Select",
+   "label": "Time Zone",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "setup_complete",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Setup Complete",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_and_number_format",
+   "fieldtype": "Section Break",
+   "label": "Date and Number Format"
+  },
+  {
+   "fieldname": "date_format",
+   "fieldtype": "Select",
+   "label": "Date Format",
+   "options": "yyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\ndd.mm.yyyy\nmm/dd/yyyy\nmm-dd-yyyy",
+   "reqd": 1
+  },
+  {
+   "default": "HH:mm:ss",
+   "fieldname": "time_format",
+   "fieldtype": "Select",
+   "label": "Time Format",
+   "options": "HH:mm:ss\nHH:mm",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "number_format",
+   "fieldtype": "Select",
+   "label": "Number Format",
+   "options": "#,###.##\n#.###,##\n# ###.##\n# ###,##\n#'###.##\n#, ###.##\n#,##,###.##\n#,###.###\n#.###\n#,###",
+   "reqd": 1
+  },
+  {
+   "fieldname": "float_precision",
+   "fieldtype": "Select",
+   "label": "Float Precision",
+   "options": "\n2\n3\n4\n5\n6\n7\n8\n9"
+  },
+  {
+   "description": "If not set, the currency precision will depend on number format",
+   "fieldname": "currency_precision",
+   "fieldtype": "Select",
+   "label": "Currency Precision",
+   "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
+  },
+  {
+   "fieldname": "sec_backup_limit",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "3",
+   "description": "Older backups will be automatically deleted",
+   "fieldname": "backup_limit",
+   "fieldtype": "Int",
+   "label": "Number of Backups"
+  },
+  {
+   "fieldname": "background_workers",
+   "fieldtype": "Section Break",
+   "label": "Background Workers"
+  },
+  {
+   "default": "0",
+   "description": "Run scheduled jobs only if checked",
+   "fieldname": "enable_scheduler",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Enable Scheduled Jobs"
+  },
+  {
+   "fieldname": "permissions",
+   "fieldtype": "Section Break",
+   "label": "Permissions"
+  },
+  {
+   "default": "0",
+   "description": "If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User",
+   "fieldname": "apply_strict_user_permissions",
+   "fieldtype": "Check",
+   "label": "Apply Strict User Permissions"
+  },
+  {
+   "fieldname": "security",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "170:00",
+   "description": "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours.",
+   "fieldname": "session_expiry",
+   "fieldtype": "Data",
+   "label": "Session Expiry (idle timeout)"
+  },
+  {
+   "default": "0",
+   "description": "Note: Multiple sessions will be allowed in case of mobile device",
+   "fieldname": "deny_multiple_sessions",
+   "fieldtype": "Check",
+   "label": "Allow only one session per user"
+  },
+  {
+   "default": "0",
+   "description": "User can login using Email id or Mobile number",
+   "fieldname": "allow_login_using_mobile_number",
+   "fieldtype": "Check",
+   "label": "Allow Login using Mobile Number"
+  },
+  {
+   "default": "0",
+   "description": "User can login using Email id or User Name",
+   "fieldname": "allow_login_using_user_name",
+   "fieldtype": "Check",
+   "label": "Allow Login using User Name"
+  },
+  {
+   "default": "1",
+   "fieldname": "allow_error_traceback",
+   "fieldtype": "Check",
+   "label": "Show Full Error and Allow Reporting of Issues to the Developer"
+  },
+  {
+   "fieldname": "password_settings",
+   "fieldtype": "Section Break",
+   "label": "Password"
+  },
+  {
+   "description": "In Days",
+   "fieldname": "force_user_to_reset_password",
+   "fieldtype": "Int",
+   "label": "Force User to Reset Password"
+  },
+  {
+   "fieldname": "column_break_31",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong.",
+   "fieldname": "enable_password_policy",
+   "fieldtype": "Check",
+   "label": "Enable Password Policy"
+  },
+  {
+   "default": "2",
+   "depends_on": "eval:doc.enable_password_policy==1",
+   "fieldname": "minimum_password_score",
+   "fieldtype": "Select",
+   "label": "Minimum Password Score",
+   "options": "2\n3\n4"
+  },
+  {
+   "fieldname": "brute_force_security",
+   "fieldtype": "Section Break",
+   "label": "Brute Force Security"
+  },
+  {
+   "default": "10",
+   "fieldname": "allow_consecutive_login_attempts",
+   "fieldtype": "Int",
+   "label": "Allow Consecutive Login Attempts "
+  },
+  {
+   "fieldname": "column_break_34",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "60",
+   "description": "In seconds",
+   "fieldname": "allow_login_after_fail",
+   "fieldtype": "Int",
+   "label": "Allow Login After Fail"
+  },
+  {
+   "fieldname": "two_factor_authentication",
+   "fieldtype": "Section Break",
+   "label": "Two Factor Authentication"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_two_factor_auth",
+   "fieldtype": "Check",
+   "label": "Enable Two Factor Auth"
+  },
+  {
+   "default": "0",
+   "depends_on": "enable_two_factor_auth",
+   "description": "If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth",
+   "fieldname": "bypass_2fa_for_retricted_ip_users",
+   "fieldtype": "Check",
+   "label": "Bypass Two Factor Auth for users who login from restricted IP Address"
+  },
+  {
+   "default": "0",
+   "depends_on": "enable_two_factor_auth",
+   "description": "If enabled, all users can login from any IP Address using Two Factor Auth. This can also be set only for specific user(s) in User Page",
+   "fieldname": "bypass_restrict_ip_check_if_2fa_enabled",
+   "fieldtype": "Check",
+   "label": "Bypass restricted IP Address check If Two Factor Auth Enabled"
+  },
+  {
+   "default": "OTP App",
+   "depends_on": "enable_two_factor_auth",
+   "description": "Choose authentication method to be used by all users",
+   "fieldname": "two_factor_method",
+   "fieldtype": "Select",
+   "label": "Two Factor Authentication method",
+   "options": "OTP App\nSMS\nEmail"
+  },
+  {
+   "depends_on": "eval:doc.enable_two_factor_auth && doc.two_factor_method == \"OTP App\"",
+   "description": "Time in seconds to retain QR code image on server. Min:<strong>240</strong>",
+   "fieldname": "lifespan_qrcode_image",
+   "fieldtype": "Int",
+   "label": "Expiry time of QR Code Image Page"
+  },
+  {
+   "default": "Frappe Framework",
+   "depends_on": "enable_two_factor_auth",
+   "fieldname": "otp_issuer_name",
+   "fieldtype": "Data",
+   "label": "OTP Issuer Name"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Your organization name and address for the email footer.",
+   "fieldname": "email_footer_address",
+   "fieldtype": "Small Text",
+   "label": "Email Footer Address"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_standard_email_footer",
+   "fieldtype": "Check",
+   "label": "Disable Standard Email Footer"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_footer_in_auto_email_reports",
+   "fieldtype": "Check",
+   "label": "Hide footer in auto email reports"
+  },
+  {
+   "fieldname": "column_break_21",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "When enabled this will allow guests to upload files to your application, You can enable this if you wish to collect files from user without having them to log in, for example in job applications web form.",
+   "fieldname": "allow_guests_to_upload_files",
+   "fieldtype": "Check",
+   "label": "Allow Guests to Upload Files"
+  },
+  {
+   "default": "4",
+   "description": "Will run scheduled jobs only once a day for inactive sites. Default 4 days if set to 0.",
+   "fieldname": "dormant_days",
+   "fieldtype": "Int",
+   "label": "Run Jobs only Daily if Inactive For (Days)"
+  },
+  {
+   "default": "3",
+   "description": "Hourly rate limit for generating password reset links",
+   "fieldname": "password_reset_limit",
+   "fieldtype": "Int",
+   "label": "Password Reset Link Generation Limit"
+  },
+  {
+   "default": "1",
+   "fieldname": "logout_on_password_reset",
+   "fieldtype": "Check",
+   "label": "Logout All Sessions on Password Reset"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_onboarding",
+   "fieldtype": "Check",
+   "label": "Enable Onboarding"
+  },
+  {
+   "default": "1",
+   "fieldname": "attach_view_link",
+   "fieldtype": "Check",
+   "label": "Include Web View Link in Email"
+  },
+  {
+   "fieldname": "prepared_report_section",
+   "fieldtype": "Section Break",
+   "label": "Reports"
+  },
+  {
+   "default": "Frappe",
+   "description": "The application name will be used in the Login page.",
+   "fieldname": "app_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Application Name"
+  },
+  {
+   "default": "1",
+   "fieldname": "strip_exif_metadata_from_uploaded_images",
+   "fieldtype": "Check",
+   "label": "Strip EXIF tags from uploaded images"
+  },
+  {
+   "default": "0",
+   "fieldname": "encrypt_backup",
+   "fieldtype": "Check",
+   "label": "Encrypt Backups"
+  },
+  {
+   "fieldname": "system_updates_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_system_update_notification",
+   "fieldtype": "Check",
+   "label": "Disable System Update Notification"
+  },
+  {
+   "default": "Sunday",
+   "fieldname": "first_day_of_the_week",
+   "fieldtype": "Select",
+   "label": "First Day of the Week",
+   "options": "Sunday\nMonday\nTuesday\nWednesday\nThursday\nFriday\nSaturday"
+  },
+  {
+   "default": "30",
+   "description": "Number of days after which the document Web View link shared on email will be expired",
+   "fieldname": "document_share_key_expiry",
+   "fieldtype": "Int",
+   "label": "Document Share Key Expiry (in Days)"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_older_web_view_links",
+   "fieldtype": "Check",
+   "label": "Allow Older Web View Links (Insecure)"
+  },
+  {
+   "default": "20",
+   "fieldname": "max_auto_email_report_per_user",
+   "fieldtype": "Int",
+   "label": "Max auto email report per user"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_change_log_notification",
+   "fieldtype": "Check",
+   "label": "Disable Change Log Notification"
+  },
+  {
+   "default": "1200",
+   "fieldname": "reset_password_link_expiry_duration",
+   "fieldtype": "Duration",
+   "label": "Reset Password Link Expiry Duration",
+   "non_negative": 1
+  },
+  {
+   "default": "3",
+   "fieldname": "email_retry_limit",
+   "fieldtype": "Int",
+   "label": "Email Retry Limit"
+  },
+  {
+   "default": "0",
+   "description": "Make sure to configure a Social Login Key before disabling to prevent lockout",
+   "fieldname": "disable_user_pass_login",
+   "fieldtype": "Check",
+   "label": "Disable Username/Password Login"
+  },
+  {
+   "default": "1",
+   "description": "Allow users to log in without a password, using a login link sent to their email",
+   "fieldname": "login_with_email_link",
+   "fieldtype": "Check",
+   "label": "Login with email link"
+  },
+  {
+   "default": "10",
+   "depends_on": "login_with_email_link",
+   "fieldname": "login_with_email_link_expiry",
+   "fieldtype": "Int",
+   "label": "Login with email link expiry (in minutes)"
+  },
+  {
+   "default": "Banker's Rounding (legacy)",
+   "fieldname": "rounding_method",
+   "fieldtype": "Select",
+   "label": "Rounding Method",
+   "options": "Banker's Rounding (legacy)\nBanker's Rounding\nCommercial Rounding"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_document_sharing",
+   "fieldtype": "Check",
+   "label": "Disable Document Sharing"
+  },
+  {
+   "fieldname": "telemetry_section",
+   "fieldtype": "Section Break",
+   "label": "Telemetry"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_telemetry",
+   "fieldtype": "Check",
+   "label": "Allow Sending Usage Data for Improving Applications"
+  },
+  {
+   "fieldname": "welcome_email_template",
+   "fieldtype": "Link",
+   "label": "Welcome Email Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "reset_password_template",
+   "fieldtype": "Link",
+   "label": "Reset Password Template",
+   "options": "Email Template"
+  },
+  {
+   "default": "0",
+   "description": "When uploading files, force the use of the web-based image capture. If this is unchecked, the default behavior is to use the mobile native camera when use from a mobile is detected.",
+   "fieldname": "force_web_capture_mode_for_uploads",
+   "fieldtype": "Check",
+   "label": "Force Web Capture Mode for Uploads"
+  },
+  {
+   "fieldname": "files_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "max_file_size",
+   "fieldtype": "Int",
+   "label": "Max File Size (MB)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_uqma",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG",
+   "fieldname": "allowed_file_extensions",
+   "fieldtype": "Small Text",
+   "label": "Allowed File Extensions"
+  },
+  {
+   "fieldname": "security_tab",
+   "fieldtype": "Tab Break",
+   "label": "Login"
+  },
+  {
+   "fieldname": "email_tab",
+   "fieldtype": "Tab Break",
+   "label": "Email"
+  },
+  {
+   "fieldname": "files_tab",
+   "fieldtype": "Tab Break",
+   "label": "Files"
+  },
+  {
+   "fieldname": "updates_tab",
+   "fieldtype": "Tab Break",
+   "label": "Updates"
+  },
+  {
+   "fieldname": "backups_tab",
+   "fieldtype": "Tab Break",
+   "label": "Backups"
+  },
+  {
+   "fieldname": "advanced_tab",
+   "fieldtype": "Tab Break",
+   "label": "Advanced"
+  },
+  {
+   "fieldname": "password_tab",
+   "fieldtype": "Tab Break",
+   "label": "Password"
+  },
+  {
+   "fieldname": "column_break_txqh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "login_methods_section",
+   "fieldtype": "Section Break",
+   "label": "Login Methods"
+  },
+  {
+   "fieldname": "column_break_uhqk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "search_section",
+   "fieldtype": "Section Break",
+   "label": "Search"
+  },
+  {
+   "default": "10",
+   "fieldname": "link_field_results_limit",
+   "fieldtype": "Int",
+   "label": "Link Field Results Limit",
+   "non_negative": 1
+  }
+ ],
+ "icon": "fa fa-cog",
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-01-26 11:29:20.924425",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "System Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

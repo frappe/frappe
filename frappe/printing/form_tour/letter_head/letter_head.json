@@ -1,0 +1,53 @@
+{
+ "creation": "2021-11-22 15:26:53.878805",
+ "docstatus": 0,
+ "doctype": "Form Tour",
+ "idx": 0,
+ "is_standard": 1,
+ "modified": "2021-11-22 15:26:53.878805",
+ "modified_by": "Administrator",
+ "module": "Printing",
+ "name": "Letter Head",
+ "owner": "Administrator",
+ "reference_doctype": "Letter Head",
+ "save_on_complete": 1,
+ "steps": [
+  {
+   "description": "Let's name your first Letter Head with your company's name",
+   "field": "",
+   "fieldname": "letter_head_name",
+   "fieldtype": "Data",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Letter Head Name",
+   "parent_field": "",
+   "position": "Right",
+   "title": "Letter Head Name"
+  },
+  {
+   "description": "Select the image containing only header part of your letter Head.",
+   "field": "",
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Image",
+   "parent_field": "",
+   "position": "Right",
+   "title": "Image"
+  },
+  {
+   "description": "You can mark the Letter Head as default",
+   "field": "",
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "has_next_condition": 0,
+   "is_table_field": 0,
+   "label": "Default Letter Head",
+   "parent_field": "",
+   "position": "Right",
+   "title": "Default Letter Head"
+  }
+ ],
+ "title": "Letter Head"
+}

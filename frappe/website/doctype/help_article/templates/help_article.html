@@ -1,0 +1,64 @@
+{% extends "templates/web.html" %}
+
+{% block header %}
+<h1 itemprop="headline">{{ title }}</h1>
+{% endblock %}
+
+{% block page_content %}
+<article itemscope itemtype="http://schema.org/BlogPosting">
+	<div>
+		<h6 class='text-muted'>By {{ author }} on {{ frappe.format_date(creation) }}</h6>
+		<span class="indicator {{ level_class }}">{{ level }}</span>
+	</div>
+
+	<div class="from-markdown my-4" itemprop="articleBody">
+		{{ content }}
+	</div>
+
+	<p><br><a href="/{{ category.route }}" class='text-muted small'>
+		{{ _("More articles on {0}").format(category.name) }}</a></p>
+</article>
+<div class="help-article-feedback mb-6">
+	<hr />
+	<div class="feedback-view ">
+		<div class="text-muted small mr-2 mb-2">{{ _("Was this article helpful?") }}</div>
+		<button class="feedback btn btn-outline-primary btn-sm" data-value="Yes" style="width: 50px;">{{ _("Yes") }}</button>
+		<button class="feedback btn btn-outline-primary btn-sm" data-value="No" style="width: 50px;">{{ _("No") }}</button>
+		<span class="feedback-msg small hidden">{{ _("Thank you for your feedback!") }}</span>
+	</div>
+</div>
+<div class="help-article-comments">
+	<hr>
+	<a href="/{{ category.route }}">
+		{{ _("More articles on {0}").format(category.name) }}
+	</a>
+	<hr>
+</div>
+
+<div>
+	<h5>Comments</h5>
+	{% include 'templates/includes/comments/comments.html' %}
+</div>
+<script>
+frappe.ready(function() {
+	frappe.set_search_path("/kb");
+	$(".feedback").click(function() {
+		let args = {
+			article: "{{ reference_name or name }}",
+			helpful: this.getAttribute("data-value"),
+		}
+
+		frappe.call({
+			btn: this,
+			method: "frappe.website.doctype.help_article.help_article.add_feedback",
+			args: args,
+			callback: function(r) {
+				$(".feedback")[0].classList.add("hidden");
+				$(".feedback")[1].classList.add("hidden");
+				$(".feedback-msg")[0].classList.remove("hidden");
+			}
+		})
+	});
+});
+</script>
+{% endblock %}

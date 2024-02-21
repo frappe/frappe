@@ -1,0 +1,181 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "creation": "2017-10-05 11:10:38.780133",
+ "description": "Keep track of all update feeds",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "subject",
+  "section_break_8",
+  "content",
+  "column_break_5",
+  "additional_info",
+  "communication_date",
+  "ip_address",
+  "column_break_7",
+  "operation",
+  "status",
+  "reference_section",
+  "reference_doctype",
+  "reference_name",
+  "reference_owner",
+  "column_break_14",
+  "timeline_doctype",
+  "timeline_name",
+  "link_doctype",
+  "link_name",
+  "user",
+  "full_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "subject",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Subject",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Text Editor",
+   "label": "Message",
+   "width": "400"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "additional_info",
+   "fieldtype": "Section Break",
+   "label": "More Information"
+  },
+  {
+   "default": "Now",
+   "fieldname": "communication_date",
+   "fieldtype": "Datetime",
+   "label": "Date"
+  },
+  {
+   "fieldname": "column_break_7",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "operation",
+   "fieldtype": "Select",
+   "label": "Operation",
+   "options": "\nLogin\nLogout"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "\nSuccess\nFailed\nLinked\nClosed"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "reference_section",
+   "fieldtype": "Section Break",
+   "label": "Reference"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference Document Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Name",
+   "options": "reference_doctype"
+  },
+  {
+   "fetch_from": "reference_name.owner",
+   "fieldname": "reference_owner",
+   "fieldtype": "Read Only",
+   "label": "Reference Owner"
+  },
+  {
+   "fieldname": "column_break_14",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "timeline_doctype",
+   "fieldtype": "Link",
+   "label": "Timeline DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "timeline_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Timeline Name",
+   "options": "timeline_doctype"
+  },
+  {
+   "fieldname": "link_doctype",
+   "fieldtype": "Link",
+   "label": "Link DocType",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "link_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Link Name",
+   "options": "link_doctype",
+   "read_only": 1
+  },
+  {
+   "default": "__user",
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name"
+  },
+  {
+   "fieldname": "ip_address",
+   "fieldtype": "Data",
+   "label": "IP Address"
+  }
+ ],
+ "icon": "fa fa-comment",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-08-28 20:22:10.992615",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Activity Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "search_fields": "subject",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "subject",
+ "track_seen": 1
+}

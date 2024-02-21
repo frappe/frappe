@@ -1,0 +1,33 @@
+<div class="footer-grouped-links">
+	<div class="row">
+		{% for group in footer_items if group.child_items %}
+		{# 2 columns to every 5 links, so 5 links get 2 columns, 5-10 links get 4 columns, and so on #}
+		{%- set cols = frappe.utils.ceil((group.child_items | len) / 5) * 2 -%}
+		<div class="col-sm-{{ cols }} footer-group">
+			<div data-label="{{ group.label }}">
+				<h5 class="footer-group-label">
+					{%- if group.icon -%}
+					<img src="{{ group.icon }}" alt="{{ group.label }}">
+					{%- else -%}
+					{{ group.label }}
+					{%- endif -%}
+				</h5>
+				<ul class="footer-group-links list-unstyled">
+					{%- for child in group.child_items -%}
+					<li class="footer-child-item" data-label="{{ child.label }}">
+						<a href="{{ child.url | abs_url }}"
+							{% if child.open_in_new_tab %} target="_blank" {% endif %}  rel="noreferrer">
+							{%- if child.icon -%}
+							<img src="{{ child.icon }}" alt="{{ child.label }}">
+							{%- else -%}
+							{{ child.label }}
+							{%- endif -%}
+						</a>
+					</li>
+					{%- endfor -%}
+				</ul>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+</div>

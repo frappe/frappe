@@ -1,0 +1,11 @@
+:root {
+	--plyr-color-main: var(--primary);
+}
+
+.plyr {
+	border-radius: var(--border-radius);
+
+	.plyr__poster {
+		filter: brightness(0.7);
+	}
+}

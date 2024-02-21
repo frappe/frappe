@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "creation": "2013-02-22 01:28:08",
+ "doctype": "DocType",
+ "document_type": "Other",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "url",
+  "open_in_new_tab",
+  "right",
+  "column_break_5",
+  "parent_label"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "print_width": "120px",
+   "reqd": 1,
+   "width": "120px"
+  },
+  {
+   "description": "If you set this, this Item will come in a drop-down under the selected parent.",
+   "fieldname": "parent_label",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Parent Label"
+  },
+  {
+   "description": "Link to the page you want to open. Leave blank if you want to make it a group parent.",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "URL",
+   "print_width": "200px",
+   "width": "200px"
+  },
+  {
+   "default": "1",
+   "fieldname": "right",
+   "fieldtype": "Check",
+   "label": "Align Right"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.url",
+   "fieldname": "open_in_new_tab",
+   "fieldtype": "Check",
+   "label": "Open URL in a New Tab"
+  }
+ ],
+ "idx": 1,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-01-08 12:05:25.782635",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Top Bar Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "states": []
+}

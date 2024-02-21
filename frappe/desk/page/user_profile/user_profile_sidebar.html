@@ -1,0 +1,60 @@
+<div class="user-profile-sidebar">
+	<div class="user-image-container hidden-xs hidden-sm">
+		<div class="sidebar-image-wrapper">
+			{% if user_image %}
+			<img class="sidebar-image" src="{{ user_image }}" />
+			{% else %}
+			<div class="sidebar-standard-image hide">
+				<div class="standard-image"></div>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+	<div class="profile-details">
+		{% if user_bio %}
+		<div class="detail-item">
+			<p class="user-bio">{{user_bio}}</p>
+		</div>
+		{% endif %}
+
+		{% if user_location %}
+		<div class="detail-item">
+			<h5>{%=__("Intro") %}</h5>
+			<p class="user-location text-muted mt-3">
+				<span class="interest-icon">
+					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M12.4827 6.57143C12.4827 9.39265 7.91127 14 7.91127 14C7.91127 14 3.33984 9.39265 3.33984 6.57143C3.33984 3.67837 5.70197 2 7.91127 2C10.1206 2 12.4827 3.67837 12.4827 6.57143Z" stroke="#192734" stroke-miterlimit="10" stroke-linecap="square" stroke-linejoin="round"/>
+					<path d="M7.91354 7.87763C8.6349 7.87763 9.21967 7.29285 9.21967 6.5715C9.21967 5.85015 8.6349 5.26538 7.91354 5.26538C7.19219 5.26538 6.60742 5.85015 6.60742 6.5715C6.60742 7.29285 7.19219 7.87763 7.91354 7.87763Z" stroke="#192734" stroke-miterlimit="10" stroke-linecap="square"/>
+					</svg>
+				</span>
+				{{user_location}}
+			</p>
+		</div>
+		{% endif %}
+
+	{% if user_interest %}
+		<div class="detail-item">
+			<h5>{%=__("Interests") %}</h5>
+			<p class="user-interests text-muted mt-3">
+				{{user_interest}}
+			</p>
+		</div>
+		{% endif %}
+
+		<div class="detail-item user-stats-detail hide">
+			<h5>{%=__("Details") %}</h5>
+			<div class="user-stats mt-3">
+			</div>
+		</div>
+
+		<div class="profile-links detail-item">
+			<p><a class="edit-profile-link">{%=__("Edit Profile") %}</a></p>
+			<p><a class="user-settings-link">{%=__("User Settings") %}</a></p>
+			<p>
+				<a class="leaderboard-link" href="/app/leaderboard/User"
+					>{%=__("Leaderboard") %}</a
+				>
+			</p>
+		</div>
+	</div>
+</div>

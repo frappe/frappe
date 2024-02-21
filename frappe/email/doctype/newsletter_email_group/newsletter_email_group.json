@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "creation": "2017-02-26 16:20:52.654136",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "email_group",
+  "total_subscribers"
+ ],
+ "fields": [
+  {
+   "columns": 7,
+   "fieldname": "email_group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Email Group",
+   "options": "Email Group",
+   "reqd": 1
+  },
+  {
+   "columns": 3,
+   "fetch_from": "email_group.total_subscribers",
+   "fieldname": "total_subscribers",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Total Subscribers"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2021-12-06 20:12:08.420240",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Newsletter Email Group",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

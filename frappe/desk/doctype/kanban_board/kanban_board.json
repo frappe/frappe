@@ -1,0 +1,124 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:kanban_board_name",
+ "creation": "2016-10-19 12:26:04.809812",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "kanban_board_name",
+  "reference_doctype",
+  "field_name",
+  "column_break_4",
+  "private",
+  "show_labels",
+  "section_break_3",
+  "columns",
+  "filters",
+  "fields"
+ ],
+ "fields": [
+  {
+   "fieldname": "kanban_board_name",
+   "fieldtype": "Data",
+   "label": "Kanban Board Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Reference Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "field_name",
+   "fieldtype": "Select",
+   "label": "Field Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "Table",
+   "label": "Columns",
+   "options": "Kanban Board Column"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Code",
+   "label": "Filters",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "private",
+   "fieldtype": "Check",
+   "label": "Private",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fields",
+   "fieldtype": "Code",
+   "label": "Fields",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_labels",
+   "fieldtype": "Check",
+   "label": "Show Labels",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2023-08-28 22:29:29.569670",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Kanban Board",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "Desk User"
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Desk User",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

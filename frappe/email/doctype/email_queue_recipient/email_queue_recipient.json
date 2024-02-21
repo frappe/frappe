@@ -1,0 +1,46 @@
+{
+ "actions": [],
+ "creation": "2016-12-08 12:01:07.993900",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "recipient",
+  "status",
+  "error"
+ ],
+ "fields": [
+  {
+   "fieldname": "recipient",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Recipient",
+   "options": "Email"
+  },
+  {
+   "default": "Not Sent",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "\nNot Sent\nSent",
+   "search_index": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Code",
+   "label": "Error"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2022-09-06 13:38:10.644417",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Email Queue Recipient",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

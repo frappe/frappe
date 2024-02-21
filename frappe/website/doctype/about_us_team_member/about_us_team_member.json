@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "creation": "2013-03-07 11:55:11",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "full_name",
+  "image_link",
+  "bio"
+ ],
+ "fields": [
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Full Name",
+   "reqd": 1,
+   "width": "150px"
+  },
+  {
+   "fieldname": "image_link",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Image Link",
+   "width": "150px"
+  },
+  {
+   "fieldname": "bio",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Bio",
+   "reqd": 1,
+   "width": "200px"
+  }
+ ],
+ "idx": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2022-08-03 12:20:50.254472",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "About Us Team Member",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

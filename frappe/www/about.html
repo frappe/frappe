@@ -1,0 +1,62 @@
+{% extends "templates/web.html" %}
+
+{% set default_intro = """<p>Some Introduction about your company that you would
+	like your website visitor to know.
+	More people than you think will read your About page.
+	People always like to know who the are doing business with.
+	Be authentic and avoid using jargon like 'value added services' etc.
+	Be sure to update your company history and
+	list of key team members in Website > About Us Settings</p>""" %}
+
+{% set title = doc.page_title or _("About Us") %}
+{% block page_content %}
+
+<article class="about-content">
+	{{ web_block(
+		'Hero',
+		values={
+			"title": doc.page_title or _("About Us"),
+			"subtitle": doc.company_introduction or default_intro
+		},
+		add_container=0,
+		add_top_padding=1,
+		add_bottom_padding=1,
+	) }}
+
+
+	{% if doc.get({"doctype":"Company History"}) %}
+	<section class="section section-padding-bottom">
+		<h2>{{ doc.company_history_heading or _("Company History") }}</h2>
+		{% for d in doc.get({"doctype":"Company History"}) %}
+		<div class="row">
+			<span class="col-md-2">
+				<h5>{{ d.year }}</h5>
+			</span>
+			<span class="col-md-8">
+				<p>{{ d.highlight }}</p>
+			</span>
+		</div>
+		{% endfor %}
+	</section>
+	{% endif %}
+
+	{% if doc.get({"doctype":"About Us Team Member"}) %}
+	<section class="section section-padding-bottom">
+		<h2>{{ doc.team_members_heading or _("Team Members") }}</h2>
+		<p>{{ doc.team_members_subtitle }}</p>
+		<div class="row">
+			{% for d in doc.get({"doctype":"About Us Team Member"}) %}
+			<div class="col-md-2 mt-4" itemscope itemtype="http://schema.org/Person">
+				<img class="card card-md w-100" src="{{ d.image_link }}" itemprop="image">
+				<h5 class="mt-3" itemprop="name">{{ d.full_name }}</h5>
+				<p class="small mt-2" itemprop="description">{{ d.bio }}</p>
+			</div>
+			{% endfor %}
+		</div>
+	</section>
+	{% endif %}
+	<section class="section section-padding-bottom">
+		{{ doc.footer or "" }}
+	</section>
+</article>
+{% endblock %}

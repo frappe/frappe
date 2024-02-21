@@ -1,0 +1,51 @@
+# Since version 2.23 (released in August 2019), git-blame has a feature
+# to ignore or bypass certain commits.
+#
+# This file contains a list of commits that are not likely what you
+# are looking for in a blame, such as mass reformatting or renaming.
+# You can set this file as a default ignore file for blame by running
+# the following command.
+#
+# $ git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Replace use of Class.extend with native JS class
+fe20515c23a3ac41f1092bf0eaf0a0a452ec2e85
+
+# Updating license headers
+34460265554242a8d05fb09f049033b1117e1a2b
+
+# Refactor "not a in b" -> "a not in b"
+745297a49d516e5e3c4bb3e1b0c4235e7d31165d
+
+# Clean up whitespace
+b2fc959307c7c79f5584625569d5aed04133ba13
+
+# Format codebase and sort imports
+c0c5b2ebdddbe8898ce2d5e5365f4931ff73b6bf
+
+# update python code to use 3.10 supported features
+81b37cb7d2160866afa2496873656afe53f0c145
+
+# mass minified JSON schema
+85e3ee940353d7b0b517b33815148672e9a8b15b
+
+# format JS files with pretter
+40f27f908a3890c9a90d2d96794fc31fcea63c59
+
+# db.get_all -> get_all
+2eec621e95564c359ad22da79501a855c1f32b03
+
+# minor formatting fix in `user.py`
+f223bc02490902dfcc32892058f13f343d51fbaf
+
+# frappe.cache() -> frappe.cache
+fa6dc03cc87ad74e11609e7373078366fdcb3e1b
+
+# Bulk refactor with sourcery
+c35476256f85271fb57584eb0a26f4d9def3caf4
+
+# black+isort -> ruff
+de9ac897482013f5464a05f3c171da0072619c3a
+
+# flake8 -> ruff + ruff config update
+26ae0f3460f29116e0c083d57eee9f33763237ea

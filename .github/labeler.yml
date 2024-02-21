@@ -1,0 +1,10 @@
+# Any python files modifed but no test files modified
+add-test-cases:
+- all:
+  - changed-files:
+    - any-glob-to-any-file: 'frappe/**/*.py'
+    - all-globs-to-all-files: '!frappe/**/test*.py'
+
+# Add 'release' label to any PR that is opened against the `main` branch
+release:
+ - base-branch: ['^version-\d+$']

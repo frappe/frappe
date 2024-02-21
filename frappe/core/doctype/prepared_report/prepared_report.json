@@ -1,0 +1,155 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2018-06-25 18:39:11.152960",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "report_name",
+  "queued_by",
+  "job_id",
+  "column_break_4",
+  "queued_at",
+  "report_end_time",
+  "section_break_7",
+  "error_message",
+  "filters_sb",
+  "filters",
+  "filter_values"
+ ],
+ "fields": [
+  {
+   "fieldname": "report_name",
+   "fieldtype": "Data",
+   "label": "Report Name",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "default": "Queued",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Error\nQueued\nCompleted\nStarted",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "report_end_time",
+   "fieldtype": "Datetime",
+   "label": "Finished At",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.status == 'Error'",
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "error_message",
+   "fieldtype": "Text",
+   "label": "Error Message",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "filters_sb",
+   "fieldtype": "Section Break",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Filters",
+   "read_only": 1
+  },
+  {
+   "fieldname": "filter_values",
+   "fieldtype": "HTML",
+   "hidden": 1,
+   "label": "Filter Values"
+  },
+  {
+   "fieldname": "job_id",
+   "fieldtype": "Link",
+   "label": "Job ID",
+   "no_copy": 1,
+   "options": "RQ Job",
+   "read_only": 1
+  },
+  {
+   "fieldname": "queued_by",
+   "fieldtype": "Data",
+   "is_virtual": 1,
+   "label": "Queued By",
+   "read_only": 1
+  },
+  {
+   "fieldname": "queued_at",
+   "fieldtype": "Datetime",
+   "is_virtual": 1,
+   "label": "Queued At",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2023-07-01 18:29:12.700239",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Prepared Report",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Prepared Report User",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Blue",
+   "title": "Queued"
+  },
+  {
+   "color": "Red",
+   "title": "Error"
+  },
+  {
+   "color": "Green",
+   "title": "Completed"
+  }
+ ],
+ "title_field": "report_name"
+}

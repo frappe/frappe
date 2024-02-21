@@ -1,0 +1,104 @@
+.introduction {
+	border-bottom: 1px solid #e1e9f0;
+	padding: 15px;
+	padding-top: 0px;
+	margin-left: -15px;
+	margin-right: -15px;
+	margin-bottom: 15px;
+}
+
+.form-group label {
+	font-weight: normal;
+}
+
+.checkbox .label-area {
+	padding-left: 3px;
+}
+
+.page-header-actions-block .btn-delete {
+	display: none;
+	padding: 3px 10px;
+}
+
+.page-header-actions-block .btn-new {
+	display: inline;
+}
+
+.page-header-actions-block.actions-mode .btn-delete {
+	display: inline;
+}
+
+.page-header-actions-block.actions-mode .btn-new {
+	display: none;
+}
+
+.web-form-page, .web-form-page .section {
+	padding: 20px 0px;
+}
+
+.web-form-grid-row input, .web-form-grid-row select {
+	border: 0px;
+	padding: 0px;
+}
+.web-form-grid-row input:focus, .web-form-grid-row select:focus {
+	box-shadow: none;
+}
+.web-form-grid-row .form-group {
+	margin: 0px;
+}
+
+.slide-progress {
+    /*border-top: 1px solid #d1d8dd;*/
+	margin-top: -10px;
+}
+.slide-progress .fa-fw {
+	vertical-align: middle;
+	margin-right: 9px;
+	padding-left: 2px;
+	cursor: pointer;
+}
+.slide-progress .icon-circle-blank {
+	font-size: 12px;
+}
+.slide-progress .icon-circle {
+	font-size: 14px;
+}
+
+body {
+	display: none;
+}
+
+.modal-title {
+	margin-top: 5px;
+}
+
+.modal-header {
+	padding: 10px 15px;
+}
+
+.form-in-grid .form-section {
+  margin: 0px;
+  padding: 15px;
+}
+
+.form-clickable-section {
+  border-top: 1px solid #d1d8dd;
+  padding: 10px 15px;
+  background-color: #F7FAFC;
+}
+
+.table > tbody > tr > td {
+     vertical-align: middle;
+}
+
+table {
+	border: 1px solid #ebecf1;
+}
+
+.table > tbody > tr:hover {
+	background-color: rgb(247, 250, 252);
+}
+
+.grid-body .data-row {
+    font-size: inherit;
+}

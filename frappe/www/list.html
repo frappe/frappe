@@ -1,0 +1,33 @@
+{% extends "templates/web.html" %}
+
+{% block title %}
+	{{ title or (_("{0} List").format(_(doctype))) }}
+{% endblock %}
+
+{% block header %}
+	<h3 class="my-account-header">{{ title or (_("{0} List").format(_(doctype))) }}</h3>
+{% endblock %}
+
+{% block breadcrumbs %}
+	{% include "templates/includes/breadcrumbs.html" %}
+{% endblock %}
+
+{% block header_actions %}
+{% if create_new %}
+<div class="pull-right">
+    <a href="{{ create_new | abs_url }}" class="btn btn-primary btn-sm">
+        {{ _("New") }}
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block page_content %}
+	{% if introduction %}<p>{{ introduction }}</p>{% endif %}
+	{% include list_template or "templates/includes/list/list.html" %}
+	{% if list_footer %}{{ list_footer }}{% endif %}
+{% endblock %}
+
+{% block script %}
+<script>{% include "templates/includes/list/list.js" %}</script>
+{% endblock %}

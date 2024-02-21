@@ -1,0 +1,8 @@
+<p>{{ message }}</p>
+<div>
+	<p style="margin: 10px 0">
+		{% for action in actions %}
+		<a class="btn {% if action.is_primary %} btn-primary {% endif %}" style="margin-right: 10px" href="{{ action.action_link }}">{{_(action.action_name)}}</a>
+		{% endfor %}
+	</p>
+</div>

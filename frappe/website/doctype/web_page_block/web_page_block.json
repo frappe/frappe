@@ -1,0 +1,128 @@
+{
+ "actions": [],
+ "creation": "2020-04-16 22:57:13.729460",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "web_template",
+  "edit_values",
+  "web_template_values",
+  "css_class",
+  "section_id",
+  "column_break_5",
+  "add_container",
+  "add_top_padding",
+  "add_bottom_padding",
+  "add_border_at_top",
+  "add_border_at_bottom",
+  "add_shade",
+  "hide_block",
+  "add_background_image",
+  "background_image"
+ ],
+ "fields": [
+  {
+   "fieldname": "web_template",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Web Template",
+   "options": "Web Template"
+  },
+  {
+   "fieldname": "edit_values",
+   "fieldtype": "Button",
+   "in_list_view": 1,
+   "label": "Edit Values"
+  },
+  {
+   "fieldname": "web_template_values",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Web Template Values",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "css_class",
+   "fieldtype": "Small Text",
+   "label": "CSS Class"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_shade",
+   "fieldtype": "Check",
+   "label": "Add Gray Background"
+  },
+  {
+   "default": "1",
+   "fieldname": "add_container",
+   "fieldtype": "Check",
+   "label": "Add Container"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_block",
+   "fieldtype": "Check",
+   "label": "Hide Block"
+  },
+  {
+   "default": "1",
+   "fieldname": "add_top_padding",
+   "fieldtype": "Check",
+   "label": "Add Space at Top"
+  },
+  {
+   "default": "1",
+   "fieldname": "add_bottom_padding",
+   "fieldtype": "Check",
+   "label": "Add Space at Bottom"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_border_at_top",
+   "fieldtype": "Check",
+   "label": "Add Border at Top"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_border_at_bottom",
+   "fieldtype": "Check",
+   "label": "Add Border at Bottom"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_background_image",
+   "fieldtype": "Check",
+   "label": "Add Background Image"
+  },
+  {
+   "depends_on": "add_background_image",
+   "fieldname": "background_image",
+   "fieldtype": "Attach Image",
+   "label": "Background Image"
+  },
+  {
+   "description": "IDs must contain only alphanumeric characters, not contain spaces, and should be unique.",
+   "fieldname": "section_id",
+   "fieldtype": "Data",
+   "label": "Section ID"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2022-06-21 20:00:17.025272",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Page Block",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

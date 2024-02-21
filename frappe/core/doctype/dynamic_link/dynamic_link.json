@@ -1,0 +1,47 @@
+{
+ "creation": "2017-01-13 04:55:18.835023",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "link_doctype",
+  "link_name",
+  "link_title"
+ ],
+ "fields": [
+  {
+   "fieldname": "link_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Link Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "link_name",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Link Name",
+   "options": "link_doctype",
+   "reqd": 1
+  },
+  {
+   "fieldname": "link_title",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Link Title",
+   "read_only": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2019-10-10 22:05:54.736093",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Dynamic Link",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

@@ -1,0 +1,247 @@
+{
+ "actions": [],
+ "autoname": "field:report_name",
+ "creation": "2013-03-09 15:45:57",
+ "doctype": "DocType",
+ "document_type": "System",
+ "engine": "InnoDB",
+ "field_order": [
+  "report_name",
+  "ref_doctype",
+  "reference_report",
+  "is_standard",
+  "module",
+  "column_break_4",
+  "report_type",
+  "letter_head",
+  "add_total_row",
+  "disabled",
+  "prepared_report",
+  "filters_section",
+  "filters",
+  "columns_section",
+  "columns",
+  "section_break_6",
+  "query",
+  "report_script",
+  "client_code_section",
+  "javascript",
+  "json",
+  "permission_rules",
+  "roles"
+ ],
+ "fields": [
+  {
+   "fieldname": "report_name",
+   "fieldtype": "Data",
+   "label": "Report Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Ref DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "reference_report",
+   "fieldtype": "Data",
+   "label": "Reference Report"
+  },
+  {
+   "fieldname": "is_standard",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Is Standard",
+   "options": "No\nYes",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "ref_doctype.module",
+   "fetch_if_empty": 1,
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_total_row",
+   "fieldtype": "Check",
+   "label": "Add Total Row"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "report_type",
+   "fieldtype": "Select",
+   "label": "Report Type",
+   "options": "Report Builder\nQuery Report\nScript Report\nCustom Report",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "depends_on": "eval: doc.is_standard == \"No\"",
+   "fieldname": "letter_head",
+   "fieldtype": "Link",
+   "label": "Letter Head",
+   "options": "Letter Head"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break",
+   "label": "Query / Script"
+  },
+  {
+   "depends_on": "eval:doc.report_type==\"Query Report\"",
+   "fieldname": "query",
+   "fieldtype": "Code",
+   "label": "Query",
+   "options": "SQL"
+  },
+  {
+   "depends_on": "eval:doc.report_type==\"Script Report\" && doc.is_standard===\"No\"",
+   "description": "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}",
+   "fieldname": "javascript",
+   "fieldtype": "Code",
+   "label": "Javascript",
+   "options": "Javascript"
+  },
+  {
+   "depends_on": "eval:doc.report_type==\"Report Builder\" || \"Custom Report\"",
+   "fieldname": "json",
+   "fieldtype": "Code",
+   "label": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "permission_rules",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "label": "Roles",
+   "options": "Has Role"
+  },
+  {
+   "default": "0",
+   "fieldname": "prepared_report",
+   "fieldtype": "Check",
+   "label": "Prepared Report"
+  },
+  {
+   "depends_on": "eval:doc.report_type===\"Script Report\" && doc.is_standard===\"No\"",
+   "description": "Filters will be accessible via <code>filters</code>. <br><br>Send output as <code>result = [result]</code>, or for old style <code>data = [columns], [result]</code>",
+   "fieldname": "report_script",
+   "fieldtype": "Code",
+   "label": "Script",
+   "options": "Python"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "filters",
+   "depends_on": "eval:doc.report_type != \"Custom Report\"",
+   "fieldname": "filters_section",
+   "fieldtype": "Section Break",
+   "label": "Filters"
+  },
+  {
+   "depends_on": "eval:doc.report_type != \"Custom Report\"",
+   "fieldname": "filters",
+   "fieldtype": "Table",
+   "label": "Filters",
+   "options": "Report Filter"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "columns",
+   "depends_on": "eval:doc.report_type != \"Custom Report\"",
+   "fieldname": "columns_section",
+   "fieldtype": "Section Break",
+   "label": "Columns"
+  },
+  {
+   "depends_on": "eval:doc.report_type != \"Custom Report\"",
+   "fieldname": "columns",
+   "fieldtype": "Table",
+   "label": "Columns",
+   "options": "Report Column"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "javascript",
+   "fieldname": "client_code_section",
+   "fieldtype": "Section Break",
+   "label": "Client Code"
+  }
+ ],
+ "idx": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-01-03 15:29:01.460404",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Report",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Report Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Desk User"
+  }
+ ],
+ "show_name_in_global_search": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

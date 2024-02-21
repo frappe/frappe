@@ -1,0 +1,87 @@
+{% extends "templates/web.html" %}
+
+{% set title = heading or "Contact Us" %}
+{% block header %}<h1>{{ heading or "Contact Us" }}</h1>{% endblock %}
+
+{% block page_content %}
+<style>
+	.address {
+		line-height: 1.7em;
+	}
+</style>
+<div class="contact-content">
+	{% if introduction %}
+	<div>
+		{{ introduction or "" }}<br>
+	</div>
+	{% endif %}
+	<div class="row">
+		<div class="col-md-8">
+			<p id="contact-alert" class="alert alert-warning"
+				style="display: none;">&nbsp;</p>
+			<div class="form-group">
+				<select name="subject" class="form-control">
+				{% if query_options -%}
+					{% for option in query_options.split("\n") -%}
+					<option value="{{ option }}">{{ option }}</option>
+					{%- endfor %}
+				{% else %}
+					<option value="General">General</option>
+				{% endif %}
+				</select>
+			</div>
+			<div class="form-group">
+				<input class="form-control" name="email" type="text"
+				placeholder="{{ _('Your email address') }}" />
+			</div>
+			<div class="form-group">
+				<textarea rows="10" name="message" class="form-control"></textarea>
+			</div>
+			<div class="form-group">
+				<button class="btn btn-primary btn-send">{{ _("Send") }}</button>
+			</div>
+		</div>
+		{% if address_title %}
+		<div class="col-md-3 col-md-offset-1 address"
+				itemscope itemtype="http://schema.org/PostalAddress">
+			<h4 style="margin-top: 0px;"><i class="fa fa-map-marker"></i> {{ address_title }}</h4>
+			{% if address_line1 %}
+				<span itemprop="streetAddress">{{ address_line1 }}</span><br>
+			{% endif %}
+			{% if address_line2 %}
+				<span itemprop="streetAddress">{{ address_line2 }}</span><br>
+			{% endif %}
+			{% if city %}
+				<span itemprop="addressLocality">{{ city }}</span><br>
+			{% endif %}
+			{% if state %}
+				<span itemprop="addressRegion">{{ state }}</span><br>
+			{% endif %}
+			{% if pincode %}
+				<span itemprop="postalCode">{{ pincode }}</span><br>
+			{% endif %}
+			{% if country %}
+				<span itemprop="addressCountry">{{ country }}</span><br><br>
+			{% endif %}
+			{% if phone %}
+				<i class='fa fa-phone'></i> <span itemprop="telephone">{{ phone }}</span><br>
+			{% endif %}
+			{% if email_id %}
+				<i class='fa fa-envelope'></i>
+				<span itemprop="email">
+					<a href="mailto:{{ email_id }}">{{ email_id }}</a>
+				</span>
+				<br>
+			{% endif %}
+			{% if skype %}
+				<i class='fa fa-skype'></i> <span itemprop="email">{{ skype }}</span><br>
+			{% endif %}
+
+		</div>
+		{% endif %}
+	</div>
+</div>
+<script>
+	{% include "templates/includes/contact.js" %}
+</script>
+{% endblock %}

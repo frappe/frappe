@@ -1,0 +1,327 @@
+{
+ "actions": [],
+ "creation": "2016-09-22 04:16:48.829658",
+ "doctype": "DocType",
+ "document_type": "System",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "ldap_server_settings_section",
+  "ldap_directory_server",
+  "column_break_4",
+  "ldap_server_url",
+  "ldap_auth_section",
+  "base_dn",
+  "column_break_8",
+  "password",
+  "ldap_search_and_paths_section",
+  "ldap_search_path_user",
+  "ldap_search_string",
+  "column_break_12",
+  "ldap_search_path_group",
+  "ldap_user_creation_and_mapping_section",
+  "ldap_email_field",
+  "ldap_username_field",
+  "ldap_first_name_field",
+  "do_not_create_new_user",
+  "column_break_19",
+  "ldap_middle_name_field",
+  "ldap_last_name_field",
+  "ldap_phone_field",
+  "ldap_mobile_field",
+  "ldap_security",
+  "ssl_tls_mode",
+  "require_trusted_certificate",
+  "column_break_27",
+  "local_private_key_file",
+  "local_server_certificate_file",
+  "local_ca_certs_file",
+  "ldap_custom_settings_section",
+  "ldap_group_objectclass",
+  "ldap_custom_group_search",
+  "column_break_33",
+  "ldap_group_member_attribute",
+  "ldap_group_mappings_section",
+  "default_user_type",
+  "column_break_38",
+  "default_role",
+  "section_break_40",
+  "ldap_groups",
+  "ldap_group_field"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "ldap_server_url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "LDAP Server Url",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "base_dn",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Base Distinguished Name (DN)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "in_list_view": 1,
+   "label": "Password for Base DN",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval: doc.default_user_type == \"System User\"",
+   "fieldname": "default_role",
+   "fieldtype": "Link",
+   "label": "Default User Role",
+   "mandatory_depends_on": "eval: doc.default_user_type == \"System User\"",
+   "options": "Role"
+  },
+  {
+   "description": "Must be enclosed in '()' and include '{0}', which is a placeholder for the user/login name. i.e. (&(objectclass=user)(uid={0}))",
+   "fieldname": "ldap_search_string",
+   "fieldtype": "Data",
+   "label": "LDAP Search String",
+   "reqd": 1
+  },
+  {
+   "fieldname": "ldap_email_field",
+   "fieldtype": "Data",
+   "label": "LDAP Email Field",
+   "reqd": 1
+  },
+  {
+   "fieldname": "ldap_username_field",
+   "fieldtype": "Data",
+   "label": "LDAP Username Field",
+   "reqd": 1
+  },
+  {
+   "fieldname": "ldap_first_name_field",
+   "fieldtype": "Data",
+   "label": "LDAP First Name Field",
+   "reqd": 1
+  },
+  {
+   "fieldname": "ldap_middle_name_field",
+   "fieldtype": "Data",
+   "label": "LDAP Middle Name Field"
+  },
+  {
+   "fieldname": "ldap_last_name_field",
+   "fieldtype": "Data",
+   "label": "LDAP Last Name Field"
+  },
+  {
+   "fieldname": "ldap_phone_field",
+   "fieldtype": "Data",
+   "label": "LDAP Phone Field"
+  },
+  {
+   "fieldname": "ldap_mobile_field",
+   "fieldtype": "Data",
+   "label": "LDAP Mobile Field"
+  },
+  {
+   "fieldname": "ldap_security",
+   "fieldtype": "Section Break",
+   "label": "LDAP Security"
+  },
+  {
+   "default": "Off",
+   "fieldname": "ssl_tls_mode",
+   "fieldtype": "Select",
+   "label": "SSL/TLS Mode",
+   "options": "Off\nStartTLS"
+  },
+  {
+   "default": "No",
+   "fieldname": "require_trusted_certificate",
+   "fieldtype": "Select",
+   "label": "Require Trusted Certificate",
+   "options": "No\nYes",
+   "reqd": 1
+  },
+  {
+   "fieldname": "local_private_key_file",
+   "fieldtype": "Data",
+   "label": "Path to private Key File"
+  },
+  {
+   "fieldname": "local_server_certificate_file",
+   "fieldtype": "Data",
+   "label": "Path to Server Certificate"
+  },
+  {
+   "fieldname": "local_ca_certs_file",
+   "fieldtype": "Data",
+   "label": "Path to CA Certs File"
+  },
+  {
+   "fieldname": "ldap_group_mappings_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP Group Mappings"
+  },
+  {
+   "description": "NOTE: This box is due for depreciation. Please re-setup LDAP to work with the newer settings",
+   "fieldname": "ldap_group_field",
+   "fieldtype": "Data",
+   "label": "LDAP Group Field"
+  },
+  {
+   "fieldname": "ldap_groups",
+   "fieldtype": "Table",
+   "label": "LDAP Group Mappings",
+   "options": "LDAP Group Mapping"
+  },
+  {
+   "fieldname": "ldap_server_settings_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP Server Settings"
+  },
+  {
+   "fieldname": "ldap_auth_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP Auth"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ldap_search_and_paths_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP Search and Paths"
+  },
+  {
+   "fieldname": "column_break_12",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ldap_user_creation_and_mapping_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP User Creation and Mapping"
+  },
+  {
+   "fieldname": "column_break_19",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_27",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "These settings are required if 'Custom' LDAP Directory is used",
+   "fieldname": "ldap_custom_settings_section",
+   "fieldtype": "Section Break",
+   "label": "LDAP Custom Settings"
+  },
+  {
+   "fieldname": "column_break_33",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "string value, i.e. member",
+   "fieldname": "ldap_group_member_attribute",
+   "fieldtype": "Data",
+   "label": "LDAP Group Member attribute"
+  },
+  {
+   "description": "Please select the LDAP Directory being used",
+   "fieldname": "ldap_directory_server",
+   "fieldtype": "Select",
+   "label": "Directory Server",
+   "options": "\nActive Directory\nOpenLDAP\nCustom",
+   "reqd": 1
+  },
+  {
+   "description": "string value, i.e. group",
+   "fieldname": "ldap_group_objectclass",
+   "fieldtype": "Data",
+   "label": "Group Object Class"
+  },
+  {
+   "description": "string value, i.e. {0} or uid={0},ou=users,dc=example,dc=com",
+   "fieldname": "ldap_custom_group_search",
+   "fieldtype": "Data",
+   "label": "Custom Group Search"
+  },
+  {
+   "description": "Requires any valid fdn path. i.e. ou=users,dc=example,dc=com",
+   "fieldname": "ldap_search_path_user",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "LDAP search path for Users",
+   "reqd": 1
+  },
+  {
+   "description": "Requires any valid fdn path. i.e. ou=groups,dc=example,dc=com",
+   "fieldname": "ldap_search_path_group",
+   "fieldtype": "Data",
+   "label": "LDAP search path for Groups",
+   "reqd": 1
+  },
+  {
+   "fieldname": "default_user_type",
+   "fieldtype": "Link",
+   "label": "Default User Type",
+   "options": "User Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_38",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_40",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "default": "0",
+   "description": "Do not create new user if user with email does not exist in the system",
+   "fieldname": "do_not_create_new_user",
+   "fieldtype": "Check",
+   "label": "Do Not Create New User "
+  }
+ ],
+ "in_create": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2023-01-24 11:20:06.049708",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "LDAP Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

@@ -1,0 +1,815 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "creation": "2022-01-10 17:29:51.672911",
+ "description": "Represents a User in the system.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "user_details_tab",
+  "enabled",
+  "section_break_3",
+  "email",
+  "first_name",
+  "middle_name",
+  "last_name",
+  "column_break0",
+  "full_name",
+  "username",
+  "column_break_11",
+  "language",
+  "time_zone",
+  "send_welcome_email",
+  "unsubscribed",
+  "user_image",
+  "roles_permissions_tab",
+  "sb1",
+  "role_profile_name",
+  "role_profiles",
+  "roles_html",
+  "roles",
+  "sb_allow_modules",
+  "module_profile",
+  "modules_html",
+  "block_modules",
+  "home_settings",
+  "short_bio",
+  "gender",
+  "birth_date",
+  "interest",
+  "column_break_26",
+  "phone",
+  "location",
+  "bio",
+  "column_break_22",
+  "mobile_no",
+  "settings_tab",
+  "desk_settings_section",
+  "mute_sounds",
+  "desk_theme",
+  "banner_image",
+  "change_password",
+  "new_password",
+  "logout_all_sessions",
+  "reset_password_key",
+  "last_reset_password_key_generated_on",
+  "last_password_reset_date",
+  "redirect_url",
+  "document_follow_notifications_section",
+  "document_follow_notify",
+  "document_follow_frequency",
+  "column_break_75",
+  "follow_created_documents",
+  "follow_commented_documents",
+  "follow_liked_documents",
+  "follow_assigned_documents",
+  "follow_shared_documents",
+  "email_settings",
+  "email_signature",
+  "thread_notify",
+  "send_me_a_copy",
+  "allowed_in_mentions",
+  "user_emails",
+  "sb2",
+  "defaults",
+  "sb3",
+  "simultaneous_sessions",
+  "restrict_ip",
+  "last_ip",
+  "column_break1",
+  "login_after",
+  "user_type",
+  "last_active",
+  "section_break_63",
+  "login_before",
+  "bypass_restrict_ip_check_if_2fa_enabled",
+  "last_login",
+  "last_known_versions",
+  "third_party_authentication",
+  "social_logins",
+  "api_access",
+  "api_key",
+  "generate_keys",
+  "column_break_65",
+  "api_secret",
+  "onboarding_status",
+  "connections_tab"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "oldfieldname": "enabled",
+   "oldfieldtype": "Check",
+   "read_only": 1
+  },
+  {
+   "depends_on": "enabled",
+   "fieldname": "section_break_3",
+   "fieldtype": "Section Break",
+   "label": "Basic Info"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "no_copy": 1,
+   "oldfieldname": "email",
+   "oldfieldtype": "Data",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "oldfieldname": "first_name",
+   "oldfieldtype": "Data",
+   "reqd": 1
+  },
+  {
+   "fieldname": "middle_name",
+   "fieldtype": "Data",
+   "label": "Middle Name",
+   "oldfieldname": "middle_name",
+   "oldfieldtype": "Data"
+  },
+  {
+   "bold": 1,
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "label": "Last Name",
+   "oldfieldname": "last_name",
+   "oldfieldtype": "Data"
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_standard_filter": 1,
+   "label": "Full Name",
+   "read_only": 1
+  },
+  {
+   "bold": 1,
+   "default": "1",
+   "depends_on": "eval:doc.__islocal",
+   "fieldname": "send_welcome_email",
+   "fieldtype": "Check",
+   "label": "Send Welcome Email"
+  },
+  {
+   "default": "0",
+   "fieldname": "unsubscribed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Unsubscribed",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "column_break0",
+   "fieldtype": "Column Break",
+   "oldfieldtype": "Column Break",
+   "print_width": "50%",
+   "width": "50%"
+  },
+  {
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "in_global_search": 1,
+   "in_standard_filter": 1,
+   "label": "Username",
+   "unique": 1
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Link",
+   "label": "Language",
+   "options": "Language"
+  },
+  {
+   "fieldname": "time_zone",
+   "fieldtype": "Autocomplete",
+   "label": "Time Zone"
+  },
+  {
+   "description": "Get your globally recognized avatar from Gravatar.com",
+   "fieldname": "user_image",
+   "fieldtype": "Attach Image",
+   "hidden": 1,
+   "label": "User Image",
+   "no_copy": 1,
+   "print_hide": 1
+  },
+  {
+   "depends_on": "eval:in_list(['System User', 'Website User'], doc.user_type) && doc.enabled == 1",
+   "fieldname": "sb1",
+   "fieldtype": "Section Break",
+   "label": "Roles",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "role_profile_name",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Role Profile",
+   "options": "Role Profile",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "roles_html",
+   "fieldtype": "HTML",
+   "label": "Roles HTML",
+   "read_only": 1
+  },
+  {
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Roles Assigned",
+   "options": "Has Role",
+   "permlevel": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "enabled",
+   "fieldname": "short_bio",
+   "fieldtype": "Tab Break",
+   "label": "More Information"
+  },
+  {
+   "fieldname": "gender",
+   "fieldtype": "Link",
+   "label": "Gender",
+   "oldfieldname": "gender",
+   "oldfieldtype": "Select",
+   "options": "Gender"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "mobile_no",
+   "fieldtype": "Data",
+   "label": "Mobile No",
+   "options": "Phone",
+   "unique": 1
+  },
+  {
+   "fieldname": "birth_date",
+   "fieldtype": "Date",
+   "label": "Birth Date",
+   "no_copy": 1,
+   "oldfieldname": "birth_date",
+   "oldfieldtype": "Date"
+  },
+  {
+   "fieldname": "location",
+   "fieldtype": "Data",
+   "label": "Location",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "banner_image",
+   "fieldtype": "Attach Image",
+   "label": "Banner Image"
+  },
+  {
+   "fieldname": "column_break_22",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "interest",
+   "fieldtype": "Small Text",
+   "label": "Interests"
+  },
+  {
+   "fieldname": "bio",
+   "fieldtype": "Small Text",
+   "label": "Bio",
+   "no_copy": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "mute_sounds",
+   "fieldtype": "Check",
+   "label": "Mute Sounds"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.enabled && (!doc.__islocal || !cint(doc.send_welcome_email))",
+   "fieldname": "change_password",
+   "fieldtype": "Section Break",
+   "label": "Change Password"
+  },
+  {
+   "fieldname": "new_password",
+   "fieldtype": "Password",
+   "label": "Set New Password",
+   "no_copy": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "logout_all_sessions",
+   "fieldtype": "Check",
+   "label": "Logout From All Devices After Changing Password"
+  },
+  {
+   "fieldname": "reset_password_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Reset Password Key",
+   "no_copy": 1,
+   "permlevel": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_password_reset_date",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Last Password Reset Date",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "redirect_url",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Redirect URL"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "document_follow_notifications_section",
+   "fieldtype": "Section Break",
+   "label": "Document Follow"
+  },
+  {
+   "default": "0",
+   "fieldname": "document_follow_notify",
+   "fieldtype": "Check",
+   "label": "Send Notifications For Documents Followed By Me"
+  },
+  {
+   "default": "Daily",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "document_follow_frequency",
+   "fieldtype": "Select",
+   "label": "Frequency",
+   "options": "Hourly\nDaily\nWeekly"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "enabled",
+   "fieldname": "email_settings",
+   "fieldtype": "Section Break",
+   "label": "Email"
+  },
+  {
+   "default": "1",
+   "fieldname": "thread_notify",
+   "fieldtype": "Check",
+   "label": "Send Notifications For Email Threads"
+  },
+  {
+   "default": "0",
+   "fieldname": "send_me_a_copy",
+   "fieldtype": "Check",
+   "label": "Send Me A Copy of Outgoing Emails"
+  },
+  {
+   "default": "1",
+   "fieldname": "allowed_in_mentions",
+   "fieldtype": "Check",
+   "label": "Allowed In Mentions"
+  },
+  {
+   "fieldname": "email_signature",
+   "fieldtype": "Small Text",
+   "label": "Email Signature",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "user_emails",
+   "fieldtype": "Table",
+   "label": "User Emails",
+   "options": "User Email",
+   "permlevel": 1
+  },
+  {
+   "depends_on": "eval:in_list(['System User'], doc.user_type)",
+   "fieldname": "sb_allow_modules",
+   "fieldtype": "Section Break",
+   "label": "Allow Modules",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "modules_html",
+   "fieldtype": "HTML",
+   "label": "Modules HTML",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "block_modules",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "Block Modules",
+   "options": "Block Module",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "home_settings",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Home Settings"
+  },
+  {
+   "description": "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.",
+   "fieldname": "sb2",
+   "fieldtype": "Section Break",
+   "hidden": 1,
+   "label": "Defaults",
+   "oldfieldtype": "Column Break",
+   "permlevel": 1,
+   "print_width": "50%",
+   "read_only": 1,
+   "width": "50%"
+  },
+  {
+   "description": "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set \"match\" permission rules. To see list of fields, go to \"Customize Form\".",
+   "fieldname": "defaults",
+   "fieldtype": "Table",
+   "hidden": 1,
+   "label": "User Defaults",
+   "no_copy": 1,
+   "options": "DefaultValue"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "enabled",
+   "fieldname": "sb3",
+   "fieldtype": "Section Break",
+   "label": "Security Settings",
+   "oldfieldtype": "Section Break",
+   "read_only": 1
+  },
+  {
+   "default": "2",
+   "fieldname": "simultaneous_sessions",
+   "fieldtype": "Int",
+   "label": "Simultaneous Sessions"
+  },
+  {
+   "bold": 1,
+   "default": "System User",
+   "description": "If the user has any role checked, then the user becomes a \"System User\". \"System User\" has access to the desktop",
+   "fieldname": "user_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User Type",
+   "oldfieldname": "user_type",
+   "oldfieldtype": "Select",
+   "options": "User Type",
+   "permlevel": 1
+  },
+  {
+   "description": "Allow user to login only after this hour (0-24)",
+   "fieldname": "login_after",
+   "fieldtype": "Int",
+   "label": "Login After",
+   "permlevel": 1
+  },
+  {
+   "description": "Allow user to login only before this hour (0-24)",
+   "fieldname": "login_before",
+   "fieldtype": "Int",
+   "label": "Login Before",
+   "permlevel": 1
+  },
+  {
+   "description": "Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)",
+   "fieldname": "restrict_ip",
+   "fieldtype": "Small Text",
+   "label": "Restrict IP",
+   "permlevel": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.restrict_ip && doc.restrict_ip.length",
+   "description": "If enabled,  user can login from any IP Address using Two Factor Auth, this can also be set for all users in System Settings",
+   "fieldname": "bypass_restrict_ip_check_if_2fa_enabled",
+   "fieldtype": "Check",
+   "label": "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
+  },
+  {
+   "fieldname": "column_break1",
+   "fieldtype": "Column Break",
+   "oldfieldtype": "Column Break",
+   "print_width": "50%",
+   "width": "50%"
+  },
+  {
+   "fieldname": "last_login",
+   "fieldtype": "Read Only",
+   "label": "Last Login",
+   "no_copy": 1,
+   "oldfieldname": "last_login",
+   "oldfieldtype": "Read Only",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_ip",
+   "fieldtype": "Read Only",
+   "label": "Last IP",
+   "no_copy": 1,
+   "oldfieldname": "last_ip",
+   "oldfieldtype": "Read Only",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_active",
+   "fieldtype": "Datetime",
+   "label": "Last Active",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "Stores the JSON of last known versions of various installed apps. It is used to show release notes.",
+   "fieldname": "last_known_versions",
+   "fieldtype": "Text",
+   "hidden": 1,
+   "label": "Last Known Versions",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "enabled",
+   "fieldname": "third_party_authentication",
+   "fieldtype": "Section Break",
+   "label": "Third Party Authentication",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "social_logins",
+   "fieldtype": "Table",
+   "label": "Social Logins",
+   "options": "User Social Login"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "api_access",
+   "fieldtype": "Section Break",
+   "label": "API Access"
+  },
+  {
+   "description": "API Key cannot be regenerated",
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key",
+   "permlevel": 1,
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "generate_keys",
+   "fieldtype": "Button",
+   "label": "Generate Keys",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "column_break_65",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_63",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "desk_theme",
+   "fieldtype": "Select",
+   "label": "Desk Theme",
+   "options": "Light\nDark\nAutomatic"
+  },
+  {
+   "fieldname": "module_profile",
+   "fieldtype": "Link",
+   "label": "Module Profile",
+   "options": "Module Profile"
+  },
+  {
+   "description": "Stores the datetime when the last reset password key was generated.",
+   "fieldname": "last_reset_password_key_generated_on",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Last Reset Password Key Generated On",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_75",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "follow_created_documents",
+   "fieldtype": "Check",
+   "label": "Auto follow documents that you create"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "follow_commented_documents",
+   "fieldtype": "Check",
+   "label": "Auto follow documents that you comment on"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "follow_liked_documents",
+   "fieldtype": "Check",
+   "label": "Auto follow documents that you Like"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "follow_shared_documents",
+   "fieldtype": "Check",
+   "label": "Auto follow documents that are shared with you"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:(doc.document_follow_notify== 1)",
+   "fieldname": "follow_assigned_documents",
+   "fieldtype": "Check",
+   "label": "Auto follow documents that are assigned to you"
+  },
+  {
+   "fieldname": "user_details_tab",
+   "fieldtype": "Tab Break",
+   "label": "User Details"
+  },
+  {
+   "fieldname": "roles_permissions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Roles & Permissions"
+  },
+  {
+   "fieldname": "settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "connections_tab",
+   "fieldtype": "Tab Break",
+   "label": "Connections",
+   "show_dashboard": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "desk_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Desk Settings"
+  },
+  {
+   "default": "{}",
+   "fieldname": "onboarding_status",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Onboarding Status"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "role_profiles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Role Profiles",
+   "options": "User Role Profile",
+   "permlevel": 1
+  }
+ ],
+ "icon": "fa fa-user",
+ "idx": 413,
+ "image_field": "user_image",
+ "links": [
+  {
+   "group": "Profile",
+   "link_doctype": "Contact",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Profile",
+   "link_doctype": "Blogger",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Access Log",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Activity Log",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Energy Point Log",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Logs",
+   "link_doctype": "Route History",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Settings",
+   "link_doctype": "User Permission",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Settings",
+   "link_doctype": "Document Follow",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Activity",
+   "link_doctype": "Communication",
+   "link_fieldname": "user"
+  },
+  {
+   "group": "Activity",
+   "link_doctype": "ToDo",
+   "link_fieldname": "allocated_to"
+  },
+  {
+   "group": "Integrations",
+   "link_doctype": "Token Cache",
+   "link_fieldname": "user"
+  }
+ ],
+ "modified": "2024-02-11 13:16:29.574666",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "role": "All",
+   "select": 1
+  }
+ ],
+ "quick_entry": 1,
+ "route": "user",
+ "search_fields": "full_name",
+ "show_name_in_global_search": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "full_name",
+ "track_changes": 1
+}

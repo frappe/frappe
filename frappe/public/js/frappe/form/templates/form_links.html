@@ -1,0 +1,33 @@
+<div class="form-documents">
+	{% for (let i=0; i < transactions.length; i++) { %}
+		{% if (i % 3 === 0) { %}
+		<div class="row">
+		{% } %}
+			<div class="col-md-4">
+				<div class="form-link-title">
+					<span>{{ __(transactions[i].label) }}</span>
+				</div>
+				{% for (let j=0; j < transactions[i].items.length; j++) { %}
+					{% let doctype = transactions[i].items[j]; %}
+					<div class="document-link" data-doctype="{{ doctype }}">
+						<div class="document-link-badge" data-doctype="{{ doctype }}">
+							<span class="count hidden"></span>
+							<a class="badge-link">{{ __(doctype) }}</a>
+						</div>
+						<span class="open-notification hidden"
+							title="{{ __("Open {0}", [__(doctype)])}}">
+						</span>
+						{% if !internal_links[doctype] %}
+							<button class="btn btn-new btn-secondary btn-xs icon-btn hidden"
+								data-doctype="{{ doctype }}">
+								<svg class="icon icon-sm"><use href="#icon-add"></use></svg>
+							</button>
+						{% endif %}
+					</div>
+				{% } %}
+			</div>
+		{% if (i % 3 === 2 || i === (transactions.length - 1)) { %}
+		</div>
+		{% } %}
+	{% } %}
+</div>

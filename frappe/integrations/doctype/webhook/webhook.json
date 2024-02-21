@@ -1,0 +1,253 @@
+{
+ "actions": [],
+ "autoname": "prompt",
+ "creation": "2017-09-08 16:16:13.060641",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb_doc_events",
+  "webhook_doctype",
+  "cb_doc_events",
+  "webhook_docevent",
+  "enabled",
+  "sb_condition",
+  "condition",
+  "cb_condition",
+  "html_condition",
+  "sb_webhook",
+  "request_url",
+  "is_dynamic_url",
+  "timeout",
+  "background_jobs_queue",
+  "cb_webhook",
+  "request_method",
+  "request_structure",
+  "sb_security",
+  "enable_security",
+  "webhook_secret",
+  "sb_webhook_headers",
+  "webhook_headers",
+  "sb_webhook_data",
+  "webhook_data",
+  "webhook_json",
+  "preview_tab",
+  "preview_document",
+  "column_break_26",
+  "meets_condition",
+  "section_break_28",
+  "preview_request_body"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb_doc_events",
+   "fieldtype": "Section Break",
+   "label": "Doc Events"
+  },
+  {
+   "fieldname": "webhook_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "DocType",
+   "options": "DocType",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "cb_doc_events",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "webhook_docevent",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Doc Event",
+   "options": "after_insert\non_update\non_submit\non_cancel\non_trash\non_update_after_submit\non_change",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "sb_condition",
+   "fieldtype": "Section Break",
+   "label": "Webhook Trigger"
+  },
+  {
+   "description": "The webhook will be triggered if this expression is true",
+   "fieldname": "condition",
+   "fieldtype": "Small Text",
+   "label": "Condition"
+  },
+  {
+   "fieldname": "cb_condition",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "html_condition",
+   "fieldtype": "HTML",
+   "options": "<p><strong>Condition Examples:</strong></p>\n<pre>doc.status==\"Open\"<br>doc.due_date==nowdate()<br>doc.total &gt; 40000\n</pre>"
+  },
+  {
+   "fieldname": "sb_webhook",
+   "fieldtype": "Section Break",
+   "label": "Webhook Request"
+  },
+  {
+   "fieldname": "request_url",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Request URL",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sb_webhook_headers",
+   "fieldtype": "Section Break",
+   "label": "Webhook Headers"
+  },
+  {
+   "fieldname": "webhook_headers",
+   "fieldtype": "Table",
+   "label": "Headers",
+   "options": "Webhook Header"
+  },
+  {
+   "fieldname": "sb_webhook_data",
+   "fieldtype": "Section Break",
+   "label": "Webhook Data"
+  },
+  {
+   "depends_on": "eval: !doc.request_structure || doc.request_structure == \"Form URL-Encoded\"",
+   "fieldname": "webhook_data",
+   "fieldtype": "Table",
+   "label": "Data",
+   "options": "Webhook Data"
+  },
+  {
+   "fieldname": "cb_webhook",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "request_structure",
+   "fieldtype": "Select",
+   "label": "Request Structure",
+   "options": "\nForm URL-Encoded\nJSON"
+  },
+  {
+   "depends_on": "eval: doc.request_structure == \"JSON\"",
+   "description": "To add dynamic values from the document, use jinja tags like\n\n<div>\n<pre><code>{ \"id\": \"{{ doc.name }}\" }</code>\n</pre>\n</div>",
+   "fieldname": "webhook_json",
+   "fieldtype": "Code",
+   "label": "JSON Request Body",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "sb_security",
+   "fieldtype": "Section Break",
+   "label": "Webhook Security"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_security",
+   "fieldtype": "Check",
+   "label": "Enable Security"
+  },
+  {
+   "depends_on": "eval:doc.enable_security == 1",
+   "fieldname": "webhook_secret",
+   "fieldtype": "Password",
+   "label": "Webhook Secret"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "default": "POST",
+   "fieldname": "request_method",
+   "fieldtype": "Select",
+   "label": "Request Method",
+   "options": "POST\nPUT\nDELETE",
+   "reqd": 1
+  },
+  {
+   "fieldname": "preview_tab",
+   "fieldtype": "Tab Break",
+   "label": "Preview"
+  },
+  {
+   "fieldname": "preview_document",
+   "fieldtype": "Dynamic Link",
+   "label": "Select Document",
+   "options": "webhook_doctype"
+  },
+  {
+   "fieldname": "preview_request_body",
+   "fieldtype": "Code",
+   "is_virtual": 1,
+   "label": "Request Body"
+  },
+  {
+   "fieldname": "meets_condition",
+   "fieldtype": "Data",
+   "is_virtual": 1,
+   "label": "Meets Condition?"
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_28",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "On checking this option, URL will be treated like a jinja template string",
+   "fieldname": "is_dynamic_url",
+   "fieldtype": "Check",
+   "label": "Is Dynamic URL?"
+  },
+  {
+   "default": "5",
+   "description": "The number of seconds until the request expires",
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Request Timeout"
+  },
+  {
+   "fieldname": "background_jobs_queue",
+   "fieldtype": "Autocomplete",
+   "label": "Background Jobs Queue"
+  }
+ ],
+ "links": [
+  {
+   "link_doctype": "Webhook Request Log",
+   "link_fieldname": "webhook"
+  }
+ ],
+ "modified": "2024-02-19 11:40:58.387233",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Webhook",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

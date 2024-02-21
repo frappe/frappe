@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "creation": "2020-01-14 11:38:58.016498",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "fieldtype",
+  "fieldname",
+  "mandatory",
+  "wildcard_filter",
+  "column_break_urrx",
+  "options",
+  "default"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "fieldname",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fieldname",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "columns": 2,
+   "fieldname": "fieldtype",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Fieldtype",
+   "options": "Check\nCurrency\nData\nDate\nDatetime\nDynamic Link\nFloat\nFold\nInt\nLink\nSelect\nTime",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "fieldname": "mandatory",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Mandatory"
+  },
+  {
+   "columns": 2,
+   "fieldname": "options",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Options"
+  },
+  {
+   "default": "0",
+   "description": "Will add \"%\" before and after the query",
+   "fieldname": "wildcard_filter",
+   "fieldtype": "Check",
+   "label": "Wildcard Filter"
+  },
+  {
+   "fieldname": "default",
+   "fieldtype": "Small Text",
+   "label": "Default"
+  },
+  {
+   "columns": 2,
+   "fieldname": "column_break_urrx",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-06-15 11:37:35.961036",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Report Filter",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

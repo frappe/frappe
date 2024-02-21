@@ -1,0 +1,56 @@
+{
+ "actions": [],
+ "creation": "2013-03-07 12:26:33",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "image",
+  "heading",
+  "description",
+  "url"
+ ],
+ "fields": [
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Image"
+  },
+  {
+   "fieldname": "heading",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Heading",
+   "print_width": "200px",
+   "width": "200px"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Description",
+   "print_width": "200px",
+   "width": "200px"
+  },
+  {
+   "description": "URL to go to on clicking the slideshow image",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  }
+ ],
+ "idx": 1,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "max_attachments": 10,
+ "modified": "2020-09-10 14:44:54.537285",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Website Slideshow Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

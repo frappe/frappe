@@ -1,0 +1,22 @@
+{
+ "content": null,
+ "creation": "2021-07-10 12:22:16.138485",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2021-07-10 12:22:16.138485",
+ "modified_by": "Administrator",
+ "module": "Printing",
+ "name": "print-format-builder-beta",
+ "owner": "Administrator",
+ "page_name": "Print Format Builder Beta",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0
+}

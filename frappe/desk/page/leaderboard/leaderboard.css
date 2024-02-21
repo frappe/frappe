@@ -1,0 +1,85 @@
+.list-filters {
+	overflow-y: hidden;
+	padding: 5px
+}
+
+.list-filter-item {
+	min-width: 150px;
+	float: left;
+	margin: 5px;
+}
+
+.list-item_content {
+	flex: 1;
+	padding-right: 15px;
+	align-items: center;
+}
+
+.select-time, .select-doctype, .select-filter, .select-sort {
+	background: #f0f4f7;
+}
+
+.from-date-field .clearfix{
+	display: none;
+}
+
+.from-date-field {
+	margin-left: 10px;
+}
+
+.select-time:focus, .select-doctype:focus, .select-filter:focus, .select-sort:focus {
+	background: #f0f4f7;
+}
+
+.header-btn-base {
+	border: none;
+	outline: 0;
+	vertical-align: middle;
+	overflow: hidden;
+	text-decoration: none;
+	color: inherit;
+	background-color: inherit;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.header-btn-round {
+	border-radius: 4px;
+}
+
+.item-title-bold {
+	font-weight: bold;
+}
+
+.rank {
+	max-width: 100px;
+}
+
+.leaderboard .result {
+	border-top: 1px solid var(--border-color);
+}
+
+.leaderboard .list-item {
+	padding-left: 45px;
+}
+
+.leaderboard .list-item_content {
+	padding-right: 60px;
+}
+
+.leaderboard-sidebar {
+	padding-left: 0;
+	position: fixed;
+}
+
+.leaderboard-list {
+	padding: var(-padding-sm) 0;
+	min-height: 70vh;
+}
+
+.leaderboard-empty-state {
+	align-items: center;
+	height: 70vh;
+	justify-content: center;
+	display: flex;
+}

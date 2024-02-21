@@ -1,0 +1,67 @@
+{
+ "creation": "2020-05-17 06:37:27.461722",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Small Text",
+   "label": "Content",
+   "reqd": 0
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image",
+   "reqd": 0
+  },
+  {
+   "fieldname": "image_on_right",
+   "fieldtype": "Check",
+   "label": "Image on Right",
+   "reqd": 0
+  },
+  {
+   "fieldname": "link_label",
+   "fieldtype": "Data",
+   "label": "Link Label",
+   "reqd": 0
+  },
+  {
+   "fieldname": "link_url",
+   "fieldtype": "Data",
+   "label": "Link URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "split",
+   "fieldtype": "Select",
+   "label": "Split Columns",
+   "options": "3 columns - 9 columns\n4 columns - 8 columns\n5 columns - 7 columns\n6 columns - 6 columns\n7 columns - 5 columns\n8 columns - 4 columns\n9 columns - 3 columns",
+   "reqd": 0
+  },
+  {
+   "default": "Top",
+   "fieldname": "vertical_align",
+   "fieldtype": "Select",
+   "label": "Vertical Align",
+   "options": "Top\nMiddle",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-10-26 17:39:25.068819",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Split Section with Image",
+ "owner": "Administrator",
+ "standard": 1,
+ "template": "",
+ "type": "Section"
+}

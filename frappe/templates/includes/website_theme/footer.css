@@ -1,0 +1,19 @@
+.web-footer {
+	background-color: {{ theme.footer_color }};
+	border-top: 1px solid {{ theme.footer_border_color }};
+}
+
+.web-footer,
+.web-footer a {
+	color: {{ theme.footer_text_color }};
+}
+
+.web-footer a:hover,
+.web-footer a:focus,
+.web-footer a:active {
+	color: {{ get_shade(theme.footer_text_color, 5) }};
+}
+
+.web-footer input {
+	border: 1px solid {{ theme.footer_border_color }};
+}

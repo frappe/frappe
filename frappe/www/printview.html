@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ layout_direction }}">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ title }}</title>
+	<meta name="generator" content="frappe">
+	{{ include_style('print.bundle.css') }}
+	{% if print_style %}
+		<style>
+		{{ print_style }}
+		</style>
+	{% endif %}
+</head>
+<body>
+	<div class="action-banner print-hide">
+		<a class="p-2" onclick="window.print();">
+			{{ _("Print") }}
+		</a>
+		<a class="p-2"
+			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|e}}&name={{name|e}}&key={{key|e}}">
+			{{ _('Get PDF') }}
+		</a>
+	</div>
+	<div class="print-format-gutter">
+		<div class="print-format">
+			{{ body }}
+		</div>
+	</div>
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			const page_div = document.querySelector('.page-break');
+
+			if (page_div) {
+				page_div.style.display = 'flex';
+				page_div.style.flexDirection = 'column';
+			}
+
+			const footer_html = document.getElementById('footer-html');
+			if (footer_html)  {
+				footer_html.classList.add('hidden-pdf');
+				footer_html.classList.remove('visible-pdf');
+				footer_html.style.order = 1;
+				footer_html.style.marginTop = '20px';
+			}
+		});
+	</script>
+</body>
+{%- if comment -%}
+<!-- {{ comment }} -->
+{%- endif -%}
+</html>

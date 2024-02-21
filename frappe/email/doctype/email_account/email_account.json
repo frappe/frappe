@@ -1,0 +1,642 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:email_account_name",
+ "creation": "2014-09-11 12:04:34.163728",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "account_section",
+  "email_id",
+  "email_account_name",
+  "column_break_3",
+  "domain",
+  "service",
+  "authentication_column",
+  "auth_method",
+  "authorize_api_access",
+  "password",
+  "awaiting_password",
+  "ascii_encode_password",
+  "column_break_10",
+  "connected_app",
+  "connected_user",
+  "login_id_is_different",
+  "login_id",
+  "mailbox_settings",
+  "enable_incoming",
+  "default_incoming",
+  "use_imap",
+  "use_ssl",
+  "use_starttls",
+  "email_server",
+  "incoming_port",
+  "column_break_18",
+  "attachment_limit",
+  "email_sync_option",
+  "initial_sync_count",
+  "section_break_25",
+  "imap_folder",
+  "section_break_12",
+  "append_emails_to_sent_folder",
+  "append_to",
+  "create_contact",
+  "enable_automatic_linking",
+  "section_break_13",
+  "notify_if_unreplied",
+  "unreplied_for_mins",
+  "send_notification_to",
+  "outgoing_mail_settings",
+  "enable_outgoing",
+  "use_tls",
+  "use_ssl_for_outgoing",
+  "smtp_server",
+  "smtp_port",
+  "column_break_38",
+  "default_outgoing",
+  "always_use_account_email_id_as_sender",
+  "always_use_account_name_as_sender_name",
+  "send_unsubscribe_message",
+  "track_email_status",
+  "no_smtp_authentication",
+  "signature_section",
+  "add_signature",
+  "signature",
+  "auto_reply",
+  "enable_auto_reply",
+  "auto_reply_message",
+  "set_footer",
+  "footer",
+  "brand_logo",
+  "uidvalidity",
+  "uidnext",
+  "no_failed"
+ ],
+ "fields": [
+  {
+   "fieldname": "email_id",
+   "fieldtype": "Data",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Email Address",
+   "options": "Email",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "login_id_is_different",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Use different Email ID"
+  },
+  {
+   "depends_on": "login_id_is_different",
+   "fieldname": "login_id",
+   "fieldtype": "Data",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Alternative Email ID"
+  },
+  {
+   "depends_on": "eval: doc.auth_method === \"Basic\"",
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Password"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.auth_method === \"Basic\"",
+   "fieldname": "awaiting_password",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Awaiting password"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.auth_method === \"Basic\"",
+   "fieldname": "ascii_encode_password",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Use ASCII encoding for password"
+  },
+  {
+   "description": "e.g. \"Support\", \"Sales\", \"Jerry Yang\"",
+   "fieldname": "email_account_name",
+   "fieldtype": "Data",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Email Account Name",
+   "unique": 1
+  },
+  {
+   "depends_on": "eval:!doc.service",
+   "fieldname": "domain",
+   "fieldtype": "Link",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Domain",
+   "options": "Email Domain"
+  },
+  {
+   "depends_on": "eval:!doc.domain",
+   "fieldname": "service",
+   "fieldtype": "Select",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Service",
+   "options": "\nGMail\nSendgrid\nSparkPost\nYahoo Mail\nOutlook.com\nYandex.Mail"
+  },
+  {
+   "fieldname": "mailbox_settings",
+   "fieldtype": "Section Break",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Incoming (POP/IMAP) Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_incoming",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Enable Incoming"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: !doc.domain && doc.enable_incoming",
+   "fetch_from": "domain.use_imap",
+   "fieldname": "use_imap",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Use IMAP"
+  },
+  {
+   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "description": "e.g. pop.gmail.com / imap.gmail.com",
+   "fetch_from": "domain.email_server",
+   "fieldname": "email_server",
+   "fieldtype": "Data",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Incoming Server"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "fetch_from": "domain.use_ssl",
+   "fieldname": "use_ssl",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Use SSL"
+  },
+  {
+   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "description": "Ignore attachments over this size",
+   "fetch_from": "domain.attachment_limit",
+   "fieldname": "attachment_limit",
+   "fieldtype": "Int",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Attachment Limit (MB)"
+  },
+  {
+   "depends_on": "eval: doc.enable_incoming && !doc.use_imap",
+   "description": "Append as communication against this DocType (must have fields: \"Sender\" and \"Subject\"). These fields can be defined in the email settings section of the appended doctype.",
+   "fieldname": "append_to",
+   "fieldtype": "Link",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "in_standard_filter": 1,
+   "label": "Append To",
+   "options": "DocType"
+  },
+  {
+   "default": "0",
+   "depends_on": "enable_incoming",
+   "description": "e.g. replies@yourcomany.com. All replies will come to this inbox.",
+   "fieldname": "default_incoming",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Default Incoming"
+  },
+  {
+   "default": "UNSEEN",
+   "depends_on": "eval: doc.enable_incoming && doc.use_imap",
+   "fieldname": "email_sync_option",
+   "fieldtype": "Select",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Email Sync Option",
+   "options": "ALL\nUNSEEN"
+  },
+  {
+   "default": "250",
+   "depends_on": "eval: doc.enable_incoming && doc.use_imap",
+   "description": "Total number of emails to sync in initial sync process ",
+   "fieldname": "initial_sync_count",
+   "fieldtype": "Select",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Initial Sync Count",
+   "options": "100\n250\n500"
+  },
+  {
+   "depends_on": "enable_incoming",
+   "fieldname": "section_break_13",
+   "fieldtype": "Column Break",
+   "hide_days": 1,
+   "hide_seconds": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "notify_if_unreplied",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Notify if unreplied"
+  },
+  {
+   "default": "30",
+   "depends_on": "notify_if_unreplied",
+   "fieldname": "unreplied_for_mins",
+   "fieldtype": "Int",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Notify if unreplied for (in mins)"
+  },
+  {
+   "depends_on": "notify_if_unreplied",
+   "description": "Email Addresses",
+   "fieldname": "send_notification_to",
+   "fieldtype": "Small Text",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Send Notification to"
+  },
+  {
+   "fieldname": "outgoing_mail_settings",
+   "fieldtype": "Section Break",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Outgoing (SMTP) Settings"
+  },
+  {
+   "default": "0",
+   "description": "SMTP Settings for outgoing emails",
+   "fieldname": "enable_outgoing",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Enable Outgoing"
+  },
+  {
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "description": "e.g. smtp.gmail.com",
+   "fetch_from": "domain.smtp_server",
+   "fieldname": "smtp_server",
+   "fieldtype": "Data",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Outgoing Server"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "fetch_from": "domain.use_tls",
+   "fieldname": "use_tls",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Use TLS"
+  },
+  {
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "description": "If non standard port (e.g. 587). If on Google Cloud, try port 2525.",
+   "fetch_from": "domain.smtp_port",
+   "fieldname": "smtp_port",
+   "fieldtype": "Data",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Port"
+  },
+  {
+   "default": "0",
+   "depends_on": "enable_outgoing",
+   "description": "Notifications and bulk mails will be sent from this outgoing server.",
+   "fieldname": "default_outgoing",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Default Outgoing"
+  },
+  {
+   "default": "0",
+   "depends_on": "enable_outgoing",
+   "fieldname": "always_use_account_email_id_as_sender",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Always use this email address as sender address"
+  },
+  {
+   "default": "0",
+   "depends_on": "enable_outgoing",
+   "fieldname": "always_use_account_name_as_sender_name",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Always use this name as sender name"
+  },
+  {
+   "default": "1",
+   "fieldname": "send_unsubscribe_message",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Send unsubscribe message in email"
+  },
+  {
+   "default": "1",
+   "description": "Track if your email has been opened by the recipient.\n<br>\nNote: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered \"Opened\"",
+   "fieldname": "track_email_status",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Track Email Status"
+  },
+  {
+   "default": "0",
+   "fieldname": "no_smtp_authentication",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Disable SMTP server authentication"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "add_signature",
+   "fieldname": "signature_section",
+   "fieldtype": "Section Break",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Signature"
+  },
+  {
+   "default": "0",
+   "fieldname": "add_signature",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Add Signature"
+  },
+  {
+   "depends_on": "add_signature",
+   "fieldname": "signature",
+   "fieldtype": "Text Editor",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Signature"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "enable_auto_reply",
+   "fieldname": "auto_reply",
+   "fieldtype": "Section Break",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Auto Reply"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_auto_reply",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Enable Auto Reply"
+  },
+  {
+   "depends_on": "enable_auto_reply",
+   "description": "ProTip: Add <code>Reference: {{ reference_doctype }} {{ reference_name }}</code> to send document reference",
+   "fieldname": "auto_reply_message",
+   "fieldtype": "Text Editor",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Auto Reply Message"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:frappe.utils.html2text(doc.footer || '')!=''",
+   "fieldname": "set_footer",
+   "fieldtype": "Section Break",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Footer"
+  },
+  {
+   "fieldname": "footer",
+   "fieldtype": "Text Editor",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Footer Content"
+  },
+  {
+   "fieldname": "uidvalidity",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "UIDVALIDITY",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "uidnext",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "UIDNEXT",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "no_failed",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "no failed attempts",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Document Linking"
+  },
+  {
+   "default": "0",
+   "description": "For more information, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">click here</a>.",
+   "fieldname": "enable_automatic_linking",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Enable Automatic Linking in Documents"
+  },
+  {
+   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "description": "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)",
+   "fieldname": "incoming_port",
+   "fieldtype": "Data",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Port"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing && doc.enable_incoming && doc.use_imap",
+   "fieldname": "append_emails_to_sent_folder",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Append Emails to Sent Folder"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "fieldname": "use_ssl_for_outgoing",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Use SSL"
+  },
+  {
+   "default": "1",
+   "fieldname": "create_contact",
+   "fieldtype": "Check",
+   "hide_days": 1,
+   "hide_seconds": 1,
+   "label": "Create Contacts from Incoming Emails"
+  },
+  {
+   "fieldname": "brand_logo",
+   "fieldtype": "Attach Image",
+   "label": "Brand Logo"
+  },
+  {
+   "fieldname": "authentication_column",
+   "fieldtype": "Section Break",
+   "label": "Authentication"
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_38",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "account_section",
+   "fieldtype": "Section Break",
+   "label": "Account"
+  },
+  {
+   "depends_on": "eval: doc.use_imap && doc.enable_incoming",
+   "fieldname": "imap_folder",
+   "fieldtype": "Table",
+   "label": "IMAP Folder",
+   "options": "IMAP Folder"
+  },
+  {
+   "fieldname": "section_break_25",
+   "fieldtype": "Section Break",
+   "label": "IMAP Details"
+  },
+  {
+   "depends_on": "eval: doc.auth_method === \"OAuth\" && !doc.__islocal && !doc.__unsaved",
+   "fieldname": "authorize_api_access",
+   "fieldtype": "Button",
+   "label": "Authorize API Access"
+  },
+  {
+   "default": "Basic",
+   "fieldname": "auth_method",
+   "fieldtype": "Select",
+   "label": "Method",
+   "options": "Basic\nOAuth"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:!doc.domain && doc.enable_incoming && doc.use_imap && !doc.use_ssl",
+   "fetch_from": "domain.use_starttls",
+   "fieldname": "use_starttls",
+   "fieldtype": "Check",
+   "label": "Use STARTTLS"
+  },
+  {
+   "depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "fieldname": "connected_app",
+   "fieldtype": "Link",
+   "label": "Connected App",
+   "mandatory_depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "options": "Connected App"
+  },
+  {
+   "depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "fieldname": "connected_user",
+   "fieldtype": "Link",
+   "label": "Connected User",
+   "mandatory_depends_on": "eval: doc.auth_method === \"OAuth\"",
+   "options": "User"
+  }
+ ],
+ "icon": "fa fa-inbox",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-06-05 15:03:08.538819",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Email Account",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Inbox User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

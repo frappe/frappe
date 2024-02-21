@@ -1,0 +1,154 @@
+{
+ "actions": [],
+ "creation": "2013-01-10 16:34:04",
+ "description": "Property Setter overrides a standard DocType or Field property",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "is_system_generated",
+  "help",
+  "sb0",
+  "doctype_or_field",
+  "doc_type",
+  "field_name",
+  "row_name",
+  "column_break0",
+  "module",
+  "section_break_9",
+  "property",
+  "property_type",
+  "value",
+  "default_value"
+ ],
+ "fields": [
+  {
+   "fieldname": "help",
+   "fieldtype": "HTML",
+   "label": "Help",
+   "options": "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
+  },
+  {
+   "fieldname": "sb0",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "doctype_or_field",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Applied On",
+   "options": "\nDocField\nDocType\nDocType Link\nDocType Action\nDocType State",
+   "read_only_depends_on": "eval:!doc.__islocal",
+   "reqd": 1
+  },
+  {
+   "description": "New value to be set",
+   "fieldname": "value",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Set Value"
+  },
+  {
+   "fieldname": "column_break0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "doc_type",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "DocType",
+   "options": "DocType",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "depends_on": "eval:doc.doctype_or_field=='DocField'",
+   "description": "ID (name) of the entity whose property is to be set",
+   "fieldname": "field_name",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Field Name",
+   "search_index": 1
+  },
+  {
+   "fieldname": "property",
+   "fieldtype": "Data",
+   "in_standard_filter": 1,
+   "label": "Property",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "property_type",
+   "fieldtype": "Data",
+   "label": "Property Type"
+  },
+  {
+   "fieldname": "default_value",
+   "fieldtype": "Data",
+   "label": "Default Value"
+  },
+  {
+   "description": "For DocType Link / DocType Action",
+   "fieldname": "row_name",
+   "fieldtype": "Data",
+   "label": "Row Name"
+  },
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module (for export)",
+   "options": "Module Def"
+  },
+  {
+   "fieldname": "section_break_9",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "Is System Generated",
+   "read_only": 1
+  }
+ ],
+ "icon": "fa fa-glass",
+ "idx": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2022-02-28 22:24:12.377693",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Property Setter",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "doc_type,property",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

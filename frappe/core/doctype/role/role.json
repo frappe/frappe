@@ -1,0 +1,176 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:role_name",
+ "creation": "2013-01-08 15:50:01",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "role_name",
+  "home_page",
+  "restrict_to_domain",
+  "column_break_4",
+  "disabled",
+  "is_custom",
+  "desk_access",
+  "two_factor_auth",
+  "navigation_settings_section",
+  "search_bar",
+  "notifications",
+  "list_settings_section",
+  "list_sidebar",
+  "bulk_actions",
+  "view_switcher",
+  "form_settings_section",
+  "form_sidebar",
+  "timeline",
+  "dashboard"
+ ],
+ "fields": [
+  {
+   "fieldname": "role_name",
+   "fieldtype": "Data",
+   "label": "Role Name",
+   "oldfieldname": "role_name",
+   "oldfieldtype": "Data",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "0",
+   "description": "If disabled, this role will be removed from all users.",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "default": "1",
+   "fieldname": "desk_access",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Desk Access"
+  },
+  {
+   "default": "0",
+   "fieldname": "two_factor_auth",
+   "fieldtype": "Check",
+   "label": "Two Factor Authentication"
+  },
+  {
+   "fieldname": "restrict_to_domain",
+   "fieldtype": "Link",
+   "label": "Restrict To Domain",
+   "options": "Domain"
+  },
+  {
+   "description": "Route: Example \"/desk\"",
+   "fieldname": "home_page",
+   "fieldtype": "Data",
+   "label": "Home Page"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "navigation_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Navigation Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "search_bar",
+   "fieldtype": "Check",
+   "label": "Search Bar"
+  },
+  {
+   "fieldname": "list_settings_section",
+   "fieldtype": "Section Break",
+   "label": "List Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "list_sidebar",
+   "fieldtype": "Check",
+   "label": "Sidebar"
+  },
+  {
+   "default": "1",
+   "fieldname": "bulk_actions",
+   "fieldtype": "Check",
+   "label": "Bulk Actions"
+  },
+  {
+   "fieldname": "form_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Form Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "form_sidebar",
+   "fieldtype": "Check",
+   "label": "Sidebar"
+  },
+  {
+   "default": "1",
+   "fieldname": "timeline",
+   "fieldtype": "Check",
+   "label": "Timeline"
+  },
+  {
+   "default": "1",
+   "fieldname": "dashboard",
+   "fieldtype": "Check",
+   "label": "Dashboard"
+  },
+  {
+   "default": "1",
+   "fieldname": "view_switcher",
+   "fieldtype": "Check",
+   "label": "View Switcher"
+  },
+  {
+   "default": "1",
+   "fieldname": "notifications",
+   "fieldtype": "Check",
+   "label": "Notifications"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_custom",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Is Custom"
+  }
+ ],
+ "icon": "fa fa-bookmark",
+ "idx": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-12-08 15:52:37.525003",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Role",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "translated_doctype": 1
+}

@@ -1,0 +1,63 @@
+{
+ "creation": "2020-04-17 12:18:04.376273",
+ "docstatus": 0,
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 0
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Text",
+   "label": "Subtitle",
+   "reqd": 0
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image",
+   "reqd": 0
+  },
+  {
+   "fieldname": "contain_image",
+   "fieldtype": "Check",
+   "label": "Restrict Image inside Container",
+   "reqd": 0
+  },
+  {
+   "fieldname": "primary_action_label",
+   "fieldtype": "Data",
+   "label": "Primary Action Label",
+   "reqd": 0
+  },
+  {
+   "fieldname": "primary_action",
+   "fieldtype": "Data",
+   "label": "Primary Action URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "secondary_action_label",
+   "fieldtype": "Data",
+   "label": "Secondary Action Label",
+   "reqd": 0
+  },
+  {
+   "fieldname": "secondary_action",
+   "fieldtype": "Data",
+   "label": "Secondary Action URL",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2020-09-15 11:43:00.556847",
+ "modified_by": "Administrator",
+ "name": "Hero with Right Image",
+ "owner": "Administrator",
+ "standard": 1,
+ "template": "",
+ "type": "Section"
+}

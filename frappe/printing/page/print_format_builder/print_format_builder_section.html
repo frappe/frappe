@@ -1,0 +1,23 @@
+<div class="print-format-builder-section row" data-label="{{ section.label }}">
+	<div class="print-format-builder-section-head col-md-12">
+		<div class="section-settings pull-right cursor-pointer">
+			<svg class="icon icon-sm"><use href="#icon-setting-gear"></use></svg>
+		</div>
+		<span class="drag-handle">
+			<svg class="icon icon-xs"><use href="#icon-drag"></use></svg>
+		</span>
+		<span class="section-label">{{ section.label || "" }}</span>
+	</div>
+		{% for(var j=0; j < section.columns.length; j++) {
+			var column = section.columns[j]; %}
+		<div class="col-md-{%= 12 / section.no_of_columns %} section-column">
+			<div class="print-format-builder-column">
+				{% for(var k=0; k < column.fields.length; k++) {
+					var field = column.fields[k]; %}
+				{%= frappe.render_template("print_format_builder_field",
+					{field: field, me:me}) %}
+				{% } %}
+			</div>
+		</div>
+		{% } %}
+</div>

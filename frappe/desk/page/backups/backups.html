@@ -1,0 +1,27 @@
+<!-- jinja -->
+<div class="row download-backups">
+    {% for f in files %}
+    <div class="col-lg-3 col-md-4 col-12">
+        <a href="{{ f[0] }}" target="_blank" rel="noopener noreferrer" class="frappe-card download-backup-card">
+            <div>
+                {{ f[1] }}
+            </div>
+            <div class="mt-2">
+                <svg xmlns="http://www.w3.org/2000/svg" style="background-size: 20px 30px;" class="icon-sm" width="30"
+                    height="18" fill="none" viewBox="0 0 24 24" stroke="var(--icon-stroke)">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                {{ f[3] }}
+                {% if f[2] %}
+                <svg xmlns="http://www.w3.org/2000/svg" class="bi bi-lock" width="16" height="16" fill="currentColor"
+                    viewBox="0 0 48 48">
+                    <path
+                        d="M36 16h-2v-4c0-5.52-4.48-10-10-10s-10 4.48-10 10v4h-2c-2.21 0-4 1.79-4 4v20c0 2.21 1.79 4 4 4h24c2.21 0 4-1.79 4-4v-20c0-2.21-1.79-4-4-4zm-12-10.2c3.42 0 6.2 2.78 6.2 6.2v4h-12.2v-4h-.2c0-3.42 2.78-6.2 6.2-6.2zm12 34.2h-24v-20h24v20zm-12-6c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" />
+                </svg>
+                {% endif %}
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>

@@ -1,0 +1,212 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "autoname": "field:theme",
+ "creation": "2015-02-18 12:46:38.168929",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "bootstrap_theme_section",
+  "theme",
+  "module",
+  "custom",
+  "google_font",
+  "font_size",
+  "font_properties",
+  "button_rounded_corners",
+  "button_shadows",
+  "button_gradients",
+  "column_break_11",
+  "primary_color",
+  "text_color",
+  "light_color",
+  "dark_color",
+  "background_color",
+  "stylesheet_section",
+  "custom_overrides",
+  "custom_scss",
+  "ignored_apps",
+  "theme_scss",
+  "theme_url",
+  "custom_js_section",
+  "js"
+ ],
+ "fields": [
+  {
+   "fieldname": "theme",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Theme",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Website",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "custom",
+   "fieldtype": "Check",
+   "label": "Custom?"
+  },
+  {
+   "fieldname": "theme_scss",
+   "fieldtype": "Code",
+   "label": "Theme",
+   "options": "SCSS",
+   "read_only": 1
+  },
+  {
+   "fieldname": "theme_url",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Theme URL",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "custom_js_section",
+   "fieldtype": "Tab Break",
+   "label": "Script"
+  },
+  {
+   "fieldname": "js",
+   "fieldtype": "Code",
+   "label": "JavaScript",
+   "options": "JS"
+  },
+  {
+   "fieldname": "bootstrap_theme_section",
+   "fieldtype": "Tab Break",
+   "label": "Theme Configuration"
+  },
+  {
+   "fieldname": "google_font",
+   "fieldtype": "Data",
+   "label": "Google Font"
+  },
+  {
+   "fieldname": "font_size",
+   "fieldtype": "Data",
+   "label": "Font Size"
+  },
+  {
+   "fieldname": "primary_color",
+   "fieldtype": "Link",
+   "label": "Primary Color",
+   "options": "Color"
+  },
+  {
+   "fieldname": "text_color",
+   "fieldtype": "Link",
+   "label": "Text Color",
+   "options": "Color"
+  },
+  {
+   "fieldname": "dark_color",
+   "fieldtype": "Link",
+   "label": "Dark Color",
+   "options": "Color"
+  },
+  {
+   "fieldname": "background_color",
+   "fieldtype": "Link",
+   "label": "Background Color",
+   "options": "Color"
+  },
+  {
+   "fieldname": "stylesheet_section",
+   "fieldtype": "Tab Break",
+   "label": "Stylesheet"
+  },
+  {
+   "fieldname": "custom_scss",
+   "fieldtype": "Code",
+   "label": "Custom SCSS",
+   "options": "SCSS"
+  },
+  {
+   "fieldname": "light_color",
+   "fieldtype": "Link",
+   "label": "Light Color",
+   "options": "Color"
+  },
+  {
+   "default": "wght@300;400;500;600;700;800",
+   "fieldname": "font_properties",
+   "fieldtype": "Data",
+   "label": "Font Properties"
+  },
+  {
+   "default": "1",
+   "fieldname": "button_rounded_corners",
+   "fieldtype": "Check",
+   "label": "Button Rounded Corners"
+  },
+  {
+   "default": "0",
+   "fieldname": "button_shadows",
+   "fieldtype": "Check",
+   "label": "Button Shadows"
+  },
+  {
+   "default": "0",
+   "fieldname": "button_gradients",
+   "fieldtype": "Check",
+   "label": "Button Gradients"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "custom_overrides",
+   "fieldtype": "Code",
+   "label": "Custom Overrides",
+   "options": "SCSS"
+  },
+  {
+   "fieldname": "ignored_apps",
+   "fieldtype": "Table",
+   "label": "Ignored Apps",
+   "options": "Website Theme Ignore App"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2022-10-25 22:15:53.601571",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Website Theme",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "Website Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "import": 1,
+   "read": 1,
+   "role": "Administrator",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

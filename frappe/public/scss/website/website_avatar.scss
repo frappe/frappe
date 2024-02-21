@@ -1,0 +1,8 @@
+@import "../desk/avatar";
+
+:root,
+[data-theme="dark"] {
+	--avatar-frame-color: var(--gray-500);
+	--avatar-frame-bg: var(--gray-100);
+	--avatar-frame-border: var(--gray-100);
+}

@@ -1,0 +1,123 @@
+{
+ "actions": [],
+ "creation": "2013-02-22 01:27:36",
+ "description": "Represents the states allowed in one document and role assigned to change the state.",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "state",
+  "doc_status",
+  "update_field",
+  "update_value",
+  "column_break_4",
+  "is_optional_state",
+  "avoid_status_override",
+  "next_action_email_template",
+  "allow_edit",
+  "section_break_9",
+  "message",
+  "workflow_builder_id"
+ ],
+ "fields": [
+  {
+   "fieldname": "state",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "State",
+   "options": "Workflow State",
+   "print_width": "160px",
+   "reqd": 1,
+   "width": "160px"
+  },
+  {
+   "default": "0",
+   "description": "0 - Draft; 1 - Submitted; 2 - Cancelled",
+   "fieldname": "doc_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Doc Status",
+   "options": "0\n1\n2",
+   "print_width": "80px",
+   "width": "80px"
+  },
+  {
+   "fieldname": "update_field",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Update Field"
+  },
+  {
+   "fieldname": "update_value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Update Value"
+  },
+  {
+   "fieldname": "allow_edit",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Only Allow Edit For",
+   "options": "Role",
+   "print_width": "160px",
+   "reqd": 1,
+   "width": "160px"
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Message",
+   "print_width": "160px",
+   "width": "160px"
+  },
+  {
+   "fieldname": "next_action_email_template",
+   "fieldtype": "Link",
+   "label": "Next Action Email Template",
+   "options": "Email Template"
+  },
+  {
+   "default": "0",
+   "description": "Workflow Action is not created for optional states",
+   "fieldname": "is_optional_state",
+   "fieldtype": "Check",
+   "label": "Is Optional State"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_9",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "workflow_builder_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Workflow Builder ID"
+  },
+  {
+   "default": "0",
+   "description": "If Checked workflow status will not override status in list view",
+   "fieldname": "avoid_status_override",
+   "fieldtype": "Check",
+   "label": "Don't Override Status"
+  }
+ ],
+ "idx": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-11-13 18:27:08.633239",
+ "modified_by": "Administrator",
+ "module": "Workflow",
+ "name": "Workflow Document State",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

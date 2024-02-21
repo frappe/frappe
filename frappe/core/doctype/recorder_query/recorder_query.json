@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "creation": "2023-08-01 17:04:12.173774",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "index",
+  "query",
+  "duration",
+  "column_break_qmju",
+  "exact_copies",
+  "normalized_query",
+  "normalized_copies",
+  "section_break_dygy",
+  "stack_html",
+  "stack",
+  "section_break_kvkb",
+  "sql_explain_html",
+  "explain_result"
+ ],
+ "fields": [
+  {
+   "fieldname": "query",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Query",
+   "length": 2
+  },
+  {
+   "fieldname": "normalized_query",
+   "fieldtype": "Data",
+   "label": "Normalized Query"
+  },
+  {
+   "fieldname": "duration",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Duration"
+  },
+  {
+   "fieldname": "exact_copies",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Exact Copies"
+  },
+  {
+   "fieldname": "normalized_copies",
+   "fieldtype": "Int",
+   "label": "Normalized Copies"
+  },
+  {
+   "fieldname": "column_break_qmju",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_dygy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "stack",
+   "fieldtype": "Text",
+   "hidden": 1,
+   "print_hide": 1
+  },
+  {
+   "fieldname": "stack_html",
+   "fieldtype": "HTML",
+   "label": "Stack Trace"
+  },
+  {
+   "fieldname": "section_break_kvkb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "explain_result",
+   "fieldtype": "Text",
+   "hidden": 1,
+   "print_hide": 1
+  },
+  {
+   "fieldname": "sql_explain_html",
+   "fieldtype": "HTML",
+   "label": "SQL Explain"
+  },
+  {
+   "fieldname": "index",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Index"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_virtual": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-08-07 13:12:23.496002",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Recorder Query",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
