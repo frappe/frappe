@@ -62,7 +62,7 @@ function get_redis_subscriber(kind = "redis_queue", options = {}) {
 	let client;
 	// TODO: revise after https://github.com/redis/node-redis/issues/2530
 	// is solved for a more elegant implementation
-	if (connStr.startsWith("unix://")) {
+	if (connStr && connStr.startsWith("unix://")) {
 		client = redis.createClient({
 			socket: { path: connStr.replace("unix://", "") },
 			...options,
