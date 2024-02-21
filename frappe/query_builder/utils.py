@@ -141,7 +141,6 @@ def patch_query_execute():
 	# To support running union queries
 	_SetOperation.run = execute_query
 	_SetOperation.walk = prepare_query
-	frappe._qb_patched[frappe.conf.db_type] = True
 
 
 def patch_query_aggregation():
@@ -152,4 +151,3 @@ def patch_query_aggregation():
 	frappe.qb.min = _min
 	frappe.qb.avg = _avg
 	frappe.qb.sum = _sum
-	frappe._qb_patched[frappe.conf.db_type] = True
