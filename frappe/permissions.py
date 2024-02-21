@@ -311,7 +311,7 @@ def has_user_permission(doc, user=None):
 		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
 
 		# only check if allowed_docs is not empty
-		if allowed_docs and docname not in allowed_docs:
+		if allowed_docs and str(docname) not in allowed_docs:
 			# no user permissions for this doc specified
 			push_perm_check_log(_("Not allowed for {0}: {1}").format(_(doctype), docname))
 			return False
