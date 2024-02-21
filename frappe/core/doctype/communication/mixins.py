@@ -6,7 +6,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.email.doctype.email_account.email_account import EmailAccount
-from frappe.utils import get_formatted_email, get_url, parse_addr
+from frappe.utils import cstr, get_formatted_email, get_url, parse_addr
 
 
 class CommunicationEmailMixin:
@@ -146,8 +146,13 @@ class CommunicationEmailMixin:
 		return get_formatted_email(self.mail_sender_fullname(), mail=self.mail_sender())
 
 	def get_content(self, print_format=None):
+<<<<<<< HEAD
 		if print_format and frappe.db.get_single_value("System Settings", "attach_view_link"):
 			return self.content + self.get_attach_link(print_format)
+=======
+		if print_format and frappe.get_system_settings("attach_view_link"):
+			return cstr(self.content) + self.get_attach_link(print_format)
+>>>>>>> 9d0a24f3de (fix: handle email without content adding links (#24994))
 		return self.content
 
 	def get_attach_link(self, print_format):
