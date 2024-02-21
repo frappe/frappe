@@ -897,7 +897,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		// filter out docstatus field from picker
 		let std_fields = frappe.model.std_fields.filter(
-			(df) => df.fieldname !== "docstatus" && df.fieldname[0] !== "_"
+			(df) => !["docstatus", "_comments"].includes(df.fieldname)
 		);
 
 		// add status field derived from docstatus, if status is not a standard field
