@@ -43,6 +43,9 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		};
 	}
 	set_input(value) {
+		if (!value) {
+			value = frappe.datetime.now_time(true)
+		}	
 		super.set_input(value);
 		if (
 			value &&
