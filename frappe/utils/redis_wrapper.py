@@ -263,7 +263,10 @@ class RedisWrapper(redis.Redis):
 			if pipeline:
 				pipeline.hdel(_name, keys)
 			else:
-				super().hdel(_name, keys)
+				try:
+					super().hdel(_name, keys)
+				except redis.exceptions.ConnectionError:
+					pass
 			return
 
 		local_pipeline = False
@@ -276,13 +279,13 @@ class RedisWrapper(redis.Redis):
 			if name_in_local_cache:
 				if key in frappe.local.cache[_name]:
 					del frappe.local.cache[_name][key]
-			try:
-				pipeline.hdel(_name, key)
-			except redis.exceptions.ConnectionError:
-				pass
+			pipeline.hdel(_name, key)
 
 		if local_pipeline:
-			pipeline.execute()
+			try:
+				pipeline.execute()
+			except redis.exceptions.ConnectionError:
+				pass
 
 	def hdel_names(self, names: list | tuple, key: str):
 		"""
@@ -294,7 +297,10 @@ class RedisWrapper(redis.Redis):
 		pipeline = self.pipeline()
 		for name in names:
 			self.hdel(name, key, pipeline=pipeline)
-		pipeline.execute()
+		try:
+			pipeline.execute()
+		except redis.exceptions.ConnectionError:
+			pass
 
 	def hdel_keys(self, name_starts_with, key):
 		"""Delete hash names with wildcard `*` and key"""
@@ -302,7 +308,10 @@ class RedisWrapper(redis.Redis):
 		for name in self.get_keys(name_starts_with):
 			name = name.split("|", 1)[1]
 			self.hdel(name, key, pipeline=pipeline)
-		pipeline.execute()
+		try:
+			pipeline.execute()
+		except redis.exceptions.ConnectionError:
+			pass
 
 	def hkeys(self, name):
 		try:

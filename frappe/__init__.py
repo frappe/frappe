@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+import copy
 import functools
 import gc
 import importlib
@@ -299,11 +300,12 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
 	setup_redis_cache_connection()
-	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
+
+	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
 	local.initialised = True
 
@@ -2174,6 +2176,8 @@ def get_print(
 	from frappe.utils.pdf import get_pdf
 	from frappe.website.serve import get_response_content
 
+	original_form_dict = copy.deepcopy(local.form_dict)
+
 	local.form_dict.doctype = doctype
 	local.form_dict.name = name
 	local.form_dict.format = print_format
@@ -2187,6 +2191,7 @@ def get_print(
 		pdf_options["password"] = password
 
 	html = get_response_content("printview")
+	local.form_dict = original_form_dict
 	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
