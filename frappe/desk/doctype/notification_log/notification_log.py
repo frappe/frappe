@@ -161,7 +161,7 @@ def get_email_header(doc):
 @frappe.whitelist()
 def get_notification_logs(limit=100):
 	notification_logs = frappe.db.get_list(
-		"Notification Log", fields=["*"], limit=limit, order_by="modified desc"
+		"Notification Log", fields=["*"],  filters={"for_user": frappe.session.user}, limit=limit, order_by="modified desc"
 	)
 
 	users = [log.from_user for log in notification_logs]
@@ -192,12 +192,7 @@ def get_notification_logs(limit=100):
 
 @frappe.whitelist()
 def mark_all_as_read():
-	unread_docs_list = frappe.get_all(
-		"Notification Log", filters={"for_user": frappe.session.user}
-	)
-	unread_docnames = [doc.name for doc in unread_docs_list]
-	if unread_docnames:
-		frappe.db.set_value("Notification Log", "read", 1, update_modified=False)
+	frappe.db.sql("UPDATE `tabNotification Log` SET `read` = 1 WHERE for_user = '"+frappe.session.user+"'")
 
 
 @frappe.whitelist()
