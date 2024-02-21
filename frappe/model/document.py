@@ -186,6 +186,8 @@ def import_controller(doctype):
 
 
 class BaseDocument:
+	# XXX: This class and separte __init__ are ONLY kept for backward compatibility purposes.
+	# DO NOT ADD ANYTHING NEW IN THIS CLASS!
 	def __init__(self, d):
 		if d.get("doctype"):
 			self.doctype = d["doctype"]
