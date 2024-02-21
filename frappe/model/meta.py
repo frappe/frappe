@@ -34,7 +34,6 @@ from frappe.model import (
 from frappe.model.document import (
 	DOCTYPE_TABLE_FIELDS,
 	TABLE_DOCTYPES_FOR_DOCTYPE,
-	BaseDocument,
 	Document,
 )
 from frappe.model.workflow import get_workflow_name
@@ -85,9 +84,9 @@ def load_doctype_from_file(doctype):
 	for d in txt.get("permissions", []):
 		d["doctype"] = "DocPerm"
 
-	txt["fields"] = [BaseDocument(d) for d in txt["fields"]]
+	txt["fields"] = [Document(d) for d in txt["fields"]]
 	if "permissions" in txt:
-		txt["permissions"] = [BaseDocument(d) for d in txt["permissions"]]
+		txt["permissions"] = [Document(d) for d in txt["permissions"]]
 
 	return txt
 
@@ -148,7 +147,7 @@ class Meta(Document):
 			out = {}
 			for key, value in doc.__dict__.items():
 				if isinstance(value, list | tuple):
-					if not value or not isinstance(value[0], BaseDocument):
+					if not value or not isinstance(value[0], Document):
 						# non standard list object, skip
 						continue
 

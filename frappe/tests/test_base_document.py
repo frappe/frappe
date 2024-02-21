@@ -1,10 +1,10 @@
-from frappe.model.document import BaseDocument
+from frappe.model.document import Document
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestBaseDocument(FrappeTestCase):
 	def test_docstatus(self):
-		doc = BaseDocument({"docstatus": 0, "doctype": "ToDo"})
+		doc = Document({"docstatus": 0, "doctype": "ToDo"})
 		self.assertTrue(doc.docstatus.is_draft())
 		self.assertEqual(doc.docstatus, 0)
 

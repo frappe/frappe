@@ -10,7 +10,7 @@ from unittest.mock import patch
 import pytz
 
 import frappe
-from frappe.model.document import BaseDocument, get_controller
+from frappe.model.document import Document, get_controller
 from frappe.utils import cint
 from frappe.utils.data import convert_utc_to_timezone, get_datetime, get_system_timezone
 
@@ -53,7 +53,7 @@ class FrappeTestCase(unittest.TestCase):
 	def assertDocumentEqual(self, expected, actual):
 		"""Compare a (partial) expected document with actual Document."""
 
-		if isinstance(expected, BaseDocument):
+		if isinstance(expected, Document):
 			expected = expected.as_dict()
 
 		for field, value in expected.items():
@@ -65,7 +65,7 @@ class FrappeTestCase(unittest.TestCase):
 			else:
 				self._compare_field(value, actual.get(field), actual, field)
 
-	def _compare_field(self, expected, actual, doc: BaseDocument, field: str):
+	def _compare_field(self, expected, actual, doc: Document, field: str):
 		msg = f"{field} should be same."
 
 		if isinstance(expected, float):
