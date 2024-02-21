@@ -231,7 +231,7 @@ def fetch_details_from_tag(_tag: str) -> tuple[str, str, str]:
 	try:
 		repo, tag = app_tag
 	except ValueError:
-		repo, tag = app_tag + [None]
+		repo, tag = [*app_tag, None]
 
 	try:
 		org, repo = org_repo

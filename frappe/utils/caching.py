@@ -87,7 +87,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	        calculate_pi(10) # will calculate value
 	"""
 
-	def time_cache_wrapper(func: Callable = None) -> Callable:
+	def time_cache_wrapper(func: Callable | None = None) -> Callable:
 		func_key = f"{func.__module__}.{func.__name__}"
 
 		def clear_cache():
@@ -140,7 +140,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Calla
 	        user: `true` should cache be specific to session user.
 	"""
 
-	def wrapper(func: Callable = None) -> Callable:
+	def wrapper(func: Callable | None = None) -> Callable:
 		func_key = f"{func.__module__}.{func.__qualname__}"
 
 		def clear_cache():

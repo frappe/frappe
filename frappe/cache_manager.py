@@ -41,7 +41,8 @@ global_cache_keys = (
 	"information_schema:counts",
 	"db_tables",
 	"server_script_autocompletion_items",
-) + doctype_map_keys
+	*doctype_map_keys,
+)
 
 user_cache_keys = (
 	"bootinfo",
@@ -107,7 +108,7 @@ def clear_global_cache():
 
 def clear_defaults_cache(user=None):
 	if user:
-		frappe.cache.hdel("defaults", [user] + common_default_keys)
+		frappe.cache.hdel("defaults", [user, *common_default_keys])
 	elif frappe.flags.in_install != "frappe":
 		frappe.cache.delete_value("defaults")
 

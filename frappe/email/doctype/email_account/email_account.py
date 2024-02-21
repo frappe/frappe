@@ -34,14 +34,14 @@ def cache_email_account(cache_name):
 				setattr(frappe.local, cache_name, {})
 
 			cached_accounts = getattr(frappe.local, cache_name)
-			match_by = list(kwargs.values()) + ["default"]
+			match_by = [*list(kwargs.values()), "default"]
 			matched_accounts = list(filter(None, [cached_accounts.get(key) for key in match_by]))
 			if matched_accounts:
 				return matched_accounts[0]
 
 			matched_accounts = func(*args, **kwargs)
 			cached_accounts.update(matched_accounts or {})
-			return matched_accounts and list(matched_accounts.values())[0]
+			return matched_accounts and next(iter(matched_accounts.values()))
 
 		return wrapper_cache_email_account
 

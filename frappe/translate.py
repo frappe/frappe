@@ -31,7 +31,7 @@ MERGED_TRANSLATION_KEY = "merged_translations"
 USER_TRANSLATION_KEY = "lang_user_translations"
 
 
-def get_language(lang_list: list = None) -> str:
+def get_language(lang_list: list | None = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
@@ -94,7 +94,7 @@ def get_parent_language(lang: str) -> str:
 			return lang.split(sep)[0]
 
 
-def get_user_lang(user: str = None) -> str:
+def get_user_lang(user: str | None = None) -> str:
 	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
 	user = user or frappe.session.user
 	lang = frappe.cache.hget("lang", user)

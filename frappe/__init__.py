@@ -550,7 +550,7 @@ def msgprint(
 	as_list: bool = False,
 	indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None,
 	alert: bool = False,
-	primary_action: str = None,
+	primary_action: str | None = None,
 	is_minimizable: bool = False,
 	wide: bool = False,
 	*,
@@ -1654,7 +1654,9 @@ def _load_app_hooks(app_name: str | None = None):
 	return hooks
 
 
-def get_hooks(hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None) -> _dict:
+def get_hooks(
+	hook: str | None = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str | None = None
+) -> _dict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
@@ -1900,7 +1902,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 
 	newdoc = get_doc(copy.deepcopy(d))
 	newdoc.set("__islocal", 1)
-	for fieldname in fields_to_clear + ["amended_from", "amendment_date"]:
+	for fieldname in [*fields_to_clear, "amended_from", "amendment_date"]:
 		newdoc.set(fieldname, None)
 
 	if not ignore_no_copy:
@@ -2525,7 +2527,7 @@ def validate_and_sanitize_search_inputs(fn):
 	return wrapper
 
 
-from frappe.utils.error import log_error  # noqa
+from frappe.utils.error import log_error
 
 if _tune_gc:
 	# generational GC gets triggered after certain allocs (g0) which is 700 by default.

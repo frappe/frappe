@@ -504,7 +504,7 @@ class ChildQuery:
 		}
 		return frappe.qb.get_query(
 			self.doctype,
-			fields=self.fields + ["parent", "parentfield"],
+			fields=[*self.fields, "parent", "parentfield"],
 			filters=filters,
 			order_by="idx asc",
 		)

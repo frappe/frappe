@@ -1245,7 +1245,7 @@ def validate_fields(meta):
 		if frappe.flags.in_patch or frappe.flags.in_fixtures:
 			return
 
-		if d.fieldtype in ("Link",) + table_fields:
+		if d.fieldtype in ("Link", *table_fields):
 			if not d.options:
 				frappe.throw(
 					_("{0}: Options required for Link or Table type field {1} in row {2}").format(
