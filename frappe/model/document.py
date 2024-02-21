@@ -186,6 +186,30 @@ def import_controller(doctype):
 
 
 class BaseDocument:
+	def __init__(self, d):
+		if d.get("doctype"):
+			self.doctype = d["doctype"]
+
+		self._table_fieldnames = {df.fieldname for df in self._get_table_fields()}
+		self.update(d)
+		self.dont_update_if_missing = []
+
+		if hasattr(self, "__setup__"):
+			self.__setup__()
+
+
+class Document(BaseDocument):
+	"""All controllers inherit from `Document`."""
+
+	doctype: DF.Data
+	name: DF.Data | None
+	flags: frappe._dict[str, Any]
+	owner: DF.Link
+	creation: DF.Datetime
+	modified: DF.Datetime
+	modified_by: DF.Link
+	idx: DF.Int
+
 	_reserved_keywords = frozenset(
 		(
 			"doctype",
@@ -202,16 +226,46 @@ class BaseDocument:
 		)
 	)
 
-	def __init__(self, d):
-		if d.get("doctype"):
-			self.doctype = d["doctype"]
+	def __init__(self, *args, **kwargs):
+		"""Constructor.
 
-		self._table_fieldnames = {df.fieldname for df in self._get_table_fields()}
-		self.update(d)
-		self.dont_update_if_missing = []
+		:param arg1: DocType name as string or document **dict**
+		:param arg2: Document name, if `arg1` is DocType name.
 
-		if hasattr(self, "__setup__"):
-			self.__setup__()
+		If DocType name and document name are passed, the object will load
+		all values (including child documents) from the database.
+		"""
+		self.doctype = None
+		self.name = None
+		self.flags = frappe._dict()
+
+		if args and args[0]:
+			if isinstance(args[0], str):
+				# first arugment is doctype
+				self.doctype = args[0]
+
+				# doctype for singles, string value or filters for other documents
+				self.name = self.doctype if len(args) == 1 else args[1]
+
+				# for_update is set in flags to avoid changing load_from_db signature
+				# since it is used in virtual doctypes and inherited in child classes
+				self.flags.for_update = kwargs.get("for_update")
+				self.load_from_db()
+				return
+
+			if isinstance(args[0], dict):
+				# first argument is a dict
+				kwargs = args[0]
+
+		if kwargs:
+			# init base document
+			super().__init__(kwargs)
+			self.init_child_tables()
+			self.init_valid_columns()
+
+		else:
+			# incorrect arguments. let's not proceed.
+			raise ValueError("Illegal arguments")
 
 	@cached_property
 	def meta(self):
@@ -1356,60 +1410,6 @@ class BaseDocument:
 		if self.doctype != "DocType":
 			for df in self.meta.get("fields", {"fieldtype": ("=", "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
-
-
-class Document(BaseDocument):
-	"""All controllers inherit from `Document`."""
-
-	doctype: DF.Data
-	name: DF.Data | None
-	flags: frappe._dict[str, Any]
-	owner: DF.Link
-	creation: DF.Datetime
-	modified: DF.Datetime
-	modified_by: DF.Link
-	idx: DF.Int
-
-	def __init__(self, *args, **kwargs):
-		"""Constructor.
-
-		:param arg1: DocType name as string or document **dict**
-		:param arg2: Document name, if `arg1` is DocType name.
-
-		If DocType name and document name are passed, the object will load
-		all values (including child documents) from the database.
-		"""
-		self.doctype = None
-		self.name = None
-		self.flags = frappe._dict()
-
-		if args and args[0]:
-			if isinstance(args[0], str):
-				# first arugment is doctype
-				self.doctype = args[0]
-
-				# doctype for singles, string value or filters for other documents
-				self.name = self.doctype if len(args) == 1 else args[1]
-
-				# for_update is set in flags to avoid changing load_from_db signature
-				# since it is used in virtual doctypes and inherited in child classes
-				self.flags.for_update = kwargs.get("for_update")
-				self.load_from_db()
-				return
-
-			if isinstance(args[0], dict):
-				# first argument is a dict
-				kwargs = args[0]
-
-		if kwargs:
-			# init base document
-			super().__init__(kwargs)
-			self.init_child_tables()
-			self.init_valid_columns()
-
-		else:
-			# incorrect arguments. let's not proceed.
-			raise ValueError("Illegal arguments")
 
 	@property
 	def is_locked(self):
