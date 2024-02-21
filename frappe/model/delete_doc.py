@@ -11,7 +11,6 @@ from frappe import _, get_module_path
 from frappe.desk.doctype.tag.tag import delete_tags_for_document
 from frappe.model.docstatus import DocStatus
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.model.naming import revert_series_if_last
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils.file_manager import remove_all
 from frappe.utils.global_search import delete_for_document
@@ -120,7 +119,6 @@ def delete_doc(
 					check_if_doc_is_linked(doc)
 					check_if_doc_is_dynamically_linked(doc)
 
-			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
 			doc.run_method("after_delete")
 
@@ -170,15 +168,6 @@ def add_to_deleted_document(doc):
 			data=doc.as_json(),
 			owner=frappe.session.user,
 		).db_insert()
-
-
-def update_naming_series(doc):
-	if doc.meta.autoname:
-		if doc.meta.autoname.startswith("naming_series:") and getattr(doc, "naming_series", None):
-			revert_series_if_last(doc.naming_series, doc.name, doc)
-
-		elif doc.meta.autoname.split(":", 1)[0] not in ("Prompt", "field", "hash", "autoincrement"):
-			revert_series_if_last(doc.meta.autoname, doc.name, doc)
 
 
 def delete_from_table(doctype: str, name: str, ignore_doctypes: list[str], doc):

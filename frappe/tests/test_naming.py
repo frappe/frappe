@@ -12,7 +12,6 @@ from frappe.model.naming import (
 	determine_consecutive_week_number,
 	getseries,
 	parse_naming_series,
-	revert_series_if_last,
 )
 from frappe.tests.utils import FrappeTestCase, patch_hooks
 from frappe.utils import now_datetime, nowdate, nowtime
@@ -139,75 +138,6 @@ class TestNaming(FrappeTestCase):
 		week = determine_consecutive_week_number(now_datetime())
 
 		self.assertEqual(todo.name, f"TODO-{week}-{series}")
-
-	def test_revert_series(self):
-		from datetime import datetime
-
-		year = datetime.now().year
-
-		series = f"TEST-{year}-"
-		key = "TEST-.YYYY.-"
-		name = f"TEST-{year}-00001"
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 1)""", (series,))
-		revert_series_if_last(key, name)
-		current_index = frappe.db.sql(
-			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
-		)[0]
-
-		self.assertEqual(current_index.get("current"), 0)
-		frappe.db.delete("Series", {"name": series})
-
-		series = f"TEST-{year}-"
-		key = "TEST-.YYYY.-.#####"
-		name = f"TEST-{year}-00002"
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 2)""", (series,))
-		revert_series_if_last(key, name)
-		current_index = frappe.db.sql(
-			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
-		)[0]
-
-		self.assertEqual(current_index.get("current"), 1)
-		frappe.db.delete("Series", {"name": series})
-
-		series = "TEST-"
-		key = "TEST-"
-		name = "TEST-00003"
-		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
-		revert_series_if_last(key, name)
-		current_index = frappe.db.sql(
-			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
-		)[0]
-
-		self.assertEqual(current_index.get("current"), 2)
-		frappe.db.delete("Series", {"name": series})
-
-		series = "TEST1-"
-		key = "TEST1-.#####.-2021-22"
-		name = "TEST1-00003-2021-22"
-		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
-		revert_series_if_last(key, name)
-		current_index = frappe.db.sql(
-			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
-		)[0]
-
-		self.assertEqual(current_index.get("current"), 2)
-		frappe.db.delete("Series", {"name": series})
-
-		series = ""
-		key = ".#####.-2021-22"
-		name = "00003-2021-22"
-		frappe.db.delete("Series", {"name": series})
-		frappe.db.sql("""INSERT INTO `tabSeries` (name, current) values (%s, 3)""", (series,))
-		revert_series_if_last(key, name)
-		current_index = frappe.db.sql(
-			"""SELECT current from `tabSeries` where name = %s""", series, as_dict=True
-		)[0]
-
-		self.assertEqual(current_index.get("current"), 2)
-
-		frappe.db.delete("Series", {"name": series})
 
 	def test_naming_for_cancelled_and_amended_doc(self):
 		submittable_doctype = frappe.get_doc(

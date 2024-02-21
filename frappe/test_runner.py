@@ -13,7 +13,6 @@ from io import StringIO
 
 import frappe
 import frappe.utils.scheduler
-from frappe.model.naming import revert_series_if_last
 from frappe.modules import get_module_name, load_doctype_module
 from frappe.utils import cint
 
@@ -438,10 +437,6 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 	"""Make test objects from given list of `test_records` or from `test_records.json`"""
 	records = []
 
-	def revert_naming(d):
-		if getattr(d, "naming_series", None):
-			revert_series_if_last(d.naming_series, d.name)
-
 	if test_records is None:
 		test_records = frappe.get_test_records(doctype)
 
@@ -477,15 +472,12 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 			if docstatus == 1:
 				d.submit()
 
-		except frappe.NameError:
-			revert_naming(d)
-
 		except Exception as e:
 			if (
 				d.flags.ignore_these_exceptions_in_test
 				and e.__class__ in d.flags.ignore_these_exceptions_in_test
 			):
-				revert_naming(d)
+				pass
 			else:
 				raise
 

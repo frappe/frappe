@@ -8,7 +8,6 @@ import frappe
 from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.note.note import Note
-from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint, now_datetime, set_request
 from frappe.website.serve import get_response
@@ -246,24 +245,6 @@ class TestDocument(FrappeTestCase):
 
 		self.assertTrue(xss not in d.subject)
 		self.assertTrue(escaped_xss in d.subject)
-
-	def test_naming_series(self):
-		data = ["TEST-", "TEST/17-18/.test_data./.####", "TEST.YYYY.MM.####"]
-
-		for series in data:
-			name = make_autoname(series)
-			prefix = series
-
-			if ".#" in series:
-				prefix = series.rsplit(".", 1)[0]
-
-			prefix = parse_naming_series(prefix)
-			old_current = frappe.db.get_value("Series", prefix, "current", order_by="name")
-
-			revert_series_if_last(series, name)
-			new_current = cint(frappe.db.get_value("Series", prefix, "current", order_by="name"))
-
-			self.assertEqual(cint(old_current) - 1, new_current)
 
 	def test_non_negative_check(self):
 		frappe.delete_doc_if_exists("Currency", "Frappe Coin", 1)
