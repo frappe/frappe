@@ -135,7 +135,7 @@ def is_virtual_doctype(doctype: str):
 
 @site_cache()
 def is_single_doctype(doctype: str) -> bool:
-	from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+	from frappe.model.document import DOCTYPES_FOR_DOCTYPE
 
 	if doctype in DOCTYPES_FOR_DOCTYPE:
 		return False

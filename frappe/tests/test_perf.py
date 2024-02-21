@@ -25,7 +25,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 
 import frappe
 from frappe.frappeclient import FrappeClient
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.query_builder.utils import db_type_is
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
@@ -64,7 +64,7 @@ class TestPerformance(FrappeTestCase):
 		# load permitted fieldnames once
 		doc.permitted_fieldnames
 
-		with patch("frappe.model.base_document.get_permitted_fields") as mocked:
+		with patch("frappe.model.document.get_permitted_fields") as mocked:
 			doc.as_dict()
 			# get_permitted_fields should not be called again
 			mocked.assert_not_called()

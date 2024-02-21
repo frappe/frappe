@@ -165,7 +165,7 @@ class DatabaseQuery:
 			self.user_settings = json.loads(user_settings)
 
 		if is_virtual_doctype(self.doctype):
-			from frappe.model.base_document import get_controller
+			from frappe.model.document import get_controller
 
 			controller = get_controller(self.doctype)
 			if not hasattr(controller, "get_list"):

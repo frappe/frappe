@@ -1,4 +1,4 @@
-from frappe.model.base_document import BaseDocument
+from frappe.model.document import BaseDocument
 from frappe.tests.utils import FrappeTestCase
 
 

@@ -10,8 +10,8 @@ import frappe.permissions
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
-from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
+from frappe.model.document import get_controller
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, format_duration
 
