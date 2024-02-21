@@ -98,6 +98,18 @@ hypothesis = "~=6.77.0"
 responses = "==0.23.1"
 freezegun = "~=1.2.2"
 
+[tool.frappix]
+sys-dependencies = [
+    "mariadb",
+    "restic",
+    "wkhtmltopdf-bin",
+    "which",
+    "gzip",
+    "bash",
+    "redis",
+    "nodejs-18_x",
+]
+
 [tool.ruff]
 line-length = 110
 target-version = "py310"
