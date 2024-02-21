@@ -219,7 +219,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 	@staticmethod
 	def escape(s, percent=True):
-		"""Excape quotes and percent in given string."""
+		"""Escape quotes and percent in given string."""
 		# Update: We've scrapped PyMySQL in favour of MariaDB's official Python client
 		# Also, given we're promoting use of the PyPika builder via frappe.qb, the use
 		# of this method should be limited.

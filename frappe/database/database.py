@@ -1208,7 +1208,7 @@ class Database:
 
 	@staticmethod
 	def escape(s, percent=True):
-		"""Excape quotes and percent in given string."""
+		"""Escape quotes and percent in given string."""
 		# implemented in specific class
 		raise NotImplementedError
 
