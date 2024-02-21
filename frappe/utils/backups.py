@@ -442,7 +442,7 @@ class BackupGenerator:
 		cmd.append(bin)
 		cmd.append(shlex.join(args))
 
-		command = " ".join(["set -o pipefail;"] + cmd + ["|", gzip_exc, ">>", self.backup_path_db])
+		command = " ".join(["set -o pipefail;", *cmd, "|", gzip_exc, ">>", self.backup_path_db])
 		if self.verbose:
 			print(command.replace(shlex.quote(self.password), "*" * 10) + "\n")
 

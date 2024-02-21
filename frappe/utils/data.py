@@ -2031,7 +2031,8 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 		"timespan",
 		"previous",
 		"next",
-	) + NestedSetHierarchy
+		*NestedSetHierarchy,
+	)
 
 	if filters_config:
 		additional_operators = [key.lower() for key in filters_config]
@@ -2444,7 +2445,7 @@ def parse_timedelta(s: str) -> datetime.timedelta:
 	return datetime.timedelta(**{key: float(val) for key, val in m.groupdict().items()})
 
 
-def get_job_name(key: str, doctype: str = None, doc_name: str = None) -> str:
+def get_job_name(key: str, doctype: str | None = None, doc_name: str | None = None) -> str:
 	job_name = key
 	if doctype:
 		job_name += f"_{doctype}"

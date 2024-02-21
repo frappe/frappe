@@ -232,7 +232,7 @@ def json_handler(obj):
 		return repr(obj)
 
 	else:
-		raise TypeError(f"""Object of type {type(obj)} with value of {repr(obj)} is not JSON serializable""")
+		raise TypeError(f"""Object of type {type(obj)} with value of {obj!r} is not JSON serializable""")
 
 
 def as_page():

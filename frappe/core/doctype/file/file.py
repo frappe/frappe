@@ -813,7 +813,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 	return False
 
 
-def get_permission_query_conditions(user: str = None) -> str:
+def get_permission_query_conditions(user: str | None = None) -> str:
 	user = user or frappe.session.user
 	if user == "Administrator":
 		return ""

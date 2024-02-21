@@ -26,7 +26,7 @@ def generate_pot_file(context, app: str | None = None):
 )
 @click.option("--locale", help="Compile transaltions only for this locale. eg: de")
 @pass_context
-def compile_translations(context, app: str | None = None, locale: str = None, force=False):
+def compile_translations(context, app: str | None = None, locale: str | None = None, force=False):
 	from frappe.gettext.translate import compile_translations as _compile_translations
 
 	if not app:
@@ -39,7 +39,7 @@ def compile_translations(context, app: str | None = None, locale: str = None, fo
 @click.option("--app", help="Only migrate for this app. eg: frappe")
 @click.option("--locale", help="Compile translations only for this locale. eg: de")
 @pass_context
-def csv_to_po(context, app: str | None = None, locale: str = None):
+def csv_to_po(context, app: str | None = None, locale: str | None = None):
 	from frappe.gettext.translate import migrate
 
 	if not app:
