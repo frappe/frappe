@@ -121,8 +121,14 @@ jobs:
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           cd ~/frappe-bench/
+<<<<<<< HEAD
           wget https://frappeframework.com/files/v10-frappe.sql.gz
           bench --site test_site --force restore ~/frappe-bench/v10-frappe.sql.gz
+=======
+          sed -i 's/^worker:/# worker:/g' Procfile
+          wget https://frappeframework.com/files/v13-frappe.sql.gz
+          bench --site test_site --force restore ~/frappe-bench/v13-frappe.sql.gz
+>>>>>>> 4f18daba17 (ci: fix ocassional patch test failure (#25001))
 
           source env/bin/activate
           cd apps/frappe/
@@ -138,6 +144,7 @@ jobs:
             git checkout -q -f $branch_name
 
             pgrep honcho | xargs kill
+            sleep 3
             rm -rf ~/frappe-bench/env
             bench -v setup env --python $py
             bench start &> ~/frappe-bench/bench_start.log &
@@ -149,6 +156,12 @@ jobs:
           update_to_version 13 python3.7
 
           echo "Updating to last commit"
+<<<<<<< HEAD
+=======
+          pgrep honcho | xargs kill
+          sleep 3
+          rm -rf ~/frappe-bench/env
+>>>>>>> 4f18daba17 (ci: fix ocassional patch test failure (#25001))
           git checkout -q -f "$GITHUB_SHA"
           rm -rf ~/frappe-bench/env
           bench -v setup env
