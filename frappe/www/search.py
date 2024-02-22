@@ -20,7 +20,7 @@ def get_context(context):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_search_results(text: str, scope: str = None, start: int = 0, as_html: bool = False):
+def get_search_results(text: str, scope: str | None = None, start: int = 0, as_html: bool = False):
 	results = web_search(text, scope, start, limit=21)
 	out = frappe._dict()
 

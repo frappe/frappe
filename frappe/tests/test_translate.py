@@ -19,7 +19,6 @@ from frappe.translate import (
 	get_language,
 	get_parent_language,
 	get_translation_dict_from_file,
-	write_translations_file,
 )
 from frappe.utils import get_bench_path, set_request
 
@@ -36,10 +35,10 @@ _lazy_translations = _lt("Communication")
 
 
 class TestTranslate(FrappeTestCase):
-	guest_sessions_required = [
+	guest_sessions_required = (
 		"test_guest_request_language_resolution_with_cookie",
 		"test_guest_request_language_resolution_with_request_header",
-	]
+	)
 
 	def setUp(self):
 		if self._testMethodName in self.guest_sessions_required:

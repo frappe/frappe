@@ -213,19 +213,36 @@ export default class NumberCardWidget extends Widget {
 		}, []);
 		const col = res.columns.find((col) => col.fieldname == field);
 		this.number = frappe.report_utils.get_result_of_fn(this.card_doc.report_function, vals);
-		this.set_formatted_number(col);
+		this.set_formatted_number(col, this._generate_common_doc(res.result));
 	}
 
-	set_formatted_number(df) {
+	set_formatted_number(df, doc) {
 		const default_country = frappe.sys_defaults.country;
 		const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);
 		let number_parts = shortened_number.split(" ");
 
 		const symbol = number_parts[1] || "";
 		number_parts[0] = window.convert_old_to_new_number_format(number_parts[0]);
-		const formatted_number = $(frappe.format(number_parts[0], df)).text();
+		const formatted_number = $(frappe.format(number_parts[0], df, null, doc)).text();
 
 		this.formatted_number = formatted_number + " " + __(symbol);
+	}
+
+	_generate_common_doc(rows) {
+		if (!rows || !rows.length) return {};
+		// init with first doc, for each other doc if values are common then keep else discard
+		// Whatever is left should be same in all objects
+		const common_doc = Object.assign({}, rows[0]);
+		rows.forEach((row) => {
+			if (Array.isArray(row)) return; // totals row
+
+			for (const [key, value] of Object.entries(common_doc)) {
+				if (value !== row[key]) {
+					delete common_doc[key];
+				}
+			}
+		});
+		return common_doc;
 	}
 
 	render_number() {

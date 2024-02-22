@@ -173,4 +173,4 @@ def _get_dotted_path(file: Path, app) -> str:
 	*path, filename = file.relative_to(app_path).parts
 	base_filename = Path(filename).stem
 
-	return ".".join([app] + path + [base_filename])
+	return ".".join([app, *path, base_filename])

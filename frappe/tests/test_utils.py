@@ -488,7 +488,7 @@ class TestPythonExpressions(FrappeTestCase):
 			try:
 				validate_python_code(expr)
 			except Exception as e:
-				self.fail(f"Invalid error thrown for valid expression: {expr}: {str(e)}")
+				self.fail(f"Invalid error thrown for valid expression: {expr}: {e!s}")
 
 	def test_validation_for_bad_python_expression(self):
 		invalid_expressions = [
@@ -605,6 +605,7 @@ class TestDateUtils(FrappeTestCase):
 		self.assertIsInstance(get_timedelta(str(datetime_input)), timedelta)
 		self.assertIsInstance(get_timedelta(str(timedelta_input)), timedelta)
 		self.assertIsInstance(get_timedelta(str(time_input)), timedelta)
+		self.assertIsInstance(get_timedelta(get_timedelta("100:2:12")), timedelta)
 
 	def test_to_timedelta(self):
 		self.assertEqual(to_timedelta("00:00:01"), timedelta(seconds=1))
@@ -1074,7 +1075,7 @@ class TestTBSanitization(FrappeTestCase):
 	def test_traceback_sanitzation(self):
 		try:
 			password = "42"  # noqa: F841
-			args = {"password": "42", "pwd": "42", "safe": "safe_value"}  # noqa: F841
+			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
 			args = frappe._dict({"password": "42", "pwd": "42", "safe": "safe_value"})  # noqa: F841
 			raise Exception
 		except Exception:

@@ -184,6 +184,10 @@ class User(Document):
 		if not self.role_profiles:
 			return
 
+		if self.name in STANDARD_USERS:
+			self.role_profiles = []
+			return
+
 		new_roles = set()
 		for role_profile in self.role_profiles:
 			role_profile = frappe.get_cached_doc("Role Profile", role_profile.role_profile)
@@ -839,7 +843,7 @@ def get_perm_info(role):
 
 @frappe.whitelist(allow_guest=True)
 def update_password(
-	new_password: str, logout_all_sessions: int = 0, key: str = None, old_password: str = None
+	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
 ):
 	"""Update password for the current user.
 
@@ -1210,7 +1214,7 @@ def handle_password_test_fail(feedback: dict):
 	suggestions = feedback.get("suggestions", [])
 	warning = feedback.get("warning", "")
 
-	frappe.throw(msg=" ".join([warning] + suggestions), title=_("Invalid Password"))
+	frappe.throw(msg=" ".join([warning, *suggestions]), title=_("Invalid Password"))
 
 
 def update_gravatar(name):

@@ -110,6 +110,7 @@ class CustomField(Document):
 		report_hide: DF.Check
 		reqd: DF.Check
 		search_index: DF.Check
+		show_dashboard: DF.Check
 		sort_options: DF.Check
 		translatable: DF.Check
 		unique: DF.Check
@@ -259,7 +260,7 @@ def get_fields_label(doctype=None):
 		return frappe.msgprint(_("Custom Fields can only be added to a standard DocType."))
 
 	return [
-		{"value": df.fieldname or "", "label": _(df.label) if df.label else ""}
+		{"value": df.fieldname or "", "label": _(df.label, context=df.parent) if df.label else ""}
 		for df in frappe.get_meta(doctype).get("fields")
 	]
 

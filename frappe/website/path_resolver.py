@@ -49,7 +49,8 @@ class PathResolver:
 			return endpoint, TemplatePage(endpoint, self.http_status_code)
 
 		custom_renderers = self.get_custom_page_renderers()
-		renderers = custom_renderers + [
+		renderers = [
+			*custom_renderers,
 			StaticPage,
 			WebFormPage,
 			DocumentPage,
