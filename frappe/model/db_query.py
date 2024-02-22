@@ -684,7 +684,7 @@ class DatabaseQuery:
 					continue
 				else:
 					for column in columns:
-						if not column in permitted_fields:
+						if column not in permitted_fields:
 							self.remove_field(i)
 							break
 					continue

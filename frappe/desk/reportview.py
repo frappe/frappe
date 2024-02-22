@@ -254,7 +254,7 @@ def get_parenttype_and_fieldname(field, data):
 		parenttype = parts[0]
 		fieldname = parts[1]
 		df = frappe.get_meta(data.doctype).get_field(parenttype)
-		if not df:
+		if not df and parenttype.startswith("tab"):
 			# tabChild DocType.fieldname
 			parenttype = parenttype[3:]
 		else:
