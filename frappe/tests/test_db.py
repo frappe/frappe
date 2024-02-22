@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import datetime
-import inspect
 from math import ceil
 from random import choice
 from unittest.mock import patch
@@ -17,7 +16,7 @@ from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, cint, now, random_string, set_request
+from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.testutils import clear_custom_fields
 
 
@@ -91,9 +90,7 @@ class TestDB(FrappeTestCase):
 		)
 		self.assertIn(
 			"for update",
-			frappe.db.get_value(
-				"User", Field("name") == "Administrator", for_update=True, run=False
-			).lower(),
+			frappe.db.get_value("User", Field("name") == "Administrator", for_update=True, run=False).lower(),
 		)
 		user_doctype = frappe.qb.DocType("User")
 		self.assertEqual(
@@ -166,9 +163,7 @@ class TestDB(FrappeTestCase):
 			"Datetime": datetime.datetime.now(),
 			"Time": datetime.timedelta(hours=9, minutes=45, seconds=10),
 		}
-		test_inputs = [
-			{"fieldtype": fieldtype, "value": value} for fieldtype, value in values_dict.items()
-		]
+		test_inputs = [{"fieldtype": fieldtype, "value": value} for fieldtype, value in values_dict.items()]
 		for fieldtype in values_dict:
 			create_custom_field(
 				"Print Settings",
@@ -187,6 +182,13 @@ class TestDB(FrappeTestCase):
 
 		# teardown
 		clear_custom_fields("Print Settings")
+
+	def test_get_single_value_destructuring(self):
+		[[lang, date_format]] = frappe.db.get_values_from_single(
+			["language", "date_format"], None, "System Settings"
+		)
+		self.assertEqual(lang, frappe.db.get_single_value("System Settings", "language"))
+		self.assertEqual(date_format, frappe.db.get_single_value("System Settings", "date_format"))
 
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
@@ -344,38 +346,40 @@ class TestDB(FrappeTestCase):
 		random_value = random_string(20)
 
 		# Testing read
+		self.assertEqual(next(iter(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])), random_field)
 		self.assertEqual(
-			list(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])[0], random_field
-		)
-		self.assertEqual(
-			list(frappe.get_all("ToDo", fields=[f"`{random_field}` as total"], limit=1)[0])[0], "total"
+			next(iter(frappe.get_all("ToDo", fields=[f"`{random_field}` as total"], limit=1)[0])), "total"
 		)
 
 		# Testing read for distinct and sql functions
 		self.assertEqual(
-			list(
-				frappe.get_all(
-					"ToDo",
-					fields=[f"`{random_field}` as total"],
-					distinct=True,
-					limit=1,
-				)[0]
-			)[0],
+			next(
+				iter(
+					frappe.get_all(
+						"ToDo",
+						fields=[f"`{random_field}` as total"],
+						distinct=True,
+						limit=1,
+					)[0]
+				)
+			),
 			"total",
 		)
 		self.assertEqual(
-			list(
-				frappe.get_all(
-					"ToDo",
-					fields=[f"`{random_field}`"],
-					distinct=True,
-					limit=1,
-				)[0]
-			)[0],
+			next(
+				iter(
+					frappe.get_all(
+						"ToDo",
+						fields=[f"`{random_field}`"],
+						distinct=True,
+						limit=1,
+					)[0]
+				)
+			),
 			random_field,
 		)
 		self.assertEqual(
-			list(frappe.get_all("ToDo", fields=[f"count(`{random_field}`)"], limit=1)[0])[0],
+			next(iter(frappe.get_all("ToDo", fields=[f"count(`{random_field}`)"], limit=1)[0])),
 			"count" if frappe.conf.db_type == "postgres" else f"count(`{random_field}`)",
 		)
 
@@ -443,7 +447,7 @@ class TestDB(FrappeTestCase):
 		frappe.db.MAX_WRITES_PER_TRANSACTION = 1
 		note = frappe.get_last_doc("ToDo")
 		note.description = "changed"
-		with self.assertRaises(frappe.TooManyWritesError) as tmw:
+		with self.assertRaises(frappe.TooManyWritesError):
 			note.save()
 
 		frappe.db.MAX_WRITES_PER_TRANSACTION = Database.MAX_WRITES_PER_TRANSACTION
@@ -562,9 +566,7 @@ class TestDB(FrappeTestCase):
 			modify_query(query),
 		)
 
-		query = (
-			'select locate(".io", "frappe.io"), locate("3", cast(3 as varchar)), locate("3", 3::varchar)'
-		)
+		query = 'select locate(".io", "frappe.io"), locate("3", cast(3 as varchar)), locate("3", 3::varchar)'
 		self.assertEqual(
 			'select strpos( "frappe.io", ".io"), strpos( cast(3 as varchar), "3"), strpos( 3::varchar, "3")',
 			modify_query(query),
@@ -584,7 +586,6 @@ class TestDB(FrappeTestCase):
 		)
 
 	def test_callbacks(self):
-
 		order_of_execution = []
 
 		def f(val):
@@ -741,9 +742,7 @@ class TestDBSetValue(FrappeTestCase):
 		self.assertEqual(status, updated_status)
 
 	def test_update_multiple_rows_single_column(self):
-		frappe.db.set_value(
-			"ToDo", {"description": ("like", "%test_set_value%")}, "description", "change 2"
-		)
+		frappe.db.set_value("ToDo", {"description": ("like", "%test_set_value%")}, "description", "change 2")
 
 		self.assertEqual(frappe.db.get_value("ToDo", self.todo1.name, "description"), "change 2")
 		self.assertEqual(frappe.db.get_value("ToDo", self.todo2.name, "description"), "change 2")

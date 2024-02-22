@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "creation": "2013-01-10 16:34:01",
+ "creation": "2024-02-21 18:14:42.281748",
  "description": "Adds a custom field to a DocType",
  "doctype": "DocType",
  "document_type": "Setup",
@@ -57,6 +57,7 @@
   "ignore_xss_filter",
   "translatable",
   "hide_border",
+  "show_dashboard",
   "description",
   "permlevel",
   "width",
@@ -451,13 +452,19 @@
    "fieldtype": "JSON",
    "hidden": 1,
    "label": "Link Filters"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_dashboard",
+   "fieldtype": "Check",
+   "label": "Show Dashboard"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2024-02-21 18:15:19.384933",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

@@ -374,7 +374,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					if (frappe.has_indicator(this.doctype) && df.fieldname === "status") {
 						return false;
 					}
-					if (!df.in_list_view) {
+					if (!df.in_list_view || df.is_virtual) {
 						return false;
 					}
 					return df.fieldname !== this.meta.title_field;
@@ -653,13 +653,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					html = subject_html;
 				} else {
 					const fieldname = col.df?.fieldname;
-					const attrs = fieldname
-						? ` data-sort-by="${fieldname}"
-							title="${__("Click to sort by {0}", [col.df?.label])}"`
-						: "";
-					html = `<span ${attrs}>
-						${__(col.df?.label || col.type)}
-					</span>`;
+					const label = __(col.df?.label || col.type, null, col.df?.parent);
+					const title = __("Click to sort by {0}", [label]);
+					const attrs = fieldname ? `data-sort-by="${fieldname}" title="${title}"` : "";
+					html = `<span ${attrs}>${label}</span>`;
 				}
 
 				return `<div class="${classes}">${html}</div>
@@ -1520,7 +1517,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	avoid_realtime_update() {
-		if (this.filter_area.is_being_edited()) {
+		if (this.filter_area?.is_being_edited()) {
 			return true;
 		}
 		// this is set when a bulk operation is called from a list view which might update the list view

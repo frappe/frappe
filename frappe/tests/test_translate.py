@@ -19,7 +19,6 @@ from frappe.translate import (
 	get_language,
 	get_parent_language,
 	get_translation_dict_from_file,
-	write_translations_file,
 )
 from frappe.utils import get_bench_path, set_request
 
@@ -36,10 +35,10 @@ _lazy_translations = _lt("Communication")
 
 
 class TestTranslate(FrappeTestCase):
-	guest_sessions_required = [
+	guest_sessions_required = (
 		"test_guest_request_language_resolution_with_cookie",
 		"test_guest_request_language_resolution_with_request_header",
-	]
+	)
 
 	def setUp(self):
 		if self._testMethodName in self.guest_sessions_required:
@@ -74,7 +73,7 @@ class TestTranslate(FrappeTestCase):
 			msg=f"Mismatched output:\nExpected: {expected_output}\nFound: {data}",
 		)
 
-		for extracted, expected in zip(data, expected_output):
+		for extracted, expected in zip(data, expected_output, strict=False):
 			ext_filename, ext_message, ext_context, ext_line = extracted
 			exp_message, exp_context, exp_line = expected
 			self.assertEqual(ext_filename, exp_filename)
@@ -184,7 +183,6 @@ class TestTranslate(FrappeTestCase):
 		verify_translation_files("frappe")
 
 	def test_python_extractor(self):
-
 		code = textwrap.dedent(
 			"""
 			frappe._("attr")
@@ -215,12 +213,11 @@ class TestTranslate(FrappeTestCase):
 
 		output = extract_messages_from_python_code(code)
 		self.assertEqual(len(expected_output), len(output))
-		for expected, actual in zip(expected_output, output):
+		for expected, actual in zip(expected_output, output, strict=False):
 			with self.subTest():
 				self.assertEqual(expected, actual)
 
 	def test_js_extractor(self):
-
 		code = textwrap.dedent(
 			"""
 			__("attr")
@@ -253,7 +250,7 @@ class TestTranslate(FrappeTestCase):
 		output = extract_messages_from_javascript_code(code)
 
 		self.assertEqual(len(expected_output), len(output))
-		for expected, actual in zip(expected_output, output):
+		for expected, actual in zip(expected_output, output, strict=False):
 			with self.subTest():
 				self.assertEqual(expected, actual)
 

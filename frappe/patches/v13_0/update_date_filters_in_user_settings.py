@@ -9,14 +9,12 @@ def execute():
 
 	for user in users:
 		user_settings = frappe.db.sql(
-			"""
+			f"""
 			select
 				* from `__UserSettings`
 			where
-				user='{user}'
-		""".format(
-				user=user.user
-			),
+				user='{user.user}'
+		""",
 			as_dict=True,
 		)
 

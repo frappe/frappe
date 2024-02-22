@@ -12,6 +12,7 @@ from contextlib import suppress
 from shutil import which
 
 import click
+from semantic_version import Version
 
 import frappe
 from frappe.defaults import _clear_cache
@@ -20,9 +21,10 @@ from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.synchronization import filelock
 
 
-def _is_scheduler_enabled() -> bool:
+def _is_scheduler_enabled(site) -> bool:
 	enable_scheduler = False
 	try:
+		frappe.init(site=site)
 		frappe.connect()
 		enable_scheduler = cint(frappe.db.get_single_value("System Settings", "enable_scheduler"))
 	except Exception:
@@ -78,7 +80,7 @@ def _new_site(
 
 	try:
 		# enable scheduler post install?
-		enable_scheduler = _is_scheduler_enabled()
+		enable_scheduler = _is_scheduler_enabled(site)
 	except Exception:
 		enable_scheduler = False
 
@@ -103,9 +105,7 @@ def _new_site(
 			setup=setup_db,
 		)
 
-		apps_to_install = (
-			["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
-		)
+		apps_to_install = ["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
 
 		for app in apps_to_install:
 			# NOTE: not using force here for 2 reasons:
@@ -242,7 +242,7 @@ def fetch_details_from_tag(_tag: str) -> tuple[str, str, str]:
 	try:
 		repo, tag = app_tag
 	except ValueError:
-		repo, tag = app_tag + [None]
+		repo, tag = [*app_tag, None]
 
 	try:
 		org, repo = org_repo
@@ -461,9 +461,7 @@ def _delete_modules(modules: list[str], dry_run: bool) -> list[str]:
 	return drop_doctypes
 
 
-def _delete_linked_documents(
-	module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool
-) -> None:
+def _delete_linked_documents(module_name: str, doctype_linkfield_map: dict[str, str], dry_run: bool) -> None:
 	"""Deleted all records linked with module def"""
 	for doctype, fieldname in doctype_linkfield_map.items():
 		for record in frappe.get_all(doctype, filters={fieldname: module_name}, pluck="name"):
@@ -778,42 +776,43 @@ def extract_files(site_name, file_path):
 
 
 def is_downgrade(sql_file_path, verbose=False):
-	"""checks if input db backup will get downgraded on current bench"""
+	"""Check if input db backup will get downgraded on current bench
 
-	# This function is only tested with mariadb
-	# TODO: Add postgres support
+	This function is only tested with mariadb.
+	TODO: Add postgres support
+	"""
 	if frappe.conf.db_type != "mariadb":
 		return False
 
-	from semantic_version import Version
-
-	backup_version = extract_version_from_dump(sql_file_path)
-	if backup_version is None:
-		# This is likely an older backup, so try to extract another way
-		header = get_db_dump_header(sql_file_path).split("\n")
-		if match := re.search(r"Frappe (\d+\.\d+\.\d+)", header[0]):
-			backup_version = match.group(1)
+	backup_version = get_backup_version(sql_file_path) or get_old_backup_version(sql_file_path)
+	current_version = Version(frappe.__version__)
 
 	# Assume it's not a downgrade if we can't determine backup version
 	if backup_version is None:
 		return False
 
-	current_version = Version(frappe.__version__)
-	downgrade = Version(backup_version) < current_version
+	is_downgrade = backup_version > current_version
 
-	if verbose and downgrade:
+	if verbose and is_downgrade:
 		print(f"Your site will be downgraded from Frappe {current_version} to {backup_version}")
 
-	return downgrade
+	return is_downgrade
 
 
-def extract_version_from_dump(sql_file_path: str) -> str | None:
+def get_old_backup_version(sql_file_path: str) -> Version | None:
+	"""Return the frappe version used to create the specified database dump.
+
+	This methods supports older versions of Frappe wich used a different format.
 	"""
-	Extract frappe version from DB dump
+	header = get_db_dump_header(sql_file_path).split("\n")
+	if match := re.search(r"Frappe (\d+\.\d+\.\d+)", header[0]):
+		backup_version = match[1]
 
-	:param sql_file_path: The path to the dump file
-	:return: The frappe version used to create the backup
-	"""
+	return Version(backup_version) if backup_version else None
+
+
+def get_backup_version(sql_file_path: str) -> Version | None:
+	"""Return the frappe version used to create the specified database dump."""
 	header = get_db_dump_header(sql_file_path).split("\n")
 	metadata = ""
 	if "begin frappe metadata" in header[0]:
@@ -823,7 +822,8 @@ def extract_version_from_dump(sql_file_path: str) -> str | None:
 			metadata += line.replace("--", "").strip() + "\n"
 		parser = configparser.ConfigParser()
 		parser.read_string(metadata)
-		return parser["frappe"]["version"]
+		return Version(parser["frappe"]["version"])
+
 	return None
 
 
@@ -848,10 +848,10 @@ def partial_restore(sql_file_path, verbose=False):
 
 		warn = click.style(
 			"Delete the tables you want to restore manually before attempting"
-			" partial restore operation for PostreSQL databases",
+			" partial restore operation for PostgreSQL databases",
 			fg="yellow",
 		)
-		warnings.warn(warn)
+		warnings.warn(warn, stacklevel=2)
 	else:
 		click.secho("Unsupported database type", fg="red")
 		return

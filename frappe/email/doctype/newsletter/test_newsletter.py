@@ -147,9 +147,7 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 	def test_unsubscribe(self):
 		name = self.send_newsletter()
 		to_unsubscribe = choice(emails)
-		group = frappe.get_all(
-			"Newsletter Email Group", filters={"parent": name}, fields=["email_group"]
-		)
+		group = frappe.get_all("Newsletter Email Group", filters={"parent": name}, fields=["email_group"])
 
 		flush()
 		confirmed_unsubscribe(to_unsubscribe, group[0].email_group)

@@ -39,10 +39,10 @@ global_cache_keys = (
 	"domain_restricted_doctypes",
 	"domain_restricted_pages",
 	"information_schema:counts",
-	"sitemap_routes",
 	"db_tables",
 	"server_script_autocompletion_items",
-) + doctype_map_keys
+	*doctype_map_keys,
+)
 
 user_cache_keys = (
 	"bootinfo",
@@ -83,13 +83,11 @@ def clear_user_cache(user=None):
 	clear_notifications(user)
 
 	if user:
-		for name in user_cache_keys:
-			frappe.cache.hdel(name, user)
+		frappe.cache.hdel_names(user_cache_keys, user)
 		frappe.cache.delete_keys("user:" + user)
 		clear_defaults_cache(user)
 	else:
-		for name in user_cache_keys:
-			frappe.cache.delete_key(name)
+		frappe.cache.delete_key(user_cache_keys)
 		clear_defaults_cache()
 		clear_global_cache()
 
@@ -104,17 +102,15 @@ def clear_global_cache():
 
 	clear_doctype_cache()
 	clear_website_cache()
-	frappe.cache.delete_value(global_cache_keys)
-	frappe.cache.delete_value(bench_cache_keys)
+	frappe.cache.delete_value(global_cache_keys + bench_cache_keys)
 	frappe.setup_module_map()
 
 
 def clear_defaults_cache(user=None):
 	if user:
-		for p in [user] + common_default_keys:
-			frappe.cache.hdel("defaults", p)
+		frappe.cache.hdel("defaults", [user, *common_default_keys])
 	elif frappe.flags.in_install != "frappe":
-		frappe.cache.delete_key("defaults")
+		frappe.cache.delete_value("defaults")
 
 
 def clear_doctype_cache(doctype=None):
@@ -129,15 +125,14 @@ def clear_doctype_cache(doctype=None):
 def _clear_doctype_cache_from_redis(doctype: str | None = None):
 	from frappe.desk.notifications import delete_notification_count_for
 
-	for key in ("is_table", "doctype_modules"):
-		frappe.cache.delete_value(key)
-
-	def clear_single(dt):
-		frappe.clear_document_cache(dt)
-		for name in doctype_cache_keys:
-			frappe.cache.hdel(name, dt)
+	to_del = ["is_table", "doctype_modules"]
 
 	if doctype:
+
+		def clear_single(dt):
+			frappe.clear_document_cache(dt)
+			frappe.cache.hdel_names(doctype_cache_keys, dt)
+
 		clear_single(doctype)
 
 		# clear all parent doctypes
@@ -158,9 +153,10 @@ def _clear_doctype_cache_from_redis(doctype: str | None = None):
 
 	else:
 		# clear all
-		for name in doctype_cache_keys:
-			frappe.cache.delete_value(name)
-		frappe.cache.delete_keys("document_cache::")
+		to_del += doctype_cache_keys
+		to_del += frappe.cache.get_keys("document_cache::")
+
+	frappe.cache.delete_value(to_del)
 
 
 def clear_controller_cache(doctype=None):
@@ -198,9 +194,7 @@ def build_table_count_cache():
 	table_rows = frappe.qb.Field("table_rows").as_("count")
 	information_schema = frappe.qb.Schema("information_schema")
 
-	data = (frappe.qb.from_(information_schema.tables).select(table_name, table_rows)).run(
-		as_dict=True
-	)
+	data = (frappe.qb.from_(information_schema.tables).select(table_name, table_rows)).run(as_dict=True)
 	counts = {d.get("name").replace("tab", "", 1): d.get("count", None) for d in data}
 	frappe.cache.set_value("information_schema:counts", counts)
 

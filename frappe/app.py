@@ -22,7 +22,7 @@ import frappe.rate_limiter
 import frappe.recorder
 import frappe.utils.response
 from frappe import _
-from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth  # noqa
+from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
 from frappe.middlewares import StaticDataMiddleware
 from frappe.utils import CallbackManager, cint, get_site_name
 from frappe.utils.data import escape_html
@@ -272,9 +272,7 @@ def set_cors_headers(response):
 
 	# only required for preflight requests
 	if request.method == "OPTIONS":
-		cors_headers["Access-Control-Allow-Methods"] = request.headers.get(
-			"Access-Control-Request-Method"
-		)
+		cors_headers["Access-Control-Allow-Methods"] = request.headers.get("Access-Control-Request-Method")
 
 		if allowed_headers := request.headers.get("Access-Control-Request-Headers"):
 			cors_headers["Access-Control-Allow-Headers"] = allowed_headers
@@ -513,9 +511,7 @@ def serve(
 def application_with_statics():
 	global application, _sites_path
 
-	application = SharedDataMiddleware(
-		application, {"/assets": str(os.path.join(_sites_path, "assets"))}
-	)
+	application = SharedDataMiddleware(application, {"/assets": str(os.path.join(_sites_path, "assets"))})
 
 	application = StaticDataMiddleware(application, {"/files": str(os.path.abspath(_sites_path))})
 

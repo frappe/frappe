@@ -41,6 +41,7 @@ class GoogleDrive(Document):
 		refresh_token: DF.Data | None
 		send_email_for_successful_backup: DF.Check
 	# end: auto-generated types
+
 	def validate(self):
 		doc_before_save = self.get_doc_before_save()
 		if doc_before_save and doc_before_save.backup_folder_name != self.backup_folder_name:
@@ -66,9 +67,7 @@ def authorize_access(reauthorize=False, code=None):
 	Google Contact Name is set to flags to set_value after Authorization Code is obtained.
 	"""
 
-	oauth_code = (
-		frappe.db.get_single_value("Google Drive", "authorization_code") if not code else code
-	)
+	oauth_code = frappe.db.get_single_value("Google Drive", "authorization_code") if not code else code
 	oauth_obj = GoogleOAuth("drive")
 
 	if not oauth_code or reauthorize:
@@ -130,9 +129,7 @@ def check_for_folder_in_google_drive():
 			google_drive.files().list(q="mimeType='application/vnd.google-apps.folder'").execute()
 		)
 	except HttpError as e:
-		frappe.throw(
-			_("Google Drive - Could not find folder in Google Drive - Error Code {0}").format(e)
-		)
+		frappe.throw(_("Google Drive - Could not find folder in Google Drive - Error Code {0}").format(e))
 
 	for f in google_drive_folders.get("files"):
 		if f.get("name") == account.backup_folder_name:

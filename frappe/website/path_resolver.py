@@ -49,7 +49,8 @@ class PathResolver:
 			return endpoint, TemplatePage(endpoint, self.http_status_code)
 
 		custom_renderers = self.get_custom_page_renderers()
-		renderers = custom_renderers + [
+		renderers = [
+			*custom_renderers,
 			StaticPage,
 			WebFormPage,
 			DocumentPage,
@@ -167,8 +168,7 @@ def resolve_path(path):
 def resolve_from_map(path):
 	"""transform dynamic route to a static one from hooks and route defined in doctype"""
 	rules = [
-		Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults"))
-		for r in get_website_rules()
+		Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults")) for r in get_website_rules()
 	]
 
 	return evaluate_dynamic_routes(rules, path) or path

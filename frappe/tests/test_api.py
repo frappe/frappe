@@ -1,5 +1,6 @@
 import json
 import sys
+import typing
 from contextlib import contextmanager
 from functools import cached_property
 from random import choice
@@ -15,7 +16,7 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.utils import FrappeTestCase, patch_hooks
-from frappe.utils import cint, get_site_url, get_test_client, get_url
+from frappe.utils import cint, get_test_client, get_url
 
 try:
 	_site = frappe.local.site
@@ -40,7 +41,7 @@ def make_request(
 	target: str,
 	args: tuple | None = None,
 	kwargs: dict | None = None,
-	site: str = None,
+	site: str | None = None,
 ) -> TestResponse:
 	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()
@@ -54,7 +55,9 @@ def patch_request_header(key, *args, **kwargs):
 
 
 class ThreadWithReturnValue(Thread):
-	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, *, site=None):
+	def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, site=None):
+		if kwargs is None:
+			kwargs = {}
 		Thread.__init__(self, group, target, name, args, kwargs)
 		self._return = None
 		self.site = site or _site
@@ -130,7 +133,7 @@ class FrappeAPITestCase(FrappeTestCase):
 
 class TestResourceAPI(FrappeAPITestCase):
 	DOCTYPE = "ToDo"
-	GENERATED_DOCUMENTS = []
+	GENERATED_DOCUMENTS: typing.ClassVar[list] = []
 
 	@classmethod
 	def setUpClass(cls):
@@ -190,9 +193,7 @@ class TestResourceAPI(FrappeAPITestCase):
 
 	def test_get_list_fields(self):
 		# test 6: fetch response with fields
-		response = self.get(
-			self.resource_path(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'}
-		)
+		response = self.get(self.resource_path(self.DOCTYPE), {"sid": self.sid, "fields": '["description"]'})
 		self.assertEqual(response.status_code, 200)
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
@@ -236,9 +237,7 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertIn(response.status_code, (403, 200))
 
 		if response.status_code == 403:
-			self.assertTrue(
-				set(response.json.keys()) == {"exc_type", "exception", "exc", "_server_messages"}
-			)
+			self.assertTrue(set(response.json.keys()) == {"exc_type", "exception", "exc", "_server_messages"})
 			self.assertEqual(response.json.get("exc_type"), "PermissionError")
 			self.assertEqual(
 				response.json.get("exception"), "frappe.exceptions.PermissionError: Not permitted"

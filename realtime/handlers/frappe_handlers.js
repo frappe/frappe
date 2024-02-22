@@ -1,5 +1,4 @@
-const request = require("superagent");
-const { get_url } = require("../utils");
+const { frappe_request } = require("../utils");
 const log = console.log;
 
 const WEBSITE_ROOM = "website";
@@ -114,11 +113,9 @@ function notify_disconnected_documents(socket) {
 function can_subscribe_doctype(args) {
 	if (!args) return;
 	if (!args.doctype) return;
-	request
-		.get(get_url(args.socket, "/api/method/frappe.realtime.can_subscribe_doctype"))
+	frappe_request("/api/method/frappe.realtime.can_subscribe_doctype", args.socket)
 		.type("form")
 		.query({
-			sid: args.socket.sid,
 			doctype: args.doctype,
 		})
 		.end(function (err, res) {
@@ -166,11 +163,9 @@ function notify_subscribed_doc_users(args) {
 function can_subscribe_doc(args) {
 	if (!args) return;
 	if (!args.doctype || !args.docname) return;
-	request
-		.get(get_url(args.socket, "/api/method/frappe.realtime.can_subscribe_doc"))
+	frappe_request("/api/method/frappe.realtime.can_subscribe_doc", args.socket)
 		.type("form")
 		.query({
-			sid: args.socket.sid,
 			doctype: args.doctype,
 			docname: args.docname,
 		})

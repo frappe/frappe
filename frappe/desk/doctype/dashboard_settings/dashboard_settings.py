@@ -21,6 +21,7 @@ class DashboardSettings(Document):
 		chart_config: DF.Code | None
 		user: DF.Link | None
 	# end: auto-generated types
+
 	pass
 
 
@@ -55,6 +56,4 @@ def save_chart_config(reset, config, chart_name):
 			chart_config[chart_name] = {}
 		chart_config[chart_name].update(config)
 
-	frappe.db.set_value(
-		"Dashboard Settings", frappe.session.user, "chart_config", json.dumps(chart_config)
-	)
+	frappe.db.set_value("Dashboard Settings", frappe.session.user, "chart_config", json.dumps(chart_config))

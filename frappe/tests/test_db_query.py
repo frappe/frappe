@@ -57,7 +57,11 @@ class TestDBQuery(FrappeTestCase):
 		db_query = DatabaseQuery("DocType")
 		add_custom_field("DocType", "test_tab_field", "Data")
 
-		db_query.fields = ["tabNote.creation", "test_tab_field", "tabDocType.test_tab_field"]
+		db_query.fields = [
+			"tabNote.creation",
+			"test_tab_field",
+			"tabDocType.test_tab_field",
+		]
 		db_query.extract_tables()
 		self.assertIn("`tabNote`", db_query.tables)
 		self.assertIn("`tabDocType`", db_query.tables)
@@ -148,7 +152,10 @@ class TestDBQuery(FrappeTestCase):
 		frappe.get_doc(
 			doctype="Parent DocType 1",
 			title="test",
-			child=[{"title": "parent 1 child record 1"}, {"title": "parent 1 child record 2"}],
+			child=[
+				{"title": "parent 1 child record 1"},
+				{"title": "parent 1 child record 2"},
+			],
 			__newname="test_parent",
 		).insert(ignore_if_duplicate=True)
 		frappe.get_doc(
@@ -172,9 +179,7 @@ class TestDBQuery(FrappeTestCase):
 		self.assertEqual(results2[0].child_title, "parent 2 child record 1")
 
 	def test_link_field_syntax(self):
-		todo = frappe.get_doc(
-			doctype="ToDo", description="Test ToDo", allocated_to="Administrator"
-		).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="Test ToDo", allocated_to="Administrator").insert()
 		result = frappe.get_all(
 			"ToDo",
 			filters={"name": todo.name},
@@ -297,7 +302,8 @@ class TestDBQuery(FrappeTestCase):
 
 		# if both from and to_date values are passed
 		data = DatabaseQuery("Event").execute(
-			filters={"starts_on": ["between", ["2016-07-06", "2016-07-07"]]}, fields=["name"]
+			filters={"starts_on": ["between", ["2016-07-06", "2016-07-07"]]},
+			fields=["name"],
 		)
 
 		self.assertIn({"name": event2.name}, data)
@@ -318,7 +324,8 @@ class TestDBQuery(FrappeTestCase):
 
 		# test between is formatted for creation column
 		data = DatabaseQuery("Event").execute(
-			filters={"creation": ["between", ["2016-07-06", "2016-07-07"]]}, fields=["name"]
+			filters={"creation": ["between", ["2016-07-06", "2016-07-07"]]},
+			fields=["name"],
 		)
 
 	def test_between_filters_date_bounds(self):
@@ -370,7 +377,10 @@ class TestDBQuery(FrappeTestCase):
 		self.assertRaises(
 			frappe.DataError,
 			DatabaseQuery("DocType").execute,
-			fields=["name", "issingle, IF(issingle=1, (select name from tabUser), count(name))"],
+			fields=[
+				"name",
+				"issingle, IF(issingle=1, (select name from tabUser), count(name))",
+			],
 			limit_start=0,
 			limit_page_length=1,
 		)
@@ -394,7 +404,10 @@ class TestDBQuery(FrappeTestCase):
 		self.assertRaises(
 			frappe.DataError,
 			DatabaseQuery("DocType").execute,
-			fields=["name", "issingle, IF(issingle=1, (SELECT name from tabUser), count(*))"],
+			fields=[
+				"name",
+				"issingle, IF(issingle=1, (SELECT name from tabUser), count(*))",
+			],
 			limit_start=0,
 			limit_page_length=1,
 		)
@@ -468,14 +481,20 @@ class TestDBQuery(FrappeTestCase):
 		self.assertTrue("_relevance" in data[0])
 
 		data = DatabaseQuery("DocType").execute(
-			fields=["name", "issingle", "date(creation) as creation"], limit_start=0, limit_page_length=1
+			fields=["name", "issingle", "date(creation) as creation"],
+			limit_start=0,
+			limit_page_length=1,
 		)
 		self.assertTrue("creation" in data[0])
 
 		if frappe.db.db_type != "postgres":
 			# datediff function does not exist in postgres
 			data = DatabaseQuery("DocType").execute(
-				fields=["name", "issingle", "datediff(modified, creation) as date_diff"],
+				fields=[
+					"name",
+					"issingle",
+					"datediff(modified, creation) as date_diff",
+				],
 				limit_start=0,
 				limit_page_length=1,
 			)
@@ -483,14 +502,22 @@ class TestDBQuery(FrappeTestCase):
 
 		with self.assertRaises(frappe.DataError):
 			DatabaseQuery("DocType").execute(
-				fields=["name", "issingle", "if (issingle=1, (select name from tabUser), count(name))"],
+				fields=[
+					"name",
+					"issingle",
+					"if (issingle=1, (select name from tabUser), count(name))",
+				],
 				limit_start=0,
 				limit_page_length=1,
 			)
 
 		with self.assertRaises(frappe.DataError):
 			DatabaseQuery("DocType").execute(
-				fields=["name", "issingle", "if(issingle=1, (select name from tabUser), count(name))"],
+				fields=[
+					"name",
+					"issingle",
+					"if(issingle=1, (select name from tabUser), count(name))",
+				],
 				limit_start=0,
 				limit_page_length=1,
 			)
@@ -580,7 +607,10 @@ class TestDBQuery(FrappeTestCase):
 			DatabaseQuery("DocType").execute,
 			fields=["name"],
 			filters={"editable_grid,": 1},
-			or_filters=[["DocType", "istable", "=", 1], ["DocType", "beta and 1=1", "=", 0]],
+			or_filters=[
+				["DocType", "istable", "=", 1],
+				["DocType", "beta and 1=1", "=", 0],
+			],
 			limit_start=0,
 			limit_page_length=1,
 		)
@@ -602,13 +632,18 @@ class TestDBQuery(FrappeTestCase):
 		self.assertTrue("Role Permission for Page and Report" in [d["name"] for d in out])
 
 		out = DatabaseQuery("DocType").execute(
-			fields=["name"], filters={"track_changes": 1, "module": "Core"}, order_by="creation"
+			fields=["name"],
+			filters={"track_changes": 1, "module": "Core"},
+			order_by="creation",
 		)
 		self.assertTrue("File" in [d["name"] for d in out])
 
 		out = DatabaseQuery("DocType").execute(
 			fields=["name"],
-			filters=[["DocType", "ifnull(track_changes, 0)", "=", 0], ["DocType", "module", "=", "Core"]],
+			filters=[
+				["DocType", "ifnull(track_changes, 0)", "=", 0],
+				["DocType", "module", "=", "Core"],
+			],
 			order_by="creation",
 		)
 		self.assertTrue("DefaultValue" in [d["name"] for d in out])
@@ -745,7 +780,7 @@ class TestDBQuery(FrappeTestCase):
 	def test_set_field_tables(self):
 		# Tests _in_standard_sql_methods method in test_set_field_tables
 		# The following query will break if the above method is broken
-		data = frappe.db.get_list(
+		frappe.db.get_list(
 			"Web Form",
 			filters=[["Web Form Field", "reqd", "=", 1]],
 			fields=["count(*) as count"],
@@ -757,7 +792,7 @@ class TestDBQuery(FrappeTestCase):
 		try:
 			frappe.get_list("Prepared Report", ["*"])
 			frappe.get_list("Scheduled Job Type", ["*"])
-		except Exception as e:
+		except Exception:
 			print(frappe.get_traceback())
 			self.fail("get_list not working with virtual field")
 
@@ -807,41 +842,59 @@ class TestDBQuery(FrappeTestCase):
 	def test_permlevel_fields(self):
 		with setup_patched_blog_post(), setup_test_user(set_user=True):
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "published"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "published"],
+				limit=1,
 			)
 			self.assertFalse("published" in data[0])
 			self.assertTrue("name" in data[0])
 			self.assertEqual(len(data[0]), 1)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "`published`"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "`published`"],
+				limit=1,
 			)
 			self.assertFalse("published" in data[0])
 			self.assertTrue("name" in data[0])
 			self.assertEqual(len(data[0]), 1)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "`tabBlog Post`.`published`"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "`tabBlog Post`.`published`"],
+				limit=1,
 			)
 			self.assertFalse("published" in data[0])
 			self.assertTrue("name" in data[0])
 			self.assertEqual(len(data[0]), 1)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "`tabTest Child`.`test_field`"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "`tabTest Child`.`test_field`"],
+				limit=1,
 			)
 			self.assertFalse("test_field" in data[0])
 			self.assertTrue("name" in data[0])
 			self.assertEqual(len(data[0]), 1)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "MAX(`published`)"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "MAX(`published`)"],
+				limit=1,
 			)
 			self.assertTrue("name" in data[0])
 			self.assertEqual(len(data[0]), 1)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "LAST(published)"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "LAST(published)"],
+				limit=1,
 			)
 			self.assertTrue("name" in data[0])
 			self.assertEqual(len(data[0]), 1)
@@ -857,13 +910,19 @@ class TestDBQuery(FrappeTestCase):
 			self.assertEqual(len(data[0]), 2)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "now() abhi"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "now() abhi"],
+				limit=1,
 			)
 			self.assertIsInstance(data[0]["abhi"], datetime.datetime)
 			self.assertEqual(len(data[0]), 2)
 
 			data = frappe.get_list(
-				"Blog Post", filters={"published": 1}, fields=["name", "'LABEL'"], limit=1
+				"Blog Post",
+				filters={"published": 1},
+				fields=["name", "'LABEL'"],
+				limit=1,
 			)
 			self.assertTrue("name" in data[0])
 			self.assertTrue("LABEL" in data[0].values())
@@ -893,7 +952,11 @@ class TestDBQuery(FrappeTestCase):
 
 			data = frappe.get_list(
 				"Blog Post",
-				fields=["name", "blogger.full_name as blogger_full_name", "blog_category.description"],
+				fields=[
+					"name",
+					"blogger.full_name as blogger_full_name",
+					"blog_category.description",
+				],
 				limit=1,
 			)
 			self.assertTrue("name" in data[0])
@@ -907,7 +970,11 @@ class TestDBQuery(FrappeTestCase):
 		dt = new_doctype("autoinc_dt_test", autoname="autoincrement").insert(ignore_permissions=True)
 
 		query = DatabaseQuery("autoinc_dt_test").execute(
-			fields=["locate('1', `tabautoinc_dt_test`.`name`)", "name", "locate('1', name)"],
+			fields=[
+				"locate('1', `tabautoinc_dt_test`.`name`)",
+				"name",
+				"locate('1', name)",
+			],
 			filters={"name": 1},
 			run=False,
 		)
@@ -930,7 +997,9 @@ class TestDBQuery(FrappeTestCase):
 		frappe.delete_doc_if_exists("DocType", "table_dt")
 
 		table_dt = new_doctype(
-			"table_dt", istable=1, fields=[{"label": "1field", "fieldname": "2field", "fieldtype": "Data"}]
+			"table_dt",
+			istable=1,
+			fields=[{"label": "1field", "fieldname": "2field", "fieldtype": "Data"}],
 		).insert()
 
 		dt = new_doctype(
@@ -975,7 +1044,9 @@ class TestDBQuery(FrappeTestCase):
 		table_dt.delete()
 
 	def test_permission_query_condition(self):
-		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings
+		from frappe.desk.doctype.dashboard_settings.dashboard_settings import (
+			create_dashboard_settings,
+		)
 
 		self.doctype = "Dashboard Settings"
 		self.user = "test'5@example.com"
@@ -985,13 +1056,11 @@ class TestDBQuery(FrappeTestCase):
 		create_dashboard_settings(self.user)
 
 		dashboard_settings = frappe.db.sql(
-			"""
+			f"""
 				SELECT name
 				FROM `tabDashboard Settings`
-				WHERE {condition}
-			""".format(
-				condition=permission_query_conditions
-			),
+				WHERE {permission_query_conditions}
+			""",
 			as_dict=1,
 		)[0]
 
@@ -1009,7 +1078,10 @@ class TestDBQuery(FrappeTestCase):
 			def get_list(args):
 				...
 
-		with patch("frappe.controllers", new={frappe.local.site: {"Virtual DocType": VirtualDocType}}):
+		with patch(
+			"frappe.controllers",
+			new={frappe.local.site: {"Virtual DocType": VirtualDocType}},
+		):
 			VirtualDocType.get_list = MagicMock()
 
 			frappe.get_all("Virtual DocType", filters={"name": "test"}, fields=["name"], limit=1)
@@ -1123,7 +1195,11 @@ class TestReportView(FrappeTestCase):
 		)
 		list_filter_response = execute_cmd("frappe.desk.reportview.get_count")
 		frappe.local.form_dict = frappe._dict(
-			{"doctype": "DocType", "filters": {"show_title_field_in_link": 1}, "distinct": "true"}
+			{
+				"doctype": "DocType",
+				"filters": {"show_title_field_in_link": 1},
+				"distinct": "true",
+			}
 		)
 		dict_filter_response = execute_cmd("frappe.desk.reportview.get_count")
 		self.assertIsInstance(list_filter_response, int)
