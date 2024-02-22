@@ -110,6 +110,7 @@ jobs:
       - name: Run Patch Tests
         run: |
           cd ~/frappe-bench/
+          sed -i 's/^worker:/# worker:/g' Procfile
           wget https://frappeframework.com/files/v13-frappe.sql.gz
           bench --site test_site --force restore ~/frappe-bench/v13-frappe.sql.gz
 
@@ -126,6 +127,7 @@ jobs:
             git checkout -q -f $branch_name
 
             pgrep honcho | xargs kill
+            sleep 3
             rm -rf ~/frappe-bench/env
             bench -v setup env
             bench start &>> ~/frappe-bench/bench_start.log &
@@ -137,6 +139,7 @@ jobs:
 
           echo "Updating to last commit"
           pgrep honcho | xargs kill
+          sleep 3
           rm -rf ~/frappe-bench/env
           git checkout -q -f "$GITHUB_SHA"
           bench -v setup env
