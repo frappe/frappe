@@ -47,6 +47,15 @@ class ScheduledJobType(Document):
 		stopped: DF.Check
 	# end: auto-generated types
 
+	def before_save(self):
+		duplicate_exists = frappe.db.exists(
+			"Scheduled Job Type",
+			{"method": self.method, "frequency": self.frequency, "cron_format": self.cron_format},
+		)
+
+		if duplicate_exists:
+			frappe.throw(_("Identical Scheduled Job Type already exists."), frappe.DuplicateEntryError)
+
 	def validate(self):
 		if self.frequency != "All":
 			# force logging for all events other than continuous ones (ALL)
