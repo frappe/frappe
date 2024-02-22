@@ -25,7 +25,7 @@ class ScheduledJobType(Document):
 		from frappe.types import DF
 
 		create_log: DF.Check
-		cron_format: DF.Data | None
+		cron_format: DF.Data
 		frequency: DF.Literal[
 			"All",
 			"Hourly",
@@ -46,15 +46,6 @@ class ScheduledJobType(Document):
 		server_script: DF.Link | None
 		stopped: DF.Check
 	# end: auto-generated types
-
-	def before_insert(self):
-		duplicate_exists = frappe.db.exists(
-			"Scheduled Job Type",
-			{"method": self.method, "frequency": self.frequency, "cron_format": self.cron_format},
-		)
-
-		if duplicate_exists:
-			frappe.throw(_("Identical Scheduled Job Type already exists."), frappe.DuplicateEntryError)
 
 	def validate(self):
 		if self.frequency != "All":
@@ -263,7 +254,7 @@ def insert_single_event(frequency: str, event: str, cron_format: str | None = No
 		try:
 			frappe.db.savepoint(savepoint)
 			doc.insert()
-		except frappe.DuplicateEntryError:
+		except frappe.UniqueValidationError:
 			frappe.db.rollback(save_point=savepoint)
 			doc.delete()
 			doc.insert()
@@ -276,3 +267,9 @@ def clear_events(all_events: list):
 
 		if not (is_defined_in_hooks or is_server_script):
 			frappe.delete_doc("Scheduled Job Type", event.name)
+
+
+def on_doctype_update():
+	frappe.db.add_unique(
+		"Scheduled Job Type", ["frequency", "cron_format", "method"], constraint_name="unique_scheduled_job"
+	)

@@ -25,7 +25,7 @@ class TestScheduledJobType(FrappeTestCase):
 		frappe.get_doc(job_config).insert()
 
 		duplicate_job = frappe.get_doc(job_config)
-		self.assertRaises(frappe.DuplicateEntryError, duplicate_job.insert)
+		self.assertRaises(frappe.UniqueValidationError, duplicate_job.insert)
 
 	def test_throws_on_duplicate_job_with_cron_format(self):
 		job_config = dict(
@@ -37,7 +37,7 @@ class TestScheduledJobType(FrappeTestCase):
 		frappe.get_doc(job_config).insert()
 
 		duplicate_job = frappe.get_doc(job_config)
-		self.assertRaises(frappe.DuplicateEntryError, duplicate_job.insert)
+		self.assertRaises(frappe.UniqueValidationError, duplicate_job.insert)
 
 	def test_sync_jobs(self):
 		all_job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.email.queue.flush"))
