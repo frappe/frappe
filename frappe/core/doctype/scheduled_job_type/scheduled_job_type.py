@@ -129,8 +129,9 @@ class ScheduledJobType(Document):
 		return next_execution + timedelta(seconds=jitter)
 
 	def execute(self):
-		frappe.job.frequency = self.frequency
-		frappe.job.cron_format = self.cron_format
+		if frappe.job:
+			frappe.job.frequency = self.frequency
+			frappe.job.cron_format = self.cron_format
 
 		self.scheduler_log = None
 		try:
