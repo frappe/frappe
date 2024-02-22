@@ -6,9 +6,10 @@ from datetime import datetime, timedelta
 from random import randint
 
 import click
-from croniter import croniter
+from croniter import CroniterBadCronError, croniter
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import get_datetime, now_datetime
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
@@ -53,6 +54,17 @@ class ScheduledJobType(Document):
 		if self.frequency != "All":
 			# force logging for all events other than continuous ones (ALL)
 			self.create_log = 1
+
+		if self.frequency == "Cron":
+			if not self.cron_format:
+				frappe.throw(_("Cron format is required for job types with Cron frequency."))
+			try:
+				croniter(self.cron_format)
+			except CroniterBadCronError:
+				frappe.throw(
+					_("{0} is not a valid Cron expression.").format(f"<code>{self.cron_format}</code>"),
+					title=_("Bad Cron Expression"),
+				)
 
 	def enqueue(self, force=False) -> bool:
 		# enqueue event if last execution is done
@@ -149,7 +161,7 @@ class ScheduledJobType(Document):
 			return
 		if not self.scheduler_log:
 			self.scheduler_log = frappe.get_doc(
-				dict(doctype="Scheduled Job Log", scheduled_job_type=self.name)
+				doctype="Scheduled Job Log", scheduled_job_type=self.name
 			).insert(ignore_permissions=True)
 		self.scheduler_log.db_set("status", status)
 		if frappe.debug_log:
@@ -183,7 +195,7 @@ def run_scheduled_job(job_type: str):
 		print(frappe.get_traceback())
 
 
-def sync_jobs(hooks: dict = None):
+def sync_jobs(hooks: dict | None = None):
 	frappe.reload_doc("core", "doctype", "scheduled_job_type")
 	scheduler_events = hooks or frappe.get_hooks("scheduler_events")
 	all_events = insert_events(scheduler_events)
@@ -220,7 +232,7 @@ def insert_event_jobs(events: list, event_type: str) -> list:
 	return event_jobs
 
 
-def insert_single_event(frequency: str, event: str, cron_format: str = None):
+def insert_single_event(frequency: str, event: str, cron_format: str | None = None):
 	cron_expr = {"cron_format": cron_format} if cron_format else {}
 
 	try:

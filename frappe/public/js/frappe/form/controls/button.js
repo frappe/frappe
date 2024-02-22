@@ -60,7 +60,9 @@ frappe.ui.form.ControlButton = class ControlButton extends frappe.ui.form.Contro
 		if (label) {
 			this.df.label = label;
 		}
-		label = (this.df.icon ? frappe.utils.icon(this.df.icon) : "") + __(this.df.label);
+		label =
+			(this.df.icon ? frappe.utils.icon(this.df.icon) : "") +
+			__(this.df.label, null, this.df.parent);
 		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html(label);
 	}

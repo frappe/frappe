@@ -34,19 +34,7 @@ TESTED_VIA_CLI = [
 	"*/frappe/database/**/setup_db.py",
 ]
 
-FRAPPE_EXCLUSIONS = [
-	"*/tests/*",
-	"*/commands/*",
-	"*/frappe/change_log/*",
-	"*/frappe/exceptions*",
-	"*/frappe/desk/page/setup_wizard/setup_wizard.py",
-	"*/frappe/coverage.py",
-	"*frappe/setup.py",
-	"*/frappe/hooks.py",
-	"*/doctype/*/*_dashboard.py",
-	"*/patches/*",
-	"*/.github/helper/ci.py",
-] + TESTED_VIA_CLI
+FRAPPE_EXCLUSIONS = ["*/tests/*", "*/commands/*", "*/frappe/change_log/*", "*/frappe/exceptions*", "*/frappe/desk/page/setup_wizard/setup_wizard.py", "*/frappe/coverage.py", "*frappe/setup.py", "*/frappe/hooks.py", "*/doctype/*/*_dashboard.py", "*/patches/*", "*/.github/helper/ci.py", *TESTED_VIA_CLI]
 
 
 def get_bench_path():

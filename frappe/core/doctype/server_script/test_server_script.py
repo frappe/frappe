@@ -111,14 +111,14 @@ class TestServerScript(FrappeTestCase):
 		frappe.cache.delete_value("server_script_map")
 
 	def test_doctype_event(self):
-		todo = frappe.get_doc(dict(doctype="ToDo", description="hello")).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="hello").insert()
 		self.assertEqual(todo.status, "Open")
 
-		todo = frappe.get_doc(dict(doctype="ToDo", description="test todo")).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="test todo").insert()
 		self.assertEqual(todo.status, "Closed")
 
 		self.assertRaises(
-			frappe.ValidationError, frappe.get_doc(dict(doctype="ToDo", description="validate me")).insert
+			frappe.ValidationError, frappe.get_doc(doctype="ToDo", description="validate me").insert
 		)
 
 	def test_api(self):
@@ -157,7 +157,7 @@ class TestServerScript(FrappeTestCase):
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert)
+		self.assertRaises(AttributeError, frappe.get_doc(doctype="ToDo", description="test me").insert)
 
 		server_script.disabled = 1
 		server_script.save()
@@ -167,7 +167,7 @@ class TestServerScript(FrappeTestCase):
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert)
+		self.assertRaises(AttributeError, frappe.get_doc(doctype="ToDo", description="test me").insert)
 
 		server_script.disabled = 1
 		server_script.save()

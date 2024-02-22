@@ -499,14 +499,27 @@ function run_build_command_for_apps(apps) {
 
 		let root_app_path = path.resolve(get_app_path(app), "..");
 		let package_json = path.resolve(root_app_path, "package.json");
-		if (fs.existsSync(package_json)) {
-			let { scripts } = require(package_json);
-			if (scripts && scripts.build) {
-				log("\nRunning build command for", chalk.bold(app));
-				process.chdir(root_app_path);
-				execSync("yarn build", { encoding: "utf8", stdio: "inherit" });
-			}
+		let node_modules = path.resolve(root_app_path, "node_modules");
+
+		if (!fs.existsSync(package_json)) {
+			continue;
 		}
+
+		let { scripts } = require(package_json);
+		if (!scripts?.build) {
+			continue;
+		}
+
+		process.chdir(root_app_path);
+		if (!fs.existsSync(node_modules)) {
+			log(
+				`\nInstalling dependencies for ${chalk.bold(app)} (because node_modules not found)`
+			);
+			execSync("yarn install", { encoding: "utf8", stdio: "inherit" });
+		}
+
+		log("\nRunning build command for", chalk.bold(app));
+		execSync("yarn build", { encoding: "utf8", stdio: "inherit" });
 	}
 
 	process.chdir(cwd);

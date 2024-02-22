@@ -30,7 +30,7 @@ export default class Column {
 		if (this.df.label) {
 			$(`
 				<label class="column-label">
-					${__(this.df.label)}
+					${__(this.df.label, null, this.df.parent)}
 				</label>
 			`).prependTo(this.wrapper);
 		}

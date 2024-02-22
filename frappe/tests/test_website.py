@@ -27,17 +27,13 @@ class TestWebsite(FrappeTestCase):
 		frappe.set_user("Administrator")
 		# test home page via role
 		user = frappe.get_doc(
-			dict(doctype="User", email="test-user-for-home-page@example.com", first_name="test")
+			doctype="User", email="test-user-for-home-page@example.com", first_name="test"
 		).insert(ignore_if_duplicate=True)
 		user.reload()
 
-		role = frappe.get_doc(
-			dict(
-				doctype="Role",
-				role_name="home-page-test",
-				desk_access=0,
-			)
-		).insert(ignore_if_duplicate=True)
+		role = frappe.get_doc(doctype="Role", role_name="home-page-test", desk_access=0).insert(
+			ignore_if_duplicate=True
+		)
 
 		user.add_roles(role.name)
 		user.save()

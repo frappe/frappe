@@ -313,7 +313,7 @@ class DocType(Document):
 
 				frappe.msgprint(
 					_("{0} should be indexed because it's referred in dashboard connections").format(
-						_(d.label)
+						_(d.label, context=d.parent)
 					),
 					alert=True,
 					indicator="orange",
@@ -1245,7 +1245,7 @@ def validate_fields(meta):
 		if frappe.flags.in_patch or frappe.flags.in_fixtures:
 			return
 
-		if d.fieldtype in ("Link",) + table_fields:
+		if d.fieldtype in ("Link", *table_fields):
 			if not d.options:
 				frappe.throw(
 					_("{0}: Options required for Link or Table type field {1} in row {2}").format(
@@ -1548,7 +1548,7 @@ def validate_fields(meta):
 
 		if docfield.fieldtype == "Data" and not (docfield.oldfieldtype and docfield.oldfieldtype != "Data"):
 			if docfield.options and (docfield.options not in data_field_options):
-				df_str = frappe.bold(_(docfield.label))
+				df_str = frappe.bold(_(docfield.label, context=docfield.parent))
 				text_str = (
 					_("{0} is an invalid Data field.").format(df_str)
 					+ "<br>" * 2
@@ -1801,7 +1801,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 			and doc.restrict_to_domain
 			and not frappe.db.exists("Domain", doc.restrict_to_domain)
 		):
-			frappe.get_doc(dict(doctype="Domain", domain=doc.restrict_to_domain)).insert()
+			frappe.get_doc(doctype="Domain", domain=doc.restrict_to_domain).insert()
 
 		if "tabModule Def" in frappe.db.get_tables() and not frappe.db.exists("Module Def", doc.module):
 			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})

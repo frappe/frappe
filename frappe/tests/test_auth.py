@@ -19,7 +19,7 @@ from frappe.www.login import _generate_temporary_login_link
 def add_user(email, password, username=None, mobile_no=None):
 	first_name = email.split("@", 1)[0]
 	user = frappe.get_doc(
-		dict(doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no)
+		doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no
 	).insert()
 	user.new_password = password
 	user.simultaneous_sessions = 1

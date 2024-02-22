@@ -66,7 +66,7 @@ export function create_default_layout(meta, print_format) {
 
 				let field_template = get_field_template(print_format, df.fieldname);
 				if (field_template) {
-					field.label = `${__(df.label)} (${__("Field Template")})`;
+					field.label = `${__(df.label, null, df.parent)} (${__("Field Template")})`;
 					field.fieldtype = "Field Template";
 					field.field_template = field_template.name;
 					field.fieldname = df.fieldname = "_template";

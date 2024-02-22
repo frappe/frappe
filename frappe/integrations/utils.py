@@ -6,7 +6,6 @@ import json
 from urllib.parse import parse_qs
 
 import frappe
-from frappe import _
 from frappe.utils import get_request_session
 
 
@@ -17,15 +16,18 @@ def make_request(method: str, url: str, auth=None, headers=None, data=None, json
 
 	try:
 		s = get_request_session()
-		frappe.flags.integration_request = s.request(
+		response = frappe.flags.integration_request = s.request(
 			method, url, data=data, auth=auth, headers=headers, json=json, params=params
 		)
-		frappe.flags.integration_request.raise_for_status()
-
-		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
-			return parse_qs(frappe.flags.integration_request.text)
-
-		return frappe.flags.integration_request.json()
+		content_type = response.headers.get("content-type")
+		if content_type == "text/plain; charset=utf-8":
+			return parse_qs(response.text)
+		elif content_type.startswith("application/") and content_type.split(";")[0].endswith("json"):
+			return response.json()
+		elif response.text:
+			return response.text
+		else:
+			return
 	except Exception as exc:
 		frappe.log_error()
 		raise exc

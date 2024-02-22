@@ -234,7 +234,7 @@ class FormTimeline extends BaseTimeline {
 			communication_timeline_contents.push({
 				icon: icon_set[medium],
 				icon_size: "sm",
-				creation: communication.creation,
+				creation: communication.communication_date,
 				is_card: true,
 				content: this.get_communication_timeline_content(communication),
 				doctype: "Communication",

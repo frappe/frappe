@@ -395,7 +395,7 @@ def get_python_builtins():
 	}
 
 
-def get_hooks(hook: str = None, default=None, app_name: str = None) -> frappe._dict:
+def get_hooks(hook: str | None = None, default=None, app_name: str | None = None) -> frappe._dict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.

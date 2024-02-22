@@ -6,7 +6,7 @@ frappe.ui.form.ControlSignature = class ControlSignature extends frappe.ui.form.
 		super.make();
 
 		if (this.df.label) {
-			$(this.wrapper).find("label").text(__(this.df.label));
+			$(this.wrapper).find("label").text(__(this.df.label, null, this.df.parent));
 		}
 		this.set_doc_url();
 

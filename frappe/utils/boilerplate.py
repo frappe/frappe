@@ -8,12 +8,14 @@ import os
 import pathlib
 import re
 import textwrap
+from pathlib import Path
 
 import click
 import git
 import requests
 
 import frappe
+from frappe.utils.change_log import get_app_branch
 
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
@@ -56,6 +58,7 @@ def _get_user_inputs(app_name):
 			"default": False,
 			"type": bool,
 		},
+		"branch_name": {"prompt": "Branch Name", "default": get_app_branch("frappe")},
 	}
 
 	for property, config in new_app_config.items():
@@ -116,6 +119,13 @@ def get_license_text(license_name: str) -> str:
 	return license_name
 
 
+def copy_from_frappe(rel_path: str, new_app_path: str):
+	"""Copy files from frappe app to new app."""
+	src = Path(frappe.get_app_path("frappe", "..")) / rel_path
+	target = Path(new_app_path) / rel_path
+	Path(target).write_text(Path(src).read_text())
+
+
 def _create_app_boilerplate(dest, hooks, no_git=False):
 	frappe.create_folder(
 		os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
@@ -142,12 +152,9 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 	with open(os.path.join(dest, hooks.app_name, "pyproject.toml"), "w") as f:
 		f.write(frappe.as_unicode(pyproject_template.format(**hooks)))
 
-	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
-		f.write(
-			frappe.as_unicode(
-				f"## {hooks.app_title}\n\n{hooks.app_description}\n\n#### License\n\n{hooks.app_license}"
-			)
-		)
+	with open(os.path.join(dest, hooks.app_name, ".pre-commit-config.yaml"), "w") as f:
+		f.write(frappe.as_unicode(precommit_template.format(**hooks)))
+
 	license_body = get_license_text(license_name=hooks.app_license)
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
 		f.write(frappe.as_unicode(license_body))
@@ -168,15 +175,24 @@ def _create_app_boilerplate(dest, hooks, no_git=False):
 
 	app_directory = os.path.join(dest, hooks.app_name)
 
+	copy_from_frappe(".editorconfig", app_directory)
+	copy_from_frappe(".eslintrc", app_directory)
+
 	if hooks.create_github_workflow:
 		_create_github_workflow_files(dest, hooks)
+		hooks.readme_ci_section = readme_ci_section
+	else:
+		hooks.readme_ci_section = ""
+
+	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
+		f.write(frappe.as_unicode(readme_template.format(**hooks)))
 
 	if not no_git:
 		with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
 			f.write(frappe.as_unicode(gitignore_template.format(app_name=hooks.app_name)))
 
 		# initialize git repository
-		app_repo = git.Repo.init(app_directory, initial_branch="develop")
+		app_repo = git.Repo.init(app_directory, initial_branch=hooks.branch_name)
 		app_repo.git.add(A=True)
 		app_repo.index.commit("feat: Initialize App")
 
@@ -190,6 +206,10 @@ def _create_github_workflow_files(dest, hooks):
 	ci_workflow = workflows_path / "ci.yml"
 	with open(ci_workflow, "w") as f:
 		f.write(github_workflow_template.format(**hooks))
+
+	linter_workflow = workflows_path / "linter.yml"
+	with open(linter_workflow, "w") as f:
+		f.write(linter_workflow_template)
 
 
 PATCH_TEMPLATE = textwrap.dedent(
@@ -270,7 +290,7 @@ class PatchCreator:
 			raise Exception(f"Patch {self.patch_file} already exists")
 
 		*path, _filename = self.patch_file.relative_to(self.app_dir.parents[0]).parts
-		dotted_path = ".".join(path + [self.patch_file.stem])
+		dotted_path = ".".join([*path, self.patch_file.stem])
 
 		patches_txt = self.app_dir / "patches.txt"
 		existing_patches = patches_txt.read_text()
@@ -322,6 +342,41 @@ build-backend = "flit_core.buildapi"
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
 # package_name = "~=1.1.0"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "F",
+    "E",
+    "W",
+    "I",
+    "UP",
+    "B",
+]
+ignore = [
+    "B017", # assertRaises(Exception) - should be more specific
+    "B018", # useless expression, not assigned to anything
+    "B023", # function doesn't bind loop variable - will have last iteration's value
+    "B904", # raise inside except without from
+    "E101", # indentation contains mixed spaces and tabs
+    "E402", # module level import not at top of file
+    "E501", # line too long
+    "E741", # ambiguous variable name
+    "F401", # "unused" imports
+    "F403", # can't detect undefined names from * import
+    "F405", # can't detect undefined names from * import
+    "F722", # syntax error in forward type annotation
+    "F821", # undefined name
+    "W191", # indentation contains tabs
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "tab"
+docstring-code-format = true
 """
 
 hooks_template = """app_name = "{app_name}"
@@ -672,3 +727,181 @@ patches_template = """[pre_model_sync]
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated"""
+
+
+precommit_template = """exclude: 'node_modules|.git'
+default_stages: [commit]
+fail_fast: false
+
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+      - id: trailing-whitespace
+        files: "{app_name}.*"
+        exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-ast
+      - id: check-json
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.2.0
+    hooks:
+      - id: ruff
+        name: "Run ruff linter and apply fixes"
+        args: ["--fix"]
+
+      - id: ruff-format
+        name: "Format Python code"
+
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v2.7.1
+    hooks:
+      - id: prettier
+        types_or: [javascript, vue, scss]
+        # Ignore any files that might contain jinja / bundles
+        exclude: |
+            (?x)^(
+                {app_name}/public/dist/.*|
+                .*node_modules.*|
+                .*boilerplate.*|
+                {app_name}/templates/includes/.*|
+                {app_name}/public/js/lib/.*
+            )$
+
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.44.0
+    hooks:
+      - id: eslint
+        types_or: [javascript]
+        args: ['--quiet']
+        # Ignore any files that might contain jinja / bundles
+        exclude: |
+            (?x)^(
+                {app_name}/public/dist/.*|
+                cypress/.*|
+                .*node_modules.*|
+                .*boilerplate.*|
+                {app_name}/templates/includes/.*|
+                {app_name}/public/js/lib/.*
+            )$
+
+ci:
+    autoupdate_schedule: weekly
+    skip: []
+    submodules: false
+"""
+
+linter_workflow_template = """
+name: Linters
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linter:
+    name: 'Frappe Linter'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+      - uses: pre-commit/action@v3.0.0
+
+      - name: Download Semgrep rules
+        run: git clone --depth 1 https://github.com/frappe/semgrep-rules.git frappe-semgrep-rules
+
+      - name: Run Semgrep rules
+        run: |
+          pip install semgrep
+          semgrep ci --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness
+
+  deps-vulnerable-check:
+    name: 'Vulnerable Dependency Check'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - uses: actions/checkout@v4
+
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
+
+      - name: Install and run pip-audit
+        run: |
+          pip install pip-audit
+          cd ${GITHUB_WORKSPACE}
+          pip-audit --desc on .
+"""
+
+readme_template = """### {app_title}
+
+{app_description}
+
+### Installation
+
+You can install this app using the [bench](https://github.com/frappe/bench) CLI:
+
+```bash
+cd $PATH_TO_YOUR_BENCH
+bench get-app $URL_OF_THIS_REPO --branch {branch_name}
+bench install-app {app_name}
+```
+
+### Contributing
+
+This app uses `pre-commit` for code formatting and linting. Please [install pre-commit](https://pre-commit.com/#installation) and enable it for this repository:
+
+```bash
+cd apps/{app_name}
+pre-commit install
+```
+
+Pre-commit is configured to use the following tools for checking and formatting your code:
+
+- ruff
+- eslint
+- prettier
+- pyupgrade
+{readme_ci_section}
+### License
+
+{app_license}
+"""
+
+readme_ci_section = """
+### CI
+
+This app can use GitHub Actions for CI. The following workflows are configured:
+
+- CI: Installs this app and runs unit tests on every push to `develop` branch.
+- Linters: Runs [Frappe Semgrep Rules](https://github.com/frappe/semgrep-rules) and [pip-audit](https://pypi.org/project/pip-audit/) on every pull request.
+
+"""

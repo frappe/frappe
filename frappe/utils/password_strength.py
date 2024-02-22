@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 	from zxcvbn.matching import _Match
 
 
-def test_password_strength(password: str, user_inputs: "Iterable[object]" = None) -> "_Result":
+def test_password_strength(password: str, user_inputs: "Iterable[object] | None" = None) -> "_Result":
 	"""Wrapper around zxcvbn.password_strength"""
 	if len(password) > 128:
 		# zxcvbn takes forever when checking long, random passwords.
