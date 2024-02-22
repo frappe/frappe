@@ -47,7 +47,7 @@ class ScheduledJobType(Document):
 		stopped: DF.Check
 	# end: auto-generated types
 
-	def before_save(self):
+	def before_insert(self):
 		duplicate_exists = frappe.db.exists(
 			"Scheduled Job Type",
 			{"method": self.method, "frequency": self.frequency, "cron_format": self.cron_format},
@@ -138,6 +138,9 @@ class ScheduledJobType(Document):
 		return next_execution + timedelta(seconds=jitter)
 
 	def execute(self):
+		frappe.job.frequency = self.frequency
+		frappe.job.cron_format = self.cron_format
+
 		self.scheduler_log = None
 		try:
 			self.log_status("Start")
