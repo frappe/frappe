@@ -62,7 +62,7 @@ def drop_user_and_database(
 	dbman.delete_user(db_user)
 
 
- def bootstrap_database(db_name, db_requirements, verbose, source_sql=None):
+def bootstrap_database(db_name, db_requirements, verbose, source_sql=None):
 	import sys
 
 	frappe.connect(db_name=db_name)
