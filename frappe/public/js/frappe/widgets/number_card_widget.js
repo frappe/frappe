@@ -234,6 +234,8 @@ export default class NumberCardWidget extends Widget {
 		// Whatever is left should be same in all objects
 		const common_doc = Object.assign({}, rows[0]);
 		rows.forEach((row) => {
+			if (Array.isArray(row)) return; // totals row
+
 			for (const [key, value] of Object.entries(common_doc)) {
 				if (value !== row[key]) {
 					delete common_doc[key];
