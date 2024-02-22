@@ -101,7 +101,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2023-10-14 11:26:05.005930",
+ "modified": "2024-02-22 13:57:36.436606",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",
@@ -121,6 +121,7 @@
   }
  ],
  "quick_entry": 1,
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
