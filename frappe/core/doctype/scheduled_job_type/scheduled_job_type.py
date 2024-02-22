@@ -46,9 +46,6 @@ class ScheduledJobType(Document):
 		stopped: DF.Check
 	# end: auto-generated types
 
-	def autoname(self):
-		self.name = ".".join(self.method.split(".")[-2:])
-
 	def validate(self):
 		if self.frequency != "All":
 			# force logging for all events other than continuous ones (ALL)
