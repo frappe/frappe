@@ -223,7 +223,7 @@ class LoginManager:
 
 		clear_sessions(frappe.session.user, keep_current=True)
 
-	def authenticate(self, user: str = None, pwd: str = None):
+	def authenticate(self, user: str | None = None, pwd: str | None = None):
 		from frappe.core.doctype.user.user import User
 
 		if not (user and pwd):
@@ -378,7 +378,7 @@ class CookieManager:
 		}
 
 	def delete_cookie(self, to_delete):
-		if not isinstance(to_delete, (list, tuple)):
+		if not isinstance(to_delete, list | tuple):
 			to_delete = [to_delete]
 
 		self.to_delete.extend(to_delete)
@@ -485,7 +485,7 @@ class LoginAttemptTracker:
 		max_consecutive_login_attempts: int = 3,
 		lock_interval: int = 5 * 60,
 		*,
-		user_name: str = None,
+		user_name: str | None = None,
 	):
 		"""Initialize the tracker.
 

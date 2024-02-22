@@ -1,5 +1,6 @@
 import json
 import sys
+import typing
 from contextlib import contextmanager
 from functools import cached_property
 from random import choice
@@ -40,7 +41,7 @@ def make_request(
 	target: str,
 	args: tuple | None = None,
 	kwargs: dict | None = None,
-	site: str = None,
+	site: str | None = None,
 ) -> TestResponse:
 	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()
@@ -54,7 +55,9 @@ def patch_request_header(key, *args, **kwargs):
 
 
 class ThreadWithReturnValue(Thread):
-	def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, *, site=None):
+	def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, site=None):
+		if kwargs is None:
+			kwargs = {}
 		Thread.__init__(self, group, target, name, args, kwargs)
 		self._return = None
 		self.site = site or _site
@@ -130,7 +133,7 @@ class FrappeAPITestCase(FrappeTestCase):
 
 class TestResourceAPI(FrappeAPITestCase):
 	DOCTYPE = "ToDo"
-	GENERATED_DOCUMENTS = []
+	GENERATED_DOCUMENTS: typing.ClassVar = []
 
 	@classmethod
 	def setUpClass(cls):
@@ -278,7 +281,7 @@ class TestMethodAPI(FrappeAPITestCase):
 		response = self.get(self.method_path("frappe.auth.get_logged_user"))
 		self.assertEqual(response.status_code, 401)
 
-		authorization_token = f"NonExistentKey:INCORRECT"
+		authorization_token = "NonExistentKey:INCORRECT"
 		response = self.get(self.method_path("frappe.auth.get_logged_user"))
 		self.assertEqual(response.status_code, 401)
 
@@ -378,7 +381,7 @@ def after_request(*args, **kwargs):
 class TestResponse(FrappeAPITestCase):
 	def test_generate_pdf(self):
 		response = self.get(
-			f"/api/method/frappe.utils.print_format.download_pdf",
+			"/api/method/frappe.utils.print_format.download_pdf",
 			{"sid": self.sid, "doctype": "User", "name": "Guest"},
 		)
 		self.assertEqual(response.status_code, 200)

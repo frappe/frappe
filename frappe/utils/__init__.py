@@ -234,7 +234,7 @@ def validate_url(
 	# Handle scheme validation
 	if isinstance(valid_schemes, str):
 		is_valid = is_valid and (url.scheme == valid_schemes)
-	elif isinstance(valid_schemes, (list, tuple, set)):
+	elif isinstance(valid_schemes, list | tuple | set):
 		is_valid = is_valid and (url.scheme in valid_schemes)
 
 	if not is_valid and throw:
@@ -351,7 +351,7 @@ def dict_to_str(args: dict[str, Any], sep: str = "&") -> str:
 	"""
 	Converts a dictionary to URL
 	"""
-	return sep.join(f"{str(k)}=" + quote(str(args[k] or "")) for k in list(args))
+	return sep.join(f"{k!s}=" + quote(str(args[k] or "")) for k in list(args))
 
 
 def list_to_str(seq, sep=", "):
@@ -385,7 +385,7 @@ def remove_blanks(d: dict) -> dict:
 	Returns d with empty ('' or None) values stripped. Mutates inplace.
 	"""
 	for k, v in tuple(d.items()):
-		if v == "" or v == None:
+		if not v:
 			del d[k]
 	return d
 
@@ -614,7 +614,7 @@ def update_progress_bar(txt, i, l, absolute=False):
 
 		complete = int(float(i + 1) / l * col)
 		completion_bar = ("=" * complete).ljust(col, " ")
-		percent_complete = f"{str(int(float(i + 1) / l * 100))}%"
+		percent_complete = f"{int(float(i + 1) / l * 100)!s}%"
 		status = f"{i} of {l}" if absolute else percent_complete
 		sys.stdout.write(f"\r{txt}: [{completion_bar}] {status}")
 		sys.stdout.flush()
@@ -648,7 +648,7 @@ def is_markdown(text):
 
 def is_a_property(x) -> bool:
 	"""Get properties (@property, @cached_property) in a controller class"""
-	return isinstance(x, (property, functools.cached_property))
+	return isinstance(x, property | functools.cached_property)
 
 
 def get_sites(sites_path=None):
@@ -894,7 +894,7 @@ def get_safe_filters(filters):
 	try:
 		filters = json.loads(filters)
 
-		if isinstance(filters, (int, float)):
+		if isinstance(filters, int | float):
 			filters = frappe.as_unicode(filters)
 
 	except (TypeError, ValueError):

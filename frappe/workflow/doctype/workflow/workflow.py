@@ -69,14 +69,14 @@ class Workflow(Document):
 		docstatus_map = {}
 		states = self.get("states")
 		for d in states:
-			if not d.doc_status in docstatus_map:
+			if d.doc_status not in docstatus_map:
 				frappe.db.sql(
-					"""
-					UPDATE `tab{doctype}`
-					SET `{field}` = %s
-					WHERE ifnull(`{field}`, '') = ''
+					f"""
+					UPDATE `tab{self.document_type}`
+					SET `{self.workflow_state_field}` = %s
+					WHERE ifnull(`{self.workflow_state_field}`, '') = ''
 					AND `docstatus` = %s
-				""".format(doctype=self.document_type, field=self.workflow_state_field),
+				""",
 					(d.state, d.doc_status),
 				)
 

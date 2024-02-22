@@ -47,7 +47,7 @@ class DBTable:
 		pass
 
 	def get_column_definitions(self):
-		column_list = [] + frappe.db.DEFAULT_COLUMNS
+		column_list = [*frappe.db.DEFAULT_COLUMNS]
 		ret = []
 		for k in list(self.columns):
 			if k not in column_list:
@@ -141,9 +141,7 @@ class DBTable:
 					try:
 						# check for truncation
 						max_length = frappe.db.sql(
-							"""SELECT MAX(CHAR_LENGTH(`{fieldname}`)) FROM `tab{doctype}`""".format(
-								fieldname=col.fieldname, doctype=self.doctype
-							)
+							f"""SELECT MAX(CHAR_LENGTH(`{col.fieldname}`)) FROM `tab{self.doctype}`"""
 						)
 
 					except frappe.db.InternalError as e:
@@ -251,7 +249,7 @@ class DbColumn:
 		if (current_def["index"] and not self.set_index) and column_type not in ("text", "longtext"):
 			self.table.drop_index.append(self)
 
-		elif (not current_def["index"] and self.set_index) and not (column_type in ("text", "longtext")):
+		elif (not current_def["index"] and self.set_index) and column_type not in ("text", "longtext"):
 			self.table.add_index.append(self)
 
 	def default_changed(self, current_def):

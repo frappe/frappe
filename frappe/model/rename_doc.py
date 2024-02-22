@@ -47,7 +47,7 @@ def update_document_title(
 
 	# TODO: omit this after runtime type checking (ref: https://github.com/frappe/frappe/pull/14927)
 	for obj in [docname, updated_title, updated_name]:
-		if not isinstance(obj, (str, NoneType)):
+		if not isinstance(obj, str | NoneType):
 			frappe.throw(f"{obj=} must be of type str or None")
 
 	# handle bad API usages
@@ -119,7 +119,7 @@ def update_document_title(
 def rename_doc(
 	doctype: str | None = None,
 	old: str | None = None,
-	new: str = None,
+	new: str | None = None,
 	force: bool = False,
 	merge: bool = False,
 	ignore_permissions: bool = False,
@@ -390,7 +390,7 @@ def validate_rename(
 
 def rename_doctype(doctype: str, old: str, new: str) -> None:
 	# change options for fieldtype Table, Table MultiSelect and Link
-	fields_with_options = ("Link",) + frappe.model.table_fields
+	fields_with_options = ("Link", *frappe.model.table_fields)
 
 	for fieldtype in fields_with_options:
 		update_options_for_fieldtype(fieldtype, old, new)

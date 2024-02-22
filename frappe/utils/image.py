@@ -10,7 +10,7 @@ import frappe
 
 def resize_images(path, maxdim=700):
 	size = (maxdim, maxdim)
-	for basepath, folders, files in os.walk(path):
+	for basepath, folders, files in os.walk(path):  # noqa: B007
 		for fname in files:
 			extn = fname.rsplit(".", 1)[1]
 			if extn in ("jpg", "jpeg", "png", "gif"):

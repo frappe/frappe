@@ -420,7 +420,7 @@ def get_workspace_sidebar_items():
 	blocked_modules.append("Dummy Module")
 
 	# adding None to allowed_domains to include pages without domain restriction
-	allowed_domains = [None] + frappe.get_active_domains()
+	allowed_domains = [None, *frappe.get_active_domains()]
 
 	filters = {
 		"restrict_to_domain": ["in", allowed_domains],
@@ -560,11 +560,11 @@ def save_new_widget(doc, page, blocks, new_widgets):
 		json_config = widgets and dumps(widgets, sort_keys=True, indent=4)
 
 		# Error log body
-		log = """
-		page: {}
-		config: {}
-		exception: {}
-		""".format(page, json_config, e)
+		log = f"""
+		page: {page}
+		config: {json_config}
+		exception: {e}
+		"""
 		doc.log_error("Could not save customization", log)
 		return False
 
