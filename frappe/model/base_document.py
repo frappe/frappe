@@ -689,7 +689,7 @@ class BaseDocument:
 		"""
 		df = self.meta.get_field(fieldname)
 		if df:
-			return df.label
+			return _(df.label) if df.label else None
 
 	def update_modified(self):
 		"""Update modified timestamp"""
