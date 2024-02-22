@@ -853,6 +853,7 @@ def is_whitelisted(method):
 
 def read_only():
 	def innfn(fn):
+		@functools.wraps(fn)
 		def wrapper_fn(*args, **kwargs):
 			# frappe.read_only could be called from nested functions, in such cases don't swap the
 			# connection again.
