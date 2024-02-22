@@ -99,7 +99,7 @@ def update_last_reset_password_date():
 def load():
 	from frappe.utils.momentjs import get_all_timezones
 
-	if not "System Manager" in frappe.get_roles():
+	if "System Manager" not in frappe.get_roles():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	all_defaults = frappe.db.get_defaults()

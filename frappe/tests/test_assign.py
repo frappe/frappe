@@ -18,7 +18,7 @@ class TestAssign(FrappeTestCase):
 
 		self.assertTrue("test@example.com" in [d.owner for d in added])
 
-		removed = frappe.desk.form.assign_to.remove(todo.doctype, todo.name, "test@example.com")
+		frappe.desk.form.assign_to.remove(todo.doctype, todo.name, "test@example.com")
 
 		# assignment is cleared
 		assignments = frappe.desk.form.assign_to.get(dict(doctype=todo.doctype, name=todo.name))

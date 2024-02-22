@@ -214,6 +214,6 @@ def has_consumer_access(consumer, update_log):
 				return frappe.call(cmd, **args)
 			else:
 				return frappe.safe_eval(condition, frappe._dict(doc=doc))
-	except Exception as e:
+	except Exception:
 		consumer.log_error("has_consumer_access error")
 	return False

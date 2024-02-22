@@ -80,7 +80,7 @@ class TestQueryReport(FrappeTestCase):
 				{"label": "First Name", "fieldname": "first_name", "fieldtype": "Data"},
 				{"label": "Last Name", "fieldname": "last_name", "fieldtype": "Data"},
 			]
-			docA = frappe.get_doc(
+			frappe.get_doc(
 				{
 					"doctype": "DocType",
 					"name": "Doc A",
@@ -92,7 +92,7 @@ class TestQueryReport(FrappeTestCase):
 				}
 			).insert(ignore_if_duplicate=True)
 
-			docB = frappe.get_doc(
+			frappe.get_doc(
 				{
 					"doctype": "DocType",
 					"name": "Doc B",

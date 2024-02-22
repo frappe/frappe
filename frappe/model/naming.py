@@ -4,7 +4,8 @@
 import datetime
 import re
 from collections import defaultdict
-from typing import TYPE_CHECKING, Callable, Optional
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Optional
 
 import frappe
 from frappe import _
@@ -102,7 +103,7 @@ class NamingSeries:
 				# ignore B023: binding `count` is not necessary because
 				# function is evaluated immediately and it can not be done
 				# because of function signature requirement
-				return str(count).zfill(digits)  # noqa: B023
+				return str(count).zfill(digits)
 
 			generated_names.append(parse_naming_series(self.series, doc=doc, number_generator=fake_counter))
 		return generated_names
@@ -482,12 +483,10 @@ def append_number_if_name_exists(doctype, value, fieldname="name", separator="-"
 
 	if exists:
 		last = frappe.db.sql(
-			"""SELECT `{fieldname}` FROM `tab{doctype}`
-			WHERE `{fieldname}` {regex_character} %s
+			f"""SELECT `{fieldname}` FROM `tab{doctype}`
+			WHERE `{fieldname}` {frappe.db.REGEX_CHARACTER} %s
 			ORDER BY length({fieldname}) DESC,
-			`{fieldname}` DESC LIMIT 1""".format(
-				doctype=doctype, fieldname=fieldname, regex_character=frappe.db.REGEX_CHARACTER
-			),
+			`{fieldname}` DESC LIMIT 1""",
 			regex,
 		)
 

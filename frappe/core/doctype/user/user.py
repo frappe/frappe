@@ -481,10 +481,9 @@ class User(Document):
 					has_fields.append(d.get("name"))
 			for field in has_fields:
 				frappe.db.sql(
-					"""UPDATE `%s`
-					SET `%s` = %s
-					WHERE `%s` = %s"""
-					% (tab, field, "%s", field, "%s"),
+					"""UPDATE `{}`
+					SET `{}` = {}
+					WHERE `{}` = {}""".format(tab, field, "%s", field, "%s"),
 					(new_name, old_name),
 				)
 
@@ -527,7 +526,7 @@ class User(Document):
 
 	def ensure_unique_roles(self):
 		exists = []
-		for i, d in enumerate(self.get("roles")):
+		for _i, d in enumerate(self.get("roles")):
 			if (not d.role) or (d.role in exists):
 				self.get("roles").remove(d)
 			else:
@@ -991,7 +990,7 @@ def get_total_users():
 def get_system_users(exclude_users=None, limit=None):
 	if not exclude_users:
 		exclude_users = []
-	elif not isinstance(exclude_users, (list, tuple)):
+	elif not isinstance(exclude_users, list | tuple):
 		exclude_users = [exclude_users]
 
 	limit_cond = ""
@@ -1081,7 +1080,7 @@ def handle_password_test_fail(feedback: dict):
 	suggestions = feedback.get("suggestions", [])
 	warning = feedback.get("warning", "")
 
-	frappe.throw(msg=" ".join([warning] + suggestions), title=_("Invalid Password"))
+	frappe.throw(msg=" ".join([warning, *suggestions]), title=_("Invalid Password"))
 
 
 def update_gravatar(name):

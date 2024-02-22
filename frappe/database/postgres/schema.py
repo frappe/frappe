@@ -54,16 +54,14 @@ class PostgresTable(DBTable):
 
 	def create_indexes(self):
 		create_index_query = ""
-		for key, col in self.columns.items():
+		for _key, col in self.columns.items():
 			if (
 				col.set_index
 				and col.fieldtype in frappe.db.type_map
 				and frappe.db.type_map.get(col.fieldtype)[0] not in ("text", "longtext")
 			):
 				create_index_query += (
-					'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{table_name}`(`{field}`);'.format(
-						index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
-					)
+					f'CREATE INDEX IF NOT EXISTS "{col.fieldname}" ON `{self.table_name}`(`{col.fieldname}`);'
 				)
 		if create_index_query:
 			# nosemgrep
@@ -118,9 +116,7 @@ class PostgresTable(DBTable):
 		for col in self.add_index:
 			# if index key not exists
 			create_contraint_query += (
-				'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{table_name}`(`{field}`);'.format(
-					index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
-				)
+				f'CREATE INDEX IF NOT EXISTS "{col.fieldname}" ON `{self.table_name}`(`{col.fieldname}`);'
 			)
 
 		for col in self.add_unique:

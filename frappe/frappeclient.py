@@ -356,7 +356,7 @@ class FrappeClient:
 	def preprocess(self, params):
 		"""convert dicts, lists to json"""
 		for key, value in params.items():
-			if isinstance(value, (dict, list)):
+			if isinstance(value, dict | list):
 				params[key] = json.dumps(value)
 
 		return params

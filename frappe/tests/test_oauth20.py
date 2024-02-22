@@ -275,7 +275,7 @@ class TestOAuth20(unittest.TestCase):
 		self.assertTrue(check_valid_openid_response(response_dict.get("access_token")[0]))
 
 	def test_openid_code_id_token(self):
-		client = update_client_for_auth_code_grant(self.client_id)
+		update_client_for_auth_code_grant(self.client_id)
 
 		session = requests.Session()
 		login(session)

@@ -125,7 +125,7 @@ def application(request: Request):
 
 		try:
 			run_after_request_hooks(request, response)
-		except Exception as e:
+		except Exception:
 			# We can not handle exceptions safely here.
 			frappe.logger().error("Failed to run after request hook", exc_info=True)
 

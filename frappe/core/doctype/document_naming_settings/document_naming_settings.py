@@ -105,7 +105,7 @@ class DocumentNamingSettings(Document):
 			self.validate_series_name(series)
 
 		if options and self.user_must_always_select:
-			options = [""] + options
+			options = ["", *options]
 
 		default = options[0] if options else ""
 
@@ -208,7 +208,7 @@ class DocumentNamingSettings(Document):
 		except Exception as e:
 			if frappe.message_log:
 				frappe.message_log.pop()
-			return _("Failed to generate names from the series") + f"\n{str(e)}"
+			return _("Failed to generate names from the series") + f"\n{e!s}"
 
 	def _fetch_last_doc_if_available(self):
 		"""Fetch last doc for evaluating naming series with fields."""

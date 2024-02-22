@@ -1,9 +1,9 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
-from typing import Callable
 
 from werkzeug.wrappers import Response
 
@@ -83,7 +83,7 @@ class RateLimiter:
 
 
 def rate_limit(
-	key: str = None,
+	key: str | None = None,
 	limit: int | Callable = 5,
 	seconds: int = 24 * 60 * 60,
 	methods: str | list = "ALL",

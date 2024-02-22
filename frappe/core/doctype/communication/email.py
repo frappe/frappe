@@ -256,7 +256,7 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 
 
 @frappe.whitelist(allow_guest=True, methods=("GET",))
-def mark_email_as_seen(name: str = None):
+def mark_email_as_seen(name: str | None = None):
 	try:
 		update_communication_as_read(name)
 		frappe.db.commit()  # nosemgrep: this will be called in a GET request

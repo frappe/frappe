@@ -344,7 +344,7 @@ def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_len
 
 		if (
 			post.avatar
-			and (not "http:" in post.avatar and not "https:" in post.avatar)
+			and ("http:" not in post.avatar and "https:" not in post.avatar)
 			and not post.avatar.startswith("/")
 		):
 			post.avatar = "/" + post.avatar

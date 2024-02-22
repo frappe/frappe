@@ -57,10 +57,10 @@ class Database:
 	VARCHAR_LEN = 140
 	MAX_COLUMN_LENGTH = 64
 
-	OPTIONAL_COLUMNS = ["_user_tags", "_comments", "_assign", "_liked_by"]
-	DEFAULT_SHORTCUTS = ["_Login", "__user", "_Full Name", "Today", "__today", "now", "Now"]
+	OPTIONAL_COLUMNS = ("_user_tags", "_comments", "_assign", "_liked_by")
+	DEFAULT_SHORTCUTS = ("_Login", "__user", "_Full Name", "Today", "__today", "now", "Now")
 	STANDARD_VARCHAR_COLUMNS = ("name", "owner", "modified_by")
-	DEFAULT_COLUMNS = ["name", "creation", "modified", "modified_by", "owner", "docstatus", "idx"]
+	DEFAULT_COLUMNS = ("name", "creation", "modified", "modified_by", "owner", "docstatus", "idx")
 	CHILD_TABLE_COLUMNS = ("parent", "parenttype", "parentfield")
 	MAX_WRITES_PER_TRANSACTION = 200_000
 
@@ -122,8 +122,8 @@ class Database:
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
 		self.cur_db_name = self.user
-		self._conn: Union["MariadbConnection", "PostgresConnection"] = self.get_connection()
-		self._cursor: Union["MariadbCursor", "PostgresCursor"] = self._conn.cursor()
+		self._conn: "MariadbConnection" | "PostgresConnection" = self.get_connection()
+		self._cursor: "MariadbCursor" | "PostgresCursor" = self._conn.cursor()
 		frappe.local.rollback_observers = []
 
 		try:
@@ -231,7 +231,7 @@ class Database:
 
 		if values == EmptyQueryValues:
 			values = None
-		elif not isinstance(values, (tuple, dict, list)):
+		elif not isinstance(values, tuple | dict | list):
 			values = (values,)
 		query, values = self._transform_query(query, values)
 
@@ -321,7 +321,7 @@ class Database:
 			elif as_dict:
 				keys = [column[0] for column in self._cursor.description]
 				for row in result:
-					row = frappe._dict(zip(keys, row))
+					row = frappe._dict(zip(keys, row, strict=False))
 					if update:
 						row.update(update)
 					yield row
@@ -390,7 +390,7 @@ class Database:
 				return query % {
 					k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()
 				}
-			elif isinstance(values, (list, tuple)):
+			elif isinstance(values, list | tuple):
 				return query % tuple(frappe.db.escape(v) if isinstance(v, str) else v for v in values)
 			return query, values
 
@@ -458,7 +458,7 @@ class Database:
 			keys = [column[0] for column in self._cursor.description]
 
 		if not as_utf8:
-			return [frappe._dict(zip(keys, row)) for row in result]
+			return [frappe._dict(zip(keys, row, strict=False)) for row in result]
 
 		ret = []
 		for r in result:
@@ -468,7 +468,7 @@ class Database:
 					value = value.encode("utf-8")
 				values.append(value)
 
-			ret.append(frappe._dict(zip(keys, values)))
+			ret.append(frappe._dict(zip(keys, values, strict=False)))
 		return ret
 
 	@staticmethod
@@ -481,9 +481,9 @@ class Database:
 		"""Returns true if the first row in the result has a Date, Datetime, Long Int."""
 		if result and result[0]:
 			for v in result[0]:
-				if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, int)):
+				if isinstance(v, datetime.date | datetime.timedelta | datetime.datetime | int):
 					return True
-				if formatted and isinstance(v, (int, float)):
+				if formatted and isinstance(v, int | float):
 					return True
 
 		return False
@@ -879,7 +879,7 @@ class Database:
 			limit=limit,
 			validate_filters=True,
 		)
-		if fields == "*" and not isinstance(fields, (list, tuple)) and not isinstance(fields, Criterion):
+		if fields == "*" and not isinstance(fields, list | tuple) and not isinstance(fields, Criterion):
 			as_dict = True
 
 		return query.run(as_dict=as_dict, debug=debug, update=update, run=run, pluck=pluck)
@@ -1300,7 +1300,7 @@ class Database:
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype: str, filters: dict | list = None, debug=False, **kwargs):
+	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):
 		"""Delete rows from a table in site which match the passed filters. This
 		does trigger DocType hooks. Simply runs a DELETE query in the database.
 

@@ -13,7 +13,7 @@ def get_feed(start, page_length):
 	match_conditions_comment = get_feed_match_conditions(frappe.session.user, "Comment")
 
 	result = frappe.db.sql(
-		"""select X.*
+		f"""select X.*
 		from (select name, owner, modified, creation, seen, comment_type,
 				reference_doctype, reference_name, '' as link_doctype, '' as link_name, subject,
 				communication_type, communication_medium, content
@@ -40,10 +40,7 @@ def get_feed(start, page_length):
 		) X
 		order by X.creation DESC
 		LIMIT %(page_length)s
-		OFFSET %(start)s""".format(
-			match_conditions_comment=match_conditions_comment,
-			match_conditions_communication=match_conditions_communication,
-		),
+		OFFSET %(start)s""",
 		{"user": frappe.session.user, "start": cint(start), "page_length": cint(page_length)},
 		as_dict=True,
 	)
