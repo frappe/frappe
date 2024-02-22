@@ -8,6 +8,7 @@ import json
 import os
 import shlex
 import subprocess
+import types
 import unittest
 from contextlib import contextmanager
 from functools import wraps
@@ -489,15 +490,17 @@ class TestCommands(BaseTestCommands):
 
 
 class TestBackups(BaseTestCommands):
-	backup_map = {
-		"includes": {
-			"includes": [
-				"ToDo",
-				"Note",
-			]
-		},
-		"excludes": {"excludes": ["Activity Log", "Access Log", "Error Log"]},
-	}
+	backup_map = types.MappingProxyType(
+		{
+			"includes": {
+				"includes": [
+					"ToDo",
+					"Note",
+				]
+			},
+			"excludes": {"excludes": ["Activity Log", "Access Log", "Error Log"]},
+		}
+	)
 	home = os.path.expanduser("~")
 	site_backup_path = frappe.utils.get_site_path("private", "backups")
 

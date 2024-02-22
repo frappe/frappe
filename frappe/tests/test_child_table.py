@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 import frappe
 from frappe.model import child_table_fields

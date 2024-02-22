@@ -354,7 +354,7 @@ def set_update(update, producer_site):
 def update_row_removed(local_doc, removed):
 	"""Sync child table row deletion type update"""
 	for tablename, rownames in removed.items():
-		table = local_doc.get_table_field_doctype(tablename)
+		local_doc.get_table_field_doctype(tablename)
 		for row in rownames:
 			table_rows = local_doc.get(tablename)
 			child_table_row = get_child_table_row(table_rows, row)

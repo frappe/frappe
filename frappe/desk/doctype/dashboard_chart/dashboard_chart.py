@@ -55,7 +55,7 @@ def get_permission_query_conditions(user):
 		module_condition = """`tabDashboard Chart`.`module` in ({allowed_modules})
 			or `tabDashboard Chart`.`module` is NULL""".format(allowed_modules=",".join(allowed_modules))
 
-	return """
+	return f"""
 		((`tabDashboard Chart`.`chart_type` in ('Count', 'Sum', 'Average')
 		and {doctype_condition})
 		or
@@ -63,11 +63,7 @@ def get_permission_query_conditions(user):
 		and {report_condition}))
 		and
 		({module_condition})
-	""".format(
-		doctype_condition=doctype_condition,
-		report_condition=report_condition,
-		module_condition=module_condition,
-	)
+	"""
 
 
 def has_permission(doc, ptype, user):
@@ -248,9 +244,7 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 			doctype,
 			fields=[
 				timestamp_field,
-				"{aggregate_function}({value_field})".format(
-					aggregate_function=aggregate_function, value_field=value_field
-				),
+				f"{aggregate_function}({value_field})",
 			],
 			filters=filters,
 			group_by=f"date({datefield})",
@@ -310,7 +304,7 @@ def get_result(data, timegrain, from_date, to_date, chart_type):
 	result = [[date, 0] for date in dates]
 	data_index = 0
 	if data:
-		for i, d in enumerate(result):
+		for _i, d in enumerate(result):
 			count = 0
 			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
 				d[1] += data[data_index][1]

@@ -28,7 +28,7 @@ class ActivityLog(Document):
 
 	def set_ip_address(self):
 		if self.operation in ("Login", "Logout"):
-			self.ip_address = getattr(frappe.local, "request_ip")
+			self.ip_address = frappe.local.request_ip
 
 	@staticmethod
 	def clear_old_logs(days=None):

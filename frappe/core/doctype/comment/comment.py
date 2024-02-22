@@ -153,8 +153,9 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	except Exception as e:
 		if frappe.db.is_column_missing(e) and getattr(frappe.local, "request", None):
 			# missing column and in request, add column and update after commit
-			frappe.local._comments = getattr(frappe.local, "_comments", []) + [
-				(reference_doctype, reference_name, _comments)
+			frappe.local._comments = [
+				*getattr(frappe.local, "_comments", []),
+				(reference_doctype, reference_name, _comments),
 			]
 
 		elif frappe.db.is_data_too_long(e):

@@ -13,13 +13,13 @@ test_dependencies = ["Blog Category", "Blogger"]
 class TestFormLoad(FrappeTestCase):
 	def test_load(self):
 		getdoctype("DocType")
-		meta = list(filter(lambda d: d.name == "DocType", frappe.response.docs))[0]
+		meta = next(filter(lambda d: d.name == "DocType", frappe.response.docs))
 		self.assertEqual(meta.name, "DocType")
 		self.assertTrue(meta.get("__js"))
 
 		frappe.response.docs = []
 		getdoctype("Event")
-		meta = list(filter(lambda d: d.name == "Event", frappe.response.docs))[0]
+		meta = next(filter(lambda d: d.name == "Event", frappe.response.docs))
 		self.assertTrue(meta.get("__calendar_js"))
 
 	def test_fieldlevel_permissions_in_load(self):

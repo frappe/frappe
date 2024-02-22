@@ -52,7 +52,6 @@ def get_columns(filters):
 
 
 def get_data(filters):
-	data = []
 	reference_doctype = filters.get("reference_doctype")
 	reference_name = filters.get("reference_name")
 
@@ -108,7 +107,7 @@ def get_reference_details(reference_doctype, doctype, reference_list, reference_
 		["Dynamic Link", "link_doctype", "=", reference_doctype],
 		["Dynamic Link", "link_name", "in", reference_list],
 	]
-	fields = ["`tabDynamic Link`.link_name"] + field_map.get(doctype, [])
+	fields = ["`tabDynamic Link`.link_name", *field_map.get(doctype, [])]
 
 	records = frappe.get_list(doctype, filters=filters, fields=fields, as_list=True)
 	temp_records = list()

@@ -120,7 +120,7 @@ def apply_workflow(doc, action):
 	doc.set(workflow.workflow_state_field, transition.next_state)
 
 	# find settings for the next state
-	next_state = [d for d in workflow.states if d.state == transition.next_state][0]
+	next_state = next(d for d in workflow.states if d.state == transition.next_state)
 
 	# update any additional field
 	if next_state.update_field:

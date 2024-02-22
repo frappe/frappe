@@ -176,7 +176,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 
 
 def getlink(doctype, name):
-	return '<a href="/app/Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
+	return '<a href="/app/Form/{doctype}/{name}">{name}</a>'.format(**locals())
 
 
 def get_csv_content_from_google_sheets(url):

@@ -82,9 +82,7 @@ def get_snapshot(exception, context=10):
 	# creates a snapshot dict with some basic information
 
 	s = {
-		"pyver": "Python {version:s}: {executable:s} (prefix: {prefix:s})".format(
-			version=sys.version.split(maxsplit=1)[0], executable=sys.executable, prefix=sys.prefix
-		),
+		"pyver": f"Python {sys.version.split(maxsplit=1)[0]:s}: {sys.executable:s} (prefix: {sys.prefix:s})",
 		"timestamp": cstr(datetime.datetime.now()),
 		"traceback": traceback.format_exc(),
 		"frames": [],
@@ -113,7 +111,7 @@ def get_snapshot(exception, context=10):
 		def reader(lnum=[lnum]):  # noqa
 			try:
 				# B023: function is evaluated immediately, binding not necessary
-				return linecache.getline(file, lnum[0])  # noqa: B023
+				return linecache.getline(file, lnum[0])
 			finally:
 				lnum[0] += 1
 

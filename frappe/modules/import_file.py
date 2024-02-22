@@ -40,7 +40,7 @@ ignore_doctypes = [""]
 
 
 def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_permissions=False):
-	if type(module) is list:
+	if isinstance(module, list):
 		out = []
 		for m in module:
 			out.append(
@@ -80,7 +80,7 @@ def import_file_by_path(
 	force: bool = False,
 	data_import: bool = False,
 	pre_process=None,
-	ignore_version: bool = None,
+	ignore_version: bool | None = None,
 	reset_permissions: bool = False,
 ):
 	"""Import file from the given path
@@ -215,11 +215,7 @@ def import_doc(
 	docdict["__islocal"] = 1
 
 	controller = get_controller(docdict["doctype"])
-	if (
-		controller
-		and hasattr(controller, "prepare_for_import")
-		and callable(getattr(controller, "prepare_for_import"))
-	):
+	if controller and hasattr(controller, "prepare_for_import") and callable(controller.prepare_for_import):
 		controller.prepare_for_import(docdict)
 
 	doc = frappe.get_doc(docdict)

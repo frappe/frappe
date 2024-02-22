@@ -104,7 +104,7 @@ class File(Document):
 		if not self.attached_to_doctype:
 			return
 
-		if not self.attached_to_name or not isinstance(self.attached_to_name, (str, int)):
+		if not self.attached_to_name or not isinstance(self.attached_to_name, str | int):
 			frappe.throw(_("Attached To Name must be a string or an integer"), frappe.ValidationError)
 
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
@@ -754,7 +754,7 @@ def has_permission(doc, ptype=None, user=None):
 	return False
 
 
-def get_permission_query_conditions(user: str = None) -> str:
+def get_permission_query_conditions(user: str | None = None) -> str:
 	user = user or frappe.session.user
 	if user == "Administrator":
 		return ""

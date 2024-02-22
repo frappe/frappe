@@ -23,7 +23,7 @@ EVENT_MAP = {
 
 def run_server_script_for_doc_event(doc, event):
 	# run document event method
-	if not event in EVENT_MAP:
+	if event not in EVENT_MAP:
 		return
 
 	if frappe.flags.in_install:

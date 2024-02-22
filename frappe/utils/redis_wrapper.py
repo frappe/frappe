@@ -112,7 +112,7 @@ class RedisWrapper(redis.Redis):
 
 	def delete_value(self, keys, user=None, make_keys=True, shared=False):
 		"""Delete value, list of values."""
-		if not isinstance(keys, (list, tuple)):
+		if not isinstance(keys, list | tuple):
 			keys = (keys,)
 
 		for key in keys:

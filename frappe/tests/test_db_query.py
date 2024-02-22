@@ -743,7 +743,7 @@ class TestReportview(FrappeTestCase):
 	def test_set_field_tables(self):
 		# Tests _in_standard_sql_methods method in test_set_field_tables
 		# The following query will break if the above method is broken
-		data = frappe.db.get_list(
+		frappe.db.get_list(
 			"Web Form",
 			filters=[["Web Form Field", "reqd", "=", 1]],
 			fields=["count(*) as count"],
@@ -755,7 +755,7 @@ class TestReportview(FrappeTestCase):
 		try:
 			frappe.get_list("Prepared Report", ["*"])
 			frappe.get_list("Scheduled Job Type", ["*"])
-		except Exception as e:
+		except Exception:
 			print(frappe.get_traceback())
 			self.fail("get_list not working with virtual field")
 
@@ -1022,11 +1022,11 @@ class TestReportview(FrappeTestCase):
 		create_dashboard_settings(self.user)
 
 		dashboard_settings = frappe.db.sql(
-			"""
+			f"""
 				SELECT name
 				FROM `tabDashboard Settings`
-				WHERE {condition}
-			""".format(condition=permission_query_conditions),
+				WHERE {permission_query_conditions}
+			""",
 			as_dict=1,
 		)[0]
 

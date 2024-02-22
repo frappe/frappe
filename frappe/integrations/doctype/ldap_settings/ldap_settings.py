@@ -144,7 +144,7 @@ class LDAPSettings(Document):
 			setattr(user, key, value)
 		user.save(ignore_permissions=True)
 
-	def sync_roles(self, user: "User", additional_groups: list = None):
+	def sync_roles(self, user: "User", additional_groups: list | None = None):
 		current_roles = {d.role for d in user.get("roles")}
 		if self.default_user_type == "System User":
 			needed_roles = {self.default_role}
@@ -164,7 +164,7 @@ class LDAPSettings(Document):
 
 		user.remove_roles(*roles_to_remove)
 
-	def create_or_update_user(self, user_data: dict, groups: list = None):
+	def create_or_update_user(self, user_data: dict, groups: list | None = None):
 		user: "User" = None
 		role: str = None
 

@@ -132,7 +132,7 @@ def search_widget(
 				filters_items = filters.items()
 				filters = []
 				for f in filters_items:
-					if isinstance(f[1], (list, tuple)):
+					if isinstance(f[1], list | tuple):
 						filters.append([doctype, f[0], f[1][0], f[1][1]])
 					else:
 						filters.append([doctype, f[0], "=", f[1]])
