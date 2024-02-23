@@ -17,11 +17,7 @@ frappe.ui.form.on("Kanban Board", {
 
 		frappe.model.with_doctype(frm.doc.reference_doctype, function () {
 			var options = $.map(frappe.get_meta(frm.doc.reference_doctype).fields, function (d) {
-				if (
-					d.fieldname &&
-					d.fieldtype === "Select" &&
-					frappe.model.no_value_type.indexOf(d.fieldtype) === -1
-				) {
+				if (d.fieldname && d.fieldtype === "Select") {
 					return d.fieldname;
 				}
 				return null;
