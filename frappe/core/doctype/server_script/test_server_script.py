@@ -312,5 +312,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 
 		cron_script.cron_format = "0 0 2 1 *"  # 2nd january
 		cron_script.save()
-		cron_job.reload()
-		self.assertEqual(cron_job.next_execution.day, 2)
+
+		updated_cron_job_name = frappe.db.get_value("Scheduled Job Type", {"server_script": cron_script.name})
+		updated_cron_job = frappe.get_doc("Scheduled Job Type", updated_cron_job_name)
+		self.assertEqual(updated_cron_job.next_execution.day, 2)
