@@ -26,10 +26,8 @@ class TestScheduledJobType(FrappeTestCase):
 
 		duplicate_job = frappe.get_doc(job_config)
 
-		savepoint = "try_create_duplicate_entry"
-		frappe.db.savepoint(savepoint)
 		self.assertRaises(frappe.UniqueValidationError, duplicate_job.insert)
-		frappe.db.rollback(save_point=savepoint)
+		frappe.db.rollback()
 
 	def test_throws_on_duplicate_job_with_cron_format(self):
 		job_config = dict(
@@ -42,10 +40,8 @@ class TestScheduledJobType(FrappeTestCase):
 
 		duplicate_job = frappe.get_doc(job_config)
 
-		savepoint = "try_create_duplicate_entry"
-		frappe.db.savepoint(savepoint)
 		self.assertRaises(frappe.UniqueValidationError, duplicate_job.insert)
-		frappe.db.rollback(save_point=savepoint)
+		frappe.db.rollback()
 
 	def test_sync_jobs(self):
 		all_job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.email.queue.flush"))
