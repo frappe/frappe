@@ -144,7 +144,7 @@ frappe.ui.form.on("Form Tour Step", {
 
 		const parent_fieldname_df = frappe
 			.get_meta(frm.doc.reference_doctype)
-			.fields.find((df) => df.fieldname == child_row.parent_fieldname);
+			.get_field(child_row.parent_fieldname);
 
 		frm.set_fields_as_options(
 			"fieldname",
