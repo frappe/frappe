@@ -120,11 +120,12 @@ frappe.ui.form.on("Number Card", {
 		if (doctype) {
 			frappe.model.with_doctype(doctype, () => {
 				frappe.get_meta(doctype).fields.map((df) => {
-					if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
-						if (df.fieldtype == "Currency") {
-							if (!df.options || df.options !== "Company:company:default_currency") {
-								return;
-							}
+					if (df.is_numeric_field()) {
+						if (
+							df.fieldtype == "Currency" &&
+							(!df.options || df.options !== "Company:company:default_currency")
+						) {
+							return;
 						}
 						aggregate_based_on_fields.push({ label: df.label, value: df.fieldname });
 					}
