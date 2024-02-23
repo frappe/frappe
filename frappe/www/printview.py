@@ -162,8 +162,8 @@ def get_rendered_template(
 		def get_template_from_string():
 			return jenv.from_string(get_print_format(doc.doctype, print_format))
 
-		hook_func = frappe.get_hooks("get_print_format_template")
-		if len(hook_func):
+		template = None
+		if hook_func := frappe.get_hooks("get_print_format_template"):
 			template = frappe.get_attr(hook_func[-1])(jenv=jenv, print_format=print_format)
 
 		if template:
