@@ -119,7 +119,7 @@ export async function get_table_columns(df, child_doctype) {
 		1,
 	]);
 	for (let tf of table_fields) {
-		if (!frappe.model.layout_fields.includes(tf.fieldtype) && tf.in_list_view && tf.label) {
+		if (!tf.is_layout_field() && tf.in_list_view && tf.label) {
 			let colsize;
 
 			if (tf.columns) {
