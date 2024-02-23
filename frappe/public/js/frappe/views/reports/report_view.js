@@ -729,7 +729,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			return (
 				(df.in_list_view || df.in_standard_filter) &&
 				frappe.perm.has_perm(this.doctype, df.permlevel, "read") &&
-				frappe.model.is_value_type(df.fieldtype) &&
+				df.is_value_field() &&
 				!df.report_hide
 			);
 		});
