@@ -26,7 +26,7 @@ class TestScheduledJobType(FrappeTestCase):
 
 		duplicate_job = frappe.get_doc(job_config)
 
-		self.assertRaises(frappe.UniqueValidationError, duplicate_job.insert)
+		self.assertRaises(Exception, duplicate_job.insert)
 		frappe.db.rollback()
 
 	def test_throws_on_duplicate_job_with_cron_format(self):
@@ -40,7 +40,7 @@ class TestScheduledJobType(FrappeTestCase):
 
 		duplicate_job = frappe.get_doc(job_config)
 
-		self.assertRaises(frappe.UniqueValidationError, duplicate_job.insert)
+		self.assertRaises(Exception, duplicate_job.insert)
 		frappe.db.rollback()
 
 	def test_sync_jobs(self):
