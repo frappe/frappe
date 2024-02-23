@@ -39,6 +39,10 @@ class DocField {
 		return frappe.model.table_fields.includes(this.fieldtype);
 	}
 
+	is_numeric_field() {
+		return frappe.model.numeric_fieldtypes.includes(this.fieldtype);
+	}
+
 	copy() {
 		return new DocField(this);
 	}
