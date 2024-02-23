@@ -486,7 +486,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 			if (["Date", "Datetime"].includes(df.fieldtype)) {
 				date_fields.push({ label: df.label, value: df.fieldname });
 			}
-			if (frappe.model.numeric_fieldtypes.includes(df.fieldtype)) {
+			if (df.is_numeric_field()) {
 				if (df.fieldtype == "Currency") {
 					if (!df.options || df.options !== "Company:company:default_currency") {
 						return;
