@@ -316,11 +316,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 	init_visible_columns(f) {
 		f.visible_columns = [];
 		$.each(frappe.get_meta(f.options).fields, function (i, _f) {
-			if (
-				!["Section Break", "Column Break", "Tab Break"].includes(_f.fieldtype) &&
-				!_f.print_hide &&
-				f.label
-			) {
+			if (!_f.is_layout_field() && !_f.print_hide && f.label) {
 				// column names set as fieldname|width
 				f.visible_columns.push({
 					fieldname: _f.fieldname,
@@ -642,12 +638,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			});
 			// add remaining fields
 			$.each(doc_fields, function (j, f) {
-				if (
-					f &&
-					!column_names.includes(f.fieldname) &&
-					!["Section Break", "Column Break", "Tab Break"].includes(f.fieldtype) &&
-					f.label
-				) {
+				if (f && !column_names.includes(f.fieldname) && !f.is_layout_field() && f.label) {
 					fields.push(f);
 				}
 			});
