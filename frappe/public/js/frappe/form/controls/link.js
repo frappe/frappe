@@ -435,11 +435,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	get_filter_description(filters) {
 		let doctype = this.get_options();
 		let filter_array = [];
-		let meta = null;
-
-		frappe.model.with_doctype(doctype, () => {
-			meta = frappe.get_meta(doctype);
-		});
 
 		// convert object style to array
 		if (!Array.isArray(filters)) {
