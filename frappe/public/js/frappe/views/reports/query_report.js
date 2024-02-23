@@ -1682,7 +1682,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 									frappe.model.with_doctype(doctype, () => {
 										let options = frappe.meta
 											.get_docfields(doctype)
-											.filter(frappe.model.is_value_type)
+											.filter((df) => df.is_value_field())
 											.map((df) => ({
 												label: df.label,
 												value: df.fieldname,
