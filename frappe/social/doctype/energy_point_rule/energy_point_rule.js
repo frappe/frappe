@@ -27,7 +27,7 @@ frappe.ui.form.on("Energy Point Rule", {
 			const map_for_options = (df) => ({ label: df.label, value: df.fieldname });
 			const fields = frappe.meta
 				.get_docfields(frm.doc.reference_doctype)
-				.filter(frappe.model.is_value_type);
+				.filter((df) => df.is_value_field());
 
 			const fields_to_check = fields.map(map_for_options);
 
