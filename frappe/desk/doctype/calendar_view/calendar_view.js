@@ -20,7 +20,7 @@ frappe.ui.form.on("Calendar View", {
 			const meta = frappe.get_meta(reference_doctype);
 
 			const subject_options = meta.fields
-				.filter((df) => !frappe.model.no_value_type.includes(df.fieldtype))
+				.filter((df) => df.is_value_field())
 				.map((df) => df.fieldname);
 
 			const date_options = meta.fields
