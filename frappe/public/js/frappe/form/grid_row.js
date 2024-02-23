@@ -1469,7 +1469,7 @@ export default class GridRow {
 				!df.hidden &&
 				df.in_list_view &&
 				me.grid.frm.get_perm(df.permlevel, "read") &&
-				!frappe.model.layout_fields.includes(df.fieldtype) &&
+				!df.is_layout_field() &&
 				!blacklist.includes(df.fieldname);
 
 			return visible ? df : null;
