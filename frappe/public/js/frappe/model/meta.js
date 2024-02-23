@@ -8,14 +8,64 @@ frappe.provide("frappe.meta.doctypes");
 frappe.provide("frappe.meta.precision_map");
 
 frappe.get_meta = function (doctype) {
-	return locals["DocType"] ? locals["DocType"][doctype] : null;
+	return locals["DocType"] ? new Meta(locals["DocType"][doctype]) : null;
 };
+
+class DocField {
+	constructor(df) {
+		Object.assign(this, df);
+	}
+
+	is_editable() {
+		return (
+			this.fieldname &&
+			this.is_value_field() &&
+			this.fieldtype !== "Read Only" &&
+			!this.hidden &&
+			!this.read_only &&
+			!this.is_virtual
+		);
+	}
+
+	is_value_field() {
+		return !frappe.model.no_value_type.includes(this.fieldtype);
+	}
+
+	is_layout_field() {
+		return frappe.model.layout_fields.includes(this.fieldtype);
+	}
+
+	is_table_field() {
+		return frappe.model.table_fields.includes(this.fieldtype);
+	}
+
+	copy() {
+		return new DocField(this);
+	}
+}
+
+class Meta {
+	constructor(doc) {
+		Object.assign(this, doc);
+		this.fields = this.fields?.map((df) => new DocField(df));
+	}
+
+	has_field(fieldname) {
+		return this.fields.some((df) => df.fieldname === fieldname);
+	}
+
+	get_field(fieldname) {
+		return this.fields.find((df) => df.fieldname === fieldname);
+	}
+
+	get_table_fields() {
+		return this.fields.filter((df) => df.is_table_field());
+	}
+}
 
 $.extend(frappe.meta, {
 	sync: function (doc) {
-		$.each(doc.fields, function (i, df) {
-			frappe.meta.add_field(df);
-		});
+		doc.fields.forEach((df) => frappe.meta.add_field(new DocField(df)));
 
 		if (doc.__print_formats) frappe.model.sync(doc.__print_formats);
 		if (doc.__workflow_docs) frappe.model.sync(doc.__workflow_docs);
