@@ -139,6 +139,7 @@ context("Form", () => {
 		jump_to_field("Username");
 		type_value("admin24");
 
+<<<<<<< HEAD
 		// undo behaviour
 		undo();
 		cy.get_field("username").should("have.value", "admin42");
@@ -146,6 +147,30 @@ context("Form", () => {
 		// redo behaviour
 		redo();
 		cy.get_field("username").should("have.value", "admin24");
+=======
+				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
+				cy.get(".grid-row-open").as("table-form");
+				cy.get("@table-form")
+					.find('.frappe-control[data-fieldname="is_primary_phone"]')
+					.should("be.hidden");
+				cy.get("@table-form").find(".grid-footer-toolbar").click();
+
+				// set property on form_render event of child table
+				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
+				cy.get("@table")
+					.find('[data-idx="1"]')
+					.invoke("attr", "data-name")
+					.then((cdn) => {
+						frm.set_df_property(
+							"phone_nos",
+							"hidden",
+							0,
+							"Contact Phone",
+							"is_primary_phone",
+							cdn
+						);
+					});
+>>>>>>> fa0b59aa70 (test: cypress form)
 
 		// undo everything & redo everything, ensure same values at the end
 		undo();
