@@ -24,6 +24,15 @@ frappe.ui.Notifications = class Notifications {
 
 	setup_headers() {
 		// Add header actions
+		$(`<span class="pull-right" data-action="delete_all">
+			${frappe.utils.icon("delete")}
+		</span>`)
+			.on("click", (e) => this.delete_all_notifications_by_user(e))
+			.appendTo(this.header_actions)
+			.attr("title", __("Delete all"))
+			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+
+
 		$(`<span class="notification-settings pull-right" data-action="go_to_settings">
 			${frappe.utils.icon("setting-gear")}
 		</span>`)
@@ -108,6 +117,17 @@ frappe.ui.Notifications = class Notifications {
 		e.stopImmediatePropagation();
 		this.dropdown_list.find(".unread").removeClass("unread");
 		frappe.call("frappe.desk.doctype.notification_log.notification_log.mark_all_as_read");
+	}
+
+	delete_all_notifications_by_user(e){
+		e.stopImmediatePropagation();
+		frappe.confirm(
+			'Are you sure you want to proceed?',
+			() => {
+				frappe.call("frappe.desk.doctype.notification_log.notification_log.delete_all_notifications_by_user");
+				window.location.reload()
+			}
+		);
 	}
 
 	setup_dropdown_events() {

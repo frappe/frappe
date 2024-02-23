@@ -194,6 +194,10 @@ def get_notification_logs(limit=100):
 def mark_all_as_read():
 	frappe.db.sql("UPDATE `tabNotification Log` SET `read` = 1 WHERE for_user = '"+frappe.session.user+"'")
 
+@frappe.whitelist()
+def delete_all_notifications_by_user():
+    frappe.db.sql("DELETE from `tabNotification Log` WHERE for_user = '"+frappe.session.user+"'")
+
 
 @frappe.whitelist()
 def mark_as_read(docname: str):
