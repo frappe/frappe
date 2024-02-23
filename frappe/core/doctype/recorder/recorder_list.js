@@ -198,7 +198,7 @@ frappe.listview_settings["Recorder"] = {
 				});
 			},
 			__("Configure Recorder"),
-			__("Start Recordig")
+			__("Start Recording")
 		);
 	},
 
