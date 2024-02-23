@@ -1777,21 +1777,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const actions_menu_items = [];
 		const bulk_operations = new BulkOperations({ doctype: this.doctype });
 
-		const is_field_editable = (field_doc) => {
-			return (
-				field_doc.fieldname &&
-				frappe.model.is_value_type(field_doc) &&
-				field_doc.fieldtype !== "Read Only" &&
-				!field_doc.hidden &&
-				!field_doc.read_only &&
-				!field_doc.is_virtual
-			);
-		};
-
 		const has_editable_fields = (doctype) => {
-			return frappe.meta
-				.get_docfields(doctype)
-				.some((field_doc) => is_field_editable(field_doc));
+			return frappe.meta.get_docfields(doctype).some((df) => df.is_editable());
 		};
 
 		const has_submit_permission = (doctype) => {
@@ -1968,9 +1955,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				action: () => {
 					let field_mappings = {};
 
-					frappe.meta.get_docfields(doctype).forEach((field_doc) => {
-						if (is_field_editable(field_doc)) {
-							field_mappings[field_doc.label] = Object.assign({}, field_doc);
+					frappe.meta.get_docfields(doctype).forEach((df) => {
+						if (df.is_editable()) {
+							field_mappings[df.label] = Object.assign({}, df);
 						}
 					});
 
