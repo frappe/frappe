@@ -542,6 +542,13 @@ def log(msg: str) -> None:
 	debug_log.append(as_unicode(msg))
 
 
+@functools.lru_cache(maxsize=1024)
+def _strip_html_tags(message):
+	from frappe.utils import strip_html_tags
+
+	return strip_html_tags(message)
+
+
 def msgprint(
 	msg: str,
 	title: str | None = None,
@@ -573,14 +580,8 @@ def msgprint(
 	import inspect
 	import sys
 
-	from frappe.utils import strip_html_tags
-
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
-
-	@functools.lru_cache(maxsize=1024)
-	def _strip_html_tags(message):
-		return strip_html_tags(message)
 
 	def _raise_exception():
 		if raise_exception:
