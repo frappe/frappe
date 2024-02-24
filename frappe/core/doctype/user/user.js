@@ -115,6 +115,7 @@ frappe.ui.form.on("User", {
 		}
 
 		frm.toggle_display(["sb1", "sb3", "modules_access"], false);
+		frm.trigger("setup_impersonation");
 
 		if (!frm.is_new()) {
 			if (has_access_to_edit_user()) {
@@ -344,6 +345,33 @@ frappe.ui.form.on("User", {
 		if (doc.name === frappe.session.user && attr_tuples.some(has_effectively_changed)) {
 			frappe.msgprint(__("Refreshing..."));
 			window.location.reload();
+		}
+	},
+	setup_impersonation: function (frm) {
+		if (frappe.session.user === "Administrator" && frm.doc.name != "Administrator") {
+			frm.add_custom_button("Login as User", () => {
+				if (frm.doc.restrict_ip) {
+					frappe.msgprint({
+						message:
+							"There's IP restriction for this user, you can not impersonate as this user.",
+						title: "IP restriction is enabled",
+					});
+					return;
+				}
+				frappe.confirm(
+					__(
+						"Current session will be logged out and you will login as {0}. Are you sure?",
+						[frm.doc.name.bold()]
+					),
+					() => {
+						frappe
+							.xcall("frappe.core.doctype.user.user.impersonate", {
+								user: frm.doc.name,
+							})
+							.then(() => window.location.reload());
+					}
+				);
+			});
 		}
 	},
 });
