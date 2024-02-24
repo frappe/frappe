@@ -391,9 +391,6 @@ class Session:
 		# Forcefully flush session
 		self.update(force=True)
 
-	def impersonated_by(self) -> str | None:
-		return self.data.data.impersonated_by
-
 
 def get_expiry_period_for_query():
 	if frappe.db.db_type == "postgres":
