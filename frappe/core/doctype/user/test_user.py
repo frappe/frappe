@@ -6,6 +6,8 @@ from contextlib import contextmanager
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
+from werkzeug.http import parse_cookie
+
 import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
@@ -20,6 +22,7 @@ from frappe.core.doctype.user.user import (
 from frappe.desk.notifications import extract_mentions
 from frappe.frappeclient import FrappeClient
 from frappe.model.delete_doc import delete_doc
+from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_url
 
@@ -455,6 +458,17 @@ class TestUser(FrappeTestCase):
 			update_password(new_password, key=key),
 			"The reset password link has been expired",
 		)
+
+
+class TestImpersonation(FrappeAPITestCase):
+	def test_impersonation(self):
+		with test_user(roles=["System Manager"]) as user:
+			self.post(
+				self.method_path("frappe.core.doctype.user.user.impersonate"),
+				{"user": user.name, "reason": "test", "sid": self.sid},
+			)
+			resp = self.get(self.method_path("frappe.auth.get_logged_user"))
+			self.assertEqual(resp.json["message"], user.name)
 
 
 @contextmanager
