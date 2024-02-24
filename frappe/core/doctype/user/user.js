@@ -343,7 +343,7 @@ frappe.ui.form.on("User", {
 	},
 	setup_impersonation: function (frm) {
 		if (frappe.session.user === "Administrator" && frm.doc.name != "Administrator") {
-			frm.add_custom_button("Login as User", () => {
+			frm.add_custom_button(__("Impersonate"), () => {
 				if (frm.doc.restrict_ip) {
 					frappe.msgprint({
 						message:
@@ -352,18 +352,26 @@ frappe.ui.form.on("User", {
 					});
 					return;
 				}
-				frappe.confirm(
-					__(
-						"Current session will be logged out and you will login as {0}. Are you sure?",
-						[frm.doc.name.bold()]
-					),
-					() => {
+				frappe.prompt(
+					[
+						{
+							fieldname: "reason",
+							fieldtype: "Small Text",
+							label: "Reason for impersonating",
+							description: __("Note: This will be shared with user."),
+							reqd: 1,
+						},
+					],
+					(values) => {
 						frappe
 							.xcall("frappe.core.doctype.user.user.impersonate", {
 								user: frm.doc.name,
+								reason: values.reason,
 							})
 							.then(() => window.location.reload());
-					}
+					},
+					__("Impersonate as {0}", [frm.doc.name]),
+					__("Confirm")
 				);
 			});
 		}
