@@ -1316,5 +1316,7 @@ def get_enabled_users():
 
 @frappe.whitelist(methods=["POST"])
 def impersonate(user: str):
+	from frappe.sessions import Session
+
 	frappe.only_for("Administrator")
-	frappe.local.login_manager.login_as(user)
+	frappe.local.login_manager.impersonate(user)
