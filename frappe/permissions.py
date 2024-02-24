@@ -135,14 +135,8 @@ def has_permission(
 		if not perm:
 			push_perm_check_log(
 				_("User {0} does not have doctype access via role permission for document {1}").format(
-<<<<<<< HEAD
-					frappe.bold(user), frappe.bold(doctype)
-				)
-=======
 					frappe.bold(user), frappe.bold(_(doctype))
-				),
-				debug=debug,
->>>>>>> b6f12db08c (fix: translate doctype in user-facing error message)
+				)
 			)
 
 	def false_if_not_shared():
