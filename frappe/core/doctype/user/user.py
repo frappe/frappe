@@ -1242,8 +1242,8 @@ def impersonate(user: str, reason: str):
 		}
 	).insert(ignore_permissions=True, ignore_links=True)
 
-	notification = frappe.new_doc(
-		"Notification Log",
+	notification = frappe.get_doc(
+		doctype="Notification Log",
 		for_user=user,
 		from_user=frappe.session.user,
 		subject=_("{0} just impersonated as you. They gave this reason: {1}").format(impersonator, reason),

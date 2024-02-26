@@ -464,10 +464,10 @@ class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
 		with test_user(roles=["System Manager"]) as user:
 			self.post(
-				self.method_path("frappe.core.doctype.user.user.impersonate"),
+				"/api/method/frappe.core.doctype.user.user.impersonate",
 				{"user": user.name, "reason": "test", "sid": self.sid},
 			)
-			resp = self.get(self.method_path("frappe.auth.get_logged_user"))
+			resp = self.get("/api/method/frappe.auth.get_logged_user")
 			self.assertEqual(resp.json["message"], user.name)
 
 
@@ -478,7 +478,7 @@ def test_user(
 	try:
 		first_name = first_name or frappe.generate_hash()
 		email = email or (first_name + "@example.com")
-		user: User = frappe.get_doc(
+		user = frappe.get_doc(
 			doctype="User",
 			send_welcome_email=0,
 			email=email,
