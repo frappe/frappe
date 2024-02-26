@@ -891,7 +891,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<span class="avatar-empty"></span>
 		</div>`;
 
-		let assigned_users = JSON.parse(doc._assign || "[]");
+		let assigned_users = doc._assign ? JSON.parse(doc._assign) : [];
 		if (assigned_users.length) {
 			assigned_to = `<div class="list-assignments">
 					${frappe.avatar_group(assigned_users, 3, { filterable: true })[0].outerHTML}
