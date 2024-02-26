@@ -362,7 +362,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_paging_area() {
-		const paging_values = [20, 100, 500];
+		const paging_values = [20, 100, 500, 2500];
 		this.$paging_area = $(
 			`<div class="list-paging-area level">
 				<div class="level-left">
