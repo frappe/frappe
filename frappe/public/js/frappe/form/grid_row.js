@@ -247,8 +247,9 @@ export default class GridRow {
 
 		// index (1, 2, 3 etc)
 		if (!this.row_index && !this.show_search) {
-			// REDESIGN-TODO: Make translation contextual, this No is Number
-			var txt = this.doc ? this.doc.idx : __("No.");
+			const txt = this.doc
+				? this.doc.idx
+				: __("No.", null, "Title of the 'row number' column");
 
 			this.row_check = $(
 				`<div class="row-check sortable-handle col">
@@ -303,8 +304,6 @@ export default class GridRow {
 				}, 500)
 			);
 			frappe.utils.only_allow_num_decimal(this.row_index.find("input"));
-		} else {
-			this.row_index.find("span").html(txt);
 		}
 
 		this.setup_columns();
