@@ -1688,7 +1688,7 @@ def _document_values_generator(
 ) -> Generator[tuple[Any], None, None]:
 	for doc in documents:
 		doc.creation = doc.modified = now()
-		doc.created_by = doc.modified_by = frappe.session.user
+		doc.owner = doc.modified_by = frappe.session.user
 		doc_values = doc.get_valid_dict(
 			convert_dates_to_str=True,
 			ignore_nulls=True,
