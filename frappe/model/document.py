@@ -1583,3 +1583,69 @@ def execute_action(__doctype, __name, __action, **kwargs):
 
 		doc.add_comment("Comment", _("Action Failed") + "<br><br>" + msg)
 	doc.notify_update()
+<<<<<<< HEAD
+=======
+
+
+def bulk_insert(
+	doctype: str,
+	documents: Iterable["Document"],
+	ignore_duplicates: bool = False,
+	chunk_size=10_000,
+):
+	"""Insert simple Documents objects to database in bulk.
+
+	Warning/Info:
+	        - All documents are inserted without triggering ANY hooks.
+	        - This function assumes you've done the due dilligence and inserts in similar fashion as db_insert
+	        - Documents can be any iterable / generator containing Document objects
+	"""
+
+	doctype_meta = frappe.get_meta(doctype)
+	documents = list(documents)
+
+	valid_column_map = {
+		doctype: doctype_meta.get_valid_columns(),
+	}
+	values_map = {
+		doctype: _document_values_generator(documents, valid_column_map[doctype]),
+	}
+
+	for child_table in doctype_meta.get_table_fields():
+		valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
+		values_map[child_table.options] = _document_values_generator(
+			(
+				ch_doc
+				for ch_doc in (
+					child_docs for doc in documents for child_docs in doc.get(child_table.fieldname)
+				)
+			),
+			valid_column_map[child_table.options],
+		)
+
+	for dt, docs in values_map.items():
+		frappe.db.bulk_insert(
+			dt, valid_column_map[dt], docs, ignore_duplicates=ignore_duplicates, chunk_size=chunk_size
+		)
+
+
+def _document_values_generator(
+	documents: Iterable["Document"],
+	columns: list[str],
+) -> Generator[tuple[Any], None, None]:
+	for doc in documents:
+		doc.creation = doc.modified = now()
+		doc.owner = doc.modified_by = frappe.session.user
+		doc_values = doc.get_valid_dict(
+			convert_dates_to_str=True,
+			ignore_nulls=True,
+			ignore_virtual=True,
+		)
+		yield tuple(doc_values.get(col) for col in columns)
+
+
+@frappe.whitelist()
+def unlock_document(doctype: str, name: str):
+	frappe.get_doc(doctype, name).unlock()
+	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
+>>>>>>> 898f982a88 (fix: replaced created by with owner in base_document (#25059))
