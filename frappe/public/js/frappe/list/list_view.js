@@ -1471,8 +1471,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				// this doc was changed and should not be visible
 				// in the listview according to filters applied
 				// let's remove it manually
-				this.data = this.data.filter((d) => names.indexOf(d.name) === -1);
-				this.render_list();
+				this.data = this.data.filter((d) => !names.includes(d.name));
+				for (let name of names) {
+					this.$result
+						.find(`.list-row-checkbox[data-name='${name}']`)
+						.closest(".list-row-container")
+						.remove();
+				}
 				return;
 			}
 
