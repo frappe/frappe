@@ -797,7 +797,11 @@ export default class Grid {
 				if (!this.df.data) {
 					this.df.data = this.get_data() || [];
 				}
-				this.df.data.push({ idx: this.df.data.length + 1, __islocal: true });
+				const defaults = this.docfields.reduce((acc, d) => {
+					acc[d.fieldname] = d.default;
+					return acc;
+				}, {});
+				this.df.data.push({ idx: this.df.data.length + 1, __islocal: true, ...defaults });
 				this.refresh();
 			}
 
