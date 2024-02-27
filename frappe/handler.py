@@ -191,7 +191,8 @@ def upload_file():
 	optimize = frappe.form_dict.optimize
 	content = None
 
-	if frappe.form_dict.get("library_file_name", False):
+	if library_file := frappe.form_dict.get("library_file_name"):
+		frappe.has_permission("File", doc=library_file, throw=True)
 		doc = frappe.get_value(
 			"File",
 			frappe.form_dict.library_file_name,
