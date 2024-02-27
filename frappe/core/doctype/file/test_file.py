@@ -19,6 +19,7 @@ from frappe.core.api.file import (
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import delete_file, get_extension
+from frappe.core.doctype.user.test_user import test_user
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_files_path, set_request
@@ -686,34 +687,36 @@ class TestAttachmentsAccess(FrappeTestCase):
 
 	def test_list_public_single_file(self):
 		"""Ensure that users are able to list public standalone files."""
-		frappe.set_user("test@example.com")
-		frappe.new_doc(
-			"File",
-			file_name="test_public_single.txt",
-			content="Public single File",
-			is_private=0,
-		).insert()
+		with test_user(roles=["System Manager"]) as user:
+			with self.set_user(user.name):
+				frappe.new_doc(
+					"File",
+					file_name="test_public_single.txt",
+					content="Public single File",
+					is_private=0,
+				).insert()
 
-		frappe.set_user("test4@example.com")
-		files = [file.file_name for file in get_files_in_folder("Home")["files"]]
-		self.assertIn("test_public_single.txt", files)
+				frappe.set_user("test4@example.com")
+				files = [file.file_name for file in get_files_in_folder("Home")["files"]]
+				self.assertIn("test_public_single.txt", files)
 
 	def test_list_public_attachment(self):
 		"""Ensure that users are able to list public attachments."""
-		frappe.set_user("test@example.com")
-		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
-		frappe.new_doc(
-			"File",
-			file_name="test_public_attachment.txt",
-			attached_to_doctype=self.attached_to_doctype,
-			attached_to_name=self.attached_to_docname,
-			content="Public Attachment",
-			is_private=0,
-		).insert()
+		with test_user(roles=["System Manager"]) as user:
+			with self.set_user(user.name):
+				self.attached_to_doctype, self.attached_to_docname = make_test_doc()
+				frappe.new_doc(
+					"File",
+					file_name="test_public_attachment.txt",
+					attached_to_doctype=self.attached_to_doctype,
+					attached_to_name=self.attached_to_docname,
+					content="Public Attachment",
+					is_private=0,
+				).insert()
 
-		frappe.set_user("test4@example.com")
-		files = [file.file_name for file in get_files_in_folder("Home/Attachments")["files"]]
-		self.assertIn("test_public_attachment.txt", files)
+				frappe.set_user("test4@example.com")
+				files = [file.file_name for file in get_files_in_folder("Home/Attachments")["files"]]
+				self.assertIn("test_public_attachment.txt", files)
 
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
