@@ -92,9 +92,9 @@ class PushNotification:
 		user_id: str,
 		title: str,
 		body: str,
-		link: str = None,
-		icon: str = None,
-		data=None,
+		link: str | None = None,
+		icon: str | None = None,
+		data: dict | None = None,
 		truncate_body: bool = True,
 		strip_html: bool = True,
 	) -> bool:
@@ -124,6 +124,7 @@ class PushNotification:
 				raise Exception("Body should be at max 1000 characters")
 		if strip_html:
 			body = frappe.utils.strip_html(body)
+
 		response_data = self._send_post_request(
 			"notification_relay.api.send_notification.user",
 			{"user_id": user_id, "title": title, "body": body, "data": json.dumps(data)},
@@ -135,9 +136,9 @@ class PushNotification:
 		topic_name: str,
 		title: str,
 		body: str,
-		link: str = None,
-		icon: str = None,
-		data=None,
+		link: str | None = None,
+		icon: str | None = None,
+		data: dict | None = None,
 		truncate_body: bool = True,
 		strip_html: bool = True,
 	) -> bool:
