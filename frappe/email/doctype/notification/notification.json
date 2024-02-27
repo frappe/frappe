@@ -42,7 +42,10 @@
   "view_properties",
   "column_break_25",
   "attach_print",
-  "print_format"
+  "print_format",
+  "column_break_enin",
+  "encrypt_attach",
+  "password_policy"
  ],
  "fields": [
   {
@@ -286,12 +289,29 @@
    "fieldtype": "Select",
    "label": "Message Type",
    "options": "Markdown\nHTML\nPlain Text"
+  },
+  {
+   "fieldname": "column_break_enin",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "encrypt_attach",
+   "fieldtype": "Check",
+   "label": "Encrypt Attach"
+  },
+  {
+   "depends_on": "eval:doc.encrypt_attach",
+   "description": "<b>Example:</b>SO-{{doc.name}}<br>This will generate a password like SO-SAL-ORD-2024-00001",
+   "fieldname": "password_policy",
+   "fieldtype": "Data",
+   "label": "Password Policy"
   }
  ],
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-17 08:48:25.616203",
+ "modified": "2024-02-27 10:49:23.116717",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

@@ -26,9 +26,7 @@ class Notification(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.email.doctype.notification_recipient.notification_recipient import (
-			NotificationRecipient,
-		)
+		from frappe.email.doctype.notification_recipient.notification_recipient import NotificationRecipient
 		from frappe.types import DF
 
 		attach_print: DF.Check
@@ -38,23 +36,14 @@ class Notification(Document):
 		days_in_advance: DF.Int
 		document_type: DF.Link
 		enabled: DF.Check
-		event: DF.Literal[
-			"",
-			"New",
-			"Save",
-			"Submit",
-			"Cancel",
-			"Days After",
-			"Days Before",
-			"Value Change",
-			"Method",
-			"Custom",
-		]
+		encrypt_attach: DF.Check
+		event: DF.Literal["", "New", "Save", "Submit", "Cancel", "Days After", "Days Before", "Value Change", "Method", "Custom"]
 		is_standard: DF.Check
 		message: DF.Code | None
 		message_type: DF.Literal["Markdown", "HTML", "Plain Text"]
 		method: DF.Data | None
 		module: DF.Link | None
+		password_policy: DF.Data | None
 		print_format: DF.Link | None
 		property_value: DF.Data | None
 		recipients: DF.Table[NotificationRecipient]
@@ -66,6 +55,7 @@ class Notification(Document):
 		slack_webhook_url: DF.Link | None
 		subject: DF.Data | None
 		value_changed: DF.Literal
+		password_policy: DF.Data | None
 	# end: auto-generated types
 
 	def onload(self):
@@ -225,7 +215,7 @@ def get_context(context):
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
 
-		attachments = self.get_attachment(doc)
+		attachments = self.get_attachment(doc, context)
 
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 
@@ -254,7 +244,7 @@ def get_context(context):
 		if "{" in subject:
 			subject = frappe.render_template(self.subject, context)
 
-		attachments = self.get_attachment(doc)
+		attachments = self.get_attachment(doc, context)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
 		if not (recipients or cc or bcc):
 			return
@@ -373,7 +363,7 @@ def get_context(context):
 
 		return receiver_list
 
-	def get_attachment(self, doc):
+	def get_attachment(self, doc, context=None):
 		"""check print settings are attach the pdf"""
 		if not self.attach_print:
 			return None
@@ -391,18 +381,34 @@ def get_context(context):
 				title=_("Error in Notification"),
 			)
 		else:
-			return [
-				{
-					"print_format_attachment": 1,
-					"doctype": doc.doctype,
-					"name": doc.name,
-					"print_format": self.print_format,
-					"print_letterhead": print_settings.with_letterhead,
-					"lang": frappe.db.get_value("Print Format", self.print_format, "default_print_language")
-					if self.print_format
-					else "en",
-				}
-			]
+			if self.encrypt_attach:
+				password = frappe.render_template(self.password_policy, context)
+				return [
+					{
+						"print_format_attachment": 1,
+						"doctype": doc.doctype,
+						"name": doc.name,
+						"print_format": self.print_format,
+						"print_letterhead": print_settings.with_letterhead,
+						"password": password,
+						"lang": frappe.db.get_value("Print Format", self.print_format, "default_print_language")
+						if self.print_format
+						else "en",
+					}
+				]
+			else:
+				return [
+					{
+						"print_format_attachment": 1,
+						"doctype": doc.doctype,
+						"name": doc.name,
+						"print_format": self.print_format,
+						"print_letterhead": print_settings.with_letterhead,
+						"lang": frappe.db.get_value("Print Format", self.print_format, "default_print_language")
+						if self.print_format
+						else "en",
+					}
+				]
 
 	def get_template(self, md_as_html=False):
 		module = get_doc_module(self.module, self.doctype, self.name)
