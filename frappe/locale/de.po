@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-16 17:24+0053\n"
-"PO-Revision-Date: 2024-02-20 09:22\n"
+"PO-Revision-Date: 2024-02-23 10:43\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -1983,7 +1983,7 @@ msgstr "Alle Datensätze"
 
 #: public/js/frappe/form/form.js:2173
 msgid "All Submissions"
-msgstr ""
+msgstr "Alle Einsendungen"
 
 #: custom/doctype/customize_form/customize_form.js:384
 msgid "All customizations will be removed. Please confirm."
@@ -9844,7 +9844,7 @@ msgstr "Das Dokument befindet sich im Entwurfsstatus"
 
 #: public/js/frappe/form/workflow.js:45
 msgid "Document is only editable by users with role"
-msgstr ""
+msgstr "Das Dokument kann nur von Benutzern mit der folgenden Rolle bearbeitet werden:"
 
 #: core/doctype/communication/communication.js:182
 msgid "Document not Relinked"
@@ -10343,7 +10343,7 @@ msgstr "Bestehende bearbeiten"
 
 #: public/js/frappe/list/list_sidebar_group_by.js:55
 msgid "Edit Filters"
-msgstr ""
+msgstr "Filter bearbeiten"
 
 #: printing/doctype/print_format/print_format.js:28
 msgid "Edit Format"
@@ -10460,7 +10460,7 @@ msgstr "Editierbares Raster"
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "Editing Row"
-msgstr ""
+msgstr "Bearbeite Zeile"
 
 #: public/js/print_format_builder/print_format_builder.bundle.js:14
 #: public/js/workflow_builder/workflow_builder.bundle.js:20
@@ -13045,7 +13045,7 @@ msgstr "Folgende Felder haben ungültige Werte:"
 
 #: public/js/frappe/widgets/widget_dialog.js:353
 msgid "Following fields have missing values"
-msgstr ""
+msgstr "Den folgende Feldern fehlen Werte"
 
 #: public/js/frappe/ui/field_group.js:120
 msgid "Following fields have missing values:"
@@ -13901,7 +13901,7 @@ msgstr "GitHub"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Github flavoured markdown syntax"
-msgstr ""
+msgstr "Markdown-Syntax mit Github-Geschmack"
 
 #: social/doctype/energy_point_settings/energy_point_settings.js:7
 #: social/doctype/energy_point_settings/energy_point_settings.js:14
@@ -18290,7 +18290,7 @@ msgstr "Link zu"
 
 #: public/js/frappe/widgets/widget_dialog.js:358
 msgid "Link To in Row"
-msgstr ""
+msgstr "„Link zu“ in Zeile"
 
 #. Label of a Select field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
@@ -18300,7 +18300,7 @@ msgstr "Linktyp"
 
 #: public/js/frappe/widgets/widget_dialog.js:354
 msgid "Link Type in Row"
-msgstr ""
+msgstr "„Linktyp“ in Zeile"
 
 #: website/doctype/about_us_settings/about_us_settings.js:6
 msgid "Link for About Us Page is \"/about\"."
@@ -18492,7 +18492,7 @@ msgstr "Laden"
 
 #: public/js/frappe/widgets/widget_dialog.js:107
 msgid "Loading Filters..."
-msgstr ""
+msgstr "Lade Filter..."
 
 #: core/doctype/data_import/data_import.js:257
 msgid "Loading import file..."
@@ -20471,7 +20471,7 @@ msgstr "Neuer Kontakt"
 
 #: public/js/frappe/widgets/widget_dialog.js:70
 msgid "New Custom Block"
-msgstr ""
+msgstr "Neuer benutzerdefinierter Block"
 
 #: printing/page/print/print.js:288 printing/page/print/print.js:335
 msgid "New Custom Print Format"
@@ -20511,7 +20511,7 @@ msgstr "Neue Kanban-Tafel"
 
 #: public/js/frappe/widgets/widget_dialog.js:62
 msgid "New Links"
-msgstr ""
+msgstr "Neue Links"
 
 #: desk/doctype/notification_log/notification_log.py:156
 msgid "New Mention on {0}"
@@ -20541,11 +20541,11 @@ msgstr "Neue Benachrichtigung"
 
 #: public/js/frappe/widgets/widget_dialog.js:64
 msgid "New Number Card"
-msgstr ""
+msgstr "Neue Zahlenkarte"
 
 #: public/js/frappe/widgets/widget_dialog.js:66
 msgid "New Onboarding"
-msgstr ""
+msgstr "Neues Onboarding"
 
 #: core/doctype/user/user.js:160 www/update-password.html:19
 msgid "New Password"
@@ -20558,7 +20558,7 @@ msgstr "Name des neuen Druckformats"
 
 #: public/js/frappe/widgets/widget_dialog.js:68
 msgid "New Quick List"
-msgstr ""
+msgstr "Neue Schnellliste"
 
 #: public/js/frappe/views/reports/report_view.js:1310
 msgid "New Report name"
@@ -20566,12 +20566,12 @@ msgstr "Neuer Berichtsname"
 
 #: public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
-msgstr ""
+msgstr "Neue Verknüpfung"
 
 #: core/doctype/version/version_view.html:14
 #: core/doctype/version/version_view.html:76
 msgid "New Value"
-msgstr ""
+msgstr "Neuer Wert"
 
 #: workflow/page/workflow_builder/workflow_builder.js:61
 msgid "New Workflow Name"
@@ -20738,7 +20738,7 @@ msgstr "Nächste Termine Datum"
 
 #: automation/doctype/auto_repeat/auto_repeat_schedule.html:6
 msgid "Next Scheduled Date"
-msgstr ""
+msgstr "Nächster geplanter Termin"
 
 #. Label of a Link field in DocType 'Workflow Transition'
 #: workflow/doctype/workflow_transition/workflow_transition.json
@@ -20766,7 +20766,7 @@ msgstr "Nächstes Sync-Token"
 
 #: public/js/frappe/form/workflow.js:45
 msgid "Next actions"
-msgstr ""
+msgstr "Nächste Aktionen"
 
 #. Label of a Check field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -20854,11 +20854,11 @@ msgstr "Keine Daten"
 #: desk/page/user_profile/user_profile.html:22
 #: desk/page/user_profile/user_profile.html:33
 msgid "No Data to Show"
-msgstr ""
+msgstr "Keine Daten anzuzeigen"
 
 #: public/js/frappe/widgets/quick_list_widget.js:131
 msgid "No Data..."
-msgstr ""
+msgstr "Keine Daten..."
 
 #: public/js/frappe/views/inbox/inbox_view.js:176
 msgid "No Email Account"
@@ -20866,7 +20866,7 @@ msgstr "Kein E-Mail-Konto"
 
 #: public/js/frappe/views/inbox/inbox_view.js:196
 msgid "No Email Accounts Assigned"
-msgstr ""
+msgstr "Keine E-Mail-Konten zugewiesen"
 
 #: public/js/frappe/views/inbox/inbox_view.js:183
 msgid "No Emails"
@@ -20898,7 +20898,7 @@ msgstr "Kein LDAP-Benutzer für E-Mail gefunden: {0}"
 
 #: public/js/workflow_builder/store.js:51
 msgid "No Label"
-msgstr ""
+msgstr "Keine Bezeichnung"
 
 #: printing/page/print/print.js:675 printing/page/print/print.js:757
 #: public/js/frappe/list/bulk_operations.js:82
@@ -20912,7 +20912,7 @@ msgstr "Kein Name für {0} angegeben"
 
 #: public/js/frappe/ui/notifications/notifications.js:308
 msgid "No New notifications"
-msgstr ""
+msgstr "Keine neuen Benachrichtigungen"
 
 #: core/doctype/doctype/doctype.py:1678
 msgid "No Permissions Specified"
@@ -20932,11 +20932,11 @@ msgstr "Keine zulässigen Diagramme in diesem Dashboard"
 
 #: printing/doctype/print_settings/print_settings.js:13
 msgid "No Preview"
-msgstr ""
+msgstr "Keine Vorschau"
 
 #: printing/page/print/print.js:679
 msgid "No Preview Available"
-msgstr ""
+msgstr "Keine Vorschau verfügbar"
 
 #: printing/page/print/print.js:835
 msgid "No Printer is Available."
@@ -20944,7 +20944,7 @@ msgstr "Es ist kein Drucker verfügbar."
 
 #: core/doctype/rq_worker/rq_worker_list.js:3
 msgid "No RQ Workers connected. Try restarting the bench."
-msgstr ""
+msgstr "Keine RQ-Worker verbunden. Versuchen Sie, die Bench neu zu starten."
 
 #: public/js/frappe/form/link_selector.js:135
 msgid "No Results"
@@ -20968,15 +20968,15 @@ msgstr "Keine Schlagworte"
 
 #: public/js/frappe/ui/notifications/notifications.js:428
 msgid "No Upcoming Events"
-msgstr ""
+msgstr "Keine anstehenden Termine"
 
 #: desk/page/user_profile/user_profile_controller.js:441
 msgid "No activities to show"
-msgstr ""
+msgstr "Keine Aktivitäten anzuzeigen"
 
 #: public/js/frappe/form/templates/address_list.html:37
 msgid "No address added yet."
-msgstr ""
+msgstr "Noch keine Adresse hinzugefügt."
 
 #: email/doctype/notification/notification.js:180
 msgid "No alerts for today"
@@ -21016,7 +21016,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/contact_list.html:85
 msgid "No contacts added yet."
-msgstr ""
+msgstr "Noch keine Kontakte hinzugefügt."
 
 #: automation/doctype/auto_repeat/auto_repeat.py:427
 msgid "No contacts linked to document"
@@ -21040,11 +21040,11 @@ msgstr "Dem Benutzer ist kein E-Mail-Konto zugeordnet. Bitte fügen Sie unter Be
 
 #: core/doctype/data_import/data_import.js:484
 msgid "No failed logs"
-msgstr ""
+msgstr "Keine fehlgeschlagenen Protokolle"
 
 #: public/js/frappe/views/kanban/kanban_view.js:368
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
-msgstr ""
+msgstr "Keine Felder gefunden, die als Kanban-Spalte verwendet werden können. Verwenden Sie „Formular anpassen“, um ein benutzerdefiniertes Feld vom Typ \"Auswählen\" hinzuzufügen."
 
 #: utils/file_manager.py:143
 msgid "No file attached"
@@ -21052,11 +21052,11 @@ msgstr "Keine Datei angehängt"
 
 #: public/js/frappe/list/list_sidebar_group_by.js:134
 msgid "No filters found"
-msgstr ""
+msgstr "Keine Filter gefunden"
 
 #: public/js/frappe/ui/filters/filter_list.js:296
 msgid "No filters selected"
-msgstr ""
+msgstr "Kein Filter ausgewählt"
 
 #: desk/form/utils.py:101
 msgid "No further records"
@@ -21080,7 +21080,7 @@ msgstr "Keine neuen Google-Kontakte synchronisiert"
 
 #: public/js/frappe/ui/toolbar/navbar.html:41
 msgid "No new notifications"
-msgstr ""
+msgstr "Keine neuen Benachrichtigungen"
 
 #: printing/page/print_format_builder/print_format_builder.js:415
 msgid "No of Columns"
@@ -21131,7 +21131,7 @@ msgstr "Keine Datensätze in {0} vorhanden"
 
 #: public/js/frappe/list/list_sidebar_stat.html:3
 msgid "No records tagged."
-msgstr ""
+msgstr "Keine Datensätze getaggt."
 
 #: public/js/frappe/data_import/data_exporter.js:224
 msgid "No records will be exported"
@@ -21143,7 +21143,7 @@ msgstr "Keine Vorlage im Pfad: {0} gefunden"
 
 #: public/js/frappe/form/controls/multiselect_list.js:226
 msgid "No values to show"
-msgstr ""
+msgstr "Keine Werte anzuzeigen"
 
 #: website/web_template/discussions/discussions.html:2
 msgid "No {0}"
@@ -21151,11 +21151,11 @@ msgstr "Keine {0}"
 
 #: public/js/frappe/list/list_view_select.js:157
 msgid "No {0} Found"
-msgstr ""
+msgstr "Kein {0} gefunden"
 
 #: public/js/frappe/web_form/web_form_list.js:233
 msgid "No {0} found"
-msgstr ""
+msgstr "Kein {0} gefunden"
 
 #: public/js/frappe/list/list_view.js:466
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
@@ -21217,7 +21217,7 @@ msgstr "Nicht Erlaubt"
 
 #: templates/includes/login/login.js:260
 msgid "Not Allowed: Disabled User"
-msgstr ""
+msgstr "Nicht erlaubt: Deaktivierter Benutzer"
 
 #: public/js/frappe/ui/filters/filter.js:36
 msgid "Not Ancestors Of"
@@ -21329,7 +21329,7 @@ msgstr "Keine gültige Workflow-Aktion"
 
 #: templates/includes/login/login.js:256
 msgid "Not a valid user"
-msgstr ""
+msgstr "Kein gültiger Benutzer"
 
 #: workflow/doctype/workflow/workflow_list.js:7
 msgid "Not active"
@@ -21540,7 +21540,7 @@ msgstr "Benachrichtigungsdokument abonniert"
 
 #: public/js/frappe/form/templates/timeline_message_box.html:7
 msgid "Notification sent to"
-msgstr ""
+msgstr "Benachrichtigung gesendet an"
 
 #: public/js/frappe/ui/notifications/notifications.js:49
 #: public/js/frappe/ui/notifications/notifications.js:180
@@ -21555,7 +21555,7 @@ msgstr "Benachrichtigungen"
 
 #: public/js/frappe/ui/notifications/notifications.js:292
 msgid "Notifications Disabled"
-msgstr ""
+msgstr "Benachrichtigungen deaktiviert"
 
 #. Description of the 'Default Outgoing' (Check) field in DocType 'Email
 #. Account'
@@ -21802,7 +21802,7 @@ msgstr "OTP Secret wurde zurückgesetzt. Bei der Anmeldung ist eine erneute Anme
 
 #: templates/includes/login/login.js:363
 msgid "OTP setup using OTP App was not completed. Please contact Administrator."
-msgstr ""
+msgstr "Die OTP-Einrichtung mit der OTP-App wurde nicht abgeschlossen. Bitte kontaktieren Sie den Administrator."
 
 #. Option for the 'SSL/TLS Mode' (Select) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -21825,7 +21825,7 @@ msgstr "Office 365"
 
 #: core/doctype/server_script/server_script.js:33
 msgid "Official Documentation"
-msgstr ""
+msgstr "Offizielle Dokumentation"
 
 #. Label of a Int field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -21871,13 +21871,13 @@ msgstr "Bei Zahlungsautorisierung"
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "On Payment Failed"
-msgstr ""
+msgstr "Bei fehlgeschlagener Zahlung"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "On Payment Paid"
-msgstr ""
+msgstr "Bei erfolgreicher Zahlung"
 
 #. Description of the 'Is Dynamic URL?' (Check) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -21887,7 +21887,7 @@ msgstr "Beim Aktivieren dieser Option wird die URL wie eine Jinja-Vorlage behand
 
 #: public/js/frappe/views/communication.js:893
 msgid "On {0}, {1} wrote:"
-msgstr ""
+msgstr "Am {0}, schrieb {1}:"
 
 #. Label of a Check field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
@@ -21938,7 +21938,7 @@ msgstr "Einmal eingereichte Dokumente können nicht mehr geändert werden. Sie k
 
 #: core/page/permission_manager/permission_manager_help.html:35
 msgid "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
-msgstr ""
+msgstr "Sobald Sie dies festgelegt haben, können die Benutzer nur noch auf solche Dokumente (z.B. vom Typ Blog Post) zugreifen, die mit dem erlaubten Dokument (z.B. Blogger) verknüpft sind."
 
 #: www/complete_signup.html:7
 msgid "One Last Step"
@@ -22052,7 +22052,7 @@ msgstr "Pro Benutzer sind nur {0} per E-Mail versandte Berichte erlaubt."
 
 #: templates/includes/login/login.js:292
 msgid "Oops! Something went wrong."
-msgstr ""
+msgstr "Hoppla! Etwas ist schief gelaufen."
 
 #: core/doctype/deleted_document/deleted_document.js:7
 msgid "Open"
@@ -22100,7 +22100,7 @@ msgstr "Öffnen Sie die Awesomebar"
 
 #: public/js/frappe/form/templates/timeline_message_box.html:67
 msgid "Open Communication"
-msgstr ""
+msgstr "Kommunikation öffnen"
 
 #: templates/emails/new_notification.html:10
 msgid "Open Document"
@@ -30460,7 +30460,7 @@ msgid "Start Import"
 msgstr "Starten Sie den Import"
 
 #: core/doctype/recorder/recorder_list.js:201
-msgid "Start Recordig"
+msgid "Start Recording"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'RQ Worker'
@@ -37285,13 +37285,13 @@ msgstr "TT/MM/JJJJ"
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "default"
-msgstr ""
+msgstr "standard"
 
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "default"
-msgstr ""
+msgstr "standard"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -37703,7 +37703,7 @@ msgstr "gerade eben"
 
 #: desk/desktop.py:255 desk/query_report.py:277
 msgid "label"
-msgstr ""
+msgstr "bezeichnung"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38078,7 +38078,7 @@ msgstr "Fragezeichen"
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "queued"
-msgstr ""
+msgstr "warteschlange"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38142,7 +38142,7 @@ msgstr "wiederholen"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "report"
-msgstr ""
+msgstr "bericht"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json

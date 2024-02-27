@@ -544,7 +544,7 @@ class BaseDocument:
 
 		if not self.creation:
 			self.creation = self.modified = now()
-			self.created_by = self.modified_by = frappe.session.user
+			self.owner = self.modified_by = frappe.session.user
 
 		# if doctype is "DocType", don't insert null values as we don't know who is valid yet
 		d = self.get_valid_dict(
@@ -689,7 +689,7 @@ class BaseDocument:
 		"""
 		df = self.meta.get_field(fieldname)
 		if df:
-			return df.label
+			return _(df.label) if df.label else None
 
 	def update_modified(self):
 		"""Update modified timestamp"""
