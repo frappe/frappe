@@ -552,8 +552,8 @@ class FormTimeline extends BaseTimeline {
 			}
 			if (reply_all) {
 				// if reply_all then add cc and bcc as well.
-				args.cc += communication_doc.cc;
-				args.bcc = communication_doc.bcc;
+				args.cc += cstr(communication_doc.cc);
+				args.bcc = cstr(communication_doc.bcc);
 			}
 		}
 
