@@ -22,6 +22,7 @@ from frappe import _, safe_decode, safe_encode
 from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.core.doctype.file.utils import get_random_filename
 from frappe.email.oauth import Oauth
+from frappe.email.utils import ImapUtf7, decode_sequence
 from frappe.utils import (
 	add_days,
 	cint,
@@ -38,7 +39,6 @@ from frappe.utils import (
 )
 from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
-from frappe.email.utils import (decode_sequence, ImapUtf7)
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 1_00_000
@@ -152,7 +152,7 @@ class EmailServer:
 				raise
 
 	def folder_encode(self, folder):
-		# It is not yet known whether the folder name with quotes is passed to the method or not. 
+		# It is not yet known whether the folder name with quotes is passed to the method or not.
 		# To select or get status a imap folder, you must send the name with quotes & encode for support in codings other than utf-8
 		if folder[0] == folder[-1] == '"':
 			folder = folder[1:-1]
@@ -609,7 +609,7 @@ class InboundMail(Email):
 		communication = self.is_exist_in_system()
 		if communication:
 			communication.update_db(uid=self.uid)
-			communication.update_db(email_account=self.email_account.email_account_name) #IgorA100
+			communication.update_db(email_account=self.email_account.email_account_name)  # IgorA100
 			communication.reload()
 			return communication
 

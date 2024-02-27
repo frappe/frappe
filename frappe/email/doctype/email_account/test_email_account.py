@@ -636,13 +636,17 @@ class TestInboundMail(FrappeTestCase):
 		communication = inbound_mail.process()
 		self.assertTrue(communication._attachments)
 
-
 	def test_decode_header(self):
 		from base64 import b64encode
-		subject = "=?unknown-8bit?B?xO7h8PvpIOTl7fwuINDl4eXt6vMg7fPm7eAg4uD44CDv7uzu+fwh?=" + " стол & table 😃 " + "=?UTF-8?B?8J+OgyAtIDgwJSDQpdGN0LvQu9C+0YPQuNC9INC90LA=?= VPN Monster!\n =?UTF-8?B?8J+Ogw==?=" + "=?UTF-8?B?Tm91dmVsbGUgdMOiY2hlIMOgIGZhaXJlIPCfmIMg44GN44Gn44GZ44GLINC60L7Qt9CwIM6SzrnOss67zq/OvyDOlOKAmSBuZ8awxqHMgGkgxJHDqsyAdQ==?="
-		mail_content = (
-			self.get_test_mail(fname="incoming-subject-placeholder.raw")
-			.replace("{{ subject }}", f"Re: {subject}")
+
+		subject = (
+			"=?unknown-8bit?B?xO7h8PvpIOTl7fwuINDl4eXt6vMg7fPm7eAg4uD44CDv7uzu+fwh?="
+			+ " стол & table 😃 "
+			+ "=?UTF-8?B?8J+OgyAtIDgwJSDQpdGN0LvQu9C+0YPQuNC9INC90LA=?= VPN Monster!\n =?UTF-8?B?8J+Ogw==?="
+			+ "=?UTF-8?B?Tm91dmVsbGUgdMOiY2hlIMOgIGZhaXJlIPCfmIMg44GN44Gn44GZ44GLINC60L7Qt9CwIM6SzrnOss67zq/OvyDOlOKAmSBuZ8awxqHMgGkgxJHDqsyAdQ==?="
+		)
+		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
+			"{{ subject }}", f"Re: {subject}"
 		)
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 1234567, 1, "ToDo")
