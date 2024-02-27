@@ -279,6 +279,52 @@ class TestMethodAPI(FrappeAPITestCase):
 
 		authorization_token = None
 
+<<<<<<< HEAD
+=======
+	def test_404s(self):
+		response = self.get(self.get_path("rest"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 404)
+		response = self.get(self.resource_path("User", "NonExistent@s.com"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 404)
+
+	def test_logs(self):
+		method = "frappe.tests.test_api.test"
+
+		def get_message(resp, msg_type):
+			return frappe.parse_json(frappe.parse_json(frappe.parse_json(resp.json)[msg_type])[0])
+
+		expected_message = "Failed"
+		response = self.get(self.method_path(method), {"sid": self.sid, "message": expected_message})
+		self.assertEqual(get_message(response, "_server_messages").message, expected_message)
+
+		# Cause handled failured
+		with suppress_stdout():
+			response = self.get(
+				self.method_path(method), {"sid": self.sid, "message": expected_message, "fail": True}
+			)
+		self.assertEqual(get_message(response, "_server_messages").message, expected_message)
+		self.assertEqual(response.json["exc_type"], "ValidationError")
+		self.assertIn("Traceback", response.json["exc"])
+
+		# Cause handled failured
+		with suppress_stdout():
+			response = self.get(
+				self.method_path(method),
+				{"sid": self.sid, "message": expected_message, "fail": True, "handled": False},
+			)
+		self.assertNotIn("_server_messages", response.json)
+		self.assertIn("ZeroDivisionError", response.json["exception"])  # WHY?
+		self.assertIn("Traceback", response.json["exc"])
+
+	def test_array_response(self):
+		method = "frappe.tests.test_api.test_array"
+
+		test_data = list(range(5))
+		response = self.post(self.method_path(method), test_data)
+
+		self.assertEqual(response.json["message"], test_data)
+
+>>>>>>> bb7c3c289c (feat: support array request type (#25109))
 
 class TestReadOnlyMode(FrappeAPITestCase):
 	"""During migration if read only mode can be enabled.
@@ -402,3 +448,29 @@ class TestResponse(FrappeAPITestCase):
 
 		self.assertEqual(self.get(file.unique_url, {"sid": self.sid}).text, test_content)
 		self.assertEqual(self.get(file.file_url, {"sid": self.sid}).text, test_content)
+<<<<<<< HEAD
+=======
+
+
+def generate_admin_keys():
+	from frappe.core.doctype.user.user import generate_keys
+
+	generate_keys("Administrator")
+	frappe.db.commit()
+
+
+@frappe.whitelist()
+def test(*, fail=False, handled=True, message="Failed"):
+	if fail:
+		if handled:
+			frappe.throw(message)
+		else:
+			1 / 0
+	else:
+		frappe.msgprint(message)
+
+
+@frappe.whitelist(allow_guest=True)
+def test_array(data):
+	return data
+>>>>>>> bb7c3c289c (feat: support array request type (#25109))
