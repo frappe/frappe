@@ -319,7 +319,7 @@ class TestNaming(FrappeTestCase):
 	def test_naming_series_validation(self):
 		dns = frappe.get_doc("Document Naming Settings")
 		existing_series = dns.get_transactions_and_prefixes()["prefixes"]
-		valid = ["SINV-", "SI-.{field}.", "SI-#.###", ""] + existing_series
+		valid = ["SINV-", "SI-.{field}.", "SI-#.###", "", *existing_series]
 		invalid = ["$INV-", r"WINDOWS\NAMING"]
 
 		for series in valid:

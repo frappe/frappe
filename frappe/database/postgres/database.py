@@ -342,7 +342,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			and indexname='{index_name}' limit 1"""
 		)
 
-	def add_index(self, doctype: str, fields: list, index_name: str = None):
+	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		table_name = get_table_name(doctype)

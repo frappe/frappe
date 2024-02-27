@@ -393,20 +393,22 @@ frappe.views.BaseList = class BaseList {
 			.find(`.btn-paging[data-value="${this.page_length}"]`)
 			.addClass("btn-info");
 
-		this.$paging_area.on("click", ".btn-paging, .btn-more", (e) => {
+		this.$paging_area.on("click", ".btn-paging", (e) => {
 			const $this = $(e.currentTarget);
 
-			if ($this.is(".btn-paging")) {
-				// set active button
-				this.$paging_area.find(".btn-paging").removeClass("btn-info");
-				$this.addClass("btn-info");
+			// set active button
+			this.$paging_area.find(".btn-paging").removeClass("btn-info");
+			$this.addClass("btn-info");
 
-				this.start = 0;
-				this.page_length = this.selected_page_count = $this.data().value;
-			} else if ($this.is(".btn-more")) {
-				this.start = this.start + this.page_length;
-				this.page_length = this.selected_page_count || 20;
-			}
+			this.start = 0;
+			this.page_length = this.selected_page_count = $this.data().value;
+
+			this.refresh();
+		});
+
+		this.$paging_area.on("click", ".btn-more", (e) => {
+			this.start += this.page_length;
+			this.page_length = this.selected_page_count || 20;
 			this.refresh();
 		});
 	}
@@ -808,7 +810,7 @@ class FilterArea {
 
 					return {
 						fieldtype: fieldtype,
-						label: __(df.label),
+						label: __(df.label, null, df.parent),
 						options: options,
 						fieldname: df.fieldname,
 						condition: condition,

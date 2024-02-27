@@ -10,7 +10,6 @@ import zipfile
 from urllib.parse import quote, unquote
 
 from PIL import Image, ImageFile, ImageOps
-from requests.exceptions import HTTPError, SSLError
 
 import frappe
 from frappe import _
@@ -428,6 +427,8 @@ class File(Document):
 		suffix: str = "small",
 		crop: bool = False,
 	) -> str:
+		from requests.exceptions import HTTPError, SSLError
+
 		if not self.file_url:
 			return
 
@@ -812,7 +813,7 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 	return False
 
 
-def get_permission_query_conditions(user: str = None) -> str:
+def get_permission_query_conditions(user: str | None = None) -> str:
 	user = user or frappe.session.user
 	if user == "Administrator":
 		return ""

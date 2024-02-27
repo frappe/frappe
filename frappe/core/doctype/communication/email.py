@@ -263,7 +263,7 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 
 
 @frappe.whitelist(allow_guest=True, methods=("GET",))
-def mark_email_as_seen(name: str = None):
+def mark_email_as_seen(name: str | None = None):
 	frappe.request.after_response.add(lambda: _mark_email_as_seen(name))
 	frappe.response.update(frappe.utils.get_imaginary_pixel_response())
 

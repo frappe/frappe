@@ -223,7 +223,7 @@ class LoginManager:
 
 		clear_sessions(frappe.session.user, keep_current=True)
 
-	def authenticate(self, user: str = None, pwd: str = None):
+	def authenticate(self, user: str | None = None, pwd: str | None = None):
 		from frappe.core.doctype.user.user import User
 
 		if not (user and pwd):
@@ -325,6 +325,12 @@ class LoginManager:
 	def login_as(self, user):
 		self.user = user
 		self.post_login()
+
+	def impersonate(self, user):
+		current_user = frappe.session.user
+		self.login_as(user)
+		# Flag this session as impersonated session, so other code can log this.
+		frappe.local.session_obj.set_impersonsated(current_user)
 
 	def logout(self, arg="", user=None):
 		if not user:
@@ -483,7 +489,7 @@ class LoginAttemptTracker:
 		max_consecutive_login_attempts: int = 3,
 		lock_interval: int = 5 * 60,
 		*,
-		user_name: str = None,
+		user_name: str | None = None,
 	):
 		"""Initialize the tracker.
 

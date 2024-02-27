@@ -419,7 +419,7 @@ def get_workspace_sidebar_items():
 	blocked_modules.append("Dummy Module")
 
 	# adding None to allowed_domains to include pages without domain restriction
-	allowed_domains = [None] + frappe.get_active_domains()
+	allowed_domains = [None, *frappe.get_active_domains()]
 
 	filters = {
 		"restrict_to_domain": ["in", allowed_domains],

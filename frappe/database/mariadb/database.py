@@ -219,7 +219,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 
 	@staticmethod
 	def escape(s, percent=True):
-		"""Excape quotes and percent in given string."""
+		"""Escape quotes and percent in given string."""
 		# Update: We've scrapped PyMySQL in favour of MariaDB's official Python client
 		# Also, given we're promoting use of the PyPika builder via frappe.qb, the use
 		# of this method should be limited.
@@ -393,7 +393,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			if not clustered_index:
 				return index
 
-	def add_index(self, doctype: str, fields: list, index_name: str = None):
+	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		index_name = index_name or self.get_index_name(fields)

@@ -10,7 +10,7 @@ import traceback
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
@@ -57,10 +57,10 @@ class Database:
 	VARCHAR_LEN = 140
 	MAX_COLUMN_LENGTH = 64
 
-	OPTIONAL_COLUMNS = ["_user_tags", "_comments", "_assign", "_liked_by"]
-	DEFAULT_SHORTCUTS = ["_Login", "__user", "_Full Name", "Today", "__today", "now", "Now"]
+	OPTIONAL_COLUMNS = ("_user_tags", "_comments", "_assign", "_liked_by")
+	DEFAULT_SHORTCUTS = ("_Login", "__user", "_Full Name", "Today", "__today", "now", "Now")
 	STANDARD_VARCHAR_COLUMNS = ("name", "owner", "modified_by")
-	DEFAULT_COLUMNS = ["name", "creation", "modified", "modified_by", "owner", "docstatus", "idx"]
+	DEFAULT_COLUMNS = ("name", "creation", "modified", "modified_by", "owner", "docstatus", "idx")
 	CHILD_TABLE_COLUMNS = ("parent", "parenttype", "parentfield")
 	MAX_WRITES_PER_TRANSACTION = 200_000
 
@@ -688,16 +688,18 @@ class Database:
 
 			if not run:
 				return r
-			if as_dict:
-				if r:
-					r = frappe._dict(r)
-					if update:
-						r.update(update)
-					return [r]
-				else:
-					return []
-			else:
-				return r and [[i[1] for i in r]] or []
+
+			if not r:
+				return []
+
+			r = frappe._dict(r)
+			if update:
+				r.update(update)
+
+			if not as_dict:
+				return [[r.get(field) for field in fields]]
+
+			return [r]
 
 	def get_singles_dict(self, doctype, debug=False, *, for_update=False, cast=False):
 		"""Get Single DocType as dict.
@@ -1129,7 +1131,7 @@ class Database:
 		return getdate(date).strftime("%Y-%m-%d")
 
 	@staticmethod
-	def format_datetime(datetime):  # noqa: F811
+	def format_datetime(datetime):
 		if not datetime:
 			return FallBackDateTimeStr
 
@@ -1206,7 +1208,7 @@ class Database:
 
 	@staticmethod
 	def escape(s, percent=True):
-		"""Excape quotes and percent in given string."""
+		"""Escape quotes and percent in given string."""
 		# implemented in specific class
 		raise NotImplementedError
 
@@ -1232,7 +1234,7 @@ class Database:
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype: str, filters: dict | list = None, debug=False, **kwargs):
+	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):
 		"""Delete rows from a table in site which match the passed filters. This
 		does trigger DocType hooks. Simply runs a DELETE query in the database.
 

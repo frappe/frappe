@@ -47,7 +47,7 @@ def get_dynamic_link_map(for_delete=False):
 					)
 					for doctype in links:
 						dynamic_link_map.setdefault(doctype, []).append(df)
-				except frappe.db.TableMissingError:  # noqa: E722
+				except frappe.db.TableMissingError:
 					pass
 
 		frappe.local.dynamic_link_map = dynamic_link_map
