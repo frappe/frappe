@@ -49,14 +49,19 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Reference Document Type",
-   "options": "DocType"
+   "options": "DocType",
+   "search_index": 1
   },
   {
    "depends_on": "eval:doc.script_type==='DocType Event'",
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
+<<<<<<< HEAD
    "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)\nOn Payment Authorization"
+=======
+   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Rename\nAfter Rename\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)\nOn Payment Authorization\nOn Payment Paid\nOn Payment Failed"
+>>>>>>> 911846368f (feat: Add doc rename hook in server script (#25085))
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -106,7 +111,8 @@
    "fieldname": "module",
    "fieldtype": "Link",
    "label": "Module (for export)",
-   "options": "Module Def"
+   "options": "Module Def",
+   "search_index": 1
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -149,7 +155,11 @@
    "link_fieldname": "server_script"
   }
  ],
+<<<<<<< HEAD
  "modified": "2023-10-14 11:24:46.478533",
+=======
+ "modified": "2024-02-27 11:44:46.397495",
+>>>>>>> 911846368f (feat: Add doc rename hook in server script (#25085))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
