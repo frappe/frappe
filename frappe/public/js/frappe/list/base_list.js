@@ -371,7 +371,7 @@ frappe.views.BaseList = class BaseList {
 						${paging_values
 							.map(
 								(value) => `
-							<button type="button" class="btn btn-default btn-sm btn-paging"
+							<button type="button" class="btn btn-default btn-sm btn-info btn-paging"
 								data-value="${value}">
 								${value}
 							</button>
@@ -392,15 +392,16 @@ frappe.views.BaseList = class BaseList {
 		// set default paging btn active
 		this.$paging_area
 			.find(`.btn-paging[data-value="${this.page_length}"]`)
-			.addClass("btn-info");
+			.prop("disabled", true);
 
 		this.$paging_area.on("click", ".btn-paging", (e) => {
 			const $this = $(e.currentTarget);
+
 			// Set the active button
 			// This is always necessary because the current page length might
 			// have resulted from a previous "load more".
-			this.$paging_area.find(".btn-paging").removeClass("btn-info");
-			$this.addClass("btn-info");
+			this.$paging_area.find(".btn-paging").prop("disabled", false);
+			$this.prop("disabled", true);
 
 			const old_page_length = this.page_length;
 			const new_page_length = $this.data().value;
