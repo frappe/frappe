@@ -788,10 +788,16 @@ def on_doctype_update():
 def has_permission(doc, ptype=None, user=None, debug=False):
 	user = user or frappe.session.user
 
+	if user == "Administrator":
+		return True
+
 	if ptype == "create":
 		return frappe.has_permission("File", "create", user=user, debug=debug)
 
-	if not doc.is_private or (user != "Guest" and doc.owner == user) or user == "Administrator":
+	if not doc.is_private and ptype in ("read", "select"):
+		return True
+
+	if user != "Guest" and doc.owner == user:
 		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
