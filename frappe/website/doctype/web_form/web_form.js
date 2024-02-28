@@ -24,9 +24,6 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	refresh: function (frm) {
-		// show is-standard only if developer mode
-		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
-
 		if (frm.doc.is_standard && !frappe.boot.developer_mode) {
 			frm.disable_form();
 			frappe.show_alert(
