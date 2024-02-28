@@ -1597,6 +1597,9 @@ def validate_fields(meta: Meta):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
 
 	def check_fetch_from(docfield):
+		if not frappe.request:
+			return
+
 		fetch_from = docfield.fetch_from
 		fieldname = docfield.fieldname
 		if not fetch_from:
