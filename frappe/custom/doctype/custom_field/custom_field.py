@@ -110,6 +110,7 @@ class CustomField(Document):
 		report_hide: DF.Check
 		reqd: DF.Check
 		search_index: DF.Check
+		show_dashboard: DF.Check
 		sort_options: DF.Check
 		translatable: DF.Check
 		unique: DF.Check

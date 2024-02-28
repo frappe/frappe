@@ -54,7 +54,7 @@ def parse_date(date):
 		date = date.split(" ", 1)[0]
 
 	# why the sorting? checking should be done in a predictable order
-	check_formats = [None] + sorted(list(dateformats), reverse=not get_user_date_format().startswith("dd"))
+	check_formats = [None, *sorted(list(dateformats), reverse=not get_user_date_format().startswith("dd"))]
 
 	for f in check_formats:
 		try:

@@ -110,6 +110,7 @@ select = [
     "I",
     "UP",
     "B",
+    "RUF",
 ]
 ignore = [
     "B017", # assertRaises(Exception) - should be more specific
@@ -126,6 +127,7 @@ ignore = [
     "F722", # syntax error in forward type annotation
     "F821", # undefined name
     "W191", # indentation contains tabs
+    "RUF001", # string contains ambiguous unicode character
 ]
 
 [tool.ruff.format]

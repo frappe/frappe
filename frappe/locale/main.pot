@@ -30284,7 +30284,7 @@ msgid "Start Import"
 msgstr ""
 
 #: core/doctype/recorder/recorder_list.js:201
-msgid "Start Recordig"
+msgid "Start Recording"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'RQ Worker'

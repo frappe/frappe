@@ -1,10 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import base64
 import contextlib
 import io
+import mimetypes
 import os
 import re
 import subprocess
+from urllib.parse import parse_qs, urlparse
 
 import pdfkit
 from bs4 import BeautifulSoup
@@ -13,6 +16,7 @@ from pypdf import PdfReader, PdfWriter
 
 import frappe
 from frappe import _
+from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.utils import scrub_urls
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
@@ -157,6 +161,7 @@ def prepare_options(html, options):
 
 	# cookies
 	options.update(get_cookie_options())
+	html = inline_private_images(html)
 
 	# page size
 	pdf_page_size = (
@@ -222,6 +227,34 @@ def read_options_from_html(html):
 			pass
 
 	return str(soup), options
+
+
+def inline_private_images(html) -> str:
+	soup = BeautifulSoup(html, "html.parser")
+	for img in soup.find_all("img"):
+		if b64 := _get_base64_image(img["src"]):
+			img["src"] = b64
+	return str(soup)
+
+
+def _get_base64_image(src):
+	"""Return base64 version of image if user has permission to view it"""
+	try:
+		parsed_url = urlparse(src)
+		path = parsed_url.path
+		query = parse_qs(parsed_url.query)
+		mime_type = mimetypes.guess_type(path)[0]
+		if not mime_type.startswith("image/"):
+			return
+		filename = query.get("fid") and query["fid"][0] or None
+		file = find_file_by_url(path, name=filename)
+		if not file or not file.is_private:
+			return
+
+		b64_encoded_image = base64.b64encode(file.get_content()).decode()
+		return f"data:{mime_type};base64,{b64_encoded_image}"
+	except Exception:
+		frappe.logger("pdf").error("Failed to convert inline images to base64", exc_info=True)
 
 
 def prepare_header_footer(soup: BeautifulSoup):

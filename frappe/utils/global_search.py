@@ -397,7 +397,7 @@ def sync_values(values: list):
 	GlobalSearch = frappe.qb.Table("__global_search")
 	conflict_fields = ["content", "published", "title", "route"]
 
-	query = frappe.qb.into(GlobalSearch).columns(["doctype", "name"] + conflict_fields).insert(*values)
+	query = frappe.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*values)
 
 	if frappe.db.db_type == "postgres":
 		query = query.on_conflict(GlobalSearch.doctype, GlobalSearch.name)
