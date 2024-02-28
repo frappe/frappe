@@ -1,0 +1,100 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-02-23 13:12:36.222147",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "task_id",
+  "status",
+  "user",
+  "method",
+  "result",
+  "success_callback",
+  "failure_callback",
+  "stopped_callback"
+ ],
+ "fields": [
+  {
+   "fieldname": "task_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Task ID",
+   "not_nullable": 1,
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Queued\nIn Progress\nCompleted\nFailed\nStopped",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "result",
+   "fieldtype": "Code",
+   "label": "Result",
+   "read_only": 1
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "label": "Method",
+   "read_only": 1
+  },
+  {
+   "fieldname": "success_callback",
+   "fieldtype": "Code",
+   "label": "Success Callback",
+   "read_only": 1
+  },
+  {
+   "fieldname": "failure_callback",
+   "fieldtype": "Code",
+   "label": "Failure Callback",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stopped_callback",
+   "fieldtype": "Code",
+   "label": "Stopped Callback",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-02-27 13:52:49.741902",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Background Task",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
