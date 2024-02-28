@@ -2089,24 +2089,27 @@ def get_print(
 	:param as_pdf: Return as PDF. Default False.
 	:param password: Password to encrypt the pdf with. Default None"""
 	from frappe.utils.pdf import get_pdf
-	from frappe.website.serve import get_response_content
+	from frappe.website.serve import get_response_without_exception_handling
 
 	original_form_dict = copy.deepcopy(local.form_dict)
+	try:
+		local.form_dict.doctype = doctype
+		local.form_dict.name = name
+		local.form_dict.format = print_format
+		local.form_dict.style = style
+		local.form_dict.doc = doc
+		local.form_dict.no_letterhead = no_letterhead
+		local.form_dict.letterhead = letterhead
 
-	local.form_dict.doctype = doctype
-	local.form_dict.name = name
-	local.form_dict.format = print_format
-	local.form_dict.style = style
-	local.form_dict.doc = doc
-	local.form_dict.no_letterhead = no_letterhead
-	local.form_dict.letterhead = letterhead
+		pdf_options = pdf_options or {}
+		if password:
+			pdf_options["password"] = password
 
-	pdf_options = pdf_options or {}
-	if password:
-		pdf_options["password"] = password
+		response = get_response_without_exception_handling("printview", 200)
+		html = str(response.data, "utf-8")
+	finally:
+		local.form_dict = original_form_dict
 
-	html = get_response_content("printview")
-	local.form_dict = original_form_dict
 	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
