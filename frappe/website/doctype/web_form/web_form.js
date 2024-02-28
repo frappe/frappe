@@ -28,8 +28,10 @@ frappe.ui.form.on("Web Form", {
 		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
 
 		if (frm.doc.is_standard && !frappe.boot.developer_mode) {
-			frm.set_read_only();
-			frm.disable_save();
+			frm.disable_form();
+			frappe.show_alert(
+				__("Standard Web Forms can not be modified, duplicate the Web Form instead.")
+			);
 		}
 		render_list_settings_message(frm);
 
