@@ -87,7 +87,7 @@ class DocTags:
 	def add(self, dn, tag):
 		"""add a new user tag"""
 		tl = self.get_tags(dn).split(",")
-		if not tag in tl:
+		if tag not in tl:
 			tl.append(tag)
 			if not frappe.db.exists("Tag", tag):
 				frappe.get_doc({"doctype": "Tag", "name": tag}).insert(ignore_permissions=True)

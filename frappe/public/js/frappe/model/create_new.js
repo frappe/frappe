@@ -151,10 +151,6 @@ $.extend(frappe.model, {
 			df.ignore_user_permissions != 1 &&
 			allowed_records.length;
 
-		if (frappe.model.table_fields.includes(df.fieldtype)) {
-			value = [];
-		}
-
 		// don't set defaults for "User" link field using User Permissions!
 		if (df.fieldtype === "Link" && df.options !== "User") {
 			// If user permission has Is Default enabled or single-user permission has found against respective doctype.
@@ -230,6 +226,10 @@ $.extend(frappe.model, {
 			}
 		} else if (df.fieldtype == "Time") {
 			value = frappe.datetime.now_time();
+		}
+
+		if (frappe.model.table_fields.includes(df.fieldtype)) {
+			value = [];
 		}
 
 		// set it here so we know it was set as a default

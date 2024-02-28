@@ -88,7 +88,7 @@ class RateLimiter:
 
 
 def rate_limit(
-	key: str = None,
+	key: str | None = None,
 	limit: int | Callable = 5,
 	seconds: int = 24 * 60 * 60,
 	methods: str | list = "ALL",

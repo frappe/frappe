@@ -1221,7 +1221,7 @@ Object.assign(frappe.utils, {
 					? "es-icon es-solid"
 					: "es-icon es-line"
 				: "icon"
-		} ${svg_class} ${size_class}" style="${icon_style}">
+		} ${svg_class} ${size_class}" style="${icon_style}" aria-hidden="true">
 			<use class="${icon_class}" href="${icon_name}"></use>
 		</svg>`;
 	},
@@ -1580,7 +1580,7 @@ Object.assign(frappe.utils, {
 	only_allow_num_decimal(input) {
 		input.on("input", (e) => {
 			let self = $(e.target);
-			self.val(self.val().replace(/[^0-9.]/g, ""));
+			self.val(self.val().replace(/[^0-9.\-]/g, ""));
 			if (
 				(e.which != 46 || self.val().indexOf(".") != -1) &&
 				(e.which < 48 || e.which > 57)

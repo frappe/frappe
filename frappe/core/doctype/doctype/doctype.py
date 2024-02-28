@@ -288,7 +288,7 @@ class DocType(Document):
 		if not [d.fieldname for d in self.fields if d.in_list_view]:
 			cnt = 0
 			for d in self.fields:
-				if d.reqd and not d.hidden and not d.fieldtype in not_allowed_in_list_view:
+				if d.reqd and not d.hidden and d.fieldtype not in not_allowed_in_list_view:
 					d.in_list_view = 1
 					cnt += 1
 					if cnt == 4:
@@ -355,6 +355,8 @@ class DocType(Document):
 			for df in new_fields_to_fetch:
 				if df.fieldname not in old_fields_to_fetch:
 					link_fieldname, source_fieldname = df.fetch_from.split(".", 1)
+					if not source_fieldname:
+						continue  # Invalid expression
 					link_df = new_meta.get_field(link_fieldname)
 
 					if frappe.db.db_type == "postgres":
@@ -403,7 +405,7 @@ class DocType(Document):
 
 		if self.has_web_view:
 			# route field must be present
-			if not "route" in [d.fieldname for d in self.fields]:
+			if "route" not in [d.fieldname for d in self.fields]:
 				frappe.throw(_('Field "route" is mandatory for Web Views'), title="Missing Field")
 
 			# clear website cache
@@ -1180,7 +1182,7 @@ def validate_fields_for_doctype(doctype):
 
 
 # this is separate because it is also called via custom field
-def validate_fields(meta):
+def validate_fields(meta: Meta):
 	"""Validate doctype fields. Checks
 	1. There are no illegal characters in fieldnames
 	2. If fieldnames are unique.
@@ -1238,7 +1240,7 @@ def validate_fields(meta):
 		if frappe.flags.in_patch or frappe.flags.in_fixtures:
 			return
 
-		if d.fieldtype in ("Link",) + table_fields:
+		if d.fieldtype in ("Link", *table_fields):
 			if not d.options:
 				frappe.throw(
 					_("{0}: Options required for Link or Table type field {1} in row {2}").format(
@@ -1356,11 +1358,9 @@ def validate_fields(meta):
 
 			if not d.get("__islocal") and frappe.db.has_column(d.parent, d.fieldname):
 				has_non_unique_values = frappe.db.sql(
-					"""select `{fieldname}`, count(*)
-					from `tab{doctype}` where ifnull(`{fieldname}`, '') != ''
-					group by `{fieldname}` having count(*) > 1 limit 1""".format(
-						doctype=d.parent, fieldname=d.fieldname
-					)
+					f"""select `{d.fieldname}`, count(*)
+					from `tab{d.parent}` where ifnull(`{d.fieldname}`, '') != ''
+					group by `{d.fieldname}` having count(*) > 1 limit 1"""
 				)
 
 				if has_non_unique_values and has_non_unique_values[0][0]:
@@ -1534,7 +1534,7 @@ def validate_fields(meta):
 			field.options = "\n".join(options_list)
 
 	def scrub_fetch_from(field):
-		if hasattr(field, "fetch_from") and getattr(field, "fetch_from"):
+		if hasattr(field, "fetch_from") and field.fetch_from:
 			field.fetch_from = field.fetch_from.strip("\n").strip()
 
 	def validate_data_field_type(docfield):
@@ -1589,6 +1589,44 @@ def validate_fields(meta):
 			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
 
+	def check_fetch_from(docfield):
+		fetch_from = docfield.fetch_from
+		fieldname = docfield.fieldname
+		if not fetch_from:
+			return
+
+		if "." not in fetch_from:
+			frappe.throw(
+				_("Fetch From syntax for field {0} is invalid. `.` dot missing: {1}").format(
+					frappe.bold(fieldname), frappe.bold(fetch_from)
+				)
+			)
+		link_fieldname, source_fieldname = docfield.fetch_from.split(".", 1)
+		if not link_fieldname or not source_fieldname:
+			frappe.throw(
+				_(
+					"Fetch From syntax for field {0} is invalid: {1}. Fetch From should be in form of 'link_fieldname.source_fieldname'"
+				).format(frappe.bold(fieldname), frappe.bold(fetch_from))
+			)
+
+		link_df = meta.get("fields", {"fieldname": link_fieldname, "fieldtype": "Link"})
+		if not link_df:
+			frappe.throw(
+				_("Fetch From for field {0} is invalid: {1}. Link field {2} not found.").format(
+					frappe.bold(fieldname), frappe.bold(fetch_from), frappe.bold(link_fieldname)
+				)
+			)
+
+		doctype = link_df[0].options
+		fetch_from_doctype = frappe.get_meta(doctype)
+
+		if not fetch_from_doctype.get_field(source_fieldname):
+			frappe.throw(
+				_("Fetch From for field {0} is invalid: {1} does not have a field {2}").format(
+					frappe.bold(fieldname), frappe.bold(doctype), frappe.bold(source_fieldname)
+				)
+			)
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1624,6 +1662,7 @@ def validate_fields(meta):
 			check_child_table_option(d)
 			check_max_height(d)
 			check_no_of_ratings(d)
+			check_fetch_from(d)
 
 	if not frappe.flags.in_migrate:
 		check_fold(fields)
@@ -1819,7 +1858,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 				r.desk_access = 1
 				r.flags.ignore_mandatory = r.flags.ignore_permissions = True
 				r.insert()
-	except frappe.DoesNotExistError as e:
+	except frappe.DoesNotExistError:
 		pass
 	except frappe.db.ProgrammingError as e:
 		if frappe.db.is_table_missing(e):

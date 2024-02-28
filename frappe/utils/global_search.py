@@ -397,7 +397,7 @@ def sync_values(values: list):
 	GlobalSearch = frappe.qb.Table("__global_search")
 	conflict_fields = ["content", "published", "title", "route"]
 
-	query = frappe.qb.into(GlobalSearch).columns(["doctype", "name"] + conflict_fields).insert(*values)
+	query = frappe.qb.into(GlobalSearch).columns(["doctype", "name", *conflict_fields]).insert(*values)
 
 	if frappe.db.db_type == "postgres":
 		query = query.on_conflict(GlobalSearch.doctype, GlobalSearch.name)
@@ -511,7 +511,7 @@ def search(text, start=0, limit=20, doctype=""):
 
 	# sort results based on allowed_doctype's priority
 	for doctype in allowed_doctypes:
-		for index, r in enumerate(results):
+		for r in results:
 			if r.doctype == doctype and r.rank > 0.0:
 				try:
 					meta = frappe.get_meta(r.doctype)

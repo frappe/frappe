@@ -3,7 +3,7 @@ from enum import Enum
 from importlib import import_module
 from typing import Any, get_type_hints
 
-from pypika.queries import Column, QueryBuilder
+from pypika.queries import Column, QueryBuilder, _SetOperation
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -137,7 +137,10 @@ def patch_query_execute():
 
 	builder_class.run = execute_query
 	builder_class.walk = prepare_query
-	frappe._qb_patched[frappe.conf.db_type] = True
+
+	# To support running union queries
+	_SetOperation.run = execute_query
+	_SetOperation.walk = prepare_query
 
 
 def patch_query_aggregation():
@@ -148,4 +151,3 @@ def patch_query_aggregation():
 	frappe.qb.min = _min
 	frappe.qb.avg = _avg
 	frappe.qb.sum = _sum
-	frappe._qb_patched[frappe.conf.db_type] = True

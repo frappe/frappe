@@ -24,7 +24,7 @@ class ActivityLog(Document):
 		ip_address: DF.Data | None
 		link_doctype: DF.Link | None
 		link_name: DF.DynamicLink | None
-		operation: DF.Literal["", "Login", "Logout"]
+		operation: DF.Literal["", "Login", "Logout", "Impersonate"]
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
 		reference_owner: DF.ReadOnly | None
@@ -53,7 +53,7 @@ class ActivityLog(Document):
 
 	def set_ip_address(self):
 		if self.operation in ("Login", "Logout"):
-			self.ip_address = getattr(frappe.local, "request_ip")
+			self.ip_address = frappe.local.request_ip
 
 	@staticmethod
 	def clear_old_logs(days=None):

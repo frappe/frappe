@@ -214,7 +214,7 @@ def fetch_details_from_tag(_tag: str) -> tuple[str, str, str]:
 	try:
 		repo, tag = app_tag
 	except ValueError:
-		repo, tag = app_tag + [None]
+		repo, tag = [*app_tag, None]
 
 	try:
 		org, repo = org_repo
@@ -773,8 +773,6 @@ def is_downgrade(sql_file_path, verbose=False):
 
 	from semantic_version import Version
 
-	head = "INSERT INTO `tabInstalled Application` VALUES"
-
 	with open(sql_file_path) as f:
 		header = f.readline()
 		# Example first line:
@@ -815,7 +813,7 @@ def partial_restore(sql_file_path, verbose=False):
 			" partial restore operation for PostreSQL databases",
 			fg="yellow",
 		)
-		warnings.warn(warn)
+		warnings.warn(warn, stacklevel=1)
 
 	import_db_from_sql(source_sql=sql_file, verbose=verbose)
 

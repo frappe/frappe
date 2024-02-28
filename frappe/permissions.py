@@ -122,7 +122,7 @@ def has_permission(
 	meta = frappe.get_meta(doctype)
 
 	if doc:
-		if isinstance(doc, (str, int)):
+		if isinstance(doc, str | int):
 			doc = frappe.get_doc(meta.name, doc)
 		perm = get_doc_permissions(doc, user=user, ptype=ptype, debug=debug).get(ptype)
 		if not perm:
@@ -153,7 +153,7 @@ def has_permission(
 		if not perm:
 			push_perm_check_log(
 				_("User {0} does not have doctype access via role permission for document {1}").format(
-					frappe.bold(user), frappe.bold(doctype)
+					frappe.bold(user), frappe.bold(_(doctype))
 				),
 				debug=debug,
 			)
@@ -350,7 +350,7 @@ def has_user_permission(doc, user=None, debug=False):
 		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
 
 		# only check if allowed_docs is not empty
-		if allowed_docs and docname not in allowed_docs:
+		if allowed_docs and str(docname) not in allowed_docs:
 			# no user permissions for this doc specified
 			debug and _debug_log(
 				"User doesn't have access to this document because of User Permissions, allowed documents: "
@@ -466,7 +466,7 @@ def get_valid_perms(doctype=None, user=None):
 
 	doctypes_with_custom_perms = get_doctypes_with_custom_docperms()
 	for p in perms:
-		if not p.parent in doctypes_with_custom_perms:
+		if p.parent not in doctypes_with_custom_perms:
 			custom_perms.append(p)
 
 	if doctype:

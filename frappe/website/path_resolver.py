@@ -49,7 +49,8 @@ class PathResolver:
 			return endpoint, TemplatePage(endpoint, self.http_status_code)
 
 		custom_renderers = self.get_custom_page_renderers()
-		renderers = custom_renderers + [
+		renderers = [
+			*custom_renderers,
 			StaticPage,
 			WebFormPage,
 			DocumentPage,
@@ -128,7 +129,7 @@ def resolve_redirect(path, query_string=None):
 
 		try:
 			match = re.match(pattern, path_to_match)
-		except re.error as e:
+		except re.error:
 			frappe.log_error("Broken Redirect: " + pattern)
 
 		if match:

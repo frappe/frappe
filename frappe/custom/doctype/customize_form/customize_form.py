@@ -591,11 +591,11 @@ class CustomizeForm(Document):
 			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
 			fieldname = df.fieldname
 			docs = frappe.db.sql(
-				"""
+				f"""
 				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
-				FROM `tab{doctype}`
+				FROM `tab{self.doc_type}`
 				WHERE LENGTH({fieldname}) > {max_length}
-			""".format(fieldname=fieldname, doctype=self.doc_type, max_length=max_length),
+			""",
 				as_dict=True,
 			)
 			label = df.label

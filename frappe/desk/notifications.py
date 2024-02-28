@@ -242,7 +242,7 @@ def get_filters_for(doctype):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_open_count(doctype, name, items=None):
+def get_open_count(doctype: str, name: str, items=None):
 	"""Get count for internal and external links for given transactions
 
 	:param doctype: Reference DocType
@@ -283,7 +283,7 @@ def get_open_count(doctype, name, items=None):
 				try:
 					external_links_data_for_d = get_external_links(d, name, links)
 					out["external_links_found"].append(external_links_data_for_d)
-				except Exception as e:
+				except Exception:
 					out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
 		else:
 			external_links_data_for_d = get_external_links(d, name, links)

@@ -178,9 +178,6 @@ def symlink(target, link_name, overwrite=False):
 	if not overwrite:
 		return os.symlink(target, link_name)
 
-	# os.replace() may fail if files are on different filesystems
-	link_dir = os.path.dirname(link_name)
-
 	# Create link to target with temporary filename
 	while True:
 		temp_link_name = f"tmp{frappe.generate_hash()}"

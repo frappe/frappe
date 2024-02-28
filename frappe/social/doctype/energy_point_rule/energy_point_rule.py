@@ -77,7 +77,7 @@ class EnergyPointRule(Document):
 						{"points": points, "user": user, "rule": rule},
 						self.apply_only_once,
 					)
-			except Exception as e:
+			except Exception:
 				self.log_error("Energy points failed")
 
 	def rule_condition_satisfied(self, doc):
