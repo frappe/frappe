@@ -1211,3 +1211,27 @@ def method_to_string(method: str | Callable[..., Any]) -> str:
 	if isinstance(method, Callable):
 		return f"{method.__module__}.{method.__qualname__}"
 	return method
+
+
+def notify_user(
+	for_user: str, notification_type: str, from_user: str, doctype: str, docname: str, subject: str
+) -> None:
+	"""
+	Function to create a notification log entry
+
+	:param for_user: The user the notification is for
+	:param notification_type: The type of notification
+	:param from_user: The user issuing the notification
+	:param doctype: The doctype to link
+	:param docname: The document name to link
+	:param subject: The notification subject
+	:return: Nothing
+	"""
+	notification = frappe.new_doc("Notification Log")
+	notification.for_user = for_user
+	notification.set("type", notification_type)
+	notification.from_user = from_user
+	notification.document_type = doctype
+	notification.document_name = docname
+	notification.subject = subject
+	notification.insert()
