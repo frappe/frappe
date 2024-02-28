@@ -145,6 +145,14 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "Select",
 				fieldname: "select_print_format",
 			},
+			{
+				label: __("Print Language"),
+				fieldtype: "Link",
+				options: "Language",
+				fieldname: "print_language",
+				default: frappe.boot.lang,
+				depends_on: "attach_document_print",
+			},
 			{ fieldtype: "Column Break" },
 			{
 				label: __("Select Attachments"),
@@ -737,6 +745,7 @@ frappe.views.CommunicationComposer = class {
 				read_receipt: form_values.send_read_receipt,
 				print_letterhead: me.is_print_letterhead_checked(),
 				send_after: form_values.send_after ? form_values.send_after : null,
+				print_language: form_values.print_language,
 			},
 			btn,
 			callback(r) {
