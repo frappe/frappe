@@ -45,6 +45,11 @@ def make(
 	print_letterhead=True,
 	email_template=None,
 	communication_type=None,
+<<<<<<< HEAD
+=======
+	send_after=None,
+	print_language=None,
+>>>>>>> a4ddb7491d (fix: specify print_language in communication attachments)
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
@@ -98,6 +103,11 @@ def make(
 		email_template=email_template,
 		communication_type=communication_type,
 		add_signature=False,
+<<<<<<< HEAD
+=======
+		send_after=send_after,
+		print_language=print_language,
+>>>>>>> a4ddb7491d (fix: specify print_language in communication attachments)
 	)
 
 
@@ -123,6 +133,11 @@ def _make(
 	email_template=None,
 	communication_type=None,
 	add_signature=True,
+<<<<<<< HEAD
+=======
+	send_after=None,
+	print_language=None,
+>>>>>>> a4ddb7491d (fix: specify print_language in communication attachments)
 ) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
@@ -175,6 +190,7 @@ def _make(
 			print_format=print_format,
 			send_me_a_copy=send_me_a_copy,
 			print_letterhead=print_letterhead,
+			print_language=print_language,
 		)
 
 	emails_not_sent_to = comm.exclude_emails_list(include_sender=send_me_a_copy)
