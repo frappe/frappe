@@ -1181,3 +1181,33 @@ class CallbackManager:
 
 	def reset(self):
 		self._functions.clear()
+
+
+class Truthy:
+	def __init__(self, value=True, context=UNSET):
+		self.value = value
+		self.context = context
+
+	def __bool__(self):
+		return True
+
+	def __eq__(self, other: object) -> bool:
+		return True == other  # noqa: E712
+
+	def __repr__(self) -> str:
+		_val = "UNSET" if self.value is UNSET else self.value
+		_ctx = "UNSET" if self.context is UNSET else self.context
+
+		return f"Truthy(value={_val}, context={_ctx})"
+
+
+def method_to_string(method: str | Callable[..., Any]) -> str:
+	"""
+	Function to return a method name as string if a callable is passed, else the original string
+
+	:param method: The method as a string or a callable object
+	:return: Method module + name as string
+	"""
+	if isinstance(method, Callable):
+		return f"{method.__module__}.{method.__qualname__}"
+	return method

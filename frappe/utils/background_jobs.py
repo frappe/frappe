@@ -216,7 +216,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		method_name = method
 		method = frappe.get_attr(method)
 	else:
-		method_name = f"{method.__module__}.{method.__qualname__}"
+		method_name = frappe.utils.method_to_string(method)
 
 	actual_func_name = kwargs.get("job_type") if "run_scheduled_job" in method_name else method_name
 	setproctitle.setproctitle(f"rq: Started running {actual_func_name} at {time.time()}")
