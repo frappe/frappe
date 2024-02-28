@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import functools
-import hashlib
 import io
 import os
 import shutil
@@ -1165,3 +1164,15 @@ class CallbackManager:
 
 	def reset(self):
 		self._functions.clear()
+
+
+def method_to_string(method: str | Callable[..., Any]) -> str:
+	"""
+	Function to return a method name as string if a callable is passed, else the original string
+
+	:param method: The method as a string or a callable object
+	:return: Method module + name as string
+	"""
+	if isinstance(method, Callable):
+		return f"{method.__module__}.{method.__qualname__}"
+	return method
