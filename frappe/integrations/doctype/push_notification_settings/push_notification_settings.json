@@ -3,6 +3,7 @@
  "allow_rename": 1,
  "beta": 1,
  "creation": "2024-01-04 11:36:08.013039",
+ "description": "Enabling this will register your site on a central relay server to send push notifications for all installed apps through Firebase Cloud Messaging. This server only stores user tokens and error logs, and no messages are saved.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -28,14 +29,12 @@
   {
    "fieldname": "api_key",
    "fieldtype": "Data",
-   "label": "API Key",
-   "read_only": 1
+   "label": "API Key"
   },
   {
    "fieldname": "api_secret",
    "fieldtype": "Password",
-   "label": "API Secret",
-   "read_only": 1
+   "label": "API Secret"
   },
   {
    "description": "Enabling this will register your site on a central relay server to send push notifications for all installed apps through Firebase Cloud Messaging. This server only stores user tokens and error logs, and no messages are saved. ",
@@ -47,7 +46,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-02-28 00:37:18.398000",
+ "modified": "2024-02-28 11:03:30.518196",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Push Notification Settings",

@@ -168,6 +168,7 @@ class PushNotification:
 				raise Exception("Body should be at max 1000 characters")
 		if strip_html:
 			body = frappe.utils.strip_html(body)
+
 		response_data = self._send_post_request(
 			"notification_relay.api.send_notification.topic",
 			{"topic_name": topic_name, "title": title, "body": body, "data": json.dumps(data)},
@@ -282,12 +283,12 @@ def auth_webhook():
 
 # Subscribe and Unsubscribe API
 @frappe.whitelist(methods=["GET"])
-def subscribe(fcm_token: str, project_name: str):
+def subscribe(fcm_token: str, project_name: str) -> dict:
 	success, message = PushNotification(project_name).add_token(frappe.session.user, fcm_token)
 	return {"success": success, "message": message}
 
 
 @frappe.whitelist(methods=["GET"])
-def unsubscribe(fcm_token: str, project_name: str):
+def unsubscribe(fcm_token: str, project_name: str) -> dict:
 	success, message = PushNotification(project_name).remove_token(frappe.session.user, fcm_token)
 	return {"success": success, "message": message}
