@@ -4,6 +4,7 @@ import contextlib
 import functools
 import os
 import ssl
+import typing
 from unittest import TestCase, mock
 
 import ldap3
@@ -18,7 +19,7 @@ class LDAP_TestCase:
 	TEST_LDAP_SERVER = None  # must match the 'LDAP Settings' field option
 	TEST_LDAP_SEARCH_STRING = None
 	LDAP_USERNAME_FIELD = None
-	DOCUMENT_GROUP_MAPPINGS = []
+	DOCUMENT_GROUP_MAPPINGS: typing.ClassVar[list] = []
 	LDAP_SCHEMA = None
 	LDAP_LDIF_JSON = None
 	TEST_VALUES_LDAP_COMPLEX_SEARCH_STRING = None
@@ -484,7 +485,7 @@ class LDAP_TestCase:
 	@mock_ldap_connection
 	def test_get_ldap_attributes(self):
 		method_return = self.test_class.get_ldap_attributes()
-		self.assertTrue(type(method_return) is list)
+		self.assertTrue(isinstance(method_return, list))
 
 	@mock_ldap_connection
 	def test_fetch_ldap_groups(self):
@@ -594,14 +595,14 @@ class LDAP_TestCase:
 		test_ldap_entry = self.connection.entries[0]
 		method_return = self.test_class.convert_ldap_entry_to_dict(test_ldap_entry)
 
-		self.assertTrue(type(method_return) is dict)  # must be dict
+		self.assertTrue(isinstance(method_return, dict))  # must be dict
 		self.assertTrue(len(method_return) == 6)  # there are 6 fields in mock_ldap for use
 
 
 class Test_OpenLDAP(LDAP_TestCase, TestCase):
 	TEST_LDAP_SERVER = "OpenLDAP"
 	TEST_LDAP_SEARCH_STRING = "(uid={0})"
-	DOCUMENT_GROUP_MAPPINGS = [
+	DOCUMENT_GROUP_MAPPINGS: typing.ClassVar[list] = [
 		{
 			"doctype": "LDAP Group Mapping",
 			"ldap_group": "Administrators",
@@ -614,7 +615,7 @@ class Test_OpenLDAP(LDAP_TestCase, TestCase):
 	LDAP_SCHEMA = OFFLINE_SLAPD_2_4
 	LDAP_LDIF_JSON = "test_data_ldif_openldap.json"
 
-	TEST_VALUES_LDAP_COMPLEX_SEARCH_STRING = [
+	TEST_VALUES_LDAP_COMPLEX_SEARCH_STRING: typing.ClassVar[list] = [
 		"(uid={0})",
 		"(&(objectclass=posixaccount)(uid={0}))",
 		"(&(description=*ACCESS:test1*)(uid={0}))",  # OpenLDAP has no member of group, use description to filter posix.user has equivilent of AD 'memberOf'
@@ -625,7 +626,7 @@ class Test_OpenLDAP(LDAP_TestCase, TestCase):
 class Test_ActiveDirectory(LDAP_TestCase, TestCase):
 	TEST_LDAP_SERVER = "Active Directory"
 	TEST_LDAP_SEARCH_STRING = "(samaccountname={0})"
-	DOCUMENT_GROUP_MAPPINGS = [
+	DOCUMENT_GROUP_MAPPINGS: typing.ClassVar[list] = [
 		{
 			"doctype": "LDAP Group Mapping",
 			"ldap_group": "Domain Administrators",
@@ -642,7 +643,7 @@ class Test_ActiveDirectory(LDAP_TestCase, TestCase):
 	LDAP_SCHEMA = OFFLINE_AD_2012_R2
 	LDAP_LDIF_JSON = "test_data_ldif_activedirectory.json"
 
-	TEST_VALUES_LDAP_COMPLEX_SEARCH_STRING = [
+	TEST_VALUES_LDAP_COMPLEX_SEARCH_STRING: typing.ClassVar[dict] = [
 		"(samaccountname={0})",
 		"(&(objectclass=user)(samaccountname={0}))",
 		"(&(description=*ACCESS:test1*)(samaccountname={0}))",  # OpenLDAP has no member of group, use description to filter posix.user has equivilent of AD 'memberOf'

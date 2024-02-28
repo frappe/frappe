@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 import operator
-from typing import Callable
+from collections.abc import Callable
 
 import frappe
 from frappe.database.utils import NestedSetHierarchy

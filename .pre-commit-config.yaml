@@ -1,7 +1,6 @@
-exclude: 'node_modules|.git'
+exclude: "node_modules|.git"
 default_stages: [commit]
 fail_fast: false
-
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -12,7 +11,7 @@ repos:
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
       - id: check-yaml
       - id: no-commit-to-branch
-        args: ['--branch', 'develop']
+        args: ["--branch", "develop"]
       - id: check-merge-conflict
       - id: check-ast
       - id: check-json
@@ -20,18 +19,12 @@ repos:
       - id: check-yaml
       - id: debug-statements
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v2.34.0
-    hooks:
-      - id: pyupgrade
-        args: ['--py310-plus']
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.2.0
     hooks:
       - id: ruff
-        name: "Sort Python imports"
-        args: ["--select", "I", "--fix"]
+        name: "Run ruff linter and apply fixes"
+        args: ["--fix"]
 
       - id: ruff-format
         name: "Format Python code"
@@ -43,24 +36,17 @@ repos:
         types_or: [javascript, vue, scss]
         # Ignore any files that might contain jinja / bundles
         exclude: |
-            (?x)^(
-                frappe/public/dist/.*|
-                .*node_modules.*|
-                .*boilerplate.*|
-                frappe/www/website_script.js|
-                frappe/templates/includes/.*|
-                frappe/public/js/lib/.*|
-                frappe/website/doctype/website_theme/website_theme_template.scss
-            )$
-
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 5.0.4
-    hooks:
-      - id: flake8
-        additional_dependencies: ['flake8-bugbear',]
+          (?x)^(
+              frappe/public/dist/.*|
+              .*node_modules.*|
+              .*boilerplate.*|
+              frappe/www/website_script.js|
+              frappe/templates/includes/.*|
+              frappe/public/js/lib/.*|
+              frappe/website/doctype/website_theme/website_theme_template.scss
+          )$
 
 ci:
-    autoupdate_schedule: weekly
-    skip: []
-    submodules: false
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

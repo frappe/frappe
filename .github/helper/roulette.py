@@ -6,11 +6,11 @@ import subprocess
 import sys
 import time
 import urllib.request
-from functools import lru_cache
+from functools import cache, lru_cache
 from urllib.error import HTTPError
 
 
-@lru_cache(maxsize=None)
+@cache
 def fetch_pr_data(pr_number, repo, endpoint=""):
 	api_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
 
@@ -82,9 +82,7 @@ def is_ci(file):
 
 
 def is_frontend_code(file):
-	return file.lower().endswith(
-		(".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html")
-	)
+	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html"))
 
 
 def is_docs(file):

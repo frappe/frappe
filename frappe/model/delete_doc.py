@@ -345,8 +345,8 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 
 
 def raise_link_exists_exception(doc, reference_doctype, reference_docname, row=""):
-	doc_link = '<a href="/app/Form/{0}/{1}">{1}</a>'.format(doc.doctype, doc.name)
-	reference_link = '<a href="/app/Form/{0}/{1}">{1}</a>'.format(reference_doctype, reference_docname)
+	doc_link = f'<a href="/app/Form/{doc.doctype}/{doc.name}">{doc.name}</a>'
+	reference_link = f'<a href="/app/Form/{reference_doctype}/{reference_docname}">{reference_docname}</a>'
 
 	# hack to display Single doctype only once in message
 	if reference_doctype == reference_docname:
@@ -398,12 +398,12 @@ def clear_references(
 	reference_name_field="reference_name",
 ):
 	frappe.db.sql(
-		"""update
-			`tab{0}`
+		f"""update
+			`tab{doctype}`
 		set
-			{1}=NULL, {2}=NULL
+			{reference_doctype_field}=NULL, {reference_name_field}=NULL
 		where
-			{1}=%s and {2}=%s""".format(doctype, reference_doctype_field, reference_name_field),  # nosec
+			{reference_doctype_field}=%s and {reference_name_field}=%s""",  # nosec
 		(reference_doctype, reference_name),
 	)
 

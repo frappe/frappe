@@ -258,7 +258,7 @@ def send_daily():
 				continue
 		try:
 			auto_email_report.send()
-		except Exception as e:
+		except Exception:
 			auto_email_report.log_error(f"Failed to send {auto_email_report.name} Auto Email Report")
 
 

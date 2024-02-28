@@ -470,7 +470,7 @@ class BackupGenerator:
 		db_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_db)))
 		files_backup_url = get_url(os.path.join("backups", os.path.basename(self.backup_path_files)))
 
-		msg = """Hello,
+		msg = f"""Hello,
 
 Your backups are ready to be downloaded.
 
@@ -478,10 +478,7 @@ Your backups are ready to be downloaded.
 2. [Click here to download the files backup]({files_backup_url})
 
 This link will be valid for 24 hours. A new backup will be available for
-download only after 24 hours.""".format(
-			db_backup_url=db_backup_url,
-			files_backup_url=files_backup_url,
-		)
+download only after 24 hours."""
 
 		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""

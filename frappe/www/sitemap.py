@@ -16,7 +16,7 @@ def get_context(context):
 	"""generate the sitemap XML"""
 	links = []
 
-	for route, page in get_pages().items():
+	for _, page in get_pages().items():
 		if page.sitemap:
 			links.append({"loc": get_url(quote(page.name.encode("utf-8"))), "lastmod": nowdate()})
 

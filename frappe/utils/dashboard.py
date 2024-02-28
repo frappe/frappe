@@ -112,4 +112,4 @@ def make_records(path, filters=None):
 			if os.path.isdir(join(path, fname)):
 				if fname == "__pycache__":
 					continue
-				import_file_by_path("{path}/{fname}/{fname}.json".format(path=path, fname=fname))
+				import_file_by_path(f"{path}/{fname}/{fname}.json")

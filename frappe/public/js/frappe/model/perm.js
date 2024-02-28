@@ -289,10 +289,9 @@ $.extend(frappe.perm, {
 		const allowed_docs = filtered_perms.map((perm) => perm.doc);
 
 		if (with_default_doc) {
-			const default_doc =
-				allowed_docs.length === 1
-					? allowed_docs
-					: filtered_perms.filter((perm) => perm.is_default).map((record) => record.doc);
+			const default_doc = filtered_perms
+				.filter((perm) => perm.is_default)
+				.map((record) => record.doc);
 
 			return {
 				allowed_records: allowed_docs,

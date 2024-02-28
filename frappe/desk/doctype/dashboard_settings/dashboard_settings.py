@@ -40,7 +40,7 @@ def save_chart_config(reset, config, chart_name):
 		chart_config[chart_name] = {}
 	else:
 		config = frappe.parse_json(config)
-		if not chart_name in chart_config:
+		if chart_name not in chart_config:
 			chart_config[chart_name] = {}
 		chart_config[chart_name].update(config)
 

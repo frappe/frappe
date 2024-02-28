@@ -206,7 +206,7 @@ def run_tests_for_doctype(
 	junit_xml_output=False,
 ):
 	modules = []
-	if not isinstance(doctypes, (list, tuple)):
+	if not isinstance(doctypes, list | tuple):
 		doctypes = [doctypes]
 
 	for doctype in doctypes:
@@ -259,7 +259,7 @@ def _run_unittest(
 
 	test_suite = unittest.TestSuite()
 
-	if not isinstance(modules, (list, tuple)):
+	if not isinstance(modules, list | tuple):
 		modules = [modules]
 
 	for module in modules:

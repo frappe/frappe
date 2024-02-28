@@ -24,7 +24,7 @@ def flush_local_link_count():
 	if not link_count:
 		link_count = {}
 
-		for key, value in frappe.local.link_count.items():
+		for key, _value in frappe.local.link_count.items():
 			if key in link_count:
 				link_count[key] += frappe.local.link_count[key]
 			else:

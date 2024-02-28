@@ -30,9 +30,8 @@ def set_default(doc, key):
 		frappe.db.set(doc, "is_default", 1)
 
 	frappe.db.sql(
-		"""update `tab%s` set `is_default`=0
-		where `%s`=%s and name!=%s"""
-		% (doc.doctype, key, "%s", "%s"),
+		"""update `tab{}` set `is_default`=0
+		where `{}`={} and name!={}""".format(doc.doctype, key, "%s", "%s"),
 		(doc.get(key), doc.name),
 	)
 
@@ -62,7 +61,7 @@ def render_include(content):
 	content = cstr(content)
 
 	# try 5 levels of includes
-	for i in range(5):
+	for _i in range(5):
 		if "{% include" in content:
 			paths = INCLUDE_DIRECTIVE_PATTERN.findall(content)
 			if not paths:

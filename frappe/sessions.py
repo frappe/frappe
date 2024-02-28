@@ -61,7 +61,7 @@ def get_sessions_to_clear(user=None, keep_current=False, device=None):
 	if not device:
 		device = ("desktop", "mobile")
 
-	if not isinstance(device, (tuple, list)):
+	if not isinstance(device, tuple | list):
 		device = (device,)
 
 	offset = 0

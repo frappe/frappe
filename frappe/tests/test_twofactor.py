@@ -233,7 +233,7 @@ def toggle_2fa_all_role(state=None):
 	"""Enable or disable 2fa for 'all' role on the system."""
 	all_role = frappe.get_doc("Role", "All")
 	state = state if state is not None else False
-	if type(state) != bool:
+	if not isinstance(state, bool):
 		return
 
 	all_role.two_factor_auth = cint(state)
