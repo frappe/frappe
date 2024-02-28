@@ -21,7 +21,8 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 
 import frappe
 import frappe.monitor
-from frappe import _
+from frappe import STANDARD_USERS, _
+from frappe.translate import get_user_lang
 from frappe.utils import CallbackManager, cint, cstr, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.deprecations import deprecation_warning
@@ -210,6 +211,9 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		user=user,
 		after_job=CallbackManager(),
 	)
+
+	if user and user not in STANDARD_USERS:
+		frappe.local.lang = get_user_lang(user)
 
 	for before_job_task in frappe.get_hooks("before_job"):
 		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
