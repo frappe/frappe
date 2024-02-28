@@ -1528,6 +1528,7 @@ def append_hook(target, key, value):
 		target[key].extend(value)
 
 
+<<<<<<< HEAD
 def setup_module_map():
 	"""Rebuild map of all modules (internal)."""
 	_cache = cache()
@@ -1535,6 +1536,21 @@ def setup_module_map():
 	if conf.db_name:
 		local.app_modules = _cache.get_value("app_modules")
 		local.module_app = _cache.get_value("module_app")
+=======
+def setup_module_map(include_all_apps: bool = True) -> None:
+	"""
+	Function to rebuild map of all modules
+
+	:param: include_all_apps: Include all apps on bench, or just apps installed on the site.
+	:return: Nothing
+	"""
+	if include_all_apps:
+		local.app_modules = cache.get_value("app_modules")
+		local.module_app = cache.get_value("module_app")
+	else:
+		local.app_modules = cache.get_value("installed_app_modules")
+		local.module_app = cache.get_value("module_installed_app")
+>>>>>>> e6be7d6648 (fix(setup_module_map): fix caching)
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
@@ -1545,9 +1561,18 @@ def setup_module_map():
 				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
+<<<<<<< HEAD
 		if conf.db_name:
 			_cache.set_value("app_modules", local.app_modules)
 			_cache.set_value("module_app", local.module_app)
+=======
+		if include_all_apps:
+			cache.set_value("app_modules", local.app_modules)
+			cache.set_value("module_app", local.module_app)
+		else:
+			cache.set_value("installed_app_modules", local.app_modules)
+			cache.set_value("module_installed_app", local.module_app)
+>>>>>>> e6be7d6648 (fix(setup_module_map): fix caching)
 
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
