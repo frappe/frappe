@@ -63,7 +63,7 @@ def get_queues_timeout() -> dict[str, int]:
 def enqueue(
 	method: str | Callable,
 	queue: str = "default",
-	datetime: datetime = None,
+	datetime: datetime | None = None,
 	timeout: int | None = None,
 	event: str | None = None,
 	is_async: bool = True,
