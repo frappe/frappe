@@ -248,17 +248,13 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.dev_server = _dev_server
 	local.qb = get_query_builder(local.conf.db_type or "mariadb")
 	local.qb.get_query = get_query
-<<<<<<< HEAD
 	local.qb.engine = _dict(get_query=get_query)  # for backward compatiblity
-	setup_module_map()
-=======
-	setup_redis_cache_connection()
-	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
->>>>>>> 986e8bc766 (feat: include only installed apps in module map in certain scenarios)
 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
+
+	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
 	local.initialised = True
 
