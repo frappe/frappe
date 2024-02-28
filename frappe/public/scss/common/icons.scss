@@ -80,10 +80,13 @@ use.like-icon {
 
 .is_loan_car_no {
 	fill: #d1d1d1 !important;
+	z-index: 999999 !important;
 }
 .is_loan_car_yes {
 	fill: #d14343 !important;
+	z-index: 999999 !important;
 }
 .is_loaned_car {
 	fill: #43d194 !important;
+	z-index: 999999 !important;
 }
