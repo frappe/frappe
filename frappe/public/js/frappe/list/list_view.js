@@ -1440,7 +1440,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.data = this.data.filter((d) => !names.includes(d.name));
 				for (let name of names) {
 					this.$result
-						.find(`.list-row-checkbox[data-name='${name}']`)
+						.find(`.list-row-checkbox[data-name='${name.replace(/'/g, "\\'")}']`)
 						.closest(".list-row-container")
 						.remove();
 				}
