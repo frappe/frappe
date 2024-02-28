@@ -1,10 +1,10 @@
-from datetime import datetime
 import gc
 import os
 import socket
 import time
 from collections import defaultdict
 from collections.abc import Callable
+from datetime import datetime
 from functools import lru_cache
 from typing import Any, NoReturn
 from uuid import uuid4
@@ -58,7 +58,7 @@ def get_queues_timeout():
 def enqueue(
 	method: str | Callable,
 	queue: str = "default",
-    datetime: datetime = None,
+	datetime: datetime = None,
 	timeout: int | None = None,
 	event=None,
 	is_async: bool = True,
@@ -78,7 +78,7 @@ def enqueue(
 
 	:param method: method string or method object
 	:param queue: should be either long, default or short
-    :param datetime: datetime at which the job should be executed
+	:param datetime: datetime at which the job should be executed
 	:param timeout: should be set according to the functions
 	:param event: this is passed to enable clearing of jobs from queues
 	:param is_async: if is_async=False, the method is executed immediately, else via a worker
@@ -167,7 +167,7 @@ def enqueue(
 				on_failure=Callback(func=on_failure) if on_failure else None,
 				result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 				failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
-				job_id=job_id
+				job_id=job_id,
 			)
 
 	if enqueue_after_commit:
@@ -175,6 +175,7 @@ def enqueue(
 		return
 
 	return enqueue_call()
+
 
 def enqueue_doc(doctype, name=None, method=None, queue="default", timeout=300, now=False, **kwargs):
 	"""Enqueue a method to be run on a document"""
@@ -278,7 +279,7 @@ def start_worker(
 	rq_password: str | None = None,
 	burst: bool = False,
 	strategy: DequeueStrategy | None = DequeueStrategy.DEFAULT,
-	with_scheduler = True,
+	with_scheduler: bool = True,
 ) -> NoReturn | None:  # pragma: no cover
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 

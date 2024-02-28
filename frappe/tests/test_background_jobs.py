@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
 import time
 from contextlib import contextmanager
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
 from rq import Queue
@@ -84,14 +84,16 @@ class TestBackgroundJobs(FrappeTestCase):
 
 		# test enqueue with and without datetime
 		instant_job = frappe.enqueue(**kwargs)
-		scheduled_job = frappe.enqueue(**kwargs, datetime = datetime.now() + timedelta(minutes=5))
+		scheduled_job = frappe.enqueue(**kwargs, datetime=datetime.now() + timedelta(minutes=5))
 
-		# lesser is earlier
+		# checking if the job is scheduled or not
 		self.assertTrue(instant_job.get_position() >= 0)
-
-		self.assertTrue(scheduled_job.get_position() is None)
+		# Checking if the status of the job is scheduled or not
 		self.assertTrue(instant_job.get_status().casefold() != "SCHEDULED".casefold())
-		print("scheduled_job.get_status()",scheduled_job.get_status())
+
+		#  For scheduled job to be executed
+		self.assertTrue(scheduled_job.get_position() is None)
+		# Checking if the status of the job is scheduled or not
 		self.assertTrue(scheduled_job.get_status().casefold() == "SCHEDULED".casefold())
 
 	def test_enqueue_at_old_datetime(self):
@@ -104,7 +106,7 @@ class TestBackgroundJobs(FrappeTestCase):
 		frappe.enqueue(**kwargs)
 
 		# test enqueue with old datetime
-		schedule_job = frappe.enqueue(**kwargs, datetime = datetime.now() - timedelta(hours=10))
+		schedule_job = frappe.enqueue(**kwargs, datetime=datetime.now() - timedelta(hours=10))
 		self.assertTrue(schedule_job.get_status().casefold() != "SCHEDULED".casefold())
 
 	def test_enqueue_at_no_datetime(self):
@@ -116,9 +118,31 @@ class TestBackgroundJobs(FrappeTestCase):
 		# give worker something to work on first so that get_position doesn't return None
 		frappe.enqueue(**kwargs)
 
-		# test enqueue with no datetime
+		# test enqueue with no datetime, this should work like enqueue
 		schedule_job = frappe.enqueue(**kwargs)
 		self.assertTrue(schedule_job.get_status().casefold() != "SCHEDULED".casefold())
+
+	def test_enqueue_scheduledjob_executed(self):
+		kwargs = {
+			"method": "frappe.handler.ping",
+			"queue": "short",
+		}
+
+		# give worker something to work on first so that get_position doesn't return None
+		frappe.enqueue(**kwargs)
+
+		# schedule a job to be executed after 15 seconds
+		scheduled_job = frappe.enqueue(**kwargs, datetime=datetime.now() + timedelta(seconds=15))
+
+		#  Assetting the status of the job is scheduled and not queued
+		self.assertTrue(scheduled_job.get_position() is None)
+		self.assertTrue(scheduled_job.get_status().casefold() == "SCHEDULED".casefold())
+
+		#  wait for 30 seconds
+		time.sleep(30)
+
+		# Checking if the status of the job is scheduled or not
+		self.assertTrue(scheduled_job.get_status().casefold() != "SCHEDULED".casefold())
 
 
 def fail_function():
