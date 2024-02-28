@@ -86,6 +86,8 @@ def new_site(
 	"Create a new site"
 	from frappe.installer import _new_site
 
+	frappe.init(site=site, new_site=True)
+
 	if no_mariadb_socket:
 		click.secho(
 			"--no-mariadb-socket is DEPRECATED; "
@@ -96,8 +98,6 @@ def new_site(
 		frappe.flags.mariadb_user_host_login_scope = "%"
 	if mariadb_user_host_login_scope:
 		frappe.flags.mariadb_user_host_login_scope = mariadb_user_host_login_scope
-
-	frappe.init(site=site, new_site=True)
 
 	_new_site(
 		db_name,
