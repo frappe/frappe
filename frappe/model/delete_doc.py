@@ -102,7 +102,7 @@ def delete_doc(
 					pass
 
 		else:
-			doc = frappe.get_doc(doctype, name)
+			doc = frappe.get_doc(doctype, name, for_update=True)
 
 			if not for_reload:
 				update_flags(doc, flags, ignore_permissions)
