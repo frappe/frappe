@@ -295,13 +295,14 @@ def make_form_dict(request: Request):
 		args.update(request.args or {})
 		args.update(request.form or {})
 
-	if not isinstance(args, dict):
+	if isinstance(args, dict):
+		frappe.local.form_dict = frappe._dict(args)
+		# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
+		frappe.local.form_dict.pop("_", None)
+	elif isinstance(args, list):
+		frappe.local.form_dict["data"] = args
+	else:
 		frappe.throw(_("Invalid request arguments"))
-
-	frappe.local.form_dict = frappe._dict(args)
-
-	# _ is passed by $.ajax so that the request is not cached by the browser. So, remove _ from form_dict
-	frappe.local.form_dict.pop("_", None)
 
 
 def handle_exception(e):

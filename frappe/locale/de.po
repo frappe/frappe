@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-16 17:24+0053\n"
-"PO-Revision-Date: 2024-02-23 10:43\n"
+"PO-Revision-Date: 2024-02-29 04:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -9626,19 +9626,19 @@ msgstr "Dokumentenfreigabebericht"
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Document States"
-msgstr "Dokumentenstati"
+msgstr "Dokumentenstatus"
 
 #. Label of a Section Break field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Document States"
-msgstr "Dokumentenstati"
+msgstr "Dokumentenstatus"
 
 #. Label of a Table field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Document States"
-msgstr "Dokumentenstati"
+msgstr "Dokumentenstatus"
 
 #: model/meta.py:47 public/js/frappe/model/meta.js:199
 #: public/js/frappe/model/model.js:127
@@ -27323,7 +27323,7 @@ msgstr "Zeile"
 
 #: core/doctype/version/version_view.html:73
 msgid "Row #"
-msgstr ""
+msgstr "Zeile #"
 
 #: core/doctype/doctype/doctype.py:1766 core/doctype/doctype/doctype.py:1776
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
@@ -29767,7 +29767,7 @@ msgstr "Tour anzeigen"
 
 #: core/doctype/data_import/data_import.js:454
 msgid "Show Traceback"
-msgstr ""
+msgstr "Traceback anzeigen"
 
 #: public/js/frappe/data_import/import_preview.js:200
 msgid "Show Warnings"
@@ -30182,7 +30182,7 @@ msgstr "Temporär unzustellbar"
 
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:4
 msgid "Some columns might get cut off when printing to PDF. Try to keep number of columns under 10."
-msgstr ""
+msgstr "Beim Drucken als PDF werden möglicherweise einige Spalten abgeschnitten. Versuchen Sie, die Anzahl der Spalten unter 10 zu halten."
 
 #: public/js/frappe/desk.js:20
 msgid "Some of the features might not work in your browser. Please update your browser to the latest version."
@@ -30198,7 +30198,7 @@ msgstr "Während der Token-Generierung ist ein Fehler aufgetreten. Klicken Sie a
 
 #: templates/includes/login/login.js:294
 msgid "Something went wrong."
-msgstr ""
+msgstr "Etwas ist schief gelaufen."
 
 #: public/js/frappe/views/pageview.js:110
 msgid "Sorry! I could not find what you were looking for."
@@ -30404,7 +30404,7 @@ msgstr "Standard-Sidebar-Menü"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Standard rich text editor with controls"
-msgstr ""
+msgstr "Standard-Rich-Text-Editor mit Steuerelementen"
 
 #: core/doctype/role/role.py:62
 msgid "Standard roles cannot be disabled"
@@ -30461,7 +30461,7 @@ msgstr "Starten Sie den Import"
 
 #: core/doctype/recorder/recorder_list.js:201
 msgid "Start Recording"
-msgstr ""
+msgstr "Aufzeichnung starten"
 
 #. Label of a Datetime field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -31030,7 +31030,7 @@ msgstr "Übertrage Button Label"
 
 #: core/page/permission_manager/permission_manager_help.html:39
 msgid "Submit an Issue"
-msgstr ""
+msgstr "Ein Problem melden"
 
 #: website/doctype/web_form/templates/web_form.html:153
 msgctxt "Button in web form"
@@ -31213,7 +31213,7 @@ msgstr "Erfolgreich importiert {0}"
 
 #: core/doctype/data_import/data_import.js:144
 msgid "Successfully imported {0} out of {1} records."
-msgstr ""
+msgstr "{0} von {1} Datensätzen erfolgreich importiert."
 
 #: desk/doctype/form_tour/form_tour.py:87
 msgid "Successfully reset onboarding status for all users."
@@ -31229,7 +31229,7 @@ msgstr "Erfolgreich aktualisiert {0}"
 
 #: core/doctype/data_import/data_import.js:149
 msgid "Successfully updated {0} out of {1} records."
-msgstr ""
+msgstr "{0} von {1} Datensätzen erfolgreich aktualisiert."
 
 #: core/doctype/user/user.py:711
 msgid "Suggested Username: {0}"
@@ -31629,7 +31629,7 @@ msgstr "Tischpause"
 
 #: core/doctype/version/version_view.html:72
 msgid "Table Field"
-msgstr ""
+msgstr "Tabellenfeld"
 
 #. Label of a Data field in DocType 'DocType Link'
 #: core/doctype/doctype_link/doctype_link.json
@@ -32114,7 +32114,7 @@ msgstr "Das System wird gerade aktualisiert. Bitte probieren Sie es nach einigen
 
 #: core/page/permission_manager/permission_manager_help.html:9
 msgid "The system provides many pre-defined roles. You can add new roles to set finer permissions."
-msgstr ""
+msgstr "Das System bietet viele vordefinierte Rollen. Sie können neue Rollen hinzufügen, um feinere Berechtigungen festzulegen."
 
 #: public/js/frappe/form/grid_row.js:635
 msgid "The total column width cannot be more than 10."
@@ -32176,11 +32176,11 @@ msgstr "Design-URL"
 
 #: workflow/doctype/workflow/workflow.js:125
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
-msgstr ""
+msgstr "Es gibt Dokumente mit Workflow-Status, die in diesem Workflow nicht vorhanden sind. Es wird empfohlen, diese Status zum Workflow hinzuzufügen oder ihre Status zu ändern, bevor Sie diese aus dem Workflow entfernen."
 
 #: public/js/frappe/ui/notifications/notifications.js:428
 msgid "There are no upcoming events for you."
-msgstr ""
+msgstr "Für Sie stehen keine Veranstaltungen an."
 
 #: website/web_template/discussions/discussions.html:3
 msgid "There are no {0} for this {1}, why don't you start one!"
@@ -32188,7 +32188,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:887
 msgid "There are {0} with the same filters already in the queue:"
-msgstr ""
+msgstr "Es gibt bereits {0} mit denselben Filtern in der Warteschlange:"
 
 #: website/doctype/web_form/web_form.js:72
 #: website/doctype/web_form/web_form.js:308
@@ -32213,7 +32213,7 @@ msgstr "Es gibt irgend ein Problem mit der Datei-URL: {0}"
 
 #: public/js/frappe/views/reports/query_report.js:884
 msgid "There is {0} with the same filters already in the queue:"
-msgstr ""
+msgstr "In der Warteschlange befindet sich bereits {0} mit denselben Filtern:"
 
 #: core/page/permission_manager/permission_manager.py:155
 msgid "There must be atleast one permission rule."
@@ -32332,7 +32332,7 @@ msgstr "Dieses Dokument wurde bereits geändert. Sie können es nicht erneut än
 
 #: model/document.py:1516
 msgid "This document is currently locked and queued for execution. Please try again after some time."
-msgstr ""
+msgstr "Dieses Dokument ist derzeit gesperrt und befindet sich in der Warteschlange für die Ausführung. Bitte versuchen Sie es nach einiger Zeit erneut."
 
 #: templates/emails/auto_repeat_fail.html:7
 msgid "This email is autogenerated"
@@ -32346,7 +32346,7 @@ msgstr "Diese Funktion kann nicht verwendet werden, da die Abhängigkeiten fehle
 
 #: public/js/frappe/form/templates/form_sidebar.html:23
 msgid "This feature is brand new and still experimental"
-msgstr ""
+msgstr "Diese Funktion ist brandneu und noch experimentell"
 
 #. Description of the 'Depends On' (Code) field in DocType 'Customize Form
 #. Field'
@@ -33038,7 +33038,7 @@ msgstr "Befolgen Sie zum Aktivieren die Anweisungen unter folgendem Link: {0}"
 
 #: core/doctype/server_script/server_script.js:37
 msgid "To enable server scripts, read the {0}."
-msgstr ""
+msgstr "Um Serverskripte zu aktivieren, lesen Sie die {0}."
 
 #: desk/doctype/onboarding_step/onboarding_step.js:18
 msgid "To export this step as JSON, link it in a Onboarding document and save the document."
@@ -33280,7 +33280,7 @@ msgstr "Summe"
 
 #: public/js/frappe/ui/capture.js:251
 msgid "Total Images"
-msgstr ""
+msgstr "Anzahl Bilder"
 
 #. Label of a Int field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
@@ -33960,7 +33960,7 @@ msgstr "Unsichere SQL-Abfrage"
 #: public/js/frappe/data_import/data_exporter.js:158
 #: public/js/frappe/form/controls/multicheck.js:166
 msgid "Unselect All"
-msgstr ""
+msgstr "Auswahl aufheben"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
@@ -34241,7 +34241,7 @@ msgstr "ASCII-Kodierung für das Kennwort verwenden"
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Use First Day of Period"
-msgstr ""
+msgstr "Erster Tag der Periode verwenden"
 
 #. Label of a Check field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
@@ -34643,7 +34643,7 @@ msgstr "Bild des Benutzers"
 
 #: public/js/frappe/ui/toolbar/navbar.html:109
 msgid "User Menu"
-msgstr ""
+msgstr "Benutzermenü"
 
 #. Label of a Data field in DocType 'Personal Data Download Request'
 #: website/doctype/personal_data_download_request/personal_data_download_request.json
@@ -34681,7 +34681,7 @@ msgstr "Benutzerberechtigungen"
 
 #: core/page/permission_manager/permission_manager_help.html:32
 msgid "User Permissions are used to limit users to specific records."
-msgstr ""
+msgstr "Benutzerberechtigungen werden verwendet, um Benutzer auf bestimmte Datensätze zu beschränken."
 
 #: core/doctype/user_permission/user_permission_list.js:124
 msgid "User Permissions created successfully"
@@ -34701,7 +34701,7 @@ msgstr "Benutzerrolle"
 #. Name of a DocType
 #: core/doctype/user_role_profile/user_role_profile.json
 msgid "User Role Profile"
-msgstr ""
+msgstr "Benutzer-Rollenprofil"
 
 #. Name of a DocType
 #: core/doctype/user_select_document_type/user_select_document_type.json
@@ -34710,7 +34710,7 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile_sidebar.html:52
 msgid "User Settings"
-msgstr ""
+msgstr "Benutzereinstellungen"
 
 #. Name of a DocType
 #: core/doctype/user_social_login/user_social_login.json
@@ -34771,7 +34771,7 @@ msgstr "Benutzer existiert nicht"
 
 #: templates/includes/login/login.js:293
 msgid "User does not exist."
-msgstr ""
+msgstr "Benutzer existiert nicht."
 
 #: core/doctype/user_type/user_type.py:82
 msgid "User does not have permission to create the new {0}"
@@ -34908,11 +34908,11 @@ msgstr "Gültig"
 
 #: templates/includes/login/login.js:53 templates/includes/login/login.js:66
 msgid "Valid Login id required."
-msgstr ""
+msgstr "Gültige Login-Id erforderlich."
 
 #: templates/includes/login/login.js:40
 msgid "Valid email and name required"
-msgstr ""
+msgstr "Gültige E-Mail und Name erforderlich"
 
 #. Label of a Check field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
@@ -35097,7 +35097,7 @@ msgstr "Bestätigungslink"
 
 #: templates/includes/login/login.js:391
 msgid "Verification code email not sent. Please contact Administrator."
-msgstr ""
+msgstr "Die E-Mail mit dem Verifizierungscode wurde nicht gesendet. Bitte kontaktieren Sie den Administrator."
 
 #: twofactor.py:247
 msgid "Verification code has been sent to your registered email address."
@@ -35119,7 +35119,7 @@ msgstr "Passwort bestätigen"
 
 #: templates/includes/login/login.js:172
 msgid "Verifying..."
-msgstr ""
+msgstr "Überprüfen..."
 
 #. Name of a DocType
 #: core/doctype/version/version.json
@@ -35161,7 +35161,7 @@ msgstr "Kommentar anzeigen"
 
 #: public/js/frappe/ui/notifications/notifications.js:213
 msgid "View Full Log"
-msgstr ""
+msgstr "Vollständiges Protokoll anzeigen"
 
 #: public/js/frappe/views/treeview.js:467
 #: public/js/frappe/widgets/quick_list_widget.js:245
@@ -35237,7 +35237,7 @@ msgstr "Inhalt im Browser anzeigen"
 #: public/js/frappe/web_form/web_form.js:450
 msgctxt "Button in web form"
 msgid "View your response"
-msgstr ""
+msgstr "Ihre Antwort anzeigen"
 
 #: automation/doctype/auto_repeat/auto_repeat.js:43
 #: desk/doctype/calendar_view/calendar_view_list.js:10
@@ -35330,7 +35330,7 @@ msgstr "War dieser Artikel hilfreich?"
 
 #: public/js/frappe/widgets/onboarding_widget.js:127
 msgid "Watch Tutorial"
-msgstr ""
+msgstr "Tutorial ansehen"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
@@ -35916,7 +35916,7 @@ msgstr "Erzwingen Sie beim Hochladen von Dateien die Verwendung der webbasierten
 
 #: core/page/permission_manager/permission_manager_help.html:18
 msgid "When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number."
-msgstr ""
+msgstr "Wenn Sie ein Dokument nach dem Stornieren berichtigen und es speichern, erhält es eine neue Nummer, die eine Version der alten Nummer ist."
 
 #: public/js/frappe/widgets/widget_dialog.js:479
 msgid "Which view of the associated DocType should this shortcut take you to?"
@@ -35965,7 +35965,7 @@ msgstr "Breite"
 
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
-msgstr ""
+msgstr "Die Breite kann in px oder % angegeben werden."
 
 #. Label of a Check field in DocType 'Report Filter'
 #: core/doctype/report_filter/report_filter.json
@@ -36007,7 +36007,7 @@ msgstr "Mit Briefkopf"
 
 #: workflow/doctype/workflow/workflow.js:140
 msgid "Worflow States Don't Exist"
-msgstr "Worflow-Stati existieren nicht"
+msgstr "Workflow-Status sind nicht vorhanden"
 
 #. Label of a Section Break field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -36523,7 +36523,7 @@ msgstr "Sie können dynamische Eigenschaften aus dem Dokument mit Hilfe von Jinj
 
 #: printing/doctype/letter_head/letter_head.js:32
 msgid "You can also access wkhtmltopdf variables (valid only in PDF print):"
-msgstr ""
+msgstr "Sie können auch auf wkhtmltopdf-Variablen zugreifen (nur im PDF-Druck gültig):"
 
 #: templates/emails/new_user.html:22
 msgid "You can also copy-paste following link in your browser"
@@ -36539,7 +36539,7 @@ msgstr "Sie können diese {0} auch kopieren und in Ihren Browser einfügen"
 
 #: core/page/permission_manager/permission_manager_help.html:17
 msgid "You can change Submitted documents by cancelling them and then, amending them."
-msgstr ""
+msgstr "Sie können gebuchte Dokumente ändern, indem Sie sie stornieren und anschließend berichtigen."
 
 #: public/js/frappe/logtypes.js:21
 msgid "You can change the retention policy from {0}."
@@ -36575,7 +36575,7 @@ msgstr "Sie können nur bis zu 5000 Datensätze auf einmal hochladen (in einigen
 
 #: website/doctype/web_page/web_page.js:92
 msgid "You can select one from the following,"
-msgstr ""
+msgstr "Sie können eine der folgenden Optionen auswählen,"
 
 #: desk/query_report.py:332
 msgid "You can try changing the filters of your report."
@@ -36583,7 +36583,7 @@ msgstr "Sie können versuchen, die Filter Ihres Berichts zu ändern."
 
 #: core/page/permission_manager/permission_manager_help.html:27
 msgid "You can use Customize Form to set levels on fields."
-msgstr ""
+msgstr "Sie können „Formular anpassen“ verwenden, um Berechtigungsebenen für Felder festzulegen."
 
 #: public/js/frappe/form/link_selector.js:30
 msgid "You can use wildcard %"
@@ -36732,7 +36732,7 @@ msgstr "Sie haben noch nicht gespeicherte Änderungen in diesem Formular. Bitte 
 
 #: public/js/frappe/ui/toolbar/navbar.html:45
 msgid "You have unseen notifications"
-msgstr ""
+msgstr "Sie haben ungelesene Benachrichtigungen"
 
 #: core/doctype/log_settings/log_settings.py:126
 msgid "You have unseen {0}"
@@ -36740,7 +36740,7 @@ msgstr "Du hast {0} nicht gesehen"
 
 #: public/js/frappe/views/dashboard/dashboard_view.js:191
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
-msgstr ""
+msgstr "Sie haben noch keine Dashboard-Diagramme oder Zahlenkarten hinzugefügt."
 
 #: public/js/frappe/list/list_view.js:470
 msgid "You haven't created a {0} yet"
@@ -36789,7 +36789,7 @@ msgstr "Sie müssen angemeldet sein, um auf {0} zugreifen zu können."
 
 #: public/js/frappe/widgets/links_widget.js:63
 msgid "You need to create these first: "
-msgstr ""
+msgstr "Sie müssen diese zuerst erstellen: "
 
 #: www/login.html:73
 msgid "You need to enable JavaScript for your app to work."
@@ -36877,11 +36877,11 @@ msgstr "Ihre Zuordnung zu {0} {1} wurde von {2} entfernt"
 
 #: core/doctype/file/file.js:66
 msgid "Your browser does not support the audio element."
-msgstr ""
+msgstr "Ihr Browser unterstützt das Audio-Element nicht."
 
 #: core/doctype/file/file.js:48
 msgid "Your browser does not support the video element."
-msgstr ""
+msgstr "Ihr Browser unterstützt das Videoelement nicht."
 
 #: templates/pages/integrations/gcalendar-success.html:11
 msgid "Your connection request to Google Calendar was successfully accepted"

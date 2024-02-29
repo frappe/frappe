@@ -15,7 +15,7 @@ from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.testutils import clear_custom_fields
 
@@ -57,15 +57,25 @@ class TestDB(FrappeTestCase):
 			self.fail("Long running queries not timing out")
 
 	def test_skip_locking(self):
-		first_conn = frappe.local.db
-		name = frappe.db.get_value("User", "Administrator", "name", for_update=True, skip_locked=True)
-		self.assertEqual(name, "Administrator")
+		with self.primary_connection():
+			name = frappe.db.get_value("User", "Administrator", for_update=True, skip_locked=True)
+			self.assertEqual(name, "Administrator")
 
-		frappe.connect()  # Create a 2nd connection
-		second_conn = frappe.local.db
-		self.assertIsNot(first_conn, second_conn)
-		name = frappe.db.get_value("User", "Administrator", "name", for_update=True, skip_locked=True)
-		self.assertFalse(name)
+		with self.secondary_connection():
+			name = frappe.db.get_value("User", "Administrator", for_update=True, skip_locked=True)
+			self.assertFalse(name)
+
+	@timeout(5, "Lock timeout should have been 0")
+	def test_no_wait(self):
+		with self.primary_connection():
+			name = frappe.db.get_value("User", "Administrator", for_update=True)
+			self.assertEqual(name, "Administrator")
+
+		with self.secondary_connection():
+			self.assertRaises(
+				frappe.QueryTimeoutError,
+				lambda: frappe.db.get_value("User", "Administrator", for_update=True, wait=False),
+			)
 
 	@patch.dict(frappe.conf, {"http_timeout": 20, "enable_db_statement_timeout": 1})
 	def test_db_timeout_computation(self):
