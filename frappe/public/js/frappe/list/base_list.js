@@ -45,6 +45,7 @@ frappe.views.BaseList = class BaseList {
 
 		this.start = 0;
 		this.page_length = frappe.is_large_screen() ? 100 : 20;
+		this.selected_page_count = this.page_length;
 		this.data = [];
 		this.method = "frappe.desk.reportview.get";
 
@@ -395,20 +396,32 @@ frappe.views.BaseList = class BaseList {
 
 		this.$paging_area.on("click", ".btn-paging", (e) => {
 			const $this = $(e.currentTarget);
-
-			// set active button
+			// Set the active button
+			// This is always necessary because the current page length might
+			// have resulted from a previous "load more".
 			this.$paging_area.find(".btn-paging").removeClass("btn-info");
 			$this.addClass("btn-info");
 
-			this.start = 0;
-			this.page_length = this.selected_page_count = $this.data().value;
+			const old_page_length = this.page_length;
+			const new_page_length = $this.data().value;
 
-			this.refresh();
+			this.selected_page_count = new_page_length;
+			if (this.page_length > new_page_length) {
+				this.start = 0;
+				this.page_length = new_page_length;
+			} else {
+				this.start = this.page_length;
+				this.page_length = new_page_length - this.page_length;
+			}
+
+			if (old_page_length !== new_page_length) {
+				this.refresh();
+			}
 		});
 
 		this.$paging_area.on("click", ".btn-more", (e) => {
-			this.start += this.page_length;
-			this.page_length = this.selected_page_count || 20;
+			this.start = this.data.length;
+			this.page_length = this.selected_page_count;
 			this.refresh();
 		});
 	}
