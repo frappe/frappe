@@ -34,5 +34,5 @@ jobs:
           run: |
             bash ${GITHUB_WORKSPACE}/.github/helper/update_pot_file.sh
           env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
             BASE_BRANCH: ${{ matrix.branch }}
