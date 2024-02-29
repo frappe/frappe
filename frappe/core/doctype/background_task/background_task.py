@@ -5,10 +5,13 @@ from collections.abc import Callable
 from typing import Any
 
 from redis import Redis
-from rq.job import Callback, Job
+from rq.command import send_stop_job_command
+from rq.job import Callback, InvalidJobOperation, Job
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
+from frappe.utils.background_jobs import get_redis_conn
 
 
 class BackgroundTask(Document):
@@ -30,7 +33,49 @@ class BackgroundTask(Document):
 		user: DF.Link | None
 	# end: auto-generated types
 
-	pass
+	def stop(self):
+		"""Stop the task"""
+		try:
+			send_stop_job_command(connection=get_redis_conn(), job_id=f"{frappe.local.site}::{self.task_id}")
+		except InvalidJobOperation:
+			frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
+
+
+@frappe.whitelist(methods=["POST"])
+def enqueue_task(
+	method: str,
+	queue: str = "default",
+	timeout: int | None = None,
+	event: str | None = None,
+	on_success: str | None = None,
+	on_failure: str | None = None,
+	on_stopped: str | None = None,
+	at_front: bool = False,
+	kwargs: dict | None = None,
+):
+	if kwargs is None:
+		kwargs = {}
+
+	job = enqueue(
+		method=method,
+		queue=queue,
+		timeout=timeout,
+		event=event,
+		on_success=on_success,
+		on_failure=on_failure,
+		on_stopped=on_stopped,
+		at_front=at_front,
+		**kwargs,
+	)
+	return {"task_id": job.id.split("::")[-1]}
+
+
+@frappe.whitelist(methods=["POST"])
+def stop_task(task_id: str):
+	if task := frappe.get_doc("Background Task", {"task_id": task_id}, for_update=True):
+		task.stop()
+		return "Stopped task"
+	return "Task with the given ID not found"
 
 
 def enqueue(
@@ -84,8 +129,8 @@ def enqueue(
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
 
-	queue_args = {
-		"site": frappe.local.site,
+	meta = {"site": frappe.local.site}
+	queue_args = meta | {
 		"user": frappe.session.user,
 		"method": method,
 		"event": event,
@@ -100,6 +145,7 @@ def enqueue(
 			on_failure=Callback(func=failure_callback),
 			on_stopped=Callback(func=stopped_callback),
 			timeout=timeout,
+			meta=meta,
 			kwargs=queue_args,
 			at_front=at_front,
 			failure_ttl=frappe.conf.get("rq_job_failure_ttl", RQ_JOB_FAILURE_TTL),
@@ -142,7 +188,7 @@ def enqueue(
 
 def success_callback(job: Job, connection: Redis, result: Any) -> None:
 	"""Callback function to update the status of the job to "Completed"."""
-	frappe.init(site=job._kwargs.get("site"))
+	frappe.init(site=job.meta["site"])
 	frappe.connect()
 	doc = frappe.get_doc("Background Task", {"task_id": job.id.split("::")[-1]}, for_update=True)
 	doc.status = "Completed"
@@ -165,7 +211,7 @@ def success_callback(job: Job, connection: Redis, result: Any) -> None:
 
 def failure_callback(job: Job, connection: Redis, *exc_info) -> None:
 	"""Callback function to update the status of the job to "Failed"."""
-	frappe.init(site=job._kwargs.get("site"))
+	frappe.init(site=job.meta["site"])
 	frappe.connect()
 	doc = frappe.get_doc("Background Task", {"task_id": job.id.split("::")[-1]}, for_update=True)
 	doc.status = "Failed"
@@ -191,17 +237,15 @@ def failure_callback(job: Job, connection: Redis, *exc_info) -> None:
 	frappe.destroy()
 
 
-def stopped_callback(job: Job, connection: Redis, *args, **kwargs) -> None:
+def stopped_callback(job: Job, connection: Redis) -> None:
 	"""Callback function to update the status of the job to "Stopped"."""
-	frappe.init(site=job._kwargs.get("site"))
+	frappe.init(site=job.meta["site"])
 	frappe.connect()
-	print("Stopped with args", args)
-	print("Stopped with kwargs", kwargs)
 	doc = frappe.get_doc("Background Task", {"task_id": job.id.split("::")[-1]}, for_update=True)
 	doc.status = "Stopped"
 	doc.save()
 	if doc.stopped_callback:
-		frappe.call(doc.stopped_callback, job, connection, *args, **kwargs)
+		frappe.call(doc.stopped_callback, job, connection)
 	frappe.utils.notify_user(
 		frappe.session.user,
 		"Alert",
