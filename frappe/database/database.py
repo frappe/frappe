@@ -527,6 +527,8 @@ class Database:
 		run=True,
 		pluck=False,
 		distinct=False,
+		skip_locked=False,
+		wait=True,
 	):
 		"""Returns a document property or list of properties.
 
@@ -537,6 +539,11 @@ class Database:
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
 		:param order_by: Column to order by
+		:param cache: Use cached results fetched during current job/request
+		:param pluck: pluck first column instead of returning as nested list or dict.
+		:param for_update: All the affected/read rows will be locked.
+		:param skip_locked: Skip selecting currently locked rows.
+		:param wait: Wait for aquiring lock
 
 		Example:
 
@@ -567,6 +574,8 @@ class Database:
 			pluck=pluck,
 			distinct=distinct,
 			limit=1,
+			skip_locked=skip_locked,
+			wait=wait,
 		)
 
 		if not run:
@@ -599,6 +608,8 @@ class Database:
 		pluck=False,
 		distinct=False,
 		limit=None,
+		skip_locked=False,
+		wait=True,
 	):
 		"""Returns multiple document properties.
 
@@ -638,6 +649,9 @@ class Database:
 				distinct=distinct,
 				limit=limit,
 				as_dict=as_dict,
+				skip_locked=skip_locked,
+				wait=True,
+				for_update=for_update,
 			)
 
 		else:
@@ -658,11 +672,13 @@ class Database:
 						debug=debug,
 						order_by=order_by,
 						update=update,
-						for_update=for_update,
 						run=run,
 						pluck=pluck,
 						distinct=distinct,
 						limit=limit,
+						for_update=for_update,
+						skip_locked=skip_locked,
+						wait=wait,
 					)
 				except Exception as e:
 					if ignore and (
@@ -864,6 +880,8 @@ class Database:
 		order_by=None,
 		update=None,
 		for_update=False,
+		skip_locked=False,
+		wait=True,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -874,6 +892,8 @@ class Database:
 			filters=filters,
 			order_by=order_by,
 			for_update=for_update,
+			skip_locked=skip_locked,
+			wait=wait,
 			fields=fields,
 			distinct=distinct,
 			limit=limit,
@@ -897,6 +917,9 @@ class Database:
 		distinct=False,
 		limit=None,
 		as_dict=False,
+		for_update=False,
+		skip_locked=False,
+		wait=True,
 	):
 		if names := list(filter(None, names)):
 			return frappe.qb.get_query(
@@ -907,6 +930,9 @@ class Database:
 				distinct=distinct,
 				limit=limit,
 				validate_filters=True,
+				for_update=for_update,
+				skip_locked=skip_locked,
+				wait=wait,
 			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
 		return {}
 
