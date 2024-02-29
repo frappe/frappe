@@ -48,6 +48,7 @@ class Engine:
 		*,
 		validate_filters: bool = False,
 		skip_locked: bool = False,
+		wait: bool = True,
 	) -> QueryBuilder:
 		self.is_mariadb = frappe.db.db_type == "mariadb"
 		self.is_postgres = frappe.db.db_type == "postgres"
@@ -86,7 +87,7 @@ class Engine:
 			self.query = self.query.distinct()
 
 		if for_update:
-			self.query = self.query.for_update(skip_locked=skip_locked)
+			self.query = self.query.for_update(skip_locked=skip_locked, nowait=not wait)
 
 		if group_by:
 			self.query = self.query.groupby(group_by)
