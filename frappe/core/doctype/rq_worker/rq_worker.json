@@ -114,7 +114,7 @@
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2024-01-13 10:36:13.034784",
+ "modified": "2024-02-29 19:31:08.502527",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "RQ Worker",
@@ -141,5 +141,6 @@
    "color": "Yellow",
    "title": "busy"
   }
- ]
+ ],
+ "title_field": "pid"
 }
