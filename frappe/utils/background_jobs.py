@@ -168,6 +168,7 @@ def enqueue(
 			on_failure=Callback(func=on_failure) if on_failure else None,
 			timeout=timeout,
 			kwargs=queue_args,
+			meta=queue_args,
 			at_front=at_front,
 			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
@@ -199,8 +200,30 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 	getattr(frappe.get_doc(doctype, name), doc_method)(**kwargs)
 
 
-def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
-	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
+def execute_job(
+	site: str,
+	method: str | Callable,
+	event: str | None = None,
+	job_name: str | None = None,
+	kwargs: dict | None = None,
+	user: str | None = None,
+	is_async: bool = True,
+	retry: int = 0,
+):
+	"""
+	Executes job in a worker, performs commit/rollback and logs if there is any error
+
+	:param site: Site name
+	:param method: Method to be executed
+	:param event: Event name
+	:param job_name: Job name
+	:param kwargs: Keyword arguments to be passed to the method
+	:param user: User who triggered the job
+	:param is_async: If is_async=False, the method is executed immediately, else via a worker
+	:param retry: Number of times the job has been retried
+	:return: Return value of the method
+
+	"""
 	retval = None
 
 	if is_async:
