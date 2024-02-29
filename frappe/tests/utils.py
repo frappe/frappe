@@ -117,6 +117,11 @@ class FrappeTestCase(unittest.TestCase):
 			yield
 		finally:
 			frappe.local.db = current_conn
+			self.addCleanup(self._rollback_connections)
+
+	def _rollback_connections(self):
+		self._primary_connection.rollback()
+		self._secondary_connection.rollback()
 
 	def assertQueryEqual(self, first: str, second: str):
 		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
