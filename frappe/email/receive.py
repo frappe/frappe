@@ -229,9 +229,7 @@ class EmailServer:
 						self.pop.dele(m)
 
 		except Exception as e:
-			if self.has_login_limit_exceeded(e):
-				pass
-			else:
+			if not self.has_login_limit_exceeded(e):
 				raise
 
 		out = {"latest_messages": self.latest_messages}
@@ -373,7 +371,7 @@ class EmailServer:
 			self.seen_status.update({uid: "UNSEEN"})
 
 	def has_login_limit_exceeded(self, e):
-		return "-ERR Exceeded the login limit" in strip(cstr(e.message))
+		return "-ERR Exceeded the login limit" in strip(cstr(e))
 
 	def is_temporary_system_problem(self, e):
 		messages = (
