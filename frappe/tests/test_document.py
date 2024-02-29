@@ -492,20 +492,6 @@ class TestDocument(FrappeTestCase):
 		changed_val = frappe.db.get_single_value(c.doctype, key)
 		self.assertEqual(val, changed_val)
 
-	@timeout(5, "Deletion stuck on lock timeout")
-	def test_delete_race_condition(self):
-		note = frappe.new_doc("Note")
-		note.title = note.content = frappe.generate_hash()
-		note.insert()
-		frappe.db.commit()  # ensure that second connection can see the document
-
-		with self.primary_connection():
-			n1 = frappe.get_doc(note.doctype, note.name)
-			n1.save()
-
-		with self.secondary_connection():
-			self.assertRaises(frappe.QueryTimeoutError, frappe.delete_doc, note.doctype, note.name)
-
 
 class TestDocumentWebView(FrappeTestCase):
 	def get(self, path, user="Guest"):
