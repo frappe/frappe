@@ -26,9 +26,7 @@ class TestModelUtils(FrappeTestCase):
 		user = "test@example.com"
 		full_name = frappe.db.get_value("User", user, "full_name")
 
-		self.assertEqual(
-			get_fetch_values(doctype, "assigned_by", user), {"assigned_by_full_name": full_name}
-		)
+		self.assertEqual(get_fetch_values(doctype, "assigned_by", user), {"assigned_by_full_name": full_name})
 
 	def test_get_permitted_fields(self):
 		# Administrator should have access to all fields in ToDo
@@ -36,10 +34,10 @@ class TestModelUtils(FrappeTestCase):
 		todo_all_columns = frappe.get_meta("ToDo").get_valid_columns()
 		self.assertListEqual(todo_all_fields, todo_all_columns)
 
-		# Guest should have access to no fields in ToDo
+		# Guest should have access to no non-std fields in ToDo
 		with set_user("Guest"):
 			guest_permitted_fields = get_permitted_fields("ToDo")
-			self.assertEqual(guest_permitted_fields, [])
+			self.assertNotIn("description", guest_permitted_fields)
 
 		# everyone should have access to all fields of core doctypes
 		with set_user("Guest"):
@@ -55,15 +53,14 @@ class TestModelUtils(FrappeTestCase):
 				"Installed Application", parenttype="Installed Applications"
 			)
 			child_all_fields = frappe.get_meta("Installed Application").get_valid_columns()
-			self.assertEqual(without_parent_fields, [])
 			self.assertLess(len(without_parent_fields), len(with_parent_fields))
 			self.assertSequenceEqual(set(with_parent_fields), set(child_all_fields))
 
-		# guest has access to no fields
+		# guest has access to no non-std fields
 		with set_user("Guest"):
-			self.assertEqual(get_permitted_fields("Installed Application"), [])
-			self.assertEqual(
-				get_permitted_fields("Installed Application", parenttype="Installed Applications"), []
+			self.assertNotIn("app_name", get_permitted_fields("Installed Application"))
+			self.assertNotIn(
+				"app_name", get_permitted_fields("Installed Application", parenttype="Installed Applications")
 			)
 
 	def test_is_default_field(self):

@@ -12,7 +12,6 @@ from frappe.utils import cstr, encode
 
 Auth = Table("__Auth")
 
-
 passlibctx = CryptContext(
 	schemes=[
 		"pbkdf2_sha256",
@@ -104,9 +103,7 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 
 
 def delete_login_failed_cache(user):
-	frappe.cache.hdel("last_login_tried", user)
 	frappe.cache.hdel("login_failed_count", user)
-	frappe.cache.hdel("locked_account_time", user)
 
 
 def update_password(user, pwd, doctype="User", fieldname="password", logout_all_sessions=False):
@@ -215,4 +212,4 @@ def get_encryption_key():
 
 
 def get_password_reset_limit():
-	return frappe.db.get_single_value("System Settings", "password_reset_limit") or 0
+	return frappe.get_system_settings("password_reset_limit") or 3

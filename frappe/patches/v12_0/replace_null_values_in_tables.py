@@ -18,7 +18,7 @@ def execute():
 		update_column_table_map.setdefault(field.TABLE_NAME, [])
 
 		update_column_table_map[field.TABLE_NAME].append(
-			"`{fieldname}`=COALESCE(`{fieldname}`, 0)".format(fieldname=field.COLUMN_NAME)
+			f"`{field.COLUMN_NAME}`=COALESCE(`{field.COLUMN_NAME}`, 0)"
 		)
 
 	for table in frappe.db.get_tables():

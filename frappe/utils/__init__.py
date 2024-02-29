@@ -233,7 +233,7 @@ def validate_url(
 	# Handle scheme validation
 	if isinstance(valid_schemes, str):
 		is_valid = is_valid and (url.scheme == valid_schemes)
-	elif isinstance(valid_schemes, (list, tuple, set)):
+	elif isinstance(valid_schemes, list | tuple | set):
 		is_valid = is_valid and (url.scheme in valid_schemes)
 
 	if not is_valid and throw:
@@ -276,9 +276,7 @@ def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
 	If `default` is set to "404", gravatar URL will return 404 if no avatar is found.
 	If `default` is set to "mm", a placeholder image will be returned.
 	"""
-	hexdigest = hashlib.md5(
-		frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False
-	).hexdigest()
+	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False).hexdigest()
 	return f"https://secure.gravatar.com/avatar/{hexdigest}?d={default}&s=200"
 
 
@@ -356,7 +354,7 @@ def log(event, details):
 
 def dict_to_str(args: dict[str, Any], sep: str = "&") -> str:
 	"""Convert a dictionary to URL."""
-	return sep.join(f"{str(k)}=" + quote(str(args[k] or "")) for k in list(args))
+	return sep.join(f"{k!s}=" + quote(str(args[k] or "")) for k in list(args))
 
 
 def list_to_str(seq, sep=", "):
@@ -388,7 +386,7 @@ def set_default(key, val):
 def remove_blanks(d: dict) -> dict:
 	"""Return d with empty ('' or None) values stripped. Mutates inplace."""
 	for k, v in tuple(d.items()):
-		if v == "" or v == None:
+		if not v:
 			del d[k]
 	return d
 
@@ -452,7 +450,7 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 		# ensure it's properly escaped; only a single string argument executes via shell
 		cmd = shlex.join(cmd)
 
-	with (tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr):
+	with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
 		kwargs = {
 			"shell": True,
 			"stdout": stdout,
@@ -625,7 +623,7 @@ def update_progress_bar(txt, i, l, absolute=False):
 
 		complete = int(float(i + 1) / l * col)
 		completion_bar = ("=" * complete).ljust(col, " ")
-		percent_complete = f"{str(int(float(i + 1) / l * 100))}%"
+		percent_complete = f"{int(float(i + 1) / l * 100)!s}%"
 		status = f"{i} of {l}" if absolute else percent_complete
 		sys.stdout.write(f"\r{txt}: [{completion_bar}] {status}")
 		sys.stdout.flush()
@@ -659,7 +657,7 @@ def is_markdown(text):
 
 def is_a_property(x) -> bool:
 	"""Get properties (@property, @cached_property) in a controller class"""
-	return isinstance(x, (property, functools.cached_property))
+	return isinstance(x, property | functools.cached_property)
 
 
 def get_sites(sites_path=None):
@@ -906,7 +904,7 @@ def get_safe_filters(filters):
 	try:
 		filters = json.loads(filters)
 
-		if isinstance(filters, (int, float)):
+		if isinstance(filters, int | float):
 			filters = frappe.as_unicode(filters)
 
 	except (TypeError, ValueError):
@@ -1031,7 +1029,7 @@ def groupby_metric(iterable: dict[str, list], key: str):
 	        'india': [{'id':1, 'name': 'iplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'iplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'iplayer-3'}],
 	        'Aus': [{'id':1, 'name': 'aplayer-1', 'ranking': 1}, {'id': 2, 'ranking': 1, 'name': 'aplayer-2'}, {'id': 2, 'ranking': 2, 'name': 'aplayer-3'}]
 	}
-	>>> groupby(d, key='ranking')
+	>>> groupby(d, key="ranking")
 	{1: {'Aus': [{'id': 1, 'name': 'aplayer-1', 'ranking': 1},
 	                        {'id': 2, 'name': 'aplayer-2', 'ranking': 1}],
 	        'india': [{'id': 1, 'name': 'iplayer-1', 'ranking': 1},

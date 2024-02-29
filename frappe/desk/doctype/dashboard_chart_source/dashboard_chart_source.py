@@ -33,7 +33,6 @@ class DashboardChartSource(Document):
 		source_name: DF.Data
 		timeseries: DF.Check
 	# end: auto-generated types
+
 	def on_update(self):
-		export_to_files(
-			record_list=[[self.doctype, self.name]], record_module=self.module, create_init=True
-		)
+		export_to_files(record_list=[[self.doctype, self.name]], record_module=self.module, create_init=True)

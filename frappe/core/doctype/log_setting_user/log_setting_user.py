@@ -19,4 +19,5 @@ class LogSettingUser(Document):
 		parenttype: DF.Data
 		user: DF.Link
 	# end: auto-generated types
+
 	pass

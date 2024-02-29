@@ -87,10 +87,10 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		return this.is_translatable() ? __(value) : value;
 	}
 	is_translatable() {
-		return frappe.boot?.translated_doctypes || [].includes(this.get_options());
+		return (frappe.boot?.translated_doctypes || []).includes(this.get_options());
 	}
 	is_title_link() {
-		return frappe.boot?.link_title_doctypes || [].includes(this.get_options());
+		return (frappe.boot?.link_title_doctypes || []).includes(this.get_options());
 	}
 	async set_link_title(value) {
 		const doctype = this.get_options();
@@ -252,6 +252,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					doctype: doctype,
 					ignore_user_permissions: me.df.ignore_user_permissions,
 					reference_doctype: me.get_reference_doctype() || "",
+					page_length: cint(frappe.boot.sysdefaults.link_field_results_limit) || 10,
 				};
 
 				me.set_custom_query(args);
@@ -476,7 +477,8 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				filter[3].push("...");
 			}
 
-			let value = filter[3] == null || filter[3] === "" ? __("empty") : String(filter[3]);
+			let value =
+				filter[3] == null || filter[3] === "" ? __("empty") : String(__(filter[3]));
 
 			return [__(label).bold(), __(filter[2]), value.bold()].join(" ");
 		}

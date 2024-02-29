@@ -9,6 +9,8 @@ EVENT_MAP = {
 	"before_validate": "Before Validate",
 	"validate": "Before Save",
 	"on_update": "After Save",
+	"before_rename": "Before Rename",
+	"after_rename": "After Rename",
 	"before_submit": "Before Submit",
 	"on_submit": "After Submit",
 	"before_cancel": "Before Cancel",
@@ -17,6 +19,8 @@ EVENT_MAP = {
 	"after_delete": "After Delete",
 	"before_update_after_submit": "Before Save (Submitted Document)",
 	"on_update_after_submit": "After Save (Submitted Document)",
+	"on_payment_paid": "On Payment Paid",
+	"on_payment_failed": "On Payment Failed",
 	"on_payment_authorized": "On Payment Authorization",
 }
 

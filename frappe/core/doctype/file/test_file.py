@@ -39,13 +39,18 @@ def make_test_doc(ignore_permissions=False):
 
 
 @contextmanager
-def make_test_image_file():
+def make_test_image_file(private=False):
 	file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
 	with open(file_path, "rb") as f:
 		file_content = f.read()
 
 	test_file = frappe.get_doc(
-		{"doctype": "File", "file_name": "sample_image_for_optimization.jpg", "content": file_content}
+		{
+			"doctype": "File",
+			"file_name": "sample_image_for_optimization.jpg",
+			"content": file_content,
+			"is_private": private,
+		}
 	).insert()
 	# remove those flags
 	_test_file: "File" = frappe.get_doc("File", test_file.name)
@@ -222,9 +227,7 @@ class TestSameContent(FrappeTestCase):
 		doctype, docname = make_test_doc()
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
-		limit_property = make_property_setter(
-			"ToDo", None, "max_attachments", 1, "int", for_doctype=True
-		)
+		limit_property = make_property_setter("ToDo", None, "max_attachments", 1, "int", for_doctype=True)
 		file1 = frappe.get_doc(
 			{
 				"doctype": "File",
@@ -451,9 +454,7 @@ class TestFile(FrappeTestCase):
 
 		test_file.file_url = None
 		test_file.file_name = "/usr/bin/man"
-		self.assertRaisesRegex(
-			ValidationError, "There is some problem with the file url", test_file.validate
-		)
+		self.assertRaisesRegex(ValidationError, "There is some problem with the file url", test_file.validate)
 
 		test_file.file_url = None
 		test_file.file_name = "_file"
@@ -670,9 +671,7 @@ class TestAttachmentsAccess(FrappeTestCase):
 
 		frappe.set_user("test4@example.com")
 		user_files = [file.file_name for file in get_files_in_folder("Home")["files"]]
-		user_attachments_files = [
-			file.file_name for file in get_files_in_folder("Home/Attachments")["files"]
-		]
+		user_attachments_files = [file.file_name for file in get_files_in_folder("Home/Attachments")["files"]]
 
 		self.assertIn("test_sm_standalone.txt", system_manager_files)
 		self.assertNotIn("test_sm_standalone.txt", user_files)

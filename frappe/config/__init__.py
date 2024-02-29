@@ -2,7 +2,7 @@ import frappe
 from frappe import _
 
 
-def get_modules_from_all_apps_for_user(user: str = None) -> list[dict]:
+def get_modules_from_all_apps_for_user(user: str | None = None) -> list[dict]:
 	user = user or frappe.session.user
 	all_modules = get_modules_from_all_apps()
 	global_blocked_modules = frappe.get_doc("User", "Administrator").get_blocked_modules()
@@ -30,9 +30,7 @@ def get_modules_from_all_apps():
 
 
 def get_modules_from_app(app):
-	return frappe.get_all(
-		"Module Def", filters={"app_name": app}, fields=["module_name", "app_name as app"]
-	)
+	return frappe.get_all("Module Def", filters={"app_name": app}, fields=["module_name", "app_name as app"])
 
 
 def get_all_empty_tables_by_module():

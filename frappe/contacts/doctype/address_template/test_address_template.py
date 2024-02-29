@@ -25,9 +25,7 @@ class TestAddressTemplate(FrappeTestCase):
 		self.assertEqual(frappe.db.get_value("Address Template", "Brazil", "is_default"), 1)
 
 	def test_delete_address_template(self):
-		india = frappe.get_doc(
-			{"doctype": "Address Template", "country": "India", "is_default": 0}
-		).insert()
+		india = frappe.get_doc({"doctype": "Address Template", "country": "India", "is_default": 0}).insert()
 
 		brazil = frappe.get_doc(
 			{"doctype": "Address Template", "country": "Brazil", "is_default": 1}

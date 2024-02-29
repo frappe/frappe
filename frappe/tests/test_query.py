@@ -425,9 +425,7 @@ class TestQuery(FrappeTestCase):
 		frappe.db.sql_ddl("drop table if exists `tabTest Tree DocType`")
 
 	def test_child_field_syntax(self):
-		note1 = frappe.get_doc(
-			doctype="Note", title="Note 1", seen_by=[{"user": "Administrator"}]
-		).insert()
+		note1 = frappe.get_doc(doctype="Note", title="Note 1", seen_by=[{"user": "Administrator"}]).insert()
 		note2 = frappe.get_doc(
 			doctype="Note", title="Note 2", seen_by=[{"user": "Administrator"}, {"user": "Guest"}]
 		).insert()

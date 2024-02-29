@@ -15,6 +15,7 @@ export default class LinksWidget extends Widget {
 			link_count: this.links.length,
 			label: this.label,
 			hidden: this.hidden,
+			description: this.description,
 		};
 	}
 
@@ -24,6 +25,22 @@ export default class LinksWidget extends Widget {
 			this.options.links = this.links;
 		}
 		this.widget.addClass("links-widget-box");
+
+		if (this.description) {
+			const description = $(`
+				<button class="btn-reset card-description-btn ml-2">
+					${frappe.utils.icon("help", "sm")}
+				</button>
+			`).appendTo(this.widget.find(".widget-title"));
+
+			description.popover({
+				trigger: "hover",
+				placement: "top",
+				content: () => `<div class="card-description small">${__(this.description)}</div>`,
+				html: true,
+			});
+		}
+
 		const is_link_disabled = (item) => {
 			return item.dependencies && item.incomplete_dependencies;
 		};
@@ -43,9 +60,7 @@ export default class LinksWidget extends Widget {
 
 		const get_link_for_item = (item) => {
 			if (is_link_disabled(item)) {
-				return `<span class="link-content ellipsis disabled-link">${
-					item.label ? item.label : item.name
-				}</span>
+				return `<span class="link-content ellipsis disabled-link">${item.link_title}</span>
 					<div class="module-link-popover popover fade top in" role="tooltip" style="display: none;">
 						<div class="arrow"></div>
 						<h3 class="popover-title" style="display: none;"></h3>
@@ -57,14 +72,18 @@ export default class LinksWidget extends Widget {
 			}
 
 			if (item.youtube_id)
-				return `<span class="link-content help-video-link ellipsis" data-youtubeid="${
-					item.youtube_id
-				}">
-						${item.label ? item.label : item.name}</span>`;
+				return `
+					<span class="link-content help-video-link ellipsis" data-youtubeid="${item.youtube_id}">
+						${item.link_title}
+					</span>
+				`;
 
-			return `<span class="link-content ellipsis">${
-				item.label ? item.label : item.name
-			} ${frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")} </span>`;
+			return `
+				<span class="link-content ellipsis">
+					<span class="link-text">${item.link_title}</span>
+					${frappe.utils.icon("es-line-arrow-up-right", "xs", "", "", "ml-2")}
+				</span>
+			`;
 		};
 
 		this.link_list = this.links.map((item) => {
@@ -80,14 +99,30 @@ export default class LinksWidget extends Widget {
 			}
 
 			const route = frappe.utils.generate_route(opts);
+			item.link_title = item.label ? item.label : item.name;
 
-			return $(`<a href="${route}" class="link-item ellipsis ${
-				item.onboard ? "onboard-spotlight" : ""
-			} ${disabled_dependent(item)}" type="${item.type}" title="${
-				item.label ? item.label : item.name
-			}">
+			const $link = $(`
+				<a href="${route}" class="link-item ellipsis
+					${item.onboard ? "onboard-spotlight" : ""} ${disabled_dependent(item)}"
+					type="${item.type}" title="${item.link_title}"
+				>
 					${get_link_for_item(item)}
-			</a>`);
+				</a>
+			`);
+
+			if (item.description) {
+				$link.find(".link-text").popover({
+					trigger: "hover",
+					placement: "top",
+					title: item.link_title,
+					content: () =>
+						`<div class="link-description small">${__(item.description)}</div>`,
+					html: true,
+					delay: { show: 600, hide: 100 },
+				});
+			}
+
+			return $link;
 		});
 		if (this.in_customize_mode) {
 			this.body.empty();

@@ -84,7 +84,6 @@ class TestPerformance(FrappeTestCase):
 			)
 
 	def test_controller_caching(self):
-
 		get_controller("User")
 		with self.assertQueryCount(0):
 			get_controller("User")
@@ -146,7 +145,7 @@ class TestPerformance(FrappeTestCase):
 		self.assertGreaterEqual(
 			rps,
 			EXPECTED_RPS * (1 - FAILURE_THREASHOLD),
-			f"Possible performance regression in basic /api/Resource list  requests",
+			"Possible performance regression in basic /api/Resource list  requests",
 		)
 
 	def test_homepage_resolver(self):

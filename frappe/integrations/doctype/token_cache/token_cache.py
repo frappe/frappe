@@ -32,6 +32,7 @@ class TokenCache(Document):
 		token_type: DF.Data | None
 		user: DF.Link | None
 	# end: auto-generated types
+
 	def get_auth_header(self):
 		if self.access_token:
 			return {"Authorization": "Bearer " + self.get_password("access_token")}

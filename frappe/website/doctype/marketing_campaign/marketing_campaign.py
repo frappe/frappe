@@ -16,4 +16,5 @@ class MarketingCampaign(Document):
 
 		campaign_description: DF.SmallText | None
 	# end: auto-generated types
+
 	pass

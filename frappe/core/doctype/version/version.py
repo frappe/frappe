@@ -21,6 +21,7 @@ class Version(Document):
 		docname: DF.Data
 		ref_doctype: DF.Link
 	# end: auto-generated types
+
 	def update_version_info(self, old: Document | None, new: Document) -> bool:
 		"""Update changed info and return true if change contains useful data."""
 		if not old:
@@ -29,10 +30,18 @@ class Version(Document):
 		else:
 			return self.set_diff(old, new)
 
+	@staticmethod
+	def set_impersonator(data):
+		if not frappe.session:
+			return
+		if impersonator := frappe.session.data.get("impersonated_by"):
+			data["impersonated_by"] = impersonator
+
 	def set_diff(self, old: Document, new: Document) -> bool:
 		"""Set the data property with the diff of the docs if present"""
 		diff = get_diff(old, new)
 		if diff:
+			self.set_impersonator(diff)
 			self.ref_doctype = new.doctype
 			self.docname = new.name
 			self.data = frappe.as_json(diff, indent=None, separators=(",", ":"))
@@ -50,6 +59,7 @@ class Version(Document):
 			"updater_reference": updater_reference,
 			"created_by": doc.owner,
 		}
+		self.set_impersonator(data)
 		self.ref_doctype = doc.doctype
 		self.docname = doc.name
 		self.data = frappe.as_json(data, indent=None, separators=(",", ":"))

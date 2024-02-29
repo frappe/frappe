@@ -1,10 +1,10 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
-from os.path import abspath
+from os.path import abspath, splitext
 from os.path import exists as path_exists
 from os.path import join as join_path
-from os.path import splitext
+from pathlib import Path
 from typing import Optional
 
 import frappe
@@ -45,6 +45,7 @@ class WebsiteTheme(Document):
 		theme_scss: DF.Code | None
 		theme_url: DF.Data | None
 	# end: auto-generated types
+
 	def validate(self):
 		self.validate_if_customizable()
 		self.generate_bootstrap_theme()
@@ -56,7 +57,6 @@ class WebsiteTheme(Document):
 			and not frappe.flags.in_import
 			and not frappe.flags.in_test
 		):
-
 			self.export_doc()
 
 		self.clear_cache_if_current_theme()
@@ -70,9 +70,7 @@ class WebsiteTheme(Document):
 
 	def on_trash(self):
 		if self.is_standard_and_not_valid_user():
-			frappe.throw(
-				_("You are not allowed to delete a standard Website Theme"), frappe.PermissionError
-			)
+			frappe.throw(_("You are not allowed to delete a standard Website Theme"), frappe.PermissionError)
 
 	def validate_if_customizable(self):
 		if self.is_standard_and_not_valid_user():
@@ -127,9 +125,15 @@ class WebsiteTheme(Document):
 	def delete_old_theme_files(self, folder_path):
 		import os
 
+		theme_files: list[Path] = []
 		for fname in os.listdir(folder_path):
 			if fname.startswith(frappe.scrub(self.name) + "_") and fname.endswith(".css"):
-				os.remove(os.path.join(folder_path, fname))
+				theme_files.append(Path(folder_path) / fname)
+
+		theme_files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
+		# Keep 3 recent files
+		for old_file in theme_files[2:]:
+			old_file.unlink()
 
 	@frappe.whitelist()
 	def set_as_default(self):
@@ -168,9 +172,7 @@ def get_scss(website_theme):
 	imports_to_include = [d for d in available_imports if not d.startswith(apps_to_ignore)]
 	context = website_theme.as_dict()
 	context["website_theme_scss"] = imports_to_include
-	return frappe.render_template(
-		"frappe/website/doctype/website_theme/website_theme_template.scss", context
-	)
+	return frappe.render_template("frappe/website/doctype/website_theme/website_theme_template.scss", context)
 
 
 def get_scss_paths():

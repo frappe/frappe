@@ -42,7 +42,6 @@ class TestNaming(FrappeTestCase):
 		self.assertEqual(append_number_if_name_exists(DOCTYPE, TITLE, "title", "_"), f"{TITLE}_1")
 
 	def test_field_autoname_name_sync(self):
-
 		country = frappe.get_last_doc("Country")
 		original_name = country.name
 		country.country_name = "Not a country"
@@ -319,8 +318,8 @@ class TestNaming(FrappeTestCase):
 
 	def test_naming_series_validation(self):
 		dns = frappe.get_doc("Document Naming Settings")
-		exisiting_series = dns.get_transactions_and_prefixes()["prefixes"]
-		valid = ["SINV-", "SI-.{field}.", "SI-#.###", ""] + exisiting_series
+		existing_series = dns.get_transactions_and_prefixes()["prefixes"]
+		valid = ["SINV-", "SI-.{field}.", "SI-#.###", "", *existing_series]
 		invalid = ["$INV-", r"WINDOWS\NAMING"]
 
 		for series in valid:
@@ -334,7 +333,6 @@ class TestNaming(FrappeTestCase):
 			self.assertRaises(InvalidNamingSeriesError, NamingSeries(series).validate)
 
 	def test_naming_using_fields(self):
-
 		webhook = frappe.new_doc("Webhook")
 		webhook.webhook_docevent = "on_update"
 		name = NamingSeries("KOOH-.{webhook_docevent}.").generate_next_name(webhook)
@@ -364,9 +362,7 @@ class TestNaming(FrappeTestCase):
 		series = "KOOH-..{webhook_docevent}.-.####"
 
 		name = parse_naming_series(series, doc=webhook)
-		self.assertTrue(
-			name.startswith("KOOH-"), f"incorrect name generated {name}, missing field value"
-		)
+		self.assertTrue(name.startswith("KOOH-"), f"incorrect name generated {name}, missing field value")
 
 	def test_naming_with_empty_field(self):
 		# check naming with empty field value

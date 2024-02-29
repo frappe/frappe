@@ -19,4 +19,5 @@ class CalendarView(Document):
 		start_date_field: DF.Literal
 		subject_field: DF.Literal
 	# end: auto-generated types
+
 	pass

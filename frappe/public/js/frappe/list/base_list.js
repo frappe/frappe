@@ -132,7 +132,9 @@ frappe.views.BaseList = class BaseList {
 			frappe.meta.has_field(doctype, fieldname) ||
 			fieldname === "_seen";
 
-		if (!is_valid_field) {
+		let is_virtual = this.meta.fields.find((df) => df.fieldname == fieldname)?.is_virtual;
+
+		if (!is_valid_field || is_virtual) {
 			return;
 		}
 
@@ -180,7 +182,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_title() {
-		this.page.set_title(this.page_title);
+		this.page.set_title(this.page_title, null, true, "", this.meta?.description);
 	}
 
 	setup_view_menu() {
@@ -391,20 +393,22 @@ frappe.views.BaseList = class BaseList {
 			.find(`.btn-paging[data-value="${this.page_length}"]`)
 			.addClass("btn-info");
 
-		this.$paging_area.on("click", ".btn-paging, .btn-more", (e) => {
+		this.$paging_area.on("click", ".btn-paging", (e) => {
 			const $this = $(e.currentTarget);
 
-			if ($this.is(".btn-paging")) {
-				// set active button
-				this.$paging_area.find(".btn-paging").removeClass("btn-info");
-				$this.addClass("btn-info");
+			// set active button
+			this.$paging_area.find(".btn-paging").removeClass("btn-info");
+			$this.addClass("btn-info");
 
-				this.start = 0;
-				this.page_length = this.selected_page_count = $this.data().value;
-			} else if ($this.is(".btn-more")) {
-				this.start = this.start + this.page_length;
-				this.page_length = this.selected_page_count || 20;
-			}
+			this.start = 0;
+			this.page_length = this.selected_page_count = $this.data().value;
+
+			this.refresh();
+		});
+
+		this.$paging_area.on("click", ".btn-more", (e) => {
+			this.start += this.page_length;
+			this.page_length = this.selected_page_count || 20;
 			this.refresh();
 		});
 	}
@@ -806,7 +810,7 @@ class FilterArea {
 
 					return {
 						fieldtype: fieldtype,
-						label: __(df.label),
+						label: __(df.label, null, df.parent),
 						options: options,
 						fieldname: df.fieldname,
 						condition: condition,

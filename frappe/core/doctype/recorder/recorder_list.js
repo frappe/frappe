@@ -10,12 +10,7 @@ frappe.listview_settings["Recorder"] = {
 		}
 
 		listview.page.add_button(__("Clear"), () => {
-			frappe.call({
-				method: "frappe.recorder.delete",
-				callback: function () {
-					listview.refresh();
-				},
-			});
+			frappe.xcall("frappe.recorder.delete").then(listview.refresh);
 		});
 
 		listview.page.add_menu_item(__("Import"), () => {
@@ -88,16 +83,123 @@ frappe.listview_settings["Recorder"] = {
 	},
 
 	setup_recorder_controls(listview) {
+		let me = this;
 		listview.page.set_primary_action(listview.enabled ? __("Stop") : __("Start"), () => {
-			frappe.call({
-				method: listview.enabled ? "frappe.recorder.stop" : "frappe.recorder.start",
-				callback: function () {
-					listview.refresh();
-				},
-			});
-			listview.enabled = !listview.enabled;
-			this.refresh_controls(listview);
+			if (listview.enabled) {
+				me.stop_recorder(listview);
+			} else {
+				me.start_recorder(listview);
+			}
 		});
+	},
+
+	stop_recorder(listview) {
+		let me = this;
+		frappe.xcall("frappe.recorder.stop", {}).then(() => {
+			listview.refresh();
+			listview.enabled = false;
+			me.refresh_controls(listview);
+		});
+	},
+
+	start_recorder(listview) {
+		let me = this;
+		frappe.prompt(
+			[
+				{
+					fieldtype: "Section Break",
+					fieldname: "req_job_section",
+				},
+				{
+					fieldtype: "Column Break",
+					fieldname: "web_request_columns",
+					label: "Web Requests",
+				},
+				{
+					fieldname: "record_requests",
+					fieldtype: "Check",
+					label: "Record Web Requests",
+					default: 1,
+				},
+				{
+					fieldname: "request_filter",
+					fieldtype: "Data",
+					label: "Request path filter",
+					default: "/",
+					depends_on: "record_requests",
+					description: `This will be used for filtering paths which will be recorded.
+						You can use this to avoid slowing down other traffic.
+						e.g. <code>/api/method/erpnext</code>. Leave it empty to record every request.`,
+				},
+				{
+					fieldtype: "Column Break",
+					fieldname: "background_col",
+					label: "Background Jobs",
+				},
+
+				{
+					fieldname: "record_jobs",
+					fieldtype: "Check",
+					label: "Record Background Jobs",
+					default: 1,
+				},
+				{
+					fieldname: "jobs_filter",
+					fieldtype: "Data",
+					label: "Background Jobs filter",
+					default: "",
+					depends_on: "record_jobs",
+					description: `This will be used for filtering jobs which will be recorded.
+						You can use this to avoid slowing down other jobs. e.g. <code>email_queue.pull</code>.
+						Leave it empty to record every job.`,
+				},
+				{
+					fieldtype: "Section Break",
+					fieldname: "sql_section",
+					label: "SQL",
+				},
+				{
+					fieldname: "record_sql",
+					fieldtype: "Check",
+					label: "Record SQL queries",
+					default: 1,
+				},
+				{
+					fieldname: "explain",
+					fieldtype: "Check",
+					label: "Generate EXPLAIN for SQL queries",
+					default: 1,
+				},
+				{
+					fieldname: "capture_stack",
+					fieldtype: "Check",
+					label: "Capture callstack of SQL queries",
+					default: 1,
+				},
+				{
+					fieldtype: "Section Break",
+					fieldname: "python_section",
+					label: "Python",
+				},
+				{
+					fieldname: "profile",
+					fieldtype: "Check",
+					label: "Run cProfile",
+					default: 0,
+					description:
+						"Warning: cProfile adds a lot of overhead. For best results, disable stack capturing when using cProfile.",
+				},
+			],
+			(values) => {
+				frappe.xcall("frappe.recorder.start", values).then(() => {
+					listview.refresh();
+					listview.enabled = true;
+					me.refresh_controls(listview);
+				});
+			},
+			__("Configure Recorder"),
+			__("Start Recording")
+		);
 	},
 
 	update_indicators(listview) {
