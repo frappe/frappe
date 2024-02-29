@@ -34,7 +34,7 @@ from frappe.exceptions import SiteNotSpecifiedError
 	"--db-socket",
 	"--mariadb-db-socket",
 	envvar="MYSQL_UNIX_PORT",
-	help="Database socket for MariaDB or PostgreSQL",
+	help="Database socket for MariaDB or folder containing database socket for PostgreSQL",
 )
 @click.option(
 	"--no-mariadb-socket",
