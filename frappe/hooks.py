@@ -279,7 +279,10 @@ setup_wizard_exception = [
 ]
 
 before_migrate = []
-after_migrate = ["frappe.website.doctype.website_theme.website_theme.after_migrate"]
+after_migrate = [
+	"frappe.website.doctype.website_theme.website_theme.after_migrate",
+	"frappe.patches.v13_0.eol_warning.execute",
+]
 
 otp_methods = ["OTP App", "Email", "SMS"]
 
