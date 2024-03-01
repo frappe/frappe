@@ -16,12 +16,13 @@ Example:
 """
 import json
 import os
+import typing
 from datetime import datetime
 
 import click
 
 import frappe
-from frappe import _
+from frappe import _, _lt
 from frappe.model import (
 	child_table_fields,
 	data_fieldtypes,
@@ -41,21 +42,21 @@ from frappe.modules import load_doctype_module
 from frappe.utils import cast, cint, cstr
 
 DEFAULT_FIELD_LABELS = {
-	"name": lambda: _("ID"),
-	"creation": lambda: _("Created On"),
-	"docstatus": lambda: _("Document Status"),
-	"idx": lambda: _("Index"),
-	"modified": lambda: _("Last Updated On"),
-	"modified_by": lambda: _("Last Updated By"),
-	"owner": lambda: _("Created By"),
-	"_user_tags": lambda: _("Tags"),
-	"_liked_by": lambda: _("Liked By"),
-	"_comments": lambda: _("Comments"),
-	"_assign": lambda: _("Assigned To"),
+	"name": _lt("ID"),
+	"creation": _lt("Created On"),
+	"docstatus": _lt("Document Status"),
+	"idx": _lt("Index"),
+	"modified": _lt("Last Updated On"),
+	"modified_by": _lt("Last Updated By"),
+	"owner": _lt("Created By"),
+	"_user_tags": _lt("Tags"),
+	"_liked_by": _lt("Liked By"),
+	"_comments": _lt("Comments"),
+	"_assign": _lt("Assigned To"),
 }
 
 
-def get_meta(doctype, cached=True) -> "Meta":
+def get_meta(doctype, cached=True) -> "_Meta":
 	cached = cached and isinstance(doctype, str)
 	if cached and (meta := frappe.cache.hget("doctype_meta", doctype)):
 		return meta
@@ -105,10 +106,10 @@ class Meta(Document):
 			"DocType State",
 		)
 	)
-	standard_set_once_fields = [
+	standard_set_once_fields = (
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),
-	]
+	)
 
 	def __init__(self, doctype):
 		if isinstance(doctype, Document):
@@ -146,7 +147,7 @@ class Meta(Document):
 		def serialize(doc):
 			out = {}
 			for key, value in doc.__dict__.items():
-				if isinstance(value, (list, tuple)):
+				if isinstance(value, list | tuple):
 					if not value or not isinstance(value[0], BaseDocument):
 						# non standard list object, skip
 						continue
@@ -154,7 +155,7 @@ class Meta(Document):
 					value = [serialize(d) for d in value]
 
 				if (not no_nulls and value is None) or isinstance(
-					value, (str, int, float, datetime, list, tuple)
+					value, str | int | float | datetime | list | tuple
 				):
 					out[key] = value
 
@@ -182,9 +183,7 @@ class Meta(Document):
 		return self._dynamic_link_fields
 
 	def get_select_fields(self):
-		return self.get(
-			"fields", {"fieldtype": "Select", "options": ["not in", ["[Select]", "Loading..."]]}
-		)
+		return self.get("fields", {"fieldtype": "Select", "options": ["not in", ["[Select]", "Loading..."]]})
 
 	def get_image_fields(self):
 		return self.get("fields", {"fieldtype": "Attach Image"})
@@ -248,7 +247,7 @@ class Meta(Document):
 			return df.get("label")
 
 		if fieldname in DEFAULT_FIELD_LABELS:
-			return DEFAULT_FIELD_LABELS[fieldname]()
+			return str(DEFAULT_FIELD_LABELS[fieldname])
 
 		return "No Label"
 
@@ -535,7 +534,9 @@ class Meta(Document):
 	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
 		def is_value_field(docfield):
 			return not (
-				not with_virtual_fields and docfield.get("is_virtual") or docfield.fieldtype in no_value_fields
+				not with_virtual_fields
+				and docfield.get("is_virtual")
+				or docfield.fieldtype in no_value_fields
 			)
 
 		if with_field_meta:
@@ -594,6 +595,10 @@ class Meta(Document):
 		permlevel_access = set(
 			self.get_permlevel_access(permission_type=permission_type, parenttype=parenttype, user=user)
 		)
+
+		if 0 not in permlevel_access and permission_type in ("read", "select"):
+			if frappe.share.get_shared(self.name, user, rights=[permission_type], limit=1):
+				permlevel_access.add(0)
 
 		permitted_fieldnames.extend(
 			df.fieldname
@@ -708,9 +713,7 @@ class Meta(Document):
 			module_name, "doctype", doctype, "templates", doctype + suffix + ".html"
 		)
 		if os.path.exists(template_path):
-			return "{module_name}/doctype/{doctype_name}/templates/{doctype_name}{suffix}.html".format(
-				module_name=module_name, doctype_name=doctype, suffix=suffix
-			)
+			return f"{module_name}/doctype/{doctype}/templates/{doctype}{suffix}.html"
 		return None
 
 	def is_nested_set(self):
@@ -765,7 +768,6 @@ def get_field_currency(df, doc=None):
 			and frappe.local.field_currency.get((doc.doctype, doc.parent), {}).get(df.fieldname)
 		)
 	):
-
 		ref_docname = doc.get("parent") or doc.name
 
 		if ":" in cstr(df.get("options")):
@@ -788,8 +790,7 @@ def get_field_currency(df, doc=None):
 			)
 
 	return frappe.local.field_currency.get((doc.doctype, doc.name), {}).get(df.fieldname) or (
-		doc.get("parent")
-		and frappe.local.field_currency.get((doc.doctype, doc.parent), {}).get(df.fieldname)
+		doc.get("parent") and frappe.local.field_currency.get((doc.doctype, doc.parent), {}).get(df.fieldname)
 	)
 
 
@@ -842,9 +843,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 			if quiet:
 				continue
 			click.secho(f"Ignoring missing table for DocType: {doctype}", fg="yellow", err=True)
-			click.secho(
-				f"Consider removing record in the DocType table for {doctype}", fg="yellow", err=True
-			)
+			click.secho(f"Consider removing record in the DocType table for {doctype}", fg="yellow", err=True)
 		except Exception as e:
 			if quiet:
 				continue
@@ -895,3 +894,12 @@ def _update_field_order_based_on_insert_after(field_order, insert_after_map):
 		# insert_after is an invalid fieldname, add these fields to the end
 		for fields in insert_after_map.values():
 			field_order.extend(fields)
+
+
+if typing.TYPE_CHECKING:
+	# This is DX hack to add all fields from DocType to meta for autocompletions.
+	# Meta is technically doctype + special fields on meta.
+	from frappe.core.doctype.doctype.doctype import DocType
+
+	class _Meta(Meta, DocType):
+		pass

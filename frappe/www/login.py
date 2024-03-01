@@ -37,6 +37,7 @@ def get_context(context):
 	context["hide_login"] = True  # dont show login link on login page again.
 	context["provider_logins"] = []
 	context["disable_signup"] = cint(frappe.get_website_settings("disable_signup"))
+	context["show_footer_on_login"] = cint(frappe.get_website_settings("show_footer_on_login"))
 	context["disable_user_pass_login"] = cint(frappe.get_system_settings("disable_user_pass_login"))
 	context["logo"] = frappe.get_website_settings("app_logo") or frappe.get_hooks("app_logo_url")[-1]
 	context["app_name"] = (
@@ -122,7 +123,6 @@ def login_via_token(login_token: str):
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=5, seconds=60 * 60)
 def send_login_link(email: str):
-
 	if not frappe.get_system_settings("login_with_email_link"):
 		return
 
@@ -148,9 +148,7 @@ def _generate_temporary_login_link(email: str, expiry: int):
 	assert isinstance(email, str)
 
 	if not frappe.db.exists("User", email):
-		frappe.throw(
-			_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError
-		)
+		frappe.throw(_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError)
 	key = frappe.generate_hash()
 	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
 

@@ -37,6 +37,7 @@ class Currency(Document):
 		symbol: DF.Data | None
 		symbol_on_right: DF.Check
 	# end: auto-generated types
+
 	# NOTE: During installation country docs are bulk inserted.
 	def validate(self):
 		frappe.clear_cache()

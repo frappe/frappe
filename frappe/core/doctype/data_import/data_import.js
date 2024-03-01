@@ -135,34 +135,29 @@ frappe.ui.form.on("Data Import", {
 				let failed_records = cint(r.message.failed);
 				let total_records = cint(r.message.total_records);
 
-				if (!total_records) return;
-				let action, message;
-				if (frm.doc.import_type === "Insert New Records") {
-					action = "imported";
-				} else {
-					action = "updated";
+				if (!total_records) {
+					return;
 				}
 
-				if (failed_records === 0) {
-					let message_args = [action, successful_records];
-					if (successful_records === 1) {
-						message = __("Successfully {0} 1 record.", message_args);
-					} else {
-						message = __("Successfully {0} {1} records.", message_args);
-					}
+				let message;
+				if (frm.doc.import_type === "Insert New Records") {
+					message = __("Successfully imported {0} out of {1} records.", [
+						successful_records,
+						total_records,
+					]);
 				} else {
-					let message_args = [action, successful_records, total_records];
-					if (successful_records === 1) {
-						message = __(
-							"Successfully {0} {1} record out of {2}. Click on Export Errored Rows, fix the errors and import again.",
-							message_args
+					message = __("Successfully updated {0} out of {1} records.", [
+						successful_records,
+						total_records,
+					]);
+				}
+
+				if (failed_records > 0) {
+					message +=
+						"<br/>" +
+						__(
+							"Please click on 'Export Errored Rows', fix the errors and import again."
 						);
-					} else {
-						message = __(
-							"Successfully {0} {1} records out of {2}. Click on Export Errored Rows, fix the errors and import again.",
-							message_args
-						);
-					}
 				}
 
 				// If the job timed out, display an extra hint
@@ -449,7 +444,6 @@ frappe.ui.form.on("Data Import", {
 							}
 						} else {
 							let messages = JSON.parse(log.messages || "[]")
-								.map(JSON.parse)
 								.map((m) => {
 									let title = m.title ? `<strong>${m.title}</strong>` : "";
 									let message = m.message ? `<div>${m.message}</div>` : "";

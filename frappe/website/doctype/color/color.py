@@ -16,4 +16,5 @@ class Color(Document):
 
 		color: DF.Color
 	# end: auto-generated types
+
 	pass

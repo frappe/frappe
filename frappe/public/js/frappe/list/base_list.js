@@ -45,6 +45,7 @@ frappe.views.BaseList = class BaseList {
 
 		this.start = 0;
 		this.page_length = frappe.is_large_screen() ? 100 : 20;
+		this.selected_page_count = this.page_length;
 		this.data = [];
 		this.method = "frappe.desk.reportview.get";
 
@@ -132,7 +133,9 @@ frappe.views.BaseList = class BaseList {
 			frappe.meta.has_field(doctype, fieldname) ||
 			fieldname === "_seen";
 
-		if (!is_valid_field) {
+		let is_virtual = this.meta.fields.find((df) => df.fieldname == fieldname)?.is_virtual;
+
+		if (!is_valid_field || is_virtual) {
 			return;
 		}
 
@@ -180,7 +183,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	set_title() {
-		this.page.set_title(this.page_title);
+		this.page.set_title(this.page_title, null, true, "", this.meta?.description);
 	}
 
 	setup_view_menu() {
@@ -391,20 +394,34 @@ frappe.views.BaseList = class BaseList {
 			.find(`.btn-paging[data-value="${this.page_length}"]`)
 			.addClass("btn-info");
 
-		this.$paging_area.on("click", ".btn-paging, .btn-more", (e) => {
+		this.$paging_area.on("click", ".btn-paging", (e) => {
 			const $this = $(e.currentTarget);
+			// Set the active button
+			// This is always necessary because the current page length might
+			// have resulted from a previous "load more".
+			this.$paging_area.find(".btn-paging").removeClass("btn-info");
+			$this.addClass("btn-info");
 
-			if ($this.is(".btn-paging")) {
-				// set active button
-				this.$paging_area.find(".btn-paging").removeClass("btn-info");
-				$this.addClass("btn-info");
+			const old_page_length = this.page_length;
+			const new_page_length = $this.data().value;
 
+			this.selected_page_count = new_page_length;
+			if (this.page_length > new_page_length) {
 				this.start = 0;
-				this.page_length = this.selected_page_count = $this.data().value;
-			} else if ($this.is(".btn-more")) {
-				this.start = this.start + this.page_length;
-				this.page_length = this.selected_page_count || 20;
+				this.page_length = new_page_length;
+			} else {
+				this.start = this.page_length;
+				this.page_length = new_page_length - this.page_length;
 			}
+
+			if (old_page_length !== new_page_length) {
+				this.refresh();
+			}
+		});
+
+		this.$paging_area.on("click", ".btn-more", (e) => {
+			this.start = this.data.length;
+			this.page_length = this.selected_page_count;
 			this.refresh();
 		});
 	}
@@ -739,15 +756,17 @@ class FilterArea {
 		this.standard_filters_wrapper = this.list_view.page.page_form.find(
 			".standard-filter-section"
 		);
-		let fields = [
-			{
+		let fields = [];
+
+		if (!this.list_view.settings.hide_name_filter) {
+			fields.push({
 				fieldtype: "Data",
 				label: "ID",
 				condition: "like",
 				fieldname: "name",
 				onchange: () => this.refresh_list_view(),
-			},
-		];
+			});
+		}
 
 		if (this.list_view.custom_filter_configs) {
 			this.list_view.custom_filter_configs.forEach((config) => {
@@ -804,7 +823,7 @@ class FilterArea {
 
 					return {
 						fieldtype: fieldtype,
-						label: __(df.label),
+						label: __(df.label, null, df.parent),
 						options: options,
 						fieldname: df.fieldname,
 						condition: condition,

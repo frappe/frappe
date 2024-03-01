@@ -21,13 +21,16 @@ from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF
-from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
-from frappe.utils.data import get_absolute_url
-from frappe.utils.deprecations import deprecated
+from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
+from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
+
+
+DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatically
+DOCUMENT_LOCK_SOFT_EXPIRY = 60 * 60  # Let users force-unlock after 60 minutes
 
 
 def get_doc(*args, **kwargs):
@@ -158,7 +161,7 @@ class Document(BaseDocument):
 
 		else:
 			get_value_kwargs = {"for_update": self.flags.for_update, "as_dict": True}
-			if not isinstance(self.name, (dict, list)):
+			if not isinstance(self.name, dict | list):
 				get_value_kwargs["order_by"] = None
 
 			d = frappe.db.get_value(
@@ -214,7 +217,7 @@ class Document(BaseDocument):
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permtype)
 
-	def has_permission(self, permtype="read") -> bool:
+	def has_permission(self, permtype="read", *, debug=False, user=None) -> bool:
 		"""
 		Call `frappe.permissions.has_permission` if `ignore_permissions` flag isn't truthy
 
@@ -226,7 +229,7 @@ class Document(BaseDocument):
 
 		import frappe.permissions
 
-		return frappe.permissions.has_permission(self.doctype, permtype, self)
+		return frappe.permissions.has_permission(self.doctype, permtype, self, debug=debug, user=user)
 
 	def raise_no_permission_to(self, perm_type):
 		"""Raise `frappe.PermissionError`."""
@@ -318,9 +321,7 @@ class Document(BaseDocument):
 		if hasattr(self, "__unsaved"):
 			delattr(self, "__unsaved")
 
-		if not (
-			frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard
-		):
+		if not (frappe.flags.in_migrate or frappe.local.flags.in_install or frappe.flags.in_setup_wizard):
 			if frappe.get_cached_value("User", frappe.session.user, "follow_created_documents"):
 				follow_document(self.doctype, self.name, frappe.session.user)
 		return self
@@ -398,7 +399,6 @@ class Document(BaseDocument):
 
 		# loop through attachments
 		for attach_item in get_attachments(self.doctype, self.amended_from):
-
 			# save attachments to new doc
 			_file = frappe.get_doc(
 				{
@@ -420,44 +420,59 @@ class Document(BaseDocument):
 
 	def update_child_table(self, fieldname: str, df: Optional["DocField"] = None):
 		"""sync child table for given fieldname"""
-		rows = []
 		df: "DocField" = df or self.meta.get_field(fieldname)
-
-		for d in self.get(df.fieldname):
-			d: Document
-			d.db_update()
-			rows.append(d.name)
-
-		if (
-			df.options in (self.flags.ignore_children_type or [])
-			or frappe.get_meta(df.options).is_virtual == 1
-		):
-			# do not delete rows for this because of flags
-			# hack for docperm :(
-			return
+		all_rows = self.get(df.fieldname)
 
 		# delete rows that do not match the ones in the document
-		tbl = frappe.qb.DocType(df.options)
-		qry = (
-			frappe.qb.from_(tbl)
-			.where(tbl.parent == self.name)
-			.where(tbl.parenttype == self.doctype)
-			.where(tbl.parentfield == fieldname)
-			.delete()
-		)
+		# if the doctype isn't in ignore_children_type flag and isn't virtual
+		if not (
+			df.options in (self.flags.ignore_children_type or ())
+			or frappe.get_meta(df.options).is_virtual == 1
+		):
+			existing_row_names = [row.name for row in all_rows if row.name and not row.is_new()]
 
-		if rows:
-			qry = qry.where(tbl.name.notin(rows))
+			tbl = frappe.qb.DocType(df.options)
+			qry = (
+				frappe.qb.from_(tbl)
+				.where(tbl.parent == self.name)
+				.where(tbl.parenttype == self.doctype)
+				.where(tbl.parentfield == fieldname)
+				.delete()
+			)
 
-		qry.run()
+			if existing_row_names:
+				qry = qry.where(tbl.name.notin(existing_row_names))
+
+			qry.run()
+
+		# update / insert
+		for d in all_rows:
+			d: Document
+			d.db_update()
 
 	def get_doc_before_save(self) -> "Document":
 		return getattr(self, "_doc_before_save", None)
 
 	def has_value_changed(self, fieldname):
 		"""Return True if value has changed before and after saving."""
+		from datetime import date, datetime, timedelta
+
 		previous = self.get_doc_before_save()
-		return previous.get(fieldname) != self.get(fieldname) if previous else True
+
+		if not previous:
+			return True
+
+		previous_value = previous.get(fieldname)
+		current_value = self.get(fieldname)
+
+		if isinstance(previous_value, datetime):
+			current_value = get_datetime(current_value)
+		elif isinstance(previous_value, date):
+			current_value = getdate(current_value)
+		elif isinstance(previous_value, timedelta):
+			current_value = get_timedelta(current_value)
+
+		return previous_value != current_value
 
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
@@ -592,17 +607,16 @@ class Document(BaseDocument):
 					_("Row"),
 					self.idx,
 					_("Value cannot be negative for"),
-					frappe.bold(_(df.label)),
+					frappe.bold(_(df.label, context=df.parent)),
 				)
 			else:
 				return _("Value cannot be negative for {0}: {1}").format(
-					_(df.parent), frappe.bold(_(df.label))
+					_(df.parent), frappe.bold(_(df.label, context=df.parent))
 				)
 
 		for df in self.meta.get(
 			"fields", {"non_negative": ("=", 1), "fieldtype": ("in", ["Int", "Float", "Currency"])}
 		):
-
 			if flt(self.get(df.fieldname)) < 0:
 				msg = get_msg(df)
 				frappe.throw(msg, frappe.NonNegativeError, title=_("Negative Value"))
@@ -680,23 +694,15 @@ class Document(BaseDocument):
 		return same
 
 	def apply_fieldlevel_read_permissions(self):
-		"""Remove values the user is not allowed to read (called when loading in desk)"""
-
+		"""Remove values the user is not allowed to read."""
 		if frappe.session.user == "Administrator":
 			return
-
-		has_higher_permlevel = False
 
 		all_fields = self.meta.fields.copy()
 		for table_field in self.meta.get_table_fields():
 			all_fields += frappe.get_meta(table_field.options).fields or []
 
-		for df in all_fields:
-			if df.permlevel > 0:
-				has_higher_permlevel = True
-				break
-
-		if not has_higher_permlevel:
+		if all(df.permlevel == 0 for df in all_fields):
 			return
 
 		has_access_to = self.get_permlevel_access("read")
@@ -746,9 +752,7 @@ class Document(BaseDocument):
 		roles = frappe.get_roles()
 
 		for perm in self.get_permissions():
-			if (
-				perm.role in roles and perm.get(permission_type) and perm.permlevel not in allowed_permlevels
-			):
+			if perm.role in roles and perm.get(permission_type) and perm.permlevel not in allowed_permlevels:
 				allowed_permlevels.append(perm.permlevel)
 
 		return allowed_permlevels
@@ -895,7 +899,7 @@ class Document(BaseDocument):
 		if not missing:
 			return
 
-		for fieldname, msg in missing:
+		for idx, msg in missing:  # noqa: B007
 			msgprint(msg)
 
 		if frappe.flags.print_messages:
@@ -1028,9 +1032,7 @@ class Document(BaseDocument):
 		self.docstatus = DocStatus.cancelled()
 		return self.save()
 
-	def _rename(
-		self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True
-	):
+	def _rename(self, name: str, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document. Triggers frappe.rename_doc, then reloads."""
 		from frappe.model.rename_doc import rename_doc
 
@@ -1171,11 +1173,7 @@ class Document(BaseDocument):
 			after_commit=True,
 		)
 
-		if (
-			not self.meta.get("read_only")
-			and not self.meta.get("issingle")
-			and not self.meta.get("istable")
-		):
+		if not self.meta.get("read_only") and not self.meta.get("issingle") and not self.meta.get("istable"):
 			data = {"doctype": self.doctype, "name": self.name, "user": frappe.session.user}
 			frappe.publish_realtime("list_update", data, after_commit=True)
 
@@ -1270,7 +1268,7 @@ class Document(BaseDocument):
 			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
 
 		version = frappe.new_doc("Version")
-		if is_useful_diff := version.update_version_info(doc_to_compare, self):
+		if version.update_version_info(doc_to_compare, self):
 			version.insert(ignore_permissions=True)
 
 			if not frappe.flags.in_migrate:
@@ -1419,7 +1417,9 @@ class Document(BaseDocument):
 
 			if user not in _seen:
 				_seen.append(user)
-				frappe.db.set_value(self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False)
+				frappe.db.set_value(
+					self.doctype, self.name, "_seen", json.dumps(_seen), update_modified=False
+				)
 				frappe.local.flags.commit = True
 
 	def add_viewed(self, user=None, force=False, unique_views=False):
@@ -1457,7 +1457,7 @@ class Document(BaseDocument):
 
 	def get_signature(self):
 		"""Return signature (hash) for private URL."""
-		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
+		return hashlib.sha224(f"{self.doctype}:{self.name}".encode(), usedforsecurity=False).hexdigest()
 
 	def get_document_share_key(self, expires_on=None, no_expiry=False):
 		if no_expiry:
@@ -1515,9 +1515,25 @@ class Document(BaseDocument):
 		try:
 			self.lock()
 		except frappe.DocumentLockedError:
+			# Allow unlocking if created more than 60 minutes ago
+			primary_action = None
+			if file_lock.lock_age(self.get_signature()) > DOCUMENT_LOCK_SOFT_EXPIRY:
+				primary_action = {
+					"label": "Force Unlock",
+					"server_action": "frappe.model.document.unlock_document",
+					"hide_on_success": True,
+					"args": {
+						"doctype": self.doctype,
+						"name": self.name,
+					},
+				}
+
 			frappe.throw(
-				_("This document is currently queued for execution. Please try again"),
+				_(
+					"This document is currently locked and queued for execution. Please try again after some time."
+				),
 				title=_("Document Queued"),
+				primary_action=primary_action,
 			)
 
 		return enqueue(
@@ -1536,8 +1552,11 @@ class Document(BaseDocument):
 		signature = self.get_signature()
 		if file_lock.lock_exists(signature):
 			lock_exists = True
+			if file_lock.lock_age(signature) > DOCUMENT_LOCK_EXPIRTY:
+				file_lock.delete_lock(signature)
+				lock_exists = False
 			if timeout:
-				for i in range(timeout):
+				for _ in range(timeout):
 					time.sleep(1)
 					if not file_lock.lock_exists(signature):
 						lock_exists = False
@@ -1698,10 +1717,16 @@ def _document_values_generator(
 ) -> Generator[tuple[Any], None, None]:
 	for doc in documents:
 		doc.creation = doc.modified = now()
-		doc.created_by = doc.modified_by = frappe.session.user
+		doc.owner = doc.modified_by = frappe.session.user
 		doc_values = doc.get_valid_dict(
 			convert_dates_to_str=True,
 			ignore_nulls=True,
 			ignore_virtual=True,
 		)
 		yield tuple(doc_values.get(col) for col in columns)
+
+
+@frappe.whitelist()
+def unlock_document(doctype: str, name: str):
+	frappe.get_doc(doctype, name).unlock()
+	frappe.msgprint(frappe._("Document Unlocked"), alert=True)

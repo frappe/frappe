@@ -1,8 +1,9 @@
 {
  "actions": [],
+ "allow_guest_to_view": 1,
  "allow_rename": 1,
  "creation": "2013-01-10 16:34:31",
- "description": "Create and Send Newsletters",
+ "description": "Create and send emails to a specific group of subscribers periodically.",
  "doctype": "DocType",
  "document_type": "Other",
  "engine": "InnoDB",
@@ -243,8 +244,7 @@
    "fieldname": "campaign",
    "fieldtype": "Link",
    "label": "Campaign",
-   "options": "Marketing Campaign",
-   "reqd": 0
+   "options": "Marketing Campaign"
   }
  ],
  "has_web_view": 1,
@@ -253,7 +253,7 @@
  "index_web_pages_for_search": 1,
  "is_published_field": "published",
  "links": [],
- "modified": "2023-03-20 22:45:59.129630",
+ "modified": "2024-01-30 14:05:50.645802",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Newsletter",

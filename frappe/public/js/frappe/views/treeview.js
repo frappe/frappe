@@ -200,9 +200,13 @@ frappe.views.TreeView = class TreeView {
 		if (use_value == null) {
 			use_value = use_label;
 		}
-		this.args["include_disabled"] = this.page.inner_toolbar
-			.find("input[type='checkbox']")
-			.prop("checked");
+
+		if (this.page?.inner_toolbar) {
+			this.args["include_disabled"] = this.page.inner_toolbar
+				.find("input[type='checkbox']")
+				.prop("checked");
+		}
+
 		this.tree = new frappe.ui.Tree({
 			parent: this.body,
 			label: use_label,
@@ -235,7 +239,6 @@ frappe.views.TreeView = class TreeView {
 			method: "frappe.utils.nestedset.rebuild_tree",
 			args: {
 				doctype: me.doctype,
-				parent_field: "parent_" + me.doctype.toLowerCase().replace(/ /g, "_"),
 			},
 			callback: function (r) {
 				if (!r.exc) {

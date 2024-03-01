@@ -10,7 +10,7 @@ import traceback
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pypika.dialects import MySQLQueryBuilder, PostgreSQLQueryBuilder
 
@@ -29,15 +29,22 @@ from frappe.database.utils import (
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
 from frappe.monitor import get_trace_id
 from frappe.query_builder.functions import Count
-from frappe.utils import CallbackManager
+from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, getdate, now, sbool
 from frappe.utils import cast as cast_fieldtype
-from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
 from frappe.utils.deprecations import deprecation_warning
+
+if TYPE_CHECKING:
+	from psycopg2 import connection as PostgresConnection
+	from psycopg2 import cursor as PostgresCursor
+	from pymysql.connections import Connection as MariadbConnection
+	from pymysql.cursors import Cursor as MariadbCursor
 
 IFNULL_PATTERN = re.compile(r"ifnull\(", flags=re.IGNORECASE)
 INDEX_PATTERN = re.compile(r"\s*\([^)]+\)\s*")
 SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
+
+SQL_ITERATOR_BATCH_SIZE = 100
 
 
 class Database:
@@ -50,10 +57,10 @@ class Database:
 	VARCHAR_LEN = 140
 	MAX_COLUMN_LENGTH = 64
 
-	OPTIONAL_COLUMNS = ["_user_tags", "_comments", "_assign", "_liked_by"]
-	DEFAULT_SHORTCUTS = ["_Login", "__user", "_Full Name", "Today", "__today", "now", "Now"]
+	OPTIONAL_COLUMNS = ("_user_tags", "_comments", "_assign", "_liked_by")
+	DEFAULT_SHORTCUTS = ("_Login", "__user", "_Full Name", "Today", "__today", "now", "Now")
 	STANDARD_VARCHAR_COLUMNS = ("name", "owner", "modified_by")
-	DEFAULT_COLUMNS = ["name", "creation", "modified", "modified_by", "owner", "docstatus", "idx"]
+	DEFAULT_COLUMNS = ("name", "creation", "modified", "modified_by", "owner", "docstatus", "idx")
 	CHILD_TABLE_COLUMNS = ("parent", "parenttype", "parentfield")
 	MAX_WRITES_PER_TRANSACTION = 200_000
 
@@ -65,27 +72,20 @@ class Database:
 		host=None,
 		user=None,
 		password=None,
-		ac_name=None,
-		use_default=0,
 		port=None,
+		cur_db_name=None,
 	):
 		self.setup_type_map()
-		self.host = host or frappe.conf.db_host
-		self.port = port or frappe.conf.db_port
-		self.user = user or frappe.conf.db_name
-		self.db_name = frappe.conf.db_name
+		self.host = host
+		self.port = port
+		self.user = user
+		self.password = password
+		self.cur_db_name = cur_db_name
 		self._conn = None
-
-		if ac_name:
-			self.user = ac_name or frappe.conf.db_name
-
-		if use_default:
-			self.user = frappe.conf.db_name
 
 		self.transaction_writes = 0
 		self.auto_commit_on_many_writes = 0
 
-		self.password = password or frappe.conf.db_password
 		self.value_cache = {}
 		self.logger = frappe.logger("database")
 		self.logger.setLevel("WARNING")
@@ -95,17 +95,16 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
-		# self.db_type: str
-		# self.last_query (lazy) attribute of last sql query executed
+	# self.db_type: str
+	# self.last_query (lazy) attribute of last sql query executed
 
 	def setup_type_map(self):
 		pass
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		self.cur_db_name = self.user
-		self._conn = self.get_connection()
-		self._cursor = self._conn.cursor()
+		self._conn: "MariadbConnection" | "PostgresConnection" = self.get_connection()
+		self._cursor: "MariadbCursor" | "PostgresCursor" = self._conn.cursor()
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -121,6 +120,7 @@ class Database:
 	def use(self, db_name):
 		"""`USE` db_name."""
 		self._conn.select_db(db_name)
+		self.cur_db_name = db_name
 
 	def get_connection(self):
 		"""Return a Database connection object that conforms with https://peps.python.org/pep-0249/#connection-objects."""
@@ -134,6 +134,9 @@ class Database:
 
 	def _transform_result(self, result: list[tuple]) -> list[tuple]:
 		return result
+
+	def _clean_up(self):
+		pass
 
 	def sql(
 		self,
@@ -149,6 +152,7 @@ class Database:
 		explain=False,
 		run=True,
 		pluck=False,
+		as_iterator=False,
 	):
 		"""Execute a SQL query and fetch all rows.
 
@@ -163,6 +167,9 @@ class Database:
 		:param run: Return query without executing it if False.
 		:param pluck: Get the plucked field only.
 		:param explain: Print `EXPLAIN` in error log.
+		:param as_iterator: Returns iterator over results instead of fetching all results at once.
+		        This should be used with unbuffered cursor as default cursors used by pymysql and postgres
+		        buffer the results internally. See `Database.unbuffered_cursor`.
 		Examples:
 
 		        # return customer names as dicts
@@ -176,7 +183,7 @@ class Database:
 		                {"name": "a%", "owner":"test@example.com"})
 
 		"""
-		if isinstance(query, (MySQLQueryBuilder, PostgreSQLQueryBuilder)):
+		if isinstance(query, MySQLQueryBuilder | PostgreSQLQueryBuilder):
 			frappe.errprint("Use run method to execute SQL queries generated by Query Engine")
 
 		debug = debug or getattr(self, "debug", False)
@@ -205,7 +212,7 @@ class Database:
 
 		if values == EmptyQueryValues:
 			values = None
-		elif not isinstance(values, (tuple, dict, list)):
+		elif not isinstance(values, tuple | dict | list):
 			values = (values,)
 
 		query, values = self._transform_query(query, values)
@@ -264,21 +271,49 @@ class Database:
 		if not self._cursor.description:
 			return ()
 
-		self.last_result = self._transform_result(self._cursor.fetchall())
+		if as_iterator:
+			return self._return_as_iterator(pluck=pluck, as_dict=as_dict, as_list=as_list, update=update)
 
+		last_result = self._transform_result(self._cursor.fetchall())
 		if pluck:
-			return [r[0] for r in self.last_result]
+			last_result = [r[0] for r in last_result]
+			self._clean_up()
+			return last_result
 
 		# scrub output if required
 		if as_dict:
-			ret = self.fetch_as_dict()
+			last_result = self.fetch_as_dict(last_result)
 			if update:
-				for r in ret:
+				for r in last_result:
 					r.update(update)
-			return ret
+
 		elif as_list:
-			return self.convert_to_lists(self.last_result)
-		return self.last_result
+			last_result = self.convert_to_lists(last_result)
+
+		self._clean_up()
+		return last_result
+
+	def _return_as_iterator(self, *, pluck, as_dict, as_list, update):
+		while result := self._transform_result(self._cursor.fetchmany(SQL_ITERATOR_BATCH_SIZE)):
+			if pluck:
+				for row in result:
+					yield row[0]
+
+			elif as_dict:
+				keys = [column[0] for column in self._cursor.description]
+				for row in result:
+					row = frappe._dict(zip(keys, row, strict=False))
+					if update:
+						row.update(update)
+					yield row
+
+			elif as_list:
+				for row in result:
+					yield list(row)
+			else:
+				frappe.throw(_("`as_iterator` only works with `as_list=True` or `as_dict=True`"))
+
+		self._clean_up()
 
 	def _log_query(
 		self,
@@ -333,8 +368,10 @@ class Database:
 			return self._cursor.mogrify(query, values)
 		except AttributeError:
 			if isinstance(values, dict):
-				return query % {k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()}
-			elif isinstance(values, (list, tuple)):
+				return query % {
+					k: frappe.db.escape(v) if isinstance(v, str) else v for k, v in values.items()
+				}
+			elif isinstance(values, list | tuple):
 				return query % tuple(frappe.db.escape(v) if isinstance(v, str) else v for v in values)
 			return query, values
 
@@ -396,13 +433,12 @@ class Database:
 		):
 			raise ImplicitCommitError("This statement can cause implicit commit", query)
 
-	def fetch_as_dict(self) -> list[frappe._dict]:
+	def fetch_as_dict(self, result) -> list[frappe._dict]:
 		"""Internal. Convert results to dict."""
-		result = self.last_result
 		if result:
 			keys = [column[0] for column in self._cursor.description]
 
-		return [frappe._dict(zip(keys, row)) for row in result]
+		return [frappe._dict(zip(keys, row, strict=False)) for row in result]
 
 	@staticmethod
 	def clear_db_table_cache(query):
@@ -437,6 +473,8 @@ class Database:
 		run=True,
 		pluck=False,
 		distinct=False,
+		skip_locked=False,
+		wait=True,
 	):
 		"""Return a document property or list of properties.
 
@@ -447,6 +485,11 @@ class Database:
 		:param as_dict: Return values as dict.
 		:param debug: Print query in error log.
 		:param order_by: Column to order by
+		:param cache: Use cached results fetched during current job/request
+		:param pluck: pluck first column instead of returning as nested list or dict.
+		:param for_update: All the affected/read rows will be locked.
+		:param skip_locked: Skip selecting currently locked rows.
+		:param wait: Wait for aquiring lock
 
 		Example:
 
@@ -477,6 +520,8 @@ class Database:
 			pluck=pluck,
 			distinct=distinct,
 			limit=1,
+			skip_locked=skip_locked,
+			wait=wait,
 		)
 
 		if not run:
@@ -509,6 +554,8 @@ class Database:
 		pluck=False,
 		distinct=False,
 		limit=None,
+		skip_locked=False,
+		wait=True,
 	):
 		"""Return multiple document properties.
 
@@ -548,6 +595,9 @@ class Database:
 				distinct=distinct,
 				limit=limit,
 				as_dict=as_dict,
+				skip_locked=skip_locked,
+				wait=True,
+				for_update=for_update,
 			)
 
 		else:
@@ -568,15 +618,20 @@ class Database:
 						debug=debug,
 						order_by=order_by,
 						update=update,
-						for_update=for_update,
 						run=run,
 						pluck=pluck,
 						distinct=distinct,
 						limit=limit,
+						for_update=for_update,
+						skip_locked=skip_locked,
+						wait=wait,
 					)
 				except Exception as e:
-					if ignore and (frappe.db.is_missing_column(e) or frappe.db.is_table_missing(e)):
-						# table or column not found, return None
+					if ignore and (
+						frappe.db.is_missing_column(e)
+						or frappe.db.is_table_missing(e)
+						or str(e).startswith("Invalid DocType")
+					):
 						out = None
 					elif (not ignore) and frappe.db.is_table_missing(e):
 						# table not found, look in singles
@@ -639,16 +694,18 @@ class Database:
 
 			if not run:
 				return r
-			if as_dict:
-				if r:
-					r = frappe._dict(r)
-					if update:
-						r.update(update)
-					return [r]
-				else:
-					return []
-			else:
-				return r and [[i[1] for i in r]] or []
+
+			if not r:
+				return []
+
+			r = frappe._dict(r)
+			if update:
+				r.update(update)
+
+			if not as_dict:
+				return [[r.get(field) for field in fields]]
+
+			return [r]
 
 	def get_singles_dict(self, doctype, debug=False, *, for_update=False, cast=False):
 		"""Get Single DocType as dict.
@@ -731,7 +788,7 @@ class Database:
 		Example:
 
 		        # Update the `deny_multiple_sessions` field in System Settings DocType.
-		        company = frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
+		        frappe.db.set_single_value("System Settings", "deny_multiple_sessions", True)
 		"""
 
 		to_update = self._get_update_dict(
@@ -743,9 +800,7 @@ class Database:
 		)
 
 		singles_data = ((doctype, key, sbool(value)) for key, value in to_update.items())
-		frappe.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data).run(
-			debug=debug
-		)
+		frappe.qb.into("Singles").columns("doctype", "field", "value").insert(*singles_data).run(debug=debug)
 		frappe.clear_document_cache(doctype, doctype)
 
 		if doctype in self.value_cache:
@@ -806,6 +861,8 @@ class Database:
 		order_by=None,
 		update=None,
 		for_update=False,
+		skip_locked=False,
+		wait=True,
 		run=True,
 		pluck=False,
 		distinct=False,
@@ -816,6 +873,8 @@ class Database:
 			filters=filters,
 			order_by=order_by,
 			for_update=for_update,
+			skip_locked=skip_locked,
+			wait=wait,
 			fields=fields,
 			distinct=distinct,
 			limit=limit,
@@ -839,6 +898,9 @@ class Database:
 		distinct=False,
 		limit=None,
 		as_dict=False,
+		for_update=False,
+		skip_locked=False,
+		wait=True,
 	):
 		if names := list(filter(None, names)):
 			return frappe.qb.get_query(
@@ -849,6 +911,9 @@ class Database:
 				distinct=distinct,
 				limit=limit,
 				validate_filters=True,
+				for_update=for_update,
+				skip_locked=skip_locked,
+				wait=wait,
 			).run(debug=debug, run=run, as_dict=as_dict, pluck=pluck)
 		return {}
 
@@ -1076,7 +1141,7 @@ class Database:
 		return getdate(date).strftime("%Y-%m-%d")
 
 	@staticmethod
-	def format_datetime(datetime):  # noqa: F811
+	def format_datetime(datetime):
 		if not datetime:
 			return FallBackDateTimeStr
 
@@ -1153,7 +1218,7 @@ class Database:
 
 	@staticmethod
 	def escape(s, percent=True):
-		"""Excape quotes and percent in given string."""
+		"""Escape quotes and percent in given string."""
 		# implemented in specific class
 		raise NotImplementedError
 
@@ -1179,7 +1244,7 @@ class Database:
 		query = sql_dict.get(current_dialect)
 		return self.sql(query, values, **kwargs)
 
-	def delete(self, doctype: str, filters: dict | list = None, debug=False, **kwargs):
+	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):
 		"""Delete rows from a table in site which match the passed filters. This
 		does trigger DocType hooks. Simply runs a DELETE query in the database.
 
@@ -1286,6 +1351,22 @@ class Database:
 		raise NotImplementedError
 
 	def rename_column(self, doctype: str, old_column_name: str, new_column_name: str):
+		raise NotImplementedError
+
+	@contextmanager
+	def unbuffered_cursor(self):
+		"""Context manager to temporarily use unbuffered cursor.
+
+		Using this with `as_iterator=True` provides O(1) memory usage while reading large result sets.
+
+		NOTE: You MUST do entire result set processing in the context, otherwise underlying cursor
+		will be switched and you'll not get complete results.
+
+		Usage:
+		        with frappe.db.unbuffered_cursor():
+		                for row in frappe.db.sql("query with huge result", as_iterator=True):
+		                        continue # Do some processing.
+		"""
 		raise NotImplementedError
 
 

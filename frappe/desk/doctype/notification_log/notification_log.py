@@ -30,6 +30,7 @@ class NotificationLog(Document):
 		subject: DF.Text | None
 		type: DF.Literal["Mention", "Energy Point", "Assignment", "Share", "Alert"]
 	# end: auto-generated types
+
 	def after_insert(self):
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
@@ -115,18 +116,17 @@ def _get_user_ids(user_emails):
 	return [user for user in user_names if is_notifications_enabled(user)]
 
 
-def send_notification_email(doc):
-
+def send_notification_email(doc: NotificationLog):
 	if doc.type == "Energy Point" and doc.email_content is None:
 		return
 
 	from frappe.utils import get_url_to_form, strip_html
 
-	email = frappe.db.get_value("User", doc.for_user, "email")
-	if not email:
+	user = frappe.db.get_value("User", doc.for_user, fieldname=["email", "language"], as_dict=True)
+	if not user:
 		return
 
-	header = get_email_header(doc)
+	header = get_email_header(doc, user.language)
 	email_subject = strip_html(doc.subject)
 	args = {
 		"body_content": doc.subject,
@@ -140,7 +140,7 @@ def send_notification_email(doc):
 		args["doc_link"] = get_url_to_form(doc.document_type, doc.document_name)
 
 	frappe.sendmail(
-		recipients=email,
+		recipients=user.email,
 		subject=email_subject,
 		template="new_notification",
 		args=args,
@@ -149,14 +149,14 @@ def send_notification_email(doc):
 	)
 
 
-def get_email_header(doc):
+def get_email_header(doc, language: str | None = None):
 	docname = doc.document_name
 	header_map = {
-		"Default": _("New Notification"),
-		"Mention": _("New Mention on {0}").format(docname),
-		"Assignment": _("Assignment Update on {0}").format(docname),
-		"Share": _("New Document Shared {0}").format(docname),
-		"Energy Point": _("Energy Point Update on {0}").format(docname),
+		"Default": _("New Notification", lang=language),
+		"Mention": _("New Mention on {0}", lang=language).format(docname),
+		"Assignment": _("Assignment Update on {0}", lang=language).format(docname),
+		"Share": _("New Document Shared {0}", lang=language).format(docname),
+		"Energy Point": _("Energy Point Update on {0}", lang=language).format(docname),
 	}
 
 	return header_map[doc.type or "Default"]

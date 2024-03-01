@@ -7,10 +7,7 @@ from frappe.utils.data import cstr
 
 
 @frappe.whitelist()
-def get_version_diff(
-	from_version: int | str, to_version: int | str, fieldname: str = "script"
-) -> list[str]:
-
+def get_version_diff(from_version: int | str, to_version: int | str, fieldname: str = "script") -> list[str]:
 	before, before_timestamp = _get_value_from_version(from_version, fieldname)
 	after, after_timestamp = _get_value_from_version(to_version, fieldname)
 
@@ -48,12 +45,21 @@ def _get_value_from_version(version_name: int | str, fieldname: str):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def version_query(doctype, txt, searchfield, start, page_len, filters):
+	version_filters = {
+		"docname": filters["docname"],
+		"ref_doctype": filters["ref_doctype"],
+	}
+
+	if fieldname := filters.get("fieldname"):
+		# This helps filter version logs which contain changes to the field.
+		version_filters["data"] = ("LIKE", f'%"{fieldname}"%')
+
 	results = frappe.get_list(
 		"Version",
-		fields=["name", "modified"],
-		filters=filters,
+		fields=["name", "modified", "owner"],
+		filters=version_filters,
 		limit_start=start,
 		limit_page_length=page_len,
 		order_by="modified desc",
 	)
-	return [(d.name, pretty_date(d.modified), d.modified) for d in results]
+	return [(d.name, pretty_date(d.modified), d.modified, d.owner) for d in results]

@@ -38,6 +38,7 @@ class PreparedReport(Document):
 		report_name: DF.Data
 		status: DF.Literal["Error", "Queued", "Completed", "Started"]
 	# end: auto-generated types
+
 	@property
 	def queued_by(self):
 		return self.owner
@@ -113,7 +114,7 @@ def generate_report(prepared_report):
 		instance.status = "Completed"
 	except Exception:
 		instance.status = "Error"
-		instance.error_message = frappe.get_traceback()
+		instance.error_message = frappe.get_traceback(with_context=True)
 
 	instance.report_end_time = frappe.utils.now()
 	instance.save(ignore_permissions=True)
@@ -217,9 +218,7 @@ def delete_prepared_reports(reports):
 def create_json_gz_file(data, dt, dn):
 	# Storing data in CSV file causes information loss
 	# Reports like P&L Statement were completely unsuable because of this
-	json_filename = "{}.json.gz".format(
-		frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M")
-	)
+	json_filename = "{}.json.gz".format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
 	encoded_content = frappe.safe_encode(frappe.as_json(data))
 	compressed_content = gzip.compress(encoded_content)
 

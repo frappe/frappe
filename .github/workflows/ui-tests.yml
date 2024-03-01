@@ -42,12 +42,14 @@ jobs:
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' && github.repository_owner == 'frappe' }}
     timeout-minutes: 60
+    env:
+      NODE_ENV: "production"
 
     strategy:
       fail-fast: false
       matrix:
-       # Make sure you modify coverage submission file list if changing this
-       container: [1, 2, 3]
+        # Make sure you modify coverage submission file list if changing this
+        container: [1, 2, 3]
 
     name: UI Tests (Cypress)
 
@@ -67,7 +69,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Check for valid Python & Merge Conflicts
         run: |
@@ -87,7 +89,7 @@ jobs:
           echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
 
       - name: Cache pip
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/*requirements.txt', '**/pyproject.toml', '**/setup.py') }}
@@ -99,7 +101,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -108,7 +110,7 @@ jobs:
             ${{ runner.os }}-yarn-ui-
 
       - name: Cache cypress binary
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/Cypress
           key: ${{ runner.os }}-cypress
@@ -147,6 +149,7 @@ jobs:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
 
       - name: Stop server and wait for coverage file
+        if: github.event_name != 'pull_request'
         run: |
           ps -ef | grep "[f]rappe serve" | awk '{print $2}' | xargs kill -s SIGINT
           sleep 5
@@ -154,19 +157,28 @@ jobs:
 
       - name: Upload JS coverage data
         uses: actions/upload-artifact@v3
+        if: github.event_name != 'pull_request'
         with:
           name: coverage-js-${{ matrix.container }}
           path: /home/runner/frappe-bench/apps/frappe/.cypress-coverage/clover.xml
 
       - name: Upload python coverage data
         uses: actions/upload-artifact@v3
+        if: github.event_name != 'pull_request'
         with:
           name: coverage-py-${{ matrix.container }}
           path: /home/runner/frappe-bench/sites/coverage.xml
 
       - name: Show bench output
         if: ${{ always() }}
-        run: cat ~/frappe-bench/bench_start.log || true
+        run: |
+          cd ~/frappe-bench
+          cat bench_start.log || true
+          cd logs
+          for f in ./*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
 
   faux-test:
     runs-on: ubuntu-latest
@@ -175,7 +187,7 @@ jobs:
     name: UI Tests (Cypress)
     strategy:
       matrix:
-       container: [1, 2, 3]
+        container: [1, 2, 3]
 
     steps:
       - name: Pass skipped tests unconditionally
@@ -184,7 +196,7 @@ jobs:
   coverage:
     name: Coverage Wrap Up
     needs: [test, checkrun]
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - name: Clone
@@ -194,16 +206,17 @@ jobs:
         uses: actions/download-artifact@v3
 
       - name: Upload python coverage data
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           name: UIBackend
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           verbose: true
           files: ./coverage-py-1/coverage.xml,./coverage-py-2/coverage.xml,./coverage-py-3/coverage.xml
           flags: server-ui
 
       - name: Upload JS coverage data
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           name: Cypress
           token: ${{ secrets.CODECOV_TOKEN }}

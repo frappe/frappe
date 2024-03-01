@@ -1,12 +1,11 @@
 /* global gapi:false, google:false */
 export default class GoogleDrivePicker {
-	constructor({ pickerCallback, enabled, appId, developerKey, clientId } = {}) {
+	constructor({ pickerCallback, enabled, appId, clientId } = {}) {
 		this.scope = "https://www.googleapis.com/auth/drive.file";
 		this.pickerApiLoaded = false;
 		this.enabled = enabled;
 		this.appId = appId;
 		this.pickerCallback = pickerCallback;
-		this.developerKey = developerKey;
 		this.clientId = clientId;
 	}
 
@@ -43,12 +42,14 @@ export default class GoogleDrivePicker {
 	}
 
 	createPicker(access_token) {
-		this.view = new google.picker.View(google.picker.ViewId.DOCS);
+		const docsView = new google.picker.DocsView();
+		docsView.setParent("root"); // show the root folder by default
+		docsView.setIncludeFolders(true); // also show folders, not just files
+
 		this.picker = new google.picker.PickerBuilder()
-			.setDeveloperKey(this.developerKey)
 			.setAppId(this.appId)
 			.setOAuthToken(access_token)
-			.addView(this.view)
+			.addView(docsView)
 			.addView(new google.picker.DocsUploadView())
 			.setLocale(frappe.boot.lang)
 			.setCallback(this.pickerCallback)

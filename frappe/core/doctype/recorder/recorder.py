@@ -19,15 +19,16 @@ class Recorder(Document):
 
 		cmd: DF.Data | None
 		duration: DF.Float
+		event_type: DF.Data | None
 		form_dict: DF.Code | None
 		method: DF.Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
 		number_of_queries: DF.Int
 		path: DF.Data | None
+		profile: DF.Code | None
 		request_headers: DF.Code | None
 		sql_queries: DF.Table[RecorderQuery]
 		time: DF.Datetime | None
 		time_in_queries: DF.Float
-
 	# end: auto-generated types
 
 	def load_from_db(self):

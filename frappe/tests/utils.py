@@ -34,6 +34,8 @@ class FrappeTestCase(unittest.TestCase):
 	def setUpClass(cls) -> None:
 		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
 		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
+		cls._primary_connection = frappe.local.db
+		cls._secondary_connection = None
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
@@ -60,7 +62,7 @@ class FrappeTestCase(unittest.TestCase):
 			if isinstance(value, list):
 				actual_child_docs = actual.get(field)
 				self.assertEqual(len(value), len(actual_child_docs), msg=f"{field} length should be same")
-				for exp_child, actual_child in zip(value, actual_child_docs):
+				for exp_child, actual_child in zip(value, actual_child_docs, strict=False):
 					self.assertDocumentEqual(exp_child, actual_child)
 			else:
 				self._compare_field(value, actual.get(field), actual, field)
@@ -73,7 +75,7 @@ class FrappeTestCase(unittest.TestCase):
 			self.assertAlmostEqual(
 				expected, actual, places=precision, msg=f"{field} should be same to {precision} digits"
 			)
-		elif isinstance(expected, (bool, int)):
+		elif isinstance(expected, bool | int):
 			self.assertEqual(expected, cint(actual), msg=msg)
 		elif isinstance(expected, datetime_like_types):
 			self.assertEqual(str(expected), str(actual), msg=msg)
@@ -90,9 +92,38 @@ class FrappeTestCase(unittest.TestCase):
 		"""Formats SQL consistently so simple string comparisons can work on them."""
 		import sqlparse
 
-		return (
-			sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True),
-		)
+		return (sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True),)
+
+	@contextmanager
+	def primary_connection(self):
+		"""Switch to primary DB connection
+
+		This is used for simulating multiple users performing actions by simulating two DB connections"""
+		try:
+			current_conn = frappe.local.db
+			frappe.local.db = self._primary_connection
+			yield
+		finally:
+			frappe.local.db = current_conn
+
+	@contextmanager
+	def secondary_connection(self):
+		"""Switch to secondary DB connection."""
+		if self._secondary_connection is None:
+			frappe.connect()  # get second connection
+			self._secondary_connection = frappe.local.db
+
+		try:
+			current_conn = frappe.local.db
+			frappe.local.db = self._secondary_connection
+			yield
+		finally:
+			frappe.local.db = current_conn
+			self.addCleanup(self._rollback_connections)
+
+	def _rollback_connections(self):
+		self._primary_connection.rollback()
+		self._secondary_connection.rollback()
 
 	def assertQueryEqual(self, first: str, second: str):
 		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
@@ -224,9 +255,9 @@ def _restore_thread_locals(flags):
 
 
 @contextmanager
-def change_settings(doctype, settings_dict=None, /, **settings):
+def change_settings(doctype, settings_dict=None, /, commit=False, **settings):
 	"""A context manager to ensure that settings are changed before running
-	function and restored after running it regardless of exceptions occured.
+	function and restored after running it regardless of exceptions occurred.
 	This is useful in tests where you want to make changes in a function but
 	don't retain those changes.
 	import and use as decorator to cover full function or using `with` statement.
@@ -257,6 +288,8 @@ def change_settings(doctype, settings_dict=None, /, **settings):
 		settings.save(ignore_permissions=True)
 		# singles are cached by default, clear to avoid flake
 		frappe.db.value_cache[settings] = {}
+		if commit:
+			frappe.db.commit()
 		yield  # yield control to calling function
 
 	finally:
@@ -265,6 +298,8 @@ def change_settings(doctype, settings_dict=None, /, **settings):
 		for key, value in previous_settings.items():
 			setattr(settings, key, value)
 		settings.save(ignore_permissions=True)
+		if commit:
+			frappe.db.commit()
 
 
 def timeout(seconds=30, error_message="Test timed out."):

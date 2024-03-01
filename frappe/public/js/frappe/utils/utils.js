@@ -480,6 +480,7 @@ Object.assign(frappe.utils, {
 		var style = default_style || "default";
 		var colour = "gray";
 		if (text) {
+			text = cstr(text);
 			if (has_words(["Pending", "Review", "Medium", "Not Approved"], text)) {
 				style = "warning";
 				colour = "orange";
@@ -1568,7 +1569,7 @@ Object.assign(frappe.utils, {
 	only_allow_num_decimal(input) {
 		input.on("input", (e) => {
 			let self = $(e.target);
-			self.val(self.val().replace(/[^0-9.]/g, ""));
+			self.val(self.val().replace(/[^0-9.\-]/g, ""));
 			if (
 				(e.which != 46 || self.val().indexOf(".") != -1) &&
 				(e.which < 48 || e.which > 57)
@@ -1704,6 +1705,8 @@ Object.assign(frappe.utils, {
 					fieldname: "source",
 					label: __("Source"),
 					fieldtype: "Data",
+					reqd: 1,
+					description: "The referrer (e.g. google, newsletter)",
 					default: localStorage.getItem("tracker_url:source"),
 				},
 				{
@@ -1718,24 +1721,34 @@ Object.assign(frappe.utils, {
 					fieldname: "medium",
 					label: __("Medium"),
 					fieldtype: "Data",
+					description: "Marketing medium (e.g. cpc, banner, email)",
 					default: localStorage.getItem("tracker_url:medium"),
+				},
+				{
+					fieldname: "content",
+					label: __("Content"),
+					fieldtype: "Data",
+					description: "Use to differentiate ad variants (e.g. A/B testing)",
+					default: localStorage.getItem("tracker_url:content"),
 				},
 			],
 			function (data) {
 				let url = data.url;
 				localStorage.setItem("tracker_url:url", data.url);
 
-				if (data.source) {
-					url += "?source=" + data.source;
-					localStorage.setItem("tracker_url:source", data.source);
-				}
+				url += "?utm_source=" + encodeURIComponent(data.source);
+				localStorage.setItem("tracker_url:source", data.source);
 				if (data.campaign) {
-					url += "&campaign=" + data.campaign;
+					url += "&utm_campaign=" + encodeURIComponent(data.campaign);
 					localStorage.setItem("tracker_url:campaign", data.campaign);
 				}
 				if (data.medium) {
-					url += "&medium=" + data.medium.toLowerCase();
+					url += "&utm_medium=" + encodeURIComponent(data.medium);
 					localStorage.setItem("tracker_url:medium", data.medium);
+				}
+				if (data.medium) {
+					url += "&utm_content=" + encodeURIComponent(data.content);
+					localStorage.setItem("tracker_url:content", data.content);
 				}
 
 				frappe.utils.copy_to_clipboard(url);

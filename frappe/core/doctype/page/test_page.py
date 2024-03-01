@@ -14,11 +14,7 @@ class TestPage(FrappeTestCase):
 	def test_naming(self):
 		self.assertRaises(
 			frappe.NameError,
-			frappe.get_doc(dict(doctype="Page", page_name="DocType", module="Core")).insert,
-		)
-		self.assertRaises(
-			frappe.NameError,
-			frappe.get_doc(dict(doctype="Page", page_name="Settings", module="Core")).insert,
+			frappe.get_doc(doctype="Page", page_name="DocType", module="Core").insert,
 		)
 
 	@unittest.skipUnless(

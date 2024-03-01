@@ -7,7 +7,7 @@ const jump_to_field = (field_label) => {
 		.type("{enter}")
 		.wait(200)
 		.type("{enter}")
-		.wait(500);
+		.wait(1000);
 };
 
 const type_value = (value) => {
@@ -138,7 +138,7 @@ context("Form", () => {
 						);
 					});
 
-				cy.get("@table").find('[data-idx="1"] .edit-grid-row').click();
+				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
 				cy.get(".grid-row-open").as("table-form");
 				cy.get("@table-form")
 					.find('.frappe-control[data-fieldname="is_primary_phone"]')
@@ -146,7 +146,7 @@ context("Form", () => {
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 
 				// set property on form_render event of child table
-				cy.get("@table").find('[data-idx="1"] .edit-grid-row').click();
+				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
 				cy.get("@table")
 					.find('[data-idx="1"]')
 					.invoke("attr", "data-name")

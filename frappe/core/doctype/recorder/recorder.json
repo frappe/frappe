@@ -14,12 +14,15 @@
   "cmd",
   "time",
   "duration",
+  "event_type",
   "section_break_1skt",
   "request_headers",
   "section_break_sgro",
   "form_dict",
   "section_break_9jhm",
-  "sql_queries"
+  "sql_queries",
+  "section_break_optn",
+  "profile"
  ],
  "fields": [
   {
@@ -30,6 +33,7 @@
    "label": "Path"
   },
   {
+   "depends_on": "eval:doc.event_type==\"HTTP Request\"",
    "fieldname": "cmd",
    "fieldtype": "Data",
    "in_standard_filter": 1,
@@ -67,6 +71,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "depends_on": "eval:doc.event_type==\"HTTP Request\"",
    "fieldname": "request_headers",
    "fieldtype": "Code",
    "label": "Request Headers"
@@ -76,11 +81,13 @@
    "fieldtype": "Section Break"
   },
   {
+   "depends_on": "eval:doc.event_type==\"HTTP Request\"",
    "fieldname": "form_dict",
    "fieldtype": "Code",
    "label": "Form Dict"
   },
   {
+   "depends_on": "eval:doc.event_type==\"HTTP Request\"",
    "fieldname": "method",
    "fieldtype": "Select",
    "in_standard_filter": 1,
@@ -96,6 +103,22 @@
   {
    "fieldname": "section_break_9jhm",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "event_type",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Event Type"
+  },
+  {
+   "fieldname": "section_break_optn",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "profile",
+   "fieldtype": "Code",
+   "label": "cProfile Output",
+   "read_only": 1
   }
  ],
  "hide_toolbar": 1,
@@ -103,7 +126,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2023-08-10 12:01:03.456643",
+ "modified": "2024-02-01 22:13:26.505174",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Recorder",

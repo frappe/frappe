@@ -13,11 +13,7 @@ from frappe.desk.form.load import get_attachments
 from frappe.email.doctype.email_account.email_account import notify_unreplied
 from frappe.email.email_body import get_message_id
 from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
-from frappe.test_runner import make_test_records
 from frappe.tests.utils import FrappeTestCase
-
-make_test_records("User")
-make_test_records("Email Account")
 
 
 class TestEmailAccount(FrappeTestCase):
@@ -65,9 +61,18 @@ class TestEmailAccount(FrappeTestCase):
 		self.assertTrue(frappe.db.get_value(comm.reference_doctype, comm.reference_name, "name"))
 
 	def test_unread_notification(self):
-		self.test_incoming()
+		todo = frappe.get_last_doc("ToDo")
 
-		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
+		comm = frappe.new_doc(
+			"Communication",
+			sender="test_sender@example.com",
+			subject="test unread reminder",
+			sent_or_received="Received",
+			reference_doctype=todo.doctype,
+			reference_name=todo.name,
+			email_account="_Test Email Account 1",
+		)
+		comm.insert()
 		comm.db_set("creation", datetime.now() - timedelta(seconds=30 * 60))
 
 		frappe.db.delete("Email Queue")
@@ -78,7 +83,6 @@ class TestEmailAccount(FrappeTestCase):
 				{
 					"reference_doctype": comm.reference_doctype,
 					"reference_name": comm.reference_name,
-					"status": "Not Sent",
 				},
 			)
 		)
@@ -128,9 +132,7 @@ class TestEmailAccount(FrappeTestCase):
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertTrue(
-			"From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content
-		)
+		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
 		self.assertTrue(
 			"This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content
 		)
@@ -151,9 +153,7 @@ class TestEmailAccount(FrappeTestCase):
 		TestEmailAccount.mocked_email_receive(email_account, messages)
 
 		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		self.assertTrue(
-			"From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content
-		)
+		self.assertTrue("From: &quot;Microsoft Outlook&quot; &lt;test_sender@example.com&gt;" in comm.content)
 		self.assertTrue(
 			"This is an e-mail message sent automatically by Microsoft Outlook while" in comm.content
 		)
@@ -268,7 +268,7 @@ class TestEmailAccount(FrappeTestCase):
 		frappe.db.delete("Email Queue")
 
 		# reference document for testing
-		event = frappe.get_doc(dict(doctype="Event", subject="test-message")).insert()
+		event = frappe.get_doc(doctype="Event", subject="test-message").insert()
 
 		# send a mail against this
 		frappe.sendmail(
@@ -286,7 +286,9 @@ class TestEmailAccount(FrappeTestCase):
 			messages = {
 				# append_to = ToDo
 				'"INBOX"': {
-					"latest_messages": [f.read().replace("{{ message_id }}", "<" + last_mail.message_id + ">")],
+					"latest_messages": [
+						f.read().replace("{{ message_id }}", "<" + last_mail.message_id + ">")
+					],
 					"seen_status": {2: "UNSEEN"},
 					"uid_list": [2],
 				}
@@ -411,9 +413,12 @@ class TestEmailAccount(FrappeTestCase):
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_get_inbound_mails(
-		email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None
+		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
 	):
 		from frappe.email.receive import EmailServer
+
+		if messages is None:
+			messages = {}
 
 		def get_mocked_messages(**kwargs):
 			return messages.get(kwargs["folder"], {})
@@ -426,8 +431,11 @@ class TestEmailAccount(FrappeTestCase):
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_email_receive(
-		email_account, messages={}, mocked_logout=None, mocked_select_imap_folder=None
+		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
 	):
+		if messages is None:
+			messages = {}
+
 		def get_mocked_messages(**kwargs):
 			return messages.get(kwargs["folder"], {})
 

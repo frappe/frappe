@@ -3,7 +3,7 @@ from enum import Enum
 from importlib import import_module
 from typing import Any, get_type_hints
 
-from pypika.queries import Column, QueryBuilder
+from pypika.queries import Column, QueryBuilder, _SetOperation
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -86,7 +86,7 @@ def patch_query_execute():
 		return result
 
 	def execute_child_queries(queries, result):
-		if not result or not isinstance(result[0], dict) or not result[0].name:
+		if not queries or not result or not isinstance(result[0], dict) or not result[0].name:
 			return
 		parent_names = [d.name for d in result]
 		for child_query in queries:
@@ -104,12 +104,10 @@ def patch_query_execute():
 	def prepare_query(query):
 		import inspect
 
-		from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
-
 		param_collector = NamedParameterWrapper()
 		query = query.get_sql(param_wrapper=param_collector)
 		if frappe.flags.in_safe_exec:
-			from frappe.utils.safe_exec import check_safe_sql_query
+			from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
 
 			if not check_safe_sql_query(query, throw=False):
 				callstack = inspect.stack()
@@ -136,7 +134,10 @@ def patch_query_execute():
 
 	builder_class.run = execute_query
 	builder_class.walk = prepare_query
-	frappe._qb_patched[frappe.conf.db_type] = True
+
+	# To support running union queries
+	_SetOperation.run = execute_query
+	_SetOperation.walk = prepare_query
 
 
 def patch_query_aggregation():
@@ -147,4 +148,3 @@ def patch_query_aggregation():
 	frappe.qb.min = _min
 	frappe.qb.avg = _avg
 	frappe.qb.sum = _sum
-	frappe._qb_patched[frappe.conf.db_type] = True

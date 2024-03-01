@@ -15,4 +15,5 @@ class Gender(Document):
 
 		gender: DF.Data | None
 	# end: auto-generated types
+
 	pass

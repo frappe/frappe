@@ -7,7 +7,7 @@ from zxcvbn import zxcvbn
 from zxcvbn.scoring import ALL_UPPER, START_UPPER
 
 import frappe
-from frappe import _
+from frappe import _, _lt
 
 if TYPE_CHECKING:
 	from collections.abc import Iterable
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 	from zxcvbn.matching import _Match
 
 
-def test_password_strength(password: str, user_inputs: "Iterable[object]" = None) -> "_Result":
+def test_password_strength(password: str, user_inputs: "Iterable[object] | None" = None) -> "_Result":
 	"""Wrapper around zxcvbn.password_strength"""
 	if len(password) > 128:
 		# zxcvbn takes forever when checking long, random passwords.
@@ -41,8 +41,8 @@ def test_password_strength(password: str, user_inputs: "Iterable[object]" = None
 default_feedback: "PasswordStrengthFeedback" = {
 	"warning": "",
 	"suggestions": [
-		_("Use a few words, avoid common phrases."),
-		_("No need for symbols, digits, or uppercase letters."),
+		_lt("Use a few words, avoid common phrases."),
+		_lt("No need for symbols, digits, or uppercase letters."),
 	],
 }
 
@@ -50,9 +50,7 @@ default_feedback: "PasswordStrengthFeedback" = {
 def get_feedback(score: int, sequence: list) -> "PasswordStrengthFeedback":
 	"""Return the feedback dictionary consisting of ("warning","suggestions") for the given sequences."""
 	global default_feedback
-	minimum_password_score = int(
-		frappe.db.get_single_value("System Settings", "minimum_password_score") or 2
-	)
+	minimum_password_score = int(frappe.get_system_settings("minimum_password_score") or 2)
 
 	# Starting feedback
 	if len(sequence) == 0:
@@ -148,9 +146,7 @@ def get_match_feedback(match: "_Match", is_sole_match: bool) -> "PasswordStrengt
 		return pattern_fn()
 
 
-def get_dictionary_match_feedback(
-	match: "_Match", is_sole_match: bool
-) -> "PasswordStrengthFeedback":
+def get_dictionary_match_feedback(match: "_Match", is_sole_match: bool) -> "PasswordStrengthFeedback":
 	"""Return feedback for a match that is found in a dictionary."""
 	warning = ""
 	suggestions = []

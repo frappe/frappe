@@ -18,6 +18,7 @@ class Tag(Document):
 
 		description: DF.SmallText | None
 	# end: auto-generated types
+
 	pass
 
 
@@ -109,7 +110,7 @@ class DocTags:
 			tags = ""
 		else:
 			tl = unique(filter(lambda x: x, tl))
-			tags = "," + ",".join(tl)
+			tags = ",".join(tl)
 		try:
 			frappe.db.sql(
 				"update `tab{}` set _user_tags={} where name={}".format(self.dt, "%s", "%s"), (tags, dn)
@@ -173,9 +174,7 @@ def update_tags(doc, tags):
 
 	deleted_tags = list(set(existing_tags) - set(new_tags))
 	for tag in deleted_tags:
-		frappe.db.delete(
-			"Tag Link", {"document_type": doc.doctype, "document_name": doc.name, "tag": tag}
-		)
+		frappe.db.delete("Tag Link", {"document_type": doc.doctype, "document_name": doc.name, "tag": tag})
 
 
 @frappe.whitelist()

@@ -11,9 +11,7 @@ test_dependencies = ["User"]
 
 class TestToDo(FrappeTestCase):
 	def test_delete(self):
-		todo = frappe.get_doc(
-			dict(doctype="ToDo", description="test todo", assigned_by="Administrator")
-		).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="test todo", assigned_by="Administrator").insert()
 
 		frappe.db.delete("Deleted Document")
 		todo.delete()
@@ -24,9 +22,7 @@ class TestToDo(FrappeTestCase):
 		self.assertEqual(todo.as_json(), deleted.data)
 
 	def test_fetch(self):
-		todo = frappe.get_doc(
-			dict(doctype="ToDo", description="test todo", assigned_by="Administrator")
-		).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="test todo", assigned_by="Administrator").insert()
 		self.assertEqual(
 			todo.assigned_by_full_name, frappe.db.get_value("User", todo.assigned_by, "full_name")
 		)
@@ -40,9 +36,7 @@ class TestToDo(FrappeTestCase):
 
 		frappe.clear_cache(doctype="ToDo")
 
-		todo = frappe.get_doc(
-			dict(doctype="ToDo", description="test todo", assigned_by="Administrator")
-		).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="test todo", assigned_by="Administrator").insert()
 		self.assertFalse(todo.assigned_by_full_name)
 
 		todo_meta = frappe.get_doc("DocType", "ToDo")
@@ -126,12 +120,10 @@ class TestToDo(FrappeTestCase):
 		frappe.clear_cache(doctype="ToDo")
 
 		todo = frappe.get_doc(
-			dict(
-				doctype="ToDo",
-				description="test todo",
-				assigned_by="Administrator",
-				assigned_by_full_name="Admin",
-			)
+			doctype="ToDo",
+			description="test todo",
+			assigned_by="Administrator",
+			assigned_by_full_name="Admin",
 		).insert()
 
 		self.assertEqual(todo.assigned_by_full_name, "Admin")

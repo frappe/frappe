@@ -32,12 +32,45 @@ class WidgetDialog {
 	}
 
 	get_title() {
-		// DO NOT REMOVE: Comment to load translation
-		// __("New Chart") __("New Shortcut") __("Edit Chart") __("Edit Shortcut")
+		if (this.editing) {
+			switch (this.type) {
+				case "chart":
+					return __("Edit Chart");
+				case "shortcut":
+					return __("Edit Shortcut");
+				case "links":
+					return __("Edit Links");
+				case "number_card":
+					return __("Edit Number Card");
+				case "onboarding":
+					return __("Edit Onboarding");
+				case "quick_list":
+					return __("Edit Quick List");
+				case "custom_block":
+					return __("Edit Custom Block");
+				default:
+					return __("Edit {0}", [__(frappe.model.unscrub(this.type))]);
+			}
+		}
 
-		let action = this.editing ? "Edit" : "Add";
-		let label = (action = action + " " + frappe.model.unscrub(this.type));
-		return __(label);
+		switch (this.type) {
+			case "chart":
+				return __("New Chart");
+			case "shortcut":
+				return __("New Shortcut");
+			case "links":
+				return __("New Links");
+			case "number_card":
+				return __("New Number Card");
+			case "onboarding":
+				return __("New Onboarding");
+			case "quick_list":
+				return __("New Quick List");
+			case "custom_block":
+				return __("New Custom Block");
+			default:
+				return __("New {0}", [__(frappe.model.unscrub(this.type))]);
+		}
 	}
 
 	get_fields() {
@@ -219,7 +252,13 @@ class CardDialog extends WidgetDialog {
 			{
 				fieldtype: "Data",
 				fieldname: "label",
-				label: "Label",
+				label: __("Label"),
+			},
+			{
+				fieldtype: "HTML Editor",
+				fieldname: "description",
+				label: __("Description"),
+				max_height: "7rem",
 			},
 			{
 				fieldname: "links",
@@ -231,17 +270,6 @@ class CardDialog extends WidgetDialog {
 					return me.values ? JSON.parse(me.values.links) : [];
 				},
 				fields: [
-					{
-						fieldname: "label",
-						fieldtype: "Data",
-						in_list_view: 1,
-						label: "Label",
-					},
-					{
-						fieldname: "icon",
-						fieldtype: "Icon",
-						label: "Icon",
-					},
 					{
 						fieldname: "link_type",
 						fieldtype: "Select",
@@ -268,6 +296,17 @@ class CardDialog extends WidgetDialog {
 								};
 							}
 						},
+					},
+					{
+						fieldname: "label",
+						fieldtype: "Data",
+						in_list_view: 1,
+						label: "Label",
+					},
+					{
+						fieldname: "icon",
+						fieldtype: "Icon",
+						label: "Icon",
 					},
 					{
 						fieldname: "column_break_7",

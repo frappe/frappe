@@ -21,6 +21,7 @@ class HelpCategory(WebsiteGenerator):
 		published: DF.Check
 		route: DF.Data | None
 	# end: auto-generated types
+
 	website = frappe._dict(condition_field="published", page_title_field="category_name")
 
 	def before_insert(self):
@@ -31,6 +32,11 @@ class HelpCategory(WebsiteGenerator):
 
 	def validate(self):
 		self.set_route()
+
+		# disable help articles of this category
+		if not self.published:
+			for d in frappe.get_all("Help Article", dict(category=self.name)):
+				frappe.db.set_value("Help Article", d.name, "published", 0)
 
 	def set_route(self):
 		if not self.route:

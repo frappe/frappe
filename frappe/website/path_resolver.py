@@ -38,14 +38,19 @@ class PathResolver:
 		except frappe.Redirect as e:
 			return frappe.flags.redirect_location, RedirectPage(self.path, e.http_status_code)
 
-		endpoint = resolve_path(self.path)
+		if frappe.get_hooks("website_path_resolver"):
+			for handler in frappe.get_hooks("website_path_resolver"):
+				endpoint = frappe.get_attr(handler)(self.path)
+		else:
+			endpoint = resolve_path(self.path)
 
 		# WARN: Hardcoded for better performance
 		if endpoint == "app":
 			return endpoint, TemplatePage(endpoint, self.http_status_code)
 
 		custom_renderers = self.get_custom_page_renderers()
-		renderers = custom_renderers + [
+		renderers = [
+			*custom_renderers,
 			StaticPage,
 			WebFormPage,
 			DocumentPage,
@@ -163,8 +168,7 @@ def resolve_path(path):
 def resolve_from_map(path):
 	"""transform dynamic route to a static one from hooks and route defined in doctype"""
 	rules = [
-		Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults"))
-		for r in get_website_rules()
+		Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults")) for r in get_website_rules()
 	]
 
 	return evaluate_dynamic_routes(rules, path) or path

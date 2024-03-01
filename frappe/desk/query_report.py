@@ -97,9 +97,7 @@ def generate_report_result(
 			columns.insert(custom_column["insert_after_index"] + 1, custom_column)
 
 	# all columns which are not in original report
-	report_custom_columns = [
-		column for column in columns if column["fieldname"] not in report_column_names
-	]
+	report_custom_columns = [column for column in columns if column["fieldname"] not in report_column_names]
 
 	if report_custom_columns:
 		result = add_custom_column_data(report_custom_columns, result)
@@ -126,7 +124,7 @@ def normalize_result(result, columns):
 	# Convert to list of dicts from list of lists/tuples
 	data = []
 	column_names = [column["fieldname"] for column in columns]
-	if result and isinstance(result[0], (list, tuple)):
+	if result and isinstance(result[0], list | tuple):
 		for row in result:
 			row_obj = {}
 			for idx, column_name in enumerate(column_names):
@@ -291,9 +289,9 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 		try:
 			if data := json.loads(doc.get_prepared_data().decode("utf-8")):
 				report_data = get_report_data(doc, data)
-		except Exception:
+		except Exception as e:
 			doc.log_error("Prepared report render failed")
-			frappe.msgprint(_("Prepared report render failed"))
+			frappe.msgprint(_("Prepared report render failed") + f": {e!s}")
 			doc = None
 
 	return report_data | {"prepared_report": True, "doc": doc}
@@ -324,9 +322,7 @@ def export_query():
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
 
-	data = run(
-		report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False
-	)
+	data = run(report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False)
 	data = frappe._dict(data)
 	data.filters = form_params.applied_filters
 
@@ -365,9 +361,7 @@ def format_duration_fields(data: frappe._dict) -> None:
 				row[index] = format_duration(row[index])
 
 
-def build_xlsx_data(
-	data, visible_idx, include_indentation, include_filters=False, ignore_visible_idx=False
-):
+def build_xlsx_data(data, visible_idx, include_indentation, include_filters=False, ignore_visible_idx=False):
 	EXCEL_TYPES = (
 		str,
 		bool,
@@ -508,13 +502,12 @@ def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):
 
 @frappe.whitelist()
 def get_data_for_custom_field(doctype, field, names=None):
-
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(doctype), frappe.PermissionError)
 
 	filters = {}
 	if names:
-		if isinstance(names, (str, bytearray)):
+		if isinstance(names, str | bytearray):
 			names = frappe.json.loads(names)
 		filters.update({"name": ["in", names]})
 
@@ -598,7 +591,9 @@ def get_filtered_data(ref_doctype, columns, data, user):
 		for row in data:
 			# Why linked_doctypes.get(ref_doctype)? because if column is empty, linked_doctypes[ref_doctype] is removed
 			if (
-				linked_doctypes.get(ref_doctype) and shared and row.get(linked_doctypes[ref_doctype]) in shared
+				linked_doctypes.get(ref_doctype)
+				and shared
+				and row.get(linked_doctypes[ref_doctype]) in shared
 			):
 				result.append(row)
 
@@ -664,7 +659,7 @@ def has_match(
 					cell_value = None
 					if isinstance(row, dict):
 						cell_value = row.get(idx)
-					elif isinstance(row, (list, tuple)):
+					elif isinstance(row, list | tuple):
 						cell_value = row[idx]
 
 					if (
@@ -696,10 +691,10 @@ def get_linked_doctypes(columns, data):
 
 	columns_dict = get_columns_dict(columns)
 
-	for idx, col in enumerate(columns):
+	for idx in range(len(columns)):
 		df = columns_dict[idx]
 		if df.get("fieldtype") == "Link":
-			if data and isinstance(data[0], (list, tuple)):
+			if data and isinstance(data[0], list | tuple):
 				linked_doctypes[df["options"]] = idx
 			else:
 				# dict
@@ -710,7 +705,7 @@ def get_linked_doctypes(columns, data):
 	for row in data:
 		if row:
 			if len(row) != len(columns_with_value):
-				if isinstance(row, (list, tuple)):
+				if isinstance(row, list | tuple):
 					row = enumerate(row)
 				elif isinstance(row, dict):
 					row = row.items()

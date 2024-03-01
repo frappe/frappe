@@ -30,6 +30,7 @@ class IntegrationRequest(Document):
 		status: DF.Literal["", "Queued", "Authorized", "Completed", "Cancelled", "Failed"]
 		url: DF.SmallText | None
 	# end: auto-generated types
+
 	def autoname(self):
 		if self.flags._name:
 			self.name = self.flags._name

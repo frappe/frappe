@@ -40,7 +40,7 @@ class WebForm(WebsiteGenerator):
 		breadcrumbs: DF.Code | None
 		button_label: DF.Data | None
 		client_script: DF.Code | None
-		condition: DF.Code | None
+		condition_json: DF.JSON | None
 		custom_css: DF.Code | None
 		doc_type: DF.Link
 		introduction_text: DF.TextEditor | None
@@ -66,6 +66,7 @@ class WebForm(WebsiteGenerator):
 		web_form_fields: DF.Table[WebFormField]
 		website_sidebar: DF.Link | None
 	# end: auto-generated types
+
 	website = frappe._dict(no_cache=1)
 
 	def validate(self):
@@ -281,9 +282,7 @@ def get_context(context):
 
 		messages.extend(col.get("label") if col else "" for col in self.list_columns)
 
-		context.translated_messages = frappe.as_json(
-			{message: _(message) for message in messages if message}
-		)
+		context.translated_messages = frappe.as_json({message: _(message) for message in messages if message})
 
 	def load_list_data(self, context):
 		if not self.list_columns:
@@ -444,7 +443,7 @@ def get_web_form_module(doc):
 
 
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=5, seconds=60)
+@rate_limit(key="web_form", limit=10, seconds=60)
 def accept(web_form, data):
 	"""Save the web form"""
 	data = frappe._dict(json.loads(data))

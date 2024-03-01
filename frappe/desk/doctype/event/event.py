@@ -21,6 +21,7 @@ from frappe.utils import (
 	format_datetime,
 	get_datetime_str,
 	getdate,
+	month_diff,
 	now_datetime,
 	nowdate,
 )
@@ -62,7 +63,7 @@ class Event(Document):
 		google_meet_link: DF.Data | None
 		monday: DF.Check
 		pulled_from_google_calendar: DF.Check
-		repeat_on: DF.Literal["", "Daily", "Weekly", "Monthly", "Yearly"]
+		repeat_on: DF.Literal["", "Daily", "Weekly", "Monthly", "Quarterly", "Half Yearly", "Yearly"]
 		repeat_this_event: DF.Check
 		repeat_till: DF.Date | None
 		saturday: DF.Check
@@ -77,6 +78,7 @@ class Event(Document):
 		tuesday: DF.Check
 		wednesday: DF.Check
 	# end: auto-generated types
+
 	def validate(self):
 		if not self.starts_on:
 			self.starts_on = now_datetime()
@@ -87,9 +89,7 @@ class Event(Document):
 		if self.starts_on and self.ends_on:
 			self.validate_from_to_dates("starts_on", "ends_on")
 
-		if (
-			self.repeat_on == "Daily" and self.ends_on and getdate(self.starts_on) != getdate(self.ends_on)
-		):
+		if self.repeat_on == "Daily" and self.ends_on and getdate(self.starts_on) != getdate(self.ends_on):
 			frappe.throw(_("Daily Events should finish on the Same Day."))
 
 		if self.sync_with_google_calendar and not self.google_calendar:
@@ -221,9 +221,7 @@ def delete_communication(event, reference_doctype, reference_docname):
 def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
-	return """(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={user})""".format(
-		user=frappe.db.escape(user),
-	)
+	return f"""(`tabEvent`.`event_type`='Public' or `tabEvent`.`owner`={frappe.db.escape(user)})"""
 
 
 def has_permission(doc, user):
@@ -358,9 +356,7 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 		)
 
 		new_event.starts_on = date + " " + e.starts_on.split(" ")[1]
-		new_event.ends_on = new_event.ends_on = (
-			enddate + " " + e.ends_on.split(" ")[1] if e.ends_on else None
-		)
+		new_event.ends_on = new_event.ends_on = enddate + " " + e.ends_on.split(" ")[1] if e.ends_on else None
 
 		add_events.append(new_event)
 
@@ -390,6 +386,62 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 					):
 						add_event(e, date)
 
+				remove_events.append(e)
+
+			if e.repeat_on == "Half Yearly":
+				# creates a string with date (27) and month (07) and year (2019) eg: 2019-07-27
+				year, month = start.split("-", maxsplit=2)[:2]
+				date = f"{year}-{month}-" + event_start.split("-", maxsplit=3)[2]
+
+				# last day of month issue, start from prev month!
+				try:
+					getdate(date)
+				except Exception:
+					date = date.split("-")
+					date = date[0] + "-" + str(cint(date[1]) - 1) + "-" + date[2]
+
+				start_from = date
+				for i in range(int(date_diff(end, start) / 30) + 3):
+					diff = month_diff(date, event_start) - 1
+					if diff % 6 != 0:
+						continue
+					if (
+						getdate(date) >= getdate(start)
+						and getdate(date) <= getdate(end)
+						and getdate(date) <= getdate(repeat)
+						and getdate(date) >= getdate(event_start)
+					):
+						add_event(e, date)
+
+					date = add_months(start_from, i + 1)
+				remove_events.append(e)
+
+			if e.repeat_on == "Quarterly":
+				# creates a string with date (27) and month (07) and year (2019) eg: 2019-07-27
+				year, month = start.split("-", maxsplit=2)[:2]
+				date = f"{year}-{month}-" + event_start.split("-", maxsplit=3)[2]
+
+				# last day of month issue, start from prev month!
+				try:
+					getdate(date)
+				except Exception:
+					date = date.split("-")
+					date = date[0] + "-" + str(cint(date[1]) - 1) + "-" + date[2]
+
+				start_from = date
+				for i in range(int(date_diff(end, start) / 30) + 3):
+					diff = month_diff(date, event_start) - 1
+					if diff % 3 != 0:
+						continue
+					if (
+						getdate(date) >= getdate(start)
+						and getdate(date) <= getdate(end)
+						and getdate(date) <= getdate(repeat)
+						and getdate(date) >= getdate(event_start)
+					):
+						add_event(e, date)
+
+					date = add_months(start_from, i + 1)
 				remove_events.append(e)
 
 			if e.repeat_on == "Monthly":
@@ -479,12 +531,9 @@ def delete_events(ref_type, ref_name, delete_event=False):
 
 # Close events if ends_on or repeat_till is less than now_datetime
 def set_status_of_events():
-	events = frappe.get_list(
-		"Event", filters={"status": "Open"}, fields=["name", "ends_on", "repeat_till"]
-	)
+	events = frappe.get_list("Event", filters={"status": "Open"}, fields=["name", "ends_on", "repeat_till"])
 	for event in events:
 		if (event.ends_on and getdate(event.ends_on) < getdate(nowdate())) or (
 			event.repeat_till and getdate(event.repeat_till) < getdate(nowdate())
 		):
-
 			frappe.db.set_value("Event", event.name, "status", "Closed")

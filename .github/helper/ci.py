@@ -1,5 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # MIT License. See LICENSE
+import json
 import os
 from pathlib import Path
 
@@ -33,19 +34,7 @@ TESTED_VIA_CLI = [
 	"*/frappe/database/**/setup_db.py",
 ]
 
-FRAPPE_EXCLUSIONS = [
-	"*/tests/*",
-	"*/commands/*",
-	"*/frappe/change_log/*",
-	"*/frappe/exceptions*",
-	"*/frappe/desk/page/setup_wizard/setup_wizard.py",
-	"*/frappe/coverage.py",
-	"*frappe/setup.py",
-	"*/frappe/hooks.py",
-	"*/doctype/*/*_dashboard.py",
-	"*/patches/*",
-	"*/.github/helper/ci.py",
-] + TESTED_VIA_CLI
+FRAPPE_EXCLUSIONS = ["*/tests/*", "*/commands/*", "*/frappe/change_log/*", "*/frappe/exceptions*", "*/frappe/desk/page/setup_wizard/setup_wizard.py", "*/frappe/coverage.py", "*frappe/setup.py", "*/frappe/hooks.py", "*/doctype/*/*_dashboard.py", "*/patches/*", "*/.github/helper/ci.py", *TESTED_VIA_CLI]
 
 
 def get_bench_path():
@@ -85,6 +74,7 @@ if __name__ == "__main__":
 	app = "frappe"
 	site = os.environ.get("SITE") or "test_site"
 	use_orchestrator = bool(os.environ.get("ORCHESTRATOR_URL"))
+	with_coverage = json.loads(os.environ.get("WITH_COVERAGE", "true").lower())
 	build_number = 1
 	total_builds = 1
 
@@ -98,7 +88,7 @@ if __name__ == "__main__":
 	except Exception:
 		pass
 
-	with CodeCoverage(with_coverage=True, app=app):
+	with CodeCoverage(with_coverage=with_coverage, app=app):
 		if use_orchestrator:
 			from frappe.parallel_test_runner import ParallelTestWithOrchestrator
 

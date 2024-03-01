@@ -84,6 +84,26 @@ frappe.db.commit()
 frappe.db.add_index("Todo", ["color", "date"])
 """,
 	),
+	dict(
+		name="test_before_rename",
+		script_type="DocType Event",
+		doctype_event="After Rename",
+		reference_doctype="Role",
+		script="""
+doc.desk_access =0
+doc.save()
+""",
+	),
+	dict(
+		name="test_after_rename",
+		script_type="DocType Event",
+		doctype_event="After Rename",
+		reference_doctype="Role",
+		script="""
+doc.disabled =1
+doc.save()
+""",
+	),
 ]
 
 
@@ -111,15 +131,21 @@ class TestServerScript(FrappeTestCase):
 		frappe.cache.delete_value("server_script_map")
 
 	def test_doctype_event(self):
-		todo = frappe.get_doc(dict(doctype="ToDo", description="hello")).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="hello").insert()
 		self.assertEqual(todo.status, "Open")
 
-		todo = frappe.get_doc(dict(doctype="ToDo", description="test todo")).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="test todo").insert()
 		self.assertEqual(todo.status, "Closed")
 
 		self.assertRaises(
-			frappe.ValidationError, frappe.get_doc(dict(doctype="ToDo", description="validate me")).insert
+			frappe.ValidationError, frappe.get_doc(doctype="ToDo", description="validate me").insert
 		)
+
+		role = frappe.get_doc(doctype="Role", role_name="_Test Role 9").insert(ignore_if_duplicate=True)
+		role.rename("_Test Role 10")
+		role.reload()
+		self.assertEqual(role.disabled, 1)
+		self.assertEqual(role.desk_access, 0)
 
 	def test_api(self):
 		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_server_script")
@@ -157,9 +183,7 @@ class TestServerScript(FrappeTestCase):
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(
-			AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert
-		)
+		self.assertRaises(AttributeError, frappe.get_doc(doctype="ToDo", description="test me").insert)
 
 		server_script.disabled = 1
 		server_script.save()
@@ -169,9 +193,7 @@ class TestServerScript(FrappeTestCase):
 		server_script.disabled = 0
 		server_script.save()
 
-		self.assertRaises(
-			AttributeError, frappe.get_doc(dict(doctype="ToDo", description="test me")).insert
-		)
+		self.assertRaises(AttributeError, frappe.get_doc(doctype="ToDo", description="test me").insert)
 
 		server_script.disabled = 1
 		server_script.save()
@@ -222,7 +244,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			name="test_nested_scripts_1",
 			script_type="API",
 			api_method="test_nested_scripts_1",
-			script=f"""log("nothing")""",
+			script="""log("nothing")""",
 		)
 		script.insert()
 		script.execute_method()
@@ -232,13 +254,12 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			name="test_nested_scripts_2",
 			script_type="API",
 			api_method="test_nested_scripts_2",
-			script=f"""frappe.call("test_nested_scripts_1")""",
+			script="""frappe.call("test_nested_scripts_1")""",
 		)
 		script.insert()
 		script.execute_method()
 
 	def test_server_script_rate_limiting(self):
-		# why not
 		script1 = frappe.get_doc(
 			doctype="Server Script",
 			name="rate_limited_server_script",
@@ -317,5 +338,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 
 		cron_script.cron_format = "0 0 2 1 *"  # 2nd january
 		cron_script.save()
-		cron_job.reload()
-		self.assertEqual(cron_job.next_execution.day, 2)
+
+		updated_cron_job_name = frappe.db.get_value("Scheduled Job Type", {"server_script": cron_script.name})
+		updated_cron_job = frappe.get_doc("Scheduled Job Type", updated_cron_job_name)
+		self.assertEqual(updated_cron_job.next_execution.day, 2)

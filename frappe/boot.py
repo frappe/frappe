@@ -176,9 +176,7 @@ def get_user_pages_or_reports(parent, cache=False):
 		frappe.qb.from_(customRole)
 		.from_(hasRole)
 		.from_(parentTable)
-		.select(
-			customRole[parent.lower()].as_("name"), customRole.modified, customRole.ref_doctype, *columns
-		)
+		.select(customRole[parent.lower()].as_("name"), customRole.modified, customRole.ref_doctype, *columns)
 		.where(
 			(hasRole.parent == customRole.name)
 			& (parentTable.name == customRole[parent.lower()])
@@ -201,9 +199,7 @@ def get_user_pages_or_reports(parent, cache=False):
 		.from_(parentTable)
 		.select(parentTable.name.as_("name"), parentTable.modified, *columns)
 		.where(
-			(hasRole.role.isin(roles))
-			& (hasRole.parent == parentTable.name)
-			& (parentTable.name.notin(subq))
+			(hasRole.role.isin(roles)) & (hasRole.parent == parentTable.name) & (parentTable.name.notin(subq))
 		)
 		.distinct()
 	)
@@ -225,7 +221,6 @@ def get_user_pages_or_reports(parent, cache=False):
 
 	# pages with no role are allowed
 	if parent == "Page":
-
 		pages_with_no_roles = (
 			frappe.qb.from_(parentTable)
 			.select(parentTable.name, parentTable.modified, *columns)
@@ -237,7 +232,7 @@ def get_user_pages_or_reports(parent, cache=False):
 				has_role[p.name] = {"modified": p.modified, "title": p.title}
 
 	elif parent == "Report":
-		if not has_permission("Report", raise_exception=False):
+		if not has_permission("Report", print_logs=False):
 			return {}
 
 		reports = frappe.get_list(
@@ -269,9 +264,6 @@ def get_user_info():
 	# get info for current user
 	user_info = frappe._dict()
 	add_user_info(frappe.session.user, user_info)
-
-	if frappe.session.user == "Administrator" and user_info.Administrator.email:
-		user_info[user_info.Administrator.email] = user_info.Administrator
 
 	return user_info
 
@@ -458,12 +450,12 @@ def get_marketplace_apps():
 		return request.json()["message"]
 
 	try:
-		apps = frappe.cache().get_value(cache_key, get_apps_from_fc, shared=True)
+		apps = frappe.cache.get_value(cache_key, get_apps_from_fc, shared=True)
 		installed_apps = set(frappe.get_installed_apps())
 		apps = [app for app in apps if app["name"] not in installed_apps]
 	except Exception:
 		# Don't retry for a day
-		frappe.cache().set_value(cache_key, apps, shared=True, expires_in_sec=24 * 60 * 60)
+		frappe.cache.set_value(cache_key, apps, shared=True, expires_in_sec=24 * 60 * 60)
 
 	return apps
 

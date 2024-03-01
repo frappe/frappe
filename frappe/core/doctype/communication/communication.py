@@ -119,6 +119,7 @@ class Communication(Document, CommunicationEmailMixin):
 		unread_notification_sent: DF.Check
 		user: DF.Link | None
 	# end: auto-generated types
+
 	"""Communication represents an external communication like Email."""
 
 	no_feed_on_delete = True
@@ -133,7 +134,6 @@ class Communication(Document, CommunicationEmailMixin):
 			and self.uid
 			and self.uid != -1
 		):
-
 			email_flag_queue = frappe.db.get_value(
 				"Email Flag Queue", {"communication": self.name, "is_completed": 0}
 			)
@@ -306,7 +306,7 @@ class Communication(Document, CommunicationEmailMixin):
 		emails = split_emails(emails) if isinstance(emails, str) else (emails or [])
 		if exclude_displayname:
 			return [email.lower() for email in {parse_addr(email)[1] for email in emails} if email]
-		return [email.lower() for email in set(emails) if email]
+		return [email for email in set(emails) if email]
 
 	def to_list(self, exclude_displayname=True):
 		"""Return `to` list."""
@@ -501,14 +501,17 @@ def on_doctype_update():
 	frappe.db.add_index("Communication", ["message_id(140)"])
 
 
-def has_permission(doc, ptype, user):
+def has_permission(doc, ptype, user=None, debug=False):
 	if ptype == "read":
 		if doc.reference_doctype == "Communication" and doc.reference_name == doc.name:
-			return
+			return True
 
 		if doc.reference_doctype and doc.reference_name:
-			if frappe.has_permission(doc.reference_doctype, ptype="read", doc=doc.reference_name):
-				return True
+			return frappe.has_permission(
+				doc.reference_doctype, ptype="read", doc=doc.reference_name, user=user, debug=debug
+			)
+
+	return True
 
 
 def get_permission_query_conditions_for_communication(user):
@@ -553,6 +556,7 @@ def get_contacts(email_strings: list[str], auto_create_contact=False) -> list[st
 				contact.insert(ignore_permissions=True)
 				contact_name = contact.name
 			except Exception:
+				contact_name = None
 				contact.log_error("Unable to add contact")
 
 		if contact_name:

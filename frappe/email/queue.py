@@ -62,9 +62,7 @@ def get_emails_sent_today(email_account=None):
 	return frappe.db.sql(q, q_args)[0][0]
 
 
-def get_unsubscribe_message(
-	unsubscribe_message: str, expose_recipients: str
-) -> "frappe._dict[str, str]":
+def get_unsubscribe_message(unsubscribe_message: str, expose_recipients: str) -> "frappe._dict[str, str]":
 	unsubscribe_message = unsubscribe_message or _("Unsubscribe")
 	unsubscribe_link = f'<a href="<!--unsubscribe_url-->" target="_blank">{unsubscribe_message}</a>'
 	unsubscribe_html = _("{0} to stop receiving emails of this type").format(unsubscribe_link)
@@ -82,9 +80,7 @@ def get_unsubscribe_message(
 	return frappe._dict(html=html, text=text)
 
 
-def get_unsubcribed_url(
-	reference_doctype, reference_name, email, unsubscribe_method, unsubscribe_params
-):
+def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_method, unsubscribe_params):
 	params = {
 		"email": cstr(email),
 		"doctype": cstr(reference_doctype),
@@ -157,7 +153,8 @@ def flush():
 			failed_email_queues.append(row.name)
 
 			if (
-				len(failed_email_queues) / len(email_queue_batch) > EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_PERCENT
+				len(failed_email_queues) / len(email_queue_batch)
+				> EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_PERCENT
 				and len(failed_email_queues) > EMAIL_QUEUE_BATCH_FAILURE_THRESHOLD_COUNT
 			):
 				frappe.throw(_("Email Queue flushing aborted due to too many failures."))

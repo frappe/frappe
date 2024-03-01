@@ -81,9 +81,7 @@ class TestAssign(FrappeTestCase):
 		self.assertEqual(data["test_assign1@example.com"], 1)
 		self.assertEqual(data["test_assign2@example.com"], 3)
 
-		data = {
-			d.name: d.count for d in get_group_by_count(TEST_DOCTYPE, '[{"public": 1}]', "assigned_to")
-		}
+		data = {d.name: d.count for d in get_group_by_count(TEST_DOCTYPE, '[{"public": 1}]', "assigned_to")}
 
 		self.assertFalse("test_assign1@example.com" in data)
 		self.assertEqual(data["test_assign2@example.com"], 2)

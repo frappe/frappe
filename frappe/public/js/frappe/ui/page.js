@@ -187,7 +187,7 @@ frappe.ui.Page = class Page {
 		let sidebar_toggle = $(".page-head").find(".sidebar-toggle-btn");
 		let sidebar_wrapper = this.wrapper.find(".layout-side-section");
 		if (this.disable_sidebar_toggle || !sidebar_wrapper.length) {
-			sidebar_toggle.remove();
+			sidebar_toggle.last().remove();
 		} else {
 			if (!frappe.is_mobile()) {
 				sidebar_toggle.attr("title", __("Toggle Sidebar"));
@@ -757,7 +757,7 @@ frappe.ui.Page = class Page {
 		return this.$title_area;
 	}
 
-	set_title(title, icon = null, strip = true, tab_title = "") {
+	set_title(title, icon = null, strip = true, tab_title = "", tooltip_label = "") {
 		if (!title) title = "";
 		if (strip) {
 			title = strip_html(title);
@@ -769,7 +769,11 @@ frappe.ui.Page = class Page {
 		}
 		let title_wrapper = this.$title_area.find(".title-text");
 		title_wrapper.html(title);
-		title_wrapper.attr("title", this.title);
+		title_wrapper.attr("title", tooltip_label || this.title);
+
+		if (tooltip_label) {
+			title_wrapper.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+		}
 	}
 
 	set_title_sub(txt) {
@@ -887,7 +891,7 @@ frappe.ui.Page = class Page {
 		f.refresh();
 		$(f.wrapper)
 			.addClass("col-md-2")
-			.attr("title", __(df.label))
+			.attr("title", __(df.label, null, df.parent))
 			.tooltip({
 				delay: { show: 600, hide: 100 },
 				trigger: "hover",
@@ -901,7 +905,7 @@ frappe.ui.Page = class Page {
 		// hidden fields dont have $input
 		if (!f.$input) f.make_input();
 
-		f.$input.attr("placeholder", __(df.label));
+		f.$input.attr("placeholder", __(df.label, null, df.parent));
 
 		if (df.fieldtype === "Check") {
 			$(f.wrapper).find(":first-child").removeClass("col-md-offset-4 col-md-8");

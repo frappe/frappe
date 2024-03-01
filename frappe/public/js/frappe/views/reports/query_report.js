@@ -1259,13 +1259,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				width: parseInt(column.width) || null,
 				editable: false,
 				compareValue: compareFn,
-				format: (value, row, column, data, filter, data1) => {
+				format: (value, row, column, data, filter) => {
 					if (this.report_settings.formatter) {
 						return this.report_settings.formatter(
 							value,
 							row,
 							column,
-							data1,
+							data,
 							format_cell,
 							filter
 						);
@@ -1461,7 +1461,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.map((fieldname) => {
 				const docfield = frappe.query_report.get_filter(fieldname).df;
 				const value = applied_filters[fieldname];
-				return `<h6>${__(docfield.label)}: ${frappe.format(value, docfield)}</h6>`;
+				return `<h6>${__(docfield.label, null, docfield.parent)}: ${frappe.format(
+					value,
+					docfield
+				)}</h6>`;
 			})
 			.join("");
 	}
