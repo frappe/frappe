@@ -1947,6 +1947,7 @@ operator_map = {
 	"None": lambda a, b: a is None,
 	"like": sql_like,
 	"not like": lambda a, b: not sql_like(a, b),
+	"is": lambda a, b: (a and (b == 'set')) or (not a and (b == 'not set')),
 }
 
 
