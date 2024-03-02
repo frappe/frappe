@@ -38,7 +38,7 @@ def execute():
 				frappe.db.sql_ddl(f"ALTER TABLE `{table_name}` DROP INDEX `{index}`")
 			except Exception as e:
 				frappe.log_error("Failed to drop index")
-				print(f"x Failed to drop index {index} from {table_name}\n {str(e)}")
+				print(f"x Failed to drop index {index} from {table_name}\n {e!s}")
 			else:
 				print(f"✓ dropped {index} index from {table}")
 

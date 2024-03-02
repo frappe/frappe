@@ -7,9 +7,6 @@ from typing import TYPE_CHECKING, Optional
 from urllib.parse import unquote
 
 import filetype
-import requests
-import requests.exceptions
-from PIL import Image
 
 import frappe
 from frappe import _, safe_decode
@@ -86,6 +83,8 @@ def get_extension(
 
 
 def get_local_image(file_url: str) -> tuple["ImageFile", str, str]:
+	from PIL import Image
+
 	if file_url.startswith("/private"):
 		file_url_path = (file_url.lstrip("/"),)
 	else:
@@ -116,7 +115,10 @@ def get_local_image(file_url: str) -> tuple["ImageFile", str, str]:
 
 
 def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
-	# download
+	import requests
+	import requests.exceptions
+	from PIL import Image
+
 	file_url = frappe.utils.get_url(file_url)
 	r = requests.get(file_url, stream=True)
 	try:
@@ -167,7 +169,7 @@ def delete_file(path: str) -> None:
 			os.remove(path)
 
 
-def remove_file_by_url(file_url: str, doctype: str = None, name: str = None) -> "Document":
+def remove_file_by_url(file_url: str, doctype: str | None = None, name: str | None = None) -> "Document":
 	if doctype and name:
 		fid = frappe.db.get_value(
 			"File", {"file_url": file_url, "attached_to_doctype": doctype, "attached_to_name": name}
@@ -274,7 +276,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 	return content
 
 
-def get_random_filename(content_type: str = None) -> str:
+def get_random_filename(content_type: str | None = None) -> str:
 	extn = None
 	if content_type:
 		extn = mimetypes.guess_extension(content_type)
@@ -409,3 +411,19 @@ def decode_file_content(content: bytes) -> bytes:
 	if b"," in content:
 		content = content.split(b",")[1]
 	return safe_b64decode(content)
+
+
+def find_file_by_url(path: str, name: str | None = None) -> Optional["File"]:
+	filters = {"file_url": str(path)}
+	if name:
+		filters["name"] = str(name)
+
+	files = frappe.get_all("File", filters=filters, fields="*")
+
+	# this file might be attached to multiple documents
+	# if the file is accessible from any one of those documents
+	# then it should be downloadable
+	for file_data in files:
+		file: "File" = frappe.get_doc(doctype="File", **file_data)
+		if file.is_downloadable():
+			return file

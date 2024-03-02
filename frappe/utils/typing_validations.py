@@ -52,7 +52,9 @@ def qualified_name(obj) -> str:
 		return f"{module}.{qualname}"
 
 
-def raise_type_error(arg_name: str, arg_type: type, arg_value: object, current_exception: Exception = None):
+def raise_type_error(
+	arg_name: str, arg_type: type, arg_value: object, current_exception: Exception | None = None
+):
 	"""
 	Raise a TypeError with a message that includes the name of the argument, the expected type
 	and the actual type of the value passed.

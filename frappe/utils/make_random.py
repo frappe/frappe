@@ -33,7 +33,7 @@ def add_random_children(doc: "Document", fieldname: str, rows, randomize: dict, 
 			doc.append(fieldname, d)
 
 
-def get_random(doctype: str, filters: dict = None, doc: bool = False):
+def get_random(doctype: str, filters: dict | None = None, doc: bool = False):
 	condition = []
 	if filters:
 		condition.extend("{}='{}'".format(key, str(val).replace("'", "'")) for key, val in filters.items())

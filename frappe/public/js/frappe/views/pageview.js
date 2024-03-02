@@ -31,7 +31,11 @@ frappe.views.pageview = {
 				args: { name: name },
 				callback: function (r) {
 					if (!r.docs._dynamic_page) {
-						localStorage["_page:" + name] = JSON.stringify(r.docs);
+						try {
+							localStorage["_page:" + name] = JSON.stringify(r.docs);
+						} catch (e) {
+							console.warn(e);
+						}
 					}
 					callback();
 				},

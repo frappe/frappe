@@ -143,7 +143,7 @@ def get_desktop_icons(user=None):
 		# translate
 		for d in user_icons:
 			if d.label:
-				d.label = _(d.label)
+				d.label = _(d.label, context=d.parent)
 
 		frappe.cache.hset("desktop_icons", user, user_icons)
 

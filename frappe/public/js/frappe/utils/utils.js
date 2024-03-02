@@ -1569,7 +1569,7 @@ Object.assign(frappe.utils, {
 	only_allow_num_decimal(input) {
 		input.on("input", (e) => {
 			let self = $(e.target);
-			self.val(self.val().replace(/[^0-9.]/g, ""));
+			self.val(self.val().replace(/[^0-9.\-]/g, ""));
 			if (
 				(e.which != 46 || self.val().indexOf(".") != -1) &&
 				(e.which < 48 || e.which > 57)

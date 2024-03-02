@@ -106,10 +106,10 @@ class Meta(Document):
 			"DocType State",
 		)
 	)
-	standard_set_once_fields = [
+	standard_set_once_fields = (
 		frappe._dict(fieldname="creation", fieldtype="Datetime"),
 		frappe._dict(fieldname="owner", fieldtype="Data"),
-	]
+	)
 
 	def __init__(self, doctype):
 		if isinstance(doctype, Document):

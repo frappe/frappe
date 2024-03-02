@@ -62,7 +62,7 @@ class TestBlogPost(FrappeTestCase):
 
 		# On blog post page find link to the category page
 		soup = BeautifulSoup(blog_page_html, "html.parser")
-		category_page_link = list(soup.find_all("a", href=re.compile(blog.blog_category)))[0]
+		category_page_link = next(iter(soup.find_all("a", href=re.compile(blog.blog_category))))
 		category_page_url = category_page_link["href"]
 
 		cached_value = frappe.db.value_cache.get(("DocType", "Blog Post", "name"))

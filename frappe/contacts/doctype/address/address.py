@@ -327,8 +327,18 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	)
 
 
-def get_condensed_address(doc):
-	fields = ["address_title", "address_line1", "address_line2", "city", "county", "state", "country"]
+def get_condensed_address(doc, no_title=False):
+	fields = [
+		"address_title",
+		"address_line1",
+		"address_line2",
+		"city",
+		"county",
+		"state",
+		"country",
+	]
+	if no_title:
+		fields.remove("address_title")
 	return ", ".join(doc.get(d) for d in fields if doc.get(d))
 
 

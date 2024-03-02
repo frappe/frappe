@@ -21,13 +21,13 @@ def publish_progress(percent, title=None, doctype=None, docname=None, descriptio
 
 
 def publish_realtime(
-	event: str = None,
-	message: dict = None,
-	room: str = None,
-	user: str = None,
-	doctype: str = None,
-	docname: str = None,
-	task_id: str = None,
+	event: str | None = None,
+	message: dict | None = None,
+	room: str | None = None,
+	user: str | None = None,
+	doctype: str | None = None,
+	docname: str | None = None,
+	task_id: str | None = None,
 	after_commit: bool = False,
 ):
 	"""Publish real-time updates

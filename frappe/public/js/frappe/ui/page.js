@@ -891,7 +891,7 @@ frappe.ui.Page = class Page {
 		f.refresh();
 		$(f.wrapper)
 			.addClass("col-md-2")
-			.attr("title", __(df.label))
+			.attr("title", __(df.label, null, df.parent))
 			.tooltip({
 				delay: { show: 600, hide: 100 },
 				trigger: "hover",
@@ -905,7 +905,7 @@ frappe.ui.Page = class Page {
 		// hidden fields dont have $input
 		if (!f.$input) f.make_input();
 
-		f.$input.attr("placeholder", __(df.label));
+		f.$input.attr("placeholder", __(df.label, null, df.parent));
 
 		if (df.fieldtype === "Check") {
 			$(f.wrapper).find(":first-child").removeClass("col-md-offset-4 col-md-8");

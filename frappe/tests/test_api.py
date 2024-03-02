@@ -1,5 +1,6 @@
 import json
 import sys
+import typing
 from contextlib import contextmanager
 from functools import cached_property
 from random import choice
@@ -15,7 +16,7 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.installer import update_site_config
 from frappe.tests.utils import FrappeTestCase, patch_hooks
-from frappe.utils import cint, get_site_url, get_test_client, get_url
+from frappe.utils import cint, get_test_client, get_url
 
 try:
 	_site = frappe.local.site
@@ -40,7 +41,7 @@ def make_request(
 	target: str,
 	args: tuple | None = None,
 	kwargs: dict | None = None,
-	site: str = None,
+	site: str | None = None,
 ) -> TestResponse:
 	t = ThreadWithReturnValue(target=target, args=args, kwargs=kwargs, site=site)
 	t.start()
@@ -132,7 +133,7 @@ class FrappeAPITestCase(FrappeTestCase):
 
 class TestResourceAPI(FrappeAPITestCase):
 	DOCTYPE = "ToDo"
-	GENERATED_DOCUMENTS = []
+	GENERATED_DOCUMENTS: typing.ClassVar[list] = []
 
 	@classmethod
 	def setUpClass(cls):
@@ -321,6 +322,14 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertIn("ZeroDivisionError", response.json["exception"])  # WHY?
 		self.assertIn("Traceback", response.json["exc"])
 
+	def test_array_response(self):
+		method = "frappe.tests.test_api.test_array"
+
+		test_data = list(range(5))
+		response = self.post(self.method_path(method), test_data)
+
+		self.assertEqual(response.json["message"], test_data)
+
 
 class TestReadOnlyMode(FrappeAPITestCase):
 	"""During migration if read only mode can be enabled.
@@ -462,3 +471,8 @@ def test(*, fail=False, handled=True, message="Failed"):
 			1 / 0
 	else:
 		frappe.msgprint(message)
+
+
+@frappe.whitelist(allow_guest=True)
+def test_array(data):
+	return data

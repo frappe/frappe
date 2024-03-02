@@ -17,8 +17,9 @@
   "html_condition",
   "sb_webhook",
   "request_url",
-  "timeout",
   "is_dynamic_url",
+  "timeout",
+  "background_jobs_queue",
   "cb_webhook",
   "request_method",
   "request_structure",
@@ -211,8 +212,12 @@
    "description": "The number of seconds until the request expires",
    "fieldname": "timeout",
    "fieldtype": "Int",
-   "label": "Request Timeout",
-   "reqd": 1
+   "label": "Request Timeout"
+  },
+  {
+   "fieldname": "background_jobs_queue",
+   "fieldtype": "Autocomplete",
+   "label": "Background Jobs Queue"
   }
  ],
  "links": [
@@ -221,7 +226,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-02-05 17:49:50.203001",
+ "modified": "2024-02-19 11:40:58.387233",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

@@ -75,7 +75,7 @@ def import_file_by_path(
 	force: bool = False,
 	data_import: bool = False,
 	pre_process=None,
-	ignore_version: bool = None,
+	ignore_version: bool | None = None,
 	reset_permissions: bool = False,
 ) -> bool:
 	"""Import file from the given path.

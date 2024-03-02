@@ -151,7 +151,7 @@ def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None
 
 		if provider == "github" and not info.get("email"):
 			emails = session.get("/user/emails", params=api_endpoint_args).json()
-			email_dict = list(filter(lambda x: x.get("primary"), emails))[0]
+			email_dict = next(filter(lambda x: x.get("primary"), emails))
 			info["email"] = email_dict.get("email")
 
 	if not (info.get("email_verified") or info.get("email")):

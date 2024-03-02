@@ -287,7 +287,7 @@ def get_communication_data(
 	if after:
 		# find after a particular date
 		conditions += f"""
-			AND C.creation > {after}
+			AND C.communication_date > {after}
 		"""
 
 	if doctype == "User":
@@ -319,7 +319,7 @@ def get_communication_data(
 		SELECT *
 		FROM (({part1}) UNION ({part2})) AS combined
 		{group_by}
-		ORDER BY creation DESC
+		ORDER BY communication_date DESC
 		LIMIT %(limit)s
 		OFFSET %(start)s
 	""".format(part1=part1, part2=part2, group_by=(group_by or "")),
