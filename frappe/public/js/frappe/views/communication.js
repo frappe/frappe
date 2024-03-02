@@ -1,8 +1,6 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-import localforage from "localforage";
-
 frappe.last_edited_communication = {};
 const separator_element = "<div>---</div>";
 
