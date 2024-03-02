@@ -1929,9 +1929,25 @@ def sql_like(value: str, pattern: str) -> bool:
 		# assume default as wrapped in '%'
 		return pattern in value
 
+
 def filter_operator_is(value: str, pattern: str) -> bool:
 	"""Operator `is` can have two values: 'set' or 'not set'."""
-	return bool(value) == (pattern == 'set')
+	pattern = pattern.lower()
+
+	def is_set():
+		if value is None:
+			return False
+		elif isinstance(value, str) and not value:
+			return False
+		return True
+
+	if pattern == "set":
+		return is_set()
+	elif pattern == "not set":
+		return not is_set()
+	else:
+		frappe.throw(frappe._(f"Invalid argument for operator 'IS': {pattern}"))
+
 
 operator_map = {
 	# startswith

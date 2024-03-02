@@ -186,13 +186,14 @@ class TestFilters(FrappeTestCase):
 			)
 		)
 
-	def test_like_not_like(self):
+	def test_filter_evaluation(self):
 		doc = {
 			"doctype": "User",
 			"username": "test_abc",
 			"prefix": "startswith",
 			"suffix": "endswith",
 			"empty": None,
+			"number": 0,
 		}
 
 		test_cases = [
@@ -208,10 +209,11 @@ class TestFilters(FrappeTestCase):
 			([["suffix", "is", "not set"]], False),
 			([["empty", "is", "set"]], False),
 			([["empty", "is", "not set"]], True),
+			([["number", "is", "set"]], True),
 		]
 
 		for filter, expected_result in test_cases:
-			self.assertEqual(evaluate_filters(doc, filter), expected_result)
+			self.assertEqual(evaluate_filters(doc, filter), expected_result, msg=f"{filter}")
 
 
 class TestMoney(FrappeTestCase):
