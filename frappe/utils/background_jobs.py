@@ -261,12 +261,7 @@ def start_worker(
 	logging_level = "INFO"
 	if quiet:
 		logging_level = "WARNING"
-<<<<<<< HEAD
-	worker = WorkerKlass(queues, name=get_worker_name(queue_name), connection=redis_connection)
-=======
-
-	worker = Worker(queues, connection=redis_connection)
->>>>>>> f7bff58935 (fix: use name for RQ worker instead of PID (#25175))
+	worker = WorkerKlass(queues, connection=redis_connection)
 	worker.work(
 		logging_level=logging_level,
 		burst=burst,
