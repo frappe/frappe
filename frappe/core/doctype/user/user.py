@@ -184,6 +184,10 @@ class User(Document):
 		if not self.role_profiles:
 			return
 
+		if self.name in STANDARD_USERS:
+			self.role_profiles = []
+			return
+
 		new_roles = set()
 		for role_profile in self.role_profiles:
 			role_profile = frappe.get_cached_doc("Role Profile", role_profile.role_profile)
@@ -837,9 +841,9 @@ def get_perm_info(role):
 	return get_all_perms(role)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def update_password(
-	new_password: str, logout_all_sessions: int = 0, key: str = None, old_password: str = None
+	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
 ):
 	"""Update password for the current user.
 
@@ -985,7 +989,7 @@ def reset_user_data(user):
 	return user_doc, redirect_url
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def verify_password(password):
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
@@ -1041,7 +1045,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
 def reset_password(user: str) -> str:
 	try:
@@ -1210,7 +1214,7 @@ def handle_password_test_fail(feedback: dict):
 	suggestions = feedback.get("suggestions", [])
 	warning = feedback.get("warning", "")
 
-	frappe.throw(msg=" ".join([warning] + suggestions), title=_("Invalid Password"))
+	frappe.throw(msg=" ".join([warning, *suggestions]), title=_("Invalid Password"))
 
 
 def update_gravatar(name):
@@ -1307,7 +1311,7 @@ def get_restricted_ip_list(user):
 	return [i.strip() for i in user.restrict_ip.split(",")]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def generate_keys(user: str):
 	"""
 	generate api key and api secret
@@ -1339,3 +1343,31 @@ def get_enabled_users():
 		return enabled_users
 
 	return frappe.cache.get_value("enabled_users", _get_enabled_users)
+
+
+@frappe.whitelist(methods=["POST"])
+def impersonate(user: str, reason: str):
+	# Note: For now we only allow admins, we MIGHT allow system manager in future.
+	# All the impersonation code doesn't assume anything about user.
+	frappe.only_for("Administrator")
+
+	impersonator = frappe.session.user
+	frappe.get_doc(
+		{
+			"doctype": "Activity Log",
+			"user": user,
+			"status": "Success",
+			"subject": _("User {0} impersonated as {1}").format(impersonator, user),
+			"operation": "Impersonate",
+		}
+	).insert(ignore_permissions=True, ignore_links=True)
+
+	notification = frappe.new_doc(
+		"Notification Log",
+		for_user=user,
+		from_user=frappe.session.user,
+		subject=_("{0} just impersonated as you. They gave this reason: {1}").format(impersonator, reason),
+	)
+	notification.set("type", "Alert")
+	notification.insert(ignore_permissions=True)
+	frappe.local.login_manager.impersonate(user)

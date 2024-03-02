@@ -9,7 +9,7 @@ from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.note.note import Note
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import cint, now_datetime, set_request
 from frappe.website.serve import get_response
 
@@ -101,8 +101,13 @@ class TestDocument(FrappeTestCase):
 	def test_value_changed(self):
 		d = self.test_insert()
 		d.subject = "subject changed again"
-		d.save()
+		d.load_doc_before_save()
+		d.update_modified()
+
 		self.assertTrue(d.has_value_changed("subject"))
+		self.assertTrue(d.has_value_changed("modified"))
+
+		self.assertFalse(d.has_value_changed("creation"))
 		self.assertFalse(d.has_value_changed("event_type"))
 
 	def test_mandatory(self):

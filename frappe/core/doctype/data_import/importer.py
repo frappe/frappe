@@ -483,7 +483,7 @@ class ImportFile:
 					"read_only": col.df.read_only,
 				}
 
-		data = [[row.row_number] + row.as_list() for row in self.data]
+		data = [[row.row_number, *row.as_list()] for row in self.data]
 
 		warnings = self.get_warnings()
 

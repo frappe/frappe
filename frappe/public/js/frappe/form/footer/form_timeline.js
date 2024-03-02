@@ -234,7 +234,7 @@ class FormTimeline extends BaseTimeline {
 			communication_timeline_contents.push({
 				icon: icon_set[medium],
 				icon_size: "sm",
-				creation: communication.creation,
+				creation: communication.communication_date,
 				is_card: true,
 				content: this.get_communication_timeline_content(communication),
 				doctype: "Communication",
@@ -575,8 +575,8 @@ class FormTimeline extends BaseTimeline {
 			}
 			if (reply_all) {
 				// if reply_all then add cc and bcc as well.
-				args.cc += communication_doc.cc;
-				args.bcc = communication_doc.bcc;
+				args.cc += cstr(communication_doc.cc);
+				args.bcc = cstr(communication_doc.bcc);
 			}
 		}
 

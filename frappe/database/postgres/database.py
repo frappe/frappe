@@ -12,7 +12,12 @@ from psycopg2.errorcodes import (
 	UNDEFINED_TABLE,
 	UNIQUE_VIOLATION,
 )
-from psycopg2.errors import ReadOnlySqlTransaction, SequenceGeneratorLimitExceeded, SyntaxError
+from psycopg2.errors import (
+	LockNotAvailable,
+	ReadOnlySqlTransaction,
+	SequenceGeneratorLimitExceeded,
+	SyntaxError,
+)
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
@@ -53,7 +58,7 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_timedout(e):
 		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
-		return isinstance(e, psycopg2.extensions.QueryCanceledError)
+		return isinstance(e, (psycopg2.extensions.QueryCanceledError | LockNotAvailable))
 
 	@staticmethod
 	def is_read_only_mode_error(e) -> bool:
@@ -342,7 +347,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			and indexname='{index_name}' limit 1"""
 		)
 
-	def add_index(self, doctype: str, fields: list, index_name: str = None):
+	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""
 		table_name = get_table_name(doctype)

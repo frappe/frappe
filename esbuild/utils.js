@@ -14,16 +14,12 @@ const sites_path = path.resolve(bench_path, "sites");
 const assets_path = path.resolve(sites_path, "assets");
 const app_list = get_apps_list();
 
-const app_paths = app_list.reduce((out, app) => {
-	out[app] = path.resolve(apps_path, app, app);
-	return out;
-}, {});
 const public_paths = app_list.reduce((out, app) => {
-	out[app] = path.resolve(app_paths[app], "public");
+	out[app] = path.resolve(apps_path, app, app, "public");
 	return out;
 }, {});
 const public_js_paths = app_list.reduce((out, app) => {
-	out[app] = path.resolve(app_paths[app], "public/js");
+	out[app] = path.resolve(apps_path, app, app, "public/js");
 	return out;
 }, {});
 
@@ -70,8 +66,6 @@ function run_serially(tasks) {
 	});
 	return result;
 }
-
-const get_app_path = (app) => app_paths[app];
 
 function get_apps_list() {
 	return fs
@@ -140,7 +134,6 @@ module.exports = {
 	get_public_path,
 	get_build_json_path,
 	get_build_json,
-	get_app_path,
 	delete_file,
 	run_serially,
 	get_cli_arg,

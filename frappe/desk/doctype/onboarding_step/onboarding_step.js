@@ -75,7 +75,7 @@ function setup_fields(frm) {
 				})
 				.map((df) => {
 					return {
-						label: `${__(df.label)} (${df.fieldname})`,
+						label: `${__(df.label, null, df.parent)} (${df.fieldname})`,
 						value: df.fieldname,
 					};
 				});

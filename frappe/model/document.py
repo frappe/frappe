@@ -22,7 +22,7 @@ from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
-from frappe.utils.data import get_absolute_url
+from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
@@ -455,8 +455,24 @@ class Document(BaseDocument):
 
 	def has_value_changed(self, fieldname):
 		"""Return True if value has changed before and after saving."""
+		from datetime import date, datetime, timedelta
+
 		previous = self.get_doc_before_save()
-		return previous.get(fieldname) != self.get(fieldname) if previous else True
+
+		if not previous:
+			return True
+
+		previous_value = previous.get(fieldname)
+		current_value = self.get(fieldname)
+
+		if isinstance(previous_value, datetime):
+			current_value = get_datetime(current_value)
+		elif isinstance(previous_value, date):
+			current_value = getdate(current_value)
+		elif isinstance(previous_value, timedelta):
+			current_value = get_timedelta(current_value)
+
+		return previous_value != current_value
 
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
@@ -591,11 +607,11 @@ class Document(BaseDocument):
 					_("Row"),
 					self.idx,
 					_("Value cannot be negative for"),
-					frappe.bold(_(df.label)),
+					frappe.bold(_(df.label, context=df.parent)),
 				)
 			else:
 				return _("Value cannot be negative for {0}: {1}").format(
-					_(df.parent), frappe.bold(_(df.label))
+					_(df.parent), frappe.bold(_(df.label, context=df.parent))
 				)
 
 		for df in self.meta.get(
@@ -1701,7 +1717,7 @@ def _document_values_generator(
 ) -> Generator[tuple[Any], None, None]:
 	for doc in documents:
 		doc.creation = doc.modified = now()
-		doc.created_by = doc.modified_by = frappe.session.user
+		doc.owner = doc.modified_by = frappe.session.user
 		doc_values = doc.get_valid_dict(
 			convert_dates_to_str=True,
 			ignore_nulls=True,

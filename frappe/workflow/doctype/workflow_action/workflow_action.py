@@ -74,8 +74,7 @@ def get_permission_query_conditions(user):
 		.where(WorkflowActionPermittedRole.role.isin(roles))
 	).get_sql()
 
-	return f"""(`tabWorkflow Action`.`name` in ({permitted_workflow_actions})
-		or `tabWorkflow Action`.`user`={frappe.db.escape(user)})
+	return f""" `tabWorkflow Action`.`name` in ({permitted_workflow_actions})
 		and `tabWorkflow Action`.`status`='Open'
 	"""
 
@@ -118,6 +117,7 @@ def process_workflow_actions(doc, state):
 			doc=doc,
 			transitions=next_possible_transitions,
 			enqueue_after_commit=True,
+			now=frappe.flags.in_test,
 		)
 
 
@@ -212,11 +212,6 @@ def update_completed_workflow_actions(doc, user=None, workflow=None, workflow_st
 		return
 	if workflow_action := get_workflow_action_by_role(doc, allowed_roles):
 		update_completed_workflow_actions_using_role(user, workflow_action)
-	else:
-		# backwards compatibility
-		# for workflow actions saved using user
-		clear_old_workflow_actions_using_user(doc, user)
-		update_completed_workflow_actions_using_user(doc, user)
 
 
 def get_allowed_roles(user, workflow, workflow_state):
@@ -268,39 +263,6 @@ def update_completed_workflow_actions_using_role(user=None, workflow_action=None
 	).run()
 
 
-def clear_old_workflow_actions_using_user(doc, user=None):
-	user = user if user else frappe.session.user
-
-	if frappe.db.has_column("Workflow Action", "user"):
-		frappe.db.delete(
-			"Workflow Action",
-			{
-				"reference_name": doc.get("name"),
-				"reference_doctype": doc.get("doctype"),
-				"status": "Open",
-				"user": ("!=", user),
-			},
-		)
-
-
-def update_completed_workflow_actions_using_user(doc, user=None):
-	user = user or frappe.session.user
-
-	if frappe.db.has_column("Workflow Action", "user"):
-		WorkflowAction = DocType("Workflow Action")
-		(
-			frappe.qb.update(WorkflowAction)
-			.set(WorkflowAction.status, "Completed")
-			.set(WorkflowAction.completed_by, user)
-			.where(
-				(WorkflowAction.reference_name == doc.get("name"))
-				& (WorkflowAction.reference_doctype == doc.get("doctype"))
-				& (WorkflowAction.status == "Open")
-				& (WorkflowAction.user == user)
-			)
-		).run()
-
-
 def get_next_possible_transitions(workflow_name, state, doc=None):
 	transitions = frappe.get_all(
 		"Workflow Transition",
@@ -329,7 +291,7 @@ def get_users_next_action_data(transitions, doc):
 	def user_has_permission(user: str) -> bool:
 		from frappe.permissions import has_permission
 
-		return has_permission(doctype=doc, user=user, print_logs=False)
+		return has_permission(doctype=doc, user=user)
 
 	for transition in transitions:
 		users = get_users_with_role(transition.allowed)
@@ -380,10 +342,10 @@ def send_workflow_action_email(doc, transitions):
 	users_data = get_users_next_action_data(transitions, doc)
 	common_args = get_common_email_args(doc)
 	message = common_args.pop("message", None)
-	for d in users_data:
+	for data in users_data.values():
 		email_args = {
-			"recipients": [d.get("email")],
-			"args": {"actions": list(deduplicate_actions(d.get("possible_actions"))), "message": message},
+			"recipients": [data.get("email")],
+			"args": {"actions": list(deduplicate_actions(data.get("possible_actions"))), "message": message},
 			"reference_name": doc.name,
 			"reference_doctype": doc.doctype,
 		}
