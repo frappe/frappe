@@ -15,7 +15,7 @@ from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, timeout
 from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.testutils import clear_custom_fields
 
@@ -55,17 +55,6 @@ class TestDB(FrappeTestCase):
 		else:
 			frappe.db.rollback(save_point=savepoint)
 			self.fail("Long running queries not timing out")
-
-	def test_skip_locking(self):
-		first_conn = frappe.local.db
-		name = frappe.db.get_value("User", "Administrator", "name", for_update=True, skip_locked=True)
-		self.assertEqual(name, "Administrator")
-
-		frappe.connect()  # Create a 2nd connection
-		second_conn = frappe.local.db
-		self.assertIsNot(first_conn, second_conn)
-		name = frappe.db.get_value("User", "Administrator", "name", for_update=True, skip_locked=True)
-		self.assertFalse(name)
 
 	@patch.dict(frappe.conf, {"http_timeout": 20, "enable_db_statement_timeout": 1})
 	def test_db_timeout_computation(self):
@@ -182,6 +171,13 @@ class TestDB(FrappeTestCase):
 
 		# teardown
 		clear_custom_fields("Print Settings")
+
+	def test_get_single_value_destructuring(self):
+		[[lang, date_format]] = frappe.db.get_values_from_single(
+			["language", "date_format"], None, "System Settings"
+		)
+		self.assertEqual(lang, frappe.db.get_single_value("System Settings", "language"))
+		self.assertEqual(date_format, frappe.db.get_single_value("System Settings", "date_format"))
 
 	def test_log_touched_tables(self):
 		frappe.flags.in_migrate = True
@@ -339,36 +335,40 @@ class TestDB(FrappeTestCase):
 		random_value = random_string(20)
 
 		# Testing read
-		self.assertEqual(list(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])[0], random_field)
+		self.assertEqual(next(iter(frappe.get_all("ToDo", fields=[random_field], limit=1)[0])), random_field)
 		self.assertEqual(
-			list(frappe.get_all("ToDo", fields=[f"`{random_field}` as total"], limit=1)[0])[0], "total"
+			next(iter(frappe.get_all("ToDo", fields=[f"`{random_field}` as total"], limit=1)[0])), "total"
 		)
 
 		# Testing read for distinct and sql functions
 		self.assertEqual(
-			list(
-				frappe.get_all(
-					"ToDo",
-					fields=[f"`{random_field}` as total"],
-					distinct=True,
-					limit=1,
-				)[0]
-			)[0],
+			next(
+				iter(
+					frappe.get_all(
+						"ToDo",
+						fields=[f"`{random_field}` as total"],
+						distinct=True,
+						limit=1,
+					)[0]
+				)
+			),
 			"total",
 		)
 		self.assertEqual(
-			list(
-				frappe.get_all(
-					"ToDo",
-					fields=[f"`{random_field}`"],
-					distinct=True,
-					limit=1,
-				)[0]
-			)[0],
+			next(
+				iter(
+					frappe.get_all(
+						"ToDo",
+						fields=[f"`{random_field}`"],
+						distinct=True,
+						limit=1,
+					)[0]
+				)
+			),
 			random_field,
 		)
 		self.assertEqual(
-			list(frappe.get_all("ToDo", fields=[f"count(`{random_field}`)"], limit=1)[0])[0],
+			next(iter(frappe.get_all("ToDo", fields=[f"count(`{random_field}`)"], limit=1)[0])),
 			"count" if frappe.conf.db_type == "postgres" else f"count(`{random_field}`)",
 		)
 
@@ -967,6 +967,44 @@ class TestReplicaConnections(FrappeTestCase):
 
 			outer()
 			self.assertEqual(write_connection, db_id())
+
+
+class TestConcurrency(FrappeTestCase):
+	@timeout(5, "There shouldn't be any lock wait")
+	def test_skip_locking(self):
+		with self.primary_connection():
+			name = frappe.db.get_value("User", "Administrator", for_update=True, skip_locked=True)
+			self.assertEqual(name, "Administrator")
+
+		with self.secondary_connection():
+			name = frappe.db.get_value("User", "Administrator", for_update=True, skip_locked=True)
+			self.assertFalse(name)
+
+	@timeout(5, "Lock timeout should have been 0")
+	def test_no_wait(self):
+		with self.primary_connection():
+			name = frappe.db.get_value("User", "Administrator", for_update=True)
+			self.assertEqual(name, "Administrator")
+
+		with self.secondary_connection():
+			self.assertRaises(
+				frappe.QueryTimeoutError,
+				lambda: frappe.db.get_value("User", "Administrator", for_update=True, wait=False),
+			)
+
+	@timeout(5, "Deletion stuck on lock timeout")
+	def test_delete_race_condition(self):
+		note = frappe.new_doc("Note")
+		note.title = note.content = frappe.generate_hash()
+		note.insert()
+		frappe.db.commit()  # ensure that second connection can see the document
+
+		with self.primary_connection():
+			n1 = frappe.get_doc(note.doctype, note.name)
+			n1.save()
+
+		with self.secondary_connection():
+			self.assertRaises(frappe.QueryTimeoutError, frappe.delete_doc, note.doctype, note.name)
 
 
 class TestSqlIterator(FrappeTestCase):

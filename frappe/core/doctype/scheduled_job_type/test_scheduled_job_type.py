@@ -6,7 +6,7 @@ import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_datetime
-from frappe.utils.data import add_to_date, now_datetime
+from frappe.utils.data import now_datetime
 
 
 class TestScheduledJobType(FrappeTestCase):
@@ -15,6 +15,33 @@ class TestScheduledJobType(FrappeTestCase):
 		frappe.db.truncate("Scheduled Job Type")
 		sync_jobs()
 		frappe.db.commit()
+
+	def test_throws_on_duplicate_job(self):
+		job_config = dict(
+			doctype="Scheduled Job Type",
+			method="frappe.desk.notifications.clear_notifications",
+			frequency="Weekly",
+		)
+		frappe.get_doc(job_config).insert()
+
+		duplicate_job = frappe.get_doc(job_config)
+
+		self.assertRaises(Exception, duplicate_job.insert)
+		frappe.db.rollback()
+
+	def test_throws_on_duplicate_job_with_cron_format(self):
+		job_config = dict(
+			doctype="Scheduled Job Type",
+			method="frappe.desk.notifications.clear_notifications",
+			frequency="Cron",
+			cron_format="*/1 * * * *",
+		)
+		frappe.get_doc(job_config).insert()
+
+		duplicate_job = frappe.get_doc(job_config)
+
+		self.assertRaises(Exception, duplicate_job.insert)
+		frappe.db.rollback()
 
 	def test_sync_jobs(self):
 		all_job = frappe.get_doc("Scheduled Job Type", dict(method="frappe.email.queue.flush"))

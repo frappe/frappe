@@ -450,12 +450,12 @@ def get_marketplace_apps():
 		return request.json()["message"]
 
 	try:
-		apps = frappe.cache().get_value(cache_key, get_apps_from_fc, shared=True)
+		apps = frappe.cache.get_value(cache_key, get_apps_from_fc, shared=True)
 		installed_apps = set(frappe.get_installed_apps())
 		apps = [app for app in apps if app["name"] not in installed_apps]
 	except Exception:
 		# Don't retry for a day
-		frappe.cache().set_value(cache_key, apps, shared=True, expires_in_sec=24 * 60 * 60)
+		frappe.cache.set_value(cache_key, apps, shared=True, expires_in_sec=24 * 60 * 60)
 
 	return apps
 

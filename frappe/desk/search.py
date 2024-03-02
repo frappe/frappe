@@ -63,7 +63,7 @@ def search_widget(
 	doctype: str,
 	txt: str,
 	query: str | None = None,
-	searchfield: str = None,
+	searchfield: str | None = None,
 	start: int = 0,
 	page_length: int = 10,
 	filters: str | None | dict | list = None,

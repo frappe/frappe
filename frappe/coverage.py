@@ -42,7 +42,8 @@ FRAPPE_EXCLUSIONS = [
 	"*frappe/setup.py",
 	"*/doctype/*/*_dashboard.py",
 	"*/patches/*",
-] + TESTED_VIA_CLI
+	*TESTED_VIA_CLI,
+]
 
 
 class CodeCoverage:

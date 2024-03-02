@@ -456,7 +456,7 @@ def install_app(context, apps, force=False):
 					print(f"App {app} is Incompatible with Site {site}{err_msg}")
 					exit_code = 1
 				except Exception as err:
-					err_msg = f": {str(err)}\n{frappe.get_traceback(with_context=True)}"
+					err_msg = f": {err!s}\n{frappe.get_traceback(with_context=True)}"
 					print(f"An error occurred while installing {app}{err_msg}")
 					exit_code = 1
 
@@ -1034,7 +1034,7 @@ def _drop_site(
 			messages = [
 				"=" * 80,
 				f"Error: The operation has stopped because backup of {site}'s database failed.",
-				f"Reason: {str(err)}\n",
+				f"Reason: {err!s}\n",
 				"Fix the issue and try again.",
 				f"Hint: Use 'bench drop-site {site} --force' to force the removal of {site}",
 			]
@@ -1206,6 +1206,10 @@ def browse(context, site, user=None):
 
 	sid = ""
 	if user:
+		if not frappe.db.exists("User", user):
+			click.echo(f"User {user} does not exist")
+			sys.exit(1)
+
 		if frappe.conf.developer_mode or user == "Administrator":
 			frappe.utils.set_request(path="/")
 			frappe.local.cookie_manager = CookieManager()

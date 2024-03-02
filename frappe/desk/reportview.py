@@ -360,8 +360,8 @@ def export_query():
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
-	data = [[_("Sr")] + get_labels(db_query.fields, doctype)]
-	data.extend([i + 1] + list(row) for i, row in enumerate(ret))
+	data = [[_("Sr"), *get_labels(db_query.fields, doctype)]]
+	data.extend([i + 1, *list(row)] for i, row in enumerate(ret))
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
@@ -543,7 +543,7 @@ def get_stats(stats, doctype, filters=None):
 			tag_count = frappe.get_list(
 				doctype,
 				fields=[column, "count(*)"],
-				filters=filters + [[column, "!=", ""]],
+				filters=[*filters, [column, "!=", ""]],
 				group_by=column,
 				as_list=True,
 				distinct=1,
@@ -554,7 +554,7 @@ def get_stats(stats, doctype, filters=None):
 				no_tag_count = frappe.get_list(
 					doctype,
 					fields=[column, "count(*)"],
-					filters=filters + [[column, "in", ("", ",")]],
+					filters=[*filters, [column, "in", ("", ",")]],
 					as_list=True,
 					group_by=column,
 					order_by=column,
@@ -593,7 +593,7 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 			tagcount = frappe.get_list(
 				doctype,
 				fields=[tag["name"], "count(*)"],
-				filters=filters + ["ifnull(`%s`,'')!=''" % tag["name"]],
+				filters=[*filters, "ifnull(`%s`,'')!=''" % tag["name"]],
 				group_by=tag["name"],
 				as_list=True,
 			)
@@ -615,7 +615,7 @@ def get_filter_dashboard_data(stats, doctype, filters=None):
 					frappe.get_list(
 						doctype,
 						fields=[tag["name"], "count(*)"],
-						filters=filters + ["({0} = '' or {0} is null)".format(tag["name"])],
+						filters=[*filters, "({0} = '' or {0} is null)".format(tag["name"])],
 						as_list=True,
 					)[0][1],
 				]

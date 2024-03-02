@@ -313,7 +313,7 @@ class DocType(Document):
 
 				frappe.msgprint(
 					_("{0} should be indexed because it's referred in dashboard connections").format(
-						_(d.label)
+						_(d.label, context=d.parent)
 					),
 					alert=True,
 					indicator="orange",
@@ -355,6 +355,8 @@ class DocType(Document):
 			for df in new_fields_to_fetch:
 				if df.fieldname not in old_fields_to_fetch:
 					link_fieldname, source_fieldname = df.fetch_from.split(".", 1)
+					if not source_fieldname:
+						continue  # Invalid expression
 					link_df = new_meta.get_field(link_fieldname)
 
 					if frappe.db.db_type == "postgres":
@@ -1187,7 +1189,7 @@ def validate_fields_for_doctype(doctype):
 
 
 # this is separate because it is also called via custom field
-def validate_fields(meta):
+def validate_fields(meta: Meta):
 	"""Validate doctype fields. Checks
 	1. There are no illegal characters in fieldnames
 	2. If fieldnames are unique.
@@ -1245,7 +1247,7 @@ def validate_fields(meta):
 		if frappe.flags.in_patch or frappe.flags.in_fixtures:
 			return
 
-		if d.fieldtype in ("Link",) + table_fields:
+		if d.fieldtype in ("Link", *table_fields):
 			if not d.options:
 				frappe.throw(
 					_("{0}: Options required for Link or Table type field {1} in row {2}").format(
@@ -1548,7 +1550,7 @@ def validate_fields(meta):
 
 		if docfield.fieldtype == "Data" and not (docfield.oldfieldtype and docfield.oldfieldtype != "Data"):
 			if docfield.options and (docfield.options not in data_field_options):
-				df_str = frappe.bold(_(docfield.label))
+				df_str = frappe.bold(_(docfield.label, context=docfield.parent))
 				text_str = (
 					_("{0} is an invalid Data field.").format(df_str)
 					+ "<br>" * 2
@@ -1594,6 +1596,47 @@ def validate_fields(meta):
 			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
 
+	def check_fetch_from(docfield):
+		if not frappe.request:
+			return
+
+		fetch_from = docfield.fetch_from
+		fieldname = docfield.fieldname
+		if not fetch_from:
+			return
+
+		if "." not in fetch_from:
+			frappe.throw(
+				_("Fetch From syntax for field {0} is invalid. `.` dot missing: {1}").format(
+					frappe.bold(fieldname), frappe.bold(fetch_from)
+				)
+			)
+		link_fieldname, source_fieldname = docfield.fetch_from.split(".", 1)
+		if not link_fieldname or not source_fieldname:
+			frappe.throw(
+				_(
+					"Fetch From syntax for field {0} is invalid: {1}. Fetch From should be in form of 'link_fieldname.source_fieldname'"
+				).format(frappe.bold(fieldname), frappe.bold(fetch_from))
+			)
+
+		link_df = meta.get("fields", {"fieldname": link_fieldname, "fieldtype": "Link"})
+		if not link_df:
+			frappe.throw(
+				_("Fetch From for field {0} is invalid: {1}. Link field {2} not found.").format(
+					frappe.bold(fieldname), frappe.bold(fetch_from), frappe.bold(link_fieldname)
+				)
+			)
+
+		doctype = link_df[0].options
+		fetch_from_doctype = frappe.get_meta(doctype)
+
+		if not fetch_from_doctype.get_field(source_fieldname):
+			frappe.throw(
+				_("Fetch From for field {0} is invalid: {1} does not have a field {2}").format(
+					frappe.bold(fieldname), frappe.bold(doctype), frappe.bold(source_fieldname)
+				)
+			)
+
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1629,6 +1672,7 @@ def validate_fields(meta):
 			check_child_table_option(d)
 			check_max_height(d)
 			check_no_of_ratings(d)
+			check_fetch_from(d)
 
 	if not frappe.flags.in_migrate:
 		check_fold(fields)

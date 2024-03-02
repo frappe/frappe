@@ -19,7 +19,7 @@ def get_contact_list(txt, page_length=20) -> list[dict]:
 	fields = ["first_name", "middle_name", "last_name", "company_name"]
 	contacts = frappe.get_list(
 		"Contact",
-		fields=fields + ["`tabContact Email`.email_id"],
+		fields=[*fields, "`tabContact Email`.email_id"],
 		filters=[
 			["Contact Email", "email_id", "is", "set"],
 		],

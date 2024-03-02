@@ -160,7 +160,8 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		var icon = "";
 		this.label_span.innerHTML =
-			(icon ? '<i class="' + icon + '"></i> ' : "") + __(this.df.label) || "&nbsp;";
+			(icon ? '<i class="' + icon + '"></i> ' : "") +
+				__(this.df.label, null, this.df.parent) || "&nbsp;";
 		this._label = this.df.label;
 	}
 

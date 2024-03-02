@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+import copy
 import functools
 import gc
 import importlib
@@ -299,11 +300,12 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
 	setup_redis_cache_connection()
-	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
+
+	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
 	local.initialised = True
 
@@ -540,6 +542,13 @@ def log(msg: str) -> None:
 	debug_log.append(as_unicode(msg))
 
 
+@functools.lru_cache(maxsize=1024)
+def _strip_html_tags(message):
+	from frappe.utils import strip_html_tags
+
+	return strip_html_tags(message)
+
+
 def msgprint(
 	msg: str,
 	title: str | None = None,
@@ -548,7 +557,7 @@ def msgprint(
 	as_list: bool = False,
 	indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None,
 	alert: bool = False,
-	primary_action: str = None,
+	primary_action: str | None = None,
 	is_minimizable: bool = False,
 	wide: bool = False,
 	*,
@@ -571,14 +580,8 @@ def msgprint(
 	import inspect
 	import sys
 
-	from frappe.utils import strip_html_tags
-
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
-
-	@functools.lru_cache(maxsize=1024)
-	def _strip_html_tags(message):
-		return strip_html_tags(message)
 
 	def _raise_exception():
 		if raise_exception:
@@ -939,6 +942,7 @@ def is_whitelisted(method):
 
 def read_only():
 	def innfn(fn):
+		@functools.wraps(fn)
 		def wrapper_fn(*args, **kwargs):
 			# frappe.read_only could be called from nested functions, in such cases don't swap the
 			# connection again.
@@ -1652,7 +1656,9 @@ def _load_app_hooks(app_name: str | None = None):
 	return hooks
 
 
-def get_hooks(hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None) -> _dict:
+def get_hooks(
+	hook: str | None = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str | None = None
+) -> _dict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
@@ -1693,11 +1699,19 @@ def append_hook(target, key, value):
 		target[key].extend(value)
 
 
-def setup_module_map(include_all_apps=True):
-	"""Rebuild map of all modules (internal)."""
-	if conf.db_name:
+def setup_module_map(include_all_apps: bool = True) -> None:
+	"""
+	Function to rebuild map of all modules
+
+	:param: include_all_apps: Include all apps on bench, or just apps installed on the site.
+	:return: Nothing
+	"""
+	if include_all_apps:
 		local.app_modules = cache.get_value("app_modules")
 		local.module_app = cache.get_value("module_app")
+	else:
+		local.app_modules = cache.get_value("installed_app_modules")
+		local.module_app = cache.get_value("module_installed_app")
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
@@ -1716,9 +1730,12 @@ def setup_module_map(include_all_apps=True):
 				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
-		if conf.db_name:
+		if include_all_apps:
 			cache.set_value("app_modules", local.app_modules)
 			cache.set_value("module_app", local.module_app)
+		else:
+			cache.set_value("installed_app_modules", local.app_modules)
+			cache.set_value("module_installed_app", local.module_app)
 
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
@@ -1898,7 +1915,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 
 	newdoc = get_doc(copy.deepcopy(d))
 	newdoc.set("__islocal", 1)
-	for fieldname in fields_to_clear + ["amended_from", "amendment_date"]:
+	for fieldname in [*fields_to_clear, "amended_from", "amendment_date"]:
 		newdoc.set(fieldname, None)
 
 	if not ignore_no_copy:
@@ -2172,21 +2189,27 @@ def get_print(
 	:param as_pdf: Return as PDF. Default False.
 	:param password: Password to encrypt the pdf with. Default None"""
 	from frappe.utils.pdf import get_pdf
-	from frappe.website.serve import get_response_content
+	from frappe.website.serve import get_response_without_exception_handling
 
-	local.form_dict.doctype = doctype
-	local.form_dict.name = name
-	local.form_dict.format = print_format
-	local.form_dict.style = style
-	local.form_dict.doc = doc
-	local.form_dict.no_letterhead = no_letterhead
-	local.form_dict.letterhead = letterhead
+	original_form_dict = copy.deepcopy(local.form_dict)
+	try:
+		local.form_dict.doctype = doctype
+		local.form_dict.name = name
+		local.form_dict.format = print_format
+		local.form_dict.style = style
+		local.form_dict.doc = doc
+		local.form_dict.no_letterhead = no_letterhead
+		local.form_dict.letterhead = letterhead
 
-	pdf_options = pdf_options or {}
-	if password:
-		pdf_options["password"] = password
+		pdf_options = pdf_options or {}
+		if password:
+			pdf_options["password"] = password
 
-	html = get_response_content("printview")
+		response = get_response_without_exception_handling("printview", 200)
+		html = str(response.data, "utf-8")
+	finally:
+		local.form_dict = original_form_dict
+
 	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
@@ -2520,7 +2543,7 @@ def validate_and_sanitize_search_inputs(fn):
 	return wrapper
 
 
-from frappe.utils.error import log_error  # noqa
+from frappe.utils.error import log_error
 
 if _tune_gc:
 	# generational GC gets triggered after certain allocs (g0) which is 700 by default.

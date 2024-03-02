@@ -22,7 +22,7 @@ def extract(fileobj: BufferedReader, keywords: str, comment_tags: tuple, options
 		yield lineno, funcname, messages, []
 
 
-def extract_javascript(code, keywords=("__",), options=None):
+def extract_javascript(code, keywords=("__",), options=None, lineno=1):
 	"""Extract messages from JavaScript source code.
 
 	This is a modified version of babel's JS parser. Reused under BSD license.
@@ -39,12 +39,10 @@ def extract_javascript(code, keywords=("__",), options=None):
 	- changed signature to accept string directly.
 
 	:param code: code as string
-	:param keywords: a list of keywords (i.e. function names) that should be
-	                 recognized as translation functions
+	:param keywords: a list of keywords (i.e. function names) that should be recognized as translation functions
 	:param options: a dictionary of additional options (optional)
-	                Supported options are:
-	                * `template_string` -- set to false to disable ES6
-	                                       template string support.
+	    Supported options are:
+	        * `template_string` -- set to false to disable ES6 template string support.
 	"""
 	from babel.messages.jslexer import Token, tokenize, unquote_string
 
@@ -74,8 +72,9 @@ def extract_javascript(code, keywords=("__",), options=None):
 	for token in tokenize(
 		code,
 		jsx=True,
-		template_string=options.get("template_string", True),
 		dotted=dotted,
+		template_string=options.get("template_string", True),
+		lineno=lineno,
 	):
 		if (  # Turn keyword`foo` expressions into keyword("foo") calls:
 			funcname
@@ -88,6 +87,9 @@ def extract_javascript(code, keywords=("__",), options=None):
 			call_stack = 0
 			tree_level = 0
 			token = Token("operator", ")", token.lineno)
+
+		if not funcname and token.type == "template_string":
+			yield from parse_template_string(token.value, keywords, options, token.lineno)
 
 		if token.type == "operator" and token.value == "(":
 			if funcname:
@@ -161,3 +163,45 @@ def extract_javascript(code, keywords=("__",), options=None):
 			funcname = token.value
 
 		last_token = token
+
+
+def parse_template_string(
+	template_string,
+	keywords,
+	options,
+	lineno=1,
+):
+	"""Parse JavaScript template string.
+
+	This is a modified version of babel's JS parser. Reused under BSD license.
+	License: https://github.com/python-babel/babel/blob/master/LICENSE
+
+	:param template_string: the template string to be parsed
+	:param keywords: a list of keywords (i.e. function names) that should be recognized as translation functions
+	:param options: a dictionary of additional options (optional)
+	:param lineno: starting line number (optional)
+	"""
+	from babel.messages.jslexer import line_re
+
+	prev_character = None
+	level = 0
+	inside_str = False
+	expression_contents = ""
+	for character in template_string[1:-1]:
+		if not inside_str and character in ('"', "'", "`"):
+			inside_str = character
+		elif inside_str == character and prev_character != r"\\":
+			inside_str = False
+		if level:
+			expression_contents += character
+		if not inside_str:
+			if character == "{" and prev_character == "$":
+				level += 1
+			elif level and character == "}":
+				level -= 1
+				if level == 0 and expression_contents:
+					expression_contents = expression_contents[:-1]
+					yield from extract_javascript(expression_contents, keywords, options, lineno)
+					lineno += len(line_re.findall(expression_contents))
+					expression_contents = ""
+		prev_character = character

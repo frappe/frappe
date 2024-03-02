@@ -71,7 +71,7 @@
    "fieldname": "operation",
    "fieldtype": "Select",
    "label": "Operation",
-   "options": "\nLogin\nLogout"
+   "options": "\nLogin\nLogout\nImpersonate"
   },
   {
    "fieldname": "status",
@@ -158,7 +158,7 @@
  "icon": "fa fa-comment",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-08-28 20:22:10.992615",
+ "modified": "2024-02-24 16:31:16.253153",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Activity Log",

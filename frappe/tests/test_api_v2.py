@@ -1,3 +1,4 @@
+import typing
 from random import choice
 
 import requests
@@ -19,7 +20,7 @@ resource_key = {
 class TestResourceAPIV2(FrappeAPITestCase):
 	version = "v2"
 	DOCTYPE = "ToDo"
-	GENERATED_DOCUMENTS = []
+	GENERATED_DOCUMENTS: typing.ClassVar[list] = []
 
 	@classmethod
 	def setUpClass(cls):

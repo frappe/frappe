@@ -57,6 +57,7 @@
    "fieldname": "cron_format",
    "fieldtype": "Data",
    "label": "Cron Format",
+   "not_nullable": 1,
    "read_only": 1
   },
   {
@@ -101,7 +102,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2023-10-14 11:26:05.005930",
+ "modified": "2024-02-22 17:16:36.212691",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",
@@ -121,6 +122,7 @@
   }
  ],
  "quick_entry": 1,
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

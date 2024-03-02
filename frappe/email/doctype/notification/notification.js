@@ -15,7 +15,7 @@ frappe.notification = {
 
 				return {
 					value: select_value,
-					label: df.fieldname + " (" + __(df.label) + ")",
+					label: df.fieldname + " (" + __(df.label, null, df.parent) + ")",
 				};
 			};
 

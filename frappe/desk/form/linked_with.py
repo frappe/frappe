@@ -134,7 +134,7 @@ class SubmittableDocumentTree:
 
 	def get_document_sources(self):
 		"""Return list of doctypes from where we access submittable documents."""
-		return list(set(self.get_link_sources() + [self.root_doctype]))
+		return list(set([*self.get_link_sources(), self.root_doctype]))
 
 	def get_link_sources(self):
 		"""limit doctype links to these doctypes."""
@@ -149,15 +149,15 @@ class SubmittableDocumentTree:
 		return self._submittable_doctypes
 
 
-def get_child_tables_of_doctypes(doctypes: list[str] = None):
+def get_child_tables_of_doctypes(doctypes: list[str] | None = None):
 	"""Return child tables by doctype."""
 	filters = [["fieldtype", "=", "Table"]]
 	filters_for_docfield = filters
 	filters_for_customfield = filters
 
 	if doctypes:
-		filters_for_docfield = filters + [["parent", "in", tuple(doctypes)]]
-		filters_for_customfield = filters + [["dt", "in", tuple(doctypes)]]
+		filters_for_docfield = [*filters, ["parent", "in", tuple(doctypes)]]
+		filters_for_customfield = [*filters, ["dt", "in", tuple(doctypes)]]
 
 	links = frappe.get_all(
 		"DocField",
@@ -184,7 +184,7 @@ def get_child_tables_of_doctypes(doctypes: list[str] = None):
 
 
 def get_references_across_doctypes(
-	to_doctypes: list[str] = None, limit_link_doctypes: list[str] = None
+	to_doctypes: list[str] | None = None, limit_link_doctypes: list[str] | None = None
 ) -> list:
 	"""Find doctype wise foreign key references.
 
@@ -221,7 +221,7 @@ def get_references_across_doctypes(
 
 
 def get_references_across_doctypes_by_link_field(
-	to_doctypes: list[str] = None, limit_link_doctypes: list[str] = None
+	to_doctypes: list[str] | None = None, limit_link_doctypes: list[str] | None = None
 ):
 	"""Find doctype wise foreign key references based on link fields.
 
@@ -261,7 +261,7 @@ def get_references_across_doctypes_by_link_field(
 
 
 def get_references_across_doctypes_by_dynamic_link_field(
-	to_doctypes: list[str] = None, limit_link_doctypes: list[str] = None
+	to_doctypes: list[str] | None = None, limit_link_doctypes: list[str] | None = None
 ):
 	"""Find doctype wise foreign key references based on dynamic link fields.
 
@@ -315,7 +315,7 @@ def get_referencing_documents(
 	reference_names: list[str],
 	link_info: dict,
 	get_parent_if_child_table_doc: bool = True,
-	parent_filters: list[list] = None,
+	parent_filters: list[list] | None = None,
 	child_filters=None,
 	allowed_parents=None,
 ):
@@ -439,7 +439,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 					"fields",
 					{
 						"in_list_view": 1,
-						"fieldtype": ["not in", ("Image", "HTML", "Button") + frappe.model.table_fields],
+						"fieldtype": ["not in", ("Image", "HTML", "Button", *frappe.model.table_fields)],
 					},
 				)
 			] + ["name", "modified", "docstatus"]

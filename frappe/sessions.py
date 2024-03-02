@@ -166,6 +166,7 @@ def get():
 	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
+	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
 
 	return bootinfo
 
@@ -384,6 +385,11 @@ class Session:
 		frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
+
+	def set_impersonsated(self, original_user):
+		self.data.data.impersonated_by = original_user
+		# Forcefully flush session
+		self.update(force=True)
 
 
 def get_expiry_period_for_query():

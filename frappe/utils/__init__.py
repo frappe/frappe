@@ -354,7 +354,7 @@ def log(event, details):
 
 def dict_to_str(args: dict[str, Any], sep: str = "&") -> str:
 	"""Convert a dictionary to URL."""
-	return sep.join(f"{str(k)}=" + quote(str(args[k] or "")) for k in list(args))
+	return sep.join(f"{k!s}=" + quote(str(args[k] or "")) for k in list(args))
 
 
 def list_to_str(seq, sep=", "):
@@ -623,7 +623,7 @@ def update_progress_bar(txt, i, l, absolute=False):
 
 		complete = int(float(i + 1) / l * col)
 		completion_bar = ("=" * complete).ljust(col, " ")
-		percent_complete = f"{str(int(float(i + 1) / l * 100))}%"
+		percent_complete = f"{int(float(i + 1) / l * 100)!s}%"
 		status = f"{i} of {l}" if absolute else percent_complete
 		sys.stdout.write(f"\r{txt}: [{completion_bar}] {status}")
 		sys.stdout.flush()

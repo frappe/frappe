@@ -528,7 +528,7 @@ def _enter_console(extra_args=None):
 			_("{} not found in PATH! This is required to access the console.").format(bin_name),
 			exc=frappe.ExecutableNotFound,
 		)
-	os.execv(bin, [bin] + args)
+	os.execv(bin, [bin, *args])
 
 
 @click.command("jupyter")

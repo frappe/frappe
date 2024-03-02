@@ -166,10 +166,10 @@ frappe.ui.FieldSelect = class FieldSelect {
 		let table = null;
 
 		if (me.doctype && df.parent == me.doctype) {
-			label = __(df.label);
+			label = __(df.label, null, df.parent);
 			table = me.doctype;
 		} else {
-			label = __(df.label) + " (" + __(df.parent) + ")";
+			label = __(df.label, null, df.parent) + " (" + __(df.parent) + ")";
 			table = df.parent;
 		}
 
