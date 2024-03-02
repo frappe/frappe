@@ -1071,6 +1071,8 @@ class TestReportview(FrappeTestCase):
 		# primary key is never nullable
 		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", None])}, run=0))
 		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ["a", ""])}, run=0))
+		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", (""))}, run=0))
+		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ())}, run=0))
 
 	def test_ambiguous_linked_tables(self):
 		from frappe.desk.reportview import get
