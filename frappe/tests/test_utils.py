@@ -175,10 +175,6 @@ class TestFilters(FrappeTestCase):
 			)
 		)
 
-<<<<<<< HEAD
-	def test_like_not_like(self):
-		doc = {"doctype": "User", "username": "test_abc", "prefix": "startswith", "suffix": "endswith"}
-=======
 	def test_filter_evaluation(self):
 		doc = {
 			"doctype": "User",
@@ -188,7 +184,6 @@ class TestFilters(FrappeTestCase):
 			"empty": None,
 			"number": 0,
 		}
->>>>>>> eff50e1cd3 (fix: filter Implementation is set operator (#25182))
 
 		test_cases = [
 			([["username", "like", "test"]], True),
