@@ -1693,6 +1693,25 @@ def sql_like(value: str, pattern: str) -> bool:
 		return pattern in value
 
 
+def filter_operator_is(value: str, pattern: str) -> bool:
+	"""Operator `is` can have two values: 'set' or 'not set'."""
+	pattern = pattern.lower()
+
+	def is_set():
+		if value is None:
+			return False
+		elif isinstance(value, str) and not value:
+			return False
+		return True
+
+	if pattern == "set":
+		return is_set()
+	elif pattern == "not set":
+		return not is_set()
+	else:
+		frappe.throw(frappe._(f"Invalid argument for operator 'IS': {pattern}"))
+
+
 operator_map = {
 	# startswith
 	"^": lambda a, b: (a or "").startswith(b),
@@ -1710,6 +1729,7 @@ operator_map = {
 	"None": lambda a, b: a is None,
 	"like": sql_like,
 	"not like": lambda a, b: not sql_like(a, b),
+	"is": filter_operator_is,
 }
 
 
