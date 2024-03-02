@@ -1,4 +1,3 @@
-import DataTable from "frappe-datatable";
 import { get_columns_for_picker } from "./data_exporter";
 
 frappe.provide("frappe.data_import");
@@ -130,7 +129,7 @@ frappe.data_import.ImportPreview = class ImportPreview {
 			this.datatable.destroy();
 		}
 
-		this.datatable = new DataTable(this.$table_preview.get(0), {
+		this.datatable = new frappe.DataTable(this.$table_preview.get(0), {
 			data: this.data,
 			columns: this.columns,
 			layout: this.columns.length < 10 ? "fluid" : "fixed",
