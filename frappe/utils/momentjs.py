@@ -4680,7 +4680,6 @@ data = {
 		"Europe/Skopje": "Europe/Belgrade",
 		"Europe/Vatican": "Europe/Rome",
 		"Europe/Zagreb": "Europe/Belgrade",
-		# backward compatibility for deprecated timezones as per iana database
 		"America/Virgin": "America/Port_of_Spain",
 		"America/Buenos_Aires": "America/Argentina/Buenos_Aires",
 		"Hongkong": "Asia/Hong_Kong",
