@@ -192,6 +192,7 @@ class TestFilters(FrappeTestCase):
 			"username": "test_abc",
 			"prefix": "startswith",
 			"suffix": "endswith",
+			"empty": None,
 		}
 
 		test_cases = [
@@ -203,6 +204,10 @@ class TestFilters(FrappeTestCase):
 			([["prefix", "not like", "end%"]], True),
 			([["suffix", "like", "%with"]], True),
 			([["suffix", "not like", "%end"]], True),
+			([["suffix", "is", "set"]], True),
+			([["suffix", "is", "not set"]], False),
+			([["empty", "is", "set"]], False),
+			([["empty", "is", "not set"]], True),
 		]
 
 		for filter, expected_result in test_cases:

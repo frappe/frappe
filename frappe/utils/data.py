@@ -1929,6 +1929,9 @@ def sql_like(value: str, pattern: str) -> bool:
 		# assume default as wrapped in '%'
 		return pattern in value
 
+def filter_operator_is(value: str, pattern: str) -> bool:
+	"""Operator `is` can have two values: 'set' or 'not set'."""
+	return bool(value) == (pattern == 'set')
 
 operator_map = {
 	# startswith
@@ -1947,7 +1950,7 @@ operator_map = {
 	"None": lambda a, b: a is None,
 	"like": sql_like,
 	"not like": lambda a, b: not sql_like(a, b),
-	"is": lambda a, b: (a and (b == 'set')) or (not a and (b == 'not set')),
+	"is": filter_operator_is,
 }
 
 
