@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-02-29 05:12\n"
+"PO-Revision-Date: 2024-03-03 07:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -20,14 +20,14 @@ msgstr ""
 
 #: templates/emails/download_data.html:9
 msgid " to your browser"
-msgstr ""
+msgstr " به مرورگر شما"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgctxt "Document Naming Rule Condition"
 msgid "!="
-msgstr ""
+msgstr "!="
 
 #. Description of the 'Org History Heading' (Data) field in DocType 'About Us
 #. Settings'
@@ -192,11 +192,11 @@ msgstr ""
 
 #: public/js/form_builder/store.js:206
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
-msgstr ""
+msgstr "«در جستجوی سراسری» برای فیلد {0} از نوع {1} مجاز نیست"
 
 #: core/doctype/doctype/doctype.py:1303
 msgid "'In Global Search' not allowed for type {0} in row {1}"
-msgstr ""
+msgstr "«در جستجوی سراسری» برای نوع {0} در ردیف {1} مجاز نیست"
 
 #: public/js/form_builder/store.js:198
 msgid "'In List View' is not allowed for field {0} of type {1}"
@@ -228,7 +228,7 @@ msgstr ""
 
 #: public/js/frappe/views/kanban/kanban_settings.js:111
 msgid "+ Add / Remove Fields"
-msgstr ""
+msgstr "+ افزودن / حذف فیلدها"
 
 #. Description of the 'Doc Status' (Select) field in DocType 'Workflow Document
 #. State'
@@ -241,11 +241,11 @@ msgstr ""
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "0 is highest"
-msgstr ""
+msgstr "0 بالاترین است"
 
 #: public/js/frappe/form/grid_row.js:807
 msgid "1 = True & 0 = False"
-msgstr ""
+msgstr "1 = درست و 0 = نادرست"
 
 #. Description of the 'Fraction Units' (Int) field in DocType 'Currency'
 #: geo/doctype/currency/currency.json
@@ -256,7 +256,7 @@ msgstr ""
 
 #: public/js/frappe/form/reminders.js:19
 msgid "1 Day"
-msgstr ""
+msgstr "1 روز"
 
 #: integrations/doctype/google_calendar/google_calendar.py:359
 msgid "1 Google Calendar Event synced."
@@ -268,83 +268,83 @@ msgstr "1 گزارش"
 
 #: website/doctype/blog_post/blog_post.py:374
 msgid "1 comment"
-msgstr ""
+msgstr "1 نظر"
 
 #: tests/test_utils.py:669
 msgid "1 day ago"
-msgstr ""
+msgstr "1 روز پیش"
 
 #: public/js/frappe/form/reminders.js:17
 msgid "1 hour"
-msgstr ""
+msgstr "1 ساعت"
 
 #: public/js/frappe/utils/pretty_date.js:52 tests/test_utils.py:667
 msgid "1 hour ago"
-msgstr ""
+msgstr "1 ساعت پیش"
 
 #: public/js/frappe/utils/pretty_date.js:48 tests/test_utils.py:665
 msgid "1 minute ago"
-msgstr ""
+msgstr "1 دقیقه پیش"
 
 #: public/js/frappe/utils/pretty_date.js:66 tests/test_utils.py:673
 msgid "1 month ago"
-msgstr ""
+msgstr "1 ماه پیش"
 
 #: public/js/frappe/data_import/data_exporter.js:226
 msgid "1 record will be exported"
-msgstr ""
+msgstr "1 رکورد صادر خواهد شد"
 
 #: tests/test_utils.py:664
 msgid "1 second ago"
-msgstr ""
+msgstr "1 ثانیه پیش"
 
 #: public/js/frappe/utils/pretty_date.js:62 tests/test_utils.py:671
 msgid "1 week ago"
-msgstr ""
+msgstr "1 هفته قبل"
 
 #: public/js/frappe/utils/pretty_date.js:70 tests/test_utils.py:675
 msgid "1 year ago"
-msgstr ""
+msgstr "1 سال پیش"
 
 #: tests/test_utils.py:668
 msgid "2 hours ago"
-msgstr ""
+msgstr "2 ساعت پیش"
 
 #: tests/test_utils.py:674
 msgid "2 months ago"
-msgstr ""
+msgstr "2 ماه پیش"
 
 #: tests/test_utils.py:672
 msgid "2 weeks ago"
-msgstr ""
+msgstr "2 هفته پیش"
 
 #: tests/test_utils.py:676
 msgid "2 years ago"
-msgstr ""
+msgstr "2 سال پیش"
 
 #: tests/test_utils.py:666
 msgid "3 minutes ago"
-msgstr ""
+msgstr "3 دقیقه پیش"
 
 #: public/js/frappe/form/reminders.js:16
 msgid "30 minutes"
-msgstr ""
+msgstr "30 دقیقه"
 
 #: public/js/frappe/form/reminders.js:18
 msgid "4 hours"
-msgstr ""
+msgstr "4 ساعت"
 
 #: public/js/frappe/data_import/data_exporter.js:37
 msgid "5 Records"
-msgstr ""
+msgstr "5 رکورد"
 
 #: tests/test_utils.py:670
 msgid "5 days ago"
-msgstr ""
+msgstr "5 روز پیش"
 
 #: public/js/frappe/list/list_view.js:988
 msgid "99"
-msgstr ""
+msgstr "99"
 
 #: desk/doctype/bulk_update/bulk_update.py:37
 msgid "; not allowed in condition"
@@ -366,7 +366,7 @@ msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:603
 msgid "<b>{0}</b> is not a valid URL"
-msgstr ""
+msgstr "<b>{0}</b> یک URL معتبر نیست"
 
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
@@ -547,7 +547,7 @@ msgstr ""
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr ""
+msgstr "<h5 class=\"text-muted uppercase\">یا</h5>"
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -612,7 +612,7 @@ msgstr ""
 
 #: twofactor.py:462
 msgid "<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
-msgstr ""
+msgstr "<p>OTP secret شما در {0} بازنشانی شده است. اگر این بازنشانی را انجام ندادید و آن را درخواست نکردید، لطفاً فوراً با سرپرست سیستم خود تماس بگیرید.</p>"
 
 #. Description of the 'Cron Format' (Data) field in DocType 'Scheduled Job
 #. Type'
@@ -669,7 +669,7 @@ msgstr ""
 
 #: custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
-msgstr ""
+msgstr "<strong>هشدار:</strong> این فیلد سیستمی ایجاد شده است و ممکن است توسط یک به‌روزرسانی آینده بازنویسی شود. در عوض با استفاده از {0} آن را تغییر دهید."
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -703,15 +703,15 @@ msgstr ""
 
 #: website/doctype/blog_post/blog_post.py:93
 msgid "A featured post must have a cover image"
-msgstr ""
+msgstr "یک پست برجسته باید تصویر جلد داشته باشد"
 
 #: custom/doctype/custom_field/custom_field.py:173
 msgid "A field with the name {0} already exists in {1}"
-msgstr ""
+msgstr "فیلدی با نام {0} از قبل در {1} وجود دارد"
 
 #: core/doctype/file/file.py:254
 msgid "A file with same name {} already exists"
-msgstr ""
+msgstr "فایلی با همین نام {} از قبل وجود دارد"
 
 #. Description of the 'Scopes' (Text) field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
@@ -731,15 +731,15 @@ msgstr ""
 #: geo/doctype/currency/currency.json
 msgctxt "Currency"
 msgid "A symbol for this currency. For e.g. $"
-msgstr ""
+msgstr "نمادی برای این ارز. به عنوان مثال $"
 
 #: printing/doctype/print_format_field_template/print_format_field_template.py:49
 msgid "A template already exists for field {0} of {1}"
-msgstr ""
+msgstr "یک الگو از قبل برای فیلد {0} از {1} وجود دارد"
 
 #: utils/password_strength.py:169
 msgid "A word by itself is easy to guess."
-msgstr ""
+msgstr "حدس زدن یک کلمه به تنهایی آسان است."
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -805,7 +805,7 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "ALL"
-msgstr ""
+msgstr "همه"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -817,13 +817,13 @@ msgstr ""
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgctxt "S3 Backup Settings"
 msgid "API Access"
-msgstr ""
+msgstr "دسترسی به API"
 
 #. Label of a Section Break field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "API Access"
-msgstr ""
+msgstr "دسترسی به API"
 
 #. Label of a Data field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
@@ -1223,7 +1223,7 @@ msgstr ""
 
 #: public/js/frappe/form/grid_row.js:430
 msgid "Add / Remove Columns"
-msgstr "اضافه کردن/حذف ستون ها"
+msgstr "اضافه / حذف ستون ها"
 
 #: core/doctype/user_permission/user_permission_list.js:4
 msgid "Add / Update"
@@ -1917,7 +1917,7 @@ msgstr ""
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Allow Editing After Submit"
-msgstr ""
+msgstr "اجازه ویرایش پس از ارسال"
 
 #: integrations/doctype/google_calendar/google_calendar.py:101
 #: integrations/doctype/google_calendar/google_calendar.py:115
@@ -3132,19 +3132,19 @@ msgstr ""
 #. Label of a Card Break in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgid "Authentication"
-msgstr ""
+msgstr "احراز هویت"
 
 #. Label of a Section Break field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Authentication"
-msgstr ""
+msgstr "احراز هویت"
 
 #. Label of a Section Break field in DocType 'Push Notification Settings'
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
 msgctxt "Push Notification Settings"
 msgid "Authentication"
-msgstr ""
+msgstr "احراز هویت"
 
 #: www/qrcode.html:19
 msgid "Authentication Apps you can use are: "
@@ -3900,7 +3900,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/contact_list.html:21
 msgid "Billing Contact"
-msgstr "تماس با صورتحساب"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'About Us Team Member'
 #: website/doctype/about_us_team_member/about_us_team_member.json
@@ -4101,7 +4101,7 @@ msgstr ""
 
 #: templates/includes/login/login.js:97
 msgid "Both login and password required"
-msgstr "هر دو ورود و رمز عبور مورد نیاز است"
+msgstr "ورود و رمز عبور هر دو نیاز است"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -5031,7 +5031,7 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:16
 msgid "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
-msgstr "برخی از اسناد، مانند فاکتور، پس از قطعی شدن، نباید تغییر کنند. وضعیت نهایی برای چنین اسنادی ارسال شده نامیده می شود. می‌توانید نقش‌هایی که می‌توانند ارسال شوند را محدود کنید."
+msgstr "برخی از اسناد، مانند فاکتور، پس از قطعی شدن، نباید تغییر کنند. وضعیت نهایی برای چنین اسنادی ارسال شده نامیده می شود. می‌توانید نقش‌هایی که می‌توانند ارسال کنند را محدود کنید."
 
 #: core/report/transaction_log_report/transaction_log_report.py:82
 msgid "Chain Integrity"
@@ -6122,7 +6122,7 @@ msgstr ""
 #: public/js/frappe/ui/slides.js:355
 msgctxt "Finish the setup wizard"
 msgid "Complete Setup"
-msgstr "راه اندازی کامل"
+msgstr "کامل کردن راه‌اندازی"
 
 #: core/doctype/doctype/boilerplate/controller_list.html:31 utils/goal.py:117
 msgid "Completed"
@@ -12566,7 +12566,7 @@ msgstr ""
 
 #: public/js/frappe/list/list_sidebar.html:35
 msgid "Filter By"
-msgstr "محدود شده توسط"
+msgstr "فیلتر کردن بر اساس"
 
 #. Label of a Section Break field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
@@ -13783,7 +13783,7 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Github flavoured markdown syntax"
-msgstr "نحو علامت گذاری با طعم Github"
+msgstr "قواعد علامت گذاری به سبک Github"
 
 #: social/doctype/energy_point_settings/energy_point_settings.js:7
 #: social/doctype/energy_point_settings/energy_point_settings.js:14
@@ -14968,12 +14968,12 @@ msgstr ""
 #: public/js/frappe/list/list_view.js:419 public/js/frappe/model/meta.js:197
 #: public/js/frappe/model/model.js:112
 msgid "ID"
-msgstr ""
+msgstr "شناسه"
 
 #: desk/reportview.py:416 public/js/frappe/views/reports/report_view.js:922
 msgctxt "Label of name column in report"
 msgid "ID"
-msgstr ""
+msgstr "شناسه"
 
 #. Description of the 'Field Name' (Data) field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
@@ -17166,7 +17166,7 @@ msgstr ""
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP Auth"
-msgstr ""
+msgstr "احراز هویت LDAP"
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -17710,7 +17710,7 @@ msgstr ""
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Ledger"
-msgstr ""
+msgstr "دفتر کل"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -20680,42 +20680,42 @@ msgstr ""
 #: public/js/frappe/views/reports/query_report.js:1516
 #: website/doctype/help_article/templates/help_article.html:26
 msgid "No"
-msgstr ""
+msgstr "خیر"
 
 #: public/js/frappe/ui/filters/filter.js:501
 msgctxt "Checkbox is not checked"
 msgid "No"
-msgstr ""
+msgstr "خیر"
 
 #: public/js/frappe/ui/messages.js:37
 msgctxt "Dismiss confirmation dialog"
 msgid "No"
-msgstr ""
+msgstr "خیر"
 
 #. Option for the 'Require Trusted Certificate' (Select) field in DocType 'LDAP
 #. Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "No"
-msgstr ""
+msgstr "خیر"
 
 #. Option for the 'Standard' (Select) field in DocType 'Page'
 #: core/doctype/page/page.json
 msgctxt "Page"
 msgid "No"
-msgstr ""
+msgstr "خیر"
 
 #. Option for the 'Standard' (Select) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
 msgid "No"
-msgstr ""
+msgstr "خیر"
 
 #. Option for the 'Is Standard' (Select) field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "No"
-msgstr ""
+msgstr "خیر"
 
 #: www/third_party_apps.html:54
 msgid "No Active Sessions"
