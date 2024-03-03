@@ -112,30 +112,6 @@ frappe.ui.form.on("Custom Field", {
 		}
 	},
 	add_rename_field(frm) {
-<<<<<<< HEAD
-		frm.add_custom_button(__("Rename Fieldname"), () => {
-			frappe.prompt(
-				{
-					fieldtype: "Data",
-					label: __("Fieldname"),
-					fieldname: "fieldname",
-					reqd: 1,
-					default: frm.doc.fieldname,
-				},
-				function (data) {
-					frappe.call({
-						method: "frappe.custom.doctype.custom_field.custom_field.rename_fieldname",
-						args: {
-							custom_field: frm.doc.name,
-							fieldname: data.fieldname,
-						},
-					});
-				},
-				__("Rename Fieldname"),
-				__("Rename")
-			);
-		});
-=======
 		if (!frm.is_new()) {
 			frm.add_custom_button(__("Rename Fieldname"), () => {
 				frappe.prompt(
@@ -162,7 +138,6 @@ frappe.ui.form.on("Custom Field", {
 				);
 			});
 		}
->>>>>>> af69dab130 (fix(UX): reload form after renaming field (#25159))
 	},
 });
 
