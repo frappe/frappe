@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-02-29 04:42+0000\n"
+"POT-Creation-Date: 2024-03-03 09:34+0000\n"
+"PO-Revision-Date: 2024-03-03 09:34+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -208,7 +208,7 @@ msgstr ""
 msgid "'Recipients' not specified"
 msgstr ""
 
-#: utils/__init__.py:240
+#: utils/__init__.py:242
 msgid "'{0}' is not a valid URL"
 msgstr ""
 
@@ -269,7 +269,7 @@ msgstr ""
 msgid "1 comment"
 msgstr ""
 
-#: tests/test_utils.py:669
+#: tests/test_utils.py:676
 msgid "1 day ago"
 msgstr ""
 
@@ -277,15 +277,15 @@ msgstr ""
 msgid "1 hour"
 msgstr ""
 
-#: public/js/frappe/utils/pretty_date.js:52 tests/test_utils.py:667
+#: public/js/frappe/utils/pretty_date.js:52 tests/test_utils.py:674
 msgid "1 hour ago"
 msgstr ""
 
-#: public/js/frappe/utils/pretty_date.js:48 tests/test_utils.py:665
+#: public/js/frappe/utils/pretty_date.js:48 tests/test_utils.py:672
 msgid "1 minute ago"
 msgstr ""
 
-#: public/js/frappe/utils/pretty_date.js:66 tests/test_utils.py:673
+#: public/js/frappe/utils/pretty_date.js:66 tests/test_utils.py:680
 msgid "1 month ago"
 msgstr ""
 
@@ -293,35 +293,35 @@ msgstr ""
 msgid "1 record will be exported"
 msgstr ""
 
-#: tests/test_utils.py:664
+#: tests/test_utils.py:671
 msgid "1 second ago"
 msgstr ""
 
-#: public/js/frappe/utils/pretty_date.js:62 tests/test_utils.py:671
+#: public/js/frappe/utils/pretty_date.js:62 tests/test_utils.py:678
 msgid "1 week ago"
 msgstr ""
 
-#: public/js/frappe/utils/pretty_date.js:70 tests/test_utils.py:675
+#: public/js/frappe/utils/pretty_date.js:70 tests/test_utils.py:682
 msgid "1 year ago"
 msgstr ""
 
-#: tests/test_utils.py:668
+#: tests/test_utils.py:675
 msgid "2 hours ago"
 msgstr ""
 
-#: tests/test_utils.py:674
+#: tests/test_utils.py:681
 msgid "2 months ago"
 msgstr ""
 
-#: tests/test_utils.py:672
+#: tests/test_utils.py:679
 msgid "2 weeks ago"
 msgstr ""
 
-#: tests/test_utils.py:676
+#: tests/test_utils.py:683
 msgid "2 years ago"
 msgstr ""
 
-#: tests/test_utils.py:666
+#: tests/test_utils.py:673
 msgid "3 minutes ago"
 msgstr ""
 
@@ -337,7 +337,7 @@ msgstr ""
 msgid "5 Records"
 msgstr ""
 
-#: tests/test_utils.py:670
+#: tests/test_utils.py:677
 msgid "5 days ago"
 msgstr ""
 
@@ -4849,7 +4849,7 @@ msgstr ""
 msgid "Cannot delete Home and Attachments folders"
 msgstr ""
 
-#: model/delete_doc.py:363
+#: model/delete_doc.py:373
 msgid "Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}"
 msgstr ""
 
@@ -5388,7 +5388,7 @@ msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
 msgstr ""
 
-#: public/js/frappe/ui/keyboard.js:275
+#: public/js/frappe/ui/keyboard.js:281
 msgid "Clear Cache and Reload"
 msgstr ""
 
@@ -12272,7 +12272,7 @@ msgstr ""
 msgid "Field type cannot be changed for {0}"
 msgstr ""
 
-#: database/database.py:832
+#: database/database.py:838
 msgid "Field {0} does not exist on {1}"
 msgstr ""
 
@@ -12606,7 +12606,7 @@ msgstr ""
 #: desk/doctype/number_card/number_card.js:205
 #: desk/doctype/number_card/number_card.js:333
 #: email/doctype/auto_email_report/auto_email_report.js:90
-#: public/js/frappe/list/base_list.js:852
+#: public/js/frappe/list/base_list.js:865
 #: public/js/frappe/ui/filters/filter_list.js:132
 #: website/doctype/web_form/web_form.js:187
 msgid "Filter"
@@ -12650,11 +12650,11 @@ msgctxt "Prepared Report"
 msgid "Filter Values"
 msgstr ""
 
-#: utils/data.py:1999
+#: utils/data.py:2019
 msgid "Filter must be a tuple or list (in a list)"
 msgstr ""
 
-#: utils/data.py:2007
+#: utils/data.py:2027
 msgid "Filter must have 4 values (doctype, fieldname, operator, value): {0}"
 msgstr ""
 
@@ -16164,7 +16164,7 @@ msgstr ""
 msgid "Insufficient Permission Level for {0}"
 msgstr ""
 
-#: database/query.py:374 desk/form/load.py:40 model/document.py:237
+#: database/query.py:375 desk/form/load.py:40 model/document.py:237
 msgid "Insufficient Permission for {0}"
 msgstr ""
 
@@ -16369,7 +16369,7 @@ msgstr ""
 msgid "Invalid DocType"
 msgstr ""
 
-#: database/query.py:96
+#: database/query.py:97
 msgid "Invalid DocType: {0}"
 msgstr ""
 
@@ -16492,7 +16492,7 @@ msgstr ""
 msgid "Invalid expression set in filter {0} ({1})"
 msgstr ""
 
-#: utils/data.py:2106
+#: utils/data.py:2126
 msgid "Invalid field name {0}"
 msgstr ""
 
@@ -16504,7 +16504,7 @@ msgstr ""
 msgid "Invalid file path: {0}"
 msgstr ""
 
-#: database/query.py:172 public/js/frappe/ui/filters/filter_list.js:199
+#: database/query.py:173 public/js/frappe/ui/filters/filter_list.js:199
 msgid "Invalid filter: {0}"
 msgstr ""
 
@@ -18425,7 +18425,7 @@ msgctxt "Assignment Rule"
 msgid "Load Balancing"
 msgstr ""
 
-#: public/js/frappe/list/base_list.js:377
+#: public/js/frappe/list/base_list.js:378
 #: website/doctype/blog_post/templates/blog_post_list.html:50
 msgid "Load More"
 msgstr ""
@@ -18438,7 +18438,7 @@ msgstr ""
 #: core/page/permission_manager/permission_manager.js:165
 #: public/js/frappe/form/controls/multicheck.js:13
 #: public/js/frappe/form/linked_with.js:13
-#: public/js/frappe/list/base_list.js:469
+#: public/js/frappe/list/base_list.js:482
 #: public/js/frappe/list/list_view.js:332 public/js/frappe/ui/listing.html:16
 #: public/js/frappe/views/reports/query_report.js:1001
 msgid "Loading"
@@ -21418,7 +21418,7 @@ msgstr ""
 msgid "Nothing left to undo"
 msgstr ""
 
-#: public/js/frappe/list/base_list.js:361
+#: public/js/frappe/list/base_list.js:362
 #: public/js/frappe/views/reports/query_report.js:104
 #: templates/includes/list/list.html:7
 #: website/doctype/blog_post/templates/blog_post_list.html:41
@@ -22153,7 +22153,7 @@ msgctxt "Activity Log"
 msgid "Operation"
 msgstr ""
 
-#: utils/data.py:2042
+#: utils/data.py:2062
 msgid "Operator must be one of {0}"
 msgstr ""
 
@@ -24865,7 +24865,7 @@ msgctxt "DocType"
 msgid "Queue in Background (BETA)"
 msgstr ""
 
-#: utils/background_jobs.py:452
+#: utils/background_jobs.py:451
 msgid "Queue should be one of {0}"
 msgstr ""
 
@@ -25840,7 +25840,7 @@ msgstr ""
 #: printing/page/print/print.js:73 public/js/frappe/desk.js:133
 #: public/js/frappe/form/form.js:1174
 #: public/js/frappe/form/templates/print_layout.html:6
-#: public/js/frappe/list/base_list.js:65
+#: public/js/frappe/list/base_list.js:66
 #: public/js/frappe/views/reports/query_report.js:1615
 #: public/js/frappe/views/treeview.js:479
 #: public/js/frappe/widgets/chart_widget.js:290
@@ -25968,7 +25968,7 @@ msgstr ""
 msgid "Reload File"
 msgstr ""
 
-#: public/js/frappe/list/base_list.js:241
+#: public/js/frappe/list/base_list.js:242
 msgid "Reload List"
 msgstr ""
 
@@ -31354,7 +31354,7 @@ msgstr ""
 msgid "Syncing {0} of {1}"
 msgstr ""
 
-#: utils/data.py:2407
+#: utils/data.py:2427
 msgid "Syntax Error"
 msgstr ""
 
@@ -32294,6 +32294,10 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.js:23
 msgid "This document allows you to edit limited fields. For all kinds of workspace customization, use the Edit button located on the workspace page"
+msgstr ""
+
+#: model/delete_doc.py:112
+msgid "This document can not be deleted right now as it's being modified by another user. Please try again after some time."
 msgstr ""
 
 #: social/doctype/energy_point_log/energy_point_log.py:90
@@ -34766,7 +34770,7 @@ msgctxt "Document Naming Settings"
 msgid "User must always select"
 msgstr ""
 
-#: model/delete_doc.py:225
+#: model/delete_doc.py:235
 msgid "User not allowed to delete {0}: {1}"
 msgstr ""
 
@@ -38688,7 +38692,7 @@ msgstr ""
 msgid "{0} Tree"
 msgstr ""
 
-#: public/js/frappe/list/base_list.js:208
+#: public/js/frappe/list/base_list.js:209
 msgid "{0} View"
 msgstr ""
 
@@ -39322,7 +39326,7 @@ msgstr ""
 msgid "{0} {1} not found"
 msgstr ""
 
-#: model/delete_doc.py:232
+#: model/delete_doc.py:242
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr ""
 
@@ -39464,11 +39468,11 @@ msgstr ""
 msgid "{} Complete"
 msgstr ""
 
-#: utils/data.py:2401
+#: utils/data.py:2421
 msgid "{} Invalid python code on line {}"
 msgstr ""
 
-#: utils/data.py:2410
+#: utils/data.py:2430
 msgid "{} Possibly invalid python code. <br>{}"
 msgstr ""
 
