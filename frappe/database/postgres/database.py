@@ -323,7 +323,6 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			db_table = PostgresTable(doctype, meta)
 			db_table.validate()
 
-			self.commit()
 			db_table.sync()
 			self.begin()
 
