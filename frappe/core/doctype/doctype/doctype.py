@@ -1597,7 +1597,7 @@ def validate_fields(meta: Meta):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
 
 	def check_fetch_from(docfield):
-		if not frappe.request:
+		if not frappe.request and not in_ci:
 			return
 
 		fetch_from = docfield.fetch_from
@@ -1640,6 +1640,8 @@ def validate_fields(meta: Meta):
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
+	in_ci = os.environ.get("CI")
+
 	not_allowed_in_list_view = get_fields_not_allowed_in_list_view(meta)
 
 	for d in fields:
@@ -1660,7 +1662,7 @@ def validate_fields(meta: Meta):
 		scrub_fetch_from(d)
 		validate_data_field_type(d)
 
-		if not frappe.flags.in_migrate:
+		if not frappe.flags.in_migrate or in_ci:
 			check_unique_fieldname(meta.get("name"), d.fieldname)
 			check_link_table_options(meta.get("name"), d)
 			check_illegal_mandatory(meta.get("name"), d)
@@ -1674,7 +1676,7 @@ def validate_fields(meta: Meta):
 			check_no_of_ratings(d)
 			check_fetch_from(d)
 
-	if not frappe.flags.in_migrate:
+	if not frappe.flags.in_migrate or in_ci:
 		check_fold(fields)
 		check_search_fields(meta, fields)
 		check_title_field(meta)
