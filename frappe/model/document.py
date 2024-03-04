@@ -21,13 +21,8 @@ from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF
-<<<<<<< HEAD
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, get_datetime_str, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
-=======
-from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
-from frappe.utils.data import get_absolute_url
->>>>>>> d616341ad4 (fix: Auto delete very old document locks)
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
@@ -1461,13 +1456,8 @@ class Document(BaseDocument):
 		)
 
 	def get_signature(self):
-<<<<<<< HEAD
-		"""Returns signature (hash) for private URL."""
-		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
-=======
 		"""Return signature (hash) for private URL."""
 		return hashlib.sha224(f"{self.doctype}:{self.name}".encode(), usedforsecurity=False).hexdigest()
->>>>>>> 1f9efb7b3f (fix: better file locking)
 
 	def get_document_share_key(self, expires_on=None, no_expiry=False):
 		if no_expiry:
