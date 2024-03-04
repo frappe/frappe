@@ -49,7 +49,7 @@ context("Dashboard links", () => {
 
 		//Deleting the newly created contact
 		cy.visit("/app/contact");
-		cy.get(".list-subject > .select-like > .list-row-checkbox").eq(0).click({ force: true });
+		cy.get(".list-row > .select-like > .list-row-checkbox").eq(0).click({ force: true });
 		cy.findByRole("button", { name: "Actions" }).click();
 		cy.get('.actions-btn-group [data-label="Delete"]').click();
 		cy.findByRole("button", { name: "Yes" }).click({ delay: 700 });
