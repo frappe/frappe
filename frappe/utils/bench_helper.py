@@ -3,7 +3,6 @@ import json
 import os
 import traceback
 import warnings
-from pathlib import Path
 from textwrap import dedent
 
 import click
@@ -14,10 +13,25 @@ import frappe.utils
 click.disable_unicode_literals_warning = True
 
 
+class FrappeCommandGroup(click.Group):
+	def get_command(self, ctx, cmd_name):
+		rv = super().get_command(ctx, cmd_name)
+		if rv is not None:
+			return rv
+
+		all_commands = self.list_commands(ctx)
+		from difflib import get_close_matches
+
+		possibilities = get_close_matches(cmd_name, all_commands)
+		raise click.NoSuchOption(
+			cmd_name, possibilities=possibilities, message=f"No such command: {cmd_name}"
+		)
+
+
 def main():
 	commands = get_app_groups()
 	commands.update({"get-frappe-commands": get_frappe_commands, "get-frappe-help": get_frappe_help})
-	click.Group(commands=commands)(prog_name="bench")
+	FrappeCommandGroup(commands=commands)(prog_name="bench")
 
 
 def get_app_groups() -> dict[str, click.Group]:
@@ -27,7 +41,7 @@ def get_app_groups() -> dict[str, click.Group]:
 	for app in get_apps():
 		if app_commands := get_app_commands(app):
 			commands |= app_commands
-	return dict(frappe=click.group(name="frappe", commands=commands)(app_group))
+	return dict(frappe=click.group(name="frappe", commands=commands, cls=FrappeCommandGroup)(app_group))
 
 
 def get_app_group(app: str) -> click.Group:
