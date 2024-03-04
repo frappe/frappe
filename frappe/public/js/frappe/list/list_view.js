@@ -989,9 +989,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<span class="like-action ${heart_class}">
 				${frappe.utils.icon("es-solid-heart", "sm", "like-icon")}
 			</span>
-			<span class="likes-count">
-				${liked_by.length > 99 ? __("99") + "+" : __(liked_by.length || "")}
-			</span>
+			<span class="likes-count">${liked_by.length}</span>
 		`;
 
 		const like = div.querySelector(".like-action");
