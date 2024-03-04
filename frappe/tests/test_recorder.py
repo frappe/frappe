@@ -104,7 +104,9 @@ class TestRecorder(FrappeTestCase):
 		for query, call in zip(queries, request["calls"], strict=False):
 			self.assertEqual(
 				call["query"],
-				sqlparse.format(query[sql_dialect].strip(), keyword_case="upper", reindent=True),
+				sqlparse.format(
+					query[sql_dialect].strip(), keyword_case="upper", reindent=True, strip_comments=True
+				),
 			)
 
 	def test_duplicate_queries(self):
