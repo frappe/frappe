@@ -35,6 +35,11 @@ export default class BulkOperations {
 			return;
 		}
 
+		if (valid_docs.length > 50) {
+			frappe.msgprint(__("You can only print upto 50 documents at a time"));
+			return;
+		}
+
 		const dialog = new frappe.ui.Dialog({
 			title: __("Print Documents"),
 			fields: [
