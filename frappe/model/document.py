@@ -1725,6 +1725,6 @@ def unlock_document(doctype: str | None = None, name: str | None = None, args=No
 	if not doctype and not name and args:
 		# Backward compatibility
 		doctype = str(args["doctype"])
-		doctype = str(args["name"])
+		name = str(args["name"])
 	frappe.get_doc(doctype, name).unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
