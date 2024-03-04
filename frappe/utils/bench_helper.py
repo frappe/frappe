@@ -24,7 +24,7 @@ class FrappeCommandGroup(click.Group):
 
 		possibilities = get_close_matches(cmd_name, all_commands)
 		raise click.NoSuchOption(
-			cmd_name, possibilities=possibilities, message=f"No such command: {cmd_name}"
+			cmd_name, possibilities=possibilities, message=f"No such command: {cmd_name}."
 		)
 
 
