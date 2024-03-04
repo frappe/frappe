@@ -68,6 +68,7 @@ frappe.RoleEditor = class {
 								<tr>
 									<th> ${__("Document Type")} </th>
 									<th> ${__("Level")} </th>
+									<th> ${__("If Owner")} </th>
 									${frappe.perm.rights.map((p) => `<th> ${__(frappe.unscrub(p))}</th>`).join("")}
 								</tr>
 							</thead>
@@ -79,6 +80,7 @@ frappe.RoleEditor = class {
 							<tr>
 								<td>${__(perm.parent)}</td>
 								<td>${perm.permlevel}</td>
+								<td>${perm.if_owner ? frappe.utils.icon("check", "xs") : "-"}</td>
 								${frappe.perm.rights
 									.map(
 										(p) =>
