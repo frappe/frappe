@@ -111,7 +111,7 @@ class DocType(Document):
 		custom: DF.Check
 		default_email_template: DF.Link | None
 		default_print_format: DF.Data | None
-		default_view: DF.Literal
+		default_view: DF.Literal[None]
 		description: DF.SmallText | None
 		document_type: DF.Literal["", "Document", "Setup", "System", "Other"]
 		documentation: DF.Data | None
