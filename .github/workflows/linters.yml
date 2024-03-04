@@ -40,7 +40,7 @@ jobs:
       - name: 'Setup Environment'
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.10'
       - uses: actions/checkout@v4
 
       - name: Validate Docs
