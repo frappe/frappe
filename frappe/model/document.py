@@ -1721,6 +1721,10 @@ def _document_values_generator(
 
 
 @frappe.whitelist()
-def unlock_document(doctype: str, name: str):
+def unlock_document(doctype: str | None = None, name: str | None = None, args=None):
+	if not doctype and not name and args:
+		# Backward compatibility
+		doctype = str(args["doctype"])
+		doctype = str(args["name"])
 	frappe.get_doc(doctype, name).unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
