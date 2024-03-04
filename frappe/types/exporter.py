@@ -178,7 +178,7 @@ class TypeExporter:
 		elif field.fieldtype == "Select":
 			if not field.options:
 				# Could be dynamic
-				return
+				return "None"
 			options = [o.strip() for o in field.options.split("\n")]
 			return json.dumps(options)
 

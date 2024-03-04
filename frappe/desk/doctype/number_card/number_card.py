@@ -22,7 +22,7 @@ class NumberCard(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		aggregate_function_based_on: DF.Literal
+		aggregate_function_based_on: DF.Literal[None]
 		color: DF.Color | None
 		document_type: DF.Link | None
 		dynamic_filters_json: DF.Code | None
@@ -35,7 +35,7 @@ class NumberCard(Document):
 		method: DF.Data | None
 		module: DF.Link | None
 		parent_document_type: DF.Link | None
-		report_field: DF.Literal
+		report_field: DF.Literal[None]
 		report_function: DF.Literal["Sum", "Average", "Minimum", "Maximum"]
 		report_name: DF.Link | None
 		show_percentage_stats: DF.Check

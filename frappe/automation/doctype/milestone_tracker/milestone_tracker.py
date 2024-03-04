@@ -18,7 +18,12 @@ class MilestoneTracker(Document):
 
 		disabled: DF.Check
 		document_type: DF.Link
+<<<<<<< HEAD
 		track_field: DF.Literal
+=======
+		track_field: DF.Literal[None]
+	# end: auto-generated types
+>>>>>>> b1a8bc9312 (fix: Export `None` as type if select as no options (#25211))
 
 	# end: auto-generated types
 	def on_update(self):

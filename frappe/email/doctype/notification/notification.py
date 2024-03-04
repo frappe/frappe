@@ -32,7 +32,7 @@ class Notification(Document):
 		attach_print: DF.Check
 		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
 		condition: DF.Code | None
-		date_changed: DF.Literal
+		date_changed: DF.Literal[None]
 		days_in_advance: DF.Int
 		document_type: DF.Link
 		enabled: DF.Check
@@ -59,10 +59,15 @@ class Notification(Document):
 		send_to_all_assignees: DF.Check
 		sender: DF.Link | None
 		sender_email: DF.Data | None
-		set_property_after_alert: DF.Literal
+		set_property_after_alert: DF.Literal[None]
 		slack_webhook_url: DF.Link | None
 		subject: DF.Data | None
+<<<<<<< HEAD
 		value_changed: DF.Literal
+=======
+		value_changed: DF.Literal[None]
+	# end: auto-generated types
+>>>>>>> b1a8bc9312 (fix: Export `None` as type if select as no options (#25211))
 
 	# end: auto-generated types
 	def onload(self):
