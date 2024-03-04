@@ -237,11 +237,6 @@ execute:frappe.delete_doc("Page", "translation-tool", force=1)
 frappe.patches.v15_0.remove_prepared_report_settings_from_system_settings
 frappe.desk.doctype.form_tour.patches.introduce_ui_tours
 execute:frappe.delete_doc_if_exists("Workspace", "Customization")
-<<<<<<< HEAD
-=======
-execute:frappe.db.set_single_value("Document Naming Settings", "default_amend_naming", "Amend Counter")
-frappe.patches.v15_0.move_event_cancelled_to_status
->>>>>>> b6d65fea06 (ci: update patch workflow)
 frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
 frappe.patches.v15_0.sanitize_workspace_titles

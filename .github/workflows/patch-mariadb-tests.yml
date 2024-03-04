@@ -53,7 +53,9 @@ jobs:
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: |
+              3.7
+              3.10
 
       - name: Setup Node
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
@@ -119,8 +121,8 @@ jobs:
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           cd ~/frappe-bench/
-          wget https://frappeframework.com/files/v13-frappe.sql.gz
-          bench --site test_site --force restore ~/frappe-bench/v13-frappe.sql.gz
+          wget https://frappeframework.com/files/v10-frappe.sql.gz
+          bench --site test_site --force restore ~/frappe-bench/v10-frappe.sql.gz
 
           source env/bin/activate
           cd apps/frappe/
@@ -128,6 +130,7 @@ jobs:
 
           function update_to_version() {
             version=$1
+            py=$2
 
             branch_name="version-$version-hotfix"
             echo "Updating to v$version"
@@ -136,28 +139,19 @@ jobs:
 
             pgrep honcho | xargs kill
             rm -rf ~/frappe-bench/env
-            bench -v setup env
-            bench start &>> ~/frappe-bench/bench_start.log &
+            bench -v setup env --python $py
+            bench start &> ~/frappe-bench/bench_start.log &
 
             bench --site test_site migrate
           }
 
-<<<<<<< HEAD
           update_to_version 12 python3.7
           update_to_version 13 python3.7
 
           echo "Updating to last commit"
-=======
-          update_to_version 14
-
-          echo "Updating to last commit"
-          pgrep honcho | xargs kill
-          rm -rf ~/frappe-bench/env
->>>>>>> b6d65fea06 (ci: update patch workflow)
           git checkout -q -f "$GITHUB_SHA"
           rm -rf ~/frappe-bench/env
           bench -v setup env
-          bench start &>> ~/frappe-bench/bench_start.log &
           bench --site test_site migrate
 <<<<<<< HEAD
 =======
