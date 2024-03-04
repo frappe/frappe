@@ -62,14 +62,9 @@ class Notification(Document):
 		set_property_after_alert: DF.Literal[None]
 		slack_webhook_url: DF.Link | None
 		subject: DF.Data | None
-<<<<<<< HEAD
-		value_changed: DF.Literal
-=======
 		value_changed: DF.Literal[None]
 	# end: auto-generated types
->>>>>>> b1a8bc9312 (fix: Export `None` as type if select as no options (#25211))
 
-	# end: auto-generated types
 	def onload(self):
 		"""load message"""
 		if self.is_standard:

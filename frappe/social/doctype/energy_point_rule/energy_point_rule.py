@@ -33,14 +33,9 @@ class EnergyPointRule(Document):
 		points: DF.Int
 		reference_doctype: DF.Link
 		rule_name: DF.Data
-<<<<<<< HEAD
-		user_field: DF.Literal
-=======
 		user_field: DF.Literal[None]
 	# end: auto-generated types
->>>>>>> b1a8bc9312 (fix: Export `None` as type if select as no options (#25211))
 
-	# end: auto-generated types
 	def on_update(self):
 		frappe.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
 
