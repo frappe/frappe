@@ -1,10 +1,5 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
-import DataTable from "frappe-datatable";
-
-// Expose DataTable globally to allow customizations.
-window.DataTable = DataTable;
-
 frappe.provide("frappe.widget.utils");
 frappe.provide("frappe.views");
 frappe.provide("frappe.query_reports");

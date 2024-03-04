@@ -1930,6 +1930,25 @@ def sql_like(value: str, pattern: str) -> bool:
 		return pattern in value
 
 
+def filter_operator_is(value: str, pattern: str) -> bool:
+	"""Operator `is` can have two values: 'set' or 'not set'."""
+	pattern = pattern.lower()
+
+	def is_set():
+		if value is None:
+			return False
+		elif isinstance(value, str) and not value:
+			return False
+		return True
+
+	if pattern == "set":
+		return is_set()
+	elif pattern == "not set":
+		return not is_set()
+	else:
+		frappe.throw(frappe._(f"Invalid argument for operator 'IS': {pattern}"))
+
+
 operator_map = {
 	# startswith
 	"^": lambda a, b: (a or "").startswith(b),
@@ -1947,6 +1966,7 @@ operator_map = {
 	"None": lambda a, b: a is None,
 	"like": sql_like,
 	"not like": lambda a, b: not sql_like(a, b),
+	"is": filter_operator_is,
 }
 
 
@@ -2031,7 +2051,8 @@ def get_filter(doctype: str, f: dict | list | tuple, filters_config=None) -> "fr
 		"timespan",
 		"previous",
 		"next",
-	) + NestedSetHierarchy
+		*NestedSetHierarchy,
+	)
 
 	if filters_config:
 		additional_operators = [key.lower() for key in filters_config]
@@ -2444,7 +2465,7 @@ def parse_timedelta(s: str) -> datetime.timedelta:
 	return datetime.timedelta(**{key: float(val) for key, val in m.groupdict().items()})
 
 
-def get_job_name(key: str, doctype: str = None, doc_name: str = None) -> str:
+def get_job_name(key: str, doctype: str | None = None, doc_name: str | None = None) -> str:
 	job_name = key
 	if doctype:
 		job_name += f"_{doctype}"

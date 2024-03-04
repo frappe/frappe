@@ -101,7 +101,7 @@ class NamingSeries:
 				# ignore B023: binding `count` is not necessary because
 				# function is evaluated immediately and it can not be done
 				# because of function signature requirement
-				return str(count).zfill(digits)  # noqa: B023
+				return str(count).zfill(digits)
 
 			generated_names.append(parse_naming_series(self.series, doc=doc, number_generator=fake_counter))
 		return generated_names

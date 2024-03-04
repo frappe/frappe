@@ -63,7 +63,7 @@ def search_widget(
 	doctype: str,
 	txt: str,
 	query: str | None = None,
-	searchfield: str = None,
+	searchfield: str | None = None,
 	start: int = 0,
 	page_length: int = 10,
 	filters: str | None | dict | list = None,
@@ -260,6 +260,8 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 	if meta.show_title_field_in_link:
 		for item in res:
 			item = list(item)
+			if len(item) == 1:
+				item = [item[0], item[0]]
 			label = item[1]  # use title as label
 			item[1] = item[0]  # show name in description instead of title
 			if len(item) >= 3 and item[2] == label:

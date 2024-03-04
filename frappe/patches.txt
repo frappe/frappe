@@ -234,4 +234,4 @@ frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_versi
 frappe.patches.v15_0.validate_newsletter_recipients
 frappe.patches.v15_0.sanitize_workspace_titles
 frappe.patches.v15_0.migrate_role_profile_to_table_multi_select
-frappe.core.doctype.user.patches.hash_reset_password_tokens
+frappe.patches.v15_0.migrate_session_data

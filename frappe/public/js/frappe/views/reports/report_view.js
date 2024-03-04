@@ -1,9 +1,6 @@
 /**
  * frappe.views.ReportView
  */
-import DataTable from "frappe-datatable";
-
-window.DataTable = DataTable;
 frappe.provide("frappe.views");
 
 frappe.views.ReportView = class ReportView extends frappe.views.ListView {
@@ -896,7 +893,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			.filter(standard_fields_filter);
 
 		// filter out docstatus field from picker
-		let std_fields = frappe.model.std_fields.filter((df) => df.fieldname !== "docstatus");
+		let std_fields = frappe.model.std_fields.filter(
+			(df) => !["docstatus", "_comments"].includes(df.fieldname)
+		);
 
 		// add status field derived from docstatus, if status is not a standard field
 		let has_status_values = false;

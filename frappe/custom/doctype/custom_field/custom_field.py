@@ -89,7 +89,7 @@ class CustomField(Document):
 		in_list_view: DF.Check
 		in_preview: DF.Check
 		in_standard_filter: DF.Check
-		insert_after: DF.Literal
+		insert_after: DF.Literal[None]
 		is_system_generated: DF.Check
 		is_virtual: DF.Check
 		label: DF.Data | None
@@ -110,6 +110,7 @@ class CustomField(Document):
 		report_hide: DF.Check
 		reqd: DF.Check
 		search_index: DF.Check
+		show_dashboard: DF.Check
 		sort_options: DF.Check
 		translatable: DF.Check
 		unique: DF.Check
@@ -369,6 +370,7 @@ def rename_fieldname(custom_field: str, fieldname: str):
 	field.db_set("fieldname", field.fieldname, notify=True)
 	_update_fieldname_references(field, old_fieldname, new_fieldname)
 
+	frappe.msgprint(_("Custom field renamed to {0} successfully.").format(fieldname), alert=True)
 	frappe.db.commit()
 	frappe.clear_cache()
 

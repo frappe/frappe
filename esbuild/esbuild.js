@@ -19,7 +19,6 @@ const {
 	assets_path,
 	apps_path,
 	sites_path,
-	get_app_path,
 	get_public_path,
 	log,
 	log_warn,
@@ -87,11 +86,9 @@ const RUN_BUILD_COMMAND = !WATCH_MODE && Boolean(argv["run-build-command"]);
 const TOTAL_BUILD_TIME = `${chalk.black.bgGreen(" DONE ")} Total Build Time`;
 const NODE_PATHS = [].concat(
 	// node_modules of apps directly importable
-	app_list
-		.map((app) => path.resolve(get_app_path(app), "../node_modules"))
-		.filter(fs.existsSync),
+	app_list.map((app) => path.resolve(apps_path, app, "node_modules")).filter(fs.existsSync),
 	// import js file of any app if you provide the full path
-	app_list.map((app) => path.resolve(get_app_path(app), "..")).filter(fs.existsSync)
+	app_list.map((app) => path.resolve(apps_path, app)).filter(fs.existsSync)
 );
 const USING_CACHED = Boolean(argv["using-cached"]);
 
@@ -497,16 +494,29 @@ function run_build_command_for_apps(apps) {
 	for (let app of apps) {
 		if (app === "frappe") continue;
 
-		let root_app_path = path.resolve(get_app_path(app), "..");
+		let root_app_path = path.resolve(apps_path, app);
 		let package_json = path.resolve(root_app_path, "package.json");
-		if (fs.existsSync(package_json)) {
-			let { scripts } = require(package_json);
-			if (scripts && scripts.build) {
-				log("\nRunning build command for", chalk.bold(app));
-				process.chdir(root_app_path);
-				execSync("yarn build", { encoding: "utf8", stdio: "inherit" });
-			}
+		let node_modules = path.resolve(root_app_path, "node_modules");
+
+		if (!fs.existsSync(package_json)) {
+			continue;
 		}
+
+		let { scripts } = require(package_json);
+		if (!scripts?.build) {
+			continue;
+		}
+
+		process.chdir(root_app_path);
+		if (!fs.existsSync(node_modules)) {
+			log(
+				`\nInstalling dependencies for ${chalk.bold(app)} (because node_modules not found)`
+			);
+			execSync("yarn install", { encoding: "utf8", stdio: "inherit" });
+		}
+
+		log("\nRunning build command for", chalk.bold(app));
+		execSync("yarn build", { encoding: "utf8", stdio: "inherit" });
 	}
 
 	process.chdir(cwd);

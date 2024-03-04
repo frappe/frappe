@@ -4,6 +4,7 @@
 from os.path import abspath, splitext
 from os.path import exists as path_exists
 from os.path import join as join_path
+from pathlib import Path
 from typing import Optional
 
 import frappe
@@ -124,9 +125,15 @@ class WebsiteTheme(Document):
 	def delete_old_theme_files(self, folder_path):
 		import os
 
+		theme_files: list[Path] = []
 		for fname in os.listdir(folder_path):
 			if fname.startswith(frappe.scrub(self.name) + "_") and fname.endswith(".css"):
-				os.remove(os.path.join(folder_path, fname))
+				theme_files.append(Path(folder_path) / fname)
+
+		theme_files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
+		# Keep 3 recent files
+		for old_file in theme_files[2:]:
+			old_file.unlink()
 
 	@frappe.whitelist()
 	def set_as_default(self):

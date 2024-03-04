@@ -166,6 +166,7 @@ def get():
 	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
+	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
 
 	return bootinfo
 
@@ -257,7 +258,15 @@ class Session:
 		(
 			frappe.qb.into(Sessions)
 			.columns(Sessions.sessiondata, Sessions.user, Sessions.lastupdate, Sessions.sid, Sessions.status)
-			.insert((str(self.data["data"]), self.data["user"], now, self.data["sid"], "Active"))
+			.insert(
+				(
+					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
+					self.data["user"],
+					now,
+					self.data["sid"],
+					"Active",
+				)
+			)
 		).run()
 		frappe.cache.hset("session", self.data.sid, self.data)
 
@@ -331,7 +340,7 @@ class Session:
 		).run()
 
 		if record:
-			data = frappe._dict(frappe.safe_eval(record and record[0][1] or "{}"))
+			data = frappe.parse_json(record[0][1] or "{}")
 			data.user = record[0][0]
 		else:
 			self._delete_session()
@@ -370,7 +379,10 @@ class Session:
 			(
 				frappe.qb.update(Sessions)
 				.where(Sessions.sid == self.data["sid"])
-				.set(Sessions.sessiondata, str(self.data["data"]))
+				.set(
+					Sessions.sessiondata,
+					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
+				)
 				.set(Sessions.lastupdate, now)
 			).run()
 
@@ -384,6 +396,11 @@ class Session:
 		frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
+
+	def set_impersonsated(self, original_user):
+		self.data.data.impersonated_by = original_user
+		# Forcefully flush session
+		self.update(force=True)
 
 
 def get_expiry_period_for_query():
