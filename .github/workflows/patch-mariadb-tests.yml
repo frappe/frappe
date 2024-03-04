@@ -153,8 +153,6 @@ jobs:
           rm -rf ~/frappe-bench/env
           bench -v setup env
           bench --site test_site migrate
-<<<<<<< HEAD
-=======
           bench --site test_site execute frappe.tests.utils.check_orpahned_doctypes
 
       - name: Show bench output
@@ -167,14 +165,3 @@ jobs:
             echo "Printing log: $f";
             cat $f
           done
-
-  faux-test:
-    name: Patch
-    runs-on: ubuntu-latest
-    needs: checkrun
-    if: ${{ needs.checkrun.outputs.build != 'strawberry' }}
-
-    steps:
-      - name: Pass skipped tests unconditionally
-        run: "echo Skipped"
->>>>>>> 662b07170c (test: orpahned doctype check after patch test)
