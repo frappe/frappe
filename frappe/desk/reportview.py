@@ -70,8 +70,13 @@ def get_count() -> int:
 
 
 def execute(doctype, *args, **kwargs):
-	projects_ordered = get_projects_ordered()
-	kwargs["order_by"] = "FIELD(name, {})".format(",".join("'{}'".format(project["name"]) for project in projects_ordered))
+	order_by = kwargs.get('order_by')
+	if (doctype == 'Project' and len(kwargs.get('fields')) > 0):
+		if ('`tabProject`.`queue_position`' in kwargs.get('fields')):
+			kwargs['fields'].remove('`tabProject`.`queue_position`')
+			kwargs['fields'].append('cast(queue_position as decimal) as queue_position')
+		if (kwargs.get('order_by') and '`tabProject`.`queue_position`' in kwargs.get('order_by')):
+			kwargs['order_by'] = kwargs['order_by'].replace('`tabProject`.`queue_position`', 'queue_position')
 	return DatabaseQuery(doctype).execute(*args, **kwargs)
 
 
