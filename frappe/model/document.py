@@ -23,6 +23,10 @@ from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, get
 from frappe.utils.global_search import update_global_search
 
 
+DOCUMENT_LOCK_EXPIRTY = 12 * 60 * 60  # All locks expire in 12 hours automatically
+DOCUMENT_LOCK_SOFT_EXPIRY = 60 * 60  # Let users force-unlock after 60 minutes
+
+
 def get_doc(*args, **kwargs):
 	"""returns a frappe.model.Document object.
 
@@ -1411,8 +1415,8 @@ class Document(BaseDocument):
 		)
 
 	def get_signature(self):
-		"""Returns signature (hash) for private URL."""
-		return hashlib.sha224(get_datetime_str(self.creation).encode()).hexdigest()
+		"""Return signature (hash) for private URL."""
+		return hashlib.sha224(f"{self.doctype}:{self.name}".encode(), usedforsecurity=False).hexdigest()
 
 	def get_document_share_key(self, expires_on=None, no_expiry=False):
 		if no_expiry:
@@ -1470,9 +1474,25 @@ class Document(BaseDocument):
 		try:
 			self.lock()
 		except frappe.DocumentLockedError:
+			# Allow unlocking if created more than 60 minutes ago
+			primary_action = None
+			if file_lock.lock_age(self.get_signature()) > DOCUMENT_LOCK_SOFT_EXPIRY:
+				primary_action = {
+					"label": "Force Unlock",
+					"server_action": "frappe.model.document.unlock_document",
+					"hide_on_success": True,
+					"args": {
+						"doctype": self.doctype,
+						"name": self.name,
+					},
+				}
+
 			frappe.throw(
-				_("This document is currently queued for execution. Please try again"),
+				_(
+					"This document is currently locked and queued for execution. Please try again after some time."
+				),
 				title=_("Document Queued"),
+				primary_action=primary_action,
 			)
 
 		enqueue_after_commit = kwargs.pop("enqueue_after_commit", None)
@@ -1496,6 +1516,9 @@ class Document(BaseDocument):
 		signature = self.get_signature()
 		if file_lock.lock_exists(signature):
 			lock_exists = True
+			if file_lock.lock_age(signature) > DOCUMENT_LOCK_EXPIRTY:
+				file_lock.delete_lock(signature)
+				lock_exists = False
 			if timeout:
 				for _i in range(timeout):
 					time.sleep(1)
@@ -1601,3 +1624,73 @@ def execute_action(__doctype, __name, __action, **kwargs):
 
 		doc.add_comment("Comment", _("Action Failed") + "<br><br>" + msg)
 	doc.notify_update()
+<<<<<<< HEAD
+=======
+
+
+def bulk_insert(
+	doctype: str,
+	documents: Iterable["Document"],
+	ignore_duplicates: bool = False,
+	chunk_size=10_000,
+):
+	"""Insert simple Documents objects to database in bulk.
+
+	Warning/Info:
+	        - All documents are inserted without triggering ANY hooks.
+	        - This function assumes you've done the due dilligence and inserts in similar fashion as db_insert
+	        - Documents can be any iterable / generator containing Document objects
+	"""
+
+	doctype_meta = frappe.get_meta(doctype)
+	documents = list(documents)
+
+	valid_column_map = {
+		doctype: doctype_meta.get_valid_columns(),
+	}
+	values_map = {
+		doctype: _document_values_generator(documents, valid_column_map[doctype]),
+	}
+
+	for child_table in doctype_meta.get_table_fields():
+		valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
+		values_map[child_table.options] = _document_values_generator(
+			(
+				ch_doc
+				for ch_doc in (
+					child_docs for doc in documents for child_docs in doc.get(child_table.fieldname)
+				)
+			),
+			valid_column_map[child_table.options],
+		)
+
+	for dt, docs in values_map.items():
+		frappe.db.bulk_insert(
+			dt, valid_column_map[dt], docs, ignore_duplicates=ignore_duplicates, chunk_size=chunk_size
+		)
+
+
+def _document_values_generator(
+	documents: Iterable["Document"],
+	columns: list[str],
+) -> Generator[tuple[Any], None, None]:
+	for doc in documents:
+		doc.creation = doc.modified = now()
+		doc.owner = doc.modified_by = frappe.session.user
+		doc_values = doc.get_valid_dict(
+			convert_dates_to_str=True,
+			ignore_nulls=True,
+			ignore_virtual=True,
+		)
+		yield tuple(doc_values.get(col) for col in columns)
+
+
+@frappe.whitelist()
+def unlock_document(doctype: str | None = None, name: str | None = None, args=None):
+	if not doctype and not name and args:
+		# Backward compatibility
+		doctype = str(args["doctype"])
+		name = str(args["name"])
+	frappe.get_doc(doctype, name).unlock()
+	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
+>>>>>>> b0db64106a (feat: let users unlock stuck documents (backport #24782) (#25225))
