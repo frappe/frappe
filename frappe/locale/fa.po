@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-03-03 07:13\n"
+"PO-Revision-Date: 2024-03-04 07:49\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -21964,43 +21964,43 @@ msgstr "اوه! مشکلی پیش آمد."
 
 #: core/doctype/deleted_document/deleted_document.js:7
 msgid "Open"
-msgstr ""
+msgstr "باز"
 
 #: desk/doctype/todo/todo_list.js:20
 msgctxt "Access"
 msgid "Open"
-msgstr ""
+msgstr "باز"
 
 #. Option for the 'Status' (Select) field in DocType 'Communication'
 #. Option for the 'Email Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Open"
-msgstr ""
+msgstr "باز"
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Open"
-msgstr ""
+msgstr "باز"
 
 #. Option for the 'Status' (Select) field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Open"
-msgstr ""
+msgstr "باز"
 
 #. Option for the 'Status' (Select) field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
 msgctxt "ToDo"
 msgid "Open"
-msgstr ""
+msgstr "باز"
 
 #. Option for the 'Status' (Select) field in DocType 'Workflow Action'
 #: workflow/doctype/workflow_action/workflow_action.json
 msgctxt "Workflow Action"
 msgid "Open"
-msgstr ""
+msgstr "باز"
 
 #: public/js/frappe/ui/keyboard.js:202
 msgid "Open Awesomebar"
