@@ -19,7 +19,7 @@ class NotificationRecipient(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		receiver_by_document_field: DF.Literal
+		receiver_by_document_field: DF.Literal[None]
 		receiver_by_role: DF.Link | None
 	# end: auto-generated types
 	pass

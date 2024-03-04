@@ -89,7 +89,7 @@ class SystemSettings(Document):
 		setup_complete: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
-		time_zone: DF.Literal
+		time_zone: DF.Literal[None]
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
 		welcome_email_template: DF.Link | None
 	# end: auto-generated types
