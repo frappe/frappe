@@ -201,7 +201,9 @@ frappe.msgprint = function (msg, title, is_minimizable) {
 			data.primary_action.action = () => {
 				frappe.call({
 					method: data.primary_action.server_action,
-					args: data.primary_action.args,
+					args: {
+						args: data.primary_action.args,
+					},
 					callback() {
 						if (data.primary_action.hide_on_success) {
 							frappe.hide_msgprint();
