@@ -298,6 +298,21 @@ frappe.provide("frappe.views");
 							});
 						});
 				},
+				get_cards_count_by_column: function(context){
+					if(context.state.doctype === "Project"){
+						const _cards = context.state.cards
+						let countByColumn = {};
+						_cards.forEach(card => {
+							let column = card.column;
+							if (countByColumn[column]) {
+								countByColumn[column]++;
+							} else {
+								countByColumn[column] = 1;
+							}
+						});
+						return countByColumn;
+					}else return ''
+				}
 			},
 		});
 	}
@@ -355,12 +370,12 @@ frappe.provide("frappe.views");
 			setup_sortable();
 		}
 
-		function make_columns() {
+		async function make_columns() {
 			self.$kanban_board.find(".kanban-column").not(".add-new-column").remove();
 			var columns = store.state.columns;
-
+			const counter_cards_by_columns = await store.dispatch('get_cards_count_by_column')
 			columns.filter(is_active_column).map(function (col) {
-				frappe.views.KanbanBoardColumn(col, self.$kanban_board, self.board_perms);
+				frappe.views.KanbanBoardColumn({...col, title: col.title}, self.$kanban_board, self.board_perms, counter_cards_by_columns);
 			});
 		}
 
@@ -535,7 +550,7 @@ frappe.provide("frappe.views");
 		return self;
 	};
 
-	frappe.views.KanbanBoardColumn = function (column, wrapper, board_perms) {
+	frappe.views.KanbanBoardColumn = function (column, wrapper, board_perms, cards_by_columns = []) {
 		var self = {};
 		var filtered_cards = [];
 
@@ -548,6 +563,17 @@ frappe.provide("frappe.views");
 			}, make_cards);
 			bind_add_card();
 			bind_options();
+			get_and_set_columns_titles()
+		}
+
+		function get_total_cards(cards_by_columns, title){
+			return cards_by_columns[title] ?? 0
+		}
+
+		function get_and_set_columns_titles(){
+			let _title = self.$kanban_column.find(".kanban-column-title")[0].outerText
+			_title = _title + " ("+get_total_cards(cards_by_columns, _title)+")"
+			self.$kanban_column.find(".kanban-column-title").html("<span class=\"indicator-pill gray\"></span><span class=\"kanban-title ellipsis\" title=\"" + _title + "\">" + _title + "</span>");
 		}
 
 		function make_dom() {
@@ -558,7 +584,6 @@ frappe.provide("frappe.views");
 					indicator: frappe.scrub(column.indicator, "-"),
 				})
 			).appendTo(wrapper);
-			// add task, archive
 			self.$kanban_cards = self.$kanban_column.find(".kanban-cards");
 		}
 

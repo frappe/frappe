@@ -163,7 +163,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			console.log({exists})
 			if (!exists){
 				const container = document.querySelector('div.no-list-sidebar div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
-				console.log({container});
 				const input = document.createElement('input')
 				const label = document.createElement('label')
 				label.setAttribute('style', 'margin: 0')
