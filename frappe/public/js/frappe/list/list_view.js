@@ -1320,7 +1320,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	check_row_on_drag(event, check = true) {
-		$(event.target).find(".list-row-checkbox").prop("checked", check);
+		$(event.target)
+			.closest(".level.list-row")
+			.find(".list-row-checkbox")
+			.prop("checked", check);
 		this.on_row_checked();
 	}
 
