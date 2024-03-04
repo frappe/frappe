@@ -385,7 +385,7 @@ class BaseDocument:
 					value = cint(value)
 
 				elif df.fieldtype == "JSON" and isinstance(value, dict):
-					value = json.dumps(value, separators=(",", ": "))
+					value = json.dumps(value, separators=(",", ":"))
 
 				elif df.fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
