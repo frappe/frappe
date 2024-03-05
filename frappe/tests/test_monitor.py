@@ -3,7 +3,7 @@
 
 import frappe
 import frappe.monitor
-from frappe.monitor import MONITOR_REDIS_KEY
+from frappe.monitor import MONITOR_REDIS_KEY, get_trace_id
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import set_request
 from frappe.utils.response import build_response
@@ -12,6 +12,10 @@ from frappe.utils.response import build_response
 class TestMonitor(FrappeTestCase):
 	def setUp(self):
 		frappe.conf.monitor = 1
+		frappe.cache().delete_value(MONITOR_REDIS_KEY)
+
+	def tearDown(self):
+		frappe.conf.monitor = 0
 		frappe.cache().delete_value(MONITOR_REDIS_KEY)
 
 	def test_enable_monitor(self):
@@ -77,6 +81,10 @@ class TestMonitor(FrappeTestCase):
 		log = frappe.parse_json(logs[0])
 		self.assertEqual(log.transaction_type, "request")
 
-	def tearDown(self):
-		frappe.conf.monitor = 0
-		frappe.cache().delete_value(MONITOR_REDIS_KEY)
+	def test_trace_ids(self):
+		set_request(method="GET", path="/api/method/frappe.ping")
+		response = build_response("json")
+		frappe.monitor.start()
+		frappe.db.sql("select 1")
+		self.assertIn(get_trace_id(), str(frappe.db.last_query))
+		frappe.monitor.stop(response)

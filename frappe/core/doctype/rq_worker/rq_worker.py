@@ -15,7 +15,7 @@ from frappe.utils.background_jobs import get_workers
 class RQWorker(Document):
 	def load_from_db(self):
 		all_workers = get_workers()
-		workers = [w for w in all_workers if w.pid == cint(self.name)]
+		workers = [w for w in all_workers if w.name == self.name]
 		if not workers:
 			raise frappe.DoesNotExistError
 		d = serialize_worker(workers[0])
@@ -58,7 +58,7 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 	queue_types = ",".join(q.rsplit(":", 1)[1] for q in queue_names)
 
 	return frappe._dict(
-		name=worker.pid,
+		name=worker.name,
 		queue=queue,
 		queue_type=queue_types,
 		worker_name=worker.name,

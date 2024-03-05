@@ -707,7 +707,7 @@ def get_perm_info(role):
 	return get_all_perms(role)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 def update_password(new_password, logout_all_sessions=0, key=None, old_password=None):
 	# validate key to avoid key input like ['like', '%'], '', ['in', ['']]
 	if key and not isinstance(key, str):
@@ -853,7 +853,7 @@ def reset_user_data(user):
 	return user_doc, redirect_url
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def verify_password(password):
 	frappe.local.login_manager.check_password(frappe.session.user, password)
 
@@ -909,7 +909,7 @@ def sign_up(email, full_name, redirect_to):
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
 def reset_password(user: str) -> str:
 	try:
@@ -1174,7 +1174,7 @@ def get_restricted_ip_list(user):
 	return [i.strip() for i in user.restrict_ip.split(",")]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def generate_keys(user):
 	"""
 	generate api key and api secret

@@ -161,6 +161,7 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
+			"frappe.core.doctype.file.utils.attach_files_to_document",
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
@@ -278,7 +279,7 @@ setup_wizard_exception = [
 	"frappe.desk.page.setup_wizard.setup_wizard.log_setup_wizard_exception",
 ]
 
-before_migrate = []
+before_migrate = ["frappe.core.doctype.patch_log.patch_log.before_migrate"]
 after_migrate = ["frappe.website.doctype.website_theme.website_theme.after_migrate"]
 
 otp_methods = ["OTP App", "Email", "SMS"]
