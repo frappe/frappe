@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-02-29 05:12\n"
+"PO-Revision-Date: 2024-03-05 07:44\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -256,7 +256,7 @@ msgstr ""
 
 #: public/js/frappe/form/reminders.js:19
 msgid "1 Day"
-msgstr ""
+msgstr "1 Día"
 
 #: integrations/doctype/google_calendar/google_calendar.py:359
 msgid "1 Google Calendar Event synced."
@@ -272,11 +272,11 @@ msgstr "1 comentario"
 
 #: tests/test_utils.py:669
 msgid "1 day ago"
-msgstr ""
+msgstr "Hace 1 día"
 
 #: public/js/frappe/form/reminders.js:17
 msgid "1 hour"
-msgstr ""
+msgstr "1 hora"
 
 #: public/js/frappe/utils/pretty_date.js:52 tests/test_utils.py:667
 msgid "1 hour ago"
@@ -296,7 +296,7 @@ msgstr "Se exportará 1 registro"
 
 #: tests/test_utils.py:664
 msgid "1 second ago"
-msgstr ""
+msgstr "Hace 1 segundo"
 
 #: public/js/frappe/utils/pretty_date.js:62 tests/test_utils.py:671
 msgid "1 week ago"
@@ -304,35 +304,35 @@ msgstr "Hace 1 semana"
 
 #: public/js/frappe/utils/pretty_date.js:70 tests/test_utils.py:675
 msgid "1 year ago"
-msgstr "hace 1 año"
+msgstr "Hace 1 año"
 
 #: tests/test_utils.py:668
 msgid "2 hours ago"
-msgstr ""
+msgstr "Hace 2 horas"
 
 #: tests/test_utils.py:674
 msgid "2 months ago"
-msgstr ""
+msgstr "Hace 2 meses"
 
 #: tests/test_utils.py:672
 msgid "2 weeks ago"
-msgstr ""
+msgstr "Hace 2 semanas"
 
 #: tests/test_utils.py:676
 msgid "2 years ago"
-msgstr ""
+msgstr "Hace 2 años"
 
 #: tests/test_utils.py:666
 msgid "3 minutes ago"
-msgstr ""
+msgstr "Hace 3 minutos"
 
 #: public/js/frappe/form/reminders.js:16
 msgid "30 minutes"
-msgstr ""
+msgstr "30 minutos"
 
 #: public/js/frappe/form/reminders.js:18
 msgid "4 hours"
-msgstr ""
+msgstr "4 horas"
 
 #: public/js/frappe/data_import/data_exporter.js:37
 msgid "5 Records"
@@ -340,7 +340,7 @@ msgstr "5 registros"
 
 #: tests/test_utils.py:670
 msgid "5 days ago"
-msgstr ""
+msgstr "Hace 5 días"
 
 #: public/js/frappe/list/list_view.js:988
 msgid "99"
@@ -6655,7 +6655,7 @@ msgstr ""
 
 #: public/js/frappe/form/toolbar.js:388
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "Copiar al Portapapeles"
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -8712,7 +8712,7 @@ msgstr ""
 #: workflow/doctype/workflow_action/workflow_action.json
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Desk User"
-msgstr ""
+msgstr "Usuario de Escritorio"
 
 #. Name of a DocType
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -25390,11 +25390,11 @@ msgstr "El servidor de caché Redis no esta funcionando. Por favor, póngase en 
 
 #: public/js/frappe/form/toolbar.js:462
 msgid "Redo"
-msgstr ""
+msgstr "Rehacer"
 
 #: public/js/frappe/form/form.js:164 public/js/frappe/form/toolbar.js:470
 msgid "Redo last action"
-msgstr ""
+msgstr "Rehacer última acción"
 
 #. Label of a Link field in DocType 'Report'
 #: core/doctype/report/report.json
@@ -25970,7 +25970,7 @@ msgstr ""
 
 #: public/js/frappe/form/toolbar.js:436
 msgid "Remind Me"
-msgstr ""
+msgstr "Recuérdemelo"
 
 #: public/js/frappe/form/reminders.js:13
 msgid "Remind Me In"
@@ -25979,7 +25979,7 @@ msgstr ""
 #. Name of a DocType
 #: automation/doctype/reminder/reminder.json
 msgid "Reminder"
-msgstr ""
+msgstr "Recordatorio"
 
 #: automation/doctype/reminder/reminder.py:39
 msgid "Reminder cannot be created in past."
@@ -27068,51 +27068,51 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager.js:59
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Section Break field in DocType 'Custom HTML Block'
 #. Label of a Table field in DocType 'Custom HTML Block'
 #: desk/doctype/custom_html_block/custom_html_block.json
 msgctxt "Custom HTML Block"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Table field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Table field in DocType 'Page'
 #: core/doctype/page/page.json
 msgctxt "Page"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Table field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Table field in DocType 'Role Permission for Page and Report'
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgctxt "Role Permission for Page and Report"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Section Break field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Table field in DocType 'Workspace'
 #. Label of a Tab Break field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Tab Break field in DocType 'User'
 #: core/doctype/user/user.json
@@ -27168,7 +27168,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Rounding Method"
-msgstr ""
+msgstr "Método de Redondeo"
 
 #. Label of a Data field in DocType 'Blog Category'
 #: website/doctype/blog_category/blog_category.json
@@ -31491,7 +31491,7 @@ msgstr "Notificación del sistema"
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "System Notifications"
-msgstr ""
+msgstr "Notificaciones del Sistema"
 
 #. Label of a Check field in DocType 'Page'
 #: core/doctype/page/page.json
@@ -34086,7 +34086,7 @@ msgstr "Actualizado exitosamente"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Updates"
-msgstr ""
+msgstr "Actualizaciones"
 
 #: utils/response.py:312
 msgid "Updating"
@@ -36579,12 +36579,12 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:442
 msgctxt "Form timeline"
 msgid "You changed {0} to {1}"
-msgstr ""
+msgstr "Usted ha cambiado {0} a {1}"
 
 #: public/js/frappe/form/footer/form_timeline.js:138
 #: public/js/frappe/form/sidebar/form_sidebar.js:106
 msgid "You created this"
-msgstr ""
+msgstr "Usted creó este"
 
 #: client.py:430
 msgid "You do not have Read or Select Permissions for {}"
