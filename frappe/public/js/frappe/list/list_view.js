@@ -960,7 +960,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${this.get_like_html(doc)}
 				</span>
 			</div>
-			<div class="level-item visible-xs text-right">
+			<div class="level-item hidden-lg text-right">
 				${this.get_indicator_html(doc)}
 			</div>
 		`;
