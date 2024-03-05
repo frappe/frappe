@@ -161,6 +161,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		if(doc_parenttype === "Project" && ["Project Quotation", "Project Invoice"].includes(doc_doctype) ){
 			localStorage.setItem("autosave", JSON.stringify({from_name: doc_parent, from_doctype: doc_parenttype, to_doctype: doc_doctype, is_saved: false}))
+			localStorage.setItem("permissions", JSON.stringify({create_product: false}))
 		}
 
 		var doctype = this.get_options();
@@ -298,17 +299,26 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 						if (!me.df.only_select) {
 							if (frappe.model.can_create(doctype)) {
-								// new item
-								r.message.push({
-									html:
-										"<span class='link-option'>" +
-										"<i class='fa fa-plus' style='margin-right: 5px;'></i> " +
-										__("Create a new {0}", [__(me.get_options())]) +
-										"</span>",
-									label: __("Create a new {0}", [__(me.get_options())]),
-									value: "create_new__link_option",
-									action: me.new_doc,
-								});
+								const store_permissions = localStorage.getItem("permissions")
+								let show_new_item_options = true
+								if(store_permissions){
+									const permissions = JSON.parse(store_permissions)
+									show_new_item_options = permissions.create_product ?? true
+								}
+								console.log("show_new_item_options: ", show_new_item_options)
+								if(show_new_item_options){
+									// new item
+									r.message.push({
+										html:
+											"<span class='link-option'>" +
+											"<i class='fa fa-plus' style='margin-right: 5px;'></i> " +
+											__("Create a new {0}", [__(me.get_options())]) +
+											"</span>",
+										label: __("Create a new {0}", [__(me.get_options())]),
+										value: "create_new__link_option",
+										action: me.new_doc,
+									});
+								}
 							}
 
 							//custom link actions
@@ -498,7 +508,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 		let filter_string = filter_array.map(get_filter_description).join(", ");
 
-		return __("Filters applied for {0}", [filter_string]);
+		return __(" Filters applied for {0}", [filter_string]);
 	}
 
 	set_custom_query(args) {
