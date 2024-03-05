@@ -37,8 +37,8 @@ def get_context(context):
             raise frappe.Redirect
     login_image = frappe.get_single("Login Image")
     if login_image and login_image.image_url:
-        # Pass the image URL to the context
-        context["login_image_url"] = frappe.utils.get_url(login_image.image_url)
+    # Pass the image URL to the context
+        context["login_image_url"] = login_image.image_url
     context.no_header = True
     context.for_test = "login.html"
     context["title"] = "Login"
