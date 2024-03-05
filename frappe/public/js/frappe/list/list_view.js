@@ -630,8 +630,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const subject_field = this.columns[0].df;
 		let subject_html = `
-			<input class="level-item list-check-all" type="checkbox"
-				title="${__("Select All")}">
 			<span class="level-item" data-sort-by="${subject_field.fieldname}"
 				title="${__("Click to sort by {0}", [subject_field.label])}">
 				<span class="hidden-sm">${__(subject_field.label)}</span><span class="hidden-lg">Details</span>
@@ -677,6 +675,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_header_html_skeleton(left = "", right = "") {
 		return `
 			<header class="level list-row-head text-muted">
+				<span class="level-item select-like">
+					<input class="level-item list-check-all" type="checkbox"
+					title="${__("Select All")}">
+				</span>
 				<div class="level-left list-header-subject">
 					${left}
 				</div>
