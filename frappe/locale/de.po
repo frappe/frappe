@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-02-29 05:12\n"
+"PO-Revision-Date: 2024-03-05 16:42\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -30437,7 +30437,7 @@ msgstr "Quellentext"
 
 #: public/js/frappe/views/workspace/blocks/spacer.js:23
 msgid "Spacer"
-msgstr ""
+msgstr "Abstandshalter"
 
 #. Option for the 'Email Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
