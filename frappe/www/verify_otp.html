@@ -1,0 +1,353 @@
+
+{% extends base_template_path %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP</title>
+    <style>
+       
+
+        .card {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            padding: 20px;
+            width: 400px;
+            
+            text-align: center;
+            display: inline-table;
+            margin: auto;
+        }
+
+        .logo {
+            max-width: 100px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 10px;
+        }
+
+        input {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+        .loading {
+            background-color: #ddd; /* Change to the desired color */
+            cursor: not-allowed;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            display: none; /* Hide initially */
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="card">
+        <img src="/files/360-it-hub.svg" alt="Logo" class="logo">
+        <h1>Verification</h1>
+        <form id="otpForm">
+            <label for="otp">Please check your registered mobile number on WhatsApp. Do not close this window as you will need to return to it.</label>
+            <input type="text" id="otp" name="otp" placeholder="Enter your otp" required>
+            <button type="submit" id="verifyButton">Verify</button>
+            <br>
+            
+            <button type="button" id="resendButton" onclick="resendOTP()">
+                <span id="resendText">Resend OTP</span>
+                <i id="resendSpinner" class="loading-spinner"></i>
+            </button>
+
+        </form>
+        <br>
+        <p>Time remaining: <span id="timer"></span></p>
+        <br>
+        <a href="/login.html">Login Page</a>
+
+    </div>
+
+    <script>
+        window.frappe = {};
+        frappe.ready_events = [];
+        frappe.ready = function(fn) {
+            frappe.ready_events.push(fn);
+        }
+        window.dev_server = {{ dev_server }};
+        window.socketio_port = {{ (frappe.socketio_port or 9000) }};
+        window.show_language_picker = {{ show_language_picker or 'false' }};
+    </script>
+    
+    {% block base_scripts %}
+    <!-- js should be loaded in body! -->
+    <script>
+        frappe.boot = {{ boot }}
+        // for backward compatibility of some libs
+        frappe.sys_defaults = frappe.boot.sysdefaults;
+    </script>
+    {{ include_script('frappe-web.bundle.js') }}
+    {% endblock %}
+     
+    {%- for link in web_include_js %}
+    {{ include_script(link) }}
+    {%- endfor -%}
+     
+    {%- block script %}
+        {% if colocated_js -%}
+            <script>{{ colocated_js }}</script>
+        {%- endif %}
+    {%- endblock %}
+    <!-- csrf_token -->
+    {%- block body_include %}{{ body_include or "" }}{% endblock -%}
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const userMobile = urlParams.get('user_mobile');
+        document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userMobile = urlParams.get('user_mobile');
+            console.log('User Mobile:', userMobile);
+
+            const verifyButton = document.getElementById('verifyButton');
+
+            document.getElementById('otpForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                const enteredOTP = document.getElementById('otp').value;
+
+                // Add loading state to the button
+                startLoadingState(verifyButton);
+
+                // Call a function to verify the OTP (you need to implement this function)
+                verifyOTP(userMobile, enteredOTP, verifyButton);
+            });
+            startOrResumeTimer();
+        });
+
+        function startLoadingState(button) {
+            // Change the button text and disable it during loading
+            button.classList.add('loading');
+            button.innerText = 'Verifying...';
+            button.disabled = true;
+        }
+
+        function endLoadingState(button) {
+            // Revert the button text and enable it after loading
+            button.classList.remove('loading');
+            button.innerText = 'Verify';
+            button.disabled = false;
+        }
+
+
+        function resendOTP() {
+            // Show the loading spinner and hide the text
+            document.getElementById('resendText').style.display = 'none';
+            document.getElementById('resendSpinner').style.display = 'inline-block';
+        
+            // Assuming you have a function to send a new OTP to the user's mobile
+            frappe.call({
+                method: "frappe.www.login.send_mobile_otp",
+                args: {
+                    mobile: userMobile,
+                },
+                callback: function (response) {
+                    // Hide the loading spinner and show the text
+                    document.getElementById('resendText').style.display = 'inline-block';
+                    document.getElementById('resendSpinner').style.display = 'none';
+        
+                    if (response.message.status === "success") {
+                        localStorage.clear();
+                        preventReload();
+                        startOrResumeTimer();
+                        // OTP sent successfully, update the timer and notify the user
+                        frappe.msgprint(response.message.status, __("OTP Resent"));
+                    } else {
+                        // Failed to send OTP, display an error message
+                        frappe.msgprint(response.message.message, __("Failed to Resend OTP"));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Hide the loading spinner and show the text in case of an error
+                    document.getElementById('resendText').style.display = 'inline-block';
+                    document.getElementById('resendSpinner').style.display = 'none';
+        
+                    // Handle AJAX error while resending OTP
+                    console.error("AJAX Error:", status, error);
+                },
+            });
+        }
+        
+        
+
+        function verifyOTP(userMobile, enteredOTP, verifyButton) {
+            // Add loading state to the button
+            startLoadingState(verifyButton);
+        
+            frappe.call({
+                method: "frappe.www.login.verify_mobile_otp",
+                args: {
+                    mobile: userMobile,
+                    entered_otp: enteredOTP,
+                },
+                callback: function (response) {
+                    // Remove loading state from the button
+                    endLoadingState(verifyButton);
+        
+                    if (response.message.status === "success") {
+                        // Display a loading spinner during the redirection
+                        showLoadingSpinner();
+        
+                        frappe.msgprint(("Login successful. Welcome, Please Wait...."));
+        
+                        // OTP verified successfully, proceed with mobile verification or login
+                        setTimeout(function () {
+                            window.location.href = "/desk";
+                        }, 2000); // Add a delay for the spinner to be visible, adjust as needed
+        
+                        // Clear local storage and implement your logic
+                        localStorage.clear();
+                    } else {
+                        // OTP verification failed, display an error message
+                        frappe.msgprint(response.message.message, __("Verification Failed"));
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Remove loading state from the button in case of an error
+                    endLoadingState(verifyButton);
+        
+                    // Handle AJAX error
+                    console.error("AJAX Error:", status, error);
+                },
+            });
+        }
+        
+        function showLoadingSpinner() {
+            // Display your loading spinner here
+            // For example, you can add a class to an element that contains the spinner
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'block';
+            }
+        }
+
+
+
+
+        function deleteOTP(userMobile) {
+            frappe.call({
+                method: "frappe.www.login.delete_mobile_otp",
+                args: {
+                    mobile: userMobile,
+                },
+                callback: function (response) {
+                    // Handle the response after deleting the OTP (if needed)
+                    console.log("OTP deleted successfully");
+                },
+                error: function (xhr, status, error) {
+                    // Handle error while deleting OTP (if needed)
+                    console.error("Error deleting OTP:", status, error);
+                },
+            });
+        }
+
+
+        // Set the timer duration in seconds
+        const timerDuration = 5 * 60;
+
+        // Function to update the timer display
+        function updateTimerDisplay(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            document.getElementById('timer').innerText = `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
+
+        
+
+
+        function preventReload() {
+            window.onbeforeunload = function() {
+                // Clear the timer value in local storage
+                localStorage.removeItem('timerValue');
+                return "Reloading the page will reset the timer.";
+            };
+        }
+        // Function to start or resume the timer
+        // Function to start or resume the timer
+function startOrResumeTimer() {
+    let secondsRemaining;
+
+    // Clear any existing timers
+    clearInterval(window.timerInterval);
+
+    // Check if there's a stored timer value
+    const storedTimerValue = localStorage.getItem('timerValue');
+
+    if (storedTimerValue !== null) {
+        secondsRemaining = parseInt(storedTimerValue);
+
+        if (secondsRemaining <= 0) {
+            // If the timer has already expired, prevent reload
+            preventReload();
+        }
+    } else {
+        // If no stored value, set the initial timer duration
+        secondsRemaining = timerDuration;
+    }
+
+    // Start a new timer
+    window.timerInterval = setInterval(function () {
+        updateTimerDisplay(secondsRemaining);
+
+        if (secondsRemaining <= 0) {
+            clearInterval(window.timerInterval);
+            localStorage.clear();
+            preventReload();
+        } else {
+            secondsRemaining--;
+            localStorage.setItem('timerValue', secondsRemaining.toString());
+        }
+    }, 1000);
+}
+
+
+        // Trigger the timer on page load
+        window.onload = startOrResumeTimer;
+    </script>
+</body>
+</html>
+{% endblock %}

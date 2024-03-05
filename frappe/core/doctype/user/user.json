@@ -9,6 +9,8 @@
  "field_order": [
   "user_details_tab",
   "enabled",
+  "otp_secret",
+  "otp_created_time",
   "section_break_3",
   "email",
   "first_name",
@@ -700,6 +702,16 @@
    "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Onboarding Status"
+  },
+  {
+   "fieldname": "otp_secret",
+   "fieldtype": "Data",
+   "label": "Otp Secret"
+  },
+  {
+   "fieldname": "otp_created_time",
+   "fieldtype": "Datetime",
+   "label": "Otp Created Time"
   }
  ],
  "icon": "fa fa-user",
@@ -762,7 +774,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2023-09-18 22:19:49.933972",
+ "modified": "2024-03-05 13:01:18.978850",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

@@ -1,12 +1,21 @@
 {% extends "templates/web.html" %}
 
 {% macro email_login_body() -%}
-{% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
-<div class="page-card-body">
+{% if allow_login_using_mobile_number %}
+<div class="mobile">
+	<div class="form-group">
+		<input type="text" id="mobile" name="mobile" placeholder="{{ _("Enter Your Mobile Number") }}" >
+	</div>
+	<p class="forgot-password-message">
+		<a href="#forgot">{{ _("Forgot Password?") }}</a>
+	</p>
+</div>
+
+<div class="new">
 	<div class="form-group">
 		<label class="form-label sr-only" for="login_email">{{ login_label or _("Email")}}</label>
 		<div class="email-field">
-			<input type="text" id="login_email" class="form-control"
+			<input type="text" id="login_email" 
 				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('jane@example.com') }}{% endif %}"
 				required autofocus autocomplete="username">
 
@@ -20,7 +29,46 @@
 	<div class="form-group">
 		<label class="form-label sr-only" for="login_password">{{ _("Password") }}</label>
 		<div class="password-field">
-			<input type="password" id="login_password" class="form-control" placeholder="•••••"
+			<input type="password" id="login_password"  placeholder="•••••"
+				autocomplete="current-password" required>
+
+			<svg class="field-icon password-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+				xmlns="http://www.w3.org/2000/svg">
+					<use class="es-lock" href="#es-line-lock"></use>
+			</svg>
+			<span toggle="#login_password" class="toggle-password text-muted">{{ _('Show') }}</span>
+		</div>
+	</div>
+
+	<p class="forgot-password-message">
+		<a href="#forgot">{{ _("Forgot Password?") }}</a>
+	</p>
+</div>
+<div class="form-group">
+    <input type="checkbox" id="login_with_mobile_checkbox" name="login_with_mobile_checkbox">
+    {{ _("Login with Username and Password") }}
+</div>
+{% elif not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
+
+<div class="page-card-body">
+	<div class="form-group">
+		<label class="form-label sr-only" for="login_email">{{ login_label or _("Email")}}</label>
+		<div class="email-field">
+			<input type="text" id="login_email" 
+				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('jane@example.com') }}{% endif %}"
+				required autofocus autocomplete="username">
+
+			<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
+				xmlns="http://www.w3.org/2000/svg">
+				<use class="es-lock" href="#es-line-email"></use>
+			</svg>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<label class="form-label sr-only" for="login_password">{{ _("Password") }}</label>
+		<div class="password-field">
+			<input type="password" id="login_password"  placeholder="•••••"
 				autocomplete="current-password" required>
 
 			<svg class="field-icon password-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
@@ -37,14 +85,20 @@
 </div>
 {% endif %}
 <div class="page-card-actions">
-	{% if not disable_user_pass_login %}
-	<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
-		{{ _("Login") }}</button>
-	{% endif %}
-	{% if ldap_settings and ldap_settings.enabled %}
-	<button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
-		{{ _("Login with LDAP") }}</button>
-	{% endif %}
+	{% if allow_login_using_mobile_number %}
+        <button class="btn btn-sm btn-primary btn-block btn-login-mobile">
+            {{ _("Login with Mobile") }}
+        </button>
+		<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
+            {{ _("Login") }}</button>
+    {% elif not disable_user_pass_login %}
+        <button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
+            {{ _("Login") }}</button>
+    {% endif %}
+    {% if ldap_settings and ldap_settings.enabled %}
+        <button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
+            {{ _("Login with LDAP") }}</button>
+    {% endif %}
 </div>
 {% endmacro %}
 
@@ -61,10 +115,202 @@
 	<h4>{{ _('Login to {0}').format(app_name or _("Frappe")) }}</h4>
 	{% endif %}
 </div>
+<script>
+	document.addEventListener("DOMContentLoaded", function() {
+		var loginCheckbox = document.getElementById('login_with_mobile_checkbox');
+		var newDiv = document.querySelector('.new');
+		var mobileDiv = document.querySelector('.mobile');
+		var mobilebuttonDiv = document.querySelector('.btn-login-mobile');
+		var loginbutton = document.querySelector('.btn-login');
+
+		 //Show the mobile div and hide the new div by default
+		newDiv.style.display = 'none';
+		mobileDiv.style.display = 'block';
+		mobilebuttonDiv.style.display = 'block';
+		loginbutton.style.display = 'none';
+
+		// Add an event listener to the checkbox
+		loginCheckbox.addEventListener('change', function() {
+			// If the checkbox is checked, hide the mobile div and show the new div, otherwise show the mobile div and hide the new div
+			mobileDiv.style.display = this.checked ? 'none' : 'block';
+			newDiv.style.display = this.checked ? 'block' : 'none';
+			mobilebuttonDiv.style.display = this.checked ? 'none' : 'block';
+			loginbutton.style.display = this.checked ? 'block' : 'none';
+		});
+	});
+</script>
+
 {% endmacro %}
 
 {% block page_content %}
 <!-- {{ for_test }} -->
+
+<style>
+	body {
+		background-size: cover;
+		background-repeat: no-repeat;
+		background-attachment: fixed;
+		font-family: "Open Sans", sans-serif;
+	  }
+	  
+	  .box-form {
+		margin: 0 auto;
+		width: 90%;
+		background: #FFFFFF;
+		border-radius: 10px;
+		overflow: hidden;
+		display: flex;
+		flex: 1 1 100%;
+		align-items: stretch;
+		justify-content: space-between;
+	  }
+	  @media (max-width: 980px) {
+		.box-form {
+		  flex-flow: wrap;
+		  text-align: center;
+		  align-content: center;
+		  align-items: center;
+		}
+	  }
+	  .box-form div {
+		height: auto;
+	  }
+	  .box-form .left {
+		color: #FFFFFF;
+		background-size: cover;
+		background-repeat: no-repeat;
+	  }
+	  .box-form .left .overlay {
+		padding: 30px;
+		width: 100%;
+		height: 100%;
+		background: #5961f9ad;
+		overflow: hidden;
+		box-sizing: border-box;
+	  }
+	  .box-form .left .overlay h1 {
+		font-size: 10vmax;
+		line-height: 1;
+		font-weight: 900;
+		margin-top: 40px;
+		margin-bottom: 20px;
+	  }
+	  .box-form .left .overlay span p {
+		margin-top: 30px;
+		font-weight: 900;
+	  }
+	  .box-form .left .overlay span a {
+		background: #3b5998;
+		color: #FFFFFF;
+		margin-top: 10px;
+		padding: 14px 50px;
+		border-radius: 100px;
+		display: inline-block;
+		box-shadow: 0 3px 6px 1px #042d4657;
+	  }
+	  .box-form .left .overlay span a:last-child {
+		background: #1dcaff;
+		margin-left: 30px;
+	  }
+	  .box-form .right {
+		padding: 10px;
+		overflow: hidden;
+	  }
+	  @media (max-width: 980px) {
+		.box-form .right {
+		  width: 100%;
+		}
+	  }
+	  .box-form .right h5 {
+		font-size: 6vmax;
+		line-height: 0;
+	  }
+	  .box-form .right p {
+		font-size: 14px;
+		color: #B0B3B9;
+	  }
+	  .box-form .right .inputs {
+		overflow: hidden;
+	  }
+	  .box-form .right input {
+		width: 100%;
+		padding: 0px;
+		margin-top: 5px;
+		font-size: 16px;
+		border: none;
+		outline: none;
+		border-bottom: 2px solid #B0B3B9;
+	  }
+	  .box-form .right .remember-me--forget-password {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	  }
+	  .box-form .right .remember-me--forget-password input {
+		margin: 0;
+		margin-right: 7px;
+		width: auto;
+	  }
+	  .box-form .right {
+		padding: 40px;
+		overflow: hidden;
+		width: 50%; /* Adjust the width as per your requirement */
+	  }
+	  .box-form .right button {
+		float: right;
+		color: #fff;
+		font-size: 16px;
+		padding: 12px 35px;
+		border-radius: 50px;
+		display: inline-block;
+		border: 0;
+		outline: 0;
+		box-shadow: 0px 4px 20px 0px #49c628a6;
+		background-image: linear-gradient(135deg, #70F570 10%, #49C628 100%);
+	  }
+	  
+	  label {
+		display: block;
+		position: relative;
+		margin-left: 30px;
+	  }
+	  
+	  label::before {
+		content: ' \f00c';
+		position: absolute;
+		font-family: FontAwesome;
+		background: transparent;
+		border: 3px solid #70F570;
+		border-radius: 4px;
+		color: transparent;
+		left: -30px;
+		transition: all 0.2s linear;
+	  }
+	  
+	  label:hover::before {
+		font-family: FontAwesome;
+		content: ' \f00c';
+		color: #fff;
+		cursor: pointer;
+		background: #70F570;
+	  }
+	  
+	  label:hover::before .text-checkbox {
+		background: #70F570;
+	  }
+	  
+	  label span.text-checkbox {
+		display: inline-block;
+		height: auto;
+		position: relative;
+		cursor: pointer;
+		transition: all 0.2s linear;
+	  }
+	  
+	  label input[type="checkbox"] {
+		display: none;
+	  }
+</style>
 <div>
 	<noscript>
 		<div class="text-center my-5">
@@ -74,13 +320,29 @@
 		</div>
 	</noscript>
 	<section class='for-login'>
-		{{ logo_section() }}
-		<div class="login-content page-card">
+		<!-- {{ logo_section() }} -->
+		<div class="box-form">
+			<div class="left">
+
+				
+				<img style="height: 100%;" src="{{ login_image_url }}">
+				
+			</div>
+			<!-- <div class="left">
+				
+			</div> -->
+			<div class="right">
 			<form class="form-signin form-login" role="form">
+				{{ logo_section() }}
 				{%- if social_login or login_with_email_link -%}
+				
 				<div class="page-card-body">
+					
 					<form class="form-signin form-login" role="form">
+						
+						<div class="inputs">
 						{{ email_login_body() }}
+					</div>
 					</form>
 					<div class="social-logins text-center">
 						{% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
@@ -113,6 +375,7 @@
 					{{ email_login_body() }}
 				{%- endif -%}
 			</form>
+		</div>
 		</div>
 		{%- if not disable_signup and not disable_user_pass_login -%}
 		<div class="text-center sign-up-message">
@@ -160,7 +423,7 @@
 			<form class="form-signin form-forgot hide" role="form">
 				<div class="page-card-body">
 					<div class="email-field">
-						<input type="email" id="forgot_email" class="form-control"
+						<input type="email" id="forgot_email" 
 							placeholder="{{ _('Email Address') }}" required autofocus autocomplete="username">
 						<svg class="field-icon email-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
 							xmlns="http://www.w3.org/2000/svg">
@@ -192,7 +455,7 @@
 			<form class="form-signin form-login-with-email-link hide" role="form">
 				<div class="page-card-body">
 					<div class="email-field">
-						<input type="email" id="login_with_email_link_email" class="form-control"
+						<input type="email" id="login_with_email_link_email" 
 							placeholder="{{ _('Email Address') }}" required autofocus autocomplete="username">
 						<svg class="field-icon email-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
 							xmlns="http://www.w3.org/2000/svg">

@@ -94,6 +94,8 @@ class User(Document):
 		mute_sounds: DF.Check
 		new_password: DF.Password | None
 		onboarding_status: DF.SmallText | None
+		otp_created_time: DF.Datetime | None
+		otp_secret: DF.Data | None
 		phone: DF.Data | None
 		redirect_url: DF.SmallText | None
 		reset_password_key: DF.Data | None

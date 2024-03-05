@@ -14,6 +14,7 @@
   "enable_onboarding",
   "setup_complete",
   "disable_document_sharing",
+  "login_using_mobile_number_with_otp",
   "date_and_number_format",
   "date_format",
   "time_format",
@@ -648,12 +649,18 @@
    "fieldtype": "Int",
    "label": "Link Field Results Limit",
    "non_negative": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "login_using_mobile_number_with_otp",
+   "fieldtype": "Check",
+   "label": "Login Using Mobile Number With OTP"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-01-26 11:29:20.924425",
+ "modified": "2024-03-05 12:22:00.325112",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
