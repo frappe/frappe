@@ -47,6 +47,7 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	get_fields() {
+		let me = this;
 		const fields = [
 			{
 				label: __("To"),
@@ -144,6 +145,17 @@ frappe.views.CommunicationComposer = class {
 				label: __("Select Print Format"),
 				fieldtype: "Select",
 				fieldname: "select_print_format",
+				onchange: function () {
+					me.guess_language();
+				},
+			},
+			{
+				label: __("Print Language"),
+				fieldtype: "Link",
+				options: "Language",
+				fieldname: "print_language",
+				default: frappe.boot.lang,
+				depends_on: "attach_document_print",
 			},
 			{ fieldtype: "Column Break" },
 			{
@@ -185,6 +197,19 @@ frappe.views.CommunicationComposer = class {
 		}
 
 		return fields;
+	}
+
+	guess_language() {
+		// when attach print for print format changes try to guess language
+		// if print format has language then set that else boot lang.
+		let lang = frappe.boot.lang;
+
+		let print_format = this.dialog.get_value("select_print_format");
+
+		if (print_format != "Standard") {
+			lang = frappe.get_doc("Print Format", print_format)?.default_print_language || lang;
+		}
+		this.dialog.set_value("print_language", lang);
 	}
 
 	toggle_more_options(show_options) {
@@ -496,6 +521,7 @@ frappe.views.CommunicationComposer = class {
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}
+		this.guess_language();
 	}
 
 	setup_attach() {
@@ -728,6 +754,7 @@ frappe.views.CommunicationComposer = class {
 				read_receipt: form_values.send_read_receipt,
 				print_letterhead: me.is_print_letterhead_checked(),
 				send_after: form_values.send_after ? form_values.send_after : null,
+				print_language: form_values.print_language,
 			},
 			btn,
 			callback(r) {

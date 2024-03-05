@@ -16,7 +16,7 @@ class NetworkPrinterSettings(Document):
 		from frappe.types import DF
 
 		port: DF.Int
-		printer_name: DF.Literal
+		printer_name: DF.Literal[None]
 		server_ip: DF.Data
 
 	# end: auto-generated types
