@@ -456,8 +456,6 @@ class User(Document):
 		# delete user permissions
 		frappe.db.delete("User Permission", {"user": self.name})
 
-<<<<<<< HEAD
-=======
 		# Delete OAuth data
 		frappe.db.delete("OAuth Authorization Code", {"user": self.name})
 		frappe.db.delete("Token Cache", {"user": self.name})
@@ -465,16 +463,12 @@ class User(Document):
 		# Delete EPS data
 		frappe.db.delete("Energy Point Log", {"user": self.name})
 
-<<<<<<< HEAD
->>>>>>> 072c2a1ca3 (fix: Delete EPS logs before deleting user)
-=======
 		# Ask user to disable instead if document is still linked
 		try:
 			check_if_doc_is_linked(self)
 		except frappe.LinkExistsError:
 			frappe.throw(_("You can disable the user instead of deleting it."), frappe.LinkExistsError)
 
->>>>>>> 081be53e17 (fix(UX): Nudge to disable user instead of deleting)
 	def before_rename(self, old_name, new_name, merge=False):
 		frappe.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)
