@@ -35,11 +35,6 @@ export default class BulkOperations {
 			return;
 		}
 
-		if (valid_docs.length > 50) {
-			frappe.msgprint(__("You can only print upto 50 documents at a time"));
-			return;
-		}
-
 		const dialog = new frappe.ui.Dialog({
 			title: __("Print Documents"),
 			fields: [
@@ -102,28 +97,25 @@ export default class BulkOperations {
 				pdf_options = JSON.stringify({ "page-size": args.page_size });
 			}
 
-			const w = window.open(
-				"/api/method/frappe.utils.print_format.download_multi_pdf?" +
-					"doctype=" +
-					encodeURIComponent(this.doctype) +
-					"&name=" +
-					encodeURIComponent(json_string) +
-					"&format=" +
-					encodeURIComponent(print_format) +
-					"&no_letterhead=" +
-					(with_letterhead ? "0" : "1") +
-					"&letterhead=" +
-					encodeURIComponent(letterhead) +
-					"&options=" +
-					encodeURIComponent(pdf_options)
-			);
+			const task_id = Math.random().toString(36).slice(-5);
+			frappe.realtime.task_subscribe(task_id);
+			frappe.realtime.on(`task_progress:${task_id}`, (data) => {
+				frappe.msgprint(
+					`Please click <a href=${data.file_url}>here</a> to download the PDF`
+				);
+			});
 
-			if (!w) {
-				frappe.msgprint(__("Please enable pop-ups"));
-				return;
-			}
+			frappe.call("frappe.utils.print_format.download_multi_pdf", {
+				doctype: this.doctype,
+				name: json_string,
+				format: print_format,
+				no_letterhead: with_letterhead ? "0" : "1",
+				letterhead: letterhead,
+				options: pdf_options,
+				task_id: task_id,
+			});
+			dialog.hide();
 		});
-
 		dialog.show();
 	}
 
