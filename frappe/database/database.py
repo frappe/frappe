@@ -95,8 +95,12 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
-	# self.db_type: str
-	# self.last_query (lazy) attribute of last sql query executed
+		# Setting this to true will disable full rollback and commit
+		# You can still use savepoint with partial rollback.
+		self.disable_transaction_control = False
+
+		# self.db_type: str
+		# self.last_query (lazy) attribute of last sql query executed
 
 	def setup_type_map(self):
 		pass
@@ -1028,6 +1032,10 @@ class Database:
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
+		if self.disable_transaction_control:
+			self.logger.error("Commit issued during disabled transaction state ignored")
+			return
+
 		self.before_rollback.reset()
 		self.after_rollback.reset()
 
@@ -1042,7 +1050,7 @@ class Database:
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
-		else:
+		elif not self.disable_transaction_control:
 			self.before_commit.reset()
 			self.after_commit.reset()
 
@@ -1052,6 +1060,8 @@ class Database:
 			self.begin()
 
 			self.after_rollback.run()
+		else:
+			self.logger.error("Rollback issued during disabled transaction state ignored")
 
 	def savepoint(self, save_point):
 		"""Savepoints work as a nested transaction.

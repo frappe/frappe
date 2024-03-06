@@ -1300,7 +1300,11 @@ class Document(BaseDocument):
 			def runner(self, method, *args, **kwargs):
 				add_to_return_value(self, fn(self, *args, **kwargs))
 				for f in hooks:
-					add_to_return_value(self, f(self, method, *args, **kwargs))
+					try:
+						frappe.db.disable_transaction_control = True
+						add_to_return_value(self, f(self, method, *args, **kwargs))
+					finally:
+						frappe.db.disable_transaction_control = False
 
 				return self.__dict__.pop("_return_value", None)
 
