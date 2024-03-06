@@ -409,7 +409,7 @@ def decode_file_content(content: bytes) -> bytes:
 	return safe_b64decode(content)
 
 
-def find_file_by_url(path: str, name: str = None) -> Optional["File"]:
+def find_file_by_url(path: str, name: str | None = None) -> Optional["File"]:
 	filters = {"file_url": str(path)}
 	if name:
 		filters["name"] = str(name)
