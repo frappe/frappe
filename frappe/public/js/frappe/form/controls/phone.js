@@ -1,3 +1,4 @@
+import localforage from "localforage";
 import PhonePicker from "../../phone_picker/phone_picker";
 
 frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlData {
