@@ -37,13 +37,18 @@ def make_test_doc(ignore_permissions=False):
 
 
 @contextmanager
-def make_test_image_file():
+def make_test_image_file(private=False):
 	file_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
 	with open(file_path, "rb") as f:
 		file_content = f.read()
 
 	test_file = frappe.get_doc(
-		{"doctype": "File", "file_name": "sample_image_for_optimization.jpg", "content": file_content}
+		{
+			"doctype": "File",
+			"file_name": "sample_image_for_optimization.jpg",
+			"content": file_content,
+			"is_private": private,
+		}
 	).insert()
 	# remove those flags
 	_test_file: "File" = frappe.get_doc("File", test_file.name)
