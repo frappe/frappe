@@ -1,20 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-<<<<<<< HEAD
-=======
 import base64
 import contextlib
->>>>>>> 718b5b8bee (fix: Private images in PDFs from background jobs (#24980))
 import io
 import mimetypes
 import os
 import re
 import subprocess
-<<<<<<< HEAD
 from distutils.version import LooseVersion
-=======
 from urllib.parse import parse_qs, urlparse
->>>>>>> 718b5b8bee (fix: Private images in PDFs from background jobs (#24980))
 
 import pdfkit
 from bs4 import BeautifulSoup
