@@ -41,6 +41,7 @@ def run_all(skip_failing=False):
 				raise
 			else:
 				log("Failed to execute patch")
+				print(frappe.get_traceback())
 
 	for patch in get_all_patches():
 		if patch and (patch not in executed):
