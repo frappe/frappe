@@ -1623,7 +1623,9 @@ def validate_fields(meta: Meta):
 		doctype = link_df[0].options
 		fetch_from_doctype = frappe.get_meta(doctype)
 
-		if not fetch_from_doctype.get_field(source_fieldname):
+		if not frappe.db.has_column(doctype, source_fieldname) and not fetch_from_doctype.get_field(
+			source_fieldname
+		):
 			frappe.throw(
 				_("Fetch From for field {0} is invalid: {1} does not have a field {2}").format(
 					frappe.bold(fieldname), frappe.bold(doctype), frappe.bold(source_fieldname)
