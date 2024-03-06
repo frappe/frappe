@@ -552,6 +552,9 @@ class User(Document):
 		frappe.db.delete("OAuth Authorization Code", {"user": self.name})
 		frappe.db.delete("Token Cache", {"user": self.name})
 
+		# Delete EPS data
+		frappe.db.delete("Energy Point Log", {"user": self.name})
+
 	def before_rename(self, old_name, new_name, merge=False):
 		frappe.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)
