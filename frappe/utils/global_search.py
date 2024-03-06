@@ -461,7 +461,9 @@ def search(text, start=0, limit=20, doctype=""):
 	results = []
 	sorted_results = []
 
-	allowed_doctypes = get_doctypes_for_global_search()
+	allowed_doctypes = set(get_doctypes_for_global_search()) & set(frappe.get_user().get_can_read())
+	if not allowed_doctypes or (doctype and doctype not in allowed_doctypes):
+		return []
 
 	for text in set(text.split("&")):
 		text = text.strip()
@@ -479,7 +481,7 @@ def search(text, start=0, limit=20, doctype=""):
 
 		if doctype:
 			query = query.where(global_search.doctype == doctype)
-		elif allowed_doctypes:
+		else:
 			query = query.where(global_search.doctype.isin(allowed_doctypes))
 
 		if cint(start) > 0:
