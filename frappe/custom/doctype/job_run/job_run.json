@@ -1,0 +1,139 @@
+{
+ "actions": [],
+ "autoname": "auto_increment",
+ "creation": "2019-07-23 18:01:15.543100",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "method",
+  "ident",
+  "run_date",
+  "status",
+  "enqueued_at",
+  "queue_name",
+  "started",
+  "finished",
+  "error_log",
+  "retry_count",
+  "params",
+  "current_interval_index",
+  "next_retry_at",
+  "retriable"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "length": 300
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "label": "Method",
+   "length": 300
+  },
+  {
+   "fieldname": "ident",
+   "fieldtype": "Data",
+   "label": "Ident",
+   "length": 300
+  },
+  {
+   "fieldname": "run_date",
+   "fieldtype": "Date",
+   "label": "Run Date",
+   "search_index": 1
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status"
+  },
+  {
+   "fieldname": "enqueued_at",
+   "fieldtype": "Datetime",
+   "label": "Enqueued At"
+  },
+  {
+   "fieldname": "queue_name",
+   "fieldtype": "Data",
+   "label": "Queue Name"
+  },
+  {
+   "fieldname": "started",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Started"
+  },
+  {
+   "fieldname": "finished",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Finished"
+  },
+  {
+   "fieldname": "error_log",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Error Log",
+   "options": "Error Log"
+  },
+  {
+   "default": "0",
+   "fieldname": "retry_count",
+   "fieldtype": "Int",
+   "label": "Retry Count"
+  },
+  {
+   "fieldname": "params",
+   "fieldtype": "Long Text",
+   "label": "Params"
+  },
+  {
+   "fieldname": "current_interval_index",
+   "fieldtype": "Int",
+   "label": "Current Interval Index"
+  },
+  {
+   "fieldname": "next_retry_at",
+   "fieldtype": "Datetime",
+   "label": "Next Retry At"
+  },
+  {
+   "default": "0",
+   "fieldname": "retriable",
+   "fieldtype": "Check",
+   "label": "Retriable"
+  }
+ ],
+ "links": [],
+ "modified": "2024-01-22 13:26:36.879147",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Job Run",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

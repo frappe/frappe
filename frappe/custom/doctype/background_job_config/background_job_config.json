@@ -1,0 +1,99 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "Prompt",
+ "creation": "2021-07-01 15:01:04.255838",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "job_name",
+  "queue",
+  "column_break_3",
+  "priority",
+  "job_disabled",
+  "on_kafka",
+  "monitor",
+  "max_retries",
+  "retry_intervals"
+ ],
+ "fields": [
+  {
+   "fieldname": "job_name",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Job Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "queue",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Queue"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "label": "Priority"
+  },
+  {
+   "default": "0",
+   "fieldname": "job_disabled",
+   "fieldtype": "Check",
+   "label": "Job Disabled"
+  },
+  {
+   "default": "0",
+   "description": "Run the job on kafka worker.",
+   "fieldname": "on_kafka",
+   "fieldtype": "Check",
+   "label": "Run On Kafka"
+  },
+  {
+   "default": "0",
+   "fieldname": "monitor",
+   "fieldtype": "Check",
+   "label": "Monitor"
+  },
+  {
+   "default": "0",
+   "fieldname": "max_retries",
+   "fieldtype": "Int",
+   "label": "Max Retries"
+  },
+  {
+   "description": "Enter comma separated intervals, in minutes.\\nEx. 1,2,3,5,8\\nSpecified job will be retried after 1 minute, then 2 minutes then 3 and so on.\\nOnce we reach the end of retry interval series, job will be retried after 8 minutes interval ( last value in series ) until we reach max retry value.",
+   "fieldname": "retry_intervals",
+   "fieldtype": "Data",
+   "label": "Retry Interval"
+  }
+ ],
+ "links": [],
+ "modified": "2024-01-19 17:21:05.951756",
+ "modified_by": "Administrator",
+ "module": "Custom",
+ "name": "Background Job Config",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

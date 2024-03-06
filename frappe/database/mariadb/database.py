@@ -7,6 +7,7 @@ from pymysql.converters import conversions, escape_string
 
 import frappe
 from frappe.database.database import Database
+import sqlalchemy.pool as pool
 from frappe.database.mariadb.schema import MariaDBTable
 from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name
 
@@ -97,10 +98,23 @@ class MariaDBExceptionUtil:
 			and isinstance(e, pymysql.IntegrityError)
 		)
 
-
 class MariaDBConnectionUtil:
+	_pool = None
+
+	def get_pool(self):
+		if not (conn_pool := MariaDBConnectionUtil._pool):
+			MariaDBConnectionUtil._pool = conn_pool = pool.QueuePool(
+				lambda *_:self._get_connection(),
+				max_overflow=10,
+				pool_size=200,
+				use_lifo=True,
+			)
+
+		return conn_pool
+
 	def get_connection(self):
-		conn = self._get_connection()
+		# conn = self._get_connection()
+		conn = self.get_pool().connect()
 		conn.auto_reconnect = True
 		return conn
 

@@ -1,3 +1,4 @@
+import os
 import sys
 
 import click
@@ -254,8 +255,47 @@ def ready_for_migration(context, site=None):
 	finally:
 		frappe.destroy()
 
+@click.command("gevent-worker")
+@click.option("--queue",type=str)
+@click.option('--noreload', 'no_reload',is_flag=True, default=False)
+@click.option("--quiet", is_flag=True, default=False, help="Hide Log Outputs")
+def gevent_worker(
+	queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None, no_reload=False
+):
+	"""Start a backgrond worker"""
+	if not queue:
+		raise Exception('Cannot run worker without queue')
+	start_gevent_background_worker(queue, quiet)
+
+
+def get_env(overrides):
+	env = os.environ.copy()
+	env.pop('DEV_SERVER', None)
+	env.update(overrides)
+	return env
+
+def start_gevent_background_worker(queue, quiet):
+	python_path = os.path.abspath('../env/bin/python')
+	print('Starting gevent background worker for', queue)
+	os.execve(python_path, [
+		python_path,
+		'-u',
+		'-c',
+		'\n'.join(line.strip() for line in f'''
+			from gevent import monkey
+			monkey.patch_all()
+			from frappe.utils.gevent_background.gevent_worker import start
+			start(queues="{queue}")
+		'''.split('\n'))
+	], get_env({
+		'GEVENT_RESOLVER': 'ares',
+		'PATCH_WERKZEUG_LOCAL': 'YES',
+		'IN_MEMORY_INVALIDATION': 'YES',
+	}))
+
 
 commands = [
+	gevent_worker,
 	disable_scheduler,
 	doctor,
 	enable_scheduler,
