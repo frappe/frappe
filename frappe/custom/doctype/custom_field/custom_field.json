@@ -361,7 +361,7 @@
    "label": "Ignore XSS Filter"
   },
   {
-   "default": "1",
+   "default": "0",
    "depends_on": "eval:['Data', 'Select', 'Text', 'Small Text', 'Text Editor'].includes(doc.fieldtype)",
    "fieldname": "translatable",
    "fieldtype": "Check",
@@ -457,7 +457,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-02-21 18:15:19.384933",
+ "modified": "2024-03-07 17:34:47.167183",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
