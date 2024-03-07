@@ -196,7 +196,14 @@ frappe.ui.SortSelector = class SortSelector {
 		}
 	}
 	get_sql_string() {
-		// build string like `tabTask`.`subject` desc
-		return "`tab" + this.doctype + "`.`" + this.sort_by + "` " + this.sort_order;
+		// build string like: `tabSales Invoice`.subject, `tabSales Invoice`.name desc
+		const table_name = "`tab" + this.doctype + "`";
+		const sort_by = `${table_name}.${this.sort_by}`;
+		if (this.sort_by !== "name") {
+			// add name column for deterministic ordering
+			return `${sort_by} ${this.sort_order}, ${table_name}.name`;
+		} else {
+			return `${sort_by} ${this.sort_order}`;
+		}
 	}
 };
