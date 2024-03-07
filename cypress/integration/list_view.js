@@ -13,7 +13,7 @@ context("List View", () => {
 	it("Keep checkbox checked after Refresh", { scrollBehavior: false }, () => {
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
-		cy.get(".list-header-subject > .list-subject > .list-check-all").click();
+		cy.get(".select-like > .list-check-all").click();
 		cy.get("button[data-original-title='Reload List']").click();
 		cy.get(".list-row-container .list-row-checkbox:checked").should("be.visible");
 	});
