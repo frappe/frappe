@@ -26,7 +26,7 @@
 						id="navbar-search"
 						type="text"
 						class="form-control"
-						placeholder="{%= __("Search or type a command (Ctrl + G)") %}"
+						placeholder="{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + G' : 'Ctrl + G']) %}"
 						aria-haspopup="true"
 					>
 					<span class="search-icon">
