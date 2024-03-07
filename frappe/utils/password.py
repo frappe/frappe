@@ -223,6 +223,10 @@ def decrypt(txt, encryption_key=None):
 			+ _(
 				"If you have recently restored the site you may need to copy the site config contaning original Encryption Key."
 			)
+			+ "<br>"
+			+ _(
+				"Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
+			),
 		)
 
 
