@@ -542,6 +542,9 @@ frappe.ui.Page = class Page {
 		} else {
 			shortcut_obj.shortcut_label = shortcut_obj.shortcut;
 		}
+
+		shortcut_obj.shortcut_label = shortcut_obj.shortcut_label.replace("Shift", "⇧");
+
 		// actual shortcut string
 		shortcut_obj.shortcut = shortcut_obj.shortcut.toLowerCase();
 		// action is button click
