@@ -100,6 +100,9 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 				if (frappe.utils.is_mac()) {
 					shortcut_label = shortcut_label.replace("Ctrl", "⌘").replace("Alt", "⌥");
 				}
+
+				shortcut_label = shortcut_label.replace("Shift", "⇧");
+
 				return `<tr>
 					<td width="40%"><kbd>${shortcut_label}</kbd></td>
 					<td width="60%">${shortcut.description || ""}</td>
