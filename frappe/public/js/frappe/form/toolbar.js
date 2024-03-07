@@ -441,48 +441,6 @@ frappe.ui.form.Toolbar = class Toolbar {
 			);
 		}
 
-<<<<<<< HEAD
-=======
-		this.page.add_menu_item(
-			__("Remind Me"),
-			() => {
-				let reminder_maanger = new ReminderManager({ frm: this.frm });
-				reminder_maanger.show();
-			},
-			true,
-			{
-				shortcut: "Shift+R",
-				condition: () => !this.frm.is_new(),
-			}
-		);
-		//
-		// Undo and redo
-		this.page.add_menu_item(
-			__("Undo"),
-			() => {
-				this.frm.undo_manager.undo();
-			},
-			true,
-			{
-				shortcut: "Ctrl+Z",
-				condition: () => !this.frm.is_form_builder(),
-				description: __("Undo last action"),
-			}
-		);
-		this.page.add_menu_item(
-			__("Redo"),
-			() => {
-				this.frm.undo_manager.redo();
-			},
-			true,
-			{
-				shortcut: "Ctrl+Y",
-				condition: () => !this.frm.is_form_builder(),
-				description: __("Redo last action"),
-			}
-		);
-
->>>>>>> 4e77e5f0c4 (fix: mac shortcuts)
 		this.make_customize_buttons();
 
 		// Auto Repeat
