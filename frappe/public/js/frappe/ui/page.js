@@ -536,7 +536,9 @@ frappe.ui.Page = class Page {
 		}
 		// label
 		if (frappe.utils.is_mac()) {
-			shortcut_obj.shortcut_label = shortcut_obj.shortcut.replace("Ctrl", "⌘");
+			shortcut_obj.shortcut_label = shortcut_obj.shortcut
+				.replace("Ctrl", "⌘")
+				.replace("Alt", "⌥");
 		} else {
 			shortcut_obj.shortcut_label = shortcut_obj.shortcut;
 		}
