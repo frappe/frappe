@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-03-05 16:42\n"
+"PO-Revision-Date: 2024-03-07 17:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -192,7 +192,7 @@ msgstr "&lt;head&gt; HTML"
 
 #: public/js/form_builder/store.js:206
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
-msgstr ""
+msgstr "'En Búsqueda Global' no está permitido para el campo {0} del tipo {1}"
 
 #: core/doctype/doctype/doctype.py:1303
 msgid "'In Global Search' not allowed for type {0} in row {1}"
@@ -200,7 +200,7 @@ msgstr "'En Búsqueda Global' no está permitido para el tipo {0} en la fila {1}
 
 #: public/js/form_builder/store.js:198
 msgid "'In List View' is not allowed for field {0} of type {1}"
-msgstr ""
+msgstr "'En vista de lista' no está permitido para el campo {0} del tipo {1}"
 
 #: custom/doctype/customize_form/customize_form.py:358
 msgid "'In List View' not allowed for type {0} in row {1}"
@@ -212,7 +212,7 @@ msgstr "'Destinatarios' no especificados"
 
 #: utils/__init__.py:240
 msgid "'{0}' is not a valid URL"
-msgstr ""
+msgstr "'{0}' no es una URL válida"
 
 #: core/doctype/doctype/doctype.py:1297
 msgid "'{0}' not allowed for type {1} in row {2}"
@@ -228,7 +228,7 @@ msgstr "** Fallido: {0} a {1}: {2}"
 
 #: public/js/frappe/views/kanban/kanban_settings.js:111
 msgid "+ Add / Remove Fields"
-msgstr ""
+msgstr "+ Añadir / Eliminar campos"
 
 #. Description of the 'Doc Status' (Select) field in DocType 'Workflow Document
 #. State'
@@ -245,7 +245,7 @@ msgstr "0 es más alto"
 
 #: public/js/frappe/form/grid_row.js:807
 msgid "1 = True & 0 = False"
-msgstr ""
+msgstr "1 = Verdadero y 0 = Falso"
 
 #. Description of the 'Fraction Units' (Int) field in DocType 'Currency'
 #: geo/doctype/currency/currency.json
@@ -345,11 +345,11 @@ msgstr "Hace 5 días"
 
 #: public/js/frappe/list/list_view.js:988
 msgid "99"
-msgstr ""
+msgstr "99"
 
 #: desk/doctype/bulk_update/bulk_update.py:37
 msgid "; not allowed in condition"
-msgstr "; no permitido en condiciones"
+msgstr "; no permitido en condición"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -373,7 +373,7 @@ msgstr "<b>{0}</b> no es una URL válida"
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
 msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
-msgstr "<div class=\"alert\">Por favor, no lo actualice, ya que puede estropear su formulario. Utilice la opción Personalizar Vista de Formulario y Campos Personalizados para establecer las propiedades.</div>"
+msgstr "<div class=\"alert\">Por favor, no lo actualice, ya que puede estropear su formulario. Utilice la opción Personalizar vista de formulario y campos personalizados para establecer las propiedades.</div>"
 
 #. Content of the 'Help HTML' (HTML) field in DocType 'Document Naming
 #. Settings'
@@ -1246,7 +1246,7 @@ msgstr "Agregar"
 
 #: public/js/frappe/form/grid_row.js:430
 msgid "Add / Remove Columns"
-msgstr ""
+msgstr "Añadir / Eliminar Columnas"
 
 #: core/doctype/user_permission/user_permission_list.js:4
 msgid "Add / Update"
@@ -1364,7 +1364,7 @@ msgstr ""
 
 #: public/js/frappe/form/grid.js:63
 msgid "Add Row"
-msgstr ""
+msgstr "Añadir Fila"
 
 #: public/js/frappe/views/communication.js:118
 msgid "Add Signature"
@@ -1430,11 +1430,11 @@ msgstr ""
 
 #: public/js/frappe/ui/filters/filter_list.js:296
 msgid "Add a Filter"
-msgstr ""
+msgstr "Añadir Filtro"
 
 #: core/page/permission_manager/permission_manager_help.html:9
 msgid "Add a New Role"
-msgstr ""
+msgstr "Agregar un Nuevo Rol"
 
 #: public/js/frappe/form/form_tour.js:205
 msgid "Add a Row"
@@ -1492,7 +1492,7 @@ msgstr ""
 
 #: public/js/frappe/views/kanban/kanban_column.html:20
 msgid "Add {0}"
-msgstr ""
+msgstr "Agregar {0}"
 
 #. Description of the '&lt;head&gt; HTML' (Code) field in DocType 'Website
 #. Settings'
@@ -5381,7 +5381,7 @@ msgstr "Limpiar Registros de Errores"
 
 #: public/js/frappe/ui/filters/filter_list.js:296
 msgid "Clear Filters"
-msgstr ""
+msgstr "Borrar Filtros"
 
 #. Label of a Int field in DocType 'Logs To Clear'
 #: core/doctype/logs_to_clear/logs_to_clear.json
@@ -6648,7 +6648,7 @@ msgstr "Copiado al portapapeles."
 
 #: public/js/frappe/form/templates/timeline_message_box.html:83
 msgid "Copy Link"
-msgstr ""
+msgstr "Copiar Enlace"
 
 #: public/js/frappe/request.js:615
 msgid "Copy error to clipboard"
@@ -7008,11 +7008,11 @@ msgstr ""
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "Ctrl + Down"
-msgstr ""
+msgstr "Ctrl + Abajo"
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "Ctrl + Up"
-msgstr ""
+msgstr "Ctrl + Arriba"
 
 #: templates/includes/comments/comments.html:32
 msgid "Ctrl+Enter to add comment"
@@ -7092,7 +7092,7 @@ msgstr ""
 
 #: public/js/frappe/form/workflow.js:45
 msgid "Current status"
-msgstr ""
+msgstr "Estado actual"
 
 #: public/js/frappe/form/form_viewers.js:5
 msgid "Currently Viewing"
@@ -7389,7 +7389,7 @@ msgstr ""
 
 #: custom/doctype/custom_field/custom_field.py:373
 msgid "Custom field renamed to {0} successfully."
-msgstr ""
+msgstr "Campo personalizado renombrado a {0} exitosamente."
 
 #: core/doctype/doctype/doctype_list.js:82
 msgid "Custom?"
@@ -8381,7 +8381,7 @@ msgstr ""
 
 #: public/js/frappe/form/grid.js:63
 msgid "Delete All"
-msgstr ""
+msgstr "Borrar Todo"
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
@@ -8397,7 +8397,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:858
 msgid "Delete and Generate New"
-msgstr ""
+msgstr "Eliminar y Generar Nuevo"
 
 #: public/js/frappe/form/footer/form_timeline.js:719
 msgid "Delete comment?"
@@ -10145,7 +10145,7 @@ msgstr "Plantilla dinámica"
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "ESC"
-msgstr ""
+msgstr "ESC"
 
 #. Description of the Onboarding Step 'Setup Naming Series'
 #: custom/onboarding_step/naming_series/naming_series.json
@@ -10249,7 +10249,7 @@ msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:44
 msgid "Edit Number Card"
-msgstr ""
+msgstr "Editar Tarjeta Numérica"
 
 #: public/js/frappe/widgets/widget_dialog.js:46
 msgid "Edit Onboarding"
@@ -12753,7 +12753,7 @@ msgstr "Los filtros serán accesibles a través de <code>filters</code>. <br><br
 
 #: public/js/frappe/views/reports/report_view.js:1355
 msgid "Filters:"
-msgstr ""
+msgstr "Filtros:"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:572
 msgid "Find '{0}' in ..."
@@ -20891,7 +20891,7 @@ msgstr "Sin Etiquetas"
 
 #: public/js/frappe/ui/notifications/notifications.js:428
 msgid "No Upcoming Events"
-msgstr ""
+msgstr "No hay próximos eventos"
 
 #: desk/page/user_profile/user_profile_controller.js:441
 msgid "No activities to show"
@@ -23058,7 +23058,7 @@ msgstr "Error de Permiso"
 #. Name of a DocType
 #: core/doctype/permission_inspector/permission_inspector.json
 msgid "Permission Inspector"
-msgstr ""
+msgstr "Supervisor de permisos"
 
 #: core/page/permission_manager/permission_manager.js:457
 msgid "Permission Level"
@@ -23072,7 +23072,7 @@ msgstr "Nivel de permisos"
 
 #: core/page/permission_manager/permission_manager_help.html:22
 msgid "Permission Levels"
-msgstr ""
+msgstr "Nivel de Permisos"
 
 #. Label of a shortcut in the Users Workspace
 #: core/workspace/users/users.json
@@ -25975,7 +25975,7 @@ msgstr "Recuérdemelo"
 
 #: public/js/frappe/form/reminders.js:13
 msgid "Remind Me In"
-msgstr ""
+msgstr "Recordármelo en"
 
 #. Name of a DocType
 #: automation/doctype/reminder/reminder.json
@@ -25994,7 +25994,7 @@ msgstr ""
 #: public/js/frappe/ui/filters/edit_filter.html:4
 #: public/js/frappe/ui/group_by/group_by.html:4
 msgid "Remove"
-msgstr ""
+msgstr "Eliminar"
 
 #: core/doctype/rq_job/rq_job_list.js:8
 msgid "Remove Failed Jobs"
@@ -28047,7 +28047,7 @@ msgstr "Buscar en un tipo de documento."
 
 #: public/js/frappe/ui/toolbar/navbar.html:29
 msgid "Search or type a command (Ctrl + G)"
-msgstr ""
+msgstr "Busque o escriba un comando (Ctrl + G)"
 
 #: templates/includes/search_box.html:8
 msgid "Search results for"
@@ -29333,7 +29333,7 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:33
 msgid "Setup > User Permissions"
-msgstr ""
+msgstr "Configurar > Permisos del Usuario"
 
 #. Title of an Onboarding Step
 #: custom/onboarding_step/workflows/workflows.json
@@ -32127,7 +32127,7 @@ msgstr ""
 
 #: public/js/frappe/ui/notifications/notifications.js:428
 msgid "There are no upcoming events for you."
-msgstr ""
+msgstr "No hay próximos eventos para usted."
 
 #: website/web_template/discussions/discussions.html:3
 msgid "There are no {0} for this {1}, why don't you start one!"
