@@ -131,6 +131,47 @@ async function execute() {
 	}
 }
 
+<<<<<<< HEAD
+=======
+async function update_assets_json_from_built_assets(apps) {
+	const assets = await get_assets_json_path_and_obj(false);
+	const assets_rtl = await get_assets_json_path_and_obj(true);
+
+	for (const app in apps) {
+		await update_assets_obj(app, assets.obj, assets_rtl.obj);
+	}
+
+	for (const { obj, path } of [assets, assets_rtl]) {
+		const data = JSON.stringify(obj, null, 4);
+		await fs.promises.writeFile(path, data);
+	}
+}
+
+async function update_assets_obj(app, assets, assets_rtl) {
+	const app_path = path.join(apps_path, app, app);
+	const dist_path = path.join(app_path, "public", "dist");
+	const files = await glob("**/*.bundle.*.{js,css}", { cwd: dist_path });
+	const prefix = path.join("/", "assets", app, "dist");
+
+	// eg: "js/marketplace.bundle.6SCSPSGQ.js"
+	for (const file of files) {
+		// eg: [ "marketplace", "bundle", "6SCSPSGQ", "js" ]
+		const parts = path.parse(file).base.split(".");
+
+		// eg: "marketplace.bundle.js"
+		const key = [...parts.slice(0, -2), parts.at(-1)].join(".");
+
+		// eg: "js/marketplace.bundle.6SCSPSGQ.js"
+		const value = path.join(prefix, file);
+		if (file.includes("-rtl")) {
+			assets_rtl[`rtl_${key}`] = value;
+		} else {
+			assets[key] = value;
+		}
+	}
+}
+
+>>>>>>> c38bbcba98 (fix: add missing dq)
 function build_assets_for_apps(apps, files) {
 	let { include_patterns, ignore_patterns } = files.length
 		? get_files_to_build(files)
