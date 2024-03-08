@@ -1343,12 +1343,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$result.on("change", "input[type=checkbox]", (e) => {
 			const $target = $(e.currentTarget);
 
-			if ($target.is(".list-header-subject .list-check-all")) {
+			if ($target.is(".select-like .list-check-all")) {
 				const $check = this.$result.find(".checkbox-actions .list-check-all");
 				$check.prop("checked", $target.prop("checked"));
 				$check.trigger("change");
 			} else if ($target.is(".checkbox-actions .list-check-all")) {
-				const $check = this.$result.find(".list-header-subject .list-check-all");
+				const $check = this.$result.find(".select-like .list-check-all");
 				$check.prop("checked", $target.prop("checked"));
 
 				this.$result.find(".list-row-checkbox").prop("checked", $target.prop("checked"));
@@ -1573,21 +1573,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	on_row_checked() {
 		this.$list_head_subject =
 			this.$list_head_subject || this.$result.find("header .list-header-subject");
+		this.$checkbox_container =
+			this.$checkbox_container || this.$result.find("header .select-like");
 		this.$checkbox_actions =
 			this.$checkbox_actions || this.$result.find("header .checkbox-actions");
 
 		this.$checks = this.$result.find(".list-row-checkbox:checked");
 
+		this.$checkbox_container.toggle(this.$checks.length === 0);
 		this.$list_head_subject.toggle(this.$checks.length === 0);
 		this.$checkbox_actions.toggle(this.$checks.length > 0);
 
 		if (this.$checks.length === 0) {
-			this.$list_head_subject.find(".list-check-all").prop("checked", false);
+			this.$checkbox_container.find(".list-check-all").prop("checked", false);
 		} else {
 			this.$checkbox_actions
 				.find(".list-header-meta")
 				.html(__("{0} items selected", [this.$checks.length]));
 			this.$checkbox_actions.show();
+			this.$checkbox_container.hide();
 			this.$list_head_subject.hide();
 		}
 		this.update_checkbox();
