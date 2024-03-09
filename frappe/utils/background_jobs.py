@@ -4,6 +4,7 @@ import socket
 import time
 from collections import defaultdict
 from collections.abc import Callable
+from datetime import datetime
 from functools import lru_cache
 from typing import Any, NoReturn
 from uuid import uuid4
@@ -62,6 +63,7 @@ def get_queues_timeout() -> dict[str, int]:
 def enqueue(
 	method: str | Callable,
 	queue: str = "default",
+	datetime: datetime | None = None,
 	timeout: int | None = None,
 	event: str | None = None,
 	is_async: bool = True,
@@ -81,6 +83,7 @@ def enqueue(
 
 	:param method: method string or method object
 	:param queue: should be either long, default or short
+	:param datetime: datetime at which the job should be executed
 	:param timeout: should be set according to the functions
 	:param event: this is passed to enable clearing of jobs from queues
 	:param is_async: if is_async=False, the method is executed immediately, else via a worker
@@ -154,17 +157,29 @@ def enqueue(
 	on_failure = on_failure or truncate_failed_registry
 
 	def enqueue_call():
-		return q.enqueue_call(
-			execute_job,
-			on_success=Callback(func=on_success) if on_success else None,
-			on_failure=Callback(func=on_failure) if on_failure else None,
-			timeout=timeout,
-			kwargs=queue_args,
-			at_front=at_front,
-			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
-			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
-			job_id=job_id,
-		)
+		if datetime is None or datetime < datetime.now():
+			return q.enqueue_call(
+				execute_job,
+				on_success=Callback(func=on_success) if on_success else None,
+				on_failure=Callback(func=on_failure) if on_failure else None,
+				timeout=timeout,
+				kwargs=queue_args,
+				at_front=at_front,
+				failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+				result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+				job_id=job_id,
+			)
+		else:
+			return q.enqueue_at(
+				datetime,
+				execute_job,
+				kwargs=queue_args,
+				on_success=Callback(func=on_success) if on_success else None,
+				on_failure=Callback(func=on_failure) if on_failure else None,
+				result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
+				failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
+				job_id=job_id,
+			)
 
 	if enqueue_after_commit:
 		frappe.db.after_commit.add(enqueue_call)
@@ -275,6 +290,7 @@ def start_worker(
 	rq_password: str | None = None,
 	burst: bool = False,
 	strategy: DequeueStrategy | None = DequeueStrategy.DEFAULT,
+	with_scheduler: bool = True,
 ) -> None:  # pragma: no cover
 	"""Wrapper to start rq worker. Connects to redis and monitors these queues."""
 
@@ -308,6 +324,7 @@ def start_worker(
 		date_format="%Y-%m-%d %H:%M:%S",
 		log_format="%(asctime)s,%(msecs)03d %(message)s",
 		dequeue_strategy=strategy,
+		with_scheduler=with_scheduler,
 	)
 
 

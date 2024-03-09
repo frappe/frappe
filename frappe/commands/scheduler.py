@@ -195,7 +195,16 @@ def start_scheduler():
 	type=click.Choice(["round_robin", "random"]),
 	help="Dequeuing strategy to use",
 )
-def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None):
+@click.option(
+	"-ws",
+	"--with-scheduler",
+	is_flag=True,
+	default=True,
+	help="If redis scheduler should be started. Default is True.",
+)
+def start_worker(
+	queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None, with_scheduler=True
+):
 	"""Start a background worker"""
 	from frappe.utils.background_jobs import start_worker
 
@@ -206,6 +215,7 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=F
 		rq_password=rq_password,
 		burst=burst,
 		strategy=strategy,
+		with_scheduler=with_scheduler,
 	)
 
 
