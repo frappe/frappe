@@ -609,7 +609,7 @@ class InboundMail(Email):
 		communication = self.is_exist_in_system()
 		if communication:
 			communication.update_db(uid=self.uid)
-			communication.update_db(email_account=self.email_account.email_account_name)  # IgorA100
+			communication.update_db(email_account=self.email_account.email_account_name)
 			communication.reload()
 			return communication
 
