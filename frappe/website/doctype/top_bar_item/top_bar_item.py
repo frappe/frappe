@@ -17,7 +17,7 @@ class TopBarItem(Document):
 		label: DF.Data
 		open_in_new_tab: DF.Check
 		parent: DF.Data
-		parent_label: DF.Literal
+		parent_label: DF.Literal[None]
 		parentfield: DF.Data
 		parenttype: DF.Data
 		right: DF.Check

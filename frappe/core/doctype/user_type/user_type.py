@@ -29,7 +29,7 @@ class UserType(Document):
 		role: DF.Link | None
 		select_doctypes: DF.Table[UserSelectDocumentType]
 		user_doctypes: DF.Table[UserDocumentType]
-		user_id_field: DF.Literal
+		user_id_field: DF.Literal[None]
 		user_type_modules: DF.Table[UserTypeModule]
 	# end: auto-generated types
 

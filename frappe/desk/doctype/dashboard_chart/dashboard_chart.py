@@ -335,8 +335,8 @@ class DashboardChart(Document):
 		from frappe.desk.doctype.dashboard_chart_field.dashboard_chart_field import DashboardChartField
 		from frappe.types import DF
 
-		aggregate_function_based_on: DF.Literal
-		based_on: DF.Literal
+		aggregate_function_based_on: DF.Literal[None]
+		based_on: DF.Literal[None]
 		chart_name: DF.Data
 		chart_type: DF.Literal["Count", "Sum", "Average", "Group By", "Custom", "Report"]
 		color: DF.Color | None
@@ -345,9 +345,9 @@ class DashboardChart(Document):
 		dynamic_filters_json: DF.Code | None
 		filters_json: DF.Code
 		from_date: DF.Date | None
-		group_by_based_on: DF.Literal
+		group_by_based_on: DF.Literal[None]
 		group_by_type: DF.Literal["Count", "Sum", "Average"]
-		heatmap_year: DF.Literal
+		heatmap_year: DF.Literal[None]
 		is_public: DF.Check
 		is_standard: DF.Check
 		last_synced_on: DF.Datetime | None
@@ -363,8 +363,8 @@ class DashboardChart(Document):
 		to_date: DF.Date | None
 		type: DF.Literal["Line", "Bar", "Percentage", "Pie", "Donut", "Heatmap"]
 		use_report_chart: DF.Check
-		value_based_on: DF.Literal
-		x_field: DF.Literal
+		value_based_on: DF.Literal[None]
+		x_field: DF.Literal[None]
 		y_axis: DF.Table[DashboardChartField]
 	# end: auto-generated types
 
