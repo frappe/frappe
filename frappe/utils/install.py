@@ -15,6 +15,7 @@ def before_install():
 	frappe.reload_doc("desk", "doctype", "form_tour_step")
 	frappe.reload_doc("desk", "doctype", "form_tour")
 	frappe.reload_doc("core", "doctype", "doctype")
+	frappe.clear_cache()
 
 
 def after_install():
