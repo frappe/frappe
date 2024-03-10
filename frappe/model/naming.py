@@ -267,7 +267,7 @@ def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 		# Makeshift "ULID": first 4 chars are based on timestamp, other 8 are random
 		ts = hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])
 
-		return ts[-8:-5] + frappe.generate_hash(length=7)
+		return ts[-7:-4] + frappe.generate_hash(length=7)
 
 	series = NamingSeries(key)
 	return series.generate_next_name(doc, ignore_validate=ignore_validate)
