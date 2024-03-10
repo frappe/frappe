@@ -369,9 +369,9 @@ ignore = [
     "F403", # can't detect undefined names from * import
     "F405", # can't detect undefined names from * import
     "F722", # syntax error in forward type annotation
-    "F821", # undefined name
     "W191", # indentation contains tabs
 ]
+typing-modules = ["frappe.types.DF"]
 
 [tool.ruff.format]
 quote-style = "double"
