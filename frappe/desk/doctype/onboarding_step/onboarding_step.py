@@ -24,7 +24,7 @@ class OnboardingStep(Document):
 		callback_message: DF.SmallText | None
 		callback_title: DF.Data | None
 		description: DF.MarkdownEditor | None
-		field: DF.Literal
+		field: DF.Literal[None]
 		form_tour: DF.Link | None
 		intro_video_url: DF.Data | None
 		is_complete: DF.Check
