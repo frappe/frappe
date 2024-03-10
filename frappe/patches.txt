@@ -233,3 +233,9 @@ frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
 frappe.patches.v15_0.validate_newsletter_recipients
 frappe.patches.v15_0.sanitize_workspace_titles
+<<<<<<< HEAD
+=======
+frappe.patches.v15_0.migrate_role_profile_to_table_multi_select
+frappe.patches.v15_0.migrate_session_data
+frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressions
+>>>>>>> 4f4a387b7e (fix(patch): Remove obviously invalid fetch from expressions (#25284))
