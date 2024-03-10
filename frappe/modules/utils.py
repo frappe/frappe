@@ -295,13 +295,16 @@ def make_boilerplate(
 			dedent(
 				"""
 			def db_insert(self, *args, **kwargs):
-				pass
+				raise NotImplementedError
 
 			def load_from_db(self):
-				pass
+				raise NotImplementedError
 
 			def db_update(self):
-				pass
+				raise NotImplementedError
+
+			def delete(self):
+				raise NotImplementedError
 
 			@staticmethod
 			def get_list(args):
