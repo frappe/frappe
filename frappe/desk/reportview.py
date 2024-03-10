@@ -13,7 +13,7 @@ from frappe.model import child_table_fields, default_fields, get_permitted_field
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
-from frappe.utils import add_user_info, format_duration
+from frappe.utils import add_user_info, cint, format_duration
 
 
 @frappe.whitelist()
@@ -23,7 +23,7 @@ def get():
 	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = compress(controller.get_list(args))
+		data = compress(frappe.call(controller.get_list, args=args, **args))
 	else:
 		data = compress(execute(**args), args=args)
 	return data
@@ -36,7 +36,7 @@ def get_list():
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = controller.get_list(args)
+		data = frappe.call(controller.get_list, args=args, **args)
 	else:
 		# uncompressed (refactored from frappe.model.db_query.get_list)
 		data = execute(**args)
@@ -227,6 +227,10 @@ def parse_json(data):
 		data["save_user_settings"] = json.loads(data["save_user_settings"])
 	else:
 		data["save_user_settings"] = True
+	if isinstance(data.get("start"), str):
+		data["start"] = cint(data.get("start"))
+	if isinstance(data.get("page_length"), str):
+		data["page_length"] = cint(data.get("page_length"))
 
 
 def get_parenttype_and_fieldname(field, data):
