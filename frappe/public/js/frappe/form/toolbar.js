@@ -453,7 +453,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			},
 			true,
 			{
-				shortcut: "ctrl+z",
+				shortcut: "Ctrl+Z",
 				condition: () => !this.frm.is_form_builder(),
 				description: __("Undo last action"),
 			}
@@ -465,7 +465,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 			},
 			true,
 			{
-				shortcut: "ctrl+y",
+				shortcut: "Ctrl+Y",
 				condition: () => !this.frm.is_form_builder(),
 				description: __("Redo last action"),
 			}
