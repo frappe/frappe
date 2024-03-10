@@ -47,10 +47,9 @@ class DashboardChartSource(Document):
 		frappe.db.after_commit.add(self.delete_folder_with_contents)
 
 	def delete_folder_with_contents(self):
-		dir_path = get_folder_path(self.module, self.name)
-		if dir_path.exists():
-			shutil.rmtree(dir_path, ignore_errors=True)
+		path = self.get_folder_path()
+		if path.exists():
+			shutil.rmtree(path, ignore_errors=True)
 
-
-def get_folder_path(module: str, name: str) -> Path:
-	return Path(get_module_path(module)) / FOLDER_NAME / frappe.scrub(name)
+	def get_folder_path(self) -> Path:
+		return Path(get_module_path(self.module)) / FOLDER_NAME / frappe.scrub(self.name)
