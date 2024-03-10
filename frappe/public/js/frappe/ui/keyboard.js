@@ -98,8 +98,11 @@ frappe.ui.keys.show_keyboard_shortcut_dialog = () => {
 					.map(frappe.utils.to_title_case)
 					.join("+");
 				if (frappe.utils.is_mac()) {
-					shortcut_label = shortcut_label.replace("Ctrl", "⌘");
+					shortcut_label = shortcut_label.replace("Ctrl", "⌘").replace("Alt", "⌥");
 				}
+
+				shortcut_label = shortcut_label.replace("Shift", "⇧");
+
 				return `<tr>
 					<td width="40%"><kbd>${shortcut_label}</kbd></td>
 					<td width="60%">${shortcut.description || ""}</td>
@@ -215,7 +218,7 @@ frappe.ui.keys.add_shortcut({
 	shortcut: "alt+s",
 	action: function (e) {
 		e.preventDefault();
-		$(".dropdown-navbar-user a").eq(0).click();
+		$(".dropdown-navbar-user button").eq(0).click();
 	},
 	description: __("Open Settings"),
 });
@@ -232,7 +235,7 @@ frappe.ui.keys.add_shortcut({
 	shortcut: "alt+h",
 	action: function (e) {
 		e.preventDefault();
-		$(".dropdown-help a").eq(0).click();
+		$(".dropdown-help button").eq(0).click();
 	},
 	description: __("Open Help"),
 });
