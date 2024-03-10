@@ -44,7 +44,7 @@ class DashboardChartSource(Document):
 		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
 			frappe.throw(_("Deletion of this document is only permitted in developer mode."))
 
-		frappe.db.after_commit(self.delete_folder_with_contents)
+		frappe.db.after_commit.add(self.delete_folder_with_contents)
 
 	def delete_folder_with_contents(self):
 		dir_path = get_folder_path(self.module, self.name)
