@@ -10,7 +10,7 @@
 		data-columns="{%= me.get_visible_columns_string(field) %}"
 		data-doctype="{%= field.options %}"
 	{% } %}>
-	{% if !in_list(["Table", "HTML", "Custom HTML"], field.fieldtype) %}
+	{% if !["Table", "HTML", "Custom HTML"].includes(field.fieldtype) %}
 	<a class="field-settings pull-right">
 		<span>
 			<svg class="icon icon-sm"><use href="#icon-setting-gear"></use></svg>
