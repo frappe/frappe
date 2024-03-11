@@ -1589,6 +1589,7 @@ def validate_fields(meta: Meta):
 			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
 
+<<<<<<< HEAD
 	def check_fetch_from(docfield):
 		if not frappe.request:
 			return
@@ -1632,6 +1633,8 @@ def validate_fields(meta: Meta):
 				)
 			)
 
+=======
+>>>>>>> fc7366deef (revert: fetch validations (#25343))
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1667,7 +1670,6 @@ def validate_fields(meta: Meta):
 			check_child_table_option(d)
 			check_max_height(d)
 			check_no_of_ratings(d)
-			check_fetch_from(d)
 
 	if not frappe.flags.in_migrate:
 		check_fold(fields)
