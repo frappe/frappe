@@ -2,17 +2,18 @@
 set -e
 cd ~ || exit
 
+echo "Setting Up System Dependencies..."
 
-install_apt_dependencies() {
-  echo "Setting Up System Dependencies..."
-  sudo apt-get update -qq
-  sudo apt-get remove -qq mysql-server mysql-client
-  sudo apt-get install -qq libcups2-dev redis-server mariadb-client-10.6
+sudo apt-get update -qq
+sudo apt-get remove -qq mysql-server mysql-client
+sudo apt-get install -qq libcups2-dev redis-server mariadb-client-10.6
+
+install_wkhtml() {
   wget -q https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.focal_amd64.deb
-  sudo dpkg -i install ./wkhtmltox_0.12.6-1.focal_amd64.deb
+  sudo apt install ./wkhtmltox_0.12.6-1.focal_amd64.deb
 }
-install_apt_dependencies &
-apt_pid=$!
+install_wkhtml &
+wk_install_pid=$!
 
 echo "Setting Up Bench..."
 
@@ -23,7 +24,6 @@ cd ./frappe-bench || exit
 
 bench -v setup requirements --dev
 
-wait $apt_pid
 
 echo "Setting Up Sites & Database..."
 
@@ -68,3 +68,4 @@ echo "Starting Bench..."
 bench start &> ~/frappe-bench/bench_start.log &
 
 bench --site test_site reinstall --yes
+wait $wk_install_pid
