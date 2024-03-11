@@ -34,7 +34,10 @@ class DashboardChartSource(Document):
 	# end: auto-generated types
 
 	def on_update(self):
-		if not frappe.conf.developer_mode and not frappe.flags.in_migrate:
+		if not frappe.request:
+			return
+
+		if not frappe.conf.developer_mode:
 			frappe.throw(_("Creation of this document is only permitted in developer mode."))
 
 		export_to_files(record_list=[[self.doctype, self.name]], record_module=self.module, create_init=True)
