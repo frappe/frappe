@@ -450,11 +450,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-10-25 06:55:10.713382",
-=======
  "modified": "2024-03-07 17:34:47.167183",
->>>>>>> b26dcdc14f (fix: do not mark custom field as translatable by default)
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
