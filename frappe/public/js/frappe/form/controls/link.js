@@ -150,6 +150,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		});
 		return false;
 	}
+	
 	new_doc() {
 		const doc_parenttype = this.doc.parenttype
 		const doc_parent = this.doc.parent
@@ -158,10 +159,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		linkStore.setFromName(doc_parent)
 		linkStore.setFromDoctype(doc_parenttype)
 		linkStore.setToDoctype(doc_doctype)
-
+		console.log("-------------> doc_doctype ", doc_doctype)
 		if(doc_parenttype === "Project" && ["Project Quotation", "Project Invoice"].includes(doc_doctype) ){
 			localStorage.setItem("autosave", JSON.stringify({from_name: doc_parent, from_doctype: doc_parenttype, to_doctype: doc_doctype, is_saved: false}))
-			localStorage.setItem("permissions", JSON.stringify({create_product: false}))
 		}
 
 		var doctype = this.get_options();
@@ -282,7 +282,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 							return;
 						}
 						r.message = me.merge_duplicates(r.message);
-
 						// show filter description in awesomplete
 						let filter_string = me.df.filter_description
 							? me.df.filter_description
@@ -298,16 +297,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 						}
 
 						if (!me.df.only_select) {
-							if (frappe.model.can_create(doctype)) {
-								const store_permissions = localStorage.getItem("permissions")
-								let show_new_item_options = true
-								if(store_permissions){
-									const permissions = JSON.parse(store_permissions)
-									show_new_item_options = permissions.create_product ?? true
-								}
-								console.log("show_new_item_options: ", show_new_item_options)
-								if(show_new_item_options){
-									// new item
+							if (frappe.model.can_create(doctype)) {	// new item
 									r.message.push({
 										html:
 											"<span class='link-option'>" +
@@ -318,7 +308,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 										value: "create_new__link_option",
 										action: me.new_doc,
 									});
-								}
 							}
 
 							//custom link actions

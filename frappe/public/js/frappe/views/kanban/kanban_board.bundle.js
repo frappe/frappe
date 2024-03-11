@@ -563,14 +563,14 @@ frappe.provide("frappe.views");
 			}, make_cards);
 			bind_add_card();
 			bind_options();
-			get_and_set_columns_titles()
+			get_and_set_columns_titles_with_counter()
 		}
 
 		function get_total_cards(cards_by_columns, title){
 			return cards_by_columns[title] ?? 0
 		}
 
-		function get_and_set_columns_titles(){
+		function get_and_set_columns_titles_with_counter(){
 			let _title = self.$kanban_column.find(".kanban-column-title")[0].outerText
 			_title = _title + " ("+get_total_cards(cards_by_columns, _title)+")"
 			self.$kanban_column.find(".kanban-column-title").html("<span class=\"indicator-pill gray\"></span><span class=\"kanban-title ellipsis\" title=\"" + _title + "\">" + _title + "</span>");
@@ -757,7 +757,9 @@ frappe.provide("frappe.views");
 			};
 
 			self.$card = $(frappe.render_template("kanban_card", opts)).appendTo(wrapper);
-
+			if(card.border){
+				self.$card.find(".kanban-card.content").css("border", "1px solid red");
+			}
 			if (!frappe.model.can_write(card.doctype)) {
 				// Undraggable card without 'write' access to reference doctype
 				self.$card.find(".kanban-card-body").css("cursor", "default");
@@ -773,6 +775,9 @@ frappe.provide("frappe.views");
 			if(card.column == 'In parking' || card.column == 'In queue'){
 				render_fields.push(...['bring_car_date'])
 			}
+			if(card.column == 'In parking' && card.border){
+				render_fields.push(...['bring_car_date'])
+			}
 			
 			for (let field_name of render_fields) {
 				let field =
@@ -786,8 +791,15 @@ frappe.provide("frappe.views");
 						<span>${value}</span>
 					</div>
 				`);
+			
 			}
-
+			if(card.border){
+				fields.push(`
+				<div class="text-muted text-truncate">
+            		<span style="color: red; font-style: italic; font-size: xx-small">At least 2 days since moved to parking.</span>
+        		</div>
+			`);
+			}
 			return fields.join("");
 		}
 
@@ -942,8 +954,22 @@ frappe.provide("frappe.views");
 			comment_count: card.comment_count || comment_count,
 			color: card.color || null,
 			doc: doc || card,
+			border: set_border_color(card)
 		};
 	}
+
+	function set_border_color(card) {
+		return card.status === 'In parking' && Number(card.queue_position) <= 5 && has_passed_two_days(card.parking_date);
+	}
+
+	function has_passed_two_days(dateString) {
+		const providedDate = new Date(dateString.split('T')[0]);
+		const currentDate = new Date();
+		currentDate.setHours(0, 0, 0, 0);
+		const difference = currentDate - providedDate;
+		const daysPassed = Math.floor(difference / (1000 * 60 * 60 * 24));
+		return daysPassed >= 2;
+	 }
 
 	function prepare_columns(columns) {
 		return columns.map(function (col) {
