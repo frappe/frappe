@@ -22,10 +22,6 @@ cd ./frappe-bench || exit
 
 
 bench -v setup requirements --dev
-if [ "$TYPE" == "ui" ]
-then
-  bench -v setup requirements --node;
-fi
 
 wait $apt_pid
 
