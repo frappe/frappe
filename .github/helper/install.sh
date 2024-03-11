@@ -67,16 +67,4 @@ echo "Starting Bench..."
 
 bench start &> ~/frappe-bench/bench_start.log &
 
-if [ "$TYPE" == "server" ]
-then
-  CI=Yes bench build --app frappe &
-  build_pid=$!
-fi
-
 bench --site test_site reinstall --yes
-
-if [ "$TYPE" == "server" ]
-then
-  # wait till assets are built successfully
-  wait $build_pid
-fi
