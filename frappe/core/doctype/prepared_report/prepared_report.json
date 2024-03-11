@@ -102,11 +102,7 @@
  ],
  "in_create": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2022-05-03 21:29:39.883803",
-=======
  "modified": "2024-03-07 12:01:58.209879",
->>>>>>> 448991d74a (fix: avoid linking to ephemeral virtual docs)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Prepared Report",
