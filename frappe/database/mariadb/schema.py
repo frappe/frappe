@@ -102,7 +102,7 @@ class MariaDBTable(DBTable):
 				if query_parts:
 					query_body = ", ".join(query_parts)
 					query = f"ALTER TABLE `{self.table_name}` {query_body}"
-					frappe.db.sql(query)
+					frappe.db.sql_ddl(query)
 
 		except Exception as e:
 			if query := locals().get("query"):  # this weirdness is to avoid potentially unbounded vars

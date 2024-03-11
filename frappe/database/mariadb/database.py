@@ -437,7 +437,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 			db_table.validate()
 
 			db_table.sync()
-			self.begin()
+			self.commit()
 
 	def get_database_list(self):
 		return self.sql("SHOW DATABASES", pluck=True)
