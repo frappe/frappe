@@ -12,6 +12,7 @@ install_apt_dependencies() {
   sudo dpkg -i install ./wkhtmltox_0.12.6-1.focal_amd64.deb
 }
 install_apt_dependencies &
+apt_pid=$!
 
 echo "Setting Up Bench..."
 
@@ -19,11 +20,14 @@ pip install frappe-bench
 bench -v init frappe-bench --skip-assets --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}"
 cd ./frappe-bench || exit
 
+
 bench -v setup requirements --dev
 if [ "$TYPE" == "ui" ]
 then
   bench -v setup requirements --node;
 fi
+
+wait $apt_pid
 
 echo "Setting Up Sites & Database..."
 
