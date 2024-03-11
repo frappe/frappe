@@ -1076,7 +1076,9 @@ class TestDBQuery(FrappeTestCase):
 		class VirtualDocType:
 			@staticmethod
 			def get_list(args=None, limit_page_length=0, doctype=None):
+				# Backward compatibility
 				self.assertEqual(args["filters"], [["Virtual DocType", "name", "=", "test"]])
+
 				self.assertEqual(limit_page_length, 1)
 				self.assertEqual(doctype, "Virtual DocType")
 

@@ -21,17 +21,17 @@ class VirtualDoctype(Protocol):
 	# ============ class/static methods ============
 
 	@staticmethod
-	def get_list(args) -> list[frappe._dict]:
+	def get_list(**kwargs) -> list[frappe._dict]:
 		"""Similar to reportview.get_list"""
 		...
 
 	@staticmethod
-	def get_count(args) -> int:
+	def get_count(**kwargs) -> int:
 		"""Similar to reportview.get_count, return total count of documents on listview."""
 		...
 
 	@staticmethod
-	def get_stats(args):
+	def get_stats(**kwargs):
 		"""Similar to reportview.get_stats, return sidebar stats."""
 		...
 
