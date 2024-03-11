@@ -295,24 +295,27 @@ def make_boilerplate(
 			dedent(
 				"""
 			def db_insert(self, *args, **kwargs):
-				pass
+				raise NotImplementedError
 
 			def load_from_db(self):
-				pass
+				raise NotImplementedError
 
 			def db_update(self):
+				raise NotImplementedError
+
+			def delete(self):
+				raise NotImplementedError
+
+			@staticmethod
+			def get_list(filters=None, page_length=20, **kwargs):
 				pass
 
 			@staticmethod
-			def get_list(args):
+			def get_count(filters=None, **kwargs):
 				pass
 
 			@staticmethod
-			def get_count(args):
-				pass
-
-			@staticmethod
-			def get_stats(args):
+			def get_stats(**kwargs):
 				pass
 			"""
 			),

@@ -61,18 +61,22 @@ class TestRQJob(FrappeTestCase):
 	def test_get_list_filtering(self):
 		# Check failed job clearning and filtering
 		remove_failed_jobs()
-		jobs = RQJob.get_list({"filters": [["RQ Job", "status", "=", "failed"]]})
+		jobs = frappe.get_all("RQ Job", {"status": "failed"})
 		self.assertEqual(jobs, [])
+
+		# Pass a job
+		job = frappe.enqueue(method=self.BG_JOB, queue="short")
+		self.check_status(job, "finished")
 
 		# Fail a job
 		job = frappe.enqueue(method=self.BG_JOB, queue="short", fail=True)
 		self.check_status(job, "failed")
-		jobs = RQJob.get_list({"filters": [["RQ Job", "status", "=", "failed"]]})
+		jobs = frappe.get_all("RQ Job", {"status": "failed"})
 		self.assertEqual(len(jobs), 1)
 		self.assertTrue(jobs[0].exc_info)
 
 		# Assert that non-failed job still exists
-		non_failed_jobs = RQJob.get_list({"filters": [["RQ Job", "status", "!=", "failed"]]})
+		non_failed_jobs = frappe.get_all("RQ Job", {"status": ("!=", "failed")})
 		self.assertGreaterEqual(len(non_failed_jobs), 1)
 
 		# Create a slow job and check if it's stuck in "Started"
@@ -174,7 +178,7 @@ class TestRQJob(FrappeTestCase):
 
 		jobs = [frappe.enqueue(method=self.BG_JOB, queue="short", fail=True) for _ in range(limit * 2)]
 		self.check_status(jobs[-1], "failed")
-		self.assertLessEqual(RQJob.get_count({"filters": [["RQ Job", "status", "=", "failed"]]}), limit * 1.1)
+		self.assertLessEqual(RQJob.get_count(filters=[["RQ Job", "status", "=", "failed"]]), limit * 1.1)
 
 
 def test_func(fail=False, sleep=0):

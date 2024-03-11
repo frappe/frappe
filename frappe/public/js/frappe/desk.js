@@ -507,7 +507,7 @@ frappe.Application = class Application {
 							frappe.set_route("Form", newdoc.doctype, newdoc.name);
 							frappe.dom.unfreeze();
 						});
-						res && res.fail(frappe.dom.unfreeze);
+						res && res.fail?.(frappe.dom.unfreeze);
 					});
 				}
 			} catch (e) {

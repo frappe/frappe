@@ -1597,7 +1597,7 @@ def validate_fields(meta: Meta):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
 
 	def check_fetch_from(docfield):
-		if not frappe.request:
+		if not frappe.request and not in_ci:
 			return
 
 		fetch_from = docfield.fetch_from
@@ -1630,7 +1630,9 @@ def validate_fields(meta: Meta):
 		doctype = link_df[0].options
 		fetch_from_doctype = frappe.get_meta(doctype)
 
-		if not fetch_from_doctype.get_field(source_fieldname):
+		if not frappe.db.has_column(doctype, source_fieldname) and not fetch_from_doctype.get_field(
+			source_fieldname
+		):
 			frappe.throw(
 				_("Fetch From for field {0} is invalid: {1} does not have a field {2}").format(
 					frappe.bold(fieldname), frappe.bold(doctype), frappe.bold(source_fieldname)
@@ -1639,6 +1641,8 @@ def validate_fields(meta: Meta):
 
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
+
+	in_ci = os.environ.get("CI")
 
 	not_allowed_in_list_view = get_fields_not_allowed_in_list_view(meta)
 
@@ -1660,7 +1664,7 @@ def validate_fields(meta: Meta):
 		scrub_fetch_from(d)
 		validate_data_field_type(d)
 
-		if not frappe.flags.in_migrate:
+		if not frappe.flags.in_migrate or in_ci:
 			check_unique_fieldname(meta.get("name"), d.fieldname)
 			check_link_table_options(meta.get("name"), d)
 			check_illegal_mandatory(meta.get("name"), d)
@@ -1674,7 +1678,7 @@ def validate_fields(meta: Meta):
 			check_no_of_ratings(d)
 			check_fetch_from(d)
 
-	if not frappe.flags.in_migrate:
+	if not frappe.flags.in_migrate or in_ci:
 		check_fold(fields)
 		check_search_fields(meta, fields)
 		check_title_field(meta)

@@ -76,22 +76,18 @@ class RQJob(Document):
 		return self._job_obj
 
 	@staticmethod
-	def get_list(args):
-		start = cint(args.get("start"))
-		page_length = cint(args.get("page_length")) or 20
-
-		order_desc = "desc" in args.get("order_by", "")
-
-		matched_job_ids = RQJob.get_matching_job_ids(args)[start : start + page_length]
+	def get_list(filters=None, start=0, page_length=20, order_by="modified desc"):
+		matched_job_ids = RQJob.get_matching_job_ids(filters=filters)[start : start + page_length]
 
 		conn = get_redis_conn()
 		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job]
 
+		order_desc = "desc" in order_by
 		return sorted(jobs, key=lambda j: j.modified, reverse=order_desc)
 
 	@staticmethod
-	def get_matching_job_ids(args) -> list[str]:
-		filters = make_filter_dict(args.get("filters"))
+	def get_matching_job_ids(filters) -> list[str]:
+		filters = make_filter_dict(filters or [])
 
 		queues = _eval_filters(filters.get("queue"), QUEUES)
 		statuses = _eval_filters(filters.get("status"), JOB_STATUSES)
@@ -117,12 +113,12 @@ class RQJob(Document):
 			frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
 
 	@staticmethod
-	def get_count(args) -> int:
-		return len(RQJob.get_matching_job_ids(args))
+	def get_count(filters=None) -> int:
+		return len(RQJob.get_matching_job_ids(filters))
 
 	# None of these methods apply to virtual job doctype, overriden for sanity.
 	@staticmethod
-	def get_stats(args):
+	def get_stats():
 		return {}
 
 	def db_insert(self, *args, **kwargs):

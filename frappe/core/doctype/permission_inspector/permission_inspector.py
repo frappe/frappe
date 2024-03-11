@@ -60,15 +60,15 @@ class PermissionInspector(Document):
 		...
 
 	@staticmethod
-	def get_list(args):
+	def get_list():
 		...
 
 	@staticmethod
-	def get_count(args):
+	def get_count():
 		...
 
 	@staticmethod
-	def get_stats(args):
+	def get_stats():
 		...
 
 	def delete(self):

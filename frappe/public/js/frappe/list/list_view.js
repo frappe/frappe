@@ -1308,6 +1308,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		*/
 		this.dragClick = false;
 		this.$result.on("mousedown", ".list-row-checkbox", (e) => {
+			e.stopPropagation?.();
+			e.preventDefault?.();
 			this.dragClick = true;
 			this.check = !e.target.checked;
 		});

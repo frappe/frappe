@@ -1075,26 +1075,18 @@ class TestDBQuery(FrappeTestCase):
 
 		class VirtualDocType:
 			@staticmethod
-			def get_list(args):
-				...
+			def get_list(args=None, limit_page_length=0, doctype=None):
+				# Backward compatibility
+				self.assertEqual(args["filters"], [["Virtual DocType", "name", "=", "test"]])
+
+				self.assertEqual(limit_page_length, 1)
+				self.assertEqual(doctype, "Virtual DocType")
 
 		with patch(
 			"frappe.controllers",
 			new={frappe.local.site: {"Virtual DocType": VirtualDocType}},
 		):
-			VirtualDocType.get_list = MagicMock()
-
 			frappe.get_all("Virtual DocType", filters={"name": "test"}, fields=["name"], limit=1)
-
-			call_args = VirtualDocType.get_list.call_args[0][0]
-			VirtualDocType.get_list.assert_called_once()
-			self.assertIsInstance(call_args, dict)
-			self.assertEqual(call_args["doctype"], "Virtual DocType")
-			self.assertEqual(call_args["filters"], [["Virtual DocType", "name", "=", "test"]])
-			self.assertEqual(call_args["fields"], ["name"])
-			self.assertEqual(call_args["limit_page_length"], 1)
-			self.assertEqual(call_args["limit_start"], 0)
-			self.assertEqual(call_args["order_by"], DefaultOrderBy)
 
 	def test_coalesce_with_in_ops(self):
 		self.assertNotIn("ifnull", frappe.get_all("User", {"first_name": ("in", ["a", "b"])}, run=0))

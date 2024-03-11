@@ -160,6 +160,10 @@ jobs:
             cat $f
           done
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
+
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
         if: github.event_name != 'pull_request'

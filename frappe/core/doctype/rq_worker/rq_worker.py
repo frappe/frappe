@@ -46,22 +46,19 @@ class RQWorker(Document):
 		super(Document, self).__init__(d)
 
 	@staticmethod
-	def get_list(args):
-		start = cint(args.get("start"))
-		page_length = cint(args.get("page_length")) or 20
-
+	def get_list(start=0, page_length=20):
 		workers = get_workers()
 
 		valid_workers = [w for w in workers if w.pid][start : start + page_length]
 		return [serialize_worker(worker) for worker in valid_workers]
 
 	@staticmethod
-	def get_count(args) -> int:
+	def get_count() -> int:
 		return len(get_workers())
 
 	# None of these methods apply to virtual workers, overriden for sanity.
 	@staticmethod
-	def get_stats(args):
+	def get_stats():
 		return {}
 
 	def db_insert(self, *args, **kwargs):

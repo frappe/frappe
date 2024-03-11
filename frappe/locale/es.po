@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-02-29 05:12\n"
+"PO-Revision-Date: 2024-03-05 16:42\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -182,7 +182,7 @@ msgstr "#{0}"
 
 #: public/js/frappe/ui/toolbar/about.js:8
 msgid "&copy; Frappe Technologies Pvt. Ltd. and contributors"
-msgstr ""
+msgstr "&copy; Frappe Technologies Pvt. Ltd. y colaboradores"
 
 #. Label of a Code field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -252,11 +252,12 @@ msgstr ""
 msgctxt "Currency"
 msgid "1 Currency = [?] Fraction\n"
 "For e.g. 1 USD = 100 Cent"
-msgstr ""
+msgstr "1 Divisa = [?] Fracción\n"
+"Por ej. 1 USD = 100 Centavos"
 
 #: public/js/frappe/form/reminders.js:19
 msgid "1 Day"
-msgstr ""
+msgstr "1 Día"
 
 #: integrations/doctype/google_calendar/google_calendar.py:359
 msgid "1 Google Calendar Event synced."
@@ -272,11 +273,11 @@ msgstr "1 comentario"
 
 #: tests/test_utils.py:669
 msgid "1 day ago"
-msgstr ""
+msgstr "Hace 1 día"
 
 #: public/js/frappe/form/reminders.js:17
 msgid "1 hour"
-msgstr ""
+msgstr "1 hora"
 
 #: public/js/frappe/utils/pretty_date.js:52 tests/test_utils.py:667
 msgid "1 hour ago"
@@ -296,7 +297,7 @@ msgstr "Se exportará 1 registro"
 
 #: tests/test_utils.py:664
 msgid "1 second ago"
-msgstr ""
+msgstr "Hace 1 segundo"
 
 #: public/js/frappe/utils/pretty_date.js:62 tests/test_utils.py:671
 msgid "1 week ago"
@@ -304,35 +305,35 @@ msgstr "Hace 1 semana"
 
 #: public/js/frappe/utils/pretty_date.js:70 tests/test_utils.py:675
 msgid "1 year ago"
-msgstr "hace 1 año"
+msgstr "Hace 1 año"
 
 #: tests/test_utils.py:668
 msgid "2 hours ago"
-msgstr ""
+msgstr "Hace 2 horas"
 
 #: tests/test_utils.py:674
 msgid "2 months ago"
-msgstr ""
+msgstr "Hace 2 meses"
 
 #: tests/test_utils.py:672
 msgid "2 weeks ago"
-msgstr ""
+msgstr "Hace 2 semanas"
 
 #: tests/test_utils.py:676
 msgid "2 years ago"
-msgstr ""
+msgstr "Hace 2 años"
 
 #: tests/test_utils.py:666
 msgid "3 minutes ago"
-msgstr ""
+msgstr "Hace 3 minutos"
 
 #: public/js/frappe/form/reminders.js:16
 msgid "30 minutes"
-msgstr ""
+msgstr "30 minutos"
 
 #: public/js/frappe/form/reminders.js:18
 msgid "4 hours"
-msgstr ""
+msgstr "4 horas"
 
 #: public/js/frappe/data_import/data_exporter.js:37
 msgid "5 Records"
@@ -340,7 +341,7 @@ msgstr "5 registros"
 
 #: tests/test_utils.py:670
 msgid "5 days ago"
-msgstr ""
+msgstr "Hace 5 días"
 
 #: public/js/frappe/list/list_view.js:988
 msgid "99"
@@ -355,24 +356,24 @@ msgstr "; no permitido en condiciones"
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgctxt "Document Naming Rule Condition"
 msgid "<"
-msgstr ""
+msgstr "<"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
 #: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
 msgctxt "Document Naming Rule Condition"
 msgid "<="
-msgstr ""
+msgstr "<="
 
 #: public/js/frappe/widgets/widget_dialog.js:603
 msgid "<b>{0}</b> is not a valid URL"
-msgstr ""
+msgstr "<b>{0}</b> no es una URL válida"
 
 #. Content of the 'Help' (HTML) field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
 msgid "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
-msgstr ""
+msgstr "<div class=\"alert\">Por favor, no lo actualice, ya que puede estropear su formulario. Utilice la opción Personalizar Vista de Formulario y Campos Personalizados para establecer las propiedades.</div>"
 
 #. Content of the 'Help HTML' (HTML) field in DocType 'Document Naming
 #. Settings'
@@ -547,7 +548,7 @@ msgstr ""
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "<h5 class=\"text-muted uppercase\">Or</h5>"
-msgstr ""
+msgstr "<h5 class=\"text-muted uppercase\">O</h5>"
 
 #. Content of the 'Message Examples' (HTML) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -767,61 +768,61 @@ msgstr "Una palabra de por sí es fácil de adivinar."
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "A0"
-msgstr ""
+msgstr "A0"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "A1"
-msgstr ""
+msgstr "A1"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "A2"
-msgstr ""
+msgstr "A2"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "A3"
-msgstr ""
+msgstr "A3"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "A4"
-msgstr ""
+msgstr "A4"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "A5"
-msgstr ""
+msgstr "A5"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "A6"
-msgstr ""
+msgstr "A6"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "A7"
-msgstr ""
+msgstr "A7"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "A8"
-msgstr ""
+msgstr "A8"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "A9"
-msgstr ""
+msgstr "A9"
 
 #. Option for the 'Email Sync Option' (Select) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -2089,7 +2090,7 @@ msgstr "Permitir la Auto Aprobación"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Allow Sending Usage Data for Improving Applications"
-msgstr ""
+msgstr "Permitir el envío de datos de uso para mejorar las aplicaciones"
 
 #. Description of the 'Allow Self Approval' (Check) field in DocType 'Workflow
 #. Transition'
@@ -2177,7 +2178,7 @@ msgstr "Permitir guardar si los campos obligatorios no están ingresados"
 
 #: desk/page/setup_wizard/setup_wizard.js:413
 msgid "Allow sending usage data for improving applications"
-msgstr ""
+msgstr "Permitir enviar datos de uso para mejorar aplicaciones"
 
 #. Description of the 'Login After' (Int) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -3522,83 +3523,83 @@ msgstr ""
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B0"
-msgstr ""
+msgstr "B0"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B1"
-msgstr ""
+msgstr "B1"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B10"
-msgstr ""
+msgstr "B10"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B2"
-msgstr ""
+msgstr "B2"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B3"
-msgstr ""
+msgstr "B3"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B4"
-msgstr ""
+msgstr "B4"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B5"
-msgstr ""
+msgstr "B5"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B6"
-msgstr ""
+msgstr "B6"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B7"
-msgstr ""
+msgstr "B7"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B8"
-msgstr ""
+msgstr "B8"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "B9"
-msgstr ""
+msgstr "B9"
 
 #: public/js/frappe/views/communication.js:77
 msgid "BCC"
-msgstr ""
+msgstr "CCO"
 
 #. Label of a Code field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "BCC"
-msgstr ""
+msgstr "CCO"
 
 #. Label of a Code field in DocType 'Notification Recipient'
 #: email/doctype/notification_recipient/notification_recipient.json
 msgctxt "Notification Recipient"
 msgid "BCC"
-msgstr ""
+msgstr "CCO"
 
 #: public/js/frappe/widgets/onboarding_widget.js:186
 msgid "Back"
@@ -3632,7 +3633,7 @@ msgstr "Color de Fondo"
 #: website/doctype/web_page_block/web_page_block.json
 msgctxt "Web Page Block"
 msgid "Background Image"
-msgstr ""
+msgstr "Imagen de Fondo"
 
 #: public/js/frappe/ui/toolbar/toolbar.js:143
 msgid "Background Jobs"
@@ -4418,7 +4419,7 @@ msgstr "Evite la verificación de la dirección IP restringida si la autenticaci
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "C5E"
-msgstr ""
+msgstr "C5E"
 
 #: templates/print_formats/standard_macros.html:212
 msgid "CANCELLED"
@@ -4426,19 +4427,19 @@ msgstr "CANCELADO"
 
 #: public/js/frappe/views/communication.js:72
 msgid "CC"
-msgstr ""
+msgstr "CC"
 
 #. Label of a Code field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "CC"
-msgstr ""
+msgstr "CC"
 
 #. Label of a Code field in DocType 'Notification Recipient'
 #: email/doctype/notification_recipient/notification_recipient.json
 msgctxt "Notification Recipient"
 msgid "CC"
-msgstr ""
+msgstr "CC"
 
 #. Label of a Data field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
@@ -4454,19 +4455,19 @@ msgstr ""
 #: desk/doctype/custom_html_block/custom_html_block.json
 msgctxt "Custom HTML Block"
 msgid "CSS"
-msgstr ""
+msgstr "CSS"
 
 #. Label of a Code field in DocType 'Print Style'
 #: printing/doctype/print_style/print_style.json
 msgctxt "Print Style"
 msgid "CSS"
-msgstr ""
+msgstr "CSS"
 
 #. Label of a Code field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "CSS"
-msgstr ""
+msgstr "CSS"
 
 #. Label of a Small Text field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
@@ -4485,13 +4486,13 @@ msgstr ""
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "CSV"
-msgstr ""
+msgstr "CSV"
 
 #. Option for the 'File Type' (Select) field in DocType 'Data Export'
 #: core/doctype/data_export/data_export.json
 msgctxt "Data Export"
 msgid "CSV"
-msgstr ""
+msgstr "CSV"
 
 #. Label of a Data field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
@@ -4972,7 +4973,7 @@ msgstr ""
 
 #: public/js/frappe/list/bulk_operations.js:253
 msgid "Cannot {0} {1}."
-msgstr ""
+msgstr "No se puede {0} {1}."
 
 #: utils/password_strength.py:181
 msgid "Capitalization doesn't help very much."
@@ -5629,7 +5630,7 @@ msgstr "Cerrado"
 #: templates/discussions/reply_section.html:53
 #: templates/discussions/topic_modal.html:11
 msgid "Cmd+Enter to add comment"
-msgstr ""
+msgstr "Cmd+Entrar para agregar comentario"
 
 #. Label of a Data field in DocType 'Country'
 #: geo/doctype/country/country.json
@@ -5730,97 +5731,97 @@ msgstr ""
 #: public/js/frappe/widgets/widget_dialog.js:696
 #: website/doctype/color/color.json
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Color field in DocType 'Color'
 #: website/doctype/color/color.json
 msgctxt "Color"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Color field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Color field in DocType 'Dashboard Chart Field'
 #: desk/doctype/dashboard_chart_field/dashboard_chart_field.json
 msgctxt "Dashboard Chart Field"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Data field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Select field in DocType 'DocType State'
 #: core/doctype/doctype_state/doctype_state.json
 msgctxt "DocType State"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Color field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Color field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Color field in DocType 'Social Link Settings'
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Color field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
 msgctxt "ToDo"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #. Label of a Color field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Color"
-msgstr ""
+msgstr "Color"
 
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:7
 msgid "Column"
@@ -5939,7 +5940,7 @@ msgstr "No se permite la combinación del tipo de concesión ( <code>{0}</code> 
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Comm10E"
-msgstr ""
+msgstr "Comm10E"
 
 #. Name of a DocType
 #: core/doctype/comment/comment.json core/doctype/version/version_view.html:3
@@ -6263,7 +6264,7 @@ msgstr ""
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Condition JSON"
-msgstr ""
+msgstr "Condición JSON"
 
 #. Label of a Table field in DocType 'Document Naming Rule'
 #: core/doctype/document_naming_rule/document_naming_rule.json
@@ -6281,7 +6282,7 @@ msgstr "Condiciones"
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Configuration"
-msgstr ""
+msgstr "Configuración"
 
 #: public/js/frappe/views/reports/report_view.js:461
 msgid "Configure Chart"
@@ -6651,11 +6652,11 @@ msgstr ""
 
 #: public/js/frappe/request.js:615
 msgid "Copy error to clipboard"
-msgstr ""
+msgstr "Copiar error al Portapapeles"
 
 #: public/js/frappe/form/toolbar.js:388
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "Copiar al Portapapeles"
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -8712,7 +8713,7 @@ msgstr ""
 #: workflow/doctype/workflow_action/workflow_action.json
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Desk User"
-msgstr ""
+msgstr "Usuario de Escritorio"
 
 #. Name of a DocType
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -8787,7 +8788,7 @@ msgstr "Desactivar actualización automática"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Disable Change Log Notification"
-msgstr ""
+msgstr "Deshabilitar la notificación del Registro de Cambios"
 
 #. Label of a Check field in DocType 'List View Settings'
 #: desk/doctype/list_view_settings/list_view_settings.json
@@ -8811,7 +8812,7 @@ msgstr "Desactivar recuento"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Disable Document Sharing"
-msgstr ""
+msgstr "Deshabilitar Compartir Documentos"
 
 #. Label of a Check field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -8849,13 +8850,13 @@ msgstr "Desactivar pie de página estándar en los correos electrónicos"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Disable System Update Notification"
-msgstr ""
+msgstr "Desactivar la notificación de Actualización del Sistema"
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Disable Username/Password Login"
-msgstr ""
+msgstr "Deshabilitar el inicio de sesión con nombre de Usuario/Contraseña"
 
 #. Label of a Check field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -10666,7 +10667,7 @@ msgstr "Correo Electrónico Responder Ayuda"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Email Retry Limit"
-msgstr ""
+msgstr "Límite de reintentos de correo electrónico"
 
 #. Name of a DocType
 #: email/doctype/email_rule/email_rule.json
@@ -11155,7 +11156,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Encrypt Backups"
-msgstr ""
+msgstr "Cifrar Copias de Seguridad"
 
 #: utils/password.py:181
 msgid "Encryption key is in invalid format!"
@@ -17778,7 +17779,7 @@ msgstr "Dejar esta conversación"
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Legal"
-msgstr ""
+msgstr "Legal"
 
 #. Label of a Int field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -19784,19 +19785,19 @@ msgstr "Incorporación del módulo"
 #. Name of a DocType
 #: core/doctype/module_profile/module_profile.json
 msgid "Module Profile"
-msgstr ""
+msgstr "Perfil del Módulo"
 
 #. Label of a Link in the Users Workspace
 #: core/workspace/users/users.json
 msgctxt "Module Profile"
 msgid "Module Profile"
-msgstr ""
+msgstr "Perfil del Módulo"
 
 #. Label of a Link field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Module Profile"
-msgstr ""
+msgstr "Perfil del Módulo"
 
 #. Label of a Data field in DocType 'Module Profile'
 #: core/doctype/module_profile/module_profile.json
@@ -21382,7 +21383,7 @@ msgstr "Notas:"
 
 #: public/js/frappe/form/undo_manager.js:43
 msgid "Nothing left to redo"
-msgstr ""
+msgstr "No queda nada que rehacer"
 
 #: public/js/frappe/form/undo_manager.js:33
 msgid "Nothing left to undo"
@@ -23076,7 +23077,7 @@ msgstr ""
 #. Label of a shortcut in the Users Workspace
 #: core/workspace/users/users.json
 msgid "Permission Manager"
-msgstr ""
+msgstr "Administrador de Permisos"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -25390,11 +25391,11 @@ msgstr "El servidor de caché Redis no esta funcionando. Por favor, póngase en 
 
 #: public/js/frappe/form/toolbar.js:462
 msgid "Redo"
-msgstr ""
+msgstr "Rehacer"
 
 #: public/js/frappe/form/form.js:164 public/js/frappe/form/toolbar.js:470
 msgid "Redo last action"
-msgstr ""
+msgstr "Rehacer última acción"
 
 #. Label of a Link field in DocType 'Report'
 #: core/doctype/report/report.json
@@ -25970,7 +25971,7 @@ msgstr ""
 
 #: public/js/frappe/form/toolbar.js:436
 msgid "Remind Me"
-msgstr ""
+msgstr "Recuérdemelo"
 
 #: public/js/frappe/form/reminders.js:13
 msgid "Remind Me In"
@@ -25979,7 +25980,7 @@ msgstr ""
 #. Name of a DocType
 #: automation/doctype/reminder/reminder.json
 msgid "Reminder"
-msgstr ""
+msgstr "Recordatorio"
 
 #: automation/doctype/reminder/reminder.py:39
 msgid "Reminder cannot be created in past."
@@ -27068,51 +27069,51 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager.js:59
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Section Break field in DocType 'Custom HTML Block'
 #. Label of a Table field in DocType 'Custom HTML Block'
 #: desk/doctype/custom_html_block/custom_html_block.json
 msgctxt "Custom HTML Block"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Table field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Table field in DocType 'Page'
 #: core/doctype/page/page.json
 msgctxt "Page"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Table field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Table field in DocType 'Role Permission for Page and Report'
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgctxt "Role Permission for Page and Report"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Section Break field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Table field in DocType 'Workspace'
 #. Label of a Tab Break field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Roles"
-msgstr ""
+msgstr "Roles"
 
 #. Label of a Tab Break field in DocType 'User'
 #: core/doctype/user/user.json
@@ -27168,7 +27169,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Rounding Method"
-msgstr ""
+msgstr "Método de Redondeo"
 
 #. Label of a Data field in DocType 'Blog Category'
 #: website/doctype/blog_category/blog_category.json
@@ -31491,7 +31492,7 @@ msgstr "Notificación del sistema"
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "System Notifications"
-msgstr ""
+msgstr "Notificaciones del Sistema"
 
 #. Label of a Check field in DocType 'Page'
 #: core/doctype/page/page.json
@@ -33855,7 +33856,7 @@ msgstr "Columna desconocida: {0}"
 
 #: utils/data.py:1193
 msgid "Unknown Rounding Method: {}"
-msgstr ""
+msgstr "Método de Redondeo desconocido: {}"
 
 #: auth.py:293
 msgid "Unknown User"
@@ -34086,7 +34087,7 @@ msgstr "Actualizado exitosamente"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Updates"
-msgstr ""
+msgstr "Actualizaciones"
 
 #: utils/response.py:312
 msgid "Updating"
@@ -35849,7 +35850,7 @@ msgstr "Cuando está habilitado, esto permitirá a los invitados cargar archivos
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "When uploading files, force the use of the web-based image capture. If this is unchecked, the default behavior is to use the mobile native camera when use from a mobile is detected."
-msgstr ""
+msgstr "Al cargar archivos, fuerce el uso de la captura de imágenes basada en web. Si no está marcada, el comportamiento por defecto es utilizar la cámara nativa del móvil cuando se detecta el uso desde un móvil."
 
 #: core/page/permission_manager/permission_manager_help.html:18
 msgid "When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number."
@@ -36562,29 +36563,29 @@ msgstr "No se puede desmarcar 'solo lectura' para el campo {0}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:121
 msgid "You changed the value of {0}"
-msgstr ""
+msgstr "Usted ha cambiado el valor de {0}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:110
 msgid "You changed the value of {0} {1}"
-msgstr ""
+msgstr "Usted ha cambiado el valor de {0} {1}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:183
 msgid "You changed the values for {0}"
-msgstr ""
+msgstr "Usted ha cambiado los valores de {0}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:172
 msgid "You changed the values for {0} {1}"
-msgstr ""
+msgstr "Usted ha cambiado los valores de {0} {1}"
 
 #: public/js/frappe/form/footer/form_timeline.js:442
 msgctxt "Form timeline"
 msgid "You changed {0} to {1}"
-msgstr ""
+msgstr "Usted ha cambiado {0} a {1}"
 
 #: public/js/frappe/form/footer/form_timeline.js:138
 #: public/js/frappe/form/sidebar/form_sidebar.js:106
 msgid "You created this"
-msgstr ""
+msgstr "Usted creó este"
 
 #: client.py:430
 msgid "You do not have Read or Select Permissions for {}"
@@ -36694,7 +36695,7 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:149
 #: public/js/frappe/form/sidebar/form_sidebar.js:95
 msgid "You last edited this"
-msgstr ""
+msgstr "Usted editó esto por última vez"
 
 #: public/js/frappe/widgets/widget_dialog.js:347
 msgid "You must add atleast one link."
@@ -37718,7 +37719,7 @@ msgstr ""
 #: public/js/frappe/utils/utils.js:1122
 msgctxt "Minutes (Field: Duration)"
 msgid "m"
-msgstr "metro"
+msgstr "m"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json

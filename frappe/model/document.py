@@ -300,8 +300,9 @@ class Document(BaseDocument):
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
 		# children
-		for d in self.get_all_children():
-			d.db_insert()
+		if not getattr(self.meta, "is_virtual", False):
+			for d in self.get_all_children():
+				d.db_insert()
 
 		self.run_method("after_insert")
 		self.flags.in_insert = True
@@ -415,6 +416,9 @@ class Document(BaseDocument):
 
 	def update_children(self):
 		"""update child tables"""
+		if getattr(self.meta, "is_virtual", False):
+			# Virtual doctypes manage their own children
+			return
 		for df in self.meta.get_table_fields():
 			self.update_child_table(df.fieldname, df)
 
@@ -1536,11 +1540,16 @@ class Document(BaseDocument):
 				primary_action=primary_action,
 			)
 
+		enqueue_after_commit = kwargs.pop("enqueue_after_commit", None)
+		if enqueue_after_commit is None:
+			enqueue_after_commit = True
+
 		return enqueue(
 			"frappe.model.document.execute_action",
 			__doctype=self.doctype,
 			__name=self.name,
 			__action=action,
+			enqueue_after_commit=enqueue_after_commit,
 			**kwargs,
 		)
 

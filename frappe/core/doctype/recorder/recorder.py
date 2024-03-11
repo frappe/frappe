@@ -39,12 +39,10 @@ class Recorder(Document):
 		super(Document, self).__init__(request)
 
 	@staticmethod
-	def get_list(args):
-		start = cint(args.get("start"))
-		page_length = cint(args.get("page_length")) or 20
-		requests = Recorder.get_filtered_requests(args)[start : start + page_length]
+	def get_list(filters=None, start=0, page_length=20, order_by="duration desc"):
+		requests = Recorder.get_filtered_requests(filters)[start : start + page_length]
 
-		if order_by_statment := args.get("order_by"):
+		if order_by_statment := order_by:
 			if "." in order_by_statment:
 				order_by_statment = order_by_statment.split(".")[1]
 
@@ -60,12 +58,11 @@ class Recorder(Document):
 		return sorted(requests, key=lambda r: r.duration, reverse=1)
 
 	@staticmethod
-	def get_count(args):
-		return len(Recorder.get_filtered_requests(args))
+	def get_count(filters=None):
+		return len(Recorder.get_filtered_requests(filters))
 
 	@staticmethod
-	def get_filtered_requests(args):
-		filters = args.get("filters")
+	def get_filtered_requests(filters):
 		requests = [serialize_request(request) for request in get_recorder_data()]
 		return [req for req in requests if evaluate_filters(req, filters)]
 
