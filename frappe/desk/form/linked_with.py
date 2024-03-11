@@ -613,6 +613,10 @@ def get_linked_fields(doctype, without_ignore_user_permissions_enabled=False):
 		if options in ret:
 			del ret[options]
 
+	virtual_doctypes = frappe.get_all("DocType", {"is_virtual": 1}, pluck="name")
+	for dt in virtual_doctypes:
+		ret.pop(dt, None)
+
 	return ret
 
 
@@ -639,7 +643,11 @@ def get_dynamic_linked_fields(doctype, without_ignore_user_permissions_enabled=F
 		if is_single(df.doctype):
 			continue
 
-		is_child = frappe.get_meta(df.doctype).istable
+		meta = frappe.get_meta(df.doctype)
+		if meta.is_virtual:
+			continue
+
+		is_child = meta.istable
 		possible_link = frappe.get_all(
 			df.doctype,
 			filters={df.doctype_fieldname: doctype},
