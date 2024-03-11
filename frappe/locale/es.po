@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-03-08 17:35\n"
+"PO-Revision-Date: 2024-03-11 17:16\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -4596,25 +4596,25 @@ msgstr "Cámara"
 #: public/js/frappe/utils/utils.js:1714
 #: website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
-msgstr ""
+msgstr "Campaña"
 
 #. Label of a Link field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Campaign"
-msgstr ""
+msgstr "Campaña"
 
 #. Label of a Data field in DocType 'Web Page View'
 #: website/doctype/web_page_view/web_page_view.json
 msgctxt "Web Page View"
 msgid "Campaign"
-msgstr ""
+msgstr "Campaña"
 
 #. Label of a Small Text field in DocType 'Marketing Campaign'
 #: website/doctype/marketing_campaign/marketing_campaign.json
 msgctxt "Marketing Campaign"
 msgid "Campaign Description (Optional)"
-msgstr ""
+msgstr "Descripción de la Campaña (opcional)"
 
 #: public/js/frappe/form/templates/set_sharing.html:4
 #: public/js/frappe/form/templates/set_sharing.html:50
@@ -8472,11 +8472,11 @@ msgstr "Eliminando {0}"
 
 #: public/js/frappe/list/bulk_operations.js:158
 msgid "Deleting {0} records..."
-msgstr ""
+msgstr "Eliminando {0} registros..."
 
 #: public/js/frappe/model/model.js:711
 msgid "Deleting {0}..."
-msgstr ""
+msgstr "Eliminando {0}..."
 
 #. Label of a Table field in DocType 'Personal Data Deletion Request'
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -19020,7 +19020,7 @@ msgstr "Marcado como Spam"
 #. Name of a DocType
 #: website/doctype/marketing_campaign/marketing_campaign.json
 msgid "Marketing Campaign"
-msgstr ""
+msgstr "Campaña de Marketing"
 
 #. Description of the 'Limit' (Int) field in DocType 'Bulk Update'
 #: desk/doctype/bulk_update/bulk_update.json
@@ -26414,7 +26414,7 @@ msgstr "Informes"
 
 #: patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
-msgstr "Informes y Masters"
+msgstr "Informes y Maestros"
 
 #: public/js/frappe/views/reports/query_report.js:851
 msgid "Reports already in Queue"
@@ -34108,7 +34108,7 @@ msgstr ""
 
 #: desk/page/setup_wizard/setup_wizard.py:22
 msgid "Updating global settings"
-msgstr ""
+msgstr "Actualizando configuración global"
 
 #: core/doctype/document_naming_settings/document_naming_settings.js:59
 msgid "Updating naming series options"
