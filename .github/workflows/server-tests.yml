@@ -139,9 +139,6 @@ jobs:
 
       - name: Show bench output
         if: ${{ always() }}
-<<<<<<< HEAD
-        run: cat ~/frappe-bench/bench_start.log || true
-=======
         run: |
           cd ~/frappe-bench
           cat bench_start.log || true
@@ -154,14 +151,6 @@ jobs:
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
-
-      - name: Upload coverage data
-        uses: actions/upload-artifact@v3
-        if: github.event_name != 'pull_request'
-        with:
-          name: coverage-${{ matrix.db }}-${{ matrix.container }}
-          path: /home/runner/frappe-bench/sites/coverage.xml
->>>>>>> 77c907a928 (ci: add debug gha option)
 
   # This is required because github still doesn't understand knowingly skipped tests
   faux-test:
