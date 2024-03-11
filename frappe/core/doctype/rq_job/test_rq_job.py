@@ -64,6 +64,10 @@ class TestRQJob(FrappeTestCase):
 		jobs = frappe.get_all("RQ Job", {"status": "failed"})
 		self.assertEqual(jobs, [])
 
+		# Pass a job
+		job = frappe.enqueue(method=self.BG_JOB, queue="short")
+		self.check_status(job, "finished")
+
 		# Fail a job
 		job = frappe.enqueue(method=self.BG_JOB, queue="short", fail=True)
 		self.check_status(job, "failed")
@@ -174,7 +178,7 @@ class TestRQJob(FrappeTestCase):
 
 		jobs = [frappe.enqueue(method=self.BG_JOB, queue="short", fail=True) for _ in range(limit * 2)]
 		self.check_status(jobs[-1], "failed")
-		self.assertLessEqual(RQJob.get_count({"filters": [["RQ Job", "status", "=", "failed"]]}), limit * 1.1)
+		self.assertLessEqual(RQJob.get_count(filters=[["RQ Job", "status", "=", "failed"]]), limit * 1.1)
 
 
 def test_func(fail=False, sleep=0):
