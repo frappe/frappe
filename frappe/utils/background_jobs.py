@@ -63,7 +63,7 @@ def get_queues_timeout() -> dict[str, int]:
 def enqueue(
 	method: str | Callable,
 	queue: str = "default",
-	datetime: datetime | None = None,
+	schedule_at: datetime | None = None,
 	timeout: int | None = None,
 	event: str | None = None,
 	is_async: bool = True,
@@ -83,7 +83,7 @@ def enqueue(
 
 	:param method: method string or method object
 	:param queue: should be either long, default or short
-	:param datetime: datetime at which the job should be executed
+	:param schedule_at: datetime at which the job should be executed
 	:param timeout: should be set according to the functions
 	:param event: this is passed to enable clearing of jobs from queues
 	:param is_async: if is_async=False, the method is executed immediately, else via a worker
@@ -157,7 +157,7 @@ def enqueue(
 	on_failure = on_failure or truncate_failed_registry
 
 	def enqueue_call():
-		if datetime is None or datetime < datetime.now():
+		if schedule_at is None or schedule_at < datetime.now():
 			return q.enqueue_call(
 				execute_job,
 				on_success=Callback(func=on_success) if on_success else None,
@@ -171,7 +171,7 @@ def enqueue(
 			)
 		else:
 			return q.enqueue_at(
-				datetime,
+				schedule_at,
 				execute_job,
 				kwargs=queue_args,
 				on_success=Callback(func=on_success) if on_success else None,
