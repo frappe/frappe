@@ -775,9 +775,6 @@ frappe.provide("frappe.views");
 			if(card.column == 'In parking' || card.column == 'In queue'){
 				render_fields.push(...['bring_car_date'])
 			}
-			if(card.column == 'In parking' && card.border){
-				render_fields.push(...['bring_car_date'])
-			}
 			
 			for (let field_name of render_fields) {
 				let field =
