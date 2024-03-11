@@ -345,7 +345,9 @@ def make_links(columns, data):
 				if col.options and row.get(col.options):
 					row[col.fieldname] = get_link_to_form(row[col.options], row[col.fieldname])
 			elif col.fieldtype == "Currency":
-				doc = frappe.get_doc(col.parent, doc_name) if doc_name and col.get("parent") else None
+				doc = None
+				if doc_name and col.get("parent") and not frappe.get_meta(col.parent).istable:
+					doc = frappe.get_doc(col.parent, doc_name)
 				# Pass the Document to get the currency based on docfield option
 				row[col.fieldname] = frappe.format_value(row[col.fieldname], col, doc=doc)
 	return columns, data
