@@ -31,7 +31,7 @@ class PreparedReport(Document):
 
 		error_message: DF.Text | None
 		filters: DF.SmallText | None
-		job_id: DF.Link | None
+		job_id: DF.Data | None
 		queued_at: DF.Datetime | None
 		queued_by: DF.Data | None
 		report_end_time: DF.Datetime | None

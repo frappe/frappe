@@ -286,7 +286,6 @@ def get_attr(cmd):
 			f"Calling shorthand for {cmd} is deprecated, please specify full path in RPC call."
 		)
 		method = globals()[cmd]
-	frappe.log("method:" + cmd)
 	return method
 
 

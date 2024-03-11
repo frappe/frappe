@@ -139,7 +139,18 @@ jobs:
 
       - name: Show bench output
         if: ${{ always() }}
-        run: cat ~/frappe-bench/bench_start.log || true
+        run: |
+          cd ~/frappe-bench
+          cat bench_start.log || true
+          cd logs
+          for f in ./*.log*; do
+            echo "Printing log: $f";
+            cat $f
+          done
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
 
   # This is required because github still doesn't understand knowingly skipped tests
   faux-test:
