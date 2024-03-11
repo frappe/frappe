@@ -300,8 +300,9 @@ class Document(BaseDocument):
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
 		# children
-		for d in self.get_all_children():
-			d.db_insert()
+		if not getattr(self.meta, "is_virtual", False):
+			for d in self.get_all_children():
+				d.db_insert()
 
 		self.run_method("after_insert")
 		self.flags.in_insert = True
@@ -415,6 +416,9 @@ class Document(BaseDocument):
 
 	def update_children(self):
 		"""update child tables"""
+		if getattr(self.meta, "is_virtual", False):
+			# Virtual doctypes manage their own children
+			return
 		for df in self.meta.get_table_fields():
 			self.update_child_table(df.fieldname, df)
 

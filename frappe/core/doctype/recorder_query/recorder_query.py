@@ -39,15 +39,15 @@ class RecorderQuery(Document):
 		pass
 
 	@staticmethod
-	def get_list(args):
+	def get_list():
 		pass
 
 	@staticmethod
-	def get_count(args):
+	def get_count():
 		pass
 
 	@staticmethod
-	def get_stats(args):
+	def get_stats():
 		pass
 
 	def delete(self):
