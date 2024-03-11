@@ -53,12 +53,12 @@ class RQWorker(Document):
 		return [serialize_worker(worker) for worker in valid_workers]
 
 	@staticmethod
-	def get_count(args) -> int:
+	def get_count() -> int:
 		return len(get_workers())
 
 	# None of these methods apply to virtual workers, overriden for sanity.
 	@staticmethod
-	def get_stats(args):
+	def get_stats():
 		return {}
 
 	def db_insert(self, *args, **kwargs):

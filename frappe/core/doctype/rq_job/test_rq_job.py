@@ -61,18 +61,18 @@ class TestRQJob(FrappeTestCase):
 	def test_get_list_filtering(self):
 		# Check failed job clearning and filtering
 		remove_failed_jobs()
-		jobs = RQJob.get_list({"filters": [["RQ Job", "status", "=", "failed"]]})
+		jobs = frappe.get_all("RQ Job", {"status": "failed"})
 		self.assertEqual(jobs, [])
 
 		# Fail a job
 		job = frappe.enqueue(method=self.BG_JOB, queue="short", fail=True)
 		self.check_status(job, "failed")
-		jobs = RQJob.get_list({"filters": [["RQ Job", "status", "=", "failed"]]})
+		jobs = frappe.get_all("RQ Job", {"status": "failed"})
 		self.assertEqual(len(jobs), 1)
 		self.assertTrue(jobs[0].exc_info)
 
 		# Assert that non-failed job still exists
-		non_failed_jobs = RQJob.get_list({"filters": [["RQ Job", "status", "!=", "failed"]]})
+		non_failed_jobs = frappe.get_all("RQ Job", {"status": ("!=", "failed")})
 		self.assertGreaterEqual(len(non_failed_jobs), 1)
 
 		# Create a slow job and check if it's stuck in "Started"

@@ -51,7 +51,7 @@ def get_count() -> int:
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = controller.get_count(args)
+		data = frappe.call(controller.get_count, args=args, **args)
 	else:
 		distinct = "distinct " if args.distinct == "true" else ""
 		args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
@@ -513,7 +513,7 @@ def get_sidebar_stats(stats, doctype, filters=None):
 	if is_virtual_doctype(doctype):
 		controller = get_controller(doctype)
 		args = {"stats": stats, "filters": filters}
-		data = controller.get_stats(args)
+		data = frappe.call(controller.get_stats, args=args, **args)
 	else:
 		data = get_stats(stats, doctype, filters)
 
