@@ -128,7 +128,6 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          bash ${GITHUB_WORKSPACE}/.github/helper/install_dependencies.sh
           bash ${GITHUB_WORKSPACE}/.github/helper/install.sh
         env:
           BEFORE: ${{ env.GITHUB_EVENT_PATH.before }}
