@@ -135,8 +135,8 @@ def _download_multi_pdf(
 			# Publish progress
 			frappe.publish_progress(
 				percent=(idx + 1) / total_docs * 100,
-				title="Creating PDF",
-				description=f"{idx+1} out of {total_docs}",
+				title=_("Please keep this tab open until the operation is complete."),
+				description=_(f"Printed {idx + 1} documents out of {total_docs}."),
 				task_id=task_id,
 >>>>>>> bf6cb1a49f (feat: move bulk print operation to the background)
 			)
@@ -168,8 +168,8 @@ def _download_multi_pdf(
 				count += 1
 				frappe.publish_progress(
 					percent=count / total_docs * 100,
-					title="Creating PDF",
-					description=f"{count} out of {total_docs}",
+					title=_("Please keep this tab open until the operation is complete."),
+					description=_(f"Printed {count} documents out of {total_docs}."),
 					task_id=task_id,
 				)
 
