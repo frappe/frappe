@@ -825,9 +825,7 @@ def use(site, sites_path="."):
 )
 @click.option("--verbose", default=False, is_flag=True, help="Add verbosity")
 @click.option("--compress", default=False, is_flag=True, help="Compress private and public files")
-@click.option(
-	"--old-backup-metadata", default=False, is_flag=True, help="Use older backup metadata"
-)
+@click.option("--old-backup-metadata", default=False, is_flag=True, help="Use older backup metadata")
 @pass_context
 def backup(
 	context,

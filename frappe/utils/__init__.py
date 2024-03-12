@@ -452,7 +452,7 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 		# ensure it's properly escaped; only a single string argument executes via shell
 		cmd = shlex.join(cmd)
 
-	with (tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr):
+	with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
 		kwargs = {
 			"shell": True,
 			"stdout": stdout,

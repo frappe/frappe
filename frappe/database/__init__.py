@@ -49,9 +49,7 @@ def get_db(host=None, user=None, password=None, port=None):
 		return frappe.database.mariadb.database.MariaDBDatabase(host, user, password, port=port)
 
 
-def get_command(
-	host=None, port=None, user=None, password=None, db_name=None, extra=None, dump=False
-):
+def get_command(host=None, port=None, user=None, password=None, db_name=None, extra=None, dump=False):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
