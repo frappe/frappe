@@ -67,7 +67,7 @@ def get_count() -> int:
 		args.limit = cint(args.limit)
 		if args.limit:
 			# Only "count until this limit"
-			args.fields = ["*"]
+			args.fields = [f"`tab{args.doctype}`.name"]
 			partial_query = execute(**args, run=0)
 			count = frappe.db.sql(
 				f"""with records as ( {partial_query} )
