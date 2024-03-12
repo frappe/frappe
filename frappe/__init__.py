@@ -399,8 +399,12 @@ def log(msg: str) -> None:
 
 	:param msg: Message."""
 	if not request:
+<<<<<<< HEAD
 		if conf.get("logging") or False:
 			print(repr(msg))
+=======
+		print(repr(msg))
+>>>>>>> 4ef0740ad5 (fix: print frappe.log message)
 
 	debug_log.append(as_unicode(msg))
 
