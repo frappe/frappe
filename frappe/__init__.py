@@ -458,8 +458,7 @@ def log(msg: str) -> None:
 
 	:param msg: Message."""
 	if not request:
-		if conf.get("logging") or False:
-			print(repr(msg))
+		print(repr(msg))
 
 	debug_log.append(as_unicode(msg))
 
