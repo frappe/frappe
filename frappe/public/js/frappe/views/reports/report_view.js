@@ -220,19 +220,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_datatable(this.data);
 	}
 
-	render_count() {
-		if (this.list_view_settings?.disable_count) {
-			return;
-		}
-		let $list_count = this.$paging_area.find(".list-count");
-		if (!$list_count.length) {
-			$list_count = $("<span>")
+	get_count_element() {
+		let $count = this.$paging_area.find(".list-count");
+		if (!$count.length) {
+			$count = $("<span>")
 				.addClass("text-muted list-count")
 				.prependTo(this.$paging_area.find(".level-right"));
 		}
-		this.get_count_str().then((str) => {
-			$list_count.text(str);
-		});
+		return $count;
 	}
 
 	on_update(data) {

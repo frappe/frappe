@@ -231,6 +231,7 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		} else {
 			super.render();
 			this.render_header();
+			this.render_count();
 		}
 	}
 

@@ -501,9 +501,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	freeze() {
 		if (this.list_view_settings && !this.list_view_settings.disable_count) {
-			this.$result
-				.find(".list-count")
-				.html(`<span>${__("Refreshing", null, "Document count in list view")}...</span>`);
+			this.get_count_element().html(
+				`<span>${__("Refreshing", null, "Document count in list view")}...</span>`
+			);
 		}
 	}
 
@@ -619,27 +619,31 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	render_count() {
 		if (this.list_view_settings.disable_count) return;
 
-		this.get_count_str().then((str) => {
-			let me = this;
-			let count_element = this.$result.find(".list-count");
-			count_element.html(`<span>${str}</span>`);
+		let me = this;
+		let $count = this.get_count_element();
+		this.get_count_str().then((count) => {
+			$count.html(`<span>${count}</span>`);
 			if (this.count_upper_bound) {
-				count_element.attr(
+				$count.attr(
 					"title",
 					__(
 						"The count shown is an estimated count. Click here to see the accurate count."
 					)
 				);
-				count_element.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
-				count_element.on("click", () => {
+				$count.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+				$count.on("click", () => {
 					me.count_upper_bound = 0;
-					count_element.off("click");
-					count_element.tooltip("disable");
+					$count.off("click");
+					$count.tooltip("disable");
 					me.freeze();
 					me.render_count();
 				});
 			}
 		});
+	}
+
+	get_count_element() {
+		return this.$result.find(".list-count");
 	}
 
 	get_header_html() {
