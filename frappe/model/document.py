@@ -386,6 +386,7 @@ class Document(BaseDocument):
 
 		self.update_children()
 		self.run_post_save_methods()
+		self.save_snapshot()
 
 		# clear unsaved flag
 		if hasattr(self, "__unsaved"):
@@ -808,7 +809,9 @@ class Document(BaseDocument):
 			self.check_docstatus_transition(0)
 			return
 
-		if cstr(previous.modified) != cstr(self._original_modified):
+		if (cstr(previous.modified) != cstr(self._original_modified)) and not getattr(
+			self.meta, "allow_document_snapshots", False
+		):
 			frappe.msgprint(
 				_("Error: Document has been modified after you have opened it")
 				+ (f" ({previous.modified}, {self.modified}). ")
@@ -1249,6 +1252,36 @@ class Document(BaseDocument):
 		if not self.flags.ignore_links:
 			check_if_doc_is_linked(self, method="Cancel")
 			check_if_doc_is_dynamically_linked(self, method="Cancel")
+
+	def save_snapshot(self):
+		"""Save snapshot of the document"""
+		old_doc = self._doc_before_save
+		if (
+			not old_doc
+			or self.doctype == "Version"
+			or frappe.flags.in_patch
+			or not getattr(self.meta, "allow_document_snapshots", False)
+		):
+			return
+		# Remove the name key from the child record, as storing it in snapshot
+		# will remove the child record when restoring the snapshot
+		old_doc = self.delete_name_from_child_table(old_doc)
+		version = frappe.new_doc("Version")
+		version.ref_doctype = self.doctype
+		version.docname = self.name
+		version.complete_snapshot = True
+		version.data = json.dumps(old_doc.as_dict(), default=str)
+		version.insert(ignore_permissions=True)
+
+	def delete_name_from_child_table(self, document: "Document"):
+		for df in document.meta.get_table_fields():
+			child_doc = document.get(df.fieldname, [])
+			if not child_doc:
+				continue
+			for doc in child_doc:
+				doc.delete_key("name")  # Remove the name key from the child record
+			document.set(df.fieldname, child_doc)
+		return document
 
 	def save_version(self):
 		"""Save version info"""
