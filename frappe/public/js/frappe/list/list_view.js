@@ -617,11 +617,29 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	render_count() {
-		if (!this.list_view_settings.disable_count) {
-			this.get_count_str().then((str) => {
-				this.$result.find(".list-count").html(`<span>${str}</span>`);
-			});
-		}
+		if (this.list_view_settings.disable_count) return;
+
+		this.get_count_str().then((str) => {
+			let me = this;
+			let count_element = this.$result.find(".list-count");
+			count_element.html(`<span>${str}</span>`);
+			if (this.count_upper_bound) {
+				count_element.attr(
+					"title",
+					__(
+						"The count shown is an estimated count. Click here to see the accurate count."
+					)
+				);
+				count_element.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+				count_element.on("click", () => {
+					me.count_upper_bound = 0;
+					count_element.off("click");
+					count_element.tooltip("disable");
+					me.freeze();
+					me.render_count();
+				});
+			}
+		});
 	}
 
 	get_header_html() {
@@ -954,14 +972,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.count_without_children =
 					count_without_children !== current_count ? count_without_children : undefined;
 
-				let estimated_count = this.total_count;
+				let count_str;
 				if (this.total_count === this.count_upper_bound) {
-					estimated_count = `${format_number(estimated_count - 1, null, 0)}+`;
+					count_str = `${format_number(count_str - 1, null, 0)}+`;
+				} else {
+					count_str = format_number(this.total_count, null, 0);
 				}
-				let str = __("{0} of {1}", [
-					format_number(current_count, null, 0),
-					estimated_count,
-				]);
+
+				let str = __("{0} of {1}", [format_number(current_count, null, 0), count_str]);
 				if (this.count_without_children) {
 					str = __("{0} of {1} ({2} rows with children)", [
 						count_without_children,
