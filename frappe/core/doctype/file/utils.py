@@ -407,3 +407,19 @@ def decode_file_content(content: bytes) -> bytes:
 	if b"," in content:
 		content = content.split(b",")[1]
 	return safe_b64decode(content)
+
+
+def find_file_by_url(path: str, name: str | None = None) -> Optional["File"]:
+	filters = {"file_url": str(path)}
+	if name:
+		filters["name"] = str(name)
+
+	files = frappe.get_all("File", filters=filters, fields="*")
+
+	# this file might be attached to multiple documents
+	# if the file is accessible from any one of those documents
+	# then it should be downloadable
+	for file_data in files:
+		file: "File" = frappe.get_doc(doctype="File", **file_data)
+		if file.is_downloadable():
+			return file
