@@ -16,6 +16,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	toggle_notifications,
 )
 from frappe.desk.notifications import clear_notifications
+from frappe.model.delete_doc import check_if_doc_is_linked
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
@@ -551,6 +552,15 @@ class User(Document):
 		# Delete OAuth data
 		frappe.db.delete("OAuth Authorization Code", {"user": self.name})
 		frappe.db.delete("Token Cache", {"user": self.name})
+
+		# Delete EPS data
+		frappe.db.delete("Energy Point Log", {"user": self.name})
+
+		# Ask user to disable instead if document is still linked
+		try:
+			check_if_doc_is_linked(self)
+		except frappe.LinkExistsError:
+			frappe.throw(_("You can disable the user instead of deleting it."), frappe.LinkExistsError)
 
 	def before_rename(self, old_name, new_name, merge=False):
 		frappe.clear_cache(user=old_name)
