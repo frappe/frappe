@@ -974,7 +974,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 				let count_str;
 				if (this.total_count === this.count_upper_bound) {
-					count_str = `${format_number(count_str - 1, null, 0)}+`;
+					count_str = `${format_number(this.total_count - 1, null, 0)}+`;
 				} else {
 					count_str = format_number(this.total_count, null, 0);
 				}
