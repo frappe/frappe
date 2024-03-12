@@ -262,6 +262,13 @@ def get_safe_globals():
 				before_rollback=frappe.db.before_rollback,
 				add_index=frappe.db.add_index,
 			),
+			website=NamespaceDict(
+				abs_url=frappe.website.utils.abs_url,
+				extract_title=frappe.website.utils.extract_title,
+				get_boot_data=frappe.website.utils.get_boot_data,
+				get_home_page=frappe.website.utils.get_home_page,
+				get_html_content_based_on_type=frappe.website.utils.get_html_content_based_on_type,
+			),
 			lang=getattr(frappe.local, "lang", "en"),
 		),
 		FrappeClient=FrappeClient,
