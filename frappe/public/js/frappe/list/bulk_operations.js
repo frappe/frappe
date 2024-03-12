@@ -101,7 +101,7 @@ export default class BulkOperations {
 			frappe.realtime.task_subscribe(task_id);
 			frappe.realtime.on(`task_progress:${task_id}`, (data) => {
 				frappe.msgprint(
-					`Please click <a href=${data.file_url}>here</a> to download the PDF`
+					`Please click <a href=${data.file_url} target="_blank">here</a> to download the PDF`
 				);
 			});
 
