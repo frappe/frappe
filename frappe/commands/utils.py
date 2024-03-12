@@ -2,11 +2,8 @@ import json
 import os
 import subprocess
 import sys
-<<<<<<< HEAD
-from shutil import which
-=======
 import typing
->>>>>>> 8bdc88f06d (fix: Log ipython commands)
+from shutil import which
 
 import click
 
