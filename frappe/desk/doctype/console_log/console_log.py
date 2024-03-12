@@ -18,11 +18,7 @@ class ConsoleLog(Document):
 		script: DF.Code | None
 		type: DF.Data | None
 	# end: auto-generated types
-<<<<<<< HEAD
-	pass
-=======
 
 	def after_delete(self):
 		# because on_trash can be bypassed
 		frappe.throw(frappe._("Console Logs can not be deleted"))
->>>>>>> 54a2b08278 (fix!: console logs can't be deleted)
