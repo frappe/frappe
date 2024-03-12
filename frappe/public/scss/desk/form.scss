@@ -389,10 +389,10 @@
 
 .form-group {
 	&.frappe-control:last-child {
-		margin-bottom: 0;
+		margin-bottom: 0.5rem;
 	}
 	&:last-child.frappe-control[data-fieldtype="Table"] {
-		margin-bottom: 0;
+		margin-bottom: 0.5rem;
 	}
 }
 
