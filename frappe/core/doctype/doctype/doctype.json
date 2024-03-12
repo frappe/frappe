@@ -28,6 +28,7 @@
   "beta",
   "is_virtual",
   "queue_in_background",
+  "allow_document_snapshots",
   "sb1",
   "naming_rule",
   "autoname",
@@ -668,6 +669,13 @@
    "fieldname": "sender_name_field",
    "fieldtype": "Data",
    "label": "Sender Name Field"
+  },
+  {
+   "default": "0",
+   "description": "If enabled, a complete snapshot of the document will be stored while saving the document.",
+   "fieldname": "allow_document_snapshots",
+   "fieldtype": "Check",
+   "label": "Allow Document Snapshots"
   }
  ],
  "icon": "fa fa-bolt",
@@ -750,7 +758,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-12-01 18:37:16.799471",
+ "modified": "2024-03-11 18:39:53.136706",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

@@ -101,6 +101,7 @@ class DocType(Document):
 		actions: DF.Table[DocTypeAction]
 		allow_auto_repeat: DF.Check
 		allow_copy: DF.Check
+		allow_document_snapshots: DF.Check
 		allow_events_in_timeline: DF.Check
 		allow_guest_to_view: DF.Check
 		allow_import: DF.Check
@@ -111,7 +112,7 @@ class DocType(Document):
 		custom: DF.Check
 		default_email_template: DF.Link | None
 		default_print_format: DF.Data | None
-		default_view: DF.Literal[None]
+		default_view: DF.LiteralNone
 		description: DF.SmallText | None
 		document_type: DF.Literal["", "Document", "Setup", "System", "Other"]
 		documentation: DF.Data | None

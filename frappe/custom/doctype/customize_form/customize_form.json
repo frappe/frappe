@@ -23,6 +23,7 @@
   "allow_auto_repeat",
   "allow_import",
   "queue_in_background",
+  "allow_document_snapshots",
   "naming_section",
   "naming_rule",
   "autoname",
@@ -399,6 +400,13 @@
    "fieldname": "sender_name_field",
    "fieldtype": "Data",
    "label": "Sender Name Field"
+  },
+  {
+   "default": "0",
+   "description": "If enabled, a complete snapshot of the document will be stored while saving the document.",
+   "fieldname": "allow_document_snapshots",
+   "fieldtype": "Check",
+   "label": " Allow Document Snapshots"
   }
  ],
  "hide_toolbar": 1,
@@ -407,7 +415,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-12-01 18:18:23.086134",
+ "modified": "2024-03-11 19:17:39.148515",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
