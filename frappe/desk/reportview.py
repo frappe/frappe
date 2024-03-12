@@ -13,12 +13,8 @@ from frappe.model import child_table_fields, default_fields, get_permitted_field
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
-<<<<<<< HEAD
-from frappe.utils import add_user_info, format_duration
-=======
 from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
->>>>>>> ae649aadf0 (fix: dont add useless distinct clause)
 
 
 @frappe.whitelist()
@@ -56,11 +52,7 @@ def get_count() -> int:
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-<<<<<<< HEAD
-		data = controller.get_count(args)
-=======
-		count = frappe.call(controller.get_count, args=args, **args)
->>>>>>> a49fafbf8e (feat: support countig till a limit)
+		count = controller.get_count(args)
 	else:
 		args.distinct = sbool(args.distinct)
 		distinct = "distinct " if args.distinct else ""
