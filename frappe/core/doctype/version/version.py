@@ -17,6 +17,7 @@ class Version(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		complete_snapshot: DF.Check
 		data: DF.Code | None
 		docname: DF.Data
 		ref_doctype: DF.Link
@@ -167,3 +168,10 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 
 def on_doctype_update():
 	frappe.db.add_index("Version", ["ref_doctype", "docname"])
+
+
+@frappe.whitelist()
+def restore(version):
+	"""Restore a version"""
+	version = frappe.get_doc("Version", version)
+	frappe.get_doc(version.get_data()).save()
