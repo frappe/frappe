@@ -14,6 +14,7 @@ from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, format_duration
+from frappe.utils.data import sbool
 
 
 @frappe.whitelist()
@@ -51,13 +52,22 @@ def get_count() -> int:
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
-		data = frappe.call(controller.get_count, args=args, **args)
+		count = frappe.call(controller.get_count, args=args, **args)
 	else:
-		distinct = "distinct " if args.distinct == "true" else ""
-		args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
-		data = execute(**args)[0].get("total_count")
+		args.distinct = sbool(args.distinct)
+		distinct = "distinct " if args.distinct else ""
+		args.limit = cint(args.limit)
+		fieldname = f"{distinct}`tab{args.doctype}`.name"
 
-	return data
+		if args.limit:
+			args.fields = [fieldname]
+			partial_query = execute(**args, run=0)
+			count = frappe.db.sql(f"""select count(*) from ( {partial_query} ) p""")[0][0]
+		else:
+			args.fields = [f"count({fieldname}) as total_count"]
+			count = execute(**args)[0].get("total_count")
+
+	return count
 
 
 def execute(doctype, *args, **kwargs):
