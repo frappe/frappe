@@ -1255,14 +1255,15 @@ class Document(BaseDocument):
 
 	def save_snapshot(self):
 		"""Save snapshot of the document"""
-		old_doc = self._doc_before_save
 		if (
-			not old_doc
+			not self._doc_before_save
 			or self.doctype == "Version"
 			or frappe.flags.in_patch
+			or frappe.flags.in_install
 			or not getattr(self.meta, "allow_document_snapshots", False)
 		):
 			return
+		old_doc = self._doc_before_save
 		# Remove the name key from the child record, as storing it in snapshot
 		# will remove the child record when restoring the snapshot
 		old_doc = self.delete_name_from_child_table(old_doc)
