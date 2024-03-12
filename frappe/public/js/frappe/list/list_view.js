@@ -946,6 +946,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return frappe.db
 			.count(this.doctype, {
 				filters: this.get_filters_for_args(),
+				limit: 1001,
 			})
 			.then((total_count) => {
 				this.total_count = total_count || current_count;

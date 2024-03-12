@@ -56,14 +56,28 @@ def get_count() -> int:
 
 	if is_virtual_doctype(args.doctype):
 		controller = get_controller(args.doctype)
+<<<<<<< HEAD
 		data = controller.get_count(args)
+=======
+		count = frappe.call(controller.get_count, args=args, **args)
+>>>>>>> a49fafbf8e (feat: support countig till a limit)
 	else:
 		args.distinct = sbool(args.distinct)
 		distinct = "distinct " if args.distinct else ""
-		args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
-		data = execute(**args)[0].get("total_count")
+		args.limit = cint(args.limit)
+		if args.limit:
+			# Only "count until this limit"
+			args.fields = ["*"]
+			partial_query = execute(**args, run=0)
+			count = frappe.db.sql(
+				f"""with records as ( {partial_query} )
+					select count(*) from records""",
+			)[0][0]
+		else:
+			args.fields = [f"count({distinct}`tab{args.doctype}`.name) as total_count"]
+			count = execute(**args)[0].get("total_count")
 
-	return data
+	return count
 
 
 def execute(doctype, *args, **kwargs):
