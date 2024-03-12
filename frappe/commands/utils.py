@@ -480,11 +480,19 @@ def mariadb(context, extra_args):
 	"""
 	Enter into mariadb console for a given site.
 	"""
+	from frappe.utils import get_site_path
+
 	site = get_site(context)
 	if not site:
 		raise SiteNotSpecifiedError
 	frappe.init(site=site)
+<<<<<<< HEAD
 	_mariadb(extra_args=extra_args)
+=======
+	frappe.conf.db_type = "mariadb"
+	os.environ["MYSQL_HISTFILE"] = os.path.abspath(get_site_path("logs", "mariadb_console.log"))
+	_enter_console(extra_args=extra_args)
+>>>>>>> 2d75dbb598 (fix: log mariadb console usage)
 
 
 @click.command("postgres", context_settings=EXTRA_ARGS_CTX)
