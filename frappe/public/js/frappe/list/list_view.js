@@ -28,6 +28,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			this.process_document_refreshes.bind(this),
 			2000
 		);
+		this.count_upper_bound = 1001;
 	}
 
 	has_permissions() {
@@ -946,13 +947,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return frappe.db
 			.count(this.doctype, {
 				filters: this.get_filters_for_args(),
-				limit: 1001,
+				limit: this.count_upper_bound,
 			})
 			.then((total_count) => {
 				this.total_count = total_count || current_count;
 				this.count_without_children =
 					count_without_children !== current_count ? count_without_children : undefined;
-				let str = __("{0} of {1}", [current_count, this.total_count]);
+
+				let estimated_count = this.total_count;
+				if (this.total_count === this.count_upper_bound) {
+					estimated_count = `${format_number(estimated_count - 1, null, 0)}+`;
+				}
+				let str = __("{0} of {1}", [
+					format_number(current_count, null, 0),
+					estimated_count,
+				]);
 				if (this.count_without_children) {
 					str = __("{0} of {1} ({2} rows with children)", [
 						count_without_children,
