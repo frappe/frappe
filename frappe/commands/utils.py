@@ -619,6 +619,14 @@ def console(context, autoreload=False):
 	if failed_to_import:
 		print("\nFailed to import:\n{}".format(", ".join(failed_to_import)))
 
+	# ref: https://stackoverflow.com/a/74681224
+	try:
+		from IPython.core import ultratb
+
+		ultratb.VerboseTB._tb_highlight = "bg:ansibrightblack"
+	except Exception:
+		pass
+
 	terminal.colors = "neutral"
 	terminal.display_banner = False
 	terminal()
