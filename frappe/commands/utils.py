@@ -2,7 +2,11 @@ import json
 import os
 import subprocess
 import sys
+<<<<<<< HEAD
 from shutil import which
+=======
+import typing
+>>>>>>> 8bdc88f06d (fix: Log ipython commands)
 
 import click
 
@@ -16,6 +20,9 @@ DATA_IMPORT_DEPRECATION = (
 	"[DEPRECATED] The `import-csv` command used 'Data Import Legacy' which has been deprecated.\n"
 	"Use `data-import` command instead to import data via 'Data Import'."
 )
+
+if typing.TYPE_CHECKING:
+	from IPython.terminal.embed import InteractiveShellEmbed
 
 
 @click.command("build")
@@ -601,6 +608,18 @@ def _console_cleanup():
 	frappe.destroy()
 
 
+def store_logs(terminal: "InteractiveShellEmbed") -> None:
+	from contextlib import suppress
+
+	frappe.log_level = 20  # info
+	with suppress(Exception):
+		logger = frappe.logger("ipython")
+		logger.info("=== bench console session ===")
+		for line in terminal.history_manager.get_range():
+			logger.info(line[2])
+		logger.info("=== session end ===")
+
+
 @click.command("console")
 @click.option("--autoreload", is_flag=True, help="Reload changes to code automatically")
 @pass_context
@@ -624,6 +643,7 @@ def console(context, autoreload=False):
 
 	all_apps = frappe.get_installed_apps()
 	failed_to_import = []
+	register(store_logs, terminal)  # Note: atexit runs in reverse order of registration
 
 	for app in list(all_apps):
 		try:
