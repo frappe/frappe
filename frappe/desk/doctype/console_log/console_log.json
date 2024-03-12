@@ -19,7 +19,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2023-07-05 22:16:02.823955",
+=======
+ "modified": "2024-03-12 20:35:43.921009",
+>>>>>>> 54a2b08278 (fix!: console logs can't be deleted)
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Console Log",
@@ -28,7 +32,6 @@
  "permissions": [
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
