@@ -1,4 +1,5 @@
 import os
+import uuid
 from io import BytesIO
 
 from PyPDF2 import PdfWriter
@@ -31,12 +32,11 @@ def download_multi_pdf(
 	no_letterhead=False,
 	letterhead=None,
 	options=None,
-	task_id=None,
 ):
 	"""
-	Calls _download_multi_pdf with the given parameters and returns the URL of the generated PDF
-
+	Calls _download_multi_pdf with the given parameters and returns a task ID
 	"""
+	task_id = str(uuid.uuid4())
 	frappe.enqueue(
 		_download_multi_pdf,
 		doctype=doctype,
@@ -48,6 +48,7 @@ def download_multi_pdf(
 		task_id=task_id,
 	)
 	frappe.local.response["http_status_code"] = 201
+	return {"task_id": task_id}
 
 
 def _download_multi_pdf(
