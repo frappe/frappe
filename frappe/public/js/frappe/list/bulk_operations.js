@@ -118,9 +118,15 @@ export default class BulkOperations {
 					let task_id = response.message.task_id;
 					frappe.realtime.task_subscribe(task_id);
 					frappe.realtime.on(`task_complete:${task_id}`, (data) => {
-						frappe.msgprint(
-							`Please click <a href=${data.file_url} target="_blank">here</a> to download the PDF`
-						);
+						frappe.msgprint({
+							title: __("Bulk PDF Export"),
+							message: __("Your PDF is ready for download"),
+							primary_action: {
+								label: __("Download PDF"),
+								client_action: "window.open",
+								args: data.file_url,
+							},
+						});
 						frappe.realtime.task_unsubscribe(task_id);
 						frappe.realtime.off(`task_complete:${task_id}`);
 					});
