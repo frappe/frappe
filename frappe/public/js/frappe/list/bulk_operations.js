@@ -105,24 +105,25 @@ export default class BulkOperations {
 				pdf_options = JSON.stringify({ "page-size": args.page_size });
 			}
 
-			const task_id = Math.random().toString(36).slice(-5);
-			frappe.realtime.task_subscribe(task_id);
-			frappe.realtime.on(`task_progress:${task_id}`, (data) => {
-				frappe.msgprint(
-					`Please click <a href=${data.file_url} target="_blank">here</a> to download the PDF`
-				);
-			});
-
-			frappe.call("frappe.utils.print_format.download_multi_pdf", {
-				doctype: this.doctype,
-				name: json_string,
-				format: print_format,
-				no_letterhead: with_letterhead ? "0" : "1",
-				letterhead: letterhead,
-				options: pdf_options,
-				task_id: task_id,
-			});
-			dialog.hide();
+			frappe
+				.call("frappe.utils.print_format.download_multi_pdf", {
+					doctype: this.doctype,
+					name: json_string,
+					format: print_format,
+					no_letterhead: with_letterhead ? "0" : "1",
+					letterhead: letterhead,
+					options: pdf_options,
+				})
+				.then((response) => {
+					let task_id = response.message.task_id;
+					frappe.realtime.task_subscribe(task_id);
+					frappe.realtime.on(`task_progress:${task_id}`, (data) => {
+						frappe.msgprint(
+							`Please click <a href=${data.file_url} target="_blank">here</a> to download the PDF`
+						);
+					});
+					dialog.hide();
+				});
 		});
 		dialog.show();
 	}
