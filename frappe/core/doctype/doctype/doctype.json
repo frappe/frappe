@@ -672,7 +672,7 @@
   },
   {
    "default": "0",
-   "description": "If enabled, a complete snapshot of the document will be stored while saving the document.",
+   "description": "If enabled, Snapshot will be stored on every save, applicable only for draft mode.",
    "fieldname": "allow_document_snapshots",
    "fieldtype": "Check",
    "label": "Allow Document Snapshots"
@@ -758,7 +758,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2024-03-11 18:39:53.136706",
+ "modified": "2024-03-13 16:42:25.161032",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

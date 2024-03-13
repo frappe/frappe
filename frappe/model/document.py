@@ -1261,6 +1261,7 @@ class Document(BaseDocument):
 			or frappe.flags.in_patch
 			or frappe.flags.in_install
 			or not getattr(self.meta, "allow_document_snapshots", False)
+			or self.docstatus != 0
 		):
 			return
 		old_doc = self._doc_before_save
