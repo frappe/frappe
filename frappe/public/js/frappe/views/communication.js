@@ -202,13 +202,25 @@ frappe.views.CommunicationComposer = class {
 	guess_language() {
 		// when attach print for print format changes try to guess language
 		// if print format has language then set that else boot lang.
-		let lang = frappe.boot.lang;
 
+		// Print language resolution:
+		// 1. Document's print_language field
+		// 2. print format's default field
+		// 3. user lang
+		// 4. system lang
+		// 3 and 4 are resolved already in boot
+		let document_lang = this.frm.doc?.language;
 		let print_format = this.dialog.get_value("select_print_format");
 
+		let print_format_lang;
 		if (print_format != "Standard") {
-			lang = frappe.get_doc("Print Format", print_format)?.default_print_language || lang;
+			print_format_lang = frappe.get_doc(
+				"Print Format",
+				print_format
+			)?.default_print_language;
 		}
+
+		let lang = document_lang || print_format_lang || frappe.boot.lang;
 		this.dialog.set_value("print_language", lang);
 	}
 
