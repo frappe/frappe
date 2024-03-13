@@ -31,7 +31,22 @@ def download_multi_pdf(
 	options: str | None = None,
 ):
 	"""
-	Calls _download_multi_pdf with the given parameters and returns a task ID
+	Calls _download_multi_pdf with the given parameters and returns the response
+	"""
+	return _download_multi_pdf(doctype, name, format, no_letterhead, options)
+
+
+@frappe.whitelist()
+def download_multi_pdf_async(
+	doctype: str | dict[str, list[str]],
+	name: str | list[str],
+	format: str | None = None,
+	no_letterhead: bool = False,
+	letterhead: str | None = None,
+	options: str | None = None,
+):
+	"""
+	Calls _download_multi_pdf with the given parameters in a background job, returns task ID
 	"""
 	task_id = str(uuid.uuid4())
 	if isinstance(doctype, dict):
@@ -57,11 +72,11 @@ def download_multi_pdf(
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
-	task_id: str,
 	format: str | None = None,
 	no_letterhead: bool = False,
 	letterhead: str | None = None,
 	options: str | None = None,
+	task_id: str | None = None,
 ):
 	"""Return a PDF compiled by concatenating multiple documents.
 
@@ -121,16 +136,23 @@ def _download_multi_pdf(
 					pdf_options=options,
 				)
 			except Exception:
-				frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
+				if task_id:
+					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
 
 			# Publish progress
-			frappe.publish_progress(
-				percent=(idx + 1) / total_docs * 100,
-				title=_("PDF Generation in Progress"),
-				description=_(
-					f"{idx + 1}/{total_docs} complete | Please leave this tab open until completion."
-				),
-				task_id=task_id,
+			if task_id:
+				frappe.publish_progress(
+					percent=(idx + 1) / total_docs * 100,
+					title=_("PDF Generation in Progress"),
+					description=_(
+						f"{idx + 1}/{total_docs} complete | Please leave this tab open until completion."
+					),
+					task_id=task_id,
+				)
+
+		if task_id is None:
+			frappe.local.response.filename = "{doctype}.pdf".format(
+				doctype=doctype.replace(" ", "-").replace("/", "-")
 			)
 
 	else:
@@ -151,35 +173,45 @@ def _download_multi_pdf(
 						pdf_options=options,
 					)
 				except Exception:
-					frappe.publish_realtime(task_id=task_id, message="Failed")
+					if task_id:
+						frappe.publish_realtime(task_id=task_id, message="Failed")
 					frappe.log_error(
 						title="Error in Multi PDF download",
 						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
+
 				count += 1
-				frappe.publish_progress(
-					percent=count / total_docs * 100,
-					title=_("PDF Generation in Progress"),
-					description=_(
-						f"{count}/{total_docs} complete | Please leave this tab open until completion."
-					),
-					task_id=task_id,
-				)
+
+				if task_id:
+					frappe.publish_progress(
+						percent=count / total_docs * 100,
+						title=_("PDF Generation in Progress"),
+						description=_(
+							f"{count}/{total_docs} complete | Please leave this tab open until completion."
+						),
+						task_id=task_id,
+					)
+		if task_id is None:
+			frappe.local.response.filename = f"{name}.pdf"
 
 	with BytesIO() as merged_pdf:
 		pdf_writer.write(merged_pdf)
-		_file = frappe.get_doc(
-			{
-				"doctype": "File",
-				"file_name": f"{filename}{task_id}.pdf",
-				"content": merged_pdf.getvalue(),
-				"is_private": 1,
-			}
-		)
-		_file.save()
-		frappe.publish_realtime(f"task_progress:{task_id}", message={"file_url": _file.unique_url})
+		if task_id:
+			_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": f"{filename}{task_id}.pdf",
+					"content": merged_pdf.getvalue(),
+					"is_private": 1,
+				}
+			)
+			_file.save()
+			frappe.publish_realtime(f"task_progress:{task_id}", message={"file_url": _file.unique_url})
+		else:
+			frappe.local.response.filecontent = merged_pdf.getvalue()
+			frappe.local.response.type = "pdf"
 
 
 @deprecated

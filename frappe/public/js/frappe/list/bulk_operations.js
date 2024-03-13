@@ -106,7 +106,7 @@ export default class BulkOperations {
 			}
 
 			frappe
-				.call("frappe.utils.print_format.download_multi_pdf", {
+				.call("frappe.utils.print_format.download_multi_pdf_async", {
 					doctype: this.doctype,
 					name: json_string,
 					format: print_format,
