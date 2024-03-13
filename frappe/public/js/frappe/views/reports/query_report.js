@@ -745,15 +745,19 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	add_prepared_report_buttons(doc) {
 		if (doc) {
-			this.page.add_inner_button(__("Download Report"), function () {
-				window.open(
-					frappe.urllib.get_full_url(
-						"/api/method/frappe.core.doctype.prepared_report.prepared_report.download_attachment?" +
-							"dn=" +
-							encodeURIComponent(doc.name)
-					)
-				);
-			});
+			this.page.add_inner_button(
+				__("Download Report"),
+				function () {
+					window.open(
+						frappe.urllib.get_full_url(
+							"/api/method/frappe.core.doctype.prepared_report.prepared_report.download_attachment?" +
+								"dn=" +
+								encodeURIComponent(doc.name)
+						)
+					);
+				},
+				__("Actions")
+			);
 
 			let pretty_diff = frappe.datetime.comment_when(doc.report_end_time);
 			const days_old = frappe.datetime.get_day_diff(
@@ -936,6 +940,16 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	render_datatable() {
 		let data = this.data;
 		let columns = this.columns.filter((col) => !col.hidden);
+
+		if (data.length > 100000) {
+			let msg = __(
+				"This report contains {0} rows and is too big to display in browser, you can {1} this report instead.",
+				[cstr(format_number(data.length, null, 0)).bold(), __("export").bold()]
+			);
+
+			this.toggle_message(true, `${frappe.utils.icon("solid-warning")} ${msg}`);
+			return;
+		}
 
 		if (this.raw_data.add_total_row && !this.report_settings.tree) {
 			data = data.slice();
@@ -1513,9 +1527,45 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 					open_url_post(frappe.request.url, args);
 				}
+<<<<<<< HEAD
 			},
 			__("Export Report: {0}", [this.report_name]),
 			__("Download")
+=======
+				let boolean_labels = { 1: __("Yes"), 0: __("No") };
+				let applied_filters = Object.fromEntries(
+					Object.entries(filters).map(([key, value]) => [
+						frappe.query_report.get_filter(key).df.label,
+						frappe.query_report.get_filter(key).df.fieldtype == "Check"
+							? boolean_labels[value]
+							: value,
+					])
+				);
+
+				const visible_idx = this.datatable?.bodyRenderer.visibleRowIndices || [];
+				if (visible_idx.length + 1 === this.data?.length) {
+					visible_idx.push(visible_idx.length);
+				}
+
+				const args = {
+					cmd: "frappe.desk.query_report.export_query",
+					report_name: this.report_name,
+					custom_columns: this.custom_columns?.length ? this.custom_columns : [],
+					file_format_type: file_format,
+					filters: filters,
+					applied_filters: applied_filters,
+					visible_idx,
+					csv_delimiter,
+					csv_quoting,
+					include_indentation,
+					include_filters,
+				};
+
+				open_url_post(frappe.request.url, args);
+
+				this.export_dialog.hide();
+			}
+>>>>>>> 65fb8dce01 (fix: dont render very large reports, offer export instead)
 		);
 	}
 
