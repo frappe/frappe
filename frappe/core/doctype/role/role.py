@@ -15,6 +15,7 @@ desk_properties = (
 	"timeline",
 	"dashboard",
 )
+from frappe.website.router import clear_routing_cache
 
 STANDARD_ROLES = ("Administrator", "System Manager", "Script Manager", "All", "Guest")
 
@@ -68,6 +69,9 @@ class Role(Document):
 	def validate_homepage(self):
 		if frappe.request and self.home_page:
 			validate_path(self.home_page)
+
+		if self.has_value_changed("home_page"):
+			clear_routing_cache()
 
 	def set_desk_properties(self):
 		# set if desk_access is not allowed, unset all desk properties
