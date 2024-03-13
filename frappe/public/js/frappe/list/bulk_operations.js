@@ -10,6 +10,7 @@ export default class BulkOperations {
 		const is_submittable = frappe.model.is_submittable(this.doctype);
 		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
 		const letterheads = this.get_letterhead_options();
+		const MAX_PRINT_LIMIT = 500;
 
 		const valid_docs = docs
 			.filter((doc) => {
@@ -32,6 +33,13 @@ export default class BulkOperations {
 
 		if (valid_docs.length === 0) {
 			frappe.msgprint(__("Select atleast 1 record for printing"));
+			return;
+		}
+
+		if (valid_docs.length > MAX_PRINT_LIMIT) {
+			frappe.msgprint(
+				__("You can only print upto {0} documents at a time", [MAX_PRINT_LIMIT])
+			);
 			return;
 		}
 
