@@ -22,11 +22,6 @@ from frappe.www.printview import validate_print_permission
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def download_multi_pdf(doctype, name, format=None, no_letterhead=False, letterhead=None, options=None):
-	"""
-	Concatenate multiple docs as PDF .
-=======
 def download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -84,7 +79,6 @@ def _download_multi_pdf(
 	task_id: str | None = None,
 ):
 	"""Return a PDF compiled by concatenating multiple documents.
->>>>>>> bf6cb1a49f (feat: move bulk print operation to the background)
 
 	Returns a PDF compiled by concatenating multiple documents. The documents
 	can be from a single DocType or multiple DocTypes
@@ -133,18 +127,6 @@ def _download_multi_pdf(
 		filename = f"{doctype}_"
 
 		# Concatenating pdf files
-<<<<<<< HEAD
-		for _i, ss in enumerate(result):
-			pdf_writer = frappe.get_print(
-				doctype,
-				ss,
-				format,
-				as_pdf=True,
-				output=pdf_writer,
-				no_letterhead=no_letterhead,
-				letterhead=letterhead,
-				pdf_options=options,
-=======
 		for idx, ss in enumerate(result):
 			try:
 				pdf_writer = frappe.get_print(
@@ -162,16 +144,6 @@ def _download_multi_pdf(
 					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
 
 			# Publish progress
-<<<<<<< HEAD
-			frappe.publish_progress(
-				percent=(idx + 1) / total_docs * 100,
-				title=_("PDF Generation in Progress"),
-				description=_(
-					f"{idx + 1}/{total_docs} complete | Please leave this tab open until completion."
-				),
-				task_id=task_id,
->>>>>>> bf6cb1a49f (feat: move bulk print operation to the background)
-=======
 			if task_id:
 				frappe.publish_progress(
 					percent=(idx + 1) / total_docs * 100,
@@ -185,7 +157,6 @@ def _download_multi_pdf(
 		if task_id is None:
 			frappe.local.response.filename = "{doctype}.pdf".format(
 				doctype=doctype.replace(" ", "-").replace("/", "-")
->>>>>>> 0ec3e4a683 (refactor: add in a new endpoint for background printing)
 			)
 
 	else:
