@@ -22,11 +22,6 @@ from frappe.www.printview import validate_print_permission
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-def download_multi_pdf(doctype, name, format=None, no_letterhead=False, letterhead=None, options=None):
-	"""
-	Concatenate multiple docs as PDF .
-=======
 def download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -84,7 +79,6 @@ def _download_multi_pdf(
 	task_id: str | None = None,
 ):
 	"""Return a PDF compiled by concatenating multiple documents.
->>>>>>> bf6cb1a49f (feat: move bulk print operation to the background)
 
 	Returns a PDF compiled by concatenating multiple documents. The documents
 	can be from a single DocType or multiple DocTypes
