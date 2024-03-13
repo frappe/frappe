@@ -335,6 +335,68 @@ frappe.ui.form.Toolbar = class Toolbar {
 			}
 		}
 
+		// restore
+		let doc = me.frm.doc;
+		frappe.db
+			.get_list("Version", {
+				filters: {
+					ref_doctype: doc.doctype,
+					docname: doc.name,
+				},
+				fields: ["name", "ref_doctype", "docname", "image", "data", "creation"],
+			})
+			.then((versions) => {
+				if (versions.length) {
+					this.page.add_menu_item(__("Restore"), () => {
+						const modal = `
+            <div class="modal fade" id="version-modal" tabindex="-1" role="dialog" aria-labelledby="version-modal-label" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="version-modal-label">Select Version</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <form id="restore-form">
+                      ${versions
+							.map(
+								(version) => `
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="versionId" id="version-${version.name}" value="${version.name}">
+                          <label class="form-check-label" for="version-${version.name}">
+                            ${version.creation}
+                          </label>
+                        </div>
+                      `
+							)
+							.join("")}
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" form="restore-form" class="btn btn-primary">Restore</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            `;
+						$("footer").append($(modal));
+						$("#restore-form").on("submit", (e) => {
+							e.preventDefault();
+							const version = new FormData(e.target).get("versionId");
+							this.restore(version, doc);
+							$("#version-modal").modal("hide");
+						});
+						$("#version-modal").on("hidden.bs.modal", function e() {
+							$("#version-modal").remove();
+						});
+						$("#version-modal").modal("show");
+					});
+				}
+			});
+
 		// email
 		if (frappe.model.can_email(null, me.frm) && me.frm.doc.docstatus < 2) {
 			this.page.add_menu_item(
@@ -511,6 +573,16 @@ frappe.ui.form.Toolbar = class Toolbar {
 				true
 			);
 		}
+	}
+
+	restore(version, doc) {
+		frappe.db.get_value("Version", version, "image").then((version_doc) => {
+			const image = JSON.parse(version_doc.message.image);
+			for (let field in image) {
+				if (field !== "modified")
+					frappe.model.set_value(doc.doctype, doc.name, field, image[field]);
+			}
+		});
 	}
 
 	make_customize_buttons() {

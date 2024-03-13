@@ -10,6 +10,7 @@
   "column_break_3",
   "docname",
   "data",
+  "image",
   "section_break_4",
   "table_html"
  ],
@@ -41,6 +42,12 @@
    "label": "Data"
   },
   {
+    "fieldname": "image",
+    "fieldtype": "JSON",
+    "hidden": 1,
+    "label": "Image"
+  },
+  {
    "fieldname": "section_break_4",
    "fieldtype": "Section Break"
   },
@@ -54,10 +61,11 @@
  "idx": 1,
  "in_create": 1,
  "links": [],
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2024-03-12 15:25:34.227772",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Version",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {

@@ -45,6 +45,7 @@ class Version(Document):
 			self.ref_doctype = new.doctype
 			self.docname = new.name
 			self.data = frappe.as_json(diff, indent=None, separators=(",", ":"))
+			self.image = frappe.as_json(old, indent=None, separators=(",", ":"))
 			return True
 		else:
 			return False
@@ -63,6 +64,7 @@ class Version(Document):
 		self.ref_doctype = doc.doctype
 		self.docname = doc.name
 		self.data = frappe.as_json(data, indent=None, separators=(",", ":"))
+		self.image = frappe.as_json(doc, indent=None, separators=(",", ":"))
 		return True
 
 	def get_data(self):
