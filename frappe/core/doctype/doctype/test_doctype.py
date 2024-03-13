@@ -113,7 +113,8 @@ class TestDocType(FrappeTestCase):
 
 		frappe.get_doc(snapshot).save()
 		# Check if the snapshot is restored
-		self.assertEqual(new_user.first_name, "Snapshot Test")
+		updated_user = frappe.get_doc("User", new_user.name)
+		self.assertEqual(updated_user.first_name, "Snapshot Test")
 
 	def test_doctype_unique_constraint_dropped(self):
 		if frappe.db.exists("DocType", "With_Unique"):
