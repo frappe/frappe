@@ -172,4 +172,13 @@ def get_website_rules():
 		# dont cache in development
 		return _get()
 
+<<<<<<< HEAD
 	return frappe.cache().get_value("website_route_rules", _get)
+=======
+	return frappe.cache.get_value("website_route_rules", _get)
+
+
+def validate_path(path: str):
+	if not PathResolver(path).is_valid_path():
+		frappe.throw(frappe._("Path {0} it not a valid path").format(frappe.bold(path)))
+>>>>>>> d9d29430a9 (fix: validate homepage paths)
