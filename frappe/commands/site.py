@@ -349,7 +349,7 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 		with decrypt_backup(sql_file_path, key):
 			if not is_partial(sql_file_path):
 				click.secho(
-					"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
+					"Full backup file detected. Use `bench restore` to restore a Frappe Site.",
 					fg="red",
 				)
 				sys.exit(1)
@@ -364,7 +364,7 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 	else:
 		if not is_partial(sql_file_path):
 			click.secho(
-				"Full backup file detected.Use `bench restore` to restore a Frappe Site.",
+				"Full backup file detected. Use `bench restore` to restore a Frappe Site.",
 				fg="red",
 			)
 			sys.exit(1)
