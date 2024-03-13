@@ -2,6 +2,7 @@ import os
 
 import frappe
 from frappe.database.db_manager import DbManager
+from frappe.utils import cint
 
 
 def setup_database(force, source_sql=None, verbose=False):
@@ -19,7 +20,7 @@ def setup_database(force, source_sql=None, verbose=False):
 	root_conn.sql(f'GRANT ALL PRIVILEGES ON DATABASE "{frappe.conf.db_name}" TO "{frappe.conf.db_name}"')
 	if psql_version := root_conn.sql("SHOW server_version_num", as_dict=True):
 		semver_version_num = psql_version[0].get("server_version_num") or "140000"
-		if semver_version_num > 150000:
+		if cint(semver_version_num) > 150000:
 			root_conn.sql(f'ALTER DATABASE "{frappe.conf.db_name}" OWNER TO "{frappe.conf.db_name}"')
 	root_conn.close()
 
