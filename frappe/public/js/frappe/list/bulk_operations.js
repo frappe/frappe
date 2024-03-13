@@ -117,10 +117,12 @@ export default class BulkOperations {
 				.then((response) => {
 					let task_id = response.message.task_id;
 					frappe.realtime.task_subscribe(task_id);
-					frappe.realtime.on(`task_progress:${task_id}`, (data) => {
+					frappe.realtime.on(`task_complete:${task_id}`, (data) => {
 						frappe.msgprint(
 							`Please click <a href=${data.file_url} target="_blank">here</a> to download the PDF`
 						);
+						frappe.realtime.task_unsubscribe(task_id);
+						frappe.realtime.off(`task_complete:${task_id}`);
 					});
 					dialog.hide();
 				});
