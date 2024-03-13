@@ -10,6 +10,7 @@ export default class BulkOperations {
 		const is_submittable = frappe.model.is_submittable(this.doctype);
 		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
 		const letterheads = this.get_letterhead_options();
+		const MAX_PRINT_LIMIT = 500;
 
 		const valid_docs = docs
 			.filter((doc) => {
@@ -35,8 +36,10 @@ export default class BulkOperations {
 			return;
 		}
 
-		if (valid_docs.length > 50) {
-			frappe.msgprint(__("You can only print upto 50 documents at a time"));
+		if (valid_docs.length > MAX_PRINT_LIMIT) {
+			frappe.msgprint(
+				__("You can only print upto {0} documents at a time", [MAX_PRINT_LIMIT])
+			);
 			return;
 		}
 
@@ -102,28 +105,34 @@ export default class BulkOperations {
 				pdf_options = JSON.stringify({ "page-size": args.page_size });
 			}
 
-			const w = window.open(
-				"/api/method/frappe.utils.print_format.download_multi_pdf?" +
-					"doctype=" +
-					encodeURIComponent(this.doctype) +
-					"&name=" +
-					encodeURIComponent(json_string) +
-					"&format=" +
-					encodeURIComponent(print_format) +
-					"&no_letterhead=" +
-					(with_letterhead ? "0" : "1") +
-					"&letterhead=" +
-					encodeURIComponent(letterhead) +
-					"&options=" +
-					encodeURIComponent(pdf_options)
-			);
-
-			if (!w) {
-				frappe.msgprint(__("Please enable pop-ups"));
-				return;
-			}
+			frappe
+				.call("frappe.utils.print_format.download_multi_pdf_async", {
+					doctype: this.doctype,
+					name: json_string,
+					format: print_format,
+					no_letterhead: with_letterhead ? "0" : "1",
+					letterhead: letterhead,
+					options: pdf_options,
+				})
+				.then((response) => {
+					let task_id = response.message.task_id;
+					frappe.realtime.task_subscribe(task_id);
+					frappe.realtime.on(`task_complete:${task_id}`, (data) => {
+						frappe.msgprint({
+							title: __("Bulk PDF Export"),
+							message: __("Your PDF is ready for download"),
+							primary_action: {
+								label: __("Download PDF"),
+								client_action: "window.open",
+								args: data.file_url,
+							},
+						});
+						frappe.realtime.task_unsubscribe(task_id);
+						frappe.realtime.off(`task_complete:${task_id}`);
+					});
+					dialog.hide();
+				});
 		});
-
 		dialog.show();
 	}
 
