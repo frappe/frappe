@@ -798,7 +798,7 @@ ALLOWED_FIELDTYPE_CHANGE = (
 	("Text", "Data"),
 	("Text", "Text Editor", "Code", "Signature", "HTML Editor"),
 	("Data", "Select"),
-	("Text", "Small Text"),
+	("Text", "Small Text", "Long Text"),
 	("Text", "Data", "Barcode"),
 	("Code", "Geolocation"),
 	("Table", "Table MultiSelect"),
