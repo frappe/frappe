@@ -338,17 +338,28 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// restore
 		let doc = me.frm.doc;
 		frappe.db
-			.get_list("Version", {
-				filters: {
-					ref_doctype: doc.doctype,
-					docname: doc.name,
-				},
-				fields: ["name", "ref_doctype", "docname", "image", "data", "creation"],
-			})
-			.then((versions) => {
-				if (versions.length) {
-					this.page.add_menu_item(__("Restore"), () => {
-						const modal = `
+			.get_value("DocType", doc.doctype, "is_restorable")
+			.then(({ message: { is_restorable } }) => {
+				if (is_restorable) {
+					frappe.db
+						.get_list("Version", {
+							filters: {
+								ref_doctype: doc.doctype,
+								docname: doc.name,
+							},
+							fields: [
+								"name",
+								"ref_doctype",
+								"docname",
+								"image",
+								"data",
+								"creation",
+							],
+						})
+						.then((versions) => {
+							if (versions.length) {
+								this.page.add_menu_item(__("Restore"), () => {
+									const modal = `
             <div class="modal fade" id="version-modal" tabindex="-1" role="dialog" aria-labelledby="version-modal-label" aria-hidden="true">
               <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -382,18 +393,20 @@ frappe.ui.form.Toolbar = class Toolbar {
               </div>
             </div>
             `;
-						$("footer").append($(modal));
-						$("#restore-form").on("submit", (e) => {
-							e.preventDefault();
-							const version = new FormData(e.target).get("versionId");
-							this.restore(version, doc);
-							$("#version-modal").modal("hide");
+									$("footer").append($(modal));
+									$("#restore-form").on("submit", (e) => {
+										e.preventDefault();
+										const version = new FormData(e.target).get("versionId");
+										this.restore(version, doc);
+										$("#version-modal").modal("hide");
+									});
+									$("#version-modal").on("hidden.bs.modal", function e() {
+										$("#version-modal").remove();
+									});
+									$("#version-modal").modal("show");
+								});
+							}
 						});
-						$("#version-modal").on("hidden.bs.modal", function e() {
-							$("#version-modal").remove();
-						});
-						$("#version-modal").modal("show");
-					});
 				}
 			});
 

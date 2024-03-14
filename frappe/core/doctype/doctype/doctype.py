@@ -111,7 +111,7 @@ class DocType(Document):
 		custom: DF.Check
 		default_email_template: DF.Link | None
 		default_print_format: DF.Data | None
-		default_view: DF.Literal[None]
+		default_view: DF.LiteralNone
 		description: DF.SmallText | None
 		document_type: DF.Literal["", "Document", "Setup", "System", "Other"]
 		documentation: DF.Data | None
@@ -128,6 +128,7 @@ class DocType(Document):
 		index_web_pages_for_search: DF.Check
 		is_calendar_and_gantt: DF.Check
 		is_published_field: DF.Data | None
+		is_restorable: DF.Check
 		is_submittable: DF.Check
 		is_tree: DF.Check
 		is_virtual: DF.Check

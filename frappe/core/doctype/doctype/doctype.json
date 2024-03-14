@@ -16,6 +16,7 @@
   "is_submittable",
   "istable",
   "issingle",
+  "is_restorable",
   "is_tree",
   "is_calendar_and_gantt",
   "editable_grid",
@@ -142,6 +143,12 @@
    "oldfieldname": "issingle",
    "oldfieldtype": "Check",
    "set_only_once": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_restorable",
+   "fieldtype": "Check",
+   "label": "Is Restorable"
   },
   {
    "default": "1",
@@ -750,7 +757,7 @@
    "link_fieldname": "reference_doctype"
   }
  ],
- "modified": "2023-12-01 18:37:16.799471",
+ "modified": "2024-03-14 12:20:08.299575",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",
