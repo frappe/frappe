@@ -360,39 +360,39 @@ frappe.ui.form.Toolbar = class Toolbar {
 							if (versions.length) {
 								this.page.add_menu_item(__("Restore"), () => {
 									const modal = `
-            <div class="modal fade" id="version-modal" tabindex="-1" role="dialog" aria-labelledby="version-modal-label" aria-hidden="true">
-              <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="version-modal-label">Select Version</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                      <span aria-hidden="true">&times;</span>
-                    </button>
-                  </div>
-                  <div class="modal-body">
-                    <form id="restore-form">
-                      ${versions
-							.map(
-								(version) => `
-                        <div class="form-check">
-                          <input class="form-check-input" type="radio" name="versionId" id="version-${version.name}" value="${version.name}">
-                          <label class="form-check-label" for="version-${version.name}">
-                            ${version.creation}
-                          </label>
-                        </div>
-                      `
-							)
-							.join("")}
-                    </form>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" form="restore-form" class="btn btn-primary">Restore</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            `;
+									<div class="modal fade" id="version-modal" tabindex="-1" role="dialog" aria-labelledby="version-modal-label" aria-hidden="true">
+										<div class="modal-dialog" role="document">
+											<div class="modal-content">
+											<div class="modal-header">
+												<h5 class="modal-title" id="version-modal-label">Select Version</h5>
+												<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+												<span aria-hidden="true">&times;</span>
+												</button>
+											</div>
+											<div class="modal-body">
+												<form id="restore-form">
+												${versions
+													.map(
+														(version) => `
+													<div class="form-check">
+													<input class="form-check-input" type="radio" name="versionId" id="version-${version.name}" value="${version.name}">
+													<label class="form-check-label" for="version-${version.name}">
+														${version.creation}
+													</label>
+													</div>
+												`
+													)
+													.join("")}
+												</form>
+											</div>
+											<div class="modal-footer">
+												<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+												<button type="submit" form="restore-form" class="btn btn-primary">Restore</button>
+											</div>
+											</div>
+										</div>
+									</div>
+									`;
 									$("footer").append($(modal));
 									$("#restore-form").on("submit", (e) => {
 										e.preventDefault();
@@ -591,9 +591,14 @@ frappe.ui.form.Toolbar = class Toolbar {
 	restore(version, doc) {
 		frappe.db.get_value("Version", version, "image").then((version_doc) => {
 			const image = JSON.parse(version_doc.message.image);
-			for (let field in image) {
-				if (field !== "modified")
+
+			// Ensure that fields mentioned in both versions are reset based on old version
+			const fields = new Set([...Object.keys(doc), ...Object.keys(image)]);
+
+			for (let field of fields) {
+				if (field !== "modified") {
 					frappe.model.set_value(doc.doctype, doc.name, field, image[field]);
+				}
 			}
 		});
 	}
