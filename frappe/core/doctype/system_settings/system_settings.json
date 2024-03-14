@@ -75,23 +75,9 @@
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
-<<<<<<< HEAD
+  "store_attached_pdf_document",
   "prepared_report_section",
   "max_auto_email_report_per_user",
-=======
-  "store_attached_pdf_document",
-  "welcome_email_template",
-  "reset_password_template",
-  "files_tab",
-  "files_section",
-  "max_file_size",
-  "allow_guests_to_upload_files",
-  "force_web_capture_mode_for_uploads",
-  "strip_exif_metadata_from_uploaded_images",
-  "column_break_uqma",
-  "allowed_file_extensions",
-  "updates_tab",
->>>>>>> e76c29fcec (feat: Store printed PDF attachments on communication (#25439))
   "system_updates_section",
   "disable_system_update_notification",
   "disable_change_log_notification",
@@ -607,74 +593,6 @@
   {
    "fieldname": "column_break_uqma",
    "fieldtype": "Column Break"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "description": "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG",
-   "fieldname": "allowed_file_extensions",
-   "fieldtype": "Small Text",
-   "label": "Allowed File Extensions"
-  },
-  {
-   "fieldname": "security_tab",
-   "fieldtype": "Tab Break",
-   "label": "Login"
-  },
-  {
-   "fieldname": "email_tab",
-   "fieldtype": "Tab Break",
-   "label": "Email"
-  },
-  {
-   "fieldname": "files_tab",
-   "fieldtype": "Tab Break",
-   "label": "Files"
-  },
-  {
-   "fieldname": "updates_tab",
-   "fieldtype": "Tab Break",
-   "label": "Updates"
-  },
-  {
-   "fieldname": "backups_tab",
-   "fieldtype": "Tab Break",
-   "label": "Backups"
-  },
-  {
-   "fieldname": "advanced_tab",
-   "fieldtype": "Tab Break",
-   "label": "Advanced"
-  },
-  {
-   "fieldname": "password_tab",
-   "fieldtype": "Tab Break",
-   "label": "Password"
-  },
-  {
-   "fieldname": "column_break_txqh",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "login_methods_section",
-   "fieldtype": "Section Break",
-   "label": "Login Methods"
-  },
-  {
-   "fieldname": "column_break_uhqk",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "search_section",
-   "fieldtype": "Section Break",
-   "label": "Search"
-  },
-  {
-   "default": "10",
-   "fieldname": "link_field_results_limit",
-   "fieldtype": "Int",
-   "label": "Link Field Results Limit",
-   "non_negative": 1
   },
   {
    "default": "1",
@@ -682,17 +600,12 @@
    "fieldname": "store_attached_pdf_document",
    "fieldtype": "Check",
    "label": "Store Attached PDF Document"
->>>>>>> e76c29fcec (feat: Store printed PDF attachments on communication (#25439))
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-10-17 16:12:28.145496",
-=======
  "modified": "2024-03-14 15:18:01.465057",
->>>>>>> e76c29fcec (feat: Store printed PDF attachments on communication (#25439))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

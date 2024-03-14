@@ -305,11 +305,7 @@ class CommunicationEmailMixin:
 		send_me_a_copy=None,
 		print_letterhead=None,
 		is_inbound_mail_communcation=None,
-<<<<<<< HEAD
-=======
-		print_language=None,
 		now=False,
->>>>>>> e76c29fcec (feat: Store printed PDF attachments on communication (#25439))
 	):
 		if input_dict := self.sendmail_input_dict(
 			print_html=print_html,
