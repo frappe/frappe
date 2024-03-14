@@ -1510,15 +1510,15 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						);
 					}
 
-					const visible_idx = this.datatable.bodyRenderer.visibleRowIndices;
-					if (visible_idx.length + 1 === this.data.length) {
+					const visible_idx = this.datatable?.bodyRenderer.visibleRowIndices || [];
+					if (visible_idx.length + 1 === this.data?.length) {
 						visible_idx.push(visible_idx.length);
 					}
 
 					const args = {
 						cmd: "frappe.desk.query_report.export_query",
 						report_name: this.report_name,
-						custom_columns: this.custom_columns.length ? this.custom_columns : [],
+						custom_columns: this.custom_columns?.length ? this.custom_columns : [],
 						file_format_type: file_format,
 						filters: filters,
 						visible_idx,
