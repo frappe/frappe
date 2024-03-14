@@ -58,6 +58,7 @@ def get_count() -> int:
 		distinct = "distinct " if args.distinct else ""
 		args.limit = cint(args.limit)
 		fieldname = f"{distinct}`tab{args.doctype}`.name"
+		args.order_by = None
 
 		if args.limit:
 			args.fields = [fieldname]
