@@ -4,6 +4,11 @@ import pickle
 import re
 
 import redis
+<<<<<<< HEAD
+=======
+from redis.commands.search import Search
+from redis.sentinel import Sentinel
+>>>>>>> 77618cde1f (feat: connect to redis sentinel for redis cache (#25398))
 
 import frappe
 from frappe.utils import cstr
@@ -252,3 +257,49 @@ class RedisWrapper(redis.Redis):
 	def smembers(self, name):
 		"""Return all members of the set"""
 		return super().smembers(self.make_key(name))
+<<<<<<< HEAD
+=======
+
+	def ft(self, index_name="idx"):
+		return RedisearchWrapper(client=self, index_name=self.make_key(index_name))
+
+
+def setup_cache():
+	if frappe.conf.redis_cache_sentinel_enabled:
+		sentinels = [tuple(node.split(":")) for node in frappe.conf.get("redis_cache_sentinels", [])]
+		sentinel = get_sentinel_connection(
+			sentinels=sentinels,
+			sentinel_username=frappe.conf.get("redis_cache_sentinel_username"),
+			sentinel_password=frappe.conf.get("redis_cache_sentinel_password"),
+			master_username=frappe.conf.get("redis_cache_master_username"),
+			master_password=frappe.conf.get("redis_cache_master_password"),
+		)
+		return sentinel.master_for(
+			frappe.conf.get("redis_cache_master_service"),
+			redis_class=RedisWrapper,
+		)
+
+	return RedisWrapper.from_url(frappe.conf.get("redis_cache"))
+
+
+def get_sentinel_connection(
+	sentinels: list[tuple[str, int]],
+	sentinel_username=None,
+	sentinel_password=None,
+	master_username=None,
+	master_password=None,
+):
+	sentinel_kwargs = {}
+	if sentinel_username:
+		sentinel_kwargs["username"] = sentinel_username
+
+	if sentinel_password:
+		sentinel_kwargs["password"] = sentinel_password
+
+	return Sentinel(
+		sentinels=sentinels,
+		sentinel_kwargs=sentinel_kwargs,
+		username=master_username,
+		password=master_password,
+	)
+>>>>>>> 77618cde1f (feat: connect to redis sentinel for redis cache (#25398))
