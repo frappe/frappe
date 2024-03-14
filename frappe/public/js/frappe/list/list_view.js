@@ -921,7 +921,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			settings_button = `
 				<span class="list-actions">
 					<button class="btn btn-action btn-default btn-xs"
-						data-name="${doc.name}" data-idx="${doc._idx}"
+						data-doctype="${frappe.utils.escape_html(doc.doctype || this.doctype)}"
+						data-name="${frappe.utils.escape_html(doc.name)}"
+						data-idx="${doc._idx}"
 						title="${this.settings.button.get_description(doc)}">
 						${this.settings.button.get_label(doc)}
 					</button>
@@ -1006,9 +1008,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return this.settings.get_form_link(doc);
 		}
 
-		return `/app/${encodeURIComponent(
-			frappe.router.slug(frappe.router.doctype_layout || this.doctype)
-		)}/${encodeURIComponent(cstr(doc.name))}`;
+		return frappe.utils.get_form_link(
+			frappe.router.doctype_layout || this.doctype,
+			cstr(doc.name)
+		);
 	}
 
 	get_seen_class(doc) {
@@ -1372,21 +1375,34 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			// shift select checkboxes
 			if (e.shiftKey && this.$checkbox_cursor && !$target.is(this.$checkbox_cursor)) {
-				const name_1 = decodeURIComponent(this.$checkbox_cursor.data().name);
-				const name_2 = decodeURIComponent($target.data().name);
-				const index_1 = this.data.findIndex((d) => d.name === name_1);
-				const index_2 = this.data.findIndex((d) => d.name === name_2);
-				let [min_index, max_index] = [index_1, index_2];
+				const name_1 = this.$checkbox_cursor.data("name");
+				const name_2 = $target.data("name");
 
+				const index_1 = this.data.findIndex((d) => d.name == name_1);
+				const index_2 = this.data.findIndex((d) => d.name == name_2);
+
+				let [min_index, max_index] = [index_1, index_2];
 				if (min_index > max_index) {
 					[min_index, max_index] = [max_index, min_index];
 				}
 
-				let docnames = this.data.slice(min_index + 1, max_index).map((d) => d.name);
-				const selector = docnames
-					.map((name) => `.list-row-checkbox[data-name="${encodeURIComponent(name)}"]`)
-					.join(",");
-				this.$result.find(selector).prop("checked", true);
+				const docnames = new Set();
+				for (let i = min_index; i <= max_index; i++) {
+					const name = this.data[i]?.name;
+					if (name) {
+						docnames.add(name);
+					}
+				}
+
+				/** @type {HTMLElement} */
+				const parentElement = this.$result.get(0);
+				const checkboxes = parentElement.getElementsByClassName("list-row-checkbox");
+				for (const checkbox of checkboxes) {
+					const docname = checkbox.getAttribute("data-name");
+					if (docnames.has(docname)) {
+						checkbox.checked = true;
+					}
+				}
 			}
 
 			this.$checkbox_cursor = $target;
@@ -1577,7 +1593,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		$.each(this.$checks, (i, el) => {
 			let docname = $(el).attr("data-name");
-			this.$result.find(`.list-row-checkbox[data-name='${docname}']`).prop("checked", true);
+			this.$result
+				.find(`.list-row-checkbox[data-name="${docname.replace('"', '\\"')}"]`)
+				.prop("checked", true);
 		});
 		this.on_row_checked();
 	}
