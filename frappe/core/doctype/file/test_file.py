@@ -17,7 +17,13 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
+<<<<<<< HEAD
 from frappe.desk.form.utils import add_comment
+=======
+from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
+from frappe.core.doctype.file.utils import delete_file, get_extension
+from frappe.core.doctype.user.test_user import test_user
+>>>>>>> bd661688e9 (fix: dont allow querying files to website users (#25094))
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
@@ -664,10 +670,10 @@ class TestAttachmentsAccess(FrappeTestCase):
 		self.assertNotIn("test_user_standalone.txt", system_manager_files)
 
 		self.assertIn("test_sm_attachment.txt", system_manager_attachments_files)
-		self.assertIn("test_sm_attachment.txt", user_attachments_files)
 		self.assertIn("test_user_attachment.txt", system_manager_attachments_files)
 		self.assertIn("test_user_attachment.txt", user_attachments_files)
 
+<<<<<<< HEAD
 	def test_list_public_single_file(self):
 		"""Ensure that users are able to list public standalone files."""
 		frappe.set_user("test@example.com")
@@ -703,6 +709,8 @@ class TestAttachmentsAccess(FrappeTestCase):
 		files = [file.file_name for file in get_files_in_folder("Home/Attachments")["files"]]
 		self.assertIn("test_public_attachment.txt", files)
 
+=======
+>>>>>>> bd661688e9 (fix: dont allow querying files to website users (#25094))
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
