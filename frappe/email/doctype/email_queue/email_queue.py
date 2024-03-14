@@ -370,7 +370,8 @@ class SendMailContext:
 		if frappe.db.exists("File", file_data):
 			return
 
-		file = frappe.new_doc("File", **file_data)
+		file = frappe.new_doc("File")
+		file.update(file_data)
 		file.content = content
 		file.insert()
 
