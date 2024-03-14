@@ -1527,45 +1527,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 					open_url_post(frappe.request.url, args);
 				}
-<<<<<<< HEAD
 			},
 			__("Export Report: {0}", [this.report_name]),
 			__("Download")
-=======
-				let boolean_labels = { 1: __("Yes"), 0: __("No") };
-				let applied_filters = Object.fromEntries(
-					Object.entries(filters).map(([key, value]) => [
-						frappe.query_report.get_filter(key).df.label,
-						frappe.query_report.get_filter(key).df.fieldtype == "Check"
-							? boolean_labels[value]
-							: value,
-					])
-				);
-
-				const visible_idx = this.datatable?.bodyRenderer.visibleRowIndices || [];
-				if (visible_idx.length + 1 === this.data?.length) {
-					visible_idx.push(visible_idx.length);
-				}
-
-				const args = {
-					cmd: "frappe.desk.query_report.export_query",
-					report_name: this.report_name,
-					custom_columns: this.custom_columns?.length ? this.custom_columns : [],
-					file_format_type: file_format,
-					filters: filters,
-					applied_filters: applied_filters,
-					visible_idx,
-					csv_delimiter,
-					csv_quoting,
-					include_indentation,
-					include_filters,
-				};
-
-				open_url_post(frappe.request.url, args);
-
-				this.export_dialog.hide();
-			}
->>>>>>> 65fb8dce01 (fix: dont render very large reports, offer export instead)
 		);
 	}
 
