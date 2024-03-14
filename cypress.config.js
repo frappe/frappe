@@ -9,8 +9,8 @@ module.exports = defineConfig({
 	video: true,
 	videoUploadOnPasses: false,
 	retries: {
-		runMode: 2,
-		openMode: 2,
+		runMode: 1,
+		openMode: 1,
 	},
 	e2e: {
 		// We've imported your old cypress plugins here.
