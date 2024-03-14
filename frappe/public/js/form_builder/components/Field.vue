@@ -97,6 +97,7 @@ function make_dialog(frm) {
 			});
 
 			props.field.df.link_filters = JSON.stringify(filters);
+			store.form.selected_field = props.field.df;
 			frm.dialog.hide();
 		},
 		primary_action_label: __("Apply"),
@@ -133,11 +134,6 @@ function make_dialog(frm) {
 			}
 		});
 	}
-
-	// Setting selected field in store because when we click on the dialog the selected field is set to null
-	frm.dialog.$wrapper.on("click", () => {
-		store.form.selected_field = props.field.df;
-	});
 }
 
 function make_filter_area(frm, doctype) {

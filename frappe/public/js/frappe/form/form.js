@@ -292,13 +292,19 @@ frappe.ui.form.Form = class FrappeForm {
 		for (const d of data) {
 			for (const condition of d) {
 				let [doctype, field, operator, value] = condition;
+				if (value.includes("eval")) {
+					// if condition type of 'like' is used then remove % from value
+					value = value.replace(/%/g, "");
+					// get the value to calculate
+					value = value.split("eval:")[1];
+					value = frappe.utils.eval(value, { doc: this.doc, frappe });
+				}
 				doctype = doctype.fieldname;
 				if (!parsed_data[doctype]) {
 					parsed_data[doctype] = {
 						filters: {},
 					};
 				}
-
 				if (!parsed_data[doctype].filters[field]) {
 					parsed_data[doctype].filters[field] = [operator, value];
 				}
