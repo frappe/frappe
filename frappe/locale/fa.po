@@ -15139,7 +15139,7 @@ msgstr "اگر نقشی در سطح 0 دسترسی نداشته باشد، سط�
 #. Description of the 'Is Active' (Check) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
-msgid "If checked, all other workflows become inactive."
+msgid "If checked, all other workflows for the selected DocType become inactive."
 msgstr "اگر علامت زده شود، همه گردش‌های کاری دیگر غیرفعال می‌شوند."
 
 #. Description of the 'Show Absolute Values' (Check) field in DocType 'Print
