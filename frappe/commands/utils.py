@@ -476,11 +476,8 @@ def mariadb(context, extra_args):
 	"""
 	Enter into mariadb console for a given site.
 	"""
-	from frappe.utils import get_site_path
-
 	site = get_site(context)
 	frappe.init(site=site)
-	os.environ["MYSQL_HISTFILE"] = os.path.abspath(get_site_path("logs", "mariadb_console.log"))
 	frappe.conf.db_type = "mariadb"
 	_enter_console(extra_args=extra_args)
 
@@ -492,17 +489,20 @@ def postgres(context, extra_args):
 	"""
 	Enter into postgres console for a given site.
 	"""
-	from frappe.utils import get_site_path
-
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.conf.db_type = "postgres"
-	os.environ["PSQL_HISTORY"] = os.path.abspath(get_site_path("logs", "postgresql_console.log"))
 	_enter_console(extra_args=extra_args)
 
 
 def _enter_console(extra_args=None):
 	from frappe.database import get_command
+	from frappe.utils import get_site_path
+
+	if frappe.conf.db_type == "mariadb":
+		os.environ["MYSQL_HISTFILE"] = os.path.abspath(get_site_path("logs", "mariadb_console.log"))
+	else:
+		os.environ["PSQL_HISTORY"] = os.path.abspath(get_site_path("logs", "postgresql_console.log"))
 
 	bin, args, bin_name = get_command(
 		host=frappe.conf.db_host,
