@@ -1467,12 +1467,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return;
 		}
 
+		let export_options = ["Excel"];
+		if (this.datatable) {
+			export_options.push("CSV");
+		}
+
 		let export_dialog_fields = [
 			{
 				label: __("Select File Format"),
 				fieldname: "file_format",
 				fieldtype: "Select",
-				options: ["Excel", "CSV"],
+				options: export_options,
 				default: "Excel",
 				reqd: 1,
 			},
