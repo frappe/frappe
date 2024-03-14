@@ -10,7 +10,7 @@ from frappe import _
 from frappe.utils import get_request_session
 
 
-def make_request(method, url, auth=None, headers=None, data=None, json=None):
+def make_request(method, url, auth=None, headers=None, data=None, json=None, params=None):
 	auth = auth or ""
 	data = data or {}
 	headers = headers or {}
@@ -18,7 +18,7 @@ def make_request(method, url, auth=None, headers=None, data=None, json=None):
 	try:
 		s = get_request_session()
 		frappe.flags.integration_request = s.request(
-			method, url, data=data, auth=auth, headers=headers, json=json
+			method, url, data=data, auth=auth, headers=headers, json=json, params=params
 		)
 		frappe.flags.integration_request.raise_for_status()
 
