@@ -513,9 +513,12 @@ def postgres(context, extra_args):
 	"""
 	Enter into postgres console for a given site.
 	"""
+	from frappe.utils import get_site_path
+
 	site = get_site(context)
 	frappe.init(site=site)
 	frappe.conf.db_type = "postgres"
+	os.environ["PSQL_HISTORY"] = os.path.abspath(get_site_path("logs", "postgresql_console.log"))
 	_enter_console(extra_args=extra_args)
 
 
