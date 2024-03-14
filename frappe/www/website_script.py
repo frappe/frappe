@@ -19,6 +19,7 @@ def get_context(context):
 	if not frappe.conf.developer_mode:
 		context["google_analytics_id"] = get_setting("google_analytics_id")
 		context["google_analytics_anonymize_ip"] = get_setting("google_analytics_anonymize_ip")
+		context["enable_view_tracking"] = get_setting("enable_view_tracking")
 
 
 def get_setting(field_name):
