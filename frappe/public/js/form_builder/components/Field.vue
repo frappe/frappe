@@ -212,7 +212,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 				<div class="field-label">
 					<EditableInput
 						ref="label_input"
-						:text="field.df.label"
+						:text="__(field.df.label)"
 						:placeholder="__('Label')"
 						:empty_label="`${__('No Label')} (${field.df.fieldtype})`"
 						v-model="field.df.label"
