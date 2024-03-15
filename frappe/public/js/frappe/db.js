@@ -96,6 +96,7 @@ frappe.db = {
 	},
 	count: function (doctype, args = {}) {
 		let filters = args.filters || {};
+		let limit = args.limit;
 
 		// has a filter with childtable?
 		const distinct =
@@ -111,6 +112,7 @@ frappe.db = {
 			filters,
 			fields,
 			distinct,
+			limit,
 		});
 	},
 	get_link_options(doctype, txt = "", filters = {}) {

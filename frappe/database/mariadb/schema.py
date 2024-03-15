@@ -61,7 +61,7 @@ class MariaDBTable(DBTable):
 			CHARACTER SET=utf8mb4
 			COLLATE=utf8mb4_unicode_ci"""
 
-		frappe.db.sql(query)
+		frappe.db.sql_ddl(query)
 
 	def alter(self):
 		for col in self.columns.values():

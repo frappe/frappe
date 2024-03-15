@@ -19,7 +19,7 @@ class KanbanBoard(Document):
 		from frappe.types import DF
 
 		columns: DF.Table[KanbanBoardColumn]
-		field_name: DF.Literal
+		field_name: DF.Literal[None]
 		fields: DF.Code | None
 		filters: DF.Code | None
 		kanban_board_name: DF.Data

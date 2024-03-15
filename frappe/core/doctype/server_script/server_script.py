@@ -36,6 +36,8 @@ class ServerScript(Document):
 			"Before Save",
 			"After Insert",
 			"After Save",
+			"Before Rename",
+			"After Rename",
 			"Before Submit",
 			"After Submit",
 			"Before Cancel",

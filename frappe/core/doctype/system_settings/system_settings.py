@@ -87,9 +87,10 @@ class SystemSettings(Document):
 		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]
 		session_expiry: DF.Data | None
 		setup_complete: DF.Check
+		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
-		time_zone: DF.Literal
+		time_zone: DF.Literal[None]
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
 		welcome_email_template: DF.Link | None
 	# end: auto-generated types

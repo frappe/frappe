@@ -3,6 +3,8 @@
 
 import datetime
 import re
+import struct
+import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Optional
 
@@ -262,7 +264,10 @@ def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 	                DE/09/01/00001 where 09 is the year, 01 is the month and 00001 is the series
 	"""
 	if key == "hash":
-		return frappe.generate_hash(length=10)
+		# Makeshift "ULID": first 4 chars are based on timestamp, other 8 are random
+		ts = hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])
+
+		return ts[-7:-4] + frappe.generate_hash(length=7)
 
 	series = NamingSeries(key)
 	return series.generate_next_name(doc, ignore_validate=ignore_validate)

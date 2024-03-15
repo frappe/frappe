@@ -21,7 +21,7 @@ class BulkUpdate(Document):
 
 		condition: DF.SmallText | None
 		document_type: DF.Link
-		field: DF.Literal
+		field: DF.Literal[None]
 		limit: DF.Int
 		update_value: DF.SmallText
 	# end: auto-generated types

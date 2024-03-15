@@ -180,7 +180,7 @@ class DatabaseQuery:
 				"pluck": pluck,
 				"parent_doctype": parent_doctype,
 			} | self.__dict__
-			return controller.get_list(kwargs)
+			return frappe.call(controller.get_list, args=kwargs, **kwargs)
 
 		self.columns = self.get_table_columns()
 

@@ -123,13 +123,15 @@ frappe.ui.form.on("Custom Field", {
 						default: frm.doc.fieldname,
 					},
 					function (data) {
-						frappe.call({
-							method: "frappe.custom.doctype.custom_field.custom_field.rename_fieldname",
-							args: {
-								custom_field: frm.doc.name,
-								fieldname: data.fieldname,
-							},
-						});
+						frappe
+							.xcall(
+								"frappe.custom.doctype.custom_field.custom_field.rename_fieldname",
+								{
+									custom_field: frm.doc.name,
+									fieldname: data.fieldname,
+								}
+							)
+							.then(() => frm.reload());
 					},
 					__("Rename Fieldname"),
 					__("Rename")

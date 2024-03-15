@@ -35,7 +35,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-09-19 13:02:56.332137",
+ "modified": "2024-03-12 20:35:43.921009",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Console Log",
@@ -44,7 +44,6 @@
  "permissions": [
   {
    "create": 1,
-   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
