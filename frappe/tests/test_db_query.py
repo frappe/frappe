@@ -1162,13 +1162,13 @@ class TestReportView(FrappeTestCase):
 				"distinct": "false",
 			}
 		)
-		list_filter_response = execute_cmd("frappe.desk.reportview.get_count")
+		count = execute_cmd("frappe.desk.reportview.get_count")
 		frappe.local.form_dict = frappe._dict(
 			{"doctype": "DocType", "filters": {"show_title_field_in_link": 1}, "distinct": "true"}
 		)
 		dict_filter_response = execute_cmd("frappe.desk.reportview.get_count")
-		self.assertIsInstance(list_filter_response, int)
-		self.assertEqual(list_filter_response, dict_filter_response)
+		self.assertIsInstance(count, int)
+		self.assertEqual(count, dict_filter_response)
 
 		# test with child table filter
 		frappe.local.form_dict = frappe._dict(
@@ -1188,6 +1188,21 @@ class TestReportView(FrappeTestCase):
 			" where `tabDocField`.`fieldtype` = 'Data'"
 		)[0][0]
 		self.assertEqual(child_filter_response, current_value)
+
+		# test with limit
+		limit = 2
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": "DocType",
+				"filters": [["DocType", "is_virtual", "=", 1]],
+				"fields": [],
+				"distinct": "false",
+				"limit": limit,
+			}
+		)
+		count = execute_cmd("frappe.desk.reportview.get_count")
+		self.assertIsInstance(count, int)
+		self.assertLessEqual(count, limit)
 
 	def test_reportview_get(self):
 		user = frappe.get_doc("User", "test@example.com")
