@@ -43,7 +43,7 @@ function open_new_child_doctype_dialog() {
 				:key="i"
 			>
 				<div class="table-field ellipsis">
-					{{ tf.label }}
+					{{ __(tf.label) }}
 				</div>
 			</div>
 		</div>
@@ -65,7 +65,7 @@ function open_new_child_doctype_dialog() {
 		</div>
 
 		<!-- description -->
-		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
+		<div v-if="df.description" class="mt-2 description" v-html="__(df.description)"></div>
 	</div>
 </template>
 
