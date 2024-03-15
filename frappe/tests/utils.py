@@ -92,7 +92,7 @@ class FrappeTestCase(unittest.TestCase):
 		"""Formats SQL consistently so simple string comparisons can work on them."""
 		import sqlparse
 
-		return (sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True),)
+		return sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True)
 
 	@contextmanager
 	def primary_connection(self):
