@@ -573,32 +573,36 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			return value;
 		}
 
-		return this.validate_link_and_fetch(this.df, this.get_options(), this.docname, value);
+		return this.validate_link_and_fetch(value);
 	}
-	validate_link_and_fetch(df, options, docname, value) {
-		if (!options) return;
+	validate_link_and_fetch(value) {
+		const options = this.get_options();
+		if (!options) {
+			return;
+		}
 
-		const fetch_map = this.fetch_map;
-		const columns_to_fetch = Object.values(fetch_map);
+		const columns_to_fetch = Object.values(this.fetch_map);
 
 		// if default and no fetch, no need to validate
-		if (!columns_to_fetch.length && df.__default_value === value) {
+		if (!columns_to_fetch.length && this.df.__default_value === value) {
 			return value;
 		}
 
-		function update_dependant_fields(response) {
+		const update_dependant_fields = (response) => {
 			let field_value = "";
-			for (const [target_field, source_field] of Object.entries(fetch_map)) {
-				if (value) field_value = response[source_field];
+			for (const [target_field, source_field] of Object.entries(this.fetch_map)) {
+				if (value) {
+					field_value = response[source_field];
+				}
 				frappe.model.set_value(
-					df.parent,
-					docname,
+					this.df.parent,
+					this.docname,
 					target_field,
 					field_value,
-					df.fieldtype
+					this.df.fieldtype
 				);
 			}
-		}
+		};
 
 		// to avoid unnecessary request
 		if (value) {
@@ -609,7 +613,9 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					fields: columns_to_fetch,
 				})
 				.then((response) => {
-					if (!docname || !columns_to_fetch.length) return response.name;
+					if (!this.docname || !columns_to_fetch.length) {
+						return response.name;
+					}
 					update_dependant_fields(response);
 					return response.name;
 				});
