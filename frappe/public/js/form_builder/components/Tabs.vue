@@ -131,7 +131,7 @@ function delete_tab(tab, with_children) {
 					@dragover="drag_over(element)"
 				>
 					<EditableInput
-						:text="element.df.label"
+						:text="__(element.df.label)"
 						:placeholder="__('Tab Label')"
 						v-model="element.df.label"
 					/>
