@@ -15,6 +15,6 @@ const props = defineProps(["df"]);
 		<button class="btn btn-sm btn-default">{{ __("Attach") }}</button>
 
 		<!-- description -->
-		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
+		<div v-if="df.description" class="mt-2 description" v-html="__(df.description)"></div>
 	</div>
 </template>
