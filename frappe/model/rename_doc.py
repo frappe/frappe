@@ -635,7 +635,10 @@ def rename_dynamic_links(doctype: str, old: str, new: str):
 	Singles = frappe.qb.DocType("Singles")
 	for df in get_dynamic_link_map().get(doctype, []):
 		# dynamic link in single, just one value to check
-		if frappe.get_meta(df.parent).issingle:
+		meta = frappe.get_meta(df.parent)
+		if meta.is_virtual:
+			continue
+		if meta.issingle:
 			refdoc = frappe.db.get_singles_dict(df.parent)
 			if refdoc.get(df.options) == doctype and refdoc.get(df.fieldname) == old:
 				frappe.qb.update(Singles).set(Singles.value, new).where(
