@@ -5,7 +5,6 @@ import re
 
 import redis
 from redis.commands.search import Search
-from redis.sentinel import Sentinel
 
 import frappe
 from frappe.utils import cstr
@@ -315,6 +314,8 @@ def get_sentinel_connection(
 	master_username=None,
 	master_password=None,
 ):
+	from redis.sentinel import Sentinel
+
 	sentinel_kwargs = {}
 	if sentinel_username:
 		sentinel_kwargs["username"] = sentinel_username
