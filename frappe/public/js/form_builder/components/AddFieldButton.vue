@@ -16,7 +16,7 @@
 						:value="autocomplete_value"
 						:options="fields"
 						@change="add_new_field"
-						placeholder="Search fieldtypes..."
+						:placeholder="__('Search fieldtypes...')"
 					/>
 				</div>
 			</div>
