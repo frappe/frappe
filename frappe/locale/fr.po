@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-02-29 05:11\n"
+"PO-Revision-Date: 2024-03-15 10:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -6267,7 +6267,7 @@ msgstr "Configurer le graphique"
 
 #: public/js/frappe/form/grid_row.js:382
 msgid "Configure Columns"
-msgstr ""
+msgstr "Configurer Les Colonnes"
 
 #: core/doctype/recorder/recorder_list.js:200
 msgid "Configure Recorder"
@@ -18309,7 +18309,7 @@ msgstr ""
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "List Columns"
-msgstr ""
+msgstr "Colonnes de la liste"
 
 #. Name of a DocType
 #: desk/doctype/list_filter/list_filter.json
@@ -21360,11 +21360,11 @@ msgstr "Remarques:"
 
 #: public/js/frappe/form/undo_manager.js:43
 msgid "Nothing left to redo"
-msgstr ""
+msgstr "Rien de plus à refaire"
 
 #: public/js/frappe/form/undo_manager.js:33
 msgid "Nothing left to undo"
-msgstr ""
+msgstr "Rien de plus à annuler"
 
 #: public/js/frappe/list/base_list.js:361
 #: public/js/frappe/views/reports/query_report.js:104
@@ -25368,11 +25368,11 @@ msgstr "Le serveur de cache Redis ne fonctionne pas. Veuillez contacter l'admini
 
 #: public/js/frappe/form/toolbar.js:462
 msgid "Redo"
-msgstr ""
+msgstr "Refaire l'action"
 
 #: public/js/frappe/form/form.js:164 public/js/frappe/form/toolbar.js:470
 msgid "Redo last action"
-msgstr ""
+msgstr "Refaire l'action précédente"
 
 #. Label of a Link field in DocType 'Report'
 #: core/doctype/report/report.json
@@ -25948,16 +25948,16 @@ msgstr ""
 
 #: public/js/frappe/form/toolbar.js:436
 msgid "Remind Me"
-msgstr ""
+msgstr "Me le rappeler"
 
 #: public/js/frappe/form/reminders.js:13
 msgid "Remind Me In"
-msgstr ""
+msgstr "Me le rappeler dans"
 
 #. Name of a DocType
 #: automation/doctype/reminder/reminder.json
 msgid "Reminder"
-msgstr ""
+msgstr "Rappel"
 
 #: automation/doctype/reminder/reminder.py:39
 msgid "Reminder cannot be created in past."
@@ -33785,11 +33785,11 @@ msgstr "Inchangé"
 
 #: public/js/frappe/form/toolbar.js:450
 msgid "Undo"
-msgstr ""
+msgstr "Annuler l'action"
 
 #: public/js/frappe/form/toolbar.js:458
 msgid "Undo last action"
-msgstr ""
+msgstr "Annuler l'action précédente"
 
 #: public/js/frappe/form/sidebar/form_sidebar.js:232
 #: public/js/frappe/form/templates/form_sidebar.html:132
