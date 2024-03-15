@@ -4,6 +4,7 @@ import socket
 import time
 from collections import defaultdict
 from collections.abc import Callable
+from contextlib import suppress
 from functools import lru_cache
 from typing import Any, NoReturn
 from uuid import uuid4
@@ -323,6 +324,17 @@ def start_worker_pool(
 	"""
 
 	_start_sentry()
+
+	# If gc.freeze is done then importing modules before forking allows us to share the memory
+	import frappe.database.query  # sqlparse and indirect imports
+	import frappe.query_builder  # pypika
+	import frappe.utils.data  # common utils
+	import frappe.utils.safe_exec
+	import frappe.utils.typing_validations  # any whitelisted method uses this
+	import frappe.website.path_resolver  # all the page types and resolver
+
+	# end: module pre-loading
+
 	_freeze_gc()
 
 	with frappe.init_site():
@@ -604,6 +616,16 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 		for job_ids in create_batch(failed_jobs, 100):
 			for job_obj in Job.fetch_many(job_ids=job_ids, connection=connection):
 				job_obj and fail_registry.remove(job_obj, delete_job=True)
+
+
+def flush_telemetry():
+	"""Forcefully flush pending events.
+
+	This is required in context of background jobs where process might die before posthog gets time
+	to push events."""
+	ph = getattr(frappe.local, "posthog", None)
+	with suppress(Exception):
+		ph and ph.flush()
 
 
 def _start_sentry():
