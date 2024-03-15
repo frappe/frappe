@@ -55,12 +55,12 @@ defineExpose({ focus_on_label });
 			@blur="editing = false"
 			@click.stop
 		/>
-		<span v-else-if="text" v-html="text"></span>
+		<span v-else-if="text" v-html="__(text)"></span>
 		<i v-else class="text-muted">
-			{{ empty_label }}
+			{{ __(empty_label) }}
 		</i>
-		<span class="hidden-span" ref="hidden_text" v-html="text"></span>
-		<span class="hidden-span" ref="hidden_placeholder">{{ placeholder }}</span>
+		<span class="hidden-span" ref="hidden_text" v-html="__(text)"></span>
+		<span class="hidden-span" ref="hidden_placeholder">{{ __(placeholder) }}</span>
 	</div>
 </template>
 
