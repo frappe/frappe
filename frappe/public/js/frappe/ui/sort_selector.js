@@ -201,7 +201,7 @@ frappe.ui.SortSelector = class SortSelector {
 		const sort_by = `${table_name}.${this.sort_by}`;
 		if (this.sort_by !== "name") {
 			// add name column for deterministic ordering
-			return `${sort_by} ${this.sort_order}, ${table_name}.name`;
+			return `${sort_by} ${this.sort_order}, ${table_name}.name ${this.sort_order}`;
 		} else {
 			return `${sort_by} ${this.sort_order}`;
 		}
