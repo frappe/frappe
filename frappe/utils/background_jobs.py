@@ -324,6 +324,17 @@ def start_worker_pool(
 	"""
 
 	_start_sentry()
+
+	# If gc.freeze is done then importing modules before forking allows us to share the memory
+	import frappe.database.query  # sqlparse and indirect imports
+	import frappe.query_builder  # pypika
+	import frappe.utils.data  # common utils
+	import frappe.utils.safe_exec
+	import frappe.utils.typing_validations  # any whitelisted method uses this
+	import frappe.website.path_resolver  # all the page types and resolver
+
+	# end: module pre-loading
+
 	_freeze_gc()
 
 	with frappe.init_site():
