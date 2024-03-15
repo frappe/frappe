@@ -12,11 +12,11 @@
 			:hidden="!column.df.label && store.read_only"
 		>
 			<div class="column-label">
-				<span>{{ column.df.label }}</span>
+				<span>{{ __(column.df.label) }}</span>
 			</div>
 		</div>
 		<div v-if="column.df.description" class="column-description">
-			{{ column.df.description }}
+			{{ __(column.df.description) }}
 		</div>
 		<draggable
 			class="column-container"
