@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-03-11 17:16\n"
+"PO-Revision-Date: 2024-03-15 10:04\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -3348,7 +3348,7 @@ msgstr "La repetición automática falló para {0}"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Auto Reply"
-msgstr ""
+msgstr "Respuestas Automáticas"
 
 #. Label of a Text Editor field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -4262,11 +4262,11 @@ msgstr ""
 #. Name of a Workspace
 #: core/workspace/build/build.json
 msgid "Build"
-msgstr ""
+msgstr "Construir"
 
 #: workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
-msgstr ""
+msgstr "Construir {0}"
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
@@ -4828,7 +4828,7 @@ msgstr "No se puede crear un {0} en contra de un documento secundario: {1}"
 
 #: desk/doctype/workspace/workspace.py:252
 msgid "Cannot create private workspace of other users"
-msgstr ""
+msgstr "No se puede crear un Área de Trabajo privado para otros usuarios"
 
 #: core/doctype/file/file.py:151
 msgid "Cannot delete Home and Attachments folders"
@@ -4840,11 +4840,11 @@ msgstr "No se puede eliminar o cancelar porque {0} {1} está vinculado con {2} {
 
 #: desk/doctype/workspace/workspace.py:411
 msgid "Cannot delete private workspace of other users"
-msgstr ""
+msgstr "No se puede eliminar el Área de Trabajo privado de otros usuarios"
 
 #: desk/doctype/workspace/workspace.py:404
 msgid "Cannot delete public workspace without Workspace Manager role"
-msgstr ""
+msgstr "No se puede eliminar el Área de Trabajo público sin la función de Administrador del Área de Trabajo"
 
 #: custom/doctype/customize_form/customize_form.js:313
 msgid "Cannot delete standard action. You can hide it if you want"
@@ -4956,7 +4956,7 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.py:345
 msgid "Cannot update private workspace of other users"
-msgstr ""
+msgstr "No se puede actualizar el Área de Trabajo privado de otros usuarios"
 
 #: desk/doctype/bulk_update/bulk_update.js:26
 #: public/js/frappe/list/bulk_operations.js:322
@@ -5411,7 +5411,7 @@ msgstr "Click aquí"
 
 #: public/js/frappe/form/templates/form_sidebar.html:26
 msgid "Click here to post bugs and suggestions"
-msgstr ""
+msgstr "Haga clic aquí para publicar errores y sugerencias"
 
 #: email/doctype/newsletter/newsletter.py:335
 msgid "Click here to verify"
@@ -6880,7 +6880,7 @@ msgstr "Crear correo electrónico de usuario"
 
 #: public/js/frappe/views/workspace/workspace.js:471
 msgid "Create Workspace"
-msgstr ""
+msgstr "Crear Área de Trabajo"
 
 #: printing/page/print_format_builder/print_format_builder_start.html:16
 msgid "Create a New Format"
@@ -7439,7 +7439,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:517
 msgid "Customizations Discarded"
-msgstr ""
+msgstr "Personalizaciones descartadas"
 
 #: custom/doctype/customize_form/customize_form.js:397
 msgid "Customizations Reset"
@@ -8393,7 +8393,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:830
 msgid "Delete Workspace"
-msgstr ""
+msgstr "Eliminar Área de Trabajo"
 
 #: public/js/frappe/views/reports/query_report.js:858
 msgid "Delete and Generate New"
@@ -10014,7 +10014,7 @@ msgstr "Nombre duplicado"
 #: public/js/frappe/views/workspace/workspace.js:553
 #: public/js/frappe/views/workspace/workspace.js:815
 msgid "Duplicate Workspace"
-msgstr ""
+msgstr "Duplicar Área de Trabajo"
 
 #: public/js/frappe/form/form.js:208
 msgid "Duplicate current row"
@@ -10279,7 +10279,7 @@ msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:40
 msgid "Edit Shortcut"
-msgstr ""
+msgstr "Editar Atajo"
 
 #: public/js/frappe/utils/web_template.js:5
 msgid "Edit Values"
@@ -10299,7 +10299,7 @@ msgstr "Editar Valores"
 
 #: public/js/frappe/views/workspace/workspace.js:809
 msgid "Edit Workspace"
-msgstr ""
+msgstr "Editar Área de Trabajo"
 
 #: desk/doctype/note/note.js:11
 msgid "Edit mode"
@@ -11703,7 +11703,7 @@ msgstr "Expandir todo"
 
 #: public/js/frappe/form/templates/form_sidebar.html:23
 msgid "Experimental"
-msgstr ""
+msgstr "Experimental"
 
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: website/doctype/help_article/help_article.json
@@ -13864,7 +13864,7 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.js:18
 msgid "Go to Workspace"
-msgstr ""
+msgstr "Ir al Área de Trabajo"
 
 #: public/js/frappe/form/form.js:144
 msgid "Go to next record"
@@ -14154,7 +14154,7 @@ msgstr ""
 
 #: public/js/frappe/ui/keyboard.js:123
 msgid "Grid Shortcuts"
-msgstr ""
+msgstr "Atajos de la cuadrícula"
 
 #. Label of a Data field in DocType 'DocType Action'
 #: core/doctype/doctype_action/doctype_action.json
@@ -14839,7 +14839,7 @@ msgstr "Ocultar Fines de Semana"
 
 #: public/js/frappe/views/workspace/workspace.js:821
 msgid "Hide Workspace"
-msgstr ""
+msgstr "Ocultar Área de Trabajo"
 
 #. Description of the 'Hide Descendants' (Check) field in DocType 'User
 #. Permission'
@@ -20326,11 +20326,11 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.py:297
 msgid "Need Workspace Manager role to edit private workspace of other users"
-msgstr ""
+msgstr "Necesita el rol de Administrador del Área de Trabajo para editar el área de trabajo privada de otros usuarios"
 
 #: desk/doctype/workspace/workspace.py:341
 msgid "Need Workspace Manager role to hide/unhide public workspaces"
-msgstr ""
+msgstr "Necesita el rol de Administrador de Área de Trabajo para ocultar/mostrar áreas de trabajo públicas"
 
 #: model/document.py:622
 msgid "Negative Value"
@@ -20489,7 +20489,7 @@ msgstr "Nuevo nombre de Informe"
 
 #: public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
-msgstr ""
+msgstr "Nuevo Atajo"
 
 #: core/doctype/version/version_view.html:14
 #: core/doctype/version/version_view.html:76
@@ -20502,7 +20502,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:1178
 msgid "New Workspace"
-msgstr ""
+msgstr "Nueva Área de Trabajo"
 
 #: www/update-password.html:77
 msgid "New password cannot be same as old password"
@@ -20979,7 +20979,7 @@ msgstr "No hay filtros"
 
 #: public/js/frappe/ui/filters/filter_list.js:296
 msgid "No filters selected"
-msgstr ""
+msgstr "Ningún filtro seleccionado"
 
 #: desk/form/utils.py:101
 msgid "No further records"
@@ -21926,11 +21926,11 @@ msgstr "Sólo enviar registros actualizados en las últimas X horas"
 
 #: desk/doctype/workspace/workspace.js:36
 msgid "Only Workspace Manager can edit public workspaces"
-msgstr ""
+msgstr "Solo el Administrador del Área de Trabajo puede editar Áreas de Trabajo públicas"
 
 #: public/js/frappe/views/workspace/workspace.js:542
 msgid "Only Workspace Manager can sort or edit this page"
-msgstr ""
+msgstr "Solo Administrador del Área de Trabajo puede ordenar o editar esta página"
 
 #: modules/utils.py:64
 msgid "Only allowed to export customizations in developer mode"
@@ -28434,7 +28434,7 @@ msgstr ""
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Select Workspace"
-msgstr ""
+msgstr "Seleccione el Área de Trabajo"
 
 #: website/doctype/website_settings/website_settings.js:23
 msgid "Select a Brand Image first."
@@ -32259,7 +32259,7 @@ msgstr "Este gráfico estará disponible para todos los usuarios si está config
 
 #: desk/doctype/workspace/workspace.js:23
 msgid "This document allows you to edit limited fields. For all kinds of workspace customization, use the Edit button located on the workspace page"
-msgstr ""
+msgstr "Este documento le permite editar campos limitados. Para todo tipo de personalización del Área de Trabajo, utilice el botón Editar ubicado en la página del Área de Trabajo"
 
 #: social/doctype/energy_point_log/energy_point_log.py:90
 msgid "This document cannot be reverted"
@@ -32292,7 +32292,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/form_sidebar.html:23
 msgid "This feature is brand new and still experimental"
-msgstr ""
+msgstr "Esta característica es nueva y aún experimental"
 
 #. Description of the 'Depends On' (Code) field in DocType 'Customize Form
 #. Field'
@@ -33622,7 +33622,7 @@ msgstr ""
 
 #: public/js/frappe/form/controls/comment.js:78
 msgid "Type a reply / comment"
-msgstr ""
+msgstr "Escriba una respuesta o comentario"
 
 #: templates/includes/search_template.html:51
 msgid "Type something in the search box to search"
@@ -33826,7 +33826,7 @@ msgstr "Cuenta de Correo Electrónico no Manejado"
 
 #: public/js/frappe/views/workspace/workspace.js:562
 msgid "Unhide Workspace"
-msgstr ""
+msgstr "Mostrar Área de Trabajo"
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -35278,7 +35278,7 @@ msgstr "Ver video"
 
 #: desk/doctype/workspace/workspace.js:38
 msgid "We do not allow editing of this document. Simply click the Edit button on the workspace page to make your workspace editable and customize it as you wish"
-msgstr ""
+msgstr "No permitimos la edición de este documento. Simplemente haga clic en el botón Editar en la página del Área de Trabajo para hacer que su Área de Trabajo sea editable y personalizarlo como desee"
 
 #: templates/emails/delete_data_confirmation.html:2
 msgid "We have received a request for deletion of {0} data associated with: {1}"
@@ -35828,7 +35828,7 @@ msgstr ""
 #. Name of a Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json desk/desktop.py:469
 msgid "Welcome Workspace"
-msgstr ""
+msgstr "Área de Trabajo de Bienvenida"
 
 #: core/doctype/user/user.py:394
 msgid "Welcome email sent"
@@ -36102,81 +36102,81 @@ msgstr ""
 #: public/js/frappe/ui/toolbar/search_utils.js:557
 #: public/js/frappe/views/workspace/workspace.js:10
 msgid "Workspace"
-msgstr ""
+msgstr "Área de Trabajo"
 
 #. Linked DocType in Module Def's connections
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Workspace"
-msgstr ""
+msgstr "Área de Trabajo"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "Workspace"
 msgid "Workspace"
-msgstr ""
+msgstr "Área de Trabajo"
 
 #: public/js/frappe/router.js:194
 msgid "Workspace <b>{0}</b> does not exist"
-msgstr ""
+msgstr "El Área de Trabajo <b>{0}</b> no existe"
 
 #. Name of a DocType
 #: desk/doctype/workspace_chart/workspace_chart.json
 msgid "Workspace Chart"
-msgstr ""
+msgstr "Gráfico del Área de Trabajo"
 
 #. Name of a DocType
 #: desk/doctype/workspace_custom_block/workspace_custom_block.json
 msgid "Workspace Custom Block"
-msgstr ""
+msgstr "Bloque personalizado del Área de Trabajo"
 
 #. Name of a DocType
 #: desk/doctype/workspace_link/workspace_link.json
 msgid "Workspace Link"
-msgstr ""
+msgstr "Enlace del Área de Trabajo"
 
 #. Name of a role
 #: desk/doctype/custom_html_block/custom_html_block.json
 #: desk/doctype/workspace/workspace.json
 msgid "Workspace Manager"
-msgstr ""
+msgstr "Administrador del Área de Trabajo"
 
 #. Name of a DocType
 #: desk/doctype/workspace_number_card/workspace_number_card.json
 msgid "Workspace Number Card"
-msgstr ""
+msgstr "Tarjeta de número del Área de Trabajo"
 
 #. Name of a DocType
 #: desk/doctype/workspace_quick_list/workspace_quick_list.json
 msgid "Workspace Quick List"
-msgstr ""
+msgstr "Lista rápida del Área de Trabajo"
 
 #. Name of a DocType
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Workspace Shortcut"
-msgstr ""
+msgstr "Acceso directo del Espacio del Trabajo"
 
 #: desk/doctype/workspace/workspace.py:281
 msgid "Workspace not found"
-msgstr ""
+msgstr "Área de Trabajo no encontrada"
 
 #: public/js/frappe/views/workspace/workspace.js:1271
 msgid "Workspace {0} Created Successfully"
-msgstr ""
+msgstr "Área de Trabajo {0} creada correctamente"
 
 #: public/js/frappe/views/workspace/workspace.js:900
 msgid "Workspace {0} Deleted Successfully"
-msgstr ""
+msgstr "Área de Trabajo {0} eliminado correctamente"
 
 #: public/js/frappe/views/workspace/workspace.js:678
 msgid "Workspace {0} Edited Successfully"
-msgstr ""
+msgstr "Área de Trabajo {0} editada correctamente"
 
 #. Option for the 'View' (Select) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Workspaces"
-msgstr ""
+msgstr "Áreas de Trabajo"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
@@ -36711,7 +36711,7 @@ msgstr "Debes iniciar sesión para enviar este formulario"
 
 #: desk/doctype/workspace/workspace.py:73
 msgid "You need to be Workspace Manager to edit this document"
-msgstr ""
+msgstr "Necesita ser Administrador del Área de Trabajo para editar este documento"
 
 #: website/doctype/web_form/web_form.py:91
 msgid "You need to be in developer mode to edit a Standard Web Form"
@@ -38655,7 +38655,7 @@ msgstr "{0} Vistas de página"
 #: public/js/frappe/ui/toolbar/search_utils.js:91
 #: public/js/frappe/ui/toolbar/search_utils.js:92
 msgid "{0} Workspace"
-msgstr "{0} Espacio de trabajo"
+msgstr "{0} Área de Trabajo"
 
 #: public/js/frappe/form/link_selector.js:225
 msgid "{0} added"
