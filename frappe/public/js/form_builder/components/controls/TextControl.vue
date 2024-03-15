@@ -21,7 +21,7 @@ let height = computed(() => {
 			<slot name="label" />
 			<slot name="actions" />
 		</div>
-		<div v-else class="control-label label">{{ df.label }}</div>
+		<div v-else class="control-label label">{{ __(df.label) }}</div>
 
 		<!-- textarea input -->
 		<textarea
@@ -42,6 +42,6 @@ let height = computed(() => {
 		/>
 
 		<!-- description -->
-		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
+		<div v-if="df.description" class="mt-2 description" v-html="__(df.description)"></div>
 	</div>
 </template>
