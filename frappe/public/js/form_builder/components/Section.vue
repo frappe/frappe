@@ -24,7 +24,7 @@
 			>
 				<div class="section-label">
 					<EditableInput
-						:text="section.df.label"
+						:text="__(section.df.label)"
 						:placeholder="__('Section Title')"
 						v-model="section.df.label"
 					/>
