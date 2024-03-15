@@ -4,11 +4,6 @@ import pickle
 import re
 
 import redis
-<<<<<<< HEAD
-=======
-from redis.commands.search import Search
-from redis.sentinel import Sentinel
->>>>>>> 77618cde1f (feat: connect to redis sentinel for redis cache (#25398))
 
 import frappe
 from frappe.utils import cstr
@@ -257,11 +252,6 @@ class RedisWrapper(redis.Redis):
 	def smembers(self, name):
 		"""Return all members of the set"""
 		return super().smembers(self.make_key(name))
-<<<<<<< HEAD
-=======
-
-	def ft(self, index_name="idx"):
-		return RedisearchWrapper(client=self, index_name=self.make_key(index_name))
 
 
 def setup_cache():
@@ -289,6 +279,8 @@ def get_sentinel_connection(
 	master_username=None,
 	master_password=None,
 ):
+	from redis.sentinel import Sentinel
+
 	sentinel_kwargs = {}
 	if sentinel_username:
 		sentinel_kwargs["username"] = sentinel_username
@@ -302,4 +294,3 @@ def get_sentinel_connection(
 		username=master_username,
 		password=master_password,
 	)
->>>>>>> 77618cde1f (feat: connect to redis sentinel for redis cache (#25398))

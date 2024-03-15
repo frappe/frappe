@@ -361,22 +361,15 @@ def destroy():
 
 redis_server = None
 
-<<<<<<< HEAD
 
 def cache() -> "RedisWrapper":
 	"""Returns redis connection."""
 	global redis_server
 	if not redis_server:
-		from frappe.utils.redis_wrapper import RedisWrapper
-
-		redis_server = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
-	return redis_server
-=======
-	if not cache:
 		from frappe.utils.redis_wrapper import setup_cache
 
-		cache = setup_cache()
->>>>>>> 77618cde1f (feat: connect to redis sentinel for redis cache (#25398))
+		redis_server = setup_cache()
+	return redis_server
 
 
 def get_traceback(with_context: bool = False) -> str:
