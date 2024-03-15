@@ -37167,10 +37167,10 @@ msgctxt "Workspace"
 msgid "cyan"
 msgstr ""
 
-#: public/js/frappe/utils/utils.js:1114
+#: public/js/frappe/utils/utils.js:1114 utils/data.py:814
 msgctxt "Days (Field: Duration)"
 msgid "d"
-msgstr "ré"
+msgstr "j"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -37506,10 +37506,10 @@ msgstr ""
 msgid "gzip not found in PATH! This is required to take a backup."
 msgstr ""
 
-#: public/js/frappe/utils/utils.js:1118
+#: public/js/frappe/utils/utils.js:1118 utils/data.py:817
 msgctxt "Hours (Field: Duration)"
 msgid "h"
-msgstr ""
+msgstr "h"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -37693,10 +37693,10 @@ msgctxt "RQ Worker"
 msgid "long"
 msgstr ""
 
-#: public/js/frappe/utils/utils.js:1122
+#: public/js/frappe/utils/utils.js:1122 utils/data.py:821
 msgctxt "Minutes (Field: Duration)"
 msgid "m"
-msgstr ""
+msgstr "m"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38109,10 +38109,10 @@ msgctxt "Workflow State"
 msgid "road"
 msgstr "route"
 
-#: public/js/frappe/utils/utils.js:1126
+#: public/js/frappe/utils/utils.js:1126 utils/data.py:825
 msgctxt "Seconds (Field: Duration)"
 msgid "s"
-msgstr ""
+msgstr "s"
 
 #. Option for the 'Code challenge method' (Select) field in DocType 'OAuth
 #. Authorization Code'
