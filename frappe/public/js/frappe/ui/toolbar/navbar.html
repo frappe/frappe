@@ -12,7 +12,7 @@
 		<div class="collapse navbar-collapse justify-content-end">
 			<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
 				{% if (frappe.boot.read_only) { %}
-					<span class="indicator-pill yellow no-indicator-dot" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
+					<span class="indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
 						{%= __("Read Only Mode") %}
 					</span>
 				{% } %}
@@ -26,7 +26,7 @@
 						id="navbar-search"
 						type="text"
 						class="form-control"
-						placeholder="{%= __("Search or type a command (Ctrl + G)") %}"
+						placeholder="{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + G' : 'Ctrl + G']) %}"
 						aria-haspopup="true"
 					>
 					<span class="search-icon">

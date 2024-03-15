@@ -459,7 +459,7 @@ class TestUser(FrappeTestCase):
 
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
-		with test_user(roles=["System Manager"]) as user:
+		with test_user(roles=["System Manager"], commit=True) as user:
 			self.post(
 				self.method_path("frappe.core.doctype.user.user.impersonate"),
 				{"user": user.name, "reason": "test", "sid": self.sid},
@@ -469,7 +469,9 @@ class TestImpersonation(FrappeAPITestCase):
 
 
 @contextmanager
-def test_user(*, first_name: str | None = None, email: str | None = None, roles: list[str], **kwargs):
+def test_user(
+	*, first_name: str | None = None, email: str | None = None, roles: list[str], commit=False, **kwargs
+):
 	try:
 		first_name = first_name or frappe.generate_hash()
 		email = email or (first_name + "@example.com")
@@ -485,7 +487,7 @@ def test_user(*, first_name: str | None = None, email: str | None = None, roles:
 		yield user
 	finally:
 		user.delete(force=True, ignore_permissions=True)
-		frappe.db.commit()
+		commit and frappe.db.commit()
 
 
 def delete_contact(user):

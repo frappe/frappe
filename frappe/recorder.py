@@ -59,12 +59,17 @@ def record_sql(*args, **kwargs):
 	result = frappe.db._sql(*args, **kwargs)
 	end_time = time.monotonic()
 
+	query = getattr(frappe.db, "last_query", None)
+	if not query or isinstance(result, str):
+		# run=0, doesn't actually run the query so last_query won't be present
+		return result
+
 	stack = []
 	if frappe.local._recorder.config.capture_stack:
 		stack = list(get_current_stack_frames())
 
 	data = {
-		"query": str(frappe.db.last_query),
+		"query": str(query),
 		"stack": stack,
 		"explain_result": [],
 		"time": start_time,

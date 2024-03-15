@@ -20,6 +20,7 @@ import setproctitle
 import frappe
 from frappe.utils import cint, get_datetime, get_sites, now_datetime
 from frappe.utils.background_jobs import set_niceness
+from frappe.utils.synchronization import filelock
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -44,10 +45,11 @@ def start_scheduler() -> NoReturn:
 	tick = cint(frappe.get_conf().scheduler_tick_interval) or 60
 	set_niceness()
 
-	while True:
-		_proctitle("idle")
-		time.sleep(tick)
-		enqueue_events_for_all_sites()
+	with filelock("scheduler_process", timeout=1, is_global=True):
+		while True:
+			_proctitle("idle")
+			time.sleep(tick)
+			enqueue_events_for_all_sites()
 
 
 def enqueue_events_for_all_sites() -> None:

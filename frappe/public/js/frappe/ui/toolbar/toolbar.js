@@ -20,6 +20,7 @@ frappe.ui.toolbar.Toolbar = class {
 		this.setup_awesomebar();
 		this.setup_notifications();
 		this.setup_help();
+		this.setup_read_only_mode();
 		this.make();
 	}
 
@@ -43,6 +44,15 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 		$(".navbar-toggle-full-width").click(() => {
 			frappe.ui.toolbar.toggle_full_width();
+		});
+	}
+
+	setup_read_only_mode() {
+		if (!frappe.boot.read_only) return;
+
+		$("header .read-only-banner").tooltip({
+			delay: { show: 600, hide: 100 },
+			trigger: "hover",
 		});
 	}
 
