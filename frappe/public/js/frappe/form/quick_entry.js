@@ -63,7 +63,14 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		// prepare a list of mandatory, bold and allow in quick entry fields
 		this.mandatory = fields.filter((df) => {
 			return (
+<<<<<<< HEAD
 				(df.reqd || df.bold || df.allow_in_quick_entry) && !df.read_only && !df.is_virtual
+=======
+				(df.reqd || df.allow_in_quick_entry) &&
+				!df.read_only &&
+				!df.is_virtual &&
+				df.fieldtype !== "Tab Break"
+>>>>>>> e30fdb66a4 (fix(QuickEntry): Don't allow Tab Breaks (#24950))
 			);
 		});
 	}

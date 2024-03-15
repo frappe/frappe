@@ -3,7 +3,7 @@ export default class Tab {
 		this.parent = parent;
 		this.df = df || {};
 		this.frm = frm;
-		this.doctype = this.frm.doctype;
+		this.doctype = this.frm?.doctype ?? this.df.parent;
 		this.label = this.df && this.df.label;
 		this.tabs_list = tabs_list;
 		this.tabs_content = tabs_content;
