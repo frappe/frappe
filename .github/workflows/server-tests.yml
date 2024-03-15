@@ -134,25 +134,8 @@ jobs:
           DB: 'mariadb'
 
       - name: Run Tests
-<<<<<<< HEAD
         run: bench --site test_site run-parallel-tests
         working-directory: /home/runner/frappe-bench
-=======
-        run: ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
-        working-directory: /home/runner/frappe-bench/sites
-        env:
-          SITE: test_site
-          CI_BUILD_ID: ${{ github.run_id }}
-          BUILD_NUMBER: ${{ matrix.container }}
-          WITH_COVERAGE: ${{ github.event_name != 'pull_request' }}
-          FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          TOTAL_BUILDS: 2
-          COVERAGE_RCFILE: /home/runner/frappe-bench/apps/frappe/.coveragerc
-      - name: Setup tmate session
-
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
->>>>>>> 0ca0e22376 (ci: setup ssh if test failed)
 
       - name: Show bench output
         if: ${{ always() }}
@@ -165,6 +148,9 @@ jobs:
             cat $f
           done
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
 
   # This is required because github still doesn't understand knowingly skipped tests
   faux-test:
