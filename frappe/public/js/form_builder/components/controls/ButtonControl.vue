@@ -17,7 +17,7 @@ const props = defineProps(["df", "value"]);
 		</div>
 
 		<!-- description -->
-		<div v-if="df.description" class="mt-2 description" v-html="df.description" />
+		<div v-if="df.description" class="mt-2 description" v-html="__(df.description)" />
 	</div>
 </template>
 
