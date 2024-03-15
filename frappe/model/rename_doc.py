@@ -440,6 +440,8 @@ def get_link_fields(doctype: str) -> list[dict]:
 		frappe.flags.link_fields = {}
 
 	if doctype not in frappe.flags.link_fields:
+		virtual_doctypes = frappe.get_all("DocType", {"is_virtual": 1}, pluck="name")
+
 		dt = frappe.qb.DocType("DocType")
 		df = frappe.qb.DocType("DocField")
 		cf = frappe.qb.DocType("Custom Field")
@@ -458,7 +460,7 @@ def get_link_fields(doctype: str) -> list[dict]:
 		custom_fields = (
 			frappe.qb.from_(cf)
 			.select(cf.dt.as_("parent"), cf.fieldname, cf_issingle)
-			.where((cf.options == doctype) & (cf.fieldtype == "Link"))
+			.where((cf.options == doctype) & (cf.fieldtype == "Link") & (cf.dt.notin(virtual_doctypes)))
 			.run(as_dict=True)
 		)
 
@@ -466,7 +468,12 @@ def get_link_fields(doctype: str) -> list[dict]:
 		property_setter_fields = (
 			frappe.qb.from_(ps)
 			.select(ps.doc_type.as_("parent"), ps.field_name.as_("fieldname"), ps_issingle)
-			.where((ps.property == "options") & (ps.value == doctype) & (ps.field_name.notnull()))
+			.where(
+				(ps.property == "options")
+				& (ps.value == doctype)
+				& (ps.field_name.notnull())
+				& (ps.doc_type.notin(virtual_doctypes))
+			)
 			.run(as_dict=True)
 		)
 
