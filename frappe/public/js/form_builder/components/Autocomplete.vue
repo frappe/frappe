@@ -25,7 +25,7 @@
 					v-slot="{ active }"
 				>
 					<li :class="['combo-box-option', active ? 'active' : '']">
-						{{ field.label }}
+						{{ __(field.label) }}
 					</li>
 				</ComboboxOption>
 			</div>
