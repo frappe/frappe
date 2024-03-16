@@ -280,7 +280,8 @@ class FrappeWorker(Worker):
 			return super().execute_job(job, queue)
 
 		self.set_state(WorkerStatus.BUSY)
-		# TODO: death penalty stuff (?)
+		os.environ["RQ_WORKER_ID"] = self.name
+		os.environ["RQ_JOB_ID"] = job.id
 		self.perform_job(job, queue)
 		self.set_state(WorkerStatus.IDLE)
 
