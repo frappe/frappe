@@ -272,13 +272,18 @@ def timeout(seconds=30, error_message="Test timed out."):
 
 	adapted from https://stackoverflow.com/a/2282656"""
 
+	# Support @timeout (without function call)
+	no_args = bool(callable(seconds))
+	actual_timeout = 30 if no_args else seconds
+	actual_error_message = "Test timed out" if no_args else error_message
+
 	def decorator(func):
 		def _handle_timeout(signum, frame):
-			raise Exception(error_message)
+			raise Exception(actual_error_message)
 
 		def wrapper(*args, **kwargs):
 			signal.signal(signal.SIGALRM, _handle_timeout)
-			signal.alarm(seconds)
+			signal.alarm(actual_timeout)
 			try:
 				result = func(*args, **kwargs)
 			finally:
@@ -286,6 +291,9 @@ def timeout(seconds=30, error_message="Test timed out."):
 			return result
 
 		return wrapper
+
+	if no_args:
+		return decorator(seconds)
 
 	return decorator
 
