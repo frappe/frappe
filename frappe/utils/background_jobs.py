@@ -13,6 +13,7 @@ import redis
 import setproctitle
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Callback, Queue, Worker
+from rq.command import handle_command, parse_payload
 from rq.exceptions import NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
@@ -284,6 +285,18 @@ class FrappeWorker(Worker):
 		os.environ["RQ_JOB_ID"] = job.id
 		self.perform_job(job, queue)
 		self.set_state(WorkerStatus.IDLE)
+
+	def handle_payload(self, message):
+		"""Handle external commands"""
+		if not self.disable_forking:
+			return super().handle_payload(message)
+
+		self.log.debug("Received message: %s", message)
+		payload = parse_payload(message)
+		if payload["command"] == "stop-job":
+			self.log.debug("Ignored stop-job, aborting jobs is not allowed when using disable_forking")
+		else:
+			handle_command(self, payload)
 
 
 def start_worker(
