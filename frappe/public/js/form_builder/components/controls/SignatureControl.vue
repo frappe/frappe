@@ -9,7 +9,7 @@ const props = defineProps(["df"]);
 			<slot name="actions" />
 		</div>
 		<div class="signature-field"></div>
-		<div v-if="df.description" class="mt-2 description" v-html="__(df.description)"></div>
+		<div v-if="df.description" class="mt-2 description" v-html="df.description"></div>
 	</div>
 </template>
 
