@@ -58,6 +58,7 @@ class TestRQJob(FrappeTestCase):
 		rq_job = frappe.get_doc("RQ Job", job.id)
 		self.assertEqual(rq_job.job_name, "test_func")
 
+	@timeout
 	def test_get_list_filtering(self):
 		# Check failed job clearning and filtering
 		remove_failed_jobs()
