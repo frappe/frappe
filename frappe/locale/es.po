@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-02-29 04:42+0000\n"
-"PO-Revision-Date: 2024-03-15 10:04\n"
+"PO-Revision-Date: 2024-03-16 10:07\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -20,7 +20,7 @@ msgstr ""
 
 #: templates/emails/download_data.html:9
 msgid " to your browser"
-msgstr " a su navegador"
+msgstr " a tu navegador"
 
 #. Option for the 'Condition' (Select) field in DocType 'Document Naming Rule
 #. Condition'
@@ -1184,7 +1184,7 @@ msgstr "Activo"
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Active Directory"
-msgstr ""
+msgstr "Directorio Activo"
 
 #. Label of a Section Break field in DocType 'Domain Settings'
 #. Label of a Table field in DocType 'Domain Settings'
@@ -3508,7 +3508,7 @@ msgstr "Esperando Contraseña"
 
 #: public/js/frappe/widgets/onboarding_widget.js:200
 msgid "Awesome Work"
-msgstr ""
+msgstr "Buen Trabajo"
 
 #: public/js/frappe/widgets/onboarding_widget.js:358
 msgid "Awesome, now try making an entry yourself"
@@ -3517,7 +3517,7 @@ msgstr ""
 #: public/js/frappe/utils/number_systems.js:9
 msgctxt "Number system"
 msgid "B"
-msgstr ""
+msgstr "B"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -3777,7 +3777,7 @@ msgstr "El banner está sobre la barra de menú superior."
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Bar"
-msgstr ""
+msgstr "Barra"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -3905,7 +3905,7 @@ msgstr "Empezando con"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Beta"
-msgstr ""
+msgstr "Beta"
 
 #: utils/password_strength.py:73
 msgid "Better add a few more letters or another word"
@@ -4703,7 +4703,7 @@ msgstr "Cancelar"
 
 #: public/js/frappe/form/form.js:998
 msgid "Cancel All"
-msgstr ""
+msgstr "Cancelar todo"
 
 #: public/js/frappe/form/form.js:985
 msgid "Cancel All Documents"
@@ -4884,7 +4884,7 @@ msgstr "No se puede editar la notificación estándar. Para editar, deshabilíte
 
 #: desk/doctype/dashboard_chart/dashboard_chart.py:378
 msgid "Cannot edit Standard charts"
-msgstr ""
+msgstr "No se puede editar gráficos estándar"
 
 #: core/doctype/report/report.py:69
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
@@ -5091,7 +5091,7 @@ msgstr "Cambiar contraseña"
 
 #: public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
-msgstr ""
+msgstr "Cambiar formato de impresión"
 
 #: desk/page/user_profile/user_profile_controller.js:51
 #: desk/page/user_profile/user_profile_controller.js:59
@@ -5136,25 +5136,25 @@ msgstr "Configuración de gráfico"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Chart Name"
-msgstr "Nombre de la carta"
+msgstr "Nombre del Gráfico"
 
 #. Label of a Link field in DocType 'Workspace Chart'
 #: desk/doctype/workspace_chart/workspace_chart.json
 msgctxt "Workspace Chart"
 msgid "Chart Name"
-msgstr "Nombre de la carta"
+msgstr "Nombre del Gráfico"
 
 #. Label of a Code field in DocType 'Dashboard'
 #: desk/doctype/dashboard/dashboard.json
 msgctxt "Dashboard"
 msgid "Chart Options"
-msgstr "Opciones de gráfico"
+msgstr "Opciones del gráfico"
 
 #. Label of a Section Break field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Chart Options"
-msgstr "Opciones de gráfico"
+msgstr "Opciones del gráfico"
 
 #. Label of a Link field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -5458,7 +5458,7 @@ msgstr "Haga clic en la tabla para editar"
 #: desk/doctype/dashboard_chart/dashboard_chart.js:502
 #: desk/doctype/number_card/number_card.js:396
 msgid "Click to Set Dynamic Filters"
-msgstr ""
+msgstr "Haga clic para establecer Filtros Dinámicos"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:372
 #: desk/doctype/number_card/number_card.js:270
@@ -6892,7 +6892,7 @@ msgstr ""
 
 #: public/js/frappe/ui/toolbar/search_utils.js:537
 msgid "Create a new ..."
-msgstr ""
+msgstr "Crear un nuevo..."
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:156
 msgid "Create a new record"
@@ -6912,7 +6912,7 @@ msgstr ""
 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
-msgstr ""
+msgstr "Crear o Editar Formato Impresión"
 
 #: workflow/page/workflow_builder/workflow_builder.js:34
 msgid "Create or Edit Workflow"
@@ -7668,7 +7668,7 @@ msgstr "Color oscuro"
 
 #: public/js/frappe/ui/theme_switcher.js:65
 msgid "Dark Theme"
-msgstr ""
+msgstr "Tema Oscuro"
 
 #. Name of a DocType
 #: core/page/dashboard_view/dashboard_view.js:10
@@ -7706,28 +7706,28 @@ msgstr "Tablero"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 #: desk/doctype/dashboard_chart_source/dashboard_chart_source.js:8
 msgid "Dashboard Chart"
-msgstr "Cuadro de mandos"
+msgstr "Gráfico del Tablero"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "Dashboard Chart"
 msgid "Dashboard Chart"
-msgstr "Cuadro de mandos"
+msgstr "Gráfico del Tablero"
 
 #. Name of a DocType
 #: desk/doctype/dashboard_chart_field/dashboard_chart_field.json
 msgid "Dashboard Chart Field"
-msgstr "Campo del cuadro de mandos"
+msgstr "Campo gráfico del tablero"
 
 #. Name of a DocType
 #: desk/doctype/dashboard_chart_link/dashboard_chart_link.json
 msgid "Dashboard Chart Link"
-msgstr "Enlace del cuadro de mandos"
+msgstr "Enlace gráfico del tablero"
 
 #. Name of a DocType
 #: desk/doctype/dashboard_chart_source/dashboard_chart_source.json
 msgid "Dashboard Chart Source"
-msgstr "Fuente del cuadro de mandos"
+msgstr "Origen gráfico del tablero"
 
 #. Name of a role
 #: desk/doctype/dashboard/dashboard.json
@@ -8758,7 +8758,7 @@ msgstr "No se eliminó"
 
 #: public/js/frappe/utils/diffview.js:57
 msgid "Diff"
-msgstr ""
+msgstr "Dif."
 
 #. Description of the 'States' (Section Break) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
@@ -8776,7 +8776,7 @@ msgstr "Dígitos"
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Directory Server"
-msgstr ""
+msgstr "Servidor de Directorio"
 
 #. Label of a Check field in DocType 'List View Settings'
 #: desk/doctype/list_view_settings/list_view_settings.json
@@ -9741,7 +9741,7 @@ msgstr ""
 
 #: desk/doctype/dashboard_chart/dashboard_chart.py:387
 msgid "Document type is required to create a dashboard chart"
-msgstr "Se requiere el tipo de documento para crear un cuadro de mandos"
+msgstr "Se requiere tipo de documento para crear un gráfico de tablero"
 
 #: core/doctype/deleted_document/deleted_document.py:45
 msgid "Document {0} Already Restored"
@@ -9941,7 +9941,7 @@ msgstr "Borrador"
 #: public/js/frappe/views/workspace/workspace.js:571
 #: public/js/frappe/widgets/base_widget.js:33
 msgid "Drag"
-msgstr ""
+msgstr "Arrastrar"
 
 #: printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
@@ -10220,7 +10220,7 @@ msgstr "Editar DocType"
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:42
 #: workflow/page/workflow_builder/workflow_builder.js:42
 msgid "Edit Existing"
-msgstr ""
+msgstr "Editar existente"
 
 #: public/js/frappe/list/list_sidebar_group_by.js:55
 msgid "Edit Filters"
@@ -10257,7 +10257,7 @@ msgstr ""
 
 #: public/js/print_format_builder/print_format_builder.bundle.js:24
 msgid "Edit Print Format"
-msgstr ""
+msgstr "Editar formato de impresión"
 
 #: desk/page/user_profile/user_profile_controller.js:273
 #: desk/page/user_profile/user_profile_sidebar.html:51 www/me.html:27
@@ -10346,7 +10346,7 @@ msgstr "Editando fila"
 #: public/js/print_format_builder/print_format_builder.bundle.js:14
 #: public/js/workflow_builder/workflow_builder.bundle.js:20
 msgid "Editing {0}"
-msgstr ""
+msgstr "Editando {0}"
 
 #. Description of the 'SMS Gateway URL' (Small Text) field in DocType 'SMS
 #. Settings'
@@ -11634,7 +11634,7 @@ msgstr "Ejemplo: {{ subject }}"
 #: core/doctype/data_export/data_export.json
 msgctxt "Data Export"
 msgid "Excel"
-msgstr ""
+msgstr "Excel"
 
 #: public/js/frappe/form/controls/password.js:91
 msgid "Excellent"
@@ -11869,25 +11869,25 @@ msgstr "Exponer Destinatarios"
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Expression"
-msgstr ""
+msgstr "Expresión"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Expression"
-msgstr ""
+msgstr "Expresión"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Expression (old style)"
-msgstr ""
+msgstr "Expresión (estilo antiguo)"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Expression (old style)"
-msgstr ""
+msgstr "Expresión (estilo antiguo)"
 
 #. Description of the 'Condition' (Data) field in DocType 'Notification
 #. Recipient'
@@ -11907,7 +11907,7 @@ msgstr ""
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Facebook"
-msgstr ""
+msgstr "Facebook"
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
@@ -12757,7 +12757,7 @@ msgstr "Filtros:"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:572
 msgid "Find '{0}' in ..."
-msgstr ""
+msgstr "Buscar '{0}' en..."
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:327
 #: public/js/frappe/ui/toolbar/awesome_bar.js:328
@@ -13637,7 +13637,7 @@ msgstr "Sólo se pueden crear más nodos bajo nodos de tipo 'Grupo'"
 
 #: core/doctype/communication/communication.js:291
 msgid "Fw: {0}"
-msgstr ""
+msgstr "Fw: {0}"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
@@ -13649,29 +13649,29 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "GMail"
-msgstr ""
+msgstr "GMail"
 
 #. Option for the 'License Type' (Select) field in DocType 'Package'
 #: core/doctype/package/package.json
 msgctxt "Package"
 msgid "GNU Affero General Public License"
-msgstr ""
+msgstr "Licencia Pública General de GNU Affero"
 
 #. Option for the 'License Type' (Select) field in DocType 'Package'
 #: core/doctype/package/package.json
 msgctxt "Package"
 msgid "GNU General Public License"
-msgstr ""
+msgstr "Licencia Pública General de GNU"
 
 #: public/js/frappe/views/gantt/gantt_view.js:10
 msgid "Gantt"
-msgstr ""
+msgstr "Gantt"
 
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Gantt"
-msgstr ""
+msgstr "Gantt"
 
 #. Name of a DocType
 #: contacts/doctype/gender/gender.json
@@ -13770,7 +13770,7 @@ msgstr ""
 
 #: www/printview.html:22
 msgid "Get PDF"
-msgstr ""
+msgstr "Obtener PDF"
 
 #. Description of the 'Try a Naming Series' (Data) field in DocType 'Document
 #. Naming Settings'
@@ -13803,7 +13803,7 @@ msgstr "Rama de Git"
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Github flavoured markdown syntax"
@@ -13910,7 +13910,7 @@ msgstr "Objetivo"
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -14126,7 +14126,7 @@ msgstr "Tipo de Subvención"
 #: public/js/frappe/form/dashboard.js:34
 #: public/js/frappe/form/templates/form_dashboard.html:10
 msgid "Graph"
-msgstr ""
+msgstr "Gráfico"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #: core/doctype/doctype_state/doctype_state.json
@@ -14198,7 +14198,7 @@ msgstr "Agrupar por tipo"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.py:398
 msgid "Group By field is required to create a dashboard chart"
-msgstr "Se requiere el campo Agrupar por para crear un cuadro de mandos"
+msgstr "El campo agrupar por, es obligatorio para crear un gráfico del tablero"
 
 #: public/js/frappe/views/treeview.js:401
 msgid "Group Node"
@@ -14787,7 +14787,7 @@ msgstr "Ocultar inicio de sesión"
 #: public/js/form_builder/form_builder.bundle.js:43
 #: public/js/print_format_builder/print_format_builder.bundle.js:54
 msgid "Hide Preview"
-msgstr ""
+msgstr "Ocultar vista previa"
 
 #. Description of the 'Hide Buttons' (Check) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -16967,7 +16967,7 @@ msgstr ""
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "JavaScript"
-msgstr ""
+msgstr "JavaScript"
 
 #. Description of the 'Javascript' (Code) field in DocType 'Report'
 #: core/doctype/report/report.json
@@ -16979,25 +16979,25 @@ msgstr "Formato JavaScript: frappe.query_reports['REPORTNAME'] = {}"
 #: desk/doctype/custom_html_block/custom_html_block.json
 msgctxt "Custom HTML Block"
 msgid "Javascript"
-msgstr ""
+msgstr "Javascript"
 
 #. Label of a Code field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Javascript"
-msgstr ""
+msgstr "Javascript"
 
 #. Label of a Code field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Javascript"
-msgstr ""
+msgstr "Javascript"
 
 #. Label of a Code field in DocType 'Website Script'
 #: website/doctype/website_script/website_script.json
 msgctxt "Website Script"
 msgid "Javascript"
-msgstr ""
+msgstr "Javascript"
 
 #: www/login.html:71
 msgid "Javascript is disabled on your browser"
@@ -17007,7 +17007,7 @@ msgstr "Javascript está deshabilitado en su navegador"
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
 msgid "Jinja"
-msgstr ""
+msgstr "Jinja"
 
 #. Label of a Link field in DocType 'Prepared Report'
 #: core/doctype/prepared_report/prepared_report.json
@@ -17072,13 +17072,13 @@ msgstr ""
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Kanban"
-msgstr ""
+msgstr "Kanban"
 
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Kanban"
-msgstr ""
+msgstr "Kanban"
 
 #. Name of a DocType
 #: desk/doctype/kanban_board/kanban_board.json
@@ -17115,7 +17115,7 @@ msgstr "Nombre del Tablero Kanban"
 #: public/js/frappe/views/kanban/kanban_view.js:262
 msgctxt "Button in kanban view menu"
 msgid "Kanban Settings"
-msgstr ""
+msgstr "Configuración de Kanban"
 
 #. Label of a Data field in DocType 'DefaultValue'
 #: core/doctype/defaultvalue/defaultvalue.json
@@ -17936,7 +17936,7 @@ msgstr "Licencia"
 #: core/doctype/package/package.json
 msgctxt "Package"
 msgid "License Type"
-msgstr ""
+msgstr "Tipo de Licencia"
 
 #. Option for the 'Desk Theme' (Select) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -19803,7 +19803,7 @@ msgstr "Perfil del Módulo"
 #: core/doctype/module_profile/module_profile.json
 msgctxt "Module Profile"
 msgid "Module Profile Name"
-msgstr ""
+msgstr "Nombre de Perfil del Módulo"
 
 #: desk/doctype/module_onboarding/module_onboarding.py:69
 msgid "Module onboarding progress reset"
@@ -20129,7 +20129,7 @@ msgstr "Mis ajustes"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "MyISAM"
-msgstr ""
+msgstr "MyISAM"
 
 #: workflow/doctype/workflow/workflow.js:19
 msgid "NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
@@ -20851,7 +20851,7 @@ msgstr "No se permiten gráficos"
 
 #: core/page/dashboard_view/dashboard_view.js:92
 msgid "No Permitted Charts on this Dashboard"
-msgstr "No hay gráficos permitidos en este panel"
+msgstr "No hay gráficos permitidos en este Tablero"
 
 #: printing/doctype/print_settings/print_settings.js:13
 msgid "No Preview"
@@ -20899,7 +20899,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/address_list.html:37
 msgid "No address added yet."
-msgstr ""
+msgstr "Ninguna dirección añadida aún."
 
 #: email/doctype/notification/notification.js:180
 msgid "No alerts for today"
@@ -21648,7 +21648,7 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "OAuth"
-msgstr ""
+msgstr "OAuth"
 
 #. Name of a DocType
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
@@ -22104,13 +22104,13 @@ msgstr "Abrir {0}"
 #: integrations/doctype/connected_app/connected_app.json
 msgctxt "Connected App"
 msgid "OpenID Configuration"
-msgstr ""
+msgstr "Configuración de OpenID"
 
 #. Option for the 'Directory Server' (Select) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "OpenLDAP"
-msgstr ""
+msgstr "OpenLDAP"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -22722,7 +22722,7 @@ msgstr "Tabla padre / principal"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.py:394
 msgid "Parent document type is required to create a dashboard chart"
-msgstr ""
+msgstr "Se requiere el tipo de documento padre para crear un gráfico de tablero"
 
 #: core/doctype/data_export/exporter.py:253
 msgid "Parent is the name of the document to which the data will get added to."
@@ -23364,7 +23364,7 @@ msgstr ""
 
 #: utils/dashboard.py:58
 msgid "Please check the filter values set for Dashboard Chart: {}"
-msgstr "Compruebe los valores de filtro establecidos para el cuadro de mandos: {}"
+msgstr "Compruebe los valores de filtro establecidos para el gráfico del tablero: {}"
 
 #: model/base_document.py:862
 msgid "Please check the value of \"Fetch From\" set for field {0}"
@@ -24141,13 +24141,13 @@ msgstr "Diseñador de formatos de impresión"
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "Print Format Builder (New)"
-msgstr ""
+msgstr "Diseñador de formatos de impresión (Nuevo)"
 
 #. Label of a Check field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
 msgid "Print Format Builder Beta"
-msgstr ""
+msgstr "Diseñador de formatos de impresión Beta"
 
 #: utils/pdf.py:56
 msgid "Print Format Error"
@@ -25059,13 +25059,13 @@ msgstr ""
 
 #: email/doctype/email_account/email_account.py:660
 msgid "Re:"
-msgstr ""
+msgstr "Re:"
 
 #: core/doctype/communication/communication.js:268
 #: public/js/frappe/form/footer/form_timeline.js:587
 #: public/js/frappe/views/communication.js:324
 msgid "Re: {0}"
-msgstr ""
+msgstr "Re: {0}"
 
 #: client.py:459
 msgid "Read"
@@ -27448,20 +27448,20 @@ msgstr "Detalles del cucharón S3"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #. Option for the 'Two Factor Authentication method' (Select) field in DocType
 #. 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #. Label of a Small Text field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
@@ -27513,7 +27513,7 @@ msgstr "Configuración SMTP para los correos salientes"
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "SQL"
-msgstr ""
+msgstr "SQL"
 
 #. Description of the 'Condition' (Small Text) field in DocType 'Bulk Update'
 #: desk/doctype/bulk_update/bulk_update.json
@@ -27737,7 +27737,7 @@ msgstr "Guardando..."
 
 #: public/js/frappe/scanner/index.js:72
 msgid "Scan QRCode"
-msgstr ""
+msgstr "Escanear código QR"
 
 #: www/qrcode.html:14
 msgid "Scan the QR Code and enter the resulting code displayed."
@@ -28269,7 +28269,7 @@ msgstr "Seleccione columnas"
 
 #: desk/page/setup_wizard/setup_wizard.js:387
 msgid "Select Country"
-msgstr ""
+msgstr "Selecciona País"
 
 #: desk/page/setup_wizard/setup_wizard.js:404
 msgid "Select Currency"
@@ -28367,7 +28367,7 @@ msgstr ""
 
 #: public/js/frappe/list/list_view_select.js:185
 msgid "Select Kanban"
-msgstr ""
+msgstr "Seleccionar Kanban"
 
 #: desk/page/setup_wizard/setup_wizard.js:379
 msgid "Select Language"
@@ -28377,7 +28377,7 @@ msgstr "Seleccione el idioma"
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Select List View"
-msgstr ""
+msgstr "Seleccionar Vista de Lista"
 
 #: public/js/frappe/data_import/data_exporter.js:157
 msgid "Select Mandatory"
@@ -28395,7 +28395,7 @@ msgstr ""
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Select Page"
-msgstr ""
+msgstr "Seleccionar Página"
 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:68
 #: public/js/frappe/views/communication.js:145
@@ -29083,7 +29083,7 @@ msgstr "Establecer Gráfico"
 #: desk/doctype/dashboard/dashboard.json
 msgctxt "Dashboard"
 msgid "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])"
-msgstr "Establezca opciones predeterminadas para todos los gráficos en este Panel (Ej.: \"colores\": [\"#d1d8dd\", \"#ff5858\"])"
+msgstr "Establezca opciones predeterminadas para todos los gráficos en este Tablero (Ej.: \"colores\": [\"#d1d8dd\", \"#ff5858\"])"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:467
 #: desk/doctype/number_card/number_card.js:361
@@ -29132,7 +29132,7 @@ msgstr "Establecer Permisos"
 
 #: printing/page/print_format_builder/print_format_builder.js:471
 msgid "Set Properties"
-msgstr ""
+msgstr "Establecer propiedades"
 
 #. Label of a Section Break field in DocType 'Notification'
 #. Label of a Select field in DocType 'Notification'
@@ -29620,7 +29620,7 @@ msgstr "Mostrar Permisos"
 #: public/js/print_format_builder/print_format_builder.bundle.js:18
 #: public/js/print_format_builder/print_format_builder.bundle.js:54
 msgid "Show Preview"
-msgstr ""
+msgstr "Mostrar Vista Previa"
 
 #. Label of a Check field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -29989,13 +29989,13 @@ msgstr ""
 #: website/doctype/contact_us_settings/contact_us_settings.json
 msgctxt "Contact Us Settings"
 msgid "Skype"
-msgstr ""
+msgstr "Skype"
 
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Slack"
-msgstr ""
+msgstr "Slack"
 
 #. Label of a Link field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -31703,7 +31703,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Telemetry"
-msgstr ""
+msgstr "Telemetría"
 
 #. Label of a Code field in DocType 'Address Template'
 #: contacts/doctype/address_template/address_template.json
@@ -31862,7 +31862,7 @@ msgstr "Gracias por su interés en suscribirse a nuestras actualizaciones"
 
 #: templates/emails/new_user.html:16
 msgid "Thanks"
-msgstr ""
+msgstr "Gracias"
 
 #: templates/emails/auto_repeat_fail.html:3
 msgid "The Auto Repeat for this document has been disabled."
@@ -32629,7 +32629,7 @@ msgstr "Tiempo en segundos para retener la imagen del código QR en el servidor.
 
 #: desk/doctype/dashboard_chart/dashboard_chart.py:403
 msgid "Time series based on is required to create a dashboard chart"
-msgstr "Se requiere una serie temporal basada en para crear un cuadro de mandos"
+msgstr "Se requiere una serie temporal basada en para crear un gráfico de tablero"
 
 #: public/js/frappe/form/controls/time.js:107
 msgid "Time {0} must be in format: {1}"
@@ -34181,7 +34181,7 @@ msgstr ""
 #: email/doctype/email_template/email_template.json
 msgctxt "Email Template"
 msgid "Use HTML"
-msgstr ""
+msgstr "Usar HTML"
 
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -34223,13 +34223,13 @@ msgstr "Utilizar SSL"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Use STARTTLS"
-msgstr ""
+msgstr "Usar STARTTLS"
 
 #. Label of a Check field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Use STARTTLS"
-msgstr ""
+msgstr "Usar STARTTLS"
 
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -34263,7 +34263,7 @@ msgstr "El uso de la sub-query o función está restringido"
 
 #: printing/page/print/print.js:279
 msgid "Use the new Print Format Builder"
-msgstr ""
+msgstr "Usar el nuevo Diseñador de formatos de impresión"
 
 #. Description of the 'Title Field' (Data) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -35805,7 +35805,7 @@ msgstr "Semanal largo"
 
 #: desk/page/setup_wizard/setup_wizard.js:372
 msgid "Welcome"
-msgstr ""
+msgstr "Bienvenido"
 
 #. Label of a Link field in DocType 'Email Group'
 #: email/doctype/email_group/email_group.json
@@ -35823,7 +35823,7 @@ msgstr "Plantilla de correo electrónico de bienvenida"
 #: email/doctype/email_group/email_group.json
 msgctxt "Email Group"
 msgid "Welcome URL"
-msgstr ""
+msgstr "URL de bienvenida"
 
 #. Name of a Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json desk/desktop.py:469
@@ -36220,7 +36220,7 @@ msgstr "Campo X"
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "XLSX"
-msgstr ""
+msgstr "XLSX"
 
 #. Label of a Table field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -36252,7 +36252,7 @@ msgstr "Correo de Yahoo"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Yandex.Mail"
-msgstr ""
+msgstr "Yandex.Mail"
 
 #. Label of a Data field in DocType 'Company History'
 #: website/doctype/company_history/company_history.json
@@ -36551,7 +36551,7 @@ msgstr ""
 
 #: desk/doctype/dashboard_chart/dashboard_chart.py:407
 msgid "You cannot create a dashboard chart from single DocTypes"
-msgstr "No puede crear un gráfico de panel a partir de DocTypes individuales"
+msgstr "No puede crear un gráfico de tablero a partir de DocTypes individuales"
 
 #: social/doctype/energy_point_log/energy_point_log.py:45
 msgid "You cannot give review points to yourself"
@@ -36686,7 +36686,7 @@ msgstr ""
 
 #: public/js/frappe/list/list_view.js:470
 msgid "You haven't created a {0} yet"
-msgstr ""
+msgstr "Aún no ha creado un {0}"
 
 #: rate_limiter.py:150
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
@@ -37637,7 +37637,7 @@ msgstr "itálica"
 
 #: templates/signup.html:11 www/login.html:10
 msgid "jane@example.com"
-msgstr ""
+msgstr "juan@example.com"
 
 #: public/js/frappe/utils/pretty_date.js:46
 msgid "just now"
@@ -37670,7 +37670,7 @@ msgstr "Vinculo"
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "linkedin"
-msgstr ""
+msgstr "linkedin"
 
 #. Option for the 'Type' (Select) field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -38142,7 +38142,7 @@ msgstr ""
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgctxt "OAuth Authorization Code"
 msgid "s256"
-msgstr ""
+msgstr "s256"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -38440,7 +38440,7 @@ msgstr "a través de la importación de datos"
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "via Google Meet"
-msgstr ""
+msgstr "vía Google Meet"
 
 #: email/doctype/notification/notification.py:215
 msgid "via Notification"
@@ -38532,7 +38532,7 @@ msgstr "Alejar"
 
 #: desk/doctype/event/event.js:87
 msgid "{0}"
-msgstr ""
+msgstr "{0}"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:193
 msgid "{0} ${skip_list ? \"\" : type}"
@@ -38545,7 +38545,7 @@ msgstr ""
 #: public/js/frappe/data_import/data_exporter.js:79
 #: public/js/frappe/views/gantt/gantt_view.js:54
 msgid "{0} ({1})"
-msgstr ""
+msgstr "{0} ({1})"
 
 #: public/js/frappe/data_import/data_exporter.js:76
 msgid "{0} ({1}) (1 row mandatory)"
@@ -38553,12 +38553,12 @@ msgstr "{0} ({1}) (1 fila obligatoria)"
 
 #: public/js/frappe/views/gantt/gantt_view.js:53
 msgid "{0} ({1}) - {2}%"
-msgstr ""
+msgstr "{0} ({1}) - {2}%"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:348
 #: public/js/frappe/ui/toolbar/awesome_bar.js:351
 msgid "{0} = {1}"
-msgstr ""
+msgstr "{0} = {1}"
 
 #: public/js/frappe/views/calendar/calendar.js:30
 msgid "{0} Calendar"
@@ -38603,11 +38603,11 @@ msgstr "Lista {0}"
 
 #: public/js/frappe/utils/pretty_date.js:37
 msgid "{0} M"
-msgstr ""
+msgstr "{0} M"
 
 #: public/js/frappe/views/map/map_view.js:14
 msgid "{0} Map"
-msgstr ""
+msgstr "{0} Mapa"
 
 #: public/js/frappe/utils/utils.js:927
 msgid "{0} Modules"
@@ -38803,7 +38803,7 @@ msgstr "{0} criticado {1}"
 
 #: public/js/frappe/utils/pretty_date.js:33
 msgid "{0} d"
-msgstr ""
+msgstr "{0} d"
 
 #: public/js/frappe/utils/pretty_date.js:60
 msgid "{0} days ago"
@@ -38848,7 +38848,7 @@ msgstr ""
 
 #: public/js/frappe/utils/pretty_date.js:29
 msgid "{0} h"
-msgstr ""
+msgstr "{0} h"
 
 #: core/doctype/user_permission/user_permission.py:77
 msgid "{0} has already assigned default value for {1}."
@@ -38897,7 +38897,7 @@ msgstr "{0} es una dirección de correo electrónico no válida en &quot;Destina
 
 #: public/js/frappe/views/reports/report_view.js:1396
 msgid "{0} is between {1} and {2}"
-msgstr ""
+msgstr "{0} está entre {1} y {2}"
 
 #: public/js/frappe/form/sidebar/form_sidebar_users.js:41
 #: public/js/frappe/form/sidebar/form_sidebar_users.js:69
@@ -38906,27 +38906,27 @@ msgstr "{0} es actualmente {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1365
 msgid "{0} is equal to {1}"
-msgstr ""
+msgstr "{0} es igual a {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1385
 msgid "{0} is greater than or equal to {1}"
-msgstr ""
+msgstr "{0} es mayor o igual a {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1375
 msgid "{0} is greater than {1}"
-msgstr ""
+msgstr "{0} es mayor que {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1390
 msgid "{0} is less than or equal to {1}"
-msgstr ""
+msgstr "{0} es menor o igual que {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1380
 msgid "{0} is less than {1}"
-msgstr ""
+msgstr "{0} es menor que {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1415
 msgid "{0} is like {1}"
-msgstr ""
+msgstr "{0} es como {1}"
 
 #: email/doctype/email_account/email_account.py:176
 msgid "{0} is mandatory"
@@ -38986,15 +38986,15 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_view.js:1370
 msgid "{0} is not equal to {1}"
-msgstr ""
+msgstr "{0} no es igual a {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1417
 msgid "{0} is not like {1}"
-msgstr ""
+msgstr "{0} no es como {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1411
 msgid "{0} is not one of {1}"
-msgstr ""
+msgstr "{0} no es uno de {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1421
 msgid "{0} is not set"
@@ -39006,7 +39006,7 @@ msgstr "{0} ahora es el formato de impresión predeterminado para el doctype {1}
 
 #: public/js/frappe/views/reports/report_view.js:1404
 msgid "{0} is one of {1}"
-msgstr ""
+msgstr "{0} es uno de {1}"
 
 #: email/doctype/email_account/email_account.py:277 model/naming.py:199
 #: printing/doctype/print_format/print_format.py:90 utils/csvutils.py:131
@@ -39019,7 +39019,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_view.js:1399
 msgid "{0} is within {1}"
-msgstr ""
+msgstr "{0} está dentro de {1}"
 
 #: public/js/frappe/list/list_view.js:1563
 msgid "{0} items selected"
