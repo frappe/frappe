@@ -195,6 +195,8 @@ def validate_email_address(email_str, throw=False):
 
 	out = []
 	for e in email_str.split(","):
+		if not e:
+			continue
 		email = _check(e.strip())
 		if email:
 			out.append(email)

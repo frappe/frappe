@@ -9,6 +9,8 @@ EVENT_MAP = {
 	"before_validate": "Before Validate",
 	"validate": "Before Save",
 	"on_update": "After Save",
+	"before_rename": "Before Rename",
+	"after_rename": "After Rename",
 	"before_submit": "Before Submit",
 	"on_submit": "After Submit",
 	"before_cancel": "Before Cancel",

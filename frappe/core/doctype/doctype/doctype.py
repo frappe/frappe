@@ -111,7 +111,7 @@ class DocType(Document):
 		custom: DF.Check
 		default_email_template: DF.Link | None
 		default_print_format: DF.Data | None
-		default_view: DF.Literal
+		default_view: DF.Literal[None]
 		description: DF.SmallText | None
 		document_type: DF.Literal["", "Document", "Setup", "System", "Other"]
 		documentation: DF.Data | None
@@ -355,6 +355,8 @@ class DocType(Document):
 			for df in new_fields_to_fetch:
 				if df.fieldname not in old_fields_to_fetch:
 					link_fieldname, source_fieldname = df.fetch_from.split(".", 1)
+					if not source_fieldname:
+						continue  # Invalid expression
 					link_df = new_meta.get_field(link_fieldname)
 
 					if frappe.db.db_type == "postgres":
@@ -1187,7 +1189,7 @@ def validate_fields_for_doctype(doctype):
 
 
 # this is separate because it is also called via custom field
-def validate_fields(meta):
+def validate_fields(meta: Meta):
 	"""Validate doctype fields. Checks
 	1. There are no illegal characters in fieldnames
 	2. If fieldnames are unique.
@@ -1597,6 +1599,8 @@ def validate_fields(meta):
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
+	in_ci = os.environ.get("CI")
+
 	not_allowed_in_list_view = get_fields_not_allowed_in_list_view(meta)
 
 	for d in fields:
@@ -1617,7 +1621,7 @@ def validate_fields(meta):
 		scrub_fetch_from(d)
 		validate_data_field_type(d)
 
-		if not frappe.flags.in_migrate:
+		if not frappe.flags.in_migrate or in_ci:
 			check_unique_fieldname(meta.get("name"), d.fieldname)
 			check_link_table_options(meta.get("name"), d)
 			check_illegal_mandatory(meta.get("name"), d)
@@ -1630,7 +1634,7 @@ def validate_fields(meta):
 			check_max_height(d)
 			check_no_of_ratings(d)
 
-	if not frappe.flags.in_migrate:
+	if not frappe.flags.in_migrate or in_ci:
 		check_fold(fields)
 		check_search_fields(meta, fields)
 		check_title_field(meta)

@@ -24,7 +24,7 @@ class WorkflowDocumentState(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 		state: DF.Link
-		update_field: DF.Literal
+		update_field: DF.Literal[None]
 		update_value: DF.Data | None
 		workflow_builder_id: DF.Data | None
 	# end: auto-generated types

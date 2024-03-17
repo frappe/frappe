@@ -31,8 +31,8 @@ class AssignmentRule(Document):
 		description: DF.SmallText
 		disabled: DF.Check
 		document_type: DF.Link
-		due_date_based_on: DF.Literal
-		field: DF.Literal
+		due_date_based_on: DF.Literal[None]
+		field: DF.Literal[None]
 		last_user: DF.Link | None
 		priority: DF.Int
 		rule: DF.Literal["Round Robin", "Load Balancing", "Based on Field"]

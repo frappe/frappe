@@ -84,6 +84,26 @@ frappe.db.commit()
 frappe.db.add_index("Todo", ["color", "date"])
 """,
 	),
+	dict(
+		name="test_before_rename",
+		script_type="DocType Event",
+		doctype_event="After Rename",
+		reference_doctype="Role",
+		script="""
+doc.desk_access =0
+doc.save()
+""",
+	),
+	dict(
+		name="test_after_rename",
+		script_type="DocType Event",
+		doctype_event="After Rename",
+		reference_doctype="Role",
+		script="""
+doc.disabled =1
+doc.save()
+""",
+	),
 ]
 
 
@@ -120,6 +140,12 @@ class TestServerScript(FrappeTestCase):
 		self.assertRaises(
 			frappe.ValidationError, frappe.get_doc(doctype="ToDo", description="validate me").insert
 		)
+
+		role = frappe.get_doc(doctype="Role", role_name="_Test Role 9").insert(ignore_if_duplicate=True)
+		role.rename("_Test Role 10")
+		role.reload()
+		self.assertEqual(role.disabled, 1)
+		self.assertEqual(role.desk_access, 0)
 
 	def test_api(self):
 		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_server_script")

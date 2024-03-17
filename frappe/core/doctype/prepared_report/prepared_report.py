@@ -31,7 +31,7 @@ class PreparedReport(Document):
 
 		error_message: DF.Text | None
 		filters: DF.SmallText | None
-		job_id: DF.Link | None
+		job_id: DF.Data | None
 		queued_at: DF.Datetime | None
 		queued_by: DF.Data | None
 		report_end_time: DF.Datetime | None
@@ -91,7 +91,7 @@ class PreparedReport(Document):
 def generate_report(prepared_report):
 	update_job_id(prepared_report)
 
-	instance = frappe.get_doc("Prepared Report", prepared_report)
+	instance: PreparedReport = frappe.get_doc("Prepared Report", prepared_report)
 	report = frappe.get_doc("Report", instance.report_name)
 
 	add_data_to_monitor(report=instance.report_name)
@@ -109,7 +109,7 @@ def generate_report(prepared_report):
 					report.custom_columns = data["columns"]
 
 		result = generate_report_result(report=report, filters=instance.filters, user=instance.owner)
-		create_json_gz_file(result, instance.doctype, instance.name)
+		create_json_gz_file(result, instance.doctype, instance.name, instance.report_name)
 
 		instance.status = "Completed"
 	except Exception:
@@ -215,11 +215,13 @@ def delete_prepared_reports(reports):
 			prepared_report.delete(ignore_permissions=True, delete_permanently=True)
 
 
-def create_json_gz_file(data, dt, dn):
+def create_json_gz_file(data, dt, dn, report_name):
 	# Storing data in CSV file causes information loss
 	# Reports like P&L Statement were completely unsuable because of this
-	json_filename = "{}.json.gz".format(frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M"))
-	encoded_content = frappe.safe_encode(frappe.as_json(data))
+	json_filename = "{}_{}.json.gz".format(
+		frappe.scrub(report_name), frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H-M")
+	)
+	encoded_content = frappe.safe_encode(frappe.as_json(data, indent=None, separators=(",", ":")))
 	compressed_content = gzip.compress(encoded_content)
 
 	# Call save() file function to upload and attach the file

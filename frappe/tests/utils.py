@@ -34,6 +34,8 @@ class FrappeTestCase(unittest.TestCase):
 	def setUpClass(cls) -> None:
 		cls.TEST_SITE = getattr(frappe.local, "site", None) or cls.TEST_SITE
 		cls.ADMIN_PASSWORD = frappe.get_conf(cls.TEST_SITE).admin_password
+		cls._primary_connection = frappe.local.db
+		cls._secondary_connection = None
 		# flush changes done so far to avoid flake
 		frappe.db.commit()
 		if cls.SHOW_TRANSACTION_COMMIT_WARNINGS:
@@ -90,7 +92,38 @@ class FrappeTestCase(unittest.TestCase):
 		"""Formats SQL consistently so simple string comparisons can work on them."""
 		import sqlparse
 
-		return (sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True),)
+		return sqlparse.format(query.strip(), keyword_case="upper", reindent=True, strip_comments=True)
+
+	@contextmanager
+	def primary_connection(self):
+		"""Switch to primary DB connection
+
+		This is used for simulating multiple users performing actions by simulating two DB connections"""
+		try:
+			current_conn = frappe.local.db
+			frappe.local.db = self._primary_connection
+			yield
+		finally:
+			frappe.local.db = current_conn
+
+	@contextmanager
+	def secondary_connection(self):
+		"""Switch to secondary DB connection."""
+		if self._secondary_connection is None:
+			frappe.connect()  # get second connection
+			self._secondary_connection = frappe.local.db
+
+		try:
+			current_conn = frappe.local.db
+			frappe.local.db = self._secondary_connection
+			yield
+		finally:
+			frappe.local.db = current_conn
+			self.addCleanup(self._rollback_connections)
+
+	def _rollback_connections(self):
+		self._primary_connection.rollback()
+		self._secondary_connection.rollback()
 
 	def assertQueryEqual(self, first: str, second: str):
 		self.assertEqual(self.normalize_sql(first), self.normalize_sql(second))
@@ -274,13 +307,18 @@ def timeout(seconds=30, error_message="Test timed out."):
 
 	adapted from https://stackoverflow.com/a/2282656"""
 
+	# Support @timeout (without function call)
+	no_args = bool(callable(seconds))
+	actual_timeout = 30 if no_args else seconds
+	actual_error_message = "Test timed out" if no_args else error_message
+
 	def decorator(func):
 		def _handle_timeout(signum, frame):
-			raise Exception(error_message)
+			raise Exception(actual_error_message)
 
 		def wrapper(*args, **kwargs):
 			signal.signal(signal.SIGALRM, _handle_timeout)
-			signal.alarm(seconds)
+			signal.alarm(actual_timeout)
 			try:
 				result = func(*args, **kwargs)
 			finally:
@@ -288,6 +326,9 @@ def timeout(seconds=30, error_message="Test timed out."):
 			return result
 
 		return wrapper
+
+	if no_args:
+		return decorator(seconds)
 
 	return decorator
 

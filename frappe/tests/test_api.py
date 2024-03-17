@@ -187,9 +187,9 @@ class TestResourceAPI(FrappeAPITestCase):
 		with suppress_stdout():
 			response = self.get(self.resource_path(self.DOCTYPE), {"sid": self.sid, "debug": True})
 		self.assertEqual(response.status_code, 200)
-		self.assertIn("exc", response.json)
-		self.assertIsInstance(response.json["exc"], str)
-		self.assertIsInstance(eval(response.json["exc"]), list)
+		self.assertIn("_debug_messages", response.json)
+		self.assertIsInstance(response.json["_debug_messages"], str)
+		self.assertIsInstance(json.loads(response.json["_debug_messages"]), list)
 
 	def test_get_list_fields(self):
 		# test 6: fetch response with fields
@@ -321,6 +321,14 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertNotIn("_server_messages", response.json)
 		self.assertIn("ZeroDivisionError", response.json["exception"])  # WHY?
 		self.assertIn("Traceback", response.json["exc"])
+
+	def test_array_response(self):
+		method = "frappe.tests.test_api.test_array"
+
+		test_data = list(range(5))
+		response = self.post(self.method_path(method), test_data)
+
+		self.assertEqual(response.json["message"], test_data)
 
 
 class TestReadOnlyMode(FrappeAPITestCase):
@@ -463,3 +471,8 @@ def test(*, fail=False, handled=True, message="Failed"):
 			1 / 0
 	else:
 		frappe.msgprint(message)
+
+
+@frappe.whitelist(allow_guest=True)
+def test_array(data):
+	return data

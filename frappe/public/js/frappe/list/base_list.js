@@ -45,6 +45,7 @@ frappe.views.BaseList = class BaseList {
 
 		this.start = 0;
 		this.page_length = frappe.is_large_screen() ? 100 : 20;
+		this.selected_page_count = this.page_length;
 		this.data = [];
 		this.method = "frappe.desk.reportview.get";
 
@@ -362,7 +363,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_paging_area() {
-		const paging_values = [20, 100, 500];
+		const paging_values = [20, 100, 500, 2500];
 		this.$paging_area = $(
 			`<div class="list-paging-area level">
 				<div class="level-left">
@@ -393,20 +394,34 @@ frappe.views.BaseList = class BaseList {
 			.find(`.btn-paging[data-value="${this.page_length}"]`)
 			.addClass("btn-info");
 
-		this.$paging_area.on("click", ".btn-paging, .btn-more", (e) => {
+		this.$paging_area.on("click", ".btn-paging", (e) => {
 			const $this = $(e.currentTarget);
+			// Set the active button
+			// This is always necessary because the current page length might
+			// have resulted from a previous "load more".
+			this.$paging_area.find(".btn-paging").removeClass("btn-info");
+			$this.addClass("btn-info");
 
-			if ($this.is(".btn-paging")) {
-				// set active button
-				this.$paging_area.find(".btn-paging").removeClass("btn-info");
-				$this.addClass("btn-info");
+			const old_page_length = this.page_length;
+			const new_page_length = $this.data().value;
 
+			this.selected_page_count = new_page_length;
+			if (this.page_length > new_page_length) {
 				this.start = 0;
-				this.page_length = this.selected_page_count = $this.data().value;
-			} else if ($this.is(".btn-more")) {
-				this.start = this.start + this.page_length;
-				this.page_length = this.selected_page_count || 20;
+				this.page_length = new_page_length;
+			} else {
+				this.start = this.page_length;
+				this.page_length = new_page_length - this.page_length;
 			}
+
+			if (old_page_length !== new_page_length) {
+				this.refresh();
+			}
+		});
+
+		this.$paging_area.on("click", ".btn-more", (e) => {
+			this.start = this.data.length;
+			this.page_length = this.selected_page_count;
 			this.refresh();
 		});
 	}
@@ -588,6 +603,11 @@ class FilterArea {
 
 		this.$filter_list_wrapper = this.list_view.$filter_section;
 		this.trigger_refresh = true;
+
+		this.debounced_refresh_list_view = frappe.utils.debounce(
+			this.refresh_list_view.bind(this),
+			300
+		);
 		this.setup();
 	}
 
@@ -749,13 +769,13 @@ class FilterArea {
 				label: "ID",
 				condition: "like",
 				fieldname: "name",
-				onchange: () => this.refresh_list_view(),
+				onchange: () => this.debounced_refresh_list_view(),
 			});
 		}
 
 		if (this.list_view.custom_filter_configs) {
 			this.list_view.custom_filter_configs.forEach((config) => {
-				config.onchange = () => this.refresh_list_view();
+				config.onchange = () => this.debounced_refresh_list_view();
 			});
 
 			fields = fields.concat(this.list_view.custom_filter_configs);
@@ -812,7 +832,7 @@ class FilterArea {
 						options: options,
 						fieldname: df.fieldname,
 						condition: condition,
-						onchange: () => this.refresh_list_view(),
+						onchange: () => this.debounced_refresh_list_view(),
 						ignore_link_validation: fieldtype === "Dynamic Link",
 						is_filter: 1,
 					};
@@ -874,7 +894,7 @@ class FilterArea {
 			filter_button: this.filter_button,
 			filter_x_button: this.filter_x_button,
 			default_filters: [],
-			on_change: () => this.refresh_list_view(),
+			on_change: () => this.debounced_refresh_list_view(),
 		});
 	}
 

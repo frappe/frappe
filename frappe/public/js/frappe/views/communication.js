@@ -47,6 +47,7 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	get_fields() {
+		let me = this;
 		const fields = [
 			{
 				label: __("To"),
@@ -144,6 +145,17 @@ frappe.views.CommunicationComposer = class {
 				label: __("Select Print Format"),
 				fieldtype: "Select",
 				fieldname: "select_print_format",
+				onchange: function () {
+					me.guess_language();
+				},
+			},
+			{
+				label: __("Print Language"),
+				fieldtype: "Link",
+				options: "Language",
+				fieldname: "print_language",
+				default: frappe.boot.lang,
+				depends_on: "attach_document_print",
 			},
 			{ fieldtype: "Column Break" },
 			{
@@ -185,6 +197,31 @@ frappe.views.CommunicationComposer = class {
 		}
 
 		return fields;
+	}
+
+	guess_language() {
+		// when attach print for print format changes try to guess language
+		// if print format has language then set that else boot lang.
+
+		// Print language resolution:
+		// 1. Document's print_language field
+		// 2. print format's default field
+		// 3. user lang
+		// 4. system lang
+		// 3 and 4 are resolved already in boot
+		let document_lang = this.frm.doc?.language;
+		let print_format = this.dialog.get_value("select_print_format");
+
+		let print_format_lang;
+		if (print_format != "Standard") {
+			print_format_lang = frappe.get_doc(
+				"Print Format",
+				print_format
+			)?.default_print_language;
+		}
+
+		let lang = document_lang || print_format_lang || frappe.boot.lang;
+		this.dialog.set_value("print_language", lang);
 	}
 
 	toggle_more_options(show_options) {
@@ -496,6 +533,7 @@ frappe.views.CommunicationComposer = class {
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}
+		this.guess_language();
 	}
 
 	setup_attach() {
@@ -737,6 +775,7 @@ frappe.views.CommunicationComposer = class {
 				read_receipt: form_values.send_read_receipt,
 				print_letterhead: me.is_print_letterhead_checked(),
 				send_after: form_values.send_after ? form_values.send_after : null,
+				print_language: form_values.print_language,
 			},
 			btn,
 			callback(r) {
