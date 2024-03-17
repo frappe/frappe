@@ -1,6 +1,8 @@
+import faulthandler
 import json
 import os
 import re
+import signal
 import sys
 import time
 import unittest
@@ -108,6 +110,11 @@ class ParallelTestRunner:
 		return frappe.get_module(module_name)
 
 	def print_result(self):
+		# XXX: Added to debug tests getting stuck AFTER completion
+		# the process should terminate before this, we don't need to reset the signal.
+		signal.alarm(60)
+		faulthandler.register(signal.SIGALRM)
+
 		self.test_result.printErrors()
 		click.echo(self.test_result)
 		if self.test_result.failures or self.test_result.errors:
