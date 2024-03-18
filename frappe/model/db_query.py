@@ -472,13 +472,9 @@ class DatabaseQuery:
 
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
-<<<<<<< HEAD
-				if not table_name[0] == "`":
-=======
 				if table_name.lower().startswith("distinct"):
 					table_name = table_name[8:].strip()
 				if table_name[0] != "`":
->>>>>>> 8a7beebf30 (fix: handle distinct for fieldname (#25511))
 					table_name = f"`{table_name}`"
 				if (
 					table_name not in self.query_tables

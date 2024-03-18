@@ -1146,14 +1146,11 @@ class TestReportview(FrappeTestCase):
 
 
 class TestReportView(FrappeTestCase):
-<<<<<<< HEAD
 	def setUp(self) -> None:
 		frappe.set_user("Administrator")
 		return super().setUp()
 
-=======
 	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up
->>>>>>> 8a7beebf30 (fix: handle distinct for fieldname (#25511))
 	def test_get_count(self):
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = "GET"
