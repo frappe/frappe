@@ -309,7 +309,64 @@ frappe.ui.form.Toolbar = class Toolbar {
 		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
 		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
 		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
+		let doc = me.frm.doc;
 
+		frappe.db
+			.get_value("DocType", doc.doctype, "enable_snapshots")
+			.then(({ message: { enable_snapshots } }) => {
+				if (!enable_snapshots) {
+					return;
+				}
+				this.page.add_menu_item(__("Restore"), () => {
+					new frappe.ui.form.MultiSelectDialog({
+						doctype: "Document Snapshot",
+						target: this.frm,
+						setters: {},
+						date_field: "creation",
+						columns: ["name", "creation"],
+						get_query() {
+							return {
+								filters: { ref_doctype: doc.doctype, document_name: doc.name },
+							};
+						},
+						size: "medium",
+
+						primary_action_label: __("Restore"),
+						action(selections) {
+							if (selections.length === 0) {
+								frappe.msgprint(__("Please select snapshot to restore."));
+								return;
+							}
+							if (selections.length > 1) {
+								frappe.msgprint(__("Please select only one snapshot."));
+								return;
+							}
+							let snapshot_name = selections[0];
+							frappe.db
+								.get_value("Document Snapshot", snapshot_name, "data")
+								.then((res) => {
+									let snapshot = JSON.parse(res.message.data);
+									const fields = new Set([
+										...Object.keys(doc),
+										...Object.keys(snapshot),
+									]);
+
+									for (let field of fields) {
+										if (field !== "modified") {
+											frappe.model.set_value(
+												doc.doctype,
+												doc.name,
+												field,
+												snapshot[field]
+											);
+										}
+									}
+									cur_dialog.hide();
+								});
+						},
+					});
+				});
+			});
 		if (
 			!is_submittable ||
 			docstatus == 1 ||
