@@ -937,10 +937,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		let comment_count = null;
 		if (this.list_view_settings && !this.list_view_settings.disable_comment_count) {
-			comment_count = $(`<span class="comment-count d-flex align-items-center"></span>`);
-			$(comment_count).append(`
+			comment_count = `<span class="comment-count d-flex align-items-center">
 				${frappe.utils.icon("es-line-chat-alt")}
-				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}`);
+				${doc._comment_count > 99 ? "99+" : doc._comment_count || 0}
+			</span>`;
 		}
 
 		html += `
@@ -949,7 +949,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${settings_button || assigned_to}
 				</div>
 				<span class="modified">${modified}</span>
-				${comment_count ? $(comment_count).prop("outerHTML") : ""}
+				${comment_count || ""}
 				${comment_count ? '<span class="mx-2">·</span>' : ""}
 				<span class="list-row-like hidden-xs style="margin-bottom: 1px;">
 					${this.get_like_html(doc)}
