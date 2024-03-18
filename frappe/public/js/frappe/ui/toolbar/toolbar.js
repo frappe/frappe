@@ -64,7 +64,7 @@ frappe.ui.toolbar.Toolbar = class {
 	}
 
 	setup_announcement_widget() {
-		if (frappe.boot.navbar_settings.announcement_widget) {
+		if (localStorage.getItem("show_announcement_widget")) {
 			let announcement_widget = $(".announcement-widget");
 			let close_message = announcement_widget.find(".close-message");
 			close_message.on(
