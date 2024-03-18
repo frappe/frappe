@@ -1007,11 +1007,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_seen_class(doc) {
-		return JSON.parse(doc._seen || "[]").includes(frappe.session.user) ? "" : "bold";
+		const seen_by = doc._seen ? JSON.parse(doc._seen) : [];
+		return seen_by.includes(frappe.session.user) ? "" : "bold";
 	}
 
 	get_like_html(doc) {
-		const liked_by = JSON.parse(doc._liked_by || "[]");
+		const liked_by = doc._liked_by ? JSON.parse(doc._liked_by) : [];
 		const heart_class = liked_by.includes(frappe.session.user)
 			? "liked-by liked"
 			: "not-liked";
