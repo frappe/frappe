@@ -156,7 +156,7 @@ class Workspace(Document):
 
 				current_card = link
 				card_links = []
-			else:
+			elif not link.get("only_for") or link.get("only_for") == frappe.get_system_settings("country"):
 				card_links.append(link)
 
 		current_card["links"] = card_links
