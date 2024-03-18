@@ -987,7 +987,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				if (this.count_without_children) {
 					str = __("{0} of {1} ({2} rows with children)", [
 						count_without_children,
-						this.total_count,
+						count_str,
 						current_count,
 					]);
 				}
