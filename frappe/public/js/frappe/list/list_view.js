@@ -1060,7 +1060,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		div.appendChild(selectLikeSpan);
 
 		const ellipsisSpan = document.createElement("span");
-		ellipsisSpan.classList.add("level-item", seen, "ellipsis");
+		if (seen) {
+			ellipsisSpan.classList.add("level-item", seen, "ellipsis");
+		}
 
 		const link = document.createElement("a");
 		link.classList.add("ellipsis");
