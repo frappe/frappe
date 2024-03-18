@@ -91,7 +91,7 @@ frappe.ui.form.ControlMultiSelectPills = class ControlMultiSelectPills extends (
 		const encoded_value = encodeURIComponent(value);
 		return `
 			<button class="data-pill btn tb-selected-value" data-value="${encoded_value}">
-				<span class="btn-link-to-form">${__(label || value)}</span>
+				<span class="btn-link-to-form">${__(label || frappe.utils.escape_html(value))}</span>
 				<span class="btn-remove">${frappe.utils.icon("close")}</span>
 			</button>
 		`;
