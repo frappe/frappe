@@ -814,9 +814,7 @@ class Document(BaseDocument):
 			self.check_docstatus_transition(0)
 			return
 
-		if (cstr(previous.modified) != cstr(self._original_modified)) and not getattr(
-			self.meta, "allow_document_snapshots", False
-		):
+		if cstr(previous.modified) != cstr(self._original_modified):
 			frappe.msgprint(
 				_("Error: Document has been modified after you have opened it")
 				+ (f" ({previous.modified}, {self.modified}). ")
@@ -1261,8 +1259,7 @@ class Document(BaseDocument):
 	def save_snapshot(self):
 		"""Save snapshot of the document"""
 		if (
-			not self._doc_before_save
-			or self.doctype == "Version"
+			self.doctype == "Version"
 			or frappe.flags.in_patch
 			or frappe.flags.in_install
 			or not getattr(self.meta, "allow_document_snapshots", False)
@@ -1270,9 +1267,9 @@ class Document(BaseDocument):
 		):
 			return
 		old_doc = self._doc_before_save
-		# Remove the name key from the child record, as storing it in snapshot
+		# Set name key to None in child record, as storing it in snapshot
 		# will remove the child record when restoring the snapshot
-		old_doc = self.delete_name_from_child_table(old_doc)
+		old_doc = self.set_name_in_child_table(old_doc)
 		version = frappe.new_doc("Version")
 		version.ref_doctype = self.doctype
 		version.docname = self.name
@@ -1280,13 +1277,13 @@ class Document(BaseDocument):
 		version.data = json.dumps(old_doc.as_dict(), default=str)
 		version.insert(ignore_permissions=True)
 
-	def delete_name_from_child_table(self, document: "Document"):
+	def set_name_in_child_table(self, document: "Document"):
 		for df in document.meta.get_table_fields():
 			child_doc = document.get(df.fieldname, [])
 			if not child_doc:
 				continue
 			for doc in child_doc:
-				doc.delete_key("name")  # Remove the name key from the child record
+				doc.name = None
 			document.set(df.fieldname, child_doc)
 		return document
 

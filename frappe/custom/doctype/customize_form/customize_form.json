@@ -23,7 +23,7 @@
   "allow_auto_repeat",
   "allow_import",
   "queue_in_background",
-  "allow_document_snapshots",
+  "enable_snapshots",
   "naming_section",
   "naming_rule",
   "autoname",
@@ -404,9 +404,9 @@
   {
    "default": "0",
    "description": "If enabled, Snapshot will be stored on every save, applicable only for draft mode.",
-   "fieldname": "allow_document_snapshots",
+   "fieldname": "enable_snapshots",
    "fieldtype": "Check",
-   "label": " Allow Document Snapshots"
+   "label": "Enable Snapshots"
   }
  ],
  "hide_toolbar": 1,
@@ -415,7 +415,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-03-13 16:44:23.150627",
+ "modified": "2024-03-18 12:21:20.576888",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",

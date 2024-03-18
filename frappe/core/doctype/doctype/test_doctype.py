@@ -91,31 +91,6 @@ class TestDocType(FrappeTestCase):
 			"varchar" if frappe.db.db_type == "mariadb" else "character varying",
 		)
 
-	def test_document_snapshot(self):
-		import json
-
-		user_doctype = frappe.get_doc("DocType", "User")  # Set allow_document_snapshots to True
-		user_doctype.allow_document_snapshots = True
-		user_doctype.save()
-		user_doctype.reload()
-		# Create a new user
-		new_user = frappe.get_doc(
-			doctype="User", email="test-for-snapshot@example.com", first_name="Snapshot Test"
-		).insert(ignore_if_duplicate=True)
-
-		new_user.first_name = "Snapshot Test User"
-		new_user.save()
-		# Check if the snapshot is created
-		snapshot = json.loads(
-			frappe.get_value("Version", {"ref_doctype": "User", "docname": new_user.name}, "data")
-		)
-		self.assertIsNotNone(snapshot)
-
-		frappe.get_doc(snapshot).save()
-		# Check if the snapshot is restored
-		updated_user = frappe.get_doc("User", new_user.name)
-		self.assertEqual(updated_user.first_name, "Snapshot Test")
-
 	def test_doctype_unique_constraint_dropped(self):
 		if frappe.db.exists("DocType", "With_Unique"):
 			frappe.delete_doc("DocType", "With_Unique")

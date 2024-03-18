@@ -40,15 +40,15 @@ class CustomizeForm(Document):
 		actions: DF.Table[DocTypeAction]
 		allow_auto_repeat: DF.Check
 		allow_copy: DF.Check
-		allow_document_snapshots: DF.Check
 		allow_import: DF.Check
 		autoname: DF.Data | None
 		default_email_template: DF.Link | None
 		default_print_format: DF.Link | None
-		default_view: DF.LiteralNone
+		default_view: DF.Literal[None]
 		doc_type: DF.Link | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
+		enable_snapshots: DF.Check
 		fields: DF.Table[CustomizeFormField]
 		force_re_route_to_default_view: DF.Check
 		image_field: DF.Data | None
@@ -76,7 +76,7 @@ class CustomizeForm(Document):
 		sender_name_field: DF.Data | None
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
-		sort_field: DF.LiteralNone
+		sort_field: DF.Literal[None]
 		sort_order: DF.Literal["ASC", "DESC"]
 		states: DF.Table[DocTypeState]
 		subject_field: DF.Data | None
@@ -722,7 +722,7 @@ doctype_properties = {
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",
 	"translated_doctype": "Check",
-	"allow_document_snapshots": "Check",
+	"enable_snapshots": "Check",
 }
 
 docfield_properties = {
