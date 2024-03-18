@@ -10,11 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
-<<<<<<< HEAD
-=======
-import copy
 import faulthandler
->>>>>>> 6560d4587a (fix: debug stuck process by sending SIGUSR1)
 import functools
 import gc
 import importlib
@@ -22,12 +18,8 @@ import inspect
 import json
 import os
 import re
-<<<<<<< HEAD
-import unicodedata
-=======
 import signal
-import traceback
->>>>>>> 6560d4587a (fix: debug stuck process by sending SIGUSR1)
+import unicodedata
 import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, overload
@@ -2409,15 +2401,10 @@ def validate_and_sanitize_search_inputs(fn):
 	return wrapper
 
 
-<<<<<<< HEAD
-=======
 def _register_fault_handler():
 	faulthandler.register(signal.SIGUSR1)
 
 
-from frappe.utils.error import log_error
-
->>>>>>> 6560d4587a (fix: debug stuck process by sending SIGUSR1)
 if _tune_gc:
 	# generational GC gets triggered after certain allocs (g0) which is 700 by default.
 	# This number is quite small for frappe where a single query can potentially create 700+
