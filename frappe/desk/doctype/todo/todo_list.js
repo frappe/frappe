@@ -3,9 +3,9 @@ frappe.listview_settings["ToDo"] = {
 	add_fields: ["reference_type", "reference_name"],
 
 	onload: function (me) {
-		if (!Object.keys(frappe.route_options).length) {
+		if (!frappe.route_options) {
 			frappe.route_options = {
-				allocated_to: frappe.session.user,
+				owner: frappe.session.user,
 				status: "Open",
 			};
 		}
@@ -25,5 +25,20 @@ frappe.listview_settings["ToDo"] = {
 		action: function (doc) {
 			frappe.set_route("Form", doc.reference_type, doc.reference_name);
 		},
+	},
+
+	refresh: function (me) {
+		if (me.todo_sidebar_setup) return;
+
+		// add assigned by me
+		me.page.add_sidebar_item(
+			__("Assigned By Me"),
+			function () {
+				me.filter_area.add([[me.doctype, "assigned_by", "=", frappe.session.user]]);
+			},
+			'.list-link[data-view="Kanban"]'
+		);
+
+		me.todo_sidebar_setup = true;
 	},
 };
