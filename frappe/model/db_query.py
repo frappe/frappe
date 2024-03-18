@@ -471,6 +471,8 @@ class DatabaseQuery:
 
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
+				if table_name.lower().startswith("distinct"):
+					table_name = table_name[8:].strip()
 				if table_name[0] != "`":
 					table_name = f"`{table_name}`"
 				if (
