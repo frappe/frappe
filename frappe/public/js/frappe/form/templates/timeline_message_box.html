@@ -22,7 +22,7 @@
 						{{ "..." }}
 					{% } %}
 
-					<div class="text-muted">
+					<div class="text-extra-muted">
 						{{ comment_when(doc.communication_date || doc.creation) }}
 					</div>
 				</span>
@@ -30,9 +30,9 @@
 				<span>
 					{{ frappe.avatar(doc.owner, "avatar-medium") }}
 					<span class="ml-2" style="font-size: var(--text-base);">{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}</span>
-					<span class="text-muted">{{ __("commented") }}</span>
-					<span> . </span>
-					<span class="margin-left text-muted">
+					<span class="text-extra-muted">{{ __("commented") }}</span>
+					<span> · </span>
+					<span class="text-extra-muted">
 						{{ comment_when(doc.communication_date || doc.creation) }}
 					</span>
 				</span>

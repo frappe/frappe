@@ -504,9 +504,9 @@ def setup_redis_cache_connection():
 	global cache
 
 	if not cache:
-		from frappe.utils.redis_wrapper import RedisWrapper
+		from frappe.utils.redis_wrapper import setup_cache
 
-		cache = RedisWrapper.from_url(conf.get("redis_cache"))
+		cache = setup_cache()
 
 
 def get_traceback(with_context: bool = False) -> str:
@@ -536,8 +536,7 @@ def log(msg: str) -> None:
 
 	:param msg: Message."""
 	if not request:
-		if conf.get("logging"):
-			print(repr(msg))
+		print(repr(msg))
 
 	debug_log.append(as_unicode(msg))
 
