@@ -1071,9 +1071,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		ellipsisSpan.appendChild(link);
 		div.appendChild(ellipsisSpan);
 
-		// "Text Editor" and some other fieldtypes can have html tags in them so strip and show text.
-		// If no text is found show "No Text Found in {Field Label}"
-		let textValue = frappe.utils.html2text(value);
+		let textValue;
+		if (frappe.model.html_fieldtypes.includes(subject_field.fieldtype)) {
+			// NOTE: this is very slow, so only do it for HTML fields
+			textValue = frappe.utils.html2text(value);
+		} else {
+			textValue = value;
+		}
+
 		link.title = textValue;
 		link.textContent = textValue;
 
