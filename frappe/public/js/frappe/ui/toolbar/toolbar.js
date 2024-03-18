@@ -6,6 +6,7 @@ frappe.provide("frappe.search");
 
 frappe.ui.toolbar.Toolbar = class {
 	constructor() {
+		frappe.ui.toolbar.reset_announcement_widget();
 		$("header").replaceWith(
 			frappe.render_template("navbar", {
 				avatar: frappe.avatar(frappe.session.user, "avatar-medium"),
@@ -20,6 +21,11 @@ frappe.ui.toolbar.Toolbar = class {
 		this.setup_awesomebar();
 		this.setup_notifications();
 		this.setup_help();
+<<<<<<< HEAD
+=======
+		this.setup_read_only_mode();
+		this.setup_announcement_widget();
+>>>>>>> 1dbd4479ac (feat: setup widget in toolbar)
 		this.make();
 	}
 
@@ -46,6 +52,31 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 	}
 
+<<<<<<< HEAD
+=======
+	setup_read_only_mode() {
+		if (!frappe.boot.read_only) return;
+
+		$("header .read-only-banner").tooltip({
+			delay: { show: 600, hide: 100 },
+			trigger: "hover",
+		});
+	}
+
+	setup_announcement_widget() {
+		if (frappe.boot.navbar_settings.announcement_widget) {
+			let announcement_widget = $(".announcement-widget");
+			let close_message = announcement_widget.find(".close-message");
+			close_message.on(
+				"click",
+				() =>
+					localStorage.setItem("show_announcement_widget", false) ||
+					announcement_widget.addClass("hidden")
+			);
+		}
+	}
+
+>>>>>>> 1dbd4479ac (feat: setup widget in toolbar)
 	setup_help() {
 		if (!frappe.boot.desk_settings.notifications) {
 			// hide the help section
@@ -219,6 +250,16 @@ frappe.ui.toolbar.clear_cache = frappe.utils.throttle(function () {
 		location.reload(true);
 	});
 }, 10000);
+
+frappe.ui.toolbar.reset_announcement_widget = function () {
+	frappe.db.get_single_value("Navbar Settings", "announcement_widget").then((value) => {
+		if (value != frappe.boot.navbar_settings.announcement_widget) {
+			localStorage.setItem("show_announcement_widget", strip_html(value) != "");
+			frappe.boot.navbar_settings.announcement_widget = value;
+			frappe.ui.toolbar.clear_cache();
+		}
+	});
+};
 
 frappe.ui.toolbar.show_about = function () {
 	try {
