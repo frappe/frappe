@@ -135,7 +135,26 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						"
 						@click="move_fields_to_column"
 					>
+<<<<<<< HEAD
 						<div v-html="frappe.utils.icon('move', 'sm')"></div>
+=======
+						<div v-html="frappe.utils.icon('move', 'sm')" />
+					</button>
+					<button
+						class="btn btn-xs btn-icon"
+						:title="__('Duplicate field')"
+						@click.stop="duplicate_field"
+					>
+						<div v-html="frappe.utils.icon('duplicate', 'sm')" />
+					</button>
+					<button
+						v-if="field.df.fieldtype === 'Table' && field.df.options"
+						class="btn btn-xs btn-icon"
+						@click="open_child_doctype"
+						:title="__('Edit the {0} Doctype', [field.df.options])"
+					>
+						<div v-html="frappe.utils.icon('external-link', 'sm')" />
+>>>>>>> 41a7b42f16 (fix: Translate form and workflow builder (#25482))
 					</button>
 					<button
 						class="btn btn-xs btn-icon"

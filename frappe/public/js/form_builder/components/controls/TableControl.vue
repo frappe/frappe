@@ -36,7 +36,7 @@ let table_columns = computedAsync(async () => {
 				:key="i"
 			>
 				<div class="table-field ellipsis">
-					{{ tf.label }}
+					{{ __(tf.label) }}
 				</div>
 			</div>
 		</div>
