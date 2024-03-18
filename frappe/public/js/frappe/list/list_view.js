@@ -1047,23 +1047,30 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const seen = this.get_seen_class(doc);
 
 		const div = document.createElement("div");
-		div.innerHTML = `
-			<span class="level-item select-like">
-				<input class="list-row-checkbox" type="checkbox">
-			</span>
-			<span class="level-item ${seen} ellipsis">
-				<a class="ellipsis"></a>
-			</span>
-		`;
+		const selectLikeSpan = document.createElement("span");
+		selectLikeSpan.classList.add("level-item", "select-like");
 
-		const checkbox = div.querySelector(".list-row-checkbox");
-		checkbox.dataset.doctype = this.doctype;
-		checkbox.dataset.name = doc.name;
+		const checkboxInput = document.createElement("input");
+		checkboxInput.classList.add("list-row-checkbox");
+		checkboxInput.type = "checkbox";
+		checkboxInput.dataset.doctype = this.doctype;
+		checkboxInput.dataset.name = doc.name;
+		selectLikeSpan.appendChild(checkboxInput);
 
-		const link = div.querySelector(".level-item a");
+		div.appendChild(selectLikeSpan);
+
+		const ellipsisSpan = document.createElement("span");
+		ellipsisSpan.classList.add("level-item", seen, "ellipsis");
+
+		const link = document.createElement("a");
+		link.classList.add("ellipsis");
 		link.dataset.doctype = this.doctype;
 		link.dataset.name = doc.name;
 		link.href = this.get_form_link(doc);
+
+		ellipsisSpan.appendChild(link);
+		div.appendChild(ellipsisSpan);
+
 		// "Text Editor" and some other fieldtypes can have html tags in them so strip and show text.
 		// If no text is found show "No Text Found in {Field Label}"
 		let textValue = frappe.utils.html2text(value);
