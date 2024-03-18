@@ -17,7 +17,6 @@ class Version(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		complete_snapshot: DF.Check
 		data: DF.Code | None
 		docname: DF.Data
 		ref_doctype: DF.Link
