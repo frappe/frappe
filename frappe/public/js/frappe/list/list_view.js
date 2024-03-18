@@ -1019,17 +1019,23 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const title = liked_by.map((u) => frappe.user_info(u).fullname).join(", ");
 
 		const div = document.createElement("div");
-		div.innerHTML = `
-			<span class="like-action ${heart_class}">
-				${frappe.utils.icon("es-solid-heart", "sm", "like-icon")}
-			</span>
-		`;
+		const like = document.createElement("span");
+		like.classList.add("like-action", heart_class);
+		const like_icon = document.createElement("svg");
+		like_icon.classList.add("es-icon", "es-solid", "icon-sm", "like-icon");
 
-		const like = div.querySelector(".like-action");
+		const use = document.createElement("use");
+		use.setAttribute("href", "#es-solid-heart");
+		use.classList.add("like-icon");
+		like_icon.appendChild(use);
+
+		like.appendChild(like_icon);
+		like.dataset.doctype = this.doctype;
+		like.dataset.name = doc.name;
 		like.setAttribute("data-liked-by", doc._liked_by || "[]");
-		like.setAttribute("data-doctype", this.doctype);
-		like.setAttribute("data-name", doc.name);
 		like.setAttribute("title", title);
+
+		div.appendChild(like);
 
 		return div.innerHTML;
 	}
