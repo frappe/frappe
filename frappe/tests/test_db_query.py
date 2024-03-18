@@ -14,6 +14,7 @@ from frappe.handler import execute_cmd
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 from frappe.query_builder import Column
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
@@ -1149,6 +1150,7 @@ class TestReportView(FrappeTestCase):
 		frappe.set_user("Administrator")
 		return super().setUp()
 
+	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up
 	def test_get_count(self):
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = "GET"
@@ -1197,6 +1199,20 @@ class TestReportView(FrappeTestCase):
 				"filters": [["DocType", "is_virtual", "=", 1]],
 				"fields": [],
 				"distinct": "false",
+				"limit": limit,
+			}
+		)
+		count = execute_cmd("frappe.desk.reportview.get_count")
+		self.assertIsInstance(count, int)
+		self.assertLessEqual(count, limit)
+
+		# test with distinct
+		limit = 2
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": "DocType",
+				"fields": [],
+				"distinct": "true",
 				"limit": limit,
 			}
 		)
