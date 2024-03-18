@@ -1259,10 +1259,10 @@ class Document(BaseDocument):
 	def save_snapshot(self):
 		"""Save snapshot of the document"""
 		if (
-			self.doctype == "Version"
+			self.doctype == "Document Snapshot"
 			or frappe.flags.in_patch
 			or frappe.flags.in_install
-			or not getattr(self.meta, "allow_document_snapshots", False)
+			or not getattr(self.meta, "enable_snapshots", False)
 			or self.docstatus != 0
 		):
 			return
@@ -1270,12 +1270,11 @@ class Document(BaseDocument):
 		# Set name key to None in child record, as storing it in snapshot
 		# will remove the child record when restoring the snapshot
 		old_doc = self.set_name_in_child_table(old_doc)
-		version = frappe.new_doc("Version")
-		version.ref_doctype = self.doctype
-		version.docname = self.name
-		version.complete_snapshot = True
-		version.data = json.dumps(old_doc.as_dict(), default=str)
-		version.insert(ignore_permissions=True)
+		doc_snapshot = frappe.new_doc("Document Snapshot")
+		doc_snapshot.ref_doctype = self.doctype
+		doc_snapshot.document_name = self.name
+		doc_snapshot.data = json.dumps(old_doc.as_dict(), default=str)
+		doc_snapshot.insert(ignore_permissions=True)
 
 	def set_name_in_child_table(self, document: "Document"):
 		for df in document.meta.get_table_fields():
