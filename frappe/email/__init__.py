@@ -10,18 +10,39 @@ def sendmail_to_system_managers(subject, content):
 
 
 @frappe.whitelist()
-def get_contact_list(txt, page_length=20) -> list[dict]:
+def get_contact_list(txt, page_length=20, extra_filters: str | None = None) -> list[dict]:
 	"""Return email ids for a multiselect field."""
+<<<<<<< HEAD
+=======
+	if extra_filters:
+		extra_filters = frappe.parse_json(extra_filters)
+>>>>>>> c175911726 (feat: add option to filter email recipients)
 
-	if cached_contacts := get_cached_contacts(txt):
-		return cached_contacts[:page_length]
+	filters = [
+		["Contact Email", "email_id", "is", "set"],
+	]
+	if extra_filters:
+		filters.extend(extra_filters)
 
+<<<<<<< HEAD
 	reportview_conditions = build_match_conditions("Contact")
 	match_conditions = f"and {reportview_conditions}" if reportview_conditions else ""
+=======
+	fields = ["first_name", "middle_name", "last_name", "company_name"]
+	contacts = frappe.get_list(
+		"Contact",
+		fields=["full_name", "`tabContact Email`.email_id"],
+		filters=filters,
+		or_filters=[[field, "like", f"%{txt}%"] for field in fields]
+		+ [["Contact Email", "email_id", "like", f"%{txt}%"]],
+		limit_page_length=page_length,
+	)
+>>>>>>> c175911726 (feat: add option to filter email recipients)
 
 	# The multiselect field will store the `label` as the selected value.
 	# The `value` is just used as a unique key to distinguish between the options.
 	# https://github.com/frappe/frappe/blob/6c6a89bcdd9454060a1333e23b855d0505c9ebc2/frappe/public/js/frappe/form/controls/autocomplete.js#L29-L35
+<<<<<<< HEAD
 	out = frappe.db.sql(
 		f"""select name as value, email_id as label,
 		concat(first_name, ifnull(concat(' ',last_name), '' )) as description
@@ -38,6 +59,17 @@ def get_contact_list(txt, page_length=20) -> list[dict]:
 
 	return out
 
+=======
+	return [
+		frappe._dict(
+			value=d.email_id,
+			label=d.email_id,
+			description=d.full_name,
+		)
+		for d in contacts
+	]
+
+>>>>>>> c175911726 (feat: add option to filter email recipients)
 
 def get_system_managers():
 	return frappe.db.sql_list(
@@ -87,6 +119,7 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
 		]
 
+<<<<<<< HEAD
 	out = []
 	for dt in com_doctypes:
 		if txt.lower().replace("%", "") in dt.lower() and dt in can_read:
@@ -118,3 +151,6 @@ def update_contact_cache(contacts):
 	cached_contacts.extend(uncached_contacts)
 
 	frappe.cache().hset("contacts", frappe.session.user, cached_contacts)
+=======
+	return [[dt] for dt in com_doctypes if txt.lower().replace("%", "") in dt.lower() and dt in can_read]
+>>>>>>> c175911726 (feat: add option to filter email recipients)
