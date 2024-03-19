@@ -15,6 +15,7 @@ context("Form", () => {
 		cy.get_field("description", "Text Editor")
 			.type("this is a test todo", { force: true })
 			.wait(200);
+		cy.wait(1000);
 		cy.get(".page-title").should("contain", "Not Saved");
 		cy.intercept({
 			method: "POST",

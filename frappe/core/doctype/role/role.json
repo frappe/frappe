@@ -64,7 +64,7 @@
    "options": "Domain"
   },
   {
-   "description": "Route: Example \"/desk\"",
+   "description": "Route: Example \"/app\"",
    "fieldname": "home_page",
    "fieldtype": "Data",
    "label": "Home Page"
@@ -148,7 +148,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-08-05 18:33:27.694065",
+ "modified": "2024-03-13 20:59:37.875253",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Role",

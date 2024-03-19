@@ -75,6 +75,7 @@
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
+  "store_attached_pdf_document",
   "prepared_report_section",
   "max_auto_email_report_per_user",
   "system_updates_section",
@@ -592,12 +593,19 @@
   {
    "fieldname": "column_break_uqma",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "When sending document using email, store the PDF on Communication. Warning: This can increase your storage usage.",
+   "fieldname": "store_attached_pdf_document",
+   "fieldtype": "Check",
+   "label": "Store Attached PDF Document"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-10-17 16:12:28.145496",
+ "modified": "2024-03-14 15:18:01.465057",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

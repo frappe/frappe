@@ -10,6 +10,7 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+import faulthandler
 import functools
 import gc
 import importlib
@@ -17,6 +18,7 @@ import inspect
 import json
 import os
 import re
+import signal
 import unicodedata
 import warnings
 from collections.abc import Callable
@@ -253,6 +255,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
+		_register_fault_handler()
 
 	local.initialised = True
 
@@ -366,9 +369,9 @@ def cache() -> "RedisWrapper":
 	"""Returns redis connection."""
 	global redis_server
 	if not redis_server:
-		from frappe.utils.redis_wrapper import RedisWrapper
+		from frappe.utils.redis_wrapper import setup_cache
 
-		redis_server = RedisWrapper.from_url(conf.get("redis_cache") or "redis://localhost:11311")
+		redis_server = setup_cache()
 	return redis_server
 
 
@@ -2396,6 +2399,10 @@ def validate_and_sanitize_search_inputs(fn):
 		return fn(**kwargs)
 
 	return wrapper
+
+
+def _register_fault_handler():
+	faulthandler.register(signal.SIGUSR1)
 
 
 if _tune_gc:

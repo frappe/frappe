@@ -581,6 +581,11 @@ class FilterArea {
 
 		this.$filter_list_wrapper = this.list_view.$filter_section;
 		this.trigger_refresh = true;
+
+		this.debounced_refresh_list_view = frappe.utils.debounce(
+			this.refresh_list_view.bind(this),
+			300
+		);
 		this.setup();
 	}
 
@@ -743,13 +748,13 @@ class FilterArea {
 				label: "ID",
 				condition: "like",
 				fieldname: "name",
-				onchange: () => this.refresh_list_view(),
+				onchange: () => this.debounced_refresh_list_view(),
 			});
 		}
 
 		if (this.list_view.custom_filter_configs) {
 			this.list_view.custom_filter_configs.forEach((config) => {
-				config.onchange = () => this.refresh_list_view();
+				config.onchange = () => this.debounced_refresh_list_view();
 			});
 
 			fields = fields.concat(this.list_view.custom_filter_configs);
@@ -799,7 +804,7 @@ class FilterArea {
 						options: options,
 						fieldname: df.fieldname,
 						condition: condition,
-						onchange: () => this.refresh_list_view(),
+						onchange: () => this.debounced_refresh_list_view(),
 						ignore_link_validation: fieldtype === "Dynamic Link",
 						is_filter: 1,
 					};
@@ -861,7 +866,7 @@ class FilterArea {
 			filter_button: this.filter_button,
 			filter_x_button: this.filter_x_button,
 			default_filters: [],
-			on_change: () => this.refresh_list_view(),
+			on_change: () => this.debounced_refresh_list_view(),
 		});
 	}
 

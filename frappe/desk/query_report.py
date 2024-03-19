@@ -385,7 +385,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, ignore_visible_idx=F
 		datetime.timedelta,
 	)
 
-	if len(visible_idx) == len(data.result):
+	if len(visible_idx) == len(data.result) or not visible_idx:
 		# It's not possible to have same length and different content.
 		ignore_visible_idx = True
 	else:

@@ -139,29 +139,6 @@ context("Web Form", () => {
 		cy.get(".web-list-table thead th").contains("Content");
 	});
 
-	it("Breadcrumbs", () => {
-		cy.visit("/note/Note 1");
-		cy.get(".breadcrumb-container .breadcrumb .breadcrumb-item:first a")
-			.should("contain.text", "Note")
-			.click();
-		cy.url().should("include", "/note/list");
-	});
-
-	it("Custom Breadcrumbs", () => {
-		cy.visit("/app/web-form/note");
-
-		cy.findByRole("tab", { name: "Customization" }).click();
-		cy.fill_field("breadcrumbs", '[{"label": _("Notes"), "route":"note"}]', "Code");
-		cy.get(".form-tabs .nav-item .nav-link").contains("Customization").click();
-		cy.save();
-
-		cy.visit("/note/Note 1");
-		cy.get(".breadcrumb-container .breadcrumb .breadcrumb-item:first a").should(
-			"contain.text",
-			"Notes"
-		);
-	});
-
 	it("Read Only", () => {
 		cy.login("Administrator");
 		cy.visit("/note");

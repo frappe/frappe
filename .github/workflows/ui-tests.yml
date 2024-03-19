@@ -21,8 +21,6 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-       containers: [1, 2]
 
     name: UI Tests (Cypress)
 
@@ -155,7 +153,7 @@ jobs:
         if: ${{ steps.check-build.outputs.build == 'strawberry' }}
         run: |
           cd ~/frappe-bench/
-          bench --site test_site run-ui-tests frappe --headless --parallel --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT -- --record
+          bench --site test_site run-ui-tests frappe --headless -- --record
         env:
           CYPRESS_RECORD_KEY: 4a48f41c-11b3-425b-aa88-c58048fa69eb
 

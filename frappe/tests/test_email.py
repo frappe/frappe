@@ -8,9 +8,13 @@ from unittest.mock import patch
 import requests
 
 import frappe
+from frappe.core.doctype.communication.email import make
+from frappe.desk.form.load import get_attachments
 from frappe.email.doctype.email_account.test_email_account import TestEmailAccount
 from frappe.email.doctype.email_queue.email_queue import QueueBuilder
-from frappe.tests.utils import FrappeTestCase
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.utils import FrappeTestCase, change_settings
 
 test_dependencies = ["Email Account"]
 
@@ -362,10 +366,15 @@ class TestEmailIntegrationTest(FrappeTestCase):
 		frappe.flags.testing_email = False
 		return super().tearDown()
 
-	def get_last_sent_emails(self):
+	@classmethod
+	def get_last_sent_emails(cls):
 		return requests.get(
-			f"{self.SMTP4DEV_WEB}/api/Messages?sortColumn=receivedDate&sortIsDescending=true"
+			f"{cls.SMTP4DEV_WEB}/api/Messages?sortColumn=receivedDate&sortIsDescending=true"
 		).json()
+
+	@classmethod
+	def get_message(cls, message_id):
+		return requests.get(f"{cls.SMTP4DEV_WEB}/api/Messages/{message_id}").json()
 
 	def test_send_email(self):
 		sender = "a@example.io"
@@ -386,3 +395,46 @@ class TestEmailIntegrationTest(FrappeTestCase):
 			self.assertEqual(sent_mail["from"], sender)
 			self.assertEqual(sent_mail["subject"], subject)
 		self.assertSetEqual(set(recipients.split(",")), {m["to"] for m in sent_mails})
+
+	@run_only_if(db_type_is.MARIADB)
+	@change_settings("System Settings", store_attached_pdf_document=1)
+	def test_store_attachments(self):
+		""" "attach print" feature just tells email queue which document to attach, this is not
+		actually stored unless system setting says so."""
+
+		name = make(
+			sender="test_sender@example.com",
+			recipients="test_recipient@example.com,test_recipient2@example.com",
+			content="test mail 001",
+			subject="test-mail-002",
+			doctype="Email Account",
+			name="_Test Email Account 1",
+			print_format="Standard",
+			send_email=True,
+			now=True,
+		).get("name")
+
+		communication = frappe.get_doc("Communication", name)
+
+		attachments = get_attachments(communication.doctype, communication.name)
+		self.assertEqual(len(attachments), 1)
+
+		file = frappe.get_doc("File", attachments[0].name)
+		self.assertGreater(file.file_size, 1000)
+		self.assertIn("pdf", file.file_name.lower())
+		sent_mails = self.get_last_sent_emails()
+		self.assertEqual(len(sent_mails), 2)
+
+		for mail in sent_mails:
+			email_content = self.get_message(mail["id"])
+
+			attachment_found = False
+			for part in email_content["parts"]:
+				for child_part in part["childParts"]:
+					if child_part["isAttachment"]:
+						attachment_found = True
+						self.assertIn("pdf", child_part["name"])
+						break
+
+			if not attachment_found:
+				self.fail("Attachment not found", email_content)
