@@ -29,6 +29,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			2000
 		);
 		this.count_upper_bound = 1001;
+		this._element_factory = new ElementFactory(this.doctype);
 	}
 
 	has_permissions() {
@@ -875,7 +876,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			column_html = this.settings.formatters[fieldname](value, df, doc);
 		} else {
 			column_html = {
-				Subject: this.get_subject_html(doc),
+				Subject: this.get_subject_element(doc).innerHTML,
 				Field: field_html(),
 			}[col.type];
 		}
@@ -1011,28 +1012,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_like_html(doc) {
+		const ef = this._element_factory;
 		const liked_by = doc._liked_by ? JSON.parse(doc._liked_by) : [];
-		const heart_class = liked_by.includes(frappe.session.user)
-			? "liked-by liked"
-			: "not-liked";
+		const is_liked = liked_by.includes(frappe.session.user);
 		const title = liked_by.map((u) => frappe.user_info(u).fullname).join(", ");
 
 		const div = document.createElement("div");
-		const like = document.createElement("span");
-		like.classList.add("like-action", heart_class);
-		const like_icon = document.createElement("svg");
-		like_icon.classList.add("es-icon", "es-solid", "icon-sm", "like-icon");
-
-		const use = document.createElement("use");
-		use.setAttribute("href", "#es-solid-heart");
-		use.classList.add("like-icon");
-		like_icon.appendChild(use);
-
-		like.appendChild(like_icon);
-		like.dataset.doctype = this.doctype;
-		like.dataset.name = doc.name;
-		like.setAttribute("data-liked-by", doc._liked_by || "[]");
-		like.setAttribute("title", title);
+		const like = ef.get_like_element(doc.name, is_liked, liked_by, title);
 
 		const likes_count = document.createElement("span");
 		likes_count.classList.add("likes-count");
@@ -1044,58 +1030,43 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return div.innerHTML;
 	}
 
-	get_subject_html(doc) {
-		let subject_field = this.columns[0].df;
+	get_subject_element(doc) {
+		const ef = this._element_factory;
+		const div = document.createElement("div");
+		const checkboxspan = ef.get_checkboxspan_element();
+
+		const ellipsisSpan = document.createElement("span");
+		const seen = this.get_seen_class(doc);
+		if (seen) {
+			ellipsisSpan.classList.add("level-item", seen, "ellipsis");
+		}
+
+		div.appendChild(checkboxspan).appendChild(ef.get_checkbox_element(doc.name));
+		div.appendChild(ellipsisSpan).appendChild(
+			ef.get_link_element(doc.name, this.get_form_link(doc), this.get_subject_text(doc))
+		);
+
+		return div;
+	}
+
+	get_subject_text(doc) {
+		const subject_field = this.columns[0].df;
 		let value = doc[subject_field.fieldname];
 		if (this.settings.formatters && this.settings.formatters[subject_field.fieldname]) {
 			let formatter = this.settings.formatters[subject_field.fieldname];
 			value = formatter(value, subject_field, doc);
 		}
+
 		if (!value) {
 			value = doc.name;
 		}
 
-		const seen = this.get_seen_class(doc);
-
-		const div = document.createElement("div");
-		const selectLikeSpan = document.createElement("span");
-		selectLikeSpan.classList.add("level-item", "select-like");
-
-		const checkboxInput = document.createElement("input");
-		checkboxInput.classList.add("list-row-checkbox");
-		checkboxInput.type = "checkbox";
-		checkboxInput.dataset.doctype = this.doctype;
-		checkboxInput.dataset.name = doc.name;
-		selectLikeSpan.appendChild(checkboxInput);
-
-		div.appendChild(selectLikeSpan);
-
-		const ellipsisSpan = document.createElement("span");
-		if (seen) {
-			ellipsisSpan.classList.add("level-item", seen, "ellipsis");
-		}
-
-		const link = document.createElement("a");
-		link.classList.add("ellipsis");
-		link.dataset.doctype = this.doctype;
-		link.dataset.name = doc.name;
-		link.href = this.get_form_link(doc);
-
-		ellipsisSpan.appendChild(link);
-		div.appendChild(ellipsisSpan);
-
-		let textValue;
 		if (frappe.model.html_fieldtypes.includes(subject_field.fieldtype)) {
 			// NOTE: this is very slow, so only do it for HTML fields
-			textValue = frappe.utils.html2text(value);
+			return frappe.utils.html2text(value);
 		} else {
-			textValue = value;
+			return value;
 		}
-
-		link.title = textValue;
-		link.textContent = textValue;
-
-		return div.innerHTML;
 	}
 
 	get_indicator_html(doc, show_workflow_state) {
@@ -2164,3 +2135,81 @@ frappe.get_list_view = (doctype) => {
 	let route = `List/${doctype}/List`;
 	return frappe.views.list_view[route];
 };
+
+class ElementFactory {
+	/* Pre-create templates for HTML Elements on initialization and provide them
+	via the get_xxx_element methods. */
+	constructor(doctype) {
+		this.templates = {
+			checkbox: this.create_checkbox_element(doctype),
+			checkboxspan: this.create_checkboxspan_element(),
+			link: this.create_link_element(doctype),
+			like: this.create_like_element(doctype),
+		};
+	}
+
+	create_checkbox_element(doctype) {
+		const checkbox = document.createElement("input");
+		checkbox.classList.add("list-row-checkbox");
+		checkbox.type = "checkbox";
+		checkbox.dataset.doctype = doctype;
+		return checkbox;
+	}
+
+	create_link_element(doctype) {
+		const link = document.createElement("a");
+		link.classList.add("ellipsis");
+		link.dataset.doctype = doctype;
+
+		return link;
+	}
+
+	create_checkboxspan_element() {
+		const checkboxspan = document.createElement("span");
+		checkboxspan.classList.add("level-item", "select-like");
+
+		return checkboxspan;
+	}
+
+	create_like_element(doctype) {
+		const like = document.createElement("span");
+		like.classList.add("like-action");
+		like.innerHTML = frappe.utils.icon("es-solid-heart", "sm", "like-icon");
+		like.dataset.doctype = doctype;
+
+		return like;
+	}
+
+	get_checkbox_element(name) {
+		const checkbox = this.templates.checkbox.cloneNode(true);
+		checkbox.dataset.name = name;
+		return checkbox;
+	}
+
+	get_checkboxspan_element() {
+		return this.templates.checkboxspan.cloneNode(true);
+	}
+
+	get_link_element(name, href, text) {
+		const link = this.templates.link.cloneNode(true);
+		link.dataset.name = name;
+		link.href = href;
+		link.title = text;
+		link.textContent = text;
+
+		return link;
+	}
+
+	get_like_element(name, liked, liked_by, title) {
+		const like = this.templates.like.cloneNode(true);
+		like.dataset.name = name;
+
+		const heart_classes = liked ? ["liked-by", "liked"] : ["not-liked"];
+		like.classList.add(...heart_classes);
+
+		like.setAttribute("data-liked-by", liked_by || "[]");
+		like.setAttribute("title", title);
+
+		return like;
+	}
+}
