@@ -3,8 +3,8 @@ frappe.ui.form.on("User", {
 		frm.set_query("default_workspace", () => {
 			return {
 				filters: {
-					parent_page: ["is", "not set"],
 					for_user: ["in", [null, frappe.session.user]],
+					title: ["!=", "Welcome Workspace"],
 				},
 			};
 		});
