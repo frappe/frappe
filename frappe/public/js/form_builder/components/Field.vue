@@ -92,7 +92,7 @@ function make_dialog(frm) {
 				filter.pop();
 
 				// filter_group component requires options and frm.set_query requires fieldname so storing both
-				filter[0] = { fieldname, field_option };
+				filter[0] = field_option;
 				return filter;
 			});
 
@@ -147,10 +147,6 @@ function make_filter_area(frm, doctype) {
 function add_existing_filter(frm, df) {
 	if (df.link_filters) {
 		let filters = JSON.parse(df.link_filters);
-		filters.map((filter) => {
-			// filter_group component requires options and frm.set_query requires fieldname
-			filter[0] = filter[0].field_option;
-		});
 		if (filters) {
 			frm.filter_group.add_filters_to_filter_group(filters);
 		}
