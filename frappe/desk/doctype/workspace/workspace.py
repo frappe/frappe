@@ -156,7 +156,7 @@ class Workspace(Document):
 
 				current_card = link
 				card_links = []
-			else:
+			elif not link.get("only_for") or link.get("only_for") == frappe.get_system_settings("country"):
 				card_links.append(link)
 
 		current_card["links"] = card_links
@@ -300,6 +300,7 @@ def update_page(name, title, icon, indicator_color, parent, public):
 		)
 
 	if doc:
+		child_docs = frappe.get_all("Workspace", filters={"parent_page": doc.title, "public": doc.public})
 		doc.title = title
 		doc.icon = icon
 		doc.indicator_color = indicator_color
@@ -315,7 +316,6 @@ def update_page(name, title, icon, indicator_color, parent, public):
 			rename_doc("Workspace", name, new_name, force=True, ignore_permissions=True)
 
 		# update new name and public in child pages
-		child_docs = frappe.get_all("Workspace", filters={"parent_page": doc.title, "public": doc.public})
 		if child_docs:
 			for child in child_docs:
 				child_doc = frappe.get_doc("Workspace", child.name)

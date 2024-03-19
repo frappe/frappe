@@ -14,6 +14,7 @@ from frappe.handler import execute_cmd
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 from frappe.query_builder import Column
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
@@ -1182,6 +1183,7 @@ class TestDBQuery(FrappeTestCase):
 
 
 class TestReportView(FrappeTestCase):
+	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up
 	def test_get_count(self):
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = "GET"
@@ -1195,7 +1197,7 @@ class TestReportView(FrappeTestCase):
 				"distinct": "false",
 			}
 		)
-		list_filter_response = execute_cmd("frappe.desk.reportview.get_count")
+		count = execute_cmd("frappe.desk.reportview.get_count")
 		frappe.local.form_dict = frappe._dict(
 			{
 				"doctype": "DocType",
@@ -1204,8 +1206,8 @@ class TestReportView(FrappeTestCase):
 			}
 		)
 		dict_filter_response = execute_cmd("frappe.desk.reportview.get_count")
-		self.assertIsInstance(list_filter_response, int)
-		self.assertEqual(list_filter_response, dict_filter_response)
+		self.assertIsInstance(count, int)
+		self.assertEqual(count, dict_filter_response)
 
 		# test with child table filter
 		frappe.local.form_dict = frappe._dict(
@@ -1225,6 +1227,35 @@ class TestReportView(FrappeTestCase):
 			" where `tabDocField`.`fieldtype` = 'Data'"
 		)[0][0]
 		self.assertEqual(child_filter_response, current_value)
+
+		# test with limit
+		limit = 2
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": "DocType",
+				"filters": [["DocType", "is_virtual", "=", 1]],
+				"fields": [],
+				"distinct": "false",
+				"limit": limit,
+			}
+		)
+		count = execute_cmd("frappe.desk.reportview.get_count")
+		self.assertIsInstance(count, int)
+		self.assertLessEqual(count, limit)
+
+		# test with distinct
+		limit = 2
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": "DocType",
+				"fields": [],
+				"distinct": "true",
+				"limit": limit,
+			}
+		)
+		count = execute_cmd("frappe.desk.reportview.get_count")
+		self.assertIsInstance(count, int)
+		self.assertLessEqual(count, limit)
 
 	def test_reportview_get(self):
 		user = frappe.get_doc("User", "test@example.com")

@@ -67,7 +67,9 @@ frappe.ui.FilterGroup = class {
 				const in_datepicker =
 					$(e.target).is(".datepicker--cell") ||
 					$(e.target).closest(".datepicker--nav-title").length !== 0 ||
-					$(e.target).parents(".datepicker--nav-action").length !== 0;
+					$(e.target).parents(".datepicker--nav-action").length !== 0 ||
+					$(e.target).parents(".datepicker").length !== 0 ||
+					$(e.target).is(".datepicker--button");
 
 				if (
 					$(e.target).parents(".filter-popover").length === 0 &&

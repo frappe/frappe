@@ -2,18 +2,22 @@ import json
 import os
 import subprocess
 import sys
+import typing
 from shutil import which
 
 import click
 
 import frappe
+from frappe import _
 from frappe.commands import get_site, pass_context
 from frappe.coverage import CodeCoverage
 from frappe.exceptions import SiteNotSpecifiedError
 from frappe.utils import cint, update_progress_bar
 
-find_executable = which  # backwards compatibility
 EXTRA_ARGS_CTX = {"ignore_unknown_options": True, "allow_extra_args": True}
+
+if typing.TYPE_CHECKING:
+	from IPython.terminal.embed import InteractiveShellEmbed
 
 
 @click.command("build")
@@ -461,19 +465,11 @@ def database(context, extra_args):
 	Enter into the Database console for given site.
 	"""
 	site = get_site(context)
-	if not site:
-		raise SiteNotSpecifiedError
 	frappe.init(site=site)
-	if frappe.conf.db_type == "mariadb":
-		_mariadb(extra_args=extra_args)
-	elif frappe.conf.db_type == "postgres":
-		_psql(extra_args=extra_args)
+	_enter_console(extra_args=extra_args)
 
 
-@click.command(
-	"mariadb",
-	context_settings=EXTRA_ARGS_CTX,
-)
+@click.command("mariadb", context_settings=EXTRA_ARGS_CTX)
 @click.argument("extra_args", nargs=-1)
 @pass_context
 def mariadb(context, extra_args):
@@ -481,10 +477,9 @@ def mariadb(context, extra_args):
 	Enter into mariadb console for a given site.
 	"""
 	site = get_site(context)
-	if not site:
-		raise SiteNotSpecifiedError
 	frappe.init(site=site)
-	_mariadb(extra_args=extra_args)
+	frappe.conf.db_type = "mariadb"
+	_enter_console(extra_args=extra_args)
 
 
 @click.command("postgres", context_settings=EXTRA_ARGS_CTX)
@@ -496,42 +491,33 @@ def postgres(context, extra_args):
 	"""
 	site = get_site(context)
 	frappe.init(site=site)
-	_psql(extra_args=extra_args)
+	frappe.conf.db_type = "postgres"
+	_enter_console(extra_args=extra_args)
 
 
-def _mariadb(extra_args=None):
-	mariadb = which("mariadb")
-	command = [
-		mariadb,
-		"--port",
-		str(frappe.conf.db_port),
-		"-u",
-		frappe.conf.db_name,
-		f"-p{frappe.conf.db_password}",
-		frappe.conf.db_name,
-		"-h",
-		frappe.conf.db_host,
-		"--pager=less -SFX",
-		"--safe-updates",
-		"-A",
-	]
-	if extra_args:
-		command += list(extra_args)
-	os.execv(mariadb, command)
+def _enter_console(extra_args=None):
+	from frappe.database import get_command
+	from frappe.utils import get_site_path
 
+	if frappe.conf.db_type == "mariadb":
+		os.environ["MYSQL_HISTFILE"] = os.path.abspath(get_site_path("logs", "mariadb_console.log"))
+	else:
+		os.environ["PSQL_HISTORY"] = os.path.abspath(get_site_path("logs", "postgresql_console.log"))
 
-def _psql(extra_args=None):
-	psql = which("psql")
-
-	host = frappe.conf.db_host
-	port = frappe.conf.db_port
-	env = os.environ.copy()
-	env["PGPASSWORD"] = frappe.conf.db_password
-	conn_string = f"postgresql://{frappe.conf.db_name}@{host}:{port}/{frappe.conf.db_name}"
-	psql_cmd = [psql, conn_string]
-	if extra_args:
-		psql_cmd = psql_cmd + list(extra_args)
-	subprocess.run(psql_cmd, check=True, env=env)
+	bin, args, bin_name = get_command(
+		host=frappe.conf.db_host,
+		port=frappe.conf.db_port,
+		user=frappe.conf.db_name,
+		password=frappe.conf.db_password,
+		db_name=frappe.conf.db_name,
+		extra=list(extra_args) if extra_args else [],
+	)
+	if not bin:
+		frappe.throw(
+			_("{} not found in PATH! This is required to access the console.").format(bin_name),
+			exc=frappe.ExecutableNotFound,
+		)
+	os.execv(bin, [bin, *args])
 
 
 @click.command("jupyter")
@@ -587,6 +573,18 @@ def _console_cleanup():
 	frappe.destroy()
 
 
+def store_logs(terminal: "InteractiveShellEmbed") -> None:
+	from contextlib import suppress
+
+	frappe.log_level = 20  # info
+	with suppress(Exception):
+		logger = frappe.logger("ipython")
+		logger.info("=== bench console session ===")
+		for line in terminal.history_manager.get_range():
+			logger.info(line[2])
+		logger.info("=== session end ===")
+
+
 @click.command("console")
 @click.option("--autoreload", is_flag=True, help="Reload changes to code automatically")
 @pass_context
@@ -610,6 +608,7 @@ def console(context, autoreload=False):
 
 	all_apps = frappe.get_installed_apps()
 	failed_to_import = []
+	register(store_logs, terminal)  # Note: atexit runs in reverse order of registration
 
 	for app in list(all_apps):
 		try:
@@ -621,6 +620,14 @@ def console(context, autoreload=False):
 	print("Apps in this namespace:\n{}".format(", ".join(all_apps)))
 	if failed_to_import:
 		print("\nFailed to import:\n{}".format(", ".join(failed_to_import)))
+
+	# ref: https://stackoverflow.com/a/74681224
+	try:
+		from IPython.core import ultratb
+
+		ultratb.VerboseTB._tb_highlight = "bg:ansibrightblack"
+	except Exception:
+		pass
 
 	terminal.colors = "neutral"
 	terminal.display_banner = False

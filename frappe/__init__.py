@@ -11,6 +11,7 @@ be used to build database driven apps.
 Read the documentation: https://frappeframework.com/docs
 """
 import copy
+import faulthandler
 import functools
 import gc
 import importlib
@@ -18,6 +19,7 @@ import inspect
 import json
 import os
 import re
+import signal
 import traceback
 import unicodedata
 import warnings
@@ -263,6 +265,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
+		_register_fault_handler()
 
 	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
@@ -426,9 +429,9 @@ def setup_redis_cache_connection():
 	global cache
 
 	if not cache:
-		from frappe.utils.redis_wrapper import RedisWrapper
+		from frappe.utils.redis_wrapper import setup_cache
 
-		cache = RedisWrapper.from_url(conf.get("redis_cache"))
+		cache = setup_cache()
 
 
 def get_traceback(with_context: bool = False) -> str:
@@ -458,8 +461,7 @@ def log(msg: str) -> None:
 
 	:param msg: Message."""
 	if not request:
-		if conf.get("logging") or False:
-			print(repr(msg))
+		print(repr(msg))
 
 	debug_log.append(as_unicode(msg))
 
@@ -2458,6 +2460,10 @@ def validate_and_sanitize_search_inputs(fn):
 		return fn(**kwargs)
 
 	return wrapper
+
+
+def _register_fault_handler():
+	faulthandler.register(signal.SIGUSR1)
 
 
 from frappe.utils.error import log_error
