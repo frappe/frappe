@@ -209,7 +209,7 @@ frappe.views.CommunicationComposer = class {
 		// 3. user lang
 		// 4. system lang
 		// 3 and 4 are resolved already in boot
-		let document_lang = this.frm.doc?.language;
+		let document_lang = this.frm?.doc?.language;
 		let print_format = this.dialog.get_value("select_print_format");
 
 		let print_format_lang;
