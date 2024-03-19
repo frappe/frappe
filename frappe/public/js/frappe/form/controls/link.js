@@ -509,6 +509,12 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			});
 			return obj;
 		};
+
+		// apply link field filters
+		if (this.df.link_filters && !!this.df.link_filters.length) {
+			this.apply_link_field_filters();
+		}
+
 		if (this.get_query || this.df.get_query) {
 			var get_query = this.get_query || this.df.get_query;
 			if ($.isPlainObject(get_query)) {
@@ -571,6 +577,32 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			$.extend(args.filters, this.df.filters);
 		}
 	}
+
+	apply_link_field_filters() {
+		let link_filters = JSON.parse(this.df.link_filters);
+		let filters = {};
+		link_filters.forEach((filter) => {
+			filter.shift();
+			let filter_value = String(filter[2]).replace(/%/g, "");
+			if (filter_value.startsWith("eval:")) {
+				// get the value to calculate
+				filter_value = filter_value.split("eval:")[1];
+				let context = {
+					doc: this.doc,
+					parent: this.doc.parenttype ? this.frm.doc : null,
+					frappe,
+				};
+				filter_value = frappe.utils.eval(filter_value, context);
+				filter[2] = filter_value;
+			}
+			filters[filter[0]] = [filter[1], filter[2]];
+		});
+		this.get_query = function (doc) {
+			// take filters from the link field and add to the query
+			return { filters };
+		};
+	}
+
 	validate(value) {
 		// validate the value just entered
 		if (this._validated || this.df.options == "[Select]" || this.df.ignore_link_validation) {
