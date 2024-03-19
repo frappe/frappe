@@ -107,7 +107,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// 2 column layout
 		this.setup_std_layout();
-		this.setup_filters();
 
 		// client script must be called after "setup" - there are no fields_dict attached to the frm otherwise
 		this.script_manager = new frappe.ui.form.ScriptManager({
@@ -271,75 +270,6 @@ frappe.ui.form.Form = class FrappeForm {
 		this.states = new frappe.ui.form.States({
 			frm: this,
 		});
-	}
-
-	setup_filters() {
-		let fields_with_filters = frappe
-			.get_meta(this.doctype)
-			.fields.filter((field) => field.link_filters)
-			.map((field) => JSON.parse(field.link_filters));
-		if (fields_with_filters.length === 0) return;
-		fields_with_filters = this.parse_filters(fields_with_filters);
-		for (let link_field in fields_with_filters) {
-			const filters = fields_with_filters[link_field];
-			this.set_query(link_field, () => filters);
-		}
-
-		// for child tables
-		let table_fields = frappe
-			.get_meta(this.doctype)
-			.fields.filter((field) => field.fieldtype === "Table");
-		// get meta of table fields
-		let table_field_map = {};
-
-		table_fields.forEach((field) => {
-			table_field_map[field.fieldname] = frappe.get_meta(field.options);
-		});
-		// now in table_field_map we have the filter field where link_filters are present
-		let i = {};
-		for (let table_field in table_field_map) {
-			let filters = table_field_map[table_field].fields
-				.filter((field) => field.link_filters)
-				.map((field) => JSON.parse(field.link_filters));
-			// console.log(filters)
-			i[table_field] = this.parse_filters(filters);
-		}
-
-		for (let parent_fieldname in i) {
-			let child_field = i[parent_fieldname];
-			for (let child_fieldname in child_field) {
-				let filters = child_field[child_fieldname];
-				this.set_query(child_fieldname, parent_fieldname, () => filters);
-			}
-		}
-	}
-
-	parse_filters(data) {
-		const parsed_data = {};
-
-		for (const d of data) {
-			for (const condition of d) {
-				let [doctype, field, operator, value] = condition;
-				if (String(value).startsWith("eval:")) {
-					// if condition type of 'like' is used then remove % from value
-					value = value.replace(/%/g, "");
-					// get the value to calculate
-					value = value.split("eval:")[1];
-					value = frappe.utils.eval(value, { doc: this.doc, frappe });
-				}
-				doctype = doctype.fieldname;
-				if (!parsed_data[doctype]) {
-					parsed_data[doctype] = {
-						filters: {},
-					};
-				}
-				if (!parsed_data[doctype].filters[field]) {
-					parsed_data[doctype].filters[field] = [operator, value];
-				}
-			}
-		}
-
-		return parsed_data;
 	}
 
 	watch_model_updates() {
