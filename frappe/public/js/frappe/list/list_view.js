@@ -1013,15 +1013,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_like_html(doc) {
-		const ef = this._element_factory;
 		const liked_by = doc._liked_by ? JSON.parse(doc._liked_by) : [];
 		const is_liked = liked_by.includes(frappe.session.user);
 		const title = liked_by.map((u) => frappe.user_info(u).fullname).join(", ");
 
 		const div = document.createElement("div");
-		const like = ef.get_like_element(doc.name, is_liked, liked_by, title);
-
-		div.appendChild(like);
+		div.appendChild(
+			this._element_factory.get_like_element(doc.name, is_liked, liked_by, title)
+		);
 
 		return div.innerHTML;
 	}
