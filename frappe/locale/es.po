@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-03-17 09:33+0000\n"
-"PO-Revision-Date: 2024-03-18 10:48\n"
+"PO-Revision-Date: 2024-03-19 10:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -8800,7 +8800,7 @@ msgstr "Deshabilitar la notificación del Registro de Cambios"
 #: desk/doctype/list_view_settings/list_view_settings.json
 msgctxt "List View Settings"
 msgid "Disable Comment Count"
-msgstr ""
+msgstr "Desactivar recuento de comentarios"
 
 #. Label of a Check field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
