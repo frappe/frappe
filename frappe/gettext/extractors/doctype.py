@@ -16,6 +16,10 @@ def extract(fileobj, *args, **kwargs):
 
 	yield None, "_", doctype, ["Name of a DocType"]
 
+	doctype_description = data.get("description")
+	if doctype_description:
+		yield None, "_", doctype_description, ["Description of a DocType"]
+
 	messages = []
 	fields = data.get("fields", [])
 	links = data.get("links", [])

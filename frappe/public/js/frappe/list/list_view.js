@@ -1020,12 +1020,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const div = document.createElement("div");
 		const like = ef.get_like_element(doc.name, is_liked, liked_by, title);
 
-		const likes_count = document.createElement("span");
-		likes_count.classList.add("likes-count");
-		likes_count.textContent = liked_by.length;
-
 		div.appendChild(like);
-		div.appendChild(likes_count);
 
 		return div.innerHTML;
 	}
@@ -1398,7 +1393,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_like() {
-		this.$result.on("click", ".like-action", frappe.ui.click_toggle_like);
+		this.$result.on("click", ".like-action", (e) => {
+			const $this = $(e.currentTarget);
+			const { doctype, name } = $this.data();
+			frappe.ui.toggle_like($this, doctype, name);
+
+			return false;
+		});
+
 		this.$result.on("click", ".list-liked-by-me", (e) => {
 			const $this = $(e.currentTarget);
 			$this.toggleClass("active");
