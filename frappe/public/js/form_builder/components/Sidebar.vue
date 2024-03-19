@@ -50,7 +50,7 @@ function resize(e) {
 				</button>
 			</div>
 			<div class="empty-state">
-				<div>Select a field to edit its properties.</div>
+				<div>{{ __("Select a field to edit its properties.") }}</div>
 			</div>
 		</div>
 	</div>

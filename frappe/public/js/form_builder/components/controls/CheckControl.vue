@@ -22,7 +22,7 @@ let slots = useSlots();
 				:disabled="read_only"
 				@change="(event) => $emit('update:modelValue', event.target.checked)"
 			/>
-			<span class="label-area" :class="{ reqd: df.reqd }">{{ df.label }}</span>
+			<span class="label-area" :class="{ reqd: df.reqd }">{{ __(df.label) }}</span>
 		</label>
 
 		<!-- description -->

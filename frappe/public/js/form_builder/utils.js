@@ -114,7 +114,7 @@ export async function get_table_columns(df, child_doctype) {
 	let total_colsize = 1;
 	table_columns.push([
 		{
-			label: __("No."),
+			label: __("No.", null, "Title of the 'row number' column"),
 		},
 		1,
 	]);
