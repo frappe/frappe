@@ -63,6 +63,7 @@
 	display: flex;
 	flex-direction: column;
 	outline: none;
+	padding: 0 var(--padding-xs);
 
 	&:focus {
 		.list-row {
@@ -159,7 +160,7 @@
 	cursor: default;
 	background-color: var(--subtle-fg);
 	height: 30px;
-	margin: 0.5rem 0;
+	margin: 0.5rem var(--padding-xs);
 	border-radius: var(--border-radius-md);
 
 	.list-check-all {
