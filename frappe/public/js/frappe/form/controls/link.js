@@ -54,6 +54,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		this.has_input = true;
 		this.translate_values = true;
 		this.setup_buttons();
+		this.setup_filters();
 		this.setup_awesomeplete();
 		this.bind_change_event();
 	}
@@ -640,6 +641,38 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		}
 
 		return fetch_map;
+	}
+
+	setup_filters() {
+		if (!this.df.link_filters || this.df.get_query) {
+			return; // Don't override custom query
+		}
+
+		let parsed = this.df.link_filters;
+		if (typeof parsed == "string") {
+			parsed = JSON.parse(parsed);
+		}
+
+		const query = this.parse_filters(parsed);
+		if (query) {
+			this.df.get_query = () => query;
+		}
+	}
+
+	parse_filters(data) {
+		if (!Array.isArray(data) || !data?.length) {
+			return;
+		}
+
+		const filters = [];
+		for (let condition of data) {
+			if (condition.length === 3) {
+				condition.unshift(null);
+			}
+			let [_ignored, fieldname, operator, value] = condition;
+			filters.push([fieldname, operator, value]);
+		}
+		return { filters };
 	}
 };
 
