@@ -63,7 +63,6 @@
 	display: flex;
 	flex-direction: column;
 	outline: none;
-	padding: 4px 5px;
 
 	&:focus {
 		.list-row {
@@ -160,8 +159,7 @@
 	cursor: default;
 	background-color: var(--subtle-fg);
 	height: 30px;
-	padding: 8px, 10px, 8px, 0px;
-	margin: 8px 5px 0px 5px;
+	margin: 0.5rem 0;
 	border-radius: var(--border-radius-md);
 
 	.list-check-all {
@@ -250,6 +248,7 @@ input.list-row-checkbox {
 	margin-top: 0px;
 	margin-bottom: 0px;
 	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
+	background-color: var(--card-bg);
 }
 
 input.list-check-all {
