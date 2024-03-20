@@ -3,12 +3,6 @@ frappe.listview_settings["ToDo"] = {
 	add_fields: ["reference_type", "reference_name"],
 
 	onload: function (me) {
-		if (!Object.keys(frappe.route_options).length) {
-			frappe.route_options = {
-				allocated_to: frappe.session.user,
-				status: "Open",
-			};
-		}
 		me.page.set_title(__("To Do"));
 	},
 

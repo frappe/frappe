@@ -455,6 +455,7 @@ Cypress.Commands.add("click_menu_button", (name) => {
 });
 
 Cypress.Commands.add("clear_filters", () => {
+<<<<<<< HEAD
 	let has_filter = false;
 	cy.intercept({
 		method: "POST",
@@ -476,6 +477,10 @@ Cypress.Commands.add("clear_filters", () => {
 			cur_list && cur_list.filter_area && cur_list.filter_area.clear();
 			has_filter && cy.wait("@filter-saved");
 		});
+=======
+	cy.get(".filter-x-button").click({ force: true });
+	cy.wait(1000);
+>>>>>>> 571ca34eca (fix: redirect after login, todo filters (#25521))
 });
 
 Cypress.Commands.add("click_modal_primary_button", (btn_name) => {
