@@ -36,9 +36,8 @@ context("Awesome Bar", () => {
 		cy.get(".title-text").should("contain", "To Do");
 		cy.wait(200); // Wait a bit longer before checking the filter.
 		cy.get('[data-original-title="ID"] > input').should("have.value", "%test%");
-	});
 
-	it("filter preserved, now finds something else", () => {
+		// filter preserved, now finds something else
 		cy.visit("/app/todo");
 		cy.get(".title-text").should("contain", "To Do");
 		cy.wait(200); // Wait a bit longer before checking the filter.
