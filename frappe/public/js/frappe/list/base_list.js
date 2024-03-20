@@ -1,5 +1,9 @@
 frappe.provide("frappe.views");
 
+function getItemsPerPageOption(){
+	return  ['select records',100, 200, 500, 'all records'];
+}
+
 frappe.views.BaseList = class BaseList {
 	constructor(opts) {
 		Object.assign(this, opts);
@@ -443,14 +447,27 @@ frappe.views.BaseList = class BaseList {
 		return this.filter_area ? this.filter_area.get().map((filter) => filter.slice(0, 4)) : [];
 	}
 
+	getPageLength(page_length){
+		const url = window.location.href;
+		const regex = /\/app\/project\/view\/kanban\//;
+		if (regex.test(url) && page_length === 0) {
+			return 200; // default pagination
+		} else if (isNaN(page_length)) {
+			return 0;
+		} else {
+			return page_length;
+		}
+	}
+
 	get_args() {
+		console.log("========= page_length default ", this.page_length, " ==== page_length custom: ",this.getPageLength(this.page_length))
 		return {
 			doctype: this.doctype,
 			fields: this.get_fields(),
 			filters: this.get_filters_for_args(),
 			order_by: this.sort_selector && this.sort_selector.get_sql_string(),
 			start: this.start,
-			page_length: this.page_length,
+			page_length: this.page_length, //this.getPageLength(this.page_length),
 			view: this.view,
 			group_by: this.get_group_by(),
 		};
@@ -590,8 +607,13 @@ class FilterArea {
 	}
 
 	setup() {
+		// const url = window.location.href;
+		// const regex = /\/app\/project\/view\/kanban\//;
 		if (!this.list_view.hide_page_form) this.make_standard_filters();
-		this.make_filter_list();
+			this.make_filter_list();
+		console.log("setup page length on kanban: ", false)
+		// if(this.list_view.doctype === "Project" && regex.test(url))
+		// 	this.make_items_per_page_selector();
 	}
 
 	get() {
@@ -873,6 +895,21 @@ class FilterArea {
 			on_change: () => this.refresh_list_view(),
 		});
 	}
+
+	make_items_per_page_selector() {
+		const itemsPerPageOptions = getItemsPerPageOption();
+		const selectOptions = itemsPerPageOptions.map(option => `<option value="${option}">${option}</option>`).join('');
+	
+		$(`<div class="form-group">
+				<select id="items_per_page_selector" class="form-control input-sm input-with-feedback form-control input-xs ellipsis">${selectOptions}</select>
+			</div>`)
+			.appendTo(this.$filter_list_wrapper)
+			.on('change', () => {
+				const value = parseInt($('#items_per_page_selector').val());
+				this.list_view.page_length = ["Items per page", "all"].includes(value) ? 0 : value;
+				this.list_view.refresh();
+			});
+	}	
 
 	is_being_edited() {
 		// returns true if user is currently editing filters

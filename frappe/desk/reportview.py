@@ -16,18 +16,85 @@ from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, format_duration
 
 
+def getDoneStatusesFilter():
+    return [
+    [
+      "Project",
+      "status",
+      "!=",
+      "Completed"
+    ],
+    [
+      "Project",
+      "status",
+      "!=",
+      "In pause"
+    ],
+    [
+      "Project",
+      "status",
+      "!=",
+      "Cancelled"
+    ],
+    [
+      "Project",
+      "status",
+      "!=",
+      "Quality check approved"
+    ],
+    [
+      "Project",
+      "status",
+      "!=",
+      "No response from customer"
+    ],
+    [
+      "Project",
+      "status",
+      "!=",
+      "Invoice paid"
+    ],
+    [
+      "Project",
+      "status",
+      "!=",
+      "Awaiting pickup"
+    ]
+  ]
+    
+def getDoneStatuses(statuses):
+	return [item[3] for item in statuses]
+
 @frappe.whitelist()
 @frappe.read_only()
 def get():
-	args = get_form_params()
-	# If virtual doctype, get data from controller get_list method
-	if is_virtual_doctype(args.doctype):
-		controller = get_controller(args.doctype)
-		data = compress(controller.get_list(args))
-	else:
-		data = compress(execute(**args), args=args)
-	return data
+    args = get_form_params()
+    done_status_filters = getDoneStatusesFilter()
+    done_statuses = getDoneStatuses(done_status_filters)
+    
+    if len(args["filters"]) == 0 and args["doctype"] == 'Project' and args["page_length"] == "0":
+        response = findData(filters=done_status_filters)
+        for status in done_statuses:
+            result = findData(filters=[[ "Project", "status", "=", status]], page_length=10)
+            if len(result):
+                response["values"].extend(result["values"])
+        return response
+    else:
+        return findData(args)
 
+def findData(args=None, filters=[], page_length=0):
+    if args is None:
+        args = get_form_params()
+        args["filters"] = filters
+        args["page_length"] = page_length
+    
+    if is_virtual_doctype(args["doctype"]):
+        controller = get_controller(args["doctype"])
+        data = compress(controller.get_list(args))
+    else:
+        data = compress(execute(**args), args=args)
+        
+    return data
 
 def get_projects_ordered():
     return frappe.db.sql("""
@@ -287,7 +354,6 @@ def compress(data, args=None):
 	if args.get("add_total_row"):
 		meta = frappe.get_meta(args.doctype)
 		values = add_total_row(values, keys, meta)
-
 	return {"keys": keys, "values": values, "user_info": user_info}
 
 

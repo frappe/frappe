@@ -21,6 +21,7 @@ frappe.provide("frappe.views");
 				filters_modified: false,
 				cur_list: {},
 				empty_state: true,
+				done_statuses: [ 'Completed', 'In pause', 'Cancelled', 'Quality check approved', 'No response from customer', 'Invoice paid', 'Awaiting pickup' ]
 			},
 			mutations: {
 				update_state(state, obj) {
@@ -53,10 +54,11 @@ frappe.provide("frappe.views");
 				},
 				update_cards: function (context, cards) {
 					var state = context.state;
-					var _cards = cards
-						.map((card) => prepare_card(card, state))
-						.concat(state.cards)
-						.uniqBy((card) => card.name);
+					var _cards = state.cards
+						.concat(
+							...cards
+								.map((card) => prepare_card(card, state))
+						).uniqBy((el) => el.name)
 	
 					context.commit("update_state", {
 						cards: _cards,
@@ -566,25 +568,60 @@ frappe.provide("frappe.views");
 			get_and_set_columns_titles_with_counter()
 		}
 
-		function get_total_cards(cards_by_columns, title){
-			return cards_by_columns[title] ?? 0
+		function get_total_cards(){
+			return cards_by_columns[column.title] ?? 0
 		}
 
 		function get_and_set_columns_titles_with_counter(){
 			let _title = self.$kanban_column.find(".kanban-column-title")[0].outerText
-			_title = _title + " ("+get_total_cards(cards_by_columns, _title)+")"
+			_title = _title + " ("+get_total_cards()+")"
 			self.$kanban_column.find(".kanban-column-title").html("<span class=\"indicator-pill gray\"></span><span class=\"kanban-title ellipsis\" title=\"" + _title + "\">" + _title + "</span>");
 		}
 
+		let loading = false
 		function make_dom() {
 			self.$kanban_column = $(
 				frappe.render_template("kanban_column", {
 					title: column.title,
 					doctype: store.state.doctype,
 					indicator: frappe.scrub(column.indicator, "-"),
+					column_title: "column_"+column.title.toLowerCase().replace(/[\s\-\/]+/g, '_')
 				})
 			).appendTo(wrapper);
 			self.$kanban_cards = self.$kanban_column.find(".kanban-cards");
+			if(store.state.done_statuses.includes(column.title)){
+				self.$kanban_cards.on('scroll', (event) => {
+					const {target: {scrollTop, clientHeight, scrollHeight}} = event
+					if(loading) return
+	
+					if(scrollTop + clientHeight >= scrollHeight){
+						const start = store.state.cards.filter((el) => el.column === column.title).length
+						frappe.call({
+							method: 'frappe.desk.reportview.get',
+							args: {
+								"doctype": "Project",
+								"fields": ["*"],
+								"filters":[['status', '=', column.title]],
+								"start": start,
+								"page_length": 10,
+								"view": "List",
+								"group_by": "`tabProject`.`name`",
+								"with_comment_count": 1
+							}
+						}).then((res) => {
+							const data = frappe.utils.dict(res.message.keys, res.message.values)
+							store.dispatch("update_cards", data);
+							loading = false;
+							const $kanbanTitle = self.$kanban_column.find(".kanban-title");
+							$kanbanTitle.remove();
+							const newTitle = column.title + " (" + (start) + ")";
+							const $newKanbanTitle = $("<span class=\"kanban-title ellipsis\" title=\"" + newTitle + "\">" + newTitle + "</span>");
+							self.$kanban_column.find(".kanban-column-title").append($newKanbanTitle);
+						})
+						loading = true;
+					}
+				})
+			}
 		}
 
 		function make_cards() {
@@ -594,7 +631,7 @@ frappe.provide("frappe.views");
 			var filtered_cards_names = filtered_cards.map((card) => card.name);
 
 			var order = column.order;
-			if (order) {
+			if (order && !store.state.done_statuses.includes(column.title)) {
 				order = JSON.parse(order);
 				// new cards
 				filtered_cards.forEach(function (card) {
