@@ -23,8 +23,6 @@
   "send_welcome_email",
   "unsubscribed",
   "user_image",
-  "workspaces_section",
-  "default_workspace",
   "roles_permissions_tab",
   "sb1",
   "role_profile_name",
@@ -72,6 +70,8 @@
   "send_me_a_copy",
   "allowed_in_mentions",
   "user_emails",
+  "workspace_section",
+  "default_workspace",
   "sb2",
   "defaults",
   "sb3",
@@ -716,17 +716,21 @@
    "permlevel": 1
   },
   {
-   "fieldname": "workspaces_section",
-   "fieldtype": "Section Break",
-   "label": "Workspaces"
-  },
-  {
    "description": "If left empty, the default workspace will be the last visited workspace",
    "fieldname": "default_workspace",
    "fieldtype": "Link",
    "label": "Default Workspace",
    "options": "Workspace"
+<<<<<<< HEAD
 >>>>>>> 3ec47b0975 (feat(workspace): Allow user to choose a default workspace)
+=======
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "workspace_section",
+   "fieldtype": "Section Break",
+   "label": "Workspace"
+>>>>>>> 61cac70b3e (chore: moved workspaces section inside settings tab)
   }
  ],
  "icon": "fa fa-user",
@@ -789,7 +793,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-03-06 11:14:38.424148",
+ "modified": "2024-03-20 17:15:19.200383",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
