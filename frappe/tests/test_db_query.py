@@ -1173,6 +1173,11 @@ class TestDBQuery(FrappeTestCase):
 		data = get()
 		self.assertEqual(len(data["values"]), 1)
 
+	def test_select_star_expansion(self):
+		count = frappe.get_list("Language", ["SUM(1)", "COUNT(*)"], as_list=1, order_by=None)[0]
+		self.assertEqual(count[0], frappe.db.count("Language"))
+		self.assertEqual(count[1], frappe.db.count("Language"))
+
 
 class TestReportView(FrappeTestCase):
 	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up

@@ -176,6 +176,11 @@ class TestSearch(FrappeTestCase):
 		frappe.db.set_value("Language", "es", "idx", 10)
 		self.assertEqual("es", search(txt="es")[0]["value"])
 
+	def test_search_with_paren(self):
+		search = partial(search_link, doctype="Language", filters=None, page_length=10)
+		result = search(txt="(txt)")
+		self.assertEqual(result, [])
+
 
 @frappe.validate_and_sanitize_search_inputs
 def get_data(doctype, txt, searchfield, start, page_len, filters):
