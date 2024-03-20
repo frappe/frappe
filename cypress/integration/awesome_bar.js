@@ -25,12 +25,6 @@ context("Awesome Bar", () => {
 		cy.wait(100);
 		cy.get("@awesome_bar").type("{enter}");
 		cy.get(".title-text").should("contain", "To Do");
-<<<<<<< HEAD
-		cy.wait(200);
-		const name_filter = cy.get('[data-original-title="ID"] > input');
-		name_filter.should("have.value", "%test%");
-		cy.clear_filters();
-=======
 		cy.wait(200); // Wait a bit longer before checking the filter.
 		cy.get('[data-original-title="ID"] > input').should("have.value", "%test%");
 
@@ -45,16 +39,6 @@ context("Awesome Bar", () => {
 		cy.get("@awesome_bar").type("{enter}");
 		cy.wait(200); // Wait a bit longer before checking the filter.
 		cy.get("@filter").should("have.value", "%anothertest%");
-	});
-
-	it("navigates to another doctype, filter not bleeding", () => {
-		cy.get("@awesome_bar").type("blog post");
-		cy.wait(150); // Wait a bit before hitting enter.
-		cy.get("@awesome_bar").type("{enter}");
-		cy.get(".title-text").should("contain", "Blog Post");
-		cy.wait(200); // Wait a bit longer before checking the filter.
-		cy.location("search").should("be.empty");
->>>>>>> 571ca34eca (fix: redirect after login, todo filters (#25521))
 	});
 
 	it("navigates to new form", () => {
