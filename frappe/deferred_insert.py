@@ -13,7 +13,7 @@ queue_prefix = "insert_queue_for_"
 
 
 def deferred_insert(doctype: str, records: list[Union[dict, "Document"]] | str):
-	if isinstance(records, (dict, list)):
+	if isinstance(records, dict | list):
 		_records = json.dumps(records)
 	else:
 		_records = records

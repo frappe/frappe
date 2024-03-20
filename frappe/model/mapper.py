@@ -63,7 +63,6 @@ def get_mapped_doc(
 	ignore_child_tables=False,
 	cached=False,
 ):
-
 	apply_strict_user_permissions = frappe.get_system_settings("apply_strict_user_permissions")
 
 	# main
@@ -168,9 +167,7 @@ def get_mapped_doc(
 	ret_doc.run_method("after_mapping", source_doc)
 	ret_doc.set_onload("load_after_mapping", True)
 
-	if (
-		apply_strict_user_permissions and not ignore_permissions and not ret_doc.has_permission("create")
-	):
+	if apply_strict_user_permissions and not ignore_permissions and not ret_doc.has_permission("create"):
 		ret_doc.raise_no_permission_to("create")
 
 	return ret_doc
@@ -272,9 +269,7 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 def map_child_doc(source_d, target_parent, table_map, source_parent=None):
 	target_child_doctype = table_map["doctype"]
 	target_parentfield = target_parent.get_parentfield_of_doctype(target_child_doctype)
-	target_d = frappe.new_doc(
-		target_child_doctype, parent_doc=target_parent, parentfield=target_parentfield
-	)
+	target_d = frappe.new_doc(target_child_doctype, parent_doc=target_parent, parentfield=target_parentfield)
 
 	map_doc(source_d, target_d, table_map, source_parent)
 

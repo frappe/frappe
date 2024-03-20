@@ -450,7 +450,7 @@ Cypress.Commands.add("click_menu_button", (name) => {
 
 Cypress.Commands.add("clear_filters", () => {
 	cy.get(".filter-x-button").click({ force: true });
-	cy.wait(500);
+	cy.wait(1000);
 });
 
 Cypress.Commands.add("click_modal_primary_button", (btn_name) => {

@@ -68,10 +68,7 @@ def get_sessions_to_clear(user=None, keep_current=False):
 		session_id = session_id.where(session.sid != frappe.session.sid)
 
 	query = (
-		session_id.select(session.sid)
-		.offset(offset)
-		.limit(100)
-		.orderby(session.lastupdate, order=Order.desc)
+		session_id.select(session.sid).offset(offset).limit(100).orderby(session.lastupdate, order=Order.desc)
 	)
 
 	return query.run(pluck=True)
@@ -89,9 +86,7 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	frappe.cache.hdel("last_db_session_update", sid)
 	if sid and not user:
 		table = frappe.qb.DocType("Sessions")
-		user_details = (
-			frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
-		)
+		user_details = frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
 		if user_details:
 			user = user_details[0].get("user")
 
@@ -114,9 +109,7 @@ def get_expired_sessions():
 
 	sessions = frappe.qb.DocType("Sessions")
 	return (
-		frappe.qb.from_(sessions)
-		.select(sessions.sid)
-		.where(sessions.lastupdate < get_expired_threshold())
+		frappe.qb.from_(sessions).select(sessions.sid).where(sessions.lastupdate < get_expired_threshold())
 	).run(pluck=True)
 
 
@@ -173,6 +166,7 @@ def get():
 	bootinfo["setup_complete"] = cint(frappe.get_system_settings("setup_complete"))
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
+	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
 
 	return bootinfo
 
@@ -199,9 +193,7 @@ class Session:
 	__slots__ = ("user", "user_type", "full_name", "data", "time_diff", "sid")
 
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
-		self.sid = cstr(
-			frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest"))
-		)
+		self.sid = cstr(frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest")))
 		self.user = user
 		self.user_type = user_type
 		self.full_name = full_name
@@ -260,16 +252,21 @@ class Session:
 			frappe.db.commit()
 
 	def insert_session_record(self):
-
 		Sessions = frappe.qb.DocType("Sessions")
 		now = frappe.utils.now()
 
 		(
 			frappe.qb.into(Sessions)
-			.columns(
-				Sessions.sessiondata, Sessions.user, Sessions.lastupdate, Sessions.sid, Sessions.status
+			.columns(Sessions.sessiondata, Sessions.user, Sessions.lastupdate, Sessions.sid, Sessions.status)
+			.insert(
+				(
+					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
+					self.data["user"],
+					now,
+					self.data["sid"],
+					"Active",
+				)
 			)
-			.insert((str(self.data["data"]), self.data["user"], now, self.data["sid"], "Active"))
 		).run()
 		frappe.cache.hset("session", self.data.sid, self.data)
 
@@ -343,7 +340,7 @@ class Session:
 		).run()
 
 		if record:
-			data = frappe._dict(frappe.safe_eval(record and record[0][1] or "{}"))
+			data = frappe.parse_json(record[0][1] or "{}")
 			data.user = record[0][0]
 		else:
 			self._delete_session()
@@ -382,7 +379,10 @@ class Session:
 			(
 				frappe.qb.update(Sessions)
 				.where(Sessions.sid == self.data["sid"])
-				.set(Sessions.sessiondata, str(self.data["data"]))
+				.set(
+					Sessions.sessiondata,
+					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
+				)
 				.set(Sessions.lastupdate, now)
 			).run()
 
@@ -396,6 +396,11 @@ class Session:
 		frappe.cache.hset("session", self.sid, self.data)
 
 		return updated_in_db
+
+	def set_impersonsated(self, original_user):
+		self.data.data.impersonated_by = original_user
+		# Forcefully flush session
+		self.update(force=True)
 
 
 def get_expiry_period_for_query():

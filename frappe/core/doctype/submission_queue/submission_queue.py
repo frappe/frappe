@@ -32,6 +32,7 @@ class SubmissionQueue(Document):
 		ref_doctype: DF.Link | None
 		status: DF.Literal["Queued", "Finished", "Failed"]
 	# end: auto-generated types
+
 	@property
 	def created_at(self):
 		return self.creation

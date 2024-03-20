@@ -337,9 +337,7 @@ def subscribe(email, email_group=None):
 		content = """
 			<p>{}. {}.</p>
 			<p><a href="{}">{}</a></p>
-		""".format(
-			*translatable_content
-		)
+		""".format(*translatable_content)
 
 	frappe.sendmail(
 		email,

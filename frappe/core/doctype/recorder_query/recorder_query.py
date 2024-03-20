@@ -23,9 +23,10 @@ class RecorderQuery(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		query: DF.Data
+		query: DF.Data | None
 		stack: DF.Text | None
 	# end: auto-generated types
+
 	pass
 
 	def db_insert(self, *args, **kwargs):
@@ -38,15 +39,15 @@ class RecorderQuery(Document):
 		pass
 
 	@staticmethod
-	def get_list(args):
+	def get_list():
 		pass
 
 	@staticmethod
-	def get_count(args):
+	def get_count():
 		pass
 
 	@staticmethod
-	def get_stats(args):
+	def get_stats():
 		pass
 
 	def delete(self):

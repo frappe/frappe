@@ -14,7 +14,7 @@ class WebFormListColumn(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		fieldname: DF.Literal
+		fieldname: DF.Literal[None]
 		fieldtype: DF.Data | None
 		label: DF.Data | None
 		name: DF.Int | None
@@ -22,4 +22,5 @@ class WebFormListColumn(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 	# end: auto-generated types
+
 	pass

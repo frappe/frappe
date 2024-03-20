@@ -22,7 +22,6 @@ def execute():
 	phone_values = []
 	for count, contact_detail in enumerate(contact_details):
 		phone_counter = 1
-		is_primary = 1
 		if contact_detail.email_id:
 			email_values.append(
 				(
@@ -83,9 +82,7 @@ def execute():
 					(`idx`, `name`, `email_id`, `parentfield`, `parenttype`, `parent`, `is_primary`, `creation`,
 					`modified`, `modified_by`)
 				VALUES {}
-			""".format(
-					", ".join(["%s"] * len(email_values))
-				),
+			""".format(", ".join(["%s"] * len(email_values))),
 				tuple(email_values),
 			)
 
@@ -98,9 +95,7 @@ def execute():
 					(`idx`, `name`, `phone`, `parentfield`, `parenttype`, `parent`, `is_primary_phone`, `is_primary_mobile_no`, `creation`,
 					`modified`, `modified_by`)
 				VALUES {}
-			""".format(
-					", ".join(["%s"] * len(phone_values))
-				),
+			""".format(", ".join(["%s"] * len(phone_values))),
 				tuple(phone_values),
 			)
 

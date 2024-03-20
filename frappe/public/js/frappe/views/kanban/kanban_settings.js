@@ -97,7 +97,7 @@ export default class KanbanSettings {
 							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle")}
 						</div>
 						<div class="col-md-10" style="padding-left:0px;">
-							${__(field.label)}
+							${__(field.label, null, field.parent)}
 						</div>
 						<div class="col-md-1">
 							<a class="text-muted remove-field" data-fieldname="${field.fieldname}">
@@ -238,7 +238,7 @@ export default class KanbanSettings {
 			)
 			.map((field) => {
 				return {
-					label: __(field.label),
+					label: __(field.label, null, field.parent),
 					value: field.fieldname,
 					checked: this.fields.includes(field.fieldname),
 				};

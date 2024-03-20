@@ -32,6 +32,7 @@ class ContactUsSettings(Document):
 		skype: DF.Data | None
 		state: DF.Data | None
 	# end: auto-generated types
+
 	def on_update(self):
 		from frappe.website.utils import clear_cache
 

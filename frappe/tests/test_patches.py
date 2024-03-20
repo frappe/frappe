@@ -164,7 +164,7 @@ def check_patch_files(app):
 			missing_patches.append(module)
 
 	if missing_patches:
-		raise Exception(f"Patches missing in patch.txt: \n" + "\n".join(missing_patches))
+		raise Exception("Patches missing in patch.txt: \n" + "\n".join(missing_patches))
 
 
 def _get_dotted_path(file: Path, app) -> str:
@@ -173,4 +173,4 @@ def _get_dotted_path(file: Path, app) -> str:
 	*path, filename = file.relative_to(app_path).parts
 	base_filename = Path(filename).stem
 
-	return ".".join([app] + path + [base_filename])
+	return ".".join([app, *path, base_filename])

@@ -82,6 +82,12 @@
    "fieldtype": "Data",
    "label": "Medium",
    "read_only": 1
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Data",
+   "label": "Content",
+   "read_only": 1
   }
  ],
  "in_create": 1,

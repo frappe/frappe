@@ -6,4 +6,4 @@ hooks.py,frappe.gettext.extractors.navbar.extract
 **/report/*/*.json,frappe.gettext.extractors.report.extract
 **.py,frappe.gettext.extractors.python.extract
 **.js,frappe.gettext.extractors.javascript.extract
-**.html,frappe.gettext.extractors.jinja2.extract
+**.html,frappe.gettext.extractors.html_template.extract

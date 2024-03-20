@@ -19,4 +19,5 @@ class OnboardingStepMap(Document):
 		parenttype: DF.Data
 		step: DF.Link
 	# end: auto-generated types
+
 	pass

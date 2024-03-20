@@ -36,16 +36,15 @@ class DocumentNamingSettings(Document):
 		try_naming_series: DF.Data | None
 		user_must_always_select: DF.Check
 	# end: auto-generated types
+
 	@frappe.whitelist()
 	def get_transactions_and_prefixes(self):
-
 		transactions = self._get_transactions()
 		prefixes = self._get_prefixes(transactions)
 
 		return {"transactions": transactions, "prefixes": prefixes}
 
 	def _get_transactions(self) -> list[str]:
-
 		readable_doctypes = set(get_doctypes_with_read())
 
 		standard = frappe.get_all("DocField", {"fieldname": "naming_series"}, "parent", pluck="parent")
@@ -128,7 +127,7 @@ class DocumentNamingSettings(Document):
 			self.validate_series_name(series)
 
 		if options and self.user_must_always_select:
-			options = [""] + options
+			options = ["", *options]
 
 		default = options[0] if options else ""
 
@@ -218,9 +217,7 @@ class DocumentNamingSettings(Document):
 		previous_value = naming_series.get_current_value()
 		naming_series.update_counter(self.current_value)
 
-		self.create_version_log_for_change(
-			naming_series.get_prefix(), previous_value, self.current_value
-		)
+		self.create_version_log_for_change(naming_series.get_prefix(), previous_value, self.current_value)
 
 		frappe.msgprint(
 			_("Series counter for {} updated to {} successfully").format(self.prefix, self.current_value),
@@ -249,7 +246,7 @@ class DocumentNamingSettings(Document):
 			return "\n".join(NamingSeries(series).get_preview(doc=doc))
 		except Exception as e:
 			frappe.clear_last_message()
-			return _("Failed to generate names from the series") + f"\n{str(e)}"
+			return _("Failed to generate names from the series") + f"\n{e!s}"
 
 	def _fetch_last_doc_if_available(self):
 		"""Fetch last doc for evaluating naming series with fields."""

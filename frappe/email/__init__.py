@@ -19,7 +19,7 @@ def get_contact_list(txt, page_length=20) -> list[dict]:
 	fields = ["first_name", "middle_name", "last_name", "company_name"]
 	contacts = frappe.get_list(
 		"Contact",
-		fields=fields + ["`tabContact Email`.email_id"],
+		fields=[*fields, "`tabContact Email`.email_id"],
 		filters=[
 			["Contact Email", "email_id", "is", "set"],
 		],
@@ -80,7 +80,6 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 
 	com_doctypes = []
 	if len(txt) < 2:
-
 		for name in frappe.get_hooks("communication_doctypes"):
 			try:
 				module = load_doctype_module(name, suffix="_dashboard")
@@ -94,9 +93,7 @@ def get_communication_doctype(doctype, txt, searchfield, start, page_len, filter
 			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
 		]
 
-	return [
-		[dt] for dt in com_doctypes if txt.lower().replace("%", "") in dt.lower() and dt in can_read
-	]
+	return [[dt] for dt in com_doctypes if txt.lower().replace("%", "") in dt.lower() and dt in can_read]
 
 
 def get_cached_contacts(txt):

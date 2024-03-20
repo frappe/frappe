@@ -2,9 +2,11 @@
 set -e
 cd ~ || exit
 
-echo "Setting Up Bench..."
-
+echo "::group::Install Bench"
 pip install frappe-bench
+echo "::endgroup::"
+
+echo "::group::Init Bench"
 bench -v init frappe-bench --skip-assets --python "$(which python)" --frappe-path "${GITHUB_WORKSPACE}"
 cd ./frappe-bench || exit
 
@@ -13,9 +15,9 @@ if [ "$TYPE" == "ui" ]
 then
   bench -v setup requirements --node;
 fi
+echo "::endgroup::"
 
-echo "Setting Up Sites & Database..."
-
+echo "::group::Create Test Site"
 mkdir ~/frappe-bench/sites/test_site
 cp "${GITHUB_WORKSPACE}/.github/helper/db/$DB.json" ~/frappe-bench/sites/test_site/site_config.json
 
@@ -35,9 +37,9 @@ then
   echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE DATABASE test_frappe" -U postgres;
   echo "travis" | psql -h 127.0.0.1 -p 5432 -c "CREATE USER test_frappe WITH PASSWORD 'test_frappe'" -U postgres;
 fi
+echo "::endgroup::"
 
-echo "Setting Up Procfile..."
-
+echo "::group::Modify processes"
 sed -i 's/^watch:/# watch:/g' Procfile
 sed -i 's/^schedule:/# schedule:/g' Procfile
 
@@ -51,11 +53,11 @@ if [ "$TYPE" == "ui" ]
 then
   sed -i 's/^web: bench serve/web: bench serve --with-coverage/g' Procfile
 fi
-
-echo "Starting Bench..."
+echo "::endgroup::"
 
 bench start &> ~/frappe-bench/bench_start.log &
 
+echo "::group::Install site"
 if [ "$TYPE" == "server" ]
 then
   CI=Yes bench build --app frappe &
@@ -69,3 +71,4 @@ then
   # wait till assets are built successfully
   wait $build_pid
 fi
+echo "::endgroup::"

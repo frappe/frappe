@@ -139,7 +139,7 @@
    "default": "0",
    "fieldname": "show_failed_logs",
    "fieldtype": "Check",
-   "label": "Show Failed Logs"
+   "label": "Show Only Failed Logs"
   },
   {
    "depends_on": "eval:!doc.__islocal && !doc.import_file",
@@ -171,7 +171,7 @@
  ],
  "hide_toolbar": 1,
  "links": [],
- "modified": "2023-12-15 12:45:49.452834",
+ "modified": "2024-01-30 17:08:05.566686",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import",

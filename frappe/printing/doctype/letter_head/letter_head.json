@@ -26,7 +26,11 @@
   "footer_image",
   "footer_image_height",
   "footer_image_width",
-  "footer_align"
+  "footer_align",
+  "scripts_section",
+  "header_script",
+  "footer_script",
+  "instructions"
  ],
  "fields": [
   {
@@ -162,13 +166,40 @@
    "fieldtype": "Select",
    "label": "Footer Based On",
    "options": "Image\nHTML"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal && doc.source==='HTML'",
+   "fieldname": "header_script",
+   "fieldtype": "Code",
+   "label": "Header Script",
+   "options": "Javascript"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal && doc.footer_source==='HTML'",
+   "fieldname": "footer_script",
+   "fieldtype": "Code",
+   "label": "Footer Script",
+   "options": "Javascript"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: doc.header_script || doc.footer_script",
+   "fieldname": "scripts_section",
+   "fieldtype": "Section Break",
+   "label": "Scripts"
+  },
+  {
+   "fieldname": "instructions",
+   "fieldtype": "HTML",
+   "label": "Instructions",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-font",
  "idx": 1,
  "links": [],
  "max_attachments": 3,
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2023-12-21 16:19:37.525003",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",

@@ -18,6 +18,7 @@ class Domain(Document):
 
 		domain: DF.Data
 	# end: auto-generated types
+
 	"""Domain documents are created automatically when DocTypes
 	with "Restricted" domains are imported during
 	installation or migration"""
@@ -78,7 +79,7 @@ class Domain(Document):
 			for role_name in self.data.restricted_roles:
 				user.append("roles", {"role": role_name})
 				if not frappe.db.get_value("Role", role_name):
-					frappe.get_doc(dict(doctype="Role", role_name=role_name)).insert()
+					frappe.get_doc(doctype="Role", role_name=role_name).insert()
 					continue
 
 				role = frappe.get_doc("Role", role_name)
@@ -123,9 +124,7 @@ class Domain(Document):
 			# enable
 			frappe.db.sql(
 				"""update `tabPortal Menu Item` set enabled=1
-				where route in ({})""".format(
-					", ".join(f'"{d}"' for d in self.data.allow_sidebar_items)
-				)
+				where route in ({})""".format(", ".join(f'"{d}"' for d in self.data.allow_sidebar_items))
 			)
 
 		if self.data.remove_sidebar_items:
@@ -135,7 +134,5 @@ class Domain(Document):
 			# enable
 			frappe.db.sql(
 				"""update `tabPortal Menu Item` set enabled=0
-				where route in ({})""".format(
-					", ".join(f'"{d}"' for d in self.data.remove_sidebar_items)
-				)
+				where route in ({})""".format(", ".join(f'"{d}"' for d in self.data.remove_sidebar_items))
 			)

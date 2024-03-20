@@ -22,4 +22,5 @@ class UserEmail(Document):
 		parenttype: DF.Data
 		used_oauth: DF.Check
 	# end: auto-generated types
+
 	pass

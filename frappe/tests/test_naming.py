@@ -1,7 +1,9 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from unittest.mock import patch
+import time
+
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_full_jitter
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
@@ -11,6 +13,7 @@ from frappe.model.naming import (
 	append_number_if_name_exists,
 	determine_consecutive_week_number,
 	getseries,
+	make_autoname,
 	parse_naming_series,
 	revert_series_if_last,
 )
@@ -42,7 +45,6 @@ class TestNaming(FrappeTestCase):
 		self.assertEqual(append_number_if_name_exists(DOCTYPE, TITLE, "title", "_"), f"{TITLE}_1")
 
 	def test_field_autoname_name_sync(self):
-
 		country = frappe.get_last_doc("Country")
 		original_name = country.name
 		country.country_name = "Not a country"
@@ -320,7 +322,7 @@ class TestNaming(FrappeTestCase):
 	def test_naming_series_validation(self):
 		dns = frappe.get_doc("Document Naming Settings")
 		existing_series = dns.get_transactions_and_prefixes()["prefixes"]
-		valid = ["SINV-", "SI-.{field}.", "SI-#.###", ""] + existing_series
+		valid = ["SINV-", "SI-.{field}.", "SI-#.###", "", *existing_series]
 		invalid = ["$INV-", r"WINDOWS\NAMING"]
 
 		for series in valid:
@@ -334,7 +336,6 @@ class TestNaming(FrappeTestCase):
 			self.assertRaises(InvalidNamingSeriesError, NamingSeries(series).validate)
 
 	def test_naming_using_fields(self):
-
 		webhook = frappe.new_doc("Webhook")
 		webhook.webhook_docevent = "on_update"
 		name = NamingSeries("KOOH-.{webhook_docevent}.").generate_next_name(webhook)
@@ -364,9 +365,7 @@ class TestNaming(FrappeTestCase):
 		series = "KOOH-..{webhook_docevent}.-.####"
 
 		name = parse_naming_series(series, doc=webhook)
-		self.assertTrue(
-			name.startswith("KOOH-"), f"incorrect name generated {name}, missing field value"
-		)
+		self.assertTrue(name.startswith("KOOH-"), f"incorrect name generated {name}, missing field value")
 
 	def test_naming_with_empty_field(self):
 		# check naming with empty field value
@@ -393,6 +392,20 @@ class TestNaming(FrappeTestCase):
 			name = parse_naming_series(series, doc=todo)
 			expected_name = "TODO-" + nowdate().split("-")[1] + "-" + "0001"
 			self.assertEqual(name, expected_name)
+
+	@retry(
+		retry=retry_if_exception_type(AssertionError),
+		stop=stop_after_attempt(3),
+		wait=wait_full_jitter(),
+		reraise=True,
+	)
+	def test_hash_naming_is_roughly_sequential(self):
+		"""hash naming is supposed to be sequential *most of the time*"""
+		names = []
+		for _ in range(10):
+			time.sleep(0.1)
+			names.append(make_autoname("hash"))
+		self.assertEqual(names, sorted(names))
 
 
 def parse_naming_series_variable(doc, variable):
