@@ -227,10 +227,6 @@
 		font-weight: normal;
 	}
 
-	.list-row-col {
-		margin: 0;
-	}
-
 	.select-like {
 		padding-left: 0;
 	}
@@ -251,10 +247,6 @@
 	& > [data-sort-by]:hover {
 		cursor: pointer;
 		text-decoration: underline;
-	}
-
-	&.ellipsis {
-		margin-right: 0;
 	}
 }
 
