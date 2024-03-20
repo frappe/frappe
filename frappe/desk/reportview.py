@@ -375,8 +375,8 @@ def export_query():
 	if add_totals_row:
 		ret = append_totals_row(ret)
 
-	data = [[_("Sr")] + get_labels(db_query.fields, doctype)]
-	data.extend([i + 1] + list(row) for i, row in enumerate(ret))
+	data = [[_("Sr"), *get_labels(db_query.fields, doctype)]]
+	data.extend([i + 1, *list(row)] for i, row in enumerate(ret))
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
