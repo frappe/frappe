@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import threading
+import time
 
 import frappe
 import frappe.desk.query_report
@@ -14,6 +16,8 @@ from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
+
+PREPARED_REPORT_THRESHOLD = 20  # seconds
 
 
 class Report(Document):
@@ -153,9 +157,14 @@ class Report(Document):
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
-		threshold = 15
-
 		start_time = datetime.datetime.now()
+
+		if not self.prepared_report:
+			monitor = MonitorPreparedReport(
+				target=monitor_slow_report,
+				kwargs={"report": self.name, "site": frappe.local.site},
+			)
+			monitor.start()
 
 		# The JOB
 		if self.is_standard == "Yes":
@@ -163,11 +172,8 @@ class Report(Document):
 		else:
 			res = self.execute_script(filters)
 
-		# automatically set as prepared
+		monitor.finish()
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
-		if execution_time > threshold and not self.prepared_report:
-			frappe.enqueue(enable_prepared_report, report=self.name)
-
 		frappe.cache.hset("report_execution_time", self.name, execution_time)
 
 		return res
@@ -412,6 +418,34 @@ def get_group_by_column_label(args, meta):
 		aggregate_on_label = meta.get_label(args.aggregate_on)
 		label = _("{0} of {1}").format(_(sql_fn_map[args.aggregate_function]), _(aggregate_on_label))
 	return label
+
+
+class MonitorPreparedReport(threading.Thread):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		self._condvar = threading.Condition()
+		self._completed = threading.Event()
+
+	def finish(self):
+		self._condvar.acquire()
+		self._condvar.notify()
+		self._condvar.release()
+		self._completed.set()
+		self.join()
+
+	def finished_under_threshold(self) -> bool:
+		self._condvar.acquire()
+		self._condvar.wait(PREPARED_REPORT_THRESHOLD)
+		return self._completed.is_set()
+
+
+def monitor_slow_report(*, site: str, report: str):
+	"""Monitors slow report and sets prepared report check if exceeds threshold."""
+	report_monitor: MonitorPreparedReport = threading.current_thread()
+	if not report_monitor.finished_under_threshold():
+		frappe.init(site)
+		frappe.enqueue(enable_prepared_report, report=report)
+		frappe.destroy()
 
 
 def enable_prepared_report(report: str):
