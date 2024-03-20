@@ -64,7 +64,7 @@ frappe.ui.toolbar.Toolbar = class {
 	}
 
 	setup_announcement_widget() {
-		if (localStorage.getItem("show_announcement_widget")) {
+		if (localStorage.getItem("show_announcement_widget") == "true") {
 			let announcement_widget = $(".announcement-widget");
 			let close_message = announcement_widget.find(".close-message");
 			close_message.on(
@@ -253,10 +253,9 @@ frappe.ui.toolbar.clear_cache = frappe.utils.throttle(function () {
 
 frappe.ui.toolbar.reset_announcement_widget = function () {
 	frappe.db.get_single_value("Navbar Settings", "announcement_widget").then((value) => {
-		if (value != frappe.boot.navbar_settings.announcement_widget) {
-			localStorage.setItem("show_announcement_widget", strip_html(value) != "");
-			frappe.boot.navbar_settings.announcement_widget = value;
-			frappe.ui.toolbar.clear_cache();
+		if (value != localStorage.getItem("announcement_widget")) {
+			localStorage.setItem("show_announcement_widget", true);
+			localStorage.setItem("announcement_widget", value);
 		}
 	});
 };
