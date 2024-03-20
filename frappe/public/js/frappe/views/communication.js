@@ -203,7 +203,7 @@ frappe.views.CommunicationComposer = class {
 	}
 
 	get_default_recipients(fieldname) {
-		if (this.frm.events.get_email_recipients) {
+		if (this.frm?.events.get_email_recipients) {
 			return (this.frm.events.get_email_recipients(this.frm, fieldname) || []).join(", ");
 		} else {
 			return "";
