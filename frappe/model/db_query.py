@@ -659,7 +659,7 @@ class DatabaseQuery:
 >>>>>>> ea193ecd48 (Revert "Revert "fix: search_link fails when txt contains parentheses (#22892)"")
 
 			column = columns[0]
-			if column == "*":
+			if column == "*" and "*" in field:
 				if not in_function("*", field):
 					asterisk_fields.append(i)
 				continue

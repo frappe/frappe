@@ -68,10 +68,6 @@ class TestReportview(FrappeTestCase):
 
 		self.assertEqual(extract_fieldnames("COUNT(*) AS count")[0], "*")
 
-		self.assertEqual(extract_fieldnames("COUNT(1) AS count")[0], "*")
-
-		self.assertEqual(extract_fieldnames("COUNT(1) AS count, SUM(1) AS sum")[0], "*")
-
 		self.assertEqual(
 			extract_fieldnames("first_name + ' ' + last_name AS full_name"), ["first_name", "last_name"]
 		)
@@ -89,3 +85,5 @@ class TestReportview(FrappeTestCase):
 		self.assertEqual(extract_fieldnames("tablefield.fiedname")[0], "tablefield.fiedname")
 
 		self.assertEqual(extract_fieldnames("`tabChild DocType`.`fiedname`")[0], "tabChild DocType.fiedname")
+
+		self.assertEqual(extract_fieldnames("sum(1)"), [])
