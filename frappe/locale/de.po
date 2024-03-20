@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-03-17 09:33+0000\n"
-"PO-Revision-Date: 2024-03-18 10:48\n"
+"PO-Revision-Date: 2024-03-20 11:37\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -11322,7 +11322,7 @@ msgstr "Wenn Sie die automatische Beantwortung für ein eingehendes E-Mail-Konto
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
 msgctxt "Push Notification Settings"
 msgid "Enabling this will register your site on a central relay server to send push notifications for all installed apps through Firebase Cloud Messaging. This server only stores user tokens and error logs, and no messages are saved. "
-msgstr ""
+msgstr "Falls aktiviert, wird Ihre Website auf einem zentralen Relay-Server registriert, um Push-Benachrichtigungen für alle installierten Apps über Firebase Cloud Messaging zu senden. Dieser Server speichert nur Benutzer-Tokens und Fehlerprotokolle, und es werden keine Nachrichten gespeichert. "
 
 #. Description of the 'Queue in Background (BETA)' (Check) field in DocType
 #. 'Customize Form'
@@ -19374,80 +19374,80 @@ msgstr "Zusammenführung ist nur möglich zwischen Gruppen oder Knoten"
 #: public/js/frappe/views/communication.js:111 www/message.html:3
 #: www/message.html:25
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Text Editor field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
 msgctxt "Activity Log"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Section Break field in DocType 'Auto Email Report'
 #. Label of a Text Editor field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Text field in DocType 'Auto Repeat'
 #: automation/doctype/auto_repeat/auto_repeat.json
 msgctxt "Auto Repeat"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Text Editor field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #: __init__.py:614 public/js/frappe/ui/messages.js:265
 msgctxt "Default title of the message dialog"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Code field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Text Editor field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Section Break field in DocType 'Notification'
 #. Label of a Code field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Text Editor field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
 msgctxt "Notification Log"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Small Text field in DocType 'SMS Log'
 #: core/doctype/sms_log/sms_log.json
 msgctxt "SMS Log"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Data field in DocType 'Success Action'
 #: core/doctype/success_action/success_action.json
 msgctxt "Success Action"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a Text field in DocType 'Workflow Document State'
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Message"
-msgstr "Botschaft"
+msgstr "Nachricht"
 
 #. Label of a HTML Editor field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
@@ -19471,13 +19471,13 @@ msgstr "Mitteilungsbeispiele"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Message ID"
-msgstr "Message-ID"
+msgstr "Nachrichten-ID"
 
 #. Label of a Small Text field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Message ID"
-msgstr "Message-ID"
+msgstr "Nachrichten-ID"
 
 #. Label of a Data field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
@@ -19513,7 +19513,7 @@ msgstr "Nachricht, die nach erfolgreichem Abschluss angezeigt werden soll"
 #: email/doctype/unhandled_email/unhandled_email.json
 msgctxt "Unhandled Email"
 msgid "Message-id"
-msgstr "Nachrichten ID"
+msgstr "Nachrichten-ID"
 
 #. Label of a Code field in DocType 'Data Import Log'
 #: core/doctype/data_import_log/data_import_log.json
@@ -21271,12 +21271,12 @@ msgstr "Nein {0} mail"
 
 #: public/js/form_builder/utils.js:117
 msgid "No."
-msgstr "Nein."
+msgstr "Nr."
 
 #: public/js/frappe/form/grid_row.js:252
 msgctxt "Title of the 'row number' column"
 msgid "No."
-msgstr "Nein."
+msgstr "Nr."
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -36633,7 +36633,7 @@ msgstr "Ja"
 #: public/js/frappe/utils/user.js:33
 msgctxt "Name of the current user. For example: You edited this 5 hours ago."
 msgid "You"
-msgstr "Benutzer"
+msgstr "Sie"
 
 #: public/js/frappe/form/footer/form_timeline.js:462
 msgid "You Liked"
@@ -37448,7 +37448,7 @@ msgstr "Kommentar"
 
 #: public/js/frappe/form/templates/timeline_message_box.html:33
 msgid "commented"
-msgstr "kommentierte"
+msgstr "kommentierte(n)"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -39080,7 +39080,7 @@ msgstr "{0} d"
 
 #: public/js/frappe/utils/pretty_date.js:60
 msgid "{0} days ago"
-msgstr "vor {0} Tag(en)"
+msgstr "vor {0} Tagen"
 
 #: website/doctype/website_settings/website_settings.py:96
 #: website/doctype/website_settings/website_settings.py:116
@@ -39325,11 +39325,11 @@ msgstr "{0} hat dich in einem Kommentar in {1} {2} erwähnt"
 
 #: public/js/frappe/utils/pretty_date.js:50
 msgid "{0} minutes ago"
-msgstr "vor {0} Minute(n)"
+msgstr "vor {0} Minuten"
 
 #: public/js/frappe/utils/pretty_date.js:68
 msgid "{0} months ago"
-msgstr "vor {0} Monate(n)"
+msgstr "vor {0} Monaten"
 
 #: model/document.py:1594
 msgid "{0} must be after {1}"
@@ -39508,7 +39508,7 @@ msgstr "{0} W"
 
 #: public/js/frappe/utils/pretty_date.js:64
 msgid "{0} weeks ago"
-msgstr "vor {0} Woche(n)"
+msgstr "vor {0} Wochen"
 
 #: public/js/frappe/utils/pretty_date.js:39
 msgid "{0} y"
