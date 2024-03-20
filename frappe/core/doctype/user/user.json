@@ -704,16 +704,6 @@
    "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Onboarding Status"
-<<<<<<< HEAD
-=======
-  },
-  {
-   "allow_in_quick_entry": 1,
-   "fieldname": "role_profiles",
-   "fieldtype": "Table MultiSelect",
-   "label": "Role Profiles",
-   "options": "User Role Profile",
-   "permlevel": 1
   },
   {
    "description": "If left empty, the default workspace will be the last visited workspace",
@@ -721,16 +711,12 @@
    "fieldtype": "Link",
    "label": "Default Workspace",
    "options": "Workspace"
-<<<<<<< HEAD
->>>>>>> 3ec47b0975 (feat(workspace): Allow user to choose a default workspace)
-=======
   },
   {
    "collapsible": 1,
    "fieldname": "workspace_section",
    "fieldtype": "Section Break",
    "label": "Workspace"
->>>>>>> 61cac70b3e (chore: moved workspaces section inside settings tab)
   }
  ],
  "icon": "fa fa-user",
