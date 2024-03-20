@@ -59,7 +59,6 @@
 }
 
 .list-row-container {
-	border-bottom: 1px solid $border-color;
 	display: flex;
 	flex-direction: column;
 	outline: none;
@@ -69,6 +68,15 @@
 		.list-row {
 			background-color: var(--highlight-color);
 		}
+	}
+
+	.list-row-border {
+		border-bottom: 1px solid $border-color;
+		margin: 0 10px;
+	}
+
+	&:last-child .list-row-border {
+		display: none;
 	}
 }
 
