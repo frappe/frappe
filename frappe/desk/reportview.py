@@ -4,6 +4,9 @@
 """build query for doclistview and return results"""
 
 import json
+from functools import lru_cache
+
+from sql_metadata import Parser
 
 import frappe
 import frappe.permissions
@@ -102,7 +105,10 @@ def validate_fields(data):
 	wildcard = update_wildcard_field_param(data)
 
 	for field in list(data.fields or []):
-		fieldname = extract_fieldname(field)
+		fieldname = extract_fieldnames(field)[0]
+		if not fieldname:
+			raise_invalid_field(fieldname)
+
 		if is_standard(fieldname):
 			continue
 
@@ -182,23 +188,21 @@ def is_standard(fieldname):
 	return fieldname in default_fields or fieldname in optional_fields or fieldname in child_table_fields
 
 
-def extract_fieldname(field):
-	for text in (",", "/*", "#"):
-		if text in field:
-			raise_invalid_field(field)
+@lru_cache
+def extract_fieldnames(field):
+	from frappe.database.schema import SPECIAL_CHAR_PATTERN
 
-	fieldname = field
-	for sep in (" as ", " AS "):
-		if sep in fieldname:
-			fieldname = fieldname.split(sep, 1)[0]
+	if not SPECIAL_CHAR_PATTERN.findall(field):
+		return [field]
 
-	# certain functions allowed, extract the fieldname from the function
-	if fieldname.startswith("count(") or fieldname.startswith("sum(") or fieldname.startswith("avg("):
-		if not fieldname.strip().endswith(")"):
-			raise_invalid_field(field)
-		fieldname = fieldname.split("(", 1)[1][:-1]
+	columns = Parser(f"select {field} from _dummy").columns
 
-	return fieldname
+	if not columns:
+		f = field.lower()
+		if ("count(" in f or "sum(" in f or "avg(" in f) and "*" in f:
+			return ["*"]
+
+	return columns
 
 
 def get_meta_and_docfield(fieldname, data):
@@ -249,13 +253,13 @@ def get_parenttype_and_fieldname(field, data):
 		parts = field.split(".")
 		parenttype = parts[0]
 		fieldname = parts[1]
-		if parenttype.startswith("`tab"):
-			# `tabChild DocType`.`fieldname`
-			parenttype = parenttype[4:-1]
-			fieldname = fieldname.strip("`")
+		df = frappe.get_meta(data.doctype).get_field(parenttype)
+		if not df and parenttype.startswith("tab"):
+			# tabChild DocType.fieldname
+			parenttype = parenttype[3:]
 		else:
 			# tablefield.fieldname
-			parenttype = frappe.get_meta(data.doctype).get_field(parenttype).options
+			parenttype = df.options
 	else:
 		parenttype = data.doctype
 		fieldname = field.strip("`")
