@@ -199,7 +199,7 @@ def extract_fieldnames(field):
 
 	if not columns:
 		f = field.lower()
-		if "count(" in f or "sum(" in f or "avg(" in f:
+		if ("count(" in f or "sum(" in f or "avg(" in f) and "*" in f:
 			return ["*"]
 
 	return columns
