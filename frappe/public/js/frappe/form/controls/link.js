@@ -592,20 +592,19 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 	parse_filters(link_filters) {
 		let filters = {};
 		link_filters.forEach((filter) => {
-			filter.shift();
-			let filter_value = String(filter[2]).replace(/%/g, "");
-			if (filter_value.startsWith("eval:")) {
+			let [_, fieldname, operator, value] = filter;
+			value = String(value).replace(/%/g, "");
+			if (value.startsWith("eval:")) {
 				// get the value to calculate
-				filter_value = filter_value.split("eval:")[1];
+				value = value.split("eval:")[1];
 				let context = {
 					doc: this.doc,
 					parent: this.doc.parenttype ? this.frm.doc : null,
 					frappe,
 				};
-				filter_value = frappe.utils.eval(filter_value, context);
-				filter[2] = filter_value;
+				value = frappe.utils.eval(value, context);
 			}
-			filters[filter[0]] = [filter[1], filter[2]];
+			filters[fieldname] = [operator, value];
 		});
 		return filters;
 	}
