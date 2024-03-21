@@ -186,7 +186,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!in_list(['Section Break', 'Column Break', 'Tab Break', 'Table'], doc.fieldtype)",
+   "depends_on": "eval:!in_list(['Tab Break', 'Table'], doc.fieldtype)",
    "fieldname": "allow_in_quick_entry",
    "fieldtype": "Check",
    "label": "Allow in Quick Entry"
