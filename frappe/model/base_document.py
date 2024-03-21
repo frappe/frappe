@@ -18,6 +18,7 @@ from frappe.model import (
 	table_fields,
 )
 from frappe.model.docstatus import DocStatus
+from frappe.model.dynamic_links import get_dynamic_link_used_doctypes
 from frappe.model.naming import set_new_name
 from frappe.model.utils.link_count import notify_link_count
 from frappe.modules import load_doctype_module
@@ -788,6 +789,10 @@ class BaseDocument:
 					doctype = self.get(df.options)
 					if not doctype:
 						frappe.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
+					# Ensure that doctype is in dynamic links
+					# TODO: only check cache, don't trigger generation
+					if doctype not in get_dynamic_link_used_doctypes(df.parent, df.fieldname):
+						get_dynamic_link_used_doctypes.clear_cache()
 
 				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
 
