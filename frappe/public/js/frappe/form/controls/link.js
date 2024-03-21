@@ -580,6 +580,16 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 
 	apply_link_field_filters() {
 		let link_filters = JSON.parse(this.df.link_filters);
+		let filters = this.parse_filters(link_filters);
+		// take filters from the link field and add to the query
+		this.get_query = function () {
+			return {
+				filters,
+			};
+		};
+	}
+
+	parse_filters(link_filters) {
 		let filters = {};
 		link_filters.forEach((filter) => {
 			filter.shift();
@@ -597,10 +607,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 			filters[filter[0]] = [filter[1], filter[2]];
 		});
-		this.get_query = function (doc) {
-			// take filters from the link field and add to the query
-			return { filters };
-		};
+		return filters;
 	}
 
 	validate(value) {
