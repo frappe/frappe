@@ -4,7 +4,6 @@
 """build query for doclistview and return results"""
 
 import json
-from io import StringIO
 
 import frappe
 import frappe.permissions
@@ -347,30 +346,21 @@ def delete_report(name):
 @frappe.read_only()
 def export_query():
 	"""export from report builder"""
-	title = frappe.form_dict.title
-	frappe.form_dict.pop("title", None)
+	from frappe.desk.utils import get_csv_bytes, pop_csv_params, provide_binary_file
 
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
 	form_params["as_list"] = True
-	doctype = form_params.doctype
-	add_totals_row = None
-	file_format_type = form_params["file_format_type"]
-	title = title or doctype
-
-	del form_params["doctype"]
-	del form_params["file_format_type"]
-
-	if "add_totals_row" in form_params and form_params["add_totals_row"] == "1":
-		add_totals_row = 1
-		del form_params["add_totals_row"]
+	doctype = form_params.pop("doctype")
+	file_format_type = form_params.pop("file_format_type")
+	title = form_params.pop("title", doctype)
+	csv_params = pop_csv_params(form_params)
+	add_totals_row = 1 if form_params.pop("add_totals_row", None) == "1" else None
 
 	frappe.permissions.can_export(doctype, raise_exception=True)
 
-	if "selected_items" in form_params:
-		si = json.loads(frappe.form_dict.get("selected_items"))
-		form_params["filters"] = {"name": ("in", si)}
-		del form_params["selected_items"]
+	if selection := form_params.pop("selected_items", None):
+		form_params["filters"] = {"name": ("in", json.loads(selection))}
 
 	make_access_log(
 		doctype=doctype,
@@ -386,36 +376,24 @@ def export_query():
 		ret = append_totals_row(ret)
 
 	data = [[_("Sr"), *get_labels(db_query.fields, doctype)]]
-	for i, row in enumerate(ret):
-		data.append([i + 1, *list(row)])
-
+	data.extend([i + 1, *list(row)] for i, row in enumerate(ret))
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
-		# convert to csv
-		import csv
-
 		from frappe.utils.xlsxutils import handle_html
 
-		f = StringIO()
-		writer = csv.writer(f)
-		for r in data:
-			# encode only unicode type strings and not int, floats etc.
-			writer.writerow([handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r])
-
-		f.seek(0)
-		frappe.response["result"] = cstr(f.read())
-		frappe.response["type"] = "csv"
-		frappe.response["doctype"] = title
-
+		file_extension = "csv"
+		content = get_csv_bytes(
+			[[handle_html(frappe.as_unicode(v)) if isinstance(v, str) else v for v in r] for r in data],
+			csv_params,
+		)
 	elif file_format_type == "Excel":
 		from frappe.utils.xlsxutils import make_xlsx
 
-		xlsx_file = make_xlsx(data, doctype)
+		file_extension = "xlsx"
+		content = make_xlsx(data, doctype).getvalue()
 
-		frappe.response["filename"] = _(title) + ".xlsx"
-		frappe.response["filecontent"] = xlsx_file.getvalue()
-		frappe.response["type"] = "binary"
+	provide_binary_file(title, file_extension, content)
 
 
 def append_totals_row(data):
@@ -442,16 +420,12 @@ def get_labels(fields, doctype):
 	"""get column labels based on column names"""
 	labels = []
 	for key in fields:
-		key = key.split(" as ")[0]
-
-		if key.startswith(("count(", "sum(", "avg(")):
+		try:
+			parenttype, fieldname = parse_field(key)
+		except ValueError:
 			continue
 
-		if "." in key:
-			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
-		else:
-			parenttype = doctype
-			fieldname = fieldname.strip("`")
+		parenttype = parenttype or doctype
 
 		if parenttype == doctype and fieldname == "name":
 			label = _("ID", context="Label of name column in report")
@@ -470,17 +444,12 @@ def get_labels(fields, doctype):
 
 def handle_duration_fieldtype_values(doctype, data, fields):
 	for field in fields:
-		key = field.split(" as ")[0]
-
-		if key.startswith(("count(", "sum(", "avg(")):
+		try:
+			parenttype, fieldname = parse_field(field)
+		except ValueError:
 			continue
 
-		if "." in key:
-			parenttype, fieldname = key.split(".")[0][4:-1], key.split(".")[1].strip("`")
-		else:
-			parenttype = doctype
-			fieldname = field.strip("`")
-
+		parenttype = parenttype or doctype
 		df = frappe.get_meta(parenttype).get_field(fieldname)
 
 		if df and df.fieldtype == "Duration":
@@ -491,6 +460,19 @@ def handle_duration_fieldtype_values(doctype, data, fields):
 					duration_val = format_duration(val_in_seconds, df.hide_days)
 					data[i][index] = duration_val
 	return data
+
+
+def parse_field(field: str) -> tuple[str | None, str]:
+	"""Parse a field into parenttype and fieldname."""
+	key = field.split(" as ")[0]
+
+	if key.startswith(("count(", "sum(", "avg(")):
+		raise ValueError
+
+	if "." in key:
+		return key.split(".")[0][4:-1], key.split(".")[1].strip("`")
+
+	return None, key.strip("`")
 
 
 @frappe.whitelist()

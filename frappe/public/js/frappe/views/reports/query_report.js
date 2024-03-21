@@ -1467,75 +1467,55 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			return;
 		}
 
-		let export_options = ["Excel"];
-		if (this.datatable) {
-			export_options.push("CSV");
-		}
-
-		let export_dialog_fields = [
-			{
-				label: __("Select File Format"),
-				fieldname: "file_format",
-				fieldtype: "Select",
-				options: export_options,
-				default: "Excel",
-				reqd: 1,
-			},
-		];
-
+		let extra_fields = null;
 		if (this.tree_report) {
-			export_dialog_fields.push({
-				label: __("Include indentation"),
-				fieldname: "include_indentation",
-				fieldtype: "Check",
-			});
+			extra_fields = [
+				{
+					label: __("Include indentation"),
+					fieldname: "include_indentation",
+					fieldtype: "Check",
+				},
+			];
 		}
 
-		this.export_dialog = frappe.prompt(
-			export_dialog_fields,
-			({ file_format, include_indentation }) => {
+		this.export_dialog = frappe.report_utils.get_export_dialog(
+			__(this.report_name),
+			extra_fields,
+			({ file_format, include_indentation, csv_delimiter, csv_quoting }) => {
 				this.make_access_log("Export", file_format);
-				if (file_format === "CSV") {
-					const column_row = this.columns.reduce((acc, col) => {
-						if (!col.hidden) {
-							acc.push(__(col.label));
-						}
-						return acc;
-					}, []);
-					const data = this.get_data_for_csv(include_indentation);
-					const out = [column_row].concat(data);
 
-					frappe.tools.downloadify(out, null, this.report_name);
-				} else {
-					let filters = this.get_filter_values(true);
-					if (frappe.urllib.get_dict("prepared_report_name")) {
-						filters = Object.assign(
-							frappe.urllib.get_dict("prepared_report_name"),
-							filters
-						);
-					}
-
-					const visible_idx = this.datatable?.bodyRenderer.visibleRowIndices || [];
-					if (visible_idx.length + 1 === this.data?.length) {
-						visible_idx.push(visible_idx.length);
-					}
-
-					const args = {
-						cmd: "frappe.desk.query_report.export_query",
-						report_name: this.report_name,
-						custom_columns: this.custom_columns?.length ? this.custom_columns : [],
-						file_format_type: file_format,
-						filters: filters,
-						visible_idx,
-						include_indentation,
-					};
-
-					open_url_post(frappe.request.url, args);
+				let filters = this.get_filter_values(true);
+				if (frappe.urllib.get_dict("prepared_report_name")) {
+					filters = Object.assign(
+						frappe.urllib.get_dict("prepared_report_name"),
+						filters
+					);
 				}
-			},
-			__("Export Report: {0}", [this.report_name]),
-			__("Download")
+
+				const visible_idx = this.datatable.bodyRenderer.visibleRowIndices;
+				if (visible_idx.length + 1 === this.data.length) {
+					visible_idx.push(visible_idx.length);
+				}
+
+				const args = {
+					cmd: "frappe.desk.query_report.export_query",
+					report_name: this.report_name,
+					custom_columns: this.custom_columns.length ? this.custom_columns : [],
+					file_format_type: file_format,
+					filters: filters,
+					visible_idx,
+					csv_delimiter,
+					csv_quoting,
+					include_indentation,
+				};
+
+				open_url_post(frappe.request.url, args);
+
+				this.export_dialog.hide();
+			}
 		);
+
+		this.export_dialog.show();
 	}
 
 	get_data_for_csv(include_indentation) {
