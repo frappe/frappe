@@ -3,7 +3,6 @@
 import datetime
 import json
 import threading
-import time
 
 import frappe
 import frappe.desk.query_report
@@ -160,11 +159,12 @@ class Report(Document):
 		start_time = datetime.datetime.now()
 
 		if not self.prepared_report:
-			monitor = MonitorPreparedReport(
-				target=monitor_slow_report,
+			set_prepared_report = threading.Timer(
+				interval=PREPARED_REPORT_THRESHOLD,
+				function=enable_prepared_report,
 				kwargs={"report": self.name, "site": frappe.local.site},
 			)
-			monitor.start()
+			set_prepared_report.start()
 
 		# The JOB
 		if self.is_standard == "Yes":
@@ -172,7 +172,7 @@ class Report(Document):
 		else:
 			res = self.execute_script(filters)
 
-		monitor.finish()
+		set_prepared_report.cancel()
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
 		frappe.cache.hset("report_execution_time", self.name, execution_time)
 
@@ -420,33 +420,9 @@ def get_group_by_column_label(args, meta):
 	return label
 
 
-class MonitorPreparedReport(threading.Thread):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		self._condvar = threading.Condition()
-		self._completed = threading.Event()
-
-	def finish(self):
-		self._condvar.acquire()
-		self._condvar.notify()
-		self._condvar.release()
-		self._completed.set()
-		self.join()
-
-	def finished_under_threshold(self) -> bool:
-		self._condvar.acquire()
-		self._condvar.wait(PREPARED_REPORT_THRESHOLD)
-		return self._completed.is_set()
-
-
-def monitor_slow_report(*, site: str, report: str):
-	"""Monitors slow report and sets prepared report check if exceeds threshold."""
-	report_monitor: MonitorPreparedReport = threading.current_thread()
-	if not report_monitor.finished_under_threshold():
-		frappe.init(site)
-		frappe.enqueue(enable_prepared_report, report=report)
-		frappe.destroy()
-
-
-def enable_prepared_report(report: str):
-	frappe.db.set_value("Report", report, "prepared_report", 1)
+def enable_prepared_report(*, site: str, report: str):
+	frappe.init(site)
+	frappe.connect()
+	frappe.db.set_value("Report", report, "prepared_report", 1, update_modified=True)
+	frappe.db.commit()
+	frappe.destroy()
