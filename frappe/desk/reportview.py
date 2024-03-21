@@ -14,7 +14,7 @@ from frappe.model import child_table_fields, default_fields, get_permitted_field
 from frappe.model.base_document import get_controller
 from frappe.model.db_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
-from frappe.utils import add_user_info, cint, format_duration
+from frappe.utils import add_user_info, cint, cstr, format_duration
 from frappe.utils.data import sbool
 
 
