@@ -16,10 +16,16 @@ def execute():
 	total = len(contacts)
 	for idx, (name, first, middle, last, company) in enumerate(contacts):
 		update_progress_bar("Setting full name for contacts", idx, total)
-		frappe.db.set_value(
-			"Contact",
-			name,
-			"full_name",
-			get_full_name(first, middle, last, company),
-			update_modified=False,
-		)
+		try:
+			frappe.db.set_value(
+				"Contact",
+				name,
+				"full_name",
+				get_full_name(first, middle, last, company),
+				update_modified=False,
+			)
+		except frappe.db.DataError as e:
+			if frappe.db.is_data_too_long(e):
+				print("Full name is too long for DB column, skipping")
+				continue
+			raise e

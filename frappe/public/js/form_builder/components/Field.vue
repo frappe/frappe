@@ -251,7 +251,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						v-if="field.df.fieldtype === 'Table' && field.df.options"
 						class="btn btn-xs btn-icon"
 						@click="open_child_doctype"
-						:title="__(`Edit ${field.df.options} Doctype`)"
+						:title="__('Edit the {0} Doctype', [field.df.options])"
 					>
 						<div v-html="frappe.utils.icon('external-link', 'sm')" />
 					</button>

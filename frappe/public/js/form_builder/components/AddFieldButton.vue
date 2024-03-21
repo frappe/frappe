@@ -16,7 +16,7 @@
 						:value="autocomplete_value"
 						:options="fields"
 						@change="add_new_field"
-						placeholder="Search fieldtypes..."
+						:placeholder="__('Search fieldtypes...')"
 					/>
 				</div>
 			</div>
@@ -67,7 +67,7 @@ const fields = computed(() => {
 			return true;
 		})
 		.map((df) => {
-			let out = { label: df };
+			let out = { label: __(df), value: df };
 			return out;
 		});
 	return [...fields];
@@ -104,7 +104,7 @@ function toggle_fieldtype_options() {
 }
 
 function add_new_field(field) {
-	fieldtype = field?.label;
+	fieldtype = field?.value;
 
 	if (!fieldtype) return;
 
