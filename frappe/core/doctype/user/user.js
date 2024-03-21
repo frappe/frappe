@@ -1,4 +1,14 @@
 frappe.ui.form.on("User", {
+	setup: function (frm) {
+		frm.set_query("default_workspace", () => {
+			return {
+				filters: {
+					for_user: ["in", [null, frappe.session.user]],
+					title: ["!=", "Welcome Workspace"],
+				},
+			};
+		});
+	},
 	before_load: function (frm) {
 		let update_tz_options = function () {
 			frm.fields_dict.time_zone.set_data(frappe.all_timezones);
