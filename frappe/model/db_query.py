@@ -1097,11 +1097,6 @@ class DatabaseQuery:
 							f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
 						)
 
-				# draft docs always on top
-				if hasattr(self.doctype_meta, "is_submittable") and self.doctype_meta.is_submittable:
-					if self.order_by:
-						args.order_by = f"`tab{self.doctype}`.docstatus asc, {args.order_by}"
-
 	def validate_order_by_and_group_by(self, parameters: str):
 		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
 		if not parameters:
