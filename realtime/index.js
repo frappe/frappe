@@ -1,5 +1,7 @@
 const { Server } = require("socket.io");
 
+const fs = require("fs");
+const path = require("path");
 const { get_conf, get_redis_subscriber } = require("../node_utils");
 const conf = get_conf();
 
@@ -26,6 +28,15 @@ realtime.use(authenticate);
 const frappe_handlers = require("./handlers/frappe_handlers");
 function on_connection(socket) {
 	frappe_handlers(realtime, socket);
+
+	socket.installed_apps.forEach((app) => {
+		let file = `../../${app}/realtime/handlers.js`;
+		let abs_path = path.resolve(__dirname, file);
+		if (fs.existsSync(abs_path)) {
+			let handler_factory = require(file);
+			handler_factory(socket);
+		}
+	});
 
 	// ESBUild "open in editor" on error
 	socket.on("open_in_editor", async (data) => {
