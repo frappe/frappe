@@ -644,7 +644,7 @@ class DatabaseQuery:
 				# field: 'distinct name'
 				# column: 'name'
 				else:
-					column = field.split(" ", 2)[1].replace("`", "")
+					column = field.split(" ", 1)[1].replace("`", "")
 			else:
 				# field: 'count(`tabPhoto`.name) as total_count'
 				# column: 'tabPhoto.name'
