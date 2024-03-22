@@ -155,8 +155,12 @@ def _generate_temporary_login_link(email: str, expiry: int):
 	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}")
 
 
+def get_login_with_email_link_ratelimit() -> int:
+	return frappe.get_system_settings("rate_limit_email_link_login") or 5
+
+
 @frappe.whitelist(allow_guest=True, methods=["GET"])
-@rate_limit(limit=5, seconds=60 * 60)
+@rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
 def login_via_key(key: str):
 	cache_key = f"one_time_login_key:{key}"
 	email = frappe.cache.get_value(cache_key)
