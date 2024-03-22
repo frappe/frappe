@@ -40,6 +40,7 @@
   "column_break_uhqk",
   "login_with_email_link",
   "login_with_email_link_expiry",
+  "rate_limit_email_link_login",
   "brute_force_security",
   "allow_consecutive_login_attempts",
   "column_break_34",
@@ -68,6 +69,7 @@
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
+  "store_attached_pdf_document",
   "welcome_email_template",
   "reset_password_template",
   "files_tab",
@@ -648,12 +650,26 @@
    "fieldtype": "Int",
    "label": "Link Field Results Limit",
    "non_negative": 1
+  },
+  {
+   "default": "1",
+   "description": "When sending document using email, store the PDF on Communication. Warning: This can increase your storage usage.",
+   "fieldname": "store_attached_pdf_document",
+   "fieldtype": "Check",
+   "label": "Store Attached PDF Document"
+  },
+  {
+   "depends_on": "login_with_email_link",
+   "description": "You can set a high value here if multiple users will be logging in from the same network.",
+   "fieldname": "rate_limit_email_link_login",
+   "fieldtype": "Int",
+   "label": "Rate limit for email link login"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-01-26 11:29:20.924425",
+ "modified": "2024-03-22 15:43:48.347441",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

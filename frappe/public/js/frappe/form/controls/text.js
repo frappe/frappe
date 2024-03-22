@@ -3,7 +3,13 @@ frappe.ui.form.ControlText = class ControlText extends frappe.ui.form.ControlDat
 	static horizontal = false;
 	make_wrapper() {
 		super.make_wrapper();
-		this.$wrapper.find(".like-disabled-input").addClass("for-description");
+
+		const disp_area = this.$wrapper.find(".like-disabled-input");
+		disp_area.addClass("for-description");
+		disp_area.css("white-space-collapse", "preserve"); // preserve indentation
+		if (this.df.max_height) {
+			disp_area.css({ "max-height": this.df.max_height, overflow: "auto" });
+		}
 	}
 	make_input() {
 		super.make_input();

@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.website.path_resolver import validate_path
 
 desk_properties = (
 	"search_bar",
@@ -14,6 +15,7 @@ desk_properties = (
 	"timeline",
 	"dashboard",
 )
+from frappe.website.router import clear_routing_cache
 
 STANDARD_ROLES = ("Administrator", "System Manager", "Script Manager", "All", "Guest")
 
@@ -56,12 +58,20 @@ class Role(Document):
 			self.disable_role()
 		else:
 			self.set_desk_properties()
+		self.validate_homepage()
 
 	def disable_role(self):
 		if self.name in STANDARD_ROLES:
 			frappe.throw(frappe._("Standard roles cannot be disabled"))
 		else:
 			self.remove_roles()
+
+	def validate_homepage(self):
+		if frappe.request and self.home_page:
+			validate_path(self.home_page)
+
+		if self.has_value_changed("home_page"):
+			clear_routing_cache()
 
 	def set_desk_properties(self):
 		# set if desk_access is not allowed, unset all desk properties

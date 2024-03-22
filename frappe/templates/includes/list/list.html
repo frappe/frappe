@@ -8,7 +8,7 @@
 	</div>
 {% else %}
 	<div class="website-list" data-doctype="{{ doctype }}"
-		data-txt="{{ txt|e or '[notxt]'  }}">
+		data-txt="{{ (txt or '')|e }}">
 		<!-- {% if not hide_filters -%}
 			{% include "templates/includes/list/filters.html" %}
 		{%- endif %} -->

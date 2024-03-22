@@ -21,7 +21,7 @@ let height = computed(() => {
 			<slot name="label" />
 			<slot name="actions" />
 		</div>
-		<div v-else class="control-label label">{{ df.label }}</div>
+		<div v-else class="control-label label">{{ __(df.label) }}</div>
 
 		<!-- textarea input -->
 		<textarea

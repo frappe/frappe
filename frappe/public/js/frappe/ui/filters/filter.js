@@ -478,6 +478,7 @@ frappe.ui.filter_utils = {
 
 		df.description = "";
 		df.reqd = 0;
+		df.length = 1000; // this won't be saved, no need to apply 140 character limit here
 		df.ignore_link_validation = true;
 
 		// given

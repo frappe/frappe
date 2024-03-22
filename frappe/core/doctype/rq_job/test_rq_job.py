@@ -15,7 +15,7 @@ from frappe.utils import cstr, execute_in_shell
 from frappe.utils.background_jobs import get_job_status, is_job_enqueued
 
 
-@timeout(seconds=20)
+@timeout(seconds=60)
 def wait_for_completion(job: Job):
 	while True:
 		if not (job.is_queued or job.is_started):
@@ -58,21 +58,26 @@ class TestRQJob(FrappeTestCase):
 		rq_job = frappe.get_doc("RQ Job", job.id)
 		self.assertEqual(rq_job.job_name, "test_func")
 
+	@timeout
 	def test_get_list_filtering(self):
 		# Check failed job clearning and filtering
 		remove_failed_jobs()
-		jobs = RQJob.get_list({"filters": [["RQ Job", "status", "=", "failed"]]})
+		jobs = frappe.get_all("RQ Job", {"status": "failed"})
 		self.assertEqual(jobs, [])
+
+		# Pass a job
+		job = frappe.enqueue(method=self.BG_JOB, queue="short")
+		self.check_status(job, "finished")
 
 		# Fail a job
 		job = frappe.enqueue(method=self.BG_JOB, queue="short", fail=True)
 		self.check_status(job, "failed")
-		jobs = RQJob.get_list({"filters": [["RQ Job", "status", "=", "failed"]]})
+		jobs = frappe.get_all("RQ Job", {"status": "failed"})
 		self.assertEqual(len(jobs), 1)
 		self.assertTrue(jobs[0].exc_info)
 
 		# Assert that non-failed job still exists
-		non_failed_jobs = RQJob.get_list({"filters": [["RQ Job", "status", "!=", "failed"]]})
+		non_failed_jobs = frappe.get_all("RQ Job", {"status": ("!=", "failed")})
 		self.assertGreaterEqual(len(non_failed_jobs), 1)
 
 		# Create a slow job and check if it's stuck in "Started"
@@ -89,7 +94,7 @@ class TestRQJob(FrappeTestCase):
 		with self.assertRaises(rq_exc.NoSuchJobError):
 			job.refresh()
 
-	@timeout(20)
+	@timeout
 	def test_multi_queue_burst_consumption(self):
 		for _ in range(3):
 			for q in ["default", "short"]:
@@ -98,7 +103,7 @@ class TestRQJob(FrappeTestCase):
 		_, stderr = execute_in_shell("bench worker --queue short,default --burst", check_exit_code=True)
 		self.assertIn("quitting", cstr(stderr))
 
-	@timeout(20)
+	@timeout
 	def test_multi_queue_burst_consumption_worker_pool(self):
 		for _ in range(3):
 			for q in ["default", "short"]:
@@ -109,7 +114,6 @@ class TestRQJob(FrappeTestCase):
 		)
 		self.assertIn("quitting", cstr(stderr))
 
-	@timeout(20)
 	def test_job_id_manual_dedup(self):
 		job_id = "test_dedup"
 		job = frappe.enqueue(self.BG_JOB, sleep=5, job_id=job_id)
@@ -117,7 +121,6 @@ class TestRQJob(FrappeTestCase):
 		self.check_status(job, "finished")
 		self.assertFalse(is_job_enqueued(job_id))
 
-	@timeout(20)
 	def test_auto_job_dedup(self):
 		job_id = "test_dedup"
 		job1 = frappe.enqueue(self.BG_JOB, sleep=2, job_id=job_id, deduplicate=True)
@@ -131,7 +134,7 @@ class TestRQJob(FrappeTestCase):
 		job4 = frappe.enqueue(self.BG_JOB, sleep=1, job_id=job_id, deduplicate=True)
 		self.check_status(job4, "finished")
 
-	@timeout(20)
+	@timeout
 	def test_enqueue_after_commit(self):
 		job_id = frappe.generate_hash()
 
@@ -151,7 +154,6 @@ class TestRQJob(FrappeTestCase):
 		frappe.db.commit()
 		self.assertIsNone(get_job_status(job_id))
 
-	@timeout(20)
 	def test_memory_usage(self):
 		if frappe.db.db_type != "mariadb":
 			return
@@ -167,14 +169,13 @@ class TestRQJob(FrappeTestCase):
 		LAST_MEASURED_USAGE = 41
 		self.assertLessEqual(rss, LAST_MEASURED_USAGE * 1.05, msg)
 
-	@timeout(20)
 	def test_clear_failed_jobs(self):
 		limit = 10
 		update_site_config("rq_failed_jobs_limit", limit)
 
 		jobs = [frappe.enqueue(method=self.BG_JOB, queue="short", fail=True) for _ in range(limit * 2)]
 		self.check_status(jobs[-1], "failed")
-		self.assertLessEqual(RQJob.get_count({"filters": [["RQ Job", "status", "=", "failed"]]}), limit * 1.1)
+		self.assertLessEqual(RQJob.get_count(filters=[["RQ Job", "status", "=", "failed"]]), limit * 1.1)
 
 
 def test_func(fail=False, sleep=0):

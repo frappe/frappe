@@ -93,6 +93,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 		// so explicitly bind the event
 		this.datepicker.$datepicker.find('[data-action="today"]').click(() => {
 			this.datepicker.selectDate(this.get_now_date());
+			this.datepicker.hide();
 		});
 	}
 	update_datepicker_position() {
