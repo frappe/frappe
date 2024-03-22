@@ -156,7 +156,7 @@ def get_context(doc):
 
 
 def enqueue_webhook(doc, webhook) -> None:
-	request_url = headers = data = None
+	request_url = headers = data = r = None
 	try:
 		webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
 		request_url = webhook.request_url
