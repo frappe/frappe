@@ -35,7 +35,12 @@ def send_message(sender, message, subject="Website Query"):
 			frappe.sendmail(recipients=forward_to_email, reply_to=sender, content=message, subject=subject)
 
 		reply = _(
-			"Thank you for reaching out to us. We will get back to you at the earliest.\n\n\nYour query:\n\n{0}"
+			"""Thank you for reaching out to us. We will get back to you at the earliest.
+
+
+Your query:
+
+{0}"""
 		).format(message)
 		frappe.sendmail(
 			recipients=sender,
