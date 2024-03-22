@@ -45,6 +45,7 @@
   "disable_user_pass_login",
   "login_with_email_link",
   "login_with_email_link_expiry",
+  "rate_limit_email_link_login",
   "allow_error_traceback",
   "strip_exif_metadata_from_uploaded_images",
   "allow_older_web_view_links",
@@ -437,11 +438,11 @@
    "label": "Include Web View Link in Email"
   },
   {
-    "collapsible": 1,
-    "fieldname": "prepared_report_section",
-    "fieldtype": "Section Break",
-    "label": "Reports"
-   },
+   "collapsible": 1,
+   "fieldname": "prepared_report_section",
+   "fieldtype": "Section Break",
+   "label": "Reports"
+  },
   {
    "default": "Frappe",
    "description": "The application name will be used in the Login page.",
@@ -600,12 +601,19 @@
    "fieldname": "store_attached_pdf_document",
    "fieldtype": "Check",
    "label": "Store Attached PDF Document"
+  },
+  {
+   "depends_on": "login_with_email_link",
+   "description": "You can set a high value here if multiple users will be logging in from the same network.",
+   "fieldname": "rate_limit_email_link_login",
+   "fieldtype": "Int",
+   "label": "Rate limit for email link login"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-03-14 15:18:01.465057",
+ "modified": "2024-03-22 16:35:52.338727",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
