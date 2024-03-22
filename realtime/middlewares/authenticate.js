@@ -40,9 +40,10 @@ function authenticate_with_frappe(socket, next) {
 
 	auth_req
 		.type("form")
-		.then((res) => {
-			socket.user = res.body.message.user;
-			socket.user_type = res.body.message.user_type;
+		.then(({ body: { message } }) => {
+			socket.user = message.user;
+			socket.user_type = message.user_type;
+			socket.installed_apps = message.installed_apps;
 			socket.sid = cookies.sid;
 			socket.authorization_header = authorization_header;
 			next();
