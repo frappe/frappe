@@ -146,12 +146,11 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		} else {
 			value = this.value || value;
 		}
-		if (["Data", "Long Text", "Small Text", "Text", "Password"].includes(this.df.fieldtype)) {
+		if (this.df.fieldtype === "Data") {
 			value = frappe.utils.escape_html(value);
 		}
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
-		// This is used to display formatted output AND showing values in read only fields
 		this.disp_area && $(this.disp_area).html(display_value);
 	}
 	set_label(label) {
