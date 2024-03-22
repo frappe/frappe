@@ -43,7 +43,7 @@ function open_new_child_doctype_dialog() {
 				:key="i"
 			>
 				<div class="table-field ellipsis">
-					{{ tf.label }}
+					{{ __(tf.label) }}
 				</div>
 			</div>
 		</div>

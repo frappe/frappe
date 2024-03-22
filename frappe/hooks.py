@@ -174,6 +174,7 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
+			"frappe.core.doctype.file.utils.attach_files_to_document",
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
@@ -413,6 +414,8 @@ ignore_links_on_delete = [
 	"Unhandled Email",
 	"Webhook Request Log",
 	"Workspace",
+	"Route History",
+	"Access Log",
 ]
 
 # Request Hooks
@@ -438,7 +441,7 @@ after_job = [
 	"frappe.recorder.dump",
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
-	"frappe.utils.telemetry.flush",
+	"frappe.utils.background_jobs.flush_telemetry",
 ]
 
 extend_bootinfo = [

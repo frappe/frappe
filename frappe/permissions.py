@@ -158,7 +158,7 @@ def has_permission(
 		if not perm:
 			push_perm_check_log(
 				_("User {0} does not have doctype access via role permission for document {1}").format(
-					frappe.bold(user), frappe.bold(doctype)
+					frappe.bold(user), frappe.bold(_(doctype))
 				),
 				debug=debug,
 			)

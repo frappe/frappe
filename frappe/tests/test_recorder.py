@@ -83,6 +83,7 @@ class TestRecorder(FrappeTestCase):
 	def test_explain(self):
 		frappe.db.sql("SELECT * FROM tabDocType")
 		frappe.db.sql("COMMIT")
+		frappe.db.sql("select 1", run=0)
 		self.stop_recording()
 
 		requests = frappe.recorder.get()

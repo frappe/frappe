@@ -328,3 +328,4 @@ def clear_routing_cache():
 	get_dynamic_web_pages.clear_cache()
 	get_published_web_forms.clear_cache()
 	get_public_pages_from_doctypes.clear_cache()
+	frappe.cache.delete_value("home_page")

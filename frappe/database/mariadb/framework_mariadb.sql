@@ -176,6 +176,7 @@ CREATE TABLE `tabDocType` (
   `idx` int(8) NOT NULL DEFAULT 0,
   `search_fields` varchar(255) DEFAULT NULL,
   `issingle` int(1) NOT NULL DEFAULT 0,
+  `is_virtual` int(1) NOT NULL DEFAULT 0,
   `is_tree` int(1) NOT NULL DEFAULT 0,
   `istable` int(1) NOT NULL DEFAULT 0,
   `editable_grid` int(1) NOT NULL DEFAULT 1,

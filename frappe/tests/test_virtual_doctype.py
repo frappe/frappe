@@ -68,17 +68,17 @@ class VirtualDoctypeTest(Document):
 		self.update_data(data)
 
 	@staticmethod
-	def get_list(args):
+	def get_list():
 		data = VirtualDoctypeTest.get_current_data()
 		return [frappe._dict(doc) for name, doc in data.items()]
 
 	@staticmethod
-	def get_count(args):
+	def get_count():
 		data = VirtualDoctypeTest.get_current_data()
 		return len(data)
 
 	@staticmethod
-	def get_stats(args):
+	def get_stats():
 		return {}
 
 
@@ -157,19 +157,18 @@ class TestVirtualDoctypes(FrappeTestCase):
 		updated_docs = {doc1.name, doc2.name}
 		self.assertEqual(docs, updated_docs)
 
-		listed_docs = {d.name for d in VirtualDoctypeTest.get_list({})}
+		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
 		self.assertEqual(docs, listed_docs)
 
 	def test_get_count(self):
-		args = {"doctype": TEST_DOCTYPE_NAME, "filters": [], "fields": []}
-		self.assertIsInstance(VirtualDoctypeTest.get_count(args), int)
+		self.assertIsInstance(VirtualDoctypeTest.get_count(), int)
 
 	def test_delete_doc(self):
 		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
 
 		frappe.delete_doc(doc.doctype, doc.name)
 
-		listed_docs = {d.name for d in VirtualDoctypeTest.get_list({})}
+		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
 		self.assertNotIn(doc.name, listed_docs)
 
 	def test_controller_validity(self):

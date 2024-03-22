@@ -326,6 +326,12 @@ class LoginManager:
 		self.user = user
 		self.post_login()
 
+	def impersonate(self, user):
+		current_user = frappe.session.user
+		self.login_as(user)
+		# Flag this session as impersonated session, so other code can log this.
+		frappe.local.session_obj.set_impersonsated(current_user)
+
 	def logout(self, arg="", user=None):
 		if not user:
 			user = frappe.session.user

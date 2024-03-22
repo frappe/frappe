@@ -1010,3 +1010,10 @@ class TestSchedulerCLI(BaseTestCommands):
 		self.execute("bench --site {site} scheduler resume")
 		self.assertEqual(self.returncode, 0)
 		self.assertRegex(self.stdout, r"Scheduler is resumed for site .*")
+
+
+class TestCLIImplementation(BaseTestCommands):
+	def test_missing_commands(self):
+		self.execute("bench --site {site} migrat")
+		self.assertNotEqual(self.returncode, 0)
+		self.assertRegex(self.stderr, r"No such.*migrat.*migrate")

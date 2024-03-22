@@ -227,7 +227,12 @@ function get_version_timeline_content(version_doc, frm) {
 			}
 		}
 	});
+	const impersonated_by = data.impersonated_by;
 
+	if (impersonated_by) {
+		const impersonated_msg = __("Impersonated by {0}", [get_user_link(impersonated_by)]);
+		out = out.map((message) => `${message} · ${impersonated_msg.bold()}`);
+	}
 	return out;
 }
 
@@ -278,6 +283,7 @@ function format_content_for_timeline(content) {
 	// limits content to 40 characters
 	// escapes HTML
 	// and makes it bold
+	content = frappe.utils.html2text(content);
 	content = frappe.ellipsis(content, 40) || '""';
 	content = frappe.utils.escape_html(content);
 	return content.bold();

@@ -14,10 +14,10 @@ class CalendarView(Document):
 		from frappe.types import DF
 
 		all_day: DF.Check
-		end_date_field: DF.Literal
+		end_date_field: DF.Literal[None]
 		reference_doctype: DF.Link
-		start_date_field: DF.Literal
-		subject_field: DF.Literal
+		start_date_field: DF.Literal[None]
+		subject_field: DF.Literal[None]
 	# end: auto-generated types
 
 	pass

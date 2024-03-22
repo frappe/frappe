@@ -34,7 +34,7 @@ class Notification(Document):
 		attach_print: DF.Check
 		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
 		condition: DF.Code | None
-		date_changed: DF.Literal
+		date_changed: DF.Literal[None]
 		days_in_advance: DF.Int
 		document_type: DF.Link
 		enabled: DF.Check
@@ -62,10 +62,10 @@ class Notification(Document):
 		send_to_all_assignees: DF.Check
 		sender: DF.Link | None
 		sender_email: DF.Data | None
-		set_property_after_alert: DF.Literal
+		set_property_after_alert: DF.Literal[None]
 		slack_webhook_url: DF.Link | None
 		subject: DF.Data | None
-		value_changed: DF.Literal
+		value_changed: DF.Literal[None]
 	# end: auto-generated types
 
 	def onload(self):
@@ -282,6 +282,9 @@ def get_context(context):
 				bcc=bcc,
 				communication_type="Automated Message",
 			).get("name")
+			# set the outgoing email account because we did in fact send it via sendmail above
+			comm = frappe.get_doc("Communication", communication)
+			comm.get_outgoing_email_account()
 
 		frappe.sendmail(
 			recipients=recipients,
