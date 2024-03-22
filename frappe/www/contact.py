@@ -46,8 +46,10 @@ def send_message(sender, message, subject="Website Query"):
 	# for clearing outgoing email error message
 	frappe.clear_last_message()
 
+	system_language = frappe.db.get_single_value("System Settings", "language")
 	# add to to-do ?
 	frappe.get_doc(
+<<<<<<< HEAD
 		dict(
 			doctype="Communication",
 			sender=sender,
@@ -56,4 +58,12 @@ def send_message(sender, message, subject="Website Query"):
 			content=message,
 			status="Open",
 		)
+=======
+		doctype="Communication",
+		sender=sender,
+		subject=_("New Message from Website Contact Page", system_language),
+		sent_or_received="Received",
+		content=message,
+		status="Open",
+>>>>>>> 457f5bf437 (fix(Contact form): translate internal notification to system language)
 	).insert(ignore_permissions=True)
