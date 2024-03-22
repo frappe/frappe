@@ -33,8 +33,13 @@ function on_connection(socket) {
 		let file = `../../${app}/realtime/handlers.js`;
 		let abs_path = path.resolve(__dirname, file);
 		if (fs.existsSync(abs_path)) {
-			let handler_factory = require(file);
-			handler_factory(socket);
+			try {
+				let handler_factory = require(file);
+				handler_factory(socket);
+			} catch (err) {
+				console.warn(`failed to load event handlers from ${abs_path}`);
+				console.warn(err);
+			}
 		}
 	});
 
