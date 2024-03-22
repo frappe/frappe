@@ -1,7 +1,7 @@
 {% extends "templates/web.html" %}
 
 {% set title = heading or "Contact Us" %}
-{% block header %}<h1>{{ heading or "Contact Us" }}</h1>{% endblock %}
+{% block header %}<h1>{{ heading or _("Contact Us") }}</h1>{% endblock %}
 
 {% block page_content %}
 <style>
@@ -23,10 +23,10 @@
 				<select name="subject" class="form-control">
 				{% if query_options -%}
 					{% for option in query_options.split("\n") -%}
-					<option value="{{ option }}">{{ option }}</option>
+					<option value="{{ option }}">{{ _(option) }}</option>
 					{%- endfor %}
 				{% else %}
-					<option value="General">General</option>
+					<option value="General">{{ _("General") }}</option>
 				{% endif %}
 				</select>
 			</div>
