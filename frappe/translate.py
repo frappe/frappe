@@ -139,6 +139,15 @@ def get_messages_for_boot():
 	return get_all_translations(frappe.local.lang)
 
 
+@frappe.whitelist(methods=["GET"])
+def load_all_translations(lang: str | None = None):
+	translations = get_all_translations(lang or frappe.local.lang)
+	return {
+		"translations": translations,
+		"hash": translations.get("translations_hash__"),
+	}
+
+
 def get_all_translations(lang: str) -> dict[str, str]:
 	"""Load and return the entire translations dictionary for a language from apps + user translations.
 
@@ -154,6 +163,15 @@ def get_all_translations(lang: str) -> dict[str, str]:
 		with suppress(Exception):
 			all_translations.update(get_user_translations(lang))
 			all_translations.update(get_translated_countries())
+
+		if "translations_hash__" not in all_translations:
+			import hashlib
+			import json
+
+			# Compute stable hash
+			t_hash = json.dumps(all_translations, sort_keys=True)
+			t_hash = hashlib.md5(t_hash.encode(), usedforsecurity=False).hexdigest()
+			all_translations["translations_hash__"] = t_hash
 
 		return all_translations
 

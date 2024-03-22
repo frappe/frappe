@@ -44,7 +44,6 @@
 			if (!window.frappe) window.frappe = {};
 
 			frappe.boot = JSON.parse({{ boot }});
-			frappe._messages = frappe.boot["__messages"];
 			frappe.csrf_token = "{{ csrf_token }}";
 
 

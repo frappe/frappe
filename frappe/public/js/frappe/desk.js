@@ -30,7 +30,9 @@ frappe.Application = class Application {
 		this.startup();
 	}
 
-	startup() {
+	async startup() {
+		await new TranslationsLoader().init();
+
 		frappe.realtime.init();
 		frappe.model.init();
 
@@ -552,3 +554,139 @@ frappe.get_module = function (m, default_module) {
 
 	return module;
 };
+
+class TranslationsLoader {
+	constructor() {
+		// Build URL
+		const url = new URL(
+			"/api/method/frappe.translate.load_all_translations",
+			window.location.origin
+		);
+		url.searchParams.append("lang", frappe.boot.lang);
+		this.url = url;
+
+		// Check that translations need to be refreshed
+		const lastHash = localStorage.getItem("translations_hash");
+		const currHash = JSON.stringify(String(frappe.boot.translations_hash));
+		this.isStale = !lastHash || !currHash || lastHash?.length < 7 || lastHash !== currHash;
+		if (this.isStale && frappe.boot.developer_mode) {
+			console.info(`Stale translations: ${lastHash} -> ${currHash}`);
+		}
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/CacheStorage
+		this.useLocalStorage = !window.caches?.open; // Use legacy if Caches API is not available
+		this.cacheName = "translations/v1";
+
+		// always: Always refresh (debug)
+		// fresh: Refresh when cache is stale (default)
+		// stale: Use cache, and refresh in background (might lead to inconsistent translations)
+		/** @type {"always" | "fresh" | "stale"} */
+		this.refreshBehavior = "fresh";
+	}
+
+	async init() {
+		frappe.boot.__messages = frappe._messages = {};
+
+		if (
+			this.refreshBehavior === "always" ||
+			(this.refreshBehavior === "fresh" && this.isStale)
+		) {
+			await this.downloadAndSet();
+		} else {
+			// Cache is fresh, or we want to use stale cache
+			const res = await this.readAndSet();
+			if (res) {
+				if (this.isStale) {
+					// If cache is stale (and refreshBehavior == "stale"), refresh in background
+					this.downloadAndSet();
+				}
+			} else {
+				await this.downloadAndSet(); // Download for the first time
+			}
+		}
+	}
+
+	async downloadAndSet() {
+		const res = await this.downloadAndCache();
+		this.setTranslationsFromResponse(res);
+		return res;
+	}
+
+	async readAndSet() {
+		const res = await this.readCache();
+		this.setTranslationsFromResponse(res);
+		return res;
+	}
+
+	setTranslationsFromResponse(res) {
+		const translations = res?.message?.translations;
+		if (translations) {
+			frappe.boot.__messages = frappe._messages = translations;
+			frappe.boot.translations_hash = res.message.hash;
+			localStorage.setItem("translations_hash", JSON.stringify(String(res.message.hash)));
+		}
+	}
+
+	async downloadAndCache() {
+		if (this.useLocalStorage) {
+			return this.downloadAndCache_v1();
+		} else {
+			return this.downloadAndCache_v2();
+		}
+	}
+
+	async downloadAndCache_v2() {
+		const cacheStorage = await caches.open(this.cacheName);
+		await cacheStorage.add(this.url); // Download and cache
+		const res = await cacheStorage.match(this.url);
+		if (res?.ok) {
+			this.clearOldCaches_v2(); // clear old caches asynchonously
+			return await res.json();
+		}
+	}
+
+	async downloadAndCache_v1() {
+		const data = await fetch(this.url).then((r) => r.json()); // Falling back to fetch
+		if (this.useLocalStorage) {
+			// Cache in localStorage
+			localStorage.setItem(String(this.url), JSON.stringify(data));
+		}
+		return data;
+	}
+
+	async readCache() {
+		if (this.useLocalStorage) {
+			return this.readCache_v1();
+		} else {
+			return this.readCache_v2();
+		}
+	}
+
+	async readCache_v2() {
+		const cacheStorage = await window.caches.open(this.cacheName);
+		const res = await cacheStorage.match(this.url);
+		if (res?.ok) {
+			return await res.json();
+		}
+	}
+
+	async readCache_v1() {
+		try {
+			const data = JSON.parse(localStorage.getItem(this.url));
+			if (data && typeof data === "object") {
+				return data;
+			}
+		} catch (e) {
+			/* pass */
+		}
+	}
+
+	async clearOldCaches_v2() {
+		if (!window.caches?.keys) return;
+		for (const key of await caches.keys()) {
+			if (key.startsWith("translations/") && key !== this.cacheName) {
+				caches.delete(key);
+			}
+		}
+	}
+}
