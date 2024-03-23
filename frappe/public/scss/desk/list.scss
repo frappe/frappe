@@ -82,7 +82,7 @@
 
 .list-row {
 	padding: 15px 15px 15px 0px;
-	height: 38px;
+	height: 40px;
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
@@ -157,9 +157,12 @@
 		}
 	}
 
-	.select-like,
 	.file-select {
 		padding-left: 11px;
+	}
+
+	.select-like {
+		padding: 10px 0 10px 11px;
 	}
 }
 
