@@ -18,7 +18,6 @@
    "fieldname": "ref_doctype",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "in_standard_filter": 1,
    "label": "DocType",
    "options": "DocType",
    "reqd": 1
@@ -54,10 +53,11 @@
  "idx": 1,
  "in_create": 1,
  "links": [],
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2024-03-23 16:04:01.627592",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Version",
+ "naming_rule": "Random",
  "owner": "Administrator",
  "permissions": [
   {
@@ -73,7 +73,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "docname",

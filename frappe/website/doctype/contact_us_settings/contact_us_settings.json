@@ -5,6 +5,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "disable_contact_us",
   "introduction_section",
   "forward_to_email",
   "heading",
@@ -55,6 +56,7 @@
    "label": "Query Options"
   },
   {
+   "collapsible": 1,
    "fieldname": "address",
    "fieldtype": "Section Break",
    "label": "Address"
@@ -115,13 +117,19 @@
    "fieldname": "skype",
    "fieldtype": "Data",
    "label": "Skype"
+  },
+  {
+   "default": "0",
+   "fieldname": "disable_contact_us",
+   "fieldtype": "Check",
+   "label": "Disable Contact Us Page"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-03-02 17:42:32.947404",
+ "modified": "2024-03-23 16:01:31.401053",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Contact Us Settings",
@@ -137,7 +145,9 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
- "track_changes": 1
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
 }

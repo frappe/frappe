@@ -40,7 +40,6 @@
   "column_break_uhqk",
   "login_with_email_link",
   "login_with_email_link_expiry",
-  "rate_limit_email_link_login",
   "brute_force_security",
   "allow_consecutive_login_attempts",
   "column_break_34",
@@ -657,19 +656,12 @@
    "fieldname": "store_attached_pdf_document",
    "fieldtype": "Check",
    "label": "Store Attached PDF Document"
-  },
-  {
-   "depends_on": "login_with_email_link",
-   "description": "You can set a high value here if multiple users will be logging in from the same network.",
-   "fieldname": "rate_limit_email_link_login",
-   "fieldtype": "Int",
-   "label": "Rate limit for email link login"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2024-03-22 15:43:48.347441",
+ "modified": "2024-03-23 16:03:39.461597",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -684,7 +676,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

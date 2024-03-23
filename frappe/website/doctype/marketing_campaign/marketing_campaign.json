@@ -21,7 +21,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-08-28 22:26:04.298759",
+ "modified": "2024-03-23 16:03:29.592624",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Marketing Campaign",
@@ -58,7 +58,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

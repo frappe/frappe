@@ -129,7 +129,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-10-09 09:36:23.856188",
+ "modified": "2024-03-23 16:03:28.090977",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integration Request",
@@ -146,7 +146,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "integration_request_service",
