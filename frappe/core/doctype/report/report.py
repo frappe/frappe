@@ -315,7 +315,7 @@ class Report(Document):
 		elif params.get("order_by"):
 			order_by = params.get("order_by")
 		else:
-			order_by = Report._format([self.ref_doctype, "modified"]) + " desc"
+			order_by = Report._format([self.ref_doctype, "creation"]) + " desc"
 
 		if params.get("sort_by_next"):
 			order_by += (

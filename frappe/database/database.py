@@ -609,7 +609,7 @@ class Database:
 			if (filters is not None) and (filters != doctype or doctype == "DocType"):
 				try:
 					if order_by:
-						order_by = "modified" if order_by == DefaultOrderBy else order_by
+						order_by = "creation" if order_by == DefaultOrderBy else order_by
 					out = self._get_values_from_table(
 						fields=fields,
 						filters=filters,

@@ -1086,7 +1086,7 @@ class DatabaseQuery:
 					sort_order = (self.doctype_meta.sort_field and self.doctype_meta.sort_order) or "desc"
 					if self.order_by:
 						args.order_by = (
-							f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
+							f"`tab{self.doctype}`.`{sort_field or 'creation'}` {sort_order or 'desc'}"
 						)
 
 	def validate_order_by_and_group_by(self, parameters: str):
@@ -1215,11 +1215,7 @@ def get_order_by(doctype, meta):
 	else:
 		sort_field = meta.sort_field or "modified"
 		sort_order = (meta.sort_field and meta.sort_order) or "desc"
-		order_by = f"`tab{doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
-
-	# draft docs always on top
-	if meta.is_submittable:
-		order_by = f"`tab{doctype}`.docstatus asc, {order_by}"
+		order_by = f"`tab{doctype}`.`{sort_field or 'creation'}` {sort_order or 'desc'}"
 
 	return order_by
 

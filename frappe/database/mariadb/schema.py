@@ -33,7 +33,7 @@ class MariaDBTable(DBTable):
 			]
 		else:
 			# parent types
-			additional_definitions.append("index modified(modified)")
+			additional_definitions.append("index creation(creation)")
 
 		# creating sequence(s)
 		if not self.meta.issingle and self.meta.autoname == "autoincrement":

@@ -109,7 +109,7 @@ frappe.ui.SortSelector = class SortSelector {
 				this.args.sort_order = meta_sort_order;
 			} else {
 				// default
-				this.args.sort_by = "modified";
+				this.args.sort_by = "creation";
 				this.args.sort_order = "desc";
 			}
 		}
@@ -183,7 +183,7 @@ frappe.ui.SortSelector = class SortSelector {
 			};
 		} else {
 			return {
-				meta_sort_field: meta.sort_field || "modified",
+				meta_sort_field: meta.sort_field || "creation",
 				meta_sort_order: meta.sort_order ? meta.sort_order.toLowerCase() : "",
 			};
 		}
