@@ -309,12 +309,11 @@ frappe.ui.form.Toolbar = class Toolbar {
 		const print_settings = frappe.model.get_doc(":Print Settings", "Print Settings");
 		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
 		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
-		let doc = me.frm.doc;
 
 		frappe.db
-			.get_value("DocType", doc.doctype, "enable_snapshots")
+			.get_value("DocType", me.frm.doc.doctype, "enable_snapshots")
 			.then(({ message: { enable_snapshots } }) => {
-				if (!enable_snapshots) {
+				if (!enable_snapshots || docstatus != 0) {
 					return;
 				}
 				this.page.add_menu_item(__("Restore"), () => {
@@ -326,11 +325,13 @@ frappe.ui.form.Toolbar = class Toolbar {
 						columns: ["name", "creation"],
 						get_query() {
 							return {
-								filters: { ref_doctype: doc.doctype, document_name: doc.name },
+								filters: {
+									ref_doctype: me.frm.doc.doctype,
+									document_name: me.frm.doc.name,
+								},
 							};
 						},
 						size: "medium",
-
 						primary_action_label: __("Restore"),
 						action(selections) {
 							if (selections.length === 0) {
@@ -347,17 +348,17 @@ frappe.ui.form.Toolbar = class Toolbar {
 								.then((res) => {
 									let snapshot = JSON.parse(res.message.data);
 									const fields = new Set([
-										...Object.keys(doc),
+										...Object.keys(me.frm.doc),
 										...Object.keys(snapshot),
 									]);
 
-									for (let field of fields) {
-										if (field !== "modified") {
+									for (let [field, value] of Object.entries(snapshot)) {
+										if (field !== "modified" && fields.has(field)) {
 											frappe.model.set_value(
-												doc.doctype,
-												doc.name,
+												me.frm.doc.doctype,
+												me.frm.doc.name,
 												field,
-												snapshot[field]
+												value
 											);
 										}
 									}
