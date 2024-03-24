@@ -740,6 +740,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						${right}
 					</div>
 				</div>
+				<div class="list-row-border"></div>
 			</div>
 		`;
 	}
@@ -987,7 +988,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				if (this.count_without_children) {
 					str = __("{0} of {1} ({2} rows with children)", [
 						count_without_children,
-						this.total_count,
+						count_str,
 						current_count,
 					]);
 				}
@@ -1021,7 +1022,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			<span class="like-action ${heart_class}">
 				${frappe.utils.icon("es-solid-heart", "sm", "like-icon")}
 			</span>
-			<span class="likes-count">${liked_by.length}</span>
 		`;
 
 		const like = div.querySelector(".like-action");
@@ -1402,7 +1402,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	setup_like() {
-		this.$result.on("click", ".like-action", frappe.ui.click_toggle_like);
+		this.$result.on("click", ".like-action", (e) => {
+			const $this = $(e.currentTarget);
+			const { doctype, name } = $this.data();
+			frappe.ui.toggle_like($this, doctype, name);
+
+			return false;
+		});
+
 		this.$result.on("click", ".list-liked-by-me", (e) => {
 			const $this = $(e.currentTarget);
 			$this.toggleClass("active");

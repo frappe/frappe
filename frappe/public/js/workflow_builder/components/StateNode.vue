@@ -43,7 +43,7 @@ watch(
 
 <template>
 	<div class="node" tabindex="0" @click.stop>
-		<div v-if="label" class="node-label">{{ label }}</div>
+		<div v-if="label" class="node-label">{{ __(label) }}</div>
 		<div v-else class="node-placeholder text-muted">{{ __("No Label") }}</div>
 		<Handle
 			v-for="handle in ['top', 'right', 'bottom', 'left']"

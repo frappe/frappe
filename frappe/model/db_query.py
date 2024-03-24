@@ -44,7 +44,6 @@ FIELD_COMMA_PATTERN = re.compile(r"[0-9a-zA-Z]+\s*,")
 STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
 STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
-FN_PARAMS_PATTERN = re.compile(r".*?\((.*)\).*")
 SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
 
 
@@ -471,6 +470,8 @@ class DatabaseQuery:
 
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
+				if table_name.lower().startswith("distinct"):
+					table_name = table_name[8:].strip()
 				if table_name[0] != "`":
 					table_name = f"`{table_name}`"
 				if (
@@ -617,6 +618,8 @@ class DatabaseQuery:
 		        - Query: fields=["*"]
 		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
 		"""
+		from frappe.desk.reportview import extract_fieldnames
+
 		if self.flags.ignore_permissions:
 			return
 
@@ -629,23 +632,18 @@ class DatabaseQuery:
 		)
 
 		for i, field in enumerate(self.fields):
-			if "distinct" in field.lower():
-				# field: 'count(distinct `tabPhoto`.name) as total_count'
-				# column: 'tabPhoto.name'
-				if _fn := FN_PARAMS_PATTERN.findall(field):
-					column = _fn[0].replace("distinct ", "").replace("DISTINCT ", "").replace("`", "")
-				# field: 'distinct name'
-				# column: 'name'
-				else:
-					column = field.split(" ", 2)[1].replace("`", "")
-			else:
-				# field: 'count(`tabPhoto`.name) as total_count'
-				# column: 'tabPhoto.name'
-				column = field.split("(")[-1].split(")", 1)[0]
-				column = strip_alias(column).replace("`", "")
+			# field: 'count(distinct `tabPhoto`.name) as total_count'
+			# column: 'tabPhoto.name'
+			# field: 'count(`tabPhoto`.name) as total_count'
+			# column: 'tabPhoto.name'
+			columns = extract_fieldnames(field)
+			if not columns:
+				continue
 
-			if column == "*" and not in_function("*", field):
-				asterisk_fields.append(i)
+			column = columns[0]
+			if column == "*" and "*" in field:
+				if not in_function("*", field):
+					asterisk_fields.append(i)
 				continue
 
 			# handle pseudo columns
@@ -684,21 +682,12 @@ class DatabaseQuery:
 			elif "(" in field:
 				if "*" in field:
 					continue
-				elif _params := FN_PARAMS_PATTERN.findall(field):
-					params = (x.strip() for x in _params[0].split(","))
-					for param in params:
-						if not (
-							not param
-							or param in permitted_fields
-							or param.isnumeric()
-							or "'" in param
-							or '"' in param
-						):
+				else:
+					for column in columns:
+						if column not in permitted_fields:
 							self.remove_field(i)
 							break
 					continue
-				self.remove_field(i)
-
 			# remove if access not allowed
 			else:
 				self.remove_field(i)
@@ -1099,11 +1088,6 @@ class DatabaseQuery:
 						args.order_by = (
 							f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
 						)
-
-				# draft docs always on top
-				if hasattr(self.doctype_meta, "is_submittable") and self.doctype_meta.is_submittable:
-					if self.order_by:
-						args.order_by = f"`tab{self.doctype}`.docstatus asc, {args.order_by}"
 
 	def validate_order_by_and_group_by(self, parameters: str):
 		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
