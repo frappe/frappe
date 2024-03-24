@@ -1,0 +1,21 @@
+{% if data %}
+<h4>{{ __("Document Snapshot") }}</h4>
+{% var item_keys = Object.keys(data); %}
+<table class="table table-bordered" >
+    <tbody>
+        {% for row_key in item_keys %}
+        <tr>
+            <td>{{ row_key }}</td>
+            {% if typeof data[row_key] === 'object' %}
+            <td style="overflow-wrap: anywhere;">{{ JSON.stringify(data[row_key]) }}</td>
+            {% else %}
+            <td >
+               {{ frappe.utils.escape_html(data[row_key]) }}
+            </td>
+            {% endif %}
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endif %}
+</div>
