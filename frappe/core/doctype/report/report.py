@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 import datetime
 import json
-import threading
 
 import frappe
 import frappe.desk.query_report
@@ -15,8 +14,6 @@ from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
 from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
-
-PREPARED_REPORT_THRESHOLD = 20  # seconds
 
 
 class Report(Document):
@@ -156,15 +153,9 @@ class Report(Document):
 
 	def execute_script_report(self, filters):
 		# save the timestamp to automatically set to prepared
-		start_time = datetime.datetime.now()
+		threshold = 15
 
-		if not self.prepared_report:
-			set_prepared_report = threading.Timer(
-				interval=PREPARED_REPORT_THRESHOLD,
-				function=enable_prepared_report,
-				kwargs={"report": self.name, "site": frappe.local.site},
-			)
-			set_prepared_report.start()
+		start_time = datetime.datetime.now()
 
 		# The JOB
 		if self.is_standard == "Yes":
@@ -172,8 +163,11 @@ class Report(Document):
 		else:
 			res = self.execute_script(filters)
 
-		set_prepared_report.cancel()
+		# automatically set as prepared
 		execution_time = (datetime.datetime.now() - start_time).total_seconds()
+		if execution_time > threshold and not self.prepared_report:
+			frappe.enqueue(enable_prepared_report, report=self.name)
+
 		frappe.cache.hset("report_execution_time", self.name, execution_time)
 
 		return res
@@ -420,9 +414,5 @@ def get_group_by_column_label(args, meta):
 	return label
 
 
-def enable_prepared_report(*, site: str, report: str):
-	frappe.init(site)
-	frappe.connect()
-	frappe.db.set_value("Report", report, "prepared_report", 1, update_modified=True)
-	frappe.db.commit()
-	frappe.destroy()
+def enable_prepared_report(report: str):
+	frappe.db.set_value("Report", report, "prepared_report", 1)
