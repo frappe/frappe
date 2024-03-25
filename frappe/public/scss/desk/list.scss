@@ -82,7 +82,7 @@
 
 .list-row {
 	padding-right: 15px;
-	height: 40px;
+	height: var(--list-row-height);
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
@@ -162,7 +162,7 @@
 	}
 
 	.select-like {
-		padding: 13px 0 13px 11px;
+		padding: var(--list-checkbox-padding);
 		cursor: default;
 	}
 }
@@ -252,16 +252,19 @@ $level-margin-right: 8px;
 	margin-bottom: 1px;
 }
 
-input.list-check-all,
 input.list-row-checkbox {
-	margin-top: 0px;
-	margin-bottom: 0px;
-	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
+	margin-top: 0;
+	margin-bottom: 0;
+	--checkbox-right-margin: 0;
 	background-color: var(--card-bg);
 }
 
 input.list-check-all {
 	margin-left: 15px;
+	margin-top: 0;
+	margin-bottom: 0;
+	--checkbox-right-margin: var(--list-checkbox-padding);
+	background-color: var(--card-bg);
 }
 
 .render-list-checkbox {
@@ -307,7 +310,7 @@ input.list-check-all {
 	align-items: center;
 	cursor: pointer;
 
-	height: 40px;
+	height: var(--list-row-height);
 	padding-left: 15px;
 
 	@include get_textstyle("base", "regular");
