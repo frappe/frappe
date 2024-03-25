@@ -102,6 +102,7 @@ def search_widget(
 					indicator_color="red",
 					http_status_code=404,
 				)
+<<<<<<< HEAD
 			return
 		except Exception as e:
 			raise e
@@ -119,6 +120,83 @@ def search_widget(
 			as_dict=as_dict,
 			reference_doctype=reference_doctype,
 			ignore_user_permissions=ignore_user_permissions,
+=======
+				return []
+
+	meta = frappe.get_meta(doctype)
+
+	if isinstance(filters, dict):
+		filters_items = filters.items()
+		filters = []
+		for key, value in filters_items:
+			filters.append(make_filter_tuple(doctype, key, value))
+
+	if filters is None:
+		filters = []
+	or_filters = []
+
+	# build from doctype
+	if txt:
+		field_types = {
+			"Data",
+			"Text",
+			"Small Text",
+			"Long Text",
+			"Link",
+			"Select",
+			"Read Only",
+			"Text Editor",
+		}
+		search_fields = ["name"]
+		if meta.title_field:
+			search_fields.append(meta.title_field)
+
+		if meta.search_fields:
+			search_fields.extend(meta.get_search_fields())
+
+		for f in search_fields:
+			fmeta = meta.get_field(f.strip())
+			if not meta.translated_doctype and (f == "name" or (fmeta and fmeta.fieldtype in field_types)):
+				or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
+
+	if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
+		filters.append([doctype, "enabled", "=", 1])
+	if meta.get("fields", {"fieldname": "disabled", "fieldtype": "Check"}):
+		filters.append([doctype, "disabled", "!=", 1])
+
+	# format a list of fields combining search fields and filter fields
+	fields = get_std_fields_list(meta, searchfield or "name")
+	if filter_fields:
+		fields = list(set(fields + json.loads(filter_fields)))
+	formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
+
+	# Insert title field query after name
+	if meta.show_title_field_in_link and meta.title_field:
+		formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
+
+	order_by_based_on_meta = get_order_by(doctype, meta)
+	# `idx` is number of times a document is referred, check link_count.py
+	order_by = f"`tab{doctype}`.idx desc, {order_by_based_on_meta}"
+
+	if not meta.translated_doctype:
+		_txt = frappe.db.escape((txt or "").replace("%", "").replace("@", ""))
+		# locate returns 0 if string is not found, convert 0 to null and then sort null to end in order by
+		_relevance = f"(1 / nullif(locate({_txt}, `tab{doctype}`.`name`), 0))"
+		formatted_fields.append(f"""{_relevance} as `_relevance`""")
+		# Since we are sorting by alias postgres needs to know number of column we are sorting
+		if frappe.db.db_type == "mariadb":
+			order_by = f"ifnull(_relevance, -9999) desc, {order_by}"
+		elif frappe.db.db_type == "postgres":
+			# Since we are sorting by alias postgres needs to know number of column we are sorting
+			order_by = f"{len(formatted_fields)} desc nulls last, {order_by}"
+
+	ignore_permissions = doctype == "DocType" or (
+		cint(ignore_user_permissions)
+		and has_permission(
+			doctype,
+			ptype="select" if frappe.only_has_select_perm(doctype) else "read",
+			parent_doctype=reference_doctype,
+>>>>>>> 4f205e2942 (fix: only add title field in search if it exists (#25634))
 		)
 	else:
 		meta = frappe.get_meta(doctype)
