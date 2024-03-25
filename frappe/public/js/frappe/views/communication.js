@@ -54,6 +54,7 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "MultiSelect",
 				reqd: 0,
 				fieldname: "recipients",
+				default: this.get_default_recipients("recipients"),
 			},
 			{
 				fieldtype: "Button",
@@ -72,11 +73,13 @@ frappe.views.CommunicationComposer = class {
 				label: __("CC"),
 				fieldtype: "MultiSelect",
 				fieldname: "cc",
+				default: this.get_default_recipients("cc"),
 			},
 			{
 				label: __("BCC"),
 				fieldtype: "MultiSelect",
 				fieldname: "bcc",
+				default: this.get_default_recipients("bcc"),
 			},
 			{
 				label: __("Schedule Send At"),
@@ -197,6 +200,14 @@ frappe.views.CommunicationComposer = class {
 		}
 
 		return fields;
+	}
+
+	get_default_recipients(fieldname) {
+		if (this.frm?.events.get_email_recipients) {
+			return (this.frm.events.get_email_recipients(this.frm, fieldname) || []).join(", ");
+		} else {
+			return "";
+		}
 	}
 
 	guess_language() {

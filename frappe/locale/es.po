@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-03-17 09:33+0000\n"
-"PO-Revision-Date: 2024-03-20 11:37\n"
+"PO-Revision-Date: 2024-03-22 11:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -13910,7 +13910,7 @@ msgstr "Google"
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Google Analytics ID"
-msgstr ""
+msgstr "ID de Google Analytics"
 
 #. Label of a Check field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -15014,19 +15014,19 @@ msgstr ""
 #. Name of a DocType
 #: email/doctype/imap_folder/imap_folder.json
 msgid "IMAP Folder"
-msgstr ""
+msgstr "Carpeta IMAP"
 
 #. Label of a Data field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "IMAP Folder"
-msgstr ""
+msgstr "Carpeta IMAP"
 
 #. Label of a Table field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "IMAP Folder"
-msgstr ""
+msgstr "Carpeta IMAP"
 
 #. Label of a Data field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
@@ -15892,7 +15892,7 @@ msgstr "Incluir símbolos, números y letras mayúsculas en la contraseña"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Incoming (POP/IMAP) Settings"
-msgstr ""
+msgstr "Configuración entrante (POP/IMAP)"
 
 #. Label of a Data field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -28056,7 +28056,7 @@ msgstr "Buscar en un tipo de documento."
 
 #: public/js/frappe/ui/toolbar/navbar.html:29
 msgid "Search or type a command ({0})"
-msgstr ""
+msgstr "Buscar o escribir un comando ({0})"
 
 #: templates/includes/search_box.html:8
 msgid "Search results for"
