@@ -49,6 +49,10 @@ frappe.form.formatters = {
 		return __(frappe.form.formatters["Data"](value, df));
 	},
 	Float: function (value, docfield, options, doc) {
+		if (value === null) {
+			return "";
+		}
+
 		// don't allow 0 precision for Floats, hence or'ing with null
 		var precision =
 			docfield.precision ||
@@ -73,12 +77,20 @@ frappe.form.formatters = {
 		}
 	},
 	Int: function (value, docfield, options) {
+		if (value === null) {
+			return "";
+		}
+
 		if (cstr(docfield.options).trim() === "File Size") {
 			return frappe.form.formatters.FileSize(value);
 		}
 		return frappe.form.formatters._right(value == null ? "" : cint(value), options);
 	},
 	Percent: function (value, docfield, options) {
+		if (value === null) {
+			return "";
+		}
+
 		const precision =
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
@@ -105,6 +117,10 @@ frappe.form.formatters = {
 		</div>`;
 	},
 	Currency: function (value, docfield, options, doc) {
+		if (value === null) {
+			return "";
+		}
+
 		var currency = frappe.meta.get_field_currency(docfield, doc);
 
 		let precision;
