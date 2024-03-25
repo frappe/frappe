@@ -1472,7 +1472,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					if (this.add_totals_row) {
 						const total_data = this.get_columns_totals(this.data);
 
-						total_data["name"] = __("Totals").bold();
+						total_data["name"] = __("Total");
+						total_data.is_total_row = true;
 						rows_in_order.push(total_data);
 					}
 
