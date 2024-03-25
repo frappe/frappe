@@ -179,7 +179,7 @@ def search_widget(
 			formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
 
 			# Insert title field query after name
-			if meta.show_title_field_in_link:
+			if meta.show_title_field_in_link and meta.title_field:
 				formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
 
 			# In order_by, `idx` gets second priority, because it stores link count
