@@ -21,7 +21,58 @@ from frappe.www.printview import validate_print_permission
 @frappe.whitelist()
 def download_multi_pdf(doctype, name, format=None, no_letterhead=False, letterhead=None, options=None):
 	"""
+<<<<<<< HEAD
 	Concatenate multiple docs as PDF .
+=======
+	Calls _download_multi_pdf with the given parameters and returns the response
+	"""
+	return _download_multi_pdf(doctype, name, format, no_letterhead, letterhead, options)
+
+
+@frappe.whitelist()
+def download_multi_pdf_async(
+	doctype: str | dict[str, list[str]],
+	name: str | list[str],
+	format: str | None = None,
+	no_letterhead: bool = False,
+	letterhead: str | None = None,
+	options: str | None = None,
+):
+	"""
+	Calls _download_multi_pdf with the given parameters in a background job, returns task ID
+	"""
+	task_id = str(uuid.uuid4())
+	if isinstance(doctype, dict):
+		doc_count = sum([len(doctype[dt]) for dt in doctype])
+	else:
+		doc_count = len(json.loads(name))
+
+	frappe.enqueue(
+		_download_multi_pdf,
+		doctype=doctype,
+		name=name,
+		task_id=task_id,
+		format=format,
+		no_letterhead=no_letterhead,
+		letterhead=letterhead,
+		options=options,
+		queue="long" if doc_count > 20 else "short",
+	)
+	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
+	return {"task_id": task_id}
+
+
+def _download_multi_pdf(
+	doctype: str | dict[str, list[str]],
+	name: str | list[str],
+	format: str | None = None,
+	no_letterhead: bool = False,
+	letterhead: str | None = None,
+	options: str | None = None,
+	task_id: str | None = None,
+):
+	"""Return a PDF compiled by concatenating multiple documents.
+>>>>>>> f82ed9fe11 (fix: add missing arg while invoking _download_multi_pdf)
 
 	Returns a PDF compiled by concatenating multiple documents. The documents
 	can be from a single DocType or multiple DocTypes
