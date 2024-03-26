@@ -5,11 +5,6 @@ import click
 import frappe
 from frappe.database.db_manager import DbManager
 
-REQUIRED_MARIADB_CONFIG = {
-	"character_set_server": "utf8mb4",
-	"collation_server": "utf8mb4_unicode_ci",
-}
-
 
 def get_mariadb_variables():
 	return frappe._dict(frappe.db.sql("show variables"))
@@ -69,10 +64,15 @@ def drop_user_and_database(db_name, root_login, root_password):
 def bootstrap_database(db_name, verbose, source_sql=None):
 	import sys
 
+<<<<<<< HEAD
 	frappe.connect(db_name=db_name)
 	if not check_database_settings():
 		print("Database settings do not match expected values; stopping database setup.")
 		sys.exit(1)
+=======
+	frappe.connect()
+	check_compatible_versions()
+>>>>>>> ed01fc3b26 (feat: don't require editing MariaDB configuration to setup frappe (#25609))
 
 	import_db_from_sql(source_sql, verbose)
 
@@ -102,30 +102,6 @@ def import_db_from_sql(source_sql=None, verbose=False):
 	)
 	if verbose:
 		print("Imported from database %s" % source_sql)
-
-
-def check_database_settings():
-	check_compatible_versions()
-
-	# Check each expected value vs. actuals:
-	mariadb_variables = get_mariadb_variables()
-	result = True
-	for key, expected_value in REQUIRED_MARIADB_CONFIG.items():
-		if mariadb_variables.get(key) != expected_value:
-			print(f"For key {key}. Expected value {expected_value}, found value {mariadb_variables.get(key)}")
-			result = False
-
-	if not result:
-		print(
-			(
-				"{sep2}Creation of your site - {site} failed because MariaDB is not properly {sep}"
-				"configured.{sep2}"
-				"Please verify the above settings in MariaDB's my.cnf.  Restart MariaDB.{sep}"
-				"And then run `bench new-site {site}` again.{sep2}"
-			).format(site=frappe.local.site, sep2="\n\n", sep="\n")
-		)
-
-	return result
 
 
 def check_compatible_versions():
