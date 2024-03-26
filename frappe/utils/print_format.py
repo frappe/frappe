@@ -33,7 +33,7 @@ def download_multi_pdf(
 	"""
 	Calls _download_multi_pdf with the given parameters and returns the response
 	"""
-	return _download_multi_pdf(doctype, name, format, no_letterhead, options)
+	return _download_multi_pdf(doctype, name, format, no_letterhead, letterhead, options)
 
 
 @frappe.whitelist()
