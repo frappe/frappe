@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
 import re
 
 import frappe
@@ -48,17 +47,13 @@ def validate_with_regex(name, label):
 
 
 def sync_languages():
-	"""Sync frappe/geo/languages.json with Language"""
-	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
-		data = json.loads(f.read())
+	"""Create Language records from frappe/geo/languages.csv"""
+	from csv import DictReader
 
-	for l in data:
-		if not frappe.db.exists("Language", l["code"]):
-			frappe.get_doc(
-				{
-					"doctype": "Language",
-					"language_code": l["code"],
-					"language_name": l["name"],
-					"enabled": 1,
-				}
-			).insert()
+	with open(frappe.get_app_path("frappe", "geo", "languages.csv")) as f:
+		reader = DictReader(f)
+		for row in reader:
+			if not frappe.db.exists("Language", row["language_code"]):
+				doc = frappe.new_doc("Language")
+				doc.update(row)
+				doc.insert()
