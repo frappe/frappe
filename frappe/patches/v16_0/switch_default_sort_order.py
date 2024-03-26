@@ -22,4 +22,7 @@ def execute():
 			continue
 		frappe.db.add_index(doctype, ["creation"], index_name="creation")
 		click.echo(f"✓ created creation index from {table}")
-		drop_index_if_exists(table, "modified")
+
+		# TODO: We might have to re-run this in future after all doctypes have migrated
+		if frappe.db.get_value("DocType", doctype, "sort_field") != "modified":
+			drop_index_if_exists(table, "modified")
