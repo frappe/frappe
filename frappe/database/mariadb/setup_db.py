@@ -66,9 +66,7 @@ def bootstrap_database(verbose, source_sql=None):
 	import sys
 
 	frappe.connect()
-	if not check_compatible_versions():
-		print("MariaDB version compatibility checks failed, make sure you're running a supported version; stopping database setup.")
-		sys.exit(1)
+	check_compatible_versions()
 
 	import_db_from_sql(source_sql, verbose)
 
