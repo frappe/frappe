@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-03-17 09:33+0000\n"
-"PO-Revision-Date: 2024-03-18 10:48\n"
+"POT-Creation-Date: 2024-03-24 09:33+0000\n"
+"PO-Revision-Date: 2024-03-26 12:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -1231,7 +1231,7 @@ msgstr "Ajouter / Mettre à jour"
 msgid "Add A New Rule"
 msgstr "Ajouter une nouvelle règle"
 
-#: public/js/frappe/views/communication.js:567
+#: public/js/frappe/views/communication.js:578
 #: public/js/frappe/views/interaction.js:159
 msgid "Add Attachment"
 msgstr "Ajouter une pièce jointe"
@@ -1333,7 +1333,7 @@ msgstr ""
 msgid "Add Review"
 msgstr "Ajouter un commentaire"
 
-#: core/doctype/user/user.py:808
+#: core/doctype/user/user.py:810
 msgid "Add Roles"
 msgstr ""
 
@@ -1341,7 +1341,7 @@ msgstr ""
 msgid "Add Row"
 msgstr ""
 
-#: public/js/frappe/views/communication.js:118
+#: public/js/frappe/views/communication.js:121
 msgid "Add Signature"
 msgstr "Ajouter une Signature"
 
@@ -1372,12 +1372,12 @@ msgstr "Ajouter des Abonnés"
 msgid "Add Tags"
 msgstr ""
 
-#: public/js/frappe/list/list_view.js:1897
+#: public/js/frappe/list/list_view.js:1904
 msgctxt "Button in list view actions menu"
 msgid "Add Tags"
 msgstr ""
 
-#: public/js/frappe/views/communication.js:399
+#: public/js/frappe/views/communication.js:410
 msgid "Add Template"
 msgstr ""
 
@@ -1489,7 +1489,7 @@ msgstr "Ajouté {0}"
 msgid "Added {0} ({1})"
 msgstr "Ajouté {0} ({1})"
 
-#: core/doctype/user/user.py:305
+#: core/doctype/user/user.py:307
 msgid "Adding System Manager to this User as there must be atleast one System Manager"
 msgstr "Ajout du rôle Responsable Système pour cet utilisateur car il doit y avoir au moins un utilisateur avec le rôle Responsable Système"
 
@@ -1595,6 +1595,16 @@ msgstr "Adresses"
 msgid "Addresses And Contacts"
 msgstr "Adresses Et Contacts"
 
+#. Description of a DocType
+#: custom/doctype/client_script/client_script.json
+msgid "Adds a custom client script to a DocType"
+msgstr ""
+
+#. Description of a DocType
+#: custom/doctype/custom_field/custom_field.json
+msgid "Adds a custom field to a DocType"
+msgstr ""
+
 #: public/js/frappe/ui/toolbar/search_utils.js:552
 msgid "Administration"
 msgstr "Administration"
@@ -1616,11 +1626,11 @@ msgstr "Administration"
 msgid "Administrator"
 msgstr "Administrateur"
 
-#: core/doctype/user/user.py:1212
+#: core/doctype/user/user.py:1214
 msgid "Administrator Logged In"
 msgstr "Administrateur Connecté"
 
-#: core/doctype/user/user.py:1206
+#: core/doctype/user/user.py:1208
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "L'administrateur a accedé à {0} sur {1} avec l'Adresse IP {2}."
 
@@ -2202,7 +2212,7 @@ msgstr ""
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "Autorisation de DocType, DocType. Soyez prudent !"
 
-#: core/doctype/user/user.py:1015
+#: core/doctype/user/user.py:1017
 msgid "Already Registered"
 msgstr "Déjà Inscrit"
 
@@ -2454,7 +2464,7 @@ msgstr "Clé Secrète de l'App"
 msgid "App not found for module: {0}"
 msgstr "Application introuvable pour le module : {0}"
 
-#: __init__.py:1781
+#: __init__.py:1784
 msgid "App {0} is not installed"
 msgstr "App {0} n'est pas installée"
 
@@ -2533,7 +2543,7 @@ msgctxt "Property Setter"
 msgid "Applied On"
 msgstr "Appliqué sur"
 
-#: public/js/frappe/list/list_view.js:1882
+#: public/js/frappe/list/list_view.js:1889
 msgctxt "Button in list view actions menu"
 msgid "Apply Assignment Rule"
 msgstr "Appliquer la règle d&#39;assignation"
@@ -2639,7 +2649,7 @@ msgstr "Archivé"
 msgid "Archived Columns"
 msgstr "Colonnes Archivées"
 
-#: public/js/frappe/list/list_view.js:1861
+#: public/js/frappe/list/list_view.js:1868
 msgid "Are you sure you want to clear the assignments?"
 msgstr ""
 
@@ -2647,7 +2657,7 @@ msgstr ""
 msgid "Are you sure you want to delete all rows?"
 msgstr "Voulez-vous vraiment supprimer toutes les lignes?"
 
-#: public/js/frappe/views/workspace/workspace.js:891
+#: public/js/frappe/views/workspace/workspace.js:896
 msgid "Are you sure you want to delete page {0}?"
 msgstr ""
 
@@ -2738,7 +2748,7 @@ msgstr "Attribuer une condition"
 msgid "Assign To"
 msgstr "Attribuer À"
 
-#: public/js/frappe/list/list_view.js:1843
+#: public/js/frappe/list/list_view.js:1850
 msgctxt "Button in list view actions menu"
 msgid "Assign To"
 msgstr "Attribuer À"
@@ -2907,7 +2917,7 @@ msgstr "Affectations"
 msgid "At least one column is required to show in the grid."
 msgstr "Au moins une colonne est requise pour s'afficher dans la grille."
 
-#: website/doctype/web_form/web_form.js:63
+#: website/doctype/web_form/web_form.js:73
 msgid "At least one field is required in Web Form Fields Table"
 msgstr ""
 
@@ -2943,7 +2953,7 @@ msgctxt "Web Form Field"
 msgid "Attach"
 msgstr "Attacher"
 
-#: public/js/frappe/views/communication.js:140
+#: public/js/frappe/views/communication.js:143
 msgid "Attach Document Print"
 msgstr "Joindre l'Impression de Document"
 
@@ -3410,6 +3420,11 @@ msgstr "La liaison automatique ne peut être activée que pour un seul compte de
 msgid "Automatic Linking can be activated only if Incoming is enabled."
 msgstr "La liaison automatique ne peut être activée que si l&#39;option Entrant est activée."
 
+#. Description of a DocType
+#: automation/doctype/assignment_rule/assignment_rule.json
+msgid "Automatically Assign Documents to Users"
+msgstr ""
+
 #. Label of a Int field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
@@ -3556,7 +3571,7 @@ msgctxt "Print Settings"
 msgid "B9"
 msgstr ""
 
-#: public/js/frappe/views/communication.js:77
+#: public/js/frappe/views/communication.js:79
 msgid "BCC"
 msgstr ""
 
@@ -4399,7 +4414,7 @@ msgstr ""
 msgid "CANCELLED"
 msgstr "ANNULÉ"
 
-#: public/js/frappe/views/communication.js:72
+#: public/js/frappe/views/communication.js:73
 msgid "CC"
 msgstr ""
 
@@ -4634,7 +4649,7 @@ msgstr ""
 msgid "Cancel"
 msgstr "Annuler"
 
-#: public/js/frappe/list/list_view.js:1952
+#: public/js/frappe/list/list_view.js:1959
 msgctxt "Button in list view actions menu"
 msgid "Cancel"
 msgstr "Annuler"
@@ -4687,7 +4702,7 @@ msgstr "Annuler tous les documents"
 msgid "Cancel Scheduling"
 msgstr ""
 
-#: public/js/frappe/list/list_view.js:1957
+#: public/js/frappe/list/list_view.js:1964
 msgctxt "Title of confirmation dialog"
 msgid "Cancel {0} documents?"
 msgstr "Annuler les documents {0}?"
@@ -4860,7 +4875,7 @@ msgstr "Impossible de modifier une notification standard. Pour l'éditer, veuill
 msgid "Cannot edit Standard charts"
 msgstr ""
 
-#: core/doctype/report/report.py:69
+#: core/doctype/report/report.py:72
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr "Modification du rapport standard impossible. Veuillez le dupliquer et créer un nouveau rapport"
 
@@ -4937,11 +4952,11 @@ msgstr ""
 msgid "Cannot update {0}"
 msgstr "Impossible de mettre à jour {0}"
 
-#: model/db_query.py:1119
+#: model/db_query.py:1103
 msgid "Cannot use sub-query in order by"
 msgstr "Impossible d'utiliser la sous-requête dans l'ordre demandé"
 
-#: model/db_query.py:1137
+#: model/db_query.py:1121
 msgid "Cannot use {0} in order/group by"
 msgstr ""
 
@@ -5296,7 +5311,7 @@ msgstr "Les tables enfants sont affichées sous forme de grille dans d&#39;autre
 msgid "Choose Existing Card or create New Card"
 msgstr "Choisissez une carte existante ou créez une nouvelle carte"
 
-#: public/js/frappe/views/workspace/workspace.js:1391
+#: public/js/frappe/views/workspace/workspace.js:1396
 msgid "Choose a block or continue typing"
 msgstr ""
 
@@ -5332,15 +5347,15 @@ msgstr "Ville"
 msgid "Clear"
 msgstr "Nettoyer"
 
-#: public/js/frappe/views/communication.js:404
+#: public/js/frappe/views/communication.js:415
 msgid "Clear & Add Template"
 msgstr ""
 
-#: public/js/frappe/views/communication.js:99
+#: public/js/frappe/views/communication.js:102
 msgid "Clear & Add template"
 msgstr ""
 
-#: public/js/frappe/list/list_view.js:1858
+#: public/js/frappe/list/list_view.js:1865
 msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
 msgstr ""
@@ -5367,7 +5382,7 @@ msgstr ""
 msgid "Clear User Permissions"
 msgstr "Effacer les autorisations utilisateur"
 
-#: public/js/frappe/views/communication.js:405
+#: public/js/frappe/views/communication.js:416
 msgid "Clear the email message and add the template"
 msgstr ""
 
@@ -5425,7 +5440,7 @@ msgstr "Cliquez sur {0} pour générer le jeton d&#39;actualisation."
 #: desk/doctype/dashboard_chart/dashboard_chart.js:315
 #: desk/doctype/number_card/number_card.js:215
 #: email/doctype/auto_email_report/auto_email_report.js:96
-#: website/doctype/web_form/web_form.js:226
+#: website/doctype/web_form/web_form.js:236
 msgid "Click table to edit"
 msgstr "Cliquez sur la table pour modifier"
 
@@ -5436,7 +5451,7 @@ msgstr ""
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:372
 #: desk/doctype/number_card/number_card.js:270
-#: website/doctype/web_form/web_form.js:252
+#: website/doctype/web_form/web_form.js:262
 msgid "Click to Set Filters"
 msgstr ""
 
@@ -6113,7 +6128,7 @@ msgstr "Terminé"
 msgid "Complete By"
 msgstr "Terminé par"
 
-#: core/doctype/user/user.py:472 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:474 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "Terminer l'Inscription"
 
@@ -6182,7 +6197,7 @@ msgstr "Écrire un Email"
 #: desk/doctype/dashboard_chart/dashboard_chart.js:439
 #: desk/doctype/number_card/number_card.js:205
 #: desk/doctype/number_card/number_card.js:333
-#: website/doctype/web_form/web_form.js:187
+#: website/doctype/web_form/web_form.js:197
 msgid "Condition"
 msgstr "Conditions"
 
@@ -6279,7 +6294,12 @@ msgid "Configure how amended documents will be named.<br>\n\n"
 "Default Naming will make the amended document to behave same as new documents."
 msgstr ""
 
-#: core/doctype/user/user.js:374 public/js/frappe/dom.js:332
+#. Description of a DocType
+#: core/doctype/document_naming_settings/document_naming_settings.json
+msgid "Configure various aspects of how document naming works like naming series, current counter."
+msgstr ""
+
+#: core/doctype/user/user.js:384 public/js/frappe/dom.js:332
 #: www/update-password.html:30
 msgid "Confirm"
 msgstr "Confirmer"
@@ -6294,7 +6314,7 @@ msgstr "Confirmer"
 msgid "Confirm Deletion of Account"
 msgstr ""
 
-#: core/doctype/user/user.js:167
+#: core/doctype/user/user.js:177
 msgid "Confirm New Password"
 msgstr "Confirmer le nouveau mot de passe"
 
@@ -6450,6 +6470,10 @@ msgstr "Numéro du contact"
 #: integrations/doctype/google_contacts/google_contacts.py:291
 msgid "Contact Synced with Google Contacts."
 msgstr "Contact synchronisé avec Google Contacts."
+
+#: www/contact.html:4
+msgid "Contact Us"
+msgstr ""
 
 #. Name of a DocType
 #: website/doctype/contact_us_settings/contact_us_settings.json
@@ -6624,6 +6648,10 @@ msgstr ""
 msgid "Copied to clipboard."
 msgstr "Copié dans le presse-papier."
 
+#: website/doctype/web_form/web_form.js:29
+msgid "Copy Embed Code"
+msgstr ""
+
 #: public/js/frappe/form/templates/timeline_message_box.html:83
 msgid "Copy Link"
 msgstr ""
@@ -6650,7 +6678,7 @@ msgstr "Les DocTypes de base ne peuvent pas être personnalisés."
 msgid "Core Modules {0} cannot be searched in Global Search."
 msgstr "Les modules de base {0} ne peuvent pas être recherchés dans la recherche globale."
 
-#: email/smtp.py:77
+#: email/smtp.py:78
 msgid "Could not connect to outgoing email server"
 msgstr "Impossible de se connecter au serveur de messagerie sortant"
 
@@ -6764,7 +6792,7 @@ msgstr ""
 #: public/js/frappe/views/file/file_view.js:112
 #: public/js/frappe/views/interaction.js:18
 #: public/js/frappe/views/reports/query_report.js:1186
-#: public/js/frappe/views/workspace/workspace.js:1223
+#: public/js/frappe/views/workspace/workspace.js:1228
 #: workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
 msgstr "Créer"
@@ -6817,7 +6845,7 @@ msgstr "Créer des contacts à partir des e-mails entrants"
 msgid "Create Custom Fields"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:931
+#: public/js/frappe/views/workspace/workspace.js:936
 msgid "Create Duplicate"
 msgstr ""
 
@@ -6852,11 +6880,11 @@ msgstr ""
 msgid "Create New Kanban Board"
 msgstr ""
 
-#: core/doctype/user/user.js:246
+#: core/doctype/user/user.js:256
 msgid "Create User Email"
 msgstr "Créer un Email Utilisateur"
 
-#: public/js/frappe/views/workspace/workspace.js:471
+#: public/js/frappe/views/workspace/workspace.js:476
 msgid "Create Workspace"
 msgstr "Créer un espace de travail"
 
@@ -6886,6 +6914,11 @@ msgstr "Créer un(e) nouveau(elle) {0}"
 
 #: www/login.html:142
 msgid "Create a {0} Account"
+msgstr ""
+
+#. Description of a DocType
+#: email/doctype/newsletter/newsletter.json
+msgid "Create and send emails to a specific group of subscribers periodically."
 msgstr ""
 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:34
@@ -7053,6 +7086,11 @@ msgstr "Nom de la Devise"
 msgctxt "System Settings"
 msgid "Currency Precision"
 msgstr "Précision de la Devise"
+
+#. Description of a DocType
+#: geo/doctype/currency/currency.json
+msgid "Currency list stores the currency value, its symbol and fraction unit"
+msgstr ""
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -7419,7 +7457,7 @@ msgstr "Personnalisation"
 msgid "Customization onboarding is all done!"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:517
+#: public/js/frappe/views/workspace/workspace.js:522
 msgid "Customizations Discarded"
 msgstr ""
 
@@ -7438,7 +7476,7 @@ msgstr "Personnalisations pour <b>{0}</b> exportées vers: <br> {1}"
 msgid "Customize"
 msgstr "Personnaliser"
 
-#: public/js/frappe/list/list_view.js:1703
+#: public/js/frappe/list/list_view.js:1710
 msgctxt "Button in list view menu"
 msgid "Customize"
 msgstr "Personnaliser"
@@ -8278,6 +8316,12 @@ msgctxt "DocType"
 msgid "Default View"
 msgstr ""
 
+#. Label of a Link field in DocType 'User'
+#: core/doctype/user/user.json
+msgctxt "User"
+msgid "Default Workspace"
+msgstr ""
+
 #: core/doctype/doctype/doctype.py:1325
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
 msgstr "La valeur par défaut pour le type de champ &quot;Vérifier&quot; {0} doit être &quot;0&quot; ou &quot;1&quot;"
@@ -8317,6 +8361,16 @@ msgstr "Valeurs Par Défaut"
 msgid "Defaults Updated"
 msgstr ""
 
+#. Description of a DocType
+#: workflow/doctype/workflow_transition/workflow_transition.json
+msgid "Defines actions on states and the next step and allowed roles."
+msgstr ""
+
+#. Description of a DocType
+#: workflow/doctype/workflow/workflow.json
+msgid "Defines workflow states and rules for a document."
+msgstr ""
+
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
@@ -8328,13 +8382,13 @@ msgstr "Différé"
 #: public/js/frappe/form/grid.js:63 public/js/frappe/form/toolbar.js:423
 #: public/js/frappe/views/reports/report_view.js:1642
 #: public/js/frappe/views/treeview.js:313
-#: public/js/frappe/views/workspace/workspace.js:829
+#: public/js/frappe/views/workspace/workspace.js:834
 #: templates/discussions/reply_card.html:35
 #: templates/discussions/reply_section.html:29
 msgid "Delete"
 msgstr "Supprimer"
 
-#: public/js/frappe/list/list_view.js:1920
+#: public/js/frappe/list/list_view.js:1927
 msgctxt "Button in list view actions menu"
 msgid "Delete"
 msgstr "Supprimer"
@@ -8373,7 +8427,7 @@ msgstr "Suprimmer les données"
 msgid "Delete Kanban Board"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:830
+#: public/js/frappe/views/workspace/workspace.js:835
 msgid "Delete Workspace"
 msgstr ""
 
@@ -8389,12 +8443,12 @@ msgstr "Supprimer le commentaire ?"
 msgid "Delete this record to allow sending to this email address"
 msgstr "Supprimer cet enregistrement pour permettre l'envoi à cette adresse Email"
 
-#: public/js/frappe/list/list_view.js:1925
+#: public/js/frappe/list/list_view.js:1932
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} item permanently?"
 msgstr ""
 
-#: public/js/frappe/list/list_view.js:1931
+#: public/js/frappe/list/list_view.js:1938
 msgctxt "Title of confirmation dialog"
 msgid "Delete {0} items permanently?"
 msgstr "Supprimer {0} éléments de façon permanente?"
@@ -8448,7 +8502,7 @@ msgctxt "Deleted Document"
 msgid "Deleted Name"
 msgstr "Nom Supprimé"
 
-#: desk/reportview.py:502
+#: desk/reportview.py:506
 msgid "Deleting {0}"
 msgstr "Suppression de {0}"
 
@@ -8933,7 +8987,7 @@ msgstr "Réponse automatique désactivée"
 
 #: public/js/frappe/views/communication.js:30
 #: public/js/frappe/views/dashboard/dashboard_view.js:70
-#: public/js/frappe/views/workspace/workspace.js:508
+#: public/js/frappe/views/workspace/workspace.js:513
 #: public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
 msgstr "Ignorer"
@@ -9233,6 +9287,11 @@ msgstr "DocType ne peut pas être fusionné"
 msgid "DocType can only be renamed by Administrator"
 msgstr "DocType ne peut être renommé que par l'Administrateur"
 
+#. Description of a DocType
+#: core/doctype/doctype/doctype.json
+msgid "DocType is a Table / Form in the application."
+msgstr ""
+
 #: integrations/doctype/webhook/webhook.py:82
 msgid "DocType must be Submittable for the selected Doc Event"
 msgstr "Le DocType doit être validable pour l'événement Doc sélectionné"
@@ -9293,7 +9352,7 @@ msgstr ""
 msgid "Doctype required"
 msgstr "Doctype requis"
 
-#: public/js/frappe/views/workspace/workspace.js:1309
+#: public/js/frappe/views/workspace/workspace.js:1314
 msgid "Doctype with same route already exist. Please choose different title."
 msgstr ""
 
@@ -9925,7 +9984,7 @@ msgstr "Brouillon"
 #: public/js/frappe/views/workspace/blocks/header.js:46
 #: public/js/frappe/views/workspace/blocks/paragraph.js:136
 #: public/js/frappe/views/workspace/blocks/spacer.js:44
-#: public/js/frappe/views/workspace/workspace.js:571
+#: public/js/frappe/views/workspace/workspace.js:576
 #: public/js/frappe/widgets/base_widget.js:33
 msgid "Drag"
 msgstr ""
@@ -9981,8 +10040,8 @@ msgstr "Date d&#39;échéance basée sur"
 
 #: public/js/frappe/form/grid_row_form.js:42
 #: public/js/frappe/form/toolbar.js:377
-#: public/js/frappe/views/workspace/workspace.js:814
-#: public/js/frappe/views/workspace/workspace.js:981
+#: public/js/frappe/views/workspace/workspace.js:819
+#: public/js/frappe/views/workspace/workspace.js:986
 msgid "Duplicate"
 msgstr "Dupliquer"
 
@@ -9998,8 +10057,8 @@ msgstr "Nom du filtre en double"
 msgid "Duplicate Name"
 msgstr "Nom en double"
 
-#: public/js/frappe/views/workspace/workspace.js:553
-#: public/js/frappe/views/workspace/workspace.js:815
+#: public/js/frappe/views/workspace/workspace.js:558
+#: public/js/frappe/views/workspace/workspace.js:820
 msgid "Duplicate Workspace"
 msgstr ""
 
@@ -10007,7 +10066,7 @@ msgstr ""
 msgid "Duplicate current row"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:996
+#: public/js/frappe/views/workspace/workspace.js:1001
 msgid "Duplicate of {0} named as {1} is created successfully"
 msgstr ""
 
@@ -10151,8 +10210,8 @@ msgstr ""
 #: public/js/frappe/form/toolbar.js:672
 #: public/js/frappe/views/reports/query_report.js:813
 #: public/js/frappe/views/reports/query_report.js:1634
-#: public/js/frappe/views/workspace/workspace.js:454
-#: public/js/frappe/views/workspace/workspace.js:808
+#: public/js/frappe/views/workspace/workspace.js:459
+#: public/js/frappe/views/workspace/workspace.js:813
 #: public/js/frappe/widgets/base_widget.js:64
 #: public/js/frappe/widgets/chart_widget.js:298
 #: public/js/frappe/widgets/number_card_widget.js:331
@@ -10163,7 +10222,7 @@ msgstr ""
 msgid "Edit"
 msgstr "modifier"
 
-#: public/js/frappe/list/list_view.js:2006
+#: public/js/frappe/list/list_view.js:2013
 msgctxt "Button in list view actions menu"
 msgid "Edit"
 msgstr "modifier"
@@ -10199,7 +10258,7 @@ msgstr "Modifier HTML Personnalisé"
 msgid "Edit DocType"
 msgstr "Modifier le DocType"
 
-#: public/js/frappe/list/list_view.js:1730
+#: public/js/frappe/list/list_view.js:1737
 msgctxt "Button in list view menu"
 msgid "Edit DocType"
 msgstr "Modifier le DocType"
@@ -10284,7 +10343,7 @@ msgctxt "Website Settings"
 msgid "Edit Values"
 msgstr "Modifier les valeurs"
 
-#: public/js/frappe/views/workspace/workspace.js:809
+#: public/js/frappe/views/workspace/workspace.js:814
 msgid "Edit Workspace"
 msgstr ""
 
@@ -10484,11 +10543,11 @@ msgctxt "Email Account"
 msgid "Email Account Name"
 msgstr "Nom du Compte Email"
 
-#: core/doctype/user/user.py:741
+#: core/doctype/user/user.py:743
 msgid "Email Account added multiple times"
 msgstr "Compte Email ajouté plusieurs fois"
 
-#: email/smtp.py:42
+#: email/smtp.py:43
 msgid "Email Account not setup. Please create a new Email Account from Settings > Email Account"
 msgstr ""
 
@@ -10644,6 +10703,11 @@ msgstr "Destinataire de la Liste d'Attente d'Emails"
 msgid "Email Queue flushing aborted due to too many failures."
 msgstr ""
 
+#. Description of a DocType
+#: email/doctype/email_queue/email_queue.json
+msgid "Email Queue records."
+msgstr ""
+
 #. Label of a HTML field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
 msgctxt "Email Template"
@@ -10723,7 +10787,7 @@ msgstr "Option de Synchronisation d'Email"
 
 #. Name of a DocType
 #: email/doctype/email_template/email_template.json
-#: public/js/frappe/views/communication.js:92
+#: public/js/frappe/views/communication.js:95
 msgid "Email Template"
 msgstr "Modèle d&#39;email"
 
@@ -10764,7 +10828,7 @@ msgstr "L'Email a été marqué comme étant un spam"
 msgid "Email has been moved to trash"
 msgstr "L'Email a été déplacé dans la corbeille"
 
-#: public/js/frappe/views/communication.js:788
+#: public/js/frappe/views/communication.js:799
 msgid "Email not sent to {0} (unsubscribed / disabled)"
 msgstr "Email pas envoyé à {0} (désabonné / désactivé)"
 
@@ -10781,6 +10845,10 @@ msgstr "Les Emails sont mis en sourdine"
 msgctxt "Workflow"
 msgid "Emails will be sent with next possible workflow actions"
 msgstr "Les e-mails seront envoyés lors des actions de workflow"
+
+#: website/doctype/web_form/web_form.js:34
+msgid "Embed code copied"
+msgstr ""
 
 #. Label of a Check field in DocType 'Google Calendar'
 #: integrations/doctype/google_calendar/google_calendar.json
@@ -11118,6 +11186,11 @@ msgstr ""
 msgid "Enabling auto reply on an incoming email account will send automated replies to all the synchronized emails. Do you wish to continue?"
 msgstr ""
 
+#. Description of a DocType
+#: integrations/doctype/push_notification_settings/push_notification_settings.json
+msgid "Enabling this will register your site on a central relay server to send push notifications for all installed apps through Firebase Cloud Messaging. This server only stores user tokens and error logs, and no messages are saved."
+msgstr ""
+
 #. Description of the 'Relay Settings' (Section Break) field in DocType 'Push
 #. Notification Settings'
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
@@ -11282,7 +11355,7 @@ msgstr "Entrez l&#39;ID et le secret du client dans les paramètres Google."
 msgid "Enter Code displayed in OTP App."
 msgstr ""
 
-#: public/js/frappe/views/communication.js:743
+#: public/js/frappe/views/communication.js:754
 msgid "Enter Email Recipient(s)"
 msgstr "Entrez Email du(des) Destinataire(s)"
 
@@ -11754,7 +11827,7 @@ msgstr "Heure d'expiration de l'image du QR Code"
 msgid "Export"
 msgstr "Exporter"
 
-#: public/js/frappe/list/list_view.js:2028
+#: public/js/frappe/list/list_view.js:2035
 msgctxt "Button in list view actions menu"
 msgid "Export"
 msgstr "Exporter"
@@ -12199,7 +12272,7 @@ msgctxt "Custom Field"
 msgid "Field Type"
 msgstr "Type de Champ"
 
-#: desk/reportview.py:176
+#: desk/reportview.py:182
 msgid "Field not permitted in query"
 msgstr ""
 
@@ -12553,9 +12626,9 @@ msgstr "Fichiers"
 #: desk/doctype/number_card/number_card.js:205
 #: desk/doctype/number_card/number_card.js:333
 #: email/doctype/auto_email_report/auto_email_report.js:90
-#: public/js/frappe/list/base_list.js:870
+#: public/js/frappe/list/base_list.js:878
 #: public/js/frappe/ui/filters/filter_list.js:134
-#: website/doctype/web_form/web_form.js:187
+#: website/doctype/web_form/web_form.js:197
 msgid "Filter"
 msgstr "Filtre"
 
@@ -13479,7 +13552,7 @@ msgctxt "System Settings"
 msgid "Friday"
 msgstr "Vendredi"
 
-#: public/js/frappe/views/communication.js:182
+#: public/js/frappe/views/communication.js:185
 #: public/js/frappe/views/inbox/inbox_view.js:70
 msgid "From"
 msgstr "À partir de"
@@ -13598,7 +13671,7 @@ msgstr "Une fonction"
 msgid "Function Based On"
 msgstr "Fonction basée sur"
 
-#: __init__.py:930
+#: __init__.py:933
 msgid "Function {0} is not whitelisted."
 msgstr ""
 
@@ -13667,6 +13740,10 @@ msgctxt "User"
 msgid "Gender"
 msgstr "Sexe"
 
+#: www/contact.html:29
+msgid "General"
+msgstr "Général"
+
 #. Title of an Onboarding Step
 #: custom/onboarding_step/report_builder/report_builder.json
 msgid "Generate Custom Reports"
@@ -13723,7 +13800,7 @@ msgctxt "Auto Repeat"
 msgid "Get Contacts"
 msgstr "Obtenir les contacts"
 
-#: website/doctype/web_form/web_form.js:83
+#: website/doctype/web_form/web_form.js:93
 msgid "Get Fields"
 msgstr "Obtenir des champs"
 
@@ -14650,7 +14727,7 @@ msgctxt "Form Tour Step"
 msgid "Hidden Fields"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:820
+#: public/js/frappe/views/workspace/workspace.js:825
 #: public/js/frappe/widgets/base_widget.js:46
 #: public/js/frappe/widgets/base_widget.js:176
 #: templates/includes/login/login.js:83
@@ -14800,7 +14877,7 @@ msgctxt "Portal Settings"
 msgid "Hide Standard Menu"
 msgstr "Masquer le Menu Standard"
 
-#: public/js/frappe/list/list_view.js:1605
+#: public/js/frappe/list/list_view.js:1612
 msgid "Hide Tags"
 msgstr ""
 
@@ -14808,7 +14885,7 @@ msgstr ""
 msgid "Hide Weekends"
 msgstr "Masquer les week-ends"
 
-#: public/js/frappe/views/workspace/workspace.js:821
+#: public/js/frappe/views/workspace/workspace.js:826
 msgid "Hide Workspace"
 msgstr ""
 
@@ -14965,7 +15042,7 @@ msgstr "Comment cette devise doit-elle être formatée ? Si ce n’est pas défi
 msgid "ID"
 msgstr ""
 
-#: desk/reportview.py:431 public/js/frappe/views/reports/report_view.js:917
+#: desk/reportview.py:435 public/js/frappe/views/reports/report_view.js:917
 msgctxt "Label of name column in report"
 msgid "ID"
 msgstr ""
@@ -15017,9 +15094,9 @@ msgctxt "Comment"
 msgid "IP Address"
 msgstr "Adresse IP"
 
-#: public/js/frappe/views/workspace/workspace.js:638
-#: public/js/frappe/views/workspace/workspace.js:966
-#: public/js/frappe/views/workspace/workspace.js:1211
+#: public/js/frappe/views/workspace/workspace.js:643
+#: public/js/frappe/views/workspace/workspace.js:971
+#: public/js/frappe/views/workspace/workspace.js:1216
 msgid "Icon"
 msgstr "Icône"
 
@@ -15216,6 +15293,12 @@ msgctxt "Note"
 msgid "If enabled, users will be notified every time they login. If not enabled, users will only be notified once."
 msgstr "Si activé, les utilisateurs seront informés chaque fois qu'ils se connectent. Si ce n'est pas activé, les utilisateurs ne seront informés qu'une seule fois."
 
+#. Description of the 'Default Workspace' (Link) field in DocType 'User'
+#: core/doctype/user/user.json
+msgctxt "User"
+msgid "If left empty, the default workspace will be the last visited workspace"
+msgstr ""
+
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
@@ -15402,7 +15485,7 @@ msgstr "Jeton d'Accès Invalide. Veuillez réessayer"
 msgid "Illegal Document Status for {0}"
 msgstr "Statut de document non autorisé pour {0}"
 
-#: model/db_query.py:441 model/db_query.py:444 model/db_query.py:1122
+#: model/db_query.py:440 model/db_query.py:443 model/db_query.py:1106
 msgid "Illegal SQL Query"
 msgstr "Requête SQL illégale"
 
@@ -15517,7 +15600,7 @@ msgstr ""
 msgid "Images"
 msgstr ""
 
-#: core/doctype/user/user.js:346
+#: core/doctype/user/user.js:356
 msgid "Impersonate"
 msgstr ""
 
@@ -15527,7 +15610,7 @@ msgctxt "Activity Log"
 msgid "Impersonate"
 msgstr ""
 
-#: core/doctype/user/user.js:373
+#: core/doctype/user/user.js:383
 msgid "Impersonate as {0}"
 msgstr ""
 
@@ -15554,7 +15637,7 @@ msgstr "Implicite"
 msgid "Import"
 msgstr "Importer"
 
-#: public/js/frappe/list/list_view.js:1667
+#: public/js/frappe/list/list_view.js:1674
 msgctxt "Button in list view menu"
 msgid "Import"
 msgstr "Importer"
@@ -15901,7 +15984,7 @@ msgstr ""
 msgid "Incomplete login details"
 msgstr "Détails de connexion incomplets"
 
-#: email/smtp.py:103
+#: email/smtp.py:104
 msgid "Incorrect Configuration"
 msgstr "Configuration incorrecte"
 
@@ -15979,9 +16062,9 @@ msgctxt "Workspace"
 msgid "Indicator Color"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:645
-#: public/js/frappe/views/workspace/workspace.js:973
-#: public/js/frappe/views/workspace/workspace.js:1217
+#: public/js/frappe/views/workspace/workspace.js:650
+#: public/js/frappe/views/workspace/workspace.js:978
+#: public/js/frappe/views/workspace/workspace.js:1222
 msgid "Indicator color"
 msgstr ""
 
@@ -16113,11 +16196,11 @@ msgstr ""
 msgid "Insufficient Permission for {0}"
 msgstr "Autorisation Insuffisante Pour {0}"
 
-#: desk/reportview.py:335
+#: desk/reportview.py:339
 msgid "Insufficient Permissions for deleting Report"
 msgstr ""
 
-#: desk/reportview.py:306
+#: desk/reportview.py:310
 msgid "Insufficient Permissions for editing Report"
 msgstr ""
 
@@ -16222,6 +16305,11 @@ msgstr "Intermédiaire"
 msgid "Internal Server Error"
 msgstr "Erreur Interne du Serveur"
 
+#. Description of a DocType
+#: core/doctype/docshare/docshare.json
+msgid "Internal record of document shares"
+msgstr ""
+
 #: desk/page/user_profile/user_profile_sidebar.html:22
 msgid "Intro"
 msgstr ""
@@ -16302,7 +16390,7 @@ msgstr "Format CSV Invalide"
 msgid "Invalid Condition: {}"
 msgstr ""
 
-#: email/smtp.py:132
+#: email/smtp.py:134
 msgid "Invalid Credentials"
 msgstr "Les informations d&#39;identification invalides"
 
@@ -16354,7 +16442,7 @@ msgstr ""
 msgid "Invalid Mail Server. Please rectify and try again."
 msgstr "Serveur Mail Invalide. Veuillez corriger et réesayer"
 
-#: model/naming.py:93
+#: model/naming.py:94
 msgid "Invalid Naming Series: {}"
 msgstr ""
 
@@ -16366,7 +16454,7 @@ msgstr ""
 msgid "Invalid Option"
 msgstr "Option invalide"
 
-#: email/smtp.py:102
+#: email/smtp.py:103
 msgid "Invalid Outgoing Mail Server or Port: {0}"
 msgstr ""
 
@@ -16378,7 +16466,7 @@ msgstr "Format de Sortie Invalide"
 msgid "Invalid Parameters."
 msgstr ""
 
-#: core/doctype/user/user.py:1227 www/update-password.html:121
+#: core/doctype/user/user.py:1229 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -16417,7 +16505,7 @@ msgstr "Nom d'Utilisateur ou Mot de Passe Invalide. Veuillez corriger et réessa
 msgid "Invalid Webhook Secret"
 msgstr ""
 
-#: desk/reportview.py:161
+#: desk/reportview.py:167
 msgid "Invalid aggregate function"
 msgstr ""
 
@@ -16458,11 +16546,11 @@ msgstr "Filtre non valide: {0}"
 msgid "Invalid json added in the custom options: {0}"
 msgstr "Json non valide ajouté dans les options personnalisées: {0}"
 
-#: model/naming.py:444
+#: model/naming.py:466
 msgid "Invalid name type (integer) for varchar name column"
 msgstr ""
 
-#: model/naming.py:54
+#: model/naming.py:55
 msgid "Invalid naming series {}: dot (.) missing"
 msgstr ""
 
@@ -17086,6 +17174,16 @@ msgstr "Nom du Tableau Kanban"
 #: public/js/frappe/views/kanban/kanban_view.js:262
 msgctxt "Button in kanban view menu"
 msgid "Kanban Settings"
+msgstr ""
+
+#. Description of a DocType
+#: core/doctype/activity_log/activity_log.json
+msgid "Keep track of all update feeds"
+msgstr ""
+
+#. Description of a DocType
+#: core/doctype/communication/communication.json
+msgid "Keeps track of all communications"
 msgstr ""
 
 #. Label of a Data field in DocType 'DefaultValue'
@@ -18318,7 +18416,7 @@ msgctxt "Web Form"
 msgid "List Setting Message"
 msgstr ""
 
-#: public/js/frappe/list/list_view.js:1747
+#: public/js/frappe/list/list_view.js:1754
 msgctxt "Button in list view menu"
 msgid "List Settings"
 msgstr "Paramètres de liste"
@@ -18362,6 +18460,11 @@ msgctxt "Web Page"
 msgid "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
 msgstr "Liste comme [{ \"label\": _ ( \"Jobs\"), \"route\": \"emplois\"}]"
 
+#. Description of a DocType
+#: core/doctype/patch_log/patch_log.json
+msgid "List of patches executed"
+msgstr ""
+
 #: public/js/frappe/ui/toolbar/search_utils.js:542
 msgid "Lists"
 msgstr ""
@@ -18386,7 +18489,7 @@ msgstr ""
 #: core/page/permission_manager/permission_manager.js:165
 #: public/js/frappe/form/controls/multicheck.js:13
 #: public/js/frappe/form/linked_with.js:13
-#: public/js/frappe/list/base_list.js:482
+#: public/js/frappe/list/base_list.js:490
 #: public/js/frappe/list/list_view.js:333 public/js/frappe/ui/listing.html:16
 #: public/js/frappe/views/reports/query_report.js:1015
 msgid "Loading"
@@ -18551,7 +18654,7 @@ msgstr ""
 msgid "Login and view in Browser"
 msgstr "Connectez-vous et affichez la page dans le navigateur"
 
-#: website/doctype/web_form/web_form.js:357
+#: website/doctype/web_form/web_form.js:367
 msgid "Login is required to see web form list view. Enable {0} to see list settings"
 msgstr ""
 
@@ -18615,7 +18718,7 @@ msgctxt "Activity Log"
 msgid "Logout"
 msgstr "Déconnecté"
 
-#: core/doctype/user/user.js:173
+#: core/doctype/user/user.js:183
 msgid "Logout All Sessions"
 msgstr "Déconnecter toutes les sessions"
 
@@ -19168,7 +19271,7 @@ msgstr "La combinaison n'est possible que de Groupe à Groupe ou Nœud-Feuille �
 
 #: core/doctype/data_import/data_import.js:489
 #: public/js/frappe/ui/messages.js:175
-#: public/js/frappe/views/communication.js:111 www/message.html:3
+#: public/js/frappe/views/communication.js:114 www/message.html:3
 #: www/message.html:25
 msgid "Message"
 msgstr ""
@@ -19198,7 +19301,7 @@ msgctxt "Communication"
 msgid "Message"
 msgstr ""
 
-#: __init__.py:614 public/js/frappe/ui/messages.js:265
+#: __init__.py:617 public/js/frappe/ui/messages.js:265
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr ""
@@ -19288,7 +19391,7 @@ msgctxt "Notification"
 msgid "Message Type"
 msgstr ""
 
-#: public/js/frappe/views/communication.js:922
+#: public/js/frappe/views/communication.js:933
 msgid "Message clipped"
 msgstr "Message coupé"
 
@@ -20070,7 +20173,7 @@ msgstr "Doit être de type \"Joindre l'Image\""
 msgid "Must have report permission to access this report."
 msgstr "Doit avoir l'autorisation d'accéder aux rapport dont celui-ci."
 
-#: core/doctype/report/report.py:145
+#: core/doctype/report/report.py:148
 msgid "Must specify a Query to run"
 msgstr "Vous devez spécifier une Requête à exécuter"
 
@@ -20156,7 +20259,7 @@ msgstr ""
 msgid "Name already taken, please set a new name"
 msgstr ""
 
-#: model/naming.py:458
+#: model/naming.py:480
 msgid "Name cannot contain special characters like {0}"
 msgstr "Le Nom ne peut contenir des caractères spéciaux tels que {0}"
 
@@ -20168,7 +20271,7 @@ msgstr "Nom du Type de Document (DocType) auquel vous souhaitez que ce champ soi
 msgid "Name of the new Print Format"
 msgstr "Nom du nouveau Format d'Impression"
 
-#: model/naming.py:453
+#: model/naming.py:475
 msgid "Name of {0} cannot be {1}"
 msgstr "Nom de {0} ne peut pas être {1}"
 
@@ -20228,7 +20331,7 @@ msgctxt "Document Naming Settings"
 msgid "Naming Series"
 msgstr "Masque de numérotation"
 
-#: model/naming.py:243
+#: model/naming.py:244
 msgid "Naming Series mandatory"
 msgstr "Masque de numérotation obligatoire"
 
@@ -20414,7 +20517,7 @@ msgstr ""
 msgid "New Mention on {0}"
 msgstr "Nouvelle mention sur {0}"
 
-#: www/contact.py:50
+#: www/contact.py:59
 msgid "New Message from Website Contact Page"
 msgstr "Nouveau Message depuis la Page Contact du Site Web"
 
@@ -20444,7 +20547,7 @@ msgstr ""
 msgid "New Onboarding"
 msgstr ""
 
-#: core/doctype/user/user.js:161 www/update-password.html:19
+#: core/doctype/user/user.js:171 www/update-password.html:19
 msgid "New Password"
 msgstr "Nouveau Mot de Passe"
 
@@ -20474,7 +20577,7 @@ msgstr ""
 msgid "New Workflow Name"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1178
+#: public/js/frappe/views/workspace/workspace.js:1183
 msgid "New Workspace"
 msgstr ""
 
@@ -20534,7 +20637,7 @@ msgstr "Nouveau {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "De nouvelles {} versions pour les applications suivantes sont disponibles"
 
-#: core/doctype/user/user.py:804
+#: core/doctype/user/user.py:806
 msgid "Newly created user {0} has no roles enabled."
 msgstr ""
 
@@ -20803,7 +20906,7 @@ msgstr ""
 msgid "No Letterhead"
 msgstr ""
 
-#: model/naming.py:435
+#: model/naming.py:457
 msgid "No Name Specified for {0}"
 msgstr "Aucun nom spécifié pour {0}"
 
@@ -20851,7 +20954,7 @@ msgstr "Aucun résultat"
 msgid "No Results found"
 msgstr "Aucun résultat trouvs"
 
-#: core/doctype/user/user.py:805
+#: core/doctype/user/user.py:807
 msgid "No Roles Specified"
 msgstr ""
 
@@ -20859,7 +20962,7 @@ msgstr ""
 msgid "No Select Field Found"
 msgstr ""
 
-#: desk/reportview.py:580
+#: desk/reportview.py:584
 msgid "No Tags"
 msgstr "Aucune balise"
 
@@ -20891,7 +20994,7 @@ msgstr "Aucun changement dans le document"
 msgid "No changes made because old and new name are the same."
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1483
+#: public/js/frappe/views/workspace/workspace.js:1488
 msgid "No changes made on the page"
 msgstr ""
 
@@ -21001,7 +21104,7 @@ msgctxt "SMS Log"
 msgid "No of Sent SMS"
 msgstr ""
 
-#: __init__.py:1118 client.py:109 client.py:151
+#: __init__.py:1121 client.py:109 client.py:151
 msgid "No permission for {0}"
 msgstr "Pas d'autorisation pour {0}"
 
@@ -21010,7 +21113,7 @@ msgctxt "{0} = verb, {1} = object"
 msgid "No permission to '{0}' {1}"
 msgstr "Pas d'autorisation pour '{0}' {1}"
 
-#: model/db_query.py:935
+#: model/db_query.py:924
 msgid "No permission to read {0}"
 msgstr "Pas d'autorisation pour lire {0}"
 
@@ -21038,7 +21141,7 @@ msgstr "Aucun enregistrement ne sera exporté"
 msgid "No template found at path: {0}"
 msgstr "Aucun modèle trouvé au chemin: {0}"
 
-#: public/js/frappe/form/controls/multiselect_list.js:226
+#: public/js/frappe/form/controls/multiselect_list.js:246
 msgid "No values to show"
 msgstr ""
 
@@ -21062,11 +21165,7 @@ msgstr ""
 msgid "No {0} mail"
 msgstr "Pas de courrier {0}"
 
-#: public/js/form_builder/utils.js:117
-msgid "No."
-msgstr ""
-
-#: public/js/frappe/form/grid_row.js:252
+#: public/js/form_builder/utils.js:117 public/js/frappe/form/grid_row.js:252
 msgctxt "Title of the 'row number' column"
 msgid "No."
 msgstr ""
@@ -21112,7 +21211,7 @@ msgctxt "Recorder Query"
 msgid "Normalized Query"
 msgstr ""
 
-#: core/doctype/user/user.py:1010 templates/includes/login/login.js:258
+#: core/doctype/user/user.py:1012 templates/includes/login/login.js:258
 #: utils/oauth.py:265
 msgid "Not Allowed"
 msgstr "Non Autorisé"
@@ -21161,10 +21260,10 @@ msgctxt "DocField"
 msgid "Not Nullable"
 msgstr ""
 
-#: __init__.py:1014 app.py:353 desk/calendar.py:26 geo/utils.py:97
+#: __init__.py:1017 app.py:353 desk/calendar.py:26 geo/utils.py:97
 #: public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:602
-#: website/page_renderers/not_permitted_page.py:20 www/login.py:174
+#: website/page_renderers/not_permitted_page.py:20 www/login.py:178
 #: www/qrcode.py:22 www/qrcode.py:25 www/qrcode.py:37
 msgid "Not Permitted"
 msgstr "Non Autorisé"
@@ -21221,7 +21320,7 @@ msgstr "Non Défini"
 msgid "Not a valid Comma Separated Value (CSV File)"
 msgstr "Valeurs Séparées par des Virgules non valides (Fichier CSV)"
 
-#: core/doctype/user/user.py:232
+#: core/doctype/user/user.py:234
 msgid "Not a valid User Image."
 msgstr "Image utilisateur non valide."
 
@@ -21274,7 +21373,7 @@ msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
 msgstr "Pas en Mode Développeur! Configurez le dans site_config.json ou créez un DocType 'Custom'."
 
 #: api/v1.py:88 api/v1.py:93
-#: core/doctype/system_settings/system_settings.py:208 handler.py:109
+#: core/doctype/system_settings/system_settings.py:209 handler.py:109
 #: public/js/frappe/request.js:157 public/js/frappe/request.js:167
 #: public/js/frappe/request.js:172
 #: public/js/frappe/views/kanban/kanban_board.bundle.js:68
@@ -21325,7 +21424,7 @@ msgstr "Remarque: par défaut, les e-mails pour les sauvegardes ayant échoué s
 msgid "Note: Changing the Page Name will break previous URL to this page."
 msgstr "Remarque : Changer le Nom de la Page va détruire le précédent lien URL vers cette page."
 
-#: core/doctype/user/user.js:25
+#: core/doctype/user/user.js:35
 msgid "Note: Etc timezones have their signs reversed."
 msgstr ""
 
@@ -21343,7 +21442,7 @@ msgctxt "System Settings"
 msgid "Note: Multiple sessions will be allowed in case of mobile device"
 msgstr "Remarque : Plusieurs sessions seront autorisées en cas d'appareil mobile"
 
-#: core/doctype/user/user.js:361
+#: core/doctype/user/user.js:371
 msgid "Note: This will be shared with user."
 msgstr ""
 
@@ -21590,7 +21689,7 @@ msgstr ""
 msgid "Number of attachment fields are more than {}, limit updated to {}."
 msgstr ""
 
-#: core/doctype/system_settings/system_settings.py:161
+#: core/doctype/system_settings/system_settings.py:162
 msgid "Number of backups must be greater than zero."
 msgstr ""
 
@@ -21792,7 +21891,7 @@ msgctxt "Webhook"
 msgid "On checking this option, URL will be treated like a jinja template string"
 msgstr ""
 
-#: public/js/frappe/views/communication.js:932
+#: public/js/frappe/views/communication.js:943
 msgid "On {0}, {1} wrote:"
 msgstr ""
 
@@ -21859,7 +21958,7 @@ msgstr "Code de Mot de Passe Unique (OTP) à partir de {}"
 msgid "One of"
 msgstr "Un des"
 
-#: public/js/frappe/views/workspace/workspace.js:1318
+#: public/js/frappe/views/workspace/workspace.js:1323
 msgid "One of the child page with name {0} already exist in {1} Section. Please update the name of the child page first before moving"
 msgstr ""
 
@@ -21875,7 +21974,7 @@ msgstr "Seul l'Administrateur peut supprimer la File d'Attente d' Emails"
 msgid "Only Administrator can edit"
 msgstr "Seul l'Administrateur peut modifier"
 
-#: core/doctype/report/report.py:72
+#: core/doctype/report/report.py:75
 msgid "Only Administrator can save a standard report. Please rename and save."
 msgstr "Seul l'Administrateur peut enregistrer un rapport standard. Merci de renommer et sauvegarder."
 
@@ -21903,7 +22002,7 @@ msgstr "Envoyer Uniquement les Enregistrements Mis à Jour au cours des X Derni�
 msgid "Only Workspace Manager can edit public workspaces"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:542
+#: public/js/frappe/views/workspace/workspace.js:547
 msgid "Only Workspace Manager can sort or edit this page"
 msgstr ""
 
@@ -21933,11 +22032,11 @@ msgstr "Seuls les champs obligatoires sont nécessaires pour les nouveaux enregi
 msgid "Only one {0} can be set as primary."
 msgstr "Un seul {0} peut être défini comme primaire."
 
-#: desk/reportview.py:332
+#: desk/reportview.py:336
 msgid "Only reports of type Report Builder can be deleted"
 msgstr ""
 
-#: desk/reportview.py:303
+#: desk/reportview.py:307
 msgid "Only reports of type Report Builder can be edited"
 msgstr ""
 
@@ -21965,7 +22064,7 @@ msgstr ""
 msgid "Open"
 msgstr "Ouvert"
 
-#: desk/doctype/todo/todo_list.js:20
+#: desk/doctype/todo/todo_list.js:14
 msgctxt "Access"
 msgid "Open"
 msgstr "Ouvert"
@@ -22062,7 +22161,7 @@ msgstr "Ouvrir un élément de la liste"
 msgid "Open your authentication app on your mobile phone."
 msgstr "Ouvrez votre application d&#39;authentification sur votre téléphone portable."
 
-#: desk/doctype/todo/todo_list.js:23
+#: desk/doctype/todo/todo_list.js:17
 #: public/js/frappe/form/templates/form_links.html:18
 #: public/js/frappe/ui/toolbar/search_utils.js:277
 #: public/js/frappe/ui/toolbar/search_utils.js:278
@@ -22566,7 +22665,7 @@ msgctxt "Form Tour"
 msgid "Page Route"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1505
+#: public/js/frappe/views/workspace/workspace.js:1510
 msgid "Page Saved Successfully"
 msgstr ""
 
@@ -22607,7 +22706,12 @@ msgstr ""
 msgid "Page not found"
 msgstr "Page non trouvée"
 
-#: public/js/frappe/views/workspace/workspace.js:1305
+#. Description of a DocType
+#: website/doctype/web_page/web_page.json
+msgid "Page to show on the website\n"
+msgstr ""
+
+#: public/js/frappe/views/workspace/workspace.js:1310
 msgid "Page with title {0} already exist."
 msgstr ""
 
@@ -22625,9 +22729,9 @@ msgid "Parameter"
 msgstr "Paramètre"
 
 #: public/js/frappe/model/model.js:132
-#: public/js/frappe/views/workspace/workspace.js:612
-#: public/js/frappe/views/workspace/workspace.js:940
-#: public/js/frappe/views/workspace/workspace.js:1187
+#: public/js/frappe/views/workspace/workspace.js:617
+#: public/js/frappe/views/workspace/workspace.js:945
+#: public/js/frappe/views/workspace/workspace.js:1192
 msgid "Parent"
 msgstr ""
 
@@ -22749,8 +22853,8 @@ msgctxt "Contact"
 msgid "Passive"
 msgstr "Passif"
 
-#: core/doctype/user/user.js:148 core/doctype/user/user.js:195
-#: core/doctype/user/user.js:215 desk/page/setup_wizard/setup_wizard.js:474
+#: core/doctype/user/user.js:158 core/doctype/user/user.js:205
+#: core/doctype/user/user.js:225 desk/page/setup_wizard/setup_wizard.js:474
 #: www/login.html:21
 msgid "Password"
 msgstr "Mot de Passe"
@@ -22792,11 +22896,11 @@ msgctxt "Web Form Field"
 msgid "Password"
 msgstr "Mot de Passe"
 
-#: core/doctype/user/user.py:1073
+#: core/doctype/user/user.py:1075
 msgid "Password Email Sent"
 msgstr ""
 
-#: core/doctype/user/user.py:452
+#: core/doctype/user/user.py:454
 msgid "Password Reset"
 msgstr "Réinitialisation du Mot de Passe"
 
@@ -22832,7 +22936,7 @@ msgstr ""
 msgid "Password not found for {0} {1} {2}"
 msgstr ""
 
-#: core/doctype/user/user.py:1072
+#: core/doctype/user/user.py:1074
 msgid "Password reset instructions have been sent to your email"
 msgstr "Les Instructions de réinitialisation du mot de passe ont été envoyés à votre adresse Email"
 
@@ -22844,7 +22948,7 @@ msgstr ""
 msgid "Password size exceeded the maximum allowed size"
 msgstr ""
 
-#: core/doctype/user/user.py:868
+#: core/doctype/user/user.py:870
 msgid "Password size exceeded the maximum allowed size."
 msgstr ""
 
@@ -22852,7 +22956,7 @@ msgstr ""
 msgid "Passwords do not match"
 msgstr ""
 
-#: core/doctype/user/user.js:181
+#: core/doctype/user/user.js:191
 msgid "Passwords do not match!"
 msgstr "Les mots de passe ne correspondent pas!"
 
@@ -23087,7 +23191,7 @@ msgid "Permission Type"
 msgstr ""
 
 #. Label of a Card Break in the Users Workspace
-#: core/doctype/user/user.js:123 core/doctype/user/user.js:132
+#: core/doctype/user/user.js:133 core/doctype/user/user.js:142
 #: core/page/permission_manager/permission_manager.js:214
 #: core/workspace/users/users.json
 msgid "Permissions"
@@ -23321,7 +23425,7 @@ msgstr "S&#39;il vous plaît ajouter un sujet à votre email"
 msgid "Please add a valid comment."
 msgstr "Veuillez ajouter un commentaire valide."
 
-#: core/doctype/user/user.py:1055
+#: core/doctype/user/user.py:1057
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Veuillez demander à votre administrateur de vérifier votre inscription"
 
@@ -23353,11 +23457,11 @@ msgstr "Veuillez vérifier les valeurs de filtre définies pour le tableau de bo
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Veuillez vérifier la valeur de &quot;Extraire depuis&quot; définie pour le champ {0}"
 
-#: core/doctype/user/user.py:1053
+#: core/doctype/user/user.py:1055
 msgid "Please check your email for verification"
 msgstr "Veuillez vérifier votre email pour validation"
 
-#: email/smtp.py:131
+#: email/smtp.py:133
 msgid "Please check your email login credentials."
 msgstr ""
 
@@ -23405,7 +23509,7 @@ msgstr "Veuillez ne pas modifier les sections du modèle."
 msgid "Please duplicate this to make changes"
 msgstr "Veuillez créer un duplicata pour faire des changements"
 
-#: core/doctype/system_settings/system_settings.py:154
+#: core/doctype/system_settings/system_settings.py:155
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 msgstr ""
 
@@ -23541,7 +23645,7 @@ msgstr "Veuillez d’abord sélectionner un DocType"
 msgid "Please select Entity Type first"
 msgstr "Veuillez d'abord sélectionner le type d'entité"
 
-#: core/doctype/system_settings/system_settings.py:104
+#: core/doctype/system_settings/system_settings.py:105
 msgid "Please select Minimum Password Score"
 msgstr "Veuillez sélectionner le Score Minimum du Mot de Passe"
 
@@ -23569,7 +23673,7 @@ msgstr "Veuillez sélectionner un filtre de date valide"
 msgid "Please select applicable Doctypes"
 msgstr "Veuillez sélectionner les types de docteurs applicables"
 
-#: model/db_query.py:1134
+#: model/db_query.py:1118
 msgid "Please select atleast 1 column from {0} to sort/group"
 msgstr "Veuillez sélectionner au moins 1 colonne de {0} pour trier / grouper"
 
@@ -23612,7 +23716,7 @@ msgstr "Veuillez définir des filtres"
 msgid "Please set filters value in Report Filter table."
 msgstr "Veuillez définir la valeur des filtres dans le Tableau des Filtres de Rapport."
 
-#: model/naming.py:528
+#: model/naming.py:550
 msgid "Please set the document name"
 msgstr ""
 
@@ -23624,7 +23728,7 @@ msgstr "Veuillez d&#39;abord définir les documents suivants dans ce tableau de 
 msgid "Please set the series to be used."
 msgstr "Veuillez définir la série à utiliser."
 
-#: core/doctype/system_settings/system_settings.py:117
+#: core/doctype/system_settings/system_settings.py:118
 msgid "Please setup SMS before setting it as an authentication method, via SMS Settings"
 msgstr "Veuillez configurer les SMS avant de les choisir comme méthode d'authentification"
 
@@ -23636,7 +23740,7 @@ msgstr "Veuillez d&#39;abord configurer un message"
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr ""
 
-#: core/doctype/user/user.py:403
+#: core/doctype/user/user.py:405
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr ""
 
@@ -23888,7 +23992,7 @@ msgstr ""
 msgid "Preparing Report"
 msgstr "Rapport de préparation"
 
-#: public/js/frappe/views/communication.js:400
+#: public/js/frappe/views/communication.js:411
 msgid "Prepend the template to the email message"
 msgstr ""
 
@@ -24045,7 +24149,7 @@ msgstr ""
 msgid "Print"
 msgstr "Impression"
 
-#: public/js/frappe/list/list_view.js:1912
+#: public/js/frappe/list/list_view.js:1919
 msgctxt "Button in list view actions menu"
 msgid "Print"
 msgstr "Impression"
@@ -24214,7 +24318,7 @@ msgctxt "DocField"
 msgid "Print Hide If No Value"
 msgstr "Cacher à l’Impression si Aucune Valeur"
 
-#: public/js/frappe/views/communication.js:153
+#: public/js/frappe/views/communication.js:156
 msgid "Print Language"
 msgstr "Langue d’Impression"
 
@@ -24466,6 +24570,11 @@ msgctxt "Module Def"
 msgid "Property Setter"
 msgstr "Initialisateur de Propriété"
 
+#. Description of a DocType
+#: custom/doctype/property_setter/property_setter.json
+msgid "Property Setter overrides a standard DocType or Field property"
+msgstr ""
+
 #. Label of a Data field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
@@ -24504,9 +24613,9 @@ msgid "Provider Name"
 msgstr "Nom du fournisseur"
 
 #: desk/doctype/note/note_list.js:6 public/js/frappe/views/interaction.js:78
-#: public/js/frappe/views/workspace/workspace.js:619
-#: public/js/frappe/views/workspace/workspace.js:947
-#: public/js/frappe/views/workspace/workspace.js:1193
+#: public/js/frappe/views/workspace/workspace.js:624
+#: public/js/frappe/views/workspace/workspace.js:952
+#: public/js/frappe/views/workspace/workspace.js:1198
 msgid "Public"
 msgstr ""
 
@@ -24529,7 +24638,7 @@ msgid "Public"
 msgstr ""
 
 #: website/doctype/blog_post/blog_post.js:36
-#: website/doctype/web_form/web_form.js:76
+#: website/doctype/web_form/web_form.js:86
 msgid "Publish"
 msgstr "Publier"
 
@@ -24973,6 +25082,12 @@ msgctxt "Blog Settings"
 msgid "Rate Limits"
 msgstr ""
 
+#. Label of a Int field in DocType 'System Settings'
+#: core/doctype/system_settings/system_settings.json
+msgctxt "System Settings"
+msgid "Rate limit for email link login"
+msgstr ""
+
 #. Label of a Int field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
@@ -25049,7 +25164,7 @@ msgstr ""
 
 #: core/doctype/communication/communication.js:268
 #: public/js/frappe/form/footer/form_timeline.js:587
-#: public/js/frappe/views/communication.js:336
+#: public/js/frappe/views/communication.js:347
 msgid "Re: {0}"
 msgstr ""
 
@@ -25851,11 +25966,11 @@ msgid "Refreshing"
 msgstr ""
 
 #: core/doctype/system_settings/system_settings.js:52
-#: core/doctype/user/user.js:340 desk/page/setup_wizard/setup_wizard.js:204
+#: core/doctype/user/user.js:350 desk/page/setup_wizard/setup_wizard.js:204
 msgid "Refreshing..."
 msgstr "Actualisation..."
 
-#: core/doctype/user/user.py:1017
+#: core/doctype/user/user.py:1019
 msgid "Registered but disabled"
 msgstr "Enregistré mais Désactivé"
 
@@ -26222,7 +26337,7 @@ msgctxt "Onboarding Step"
 msgid "Report Description"
 msgstr "Description du rapport"
 
-#: core/doctype/report/report.py:145
+#: core/doctype/report/report.py:148
 msgid "Report Document Error"
 msgstr "Signaler une erreur de document"
 
@@ -26372,7 +26487,7 @@ msgstr "Le rapport avec plus de 10 colonnes a une meilleure apparence en mode Pa
 msgid "Report {0}"
 msgstr "Rapport {0}"
 
-#: desk/reportview.py:339
+#: desk/reportview.py:343
 msgid "Report {0} deleted"
 msgstr ""
 
@@ -26380,7 +26495,7 @@ msgstr ""
 msgid "Report {0} is disabled"
 msgstr "Rapport {0} est désactivé"
 
-#: desk/reportview.py:316
+#: desk/reportview.py:320
 msgid "Report {0} saved"
 msgstr ""
 
@@ -26405,6 +26520,16 @@ msgstr "Ecrans principaux et Rapports"
 #: public/js/frappe/views/reports/query_report.js:855
 msgid "Reports already in Queue"
 msgstr "Rapports déjà en file d&#39;attente"
+
+#. Description of a DocType
+#: core/doctype/user/user.json
+msgid "Represents a User in the system."
+msgstr ""
+
+#. Description of a DocType
+#: workflow/doctype/workflow_document_state/workflow_document_state.json
+msgid "Represents the states allowed in one document and role assigned to change the state."
+msgstr ""
 
 #: www/me.html:66
 msgid "Request Account Deletion"
@@ -26542,7 +26667,7 @@ msgstr ""
 msgid "Reset Fields"
 msgstr "Réinitialisation des champs"
 
-#: core/doctype/user/user.js:155 core/doctype/user/user.js:158
+#: core/doctype/user/user.js:165 core/doctype/user/user.js:168
 msgid "Reset LDAP Password"
 msgstr "Réinitialiser le mot de passe LDAP"
 
@@ -26550,11 +26675,11 @@ msgstr "Réinitialiser le mot de passe LDAP"
 msgid "Reset Layout"
 msgstr ""
 
-#: core/doctype/user/user.js:206
+#: core/doctype/user/user.js:216
 msgid "Reset OTP Secret"
 msgstr "Réinitialiser le Secret OTP"
 
-#: core/doctype/user/user.js:139 www/login.html:179 www/me.html:35
+#: core/doctype/user/user.js:149 www/login.html:179 www/me.html:35
 #: www/me.html:44 www/update-password.html:3 www/update-password.html:9
 msgid "Reset Password"
 msgstr "Réinitialiser Mot de Passe"
@@ -27003,7 +27128,7 @@ msgstr "Autorisations du Rôle"
 msgid "Role Permissions Manager"
 msgstr "Gestionnaire d’Autorisations du Rôle"
 
-#: public/js/frappe/list/list_view.js:1689
+#: public/js/frappe/list/list_view.js:1696
 msgctxt "Button in list view menu"
 msgid "Role Permissions Manager"
 msgstr "Gestionnaire d’Autorisations du Rôle"
@@ -27049,7 +27174,7 @@ msgctxt "DocPerm"
 msgid "Role and Level"
 msgstr "Rôle et Niveau"
 
-#: core/doctype/user/user.py:348
+#: core/doctype/user/user.py:350
 msgid "Role has been set as per the user type {0}"
 msgstr ""
 
@@ -27636,7 +27761,7 @@ msgstr "Samedi"
 #: public/js/frappe/views/kanban/kanban_view.js:340
 #: public/js/frappe/views/reports/query_report.js:1802
 #: public/js/frappe/views/reports/report_view.js:1628
-#: public/js/frappe/views/workspace/workspace.js:493
+#: public/js/frappe/views/workspace/workspace.js:498
 #: public/js/frappe/widgets/base_widget.js:140
 #: public/js/frappe/widgets/quick_list_widget.js:117
 #: public/js/print_format_builder/print_format_builder.bundle.js:15
@@ -27650,7 +27775,7 @@ msgctxt "Notification"
 msgid "Save"
 msgstr "Sauvegarder"
 
-#: core/doctype/user/user.js:311
+#: core/doctype/user/user.js:321
 msgid "Save API Secret: {0}"
 msgstr ""
 
@@ -27698,7 +27823,7 @@ msgstr "Enregistré"
 
 #: public/js/frappe/list/list_settings.js:40
 #: public/js/frappe/views/kanban/kanban_settings.js:47
-#: public/js/frappe/views/workspace/workspace.js:505
+#: public/js/frappe/views/workspace/workspace.js:510
 msgid "Saving"
 msgstr "En Cours d'Enregistrement"
 
@@ -27737,7 +27862,7 @@ msgstr ""
 msgid "Schedule Newsletter"
 msgstr ""
 
-#: public/js/frappe/views/communication.js:82
+#: public/js/frappe/views/communication.js:85
 msgid "Schedule Send At"
 msgstr ""
 
@@ -27942,6 +28067,11 @@ msgstr "Rapport de Script"
 msgctxt "Server Script"
 msgid "Script Type"
 msgstr "Type de Script"
+
+#. Description of a DocType
+#: website/doctype/website_script/website_script.json
+msgid "Script to attach to all web pages."
+msgstr ""
 
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
@@ -28232,8 +28362,8 @@ msgstr "Sélectionner"
 msgid "Select All"
 msgstr ""
 
-#: public/js/frappe/views/communication.js:162
-#: public/js/frappe/views/communication.js:567
+#: public/js/frappe/views/communication.js:165
+#: public/js/frappe/views/communication.js:578
 #: public/js/frappe/views/interaction.js:93
 #: public/js/frappe/views/interaction.js:155
 msgid "Select Attachments"
@@ -28384,7 +28514,7 @@ msgid "Select Page"
 msgstr ""
 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:68
-#: public/js/frappe/views/communication.js:145
+#: public/js/frappe/views/communication.js:148
 msgid "Select Print Format"
 msgstr "Sélectionner le Format d'Impression"
 
@@ -28631,7 +28761,7 @@ msgctxt "Print Settings"
 msgid "Send Print as PDF"
 msgstr "Envoyer Imprimer en PDF"
 
-#: public/js/frappe/views/communication.js:135
+#: public/js/frappe/views/communication.js:138
 msgid "Send Read Receipt"
 msgstr "Envoyer Accusé de Réception"
 
@@ -28717,7 +28847,7 @@ msgstr "Envoyer une demande à cette adresse courriel"
 msgid "Send login link"
 msgstr ""
 
-#: public/js/frappe/views/communication.js:129
+#: public/js/frappe/views/communication.js:132
 msgid "Send me a copy"
 msgstr "M'Envoyer Une Copie"
 
@@ -29046,7 +29176,7 @@ msgctxt "System Settings"
 msgid "Session Expiry (idle timeout)"
 msgstr ""
 
-#: core/doctype/system_settings/system_settings.py:111
+#: core/doctype/system_settings/system_settings.py:112
 msgid "Session Expiry must be in format {0}"
 msgstr "Expiration de Session doit être au format {0}"
 
@@ -29078,7 +29208,7 @@ msgstr "Définir des filtres dynamiques"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:381
 #: desk/doctype/number_card/number_card.js:277
-#: website/doctype/web_form/web_form.js:259
+#: website/doctype/web_form/web_form.js:269
 msgid "Set Filters"
 msgstr "Définir les filtres"
 
@@ -29138,7 +29268,7 @@ msgctxt "Role Permission for Page and Report"
 msgid "Set Role For"
 msgstr "Définir le Rôle Pour"
 
-#: core/doctype/user/user.js:116
+#: core/doctype/user/user.js:126
 #: core/page/permission_manager/permission_manager.js:65
 msgid "Set User Permissions"
 msgstr "Définir les Autorisations des Utilisateurs"
@@ -29262,7 +29392,7 @@ msgstr "Configuration de votre système"
 #: integrations/workspace/integrations/integrations.json
 #: public/js/frappe/form/templates/print_layout.html:25
 #: public/js/frappe/ui/toolbar/toolbar.js:264
-#: public/js/frappe/views/workspace/workspace.js:521
+#: public/js/frappe/views/workspace/workspace.js:526
 msgid "Settings"
 msgstr "Paramètres"
 
@@ -29296,6 +29426,21 @@ msgstr "Paramètres"
 msgctxt "Navbar Settings"
 msgid "Settings Dropdown"
 msgstr "Liste déroulante des paramètres"
+
+#. Description of a DocType
+#: website/doctype/contact_us_settings/contact_us_settings.json
+msgid "Settings for Contact Us Page"
+msgstr ""
+
+#. Description of a DocType
+#: website/doctype/about_us_settings/about_us_settings.json
+msgid "Settings for the About Us Page"
+msgstr ""
+
+#. Description of a DocType
+#: website/doctype/blog_settings/blog_settings.json
+msgid "Settings to control blog categories and interactions like comments and likes"
+msgstr ""
 
 #. Label of a Card Break in the Website Workspace
 #: public/js/frappe/ui/toolbar/search_utils.js:567
@@ -29665,7 +29810,7 @@ msgid "Show Sidebar"
 msgstr "Afficher la Barre Latérale"
 
 #: public/js/frappe/list/list_sidebar.html:66
-#: public/js/frappe/list/list_view.js:1605
+#: public/js/frappe/list/list_view.js:1612
 msgid "Show Tags"
 msgstr "Voir les étiquettes"
 
@@ -29821,7 +29966,7 @@ msgctxt "Email Group"
 msgid "Sign Up and Confirmation"
 msgstr ""
 
-#: core/doctype/user/user.py:1010
+#: core/doctype/user/user.py:1012
 msgid "Sign Up is disabled"
 msgstr "L'inscription est désactivée"
 
@@ -30022,6 +30167,11 @@ msgstr "Articles du Diaporama"
 msgctxt "Website Slideshow"
 msgid "Slideshow Name"
 msgstr "Nom du Diaporama"
+
+#. Description of a DocType
+#: website/doctype/website_slideshow/website_slideshow.json
+msgid "Slideshow like display for the website"
+msgstr ""
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -30233,7 +30383,7 @@ msgstr ""
 msgid "Special Characters are not allowed"
 msgstr "Les Caractères Spéciaux ne sont pas autorisés"
 
-#: model/naming.py:60
+#: model/naming.py:61
 msgid "Special Characters except '-', '#', '.', '/', '{{' and '}}' not allowed in naming series {0}"
 msgstr "Caractères spéciaux sauf &quot;-&quot;, &quot;#&quot;, &quot;.&quot;, &quot;/&quot;, &quot;{{&quot; Et &quot;}}&quot; non autorisés dans les masques de numérotation {0}"
 
@@ -30243,7 +30393,7 @@ msgctxt "Website Settings"
 msgid "Splash Image"
 msgstr ""
 
-#: desk/reportview.py:378 public/js/frappe/web_form/web_form_list.js:175
+#: desk/reportview.py:382 public/js/frappe/web_form/web_form_list.js:175
 #: templates/print_formats/standard_macros.html:44
 msgid "Sr"
 msgstr ""
@@ -30318,11 +30468,11 @@ msgstr "Le Format d'Impression Standard ne peut pas être mis à jour"
 msgid "Standard Print Style cannot be changed. Please duplicate to edit."
 msgstr "Le style d'impression standard ne peut pas être modifié. Veuillez le copier pour le modifier."
 
-#: desk/reportview.py:329
+#: desk/reportview.py:333
 msgid "Standard Reports cannot be deleted"
 msgstr ""
 
-#: desk/reportview.py:300
+#: desk/reportview.py:304
 msgid "Standard Reports cannot be edited"
 msgstr ""
 
@@ -30332,7 +30482,7 @@ msgctxt "Portal Settings"
 msgid "Standard Sidebar Menu"
 msgstr "Menu Standard de la Barre Latérale"
 
-#: website/doctype/web_form/web_form.js:30
+#: website/doctype/web_form/web_form.js:40
 msgid "Standard Web Forms can not be modified, duplicate the Web Form instead."
 msgstr ""
 
@@ -30798,7 +30948,7 @@ msgctxt "Website Settings"
 msgid "Subdomain"
 msgstr "Sous-domaine"
 
-#: public/js/frappe/views/communication.js:104
+#: public/js/frappe/views/communication.js:107
 #: public/js/frappe/views/inbox/inbox_view.js:63
 msgid "Subject"
 msgstr "Sujet"
@@ -30894,7 +31044,7 @@ msgstr ""
 msgid "Submit"
 msgstr "Valider"
 
-#: public/js/frappe/list/list_view.js:1979
+#: public/js/frappe/list/list_view.js:1986
 msgctxt "Button in list view actions menu"
 msgid "Submit"
 msgstr "Valider"
@@ -30991,7 +31141,7 @@ msgstr "Validez ce document pour terminer cette étape."
 msgid "Submit this document to confirm"
 msgstr "Valider ce document pour confirmer"
 
-#: public/js/frappe/list/list_view.js:1984
+#: public/js/frappe/list/list_view.js:1991
 msgctxt "Title of confirmation dialog"
 msgid "Submit {0} documents?"
 msgstr "Valider {0} documents ?"
@@ -31171,7 +31321,7 @@ msgstr ""
 msgid "Successfully updated {0} out of {1} records."
 msgstr ""
 
-#: core/doctype/user/user.py:725
+#: core/doctype/user/user.py:727
 msgid "Suggested Username: {0}"
 msgstr "Nom d'Utilisateur Suggérée : {0}"
 
@@ -31748,7 +31898,7 @@ msgstr "Avertissements de modèles"
 msgid "Templates"
 msgstr ""
 
-#: core/doctype/user/user.py:1021
+#: core/doctype/user/user.py:1023
 msgid "Temporarily Disabled"
 msgstr "Temporairement désactivé"
 
@@ -31835,6 +31985,12 @@ msgstr "Éditeur de Texte"
 #: templates/emails/password_reset.html:5
 msgid "Thank you"
 msgstr "Merci"
+
+#: www/contact.py:37
+msgid "Thank you for reaching out to us. We will get back to you at the earliest.\n\n\n"
+"Your query:\n\n"
+"{0}"
+msgstr ""
 
 #: website/doctype/web_form/templates/web_form.html:137
 msgid "Thank you for spending your valuable time to fill this form"
@@ -31981,7 +32137,7 @@ msgstr ""
 msgid "The link will expire in {0} minutes"
 msgstr ""
 
-#: www/login.py:175
+#: www/login.py:179
 msgid "The link you trying to login is invalid or expired."
 msgstr ""
 
@@ -32031,11 +32187,11 @@ msgid "The project number obtained from Google Cloud Console under <a href=\"htt
 "</a>"
 msgstr ""
 
-#: core/doctype/user/user.py:981
+#: core/doctype/user/user.py:983
 msgid "The reset password link has been expired"
 msgstr ""
 
-#: core/doctype/user/user.py:983
+#: core/doctype/user/user.py:985
 msgid "The reset password link has either been used before or is invalid"
 msgstr ""
 
@@ -32133,8 +32289,8 @@ msgstr ""
 msgid "There are {0} with the same filters already in the queue:"
 msgstr ""
 
-#: website/doctype/web_form/web_form.js:71
-#: website/doctype/web_form/web_form.js:307
+#: website/doctype/web_form/web_form.js:81
+#: website/doctype/web_form/web_form.js:317
 msgid "There can be only 9 Page Break fields in a Web Form"
 msgstr ""
 
@@ -32162,7 +32318,7 @@ msgstr ""
 msgid "There must be atleast one permission rule."
 msgstr "Il doit y avoir au moins une règle d'autorisation."
 
-#: core/doctype/user/user.py:533
+#: core/doctype/user/user.py:535
 msgid "There should remain at least one System Manager"
 msgstr "Il doit rester au moins un Responsable Système"
 
@@ -32182,11 +32338,11 @@ msgstr "Il y a eu des erreurs"
 msgid "There were errors while creating the document. Please try again."
 msgstr "Il y avait des erreurs lors de la création du document. Veuillez réessayer."
 
-#: public/js/frappe/views/communication.js:809
+#: public/js/frappe/views/communication.js:820
 msgid "There were errors while sending email. Please try again."
 msgstr "Il y a eu des erreurs lors de l'envoi d’emails. Veuillez essayer à nouveau."
 
-#: model/naming.py:448
+#: model/naming.py:470
 msgid "There were some errors setting the name, please contact the administrator"
 msgstr "Il y a eu des erreurs lors de la configuration du nom, veuillez contacter l'administrateur"
 
@@ -32233,7 +32389,7 @@ msgstr ""
 msgid "This Kanban Board will be private"
 msgstr "Ce Tableau Kanban sera privé"
 
-#: __init__.py:1010
+#: __init__.py:1013
 msgid "This action is only allowed for {}"
 msgstr "Cette action n&#39;est autorisée que pour {}"
 
@@ -32461,7 +32617,7 @@ msgstr ""
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr ""
 
-#: core/doctype/user/user.py:1241
+#: core/doctype/user/user.py:1243
 msgid "Throttled"
 msgstr "Étranglé"
 
@@ -32729,9 +32885,9 @@ msgstr "Horodatage"
 
 #: core/doctype/doctype/boilerplate/controller_list.html:14
 #: core/doctype/doctype/boilerplate/controller_list.html:23
-#: public/js/frappe/views/workspace/workspace.js:605
-#: public/js/frappe/views/workspace/workspace.js:934
-#: public/js/frappe/views/workspace/workspace.js:1181
+#: public/js/frappe/views/workspace/workspace.js:610
+#: public/js/frappe/views/workspace/workspace.js:939
+#: public/js/frappe/views/workspace/workspace.js:1186
 msgid "Title"
 msgstr "Titre"
 
@@ -32914,7 +33070,7 @@ msgctxt "Auto Email Report"
 msgid "To Date Field"
 msgstr "Champ Date"
 
-#: desk/doctype/todo/todo_list.js:12
+#: desk/doctype/todo/todo_list.js:6
 msgid "To Do"
 msgstr "Tâche à Faire"
 
@@ -33078,7 +33234,7 @@ msgstr "Afficher/Cacher la vue en grille"
 msgid "Toggle Sidebar"
 msgstr "Afficher/Cacher la barre latérale"
 
-#: public/js/frappe/list/list_view.js:1720
+#: public/js/frappe/list/list_view.js:1727
 msgctxt "Button in list view menu"
 msgid "Toggle Sidebar"
 msgstr "Afficher/Cacher la barre latérale"
@@ -33140,7 +33296,7 @@ msgstr "Trop de demandes"
 msgid "Too many changes to database in single action."
 msgstr ""
 
-#: core/doctype/user/user.py:1022
+#: core/doctype/user/user.py:1024
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Trop d'utilisateurs se sont inscrits récemment, du coup l’inscription est désactivée. Veuillez essayer à nouveau dans une heure"
 
@@ -33336,6 +33492,11 @@ msgctxt "Email Account"
 msgid "Track if your email has been opened by the recipient.\n"
 "<br>\n"
 "Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered \"Opened\""
+msgstr ""
+
+#. Description of a DocType
+#: automation/doctype/milestone_tracker/milestone_tracker.json
+msgid "Track milestones for any document"
 msgstr ""
 
 #: public/js/frappe/utils/utils.js:1757
@@ -33828,7 +33989,7 @@ msgstr "Se désabonner"
 msgid "Unhandled Email"
 msgstr "Email Non Géré"
 
-#: public/js/frappe/views/workspace/workspace.js:562
+#: public/js/frappe/views/workspace/workspace.js:567
 msgid "Unhide Workspace"
 msgstr ""
 
@@ -33875,7 +34036,7 @@ msgid "Unlock Reference Document"
 msgstr ""
 
 #: website/doctype/blog_post/blog_post.js:36
-#: website/doctype/web_form/web_form.js:76
+#: website/doctype/web_form/web_form.js:86
 msgid "Unpublish"
 msgstr ""
 
@@ -33979,7 +34140,7 @@ msgstr "Événements À Venir Aujourd'hui"
 #: printing/page/print_format_builder/print_format_builder.js:670
 #: printing/page/print_format_builder/print_format_builder.js:757
 #: public/js/frappe/form/grid_row.js:403
-#: public/js/frappe/views/workspace/workspace.js:653
+#: public/js/frappe/views/workspace/workspace.js:658
 msgid "Update"
 msgstr "Mettre à Jour"
 
@@ -33995,7 +34156,7 @@ msgctxt "Document Naming Settings"
 msgid "Update Amendment Naming"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:602
+#: public/js/frappe/views/workspace/workspace.js:607
 msgid "Update Details"
 msgstr "Détails de mise à jour"
 
@@ -34257,11 +34418,11 @@ msgctxt "Email Account"
 msgid "Use different Email ID"
 msgstr "Utiliser une authentification email différente"
 
-#: model/db_query.py:424
+#: model/db_query.py:423
 msgid "Use of function {0} in field is restricted"
 msgstr ""
 
-#: model/db_query.py:403
+#: model/db_query.py:402
 msgid "Use of sub-query or function is restricted"
 msgstr "L&#39;utilisation de la sous-requête ou de la fonction est restreinte"
 
@@ -34557,6 +34718,11 @@ msgctxt "Social Login Key"
 msgid "User ID Property"
 msgstr "Propriété ID utilisateur"
 
+#. Description of a DocType
+#: website/doctype/blogger/blogger.json
+msgid "User ID of a Blogger"
+msgstr ""
+
 #. Label of a Link field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
@@ -34606,7 +34772,7 @@ msgstr "Autorisation de l'Utilisateur"
 msgid "User Permissions"
 msgstr "Autorisations des Utilisateurs"
 
-#: public/js/frappe/list/list_view.js:1678
+#: public/js/frappe/list/list_view.js:1685
 msgctxt "Button in list view menu"
 msgid "User Permissions"
 msgstr "Autorisations des Utilisateurs"
@@ -34741,15 +34907,15 @@ msgstr ""
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr ""
 
-#: core/doctype/user/user.py:538
+#: core/doctype/user/user.py:540
 msgid "User {0} cannot be deleted"
 msgstr "Utilisateur {0} ne peut pas être supprimé"
 
-#: core/doctype/user/user.py:277
+#: core/doctype/user/user.py:279
 msgid "User {0} cannot be disabled"
 msgstr "Utilisateur {0} ne peut pas être désactivé"
 
-#: core/doctype/user/user.py:607
+#: core/doctype/user/user.py:609
 msgid "User {0} cannot be renamed"
 msgstr "Utilisateur {0} ne peut pas être renommé"
 
@@ -34766,7 +34932,7 @@ msgstr "L&#39;utilisateur {0} n&#39;a pas d&#39;accès au type de document via l
 msgid "User {0} has requested for data deletion"
 msgstr "L&#39;utilisateur {0} a demandé la suppression des données."
 
-#: core/doctype/user/user.py:1370
+#: core/doctype/user/user.py:1372
 msgid "User {0} impersonated as {1}"
 msgstr ""
 
@@ -34800,7 +34966,7 @@ msgctxt "User Social Login"
 msgid "Username"
 msgstr "Nom d'Utilisateur"
 
-#: core/doctype/user/user.py:692
+#: core/doctype/user/user.py:694
 msgid "Username {0} already exists"
 msgstr "Nom d'Utilisateur {0} existe déjà"
 
@@ -34881,7 +35047,7 @@ msgstr "Validité"
 #: public/js/frappe/list/bulk_operations.js:306
 #: public/js/frappe/list/bulk_operations.js:368
 #: public/js/frappe/list/list_view_permission_restrictions.html:4
-#: website/doctype/web_form/web_form.js:187
+#: website/doctype/web_form/web_form.js:197
 msgid "Value"
 msgstr "Valeur"
 
@@ -35115,7 +35281,7 @@ msgstr "Voir La Liste"
 msgid "View Log"
 msgstr "Voir le journal"
 
-#: core/doctype/user/user.js:127
+#: core/doctype/user/user.js:137
 #: core/doctype/user_permission/user_permission.js:24
 msgid "View Permitted Documents"
 msgstr "Afficher les Documents Autorisés"
@@ -35291,6 +35457,10 @@ msgstr "Nous avons reçu une demande de suppression de {0} données associées �
 #: templates/emails/download_data.html:2
 msgid "We have received a request from you to download your {0} data associated with: {1}"
 msgstr "Nous avons reçu une demande de votre part pour télécharger vos données {0} associées à: {1}."
+
+#: www/contact.py:48
+msgid "We've received your query!"
+msgstr ""
 
 #: public/js/frappe/form/controls/password.js:88
 msgid "Weak"
@@ -35834,11 +36004,11 @@ msgstr ""
 msgid "Welcome Workspace"
 msgstr ""
 
-#: core/doctype/user/user.py:395
+#: core/doctype/user/user.py:397
 msgid "Welcome email sent"
 msgstr "Email de bienvenue envoyé"
 
-#: core/doctype/user/user.py:470
+#: core/doctype/user/user.py:472
 msgid "Welcome to {0}"
 msgstr "Bienvenue sur {0}"
 
@@ -36008,6 +36178,7 @@ msgid "Workflow Action"
 msgstr "Action du Flux de Travail"
 
 #. Name of a DocType
+#. Description of a DocType
 #: workflow/doctype/workflow_action_master/workflow_action_master.json
 msgid "Workflow Action Master"
 msgstr "Actions de Base du Flux de Travail"
@@ -36103,6 +36274,11 @@ msgstr "Statut du workflow"
 msgid "Workflow Transition"
 msgstr "Transition du Flux de Travail"
 
+#. Description of a DocType
+#: workflow/doctype/workflow_state/workflow_state.json
+msgid "Workflow state represents the current state of a document."
+msgstr ""
+
 #. Description of the Onboarding Step 'Setup Approval Workflows'
 #: custom/onboarding_step/workflows/workflows.json
 msgid "Workflows allow you to define custom rules for the approval process of a particular document in ERPNext. You can also set complex Workflow Rules and set approval conditions."
@@ -36118,6 +36294,12 @@ msgstr ""
 #. Linked DocType in Module Def's connections
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
+msgid "Workspace"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'User'
+#: core/doctype/user/user.json
+msgctxt "User"
 msgid "Workspace"
 msgstr ""
 
@@ -36171,15 +36353,15 @@ msgstr ""
 msgid "Workspace not found"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1271
+#: public/js/frappe/views/workspace/workspace.js:1276
 msgid "Workspace {0} Created Successfully"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:900
+#: public/js/frappe/views/workspace/workspace.js:905
 msgid "Workspace {0} Deleted Successfully"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:678
+#: public/js/frappe/views/workspace/workspace.js:683
 msgid "Workspace {0} Edited Successfully"
 msgstr ""
 
@@ -36409,7 +36591,7 @@ msgstr ""
 msgid "You are not allowed to create columns"
 msgstr "Vous n&#39;êtes pas autorisé à créer des colonnes"
 
-#: core/doctype/report/report.py:94
+#: core/doctype/report/report.py:97
 msgid "You are not allowed to delete Standard Report"
 msgstr "Vous n&#39;êtes pas autorisé à supprimer le rapport standard"
 
@@ -36417,7 +36599,7 @@ msgstr "Vous n&#39;êtes pas autorisé à supprimer le rapport standard"
 msgid "You are not allowed to delete a standard Website Theme"
 msgstr "Vous n'êtes pas autorisé à supprimer un Thème standard du Site Web"
 
-#: core/doctype/report/report.py:377
+#: core/doctype/report/report.py:383
 msgid "You are not allowed to edit the report."
 msgstr ""
 
@@ -36429,7 +36611,7 @@ msgstr "Vous n&#39;êtes pas autorisé à exporter {} doctype"
 msgid "You are not allowed to print this report"
 msgstr "Vous n'êtes pas autorisé à imprimer ce rapport"
 
-#: public/js/frappe/views/communication.js:753
+#: public/js/frappe/views/communication.js:764
 msgid "You are not allowed to send emails related to this document"
 msgstr "Vous n'êtes pas autorisé à envoyer un email en relation avec ce document"
 
@@ -36449,7 +36631,7 @@ msgstr ""
 msgid "You are not permitted to access this page."
 msgstr "Vous n'êtes pas autorisé à accéder à cette page."
 
-#: __init__.py:929
+#: __init__.py:932
 msgid "You are not permitted to access this resource."
 msgstr ""
 
@@ -36502,7 +36684,7 @@ msgstr ""
 msgid "You can continue with the onboarding after exploring this page"
 msgstr ""
 
-#: core/doctype/user/user.py:598
+#: core/doctype/user/user.py:600
 msgid "You can disable the user instead of deleting it."
 msgstr ""
 
@@ -36536,6 +36718,13 @@ msgstr "Vous pouvez seulement charger jusqu'à 5000 enregistrement en une seule 
 
 #: website/doctype/web_page/web_page.js:92
 msgid "You can select one from the following,"
+msgstr ""
+
+#. Description of the 'Rate limit for email link login' (Int) field in DocType
+#. 'System Settings'
+#: core/doctype/system_settings/system_settings.json
+msgctxt "System Settings"
+msgid "You can set a high value here if multiple users will be logging in from the same network."
 msgstr ""
 
 #: desk/query_report.py:332
@@ -37723,7 +37912,7 @@ msgstr "verrouiller"
 msgid "logged in"
 msgstr "connecté"
 
-#: website/doctype/web_form/web_form.js:352
+#: website/doctype/web_form/web_form.js:362
 msgid "login_required"
 msgstr ""
 
@@ -38747,7 +38936,7 @@ msgctxt "Form timeline"
 msgid "{0} attached {1}"
 msgstr ""
 
-#: core/doctype/system_settings/system_settings.py:141
+#: core/doctype/system_settings/system_settings.py:142
 msgid "{0} can not be more than {1}"
 msgstr ""
 
@@ -38885,7 +39074,7 @@ msgstr "{0} a été ajouté avec succès au Groupe d’Email."
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} a quitté la conversation dans {1} {2}"
 
-#: __init__.py:2480
+#: __init__.py:2483
 msgid "{0} has no versions tracked."
 msgstr "{0} n&#39;a aucune version suivie."
 
@@ -39031,7 +39220,7 @@ msgstr "{0} est maintenant le format d'impression par défaut pour le type de do
 msgid "{0} is one of {1}"
 msgstr ""
 
-#: email/doctype/email_account/email_account.py:277 model/naming.py:201
+#: email/doctype/email_account/email_account.py:277 model/naming.py:202
 #: printing/doctype/print_format/print_format.py:90 utils/csvutils.py:131
 msgid "{0} is required"
 msgstr "{0} est nécessaire"
@@ -39044,11 +39233,11 @@ msgstr ""
 msgid "{0} is within {1}"
 msgstr ""
 
-#: public/js/frappe/list/list_view.js:1595
+#: public/js/frappe/list/list_view.js:1602
 msgid "{0} items selected"
 msgstr "{0} articles sélectionnés"
 
-#: core/doctype/user/user.py:1379
+#: core/doctype/user/user.py:1381
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr ""
 
@@ -39114,11 +39303,11 @@ msgstr "{0} ne peut pas être renommé"
 msgid "{0} not found"
 msgstr "{0} introuvable"
 
-#: core/doctype/report/report.py:413 public/js/frappe/list/list_view.js:986
+#: core/doctype/report/report.py:419 public/js/frappe/list/list_view.js:987
 msgid "{0} of {1}"
 msgstr "{0} sur {1}"
 
-#: public/js/frappe/list/list_view.js:988
+#: public/js/frappe/list/list_view.js:989
 msgid "{0} of {1} ({2} rows with children)"
 msgstr "{0} sur {1} ({2} lignes avec des enfants)"
 
@@ -39243,7 +39432,7 @@ msgstr "{0} ne partage plus ce document avec {1}"
 msgid "{0} updated"
 msgstr "{0} mis(e) à jour"
 
-#: public/js/frappe/form/controls/multiselect_list.js:162
+#: public/js/frappe/form/controls/multiselect_list.js:182
 msgid "{0} values selected"
 msgstr "{0} valeurs sélectionnées"
 
