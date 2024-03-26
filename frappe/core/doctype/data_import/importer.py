@@ -213,12 +213,18 @@ class Importer:
 		)
 
 		# set status
-		failures = [log for log in import_log if not log.get("success")]
-		if len(failures) == total_payload_count:
-			status = "Pending"
-		elif len(failures) > 0:
+		successes = []
+		failures = []
+		for log in import_log:
+			if log.get("success"):
+				successes.append(log)
+			else:
+				failures.append(log)
+		if len(failures) >= total_payload_count and len(successes) == 0:
+			status = "Error" 
+		elif len(failures) > 0 and len(successes) > 0:
 			status = "Partial Success"
-		else:
+		elif len(len(successes) == total_payload_count):
 			status = "Success"
 
 		if self.console:
