@@ -7,7 +7,7 @@
 		<label class="form-label sr-only" for="login_email">{{ login_label or _("Email")}}</label>
 		<div class="email-field">
 			<input type="text" id="login_email" class="form-control"
-				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('jane@example.com') }}{% endif %}"
+				placeholder="{% if login_name_placeholder %}{{ login_name_placeholder  }}{% else %}{{ _('demo@mbw.cloud.vn') }}{% endif %}"
 				required autofocus autocomplete="username">
 
 			<svg class="field-icon email-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"
@@ -27,19 +27,20 @@
 				xmlns="http://www.w3.org/2000/svg">
 					<use class="es-lock" href="#es-line-lock"></use>
 			</svg>
-			<span toggle="#login_password" class="toggle-password text-muted">{{ _('Show') }}</span>
+			<span toggle="#login_password" class="toggle-password text-muted">Hiển thị</span>
 		</div>
 	</div>
 
 	<p class="forgot-password-message">
-		<a href="#forgot">{{ _("Forgot Password?") }}</a>
+		<a href="#forgot">Quên mật khẩu</a>
 	</p>
 </div>
 {% endif %}
 <div class="page-card-actions">
 	{% if not disable_user_pass_login %}
 	<button class="btn btn-sm btn-primary btn-block btn-login" type="submit">
-		{{ _("Login") }}</button>
+		Đăng nhập
+	</button>
 	{% endif %}
 	{% if ldap_settings and ldap_settings.enabled %}
 	<button class="btn btn-sm btn-default btn-block btn-login btn-ldap-login">
@@ -58,7 +59,7 @@
 	{% if title %}
 	<h4>{{ _(title)}}</h4>
 	{% else %}
-	<h4>{{ _('Login to {0}').format(app_name or _("Frappe")) }}</h4>
+	<h4> Hệ Thống Quản Lý Phân Phối</h4>
 	{% endif %}
 </div>
 {% endmacro %}
@@ -84,7 +85,7 @@
 					</form>
 					<div class="social-logins text-center">
 						{% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
-						<p class="text-muted login-divider">{{ _("or") }}</p>
+						<p class="text-muted login-divider">{{ _("hoặc") }}</p>
 						{% endif %}
 						<div class="social-login-buttons">
 							{% for provider in provider_logins %}
@@ -103,7 +104,7 @@
 							<div class="login-button-wrapper">
 								<a href="#login-with-email-link"
 									class="btn btn-block btn-default btn-sm btn-login-option btn-login-with-email-link">
-									{{ _("Login with Email Link") }}</a>
+									Đăng nhập bằng Email</a>
 							</div>
 						</div>
 						{% endif %}
@@ -155,13 +156,13 @@
 	</section>
 
 	<section class='for-forgot'>
-		{{ logo_section('Forgot Password') }}
+		{{ logo_section('Quên Mật Khẩu') }}
 		<div class="login-content page-card">
 			<form class="form-signin form-forgot hide" role="form">
 				<div class="page-card-body">
 					<div class="email-field">
 						<input type="email" id="forgot_email" class="form-control"
-							placeholder="{{ _('Email Address') }}" required autofocus autocomplete="username">
+							placeholder="Địa chỉ Email" required autofocus autocomplete="username">
 						<svg class="field-icon email-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"
 							xmlns="http://www.w3.org/2000/svg">
 							<path
@@ -176,9 +177,9 @@
 				</div>
 				<div class="page-card-actions">
 					<button class="btn btn-sm btn-primary btn-block btn-forgot"
-						type="submit">{{ _("Reset Password") }}</button>
+						type="submit">Khôi phục mật khẩu</button>
 					<p class="text-center sign-up-message">
-						<a href="#login">{{ _("Back to Login") }}</a>
+						<a href="#login">Quay về Đăng Nhập</a>
 					</p>
 				</div>
 
