@@ -62,12 +62,3 @@ def sync_languages():
 					"enabled": 1,
 				}
 			).insert()
-
-
-def update_language_names():
-	"""Update frappe/geo/languages.json names (for use via patch)"""
-	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
-		data = json.loads(f.read())
-
-	for l in data:
-		frappe.db.set_value("Language", l["code"], "language_name", l["name"])
