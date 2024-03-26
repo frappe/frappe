@@ -34,6 +34,7 @@ dependencies = [
     "chardet~=5.1.0",
     "croniter~=2.0.1",
     "cryptography~=42.0.0",
+    "cssutils~=2.9.0",
     "email-reply-parser~=0.5.12",
     "gunicorn~=21.2.0",
     "html5lib~=1.1",
