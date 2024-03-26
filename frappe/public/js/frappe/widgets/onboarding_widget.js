@@ -140,7 +140,7 @@ export default class OnboardingWidget extends Widget {
 
 		const set_description = () => {
 			let content = step.description
-				? frappe.markdown(step.description)
+				? frappe.markdown(__(step.description))
 				: `<h1>${__(step.title)}</h1>`;
 
 			if (step.action === "Create Entry") {
