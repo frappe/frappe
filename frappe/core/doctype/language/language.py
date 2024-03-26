@@ -47,17 +47,6 @@ def validate_with_regex(name, label):
 		)
 
 
-def export_languages_json():
-	"""Export list of all languages"""
-	languages = frappe.get_all("Language", fields=["name", "language_name"])
-	languages = [{"name": d.language_name, "code": d.name} for d in languages]
-
-	languages.sort(key=lambda a: a["code"])
-
-	with open(frappe.get_app_path("frappe", "geo", "languages.json"), "w") as f:
-		f.write(frappe.as_json(languages))
-
-
 def sync_languages():
 	"""Sync frappe/geo/languages.json with Language"""
 	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
