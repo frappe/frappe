@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2024-03-18 12:41:56.440269",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "ref_doctype",
+  "column_break_xgna",
+  "document_name",
+  "data",
+  "section_break_siwl",
+  "table_html"
+ ],
+ "fields": [
+  {
+   "fieldname": "ref_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "DocType",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_xgna",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "document_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Document Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "Code",
+   "hidden": 1,
+   "label": "Data"
+  },
+  {
+   "fieldname": "section_break_siwl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "table_html",
+   "fieldtype": "HTML",
+   "label": "Table HTML"
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2024-03-18 13:07:41.109946",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Document Snapshot",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Administrator"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

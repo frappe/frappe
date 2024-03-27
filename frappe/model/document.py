@@ -387,6 +387,7 @@ class Document(BaseDocument):
 
 		self.update_children()
 		self.run_post_save_methods()
+		self.save_snapshot()
 
 		# clear unsaved flag
 		if hasattr(self, "__unsaved"):
@@ -1254,6 +1255,36 @@ class Document(BaseDocument):
 		if not self.flags.ignore_links:
 			check_if_doc_is_linked(self, method="Cancel")
 			check_if_doc_is_dynamically_linked(self, method="Cancel")
+
+	def save_snapshot(self):
+		"""Save snapshot of the document"""
+		if (
+			self.doctype == "Document Snapshot"
+			or frappe.flags.in_patch
+			or frappe.flags.in_install
+			or not getattr(self.meta, "enable_snapshots", False)
+			or self.docstatus != 0
+		):
+			return
+		old_doc = self._doc_before_save
+		# Set name key to None in child record, as storing it in snapshot
+		# will remove the child record when restoring the snapshot
+		old_doc = self.set_name_in_child_table(old_doc)
+		doc_snapshot = frappe.new_doc("Document Snapshot")
+		doc_snapshot.ref_doctype = self.doctype
+		doc_snapshot.document_name = self.name
+		doc_snapshot.data = json.dumps(old_doc.as_dict(), default=str)
+		doc_snapshot.insert(ignore_permissions=True)
+
+	def set_name_in_child_table(self, document: "Document"):
+		for df in document.meta.get_table_fields():
+			child_doc = document.get(df.fieldname, [])
+			if not child_doc:
+				continue
+			for doc in child_doc:
+				doc.name = None
+			document.set(df.fieldname, child_doc)
+		return document
 
 	def save_version(self):
 		"""Save version info"""

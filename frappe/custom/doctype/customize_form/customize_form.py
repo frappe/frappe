@@ -48,6 +48,7 @@ class CustomizeForm(Document):
 		doc_type: DF.Link | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
+		enable_snapshots: DF.Check
 		fields: DF.Table[CustomizeFormField]
 		force_re_route_to_default_view: DF.Check
 		image_field: DF.Data | None
@@ -721,6 +722,7 @@ doctype_properties = {
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",
 	"translated_doctype": "Check",
+	"enable_snapshots": "Check",
 }
 
 docfield_properties = {
