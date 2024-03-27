@@ -71,10 +71,13 @@ def _new_site(
 	if not db_name:
 		import hashlib
 
+		from frappe.utils.data import get_datetime
+
 		db_name = (
 			"_"
 			+ hashlib.sha1(
-				os.path.realpath(frappe.get_site_path()).encode(), usedforsecurity=False
+				(os.path.realpath(frappe.get_site_path()) + get_datetime().isoformat()).encode(),
+				usedforsecurity=False,
 			).hexdigest()[:16]
 		)
 
