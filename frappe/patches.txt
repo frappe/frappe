@@ -43,7 +43,6 @@ execute:frappe.db.sql("delete from tabSessions where user is null")
 execute:frappe.delete_doc("DocType", "Backup Manager")
 execute:frappe.permissions.reset_perms("Web Page")
 execute:frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
-execute:frappe.core.doctype.language.language.update_language_names() # 2017-04-12
 execute:frappe.db.set_value("Print Settings", "Print Settings", "add_draft_heading", 1)
 execute:frappe.db.set_default('language', '')
 execute:frappe.db.sql("update tabCommunication set communication_date = creation where time(communication_date) = 0")
