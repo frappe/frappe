@@ -70,6 +70,8 @@
   "send_me_a_copy",
   "allowed_in_mentions",
   "user_emails",
+  "workspace_section",
+  "default_workspace",
   "sb2",
   "defaults",
   "sb3",
@@ -702,6 +704,19 @@
    "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Onboarding Status"
+  },
+  {
+   "description": "If left empty, the default workspace will be the last visited workspace",
+   "fieldname": "default_workspace",
+   "fieldtype": "Link",
+   "label": "Default Workspace",
+   "options": "Workspace"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "workspace_section",
+   "fieldtype": "Section Break",
+   "label": "Workspace"
   }
  ],
  "icon": "fa fa-user",
@@ -764,7 +779,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-02-11 13:16:29.574666",
+ "modified": "2024-03-20 17:15:19.200383",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

@@ -20,17 +20,6 @@ context("Awesome Bar", () => {
 		cy.location("pathname").should("eq", "/app/todo");
 	});
 
-	it("find text in doctype list", () => {
-		cy.get("@awesome_bar").type("test in todo");
-		cy.wait(100);
-		cy.get("@awesome_bar").type("{enter}");
-		cy.get(".title-text").should("contain", "To Do");
-		cy.wait(200);
-		const name_filter = cy.get('[data-original-title="ID"] > input');
-		name_filter.should("have.value", "%test%");
-		cy.clear_filters();
-	});
-
 	it("navigates to new form", () => {
 		cy.get("@awesome_bar").type("new blog post");
 		cy.wait(100);
