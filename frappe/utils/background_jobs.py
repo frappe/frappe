@@ -13,10 +13,11 @@ import redis
 import setproctitle
 from redis.exceptions import BusyLoadingError, ConnectionError
 from rq import Callback, Queue, Worker
+from rq.command import handle_command, parse_payload
 from rq.exceptions import NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
-from rq.worker import DequeueStrategy
+from rq.worker import DequeueStrategy, WorkerStatus
 from rq.worker_pool import WorkerPool
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
@@ -203,7 +204,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	retval = None
 
 	if is_async:
-		frappe.init(site=site)
+		frappe.init(site=site, force=True)
 		frappe.connect()
 		if os.environ.get("CI"):
 			frappe.flags.in_test = True
@@ -275,6 +276,35 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.destroy()
 
 
+class FrappeWorker(Worker):
+	def __init__(self, *args, **kwargs):
+		self.disable_forking = kwargs.pop("disable_forking", None)
+		super().__init__(*args, **kwargs)
+
+	def execute_job(self, job: "Job", queue: "Queue"):
+		"""Execute job in same thread/process, do not fork()"""
+		if not self.disable_forking:
+			return super().execute_job(job, queue)
+
+		self.set_state(WorkerStatus.BUSY)
+		os.environ["RQ_WORKER_ID"] = self.name
+		os.environ["RQ_JOB_ID"] = job.id
+		self.perform_job(job, queue)
+		self.set_state(WorkerStatus.IDLE)
+
+	def handle_payload(self, message):
+		"""Handle external commands"""
+		if not self.disable_forking:
+			return super().handle_payload(message)
+
+		self.log.debug("Received message: %s", message)
+		payload = parse_payload(message)
+		if payload["command"] == "stop-job":
+			self.log.debug("Ignored stop-job, aborting jobs is not allowed when using disable_forking")
+		else:
+			handle_command(self, payload)
+
+
 def start_worker(
 	queue: str | None = None,
 	quiet: bool = False,
@@ -308,7 +338,7 @@ def start_worker(
 	if quiet:
 		logging_level = "WARNING"
 
-	worker = Worker(queues, connection=redis_connection)
+	worker = FrappeWorker(queues, connection=redis_connection, disable_forking=True)
 	worker.work(
 		logging_level=logging_level,
 		burst=burst,
