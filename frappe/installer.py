@@ -59,7 +59,7 @@ def _new_site(
 	from frappe.utils import scheduler
 
 	if not force and os.path.exists(site):
-		print(f"Site {site} already exists")
+		print(f"Site {site} already exists, use `--force` to proceed anyway")
 		sys.exit(1)
 
 	if no_mariadb_socket and db_type != "mariadb":
