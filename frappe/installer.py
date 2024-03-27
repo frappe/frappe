@@ -75,7 +75,27 @@ def _new_site(
 
 	make_site_dirs()
 
+<<<<<<< HEAD
 	installing = touch_file(get_site_path("locks", "installing.lock"))
+=======
+	with filelock("bench_new_site", timeout=1):
+		install_db(
+			root_login=db_root_username,
+			root_password=db_root_password,
+			db_name=db_name,
+			admin_password=admin_password,
+			verbose=verbose,
+			source_sql=source_sql,
+			force=force,
+			db_password=db_password,
+			db_type=db_type,
+			db_host=db_host,
+			db_port=db_port,
+			db_user=db_user,
+			no_mariadb_socket=no_mariadb_socket,
+			setup=setup_db,
+		)
+>>>>>>> 8cd23ecef5 (chore: drop unused parameter)
 
 	install_db(
 		root_login=db_root_username,
@@ -121,7 +141,6 @@ def install_db(
 	verbose=True,
 	force=0,
 	site_config=None,
-	reinstall=False,
 	db_password=None,
 	db_type=None,
 	db_host=None,
