@@ -333,7 +333,7 @@
    "label": "Default Print Format"
   },
   {
-   "default": "modified",
+   "default": "creation",
    "depends_on": "eval:!doc.istable",
    "fieldname": "sort_field",
    "fieldtype": "Data",
