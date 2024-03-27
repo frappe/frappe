@@ -1310,9 +1310,14 @@ Object.assign(frappe.utils, {
 			} else if (type === "report") {
 				if (item.is_query_report) {
 					route = "query-report/" + item.name;
+<<<<<<< HEAD
 				} else if (!item.is_query_report && item.report_ref_doctype) {
 					route =
 						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
+=======
+				} else if (!item.doctype) {
+					route = "report/" + item.name;
+>>>>>>> 4ab6a34474 (fix: remove slashes from the report link in workspace card (#25593))
 				} else {
 					route = "/report/" + item.name;
 				}
