@@ -16,7 +16,7 @@ frappe.listview_settings["Email Account"] = {
 			return [__("Default Sending"), color, "default_outgoing,=,Yes"];
 		} else {
 			color = doc.enable_incoming ? "blue" : "gray";
-			return [__("Inbox"), color, "is_global,=,No|is_default=No"];
+			return [__("Inbox"), color, "default_outgoing,=,No|default_incoming=No"];
 		}
 	},
 };
