@@ -154,7 +154,7 @@ frappe.ui.SortSelector = class SortSelector {
 
 		// set default
 		this.sort_by = this.args.sort_by;
-		this.sort_order = this.args.sort_order;
+		this.sort_order = this.args.sort_order = this.args.sort_order.toLowerCase();
 	}
 	get_meta_sort_field() {
 		var meta = frappe.get_meta(this.doctype);
