@@ -7,6 +7,7 @@ import datetime
 import json
 import re
 from collections import Counter
+from collections.abc import Sequence
 
 import frappe
 import frappe.defaults
@@ -133,7 +134,7 @@ class DatabaseQuery:
 			limit_page_length = page_length
 		if limit:
 			limit_page_length = limit
-		if as_list and not isinstance(self.fields, (list | tuple)) and len(self.fields) > 1:
+		if as_list and not isinstance(self.fields, (Sequence | str)) and len(self.fields) > 1:
 			frappe.throw(_("Fields must be a list or tuple when as_list is enabled"))
 
 		self.filters = filters or []
