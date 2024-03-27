@@ -64,7 +64,7 @@ frappe.ui.SortSelector = class SortSelector {
 			this.args = {};
 
 			if (order_by.includes("`.`")) {
-				// scrub table name (separated by dot), like `tabTime Log`.`modified` desc`
+				// scrub table name (separated by dot), like `tabTime Log`.`creation` desc`
 				order_by = order_by.split(".")[1];
 			}
 
