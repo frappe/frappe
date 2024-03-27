@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-03-24 09:33+0000\n"
-"PO-Revision-Date: 2024-03-26 12:06\n"
+"PO-Revision-Date: 2024-03-27 11:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -20490,7 +20490,7 @@ msgstr "Nuevo comentario en {0}: {1}"
 
 #: public/js/frappe/form/templates/contact_list.html:90
 msgid "New Contact"
-msgstr ""
+msgstr "Nuevo Contacto"
 
 #: public/js/frappe/widgets/widget_dialog.js:70
 msgid "New Custom Block"
@@ -21039,7 +21039,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/contact_list.html:85
 msgid "No contacts added yet."
-msgstr ""
+msgstr "Ningún contacto agregado todavía."
 
 #: automation/doctype/auto_repeat/auto_repeat.py:427
 msgid "No contacts linked to document"
