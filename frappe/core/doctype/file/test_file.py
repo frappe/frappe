@@ -17,12 +17,7 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
-<<<<<<< HEAD
-=======
-from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-from frappe.core.doctype.file.utils import get_extension
 from frappe.desk.form.utils import add_comment
->>>>>>> 65c8a37636 (test: Comment + Comm.n file extraction & Attachments default to public for Communication)
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
