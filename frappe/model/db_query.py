@@ -633,22 +633,6 @@ class DatabaseQuery:
 		)
 
 		for i, field in enumerate(self.fields):
-<<<<<<< HEAD
-			if "distinct" in field.lower():
-				# field: 'count(distinct `tabPhoto`.name) as total_count'
-				# column: 'tabPhoto.name'
-				if _fn := FN_PARAMS_PATTERN.findall(field):
-					column = _fn[0].replace("distinct ", "").replace("DISTINCT ", "").replace("`", "")
-				# field: 'distinct name'
-				# column: 'name'
-				else:
-					column = field.split(" ", 1)[1].replace("`", "")
-			else:
-				# field: 'count(`tabPhoto`.name) as total_count'
-				# column: 'tabPhoto.name'
-				column = field.split("(")[-1].split(")", 1)[0]
-				column = strip_alias(column).replace("`", "")
-=======
 			# field: 'count(distinct `tabPhoto`.name) as total_count'
 			# column: 'tabPhoto.name'
 			# field: 'count(`tabPhoto`.name) as total_count'
@@ -656,7 +640,6 @@ class DatabaseQuery:
 			columns = extract_fieldnames(field)
 			if not columns:
 				continue
->>>>>>> ea193ecd48 (Revert "Revert "fix: search_link fails when txt contains parentheses (#22892)"")
 
 			column = columns[0]
 			if column == "*" and "*" in field:
