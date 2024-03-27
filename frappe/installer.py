@@ -4,6 +4,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from collections import OrderedDict
@@ -42,11 +43,16 @@ def _new_site(
 	source_sql=None,
 	force=False,
 	no_mariadb_socket=False,
-	reinstall=False,
 	db_password=None,
 	db_type=None,
 	db_host=None,
 	db_port=None,
+<<<<<<< HEAD
+=======
+	db_user=None,
+	setup_db=True,
+	rollback_callback=None,
+>>>>>>> 147c0c8b37 (feat: initial failed site rollback implementation)
 ):
 	"""Install a new Frappe site"""
 
@@ -86,6 +92,7 @@ def _new_site(
 		enable_scheduler = False
 
 	make_site_dirs()
+	rollback_callback.add(lambda: shutil.rmtree(frappe.get_site_path()))
 
 <<<<<<< HEAD
 	installing = touch_file(get_site_path("locks", "installing.lock"))
@@ -106,6 +113,7 @@ def _new_site(
 			db_user=db_user,
 			no_mariadb_socket=no_mariadb_socket,
 			setup=setup_db,
+			rollback_callback=rollback_callback,
 		)
 >>>>>>> 8cd23ecef5 (chore: drop unused parameter)
 
@@ -158,9 +166,17 @@ def install_db(
 	db_host=None,
 	db_port=None,
 	no_mariadb_socket=False,
+<<<<<<< HEAD
 ):
 	import frappe.database
 	from frappe.database import setup_database
+=======
+	setup=True,
+	rollback_callback=None,
+):
+	import frappe.database
+	from frappe.database import bootstrap_database, drop_user_and_database, setup_database
+>>>>>>> 147c0c8b37 (feat: initial failed site rollback implementation)
 
 	if not db_type:
 		db_type = frappe.conf.db_type or "mariadb"
@@ -182,7 +198,19 @@ def install_db(
 
 	frappe.flags.root_login = root_login
 	frappe.flags.root_password = root_password
+<<<<<<< HEAD
 	setup_database(force, source_sql, verbose, no_mariadb_socket)
+=======
+
+	if setup:
+		setup_database(force, verbose, no_mariadb_socket)
+		rollback_callback.add(drop_user_and_database(db_name, db_user or db_name))
+
+	bootstrap_database(
+		verbose=verbose,
+		source_sql=source_sql,
+	)
+>>>>>>> 147c0c8b37 (feat: initial failed site rollback implementation)
 
 	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
 

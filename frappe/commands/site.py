@@ -10,6 +10,7 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
+from frappe.utils import CallbackManager
 
 
 @click.command("new-site")
@@ -62,8 +63,9 @@ def new_site(
 	"Create a new site"
 	from frappe.installer import _new_site, extract_sql_from_archive
 
-	frappe.init(site=site, new_site=True)
+	rollback_callback = CallbackManager()
 
+<<<<<<< HEAD
 	if source_sql:
 		source_sql = extract_sql_from_archive(source_sql)
 
@@ -83,9 +85,37 @@ def new_site(
 		db_host=db_host,
 		db_port=db_port,
 	)
+=======
+	try:
+		frappe.init(site=site, new_site=True)
+>>>>>>> 147c0c8b37 (feat: initial failed site rollback implementation)
 
-	if set_default:
-		use(site)
+		_new_site(
+			db_name,
+			site,
+			db_root_username=db_root_username,
+			db_root_password=db_root_password,
+			admin_password=admin_password,
+			verbose=verbose,
+			install_apps=install_app,
+			source_sql=source_sql,
+			force=force,
+			no_mariadb_socket=no_mariadb_socket,
+			db_password=db_password,
+			db_type=db_type,
+			db_host=db_host,
+			db_port=db_port,
+			db_user=db_user,
+			setup_db=setup_db,
+			rollback_callback=rollback_callback,
+		)
+
+		if set_default:
+			use(site)
+
+	except Exception:
+		if click.confirm("Do you want to rollback the failed site?", abort=True):
+			rollback_callback.run()
 
 
 @click.command("restore")
@@ -370,7 +400,6 @@ def _reinstall(
 		site,
 		verbose=verbose,
 		force=True,
-		reinstall=True,
 		install_apps=installed,
 		db_root_username=db_root_username,
 		db_root_password=db_root_password,
