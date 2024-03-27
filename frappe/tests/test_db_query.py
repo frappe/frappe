@@ -1220,6 +1220,20 @@ class TestReportView(FrappeTestCase):
 		self.assertIsInstance(count, int)
 		self.assertLessEqual(count, limit)
 
+		# doctype with space in name
+		limit = 2
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": "Role Profile",
+				"fields": [],
+				"distinct": "true",
+				"limit": limit,
+			}
+		)
+		count = execute_cmd("frappe.desk.reportview.get_count")
+		self.assertIsInstance(count, int)
+		self.assertLessEqual(count, limit)
+
 	def test_reportview_get(self):
 		user = frappe.get_doc("User", "test@example.com")
 		add_child_table_to_blog_post()

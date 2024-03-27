@@ -353,7 +353,7 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	setup_paging_area() {
-		const paging_values = [20, 100, 500];
+		const paging_values = [20, 100, 500, 2500];
 		this.$paging_area = $(
 			`<div class="list-paging-area level">
 				<div class="level-left">
@@ -439,15 +439,22 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	get_args() {
+		let filters = this.get_filters_for_args();
+		let group_by = this.get_group_by();
+		let group_by_required =
+			Array.isArray(filters) &&
+			filters.some((filter) => {
+				return filter[0] !== this.doctype;
+			});
 		return {
 			doctype: this.doctype,
 			fields: this.get_fields(),
-			filters: this.get_filters_for_args(),
+			filters,
 			order_by: this.sort_selector && this.sort_selector.get_sql_string(),
 			start: this.start,
 			page_length: this.page_length,
 			view: this.view,
-			group_by: this.get_group_by(),
+			group_by: group_by_required ? group_by : null,
 		};
 	}
 

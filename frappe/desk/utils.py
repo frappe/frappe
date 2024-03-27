@@ -25,3 +25,34 @@ def validate_route_conflict(doctype, name):
 
 def slug(name):
 	return name.lower().replace(" ", "-")
+
+
+def pop_csv_params(form_dict):
+	"""Pop csv params from form_dict and return them as a dict."""
+	from csv import QUOTE_NONNUMERIC
+
+	from frappe.utils.data import cint, cstr
+
+	return {
+		"delimiter": cstr(form_dict.pop("csv_delimiter", ","))[0],
+		"quoting": cint(form_dict.pop("csv_quoting", QUOTE_NONNUMERIC)),
+	}
+
+
+def get_csv_bytes(data: list[list], csv_params: dict) -> bytes:
+	"""Convert data to csv bytes."""
+	from csv import writer
+	from io import StringIO
+
+	file = StringIO()
+	csv_writer = writer(file, **csv_params)
+	csv_writer.writerows(data)
+
+	return file.getvalue().encode("utf-8")
+
+
+def provide_binary_file(filename: str, extension: str, content: bytes) -> None:
+	"""Provide a binary file to the client."""
+	frappe.response["type"] = "binary"
+	frappe.response["filecontent"] = content
+	frappe.response["filename"] = f"{filename}.{extension}"
