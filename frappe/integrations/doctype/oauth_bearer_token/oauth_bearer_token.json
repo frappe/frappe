@@ -75,7 +75,7 @@
   }
  ],
  "links": [],
- "modified": "2023-04-07 07:08:00.249740",
+ "modified": "2024-03-23 16:03:32.559867",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Bearer Token",
@@ -93,7 +93,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

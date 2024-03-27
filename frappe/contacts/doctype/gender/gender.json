@@ -17,7 +17,7 @@
   }
  ],
  "links": [],
- "modified": "2022-08-05 18:33:28.043370",
+ "modified": "2024-03-23 16:03:26.299387",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Gender",
@@ -40,7 +40,7 @@
    "role": "All"
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1,

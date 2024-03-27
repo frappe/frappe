@@ -59,7 +59,7 @@
   }
  ],
  "links": [],
- "modified": "2023-02-14 14:46:43.764229",
+ "modified": "2024-03-23 16:03:29.188038",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "List View Settings",
@@ -78,7 +78,7 @@
   }
  ],
  "read_only": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

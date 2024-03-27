@@ -1076,20 +1076,20 @@ class DatabaseQuery:
 				if self.doctype_meta.sort_field and "," in self.doctype_meta.sort_field:
 					# multiple sort given in doctype definition
 					# Example:
-					# `idx desc, modified desc`
+					# `idx desc, creation desc`
 					# will covert to
-					# `tabItem`.`idx` desc, `tabItem`.`modified` desc
+					# `tabItem`.`idx` desc, `tabItem`.`creation` desc
 					args.order_by = ", ".join(
 						f"`tab{self.doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
 						for f in self.doctype_meta.sort_field.split(",")
 						if (f_split := f.split(maxsplit=2))
 					)
 				else:
-					sort_field = self.doctype_meta.sort_field or "modified"
+					sort_field = self.doctype_meta.sort_field or "creation"
 					sort_order = (self.doctype_meta.sort_field and self.doctype_meta.sort_order) or "desc"
 					if self.order_by:
 						args.order_by = (
-							f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
+							f"`tab{self.doctype}`.`{sort_field or 'creation'}` {sort_order or 'desc'}"
 						)
 
 	def validate_order_by_and_group_by(self, parameters: str):
@@ -1206,9 +1206,9 @@ def get_order_by(doctype, meta):
 	if meta.sort_field and "," in meta.sort_field:
 		# multiple sort given in doctype definition
 		# Example:
-		# `idx desc, modified desc`
+		# `idx desc, creation desc`
 		# will covert to
-		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
+		# `tabItem`.`idx` desc, `tabItem`.`creation` desc
 		order_by = ", ".join(
 			f"`tab{doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
 			for f in meta.sort_field.split(",")
@@ -1216,13 +1216,9 @@ def get_order_by(doctype, meta):
 		)
 
 	else:
-		sort_field = meta.sort_field or "modified"
+		sort_field = meta.sort_field or "creation"
 		sort_order = (meta.sort_field and meta.sort_order) or "desc"
-		order_by = f"`tab{doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
-
-	# draft docs always on top
-	if meta.is_submittable:
-		order_by = f"`tab{doctype}`.docstatus asc, {order_by}"
+		order_by = f"`tab{doctype}`.`{sort_field}` {sort_order}"
 
 	return order_by
 
