@@ -25,7 +25,7 @@ class RouteHistory(Document):
 		from frappe.query_builder.functions import Now
 
 		table = frappe.qb.DocType("Route History")
-		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 
 
 @frappe.whitelist()

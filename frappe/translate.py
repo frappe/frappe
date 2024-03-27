@@ -129,7 +129,7 @@ def set_default_language(lang):
 def get_lang_dict():
 	"""Return all languages in dict format, full name is the key e.g. `{"english":"en"}`."""
 	return dict(
-		frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True)
+		frappe.get_all("Language", fields=["language_name", "name"], order_by="creation", as_list=True)
 	)
 
 

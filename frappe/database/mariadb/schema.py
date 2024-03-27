@@ -33,7 +33,10 @@ class MariaDBTable(DBTable):
 			]
 		else:
 			# parent types
-			additional_definitions.append("index modified(modified)")
+			additional_definitions.append("index creation(creation)")
+			if self.meta.sort_field == "modified":
+				# Support old doctype default by indexing it, also 2nd popular choice.
+				additional_definitions.append("index modified(modified)")
 
 		# creating sequence(s)
 		if not self.meta.issingle and self.meta.autoname == "autoincrement":

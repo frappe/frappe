@@ -7,6 +7,7 @@ import datetime
 import json
 import re
 from collections import Counter
+from collections.abc import Sequence
 
 import frappe
 import frappe.defaults
@@ -44,7 +45,6 @@ FIELD_COMMA_PATTERN = re.compile(r"[0-9a-zA-Z]+\s*,")
 STRICT_FIELD_PATTERN = re.compile(r".*/\*.*")
 STRICT_UNION_PATTERN = re.compile(r".*\s(union).*\s")
 ORDER_GROUP_PATTERN = re.compile(r".*[^a-z0-9-_ ,`'\"\.\(\)].*")
-FN_PARAMS_PATTERN = re.compile(r".*?\((.*)\).*")
 SPECIAL_FIELD_CHARS = frozenset(("(", "`", ".", "'", '"', "*"))
 
 
@@ -134,6 +134,8 @@ class DatabaseQuery:
 			limit_page_length = page_length
 		if limit:
 			limit_page_length = limit
+		if as_list and not isinstance(self.fields, (Sequence | str)) and len(self.fields) > 1:
+			frappe.throw(_("Fields must be a list or tuple when as_list is enabled"))
 
 		self.filters = filters or []
 		self.or_filters = or_filters or []
@@ -471,6 +473,8 @@ class DatabaseQuery:
 
 				if table_name.lower().startswith("group_concat("):
 					table_name = table_name[13:]
+				if table_name.lower().startswith("distinct"):
+					table_name = table_name[8:].strip()
 				if table_name[0] != "`":
 					table_name = f"`{table_name}`"
 				if (
@@ -617,6 +621,8 @@ class DatabaseQuery:
 		        - Query: fields=["*"]
 		        - Result: fields=["title", ...] // will also include Frappe's meta field like `name`, `owner`, etc.
 		"""
+		from frappe.desk.reportview import extract_fieldnames
+
 		if self.flags.ignore_permissions:
 			return
 
@@ -629,23 +635,18 @@ class DatabaseQuery:
 		)
 
 		for i, field in enumerate(self.fields):
-			if "distinct" in field.lower():
-				# field: 'count(distinct `tabPhoto`.name) as total_count'
-				# column: 'tabPhoto.name'
-				if _fn := FN_PARAMS_PATTERN.findall(field):
-					column = _fn[0].replace("distinct ", "").replace("DISTINCT ", "").replace("`", "")
-				# field: 'distinct name'
-				# column: 'name'
-				else:
-					column = field.split(" ", 2)[1].replace("`", "")
-			else:
-				# field: 'count(`tabPhoto`.name) as total_count'
-				# column: 'tabPhoto.name'
-				column = field.split("(")[-1].split(")", 1)[0]
-				column = strip_alias(column).replace("`", "")
+			# field: 'count(distinct `tabPhoto`.name) as total_count'
+			# column: 'tabPhoto.name'
+			# field: 'count(`tabPhoto`.name) as total_count'
+			# column: 'tabPhoto.name'
+			columns = extract_fieldnames(field)
+			if not columns:
+				continue
 
-			if column == "*" and not in_function("*", field):
-				asterisk_fields.append(i)
+			column = columns[0]
+			if column == "*" and "*" in field:
+				if not in_function("*", field):
+					asterisk_fields.append(i)
 				continue
 
 			# handle pseudo columns
@@ -684,21 +685,12 @@ class DatabaseQuery:
 			elif "(" in field:
 				if "*" in field:
 					continue
-				elif _params := FN_PARAMS_PATTERN.findall(field):
-					params = (x.strip() for x in _params[0].split(","))
-					for param in params:
-						if not (
-							not param
-							or param in permitted_fields
-							or param.isnumeric()
-							or "'" in param
-							or '"' in param
-						):
+				else:
+					for column in columns:
+						if column not in permitted_fields:
 							self.remove_field(i)
 							break
 					continue
-				self.remove_field(i)
-
 			# remove if access not allowed
 			else:
 				self.remove_field(i)
@@ -1084,26 +1076,21 @@ class DatabaseQuery:
 				if self.doctype_meta.sort_field and "," in self.doctype_meta.sort_field:
 					# multiple sort given in doctype definition
 					# Example:
-					# `idx desc, modified desc`
+					# `idx desc, creation desc`
 					# will covert to
-					# `tabItem`.`idx` desc, `tabItem`.`modified` desc
+					# `tabItem`.`idx` desc, `tabItem`.`creation` desc
 					args.order_by = ", ".join(
 						f"`tab{self.doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
 						for f in self.doctype_meta.sort_field.split(",")
 						if (f_split := f.split(maxsplit=2))
 					)
 				else:
-					sort_field = self.doctype_meta.sort_field or "modified"
+					sort_field = self.doctype_meta.sort_field or "creation"
 					sort_order = (self.doctype_meta.sort_field and self.doctype_meta.sort_order) or "desc"
 					if self.order_by:
 						args.order_by = (
-							f"`tab{self.doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
+							f"`tab{self.doctype}`.`{sort_field or 'creation'}` {sort_order or 'desc'}"
 						)
-
-				# draft docs always on top
-				if hasattr(self.doctype_meta, "is_submittable") and self.doctype_meta.is_submittable:
-					if self.order_by:
-						args.order_by = f"`tab{self.doctype}`.docstatus asc, {args.order_by}"
 
 	def validate_order_by_and_group_by(self, parameters: str):
 		"""Check order by, group by so that atleast one column is selected and does not have subquery"""
@@ -1219,9 +1206,9 @@ def get_order_by(doctype, meta):
 	if meta.sort_field and "," in meta.sort_field:
 		# multiple sort given in doctype definition
 		# Example:
-		# `idx desc, modified desc`
+		# `idx desc, creation desc`
 		# will covert to
-		# `tabItem`.`idx` desc, `tabItem`.`modified` desc
+		# `tabItem`.`idx` desc, `tabItem`.`creation` desc
 		order_by = ", ".join(
 			f"`tab{doctype}`.`{f_split[0].strip()}` {f_split[1].strip()}"
 			for f in meta.sort_field.split(",")
@@ -1229,13 +1216,9 @@ def get_order_by(doctype, meta):
 		)
 
 	else:
-		sort_field = meta.sort_field or "modified"
+		sort_field = meta.sort_field or "creation"
 		sort_order = (meta.sort_field and meta.sort_order) or "desc"
-		order_by = f"`tab{doctype}`.`{sort_field or 'modified'}` {sort_order or 'desc'}"
-
-	# draft docs always on top
-	if meta.is_submittable:
-		order_by = f"`tab{doctype}`.docstatus asc, {order_by}"
+		order_by = f"`tab{doctype}`.`{sort_field}` {sort_order}"
 
 	return order_by
 

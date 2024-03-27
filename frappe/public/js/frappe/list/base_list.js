@@ -54,7 +54,7 @@ frappe.views.BaseList = class BaseList {
 
 		this.fields = [];
 		this.filters = [];
-		this.sort_by = this.meta.sort_field || "modified";
+		this.sort_by = this.meta.sort_field || "creation";
 		this.sort_order = this.meta.sort_order || "desc";
 
 		// Setup buttons
@@ -392,15 +392,16 @@ frappe.views.BaseList = class BaseList {
 		// set default paging btn active
 		this.$paging_area
 			.find(`.btn-paging[data-value="${this.page_length}"]`)
-			.addClass("btn-info");
+			.addClass("btn-info")
+			.prop("disabled", true);
 
 		this.$paging_area.on("click", ".btn-paging", (e) => {
 			const $this = $(e.currentTarget);
 			// Set the active button
 			// This is always necessary because the current page length might
 			// have resulted from a previous "load more".
-			this.$paging_area.find(".btn-paging").removeClass("btn-info");
-			$this.addClass("btn-info");
+			this.$paging_area.find(".btn-paging").removeClass("btn-info").prop("disabled", false);
+			$this.addClass("btn-info").prop("disabled", true);
 
 			const old_page_length = this.page_length;
 			const new_page_length = $this.data().value;
@@ -461,15 +462,22 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	get_args() {
+		let filters = this.get_filters_for_args();
+		let group_by = this.get_group_by();
+		let group_by_required =
+			Array.isArray(filters) &&
+			filters.some((filter) => {
+				return filter[0] !== this.doctype;
+			});
 		return {
 			doctype: this.doctype,
 			fields: this.get_fields(),
-			filters: this.get_filters_for_args(),
+			filters,
 			order_by: this.sort_selector && this.sort_selector.get_sql_string(),
 			start: this.start,
 			page_length: this.page_length,
 			view: this.view,
-			group_by: this.get_group_by(),
+			group_by: group_by_required ? group_by : null,
 		};
 	}
 

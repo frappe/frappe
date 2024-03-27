@@ -407,7 +407,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-12-01 18:18:23.086134",
+ "modified": "2024-03-23 16:02:15.670853",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form",
@@ -426,7 +426,7 @@
  ],
  "quick_entry": 1,
  "search_fields": "doc_type",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

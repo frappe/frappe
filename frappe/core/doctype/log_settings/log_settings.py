@@ -181,7 +181,7 @@ def clear_log_table(doctype, days=90):
 		frappe.db.sql(
 			f"""INSERT INTO `{temporary}`
 				SELECT * FROM `{original}`
-				WHERE `{original}`.`modified` > NOW() - INTERVAL '{days}' DAY"""
+				WHERE `{original}`.`creation` > NOW() - INTERVAL '{days}' DAY"""
 		)
 		frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
 	except Exception:

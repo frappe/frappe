@@ -26,7 +26,7 @@ dirname = os.path.dirname(__file__)
 translation_string_file = os.path.abspath(os.path.join(dirname, "translation_test_file.txt"))
 first_lang, second_lang, third_lang, fourth_lang, fifth_lang = choices(
 	# skip "en*" since it is a default language
-	frappe.get_all("Language", pluck="name", filters=[["name", "not like", "en%"]]),
+	frappe.get_all("Language", pluck="name", filters=[["name", "not like", "en%"], ["enabled", "=", 1]]),
 	k=5,
 )
 

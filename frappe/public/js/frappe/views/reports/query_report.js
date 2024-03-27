@@ -743,6 +743,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.finally(() => {
 				this.hide_loading_screen();
 				this.update_url_with_filters();
+				this.report_settings.after_refresh?.(this);
 			});
 	}
 

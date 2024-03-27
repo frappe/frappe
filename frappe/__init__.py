@@ -11,6 +11,7 @@ be used to build database driven apps.
 Read the documentation: https://frappeframework.com/docs
 """
 import copy
+import faulthandler
 import functools
 import gc
 import importlib
@@ -18,6 +19,7 @@ import inspect
 import json
 import os
 import re
+import signal
 import traceback
 import warnings
 from collections.abc import Callable
@@ -304,6 +306,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
+		_register_fault_handler()
 
 	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
@@ -2042,7 +2045,7 @@ def get_list(doctype, *args, **kwargs):
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`.
 	:param filters: List of filters (see example).
-	:param order_by: Order By e.g. `modified desc`.
+	:param order_by: Order By e.g. `creation desc`.
 	:param limit_start: Start results at record #. Default 0.
 	:param limit_page_length: No of records in the page. Default 20.
 
@@ -2066,7 +2069,7 @@ def get_all(doctype, *args, **kwargs):
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`. Default is: `["name"]`.
 	:param filters: List of filters (see example).
-	:param order_by: Order By e.g. `modified desc`.
+	:param order_by: Order By e.g. `creation desc`.
 	:param limit_start: Start results at record #. Default 0.
 	:param limit_page_length: No of records in the page. Default 20.
 
@@ -2540,6 +2543,10 @@ def validate_and_sanitize_search_inputs(fn):
 		return fn(**kwargs)
 
 	return wrapper
+
+
+def _register_fault_handler():
+	faulthandler.register(signal.SIGUSR1)
 
 
 from frappe.utils.error import log_error

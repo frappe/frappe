@@ -67,7 +67,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2024-03-18 13:54:44.498352",
+ "modified": "2024-03-23 17:03:30.561647",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Navbar Settings",
@@ -85,7 +85,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

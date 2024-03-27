@@ -124,7 +124,7 @@ class TestDB(FrappeTestCase):
 			).lower(),
 		)
 		self.assertEqual(
-			frappe.db.sql("select email from tabUser where name='Administrator' order by modified DESC"),
+			frappe.db.sql("select email from tabUser where name='Administrator' order by creation DESC"),
 			frappe.db.get_values("User", filters=[["name", "=", "Administrator"]], fieldname="email"),
 		)
 

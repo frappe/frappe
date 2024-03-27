@@ -35,7 +35,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-12 20:35:43.921009",
+ "modified": "2024-03-23 16:01:30.816591",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Console Log",
@@ -55,7 +55,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

@@ -51,7 +51,7 @@
  "icon": "fa fa-globe",
  "in_create": 1,
  "links": [],
- "modified": "2023-04-13 13:48:38.127995",
+ "modified": "2024-03-23 16:03:28.477169",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Language",
@@ -66,13 +66,13 @@
    "write": 1
   },
   {
-   "role": "All",
-   "read": 1
+   "read": 1,
+   "role": "All"
   }
  ],
  "search_fields": "language_name",
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "language_name",
