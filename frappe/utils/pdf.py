@@ -208,7 +208,7 @@ def read_options_from_html(html):
 
 	valid_styles = get_print_format_styles(soup)
 
-	for attr in (
+	attrs = (
 		"margin-top",
 		"margin-bottom",
 		"margin-left",
@@ -218,11 +218,8 @@ def read_options_from_html(html):
 		"orientation",
 		"page-width",
 		"page-height",
-	):
-		for style in valid_styles:
-			if attr == style.name:
-				options[attr] = style.value
-
+	)
+	options |= {style.name: style.value for style in valid_styles if style.name in attrs}
 	return str(soup), options
 
 
