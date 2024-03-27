@@ -5,10 +5,10 @@ import contextlib
 import io
 import mimetypes
 import os
-import re
 import subprocess
 from urllib.parse import parse_qs, urlparse
 
+import cssutils
 import pdfkit
 from bs4 import BeautifulSoup
 from packaging.version import Version
@@ -206,8 +206,9 @@ def read_options_from_html(html):
 
 	toggle_visible_pdf(soup)
 
-	# use regex instead of soup-parser
-	for attr in (
+	valid_styles = get_print_format_styles(soup)
+
+	attrs = (
 		"margin-top",
 		"margin-bottom",
 		"margin-left",
@@ -217,16 +218,47 @@ def read_options_from_html(html):
 		"orientation",
 		"page-width",
 		"page-height",
-	):
-		try:
-			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
-			match = pattern.findall(html)
-			if match:
-				options[attr] = str(match[-1][3]).strip()
-		except Exception:
-			pass
-
+	)
+	options |= {style.name: style.value for style in valid_styles if style.name in attrs}
 	return str(soup), options
+
+
+def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
+	"""
+	Get styles purely on class 'print-format'.
+	Valid:
+	1) .print-format { ... }
+	2) .print-format, p { ... } | p, .print-format { ... }
+
+	Invalid (applied on child elements):
+	1) .print-format p { ... } | .print-format > p { ... }
+	2) .print-format #abc { ... }
+
+	Returns:
+	[cssutils.css.Property(name='margin-top', value='50mm', priority=''), ...]
+	"""
+	stylesheet = ""
+	style_tags = soup.find_all("style")
+
+	# Prepare a css stylesheet from all the style tags' contents
+	for style_tag in style_tags:
+		stylesheet += style_tag.string
+
+	# Use css parser to tokenize the classes and their styles
+	parsed_sheet = cssutils.parseString(stylesheet)
+
+	# Get all styles that are only for .print-format
+	valid_styles = []
+	for rule in parsed_sheet:
+		if not isinstance(rule, cssutils.css.CSSStyleRule):
+			continue
+
+		# Allow only .print-format { ... } and .print-format, p { ... }
+		# Disallow .print-format p { ... } and .print-format > p { ... }
+		if ".print-format" in [x.strip() for x in rule.selectorText.split(",")]:
+			valid_styles.extend(entry for entry in rule.style)
+
+	return valid_styles
 
 
 def inline_private_images(html) -> str:
