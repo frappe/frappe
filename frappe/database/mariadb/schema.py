@@ -68,9 +68,32 @@ class MariaDBTable(DBTable):
 		for col in self.columns.values():
 			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower()))
 
+<<<<<<< HEAD
 		add_column_query = []
 		modify_column_query = []
 		add_index_query = []
+=======
+		add_column_query = [f"ADD COLUMN `{col.fieldname}` {col.get_definition()}" for col in self.add_column]
+		columns_to_modify = set(self.change_type + self.set_default + self.change_nullability)
+		modify_column_query = [
+			f"MODIFY `{col.fieldname}` {col.get_definition(for_modification=True)}"
+			for col in columns_to_modify
+		]
+		modify_column_query.extend(
+			[f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)" for col in self.add_unique]
+		)
+		add_index_query = [
+			f"ADD INDEX `{col.fieldname}_index`(`{col.fieldname}`)"
+			for col in self.add_index
+			if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
+		]
+
+		if self.meta.sort_field == "modified" and frappe.db.get_column_index(
+			self.table_name, "modified", unique=False
+		):
+			add_index_query.append("ADD INDEX `modified`(`modified`)")
+
+>>>>>>> 67bcda333e (fix: auto add modified index when sort_field is set to it (#25686))
 		drop_index_query = []
 
 		for col in self.add_column:

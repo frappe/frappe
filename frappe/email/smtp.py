@@ -101,6 +101,20 @@ class SMTPServer:
 				title=_("Incorrect Configuration"),
 			)
 
+<<<<<<< HEAD
+=======
+	def _enqueue_connection_closure(self):
+		if frappe.request and hasattr(frappe.request, "after_response"):
+			frappe.request.after_response.add(self.quit)
+		elif frappe.job:
+			frappe.job.after_job.add(self.quit)
+		elif not frappe.flags.in_test:
+			# Console?
+			import atexit
+
+			atexit.register(self.quit)
+
+>>>>>>> 67bcda333e (fix: auto add modified index when sort_field is set to it (#25686))
 	def is_session_active(self):
 		if self._session:
 			try:
