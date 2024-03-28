@@ -45,10 +45,10 @@ def _new_site(
 	install_apps=None,
 	source_sql=None,
 	force=False,
-	no_mariadb_socket=False,
 	reinstall=False,
 	db_password=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
@@ -60,10 +60,6 @@ def _new_site(
 
 	if not force and os.path.exists(site):
 		print(f"Site {site} already exists")
-		sys.exit(1)
-
-	if no_mariadb_socket and db_type != "mariadb":
-		print("--no-mariadb-socket requires db_type to be set to mariadb.")
 		sys.exit(1)
 
 	frappe.init(site=site)
@@ -98,10 +94,10 @@ def _new_site(
 			reinstall=reinstall,
 			db_password=db_password,
 			db_type=db_type,
+			db_socket=db_socket,
 			db_host=db_host,
 			db_port=db_port,
 			db_user=db_user,
-			no_mariadb_socket=no_mariadb_socket,
 			setup=setup_db,
 		)
 
@@ -135,10 +131,10 @@ def install_db(
 	reinstall=False,
 	db_password=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
-	no_mariadb_socket=False,
 	setup=True,
 ):
 	import frappe.database
@@ -157,6 +153,7 @@ def install_db(
 		site_config=site_config,
 		db_password=db_password,
 		db_type=db_type,
+		db_socket=db_socket,
 		db_host=db_host,
 		db_port=db_port,
 		db_user=db_user,
@@ -167,7 +164,7 @@ def install_db(
 	frappe.flags.root_password = root_password
 
 	if setup:
-		setup_database(force, verbose, no_mariadb_socket)
+		setup_database(force, verbose)
 
 	bootstrap_database(
 		verbose=verbose,
@@ -546,6 +543,7 @@ def make_conf(
 	db_password=None,
 	site_config=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
@@ -556,6 +554,7 @@ def make_conf(
 		db_password,
 		site_config,
 		db_type=db_type,
+		db_socket=db_socket,
 		db_host=db_host,
 		db_port=db_port,
 		db_user=db_user,
@@ -570,6 +569,7 @@ def make_site_config(
 	db_password=None,
 	site_config=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
@@ -583,6 +583,9 @@ def make_site_config(
 
 			if db_type:
 				site_config["db_type"] = db_type
+
+			if db_socket:
+				site_config["db_socket"] = db_socket
 
 			if db_host:
 				site_config["db_host"] = db_host
