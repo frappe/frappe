@@ -102,9 +102,13 @@ class Importer:
 		log_index = 0
 
 		# Do not remove rows in case of retry after an error or pending data import
-		if self.data_import.status == "Partial Success" and len(import_log) >= self.data_import.payload_count:
+		if (
+			self.data_import.status in ("Partial Success", "Error")
+			and len(import_log) >= self.data_import.payload_count
+		):
 			# remove previous failures from import log only in case of retry after partial success
 			import_log = [log for log in import_log if log.get("success")]
+			frappe.db.delete("Data Import Log", {"success": 0, "data_import": self.data_import.name})
 
 		# get successfully imported rows
 		imported_rows = []
