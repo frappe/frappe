@@ -5,7 +5,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.model import core_doctypes_list
+from frappe.model import core_doctypes_list, delete_fields
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.query_builder.functions import IfNull
@@ -233,6 +233,18 @@ class CustomField(Document):
 					layout_doc.remove(field)
 					layout_doc.save()
 					break
+
+		if not frappe.flags.in_migrate and frappe.db.has_column(self.dt, self.fieldname):
+			# Check if there are more than one distinct non-null values.
+			# If not, it's safe to delete the column.
+			if len(frappe.db.get_all(self.dt, pluck=self.fieldname, distinct=True, limit=2)) < 2:
+				delete_fields({self.dt: [self.fieldname]}, delete=1)
+			else:
+				frappe.throw(
+					_("Cannot remove field {0} as it holds non-null values.").format(
+						self.label or self.fieldname
+					)
+				)
 
 		frappe.clear_cache(doctype=self.dt)
 
