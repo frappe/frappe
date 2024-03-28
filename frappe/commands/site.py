@@ -114,7 +114,7 @@ def new_site(
 			use(site)
 
 	except Exception:
-		if click.confirm("Do you want to rollback the failed site?", abort=True):
+		if sys.__stdin__.isatty() and click.confirm("Do you want to rollback the failed site?", abort=True):
 			rollback_callback.run()
 
 
