@@ -70,16 +70,20 @@ def _new_site(
 
 	if not db_name:
 		import hashlib
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 		db_name = "_" + hashlib.sha1(os.path.realpath(frappe.get_site_path()).encode()).hexdigest()[:16]
 =======
 		from frappe.utils.data import get_datetime
+=======
+		from datetime import datetime
+>>>>>>> 9940868063 (fix: switch to `datetime.now()` instead of our `get_datetime()`)
 
 		db_name = (
 			"_"
 			+ hashlib.sha1(
-				(os.path.realpath(frappe.get_site_path()) + get_datetime().isoformat()).encode(),
+				(os.path.realpath(frappe.get_site_path()) + datetime.now().isoformat()).encode(),
 				usedforsecurity=False,
 			).hexdigest()[:16]
 		)
