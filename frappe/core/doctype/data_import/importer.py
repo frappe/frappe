@@ -221,10 +221,10 @@ class Importer:
 			else:
 				failures.append(log)
 		if len(failures) >= total_payload_count and len(successes) == 0:
-			status = "Error" 
+			status = "Error"
 		elif len(failures) > 0 and len(successes) > 0:
 			status = "Partial Success"
-		elif len(len(successes) == total_payload_count):
+		elif len(successes) == total_payload_count:
 			status = "Success"
 
 		if self.console:
