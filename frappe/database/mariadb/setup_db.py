@@ -1,4 +1,5 @@
 import os
+import sys
 
 import click
 
@@ -37,7 +38,8 @@ def setup_database(force, source_sql, verbose, no_mariadb_socket=False):
 		dbman.delete_user(db_name, **dbman_kwargs)
 		dbman.drop_database(db_name)
 	else:
-		raise Exception(f"Database {db_name} already exists")
+		print(f"Database {db_name} already exists, please drop it manually or pass `--force`.")
+		sys.exit(1)
 
 	dbman.create_user(db_name, frappe.conf.db_password, **dbman_kwargs)
 	if verbose:
