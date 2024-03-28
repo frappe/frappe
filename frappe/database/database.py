@@ -48,7 +48,9 @@ MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 SQL_ITERATOR_BATCH_SIZE = 100
 
 
-TRANSACTION_DISABLED_MSG = "Commit/rollback are disabled during certain events. This command will be ignored."
+TRANSACTION_DISABLED_MSG = """Commit/rollback are disabled during certain events. This command will
+be ignored. Commit/Rollback from here WILL CAUSE very hard to debug problems with atomicity and
+concurrent data update bugs."""
 
 
 class Database:
