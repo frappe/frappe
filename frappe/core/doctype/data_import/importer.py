@@ -226,6 +226,8 @@ class Importer:
 			status = "Partial Success"
 		elif len(successes) == total_payload_count:
 			status = "Success"
+		else:
+			status = "Pending"
 
 		if self.console:
 			self.print_import_log(import_log)
