@@ -15,7 +15,7 @@ from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.tests.utils import FrappeTestCase, timeout
+from frappe.tests.utils import FrappeTestCase, patch_hooks, timeout
 from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.testutils import clear_custom_fields
 
@@ -458,6 +458,19 @@ class TestDB(FrappeTestCase):
 			note.name,
 		)
 		self.assertEqual(1, frappe.db.transaction_writes - writes)
+
+	def test_transactions_disabled_during_writes(self):
+		hook_name = f"{bad_hook.__module__}.{bad_hook.__name__}"
+		nested_hook_name = f"{bad_nested_hook.__module__}.{bad_nested_hook.__name__}"
+
+		with patch_hooks(
+			{"doc_events": {"*": {"before_validate": hook_name, "on_update": nested_hook_name}}}
+		):
+			note = frappe.new_doc("Note", title=frappe.generate_hash())
+			note.insert()
+		self.assertGreater(frappe.db.transaction_writes, 0)  # This would've reset for commit/rollback
+
+		self.assertFalse(frappe.db._disable_transaction_control)
 
 	def test_pk_collision_ignoring(self):
 		# note has `name` generated from title
@@ -1005,6 +1018,17 @@ class TestConcurrency(FrappeTestCase):
 
 		with self.secondary_connection():
 			self.assertRaises(frappe.QueryTimeoutError, frappe.delete_doc, note.doctype, note.name)
+
+
+def bad_hook(*args, **kwargs):
+	frappe.db.commit()
+	frappe.db.rollback()
+
+
+def bad_nested_hook(doc, *args, **kwargs):
+	doc.run_method("before_validate")
+	frappe.db.commit()
+	frappe.db.rollback()
 
 
 class TestSqlIterator(FrappeTestCase):

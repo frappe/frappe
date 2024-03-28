@@ -7,6 +7,7 @@ import random
 import re
 import string
 import traceback
+import warnings
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
@@ -45,6 +46,11 @@ SINGLE_WORD_PATTERN = re.compile(r'([`"]?)(tab([A-Z]\w+))\1')
 MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 
 SQL_ITERATOR_BATCH_SIZE = 100
+
+
+TRANSACTION_DISABLED_MSG = """Commit/rollback are disabled during certain events. This command will
+be ignored. Commit/Rollback from here WILL CAUSE very hard to debug problems with atomicity and
+concurrent data update bugs."""
 
 
 class Database:
@@ -95,8 +101,12 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
-	# self.db_type: str
-	# self.last_query (lazy) attribute of last sql query executed
+		# Setting this to true will disable full rollback and commit
+		# You can still use savepoint with partial rollback.
+		self._disable_transaction_control = 0
+
+		# self.db_type: str
+		# self.last_query (lazy) attribute of last sql query executed
 
 	def setup_type_map(self):
 		pass
@@ -1028,6 +1038,10 @@ class Database:
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
+		if self._disable_transaction_control:
+			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
+			return
+
 		self.before_rollback.reset()
 		self.after_rollback.reset()
 
@@ -1042,7 +1056,7 @@ class Database:
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
-		else:
+		elif not self._disable_transaction_control:
 			self.before_commit.reset()
 			self.after_commit.reset()
 
@@ -1052,6 +1066,8 @@ class Database:
 			self.begin()
 
 			self.after_rollback.run()
+		else:
+			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 
 	def savepoint(self, save_point):
 		"""Savepoints work as a nested transaction.
