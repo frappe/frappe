@@ -1301,10 +1301,10 @@ class Document(BaseDocument):
 				add_to_return_value(self, fn(self, *args, **kwargs))
 				for f in hooks:
 					try:
-						frappe.db.disable_transaction_control = True
+						frappe.db._disable_transaction_control += 1
 						add_to_return_value(self, f(self, method, *args, **kwargs))
 					finally:
-						frappe.db.disable_transaction_control = False
+						frappe.db._disable_transaction_control -= 1
 
 				return self.__dict__.pop("_return_value", None)
 
