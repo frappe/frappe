@@ -32,11 +32,9 @@ frappe.notification = {
 				]);
 			};
 
-			let fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
+			const fields = frappe.get_meta(frm.doc.document_type).fields;
 			let options = $.map(fields, function (d) {
-				return frappe.model.no_value_type.includes(d.fieldtype)
-					? null
-					: get_select_options(d);
+				return d.is_value_field() ? get_select_options(d) : null;
 			});
 
 			// set value changed options
@@ -50,8 +48,8 @@ frappe.notification = {
 			if (frm.doc.channel === "Email") {
 				receiver_fields = $.map(fields, function (d) {
 					// Add User and Email fields from child into select dropdown
-					if (frappe.model.table_fields.includes(d.fieldtype)) {
-						let child_fields = frappe.get_doc("DocType", d.options).fields;
+					if (d.is_table_field()) {
+						let child_fields = frappe.get_meta(d.options).fields;
 						return $.map(child_fields, function (df) {
 							return df.options == "Email" ||
 								(df.options == "User" && df.fieldtype == "Link")
@@ -67,9 +65,9 @@ frappe.notification = {
 					}
 				});
 			} else if (["WhatsApp", "SMS"].includes(frm.doc.channel)) {
-				receiver_fields = $.map(fields, function (d) {
-					return d.options == "Phone" ? get_select_options(d) : null;
-				});
+				receiver_fields = fields
+					.filter((d) => d.options == "Phone")
+					.map((d) => get_select_options(d));
 			}
 
 			// set email recipient options

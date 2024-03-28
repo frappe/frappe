@@ -93,12 +93,7 @@ export function get_table_columns(df) {
 	let table_fields = frappe.get_meta(df.options).fields;
 	let total_width = 0;
 	for (let tf of table_fields) {
-		if (
-			!["Section Break", "Column Break"].includes(tf.fieldtype) &&
-			!tf.print_hide &&
-			df.label &&
-			total_width < 100
-		) {
+		if (!tf.is_layout_field() && !tf.print_hide && df.label && total_width < 100) {
 			let width =
 				typeof tf.width == "number" && tf.width < 100 ? tf.width : tf.width ? 20 : 10;
 			table_columns.push({

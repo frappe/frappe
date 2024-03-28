@@ -267,7 +267,7 @@ frappe.data_import.DataExporter = class DataExporter {
 		let meta = frappe.get_meta(doctype);
 		if (meta.autoname && meta.autoname.startsWith("field:")) {
 			let fieldname = meta.autoname.slice("field:".length);
-			autoname_field = frappe.meta.get_field(doctype, fieldname);
+			autoname_field = meta.get_field(fieldname);
 		}
 
 		let fields = child_fieldname ? this.column_map[child_fieldname] : this.column_map[doctype];

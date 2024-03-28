@@ -43,16 +43,21 @@ frappe.ui.form.on("Bulk Update", {
 
 	document_type: function (frm) {
 		// set field options
-		if (!frm.doc.document_type) return;
+		if (!frm.doc.document_type) {
+			return;
+		}
 
 		frappe.model.with_doctype(frm.doc.document_type, function () {
-			var options = $.map(frappe.get_meta(frm.doc.document_type).fields, function (d) {
-				if (d.fieldname && frappe.model.no_value_type.indexOf(d.fieldtype) === -1) {
-					return d.fieldname;
-				}
-				return null;
-			});
-			frm.set_df_property("field", "options", options);
+			frm.set_df_property(
+				"field",
+				"options",
+				frappe
+					.get_meta(frm.doc.document_type)
+					.fields.filter((df) => df.is_value_field())
+					.map((df) => {
+						return { label: __(df.label, null, df.parent), value: df.fieldname };
+					})
+			);
 		});
 	},
 });

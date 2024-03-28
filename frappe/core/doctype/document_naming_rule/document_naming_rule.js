@@ -29,9 +29,7 @@ frappe.ui.form.on("Document Naming Rule", {
 			frappe.model.with_doctype(frm.doc.document_type, () => {
 				let fieldnames = frappe
 					.get_meta(frm.doc.document_type)
-					.fields.filter((d) => {
-						return frappe.model.no_value_type.indexOf(d.fieldtype) === -1;
-					})
+					.fields.filter((d) => d.is_value_field())
 					.map((d) => {
 						return { label: `${d.label} (${d.fieldname})`, value: d.fieldname };
 					});

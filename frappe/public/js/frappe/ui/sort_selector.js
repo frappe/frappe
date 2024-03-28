@@ -141,7 +141,7 @@ frappe.ui.SortSelector = class SortSelector {
 			meta.fields.forEach(function (df) {
 				if (
 					(df.mandatory || df.bold || df.in_list_view || df.reqd) &&
-					frappe.model.is_value_type(df.fieldtype) &&
+					df.is_value_field() &&
 					frappe.perm.has_perm(me.doctype, df.permlevel, "read")
 				) {
 					_options.push({ fieldname: df.fieldname, label: df.label });

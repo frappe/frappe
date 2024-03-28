@@ -176,5 +176,5 @@ const add_doctype_field_multicheck_control = (doctype, parent_wrapper) => {
 	return multicheck_control;
 };
 
-const filter_fields = (df) => frappe.model.is_value_type(df) && !df.hidden;
+const filter_fields = (df) => df.is_value_field() && !df.hidden;
 const get_fields = (dt) => frappe.meta.get_docfields(dt).filter(filter_fields);
