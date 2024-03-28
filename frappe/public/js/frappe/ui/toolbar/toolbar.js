@@ -6,6 +6,7 @@ frappe.provide("frappe.search");
 
 frappe.ui.toolbar.Toolbar = class {
 	constructor() {
+		frappe.ui.toolbar.reset_announcement_widget();
 		$("header").replaceWith(
 			frappe.render_template("navbar", {
 				avatar: frappe.avatar(frappe.session.user, "avatar-medium"),
@@ -21,6 +22,7 @@ frappe.ui.toolbar.Toolbar = class {
 		this.setup_notifications();
 		this.setup_help();
 		this.setup_read_only_mode();
+		this.setup_announcement_widget();
 		this.make();
 	}
 
@@ -54,6 +56,19 @@ frappe.ui.toolbar.Toolbar = class {
 			delay: { show: 600, hide: 100 },
 			trigger: "hover",
 		});
+	}
+
+	setup_announcement_widget() {
+		if (localStorage.getItem("show_announcement_widget") == "true") {
+			let announcement_widget = $(".announcement-widget");
+			let close_message = announcement_widget.find(".close-message");
+			close_message.on(
+				"click",
+				() =>
+					localStorage.setItem("show_announcement_widget", false) ||
+					announcement_widget.addClass("hidden")
+			);
+		}
 	}
 
 	setup_help() {
@@ -229,6 +244,15 @@ frappe.ui.toolbar.clear_cache = frappe.utils.throttle(function () {
 		location.reload(true);
 	});
 }, 10000);
+
+frappe.ui.toolbar.reset_announcement_widget = function () {
+	frappe.db.get_single_value("Navbar Settings", "announcement_widget").then((value) => {
+		if (value != localStorage.getItem("announcement_widget")) {
+			localStorage.setItem("show_announcement_widget", true);
+			localStorage.setItem("announcement_widget", value);
+		}
+	});
+};
 
 frappe.ui.toolbar.show_about = function () {
 	try {
