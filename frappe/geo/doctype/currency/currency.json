@@ -68,6 +68,7 @@
    "fieldname": "number_format",
    "fieldtype": "Select",
    "in_list_view": 1,
+   "translatable": 0,
    "label": "Number Format",
    "options": "\n#,###.##\n#.###,##\n# ###.##\n# ###,##\n#'###.##\n#, ###.##\n#,##,###.##\n#,###.###\n#.###\n#,###"
   },

@@ -319,11 +319,10 @@ def get_messages_from_doctype(name):
 	# translations of field labels, description and options
 	for d in meta.get("fields"):
 		messages.extend([d.label, d.description])
-
+		if not meta.is_translatable(d.name):
+			continue
 		if d.fieldtype == "Select" and d.options:
-			options = d.options.split("\n")
-			if "icon" not in options[0]:
-				messages.extend(options)
+			messages.extend(d.options.split("\n"))
 		if d.fieldtype == "HTML" and d.options:
 			messages.append(d.options)
 

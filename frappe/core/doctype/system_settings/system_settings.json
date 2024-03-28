@@ -165,6 +165,7 @@
    "fieldname": "number_format",
    "fieldtype": "Select",
    "label": "Number Format",
+   "translatable": 0,
    "options": "#,###.##\n#.###,##\n# ###.##\n# ###,##\n#'###.##\n#, ###.##\n#,##,###.##\n#,###.###\n#.###\n#,###",
    "reqd": 1
   },
