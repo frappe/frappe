@@ -413,8 +413,11 @@ class Database:
 	def sql_ddl(self, query, debug=False):
 		"""Commit and execute a query. DDL (Data Definition Language) queries that alter schema
 		autocommit in MariaDB."""
+		transaction_control = self._disable_transaction_control
+		self._disable_transaction_control = 0
 		self.commit()
 		self.sql(query, debug=debug)
+		self._disable_transaction_control = transaction_control
 
 	def check_transaction_status(self, query: str):
 		"""Raises exception if more than 200,000 `INSERT`, `UPDATE` queries are
