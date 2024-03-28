@@ -14616,7 +14616,7 @@ msgstr "Se proprietário"
 #. Description of the 'Is Active' (Check) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
-msgid "If checked, all other workflows become inactive."
+msgid "If checked, all other workflows for the selected DocType become inactive."
 msgstr "Se marcada, todos os outros fluxos de trabalho tornam-se inativos."
 
 #. Description of the 'Show Absolute Values' (Check) field in DocType 'Print

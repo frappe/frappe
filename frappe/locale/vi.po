@@ -14616,7 +14616,7 @@ msgstr "Nếu chủ"
 #. Description of the 'Is Active' (Check) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
-msgid "If checked, all other workflows become inactive."
+msgid "If checked, all other workflows for the selected DocType become inactive."
 msgstr "Nếu được kiểm tra, tất cả các công việc khác trở nên không hoạt động."
 
 #. Description of the 'Show Absolute Values' (Check) field in DocType 'Print

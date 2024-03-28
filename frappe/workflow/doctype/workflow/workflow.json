@@ -41,7 +41,7 @@
   },
   {
    "default": "0",
-   "description": "If checked, all other workflows become inactive.",
+   "description": "If checked, all other workflows for the selected DocType become inactive.",
    "fieldname": "is_active",
    "fieldtype": "Check",
    "label": "Is Active"

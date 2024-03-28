@@ -14616,7 +14616,7 @@ msgstr "Als de eigenaar"
 #. Description of the 'Is Active' (Check) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
-msgid "If checked, all other workflows become inactive."
+msgid "If checked, all other workflows for the selected DocType become inactive."
 msgstr "Indien aangevinkt, worden alle andere workflows inactief."
 
 #. Description of the 'Show Absolute Values' (Check) field in DocType 'Print
