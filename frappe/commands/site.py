@@ -2,6 +2,7 @@
 import os
 import shutil
 import sys
+import traceback
 
 # imports - third party imports
 import click
@@ -100,8 +101,10 @@ def new_site(
 			use(site)
 
 	except Exception:
+		traceback.print_exc()
 		if sys.__stdin__.isatty() and click.confirm("Do you want to rollback the failed site?", abort=True):
 			rollback_callback.run()
+		sys.exit(1)
 
 
 @click.command("restore")

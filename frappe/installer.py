@@ -89,7 +89,8 @@ def _new_site(
 		enable_scheduler = False
 
 	make_site_dirs()
-	rollback_callback.add(lambda: shutil.rmtree(frappe.get_site_path()))
+	if rollback_callback:
+		rollback_callback.add(lambda: shutil.rmtree(frappe.get_site_path()))
 
 	with filelock("bench_new_site", timeout=1):
 		install_db(
@@ -173,7 +174,8 @@ def install_db(
 
 	if setup:
 		setup_database(force, verbose, no_mariadb_socket)
-		rollback_callback.add(drop_user_and_database(db_name, db_user or db_name))
+		if rollback_callback:
+			rollback_callback.add(drop_user_and_database(db_name, db_user or db_name))
 
 	bootstrap_database(
 		verbose=verbose,

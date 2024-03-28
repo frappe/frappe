@@ -1,4 +1,5 @@
 import os
+import sys
 
 import click
 
@@ -36,7 +37,8 @@ def setup_database(force, verbose, no_mariadb_socket=False):
 	if force or (db_name not in dbman.get_database_list()):
 		dbman.drop_database(db_name)
 	else:
-		raise Exception(f"Database {db_name} already exists")
+		print(f"Database {db_name} already exists, please drop it manually or pass `--force`.")
+		sys.exit(1)
 
 	dbman.create_database(db_name)
 	if verbose:
