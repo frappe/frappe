@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import functools
-import hashlib
 import io
 import os
 import shutil

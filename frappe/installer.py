@@ -174,7 +174,7 @@ def install_db(
 	if setup:
 		setup_database(force, verbose, no_mariadb_socket)
 		if rollback_callback:
-			rollback_callback.add(drop_user_and_database(db_name, db_user or db_name))
+			rollback_callback.add(lambda: drop_user_and_database(db_name, db_user or db_name))
 
 	bootstrap_database(
 		verbose=verbose,
