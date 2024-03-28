@@ -1,3 +1,13 @@
+"""
+This api historically supports an email (only) inbox.
+It is (mainly) implemented by a special type of view, the Inbox View.
+The source is here: public/js/frappe/views/inbox/inbox_view.js
+
+Currently, this Inbox View frames altered list and form views that make the main use of this inbox api.
+
+TODO: View and api may transition to support a unified inbox in the future.
+"""
+
 import json
 
 import frappe
@@ -124,9 +134,41 @@ def mark_as_spam(communication: str, sender: str):
 	set_value("Communication", communication, "email_status", "Spam")
 
 
-def link_communication_to_document(doc, reference_doctype, reference_name, ignore_communication_links):
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_communication_doctype(doctype, txt, searchfield, start, page_len, filters):
+	user_perms = frappe.utils.user.UserPermissions(frappe.session.user)
+	user_perms.build_permissions()
+	can_read = user_perms.can_read
+	from frappe.modules import load_doctype_module
+
+	com_doctypes = []
+	if len(txt) < 2:
+		for name in frappe.get_hooks("communication_doctypes"):
+			try:
+				module = load_doctype_module(name, suffix="_dashboard")
+				if hasattr(module, "get_data"):
+					for i in module.get_data()["transactions"]:
+						com_doctypes += i["items"]
+			except ImportError:
+				pass
+	else:
+		com_doctypes = [
+			d[0] for d in frappe.db.get_values("DocType", {"issingle": 0, "istable": 0, "hide_toolbar": 0})
+		]
+
+	return [[dt] for dt in com_doctypes if txt.lower().replace("%", "") in dt.lower() and dt in can_read]
+
+
+@frappe.whitelist()
+def relink(name, reference_doctype=None, reference_name=None):
+	comm = frappe.get_doc("Communication", name)
+	link_communication_to_document(comm, reference_doctype, reference_name)
+
+
+def link_communication_to_document(comm, reference_doctype, reference_name, ignore_communication_links):
 	if not ignore_communication_links:
-		doc.reference_doctype = reference_doctype
-		doc.reference_name = reference_name
-		doc.status = "Linked"
-		doc.save(ignore_permissions=True)
+		comm.reference_doctype = reference_doctype
+		comm.reference_name = reference_name
+		comm.status = "Linked"
+		comm.save(ignore_permissions=True)

@@ -14,7 +14,7 @@ frappe.listview_settings["Communication"] = {
 	],
 
 	onload: function (list_view) {
-		let method = "frappe.email.inbox.create_email_flag_queue";
+		let method = "frappe.communications.inbox.create_email_flag_queue";
 
 		list_view.page.add_menu_item(__("Mark as Read"), function () {
 			list_view.call_for_selected_items(method, { action: "Read" });
