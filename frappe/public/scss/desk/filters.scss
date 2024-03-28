@@ -31,11 +31,13 @@
 		}
 
 		.awesomplete {
-			ul[role="listbox"] {
+			& > ul,
+			& > [role="listbox"] {
 				min-width: 100%;
 				width: auto;
 
-				li {
+				& > li,
+				& > [role="option"] {
 					max-width: 300px;
 				}
 			}

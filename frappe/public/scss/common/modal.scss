@@ -85,7 +85,8 @@ body.modal-open[style^="padding-right"] {
 		}
 	}
 
-	.awesomplete ul {
+	.awesomplete ul,
+	.awesomplete [role="listbox"] {
 		z-index: 2;
 	}
 

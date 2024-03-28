@@ -12,11 +12,11 @@
 		display: block;
 	}
 
-	& > ul:empty {
-		display: none;
-	}
+	& > [role="listbox"] {
+		&:empty {
+			display: none;
+		}
 
-	& > ul {
 		position: absolute;
 		width: 100%;
 		list-style: none;
@@ -33,7 +33,8 @@
 		z-index: 4;
 		min-width: 250px;
 
-		& > li {
+		& > li,
+		& > [role="option"] {
 			cursor: pointer;
 			@include get_textstyle("sm", "regular");
 			padding: var(--padding-sm);
@@ -52,17 +53,17 @@
 			strong {
 				@include get_textstyle("sm", "bold");
 			}
-		}
 
-		& > li .link-option {
-			font-weight: normal;
-			color: var(--text-color);
-		}
+			.link-option {
+				font-weight: normal;
+				color: var(--text-color);
+			}
 
-		& > li:hover,
-		& > li[aria-selected="true"] {
-			background-color: var(--awesomplete-hover-bg);
-			color: var(--text-color);
+			&:hover,
+			&[aria-selected="true"] {
+				background-color: var(--awesomplete-hover-bg);
+				color: var(--text-color);
+			}
 		}
 
 		a:hover {
