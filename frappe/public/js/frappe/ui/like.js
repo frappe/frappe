@@ -64,21 +64,7 @@ frappe.ui.toggle_like = function ($btn, doctype, name, callback) {
 };
 
 frappe.ui.click_toggle_like = function () {
-	var $btn = $(this);
-	var $count = $btn.siblings(".likes-count");
-	var not_liked = $btn.hasClass("not-liked");
-	var doctype = $btn.attr("data-doctype");
-	var name = $btn.attr("data-name");
-
-	frappe.ui.toggle_like($btn, doctype, name, function () {
-		if (not_liked) {
-			$count.text(cint($count.text()) + 1);
-		} else {
-			$count.text(cint($count.text()) - 1);
-		}
-	});
-
-	return false;
+	console.warn("`frappe.ui.click_toggle_like` is deprecated and has no effect.");
 };
 
 frappe.ui.setup_like_popover = ($parent, selector) => {
