@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.utils.caching import redis_cache
 
 # select doctypes that are accessed by the user (not read_only) first, so that the
 # the validation message shows the user-facing doctype first.
@@ -42,9 +43,7 @@ def get_dynamic_link_map(for_delete=False):
 				dynamic_link_map.setdefault(meta.name, []).append(df)
 			else:
 				try:
-					links = frappe.db.sql_list(
-						"""select distinct {options} from `tab{parent}`""".format(**df)
-					)
+					links = get_dynamic_link_used_doctypes(df.parent, df.fieldname)
 					for doctype in links:
 						dynamic_link_map.setdefault(doctype, []).append(df)
 				except frappe.db.TableMissingError:
@@ -61,3 +60,16 @@ def get_dynamic_links():
 	for query in dynamic_link_queries:
 		df += frappe.db.sql(query, as_dict=True)
 	return df
+
+
+@redis_cache(ttl=24 * 60)
+def get_dynamic_link_used_doctypes(doctype, fieldname):
+	"""Return all unique doctypes a dynamic link is linking against.
+
+	Note:
+	- results are cached and can *possibly be outdated*
+	- cache gets evicted/updated when a document with different document link is discovered
+	- raw queries adding dynamic link won't update this cache
+	- cache miss can often be very expensive on large table.
+	"""
+	return frappe.db.sql_list(f"""select distinct %s from `tab{doctype}`""", (fieldname,))
