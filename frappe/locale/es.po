@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-03-24 09:33+0000\n"
-"PO-Revision-Date: 2024-03-26 12:06\n"
+"PO-Revision-Date: 2024-03-28 12:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -3422,7 +3422,7 @@ msgstr "Autoincremento"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Automated Message"
-msgstr ""
+msgstr "Mensaje automático"
 
 #: public/js/frappe/ui/theme_switcher.js:69
 msgid "Automatic"
@@ -3849,7 +3849,7 @@ msgstr "Base"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Basic Info"
-msgstr ""
+msgstr "Información básica"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -3991,7 +3991,7 @@ msgstr "Obstruido"
 #: website/doctype/blog_post/templates/blog_post_list.html:11
 #: website/workspace/website/website.json
 msgid "Blog"
-msgstr ""
+msgstr "Blog"
 
 #. Name of a DocType
 #: website/doctype/blog_category/blog_category.json
@@ -4280,7 +4280,7 @@ msgstr "Construir {0}"
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Bulk Actions"
-msgstr ""
+msgstr "Acciones masivas"
 
 #: core/doctype/user_permission/user_permission_list.js:142
 msgid "Bulk Delete"
@@ -4288,7 +4288,7 @@ msgstr "Eliminar a granel"
 
 #: public/js/frappe/list/bulk_operations.js:291
 msgid "Bulk Edit"
-msgstr ""
+msgstr "Edición masiva"
 
 #: public/js/frappe/form/grid.js:1157
 msgid "Bulk Edit {0}"
@@ -4311,7 +4311,7 @@ msgstr "Actualización masiva"
 
 #: model/workflow.py:246
 msgid "Bulk approval only support up to 500 documents."
-msgstr ""
+msgstr "La aprobación masiva solo admite hasta 500 documentos."
 
 #: desk/doctype/bulk_update/bulk_update.py:57
 msgid "Bulk operation is enqueued in background."
@@ -4365,13 +4365,13 @@ msgstr "Sombras de botones"
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "By \"Naming Series\" field"
-msgstr ""
+msgstr "Por el campo \"Serie de nombres\""
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "By \"Naming Series\" field"
-msgstr ""
+msgstr "Por el campo \"Serie de nombres\""
 
 #: website/doctype/web_page/web_page.js:111
 #: website/doctype/web_page/web_page.js:118
@@ -4389,25 +4389,25 @@ msgstr ""
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "By fieldname"
-msgstr ""
+msgstr "Por nombre de campo"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "By fieldname"
-msgstr ""
+msgstr "Por nombre de campo"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "By script"
-msgstr ""
+msgstr "Por script"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "By script"
-msgstr ""
+msgstr "Por script"
 
 #. Label of a Check field in DocType 'User'
 #: core/doctype/user/user.json
@@ -4665,7 +4665,7 @@ msgstr ""
 
 #: model/rename_doc.py:361
 msgid "Can't rename {0} to {1} because {0} doesn't exist."
-msgstr ""
+msgstr "No se puede renombrar {0} a {1} porque {0} no existe."
 
 #: core/doctype/doctype/doctype_list.js:130
 #: public/js/frappe/form/reminders.js:54
@@ -5005,7 +5005,7 @@ msgstr "Tarjeta"
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Card Break"
-msgstr ""
+msgstr "Salto de tarjeta"
 
 #: public/js/frappe/views/reports/query_report.js:261
 msgid "Card Label"
@@ -5336,7 +5336,7 @@ msgstr "Elija una tarjeta existente o cree una nueva tarjeta"
 
 #: public/js/frappe/views/workspace/workspace.js:1396
 msgid "Choose a block or continue typing"
-msgstr ""
+msgstr "Elija un bloque o continúe escribiendo"
 
 #: public/js/frappe/form/controls/color.js:5
 msgid "Choose a color"
@@ -5480,7 +5480,7 @@ msgstr "Clic para establecer filtros"
 
 #: public/js/frappe/list/list_view.js:678
 msgid "Click to sort by {0}"
-msgstr ""
+msgstr "Clic para ordenar por {0}"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -6496,7 +6496,7 @@ msgstr "Contacto sincronizado con los contactos de Google."
 
 #: www/contact.html:4
 msgid "Contact Us"
-msgstr ""
+msgstr "Contáctanos"
 
 #. Name of a DocType
 #: website/doctype/contact_us_settings/contact_us_settings.json
@@ -6870,7 +6870,7 @@ msgstr "Crear Campos Personalizados"
 
 #: public/js/frappe/views/workspace/workspace.js:936
 msgid "Create Duplicate"
-msgstr ""
+msgstr "Crear duplicado"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
@@ -8343,7 +8343,7 @@ msgstr "Vista predeterminada"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Default Workspace"
-msgstr ""
+msgstr "Espacio de trabajo predeterminado"
 
 #: core/doctype/doctype/doctype.py:1325
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
@@ -8578,7 +8578,7 @@ msgstr "Departamento"
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Dependencies"
-msgstr ""
+msgstr "Dependencias"
 
 #. Label of a Code field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -9377,7 +9377,7 @@ msgstr "Doctype Requerido"
 
 #: public/js/frappe/views/workspace/workspace.js:1314
 msgid "Doctype with same route already exist. Please choose different title."
-msgstr ""
+msgstr "Doctype con la misma ruta ya existe. Por favor, elija un título diferente."
 
 #. Label of a Dynamic Link field in DocType 'Audit Trail'
 #: core/doctype/audit_trail/audit_trail.json
@@ -9840,7 +9840,7 @@ msgstr "URL de documentación"
 
 #: public/js/frappe/form/templates/form_dashboard.html:17
 msgid "Documents"
-msgstr ""
+msgstr "Documentos"
 
 #: core/doctype/deleted_document/deleted_document_list.js:25
 msgid "Documents restored successfully"
@@ -15320,7 +15320,7 @@ msgstr "Si está activado, los usuarios serán notificados cada vez que inicien 
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "If left empty, the default workspace will be the last visited workspace"
-msgstr ""
+msgstr "Si se deja vacío, el Área de Trabajo predeterminado será la última Área de Trabajo visitado"
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
@@ -16083,13 +16083,13 @@ msgstr "Indicador"
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Indicator Color"
-msgstr ""
+msgstr "Color del indicador"
 
 #: public/js/frappe/views/workspace/workspace.js:650
 #: public/js/frappe/views/workspace/workspace.js:978
 #: public/js/frappe/views/workspace/workspace.js:1222
 msgid "Indicator color"
-msgstr ""
+msgstr "Color del indicador"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
@@ -16743,7 +16743,7 @@ msgstr "Es Global"
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Is Hidden"
-msgstr ""
+msgstr "Está oculto"
 
 #. Label of a Check field in DocType 'File'
 #: core/doctype/file/file.json
@@ -16819,7 +16819,7 @@ msgstr "Es Campo Publicable debe ser un nombre de campo válido"
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Is Query Report"
-msgstr ""
+msgstr "Es Informe de Consulta"
 
 #. Label of a Check field in DocType 'Integration Request'
 #: integrations/doctype/integration_request/integration_request.json
@@ -18195,13 +18195,13 @@ msgstr "Tarjetas de enlace"
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Link Count"
-msgstr ""
+msgstr "Recuento de enlaces"
 
 #. Label of a Section Break field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Link Details"
-msgstr ""
+msgstr "Detalles del enlace"
 
 #. Label of a Link field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
@@ -18318,7 +18318,7 @@ msgstr ""
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Link Type"
-msgstr ""
+msgstr "Tipo de enlace"
 
 #: public/js/frappe/widgets/widget_dialog.js:354
 msgid "Link Type in Row"
@@ -19687,7 +19687,7 @@ msgstr ""
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Models"
-msgstr ""
+msgstr "Modelos"
 
 #: core/report/transaction_log_report/transaction_log_report.py:106
 #: social/doctype/energy_point_rule/energy_point_rule.js:43
@@ -20490,7 +20490,7 @@ msgstr "Nuevo comentario en {0}: {1}"
 
 #: public/js/frappe/form/templates/contact_list.html:90
 msgid "New Contact"
-msgstr ""
+msgstr "Nuevo Contacto"
 
 #: public/js/frappe/widgets/widget_dialog.js:70
 msgid "New Custom Block"
@@ -21039,7 +21039,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/contact_list.html:85
 msgid "No contacts added yet."
-msgstr ""
+msgstr "Ningún contacto agregado todavía."
 
 #: automation/doctype/auto_repeat/auto_repeat.py:427
 msgid "No contacts linked to document"
@@ -22044,7 +22044,7 @@ msgstr ""
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Only for"
-msgstr ""
+msgstr "Solo para"
 
 #: core/doctype/data_export/exporter.py:192
 msgid "Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish."
@@ -22599,7 +22599,7 @@ msgstr ""
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Packages"
-msgstr ""
+msgstr "Paquetes"
 
 #. Name of a DocType
 #: core/doctype/page/page.json
@@ -23863,7 +23863,7 @@ msgstr "Puerto"
 #. Label of a Card Break in the Website Workspace
 #: website/workspace/website/website.json
 msgid "Portal"
-msgstr ""
+msgstr "Portal"
 
 #. Label of a Table field in DocType 'Portal Settings'
 #: website/doctype/portal_settings/portal_settings.json
@@ -28099,13 +28099,13 @@ msgstr ""
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Scripting"
-msgstr ""
+msgstr "Scripting"
 
 #. Label of a Tab Break field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Scripting"
-msgstr ""
+msgstr "Scripting"
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -29589,7 +29589,7 @@ msgstr "Envío."
 
 #: public/js/frappe/form/templates/address_list.html:25
 msgid "Shipping Address"
-msgstr "Dirección de Envío."
+msgstr "Dirección de Envío"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -29690,7 +29690,7 @@ msgstr "Mostrar error"
 
 #: public/js/frappe/form/layout.js:545
 msgid "Show Fieldname (click to copy on clipboard)"
-msgstr ""
+msgstr "Mostrar nombre de campo (clic para copiar en el portapapeles)"
 
 #. Label of a Check field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -31509,7 +31509,7 @@ msgstr ""
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "System Logs"
-msgstr ""
+msgstr "Registros del sistema"
 
 #. Name of a role
 #: automation/doctype/assignment_rule/assignment_rule.json
@@ -31919,7 +31919,7 @@ msgstr "Advertencias de plantilla"
 
 #: public/js/frappe/views/workspace/blocks/paragraph.js:78
 msgid "Templates"
-msgstr ""
+msgstr "Plantillas"
 
 #: core/doctype/user/user.py:1023
 msgid "Temporarily Disabled"
@@ -33327,7 +33327,7 @@ msgstr "Hay demasiados usuarios se inscribieron recientemente, por lo que el reg
 #. Label of a Card Break in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "Tools"
-msgstr ""
+msgstr "Herramientas"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -35271,7 +35271,7 @@ msgstr "URL del vídeo"
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "View"
-msgstr ""
+msgstr "Ver"
 
 #: core/doctype/success_action/success_action.js:58
 #: public/js/frappe/form/success_action.js:89
@@ -35385,13 +35385,13 @@ msgstr "Visto Por"
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Views"
-msgstr ""
+msgstr "Vistas"
 
 #. Group in DocType's connections
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Views"
-msgstr ""
+msgstr "Vistas"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -39615,7 +39615,7 @@ msgstr ""
 #: contacts/doctype/contact/contact.js:83
 #: public/js/frappe/views/workspace/workspace.js:169
 msgid "{0}: {1}"
-msgstr ""
+msgstr "{0}: {1}"
 
 #: workflow/doctype/workflow_action/workflow_action.py:167
 msgid "{0}: {1} is set to state {2}"
