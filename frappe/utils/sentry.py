@@ -59,6 +59,7 @@ def set_scope(scope):
 		waitdiff = datetime.utcnow() - job.enqueued_at
 		context.uuid = job.id
 		context.wait = waitdiff.total_seconds()
+		context.kwargs = kwargs
 
 		scope.set_extra("job", context)
 		scope.set_transaction_name(transaction_name)

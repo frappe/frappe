@@ -56,7 +56,7 @@ class TestRQJob(FrappeTestCase):
 	def test_func_obj_serialization(self):
 		job = frappe.enqueue(method=test_func, queue="short")
 		rq_job = frappe.get_doc("RQ Job", job.id)
-		self.assertEqual(rq_job.job_name, "test_func")
+		self.assertEqual(rq_job.job_name, "frappe.core.doctype.rq_job.test_rq_job.test_func")
 
 	@timeout
 	def test_get_list_filtering(self):
