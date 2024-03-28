@@ -171,7 +171,7 @@ def get_context(context):
 		"""Build recipients and send Notification"""
 
 		context = get_context(doc)
-		context = {"doc": doc, "alert": self, "comments": None}
+		context.update({"alert": self, "comments": None})
 		if doc.get("_comments"):
 			context["comments"] = json.loads(doc.get("_comments"))
 
@@ -310,8 +310,27 @@ def get_context(context):
 		)
 
 	def send_sms(self, doc, context):
+		def get_phone_no(d, field):
+			option = d.meta.get_field(field).options.strip()
+			if option == "Phone" or option == "Mobile":
+				phone_no = d.get(field)
+				if not phone_no:
+					self.log_error(_("Field {0} on document {1} has no Mobile No set").format(field, d.name))
+			elif option == "User":
+				user = d.get(field)
+				phone_no = frappe.get_value("User", user, "mobile_no")
+				if not phone_no:
+					self.log_error(_("User {0} has no Mobile No set").format(user))
+			else:
+				frappe.throw(
+					_("Field {0} on document {1} is neither a Mobile No data field nor a User link").format(
+						field, d.name
+					)
+				)
+			return phone_no
+
 		send_sms(
-			receiver_list=self.get_receiver_list(doc, context),
+			receiver_list=self.get_receiver_list(doc, context, "mobile_no", get_phone_no),
 			msg=frappe.utils.strip_html_tags(frappe.render_template(self.message, context)),
 		)
 
@@ -324,16 +343,17 @@ def get_context(context):
 				if not frappe.safe_eval(recipient.condition, None, context):
 					continue
 			if recipient.receiver_by_document_field:
-				fields = recipient.receiver_by_document_field.split(",")
-				# fields from child table
-				if len(fields) > 1:
-					for d in doc.get(fields[1]):
-						email_id = d.get(fields[0])
+				data_field, child_field = _parse_receiver_by_document_field(
+					recipient.receiver_by_document_field
+				)
+				if child_field:
+					for d in doc.get(child_field):
+						email_id = d.get(data_field)
 						if validate_email_address(email_id):
 							recipients.append(email_id)
-				# field from parent doc
+				# field from current doc
 				else:
-					email_ids_value = doc.get(fields[0])
+					email_ids_value = doc.get(data_field)
 					if validate_email_address(email_ids_value):
 						email_ids = email_ids_value.replace(",", "\n")
 						recipients = recipients + email_ids.split("\n")
@@ -353,7 +373,7 @@ def get_context(context):
 
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
-	def get_receiver_list(self, doc, context):
+	def get_receiver_list(self, doc, context, user_field, field_extractor_func):
 		"""return receiver list based on the doc field and role specified"""
 		receiver_list = []
 		for recipient in self.recipients:
@@ -363,18 +383,28 @@ def get_context(context):
 
 			# For sending messages to the owner's mobile phone number
 			if recipient.receiver_by_document_field == "owner":
-				receiver_list += get_user_info([dict(user_name=doc.get("owner"))], "mobile_no")
+				receiver_list += get_user_info([dict(user_name=doc.get("owner"))], user_field)
 			# For sending messages to the number specified in the receiver field
 			elif recipient.receiver_by_document_field:
-				receiver_list.append(doc.get(recipient.receiver_by_document_field))
+				data_field, child_field = _parse_receiver_by_document_field(
+					recipient.receiver_by_document_field
+				)
+				if child_field:
+					for d in doc.get(child_field):
+						if recv := field_extractor_func(d, data_field):
+							receiver_list.append(recv)
+				# field from current doc
+				else:
+					if recv := field_extractor_func(doc, data_field):
+						receiver_list.append(recv)
 
 			# For sending messages to specified role
 			if recipient.receiver_by_role:
 				receiver_list += get_info_based_on_role(
-					recipient.receiver_by_role, "mobile_no", ignore_permissions=True
+					recipient.receiver_by_role, user_field, ignore_permissions=True
 				)
 
-		return receiver_list
+		return list(set(receiver_list))
 
 	def get_attachment(self, doc):
 		"""check print settings are attach the pdf"""
@@ -541,3 +571,13 @@ def get_emails_from_template(template, context):
 
 	emails = frappe.render_template(template, context) if "{" in template else template
 	return filter(None, emails.replace(",", "\n").split("\n"))
+
+
+def _parse_receiver_by_document_field(s):
+	fragments = s.split(",")
+	# fields from child table or linked doctype
+	if len(fragments) > 1:
+		data_field, child_field = fragments
+	else:
+		data_field, child_field = fragments[0], None
+	return data_field, child_field
