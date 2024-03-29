@@ -1,7 +1,11 @@
 import copy
 import datetime
+import functools
 import os
+import pdb
 import signal
+import sys
+import traceback
 import unittest
 from collections.abc import Sequence
 from contextlib import contextmanager
@@ -15,6 +19,26 @@ from frappe.utils import cint
 from frappe.utils.data import convert_utc_to_timezone, get_datetime, get_system_timezone
 
 datetime_like_types = (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
+
+
+def debug_on(*exceptions):
+	if not exceptions:
+		exceptions = (AssertionError,)
+
+	def decorator(f):
+		@functools.wraps(f)
+		def wrapper(*args, **kwargs):
+			try:
+				return f(*args, **kwargs)
+			except exceptions as e:
+				info = sys.exc_info()
+				traceback.print_exception(*info)
+				pdb.post_mortem(info[2])
+				raise e
+
+		return wrapper
+
+	return decorator
 
 
 class FrappeTestCase(unittest.TestCase):
