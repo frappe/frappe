@@ -983,6 +983,9 @@ class BaseDocument:
 					self.throw_length_exceeded_error(df, max_length, value)
 
 			elif column_type in ("int", "bigint", "smallint"):
+				if cint(df.get("length")) > 11:  # We implicitl switch to bigint for >11
+					column_type = "bigint"
+
 				max_length = max_positive_value[column_type]
 
 				if abs(cint(value)) > max_length:
