@@ -139,10 +139,10 @@
 		</div>
 	</header>
 
-	{% if localStorage.getItem("show_announcement_widget") == 'true' && strip_html(localStorage.getItem("announcement_widget")) != '' %}
+	{% if !localStorage.getItem("dismissed_announcement_widget") && strip_html(navbar_settings.announcement_widget) != '' %}
 	<div class="announcement-widget form-message p-2 m-0" style="position: relative; z-index: -1; border-radius: 0; background-color: var(--bg-blue);">
 		<div class="container flex justify-between align-center mx-auto">
-			{{ localStorage.getItem("announcement_widget") }}
+			{{ navbar_settings.announcement_widget }}
 			<div class="close-message p-0 mr-2" style="position: relative;">
 			{{ frappe.utils.icon("close") }}
 			</div>
