@@ -149,7 +149,8 @@ class TestDBUpdate(FrappeTestCase):
 
 		doctype.autoname = "hash"
 		doctype.save()
-		self.assertEqual(frappe.db.get_column_type(doctype.name, "name"), "varchar(140)")
+		varchar = "varchar" if frappe.db.db_type == "mariadb" else "character varying"
+		self.assertIn(varchar, frappe.db.get_column_type(doctype.name, "name"))
 		doc.reload()  # ensure that docs are still accesible
 
 
