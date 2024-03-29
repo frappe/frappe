@@ -1187,8 +1187,10 @@ def generate_hash(txt: str | None = None, length: int = 56) -> str:
 	import math
 	import secrets
 
-	if not length:
-		length = 56
+	if txt:
+		from frappe.utils.deprecations import deprecation_warning
+
+		deprecation_warning("The `txt` parameter is deprecated and will be removed in a future release.")
 
 	return secrets.token_hex(math.ceil(length / 2))[:length]
 
