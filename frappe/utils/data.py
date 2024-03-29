@@ -1122,9 +1122,12 @@ def cint(s: NumericType | str, default: int = 0) -> int:
 
 	"""
 	try:
-		return int(float(s))
+		return int(s)
 	except Exception:
-		return default
+		try:
+			return int(float(s))
+		except Exception:
+			return default
 
 
 def floor(s: NumericType | str) -> int:
