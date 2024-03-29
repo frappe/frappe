@@ -79,6 +79,9 @@ class MariaDBTable(DBTable):
 			f"MODIFY `{col.fieldname}` {col.get_definition(for_modification=True)}"
 			for col in columns_to_modify
 		]
+		if alter_pk := self.alter_primary_key():
+			modify_column_query.append(alter_pk)
+
 		modify_column_query.extend(
 			[f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)" for col in self.add_unique]
 		)
@@ -141,3 +144,20 @@ class MariaDBTable(DBTable):
 				)
 
 			raise
+
+	def alter_primary_key(self) -> str | None:
+		# If there are no values in table allow migrating to UUID from varchar
+		autoname = self.meta.autoname
+		if autoname == "UUID" and frappe.db.get_column_type(self.doctype, "name") != "uuid":
+			if not frappe.db.get_value(self.doctype, {}, order_by=None):
+				return "modify name uuid"
+			else:
+				frappe.throw(
+					_("Primary key of doctype {0} can not be changed as there are existing values.").format(
+						self.doctype
+					)
+				)
+
+		# Reverting from UUID to VARCHAR
+		if autoname != "UUID" and frappe.db.get_column_type(self.doctype, "name") == "uuid":
+			return f"modify name varchar({frappe.db.VARCHAR_LEN})"
