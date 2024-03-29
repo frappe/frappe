@@ -175,7 +175,7 @@ class TestLinkedWith(FrappeTestCase):
 		linked_doc = frappe.new_doc(dt_name).insert().submit()
 
 		second_doc = (
-			frappe.new_doc(dt_name, **{"from": linked_doc.doctype, "order": linked_doc.name})
+			frappe.get_doc(doctype=dt_name, **{"from": linked_doc.doctype, "order": linked_doc.name})
 			.insert()
 			.submit()
 		)
