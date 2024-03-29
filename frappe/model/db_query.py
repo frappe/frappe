@@ -1042,7 +1042,7 @@ class DatabaseQuery:
 		)
 		if condition_methods:
 			for method in condition_methods:
-				c = frappe.call(frappe.get_attr(method), self.user)
+				c = frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype)
 				if c:
 					conditions.append(c)
 
