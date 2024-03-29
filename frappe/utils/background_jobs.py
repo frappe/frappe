@@ -151,7 +151,7 @@ def enqueue(
 	queue_args = {
 		"site": frappe.local.site,
 		"user": frappe.session.user,
-		"method": method_name,
+		"method": method,
 		"event": event,
 		"job_name": job_name or method_name,
 		"is_async": is_async,
