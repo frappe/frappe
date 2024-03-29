@@ -1,5 +1,9 @@
+import random
+import string
+
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.database import savepoint
 from frappe.desk.form import linked_with
 from frappe.tests.utils import FrappeTestCase
 
@@ -148,3 +152,36 @@ class TestLinkedWith(FrappeTestCase):
 		amendment.submit()
 
 		self.assertRaises(frappe.LinkExistsError, doc.delete)
+
+	def test_reserved_keywords(self):
+		dt_name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
+		new_doctype(
+			dt_name,
+			fields=[
+				{
+					"fieldname": "from",
+					"fieldtype": "Link",
+					"options": "DocType",
+				},
+				{
+					"fieldname": "order",
+					"fieldtype": "Dynamic Link",
+					"options": "from",
+				},
+			],
+			is_submittable=True,
+		).insert()
+
+		linked_doc = frappe.new_doc(dt_name).insert().submit()
+
+		second_doc = (
+			frappe.new_doc(dt_name, **{"from": linked_doc.doctype, "order": linked_doc.name})
+			.insert()
+			.submit()
+		)
+
+		with savepoint(frappe.LinkExistsError):
+			linked_doc.cancel() and self.fail("Cancellation shouldn't have worked")
+
+		second_doc.cancel()
+		linked_doc.reload().cancel()
