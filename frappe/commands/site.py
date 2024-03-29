@@ -113,7 +113,9 @@ def new_site(
 
 	except Exception:
 		traceback.print_exc()
-		if sys.__stdin__.isatty() and click.confirm("Do you want to rollback the failed site?", abort=True):
+		if sys.__stdin__.isatty() and click.confirm(
+			"Site creation failed, do you want to rollback the site?", abort=True
+		):
 			rollback_callback.run()
 		sys.exit(1)
 
