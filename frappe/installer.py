@@ -69,6 +69,7 @@ def _new_site(
 	frappe.init(site=site)
 
 	if not db_name:
+<<<<<<< HEAD
 		import hashlib
 <<<<<<< HEAD
 
@@ -88,6 +89,9 @@ def _new_site(
 			).hexdigest()[:16]
 		)
 >>>>>>> 46981622ec (feat: generate a non-deterministic database name every time - include current date in the hash)
+=======
+		db_name = f"_{frappe.generate_hash(length=16)}"
+>>>>>>> 197b1ab77c (refactor(installer): use `frappe.generate_hash()` to generate database name)
 
 	try:
 		# enable scheduler post install?
