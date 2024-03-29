@@ -54,6 +54,7 @@ def _new_site(
 	db_user=None,
 	setup_db=True,
 	rollback_callback=None,
+	mariadb_user_host_login_scope=None,
 ):
 	"""Install a new Frappe site"""
 
@@ -95,6 +96,7 @@ def _new_site(
 			db_user=db_user,
 			setup=setup_db,
 			rollback_callback=rollback_callback,
+			mariadb_user_host_login_scope=mariadb_user_host_login_scope,
 		)
 
 		apps_to_install = ["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
@@ -132,6 +134,7 @@ def install_db(
 	db_user=None,
 	setup=True,
 	rollback_callback=None,
+	mariadb_user_host_login_scope=None,
 ):
 	import frappe.database
 	from frappe.database import bootstrap_database, drop_user_and_database, setup_database
@@ -160,7 +163,7 @@ def install_db(
 	frappe.flags.root_password = root_password
 
 	if setup:
-		setup_database(force, verbose)
+		setup_database(force, verbose, mariadb_user_host_login_scope)
 		if rollback_callback:
 			rollback_callback.add(lambda: drop_user_and_database(db_name, db_user or db_name))
 
