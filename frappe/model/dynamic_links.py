@@ -43,7 +43,7 @@ def get_dynamic_link_map(for_delete=False):
 			else:
 				try:
 					links = frappe.db.sql_list(
-						"""select distinct {options} from `tab{parent}`""".format(**df)
+						"""select distinct `{options}` from `tab{parent}`""".format(**df)
 					)
 					for doctype in links:
 						dynamic_link_map.setdefault(doctype, []).append(df)
