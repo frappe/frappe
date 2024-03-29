@@ -5,6 +5,7 @@ import gzip
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from collections import OrderedDict
@@ -46,20 +47,20 @@ def _new_site(
 	source_sql=None,
 	force=False,
 	no_mariadb_socket=False,
-	reinstall=False,
 	db_password=None,
 	db_type=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
 	setup_db=True,
+	rollback_callback=None,
 ):
 	"""Install a new Frappe site"""
 
 	from frappe.utils import scheduler
 
 	if not force and os.path.exists(site):
-		print(f"Site {site} already exists")
+		print(f"Site {site} already exists, use `--force` to proceed anyway")
 		sys.exit(1)
 
 	if no_mariadb_socket and db_type != "mariadb":
@@ -69,14 +70,7 @@ def _new_site(
 	frappe.init(site=site)
 
 	if not db_name:
-		import hashlib
-
-		db_name = (
-			"_"
-			+ hashlib.sha1(
-				os.path.realpath(frappe.get_site_path()).encode(), usedforsecurity=False
-			).hexdigest()[:16]
-		)
+		db_name = f"_{frappe.generate_hash(length=16)}"
 
 	try:
 		# enable scheduler post install?
@@ -85,6 +79,8 @@ def _new_site(
 		enable_scheduler = False
 
 	make_site_dirs()
+	if rollback_callback:
+		rollback_callback.add(lambda: shutil.rmtree(frappe.get_site_path()))
 
 	with filelock("bench_new_site", timeout=1):
 		install_db(
@@ -95,7 +91,6 @@ def _new_site(
 			verbose=verbose,
 			source_sql=source_sql,
 			force=force,
-			reinstall=reinstall,
 			db_password=db_password,
 			db_type=db_type,
 			db_host=db_host,
@@ -103,6 +98,7 @@ def _new_site(
 			db_user=db_user,
 			no_mariadb_socket=no_mariadb_socket,
 			setup=setup_db,
+			rollback_callback=rollback_callback,
 		)
 
 		apps_to_install = ["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
@@ -132,7 +128,6 @@ def install_db(
 	verbose=True,
 	force=0,
 	site_config=None,
-	reinstall=False,
 	db_password=None,
 	db_type=None,
 	db_host=None,
@@ -140,9 +135,10 @@ def install_db(
 	db_user=None,
 	no_mariadb_socket=False,
 	setup=True,
+	rollback_callback=None,
 ):
 	import frappe.database
-	from frappe.database import bootstrap_database, setup_database
+	from frappe.database import bootstrap_database, drop_user_and_database, setup_database
 
 	if not db_type:
 		db_type = frappe.conf.db_type
@@ -168,6 +164,8 @@ def install_db(
 
 	if setup:
 		setup_database(force, verbose, no_mariadb_socket)
+		if rollback_callback:
+			rollback_callback.add(lambda: drop_user_and_database(db_name, db_user or db_name))
 
 	bootstrap_database(
 		verbose=verbose,
