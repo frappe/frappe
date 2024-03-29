@@ -618,6 +618,9 @@ class TestDB(FrappeTestCase):
 
 		self.assertEqual(order_of_execution, list(range(0, 9)))
 
+	def test_db_explain(self):
+		frappe.db.sql("select 1", debug=1, explain=1)
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(FrappeTestCase):
