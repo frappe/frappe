@@ -4,10 +4,11 @@
 import base64
 import datetime
 import re
-import struct
 import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Optional
+
+from uuid_utils import uuid7
 
 import frappe
 from frappe import _
@@ -149,6 +150,10 @@ def set_new_name(doc):
 		doc.name = frappe.db.get_next_sequence_val(doc.doctype)
 		return
 
+	if meta.autoname == "UUID":
+		doc.name = str(uuid7())
+		return
+
 	if getattr(doc, "amended_from", None):
 		_set_amended_name(doc)
 		if doc.name:
@@ -179,10 +184,7 @@ def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 	if not meta:
 		meta = frappe.get_meta(doctype)
 
-	if not getattr(meta, "issingle", False) and meta.autoname == "autoincrement":
-		return True
-
-	return False
+	return not getattr(meta, "issingle", False) and meta.autoname == "autoincrement"
 
 
 def set_name_from_naming_options(autoname, doc):

@@ -47,6 +47,9 @@ class MariaDBTable(DBTable):
 			# issue link: https://jira.mariadb.org/browse/MDEV-20070
 			name_column = "name bigint primary key"
 
+		elif not self.meta.issingle and self.meta.autoname == "UUID":
+			name_column = "name uuid primary key"
+
 		additional_definitions = ",\n".join(additional_definitions)
 
 		# create table
