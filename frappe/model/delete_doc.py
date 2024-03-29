@@ -338,7 +338,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 			df["table"] = ", `parent`, `parenttype`, `idx`" if meta.istable else ""
 			for refdoc in frappe.db.sql(
 				"""select `name`, `docstatus` {table} from `tab{parent}` where
-				{options}=%s and {fieldname}=%s""".format(**df),
+				`{options}`=%s and `{fieldname}`=%s""".format(**df),
 				(doc.doctype, doc.name),
 				as_dict=True,
 			):
