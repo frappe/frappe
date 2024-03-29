@@ -8,7 +8,7 @@ from shutil import which
 from frappe.database.database import savepoint
 
 
-def setup_database(force, verbose=None, no_mariadb_socket=False):
+def setup_database(force, verbose=None):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
@@ -18,9 +18,7 @@ def setup_database(force, verbose=None, no_mariadb_socket=False):
 	else:
 		import frappe.database.mariadb.setup_db
 
-		return frappe.database.mariadb.setup_db.setup_database(
-			force, verbose, no_mariadb_socket=no_mariadb_socket
-		)
+		return frappe.database.mariadb.setup_db.setup_database(force, verbose)
 
 
 def bootstrap_database(verbose=None, source_sql=None):

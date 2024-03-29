@@ -46,7 +46,6 @@ def _new_site(
 	install_apps=None,
 	source_sql=None,
 	force=False,
-	no_mariadb_socket=False,
 	db_password=None,
 	db_type=None,
 	db_host=None,
@@ -61,10 +60,6 @@ def _new_site(
 
 	if not force and os.path.exists(site):
 		print(f"Site {site} already exists, use `--force` to proceed anyway")
-		sys.exit(1)
-
-	if no_mariadb_socket and db_type != "mariadb":
-		print("--no-mariadb-socket requires db_type to be set to mariadb.")
 		sys.exit(1)
 
 	frappe.init(site=site)
@@ -96,7 +91,6 @@ def _new_site(
 			db_host=db_host,
 			db_port=db_port,
 			db_user=db_user,
-			no_mariadb_socket=no_mariadb_socket,
 			setup=setup_db,
 			rollback_callback=rollback_callback,
 		)
@@ -133,7 +127,6 @@ def install_db(
 	db_host=None,
 	db_port=None,
 	db_user=None,
-	no_mariadb_socket=False,
 	setup=True,
 	rollback_callback=None,
 ):
@@ -163,7 +156,7 @@ def install_db(
 	frappe.flags.root_password = root_password
 
 	if setup:
-		setup_database(force, verbose, no_mariadb_socket)
+		setup_database(force, verbose)
 		if rollback_callback:
 			rollback_callback.add(lambda: drop_user_and_database(db_name, db_user or db_name))
 

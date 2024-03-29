@@ -19,7 +19,7 @@ def get_mariadb_version(version_string: str = ""):
 	return version.rsplit(".", 1)
 
 
-def setup_database(force, verbose, no_mariadb_socket=False):
+def setup_database(force, verbose):
 	frappe.local.session = frappe._dict({"user": "Administrator"})
 
 	db_user = frappe.conf.db_user
@@ -27,8 +27,9 @@ def setup_database(force, verbose, no_mariadb_socket=False):
 	root_conn = get_root_connection()
 	dbman = DbManager(root_conn)
 	dbman_kwargs = {}
-	if no_mariadb_socket:
-		dbman_kwargs["host"] = "%"
+
+	if frappe.flags.mariadb_user_host_login_scope is not None:
+		dbman_kwargs["host"] = frappe.flags.mariadb_user_host_login_scope
 
 	dbman.create_user(db_user, frappe.conf.db_password, **dbman_kwargs)
 	if verbose:
