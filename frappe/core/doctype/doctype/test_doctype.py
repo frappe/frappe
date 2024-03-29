@@ -8,6 +8,7 @@ import frappe
 from frappe.cache_manager import clear_doctype_cache
 from frappe.core.doctype.doctype.doctype import (
 	CannotIndexedError,
+	DocType,
 	DoctypeLinkError,
 	HiddenAndMandatoryWithoutDefaultError,
 	IllegalMandatoryError,
@@ -719,7 +720,7 @@ def new_doctype(
 	custom: bool = True,
 	default: str | None = None,
 	**kwargs,
-):
+) -> "DocType":
 	if not name:
 		# Test prefix is required to avoid coverage
 		name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
