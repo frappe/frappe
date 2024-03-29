@@ -147,6 +147,7 @@ class DocType(Document):
 			"Expression",
 			"Expression (old style)",
 			"Random",
+			"UUID",
 			"By script",
 		]
 		nsm_parent_field: DF.Data | None
