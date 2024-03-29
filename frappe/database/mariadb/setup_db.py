@@ -19,7 +19,7 @@ def get_mariadb_version(version_string: str = ""):
 	return version.rsplit(".", 1)
 
 
-def setup_database(force, verbose, no_mariadb_socket=False):
+def setup_database(force, verbose, mariadb_user_host_login_scope=None):
 	frappe.local.session = frappe._dict({"user": "Administrator"})
 
 	db_user = frappe.conf.db_user
@@ -27,8 +27,9 @@ def setup_database(force, verbose, no_mariadb_socket=False):
 	root_conn = get_root_connection()
 	dbman = DbManager(root_conn)
 	dbman_kwargs = {}
-	if no_mariadb_socket:
-		dbman_kwargs["host"] = "%"
+
+	if mariadb_user_host_login_scope is not None:
+		dbman_kwargs["host"] = mariadb_user_host_login_scope
 
 	dbman.create_user(db_user, frappe.conf.db_password, **dbman_kwargs)
 	if verbose:
@@ -135,6 +136,7 @@ def get_root_connection():
 			frappe.flags.root_password = frappe.conf.get("root_password") or getpass("MySQL root password: ")
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
+			socket=frappe.conf.db_socket,
 			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
 			user=frappe.flags.root_login,
