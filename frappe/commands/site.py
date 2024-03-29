@@ -33,10 +33,10 @@ from frappe.utils import CallbackManager
 )
 @click.option("--db-root-password", "--mariadb-root-password", help="Root password for MariaDB or PostgreSQL")
 @click.option(
-	"--no-mariadb-socket",
-	is_flag=True,
-	default=False,
-	help="Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket",
+	"--db-socket",
+	"--mariadb-db-socket",
+	envvar="MYSQL_UNIX_PORT",
+	help="Database socket for MariaDB or folder containing database socket for PostgreSQL",
 )
 @click.option(
 	"--no-mariadb-socket",
@@ -78,6 +78,7 @@ def new_site(
 	db_name=None,
 	db_password=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
@@ -115,6 +116,7 @@ def new_site(
 			force=force,
 			db_password=db_password,
 			db_type=db_type,
+			db_socket=db_socket,
 			db_host=db_host,
 			db_port=db_port,
 			db_user=db_user,

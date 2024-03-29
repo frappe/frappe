@@ -48,6 +48,7 @@ def _new_site(
 	force=False,
 	db_password=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
@@ -88,6 +89,7 @@ def _new_site(
 			force=force,
 			db_password=db_password,
 			db_type=db_type,
+			db_socket=db_socket,
 			db_host=db_host,
 			db_port=db_port,
 			db_user=db_user,
@@ -124,6 +126,7 @@ def install_db(
 	site_config=None,
 	db_password=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
@@ -146,6 +149,7 @@ def install_db(
 		site_config=site_config,
 		db_password=db_password,
 		db_type=db_type,
+		db_socket=db_socket,
 		db_host=db_host,
 		db_port=db_port,
 		db_user=db_user,
@@ -537,6 +541,7 @@ def make_conf(
 	db_password=None,
 	site_config=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
@@ -547,6 +552,7 @@ def make_conf(
 		db_password,
 		site_config,
 		db_type=db_type,
+		db_socket=db_socket,
 		db_host=db_host,
 		db_port=db_port,
 		db_user=db_user,
@@ -561,6 +567,7 @@ def make_site_config(
 	db_password=None,
 	site_config=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
@@ -574,6 +581,9 @@ def make_site_config(
 
 			if db_type:
 				site_config["db_type"] = db_type
+
+			if db_socket:
+				site_config["db_socket"] = db_socket
 
 			if db_host:
 				site_config["db_host"] = db_host
