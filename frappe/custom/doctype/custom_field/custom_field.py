@@ -240,10 +240,10 @@ class CustomField(Document):
 			if len(frappe.db.get_all(self.dt, pluck=self.fieldname, distinct=True, limit=2)) < 2:
 				delete_fields({self.dt: [self.fieldname]}, delete=1)
 			else:
-				frappe.throw(
-					_("Cannot remove field {0} as it holds non-null values.").format(
-						self.label or self.fieldname
-					)
+				frappe.msgprint(
+					_(
+						"The database column for {0} wasn't removed because it has data in it. To delete columns you don't need anymore, use the 'Trim Table' option in Customize Form or the bench CLI."
+					).format(self.label or self.fieldname),
 				)
 
 		frappe.clear_cache(doctype=self.dt)
