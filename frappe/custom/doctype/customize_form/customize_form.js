@@ -140,6 +140,14 @@ frappe.ui.form.on("Customize Form", {
 					__("Actions")
 				);
 
+				frm.add_custom_button(
+					__("Trim Table"),
+					function () {
+						frm.trigger("trim_table");
+					},
+					__("Actions")
+				);
+
 				const is_autoname_autoincrement = frm.doc.autoname === "autoincrement";
 				frm.set_df_property("naming_rule", "hidden", is_autoname_autoincrement);
 				frm.set_df_property("autoname", "read_only", is_autoname_autoincrement);
@@ -184,6 +192,29 @@ frappe.ui.form.on("Customize Form", {
 						if (!r.exc) {
 							frappe.show_alert({
 								message: __("Layout Reset"),
+								indicator: "green",
+							});
+							frappe.customize_form.clear_locals_and_refresh(frm);
+						}
+					},
+				});
+			}
+		);
+	},
+
+	trim_table(frm) {
+		frappe.confirm(
+			__(
+				"Warning: DATA LOSS IMMINENT! Proceeding will permanently delete the database columns associated with fields that have been removed from this DocType. This action is irreversible. Do you wish to continue?"
+			),
+			() => {
+				return frm.call({
+					doc: frm.doc,
+					method: "trim_table",
+					callback: function (r) {
+						if (!r.exc) {
+							frappe.show_alert({
+								message: __("Table Trimmed"),
 								indicator: "green",
 							});
 							frappe.customize_form.clear_locals_and_refresh(frm);
