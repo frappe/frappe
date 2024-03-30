@@ -21,6 +21,7 @@ from frappe.custom.doctype.property_setter.property_setter import delete_propert
 from frappe.model import core_doctypes_list, no_value_fields
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
+from frappe.model.meta import trim_table
 from frappe.utils import cint
 
 
@@ -553,6 +554,40 @@ class CustomizeForm(Document):
 		reset_customization(self.doc_type)
 		self.fetch_to_customize()
 
+<<<<<<< HEAD
+=======
+	@frappe.whitelist()
+	def reset_layout(self):
+		if not self.doc_type:
+			return
+
+		property_setters = frappe.get_all(
+			"Property Setter",
+			filters={"doc_type": self.doc_type, "property": ("in", ("field_order", "insert_after"))},
+			pluck="name",
+		)
+
+		if not property_setters:
+			return
+
+		frappe.db.delete("Property Setter", {"name": ("in", property_setters)})
+		frappe.clear_cache(doctype=self.doc_type)
+		self.fetch_to_customize()
+
+	@frappe.whitelist()
+	def trim_table(self):
+		"""Removes database fields that don't exist in the doctype.
+
+		This may be needed as maintenance since removing a field in a DocType
+		doesn't automatically delete the db field.
+		"""
+		if not self.doc_type:
+			return
+
+		trim_table(self.doc_type, dry_run=False)
+		self.fetch_to_customize()
+
+>>>>>>> 9238f4649f (feat(Customize Form): add "Trim Table" action)
 	@classmethod
 	def allow_fieldtype_change(self, old_type: str, new_type: str) -> bool:
 		"""allow type change, if both old_type and new_type are in same field group.
