@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-03-24 09:33+0000\n"
-"PO-Revision-Date: 2024-03-26 12:06\n"
+"PO-Revision-Date: 2024-03-30 12:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -2510,11 +2510,11 @@ msgstr "Änderung"
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
 msgid "Amendment Naming Override"
-msgstr ""
+msgstr "Überschreibung der Berichtigungsbenennung"
 
 #: core/doctype/document_naming_settings/document_naming_settings.py:207
 msgid "Amendment naming rules updated."
-msgstr ""
+msgstr "Benennungsregeln für Berichtigungen aktualisiert."
 
 #: public/js/frappe/ui/toolbar/toolbar.js:297
 msgid "An error occurred while setting Session Defaults"
@@ -2827,7 +2827,7 @@ msgstr "Genehmigung erforderlich"
 #: public/js/frappe/utils/number_systems.js:41
 msgctxt "Number system"
 msgid "Ar"
-msgstr ""
+msgstr "Ar"
 
 #: public/js/frappe/views/kanban/kanban_column.html:14
 msgid "Archive"
@@ -3314,7 +3314,7 @@ msgstr "Zielgruppe"
 #. Name of a report
 #: custom/report/audit_system_hooks/audit_system_hooks.json
 msgid "Audit System Hooks"
-msgstr ""
+msgstr "System Hooks überprüfen"
 
 #. Name of a DocType
 #: core/doctype/audit_trail/audit_trail.json
@@ -3497,11 +3497,11 @@ msgstr "Automatische Wiederholung"
 #. Name of a DocType
 #: automation/doctype/auto_repeat_day/auto_repeat_day.json
 msgid "Auto Repeat Day"
-msgstr ""
+msgstr "Tag mit automatischer Wiederholung"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:159
 msgid "Auto Repeat Day{0} {1} has been repeated."
-msgstr ""
+msgstr "Auto-Wiederholung Tag{0} {1} wurde wiederholt."
 
 #: automation/doctype/auto_repeat/auto_repeat.py:437
 msgid "Auto Repeat Document Creation Failed"
@@ -8710,7 +8710,7 @@ msgstr "Lösche {0} Einträge..."
 
 #: public/js/frappe/model/model.js:711
 msgid "Deleting {0}..."
-msgstr ""
+msgstr "Lösche {0}..."
 
 #. Label of a Table field in DocType 'Personal Data Deletion Request'
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
@@ -9197,7 +9197,7 @@ msgstr "Verwerfen"
 
 #: public/js/frappe/web_form/web_form.js:184
 msgid "Discard?"
-msgstr ""
+msgstr "Verwerfen?"
 
 #. Name of a DocType
 #: website/doctype/discussion_reply/discussion_reply.json
@@ -10601,7 +10601,7 @@ msgstr "z. B. smsgateway.com/api/send_sms.cgi"
 
 #: rate_limiter.py:139
 msgid "Either key or IP flag is required."
-msgstr ""
+msgstr "Entweder der key (Schlüssel) oder das IP-Flag ist erforderlich."
 
 #. Label of a Data field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -13617,19 +13617,19 @@ msgstr "Formular URL-verschlüsselt"
 
 #: public/js/frappe/widgets/widget_dialog.js:567
 msgid "Format"
-msgstr ""
+msgstr "Formatierung"
 
 #. Label of a Select field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Format"
-msgstr ""
+msgstr "Formatierung"
 
 #. Label of a Data field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Format"
-msgstr ""
+msgstr "Formatierung"
 
 #. Label of a Code field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
@@ -17004,7 +17004,7 @@ msgstr "Ist Abfragebericht"
 #: integrations/doctype/integration_request/integration_request.json
 msgctxt "Integration Request"
 msgid "Is Remote Request?"
-msgstr ""
+msgstr "Ist dies eine Remote-Anfrage?"
 
 #: core/doctype/doctype/doctype_list.js:64
 msgid "Is Single"
@@ -18269,7 +18269,7 @@ msgstr "Like Limit pro Stunde"
 
 #: templates/includes/likes/likes.py:30
 msgid "Like on {0}: {1}"
-msgstr ""
+msgstr "„Gefällt mir“ für {0}: {1}"
 
 #: desk/like.py:91
 msgid "Liked"
@@ -21219,7 +21219,7 @@ msgstr "Noch keine Kommentare"
 
 #: templates/includes/comments/comments.html:4
 msgid "No comments yet. "
-msgstr ""
+msgstr "Noch keine Kommentare. "
 
 #: public/js/frappe/form/templates/contact_list.html:85
 msgid "No contacts added yet."
@@ -23161,7 +23161,7 @@ msgstr "Passwort überschreitet die maximal zulässige Länge."
 
 #: www/update-password.html:78
 msgid "Passwords do not match"
-msgstr ""
+msgstr "Passwörter stimmen nicht überein"
 
 #: core/doctype/user/user.js:191
 msgid "Passwords do not match!"
@@ -25367,13 +25367,13 @@ msgstr "Erneut in der Konsole ausführen"
 
 #: email/doctype/email_account/email_account.py:660
 msgid "Re:"
-msgstr ""
+msgstr "AW:"
 
 #: core/doctype/communication/communication.js:268
 #: public/js/frappe/form/footer/form_timeline.js:587
 #: public/js/frappe/views/communication.js:347
 msgid "Re: {0}"
-msgstr ""
+msgstr "AW: {0}"
 
 #: client.py:459
 msgid "Read"
@@ -25622,12 +25622,12 @@ msgstr "Empfänger"
 #. Name of a DocType
 #: core/doctype/recorder/recorder.json
 msgid "Recorder"
-msgstr ""
+msgstr "Rekorder"
 
 #. Name of a DocType
 #: core/doctype/recorder_query/recorder_query.json
 msgid "Recorder Query"
-msgstr ""
+msgstr "Rekorder-Abfrage"
 
 #: core/doctype/user_permission/user_permission_help.html:2
 msgid "Records for following doctypes will be filtered"
@@ -26844,7 +26844,7 @@ msgstr "Benötigt einen gültigen fdn-Pfad. z.B. ou=users,dc=example,dc=com"
 
 #: core/doctype/communication/communication.js:279
 msgid "Res: {0}"
-msgstr ""
+msgstr "AW: {0}"
 
 #: desk/doctype/form_tour/form_tour.js:101
 #: desk/doctype/global_search_settings/global_search_settings.js:19
@@ -26955,7 +26955,7 @@ msgstr "Antwort"
 #: email/doctype/email_template/email_template.json
 msgctxt "Email Template"
 msgid "Response "
-msgstr ""
+msgstr "Antwort "
 
 #. Label of a Select field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
@@ -30631,13 +30631,13 @@ msgstr "Pos"
 
 #: core/doctype/recorder/recorder.js:33
 msgid "Stack Trace"
-msgstr ""
+msgstr "Stack Trace"
 
 #. Label of a HTML field in DocType 'Recorder Query'
 #: core/doctype/recorder_query/recorder_query.json
 msgctxt "Recorder Query"
 msgid "Stack Trace"
-msgstr ""
+msgstr "Stack Trace"
 
 #: core/doctype/user_type/user_type_list.js:5
 msgid "Standard"
@@ -31264,7 +31264,7 @@ msgstr "Betreff Der Feldtyp sollte Daten, Text, Langtext, Kleiner Text, Textedit
 #. Name of a DocType
 #: core/doctype/submission_queue/submission_queue.json
 msgid "Submission Queue"
-msgstr ""
+msgstr "Buchungs-Warteschlange"
 
 #: core/doctype/user_permission/user_permission_list.js:138
 #: public/js/frappe/form/quick_entry.js:198
@@ -33281,19 +33281,19 @@ msgstr "Titel der Seite"
 #: public/js/frappe/views/communication.js:53
 #: public/js/frappe/views/inbox/inbox_view.js:70
 msgid "To"
-msgstr "Zu"
+msgstr "An"
 
 #. Label of a Code field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "To"
-msgstr "Zu"
+msgstr "An"
 
 #. Label of a Section Break field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "To"
-msgstr "Zu"
+msgstr "An"
 
 #: website/report/website_analytics/website_analytics.js:14
 msgid "To Date"
@@ -33706,7 +33706,7 @@ msgstr "E-Mail-Status verfolgen"
 #: automation/doctype/milestone/milestone.json
 msgctxt "Milestone"
 msgid "Track Field"
-msgstr ""
+msgstr "Verfolge Feld"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -35694,7 +35694,7 @@ msgstr "Tutorial ansehen"
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
 msgid "Watch Video"
-msgstr "Schau Video"
+msgstr "Video ansehen"
 
 #: desk/doctype/workspace/workspace.js:38
 msgid "We do not allow editing of this document. Simply click the Edit button on the workspace page to make your workspace editable and customize it as you wish"
@@ -35963,13 +35963,13 @@ msgstr "Website-Meta-Tag"
 #. Name of a DocType
 #: website/doctype/website_route_meta/website_route_meta.json
 msgid "Website Route Meta"
-msgstr ""
+msgstr "Meta-Tags für Website-Pfad"
 
 #. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "Website Route Meta"
 msgid "Website Route Meta"
-msgstr ""
+msgstr "Meta-Tags für Website-Pfad"
 
 #. Name of a DocType
 #: website/doctype/website_route_redirect/website_route_redirect.json
@@ -37372,7 +37372,7 @@ msgstr "Der Parameter `job_id` ist für die Deduplizierung erforderlich."
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:219
 msgid "added rows for {0}"
-msgstr "Zeilen für {0} hinzugefügt"
+msgstr "hat Zeilen für {0} hinzugefügt"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -37415,7 +37415,7 @@ msgstr "rechtsbündig"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "amend"
-msgstr ""
+msgstr "berichtigen"
 
 #: public/js/frappe/utils/utils.js:396 utils/data.py:1504
 msgid "and"
@@ -37551,13 +37551,13 @@ msgstr "Kamera"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "cancel"
-msgstr ""
+msgstr "stornieren"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "canceled"
-msgstr ""
+msgstr "storniert"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -37644,7 +37644,7 @@ msgstr "kommentierte(n)"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "create"
-msgstr ""
+msgstr "erstellen"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -37708,7 +37708,7 @@ msgstr "aufgeschoben"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "delete"
-msgstr ""
+msgstr "löschen"
 
 #: public/js/frappe/ui/sort_selector.html:5
 #: public/js/frappe/ui/sort_selector.js:48
@@ -37860,7 +37860,7 @@ msgstr "Apple FaceTime-Video"
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "failed"
-msgstr ""
+msgstr "fehlgeschlagen"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -37903,7 +37903,7 @@ msgstr "Filter"
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "finished"
-msgstr ""
+msgstr "fertig"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38495,7 +38495,7 @@ msgstr "zufällig"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "read"
-msgstr ""
+msgstr "lesen"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -38529,7 +38529,7 @@ msgstr "Entfernen-Zeichen"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:221
 msgid "removed rows for {0}"
-msgstr "entfernte Zeilen für {0}"
+msgstr "hat Zeilen von {0} entfernt"
 
 #: model/rename_doc.py:214
 msgid "renamed from {0} to {1}"
@@ -38610,7 +38610,7 @@ msgstr "s256"
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "scheduled"
-msgstr ""
+msgstr "geplant"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38629,7 +38629,7 @@ msgstr "Suche"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "select"
-msgstr ""
+msgstr "auswählen"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -38706,7 +38706,7 @@ msgstr "sternenleer"
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "started"
-msgstr ""
+msgstr "gestartet"
 
 #: desk/page/setup_wizard/setup_wizard.js:194
 msgid "starting the setup..."
@@ -38756,7 +38756,7 @@ msgstr "String-Wert, z.B {0} oder uid={0},ou=users,dc=example,dc=com"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "submit"
-msgstr ""
+msgstr "buchen"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38962,7 +38962,7 @@ msgstr "Schraubenschlüssel"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "write"
-msgstr ""
+msgstr "schreiben"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
