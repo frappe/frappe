@@ -8,7 +8,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJ
 from frappe.utils import add_days, get_datetime
 from frappe.utils.doctor import purge_pending_jobs
 from frappe.utils.scheduler import (
-	_get_last_modified_timestamp,
+	_get_last_creation_timestamp,
 	enqueue_events,
 	is_dormant,
 	schedule_jobs_based_on_activity,
@@ -75,20 +75,20 @@ class TestScheduler(TestCase):
 		job.execute()
 		job_log = frappe.get_doc("Scheduled Job Log", dict(scheduled_job_type=job.name))
 		job_log.db_set(
-			"modified", add_days(_get_last_modified_timestamp("Activity Log"), 5), update_modified=False
+			"creation", add_days(_get_last_creation_timestamp("Activity Log"), 5), update_modified=False
 		)
 
 		# inactive site with recent job, don't run
 		self.assertFalse(
 			schedule_jobs_based_on_activity(
-				check_time=add_days(_get_last_modified_timestamp("Activity Log"), 5)
+				check_time=add_days(_get_last_creation_timestamp("Activity Log"), 5)
 			)
 		)
 
 		# one more day has passed
 		self.assertTrue(
 			schedule_jobs_based_on_activity(
-				check_time=add_days(_get_last_modified_timestamp("Activity Log"), 6)
+				check_time=add_days(_get_last_creation_timestamp("Activity Log"), 6)
 			)
 		)
 

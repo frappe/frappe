@@ -50,13 +50,27 @@ function get_conf() {
 	if (process.env.FRAPPE_SOCKETIO_PORT) {
 		conf.socketio_port = process.env.FRAPPE_SOCKETIO_PORT;
 	}
+	if (process.env.FRAPPE_SOCKETIO_UDS) {
+		conf.socketio_uds = process.env.FRAPPE_SOCKETIO_UDS;
+	}
 	return conf;
 }
 
 function get_redis_subscriber(kind = "redis_queue", options = {}) {
 	const conf = get_conf();
-	const host = conf[kind];
-	return redis.createClient({ url: host, ...options });
+	const connStr = conf[kind];
+	let client;
+	// TODO: revise after https://github.com/redis/node-redis/issues/2530
+	// is solved for a more elegant implementation
+	if (connStr && connStr.startsWith("unix://")) {
+		client = redis.createClient({
+			socket: { path: connStr.replace("unix://", "") },
+			...options,
+		});
+	} else {
+		client = redis.createClient({ url: connStr, ...options });
+	}
+	return client;
 }
 
 module.exports = {

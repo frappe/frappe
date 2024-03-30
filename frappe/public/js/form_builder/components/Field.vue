@@ -92,11 +92,12 @@ function make_dialog(frm) {
 				filter.pop();
 
 				// filter_group component requires options and frm.set_query requires fieldname so storing both
-				filter[0] = { fieldname, field_option };
+				filter[0] = field_option;
 				return filter;
 			});
 
 			props.field.df.link_filters = JSON.stringify(filters);
+			store.form.selected_field = props.field.df;
 			frm.dialog.hide();
 		},
 		primary_action_label: __("Apply"),
@@ -133,11 +134,6 @@ function make_dialog(frm) {
 			}
 		});
 	}
-
-	// Setting selected field in store because when we click on the dialog the selected field is set to null
-	frm.dialog.$wrapper.on("click", () => {
-		store.form.selected_field = props.field.df;
-	});
 }
 
 function make_filter_area(frm, doctype) {
@@ -151,10 +147,6 @@ function make_filter_area(frm, doctype) {
 function add_existing_filter(frm, df) {
 	if (df.link_filters) {
 		let filters = JSON.parse(df.link_filters);
-		filters.map((filter) => {
-			// filter_group component requires options and frm.set_query requires fieldname
-			filter[0] = filter[0].field_option;
-		});
 		if (filters) {
 			frm.filter_group.add_filters_to_filter_group(filters);
 		}

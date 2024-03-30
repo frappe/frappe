@@ -73,6 +73,7 @@ def get_root_connection():
 			)
 
 		frappe.local.flags.root_connection = frappe.database.get_db(
+			socket=frappe.conf.db_socket,
 			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
 			user=frappe.flags.root_login,

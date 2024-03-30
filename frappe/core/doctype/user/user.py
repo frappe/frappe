@@ -171,7 +171,8 @@ class User(Document):
 		self.validate_username()
 		self.remove_disabled_roles()
 		self.validate_user_email_inbox()
-		ask_pass_update()
+		if self.user_emails:
+			ask_pass_update()
 		self.validate_allowed_modules()
 		self.validate_user_image()
 		self.set_time_zone()

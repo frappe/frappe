@@ -7,7 +7,7 @@ from contextlib import suppress
 import frappe
 from frappe import _
 from frappe.email.oauth import Oauth
-from frappe.utils import cint, cstr
+from frappe.utils import cint, cstr, get_traceback
 
 
 class InvalidEmailCredentials(frappe.ValidationError):
@@ -109,7 +109,7 @@ class SMTPServer:
 			frappe.request.after_response.add(self.quit)
 		elif frappe.job:
 			frappe.job.after_job.add(self.quit)
-		else:
+		elif not frappe.flags.in_test:
 			# Console?
 			import atexit
 
@@ -129,8 +129,9 @@ class SMTPServer:
 
 	@classmethod
 	def throw_invalid_credentials_exception(cls):
+		original_exception = get_traceback() or "\n"
 		frappe.throw(
-			_("Please check your email login credentials."),
+			_("Please check your email login credentials.") + " " + original_exception.splitlines()[-1],
 			title=_("Invalid Credentials"),
 			exc=InvalidEmailCredentials,
 		)

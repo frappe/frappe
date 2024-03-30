@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import contextlib
 import json
 from datetime import datetime, timedelta
 from random import randint
@@ -48,8 +49,8 @@ class ScheduledJobType(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		if self.frequency != "All":
-			# force logging for all events other than continuous ones (ALL)
+		if self.frequency not in ("All", "Cron"):
+			# force logging for all events other than All/Cron
 			self.create_log = 1
 
 		if self.frequency == "Cron":
