@@ -123,7 +123,7 @@
    "link_fieldname": "module"
   }
  ],
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2024-03-23 16:03:29.918362",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Module Def",
@@ -159,7 +159,7 @@
   }
  ],
  "show_name_in_global_search": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

@@ -220,7 +220,7 @@
   }
  ],
  "links": [],
- "modified": "2024-02-04 13:31:08.624648",
+ "modified": "2024-03-23 16:01:28.131581",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Auto Email Report",
@@ -251,7 +251,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

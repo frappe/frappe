@@ -260,7 +260,7 @@
  "icon": "fa fa-print",
  "idx": 1,
  "links": [],
- "modified": "2023-12-12 19:59:37.133301",
+ "modified": "2024-03-23 16:03:34.964767",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
@@ -283,7 +283,7 @@
    "select": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

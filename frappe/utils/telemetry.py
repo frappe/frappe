@@ -60,16 +60,6 @@ def capture(event, app, **kwargs):
 		ph and ph.capture(distinct_id=frappe.local.site, event=f"{app}_{event}", **kwargs)
 
 
-def flush():
-	"""Forcefully flush pending events.
-
-	This is required in context of background jobs where process might die before posthog gets time
-	to push events."""
-	ph: Posthog = getattr(frappe.local, "posthog", None)
-	with suppress(Exception):
-		ph and ph.flush()
-
-
 def capture_doc(doc, action):
 	with suppress(Exception):
 		age = site_age()

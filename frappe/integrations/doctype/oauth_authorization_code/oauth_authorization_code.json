@@ -90,7 +90,7 @@
   }
  ],
  "links": [],
- "modified": "2021-04-26 07:23:02.980612",
+ "modified": "2024-03-23 16:03:32.445085",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Authorization Code",
@@ -107,6 +107,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
 }

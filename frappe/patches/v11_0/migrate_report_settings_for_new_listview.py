@@ -25,7 +25,7 @@ def execute():
 		settings.pop("columns", None)
 
 		# sort_by + order_by -> order_by
-		settings.order_by = (settings.sort_by or "modified") + " " + (settings.order_by or "desc")
+		settings.order_by = (settings.sort_by or "creation") + " " + (settings.order_by or "desc")
 
 		# add_total_row -> add_totals_row
 		settings.add_totals_row = settings.add_total_row

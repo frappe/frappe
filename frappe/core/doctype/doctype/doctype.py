@@ -147,6 +147,7 @@ class DocType(Document):
 			"Expression",
 			"Expression (old style)",
 			"Random",
+			"UUID",
 			"By script",
 		]
 		nsm_parent_field: DF.Data | None
@@ -868,9 +869,7 @@ class DocType(Document):
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
 		if self.is_submittable:
-			docfield_exists = frappe.get_all(
-				"DocField", filters={"fieldname": "amended_from", "parent": self.name}, pluck="name", limit=1
-			)
+			docfield_exists = [f for f in self.fields if f.fieldname == "amended_from"]
 			if not docfield_exists:
 				self.append(
 					"fields",
@@ -1596,49 +1595,6 @@ def validate_fields(meta: Meta):
 			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
 				frappe.throw(_("Options for Rating field can range from 3 to 10"))
 
-	def check_fetch_from(docfield):
-		if not frappe.request and not in_ci:
-			return
-
-		fetch_from = docfield.fetch_from
-		fieldname = docfield.fieldname
-		if not fetch_from:
-			return
-
-		if "." not in fetch_from:
-			frappe.throw(
-				_("Fetch From syntax for field {0} is invalid. `.` dot missing: {1}").format(
-					frappe.bold(fieldname), frappe.bold(fetch_from)
-				)
-			)
-		link_fieldname, source_fieldname = docfield.fetch_from.split(".", 1)
-		if not link_fieldname or not source_fieldname:
-			frappe.throw(
-				_(
-					"Fetch From syntax for field {0} is invalid: {1}. Fetch From should be in form of 'link_fieldname.source_fieldname'"
-				).format(frappe.bold(fieldname), frappe.bold(fetch_from))
-			)
-
-		link_df = meta.get("fields", {"fieldname": link_fieldname, "fieldtype": "Link"})
-		if not link_df:
-			frappe.throw(
-				_("Fetch From for field {0} is invalid: {1}. Link field {2} not found.").format(
-					frappe.bold(fieldname), frappe.bold(fetch_from), frappe.bold(link_fieldname)
-				)
-			)
-
-		doctype = link_df[0].options
-		fetch_from_doctype = frappe.get_meta(doctype)
-
-		if not frappe.db.has_column(doctype, source_fieldname) and not fetch_from_doctype.get_field(
-			source_fieldname
-		):
-			frappe.throw(
-				_("Fetch From for field {0} is invalid: {1} does not have a field {2}").format(
-					frappe.bold(fieldname), frappe.bold(doctype), frappe.bold(source_fieldname)
-				)
-			)
-
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
@@ -1676,7 +1632,6 @@ def validate_fields(meta: Meta):
 			check_child_table_option(d)
 			check_max_height(d)
 			check_no_of_ratings(d)
-			check_fetch_from(d)
 
 	if not frappe.flags.in_migrate or in_ci:
 		check_fold(fields)

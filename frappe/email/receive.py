@@ -9,7 +9,6 @@ import json
 import poplib
 import re
 import ssl
-import time
 from contextlib import suppress
 from email.header import decode_header
 
@@ -152,7 +151,7 @@ class EmailServer:
 
 	def select_imap_folder(self, folder):
 		res = self.imap.select(f'"{folder}"')
-		return res[0] == "OK"  # The folder exsits TODO: handle other resoponses too
+		return res[0] == "OK"  # The folder exists TODO: handle other responses too
 
 	def logout(self):
 		if cint(self.settings.use_imap):
@@ -312,7 +311,6 @@ class EmailServer:
 		return False
 
 	def make_error_msg(self, uid, msg_num):
-		partial_mail = None
 		traceback = frappe.get_traceback(with_context=True)
 		with suppress(Exception):
 			# retrieve headers

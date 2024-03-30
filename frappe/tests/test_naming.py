@@ -1,16 +1,22 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-from unittest.mock import patch
+import time
+from uuid import UUID
+
+import uuid_utils
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_full_jitter
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.model.naming import (
 	InvalidNamingSeriesError,
+	InvalidUUIDValue,
 	NamingSeries,
 	append_number_if_name_exists,
 	determine_consecutive_week_number,
 	getseries,
+	make_autoname,
 	parse_naming_series,
 	revert_series_if_last,
 )
@@ -389,6 +395,41 @@ class TestNaming(FrappeTestCase):
 			name = parse_naming_series(series, doc=todo)
 			expected_name = "TODO-" + nowdate().split("-")[1] + "-" + "0001"
 			self.assertEqual(name, expected_name)
+
+	@retry(
+		retry=retry_if_exception_type(AssertionError),
+		stop=stop_after_attempt(3),
+		wait=wait_full_jitter(),
+		reraise=True,
+	)
+	def test_hash_naming_is_roughly_sequential(self):
+		"""hash naming is supposed to be sequential *most of the time*"""
+		names = []
+		for _ in range(10):
+			time.sleep(0.1)
+			names.append(make_autoname("hash"))
+		self.assertEqual(names, sorted(names))
+
+	def test_uuid_naming(self):
+		uuid_doctype = new_doctype(autoname="UUID").insert().name
+		self.assertEqual("uuid", frappe.db.get_column_type(uuid_doctype, "name"))
+
+		# Auto set names
+		document = frappe.new_doc(uuid_doctype).insert()
+		uid = UUID(document.name)
+		self.assertEqual(uid.version, 7)  # Default version
+
+		# Applications can specify UUID themselves, useful for APIs to set name themselves.
+		for uid in (uuid_utils.uuid4(), uuid_utils.uuid7()):
+			doc = frappe.new_doc(uuid_doctype, name=uid).insert()
+			self.assertEqual(doc.name, str(uid))
+
+		# Can specify valid UUID strings too
+		for uid in (uuid_utils.uuid4(), uuid_utils.uuid7()):
+			doc = frappe.new_doc(uuid_doctype, name=str(uid)).insert()
+			self.assertEqual(doc.name, str(uid))
+
+		self.assertRaises(InvalidUUIDValue, frappe.new_doc(uuid_doctype, name="XYZ").insert)
 
 
 def parse_naming_series_variable(doc, variable):

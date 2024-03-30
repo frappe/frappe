@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2019-07-17 16:21:33.546379",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -16,14 +17,16 @@
   }
  ],
  "istable": 1,
- "modified": "2019-07-21 13:22:25.752553",
+ "links": [],
+ "modified": "2024-03-23 16:03:38.225606",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Session Default",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

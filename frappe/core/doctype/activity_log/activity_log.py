@@ -60,7 +60,7 @@ class ActivityLog(Document):
 		if not days:
 			days = 90
 		doctype = DocType("Activity Log")
-		frappe.db.delete(doctype, filters=(doctype.modified < (Now() - Interval(days=days))))
+		frappe.db.delete(doctype, filters=(doctype.creation < (Now() - Interval(days=days))))
 
 
 def on_doctype_update():

@@ -105,7 +105,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2024-03-07 12:01:58.209879",
+ "modified": "2024-03-23 16:03:34.835357",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Prepared Report",
@@ -134,7 +134,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [
   {

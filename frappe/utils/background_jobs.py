@@ -4,6 +4,7 @@ import socket
 import time
 from collections import defaultdict
 from collections.abc import Callable
+from contextlib import suppress
 from functools import lru_cache
 from typing import Any, NoReturn
 from uuid import uuid4
@@ -22,7 +23,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 import frappe
 import frappe.monitor
 from frappe import _
-from frappe.utils import CallbackManager, cint, cstr, get_bench_id
+from frappe.utils import CallbackManager, cint, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.redis_queue import RedisQueue
@@ -141,12 +142,18 @@ def enqueue(
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
 
+	# Prepare a more readable name than <function $name at $address>
+	if isinstance(method, Callable):
+		method_name = f"{method.__module__}.{method.__qualname__}"
+	else:
+		method_name = method
+
 	queue_args = {
 		"site": frappe.local.site,
 		"user": frappe.session.user,
 		"method": method,
 		"event": event,
-		"job_name": job_name or cstr(method),
+		"job_name": job_name or method_name,
 		"is_async": is_async,
 		"kwargs": kwargs,
 	}
@@ -323,6 +330,17 @@ def start_worker_pool(
 	"""
 
 	_start_sentry()
+
+	# If gc.freeze is done then importing modules before forking allows us to share the memory
+	import frappe.database.query  # sqlparse and indirect imports
+	import frappe.query_builder  # pypika
+	import frappe.utils.data  # common utils
+	import frappe.utils.safe_exec
+	import frappe.utils.typing_validations  # any whitelisted method uses this
+	import frappe.website.path_resolver  # all the page types and resolver
+
+	# end: module pre-loading
+
 	_freeze_gc()
 
 	with frappe.init_site():
@@ -606,6 +624,16 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 				job_obj and fail_registry.remove(job_obj, delete_job=True)
 
 
+def flush_telemetry():
+	"""Forcefully flush pending events.
+
+	This is required in context of background jobs where process might die before posthog gets time
+	to push events."""
+	ph = getattr(frappe.local, "posthog", None)
+	with suppress(Exception):
+		ph and ph.flush()
+
+
 def _start_sentry():
 	sentry_dsn = os.getenv("FRAPPE_SENTRY_DSN")
 	if not sentry_dsn:
@@ -617,7 +645,6 @@ def _start_sentry():
 	from sentry_sdk.integrations.dedupe import DedupeIntegration
 	from sentry_sdk.integrations.excepthook import ExcepthookIntegration
 	from sentry_sdk.integrations.modules import ModulesIntegration
-	from sentry_sdk.integrations.rq import RqIntegration
 
 	from frappe.utils.sentry import FrappeIntegration, before_send
 
@@ -627,7 +654,6 @@ def _start_sentry():
 		DedupeIntegration(),
 		ModulesIntegration(),
 		ArgvIntegration(),
-		RqIntegration(),
 	]
 
 	experiments = {}

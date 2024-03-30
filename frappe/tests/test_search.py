@@ -165,6 +165,8 @@ class TestSearch(FrappeTestCase):
 		self.assertListEqual(results, [])
 
 	def test_search_relevance(self):
+		frappe.db.set_value("Language", {"name": ("like", "e%")}, "enabled", 1)
+
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
 		for row in search(txt="e"):
 			self.assertTrue(row["value"].startswith("e"))
@@ -175,6 +177,11 @@ class TestSearch(FrappeTestCase):
 		# Assume that "es" is used at least 10 times, it should now be first
 		frappe.db.set_value("Language", "es", "idx", 10)
 		self.assertEqual("es", search(txt="es")[0]["value"])
+
+	def test_search_with_paren(self):
+		search = partial(search_link, doctype="Language", filters=None, page_length=10)
+		result = search(txt="(txt)")
+		self.assertEqual(result, [])
 
 
 @frappe.validate_and_sanitize_search_inputs

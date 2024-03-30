@@ -196,7 +196,7 @@ class EmailQueue(Document):
 
 		# Delete queue table
 		(
-			frappe.qb.from_(email_queue).delete().where(email_queue.modified < (Now() - Interval(days=days)))
+			frappe.qb.from_(email_queue).delete().where(email_queue.creation < (Now() - Interval(days=days)))
 		).run()
 
 		# delete child tables, note that this has potential to leave some orphan
@@ -205,7 +205,7 @@ class EmailQueue(Document):
 		(
 			frappe.qb.from_(email_recipient)
 			.delete()
-			.where(email_recipient.modified < (Now() - Interval(days=days)))
+			.where(email_recipient.creation < (Now() - Interval(days=days)))
 		).run()
 
 	@frappe.whitelist()
@@ -386,10 +386,32 @@ class SendMailContext:
 			elif attachment.get("print_format_attachment") == 1:
 				attachment.pop("print_format_attachment", None)
 				print_format_file = frappe.attach_print(**attachment)
+				self._store_file(print_format_file["fname"], print_format_file["fcontent"])
 				print_format_file.update({"parent": message_obj})
 				add_attachment(**print_format_file)
 
 		return safe_encode(message_obj.as_string())
+
+	def _store_file(self, file_name, content):
+		if not frappe.get_system_settings("store_attached_pdf_document"):
+			return
+
+		file_data = frappe._dict(file_name=file_name, is_private=1)
+
+		# Store on communication if available, else email queue doc
+		if self.queue_doc.communication:
+			file_data.attached_to_doctype = "Communication"
+			file_data.attached_to_name = self.queue_doc.communication
+		else:
+			file_data.attached_to_doctype = self.queue_doc.doctype
+			file_data.attached_to_name = self.queue_doc.name
+
+		if frappe.db.exists("File", file_data):
+			return
+
+		file = frappe.new_doc("File", **file_data)
+		file.content = content
+		file.insert()
 
 
 @frappe.whitelist()

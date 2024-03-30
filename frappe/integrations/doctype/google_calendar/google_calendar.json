@@ -110,7 +110,7 @@
   }
  ],
  "links": [],
- "modified": "2023-08-28 22:21:44.238862",
+ "modified": "2024-03-23 16:03:26.682486",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Google Calendar",
@@ -143,7 +143,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

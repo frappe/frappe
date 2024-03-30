@@ -42,7 +42,7 @@ html, body {
 <script>
 	frappe.ready(function() {
 		if (window.location.hash || window.location.href.includes('/app')) {
-			localStorage.setItem('session_last_route', window.location.pathname + window.location.hash + window.location.search);
+			localStorage.setItem('session_last_route', window.location.pathname);
 		}
 
 		$('.btn-primary').focus();

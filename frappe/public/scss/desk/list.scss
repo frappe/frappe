@@ -59,22 +59,30 @@
 }
 
 .list-row-container {
-	border-bottom: 1px solid $border-color;
 	display: flex;
 	flex-direction: column;
 	outline: none;
-	padding: 4px 5px;
+	padding: 0 var(--padding-xs);
 
 	&:focus {
 		.list-row {
 			background-color: var(--highlight-color);
 		}
 	}
+
+	.list-row-border {
+		border-bottom: 1px solid $border-color;
+		margin: 0 10px;
+	}
+
+	&:last-child .list-row-border {
+		display: none;
+	}
 }
 
 .list-row {
 	padding: 15px 15px 15px 0px;
-	height: 38px;
+	height: 40px;
 	cursor: pointer;
 	transition: color 0.2s;
 	-webkit-transition: color 0.2s;
@@ -149,9 +157,12 @@
 		}
 	}
 
-	.select-like,
 	.file-select {
 		padding-left: 11px;
+	}
+
+	.select-like {
+		padding: 10px 0 10px 11px;
 	}
 }
 
@@ -160,8 +171,7 @@
 	cursor: default;
 	background-color: var(--subtle-fg);
 	height: 30px;
-	padding: 8px, 10px, 8px, 0px;
-	margin: 8px 5px 0px 5px;
+	margin: 0.5rem var(--padding-xs);
 	border-radius: var(--border-radius-md);
 
 	.list-check-all {
@@ -237,10 +247,6 @@ $level-margin-right: 8px;
 	height: 10px;
 }
 
-.likes-count {
-	display: none;
-}
-
 .list-liked-by-me {
 	margin-bottom: 1px;
 }
@@ -250,6 +256,7 @@ input.list-row-checkbox {
 	margin-top: 0px;
 	margin-bottom: 0px;
 	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
+	background-color: var(--card-bg);
 }
 
 input.list-check-all {
