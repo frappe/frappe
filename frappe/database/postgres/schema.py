@@ -34,6 +34,9 @@ class PostgresTable(DBTable):
 			frappe.db.create_sequence(self.doctype, check_not_exists=True)
 			name_column = "name bigint primary key"
 
+		elif not self.meta.issingle and self.meta.autoname == "UUID":
+			name_column = "name uuid primary key"
+
 		# TODO: set docstatus length
 		# create table
 		frappe.db.sql(
@@ -90,6 +93,9 @@ class PostgresTable(DBTable):
 					using_clause,
 				)
 			)
+
+		if alter_pk := self.alter_primary_key():
+			query.append(alter_pk)
 
 		for col in self.set_default:
 			if col.fieldname == "name":
@@ -181,3 +187,20 @@ class PostgresTable(DBTable):
 				)
 			else:
 				raise e
+
+	def alter_primary_key(self) -> str | None:
+		# If there are no values in table allow migrating to UUID from varchar
+		autoname = self.meta.autoname
+		if autoname == "UUID" and frappe.db.get_column_type(self.doctype, "name") != "uuid":
+			if not frappe.db.get_value(self.doctype, {}, order_by=None):
+				return "alter column `name` TYPE uuid USING name::uuid"
+			else:
+				frappe.throw(
+					_("Primary key of doctype {0} can not be changed as there are existing values.").format(
+						self.doctype
+					)
+				)
+
+		# Reverting from UUID to VARCHAR
+		if autoname != "UUID" and frappe.db.get_column_type(self.doctype, "name") == "uuid":
+			return f"alter column `name` TYPE varchar({frappe.db.VARCHAR_LEN})"

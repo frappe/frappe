@@ -164,6 +164,23 @@
 		frappe._messages = {{ translated_messages }};
 		frappe.web_form_doc = {{ web_form_doc | json }};
 		frappe.reference_doc = {{ reference_doc | json }};
+		function in_iframe() {
+			try {
+				return window.self !== window.top;
+			} catch (e) {
+				return true;
+			}
+		}
+		if (in_iframe()) {
+			// hide everything except the form and fix styles
+			$('nav').hide();
+			$('.web-form-header').hide();
+			$('.page-footer').hide();
+			$('footer').hide();
+			$('.page-breadcrumbs').hide();
+			$('.web-form').css('border', 'none').css('padding', 'unset');
+			$('.page_content').css('padding-left', 'unset').css('padding-right', 'unset');
+		}
 	</script>
 	{{ include_script("web_form.bundle.js") }}
 

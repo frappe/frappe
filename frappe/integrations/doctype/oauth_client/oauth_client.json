@@ -117,7 +117,7 @@
   }
  ],
  "links": [],
- "modified": "2023-07-17 07:06:35.765981",
+ "modified": "2024-03-23 16:03:32.679227",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Client",
@@ -136,7 +136,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "app_name",

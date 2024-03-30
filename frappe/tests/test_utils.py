@@ -1300,6 +1300,8 @@ class TestChangeLog(FrappeTestCase):
 		from semantic_version import Version
 
 		version, owner = check_release_on_github("frappe", "frappe")
+		if version is None:
+			return
 
 		self.assertIsInstance(version, Version)
 		self.assertEqual(owner, "frappe")

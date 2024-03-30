@@ -7,6 +7,7 @@ import random
 import re
 import string
 import traceback
+import warnings
 from collections.abc import Iterable, Sequence
 from contextlib import contextmanager, suppress
 from time import time
@@ -47,6 +48,11 @@ MULTI_WORD_PATTERN = re.compile(r'([`"])(tab([A-Z]\w+)( [A-Z]\w+)+)\1')
 SQL_ITERATOR_BATCH_SIZE = 100
 
 
+TRANSACTION_DISABLED_MSG = """Commit/rollback are disabled during certain events. This command will
+be ignored. Commit/Rollback from here WILL CAUSE very hard to debug problems with atomicity and
+concurrent data update bugs."""
+
+
 class Database:
 	"""
 	Open a database connection with the given parmeters, if use_default is True, use the
@@ -69,6 +75,7 @@ class Database:
 
 	def __init__(
 		self,
+		socket=None,
 		host=None,
 		user=None,
 		password=None,
@@ -76,6 +83,7 @@ class Database:
 		cur_db_name=None,
 	):
 		self.setup_type_map()
+		self.socket = socket
 		self.host = host
 		self.port = port
 		self.user = user
@@ -95,8 +103,12 @@ class Database:
 		self.before_rollback = CallbackManager()
 		self.after_rollback = CallbackManager()
 
-	# self.db_type: str
-	# self.last_query (lazy) attribute of last sql query executed
+		# Setting this to true will disable full rollback and commit
+		# You can still use savepoint with partial rollback.
+		self._disable_transaction_control = 0
+
+		# self.db_type: str
+		# self.last_query (lazy) attribute of last sql query executed
 
 	def setup_type_map(self):
 		pass
@@ -379,15 +391,15 @@ class Database:
 		"""Wrap the object with str to generate mogrified query."""
 		return LazyMogrify(query, values)
 
-	def explain_query(self, query, values=None):
+	def explain_query(self, query, values=EmptyQueryValues):
 		"""Print `EXPLAIN` in error log."""
 		frappe.log("--- query explain ---")
 		try:
-			self._cursor.execute(f"EXPLAIN {query}", values)
+			results = self.sql(f"EXPLAIN {query}", values, as_dict=1)
 		except Exception as e:
 			frappe.log(f"error in query explain: {e}")
 		else:
-			frappe.log(json.dumps(self.fetch_as_dict(), indent=1))
+			frappe.log(json.dumps(results, indent=1))
 			frappe.log("--- query explain end ---")
 
 	def sql_list(self, query, values=(), debug=False, **kwargs):
@@ -403,8 +415,11 @@ class Database:
 	def sql_ddl(self, query, debug=False):
 		"""Commit and execute a query. DDL (Data Definition Language) queries that alter schema
 		autocommit in MariaDB."""
+		transaction_control = self._disable_transaction_control
+		self._disable_transaction_control = 0
 		self.commit()
 		self.sql(query, debug=debug)
+		self._disable_transaction_control = transaction_control
 
 	def check_transaction_status(self, query: str):
 		"""Raises exception if more than 200,000 `INSERT`, `UPDATE` queries are
@@ -609,7 +624,7 @@ class Database:
 			if (filters is not None) and (filters != doctype or doctype == "DocType"):
 				try:
 					if order_by:
-						order_by = "modified" if order_by == DefaultOrderBy else order_by
+						order_by = "creation" if order_by == DefaultOrderBy else order_by
 					out = self._get_values_from_table(
 						fields=fields,
 						filters=filters,
@@ -1028,6 +1043,10 @@ class Database:
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
+		if self._disable_transaction_control:
+			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
+			return
+
 		self.before_rollback.reset()
 		self.after_rollback.reset()
 
@@ -1042,7 +1061,7 @@ class Database:
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
 		if save_point:
 			self.sql(f"rollback to savepoint {save_point}")
-		else:
+		elif not self._disable_transaction_control:
 			self.before_commit.reset()
 			self.after_commit.reset()
 
@@ -1052,6 +1071,8 @@ class Database:
 			self.begin()
 
 			self.after_rollback.run()
+		else:
+			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 
 	def savepoint(self, save_point):
 		"""Savepoints work as a nested transaction.

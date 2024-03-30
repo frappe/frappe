@@ -278,13 +278,22 @@ class CommunicationEmailMixin:
 			print_format=print_format, print_html=print_html, print_language=print_language
 		)
 		incoming_email_account = self.get_incoming_email_account()
+
+		reply_to = None
+
+		# If this is a reply to an existing email, set reply_to as the sender of the reply
+		if self.in_reply_to:
+			reply_to = self.get_mail_sender_with_displayname()
+		elif incoming_email_account:
+			reply_to = incoming_email_account.email_id
+
 		return {
 			"recipients": recipients,
 			"cc": cc,
 			"bcc": bcc,
 			"expose_recipients": "header",
 			"sender": self.get_mail_sender_with_displayname(),
-			"reply_to": incoming_email_account and incoming_email_account.email_id,
+			"reply_to": reply_to,
 			"subject": self.subject,
 			"content": self.get_content(print_format=print_format),
 			"reference_doctype": self.reference_doctype,

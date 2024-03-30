@@ -76,14 +76,14 @@ class RQJob(Document):
 		return self._job_obj
 
 	@staticmethod
-	def get_list(filters=None, start=0, page_length=20, order_by="modified desc"):
+	def get_list(filters=None, start=0, page_length=20, order_by="creation desc"):
 		matched_job_ids = RQJob.get_matching_job_ids(filters=filters)[start : start + page_length]
 
 		conn = get_redis_conn()
 		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job]
 
 		order_desc = "desc" in order_by
-		return sorted(jobs, key=lambda j: j.modified, reverse=order_desc)
+		return sorted(jobs, key=lambda j: j.creation, reverse=order_desc)
 
 	@staticmethod
 	def get_matching_job_ids(filters) -> list[str]:

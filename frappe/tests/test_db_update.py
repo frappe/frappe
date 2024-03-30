@@ -139,6 +139,20 @@ class TestDBUpdate(FrappeTestCase):
 		doctype.delete()
 		frappe.db.commit()
 
+	def test_uuid_varchar_migration(self):
+		doctype = new_doctype().insert()
+		doctype.autoname = "UUID"
+		doctype.save()
+		self.assertEqual(frappe.db.get_column_type(doctype.name, "name"), "uuid")
+
+		doc = frappe.new_doc(doctype.name).insert()
+
+		doctype.autoname = "hash"
+		doctype.save()
+		varchar = "varchar" if frappe.db.db_type == "mariadb" else "character varying"
+		self.assertIn(varchar, frappe.db.get_column_type(doctype.name, "name"))
+		doc.reload()  # ensure that docs are still accesible
+
 
 def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ("", 0))

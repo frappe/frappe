@@ -54,7 +54,7 @@ frappe.views.BaseList = class BaseList {
 
 		this.fields = [];
 		this.filters = [];
-		this.sort_by = this.meta.sort_field || "modified";
+		this.sort_by = this.meta.sort_field || "creation";
 		this.sort_order = this.meta.sort_order || "desc";
 
 		// Setup buttons
@@ -462,15 +462,22 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	get_args() {
+		let filters = this.get_filters_for_args();
+		let group_by = this.get_group_by();
+		let group_by_required =
+			Array.isArray(filters) &&
+			filters.some((filter) => {
+				return filter[0] !== this.doctype;
+			});
 		return {
 			doctype: this.doctype,
 			fields: this.get_fields(),
-			filters: this.get_filters_for_args(),
+			filters,
 			order_by: this.sort_selector && this.sort_selector.get_sql_string(),
 			start: this.start,
 			page_length: this.page_length,
 			view: this.view,
-			group_by: this.get_group_by(),
+			group_by: group_by_required ? group_by : null,
 		};
 	}
 
