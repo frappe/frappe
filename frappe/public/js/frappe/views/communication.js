@@ -268,7 +268,7 @@ frappe.views.CommunicationComposer = class {
 				const txt = data.match(/[^,\s*]*$/)[0] || "";
 				const args = { txt };
 
-				if (this.frm.events.get_email_recipient_filters) {
+				if (this.frm?.events.get_email_recipient_filters) {
 					args.extra_filters = this.frm.events.get_email_recipient_filters(
 						this.frm,
 						field
