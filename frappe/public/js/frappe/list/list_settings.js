@@ -118,7 +118,7 @@ export default class ListSettings {
 							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
 						<div class="col-10" style="padding-left:0px;">
-							${__(me.fields[idx].label)}
+							${ __(me.fields[idx].label) }
 						</div>
 						<div class="col-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
@@ -139,7 +139,7 @@ export default class ListSettings {
 				</div>
 				<p class="help-box small text-muted">
 					<a class="add-new-fields text-muted">
-						${__ ("+ Add / Remove Fields") }
+						${ __ ("+ Add / Remove Fields") }
 					</a>
 				</p>
 			</div>
