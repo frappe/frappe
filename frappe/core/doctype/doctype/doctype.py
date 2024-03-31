@@ -33,6 +33,7 @@ from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
 from frappe.query_builder.functions import Concat
 from frappe.utils import cint, flt, is_a_property, random_string
+from frappe.utils.data import guess_date_format
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -1338,6 +1339,13 @@ def validate_fields(meta: Meta):
 						frappe.bold(d.fieldname)
 					)
 				)
+		if d.fieldtype in ['Date', 'Datetime'] and d.default != 'now' and not guess_date_format(d.default):
+			frappe.throw(
+				_('Default value for {0} must be either "now" or a valid date: "{1}" is not accepted.').format(
+					frappe.bold(d.fieldname),
+					d.default
+				)
+			)
 
 	def check_precision(d):
 		if (
