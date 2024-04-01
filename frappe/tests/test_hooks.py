@@ -63,6 +63,7 @@ class TestHooks(FrappeTestCase):
 
 		# Create Note
 		note = frappe.new_doc("Note")
+		note.public = 1
 
 		# Test!
 		self.assertTrue(frappe.has_permission("Address", doc=address, user=username))
