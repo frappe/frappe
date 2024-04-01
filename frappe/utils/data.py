@@ -78,7 +78,9 @@ def is_invalid_date_string(date_string: str) -> bool:
 
 
 def getdate(
-	string_date: Optional["DateTimeLikeObject"] = None, parse_day_first: bool = False
+	string_date: Optional["DateTimeLikeObject"] = None,
+	parse_day_first: bool = False,
+	skip_msgprint: bool = False,
 ) -> datetime.date | None:
 	"""
 	Converts string date (yyyy-mm-dd) to datetime.date object.
@@ -100,6 +102,7 @@ def getdate(
 		frappe.throw(
 			frappe._("{} is not a valid date string.").format(frappe.bold(string_date)),
 			title=frappe._("Invalid Date"),
+			skip_msgprint=skip_msgprint,
 		)
 
 
