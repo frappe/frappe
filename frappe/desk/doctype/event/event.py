@@ -394,8 +394,11 @@ def get_events(start, end, user=None, for_reminder=False, filters=None) -> list[
 
 				# last day of month issue, start from prev month!
 				try:
-					getdate(date, skip_msgprint=True)
+					getdate(date)
 				except Exception:
+					# Don't show any message to the user
+					frappe.clear_last_message()
+
 					date = date.split("-")
 					date = date[0] + "-" + str(cint(date[1]) - 1) + "-" + date[2]
 
