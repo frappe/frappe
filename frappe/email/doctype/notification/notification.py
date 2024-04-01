@@ -99,7 +99,6 @@ class Notification(Document):
 			if not os.path.exists(path + ".md") and not os.path.exists(path + ".html"):
 				with open(path + ".md", "w") as f:
 					f.write(self.message)
-
 			if os.path.exists(path + ".md") and not os.path.exists(path + ".html"):
 				with open(path + ".md", "w") as f:
 					f.write(self.message)
