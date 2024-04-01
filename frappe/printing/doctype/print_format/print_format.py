@@ -68,7 +68,13 @@ class PrintFormat(Document):
 		if (
 			self.standard == "Yes"
 			and not frappe.local.conf.get("developer_mode")
+<<<<<<< HEAD
 			and not (frappe.flags.in_import or frappe.flags.in_test)
+=======
+			and not frappe.flags.in_migrate
+			and not frappe.flags.in_install
+			and not frappe.flags.in_test
+>>>>>>> 9739023c59 (fix: add in_install flag to print_format validate)
 		):
 			frappe.throw(frappe._("Standard Print Format cannot be updated"))
 
