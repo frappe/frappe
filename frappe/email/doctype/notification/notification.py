@@ -97,11 +97,19 @@ class Notification(Document):
 	def on_update(self):
 		frappe.cache.hdel("notifications", self.document_type)
 		path = export_module_json(self, self.is_standard, self.module)
+<<<<<<< HEAD
 		if path and self.message:
 			extension = FORMATS.get(self.message_type, ".md")
 			file_path = path + extension
 			with open(file_path, "w") as f:
 				f.write(self.message)
+=======
+		if path:
+			# js
+			if not os.path.exists(path + ".html"):
+				with open(path + ".md", "w") as f:
+					f.write(self.message)
+>>>>>>> 86ad2e6fac (fix: message update in custom app if is_standard (#25754))
 
 			# py
 			if not os.path.exists(path + ".py"):
