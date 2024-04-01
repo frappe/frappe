@@ -565,6 +565,7 @@ def msgprint(
 	primary_action: str | None = None,
 	is_minimizable: bool = False,
 	wide: bool = False,
+	skip_msgprint: bool = False,
 	*,
 	realtime=False,
 ) -> None:
@@ -580,6 +581,7 @@ def msgprint(
 	:param primary_action: [optional] Bind a primary server/client side action.
 	:param is_minimizable: [optional] Allow users to minimize the modal
 	:param wide: [optional] Show wide modal
+	:param skip_msgprint: [optional] Skip showing message using `msgprint` - only raise exception.
 	:param realtime: Publish message immediately using websocket.
 	"""
 	import inspect
@@ -598,7 +600,7 @@ def msgprint(
 				exc.__frappe_exc_id = out.__frappe_exc_id
 			raise exc
 
-	if flags.mute_messages:
+	if flags.mute_messages or skip_msgprint:
 		_raise_exception()
 		return
 
@@ -669,6 +671,7 @@ def throw(
 	wide: bool = False,
 	as_list: bool = False,
 	primary_action=None,
+	skip_msgprint: bool = False,
 ) -> None:
 	"""Throw execption and show message (`msgprint`).
 
@@ -679,6 +682,7 @@ def throw(
 	:param wide: [optional] Show wide modal
 	:param as_list: [optional] If `msg` is a list, render as un-ordered list.
 	:param primary_action: [optional] Bind a primary server/client side action.
+	:param skip_msgprint: [optional] Skip showing message using `msgprint`.
 	"""
 	msgprint(
 		msg,
@@ -689,6 +693,7 @@ def throw(
 		wide=wide,
 		as_list=as_list,
 		primary_action=primary_action,
+		skip_msgprint=skip_msgprint,
 	)
 
 
