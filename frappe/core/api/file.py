@@ -76,7 +76,7 @@ def get_files_by_search_text(text: str) -> list[dict]:
 			"file_url": text,
 			"name": ("like", text),
 		},
-		order_by="modified desc",
+		order_by="creation desc",
 		limit=20,
 	)
 

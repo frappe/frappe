@@ -24,6 +24,14 @@
 		{% for include in include_css -%}
 		{{ include_style(include) }}
 		{%- endfor -%}
+
+		{% if lang == "eo" %}
+		<script type="text/javascript">
+			var _jipt = [];
+			_jipt.push(['project', 'frappe']);
+		</script>
+		<script type="text/javascript" src="https://cdn.crowdin.com/jipt/jipt.js"></script>
+		{% endif %}
 	</head>
 	<body>
 		{% include "templates/includes/splash_screen.html" %}

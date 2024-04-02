@@ -45,7 +45,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2021-11-30 09:51:34.489932",
+ "modified": "2024-03-23 16:03:24.005944",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Flag Queue",
@@ -62,6 +62,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
 }

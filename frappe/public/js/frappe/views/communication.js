@@ -266,10 +266,18 @@ frappe.views.CommunicationComposer = class {
 			this.dialog.fields_dict[field].get_data = () => {
 				const data = this.dialog.fields_dict[field].get_value();
 				const txt = data.match(/[^,\s*]*$/)[0] || "";
+				const args = { txt };
+
+				if (this.frm?.events.get_email_recipient_filters) {
+					args.extra_filters = this.frm.events.get_email_recipient_filters(
+						this.frm,
+						field
+					);
+				}
 
 				frappe.call({
 					method: "frappe.email.get_contact_list",
-					args: { txt },
+					args: args,
 					callback: (r) => {
 						this.dialog.fields_dict[field].set_data(r.message);
 					},

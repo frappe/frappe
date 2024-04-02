@@ -55,6 +55,7 @@ from frappe.utils.data import (
 	add_to_date,
 	add_years,
 	cast,
+	cint,
 	cstr,
 	duration_to_seconds,
 	expand_relative_urls,
@@ -1250,6 +1251,15 @@ class TestRounding(FrappeTestCase):
 	def test_default_rounding(self):
 		self.assertEqual(frappe.get_system_settings("rounding_method"), "Banker's Rounding")
 
+	@given(
+		st.floats(min_value=-(2**32) - 1, max_value=2**32 + 1),
+		st.integers(min_value=-(2**63) - 1, max_value=2**63 + 1),
+	)
+	def test_cint(self, floating_point, integer):
+		self.assertEqual(cint(integer), integer)
+		self.assertEqual(cint(str(integer)), integer)
+		self.assertEqual(cint(str(floating_point)), int(floating_point))
+
 
 class TestArgumentTypingValidations(FrappeTestCase):
 	def test_validate_argument_types(self):
@@ -1300,6 +1310,8 @@ class TestChangeLog(FrappeTestCase):
 		from semantic_version import Version
 
 		version, owner = check_release_on_github("frappe", "frappe")
+		if version is None:
+			return
 
 		self.assertIsInstance(version, Version)
 		self.assertEqual(owner, "frappe")

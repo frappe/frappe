@@ -60,7 +60,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-06-13 05:50:58.314908",
+ "modified": "2024-03-23 16:02:17.664513",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Deleted Document",
@@ -73,7 +73,7 @@
    "role": "System Manager"
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "deleted_name",

@@ -6,7 +6,7 @@
    "label": "Execute"
   }
  ],
- "creation": "2019-09-23 14:34:09.205368",
+ "creation": "2024-02-23 10:41:33.059393",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -39,7 +39,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.frequency==='All'",
+   "depends_on": "eval:[\"All\", \"Cron\"].includes(doc.frequency)",
    "fieldname": "create_log",
    "fieldtype": "Check",
    "label": "Create Log"
@@ -102,7 +102,7 @@
    "link_fieldname": "scheduled_job_type"
   }
  ],
- "modified": "2024-02-22 17:16:36.212691",
+ "modified": "2024-03-30 11:39:49.693632",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Scheduled Job Type",
@@ -123,7 +123,7 @@
  ],
  "quick_entry": 1,
  "show_title_field_in_link": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "method",

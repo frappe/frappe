@@ -371,7 +371,7 @@ class TestQuery(FrappeTestCase):
 			"Test Tree DocType",
 			fields=["name"],
 			filters={"name": ("descendants of", "Parent 1")},
-			order_by="modified desc",
+			order_by="creation desc",
 		).run(as_list=1)
 
 		# Format decendants result
@@ -382,7 +382,7 @@ class TestQuery(FrappeTestCase):
 			"Test Tree DocType",
 			fields=["name"],
 			filters={"name": ("ancestors of", "Child 2")},
-			order_by="modified desc",
+			order_by="creation desc",
 		).run(as_list=1)
 
 		# Format ancestors result
@@ -393,7 +393,7 @@ class TestQuery(FrappeTestCase):
 			"Test Tree DocType",
 			fields=["name"],
 			filters={"name": ("not descendants of", "Parent 1")},
-			order_by="modified desc",
+			order_by="creation desc",
 		).run(as_dict=1)
 
 		self.assertListEqual(
@@ -409,7 +409,7 @@ class TestQuery(FrappeTestCase):
 			"Test Tree DocType",
 			fields=["name"],
 			filters={"name": ("not ancestors of", "Child 2")},
-			order_by="modified desc",
+			order_by="creation desc",
 		).run(as_dict=1)
 
 		self.assertListEqual(
