@@ -143,7 +143,7 @@
  "icon": "fa fa-sort-by-order",
  "issingle": 1,
  "links": [],
- "modified": "2023-06-20 17:47:52.204139",
+ "modified": "2024-03-23 16:03:22.769200",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Settings",
@@ -159,7 +159,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

@@ -43,6 +43,7 @@ class Recorder(Document):
 		requests = Recorder.get_filtered_requests(filters)[start : start + page_length]
 
 		if order_by_statment := order_by:
+			order_by_statment = order_by_statment.split(",")[0]
 			if "." in order_by_statment:
 				order_by_statment = order_by_statment.split(".")[1]
 

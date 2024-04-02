@@ -2,6 +2,7 @@
 import os
 import shutil
 import sys
+import traceback
 
 # imports - third party imports
 import click
@@ -10,6 +11,7 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
+from frappe.utils import CallbackManager
 
 
 @click.command("new-site")
@@ -31,10 +33,24 @@ from frappe.exceptions import SiteNotSpecifiedError
 )
 @click.option("--db-root-password", "--mariadb-root-password", help="Root password for MariaDB or PostgreSQL")
 @click.option(
+	"--db-socket",
+	"--mariadb-db-socket",
+	envvar="MYSQL_UNIX_PORT",
+	help="Database socket for MariaDB or folder containing database socket for PostgreSQL",
+)
+@click.option(
 	"--no-mariadb-socket",
 	is_flag=True,
 	default=False,
-	help="Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket",
+	help="DEPRECATED: Set MariaDB host to % and use TCP/IP Socket instead of using the UNIX Socket",
+)
+@click.option(
+	"--mariadb-user-host-login-scope",
+	help=(
+		"Set the mariadb host for the user login scope if you don't want to use the current host as login "
+		"scope which typically is ''@'localhost' - may be used when initializing a user on a remote host. "
+		"See the mariadb docs on account names for more info."
+	),
 )
 @click.option("--admin-password", help="Administrator password for new site", default=None)
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
@@ -57,10 +73,12 @@ def new_site(
 	source_sql=None,
 	force=None,
 	no_mariadb_socket=False,
+	mariadb_user_host_login_scope=False,
 	install_app=None,
 	db_name=None,
 	db_password=None,
 	db_type=None,
+	db_socket=None,
 	db_host=None,
 	db_port=None,
 	db_user=None,
@@ -72,27 +90,53 @@ def new_site(
 
 	frappe.init(site=site, new_site=True)
 
-	_new_site(
-		db_name,
-		site,
-		db_root_username=db_root_username,
-		db_root_password=db_root_password,
-		admin_password=admin_password,
-		verbose=verbose,
-		install_apps=install_app,
-		source_sql=source_sql,
-		force=force,
-		no_mariadb_socket=no_mariadb_socket,
-		db_password=db_password,
-		db_type=db_type,
-		db_host=db_host,
-		db_port=db_port,
-		db_user=db_user,
-		setup_db=setup_db,
-	)
+	mariadb_user_host_login_scope = None
 
-	if set_default:
-		use(site)
+	if no_mariadb_socket:
+		click.secho(
+			"--no-mariadb-socket is DEPRECATED; "
+			"use --mariadb-user-host-login-scope='%' (wildcard) or --mariadb-user-host-login-scope=<myhostscope>, instead. "
+			"The name of this option was misleading: it had nothing to do with sockets.",
+			fg="yellow",
+		)
+		mariadb_user_host_login_scope = "%"
+	if mariadb_user_host_login_scope:
+		mariadb_user_host_login_scope = mariadb_user_host_login_scope
+
+	rollback_callback = CallbackManager()
+
+	try:
+		_new_site(
+			db_name,
+			site,
+			db_root_username=db_root_username,
+			db_root_password=db_root_password,
+			admin_password=admin_password,
+			verbose=verbose,
+			install_apps=install_app,
+			source_sql=source_sql,
+			force=force,
+			db_password=db_password,
+			db_type=db_type,
+			db_socket=db_socket,
+			db_host=db_host,
+			db_port=db_port,
+			db_user=db_user,
+			setup_db=setup_db,
+			rollback_callback=rollback_callback,
+			mariadb_user_host_login_scope=mariadb_user_host_login_scope,
+		)
+
+		if set_default:
+			use(site)
+
+	except Exception:
+		traceback.print_exc()
+		if sys.__stdin__.isatty() and click.confirm(
+			"Site creation failed, do you want to rollback the site?", abort=True
+		):
+			rollback_callback.run()
+		sys.exit(1)
 
 
 @click.command("restore")
@@ -421,7 +465,6 @@ def _reinstall(
 		site,
 		verbose=verbose,
 		force=True,
-		reinstall=True,
 		install_apps=installed,
 		db_root_username=db_root_username,
 		db_root_password=db_root_password,

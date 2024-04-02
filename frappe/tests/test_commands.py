@@ -684,6 +684,7 @@ class TestBackups(BaseTestCommands):
 			frappe.conf.db_name,
 			frappe.conf.db_name,
 			frappe.conf.db_password + "INCORRECT PASSWORD",
+			db_socket=frappe.conf.db_socket,
 			db_host=frappe.conf.db_host,
 			db_port=frappe.conf.db_port,
 			db_type=frappe.conf.db_type,
@@ -707,7 +708,7 @@ class TestBackups(BaseTestCommands):
 	@run_only_if(db_type_is.MARIADB)
 	def test_clear_log_table(self):
 		d = frappe.get_doc(doctype="Error Log", title="Something").insert()
-		d.db_set("modified", "2010-01-01", update_modified=False)
+		d.db_set("creation", "2010-01-01", update_modified=False)
 		frappe.db.commit()
 
 		tables_before = frappe.db.get_tables(cached=False)

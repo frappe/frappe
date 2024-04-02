@@ -464,7 +464,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-07 17:34:47.167183",
+ "modified": "2024-03-23 16:02:15.143117",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
@@ -494,7 +494,7 @@
   }
  ],
  "search_fields": "dt,label,fieldtype,options",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

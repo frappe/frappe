@@ -34,7 +34,7 @@ class TestMilestoneTracker(FrappeTestCase):
 			"Milestone",
 			fields=["track_field", "value", "milestone_tracker"],
 			filters=dict(reference_type=todo.doctype, reference_name=todo.name),
-			order_by="modified desc",
+			order_by="creation desc",
 		)
 
 		self.assertEqual(len(milestones), 2)

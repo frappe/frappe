@@ -165,6 +165,8 @@ class TestSearch(FrappeTestCase):
 		self.assertListEqual(results, [])
 
 	def test_search_relevance(self):
+		frappe.db.set_value("Language", {"name": ("like", "e%")}, "enabled", 1)
+
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
 		for row in search(txt="e"):
 			self.assertTrue(row["value"].startswith("e"))

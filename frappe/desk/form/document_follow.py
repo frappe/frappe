@@ -156,7 +156,7 @@ def get_document_followed_by_user(user):
 		frappe.qb.from_(DocumentFollow)
 		.where(DocumentFollow.user == user)
 		.select(DocumentFollow.ref_doctype, DocumentFollow.ref_docname)
-		.orderby(DocumentFollow.modified)
+		.orderby(DocumentFollow.creation)
 		.limit(20)
 	).run(as_dict=True)
 
