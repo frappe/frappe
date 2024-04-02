@@ -11,6 +11,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			const doctype = route[1];
 			const user_settings = frappe.get_user_settings(doctype)["Calendar"] || {};
 			route.push(user_settings.last_calendar || "default");
+			frappe.route_flags.replace_route = true;
 			frappe.set_route(route);
 			return true;
 		} else {

@@ -133,6 +133,8 @@ export default class QuickListWidget extends Widget {
 	}
 
 	setup_quick_list_item(doc) {
+		const indicator = frappe.get_indicator(doc, this.document_type);
+
 		let $quick_list_item = $(`
 			<div class="quick-list-item">
 				<div class="ellipsis left">
@@ -146,6 +148,14 @@ export default class QuickListWidget extends Widget {
 				</div>
 			</div>
 		`);
+
+		if (indicator) {
+			$(`
+				<div class="status indicator-pill ${indicator[1]} ellipsis">
+					${__(indicator[0])}
+				</div>
+			`).appendTo($quick_list_item);
+		}
 
 		$(`<div class="right-arrow">${frappe.utils.icon("right", "xs")}</div>`).appendTo(
 			$quick_list_item
@@ -201,7 +211,7 @@ export default class QuickListWidget extends Widget {
 					doctype: this.document_type,
 					fields: fields,
 					filters: quick_list_filter,
-					order_by: "modified desc",
+					order_by: "creation desc",
 					start: 0,
 					page_length: 4,
 				},

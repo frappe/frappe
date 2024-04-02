@@ -1,0 +1,33 @@
+{% extends "templates/web.html" %}
+{% block title %}{{ _("Knowledge Base") }}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block page_content %}
+
+<div class="row py-8">
+	<div class="col-md-8">
+		<div class="hero">
+			<div class="hero-content">
+				<h1>{{ _('Knowledge Base') }}</h1>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="blog-list-content">
+	<div data-doctype="{{ doctype }}" data-txt="{{ (txt or '') | e }}">
+		{% if not result -%}
+		<div class="text-muted" style="min-height: 300px;">
+			{{ no_result_message or _("Nothing to show") }}
+		</div>
+		{% else %}
+		<div id="blog-list" class="blog-list result row">
+			{% for item in result %}
+			{{ item }}
+			{% endfor %}
+		</div>
+		{% endif %}
+		<button class="btn btn-light btn-more btn {% if not show_more -%} hidden {%- endif %}">{{ _("Load More") }}</button>
+	</div>
+</div>
+{% endblock %}

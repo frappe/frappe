@@ -130,9 +130,9 @@ class TestDashboardConnections(FrappeTestCase):
 		todo.run_method("save_customization")
 
 		# create a test doc
-		todo_doc = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
-		frappe.get_doc(dict(doctype="Test Doctype D", title="d-001", doclink=todo_doc.name)).insert()
-		frappe.get_doc(dict(doctype="Test Doctype E", title="e-001", todo=todo_doc.name)).insert()
+		todo_doc = frappe.get_doc(doctype="ToDo", description="test").insert()
+		frappe.get_doc(doctype="Test Doctype D", title="d-001", doclink=todo_doc.name).insert()
+		frappe.get_doc(doctype="Test Doctype E", title="e-001", todo=todo_doc.name).insert()
 
 		connections = get_open_count("ToDo", todo_doc.name)["count"]
 		self.assertEqual(len(connections["external_links_found"]), 2)

@@ -32,9 +32,7 @@ def export_module_json(doc: "Document", is_standard: bool, module: str) -> str |
 		from frappe.modules.export_file import export_to_files
 
 		# json
-		export_to_files(
-			record_list=[[doc.doctype, doc.name]], record_module=module, create_init=is_standard
-		)
+		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module, create_init=is_standard)
 
 		return os.path.join(
 			frappe.get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name)
@@ -75,9 +73,7 @@ def export_customizations(
 	}
 
 	if with_permissions:
-		custom["custom_perms"] = frappe.get_all(
-			"Custom DocPerm", fields="*", filters={"parent": doctype}
-		)
+		custom["custom_perms"] = frappe.get_all("Custom DocPerm", fields="*", filters={"parent": doctype})
 
 	# also update the custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
@@ -191,8 +187,8 @@ def get_doc_path(module: str, doctype: str, name: str) -> str:
 
 def reload_doc(
 	module: str,
-	dt: str = None,
-	dn: str = None,
+	dt: str | None = None,
+	dn: str | None = None,
 	force: bool = False,
 	reset_permissions: bool = False,
 ):
@@ -246,9 +242,7 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 	return doctype_python_modules[key]
 
 
-def get_module_name(
-	doctype: str, module: str, prefix: str = "", suffix: str = "", app: str | None = None
-):
+def get_module_name(doctype: str, module: str, prefix: str = "", suffix: str = "", app: str | None = None):
 	app = scrub(app or get_module_app(module))
 	module = scrub(module)
 	doctype = scrub(doctype)
@@ -301,24 +295,27 @@ def make_boilerplate(
 			dedent(
 				"""
 			def db_insert(self, *args, **kwargs):
-				pass
+				raise NotImplementedError
 
 			def load_from_db(self):
-				pass
+				raise NotImplementedError
 
 			def db_update(self):
+				raise NotImplementedError
+
+			def delete(self):
+				raise NotImplementedError
+
+			@staticmethod
+			def get_list(filters=None, page_length=20, **kwargs):
 				pass
 
 			@staticmethod
-			def get_list(args):
+			def get_count(filters=None, **kwargs):
 				pass
 
 			@staticmethod
-			def get_count(args):
-				pass
-
-			@staticmethod
-			def get_stats(args):
+			def get_stats(**kwargs):
 				pass
 			"""
 			),

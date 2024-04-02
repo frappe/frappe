@@ -34,6 +34,9 @@ class PostgresTable(DBTable):
 			frappe.db.create_sequence(self.doctype, check_not_exists=True)
 			name_column = "name bigint primary key"
 
+		elif not self.meta.issingle and self.meta.autoname == "UUID":
+			name_column = "name uuid primary key"
+
 		# TODO: set docstatus length
 		# create table
 		frappe.db.sql(
@@ -54,16 +57,14 @@ class PostgresTable(DBTable):
 
 	def create_indexes(self):
 		create_index_query = ""
-		for key, col in self.columns.items():
+		for col in self.columns.values():
 			if (
 				col.set_index
 				and col.fieldtype in frappe.db.type_map
 				and frappe.db.type_map.get(col.fieldtype)[0] not in ("text", "longtext")
 			):
 				create_index_query += (
-					'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{table_name}`(`{field}`);'.format(
-						index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
-					)
+					f'CREATE INDEX IF NOT EXISTS "{col.fieldname}" ON `{self.table_name}`(`{col.fieldname}`);'
 				)
 		if create_index_query:
 			# nosemgrep
@@ -93,6 +94,9 @@ class PostgresTable(DBTable):
 				)
 			)
 
+		if alter_pk := self.alter_primary_key():
+			query.append(alter_pk)
+
 		for col in self.set_default:
 			if col.fieldname == "name":
 				continue
@@ -115,17 +119,13 @@ class PostgresTable(DBTable):
 		for col in self.add_index:
 			# if index key not exists
 			create_contraint_query += (
-				'CREATE INDEX IF NOT EXISTS "{index_name}" ON `{table_name}`(`{field}`);'.format(
-					index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
-				)
+				f'CREATE INDEX IF NOT EXISTS "{col.fieldname}" ON `{self.table_name}`(`{col.fieldname}`);'
 			)
 
 		for col in self.add_unique:
 			# if index key not exists
-			create_contraint_query += (
-				'CREATE UNIQUE INDEX IF NOT EXISTS "unique_{index_name}" ON `{table_name}`(`{field}`);'.format(
-					index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
-				)
+			create_contraint_query += 'CREATE UNIQUE INDEX IF NOT EXISTS "unique_{index_name}" ON `{table_name}`(`{field}`);'.format(
+				index_name=col.fieldname, table_name=self.table_name, field=col.fieldname
 			)
 
 		drop_contraint_query = ""
@@ -181,9 +181,26 @@ class PostgresTable(DBTable):
 			elif frappe.db.is_duplicate_entry(e):
 				fieldname = str(e).split("'")[-2]
 				frappe.throw(
-					_("{0} field cannot be set as unique in {1}, as there are non-unique existing values").format(
-						fieldname, self.table_name
-					)
+					_(
+						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
+					).format(fieldname, self.table_name)
 				)
 			else:
 				raise e
+
+	def alter_primary_key(self) -> str | None:
+		# If there are no values in table allow migrating to UUID from varchar
+		autoname = self.meta.autoname
+		if autoname == "UUID" and frappe.db.get_column_type(self.doctype, "name") != "uuid":
+			if not frappe.db.get_value(self.doctype, {}, order_by=None):
+				return "alter column `name` TYPE uuid USING name::uuid"
+			else:
+				frappe.throw(
+					_("Primary key of doctype {0} can not be changed as there are existing values.").format(
+						self.doctype
+					)
+				)
+
+		# Reverting from UUID to VARCHAR
+		if autoname != "UUID" and frappe.db.get_column_type(self.doctype, "name") == "uuid":
+			return f"alter column `name` TYPE varchar({frappe.db.VARCHAR_LEN})"

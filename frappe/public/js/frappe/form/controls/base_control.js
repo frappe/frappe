@@ -49,9 +49,6 @@ frappe.ui.form.Control = class BaseControl {
 		if (this.df.get_status) {
 			return this.df.get_status(this);
 		}
-		if (this.df.is_virtual) {
-			return "Read";
-		}
 
 		if (
 			(!this.doctype && !this.docname) ||

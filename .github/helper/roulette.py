@@ -6,11 +6,11 @@ import subprocess
 import sys
 import time
 import urllib.request
-from functools import lru_cache
+from functools import cache
 from urllib.error import HTTPError
 
 
-@lru_cache(maxsize=None)
+@cache
 def fetch_pr_data(pr_number, repo, endpoint=""):
 	api_url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}"
 
@@ -73,8 +73,9 @@ def has_label(pr_number, label, repo="frappe/frappe"):
 	)
 
 
-def is_py(file):
-	return file.endswith("py")
+def is_server_side_code(file):
+	"""File exclusively affects server side code"""
+	return file.endswith("py") or file.endswith(".po")
 
 
 def is_ci(file):
@@ -82,9 +83,7 @@ def is_ci(file):
 
 
 def is_frontend_code(file):
-	return file.lower().endswith(
-		(".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html")
-	)
+	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html"))
 
 
 def is_docs(file):
@@ -112,7 +111,7 @@ if __name__ == "__main__":
 	ci_files_changed = any(f for f in files_list if is_ci(f))
 	only_docs_changed = len(list(filter(is_docs, files_list))) == len(files_list)
 	only_frontend_code_changed = len(list(filter(is_frontend_code, files_list))) == len(files_list)
-	updated_py_file_count = len(list(filter(is_py, files_list)))
+	updated_py_file_count = len(list(filter(is_server_side_code, files_list)))
 	only_py_changed = updated_py_file_count == len(files_list)
 
 	if has_skip_ci_label(pr_number, repo):

@@ -33,7 +33,10 @@ class MariaDBTable(DBTable):
 			]
 		else:
 			# parent types
-			additional_definitions.append("index modified(modified)")
+			additional_definitions.append("index creation(creation)")
+			if self.meta.sort_field == "modified":
+				# Support old doctype default by indexing it, also 2nd popular choice.
+				additional_definitions.append("index modified(modified)")
 
 		# creating sequence(s)
 		if not self.meta.issingle and self.meta.autoname == "autoincrement":
@@ -43,6 +46,9 @@ class MariaDBTable(DBTable):
 			# database with sequences has bugs in mariadb and gives a scary error.
 			# issue link: https://jira.mariadb.org/browse/MDEV-20070
 			name_column = "name bigint primary key"
+
+		elif not self.meta.issingle and self.meta.autoname == "UUID":
+			name_column = "name uuid primary key"
 
 		additional_definitions = ",\n".join(additional_definitions)
 
@@ -61,31 +67,35 @@ class MariaDBTable(DBTable):
 			CHARACTER SET=utf8mb4
 			COLLATE=utf8mb4_unicode_ci"""
 
-		frappe.db.sql(query)
+		frappe.db.sql_ddl(query)
 
 	def alter(self):
 		for col in self.columns.values():
 			col.build_for_alter_table(self.current_columns.get(col.fieldname.lower()))
 
-		add_column_query = [
-			f"ADD COLUMN `{col.fieldname}` {col.get_definition()}" for col in self.add_column
-		]
+		add_column_query = [f"ADD COLUMN `{col.fieldname}` {col.get_definition()}" for col in self.add_column]
 		columns_to_modify = set(self.change_type + self.set_default + self.change_nullability)
 		modify_column_query = [
 			f"MODIFY `{col.fieldname}` {col.get_definition(for_modification=True)}"
 			for col in columns_to_modify
 		]
+		if alter_pk := self.alter_primary_key():
+			modify_column_query.append(alter_pk)
+
 		modify_column_query.extend(
-			[
-				f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)"
-				for col in self.add_unique
-			]
+			[f"ADD UNIQUE INDEX IF NOT EXISTS {col.fieldname} (`{col.fieldname}`)" for col in self.add_unique]
 		)
 		add_index_query = [
 			f"ADD INDEX `{col.fieldname}_index`(`{col.fieldname}`)"
 			for col in self.add_index
 			if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
 		]
+
+		if self.meta.sort_field == "modified" and not frappe.db.get_column_index(
+			self.table_name, "modified", unique=False
+		):
+			add_index_query.append("ADD INDEX `modified`(`modified`)")
+
 		drop_index_query = []
 
 		for col in {*self.drop_index, *self.drop_unique}:
@@ -128,9 +138,26 @@ class MariaDBTable(DBTable):
 			if e.args[0] == DUP_ENTRY:
 				fieldname = str(e).split("'")[-2]
 				frappe.throw(
-					_("{0} field cannot be set as unique in {1}, as there are non-unique existing values").format(
-						fieldname, self.table_name
-					)
+					_(
+						"{0} field cannot be set as unique in {1}, as there are non-unique existing values"
+					).format(fieldname, self.table_name)
 				)
 
 			raise
+
+	def alter_primary_key(self) -> str | None:
+		# If there are no values in table allow migrating to UUID from varchar
+		autoname = self.meta.autoname
+		if autoname == "UUID" and frappe.db.get_column_type(self.doctype, "name") != "uuid":
+			if not frappe.db.get_value(self.doctype, {}, order_by=None):
+				return "modify name uuid"
+			else:
+				frappe.throw(
+					_("Primary key of doctype {0} can not be changed as there are existing values.").format(
+						self.doctype
+					)
+				)
+
+		# Reverting from UUID to VARCHAR
+		if autoname != "UUID" and frappe.db.get_column_type(self.doctype, "name") == "uuid":
+			return f"modify name varchar({frappe.db.VARCHAR_LEN})"

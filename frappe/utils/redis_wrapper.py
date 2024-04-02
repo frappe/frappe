@@ -134,7 +134,7 @@ class RedisWrapper(redis.Redis):
 		if not keys:
 			return
 
-		if not isinstance(keys, (list, tuple)):
+		if not isinstance(keys, list | tuple):
 			keys = (keys,)
 
 		if make_keys:
@@ -144,7 +144,7 @@ class RedisWrapper(redis.Redis):
 			frappe.local.cache.pop(key, None)
 
 		try:
-			self.delete(*keys)
+			self.unlink(*keys)
 		except redis.exceptions.ConnectionError:
 			pass
 
@@ -238,22 +238,80 @@ class RedisWrapper(redis.Redis):
 			self.hset(name, key, value, shared=shared)
 		return value
 
-	def hdel(self, name, key, shared=False):
+	def hdel(
+		self,
+		name: str,
+		keys: str | list | tuple,
+		shared=False,
+		pipeline: redis.client.Pipeline | None = None,
+	):
+		"""
+		A wrapper around redis' HDEL command
+
+		:param name: The hash name
+		:param keys: the keys to delete
+		:param shared: shared frappe key or not
+		:param pipeline: A redis.client.Pipeline object, if this transaction is to be run in a pipeline
+		"""
 		_name = self.make_key(name, shared=shared)
 
-		if _name in frappe.local.cache:
-			if key in frappe.local.cache[_name]:
-				del frappe.local.cache[_name][key]
+		name_in_local_cache = _name in frappe.local.cache
+
+		if not isinstance(keys, list | tuple):
+			if name_in_local_cache and keys in frappe.local.cache[_name]:
+				del frappe.local.cache[_name][keys]
+			if pipeline:
+				pipeline.hdel(_name, keys)
+			else:
+				try:
+					super().hdel(_name, keys)
+				except redis.exceptions.ConnectionError:
+					pass
+			return
+
+		local_pipeline = False
+
+		if pipeline is None:
+			pipeline = self.pipeline()
+			local_pipeline = True
+
+		for key in keys:
+			if name_in_local_cache:
+				if key in frappe.local.cache[_name]:
+					del frappe.local.cache[_name][key]
+			pipeline.hdel(_name, key)
+
+		if local_pipeline:
+			try:
+				pipeline.execute()
+			except redis.exceptions.ConnectionError:
+				pass
+
+	def hdel_names(self, names: list | tuple, key: str):
+		"""
+		A function to call HDEL on multiple hash names with a common key, run in a single pipeline
+
+		:param names: The hash names
+		:param key: The common key
+		"""
+		pipeline = self.pipeline()
+		for name in names:
+			self.hdel(name, key, pipeline=pipeline)
 		try:
-			super().hdel(_name, key)
+			pipeline.execute()
 		except redis.exceptions.ConnectionError:
 			pass
 
 	def hdel_keys(self, name_starts_with, key):
 		"""Delete hash names with wildcard `*` and key"""
+		pipeline = self.pipeline()
 		for name in self.get_keys(name_starts_with):
 			name = name.split("|", 1)[1]
-			self.hdel(name, key)
+			self.hdel(name, key, pipeline=pipeline)
+		try:
+			pipeline.execute()
+		except redis.exceptions.ConnectionError:
+			pass
 
 	def hkeys(self, name):
 		try:
@@ -287,3 +345,45 @@ class RedisWrapper(redis.Redis):
 
 	def ft(self, index_name="idx"):
 		return RedisearchWrapper(client=self, index_name=self.make_key(index_name))
+
+
+def setup_cache():
+	if frappe.conf.redis_cache_sentinel_enabled:
+		sentinels = [tuple(node.split(":")) for node in frappe.conf.get("redis_cache_sentinels", [])]
+		sentinel = get_sentinel_connection(
+			sentinels=sentinels,
+			sentinel_username=frappe.conf.get("redis_cache_sentinel_username"),
+			sentinel_password=frappe.conf.get("redis_cache_sentinel_password"),
+			master_username=frappe.conf.get("redis_cache_master_username"),
+			master_password=frappe.conf.get("redis_cache_master_password"),
+		)
+		return sentinel.master_for(
+			frappe.conf.get("redis_cache_master_service"),
+			redis_class=RedisWrapper,
+		)
+
+	return RedisWrapper.from_url(frappe.conf.get("redis_cache"))
+
+
+def get_sentinel_connection(
+	sentinels: list[tuple[str, int]],
+	sentinel_username=None,
+	sentinel_password=None,
+	master_username=None,
+	master_password=None,
+):
+	from redis.sentinel import Sentinel
+
+	sentinel_kwargs = {}
+	if sentinel_username:
+		sentinel_kwargs["username"] = sentinel_username
+
+	if sentinel_password:
+		sentinel_kwargs["password"] = sentinel_password
+
+	return Sentinel(
+		sentinels=sentinels,
+		sentinel_kwargs=sentinel_kwargs,
+		username=master_username,
+		password=master_password,
+	)

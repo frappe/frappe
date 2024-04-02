@@ -46,7 +46,7 @@
  "hide_toolbar": 1,
  "issingle": 1,
  "links": [],
- "modified": "2021-11-16 23:24:01.366928",
+ "modified": "2024-03-23 16:03:25.273422",
  "modified_by": "Administrator",
  "module": "Social",
  "name": "Energy Point Settings",
@@ -64,7 +64,8 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "ASC",
+ "states": [],
  "track_changes": 1
 }

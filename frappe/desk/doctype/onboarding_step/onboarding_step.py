@@ -24,7 +24,7 @@ class OnboardingStep(Document):
 		callback_message: DF.SmallText | None
 		callback_title: DF.Data | None
 		description: DF.MarkdownEditor | None
-		field: DF.Literal
+		field: DF.Literal[None]
 		form_tour: DF.Link | None
 		intro_video_url: DF.Data | None
 		is_complete: DF.Check
@@ -43,6 +43,7 @@ class OnboardingStep(Document):
 		value_to_validate: DF.Data | None
 		video_url: DF.Data | None
 	# end: auto-generated types
+
 	def before_export(self, doc):
 		doc.is_complete = 0
 		doc.is_skipped = 0

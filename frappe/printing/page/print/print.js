@@ -184,13 +184,20 @@ frappe.ui.form.PrintView = class {
 		this.set_breadcrumbs();
 		this.setup_customize_dialog();
 
-		// print format builder beta
-		this.page.add_inner_message(`
-			<a style="line-height: 2.4" href="/app/print-format-builder-beta?doctype=${this.frm.doctype}">
-				${__("Try the new Print Format Builder")}
+		// print designer link
+		if (Object.keys(frappe.boot.versions).includes("print_designer")) {
+			this.page.add_inner_message(`
+			<a style="line-height: 2.4" href="/app/print-designer?doctype=${this.frm.doctype}">
+				${__("Try the new Print Designer")}
 			</a>
-		`);
-
+			`);
+		} else {
+			this.page.add_inner_message(`
+			<a style="line-height: 2.4" href="https://frappecloud.com/marketplace/apps/print_designer?utm_source=framework-desk&utm_medium=print-view&utm_campaign=try-link">
+				${__("Try the new Print Designer")}
+			</a>
+			`);
+		}
 		let tasks = [
 			this.set_default_print_format,
 			this.set_default_print_language,
@@ -384,13 +391,13 @@ frappe.ui.form.PrintView = class {
 		this.print_wrapper.find(".preview-beta-wrapper").hide();
 		this.print_wrapper.find(".print-preview-wrapper").show();
 
-		const $print_format = this.print_wrapper.find("iframe");
-		this.$print_format_body = $print_format.contents();
 		this.get_print_html((out) => {
 			if (!out.html) {
 				out.html = this.get_no_preview_html();
 			}
 
+			const $print_format = this.print_wrapper.find("iframe");
+			this.$print_format_body = $print_format.contents();
 			this.setup_print_format_dom(out, $print_format);
 
 			const print_height = $print_format.get(0).offsetHeight;

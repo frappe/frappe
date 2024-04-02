@@ -17,8 +17,9 @@
   "html_condition",
   "sb_webhook",
   "request_url",
-  "timeout",
   "is_dynamic_url",
+  "timeout",
+  "background_jobs_queue",
   "cb_webhook",
   "request_method",
   "request_structure",
@@ -91,7 +92,7 @@
   },
   {
    "fieldname": "request_url",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Request URL",
    "reqd": 1
@@ -211,8 +212,12 @@
    "description": "The number of seconds until the request expires",
    "fieldname": "timeout",
    "fieldtype": "Int",
-   "label": "Request Timeout",
-   "reqd": 1
+   "label": "Request Timeout"
+  },
+  {
+   "fieldname": "background_jobs_queue",
+   "fieldtype": "Autocomplete",
+   "label": "Background Jobs Queue"
   }
  ],
  "links": [
@@ -221,7 +226,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2023-06-16 10:21:00.971833",
+ "modified": "2024-03-23 16:04:03.108172",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",
@@ -241,7 +246,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

@@ -33,9 +33,7 @@ def _is_ldap_exception(e):
 	return False
 
 
-def log_error(
-	title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False
-):
+def log_error(title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False):
 	"""Log error to Error Log"""
 	from frappe.monitor import get_trace_id
 	from frappe.utils.sentry import capture_exception
@@ -79,7 +77,6 @@ def log_error(
 
 
 def log_error_snapshot(exception: Exception):
-
 	if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
 		return
 
@@ -95,9 +92,7 @@ def log_error_snapshot(exception: Exception):
 def get_default_args(func):
 	"""Get default arguments of a function from its signature."""
 	signature = inspect.signature(func)
-	return {
-		k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty
-	}
+	return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
 
 def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
@@ -113,8 +108,8 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 	:type keep_quiet: function
 
 	>>> @raise_error_on_no_output("Ingradients missing")
-	... def get_indradients(_raise_error=1): return
-	...
+	... def get_indradients(_raise_error=1):
+	...     return
 	>>> get_ingradients()
 	`Exception Name`: Ingradients missing
 	"""

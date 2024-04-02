@@ -29,7 +29,7 @@
   }
  ],
  "links": [],
- "modified": "2022-08-03 12:20:49.508223",
+ "modified": "2024-03-23 16:04:04.210555",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Sidebar",
@@ -49,7 +49,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

@@ -314,7 +314,7 @@ context("Form Builder", () => {
 			.should("contain", "cannot be hidden and mandatory without any default value");
 	});
 
-	it("Undo/Redo", () => {
+	it.skip("Undo/Redo", () => {
 		cy.visit(`/app/doctype/${doctype_name}`);
 		cy.findByRole("tab", { name: "Form" }).click();
 

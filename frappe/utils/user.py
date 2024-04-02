@@ -32,6 +32,7 @@ class UserPermissions:
 		self.can_select = []
 		self.can_read = []
 		self.can_write = []
+		self.can_submit = []
 		self.can_cancel = []
 		self.can_delete = []
 		self.can_search = []
@@ -142,6 +143,9 @@ class UserPermissions:
 					else:
 						self.can_read.append(dt)
 
+			if p.get("submit"):
+				self.can_submit.append(dt)
+
 			if p.get("cancel"):
 				self.can_cancel.append(dt)
 
@@ -222,12 +226,17 @@ class UserPermissions:
 				"send_me_a_copy",
 				"user_type",
 				"onboarding_status",
+				"default_workspace",
 			],
 			as_dict=True,
 		)
 
 		if not self.can_read:
 			self.build_permissions()
+
+		if d.get("default_workspace"):
+			public = frappe.get_cached_value("Workspace", d.default_workspace, "public")
+			d.default_workspace = {"name": d.default_workspace, "public": public}
 
 		d.name = self.name
 		d.onboarding_status = frappe.parse_json(d.onboarding_status)
@@ -238,6 +247,7 @@ class UserPermissions:
 			"can_create",
 			"can_write",
 			"can_read",
+			"can_submit",
 			"can_cancel",
 			"can_delete",
 			"can_get_report",
@@ -325,7 +335,7 @@ def add_system_manager(
 	first_name: str | None = None,
 	last_name: str | None = None,
 	send_welcome_email: bool = False,
-	password: str = None,
+	password: str | None = None,
 ) -> "User":
 	# add user
 	user = frappe.new_doc("User")

@@ -63,7 +63,7 @@ def search_widget(
 	doctype: str,
 	txt: str,
 	query: str | None = None,
-	searchfield: str = None,
+	searchfield: str | None = None,
 	start: int = 0,
 	page_length: int = 10,
 	filters: str | None | dict | list = None,
@@ -72,7 +72,6 @@ def search_widget(
 	reference_doctype: str | None = None,
 	ignore_user_permissions: bool = False,
 ):
-
 	start = cint(start)
 
 	if isinstance(filters, str):
@@ -163,7 +162,7 @@ def search_widget(
 	formatted_fields = [f"`tab{meta.name}`.`{f.strip()}`" for f in fields]
 
 	# Insert title field query after name
-	if meta.show_title_field_in_link:
+	if meta.show_title_field_in_link and meta.title_field:
 		formatted_fields.insert(1, f"`tab{meta.name}`.{meta.title_field} as `label`")
 
 	order_by_based_on_meta = get_order_by(doctype, meta)
@@ -261,6 +260,8 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 	if meta.show_title_field_in_link:
 		for item in res:
 			item = list(item)
+			if len(item) == 1:
+				item = [item[0], item[0]]
 			label = item[1]  # use title as label
 			item[1] = item[0]  # show name in description instead of title
 			if len(item) >= 3 and item[2] == label:
@@ -319,9 +320,7 @@ def get_users_for_mentions():
 
 
 def get_user_groups():
-	return frappe.get_all(
-		"User Group", fields=["name as id", "name as value"], update={"is_group": True}
-	)
+	return frappe.get_all("User Group", fields=["name as id", "name as value"], update={"is_group": True})
 
 
 @frappe.whitelist()

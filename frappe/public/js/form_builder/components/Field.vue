@@ -92,11 +92,12 @@ function make_dialog(frm) {
 				filter.pop();
 
 				// filter_group component requires options and frm.set_query requires fieldname so storing both
-				filter[0] = { fieldname, field_option };
+				filter[0] = field_option;
 				return filter;
 			});
 
 			props.field.df.link_filters = JSON.stringify(filters);
+			store.form.selected_field = props.field.df;
 			frm.dialog.hide();
 		},
 		primary_action_label: __("Apply"),
@@ -133,11 +134,6 @@ function make_dialog(frm) {
 			}
 		});
 	}
-
-	// Setting selected field in store because when we click on the dialog the selected field is set to null
-	frm.dialog.$wrapper.on("click", () => {
-		store.form.selected_field = props.field.df;
-	});
 }
 
 function make_filter_area(frm, doctype) {
@@ -151,10 +147,6 @@ function make_filter_area(frm, doctype) {
 function add_existing_filter(frm, df) {
 	if (df.link_filters) {
 		let filters = JSON.parse(df.link_filters);
-		filters.map((filter) => {
-			// filter_group component requires options and frm.set_query requires fieldname
-			filter[0] = filter[0].field_option;
-		});
 		if (filters) {
 			frm.filter_group.add_filters_to_filter_group(filters);
 		}
@@ -185,6 +177,11 @@ function is_filter_applied() {
 	}
 }
 
+function open_child_doctype() {
+	if (!props.field?.df?.options) return;
+	window.open(`/app/doctype/${props.field.df.options}`, "_blank");
+}
+
 onMounted(() => selected.value && label_input.value.focus_on_label());
 </script>
 
@@ -199,6 +196,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 		<component
 			:is="component"
 			:df="field.df"
+			:is-customize-form="store.is_customize_form"
 			:data-fieldname="field.df.fieldname"
 			:data-fieldtype="field.df.fieldtype"
 		>
@@ -216,7 +214,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						class="help-icon"
 						v-if="field.df.documentation_url"
 						v-html="frappe.utils.icon('help', 'sm')"
-					></div>
+					/>
 				</div>
 			</template>
 			<template #actions>
@@ -227,7 +225,7 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						:class="is_filter_applied()"
 						@click="edit_filters"
 					>
-						<div v-html="frappe.utils.icon('filter', 'sm')"></div>
+						<div v-html="frappe.utils.icon('filter', 'sm')" />
 					</button>
 					<AddFieldButton ref="add_field_ref" :column="column" :field="field">
 						<div v-html="frappe.utils.icon('add', 'sm')" />
@@ -240,21 +238,29 @@ onMounted(() => selected.value && label_input.value.focus_on_label());
 						"
 						@click="move_fields_to_column"
 					>
-						<div v-html="frappe.utils.icon('move', 'sm')"></div>
+						<div v-html="frappe.utils.icon('move', 'sm')" />
 					</button>
 					<button
 						class="btn btn-xs btn-icon"
 						:title="__('Duplicate field')"
 						@click.stop="duplicate_field"
 					>
-						<div v-html="frappe.utils.icon('duplicate', 'sm')"></div>
+						<div v-html="frappe.utils.icon('duplicate', 'sm')" />
+					</button>
+					<button
+						v-if="field.df.fieldtype === 'Table' && field.df.options"
+						class="btn btn-xs btn-icon"
+						@click="open_child_doctype"
+						:title="__('Edit the {0} Doctype', [field.df.options])"
+					>
+						<div v-html="frappe.utils.icon('external-link', 'sm')" />
 					</button>
 					<button
 						class="btn btn-xs btn-icon"
 						:title="__('Remove field')"
 						@click.stop="remove_field"
 					>
-						<div v-html="frappe.utils.icon('remove', 'sm')"></div>
+						<div v-html="frappe.utils.icon('remove', 'sm')" />
 					</button>
 				</div>
 			</template>

@@ -150,7 +150,7 @@
  "icon": "fa fa-map-marker",
  "idx": 5,
  "links": [],
- "modified": "2023-11-20 17:28:41.698356",
+ "modified": "2024-03-23 16:01:27.068028",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",
@@ -220,7 +220,7 @@
   }
  ],
  "search_fields": "country, state",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

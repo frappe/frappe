@@ -1,7 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import datetime
 import time
-from unittest.mock import patch
 
 import requests
 
@@ -11,7 +11,7 @@ from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_site_url, now
+from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date
 from frappe.www.login import _generate_temporary_login_link
 
@@ -19,9 +19,10 @@ from frappe.www.login import _generate_temporary_login_link
 def add_user(email, password, username=None, mobile_no=None):
 	first_name = email.split("@", 1)[0]
 	user = frappe.get_doc(
-		dict(doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no)
+		doctype="User", email=email, first_name=first_name, username=username, mobile_no=mobile_no
 	).insert()
 	user.new_password = password
+	user.simultaneous_sessions = 1
 	user.add_roles("System Manager")
 	frappe.db.commit()
 
@@ -132,7 +133,6 @@ class TestAuth(FrappeTestCase):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
 	def test_login_with_email_link(self):
-
 		user = self.test_user_email
 
 		# Logs in
@@ -157,6 +157,13 @@ class TestAuth(FrappeTestCase):
 		else:
 			self.fail("Rate limting not working")
 
+	def test_correct_cookie_expiry_set(self):
+		client = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
+
+		expiry_time = next(x for x in client.session.cookies if x.name == "sid").expires
+		current_time = datetime.datetime.now(tz=datetime.UTC).timestamp()
+		self.assertAlmostEqual(get_expiry_in_seconds(), expiry_time - current_time, delta=60 * 60)
+
 
 class TestLoginAttemptTracker(FrappeTestCase):
 	def test_account_lock(self):
@@ -180,9 +187,7 @@ class TestLoginAttemptTracker(FrappeTestCase):
 	def test_account_unlock(self):
 		"""Make sure that locked account gets unlocked after lock_interval of time."""
 		lock_interval = 2  # In sec
-		tracker = LoginAttemptTracker(
-			"tester", max_consecutive_login_attempts=1, lock_interval=lock_interval
-		)
+		tracker = LoginAttemptTracker("tester", max_consecutive_login_attempts=1, lock_interval=lock_interval)
 		# Clear the cache by setting attempt as success
 		tracker.add_success_attempt()
 
@@ -212,12 +217,12 @@ class TestSessionExpirty(FrappeAPITestCase):
 			seconds_elapsed = expiry_in * step / 100
 
 			time_now = add_to_date(session_created, seconds=seconds_elapsed, as_string=True)
-			with patch("frappe.utils.now", return_value=time_now):
+			with self.freeze_time(time_now):
 				data = s.get_session_data_from_db()
 				self.assertEqual(data.user, "Administrator")
 
 		# 1% higher should immediately expire
-		time_now = add_to_date(session_created, seconds=expiry_in * 1.01, as_string=True)
-		with patch("frappe.utils.now", return_value=time_now):
+		time_of_expiry = add_to_date(session_created, seconds=expiry_in * 1.01, as_string=True)
+		with self.freeze_time(time_of_expiry):
 			self.assertIn(sid, get_expired_sessions())
 			self.assertFalse(s.get_session_data_from_db())

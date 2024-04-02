@@ -18,7 +18,7 @@ from frappe.utils import add_to_date, now
 
 
 @contextmanager
-def patch_db(endpoints: list[str] = None):
+def patch_db(endpoints: list[str] | None = None):
 	patched_endpoints = []
 
 	for point in endpoints:
@@ -136,9 +136,7 @@ class TestRenameDoc(FrappeTestCase):
 		second_todo_doc.priority = "High"
 		second_todo_doc.save()
 
-		merged_todo = frappe.rename_doc(
-			self.test_doctype, first_todo, second_todo, merge=True, force=True
-		)
+		merged_todo = frappe.rename_doc(self.test_doctype, first_todo, second_todo, merge=True, force=True)
 		merged_todo_doc = frappe.get_doc(self.test_doctype, merged_todo)
 		self.available_documents.remove(first_todo)
 
@@ -192,9 +190,7 @@ class TestRenameDoc(FrappeTestCase):
 		)
 
 		# Test if Doctype value has changed in Link field
-		linked_to_doctype = frappe.db.get_value(
-			"Renamed Doc", to_rename_record.name, "linked_to_doctype"
-		)
+		linked_to_doctype = frappe.db.get_value("Renamed Doc", to_rename_record.name, "linked_to_doctype")
 		self.assertEqual(linked_to_doctype, "Renamed Doc")
 
 		# Test if there are conflicts between a record and a DocType

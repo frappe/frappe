@@ -20,6 +20,7 @@ class SessionDefaultSettings(Document):
 
 		session_defaults: DF.Table[SessionDefault]
 	# end: auto-generated types
+
 	pass
 
 

@@ -131,7 +131,7 @@
   }
  ],
  "links": [],
- "modified": "2022-06-13 05:59:26.866004",
+ "modified": "2024-03-23 16:01:26.702078",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Access Log",
@@ -149,7 +149,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_seen": 1

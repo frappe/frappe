@@ -204,7 +204,6 @@ class TestWebhook(FrappeTestCase):
 		self.assertTrue(frappe.get_all("Webhook Request Log", pluck="name"))
 
 	def test_webhook_with_array_body(self):
-
 		"""Check if array request body are supported."""
 		wh_config = {
 			"doctype": "Webhook",

@@ -153,6 +153,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			JS: "ace/mode/javascript",
 			Python: "ace/mode/python",
 			Py: "ace/mode/python",
+			PythonExpression: "ace/mode/python",
 			HTML: "ace/mode/html",
 			CSS: "ace/mode/css",
 			Markdown: "ace/mode/markdown",

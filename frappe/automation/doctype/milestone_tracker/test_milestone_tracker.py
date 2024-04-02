@@ -12,10 +12,10 @@ class TestMilestoneTracker(FrappeTestCase):
 		frappe.cache.delete_key("milestone_tracker_map")
 
 		milestone_tracker = frappe.get_doc(
-			dict(doctype="Milestone Tracker", document_type="ToDo", track_field="status")
+			doctype="Milestone Tracker", document_type="ToDo", track_field="status"
 		).insert()
 
-		todo = frappe.get_doc(dict(doctype="ToDo", description="test milestone", status="Open")).insert()
+		todo = frappe.get_doc(doctype="ToDo", description="test milestone", status="Open").insert()
 
 		milestones = frappe.get_all(
 			"Milestone",
@@ -34,7 +34,7 @@ class TestMilestoneTracker(FrappeTestCase):
 			"Milestone",
 			fields=["track_field", "value", "milestone_tracker"],
 			filters=dict(reference_type=todo.doctype, reference_name=todo.name),
-			order_by="modified desc",
+			order_by="creation desc",
 		)
 
 		self.assertEqual(len(milestones), 2)

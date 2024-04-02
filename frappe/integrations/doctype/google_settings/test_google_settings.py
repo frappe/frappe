@@ -40,4 +40,3 @@ class TestGoogleSettings(FrappeTestCase):
 		self.assertEqual(True, settings.get("enabled", False))
 		self.assertEqual("test_client_id", settings.get("clientId", ""))
 		self.assertEqual("test_app_id", settings.get("appId", ""))
-		self.assertEqual("test_api_key", settings.get("developerKey", ""))

@@ -1,0 +1,69 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "beta": 1,
+ "creation": "2024-01-04 11:36:08.013039",
+ "description": "Enabling this will register your site on a central relay server to send push notifications for all installed apps through Firebase Cloud Messaging. This server only stores user tokens and error logs, and no messages are saved.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_qgjr",
+  "enable_push_notification_relay",
+  "authentication_credential_section",
+  "api_key",
+  "api_secret"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enable_push_notification_relay",
+   "fieldtype": "Check",
+   "label": "Enable Push Notification Relay"
+  },
+  {
+   "description": "API Key and Secret to interact with the relay server. These will be auto-generated when the first push notification is sent from any of the apps installed on this site.",
+   "fieldname": "authentication_credential_section",
+   "fieldtype": "Section Break",
+   "label": "Authentication"
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key"
+  },
+  {
+   "fieldname": "api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret"
+  },
+  {
+   "description": "Enabling this will register your site on a central relay server to send push notifications for all installed apps through Firebase Cloud Messaging. This server only stores user tokens and error logs, and no messages are saved. ",
+   "fieldname": "section_break_qgjr",
+   "fieldtype": "Section Break",
+   "label": "Relay Settings"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-03-23 16:03:35.768559",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Push Notification Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

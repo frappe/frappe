@@ -41,6 +41,7 @@ class LogSettings(Document):
 
 		logs_to_clear: DF.Table[LogsToClear]
 	# end: auto-generated types
+
 	def validate(self):
 		self.remove_unsupported_doctypes()
 		self._deduplicate_entries()
@@ -78,9 +79,7 @@ class LogSettings(Document):
 				added_logtypes.add(logtype)
 
 		if added_logtypes:
-			frappe.msgprint(
-				_("Added default log doctypes: {}").format(",".join(added_logtypes)), alert=True
-			)
+			frappe.msgprint(_("Added default log doctypes: {}").format(",".join(added_logtypes)), alert=True)
 
 	def clear_logs(self):
 		"""
@@ -133,7 +132,6 @@ def has_unseen_error_log():
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_log_doctypes(doctype, txt, searchfield, start, page_len, filters):
-
 	filters = filters or {}
 
 	filters.extend(
@@ -183,7 +181,7 @@ def clear_log_table(doctype, days=90):
 		frappe.db.sql(
 			f"""INSERT INTO `{temporary}`
 				SELECT * FROM `{original}`
-				WHERE `{original}`.`modified` > NOW() - INTERVAL '{days}' DAY"""
+				WHERE `{original}`.`creation` > NOW() - INTERVAL '{days}' DAY"""
 		)
 		frappe.db.sql_ddl(f"RENAME TABLE `{original}` TO `{backup}`, `{temporary}` TO `{original}`")
 	except Exception:

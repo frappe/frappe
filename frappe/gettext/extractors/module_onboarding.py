@@ -25,6 +25,4 @@ def extract(fileobj, *args, **kwargs):
 		yield None, "_", subtitle, [f"Subtitle of the Module Onboarding '{onboarding_name}'"]
 
 	if success_message := data.get("success_message"):
-		yield None, "_", success_message, [
-			f"Success message of the Module Onboarding '{onboarding_name}'"
-		]
+		yield None, "_", success_message, [f"Success message of the Module Onboarding '{onboarding_name}'"]

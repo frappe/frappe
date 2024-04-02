@@ -68,6 +68,7 @@
   "disable_standard_email_footer",
   "hide_footer_in_auto_email_reports",
   "attach_view_link",
+  "store_attached_pdf_document",
   "welcome_email_template",
   "reset_password_template",
   "files_tab",
@@ -94,7 +95,9 @@
   "dormant_days",
   "telemetry_section",
   "allow_error_traceback",
-  "enable_telemetry"
+  "enable_telemetry",
+  "search_section",
+  "link_field_results_limit"
  ],
  "fields": [
   {
@@ -634,12 +637,31 @@
   {
    "fieldname": "column_break_uhqk",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "search_section",
+   "fieldtype": "Section Break",
+   "label": "Search"
+  },
+  {
+   "default": "10",
+   "fieldname": "link_field_results_limit",
+   "fieldtype": "Int",
+   "label": "Link Field Results Limit",
+   "non_negative": 1
+  },
+  {
+   "default": "1",
+   "description": "When sending document using email, store the PDF on Communication. Warning: This can increase your storage usage.",
+   "fieldname": "store_attached_pdf_document",
+   "fieldtype": "Check",
+   "label": "Store Attached PDF Document"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2023-12-08 15:52:37.525003",
+ "modified": "2024-03-23 16:03:39.461597",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
@@ -654,7 +676,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

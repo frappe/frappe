@@ -253,6 +253,10 @@ frappe.PermissionEngine = class PermissionEngine {
 				if (!d.is_submittable && ["submit", "cancel", "amend"].includes(r)) return;
 				if (d.in_create && ["create", "delete"].includes(r)) return;
 				this.add_check(perm_container, d, r);
+
+				if (d.if_owner && r == "report") {
+					perm_container.find("div[data-fieldname='report']").toggle(false);
+				}
 			});
 
 			// buttons
@@ -414,6 +418,13 @@ frappe.PermissionEngine = class PermissionEngine {
 						chk.prop("checked", !chk.prop("checked"));
 					} else {
 						me.get_perm(args.role)[args.ptype] = args.value;
+
+						if (args.ptype == "if_owner") {
+							let report_checkbox = chk
+								.closest("div.row")
+								.find("div[data-fieldname='report']");
+							report_checkbox.toggle(!args.value);
+						}
 					}
 				},
 			});

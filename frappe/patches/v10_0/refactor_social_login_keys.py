@@ -30,9 +30,7 @@ def execute():
 		frappe_login_key.base_url = social_login_keys.get("frappe_server_url")
 		frappe_login_key.client_id = social_login_keys.get("frappe_client_id")
 		frappe_login_key.client_secret = social_login_keys.get("frappe_client_secret")
-		if not (
-			frappe_login_key.client_secret and frappe_login_key.client_id and frappe_login_key.base_url
-		):
+		if not (frappe_login_key.client_secret and frappe_login_key.client_id and frappe_login_key.base_url):
 			frappe_login_key.enable_social_login = 0
 		frappe_login_key.save()
 
@@ -63,9 +61,7 @@ def run_patch():
 	frappe.reload_doc("core", "doctype", "user", force=True)
 	frappe.reload_doc("core", "doctype", "user_social_login", force=True)
 
-	users = frappe.get_all(
-		"User", fields=["*"], filters={"name": ("not in", ["Administrator", "Guest"])}
-	)
+	users = frappe.get_all("User", fields=["*"], filters={"name": ("not in", ["Administrator", "Guest"])})
 
 	for user in users:
 		idx = 0
@@ -122,9 +118,7 @@ def insert_user_social_login(user, modified_by, provider, idx, userid=None, user
 
 	query = """INSERT INTO `tabUser Social Login` (`{source_cols}`)
 		VALUES ({values})
-	""".format(
-		source_cols="`, `".join(source_cols), values=", ".join([frappe.db.escape(d) for d in values])
-	)
+	""".format(source_cols="`, `".join(source_cols), values=", ".join([frappe.db.escape(d) for d in values]))
 
 	frappe.db.sql(query)
 

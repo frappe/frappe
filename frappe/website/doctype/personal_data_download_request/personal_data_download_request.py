@@ -22,6 +22,7 @@ class PersonalDataDownloadRequest(Document):
 		user: DF.Link
 		user_name: DF.Data | None
 	# end: auto-generated types
+
 	def after_insert(self):
 		personal_data = get_user_data(self.user)
 

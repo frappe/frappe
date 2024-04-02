@@ -41,6 +41,7 @@ class ConnectedApp(Document):
 		token_uri: DF.Data | None
 		userinfo_uri: DF.Data | None
 	# end: auto-generated types
+
 	"""Connect to a remote oAuth Server. Retrieve and store user's access token
 	in a Token Cache.
 	"""

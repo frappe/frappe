@@ -10,13 +10,12 @@ import zipfile
 from urllib.parse import quote, unquote
 
 from PIL import Image, ImageFile, ImageOps
-from requests.exceptions import HTTPError, SSLError
 
 import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.document import Document
-from frappe.permissions import get_doctypes_with_read
+from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.image import optimize_image, strip_exif_data
@@ -61,6 +60,7 @@ class File(Document):
 		uploaded_to_dropbox: DF.Check
 		uploaded_to_google_drive: DF.Check
 	# end: auto-generated types
+
 	no_feed_on_delete = True
 
 	def __init__(self, *args, **kwargs):
@@ -136,7 +136,7 @@ class File(Document):
 		if not self.attached_to_doctype:
 			return
 
-		if not self.attached_to_name or not isinstance(self.attached_to_name, (str, int)):
+		if not self.attached_to_name or not isinstance(self.attached_to_name, str | int):
 			frappe.throw(_("Attached To Name must be a string or an integer"), frappe.ValidationError)
 
 		if self.attached_to_field and SPECIAL_CHAR_PATTERN.search(self.attached_to_field):
@@ -369,9 +369,7 @@ class File(Document):
 			return
 
 		if self.file_type not in allowed_extensions.splitlines():
-			frappe.throw(
-				_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed
-			)
+			frappe.throw(_("File type of {0} is not allowed").format(self.file_type), exc=FileTypeNotAllowed)
 
 	def validate_duplicate_entry(self):
 		if not self.flags.ignore_duplicate_entry_error and not self.is_folder:
@@ -429,6 +427,8 @@ class File(Document):
 		suffix: str = "small",
 		crop: bool = False,
 	) -> str:
+		from requests.exceptions import HTTPError, SSLError
+
 		if not self.file_url:
 			return
 
@@ -710,9 +710,7 @@ class File(Document):
 
 	def create_attachment_record(self):
 		icon = ' <i class="fa fa-lock text-warning"></i>' if self.is_private else ""
-		file_url = (
-			quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
-		)
+		file_url = quote(frappe.safe_encode(self.file_url), safe="/:") if self.file_url else self.file_name
 		file_name = self.file_name or self.file_url
 
 		self.add_comment_in_reference_doc(
@@ -756,6 +754,16 @@ class File(Document):
 		self.save_file(content=optimized_content, overwrite=True)
 		self.save()
 
+	@property
+	def unique_url(self) -> str:
+		"""Unique URL contains file ID in URL to speed up permisison checks."""
+		from urllib.parse import urlencode
+
+		if self.is_private:
+			return self.file_url + "?" + urlencode({"fid": self.name})
+		else:
+			return self.file_url
+
 	@staticmethod
 	def zip_files(files):
 		zip_file = io.BytesIO()
@@ -781,10 +789,13 @@ def on_doctype_update():
 def has_permission(doc, ptype=None, user=None, debug=False):
 	user = user or frappe.session.user
 
-	if ptype == "create":
-		return frappe.has_permission("File", "create", user=user, debug=debug)
+	if user == "Administrator":
+		return True
 
-	if not doc.is_private or (user != "Guest" and doc.owner == user) or user == "Administrator":
+	if not doc.is_private and ptype in ("read", "select"):
+		return True
+
+	if user != "Guest" and doc.owner == user:
 		return True
 
 	if doc.attached_to_doctype and doc.attached_to_name:
@@ -805,15 +816,18 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 	return False
 
 
-def get_permission_query_conditions(user: str = None) -> str:
+def get_permission_query_conditions(user: str | None = None) -> str:
 	user = user or frappe.session.user
 	if user == "Administrator":
 		return ""
 
+	if SYSTEM_USER_ROLE not in frappe.get_roles(user):
+		return f""" `tabFile`.`owner` = {frappe.db.escape(user)} """
+
 	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read())
 	return f"""
 		(`tabFile`.`is_private` = 0)
-		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {user !r})
+		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {frappe.db.escape(user)})
 		OR (`tabFile`.`attached_to_doctype` IN ({readable_doctypes}))
 	"""
 

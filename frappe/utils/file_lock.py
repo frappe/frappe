@@ -9,6 +9,7 @@ Use `frappe.utils.synchroniztion.filelock` for process synchroniztion.
 """
 
 import os
+from pathlib import Path
 from time import time
 
 import frappe
@@ -39,6 +40,11 @@ def create_lock(name):
 def lock_exists(name):
 	"""Return True if lock of the given name exists."""
 	return os.path.exists(get_lock_path(name))
+
+
+def lock_age(name) -> float:
+	"""Return time in seconds since lock was created."""
+	return time() - Path(get_lock_path(name)).stat().st_mtime
 
 
 def check_lock(path, timeout=600):

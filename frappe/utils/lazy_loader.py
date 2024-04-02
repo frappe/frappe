@@ -10,8 +10,8 @@ def lazy_import(name, package=None):
 	$ cat mod.py
 	print("Loading mod.py")
 	$ python -i lazy_loader.py
-	>>> mod = lazy_import("mod") # Module is not loaded
-	>>> mod.__str__() # module is loaded on accessing attribute
+	>>> mod = lazy_import("mod")  # Module is not loaded
+	>>> mod.__str__()  # module is loaded on accessing attribute
 	Loading mod.py
 	"<module 'mod' from '.../frappe/utils/mod.py'>"
 	>>>

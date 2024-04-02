@@ -59,6 +59,7 @@ def set_scope(scope):
 		waitdiff = datetime.utcnow() - job.enqueued_at
 		context.uuid = job.id
 		context.wait = waitdiff.total_seconds()
+		context.kwargs = kwargs
 
 		scope.set_extra("job", context)
 		scope.set_transaction_name(transaction_name)
@@ -107,13 +108,13 @@ def capture_exception(message: str | None = None) -> None:
 		return
 	try:
 		hub = Hub.current
-		if frappe.request:
-			with hub.configure_scope() as scope:
-				if (
-					os.getenv("ENABLE_SENTRY_DB_MONITORING") is None
-					or os.getenv("SENTRY_TRACING_SAMPLE_RATE") is None
-				):
-					set_scope(scope)
+		with hub.configure_scope() as scope:
+			if (
+				os.getenv("ENABLE_SENTRY_DB_MONITORING") is None
+				or os.getenv("SENTRY_TRACING_SAMPLE_RATE") is None
+			):
+				set_scope(scope)
+			if frappe.request:
 				evt_processor = _make_wsgi_event_processor(frappe.request.environ, False)
 				scope.add_event_processor(evt_processor)
 				if frappe.request.is_json:
