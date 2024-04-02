@@ -15,9 +15,9 @@ function add_github_star_cta(listview) {
 			listview.github_star_banner.remove();
 		}
 
-		const message = "Loving Frappe Framework?";
+		const message = __("Loving Frappe Framework?");
 		const link = "https://github.com/frappe/frappe";
-		const cta = "Star us on GitHub";
+		const cta = __("Star us on GitHub");
 
 		listview.github_star_banner = $(`
 				<div style="position: relative;">

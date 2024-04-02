@@ -37,8 +37,31 @@ class TestPdf(FrappeTestCase):
 	def test_read_options_from_html(self):
 		_, html_options = pdfgen.read_options_from_html(self.html)
 		self.assertTrue(html_options["margin-top"] == "0")
-		self.assertTrue(html_options["margin-left"] == "10")
+		self.assertTrue(html_options["margin-left"] == "10mm")
 		self.assertTrue(html_options["margin-right"] == "0")
+
+		html_1 = """<style>
+			.print-format {
+				margin-top: 0mm;
+				margin-left: 10mm;
+			}
+			.print-format .more-info {
+				margin-right: 15mm;
+			}
+			.print-format, .more-info {
+				margin-bottom: 20mm;
+			}
+			</style>
+			<div class="more-info">Hello</div>
+		"""
+		_, options = pdfgen.read_options_from_html(html_1)
+
+		self.assertTrue(options["margin-top"] == "0")
+		self.assertTrue(options["margin-left"] == "10mm")
+		self.assertTrue(options["margin-bottom"] == "20mm")
+		# margin-right was for .more-info (child of .print-format)
+		# so it should not be extracted into options
+		self.assertFalse(options.get("margin-right"))
 
 	def test_pdf_encryption(self):
 		password = "qwe"

@@ -27,10 +27,6 @@ frappe.listview_settings["Data Import"] = {
 		if (imports_in_progress.includes(doc.name)) {
 			status = "In Progress";
 		}
-		if (status === "Pending") {
-			status = "Not Started";
-		}
-
 		return [__(status), colors[status], "status,=," + doc.status];
 	},
 	formatters: {
