@@ -1,7 +1,8 @@
 import json
 import re
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 import frappe
 from frappe import _
