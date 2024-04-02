@@ -1492,8 +1492,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					);
 				}
 
-				const visible_idx = this.datatable.bodyRenderer.visibleRowIndices;
-				if (visible_idx.length + 1 === this.data.length) {
+				const visible_idx = this.datatable?.bodyRenderer.visibleRowIndices || [];
+				if (visible_idx.length + 1 === this.data?.length) {
 					visible_idx.push(visible_idx.length);
 				}
 
