@@ -637,7 +637,7 @@ body {
 			color: var(--text-color) !important;
 		}
 
-		@media (max-width: 995px) {
+		@include media-breakpoint-down(md) {
 			padding: 1px 8px;
 
 			.link-item {
@@ -1274,7 +1274,7 @@ body {
 					height: 100%;
 					padding: 7px;
 
-					@media (max-width: 995px) {
+					@include media-breakpoint-down(md) {
 						padding: 7px 3px;
 					}
 
@@ -1420,7 +1420,7 @@ body {
 							outline: none;
 						}
 
-						@media (max-width: 995px) {
+						@include media-breakpoint-down(md) {
 							&.spacer {
 								height: 0 !important;
 								padding: 0 7px;
@@ -1506,7 +1506,7 @@ body {
 				max-width: 930px;
 			}
 		}
-		@media (max-width: 995px) {
+		@include media-breakpoint-down(md) {
 			.ce-toolbar__content {
 				max-width: 760px;
 			}
