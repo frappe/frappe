@@ -65,6 +65,7 @@ class EmailQueue(Document):
 		unsubscribe_method: DF.Data | None
 		unsubscribe_param: DF.Data | None
 	# end: auto-generated types
+
 	DOCTYPE = "Email Queue"
 
 	def set_recipients(self, recipients):
@@ -195,9 +196,7 @@ class EmailQueue(Document):
 
 		# Delete queue table
 		(
-			frappe.qb.from_(email_queue)
-			.delete()
-			.where(email_queue.modified < (Now() - Interval(days=days)))
+			frappe.qb.from_(email_queue).delete().where(email_queue.creation < (Now() - Interval(days=days)))
 		).run()
 
 		# delete child tables, note that this has potential to leave some orphan
@@ -206,7 +205,7 @@ class EmailQueue(Document):
 		(
 			frappe.qb.from_(email_recipient)
 			.delete()
-			.where(email_recipient.modified < (Now() - Interval(days=days)))
+			.where(email_recipient.creation < (Now() - Interval(days=days)))
 		).run()
 
 	@frappe.whitelist()
@@ -305,9 +304,7 @@ class SendMailContext:
 		if not message:
 			return ""
 
-		message = message.replace(
-			self.message_placeholder("tracker"), self.get_tracker_str(recipient_email)
-		)
+		message = message.replace(self.message_placeholder("tracker"), self.get_tracker_str(recipient_email))
 		message = message.replace(
 			self.message_placeholder("unsubscribe_url"), self.get_unsubscribe_str(recipient_email)
 		)
@@ -389,10 +386,32 @@ class SendMailContext:
 			elif attachment.get("print_format_attachment") == 1:
 				attachment.pop("print_format_attachment", None)
 				print_format_file = frappe.attach_print(**attachment)
+				self._store_file(print_format_file["fname"], print_format_file["fcontent"])
 				print_format_file.update({"parent": message_obj})
 				add_attachment(**print_format_file)
 
 		return safe_encode(message_obj.as_string())
+
+	def _store_file(self, file_name, content):
+		if not frappe.get_system_settings("store_attached_pdf_document"):
+			return
+
+		file_data = frappe._dict(file_name=file_name, is_private=1)
+
+		# Store on communication if available, else email queue doc
+		if self.queue_doc.communication:
+			file_data.attached_to_doctype = "Communication"
+			file_data.attached_to_name = self.queue_doc.communication
+		else:
+			file_data.attached_to_doctype = self.queue_doc.doctype
+			file_data.attached_to_name = self.queue_doc.name
+
+		if frappe.db.exists("File", file_data):
+			return
+
+		file = frappe.new_doc("File", **file_data)
+		file.content = content
+		file.insert()
 
 
 @frappe.whitelist()
@@ -411,11 +430,9 @@ def bulk_retry(queues):
 	)
 
 	email_queue = frappe.qb.DocType("Email Queue")
-	frappe.qb.update(email_queue).set(email_queue.status, "Not Sent").set(
-		email_queue.modified, now()
-	).set(email_queue.modified_by, frappe.session.user).where(
-		email_queue.name.isin(queues) & email_queue.status == "Error"
-	).run()
+	frappe.qb.update(email_queue).set(email_queue.status, "Not Sent").set(email_queue.modified, now()).set(
+		email_queue.modified_by, frappe.session.user
+	).where(email_queue.name.isin(queues) & email_queue.status == "Error").run()
 
 
 @frappe.whitelist()
@@ -434,9 +451,7 @@ def toggle_sending(enable):
 
 def on_doctype_update():
 	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
-	frappe.db.add_index(
-		"Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush"
-	)
+	frappe.db.add_index("Email Queue", ("status", "send_after", "priority", "creation"), "index_bulk_flush")
 
 	frappe.db.add_index("Email Queue", ["message_id(140)"])
 
@@ -733,7 +748,7 @@ class QueueBuilder:
 		# This re-uses smtp server instance to minimize the cost of new session creation
 		smtp_server_instance = None
 		for r in final_recipients:
-			recipients = list(set([r] + self.final_cc() + self.bcc))
+			recipients = list(set([r, *self.final_cc(), *self.bcc]))
 			q = EmailQueue.new({**queue_data, **{"recipients": recipients}}, ignore_permissions=True)
 			if not smtp_server_instance:
 				email_account = q.get_email_account(raise_error=True)

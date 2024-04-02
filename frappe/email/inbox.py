@@ -124,9 +124,7 @@ def mark_as_spam(communication: str, sender: str):
 	set_value("Communication", communication, "email_status", "Spam")
 
 
-def link_communication_to_document(
-	doc, reference_doctype, reference_name, ignore_communication_links
-):
+def link_communication_to_document(doc, reference_doctype, reference_name, ignore_communication_links):
 	if not ignore_communication_links:
 		doc.reference_doctype = reference_doctype
 		doc.reference_name = reference_name

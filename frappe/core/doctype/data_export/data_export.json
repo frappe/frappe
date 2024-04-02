@@ -60,7 +60,7 @@
  "hide_toolbar": 1,
  "issingle": 1,
  "links": [],
- "modified": "2022-09-28 03:51:02.404681",
+ "modified": "2024-03-23 16:02:16.856404",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Export",
@@ -78,7 +78,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

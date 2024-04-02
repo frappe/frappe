@@ -74,9 +74,7 @@ def disable_scheduler(context):
 @click.command("scheduler")
 @click.option("--site", help="site name")
 @click.argument("state", type=click.Choice(["pause", "resume", "disable", "enable", "status"]))
-@click.option(
-	"--format", "-f", default="text", type=click.Choice(["json", "text"]), help="Output format"
-)
+@click.option("--format", "-f", default="text", type=click.Choice(["json", "text"]), help="Output format")
 @click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 @pass_context
 def scheduler(context, state: str, format: str, verbose: bool = False, site: str | None = None):
@@ -128,9 +126,7 @@ def set_maintenance_mode(context, state, site=None):
 		frappe.destroy()
 
 
-@click.command(
-	"doctor"
-)  # Passing context always gets a site and if there is no use site it breaks
+@click.command("doctor")  # Passing context always gets a site and if there is no use site it breaks
 @click.option("--site", help="site name")
 @pass_context
 def doctor(context, site=None):
@@ -199,9 +195,7 @@ def start_scheduler():
 	type=click.Choice(["round_robin", "random"]),
 	help="Dequeuing strategy to use",
 )
-def start_worker(
-	queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None
-):
+def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None):
 	"""Start a background worker"""
 	from frappe.utils.background_jobs import start_worker
 

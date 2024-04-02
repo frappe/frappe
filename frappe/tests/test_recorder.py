@@ -83,6 +83,7 @@ class TestRecorder(FrappeTestCase):
 	def test_explain(self):
 		frappe.db.sql("SELECT * FROM tabDocType")
 		frappe.db.sql("COMMIT")
+		frappe.db.sql("select 1", run=0)
 		self.stop_recording()
 
 		requests = frappe.recorder.get()
@@ -109,7 +110,7 @@ class TestRecorder(FrappeTestCase):
 
 		self.assertEqual(len(request["calls"]), len(queries))
 
-		for query, call in zip(queries, request["calls"]):
+		for query, call in zip(queries, request["calls"], strict=False):
 			self.assertEqual(
 				call["query"],
 				sqlparse.format(
@@ -134,7 +135,7 @@ class TestRecorder(FrappeTestCase):
 		requests = frappe.recorder.get()
 		request = frappe.recorder.get(requests[0]["uuid"])
 
-		for query, call in zip(queries, request["calls"]):
+		for query, call in zip(queries, request["calls"], strict=False):
 			self.assertEqual(call["exact_copies"], query[1])
 
 	def test_error_page_rendering(self):

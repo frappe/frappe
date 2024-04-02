@@ -17,7 +17,7 @@ class FormTourStep(Document):
 		child_doctype: DF.Data | None
 		description: DF.HTMLEditor
 		element_selector: DF.Data | None
-		fieldname: DF.Literal
+		fieldname: DF.Literal[None]
 		fieldtype: DF.Data | None
 		has_next_condition: DF.Check
 		hide_buttons: DF.Check
@@ -32,7 +32,7 @@ class FormTourStep(Document):
 		ondemand_description: DF.HTMLEditor | None
 		parent: DF.Data
 		parent_element_selector: DF.Data | None
-		parent_fieldname: DF.Literal
+		parent_fieldname: DF.Literal[None]
 		parentfield: DF.Data
 		parenttype: DF.Data
 		popover_element: DF.Check
@@ -54,4 +54,5 @@ class FormTourStep(Document):
 		title: DF.Data
 		ui_tour: DF.Check
 	# end: auto-generated types
+
 	pass

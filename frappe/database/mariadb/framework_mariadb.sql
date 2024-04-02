@@ -133,8 +133,7 @@ CREATE TABLE `tabDocType Action` (
   `action_type` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `action` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`name`),
-  KEY `parent` (`parent`),
-  KEY `modified` (`modified`)
+  KEY `parent` (`parent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 --
@@ -157,8 +156,7 @@ CREATE TABLE `tabDocType Link` (
   `link_doctype` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `link_fieldname` varchar(140) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`name`),
-  KEY `parent` (`parent`),
-  KEY `modified` (`modified`)
+  KEY `parent` (`parent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
 
 --
@@ -176,6 +174,7 @@ CREATE TABLE `tabDocType` (
   `idx` int(8) NOT NULL DEFAULT 0,
   `search_fields` varchar(255) DEFAULT NULL,
   `issingle` int(1) NOT NULL DEFAULT 0,
+  `is_virtual` int(1) NOT NULL DEFAULT 0,
   `is_tree` int(1) NOT NULL DEFAULT 0,
   `istable` int(1) NOT NULL DEFAULT 0,
   `editable_grid` int(1) NOT NULL DEFAULT 1,

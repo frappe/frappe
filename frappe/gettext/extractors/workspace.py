@@ -23,6 +23,10 @@ def extract(fileobj, *args, **kwargs):
 		for chart in data.get("charts", [])
 	)
 	yield from (
+		(None, "_", number_card.get("label"), [f"Label of a number card in the {workspace_name} Workspace"])
+		for number_card in data.get("number_cards", [])
+	)
+	yield from (
 		(
 			None,
 			"pgettext",

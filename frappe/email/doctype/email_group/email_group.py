@@ -25,6 +25,7 @@ class EmailGroup(Document):
 		welcome_email_template: DF.Link | None
 		welcome_url: DF.Data | None
 	# end: auto-generated types
+
 	def onload(self):
 		singles = [d.name for d in frappe.get_all("DocType", "name", {"issingle": 1})]
 		self.get("__onload").import_types = [
@@ -36,11 +37,11 @@ class EmailGroup(Document):
 	def import_from(self, doctype):
 		"""Extract Email Addresses from given doctype and add them to the current list"""
 		meta = frappe.get_meta(doctype)
-		email_field = [
+		email_field = next(
 			d.fieldname
 			for d in meta.fields
 			if d.fieldtype in ("Data", "Small Text", "Text", "Code") and d.options == "Email"
-		][0]
+		)
 		unsubscribed_field = "unsubscribed" if meta.get_field("unsubscribed") else None
 		added = 0
 
@@ -104,7 +105,7 @@ def import_from(name, doctype):
 
 @frappe.whitelist()
 def add_subscribers(name, email_list):
-	if not isinstance(email_list, (list, tuple)):
+	if not isinstance(email_list, list | tuple):
 		email_list = email_list.replace(",", "\n").split("\n")
 
 	template = frappe.db.get_value("Email Group", name, "welcome_email_template")

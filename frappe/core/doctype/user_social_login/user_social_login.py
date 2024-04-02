@@ -20,4 +20,5 @@ class UserSocialLogin(Document):
 		userid: DF.Data | None
 		username: DF.Data | None
 	# end: auto-generated types
+
 	pass

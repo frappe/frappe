@@ -14,10 +14,11 @@ class DocTypeLayoutField(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		fieldname: DF.Literal
+		fieldname: DF.Literal[None]
 		label: DF.Data | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
 	# end: auto-generated types
+
 	pass

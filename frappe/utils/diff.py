@@ -7,10 +7,7 @@ from frappe.utils.data import cstr
 
 
 @frappe.whitelist()
-def get_version_diff(
-	from_version: int | str, to_version: int | str, fieldname: str = "script"
-) -> list[str]:
-
+def get_version_diff(from_version: int | str, to_version: int | str, fieldname: str = "script") -> list[str]:
 	before, before_timestamp = _get_value_from_version(from_version, fieldname)
 	after, after_timestamp = _get_value_from_version(to_version, fieldname)
 
@@ -59,10 +56,10 @@ def version_query(doctype, txt, searchfield, start, page_len, filters):
 
 	results = frappe.get_list(
 		"Version",
-		fields=["name", "modified"],
+		fields=["name", "modified", "owner"],
 		filters=version_filters,
 		limit_start=start,
 		limit_page_length=page_len,
-		order_by="modified desc",
+		order_by="creation desc",
 	)
-	return [(d.name, pretty_date(d.modified), d.modified) for d in results]
+	return [(d.name, pretty_date(d.modified), d.modified, d.owner) for d in results]

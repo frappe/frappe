@@ -109,9 +109,7 @@ def add(parent, role, permlevel):
 
 
 @frappe.whitelist()
-def update(
-	doctype: str, role: str, permlevel: int, ptype: str, value=None, if_owner=0
-) -> str | None:
+def update(doctype: str, role: str, permlevel: int, ptype: str, value=None, if_owner=0) -> str | None:
 	"""Update role permission params.
 
 	Args:

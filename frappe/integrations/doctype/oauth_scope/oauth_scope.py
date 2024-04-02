@@ -19,4 +19,5 @@ class OAuthScope(Document):
 		parenttype: DF.Data
 		scope: DF.Data | None
 	# end: auto-generated types
+
 	pass

@@ -30,6 +30,7 @@ class IntegrationRequest(Document):
 		status: DF.Literal["", "Queued", "Authorized", "Completed", "Cancelled", "Failed"]
 		url: DF.SmallText | None
 	# end: auto-generated types
+
 	def autoname(self):
 		if self.flags._name:
 			self.name = self.flags._name
@@ -39,7 +40,7 @@ class IntegrationRequest(Document):
 		from frappe.query_builder.functions import Now
 
 		table = frappe.qb.DocType("Integration Request")
-		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 
 	def update_status(self, params, status):
 		data = json.loads(self.data)

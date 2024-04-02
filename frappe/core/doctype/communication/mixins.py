@@ -6,7 +6,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.email.doctype.email_account.email_account import EmailAccount
-from frappe.utils import get_formatted_email, get_url, parse_addr
+from frappe.utils import cstr, get_formatted_email, get_url, parse_addr
 
 
 class CommunicationEmailMixin:
@@ -146,8 +146,8 @@ class CommunicationEmailMixin:
 		return get_formatted_email(self.mail_sender_fullname(), mail=self.mail_sender())
 
 	def get_content(self, print_format=None):
-		if print_format and frappe.db.get_single_value("System Settings", "attach_view_link"):
-			return self.content + self.get_attach_link(print_format)
+		if print_format and frappe.get_system_settings("attach_view_link"):
+			return cstr(self.content) + self.get_attach_link(print_format)
 		return self.content
 
 	def get_attach_link(self, print_format):
@@ -184,7 +184,7 @@ class CommunicationEmailMixin:
 			)
 		return self._incoming_email_account
 
-	def mail_attachments(self, print_format=None, print_html=None):
+	def mail_attachments(self, print_format=None, print_html=None, print_language=None):
 		final_attachments = []
 
 		if print_format or print_html:
@@ -194,6 +194,7 @@ class CommunicationEmailMixin:
 				"print_format_attachment": 1,
 				"doctype": self.reference_doctype,
 				"name": self.reference_name,
+				"lang": print_language or frappe.local.lang,
 			}
 			final_attachments.append(d)
 
@@ -239,9 +240,7 @@ class CommunicationEmailMixin:
 		if not emails:
 			return []
 
-		return frappe.get_all(
-			"User", pluck="email", filters={"email": ["in", emails], "thread_notify": 0}
-		)
+		return frappe.get_all("User", pluck="email", filters={"email": ["in", emails], "thread_notify": 0})
 
 	@staticmethod
 	def filter_disabled_users(emails):
@@ -258,8 +257,8 @@ class CommunicationEmailMixin:
 		send_me_a_copy=None,
 		print_letterhead=None,
 		is_inbound_mail_communcation=None,
+		print_language=None,
 	) -> dict:
-
 		outgoing_email_account = self.get_outgoing_email_account()
 		if not outgoing_email_account:
 			return {}
@@ -270,22 +269,31 @@ class CommunicationEmailMixin:
 		cc = self.get_mail_cc_with_displayname(
 			is_inbound_mail_communcation=is_inbound_mail_communcation, include_sender=send_me_a_copy
 		)
-		bcc = self.get_mail_bcc_with_displayname(
-			is_inbound_mail_communcation=is_inbound_mail_communcation
-		)
+		bcc = self.get_mail_bcc_with_displayname(is_inbound_mail_communcation=is_inbound_mail_communcation)
 
 		if not (recipients or cc):
 			return {}
 
-		final_attachments = self.mail_attachments(print_format=print_format, print_html=print_html)
+		final_attachments = self.mail_attachments(
+			print_format=print_format, print_html=print_html, print_language=print_language
+		)
 		incoming_email_account = self.get_incoming_email_account()
+
+		reply_to = None
+
+		# If this is a reply to an existing email, set reply_to as the sender of the reply
+		if self.in_reply_to:
+			reply_to = self.get_mail_sender_with_displayname()
+		elif incoming_email_account:
+			reply_to = incoming_email_account.email_id
+
 		return {
 			"recipients": recipients,
 			"cc": cc,
 			"bcc": bcc,
 			"expose_recipients": "header",
 			"sender": self.get_mail_sender_with_displayname(),
-			"reply_to": incoming_email_account and incoming_email_account.email_id,
+			"reply_to": reply_to,
 			"subject": self.subject,
 			"content": self.get_content(print_format=print_format),
 			"reference_doctype": self.reference_doctype,
@@ -308,6 +316,8 @@ class CommunicationEmailMixin:
 		send_me_a_copy=None,
 		print_letterhead=None,
 		is_inbound_mail_communcation=None,
+		print_language=None,
+		now=False,
 	):
 		if input_dict := self.sendmail_input_dict(
 			print_html=print_html,
@@ -315,5 +325,6 @@ class CommunicationEmailMixin:
 			send_me_a_copy=send_me_a_copy,
 			print_letterhead=print_letterhead,
 			is_inbound_mail_communcation=is_inbound_mail_communcation,
+			print_language=print_language,
 		):
-			frappe.sendmail(**input_dict)
+			frappe.sendmail(now=now, **input_dict)

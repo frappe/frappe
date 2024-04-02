@@ -16,7 +16,5 @@ def get_context(context):
 	context.error_message = context.error_message or _("There was an error building this page")
 
 	return {
-		"error": frappe.get_traceback().replace("<", "&lt;").replace(">", "&gt;")
-		if allow_traceback
-		else ""
+		"error": frappe.get_traceback().replace("<", "&lt;").replace(">", "&gt;") if allow_traceback else ""
 	}

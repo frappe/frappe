@@ -230,7 +230,7 @@ let print_templates = computed(() => {
 			};
 		}
 		out.push({
-			label: `${__(df.label)} (${__("Field Template")})`,
+			label: `${__(df.label, null, df.parent)} (${__("Field Template")})`,
 			fieldname: df.fieldname + "_template",
 			fieldtype: "Field Template",
 			field_template: template.name,

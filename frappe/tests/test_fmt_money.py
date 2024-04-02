@@ -100,10 +100,3 @@ class TestFmtMoney(FrappeTestCase):
 		frappe.db.set_value("Currency", "JPY", "symbol_on_right", 1)
 		self.assertEqual(fmt_money(100.0, format="#,###.##", currency="JPY"), "100.00 ¥")
 		self.assertEqual(fmt_money(100.0, format="#,###.##", currency="USD"), "$ 100.00")
-
-
-if __name__ == "__main__":
-	import unittest
-
-	frappe.connect()
-	unittest.main()

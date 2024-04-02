@@ -19,4 +19,5 @@ class SuccessAction(Document):
 		next_actions: DF.Data | None
 		ref_doctype: DF.Link
 	# end: auto-generated types
+
 	pass

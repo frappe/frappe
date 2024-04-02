@@ -25,7 +25,7 @@ def get_notifications():
 		"open_count_doctype": {},
 		"targets": {},
 	}
-	if frappe.flags.in_install or not frappe.db.get_single_value("System Settings", "setup_complete"):
+	if frappe.flags.in_install or not frappe.get_system_settings("setup_complete"):
 		return out
 
 	config = get_notification_config()
@@ -72,7 +72,7 @@ def get_notifications_for_doctypes(config, notification_count):
 				except frappe.PermissionError:
 					frappe.clear_messages()
 					pass
-					# frappe.msgprint("Permission Error in notifications for {0}".format(d))
+				# frappe.msgprint("Permission Error in notifications for {0}".format(d))
 
 				except Exception as e:
 					# OperationalError: (1412, 'Table definition has changed, please retry transaction')
@@ -130,7 +130,9 @@ def get_notifications_for_targets(config, notification_percent):
 					for doc in doc_list:
 						value = doc[value_field]
 						target = doc[target_field]
-						doc_target_percents[doctype][doc.name] = (value / target * 100) if value < target else 100
+						doc_target_percents[doctype][doc.name] = (
+							(value / target * 100) if value < target else 100
+						)
 
 	return doc_target_percents
 
@@ -147,11 +149,10 @@ def clear_notifications(user=None):
 	for_module = list(config.get("for_module")) if config.get("for_module") else []
 	groups = for_doctype + for_module
 
-	for name in groups:
-		if user:
-			frappe.cache.hdel("notification_count:" + name, user)
-		else:
-			frappe.cache.delete_key("notification_count:" + name)
+	if user:
+		frappe.cache.hdel_names([f"notification_count:{name}" for name in groups], user)
+	else:
+		frappe.cache.delete_value([f"notification_count:{name}" for name in groups])
 
 
 def clear_notification_config(user):
@@ -240,7 +241,7 @@ def get_filters_for(doctype):
 
 @frappe.whitelist()
 @frappe.read_only()
-def get_open_count(doctype, name, items=None):
+def get_open_count(doctype: str, name: str, items=None):
 	"""Get count for internal and external links for given transactions
 
 	:param doctype: Reference DocType
@@ -281,7 +282,7 @@ def get_open_count(doctype, name, items=None):
 				try:
 					external_links_data_for_d = get_external_links(d, name, links)
 					out["external_links_found"].append(external_links_data_for_d)
-				except Exception as e:
+				except Exception:
 					out["external_links_found"].append({"doctype": d, "open_count": 0, "count": 0})
 		else:
 			external_links_data_for_d = get_external_links(d, name, links)

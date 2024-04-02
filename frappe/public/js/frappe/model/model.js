@@ -108,6 +108,16 @@ $.extend(frappe.model, {
 		"docstatus",
 	],
 
+	html_fieldtypes: [
+		"Text Editor",
+		"Text",
+		"Small Text",
+		"Long Text",
+		"HTML Editor",
+		"Markdown Editor",
+		"Code",
+	],
+
 	std_fields: [
 		{ fieldname: "name", fieldtype: "Link", label: __("ID") },
 		{ fieldname: "owner", fieldtype: "Link", label: __("Created By"), options: "User" },
@@ -380,6 +390,11 @@ $.extend(frappe.model, {
 	can_delete: function (doctype) {
 		if (!doctype) return false;
 		return frappe.boot.user.can_delete.indexOf(doctype) !== -1;
+	},
+
+	can_submit: function (doctype) {
+		if (!doctype) return false;
+		return frappe.boot.user.can_submit.indexOf(doctype) !== -1;
 	},
 
 	can_cancel: function (doctype) {

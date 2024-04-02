@@ -18,12 +18,12 @@ class DiscussionTopic(Document):
 		reference_doctype: DF.Link | None
 		title: DF.Data | None
 	# end: auto-generated types
+
 	pass
 
 
 @frappe.whitelist()
 def submit_discussion(doctype, docname, reply, title, topic_name=None, reply_name=None):
-
 	if reply_name:
 		doc = frappe.get_doc("Discussion Reply", reply_name)
 		doc.reply = reply

@@ -38,6 +38,7 @@ frappe.query_reports["Website Analytics"] = {
 				{ value: "source", label: __("Source") },
 				{ value: "campaign", label: __("Campaign") },
 				{ value: "medium", label: __("Medium") },
+				{ value: "content", label: __("Content") },
 			],
 			default: "path",
 		},

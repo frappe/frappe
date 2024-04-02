@@ -9,7 +9,6 @@ import json
 import poplib
 import re
 import ssl
-import time
 from contextlib import suppress
 from email.header import decode_header
 
@@ -152,7 +151,7 @@ class EmailServer:
 
 	def select_imap_folder(self, folder):
 		res = self.imap.select(f'"{folder}"')
-		return res[0] == "OK"  # The folder exsits TODO: handle other resoponses too
+		return res[0] == "OK"  # The folder exists TODO: handle other responses too
 
 	def logout(self):
 		if cint(self.settings.use_imap):
@@ -237,9 +236,7 @@ class EmailServer:
 				).where(EmailAccount.name == self.settings.email_account_name).run()
 
 			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
-			from_uid = (
-				1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
-			)
+			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
 			# sync last 100 email
 			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
 			self.uid_reindexed = True
@@ -314,7 +311,6 @@ class EmailServer:
 		return False
 
 	def make_error_msg(self, uid, msg_num):
-		partial_mail = None
 		traceback = frappe.get_traceback(with_context=True)
 		with suppress(Exception):
 			# retrieve headers
@@ -445,9 +441,7 @@ class Email:
 		if not email:
 			return
 		decoded = ""
-		for part, encoding in decode_header(
-			frappe.as_unicode(email).replace('"', " ").replace("'", " ")
-		):
+		for part, encoding in decode_header(frappe.as_unicode(email).replace('"', " ").replace("'", " ")):
 			if encoding:
 				decoded += part.decode(encoding, "replace")
 			else:
@@ -672,7 +666,7 @@ class InboundMail(Email):
 		# replace inline images
 		content = self.content
 		for file in attachments:
-			if file.name in self.cid_map and self.cid_map[file.name]:
+			if self.cid_map.get(file.name):
 				content = content.replace(f"cid:{self.cid_map[file.name]}", file.unique_url)
 		return content
 
@@ -850,9 +844,7 @@ class InboundMail(Email):
 	@staticmethod
 	def get_users_linked_to_account(email_account):
 		"""Get list of users who linked to Email account."""
-		users = frappe.get_all(
-			"User Email", filters={"email_account": email_account.name}, fields=["parent"]
-		)
+		users = frappe.get_all("User Email", filters={"email_account": email_account.name}, fields=["parent"])
 		return list({user.get("parent") for user in users})
 
 	@staticmethod

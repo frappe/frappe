@@ -29,8 +29,8 @@ class NotificationLog(Document):
 		read: DF.Check
 		subject: DF.Text | None
 		type: DF.Literal["Mention", "Energy Point", "Assignment", "Share", "Alert"]
-
 	# end: auto-generated types
+
 	def after_insert(self):
 		frappe.publish_realtime("notification", after_commit=True, user=self.for_user)
 		set_notifications_as_unseen(self.for_user)
@@ -46,7 +46,7 @@ class NotificationLog(Document):
 		from frappe.query_builder.functions import Now
 
 		table = frappe.qb.DocType("Notification Log")
-		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
+		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 
 
 def get_permission_query_conditions(for_user):
@@ -165,7 +165,7 @@ def get_email_header(doc, language: str | None = None):
 @frappe.whitelist()
 def get_notification_logs(limit=20):
 	notification_logs = frappe.db.get_list(
-		"Notification Log", fields=["*"], limit=limit, order_by="modified desc"
+		"Notification Log", fields=["*"], limit=limit, order_by="creation desc"
 	)
 
 	users = [log.from_user for log in notification_logs]
