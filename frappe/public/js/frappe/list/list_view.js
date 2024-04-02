@@ -758,7 +758,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (col.type === "Tag") {
 			const tags_display_class = !this.tags_shown ? "hide" : "";
 			let tags_html = doc._user_tags
-				? this.get_tags_html(doc._user_tags, 2)
+				? this.get_tags_html(doc._user_tags, 2, true)
 				: '<div class="tags-empty">-</div>';
 			return `
 				<div class="list-row-col tag-col ${tags_display_class} hidden-xs ellipsis">
