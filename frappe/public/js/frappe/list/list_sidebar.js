@@ -272,7 +272,7 @@ frappe.views.ListSidebar = class ListSidebar {
 
 			const message = __("Get more insights with");
 			const link = "https://frappe.io/s/insights";
-			const cta = __("Frappe Insights");
+			const cta = "Frappe Insights";
 
 			this.insights_banner = $(`
 				<div style="position: relative;">
