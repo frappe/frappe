@@ -56,7 +56,7 @@
 	--list-row-height: 40px;
 	--list-checkbox-padding: calc((var(--list-row-height) - var(--checkbox-size)) / 2);
 
-	@media (max-width: 995px) {
+	@include media-breakpoint-down(md) {
 		--checkbox-size: 18px;
 	}
 }
