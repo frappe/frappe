@@ -64,15 +64,8 @@ def drop_user_and_database(db_name, root_login, root_password):
 def bootstrap_database(db_name, verbose, source_sql=None):
 	import sys
 
-<<<<<<< HEAD
 	frappe.connect(db_name=db_name)
-	if not check_database_settings():
-		print("Database settings do not match expected values; stopping database setup.")
-		sys.exit(1)
-=======
-	frappe.connect()
 	check_compatible_versions()
->>>>>>> ed01fc3b26 (feat: don't require editing MariaDB configuration to setup frappe (#25609))
 
 	import_db_from_sql(source_sql, verbose)
 
