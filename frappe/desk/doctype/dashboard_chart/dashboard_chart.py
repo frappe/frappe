@@ -303,8 +303,8 @@ def get_result(data, timegrain, from_date, to_date, chart_type):
 		for d in result:
 			count = 0
 			while data_index < len(data) and getdate(data[data_index][0]) <= d[0]:
-				d[1] += data[data_index][1]
-				count += data[data_index][2]
+				d[1] += cint(data[data_index][1])
+				count += cint(data[data_index][2])
 				data_index += 1
 			if chart_type == "Average" and count != 0:
 				d[1] = d[1] / count
