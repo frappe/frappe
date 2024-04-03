@@ -277,6 +277,8 @@ def get_gravatar_url(email: str, default: Literal["mm", "404"] = "mm") -> str:
 	If `default` is set to "404", gravatar URL will return 404 if no avatar is found.
 	If `default` is set to "mm", a placeholder image will be returned.
 	"""
+	import hashlib
+
 	hexdigest = hashlib.md5(frappe.as_unicode(email).encode("utf-8"), usedforsecurity=False).hexdigest()
 	return f"https://secure.gravatar.com/avatar/{hexdigest}?d={default}&s=200"
 
