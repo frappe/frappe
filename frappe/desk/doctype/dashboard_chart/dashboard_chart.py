@@ -260,7 +260,7 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	}
 
 
-def get_group_by_chart_config(chart, filters):
+def get_group_by_chart_config(chart, filters) -> dict | None:
 	aggregate_function = get_aggregate_function(chart.group_by_type)
 	value_field = chart.aggregate_function_based_on or "1"
 	group_by_field = chart.group_by_based_on
@@ -281,11 +281,10 @@ def get_group_by_chart_config(chart, filters):
 
 	if data:
 		return {
-			"labels": [item["name"] if item["name"] else "Not Specified" for item in data],
+			"labels": [item.get("name", "Not Specified") for item in data],
 			"datasets": [{"name": chart.name, "values": [item["count"] for item in data]}],
 		}
-	else:
-		return None
+	return None
 
 
 def get_aggregate_function(chart_type):
