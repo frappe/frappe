@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-03-24 09:33+0000\n"
-"PO-Revision-Date: 2024-03-30 12:58\n"
+"PO-Revision-Date: 2024-04-04 14:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -13573,7 +13573,7 @@ msgstr "Formular-Generator"
 #: core/doctype/recorder/recorder.json
 msgctxt "Recorder"
 msgid "Form Dict"
-msgstr ""
+msgstr "Formular Dict"
 
 #. Label of a Section Break field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
