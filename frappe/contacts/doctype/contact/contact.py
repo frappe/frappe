@@ -386,7 +386,7 @@ def get_contact_display_list(doctype: str, name: str) -> list[dict]:
 			["Dynamic Link", "parenttype", "=", "Contact"],
 		],
 		fields=["*"],
-		order_by="is_primary_contact DESC, creation ASC",
+		order_by="is_primary_contact DESC, `tabContact`.creation ASC",
 	)
 
 	for contact in contact_list:
