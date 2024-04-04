@@ -38,6 +38,7 @@ frappe.provide("frappe.views");
 					opts.card_meta = card_meta;
 					opts.board = board;
 					var cards = opts.cards.map(function (card) {
+						console.log(card.queue_position)
 						return prepare_card(card, opts);
 					});
 					var columns = prepare_columns(board.columns);
