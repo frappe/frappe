@@ -22,20 +22,22 @@ context("List View", () => {
 		const actions = [
 			"Approve",
 			"Reject",
-			"Edit",
 			"Export",
 			"Assign To",
 			"Apply Assignment Rule",
 			"Add Tags",
 			"Print",
-			"Delete",
 		];
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
 		cy.get(".list-header-subject > .list-subject > .list-check-all").click();
 		cy.findByRole("button", { name: "Actions" }).click();
 		cy.get(".dropdown-menu li:visible .dropdown-item")
+<<<<<<< HEAD
 			.should("have.length", 9)
+=======
+			.should("have.length", 8)
+>>>>>>> b696e23354 (test: cypress shouldn't expect disabled actions)
 			.each((el, index) => {
 				cy.wrap(el).contains(actions[index]);
 			})
