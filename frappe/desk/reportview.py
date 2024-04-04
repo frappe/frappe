@@ -38,7 +38,6 @@ def get():
     args = get_form_params()
     done_status_filters = getDoneStatusesFilter()
     done_statuses = getDoneStatuses(done_status_filters)
-    print()
     if len(args["filters"]) == 0 and args["doctype"] == "Project" and args["page_length"] == "0":
         if frappe.session.data.user != "Administrator":
             done_status_filters.extend(
@@ -46,7 +45,10 @@ def get():
             )
         response = findData(filters=done_status_filters)
         for status in done_statuses:
-            result = findData(filters=[["Project", "status", "=", status]], page_length=10)
+            filters = [["Project", "status", "=", status]]
+            if frappe.session.data.user != "Administrator":
+                filters.extend([["Project", "_assign", "like", f"%{frappe.session.data.user}%"]])
+            result = findData(filters=filters, page_length=10)
             if len(result):
                 response["values"].extend(result["values"])
         return response
