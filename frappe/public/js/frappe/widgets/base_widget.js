@@ -99,6 +99,7 @@ export default class Widget {
 		let title = max_chars ? frappe.ellipsis(base, max_chars) : base;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 		if (this.icon) {
 			let icon = frappe.utils.icon(this.icon, "lg");
 			this.title_field[0].innerHTML = `${icon} <span class="ellipsis" title="${title}">${title}</span>`;
@@ -109,6 +110,11 @@ export default class Widget {
 			}
 =======
 		this.title_field[0].innerHTML = `<span class="ellipsis" title="${__(title)}">${__(title)}</span>`;
+=======
+		this.title_field[0].innerHTML = `<span class="ellipsis" title="${__(title)}">${__(
+			title
+		)}</span>`;
+>>>>>>> b9ed9a95ae (fix: translation of dashboard chart and number card label prettier)
 		if (max_chars) {
 			this.title_field[0].setAttribute("title", this.title || this.label);
 >>>>>>> 51a87ae33b (fix: translation of dashboard chart and number card label)
