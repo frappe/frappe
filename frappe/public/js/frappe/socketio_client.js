@@ -86,21 +86,21 @@ class RealTimeClient {
 
 		this.setup_listeners();
 
-		$(document).on("form-load form-rename", function (e, frm) {
+		document.addEventListener("form-load form-rename", function (e, frm) {
 			if (!frm.doc || frm.is_new()) {
 				return;
 			}
 			me.doc_subscribe(frm.doctype, frm.docname);
 		});
 
-		$(document).on("form-refresh", function (e, frm) {
+		document.addEventListener("form-refresh", function (e, frm) {
 			if (!frm.doc || frm.is_new()) {
 				return;
 			}
 			me.doc_open(frm.doctype, frm.docname);
 		});
 
-		$(document).on("form-unload", function (e, frm) {
+		document.addEventListener("form-unload", function (e, frm) {
 			if (!frm.doc || frm.is_new()) {
 				return;
 			}

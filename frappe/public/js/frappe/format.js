@@ -16,6 +16,6 @@ function format(str, args) {
 	);
 }
 
-if (jQuery) {
-	jQuery.format = format;
+if (window.jQuery) {
+	window.jQuery.format = format;
 }

@@ -18,7 +18,7 @@ frappe._ = function (txt, replace, context = null) {
 	}
 
 	if (replace && typeof replace === "object") {
-		translated_text = $.format(translated_text, replace);
+		translated_text = format(translated_text, replace); // eslint-disable-line no-undef
 	}
 	return translated_text;
 };
@@ -28,7 +28,7 @@ window.__ = frappe._;
 frappe.get_languages = function () {
 	if (!frappe.languages) {
 		frappe.languages = [];
-		$.each(frappe.boot.lang_dict, function (lang, value) {
+		Object.entries(frappe.boot.lang_dict).forEach(([lang, value]) => {
 			frappe.languages.push({ label: lang, value: value });
 		});
 		frappe.languages = frappe.languages.sort(function (a, b) {

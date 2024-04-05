@@ -6,7 +6,7 @@ frappe.provide("website");
 frappe.provide("frappe.awesome_bar_path");
 window.cur_frm = null;
 
-$.extend(frappe, {
+Object.assign(frappe, {
 	_assets_loaded: [],
 	require: async function (links, callback) {
 		if (typeof links === "string") {
@@ -50,7 +50,7 @@ $.extend(frappe, {
 		});
 	},
 	hide_message: function () {
-		$(".message-overlay").remove();
+		document.querySelectorAll(".message-overlay").forEach((el) => el.remove());
 	},
 	xcall: function (method, params) {
 		return new Promise((resolve, reject) => {
@@ -66,7 +66,7 @@ $.extend(frappe, {
 			});
 		});
 	},
-	call: function (opts) {
+	call: async function (opts) {
 		// opts = {"method": "PYTHON MODULE STRING", "args": {}, "callback": function(r) {}}
 		if (typeof arguments[0] === "string") {
 			opts = {
@@ -80,50 +80,51 @@ $.extend(frappe, {
 		if (opts.freeze) {
 			frappe.freeze();
 		}
-		return $.ajax({
-			type: opts.type || "POST",
-			url: opts.url || "/",
-			data: opts.args,
-			dataType: "json",
+		return fetch(opts.url || "/", {
+			method: opts.type || "POST",
 			headers: {
 				"X-Frappe-CSRF-Token": frappe.csrf_token,
 				"X-Frappe-CMD": (opts.args && opts.args.cmd) || "" || "",
+				"Content-Type": "application/json",
 			},
-			statusCode: opts.statusCode || {
-				404: function () {
+			body: JSON.stringify(opts.args),
+		})
+			.then((response) => {
+				if (response.status === 404) {
 					frappe.msgprint(__("Not found"));
-				},
-				403: function () {
+				} else if (response.status === 403) {
 					frappe.msgprint(__("Not permitted"));
-				},
-				200: function (data) {
-					if (opts.callback) opts.callback(data);
-					if (opts.success) opts.success(data);
-				},
-			},
-		}).always(function (data) {
-			if (opts.freeze) {
-				frappe.unfreeze();
-			}
-
-			// executed before statusCode functions
-			if (data.responseText) {
-				try {
-					data = JSON.parse(data.responseText);
-				} catch (e) {
-					data = {};
+				} else if (response.status === 200) {
+					return response.json();
+				} else {
+					return Promise.reject(response.statusText);
 				}
-			}
-			frappe.process_response(opts, data);
-		});
+			})
+			.then((data) => {
+				if (opts.callback) {
+					opts.callback(data);
+				}
+				if (opts.success) {
+					opts.success(data);
+				}
+				if (opts.freeze) {
+					frappe.unfreeze();
+				}
+				frappe.process_response(opts, data);
+			})
+			.catch((error) => {
+				// executed before statusCode functions
+				frappe.process_response(opts, { exc: error.toString() });
+				return Promise.reject(error);
+			});
 	},
 	prepare_call: function (opts) {
 		if (opts.btn) {
-			$(opts.btn).prop("disabled", true);
+			opts.btn.disabled = true;
 		}
 
 		if (opts.msg) {
-			$(opts.msg).toggle(false);
+			opts.msg.style.display = "none";
 		}
 
 		if (!opts.args) opts.args = {};
@@ -133,21 +134,22 @@ $.extend(frappe, {
 			opts.args.cmd = opts.method;
 		}
 
-		$.each(opts.args, function (key, val) {
+		for (let key in opts.args) {
+			let val = opts.args[key];
 			if (typeof val != "string" && val !== null) {
 				opts.args[key] = JSON.stringify(val);
 			}
-		});
+		}
 
 		if (!opts.no_spinner) {
-			//NProgress.start();
+			// NProgress.start();
 		}
 	},
 	process_response: function (opts, data) {
-		//if(!opts.no_spinner) NProgress.done();
+		// if(!opts.no_spinner) NProgress.done();
 
 		if (opts.btn) {
-			$(opts.btn).prop("disabled", false);
+			opts.btn.disabled = true;
 		}
 
 		if (data._server_messages) {
@@ -164,34 +166,27 @@ $.extend(frappe, {
 				.join("<br>");
 
 			if (opts.error_msg) {
-				$(opts.error_msg).html(server_messages).toggle(true);
+				opts.msg.innerHTML = server_messages;
+				opts.msg.style.display = "block";
 			} else {
 				frappe.msgprint(server_messages);
 			}
 		}
 
 		if (data.exc) {
-			// if(opts.btn) {
-			// 	$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-danger" : "text-danger");
-			// 	setTimeout(function() { $(opts.btn).removeClass("btn-danger text-danger"); }, 1000);
-			// }
 			try {
 				var err = JSON.parse(data.exc);
-				if ($.isArray(err)) {
+				if (Array.isArray(err)) {
 					err = err.join("\n");
 				}
 				console.error ? console.error(err) : console.log(err);
 			} catch (e) {
 				console.log(data.exc);
 			}
-		} else {
-			// if(opts.btn) {
-			// 	$(opts.btn).addClass($(opts.btn).is('button') || $(opts.btn).hasClass('btn') ? "btn-success" : "text-success");
-			// 	setTimeout(function() { $(opts.btn).removeClass("btn-success text-success"); }, 1000);
-			// }
 		}
 		if (opts.msg && data.message) {
-			$(opts.msg).html(data.message).toggle(true);
+			opts.msg.innerHTML = data.message;
+			opts.msg.style.display = "block";
 		}
 
 		if (opts.always) {
@@ -199,17 +194,16 @@ $.extend(frappe, {
 		}
 	},
 	show_message: function (text, icon) {
-		if (!icon) icon = "fa fa-refresh fa-spin";
 		frappe.hide_message();
-		$('<div class="message-overlay"></div>')
-			.html(
-				'<div class="content"><i class="' +
-					icon +
-					' text-muted"></i><br>' +
-					text +
-					"</div>"
-			)
-			.appendTo(document.body);
+		let messageOverlay = document.createElement("div");
+		messageOverlay.classList.add("message-overlay");
+		messageOverlay.innerHTML = `
+      <div class="content">
+        <i class="${icon || "fa fa-refresh fa-spin"} text-muted"></i>
+        <br>${text}
+      </div>
+    `;
+		document.body.appendChild(messageOverlay);
 	},
 	has_permission: function (doctype, docname, perm_type, callback) {
 		return frappe.call({
@@ -228,39 +222,57 @@ $.extend(frappe, {
 	},
 	render_user: function () {
 		if (frappe.is_user_logged_in()) {
-			$(".btn-login-area").toggle(false);
-			$(".logged-in").toggle(true);
-			$(".user-image").attr("src", frappe.get_cookie("user_image"));
+			document
+				.querySelectorAll(".btn-login-area")
+				.forEach((el) => (el.style.display = "none"));
+			document.querySelectorAll(".logged-in").forEach((el) => (el.style.display = "block"));
+			document.querySelector(".user-image").src = frappe.get_cookie("user_image");
 
-			$(".user-image-wrapper").html(
-				frappe.avatar(null, "avatar-medium", null, null, null, true)
+			document.querySelector(".user-image-wrapper").innerHTML = frappe.avatar(
+				null,
+				"avatar-medium",
+				null,
+				null,
+				null,
+				true
 			);
-			$(".user-image-sidebar").html(
-				frappe.avatar(null, "avatar-medium", null, null, null, true)
+			document.querySelector(".user-image-sidebar").innerHTML = frappe.avatar(
+				null,
+				"avatar-medium",
+				null,
+				null,
+				null,
+				true
 			);
-			$(".user-image-myaccount").html(
-				frappe.avatar(null, "avatar-large", null, null, null, true)
+			document.querySelector(".user-image-myaccount").innerHTML = frappe.avatar(
+				null,
+				"avatar-large",
+				null,
+				null,
+				null,
+				true
 			);
 		}
 	},
 	freeze_count: 0,
 	freeze: function (msg) {
 		// blur
-		if (!$("#freeze").length) {
-			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>').appendTo("body");
+		if (!document.getElementById("freeze")) {
+			var freeze = document.createElement("div");
+			freeze.id = "freeze";
+			freeze.classList.add("modal-backdrop", "fade");
+			document.body.appendChild(freeze);
 
-			freeze.html(
-				repl(
-					'<div class="freeze-message-container"><div class="freeze-message">%(msg)s</div></div>',
-					{ msg: msg || "" }
-				)
+			freeze.innerHTML = repl(
+				'<div class="freeze-message-container"><div class="freeze-message">%(msg)s</div></div>',
+				{ msg: msg || "" }
 			);
 
 			setTimeout(function () {
-				freeze.addClass("in");
+				freeze.classList.add("in");
 			}, 1);
 		} else {
-			$("#freeze").addClass("in");
+			document.getElementById("freeze").classList.add("in");
 		}
 		frappe.freeze_count++;
 	},
@@ -271,7 +283,7 @@ $.extend(frappe, {
 			var freeze = $("#freeze").removeClass("in");
 			setTimeout(function () {
 				if (!frappe.freeze_count) {
-					freeze.remove();
+					freeze.parentNode.removeChild(freeze);
 				}
 			}, 150);
 		}
@@ -284,40 +296,44 @@ $.extend(frappe, {
 	},
 
 	highlight_code_blocks: function () {
-		hljs.initHighlighting();
+		hljs.highlightAll();
 	},
 	bind_filters: function () {
 		// set in select
-		$(".filter").each(function () {
-			var key = $(this).attr("data-key");
+		document.querySelectorAll(".filter").forEach(function (el) {
+			var key = el.getAttribute("data-key");
 			var val = frappe.utils.get_url_arg(key).replace(/\+/g, " ");
 
-			if (val) $(this).val(val);
+			if (val) el.value = val;
 		});
 
 		// search url
 		var search = function () {
 			var args = {};
-			$(".filter").each(function () {
-				var val = $(this).val();
-				if (val) args[$(this).attr("data-key")] = val;
+			document.querySelectorAll(".filter").forEach(function (el) {
+				var val = el.value;
+				var key = el.getAttribute("data-key");
+				if (val) args[key] = val;
 			});
 
 			window.location.href = location.pathname + "?" + $.param(args);
 		};
 
-		$(".filter").on("change", function () {
+		document.querySelectorAll(".filter").forEach(function (el) {
 			search();
 		});
 	},
 	bind_navbar_search: function () {
-		frappe.get_navbar_search().on("keypress", function (e) {
-			var val = $(this).val();
-			if (e.which === 13 && val) {
-				$(this).val("").blur();
-				frappe.do_search(val);
-				return false;
-			}
+		frappe.get_navbar_search().forEach(function (el) {
+			el.addEventListener("keypress", function (e) {
+				var val = this.value;
+				if (e.which === 13 && val) {
+					this.value = "";
+					this.blur();
+					frappe.do_search(val);
+					return false;
+				}
+			});
 		});
 	},
 	do_search: function (val) {
@@ -333,39 +349,47 @@ $.extend(frappe, {
 	},
 	make_navbar_active: function () {
 		var pathname = window.location.pathname;
-		$(".navbar-nav li.active").removeClass("active");
-		$(".navbar-nav li").each(function () {
-			var href = $(this.getElementsByTagName("a")).attr("href");
+		document
+			.querySelectorAll(".navbar-nav li.active")
+			.forEach((el) => el.classList.remove("active"));
+		document.querySelectorAll(".navbar-nav li").forEach(function (el) {
+			var href = el.querySelector("a").getAttribute("href");
 			if (href === pathname) {
-				$(this).addClass("active");
+				el.classList.add("active");
 				return false;
 			}
 		});
 	},
 	get_navbar_search: function () {
-		return $(".navbar .search, .sidebar .search");
+		return document.querySelectorAll(".navbar .search, .sidebar .search");
 	},
 	is_user_logged_in: function () {
 		return frappe.get_cookie("user_id") !== "Guest" && frappe.session.user !== "Guest";
 	},
 	add_switch_to_desk: function () {
-		$(".switch-to-desk").removeClass("hidden");
+		document
+			.querySelectorAll(".switch-to-desk")
+			.forEach((el) => el.classList.remove("hidden"));
 	},
 	add_link_to_headings: function () {
-		$(".doc-content .from-markdown")
-			.find("h2, h3, h4, h5, h6")
-			.each((i, $heading) => {
-				let id = $heading.id;
-				let $a = $('<a class="no-underline">')
-					.prop("href", "#" + id)
-					.attr("aria-hidden", "true").html(`
-					<svg xmlns="http://www.w3.org/2000/svg" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-						stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link">
-						<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-						<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-					</svg>
-				`);
-				$($heading).append($a);
+		document
+			.querySelectorAll(
+				".doc-content .from-markdown h2, .doc-content .from-markdown h3, .doc-content .from-markdown h4, .doc-content .from-markdown h5, .doc-content .from-markdown h6"
+			)
+			.forEach((heading) => {
+				let id = heading.id;
+				let a = document.createElement("a");
+				a.classList.add("no-underline");
+				a.href = "#" + id;
+				a.setAttribute("aria-hidden", "true");
+				a.innerHTML = `
+ 				<svg xmlns="http://www.w3.org/2000/svg" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+ 					stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-link">
+ 					<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+ 					<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+ 				</svg>
+ 			`;
+				heading.appendChild(a);
 			});
 	},
 	show_language_picker() {
@@ -378,16 +402,17 @@ $.extend(frappe, {
 					let language_list = res.message;
 					let language = frappe.get_cookie("preferred_language");
 					let language_codes = [];
-					let language_switcher = $("#language-switcher .form-control");
+					let language_switcher = document.querySelector(
+						"#language-switcher .form-control"
+					);
 					language_list.forEach((language_doc) => {
 						language_codes.push(language_doc.language_code);
-						language_switcher.append(
-							$("<option></option>")
-								.attr("value", language_doc.language_code)
-								.text(language_doc.language_name)
-						);
+						let option = document.createElement("option");
+						option.value = language_doc.language_code;
+						option.text = language_doc.language_name;
+						language_switcher.add(option);
 					});
-					$("#language-switcher").removeClass("hide");
+					document.getElementById("language-switcher")?.classList.remove("hide");
 					language =
 						language ||
 						(language_codes.includes(navigator.language) ? navigator.language : "en");
@@ -403,62 +428,60 @@ $.extend(frappe, {
 	},
 	setup_videos: () => {
 		// converts video images into youtube embeds (via Page Builder)
-		$(".section-video-wrapper").on("click", (e) => {
-			let $video = $(e.currentTarget);
-			let id = $video.data("youtubeId");
-			console.log(id);
-			$video.find(".video-thumbnail").hide();
-			$video.append(`
-				<iframe allowfullscreen="" class="section-video" f;rameborder="0" src="//youtube.com/embed/${id}?autoplay=1"></iframe>
-			`);
+		document.querySelectorAll(".section-video-wrapper").forEach((el) => {
+			el.addEventListener("click", (e) => {
+				let video = e.currentTarget;
+				let id = video.dataset.youtubeId;
+				console.log(id);
+				video.querySelector(".video-thumbnail").style.display = "none";
+				video.innerHTML += `
+	  			<iframe allowfullscreen="" class="section-video" f;rameborder="0" src="//youtube.com/embed/${id}?autoplay=1"></iframe>
+  			`;
+			});
 		});
 	},
 });
 
 frappe.setup_search = function (target, search_scope) {
 	if (typeof target === "string") {
-		target = $(target);
+		target = document.querySelector(target);
 	}
+	let searchInput = document.createElement("div");
+	searchInput.classList.add("dropdown", "id", "dropdownMenuSearch");
+	searchInput.innerHTML = `
+		<input type="search" class="form-control" placeholder="Search the docs (Press / to focus)" />
+		<div class="overflow-hidden shadow dropdown-menu w-100" aria-labelledby="dropdownMenuSearch"></div>
+		<div class="search-icon">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search">
+				<circle cx="11" cy="11" r="8"></circle>
+				<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+			</svg>
+		</div>
+	`;
 
-	let $search_input = $(`<div class="dropdown" id="dropdownMenuSearch">
-			<input type="search" class="form-control" placeholder="Search the docs (Press / to focus)" />
-			<div class="overflow-hidden shadow dropdown-menu w-100" aria-labelledby="dropdownMenuSearch">
-			</div>
-			<div class="search-icon">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor" stroke-width="2" stroke-linecap="round"
-					stroke-linejoin="round"
-					class="feather feather-search">
-					<circle cx="11" cy="11" r="8"></circle>
-					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-				</svg>
-			</div>
-		</div>`);
+	target.innerHTML = "";
+	target.appendChild(searchInput);
 
-	target.empty();
-	$search_input.appendTo(target);
-
-	// let $dropdown = $search_input.find('.dropdown');
-	let $dropdown_menu = $search_input.find(".dropdown-menu");
-	let $input = $search_input.find("input");
+	let dropdown = searchInput.querySelector(".dropdown");
+	let dropdownMenu = searchInput.querySelector(".dropdown-menu");
+	let input = searchInput.querySelector("input");
 	let dropdownItems;
 	let offsetIndex = 0;
 
-	$(document).on("keypress", (e) => {
-		if ($(e.target).is("textarea, input, select")) {
+	document.addEventListener("keypress", (e) => {
+		if (e.target.matches("textarea, input, select")) {
 			return;
 		}
 		if (e.key === "/") {
 			e.preventDefault();
-			$input.focus();
+			input.focus();
 		}
 	});
 
-	$input.on(
+	input.addEventListener(
 		"input",
 		frappe.utils.debounce(() => {
-			if (!$input.val()) {
+			if (!input.value) {
 				clear_dropdown();
 				return;
 			}
@@ -468,7 +491,7 @@ frappe.setup_search = function (target, search_scope) {
 					method: "frappe.search.web_search",
 					args: {
 						scope: search_scope || null,
-						query: $input.val(),
+						query: input.value,
 						limit: 5,
 					},
 				})
@@ -487,29 +510,29 @@ frappe.setup_search = function (target, search_scope) {
 							})
 							.join("");
 					}
-					$dropdown_menu.html(dropdown_html);
-					$dropdown_menu.addClass("show");
-					dropdownItems = $dropdown_menu.find(".dropdown-item");
+					dropdownMenu.innerHTML = dropdown_html;
+					dropdownMenu.classList.add("show");
+					dropdownItems = document.querySelectorAll(".dropdown-menu .dropdown-item");
 				});
 		}, 500)
 	);
 
-	$input.on("focus", () => {
-		if (!$input.val()) {
+	input.addEventListener("focus", () => {
+		if (!input.value) {
 			clear_dropdown();
 		} else {
-			$input.trigger("input");
+			input.dispatchEvent(new Event("input"));
 		}
 	});
 
-	$input.keydown(function (e) {
+	input.addEventListener("keydown", function (e) {
 		// up: 38, down: 40
 		if (e.which == 40) {
 			navigate(0);
 		}
 	});
 
-	$dropdown_menu.keydown(function (e) {
+	dropdownMenu.addEventListener("keydown", function (e) {
 		// up: 38, down: 40
 		if (e.which == 38) {
 			navigate(-1);
@@ -523,11 +546,11 @@ frappe.setup_search = function (target, search_scope) {
 	});
 
 	// Clear dropdown when clicked
-	$(window).click(function () {
+	window.addEventListener("click", function () {
 		clear_dropdown();
 	});
 
-	$search_input.click(function (event) {
+	searchInput.addEventListener("click", function (event) {
 		event.stopPropagation();
 	});
 
@@ -537,19 +560,19 @@ frappe.setup_search = function (target, search_scope) {
 
 		if (offsetIndex >= dropdownItems.length) offsetIndex = 0;
 		if (offsetIndex < 0) offsetIndex = dropdownItems.length - 1;
-		$input.off("blur");
+		input.removeEventListener("blur", undefined);
 		dropdownItems.eq(offsetIndex).focus();
 	};
 
 	function clear_dropdown() {
 		offsetIndex = 0;
-		$dropdown_menu.html("");
-		$dropdown_menu.removeClass("show");
+		dropdownMenu.innerHtml = "";
+		dropdownMenu.classList.remove("show");
 		dropdownItems = undefined;
 	}
 
 	// Remove focus state on hover
-	$dropdown_menu.mouseover(function () {
+	dropdownMenu.addEventListener("mouseover", function () {
 		dropdownItems.blur();
 	});
 };
@@ -598,12 +621,14 @@ window.ask_to_login = function ask_to_login() {
 };
 
 // check if logged in?
-$(document).ready(function () {
+document.addEventListener("DOMContentLoaded", function (event) {
 	window.full_name = frappe.get_cookie("full_name");
-	var logged_in = frappe.is_user_logged_in();
-	$("#website-login").toggleClass("hide", logged_in ? true : false);
-	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
-	$(".logged-in").toggleClass("hide", logged_in ? false : true);
+	let logged_in = frappe.is_user_logged_in();
+	document.getElementById("website-login")?.classList.toggle("hide", logged_in);
+	document.getElementById("website-post-login")?.classList.toggle("hide", !logged_in);
+	document
+		.querySelectorAll(".logged-in")
+		.forEach((el) => el.classList.toggle("hide", !logged_in));
 
 	frappe.bind_navbar_search();
 
@@ -614,23 +639,33 @@ $(document).ready(function () {
 
 	frappe.render_user();
 
-	$(document).trigger("page-change");
+	document.dispatchEvent(new Event("page-change"));
 });
 
-$(document).on("page-change", function () {
-	$(document).trigger("apply_permissions");
-	$(".dropdown-toggle").dropdown();
-
-	//multilevel dropdown fix
-	$(".dropdown-menu .dropdown-submenu .dropdown-toggle").on("click", function (e) {
-		e.stopPropagation();
-		$(this).parent().parent().parent().addClass("open");
+document.addEventListener("page-change", function () {
+	document.dispatchEvent(new Event("apply_permissions"));
+	document.querySelectorAll(".dropdown-toggle").forEach((el) => {
+		el.addEventListener("click", function (e) {
+			let dropdownMenu = e.target.nextElementSibling;
+			if (dropdownMenu) {
+				dropdownMenu.classList.toggle("show");
+			}
+		});
 	});
+	//multilevel dropdown fix
+	document
+		.querySelectorAll(".dropdown-menu .dropdown-submenu .dropdown-toggle")
+		.forEach((el) => {
+			el.addEventListener("click", function (e) {
+				e.stopPropagation();
+				e.target.closest(".dropdown-submenu").classList.add("open");
+			});
+		});
 
-	$.extend(frappe, frappe.get_cookies());
+	Object.assign(frappe, frappe.get_cookies());
 	frappe.session = { user: frappe.user_id };
 
-	frappe.datetime.refresh_when();
+	// frappe.datetime.refresh_when();
 	frappe.trigger_ready();
 	frappe.bind_filters();
 	frappe.highlight_code_blocks();
@@ -638,8 +673,7 @@ $(document).on("page-change", function () {
 	frappe.make_navbar_active();
 	// scroll to hash
 	if (window.location.hash) {
-		var element = document.getElementById(window.location.hash.substring(1));
-		element && element.scrollIntoView(true);
+		document.getElementById(window.location.hash.substring(1))?.scrollIntoView(true);
 	}
 });
 

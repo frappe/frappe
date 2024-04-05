@@ -122,25 +122,26 @@ frappe.avatar_group = function (users, limit = 4, options = {}) {
 		`;
 	}
 
-	const $avatar_group = $(`<div class="avatar-group ${options.align || "right"} ${
-		options.overlap != false ? "overlap" : ""
-	}">
-			${html}
-			${avatar_action_html}
-		</div>`);
+	const avatarGroupElement = document.createElement("div");
+	avatarGroupElement.classList.add("avatar-group", options.align || "right");
+	if (options.overlap !== false) {
+		avatarGroupElement.classList.add("overlap");
+	}
+	avatarGroupElement.innerHTML = `${html}${avatar_action_html}`;
 
-	$avatar_group.find(".avatar-action").on("click", options.action);
-	return $avatar_group;
+	avatarGroupElement.querySelector(".avatar-action").addEventListener("click", options.action);
+	return avatarGroupElement;
 };
 
 frappe.ui.scroll = function (element, animate, additional_offset) {
-	var header_offset = $(".navbar").height() + $(".page-head").height();
-	var top = $(element).offset().top - header_offset - cint(additional_offset);
-	if (animate) {
-		$("html, body").animate({ scrollTop: top });
-	} else {
-		$(window).scrollTop(top);
-	}
+	var header_offset =
+		document.querySelector(".navbar").offsetHeight +
+		document.querySelector(".page-head").offsetHeight;
+	var top = element.getBoundingClientRect().top - header_offset - cint(additional_offset);
+	window.scrollTo({
+		top: top,
+		behavior: "smooth",
+	});
 };
 
 frappe.palette = [
@@ -271,11 +272,11 @@ frappe.get_cookies = function getCookies() {
 };
 
 frappe.is_mobile = function () {
-	return $(document).width() < 768;
+	return document.documentElement.clientWidth < 768;
 };
 
 frappe.is_large_screen = function () {
-	return $(document).height() > 1180;
+	return document.documentElement.clientHeight > 1180;
 };
 
 frappe.utils.xss_sanitise = function (string, options) {
