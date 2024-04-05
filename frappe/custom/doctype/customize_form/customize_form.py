@@ -687,7 +687,7 @@ def get_link_filters_from_doc_without_customisations(doctype, fieldname):
 	Customisations are applied in the client side.
 	"""
 	doc = frappe.get_doc("DocType", doctype)
-	field = list(filter(lambda x: x.fieldname == fieldname, doc.fields))
+	field = [field for field in doc.fields if field.fieldname == fieldname]
 	return field[0].link_filters
 
 
