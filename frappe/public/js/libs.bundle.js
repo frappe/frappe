@@ -1,5 +1,6 @@
 import "./jquery-bootstrap";
 import "./lib/moment";
+import hljs from "./syntax_highlight";
 import "../js/lib/leaflet/leaflet.js";
 import "../js/lib/leaflet_easy_button/easy-button.js";
 import "../js/lib/leaflet_draw/leaflet.draw.js";
