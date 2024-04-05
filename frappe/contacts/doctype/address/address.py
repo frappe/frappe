@@ -125,11 +125,10 @@ def get_preferred_address(doctype, name, preferred_key="is_primary_address"):
 			FROM
 				`tabAddress` addr, `tabDynamic Link` dl
 			WHERE
-				dl.parent = addr.name and dl.link_doctype = %s and
-				dl.link_name = %s and ifnull(addr.disabled, 0) = 0 and
-				%s = %s
-			"""
-			% ("%s", "%s", preferred_key, "%s"),
+				dl.parent = addr.name and dl.link_doctype = {} and
+				dl.link_name = {} and ifnull(addr.disabled, 0) = 0 and
+				{} = {}
+			""".format("%s", "%s", preferred_key, "%s"),
 			(doctype, name, 1),
 			as_dict=1,
 		)
@@ -328,8 +327,18 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	)
 
 
-def get_condensed_address(doc):
-	fields = ["address_title", "address_line1", "address_line2", "city", "county", "state", "country"]
+def get_condensed_address(doc, no_title=False):
+	fields = [
+		"address_title",
+		"address_line1",
+		"address_line2",
+		"city",
+		"county",
+		"state",
+		"country",
+	]
+	if no_title:
+		fields.remove("address_title")
 	return ", ".join(doc.get(d) for d in fields if doc.get(d))
 
 
@@ -349,7 +358,7 @@ def get_address_display_list(doctype: str, name: str) -> list[dict]:
 			["Dynamic Link", "parenttype", "=", "Address"],
 		],
 		fields=["*"],
-		order_by="is_primary_address DESC, creation ASC",
+		order_by="is_primary_address DESC, `tabAddress`.creation ASC",
 	)
 	for a in address_list:
 		a["display"] = get_address_display(a)

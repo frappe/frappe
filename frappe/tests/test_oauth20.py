@@ -316,7 +316,7 @@ class TestOAuth20(FrappeRequestTestCase):
 		frappe.db.commit()
 
 	def test_openid_code_id_token(self):
-		client = update_client_for_auth_code_grant(self.client_id)
+		update_client_for_auth_code_grant(self.client_id)
 		nonce = frappe.generate_hash()
 
 		# Go to Authorize url

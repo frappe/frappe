@@ -14,7 +14,7 @@ def extract(fileobj, *args, **kwargs):
 	module = get_module(fileobj.name)
 
 	if hasattr(module, "standard_navbar_items"):
-		standard_navbar_items = getattr(module, "standard_navbar_items")
+		standard_navbar_items = module.standard_navbar_items
 		for nav_item in standard_navbar_items:
 			if label := nav_item.get("item_label"):
 				item_type = nav_item.get("item_type")
@@ -29,7 +29,7 @@ def extract(fileobj, *args, **kwargs):
 				)
 
 	if hasattr(module, "standard_help_items"):
-		standard_help_items = getattr(module, "standard_help_items")
+		standard_help_items = module.standard_help_items
 		for help_item in standard_help_items:
 			if label := help_item.get("item_label"):
 				item_type = nav_item.get("item_type")

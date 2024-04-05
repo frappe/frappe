@@ -22,7 +22,6 @@ def execute():
 	phone_values = []
 	for count, contact_detail in enumerate(contact_details):
 		phone_counter = 1
-		is_primary = 1
 		if contact_detail.email_id:
 			email_values.append(
 				(

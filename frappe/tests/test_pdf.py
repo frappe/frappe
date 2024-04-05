@@ -6,6 +6,7 @@ from pypdf import PdfReader
 
 import frappe
 import frappe.utils.pdf as pdfgen
+from frappe.core.doctype.file.test_file import make_test_image_file
 from frappe.tests.utils import FrappeTestCase
 
 
@@ -36,8 +37,31 @@ class TestPdf(FrappeTestCase):
 	def test_read_options_from_html(self):
 		_, html_options = pdfgen.read_options_from_html(self.html)
 		self.assertTrue(html_options["margin-top"] == "0")
-		self.assertTrue(html_options["margin-left"] == "10")
+		self.assertTrue(html_options["margin-left"] == "10mm")
 		self.assertTrue(html_options["margin-right"] == "0")
+
+		html_1 = """<style>
+			.print-format {
+				margin-top: 0mm;
+				margin-left: 10mm;
+			}
+			.print-format .more-info {
+				margin-right: 15mm;
+			}
+			.print-format, .more-info {
+				margin-bottom: 20mm;
+			}
+			</style>
+			<div class="more-info">Hello</div>
+		"""
+		_, options = pdfgen.read_options_from_html(html_1)
+
+		self.assertTrue(options["margin-top"] == "0")
+		self.assertTrue(options["margin-left"] == "10mm")
+		self.assertTrue(options["margin-bottom"] == "20mm")
+		# margin-right was for .more-info (child of .print-format)
+		# so it should not be extracted into options
+		self.assertFalse(options.get("margin-right"))
 
 	def test_pdf_encryption(self):
 		password = "qwe"
@@ -50,3 +74,16 @@ class TestPdf(FrappeTestCase):
 		frappe.set_user("Administrator")
 		pdf = pdfgen.get_pdf(self.html)
 		self.assertTrue(pdf)
+
+	def test_private_images_in_pdf(self):
+		with make_test_image_file(private=True) as file:
+			html = f""" <div>
+				<img src="{file.file_url}" class='responsive'>
+				<img src="{file.unique_url}" class='responsive'>
+			</div>
+			"""
+
+			pdf = pdfgen.get_pdf(html)
+
+		# If image was actually retrieved then size will be  in few kbs, else bytes.
+		self.assertGreaterEqual(len(pdf), 10_000)

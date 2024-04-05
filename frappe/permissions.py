@@ -127,7 +127,7 @@ def has_permission(
 	meta = frappe.get_meta(doctype)
 
 	if doc:
-		if isinstance(doc, (str, int)):
+		if isinstance(doc, str | int):
 			doc = frappe.get_doc(meta.name, doc)
 		perm = get_doc_permissions(doc, user=user, ptype=ptype, debug=debug).get(ptype)
 		if not perm:
@@ -158,7 +158,7 @@ def has_permission(
 		if not perm:
 			push_perm_check_log(
 				_("User {0} does not have doctype access via role permission for document {1}").format(
-					frappe.bold(user), frappe.bold(doctype)
+					frappe.bold(user), frappe.bold(_(doctype))
 				),
 				debug=debug,
 			)
@@ -355,7 +355,7 @@ def has_user_permission(doc, user=None, debug=False):
 		# if allowed_docs is empty it states that there is no applicable permission under the current doctype
 
 		# only check if allowed_docs is not empty
-		if allowed_docs and docname not in allowed_docs:
+		if allowed_docs and str(docname) not in allowed_docs:
 			# no user permissions for this doc specified
 			debug and _debug_log(
 				"User doesn't have access to this document because of User Permissions, allowed documents: "
@@ -406,7 +406,7 @@ def has_user_permission(doc, user=None, debug=False):
 						_(field.options),
 						d.get(field.fieldname) or _("empty"),
 						d.idx,
-						_(field.label) if field.label else field.fieldname,
+						_(field.label, context=field.parent) if field.label else field.fieldname,
 					)
 				else:
 					# "You are not allowed to access Company 'Restricted Company' in field Reference Type"
@@ -416,7 +416,7 @@ def has_user_permission(doc, user=None, debug=False):
 						_(meta.doctype),
 						_(field.options),
 						d.get(field.fieldname) or _("empty"),
-						_(field.label) if field.label else field.fieldname,
+						_(field.label, context=field.parent) if field.label else field.fieldname,
 					)
 
 				push_perm_check_log(msg, debug=debug)
@@ -564,16 +564,14 @@ def add_user_permission(
 			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
 
 		frappe.get_doc(
-			dict(
-				doctype="User Permission",
-				user=user,
-				allow=doctype,
-				for_value=name,
-				is_default=is_default,
-				applicable_for=applicable_for,
-				apply_to_all_doctypes=0 if applicable_for else 1,
-				hide_descendants=hide_descendants,
-			)
+			doctype="User Permission",
+			user=user,
+			allow=doctype,
+			for_value=name,
+			is_default=is_default,
+			applicable_for=applicable_for,
+			apply_to_all_doctypes=0 if applicable_for else 1,
+			hide_descendants=hide_descendants,
 		).insert(ignore_permissions=ignore_permissions)
 
 

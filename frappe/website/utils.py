@@ -10,7 +10,6 @@ import yaml
 from werkzeug.wrappers import Response
 
 import frappe
-from frappe import _
 from frappe.model.document import Document
 from frappe.utils import (
 	cint,
@@ -30,14 +29,13 @@ CLEANUP_PATTERN_3 = re.compile(r"(-)\1+")
 
 
 def delete_page_cache(path):
-	frappe.cache.delete_value("full_index")
-	groups = ("website_page", "page_context")
+	groups = ["website_page", "page_context"]
 	if path:
-		for name in groups:
-			frappe.cache.hdel(name, path)
+		frappe.cache.hdel_names(groups, path)
+		frappe.cache.delete_value("full_index")
 	else:
-		for name in groups:
-			frappe.cache.delete_key(name)
+		groups.append("full_index")
+		frappe.cache.delete_value(groups)
 
 
 def find_first_image(html):
@@ -363,25 +361,24 @@ def clear_cache(path=None):
 	:param path: (optional) for the given path"""
 	from frappe.website.router import clear_routing_cache
 
-	for key in (
+	clear_routing_cache()
+
+	keys = [
 		"website_generator_routes",
 		"website_pages",
 		"website_full_index",
 		"languages_with_name",
 		"languages",
-	):
-		frappe.cache.delete_value(key)
+		"website_404",
+	]
 
-	clear_routing_cache()
-
-	frappe.cache.delete_value("website_404")
 	if path:
 		frappe.cache.hdel("website_redirects", path)
 		delete_page_cache(path)
 	else:
 		clear_sitemap()
 		frappe.clear_cache("Guest")
-		for key in (
+		keys += [
 			"portal_menu_items",
 			"home_page",
 			"website_route_rules",
@@ -389,8 +386,9 @@ def clear_cache(path=None):
 			"website_redirects",
 			"page_context",
 			"website_page",
-		):
-			frappe.cache.delete_value(key)
+		]
+
+	frappe.cache.delete_value(keys)
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)

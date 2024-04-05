@@ -14,7 +14,7 @@ class WebhookData(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		fieldname: DF.Literal
+		fieldname: DF.Literal[None]
 		key: DF.Data
 		parent: DF.Data
 		parentfield: DF.Data

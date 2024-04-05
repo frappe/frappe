@@ -22,7 +22,7 @@ class NumberCard(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		aggregate_function_based_on: DF.Literal
+		aggregate_function_based_on: DF.Literal[None]
 		color: DF.Color | None
 		document_type: DF.Link | None
 		dynamic_filters_json: DF.Code | None
@@ -35,7 +35,7 @@ class NumberCard(Document):
 		method: DF.Data | None
 		module: DF.Link | None
 		parent_document_type: DF.Link | None
-		report_field: DF.Literal
+		report_field: DF.Literal[None]
 		report_function: DF.Literal["Sum", "Average", "Minimum", "Maximum"]
 		report_name: DF.Link | None
 		show_percentage_stats: DF.Check
@@ -101,11 +101,11 @@ def get_permission_query_conditions(user=None):
 		module_condition = """`tabNumber Card`.`module` in ({allowed_modules})
 			or `tabNumber Card`.`module` is NULL""".format(allowed_modules=",".join(allowed_modules))
 
-	return """
+	return f"""
 		{doctype_condition}
 		and
 		{module_condition}
-	""".format(doctype_condition=doctype_condition, module_condition=module_condition)
+	"""
 
 
 def has_permission(doc, ptype, user):
@@ -141,11 +141,7 @@ def get_result(doc, filters, to_date=None):
 	if function == "count":
 		fields = [f"{function}(*) as result"]
 	else:
-		fields = [
-			"{function}({based_on}) as result".format(
-				function=function, based_on=doc.aggregate_function_based_on
-			)
-		]
+		fields = [f"{function}({doc.aggregate_function_based_on}) as result"]
 
 	if not filters:
 		filters = []

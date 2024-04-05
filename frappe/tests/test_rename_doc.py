@@ -18,7 +18,7 @@ from frappe.utils import add_to_date, now
 
 
 @contextmanager
-def patch_db(endpoints: list[str] = None):
+def patch_db(endpoints: list[str] | None = None):
 	patched_endpoints = []
 
 	for point in endpoints:

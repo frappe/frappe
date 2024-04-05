@@ -19,7 +19,7 @@ class ModuleDef(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		app_name: DF.Literal
+		app_name: DF.Literal[None]
 		custom: DF.Check
 		module_name: DF.Data
 		package: DF.Link | None

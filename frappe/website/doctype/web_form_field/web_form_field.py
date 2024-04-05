@@ -18,7 +18,7 @@ class WebFormField(Document):
 		default: DF.Data | None
 		depends_on: DF.Code | None
 		description: DF.Text | None
-		fieldname: DF.Literal
+		fieldname: DF.Literal[None]
 		fieldtype: DF.Literal[
 			"Attach",
 			"Attach Image",

@@ -301,7 +301,7 @@ class Report(Document):
 		if filters:
 			for key, value in filters.items():
 				condition, _value = "=", value
-				if isinstance(value, (list, tuple)):
+				if isinstance(value, list | tuple):
 					condition, _value = value
 				_filters.append([key, condition, _value])
 
@@ -315,7 +315,7 @@ class Report(Document):
 		elif params.get("order_by"):
 			order_by = params.get("order_by")
 		else:
-			order_by = Report._format([self.ref_doctype, "modified"]) + " desc"
+			order_by = Report._format([self.ref_doctype, "creation"]) + " desc"
 
 		if params.get("sort_by_next"):
 			order_by += (
@@ -360,7 +360,7 @@ class Report(Document):
 	def build_data_dict(self, result, columns):
 		data = []
 		for row in result:
-			if isinstance(row, (list, tuple)):
+			if isinstance(row, list | tuple):
 				_row = frappe._dict()
 				for i, val in enumerate(row):
 					_row[columns[i].get("fieldname")] = val

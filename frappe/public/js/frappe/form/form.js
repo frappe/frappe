@@ -107,7 +107,6 @@ frappe.ui.form.Form = class FrappeForm {
 
 		// 2 column layout
 		this.setup_std_layout();
-		this.setup_filters();
 
 		// client script must be called after "setup" - there are no fields_dict attached to the frm otherwise
 		this.script_manager = new frappe.ui.form.ScriptManager({
@@ -271,41 +270,6 @@ frappe.ui.form.Form = class FrappeForm {
 		this.states = new frappe.ui.form.States({
 			frm: this,
 		});
-	}
-
-	setup_filters() {
-		let fields_with_filters = frappe
-			.get_meta(this.doctype)
-			.fields.filter((field) => field.link_filters)
-			.map((field) => JSON.parse(field.link_filters));
-		if (fields_with_filters.length === 0) return;
-		fields_with_filters = this.parse_filters(fields_with_filters);
-		for (let link_field in fields_with_filters) {
-			const filters = fields_with_filters[link_field];
-			this.set_query(link_field, () => filters);
-		}
-	}
-
-	parse_filters(data) {
-		const parsed_data = {};
-
-		for (const d of data) {
-			for (const condition of d) {
-				let [doctype, field, operator, value] = condition;
-				doctype = doctype.fieldname;
-				if (!parsed_data[doctype]) {
-					parsed_data[doctype] = {
-						filters: {},
-					};
-				}
-
-				if (!parsed_data[doctype].filters[field]) {
-					parsed_data[doctype].filters[field] = [operator, value];
-				}
-			}
-		}
-
-		return parsed_data;
 	}
 
 	watch_model_updates() {
@@ -1530,7 +1494,10 @@ frappe.ui.form.Form = class FrappeForm {
 		$.each(fields_list, function (i, fname) {
 			var docfield = frappe.meta.docfield_map[doctype][fname];
 			if (docfield) {
-				var label = __(docfield.label || "").replace(/\([^\)]*\)/g, ""); // eslint-disable-line
+				var label = __(docfield.label || "", null, docfield.parent).replace(
+					/\([^\)]*\)/g,
+					""
+				); // eslint-disable-line
 				if (parentfield) {
 					grid_field_label_map[doctype + "-" + fname] =
 						label.trim() + " (" + __(currency) + ")";

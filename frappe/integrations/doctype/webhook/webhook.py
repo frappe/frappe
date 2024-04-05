@@ -13,6 +13,7 @@ import requests
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils.background_jobs import get_queues_timeout
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
@@ -30,6 +31,7 @@ class Webhook(Document):
 		from frappe.integrations.doctype.webhook_header.webhook_header import WebhookHeader
 		from frappe.types import DF
 
+		background_jobs_queue: DF.Autocomplete | None
 		condition: DF.SmallText | None
 		enable_security: DF.Check
 		enabled: DF.Check
@@ -154,7 +156,7 @@ def get_context(doc):
 
 
 def enqueue_webhook(doc, webhook) -> None:
-	request_url = headers = data = None
+	request_url = headers = data = r = None
 	try:
 		webhook: Webhook = frappe.get_doc("Webhook", webhook.get("name"))
 		request_url = webhook.request_url
@@ -252,3 +254,11 @@ def get_webhook_data(doc, webhook):
 		data = json.loads(data)
 
 	return data
+
+
+@frappe.whitelist()
+def get_all_queues():
+	"""Fetches all workers and returns a list of available queue names."""
+	frappe.only_for("System Manager")
+
+	return get_queues_timeout().keys()

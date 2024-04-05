@@ -334,11 +334,11 @@ function get_fields_as_options(doctype, column_map) {
 	return [].concat(
 		...keys.map((key) => {
 			return column_map[key].map((df) => {
-				let label = __(df.label);
+				let label = __(df.label, null, df.parent);
 				let value = df.fieldname;
 				if (doctype !== key) {
 					let table_field = frappe.meta.get_docfield(doctype, key);
-					label = `${__(df.label)} (${__(table_field.label)})`;
+					label = `${__(df.label, null, df.parent)} (${__(table_field.label)})`;
 					value = `${table_field.fieldname}.${df.fieldname}`;
 				}
 				return {

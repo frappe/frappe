@@ -24,12 +24,21 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	refresh: function (frm) {
-		// show is-standard only if developer mode
-		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
+		// get iframe url for web form
+		frm.sidebar
+			.add_user_action(__("Copy Embed Code"))
+			.attr("href", "#")
+			.on("click", () => {
+				const url = frappe.urllib.get_full_url(frm.doc.route);
+				const code = `<iframe src="${url}" style="border: none; width: 100%; height: inherit;"></iframe>`;
+				frappe.utils.copy_to_clipboard(code, __("Embed code copied"));
+			});
 
 		if (frm.doc.is_standard && !frappe.boot.developer_mode) {
-			frm.set_read_only();
-			frm.disable_save();
+			frm.disable_form();
+			frappe.show_alert(
+				__("Standard Web Forms can not be modified, duplicate the Web Form instead.")
+			);
 		}
 		render_list_settings_message(frm);
 

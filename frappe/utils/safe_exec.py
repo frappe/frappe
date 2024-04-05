@@ -262,6 +262,13 @@ def get_safe_globals():
 				before_rollback=frappe.db.before_rollback,
 				add_index=frappe.db.add_index,
 			),
+			website=NamespaceDict(
+				abs_url=frappe.website.utils.abs_url,
+				extract_title=frappe.website.utils.extract_title,
+				get_boot_data=frappe.website.utils.get_boot_data,
+				get_home_page=frappe.website.utils.get_home_page,
+				get_html_content_based_on_type=frappe.website.utils.get_html_content_based_on_type,
+			),
 			lang=getattr(frappe.local, "lang", "en"),
 		),
 		FrappeClient=FrappeClient,
@@ -395,7 +402,7 @@ def get_python_builtins():
 	}
 
 
-def get_hooks(hook: str = None, default=None, app_name: str = None) -> frappe._dict:
+def get_hooks(hook: str | None = None, default=None, app_name: str | None = None) -> frappe._dict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
@@ -498,7 +505,7 @@ def _validate_attribute_read(object, name):
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError(f"{name} is an unsafe attribute")
 
-	if isinstance(object, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
+	if isinstance(object, types.ModuleType | types.CodeType | types.TracebackType | types.FrameType):
 		raise SyntaxError(f"Reading {object} attributes is not allowed")
 
 	if name.startswith("_"):
@@ -509,16 +516,14 @@ def _write(obj):
 	# guard function for RestrictedPython
 	if isinstance(
 		obj,
-		(
-			types.ModuleType,
-			types.CodeType,
-			types.TracebackType,
-			types.FrameType,
-			type,
-			types.FunctionType,  # covers lambda
-			types.MethodType,
-			types.BuiltinFunctionType,  # covers methods
-		),
+		types.ModuleType
+		| types.CodeType
+		| types.TracebackType
+		| types.FrameType
+		| type
+		| types.FunctionType
+		| types.MethodType
+		| types.BuiltinFunctionType,
 	):
 		raise SyntaxError(f"Not allowed to write to object {obj} of type {type(obj)}")
 	return obj

@@ -78,7 +78,7 @@
    "link_fieldname": "email_group"
   }
  ],
- "modified": "2023-11-24 18:35:17.268492",
+ "modified": "2024-03-23 16:03:24.125724",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Group",
@@ -101,7 +101,7 @@
  ],
  "quick_entry": 1,
  "show_name_in_global_search": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

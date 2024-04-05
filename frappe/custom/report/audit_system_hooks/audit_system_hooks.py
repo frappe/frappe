@@ -35,7 +35,7 @@ def get_data():
 
 		v = delist(v)
 
-		if isinstance(v, (dict, list)):
+		if isinstance(v, dict | list):
 			try:
 				return frappe.as_json(v)
 			except Exception:

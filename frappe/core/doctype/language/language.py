@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-import json
 import re
 
 import frappe
@@ -47,38 +46,14 @@ def validate_with_regex(name, label):
 		)
 
 
-def export_languages_json():
-	"""Export list of all languages"""
-	languages = frappe.get_all("Language", fields=["name", "language_name"])
-	languages = [{"name": d.language_name, "code": d.name} for d in languages]
-
-	languages.sort(key=lambda a: a["code"])
-
-	with open(frappe.get_app_path("frappe", "geo", "languages.json"), "w") as f:
-		f.write(frappe.as_json(languages))
-
-
 def sync_languages():
-	"""Sync frappe/geo/languages.json with Language"""
-	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
-		data = json.loads(f.read())
+	"""Create Language records from frappe/geo/languages.csv"""
+	from csv import DictReader
 
-	for l in data:
-		if not frappe.db.exists("Language", l["code"]):
-			frappe.get_doc(
-				{
-					"doctype": "Language",
-					"language_code": l["code"],
-					"language_name": l["name"],
-					"enabled": 1,
-				}
-			).insert()
-
-
-def update_language_names():
-	"""Update frappe/geo/languages.json names (for use via patch)"""
-	with open(frappe.get_app_path("frappe", "geo", "languages.json")) as f:
-		data = json.loads(f.read())
-
-	for l in data:
-		frappe.db.set_value("Language", l["code"], "language_name", l["name"])
+	with open(frappe.get_app_path("frappe", "geo", "languages.csv")) as f:
+		reader = DictReader(f)
+		for row in reader:
+			if not frappe.db.exists("Language", row["language_code"]):
+				doc = frappe.new_doc("Language")
+				doc.update(row)
+				doc.insert()

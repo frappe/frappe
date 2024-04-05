@@ -115,7 +115,7 @@ def get_rendered_template(
 	no_letterhead: bool | None = None,
 	letterhead: str | None = None,
 	trigger_print: bool = False,
-	settings: dict = None,
+	settings: dict | None = None,
 ) -> str:
 	print_settings = frappe.get_single("Print Settings").as_dict()
 	print_settings.update(settings or {})
@@ -162,7 +162,13 @@ def get_rendered_template(
 		def get_template_from_string():
 			return jenv.from_string(get_print_format(doc.doctype, print_format))
 
-		if print_format.custom_format:
+		template = None
+		if hook_func := frappe.get_hooks("get_print_format_template"):
+			template = frappe.get_attr(hook_func[-1])(jenv=jenv, print_format=print_format)
+
+		if template:
+			pass
+		elif print_format.custom_format:
 			template = get_template_from_string()
 
 		elif print_format.format_data:
@@ -470,7 +476,7 @@ def make_layout(doc: "Document", meta: "Meta", format_data=None) -> list:
 
 		if df.fieldtype == "Section Break" or page == []:
 			if len(page) > 1:
-				if page[-1]["has_data"] == False:
+				if not page[-1]["has_data"]:
 					# truncate last section if empty
 					del page[-1]
 

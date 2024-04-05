@@ -20,18 +20,12 @@ repos:
       - id: check-yaml
       - id: debug-statements
 
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.9.0
-    hooks:
-      - id: pyupgrade
-        args: ['--py310-plus']
-
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.2.0
     hooks:
       - id: ruff
-        name: "Sort Python imports"
-        args: ["--select", "I", "--fix"]
+        name: "Run ruff linter and apply fixes"
+        args: ["--fix"]
 
       - id: ruff-format
         name: "Format Python code"
@@ -71,12 +65,6 @@ repos:
                 frappe/templates/includes/.*|
                 frappe/public/js/lib/.*
             )$
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
-    hooks:
-      - id: flake8
-        additional_dependencies: ['flake8-bugbear',]
 
 ci:
     autoupdate_schedule: weekly

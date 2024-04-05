@@ -8,7 +8,7 @@ from shutil import which
 from frappe.database.database import savepoint
 
 
-def setup_database(force, verbose=None, no_mariadb_socket=False):
+def setup_database(force, verbose=None, mariadb_user_host_login_scope=None):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
@@ -18,9 +18,7 @@ def setup_database(force, verbose=None, no_mariadb_socket=False):
 	else:
 		import frappe.database.mariadb.setup_db
 
-		return frappe.database.mariadb.setup_db.setup_database(
-			force, verbose, no_mariadb_socket=no_mariadb_socket
-		)
+		return frappe.database.mariadb.setup_db.setup_database(force, verbose, mariadb_user_host_login_scope)
 
 
 def bootstrap_database(verbose=None, source_sql=None):
@@ -49,20 +47,26 @@ def drop_user_and_database(db_name, db_user):
 		return frappe.database.mariadb.setup_db.drop_user_and_database(db_name, db_user)
 
 
-def get_db(host=None, user=None, password=None, port=None, cur_db_name=None):
+def get_db(socket=None, host=None, user=None, password=None, port=None, cur_db_name=None):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
 		import frappe.database.postgres.database
 
-		return frappe.database.postgres.database.PostgresDatabase(host, user, password, port, cur_db_name)
+		return frappe.database.postgres.database.PostgresDatabase(
+			socket, host, user, password, port, cur_db_name
+		)
 	else:
 		import frappe.database.mariadb.database
 
-		return frappe.database.mariadb.database.MariaDBDatabase(host, user, password, port, cur_db_name)
+		return frappe.database.mariadb.database.MariaDBDatabase(
+			socket, host, user, password, port, cur_db_name
+		)
 
 
-def get_command(host=None, port=None, user=None, password=None, db_name=None, extra=None, dump=False):
+def get_command(
+	socket=None, host=None, port=None, user=None, password=None, db_name=None, extra=None, dump=False
+):
 	import frappe
 
 	if frappe.conf.db_type == "postgres":
@@ -71,7 +75,11 @@ def get_command(host=None, port=None, user=None, password=None, db_name=None, ex
 		else:
 			bin, bin_name = which("psql"), "psql"
 
-		if password:
+		if socket and password:
+			conn_string = f"postgresql://{user}:{password}@/{db_name}?host={socket}"
+		elif socket:
+			conn_string = f"postgresql://{user}@/{db_name}?host={socket}"
+		elif password:
 			conn_string = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
 		else:
 			conn_string = f"postgresql://{user}@{host}:{port}/{db_name}"
@@ -87,11 +95,12 @@ def get_command(host=None, port=None, user=None, password=None, db_name=None, ex
 		else:
 			bin, bin_name = which("mariadb") or which("mysql"), "mariadb"
 
-		command = [
-			f"--user={user}",
-			f"--host={host}",
-			f"--port={port}",
-		]
+		command = [f"--user={user}"]
+		if socket:
+			command.append(f"--socket={socket}")
+		elif host and port:
+			command.append(f"--host={host}")
+			command.append(f"--port={port}")
 
 		if password:
 			command.append(f"--password={password}")

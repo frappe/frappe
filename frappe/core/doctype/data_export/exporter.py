@@ -306,7 +306,7 @@ class DataExporter:
 
 		self.tablerow.append("")
 		self.fieldrow.append(docfield.fieldname)
-		self.labelrow.append(_(docfield.label))
+		self.labelrow.append(_(docfield.label, context=docfield.parent))
 		self.mandatoryrow.append(docfield.reqd and "Yes" or "No")
 		self.typerow.append(docfield.fieldtype)
 		self.inforow.append(self.getinforow(docfield))

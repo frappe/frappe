@@ -145,7 +145,7 @@ class TestPerformance(FrappeTestCase):
 		self.assertGreaterEqual(
 			rps,
 			EXPECTED_RPS * (1 - FAILURE_THREASHOLD),
-			f"Possible performance regression in basic /api/Resource list  requests",
+			"Possible performance regression in basic /api/Resource list  requests",
 		)
 
 	def test_homepage_resolver(self):

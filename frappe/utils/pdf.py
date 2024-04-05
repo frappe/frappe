@@ -1,11 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import base64
 import contextlib
 import io
+import mimetypes
 import os
-import re
 import subprocess
+from urllib.parse import parse_qs, urlparse
 
+import cssutils
 import pdfkit
 from bs4 import BeautifulSoup
 from packaging.version import Version
@@ -13,6 +16,7 @@ from pypdf import PdfReader, PdfWriter
 
 import frappe
 from frappe import _
+from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.utils import scrub_urls
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
@@ -157,6 +161,7 @@ def prepare_options(html, options):
 
 	# cookies
 	options.update(get_cookie_options())
+	html = inline_private_images(html)
 
 	# page size
 	pdf_page_size = (
@@ -201,8 +206,9 @@ def read_options_from_html(html):
 
 	toggle_visible_pdf(soup)
 
-	# use regex instead of soup-parser
-	for attr in (
+	valid_styles = get_print_format_styles(soup)
+
+	attrs = (
 		"margin-top",
 		"margin-bottom",
 		"margin-left",
@@ -212,16 +218,75 @@ def read_options_from_html(html):
 		"orientation",
 		"page-width",
 		"page-height",
-	):
-		try:
-			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
-			match = pattern.findall(html)
-			if match:
-				options[attr] = str(match[-1][3]).strip()
-		except Exception:
-			pass
-
+	)
+	options |= {style.name: style.value for style in valid_styles if style.name in attrs}
 	return str(soup), options
+
+
+def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
+	"""
+	Get styles purely on class 'print-format'.
+	Valid:
+	1) .print-format { ... }
+	2) .print-format, p { ... } | p, .print-format { ... }
+
+	Invalid (applied on child elements):
+	1) .print-format p { ... } | .print-format > p { ... }
+	2) .print-format #abc { ... }
+
+	Returns:
+	[cssutils.css.Property(name='margin-top', value='50mm', priority=''), ...]
+	"""
+	stylesheet = ""
+	style_tags = soup.find_all("style")
+
+	# Prepare a css stylesheet from all the style tags' contents
+	for style_tag in style_tags:
+		stylesheet += style_tag.string
+
+	# Use css parser to tokenize the classes and their styles
+	parsed_sheet = cssutils.parseString(stylesheet)
+
+	# Get all styles that are only for .print-format
+	valid_styles = []
+	for rule in parsed_sheet:
+		if not isinstance(rule, cssutils.css.CSSStyleRule):
+			continue
+
+		# Allow only .print-format { ... } and .print-format, p { ... }
+		# Disallow .print-format p { ... } and .print-format > p { ... }
+		if ".print-format" in [x.strip() for x in rule.selectorText.split(",")]:
+			valid_styles.extend(entry for entry in rule.style)
+
+	return valid_styles
+
+
+def inline_private_images(html) -> str:
+	soup = BeautifulSoup(html, "html.parser")
+	for img in soup.find_all("img"):
+		if b64 := _get_base64_image(img["src"]):
+			img["src"] = b64
+	return str(soup)
+
+
+def _get_base64_image(src):
+	"""Return base64 version of image if user has permission to view it"""
+	try:
+		parsed_url = urlparse(src)
+		path = parsed_url.path
+		query = parse_qs(parsed_url.query)
+		mime_type = mimetypes.guess_type(path)[0]
+		if not mime_type.startswith("image/"):
+			return
+		filename = query.get("fid") and query["fid"][0] or None
+		file = find_file_by_url(path, name=filename)
+		if not file or not file.is_private:
+			return
+
+		b64_encoded_image = base64.b64encode(file.get_content()).decode()
+		return f"data:{mime_type};base64,{b64_encoded_image}"
+	except Exception:
+		frappe.logger("pdf").error("Failed to convert inline images to base64", exc_info=True)
 
 
 def prepare_header_footer(soup: BeautifulSoup):

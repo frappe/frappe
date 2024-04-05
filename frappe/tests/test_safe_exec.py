@@ -93,7 +93,7 @@ class TestSafeExec(FrappeTestCase):
 	def test_ensure_getattrable_globals(self):
 		def check_safe(objects):
 			for obj in objects:
-				if isinstance(obj, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
+				if isinstance(obj, types.ModuleType | types.CodeType | types.TracebackType | types.FrameType):
 					self.fail(f"{obj} wont work in safe exec.")
 				elif isinstance(obj, dict):
 					check_safe(obj.values())

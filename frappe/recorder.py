@@ -59,12 +59,17 @@ def record_sql(*args, **kwargs):
 	result = frappe.db._sql(*args, **kwargs)
 	end_time = time.monotonic()
 
+	query = getattr(frappe.db, "last_query", None)
+	if not query or isinstance(result, str):
+		# run=0, doesn't actually run the query so last_query won't be present
+		return result
+
 	stack = []
 	if frappe.local._recorder.config.capture_stack:
 		stack = list(get_current_stack_frames())
 
 	data = {
-		"query": str(frappe.db.last_query),
+		"query": str(query),
 		"stack": stack,
 		"explain_result": [],
 		"time": start_time,
@@ -81,7 +86,7 @@ def get_current_stack_frames():
 	try:
 		current = inspect.currentframe()
 		frames = inspect.getouterframes(current, context=10)
-		for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:
+		for frame, filename, lineno, function, context, index in list(reversed(frames))[:-2]:  # noqa: B007
 			if "/apps/" in filename or SERVER_SCRIPT_FILE_PREFIX in filename:
 				yield {
 					"filename": TRACEBACK_PATH_PATTERN.sub("", filename),

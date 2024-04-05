@@ -167,7 +167,7 @@ def new_po(locale, target_app: str | None = None):
 
 		print(f"PO file created_at {po_path}")
 		print(
-			"You will need to add the language in frappe/geo/languages.json, if you haven't done it already."
+			"You will need to add the language in frappe/geo/languages.csv, if you haven't done it already."
 		)
 
 

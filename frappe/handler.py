@@ -187,7 +187,8 @@ def upload_file():
 	optimize = frappe.form_dict.optimize
 	content = None
 
-	if frappe.form_dict.get("library_file_name", False):
+	if library_file := frappe.form_dict.get("library_file_name"):
+		frappe.has_permission("File", doc=library_file, throw=True)
 		doc = frappe.get_value(
 			"File",
 			frappe.form_dict.library_file_name,
@@ -243,7 +244,7 @@ def upload_file():
 		).save(ignore_permissions=ignore_permissions)
 
 
-def check_write_permission(doctype: str = None, name: str = None):
+def check_write_permission(doctype: str | None = None, name: str | None = None):
 	check_doctype = doctype and not name
 	if doctype and name:
 		try:

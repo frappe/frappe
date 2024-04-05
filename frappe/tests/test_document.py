@@ -101,8 +101,13 @@ class TestDocument(FrappeTestCase):
 	def test_value_changed(self):
 		d = self.test_insert()
 		d.subject = "subject changed again"
-		d.save()
+		d.load_doc_before_save()
+		d.update_modified()
+
 		self.assertTrue(d.has_value_changed("subject"))
+		self.assertTrue(d.has_value_changed("modified"))
+
+		self.assertFalse(d.has_value_changed("creation"))
 		self.assertFalse(d.has_value_changed("event_type"))
 
 	def test_mandatory(self):

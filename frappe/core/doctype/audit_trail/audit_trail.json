@@ -99,7 +99,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-10-31 13:12:41.749483",
+ "modified": "2024-03-23 16:01:28.029916",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Audit Trail",
@@ -114,7 +114,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

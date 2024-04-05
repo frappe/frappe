@@ -22,7 +22,7 @@ from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF
 from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
-from frappe.utils.data import get_absolute_url
+from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
@@ -161,7 +161,7 @@ class Document(BaseDocument):
 
 		else:
 			get_value_kwargs = {"for_update": self.flags.for_update, "as_dict": True}
-			if not isinstance(self.name, (dict, list)):
+			if not isinstance(self.name, dict | list):
 				get_value_kwargs["order_by"] = None
 
 			d = frappe.db.get_value(
@@ -202,9 +202,11 @@ class Document(BaseDocument):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
+		return self
+
 	def reload(self):
 		"""Reload document from database"""
-		self.load_from_db()
+		return self.load_from_db()
 
 	def get_latest(self):
 		if not getattr(self, "_doc_before_save", None):
@@ -300,8 +302,9 @@ class Document(BaseDocument):
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
 		# children
-		for d in self.get_all_children():
-			d.db_insert()
+		if not getattr(self.meta, "is_virtual", False):
+			for d in self.get_all_children():
+				d.db_insert()
 
 		self.run_method("after_insert")
 		self.flags.in_insert = True
@@ -415,6 +418,9 @@ class Document(BaseDocument):
 
 	def update_children(self):
 		"""update child tables"""
+		if getattr(self.meta, "is_virtual", False):
+			# Virtual doctypes manage their own children
+			return
 		for df in self.meta.get_table_fields():
 			self.update_child_table(df.fieldname, df)
 
@@ -455,8 +461,24 @@ class Document(BaseDocument):
 
 	def has_value_changed(self, fieldname):
 		"""Return True if value has changed before and after saving."""
+		from datetime import date, datetime, timedelta
+
 		previous = self.get_doc_before_save()
-		return previous.get(fieldname) != self.get(fieldname) if previous else True
+
+		if not previous:
+			return True
+
+		previous_value = previous.get(fieldname)
+		current_value = self.get(fieldname)
+
+		if isinstance(previous_value, datetime):
+			current_value = get_datetime(current_value)
+		elif isinstance(previous_value, date):
+			current_value = getdate(current_value)
+		elif isinstance(previous_value, timedelta):
+			current_value = get_timedelta(current_value)
+
+		return previous_value != current_value
 
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
@@ -571,6 +593,7 @@ class Document(BaseDocument):
 			d._validate_selects()
 			d._validate_non_negative()
 			d._validate_length()
+			d._fix_rating_value()
 			d._validate_code_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
@@ -591,11 +614,11 @@ class Document(BaseDocument):
 					_("Row"),
 					self.idx,
 					_("Value cannot be negative for"),
-					frappe.bold(_(df.label)),
+					frappe.bold(_(df.label, context=df.parent)),
 				)
 			else:
 				return _("Value cannot be negative for {0}: {1}").format(
-					_(df.parent), frappe.bold(_(df.label))
+					_(df.parent), frappe.bold(_(df.label, context=df.parent))
 				)
 
 		for df in self.meta.get(
@@ -883,7 +906,7 @@ class Document(BaseDocument):
 		if not missing:
 			return
 
-		for fieldname, msg in missing:
+		for idx, msg in missing:  # noqa: B007
 			msgprint(msg)
 
 		if frappe.flags.print_messages:
@@ -1252,7 +1275,7 @@ class Document(BaseDocument):
 			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
 
 		version = frappe.new_doc("Version")
-		if is_useful_diff := version.update_version_info(doc_to_compare, self):
+		if version.update_version_info(doc_to_compare, self):
 			version.insert(ignore_permissions=True)
 
 			if not frappe.flags.in_migrate:
@@ -1284,7 +1307,11 @@ class Document(BaseDocument):
 			def runner(self, method, *args, **kwargs):
 				add_to_return_value(self, fn(self, *args, **kwargs))
 				for f in hooks:
-					add_to_return_value(self, f(self, method, *args, **kwargs))
+					try:
+						frappe.db._disable_transaction_control += 1
+						add_to_return_value(self, f(self, method, *args, **kwargs))
+					finally:
+						frappe.db._disable_transaction_control -= 1
 
 				return self.__dict__.pop("_return_value", None)
 
@@ -1520,11 +1547,16 @@ class Document(BaseDocument):
 				primary_action=primary_action,
 			)
 
+		enqueue_after_commit = kwargs.pop("enqueue_after_commit", None)
+		if enqueue_after_commit is None:
+			enqueue_after_commit = True
+
 		return enqueue(
 			"frappe.model.document.execute_action",
 			__doctype=self.doctype,
 			__name=self.name,
 			__action=action,
+			enqueue_after_commit=enqueue_after_commit,
 			**kwargs,
 		)
 
@@ -1540,7 +1572,7 @@ class Document(BaseDocument):
 				file_lock.delete_lock(signature)
 				lock_exists = False
 			if timeout:
-				for i in range(timeout):
+				for _ in range(timeout):
 					time.sleep(1)
 					if not file_lock.lock_exists(signature):
 						lock_exists = False
@@ -1701,7 +1733,7 @@ def _document_values_generator(
 ) -> Generator[tuple[Any], None, None]:
 	for doc in documents:
 		doc.creation = doc.modified = now()
-		doc.created_by = doc.modified_by = frappe.session.user
+		doc.owner = doc.modified_by = frappe.session.user
 		doc_values = doc.get_valid_dict(
 			convert_dates_to_str=True,
 			ignore_nulls=True,

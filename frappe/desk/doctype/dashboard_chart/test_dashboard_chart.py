@@ -34,17 +34,15 @@ class TestDashboardChart(FrappeTestCase):
 			frappe.delete_doc("Dashboard Chart", "Test Dashboard Chart")
 
 		frappe.get_doc(
-			dict(
-				doctype="Dashboard Chart",
-				chart_name="Test Dashboard Chart",
-				chart_type="Count",
-				document_type="DocType",
-				based_on="creation",
-				timespan="Last Year",
-				time_interval="Monthly",
-				filters_json="{}",
-				timeseries=1,
-			)
+			doctype="Dashboard Chart",
+			chart_name="Test Dashboard Chart",
+			chart_type="Count",
+			document_type="DocType",
+			based_on="creation",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="{}",
+			timeseries=1,
 		).insert()
 
 		cur_date = datetime.now() - relativedelta(years=1)
@@ -64,17 +62,15 @@ class TestDashboardChart(FrappeTestCase):
 		frappe.db.delete("Error Log")
 
 		frappe.get_doc(
-			dict(
-				doctype="Dashboard Chart",
-				chart_name="Test Empty Dashboard Chart",
-				chart_type="Count",
-				document_type="Error Log",
-				based_on="creation",
-				timespan="Last Year",
-				time_interval="Monthly",
-				filters_json="[]",
-				timeseries=1,
-			)
+			doctype="Dashboard Chart",
+			chart_name="Test Empty Dashboard Chart",
+			chart_type="Count",
+			document_type="Error Log",
+			based_on="creation",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="[]",
+			timeseries=1,
 		).insert()
 
 		cur_date = datetime.now() - relativedelta(years=1)
@@ -94,20 +90,18 @@ class TestDashboardChart(FrappeTestCase):
 		frappe.db.delete("Error Log")
 
 		# create one data point
-		frappe.get_doc(dict(doctype="Error Log", creation="2018-06-01 00:00:00")).insert()
+		frappe.get_doc(doctype="Error Log", creation="2018-06-01 00:00:00").insert()
 
 		frappe.get_doc(
-			dict(
-				doctype="Dashboard Chart",
-				chart_name="Test Empty Dashboard Chart 2",
-				chart_type="Count",
-				document_type="Error Log",
-				based_on="creation",
-				timespan="Last Year",
-				time_interval="Monthly",
-				filters_json="[]",
-				timeseries=1,
-			)
+			doctype="Dashboard Chart",
+			chart_name="Test Empty Dashboard Chart 2",
+			chart_type="Count",
+			document_type="Error Log",
+			based_on="creation",
+			timespan="Last Year",
+			time_interval="Monthly",
+			filters_json="[]",
+			timeseries=1,
 		).insert()
 
 		cur_date = datetime.now() - relativedelta(years=1)
@@ -130,14 +124,12 @@ class TestDashboardChart(FrappeTestCase):
 		frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
 
 		frappe.get_doc(
-			dict(
-				doctype="Dashboard Chart",
-				chart_name="Test Group By Dashboard Chart",
-				chart_type="Group By",
-				document_type="ToDo",
-				group_by_based_on="status",
-				filters_json="[]",
-			)
+			doctype="Dashboard Chart",
+			chart_name="Test Group By Dashboard Chart",
+			chart_type="Group By",
+			document_type="ToDo",
+			group_by_based_on="status",
+			filters_json="[]",
 		).insert()
 
 		result = get(chart_name="Test Group By Dashboard Chart", refresh=1)
@@ -152,20 +144,18 @@ class TestDashboardChart(FrappeTestCase):
 			frappe.delete_doc("Dashboard Chart", "Test Daily Dashboard Chart")
 
 		frappe.get_doc(
-			dict(
-				doctype="Dashboard Chart",
-				chart_name="Test Daily Dashboard Chart",
-				chart_type="Sum",
-				document_type="Communication",
-				based_on="communication_date",
-				value_based_on="rating",
-				timespan="Select Date Range",
-				time_interval="Daily",
-				from_date=datetime(2019, 1, 6),
-				to_date=datetime(2019, 1, 11),
-				filters_json="[]",
-				timeseries=1,
-			)
+			doctype="Dashboard Chart",
+			chart_name="Test Daily Dashboard Chart",
+			chart_type="Sum",
+			document_type="Communication",
+			based_on="communication_date",
+			value_based_on="rating",
+			timespan="Select Date Range",
+			time_interval="Daily",
+			from_date=datetime(2019, 1, 6),
+			to_date=datetime(2019, 1, 11),
+			filters_json="[]",
+			timeseries=1,
 		).insert()
 
 		result = get(chart_name="Test Daily Dashboard Chart", refresh=1)
@@ -183,20 +173,18 @@ class TestDashboardChart(FrappeTestCase):
 			frappe.delete_doc("Dashboard Chart", "Test Weekly Dashboard Chart")
 
 		frappe.get_doc(
-			dict(
-				doctype="Dashboard Chart",
-				chart_name="Test Weekly Dashboard Chart",
-				chart_type="Sum",
-				document_type="Communication",
-				based_on="communication_date",
-				value_based_on="rating",
-				timespan="Select Date Range",
-				time_interval="Weekly",
-				from_date=datetime(2018, 12, 30),
-				to_date=datetime(2019, 1, 15),
-				filters_json="[]",
-				timeseries=1,
-			)
+			doctype="Dashboard Chart",
+			chart_name="Test Weekly Dashboard Chart",
+			chart_type="Sum",
+			document_type="Communication",
+			based_on="communication_date",
+			value_based_on="rating",
+			timespan="Select Date Range",
+			time_interval="Weekly",
+			from_date=datetime(2018, 12, 30),
+			to_date=datetime(2019, 1, 15),
+			filters_json="[]",
+			timeseries=1,
 		).insert()
 
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
@@ -212,20 +200,18 @@ class TestDashboardChart(FrappeTestCase):
 			frappe.delete_doc("Dashboard Chart", "Test Average Dashboard Chart")
 
 		frappe.get_doc(
-			dict(
-				doctype="Dashboard Chart",
-				chart_name="Test Average Dashboard Chart",
-				chart_type="Average",
-				document_type="Communication",
-				based_on="communication_date",
-				value_based_on="rating",
-				timespan="Select Date Range",
-				time_interval="Weekly",
-				from_date=datetime(2018, 12, 30),
-				to_date=datetime(2019, 1, 15),
-				filters_json="[]",
-				timeseries=1,
-			)
+			doctype="Dashboard Chart",
+			chart_name="Test Average Dashboard Chart",
+			chart_type="Average",
+			document_type="Communication",
+			based_on="communication_date",
+			value_based_on="rating",
+			timespan="Select Date Range",
+			time_interval="Weekly",
+			from_date=datetime(2018, 12, 30),
+			to_date=datetime(2019, 1, 15),
+			filters_json="[]",
+			timeseries=1,
 		).insert()
 
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
@@ -237,19 +223,17 @@ class TestDashboardChart(FrappeTestCase):
 		frappe.delete_doc_if_exists("Dashboard Chart", "Test Dashboard Chart Date Label")
 
 		frappe.get_doc(
-			dict(
-				doctype="Dashboard Chart",
-				chart_name="Test Dashboard Chart Date Label",
-				chart_type="Count",
-				document_type="DocType",
-				based_on="creation",
-				timespan="Select Date Range",
-				time_interval="Weekly",
-				from_date=datetime(2018, 12, 30),
-				to_date=datetime(2019, 1, 15),
-				filters_json="[]",
-				timeseries=1,
-			)
+			doctype="Dashboard Chart",
+			chart_name="Test Dashboard Chart Date Label",
+			chart_type="Count",
+			document_type="DocType",
+			based_on="creation",
+			timespan="Select Date Range",
+			time_interval="Weekly",
+			from_date=datetime(2018, 12, 30),
+			to_date=datetime(2019, 1, 15),
+			filters_json="[]",
+			timeseries=1,
 		).insert()
 
 		with patch.object(frappe.utils.data, "get_user_date_format", return_value="dd.mm.yyyy"):

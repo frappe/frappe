@@ -10,6 +10,8 @@ be used to build database driven apps.
 
 Read the documentation: https://frappeframework.com/docs
 """
+import copy
+import faulthandler
 import functools
 import gc
 import importlib
@@ -17,6 +19,7 @@ import inspect
 import json
 import os
 import re
+import signal
 import traceback
 import warnings
 from collections.abc import Callable
@@ -152,12 +155,12 @@ class _LazyTranslate:
 		return self.value
 
 	def __add__(self, other):
-		if isinstance(other, (str, _LazyTranslate)):
+		if isinstance(other, str | _LazyTranslate):
 			return self.value + str(other)
 		raise NotImplementedError
 
 	def __radd__(self, other):
-		if isinstance(other, (str, _LazyTranslate)):
+		if isinstance(other, str | _LazyTranslate):
 			return str(other) + self.value
 		return NotImplementedError
 
@@ -299,11 +302,13 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.qb = get_query_builder(local.conf.db_type)
 	local.qb.get_query = get_query
 	setup_redis_cache_connection()
-	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
+		_register_fault_handler()
+
+	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
 	local.initialised = True
 
@@ -338,6 +343,7 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 	assert local.conf.db_password, "site must be fully initialized, db_password missing"
 
 	local.db = get_db(
+		socket=local.conf.db_socket,
 		host=local.conf.db_host,
 		port=local.conf.db_port,
 		user=local.conf.db_user or db_name,
@@ -363,6 +369,7 @@ def connect_replica() -> bool:
 		password = local.conf.replica_db_password
 
 	local.replica_db = get_db(
+		socket=None,
 		host=local.conf.replica_host,
 		port=port,
 		user=user,
@@ -425,6 +432,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 		os.environ.get("FRAPPE_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
 	)
 	config["db_type"] = os.environ.get("FRAPPE_DB_TYPE") or config.get("db_type") or "mariadb"
+	config["db_socket"] = os.environ.get("FRAPPE_DB_SOCKET") or config.get("db_socket")
 	config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
 	config["db_port"] = (
 		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
@@ -502,9 +510,9 @@ def setup_redis_cache_connection():
 	global cache
 
 	if not cache:
-		from frappe.utils.redis_wrapper import RedisWrapper
+		from frappe.utils.redis_wrapper import setup_cache
 
-		cache = RedisWrapper.from_url(conf.get("redis_cache"))
+		cache = setup_cache()
 
 
 def get_traceback(with_context: bool = False) -> str:
@@ -534,10 +542,16 @@ def log(msg: str) -> None:
 
 	:param msg: Message."""
 	if not request:
-		if conf.get("logging"):
-			print(repr(msg))
+		print(repr(msg))
 
 	debug_log.append(as_unicode(msg))
+
+
+@functools.lru_cache(maxsize=1024)
+def _strip_html_tags(message):
+	from frappe.utils import strip_html_tags
+
+	return strip_html_tags(message)
 
 
 def msgprint(
@@ -548,7 +562,7 @@ def msgprint(
 	as_list: bool = False,
 	indicator: Literal["blue", "green", "orange", "red", "yellow"] | None = None,
 	alert: bool = False,
-	primary_action: str = None,
+	primary_action: str | None = None,
 	is_minimizable: bool = False,
 	wide: bool = False,
 	*,
@@ -571,14 +585,8 @@ def msgprint(
 	import inspect
 	import sys
 
-	from frappe.utils import strip_html_tags
-
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
-
-	@functools.lru_cache(maxsize=1024)
-	def _strip_html_tags(message):
-		return strip_html_tags(message)
 
 	def _raise_exception():
 		if raise_exception:
@@ -939,6 +947,7 @@ def is_whitelisted(method):
 
 def read_only():
 	def innfn(fn):
+		@functools.wraps(fn)
 		def wrapper_fn(*args, **kwargs):
 			# frappe.read_only could be called from nested functions, in such cases don't swap the
 			# connection again.
@@ -1181,8 +1190,10 @@ def generate_hash(txt: str | None = None, length: int = 56) -> str:
 	import math
 	import secrets
 
-	if not length:
-		length = 56
+	if txt:
+		from frappe.utils.deprecations import deprecation_warning
+
+		deprecation_warning("The `txt` parameter is deprecated and will be removed in a future release.")
 
 	return secrets.token_hex(math.ceil(length / 2))[:length]
 
@@ -1300,7 +1311,7 @@ def get_cached_value(doctype: str, name: str, fieldname: str = "name", as_dict: 
 
 	values = [doc.get(f) for f in fieldname]
 	if as_dict:
-		return _dict(zip(fieldname, values))
+		return _dict(zip(fieldname, values, strict=False))
 	return values
 
 
@@ -1644,7 +1655,7 @@ def _load_app_hooks(app_name: str | None = None):
 			raise
 
 		def _is_valid_hook(obj):
-			return not isinstance(obj, (types.ModuleType, types.FunctionType, type))
+			return not isinstance(obj, types.ModuleType | types.FunctionType | type)
 
 		for key, value in inspect.getmembers(app_hooks, predicate=_is_valid_hook):
 			if not key.startswith("_"):
@@ -1652,7 +1663,9 @@ def _load_app_hooks(app_name: str | None = None):
 	return hooks
 
 
-def get_hooks(hook: str = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str = None) -> _dict:
+def get_hooks(
+	hook: str | None = None, default: Any | None = "_KEEP_DEFAULT_LIST", app_name: str | None = None
+) -> _dict:
 	"""Get hooks via `app/hooks.py`
 
 	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
@@ -1693,11 +1706,19 @@ def append_hook(target, key, value):
 		target[key].extend(value)
 
 
-def setup_module_map(include_all_apps=True):
-	"""Rebuild map of all modules (internal)."""
-	if conf.db_name:
+def setup_module_map(include_all_apps: bool = True) -> None:
+	"""
+	Function to rebuild map of all modules
+
+	:param: include_all_apps: Include all apps on bench, or just apps installed on the site.
+	:return: Nothing
+	"""
+	if include_all_apps:
 		local.app_modules = cache.get_value("app_modules")
 		local.module_app = cache.get_value("module_app")
+	else:
+		local.app_modules = cache.get_value("installed_app_modules")
+		local.module_app = cache.get_value("module_installed_app")
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
@@ -1716,9 +1737,12 @@ def setup_module_map(include_all_apps=True):
 				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
-		if conf.db_name:
+		if include_all_apps:
 			cache.set_value("app_modules", local.app_modules)
 			cache.set_value("module_app", local.module_app)
+		else:
+			cache.set_value("installed_app_modules", local.app_modules)
+			cache.set_value("module_installed_app", local.module_app)
 
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
@@ -1898,13 +1922,13 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 
 	newdoc = get_doc(copy.deepcopy(d))
 	newdoc.set("__islocal", 1)
-	for fieldname in fields_to_clear + ["amended_from", "amendment_date"]:
+	for fieldname in [*fields_to_clear, "amended_from", "amendment_date"]:
 		newdoc.set(fieldname, None)
 
 	if not ignore_no_copy:
 		remove_no_copy_fields(newdoc)
 
-	for i, d in enumerate(newdoc.get_all_children()):
+	for d in newdoc.get_all_children():
 		d.set("__islocal", 1)
 
 		for fieldname in fields_to_clear:
@@ -2026,7 +2050,7 @@ def get_list(doctype, *args, **kwargs):
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`.
 	:param filters: List of filters (see example).
-	:param order_by: Order By e.g. `modified desc`.
+	:param order_by: Order By e.g. `creation desc`.
 	:param limit_start: Start results at record #. Default 0.
 	:param limit_page_length: No of records in the page. Default 20.
 
@@ -2050,7 +2074,7 @@ def get_all(doctype, *args, **kwargs):
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`. Default is: `["name"]`.
 	:param filters: List of filters (see example).
-	:param order_by: Order By e.g. `modified desc`.
+	:param order_by: Order By e.g. `creation desc`.
 	:param limit_start: Start results at record #. Default 0.
 	:param limit_page_length: No of records in the page. Default 20.
 
@@ -2172,21 +2196,27 @@ def get_print(
 	:param as_pdf: Return as PDF. Default False.
 	:param password: Password to encrypt the pdf with. Default None"""
 	from frappe.utils.pdf import get_pdf
-	from frappe.website.serve import get_response_content
+	from frappe.website.serve import get_response_without_exception_handling
 
-	local.form_dict.doctype = doctype
-	local.form_dict.name = name
-	local.form_dict.format = print_format
-	local.form_dict.style = style
-	local.form_dict.doc = doc
-	local.form_dict.no_letterhead = no_letterhead
-	local.form_dict.letterhead = letterhead
+	original_form_dict = copy.deepcopy(local.form_dict)
+	try:
+		local.form_dict.doctype = doctype
+		local.form_dict.name = name
+		local.form_dict.format = print_format
+		local.form_dict.style = style
+		local.form_dict.doc = doc
+		local.form_dict.no_letterhead = no_letterhead
+		local.form_dict.letterhead = letterhead
 
-	pdf_options = pdf_options or {}
-	if password:
-		pdf_options["password"] = password
+		pdf_options = pdf_options or {}
+		if password:
+			pdf_options["password"] = password
 
-	html = get_response_content("printview")
+		response = get_response_without_exception_handling("printview", 200)
+		html = str(response.data, "utf-8")
+	finally:
+		local.form_dict = original_form_dict
+
 	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
@@ -2493,7 +2523,7 @@ def mock(type, size=1, locale="en"):
 	if type not in dir(fake):
 		raise ValueError("Not a valid mock type.")
 	else:
-		for i in range(size):
+		for _ in range(size):
 			data = getattr(fake, type)()
 			results.append(data)
 
@@ -2507,7 +2537,7 @@ def validate_and_sanitize_search_inputs(fn):
 	def wrapper(*args, **kwargs):
 		from frappe.desk.search import sanitize_searchfield
 
-		kwargs.update(dict(zip(fn.__code__.co_varnames, args)))
+		kwargs.update(dict(zip(fn.__code__.co_varnames, args, strict=False)))
 		sanitize_searchfield(kwargs["searchfield"])
 		kwargs["start"] = cint(kwargs["start"])
 		kwargs["page_len"] = cint(kwargs["page_len"])
@@ -2520,7 +2550,11 @@ def validate_and_sanitize_search_inputs(fn):
 	return wrapper
 
 
-from frappe.utils.error import log_error  # noqa: backward compatibility
+def _register_fault_handler():
+	faulthandler.register(signal.SIGUSR1)
+
+
+from frappe.utils.error import log_error
 
 if _tune_gc:
 	# generational GC gets triggered after certain allocs (g0) which is 700 by default.

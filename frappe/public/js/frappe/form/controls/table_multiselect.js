@@ -110,14 +110,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 			return all_rows_except_last;
 		}
 
-		const validate_promise = this.validate_link_and_fetch(
-			this.df,
-			this.get_options(),
-			this.docname,
-			link_value
-		);
-
-		return validate_promise.then((validated_value) => {
+		return this.validate_link_and_fetch(link_value).then((validated_value) => {
 			if (validated_value === link_value) {
 				return rows;
 			} else {
@@ -155,7 +148,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	get_link_field() {
 		if (!this._link_field) {
 			const meta = frappe.get_meta(this.df.options);
-			this._link_field = meta.fields.find((df) => df.fieldtype === "Link");
+			this._link_field = meta.fields?.find((df) => df.fieldtype === "Link");
 			if (!this._link_field) {
 				throw new Error("Table MultiSelect requires a Table with atleast one Link field");
 			}

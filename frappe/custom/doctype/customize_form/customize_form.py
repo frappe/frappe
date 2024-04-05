@@ -44,7 +44,7 @@ class CustomizeForm(Document):
 		autoname: DF.Data | None
 		default_email_template: DF.Link | None
 		default_print_format: DF.Link | None
-		default_view: DF.Literal
+		default_view: DF.Literal[None]
 		doc_type: DF.Link | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
@@ -75,7 +75,7 @@ class CustomizeForm(Document):
 		sender_name_field: DF.Data | None
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
-		sort_field: DF.Literal
+		sort_field: DF.Literal[None]
 		sort_order: DF.Literal["ASC", "DESC"]
 		states: DF.Table[DocTypeState]
 		subject_field: DF.Data | None
@@ -592,11 +592,11 @@ class CustomizeForm(Document):
 			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
 			fieldname = df.fieldname
 			docs = frappe.db.sql(
-				"""
+				f"""
 				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
-				FROM `tab{doctype}`
+				FROM `tab{self.doc_type}`
 				WHERE LENGTH({fieldname}) > {max_length}
-			""".format(fieldname=fieldname, doctype=self.doc_type, max_length=max_length),
+			""",
 				as_dict=True,
 			)
 			label = df.label
@@ -798,7 +798,7 @@ ALLOWED_FIELDTYPE_CHANGE = (
 	("Text", "Data"),
 	("Text", "Text Editor", "Code", "Signature", "HTML Editor"),
 	("Data", "Select"),
-	("Text", "Small Text"),
+	("Text", "Small Text", "Long Text"),
 	("Text", "Data", "Barcode"),
 	("Code", "Geolocation"),
 	("Table", "Table MultiSelect"),

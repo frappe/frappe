@@ -19,7 +19,7 @@ class KanbanBoard(Document):
 		from frappe.types import DF
 
 		columns: DF.Table[KanbanBoardColumn]
-		field_name: DF.Literal
+		field_name: DF.Literal[None]
 		fields: DF.Code | None
 		filters: DF.Code | None
 		kanban_board_name: DF.Data
@@ -52,9 +52,7 @@ def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
 
-	return """(`tabKanban Board`.private=0 or `tabKanban Board`.owner={user})""".format(
-		user=frappe.db.escape(user)
-	)
+	return f"""(`tabKanban Board`.private=0 or `tabKanban Board`.owner={frappe.db.escape(user)})"""
 
 
 def has_permission(doc, ptype, user):

@@ -19,9 +19,6 @@ from contextlib import contextmanager, suppress
 from csv import reader, writer
 
 import frappe
-from frappe.gettext.extractors.javascript import extract_javascript
-from frappe.gettext.extractors.utils import extract_messages_from_code, is_translatable
-from frappe.gettext.translate import get_translations_from_mo
 from frappe.query_builder import DocType, Field
 from frappe.utils import cstr, get_bench_path, is_html, strip, strip_html_tags, unique
 
@@ -34,7 +31,7 @@ MERGED_TRANSLATION_KEY = "merged_translations"
 USER_TRANSLATION_KEY = "lang_user_translations"
 
 
-def get_language(lang_list: list = None) -> str:
+def get_language(lang_list: list | None = None) -> str:
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request
 
 	Order of priority for setting language:
@@ -65,7 +62,7 @@ def get_language(lang_list: list = None) -> str:
 		if preferred_language_cookie in lang_set:
 			return preferred_language_cookie
 
-		parent_language = get_parent_language(language)
+		parent_language = get_parent_language(preferred_language_cookie)
 		if parent_language in lang_set:
 			return parent_language
 
@@ -97,7 +94,7 @@ def get_parent_language(lang: str) -> str:
 			return lang.split(sep)[0]
 
 
-def get_user_lang(user: str = None) -> str:
+def get_user_lang(user: str | None = None) -> str:
 	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
 	user = user or frappe.session.user
 	lang = frappe.cache.hget("lang", user)
@@ -132,7 +129,7 @@ def set_default_language(lang):
 def get_lang_dict():
 	"""Return all languages in dict format, full name is the key e.g. `{"english":"en"}`."""
 	return dict(
-		frappe.get_all("Language", fields=["language_name", "name"], order_by="modified", as_list=True)
+		frappe.get_all("Language", fields=["language_name", "name"], order_by="creation", as_list=True)
 	)
 
 
@@ -174,6 +171,8 @@ def get_translations_from_apps(lang, apps=None):
 	For derivative languages (es-GT), take translations from the
 	base language (es) and then update translations from the child (es-GT)"""
 	translations = {}
+	from frappe.gettext.translate import get_translations_from_mo
+
 	for app in apps or frappe.get_installed_apps(_ensure_on_bench=True):
 		translations.update(get_translations_from_csv(lang, app) or {})
 		translations.update(get_translations_from_mo(lang, app) or {})
@@ -204,9 +203,7 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 			elif len(item) in [2, 3]:
 				translation_map[item[0]] = strip(item[1])
 			elif item:
-				msg = "Bad translation in '{app}' for language '{lang}': {values}".format(
-					app=app, lang=lang, values=cstr(item)
-				)
+				msg = f"Bad translation in '{app}' for language '{lang}': {cstr(item)}"
 				frappe.log_error(message=msg, title="Error in translation file")
 				if throw:
 					frappe.throw(msg, title="Error in translation file")
@@ -309,6 +306,8 @@ def get_messages_from_navbar():
 def get_messages_from_doctype(name):
 	"""Extract all translatable messages for a doctype. Includes labels, Python code,
 	Javascript code, html templates"""
+	from frappe.gettext.extractors.utils import is_translatable
+
 	messages = []
 	meta = frappe.get_meta(name)
 
@@ -349,6 +348,7 @@ def get_messages_from_doctype(name):
 
 def get_messages_from_workflow(doctype=None, app_name=None):
 	assert doctype or app_name, "doctype or app_name should be provided"
+	from frappe.gettext.extractors.utils import is_translatable
 
 	# translations for Workflows
 	workflows = []
@@ -418,6 +418,8 @@ def get_messages_from_workflow(doctype=None, app_name=None):
 
 
 def get_messages_from_custom_fields(app_name):
+	from frappe.gettext.extractors.utils import is_translatable
+
 	fixtures = frappe.get_hooks("fixtures", app_name=app_name) or []
 	custom_fields = []
 
@@ -458,6 +460,8 @@ def get_messages_from_page(name):
 
 def get_messages_from_report(name):
 	"""Return all translatable strings from a :class:`frappe.core.doctype.Report`."""
+	from frappe.gettext.extractors.utils import is_translatable
+
 	report = frappe.get_doc("Report", name)
 	messages = _get_messages_from_page_or_report(
 		"Report", name, frappe.db.get_value("DocType", report.ref_doctype, "module")
@@ -545,7 +549,7 @@ def get_all_messages_from_js_files(app_name=None):
 	messages = []
 	for app in [app_name] if app_name else frappe.get_installed_apps(_ensure_on_bench=True):
 		if os.path.exists(frappe.get_app_path(app, "public")):
-			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):
+			for basepath, folders, files in os.walk(frappe.get_app_path(app, "public")):  # noqa: B007
 				if "frappe/public/js/lib" in basepath:
 					continue
 
@@ -561,6 +565,9 @@ def get_messages_from_file(path: str) -> list[tuple[str, str, str | None, int]]:
 
 	:param path: path of the code file
 	"""
+
+	from frappe.gettext.extractors.utils import extract_messages_from_code
+
 	frappe.flags.setdefault("scanned_files", set())
 	# TODO: Find better alternative
 	# To avoid duplicate scan
@@ -627,6 +634,7 @@ def extract_messages_from_javascript_code(code: str) -> list[tuple[int, str, str
 	"""Extracts translatable strings from JavaScript code using babel."""
 
 	messages = []
+	from frappe.gettext.extractors.javascript import extract_javascript
 
 	for message in extract_javascript(
 		code,
@@ -761,6 +769,7 @@ def update_translations(lang, untranslated_file, translated_file, app="_ALL_APPS
 	for key, value in zip(
 		frappe.get_file_items(untranslated_file, ignore_empty_lines=False),
 		frappe.get_file_items(translated_file, ignore_empty_lines=False),
+		strict=False,
 	):
 		# undo hack in get_untranslated
 		translation_dict[restore_newlines(key)] = restore_newlines(value)

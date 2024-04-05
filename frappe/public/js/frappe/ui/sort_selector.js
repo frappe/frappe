@@ -64,7 +64,7 @@ frappe.ui.SortSelector = class SortSelector {
 			this.args = {};
 
 			if (order_by.includes("`.`")) {
-				// scrub table name (separated by dot), like `tabTime Log`.`modified` desc`
+				// scrub table name (separated by dot), like `tabTime Log`.`creation` desc`
 				order_by = order_by.split(".")[1];
 			}
 
@@ -109,7 +109,7 @@ frappe.ui.SortSelector = class SortSelector {
 				this.args.sort_order = meta_sort_order;
 			} else {
 				// default
-				this.args.sort_by = "modified";
+				this.args.sort_by = "creation";
 				this.args.sort_order = "desc";
 			}
 		}
@@ -163,7 +163,7 @@ frappe.ui.SortSelector = class SortSelector {
 
 		// set default
 		this.sort_by = this.args.sort_by;
-		this.sort_order = this.args.sort_order;
+		this.sort_order = this.args.sort_order = this.args.sort_order.toLowerCase();
 	}
 	get_meta_sort_field() {
 		var meta = frappe.get_meta(this.doctype);
@@ -183,7 +183,7 @@ frappe.ui.SortSelector = class SortSelector {
 			};
 		} else {
 			return {
-				meta_sort_field: meta.sort_field || "modified",
+				meta_sort_field: meta.sort_field || "creation",
 				meta_sort_order: meta.sort_order ? meta.sort_order.toLowerCase() : "",
 			};
 		}
@@ -196,7 +196,14 @@ frappe.ui.SortSelector = class SortSelector {
 		}
 	}
 	get_sql_string() {
-		// build string like `tabTask`.`subject` desc
-		return "`tab" + this.doctype + "`.`" + this.sort_by + "` " + this.sort_order;
+		// build string like: `tabSales Invoice`.subject, `tabSales Invoice`.name desc
+		const table_name = "`tab" + this.doctype + "`";
+		const sort_by = `${table_name}.${this.sort_by}`;
+		if (!["name", "creation", "modified"].includes(this.sort_by)) {
+			// add name column for deterministic ordering
+			return `${sort_by} ${this.sort_order}, ${table_name}.name ${this.sort_order}`;
+		} else {
+			return `${sort_by} ${this.sort_order}`;
+		}
 	}
 };

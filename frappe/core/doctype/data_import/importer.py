@@ -1,7 +1,6 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import io
 import json
 import os
 import re
@@ -103,9 +102,13 @@ class Importer:
 		log_index = 0
 
 		# Do not remove rows in case of retry after an error or pending data import
-		if self.data_import.status == "Partial Success" and len(import_log) >= self.data_import.payload_count:
+		if (
+			self.data_import.status in ("Partial Success", "Error")
+			and len(import_log) >= self.data_import.payload_count
+		):
 			# remove previous failures from import log only in case of retry after partial success
 			import_log = [log for log in import_log if log.get("success")]
+			frappe.db.delete("Data Import Log", {"success": 0, "data_import": self.data_import.name})
 
 		# get successfully imported rows
 		imported_rows = []
@@ -214,13 +217,21 @@ class Importer:
 		)
 
 		# set status
-		failures = [log for log in import_log if not log.get("success")]
-		if len(failures) == total_payload_count:
-			status = "Pending"
-		elif len(failures) > 0:
+		successes = []
+		failures = []
+		for log in import_log:
+			if log.get("success"):
+				successes.append(log)
+			else:
+				failures.append(log)
+		if len(failures) >= total_payload_count and len(successes) == 0:
+			status = "Error"
+		elif len(failures) > 0 and len(successes) > 0:
 			status = "Partial Success"
-		else:
+		elif len(successes) == total_payload_count:
 			status = "Success"
+		else:
+			status = "Pending"
 
 		if self.console:
 			self.print_import_log(import_log)
@@ -484,7 +495,7 @@ class ImportFile:
 					"read_only": col.df.read_only,
 				}
 
-		data = [[row.row_number] + row.as_list() for row in self.data]
+		data = [[row.row_number, *row.as_list()] for row in self.data]
 
 		warnings = self.get_warnings()
 
@@ -525,7 +536,6 @@ class ImportFile:
 			# subsequent rows that have blank values in parent columns
 			# are considered as child rows
 			parent_column_indexes = self.header.get_column_indexes(self.doctype)
-			parent_row_values = first_row.get_values(parent_column_indexes)
 
 			data_without_first_row = data[1:]
 			for row in data_without_first_row:
@@ -656,7 +666,7 @@ class Row:
 		for key in frappe.model.default_fields + frappe.model.child_table_fields + ("__islocal",):
 			doc.pop(key, None)
 
-		for col, value in zip(columns, values):
+		for col, value in zip(columns, values, strict=False):
 			df = col.df
 			if value in INVALID_VALUES:
 				value = None
@@ -751,7 +761,7 @@ class Row:
 
 	def parse_value(self, value, col):
 		df = col.df
-		if isinstance(value, (datetime, date)) and df.fieldtype in ["Date", "Datetime"]:
+		if isinstance(value, datetime | date) and df.fieldtype in ["Date", "Datetime"]:
 			return value
 
 		value = cstr(value)
@@ -774,7 +784,7 @@ class Row:
 		return value
 
 	def get_date(self, value, column):
-		if isinstance(value, (datetime, date)):
+		if isinstance(value, datetime | date):
 			return value
 
 		date_format = column.date_format
@@ -938,7 +948,7 @@ class Column:
 		"""
 
 		def guess_date_format(d):
-			if isinstance(d, (datetime, date, time)):
+			if isinstance(d, datetime | date | time):
 				if self.df.fieldtype == "Date":
 					return "%Y-%m-%d"
 				if self.df.fieldtype == "Datetime":
@@ -1137,7 +1147,6 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 			label = (df.label or "").strip()
 			translated_label = _(label)
-			parent = df.parent or parent_doctype
 
 			if parent_doctype == doctype:
 				# for parent doctypes keys will be
