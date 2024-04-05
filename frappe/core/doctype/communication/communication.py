@@ -17,6 +17,7 @@ from frappe.core.doctype.comment.comment import update_comment_in_doc
 from frappe.core.doctype.communication.email import validate_email
 from frappe.core.doctype.communication.mixins import CommunicationEmailMixin
 from frappe.core.utils import get_parent_doc
+from frappe.email.inbox.mark_as_trash
 from frappe.model.document import Document
 from frappe.utils import (
 	cstr,
@@ -274,7 +275,11 @@ class Communication(Document, CommunicationEmailMixin):
 	def before_save(self):
 		if not self.flags.skip_add_signature:
 			self.set_signature_in_email_content()
-
+			
+	def after_delete(self):
+		if self.communication_medium == "Email":
+			mark_as_trash(self.name)
+			
 	def on_update(self):
 		# add to _comment property of the doctype, so it shows up in
 		# comments count for the list view
