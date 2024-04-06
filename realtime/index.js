@@ -30,16 +30,12 @@ function on_connection(socket) {
 	frappe_handlers(realtime, socket);
 
 	socket.installed_apps.forEach((app) => {
-		let file = `../../${app}/realtime/handlers.js`;
-		let abs_path = path.resolve(__dirname, file);
-		if (fs.existsSync(abs_path)) {
-			try {
-				let handler_factory = require(file);
-				handler_factory(socket);
-			} catch (err) {
-				console.warn(`failed to load event handlers from ${abs_path}`);
-				console.warn(err);
-			}
+		let app_handler = get_app_handlers(app);
+		try {
+			app_handler && app_handler(socket);
+		} catch (err) {
+			console.warn(`failed to setup event handlers from ${app}`);
+			console.warn(err);
 		}
 	});
 
@@ -48,6 +44,27 @@ function on_connection(socket) {
 		await subscriber.connect();
 		subscriber.publish("open_in_editor", JSON.stringify(data));
 	});
+}
+
+const _app_handlers = {};
+function get_app_handlers(app) {
+	if (app in _app_handlers) {
+		return _app_handlers[app];
+	}
+
+	let file = `../../${app}/realtime/handlers.js`;
+	let abs_path = path.resolve(__dirname, file);
+	let handler = null;
+	if (fs.existsSync(abs_path)) {
+		try {
+			handler = require(file);
+		} catch (err) {
+			console.warn(`failed to load event handlers from ${abs_path}`);
+			console.warn(err);
+		}
+	}
+	_app_handlers[app] = handler;
+	return handler;
 }
 
 realtime.on("connection", on_connection);

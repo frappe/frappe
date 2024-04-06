@@ -135,16 +135,10 @@ def can_subscribe_doctype(doctype: str) -> bool:
 
 @frappe.whitelist(allow_guest=True)
 def get_user_info():
-	installed_apps = frappe.get_installed_apps()
-
-	apps_with_event = [
-		app for app in installed_apps if any(frappe.get_hooks("has_realtime_event_handlers", app_name=app))
-	]
-
 	return {
 		"user": frappe.session.user,
 		"user_type": frappe.session.data.user_type,
-		"installed_apps": apps_with_event,
+		"installed_apps": frappe.get_installed_apps(),
 	}
 
 
