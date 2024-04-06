@@ -291,13 +291,6 @@ def has_user_permission(doc, user=None):
 		# no user permission rules specified for this doctype
 		return True
 
-<<<<<<< HEAD
-	# user can create own role permissions, so nothing applies
-	if get_role_permissions("User Permission", user=user).get("write"):
-		return True
-
-=======
->>>>>>> 99952880cc (fix!: Don't let users with write access to UP bypass UP)
 	# don't apply strict user permissions for single doctypes since they contain empty link fields
 	apply_strict_user_permissions = (
 		False if doc.meta.issingle else frappe.get_system_settings("apply_strict_user_permissions")
