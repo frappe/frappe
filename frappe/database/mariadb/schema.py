@@ -52,8 +52,8 @@ class MariaDBTable(DBTable):
 			modified datetime(6),
 			modified_by varchar({varchar_len}),
 			owner varchar({varchar_len}),
-			docstatus tinyint not null default '0',
-			idx int not null default '0',
+			docstatus int(1) not null default '0',
+			idx int(8) not null default '0',
 			{additional_definitions})
 			ENGINE={engine}
 			ROW_FORMAT=DYNAMIC

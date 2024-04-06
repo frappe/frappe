@@ -35,7 +35,7 @@ class TestDBUpdate(FrappeTestCase):
 			)
 			default = field_def.default if field_def.default is not None else fallback_default
 
-			self.assertIn(fieldtype, table_column.type, msg=f"Types not matching for {fieldname}")
+			self.assertEqual(fieldtype, table_column.type)
 			self.assertIn(cstr(table_column.default) or "NULL", [cstr(default), f"'{default}'"])
 
 	def test_index_and_unique_constraints(self):
@@ -153,7 +153,7 @@ class TestDBUpdate(FrappeTestCase):
 def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ("", 0))
 	fieldtype = fieldtuple[0]
-	if fieldtype in ("varchar", "datetime"):
+	if fieldtype in ("varchar", "datetime", "int"):
 		fieldtype += f"({field_def.length or fieldtuple[1]})"
 	return fieldtype
 
