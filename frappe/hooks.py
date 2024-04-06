@@ -543,7 +543,3 @@ default_log_clearing_doctypes = {
 	"Activity Log": 90,
 	"Route History": 90,
 }
-
-# Technically we have event handlers but `frappe` gets special treatment
-# SocketIO server uses this to identify which apps to lookup for event handlers.
-has_realtime_event_handlers = False
