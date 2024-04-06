@@ -1,6 +1,3 @@
-const { frappe_request } = require("./utils");
-const log = console.log;
-
 const WEBSITE_ROOM = "website";
 const SITE_ROOM = "all";
 
@@ -18,19 +15,15 @@ function frappe_handlers(socket) {
 
 	socket.has_permission = (doctype, name) => {
 		return new Promise((resolve) => {
-			frappe_request("/api/method/frappe.realtime.has_permission", socket)
-				.type("form")
-				.query({
-					doctype,
-					name,
-				})
-				.end(function (err, res) {
-					if (res?.status == 200) {
+			socket
+				.frappe_request("/api/method/frappe.realtime.has_permission", { doctype, name })
+				.then((res) => res.json())
+				.then(({ message }) => {
+					if (message) {
 						resolve();
-					} else if (res.status != 403) {
-						log("Something went wrong", err, res);
 					}
-				});
+				})
+				.catch((err) => console.log("Can't check permissions", err));
 		});
 	};
 
