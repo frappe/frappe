@@ -26,8 +26,6 @@ from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, get
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
-	from typing_extensions import Self
-
 	from frappe.core.doctype.docfield.docfield import DocField
 
 
@@ -146,7 +144,7 @@ class Document(BaseDocument):
 	def is_locked(self):
 		return file_lock.lock_exists(self.get_signature())
 
-	def load_from_db(self) -> "Self":
+	def load_from_db(self):
 		"""Load document and children from database and create properties
 		from fields"""
 		self.flags.ignore_children = True
@@ -206,7 +204,7 @@ class Document(BaseDocument):
 
 		return self
 
-	def reload(self) -> "Self":
+	def reload(self):
 		"""Reload document from database"""
 		return self.load_from_db()
 
@@ -250,7 +248,7 @@ class Document(BaseDocument):
 		ignore_mandatory=None,
 		set_name=None,
 		set_child_names=True,
-	) -> "Self":
+	) -> "Document":
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -334,11 +332,11 @@ class Document(BaseDocument):
 		if self.creation and self.is_locked:
 			raise frappe.DocumentLockedError
 
-	def save(self, *args, **kwargs) -> "Self":
+	def save(self, *args, **kwargs):
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)
 
-	def _save(self, ignore_permissions=None, ignore_version=None) -> "Self":
+	def _save(self, ignore_permissions=None, ignore_version=None) -> "Document":
 		"""Save the current document in the database in the **DocType**'s table or
 		`tabSingles` (for single types).
 
