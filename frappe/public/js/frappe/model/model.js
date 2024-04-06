@@ -108,6 +108,16 @@ $.extend(frappe.model, {
 		"docstatus",
 	],
 
+	html_fieldtypes: [
+		"Text Editor",
+		"Text",
+		"Small Text",
+		"Long Text",
+		"HTML Editor",
+		"Markdown Editor",
+		"Code",
+	],
+
 	std_fields: [
 		{ fieldname: "name", fieldtype: "Link", label: __("ID") },
 		{ fieldname: "owner", fieldtype: "Link", label: __("Created By"), options: "User" },
