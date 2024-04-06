@@ -88,10 +88,10 @@ class MariaDBTable(DBTable):
 			if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
 		]
 
-		if self.meta.sort_field == "modified" and frappe.db.get_column_index(
-			self.table_name, "modified", unique=False
+		if self.meta.sort_field == "creation" and frappe.db.get_column_index(
+			self.table_name, "creation", unique=False
 		):
-			add_index_query.append("ADD INDEX `modified`(`modified`)")
+			add_index_query.append("ADD INDEX `creation`(`creation`)")
 
 >>>>>>> 67bcda333e (fix: auto add modified index when sort_field is set to it (#25686))
 		drop_index_query = []
