@@ -24,11 +24,7 @@ const authenticate = require("./middlewares/authenticate");
 realtime.use(authenticate);
 // =======================
 
-// load and register handlers
-const frappe_handlers = require("./handlers/frappe_handlers");
 function on_connection(socket) {
-	frappe_handlers(realtime, socket);
-
 	socket.installed_apps.forEach((app) => {
 		let app_handler = get_app_handlers(app);
 		try {
