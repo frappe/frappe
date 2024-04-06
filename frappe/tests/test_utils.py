@@ -918,11 +918,6 @@ class TestRounding(FrappeTestCase):
 	def test_bankers_rounding_property(self, number, precision):
 		self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
 
-<<<<<<< HEAD
-=======
-	def test_default_rounding(self):
-		self.assertEqual(frappe.get_system_settings("rounding_method"), "Banker's Rounding")
-
 	@given(
 		st.floats(min_value=-(2**32) - 1, max_value=2**32 + 1),
 		st.integers(min_value=-(2**63) - 1, max_value=2**63 + 1),
@@ -932,92 +927,6 @@ class TestRounding(FrappeTestCase):
 		self.assertEqual(cint(str(integer)), integer)
 		self.assertEqual(cint(str(floating_point)), int(floating_point))
 
-
-class TestArgumentTypingValidations(FrappeTestCase):
-	def test_validate_argument_types(self):
-		from frappe.core.doctype.doctype.doctype import DocType
-		from frappe.utils.typing_validations import (
-			FrappeTypeError,
-			validate_argument_types,
-		)
-
-		@validate_argument_types
-		def test_simple_types(a: int, b: float, c: bool):
-			return a, b, c
-
-		@validate_argument_types
-		def test_sequence(a: str, b: list[dict] | None = None, c: dict[str, int] | None = None):
-			return a, b, c
-
-		@validate_argument_types
-		def test_doctypes(a: DocType | dict):
-			return a
-
-		self.assertEqual(test_simple_types(True, 2.0, True), (1, 2.0, True))
-		self.assertEqual(test_simple_types(1, 2, 1), (1, 2.0, True))
-		self.assertEqual(test_simple_types(1.0, 2, 1), (1, 2.0, True))
-		self.assertEqual(test_simple_types(1, 2, "1"), (1, 2.0, True))
-		with self.assertRaises(FrappeTypeError):
-			test_simple_types(1, 2, "a")
-		with self.assertRaises(FrappeTypeError):
-			test_simple_types(1, 2, None)
-
-		self.assertEqual(test_sequence("a", [{"a": 1}], {"a": 1}), ("a", [{"a": 1}], {"a": 1}))
-		self.assertEqual(test_sequence("a", None, None), ("a", None, None))
-		self.assertEqual(test_sequence("a", [{"a": 1}], None), ("a", [{"a": 1}], None))
-		self.assertEqual(test_sequence("a", None, {"a": 1}), ("a", None, {"a": 1}))
-		self.assertEqual(test_sequence("a", [{"a": 1}], {"a": "1.0"}), ("a", [{"a": 1}], {"a": 1}))
-		with self.assertRaises(FrappeTypeError):
-			test_sequence("a", [{"a": 1}], True)
-
-		doctype = frappe.get_last_doc("DocType")
-		self.assertEqual(test_doctypes(doctype), doctype)
-		self.assertEqual(test_doctypes(doctype.as_dict()), doctype.as_dict())
-		with self.assertRaises(FrappeTypeError):
-			test_doctypes("a")
-
-
-class TestChangeLog(FrappeTestCase):
-	def test_check_release_on_github(self):
-		from semantic_version import Version
-
-		version, owner = check_release_on_github("frappe", "frappe")
-		if version is None:
-			return
-
-		self.assertIsInstance(version, Version)
-		self.assertEqual(owner, "frappe")
-
-		self.assertRaises(ValueError, check_release_on_github, owner=None, repo=None)
-		self.assertRaises(ValueError, check_release_on_github, owner=None, repo="frappe")
-		self.assertRaises(ValueError, check_release_on_github, owner="frappe", repo=None)
-
-	def test_get_remote_url(self):
-		self.assertIsInstance(get_remote_url("frappe"), str)
-		self.assertRaises(ValueError, get_remote_url, app=None)
-		self.assertRaises(ValueError, get_remote_url, app="this_doesnt_exist")
-
-	def test_parse_github_url(self):
-		# using erpnext as repo in order to be different from the owner
-		owner, repo = parse_github_url("https://github.com/frappe/erpnext.git")
-		self.assertEqual(owner, "frappe")
-		self.assertEqual(repo, "erpnext")
-
-		owner, repo = parse_github_url("https://github.com/frappe/erpnext")
-		self.assertEqual(owner, "frappe")
-		self.assertEqual(repo, "erpnext")
-
-		owner, repo = parse_github_url("git@github.com:frappe/erpnext.git")
-		self.assertEqual(owner, "frappe")
-		self.assertEqual(repo, "erpnext")
-
-		owner, repo = parse_github_url("https://gitlab.com/gitlab-org/gitlab")
-		self.assertIsNone(owner)
-		self.assertIsNone(repo)
-
-		self.assertRaises(ValueError, parse_github_url, remote_url=None)
-
->>>>>>> ea5e1b61ad (fix: cint -> avoid precision loss if already integer (#25735))
 
 class TestCrypto(FrappeTestCase):
 	def test_hashing(self):
