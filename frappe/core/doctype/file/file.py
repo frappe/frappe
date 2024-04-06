@@ -16,7 +16,7 @@ import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.model.document import Document
-from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read
+from frappe.permissions import get_doctypes_with_read
 from frappe.utils import call_hook_method, cint, get_files_path, get_hook_method, get_url
 from frappe.utils.file_manager import is_safe_path
 from frappe.utils.image import optimize_image, strip_exif_data
@@ -765,7 +765,7 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	if user == "Administrator":
 		return ""
 
-	if SYSTEM_USER_ROLE not in frappe.get_roles(user):
+	if frappe.get_cached_value("User", user, "user_type") != "System User":
 		return f""" `tabFile`.`owner` = {frappe.db.escape(user)} """
 
 	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read())
