@@ -18,13 +18,8 @@ from frappe.core.api.file import (
 	unzip_file,
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-<<<<<<< HEAD
 from frappe.core.doctype.file.utils import get_extension
 from frappe.desk.form.utils import add_comment
-=======
-from frappe.core.doctype.file.utils import delete_file, get_extension
-from frappe.core.doctype.user.test_user import test_user
->>>>>>> bd661688e9 (fix: dont allow querying files to website users (#25094))
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_files_path, set_request
