@@ -40,6 +40,7 @@ from frappe.utils import (
 from frappe.utils.data import (
 	add_to_date,
 	cast,
+	cint,
 	cstr,
 	expand_relative_urls,
 	get_first_day_of_week,
@@ -916,6 +917,15 @@ class TestRounding(FrappeTestCase):
 	@given(st.decimals(min_value=-1e8, max_value=1e8), st.integers(min_value=-2, max_value=4))
 	def test_bankers_rounding_property(self, number, precision):
 		self.assertEqual(Decimal(str(flt(float(number), precision))), round(number, precision))
+
+	@given(
+		st.floats(min_value=-(2**32) - 1, max_value=2**32 + 1),
+		st.integers(min_value=-(2**63) - 1, max_value=2**63 + 1),
+	)
+	def test_cint(self, floating_point, integer):
+		self.assertEqual(cint(integer), integer)
+		self.assertEqual(cint(str(integer)), integer)
+		self.assertEqual(cint(str(floating_point)), int(floating_point))
 
 
 class TestCrypto(FrappeTestCase):
