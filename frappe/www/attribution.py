@@ -6,11 +6,12 @@ import tomllib
 
 import frappe
 from frappe import _
+from frappe.permissions import is_system_user
 
 
 def get_context(context):
-	if frappe.session.user == "Guest":
-		frappe.throw(_("You need to be logged in to access this page."), frappe.PermissionError)
+	if not is_system_user():
+		frappe.throw(_("You need to be a system user to access this page."), frappe.PermissionError)
 
 	apps = []
 	for app in frappe.get_installed_apps():
