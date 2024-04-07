@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-03-24 09:33+0000\n"
-"PO-Revision-Date: 2024-04-04 14:56\n"
+"PO-Revision-Date: 2024-04-07 05:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -14699,7 +14699,7 @@ msgstr "Kopfzeilen-Skript"
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Header and Breadcrumbs"
-msgstr "Header und Paniermehl"
+msgstr "Header und Breadcrumbs"
 
 #. Label of a Tab Break field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -18046,7 +18046,7 @@ msgstr "Mitte links"
 
 #: email/doctype/email_unsubscribe/email_unsubscribe.py:58
 msgid "Left this conversation"
-msgstr "Hat diese Unterhaltung verlassen"
+msgstr "von E-Mail-Benachrichtigungen abgemeldet"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -30032,13 +30032,13 @@ msgstr "Zeige Abschnittsüberschriften"
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Show Sidebar"
-msgstr "anzeigen Sidebar"
+msgstr "Sidebar anzeigen"
 
 #. Label of a Check field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Show Sidebar"
-msgstr "anzeigen Sidebar"
+msgstr "Sidebar anzeigen"
 
 #: public/js/frappe/list/list_sidebar.html:66
 #: public/js/frappe/list/list_view.js:1612
@@ -39322,7 +39322,7 @@ msgstr "{0} wurde zur E-Mail-Gruppe hinzugefügt."
 
 #: email/queue.py:123
 msgid "{0} has left the conversation in {1} {2}"
-msgstr "{0} hat die Unterhaltung verlassen in {1} {2}"
+msgstr "{0} wurde von E-Mail-Benachrichtigungen zu {1} {2} abgemeldet"
 
 #: __init__.py:2483
 msgid "{0} has no versions tracked."
