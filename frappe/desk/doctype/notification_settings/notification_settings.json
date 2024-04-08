@@ -19,8 +19,7 @@
   "user",
   "seen",
   "system_notifications_section",
-  "energy_points_system_notifications",
-  "whats_new_notifications"
+  "energy_points_system_notifications"
  ],
  "fields": [
   {
@@ -110,12 +109,6 @@
   },
   {
    "default": "1",
-   "fieldname": "whats_new_notifications",
-   "fieldtype": "Check",
-   "label": "What's New"
-  },
-  {
-   "default": "1",
    "depends_on": "enable_email_notifications",
    "description": "Get notified when an email is received on any of the documents assigned to you.",
    "fieldname": "enable_email_threads_on_assigned_document",
@@ -126,7 +119,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-08 16:03:31.952985",
+ "modified": "2024-03-23 16:03:31.952985",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",

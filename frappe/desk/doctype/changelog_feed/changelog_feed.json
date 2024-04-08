@@ -44,7 +44,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-08 17:28:33.854732",
+ "modified": "2024-04-08 18:36:42.203032",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Changelog Feed",
@@ -64,7 +64,7 @@
   }
  ],
  "read_only": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

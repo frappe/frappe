@@ -62,7 +62,6 @@ def fetch_changelog_feed():
 			frappe.cache.set_value(cache_key, [], expires_in_sec=7 * 24 * 60 * 60, shared=True)
 
 
-@frappe.whitelist()
 @redis_cache
 def get_changelog_feed_items():
 	"""Returns a list of latest 10 changelog feed items"""
@@ -72,7 +71,7 @@ def get_changelog_feed_items():
 		# allow pubishing feed for many apps with single hook
 		filters={"app_name": ("in", frappe.get_installed_apps())},
 		order_by="posting_timestamp desc",
-		limit=10,
+		limit=20,
 	)
 
 
