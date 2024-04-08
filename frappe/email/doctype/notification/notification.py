@@ -3,6 +3,7 @@
 
 import json
 import os
+import shutil
 
 import frappe
 from frappe import _
@@ -11,6 +12,7 @@ from frappe.core.doctype.sms_settings.sms_settings import send_sms
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
+from frappe.modules import get_doc_path
 from frappe.modules.utils import export_module_json, get_doc_module
 from frappe.utils import add_to_date, cast, nowdate, validate_email_address
 from frappe.utils.jinja import validate_template
@@ -441,6 +443,13 @@ def get_context(context):
 
 	def on_trash(self):
 		frappe.cache.hdel("notifications", self.document_type)
+		self.remove_standard_files()
+
+	def remove_standard_files(self):
+		if self.is_standard and not frappe.conf.developer_mode:
+			return
+		path = get_doc_path(self.module, "Notification", self.name)
+		shutil.rmtree(path)
 
 
 @frappe.whitelist()
