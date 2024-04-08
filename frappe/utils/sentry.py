@@ -126,7 +126,7 @@ def capture_exception(message: str | None = None) -> None:
 			exc_info = sys.exc_info()
 			if any(exc_info):
 				# Don't report validation errors
-				if isinstance(exc_info[0], frappe.ValidationError):
+				if isinstance(exc_info[1], frappe.ValidationError):
 					return
 
 				event, hint = event_from_exception(
