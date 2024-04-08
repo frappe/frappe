@@ -480,7 +480,7 @@ class ChangelogFeedView extends BaseNotificationsView {
 					this.container.empty();
 					const get_changelog_feed_html = (changelog_feed_item) => {
 						const timestamp = frappe.datetime.prettyDate(
-							changelog_feed_item.creation_of_feed_item
+							changelog_feed_item.posting_timestamp
 						);
 						const message_html = `<div class="message">
 							<div>${changelog_feed_item.title}</div>
@@ -490,7 +490,7 @@ class ChangelogFeedView extends BaseNotificationsView {
 						</div>`;
 
 						const item_html = `<a class="recent-item notification-item"
-								href="${changelog_feed_item.link}?utm_source=frappe_desk"
+								href="${changelog_feed_item.link}"
 								data-name="${changelog_feed_item.title}"
 								target="_blank" rel="noopener noreferrer"
 							>

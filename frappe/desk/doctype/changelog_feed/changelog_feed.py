@@ -29,10 +29,10 @@ class ChangelogFeed(Document):
 	pass
 
 
-def get_feed(latest_date):
+def get_feed(since):
 	source_site = "https://frappe.io"
 
-	r = requests.get("https://frape.io/api/method/fetch_changelog")
+	r = requests.get(f"https://frape.io/api/method/fetch_changelog?since={since}")
 	response = loads(r.content)
 
 	changelog_posts = response["changelog_posts"]
@@ -47,7 +47,7 @@ def fetch_changelog_feed_items_from_source():
 	"""Fetches changelog feed items from source using
 	`get_changelog_feed` hook and stores in the db"""
 
-	latest_feed_item_date = frappe.db.get_value(
+	since = frappe.db.get_value(
 		"Changelog Feed",
 		filters={},
 		fieldname="posting_timestamp",
@@ -55,7 +55,7 @@ def fetch_changelog_feed_items_from_source():
 	)
 
 	for fn in frappe.get_hooks("get_changelog_feed"):
-		for changelog_feed_item in frappe.call(fn, latest_feed_item_date):
+		for changelog_feed_item in frappe.call(fn, since=since):
 			change_log_feed_item_dict = {
 				"doctype": "Changelog Feed",
 				"title": changelog_feed_item["title"],
