@@ -65,7 +65,7 @@ def fetch_changelog_feed():
 @redis_cache
 def get_changelog_feed_items():
 	"""Returns a list of latest 10 changelog feed items"""
-	return frappe.get_all(
+	feed = frappe.get_all(
 		"Changelog Feed",
 		fields=["title", "app_name", "link", "posting_timestamp"],
 		# allow pubishing feed for many apps with single hook
@@ -73,6 +73,17 @@ def get_changelog_feed_items():
 		order_by="posting_timestamp desc",
 		limit=20,
 	)
+	for f in feed:
+		f["app_title"] = _app_title(f["app_name"])
+
+	return feed
+
+
+def _app_title(app_name):
+	try:
+		return frappe.get_hooks("app_title", app_name=app_name)[0]
+	except Exception:
+		return app_name
 
 
 def get_feed(since):

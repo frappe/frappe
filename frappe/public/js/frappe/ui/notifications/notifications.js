@@ -463,7 +463,7 @@ class ChangelogFeedView extends BaseNotificationsView {
 				const message_html = `<div class="message">
 							<div>${changelog_feed_item.title}</div>
 							<div class="notification-timestamp text-muted">
-							${changelog_feed_item.app_name} | ${timestamp}
+							${changelog_feed_item.app_title} | ${timestamp}
 							</div>
 						</div>`;
 
