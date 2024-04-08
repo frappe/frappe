@@ -57,7 +57,11 @@
    "fieldname": "doctype_event",
    "fieldtype": "Select",
    "label": "DocType Event",
+<<<<<<< HEAD
    "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Rename\nAfter Rename\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)\nOn Payment Authorization"
+=======
+   "options": "Before Insert\nBefore Validate\nBefore Save\nAfter Insert\nAfter Save\nBefore Rename\nAfter Rename\nBefore Submit\nAfter Submit\nBefore Cancel\nAfter Cancel\nBefore Delete\nAfter Delete\nBefore Save (Submitted Document)\nAfter Save (Submitted Document)\nBefore Print\nOn Payment Authorization\nOn Payment Paid\nOn Payment Failed"
+>>>>>>> 9ee221bc41 (fix: add before_print in doctype event (#25858))
   },
   {
    "depends_on": "eval:doc.script_type==='API'",
@@ -151,7 +155,11 @@
    "link_fieldname": "server_script"
   }
  ],
+<<<<<<< HEAD
  "modified": "2024-02-27 11:44:46.397495",
+=======
+ "modified": "2024-04-08 16:18:52.901097",
+>>>>>>> 9ee221bc41 (fix: add before_print in doctype event (#25858))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",
