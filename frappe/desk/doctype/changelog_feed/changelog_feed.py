@@ -7,6 +7,7 @@ import requests
 import frappe
 from frappe.model.document import Document
 from frappe.utils.caching import redis_cache
+from frappe.utils.data import add_to_date
 
 
 class ChangelogFeed(Document):
@@ -34,7 +35,7 @@ def fetch_changelog_feed():
 		filters={},
 		fieldname="posting_timestamp",
 		order_by="posting_timestamp desc",
-	)
+	) or add_to_date(None, months=-1, as_datetime=True, as_string=False)
 
 	for fn in frappe.get_hooks("get_changelog_feed"):
 		try:
@@ -78,4 +79,5 @@ def get_changelog_feed_items():
 def get_feed(since):
 	"""'What's New' feed implementation for Frappe"""
 	r = requests.get(f"https://frappe.io/api/method/changelog_feed?since={since}")
+	r.raise_for_status()
 	return r.json()["message"]
