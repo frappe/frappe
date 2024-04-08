@@ -2,8 +2,6 @@
 # For license information, please see license.txt
 
 
-from contextlib import suppress
-
 import requests
 
 import frappe
@@ -27,13 +25,6 @@ class ChangelogFeed(Document):
 	# end: auto-generated types
 
 	pass
-
-
-def get_feed(since):
-	"""'What's New' feed implementation for Frappe"""
-	r = requests.get(f"https://frappe.io/api/method/fetch_changelog?since={since}").json()
-	changelog_posts = r["message"]
-	return changelog_posts
 
 
 def fetch_changelog_feed():
@@ -82,3 +73,9 @@ def get_changelog_feed_items():
 		order_by="posting_timestamp desc",
 		limit=10,
 	)
+
+
+def get_feed(since):
+	"""'What's New' feed implementation for Frappe"""
+	r = requests.get(f"https://frappe.io/api/method/changelog_feed?since={since}")
+	return r.json()["message"]
