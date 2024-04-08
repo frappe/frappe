@@ -8,6 +8,7 @@ import requests
 import frappe
 from frappe.hooks import app_title
 from frappe.model.document import Document
+from frappe.utils.caching import redis_cache
 
 
 class ChangelogFeed(Document):
@@ -71,29 +72,12 @@ def fetch_changelog_feed_items_from_source():
 
 
 @frappe.whitelist()
+@redis_cache
 def get_changelog_feed_items():
 	"""Returns a list of latest 10 changelog feed items"""
-
-	# don't run in developer mode to avoid unnecessary requests
-	if frappe.conf.developer_mode:
-		return []
-
-	changelog_feed_items = frappe.cache().get_value("changelog_feed")
-	if not changelog_feed_items:
-		latest_changelogs = frappe.get_list("Changelog Feed", limit=1, fields=["creation"])
-		if (
-			not latest_changelogs
-			or frappe.utils.time_diff_in_seconds(frappe.utils.now_datetime(), latest_changelogs[0].creation)
-			> 60
-		):
-			fetch_changelog_feed_items_from_source()
-
-		changelog_feed_items = frappe.get_list(
-			"Changelog Feed",
-			fields=["title", "app_name", "link", "posting_timestamp"],
-			order_by="posting_timestamp desc",
-			limit=10,
-		)
-		frappe.cache().set_value("changelog_feed", changelog_feed_items, expires_in_sec=24 * 60 * 60)
-
-	return changelog_feed_items
+	return frappe.get_all(
+		"Changelog Feed",
+		fields=["title", "app_name", "link", "posting_timestamp"],
+		order_by="posting_timestamp desc",
+		limit=10,
+	)
