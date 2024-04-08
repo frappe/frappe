@@ -146,6 +146,49 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.setup_like();
 	}
 
+	setup_realtime_updates() {
+		this.pending_document_refreshes = [];
+
+		if (this.list_view_settings?.disable_auto_refresh || this.realtime_events_setup) {
+			return;
+		}
+		frappe.realtime.doctype_subscribe(this.doctype);
+		frappe.realtime.off("list_update");
+		frappe.realtime.on("list_update", (data) => {
+			if (data?.doctype !== this.doctype) {
+				return;
+			}
+
+			// if some bulk operation is happening by selecting list items, don't refresh
+			if (this.$checks && this.$checks.length) {
+				return;
+			}
+
+			if (this.avoid_realtime_update()) {
+				return;
+			}
+			if(data.user != frappe.session.user){
+				frappe.call({
+					method: 'frappe.desk.reportview.get',
+					args: {
+						"doctype": data.doctype,
+						"fields": ["*"],
+						"filters":[['name', 'in', [data.name]]],
+						"start": 0,
+						"page_length": 10,
+						"view": "List",
+						"with_comment_count": 1
+					}
+				}).then((res) => {
+					const data = frappe.utils.dict(res.message.keys, res.message.values)
+					this.kanban.update_cards(data);
+					this.kanban.make_columns_title()
+				})
+			}
+		});
+		this.realtime_events_setup = true;
+	}
+
 	set_fields() {
 		super.set_fields();
 		this._add_field(this.card_meta.title_field);
@@ -160,7 +203,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		const { auto_move_paused }  = await frappe.db.get_doc('Queue Settings')
 		setTimeout(() => {
 			const exists = document.querySelector('div[id*="Kanban"] div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end #queue-freeze')
-			console.log({exists})
 			if (!exists){
 				const container = document.querySelector('div.no-list-sidebar div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
 				const input = document.createElement('input')
