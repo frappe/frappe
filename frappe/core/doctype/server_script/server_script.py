@@ -10,64 +10,6 @@ from frappe.utils.safe_exec import NamespaceDict, get_safe_globals, safe_exec
 
 
 class ServerScript(Document):
-<<<<<<< HEAD
-=======
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
-
-	from typing import TYPE_CHECKING
-
-	if TYPE_CHECKING:
-		from frappe.types import DF
-
-		allow_guest: DF.Check
-		api_method: DF.Data | None
-		cron_format: DF.Data | None
-		disabled: DF.Check
-		doctype_event: DF.Literal[
-			"Before Insert",
-			"Before Validate",
-			"Before Save",
-			"After Insert",
-			"After Save",
-			"Before Rename",
-			"After Rename",
-			"Before Submit",
-			"After Submit",
-			"Before Cancel",
-			"After Cancel",
-			"Before Delete",
-			"After Delete",
-			"Before Save (Submitted Document)",
-			"After Save (Submitted Document)",
-			"Before Print",
-			"On Payment Authorization",
-			"On Payment Paid",
-			"On Payment Failed",
-		]
-		enable_rate_limit: DF.Check
-		event_frequency: DF.Literal[
-			"All",
-			"Hourly",
-			"Daily",
-			"Weekly",
-			"Monthly",
-			"Yearly",
-			"Hourly Long",
-			"Daily Long",
-			"Weekly Long",
-			"Monthly Long",
-			"Cron",
-		]
-		module: DF.Link | None
-		rate_limit_count: DF.Int
-		rate_limit_seconds: DF.Int
-		reference_doctype: DF.Link | None
-		script: DF.Code
-		script_type: DF.Literal["DocType Event", "Scheduler Event", "Permission Query", "API"]
-	# end: auto-generated types
-
->>>>>>> 9ee221bc41 (fix: add before_print in doctype event (#25858))
 	def validate(self):
 		frappe.only_for("Script Manager", True)
 		self.sync_scheduled_jobs()
