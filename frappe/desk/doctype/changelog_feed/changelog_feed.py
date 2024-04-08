@@ -11,13 +11,27 @@ from frappe.model.document import Document
 
 
 class ChangelogFeed(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		app_name: DF.Data | None
+		link: DF.LongText
+		posting_timestamp: DF.Datetime
+		title: DF.Data
+	# end: auto-generated types
+
 	pass
 
 
 def get_feed(latest_date):
 	source_site = "https://frappe.io"
 
-	r = requests.get(f"{source_site}/api/method/fetch_fw_changelog")
+	r = requests.get("https://frape.io/api/method/fetch_changelog")
 	response = loads(r.content)
 
 	changelog_posts = response["changelog_posts"]
@@ -35,8 +49,8 @@ def fetch_changelog_feed_items_from_source():
 	latest_feed_item_date = frappe.db.get_value(
 		"Changelog Feed",
 		filters={},
-		fieldname="creation_of_feed_item",
-		order_by="creation_of_feed_item desc",
+		fieldname="posting_timestamp",
+		order_by="posting_timestamp desc",
 	)
 
 	for fn in frappe.get_hooks("get_changelog_feed"):
@@ -46,7 +60,7 @@ def fetch_changelog_feed_items_from_source():
 				"title": changelog_feed_item["title"],
 				"app_name": changelog_feed_item["app_name"],
 				"link": changelog_feed_item["link"],
-				"creation_of_feed_item": changelog_feed_item["creation"],
+				"posting_timestamp": changelog_feed_item["creation"],
 			}
 			if not frappe.db.exists(change_log_feed_item_dict):
 				feed_doc = frappe.new_doc("Changelog Feed")
@@ -76,8 +90,8 @@ def get_changelog_feed_items():
 
 		changelog_feed_items = frappe.get_list(
 			"Changelog Feed",
-			fields=["title", "app_name", "link", "creation_of_feed_item"],
-			order_by="creation_of_feed_item desc",
+			fields=["title", "app_name", "link", "posting_timestamp"],
+			order_by="posting_timestamp desc",
 			limit=10,
 		)
 		frappe.cache().set_value("changelog_feed", changelog_feed_items, expires_in_sec=24 * 60 * 60)

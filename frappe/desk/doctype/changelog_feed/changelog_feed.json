@@ -10,7 +10,7 @@
   "title",
   "app_name",
   "link",
-  "creation_of_feed_item"
+  "posting_timestamp"
  ],
  "fields": [
   {
@@ -33,15 +33,16 @@
    "reqd": 1
   },
   {
-   "fieldname": "creation_of_feed_item",
+   "fieldname": "posting_timestamp",
    "fieldtype": "Datetime",
-   "label": "Creation of Feed Item",
-   "reqd": 1
+   "label": "Posting Timestamp",
+   "reqd": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-24 15:26:39.211363",
+ "modified": "2024-04-08 16:55:05.943403",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Changelog Feed",
@@ -60,7 +61,7 @@
    "write": 1
   }
  ],
- "sort_field": "creation",
+ "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
 }
