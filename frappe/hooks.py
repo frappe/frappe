@@ -259,6 +259,7 @@ scheduler_events = {
 		"frappe.desk.form.document_follow.send_weekly_updates",
 		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
 		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup",
+		"frappe.desk.doctype.changelog_feed.changelog_feed.fetch_changelog_feed",
 	],
 	"monthly": [
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_monthly",
@@ -449,6 +450,8 @@ extend_bootinfo = [
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
 	"frappe.utils.sentry.add_bootinfo",
 ]
+
+get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed"
 
 export_python_type_annotations = True
 
