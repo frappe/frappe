@@ -248,7 +248,7 @@ frappe.ui.Filter = class {
 			let args = {};
 			if (this.filters_config[condition].depends_on) {
 				const field_name = this.filters_config[condition].depends_on;
-				const filter_value = this.filter_list.get_filter_value(fieldname);
+				const filter_value = this.filter_list.get_filter_value(field_name);
 				args[field_name] = filter_value;
 			}
 			let setup_field = (field) => {
