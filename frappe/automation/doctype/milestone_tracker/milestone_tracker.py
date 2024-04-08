@@ -18,8 +18,9 @@ class MilestoneTracker(Document):
 
 		disabled: DF.Check
 		document_type: DF.Link
-		track_field: DF.Literal
+		track_field: DF.Literal[None]
 	# end: auto-generated types
+
 	def on_update(self):
 		frappe.cache_manager.clear_doctype_map("Milestone Tracker", self.document_type)
 
@@ -31,15 +32,13 @@ class MilestoneTracker(Document):
 		from_value = before_save and before_save.get(self.track_field) or None
 		if from_value != doc.get(self.track_field):
 			frappe.get_doc(
-				dict(
-					doctype="Milestone",
-					reference_type=doc.doctype,
-					reference_name=doc.name,
-					track_field=self.track_field,
-					from_value=from_value,
-					value=doc.get(self.track_field),
-					milestone_tracker=self.name,
-				)
+				doctype="Milestone",
+				reference_type=doc.doctype,
+				reference_name=doc.name,
+				track_field=self.track_field,
+				from_value=from_value,
+				value=doc.get(self.track_field),
+				milestone_tracker=self.name,
 			).insert(ignore_permissions=True)
 
 

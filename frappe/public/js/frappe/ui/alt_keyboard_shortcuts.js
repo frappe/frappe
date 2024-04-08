@@ -164,6 +164,7 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 				return letter;
 			})
 			.join("");
+		text_html = `<span>${text_html}</span>`;
 		let original_text_html = shortcut.$text_el.html();
 		text_html = original_text_html.replace(shortcut.text.trim(), text_html.trim());
 		shortcut.$text_el.html(text_html);

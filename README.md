@@ -1,10 +1,8 @@
 <div align="center">
-	<h1>
-		<br>
-		<a href="https://frappeframework.com">
-			<img src=".github/frappe-framework-logo.svg" height="50">
-		</a>
-	</h1>
+	<picture>
+		<source media="(prefers-color-scheme: dark)" srcset=".github/frappe-framework-logo-dark.svg">
+		<img src=".github/frappe-framework-logo.svg" height="50">
+	</picture>
 	<h3>
 		a web framework with <a href="https://www.youtube.com/watch?v=LOjk3m0wTwg">"batteries included"</a>
 	</h3>
@@ -71,12 +69,12 @@ Full-stack web application framework that uses Python and MariaDB on the server 
 1. [Code of Conduct](CODE_OF_CONDUCT.md)
 1. [Contribution Guidelines](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
 1. [Security Policy](SECURITY.md)
-1. [Translations](https://translate.erpnext.com)
 
 ## Resources
 
 1. [frappeframework.com](https://frappeframework.com) - Official documentation of the Frappe Framework.
 1. [frappe.school](https://frappe.school) - Pick from the various courses by the maintainers or from the community.
+1. [buildwithhussain.dev](https://buildwithhussain.dev) - Watch Frappe Framework being used in the wild to build world-class web apps.
 
 ## License
 This repository has been released under the [MIT License](LICENSE).

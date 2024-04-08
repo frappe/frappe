@@ -23,6 +23,7 @@ class SMSSettings(Document):
 		sms_gateway_url: DF.SmallText
 		use_post: DF.Check
 	# end: auto-generated types
+
 	pass
 
 
@@ -30,7 +31,7 @@ def validate_receiver_nos(receiver_list):
 	validated_receiver_list = []
 	for d in receiver_list:
 		if not d:
-			break
+			continue
 
 		# remove invalid character
 		for x in [" ", "-", "(", ")"]:
@@ -46,7 +47,7 @@ def validate_receiver_nos(receiver_list):
 
 @frappe.whitelist()
 def get_contact_number(contact_name, ref_doctype, ref_name):
-	"returns mobile number of the contact"
+	"Return mobile number of the given contact."
 	number = frappe.db.sql(
 		"""select mobile_no, phone from tabContact
 		where name=%s
@@ -62,7 +63,6 @@ def get_contact_number(contact_name, ref_doctype, ref_name):
 
 @frappe.whitelist()
 def send_sms(receiver_list, msg, sender_name="", success_msg=True):
-
 	import json
 
 	if isinstance(receiver_list, str):

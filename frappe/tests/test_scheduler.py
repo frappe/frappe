@@ -8,7 +8,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJ
 from frappe.utils import add_days, get_datetime
 from frappe.utils.doctor import purge_pending_jobs
 from frappe.utils.scheduler import (
-	_get_last_modified_timestamp,
+	_get_last_creation_timestamp,
 	enqueue_events,
 	is_dormant,
 	schedule_jobs_based_on_activity,
@@ -40,7 +40,7 @@ class TestScheduler(TestCase):
 	def test_enqueue_jobs(self):
 		frappe.db.sql("update `tabScheduled Job Type` set last_execution = '2010-01-01 00:00:00'")
 
-		enqueued_jobs = enqueue_events(site=frappe.local.site)
+		enqueued_jobs = enqueue_events()
 
 		self.assertIn("frappe.desk.notifications.clear_notifications", enqueued_jobs)
 		self.assertIn("frappe.utils.change_log.check_for_update", enqueued_jobs)
@@ -75,35 +75,31 @@ class TestScheduler(TestCase):
 		job.execute()
 		job_log = frappe.get_doc("Scheduled Job Log", dict(scheduled_job_type=job.name))
 		job_log.db_set(
-			"modified", add_days(_get_last_modified_timestamp("Activity Log"), 5), update_modified=False
+			"creation", add_days(_get_last_creation_timestamp("Activity Log"), 5), update_modified=False
 		)
 
 		# inactive site with recent job, don't run
 		self.assertFalse(
 			schedule_jobs_based_on_activity(
-				check_time=add_days(_get_last_modified_timestamp("Activity Log"), 5)
+				check_time=add_days(_get_last_creation_timestamp("Activity Log"), 5)
 			)
 		)
 
 		# one more day has passed
 		self.assertTrue(
 			schedule_jobs_based_on_activity(
-				check_time=add_days(_get_last_modified_timestamp("Activity Log"), 6)
+				check_time=add_days(_get_last_creation_timestamp("Activity Log"), 6)
 			)
 		)
 
 
-def get_test_job(
-	method="frappe.tests.test_scheduler.test_timeout_10", frequency="All"
-) -> ScheduledJobType:
+def get_test_job(method="frappe.tests.test_scheduler.test_timeout_10", frequency="All") -> ScheduledJobType:
 	if not frappe.db.exists("Scheduled Job Type", dict(method=method)):
 		job = frappe.get_doc(
-			dict(
-				doctype="Scheduled Job Type",
-				method=method,
-				last_execution="2010-01-01 00:00:00",
-				frequency=frequency,
-			)
+			doctype="Scheduled Job Type",
+			method=method,
+			last_execution="2010-01-01 00:00:00",
+			frequency=frequency,
 		).insert()
 	else:
 		job = frappe.get_doc("Scheduled Job Type", dict(method=method))

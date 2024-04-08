@@ -7,8 +7,8 @@ context("Workspace 2.0", () => {
 	it("Navigate to page from sidebar", () => {
 		cy.visit("/app/build");
 		cy.get(".codex-editor__redactor .ce-block");
-		cy.get('.sidebar-item-container[item-name="Settings"]').first().click();
-		cy.location("pathname").should("eq", "/app/settings");
+		cy.get('.sidebar-item-container[item-name="Website"]').first().click();
+		cy.location("pathname").should("eq", "/app/website");
 	});
 
 	it("Create Private Page", () => {
@@ -20,7 +20,6 @@ context("Workspace 2.0", () => {
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
 		cy.fill_field("title", "Test Private Page", "Data");
-		cy.fill_field("icon", "edit", "Icon");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
 
@@ -52,7 +51,6 @@ context("Workspace 2.0", () => {
 		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
 		cy.fill_field("title", "Test Child Page", "Data");
 		cy.fill_field("parent", "Test Private Page", "Select");
-		cy.fill_field("icon", "edit", "Icon");
 		cy.get_open_dialog().find(".modal-header").click();
 		cy.get_open_dialog().find(".btn-primary").click();
 

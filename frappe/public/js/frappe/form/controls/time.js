@@ -44,6 +44,9 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 	}
 	set_input(value) {
 		super.set_input(value);
+		if (!this.datepicker) {
+			return;
+		}
 		if (
 			value &&
 			((this.last_value && this.last_value !== this.value) ||

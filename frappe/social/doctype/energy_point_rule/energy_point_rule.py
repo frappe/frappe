@@ -25,16 +25,17 @@ class EnergyPointRule(Document):
 		apply_only_once: DF.Check
 		condition: DF.Code | None
 		enabled: DF.Check
-		field_to_check: DF.Literal
+		field_to_check: DF.Literal[None]
 		for_assigned_users: DF.Check
 		for_doc_event: DF.Literal["New", "Submit", "Cancel", "Value Change", "Custom"]
 		max_points: DF.Int
-		multiplier_field: DF.Literal
+		multiplier_field: DF.Literal[None]
 		points: DF.Int
 		reference_doctype: DF.Link
 		rule_name: DF.Data
-		user_field: DF.Literal
+		user_field: DF.Literal[None]
 	# end: auto-generated types
+
 	def on_update(self):
 		frappe.cache_manager.clear_doctype_map("Energy Point Rule", self.reference_doctype)
 
@@ -76,7 +77,7 @@ class EnergyPointRule(Document):
 						{"points": points, "user": user, "rule": rule},
 						self.apply_only_once,
 					)
-			except Exception as e:
+			except Exception:
 				self.log_error("Energy points failed")
 
 	def rule_condition_satisfied(self, doc):

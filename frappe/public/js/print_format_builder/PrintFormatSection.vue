@@ -28,10 +28,7 @@
 								<use href="#icon-dot-horizontal"></use>
 							</svg>
 						</button>
-						<div
-							class="dropdown-menu dropdown-menu-right"
-							role="menu"
-						>
+						<div class="dropdown-menu dropdown-menu-right" role="menu">
 							<button
 								v-for="option in section_options"
 								class="dropdown-item"
@@ -44,17 +41,11 @@
 				</div>
 			</div>
 			<div class="row section-columns">
-				<div
-					class="column col"
-					v-for="(column, i) in section.columns"
-					:key="i"
-				>
+				<div class="column col" v-for="(column, i) in section.columns" :key="i">
 					<draggable
 						class="drag-container"
 						:style="{
-							backgroundColor: column.fields.length
-								? null
-								: 'var(--gray-50)'
+							backgroundColor: column.fields.length ? null : 'var(--gray-50)',
 						}"
 						v-model="column.fields"
 						group="fields"
@@ -68,10 +59,7 @@
 				</div>
 			</div>
 		</div>
-		<div
-			class="my-4 text-center text-muted font-italic"
-			v-if="section.page_break"
-		>
+		<div class="my-4 text-center text-muted font-italic" v-if="section.page_break">
 			{{ __("Page Break") }}
 		</div>
 	</div>
@@ -93,7 +81,7 @@ function add_column() {
 	if (props.section.columns.length < 4) {
 		props.section.columns.push({
 			label: "",
-			fields: []
+			fields: [],
 		});
 	}
 }
@@ -121,46 +109,50 @@ let section_options = computed(() => {
 	return [
 		{
 			label: __("Add section above"),
-			action: () => emit("add_section_above")
+			action: () => emit("add_section_above"),
 		},
 		{
 			label: __("Add column"),
 			action: add_column,
-			condition: () => props.section.columns.length < 4
+			condition: () => props.section.columns.length < 4,
 		},
 		{
 			label: __("Remove column"),
 			action: remove_column,
-			condition: () => props.section.columns.length > 1
+			condition: () => props.section.columns.length > 1,
 		},
 		{
 			label: __("Add page break"),
 			action: add_page_break,
-			condition: () => !props.section.page_break
+			condition: () => !props.section.page_break,
 		},
 		{
 			label: __("Remove page break"),
 			action: remove_page_break,
-			condition: () => props.section.page_break
+			condition: () => props.section.page_break,
 		},
 		{
 			label: __("Remove section"),
-			action: () => { props.section["remove"] = true }
+			action: () => {
+				props.section["remove"] = true;
+			},
 		},
 		{
 			label: __("Field Orientation (Left-Right)"),
 			condition: () => !props.section.field_orientation,
-			action: () => { props.section["field_orientation"] = "left-right" }
+			action: () => {
+				props.section["field_orientation"] = "left-right";
+			},
 		},
 		{
 			label: __("Field Orientation (Top-Down)"),
-			condition: () =>
-				props.section.field_orientation == "left-right",
-			action: () => { props.section["field_orientation"] = "" }
-		}
-	].filter(option => (option.condition ? option.condition() : true));
-})
-
+			condition: () => props.section.field_orientation == "left-right",
+			action: () => {
+				props.section["field_orientation"] = "";
+			},
+		},
+	].filter((option) => (option.condition ? option.condition() : true));
+});
 </script>
 
 <style scoped>

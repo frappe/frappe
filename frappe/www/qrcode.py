@@ -18,7 +18,7 @@ def get_query_key():
 	query_string = frappe.local.request.query_string
 	query = dict(parse_qsl(query_string))
 	query = {key.decode(): val.decode() for key, val in query.items()}
-	if not "k" in list(query):
+	if "k" not in list(query):
 		frappe.throw(_("Not Permitted"), frappe.PermissionError)
 	query = (query["k"]).strip()
 	if False in [i.isalpha() or i.isdigit() for i in query]:

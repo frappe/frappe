@@ -72,8 +72,9 @@
 
 .print-format-builder-section-head .section-label {
 	font-size: var(--text-lg);
+	font-weight: var(--weight-medium);
+	letter-spacing: 0.015em;
 	color: var(--text-color);
-	font-weight: 500;
 	vertical-align: middle;
 	margin-left: var(--margin-sm);
 }

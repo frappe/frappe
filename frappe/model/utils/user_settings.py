@@ -87,7 +87,10 @@ def update_user_settings_data(
 			if view_settings and view_settings.get("filters"):
 				view_filters = view_settings.get("filters")
 				for view_filter in view_filters:
-					if condition_fieldname and view_filter[filter_dict[condition_fieldname]] != condition_values:
+					if (
+						condition_fieldname
+						and view_filter[filter_dict[condition_fieldname]] != condition_values
+					):
 						continue
 					if view_filter[filter_dict[fieldname]] == old:
 						view_filter[filter_dict[fieldname]] = new

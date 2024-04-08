@@ -79,7 +79,7 @@ frappe.ui.form.on("Print Format", {
 			frappe.model.with_doctype(doctype, () => {
 				const meta = frappe.get_meta(doctype);
 				const has_int_float_currency_field = meta.fields.filter((df) =>
-					in_list(["Int", "Float", "Currency"], df.fieldtype)
+					["Int", "Float", "Currency"].includes(df.fieldtype)
 				);
 				frm.toggle_display("absolute_value", has_int_float_currency_field.length);
 			});

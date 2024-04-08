@@ -74,9 +74,7 @@ class TestFrappeClient(FrappeTestCase):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
 		server.insert({"doctype": "Note", "title": "get_value", "content": CONTENT}).get("name")
 
-		self.assertEqual(
-			server.get_value("Note", "content", {"title": "get_value"}).get("content"), CONTENT
-		)
+		self.assertEqual(server.get_value("Note", "content", {"title": "get_value"}).get("content"), CONTENT)
 
 	def test_get_value_by_name(self):
 		server = FrappeClient(get_url(), "Administrator", self.PASSWORD, verify=False)
@@ -196,7 +194,7 @@ class TestFrappeClient(FrappeTestCase):
 		api_secret = "ksk&93nxoe3os"
 		header = {"Authorization": f"token {api_key}:{api_secret}"}
 		res = requests.post(get_url() + "/api/method/frappe.auth.get_logged_user", headers=header)
-		self.assertEqual(res.status_code, 403)
+		self.assertEqual(res.status_code, 401)
 
 		# random api key and api secret
 		api_key = "@3djdk3kld"

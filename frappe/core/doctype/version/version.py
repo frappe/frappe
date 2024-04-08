@@ -21,6 +21,7 @@ class Version(Document):
 		docname: DF.Data
 		ref_doctype: DF.Link
 	# end: auto-generated types
+
 	def update_version_info(self, old: Document | None, new: Document) -> bool:
 		"""Update changed info and return true if change contains useful data."""
 		if not old:
@@ -29,10 +30,18 @@ class Version(Document):
 		else:
 			return self.set_diff(old, new)
 
+	@staticmethod
+	def set_impersonator(data):
+		if not frappe.session:
+			return
+		if impersonator := frappe.session.data.get("impersonated_by"):
+			data["impersonated_by"] = impersonator
+
 	def set_diff(self, old: Document, new: Document) -> bool:
 		"""Set the data property with the diff of the docs if present"""
 		diff = get_diff(old, new)
 		if diff:
+			self.set_impersonator(diff)
 			self.ref_doctype = new.doctype
 			self.docname = new.name
 			self.data = frappe.as_json(diff, indent=None, separators=(",", ":"))
@@ -50,6 +59,7 @@ class Version(Document):
 			"updater_reference": updater_reference,
 			"created_by": doc.owner,
 		}
+		self.set_impersonator(data)
 		self.ref_doctype = doc.doctype
 		self.docname = doc.name
 		self.data = frappe.as_json(data, indent=None, separators=(",", ":"))
@@ -59,7 +69,7 @@ class Version(Document):
 		return json.loads(self.data)
 
 
-def get_diff(old, new, for_child=False):
+def get_diff(old, new, for_child=False, compare_cancelled=False):
 	"""Get diff between 2 document objects
 
 	If there is a change, then returns a dict like:
@@ -112,6 +122,11 @@ def get_diff(old, new, for_child=False):
 			# check rows for additions, changes
 			for i, d in enumerate(new_value):
 				old_row_name = getattr(d, old_row_name_field, None)
+				if compare_cancelled:
+					if amended_from:
+						if len(old_value) > i:
+							old_row_name = old_value[i].name
+
 				if old_row_name and old_row_name in old_rows_by_name:
 					found_rows.add(old_row_name)
 

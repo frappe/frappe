@@ -144,7 +144,15 @@ frappe.msgprint = function (msg, title, is_minimizable) {
 
 	if (data.message instanceof Array) {
 		let messages = data.message;
-		const exceptions = messages.map((m) => JSON.parse(m)).filter((m) => m.raise_exception);
+		const exceptions = messages
+			.map((m) => {
+				if (typeof m == "string") {
+					return JSON.parse(m);
+				} else {
+					return m;
+				}
+			})
+			.filter((m) => m.raise_exception);
 
 		// only show exceptions if any exceptions exist
 		if (exceptions.length) {
@@ -193,9 +201,7 @@ frappe.msgprint = function (msg, title, is_minimizable) {
 			data.primary_action.action = () => {
 				frappe.call({
 					method: data.primary_action.server_action,
-					args: {
-						args: data.primary_action.args,
-					},
+					args: data.primary_action.args,
 					callback() {
 						if (data.primary_action.hide_on_success) {
 							frappe.hide_msgprint();

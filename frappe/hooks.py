@@ -1,3 +1,5 @@
+import os
+
 from . import __version__ as app_version
 
 app_name = "frappe"
@@ -31,9 +33,14 @@ app_include_js = [
 	"report.bundle.js",
 	"telemetry.bundle.js",
 ]
+
 app_include_css = [
 	"desk.bundle.css",
 	"report.bundle.css",
+]
+app_include_icons = [
+	"frappe/icons/timeless/icons.svg",
+	"frappe/icons/espresso/icons.svg",
 ]
 
 doctype_js = {
@@ -57,6 +64,10 @@ website_route_rules = [
 
 website_redirects = [
 	{"source": r"/desk(.*)", "target": r"/app\1"},
+	{
+		"source": "/.well-known/openid-configuration",
+		"target": "/api/method/frappe.integrations.oauth2.openid_configuration",
+	},
 ]
 
 base_template = "templates/base.html"
@@ -80,9 +91,7 @@ on_session_creation = [
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
 ]
 
-on_logout = (
-	"frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
-)
+on_logout = "frappe.core.doctype.session_default_settings.session_default_settings.clear_session_defaults"
 
 # PDF
 pdf_header_html = "frappe.utils.pdf.pdf_header_html"
@@ -114,6 +123,7 @@ permission_query_conditions = {
 has_permission = {
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
+	"Note": "frappe.desk.doctype.note.note.has_permission",
 	"User": "frappe.core.doctype.user.user.has_permission",
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.has_permission",
 	"Number Card": "frappe.desk.doctype.number_card.number_card.has_permission",
@@ -127,9 +137,7 @@ has_permission = {
 	"Notification Settings": "frappe.desk.doctype.notification_settings.notification_settings.has_permission",
 }
 
-has_website_permission = {
-	"Address": "frappe.contacts.doctype.address.address.has_website_permission"
-}
+has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
 
 jinja = {
 	"methods": "frappe.utils.jinja_globals",
@@ -166,6 +174,7 @@ doc_events = {
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.apply",
 			"frappe.automation.doctype.assignment_rule.assignment_rule.update_due_date",
+			"frappe.core.doctype.file.utils.attach_files_to_document",
 		],
 		"on_change": [
 			"frappe.social.doctype.energy_point_rule.energy_point_rule.process_energy_points",
@@ -236,7 +245,6 @@ scheduler_events = {
 		"frappe.integrations.doctype.google_contacts.google_contacts.sync",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.make_auto_repeat_entry",
 		"frappe.automation.doctype.auto_repeat.auto_repeat.set_auto_repeat_as_completed",
-		"frappe.email.doctype.unhandled_email.unhandled_email.remove_old_unhandled_emails",
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
@@ -259,11 +267,6 @@ scheduler_events = {
 	"monthly_long": [
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_monthly"
 	],
-}
-
-get_translated_dict = {
-	("doctype", "System Settings"): "frappe.geo.country_info.get_translated_dict",
-	("page", "setup-wizard"): "frappe.geo.country_info.get_translated_dict",
 }
 
 sounds = [
@@ -410,6 +413,9 @@ ignore_links_on_delete = [
 	"Integration Request",
 	"Unhandled Email",
 	"Webhook Request Log",
+	"Workspace",
+	"Route History",
+	"Access Log",
 ]
 
 # Request Hooks
@@ -418,23 +424,124 @@ before_request = [
 	"frappe.monitor.start",
 	"frappe.rate_limiter.apply",
 ]
-after_request = ["frappe.rate_limiter.update", "frappe.monitor.stop", "frappe.recorder.dump"]
 
 # Background Job Hooks
 before_job = [
+	"frappe.recorder.record",
 	"frappe.monitor.start",
 ]
+
+if os.getenv("FRAPPE_SENTRY_DSN") and (
+	os.getenv("ENABLE_SENTRY_DB_MONITORING") or os.getenv("SENTRY_TRACING_SAMPLE_RATE")
+):
+	before_request.append("frappe.utils.sentry.set_sentry_context")
+	before_job.append("frappe.utils.sentry.set_sentry_context")
+
 after_job = [
+	"frappe.recorder.dump",
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
-	"frappe.utils.telemetry.flush",
+	"frappe.utils.background_jobs.flush_telemetry",
 ]
 
 extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
+	"frappe.utils.sentry.add_bootinfo",
 ]
 
 get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed"
 
 export_python_type_annotations = True
+
+standard_navbar_items = [
+	{
+		"item_label": "My Profile",
+		"item_type": "Route",
+		"route": "/app/user-profile",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "My Settings",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.route_to_user()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Session Defaults",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.setup_session_defaults()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Reload",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.clear_cache()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "View Website",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.view_website()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Toggle Full Width",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.toggle_full_width()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Toggle Theme",
+		"item_type": "Action",
+		"action": "new frappe.ui.ThemeSwitcher().show()",
+		"is_standard": 1,
+	},
+	{
+		"item_type": "Separator",
+		"is_standard": 1,
+		"item_label": "",
+	},
+	{
+		"item_label": "Log out",
+		"item_type": "Action",
+		"action": "frappe.app.logout()",
+		"is_standard": 1,
+	},
+]
+
+standard_help_items = [
+	{
+		"item_label": "About",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.show_about()",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Keyboard Shortcuts",
+		"item_type": "Action",
+		"action": "frappe.ui.toolbar.show_shortcuts(event)",
+		"is_standard": 1,
+	},
+	{
+		"item_label": "Frappe Support",
+		"item_type": "Route",
+		"route": "https://frappe.io/support",
+		"is_standard": 1,
+	},
+]
+
+# log doctype cleanups to automatically add in log settings
+default_log_clearing_doctypes = {
+	"Error Log": 14,
+	"Email Queue": 30,
+	"Scheduled Job Log": 7,
+	"Submission Queue": 7,
+	"Prepared Report": 14,
+	"Webhook Request Log": 30,
+	"Unhandled Email": 30,
+	"Reminder": 30,
+	"Integration Request": 90,
+	"Activity Log": 90,
+	"Route History": 90,
+}

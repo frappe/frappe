@@ -12,15 +12,12 @@ from frappe.utils import get_datetime, now
 
 
 def calculate_hash(path: str) -> str:
-	"""Calculate md5 hash of the file in binary mode
+	"""Calculate and return md5 hash of the file in binary mode.
 
 	Args:
 	        path (str): Path to the file to be hashed
-
-	Returns:
-	        str: The calculated hash
 	"""
-	hash_md5 = hashlib.md5()
+	hash_md5 = hashlib.md5(usedforsecurity=False)
 	with open(path, "rb") as f:
 		for chunk in iter(lambda: f.read(4096), b""):
 			hash_md5.update(chunk)
@@ -41,7 +38,7 @@ ignore_doctypes = [""]
 
 
 def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_permissions=False):
-	if type(module) is list:
+	if isinstance(module, list):
 		return [
 			import_file(
 				m[0],
@@ -62,9 +59,7 @@ def import_files(module, dt=None, dn=None, force=False, pre_process=None, reset_
 def import_file(module, dt, dn, force=False, pre_process=None, reset_permissions=False):
 	"""Sync a file from txt if modifed, return false if not updated"""
 	path = get_file_path(module, dt, dn)
-	return import_file_by_path(
-		path, force, pre_process=pre_process, reset_permissions=reset_permissions
-	)
+	return import_file_by_path(path, force, pre_process=pre_process, reset_permissions=reset_permissions)
 
 
 def get_file_path(module, dt, dn):
@@ -80,10 +75,10 @@ def import_file_by_path(
 	force: bool = False,
 	data_import: bool = False,
 	pre_process=None,
-	ignore_version: bool = None,
+	ignore_version: bool | None = None,
 	reset_permissions: bool = False,
-):
-	"""Import file from the given path
+) -> bool:
+	"""Import file from the given path.
 
 	Some conditions decide if a file should be imported or not.
 	Evaluation takes place in the order they are mentioned below.
@@ -107,8 +102,7 @@ def import_file_by_path(
 	        ignore_version (bool, optional): ignore current version. Defaults to None.
 	        reset_permissions (bool, optional): reset permissions for the file. Defaults to False.
 
-	Returns:
-	        [bool]: True if import takes place. False if it wasn't imported.
+	Return True if import takes place, False if it wasn't imported.
 	"""
 	try:
 		docs = read_doc_from_file(path)
@@ -215,11 +209,7 @@ def import_doc(
 	docdict["__islocal"] = 1
 
 	controller = get_controller(docdict["doctype"])
-	if (
-		controller
-		and hasattr(controller, "prepare_for_import")
-		and callable(getattr(controller, "prepare_for_import"))
-	):
+	if controller and hasattr(controller, "prepare_for_import") and callable(controller.prepare_for_import):
 		controller.prepare_for_import(docdict)
 
 	doc = frappe.get_doc(docdict)

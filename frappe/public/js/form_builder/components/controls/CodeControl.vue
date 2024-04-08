@@ -12,7 +12,7 @@ let update_control = ref(true);
 
 let content = computed({
 	get: () => props.modelValue,
-	set: (value) => emit('update:modelValue', value)
+	set: (value) => emit("update:modelValue", value),
 });
 
 onMounted(() => {
@@ -29,7 +29,7 @@ onMounted(() => {
 						content.value = code_control.value.get_value();
 					}
 					update_control.value = true;
-				}
+				},
 			},
 			value: content.value,
 			disabled: Boolean(slots.label) || props.read_only,
@@ -43,7 +43,7 @@ watch(
 	() => content.value,
 	(value) => {
 		update_control.value = false;
-		code_control.value.set_value(value);
+		code_control.value?.set_value(value);
 	}
 );
 
@@ -53,7 +53,7 @@ watch(
 		if (code_control.value) {
 			code_control.value.ace_editor_target.css("max-height", value);
 		}
-	},
+	}
 );
 </script>
 

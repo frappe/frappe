@@ -35,7 +35,7 @@ class TestDBUpdate(FrappeTestCase):
 			)
 			default = field_def.default if field_def.default is not None else fallback_default
 
-			self.assertEqual(fieldtype, table_column.type)
+			self.assertIn(fieldtype, table_column.type, msg=f"Types not matching for {fieldname}")
 			self.assertIn(cstr(table_column.default) or "NULL", [cstr(default), f"'{default}'"])
 
 	def test_index_and_unique_constraints(self):
@@ -99,6 +99,16 @@ class TestDBUpdate(FrappeTestCase):
 			len(indexes), 1, msg=f"There should be 1 index on {doctype}.{field}, found {indexes}"
 		)
 
+	def test_bigint_conversion(self):
+		doctype = new_doctype(fields=[{"fieldname": "int_field", "fieldtype": "Int"}]).insert()
+
+		with self.assertRaises(frappe.CharacterLengthExceededError):
+			frappe.get_doc(doctype=doctype.name, int_field=2**62 - 1).insert()
+
+		doctype.fields[0].length = 14
+		doctype.save()
+		frappe.get_doc(doctype=doctype.name, int_field=2**62 - 1).insert()
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_unique_index_on_install(self):
 		"""Only one unique index should be added"""
@@ -139,11 +149,25 @@ class TestDBUpdate(FrappeTestCase):
 		doctype.delete()
 		frappe.db.commit()
 
+	def test_uuid_varchar_migration(self):
+		doctype = new_doctype().insert()
+		doctype.autoname = "UUID"
+		doctype.save()
+		self.assertEqual(frappe.db.get_column_type(doctype.name, "name"), "uuid")
+
+		doc = frappe.new_doc(doctype.name).insert()
+
+		doctype.autoname = "hash"
+		doctype.save()
+		varchar = "varchar" if frappe.db.db_type == "mariadb" else "character varying"
+		self.assertIn(varchar, frappe.db.get_column_type(doctype.name, "name"))
+		doc.reload()  # ensure that docs are still accesible
+
 
 def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ("", 0))
 	fieldtype = fieldtuple[0]
-	if fieldtype in ("varchar", "datetime", "int"):
+	if fieldtype in ("varchar", "datetime"):
 		fieldtype += f"({field_def.length or fieldtuple[1]})"
 	return fieldtype
 

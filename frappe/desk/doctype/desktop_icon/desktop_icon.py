@@ -38,6 +38,7 @@ class DesktopIcon(Document):
 		standard: DF.Check
 		type: DF.Literal["module", "list", "link", "page", "query-report"]
 	# end: auto-generated types
+
 	def validate(self):
 		if not self.label:
 			self.label = self.module_name
@@ -96,9 +97,7 @@ def get_desktop_icons(user=None):
 				icon.blocked = 1
 			standard_map[icon.module_name] = icon
 
-		user_icons = frappe.get_all(
-			"Desktop Icon", fields=fields, filters={"standard": 0, "owner": user}
-		)
+		user_icons = frappe.get_all("Desktop Icon", fields=fields, filters={"standard": 0, "owner": user})
 
 		# update hidden property
 		for icon in user_icons:
@@ -126,7 +125,6 @@ def get_desktop_icons(user=None):
 		user_icon_names = [icon.module_name for icon in user_icons]
 		for standard_icon in standard_icons:
 			if standard_icon.module_name not in user_icon_names:
-
 				# if blocked, hidden too!
 				if standard_icon.blocked:
 					standard_icon.hidden = 1
@@ -145,7 +143,7 @@ def get_desktop_icons(user=None):
 		# translate
 		for d in user_icons:
 			if d.label:
-				d.label = _(d.label)
+				d.label = _(d.label, context=d.parent)
 
 		frappe.cache.hset("desktop_icons", user, user_icons)
 
@@ -174,9 +172,7 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", st
 
 	else:
 		idx = (
-			frappe.db.sql("select max(idx) from `tabDesktop Icon` where owner=%s", frappe.session.user)[0][
-				0
-			]
+			frappe.db.sql("select max(idx) from `tabDesktop Icon` where owner=%s", frappe.session.user)[0][0]
 			or frappe.db.sql("select count(*) from `tabDesktop Icon` where standard=1")[0][0]
 		)
 
@@ -225,7 +221,7 @@ def add_user_icon(_doctype, _report=None, label=None, link=None, type="link", st
 
 			icon_name = new_icon.name
 
-		except frappe.UniqueValidationError as e:
+		except frappe.UniqueValidationError:
 			frappe.throw(_("Desktop Icon already exists"))
 		except Exception as e:
 			raise e
@@ -262,7 +258,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 	an icon for the doctype"""
 
 	# clear all custom only if setup is not complete
-	if not int(frappe.defaults.get_defaults().setup_complete or 0):
+	if not frappe.defaults.get_defaults().get("setup_complete", 0):
 		frappe.db.delete("Desktop Icon", {"standard": 0})
 
 	# set standard as blocked and hidden if setting first active domain
@@ -270,7 +266,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 		frappe.db.sql("update `tabDesktop Icon` set blocked=0, hidden=1 where standard=1")
 
 	# set as visible if present, or add icon
-	for module_name in visible_list:
+	for module_name in list(visible_list):
 		name = frappe.db.get_value("Desktop Icon", {"module_name": module_name})
 		if name:
 			frappe.db.set_value("Desktop Icon", name, "hidden", 0)
@@ -283,8 +279,7 @@ def set_desktop_icons(visible_list, ignore_duplicate=True):
 						raise e
 					else:
 						visible_list.remove(module_name)
-						if frappe.message_log:
-							frappe.message_log.pop()
+						frappe.clear_last_message()
 
 	# set the order
 	set_order(visible_list)
@@ -334,8 +329,7 @@ def set_hidden(module_name, user=None, hidden=1):
 
 def get_all_icons():
 	return [
-		d.module_name
-		for d in frappe.get_all("Desktop Icon", filters={"standard": 1}, fields=["module_name"])
+		d.module_name for d in frappe.get_all("Desktop Icon", filters={"standard": 1}, fields=["module_name"])
 	]
 
 

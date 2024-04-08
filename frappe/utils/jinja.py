@@ -66,8 +66,7 @@ def validate_template(html):
 	try:
 		jenv.from_string(html)
 	except TemplateSyntaxError as e:
-		frappe.msgprint(f"Line {e.lineno}: {e.message}")
-		frappe.throw(frappe._("Syntax error in template"))
+		frappe.throw(frappe._(f"Syntax error in template as line {e.lineno}: {e.message}"))
 
 
 def render_template(template, context=None, is_path=None, safe_render=True):
@@ -108,7 +107,7 @@ def guess_is_path(template):
 	# if its single line and ends with a html, then its probably a path
 	if "\n" not in template and "." in template:
 		extn = template.rsplit(".")[-1]
-		if extn in ("html", "css", "scss", "py", "md", "json", "js", "xml"):
+		if extn in ("html", "css", "scss", "py", "md", "json", "js", "xml", "txt"):
 			return True
 
 	return False
@@ -123,7 +122,9 @@ def get_jloader():
 		apps = frappe.get_hooks("template_apps")
 		if not apps:
 			apps = list(
-				reversed(frappe.local.flags.web_pages_apps or frappe.get_installed_apps(_ensure_on_bench=True))
+				reversed(
+					frappe.local.flags.web_pages_apps or frappe.get_installed_apps(_ensure_on_bench=True)
+				)
 			)
 
 		if "frappe" not in apps:
@@ -155,7 +156,7 @@ def set_filters(jenv):
 
 
 def get_jinja_hooks():
-	"""Returns a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
+	"""Return a tuple of (methods, filters) each containing a dict of method name and method definition pair."""
 	import frappe
 
 	if not getattr(frappe.local, "site", None):

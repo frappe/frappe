@@ -45,7 +45,6 @@
 .layout-side-section.print-preview-sidebar {
 	padding-right: var(--padding-md);
 
-
 	.label-area {
 		white-space: nowrap;
 	}
@@ -73,7 +72,6 @@
 	}
 
 	.skeleton-body {
-
 		.skeleton-table {
 			width: 100%;
 
@@ -144,9 +142,8 @@
 		background-position: -100px;
 	}
 
-	50%, 100% {
+	50%,
+	100% {
 		background-position: 500px;
 	}
 }
-
-

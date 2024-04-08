@@ -47,12 +47,11 @@
 }
 
 .notifications-list {
-	width: 480px;
-	padding: 0px 10px;
-	min-height: 560px;
-	border: none;
+	width: 360px;
+	padding: 0px;
+	min-height: 480px;
 	position: absolute;
-	box-shadow: 0px 1px 4px rgba(17, 43, 66, 0.1), 0px 2px 6px rgba(17, 43, 66, 0.08);
+	box-shadow: var(--shadow-2xl);
 
 	.notification-list-header {
 		margin: 0px 10px;
@@ -62,10 +61,11 @@
 
 	.notification-list-body {
 		// margin: 10px 0px;
-		max-height: 500px;
+		max-height: 450px;
 		overflow-y: auto;
 
-		.panel-events, .panel-notifications {
+		.panel-events,
+		.panel-notifications {
 			@include size(100%, null);
 		}
 
@@ -76,13 +76,12 @@
 
 			.title {
 				margin-top: var(--margin-lg);
-				font-size: var(--text-base);
-				font-weight: 600;
+				@include get_textstyle("base", "semibold");
 			}
 
 			.subtitle {
 				margin-top: var(--margin-sm);
-				font-size: var(--text-md);
+				@include get_textstyle("base", "regular");
 				color: var(--text-muted);
 			}
 		}
@@ -96,7 +95,7 @@
 			margin-bottom: -1px;
 			margin-right: var(--margin-lg);
 			color: var(--text-light);
-			font-weight: var(--text-bold);
+			font-weight: var(--weight-medium);
 			cursor: pointer;
 
 			&.active {
@@ -117,9 +116,8 @@
 	margin: 4px 0px;
 	border-radius: var(--border-radius-md, 8px);
 	white-space: normal;
-	font-weight: normal;
 	display: flex;
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 	line-height: 20px;
 	color: var(--text-light);
 	max-width: 455px;
@@ -136,38 +134,40 @@
 }
 
 .recent-item.notification-item {
-	padding: 10px 10px 10px 4px;
+	padding: 10px 10px 10px 0px;
+	margin: 10px 10px 10px 10px;
 	justify-content: space-between;
 
 	&.unread {
-
-		&:hover {
-			.mark-as-read {
-				flex-shrink : 0;
-				align-self: center;
-				justify-self: end;
-				width: 8px;
-				height: 8px;
-				border: 2px solid var(--primary);
-				border-radius: 1000px;
-			}
+		.mark-as-read {
+			flex-shrink: 0;
+			align-self: center;
+			justify-self: end;
+			width: 8px;
+			height: 8px;
 		}
 
+		&:hover .mark-as-read {
+			border: 2px solid var(--invert-neutral);
+			border-radius: 1000px;
+		}
 		.notification-body::before {
-			background: var(--primary);
+			background: var(--invert-neutral);
 		}
 	}
 
 	.notification-body {
 		display: flex;
+		gap: 10px;
 
 		&::before {
-			content: '';
+			content: "";
 			display: inline-block;
-			@include size(4px, 4px);
+			@include size(6px, 6px);
+			min-width: 6px;
 			margin-top: 16px;
+			margin-left: 2px;
 			border-radius: 10px;
-			margin-right: var(--margin-xs);
 		}
 
 		.message {
@@ -177,7 +177,7 @@
 
 	b {
 		font-weight: 500;
-		color: var(--text-light)
+		color: var(--text-light);
 	}
 
 	.notification-timestamp {
@@ -205,13 +205,12 @@
 		padding-left: 10px;
 
 		.event-subject {
-			font-size: var(--text-md);
+			@include get_textstyle("base", "medium");
 			color: var(--text-light);
-			font-weight: 500;
 		}
 
 		.event-time {
-			font-size: var(--text-sm);
+			@include get_textstyle("sm", "regular");
 			margin-right: 10px;
 		}
 
@@ -250,7 +249,7 @@
 
 		.target-title {
 			margin: auto;
-			font-size: var(--text-md);
+			@include get_textstyle("base", "regular");
 			color: var(--text-light);
 		}
 
@@ -294,7 +293,7 @@
 
 	&:hover {
 		text-decoration: none;
-		color: var(--text-color)
+		color: var(--text-color);
 	}
 }
 

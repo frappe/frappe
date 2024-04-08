@@ -18,6 +18,7 @@ class DashboardChartField(Document):
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
-		y_field: DF.Literal
+		y_field: DF.Literal[None]
 	# end: auto-generated types
+
 	pass

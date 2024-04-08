@@ -1,5 +1,5 @@
 <div class="timeline-message-box" data-communication-type="{{ doc.communication_type }}">
-	<span class="flex justify-between">
+	<span class="flex justify-between m-1 mb-3">
 		<span class="text-color flex">
 			{% if (doc.communication_type && doc.communication_type == "Automated Message") { %}
 				<span>
@@ -22,30 +22,37 @@
 						{{ "..." }}
 					{% } %}
 
-					<div class="text-muted">
-						{{ comment_when(doc.creation) }}
+					<div class="text-extra-muted">
+						{{ comment_when(doc.communication_date || doc.creation) }}
 					</div>
 				</span>
 			{% } else if (doc.comment_type && doc.comment_type == "Comment") { %}
 				<span>
-					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }} {{ __("commented") }}
-					<span class="text-muted margin-left">
-						{{ comment_when(doc.creation) }}
+					{{ frappe.avatar(doc.owner, "avatar-medium") }}
+					<span class="ml-2" style="font-size: var(--text-base);">{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}</span>
+					<span class="text-extra-muted">{{ __("commented") }}</span>
+					<span> · </span>
+					<span class="text-extra-muted">
+						{{ comment_when(doc.communication_date || doc.creation) }}
 					</span>
 				</span>
 			{% } else { %}
 				<span class="margin-right">
 					{{ frappe.avatar(doc.owner, "avatar-medium") }}
 				</span>
-				<span>
+				<div>
 					{{ doc.user_full_name || frappe.user.full_name(doc.owner) }}
-					<div class="text-muted">
-						{{ comment_when(doc.creation) }}
-					</div>
-				</span>
+					<span> . </span>
+					<span class="text-muted">
+						{{ comment_when(doc.communication_date || doc.creation) }}
+					</span>
+					{% if (doc.subject) { %}
+						<div class="text-muted my-1">{{doc.subject}}</div>
+					{% } %}
+				</div>
 			{% } %}
 		</span>
-		<span class="actions">
+		<span class="actions" style="flex-shrink: 0">
 			{% if (doc._doc_status && doc._doc_status_indicator) { %}
 			<span class="indicator-pill {%= doc._doc_status_indicator %}"
 				title="{%= __(doc._doc_status) %}"
@@ -58,8 +65,8 @@
 
 			{% if (doc._url) { %}
 			<a class="action-btn" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
-				<svg class="icon icon-sm">
-					<use href="#icon-link-url" class="like-icon"></use>
+				<svg class="es-icon icon-sm">
+					<use href="#es-line-link"></use>
 				</svg>
 			</a>
 			{% } %}

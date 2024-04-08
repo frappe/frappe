@@ -46,6 +46,9 @@ def make(
 	print_letterhead=True,
 	email_template=None,
 	communication_type=None,
+	send_after=None,
+	print_language=None,
+	now=False,
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
@@ -64,6 +67,7 @@ def make(
 	:param attachments: List of File names or dicts with keys "fname" and "fcontent"
 	:param send_me_a_copy: Send a copy to the sender (default **False**).
 	:param email_template: Template which is used to compose mail .
+	:param send_after: Send after the given datetime.
 	"""
 	if kwargs:
 		from frappe.utils.commands import warn
@@ -99,6 +103,9 @@ def make(
 		email_template=email_template,
 		communication_type=communication_type,
 		add_signature=False,
+		send_after=send_after,
+		print_language=print_language,
+		now=now,
 	)
 
 
@@ -124,6 +131,9 @@ def _make(
 	email_template=None,
 	communication_type=None,
 	add_signature=True,
+	send_after=None,
+	print_language=None,
+	now=False,
 ) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
@@ -151,6 +161,7 @@ def _make(
 			"read_receipt": read_receipt,
 			"has_attachment": 1 if attachments else 0,
 			"communication_type": communication_type,
+			"send_after": send_after,
 		}
 	)
 	comm.flags.skip_add_signature = not add_signature
@@ -176,6 +187,8 @@ def _make(
 			print_format=print_format,
 			send_me_a_copy=send_me_a_copy,
 			print_letterhead=print_letterhead,
+			print_language=print_language,
+			now=now,
 		)
 
 	emails_not_sent_to = comm.exclude_emails_list(include_sender=send_me_a_copy)
@@ -186,7 +199,8 @@ def _make(
 def validate_email(doc: "Communication") -> None:
 	"""Validate Email Addresses of Recipients and CC"""
 	if (
-		not (doc.communication_type == "Communication" and doc.communication_medium == "Email")
+		doc.communication_type != "Communication"
+		or doc.communication_medium != "Email"
 		or doc.flags.in_receive
 	):
 		return
@@ -257,16 +271,18 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 
 
 @frappe.whitelist(allow_guest=True, methods=("GET",))
-def mark_email_as_seen(name: str = None):
+def mark_email_as_seen(name: str | None = None):
+	frappe.request.after_response.add(lambda: _mark_email_as_seen(name))
+	frappe.response.update(frappe.utils.get_imaginary_pixel_response())
+
+
+def _mark_email_as_seen(name):
 	try:
 		update_communication_as_read(name)
-		frappe.db.commit()  # nosemgrep: this will be called in a GET request
-
 	except Exception:
 		frappe.log_error("Unable to mark as seen", None, "Communication", name)
 
-	finally:
-		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
+	frappe.db.commit()  # nosemgrep: after_response requires explicit commit
 
 
 def update_communication_as_read(name):

@@ -30,6 +30,7 @@ class GoogleContacts(Document):
 		push_to_google_contacts: DF.Check
 		refresh_token: DF.Password | None
 	# end: auto-generated types
+
 	def validate(self):
 		if not frappe.db.get_single_value("Google Settings", "enable"):
 			frappe.throw(_("Enable Google API in Google Settings."))
@@ -74,9 +75,7 @@ def authorize_access(g_contact, reauthorize=False, code=None):
 
 
 def get_google_contacts_object(g_contact):
-	"""
-	Returns an object of Google Calendar along with Google Calendar doc.
-	"""
+	"""Return an object of Google Calendar along with Google Calendar doc."""
 	account = frappe.get_doc("Google Contacts", g_contact)
 	oauth_obj = GoogleOAuth("contacts")
 
@@ -155,6 +154,10 @@ def sync_contacts_from_google_contacts(g_contact):
 		frappe.publish_realtime(
 			"import_google_contacts", dict(progress=idx + 1, total=len(results)), user=frappe.session.user
 		)
+		# Work-around to fix
+		# https://github.com/frappe/frappe/issues/22648
+		if not connection.get("names"):
+			continue
 
 		for name in connection.get("names"):
 			if name.get("metadata").get("primary"):
@@ -174,12 +177,14 @@ def sync_contacts_from_google_contacts(g_contact):
 
 				for email in connection.get("emailAddresses", []):
 					contact.add_email(
-						email_id=email.get("value"), is_primary=1 if email.get("metadata").get("primary") else 0
+						email_id=email.get("value"),
+						is_primary=1 if email.get("metadata").get("primary") else 0,
 					)
 
 				for phone in connection.get("phoneNumbers", []):
 					contact.add_phone(
-						phone=phone.get("value"), is_primary_phone=1 if phone.get("metadata").get("primary") else 0
+						phone=phone.get("value"),
+						is_primary_phone=1 if phone.get("metadata").get("primary") else 0,
 					)
 
 				contact.insert(ignore_permissions=True)

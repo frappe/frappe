@@ -4,7 +4,7 @@
  "allow_rename": 1,
  "autoname": "field:currency_name",
  "creation": "2013-01-28 10:06:02",
- "description": "**Currency** Master",
+ "description": "Currency list stores the currency value, its symbol and fraction unit",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
@@ -82,7 +82,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-07-04 09:42:52.425440",
+ "modified": "2024-03-23 16:01:31.809369",
  "modified_by": "Administrator",
  "module": "Geo",
  "name": "Currency",
@@ -104,6 +104,10 @@
   },
   {
    "read": 1,
+   "role": "Accounts Manager"
+  },
+  {
+   "read": 1,
    "role": "Accounts User"
   },
   {
@@ -115,7 +119,7 @@
    "role": "Purchase User"
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

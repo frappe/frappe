@@ -44,7 +44,7 @@ class CustomizeForm(Document):
 		autoname: DF.Data | None
 		default_email_template: DF.Link | None
 		default_print_format: DF.Link | None
-		default_view: DF.Literal
+		default_view: DF.Literal[None]
 		doc_type: DF.Link | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
@@ -54,6 +54,7 @@ class CustomizeForm(Document):
 		is_calendar_and_gantt: DF.Check
 		istable: DF.Check
 		label: DF.Data | None
+		link_filters: DF.JSON | None
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
@@ -71,9 +72,10 @@ class CustomizeForm(Document):
 		quick_entry: DF.Check
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
+		sender_name_field: DF.Data | None
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
-		sort_field: DF.Literal
+		sort_field: DF.Literal[None]
 		sort_order: DF.Literal["ASC", "DESC"]
 		states: DF.Table[DocTypeState]
 		subject_field: DF.Data | None
@@ -82,6 +84,7 @@ class CustomizeForm(Document):
 		track_views: DF.Check
 		translated_doctype: DF.Check
 	# end: auto-generated types
+
 	def on_update(self):
 		frappe.db.delete("Singles", {"doctype": "Customize Form"})
 		frappe.db.delete("Customize Form Field")
@@ -342,9 +345,7 @@ class CustomizeForm(Document):
 			)
 			and (df.get(prop) == 0)
 		):
-			frappe.msgprint(
-				_("Row {0}: Not allowed to disable Mandatory for standard fields").format(df.idx)
-			)
+			frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields").format(df.idx))
 			return False
 
 		elif (
@@ -411,7 +412,9 @@ class CustomizeForm(Document):
 					original = frappe.get_doc(doctype, d.name)
 					for prop, prop_type in field_map.items():
 						if d.get(prop) != original.get(prop):
-							self.make_property_setter(prop, d.get(prop), prop_type, apply_on=doctype, row_name=d.name)
+							self.make_property_setter(
+								prop, d.get(prop), prop_type, apply_on=doctype, row_name=d.name
+							)
 					items.append(d.name)
 				else:
 					# custom - just insert/update
@@ -520,9 +523,7 @@ class CustomizeForm(Document):
 			if not is_standard_or_system_generated_field(df):
 				frappe.delete_doc("Custom Field", df.name)
 
-	def make_property_setter(
-		self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None
-	):
+	def make_property_setter(self, prop, value, property_type, fieldname=None, apply_on=None, row_name=None):
 		delete_property_setter(self.doc_type, prop, fieldname, row_name)
 
 		property_value = self.get_existing_property_value(prop, fieldname)
@@ -591,13 +592,11 @@ class CustomizeForm(Document):
 			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
 			fieldname = df.fieldname
 			docs = frappe.db.sql(
-				"""
+				f"""
 				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
-				FROM `tab{doctype}`
+				FROM `tab{self.doc_type}`
 				WHERE LENGTH({fieldname}) > {max_length}
-			""".format(
-					fieldname=fieldname, doctype=self.doc_type, max_length=max_length
-				),
+			""",
 				as_dict=True,
 			)
 			label = df.label
@@ -681,6 +680,17 @@ def is_standard_or_system_generated_field(df):
 	return not df.get("is_custom_field") or df.get("is_system_generated")
 
 
+@frappe.whitelist()
+def get_link_filters_from_doc_without_customisations(doctype, fieldname):
+	"""Get the filters of a link field from a doc without customisations
+	In backend the customisations are not applied.
+	Customisations are applied in the client side.
+	"""
+	doc = frappe.get_doc("DocType", doctype)
+	field = list(filter(lambda x: x.fieldname == fieldname, doc.fields))
+	return field[0].link_filters
+
+
 doctype_properties = {
 	"search_fields": "Data",
 	"title_field": "Data",
@@ -761,6 +771,7 @@ docfield_properties = {
 	"hide_days": "Check",
 	"hide_seconds": "Check",
 	"is_virtual": "Check",
+	"link_filters": "JSON",
 }
 
 doctype_link_properties = {
@@ -787,7 +798,7 @@ ALLOWED_FIELDTYPE_CHANGE = (
 	("Text", "Data"),
 	("Text", "Text Editor", "Code", "Signature", "HTML Editor"),
 	("Data", "Select"),
-	("Text", "Small Text"),
+	("Text", "Small Text", "Long Text"),
 	("Text", "Data", "Barcode"),
 	("Code", "Geolocation"),
 	("Table", "Table MultiSelect"),

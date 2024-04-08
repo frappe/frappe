@@ -52,12 +52,12 @@
    "fieldname": "response_html",
    "fieldtype": "Code",
    "label": "Response ",
-   "options": "HTML"
+   "options": "Jinja"
   }
  ],
  "icon": "fa fa-comment",
  "links": [],
- "modified": "2023-08-28 22:29:04.457992",
+ "modified": "2024-03-23 16:03:24.779791",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Template",
@@ -81,7 +81,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

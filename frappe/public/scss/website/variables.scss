@@ -1,18 +1,8 @@
-$gray-50: #F9FAFA !default;
-$gray-100: #F4F5F6 !default;
-$gray-200: #EEF0F2 !default;
-$gray-300: #E2E6E9 !default;
-$gray-400: #C8CFD5 !default;
-$gray-500: #A6B1B9 !default;
-$gray-600: #74808B !default;
-$gray-700: #4C5A67 !default;
-$gray-800: #313B44 !default;
-$gray-900: #192734 !default;
-
-$black: #000 !default;
-$primary: #2490ef !default;
-$primary-light: lighten($primary, 42%) !default;
-$light: $gray-50 !default;
+@import "../espresso/colors";
+@import "../espresso/typography";
+@import "../espresso/shadows";
+@import "../espresso/spacing";
+@import "../espresso/borders";
 
 $body-color: $gray-700 !default;
 $text-muted: $gray-600 !default;
@@ -20,12 +10,13 @@ $border-color: $gray-300 !default;
 $headings-color: $gray-900 !default;
 $breadcrumb-bg: transparent !default;
 $navbar-bg: white !default;
+$navbar-height: 48px;
 
 $container-max-widths: (
 	sm: 540px,
 	md: 840px,
 	lg: 1090px,
-	xl: 1290px
+	xl: 1290px,
 );
 
 $font-sizes: (
@@ -38,7 +29,7 @@ $font-sizes: (
 	"3xl": 1.875rem,
 	"4xl": 2.25rem,
 	"5xl": 3rem,
-	"6xl": 4rem
+	"6xl": 4rem,
 );
 
 @each $size, $value in $font-sizes {
@@ -97,7 +88,7 @@ $grid-breakpoints: (
 	md: 768px,
 	lg: 992px,
 	xl: 1200px,
-	2xl: 1440px
+	2xl: 1440px,
 ) !default;
 
 $spacers: (
@@ -125,12 +116,12 @@ $spacers: (
 	48: 12rem,
 	52: 13rem,
 	56: 14rem,
-	64: 16rem
+	64: 16rem,
 );
 
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables";
 @import "~bootstrap/scss/mixins";
-@import 'css_variables';
+@import "css_variables";
 
 $code-color: $purple;

@@ -16,6 +16,7 @@
   "module",
   "column_break_3",
   "icon",
+  "indicator_color",
   "restrict_to_domain",
   "hide_custom",
   "public",
@@ -207,11 +208,18 @@
    "fieldtype": "Table",
    "label": "Custom Blocks",
    "options": "Workspace Custom Block"
+  },
+  {
+   "depends_on": "doc.icon",
+   "fieldname": "indicator_color",
+   "fieldtype": "Select",
+   "label": "Indicator Color",
+   "options": "green\ncyan\nblue\norange\nyellow\ngray\ngrey\nred\npink\ndarkgrey\npurple\nlight-blue"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-06-08 14:52:38.110224",
+ "modified": "2024-03-23 16:04:05.604044",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
@@ -231,7 +239,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

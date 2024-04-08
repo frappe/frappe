@@ -80,7 +80,7 @@
 								flex: 1;
 
 								.btn {
-									font-size: var(--text-base);
+									@include get_textstyle("base", "regular");
 								}
 							}
 						}
@@ -118,7 +118,7 @@
 							background-color: var(--control-bg);
 
 							@include media-breakpoint-down(sm) {
-								font-size: var(--text-sm);
+								@include get_textstyle("sm", "regular");
 							}
 						}
 
@@ -143,7 +143,7 @@
 								position: relative;
 
 								@include media-breakpoint-down(sm) {
-									font-size: var(--text-sm);
+									@include get_textstyle("sm", "regular");
 								}
 
 								&[data-fieldtype="Rating"] {
@@ -234,10 +234,10 @@
 							flex-wrap: wrap;
 
 							.btn {
-								font-size: var(--text-base);
+								@include get_textstyle("base", "regular");
 
 								@include media-breakpoint-down(sm) {
-									font-size: var(--text-sm);
+									@include get_textstyle("sm", "regular");
 								}
 							}
 
@@ -255,14 +255,14 @@
 								flex: 1;
 
 								@include media-breakpoint-down(sm) {
-									order: 1
+									order: 1;
 								}
 							}
 
 							.center-area {
 								display: flex;
 								align-items: center;
-								font-size: var(--text-base);
+								@include get_textstyle("base", "regular");
 
 								.slides-progress {
 									display: flex;
@@ -345,7 +345,7 @@
 								flex: 1;
 
 								@include media-breakpoint-down(sm) {
-									order: 2
+									order: 2;
 								}
 							}
 						}
@@ -363,7 +363,7 @@
 						justify-content: space-between;
 						gap: 6px;
 						color: var(--text-muted);
-						font-size: var(--text-md);
+						@include get_textstyle("base", "regular");
 
 						&:hover {
 							text-decoration: none;
@@ -495,7 +495,8 @@
 									border-top: 1px solid var(--border-color);
 									max-width: 160px;
 
-									.ql-editor, p {
+									.ql-editor,
+									p {
 										width: max-content;
 										max-width: 150px;
 										margin-bottom: 0;

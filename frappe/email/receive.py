@@ -8,7 +8,7 @@ import imaplib
 import json
 import poplib
 import re
-import time
+import ssl
 from contextlib import suppress
 from email.header import decode_header
 
@@ -72,11 +72,14 @@ class EmailServer:
 		try:
 			if cint(self.settings.use_ssl):
 				self.imap = imaplib.IMAP4_SSL(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+					self.settings.host,
+					self.settings.incoming_port,
+					timeout=frappe.conf.pop_timeout,
+					ssl_context=ssl.create_default_context(),
 				)
 			else:
 				self.imap = imaplib.IMAP4(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
 				)
 
 				if cint(self.settings.use_starttls):
@@ -106,11 +109,14 @@ class EmailServer:
 		try:
 			if cint(self.settings.use_ssl):
 				self.pop = poplib.POP3_SSL(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+					self.settings.host,
+					self.settings.incoming_port,
+					timeout=frappe.conf.pop_timeout,
+					context=ssl.create_default_context(),
 				)
 			else:
 				self.pop = poplib.POP3(
-					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.get("pop_timeout")
+					self.settings.host, self.settings.incoming_port, timeout=frappe.conf.pop_timeout
 				)
 
 			if self.settings.use_oauth:
@@ -145,7 +151,7 @@ class EmailServer:
 
 	def select_imap_folder(self, folder):
 		res = self.imap.select(f'"{folder}"')
-		return res[0] == "OK"  # The folder exsits TODO: handle other resoponses too
+		return res[0] == "OK"  # The folder exists TODO: handle other responses too
 
 	def logout(self):
 		if cint(self.settings.use_imap):
@@ -155,7 +161,7 @@ class EmailServer:
 		return
 
 	def get_messages(self, folder="INBOX"):
-		"""Returns new email messages."""
+		"""Return new email messages."""
 
 		self.latest_messages = []
 		self.seen_status = {}
@@ -213,6 +219,9 @@ class EmailServer:
 			).where(Communication.email_account == self.settings.email_account).run()
 
 			if self.settings.use_imap:
+				# Remove {"} quotes that are added to handle spaces in IMAP Folder names
+				if folder[0] == folder[-1] == '"':
+					folder = folder[1:-1]
 				# new update for the IMAP Folder DocType
 				IMAPFolder = frappe.qb.DocType("IMAP Folder")
 				frappe.qb.update(IMAPFolder).set(IMAPFolder.uidvalidity, current_uid_validity).set(
@@ -226,15 +235,8 @@ class EmailServer:
 					EmailAccount.uidnext, uidnext
 				).where(EmailAccount.name == self.settings.email_account_name).run()
 
-			# uid validity not found pulling emails for first time
-			if not uid_validity:
-				self.settings.email_sync_rule = "UNSEEN"
-				return
-
 			sync_count = 100 if uid_validity else int(self.settings.initial_sync_count)
-			from_uid = (
-				1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
-			)
+			from_uid = 1 if uidnext < (sync_count + 1) or (uidnext - sync_count) < 1 else uidnext - sync_count
 			# sync last 100 email
 			self.settings.email_sync_rule = f"UID {from_uid}:{uidnext}"
 			self.uid_reindexed = True
@@ -309,7 +311,6 @@ class EmailServer:
 		return False
 
 	def make_error_msg(self, uid, msg_num):
-		partial_mail = None
 		traceback = frappe.get_traceback(with_context=True)
 		with suppress(Exception):
 			# retrieve headers
@@ -402,11 +403,19 @@ class Email:
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
+
 		if _subject[0][1]:
+			# Encoding is known by decode_header (might also be unknown-8bit)
 			self.subject = safe_decode(self.subject, _subject[0][1])
-		else:
-			# assume that the encoding is utf-8
-			self.subject = safe_decode(self.subject)[:140]
+
+		if isinstance(self.subject, bytes):
+			# Fall back to utf-8 if the charset is unknown or decoding fails
+			# Replace invalid characters with '<?>'
+			self.subject = self.subject.decode("utf-8", "replace")
+
+		# Convert non-string (e.g. None)
+		# Truncate to 140 chars (can be used as a document name)
+		self.subject = str(self.subject).strip()[:140]
 
 		if not self.subject:
 			self.subject = "No Subject"
@@ -427,15 +436,14 @@ class Email:
 
 		self.from_real_name = parse_addr(_from_email)[0] if "@" in _from_email else _from_email
 
-	def decode_email(self, email):
+	@staticmethod
+	def decode_email(email):
 		if not email:
 			return
 		decoded = ""
-		for part, encoding in decode_header(
-			frappe.as_unicode(email).replace('"', " ").replace("'", " ")
-		):
+		for part, encoding in decode_header(frappe.as_unicode(email).replace('"', " ").replace("'", " ")):
 			if encoding:
-				decoded += part.decode(encoding)
+				decoded += part.decode(encoding, "replace")
 			else:
 				decoded += safe_decode(part)
 		return decoded
@@ -472,10 +480,7 @@ class Email:
 
 	def show_attached_email_headers_in_content(self, part):
 		# get the multipart/alternative message
-		try:
-			from html import escape  # python 3.x
-		except ImportError:
-			from cgi import escape  # python 2.x
+		from html import escape
 
 		message = list(part.walk())[1]
 		headers = []
@@ -631,13 +636,11 @@ class InboundMail(Email):
 		if self.reference_document():
 			data["reference_doctype"] = self.reference_document().doctype
 			data["reference_name"] = self.reference_document().name
-		else:
-			if append_to and append_to != "Communication":
-				reference_doc = self._create_reference_document(append_to)
-				if reference_doc:
-					data["reference_doctype"] = reference_doc.doctype
-					data["reference_name"] = reference_doc.name
-			data["is_first"] = True
+		elif append_to and append_to != "Communication":
+			reference_name = self._create_reference_document(append_to)
+			if reference_name:
+				data["reference_doctype"] = append_to
+				data["reference_name"] = reference_name
 
 		if self.is_notification():
 			# Disable notifications for notification.
@@ -663,8 +666,8 @@ class InboundMail(Email):
 		# replace inline images
 		content = self.content
 		for file in attachments:
-			if file.name in self.cid_map and self.cid_map[file.name]:
-				content = content.replace(f"cid:{self.cid_map[file.name]}", file.file_url)
+			if self.cid_map.get(file.name):
+				content = content.replace(f"cid:{self.cid_map[file.name]}", file.unique_url)
 		return content
 
 	def is_notification(self):
@@ -804,28 +807,25 @@ class InboundMail(Email):
 	def _create_reference_document(self, doctype):
 		"""Create reference document if it does not exist in the system."""
 		parent = frappe.new_doc(doctype)
-		email_fileds = self.get_email_fields(doctype)
+		email_fields = self.get_email_fields(doctype)
 
-		if email_fileds.subject_field:
-			parent.set(email_fileds.subject_field, frappe.as_unicode(self.subject)[:140])
+		if email_fields.subject_field:
+			parent.set(email_fields.subject_field, frappe.as_unicode(self.subject)[:140])
 
-		if email_fileds.sender_field:
-			parent.set(email_fileds.sender_field, frappe.as_unicode(self.from_email))
+		if email_fields.sender_field:
+			parent.set(email_fields.sender_field, frappe.as_unicode(self.from_email))
+
+		if email_fields.sender_name_field:
+			parent.set(email_fields.sender_name_field, frappe.as_unicode(self.from_real_name))
 
 		parent.flags.ignore_mandatory = True
 
 		try:
 			parent.insert(ignore_permissions=True)
+			return parent.name
 		except frappe.DuplicateEntryError:
 			# try and find matching parent
-			parent_name = frappe.db.get_value(
-				self.email_account.append_to, {email_fileds.sender_field: self.from_email}
-			)
-			if parent_name:
-				parent.name = parent_name
-			else:
-				parent = None
-		return parent
+			return frappe.db.get_value(doctype, {email_fields.sender_field: self.from_email})
 
 	@staticmethod
 	def get_doc(doctype, docname, ignore_error=False):
@@ -844,9 +844,7 @@ class InboundMail(Email):
 	@staticmethod
 	def get_users_linked_to_account(email_account):
 		"""Get list of users who linked to Email account."""
-		users = frappe.get_all(
-			"User Email", filters={"email_account": email_account.name}, fields=["parent"]
-		)
+		users = frappe.get_all("User Email", filters={"email_account": email_account.name}, fields=["parent"])
 		return list({user.get("parent") for user in users})
 
 	@staticmethod
@@ -858,10 +856,10 @@ class InboundMail(Email):
 
 	@staticmethod
 	def get_email_fields(doctype):
-		"""Returns Email related fields of a doctype."""
+		"""Return Email related fields of a doctype."""
 		fields = frappe._dict()
 
-		email_fields = ["subject_field", "sender_field"]
+		email_fields = ["subject_field", "sender_field", "sender_name_field"]
 		meta = frappe.get_meta(doctype)
 
 		for field in email_fields:

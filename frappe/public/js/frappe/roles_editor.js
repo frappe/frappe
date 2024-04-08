@@ -3,14 +3,14 @@ frappe.RoleEditor = class {
 		this.frm = frm;
 		this.wrapper = wrapper;
 		this.disable = disable;
-		let user_roles = this.frm.doc.roles.map((a) => a.role);
+		let user_roles = this.frm.doc.roles ? this.frm.doc.roles.map((a) => a.role) : [];
 		this.multicheck = frappe.ui.form.make_control({
 			parent: wrapper,
 			df: {
 				fieldname: "roles",
 				fieldtype: "MultiCheck",
 				select_all: true,
-				columns: 3,
+				columns: "15rem",
 				get_data: () => {
 					return frappe
 						.xcall("frappe.core.doctype.user.user.get_all_roles")
@@ -40,6 +40,7 @@ frappe.RoleEditor = class {
 				role && this.show_permissions(role);
 				e.preventDefault();
 			});
+			this.set_enable_disable();
 		};
 	}
 	set_enable_disable() {
@@ -68,6 +69,7 @@ frappe.RoleEditor = class {
 								<tr>
 									<th> ${__("Document Type")} </th>
 									<th> ${__("Level")} </th>
+									<th> ${__("If Owner")} </th>
 									${frappe.perm.rights.map((p) => `<th> ${__(frappe.unscrub(p))}</th>`).join("")}
 								</tr>
 							</thead>
@@ -79,6 +81,7 @@ frappe.RoleEditor = class {
 							<tr>
 								<td>${__(perm.parent)}</td>
 								<td>${perm.permlevel}</td>
+								<td>${perm.if_owner ? frappe.utils.icon("check", "xs") : "-"}</td>
 								${frappe.perm.rights
 									.map(
 										(p) =>

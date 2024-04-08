@@ -77,6 +77,11 @@ context("MultiSelectDialog", () => {
 
 	it("tests more button", () => {
 		cy.get_open_dialog()
+			.get(`.frappe-control[data-fieldname="search_term"]`)
+			.find('input[data-fieldname="search_term"]')
+			.should("exist")
+			.type("Test", { delay: 200 });
+		cy.get_open_dialog()
 			.get(`.frappe-control[data-fieldname="more_child_btn"]`)
 			.should("exist")
 			.as("more-btn");

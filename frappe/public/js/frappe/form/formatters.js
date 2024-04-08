@@ -49,6 +49,10 @@ frappe.form.formatters = {
 		return __(frappe.form.formatters["Data"](value, df));
 	},
 	Float: function (value, docfield, options, doc) {
+		if (value === null) {
+			return "";
+		}
+
 		// don't allow 0 precision for Floats, hence or'ing with null
 		var precision =
 			docfield.precision ||
@@ -73,12 +77,20 @@ frappe.form.formatters = {
 		}
 	},
 	Int: function (value, docfield, options) {
+		if (value === null) {
+			return "";
+		}
+
 		if (cstr(docfield.options).trim() === "File Size") {
 			return frappe.form.formatters.FileSize(value);
 		}
 		return frappe.form.formatters._right(value == null ? "" : cint(value), options);
 	},
 	Percent: function (value, docfield, options) {
+		if (value === null) {
+			return "";
+		}
+
 		const precision =
 			docfield.precision ||
 			cint(frappe.boot.sysdefaults && frappe.boot.sysdefaults.float_precision) ||
@@ -105,6 +117,10 @@ frappe.form.formatters = {
 		</div>`;
 	},
 	Currency: function (value, docfield, options, doc) {
+		if (value === null) {
+			return "";
+		}
+
 		var currency = frappe.meta.get_field_currency(docfield, doc);
 
 		let precision;
@@ -148,6 +164,10 @@ frappe.form.formatters = {
 		var doctype = docfield._options || docfield.options;
 		var original_value = value;
 		let link_title = frappe.utils.get_link_title(doctype, value);
+
+		if (link_title === value) {
+			link_title = null;
+		}
 
 		if (value && value.match && value.match(/^['"].*['"]$/)) {
 			value.replace(/^.(.*).$/, "$1");
@@ -394,7 +414,7 @@ frappe.form.get_formatter = function (fieldtype) {
 
 frappe.format = function (value, df, options, doc) {
 	if (!df) df = { fieldtype: "Data" };
-	if (df.fieldname == "_user_tags") df.fieldtype = "Tag";
+	if (df.fieldname == "_user_tags") df = { ...df, fieldtype: "Tag" };
 	var fieldtype = df.fieldtype || "Data";
 
 	// format Dynamic Link as a Link

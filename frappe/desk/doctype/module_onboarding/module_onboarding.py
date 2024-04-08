@@ -27,6 +27,7 @@ class ModuleOnboarding(Document):
 		success_message: DF.Data
 		title: DF.Data
 	# end: auto-generated types
+
 	def on_update(self):
 		if frappe.conf.developer_mode:
 			export_to_files(record_list=[["Module Onboarding", self.name]], record_module=self.module)
@@ -52,7 +53,7 @@ class ModuleOnboarding(Document):
 		is_complete = [bool(step.is_complete or step.is_skipped) for step in steps]
 		if all(is_complete):
 			self.is_complete = True
-			self.save()
+			self.save(ignore_permissions=True)
 			return True
 
 		return False

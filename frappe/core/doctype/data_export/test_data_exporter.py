@@ -88,8 +88,8 @@ class TestDataExporter(FrappeTestCase):
 		self.assertEqual(frappe.response["type"], "csv")
 		self.assertEqual(frappe.response["doctype"], self.doctype_name)
 		self.assertTrue(frappe.response["result"])
-		self.assertIn('Child Title 1",50', frappe.response["result"])
-		self.assertIn('Child Title 2",51', frappe.response["result"])
+		self.assertRegex(frappe.response["result"], r"Child Title 1.*?,50")
+		self.assertRegex(frappe.response["result"], r"Child Title 2.*?,51")
 
 	def test_export_type(self):
 		for type in ["csv", "Excel"]:

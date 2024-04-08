@@ -61,7 +61,7 @@ class FrappeClient:
 		self.logout()
 
 	def _login(self, username, password):
-		"""Login/start a sesion. Called internally on init"""
+		"""Login/start a session. Called internally on init"""
 		r = self.session.post(
 			self.url,
 			params={"cmd": "login", "usr": username, "pwd": password},
@@ -106,10 +106,8 @@ class FrappeClient:
 			headers=self.headers,
 		)
 
-	def get_list(
-		self, doctype, fields='["name"]', filters=None, limit_start=0, limit_page_length=None
-	):
-		"""Returns list of records of a particular type"""
+	def get_list(self, doctype, fields='["name"]', filters=None, limit_start=0, limit_page_length=None):
+		"""Return list of records of a particular type."""
 		if not isinstance(fields, str):
 			fields = json.dumps(fields)
 		params = {
@@ -173,7 +171,7 @@ class FrappeClient:
 		return self.post_request({"cmd": "frappe.client.submit", "doc": frappe.as_json(doc)})
 
 	def get_value(self, doctype, fieldname=None, filters=None):
-		"""Returns a value form a document
+		"""Return a value from a document.
 
 		:param doctype: DocType to be queried
 		:param fieldname: Field to be returned (default `name`)
@@ -212,7 +210,7 @@ class FrappeClient:
 		return self.post_request({"cmd": "frappe.client.cancel", "doctype": doctype, "name": name})
 
 	def get_doc(self, doctype, name="", filters=None, fields=None):
-		"""Returns a single remote document
+		"""Return a single remote document.
 
 		:param doctype: DocType of the document to be returned
 		:param name: (optional) `name` of the document to be returned
@@ -247,9 +245,7 @@ class FrappeClient:
 		}
 		return self.post_request(params)
 
-	def migrate_doctype(
-		self, doctype, filters=None, update=None, verbose=1, exclude=None, preprocess=None
-	):
+	def migrate_doctype(self, doctype, filters=None, update=None, verbose=1, exclude=None, preprocess=None):
 		"""Migrate records from another doctype"""
 		meta = frappe.get_meta(doctype)
 		tables = {}
@@ -360,7 +356,7 @@ class FrappeClient:
 	def preprocess(self, params):
 		"""convert dicts, lists to json"""
 		for key, value in params.items():
-			if isinstance(value, (dict, list)):
+			if isinstance(value, dict | list):
 				params[key] = json.dumps(value)
 
 		return params

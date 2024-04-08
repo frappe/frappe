@@ -1,29 +1,30 @@
 .form-control {
 	border: none;
-	font-size: var(--text-md);
+	height: var(--input-height);
+	@include get_textstyle("base", "regular");
+	border-radius: var(--border-radius-sm);
+	padding: var(--input-padding);
 	position: relative;
 }
 
 .form-control.bold {
-	font-weight: 500;
+	font-weight: var(--weight-medium);
 }
 
 .like-disabled-input {
 	.for-description {
-		font-weight: normal;
-		font-size: var(--text-sm);
+		@include get_textstyle("sm", "regular");
 	}
 	min-height: var(--input-height);
-	border-radius: $border-radius;
-	font-weight: 400;
-	padding: 6px 12px;
+	border-radius: var(--border-radius-sm);
+	padding: var(--disabled-input-padding);
 	cursor: default;
 	color: var(--disabled-text-color);
 	background-color: var(--disabled-control-bg);
 }
 
 .head-title {
-	font-size: var(--text-lg);
+	font-size: var(--text-xl);
 	font-weight: 700;
 	color: var(--heading-color);
 }

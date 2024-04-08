@@ -9,23 +9,13 @@
 			<select class="group-by form-control input-xs">
 				<option value="" disabled selected>{{ __("Select Group By...") }}</option>
 				{% for (var parent_doctype in group_by_conditions) { %}
-					{% for (var val in group_by_conditions[parent_doctype]) { %}
-						{% if (parent_doctype !== doctype) { %}
+					{% for (var val of group_by_conditions[parent_doctype]) { %}
 						<option
 							data-doctype="{{parent_doctype}}"
-							value="{{group_by_conditions[parent_doctype][val].fieldname}}"
+							value="{{val.fieldname}}"
 						>
-							{{ __(group_by_conditions[parent_doctype][val].label) }}
-							({{ __(parent_doctype) }})
+							{{ __(val.label || val.fieldname, null, val.parent ) }}
 						</option>
-						{% } else { %}
-						<option
-							data-doctype="{{parent_doctype}}"
-							value="{{group_by_conditions[parent_doctype][val].fieldname}}"
-						>
-							{{ __(group_by_conditions[parent_doctype][val].label) }}
-						</option>
-						{% } %}
 					{% } %}
 				{% } %}
 			</select>

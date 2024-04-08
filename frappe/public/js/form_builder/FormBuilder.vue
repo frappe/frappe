@@ -1,5 +1,5 @@
 <script setup>
-import Sidebar from "./components/Sidebar.vue"
+import Sidebar from "./components/Sidebar.vue";
 import Tabs from "./components/Tabs.vue";
 import { computed, onMounted, watch, ref } from "vue";
 import { useStore } from "./store";
@@ -12,8 +12,9 @@ let should_render = computed(() => {
 });
 
 let container = ref(null);
-onClickOutside(container, () => store.form.selected_field = null);
-
+onClickOutside(container, () => (store.form.selected_field = null), {
+	ignore: [".combo-box-options"],
+});
 
 watch(
 	() => store.form.layout,
@@ -31,22 +32,23 @@ onMounted(() => store.fetch());
 		class="form-builder-container"
 		@click="store.form.selected_field = null"
 	>
-		<div class="form-controls" @click.stop>
-			<div class="form-sidebar">
-				<Sidebar />
-			</div>
-		</div>
 		<div class="form-container">
 			<div class="form-main" :class="[store.preview ? 'preview' : '']">
 				<Tabs />
 			</div>
 		</div>
+		<div class="form-controls" @click.stop>
+			<div class="form-sidebar">
+				<Sidebar />
+			</div>
+		</div>
 	</div>
+	<div id="autocomplete-area" />
 </template>
 
 <style lang="scss" scoped>
 .form-builder-container {
-	margin: -12px -20px -5px;
+	margin: -15px -20px -5px;
 	display: flex;
 
 	&.resizing {
@@ -60,25 +62,35 @@ onMounted(() => store.fetch());
 
 	.form-container {
 		flex: 1;
+		background-color: var(--disabled-control-bg);
 	}
 
 	.form-sidebar {
-		border-right: 1px solid var(--border-color);
-		border-bottom-left-radius: var(--border-radius);
+		border-left: 1px solid var(--border-color);
+		border-bottom-right-radius: var(--border-radius);
 	}
 
 	.form-main {
 		border-radius: var(--border-radius);
-		box-shadow: var(--card-shadow);
+		border: 1px solid var(--border-color);
 		background-color: var(--card-bg);
-		margin: 10px;
+		margin: 5px;
 	}
 
 	.form-sidebar,
 	.form-main {
 		:deep(.section-columns.has-one-column .field) {
-			input.form-control, .signature-field {
+			input.form-control,
+			.signature-field {
 				width: calc(50% - 19px);
+			}
+
+			.select-input {
+				width: calc(50% - 19px);
+
+				input.form-control {
+					width: 100%;
+				}
 			}
 		}
 
@@ -163,13 +175,14 @@ onMounted(() => store.fetch());
 	}
 
 	:deep(.preview) {
-		--field-placeholder-color: var(--fg-bg-color);
-
-		.tab, .column, .field {
+		.tab,
+		.column,
+		.field {
 			background-color: var(--fg-color);
 		}
 
-		.column, .field {
+		.column,
+		.field {
 			border: none;
 			padding: 0;
 		}
@@ -196,8 +209,17 @@ onMounted(() => store.fetch());
 				margin-top: 8px;
 
 				&.has-one-column .field {
-					input.form-control, .signature-field {
+					input.form-control,
+					.signature-field {
 						width: calc(50% - 15px);
+					}
+
+					.select-input {
+						width: calc(50% - 15px);
+
+						input.form-control {
+							width: 100%;
+						}
 					}
 				}
 
@@ -222,12 +244,17 @@ onMounted(() => store.fetch());
 								margin-bottom: 5px;
 							}
 						}
+
+						.add-new-field-btn {
+							display: none;
+						}
 					}
 				}
 			}
 		}
 
-		.selected, .hovered {
+		.selected,
+		.hovered {
 			border-color: transparent;
 		}
 
@@ -249,7 +276,7 @@ onMounted(() => store.fetch());
 	}
 
 	.form-main > :deep(div:first-child:not(.tab-header)) {
-		max-height: calc(100vh - 160px);
+		max-height: calc(100vh - 175px);
 	}
 }
 </style>

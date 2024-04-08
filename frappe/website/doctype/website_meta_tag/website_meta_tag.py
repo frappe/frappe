@@ -20,6 +20,7 @@ class WebsiteMetaTag(Document):
 		parenttype: DF.Data
 		value: DF.Text
 	# end: auto-generated types
+
 	def get_content(self):
 		# can't have new lines in meta content
 		return (self.value or "").replace("\n", " ")

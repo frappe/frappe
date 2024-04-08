@@ -1,6 +1,7 @@
 import ast
 import copy
 import inspect
+import io
 import json
 import mimetypes
 import types
@@ -8,7 +9,7 @@ from contextlib import contextmanager
 from functools import lru_cache
 
 import RestrictedPython.Guards
-from RestrictedPython import compile_restricted, safe_globals
+from RestrictedPython import PrintCollector, compile_restricted, safe_globals
 from RestrictedPython.transformer import RestrictingNodeTransformer
 
 import frappe
@@ -36,6 +37,7 @@ class ServerScriptNotEnabled(frappe.PermissionError):
 ARGUMENT_NOT_SET = object()
 
 SAFE_EXEC_CONFIG_KEY = "server_script_enabled"
+SERVER_SCRIPT_FILE_PREFIX = "<serverscript>"
 
 
 class NamespaceDict(frappe._dict):
@@ -60,16 +62,32 @@ class FrappeTransformer(RestrictingNodeTransformer):
 		return super().check_name(node, name, *args, **kwargs)
 
 
+class FrappePrintCollector(PrintCollector):
+	"""Collect written text, and return it when called."""
+
+	def _call_print(self, *objects, **kwargs):
+		output = io.StringIO()
+		print(*objects, file=output, **kwargs)
+		frappe.log(output.getvalue().strip())
+		output.close()
+
+
 def is_safe_exec_enabled() -> bool:
 	# server scripts can only be enabled via common_site_config.json
 	return bool(frappe.get_common_site_config().get(SAFE_EXEC_CONFIG_KEY))
 
 
-def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=False):
+def safe_exec(
+	script: str,
+	_globals: dict | None = None,
+	_locals: dict | None = None,
+	*,
+	restrict_commit_rollback: bool = False,
+	script_filename: str | None = None,
+):
 	if not is_safe_exec_enabled():
-
 		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
-		docs_cta = _("Read the documentation to know")
+		docs_cta = _("Read the documentation to know more")
 		msg += f"<br><a href='https://frappeframework.com/docs/user/en/desk/scripting/server-script'>{docs_cta}</a>"
 		frappe.throw(msg, ServerScriptNotEnabled, title="Server Scripts Disabled")
 
@@ -84,10 +102,14 @@ def safe_exec(script, _globals=None, _locals=None, restrict_commit_rollback=Fals
 		exec_globals.frappe.db.pop("rollback", None)
 		exec_globals.frappe.db.pop("add_index", None)
 
+	filename = SERVER_SCRIPT_FILE_PREFIX
+	if script_filename:
+		filename += f": {frappe.scrub(script_filename)}"
+
 	with safe_exec_flags(), patched_qb():
 		# execute script compiled by RestrictedPython
 		exec(
-			compile_restricted(script, filename="<serverscript>", policy=FrappeTransformer),
+			compile_restricted(script, filename=filename, policy=FrappeTransformer),
 			exec_globals,
 			_locals,
 		)
@@ -126,9 +148,16 @@ def _validate_safe_eval_syntax(code):
 
 @contextmanager
 def safe_exec_flags():
-	frappe.flags.in_safe_exec = True
-	yield
-	frappe.flags.in_safe_exec = False
+	if frappe.flags.in_safe_exec is None:
+		frappe.flags.in_safe_exec = 0
+
+	frappe.flags.in_safe_exec += 1
+
+	try:
+		yield
+	finally:
+		# Always ensure that the flag is decremented
+		frappe.flags.in_safe_exec -= 1
 
 
 def get_safe_globals():
@@ -206,6 +235,8 @@ def get_safe_globals():
 			make_get_request=frappe.integrations.utils.make_get_request,
 			make_post_request=frappe.integrations.utils.make_post_request,
 			make_put_request=frappe.integrations.utils.make_put_request,
+			make_patch_request=frappe.integrations.utils.make_patch_request,
+			make_delete_request=frappe.integrations.utils.make_delete_request,
 			socketio_port=frappe.conf.socketio_port,
 			get_hooks=get_hooks,
 			enqueue=safe_enqueue,
@@ -230,6 +261,13 @@ def get_safe_globals():
 				after_rollback=frappe.db.after_rollback,
 				before_rollback=frappe.db.before_rollback,
 				add_index=frappe.db.add_index,
+			),
+			website=NamespaceDict(
+				abs_url=frappe.website.utils.abs_url,
+				extract_title=frappe.website.utils.extract_title,
+				get_boot_data=frappe.website.utils.get_boot_data,
+				get_home_page=frappe.website.utils.get_home_page,
+				get_html_content_based_on_type=frappe.website.utils.get_html_content_based_on_type,
 			),
 			lang=getattr(frappe.local, "lang", "en"),
 		),
@@ -260,6 +298,9 @@ def get_safe_globals():
 	out._write_ = _write
 	out._getitem_ = _getitem
 	out._getattr_ = _getattr_for_safe_exec
+
+	# Allow using `print()` calls with `safe_exec()`
+	out._print_ = FrappePrintCollector
 
 	# allow iterators and list comprehension
 	out._getiter_ = iter
@@ -303,9 +344,7 @@ def call_whitelisted_function(function, **kwargs):
 def run_script(script, **kwargs):
 	"""run another server script"""
 
-	return call_with_form_dict(
-		lambda: frappe.get_doc("Server Script", script).execute_method(), kwargs
-	)
+	return call_with_form_dict(lambda: frappe.get_doc("Server Script", script).execute_method(), kwargs)
 
 
 def call_with_form_dict(function, kwargs):
@@ -363,7 +402,13 @@ def get_python_builtins():
 	}
 
 
-def get_hooks(hook=None, default=None, app_name=None):
+def get_hooks(hook: str | None = None, default=None, app_name: str | None = None) -> frappe._dict:
+	"""Get hooks via `app/hooks.py`
+
+	:param hook: Name of the hook. Will gather all hooks for this name and return as a list.
+	:param default: Default if no hook found.
+	:param app_name: Filter by app."""
+
 	hooks = frappe.get_hooks(hook=hook, default=default, app_name=app_name)
 	return copy.deepcopy(hooks)
 
@@ -460,7 +505,7 @@ def _validate_attribute_read(object, name):
 	if isinstance(name, str) and (name in UNSAFE_ATTRIBUTES):
 		raise SyntaxError(f"{name} is an unsafe attribute")
 
-	if isinstance(object, (types.ModuleType, types.CodeType, types.TracebackType, types.FrameType)):
+	if isinstance(object, types.ModuleType | types.CodeType | types.TracebackType | types.FrameType):
 		raise SyntaxError(f"Reading {object} attributes is not allowed")
 
 	if name.startswith("_"):
@@ -471,16 +516,14 @@ def _write(obj):
 	# guard function for RestrictedPython
 	if isinstance(
 		obj,
-		(
-			types.ModuleType,
-			types.CodeType,
-			types.TracebackType,
-			types.FrameType,
-			type,
-			types.FunctionType,  # covers lambda
-			types.MethodType,
-			types.BuiltinFunctionType,  # covers methods
-		),
+		types.ModuleType
+		| types.CodeType
+		| types.TracebackType
+		| types.FrameType
+		| type
+		| types.FunctionType
+		| types.MethodType
+		| types.BuiltinFunctionType,
 	):
 		raise SyntaxError(f"Not allowed to write to object {obj} of type {type(obj)}")
 	return obj
@@ -535,6 +578,7 @@ VALID_UTILS = (
 	"get_quarter_ending",
 	"get_first_day_of_week",
 	"get_year_start",
+	"get_year_ending",
 	"get_last_day_of_week",
 	"get_last_day",
 	"get_time",

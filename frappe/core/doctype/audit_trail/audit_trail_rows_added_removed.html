@@ -1,0 +1,34 @@
+<div>
+    {% var docs = Object.keys(added_or_removed) %}
+    {% for doc in docs %}
+    <div>
+        {% if Object.keys(added_or_removed[doc]).length > 0 %}
+            <h5>{{ doc }}</h5>
+            <br>
+            {% var tables = Object.keys(added_or_removed[doc]) %}
+            {% for table in tables %}
+                <h5 class="text-muted">{{ table }}</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        {% var fieldnames = Object.keys(added_or_removed[doc][table][0]) %}
+                        {% for fieldname in fieldnames %}
+                            <th>{{ fieldname }}</th>
+                        {% endfor %}
+                    </thead>
+                    <tbody>
+                        {% var rows = Object.keys(added_or_removed[doc][table]) %}
+                        {% for row in rows %}
+                            <tr>
+                                {% var field_keys = Object.keys(added_or_removed[doc][table][row]) %}
+                                {% for key in field_keys %}
+                                    <td>{{ added_or_removed[doc][table][row][key] }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endfor %}
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>

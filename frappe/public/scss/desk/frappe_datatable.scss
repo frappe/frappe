@@ -4,8 +4,8 @@
 	--dt-light-red: var(--red-50);
 	--dt-light-yellow: var(--yellow-50);
 	--dt-orange: var(--orange-500);
-	--dt-text-color: var(--text-light);
-	--dt-text-light: var(--bg-color);
+	--dt-text-color: var(--text-muted);
+	--dt-text-light: var(--text-light);
 	--dt-spacer-1: 0.25rem;
 	--dt-spacer-2: var(--padding-xs);
 	--dt-spacer-3: 1rem;
@@ -13,15 +13,21 @@
 	--dt-cell-bg: var(--fg-color);
 	--dt-border-color: var(--table-border-color);
 	--dt-border-radius: var(--border-radius);
-	--dt-header-cell-bg: var(--fg-color);
+	--dt-header-cell-bg: var(--subtle-fg);
 	--dt-selection-highlight-color: var(--highlight-color);
 
-	background-color: var(--fg-color);
+	background-color: var(--bg-color);
 	margin-left: -5px;
 	margin-top: 0px;
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 
-	.frappe-control, .form-control {
+	.dt-cell {
+		color: var(--text-color) !important;
+		background-color: var(--bg-color) !important;
+	}
+
+	.frappe-control,
+	.form-control {
 		margin: 0;
 		border-radius: 0px;
 		border: none;
@@ -43,13 +49,16 @@
 	}
 
 	.dt-header {
-
 		.dt-row[data-is-filter] {
 			display: flex !important;
+		}
+		.dt-row-header {
+			background-color: var(--subtle-fg);
 		}
 
 		.dt-cell--header .dt-cell__content {
 			font-weight: normal;
+			background-color: var(--subtle-fg);
 		}
 	}
 
@@ -117,6 +126,11 @@
 			border-radius: var(--border-radius);
 			height: 100%;
 			background-color: var(--control-bg);
+			padding-left: 8px;
+
+			&:focus {
+				box-shadow: var(--focus-default);
+			}
 		}
 	}
 
@@ -136,7 +150,8 @@
 		font-feature-settings: "tnum";
 	}
 
-	.dt-cell__content--header-0, .dt-cell__content--col-0 {
+	.dt-cell__content--header-0,
+	.dt-cell__content--col-0 {
 		padding: 0.5rem;
 	}
 
@@ -147,7 +162,7 @@
 	}
 
 	.dt-cell--focus .dt-cell__content {
-		border-color: var(--blue-200);
+		border-color: var(--gray-200);
 	}
 }
 

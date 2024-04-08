@@ -1,11 +1,13 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. Check LICENSE
 
+import datetime
 import json
 from collections import defaultdict
 from collections.abc import Callable
-from datetime import datetime, timedelta
 from functools import wraps
+
+import pytz
 
 import frappe
 
@@ -85,7 +87,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	        calculate_pi(10) # will calculate value
 	"""
 
-	def time_cache_wrapper(func: Callable = None) -> Callable:
+	def time_cache_wrapper(func: Callable | None = None) -> Callable:
 		func_key = f"{func.__module__}.{func.__name__}"
 
 		def clear_cache():
@@ -96,7 +98,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 
 		if ttl is not None and not callable(ttl):
 			func.ttl = ttl
-			func.expiration = datetime.utcnow() + timedelta(seconds=func.ttl)
+			func.expiration = datetime.datetime.now(pytz.UTC) + datetime.timedelta(seconds=func.ttl)
 
 		if maxsize is not None and not callable(maxsize):
 			func.maxsize = maxsize
@@ -106,9 +108,9 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 			if getattr(frappe.local, "initialised", None):
 				func_call_key = json.dumps((args, kwargs))
 
-				if hasattr(func, "ttl") and datetime.utcnow() >= func.expiration:
+				if hasattr(func, "ttl") and datetime.datetime.now(pytz.UTC) >= func.expiration:
 					func.clear_cache()
-					func.expiration = datetime.utcnow() + timedelta(seconds=func.ttl)
+					func.expiration = datetime.datetime.now(pytz.UTC) + datetime.timedelta(seconds=func.ttl)
 
 				if hasattr(func, "maxsize") and len(_SITE_CACHE[func_key][frappe.local.site]) >= func.maxsize:
 					_SITE_CACHE[func_key][frappe.local.site].pop(
@@ -138,8 +140,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Calla
 	        user: `true` should cache be specific to session user.
 	"""
 
-	def wrapper(func: Callable = None) -> Callable:
-
+	def wrapper(func: Callable | None = None) -> Callable:
 		func_key = f"{func.__module__}.{func.__qualname__}"
 
 		def clear_cache():
@@ -153,11 +154,10 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Calla
 			func_call_key = func_key + "::" + str(__generate_request_cache_key(args, kwargs))
 			if frappe.cache.exists(func_call_key):
 				return frappe.cache.get_value(func_call_key, user=user)
-			else:
-				val = func(*args, **kwargs)
-				ttl = getattr(func, "ttl", 3600)
-				frappe.cache.set_value(func_call_key, val, expires_in_sec=ttl, user=user)
-				return val
+			val = func(*args, **kwargs)
+			ttl = getattr(func, "ttl", 3600)
+			frappe.cache.set_value(func_call_key, val, expires_in_sec=ttl, user=user)
+			return val
 
 		return redis_cache_wrapper
 

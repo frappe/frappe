@@ -1,5 +1,9 @@
+import random
+import string
+
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.database import savepoint
 from frappe.desk.form import linked_with
 from frappe.tests.utils import FrappeTestCase
 
@@ -61,11 +65,10 @@ class TestLinkedWith(FrappeTestCase):
 	def tearDown(self):
 		for doctype in ["Parent DocType", "Child DocType1", "Child DocType2"]:
 			frappe.delete_doc("DocType", doctype)
+			frappe.db.commit()
 
 	def test_get_doctype_references_by_link_field(self):
-		references = linked_with.get_references_across_doctypes_by_link_field(
-			to_doctypes=["Parent DocType"]
-		)
+		references = linked_with.get_references_across_doctypes_by_link_field(to_doctypes=["Parent DocType"])
 		self.assertEqual(len(references["Parent DocType"]), 3)
 		self.assertIn(
 			{"doctype": "Child DocType1", "fieldname": "parent_doctype"}, references["Parent DocType"]
@@ -74,9 +77,7 @@ class TestLinkedWith(FrappeTestCase):
 			{"doctype": "Child DocType2", "fieldname": "parent_doctype"}, references["Parent DocType"]
 		)
 
-		references = linked_with.get_references_across_doctypes_by_link_field(
-			to_doctypes=["Child DocType1"]
-		)
+		references = linked_with.get_references_across_doctypes_by_link_field(to_doctypes=["Child DocType1"])
 		self.assertEqual(len(references["Child DocType1"]), 2)
 		self.assertIn(
 			{"doctype": "Child DocType2", "fieldname": "child_doctype1"}, references["Child DocType1"]
@@ -132,10 +133,55 @@ class TestLinkedWith(FrappeTestCase):
 			}
 		).insert()
 
-		linked_docs = linked_with.get_submitted_linked_docs(parent_record.doctype, parent_record.name)[
-			"docs"
-		]
+		linked_docs = linked_with.get_submitted_linked_docs(parent_record.doctype, parent_record.name)["docs"]
 		self.assertIn(child_record.name, linked_docs[0]["name"])
 		child_record.cancel()
 		child_record.delete()
 		parent_record.delete()
+
+	def test_check_delete_integrity(self):
+		"""Don't allow deleting cancelled document if amendment exists"""
+		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		doc.submit()
+		doc.cancel()
+
+		amendment = frappe.copy_doc(doc)
+		amendment.amended_from = doc.name
+		amendment.docstatus = 0
+		amendment.insert()
+		amendment.submit()
+
+		self.assertRaises(frappe.LinkExistsError, doc.delete)
+
+	def test_reserved_keywords(self):
+		dt_name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
+		new_doctype(
+			dt_name,
+			fields=[
+				{
+					"fieldname": "from",
+					"fieldtype": "Link",
+					"options": "DocType",
+				},
+				{
+					"fieldname": "order",
+					"fieldtype": "Dynamic Link",
+					"options": "from",
+				},
+			],
+			is_submittable=True,
+		).insert()
+
+		linked_doc = frappe.new_doc(dt_name).insert().submit()
+
+		second_doc = (
+			frappe.new_doc(dt_name, **{"from": linked_doc.doctype, "order": linked_doc.name})
+			.insert()
+			.submit()
+		)
+
+		with savepoint(frappe.LinkExistsError):
+			linked_doc.cancel() and self.fail("Cancellation shouldn't have worked")
+
+		second_doc.cancel()
+		linked_doc.reload().cancel()

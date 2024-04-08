@@ -1,9 +1,4 @@
-@mixin flex(
-	$dis: flex,
-	$x: center,
-	$y: center,
-	$dir: row
-) {
+@mixin flex($dis: flex, $x: center, $y: center, $dir: row) {
 	display: $dis;
 	justify-content: $x;
 	align-items: $y;
@@ -43,7 +38,7 @@
 	$top: 0,
 	$left: 0,
 	$background-color: var(--bg-color),
-	$border-radius: var(--border-radius),
+	$border-radius: var(--border-radius)
 ) {
 	// Deprecated: Does not work as expected anymore. Also, this never worked in Safari.
 }

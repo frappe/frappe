@@ -86,6 +86,4 @@ def execute():
 		).insert(*new_user_permissions_list).run()
 
 	if user_permissions_to_delete:
-		frappe.db.delete(
-			"User Permission", filters=(Field("name").isin(tuple(user_permissions_to_delete)))
-		)
+		frappe.db.delete("User Permission", filters=(Field("name").isin(tuple(user_permissions_to_delete))))

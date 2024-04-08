@@ -4,6 +4,7 @@
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.model.document import Document
+from frappe.utils import cint
 
 
 class Domain(Document):
@@ -17,6 +18,7 @@ class Domain(Document):
 
 		domain: DF.Data
 	# end: auto-generated types
+
 	"""Domain documents are created automatically when DocTypes
 	with "Restricted" domains are imported during
 	installation or migration"""
@@ -28,7 +30,7 @@ class Domain(Document):
 		self.setup_properties()
 		self.set_values()
 
-		if not int(frappe.defaults.get_defaults().setup_complete or 0):
+		if not cint(frappe.defaults.get_defaults().setup_complete):
 			# if setup not complete, setup desktop etc.
 			self.setup_sidebar_items()
 			self.set_default_portal_role()
@@ -77,7 +79,7 @@ class Domain(Document):
 			for role_name in self.data.restricted_roles:
 				user.append("roles", {"role": role_name})
 				if not frappe.db.get_value("Role", role_name):
-					frappe.get_doc(dict(doctype="Role", role_name=role_name)).insert()
+					frappe.get_doc(doctype="Role", role_name=role_name).insert()
 					continue
 
 				role = frappe.get_doc("Role", role_name)
@@ -122,9 +124,7 @@ class Domain(Document):
 			# enable
 			frappe.db.sql(
 				"""update `tabPortal Menu Item` set enabled=1
-				where route in ({})""".format(
-					", ".join(f'"{d}"' for d in self.data.allow_sidebar_items)
-				)
+				where route in ({})""".format(", ".join(f'"{d}"' for d in self.data.allow_sidebar_items))
 			)
 
 		if self.data.remove_sidebar_items:
@@ -134,7 +134,5 @@ class Domain(Document):
 			# enable
 			frappe.db.sql(
 				"""update `tabPortal Menu Item` set enabled=0
-				where route in ({})""".format(
-					", ".join(f'"{d}"' for d in self.data.remove_sidebar_items)
-				)
+				where route in ({})""".format(", ".join(f'"{d}"' for d in self.data.remove_sidebar_items))
 			)

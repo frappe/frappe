@@ -5,12 +5,14 @@ html {
 body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	color: var(--text-light);
+	color: var(--text-muted);
+	font-weight: var(--weight-regular);
+	letter-spacing: 0.02em;
 	background-color: var(--bg-color);
 
 	&.full-width {
-	@include media-breakpoint-up(md) {
-		.container {
+		@include media-breakpoint-up(md) {
+			.container {
 				width: 90%;
 				max-width: 100%;
 			}
@@ -86,7 +88,7 @@ a.badge-hover {
 
 .bold,
 .strong {
-	font-weight: bold;
+	font-weight: var(--weight-bold);
 }
 
 pre {
@@ -94,22 +96,49 @@ pre {
 	white-space: pre-wrap;
 }
 
-.col-xs-1 { @extend .col-1; }
-.col-xs-2 { @extend .col-2; }
-.col-xs-3 { @extend .col-3; }
-.col-xs-4 { @extend .col-4; }
-.col-xs-5 { @extend .col-5; }
-.col-xs-6 { @extend .col-6; }
-.col-xs-7 { @extend .col-7; }
-.col-xs-8 { @extend .col-8; }
-.col-xs-9 { @extend .col-9; }
-.col-xs-10 { @extend .col-10; }
-.col-xs-11 { @extend .col-11; }
-.col-xs-12 { @extend .col-12; }
+.col-xs-1 {
+	@extend .col-1;
+}
+.col-xs-2 {
+	@extend .col-2;
+}
+.col-xs-3 {
+	@extend .col-3;
+}
+.col-xs-4 {
+	@extend .col-4;
+}
+.col-xs-5 {
+	@extend .col-5;
+}
+.col-xs-6 {
+	@extend .col-6;
+}
+.col-xs-7 {
+	@extend .col-7;
+}
+.col-xs-8 {
+	@extend .col-8;
+}
+.col-xs-9 {
+	@extend .col-9;
+}
+.col-xs-10 {
+	@extend .col-10;
+}
+.col-xs-11 {
+	@extend .col-11;
+}
+.col-xs-12 {
+	@extend .col-12;
+}
 
-.btn-default { @extend .btn-light; }
+.btn-default {
+	@extend .btn-light;
+}
 
-.hidden-xs, .hidden-sm {
+.hidden-xs,
+.hidden-sm {
 	@include media-breakpoint-between(xs, sm) {
 		display: none !important;
 	}
@@ -171,7 +200,6 @@ img {
 	}
 }
 
-
 .hide-control {
 	@extend .d-none;
 }
@@ -184,21 +212,40 @@ img {
 	text-decoration: none !important;
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
 	color: var(--text-color);
-	margin-bottom: var(--margin-md)
+	margin-bottom: var(--margin-md);
 }
-
-h1, h2, h3 {
+// override default gray-900 from bootstrap to support dark mode.
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+	color: var(--heading-color);
+}
+h1,
+h2,
+h3 {
 	font-weight: bold;
 }
 
 p {
-	margin-bottom: var(--margin-sm)
+	margin-bottom: var(--margin-sm);
 }
 
 .small {
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 
 h1 {
@@ -229,22 +276,17 @@ h2 {
 	}
 }
 
-.btn-group-sm > .btn, .btn-sm {
+.btn-group-sm > .btn,
+.btn-sm {
 	padding: var(--padding-xs) var(--padding-sm);
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 }
 
 .btn-group {
 	.btn {
 		box-shadow: none;
-		outline: 1px solid var(--btn-group-border-color);
-
-		&:not(:first-child) {
-			margin-left: 1px;
-		}
-
-		&:focus {
-			outline: 2px solid var(--dark-border-color);
+		&:nth-child(2) {
+			border-left: 1px solid var(--btn-group-border-color);
 		}
 	}
 }
@@ -284,7 +326,7 @@ h2 {
 
 .input-xs {
 	height: 26px;
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 }
 
 select.input-xs {
@@ -298,7 +340,7 @@ select.input-xs {
 }
 
 .bold {
-	font-weight: 600;
+	font-weight: var(--weight-semibold) !important;
 }
 
 .text-color {
@@ -308,14 +350,16 @@ select.input-xs {
 /* dropdowns */
 
 .dropdown-item {
-	border-radius: 4px;
+	border-radius: 8px;
+	padding: var(--dropdown-padding) !important;
 }
 
 .dropdown-menu {
 	padding: 4px;
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 	max-height: 500px;
 	overflow: auto;
+	border: 1px solid var(--subtle-accent);
 
 	.dropdown-divider {
 		margin: 4px 0;
@@ -337,22 +381,24 @@ select.input-xs {
 		--icon-stroke: #{$component-active-color};
 	}
 
-	.divider, .dropdown-divider {
-		margin: 0px;
+	.divider,
+	.dropdown-divider {
+		margin: 4px;
 	}
 
 	:last-child {
 		&.dropdown-divider {
 			display: none;
 		}
-		.divider, .dropdown-divider {
+		.divider,
+		.dropdown-divider {
 			display: none;
 		}
 	}
 }
 
 .custom-control.custom-switch {
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 	line-height: 1.6;
 
 	.custom-control-input ~ .custom-control-label {
@@ -375,8 +421,7 @@ select.input-xs {
 // }
 
 .head-title {
-	font-size: var(--text-lg);
-	font-weight: 700;
+	@include get_textstyle("lg", "bold");
 	color: var(--heading-color);
 }
 
@@ -385,12 +430,17 @@ kbd {
 	font-family: var(--font-stack);
 	color: var(--text-light);
 	line-height: 1.2em;
+	letter-spacing: 0.02em;
 	height: 20px;
 	padding: 4px 8px;
 }
 
 .table {
 	color: var(--text-color);
+	th,
+	td {
+		padding: 0.5rem;
+	}
 }
 
 .appreciation {
@@ -408,19 +458,24 @@ kbd {
 }
 
 .standard-sidebar {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 
 	.standard-sidebar-section .standard-sidebar-label {
 		margin-bottom: var(--margin-md);
 		margin-top: var(--margin-sm);
+		width: 100%;
+
+		&:focus-visible {
+			text-decoration: underline;
+		}
 	}
 
 	.standard-sidebar-item {
 		@include flex(flex, null, center, null);
-		font-size: var(--text-base);
+		@include get_textstyle("base", "regular");
 		padding: 8px 12px;
 		margin-bottom: 2px;
-		border-radius: var(--border-radius-md);
+		border-radius: var(--border-radius);
 		overflow: hidden;
 		cursor: pointer;
 
@@ -432,7 +487,7 @@ kbd {
 			text-overflow: ellipsis;
 		}
 
-		&:focus {
+		&:focus-within {
 			background-color: var(--sidebar-select-color);
 			outline: 0;
 			text-decoration: none;
@@ -447,9 +502,13 @@ kbd {
 			background-color: var(--sidebar-select-color);
 		}
 
-		a {
+		> a {
 			color: var(--text-color);
 			text-decoration: none;
+
+			&:focus-visible {
+				text-decoration: underline;
+			}
 		}
 
 		svg {
@@ -495,7 +554,8 @@ kbd {
 		right: auto !important;
 		left: 5px;
 	}
-	input, textarea {
+	input,
+	textarea {
 		direction: rtl !important;
 	}
 
@@ -513,7 +573,6 @@ img.no-image {
 	width: 100%;
 	background-color: var(--bg-light-gray);
 }
-
 
 @media (min-width: 768px) {
 	.video-modal .modal-dialog {
@@ -535,6 +594,9 @@ body.no-sidebar {
 
 .app-logo {
 	width: 24px;
+	h4 {
+		margin-top: 0;
+	}
 }
 
 .alt-pressed .alt-underline {
@@ -569,25 +631,25 @@ details > summary:focus {
 .uppercase {
 	padding-bottom: var(--padding-xs);
 	text-transform: uppercase;
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 	letter-spacing: 0.4px;
 	color: var(--text-muted);
 }
 
 .text-regular {
-	font-size: var(--text-base);
+	@include get_textstyle("base", "regular");
 }
 
 .text-medium {
-	font-size: var(--text-md);
+	@include get_textstyle("base", "regular");
 }
 
 .text-small {
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 
 .text-large {
-	font-size: var(--text-lg);
+	@include get_textstyle("lg", "regular");
 }
 
 .disable-click {
@@ -618,7 +680,7 @@ details > summary:focus {
 }
 
 .dropdown-menu.small {
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 	min-width: 140px;
 	.dropdown-item {
 		padding: var(--padding-xs);

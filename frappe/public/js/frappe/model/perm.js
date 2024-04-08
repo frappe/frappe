@@ -193,7 +193,7 @@ $.extend(frappe.perm, {
 
 		if (!perm) {
 			let is_hidden = df && (cint(df.hidden) || cint(df.hidden_due_to_dependency));
-			let is_read_only = df && cint(df.read_only);
+			let is_read_only = df && (cint(df.read_only) || cint(df.is_virtual));
 			return is_hidden ? "None" : is_read_only ? "Read" : "Write";
 		}
 
@@ -203,7 +203,7 @@ $.extend(frappe.perm, {
 
 		// permission
 		if (p) {
-			if (p.write && !df.disabled) {
+			if (p.write && !df.disabled && !df.is_virtual) {
 				status = "Write";
 			} else if (p.read) {
 				status = "Read";
@@ -240,7 +240,7 @@ $.extend(frappe.perm, {
 			// fields updated by workflow must be read-only
 			if (
 				cint(cur_frm.read_only) ||
-				in_list(cur_frm.states.update_fields, df.fieldname) ||
+				cur_frm.states.update_fields.includes(df.fieldname) ||
 				df.fieldname == cur_frm.state_fieldname
 			) {
 				status = "Read";

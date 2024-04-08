@@ -281,7 +281,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		// Navigate
 		if (!this.frm.is_new() && !this.frm.meta.issingle) {
 			this.page.add_action_icon(
-				"left",
+				"es-line-left-chevron",
 				() => {
 					this.frm.navigate_records(1);
 				},
@@ -289,7 +289,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				__("Previous Document")
 			);
 			this.page.add_action_icon(
-				"right",
+				"es-line-right-chevron",
 				() => {
 					this.frm.navigate_records(0);
 				},
@@ -372,13 +372,14 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		// duplicate
-		if (in_list(frappe.boot.user.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
+		if (frappe.boot.user.can_create.includes(me.frm.doctype) && !me.frm.meta.allow_copy) {
 			this.page.add_menu_item(
 				__("Duplicate"),
 				function () {
 					me.frm.copy_doc();
 				},
-				true
+				true,
+				"Shift+D"
 			);
 		}
 
@@ -443,6 +444,32 @@ frappe.ui.form.Toolbar = class Toolbar {
 				condition: () => !this.frm.is_new(),
 			}
 		);
+		//
+		// Undo and redo
+		this.page.add_menu_item(
+			__("Undo"),
+			() => {
+				this.frm.undo_manager.undo();
+			},
+			true,
+			{
+				shortcut: "Ctrl+Z",
+				condition: () => !this.frm.is_form_builder(),
+				description: __("Undo last action"),
+			}
+		);
+		this.page.add_menu_item(
+			__("Redo"),
+			() => {
+				this.frm.undo_manager.redo();
+			},
+			true,
+			{
+				shortcut: "Ctrl+Y",
+				condition: () => !this.frm.is_form_builder(),
+				description: __("Redo last action"),
+			}
+		);
 
 		this.make_customize_buttons();
 
@@ -469,6 +496,19 @@ frappe.ui.form.Toolbar = class Toolbar {
 					shortcut: "Ctrl+B",
 					condition: () => !this.frm.is_new(),
 				}
+			);
+		}
+
+		if (
+			this.frm.doc.amended_from &&
+			frappe.model.get_value("DocType", this.frm.doc.doctype, "track_changes")
+		) {
+			this.page.add_menu_item(
+				__("View Audit Trail"),
+				function () {
+					frappe.set_route("audit-trail");
+				},
+				true
 			);
 		}
 	}

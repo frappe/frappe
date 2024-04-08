@@ -88,11 +88,7 @@ class ConstantColumn(Term):
 	alias = None
 
 	def __init__(self, value: str) -> None:
-		"""[ Returns a pseudo column with a constant value in all the rows]
-
-		Args:
-		        value (str): [ Value of the column ]
-		"""
+		"""Return a pseudo column with the given constant `value` in all the rows."""
 		self.value = value
 
 	def get_sql(self, quote_char: str | None = None, **kwargs: Any) -> str:

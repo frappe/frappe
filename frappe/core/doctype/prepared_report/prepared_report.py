@@ -1,7 +1,6 @@
 # Copyright (c) 2018, Frappe Technologies and contributors
 # License: MIT. See LICENSE
-
-
+import gzip
 import json
 from contextlib import suppress
 from typing import Any
@@ -13,7 +12,7 @@ from frappe.desk.form.load import get_attachments
 from frappe.desk.query_report import generate_report_result
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
-from frappe.utils import add_to_date, gzip_compress, gzip_decompress, now
+from frappe.utils import add_to_date, now
 from frappe.utils.background_jobs import enqueue
 
 # If prepared report runs for longer than this time it's automatically considered as failed
@@ -32,13 +31,14 @@ class PreparedReport(Document):
 
 		error_message: DF.Text | None
 		filters: DF.SmallText | None
-		job_id: DF.Link | None
+		job_id: DF.Data | None
 		queued_at: DF.Datetime | None
 		queued_by: DF.Data | None
 		report_end_time: DF.Datetime | None
 		report_name: DF.Data
 		status: DF.Literal["Error", "Queued", "Completed", "Started"]
 	# end: auto-generated types
+
 	@property
 	def queued_by(self):
 		return self.owner
@@ -51,7 +51,7 @@ class PreparedReport(Document):
 	def clear_old_logs(days=30):
 		prepared_reports_to_delete = frappe.get_all(
 			"Prepared Report",
-			filters={"modified": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},
+			filters={"creation": ["<", frappe.utils.add_days(frappe.utils.now(), -days)]},
 		)
 
 		for batch in frappe.utils.create_batch(prepared_reports_to_delete, 100):
@@ -84,14 +84,14 @@ class PreparedReport(Document):
 			attached_file = frappe.get_doc("File", attachment.name)
 
 			if with_file_name:
-				return (gzip_decompress(attached_file.get_content()), attachment.file_name)
-			return gzip_decompress(attached_file.get_content())
+				return (gzip.decompress(attached_file.get_content()), attachment.file_name)
+			return gzip.decompress(attached_file.get_content())
 
 
 def generate_report(prepared_report):
 	update_job_id(prepared_report)
 
-	instance = frappe.get_doc("Prepared Report", prepared_report)
+	instance: PreparedReport = frappe.get_doc("Prepared Report", prepared_report)
 	report = frappe.get_doc("Report", instance.report_name)
 
 	add_data_to_monitor(report=instance.report_name)
@@ -109,12 +109,12 @@ def generate_report(prepared_report):
 					report.custom_columns = data["columns"]
 
 		result = generate_report_result(report=report, filters=instance.filters, user=instance.owner)
-		create_json_gz_file(result, instance.doctype, instance.name)
+		create_json_gz_file(result, instance.doctype, instance.name, instance.report_name)
 
 		instance.status = "Completed"
 	except Exception:
 		instance.status = "Error"
-		instance.error_message = frappe.get_traceback()
+		instance.error_message = frappe.get_traceback(with_context=True)
 
 	instance.report_end_time = frappe.utils.now()
 	instance.save(ignore_permissions=True)
@@ -196,7 +196,7 @@ def expire_stalled_report():
 		"Prepared Report",
 		{
 			"status": "Started",
-			"modified": ("<", add_to_date(now(), seconds=-FAILURE_THRESHOLD, as_datetime=True)),
+			"creation": ("<", add_to_date(now(), seconds=-FAILURE_THRESHOLD, as_datetime=True)),
 		},
 		{
 			"status": "Failed",
@@ -215,14 +215,14 @@ def delete_prepared_reports(reports):
 			prepared_report.delete(ignore_permissions=True, delete_permanently=True)
 
 
-def create_json_gz_file(data, dt, dn):
+def create_json_gz_file(data, dt, dn, report_name):
 	# Storing data in CSV file causes information loss
 	# Reports like P&L Statement were completely unsuable because of this
-	json_filename = "{}.json.gz".format(
-		frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H:M")
+	json_filename = "{}_{}.json.gz".format(
+		frappe.scrub(report_name), frappe.utils.data.format_datetime(frappe.utils.now(), "Y-m-d-H-M")
 	)
-	encoded_content = frappe.safe_encode(frappe.as_json(data))
-	compressed_content = gzip_compress(encoded_content)
+	encoded_content = frappe.safe_encode(frappe.as_json(data, indent=None, separators=(",", ":")))
+	compressed_content = gzip.compress(encoded_content)
 
 	# Call save() file function to upload and attach the file
 	_file = frappe.get_doc(

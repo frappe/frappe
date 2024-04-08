@@ -66,7 +66,7 @@ export function create_default_layout(meta, print_format) {
 
 				let field_template = get_field_template(print_format, df.fieldname);
 				if (field_template) {
-					field.label = `${__(df.label)} (${__("Field Template")})`;
+					field.label = `${__(df.label, null, df.parent)} (${__("Field Template")})`;
 					field.fieldtype = "Field Template";
 					field.field_template = field_template.name;
 					field.fieldname = df.fieldname = "_template";
@@ -94,7 +94,7 @@ export function get_table_columns(df) {
 	let total_width = 0;
 	for (let tf of table_fields) {
 		if (
-			!in_list(["Section Break", "Column Break"], tf.fieldtype) &&
+			!["Section Break", "Column Break"].includes(tf.fieldtype) &&
 			!tf.print_hide &&
 			df.label &&
 			total_width < 100

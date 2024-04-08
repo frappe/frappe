@@ -25,6 +25,7 @@ frappe.ui.form.on("Custom Field", {
 		frm.toggle_enable("dt", frm.doc.__islocal);
 		frm.trigger("dt");
 		frm.toggle_reqd("label", !frm.doc.fieldname);
+		frm.trigger("add_rename_field");
 
 		if (frm.doc.is_system_generated) {
 			frm.dashboard.add_comment(
@@ -66,7 +67,7 @@ frappe.ui.form.on("Custom Field", {
 							return v.value;
 						});
 
-						if (insert_after == null || !in_list(fieldnames, insert_after)) {
+						if (insert_after == null || !fieldnames.includes(insert_after)) {
 							insert_after = fieldnames[-1];
 						}
 
@@ -108,6 +109,34 @@ frappe.ui.form.on("Custom Field", {
 			);
 		} else {
 			frm.fields_dict["options_help"].disp_area.innerHTML = "";
+		}
+	},
+	add_rename_field(frm) {
+		if (!frm.is_new()) {
+			frm.add_custom_button(__("Rename Fieldname"), () => {
+				frappe.prompt(
+					{
+						fieldtype: "Data",
+						label: __("Fieldname"),
+						fieldname: "fieldname",
+						reqd: 1,
+						default: frm.doc.fieldname,
+					},
+					function (data) {
+						frappe
+							.xcall(
+								"frappe.custom.doctype.custom_field.custom_field.rename_fieldname",
+								{
+									custom_field: frm.doc.name,
+									fieldname: data.fieldname,
+								}
+							)
+							.then(() => frm.reload());
+					},
+					__("Rename Fieldname"),
+					__("Rename")
+				);
+			});
 		}
 	},
 });

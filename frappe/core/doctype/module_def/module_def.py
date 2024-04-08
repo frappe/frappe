@@ -19,12 +19,13 @@ class ModuleDef(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		app_name: DF.Literal
+		app_name: DF.Literal[None]
 		custom: DF.Check
 		module_name: DF.Data
 		package: DF.Link | None
 		restrict_to_domain: DF.Link | None
 	# end: auto-generated types
+
 	def on_update(self):
 		"""If in `developer_mode`, create folder for module and
 		add in `modules.txt` of app if missing."""
@@ -47,7 +48,7 @@ class ModuleDef(Document):
 		if not frappe.local.module_app.get(frappe.scrub(self.name)):
 			with open(frappe.get_app_path(self.app_name, "modules.txt")) as f:
 				content = f.read()
-				if not self.name in content.splitlines():
+				if self.name not in content.splitlines():
 					modules = list(filter(None, content.splitlines()))
 					modules.append(self.name)
 

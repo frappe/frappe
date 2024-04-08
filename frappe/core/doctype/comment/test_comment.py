@@ -11,7 +11,7 @@ from frappe.website.doctype.blog_post.test_blog_post import make_test_blog
 
 class TestComment(FrappeTestCase):
 	def test_comment_creation(self):
-		test_doc = frappe.get_doc(dict(doctype="ToDo", description="test"))
+		test_doc = frappe.get_doc(doctype="ToDo", description="test")
 		test_doc.insert()
 		comment = test_doc.add_comment("Comment", "test comment")
 
@@ -57,9 +57,7 @@ class TestComment(FrappeTestCase):
 
 		frappe.db.delete("Comment", {"reference_doctype": "Blog Post"})
 
-		add_comment_args.update(
-			comment="pleez vizits my site http://mysite.com", comment_by="bad commentor"
-		)
+		add_comment_args.update(comment="pleez vizits my site http://mysite.com", comment_by="bad commentor")
 		add_comment(**add_comment_args)
 
 		self.assertEqual(

@@ -100,7 +100,7 @@
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-03-20 14:20:19.180611",
+ "modified": "2024-03-23 16:03:23.176690",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Dropbox Settings",
@@ -119,7 +119,7 @@
   }
  ],
  "read_only": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

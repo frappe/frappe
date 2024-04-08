@@ -21,7 +21,7 @@ let height = computed(() => {
 			<slot name="label" />
 			<slot name="actions" />
 		</div>
-		<div v-else class="control-label label">{{ df.label }}</div>
+		<div v-else class="control-label label">{{ __(df.label) }}</div>
 
 		<!-- textarea input -->
 		<textarea
@@ -38,7 +38,7 @@ let height = computed(() => {
 			type="text"
 			:value="value"
 			:disabled="read_only || df.read_only"
-			@input="event => $emit('update:modelValue', event.target.value)"
+			@input="(event) => $emit('update:modelValue', event.target.value)"
 		/>
 
 		<!-- description -->

@@ -4,6 +4,12 @@ body {
 	@include media-breakpoint-up(sm) {
 		background-color: var(--bg-light-gray);
 	}
+	.page-content-wrapper {
+		min-height: calc(100vh - 220px);
+	}
+	.web-footer {
+		display: none;
+	}
 }
 
 .for-forgot,
@@ -18,21 +24,13 @@ body {
 .for-login-with-email-link,
 .for-signup,
 .for-email-login {
-	padding: max(10vh, 60px) 0;
-
-	@include media-breakpoint-up(sm) {
-		.page-card {
-			padding-top: 45px;
-			padding-bottom: 45px;
-			background-color: #fff;
-			box-shadow: var(--shadow-base);
-		}
-	}
-
 	.page-card {
+		padding: 45px 10px;
+		background-color: #fff;
 		max-width: 400px;
 		margin: 0 auto;
 		border-radius: var(--border-radius-md);
+		border: 1px solid var(--border-color);
 
 		form {
 			max-width: 320px;
@@ -60,7 +58,7 @@ body {
 			input[type="password"] {
 				border: none;
 				color: var(--text-color);
-				font-size: var(--text-base);
+				@include get_textstyle("base", "regular");
 				background-color: var(--control-bg);
 				margin-bottom: 1rem;
 			}
@@ -74,7 +72,7 @@ body {
 			}
 
 			.form-label {
-				font-size: var(--text-base);
+				@include get_textstyle("base", "regular");
 			}
 
 			.forgot-password-message {
@@ -83,13 +81,13 @@ body {
 
 				> * {
 					color: var(--text-light);
-					font-size: var(--text-sm);
+					@include get_textstyle("sm", "regular");
 				}
 			}
 
 			.field-icon {
 				left: 9px;
-				top: 8px;
+				top: 5px;
 				position: absolute;
 				z-index: 2;
 			}
@@ -104,7 +102,7 @@ body {
 
 				.toggle-password {
 					right: 9px;
-					top: 9px;
+					top: 5px;
 					position: absolute;
 					z-index: 2;
 					cursor: pointer;
@@ -113,8 +111,7 @@ body {
 			}
 
 			.btn-login-option {
-				font-size: var(--text-md);
-				font-weight: 500;
+				@include get_textstyle("base", "medium");
 				color: var(--text-gray-700);
 				background: var(--gray-100);
 				box-shadow: none;
@@ -140,7 +137,7 @@ body {
 
 			.social-logins {
 				margin-top: var(--margin-md);
-				font-size: var(--text-md);
+				@include get_textstyle("base", "regular");
 
 				.social-login-buttons {
 					margin-top: var(--margin-md);
@@ -166,32 +163,12 @@ body {
 		}
 	}
 
-	.page-card-head {
-		margin: 0 auto;
-		text-align: center;
-		font-size: var(--text-xl);
-		font-weight: 600;
-		margin-bottom: 2.5rem;
-
-		img {
-			max-height: 42px;
-			margin-bottom: var(--margin-lg, 30px);
-		}
-
-		h4 {
-			margin-top: 1rem;
-			font-size: var(--text-xl);
-			color: var(--text-color);
-		}
-	}
-
 	.sign-up-message {
-		margin-top: 2rem;
+		margin-top: 1rem;
+		margin-bottom: 0;
 		color: var(--text-light);
-		font-size: var(--text-md);
-
+		@include get_textstyle("base", "regular");
 		a {
-			font-size: var(--text-md);
 			color: var(--primary);
 		}
 	}
@@ -219,5 +196,25 @@ body {
 		100% {
 			-webkit-transform: translateX(0);
 		}
+	}
+}
+
+.page-card-head {
+	padding: max(5vh, 30px) 0 14px 0px;
+	margin: 0 auto;
+	text-align: center;
+	font-size: var(--text-xl);
+	font-weight: 600;
+
+	img {
+		max-height: 42px;
+	}
+
+	h4 {
+		margin-top: 1rem;
+		font-size: var(--text-xl);
+		font-weight: var(--weight-semibold);
+		letter-spacing: 0.01em;
+		color: var(--text-color);
 	}
 }

@@ -152,7 +152,7 @@ context("Control Link", () => {
 
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
 		cy.wait("@search_link");
-		cy.get("@input").type("todo for link");
+		cy.get("@input").type("todo for link", { delay: 200 });
 		cy.wait("@search_link");
 		cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
 		cy.get(".frappe-control[data-fieldname=link] input").type("{enter}", { delay: 100 });
@@ -260,7 +260,7 @@ context("Control Link", () => {
 
 			cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
 			cy.wait("@search_link");
-			cy.get("@input").type("Sonstiges", { delay: 100 });
+			cy.get("@input").type("Sonstiges", { delay: 200 });
 			cy.wait("@search_link");
 			cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
 			cy.get(".frappe-control[data-fieldname=link] input").type("{enter}", { delay: 100 });
@@ -291,7 +291,7 @@ context("Control Link", () => {
 
 		cy.get(".frappe-control[data-fieldname=link] input").focus().as("input");
 		cy.wait("@search_link");
-		cy.get("@input").type("Non-Conforming", { delay: 100 });
+		cy.get("@input").type("Non-Conforming", { delay: 200 });
 		cy.wait("@search_link");
 		cy.get(".frappe-control[data-fieldname=link] ul").should("be.visible");
 		cy.get(".frappe-control[data-fieldname=link] input").type("{enter}", { delay: 100 });

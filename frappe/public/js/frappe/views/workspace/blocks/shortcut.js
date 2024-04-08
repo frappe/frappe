@@ -52,24 +52,13 @@ export default class Shortcut extends Block {
 
 		if (this.data && this.data.shortcut_name) {
 			let has_data = this.make("shortcut", this.data.shortcut_name);
-			if (!has_data) return;
+			if (!has_data) return this.wrapper;
 		}
 
 		if (!this.readOnly) {
 			$(this.wrapper).find(".widget").addClass("shortcut edit-mode");
 			this.add_settings_button();
 			this.add_new_block_button();
-		} else {
-			let $shortcut_icon = frappe.utils.icon(
-				"arrow-up-right",
-				"xs",
-				"",
-				"stroke: grey",
-				"ml-2"
-			);
-			$(this.wrapper).find(".widget .widget-title").append($shortcut_icon);
-
-			$(this.wrapper).append($(`<div class="divider"></div>`));
 		}
 		return this.wrapper;
 	}

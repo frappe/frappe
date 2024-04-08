@@ -115,17 +115,12 @@ def login_via_oauth2(provider: str, code: str, state: str, decoder: Callable | N
 	login_oauth_user(info, provider=provider, state=state)
 
 
-def login_via_oauth2_id_token(
-	provider: str, code: str, state: str, decoder: Callable | None = None
-):
+def login_via_oauth2_id_token(provider: str, code: str, state: str, decoder: Callable | None = None):
 	info = get_info_via_oauth(provider, code, decoder, id_token=True)
 	login_oauth_user(info, provider=provider, state=state)
 
 
-def get_info_via_oauth(
-	provider: str, code: str, decoder: Callable | None = None, id_token: bool = False
-):
-
+def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None, id_token: bool = False):
 	import jwt
 
 	flow = get_oauth2_flow(provider)
@@ -156,7 +151,7 @@ def get_info_via_oauth(
 
 		if provider == "github" and not info.get("email"):
 			emails = session.get("/user/emails", params=api_endpoint_args).json()
-			email_dict = list(filter(lambda x: x.get("primary"), emails))[0]
+			email_dict = next(filter(lambda x: x.get("primary"), emails))
 			info["email"] = email_dict.get("email")
 
 	if not (info.get("email_verified") or info.get("email")):
@@ -212,9 +207,7 @@ def login_oauth_user(
 
 	if frappe.utils.cint(generate_login_token):
 		login_token = frappe.generate_hash(length=32)
-		frappe.cache.set_value(
-			f"login_token:{login_token}", frappe.local.session.sid, expires_in_sec=120
-		)
+		frappe.cache.set_value(f"login_token:{login_token}", frappe.local.session.sid, expires_in_sec=120)
 
 		frappe.response["login_token"] = login_token
 
@@ -227,11 +220,13 @@ def login_oauth_user(
 		)
 
 
-def get_user_record(user: str, data: dict) -> "User":
+def get_user_record(user: str, data: dict, provider: str) -> "User":
+	from frappe.integrations.doctype.social_login_key.social_login_key import provider_allows_signup
+
 	try:
 		return frappe.get_doc("User", user)
 	except frappe.DoesNotExistError:
-		if frappe.get_website_settings("disable_signup"):
+		if not provider_allows_signup(provider):
 			raise SignupDisabledError
 
 	user: "User" = frappe.new_doc("User")
@@ -263,7 +258,7 @@ def update_oauth_user(user: str, data: dict, provider: str):
 	if isinstance(data.get("location"), dict):
 		data["location"] = data["location"].get("name")
 
-	user: "User" = get_user_record(user, data)
+	user: "User" = get_user_record(user, data, provider)
 	update_user_record = user.is_new()
 
 	if not user.enabled:
@@ -312,9 +307,7 @@ def get_email(data: dict) -> str:
 	return data.get("email") or data.get("upn") or data.get("unique_name")
 
 
-def redirect_post_login(
-	desk_user: bool, redirect_to: str | None = None, provider: str | None = None
-):
+def redirect_post_login(desk_user: bool, redirect_to: str | None = None, provider: str | None = None):
 	frappe.local.response["type"] = "redirect"
 
 	if not redirect_to:

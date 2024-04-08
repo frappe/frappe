@@ -1,8 +1,11 @@
 @import "../element/checkbox";
 @import "../element/radio";
 
-html, body {
+html,
+body {
 	height: 100%;
+	font-family: var(--font-stack);
+	font-variation-settings: "opsz" 24;
 }
 
 /* checkbox */
@@ -15,16 +18,20 @@ html, body {
 	--checkbox-right-margin: 8px;
 
 	.label-area {
-		font-size: var(--text-sm);
+		@include get_textstyle("sm", "medium");
+		color: var(--text-color);
 	}
 
-	.input-area, .disp-area {
+	.input-area,
+	.disp-area {
 		display: flex;
 	}
 }
 
 .frappe-card {
 	@include card();
+	box-shadow: none;
+	border: 1px solid var(--gray-300);
 }
 
 .frappe-control[data-fieldtype="Select"].frappe-control[data-fieldname="color"] {
@@ -59,7 +66,7 @@ html, body {
 		padding-right: inherit;
 		position: absolute;
 		pointer-events: none;
-		top: 7px;
+		top: 3px;
 		right: 12px;
 
 		&.xs {
@@ -79,7 +86,7 @@ html, body {
 		padding-right: inherit;
 		position: absolute;
 		pointer-events: none;
-		top: 7px;
+		top: 3px;
 		left: 12px;
 		max-width: 80%;
 
@@ -128,7 +135,8 @@ html, body {
 .btn-link {
 	box-shadow: none !important;
 	outline: none;
-	.icon, &:hover {
+	.icon,
+	&:hover {
 		text-decoration: none !important;
 	}
 }

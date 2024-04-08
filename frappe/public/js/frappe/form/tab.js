@@ -3,7 +3,7 @@ export default class Tab {
 		this.layout = layout;
 		this.df = df || {};
 		this.frm = frm;
-		this.doctype = this.frm.doctype;
+		this.doctype = this.frm?.doctype ?? this.df.parent;
 		this.label = this.df && this.df.label;
 		this.tab_link_container = tab_link_container;
 		this.tabs_content = tabs_content;
@@ -21,7 +21,7 @@ export default class Tab {
 					data-fieldname="${this.df.fieldname}"
 					href="#${id}"
 					role="tab"
-					aria-controls="${this.label}">
+					aria-controls="${id}">
 						${__(this.label)}
 				</a>
 			</li>

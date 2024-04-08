@@ -8,19 +8,19 @@
 		clip: rect(0, 0, 0, 0);
 	}
 
-	&> input {
+	& > input {
 		display: block;
 	}
 
-	&> ul:empty {
+	& > ul:empty {
 		display: none;
 	}
 
-	&> ul {
+	& > ul {
 		position: absolute;
 		width: 100%;
 		list-style: none;
-		background-color: var(--fg-color);
+		background-color: var(--bg-color);
 		max-height: unquote("min(60vh, 300px)");
 		overflow-y: auto;
 		overflow-x: hidden;
@@ -33,9 +33,9 @@
 		z-index: 4;
 		min-width: 250px;
 
-		&> li {
+		& > li {
 			cursor: pointer;
-			font-size: var(--text-md);
+			@include get_textstyle("sm", "regular");
 			padding: var(--padding-sm);
 			color: var(--text-color);
 			border-radius: var(--border-radius);
@@ -49,13 +49,18 @@
 				overflow-y: clip;
 				text-overflow: ellipsis;
 			}
+			strong {
+				@include get_textstyle("sm", "bold");
+			}
 		}
 
-		&> li .link-option {
+		& > li .link-option {
 			font-weight: normal;
+			color: var(--text-color);
 		}
 
-		&> li:hover, &> li[aria-selected=true] {
+		& > li:hover,
+		& > li[aria-selected="true"] {
 			background-color: var(--awesomplete-hover-bg);
 			color: var(--text-color);
 		}

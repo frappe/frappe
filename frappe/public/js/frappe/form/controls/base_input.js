@@ -138,7 +138,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 	set_disp_area(value) {
 		if (
-			in_list(["Currency", "Int", "Float"], this.df.fieldtype) &&
+			["Currency", "Int", "Float"].includes(this.df.fieldtype) &&
 			(this.value === 0 || value === 0)
 		) {
 			// to set the 0 value in readonly for currency, int, float field
@@ -146,11 +146,12 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		} else {
 			value = this.value || value;
 		}
-		if (this.df.fieldtype === "Data") {
+		if (["Data", "Long Text", "Small Text", "Text", "Password"].includes(this.df.fieldtype)) {
 			value = frappe.utils.escape_html(value);
 		}
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
+		// This is used to display formatted output AND showing values in read only fields
 		this.disp_area && $(this.disp_area).html(display_value);
 	}
 	set_label(label) {
@@ -160,7 +161,8 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 
 		var icon = "";
 		this.label_span.innerHTML =
-			(icon ? '<i class="' + icon + '"></i> ' : "") + __(this.df.label) || "&nbsp;";
+			(icon ? '<i class="' + icon + '"></i> ' : "") +
+				__(this.df.label, null, this.df.parent) || "&nbsp;";
 		this._label = this.df.label;
 	}
 
@@ -172,7 +174,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		if (
 			!this.df.label ||
 			!this.df?.documentation_url ||
-			in_list(unsupported_fieldtypes, this.df.fieldtype)
+			unsupported_fieldtypes.includes(this.df.fieldtype)
 		)
 			return;
 
@@ -217,7 +219,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		let invalid = !!this.df.invalid;
 		if (this.grid) {
 			this.$wrapper.parents(".grid-static-col").toggleClass("invalid", invalid);
-			this.$input.toggleClass("invalid", invalid);
+			this.$input?.toggleClass("invalid", invalid);
 			this.grid_row.columns[this.df.fieldname].is_invalid = invalid;
 		} else {
 			this.$wrapper.toggleClass("has-error", invalid);

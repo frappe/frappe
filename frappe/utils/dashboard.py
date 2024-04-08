@@ -22,7 +22,7 @@ def cache_source(function):
 			return function(chart=chart, no_cache=no_cache)
 		chart_name = frappe.parse_json(chart).name
 		cache_key = f"chart-data:{chart_name}"
-		if int(kwargs.get("refresh") or 0):
+		if cint(kwargs.get("refresh")):
 			results = generate_and_cache_results(kwargs, function, cache_key, chart)
 		else:
 			cached_results = frappe.cache.get_value(cache_key)
@@ -72,7 +72,6 @@ def generate_and_cache_results(args, function, cache_key, chart):
 
 
 def get_dashboards_with_link(docname, doctype):
-	dashboards = []
 	links = []
 
 	if doctype == "Dashboard Chart":
@@ -111,4 +110,4 @@ def make_records(path, filters=None):
 			if os.path.isdir(join(path, fname)):
 				if fname == "__pycache__":
 					continue
-				import_file_by_path("{path}/{fname}/{fname}.json".format(path=path, fname=fname))
+				import_file_by_path(f"{path}/{fname}/{fname}.json")

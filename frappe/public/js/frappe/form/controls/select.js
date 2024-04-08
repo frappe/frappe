@@ -1,5 +1,6 @@
 frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.ControlData {
 	static html_element = "select";
+	static trigger_change_on_input_event = false;
 	make_input() {
 		super.make_input();
 
@@ -110,7 +111,7 @@ frappe.ui.form.add_options = function (input, options_list, sort) {
 
 	let options = options_list.map((raw_option) => parse_option(raw_option));
 	if (sort) {
-		options = options.sort((a, b) => a.label.localeCompare(b.label));
+		options = options.sort((a, b) => cstr(a.label).localeCompare(cstr(b.label)));
 	}
 
 	options
@@ -161,7 +162,7 @@ function parse_option(v) {
 		is_disabled = Boolean(v.disabled);
 		is_selected = Boolean(v.selected);
 
-		if (is_value_null && is_label_null) {
+		if (is_value_null && is_label_null && typeof v !== "object") {
 			value = v;
 			label = __(v);
 		} else {

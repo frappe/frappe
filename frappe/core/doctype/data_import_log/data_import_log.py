@@ -22,4 +22,5 @@ class DataImportLog(Document):
 		row_indexes: DF.Code | None
 		success: DF.Check
 	# end: auto-generated types
+
 	pass

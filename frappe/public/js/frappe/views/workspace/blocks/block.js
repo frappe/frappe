@@ -112,7 +112,7 @@ export default class Block {
 				});
 				this.block_widget.customize(this.options);
 				this.wrapper.setAttribute(block_name, this.block_widget.label);
-				$(this.wrapper).find(".widget").addClass(`${widget_type} edit-mode`);
+				$(this.wrapper).find(".widget").addClass(`${widget_type}`);
 				this.new_block_widget = this.block_widget.get_config();
 				this.add_settings_button();
 			},

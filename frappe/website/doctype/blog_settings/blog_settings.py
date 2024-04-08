@@ -30,6 +30,7 @@ class BlogSettings(Document):
 		subtitle: DF.Data | None
 		title: DF.Data | None
 	# end: auto-generated types
+
 	def on_update(self):
 		from frappe.website.utils import clear_cache
 

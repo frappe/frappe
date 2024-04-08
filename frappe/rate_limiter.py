@@ -1,10 +1,11 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
 from collections.abc import Callable
-from datetime import datetime
 from functools import wraps
 
+import pytz
 from werkzeug.wrappers import Response
 
 import frappe
@@ -34,7 +35,7 @@ class RateLimiter:
 		self.limit = int(limit * 1000000)
 		self.window = window
 
-		self.start = datetime.utcnow()
+		self.start = datetime.datetime.now(pytz.UTC)
 		timestamp = int(frappe.utils.now_datetime().timestamp())
 
 		self.window_number, self.spent = divmod(timestamp, self.window)
@@ -56,15 +57,14 @@ class RateLimiter:
 		raise frappe.TooManyRequestsError
 
 	def update(self):
-		self.end = datetime.utcnow()
-		self.duration = int((self.end - self.start).total_seconds() * 1000000)
-
+		self.record_request_end()
 		pipeline = frappe.cache.pipeline()
 		pipeline.incrby(self.key, self.duration)
 		pipeline.expire(self.key, self.window)
 		pipeline.execute()
 
 	def headers(self):
+		self.record_request_end()
 		headers = {
 			"X-RateLimit-Reset": self.reset,
 			"X-RateLimit-Limit": self.limit,
@@ -77,13 +77,19 @@ class RateLimiter:
 
 		return headers
 
+	def record_request_end(self):
+		if self.end is not None:
+			return
+		self.end = datetime.datetime.now(pytz.UTC)
+		self.duration = int((self.end - self.start).total_seconds() * 1000000)
+
 	def respond(self):
 		if self.rejected:
 			return Response(_("Too Many Requests"), status=429)
 
 
 def rate_limit(
-	key: str = None,
+	key: str | None = None,
 	limit: int | Callable = 5,
 	seconds: int = 24 * 60 * 60,
 	methods: str | list = "ALL",
@@ -104,7 +110,7 @@ def rate_limit(
 	:param ip_based: flag to allow ip based rate-limiting
 	:type ip_based: Boolean
 
-	:returns: a decorator function that limit the number of requests per endpoint
+	Return: a decorator function that limit the number of requests per endpoint
 	"""
 
 	def ratelimit_decorator(fn):
@@ -132,9 +138,9 @@ def rate_limit(
 			if not identity:
 				frappe.throw(_("Either key or IP flag is required."))
 
-			cache_key = f"rl:{frappe.form_dict.cmd}:{identity}"
+			cache_key = frappe.cache.make_key(f"rl:{frappe.form_dict.cmd}:{identity}")
 
-			value = frappe.cache.get(cache_key) or 0
+			value = frappe.cache.get(cache_key)
 			if not value:
 				frappe.cache.setex(cache_key, seconds, 0)
 

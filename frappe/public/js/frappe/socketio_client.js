@@ -109,11 +109,11 @@ class RealTimeClient {
 		});
 	}
 
-	get_host(port = 3000) {
+	get_host(port = 9000) {
 		let host = window.location.origin;
 		if (window.dev_server) {
 			let parts = host.split(":");
-			port = frappe.boot.socketio_port || port.toString() || "3000";
+			port = frappe.boot.socketio_port || port.toString() || "9000";
 			if (parts.length > 2) {
 				host = parts[0] + ":" + parts[1];
 			}
@@ -214,5 +214,5 @@ class RealTimeClient {
 
 frappe.realtime = new RealTimeClient();
 
-// backward compatbility
+// backward compatibility
 frappe.socketio = frappe.realtime;

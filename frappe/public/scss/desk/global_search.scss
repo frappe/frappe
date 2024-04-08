@@ -69,8 +69,7 @@
 
 			.result-title {
 				color: var(--text-color);
-				font-size: var(--text-lg);
-				font-weight: 600;
+				@include get_textstyle("lg", "semibold");
 			}
 
 			.result-body {
@@ -101,10 +100,12 @@
 				}
 			}
 
-			.list-more, .section-more, .results-status {
+			.list-more,
+			.section-more,
+			.results-status {
 				padding: var(--padding-sm) 0;
 				color: var(--primary);
-				font-size: var(--text-sm);
+				@include get_textstyle("sm", "regular");
 			}
 		}
 	}

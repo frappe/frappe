@@ -79,7 +79,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-05-21 15:50:10.414002",
+ "modified": "2024-03-23 16:04:03.509383",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook Request Log",
@@ -99,7 +99,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

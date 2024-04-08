@@ -30,7 +30,7 @@
 	padding: 30px;
 }
 
-@media(min-width: map-get($grid-breakpoints, "md")) {
+@media (min-width: map-get($grid-breakpoints, "md")) {
 	.module-section:nth-child(even) {
 		background-color: var(--bg-color);
 	}
@@ -40,21 +40,21 @@
 	}
 }
 
-@media(max-width: map-get($grid-breakpoints, "lg")) {
+@media (max-width: map-get($grid-breakpoints, "lg")) {
 	.module-body {
 		margin-top: 15px;
 		border-top: 1px solid $border-color;
 	}
 }
 
-@media(max-width: map-get($grid-breakpoints, "md")) {
+@media (max-width: map-get($grid-breakpoints, "md")) {
 	.module-body {
 		margin-top: 0;
 		border-top: 1px solid transparent;
 	}
 }
 
-@media(max-width: map-get($grid-breakpoints, "md")) {
+@media (max-width: map-get($grid-breakpoints, "md")) {
 	.module-section {
 		border: none;
 	}
@@ -71,7 +71,6 @@
 		border-bottom: none;
 	}
 }
-
 
 .module-item {
 	margin: 0px;
@@ -96,7 +95,8 @@
 	margin-left: 3px;
 }
 
-.module-item:hover, .module-item:focus {
+.module-item:hover,
+.module-item:focus {
 	background-color: var(--bg-color);
 }
 
@@ -126,13 +126,11 @@
 	width: 0px;
 }
 
-@media(max-width: map-get($grid-breakpoints, "md")) {
-
+@media (max-width: map-get($grid-breakpoints, "md")) {
 	body[data-route^="Module"] {
 		.page-title {
 			width: 100%;
 		}
-
 
 		.page-actions {
 			display: none !important;

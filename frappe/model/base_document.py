@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import weakref
 from functools import cached_property
 from typing import TYPE_CHECKING, TypeVar
 
@@ -31,6 +32,7 @@ from frappe.utils import (
 	sanitize_html,
 	strip_html,
 )
+from frappe.utils.defaults import get_not_null_defaults
 from frappe.utils.html_utils import unescape_html
 
 if TYPE_CHECKING:
@@ -54,9 +56,9 @@ DOCTYPES_FOR_DOCTYPE = {"DocType", *TABLE_DOCTYPES_FOR_DOCTYPE.values()}
 
 
 def get_controller(doctype):
-	"""
-	Returns the locally cached **class** object of the given DocType.
-	For `custom` type, returns `frappe.model.document.Document`.
+	"""Return the locally cached **class** object of the given DocType.
+
+	For `custom` type, return `frappe.model.document.Document`.
 
 	:param doctype: DocType name as string.
 	"""
@@ -145,9 +147,9 @@ class BaseDocument:
 		return get_permitted_fields(doctype=self.doctype, parenttype=getattr(self, "parenttype", None))
 
 	def __getstate__(self):
-		"""
+		"""Return a copy of `__dict__` excluding unpicklable values like `meta`.
+
 		Called when pickling.
-		Returns a copy of `__dict__` excluding unpicklable values like `meta`.
 		More info: https://docs.python.org/3/library/pickle.html#handling-stateful-objects
 		"""
 
@@ -162,6 +164,7 @@ class BaseDocument:
 
 		state.pop("meta", None)
 		state.pop("permitted_fieldnames", None)
+		state.pop("_parent_doc", None)
 
 	def update(self, d):
 		"""Update multiple fields of a doctype using a dictionary of key-value pairs.
@@ -214,7 +217,7 @@ class BaseDocument:
 
 		value = self.__dict__.get(key, default)
 
-		if limit and isinstance(value, (list, tuple)) and len(value) > limit:
+		if limit and isinstance(value, list | tuple) and len(value) > limit:
 			value = value[:limit]
 
 		return value
@@ -260,10 +263,27 @@ class BaseDocument:
 		ret_value = self._init_child(value, key)
 		table.append(ret_value)
 
-		# reference parent document
-		ret_value.parent_doc = self
+		# reference parent document but with weak reference, parent_doc will be deleted if self is garbage collected.
+		ret_value.parent_doc = weakref.ref(self)
 
 		return ret_value
+
+	@property
+	def parent_doc(self):
+		parent_doc_ref = getattr(self, "_parent_doc", None)
+
+		if isinstance(parent_doc_ref, BaseDocument):
+			return parent_doc_ref
+		elif isinstance(parent_doc_ref, weakref.ReferenceType):
+			return parent_doc_ref()
+
+	@parent_doc.setter
+	def parent_doc(self, value):
+		self._parent_doc = value
+
+	@parent_doc.deleter
+	def parent_doc(self):
+		self._parent_doc = None
 
 	def extend(self, key, value):
 		try:
@@ -343,21 +363,20 @@ class BaseDocument:
 					if ignore_virtual or fieldname not in self.permitted_fieldnames:
 						continue
 
-					if value is None:
-						if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
-							value = getattr(self, fieldname)
+					if (prop := getattr(type(self), fieldname, None)) and is_a_property(prop):
+						value = getattr(self, fieldname)
 
-						elif options := getattr(df, "options", None):
-							from frappe.utils.safe_exec import get_safe_globals
+					elif options := getattr(df, "options", None):
+						from frappe.utils.safe_exec import get_safe_globals
 
-							value = frappe.safe_eval(
-								code=options,
-								eval_globals=get_safe_globals(),
-								eval_locals={"doc": self},
-							)
+						value = frappe.safe_eval(
+							code=options,
+							eval_globals=get_safe_globals(),
+							eval_locals={"doc": self},
+						)
 
 				if isinstance(value, list) and df.fieldtype not in table_fields:
-					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label)))
+					frappe.throw(_("Value for {0} cannot be a list").format(_(df.label, context=df.parent)))
 
 				if df.fieldtype == "Check":
 					value = 1 if cint(value) else 0
@@ -366,7 +385,7 @@ class BaseDocument:
 					value = cint(value)
 
 				elif df.fieldtype == "JSON" and isinstance(value, dict):
-					value = json.dumps(value, sort_keys=True, indent=4, separators=(",", ": "))
+					value = json.dumps(value, separators=(",", ":"))
 
 				elif df.fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
@@ -377,12 +396,19 @@ class BaseDocument:
 					value = None
 
 			if convert_dates_to_str and isinstance(
-				value, (datetime.datetime, datetime.date, datetime.time, datetime.timedelta)
+				value, datetime.datetime | datetime.date | datetime.time | datetime.timedelta
 			):
 				value = str(value)
 
 			if ignore_nulls and not is_virtual_field and value is None:
 				continue
+
+			# If the docfield is not nullable - set a default non-null value
+			if value is None and getattr(df, "not_nullable", False):
+				if df.default:
+					value = df.default
+				else:
+					value = get_not_null_defaults(df.fieldtype)
 
 			d[fieldname] = value
 
@@ -518,7 +544,7 @@ class BaseDocument:
 
 		if not self.creation:
 			self.creation = self.modified = now()
-			self.created_by = self.modified_by = frappe.session.user
+			self.owner = self.modified_by = frappe.session.user
 
 		# if doctype is "DocType", don't insert null values as we don't know who is valid yet
 		d = self.get_valid_dict(
@@ -590,7 +616,7 @@ class BaseDocument:
 				SET {values} WHERE `name`=%s""".format(
 					doctype=self.doctype, values=", ".join("`" + c + "`=%s" for c in columns)
 				),
-				list(d.values()) + [name],
+				[*list(d.values()), name],
 			)
 		except Exception as e:
 			if frappe.db.is_unique_key_violation(e):
@@ -626,7 +652,7 @@ class BaseDocument:
 
 	def get_field_name_by_key_name(self, key_name):
 		"""MariaDB stores a mapping between `key_name` and `column_name`.
-		This function returns the `column_name` associated with the `key_name` passed
+		Return the `column_name` associated with the `key_name` passed.
 
 		Args:
 		        key_name (str): The name of the database index.
@@ -634,7 +660,7 @@ class BaseDocument:
 		Raises:
 		        IndexError: If the key is not found in the table.
 
-		Returns:
+		Return:
 		        str: The column name associated with the key.
 		"""
 		return frappe.db.sql(
@@ -653,17 +679,17 @@ class BaseDocument:
 		)[0].get("Column_name")
 
 	def get_label_from_fieldname(self, fieldname):
-		"""Returns the associated label for fieldname
+		"""Return the associated label for fieldname.
 
 		Args:
 		        fieldname (str): The fieldname in the DocType to use to pull the label.
 
-		Returns:
+		Return:
 		        str: The label associated with the fieldname, if found, otherwise `None`.
 		"""
 		df = self.meta.get_field(fieldname)
 		if df:
-			return df.label
+			return _(df.label) if df.label else None
 
 	def update_modified(self):
 		"""Update modified timestamp"""
@@ -693,7 +719,9 @@ class BaseDocument:
 
 		def get_msg(df):
 			if df.fieldtype in table_fields:
-				return "{}: {}: {}".format(_("Error"), _("Data missing in table"), _(df.label))
+				return "{}: {}: {}".format(
+					_("Error"), _("Data missing in table"), _(df.label, context=df.parent)
+				)
 
 			# check if parentfield exists (only applicable for child table doctype)
 			elif self.get("parentfield"):
@@ -703,10 +731,10 @@ class BaseDocument:
 					_("Row"),
 					self.idx,
 					_("Value missing for"),
-					_(df.label),
+					_(df.label, context=df.parent),
 				)
 
-			return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label))
+			return _("Error: Value missing for {0}: {1}").format(_(df.parent), _(df.label, context=df.parent))
 
 		def has_content(df):
 			value = cstr(self.get(df.fieldname))
@@ -736,21 +764,19 @@ class BaseDocument:
 		return missing
 
 	def get_invalid_links(self, is_submittable=False):
-		"""Returns list of invalid links and also updates fetch values if not set"""
+		"""Return list of invalid links and also update fetch values if not set."""
 
 		def get_msg(df, docname):
 			# check if parentfield exists (only applicable for child table doctype)
 			if self.get("parentfield"):
-				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
+				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label, context=df.parent), docname)
 
-			return f"{_(df.label)}: {docname}"
+			return f"{_(df.label, context=df.parent)}: {docname}"
 
 		invalid_links = []
 		cancelled_links = []
 
-		for df in self.meta.get_link_fields() + self.meta.get(
-			"fields", {"fieldtype": ("=", "Dynamic Link")}
-		):
+		for df in self.meta.get_link_fields() + self.meta.get("fields", {"fieldtype": ("=", "Dynamic Link")}):
 			docname = self.get(df.fieldname)
 
 			if docname:
@@ -780,10 +806,18 @@ class BaseDocument:
 						# cache a single value type
 						values = _dict(name=frappe.db.get_value(doctype, docname, "name", cache=True))
 					else:
-						values_to_fetch = ["name"] + [_df.fetch_from.split(".")[-1] for _df in fields_to_fetch]
+						values_to_fetch = ["name"] + [
+							_df.fetch_from.split(".")[-1] for _df in fields_to_fetch
+						]
 
+						# fallback to dict with field_to_fetch=None if link field value is not found
+						# (for compatibility, `values` must have same data type)
+						empty_values = _dict({value: None for value in values_to_fetch})
 						# don't cache if fetching other values too
-						values = frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True)
+						values = (
+							frappe.db.get_value(doctype, docname, values_to_fetch, as_dict=True)
+							or empty_values
+						)
 
 				if getattr(frappe.get_meta(doctype), "issingle", 0):
 					values.name = doctype
@@ -809,7 +843,6 @@ class BaseDocument:
 						and frappe.get_meta(doctype).is_submittable
 						and cint(frappe.db.get_value(doctype, docname, "docstatus")) == DocStatus.cancelled()
 					):
-
 						cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
 
 		return invalid_links, cancelled_links
@@ -826,7 +859,9 @@ class BaseDocument:
 
 			if not fetch_from_df:
 				frappe.throw(
-					_('Please check the value of "Fetch From" set for field {0}').format(frappe.bold(df.label)),
+					_('Please check the value of "Fetch From" set for field {0}').format(
+						frappe.bold(df.label)
+					),
 					title=_("Wrong Fetch From value"),
 				)
 
@@ -840,7 +875,7 @@ class BaseDocument:
 			return
 
 		for df in self.meta.get_select_fields():
-			if df.fieldname == "naming_series" or not (self.get(df.fieldname) and df.options):
+			if df.fieldname == "naming_series" or not self.get(df.fieldname) or not df.options:
 				continue
 
 			options = (df.options or "").split("\n")
@@ -948,6 +983,9 @@ class BaseDocument:
 					self.throw_length_exceeded_error(df, max_length, value)
 
 			elif column_type in ("int", "bigint", "smallint"):
+				if cint(df.get("length")) > 11:  # We implicitl switch to bigint for >11
+					column_type = "bigint"
+
 				max_length = max_positive_value[column_type]
 
 				if abs(cint(value)) > max_length:
@@ -981,7 +1019,7 @@ class BaseDocument:
 
 		frappe.throw(
 			_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(
-				reference, _(df.label), max_length, value
+				reference, _(df.label, context=df.parent), max_length, value
 			),
 			frappe.CharacterLengthExceededError,
 			title=_("Value too big"),
@@ -1016,7 +1054,7 @@ class BaseDocument:
 					frappe.throw(
 						_("{0} Not allowed to change {1} after submission from {2} to {3}").format(
 							f"Row #{self.idx}:" if self.get("parent") else "",
-							frappe.bold(_(df.label)),
+							frappe.bold(_(df.label, context=df.parent)),
 							frappe.bold(db_value),
 							frappe.bold(self_value),
 						),
@@ -1094,15 +1132,13 @@ class BaseDocument:
 		if self.get(fieldname) and not self.is_dummy_password(self.get(fieldname)):
 			return self.get(fieldname)
 
-		return get_decrypted_password(
-			self.doctype, self.name, fieldname, raise_exception=raise_exception
-		)
+		return get_decrypted_password(self.doctype, self.name, fieldname, raise_exception=raise_exception)
 
 	def is_dummy_password(self, pwd):
 		return "".join(set(pwd)) == "*"
 
 	def precision(self, fieldname, parentfield=None) -> int | None:
-		"""Returns float precision for a particular field (or get global default).
+		"""Return float precision for a particular field (or get global default).
 
 		:param fieldname: Fieldname for which precision is required.
 		:param parentfield: If fieldname is in child table."""
@@ -1158,13 +1194,13 @@ class BaseDocument:
 		if not doc:
 			doc = getattr(self, "parent_doc", None) or self
 
-		if (absolute_value or doc.get("absolute_value")) and isinstance(val, (int, float)):
+		if (absolute_value or doc.get("absolute_value")) and isinstance(val, int | float):
 			val = abs(self.get(fieldname))
 
 		return format_value(val, df=df, doc=doc, currency=currency, format=format)
 
 	def is_print_hide(self, fieldname, df=None, for_print=True):
-		"""Returns true if fieldname is to be hidden for print.
+		"""Return True if fieldname is to be hidden for print.
 
 		Print Hide can be set via the Print Format Builder or in the controller as a list
 		of hidden fields. Example
@@ -1193,7 +1229,8 @@ class BaseDocument:
 		return print_hide
 
 	def in_format_data(self, fieldname):
-		"""Returns True if shown via Print Format::`format_data` property.
+		"""Return True if shown via Print Format::`format_data` property.
+
 		Called from within standard print format."""
 		doc = getattr(self, "parent_doc", self)
 
@@ -1220,7 +1257,7 @@ class BaseDocument:
 				ref_doc = frappe.new_doc(self.doctype)
 			else:
 				# get values from old doc
-				if self.get("parent_doc"):
+				if self.parent_doc:
 					parent_doc = self.parent_doc.get_latest()
 					child_docs = [d for d in parent_doc.get(self.parentfield) if d.name == self.name]
 					if not child_docs:
@@ -1265,7 +1302,7 @@ def _filter(data, filters, limit=None):
 		for f in filters:
 			fval = filters[f]
 
-			if not isinstance(fval, (tuple, list)):
+			if not isinstance(fval, tuple | list):
 				if fval is True:
 					fval = ("not None", fval)
 				elif fval is False:

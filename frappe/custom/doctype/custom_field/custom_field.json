@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_import": 1,
- "creation": "2013-01-10 16:34:01",
+ "creation": "2024-02-21 18:14:42.281748",
  "description": "Adds a custom field to a DocType",
  "doctype": "DocType",
  "document_type": "Setup",
@@ -15,6 +15,7 @@
   "fieldname",
   "insert_after",
   "length",
+  "link_filters",
   "column_break_6",
   "fieldtype",
   "precision",
@@ -56,6 +57,7 @@
   "ignore_xss_filter",
   "translatable",
   "hide_border",
+  "show_dashboard",
   "description",
   "permlevel",
   "width",
@@ -153,10 +155,10 @@
   },
   {
    "default": "0",
-   "description": "If checked, this field will be not overwritten based on Fetch From if a value already exists.",
+   "description": "If unchecked, the value will always be re-fetched on save.",
    "fieldname": "fetch_if_empty",
    "fieldtype": "Check",
-   "label": "Fetch If Empty"
+   "label": "Fetch on Save if Empty"
   },
   {
    "fieldname": "options_help",
@@ -360,7 +362,7 @@
    "label": "Ignore XSS Filter"
   },
   {
-   "default": "1",
+   "default": "0",
    "depends_on": "eval:['Data', 'Select', 'Text', 'Small Text', 'Text Editor'].includes(doc.fieldtype)",
    "fieldname": "translatable",
    "fieldtype": "Check",
@@ -444,13 +446,25 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
+  },
+  {
+   "fieldname": "link_filters",
+   "fieldtype": "JSON",
+   "hidden": 1,
+   "label": "Link Filters"
+  },
+  {
+   "default": "0",
+   "fieldname": "show_dashboard",
+   "fieldtype": "Check",
+   "label": "Show Dashboard"
   }
  ],
  "icon": "fa fa-glass",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-06-08 19:05:51.737234",
+ "modified": "2024-03-23 16:02:15.143117",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
@@ -480,8 +494,8 @@
   }
  ],
  "search_fields": "dt,label,fieldtype,options",
- "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_field": "creation",
+ "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }

@@ -37,6 +37,10 @@ $("body").on("click", "a", function (e) {
 	const href = target_element.getAttribute("href");
 	const is_on_same_host = target_element.hostname === window.location.hostname;
 
+	if (target_element.getAttribute("target") === "_blank") {
+		return;
+	}
+
 	const override = (route) => {
 		e.preventDefault();
 		frappe.set_route(route);
@@ -107,6 +111,7 @@ frappe.router = {
 	layout_mapped: {},
 
 	is_app_route(path) {
+		if (!path) return;
 		// desk paths must begin with /app or doctype route
 		if (path.substr(0, 1) === "/") path = path.substr(1);
 		path = path.split("/");
@@ -249,7 +254,7 @@ frappe.router = {
 			standard_route = ["Tree", doctype_route.doctype];
 		} else {
 			let new_route = this.list_views_route[_route.toLowerCase()];
-			let re_route = route[2].toLowerCase() !== new_route.toLowerCase();
+			let re_route = route[2].toLowerCase() !== new_route?.toLowerCase();
 
 			if (re_route) {
 				/**
@@ -368,7 +373,17 @@ frappe.router = {
 				window.open(sub_path, "_blank");
 				frappe.open_in_new_tab = false;
 			} else {
-				this.push_state(sub_path);
+				try {
+					const route_options = frappe.route_options || {};
+					const query_params = Object.entries(route_options)
+						.map(
+							([key, value]) => `${key}=` + encodeURIComponent(JSON.stringify(value))
+						)
+						.join("&");
+					this.push_state(sub_path, query_params ? `?${query_params}` : "");
+				} catch (e) {
+					this.push_state(sub_path);
+				}
 			}
 			setTimeout(() => {
 				frappe.after_ajax &&
@@ -454,27 +469,49 @@ frappe.router = {
 				return encodeURIComponent(String(a));
 			}
 		}).join("/");
-		let private_home = frappe.workspaces[`home-${frappe.user.name.toLowerCase()}`];
 
-		let workspace_name = private_home || frappe.workspaces["home"] ? "home" : "";
-		let is_private = !!private_home;
-		let first_workspace = Object.keys(frappe.workspaces)[0];
-
-		if (!workspace_name && first_workspace) {
-			workspace_name = frappe.workspaces[first_workspace].title;
-			is_private = !frappe.workspaces[first_workspace].public;
+		if (path_string) {
+			return "/app/" + path_string;
 		}
 
-		let default_page = (is_private ? "private/" : "") + frappe.router.slug(workspace_name);
-		return "/app/" + (path_string || default_page);
+		// Workspace
+		let private_home = `home-${frappe.user.name.toLowerCase()}`;
+		let default_page = null;
+		if (frappe.boot.user.default_workspace) {
+			default_page = frappe.router.slug(frappe.boot.user.default_workspace.name);
+		} else if (frappe.workspaces[private_home]) {
+			default_page = private_home;
+		} else if (frappe.workspaces["home"]) {
+			default_page = "home";
+		} else {
+			// Fallback to first workspace
+			default_page = Object.keys(frappe.workspaces)[0];
+		}
+
+		if (frappe.workspaces[default_page]?.public == false) {
+			default_page = "private/" + default_page;
+		}
+
+		if (default_page) {
+			return "/app/" + default_page;
+		}
+
+		return "/app";
 	},
 
-	push_state(url) {
-		// change the URL and call the router
-		if (window.location.pathname !== url) {
+	/**
+	 * Changes the URL and calls the router.
+	 *
+	 * @param {string} path - The desired URI path to replace or push,
+	 *    without query string. Example: "/app/todo"
+	 * @param {string} query_params - The desired query parameter string.
+	 * @returns {void}
+	 */
+	push_state(path, query_params = "") {
+		if (window.location.pathname !== path || window.location.search !== query_params) {
 			// push/replace state so the browser looks fine
 			const method = frappe.route_flags.replace_route ? "replaceState" : "pushState";
-			history[method](null, null, url);
+			history[method](null, null, path);
 
 			// now process the route
 			this.route();
@@ -497,8 +534,8 @@ frappe.router = {
 
 	strip_prefix(route) {
 		if (route.substr(0, 1) == "/") route = route.substr(1); // for /app/sub
+		if (route == "app") route = route.substr(4); // for app
 		if (route.startsWith("app/")) route = route.substr(4); // for desk/sub
-		if (route == "app") route = route.substr(4); // for /app
 		if (route.substr(0, 1) == "/") route = route.substr(1);
 		if (route.substr(0, 1) == "#") route = route.substr(1);
 		if (route.substr(0, 1) == "!") route = route.substr(1);

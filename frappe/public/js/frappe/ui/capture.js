@@ -31,6 +31,10 @@ function get_file_input() {
 	input.setAttribute("accept", "image/*");
 	input.setAttribute("multiple", "");
 
+	// Make sure that the input exists in the DOM
+	input.classList.add("visually-hidden");
+	document.body.appendChild(input);
+
 	return input;
 }
 
@@ -98,13 +102,16 @@ frappe.ui.Capture = class {
 					fieldname: "total_count",
 				},
 			],
-			on_hide: this.stop_media_stream(),
+			on_hide: () => {
+				this.stop_media_stream();
+			},
 		});
 
 		me.$template = $(frappe.ui.Capture.TEMPLATE);
 
 		let field = me.dialog.get_field("capture");
 		$(field.wrapper).html(me.$template);
+		me.update_count();
 
 		me.dialog.get_close_btn().on("click", () => {
 			me.hide();
@@ -122,6 +129,10 @@ frappe.ui.Capture = class {
 				let f = await read(file);
 				me.images.push(f);
 			}
+
+			// Remove the input from the DOM
+			me.input.remove();
+			me.input = null;
 
 			me.render_preview();
 			me.dialog.show();
@@ -231,7 +242,7 @@ frappe.ui.Capture = class {
 
 	setup_remove_action() {
 		let me = this;
-		let elements = this.$template[0].getElementsByClassName("capture-remove-btn");
+		let elements = Array.from(this.$template[0].getElementsByClassName("capture-remove-btn"));
 
 		elements.forEach((el) => {
 			el.onclick = () => {

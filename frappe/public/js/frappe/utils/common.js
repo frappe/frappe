@@ -219,7 +219,7 @@ window.lstrip = function lstrip(s, chars) {
 	if (!chars) chars = ["\n", "\t", " "];
 	// strip left
 	let first_char = s.substr(0, 1);
-	while (in_list(chars, first_char)) {
+	while (chars.includes(first_char)) {
 		s = s.substr(1);
 		first_char = s.substr(0, 1);
 	}
@@ -229,7 +229,7 @@ window.lstrip = function lstrip(s, chars) {
 window.rstrip = function (s, chars) {
 	if (!chars) chars = ["\n", "\t", " "];
 	let last_char = s.substr(s.length - 1);
-	while (in_list(chars, last_char)) {
+	while (chars.includes(last_char)) {
 		s = s.substr(0, s.length - 1);
 		last_char = s.substr(s.length - 1);
 	}
@@ -272,6 +272,10 @@ frappe.get_cookies = function getCookies() {
 
 frappe.is_mobile = function () {
 	return $(document).width() < 768;
+};
+
+frappe.is_large_screen = function () {
+	return $(document).height() > 1180;
 };
 
 frappe.utils.xss_sanitise = function (string, options) {
@@ -332,10 +336,39 @@ frappe.utils.sanitise_redirect = (url) => {
 		};
 	})();
 
+	/*
+	 * Strips out url containing the text `javascript` with or without any HTML Entities in it
+	 **/
 	const sanitise_javascript = (url) => {
-		// please do not ask how or why
-		const REGEX_SCRIPT =
-			/j[\s]*(&#x.{1,7})?a[\s]*(&#x.{1,7})?v[\s]*(&#x.{1,7})?a[\s]*(&#x.{1,7})?s[\s]*(&#x.{1,7})?c[\s]*(&#x.{1,7})?r[\s]*(&#x.{1,7})?i[\s]*(&#x.{1,7})?p[\s]*(&#x.{1,7})?t/gi;
+		/*
+		 * Written below split into parts, but actual is in one line regardless of whitespaces
+		 * /
+		 * 	j
+		 * 		\s*(&#x.{1,7})?
+		 * 	a
+		 * 		\s*(&#x.{1,7})?
+		 * 	v
+		 * 		\s*(&#x.{1,7})?
+		 * 	a
+		 * 		\s*(&#x.{1,7})?
+		 * 	s
+		 * 		\s*(&#x.{1,7})?
+		 * 	c
+		 * 		\s*(&#x.{1,7})?
+		 * 	r
+		 * 		\s*(&#x.{1,7})?
+		 * 	i
+		 * 		\s*(&#x.{1,7})?
+		 * 	p
+		 * 		\s*(&#x.{1,7})?
+		 * 	t
+		 * /gi
+		 * */
+		const REGEX_ESC_UNIT = /\s*(&#x.{1,7})?/;
+		const REGEX_SCRIPT = new RegExp(
+			Array.from("javascript").join(REGEX_ESC_UNIT.source),
+			"gi"
+		);
 
 		return url.replace(REGEX_SCRIPT, "");
 	};

@@ -96,11 +96,15 @@ export function create_layout(fields) {
 	return layout;
 }
 
+export async function load_doctype_model(doctype) {
+	await frappe.call("frappe.desk.form.load.getdoctype", { doctype });
+}
+
 export async function get_table_columns(df, child_doctype) {
 	let table_columns = [];
 
 	if (!frappe.get_meta(df.options)) {
-		await frappe.model.with_doctype(df.options);
+		await load_doctype_model(df.options);
 	}
 	if (!child_doctype) {
 		child_doctype = frappe.get_meta(df.options);
@@ -110,12 +114,12 @@ export async function get_table_columns(df, child_doctype) {
 	let total_colsize = 1;
 	table_columns.push([
 		{
-			label: __("No."),
+			label: __("No.", null, "Title of the 'row number' column"),
 		},
 		1,
 	]);
 	for (let tf of table_fields) {
-		if (!in_list(frappe.model.layout_fields, tf.fieldtype) && tf.in_list_view && tf.label) {
+		if (!frappe.model.layout_fields.includes(tf.fieldtype) && tf.in_list_view && tf.label) {
 			let colsize;
 
 			if (tf.columns) {
@@ -238,10 +242,6 @@ export function section_boilerplate() {
 				df: store.get_df("Column Break"),
 				fields: [],
 			},
-			{
-				df: store.get_df("Column Break"),
-				fields: [],
-			},
 		],
 	};
 }
@@ -281,7 +281,7 @@ export function scrub_field_names(fields) {
 					if (d.fieldname.endsWith("?")) {
 						d.fieldname = d.fieldname.slice(0, -1);
 					}
-					if (in_list(frappe.model.restricted_fields, d.fieldname)) {
+					if (frappe.model.restricted_fields.includes(d.fieldname)) {
 						d.fieldname = d.fieldname + "1";
 					}
 					if (d.fieldtype == "Section Break") {
@@ -298,7 +298,7 @@ export function scrub_field_names(fields) {
 						frappe.utils.get_random(4);
 				}
 			} else {
-				if (in_list(frappe.model.restricted_fields, d.fieldname)) {
+				if (frappe.model.restricted_fields.includes(d.fieldname)) {
 					frappe.throw(__("Fieldname {0} is restricted", [d.fieldname]));
 				}
 			}
@@ -346,4 +346,8 @@ export function confirm_dialog(
 	});
 	d.show();
 	d.set_message(message);
+}
+
+export function is_touch_screen_device() {
+	return "ontouchstart" in document.documentElement;
 }

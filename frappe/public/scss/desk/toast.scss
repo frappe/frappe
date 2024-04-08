@@ -93,12 +93,11 @@
 			border-right: 1px solid var(--border-color);
 			padding: var(--padding-sm);
 			outline: none;
-			font-size: var(--text-sm);
-			font-weight: 500;
+			@include get_textstyle("sm", "medium");
 			color: var(--text-light);
 
 			&:hover {
-				color: var(--text-color)
+				color: var(--text-color);
 			}
 
 			&:last-child {
@@ -139,7 +138,9 @@
 }
 
 @keyframes backOutRight {
-	0% { opacity: 1; }
+	0% {
+		opacity: 1;
+	}
 
 	100% {
 		-webkit-transform: translateX(2000px);

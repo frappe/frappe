@@ -22,10 +22,9 @@ doctype_python_modules = {}
 
 
 def export_module_json(doc: "Document", is_standard: bool, module: str) -> str | None:
-	"""Make a folder for the given doc and add its json file (make it a standard
-	object that will be synced)
+	"""Make a folder for the given doc and add its json file (make it a standard object that will be synced).
 
-	Returns the absolute file_path without the extension.
+	Return the absolute file_path without the extension.
 	Eg: For exporting a Print Format "_Test Print Format 1", the return value will be
 	`/home/gavin/frappe-bench/apps/frappe/frappe/core/print_format/_test_print_format_1/_test_print_format_1`
 	"""
@@ -33,9 +32,7 @@ def export_module_json(doc: "Document", is_standard: bool, module: str) -> str |
 		from frappe.modules.export_file import export_to_files
 
 		# json
-		export_to_files(
-			record_list=[[doc.doctype, doc.name]], record_module=module, create_init=is_standard
-		)
+		export_to_files(record_list=[[doc.doctype, doc.name]], record_module=module, create_init=is_standard)
 
 		return os.path.join(
 			frappe.get_module_path(module), scrub(doc.doctype), scrub(doc.name), scrub(doc.name)
@@ -76,9 +73,7 @@ def export_customizations(
 	}
 
 	if with_permissions:
-		custom["custom_perms"] = frappe.get_all(
-			"Custom DocPerm", fields="*", filters={"parent": doctype}
-		)
+		custom["custom_perms"] = frappe.get_all("Custom DocPerm", fields="*", filters={"parent": doctype})
 
 	# also update the custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
@@ -181,19 +176,19 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 
 
 def scrub_dt_dn(dt: str, dn: str) -> tuple[str, str]:
-	"""Returns in lowercase and code friendly names of doctype and name for certain types"""
+	"""Return in lowercase and code friendly names of doctype and name for certain types."""
 	return scrub(dt), scrub(dn)
 
 
 def get_doc_path(module: str, doctype: str, name: str) -> str:
-	"""Returns path of a doc in a module"""
+	"""Return path of a doc in a module."""
 	return os.path.join(get_module_path(module), *scrub_dt_dn(doctype, name))
 
 
 def reload_doc(
 	module: str,
-	dt: str = None,
-	dn: str = None,
+	dt: str | None = None,
+	dn: str | None = None,
 	force: bool = False,
 	reset_permissions: bool = False,
 ):
@@ -213,7 +208,7 @@ def export_doc(doctype, name, module=None):
 
 
 def get_doctype_module(doctype: str) -> str:
-	"""Returns **Module Def** name of given doctype."""
+	"""Return **Module Def** name of given doctype."""
 	doctype_module_map = frappe.cache.get_value(
 		"doctype_modules",
 		generator=lambda: dict(frappe.qb.from_("DocType").select("name", "module").run()),
@@ -226,7 +221,7 @@ def get_doctype_module(doctype: str) -> str:
 
 
 def load_doctype_module(doctype, module=None, prefix="", suffix=""):
-	"""Returns the module object for given doctype.
+	"""Return the module object for given doctype.
 
 	Note: This will return the standard defined module object for the doctype irrespective
 	of the `override_doctype_class` hook.
@@ -247,9 +242,7 @@ def load_doctype_module(doctype, module=None, prefix="", suffix=""):
 	return doctype_python_modules[key]
 
 
-def get_module_name(
-	doctype: str, module: str, prefix: str = "", suffix: str = "", app: str | None = None
-):
+def get_module_name(doctype: str, module: str, prefix: str = "", suffix: str = "", app: str | None = None):
 	app = scrub(app or get_module_app(module))
 	module = scrub(module)
 	doctype = scrub(doctype)
@@ -302,24 +295,27 @@ def make_boilerplate(
 			dedent(
 				"""
 			def db_insert(self, *args, **kwargs):
-				pass
+				raise NotImplementedError
 
 			def load_from_db(self):
-				pass
+				raise NotImplementedError
 
 			def db_update(self):
+				raise NotImplementedError
+
+			def delete(self):
+				raise NotImplementedError
+
+			@staticmethod
+			def get_list(filters=None, page_length=20, **kwargs):
 				pass
 
 			@staticmethod
-			def get_list(args):
+			def get_count(filters=None, **kwargs):
 				pass
 
 			@staticmethod
-			def get_count(args):
-				pass
-
-			@staticmethod
-			def get_stats(args):
+			def get_stats(**kwargs):
 				pass
 			"""
 			),

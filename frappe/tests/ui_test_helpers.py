@@ -7,7 +7,7 @@ UI_TEST_USER = "frappe@example.com"
 
 
 def whitelist_for_tests(fn):
-	if frappe.request and not (frappe.flags.in_test or getattr(frappe.local, "dev_server", 0)):
+	if frappe.request and not frappe.flags.in_test and not getattr(frappe.local, "dev_server", 0):
 		frappe.throw("Cannot run UI tests. Use a development server with `bench start`")
 
 	return frappe.whitelist()(fn)
@@ -242,9 +242,7 @@ def create_web_page(title, route, single_thread):
 	web_page = frappe.db.exists("Web Page", {"route": route})
 	if web_page:
 		return web_page
-	web_page = frappe.get_doc(
-		{"doctype": "Web Page", "title": title, "route": route, "published": True}
-	)
+	web_page = frappe.get_doc({"doctype": "Web Page", "title": title, "route": route, "published": True})
 	web_page.save()
 
 	web_page.append(
@@ -401,7 +399,6 @@ def insert_translations():
 
 @whitelist_for_tests
 def create_blog_post():
-
 	blog_category = frappe.get_doc(
 		{"name": "general", "doctype": "Blog Category", "title": "general"}
 	).insert(ignore_if_duplicate=True)

@@ -34,7 +34,7 @@ context("Web Form", () => {
 
 		cy.url().should("include", "/note/new");
 
-		cy.request("/api/method/logout");
+		cy.call("logout");
 		cy.visit("/note");
 
 		cy.url().should("include", "/note/new");
@@ -49,6 +49,7 @@ context("Web Form", () => {
 	});
 
 	it("Login Required", () => {
+		cy.call("logout");
 		cy.login("Administrator");
 		cy.visit("/app/web-form/note");
 
@@ -155,6 +156,7 @@ context("Web Form", () => {
 
 		cy.findByRole("tab", { name: "Customization" }).click();
 		cy.fill_field("breadcrumbs", '[{"label": _("Notes"), "route":"note"}]', "Code");
+		cy.wait(2000);
 		cy.get(".form-tabs .nav-item .nav-link").contains("Customization").click();
 		cy.save();
 

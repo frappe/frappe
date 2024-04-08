@@ -29,9 +29,10 @@ class UserType(Document):
 		role: DF.Link | None
 		select_doctypes: DF.Table[UserSelectDocumentType]
 		user_doctypes: DF.Table[UserDocumentType]
-		user_id_field: DF.Literal
+		user_id_field: DF.Literal[None]
 		user_type_modules: DF.Table[UserTypeModule]
 	# end: auto-generated types
+
 	def validate(self):
 		self.set_modules()
 		self.add_select_perm_doctypes()
@@ -140,7 +141,7 @@ class UserType(Document):
 		for row in self.user_doctypes:
 			docperm = add_role_permissions(row.document_type, self.role)
 
-			values = {perm: row.get(perm) or 0 for perm in perms}
+			values = {perm: row.get(perm, default=0) for perm in perms}
 			for perm in ["print", "email", "share"]:
 				values[perm] = 1
 
@@ -332,7 +333,6 @@ def apply_permissions_for_non_standard_user_type(doc, method=None):
 				"User Permission", {"user": doc.get(data[1]), "allow": data[0], "for_value": doc.name}, "name"
 			)
 		):
-
 			perm_data = frappe.db.get_value(
 				"User Permission", {"allow": doc.doctype, "for_value": doc.name}, ["name", "user"]
 			)

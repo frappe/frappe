@@ -12,9 +12,7 @@ def get_preview_data(doctype, docname):
 	preview_fields = [
 		field.fieldname
 		for field in meta.fields
-		if field.in_preview
-		and field.fieldtype not in no_value_fields
-		and field.fieldtype not in table_fields
+		if field.in_preview and field.fieldtype not in no_value_fields and field.fieldtype not in table_fields
 	]
 
 	# no preview fields defined, build list from mandatory fields

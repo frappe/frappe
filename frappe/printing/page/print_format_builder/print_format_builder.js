@@ -280,7 +280,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 				set_section(f.label);
 			} else if (f.fieldtype === "Column Break") {
 				set_column();
-			} else if (!in_list(frappe.model.layout_fields, f.fieldtype)) {
+			} else if (!frappe.model.layout_fields.includes(f.fieldtype)) {
 				if (!column) set_column();
 
 				if (f.fieldtype === "Table") {
@@ -317,7 +317,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 		f.visible_columns = [];
 		$.each(frappe.get_meta(f.options).fields, function (i, _f) {
 			if (
-				!in_list(["Section Break", "Column Break", "Tab Break"], _f.fieldtype) &&
+				!["Section Break", "Column Break", "Tab Break"].includes(_f.fieldtype) &&
 				!_f.print_hide &&
 				f.label
 			) {
@@ -636,7 +636,7 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			// add field which are in column_names first to preserve order
 			var fields = [];
 			$.each(column_names, function (i, v) {
-				if (in_list(Object.keys(docfields_by_name), v)) {
+				if (Object.keys(docfields_by_name).includes(v)) {
 					fields.push(docfields_by_name[v]);
 				}
 			});
@@ -644,8 +644,8 @@ frappe.PrintFormatBuilder = class PrintFormatBuilder {
 			$.each(doc_fields, function (j, f) {
 				if (
 					f &&
-					!in_list(column_names, f.fieldname) &&
-					!in_list(["Section Break", "Column Break", "Tab Break"], f.fieldtype) &&
+					!column_names.includes(f.fieldname) &&
+					!["Section Break", "Column Break", "Tab Break"].includes(f.fieldtype) &&
 					f.label
 				) {
 					fields.push(f);

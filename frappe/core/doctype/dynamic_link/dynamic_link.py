@@ -21,6 +21,7 @@ class DynamicLink(Document):
 		parentfield: DF.Data
 		parenttype: DF.Data
 	# end: auto-generated types
+
 	pass
 
 
@@ -32,7 +33,7 @@ def deduplicate_dynamic_links(doc):
 	links, duplicate = [], False
 	for l in doc.links or []:
 		t = (l.link_doctype, l.link_name)
-		if not t in links:
+		if t not in links:
 			links.append(t)
 		else:
 			duplicate = True

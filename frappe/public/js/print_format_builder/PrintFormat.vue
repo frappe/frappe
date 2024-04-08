@@ -57,8 +57,8 @@ function add_section_above(section) {
 				label: "",
 				columns: [
 					{ label: "", fields: [] },
-					{ label: "", fields: [] }
-				]
+					{ label: "", fields: [] },
+				],
 			});
 		}
 		sections.push(_section);
@@ -75,12 +75,12 @@ let rootStyles = computed(() => {
 		margin_top = 0,
 		margin_bottom = 0,
 		margin_left = 0,
-		margin_right = 0
+		margin_right = 0,
 	} = print_format.value;
 	return {
 		padding: `${margin_top}mm ${margin_right}mm ${margin_bottom}mm ${margin_left}mm`,
 		width: "210mm",
-		minHeight: "297mm"
+		minHeight: "297mm",
 	};
 });
 let page_number_style = computed(() => {
@@ -89,7 +89,7 @@ let page_number_style = computed(() => {
 		background: "white",
 		padding: "4px",
 		borderRadius: "var(--border-radius)",
-		border: "1px solid var(--border-color)"
+		border: "1px solid var(--border-color)",
 	};
 	if (print_format.value.page_number.includes("Top")) {
 		style.top = print_format.value.margin_top / 2 + "mm";

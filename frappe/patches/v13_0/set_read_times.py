@@ -9,9 +9,7 @@ def execute():
 
 	for blog in frappe.get_all("Blog Post"):
 		blog = frappe.get_doc("Blog Post", blog.name)
-		frappe.db.set_value(
-			"Blog Post", blog.name, "read_time", get_read_time(blog), update_modified=False
-		)
+		frappe.db.set_value("Blog Post", blog.name, "read_time", get_read_time(blog), update_modified=False)
 
 
 def get_read_time(blog):

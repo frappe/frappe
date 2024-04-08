@@ -32,12 +32,45 @@ class WidgetDialog {
 	}
 
 	get_title() {
-		// DO NOT REMOVE: Comment to load translation
-		// __("New Chart") __("New Shortcut") __("Edit Chart") __("Edit Shortcut")
+		if (this.editing) {
+			switch (this.type) {
+				case "chart":
+					return __("Edit Chart");
+				case "shortcut":
+					return __("Edit Shortcut");
+				case "links":
+					return __("Edit Links");
+				case "number_card":
+					return __("Edit Number Card");
+				case "onboarding":
+					return __("Edit Onboarding");
+				case "quick_list":
+					return __("Edit Quick List");
+				case "custom_block":
+					return __("Edit Custom Block");
+				default:
+					return __("Edit {0}", [__(frappe.model.unscrub(this.type))]);
+			}
+		}
 
-		let action = this.editing ? "Edit" : "Add";
-		let label = (action = action + " " + frappe.model.unscrub(this.type));
-		return __(label);
+		switch (this.type) {
+			case "chart":
+				return __("New Chart");
+			case "shortcut":
+				return __("New Shortcut");
+			case "links":
+				return __("New Links");
+			case "number_card":
+				return __("New Number Card");
+			case "onboarding":
+				return __("New Onboarding");
+			case "quick_list":
+				return __("New Quick List");
+			case "custom_block":
+				return __("New Custom Block");
+			default:
+				return __("New {0}", [__(frappe.model.unscrub(this.type))]);
+		}
 	}
 
 	get_fields() {
@@ -182,7 +215,7 @@ class QuickListDialog extends WidgetDialog {
 	process_data(data) {
 		if (this.filter_group) {
 			let filters = this.filter_group.get_filters();
-			data.quick_list_filter = frappe.utils.get_filter_as_json(filters);
+			data.quick_list_filter = JSON.stringify(filters);
 		}
 
 		data.label = data.label ? data.label : data.document_type;
@@ -219,7 +252,13 @@ class CardDialog extends WidgetDialog {
 			{
 				fieldtype: "Data",
 				fieldname: "label",
-				label: "Label",
+				label: __("Label"),
+			},
+			{
+				fieldtype: "HTML Editor",
+				fieldname: "description",
+				label: __("Description"),
+				max_height: "7rem",
 			},
 			{
 				fieldname: "links",
@@ -231,17 +270,6 @@ class CardDialog extends WidgetDialog {
 					return me.values ? JSON.parse(me.values.links) : [];
 				},
 				fields: [
-					{
-						fieldname: "label",
-						fieldtype: "Data",
-						in_list_view: 1,
-						label: "Label",
-					},
-					{
-						fieldname: "icon",
-						fieldtype: "Icon",
-						label: "Icon",
-					},
 					{
 						fieldname: "link_type",
 						fieldtype: "Select",
@@ -259,6 +287,26 @@ class CardDialog extends WidgetDialog {
 						get_options: (df) => {
 							return df.doc.link_type;
 						},
+						get_query: function (df) {
+							if (df.link_type == "DocType") {
+								return {
+									filters: {
+										istable: 0,
+									},
+								};
+							}
+						},
+					},
+					{
+						fieldname: "label",
+						fieldtype: "Data",
+						in_list_view: 1,
+						label: "Label",
+					},
+					{
+						fieldname: "icon",
+						fieldtype: "Icon",
+						label: "Icon",
 					},
 					{
 						fieldname: "column_break_7",
@@ -396,6 +444,7 @@ class ShortcutDialog extends WidgetDialog {
 
 							const views = ["List", "Report Builder", "Dashboard", "New"];
 							if (meta.is_tree === 1) views.push("Tree");
+							if (meta.image_field) views.push("Image");
 							if (frappe.boot.calendars.includes(doctype)) views.push("Calendar");
 
 							const response = await frappe.db.get_value(
@@ -418,7 +467,6 @@ class ShortcutDialog extends WidgetDialog {
 				fieldtype: "Data",
 				fieldname: "url",
 				label: "URL",
-				options: "URL",
 				default: "",
 				depends_on: (s) => s.type == "URL",
 				mandatory_depends_on: (s) => s.type == "URL",
@@ -427,7 +475,7 @@ class ShortcutDialog extends WidgetDialog {
 				fieldtype: "Select",
 				fieldname: "doc_view",
 				label: "DocType View",
-				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban",
+				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban\nImage",
 				description: __(
 					"Which view of the associated DocType should this shortcut take you to?"
 				),
@@ -540,13 +588,17 @@ class ShortcutDialog extends WidgetDialog {
 	process_data(data) {
 		if (this.dialog.get_value("type") == "DocType" && this.filter_group) {
 			let filters = this.filter_group.get_filters();
-			data.stats_filter = frappe.utils.get_filter_as_json(filters);
+			data.stats_filter = JSON.stringify(filters);
 		}
 
 		data.label = data.label ? data.label : frappe.model.unscrub(data.link_to);
 
 		if (data.url) {
-			!validate_url(data.url) &&
+			let _url = data.url;
+			if (data.url.startsWith("/")) {
+				_url = frappe.urllib.get_base_url() + data.url;
+			}
+			!validate_url(_url) &&
 				frappe.throw({
 					message: __("<b>{0}</b> is not a valid URL", [data.url]),
 					title: __("Invalid URL"),

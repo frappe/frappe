@@ -78,6 +78,10 @@
 	margin: 20px 0px;
 }
 
+.checkbox-options {
+	columns: var(--checkbox-options-columns);
+}
+
 .square-image {
 	width: 100%;
 	height: 0;

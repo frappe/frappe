@@ -3,7 +3,6 @@
 
 import base64
 import hashlib
-import io
 import json
 import mimetypes
 import os
@@ -72,7 +71,7 @@ def upload():
 
 
 def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
-	"""returns File object (Document) from given parameters or form_dict"""
+	"""Return File object (Document) from given parameters or `form_dict`."""
 	r = frappe.form_dict
 
 	if dt is None:
@@ -244,9 +243,7 @@ def write_file(content, fname, is_private=0):
 def remove_all(dt, dn, from_delete=False, delete_permanently=False):
 	"""remove all files in a transaction"""
 	try:
-		for fid in frappe.get_all(
-			"File", {"attached_to_doctype": dt, "attached_to_name": dn}, pluck="name"
-		):
+		for fid in frappe.get_all("File", {"attached_to_doctype": dt, "attached_to_name": dn}, pluck="name"):
 			if from_delete:
 				# If deleting a doc, directly delete files
 				frappe.delete_doc("File", fid, ignore_permissions=True, delete_permanently=delete_permanently)
@@ -274,18 +271,14 @@ def remove_file(
 	"""Remove file and File entry"""
 	file_name = None
 	if not (attached_to_doctype and attached_to_name):
-		attached = frappe.db.get_value(
-			"File", fid, ["attached_to_doctype", "attached_to_name", "file_name"]
-		)
+		attached = frappe.db.get_value("File", fid, ["attached_to_doctype", "attached_to_name", "file_name"])
 		if attached:
 			attached_to_doctype, attached_to_name, file_name = attached
 
 	ignore_permissions, comment = False, None
 	if attached_to_doctype and attached_to_name and not from_delete:
 		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
-		ignore_permissions = doc.has_permission("write") or False
-		if frappe.flags.in_web_form:
-			ignore_permissions = True
+		ignore_permissions = frappe.flags.in_web_form or doc.has_permission("write")
 		if not file_name:
 			file_name = frappe.db.get_value("File", fid, "file_name")
 		comment = doc.add_comment("Attachment Removed", file_name)
@@ -331,7 +324,7 @@ def delete_file(path):
 
 
 def get_file(fname):
-	"""Returns [`file_name`, `content`] for given file name `fname`"""
+	"""Return [`file_name`, `content`] for given file name `fname`."""
 	file_path = get_file_path(fname)
 
 	# read the file
@@ -348,7 +341,7 @@ def get_file(fname):
 
 
 def get_file_path(file_name):
-	"""Returns file path from given file name"""
+	"""Return file path from given file name."""
 	if "../" in file_name:
 		return
 
@@ -384,7 +377,7 @@ def get_file_path(file_name):
 def get_content_hash(content):
 	if isinstance(content, str):
 		content = content.encode()
-	return hashlib.md5(content).hexdigest()
+	return hashlib.md5(content, usedforsecurity=False).hexdigest()
 
 
 def get_file_name(fname, optional_suffix):

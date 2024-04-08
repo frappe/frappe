@@ -10,6 +10,7 @@ export default class BulkOperations {
 		const is_submittable = frappe.model.is_submittable(this.doctype);
 		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
 		const letterheads = this.get_letterhead_options();
+		const MAX_PRINT_LIMIT = 500;
 
 		const valid_docs = docs
 			.filter((doc) => {
@@ -32,6 +33,13 @@ export default class BulkOperations {
 
 		if (valid_docs.length === 0) {
 			frappe.msgprint(__("Select atleast 1 record for printing"));
+			return;
+		}
+
+		if (valid_docs.length > MAX_PRINT_LIMIT) {
+			frappe.msgprint(
+				__("You can only print upto {0} documents at a time", [MAX_PRINT_LIMIT])
+			);
 			return;
 		}
 
@@ -97,28 +105,34 @@ export default class BulkOperations {
 				pdf_options = JSON.stringify({ "page-size": args.page_size });
 			}
 
-			const w = window.open(
-				"/api/method/frappe.utils.print_format.download_multi_pdf?" +
-					"doctype=" +
-					encodeURIComponent(this.doctype) +
-					"&name=" +
-					encodeURIComponent(json_string) +
-					"&format=" +
-					encodeURIComponent(print_format) +
-					"&no_letterhead=" +
-					(with_letterhead ? "0" : "1") +
-					"&letterhead=" +
-					encodeURIComponent(letterhead) +
-					"&options=" +
-					encodeURIComponent(pdf_options)
-			);
-
-			if (!w) {
-				frappe.msgprint(__("Please enable pop-ups"));
-				return;
-			}
+			frappe
+				.call("frappe.utils.print_format.download_multi_pdf_async", {
+					doctype: this.doctype,
+					name: json_string,
+					format: print_format,
+					no_letterhead: with_letterhead ? "0" : "1",
+					letterhead: letterhead,
+					options: pdf_options,
+				})
+				.then((response) => {
+					let task_id = response.message.task_id;
+					frappe.realtime.task_subscribe(task_id);
+					frappe.realtime.on(`task_complete:${task_id}`, (data) => {
+						frappe.msgprint({
+							title: __("Bulk PDF Export"),
+							message: __("Your PDF is ready for download"),
+							primary_action: {
+								label: __("Download PDF"),
+								client_action: "window.open",
+								args: data.file_url,
+							},
+						});
+						frappe.realtime.task_unsubscribe(task_id);
+						frappe.realtime.off(`task_complete:${task_id}`);
+					});
+					dialog.hide();
+				});
 		});
-
 		dialog.show();
 	}
 
@@ -196,6 +210,27 @@ export default class BulkOperations {
 		}
 	}
 
+	clear_assignment(docnames, done) {
+		if (docnames.length > 0) {
+			frappe
+				.call({
+					method: "frappe.desk.form.assign_to.remove_multiple",
+					args: {
+						doctype: this.doctype,
+						names: docnames,
+						ignore_permissions: true,
+					},
+					freeze: true,
+					freeze_message: "Removing assignments...",
+				})
+				.then(() => {
+					done();
+				});
+		} else {
+			frappe.msgprint(__("Select records for removing assignment"));
+		}
+	}
+
 	apply_assignment_rule(docnames, done) {
 		if (docnames.length > 0) {
 			frappe
@@ -209,33 +244,45 @@ export default class BulkOperations {
 
 	submit_or_cancel(docnames, action = "submit", done = null) {
 		action = action.toLowerCase();
-		frappe
-			.call({
-				method: "frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs",
-				args: {
-					doctype: this.doctype,
-					action: action,
-					docnames: docnames,
-				},
+		const task_id = Math.random().toString(36).slice(-5);
+		frappe.realtime.task_subscribe(task_id);
+		return frappe
+			.xcall("frappe.desk.doctype.bulk_update.bulk_update.submit_cancel_or_update_docs", {
+				doctype: this.doctype,
+				action: action,
+				docnames: docnames,
+				task_id: task_id,
 			})
-			.then((r) => {
-				let failed = r.message;
-				if (!failed) failed = [];
-
-				if (failed.length && !r._server_messages) {
-					frappe.throw(
-						__("Cannot {0} {1}", [action, failed.map((f) => f.bold()).join(", ")])
-					);
+			.then((failed_docnames) => {
+				if (failed_docnames?.length) {
+					const comma_separated_records = frappe.utils.comma_and(failed_docnames);
+					switch (action) {
+						case "submit":
+							frappe.throw(__("Cannot submit {0}.", [comma_separated_records]));
+							break;
+						case "cancel":
+							frappe.throw(__("Cannot cancel {0}.", [comma_separated_records]));
+							break;
+						default:
+							frappe.throw(__("Cannot {0} {1}.", [action, comma_separated_records]));
+					}
 				}
-				if (failed.length < docnames.length) {
+				if (failed_docnames?.length < docnames.length) {
 					frappe.utils.play_sound(action);
 					if (done) done();
 				}
+			})
+			.finally(() => {
+				frappe.realtime.task_unsubscribe(task_id);
 			});
 	}
 
 	edit(docnames, field_mappings, done) {
-		let field_options = Object.keys(field_mappings).sort();
+		let field_options = Object.keys(field_mappings).sort(function (a, b) {
+			return __(cstr(field_mappings[a].label)).localeCompare(
+				cstr(__(field_mappings[b].label))
+			);
+		});
 		const status_regex = /status/i;
 
 		const default_field = field_options.find((value) => status_regex.test(value));

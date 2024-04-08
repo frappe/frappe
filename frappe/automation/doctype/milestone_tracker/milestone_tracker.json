@@ -35,7 +35,7 @@
   }
  ],
  "links": [],
- "modified": "2022-08-03 12:20:54.955953",
+ "modified": "2024-03-23 16:03:29.801483",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Milestone Tracker",
@@ -54,8 +54,8 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_field": "creation",
+ "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }

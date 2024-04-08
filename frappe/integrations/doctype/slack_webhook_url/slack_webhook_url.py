@@ -32,6 +32,7 @@ class SlackWebhookURL(Document):
 		webhook_name: DF.Data
 		webhook_url: DF.Data
 	# end: auto-generated types
+
 	pass
 
 

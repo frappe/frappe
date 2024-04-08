@@ -27,14 +27,12 @@ let show_preview = ref(false);
 
 // computed
 let $store = computed(() => {
-	return getStore(props.print_format_name)
+	return getStore(props.print_format_name);
 });
 
 let shouldRender = computed(() => {
 	return Boolean(
-		$store.value.print_format.value &&
-			$store.value.meta.value &&
-			$store.value.layout.value
+		$store.value.print_format.value && $store.value.meta.value && $store.value.layout.value
 	);
 });
 

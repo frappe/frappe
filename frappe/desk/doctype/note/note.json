@@ -86,7 +86,7 @@
  "icon": "fa fa-file-text",
  "idx": 1,
  "links": [],
- "modified": "2023-08-28 20:23:59.424943",
+ "modified": "2024-03-23 16:03:31.284619",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Note",
@@ -140,8 +140,8 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_field": "creation",
+ "sort_order": "DESC",
  "states": [],
  "title_field": "title",
  "track_changes": 1

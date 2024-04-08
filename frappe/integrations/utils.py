@@ -6,39 +6,99 @@ import json
 from urllib.parse import parse_qs
 
 import frappe
-from frappe import _
 from frappe.utils import get_request_session
 
 
-def make_request(method, url, auth=None, headers=None, data=None):
+def make_request(method: str, url: str, auth=None, headers=None, data=None, json=None, params=None):
 	auth = auth or ""
 	data = data or {}
 	headers = headers or {}
 
 	try:
 		s = get_request_session()
-		frappe.flags.integration_request = s.request(method, url, data=data, auth=auth, headers=headers)
-		frappe.flags.integration_request.raise_for_status()
-
-		if frappe.flags.integration_request.headers.get("content-type") == "text/plain; charset=utf-8":
-			return parse_qs(frappe.flags.integration_request.text)
-
-		return frappe.flags.integration_request.json()
+		response = frappe.flags.integration_request = s.request(
+			method, url, data=data, auth=auth, headers=headers, json=json, params=params
+		)
+		content_type = response.headers.get("content-type")
+		if content_type == "text/plain; charset=utf-8":
+			return parse_qs(response.text)
+		elif content_type.startswith("application/") and content_type.split(";")[0].endswith("json"):
+			return response.json()
+		elif response.text:
+			return response.text
+		else:
+			return
 	except Exception as exc:
 		frappe.log_error()
 		raise exc
 
 
-def make_get_request(url, **kwargs):
+def make_get_request(url: str, **kwargs):
+	"""Make a 'GET' HTTP request to the given `url` and return processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
 	return make_request("GET", url, **kwargs)
 
 
-def make_post_request(url, **kwargs):
+def make_post_request(url: str, **kwargs):
+	"""Make a 'POST' HTTP request to the given `url` and return processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
 	return make_request("POST", url, **kwargs)
 
 
-def make_put_request(url, **kwargs):
+def make_put_request(url: str, **kwargs):
+	"""Make a 'PUT' HTTP request to the given `url` and return processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
 	return make_request("PUT", url, **kwargs)
+
+
+def make_patch_request(url: str, **kwargs):
+	"""Make a 'PATCH' HTTP request to the given `url` and return processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
+	return make_request("PATCH", url, **kwargs)
+
+
+def make_delete_request(url: str, **kwargs):
+	"""Make a 'DELETE' HTTP request to the given `url` and return processed response.
+
+	You can optionally pass the below parameters:
+
+	* `headers`: Headers to be set in the request.
+	* `data`: Data to be passed in body of the request.
+	* `json`: JSON to be passed in the request.
+	* `params`: Query parameters to be passed in the request.
+	* `auth`: Auth credentials.
+	"""
+	return make_request("DELETE", url, **kwargs)
 
 
 def create_request_log(
@@ -97,5 +157,5 @@ def get_json(obj):
 
 
 def json_handler(obj):
-	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+	if isinstance(obj, datetime.date | datetime.timedelta | datetime.datetime):
 		return str(obj)

@@ -24,18 +24,28 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	refresh: function (frm) {
-		// show is-standard only if developer mode
-		frm.get_field("is_standard").toggle(frappe.boot.developer_mode);
+		// get iframe url for web form
+		frm.sidebar
+			.add_user_action(__("Copy Embed Code"))
+			.attr("href", "#")
+			.on("click", () => {
+				const url = frappe.urllib.get_full_url(frm.doc.route);
+				const code = `<iframe src="${url}" style="border: none; width: 100%; height: inherit;"></iframe>`;
+				frappe.utils.copy_to_clipboard(code, __("Embed code copied"));
+			});
 
 		if (frm.doc.is_standard && !frappe.boot.developer_mode) {
-			frm.set_read_only();
-			frm.disable_save();
+			frm.disable_form();
+			frappe.show_alert(
+				__("Standard Web Forms can not be modified, duplicate the Web Form instead.")
+			);
 		}
 		render_list_settings_message(frm);
 
 		frm.trigger("set_fields");
 		frm.trigger("add_get_fields_button");
 		frm.trigger("add_publish_button");
+		frm.trigger("render_condition_table");
 	},
 
 	login_required: function (frm) {
@@ -60,7 +70,7 @@ frappe.ui.form.on("Web Form", {
 
 		if (!frm.doc.web_form_fields) {
 			frm.scroll_to_field("web_form_fields");
-			frappe.throw(__("Atleast one field is required in Web Form Fields Table"));
+			frappe.throw(__("At least one field is required in Web Form Fields Table"));
 		}
 
 		let page_break_count = frm.doc.web_form_fields.filter(
@@ -106,6 +116,7 @@ frappe.ui.form.on("Web Form", {
 							reqd: df.reqd,
 							default: df.default,
 							read_only: df.read_only,
+							precision: df.precision,
 							depends_on: df.depends_on,
 							mandatory_depends_on: df.mandatory_depends_on,
 							read_only_depends_on: df.read_only_depends_on,
@@ -173,6 +184,113 @@ frappe.ui.form.on("Web Form", {
 
 	allow_multiple: function (frm) {
 		frm.doc.allow_multiple && frm.set_value("show_list", 1);
+	},
+
+	before_save: function (frm) {
+		let static_filters = JSON.parse(frm.doc.condition_json || "[]");
+		frm.set_value("condition_json", JSON.stringify(static_filters));
+		frm.trigger("render_condition_table");
+	},
+
+	render_condition_table: function (frm) {
+		let wrapper = $(frm.get_field("condition_json").wrapper).empty();
+		let table = $(`
+			<style>
+			.table-bordered th, .table-bordered td {
+				border: none;
+				border-right: 1px solid var(--border-color);
+			}
+			.table-bordered td {
+				border-top: 1px solid var(--border-color);
+			}
+			.table thead th {
+				border-bottom: none;
+				font-weight: var(--weight-regular);
+			}
+			tr th:last-child, tr td:last-child{
+				border-right: none;
+			}
+			thead {
+				font-size: var(--text-sm);
+				color: var(--gray-600);
+				background-color: var(--subtle-fg);
+			}
+			thead th:first-child {
+				border-top-left-radius: 9px;
+			}
+			thead th:last-child {
+				border-top-right-radius: 9px;
+			}
+			</style>
+
+			<table class="table table-bordered" style="cursor:pointer; margin:0px; border-radius: 10px; border-spacing: 0; border-collapse: separate;">
+			<thead>
+				<tr>
+					<th>${__("Filter")}</th>
+					<th style="width: 20%">${__("Condition")}</th>
+					<th>${__("Value")}</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>`).appendTo(wrapper);
+		$(`<p class="text-muted small mt-2">${__("Click table to edit")}</p>`).appendTo(wrapper);
+
+		let filters = JSON.parse(frm.doc.condition_json || "[]");
+		let filters_set = false;
+
+		let fields = [
+			{
+				fieldtype: "HTML",
+				fieldname: "filter_area",
+			},
+		];
+
+		if (filters?.length) {
+			filters.forEach((filter) => {
+				const filter_row = $(`<tr>
+							<td>${filter[1]}</td>
+							<td>${filter[2] || ""}</td>
+							<td>${filter[3]}</td>
+						</tr>`);
+
+				table.find("tbody").append(filter_row);
+			});
+			filters_set = true;
+		}
+
+		if (!filters_set) {
+			const filter_row = $(`<tr><td colspan="3" class="text-muted text-center">
+				${__("Click to Set Filters")}</td></tr>`);
+			table.find("tbody").append(filter_row);
+		}
+
+		table.on("click", () => {
+			let dialog = new frappe.ui.Dialog({
+				title: __("Set Filters"),
+				fields: fields,
+				primary_action: function () {
+					let values = this.get_values();
+					if (values) {
+						this.hide();
+						let filters = frm.filter_group.get_filters();
+						frm.set_value("condition_json", JSON.stringify(filters));
+						frm.trigger("render_condition_table");
+					}
+				},
+				primary_action_label: "Set",
+			});
+
+			frm.filter_group = new frappe.ui.FilterGroup({
+				parent: dialog.get_field("filter_area").$wrapper,
+				doctype: frm.doc.doc_type,
+				on_change: () => {},
+			});
+			filters && frm.filter_group.add_filters_to_filter_group(filters);
+
+			dialog.show();
+
+			dialog.set_values(filters);
+		});
 	},
 });
 

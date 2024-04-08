@@ -2,7 +2,6 @@
 *.py~
 *.comp.js
 *.DS_Store
-locale
 .wnf-lang-status
 *.swp
 *.egg-info
@@ -169,6 +168,7 @@ typings/
 
 # Optional npm cache directory
 .npm
+.yarn
 
 # Optional eslint cache
 .eslintcache

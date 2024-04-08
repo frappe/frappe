@@ -18,7 +18,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2020-05-12 10:09:14.310622",
+ "modified": "2024-03-23 16:03:27.992755",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Installed Applications",
@@ -36,7 +36,8 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

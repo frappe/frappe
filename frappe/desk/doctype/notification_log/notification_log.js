@@ -11,6 +11,10 @@ frappe.ui.form.on("Notification Log", {
 	},
 
 	open_reference_document: function (frm) {
+		if (frm.doc?.link) {
+			frappe.set_route(frm.doc.link);
+			return;
+		}
 		const dt = frm.doc.document_type;
 		const dn = frm.doc.document_name;
 		frappe.set_route("Form", dt, dn);

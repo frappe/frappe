@@ -8,26 +8,27 @@ from frappe.model.utils.user_settings import sync_user_settings, update_user_set
 from frappe.utils.password import rename_password_field
 
 
-def rename_field(doctype, old_fieldname, new_fieldname):
+def rename_field(doctype, old_fieldname, new_fieldname, validate=True):
 	"""This functions assumes that doctype is already synced"""
 
 	meta = frappe.get_meta(doctype, cached=False)
 	new_field = meta.get_field(new_fieldname)
-	if not new_field:
-		print("rename_field: " + (new_fieldname) + " not found in " + doctype)
-		return
 
-	if not meta.issingle and not frappe.db.has_column(doctype, old_fieldname):
-		print("rename_field: " + (old_fieldname) + " not found in table for: " + doctype)
-		# never had the field?
-		return
+	if validate:
+		if not new_field:
+			print("rename_field: " + (new_fieldname) + " not found in " + doctype)
+			return
+
+		if not meta.issingle and not frappe.db.has_column(doctype, old_fieldname):
+			print("rename_field: " + (old_fieldname) + " not found in table for: " + doctype)
+			# never had the field?
+			return
 
 	if new_field.fieldtype in table_fields:
 		# change parentfield of table mentioned in options
 		frappe.db.sql(
-			"""update `tab%s` set parentfield=%s
-			where parentfield=%s"""
-			% (new_field.options.split("\n", 1)[0], "%s", "%s"),
+			"""update `tab{}` set parentfield={}
+			where parentfield={}""".format(new_field.options.split("\n", 1)[0], "%s", "%s"),
 			(new_fieldname, old_fieldname),
 		)
 
@@ -140,9 +141,8 @@ def update_users_report_view_settings(doctype, ref_fieldname, new_fieldname):
 
 		if columns_modified:
 			frappe.db.sql(
-				"""update `tabDefaultValue` set defvalue=%s
-				where defkey=%s"""
-				% ("%s", "%s"),
+				"""update `tabDefaultValue` set defvalue={}
+				where defkey={}""".format("%s", "%s"),
 				(json.dumps(new_columns), key),
 			)
 

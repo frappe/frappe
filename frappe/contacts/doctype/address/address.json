@@ -51,12 +51,14 @@
    "fieldname": "address_line1",
    "fieldtype": "Data",
    "label": "Address Line 1",
+   "length": 240,
    "reqd": 1
   },
   {
    "fieldname": "address_line2",
    "fieldtype": "Data",
-   "label": "Address Line 2"
+   "label": "Address Line 2",
+   "length": 240
   },
   {
    "fieldname": "city",
@@ -148,7 +150,7 @@
  "icon": "fa fa-map-marker",
  "idx": 5,
  "links": [],
- "modified": "2020-10-21 16:14:37.284830",
+ "modified": "2024-03-23 16:01:27.068028",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Address",
@@ -206,9 +208,19 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "export": 1,
+   "if_owner": 1,
+   "print": 1,
+   "read": 1,
+   "role": "All",
+   "write": 1
   }
  ],
  "search_fields": "country, state",
- "sort_field": "modified",
- "sort_order": "DESC"
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
 }

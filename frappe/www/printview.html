@@ -18,7 +18,7 @@
 			{{ _("Print") }}
 		</a>
 		<a class="p-2"
-			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype}}&name={{name}}&key={{key}}">
+			href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|e}}&name={{name|e}}&key={{key|e}}">
 			{{ _('Get PDF') }}
 		</a>
 	</div>
@@ -31,14 +31,18 @@
 		document.addEventListener('DOMContentLoaded', () => {
 			const page_div = document.querySelector('.page-break');
 
-			page_div.style.display = 'flex';
-			page_div.style.flexDirection = 'column';
+			if (page_div) {
+				page_div.style.display = 'flex';
+				page_div.style.flexDirection = 'column';
+			}
 
 			const footer_html = document.getElementById('footer-html');
-			footer_html.classList.add('hidden-pdf');
-			footer_html.classList.remove('visible-pdf');
-			footer_html.style.order = 1;
-			footer_html.style.marginTop = '20px';
+			if (footer_html)  {
+				footer_html.classList.add('hidden-pdf');
+				footer_html.classList.remove('visible-pdf');
+				footer_html.style.order = 1;
+				footer_html.style.marginTop = '20px';
+			}
 		});
 	</script>
 </body>

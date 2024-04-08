@@ -12,7 +12,7 @@ context("List Paging", () => {
 
 	it("test load more with count selection buttons", () => {
 		cy.visit("/app/todo/view/report");
-		cy.get(".filter-x-button").click();
+		cy.clear_filters();
 
 		cy.get(".list-paging-area .list-count").should("contain.text", "20 of");
 		cy.get(".list-paging-area .btn-more").click();
@@ -29,7 +29,7 @@ context("List Paging", () => {
 		cy.get(".list-paging-area .list-count").should("contain.text", "300 of");
 
 		// check if refresh works after load more
-		cy.get('.page-head .standard-actions [data-original-title="Refresh"]').click();
+		cy.get('.page-head .standard-actions [data-original-title="Reload List"]').click();
 		cy.get(".list-paging-area .list-count").should("contain.text", "300 of");
 
 		cy.get('.list-paging-area .btn-group .btn-paging[data-value="500"]').click();
@@ -37,6 +37,6 @@ context("List Paging", () => {
 		cy.get(".list-paging-area .list-count").should("contain.text", "500 of");
 		cy.get(".list-paging-area .btn-more").click();
 
-		cy.get(".list-paging-area .list-count").should("contain.text", "1000 of");
+		cy.get(".list-paging-area .list-count").should("contain.text", "1,000 of");
 	});
 });

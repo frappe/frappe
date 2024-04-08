@@ -35,7 +35,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2021-09-28 12:11:50.016352",
+ "modified": "2024-03-23 16:02:18.102531",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Discussion Topic",
@@ -56,8 +56,9 @@
   }
  ],
  "search_fields": "title",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
+ "states": [],
  "title_field": "title",
  "track_changes": 1
 }

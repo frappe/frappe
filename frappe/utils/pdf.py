@@ -1,21 +1,24 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import base64
 import contextlib
 import io
+import mimetypes
 import os
-import re
 import subprocess
-from distutils.version import LooseVersion
+from urllib.parse import parse_qs, urlparse
 
+import cssutils
 import pdfkit
 from bs4 import BeautifulSoup
+from packaging.version import Version
 from pypdf import PdfReader, PdfWriter
 
 import frappe
 from frappe import _
+from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.utils import scrub_urls
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
-from frappe.utils.logger import pipe_to_log
 
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
@@ -23,9 +26,6 @@ PDF_CONTENT_ERRORS = [
 	"UnknownContentError",
 	"RemoteHostClosedError",
 ]
-
-logger = frappe.logger("wkhtmltopdf", max_size=100000, file_count=3)
-logger.setLevel("INFO")
 
 
 def pdf_header_html(soup, head, content, styles, html_id, css):
@@ -58,7 +58,7 @@ def pdf_body_html(template, args, **kwargs):
 
 
 def _guess_template_error_line_number(template) -> int | None:
-	"""Guess line on which exception occured from current traceback."""
+	"""Guess line on which exception occurred from current traceback."""
 	with contextlib.suppress(Exception):
 		import sys
 		import traceback
@@ -71,9 +71,7 @@ def _guess_template_error_line_number(template) -> int | None:
 
 
 def pdf_footer_html(soup, head, content, styles, html_id, css):
-	return pdf_header_html(
-		soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css
-	)
+	return pdf_header_html(soup=soup, head=head, content=content, styles=styles, html_id=html_id, css=css)
 
 
 def get_pdf(html, options=None, output: PdfWriter | None = None):
@@ -83,17 +81,12 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 	options.update({"disable-javascript": "", "disable-local-file-access": ""})
 
 	filedata = ""
-	if LooseVersion(get_wkhtmltopdf_version()) > LooseVersion("0.12.3"):
+	if Version(get_wkhtmltopdf_version()) > Version("0.12.3"):
 		options.update({"disable-smart-shrinking": ""})
 
 	try:
-		# wkhtmltopdf writes the pdf to stdout and errors to stderr
-		# pdfkit v1.0.0 writes the pdf to file or returns it
-		# stderr is written to sys.stdout if verbose=True is supplied
 		# Set filename property to false, so no file is actually created
-		# defaults to redirecting stdout
-		with pipe_to_log(logger.info):
-			filedata = pdfkit.from_string(html, False, options=options or {}, verbose=True)
+		filedata = pdfkit.from_string(html, options=options or {}, verbose=True)
 
 		# create in-memory binary streams from filedata and create a PdfReader object
 		reader = PdfReader(io.BytesIO(filedata))
@@ -130,7 +123,6 @@ def get_pdf(html, options=None, output: PdfWriter | None = None):
 
 
 def get_file_data_from_writer(writer_obj):
-
 	# https://docs.python.org/3/library/io.html
 	stream = io.BytesIO()
 	writer_obj.write(stream)
@@ -151,6 +143,7 @@ def prepare_options(html, options):
 			"print-media-type": None,
 			"background": None,
 			"images": None,
+			"quiet": None,
 			# 'no-outline': None,
 			"encoding": "UTF-8",
 			# 'load-error-handling': 'ignore'
@@ -168,6 +161,7 @@ def prepare_options(html, options):
 
 	# cookies
 	options.update(get_cookie_options())
+	html = inline_private_images(html)
 
 	# page size
 	pdf_page_size = (
@@ -212,8 +206,9 @@ def read_options_from_html(html):
 
 	toggle_visible_pdf(soup)
 
-	# use regex instead of soup-parser
-	for attr in (
+	valid_styles = get_print_format_styles(soup)
+
+	attrs = (
 		"margin-top",
 		"margin-bottom",
 		"margin-left",
@@ -223,19 +218,78 @@ def read_options_from_html(html):
 		"orientation",
 		"page-width",
 		"page-height",
-	):
-		try:
-			pattern = re.compile(r"(\.print-format)([\S|\s][^}]*?)(" + str(attr) + r":)(.+)(mm;)")
-			match = pattern.findall(html)
-			if match:
-				options[attr] = str(match[-1][3]).strip()
-		except Exception:
-			pass
-
+	)
+	options |= {style.name: style.value for style in valid_styles if style.name in attrs}
 	return str(soup), options
 
 
-def prepare_header_footer(soup):
+def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
+	"""
+	Get styles purely on class 'print-format'.
+	Valid:
+	1) .print-format { ... }
+	2) .print-format, p { ... } | p, .print-format { ... }
+
+	Invalid (applied on child elements):
+	1) .print-format p { ... } | .print-format > p { ... }
+	2) .print-format #abc { ... }
+
+	Returns:
+	[cssutils.css.Property(name='margin-top', value='50mm', priority=''), ...]
+	"""
+	stylesheet = ""
+	style_tags = soup.find_all("style")
+
+	# Prepare a css stylesheet from all the style tags' contents
+	for style_tag in style_tags:
+		stylesheet += style_tag.string
+
+	# Use css parser to tokenize the classes and their styles
+	parsed_sheet = cssutils.parseString(stylesheet)
+
+	# Get all styles that are only for .print-format
+	valid_styles = []
+	for rule in parsed_sheet:
+		if not isinstance(rule, cssutils.css.CSSStyleRule):
+			continue
+
+		# Allow only .print-format { ... } and .print-format, p { ... }
+		# Disallow .print-format p { ... } and .print-format > p { ... }
+		if ".print-format" in [x.strip() for x in rule.selectorText.split(",")]:
+			valid_styles.extend(entry for entry in rule.style)
+
+	return valid_styles
+
+
+def inline_private_images(html) -> str:
+	soup = BeautifulSoup(html, "html.parser")
+	for img in soup.find_all("img"):
+		if b64 := _get_base64_image(img["src"]):
+			img["src"] = b64
+	return str(soup)
+
+
+def _get_base64_image(src):
+	"""Return base64 version of image if user has permission to view it"""
+	try:
+		parsed_url = urlparse(src)
+		path = parsed_url.path
+		query = parse_qs(parsed_url.query)
+		mime_type = mimetypes.guess_type(path)[0]
+		if not mime_type.startswith("image/"):
+			return
+		filename = query.get("fid") and query["fid"][0] or None
+		file = find_file_by_url(path, name=filename)
+		if not file or not file.is_private:
+			return
+
+		b64_encoded_image = base64.b64encode(file.get_content()).decode()
+		return f"data:{mime_type};base64,{b64_encoded_image}"
+	except Exception:
+		frappe.logger("pdf").error("Failed to convert inline images to base64", exc_info=True)
+
+
+def prepare_header_footer(soup: BeautifulSoup):
 	options = {}
 
 	head = soup.find("head").contents
@@ -246,9 +300,11 @@ def prepare_header_footer(soup):
 
 	# extract header and footer
 	for html_id in ("header-html", "footer-html"):
-		content = soup.find(id=html_id)
-		if content:
-			# there could be multiple instances of header-html/footer-html
+		if content := soup.find(id=html_id):
+			content = content.extract()
+			# `header/footer-html` are extracted, rendered as html
+			# and passed in wkhtmltopdf options (as '--header/footer-html')
+			# Remove instances of them from main content for render_template
 			for tag in soup.find_all(id=html_id):
 				tag.extract()
 

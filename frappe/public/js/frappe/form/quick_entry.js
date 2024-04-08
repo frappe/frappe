@@ -61,7 +61,12 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		let fields = this.meta.fields;
 
 		this.mandatory = fields.filter((df) => {
-			return (df.reqd || df.allow_in_quick_entry) && !df.read_only && !df.is_virtual;
+			return (
+				(df.reqd || df.allow_in_quick_entry) &&
+				!df.read_only &&
+				!df.is_virtual &&
+				df.fieldtype !== "Tab Break"
+			);
 		});
 	}
 
@@ -161,9 +166,16 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 			if (data) {
 				me.dialog.working = true;
-				me.dialog.set_message(__("Saving..."));
 				me.insert().then(() => {
-					me.dialog.clear_message();
+					let messagetxt = __("New {0} {1} created", [
+						__(me.doctype),
+						this.doc.name.bold(),
+					]);
+					me.dialog.animation_speed = "slow";
+					me.dialog.hide();
+					setTimeout(function () {
+						frappe.show_alert({ message: messagetxt, indicator: "green" }, 3);
+					}, 500);
 				});
 			}
 		});
@@ -189,19 +201,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 							},
 						]);
 					} else {
-						me.dialog.hide();
-						// delete the old doc
-						frappe.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
-						me.dialog.doc = r.message;
-						if (frappe._from_link) {
-							frappe.ui.form.update_calling_link(me.dialog.doc);
-						} else {
-							if (me.after_insert) {
-								me.after_insert(me.dialog.doc);
-							} else {
-								me.open_form_if_not_list();
-							}
-						}
+						me.process_after_insert(r);
 					}
 				},
 				error: function () {
@@ -213,7 +213,6 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 					me.dialog.working = false;
 					resolve(me.dialog.doc);
 				},
-				freeze: true,
 			});
 		});
 	}
@@ -226,23 +225,23 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 				doc: doc,
 			},
 			callback: function (r) {
-				me.dialog.hide();
-				// delete the old doc
-				frappe.model.clear_doc(me.dialog.doc.doctype, me.dialog.doc.name);
-				me.dialog.doc = r.message;
-				if (frappe._from_link) {
-					frappe.ui.form.update_calling_link(me.dialog.doc);
-				} else {
-					if (me.after_insert) {
-						me.after_insert(me.dialog.doc);
-					} else {
-						me.open_form_if_not_list();
-					}
-				}
-
+				me.process_after_insert(r);
 				cur_frm && cur_frm.reload_doc();
 			},
 		});
+	}
+
+	process_after_insert(r) {
+		// delete the old doc
+		frappe.model.clear_doc(this.dialog.doc.doctype, this.dialog.doc.name);
+		this.dialog.doc = r.message;
+		if (frappe._from_link) {
+			frappe.ui.form.update_calling_link(this.dialog.doc);
+		} else if (this.after_insert) {
+			this.after_insert(this.dialog.doc);
+		} else {
+			this.open_form_if_not_list();
+		}
 	}
 
 	open_form_if_not_list() {

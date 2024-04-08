@@ -15,7 +15,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		this.$value = $(
 			`<div class="attached-file flex justify-between align-center">
 				<div class="ellipsis">
-					<i class="fa fa-paperclip"></i>
+				${frappe.utils.icon("es-line-link", "sm")}
 					<a class="attached-file-link" target="_blank"></a>
 				</div>
 				<div>
@@ -63,7 +63,6 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	on_attach_doc_image() {
 		this.set_upload_options();
 		this.upload_options.restrictions.allowed_file_types = ["image/*"];
-		this.upload_options.restrictions.crop_image_aspect_ratio = 1;
 		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
 	}
 	set_upload_options() {

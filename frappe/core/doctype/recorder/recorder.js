@@ -2,6 +2,9 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Recorder", {
+	onload: function (frm) {
+		frm.fields_dict.sql_queries.grid.only_sortable();
+	},
 	refresh: function (frm) {
 		frm.disable_save();
 		frm._sort_order = {};

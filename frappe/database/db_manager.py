@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 
 
 class DbManager:
@@ -15,7 +16,7 @@ class DbManager:
 	def create_user(self, user, password, host=None):
 		host = host or self.get_current_host()
 		password_predicate = f" IDENTIFIED BY '{password}'" if password else ""
-		self.db.sql(f"CREATE USER '{user}'@'{host}'{password_predicate}")
+		self.db.sql(f"CREATE USER IF NOT EXISTS '{user}'@'{host}'{password_predicate}")
 
 	def delete_user(self, target, host=None):
 		host = host or self.get_current_host()
@@ -24,7 +25,7 @@ class DbManager:
 	def create_database(self, target):
 		if target in self.get_database_list():
 			self.drop_database(target)
-		self.db.sql(f"CREATE DATABASE `{target}`")
+		self.db.sql(f"CREATE DATABASE `{target}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
 	def drop_database(self, target):
 		self.db.sql_ddl(f"DROP DATABASE IF EXISTS `{target}`")
@@ -49,35 +50,40 @@ class DbManager:
 		return self.db.sql("SHOW DATABASES", pluck=True)
 
 	@staticmethod
-	def restore_database(target, source, user, password):
-		import os
+	def restore_database(verbose, target, source, user, password):
+		import shlex
 		from shutil import which
 
-		from frappe.utils import make_esc
+		from frappe.database import get_command
+		from frappe.utils import execute_in_shell
 
-		esc = make_esc("$ ")
-		pv = which("pv")
+		command = ["set -o pipefail;"]
 
-		if pv:
-			pipe = f"{pv} {source} |"
-			source = ""
+		if source.endswith(".gz"):
+			if gzip := which("gzip"):
+				command.extend([gzip, "-cd", source, "|"])
+				source = []
+			else:
+				raise Exception("`gzip` not installed")
+
 		else:
-			pipe = ""
-			source = f"< {source}"
+			source = ["<", source]
 
-		if pipe:
-			print("Restoring Database file...")
-
-		command = "{pipe} mysql -u {user} -p{password} -h{host} -P{port} {target} {source}"
-		command = command.format(
-			pipe=pipe,
-			user=esc(user),
-			password=esc(password),
-			host=esc(frappe.conf.db_host),
-			target=esc(target),
-			source=source,
+		bin, args, bin_name = get_command(
+			socket=frappe.conf.db_socket,
+			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
+			user=user,
+			password=password,
+			db_name=target,
 		)
-
-		os.system(command)
+		if not bin:
+			frappe.throw(
+				_("{} not found in PATH! This is required to restore the database.").format(bin_name),
+				exc=frappe.ExecutableNotFound,
+			)
+		command.append(bin)
+		command.append(shlex.join(args))
+		command.extend(source)
+		execute_in_shell(" ".join(command), check_exit_code=True, verbose=verbose)
 		frappe.cache.delete_keys("")  # Delete all keys associated with this site.

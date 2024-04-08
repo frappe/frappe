@@ -63,7 +63,7 @@ export default class Section {
 	make_head() {
 		this.head = $(`
 			<div class="section-head">
-				${__(this.df.label)}
+				${__(this.df.label, null, this.df.parent)}
 				<span class="ml-2 collapse-indicator mb-1"></span>
 			</div>
 		`);
@@ -73,6 +73,7 @@ export default class Section {
 		this.indicator.hide();
 
 		if (this.df.collapsible) {
+			this.head.addClass("collapsible");
 			// show / hide based on status
 			this.collapse_link = this.head.on("click", () => {
 				this.collapse();
@@ -128,7 +129,7 @@ export default class Section {
 	}
 
 	set_icon(hide) {
-		let indicator_icon = hide ? "down" : "up-line";
+		let indicator_icon = hide ? "es-line-down" : "es-line-up";
 		this.indicator && this.indicator.html(frappe.utils.icon(indicator_icon, "sm", "mb-1"));
 	}
 

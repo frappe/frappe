@@ -9,7 +9,7 @@ frappe.ModuleEditor = class ModuleEditor {
 				fieldname: "block_modules",
 				fieldtype: "MultiCheck",
 				select_all: true,
-				columns: 3,
+				columns: "15rem",
 				get_data: () => {
 					return this.frm.doc.__onload.all_modules.map((module) => {
 						return {

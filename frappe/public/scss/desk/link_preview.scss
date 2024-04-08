@@ -16,13 +16,13 @@
 				height: 52px;
 
 				.standard-image {
-					font-size: var(--text-lg);
+					@include get_textstyle("lg", "regular");
 				}
 			}
 		}
 
 		.preview-name {
-			font-size: var(--text-base);
+			@include get_textstyle("base", "regular");
 			font-weight: 500;
 		}
 
@@ -40,7 +40,6 @@
 				overflow-wrap: break-word;
 
 				.preview-field {
-
 					.preview-label {
 						padding-bottom: 4px;
 					}

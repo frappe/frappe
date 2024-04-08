@@ -7,7 +7,7 @@ const jump_to_field = (field_label) => {
 		.type("{enter}")
 		.wait(200)
 		.type("{enter}")
-		.wait(500);
+		.wait(1000);
 };
 
 const type_value = (value) => {
@@ -35,7 +35,7 @@ context("Form", () => {
 		cy.visit("/app/todo/new");
 		cy.get_field("description", "Text Editor")
 			.type("this is a test todo", { force: true })
-			.wait(200);
+			.wait(1000);
 		cy.get(".page-title").should("contain", "Not Saved");
 		cy.intercept({
 			method: "POST",
@@ -101,10 +101,6 @@ context("Form", () => {
 		cy.get("@email_input2").type(valid_email, { waitForAnimations: false });
 
 		cy.get("@row1").click();
-		cy.get("@email_input1").should(($div) => {
-			const style = window.getComputedStyle($div[0]);
-			expect(style.backgroundColor).to.equal(expectBackgroundColor);
-		});
 		cy.get("@email_input1").should("have.class", "invalid");
 
 		cy.get("@row2").click();
@@ -118,50 +114,6 @@ context("Form", () => {
 		type_value("Bermuda");
 
 		cy.get_field("location").should("have.value", "Bermuda");
-	});
-
-	it("let user undo/redo field value changes", { scrollBehavior: false }, () => {
-		const undo = () => cy.get("body").type("{esc}").type("{ctrl+z}").wait(500);
-		const redo = () => cy.get("body").type("{esc}").type("{ctrl+y}").wait(500);
-
-		cy.new_form("User");
-
-		jump_to_field("Email");
-		type_value("admin@example.com");
-
-		jump_to_field("Username");
-		type_value("admin42");
-
-		jump_to_field("Send Welcome Email");
-		cy.focused().uncheck();
-
-		// make a mistake
-		jump_to_field("Username");
-		type_value("admin24");
-
-		// undo behaviour
-		undo();
-		cy.get_field("username").should("have.value", "admin42");
-
-		// redo behaviour
-		redo();
-		cy.get_field("username").should("have.value", "admin24");
-
-		// undo everything & redo everything, ensure same values at the end
-		undo();
-		undo();
-		undo();
-		undo();
-		redo();
-		redo();
-		redo();
-		redo();
-
-		cy.compare_document({
-			username: "admin24",
-			email: "admin@example.com",
-			send_welcome_email: 0,
-		});
 	});
 
 	it("update docfield property using set_df_property in child table", () => {
@@ -186,7 +138,7 @@ context("Form", () => {
 						);
 					});
 
-				cy.get("@table").find('[data-idx="1"] .edit-grid-row').click();
+				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
 				cy.get(".grid-row-open").as("table-form");
 				cy.get("@table-form")
 					.find('.frappe-control[data-fieldname="is_primary_phone"]')
@@ -194,7 +146,7 @@ context("Form", () => {
 				cy.get("@table-form").find(".grid-footer-toolbar").click();
 
 				// set property on form_render event of child table
-				cy.get("@table").find('[data-idx="1"] .edit-grid-row').click();
+				cy.get("@table").find('[data-idx="1"] .btn-open-row').click();
 				cy.get("@table")
 					.find('[data-idx="1"]')
 					.invoke("attr", "data-name")

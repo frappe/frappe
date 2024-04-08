@@ -18,7 +18,7 @@ def add_random_children(doc: "Document", fieldname: str, rows, randomize: dict, 
 	if rows > 1:
 		nrows = random.randrange(1, rows)
 
-	for i in range(nrows):
+	for _ in range(nrows):
 		d = {}
 		for key, val in randomize.items():
 			if isinstance(val[0], str):
@@ -33,22 +33,18 @@ def add_random_children(doc: "Document", fieldname: str, rows, randomize: dict, 
 			doc.append(fieldname, d)
 
 
-def get_random(doctype: str, filters: dict = None, doc: bool = False):
+def get_random(doctype: str, filters: dict | None = None, doc: bool = False):
 	condition = []
 	if filters:
-		condition.extend(
-			"{}='{}'".format(key, str(val).replace("'", "'")) for key, val in filters.items()
-		)
+		condition.extend("{}='{}'".format(key, str(val).replace("'", "'")) for key, val in filters.items())
 	condition = " where " + " and ".join(condition) if condition else ""
 
 	out = frappe.db.multisql(
 		{
-			"mariadb": """select name from `tab%s` %s
-		order by RAND() limit 1 offset 0"""
-			% (doctype, condition),
-			"postgres": """select name from `tab%s` %s
-		order by RANDOM() limit 1 offset 0"""
-			% (doctype, condition),
+			"mariadb": f"""select name from `tab{doctype}` {condition}
+		order by RAND() limit 1 offset 0""",
+			"postgres": f"""select name from `tab{doctype}` {condition}
+		order by RANDOM() limit 1 offset 0""",
 		}
 	)
 

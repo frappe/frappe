@@ -10,7 +10,7 @@ div#driver-popover-item {
 	box-shadow: var(--shadow-md);
 
 	.driver-popover-title {
-		font-size: var(--text-lg);
+		@include get_textstyle("lg", "regular");
 		color: var(--text-color);
 		margin-bottom: var(--margin-sm);
 	}
@@ -59,6 +59,7 @@ div#driver-popover-item {
 }
 
 #driver-highlighted-element-stage {
+	background-color: var(--bg-color) !important;
 	border-radius: var(--border-radius) !important;
 }
 
@@ -69,7 +70,7 @@ input.driver-highlighted-element {
 .driver-fix-stacking {
 	z-index: auto !important;
 	position: unset !important;
-	opacity: 1.0 !important;
+	opacity: 1 !important;
 	transform: none !important;
 	filter: none !important;
 	perspective: none !important;

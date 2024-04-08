@@ -2,14 +2,13 @@
 	padding-left: 0;
 	padding-right: 0;
 	background-color: white;
-	font-size: var(--text-sm);
+	@include get_textstyle("sm", "regular");
 }
 /*! This comment will be included even in compressed mode. */
 #navbar-breadcrumbs {
 	margin-left: var(--margin-md);
-	font-size: var(--text-sm);
+	@include get_textstyle("base", "regular");
 	a {
-		font-size: var(--text-md);
 		margin-right: 10px;
 		&:before {
 			content: #{"/*!rtl:var(--left-arrow-svg);*/"}var(--right-arrow-svg);
@@ -20,7 +19,7 @@
 
 	li.disabled {
 		a {
-			color: var(--text-muted);
+			color: var(--gray-600);
 			pointer-events: none;
 		}
 	}

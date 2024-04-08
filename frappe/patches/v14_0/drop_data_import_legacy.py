@@ -8,7 +8,7 @@ def execute():
 	table = frappe.utils.get_table_name(doctype)
 
 	# delete the doctype record to avoid broken links
-	frappe.db.delete("DocType", {"name": doctype})
+	frappe.delete_doc("DocType", doctype, force=True)
 
 	# leaving table in database for manual cleanup
 	click.secho(

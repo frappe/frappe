@@ -19,6 +19,7 @@ class UserGroup(Document):
 
 		user_group_members: DF.TableMultiSelect[UserGroupMember]
 	# end: auto-generated types
+
 	def after_insert(self):
 		frappe.cache.delete_key("user_groups")
 

@@ -10,6 +10,7 @@ import frappe
 from frappe.cache_manager import clear_doctype_cache
 from frappe.core.doctype.doctype.doctype import (
 	CannotIndexedError,
+	DocType,
 	DoctypeLinkError,
 	HiddenAndMandatoryWithoutDefaultError,
 	IllegalMandatoryError,
@@ -18,8 +19,11 @@ from frappe.core.doctype.doctype.doctype import (
 	WrongOptionsDoctypeLinkError,
 	validate_links_table_fieldnames,
 )
+from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.desk.form.load import getdoc
+from frappe.model.delete_doc import delete_controllers
+from frappe.model.sync import remove_orphan_doctypes
 from frappe.tests.utils import FrappeTestCase
 
 
@@ -217,9 +221,7 @@ class TestDocType(FrappeTestCase):
 			self.assertListEqual(
 				[f["fieldname"] for f in test_doctype_json["fields"]], test_doctype_json["field_order"]
 			)
-			self.assertListEqual(
-				[f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order
-			)
+			self.assertListEqual([f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order)
 			self.assertListEqual(test_doctype_json["field_order"], initial_fields_order)
 
 			# remove field_order to test reload_doc/sync/migrate is backwards compatible without field_order
@@ -243,9 +245,7 @@ class TestDocType(FrappeTestCase):
 			self.assertListEqual(
 				[f["fieldname"] for f in test_doctype_json["fields"]], test_doctype_json["field_order"]
 			)
-			self.assertListEqual(
-				[f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order
-			)
+			self.assertListEqual([f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order)
 			self.assertListEqual(test_doctype_json["field_order"], initial_fields_order)
 
 			# reorder fields: swap row 1 and 3
@@ -256,9 +256,7 @@ class TestDocType(FrappeTestCase):
 			# assert that reordering fields only affects `field_order` rather than `fields` attr
 			test_doctype.save()
 			test_doctype_json = frappe.get_file_json(path)
-			self.assertListEqual(
-				[f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order
-			)
+			self.assertListEqual([f["fieldname"] for f in test_doctype_json["fields"]], initial_fields_order)
 			self.assertListEqual(
 				test_doctype_json["field_order"], ["field_3", "field_2", "field_1", "field_4"]
 			)
@@ -739,6 +737,21 @@ class TestDocType(FrappeTestCase):
 		self.assertEqual(frappe.get_meta(doctype).get_field(field).default, "DELETETHIS")
 		frappe.delete_doc("DocType", doctype)
 
+	@unittest.skipUnless(
+		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+	)
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_delete_orphaned_doctypes(self):
+		doctype = new_doctype(custom=0).insert()
+		frappe.db.commit()
+
+		delete_controllers(doctype.name, doctype.module)
+		job = frappe.enqueue(remove_orphan_doctypes)
+		wait_for_completion(job)
+
+		frappe.db.rollback()
+		self.assertFalse(frappe.db.exists("DocType", doctype.name))
+
 	def test_not_in_list_view_for_not_allowed_mandatory_field(self):
 		doctype = new_doctype(
 			fields=[
@@ -768,8 +781,9 @@ def new_doctype(
 	depends_on: str = "",
 	fields: list[dict] | None = None,
 	custom: bool = True,
+	default: str | None = None,
 	**kwargs,
-):
+) -> "DocType":
 	if not name:
 		# Test prefix is required to avoid coverage
 		name = "Test " + "".join(random.sample(string.ascii_lowercase, 10))
@@ -785,6 +799,7 @@ def new_doctype(
 					"fieldname": "some_fieldname",
 					"fieldtype": "Data",
 					"unique": unique,
+					"default": default,
 					"depends_on": depends_on,
 				}
 			],

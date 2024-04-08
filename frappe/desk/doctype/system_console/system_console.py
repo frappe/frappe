@@ -23,12 +23,13 @@ class SystemConsole(Document):
 		show_processlist: DF.Check
 		type: DF.Literal["Python", "SQL"]
 	# end: auto-generated types
+
 	def run(self):
 		frappe.only_for("System Manager")
 		try:
 			frappe.local.debug_log = []
 			if self.type == "Python":
-				safe_exec(self.console)
+				safe_exec(self.console, script_filename="System Console")
 				self.output = "\n".join(frappe.debug_log)
 			elif self.type == "SQL":
 				self.output = frappe.as_json(read_sql(self.console, as_dict=1))
@@ -40,7 +41,9 @@ class SystemConsole(Document):
 			frappe.db.commit()
 		else:
 			frappe.db.rollback()
-		frappe.get_doc(dict(doctype="Console Log", script=self.console, type=self.type)).insert()
+		frappe.get_doc(
+			doctype="Console Log", script=self.console, type=self.type, committed=self.commit
+		).insert()
 		frappe.db.commit()
 
 
@@ -54,7 +57,10 @@ def execute_code(doc):
 @frappe.whitelist()
 def show_processlist():
 	frappe.only_for("System Manager")
+	return _show_processlist()
 
+
+def _show_processlist():
 	return frappe.db.multisql(
 		{
 			"postgres": """

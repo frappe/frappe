@@ -4,7 +4,7 @@
 frappe.ui.form.on("Newsletter", {
 	refresh(frm) {
 		let doc = frm.doc;
-		let can_write = in_list(frappe.boot.user.can_write, doc.doctype);
+		let can_write = frappe.boot.user.can_write.includes(doc.doctype);
 		if (!frm.is_new() && !frm.is_dirty() && !doc.email_sent && can_write) {
 			frm.add_custom_button(
 				__("Send a test email"),

@@ -1,8 +1,6 @@
 # imports - standard imports
 import logging
 import os
-import sys
-from contextlib import contextmanager
 from copy import deepcopy
 from logging.handlers import RotatingFileHandler
 from typing import Literal
@@ -24,7 +22,7 @@ def get_logger(
 	file_count=20,
 	stream_only=stream_logging,
 ) -> "logging.Logger":
-	"""Application Logger for your given module
+	"""Return Application Logger for your given module.
 
 	Args:
 	        module (str, optional): Name of your logger and consequently your log file. Defaults to None.
@@ -35,8 +33,7 @@ def get_logger(
 	        file_count (int, optional): Max count of log files to be retained via Log Rotation. Defaults to 20.
 	        stream_only (bool, optional): Whether to stream logs only to stderr (True) or use log files (False). Defaults to False.
 
-	Returns:
-	        <class 'logging.Logger'>: Returns a Python logger object with Site and Bench level logging capabilities.
+	Return a Python logger object with Site and Bench level logging capabilities.
 	"""
 
 	if allow_site is True:
@@ -126,29 +123,3 @@ def sanitized_dict(form_dict):
 			if secret_kw in k:
 				sanitized_dict[k] = "********"
 	return sanitized_dict
-
-
-@contextmanager
-def pipe_to_log(logger_fn, stream=None):
-	"Pass an existing logger function e.g. logger.info. Stream defaults to stdout"
-	# late bind source
-	if stream is None:
-		stream = sys.stdout
-
-	stream_int = stream.fileno()
-	r_int, w_int = os.pipe()
-
-	# copy stream_fd before it is overwritten
-	with os.fdopen(os.dup(stream_int), "wb") as copied:
-		stream.flush()
-		os.dup2(w_int, stream_int)  # $ exec >&pipe
-		try:
-			with os.fdopen(w_int, "wb"):
-				yield stream
-		finally:
-			# restore stream to its previous value
-			stream.flush()
-			os.dup2(copied.fileno(), stream_int)  # $ exec >&copied
-			with os.fdopen(r_int, newline="") as r:
-				text = r.read()
-			logger_fn(text)

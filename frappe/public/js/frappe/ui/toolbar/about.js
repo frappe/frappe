@@ -13,10 +13,10 @@ frappe.ui.misc.about = function () {
 					<p><i class='fa fa-github fa-fw'></i>
 						${__("Source")}:
 						<a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a></p>
+					<p><i class='fa fa-graduation-cap fa-fw'></i>
+						Frappe School: <a href='https://frappe.school' target='_blank'>https://frappe.school</a></p>
 					<p><i class='fa fa-linkedin fa-fw'></i>
 						Linkedin: <a href='https://linkedin.com/company/frappe-tech' target='_blank'>https://linkedin.com/company/frappe-tech</a></p>
-					<p><i class='fa fa-facebook fa-fw'></i>
-						Facebook: <a href='https://facebook.com/erpnext' target='_blank'>https://facebook.com/erpnext</a></p>
 					<p><i class='fa fa-twitter fa-fw'></i>
 						Twitter: <a href='https://twitter.com/frappetech' target='_blank'>https://twitter.com/frappetech</a></p>
 					<p><i class='fa fa-youtube fa-fw'></i>
@@ -24,6 +24,13 @@ frappe.ui.misc.about = function () {
 					<hr>
 					<h4>${__("Installed Apps")}</h4>
 					<div id='about-app-versions'>${__("Loading versions...")}</div>
+					<p>
+						<b>
+							<a href="/attribution" target="_blank" class="text-muted">
+								${__("Dependencies & Licenses")}
+							</a>
+						</b>
+					</p>
 					<hr>
 					<p class='text-muted'>${__("&copy; Frappe Technologies Pvt. Ltd. and contributors")} </p>
 					</div>`,

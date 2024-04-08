@@ -17,6 +17,20 @@ class RedisQueue:
 
 	@classmethod
 	def get_connection(cls, username=None, password=None):
+		if frappe.conf.redis_queue_sentinel_enabled:
+			from frappe.utils.redis_wrapper import get_sentinel_connection
+
+			sentinels = [tuple(node.split(":")) for node in frappe.conf.get("redis_queue_sentinels", [])]
+			sentinel = get_sentinel_connection(
+				sentinels=sentinels,
+				sentinel_username=frappe.conf.get("redis_queue_sentinel_username"),
+				sentinel_password=frappe.conf.get("redis_queue_sentinel_password"),
+				master_username=frappe.conf.get("redis_queue_master_username", username),
+				master_password=frappe.conf.get("redis_queue_master_password", password),
+			)
+			conn = sentinel.master_for(frappe.conf.get("redis_queue_master_service"))
+			conn.ping()
+			return conn
 		conn = redis.from_url(frappe.conf.redis_queue, username=username, password=password)
 		conn.ping()
 		return conn
@@ -30,9 +44,7 @@ class RedisQueue:
 		username = "default"
 		conn = cls.get_connection(username, cur_password)
 		password = "+" + (new_password or conn.acl_genpass())
-		conn.acl_setuser(
-			username=username, enabled=True, reset_passwords=reset_passwords, passwords=password
-		)
+		conn.acl_setuser(username=username, enabled=True, reset_passwords=reset_passwords, passwords=password)
 		return password[1:]
 
 	@classmethod

@@ -3,7 +3,7 @@ from enum import Enum
 from importlib import import_module
 from typing import Any, get_type_hints
 
-from pypika.queries import Column, QueryBuilder
+from pypika.queries import Column, QueryBuilder, _SetOperation
 from pypika.terms import PseudoColumn
 
 import frappe
@@ -42,13 +42,10 @@ class BuilderIdentificationFailed(Exception):
 
 
 def get_query_builder(type_of_db: str) -> Postgres | MariaDB:
-	"""[return the query builder object]
+	"""Return the query builder object.
 
 	Args:
-	        type_of_db (str): [string value of the db used]
-
-	Returns:
-	        Query: [Query object]
+	        type_of_db: string value of the db used
 	"""
 	db = db_type_is(type_of_db)
 	picks = {db_type_is.MARIADB: MariaDB, db_type_is.POSTGRES: Postgres}
@@ -89,7 +86,7 @@ def patch_query_execute():
 		return result
 
 	def execute_child_queries(queries, result):
-		if not result or not isinstance(result[0], dict) or not result[0].name:
+		if not queries or not result or not isinstance(result[0], dict) or not result[0].name:
 			return
 		parent_names = [d.name for d in result]
 		for child_query in queries:
@@ -110,25 +107,24 @@ def patch_query_execute():
 		param_collector = NamedParameterWrapper()
 		query = query.get_sql(param_wrapper=param_collector)
 		if frappe.flags.in_safe_exec:
-			from frappe.utils.safe_exec import check_safe_sql_query
+			from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX, check_safe_sql_query
 
 			if not check_safe_sql_query(query, throw=False):
 				callstack = inspect.stack()
-				if len(callstack) >= 3 and ".py" in callstack[2].filename:
-					# ignore any query builder methods called from python files
-					# assumption is that those functions are whitelisted already.
 
-					# since query objects are patched everywhere any query.run()
-					# will have callstack like this:
-					# frame0: this function prepare_query()
-					# frame1: execute_query()
-					# frame2: frame that called `query.run()`
-					#
-					# if frame2 is server script <serverscript> is set as the filename
-					# it shouldn't be allowed.
-					pass
-				else:
+				# This check is required because QB can execute from anywhere and we can not
+				# reliably provide a safe version for it in server scripts.
+
+				# since query objects are patched everywhere any query.run()
+				# will have callstack like this:
+				# frame0: this function prepare_query()
+				# frame1: execute_query()
+				# frame2: frame that called `query.run()`
+				#
+				# if frame2 is server script <serverscript> is set as the filename it shouldn't be allowed.
+				if len(callstack) >= 3 and SERVER_SCRIPT_FILE_PREFIX in callstack[2].filename:
 					raise frappe.PermissionError("Only SELECT SQL allowed in scripting")
+
 		return query, param_collector.get_parameters()
 
 	builder_class = frappe.qb._BuilderClasss
@@ -138,7 +134,10 @@ def patch_query_execute():
 
 	builder_class.run = execute_query
 	builder_class.walk = prepare_query
-	frappe._qb_patched[frappe.conf.db_type] = True
+
+	# To support running union queries
+	_SetOperation.run = execute_query
+	_SetOperation.walk = prepare_query
 
 
 def patch_query_aggregation():
@@ -149,4 +148,3 @@ def patch_query_aggregation():
 	frappe.qb.min = _min
 	frappe.qb.avg = _avg
 	frappe.qb.sum = _sum
-	frappe._qb_patched[frappe.conf.db_type] = True

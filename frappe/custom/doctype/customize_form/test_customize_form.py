@@ -69,27 +69,21 @@ class TestCustomizeForm(FrappeTestCase):
 	def test_save_customization_property(self):
 		d = self.get_customize_form("Event")
 		self.assertEqual(
-			frappe.db.get_value(
-				"Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"
-			),
+			frappe.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
 			None,
 		)
 
 		d.allow_copy = 1
 		d.run_method("save_customization")
 		self.assertEqual(
-			frappe.db.get_value(
-				"Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"
-			),
+			frappe.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
 			"1",
 		)
 
 		d.allow_copy = 0
 		d.run_method("save_customization")
 		self.assertEqual(
-			frappe.db.get_value(
-				"Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"
-			),
+			frappe.db.get_value("Property Setter", {"doc_type": "Event", "property": "allow_copy"}, "value"),
 			None,
 		)
 
@@ -240,8 +234,9 @@ class TestCustomizeForm(FrappeTestCase):
 		# Using Notification Log doctype as it doesn't have any other custom fields
 		d = self.get_customize_form("Notification Log")
 
+		new_document_length = 255
 		document_name = d.get("fields", {"fieldname": "document_name"})[0]
-		document_name.length = 255
+		document_name.length = new_document_length
 		d.run_method("save_customization")
 
 		self.assertEqual(
@@ -250,10 +245,8 @@ class TestCustomizeForm(FrappeTestCase):
 				{"doc_type": "Notification Log", "property": "length", "field_name": "document_name"},
 				"value",
 			),
-			"255",
+			str(new_document_length),
 		)
-
-		self.assertTrue(d.flags.update_db)
 
 		length = frappe.db.sql(
 			"""SELECT character_maximum_length
@@ -262,7 +255,7 @@ class TestCustomizeForm(FrappeTestCase):
 			AND column_name = 'document_name'"""
 		)[0][0]
 
-		self.assertEqual(length, 255)
+		self.assertEqual(length, new_document_length)
 
 	def test_custom_link(self):
 		try:
@@ -341,9 +334,7 @@ class TestCustomizeForm(FrappeTestCase):
 
 		frappe.clear_cache()
 		user_group = frappe.get_meta("Event")
-		self.assertFalse(
-			[d.name for d in (user_group.links or []) if d.link_doctype == "User Group Member"]
-		)
+		self.assertFalse([d.name for d in (user_group.links or []) if d.link_doctype == "User Group Member"])
 
 	def test_custom_action(self):
 		test_route = "/app/List/DocType"

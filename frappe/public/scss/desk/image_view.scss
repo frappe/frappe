@@ -1,6 +1,5 @@
 // Image view
 .image-view {
-
 	.frappe-list {
 		padding: var(--padding-xs);
 	}
@@ -24,7 +23,6 @@
 				margin-left: var(--margin-xs);
 			}
 		}
-
 	}
 
 	.image-view-container {
@@ -200,15 +198,13 @@
 			// 	opacity: 0.5
 			// }
 		}
-
 	}
 }
-
 
 .pswp--svg .pswp__button,
 .pswp--svg .pswp__button--arrow--left:before,
 .pswp--svg .pswp__button--arrow--right:before {
-	background-image: url('/assets/frappe/images/default-skin.svg') !important;
+	background-image: url("/assets/frappe/images/default-skin.svg") !important;
 }
 .pswp--svg .pswp__button--arrow--left,
 .pswp--svg .pswp__button--arrow--right {
@@ -233,7 +229,6 @@
 	height: 100px;
 	cursor: pointer;
 	border: 1px solid var(--border-color);
-
 
 	img {
 		max-height: 100%;

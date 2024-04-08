@@ -11,6 +11,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			const doctype = route[1];
 			const user_settings = frappe.get_user_settings(doctype)["Calendar"] || {};
 			route.push(user_settings.last_calendar || "default");
+			frappe.route_flags.replace_route = true;
 			frappe.set_route(route);
 			return true;
 		} else {
@@ -378,7 +379,10 @@ frappe.views.Calendar = class Calendar {
 				d[target] = d[source];
 			});
 
-			if (!me.field_map.allDay) d.allDay = 1;
+			if (typeof d.allDay === "undefined") {
+				d.allDay = me.field_map.allDay;
+			}
+
 			if (!me.field_map.convertToUserTz) d.convertToUserTz = 1;
 
 			// convert to user tz

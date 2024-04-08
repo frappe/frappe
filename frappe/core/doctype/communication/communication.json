@@ -31,6 +31,7 @@
   "additional_info",
   "communication_date",
   "read_receipt",
+  "send_after",
   "column_break_14",
   "sender_full_name",
   "read_by_recipient",
@@ -125,7 +126,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Delivery Status",
-   "options": "\nSent\nBounced\nOpened\nMarked As Spam\nRejected\nDelayed\nSoft-Bounced\nClicked\nRecipient Unsubscribed\nError\nExpired\nSending\nRead"
+   "options": "\nSent\nBounced\nOpened\nMarked As Spam\nRejected\nDelayed\nSoft-Bounced\nClicked\nRecipient Unsubscribed\nError\nExpired\nSending\nRead\nScheduled"
   },
   {
    "fieldname": "section_break_8",
@@ -390,12 +391,18 @@
    "hidden": 1,
    "label": "IMAP Folder",
    "read_only": 1
+  },
+  {
+   "fieldname": "send_after",
+   "fieldtype": "Datetime",
+   "label": "Send After"
   }
  ],
  "icon": "fa fa-comment",
  "idx": 1,
  "links": [],
- "modified": "2023-08-29 17:20:52.541483",
+ "make_attachments_public": 1,
+ "modified": "2024-03-23 16:01:30.219380",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Communication",
@@ -452,7 +459,7 @@
  ],
  "search_fields": "subject",
  "sender_field": "sender",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "subject_field": "subject",

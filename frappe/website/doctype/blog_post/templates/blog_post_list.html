@@ -35,7 +35,7 @@
 </div>
 
 <div class="blog-list-content">
-	<div data-doctype="{{ doctype }}" data-txt="{{ txt or '[notxt]' | e }}">
+	<div data-doctype="{{ doctype }}" data-txt="{{ (txt or '') | e }}">
 		{% if not result -%}
 		<div class="text-muted" style="min-height: 300px;">
 			{{ no_result_message or _("Nothing to show") }}
@@ -62,7 +62,7 @@
 			let $btn = $(this);
 			let args = $.extend(frappe.utils.get_query_params(), {
 				doctype: "Blog Post",
-				category: "{{ frappe.form_dict.category or '' }}",
+				category: {{ frappe.form_dict.category|tojson or "''"}},
 				limit_start: next_start,
 				pathname: location.pathname,
 			});

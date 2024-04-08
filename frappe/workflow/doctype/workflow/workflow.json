@@ -104,7 +104,7 @@
  "icon": "fa fa-random",
  "idx": 1,
  "links": [],
- "modified": "2023-05-02 16:56:28.704844",
+ "modified": "2024-03-23 16:04:04.849665",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",
@@ -122,8 +122,8 @@
   }
  ],
  "show_name_in_global_search": 1,
- "sort_field": "modified",
- "sort_order": "ASC",
+ "sort_field": "creation",
+ "sort_order": "DESC",
  "states": [],
  "track_changes": 1
 }

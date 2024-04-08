@@ -35,6 +35,7 @@
   {
    "fieldname": "prefix",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Prefix",
    "mandatory_depends_on": "eval:doc.naming_by===\"Numbered\"",
    "reqd": 1
@@ -44,6 +45,7 @@
    "description": "Warning: Updating counter may lead to document name conflicts if not done properly",
    "fieldname": "counter",
    "fieldtype": "Int",
+   "in_list_view": 1,
    "label": "Counter",
    "no_copy": 1
   },
@@ -78,6 +80,7 @@
    "description": "Rules with higher priority number will be applied first.",
    "fieldname": "priority",
    "fieldtype": "Int",
+   "in_standard_filter": 1,
    "label": "Priority"
   },
   {
@@ -87,7 +90,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-04-24 15:14:32.054272",
+ "modified": "2023-11-21 11:58:25.712375",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Document Naming Rule",
@@ -107,7 +110,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "priority",
  "sort_order": "DESC",
  "states": [],
  "title_field": "document_type",

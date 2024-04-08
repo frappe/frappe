@@ -17,19 +17,18 @@ let properties = computed(() => {
 	});
 	if (store.workflow.selected && "action" in store.workflow.selected.data) {
 		title.value = "Transition Properties";
-		return store.transitionfields.filter(df => {
-			if (in_list(["action", "allowed", "allow_self_approval", "condition"], df.fieldname)) {
-				return true;
-			}
-			return false;
-		});
+		return store.transitionfields.filter((df) =>
+			["action", "allowed", "allow_self_approval", "condition"].includes(df.fieldname)
+		);
 	} else if (store.workflow.selected && "state" in store.workflow.selected.data) {
 		title.value = "State Properties";
-		let allow_edit = store.statefields.find(df => df.fieldname == "allow_edit");
-		store.statefields = store.statefields.filter(df => df.fieldname != "allow_edit");
+		let allow_edit = store.statefields.find((df) => df.fieldname == "allow_edit");
+		store.statefields = store.statefields.filter(
+			(df) => !["allow_edit", "workflow_builder_id"].includes(df.fieldname)
+		);
 		store.statefields.splice(2, 0, allow_edit);
 
-		return store.statefields.filter(df => {
+		return store.statefields.filter((df) => {
 			if (df.fieldname == "doc_status") {
 				df.options = ["Draft", "Submitted", "Cancelled"];
 				df.description = "";
@@ -41,12 +40,9 @@ let properties = computed(() => {
 		});
 	}
 	title.value = "Workflow Details";
-	return store.workflowfields.filter(df => {
-		if (in_list(["states", "transitions", "workflow_data", "workflow_name"], df.fieldname)) {
-			return false;
-		}
-		return true;
-	});
+	return store.workflowfields.filter(
+		(df) => !["states", "transitions", "workflow_data", "workflow_name"].includes(df.fieldname)
+	);
 });
 </script>
 
@@ -57,7 +53,7 @@ let properties = computed(() => {
 			<div v-if="doc">
 				<div class="field" v-for="df in properties" :key="df.name">
 					<component
-						:is="df.fieldtype.replace(' ', '') + 'Control'"
+						:is="df.fieldtype.replaceAll(' ', '') + 'Control'"
 						:df="df"
 						:value="doc[df.fieldname]"
 						v-model="doc[df.fieldname]"

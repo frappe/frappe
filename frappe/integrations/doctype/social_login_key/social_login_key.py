@@ -54,11 +54,13 @@ class SocialLoginKey(Document):
 		icon: DF.Data | None
 		provider_name: DF.Data
 		redirect_url: DF.Data | None
+		sign_ups: DF.Literal["", "Allow", "Deny"]
 		social_login_provider: DF.Literal[
 			"Custom", "Facebook", "Frappe", "GitHub", "Google", "Office 365", "Salesforce", "fairlogin"
 		]
 		user_id_property: DF.Data | None
 	# end: auto-generated types
+
 	def autoname(self):
 		self.name = frappe.scrub(self.provider_name)
 
@@ -73,9 +75,7 @@ class SocialLoginKey(Document):
 		if not self.redirect_url:
 			frappe.throw(_("Please enter Redirect URL"), exc=RedirectUrlNotSetError)
 		if self.enable_social_login and not self.client_id:
-			frappe.throw(
-				_("Please enter Client ID before social login is enabled"), exc=ClientIDNotSetError
-			)
+			frappe.throw(_("Please enter Client ID before social login is enabled"), exc=ClientIDNotSetError)
 		if self.enable_social_login and not self.client_secret:
 			frappe.throw(
 				_("Please enter Client Secret before social login is enabled"), exc=ClientSecretNotSetError
@@ -214,3 +214,13 @@ class SocialLoginKey(Document):
 			return
 
 		return providers.get(provider) if provider else providers
+
+
+def provider_allows_signup(provider: str) -> bool:
+	from frappe.website.utils import is_signup_disabled
+
+	sign_up_config = frappe.db.get_value("Social Login Key", provider, "sign_ups")
+
+	if not sign_up_config:  # fallback to global settings
+		return not is_signup_disabled()
+	return sign_up_config == "Allow"

@@ -30,14 +30,13 @@ class Dashboard(Document):
 		is_standard: DF.Check
 		module: DF.Link | None
 	# end: auto-generated types
+
 	def on_update(self):
 		if self.is_default:
 			# make all other dashboards non-default
 			DashBoard = DocType("Dashboard")
 
-			frappe.qb.update(DashBoard).set(DashBoard.is_default, 0).where(
-				DashBoard.name != self.name
-			).run()
+			frappe.qb.update(DashBoard).set(DashBoard.is_default, 0).where(DashBoard.name != self.name).run()
 
 		if frappe.conf.developer_mode and self.is_standard:
 			export_to_files(
@@ -111,9 +110,7 @@ def get_permitted_cards(dashboard_name):
 
 def get_non_standard_charts_in_dashboard(dashboard):
 	non_standard_charts = [doc.name for doc in frappe.get_list("Dashboard Chart", {"is_standard": 0})]
-	return [
-		chart_link.chart for chart_link in dashboard.charts if chart_link.chart in non_standard_charts
-	]
+	return [chart_link.chart for chart_link in dashboard.charts if chart_link.chart in non_standard_charts]
 
 
 def get_non_standard_cards_in_dashboard(dashboard):
@@ -127,9 +124,7 @@ def get_non_standard_warning_message(non_standard_docs_map):
 	def get_html(docs, doctype):
 		html = f"<p>{frappe.bold(doctype)}</p>"
 		for doc in docs:
-			html += '<div><a href="/app/Form/{doctype}/{doc}">{doc}</a></div>'.format(
-				doctype=doctype, doc=doc
-			)
+			html += f'<div><a href="/app/Form/{doctype}/{doc}">{doc}</a></div>'
 		html += "<br>"
 		return html
 

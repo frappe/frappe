@@ -1,5 +1,19 @@
 .tree {
 	padding: var(--padding-sm);
+	.btn-group {
+		.btn {
+			box-shadow: none;
+			outline: 1px solid var(--btn-group-border-color);
+
+			&:not(:first-child) {
+				margin-left: 1px;
+			}
+
+			&:focus {
+				outline: 2px solid var(--dark-border-color);
+			}
+		}
+	}
 }
 
 .tree li {
@@ -58,6 +72,19 @@
 	}
 }
 
+.tree-link .file-doc-link {
+	opacity: 0;
+}
+
+.tree-link:hover .file-doc-link {
+	opacity: 0.4;
+}
+
+.tree-link .file-doc-link:hover {
+	transform: scale(1.1);
+	opacity: 0.5;
+}
+
 .tree-hover {
 	background-color: var(--highlight-color);
 	min-height: 25px;
@@ -80,7 +107,8 @@
 
 // decoration
 // .tree, .tree-node {
-.tree.with-skeleton, .tree.with-skeleton .tree-node {
+.tree.with-skeleton,
+.tree.with-skeleton .tree-node {
 	position: relative;
 
 	// &.opened::before, &:last-child::after {

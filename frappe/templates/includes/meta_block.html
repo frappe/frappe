@@ -2,7 +2,7 @@
 {%- for name in metatags %}
 {%- set content = metatags.get(name, '') -%}
 {%- if content -%}
-<meta {% if name.startswith('og:') %}property="{{ name }}"{% else %}name="{{ name }}"{% endif %} content="{{ content | striptags | escape }}">
+<meta {% if name.startswith('og:') %}property="{{ name }}" {% else %}name="{{ name }}"{% endif %} content="{{ content | striptags | escape }}">
 {%- endif -%}
 {%- endfor -%}
 {%- endif -%}

@@ -33,11 +33,10 @@ def _is_ldap_exception(e):
 	return False
 
 
-def log_error(
-	title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False
-):
+def log_error(title=None, message=None, reference_doctype=None, reference_name=None, *, defer_insert=False):
 	"""Log error to Error Log"""
 	from frappe.monitor import get_trace_id
+	from frappe.utils.sentry import capture_exception
 
 	# Parameter ALERT:
 	# the title and message may be swapped
@@ -58,14 +57,18 @@ def log_error(
 		print(f"Failed to log error in db: {title}")
 		return
 
+	trace_id = get_trace_id()
 	error_log = frappe.get_doc(
 		doctype="Error Log",
 		error=traceback,
 		method=title,
 		reference_doctype=reference_doctype,
 		reference_name=reference_name,
-		trace_id=get_trace_id(),
+		trace_id=trace_id,
 	)
+
+	# Capture exception data if telemetry is enabled
+	capture_exception(message=f"{title}\n{traceback}")
 
 	if frappe.flags.read_only or defer_insert:
 		error_log.deferred_insert()
@@ -74,7 +77,6 @@ def log_error(
 
 
 def log_error_snapshot(exception: Exception):
-
 	if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
 		return
 
@@ -90,9 +92,7 @@ def log_error_snapshot(exception: Exception):
 def get_default_args(func):
 	"""Get default arguments of a function from its signature."""
 	signature = inspect.signature(func)
-	return {
-		k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty
-	}
+	return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
 
 def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
@@ -108,8 +108,8 @@ def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
 	:type keep_quiet: function
 
 	>>> @raise_error_on_no_output("Ingradients missing")
-	... def get_indradients(_raise_error=1): return
-	...
+	... def get_indradients(_raise_error=1):
+	...     return
 	>>> get_ingradients()
 	`Exception Name`: Ingradients missing
 	"""
@@ -141,19 +141,20 @@ def guess_exception_source(exception: str) -> str | None:
 
 	- For unhandled exception last python file from apps folder is responsible.
 	- For frappe.throws the exception source is possibly present after skipping frappe.throw frames
-	- For server script the file name is `<serverscript>`
+	- For server script the file name contains SERVER_SCRIPT_FILE_PREFIX
 
 	"""
+	from frappe.utils.safe_exec import SERVER_SCRIPT_FILE_PREFIX
+
 	with suppress(Exception):
 		installed_apps = frappe.get_installed_apps()
 		app_priority = {app: installed_apps.index(app) for app in installed_apps}
 
 		APP_NAME_REGEX = re.compile(r".*File.*apps/(?P<app_name>\w+)/\1/")
-		SERVER_SCRIPT_FRAME = re.compile(r".*<serverscript>")
 
 		apps = Counter()
 		for line in reversed(exception.splitlines()):
-			if SERVER_SCRIPT_FRAME.match(line):
+			if SERVER_SCRIPT_FILE_PREFIX in line:
 				return "Server Script"
 
 			if matches := APP_NAME_REGEX.match(line):

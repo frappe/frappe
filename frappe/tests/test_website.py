@@ -27,17 +27,13 @@ class TestWebsite(FrappeTestCase):
 		frappe.set_user("Administrator")
 		# test home page via role
 		user = frappe.get_doc(
-			dict(doctype="User", email="test-user-for-home-page@example.com", first_name="test")
+			doctype="User", email="test-user-for-home-page@example.com", first_name="test"
 		).insert(ignore_if_duplicate=True)
 		user.reload()
 
-		role = frappe.get_doc(
-			dict(
-				doctype="Role",
-				role_name="home-page-test",
-				desk_access=0,
-			)
-		).insert(ignore_if_duplicate=True)
+		role = frappe.get_doc(doctype="Role", role_name="home-page-test", desk_access=0).insert(
+			ignore_if_duplicate=True
+		)
 
 		user.add_roles(role.name)
 		user.save()
@@ -167,13 +163,23 @@ class TestWebsite(FrappeTestCase):
 			dict(source=r"/testfrom", target=r"://testto1"),
 			dict(source=r"/testfromregex.*", target=r"://testto2"),
 			dict(source=r"/testsub/(.*)", target=r"://testto3/\1"),
+			dict(source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True),
 			dict(
-				source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True
+				source="/test307",
+				target="/test",
+				redirect_http_status=307,
 			),
 		]
 
 		website_settings = frappe.get_doc("Website Settings")
-		website_settings.append("route_redirects", {"source": "/testsource", "target": "/testtarget"})
+		website_settings.append(
+			"route_redirects",
+			{"source": "/testsource", "target": "/testtarget"},
+		)
+		website_settings.append(
+			"route_redirects",
+			{"source": "/testdoc307", "target": "/testtarget", "redirect_http_status": 307},
+		)
 		website_settings.save()
 
 		set_request(method="GET", path="/testfrom")
@@ -200,10 +206,25 @@ class TestWebsite(FrappeTestCase):
 		self.assertEqual(response.status_code, 301)
 		self.assertEqual(response.headers.get("Location"), "/testtarget")
 
+		set_request(method="GET", path="/testdoc307")
+		response = get_response()
+		self.assertEqual(response.status_code, 307)
+		self.assertEqual(response.headers.get("Location"), "/testtarget")
+
 		set_request(method="GET", path="/courses/course?course=data")
 		response = get_response()
 		self.assertEqual(response.status_code, 301)
 		self.assertEqual(response.headers.get("Location"), "/courses/data")
+
+		set_request(method="GET", path="/test307")
+		response = get_response()
+		self.assertEqual(response.status_code, 307)
+		self.assertEqual(response.headers.get("Location"), "/test")
+
+		set_request(method="POST", path="/test307")
+		response = get_response()
+		self.assertEqual(response.status_code, 307)
+		self.assertEqual(response.headers.get("Location"), "/test")
 
 		delattr(frappe.hooks, "website_redirects")
 		frappe.cache.delete_key("app_hooks")
@@ -273,9 +294,7 @@ class TestWebsite(FrappeTestCase):
 
 		content = get_response_content("/_test/_test_folder/_test_page")
 		# test if {next} was rendered
-		self.assertIn(
-			'Next: <a class="btn-next" href="/_test/_test_folder/_test_toc">Test TOC</a>', content
-		)
+		self.assertIn('Next: <a class="btn-next" href="/_test/_test_folder/_test_toc">Test TOC</a>', content)
 
 	def test_colocated_assets(self):
 		content = get_response_content("/_test/_test_folder/_test_page")
@@ -386,7 +405,8 @@ class TestWebsite(FrappeTestCase):
 			)
 			self.assertIn('<link type="text/css" rel="stylesheet" href="/test_app_include.css">', content)
 			self.assertIn(
-				'<link type="text/css" rel="stylesheet" href="/test_app_include_via_site_config.css">', content
+				'<link type="text/css" rel="stylesheet" href="/test_app_include_via_site_config.css">',
+				content,
 			)
 			delattr(frappe.local, "request")
 			frappe.set_user("Guest")

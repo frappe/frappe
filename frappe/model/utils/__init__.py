@@ -3,7 +3,6 @@
 import re
 
 import frappe
-from frappe import _
 from frappe.build import html_to_js_template
 from frappe.utils import cstr
 from frappe.utils.caching import site_cache
@@ -30,9 +29,8 @@ def set_default(doc, key):
 		frappe.db.set(doc, "is_default", 1)
 
 	frappe.db.sql(
-		"""update `tab%s` set `is_default`=0
-		where `%s`=%s and name!=%s"""
-		% (doc.doctype, key, "%s", "%s"),
+		"""update `tab{}` set `is_default`=0
+		where `{}`={} and name!={}""".format(doc.doctype, key, "%s", "%s"),
 		(doc.get(key), doc.name),
 	)
 
@@ -62,11 +60,11 @@ def render_include(content):
 	content = cstr(content)
 
 	# try 5 levels of includes
-	for i in range(5):
+	for _ in range(5):
 		if "{% include" in content:
 			paths = INCLUDE_DIRECTIVE_PATTERN.findall(content)
 			if not paths:
-				frappe.throw(_("Invalid include path"), InvalidIncludePath)
+				raise InvalidIncludePath
 
 			for path in paths:
 				app, app_path = path.split("/", 1)
@@ -84,7 +82,7 @@ def render_include(content):
 
 
 def get_fetch_values(doctype, fieldname, value):
-	"""Returns fetch value dict for the given object
+	"""Return fetch value dict for the given object.
 
 	:param doctype: Target doctype
 	:param fieldname: Link fieldname selected
@@ -130,9 +128,11 @@ def get_fetch_values(doctype, fieldname, value):
 
 @site_cache()
 def is_virtual_doctype(doctype: str):
-	if frappe.db.has_column("DocType", "is_virtual"):
-		return frappe.db.get_value("DocType", doctype, "is_virtual")
-	return False
+	if frappe.flags.in_install or frappe.flags.in_migrate:
+		if frappe.db.has_column("DocType", "is_virtual"):
+			return frappe.db.get_value("DocType", doctype, "is_virtual")
+	else:
+		return getattr(frappe.get_meta(doctype), "is_virtual", False)
 
 
 @site_cache()
@@ -142,4 +142,7 @@ def is_single_doctype(doctype: str) -> bool:
 	if doctype in DOCTYPES_FOR_DOCTYPE:
 		return False
 
-	return frappe.db.get_value("DocType", doctype, "issingle")
+	if frappe.flags.in_install or frappe.flags.in_migrate:
+		return frappe.db.get_value("DocType", doctype, "issingle")
+	else:
+		return getattr(frappe.get_meta(doctype), "issingle", False)

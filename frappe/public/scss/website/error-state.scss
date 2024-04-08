@@ -7,13 +7,11 @@
 		margin: var(--margin-2xl) auto;
 
 		@include media-breakpoint-down(sm) {
-			width: 80%
+			width: 80%;
 		}
 	}
 
 	.back-to-home {
-		font-size: var(--text-base);
+		@include get_textstyle("base", "regular");
 	}
 }
-
-

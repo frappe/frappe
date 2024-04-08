@@ -6,8 +6,11 @@ import gzip
 import importlib
 import json
 import os
+import secrets
 import shlex
+import string
 import subprocess
+import types
 import unittest
 from contextlib import contextmanager
 from functools import wraps
@@ -38,19 +41,12 @@ from frappe.utils.jinja_globals import bundled_asset
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
 
 _result: Result | None = None
-TEST_SITE = "commands-site-O4PN2QKA.test"  # added random string tag to avoid collisions
+TEST_SITE = "commands-site-O4PN2QK.test"  # added random string tag to avoid collisions
 CLI_CONTEXT = frappe._dict(sites=[TEST_SITE])
 
 
 def clean(value) -> str:
-	"""Strips and converts bytes to str
-
-	Args:
-	        value ([type]): [description]
-
-	Returns:
-	        [type]: [description]
-	"""
+	"""Strip and convert bytes to str."""
 	if isinstance(value, bytes):
 		value = value.decode()
 	if isinstance(value, str):
@@ -59,13 +55,13 @@ def clean(value) -> str:
 
 
 def missing_in_backup(doctypes: list, file: os.PathLike) -> list:
-	"""Returns list of missing doctypes in the backup.
+	"""Return list of missing doctypes in the backup.
 
 	Args:
 	        doctypes (list): List of DocTypes to be checked
 	        file (str): Path of the database file
 
-	Returns:
+	Return:
 	        doctypes(list): doctypes that are missing in backup
 	"""
 	predicate = 'COPY public."tab{}"' if frappe.conf.db_type == "postgres" else "CREATE TABLE `tab{}`"
@@ -76,14 +72,13 @@ def missing_in_backup(doctypes: list, file: os.PathLike) -> list:
 
 
 def exists_in_backup(doctypes: list, file: os.PathLike) -> bool:
-	"""Checks if the list of doctypes exist in the database.sql.gz file supplied
+	"""Check if the list of doctypes exist in the database.sql.gz file supplied.
 
 	Args:
 	        doctypes (list): List of DocTypes to be checked
 	        file (str): Path of the database file
 
-	Returns:
-	        bool: True if all tables exist
+	Return True if all tables exist.
 	"""
 	missing_doctypes = missing_in_backup(doctypes, file)
 	return len(missing_doctypes) == 0
@@ -179,14 +174,18 @@ class BaseTestCommands(FrappeTestCase):
 		cmd_config = {
 			"test_site": TEST_SITE,
 			"admin_password": frappe.conf.admin_password,
-			"root_login": frappe.conf.root_login,
-			"root_password": frappe.conf.root_password,
 			"db_type": frappe.conf.db_type,
+			"db_root_username": frappe.conf.root_login,
+			"db_root_password": frappe.conf.root_password,
 		}
 
 		if not os.path.exists(os.path.join(TEST_SITE, "site_config.json")):
 			cls.execute(
-				"bench new-site {test_site} --admin-password {admin_password} --db-type" " {db_type}",
+				"bench new-site {test_site} "
+				"--admin-password {admin_password} "
+				"--db-root-username {db_root_username} "
+				"--db-root-password {db_root_password} "
+				"--db-type {db_type}",
 				cmd_config,
 			)
 
@@ -238,7 +237,7 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(self.stdout[1:-1], frappe.bold(text="DocType"))
 
-	@unittest.skip
+	@run_only_if(db_type_is.MARIADB)
 	def test_restore(self):
 		# step 0: create a site to run the test on
 		global_config = {
@@ -252,14 +251,40 @@ class TestCommands(BaseTestCommands):
 			if value:
 				self.execute(f"bench set-config {key} {value} -g")
 
+		with self.switch_site(TEST_SITE):
+			public_file = frappe.new_doc(
+				"File", file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
+			).insert()
+			private_file = frappe.new_doc(
+				"File", file_name=f"test_{frappe.generate_hash()}", content=frappe.generate_hash()
+			).insert()
+
 		# test 1: bench restore from full backup
-		self.execute("bench --site {test_site} backup --ignore-backup-conf", site_data)
+		self.execute("bench --site {test_site} backup --ignore-backup-conf --with-files", site_data)
 		self.execute(
 			"bench --site {test_site} execute frappe.utils.backups.fetch_latest_backups",
 			site_data,
 		)
-		site_data.update({"database": json.loads(self.stdout)["database"]})
-		self.execute("bench --site {test_site} restore {database}", site_data)
+		# Destroy some data and files to verify that they are indeed being restored.
+		with self.switch_site(TEST_SITE):
+			public_file.delete_file_data_content()
+			private_file.delete_file_data_content()
+			frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabToDo`")
+			self.assertFalse(public_file.exists_on_disk())
+			self.assertFalse(private_file.exists_on_disk())
+
+		backup_data = json.loads(self.stdout)
+		site_data.update(backup_data)
+		self.execute(
+			"bench --site {test_site} restore {database} --with-public-files {public} --with-private-files {private} ",
+			site_data,
+		)
+		self.assertEqual(self.returncode, 0)
+
+		with self.switch_site(TEST_SITE):
+			self.assertTrue(frappe.db.table_exists("ToDo", cached=False))
+			self.assertTrue(public_file.exists_on_disk())
+			self.assertTrue(private_file.exists_on_disk())
 
 		# test 2: restore from partial backup
 		self.execute("bench --site {test_site} backup --exclude 'ToDo'", site_data)
@@ -429,9 +454,7 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(check_password("Administrator", original_password), "Administrator")
 
 	@skipIf(
-		not (
-			frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"
-		),
+		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"),
 		"DB Root password and Admin password not set in config",
 	)
 	def test_bench_drop_site_should_archive_site(self):
@@ -441,12 +464,17 @@ class TestCommands(BaseTestCommands):
 		self.execute(
 			f"bench new-site {site} --force --verbose "
 			f"--admin-password {frappe.conf.admin_password} "
-			f"--mariadb-root-password {frappe.conf.root_password} "
+			f"--db-root-username {frappe.conf.root_login} "
+			f"--db-root-password {frappe.conf.root_password} "
 			f"--db-type {frappe.conf.db_type} "
 		)
 		self.assertEqual(self.returncode, 0)
 
-		self.execute(f"bench drop-site {site} --force --root-password {frappe.conf.root_password}")
+		self.execute(
+			f"bench drop-site {site} --force "
+			f"--db-root-username {frappe.conf.root_login} "
+			f"--db-root-password {frappe.conf.root_password} "
+		)
 		self.assertEqual(self.returncode, 0)
 
 		bench_path = get_bench_path()
@@ -456,9 +484,7 @@ class TestCommands(BaseTestCommands):
 		self.assertTrue(os.path.exists(archive_directory))
 
 	@skipIf(
-		not (
-			frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"
-		),
+		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type == "mariadb"),
 		"DB Root password and Admin password not set in config",
 	)
 	def test_force_install_app(self):
@@ -466,7 +492,8 @@ class TestCommands(BaseTestCommands):
 			self.execute(
 				f"bench new-site {TEST_SITE} --verbose "
 				f"--admin-password {frappe.conf.admin_password} "
-				f"--mariadb-root-password {frappe.conf.root_password} "
+				f"--db-root-username {frappe.conf.root_login} "
+				f"--db-root-password {frappe.conf.root_password} "
 				f"--db-type {frappe.conf.db_type} "
 			)
 
@@ -493,17 +520,103 @@ class TestCommands(BaseTestCommands):
 
 		self.assertEqual(conf[key], value)
 
+	def test_different_db_username(self):
+		site = frappe.generate_hash()
+		user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
+		password = frappe.generate_hash()
+		kwargs = {
+			"new_site": site,
+			"admin_password": frappe.conf.admin_password,
+			"db_type": frappe.conf.db_type,
+			"db_user": user,
+			"db_password": password,
+			"db_root_username": frappe.conf.root_login,
+			"db_root_password": frappe.conf.root_password or "",
+		}
+		self.execute(
+			"bench new-site {new_site} --force --verbose "
+			"--admin-password {admin_password} "
+			"--db-root-username {db_root_username} "
+			"--db-root-password {db_root_password} "
+			"--db-type {db_type} "
+			"--db-user {db_user} "
+			"--db-password {db_password}",
+			kwargs,
+		)
+		self.assertEqual(self.returncode, 0)
+		self.execute("bench --site {new_site} show-config --format json", kwargs)
+		self.assertEqual(self.returncode, 0)
+		config = json.loads(self.stdout)
+		self.assertEqual(config[site]["db_user"], user)
+		self.assertEqual(config[site]["db_password"], password)
+		self.execute(
+			"bench drop-site {new_site} --force "
+			"--db-root-username {db_root_username} "
+			"--db-root-password {db_root_password} ",
+			kwargs,
+		)
+		self.assertEqual(self.returncode, 0)
+
+	def test_existing_db_username(self):
+		site = frappe.generate_hash()
+		user = "".join(secrets.choice(string.ascii_letters) for _ in range(8))
+		if frappe.conf.db_type == "mariadb":
+			from frappe.database.mariadb.setup_db import get_root_connection
+
+			root_conn = get_root_connection()
+			root_conn.sql(f"CREATE USER '{user}'@'localhost'")
+		else:
+			from frappe.database.postgres.setup_db import get_root_connection
+
+			root_conn = get_root_connection()
+			root_conn.sql(f"CREATE USER {user}")
+		password = frappe.generate_hash()
+		kwargs = {
+			"new_site": site,
+			"admin_password": frappe.conf.admin_password,
+			"db_type": frappe.conf.db_type,
+			"db_user": user,
+			"db_password": password,
+			"db_root_username": frappe.conf.root_login,
+			"db_root_password": frappe.conf.root_password,
+		}
+		self.execute(
+			"bench new-site {new_site} --force --verbose "
+			"--admin-password {admin_password} "
+			"--db-type {db_type} "
+			"--db-user {db_user} "
+			"--db-password {db_password} "
+			"--db-root-username {db_root_username} "
+			"--db-root-password {db_root_password} ",
+			kwargs,
+		)
+		self.assertEqual(self.returncode, 0)
+		self.execute("bench --site {new_site} show-config --format json", kwargs)
+		self.assertEqual(self.returncode, 0)
+		config = json.loads(self.stdout)
+		self.assertEqual(config[site]["db_user"], user)
+		self.assertEqual(config[site]["db_password"], password)
+		self.execute(
+			"bench drop-site {new_site} --force "
+			"--db-root-username {db_root_username} "
+			"--db-root-password {db_root_password} ",
+			kwargs,
+		)
+		self.assertEqual(self.returncode, 0)
+
 
 class TestBackups(BaseTestCommands):
-	backup_map = {
-		"includes": {
-			"includes": [
-				"ToDo",
-				"Note",
-			]
-		},
-		"excludes": {"excludes": ["Activity Log", "Access Log", "Error Log"]},
-	}
+	backup_map = types.MappingProxyType(
+		{
+			"includes": {
+				"includes": [
+					"ToDo",
+					"Note",
+				]
+			},
+			"excludes": {"excludes": ["Activity Log", "Access Log", "Error Log"]},
+		}
+	)
 	home = os.path.expanduser("~")
 	site_backup_path = frappe.utils.get_site_path("private", "backups")
 
@@ -529,12 +642,49 @@ class TestBackups(BaseTestCommands):
 		self.assertIn("successfully completed", self.stdout)
 		self.assertNotEqual(before_backup["database"], after_backup["database"])
 
+	@skipIf(
+		not (frappe.conf.db_type == "mariadb"),
+		"Only for MariaDB",
+	)
+	def test_backup_extract_restore(self):
+		"""Restore a backup after extracting"""
+		self.execute("bench --site {site} backup")
+		self.assertEqual(self.returncode, 0)
+		backup = fetch_latest_backups()
+		self.execute(f"gunzip {backup['database']}")
+		self.assertEqual(self.returncode, 0)
+		backup_sql = backup["database"].replace(".gz", "")
+		assert os.path.isfile(backup_sql)
+		self.execute(
+			"bench --site {site} restore {backup_sql}",
+			{
+				"backup_sql": backup_sql,
+			},
+		)
+		self.assertEqual(self.returncode, 0)
+
+	@skipIf(
+		not (frappe.conf.db_type == "mariadb"),
+		"Only for MariaDB",
+	)
+	def test_old_backup_restore(self):
+		"""Restore a backup after extracting"""
+		self.execute("bench --site {site} backup --old-backup-metadata")
+		self.assertEqual(self.returncode, 0)
+		backup = fetch_latest_backups()
+		self.execute(
+			"bench --site {site} restore {database}",
+			backup,
+		)
+		self.assertEqual(self.returncode, 0)
+
 	def test_backup_fails_with_exit_code(self):
 		"""Provide incorrect options to check if exit code is 1"""
 		odb = BackupGenerator(
 			frappe.conf.db_name,
 			frappe.conf.db_name,
 			frappe.conf.db_password + "INCORRECT PASSWORD",
+			db_socket=frappe.conf.db_socket,
 			db_host=frappe.conf.db_host,
 			db_port=frappe.conf.db_port,
 			db_type=frappe.conf.db_type,
@@ -558,7 +708,7 @@ class TestBackups(BaseTestCommands):
 	@run_only_if(db_type_is.MARIADB)
 	def test_clear_log_table(self):
 		d = frappe.get_doc(doctype="Error Log", title="Something").insert()
-		d.db_set("modified", "2010-01-01", update_modified=False)
+		d.db_set("creation", "2010-01-01", update_modified=False)
 		frappe.db.commit()
 
 		tables_before = frappe.db.get_tables(cached=False)
@@ -575,9 +725,7 @@ class TestBackups(BaseTestCommands):
 	def test_backup_with_custom_path(self):
 		"""Backup to a custom path (--backup-path)"""
 		backup_path = os.path.join(self.home, "backups")
-		self.execute(
-			"bench --site {site} backup --backup-path {backup_path}", {"backup_path": backup_path}
-		)
+		self.execute("bench --site {site} backup --backup-path {backup_path}", {"backup_path": backup_path})
 
 		self.assertEqual(self.returncode, 0)
 		self.assertTrue(os.path.exists(backup_path))
@@ -692,7 +840,12 @@ class TestRemoveApp(FrappeTestCase):
 				"module": "RemoveThis",
 				"custom": 1,
 				"fields": [
-					{"label": "Modulen't", "fieldname": "notmodule", "fieldtype": "Link", "options": "Module Def"}
+					{
+						"label": "Modulen't",
+						"fieldname": "notmodule",
+						"fieldtype": "Link",
+						"options": "Module Def",
+					}
 				],
 			}
 		).insert()
@@ -760,6 +913,26 @@ class TestBenchBuild(BaseTestCommands):
 			CURRENT_SIZE * (1 + JS_ASSET_THRESHOLD),
 			f"Default JS bundle size increased by {JS_ASSET_THRESHOLD:.2%} or more",
 		)
+
+
+class TestDBUtils(BaseTestCommands):
+	def test_db_add_index(self):
+		field = "reset_password_key"
+		self.execute("bench --site {site} add-database-index --doctype User --column " + field, {})
+		frappe.db.rollback()
+		index_name = frappe.db.get_index_name((field,))
+		self.assertTrue(frappe.db.has_index("tabUser", index_name))
+		meta = frappe.get_meta("User", cached=False)
+		self.assertTrue(meta.get_field(field).search_index)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_describe_table(self):
+		self.execute("bench --site {site} describe-database-table --doctype User", {})
+		self.assertIn("user_type", self.stdout)
+
+		# Ensure that output is machine parseable
+		stats = json.loads(self.stdout)
+		self.assertIn("total_rows", stats)
 
 
 class TestSchedulerUtils(BaseTestCommands):
@@ -838,3 +1011,10 @@ class TestSchedulerCLI(BaseTestCommands):
 		self.execute("bench --site {site} scheduler resume")
 		self.assertEqual(self.returncode, 0)
 		self.assertRegex(self.stdout, r"Scheduler is resumed for site .*")
+
+
+class TestCLIImplementation(BaseTestCommands):
+	def test_missing_commands(self):
+		self.execute("bench --site {site} migrat")
+		self.assertNotEqual(self.returncode, 0)
+		self.assertRegex(self.stderr, r"No such.*migrat.*migrate")

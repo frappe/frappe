@@ -17,6 +17,7 @@
   "options",
   "max_length",
   "max_value",
+  "precision",
   "property_depends_on_section",
   "depends_on",
   "mandatory_depends_on",
@@ -143,17 +144,25 @@
    "fieldtype": "Code",
    "label": "Read Only Depends On",
    "options": "JS"
+  },
+  {
+   "depends_on": "eval:in_list([\"Float\", \"Currency\", \"Percent\"], doc.fieldtype)",
+   "description": "Set non-standard precision for a Float or Currency field",
+   "fieldname": "precision",
+   "fieldtype": "Select",
+   "label": "Precision",
+   "options": "\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2022-11-21 17:41:52.139191",
+ "modified": "2024-03-23 16:04:02.173108",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form Field",
  "owner": "Administrator",
  "permissions": [],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }

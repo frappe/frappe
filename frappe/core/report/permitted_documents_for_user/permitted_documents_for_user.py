@@ -36,11 +36,7 @@ def get_columns_and_fields(doctype):
 		if df.in_list_view and df.fieldtype in data_fieldtypes:
 			fields.append(f"`{df.fieldname}`")
 			fieldtype = f"Link/{df.options}" if df.fieldtype == "Link" else df.fieldtype
-			columns.append(
-				"{label}:{fieldtype}:{width}".format(
-					label=df.label, fieldtype=fieldtype, width=df.width or 100
-				)
-			)
+			columns.append(f"{df.label}:{fieldtype}:{df.width or 100}")
 
 	return columns, fields
 
@@ -59,6 +55,6 @@ def query_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	return [
 		[dt]
 		for dt in can_read
-		if txt.lower().replace("%", "") in dt.lower()
+		if txt.lower().replace("%", "") in frappe._(dt).lower()
 		and (include_single_doctypes or dt not in single_doctypes)
 	]

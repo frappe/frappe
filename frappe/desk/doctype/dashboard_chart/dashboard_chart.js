@@ -30,19 +30,21 @@ frappe.ui.form.on("Dashboard Chart", {
 			frm.disable_form();
 		}
 
-		frm.add_custom_button("Add Chart to Dashboard", () => {
-			const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
-				frm.doc.name,
-				"Dashboard Chart",
-				"frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard"
-			);
+		if (!frm.is_new()) {
+			frm.add_custom_button("Add Chart to Dashboard", () => {
+				const dialog = frappe.dashboard_utils.get_add_to_dashboard_dialog(
+					frm.doc.name,
+					"Dashboard Chart",
+					"frappe.desk.doctype.dashboard_chart.dashboard_chart.add_chart_to_dashboard"
+				);
 
-			if (!frm.doc.chart_name) {
-				frappe.msgprint(__("Please create chart first"));
-			} else {
-				dialog.show();
-			}
-		});
+				if (!frm.doc.chart_name) {
+					frappe.msgprint(__("Please create chart first"));
+				} else {
+					dialog.show();
+				}
+			});
+		}
 
 		frm.set_df_property("filters_section", "hidden", 1);
 		frm.set_df_property("dynamic_filters_section", "hidden", 1);

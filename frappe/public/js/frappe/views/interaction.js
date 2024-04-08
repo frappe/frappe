@@ -75,7 +75,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 				options: "",
 				hidden: 1,
 			},
-			{ label: __("Public"), fieldtype: "Check", fieldname: "public", default: "1" },
+			{ label: __("Public"), fieldtype: "Check", fieldname: "public", default: "0" },
 			{ fieldtype: "Column Break" },
 			{ label: __("Date"), fieldtype: "Datetime", fieldname: "due_date" },
 			{
@@ -354,7 +354,7 @@ function get_doc_mappings() {
 				due_date: "date",
 				reference_doctype: "reference_type",
 				reference_document: "reference_name",
-				assigned_to: "owner",
+				assigned_to: "allocated_to",
 			},
 			reqd_fields: ["description"],
 			hidden_fields: ["public", "category"],

@@ -11,21 +11,21 @@ const props = defineProps({
 	targetPosition: { type: String, required: false },
 	sourceHandle: { type: Object, required: false },
 	targetHandle: { type: Object, required: false },
-	markerEnd: { type: String, required: false }
+	markerEnd: { type: String, required: false },
 });
 
 let opposite = {
 	left: "left",
 	right: "right",
 	top: "bottom",
-	bottom: "top"
+	bottom: "top",
 };
 
 const d = computed(() =>
 	getSmoothStepPath({
 		...props,
 		borderRadius: 30,
-		targetPosition: opposite[props.targetPosition]
+		targetPosition: opposite[props.targetPosition],
 	})
 );
 </script>

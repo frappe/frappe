@@ -39,7 +39,7 @@ class GoogleOAuth:
 		self.domain = domain.lower()
 		self.scopes = (
 			" ".join(_SCOPES[self.domain])
-			if isinstance(_SCOPES[self.domain], (list, tuple))
+			if isinstance(_SCOPES[self.domain], list | tuple)
 			else _SCOPES[self.domain]
 		)
 
@@ -56,7 +56,7 @@ class GoogleOAuth:
 			frappe.throw(frappe._("Please update {} before continuing.").format(google_settings))
 
 	def authorize(self, oauth_code: str) -> dict[str, str | int]:
-		"""Returns a dict with access and refresh token.
+		"""Return a dict with access and refresh token.
 
 		:param oauth_code: code got back from google upon successful auhtorization
 		"""
@@ -99,7 +99,7 @@ class GoogleOAuth:
 		)
 
 	def get_authentication_url(self, state: dict[str, str]) -> dict[str, str]:
-		"""Returns google authentication url.
+		"""Return Google authentication url.
 
 		:param state: dict of values which you need on callback (for calling methods, redirection back to the form, doc name, etc)
 		"""
@@ -117,7 +117,7 @@ class GoogleOAuth:
 		}
 
 	def get_google_service_object(self, access_token: str, refresh_token: str):
-		"""Returns google service object"""
+		"""Return Google service object."""
 
 		credentials_dict = {
 			"token": access_token,
@@ -145,9 +145,7 @@ def handle_response(
 	raise_err: bool = False,
 ):
 	if "error" in response:
-		frappe.log_error(
-			frappe._(error_title), frappe._(response.get("error_description", error_message))
-		)
+		frappe.log_error(frappe._(error_title), frappe._(response.get("error_description", error_message)))
 
 		if raise_err:
 			frappe.throw(frappe._(error_title), GoogleAuthenticationError, frappe._(error_message))
@@ -158,9 +156,7 @@ def handle_response(
 
 
 def is_valid_access_token(access_token: str) -> bool:
-	response = get(
-		"https://oauth2.googleapis.com/tokeninfo", params={"access_token": access_token}
-	).json()
+	response = get("https://oauth2.googleapis.com/tokeninfo", params={"access_token": access_token}).json()
 
 	if "error" in response:
 		return False
@@ -169,7 +165,7 @@ def is_valid_access_token(access_token: str) -> bool:
 
 
 @frappe.whitelist(methods=["GET"])
-def callback(state: str, code: str = None, error: str = None) -> None:
+def callback(state: str, code: str | None = None, error: str | None = None) -> None:
 	"""Common callback for google integrations.
 	Invokes functions using `frappe.get_attr` and also adds required (keyworded) arguments
 	along with committing and redirecting us back to frappe site."""
@@ -196,6 +192,4 @@ def callback(state: str, code: str = None, error: str = None) -> None:
 			)
 
 	frappe.local.response["type"] = "redirect"
-	frappe.local.response[
-		"location"
-	] = f"{redirect}?{failure_query_param if error else success_query_param}"
+	frappe.local.response["location"] = f"{redirect}?{failure_query_param if error else success_query_param}"

@@ -25,7 +25,16 @@ class DeletedDocument(Document):
 		new_name: DF.ReadOnly | None
 		restored: DF.Check
 	# end: auto-generated types
+
 	pass
+
+	@staticmethod
+	def clear_old_logs(days=180):
+		from frappe.query_builder import Interval
+		from frappe.query_builder.functions import Now
+
+		table = frappe.qb.DocType("Deleted Document")
+		frappe.db.delete(table, filters=(table.creation < (Now() - Interval(days=days))))
 
 
 @frappe.whitelist()
@@ -73,11 +82,11 @@ def bulk_restore(docnames):
 			restored.append(d)
 
 		except frappe.DocumentAlreadyRestored:
-			frappe.message_log.pop()
+			frappe.clear_last_message()
 			invalid.append(d)
 
 		except Exception:
-			frappe.message_log.pop()
+			frappe.clear_last_message()
 			failed.append(d)
 			frappe.db.rollback()
 

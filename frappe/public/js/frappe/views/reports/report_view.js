@@ -35,7 +35,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				this.add_totals_row = this.report_doc.json.add_totals_row;
 				this.page_title = __(this.report_name);
 				this.page_length = this.report_doc.json.page_length || 20;
-				this.order_by = this.report_doc.json.order_by || "modified desc";
+				this.order_by = this.report_doc.json.order_by || "creation desc";
 				this.chart_args = this.report_doc.json.chart_args;
 			});
 		} else {
@@ -76,6 +76,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_charts_area();
 		this.$datatable_wrapper = $('<div class="datatable-wrapper">');
 		this.$result.append(this.$datatable_wrapper);
+		this.settings.onload && this.settings.onload(this);
 	}
 
 	setup_charts_area() {
@@ -110,10 +111,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 		//Setup groupby for reports
 		this.group_by_control = new frappe.ui.GroupBy(this);
-		if (this.report_doc && this.report_doc.json.group_by) {
+		if (this.report_doc?.json?.group_by) {
 			this.group_by_control.apply_settings(this.report_doc.json.group_by);
-		}
-		if (this.view_user_settings && this.view_user_settings.group_by) {
+		} else if (this.view_user_settings?.group_by) {
 			this.group_by_control.apply_settings(this.view_user_settings.group_by);
 		}
 	}
@@ -220,19 +220,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.setup_datatable(this.data);
 	}
 
-	render_count() {
-		if (this.list_view_settings?.disable_count) {
-			return;
-		}
-		let $list_count = this.$paging_area.find(".list-count");
-		if (!$list_count.length) {
-			$list_count = $("<span>")
+	get_count_element() {
+		let $count = this.$paging_area.find(".list-count");
+		if (!$count.length) {
+			$count = $("<span>")
 				.addClass("text-muted list-count")
 				.prependTo(this.$paging_area.find(".level-right"));
 		}
-		this.get_count_str().then((str) => {
-			$list_count.text(str);
-		});
+		return $count;
 	}
 
 	on_update(data) {
@@ -334,7 +329,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						columns_in_picker = columns[this.doctype]
 							.filter((df) => !this.is_column_added(df))
 							.map((df) => ({
-								label: __(df.label),
+								label: __(df.label, null, df.parent),
 								value: df.fieldname,
 							}));
 
@@ -344,7 +339,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							columns[cdt]
 								.filter((df) => !this.is_column_added(df))
 								.map((df) => ({
-									label: __(df.label) + ` (${cdt})`,
+									label: __(df.label, null, df.parent) + ` (${cdt})`,
 									value: df.fieldname + "," + cdt,
 								}))
 								.forEach((df) => columns_in_picker.push(df));
@@ -889,14 +884,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	get_columns_for_picker() {
 		let out = {};
 
-		const standard_fields_filter = (df) => !in_list(frappe.model.no_value_type, df.fieldtype);
+		const standard_fields_filter = (df) => !frappe.model.no_value_type.includes(df.fieldtype);
 
 		let doctype_fields = frappe.meta
 			.get_docfields(this.doctype)
 			.filter(standard_fields_filter);
 
 		// filter out docstatus field from picker
-		let std_fields = frappe.model.std_fields.filter((df) => df.fieldname !== "docstatus");
+		let std_fields = frappe.model.std_fields.filter(
+			(df) => !["docstatus", "_comments"].includes(df.fieldname)
+		);
 
 		// add status field derived from docstatus, if status is not a standard field
 		let has_status_values = false;
@@ -961,7 +958,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					return !df.hidden && df.fieldname !== "name";
 				})
 				.map((df) => ({
-					label: __(df.label),
+					label: __(df.label, null, df.parent),
 					value: df.fieldname,
 					checked: this.fields.find(
 						(f) => f[0] === df.fieldname && f[1] === this.doctype
@@ -977,7 +974,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			const cdt = df.options;
 
 			dialog_fields.push({
-				label: __(df.label) + ` (${__(cdt)})`,
+				label: __(df.label, null, df.parent) + ` (${__(cdt)})`,
 				fieldname: df.options,
 				fieldtype: "MultiCheck",
 				columns: 2,
@@ -986,7 +983,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						return !df.hidden;
 					})
 					.map((df) => ({
-						label: __(df.label),
+						label: __(df.label, null, df.parent),
 						value: df.fieldname,
 						checked: this.fields.find((f) => f[0] === df.fieldname && f[1] === cdt),
 					})),
@@ -1075,7 +1072,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 		if (!docfield || docfield.report_hide) return;
 
-		let title = __(docfield.label);
+		let title = __(docfield.label, null, docfield.parent);
 		if (doctype !== this.doctype) {
 			title += ` (${__(doctype)})`;
 		}
@@ -1251,6 +1248,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 
 		return items;
+	}
+
+	clear_checked_items() {
+		this.datatable.rowmanager.checkAll(false);
 	}
 
 	save_report(save_type) {
@@ -1470,7 +1471,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					if (this.add_totals_row) {
 						const total_data = this.get_columns_totals(this.data);
 
-						total_data["name"] = __("Totals").bold();
+						total_data["name"] = __("Total");
+						total_data.is_total_row = true;
 						rows_in_order.push(total_data);
 					}
 
@@ -1668,5 +1670,35 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		}
 
 		return items.map((i) => Object.assign(i, { standard: true }));
+	}
+
+	get_search_params() {
+		let search_params = super.get_search_params();
+		let config = this.group_by_control.get_settings();
+		if (config) {
+			search_params.append(
+				"_group_by",
+				JSON.stringify([config.group_by, config.aggregate_on, config.aggregate_function])
+			);
+		}
+		return search_params;
+	}
+
+	parse_filters_from_route_options() {
+		if (frappe.route_options?._group_by) {
+			try {
+				let config = JSON.parse(frappe.route_options._group_by);
+				this.group_by_control.apply_settings({
+					group_by: config[0],
+					aggregate_on: config[1],
+					aggregate_function: config[2],
+				});
+				delete frappe.route_options["_group_by"];
+			} catch (e) {
+				console.warn("Failed to parse group by from URL", e);
+			}
+		}
+
+		return super.parse_filters_from_route_options();
 	}
 };

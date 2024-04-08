@@ -108,6 +108,16 @@ $.extend(frappe.model, {
 		"docstatus",
 	],
 
+	html_fieldtypes: [
+		"Text Editor",
+		"Text",
+		"Small Text",
+		"Long Text",
+		"HTML Editor",
+		"Markdown Editor",
+		"Code",
+	],
+
 	std_fields: [
 		{ fieldname: "name", fieldtype: "Link", label: __("ID") },
 		{ fieldname: "owner", fieldtype: "Link", label: __("Created By"), options: "User" },
@@ -382,6 +392,11 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_delete.indexOf(doctype) !== -1;
 	},
 
+	can_submit: function (doctype) {
+		if (!doctype) return false;
+		return frappe.boot.user.can_submit.indexOf(doctype) !== -1;
+	},
+
 	can_cancel: function (doctype) {
 		if (!doctype) return false;
 		return frappe.boot.user.can_cancel.indexOf(doctype) !== -1;
@@ -550,7 +565,7 @@ $.extend(frappe.model, {
 				tasks.push(() => frappe.model.trigger(key, value, doc, skip_dirty_trigger));
 			} else {
 				// execute link triggers (want to reselect to execute triggers)
-				if (in_list(["Link", "Dynamic Link"], fieldtype) && doc) {
+				if (["Link", "Dynamic Link"].includes(fieldtype) && doc) {
 					tasks.push(() => frappe.model.trigger(key, value, doc, skip_dirty_trigger));
 				}
 			}

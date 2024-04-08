@@ -153,6 +153,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			JS: "ace/mode/javascript",
 			Python: "ace/mode/python",
 			Py: "ace/mode/python",
+			PythonExpression: "ace/mode/python",
 			HTML: "ace/mode/html",
 			CSS: "ace/mode/css",
 			Markdown: "ace/mode/markdown",
@@ -160,6 +161,8 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			JSON: "ace/mode/json",
 			Golang: "ace/mode/golang",
 			Go: "ace/mode/golang",
+			Jinja: "ace/mode/django",
+			SQL: "ace/mode/sql",
 		};
 		const language = this.df.options;
 

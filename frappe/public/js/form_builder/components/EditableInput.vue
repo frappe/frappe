@@ -5,13 +5,13 @@ let store = useStore();
 
 const props = defineProps({
 	text: {
-		type: String
+		type: String,
 	},
 	placeholder: {
-		default: __("No Label")
+		default: __("No Label"),
 	},
 	empty_label: {
-		default: __("No Label")
+		default: __("No Label"),
 	},
 });
 
@@ -35,6 +35,8 @@ function focus_on_label() {
 		nextTick(() => input_text.value.focus());
 	}
 }
+
+defineExpose({ focus_on_label });
 </script>
 
 <template>
@@ -48,12 +50,12 @@ function focus_on_label() {
 			:placeholder="placeholder"
 			:value="text"
 			:style="{ width: hidden_span_width }"
-			@input="event => $emit('update:modelValue', event.target.value)"
+			@input="(event) => $emit('update:modelValue', event.target.value)"
 			@keydown.enter="editing = false"
 			@blur="editing = false"
 			@click.stop
 		/>
-		<span v-else-if="text" v-html="text" ></span>
+		<span v-else-if="text" v-html="text"></span>
 		<i v-else class="text-muted">
 			{{ empty_label }}
 		</i>
@@ -70,7 +72,6 @@ function focus_on_label() {
 
 	&:focus {
 		outline: none;
-		border-radius: var(--border-radius);
 		background-color: inherit;
 	}
 
