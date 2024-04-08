@@ -30,12 +30,13 @@ class ChangelogFeed(Document):
 
 
 def get_feed(since):
+	"""'What's New' feed implementation for Frappe"""
 	r = requests.get(f"https://frappe.io/api/method/fetch_changelog?since={since}").json()
 	changelog_posts = r["message"]
 	return changelog_posts
 
 
-def fetch_changelog_feed_items_from_source():
+def fetch_changelog_feed():
 	"""Fetches changelog feed items from source using `get_changelog_feed` hook and stores in the db"""
 	since = frappe.db.get_value(
 		"Changelog Feed",
@@ -45,19 +46,28 @@ def fetch_changelog_feed_items_from_source():
 	)
 
 	for fn in frappe.get_hooks("get_changelog_feed"):
-		with suppress(Exception):
-			for changelog_feed_item in frappe.call(fn, since=since):
-				change_log_feed_item_dict = {
-					"doctype": "Changelog Feed",
-					"title": changelog_feed_item["title"],
-					"app_name": changelog_feed_item["app_name"],
-					"link": changelog_feed_item["link"],
-					"posting_timestamp": changelog_feed_item["creation"],
+		try:
+			cache_key = f"changelog_feed::{fn}"
+			changelog_feed = frappe.cache.get_value(cache_key, shared=True)
+			if changelog_feed is None:
+				changelog_feed = frappe.call(fn, since=since)[:20] or []
+				frappe.cache.set_value(
+					cache_key, changelog_feed, expires_in_sec=7 * 24 * 60 * 60, shared=True
+				)
+
+			for feed_item in changelog_feed:
+				feed = {
+					"title": feed_item["title"],
+					"app_name": feed_item["app_name"],
+					"link": feed_item["link"],
+					"posting_timestamp": feed_item["creation"],
 				}
-				if not frappe.db.exists(change_log_feed_item_dict):
-					feed_doc = frappe.new_doc("Changelog Feed")
-					feed_doc.update(change_log_feed_item_dict)
-					feed_doc.insert()
+				if not frappe.db.exists("Changelog Feed", feed):
+					frappe.new_doc("Changelog Feed").update(feed).insert()
+		except Exception:
+			frappe.log_error(f"Failed to fetch changelog from {fn}")
+			# don't retry if it's broken for 1 week
+			frappe.cache.set_value(cache_key, [], expires_in_sec=7 * 24 * 60 * 60, shared=True)
 
 
 @frappe.whitelist()
@@ -67,6 +77,8 @@ def get_changelog_feed_items():
 	return frappe.get_all(
 		"Changelog Feed",
 		fields=["title", "app_name", "link", "posting_timestamp"],
+		# allow pubishing feed for many apps with single hook
+		filters={"app_name": ("in", frappe.get_installed_apps())},
 		order_by="posting_timestamp desc",
 		limit=10,
 	)

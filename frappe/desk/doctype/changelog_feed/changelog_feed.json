@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "beta": 1,
  "creation": "2023-05-16 19:37:51.047664",
  "default_view": "List",
  "doctype": "DocType",
@@ -40,9 +41,10 @@
    "search_index": 1
   }
  ],
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-08 16:55:05.943403",
+ "modified": "2024-04-08 17:28:33.854732",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Changelog Feed",
@@ -61,6 +63,7 @@
    "write": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []
