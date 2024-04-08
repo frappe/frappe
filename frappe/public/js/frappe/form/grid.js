@@ -1214,7 +1214,7 @@ export default class Grid {
 
 	clear_custom_buttons() {
 		// hide all custom buttons
-		this.grid_buttons.find(".btn-custom").addClass("hidden");
+		this.grid_custom_buttons.find(".btn-custom").addClass("hidden");
 	}
 
 	update_docfield_property(fieldname, property, value) {
