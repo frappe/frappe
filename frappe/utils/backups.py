@@ -248,21 +248,19 @@ class BackupGenerator:
 
 	def get_recent_backup(self, older_than, partial=False):
 		backup_path = get_backup_path()
+		separator = suffix = ""
+		if partial:
+			separator = "*"
 
-		if not frappe.get_system_settings("encrypt_backup"):
-			file_type_slugs = {
-				"database": "*-{{}}-{}database.sql.gz".format("*" if partial else ""),
-				"public": "*-{}-files.tar",
-				"private": "*-{}-private-files.tar",
-				"config": "*-{}-site_config_backup.json",
-			}
-		else:
-			file_type_slugs = {
-				"database": "*-{{}}-{}database.enc.sql.gz".format("*" if partial else ""),
-				"public": "*-{}-files.enc.tar",
-				"private": "*-{}-private-files.enc.tar",
-				"config": "*-{}-site_config_backup.json",
-			}
+		if frappe.get_system_settings("encrypt_backup"):
+			suffix = "-enc"
+
+		file_type_slugs = {
+			"database": f"*-{{}}-{separator}database{suffix}.sql.gz",
+			"public": f"*-{{}}-files{suffix}.tar",
+			"private": f"*-{{}}-private-files{suffix}.tar",
+			"config": f"*-{{}}-site_config_backup{suffix}.json",
+		}
 
 		def backup_time(file_path):
 			file_name = file_path.split(os.sep)[-1]
