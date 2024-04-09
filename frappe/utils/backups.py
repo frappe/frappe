@@ -7,6 +7,7 @@ import gzip
 import os
 import sys
 from calendar import timegm
+from collections.abc import Callable
 from datetime import datetime
 from glob import glob
 from shutil import which
@@ -57,6 +58,7 @@ class BackupGenerator:
 		exclude_doctypes="",
 		verbose=False,
 		old_backup_metadata=False,
+		rollback_callback=None,
 	):
 		global _verbose
 		self.compress_files = compress_files or compress
@@ -76,6 +78,7 @@ class BackupGenerator:
 		self.exclude_doctypes = exclude_doctypes
 		self.partial = False
 		self.old_backup_metadata = old_backup_metadata
+		self.rollback_callback = rollback_callback
 
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
@@ -188,9 +191,13 @@ class BackupGenerator:
 
 		if not (last_db and last_file and last_private_file and site_config_backup_path):
 			self.take_dump()
+			self.add_to_rollback(lambda: os.remove(self.backup_path_db))
 			self.copy_site_config()
+			self.add_to_rollback(lambda: os.remove(self.backup_path_conf))
 			if not ignore_files:
 				self.backup_files()
+				self.add_to_rollback(lambda: os.remove(self.backup_path_files))
+				self.add_to_rollback(lambda: os.remove(self.backup_path_private_files))
 
 			if frappe.get_system_settings("encrypt_backup"):
 				self.backup_encryption()
@@ -476,6 +483,16 @@ download only after 24 hours."""
 		frappe.sendmail(recipients=recipient_list, message=msg, subject=subject)
 		return recipient_list
 
+	def add_to_rollback(self, func: Callable) -> None:
+		"""
+		Adds the given callable to the rollback CallbackManager stack
+
+		:param func: The callable to add to the rollback stack
+		:return: Nothing
+		"""
+		if self.rollback_callback:
+			self.rollback_callback.add(func)
+
 
 @frappe.whitelist()
 def fetch_latest_backups(partial=False):
@@ -514,6 +531,7 @@ def scheduled_backup(
 	force=False,
 	verbose=False,
 	old_backup_metadata=False,
+	rollback_callback=None,
 ):
 	"""this function is called from scheduler
 	deletes backups older than 7 days
@@ -533,6 +551,7 @@ def scheduled_backup(
 		force=force,
 		verbose=verbose,
 		old_backup_metadata=old_backup_metadata,
+		rollback_callback=rollback_callback,
 	)
 
 
@@ -551,6 +570,7 @@ def new_backup(
 	force=False,
 	verbose=False,
 	old_backup_metadata=False,
+	rollback_callback=None,
 ):
 	delete_temp_backups()
 	odb = BackupGenerator(
@@ -571,6 +591,7 @@ def new_backup(
 		verbose=verbose,
 		compress_files=compress,
 		old_backup_metadata=old_backup_metadata,
+		rollback_callback=rollback_callback,
 	)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
