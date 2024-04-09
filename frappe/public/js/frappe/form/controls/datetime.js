@@ -16,7 +16,7 @@ frappe.ui.form.ControlDatetime = class ControlDatetime extends frappe.ui.form.Co
 	}
 
 	get_start_date() {
-		this.value = this.value == null ? undefined : this.value;
+		this.value = this.value == null || this.value == "" ? undefined : this.value;
 		let value = frappe.datetime.convert_to_user_tz(this.value);
 		return frappe.datetime.str_to_obj(value);
 	}

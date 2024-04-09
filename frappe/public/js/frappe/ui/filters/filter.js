@@ -244,7 +244,7 @@ frappe.ui.Filter = class {
 			let args = {};
 			if (this.filters_config[condition].depends_on) {
 				const field_name = this.filters_config[condition].depends_on;
-				const filter_value = this.filter_list.get_filter_value(fieldname);
+				const filter_value = this.filter_list.get_filter_value(field_name);
 				args[field_name] = filter_value;
 			}
 			let setup_field = (field) => {
@@ -419,6 +419,12 @@ frappe.ui.filter_utils = {
 		if (!field) return;
 
 		let val = field.get_value() ?? field.value;
+
+		if (!val && ["Link", "Dynamic Link"].includes(field.df.fieldtype)) {
+			// HACK: link field with show title are async so their input value is "" but they have
+			// some actual value set.
+			val = field.value;
+		}
 
 		if (typeof val === "string") {
 			val = strip(val);

@@ -765,10 +765,13 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 	if user == "Administrator":
 		return ""
 
+	if frappe.get_cached_value("User", user, "user_type") != "System User":
+		return f""" `tabFile`.`owner` = {frappe.db.escape(user)} """
+
 	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read())
 	return f"""
 		(`tabFile`.`is_private` = 0)
-		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {user !r})
+		OR (`tabFile`.`attached_to_doctype` IS NULL AND `tabFile`.`owner` = {frappe.db.escape(user)})
 		OR (`tabFile`.`attached_to_doctype` IN ({readable_doctypes}))
 	"""
 
