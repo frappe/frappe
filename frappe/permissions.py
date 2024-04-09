@@ -443,8 +443,8 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 	if not user:
 		user = frappe.session.user
 
-	methods = frappe.get_hooks("has_permission").get(doc.doctype, [])
-	methods += frappe.get_hooks("has_permission").get("*", [])
+	hooks = frappe.get_hooks("has_permission")
+	methods = hooks.get(doc.doctype, []) + hooks.get("*", [])
 
 	if not methods:
 		return True

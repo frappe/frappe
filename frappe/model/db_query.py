@@ -1036,8 +1036,8 @@ class DatabaseQuery:
 
 	def get_permission_query_conditions(self):
 		conditions = []
-		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.doctype, [])
-		condition_methods += frappe.get_hooks("permission_query_conditions", {}).get("*", [])
+		hooks = frappe.get_hooks("permission_query_conditions", {})
+		condition_methods = hooks.get(self.doctype, []) + hooks.get("*", [])
 		if condition_methods:
 			for method in condition_methods:
 				c = frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype)
