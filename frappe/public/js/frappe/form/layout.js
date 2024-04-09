@@ -205,6 +205,10 @@ frappe.ui.form.Layout = class Layout {
 
 		const parent = this.column.wrapper.get(0);
 		const fieldobj = this.init_field(df, parent, render);
+
+		// An invalid control name will return in a null fieldobj
+		if (!fieldobj) return;
+
 		this.fields_list.push(fieldobj);
 		this.fields_dict[df.fieldname] = fieldobj;
 
@@ -230,7 +234,11 @@ frappe.ui.form.Layout = class Layout {
 			layout: this,
 		});
 
-		fieldobj.layout = this;
+		// make_control can return null for invalid control names
+		if (fieldobj) {
+			fieldobj.layout = this;
+		}
+
 		return fieldobj;
 	}
 
