@@ -54,6 +54,7 @@ frappe.views.CommunicationComposer = class {
 				fieldtype: "MultiSelect",
 				reqd: 0,
 				fieldname: "recipients",
+				default: this.get_default_recipients("recipients"),
 			},
 			{
 				fieldtype: "Button",
@@ -72,11 +73,13 @@ frappe.views.CommunicationComposer = class {
 				label: __("CC"),
 				fieldtype: "MultiSelect",
 				fieldname: "cc",
+				default: this.get_default_recipients("cc"),
 			},
 			{
 				label: __("BCC"),
 				fieldtype: "MultiSelect",
 				fieldname: "bcc",
+				default: this.get_default_recipients("bcc"),
 			},
 			{
 				label: __("Schedule Send At"),
@@ -199,6 +202,14 @@ frappe.views.CommunicationComposer = class {
 		return fields;
 	}
 
+	get_default_recipients(fieldname) {
+		if (this.frm?.events.get_email_recipients) {
+			return (this.frm.events.get_email_recipients(this.frm, fieldname) || []).join(", ");
+		} else {
+			return "";
+		}
+	}
+
 	guess_language() {
 		// when attach print for print format changes try to guess language
 		// if print format has language then set that else boot lang.
@@ -209,7 +220,7 @@ frappe.views.CommunicationComposer = class {
 		// 3. user lang
 		// 4. system lang
 		// 3 and 4 are resolved already in boot
-		let document_lang = this.frm.doc?.language;
+		let document_lang = this.frm?.doc?.language;
 		let print_format = this.dialog.get_value("select_print_format");
 
 		let print_format_lang;
@@ -255,10 +266,18 @@ frappe.views.CommunicationComposer = class {
 			this.dialog.fields_dict[field].get_data = () => {
 				const data = this.dialog.fields_dict[field].get_value();
 				const txt = data.match(/[^,\s*]*$/)[0] || "";
+				const args = { txt };
+
+				if (this.frm?.events.get_email_recipient_filters) {
+					args.extra_filters = this.frm.events.get_email_recipient_filters(
+						this.frm,
+						field
+					);
+				}
 
 				frappe.call({
 					method: "frappe.email.get_contact_list",
-					args: { txt },
+					args: args,
 					callback: (r) => {
 						this.dialog.fields_dict[field].set_data(r.message);
 					},

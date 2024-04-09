@@ -14,6 +14,7 @@ from frappe.handler import execute_cmd
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 from frappe.query_builder import Column
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
@@ -266,6 +267,11 @@ class TestDBQuery(FrappeTestCase):
 			self.assertFalse(
 				result in DatabaseQuery("DocType").execute(filters={"name": ["not in", "DocType,DocField"]})
 			)
+
+	def test_string_as_field(self):
+		self.assertEqual(
+			frappe.get_all("DocType", as_list=True), frappe.get_all("DocType", fields="name", as_list=True)
+		)
 
 	def test_none_filter(self):
 		query = frappe.qb.get_query("DocType", fields="name", filters={"restrict_to_domain": None})
@@ -1172,8 +1178,14 @@ class TestDBQuery(FrappeTestCase):
 		data = get()
 		self.assertEqual(len(data["values"]), 1)
 
+	def test_select_star_expansion(self):
+		count = frappe.get_list("Language", ["SUM(1)", "COUNT(*)"], as_list=1, order_by=None)[0]
+		self.assertEqual(count[0], frappe.db.count("Language"))
+		self.assertEqual(count[1], frappe.db.count("Language"))
+
 
 class TestReportView(FrappeTestCase):
+	@run_only_if(db_type_is.MARIADB)  # TODO: postgres name casting is messed up
 	def test_get_count(self):
 		frappe.local.request = frappe._dict()
 		frappe.local.request.method = "GET"
@@ -1226,6 +1238,20 @@ class TestReportView(FrappeTestCase):
 				"filters": [["DocType", "is_virtual", "=", 1]],
 				"fields": [],
 				"distinct": "false",
+				"limit": limit,
+			}
+		)
+		count = execute_cmd("frappe.desk.reportview.get_count")
+		self.assertIsInstance(count, int)
+		self.assertLessEqual(count, limit)
+
+		# test with distinct
+		limit = 2
+		frappe.local.form_dict = frappe._dict(
+			{
+				"doctype": "DocType",
+				"fields": [],
+				"distinct": "true",
 				"limit": limit,
 			}
 		)

@@ -155,7 +155,7 @@ def schedule_jobs_based_on_activity(check_time=None):
 	Also return True for inactive sites once every 24 hours based on `Scheduled Job Log`."""
 	if is_dormant(check_time=check_time):
 		# ensure last job is one day old
-		last_job_timestamp = _get_last_modified_timestamp("Scheduled Job Log")
+		last_job_timestamp = _get_last_creation_timestamp("Scheduled Job Log")
 		if not last_job_timestamp:
 			return True
 		else:
@@ -171,7 +171,7 @@ def schedule_jobs_based_on_activity(check_time=None):
 
 
 def is_dormant(check_time=None):
-	last_activity_log_timestamp = _get_last_modified_timestamp("Activity Log")
+	last_activity_log_timestamp = _get_last_creation_timestamp("Activity Log")
 	since = (frappe.get_system_settings("dormant_days") or 4) * 86400
 	if not last_activity_log_timestamp:
 		return True
@@ -180,8 +180,8 @@ def is_dormant(check_time=None):
 	return False
 
 
-def _get_last_modified_timestamp(doctype):
-	timestamp = frappe.db.get_value(doctype, filters={}, fieldname="modified", order_by="modified desc")
+def _get_last_creation_timestamp(doctype):
+	timestamp = frappe.db.get_value(doctype, filters={}, fieldname="creation", order_by="creation desc")
 	if timestamp:
 		return get_datetime(timestamp)
 

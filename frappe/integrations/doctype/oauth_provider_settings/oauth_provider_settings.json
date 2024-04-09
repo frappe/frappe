@@ -18,7 +18,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2022-08-03 12:20:52.328415",
+ "modified": "2024-03-23 16:03:32.808772",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Provider Settings",
@@ -36,7 +36,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

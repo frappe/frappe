@@ -108,7 +108,7 @@ def get_list_data(
 		filters=filters,
 		limit_start=limit_start,
 		limit_page_length=limit,
-		order_by=list_context.order_by or "modified desc",
+		order_by=list_context.order_by or "creation desc",
 	)
 
 	# allow guest if flag is set

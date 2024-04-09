@@ -99,7 +99,7 @@
   }
  ],
  "links": [],
- "modified": "2023-07-24 13:52:55.651462",
+ "modified": "2024-03-23 16:01:30.075730",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Comment",
@@ -131,7 +131,7 @@
   }
  ],
  "quick_entry": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "comment_type",

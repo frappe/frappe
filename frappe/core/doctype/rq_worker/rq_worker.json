@@ -114,7 +114,7 @@
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2024-02-29 19:31:08.502527",
+ "modified": "2024-03-23 16:03:37.451604",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "RQ Worker",
@@ -130,7 +130,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [
   {

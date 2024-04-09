@@ -288,7 +288,7 @@
   }
  ],
  "links": [],
- "modified": "2023-09-18 13:41:05.263676",
+ "modified": "2024-03-23 16:02:16.230433",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
@@ -329,7 +329,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

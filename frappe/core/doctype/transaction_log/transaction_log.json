@@ -101,7 +101,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2022-08-03 12:20:54.684305",
+ "modified": "2024-03-23 16:03:59.373102",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Transaction Log",
@@ -117,7 +117,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

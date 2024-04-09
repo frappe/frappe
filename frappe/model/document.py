@@ -26,6 +26,8 @@ from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, get
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
+	from typing_extensions import Self
+
 	from frappe.core.doctype.docfield.docfield import DocField
 
 
@@ -144,7 +146,7 @@ class Document(BaseDocument):
 	def is_locked(self):
 		return file_lock.lock_exists(self.get_signature())
 
-	def load_from_db(self):
+	def load_from_db(self) -> "Self":
 		"""Load document and children from database and create properties
 		from fields"""
 		self.flags.ignore_children = True
@@ -202,9 +204,11 @@ class Document(BaseDocument):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
-	def reload(self):
+		return self
+
+	def reload(self) -> "Self":
 		"""Reload document from database"""
-		self.load_from_db()
+		return self.load_from_db()
 
 	def get_latest(self):
 		if not getattr(self, "_doc_before_save", None):
@@ -246,7 +250,7 @@ class Document(BaseDocument):
 		ignore_mandatory=None,
 		set_name=None,
 		set_child_names=True,
-	) -> "Document":
+	) -> "Self":
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -331,11 +335,11 @@ class Document(BaseDocument):
 		if self.creation and self.is_locked:
 			raise frappe.DocumentLockedError
 
-	def save(self, *args, **kwargs):
+	def save(self, *args, **kwargs) -> "Self":
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)
 
-	def _save(self, ignore_permissions=None, ignore_version=None) -> "Document":
+	def _save(self, ignore_permissions=None, ignore_version=None) -> "Self":
 		"""Save the current document in the database in the **DocType**'s table or
 		`tabSingles` (for single types).
 
@@ -1305,7 +1309,11 @@ class Document(BaseDocument):
 			def runner(self, method, *args, **kwargs):
 				add_to_return_value(self, fn(self, *args, **kwargs))
 				for f in hooks:
-					add_to_return_value(self, f(self, method, *args, **kwargs))
+					try:
+						frappe.db._disable_transaction_control += 1
+						add_to_return_value(self, f(self, method, *args, **kwargs))
+					finally:
+						frappe.db._disable_transaction_control -= 1
 
 				return self.__dict__.pop("_return_value", None)
 

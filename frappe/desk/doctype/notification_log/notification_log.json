@@ -103,7 +103,7 @@
  "hide_toolbar": 1,
  "in_create": 1,
  "links": [],
- "modified": "2023-11-18 22:40:12.145940",
+ "modified": "2024-03-23 16:03:31.715461",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Log",
@@ -119,7 +119,7 @@
    "share": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "subject",

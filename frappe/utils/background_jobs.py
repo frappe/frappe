@@ -23,7 +23,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fi
 import frappe
 import frappe.monitor
 from frappe import _
-from frappe.utils import CallbackManager, cint, cstr, get_bench_id
+from frappe.utils import CallbackManager, cint, get_bench_id
 from frappe.utils.commands import log
 from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.redis_queue import RedisQueue
@@ -142,12 +142,18 @@ def enqueue(
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
 
+	# Prepare a more readable name than <function $name at $address>
+	if isinstance(method, Callable):
+		method_name = f"{method.__module__}.{method.__qualname__}"
+	else:
+		method_name = method
+
 	queue_args = {
 		"site": frappe.local.site,
 		"user": frappe.session.user,
 		"method": method,
 		"event": event,
-		"job_name": job_name or cstr(method),
+		"job_name": job_name or method_name,
 		"is_async": is_async,
 		"kwargs": kwargs,
 	}
@@ -639,7 +645,6 @@ def _start_sentry():
 	from sentry_sdk.integrations.dedupe import DedupeIntegration
 	from sentry_sdk.integrations.excepthook import ExcepthookIntegration
 	from sentry_sdk.integrations.modules import ModulesIntegration
-	from sentry_sdk.integrations.rq import RqIntegration
 
 	from frappe.utils.sentry import FrappeIntegration, before_send
 
@@ -649,7 +654,6 @@ def _start_sentry():
 		DedupeIntegration(),
 		ModulesIntegration(),
 		ArgvIntegration(),
-		RqIntegration(),
 	]
 
 	experiments = {}

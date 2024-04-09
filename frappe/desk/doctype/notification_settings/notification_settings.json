@@ -119,7 +119,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-12-01 12:46:15.490640",
+ "modified": "2024-03-23 16:03:31.952985",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Notification Settings",
@@ -139,7 +139,7 @@
   }
  ],
  "read_only": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

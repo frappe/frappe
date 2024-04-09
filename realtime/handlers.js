@@ -1,10 +1,7 @@
-const { frappe_request } = require("../utils");
-const log = console.log;
-
 const WEBSITE_ROOM = "website";
 const SITE_ROOM = "all";
 
-function frappe_handlers(realtime, socket) {
+function frappe_handlers(socket) {
 	socket.join(user_room(socket.user));
 	socket.join(WEBSITE_ROOM);
 
@@ -12,13 +9,23 @@ function frappe_handlers(realtime, socket) {
 		socket.join(SITE_ROOM);
 	}
 
+	socket.has_permission = (doctype, name) => {
+		return new Promise((resolve) => {
+			socket
+				.frappe_request("/api/method/frappe.realtime.has_permission", { doctype, name })
+				.then((res) => res.json())
+				.then(({ message }) => {
+					if (message) {
+						resolve();
+					}
+				})
+				.catch((err) => console.log("Can't check permissions", err));
+		});
+	};
+
 	socket.on("doctype_subscribe", function (doctype) {
-		can_subscribe_doctype({
-			socket,
-			doctype,
-			callback: () => {
-				socket.join(doctype_room(doctype));
-			},
+		socket.has_permission(doctype).then(() => {
+			socket.join(doctype_room(doctype));
 		});
 	});
 
@@ -42,14 +49,8 @@ function frappe_handlers(realtime, socket) {
 	});
 
 	socket.on("doc_subscribe", function (doctype, docname) {
-		can_subscribe_doc({
-			socket,
-			doctype,
-			docname,
-			callback: () => {
-				let room = doc_room(doctype, docname);
-				socket.join(room);
-			},
+		socket.has_permission(doctype, docname).then(() => {
+			socket.join(doc_room(doctype, docname));
 		});
 	});
 
@@ -59,23 +60,18 @@ function frappe_handlers(realtime, socket) {
 	});
 
 	socket.on("doc_open", function (doctype, docname) {
-		can_subscribe_doc({
-			socket,
-			doctype,
-			docname,
-			callback: () => {
-				let room = open_doc_room(doctype, docname);
-				socket.join(room);
-				if (!socket.subscribed_documents) socket.subscribed_documents = [];
-				socket.subscribed_documents.push([doctype, docname]);
+		socket.has_permission(doctype, docname).then(() => {
+			let room = open_doc_room(doctype, docname);
+			socket.join(room);
+			if (!socket.subscribed_documents) socket.subscribed_documents = [];
+			socket.subscribed_documents.push([doctype, docname]);
 
-				// show who is currently viewing the form
-				notify_subscribed_doc_users({
-					socket: socket,
-					doctype: doctype,
-					docname: docname,
-				});
-			},
+			// show who is currently viewing the form
+			notify_subscribed_doc_users({
+				socket: socket,
+				doctype: doctype,
+				docname: docname,
+			});
 		});
 	});
 
@@ -110,28 +106,6 @@ function notify_disconnected_documents(socket) {
 	}
 }
 
-function can_subscribe_doctype(args) {
-	if (!args) return;
-	if (!args.doctype) return;
-	frappe_request("/api/method/frappe.realtime.can_subscribe_doctype", args.socket)
-		.type("form")
-		.query({
-			doctype: args.doctype,
-		})
-		.end(function (err, res) {
-			if (!res || res.status == 403 || err) {
-				if (err) {
-					log(err);
-				}
-				return false;
-			} else if (res.status == 200) {
-				args.callback && args.callback(err, res);
-				return true;
-			}
-			log("ERROR (can_subscribe_doctype): ", err, res);
-		});
-}
-
 function notify_subscribed_doc_users(args) {
 	if (!(args && args.doctype && args.docname)) {
 		return;
@@ -158,30 +132,6 @@ function notify_subscribed_doc_users(args) {
 		docname: args.docname,
 		users: Array.from(new Set(users)),
 	});
-}
-
-function can_subscribe_doc(args) {
-	if (!args) return;
-	if (!args.doctype || !args.docname) return;
-	frappe_request("/api/method/frappe.realtime.can_subscribe_doc", args.socket)
-		.type("form")
-		.query({
-			doctype: args.doctype,
-			docname: args.docname,
-		})
-		.end(function (err, res) {
-			if (!res) {
-				log("No response for doc_subscribe");
-			} else if (res.status == 403) {
-				return;
-			} else if (err) {
-				log(err);
-			} else if (res.status == 200) {
-				args.callback(err, res);
-			} else {
-				log("Something went wrong", err, res);
-			}
-		});
 }
 
 const doc_room = (doctype, docname) => "doc:" + doctype + "/" + docname;

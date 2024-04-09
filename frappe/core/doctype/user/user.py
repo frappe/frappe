@@ -63,6 +63,7 @@ class User(Document):
 		birth_date: DF.Date | None
 		block_modules: DF.Table[BlockModule]
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
+		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
 		document_follow_frequency: DF.Literal["Hourly", "Daily", "Weekly"]
@@ -170,7 +171,8 @@ class User(Document):
 		self.validate_username()
 		self.remove_disabled_roles()
 		self.validate_user_email_inbox()
-		ask_pass_update()
+		if self.user_emails:
+			ask_pass_update()
 		self.validate_allowed_modules()
 		self.validate_user_image()
 		self.set_time_zone()
