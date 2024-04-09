@@ -214,7 +214,6 @@ class NotificationsView extends BaseNotificationsView {
 	}
 
 	validateContent(arrayDeObjetos) {
-		console.log("call function validateContent")
 		arrayDeObjetos.forEach(function(objeto) {
 		  if (objeto && objeto.email_content &&  ["Request Callback", "Remote Diagnose"].includes(objeto.email_content) && objeto.read === 0) {
 			$(".navbar").find(".notifications-icon").addClass("blink-bell");

@@ -158,12 +158,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			if (data?.doctype !== this.doctype) {
 				return;
 			}
-
 			// if some bulk operation is happening by selecting list items, don't refresh
 			if (this.$checks && this.$checks.length) {
 				return;
 			}
-
 			if (this.avoid_realtime_update()) {
 				return;
 			}
@@ -182,7 +180,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				}).then((res) => {
 					const data = frappe.utils.dict(res.message.keys, res.message.values)
 					this.kanban.update_cards(data);
-					this.kanban.make_columns_title()
+					this.kanban.update_columns()
 				})
 			}
 		});

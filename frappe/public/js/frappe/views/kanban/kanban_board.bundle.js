@@ -22,7 +22,7 @@ frappe.provide("frappe.views");
 				cur_list: {},
 				empty_state: true,
 				done_statuses: [ 'Completed', 'In pause', 'Cancelled', 'Quality check approved', 'No response from customer', 'Invoice paid', 'Awaiting pickup' ],
-				columns_counter_start: 0
+				kanban_columns: []
 			},
 			mutations: {
 				update_state(state, obj) {
@@ -342,8 +342,8 @@ frappe.provide("frappe.views");
 			store.dispatch("update_cards", cards);
 		}
 
-		self.make_columns_title = function(){
-			make_title(store.state.columns_counter_start, self.$kanban_column)
+		self.update_columns = function(){
+			make_columns()
 		}
 
 		function init() {
@@ -584,6 +584,7 @@ frappe.provide("frappe.views");
 		function get_and_set_columns_titles_with_counter(){
 			let _title = self.$kanban_column.find(".kanban-column-title")[0].outerText
 			_title = _title + " ("+get_total_cards()+")"
+			store.state.kanban_columns.push(_title)
 			self.$kanban_column.find(".kanban-column-title").html("<span class=\"indicator-pill gray\"></span><span class=\"kanban-title ellipsis\" title=\"" + _title + "\">" + _title + "</span>");
 		}
 
@@ -602,16 +603,16 @@ frappe.provide("frappe.views");
 				self.$kanban_cards.on('scroll', (event) => {
 					const {target: {scrollTop, clientHeight, scrollHeight}} = event
 					if(loading) return
-	
+
 					if(scrollTop + clientHeight >= scrollHeight){
-						store.state.columns_counter_start = store.state.cards.filter((el) => el.column === column.title).length
+						const start = store.state.cards.filter((el) => el.column === column.title).length
 						frappe.call({
 							method: 'frappe.desk.reportview.get',
 							args: {
 								"doctype": "Project",
 								"fields": ["*"],
 								"filters":[['status', '=', column.title]],
-								"start": store.state.columns_counter_start,
+								"start": start,
 								"page_length": 10,
 								"view": "List",
 								"group_by": "`tabProject`.`name`",
@@ -619,9 +620,14 @@ frappe.provide("frappe.views");
 							}
 						}).then((res) => {
 							const data = frappe.utils.dict(res.message.keys, res.message.values)
+							const newTotal = Number(start) + Number(res.message.values.length)
 							store.dispatch("update_cards", data);
 							loading = false;
-							make_title(store.state.columns_counter_start, self.$kanban_column)
+							const kanbanTitle = self.$kanban_column.find(".kanban-title");
+							kanbanTitle.remove();
+							const newTitle = column.title + " (" + (newTotal) + ")";
+							const newKanbanTitle = $("<span class=\"kanban-title ellipsis\" title=\"" + newTitle + "\">" + newTitle + "</span>");
+							self.$kanban_column.find(".kanban-column-title").append(newKanbanTitle);
 						})
 						loading = true;
 					}
@@ -1146,15 +1152,5 @@ frappe.provide("frappe.views");
 			}
 			callback(indicators);
 		});
-	}
-
-	function make_title(start, element){
-		console.log("start ",start);
-		const $kanbanTitle = element.find(".kanban-title");
-		console.log("kanbanTitle ", $kanbanTitle)
-		$kanbanTitle.remove();
-		const newTitle = column.title + " (" + (start) + ")";
-		const $newKanbanTitle = $("<span class=\"kanban-title ellipsis\" title=\"" + newTitle + "\">" + newTitle + "</span>");
-		self.$kanban_column.find(".kanban-column-title").append($newKanbanTitle);
 	}
 })();
