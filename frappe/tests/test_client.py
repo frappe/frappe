@@ -144,7 +144,6 @@ class TestClient(FrappeTestCase):
 		first_item = data["message"][0]
 		self.assertTrue("name" in first_item)
 		self.assertTrue("modified" in first_item)
-		frappe.local.login_manager.logout()
 
 	def test_client_get(self):
 		from frappe.client import get
