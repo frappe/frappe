@@ -99,6 +99,17 @@ class TestDBUpdate(FrappeTestCase):
 			len(indexes), 1, msg=f"There should be 1 index on {doctype}.{field}, found {indexes}"
 		)
 
+	@run_only_if(db_type_is.MARIADB)  # postgres uses invalid type for <=15
+	def test_bigint_conversion(self):
+		doctype = new_doctype(fields=[{"fieldname": "int_field", "fieldtype": "Int"}]).insert()
+
+		with self.assertRaises(frappe.CharacterLengthExceededError):
+			frappe.get_doc(doctype=doctype.name, int_field=2**62 - 1).insert()
+
+		doctype.fields[0].length = 14
+		doctype.save()
+		frappe.get_doc(doctype=doctype.name, int_field=2**62 - 1).insert()
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_unique_index_on_install(self):
 		"""Only one unique index should be added"""
