@@ -33,11 +33,7 @@ context("List View", () => {
 		cy.get(".list-header-subject > .list-subject > .list-check-all").click();
 		cy.findByRole("button", { name: "Actions" }).click();
 		cy.get(".dropdown-menu li:visible .dropdown-item")
-<<<<<<< HEAD
-			.should("have.length", 9)
-=======
-			.should("have.length", 8)
->>>>>>> b696e23354 (test: cypress shouldn't expect disabled actions)
+			.should("have.length", 7)
 			.each((el, index) => {
 				cy.wrap(el).contains(actions[index]);
 			})
