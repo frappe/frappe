@@ -46,12 +46,8 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 			if (this.get_field(data[0][0])) {
 				data[0].forEach((column) => {
 					fieldnames.push(this.get_field(column));
-					var df = frappe.meta.get_docfield(doctype, this.get_field(column));
-					if (df) {
-						fieldtypes.push(df.fieldtype);
-					} else {
-						fieldtypes.push("");
-					}
+					const df = frappe.meta.get_docfield(doctype, this.get_field(column));
+					fieldtypes.push(df ? df.fieldtype : "");
 				});
 				data.shift();
 			} else {
@@ -65,12 +61,8 @@ frappe.ui.form.ControlTable = class ControlTable extends frappe.ui.form.Control 
 						column.fieldname === $(e.target).data("fieldname")
 					) {
 						fieldnames.push(column.fieldname);
-						var df = frappe.meta.get_docfield(doctype, column.fieldname);
-						if (df) {
-							fieldtypes.push(df.fieldtype);
-						} else {
-							fieldtypes.push("");
-						}
+						const df = frappe.meta.get_docfield(doctype, column.fieldname);
+						fieldtypes.push(df ? df.fieldtype : "");
 						target_column_matched = true;
 					}
 				});
