@@ -360,7 +360,7 @@ class Session:
 
 	def update(self, force=False):
 		"""extend session expiry"""
-		if frappe.session["user"] == "Guest" or frappe.form_dict.cmd == "logout":
+		if frappe.session.user == "Guest":
 			return
 
 		now = frappe.utils.now()
