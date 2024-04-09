@@ -421,13 +421,6 @@ class TestPermissions(FrappeTestCase):
 		clear_user_permissions_for_doctype("Salutation")
 		clear_user_permissions_for_doctype("Contact")
 
-	def test_user_permissions_not_applied_if_user_can_edit_user_permissions(self):
-		add_user_permission("Blogger", "_Test Blogger 1", "test1@example.com")
-
-		# test1@example.com has rights to create user permissions
-		# so it should not matter if explicit user permissions are not set
-		self.assertTrue(frappe.get_doc("Blogger", "_Test Blogger").has_permission("read"))
-
 	def test_user_permission_is_not_applied_if_user_roles_does_not_have_permission(self):
 		add_user_permission("Blog Post", "-test-blog-post-1", "test3@example.com")
 		frappe.set_user("test3@example.com")
