@@ -190,7 +190,6 @@ def run(
 	custom_columns=None,
 	is_tree=False,
 	parent_field=None,
-	are_default_filters=True,
 ):
 	report = get_report_doc(report_name)
 	if not user:
@@ -203,7 +202,7 @@ def run(
 
 	result = None
 
-	if sbool(are_default_filters) and report.custom_filters:
+	if filters is None and report.custom_filters:
 		filters = report.custom_filters
 
 	try:
@@ -224,9 +223,6 @@ def run(
 		raise
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
-
-	if sbool(are_default_filters) and report.custom_filters:
-		result["custom_filters"] = report.custom_filters
 
 	return result
 
@@ -326,7 +322,7 @@ def export_query():
 	if isinstance(visible_idx, str):
 		visible_idx = json.loads(visible_idx)
 
-	data = run(report_name, form_params.filters, custom_columns=custom_columns, are_default_filters=False)
+	data = run(report_name, form_params.filters, custom_columns=custom_columns)
 	data = frappe._dict(data)
 	data.filters = form_params.applied_filters
 
