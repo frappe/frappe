@@ -28,9 +28,7 @@ class Notification(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.email.doctype.notification_recipient.notification_recipient import (
-			NotificationRecipient,
-		)
+		from frappe.email.doctype.notification_recipient.notification_recipient import NotificationRecipient
 		from frappe.types import DF
 
 		attach_print: DF.Check
