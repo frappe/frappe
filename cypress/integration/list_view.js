@@ -43,11 +43,7 @@ context("List View", () => {
 		});
 		cy.get(".actions-btn-group button").contains("Actions").should("be.visible").click();
 		cy.get(".dropdown-menu li:visible .dropdown-item")
-<<<<<<< HEAD
-			.should("have.length", 9)
-=======
-			.should("have.length", 8)
->>>>>>> b696e23354 (test: cypress shouldn't expect disabled actions)
+			.should("have.length", 7)
 			.each((el, index) => {
 				cy.wrap(el).contains(actions[index]);
 			})
