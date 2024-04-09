@@ -19,6 +19,7 @@ EVENT_MAP = {
 	"after_delete": "After Delete",
 	"before_update_after_submit": "Before Save (Submitted Document)",
 	"on_update_after_submit": "After Save (Submitted Document)",
+	"before_print": "Before Print",
 	"on_payment_paid": "On Payment Paid",
 	"on_payment_failed": "On Payment Failed",
 	"on_payment_authorized": "On Payment Authorization",

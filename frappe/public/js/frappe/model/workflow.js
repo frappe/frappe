@@ -59,10 +59,9 @@ frappe.workflow = {
 
 			var state =
 				doc[state_fieldname] || frappe.workflow.get_default_state(doctype, doc.docstatus);
+			if (!state) return false;
 
-			let allow_edit_roles = state
-				? frappe.workflow.get_document_state_roles(doctype, state)
-				: null;
+			let allow_edit_roles = frappe.workflow.get_document_state_roles(doctype, state);
 			let has_common_role = frappe.user_roles.some((role) =>
 				allow_edit_roles.includes(role)
 			);
