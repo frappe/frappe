@@ -424,6 +424,12 @@ frappe.ui.filter_utils = {
 
 		let val = field.get_value() ?? field.value;
 
+		if (!val && ["Link", "Dynamic Link"].includes(field.df.fieldtype)) {
+			// HACK: link field with show title are async so their input value is "" but they have
+			// some actual value set.
+			val = field.value;
+		}
+
 		if (typeof val === "string") {
 			val = strip(val);
 		}
