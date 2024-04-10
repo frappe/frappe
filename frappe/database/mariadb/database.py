@@ -97,6 +97,10 @@ class MariaDBExceptionUtil:
 			and isinstance(e, pymysql.IntegrityError)
 		)
 
+	@staticmethod
+	def is_interface_error(e: pymysql.Error):
+		return isinstance(e, pymysql.InterfaceError)
+
 
 class MariaDBConnectionUtil:
 	def get_connection(self):
