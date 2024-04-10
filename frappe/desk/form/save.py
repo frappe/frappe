@@ -17,8 +17,6 @@ def savedocs(doc, action):
     createStatusChangedComment(json.loads(doc))
     """save / submit / update doclist"""
     doc = frappe.get_doc(json.loads(doc))
-    if doc.get("party_name"):
-        doc.party_name = capitalize_first_letter(doc.get("party_name"))
 
     capture_doc(doc, action)
     if doc.get("__islocal") and doc.name.startswith(
@@ -49,12 +47,6 @@ def savedocs(doc, action):
 
     add_data_to_monitor(doctype=doc.doctype, action=action)
     frappe.msgprint(frappe._("Saved"), indicator="green", alert=True)
-
-
-def capitalize_first_letter(text):
-    if not text:
-        return text
-    return " ".join(word.capitalize() for word in text.split())
 
 
 @frappe.whitelist()
