@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-07 09:33+0000\n"
-"PO-Revision-Date: 2024-04-09 06:44\n"
+"PO-Revision-Date: 2024-04-10 08:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -608,7 +608,7 @@ msgstr "یک {0} {1} تکرارشونده از طریق تکرار خودکار 
 #: geo/doctype/currency/currency.json
 msgctxt "Currency"
 msgid "A symbol for this currency. For e.g. $"
-msgstr "نمادی برای این ارز. به عنوان مثال $"
+msgstr "ن برای این ارز. به عنوان مثال $"
 
 #: printing/doctype/print_format_field_template/print_format_field_template.py:49
 msgid "A template already exists for field {0} of {1}"
@@ -897,38 +897,38 @@ msgstr "کاربر حساب ها"
 #: public/js/frappe/form/sidebar/review.js:59
 #: workflow/page/workflow_builder/workflow_builder.js:37
 msgid "Action"
-msgstr "عمل"
+msgstr "اقدام"
 
 #. Label of a Select field in DocType 'Amended Document Naming Settings'
 #: core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
 msgctxt "Amended Document Naming Settings"
 msgid "Action"
-msgstr "عمل"
+msgstr "اقدام"
 
 #. Label of a Select field in DocType 'Email Flag Queue'
 #: email/doctype/email_flag_queue/email_flag_queue.json
 msgctxt "Email Flag Queue"
 msgid "Action"
-msgstr "عمل"
+msgstr "اقدام"
 
 #. Option for the 'Item Type' (Select) field in DocType 'Navbar Item'
 #. Label of a Data field in DocType 'Navbar Item'
 #: core/doctype/navbar_item/navbar_item.json
 msgctxt "Navbar Item"
 msgid "Action"
-msgstr "عمل"
+msgstr "اقدام"
 
 #. Label of a Select field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
 msgid "Action"
-msgstr "عمل"
+msgstr "اقدام"
 
 #. Label of a Link field in DocType 'Workflow Transition'
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgctxt "Workflow Transition"
 msgid "Action"
-msgstr "عمل"
+msgstr "اقدام"
 
 #. Label of a Small Text field in DocType 'DocType Action'
 #: core/doctype/doctype_action/doctype_action.json
@@ -1145,7 +1145,7 @@ msgstr "اضافه کردن نمودار به داشبورد"
 
 #: public/js/frappe/views/treeview.js:285
 msgid "Add Child"
-msgstr "کودک را اضافه کنید"
+msgstr "افزودن فرزند"
 
 #: public/js/frappe/views/kanban/kanban_board.html:4
 #: public/js/frappe/views/reports/query_report.js:1682
@@ -1326,7 +1326,7 @@ msgstr "یک نمودار {0} اضافه کنید"
 
 #: custom/doctype/client_script/client_script.js:16
 msgid "Add script for Child Table"
-msgstr "اضافه کردن اسکریپت برای جدول کودک"
+msgstr "اضافه کردن اسکریپت برای جدول فرزند"
 
 #: public/js/frappe/utils/dashboard_utils.js:263
 #: public/js/frappe/views/reports/query_report.js:251
@@ -5199,7 +5199,7 @@ msgstr "Child DocType مجاز نیست"
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgctxt "Form Tour Step"
 msgid "Child Doctype"
-msgstr "کودک Doctype"
+msgstr "فرزند Doctype\t"
 
 #: core/doctype/doctype/doctype.py:1583
 msgid "Child Table {0} for field {1}"
@@ -6703,25 +6703,25 @@ msgstr ""
 #: public/js/frappe/views/workspace/workspace.js:1228
 #: workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
-msgstr "ايجاد كردن"
+msgstr "ایجاد کردن"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Create"
-msgstr "ايجاد كردن"
+msgstr "ایجاد کردن"
 
 #. Label of a Check field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Create"
-msgstr "ايجاد كردن"
+msgstr "ایجاد کردن"
 
 #. Label of a Check field in DocType 'User Document Type'
 #: core/doctype/user_document_type/user_document_type.json
 msgctxt "User Document Type"
 msgid "Create"
-msgstr "ايجاد كردن"
+msgstr "ایجاد کردن"
 
 #: core/doctype/doctype/doctype_list.js:102
 msgid "Create & Continue"
@@ -7154,7 +7154,7 @@ msgstr "سفارشی DocPerm"
 #. Title of an Onboarding Step
 #: custom/onboarding_step/custom_doctype/custom_doctype.json
 msgid "Custom Document Types"
-msgstr ""
+msgstr "انواع اسناد سفارشی"
 
 #. Label of a Table field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
@@ -7200,7 +7200,7 @@ msgstr "فیلد سفارشی {0} توسط مدیر ایجاد شده است و 
 #. Subtitle of the Module Onboarding 'Customization'
 #: custom/module_onboarding/customization/customization.json
 msgid "Custom Field, Custom Doctype, Naming Series, Role Permission, Workflow, Print Formats, Reports"
-msgstr ""
+msgstr "فیلد سفارشی، Doctype سفارشی، سری نام‌گذاری، مجوز نقش، گردش کار، فرمت‌های چاپ، گزارش‌ها"
 
 #: custom/doctype/custom_field/custom_field.py:260
 msgid "Custom Fields can only be added to a standard DocType."
@@ -7313,7 +7313,7 @@ msgstr "منوی نوار کناری سفارشی"
 #: core/workspace/build/build.json
 msgctxt "Translation"
 msgid "Custom Translation"
-msgstr ""
+msgstr "ترجمه سفارشی"
 
 #: custom/doctype/custom_field/custom_field.py:373
 msgid "Custom field renamed to {0} successfully."
@@ -7391,7 +7391,7 @@ msgstr "شخصی سازی"
 
 #: custom/doctype/customize_form/customize_form.js:89
 msgid "Customize Child Table"
-msgstr "سفارشی کردن جدول کودک"
+msgstr "سفارشی کردن جدول فرزند"
 
 #: public/js/frappe/views/dashboard/dashboard_view.js:37
 msgid "Customize Dashboard"
@@ -7423,7 +7423,7 @@ msgstr "سفارشی کردن فیلد فرم"
 #. Title of an Onboarding Step
 #: custom/onboarding_step/print_format/print_format.json
 msgid "Customize Print Formats"
-msgstr ""
+msgstr "فرمت های چاپ را سفارشی کنید"
 
 #: public/js/frappe/views/file/file_view.js:144
 msgid "Cut"
@@ -9681,7 +9681,7 @@ msgstr "سند لغو شده است"
 
 #: public/js/frappe/list/list_view.js:1076
 msgid "Document has been submitted"
-msgstr "سند ارائه شده است"
+msgstr "سند ارسال شده است"
 
 #: public/js/frappe/list/list_view.js:1075
 msgid "Document is in draft state"
@@ -9965,7 +9965,7 @@ msgstr "تاریخ سررسید بر اساس"
 #: public/js/frappe/views/workspace/workspace.js:819
 #: public/js/frappe/views/workspace/workspace.js:986
 msgid "Duplicate"
-msgstr "تکراری"
+msgstr "تکرار کردن"
 
 #: printing/doctype/print_format_field_template/print_format_field_template.py:53
 msgid "Duplicate Entry"
@@ -10965,7 +10965,7 @@ msgstr "احراز هویت دو عاملی را فعال کنید"
 #. Title of an Onboarding Step
 #: website/onboarding_step/enable_website_tracking/enable_website_tracking.json
 msgid "Enable Website Tracking"
-msgstr ""
+msgstr "ردیابی وب سایت را فعال کنید"
 
 #: printing/doctype/print_format_field_template/print_format_field_template.py:28
 msgid "Enable developer mode to create a standard Print Template"
@@ -10998,85 +10998,85 @@ msgstr "ردیابی وب سایت درون برنامه ای را فعال کن
 #: public/js/frappe/model/indicator.js:106
 #: public/js/frappe/model/indicator.js:117
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Client Script'
 #: custom/doctype/client_script/client_script.json
 msgctxt "Client Script"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Currency'
 #: geo/doctype/currency/currency.json
 msgctxt "Currency"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Dropbox Settings'
 #: integrations/doctype/dropbox_settings/dropbox_settings.json
 msgctxt "Dropbox Settings"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Energy Point Rule'
 #: social/doctype/energy_point_rule/energy_point_rule.json
 msgctxt "Energy Point Rule"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Energy Point Settings'
 #: social/doctype/energy_point_settings/energy_point_settings.json
 msgctxt "Energy Point Settings"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Language'
 #: core/doctype/language/language.json
 msgctxt "Language"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Notification Settings'
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Portal Menu Item'
 #: website/doctype/portal_menu_item/portal_menu_item.json
 msgctxt "Portal Menu Item"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #. Label of a Check field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "Enabled"
-msgstr "فعال شد"
+msgstr "فعال"
 
 #: core/doctype/rq_job/rq_job_list.js:29
 msgid "Enabled Scheduler"
@@ -11616,7 +11616,7 @@ msgstr "مثال: {{ موضوع }}"
 #: core/doctype/data_export/data_export.json
 msgctxt "Data Export"
 msgid "Excel"
-msgstr "برتری داشتن"
+msgstr "اکسل"
 
 #: public/js/frappe/form/controls/password.js:91
 msgid "Excellent"
@@ -13201,13 +13201,13 @@ msgstr "برای {0} در سطح {1} در {2} در ردیف {3}"
 #: integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
 msgctxt "OAuth Provider Settings"
 msgid "Force"
-msgstr "زور"
+msgstr "تحمیل"
 
 #. Label of a Check field in DocType 'Package Import'
 #: core/doctype/package_import/package_import.json
 msgctxt "Package Import"
 msgid "Force"
-msgstr "زور"
+msgstr "تحمیل"
 
 #. Label of a Check field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -13673,7 +13673,7 @@ msgstr "عمومی"
 #. Title of an Onboarding Step
 #: custom/onboarding_step/report_builder/report_builder.json
 msgid "Generate Custom Reports"
-msgstr ""
+msgstr "ایجاد گزارش های سفارشی"
 
 #. Label of a Button field in DocType 'User'
 #: core/doctype/user/user.json
@@ -13975,14 +13975,14 @@ msgstr "Google Calendar پیکربندی شده است."
 #. Name of a DocType
 #: integrations/doctype/google_contacts/google_contacts.json
 msgid "Google Contacts"
-msgstr ""
+msgstr "مخاطب‌های Google"
 
 #. Label of a Section Break field in DocType 'Contact'
 #. Label of a Link field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Google Contacts"
-msgstr ""
+msgstr "مخاطب‌های Google"
 
 #. Label of a Section Break field in DocType 'Google Contacts'
 #. Label of a Link in the Integrations Workspace
@@ -13990,7 +13990,7 @@ msgstr ""
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Google Contacts"
 msgid "Google Contacts"
-msgstr ""
+msgstr "مخاطب‌های Google"
 
 #: integrations/doctype/google_contacts/google_contacts.py:137
 msgid "Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}."
@@ -14068,7 +14068,7 @@ msgstr "پیوند Google Meet"
 #. Label of a Card Break in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgid "Google Services"
-msgstr ""
+msgstr "خدمات Google"
 
 #. Name of a DocType
 #: integrations/doctype/google_settings/google_settings.json
@@ -15565,24 +15565,24 @@ msgstr "ضمنی"
 #: core/doctype/recorder/recorder_list.js:16
 #: email/doctype/email_group/email_group.js:31
 msgid "Import"
-msgstr "وارد كردن"
+msgstr "وارد کردن"
 
 #: public/js/frappe/list/list_view.js:1669
 msgctxt "Button in list view menu"
 msgid "Import"
-msgstr "وارد كردن"
+msgstr "وارد کردن"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Import"
-msgstr "وارد كردن"
+msgstr "وارد کردن"
 
 #. Label of a Check field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Import"
-msgstr "وارد كردن"
+msgstr "وارد کردن"
 
 #. Label of a Link in the Tools Workspace
 #. Label of a shortcut in the Tools Workspace
@@ -15605,7 +15605,7 @@ msgstr "وارد کردن فایل"
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "Import File Errors and Warnings"
-msgstr "خطاها و هشدارهای فایل را وارد کنید"
+msgstr "خطاها و هشدارهای واردات فایل"
 
 #. Label of a Section Break field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -16562,19 +16562,19 @@ msgstr "تقویم و گانت است"
 
 #: core/doctype/doctype/doctype_list.js:49
 msgid "Is Child Table"
-msgstr "میز کودک است"
+msgstr "جدول فرزند است"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Is Child Table"
-msgstr "میز کودک است"
+msgstr "جدول فرزند است"
 
 #. Label of a Check field in DocType 'DocType Link'
 #: core/doctype/doctype_link/doctype_link.json
 msgctxt "DocType Link"
 msgid "Is Child Table"
-msgstr "میز کودک است"
+msgstr "جدول فرزند است"
 
 #. Label of a Check field in DocType 'Module Onboarding'
 #: desk/doctype/module_onboarding/module_onboarding.json
@@ -18044,61 +18044,61 @@ msgstr "خط"
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Label of a Small Text field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Label of a Data field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
 msgctxt "Notification Log"
 msgid "Link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
 #: core/doctype/report_column/report_column.json
 msgctxt "Report Column"
 msgid "Link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Filter'
 #: core/doctype/report_filter/report_filter.json
 msgctxt "Report Filter"
 msgid "Link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Option for the 'Type' (Select) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Label of a Tab Break field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -18920,7 +18920,7 @@ msgstr "نقشه"
 #: public/js/frappe/data_import/import_preview.js:190
 #: public/js/frappe/data_import/import_preview.js:302
 msgid "Map Columns"
-msgstr "ستون های نقشه"
+msgstr "نگاشت ستون ها"
 
 #: public/js/frappe/data_import/import_preview.js:290
 msgid "Map columns from {0} to fields in {1}"
@@ -19584,19 +19584,19 @@ msgstr "سیار"
 #: tests/test_translate.py:85 tests/test_translate.py:88
 #: tests/test_translate.py:90 tests/test_translate.py:93
 msgid "Mobile No"
-msgstr "هیچ موبایل"
+msgstr "شماره موبایل"
 
 #. Label of a Data field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Mobile No"
-msgstr "هیچ موبایل"
+msgstr "شماره موبایل"
 
 #. Label of a Data field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Mobile No"
-msgstr "هیچ موبایل"
+msgstr "شماره موبایل"
 
 #. Label of a Check field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -19616,115 +19616,115 @@ msgstr "تغییر داده شده توسط"
 
 #: core/doctype/doctype/doctype_list.js:30
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Data field in DocType 'Block Module'
 #: core/doctype/block_module/block_module.json
 msgctxt "Block Module"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Dashboard'
 #: desk/doctype/dashboard/dashboard.json
 msgctxt "Dashboard"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Dashboard Chart Source'
 #: desk/doctype/dashboard_chart_source/dashboard_chart_source.json
 msgctxt "Dashboard Chart Source"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Module Onboarding'
 #: desk/doctype/module_onboarding/module_onboarding.json
 msgctxt "Module Onboarding"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Page'
 #: core/doctype/page/page.json
 msgctxt "Page"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Print Format Field Template'
 #: printing/doctype/print_format_field_template/print_format_field_template.json
 msgctxt "Print Format Field Template"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'User Type Module'
 #: core/doctype/user_type_module/user_type_module.json
 msgctxt "User Type Module"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Web Template'
 #: website/doctype/web_template/web_template.json
 msgctxt "Web Template"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #. Label of a Link field in DocType 'Client Script'
 #: custom/doctype/client_script/client_script.json
@@ -22139,7 +22139,7 @@ msgstr "باز شد"
 #: core/doctype/activity_log/activity_log.json
 msgctxt "Activity Log"
 msgid "Operation"
-msgstr "عمل"
+msgstr "عملیات"
 
 #: utils/data.py:2065
 msgid "Operator must be one of {0}"
@@ -22519,7 +22519,7 @@ msgstr "انتشار بسته"
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Packages"
-msgstr ""
+msgstr "بسته ها"
 
 #. Name of a DocType
 #: core/doctype/page/page.json
@@ -22562,7 +22562,7 @@ msgstr "صفحه"
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Page Break"
-msgstr "صفحه شکستن"
+msgstr "شکست صفحه"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Page Builder"
@@ -22766,7 +22766,7 @@ msgstr "نوع والدین، والدین و فیلد والدین برای د�
 #: website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgctxt "Personal Data Deletion Step"
 msgid "Partial"
-msgstr "جزئي"
+msgstr "جزئی"
 
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -22782,13 +22782,13 @@ msgstr "نیمه ارسال شده"
 
 #: desk/doctype/event/event.js:30
 msgid "Participants"
-msgstr "شركت كنندگان"
+msgstr "شرکت کنندگان"
 
 #. Label of a Section Break field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Participants"
-msgstr "شركت كنندگان"
+msgstr "شرکت کنندگان"
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
@@ -23550,7 +23550,7 @@ msgstr "لطفاً برای دریافت آخرین سند، بازخوانی ک
 
 #: printing/page/print/print.js:532
 msgid "Please remove the printer mapping in Printer Settings and try again."
-msgstr "لطفاً نقشه چاپگر را در تنظیمات چاپگر حذف کنید و دوباره امتحان کنید."
+msgstr "لطفاً نگاشت چاپگر را در تنظیمات چاپگر حذف کنید و دوباره امتحان کنید."
 
 #: public/js/frappe/form/form.js:348
 msgid "Please save before attaching."
@@ -24067,7 +24067,7 @@ msgstr "رنگ اصلی"
 
 #: public/js/frappe/form/templates/contact_list.html:17
 msgid "Primary Contact"
-msgstr "ارتباط اصلی"
+msgstr "مخاطب اصلی"
 
 #: public/js/frappe/form/templates/contact_list.html:63
 msgid "Primary Email"
@@ -28188,7 +28188,7 @@ msgstr "در وب سایت ببینید"
 #: website/doctype/web_form/templates/web_form.html:150
 msgctxt "Button in web form"
 msgid "See previous responses"
-msgstr ""
+msgstr "پاسخ های قبلی را ببینید"
 
 #: integrations/doctype/slack_webhook_url/slack_webhook_url.py:49
 msgid "See the document at {0}"
@@ -29223,7 +29223,7 @@ msgstr "مقدار را تنظیم کنید"
 #: public/js/frappe/file_uploader/file_uploader.bundle.js:72
 #: public/js/frappe/file_uploader/file_uploader.bundle.js:124
 msgid "Set all private"
-msgstr "همه خصوصی را تنظیم کنید"
+msgstr "همه را خصوصی تنظیم کنید"
 
 #: public/js/frappe/file_uploader/file_uploader.bundle.js:72
 msgid "Set all public"
@@ -29523,7 +29523,7 @@ msgstr "نام کوتاه"
 
 #: utils/password_strength.py:91
 msgid "Short keyboard patterns are easy to guess"
-msgstr "حدس زدن الگوهای صفحه کلید کوتاه آسان است"
+msgstr "حدس زدن الگوهای کوتاه صفحه کلید آسان است"
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "Shortcuts"
@@ -31070,7 +31070,7 @@ msgstr "ارسال یک مسئله"
 #: website/doctype/web_form/templates/web_form.html:153
 msgctxt "Button in web form"
 msgid "Submit another response"
-msgstr ""
+msgstr "پاسخ دیگری را ثبت کنید"
 
 #. Label of a Check field in DocType 'Auto Repeat'
 #: automation/doctype/auto_repeat/auto_repeat.json
@@ -37533,7 +37533,7 @@ msgstr "خالی"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "envelope"
-msgstr "پاكت نامه"
+msgstr "پاکت نامه"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -37842,7 +37842,7 @@ msgstr "آبی کمرنگ"
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "link"
-msgstr "ارتباط دادن"
+msgstr "لینک"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
@@ -37949,7 +37949,7 @@ msgstr ""
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "module"
-msgstr "مدول"
+msgstr "ماژول"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:178
 msgid "module name..."
@@ -39223,7 +39223,7 @@ msgstr "{0} از سیستم خارج شد: {1}"
 
 #: public/js/frappe/utils/pretty_date.js:27
 msgid "{0} m"
-msgstr "{0} متر"
+msgstr "{0} دقیقه"
 
 #: desk/notifications.py:374
 msgid "{0} mentioned you in a comment in {1} {2}"
@@ -39276,7 +39276,7 @@ msgstr "{0} از {1}"
 
 #: public/js/frappe/list/list_view.js:990
 msgid "{0} of {1} ({2} rows with children)"
-msgstr "{0} از {1} ({2} ردیف با کودکان)"
+msgstr "{0} از {1} ({2} ردیف با فرزندان)"
 
 #: email/doctype/newsletter/newsletter.js:205
 msgid "{0} of {1} sent"
