@@ -179,8 +179,8 @@ def update_order_for_single_card(
         createStatusChangedComment(from_colname, to_colname, docname, user)
     if from_colname == to_colname:
         from_col_order = to_col_order
-
-    to_col_order.insert(new_index, from_col_order.pop(old_index))
+    if len(from_col_order) > 0:
+        to_col_order.insert(new_index, from_col_order.pop(old_index))
 
     # save updated order
     board.columns[from_col_idx].order = frappe.as_json(from_col_order)
