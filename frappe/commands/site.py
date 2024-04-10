@@ -64,30 +64,10 @@ def new_site(
 	"Create a new site"
 	from frappe.installer import _new_site
 
+	frappe.init(site=site, new_site=True)
+
 	rollback_callback = CallbackManager()
-
-<<<<<<< HEAD
-	_new_site(
-		db_name,
-		site,
-		db_root_username=db_root_username,
-		db_root_password=db_root_password,
-		admin_password=admin_password,
-		verbose=verbose,
-		install_apps=install_app,
-		source_sql=source_sql,
-		force=force,
-		no_mariadb_socket=no_mariadb_socket,
-		db_password=db_password,
-		db_type=db_type,
-		db_host=db_host,
-		db_port=db_port,
-	)
-=======
 	try:
-		frappe.init(site=site, new_site=True)
->>>>>>> 147c0c8b37 (feat: initial failed site rollback implementation)
-
 		_new_site(
 			db_name,
 			site,
@@ -103,11 +83,7 @@ def new_site(
 			db_type=db_type,
 			db_host=db_host,
 			db_port=db_port,
-			db_user=db_user,
-			setup_db=setup_db,
-			rollback_callback=rollback_callback,
 		)
-
 		if set_default:
 			use(site)
 
