@@ -39,6 +39,9 @@ def get_context(context):
     else:
         doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 
+    if doc.get("customer_name"):
+        doc.customer_name = capitalize_first_letter(doc.get("customer_name"))
+
     set_link_titles(doc)
 
     settings = frappe.parse_json(frappe.form_dict.settings)
