@@ -7,6 +7,7 @@ import json
 from rq import get_current_job
 
 import frappe
+from frappe.database.utils import dangerously_reconnect_on_connection_abort
 from frappe.desk.form.load import get_attachments
 from frappe.desk.query_report import generate_report_result
 from frappe.model.document import Document
@@ -82,7 +83,12 @@ def generate_report(prepared_report):
 		instance.status = "Completed"
 	except Exception:
 		instance.status = "Error"
+<<<<<<< HEAD
 		instance.error_message = frappe.get_traceback()
+=======
+		instance.error_message = frappe.get_traceback(with_context=True)
+		_save_instance(instance)  # we need to ensure that error gets stored
+>>>>>>> c1bf152b89 (fix: handle interface error during report timeout (#25893))
 
 	instance.report_end_time = frappe.utils.now()
 	instance.save(ignore_permissions=True)
@@ -94,8 +100,28 @@ def generate_report(prepared_report):
 	)
 
 
+<<<<<<< HEAD
 def update_job_id(prepared_report, job_id):
 	frappe.db.set_value("Prepared Report", prepared_report, "job_id", job_id, update_modified=False)
+=======
+@dangerously_reconnect_on_connection_abort
+def _save_instance(instance):
+	instance.save(ignore_permissions=True)
+
+
+def update_job_id(prepared_report):
+	job = get_current_job()
+
+	frappe.db.set_value(
+		"Prepared Report",
+		prepared_report,
+		{
+			"job_id": job and job.id,
+			"status": "Started",
+		},
+	)
+
+>>>>>>> c1bf152b89 (fix: handle interface error during report timeout (#25893))
 	frappe.db.commit()
 
 
