@@ -1386,6 +1386,7 @@ class Document(BaseDocument):
 		"""Returns Desk URL for this document."""
 		return get_absolute_url(self.doctype, self.name)
 
+	@frappe.whitelist()
 	def add_comment(
 		self,
 		comment_type="Comment",
