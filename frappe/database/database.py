@@ -1234,7 +1234,7 @@ class Database:
 
 	@staticmethod
 	def is_column_missing(e):
-		return frappe.db.is_missing_column(e)
+		raise NotImplementedError
 
 	def get_descendants(self, doctype, name):
 		"""Return descendants of the group node in tree"""
