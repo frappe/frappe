@@ -46,6 +46,7 @@ class ServerScript(Document):
 			"After Delete",
 			"Before Save (Submitted Document)",
 			"After Save (Submitted Document)",
+			"Before Print",
 			"On Payment Authorization",
 			"On Payment Paid",
 			"On Payment Failed",

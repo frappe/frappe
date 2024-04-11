@@ -24,6 +24,13 @@ frappe.ui.misc.about = function () {
 					<hr>
 					<h4>${__("Installed Apps")}</h4>
 					<div id='about-app-versions'>${__("Loading versions...")}</div>
+					<p>
+						<b>
+							<a href="/attribution" target="_blank" class="text-muted">
+								${__("Dependencies & Licenses")}
+							</a>
+						</b>
+					</p>
 					<hr>
 					<p class='text-muted'>${__("&copy; Frappe Technologies Pvt. Ltd. and contributors")} </p>
 					</div>`,

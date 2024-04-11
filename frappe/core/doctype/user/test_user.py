@@ -291,7 +291,7 @@ class TestUser(FrappeTestCase):
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		self.assertEqual(res1.status_code, 404)
-		self.assertEqual(res2.status_code, 417)
+		self.assertEqual(res2.status_code, 429)
 
 	def test_user_rename(self):
 		old_name = "test_user_rename@example.com"
@@ -461,10 +461,10 @@ class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
 		with test_user(roles=["System Manager"], commit=True) as user:
 			self.post(
-				self.method_path("frappe.core.doctype.user.user.impersonate"),
+				self.method("frappe.core.doctype.user.user.impersonate"),
 				{"user": user.name, "reason": "test", "sid": self.sid},
 			)
-			resp = self.get(self.method_path("frappe.auth.get_logged_user"))
+			resp = self.get(self.method("frappe.auth.get_logged_user"))
 			self.assertEqual(resp.json["message"], user.name)
 
 
