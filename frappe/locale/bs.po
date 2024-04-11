@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-07 09:33+0000\n"
-"PO-Revision-Date: 2024-04-10 08:19\n"
+"PO-Revision-Date: 2024-04-11 08:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -14002,11 +14002,11 @@ msgstr ""
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
 msgid "Go to Page"
-msgstr ""
+msgstr "Idi na stranicu"
 
 #: public/js/workflow_builder/workflow_builder.bundle.js:41
 msgid "Go to Workflow"
-msgstr ""
+msgstr "Idi na radni tok"
 
 #: desk/doctype/workspace/workspace.js:18
 msgid "Go to Workspace"
@@ -14344,80 +14344,80 @@ msgstr "Grupiši po vrsti"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.py:397
 msgid "Group By field is required to create a dashboard chart"
-msgstr ""
+msgstr "Polje Grupiraj po je potrebno za kreiranje grafikona na kontrolnoj tabli"
 
 #: public/js/frappe/views/treeview.js:401
 msgid "Group Node"
-msgstr ""
+msgstr "Grupni čvor"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Group Object Class"
-msgstr ""
+msgstr "Grupna klasa objekata"
 
 #: public/js/frappe/ui/group_by/group_by.js:413
 msgid "Grouped by <span style='font-weight:600;'>{0}</b>"
-msgstr ""
+msgstr "Grupirano po <span style='font-weight:600;'>{0}</b>"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
 msgctxt "Recorder"
 msgid "HEAD"
-msgstr ""
+msgstr "HEAD"
 
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "HH:mm"
-msgstr ""
+msgstr "HH:mm"
 
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "HH:mm:ss"
-msgstr ""
+msgstr "HH:mm:ss"
 
 #: printing/doctype/print_format/print_format.py:91
 #: website/doctype/web_page/web_page.js:92
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Format' (Select) field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Label of a Section Break field in DocType 'Custom HTML Block'
 #: desk/doctype/custom_html_block/custom_html_block.json
 msgctxt "Custom HTML Block"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Letter Head Based On' (Select) field in DocType 'Letter
 #. Head'
@@ -14425,67 +14425,67 @@ msgstr ""
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Message Type' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Label of a Code field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "HTML Editor"
-msgstr ""
+msgstr "HTML uređivač"
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "HTML Editor"
-msgstr ""
+msgstr "HTML uređivač"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "HTML Editor"
-msgstr ""
+msgstr "HTML uređivač"
 
 #. Label of a HTML Editor field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
 msgctxt "Access Log"
 msgid "HTML Page"
-msgstr ""
+msgstr "HTML stranica"
 
 #. Description of the 'Header' (HTML Editor) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "HTML for header section. Optional"
-msgstr ""
+msgstr "HTML za sekciju zaglavlja. Opciono"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "HTML with jinja support"
@@ -14495,95 +14495,95 @@ msgstr ""
 #: desk/doctype/dashboard_chart_link/dashboard_chart_link.json
 msgctxt "Dashboard Chart Link"
 msgid "Half"
-msgstr ""
+msgstr "Pola"
 
 #. Option for the 'Period' (Select) field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Half Yearly"
-msgstr ""
+msgstr "Polugodišnje"
 
 #. Option for the 'Repeat On' (Select) field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Half Yearly"
-msgstr ""
+msgstr "Polugodišnje"
 
 #: public/js/frappe/utils/common.js:402
 msgid "Half-yearly"
-msgstr ""
+msgstr "Polugodišnje"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Auto Repeat'
 #: automation/doctype/auto_repeat/auto_repeat.json
 msgctxt "Auto Repeat"
 msgid "Half-yearly"
-msgstr ""
+msgstr "Polugodišnje"
 
 #. Label of a Check field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Has  Attachment"
-msgstr ""
+msgstr "Ima prilog"
 
 #. Name of a DocType
 #: core/doctype/has_domain/has_domain.json
 msgid "Has Domain"
-msgstr ""
+msgstr "Ima domenu"
 
 #. Label of a Check field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgctxt "Form Tour Step"
 msgid "Has Next Condition"
-msgstr ""
+msgstr "Ima sljedeći uslov"
 
 #. Name of a DocType
 #: core/doctype/has_role/has_role.json
 msgid "Has Role"
-msgstr ""
+msgstr "Ima ulogu"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Has Web View"
-msgstr ""
+msgstr "Ima web pregled"
 
 #: templates/signup.html:19
 msgid "Have an account? Login"
-msgstr ""
+msgstr "Imaš račun? Prijavi se"
 
 #. Label of a Section Break field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Header"
-msgstr ""
+msgstr "Zaglavlje"
 
 #. Label of a Check field in DocType 'SMS Parameter'
 #: core/doctype/sms_parameter/sms_parameter.json
 msgctxt "SMS Parameter"
 msgid "Header"
-msgstr ""
+msgstr "Zaglavlje"
 
 #. Label of a HTML Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Header"
-msgstr ""
+msgstr "Zaglavlje"
 
 #. Label of a HTML Editor field in DocType 'Website Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
 msgctxt "Website Slideshow"
 msgid "Header"
-msgstr ""
+msgstr "Zaglavlje"
 
 #. Label of a HTML Editor field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Header HTML"
-msgstr ""
+msgstr "HTML zaglavlja"
 
 #: printing/doctype/letter_head/letter_head.py:63
 msgid "Header HTML set from attachment {0}"
-msgstr ""
+msgstr "HTML zaglavlja postavljen iz priloga {0}"
 
 #. Label of a Code field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
@@ -14595,13 +14595,13 @@ msgstr ""
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Header and Breadcrumbs"
-msgstr ""
+msgstr "Zaglavlje i krušne mrvice"
 
 #. Label of a Tab Break field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Header, Robots"
-msgstr ""
+msgstr "Zaglavlje, Roboti"
 
 #: printing/doctype/letter_head/letter_head.js:30
 msgid "Header/Footer scripts can be used to add dynamic behaviours."
@@ -16026,139 +16026,139 @@ msgstr ""
 
 #: website/doctype/website_theme/website_theme.js:61
 msgid "Include Theme from Apps"
-msgstr ""
+msgstr "Uključite temu iz aplikacija"
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Include Web View Link in Email"
-msgstr ""
+msgstr "Uključite vezu za web pregled u e-poštu"
 
 #: public/js/frappe/views/reports/query_report.js:1506
 msgid "Include filters"
-msgstr ""
+msgstr "Uključi filtere"
 
 #: public/js/frappe/views/reports/query_report.js:1498
 msgid "Include indentation"
-msgstr ""
+msgstr "Uključi uvlačenje"
 
 #: public/js/frappe/form/controls/password.js:107
 msgid "Include symbols, numbers and capital letters in the password"
-msgstr ""
+msgstr "Uključite simbole, brojeve i velika slova u lozinku"
 
 #. Label of a Section Break field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Incoming (POP/IMAP) Settings"
-msgstr ""
+msgstr "Dolazne (POP/IMAP) postavke"
 
 #. Label of a Data field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Incoming Server"
-msgstr ""
+msgstr "Dolazni server"
 
 #. Label of a Data field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Incoming Server"
-msgstr ""
+msgstr "Dolazni server"
 
 #. Label of a Section Break field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Incoming Settings"
-msgstr ""
+msgstr "Dolazne postavke"
 
 #: email/doctype/email_domain/email_domain.py:32
 msgid "Incoming email account not correct"
-msgstr ""
+msgstr "Račun dolazne e-pošte nije ispravan"
 
 #: model/virtual_doctype.py:79 model/virtual_doctype.py:92
 msgid "Incomplete Virtual Doctype Implementation"
-msgstr ""
+msgstr "Nepotpuna implementacija virtualnog tipa dokumenta"
 
 #: auth.py:232
 msgid "Incomplete login details"
-msgstr ""
+msgstr "Nepotpuni podaci za prijavu"
 
 #: email/smtp.py:104
 msgid "Incorrect Configuration"
-msgstr ""
+msgstr "Neispravna konfiguracija"
 
 #: utils/csvutils.py:209
 msgid "Incorrect URL"
-msgstr ""
+msgstr "Neispravan URL"
 
 #: utils/password.py:89
 msgid "Incorrect User or Password"
-msgstr ""
+msgstr "Netačan korisnik ili lozinka"
 
 #: twofactor.py:176 twofactor.py:188
 msgid "Incorrect Verification code"
-msgstr ""
+msgstr "Netačan verifikacioni kod"
 
 #: model/document.py:1364
 msgid "Incorrect value in row {0}: {1} must be {2} {3}"
-msgstr ""
+msgstr "Netačna vrijednost u redu {0}: {1} mora biti {2} {3}"
 
 #: model/document.py:1368
 msgid "Incorrect value: {0} must be {1} {2}"
-msgstr ""
+msgstr "Netačna vrijednost: {0} mora biti {1} {2}"
 
 #: model/meta.py:48 public/js/frappe/model/meta.js:200
 #: public/js/frappe/model/model.js:124
 #: public/js/frappe/views/reports/report_view.js:938
 msgid "Index"
-msgstr ""
+msgstr "Indeks"
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Index"
-msgstr ""
+msgstr "Indeks"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Index"
-msgstr ""
+msgstr "Indeks"
 
 #. Label of a Int field in DocType 'Recorder Query'
 #: core/doctype/recorder_query/recorder_query.json
 msgctxt "Recorder Query"
 msgid "Index"
-msgstr ""
+msgstr "Indeks"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Index Web Pages for Search"
-msgstr ""
+msgstr "Indeksirajte web stranice za pretragu"
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Indexing authorization code"
-msgstr ""
+msgstr "Autorizacijski kod za indeksiranje"
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Indexing refresh token"
-msgstr ""
+msgstr "Token za osvježavanje indeksiranja"
 
 #. Label of a Select field in DocType 'Kanban Board Column'
 #: desk/doctype/kanban_board_column/kanban_board_column.json
 msgctxt "Kanban Board Column"
 msgid "Indicator"
-msgstr ""
+msgstr "Indikator"
 
 #. Label of a Select field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Indicator Color"
-msgstr ""
+msgstr "Boja indikatora"
 
 #: public/js/frappe/views/workspace/workspace.js:650
 #: public/js/frappe/views/workspace/workspace.js:978
@@ -16518,19 +16518,19 @@ msgstr "Nevažeći format filtera za polje {0} tipa {1}. Pokušajte koristiti ik
 
 #: utils/dashboard.py:61
 msgid "Invalid Filter Value"
-msgstr ""
+msgstr "Nevažeća vrijednost filtera"
 
 #: website/doctype/website_settings/website_settings.py:83
 msgid "Invalid Home Page"
-msgstr ""
+msgstr "Nevažeća početna stranica"
 
 #: utils/verified_command.py:48 www/update-password.html:151
 msgid "Invalid Link"
-msgstr ""
+msgstr "Nevažeća veza"
 
 #: www/login.py:112
 msgid "Invalid Login Token"
-msgstr ""
+msgstr "Nevažeći token za prijavu"
 
 #: templates/includes/login/login.js:291
 msgid "Invalid Login. Try again."
@@ -16538,98 +16538,98 @@ msgstr ""
 
 #: email/receive.py:104 email/receive.py:141
 msgid "Invalid Mail Server. Please rectify and try again."
-msgstr ""
+msgstr "Nevažeći server pošte. Ispravite i pokušajte ponovo."
 
 #: model/naming.py:100
 msgid "Invalid Naming Series: {}"
-msgstr ""
+msgstr "Nevažeća serija imenovanja: {}"
 
 #: core/doctype/rq_job/rq_job.py:113
 msgid "Invalid Operation"
-msgstr ""
+msgstr "Nevažeća operacija"
 
 #: core/doctype/doctype/doctype.py:1577 core/doctype/doctype/doctype.py:1586
 msgid "Invalid Option"
-msgstr ""
+msgstr "Nevažeća opcija"
 
 #: email/smtp.py:103
 msgid "Invalid Outgoing Mail Server or Port: {0}"
-msgstr ""
+msgstr "Nevažeći server odlazne pošte ili port: {0}"
 
 #: email/doctype/auto_email_report/auto_email_report.py:188
 msgid "Invalid Output Format"
-msgstr ""
+msgstr "Nevažeći izlazni format"
 
 #: integrations/doctype/connected_app/connected_app.py:167
 msgid "Invalid Parameters."
-msgstr ""
+msgstr "Nevažeći parametri."
 
 #: core/doctype/user/user.py:1229 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
-msgstr ""
+msgstr "Nevažeća lozinka"
 
 #: utils/__init__.py:108
 msgid "Invalid Phone Number"
-msgstr ""
+msgstr "Nevažeći broj telefona"
 
 #: auth.py:93 utils/oauth.py:179 utils/oauth.py:186 www/login.py:112
 msgid "Invalid Request"
-msgstr ""
+msgstr "Nevažeći zahtjev"
 
 #: desk/search.py:26
 msgid "Invalid Search Field {0}"
-msgstr ""
+msgstr "Nevažeće polje za pretragu {0}"
 
 #: core/doctype/doctype/doctype.py:1162
 msgid "Invalid Table Fieldname"
-msgstr ""
+msgstr "Nevažeći naziv polja tabele"
 
 #: public/js/workflow_builder/store.js:182
 msgid "Invalid Transition"
-msgstr ""
+msgstr "Nevažeća tranzicija"
 
 #: core/doctype/file/file.py:217 public/js/frappe/widgets/widget_dialog.js:604
 #: utils/csvutils.py:201 utils/csvutils.py:222
 msgid "Invalid URL"
-msgstr ""
+msgstr "Nevažeći URL"
 
 #: email/receive.py:149
 msgid "Invalid User Name or Support Password. Please rectify and try again."
-msgstr ""
+msgstr "Nevažeće korisničko ime ili lozinka za podršku. Ispravite i pokušajte ponovo."
 
 #: integrations/doctype/webhook/webhook.py:119
 msgid "Invalid Webhook Secret"
-msgstr ""
+msgstr "Nevažeća tajna webhooka"
 
 #: desk/reportview.py:167
 msgid "Invalid aggregate function"
-msgstr ""
+msgstr "Nevažeća agregatna funkcija"
 
 #: public/js/frappe/views/reports/report_view.js:368
 msgid "Invalid column"
-msgstr ""
+msgstr "Nevažeća kolona"
 
 #: model/document.py:855 model/document.py:869
 msgid "Invalid docstatus"
-msgstr ""
+msgstr "Nevažeći status dokumenta"
 
 #: public/js/frappe/utils/dashboard_utils.js:229
 msgid "Invalid expression set in filter {0}"
-msgstr ""
+msgstr "Nevažeći izraz postavljen u filteru {0}"
 
 #: public/js/frappe/utils/dashboard_utils.js:219
 msgid "Invalid expression set in filter {0} ({1})"
-msgstr ""
+msgstr "Nevažeći izraz postavljen u filteru {0} ({1})"
 
 #: utils/data.py:2129
 msgid "Invalid field name {0}"
-msgstr ""
+msgstr "Nevažeći naziv polja {0}"
 
 #: core/doctype/doctype/doctype.py:1047
 msgid "Invalid fieldname '{0}' in autoname"
-msgstr ""
+msgstr "Nevažeći naziv polja '{0}' u automatskom nazivu"
 
 #: client.py:344
 msgid "Invalid file path: {0}"
@@ -17423,101 +17423,101 @@ msgstr ""
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP Middle Name Field"
-msgstr ""
+msgstr "LDAP polje srednjeg imena"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP Mobile Field"
-msgstr ""
+msgstr "LDAP polje mobitela"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:162
 msgid "LDAP Not Installed"
-msgstr ""
+msgstr "LDAP nije instaliran"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP Phone Field"
-msgstr ""
+msgstr "LDAP telefonsko polje"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP Search String"
-msgstr ""
+msgstr "LDAP niz za pretraživanje"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:129
 msgid "LDAP Search String must be enclosed in '()' and needs to contian the user placeholder {0}, eg sAMAccountName={0}"
-msgstr ""
+msgstr "LDAP niz za pretraživanje mora biti priložen u '()' i mora sadržavati rezervisano mjesto korisnika {0}, npr. sAMAccountName={0}"
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP Search and Paths"
-msgstr ""
+msgstr "LDAP pretraga i staze"
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP Security"
-msgstr ""
+msgstr "LDAP sigurnost"
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP Server Settings"
-msgstr ""
+msgstr "Postavke LDAP servera"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP Server Url"
-msgstr ""
+msgstr "Url LDAP servera"
 
 #. Name of a DocType
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgid "LDAP Settings"
-msgstr ""
+msgstr "LDAP postavke"
 
 #. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgctxt "LDAP Settings"
 msgid "LDAP Settings"
-msgstr ""
+msgstr "LDAP postavke"
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP User Creation and Mapping"
-msgstr ""
+msgstr "Kreiranje i mapiranje LDAP korisnika"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP Username Field"
-msgstr ""
+msgstr "LDAP polje za korisničko ime"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:308
 #: integrations/doctype/ldap_settings/ldap_settings.py:425
 msgid "LDAP is not enabled."
-msgstr ""
+msgstr "LDAP nije omogućen."
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP search path for Groups"
-msgstr ""
+msgstr "LDAP staza pretraživanja za Grupe"
 
 #. Label of a Data field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "LDAP search path for Users"
-msgstr ""
+msgstr "LDAP staza pretraživanja za korisnike"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:101
 msgid "LDAP settings incorrect. validation response was: {0}"
-msgstr ""
+msgstr "LDAP postavke su netačne. odgovor validacije je bio: {0}"
 
 #: printing/page/print_format_builder/print_format_builder.js:474
 #: public/js/frappe/widgets/widget_dialog.js:255
@@ -17525,153 +17525,153 @@ msgstr ""
 #: public/js/frappe/widgets/widget_dialog.js:678
 #: templates/form_grid/fields.html:37
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'DocType Action'
 #: core/doctype/doctype_action/doctype_action.json
 msgctxt "DocType Action"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'DocType Layout Field'
 #: custom/doctype/doctype_layout_field/doctype_layout_field.json
 msgctxt "DocType Layout Field"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgctxt "Form Tour Step"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Report Column'
 #: core/doctype/report_column/report_column.json
 msgctxt "Report Column"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Report Filter'
 #: core/doctype/report_filter/report_filter.json
 msgctxt "Report Filter"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Top Bar Item'
 #: website/doctype/top_bar_item/top_bar_item.json
 msgctxt "Top Bar Item"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Workspace Chart'
 #: desk/doctype/workspace_chart/workspace_chart.json
 msgctxt "Workspace Chart"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Workspace Custom Block'
 #: desk/doctype/workspace_custom_block/workspace_custom_block.json
 msgctxt "Workspace Custom Block"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Workspace Number Card'
 #: desk/doctype/workspace_number_card/workspace_number_card.json
 msgctxt "Workspace Number Card"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Workspace Quick List'
 #: desk/doctype/workspace_quick_list/workspace_quick_list.json
 msgctxt "Workspace Quick List"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a Data field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Label"
-msgstr ""
+msgstr "Oznaka"
 
 #. Label of a HTML field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Label Help"
-msgstr ""
+msgstr "Pomoć za oznake"
 
 #. Label of a Section Break field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Label and Type"
-msgstr ""
+msgstr "Oznaka i vrsta"
 
 #: custom/doctype/custom_field/custom_field.py:143
 msgid "Label is mandatory"
-msgstr ""
+msgstr "Oznaka je obavezna"
 
 #. Label of a Section Break field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Landing Page"
-msgstr ""
+msgstr "Dolazna stranica"
 
 #: public/js/frappe/form/print_utils.js:28
 msgid "Landscape"
-msgstr ""
+msgstr "Pejzaž"
 
 #. Name of a DocType
 #: core/doctype/language/language.json printing/page/print/print.js:104
@@ -18011,13 +18011,13 @@ msgstr "Postavimo vaš račun"
 #: public/js/frappe/widgets/onboarding_widget.js:380
 #: public/js/frappe/widgets/onboarding_widget.js:419
 msgid "Let's take you back to onboarding"
-msgstr ""
+msgstr "Hajde da vas vratimo na onboarding"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Letter"
-msgstr ""
+msgstr "Pismo"
 
 #. Name of a DocType
 #: printing/doctype/letter_head/letter_head.json
@@ -18025,31 +18025,31 @@ msgstr ""
 #: public/js/frappe/form/templates/print_layout.html:16
 #: public/js/frappe/list/bulk_operations.js:51
 msgid "Letter Head"
-msgstr ""
+msgstr "Zaglavlje pisma"
 
 #. Label of a Link field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Letter Head"
-msgstr ""
+msgstr "Zaglavlje pisma"
 
 #. Label of a Select field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Letter Head Based On"
-msgstr ""
+msgstr "Zaglavlje pisma na temelju"
 
 #. Label of a Section Break field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Letter Head Image"
-msgstr ""
+msgstr "Slika zaglavlja pisma"
 
 #. Label of a Data field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Letter Head Name"
-msgstr ""
+msgstr "Naziv zaglavlja pisma"
 
 #: printing/doctype/letter_head/letter_head.js:30
 msgid "Letter Head Scripts"
@@ -18057,156 +18057,156 @@ msgstr ""
 
 #: printing/doctype/letter_head/letter_head.py:48
 msgid "Letter Head cannot be both disabled and default"
-msgstr ""
+msgstr "Zaglavlje pisma ne može biti istovremeno onemogućeno i zadano"
 
 #. Description of the 'Header HTML' (HTML Editor) field in DocType 'Letter
 #. Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Letter Head in HTML"
-msgstr ""
+msgstr "Zaglavlje pisma u HTML-u"
 
 #: core/page/permission_manager/permission_manager.js:213
 #: public/js/frappe/roles_editor.js:66
 msgid "Level"
-msgstr ""
+msgstr "Nivo"
 
 #. Label of a Int field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Level"
-msgstr ""
+msgstr "Nivo"
 
 #. Label of a Int field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Level"
-msgstr ""
+msgstr "Nivo"
 
 #. Label of a Select field in DocType 'Help Article'
 #: website/doctype/help_article/help_article.json
 msgctxt "Help Article"
 msgid "Level"
-msgstr ""
+msgstr "Nivo"
 
 #: core/page/permission_manager/permission_manager.js:461
 msgid "Level 0 is for document level permissions, higher levels for field level permissions."
-msgstr ""
+msgstr "Nivo 0 je za dozvole na nivou dokumenta, viši nivoi za dozvole na nivou polja."
 
 #. Label of a Data field in DocType 'Review Level'
 #: social/doctype/review_level/review_level.json
 msgctxt "Review Level"
 msgid "Level Name"
-msgstr ""
+msgstr "Naziv nivoa"
 
 #: www/attribution.html:35
 msgid "License"
-msgstr ""
+msgstr "Licenca"
 
 #. Label of a Markdown Editor field in DocType 'Package'
 #: core/doctype/package/package.json
 msgctxt "Package"
 msgid "License"
-msgstr ""
+msgstr "Licenca"
 
 #. Label of a Select field in DocType 'Package'
 #: core/doctype/package/package.json
 msgctxt "Package"
 msgid "License Type"
-msgstr ""
+msgstr "Vrsta licence"
 
 #. Option for the 'Desk Theme' (Select) field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Light"
-msgstr ""
+msgstr "Svijetlo"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #: core/doctype/doctype_state/doctype_state.json
 msgctxt "DocType State"
 msgid "Light Blue"
-msgstr ""
+msgstr "Svijetlo plava"
 
 #. Option for the 'Indicator' (Select) field in DocType 'Kanban Board Column'
 #: desk/doctype/kanban_board_column/kanban_board_column.json
 msgctxt "Kanban Board Column"
 msgid "Light Blue"
-msgstr ""
+msgstr "Svijetlo plava"
 
 #. Label of a Link field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Light Color"
-msgstr ""
+msgstr "Svijetla boja"
 
 #: public/js/frappe/ui/theme_switcher.js:60
 msgid "Light Theme"
-msgstr ""
+msgstr "Svijetla tema"
 
 #: public/js/frappe/ui/filters/filter.js:18
 msgid "Like"
-msgstr ""
+msgstr "Kao"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Like"
-msgstr ""
+msgstr "Kao"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Like"
-msgstr ""
+msgstr "Kao"
 
 #. Label of a Int field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
 msgctxt "Blog Settings"
 msgid "Like limit"
-msgstr ""
+msgstr "Ograničenje lajkova"
 
 #. Description of the 'Like limit' (Int) field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
 msgctxt "Blog Settings"
 msgid "Like limit per hour"
-msgstr ""
+msgstr "Ograničenje lajkova po satu"
 
 #: templates/includes/likes/likes.py:30
 msgid "Like on {0}: {1}"
-msgstr ""
+msgstr "Kao na {0}: {1}"
 
 #: desk/like.py:91
 msgid "Liked"
-msgstr ""
+msgstr "Sviđanja"
 
 #: model/meta.py:53 public/js/frappe/model/meta.js:205
 #: public/js/frappe/model/model.js:134
 msgid "Liked By"
-msgstr ""
+msgstr "Svijelo se"
 
 #. Label of a Int field in DocType 'Help Article'
 #: website/doctype/help_article/help_article.json
 msgctxt "Help Article"
 msgid "Likes"
-msgstr ""
+msgstr "Sviđanja"
 
 #. Label of a Int field in DocType 'Bulk Update'
 #: desk/doctype/bulk_update/bulk_update.json
 msgctxt "Bulk Update"
 msgid "Limit"
-msgstr ""
+msgstr "Limit"
 
 #. Label of a Check field in DocType 'Dropbox Settings'
 #: integrations/doctype/dropbox_settings/dropbox_settings.json
 msgctxt "Dropbox Settings"
 msgid "Limit Number of DB Backups"
-msgstr ""
+msgstr "Ograničenje broja rezervnih kopija DB"
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Line"
-msgstr ""
+msgstr "Linija"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -18720,49 +18720,49 @@ msgstr ""
 
 #: public/js/frappe/desk.js:235
 msgid "Login Failed please try again"
-msgstr ""
+msgstr "Prijava nije uspjela, pokušajte ponovo"
 
 #: email/doctype/email_account/email_account.py:141
 msgid "Login Id is required"
-msgstr ""
+msgstr "Id za prijavu je obavezan"
 
 #. Label of a Section Break field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Login Methods"
-msgstr ""
+msgstr "Metode prijave"
 
 #. Label of a Section Break field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Login Page"
-msgstr ""
+msgstr "Stranica za prijavu"
 
 #. Label of a Check field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Login Required"
-msgstr ""
+msgstr "Prijava je obavezna"
 
 #: www/login.py:136
 msgid "Login To {0}"
-msgstr ""
+msgstr "Prijavite se na {0}"
 
 #: twofactor.py:260
 msgid "Login Verification Code from {}"
-msgstr ""
+msgstr "Kod za potvrdu prijave od {}"
 
 #: www/login.html:97
 msgid "Login With {0}"
-msgstr ""
+msgstr "Prijavite se sa {0}"
 
 #: templates/emails/new_message.html:4
 msgid "Login and view in Browser"
-msgstr ""
+msgstr "Prijavite se i pregledajte u pretraživaču"
 
 #: website/doctype/web_form/web_form.js:367
 msgid "Login is required to see web form list view. Enable {0} to see list settings"
-msgstr ""
+msgstr "Prijava je potrebna da biste vidjeli pregled liste web obrasca. Omogućite {0} da vidite postavke liste"
 
 #: templates/includes/login/login.js:70
 msgid "Login link sent to your email"
@@ -18770,123 +18770,123 @@ msgstr ""
 
 #: auth.py:316 auth.py:319
 msgid "Login not allowed at this time"
-msgstr ""
+msgstr "Prijava trenutno nije dozvoljena"
 
 #: twofactor.py:164
 msgid "Login session expired, refresh page to retry"
-msgstr ""
+msgstr "Sesija prijave je istekla, osvježite stranicu za ponovni pokušaj"
 
 #: templates/includes/comments/comments.html:110
 msgid "Login to comment"
-msgstr ""
+msgstr "Prijavite se za komentar"
 
 #: templates/includes/comments/comments.html:6
 msgid "Login to start a new discussion"
-msgstr ""
+msgstr "Prijavite se da započnete novu diskusiju"
 
 #: www/login.html:61
 msgid "Login to {0}"
-msgstr ""
+msgstr "Prijavite se na {0}"
 
 #: www/login.html:106
 msgid "Login with Email Link"
-msgstr ""
+msgstr "Prijavite se putem e-mail veze"
 
 #: www/login.html:46
 msgid "Login with LDAP"
-msgstr ""
+msgstr "Prijavite se putem LDAP-a"
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Login with email link"
-msgstr ""
+msgstr "Prijavite se putem email veze"
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Login with email link expiry (in minutes)"
-msgstr ""
+msgstr "Prijavite se sa istekom veze e-pošte (u minutama)"
 
 #: auth.py:129
 msgid "Login with username and password is not allowed."
-msgstr ""
+msgstr "Prijava sa korisničkim imenom i lozinkom nije dozvoljena."
 
 #. Label of a Int field in DocType 'Navbar Settings'
 #: core/doctype/navbar_settings/navbar_settings.json
 msgctxt "Navbar Settings"
 msgid "Logo Width"
-msgstr ""
+msgstr "Širina logotipa"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
 msgctxt "Activity Log"
 msgid "Logout"
-msgstr ""
+msgstr "Odjava"
 
 #: core/doctype/user/user.js:183
 msgid "Logout All Sessions"
-msgstr ""
+msgstr "Odjava sa svih sesija"
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Logout All Sessions on Password Reset"
-msgstr ""
+msgstr "Odjavi se sa svih sesija na poništavanju lozinke"
 
 #. Label of a Check field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Logout From All Devices After Changing Password"
-msgstr ""
+msgstr "Odjava sa svih uređaja nakon promjene lozinke"
 
 #. Label of a Card Break in the Users Workspace
 #: core/workspace/users/users.json
 msgid "Logs"
-msgstr ""
+msgstr "Dnevnici"
 
 #. Group in User's connections
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Logs"
-msgstr ""
+msgstr "Dnevnici"
 
 #. Name of a DocType
 #: core/doctype/logs_to_clear/logs_to_clear.json
 msgid "Logs To Clear"
-msgstr ""
+msgstr "Dnevnici za brisanje"
 
 #. Label of a Table field in DocType 'Log Settings'
 #: core/doctype/log_settings/log_settings.json
 msgctxt "Log Settings"
 msgid "Logs to Clear"
-msgstr ""
+msgstr "Dnevnici za brisanje"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Long Text"
-msgstr ""
+msgstr "Dugi tekst"
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Long Text"
-msgstr ""
+msgstr "Dugi tekst"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Long Text"
-msgstr ""
+msgstr "Dugi tekst"
 
 #: public/js/frappe/widgets/onboarding_widget.js:322
 msgid "Looks like you didn't change the value"
-msgstr ""
+msgstr "Izgleda da niste promijenili vrijednost"
 
 #: www/third_party_apps.html:57
 msgid "Looks like you haven’t added any third party apps."
-msgstr ""
+msgstr "Izgleda da niste dodali nijednu aplikaciju trećih strana."
 
 #: public/js/frappe/ui/notifications/notifications.js:308
 msgid "Looks like you haven’t received any notifications."
@@ -18898,151 +18898,151 @@ msgstr ""
 
 #: public/js/frappe/form/sidebar/assign_to.js:190
 msgid "Low"
-msgstr ""
+msgstr "Nisko"
 
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
 msgctxt "ToDo"
 msgid "Low"
-msgstr ""
+msgstr "Nisko"
 
 #: public/js/frappe/utils/number_systems.js:13
 msgctxt "Number system"
 msgid "M"
-msgstr ""
+msgstr "M"
 
 #. Option for the 'License Type' (Select) field in DocType 'Package'
 #: core/doctype/package/package.json
 msgctxt "Package"
 msgid "MIT License"
-msgstr ""
+msgstr "MIT licenca"
 
 #. Label of a Text Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Main Section"
-msgstr ""
+msgstr "Glavna sekcija"
 
 #. Label of a HTML Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Main Section (HTML)"
-msgstr ""
+msgstr "Glavna sekcija (HTML)"
 
 #. Label of a Markdown Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Main Section (Markdown)"
-msgstr ""
+msgstr "Glavna sekcija (Markdown)"
 
 #. Name of a role
 #: contacts/doctype/contact/contact.json
 msgid "Maintenance Manager"
-msgstr ""
+msgstr "Menadžer održavanja"
 
 #. Name of a role
 #: contacts/doctype/address/address.json contacts/doctype/contact/contact.json
 msgid "Maintenance User"
-msgstr ""
+msgstr "Korisnik održavanja"
 
 #. Label of a Int field in DocType 'Package Release'
 #: core/doctype/package_release/package_release.json
 msgctxt "Package Release"
 msgid "Major"
-msgstr ""
+msgstr "Glavni"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Make \"name\" searchable in Global Search"
-msgstr ""
+msgstr "Neka \"ime\" bude pretraživo u globalnoj pretrazi"
 
 #. Label of a Check field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Make Attachments Public by Default"
-msgstr ""
+msgstr "Učini priloge javnim prema zadanim postavkama"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Make Attachments Public by Default"
-msgstr ""
+msgstr "Učini priloge javnim prema zadanim postavkama"
 
 #. Description of the 'Disable Username/Password Login' (Check) field in
 #. DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Make sure to configure a Social Login Key before disabling to prevent lockout"
-msgstr ""
+msgstr "Obavezno konfigurišite ključ za prijavu putem društvenih mreža prije onemogućavanja kako biste spriječili zaključavanje"
 
 #: utils/password_strength.py:92
 msgid "Make use of longer keyboard patterns"
-msgstr ""
+msgstr "Iskoristite duže uzorke tastature"
 
 #: public/js/frappe/form/multi_select_dialog.js:86
 msgid "Make {0}"
-msgstr ""
+msgstr "Napravi {0}"
 
 #: website/doctype/web_page/web_page.js:77
 msgid "Makes the page public"
-msgstr ""
+msgstr "Stranicu čini javnom"
 
 #: www/me.html:50
 msgid "Manage third party apps"
-msgstr ""
+msgstr "Upravljajte aplikacijama trećih strana"
 
 #: www/me.html:59
 msgid "Manage your apps"
-msgstr ""
+msgstr "Upravljajte svojim aplikacijama"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Mandatory"
-msgstr ""
+msgstr "Obavezno"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Mandatory"
-msgstr ""
+msgstr "Obavezno"
 
 #. Label of a Check field in DocType 'Report Filter'
 #: core/doctype/report_filter/report_filter.json
 msgctxt "Report Filter"
 msgid "Mandatory"
-msgstr ""
+msgstr "Obavezno"
 
 #. Label of a Check field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Mandatory"
-msgstr ""
+msgstr "Obavezno"
 
 #. Label of a Check field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Mandatory"
-msgstr ""
+msgstr "Obavezno"
 
 #. Label of a Code field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Mandatory Depends On"
-msgstr ""
+msgstr "Obavezno zavisi od"
 
 #. Label of a Code field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Mandatory Depends On"
-msgstr ""
+msgstr "Obavezno zavisi od"
 
 #. Label of a Code field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Mandatory Depends On"
-msgstr ""
+msgstr "Obavezno zavisi od"
 
 #. Label of a Code field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -19384,326 +19384,326 @@ msgstr ""
 #: public/js/frappe/views/communication.js:114 www/message.html:3
 #: www/message.html:25
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Text Editor field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
 msgctxt "Activity Log"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Section Break field in DocType 'Auto Email Report'
 #. Label of a Text Editor field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Text field in DocType 'Auto Repeat'
 #: automation/doctype/auto_repeat/auto_repeat.json
 msgctxt "Auto Repeat"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Text Editor field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #: __init__.py:620 public/js/frappe/ui/messages.js:265
 msgctxt "Default title of the message dialog"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Code field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Text Editor field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Section Break field in DocType 'Notification'
 #. Label of a Code field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Text Editor field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
 msgctxt "Notification Log"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Small Text field in DocType 'SMS Log'
 #: core/doctype/sms_log/sms_log.json
 msgctxt "SMS Log"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Data field in DocType 'Success Action'
 #: core/doctype/success_action/success_action.json
 msgctxt "Success Action"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a Text field in DocType 'Workflow Document State'
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Message"
-msgstr ""
+msgstr "Poruka"
 
 #. Label of a HTML Editor field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Message (HTML)"
-msgstr ""
+msgstr "Poruka (HTML)"
 
 #. Label of a Markdown Editor field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Message (Markdown)"
-msgstr ""
+msgstr "Poruka (Markdown)"
 
 #. Label of a HTML field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Message Examples"
-msgstr ""
+msgstr "Primjeri poruka"
 
 #. Label of a Small Text field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Message ID"
-msgstr ""
+msgstr "ID poruke"
 
 #. Label of a Small Text field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Message ID"
-msgstr ""
+msgstr "ID poruke"
 
 #. Label of a Data field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
 msgctxt "SMS Settings"
 msgid "Message Parameter"
-msgstr ""
+msgstr "Parametar poruke"
 
 #. Label of a Select field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Message Type"
-msgstr ""
+msgstr "Vrsta poruke"
 
 #: public/js/frappe/views/communication.js:941
 msgid "Message clipped"
-msgstr ""
+msgstr "Poruka je izrezana"
 
 #: email/doctype/email_account/email_account.py:317
 msgid "Message from server: {0}"
-msgstr ""
+msgstr "Poruka sa servera: {0}"
 
 #: automation/doctype/auto_repeat/auto_repeat.js:102
 msgid "Message not setup"
-msgstr ""
+msgstr "Poruka nije postavljena"
 
 #. Description of the 'Success Message' (Text) field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Message to be displayed on successful completion"
-msgstr ""
+msgstr "Poruka će se prikazati po uspješnom završetku"
 
 #. Label of a Code field in DocType 'Unhandled Email'
 #: email/doctype/unhandled_email/unhandled_email.json
 msgctxt "Unhandled Email"
 msgid "Message-id"
-msgstr ""
+msgstr "Poruka-id"
 
 #. Label of a Code field in DocType 'Data Import Log'
 #: core/doctype/data_import_log/data_import_log.json
 msgctxt "Data Import Log"
 msgid "Messages"
-msgstr ""
+msgstr "Poruke"
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Meta"
-msgstr ""
+msgstr "Meta"
 
 #: website/doctype/web_page/web_page.js:124
 msgid "Meta Description"
-msgstr ""
+msgstr "Meta opis"
 
 #. Label of a Small Text field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Meta Description"
-msgstr ""
+msgstr "Meta opis"
 
 #. Label of a Small Text field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Meta Description"
-msgstr ""
+msgstr "Meta opis"
 
 #: website/doctype/web_page/web_page.js:131
 msgid "Meta Image"
-msgstr ""
+msgstr "Meta slika"
 
 #. Label of a Attach Image field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Meta Image"
-msgstr ""
+msgstr "Meta slika"
 
 #. Label of a Attach Image field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Meta Image"
-msgstr ""
+msgstr "Meta slika"
 
 #. Label of a Section Break field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Meta Tags"
-msgstr ""
+msgstr "Meta tagovi"
 
 #. Label of a Section Break field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Meta Tags"
-msgstr ""
+msgstr "Meta tagovi"
 
 #. Label of a Table field in DocType 'Website Route Meta'
 #: website/doctype/website_route_meta/website_route_meta.json
 msgctxt "Website Route Meta"
 msgid "Meta Tags"
-msgstr ""
+msgstr "Meta tagovi"
 
 #: website/doctype/web_page/web_page.js:117
 msgid "Meta Title"
-msgstr ""
+msgstr "Meta naslov"
 
 #. Label of a Data field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Meta Title"
-msgstr ""
+msgstr "Meta naslov"
 
 #. Label of a Data field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Meta Title"
-msgstr ""
+msgstr "Meta naslov"
 
 #: website/doctype/web_page/web_page.js:110
 msgid "Meta title for SEO"
-msgstr ""
+msgstr "Meta naslov za SEO"
 
 #. Label of a Data field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
 msgctxt "Access Log"
 msgid "Method"
-msgstr ""
+msgstr "Metod"
 
 #. Label of a Select field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Method"
-msgstr ""
+msgstr "Metod"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Method"
-msgstr ""
+msgstr "Metod"
 
 #. Label of a Data field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Method"
-msgstr ""
+msgstr "Metod"
 
 #. Label of a Select field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
 msgctxt "Recorder"
 msgid "Method"
-msgstr ""
+msgstr "Metod"
 
 #. Label of a Data field in DocType 'Scheduled Job Type'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 msgctxt "Scheduled Job Type"
 msgid "Method"
-msgstr ""
+msgstr "Metod"
 
 #: desk/doctype/number_card/number_card.py:70
 msgid "Method is required to create a number card"
-msgstr ""
+msgstr "Metoda je potrebna za kreiranje kartice s brojevima"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgctxt "Form Tour Step"
 msgid "Mid Center"
-msgstr ""
+msgstr "Sredina centar"
 
 #. Label of a Data field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Middle Name"
-msgstr ""
+msgstr "Srednje ime"
 
 #. Label of a Data field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Middle Name"
-msgstr ""
+msgstr "Srednje ime"
 
 #. Name of a DocType
 #: automation/doctype/milestone/milestone.json
 msgid "Milestone"
-msgstr ""
+msgstr "Prekretnica"
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgctxt "Milestone"
 msgid "Milestone"
-msgstr ""
+msgstr "Prekretnica"
 
 #. Name of a DocType
 #: automation/doctype/milestone_tracker/milestone_tracker.json
 msgid "Milestone Tracker"
-msgstr ""
+msgstr "Praćenje prekretnica"
 
 #. Label of a Link field in DocType 'Milestone'
 #: automation/doctype/milestone/milestone.json
 msgctxt "Milestone"
 msgid "Milestone Tracker"
-msgstr ""
+msgstr "Praćenje prekretnica"
 
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Minimum"
-msgstr ""
+msgstr "Minimum"
 
 #. Label of a Select field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Minimum Password Score"
-msgstr ""
+msgstr "Minimalna ocjena lozinke"
 
 #. Label of a Int field in DocType 'Package Release'
 #: core/doctype/package_release/package_release.json
 msgctxt "Package Release"
 msgid "Minor"
-msgstr ""
+msgstr "Manji"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:102
 #: integrations/doctype/ldap_settings/ldap_settings.py:107
@@ -19711,286 +19711,286 @@ msgstr ""
 #: integrations/doctype/ldap_settings/ldap_settings.py:124
 #: integrations/doctype/ldap_settings/ldap_settings.py:332
 msgid "Misconfigured"
-msgstr ""
+msgstr "Pogrešno konfigurisano"
 
 #: desk/form/meta.py:213
 msgid "Missing DocType"
-msgstr ""
+msgstr "Nedostaje DocType"
 
 #: core/doctype/doctype/doctype.py:1474
 msgid "Missing Field"
-msgstr ""
+msgstr "Nedostaje polje"
 
 #: public/js/frappe/form/save.js:178
 msgid "Missing Fields"
-msgstr ""
+msgstr "Nedostajuća polja"
 
 #: email/doctype/auto_email_report/auto_email_report.py:129
 msgid "Missing Filters Required"
-msgstr ""
+msgstr "Potrebni nedostajući filteri"
 
 #: desk/form/assign_to.py:107
 msgid "Missing Permission"
-msgstr ""
+msgstr "Nedostaje dozvola"
 
 #: www/update-password.html:107 www/update-password.html:114
 msgid "Missing Value"
-msgstr ""
+msgstr "Nedostaje vrijednost"
 
 #: public/js/frappe/ui/field_group.js:118
 #: public/js/frappe/widgets/widget_dialog.js:369
 #: public/js/workflow_builder/store.js:97
 #: workflow/doctype/workflow/workflow.js:71
 msgid "Missing Values Required"
-msgstr ""
+msgstr "Nedostajuće vrijednosti su obavezne"
 
 #: www/login.py:96
 msgid "Mobile"
-msgstr ""
+msgstr "Mobilni"
 
 #: tests/test_translate.py:85 tests/test_translate.py:88
 #: tests/test_translate.py:90 tests/test_translate.py:93
 msgid "Mobile No"
-msgstr ""
+msgstr "Broj mobilnog"
 
 #. Label of a Data field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Mobile No"
-msgstr ""
+msgstr "Broj mobilnog"
 
 #. Label of a Data field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Mobile No"
-msgstr ""
+msgstr "Broj mobilnog"
 
 #. Label of a Check field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgctxt "Form Tour Step"
 msgid "Modal Trigger"
-msgstr ""
+msgstr "Modalni okidač"
 
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Models"
-msgstr ""
+msgstr "Modeli"
 
 #: core/report/transaction_log_report/transaction_log_report.py:106
 #: social/doctype/energy_point_rule/energy_point_rule.js:43
 msgid "Modified By"
-msgstr ""
+msgstr "Izmijenio"
 
 #: core/doctype/doctype/doctype_list.js:30
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Data field in DocType 'Block Module'
 #: core/doctype/block_module/block_module.json
 msgctxt "Block Module"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Dashboard'
 #: desk/doctype/dashboard/dashboard.json
 msgctxt "Dashboard"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Dashboard Chart Source'
 #: desk/doctype/dashboard_chart_source/dashboard_chart_source.json
 msgctxt "Dashboard Chart Source"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Module Onboarding'
 #: desk/doctype/module_onboarding/module_onboarding.json
 msgctxt "Module Onboarding"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Page'
 #: core/doctype/page/page.json
 msgctxt "Page"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Print Format Field Template'
 #: printing/doctype/print_format_field_template/print_format_field_template.json
 msgctxt "Print Format Field Template"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'User Type Module'
 #: core/doctype/user_type_module/user_type_module.json
 msgctxt "User Type Module"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Web Template'
 #: website/doctype/web_template/web_template.json
 msgctxt "Web Template"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Module"
-msgstr ""
+msgstr "Modul"
 
 #. Label of a Link field in DocType 'Client Script'
 #: custom/doctype/client_script/client_script.json
 msgctxt "Client Script"
 msgid "Module (for export)"
-msgstr ""
+msgstr "Modul (za izvoz)"
 
 #. Label of a Link field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Module (for export)"
-msgstr ""
+msgstr "Modul (za izvoz)"
 
 #. Label of a Link field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
 msgid "Module (for export)"
-msgstr ""
+msgstr "Modul (za izvoz)"
 
 #. Label of a Link field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "Module (for export)"
-msgstr ""
+msgstr "Modul (za izvoz)"
 
 #. Label of a Link field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Module (for export)"
-msgstr ""
+msgstr "Modul (za izvoz)"
 
 #. Name of a DocType
 #: core/doctype/module_def/module_def.json
 msgid "Module Def"
-msgstr ""
+msgstr "Modul Def"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "Module Def"
 msgid "Module Def"
-msgstr ""
+msgstr "Modul Def"
 
 #. Linked DocType in Package's connections
 #: core/doctype/package/package.json
 msgctxt "Package"
 msgid "Module Def"
-msgstr ""
+msgstr "Modul Def"
 
 #. Label of a HTML field in DocType 'Module Profile'
 #: core/doctype/module_profile/module_profile.json
 msgctxt "Module Profile"
 msgid "Module HTML"
-msgstr ""
+msgstr "Modul HTML"
 
 #. Label of a Data field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Module Name"
-msgstr ""
+msgstr "Naziv modula"
 
 #. Label of a Data field in DocType 'Module Def'
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Module Name"
-msgstr ""
+msgstr "Naziv modula"
 
 #. Name of a DocType
 #: desk/doctype/module_onboarding/module_onboarding.json
 msgid "Module Onboarding"
-msgstr ""
+msgstr "Modul Onboarding"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "Module Onboarding"
 msgid "Module Onboarding"
-msgstr ""
+msgstr "Modul Onboarding"
 
 #. Name of a DocType
 #: core/doctype/module_profile/module_profile.json
 msgid "Module Profile"
-msgstr ""
+msgstr "Profil modula"
 
 #. Label of a Link in the Users Workspace
 #: core/workspace/users/users.json
 msgctxt "Module Profile"
 msgid "Module Profile"
-msgstr ""
+msgstr "Profil modula"
 
 #. Label of a Link field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Module Profile"
-msgstr ""
+msgstr "Profil modula"
 
 #. Label of a Data field in DocType 'Module Profile'
 #: core/doctype/module_profile/module_profile.json
 msgctxt "Module Profile"
 msgid "Module Profile Name"
-msgstr ""
+msgstr "Naziv profila modula"
 
 #: desk/doctype/module_onboarding/module_onboarding.py:69
 msgid "Module onboarding progress reset"
