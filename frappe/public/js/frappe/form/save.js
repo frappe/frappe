@@ -42,9 +42,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 
 	var remove_empty_rows = function () {
 		/*
-			This function removes empty rows. Note that in this function, a row is considered
-			empty if the fields with `in_list_view: 1` are undefined or falsy because that's
-			what users also consider to be an empty row
+			This function removes empty rows. Note that in this function, a row is considered empty if the row has no value in any of the fields.
 		*/
 		const docs = frappe.model.get_all_docs(frm.doc);
 
@@ -58,10 +56,6 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		tables.map((doc) => {
 			const cells = frappe.meta.docfield_list[doc.doctype] || [];
 
-			const in_list_view_cells = cells.filter((df) => {
-				return cint(df.in_list_view) === 1;
-			});
-
 			const is_empty_row = function (cells) {
 				for (let i = 0; i < cells.length; i++) {
 					if (
@@ -74,7 +68,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 				return true;
 			};
 
-			if (is_empty_row(in_list_view_cells)) {
+			if (is_empty_row(cells)) {
 				frappe.model.clear_doc(doc.doctype, doc.name);
 				modified_table_fields.push(doc.parentfield);
 			}
