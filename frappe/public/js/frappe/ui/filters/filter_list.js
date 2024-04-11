@@ -130,7 +130,7 @@ frappe.ui.FilterGroup = class {
 	update_filter_button() {
 		const filters_applied = this.filters.length > 0;
 		const button_label = filters_applied
-			? __("Filters") + `<span class='filter-label'>${this.filters.length}</span>`
+			? __("Filters {0}", [`<span class="filter-label">${this.filters.length}</span>`])
 			: __("Filter");
 
 		this.filter_button
