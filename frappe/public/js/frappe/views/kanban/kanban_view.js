@@ -178,9 +178,10 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 						"with_comment_count": 1
 					}
 				}).then((res) => {
-					const data = frappe.utils.dict(res.message.keys, res.message.values)
-					this.kanban.update_cards(data);
-					this.kanban.update_columns()
+					console.log("list_update res ", res)
+					// const data = frappe.utils.dict(res.message.keys, res.message.values)
+					// this.kanban.update_cards(data);
+					// this.kanban.update_columns()
 				})
 			}
 		});

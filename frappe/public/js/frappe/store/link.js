@@ -5,7 +5,6 @@ export default class LinkStore{
    constructor(){}
 
    setFromName(name){
-    console.log("enter");
        this.from_name = name
    }
    setFromDoctype(doctype){
