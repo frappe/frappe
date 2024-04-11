@@ -8,6 +8,7 @@ import frappe
 from frappe import scrub
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.model.meta import trim_table
 from frappe.modules import export_customizations, export_module_json, get_module_path
 from frappe.modules.utils import export_doc, sync_customizations
@@ -87,16 +88,23 @@ class TestUtils(FrappeTestCase):
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
 	)
 	def test_sync_customizations(self):
-		with note_customizations() as custom_field:
+		with note_customizations() as (custom_field, property_setter):
 			file_path = export_customizations(module="Custom", doctype="Note", sync_on_migrate=True)
 			custom_field.db_set("modified", now_datetime())
 			custom_field.reload()
+
+			# Untracked property setter
+			custom_prop_setter = make_property_setter(
+				"Note", fieldname="content", property="bold", value="1", property_type="Check"
+			)
 
 			self.assertTrue(file_path.endswith("/custom/custom/note.json"))
 			self.assertTrue(os.path.exists(file_path))
 			last_modified_before = custom_field.modified
 
 			sync_customizations(app="frappe")
+			self.assertTrue(property_setter.doctype, property_setter.name)
+			self.assertTrue(custom_prop_setter.doctype, custom_prop_setter.name)
 
 			self.assertTrue(file_path.endswith("/custom/custom/note.json"))
 			self.assertTrue(os.path.exists(file_path))
@@ -173,8 +181,13 @@ def note_customizations():
 			"fieldtype": "Data",
 		}
 		custom_field = create_custom_field("Note", df=df)
-		yield custom_field
+
+		property_setter = make_property_setter(
+			"Note", fieldname="content", property="bold", value="1", property_type="Check"
+		)
+		yield custom_field, property_setter
 	finally:
 		custom_field.delete()
+		property_setter.delete()
 		trim_table("Note", dry_run=False)
 		delete_path(frappe.get_module_path("Desk", "Note"))
