@@ -148,12 +148,13 @@ def sync_customizations_for_doctype(data: dict, folder: str, filename: str = "")
 				case "Property Setter":
 					# Property setter implement their own deduplication, we can just sync them as is
 					for d in data[key]:
-						if d.get(doctype_fieldname) == doc_type:
-							d["doctype"] = custom_doctype
+						if d.get("doc_type") == doc_type:
+							d["doctype"] = "Property Setter"
 							doc = frappe.get_doc(d)
+							doc.flags.validate_fields_for_doctype = False
 							doc.insert()
 				case "Custom DocPerm":
-					# Docperm have no "sync" as of now.
+					# TODO/XXX: Docperm have no "sync" as of now. They get OVERRIDDEN on sync.
 					frappe.db.delete("Custom DocPerm", {"parent": doc_type})
 
 					for d in data[key]:
