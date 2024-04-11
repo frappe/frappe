@@ -255,9 +255,10 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			frappe.log_error(title=method_name)
 			raise
 
-	except Exception:
+	except Exception as e:
 		frappe.db.rollback()
 		frappe.log_error(title=method_name)
+		frappe.monitor.add_data_to_monitor(exception=e.__class__.__name__)
 		frappe.db.commit()
 		print(frappe.get_traceback())
 		raise
