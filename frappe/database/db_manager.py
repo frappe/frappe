@@ -25,7 +25,7 @@ class DbManager:
 	def create_database(self, target):
 		if target in self.get_database_list():
 			self.drop_database(target)
-		self.db.sql(f"CREATE DATABASE `{target}`")
+		self.db.sql(f"CREATE DATABASE `{target}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
 	def drop_database(self, target):
 		self.db.sql_ddl(f"DROP DATABASE IF EXISTS `{target}`")
@@ -70,6 +70,7 @@ class DbManager:
 			source = ["<", source]
 
 		bin, args, bin_name = get_command(
+			socket=frappe.conf.db_socket,
 			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
 			user=user,

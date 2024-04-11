@@ -104,6 +104,16 @@ def delete_doc(
 					pass
 
 		else:
+			# Lock the doc without waiting
+			try:
+				frappe.db.get_value(doctype, name, for_update=True, wait=False)
+			except frappe.QueryTimeoutError:
+				frappe.throw(
+					_(
+						"This document can not be deleted right now as it's being modified by another user. Please try again after some time."
+					),
+					exc=frappe.QueryTimeoutError,
+				)
 			doc = frappe.get_doc(doctype, name)
 
 			if not for_reload:
@@ -328,7 +338,7 @@ def check_if_doc_is_dynamically_linked(doc, method="Delete"):
 			df["table"] = ", `parent`, `parenttype`, `idx`" if meta.istable else ""
 			for refdoc in frappe.db.sql(
 				"""select `name`, `docstatus` {table} from `tab{parent}` where
-				{options}=%s and {fieldname}=%s""".format(**df),
+				`{options}`=%s and `{fieldname}`=%s""".format(**df),
 				(doc.doctype, doc.name),
 				as_dict=True,
 			):

@@ -6,6 +6,7 @@ import json
 import os
 import re
 import shutil
+from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
 import frappe
@@ -32,7 +33,7 @@ from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint, flt, is_a_property, random_string
+from frappe.utils import cint, flt, get_datetime, is_a_property, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -111,7 +112,7 @@ class DocType(Document):
 		custom: DF.Check
 		default_email_template: DF.Link | None
 		default_print_format: DF.Data | None
-		default_view: DF.Literal
+		default_view: DF.Literal[None]
 		description: DF.SmallText | None
 		document_type: DF.Literal["", "Document", "Setup", "System", "Other"]
 		documentation: DF.Data | None
@@ -147,6 +148,7 @@ class DocType(Document):
 			"Expression",
 			"Expression (old style)",
 			"Random",
+			"UUID",
 			"By script",
 		]
 		nsm_parent_field: DF.Data | None
@@ -355,6 +357,8 @@ class DocType(Document):
 			for df in new_fields_to_fetch:
 				if df.fieldname not in old_fields_to_fetch:
 					link_fieldname, source_fieldname = df.fetch_from.split(".", 1)
+					if not source_fieldname:
+						continue  # Invalid expression
 					link_df = new_meta.get_field(link_fieldname)
 
 					if frappe.db.db_type == "postgres":
@@ -866,9 +870,7 @@ class DocType(Document):
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
 		if self.is_submittable:
-			docfield_exists = frappe.get_all(
-				"DocField", filters={"fieldname": "amended_from", "parent": self.name}, pluck="name", limit=1
-			)
+			docfield_exists = [f for f in self.fields if f.fieldname == "amended_from"]
 			if not docfield_exists:
 				self.append(
 					"fields",
@@ -1019,6 +1021,24 @@ class DocType(Document):
 			)
 
 		validate_route_conflict(self.doctype, self.name)
+
+	@frappe.whitelist()
+	def check_pending_migration(self) -> bool:
+		"""Checks if all migrations are applied on doctype."""
+		if self.is_new() or self.custom:
+			return
+
+		file = Path(get_file_path(frappe.scrub(self.module), self.doctype, self.name))
+		content = json.loads(file.read_text())
+		if content.get("modified") and get_datetime(self.modified) != get_datetime(content.get("modified")):
+			frappe.msgprint(
+				_(
+					"This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
+				),
+				alert=True,
+				indicator="yellow",
+			)
+			return True
 
 
 def validate_series(dt, autoname=None, name=None):
@@ -1187,7 +1207,7 @@ def validate_fields_for_doctype(doctype):
 
 
 # this is separate because it is also called via custom field
-def validate_fields(meta):
+def validate_fields(meta: Meta):
 	"""Validate doctype fields. Checks
 	1. There are no illegal characters in fieldnames
 	2. If fieldnames are unique.
@@ -1597,6 +1617,8 @@ def validate_fields(meta):
 	fields = meta.get("fields")
 	fieldname_list = [d.fieldname for d in fields]
 
+	in_ci = os.environ.get("CI")
+
 	not_allowed_in_list_view = get_fields_not_allowed_in_list_view(meta)
 
 	for d in fields:
@@ -1617,7 +1639,7 @@ def validate_fields(meta):
 		scrub_fetch_from(d)
 		validate_data_field_type(d)
 
-		if not frappe.flags.in_migrate:
+		if not frappe.flags.in_migrate or in_ci:
 			check_unique_fieldname(meta.get("name"), d.fieldname)
 			check_link_table_options(meta.get("name"), d)
 			check_illegal_mandatory(meta.get("name"), d)
@@ -1630,7 +1652,7 @@ def validate_fields(meta):
 			check_max_height(d)
 			check_no_of_ratings(d)
 
-	if not frappe.flags.in_migrate:
+	if not frappe.flags.in_migrate or in_ci:
 		check_fold(fields)
 		check_search_fields(meta, fields)
 		check_title_field(meta)

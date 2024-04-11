@@ -82,8 +82,6 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 		# we should just ignore it till database is back up again.
 		return
 
-	frappe.cache.hdel("session", sid)
-	frappe.cache.hdel("last_db_session_update", sid)
 	if sid and not user:
 		table = frappe.qb.DocType("Sessions")
 		user_details = frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
@@ -93,6 +91,9 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	logout_feed(user, reason)
 	frappe.db.delete("Sessions", {"sid": sid})
 	frappe.db.commit()
+
+	frappe.cache.hdel("session", sid)
+	frappe.cache.hdel("last_db_session_update", sid)
 
 
 def clear_all_sessions(reason=None):
@@ -167,6 +168,7 @@ def get():
 
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
 	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
+	bootinfo["navbar_settings"] = frappe.get_cached_doc("Navbar Settings")
 
 	return bootinfo
 
@@ -258,7 +260,15 @@ class Session:
 		(
 			frappe.qb.into(Sessions)
 			.columns(Sessions.sessiondata, Sessions.user, Sessions.lastupdate, Sessions.sid, Sessions.status)
-			.insert((str(self.data["data"]), self.data["user"], now, self.data["sid"], "Active"))
+			.insert(
+				(
+					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
+					self.data["user"],
+					now,
+					self.data["sid"],
+					"Active",
+				)
+			)
 		).run()
 		frappe.cache.hset("session", self.data.sid, self.data)
 
@@ -332,7 +342,7 @@ class Session:
 		).run()
 
 		if record:
-			data = frappe._dict(frappe.safe_eval(record and record[0][1] or "{}"))
+			data = frappe.parse_json(record[0][1] or "{}")
 			data.user = record[0][0]
 		else:
 			self._delete_session()
@@ -350,7 +360,7 @@ class Session:
 
 	def update(self, force=False):
 		"""extend session expiry"""
-		if frappe.session["user"] == "Guest" or frappe.form_dict.cmd == "logout":
+		if frappe.session.user == "Guest":
 			return
 
 		now = frappe.utils.now()
@@ -371,7 +381,10 @@ class Session:
 			(
 				frappe.qb.update(Sessions)
 				.where(Sessions.sid == self.data["sid"])
-				.set(Sessions.sessiondata, str(self.data["data"]))
+				.set(
+					Sessions.sessiondata,
+					frappe.as_json(self.data["data"], indent=None, separators=(",", ":")),
+				)
 				.set(Sessions.lastupdate, now)
 			).run()
 

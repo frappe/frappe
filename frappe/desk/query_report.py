@@ -206,18 +206,22 @@ def run(
 	if sbool(are_default_filters) and report.custom_filters:
 		filters = report.custom_filters
 
-	if report.prepared_report and not sbool(ignore_prepared_report) and not custom_columns:
-		if filters:
-			if isinstance(filters, str):
-				filters = json.loads(filters)
+	try:
+		if report.prepared_report and not sbool(ignore_prepared_report) and not custom_columns:
+			if filters:
+				if isinstance(filters, str):
+					filters = json.loads(filters)
 
-			dn = filters.pop("prepared_report_name", None)
+				dn = filters.pop("prepared_report_name", None)
+			else:
+				dn = ""
+			result = get_prepared_report_result(report, filters, dn, user)
 		else:
-			dn = ""
-		result = get_prepared_report_result(report, filters, dn, user)
-	else:
-		result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
-		add_data_to_monitor(report=report.reference_report or report.name)
+			result = generate_report_result(report, filters, user, custom_columns, is_tree, parent_field)
+			add_data_to_monitor(report=report.reference_report or report.name)
+	except Exception:
+		frappe.log_error("Report Error")
+		raise
 
 	result["add_total_row"] = report.add_total_row and not result.get("skip_total_row", False)
 
@@ -374,7 +378,7 @@ def build_xlsx_data(data, visible_idx, include_indentation, include_filters=Fals
 		datetime.timedelta,
 	)
 
-	if len(visible_idx) == len(data.result):
+	if len(visible_idx) == len(data.result) or not visible_idx:
 		# It's not possible to have same length and different content.
 		ignore_visible_idx = True
 	else:

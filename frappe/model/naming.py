@@ -1,10 +1,15 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import base64
 import datetime
 import re
+import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Optional
+from uuid import UUID
+
+import uuid_utils
 
 import frappe
 from frappe import _
@@ -33,6 +38,10 @@ NAMING_SERIES_PART_TYPES = (
 
 
 class InvalidNamingSeriesError(frappe.ValidationError):
+	pass
+
+
+class InvalidUUIDValue(frappe.ValidationError):
 	pass
 
 
@@ -139,11 +148,23 @@ def set_new_name(doc):
 	meta = frappe.get_meta(doc.doctype)
 	autoname = meta.autoname or ""
 
-	if autoname.lower() != "prompt" and not frappe.flags.in_import:
+	if autoname.lower() not in ("prompt", "uuid") and not frappe.flags.in_import:
 		doc.name = None
 
 	if is_autoincremented(doc.doctype, meta):
 		doc.name = frappe.db.get_next_sequence_val(doc.doctype)
+		return
+
+	if meta.autoname == "UUID":
+		if not doc.name:
+			doc.name = str(uuid_utils.uuid7())
+		elif isinstance(doc.name, UUID | uuid_utils.UUID):
+			doc.name = str(doc.name)
+		elif isinstance(doc.name, str):  # validate
+			try:
+				UUID(doc.name)
+			except ValueError:
+				frappe.throw(_("Invalid value specified for UUID: {}").format(doc.name), InvalidUUIDValue)
 		return
 
 	if getattr(doc, "amended_from", None):
@@ -176,10 +197,7 @@ def is_autoincremented(doctype: str, meta: Optional["Meta"] = None) -> bool:
 	if not meta:
 		meta = frappe.get_meta(doctype)
 
-	if not getattr(meta, "issingle", False) and meta.autoname == "autoincrement":
-		return True
-
-	return False
+	return not getattr(meta, "issingle", False) and meta.autoname == "autoincrement"
 
 
 def set_name_from_naming_options(autoname, doc):
@@ -262,10 +280,34 @@ def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 	                DE/09/01/00001 where 09 is the year, 01 is the month and 00001 is the series
 	"""
 	if key == "hash":
-		return frappe.generate_hash(length=10)
+		# Makeshift "ULID": first 4 chars are based on timestamp, other 6 are random
+		return _get_timestamp_prefix() + _generate_random_string(6)
 
 	series = NamingSeries(key)
 	return series.generate_next_name(doc, ignore_validate=ignore_validate)
+
+
+def _get_timestamp_prefix():
+	ts = int(time.time() * 10)  # time in deciseconds
+	# we ~~don't need~~ can't get ordering over entire lifetime, so we wrap the time.
+	ts = ts % (32**4)
+	return base64.b32hexencode(ts.to_bytes(length=5, byteorder="big")).decode()[-4:].lower()
+
+
+def _generate_random_string(length=10):
+	"""Better version of frappe.generate_hash for naming.
+
+	This uses entire base32 instead of base16 used by generate_hash. So it has twice as many
+	characters and hence more likely to have shorter common prefixes. i.e. slighly faster comparisons and less conflicts.
+
+	Why not base36?
+	It's not in standard library else using all characters is probably better approach.
+	Why not base64?
+	MySQL is case-insensitive, we can't use both upper and lower case characters.
+	"""
+	from secrets import token_bytes as get_random_bytes
+
+	return base64.b32hexencode(get_random_bytes(length)).decode()[:length].lower()
 
 
 def parse_naming_series(

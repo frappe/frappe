@@ -26,6 +26,8 @@ from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, get
 from frappe.utils.global_search import update_global_search
 
 if TYPE_CHECKING:
+	from typing_extensions import Self
+
 	from frappe.core.doctype.docfield.docfield import DocField
 
 
@@ -144,7 +146,7 @@ class Document(BaseDocument):
 	def is_locked(self):
 		return file_lock.lock_exists(self.get_signature())
 
-	def load_from_db(self):
+	def load_from_db(self) -> "Self":
 		"""Load document and children from database and create properties
 		from fields"""
 		self.flags.ignore_children = True
@@ -202,9 +204,11 @@ class Document(BaseDocument):
 		if hasattr(self, "__setup__"):
 			self.__setup__()
 
-	def reload(self):
+		return self
+
+	def reload(self) -> "Self":
 		"""Reload document from database"""
-		self.load_from_db()
+		return self.load_from_db()
 
 	def get_latest(self):
 		if not getattr(self, "_doc_before_save", None):
@@ -246,7 +250,7 @@ class Document(BaseDocument):
 		ignore_mandatory=None,
 		set_name=None,
 		set_child_names=True,
-	) -> "Document":
+	) -> "Self":
 		"""Insert the document in the database (as a new document).
 		This will check for user permissions and execute `before_insert`,
 		`validate`, `on_update`, `after_insert` methods if they are written.
@@ -300,8 +304,9 @@ class Document(BaseDocument):
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
 
 		# children
-		for d in self.get_all_children():
-			d.db_insert()
+		if not getattr(self.meta, "is_virtual", False):
+			for d in self.get_all_children():
+				d.db_insert()
 
 		self.run_method("after_insert")
 		self.flags.in_insert = True
@@ -330,11 +335,11 @@ class Document(BaseDocument):
 		if self.creation and self.is_locked:
 			raise frappe.DocumentLockedError
 
-	def save(self, *args, **kwargs):
+	def save(self, *args, **kwargs) -> "Self":
 		"""Wrapper for _save"""
 		return self._save(*args, **kwargs)
 
-	def _save(self, ignore_permissions=None, ignore_version=None) -> "Document":
+	def _save(self, ignore_permissions=None, ignore_version=None) -> "Self":
 		"""Save the current document in the database in the **DocType**'s table or
 		`tabSingles` (for single types).
 
@@ -415,6 +420,9 @@ class Document(BaseDocument):
 
 	def update_children(self):
 		"""update child tables"""
+		if getattr(self.meta, "is_virtual", False):
+			# Virtual doctypes manage their own children
+			return
 		for df in self.meta.get_table_fields():
 			self.update_child_table(df.fieldname, df)
 
@@ -587,6 +595,7 @@ class Document(BaseDocument):
 			d._validate_selects()
 			d._validate_non_negative()
 			d._validate_length()
+			d._fix_rating_value()
 			d._validate_code_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
@@ -1300,7 +1309,11 @@ class Document(BaseDocument):
 			def runner(self, method, *args, **kwargs):
 				add_to_return_value(self, fn(self, *args, **kwargs))
 				for f in hooks:
-					add_to_return_value(self, f(self, method, *args, **kwargs))
+					try:
+						frappe.db._disable_transaction_control += 1
+						add_to_return_value(self, f(self, method, *args, **kwargs))
+					finally:
+						frappe.db._disable_transaction_control -= 1
 
 				return self.__dict__.pop("_return_value", None)
 
@@ -1383,6 +1396,7 @@ class Document(BaseDocument):
 		"""Return Desk URL for this document."""
 		return get_absolute_url(self.doctype, self.name)
 
+	@frappe.whitelist()
 	def add_comment(
 		self,
 		comment_type="Comment",
@@ -1536,11 +1550,16 @@ class Document(BaseDocument):
 				primary_action=primary_action,
 			)
 
+		enqueue_after_commit = kwargs.pop("enqueue_after_commit", None)
+		if enqueue_after_commit is None:
+			enqueue_after_commit = True
+
 		return enqueue(
 			"frappe.model.document.execute_action",
 			__doctype=self.doctype,
 			__name=self.name,
 			__action=action,
+			enqueue_after_commit=enqueue_after_commit,
 			**kwargs,
 		)
 

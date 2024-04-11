@@ -7,6 +7,7 @@ import gzip
 import os
 import sys
 from calendar import timegm
+from collections.abc import Callable
 from datetime import datetime
 from glob import glob
 from shutil import which
@@ -47,6 +48,7 @@ class BackupGenerator:
 		backup_path_db=None,
 		backup_path_files=None,
 		backup_path_private_files=None,
+		db_socket=None,
 		db_host=None,
 		db_port=None,
 		db_type=None,
@@ -57,9 +59,11 @@ class BackupGenerator:
 		exclude_doctypes="",
 		verbose=False,
 		old_backup_metadata=False,
+		rollback_callback=None,
 	):
 		global _verbose
 		self.compress_files = compress_files or compress
+		self.db_socket = db_socket
 		self.db_host = db_host
 		self.db_port = db_port
 		self.db_name = db_name
@@ -76,6 +80,7 @@ class BackupGenerator:
 		self.exclude_doctypes = exclude_doctypes
 		self.partial = False
 		self.old_backup_metadata = old_backup_metadata
+		self.rollback_callback = rollback_callback
 
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
@@ -184,9 +189,13 @@ class BackupGenerator:
 
 		if not (last_db and last_file and last_private_file and site_config_backup_path):
 			self.take_dump()
+			self.add_to_rollback(lambda: os.remove(self.backup_path_db))
 			self.copy_site_config()
+			self.add_to_rollback(lambda: os.remove(self.backup_path_conf))
 			if not ignore_files:
 				self.backup_files()
+				self.add_to_rollback(lambda: os.remove(self.backup_path_files))
+				self.add_to_rollback(lambda: os.remove(self.backup_path_private_files))
 
 			if frappe.get_system_settings("encrypt_backup"):
 				self.backup_encryption()
@@ -246,21 +255,19 @@ class BackupGenerator:
 
 	def get_recent_backup(self, older_than, partial=False):
 		backup_path = get_backup_path()
+		separator = suffix = ""
+		if partial:
+			separator = "*"
 
-		if not frappe.get_system_settings("encrypt_backup"):
-			file_type_slugs = {
-				"database": "*-{{}}-{}database.sql.gz".format("*" if partial else ""),
-				"public": "*-{}-files.tar",
-				"private": "*-{}-private-files.tar",
-				"config": "*-{}-site_config_backup.json",
-			}
-		else:
-			file_type_slugs = {
-				"database": "*-{{}}-{}database.enc.sql.gz".format("*" if partial else ""),
-				"public": "*-{}-files.enc.tar",
-				"private": "*-{}-private-files.enc.tar",
-				"config": "*-{}-site_config_backup.json",
-			}
+		if frappe.get_system_settings("encrypt_backup"):
+			suffix = "-enc"
+
+		file_type_slugs = {
+			"database": f"*-{{}}-{separator}database{suffix}.sql.gz",
+			"public": f"*-{{}}-files{suffix}.tar",
+			"private": f"*-{{}}-private-files{suffix}.tar",
+			"config": f"*-{{}}-site_config_backup{suffix}.json",
+		}
 
 		def backup_time(file_path):
 			file_name = file_path.split(os.sep)[-1]
@@ -426,6 +433,7 @@ class BackupGenerator:
 		from frappe.database import get_command
 
 		bin, args, bin_name = get_command(
+			socket=self.db_socket,
 			host=self.db_host,
 			port=self.db_port,
 			user=self.user,
@@ -474,6 +482,16 @@ download only after 24 hours."""
 		frappe.sendmail(recipients=recipient_list, message=msg, subject=subject)
 		return recipient_list
 
+	def add_to_rollback(self, func: Callable) -> None:
+		"""
+		Adds the given callable to the rollback CallbackManager stack
+
+		:param func: The callable to add to the rollback stack
+		:return: Nothing
+		"""
+		if self.rollback_callback:
+			self.rollback_callback.add(func)
+
 
 def _get_tables(doctypes: list[str], existing_tables: list[str]) -> list[str]:
 	"""Return a list of tables for the given doctypes that exist in the database."""
@@ -501,6 +519,7 @@ def fetch_latest_backups(partial=False) -> dict:
 		frappe.conf.db_name,
 		frappe.conf.db_user,
 		frappe.conf.db_password,
+		db_socket=frappe.conf.db_socket,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
 		db_type=frappe.conf.db_type,
@@ -525,6 +544,7 @@ def scheduled_backup(
 	force=False,
 	verbose=False,
 	old_backup_metadata=False,
+	rollback_callback=None,
 ):
 	"""this function is called from scheduler
 	deletes backups older than 7 days
@@ -544,6 +564,7 @@ def scheduled_backup(
 		force=force,
 		verbose=verbose,
 		old_backup_metadata=old_backup_metadata,
+		rollback_callback=rollback_callback,
 	)
 
 
@@ -562,12 +583,14 @@ def new_backup(
 	force=False,
 	verbose=False,
 	old_backup_metadata=False,
+	rollback_callback=None,
 ):
 	delete_temp_backups()
 	odb = BackupGenerator(
 		frappe.conf.db_name,
 		frappe.conf.db_user,
 		frappe.conf.db_password,
+		db_socket=frappe.conf.db_socket,
 		db_host=frappe.conf.db_host,
 		db_port=frappe.conf.db_port,
 		db_type=frappe.conf.db_type,
@@ -582,6 +605,7 @@ def new_backup(
 		verbose=verbose,
 		compress_files=compress,
 		old_backup_metadata=old_backup_metadata,
+		rollback_callback=rollback_callback,
 	)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb

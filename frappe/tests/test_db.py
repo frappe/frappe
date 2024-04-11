@@ -15,7 +15,7 @@ from frappe.database.utils import FallBackDateTimeStr
 from frappe.query_builder import Field
 from frappe.query_builder.functions import Concat_ws
 from frappe.tests.test_query_builder import db_type_is, run_only_if
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, patch_hooks, timeout
 from frappe.utils import add_days, now, random_string, set_request
 from frappe.utils.testutils import clear_custom_fields
 
@@ -55,17 +55,6 @@ class TestDB(FrappeTestCase):
 		else:
 			frappe.db.rollback(save_point=savepoint)
 			self.fail("Long running queries not timing out")
-
-	def test_skip_locking(self):
-		first_conn = frappe.local.db
-		name = frappe.db.get_value("User", "Administrator", "name", for_update=True, skip_locked=True)
-		self.assertEqual(name, "Administrator")
-
-		frappe.connect()  # Create a 2nd connection
-		second_conn = frappe.local.db
-		self.assertIsNot(first_conn, second_conn)
-		name = frappe.db.get_value("User", "Administrator", "name", for_update=True, skip_locked=True)
-		self.assertFalse(name)
 
 	@patch.dict(frappe.conf, {"http_timeout": 20, "enable_db_statement_timeout": 1})
 	def test_db_timeout_computation(self):
@@ -135,7 +124,7 @@ class TestDB(FrappeTestCase):
 			).lower(),
 		)
 		self.assertEqual(
-			frappe.db.sql("select email from tabUser where name='Administrator' order by modified DESC"),
+			frappe.db.sql("select email from tabUser where name='Administrator' order by creation DESC"),
 			frappe.db.get_values("User", filters=[["name", "=", "Administrator"]], fieldname="email"),
 		)
 
@@ -470,6 +459,19 @@ class TestDB(FrappeTestCase):
 		)
 		self.assertEqual(1, frappe.db.transaction_writes - writes)
 
+	def test_transactions_disabled_during_writes(self):
+		hook_name = f"{bad_hook.__module__}.{bad_hook.__name__}"
+		nested_hook_name = f"{bad_nested_hook.__module__}.{bad_nested_hook.__name__}"
+
+		with patch_hooks(
+			{"doc_events": {"*": {"before_validate": hook_name, "on_update": nested_hook_name}}}
+		):
+			note = frappe.new_doc("Note", title=frappe.generate_hash())
+			note.insert()
+		self.assertGreater(frappe.db.transaction_writes, 0)  # This would've reset for commit/rollback
+
+		self.assertFalse(frappe.db._disable_transaction_control)
+
 	def test_pk_collision_ignoring(self):
 		# note has `name` generated from title
 		for _ in range(3):
@@ -615,6 +617,9 @@ class TestDB(FrappeTestCase):
 		frappe.db.rollback()
 
 		self.assertEqual(order_of_execution, list(range(0, 9)))
+
+	def test_db_explain(self):
+		frappe.db.sql("select 1", debug=1, explain=1)
 
 
 @run_only_if(db_type_is.MARIADB)
@@ -978,6 +983,55 @@ class TestReplicaConnections(FrappeTestCase):
 
 			outer()
 			self.assertEqual(write_connection, db_id())
+
+
+class TestConcurrency(FrappeTestCase):
+	@timeout(5, "There shouldn't be any lock wait")
+	def test_skip_locking(self):
+		with self.primary_connection():
+			name = frappe.db.get_value("User", "Administrator", for_update=True, skip_locked=True)
+			self.assertEqual(name, "Administrator")
+
+		with self.secondary_connection():
+			name = frappe.db.get_value("User", "Administrator", for_update=True, skip_locked=True)
+			self.assertFalse(name)
+
+	@timeout(5, "Lock timeout should have been 0")
+	def test_no_wait(self):
+		with self.primary_connection():
+			name = frappe.db.get_value("User", "Administrator", for_update=True)
+			self.assertEqual(name, "Administrator")
+
+		with self.secondary_connection():
+			self.assertRaises(
+				frappe.QueryTimeoutError,
+				lambda: frappe.db.get_value("User", "Administrator", for_update=True, wait=False),
+			)
+
+	@timeout(5, "Deletion stuck on lock timeout")
+	def test_delete_race_condition(self):
+		note = frappe.new_doc("Note")
+		note.title = note.content = frappe.generate_hash()
+		note.insert()
+		frappe.db.commit()  # ensure that second connection can see the document
+
+		with self.primary_connection():
+			n1 = frappe.get_doc(note.doctype, note.name)
+			n1.save()
+
+		with self.secondary_connection():
+			self.assertRaises(frappe.QueryTimeoutError, frappe.delete_doc, note.doctype, note.name)
+
+
+def bad_hook(*args, **kwargs):
+	frappe.db.commit()
+	frappe.db.rollback()
+
+
+def bad_nested_hook(doc, *args, **kwargs):
+	doc.run_method("before_validate")
+	frappe.db.commit()
+	frappe.db.rollback()
 
 
 class TestSqlIterator(FrappeTestCase):

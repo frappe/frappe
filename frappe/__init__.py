@@ -11,6 +11,7 @@ be used to build database driven apps.
 Read the documentation: https://frappeframework.com/docs
 """
 import copy
+import faulthandler
 import functools
 import gc
 import importlib
@@ -18,6 +19,7 @@ import inspect
 import json
 import os
 import re
+import signal
 import traceback
 import warnings
 from collections.abc import Callable
@@ -304,6 +306,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	if not _qb_patched.get(local.conf.db_type):
 		patch_query_execute()
 		patch_query_aggregation()
+		_register_fault_handler()
 
 	setup_module_map(include_all_apps=not (frappe.request or frappe.job or frappe.flags.in_migrate))
 
@@ -340,6 +343,7 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 	assert local.conf.db_password, "site must be fully initialized, db_password missing"
 
 	local.db = get_db(
+		socket=local.conf.db_socket,
 		host=local.conf.db_host,
 		port=local.conf.db_port,
 		user=local.conf.db_user or db_name,
@@ -365,6 +369,7 @@ def connect_replica() -> bool:
 		password = local.conf.replica_db_password
 
 	local.replica_db = get_db(
+		socket=None,
 		host=local.conf.replica_host,
 		port=port,
 		user=user,
@@ -427,6 +432,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 		os.environ.get("FRAPPE_REDIS_CACHE") or config.get("redis_cache") or "redis://127.0.0.1:13311"
 	)
 	config["db_type"] = os.environ.get("FRAPPE_DB_TYPE") or config.get("db_type") or "mariadb"
+	config["db_socket"] = os.environ.get("FRAPPE_DB_SOCKET") or config.get("db_socket")
 	config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
 	config["db_port"] = (
 		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
@@ -504,9 +510,9 @@ def setup_redis_cache_connection():
 	global cache
 
 	if not cache:
-		from frappe.utils.redis_wrapper import RedisWrapper
+		from frappe.utils.redis_wrapper import setup_cache
 
-		cache = RedisWrapper.from_url(conf.get("redis_cache"))
+		cache = setup_cache()
 
 
 def get_traceback(with_context: bool = False) -> str:
@@ -536,8 +542,7 @@ def log(msg: str) -> None:
 
 	:param msg: Message."""
 	if not request:
-		if conf.get("logging"):
-			print(repr(msg))
+		print(repr(msg))
 
 	debug_log.append(as_unicode(msg))
 
@@ -1185,8 +1190,10 @@ def generate_hash(txt: str | None = None, length: int = 56) -> str:
 	import math
 	import secrets
 
-	if not length:
-		length = 56
+	if txt:
+		from frappe.utils.deprecations import deprecation_warning
+
+		deprecation_warning("The `txt` parameter is deprecated and will be removed in a future release.")
 
 	return secrets.token_hex(math.ceil(length / 2))[:length]
 
@@ -1699,11 +1706,19 @@ def append_hook(target, key, value):
 		target[key].extend(value)
 
 
-def setup_module_map(include_all_apps=True):
-	"""Rebuild map of all modules (internal)."""
-	if conf.db_name:
+def setup_module_map(include_all_apps: bool = True) -> None:
+	"""
+	Function to rebuild map of all modules
+
+	:param: include_all_apps: Include all apps on bench, or just apps installed on the site.
+	:return: Nothing
+	"""
+	if include_all_apps:
 		local.app_modules = cache.get_value("app_modules")
 		local.module_app = cache.get_value("module_app")
+	else:
+		local.app_modules = cache.get_value("installed_app_modules")
+		local.module_app = cache.get_value("module_installed_app")
 
 	if not (local.app_modules and local.module_app):
 		local.module_app, local.app_modules = {}, {}
@@ -1722,9 +1737,12 @@ def setup_module_map(include_all_apps=True):
 				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
-		if conf.db_name:
+		if include_all_apps:
 			cache.set_value("app_modules", local.app_modules)
 			cache.set_value("module_app", local.module_app)
+		else:
+			cache.set_value("installed_app_modules", local.app_modules)
+			cache.set_value("module_installed_app", local.module_app)
 
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
@@ -2032,7 +2050,7 @@ def get_list(doctype, *args, **kwargs):
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`.
 	:param filters: List of filters (see example).
-	:param order_by: Order By e.g. `modified desc`.
+	:param order_by: Order By e.g. `creation desc`.
 	:param limit_start: Start results at record #. Default 0.
 	:param limit_page_length: No of records in the page. Default 20.
 
@@ -2056,7 +2074,7 @@ def get_all(doctype, *args, **kwargs):
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`. Default is: `["name"]`.
 	:param filters: List of filters (see example).
-	:param order_by: Order By e.g. `modified desc`.
+	:param order_by: Order By e.g. `creation desc`.
 	:param limit_start: Start results at record #. Default 0.
 	:param limit_page_length: No of records in the page. Default 20.
 
@@ -2178,24 +2196,27 @@ def get_print(
 	:param as_pdf: Return as PDF. Default False.
 	:param password: Password to encrypt the pdf with. Default None"""
 	from frappe.utils.pdf import get_pdf
-	from frappe.website.serve import get_response_content
+	from frappe.website.serve import get_response_without_exception_handling
 
 	original_form_dict = copy.deepcopy(local.form_dict)
+	try:
+		local.form_dict.doctype = doctype
+		local.form_dict.name = name
+		local.form_dict.format = print_format
+		local.form_dict.style = style
+		local.form_dict.doc = doc
+		local.form_dict.no_letterhead = no_letterhead
+		local.form_dict.letterhead = letterhead
 
-	local.form_dict.doctype = doctype
-	local.form_dict.name = name
-	local.form_dict.format = print_format
-	local.form_dict.style = style
-	local.form_dict.doc = doc
-	local.form_dict.no_letterhead = no_letterhead
-	local.form_dict.letterhead = letterhead
+		pdf_options = pdf_options or {}
+		if password:
+			pdf_options["password"] = password
 
-	pdf_options = pdf_options or {}
-	if password:
-		pdf_options["password"] = password
+		response = get_response_without_exception_handling("printview", 200)
+		html = str(response.data, "utf-8")
+	finally:
+		local.form_dict = original_form_dict
 
-	html = get_response_content("printview")
-	local.form_dict = original_form_dict
 	return get_pdf(html, options=pdf_options, output=output) if as_pdf else html
 
 
@@ -2527,6 +2548,10 @@ def validate_and_sanitize_search_inputs(fn):
 		return fn(**kwargs)
 
 	return wrapper
+
+
+def _register_fault_handler():
+	faulthandler.register(signal.SIGUSR1)
 
 
 from frappe.utils.error import log_error

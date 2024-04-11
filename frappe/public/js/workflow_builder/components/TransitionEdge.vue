@@ -90,7 +90,7 @@ export default {
 			class="access nodrag nopan"
 		>
 			<span class="mr-1" v-html="frappe.utils.icon('users', 'sm')"></span>
-			<span>{{ targetNode.data.allowed }}</span>
+			<span>{{ __(targetNode.data.allowed) }}</span>
 		</div>
 	</EdgeLabelRenderer>
 </template>

@@ -12,7 +12,13 @@ from psycopg2.errorcodes import (
 	UNDEFINED_TABLE,
 	UNIQUE_VIOLATION,
 )
-from psycopg2.errors import ReadOnlySqlTransaction, SequenceGeneratorLimitExceeded, SyntaxError
+from psycopg2.errors import (
+	InterfaceError,
+	LockNotAvailable,
+	ReadOnlySqlTransaction,
+	SequenceGeneratorLimitExceeded,
+	SyntaxError,
+)
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
 
 import frappe
@@ -53,7 +59,7 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_timedout(e):
 		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
-		return isinstance(e, psycopg2.extensions.QueryCanceledError)
+		return isinstance(e, (psycopg2.extensions.QueryCanceledError | LockNotAvailable))
 
 	@staticmethod
 	def is_read_only_mode_error(e) -> bool:
@@ -111,6 +117,10 @@ class PostgresExceptionUtil:
 	def is_db_table_size_limit(e) -> bool:
 		return False
 
+	@staticmethod
+	def is_interface_error(e):
+		return isinstance(e, InterfaceError)
+
 
 class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"
@@ -120,7 +130,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		self.db_type = "postgres"
 		self.type_map = {
 			"Currency": ("decimal", "21,9"),
-			"Int": ("bigint", None),
+			"Int": ("int", None),
 			"Long Int": ("bigint", None),
 			"Float": ("decimal", "21,9"),
 			"Percent": ("decimal", "21,9"),
@@ -163,10 +173,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		conn_settings = {
 			"dbname": self.cur_db_name,
 			"user": self.user,
-			"host": self.host,
-			"password": self.password,
+			# libpg defaults to default socket if not specified
+			"host": self.host or self.socket,
 		}
-		if self.port:
+		if self.password:
+			conn_settings["password"] = self.password
+		if not self.socket and self.port:
 			conn_settings["port"] = self.port
 
 		conn = psycopg2.connect(**conn_settings)
@@ -323,7 +335,6 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			db_table = PostgresTable(doctype, meta)
 			db_table.validate()
 
-			self.commit()
 			db_table.sync()
 			self.commit()
 

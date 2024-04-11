@@ -156,7 +156,7 @@ async function update_assets_json_from_built_assets(apps) {
 
 async function update_assets_obj(app, assets, assets_rtl) {
 	const app_path = path.join(apps_path, app, app);
-	const dist_path = path.join(app_path, "public, dist");
+	const dist_path = path.join(app_path, "public", "dist");
 	const files = await glob("**/*.bundle.*.{js,css}", { cwd: dist_path });
 	const prefix = path.join("/", "assets", app, "dist");
 

@@ -203,7 +203,7 @@
   }
  ],
  "links": [],
- "modified": "2023-11-09 13:44:00.280846",
+ "modified": "2024-03-23 16:03:32.189147",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
@@ -244,7 +244,7 @@
   }
  ],
  "search_fields": "label, document_type",
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "label",

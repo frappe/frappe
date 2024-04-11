@@ -15,7 +15,7 @@ class DocumentNamingRuleCondition(Document):
 		from frappe.types import DF
 
 		condition: DF.Literal["=", "!=", ">", "<", ">=", "<="]
-		field: DF.Literal
+		field: DF.Literal[None]
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data

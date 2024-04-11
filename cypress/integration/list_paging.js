@@ -12,7 +12,7 @@ context("List Paging", () => {
 
 	it("test load more with count selection buttons", () => {
 		cy.visit("/app/todo/view/report");
-		cy.get(".filter-x-button").click();
+		cy.clear_filters();
 
 		cy.get(".list-paging-area .list-count").should("contain.text", "20 of");
 		cy.get(".list-paging-area .btn-more").click();
@@ -37,6 +37,6 @@ context("List Paging", () => {
 		cy.get(".list-paging-area .list-count").should("contain.text", "500 of");
 		cy.get(".list-paging-area .btn-more").click();
 
-		cy.get(".list-paging-area .list-count").should("contain.text", "1000 of");
+		cy.get(".list-paging-area .list-count").should("contain.text", "1,000 of");
 	});
 });

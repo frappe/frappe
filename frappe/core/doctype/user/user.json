@@ -71,6 +71,8 @@
   "send_me_a_copy",
   "allowed_in_mentions",
   "user_emails",
+  "workspace_section",
+  "default_workspace",
   "sb2",
   "defaults",
   "sb3",
@@ -711,6 +713,19 @@
    "label": "Role Profiles",
    "options": "User Role Profile",
    "permlevel": 1
+  },
+  {
+   "description": "If left empty, the default workspace will be the last visited workspace",
+   "fieldname": "default_workspace",
+   "fieldtype": "Link",
+   "label": "Default Workspace",
+   "options": "Workspace"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "workspace_section",
+   "fieldtype": "Section Break",
+   "label": "Workspace"
   }
  ],
  "icon": "fa fa-user",
@@ -773,7 +788,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-02-11 13:16:29.574666",
+ "modified": "2024-03-23 16:03:59.833565",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -799,7 +814,7 @@
    "write": 1
   },
   {
-   "role": "All",
+   "role": "Desk User",
    "select": 1
   }
  ],
@@ -807,7 +822,7 @@
  "route": "user",
  "search_fields": "full_name",
  "show_name_in_global_search": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "full_name",

@@ -297,7 +297,7 @@ class TestRedisWrapper(FrappeAPITestCase):
 		frappe.clear_cache(user=user1)
 
 		# Check that the keys for user1 are gone
-		for key in user_cache_keys:
+		for key in set(user_cache_keys) - {"home_page"}:
 			self.assertFalse(frappe.cache.hexists(key, user1))
 			self.assertTrue(frappe.cache.hexists(key, user2))
 

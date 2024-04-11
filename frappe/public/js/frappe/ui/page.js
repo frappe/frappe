@@ -536,10 +536,15 @@ frappe.ui.Page = class Page {
 		}
 		// label
 		if (frappe.utils.is_mac()) {
-			shortcut_obj.shortcut_label = shortcut_obj.shortcut.replace("Ctrl", "⌘");
+			shortcut_obj.shortcut_label = shortcut_obj.shortcut
+				.replace("Ctrl", "⌘")
+				.replace("Alt", "⌥");
 		} else {
 			shortcut_obj.shortcut_label = shortcut_obj.shortcut;
 		}
+
+		shortcut_obj.shortcut_label = shortcut_obj.shortcut_label.replace("Shift", "⇧");
+
 		// actual shortcut string
 		shortcut_obj.shortcut = shortcut_obj.shortcut.toLowerCase();
 		// action is button click
@@ -726,27 +731,6 @@ frappe.ui.Page = class Page {
 	clear_inner_toolbar() {
 		this.inner_toolbar.empty().addClass("hide");
 	}
-
-	//-- Sidebar --//
-
-	add_sidebar_item(label, action, insert_after, prepend) {
-		var parent = this.sidebar.find(".sidebar-menu.standard-actions");
-		var li = $("<li>");
-		var link = $("<a>").html(label).on("click", action).appendTo(li);
-
-		if (insert_after) {
-			li.insertAfter(parent.find(insert_after));
-		} else {
-			if (prepend) {
-				li.prependTo(parent);
-			} else {
-				li.appendTo(parent);
-			}
-		}
-		return link;
-	}
-
-	//---//
 
 	clear_user_actions() {
 		this.menu.find(".user-action").remove();

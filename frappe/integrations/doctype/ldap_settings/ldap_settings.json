@@ -301,7 +301,7 @@
  "in_create": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-01-24 11:20:06.049708",
+ "modified": "2024-03-23 16:03:28.700269",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "LDAP Settings",
@@ -320,7 +320,7 @@
   }
  ],
  "read_only": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1

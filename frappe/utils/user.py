@@ -226,12 +226,21 @@ class UserPermissions:
 				"send_me_a_copy",
 				"user_type",
 				"onboarding_status",
+				"default_workspace",
 			],
 			as_dict=True,
 		)
 
 		if not self.can_read:
 			self.build_permissions()
+
+		if d.get("default_workspace"):
+			workspace = frappe.get_cached_doc("Workspace", d.default_workspace)
+			d.default_workspace = {
+				"name": workspace.name,
+				"public": workspace.public,
+				"title": workspace.title,
+			}
 
 		d.name = self.name
 		d.onboarding_status = frappe.parse_json(d.onboarding_status)

@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
-    timeout-minutes: 60
+    timeout-minutes: 30
     env:
       NODE_ENV: "production"
 
@@ -54,12 +54,12 @@ jobs:
 
     services:
       mariadb:
-        image: mariadb:10.6
+        image: mariadb:11.3
         env:
           MARIADB_ROOT_PASSWORD: travis
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3
 
       postgres:
         image: postgres:12.4
@@ -148,6 +148,10 @@ jobs:
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           TOTAL_BUILDS: 2
           COVERAGE_RCFILE: /home/runner/frappe-bench/apps/frappe/.coveragerc
+      - name: Setup tmate session
+
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ failure() && contains( github.event.pull_request.labels.*.name, 'debug-gha') }}
 
       - name: Show bench output
         if: ${{ always() }}
@@ -159,6 +163,7 @@ jobs:
             echo "Printing log: $f";
             cat $f
           done
+
 
       - name: Upload coverage data
         uses: actions/upload-artifact@v3

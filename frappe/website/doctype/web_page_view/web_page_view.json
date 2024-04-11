@@ -16,7 +16,8 @@
   "source",
   "campaign",
   "medium",
-  "visitor_id"
+  "visitor_id",
+  "content"
  ],
  "fields": [
   {
@@ -92,7 +93,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2023-03-20 23:38:27.067285",
+ "modified": "2024-03-23 16:04:02.743377",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Page View",
@@ -113,7 +114,7 @@
  ],
  "quick_entry": 1,
  "read_only": 1,
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
  "title_field": "path"

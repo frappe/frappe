@@ -248,7 +248,7 @@ frappe.ui.Filter = class {
 			let args = {};
 			if (this.filters_config[condition].depends_on) {
 				const field_name = this.filters_config[condition].depends_on;
-				const filter_value = this.filter_list.get_filter_value(fieldname);
+				const filter_value = this.filter_list.get_filter_value(field_name);
 				args[field_name] = filter_value;
 			}
 			let setup_field = (field) => {
@@ -422,7 +422,13 @@ frappe.ui.filter_utils = {
 	get_selected_value(field, condition) {
 		if (!field) return;
 
-		let val = field.get_value() || field.value;
+		let val = field.get_value() ?? field.value;
+
+		if (!val && ["Link", "Dynamic Link"].includes(field.df.fieldtype)) {
+			// HACK: link field with show title are async so their input value is "" but they have
+			// some actual value set.
+			val = field.value;
+		}
 
 		if (typeof val === "string") {
 			val = strip(val);
@@ -478,6 +484,7 @@ frappe.ui.filter_utils = {
 
 		df.description = "";
 		df.reqd = 0;
+		df.length = 1000; // this won't be saved, no need to apply 140 character limit here
 		df.ignore_link_validation = true;
 
 		// given

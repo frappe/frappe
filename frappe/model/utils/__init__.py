@@ -128,9 +128,11 @@ def get_fetch_values(doctype, fieldname, value):
 
 @site_cache()
 def is_virtual_doctype(doctype: str):
-	if frappe.db.has_column("DocType", "is_virtual"):
-		return frappe.db.get_value("DocType", doctype, "is_virtual")
-	return False
+	if frappe.flags.in_install or frappe.flags.in_migrate:
+		if frappe.db.has_column("DocType", "is_virtual"):
+			return frappe.db.get_value("DocType", doctype, "is_virtual")
+	else:
+		return getattr(frappe.get_meta(doctype), "is_virtual", False)
 
 
 @site_cache()
@@ -140,4 +142,7 @@ def is_single_doctype(doctype: str) -> bool:
 	if doctype in DOCTYPES_FOR_DOCTYPE:
 		return False
 
-	return frappe.db.get_value("DocType", doctype, "issingle")
+	if frappe.flags.in_install or frappe.flags.in_migrate:
+		return frappe.db.get_value("DocType", doctype, "issingle")
+	else:
+		return getattr(frappe.get_meta(doctype), "issingle", False)

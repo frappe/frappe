@@ -218,7 +218,10 @@ frappe.ui.form.on("Customize Form", {
 								fieldtype: "Check",
 								fieldname: "with_permissions",
 								label: __("Export Custom Permissions"),
-								default: 1,
+								description: __(
+									"Exported permissions will be force-synced on every migrate overriding any other customization."
+								),
+								default: 0,
 							},
 						],
 						function (data) {
@@ -246,7 +249,7 @@ frappe.ui.form.on("Customize Form", {
 			var fields = $.map(frm.doc.fields, function (df) {
 				return frappe.model.is_value_type(df.fieldtype) ? df.fieldname : null;
 			});
-			fields = ["", "name", "modified"].concat(fields);
+			fields = ["", "name", "creation", "modified"].concat(fields);
 			frm.set_df_property("sort_field", "options", fields);
 		}
 	},

@@ -1378,16 +1378,20 @@ export default class GridRow {
 		if (cur_frm) cur_frm.cur_grid = null;
 		this.wrapper.removeClass("grid-row-open");
 	}
+	has_prev() {
+		return this.doc.idx > 1;
+	}
 	open_prev() {
 		if (!this.doc) return;
 		this.open_row_at_index(this.doc.idx - 2);
 	}
+	has_next() {
+		return this.doc.idx < this.grid.data.length;
+	}
 	open_next() {
 		if (!this.doc) return;
 
-		if (!this.open_row_at_index(this.doc.idx)) {
-			this.grid.add_new_row(null, null, true);
-		}
+		this.open_row_at_index(this.doc.idx);
 	}
 	open_row_at_index(row_index) {
 		if (!this.grid.data[row_index]) return;

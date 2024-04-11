@@ -358,7 +358,7 @@ def get_address_display_list(doctype: str, name: str) -> list[dict]:
 			["Dynamic Link", "parenttype", "=", "Address"],
 		],
 		fields=["*"],
-		order_by="is_primary_address DESC, creation ASC",
+		order_by="is_primary_address DESC, `tabAddress`.creation ASC",
 	)
 	for a in address_list:
 		a["display"] = get_address_display(a)
