@@ -110,6 +110,8 @@ def sync_customizations(app=None):
 							data = json.loads(f.read())
 						if data.get("sync_on_migrate"):
 							sync_customizations_for_doctype(data, folder, fname)
+						elif frappe.flags.in_install and app:
+							sync_customizations_for_doctype(data, folder, fname)
 
 
 def sync_customizations_for_doctype(data: dict, folder: str, filename: str = ""):
