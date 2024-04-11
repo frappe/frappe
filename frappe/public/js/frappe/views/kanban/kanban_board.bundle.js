@@ -601,10 +601,10 @@ frappe.provide("frappe.views");
 			self.$kanban_cards = self.$kanban_column.find(".kanban-cards");
 			if(store.state.done_statuses.includes(column.title)){
 				self.$kanban_cards.on('scroll', (event) => {
-					const {target: {scrollTop, clientHeight, scrollHeight}} = event
+					const {target: {scrollTop, clientHeight, scrollHeight, scrollLeft}} = event;
 					if(loading) return
-
-					if(scrollTop + clientHeight >= scrollHeight){
+					if (Math.abs(scrollTop) > Math.abs(scrollLeft)) {
+						if(scrollTop + clientHeight >= scrollHeight){
 						const start = store.state.cards.filter((el) => el.column === column.title).length
 						frappe.call({
 							method: 'frappe.desk.reportview.get',
@@ -630,6 +630,7 @@ frappe.provide("frappe.views");
 							self.$kanban_column.find(".kanban-column-title").append(newKanbanTitle);
 						})
 						loading = true;
+						}
 					}
 				})
 			}
