@@ -190,8 +190,6 @@ frappe.views.CommunicationComposer = class {
 		return fields;
 	}
 
-<<<<<<< HEAD
-=======
 	get_default_recipients(fieldname) {
 		if (this.frm?.events.get_email_recipients) {
 			return (this.frm.events.get_email_recipients(this.frm, fieldname) || []).join(", ");
@@ -200,32 +198,6 @@ frappe.views.CommunicationComposer = class {
 		}
 	}
 
-	guess_language() {
-		// when attach print for print format changes try to guess language
-		// if print format has language then set that else boot lang.
-
-		// Print language resolution:
-		// 1. Document's print_language field
-		// 2. print format's default field
-		// 3. user lang
-		// 4. system lang
-		// 3 and 4 are resolved already in boot
-		let document_lang = this.frm?.doc?.language;
-		let print_format = this.dialog.get_value("select_print_format");
-
-		let print_format_lang;
-		if (print_format != "Standard") {
-			print_format_lang = frappe.get_doc(
-				"Print Format",
-				print_format
-			)?.default_print_language;
-		}
-
-		let lang = document_lang || print_format_lang || frappe.boot.lang;
-		this.dialog.set_value("print_language", lang);
-	}
-
->>>>>>> 4c8562687f (feat: add option to set default email recipients (#25555))
 	toggle_more_options(show_options) {
 		show_options = show_options || this.dialog.fields_dict.more_options.df.hidden;
 		this.dialog.set_df_property("more_options", "hidden", !show_options);
