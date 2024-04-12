@@ -167,22 +167,22 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			}
 			if(data.user != frappe.session.user){
 				console.log("list_update kanban: ",data)
-				// frappe.call({
-				// 	method: 'frappe.desk.reportview.get',
-				// 	args: {
-				// 		"doctype": data.doctype,
-				// 		"fields": ["*"],
-				// 		"filters":[['name', 'in', [data.name]]],
-				// 		"start": 0,
-				// 		"page_length": 10,
-				// 		"view": "List",
-				// 		"with_comment_count": 1
-				// 	}
-				// }).then((res) => {
-				// 	const data = frappe.utils.dict(res.message.keys, res.message.values)
-				// 	this.kanban.update_cards(data);
-				// 	this.kanban.update_columns()
-				// })
+				frappe.call({
+					method: 'frappe.desk.reportview.get',
+					args: {
+						"doctype": data.doctype,
+						"fields": ["*"],
+						"filters":[['name', 'in', [data.name]]],
+						"start": 0,
+						"page_length": 10,
+						"view": "List",
+						"with_comment_count": 1
+					}
+				}).then((res) => {
+					const data = frappe.utils.dict(res.message.keys, res.message.values)
+					this.kanban.update_cards(data);
+					this.kanban.update_columns()
+				})
 			}
 		});
 		this.realtime_events_setup = true;
