@@ -118,7 +118,7 @@ export default class ListSettings {
 							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
 						<div class="col-10" style="padding-left:0px;">
-							${ __(me.fields[idx].label, null, me.doctype) }
+							${__(me.fields[idx].label, null, me.doctype)}
 						</div>
 						<div class="col-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
@@ -132,14 +132,14 @@ export default class ListSettings {
 		fields_html.html(`
 			<div class="form-group">
 				<div class="clearfix">
-					<label class="control-label" style="padding-right: 0px;">${ __(Fields) }</label>
+					<label class="control-label" style="padding-right: 0px;">${__("Fields")}</label>
 				</div>
 				<div class="control-input-wrapper">
 				${fields}
 				</div>
 				<p class="help-box small text-muted">
 					<a class="add-new-fields text-muted">
-						${ __("+ Add / Remove Fields") }
+						${__("+ Add / Remove Fields")}
 					</a>
 				</p>
 			</div>
@@ -365,7 +365,7 @@ export default class ListSettings {
 		meta.fields.forEach((field) => {
 			if (!frappe.model.no_value_type.includes(field.fieldtype)) {
 				multiselect_fields.push({
-					label: __(field.label, null, me.doctype),
+					label: __(field.label, null, field.doctype),
 					value: field.fieldname,
 					checked: fields.includes(field.fieldname),
 				});
