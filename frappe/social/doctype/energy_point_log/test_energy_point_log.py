@@ -298,7 +298,8 @@ class TestEnergyPointLog(FrappeTestCase):
 		frappe.set_user("test@example.com")
 		user = frappe.get_doc("User", "test@example.com")
 		user.enabled = 0
-		user.save()
+		user.db_update()
+		user.clear_cache()
 		todo_point_rule = create_energy_point_rule_for_todo()
 		energy_point_of_user = get_points("test@example.com")
 
