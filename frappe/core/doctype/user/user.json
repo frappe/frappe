@@ -48,6 +48,7 @@
   "desk_settings_section",
   "mute_sounds",
   "desk_theme",
+  "code_editor_type",
   "banner_image",
   "change_password",
   "new_password",
@@ -726,6 +727,13 @@
    "fieldname": "workspace_section",
    "fieldtype": "Section Break",
    "label": "Workspace"
+  },
+  {
+   "default": "vscode",
+   "fieldname": "code_editor_type",
+   "fieldtype": "Select",
+   "label": "Code Editor Type",
+   "options": "vscode\nvim\nemacs"
   }
  ],
  "icon": "fa fa-user",
@@ -788,7 +796,7 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-03-23 16:03:59.833565",
+ "modified": "2024-04-12 23:25:04.628007",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
