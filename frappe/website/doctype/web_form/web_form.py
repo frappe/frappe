@@ -223,9 +223,9 @@ def get_context(context):
 		for df in self.web_form_fields:
 			if df.fieldtype == "Column Break":
 				context.has_column_break = True
-				break
+				break 
 
-		# load web form doc
+		# load web form docc
 		context.web_form_doc = self.as_dict(no_nulls=True)
 		context.web_form_doc.update(
 			dict_with_keys(context, ["is_list", "is_new", "in_edit_mode", "in_view_mode"])
