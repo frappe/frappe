@@ -1016,6 +1016,7 @@ frappe.provide("frappe.views");
 	}
 
 	function has_passed_two_days(dateString) {
+		if (!dateString) return false
 		const providedDate = new Date(dateString.split('T')[0]);
 		const currentDate = new Date();
 		currentDate.setHours(0, 0, 0, 0);
