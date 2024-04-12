@@ -88,7 +88,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		});
 	}
 
-	push_menu_items() {
+	async push_menu_items() {
 		if (this.board_perms.write) {
 			this.menu_items.push({
 				label: __("Save filters"),
@@ -132,7 +132,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 
 	setup_page() {
 		this.hide_sidebar = true;
-		this.hide_page_form = true;
+		this.hide_page_form = false;
 		this.hide_card_layout = true;
 		this.hide_sort_selector = true;
 		super.setup_page();
@@ -146,16 +146,83 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 		this.setup_like();
 	}
 
+	setup_realtime_updates() {
+		this.pending_document_refreshes = [];
+
+		if (this.list_view_settings?.disable_auto_refresh || this.realtime_events_setup) {
+			return;
+		}
+		frappe.realtime.doctype_subscribe(this.doctype);
+		frappe.realtime.off("list_update");
+		frappe.realtime.on("list_update", (data) => {
+			if (data?.doctype !== this.doctype) {
+				return;
+			}
+			// if some bulk operation is happening by selecting list items, don't refresh
+			if (this.$checks && this.$checks.length) {
+				return;
+			}
+			if (this.avoid_realtime_update()) {
+				return;
+			}
+			if(data.user != frappe.session.user){
+				console.log("list_update kanban: ",data)
+				frappe.call({
+					method: 'frappe.desk.reportview.get',
+					args: {
+						"doctype": data.doctype,
+						"fields": ["*"],
+						"filters":[['name', 'in', [data.name]]],
+						"start": 0,
+						"page_length": 10,
+						"view": "List",
+						"with_comment_count": 1
+					}
+				}).then((res) => {
+					const data = frappe.utils.dict(res.message.keys, res.message.values)
+					this.kanban.update_cards(data);
+					this.kanban.update_columns()
+				})
+			}
+		});
+		this.realtime_events_setup = true;
+	}
+
 	set_fields() {
 		super.set_fields();
 		this._add_field(this.card_meta.title_field);
 	}
 
-	before_render() {
+	async before_render() {
 		frappe.model.user_settings.save(this.doctype, "last_view", this.view_name);
 		this.save_view_user_settings({
 			last_kanban_board: this.board_name,
 		});
+
+		const { auto_move_paused }  = await frappe.db.get_doc('Queue Settings')
+		setTimeout(() => {
+			const exists = document.querySelector('div[id*="Kanban"] div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end #queue-freeze')
+			if (!exists){
+				const container = document.querySelector('div.no-list-sidebar div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
+				const input = document.createElement('input')
+				const label = document.createElement('label')
+				label.setAttribute('style', 'margin: 0')
+				label.setAttribute('id', 'queue-freeze')
+				label.innerText = ' freeze queue positions '
+				label.appendChild(input)
+				input.setAttribute('type', 'checkbox')
+				if (auto_move_paused) {
+					input.setAttribute('checked', 'checked')
+				}
+				container.prepend(label);
+				input.addEventListener('change', (event) => {
+					frappe.db.set_value('Queue Settings', 'Queue Settings','auto_move_paused', auto_move_paused? 0 : 1)
+					.then(()=> {
+						frappe.msgprint(__('Status updated successfully'));
+					})
+				})
+			}
+		}, 1500);
 	}
 
 	render_list() {}
