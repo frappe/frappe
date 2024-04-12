@@ -131,39 +131,17 @@ frappe.ui.form.on("Customize Form", {
 				__("Actions")
 			);
 
-<<<<<<< HEAD
 			const is_autoname_autoincrement = frm.doc.autoname === "autoincrement";
 			frm.set_df_property("naming_rule", "hidden", is_autoname_autoincrement);
 			frm.set_df_property("autoname", "read_only", is_autoname_autoincrement);
-=======
-				frm.add_custom_button(
-					__("Reset All Customizations"),
-					function () {
-						frappe.customize_form.confirm(__("Remove all customizations?"), frm);
-					},
-					__("Actions")
-				);
 
-				frm.add_custom_button(
-					__("Trim Table"),
-					function () {
-						frm.trigger("trim_table");
-					},
-					__("Actions")
-				);
-
-				const is_autoname_autoincrement = frm.doc.autoname === "autoincrement";
-				frm.set_df_property("naming_rule", "hidden", is_autoname_autoincrement);
-				frm.set_df_property("autoname", "read_only", is_autoname_autoincrement);
-				frm.toggle_display(
-					["queue_in_background"],
-					frappe.get_meta(frm.doc.doc_type).is_submittable || 0
-				);
-
-				render_form_builder(frm);
-				frm.get_field("form_builder").tab.set_active();
-			});
->>>>>>> 9238f4649f (feat(Customize Form): add "Trim Table" action)
+			frm.add_custom_button(
+				__("Trim Table"),
+				function () {
+					frm.trigger("trim_table");
+				},
+				__("Actions")
+			);
 		}
 
 		frm.events.setup_export(frm);
@@ -184,29 +162,6 @@ frappe.ui.form.on("Customize Form", {
 		if (doc_type) {
 			setTimeout(() => frm.set_value("doc_type", doc_type, false, true), 1000);
 		}
-	},
-
-<<<<<<< HEAD
-=======
-	reset_layout(frm) {
-		frappe.confirm(
-			__("Layout will be reset to standard layout, are you sure you want to do this?"),
-			() => {
-				return frm.call({
-					doc: frm.doc,
-					method: "reset_layout",
-					callback: function (r) {
-						if (!r.exc) {
-							frappe.show_alert({
-								message: __("Layout Reset"),
-								indicator: "green",
-							});
-							frappe.customize_form.clear_locals_and_refresh(frm);
-						}
-					},
-				});
-			}
-		);
 	},
 
 	async trim_table(frm) {
@@ -243,7 +198,6 @@ frappe.ui.form.on("Customize Form", {
 		});
 	},
 
->>>>>>> 9238f4649f (feat(Customize Form): add "Trim Table" action)
 	setup_export(frm) {
 		if (frappe.boot.developer_mode) {
 			frm.add_custom_button(
