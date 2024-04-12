@@ -113,17 +113,10 @@ class PostgresExceptionUtil:
 	def is_data_too_long(e):
 		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
 
-<<<<<<< HEAD
-=======
-	@staticmethod
-	def is_db_table_size_limit(e) -> bool:
-		return False
-
 	@staticmethod
 	def is_interface_error(e):
 		return isinstance(e, InterfaceError)
 
->>>>>>> c1bf152b89 (fix: handle interface error during report timeout (#25893))
 
 class PostgresDatabase(PostgresExceptionUtil, Database):
 	REGEX_CHARACTER = "~"
