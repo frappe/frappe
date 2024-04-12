@@ -118,7 +118,7 @@ export default class ListSettings {
 							${frappe.utils.icon("drag", "xs", "", "", "sortable-handle " + show_sortable_handle)}
 						</div>
 						<div class="col-10" style="padding-left:0px;">
-							${ __(me.fields[idx].label) }
+							${ __(me.fields[idx].label, null, me.doctype) }
 						</div>
 						<div class="col-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
@@ -139,7 +139,7 @@ export default class ListSettings {
 				</div>
 				<p class="help-box small text-muted">
 					<a class="add-new-fields text-muted">
-						${ __ ("+ Add / Remove Fields") }
+						${ __("+ Add / Remove Fields") }
 					</a>
 				</p>
 			</div>
@@ -264,7 +264,7 @@ export default class ListSettings {
 					let field = frappe.meta.get_docfield(me.doctype, value);
 					if (field) {
 						me.fields.push({
-							label: __(field.label),
+							label: __(field.label, null, me.doctype),
 							fieldname: field.fieldname,
 						});
 					}
@@ -320,7 +320,7 @@ export default class ListSettings {
 				me.subject_field.fieldname != field.fieldname
 			) {
 				me.fields.push({
-					label: __(field.label),
+					label: __(field.label, null, me.doctype),
 					fieldname: field.fieldname,
 				});
 			}
@@ -339,7 +339,7 @@ export default class ListSettings {
 			let field = frappe.meta.get_docfield(me.doctype, meta.title_field.trim());
 
 			me.subject_field = {
-				label: __(field.label),
+				label: __(field.label, null, me.doctype),
 				fieldname: field.fieldname,
 			};
 		}
@@ -365,7 +365,7 @@ export default class ListSettings {
 		meta.fields.forEach((field) => {
 			if (!frappe.model.no_value_type.includes(field.fieldtype)) {
 				multiselect_fields.push({
-					label: __(field.label),
+					label: __(field.label, null, me.doctype),
 					value: field.fieldname,
 					checked: fields.includes(field.fieldname),
 				});
