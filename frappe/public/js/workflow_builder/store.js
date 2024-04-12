@@ -80,7 +80,7 @@ export const useStore = defineStore("workflow-builder-store", () => {
 			const workflow_data = clean_workflow_data();
 			doc.workflow_data = JSON.stringify(workflow_data);
 			await frappe.call("frappe.client.save", { doc });
-			frappe.toast("Workflow updated successfully");
+			frappe.toast(__("Workflow updated successfully"));
 			fetch();
 		} catch (e) {
 			console.error(e);
