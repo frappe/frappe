@@ -1,13 +1,9 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-<<<<<<< HEAD
 import typing
-from functools import cached_property
-from types import NoneType
-=======
 from functools import cached_property, wraps
->>>>>>> c1bf152b89 (fix: handle interface error during report timeout (#25893))
+from types import NoneType
 
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres
