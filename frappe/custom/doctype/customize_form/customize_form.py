@@ -665,6 +665,13 @@ class CustomizeForm(Document):
 		return any(map(in_field_group, ALLOWED_FIELDTYPE_CHANGE))
 
 
+@frappe.whitelist()
+def get_orphaned_columns(doctype: str):
+	frappe.only_for("System Manager")
+	frappe.db.begin(read_only=True)  # Avoid any potential bug from writing to db
+	return trim_table(doctype, dry_run=True)
+
+
 def reset_customization(doctype):
 	setters = frappe.get_all(
 		"Property Setter",
