@@ -198,8 +198,13 @@
  "icon": "fa fa-font",
  "idx": 1,
  "links": [],
+ "make_attachments_public": 1,
  "max_attachments": 3,
+<<<<<<< HEAD
  "modified": "2023-12-21 16:19:37.525003",
+=======
+ "modified": "2024-04-12 10:30:25.793932",
+>>>>>>> 535bc10340 (fix: make letterhead attachments public by default (#25925))
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
