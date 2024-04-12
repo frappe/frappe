@@ -175,11 +175,11 @@ def update_order_for_single_card(
     from_col_order, from_col_idx = get_kanban_column_order_and_index(board, from_colname)
     to_col_order, to_col_idx = get_kanban_column_order_and_index(board, to_colname)
     user = board.modified_by
-    if doctype == "Project":
-        createStatusChangedComment(from_colname, to_colname, docname, user)
+    # if doctype == "Project":
+    #     createStatusChangedComment(from_colname, to_colname, docname, user)
     if from_colname == to_colname:
         from_col_order = to_col_order
-    if len(from_col_order) > 0:
+        # if len(from_col_order) > 0:
         to_col_order.insert(new_index, from_col_order.pop(old_index))
 
     # save updated order
