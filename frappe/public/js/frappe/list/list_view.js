@@ -2038,7 +2038,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		};
 
 		// bulk edit
-		if (has_editable_fields(doctype)) {
+		if (has_editable_fields(doctype) && !frappe.model.has_workflow(doctype)) {
 			actions_menu_items.push(bulk_edit());
 		}
 
@@ -2073,7 +2073,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		// bulk delete
-		if (frappe.model.can_delete(doctype)) {
+		if (frappe.model.can_delete(doctype) && !frappe.model.has_workflow(doctype)) {
 			actions_menu_items.push(bulk_delete());
 		}
 

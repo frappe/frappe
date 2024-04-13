@@ -122,7 +122,7 @@ class InvalidSignatureError(ValidationError):
 
 
 class RateLimitExceededError(ValidationError):
-	pass
+	http_status_code = 429
 
 
 class CannotChangeConstantError(ValidationError):

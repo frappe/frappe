@@ -16,12 +16,12 @@ let properties = computed(() => {
 		if (field.val() === "") field.focus();
 	});
 	if (store.workflow.selected && "action" in store.workflow.selected.data) {
-		title.value = "Transition Properties";
+		title.value = __("Transition Properties");
 		return store.transitionfields.filter((df) =>
 			["action", "allowed", "allow_self_approval", "condition"].includes(df.fieldname)
 		);
 	} else if (store.workflow.selected && "state" in store.workflow.selected.data) {
-		title.value = "State Properties";
+		title.value = __("State Properties");
 		let allow_edit = store.statefields.find((df) => df.fieldname == "allow_edit");
 		store.statefields = store.statefields.filter(
 			(df) => !["allow_edit", "workflow_builder_id"].includes(df.fieldname)
@@ -39,7 +39,7 @@ let properties = computed(() => {
 			return true;
 		});
 	}
-	title.value = "Workflow Details";
+	title.value = __("Workflow Details");
 	return store.workflowfields.filter(
 		(df) => !["states", "transitions", "workflow_data", "workflow_name"].includes(df.fieldname)
 	);

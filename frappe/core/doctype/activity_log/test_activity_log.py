@@ -8,13 +8,16 @@ from frappe.tests.utils import FrappeTestCase
 
 
 class TestActivityLog(FrappeTestCase):
+	def setUp(self) -> None:
+		frappe.set_user("Administrator")
+
 	def test_activity_log(self):
 		# test user login log
 		frappe.local.form_dict = frappe._dict(
 			{
 				"cmd": "login",
 				"sid": "Guest",
-				"pwd": frappe.conf.admin_password or "admin",
+				"pwd": self.ADMIN_PASSWORD or "admin",
 				"usr": "Administrator",
 			}
 		)
@@ -57,7 +60,7 @@ class TestActivityLog(FrappeTestCase):
 		update_system_settings({"allow_consecutive_login_attempts": 3, "allow_login_after_fail": 5})
 
 		frappe.local.form_dict = frappe._dict(
-			{"cmd": "login", "sid": "Guest", "pwd": "admin", "usr": "Administrator"}
+			{"cmd": "login", "sid": "Guest", "pwd": self.ADMIN_PASSWORD, "usr": "Administrator"}
 		)
 
 		frappe.local.request_ip = "127.0.0.1"
