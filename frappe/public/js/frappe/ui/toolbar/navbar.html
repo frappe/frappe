@@ -1,52 +1,3 @@
-<<<<<<< HEAD
-<header class="navbar navbar-expand sticky-top" role="navigation">
-	<div class="container">
-		<a class="navbar-brand navbar-home" href="/app">
-			<img
-				class="app-logo"
-				style="width: {{ navbar_settings.logo_width || 28 }}px"
-				src="{{ frappe.boot.app_logo_url }}"
-				alt="{{ __("App Logo") }}"
-			>
-		</a>
-		<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
-		<div class="collapse navbar-collapse justify-content-end">
-			<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
-				{% if (frappe.boot.read_only) { %}
-					<span class="indicator-pill yellow no-indicator-dot" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
-						{%= __("Read Only Mode") %}
-					</span>
-				{% } %}
-				{% if (frappe.boot.user.impersonated_by) { %}
-					<span class="indicator-pill red no-indicator-dot" title="{%= __("You are impersonating as another user.") %}">
-						{%= __("Impersonating {0}", [frappe.boot.user.name]) %}
-					</span>
-				{% } %}
-				<div class="input-group search-bar text-muted hidden">
-					<input
-						id="navbar-search"
-						type="text"
-						class="form-control"
-						placeholder="{%= __('Search or type a command ({0})', [frappe.utils.is_mac() ? '⌘ + G' : 'Ctrl + G']) %}"
-						aria-haspopup="true"
-					>
-					<span class="search-icon">
-						<svg class="icon icon-sm"><use href="#icon-search"></use></svg>
-					</span>
-				</div>
-			</form>
-			<ul class="navbar-nav">
-				<li class="nav-item dropdown dropdown-notifications dropdown-mobile hidden">
-					<button
-						class="btn-reset nav-link notifications-icon text-muted"
-						data-toggle="dropdown"
-						aria-haspopup="true"
-						aria-expanded="false"
-					>
-						<span class="notifications-seen">
-							<span class="sr-only">{{ __("No new notifications") }}</span>
-							<svg class="es-icon icon-sm" style="stroke:none;"><use href="#es-line-notifications"></use></svg>
-=======
 <div class="sticky-top">
 	<header class="navbar navbar-expand" role="navigation">
 		<div class="container">
@@ -62,9 +13,8 @@
 			<div class="collapse navbar-collapse justify-content-end">
 				<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
 					{% if (frappe.boot.read_only) { %}
-						<span class="indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
+						<span class="indicator-pill yellow no-indicator-dot" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
 							{%= __("Read Only Mode") %}
->>>>>>> 86f97922d1 (feat: add html for widget below navbar)
 						</span>
 					{% } %}
 					{% if (frappe.boot.user.impersonated_by) { %}
