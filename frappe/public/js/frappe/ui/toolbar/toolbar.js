@@ -20,11 +20,7 @@ frappe.ui.toolbar.Toolbar = class {
 		this.setup_awesomebar();
 		this.setup_notifications();
 		this.setup_help();
-<<<<<<< HEAD
-=======
-		this.setup_read_only_mode();
 		this.setup_announcement_widget();
->>>>>>> 1dbd4479ac (feat: setup widget in toolbar)
 		this.make();
 	}
 
@@ -48,17 +44,6 @@ frappe.ui.toolbar.Toolbar = class {
 		});
 		$(".navbar-toggle-full-width").click(() => {
 			frappe.ui.toolbar.toggle_full_width();
-		});
-	}
-
-<<<<<<< HEAD
-=======
-	setup_read_only_mode() {
-		if (!frappe.boot.read_only) return;
-
-		$("header .read-only-banner").tooltip({
-			delay: { show: 600, hide: 100 },
-			trigger: "hover",
 		});
 	}
 
@@ -86,7 +71,6 @@ frappe.ui.toolbar.Toolbar = class {
 		}
 	}
 
->>>>>>> 1dbd4479ac (feat: setup widget in toolbar)
 	setup_help() {
 		if (!frappe.boot.desk_settings.notifications) {
 			// hide the help section
