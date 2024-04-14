@@ -304,7 +304,13 @@ frappe.unscrub = function (txt) {
 	return frappe.model.unscrub(txt);
 };
 
-frappe.get_data_pill = (label, target_id = null, remove_action = null, image = null, colored = false) => {
+frappe.get_data_pill = (
+	label,
+	target_id = null,
+	remove_action = null,
+	image = null,
+	colored = false
+) => {
 	let color = "",
 		style = "";
 	if (colored) {
