@@ -8,6 +8,7 @@ from collections import Counter
 from contextlib import suppress
 
 import frappe
+from frappe.monitor import add_data_to_monitor
 
 EXCLUDE_EXCEPTIONS = (
 	frappe.AuthenticationError,
@@ -85,6 +86,7 @@ def log_error_snapshot(exception: Exception):
 	try:
 		log_error(title=str(exception), defer_insert=True)
 		logger.error("New Exception collected in error log")
+		add_data_to_monitor(exception=exception.__class__.__name__)
 	except Exception as e:
 		logger.error(f"Could not take error snapshot: {e}", exc_info=True)
 

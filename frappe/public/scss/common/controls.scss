@@ -381,6 +381,17 @@ textarea.form-control {
 	min-height: 300px;
 	max-height: 600px;
 	overflow: auto;
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+
+		th,
+		td {
+			border: 1px solid var(--border-color);
+			padding: var(--padding-sm);
+		}
+	}
 }
 
 .markdown-toggle,
