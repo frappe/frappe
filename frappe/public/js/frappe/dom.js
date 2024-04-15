@@ -290,27 +290,40 @@ frappe.unscrub = function (txt) {
 	return frappe.model.unscrub(txt);
 };
 
-frappe.get_data_pill = (label, target_id = null, remove_action = null, image = null) => {
+frappe.get_data_pill = (
+	label,
+	target_id = null,
+	remove_action = null,
+	image = null,
+	colored = false
+) => {
+	let color = "",
+		style = "";
+	if (colored) {
+		color = frappe.get_palette(label);
+	}
+	style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 	let data_pill_wrapper = $(`
-		<button class="data-pill btn">
+		<button class="data-pill btn" style="${style}">
 			<div class="flex align-center ellipsis">
 				${image ? image : ""}
-				<span class="pill-label">${label}</span>
+				<span class="pill-label">${label} </span>
 			</div>
 		</button>
 	`);
-
 	if (remove_action) {
 		let remove_btn = $(`
 			<span class="remove-btn cursor-pointer">
 				${frappe.utils.icon("close", "sm")}
 			</span>
-		`).click(() => {
-			remove_action(target_id || label, data_pill_wrapper);
-		});
+		`);
+		if (typeof remove_action === "function") {
+			remove_btn.click(() => {
+				remove_action(target_id || label, data_pill_wrapper);
+			});
+		}
 		data_pill_wrapper.append(remove_btn);
 	}
-
 	return data_pill_wrapper;
 };
 
