@@ -49,9 +49,12 @@ class ServerScript(Document):
 			"Before Save (Submitted Document)",
 			"After Save (Submitted Document)",
 			"Before Print",
-			"On Payment Authorization",
-			"On Payment Paid",
 			"On Payment Failed",
+			"On Payment Charge Processed",
+			"On Payment Mandate Charge Processed",
+			"On Payment Mandate Acquisition Processed",
+			"On Payment Paid (Legacy Gateway)",
+			"On Payment Authorization (Legacy Gateway)",
 		]
 		enable_rate_limit: DF.Check
 		event_frequency: DF.Literal[
