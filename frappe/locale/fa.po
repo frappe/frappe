@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-07 09:33+0000\n"
-"PO-Revision-Date: 2024-04-10 08:19\n"
+"PO-Revision-Date: 2024-04-15 11:08\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -4342,7 +4342,7 @@ msgstr ""
 #: core/doctype/recorder/recorder.json
 msgctxt "Recorder"
 msgid "CMD"
-msgstr ""
+msgstr "CMD"
 
 #: public/js/frappe/color_picker/color_picker.js:20
 msgid "COLOR PICKER"
@@ -4352,19 +4352,19 @@ msgstr "انتخاب کننده رنگ"
 #: desk/doctype/custom_html_block/custom_html_block.json
 msgctxt "Custom HTML Block"
 msgid "CSS"
-msgstr ""
+msgstr "CSS"
 
 #. Label of a Code field in DocType 'Print Style'
 #: printing/doctype/print_style/print_style.json
 msgctxt "Print Style"
 msgid "CSS"
-msgstr ""
+msgstr "CSS"
 
 #. Label of a Code field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "CSS"
-msgstr ""
+msgstr "CSS"
 
 #. Label of a Small Text field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
@@ -4389,7 +4389,7 @@ msgstr "CSV"
 #: core/doctype/data_export/data_export.json
 msgctxt "Data Export"
 msgid "CSV"
-msgstr ""
+msgstr "CSV"
 
 #. Label of a Data field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
@@ -9018,13 +9018,13 @@ msgstr "وضعیت سند"
 #. Name of a DocType
 #: core/doctype/docfield/docfield.json
 msgid "DocField"
-msgstr ""
+msgstr "DocField"
 
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
 msgid "DocField"
-msgstr ""
+msgstr "DocField"
 
 #. Name of a DocType
 #: core/doctype/docperm/docperm.json
@@ -12006,7 +12006,7 @@ msgstr "شکست"
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "FavIcon"
-msgstr ""
+msgstr "FavIcon"
 
 #. Label of a Data field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -13781,7 +13781,7 @@ msgstr "شاخه گیت"
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Github flavoured markdown syntax"
@@ -27565,7 +27565,7 @@ msgstr "تنظیمات SMTP برای ایمیل های خروجی"
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "SQL"
-msgstr ""
+msgstr "SQL"
 
 #. Description of the 'Condition' (Small Text) field in DocType 'Bulk Update'
 #: desk/doctype/bulk_update/bulk_update.json
@@ -38782,7 +38782,7 @@ msgstr "فهرست {0}"
 
 #: public/js/frappe/utils/pretty_date.js:37
 msgid "{0} M"
-msgstr ""
+msgstr "{0} ماه"
 
 #: public/js/frappe/views/map/map_view.js:14
 msgid "{0} Map"
@@ -38982,7 +38982,7 @@ msgstr "{0} از {1} انتقاد کرد"
 
 #: public/js/frappe/utils/pretty_date.js:33
 msgid "{0} d"
-msgstr "{0} د"
+msgstr "{0} روز"
 
 #: public/js/frappe/utils/pretty_date.js:60
 msgid "{0} days ago"
@@ -39409,7 +39409,7 @@ msgstr "{0} این را مشاهده کرد"
 
 #: public/js/frappe/utils/pretty_date.js:35
 msgid "{0} w"
-msgstr ""
+msgstr "{0} هفته"
 
 #: public/js/frappe/utils/pretty_date.js:64
 msgid "{0} weeks ago"
