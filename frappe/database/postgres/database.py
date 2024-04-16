@@ -13,6 +13,7 @@ from psycopg2.errorcodes import (
 	UNIQUE_VIOLATION,
 )
 from psycopg2.errors import (
+	InterfaceError,
 	LockNotAvailable,
 	ReadOnlySqlTransaction,
 	SequenceGeneratorLimitExceeded,
@@ -111,6 +112,10 @@ class PostgresExceptionUtil:
 	@staticmethod
 	def is_data_too_long(e):
 		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
+
+	@staticmethod
+	def is_interface_error(e):
+		return isinstance(e, InterfaceError)
 
 
 class PostgresDatabase(PostgresExceptionUtil, Database):

@@ -67,7 +67,9 @@ class TestWebhook(FrappeTestCase):
 	@classmethod
 	def tearDownClass(cls):
 		# delete any existing webhooks
+		frappe.db.rollback()
 		frappe.db.delete("Webhook")
+		frappe.db.commit()
 
 	def setUp(self):
 		# retrieve or create a User webhook for `after_insert`

@@ -374,10 +374,8 @@ def has_controller_permissions(doc, ptype, user=None):
 	if not user:
 		user = frappe.session.user
 
-	methods = frappe.get_hooks("has_permission").get(doc.doctype, [])
-
-	if not methods:
-		return None
+	hooks = frappe.get_hooks("has_permission")
+	methods = hooks.get(doc.doctype, []) + hooks.get("*", [])
 
 	for method in reversed(methods):
 		controller_permission = frappe.call(frappe.get_attr(method), doc=doc, ptype=ptype, user=user)
