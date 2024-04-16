@@ -611,7 +611,7 @@ frappe.ui.Page = class Page {
 	 * @param {object} action - function to be called when button is clicked
 	 * @param {string} group - Label of the group button
 	 */
-	add_inner_button(label, action, group, type = "default") {
+	add_inner_button(label, action, group, type = "default", hide_button = true) {
 		var me = this;
 		let _action = function () {
 			let btn = $(this);
@@ -624,6 +624,33 @@ frappe.ui.Page = class Page {
 		menu_item.parent().addClass("hidden-xl");
 		if (this.menu_btn_group.hasClass("hide")) {
 			this.menu_btn_group.removeClass("hide").addClass("hidden-xl");
+		}
+		const allowed_actions = ["Toogle%20whatsapp"];
+		if (!hide_button) {
+			const container_custom_actions = document.getElementById("custom_actions");
+			container_custom_actions.classList.remove("hidden-xs", "hidden-md");
+			
+			const buttonsToRemove = [];
+			
+			// Delete inner-group-button
+			const innerGroupButtons = container_custom_actions.getElementsByClassName("inner-group-button");
+			while (innerGroupButtons.length > 0) {
+				const innerGroupButton = innerGroupButtons[0];
+				buttonsToRemove.push(innerGroupButton);
+				container_custom_actions.removeChild(innerGroupButton);
+			}
+			
+			// Delete button that not are inside allowed_actions array
+			setTimeout(()=> {
+				const buttons = container_custom_actions.querySelectorAll('.btn.btn-default.ellipsis');
+				buttons.forEach(button => {
+					if (!allowed_actions.includes(button.dataset.label)) {
+						buttonsToRemove.push(button);
+						button.parentNode.removeChild(button);
+					}
+				});
+			},500)
+			
 		}
 
 		if (group) {
@@ -655,6 +682,7 @@ frappe.ui.Page = class Page {
 			return button;
 		}
 	}
+	
 
 	remove_inner_button(label, group) {
 		if (typeof label === "string") {
@@ -774,7 +802,6 @@ frappe.ui.Page = class Page {
 		// Add actions as menu item in Mobile View (similar to "add_custom_button" in forms.js)
 		let menu_item = this.add_menu_item(label, click, false);
 		menu_item.parent().addClass("hidden-xl");
-
 		button.appendTo(this.custom_actions);
 		button.on("click", click);
 		this.custom_actions.removeClass("hide");

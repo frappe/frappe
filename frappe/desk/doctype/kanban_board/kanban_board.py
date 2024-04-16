@@ -132,7 +132,6 @@ def update_order(board_name, order):
             order_parse = json.loads(order)
         if isinstance(projects_ordered, str):
             projects_ordered = json.dumps(projects_ordered)
-
         projects_ordered = order_column_by_project_order(projects_ordered, order_parse)
         order = json.dumps(projects_ordered)
         updated_cards = []
@@ -154,7 +153,6 @@ def update_order(board_name, order):
         for column in board.columns:
             if column.column_name == col_name:
                 column.order = json.dumps(cards)
-
     return board.save(ignore_permissions=True), updated_cards
 
 

@@ -1386,12 +1386,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.body, txt);
 	}
 
-	add_custom_button(label, fn, group) {
+	add_custom_button(label, fn, group, hide_button = true) {
 		// temp! old parameter used to be icon
 		if (group && group.indexOf("fa fa-") !== -1) group = null;
 
-		let btn = this.page.add_inner_button(label, fn, group);
-
+		let btn = this.page.add_inner_button(label, fn, group, "default", hide_button);
 		if (btn) {
 			// Add actions as menu item in Mobile View
 			let menu_item_label = group ? `${group} > ${label}` : label;
