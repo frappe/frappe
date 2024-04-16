@@ -10,6 +10,8 @@
   "account_section",
   "email_id",
   "email_account_name",
+  "enable_incoming",
+  "enable_outgoing",
   "column_break_3",
   "domain",
   "service",
@@ -24,8 +26,8 @@
   "connected_user",
   "login_id_is_different",
   "login_id",
+  "incoming_popimap_tab",
   "mailbox_settings",
-  "enable_incoming",
   "default_incoming",
   "use_imap",
   "use_ssl",
@@ -48,8 +50,8 @@
   "notify_if_unreplied",
   "unreplied_for_mins",
   "send_notification_to",
+  "outgoing_smtp_tab",
   "outgoing_mail_settings",
-  "enable_outgoing",
   "use_tls",
   "use_ssl_for_outgoing",
   "smtp_server",
@@ -175,7 +177,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: !doc.domain && doc.enable_incoming",
+   "depends_on": "eval: !doc.domain",
    "fetch_from": "domain.use_imap",
    "fieldname": "use_imap",
    "fieldtype": "Check",
@@ -184,7 +186,7 @@
    "label": "Use IMAP"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "depends_on": "eval:!doc.domain",
    "description": "e.g. pop.gmail.com / imap.gmail.com",
    "fetch_from": "domain.email_server",
    "fieldname": "email_server",
@@ -195,7 +197,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "depends_on": "eval:!doc.domain",
    "fetch_from": "domain.use_ssl",
    "fieldname": "use_ssl",
    "fieldtype": "Check",
@@ -204,7 +206,7 @@
    "label": "Use SSL"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "depends_on": "eval:!doc.domain",
    "description": "Ignore attachments over this size",
    "fetch_from": "domain.attachment_limit",
    "fieldname": "attachment_limit",
@@ -214,7 +216,7 @@
    "label": "Attachment Limit (MB)"
   },
   {
-   "depends_on": "eval: doc.enable_incoming && !doc.use_imap",
+   "depends_on": "eval: !doc.use_imap",
    "description": "Append as communication against this DocType (must have fields: \"Sender\" and \"Subject\"). These fields can be defined in the email settings section of the appended doctype.",
    "fieldname": "append_to",
    "fieldtype": "Link",
@@ -236,7 +238,7 @@
   },
   {
    "default": "UNSEEN",
-   "depends_on": "eval: doc.enable_incoming && doc.use_imap",
+   "depends_on": "use_imap",
    "fieldname": "email_sync_option",
    "fieldtype": "Select",
    "hide_days": 1,
@@ -246,7 +248,7 @@
   },
   {
    "default": "250",
-   "depends_on": "eval: doc.enable_incoming && doc.use_imap",
+   "depends_on": "use_imap",
    "description": "Total number of emails to sync in initial sync process ",
    "fieldname": "initial_sync_count",
    "fieldtype": "Select",
@@ -297,7 +299,6 @@
   },
   {
    "default": "0",
-   "description": "SMTP Settings for outgoing emails",
    "fieldname": "enable_outgoing",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -305,7 +306,7 @@
    "label": "Enable Outgoing"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "depends_on": "eval:!doc.domain",
    "description": "e.g. smtp.gmail.com",
    "fetch_from": "domain.smtp_server",
    "fieldname": "smtp_server",
@@ -316,7 +317,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "depends_on": "eval:!doc.domain",
    "fetch_from": "domain.use_tls",
    "fieldname": "use_tls",
    "fieldtype": "Check",
@@ -325,7 +326,7 @@
    "label": "Use TLS"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "depends_on": "eval:!doc.domain",
    "description": "If non standard port (e.g. 587). If on Google Cloud, try port 2525.",
    "fetch_from": "domain.smtp_port",
    "fieldname": "smtp_port",
@@ -336,7 +337,6 @@
   },
   {
    "default": "0",
-   "depends_on": "enable_outgoing",
    "description": "Notifications and bulk mails will be sent from this outgoing server.",
    "fieldname": "default_outgoing",
    "fieldtype": "Check",
@@ -346,7 +346,6 @@
   },
   {
    "default": "0",
-   "depends_on": "enable_outgoing",
    "fieldname": "always_use_account_email_id_as_sender",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -355,7 +354,6 @@
   },
   {
    "default": "0",
-   "depends_on": "enable_outgoing",
    "fieldname": "always_use_account_name_as_sender_name",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -415,6 +413,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "enable_auto_reply",
+   "depends_on": "enable_incoming",
    "fieldname": "auto_reply",
    "fieldtype": "Section Break",
    "hide_days": 1,
@@ -499,7 +498,7 @@
    "label": "Enable Automatic Linking in Documents"
   },
   {
-   "depends_on": "eval:!doc.domain && doc.enable_incoming",
+   "depends_on": "eval:!doc.domain",
    "description": "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)",
    "fieldname": "incoming_port",
    "fieldtype": "Data",
@@ -518,7 +517,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.domain && doc.enable_outgoing",
+   "depends_on": "eval:!doc.domain",
    "fieldname": "use_ssl_for_outgoing",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -565,7 +564,7 @@
    "label": "Account"
   },
   {
-   "depends_on": "eval: doc.use_imap && doc.enable_incoming",
+   "depends_on": "use_imap",
    "fieldname": "imap_folder",
    "fieldtype": "Table",
    "label": "IMAP Folder",
@@ -591,7 +590,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:!doc.domain && doc.enable_incoming && doc.use_imap && !doc.use_ssl",
+   "depends_on": "eval:!doc.domain && doc.use_imap && !doc.use_ssl",
    "fetch_from": "domain.use_starttls",
    "fieldname": "use_starttls",
    "fieldtype": "Check",
@@ -615,19 +614,31 @@
   },
   {
    "default": "1",
-   "depends_on": "eval:!doc.domain && doc.enable_incoming && doc.use_ssl",
+   "depends_on": "eval:!doc.domain && doc.use_ssl",
    "fetch_from": "domain.use_ssl",
    "fieldname": "validate_ssl_certificate",
    "fieldtype": "Check",
    "hide_days": 1,
    "hide_seconds": 1,
    "label": "Validate SSL Certificate"
+  },
+  {
+   "depends_on": "enable_incoming",
+   "fieldname": "incoming_popimap_tab",
+   "fieldtype": "Tab Break",
+   "label": "Incoming (POP/IMAP)"
+  },
+  {
+   "depends_on": "enable_outgoing",
+   "fieldname": "outgoing_smtp_tab",
+   "fieldtype": "Tab Break",
+   "label": "Outgoing (SMTP)"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-23 16:03:23.581556",
+ "modified": "2024-04-16 14:45:38.157459",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
