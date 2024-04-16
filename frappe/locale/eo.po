@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-04-07 09:33+0000\n"
-"PO-Revision-Date: 2024-04-09 06:44\n"
+"POT-Creation-Date: 2024-04-14 10:31+0000\n"
+"PO-Revision-Date: 2024-04-16 11:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -74,7 +74,7 @@ msgstr "crwdns90520:0crwdne90520:0"
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
 msgstr "crwdns90522:0{0}crwdnd90522:0{1}crwdne90522:0"
 
-#: core/doctype/doctype/doctype.py:1302
+#: core/doctype/doctype/doctype.py:1321
 msgid "'In Global Search' not allowed for type {0} in row {1}"
 msgstr "crwdns90524:0{0}crwdnd90524:0{1}crwdne90524:0"
 
@@ -82,7 +82,7 @@ msgstr "crwdns90524:0{0}crwdnd90524:0{1}crwdne90524:0"
 msgid "'In List View' is not allowed for field {0} of type {1}"
 msgstr "crwdns90526:0{0}crwdnd90526:0{1}crwdne90526:0"
 
-#: custom/doctype/customize_form/customize_form.py:358
+#: custom/doctype/customize_form/customize_form.py:359
 msgid "'In List View' not allowed for type {0} in row {1}"
 msgstr "crwdns90528:0{0}crwdnd90528:0{1}crwdne90528:0"
 
@@ -94,7 +94,7 @@ msgstr "crwdns90530:0crwdne90530:0"
 msgid "'{0}' is not a valid URL"
 msgstr "crwdns90532:0{0}crwdne90532:0"
 
-#: core/doctype/doctype/doctype.py:1296
+#: core/doctype/doctype/doctype.py:1315
 msgid "'{0}' not allowed for type {1} in row {2}"
 msgstr "crwdns90534:0{0}crwdnd90534:0{1}crwdnd90534:0{2}crwdne90534:0"
 
@@ -106,6 +106,7 @@ msgstr "crwdns110776:0crwdne110776:0"
 msgid "** Failed: {0} to {1}: {2}"
 msgstr "crwdns90536:0{0}crwdnd90536:0{1}crwdnd90536:0{2}crwdne90536:0"
 
+#: public/js/frappe/list/list_settings.js:132
 #: public/js/frappe/views/kanban/kanban_settings.js:111
 msgid "+ Add / Remove Fields"
 msgstr "crwdns110778:0crwdne110778:0"
@@ -575,7 +576,7 @@ msgstr "crwdns90636:0crwdne90636:0"
 msgid "A DocType (Document Type) is used to insert forms in ERPNext. Forms such as Customer, Orders, and Invoices are Doctypes in the backend. You can also create new DocTypes to create new forms in ERPNext as per your business needs."
 msgstr "crwdns90638:0crwdne90638:0"
 
-#: core/doctype/doctype/doctype.py:1014
+#: core/doctype/doctype/doctype.py:1015
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
 msgstr "crwdns90640:0crwdne90640:0"
 
@@ -862,7 +863,7 @@ msgctxt "Social Login Key"
 msgid "Access Token URL"
 msgstr "crwdns90736:0crwdne90736:0"
 
-#: auth.py:451
+#: auth.py:453
 msgid "Access not allowed from this IP Address"
 msgstr "crwdns90738:0crwdne90738:0"
 
@@ -942,7 +943,7 @@ msgstr "crwdns90760:0crwdne90760:0"
 msgid "Action Complete"
 msgstr "crwdns90762:0crwdne90762:0"
 
-#: model/document.py:1686
+#: model/document.py:1687
 msgid "Action Failed"
 msgstr "crwdns90764:0crwdne90764:0"
 
@@ -985,7 +986,8 @@ msgstr "crwdns90774:0{0}crwdnd90774:0{1}crwdnd90774:0{2}crwdnd90774:0{3}crwdne90
 #: custom/doctype/customize_form/customize_form.js:124
 #: custom/doctype/customize_form/customize_form.js:132
 #: custom/doctype/customize_form/customize_form.js:140
-#: custom/doctype/customize_form/customize_form.js:238
+#: custom/doctype/customize_form/customize_form.js:148
+#: custom/doctype/customize_form/customize_form.js:283
 #: public/js/frappe/ui/page.html:56
 #: public/js/frappe/views/reports/query_report.js:190
 #: public/js/frappe/views/reports/query_report.js:203
@@ -1651,7 +1653,7 @@ msgstr "crwdns90998:0crwdne90998:0"
 #: contacts/doctype/salutation/salutation.json
 #: core/doctype/communication/communication.json core/doctype/file/file.json
 #: core/doctype/language/language.json core/doctype/module_def/module_def.json
-#: core/doctype/user/user.json desk/doctype/event/event.json
+#: desk/doctype/event/event.json
 #: desk/doctype/notification_log/notification_log.json
 #: desk/doctype/notification_settings/notification_settings.json
 #: desk/doctype/tag/tag.json desk/doctype/tag_link/tag_link.json
@@ -1676,7 +1678,7 @@ msgctxt "Server Script"
 msgid "All"
 msgstr "crwdns91004:0crwdne91004:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:394
+#: public/js/frappe/ui/notifications/notifications.js:401
 msgid "All Day"
 msgstr "crwdns91006:0crwdne91006:0"
 
@@ -1704,7 +1706,7 @@ msgstr "crwdns91014:0crwdne91014:0"
 msgid "All Submissions"
 msgstr "crwdns110800:0crwdne110800:0"
 
-#: custom/doctype/customize_form/customize_form.js:384
+#: custom/doctype/customize_form/customize_form.js:429
 msgid "All customizations will be removed. Please confirm."
 msgstr "crwdns91016:0crwdne91016:0"
 
@@ -2329,6 +2331,12 @@ msgstr "crwdns91228:0crwdne91228:0"
 msgid "App Name"
 msgstr "crwdns91230:0crwdne91230:0"
 
+#. Label of a Data field in DocType 'Changelog Feed'
+#: desk/doctype/changelog_feed/changelog_feed.json
+msgctxt "Changelog Feed"
+msgid "App Name"
+msgstr "crwdns112726:0crwdne112726:0"
+
 #. Label of a Select field in DocType 'Module Def'
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
@@ -2353,7 +2361,7 @@ msgctxt "Dropbox Settings"
 msgid "App Secret Key"
 msgstr "crwdns91238:0crwdne91238:0"
 
-#: modules/utils.py:262
+#: modules/utils.py:275
 msgid "App not found for module: {0}"
 msgstr "crwdns91240:0{0}crwdne91240:0"
 
@@ -3755,6 +3763,12 @@ msgstr "crwdns91740:0crwdne91740:0"
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
+msgid "Before Print"
+msgstr "crwdns112728:0crwdne112728:0"
+
+#. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
+#: core/doctype/server_script/server_script.json
+msgctxt "Server Script"
 msgid "Before Rename"
 msgstr "crwdns111390:0crwdne111390:0"
 
@@ -4538,7 +4552,7 @@ msgstr "crwdns110828:0crwdne110828:0"
 msgid "Can not rename as column {0} is already present on DocType."
 msgstr "crwdns92002:0{0}crwdne92002:0"
 
-#: core/doctype/doctype/doctype.py:1111
+#: core/doctype/doctype/doctype.py:1130
 msgid "Can only change to/from Autoincrement naming rule when there is no data in the doctype"
 msgstr "crwdns92004:0crwdne92004:0"
 
@@ -4617,7 +4631,7 @@ msgid "Cancel {0} documents?"
 msgstr "crwdns92032:0{0}crwdne92032:0"
 
 #: desk/form/save.py:59 public/js/frappe/model/indicator.js:78
-#: public/js/frappe/ui/filters/filter.js:496
+#: public/js/frappe/ui/filters/filter.js:502
 msgid "Cancelled"
 msgstr "crwdns92034:0crwdne92034:0"
 
@@ -4668,7 +4682,7 @@ msgstr "crwdns92050:0crwdne92050:0"
 msgid "Cancelling {0}"
 msgstr "crwdns92052:0{0}crwdne92052:0"
 
-#: core/doctype/prepared_report/prepared_report.py:245
+#: core/doctype/prepared_report/prepared_report.py:252
 msgid "Cannot Download Report due to insufficient permissions"
 msgstr "crwdns92054:0crwdne92054:0"
 
@@ -4716,7 +4730,7 @@ msgstr "crwdns92074:0{0}crwdne92074:0"
 msgid "Cannot change state of Cancelled Document. Transition row {0}"
 msgstr "crwdns92076:0{0}crwdne92076:0"
 
-#: core/doctype/doctype/doctype.py:1101
+#: core/doctype/doctype/doctype.py:1120
 msgid "Cannot change to/from autoincrement autoname in Customize Form"
 msgstr "crwdns92078:0crwdne92078:0"
 
@@ -4744,23 +4758,23 @@ msgstr "crwdns92088:0crwdne92088:0"
 msgid "Cannot delete public workspace without Workspace Manager role"
 msgstr "crwdns92090:0crwdne92090:0"
 
-#: custom/doctype/customize_form/customize_form.js:313
+#: custom/doctype/customize_form/customize_form.js:358
 msgid "Cannot delete standard action. You can hide it if you want"
 msgstr "crwdns92092:0crwdne92092:0"
 
-#: custom/doctype/customize_form/customize_form.js:328
+#: custom/doctype/customize_form/customize_form.js:373
 msgid "Cannot delete standard document state."
 msgstr "crwdns92094:0crwdne92094:0"
 
-#: custom/doctype/customize_form/customize_form.js:276
+#: custom/doctype/customize_form/customize_form.js:321
 msgid "Cannot delete standard field <strong>{0}</strong>. You can hide it instead."
 msgstr "crwdns92096:0{0}crwdne92096:0"
 
-#: custom/doctype/customize_form/customize_form.js:298
+#: custom/doctype/customize_form/customize_form.js:343
 msgid "Cannot delete standard link. You can hide it if you want"
 msgstr "crwdns92098:0crwdne92098:0"
 
-#: custom/doctype/customize_form/customize_form.js:268
+#: custom/doctype/customize_form/customize_form.js:313
 msgid "Cannot delete system generated field <strong>{0}</strong>. You can hide it instead."
 msgstr "crwdns92100:0{0}crwdne92100:0"
 
@@ -4861,11 +4875,11 @@ msgstr "crwdns92144:0crwdne92144:0"
 msgid "Cannot update {0}"
 msgstr "crwdns92146:0{0}crwdne92146:0"
 
-#: model/db_query.py:1106
+#: model/db_query.py:1103
 msgid "Cannot use sub-query in order by"
 msgstr "crwdns92148:0crwdne92148:0"
 
-#: model/db_query.py:1124
+#: model/db_query.py:1121
 msgid "Cannot use {0} in order/group by"
 msgstr "crwdns92150:0{0}crwdne92150:0"
 
@@ -5003,6 +5017,11 @@ msgctxt "Document Naming Settings"
 msgid "Change the starting / current sequence number of an existing series. <br>\n\n"
 "Warning: Incorrectly updating counters can prevent documents from getting created. "
 msgstr "crwdns92200:0crwdne92200:0"
+
+#. Name of a DocType
+#: desk/doctype/changelog_feed/changelog_feed.json
+msgid "Changelog Feed"
+msgstr "crwdns112730:0crwdne112730:0"
 
 #: email/doctype/email_domain/email_domain.js:5
 msgid "Changing any setting will reflect on all the email accounts associated with this domain."
@@ -5202,7 +5221,7 @@ msgctxt "Form Tour Step"
 msgid "Child Doctype"
 msgstr "crwdns92272:0crwdne92272:0"
 
-#: core/doctype/doctype/doctype.py:1583
+#: core/doctype/doctype/doctype.py:1602
 msgid "Child Table {0} for field {1}"
 msgstr "crwdns92274:0{0}crwdnd92274:0{1}crwdne92274:0"
 
@@ -6015,7 +6034,7 @@ msgstr "crwdns92546:0crwdne92546:0"
 msgid "Compare Versions"
 msgstr "crwdns92548:0crwdne92548:0"
 
-#: core/doctype/server_script/server_script.py:140
+#: core/doctype/server_script/server_script.py:141
 msgid "Compilation warning"
 msgstr "crwdns92550:0crwdne92550:0"
 
@@ -6579,7 +6598,7 @@ msgctxt "Website Settings"
 msgid "Copyright"
 msgstr "crwdns92736:0crwdne92736:0"
 
-#: custom/doctype/customize_form/customize_form.py:118
+#: custom/doctype/customize_form/customize_form.py:119
 msgid "Core DocTypes cannot be customized."
 msgstr "crwdns92738:0crwdne92738:0"
 
@@ -7370,7 +7389,7 @@ msgstr "crwdns93008:0crwdne93008:0"
 msgid "Customizations Discarded"
 msgstr "crwdns93010:0crwdne93010:0"
 
-#: custom/doctype/customize_form/customize_form.js:397
+#: custom/doctype/customize_form/customize_form.js:442
 msgid "Customizations Reset"
 msgstr "crwdns93012:0crwdne93012:0"
 
@@ -7788,7 +7807,7 @@ msgstr "crwdns93156:0crwdne93156:0"
 msgid "Data Import Template"
 msgstr "crwdns93158:0crwdne93158:0"
 
-#: custom/doctype/customize_form/customize_form.py:610
+#: custom/doctype/customize_form/customize_form.py:611
 msgid "Data Too Long"
 msgstr "crwdns93160:0crwdne93160:0"
 
@@ -7817,7 +7836,7 @@ msgstr "crwdns93168:0crwdne93168:0"
 msgid "Database Storage Usage By Tables"
 msgstr "crwdns93170:0crwdne93170:0"
 
-#: custom/doctype/customize_form/customize_form.py:244
+#: custom/doctype/customize_form/customize_form.py:245
 msgid "Database Table Row Size Limit"
 msgstr "crwdns93172:0crwdne93172:0"
 
@@ -8231,11 +8250,11 @@ msgctxt "User"
 msgid "Default Workspace"
 msgstr "crwdns111500:0crwdne111500:0"
 
-#: core/doctype/doctype/doctype.py:1324
+#: core/doctype/doctype/doctype.py:1343
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
 msgstr "crwdns93318:0{0}crwdne93318:0"
 
-#: core/doctype/doctype/doctype.py:1337
+#: core/doctype/doctype/doctype.py:1356
 msgid "Default value for {0} must be in the list of options."
 msgstr "crwdns93320:0{0}crwdne93320:0"
 
@@ -8642,7 +8661,7 @@ msgstr "crwdns93452:0crwdne93452:0"
 #. Name of a role
 #: automation/doctype/reminder/reminder.json core/doctype/report/report.json
 #: core/doctype/submission_queue/submission_queue.json
-#: core/doctype/user_group/user_group.json
+#: core/doctype/user/user.json core/doctype/user_group/user_group.json
 #: custom/doctype/doctype_layout/doctype_layout.json
 #: desk/doctype/calendar_view/calendar_view.json
 #: desk/doctype/custom_html_block/custom_html_block.json
@@ -9138,7 +9157,7 @@ msgctxt "Workspace Shortcut"
 msgid "DocType"
 msgstr "crwdns93612:0crwdne93612:0"
 
-#: core/doctype/doctype/doctype.py:1525
+#: core/doctype/doctype/doctype.py:1544
 msgid "DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field"
 msgstr "crwdns93614:0{0}crwdnd93614:0{1}crwdne93614:0"
 
@@ -9202,11 +9221,11 @@ msgctxt "Workspace Shortcut"
 msgid "DocType View"
 msgstr "crwdns93636:0crwdne93636:0"
 
-#: core/doctype/doctype/doctype.py:648
+#: core/doctype/doctype/doctype.py:649
 msgid "DocType can not be merged"
 msgstr "crwdns93638:0crwdne93638:0"
 
-#: core/doctype/doctype/doctype.py:642
+#: core/doctype/doctype/doctype.py:643
 msgid "DocType can only be renamed by Administrator"
 msgstr "crwdns93640:0crwdne93640:0"
 
@@ -9241,19 +9260,19 @@ msgstr "crwdns93650:0crwdne93650:0"
 msgid "DocType required"
 msgstr "crwdns93652:0crwdne93652:0"
 
-#: modules/utils.py:157
+#: modules/utils.py:170
 msgid "DocType {0} does not exist."
 msgstr "crwdns93654:0{0}crwdne93654:0"
 
-#: modules/utils.py:220
+#: modules/utils.py:233
 msgid "DocType {} not found"
 msgstr "crwdns93656:0crwdne93656:0"
 
-#: core/doctype/doctype/doctype.py:1008
+#: core/doctype/doctype/doctype.py:1009
 msgid "DocType's name should not start or end with whitespace"
 msgstr "crwdns93658:0crwdne93658:0"
 
-#: core/doctype/doctype/doctype.js:70
+#: core/doctype/doctype/doctype.js:71
 msgid "DocTypes can not be modified, please use {0} instead"
 msgstr "crwdns93660:0{0}crwdne93660:0"
 
@@ -9267,7 +9286,7 @@ msgctxt "Document Follow"
 msgid "Doctype"
 msgstr "crwdns93664:0crwdne93664:0"
 
-#: core/doctype/doctype/doctype.py:1002
+#: core/doctype/doctype/doctype.py:1003
 msgid "Doctype name is limited to {0} characters ({1})"
 msgstr "crwdns93666:0{0}crwdnd93666:0{1}crwdne93666:0"
 
@@ -9349,19 +9368,19 @@ msgctxt "Customize Form"
 msgid "Document Links"
 msgstr "crwdns93694:0crwdne93694:0"
 
-#: core/doctype/doctype/doctype.py:1159
+#: core/doctype/doctype/doctype.py:1178
 msgid "Document Links Row #{0}: Could not find field {1} in {2} DocType"
 msgstr "crwdns93696:0#{0}crwdnd93696:0{1}crwdnd93696:0{2}crwdne93696:0"
 
-#: core/doctype/doctype/doctype.py:1179
+#: core/doctype/doctype/doctype.py:1198
 msgid "Document Links Row #{0}: Invalid doctype or fieldname."
 msgstr "crwdns93698:0#{0}crwdne93698:0"
 
-#: core/doctype/doctype/doctype.py:1142
+#: core/doctype/doctype/doctype.py:1161
 msgid "Document Links Row #{0}: Parent DocType is mandatory for internal links"
 msgstr "crwdns93700:0#{0}crwdne93700:0"
 
-#: core/doctype/doctype/doctype.py:1148
+#: core/doctype/doctype/doctype.py:1167
 msgid "Document Links Row #{0}: Table Fieldname is mandatory for internal links"
 msgstr "crwdns93702:0#{0}crwdne93702:0"
 
@@ -9425,7 +9444,7 @@ msgstr "crwdns93722:0crwdne93722:0"
 msgid "Document Naming Settings"
 msgstr "crwdns93724:0crwdne93724:0"
 
-#: model/document.py:1548
+#: model/document.py:1549
 msgid "Document Queued"
 msgstr "crwdns93726:0crwdne93726:0"
 
@@ -9672,7 +9691,7 @@ msgctxt "User Type"
 msgid "Document Types and Permissions"
 msgstr "crwdns93810:0crwdne93810:0"
 
-#: core/doctype/submission_queue/submission_queue.py:163 model/document.py:1750
+#: core/doctype/submission_queue/submission_queue.py:163 model/document.py:1751
 msgid "Document Unlocked"
 msgstr "crwdns93812:0crwdne93812:0"
 
@@ -9900,7 +9919,7 @@ msgid "Download Your Data"
 msgstr "crwdns93896:0crwdne93896:0"
 
 #: public/js/frappe/model/indicator.js:73
-#: public/js/frappe/ui/filters/filter.js:494
+#: public/js/frappe/ui/filters/filter.js:500
 msgid "Draft"
 msgstr "crwdns93898:0crwdne93898:0"
 
@@ -11087,7 +11106,7 @@ msgstr "crwdns94290:0crwdne94290:0"
 msgid "Enabled email inbox for user {0}"
 msgstr "crwdns94292:0{0}crwdne94292:0"
 
-#: core/doctype/server_script/server_script.py:268
+#: core/doctype/server_script/server_script.py:269
 msgid "Enabled scheduled execution for script {0}"
 msgstr "crwdns94294:0{0}crwdne94294:0"
 
@@ -11541,6 +11560,10 @@ msgctxt "Recorder"
 msgid "Event Type"
 msgstr "crwdns94456:0crwdne94456:0"
 
+#: public/js/frappe/ui/notifications/notifications.js:56
+msgid "Events"
+msgstr "crwdns112732:0crwdne112732:0"
+
 #: desk/doctype/event/event.py:261
 msgid "Events in Today's Calendar"
 msgstr "crwdns94458:0crwdne94458:0"
@@ -11775,11 +11798,11 @@ msgstr "crwdns94534:0crwdne94534:0"
 msgid "Export All {0} rows?"
 msgstr "crwdns94536:0{0}crwdne94536:0"
 
-#: custom/doctype/customize_form/customize_form.js:220
+#: custom/doctype/customize_form/customize_form.js:262
 msgid "Export Custom Permissions"
 msgstr "crwdns94538:0crwdne94538:0"
 
-#: custom/doctype/customize_form/customize_form.js:200
+#: custom/doctype/customize_form/customize_form.js:242
 msgid "Export Customizations"
 msgstr "crwdns94540:0crwdne94540:0"
 
@@ -11841,6 +11864,10 @@ msgstr "crwdns94562:0crwdne94562:0"
 #: public/js/frappe/data_import/data_exporter.js:246
 msgid "Export {0} records"
 msgstr "crwdns94564:0{0}crwdne94564:0"
+
+#: custom/doctype/customize_form/customize_form.js:263
+msgid "Exported permissions will be force-synced on every migrate overriding any other customization."
+msgstr "crwdns112734:0crwdne112734:0"
 
 #. Label of a Data field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
@@ -11947,7 +11974,7 @@ msgstr "crwdns94600:0crwdne94600:0"
 msgid "Failed to connect to server"
 msgstr "crwdns94602:0crwdne94602:0"
 
-#: auth.py:654
+#: auth.py:656
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "crwdns94604:0crwdne94604:0"
 
@@ -12141,11 +12168,11 @@ msgctxt "Web Form List Column"
 msgid "Field"
 msgstr "crwdns94676:0crwdne94676:0"
 
-#: core/doctype/doctype/doctype.py:417
+#: core/doctype/doctype/doctype.py:418
 msgid "Field \"route\" is mandatory for Web Views"
 msgstr "crwdns94678:0crwdne94678:0"
 
-#: core/doctype/doctype/doctype.py:1474
+#: core/doctype/doctype/doctype.py:1493
 msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
 msgstr "crwdns94680:0crwdne94680:0"
 
@@ -12159,7 +12186,7 @@ msgctxt "Custom Field"
 msgid "Field Description"
 msgstr "crwdns94684:0crwdne94684:0"
 
-#: core/doctype/doctype/doctype.py:1039
+#: core/doctype/doctype/doctype.py:1058
 msgid "Field Missing"
 msgstr "crwdns94686:0crwdne94686:0"
 
@@ -12274,11 +12301,11 @@ msgctxt "Webhook Data"
 msgid "Fieldname"
 msgstr "crwdns94724:0crwdne94724:0"
 
-#: core/doctype/doctype/doctype.py:266
+#: core/doctype/doctype/doctype.py:267
 msgid "Fieldname '{0}' conflicting with a {1} of the name {2} in {3}"
 msgstr "crwdns94726:0{0}crwdnd94726:0{1}crwdnd94726:0{2}crwdnd94726:0{3}crwdne94726:0"
 
-#: core/doctype/doctype/doctype.py:1038
+#: core/doctype/doctype/doctype.py:1057
 msgid "Fieldname called {0} must exist to enable autonaming"
 msgstr "crwdns94728:0{0}crwdne94728:0"
 
@@ -12302,14 +12329,15 @@ msgstr "crwdns94736:0{0}crwdne94736:0"
 msgid "Fieldname {0} cannot have special characters like {1}"
 msgstr "crwdns94738:0{0}crwdnd94738:0{1}crwdne94738:0"
 
-#: core/doctype/doctype/doctype.py:1845
+#: core/doctype/doctype/doctype.py:1864
 msgid "Fieldname {0} conflicting with meta object"
 msgstr "crwdns94740:0{0}crwdne94740:0"
 
-#: core/doctype/doctype/doctype.py:496 public/js/form_builder/utils.js:302
+#: core/doctype/doctype/doctype.py:497 public/js/form_builder/utils.js:302
 msgid "Fieldname {0} is restricted"
 msgstr "crwdns94742:0{0}crwdne94742:0"
 
+#: public/js/frappe/list/list_settings.js:132
 #: public/js/frappe/views/kanban/kanban_settings.js:111
 msgid "Fields"
 msgstr "crwdns110936:0crwdne110936:0"
@@ -12419,7 +12447,7 @@ msgstr "crwdns94774:0crwdne94774:0"
 msgid "Fieldtype cannot be changed from {0} to {1}"
 msgstr "crwdns94776:0{0}crwdnd94776:0{1}crwdne94776:0"
 
-#: custom/doctype/customize_form/customize_form.py:584
+#: custom/doctype/customize_form/customize_form.py:585
 msgid "Fieldtype cannot be changed from {0} to {1} in row {2}"
 msgstr "crwdns94778:0{0}crwdnd94778:0{1}crwdnd94778:0{2}crwdne94778:0"
 
@@ -12867,11 +12895,11 @@ msgctxt "Report Filter"
 msgid "Fold"
 msgstr "crwdns94934:0crwdne94934:0"
 
-#: core/doctype/doctype/doctype.py:1398
+#: core/doctype/doctype/doctype.py:1417
 msgid "Fold can not be at the end of the form"
 msgstr "crwdns94936:0crwdne94936:0"
 
-#: core/doctype/doctype/doctype.py:1396
+#: core/doctype/doctype/doctype.py:1415
 msgid "Fold must come before a Section Break"
 msgstr "crwdns94938:0crwdne94938:0"
 
@@ -13193,7 +13221,7 @@ msgstr "crwdns95046:0crwdne95046:0"
 msgid "For updating, you can update only selective columns."
 msgstr "crwdns95048:0crwdne95048:0"
 
-#: core/doctype/doctype/doctype.py:1689
+#: core/doctype/doctype/doctype.py:1708
 msgid "For {0} at level {1} in {2} in row {3}"
 msgstr "crwdns95050:0{0}crwdnd95050:0{1}crwdnd95050:0{2}crwdnd95050:0{3}crwdne95050:0"
 
@@ -13863,13 +13891,13 @@ msgctxt "Web Form"
 msgid "Go to this URL after completing the form"
 msgstr "crwdns95290:0crwdne95290:0"
 
-#: core/doctype/doctype/doctype.js:54
+#: core/doctype/doctype/doctype.js:55
 #: custom/doctype/client_script/client_script.js:10
 msgid "Go to {0}"
 msgstr "crwdns95292:0{0}crwdne95292:0"
 
 #: core/doctype/data_import/data_import.js:92
-#: core/doctype/doctype/doctype.js:58
+#: core/doctype/doctype/doctype.js:59
 #: custom/doctype/customize_form/customize_form.js:104
 #: custom/doctype/doctype_layout/doctype_layout.js:42
 #: workflow/doctype/workflow/workflow.js:44
@@ -14498,7 +14526,7 @@ msgstr "crwdns95512:0crwdne95512:0"
 
 #: public/js/frappe/form/templates/form_sidebar.html:40
 #: public/js/frappe/form/workflow.js:23
-#: public/js/frappe/ui/toolbar/navbar.html:87 public/js/frappe/utils/help.js:27
+#: public/js/frappe/ui/toolbar/navbar.html:88 public/js/frappe/utils/help.js:27
 msgid "Help"
 msgstr "crwdns95514:0crwdne95514:0"
 
@@ -14542,7 +14570,7 @@ msgctxt "Help Category"
 msgid "Help Category"
 msgstr "crwdns95528:0crwdne95528:0"
 
-#: public/js/frappe/ui/toolbar/navbar.html:84
+#: public/js/frappe/ui/toolbar/navbar.html:85
 msgid "Help Dropdown"
 msgstr "crwdns110962:0crwdne110962:0"
 
@@ -14827,7 +14855,7 @@ msgctxt "User Permission"
 msgid "Hide descendant records of <b>For Value</b>."
 msgstr "crwdns95626:0crwdne95626:0"
 
-#: public/js/frappe/form/layout.js:260
+#: public/js/frappe/form/layout.js:268
 msgid "Hide details"
 msgstr "crwdns95628:0crwdne95628:0"
 
@@ -14967,6 +14995,7 @@ msgstr "crwdns95672:0crwdne95672:0"
 #: core/doctype/data_import/importer.py:1201 desk/report/todo/todo.py:36
 #: model/meta.py:45 public/js/frappe/data_import/data_exporter.js:329
 #: public/js/frappe/data_import/data_exporter.js:344
+#: public/js/frappe/list/list_settings.js:334
 #: public/js/frappe/list/list_view.js:357
 #: public/js/frappe/list/list_view.js:421 public/js/frappe/model/meta.js:197
 #: public/js/frappe/model/model.js:122
@@ -15130,7 +15159,7 @@ msgctxt "Workflow Document State"
 msgid "If Checked workflow status will not override status in list view"
 msgstr "crwdns95726:0crwdne95726:0"
 
-#: core/doctype/doctype/doctype.py:1701 public/js/frappe/roles_editor.js:66
+#: core/doctype/doctype/doctype.py:1720 public/js/frappe/roles_editor.js:66
 msgid "If Owner"
 msgstr "crwdns95728:0crwdne95728:0"
 
@@ -15332,7 +15361,7 @@ msgstr "crwdns95786:0crwdne95786:0"
 msgid "If you have recently restored the site you may need to copy the site config contaning original Encryption Key."
 msgstr "crwdns95788:0crwdne95788:0"
 
-#: core/doctype/doctype/doctype.js:80
+#: core/doctype/doctype/doctype.js:81
 msgid "If you just want to customize for your site, use {0} instead."
 msgstr "crwdns95790:0{0}crwdne95790:0"
 
@@ -15416,7 +15445,7 @@ msgstr "crwdns95816:0crwdne95816:0"
 msgid "Illegal Document Status for {0}"
 msgstr "crwdns95818:0{0}crwdne95818:0"
 
-#: model/db_query.py:443 model/db_query.py:446 model/db_query.py:1109
+#: model/db_query.py:443 model/db_query.py:446 model/db_query.py:1106
 msgid "Illegal SQL Query"
 msgstr "crwdns95820:0crwdne95820:0"
 
@@ -15511,11 +15540,11 @@ msgctxt "Letter Head"
 msgid "Image Width"
 msgstr "crwdns95850:0crwdne95850:0"
 
-#: core/doctype/doctype/doctype.py:1454
+#: core/doctype/doctype/doctype.py:1473
 msgid "Image field must be a valid fieldname"
 msgstr "crwdns95852:0crwdne95852:0"
 
-#: core/doctype/doctype/doctype.py:1456
+#: core/doctype/doctype/doctype.py:1475
 msgid "Image field must be of type Attach Image"
 msgstr "crwdns95854:0crwdne95854:0"
 
@@ -15727,7 +15756,7 @@ msgctxt "DocField"
 msgid "In Global Search"
 msgstr "crwdns95926:0crwdne95926:0"
 
-#: core/doctype/doctype/doctype.js:95
+#: core/doctype/doctype/doctype.js:96
 msgid "In Grid View"
 msgstr "crwdns95928:0crwdne95928:0"
 
@@ -15737,7 +15766,7 @@ msgctxt "DocField"
 msgid "In List Filter"
 msgstr "crwdns95930:0crwdne95930:0"
 
-#: core/doctype/doctype/doctype.js:96
+#: core/doctype/doctype/doctype.js:97
 msgid "In List View"
 msgstr "crwdns95932:0crwdne95932:0"
 
@@ -16119,7 +16148,7 @@ msgstr "crwdns110974:0crwdne110974:0"
 msgid "Instructions Emailed"
 msgstr "crwdns110976:0crwdne110976:0"
 
-#: permissions.py:817
+#: permissions.py:815
 msgid "Insufficient Permission Level for {0}"
 msgstr "crwdns96072:0{0}crwdne96072:0"
 
@@ -16135,7 +16164,7 @@ msgstr "crwdns96076:0crwdne96076:0"
 msgid "Insufficient Permissions for editing Report"
 msgstr "crwdns96078:0crwdne96078:0"
 
-#: core/doctype/doctype/doctype.py:445
+#: core/doctype/doctype/doctype.py:446
 msgid "Insufficient attachment limit"
 msgstr "crwdns96080:0crwdne96080:0"
 
@@ -16297,7 +16326,7 @@ msgid "Invalid"
 msgstr "crwdns96128:0crwdne96128:0"
 
 #: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:769
-#: public/js/frappe/form/layout.js:774
+#: public/js/frappe/form/layout.js:782
 msgid "Invalid \"depends_on\" expression"
 msgstr "crwdns96130:0crwdne96130:0"
 
@@ -16337,7 +16366,7 @@ msgstr "crwdns96146:0crwdne96146:0"
 msgid "Invalid DocType: {0}"
 msgstr "crwdns96148:0{0}crwdne96148:0"
 
-#: core/doctype/doctype/doctype.py:1220
+#: core/doctype/doctype/doctype.py:1239
 msgid "Invalid Fieldname"
 msgstr "crwdns96150:0crwdne96150:0"
 
@@ -16381,7 +16410,7 @@ msgstr "crwdns96166:0crwdne96166:0"
 msgid "Invalid Operation"
 msgstr "crwdns96168:0crwdne96168:0"
 
-#: core/doctype/doctype/doctype.py:1577 core/doctype/doctype/doctype.py:1586
+#: core/doctype/doctype/doctype.py:1596 core/doctype/doctype/doctype.py:1605
 msgid "Invalid Option"
 msgstr "crwdns96170:0crwdne96170:0"
 
@@ -16415,7 +16444,7 @@ msgstr "crwdns96182:0crwdne96182:0"
 msgid "Invalid Search Field {0}"
 msgstr "crwdns96184:0{0}crwdne96184:0"
 
-#: core/doctype/doctype/doctype.py:1162
+#: core/doctype/doctype/doctype.py:1181
 msgid "Invalid Table Fieldname"
 msgstr "crwdns96186:0crwdne96186:0"
 
@@ -16460,7 +16489,7 @@ msgstr "crwdns96204:0{0}crwdnd96204:0{1}crwdne96204:0"
 msgid "Invalid field name {0}"
 msgstr "crwdns96206:0{0}crwdne96206:0"
 
-#: core/doctype/doctype/doctype.py:1047
+#: core/doctype/doctype/doctype.py:1066
 msgid "Invalid fieldname '{0}' in autoname"
 msgstr "crwdns96208:0{0}crwdne96208:0"
 
@@ -16519,7 +16548,7 @@ msgctxt "Error message in web form"
 msgid "Invalid values for fields:"
 msgstr "crwdns96234:0crwdne96234:0"
 
-#: core/doctype/doctype/doctype.py:1512
+#: core/doctype/doctype/doctype.py:1531
 msgid "Invalid {0} condition"
 msgstr "crwdns96236:0{0}crwdne96236:0"
 
@@ -16723,7 +16752,7 @@ msgctxt "DocType"
 msgid "Is Published Field"
 msgstr "crwdns96306:0crwdne96306:0"
 
-#: core/doctype/doctype/doctype.py:1463
+#: core/doctype/doctype/doctype.py:1482
 msgid "Is Published Field must be a valid fieldname"
 msgstr "crwdns96308:0crwdne96308:0"
 
@@ -17683,11 +17712,11 @@ msgstr "crwdns96634:0crwdne96634:0"
 msgid "Last synced {0}"
 msgstr "crwdns96636:0{0}crwdne96636:0"
 
-#: custom/doctype/customize_form/customize_form.js:186
+#: custom/doctype/customize_form/customize_form.js:194
 msgid "Layout Reset"
 msgstr "crwdns96638:0crwdne96638:0"
 
-#: custom/doctype/customize_form/customize_form.js:178
+#: custom/doctype/customize_form/customize_form.js:186
 msgid "Layout will be reset to standard layout, are you sure you want to do this?"
 msgstr "crwdns96640:0crwdne96640:0"
 
@@ -18040,6 +18069,12 @@ msgstr "crwdns96762:0crwdne96762:0"
 msgctxt "Dashboard Chart"
 msgid "Line"
 msgstr "crwdns96764:0crwdne96764:0"
+
+#. Label of a Long Text field in DocType 'Changelog Feed'
+#: desk/doctype/changelog_feed/changelog_feed.json
+msgctxt "Changelog Feed"
+msgid "Link"
+msgstr "crwdns112736:0crwdne112736:0"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -18721,7 +18756,7 @@ msgstr "crwdns96996:0crwdne96996:0"
 msgid "Looks like you haven’t added any third party apps."
 msgstr "crwdns96998:0crwdne96998:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:308
+#: public/js/frappe/ui/notifications/notifications.js:315
 msgid "Looks like you haven’t received any notifications."
 msgstr "crwdns111000:0crwdne111000:0"
 
@@ -18961,7 +18996,7 @@ msgctxt "Print Format"
 msgid "Margin Top"
 msgstr "crwdns97084:0crwdne97084:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:44
+#: public/js/frappe/ui/notifications/notifications.js:45
 msgid "Mark all as read"
 msgstr "crwdns97086:0crwdne97086:0"
 
@@ -19096,7 +19131,7 @@ msgctxt "System Settings"
 msgid "Max auto email report per user"
 msgstr "crwdns97130:0crwdne97130:0"
 
-#: core/doctype/doctype/doctype.py:1290
+#: core/doctype/doctype/doctype.py:1309
 msgid "Max width for type Currency is 100px in row {0}"
 msgstr "crwdns97132:0{0}crwdne97132:0"
 
@@ -19550,7 +19585,7 @@ msgstr "crwdns97288:0crwdne97288:0"
 msgid "Missing DocType"
 msgstr "crwdns97290:0crwdne97290:0"
 
-#: core/doctype/doctype/doctype.py:1474
+#: core/doctype/doctype/doctype.py:1493
 msgid "Missing Field"
 msgstr "crwdns97292:0crwdne97292:0"
 
@@ -19829,11 +19864,11 @@ msgstr "crwdns97388:0crwdne97388:0"
 msgid "Module onboarding progress reset"
 msgstr "crwdns97390:0crwdne97390:0"
 
-#: custom/doctype/customize_form/customize_form.js:208
+#: custom/doctype/customize_form/customize_form.js:250
 msgid "Module to Export"
 msgstr "crwdns97392:0crwdne97392:0"
 
-#: modules/utils.py:255
+#: modules/utils.py:268
 msgid "Module {} not found"
 msgstr "crwdns97394:0crwdne97394:0"
 
@@ -20726,7 +20761,7 @@ msgstr "crwdns97694:0crwdne97694:0"
 msgid "No"
 msgstr "crwdns97696:0crwdne97696:0"
 
-#: public/js/frappe/ui/filters/filter.js:502
+#: public/js/frappe/ui/filters/filter.js:508
 msgctxt "Checkbox is not checked"
 msgid "No"
 msgstr "crwdns97698:0crwdne97698:0"
@@ -20853,11 +20888,11 @@ msgstr "crwdns97736:0crwdne97736:0"
 msgid "No Name Specified for {0}"
 msgstr "crwdns97738:0{0}crwdne97738:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:308
+#: public/js/frappe/ui/notifications/notifications.js:315
 msgid "No New notifications"
 msgstr "crwdns111046:0crwdne111046:0"
 
-#: core/doctype/doctype/doctype.py:1681
+#: core/doctype/doctype/doctype.py:1700
 msgid "No Permissions Specified"
 msgstr "crwdns97740:0crwdne97740:0"
 
@@ -20909,7 +20944,7 @@ msgstr "crwdns97756:0crwdne97756:0"
 msgid "No Tags"
 msgstr "crwdns97758:0crwdne97758:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:428
+#: public/js/frappe/ui/notifications/notifications.js:435
 msgid "No Upcoming Events"
 msgstr "crwdns111054:0crwdne111054:0"
 
@@ -20965,7 +21000,7 @@ msgstr "crwdns111060:0crwdne111060:0"
 msgid "No contacts linked to document"
 msgstr "crwdns97778:0crwdne97778:0"
 
-#: desk/query_report.py:331
+#: desk/query_report.py:335
 msgid "No data to export"
 msgstr "crwdns97780:0crwdne97780:0"
 
@@ -21211,7 +21246,7 @@ msgstr "crwdns97864:0crwdne97864:0"
 msgid "Not Permitted"
 msgstr "crwdns97866:0crwdne97866:0"
 
-#: desk/query_report.py:506
+#: desk/query_report.py:510
 msgid "Not Permitted to read {0}"
 msgstr "crwdns97868:0{0}crwdne97868:0"
 
@@ -21254,7 +21289,7 @@ msgstr "crwdns97880:0crwdne97880:0"
 msgid "Not Set"
 msgstr "crwdns97882:0crwdne97882:0"
 
-#: public/js/frappe/ui/filters/filter.js:564
+#: public/js/frappe/ui/filters/filter.js:570
 msgctxt "Field value is not set"
 msgid "Not Set"
 msgstr "crwdns97884:0crwdne97884:0"
@@ -21287,7 +21322,7 @@ msgstr "crwdns97894:0{0}crwdnd97894:0{1}crwdne97894:0"
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
 msgstr "crwdns97896:0{0}crwdnd97896:0{0}crwdne97896:0"
 
-#: core/doctype/doctype/doctype.py:335
+#: core/doctype/doctype/doctype.py:336
 msgid "Not allowed to create custom Virtual DocType."
 msgstr "crwdns97898:0crwdne97898:0"
 
@@ -21311,7 +21346,7 @@ msgstr "crwdns97906:0crwdne97906:0"
 msgid "Not in Developer Mode"
 msgstr "crwdns97908:0crwdne97908:0"
 
-#: core/doctype/doctype/doctype.py:330
+#: core/doctype/doctype/doctype.py:331
 msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
 msgstr "crwdns97910:0crwdne97910:0"
 
@@ -21397,6 +21432,10 @@ msgstr "crwdns97936:0{0}crwdne97936:0"
 msgid "Notes:"
 msgstr "crwdns97938:0crwdne97938:0"
 
+#: public/js/frappe/ui/notifications/notifications.js:485
+msgid "Nothing New"
+msgstr "crwdns112738:0crwdne112738:0"
+
 #: public/js/frappe/form/undo_manager.js:43
 msgid "Nothing left to redo"
 msgstr "crwdns97940:0crwdne97940:0"
@@ -21472,7 +21511,7 @@ msgstr "crwdns97964:0crwdne97964:0"
 
 #. Name of a DocType
 #: desk/doctype/notification_settings/notification_settings.json
-#: public/js/frappe/ui/notifications/notifications.js:36
+#: public/js/frappe/ui/notifications/notifications.js:37
 msgid "Notification Settings"
 msgstr "crwdns97966:0crwdne97966:0"
 
@@ -21491,8 +21530,8 @@ msgstr "crwdns97970:0crwdne97970:0"
 msgid "Notification sent to"
 msgstr "crwdns111084:0crwdne111084:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:49
-#: public/js/frappe/ui/notifications/notifications.js:180
+#: public/js/frappe/ui/notifications/notifications.js:50
+#: public/js/frappe/ui/notifications/notifications.js:187
 msgid "Notifications"
 msgstr "crwdns97972:0crwdne97972:0"
 
@@ -21502,7 +21541,7 @@ msgctxt "Role"
 msgid "Notifications"
 msgstr "crwdns97974:0crwdne97974:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:292
+#: public/js/frappe/ui/notifications/notifications.js:299
 msgid "Notifications Disabled"
 msgstr "crwdns111086:0crwdne111086:0"
 
@@ -21628,7 +21667,7 @@ msgctxt "Recorder"
 msgid "Number of Queries"
 msgstr "crwdns98016:0crwdne98016:0"
 
-#: core/doctype/doctype/doctype.py:442 public/js/frappe/doctype/index.js:59
+#: core/doctype/doctype/doctype.py:443 public/js/frappe/doctype/index.js:59
 msgid "Number of attachment fields are more than {}, limit updated to {}."
 msgstr "crwdns98018:0crwdne98018:0"
 
@@ -21931,7 +21970,7 @@ msgctxt "Workflow Document State"
 msgid "Only Allow Edit For"
 msgstr "crwdns98122:0crwdne98122:0"
 
-#: core/doctype/doctype/doctype.py:1556
+#: core/doctype/doctype/doctype.py:1575
 msgid "Only Options allowed for Data field are:"
 msgstr "crwdns98124:0crwdne98124:0"
 
@@ -21983,7 +22022,7 @@ msgstr "crwdns98142:0crwdne98142:0"
 msgid "Only reports of type Report Builder can be edited"
 msgstr "crwdns98144:0crwdne98144:0"
 
-#: custom/doctype/customize_form/customize_form.py:124
+#: custom/doctype/customize_form/customize_form.py:125
 msgid "Only standard DocTypes are allowed to be customized from Customize Form."
 msgstr "crwdns98146:0crwdne98146:0"
 
@@ -22165,7 +22204,7 @@ msgstr "crwdns98208:0crwdne98208:0"
 msgid "Option 3"
 msgstr "crwdns98210:0crwdne98210:0"
 
-#: core/doctype/doctype/doctype.py:1574
+#: core/doctype/doctype/doctype.py:1593
 msgid "Option {0} for field {1} is not a child table"
 msgstr "crwdns98212:0{0}crwdnd98212:0{1}crwdne98212:0"
 
@@ -22227,7 +22266,7 @@ msgctxt "Web Template Field"
 msgid "Options"
 msgstr "crwdns98230:0crwdne98230:0"
 
-#: core/doctype/doctype/doctype.py:1314
+#: core/doctype/doctype/doctype.py:1333
 msgid "Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"
 msgstr "crwdns98232:0crwdne98232:0"
 
@@ -22237,7 +22276,7 @@ msgctxt "Custom Field"
 msgid "Options Help"
 msgstr "crwdns98234:0crwdne98234:0"
 
-#: core/doctype/doctype/doctype.py:1596
+#: core/doctype/doctype/doctype.py:1615
 msgid "Options for Rating field can range from 3 to 10"
 msgstr "crwdns98236:0crwdne98236:0"
 
@@ -22245,7 +22284,7 @@ msgstr "crwdns98236:0crwdne98236:0"
 msgid "Options for select. Each option on a new line."
 msgstr "crwdns98238:0crwdne98238:0"
 
-#: core/doctype/doctype/doctype.py:1331
+#: core/doctype/doctype/doctype.py:1350
 msgid "Options for {0} must be set before setting the default value."
 msgstr "crwdns98240:0{0}crwdne98240:0"
 
@@ -22712,7 +22751,7 @@ msgctxt "Form Tour Step"
 msgid "Parent Field"
 msgstr "crwdns98398:0crwdne98398:0"
 
-#: core/doctype/doctype/doctype.py:913
+#: core/doctype/doctype/doctype.py:914
 msgid "Parent Field (Tree)"
 msgstr "crwdns98400:0crwdne98400:0"
 
@@ -22722,7 +22761,7 @@ msgctxt "DocType"
 msgid "Parent Field (Tree)"
 msgstr "crwdns98402:0crwdne98402:0"
 
-#: core/doctype/doctype/doctype.py:919
+#: core/doctype/doctype/doctype.py:920
 msgid "Parent Field must be a valid fieldname"
 msgstr "crwdns98404:0crwdne98404:0"
 
@@ -22732,7 +22771,7 @@ msgctxt "Top Bar Item"
 msgid "Parent Label"
 msgstr "crwdns98406:0crwdne98406:0"
 
-#: core/doctype/doctype/doctype.py:1145
+#: core/doctype/doctype/doctype.py:1164
 msgid "Parent Missing"
 msgstr "crwdns98408:0crwdne98408:0"
 
@@ -22754,7 +22793,7 @@ msgstr "crwdns98414:0crwdne98414:0"
 msgid "Parent is the name of the document to which the data will get added to."
 msgstr "crwdns98416:0crwdne98416:0"
 
-#: permissions.py:797
+#: permissions.py:795
 msgid "Parentfield not specified in {0}: {1}"
 msgstr "crwdns98418:0{0}crwdnd98418:0{1}crwdne98418:0"
 
@@ -23176,7 +23215,7 @@ msgctxt "System Settings"
 msgid "Permissions"
 msgstr "crwdns98570:0crwdne98570:0"
 
-#: core/doctype/doctype/doctype.py:1772 core/doctype/doctype/doctype.py:1782
+#: core/doctype/doctype/doctype.py:1791 core/doctype/doctype/doctype.py:1801
 msgid "Permissions Error"
 msgstr "crwdns98572:0crwdne98572:0"
 
@@ -23616,7 +23655,7 @@ msgstr "crwdns98752:0crwdne98752:0"
 msgid "Please select applicable Doctypes"
 msgstr "crwdns98754:0crwdne98754:0"
 
-#: model/db_query.py:1121
+#: model/db_query.py:1118
 msgid "Please select atleast 1 column from {0} to sort/group"
 msgstr "crwdns98756:0{0}crwdne98756:0"
 
@@ -23691,7 +23730,7 @@ msgstr "crwdns98788:0crwdne98788:0"
 msgid "Please specify"
 msgstr "crwdns98790:0crwdne98790:0"
 
-#: permissions.py:773
+#: permissions.py:771
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "crwdns98792:0{0}crwdne98792:0"
 
@@ -23841,6 +23880,12 @@ msgctxt "Address"
 msgid "Postal Code"
 msgstr "crwdns98846:0crwdne98846:0"
 
+#. Label of a Datetime field in DocType 'Changelog Feed'
+#: desk/doctype/changelog_feed/changelog_feed.json
+msgctxt "Changelog Feed"
+msgid "Posting Timestamp"
+msgstr "crwdns112740:0crwdne112740:0"
+
 #. Group in Blog Category's connections
 #: website/doctype/blog_category/blog_category.json
 msgctxt "Blog Category"
@@ -23879,7 +23924,7 @@ msgctxt "Web Form Field"
 msgid "Precision"
 msgstr "crwdns98860:0crwdne98860:0"
 
-#: core/doctype/doctype/doctype.py:1348
+#: core/doctype/doctype/doctype.py:1367
 msgid "Precision should be between 1 and 6"
 msgstr "crwdns98862:0crwdne98862:0"
 
@@ -23927,7 +23972,7 @@ msgstr "crwdns98876:0crwdne98876:0"
 msgid "Prepared Report User"
 msgstr "crwdns98878:0crwdne98878:0"
 
-#: desk/query_report.py:294
+#: desk/query_report.py:298
 msgid "Prepared report render failed"
 msgstr "crwdns98880:0crwdne98880:0"
 
@@ -24460,7 +24505,7 @@ msgstr "crwdns99050:0crwdne99050:0"
 msgid "Proceed Anyway"
 msgstr "crwdns99052:0crwdne99052:0"
 
-#: public/js/frappe/form/controls/table.js:88
+#: public/js/frappe/form/controls/table.js:104
 msgid "Processing"
 msgstr "crwdns99054:0crwdne99054:0"
 
@@ -24878,7 +24923,7 @@ msgctxt "DocType"
 msgid "Queue in Background (BETA)"
 msgstr "crwdns99190:0crwdne99190:0"
 
-#: utils/background_jobs.py:469
+#: utils/background_jobs.py:470
 msgid "Queue should be one of {0}"
 msgstr "crwdns99192:0{0}crwdne99192:0"
 
@@ -25427,7 +25472,7 @@ msgctxt "Website Settings"
 msgid "Redirects"
 msgstr "crwdns99382:0crwdne99382:0"
 
-#: sessions.py:142
+#: sessions.py:143
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
 msgstr "crwdns99384:0crwdne99384:0"
 
@@ -26078,7 +26123,7 @@ msgstr "crwdns99604:0crwdne99604:0"
 msgid "Rename {0}"
 msgstr "crwdns99606:0{0}crwdne99606:0"
 
-#: core/doctype/doctype/doctype.py:690
+#: core/doctype/doctype/doctype.py:691
 msgid "Renamed files and replaced code in controllers, please check!"
 msgstr "crwdns99608:0crwdne99608:0"
 
@@ -26385,7 +26430,7 @@ msgctxt "Report"
 msgid "Report Type"
 msgstr "crwdns99716:0crwdne99716:0"
 
-#: core/doctype/doctype/doctype.py:1747
+#: core/doctype/doctype/doctype.py:1766
 msgid "Report cannot be set for Single types"
 msgstr "crwdns99718:0crwdne99718:0"
 
@@ -26407,11 +26452,11 @@ msgstr "crwdns99724:0crwdne99724:0"
 msgid "Report limit reached"
 msgstr "crwdns99726:0crwdne99726:0"
 
-#: core/doctype/prepared_report/prepared_report.py:203
+#: core/doctype/prepared_report/prepared_report.py:210
 msgid "Report timed out."
 msgstr "crwdns99728:0crwdne99728:0"
 
-#: desk/query_report.py:561
+#: desk/query_report.py:565
 msgid "Report updated successfully"
 msgstr "crwdns99730:0crwdne99730:0"
 
@@ -26697,7 +26742,7 @@ msgctxt "OAuth Client"
 msgid "Response Type"
 msgstr "crwdns99838:0crwdne99838:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:400
+#: public/js/frappe/ui/notifications/notifications.js:407
 msgid "Rest of the day"
 msgstr "crwdns99840:0crwdne99840:0"
 
@@ -27339,7 +27384,7 @@ msgstr "crwdns100054:0crwdne100054:0"
 msgid "Row #"
 msgstr "crwdns111178:0crwdne111178:0"
 
-#: core/doctype/doctype/doctype.py:1769 core/doctype/doctype/doctype.py:1779
+#: core/doctype/doctype/doctype.py:1788 core/doctype/doctype/doctype.py:1798
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
 msgstr "crwdns100056:0{0}crwdnd100056:0{1}crwdne100056:0"
 
@@ -27347,7 +27392,7 @@ msgstr "crwdns100056:0{0}crwdnd100056:0{1}crwdne100056:0"
 msgid "Row #{0}:"
 msgstr "crwdns100058:0#{0}crwdne100058:0"
 
-#: core/doctype/doctype/doctype.py:491
+#: core/doctype/doctype/doctype.py:492
 msgid "Row #{}: Fieldname is required"
 msgstr "crwdns100060:0crwdne100060:0"
 
@@ -27381,11 +27426,11 @@ msgstr "crwdns111182:0crwdne111182:0"
 msgid "Row {0}"
 msgstr "crwdns111184:0{0}crwdne111184:0"
 
-#: custom/doctype/customize_form/customize_form.py:348
+#: custom/doctype/customize_form/customize_form.py:349
 msgid "Row {0}: Not allowed to disable Mandatory for standard fields"
 msgstr "crwdns100068:0{0}crwdne100068:0"
 
-#: custom/doctype/customize_form/customize_form.py:337
+#: custom/doctype/customize_form/customize_form.py:338
 msgid "Row {0}: Not allowed to enable Allow on Submit for standard fields"
 msgstr "crwdns100070:0{0}crwdne100070:0"
 
@@ -27433,7 +27478,7 @@ msgctxt "Energy Point Rule"
 msgid "Rule Name"
 msgstr "crwdns100082:0crwdne100082:0"
 
-#: permissions.py:653
+#: permissions.py:651
 msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
 msgstr "crwdns100084:0crwdne100084:0"
 
@@ -27773,7 +27818,7 @@ msgctxt "Freeze message while saving a document"
 msgid "Saving"
 msgstr "crwdns100194:0crwdne100194:0"
 
-#: custom/doctype/customize_form/customize_form.js:343
+#: custom/doctype/customize_form/customize_form.js:388
 msgid "Saving Customization..."
 msgstr "crwdns100196:0crwdne100196:0"
 
@@ -27885,7 +27930,7 @@ msgctxt "Newsletter"
 msgid "Scheduled To Send"
 msgstr "crwdns100238:0crwdne100238:0"
 
-#: core/doctype/server_script/server_script.py:280
+#: core/doctype/server_script/server_script.py:281
 msgid "Scheduled execution for script {0} has updated"
 msgstr "crwdns100240:0{0}crwdne100240:0"
 
@@ -28084,7 +28129,7 @@ msgstr "crwdns100302:0crwdne100302:0"
 msgid "Search Results for"
 msgstr "crwdns100304:0crwdne100304:0"
 
-#: core/doctype/doctype/doctype.py:1415
+#: core/doctype/doctype/doctype.py:1434
 msgid "Search field {0} is not valid"
 msgstr "crwdns100306:0{0}crwdne100306:0"
 
@@ -28172,7 +28217,7 @@ msgctxt "User"
 msgid "Security Settings"
 msgstr "crwdns100336:0crwdne100336:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:302
+#: public/js/frappe/ui/notifications/notifications.js:309
 msgid "See all Activity"
 msgstr "crwdns111200:0crwdne111200:0"
 
@@ -28440,7 +28485,7 @@ msgstr "crwdns100430:0crwdne100430:0"
 msgid "Select Mandatory"
 msgstr "crwdns100432:0crwdne100432:0"
 
-#: custom/doctype/customize_form/customize_form.js:235
+#: custom/doctype/customize_form/customize_form.js:280
 msgid "Select Module"
 msgstr "crwdns100434:0crwdne100434:0"
 
@@ -28513,11 +28558,11 @@ msgstr "crwdns100462:0crwdne100462:0"
 msgid "Select a group node first."
 msgstr "crwdns100464:0crwdne100464:0"
 
-#: core/doctype/doctype/doctype.py:1880
+#: core/doctype/doctype/doctype.py:1899
 msgid "Select a valid Sender Field for creating documents from Email"
 msgstr "crwdns100466:0crwdne100466:0"
 
-#: core/doctype/doctype/doctype.py:1864
+#: core/doctype/doctype/doctype.py:1883
 msgid "Select a valid Subject field for creating documents from Email"
 msgstr "crwdns100468:0crwdne100468:0"
 
@@ -28868,7 +28913,7 @@ msgctxt "DocType"
 msgid "Sender Email Field"
 msgstr "crwdns100590:0crwdne100590:0"
 
-#: core/doctype/doctype/doctype.py:1883
+#: core/doctype/doctype/doctype.py:1902
 msgid "Sender Field should have Email in options"
 msgstr "crwdns100592:0crwdne100592:0"
 
@@ -29006,7 +29051,7 @@ msgstr "crwdns100638:0crwdne100638:0"
 msgid "Series counter for {} updated to {} successfully"
 msgstr "crwdns100640:0crwdne100640:0"
 
-#: core/doctype/doctype/doctype.py:1071
+#: core/doctype/doctype/doctype.py:1090
 #: core/doctype/document_naming_settings/document_naming_settings.py:170
 msgid "Series {0} already used in {1}"
 msgstr "crwdns100642:0{0}crwdnd100642:0{1}crwdne100642:0"
@@ -29121,7 +29166,7 @@ msgstr "crwdns100682:0crwdne100682:0"
 msgid "Session Expiry must be in format {0}"
 msgstr "crwdns100684:0{0}crwdne100684:0"
 
-#: public/js/frappe/ui/filters/filter.js:563
+#: public/js/frappe/ui/filters/filter.js:569
 msgctxt "Field value is set"
 msgid "Set"
 msgstr "crwdns100686:0crwdne100686:0"
@@ -29606,7 +29651,7 @@ msgstr "crwdns100832:0crwdne100832:0"
 msgid "Show Error"
 msgstr "crwdns100834:0crwdne100834:0"
 
-#: public/js/frappe/form/layout.js:545
+#: public/js/frappe/form/layout.js:553
 msgid "Show Fieldname (click to copy on clipboard)"
 msgstr "crwdns100838:0crwdne100838:0"
 
@@ -29848,7 +29893,7 @@ msgctxt "Slack Webhook URL"
 msgid "Show link to document"
 msgstr "crwdns100918:0crwdne100918:0"
 
-#: public/js/frappe/form/layout.js:247 public/js/frappe/form/layout.js:265
+#: public/js/frappe/form/layout.js:255 public/js/frappe/form/layout.js:273
 msgid "Show more details"
 msgstr "crwdns100920:0crwdne100920:0"
 
@@ -29988,7 +30033,7 @@ msgctxt "User"
 msgid "Simultaneous Sessions"
 msgstr "crwdns100964:0crwdne100964:0"
 
-#: custom/doctype/customize_form/customize_form.py:121
+#: custom/doctype/customize_form/customize_form.py:122
 msgid "Single DocTypes cannot be customized."
 msgstr "crwdns100966:0crwdne100966:0"
 
@@ -30049,7 +30094,7 @@ msgstr "crwdns100986:0crwdne100986:0"
 msgid "Skipping column {0}"
 msgstr "crwdns100988:0{0}crwdne100988:0"
 
-#: modules/utils.py:158
+#: modules/utils.py:171
 msgid "Skipping fixture syncing for doctype {0} from file {1}"
 msgstr "crwdns100990:0{0}crwdnd100990:0{1}crwdne100990:0"
 
@@ -30267,7 +30312,7 @@ msgctxt "Customize Form"
 msgid "Sort Order"
 msgstr "crwdns101062:0crwdne101062:0"
 
-#: core/doctype/doctype/doctype.py:1498
+#: core/doctype/doctype/doctype.py:1517
 msgid "Sort field {0} must be a valid fieldname"
 msgstr "crwdns101064:0{0}crwdne101064:0"
 
@@ -30393,7 +30438,7 @@ msgstr "crwdns101106:0crwdne101106:0"
 msgid "Standard DocType can not be deleted."
 msgstr "crwdns101108:0crwdne101108:0"
 
-#: core/doctype/doctype/doctype.py:224
+#: core/doctype/doctype/doctype.py:225
 msgid "Standard DocType cannot have default print format, use Customize Form"
 msgstr "crwdns101110:0crwdne101110:0"
 
@@ -30634,6 +30679,7 @@ msgid "Stats based on last week's performance (from {0} to {1})"
 msgstr "crwdns101194:0{0}crwdnd101194:0{1}crwdne101194:0"
 
 #: core/doctype/data_import/data_import.js:489
+#: public/js/frappe/list/list_settings.js:356
 #: public/js/frappe/views/reports/report_view.js:908
 msgid "Status"
 msgstr "crwdns101196:0crwdne101196:0"
@@ -30971,7 +31017,7 @@ msgctxt "DocType"
 msgid "Subject Field"
 msgstr "crwdns101308:0crwdne101308:0"
 
-#: core/doctype/doctype/doctype.py:1873
+#: core/doctype/doctype/doctype.py:1892
 msgid "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"
 msgstr "crwdns101310:0crwdne101310:0"
 
@@ -31092,7 +31138,7 @@ msgid "Submit {0} documents?"
 msgstr "crwdns101348:0{0}crwdne101348:0"
 
 #: public/js/frappe/model/indicator.js:95
-#: public/js/frappe/ui/filters/filter.js:495
+#: public/js/frappe/ui/filters/filter.js:501
 #: website/doctype/web_form/templates/web_form.html:133
 msgid "Submitted"
 msgstr "crwdns101350:0crwdne101350:0"
@@ -31372,7 +31418,7 @@ msgstr "crwdns101458:0crwdne101458:0"
 msgid "Sync Contacts"
 msgstr "crwdns101460:0crwdne101460:0"
 
-#: custom/doctype/customize_form/customize_form.js:214
+#: custom/doctype/customize_form/customize_form.js:256
 msgid "Sync on Migrate"
 msgstr "crwdns101462:0crwdne101462:0"
 
@@ -31495,6 +31541,7 @@ msgstr "crwdns101486:0crwdne101486:0"
 #: custom/doctype/property_setter/property_setter.json
 #: desk/doctype/bulk_update/bulk_update.json
 #: desk/doctype/calendar_view/calendar_view.json
+#: desk/doctype/changelog_feed/changelog_feed.json
 #: desk/doctype/console_log/console_log.json
 #: desk/doctype/custom_html_block/custom_html_block.json
 #: desk/doctype/dashboard/dashboard.json
@@ -31673,7 +31720,7 @@ msgctxt "DocType Link"
 msgid "Table Fieldname"
 msgstr "crwdns101524:0crwdne101524:0"
 
-#: core/doctype/doctype/doctype.py:1151
+#: core/doctype/doctype/doctype.py:1170
 msgid "Table Fieldname Missing"
 msgstr "crwdns101526:0crwdne101526:0"
 
@@ -31700,6 +31747,10 @@ msgstr "crwdns101532:0crwdne101532:0"
 msgctxt "DocField"
 msgid "Table MultiSelect"
 msgstr "crwdns101534:0crwdne101534:0"
+
+#: custom/doctype/customize_form/customize_form.js:229
+msgid "Table Trimmed"
+msgstr "crwdns112742:0crwdne112742:0"
 
 #: public/js/frappe/form/grid.js:1138
 msgid "Table updated"
@@ -32222,7 +32273,7 @@ msgstr "crwdns101728:0crwdne101728:0"
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
 msgstr "crwdns111274:0crwdne111274:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:428
+#: public/js/frappe/ui/notifications/notifications.js:435
 msgid "There are no upcoming events for you."
 msgstr "crwdns111276:0crwdne111276:0"
 
@@ -32239,7 +32290,7 @@ msgstr "crwdns111278:0{0}crwdne111278:0"
 msgid "There can be only 9 Page Break fields in a Web Form"
 msgstr "crwdns101732:0crwdne101732:0"
 
-#: core/doctype/doctype/doctype.py:1391
+#: core/doctype/doctype/doctype.py:1410
 msgid "There can be only one Fold in a form"
 msgstr "crwdns101734:0crwdne101734:0"
 
@@ -32250,6 +32301,10 @@ msgstr "crwdns101736:0{0}crwdne101736:0"
 #: core/doctype/data_export/exporter.py:162
 msgid "There is no data to be exported"
 msgstr "crwdns101738:0crwdne101738:0"
+
+#: public/js/frappe/ui/notifications/notifications.js:485
+msgid "There is nothing new to show you right now."
+msgstr "crwdns112744:0crwdne112744:0"
 
 #: core/doctype/file/file.py:571 utils/file_manager.py:372
 msgid "There is some problem with the file url: {0}"
@@ -32341,6 +32396,10 @@ msgstr "crwdns101772:0crwdne101772:0"
 msgid "This Kanban Board will be private"
 msgstr "crwdns101774:0crwdne101774:0"
 
+#: custom/doctype/customize_form/customize_form.js:220
+msgid "This action is irreversible. Do you wish to continue?"
+msgstr "crwdns112746:0crwdne112746:0"
+
 #: __init__.py:1016
 msgid "This action is only allowed for {}"
 msgstr "crwdns101776:0crwdne101776:0"
@@ -32360,6 +32419,14 @@ msgstr "crwdns101780:0crwdne101780:0"
 msgctxt "Dashboard Chart"
 msgid "This chart will be available to all Users if this is set"
 msgstr "crwdns101782:0crwdne101782:0"
+
+#: custom/doctype/customize_form/customize_form.js:212
+msgid "This doctype has no orphan fields to trim"
+msgstr "crwdns112748:0crwdne112748:0"
+
+#: core/doctype/doctype/doctype.py:1035
+msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
+msgstr "crwdns112750:0crwdne112750:0"
 
 #: desk/doctype/workspace/workspace.js:23
 msgid "This document allows you to edit limited fields. For all kinds of workspace customization, use the Edit button located on the workspace page"
@@ -32385,7 +32452,7 @@ msgstr "crwdns101790:0crwdne101790:0"
 msgid "This document is already amended, you cannot ammend it again"
 msgstr "crwdns101792:0crwdne101792:0"
 
-#: model/document.py:1545
+#: model/document.py:1546
 msgid "This document is currently locked and queued for execution. Please try again after some time."
 msgstr "crwdns111282:0crwdne111282:0"
 
@@ -32523,7 +32590,7 @@ msgstr "crwdns101846:0crwdne101846:0"
 msgid "This site is in read only mode, full functionality will be restored soon."
 msgstr "crwdns101848:0crwdne101848:0"
 
-#: core/doctype/doctype/doctype.js:76
+#: core/doctype/doctype/doctype.js:77
 msgid "This site is running in developer mode. Any change made here will be updated in code."
 msgstr "crwdns101850:0crwdne101850:0"
 
@@ -32788,11 +32855,11 @@ msgctxt "Activity Log"
 msgid "Timeline Name"
 msgstr "crwdns101944:0crwdne101944:0"
 
-#: core/doctype/doctype/doctype.py:1486
+#: core/doctype/doctype/doctype.py:1505
 msgid "Timeline field must be a Link or Dynamic Link"
 msgstr "crwdns101946:0crwdne101946:0"
 
-#: core/doctype/doctype/doctype.py:1482
+#: core/doctype/doctype/doctype.py:1501
 msgid "Timeline field must be a valid fieldname"
 msgstr "crwdns101948:0crwdne101948:0"
 
@@ -32860,6 +32927,12 @@ msgstr "crwdns101968:0crwdne101968:0"
 msgctxt "Blog Settings"
 msgid "Title"
 msgstr "crwdns101970:0crwdne101970:0"
+
+#. Label of a Data field in DocType 'Changelog Feed'
+#: desk/doctype/changelog_feed/changelog_feed.json
+msgctxt "Changelog Feed"
+msgid "Title"
+msgstr "crwdns112752:0crwdne112752:0"
 
 #. Label of a Data field in DocType 'Discussion Topic'
 #: website/doctype/discussion_topic/discussion_topic.json
@@ -32981,7 +33054,7 @@ msgctxt "Website Settings"
 msgid "Title Prefix"
 msgstr "crwdns102010:0crwdne102010:0"
 
-#: core/doctype/doctype/doctype.py:1423
+#: core/doctype/doctype/doctype.py:1442
 msgid "Title field must be a valid fieldname"
 msgstr "crwdns102012:0crwdne102012:0"
 
@@ -33163,10 +33236,6 @@ msgstr "crwdns102074:0crwdne102074:0"
 msgid "Today"
 msgstr "crwdns102076:0crwdne102076:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:55
-msgid "Today's Events"
-msgstr "crwdns102078:0crwdne102078:0"
-
 #: public/js/frappe/views/reports/report_view.js:1493
 msgid "Toggle Chart"
 msgstr "crwdns102080:0crwdne102080:0"
@@ -33323,7 +33392,7 @@ msgctxt "Discussion Reply"
 msgid "Topic"
 msgstr "crwdns102138:0crwdne102138:0"
 
-#: desk/query_report.py:497 public/js/frappe/views/reports/print_grid.html:45
+#: desk/query_report.py:501 public/js/frappe/views/reports/print_grid.html:45
 #: public/js/frappe/views/reports/report_view.js:1474
 msgid "Total"
 msgstr "crwdns102140:0crwdne102140:0"
@@ -33579,6 +33648,10 @@ msgstr "crwdns102224:0crwdne102224:0"
 msgctxt "Notification"
 msgid "Trigger on valid methods like \"before_insert\", \"after_update\", etc (will depend on the DocType selected)"
 msgstr "crwdns102226:0crwdne102226:0"
+
+#: custom/doctype/customize_form/customize_form.js:144
+msgid "Trim Table"
+msgstr "crwdns112754:0crwdne112754:0"
 
 #: public/js/frappe/widgets/onboarding_widget.js:323
 msgid "Try Again"
@@ -34091,7 +34164,7 @@ msgstr "crwdns102410:0crwdne102410:0"
 
 #: core/doctype/data_import/data_import_list.js:36
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:23
-#: custom/doctype/customize_form/customize_form.js:370
+#: custom/doctype/customize_form/customize_form.js:415
 #: desk/doctype/bulk_update/bulk_update.js:15
 #: printing/page/print_format_builder/print_format_builder.js:447
 #: printing/page/print_format_builder/print_format_builder.js:501
@@ -34703,7 +34776,7 @@ msgctxt "User"
 msgid "User Image"
 msgstr "crwdns102620:0crwdne102620:0"
 
-#: public/js/frappe/ui/toolbar/navbar.html:115
+#: public/js/frappe/ui/toolbar/navbar.html:116
 msgid "User Menu"
 msgstr "crwdns111304:0crwdne111304:0"
 
@@ -35110,7 +35183,7 @@ msgstr "crwdns102754:0{0}crwdnd102754:0{1}crwdne102754:0"
 msgid "Value for a check field can be either 0 or 1"
 msgstr "crwdns102756:0crwdne102756:0"
 
-#: custom/doctype/customize_form/customize_form.py:607
+#: custom/doctype/customize_form/customize_form.py:608
 msgid "Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
 msgstr "crwdns102758:0{0}crwdnd102758:0{1}crwdnd102758:0{2}crwdne102758:0"
 
@@ -35237,7 +35310,7 @@ msgstr "crwdns102804:0crwdne102804:0"
 msgid "View Comment"
 msgstr "crwdns102806:0crwdne102806:0"
 
-#: public/js/frappe/ui/notifications/notifications.js:213
+#: public/js/frappe/ui/notifications/notifications.js:220
 msgid "View Full Log"
 msgstr "crwdns111324:0crwdne111324:0"
 
@@ -35391,6 +35464,10 @@ msgstr "crwdns102860:0crwdne102860:0"
 msgctxt "Workflow State"
 msgid "Warning"
 msgstr "crwdns102862:0crwdne102862:0"
+
+#: custom/doctype/customize_form/customize_form.js:217
+msgid "Warning: DATA LOSS IMMINENT! Proceeding will permanently delete following database columns from doctype {0}:"
+msgstr "crwdns112756:0{0}crwdne112756:0"
 
 #: public/js/frappe/model/meta.js:179
 msgid "Warning: Unable to find {0} in any table related to {1}"
@@ -35713,7 +35790,7 @@ msgctxt "DocType"
 msgid "Website Search Field"
 msgstr "crwdns102972:0crwdne102972:0"
 
-#: core/doctype/doctype/doctype.py:1470
+#: core/doctype/doctype/doctype.py:1489
 msgid "Website Search Field must be a valid fieldname"
 msgstr "crwdns102974:0crwdne102974:0"
 
@@ -35982,6 +36059,10 @@ msgstr "crwdns103064:0crwdne103064:0"
 msgid "Welcome to {0}"
 msgstr "crwdns103066:0{0}crwdne103066:0"
 
+#: public/js/frappe/ui/notifications/notifications.js:62
+msgid "What's New"
+msgstr "crwdns112758:0crwdne112758:0"
+
 #. Description of the 'Allow Guests to Upload Files' (Check) field in DocType
 #. 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -36249,6 +36330,10 @@ msgstr "crwdns103152:0crwdne103152:0"
 msgid "Workflow state represents the current state of a document."
 msgstr "crwdns111554:0crwdne111554:0"
 
+#: public/js/workflow_builder/store.js:83
+msgid "Workflow updated successfully"
+msgstr "crwdns112760:0crwdne112760:0"
+
 #. Description of the Onboarding Step 'Setup Approval Workflows'
 #: custom/onboarding_step/workflows/workflows.json
 msgid "Workflows allow you to define custom rules for the approval process of a particular document in ERPNext. You can also set complex Workflow Rules and set approval conditions."
@@ -36279,7 +36364,7 @@ msgctxt "Workspace"
 msgid "Workspace"
 msgstr "crwdns103160:0crwdne103160:0"
 
-#: public/js/frappe/router.js:194
+#: public/js/frappe/router.js:193
 msgid "Workspace <b>{0}</b> does not exist"
 msgstr "crwdns103162:0{0}crwdne103162:0"
 
@@ -36502,7 +36587,7 @@ msgctxt "Approve confirmation dialog"
 msgid "Yes"
 msgstr "crwdns103240:0crwdne103240:0"
 
-#: public/js/frappe/ui/filters/filter.js:501
+#: public/js/frappe/ui/filters/filter.js:507
 msgctxt "Checkbox is checked"
 msgid "Yes"
 msgstr "crwdns103242:0crwdne103242:0"
@@ -36573,7 +36658,7 @@ msgstr "crwdns103266:0crwdne103266:0"
 msgid "You are not allowed to edit the report."
 msgstr "crwdns103268:0crwdne103268:0"
 
-#: permissions.py:605
+#: permissions.py:603
 msgid "You are not allowed to export {} doctype"
 msgstr "crwdns103270:0crwdne103270:0"
 
@@ -36690,7 +36775,7 @@ msgstr "crwdns103316:0crwdne103316:0"
 msgid "You can select one from the following,"
 msgstr "crwdns111340:0crwdne111340:0"
 
-#: desk/query_report.py:332
+#: desk/query_report.py:336
 msgid "You can try changing the filters of your report."
 msgstr "crwdns103318:0crwdne103318:0"
 
@@ -36702,11 +36787,11 @@ msgstr "crwdns111342:0crwdne111342:0"
 msgid "You can use wildcard %"
 msgstr "crwdns103320:0crwdne103320:0"
 
-#: custom/doctype/customize_form/customize_form.py:385
+#: custom/doctype/customize_form/customize_form.py:386
 msgid "You can't set 'Options' for field {0}"
 msgstr "crwdns103322:0{0}crwdne103322:0"
 
-#: custom/doctype/customize_form/customize_form.py:389
+#: custom/doctype/customize_form/customize_form.py:390
 msgid "You can't set 'Translatable' for field {0}"
 msgstr "crwdns103324:0{0}crwdne103324:0"
 
@@ -36728,7 +36813,7 @@ msgstr "crwdns103330:0crwdne103330:0"
 msgid "You cannot give review points to yourself"
 msgstr "crwdns103332:0crwdne103332:0"
 
-#: custom/doctype/customize_form/customize_form.py:381
+#: custom/doctype/customize_form/customize_form.py:382
 msgid "You cannot unset 'Read Only' for field {0}"
 msgstr "crwdns103334:0{0}crwdne103334:0"
 
@@ -36823,7 +36908,7 @@ msgstr "crwdns103376:0crwdne103376:0"
 msgid "You have been successfully logged out"
 msgstr "crwdns103378:0crwdne103378:0"
 
-#: custom/doctype/customize_form/customize_form.py:240
+#: custom/doctype/customize_form/customize_form.py:241
 msgid "You have hit the row size limit on database table: {0}"
 msgstr "crwdns103380:0{0}crwdne103380:0"
 
@@ -36988,7 +37073,7 @@ msgstr "crwdns103446:0crwdne103446:0"
 msgid "Your account has been deleted"
 msgstr "crwdns103448:0crwdne103448:0"
 
-#: auth.py:472
+#: auth.py:474
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "crwdns103450:0{0}crwdne103450:0"
 
@@ -37704,7 +37789,7 @@ msgctxt "Workspace"
 msgid "grey"
 msgstr "crwdns103690:0crwdne103690:0"
 
-#: utils/backups.py:375
+#: utils/backups.py:380
 msgid "gzip not found in PATH! This is required to take a backup."
 msgstr "crwdns103692:0crwdne103692:0"
 
@@ -37822,7 +37907,7 @@ msgstr "crwdns103730:0crwdne103730:0"
 msgid "just now"
 msgstr "crwdns103732:0crwdne103732:0"
 
-#: desk/desktop.py:255 desk/query_report.py:277
+#: desk/desktop.py:255 desk/query_report.py:281
 msgid "label"
 msgstr "crwdns103734:0crwdne103734:0"
 
@@ -39058,7 +39143,7 @@ msgstr "crwdns104196:0{0}crwdnd104196:0{1}crwdne104196:0"
 msgid "{0} in row {1} cannot have both URL and child items"
 msgstr "crwdns104198:0{0}crwdnd104198:0{1}crwdne104198:0"
 
-#: core/doctype/doctype/doctype.py:914
+#: core/doctype/doctype/doctype.py:915
 msgid "{0} is a mandatory field"
 msgstr "crwdns104200:0{0}crwdne104200:0"
 
@@ -39066,7 +39151,7 @@ msgstr "crwdns104200:0{0}crwdne104200:0"
 msgid "{0} is a not a valid zip file"
 msgstr "crwdns104202:0{0}crwdne104202:0"
 
-#: core/doctype/doctype/doctype.py:1554
+#: core/doctype/doctype/doctype.py:1573
 msgid "{0} is an invalid Data field."
 msgstr "crwdns104204:0{0}crwdne104204:0"
 
@@ -39147,11 +39232,11 @@ msgstr "crwdns104238:0{0}crwdne104238:0"
 msgid "{0} is not a valid Workflow State. Please update your Workflow and try again."
 msgstr "crwdns104240:0{0}crwdne104240:0"
 
-#: permissions.py:786
+#: permissions.py:784
 msgid "{0} is not a valid parent DocType for {1}"
 msgstr "crwdns104242:0{0}crwdnd104242:0{1}crwdne104242:0"
 
-#: permissions.py:806
+#: permissions.py:804
 msgid "{0} is not a valid parentfield for {1}"
 msgstr "crwdns104244:0{0}crwdnd104244:0{1}crwdne104244:0"
 
@@ -39237,7 +39322,7 @@ msgstr "crwdns104280:0{0}crwdne104280:0"
 msgid "{0} months ago"
 msgstr "crwdns104282:0{0}crwdne104282:0"
 
-#: model/document.py:1602
+#: model/document.py:1603
 msgid "{0} must be after {1}"
 msgstr "crwdns104284:0{0}crwdnd104284:0{1}crwdne104284:0"
 
@@ -39339,7 +39424,7 @@ msgstr "crwdns104326:0{0}crwdnd104326:0{1}crwdne104326:0"
 msgid "{0} role does not have permission on any doctype"
 msgstr "crwdns111370:0{0}crwdne111370:0"
 
-#: desk/query_report.py:576
+#: desk/query_report.py:580
 msgid "{0} saved successfully"
 msgstr "crwdns104328:0{0}crwdne104328:0"
 
@@ -39359,7 +39444,7 @@ msgstr "crwdns104334:0{0}crwdne104334:0"
 msgid "{0} shared this document with {1}"
 msgstr "crwdns104336:0{0}crwdnd104336:0{1}crwdne104336:0"
 
-#: core/doctype/doctype/doctype.py:316
+#: core/doctype/doctype/doctype.py:317
 msgid "{0} should be indexed because it's referred in dashboard connections"
 msgstr "crwdns104338:0{0}crwdne104338:0"
 
@@ -39395,7 +39480,7 @@ msgstr "crwdns104350:0{0}crwdnd104350:0{1}crwdne104350:0"
 msgid "{0} un-shared this document with {1}"
 msgstr "crwdns104352:0{0}crwdnd104352:0{1}crwdne104352:0"
 
-#: custom/doctype/customize_form/customize_form.py:249
+#: custom/doctype/customize_form/customize_form.py:250
 msgid "{0} updated"
 msgstr "crwdns104354:0{0}crwdne104354:0"
 
@@ -39451,7 +39536,7 @@ msgstr "crwdns104378:0{0}crwdnd104378:0{1}crwdne104378:0"
 msgid "{0} {1} is linked with the following submitted documents: {2}"
 msgstr "crwdns104380:0{0}crwdnd104380:0{1}crwdnd104380:0{2}crwdne104380:0"
 
-#: model/document.py:175 permissions.py:559
+#: model/document.py:175 permissions.py:557
 msgid "{0} {1} not found"
 msgstr "crwdns104382:0{0}crwdnd104382:0{1}crwdne104382:0"
 
@@ -39467,31 +39552,31 @@ msgstr "crwdns104386:0{0}crwdnd104386:0{1}crwdne104386:0"
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr "crwdns104388:0{0}crwdnd104388:0{1}crwdnd104388:0{3}crwdnd104388:0{2}crwdne104388:0"
 
-#: core/doctype/doctype/doctype.py:1738
+#: core/doctype/doctype/doctype.py:1757
 msgid "{0}: Cannot set Amend without Cancel"
 msgstr "crwdns104390:0{0}crwdne104390:0"
 
-#: core/doctype/doctype/doctype.py:1756
+#: core/doctype/doctype/doctype.py:1775
 msgid "{0}: Cannot set Assign Amend if not Submittable"
 msgstr "crwdns104392:0{0}crwdne104392:0"
 
-#: core/doctype/doctype/doctype.py:1754
+#: core/doctype/doctype/doctype.py:1773
 msgid "{0}: Cannot set Assign Submit if not Submittable"
 msgstr "crwdns104394:0{0}crwdne104394:0"
 
-#: core/doctype/doctype/doctype.py:1733
+#: core/doctype/doctype/doctype.py:1752
 msgid "{0}: Cannot set Cancel without Submit"
 msgstr "crwdns104396:0{0}crwdne104396:0"
 
-#: core/doctype/doctype/doctype.py:1740
+#: core/doctype/doctype/doctype.py:1759
 msgid "{0}: Cannot set Import without Create"
 msgstr "crwdns104398:0{0}crwdne104398:0"
 
-#: core/doctype/doctype/doctype.py:1736
+#: core/doctype/doctype/doctype.py:1755
 msgid "{0}: Cannot set Submit, Cancel, Amend without Write"
 msgstr "crwdns104400:0{0}crwdne104400:0"
 
-#: core/doctype/doctype/doctype.py:1760
+#: core/doctype/doctype/doctype.py:1779
 msgid "{0}: Cannot set import as {1} is not importable"
 msgstr "crwdns104402:0{0}crwdnd104402:0{1}crwdne104402:0"
 
@@ -39499,43 +39584,43 @@ msgstr "crwdns104402:0{0}crwdnd104402:0{1}crwdne104402:0"
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 msgstr "crwdns104404:0{0}crwdnd104404:0{1}crwdne104404:0"
 
-#: core/doctype/doctype/doctype.py:1374
+#: core/doctype/doctype/doctype.py:1393
 msgid "{0}: Field '{1}' cannot be set as Unique as it has non-unique values"
 msgstr "crwdns104406:0{0}crwdnd104406:0{1}crwdne104406:0"
 
-#: core/doctype/doctype/doctype.py:1282
+#: core/doctype/doctype/doctype.py:1301
 msgid "{0}: Field {1} in row {2} cannot be hidden and mandatory without default"
 msgstr "crwdns104408:0{0}crwdnd104408:0{1}crwdnd104408:0{2}crwdne104408:0"
 
-#: core/doctype/doctype/doctype.py:1241
+#: core/doctype/doctype/doctype.py:1260
 msgid "{0}: Field {1} of type {2} cannot be mandatory"
 msgstr "crwdns104410:0{0}crwdnd104410:0{1}crwdnd104410:0{2}crwdne104410:0"
 
-#: core/doctype/doctype/doctype.py:1229
+#: core/doctype/doctype/doctype.py:1248
 msgid "{0}: Fieldname {1} appears multiple times in rows {2}"
 msgstr "crwdns104412:0{0}crwdnd104412:0{1}crwdnd104412:0{2}crwdne104412:0"
 
-#: core/doctype/doctype/doctype.py:1361
+#: core/doctype/doctype/doctype.py:1380
 msgid "{0}: Fieldtype {1} for {2} cannot be unique"
 msgstr "crwdns104414:0{0}crwdnd104414:0{1}crwdnd104414:0{2}crwdne104414:0"
 
-#: core/doctype/doctype/doctype.py:1693
+#: core/doctype/doctype/doctype.py:1712
 msgid "{0}: No basic permissions set"
 msgstr "crwdns104416:0{0}crwdne104416:0"
 
-#: core/doctype/doctype/doctype.py:1707
+#: core/doctype/doctype/doctype.py:1726
 msgid "{0}: Only one rule allowed with the same Role, Level and {1}"
 msgstr "crwdns104418:0{0}crwdnd104418:0{1}crwdne104418:0"
 
-#: core/doctype/doctype/doctype.py:1263
+#: core/doctype/doctype/doctype.py:1282
 msgid "{0}: Options must be a valid DocType for field {1} in row {2}"
 msgstr "crwdns104420:0{0}crwdnd104420:0{1}crwdnd104420:0{2}crwdne104420:0"
 
-#: core/doctype/doctype/doctype.py:1252
+#: core/doctype/doctype/doctype.py:1271
 msgid "{0}: Options required for Link or Table type field {1} in row {2}"
 msgstr "crwdns104422:0{0}crwdnd104422:0{1}crwdnd104422:0{2}crwdne104422:0"
 
-#: core/doctype/doctype/doctype.py:1270
+#: core/doctype/doctype/doctype.py:1289
 msgid "{0}: Options {1} must be the same as doctype name {2} for the field {3}"
 msgstr "crwdns104424:0{0}crwdnd104424:0{1}crwdnd104424:0{2}crwdnd104424:0{3}crwdne104424:0"
 
@@ -39543,7 +39628,7 @@ msgstr "crwdns104424:0{0}crwdnd104424:0{1}crwdnd104424:0{2}crwdnd104424:0{3}crwd
 msgid "{0}: Other permission rules may also apply"
 msgstr "crwdns111372:0{0}crwdne111372:0"
 
-#: core/doctype/doctype/doctype.py:1722
+#: core/doctype/doctype/doctype.py:1741
 msgid "{0}: Permission at level 0 must be set before higher levels are set"
 msgstr "crwdns104426:0{0}crwdne104426:0"
 
@@ -39551,7 +39636,7 @@ msgstr "crwdns104426:0{0}crwdne104426:0"
 msgid "{0}: You can increase the limit for the field if required via {1}"
 msgstr "crwdns104428:0{0}crwdnd104428:0{1}crwdne104428:0"
 
-#: core/doctype/doctype/doctype.py:1216
+#: core/doctype/doctype/doctype.py:1235
 msgid "{0}: fieldname cannot be set to reserved keyword {1}"
 msgstr "crwdns104430:0{0}crwdnd104430:0{1}crwdne104430:0"
 
@@ -39569,7 +39654,7 @@ msgstr "crwdns104434:0{0}crwdnd104434:0{1}crwdnd104434:0{2}crwdne104434:0"
 msgid "{0}: {1} vs {2}"
 msgstr "crwdns104436:0{0}crwdnd104436:0{1}crwdnd104436:0{2}crwdne104436:0"
 
-#: core/doctype/doctype/doctype.py:1382
+#: core/doctype/doctype/doctype.py:1401
 msgid "{0}:Fieldtype {1} for {2} cannot be indexed"
 msgstr "crwdns104438:0{0}crwdnd104438:0{1}crwdnd104438:0{2}crwdne104438:0"
 
@@ -39589,7 +39674,7 @@ msgstr "crwdns104444:0{count}crwdne104444:0"
 msgid "{count} rows selected"
 msgstr "crwdns104446:0{count}crwdne104446:0"
 
-#: core/doctype/doctype/doctype.py:1436
+#: core/doctype/doctype/doctype.py:1455
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
 msgstr "crwdns104448:0{{{0}}}crwdnd104448:0{{field_name}}crwdne104448:0"
 
@@ -39630,7 +39715,7 @@ msgstr "crwdns104464:0crwdne104464:0"
 msgid "{} not found in PATH! This is required to restore the database."
 msgstr "crwdns104466:0crwdne104466:0"
 
-#: utils/backups.py:442
+#: utils/backups.py:447
 msgid "{} not found in PATH! This is required to take a backup."
 msgstr "crwdns104468:0crwdne104468:0"
 
