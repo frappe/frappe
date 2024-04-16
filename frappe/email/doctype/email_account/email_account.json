@@ -283,12 +283,13 @@
   },
   {
    "depends_on": "notify_if_unreplied",
-   "description": "Email Addresses",
+   "description": "List of email addresses, separated by comma or new line.",
    "fieldname": "send_notification_to",
    "fieldtype": "Small Text",
    "hide_days": 1,
    "hide_seconds": 1,
-   "label": "Send Notification to"
+   "label": "Send Notification to",
+   "mandatory_depends_on": "notify_if_unreplied"
   },
   {
    "fieldname": "outgoing_mail_settings",
@@ -638,7 +639,7 @@
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-16 14:57:37.791547",
+ "modified": "2024-04-16 15:04:16.564130",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

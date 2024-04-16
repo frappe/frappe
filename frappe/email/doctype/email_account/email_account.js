@@ -128,10 +128,6 @@ frappe.ui.form.on("Email Account", {
 		frm.trigger("warn_autoreply_on_incoming");
 	},
 
-	notify_if_unreplied: function (frm) {
-		frm.set_df_property("send_notification_to", "reqd", frm.doc.notify_if_unreplied);
-	},
-
 	onload: function (frm) {
 		frm.set_df_property("append_to", "only_select", true);
 		frm.set_query(
@@ -153,7 +149,6 @@ frappe.ui.form.on("Email Account", {
 
 	refresh: function (frm) {
 		frm.events.enable_incoming(frm);
-		frm.events.notify_if_unreplied(frm);
 
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;
