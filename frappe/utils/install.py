@@ -143,18 +143,7 @@ def install_basic_docs():
 
 
 def get_admin_password():
-	def ask_admin_password():
-		admin_password = getpass.getpass("Set Administrator password: ")
-		admin_password2 = getpass.getpass("Re-enter Administrator password: ")
-		if admin_password != admin_password2:
-			print("\nPasswords do not match")
-			return ask_admin_password()
-		return admin_password
-
-	admin_password = frappe.conf.get("admin_password")
-	if not admin_password:
-		return ask_admin_password()
-	return admin_password
+	return frappe.conf.get("admin_password") or getpass.getpass("Set Administrator password: ")
 
 
 def before_tests():

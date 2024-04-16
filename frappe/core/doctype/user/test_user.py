@@ -461,10 +461,10 @@ class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
 		with test_user(roles=["System Manager"], commit=True) as user:
 			self.post(
-				self.method_path("frappe.core.doctype.user.user.impersonate"),
+				self.method("frappe.core.doctype.user.user.impersonate"),
 				{"user": user.name, "reason": "test", "sid": self.sid},
 			)
-			resp = self.get(self.method_path("frappe.auth.get_logged_user"))
+			resp = self.get(self.method("frappe.auth.get_logged_user"))
 			self.assertEqual(resp.json["message"], user.name)
 
 
