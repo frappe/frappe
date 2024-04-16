@@ -84,7 +84,7 @@ dependencies = [
 =======
     "sentry-sdk~=1.37.1",
     "sqlparse~=0.5.0",
-    "sql_metadata~=2.9.0",
+    "sql_metadata~=2.11.0",
     "tenacity~=8.2.2",
     "terminaltables~=3.1.10",
 >>>>>>> 733a7fe6f8 (chore: bump sqlparse to v0.5.0)
