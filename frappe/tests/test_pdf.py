@@ -63,6 +63,13 @@ class TestPdf(FrappeTestCase):
 		# so it should not be extracted into options
 		self.assertFalse(options.get("margin-right"))
 
+	def test_empty_style(self):
+		html = """<style></style>
+			<div class="more-info">Hello</div>
+		"""
+		_, options = pdfgen.read_options_from_html(html)
+		self.assertTrue(options)
+
 	def test_pdf_encryption(self):
 		password = "qwe"
 		pdf = pdfgen.get_pdf(self.html, options={"password": password})

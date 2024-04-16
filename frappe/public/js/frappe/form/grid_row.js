@@ -504,7 +504,7 @@ export default class GridRow {
 			);
 			if (selectedColumn && !selectedColumn.hidden && show_field(selectedColumn.fieldtype)) {
 				fields.push({
-					label: selectedColumn.label,
+					label: __(selectedColumn.label, null, this.grid.doctype),
 					value: selectedColumn.fieldname,
 					checked: true,
 				});
@@ -519,7 +519,7 @@ export default class GridRow {
 				show_field(column.fieldtype)
 			) {
 				fields.push({
-					label: column.label,
+					label: __(column.label, null, this.grid.doctype),
 					value: column.fieldname,
 					checked: false,
 				});

@@ -177,7 +177,9 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 
 		const ace_language_mode = language_map[language] || "";
 		this.editor.session.setMode(ace_language_mode);
-		this.editor.setKeyboardHandler("ace/keyboard/vscode");
+		this.editor.setKeyboardHandler(
+			`ace/keyboard/${frappe.boot.user.code_editor_type || "vscode"}`
+		);
 	}
 
 	parse(value) {

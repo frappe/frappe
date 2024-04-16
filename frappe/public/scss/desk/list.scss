@@ -257,6 +257,7 @@ input.list-row-checkbox {
 	margin-bottom: 0px;
 	--checkbox-right-margin: calc(var(--checkbox-size) / 2 + #{$level-margin-right});
 	background-color: var(--card-bg);
+	z-index: 1;
 }
 
 input.list-check-all {

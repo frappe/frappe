@@ -44,6 +44,14 @@ class TestHooks(FrappeTestCase):
 
 		hooks.has_permission["Address"] = address_has_permission_hook
 
+		wildcard_has_permission_hook = hooks.has_permission.get("*", [])
+		if isinstance(wildcard_has_permission_hook, str):
+			wildcard_has_permission_hook = [wildcard_has_permission_hook]
+
+		wildcard_has_permission_hook.append("frappe.tests.test_hooks.custom_has_permission")
+
+		hooks.has_permission["*"] = wildcard_has_permission_hook
+
 		# Clear cache
 		frappe.cache.delete_value("app_hooks")
 
@@ -53,11 +61,19 @@ class TestHooks(FrappeTestCase):
 		user.add_roles("System Manager")
 		address = frappe.new_doc("Address")
 
+		# Create Note
+		note = frappe.new_doc("Note")
+		note.public = 1
+
 		# Test!
 		self.assertTrue(frappe.has_permission("Address", doc=address, user=username))
+		self.assertTrue(frappe.has_permission("Note", doc=note, user=username))
 
 		address.flags.dont_touch_me = True
 		self.assertFalse(frappe.has_permission("Address", doc=address, user=username))
+
+		note.flags.dont_touch_me = True
+		self.assertFalse(frappe.has_permission("Note", doc=note, user=username))
 
 	def test_ignore_links_on_delete(self):
 		email_unsubscribe = frappe.get_doc(
