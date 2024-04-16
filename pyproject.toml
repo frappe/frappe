@@ -57,11 +57,18 @@ dependencies = [
     "psycopg2-binary~=2.9.1",
     "pyasn1~=0.4.8",
     "pyOpenSSL~=24.0.0",
+<<<<<<< HEAD
     "pycryptodome~=3.18.0",
     "pyotp~=2.6.0",
     "pypng~=0.20220715.0",
     "python-dateutil~=2.8.1",
     "pytz==2022.1",
+=======
+    "pydantic~=2.7.0",
+    "pyotp~=2.8.0",
+    "python-dateutil~=2.8.2",
+    "pytz==2023.3",
+>>>>>>> 53bd1a85d1 (chore: bump pydantic to v2.7.0)
     "rauth~=0.7.3",
     "redis~=3.5.3",
     "hiredis~=2.0.0",
