@@ -216,6 +216,7 @@ class UserPermissions:
 			[
 				"creation",
 				"desk_theme",
+				"code_editor_type",
 				"document_follow_notify",
 				"email",
 				"email_signature",
