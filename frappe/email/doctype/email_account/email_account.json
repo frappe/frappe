@@ -576,7 +576,7 @@
    "label": "IMAP Details"
   },
   {
-   "depends_on": "eval: doc.auth_method === \"OAuth\" && !doc.__islocal && !doc.__unsaved",
+   "depends_on": "eval: doc.auth_method === \"OAuth\" && doc.connected_app && doc.connected_user",
    "fieldname": "authorize_api_access",
    "fieldtype": "Button",
    "label": "Authorize API Access"
@@ -638,7 +638,7 @@
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-16 14:45:38.157459",
+ "modified": "2024-04-16 14:57:37.791547",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
