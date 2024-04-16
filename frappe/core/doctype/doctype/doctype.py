@@ -1339,13 +1339,23 @@ def validate_fields(meta: Meta):
 						frappe.bold(d.fieldname)
 					)
 				)
-		if d.fieldtype in ['Date', 'Datetime'] and d.default != 'now' and not guess_date_format(d.default):
-			frappe.throw(
-				_('Default value for {0} must be either "now" or a valid date: "{1}" is not accepted.').format(
-					frappe.bold(d.fieldname),
-					d.default
-				)
-			)
+		if d.fieldtype in ["Date", "Datetime"]:
+			d.default = d.default.lower()
+			if not guess_date_format(d.default):
+				if d.fieldtype == 'Datetime' and d.default != 'now':
+					frappe.throw(
+						_('Default value for {0} must be either "now" or a valid datetime: "{1}" is not accepted.').format(
+							frappe.bold(d.fieldname),
+							d.default
+						)
+					)
+				elif d.fieldtype == 'Date' and d.default != 'today':
+					frappe.throw(
+						_('Default value for {0} must be either "today" or a valid date: "{1}" is not accepted.').format(
+							frappe.bold(d.fieldname),
+							d.default
+						)
+					)
 
 	def check_precision(d):
 		if (
