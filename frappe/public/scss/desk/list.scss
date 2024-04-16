@@ -255,6 +255,15 @@ input.list-header-checkbox {
 	margin-bottom: 0;
 	--checkbox-right-margin: 0;
 	background-color: var(--card-bg);
+
+	&::after {
+		// Extend the checkbox's clickable area
+		display: block;
+		content: "";
+		inset: calc(-1 * var(--list-checkbox-padding));
+		position: absolute;
+		opacity: 0;
+	}
 }
 
 .render-list-checkbox {
