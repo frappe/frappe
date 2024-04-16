@@ -17,7 +17,7 @@ from pypdf import PdfReader, PdfWriter
 import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
-from frappe.utils import scrub_urls
+from frappe.utils import cstr, scrub_urls
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
 PDF_CONTENT_ERRORS = [
@@ -242,7 +242,7 @@ def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
 
 	# Prepare a css stylesheet from all the style tags' contents
 	for style_tag in style_tags:
-		stylesheet += style_tag.string
+		stylesheet += cstr(style_tag.string)
 
 	# Use css parser to tokenize the classes and their styles
 	parsed_sheet = cssutils.parseString(stylesheet)

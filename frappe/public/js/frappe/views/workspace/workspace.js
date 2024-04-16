@@ -353,7 +353,7 @@ frappe.views.Workspace = class Workspace {
 
 		if (frappe.boot.user.default_workspace) {
 			default_page = {
-				name: frappe.boot.user.default_workspace.name,
+				name: frappe.boot.user.default_workspace.title,
 				public: frappe.boot.user.default_workspace.public,
 			};
 		} else if (
