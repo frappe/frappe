@@ -98,6 +98,13 @@ class TestDocument(FrappeTestCase):
 
 		self.assertEqual(frappe.db.get_value(d.doctype, d.name, "subject"), "subject changed")
 
+	def test_discard(self):
+		d = self.test_insert()
+		self.assertEqual(d.docstatus, 0)
+
+		d.discard()
+		self.assertEqual(d.docstatus, 2)
+
 	def test_value_changed(self):
 		d = self.test_insert()
 		d.subject = "subject changed again"
