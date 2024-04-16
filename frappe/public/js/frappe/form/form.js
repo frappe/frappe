@@ -833,6 +833,18 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+	discard(btn, callback, on_error) {
+		var me = this;
+		return new Promise((resolve) => {
+			// this.validate_form_action("Discard") // ?
+			frappe.confirm(__("Discard {0}", [this.docname]), function () {
+				me.script_manager.trigger("before_discard").then(function () {
+					return me._discard(btn, callback, on_error, false); // ?
+				});
+			});
+		});
+	}
+
 	savesubmit(btn, callback, on_error) {
 		var me = this;
 		return new Promise((resolve) => {
@@ -1010,6 +1022,40 @@ frappe.ui.form.Form = class FrappeForm {
 			frappe.confirm(
 				__("Permanently Cancel {0}?", [this.docname]),
 				cancel_doc,
+				me.handle_save_fail(btn, on_error)
+			);
+		}
+	}
+
+	_discard(btn, on_error, skip_confirm) {
+		const me = this;
+		const discard_doc = () => {
+			frappe.validated = true;
+			me.script_manager.trigger("before_discard").then(() => {
+				if (!frappe.validated) {
+					return me.handle_save_fail(btn, on_error);
+				}
+
+				var after_discard = function (r) {
+					if (r.exc) {
+						me.handle_save_fail(btn, on_error);
+					} else {
+						frappe.utils.play_sound("cancel");
+						me.refresh();
+						me.script_manager.trigger("after_discard");
+					}
+					me.reload_doc();
+				};
+				frappe.ui.form.discard(me, after_discard, btn);
+			});
+		};
+
+		if (skip_confirm) {
+			discard_doc();
+		} else {
+			frappe.confirm(
+				__("Permanently Discard {0}?", [this.docname]),
+				discard_doc,
 				me.handle_save_fail(btn, on_error)
 			);
 		}

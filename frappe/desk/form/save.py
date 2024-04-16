@@ -59,6 +59,17 @@ def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_stat
 	frappe.msgprint(frappe._("Cancelled"), indicator="red", alert=True)
 
 
+@frappe.whitelist()
+def discard(doctype=None, name=None):
+	"""discard a doclist"""
+	doc = frappe.get_doc(doctype, name)
+	capture_doc(doc, "Discard")
+
+	doc.discard()
+	send_updated_docs(doc)
+	frappe.msgprint(frappe._("Discarded"), indicator="red", alert=True)
+
+
 def send_updated_docs(doc):
 	from .load import get_docinfo
 
