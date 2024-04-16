@@ -143,7 +143,7 @@ context("Dynamic Link", () => {
 		cy.intercept("/api/method/frappe.desk.search.search_link").as("search_query");
 		cy.fill_field("doc_type", "System Settings", "Link", { delay: 500 });
 		cy.wait("@search_query");
-		cy.get(`[data-fieldname="doc_type"] ul:visible li:first-child`).click({
+		cy.get(`[data-fieldname="doc_type"] ul:visible div:first-child`).click({
 			scrollBehavior: false,
 		});
 
