@@ -773,6 +773,8 @@ class BaseDocument:
 
 			if docname:
 				if df.fieldtype == "Link":
+					if type(docname) != str:
+						docname = docname.name
 					doctype = df.options
 					if not doctype:
 						frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
