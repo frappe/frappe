@@ -166,7 +166,7 @@ context("Workspace Blocks", () => {
 
 		// add number card
 		cy.fill_field("number_card_name", "Test Number Card", "Link");
-		cy.get('[data-fieldname="number_card_name"] ul li').contains("Test Number Card").click();
+		cy.get('[data-fieldname="number_card_name"] ul div').contains("Test Number Card").click();
 		cy.click_modal_primary_button("Add");
 		cy.get(".ce-block .number-widget-box").first().as("number_card");
 		cy.get("@number_card").find(".widget-title").should("contain", "Test Number Card");

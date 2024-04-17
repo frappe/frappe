@@ -12,7 +12,10 @@ function frappe_handlers(socket) {
 	socket.has_permission = (doctype, name) => {
 		return new Promise((resolve) => {
 			socket
-				.frappe_request("/api/method/frappe.realtime.has_permission", { doctype, name })
+				.frappe_request("/api/method/frappe.realtime.has_permission", {
+					doctype,
+					name: name || "",
+				})
 				.then((res) => res.json())
 				.then(({ message }) => {
 					if (message) {
