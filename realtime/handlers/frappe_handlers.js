@@ -12,6 +12,26 @@ function frappe_handlers(realtime, socket) {
 		socket.join(SITE_ROOM);
 	}
 
+<<<<<<< HEAD:realtime/handlers/frappe_handlers.js
+=======
+	socket.has_permission = (doctype, name) => {
+		return new Promise((resolve) => {
+			socket
+				.frappe_request("/api/method/frappe.realtime.has_permission", {
+					doctype,
+					name: name || "",
+				})
+				.then((res) => res.json())
+				.then(({ message }) => {
+					if (message) {
+						resolve();
+					}
+				})
+				.catch((err) => console.log("Can't check permissions", err));
+		});
+	};
+
+>>>>>>> 1dcfadf5ca (test: fix cypress tests (#26012)):realtime/handlers.js
 	socket.on("doctype_subscribe", function (doctype) {
 		can_subscribe_doctype({
 			socket,
