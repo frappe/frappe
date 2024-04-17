@@ -160,6 +160,8 @@ def get_all_translations(lang: str) -> dict[str, str]:
 	try:
 		return frappe.cache.hget(MERGED_TRANSLATION_KEY, lang, generator=_merge_translations)
 	except Exception:
+		if frappe.flags and frappe.flags.in_test:
+			raise
 		# People mistakenly call translation function on global variables
 		# where locals are not initalized, translations dont make much sense there
 		frappe.logger().error("Unable to load translations", exc_info=True)
