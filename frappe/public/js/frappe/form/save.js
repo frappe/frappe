@@ -274,23 +274,6 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	}
 };
 
-frappe.ui.form.discard = function (frm, callback, btn) {
-	var args = {
-		doctype: frm.doc.doctype,
-		name: frm.doc.name,
-	};
-
-	return frappe.call({
-		freeze: true,
-		method: "frappe.desk.form.save.discard",
-		args: args,
-		btn: btn,
-		callback: function (r) {
-			callback && callback(r);
-		},
-	});
-};
-
 frappe.ui.form.remove_old_form_route = () => {
 	let current_route = frappe.get_route().join("/");
 	frappe.route_history = frappe.route_history.filter(

@@ -60,8 +60,8 @@ def cancel(doctype=None, name=None, workflow_state_fieldname=None, workflow_stat
 
 
 @frappe.whitelist()
-def discard(doctype=None, name=None):
-	"""discard a doclist"""
+def discard(doctype: str, name: str | int):
+	"""dicard a draft document"""
 	doc = frappe.get_doc(doctype, name)
 	capture_doc(doc, "Discard")
 

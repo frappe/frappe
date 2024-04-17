@@ -848,7 +848,7 @@ class Document(BaseDocument):
 				self._action = "submit"
 				self.check_permission("submit")
 			elif self.docstatus.is_cancelled():
-				self.check_permission("cancel")
+				self.check_permission("write")
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 

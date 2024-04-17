@@ -834,7 +834,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	discard(btn, callback, on_error) {
-		var me = this;
+		const me = this;
 		return new Promise((resolve) => {
 			// this.validate_form_action("Discard") // ?
 			frappe.confirm(__("Discard {0}", [this.docname]), function () {
@@ -1046,7 +1046,19 @@ frappe.ui.form.Form = class FrappeForm {
 					}
 					me.reload_doc();
 				};
-				frappe.ui.form.discard(me, after_discard, btn);
+				//frappe.ui.form.discard(me, after_discard, btn);
+				frappe.call({
+					freeze: true,
+					method: "frappe.desk.form.save.discard",
+					args: {
+						doctype: me.doc.doctype,
+						name: me.doc.name,
+					},
+					btn: btn,
+					callback: function (r) {
+						after_discard(r);
+					},
+				});
 			});
 		};
 
