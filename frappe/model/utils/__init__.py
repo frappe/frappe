@@ -3,6 +3,7 @@
 import re
 
 import frappe
+from frappe import _
 from frappe.build import html_to_js_template
 from frappe.utils import cstr
 from frappe.utils.caching import site_cache
@@ -60,7 +61,7 @@ def render_include(content):
 	content = cstr(content)
 
 	# try 5 levels of includes
-	for _ in range(5):
+	for _ignore in range(5):
 		if "{% include" in content:
 			paths = INCLUDE_DIRECTIVE_PATTERN.findall(content)
 			if not paths:
