@@ -41,7 +41,7 @@ def _new_site(
 	site,
 	db_root_username=None,
 	db_root_password=None,
-	admin_password=None,
+	admin_password=None,  # ADMIN_PASS_USAGE
 	verbose=False,
 	install_apps=None,
 	source_sql=None,
@@ -84,7 +84,7 @@ def _new_site(
 			root_login=db_root_username,
 			root_password=db_root_password,
 			db_name=db_name,
-			admin_password=admin_password,
+			admin_password=admin_password,  # ADMIN_PASS_USAGE
 			verbose=verbose,
 			source_sql=source_sql,
 			force=force,
@@ -122,7 +122,7 @@ def install_db(
 	root_password=None,
 	db_name=None,
 	source_sql=None,
-	admin_password=None,
+	admin_password=None,  # ADMIN_PASS_USAGE
 	verbose=True,
 	force=0,
 	site_config=None,
@@ -172,7 +172,8 @@ def install_db(
 		source_sql=source_sql,
 	)
 
-	frappe.conf.admin_password = frappe.conf.admin_password or admin_password
+	# ASK : keept it for compatibility...
+	frappe.conf.admin_password = frappe.conf.admin_password or admin_password  # ADMIN_PASS_USAGE
 
 	remove_missing_apps()
 

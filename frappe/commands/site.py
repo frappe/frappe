@@ -52,7 +52,9 @@ from frappe.utils import CallbackManager
 		"See the mariadb docs on account names for more info."
 	),
 )
-@click.option("--admin-password", help="Administrator password for new site", default=None)
+@click.option(
+	"--admin-password", help="Administrator password for new site", default=None
+)  # ADMIN_PASS_USAGE
 @click.option("--verbose", is_flag=True, default=False, help="Verbose")
 @click.option("--force", help="Force restore if site/database already exists", is_flag=True, default=False)
 @click.option("--source-sql", "--source_sql", help="Initiate database with a SQL file")
@@ -111,7 +113,7 @@ def new_site(
 			site,
 			db_root_username=db_root_username,
 			db_root_password=db_root_password,
-			admin_password=admin_password,
+			admin_password=admin_password,  # ADMIN_PASS_USAGE : Not critical
 			verbose=verbose,
 			install_apps=install_app,
 			source_sql=source_sql,
@@ -129,6 +131,8 @@ def new_site(
 
 		if set_default:
 			use(site)
+
+		generate_url(site)
 
 	except Exception:
 		traceback.print_exc()
@@ -148,7 +152,7 @@ def new_site(
 )
 @click.option("--db-root-password", "--mariadb-root-password", help="Root password for MariaDB or PostgreSQL")
 @click.option("--db-name", help="Database name for site in case it is a new one")
-@click.option("--admin-password", help="Administrator password for new site")
+@click.option("--admin-password", help="Administrator password for new site")  # ADMIN_PASS_USAGE
 @click.option("--install-app", multiple=True, help="Install app after installation")
 @click.option("--with-public-files", help="Restores the public files of the site, given path to its tar file")
 @click.option(
@@ -172,7 +176,7 @@ def restore(
 	db_name=None,
 	verbose=None,
 	install_app=None,
-	admin_password=None,
+	admin_password=None,  # ADMIN_PASS_USAGE
 	force=None,
 	with_public_files=None,
 	with_private_files=None,
@@ -193,7 +197,7 @@ def restore(
 			db_root_password=db_root_password,
 			verbose=context.verbose or verbose,
 			install_app=install_app,
-			admin_password=admin_password,
+			admin_password=admin_password,  # ADMIN_PASS_USAGE
 			force=context.force or force,
 			with_public_files=with_public_files,
 			with_private_files=with_private_files,
@@ -209,7 +213,7 @@ def _restore(
 	db_root_password=None,
 	verbose=None,
 	install_app=None,
-	admin_password=None,
+	admin_password=None,  # ADMIN_PASS_USAGE
 	force=None,
 	with_public_files=None,
 	with_private_files=None,
@@ -243,7 +247,7 @@ def _restore(
 				db_root_password,
 				verbose,
 				install_app,
-				admin_password,
+				admin_password,  # ADMIN_PASS_USAGE
 				force,
 			)
 	else:
@@ -254,7 +258,7 @@ def _restore(
 			db_root_password,
 			verbose,
 			install_app,
-			admin_password,
+			admin_password,  # ADMIN_PASS_USAGE
 			force,
 		)
 
@@ -294,7 +298,7 @@ def restore_backup(
 	db_root_password,
 	verbose,
 	install_app,
-	admin_password,
+	admin_password,  # ADMIN_PASS_USAGE
 	force,
 ):
 	from pathlib import Path
@@ -346,7 +350,7 @@ def restore_backup(
 			site,
 			db_root_username=db_root_username,
 			db_root_password=db_root_password,
-			admin_password=admin_password,
+			admin_password=admin_password,  # ADMIN_PASS_USAGE
 			verbose=verbose,
 			install_apps=install_app,
 			source_sql=sql_file_path,
@@ -418,7 +422,7 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 
 
 @click.command("reinstall")
-@click.option("--admin-password", help="Administrator Password for reinstalled site")
+@click.option("--admin-password", help="Administrator Password for reinstalled site")  # ADMIN_PASS_USAGE
 @click.option(
 	"--db-root-username",
 	"--mariadb-root-username",
@@ -430,12 +434,14 @@ def partial_restore(context, sql_file_path, verbose, encryption_key=None):
 def reinstall(context, admin_password=None, db_root_username=None, db_root_password=None, yes=False):
 	"Reinstall site ie. wipe all data and start over"
 	site = get_site(context)
-	_reinstall(site, admin_password, db_root_username, db_root_password, yes, verbose=context.verbose)
+	_reinstall(
+		site, admin_password, db_root_username, db_root_password, yes, verbose=context.verbose
+	)  # ADMIN_PASS_USAGE
 
 
 def _reinstall(
 	site,
-	admin_password=None,
+	admin_password=None,  # ADMIN_PASS_USAGE
 	db_root_username=None,
 	db_root_password=None,
 	yes=False,
@@ -468,7 +474,7 @@ def _reinstall(
 		install_apps=installed,
 		db_root_username=db_root_username,
 		db_root_password=db_root_password,
-		admin_password=admin_password,
+		admin_password=admin_password,  # ADMIN_PASS_USAGE
 	)
 
 
@@ -666,8 +672,8 @@ def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
 	total_rows = cint(
 		frappe.db.sql(
 			f"""select table_rows
-			   from  information_schema.tables
-			   where table_name = 'tab{doctype}'"""
+               from  information_schema.tables
+               where table_name = 'tab{doctype}'"""
 		)[0][0]
 	)
 
@@ -1135,6 +1141,12 @@ def move(dest_dir, site):
 @pass_context
 def set_password(context, user, password=None, logout_all_sessions=False):
 	"Set password for a user on a site"
+
+	# ASK is it correct?
+	if user == "Administrator":
+		click.secho("ERROR : Permission Denied !!!", fg="red", bold=True)
+		sys.exit(1)
+
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
@@ -1142,17 +1154,29 @@ def set_password(context, user, password=None, logout_all_sessions=False):
 		set_user_password(site, user, password, logout_all_sessions)
 
 
-@click.command("set-admin-password")
-@click.argument("admin-password", required=False)
+@click.command("set-admin-password")  # ADMIN_PASS_USAGE  CRITICAL
+@click.argument("admin-password", required=False)  # ADMIN_PASS_USAGE
 @click.option("--logout-all-sessions", help="Log out from all sessions", is_flag=True, default=False)
 @pass_context
 def set_admin_password(context, admin_password=None, logout_all_sessions=False):
-	"Set Administrator password for a site"
+	"Set Administrator password for a site if setting is enable"
+
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
 	for site in context.sites:
-		set_user_password(site, "Administrator", admin_password, logout_all_sessions)
+		frappe.init(site=site)
+		frappe.connect()
+
+		password_enable = frappe.get_system_settings("enable_password_authentication")
+
+		if not password_enable:
+			click.secho("ERROR : 'Password Authentication' setting is disable", fg="red", bold=True)
+			frappe.destroy()
+			sys.exit(1)
+
+		frappe.destroy()
+		set_user_password(site, "Administrator", admin_password, logout_all_sessions)  # ADMIN_PASS_USAGE
 
 
 def set_user_password(site, user, password, logout_all_sessions=False):
@@ -1164,7 +1188,7 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 		frappe.init(site=site)
 
 		while not password:
-			password = getpass.getpass(f"{user}'s password for {site}: ")
+			password = getpass.getpass(f"{user}'s password for {site}: ")  # ADMIN_PASS_USAGE
 
 		frappe.connect()
 		if not frappe.db.exists("User", user):
@@ -1236,44 +1260,24 @@ def publish_realtime(context, event, message, room, user, doctype, docname, afte
 @click.command("browse")
 @click.argument("site", required=False)
 @click.option("--user", required=False, help="Login as user")
+@click.option("--launch", required=False, help="Launch the site on web browser", is_flag=True, default=False)
 @pass_context
-def browse(context, site, user=None):
+def browse(context, site, launch, user=None):
 	"""Opens the site on web browser"""
-	from frappe.auth import CookieManager, LoginManager
 
-	site = get_site(context, raise_err=False) or site
+	site = site_available(context, site)
+	generate_url(site, user or "Administrator", launch)
 
-	if not site:
-		raise SiteNotSpecifiedError
 
-	if site not in frappe.utils.get_sites():
-		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
-		sys.exit(1)
+@click.command("login-as-admin")
+@click.argument("site", required=False)
+@click.option("--launch", required=False, help="Launch the site on web browser", is_flag=True, default=False)
+@pass_context
+def login_as_admin(context, site, launch):
+	"""Opens the site on web browser, as `Administrator` always"""
 
-	frappe.init(site=site)
-	frappe.connect()
-
-	sid = ""
-	if user:
-		if not frappe.db.exists("User", user):
-			click.echo(f"User {user} does not exist")
-			sys.exit(1)
-
-		if frappe.conf.developer_mode or user == "Administrator":
-			frappe.utils.set_request(path="/")
-			frappe.local.cookie_manager = CookieManager()
-			frappe.local.login_manager = LoginManager()
-			frappe.local.login_manager.login_as(user)
-			sid = f"/app?sid={frappe.session.sid}"
-		else:
-			click.echo("Please enable developer mode to login as a user")
-
-	url = f"{frappe.utils.get_site_url(site)}{sid}"
-
-	if user == "Administrator":
-		click.echo(f"Login URL: {url}")
-
-	click.launch(url)
+	site = site_available(context, site)
+	generate_url(site, launch=launch)
 
 
 @click.command("start-recording")
@@ -1284,7 +1288,7 @@ def start_recording(context):
 
 	for site in context.sites:
 		frappe.init(site=site)
-		frappe.set_user("Administrator")
+		frappe.set_user("Administrator")  # ADMIN_PASS_USAGE
 		frappe.recorder.start()
 	if not context.sites:
 		raise SiteNotSpecifiedError
@@ -1298,7 +1302,7 @@ def stop_recording(context):
 
 	for site in context.sites:
 		frappe.init(site=site)
-		frappe.set_user("Administrator")
+		frappe.set_user("Administrator")  # ADMIN_PASS_USAGE
 		frappe.recorder.stop()
 	if not context.sites:
 		raise SiteNotSpecifiedError
@@ -1595,6 +1599,56 @@ def add_new_user(
 		update_password(user=user.name, pwd=password)
 
 
+def generate_url(site, user="Administrator", launch=False):
+	"""Prints or launch URL which logs you in as User/Administrator"""
+
+	from frappe.auth import CookieManager, LoginManager
+
+	frappe.init(site=site)
+	frappe.connect()
+
+	sid = ""
+	if user:
+		if not frappe.db.exists("User", user):
+			click.echo(f"User {user} does not exist")
+			sys.exit(1)
+
+		if frappe.conf.developer_mode or user == "Administrator":
+			frappe.utils.set_request(path="/")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(user)
+			sid = f"/app?sid={frappe.session.sid}"
+		else:
+			click.echo("Please enable developer mode to login as a user")
+
+	url = f"{frappe.utils.get_site_url(site)}{sid}"
+
+	click.echo(f"Login URL: {url}")
+
+	# ASK
+	# if user == "Administrator":
+	# 	click.echo(f"Login URL: {url}")
+
+	if launch:
+		click.launch(url)
+
+
+def site_available(context, site):
+	"""Check if Site available or not"""
+
+	site = get_site(context, raise_err=False) or site
+
+	if not site:
+		raise SiteNotSpecifiedError
+
+	if site not in frappe.utils.get_sites():
+		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
+		sys.exit(1)
+
+	return site
+
+
 commands = [
 	add_system_manager,
 	add_user_for_sites,
@@ -1621,6 +1675,7 @@ commands = [
 	set_last_active_for_user,
 	publish_realtime,
 	browse,
+	login_as_admin,
 	start_recording,
 	stop_recording,
 	add_to_hosts,

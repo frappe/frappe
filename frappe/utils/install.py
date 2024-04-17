@@ -1,11 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import getpass
 
 import frappe
 from frappe.geo.doctype.country.country import import_country_and_currency
 from frappe.utils import cint
-from frappe.utils.password import update_password
 
 
 def before_install():
@@ -37,9 +35,6 @@ def after_install():
 
 	# all roles to admin
 	frappe.get_doc("User", "Administrator").add_roles(*frappe.get_all("Role", pluck="name"))
-
-	# update admin password
-	update_password("Administrator", get_admin_password())
 
 	if not frappe.conf.skip_setup_wizard:
 		# only set home_page if the value doesn't exist in the db
@@ -140,10 +135,6 @@ def install_basic_docs():
 			frappe.get_doc(d).insert(ignore_if_duplicate=True)
 		except frappe.NameError:
 			pass
-
-
-def get_admin_password():
-	return frappe.conf.get("admin_password") or getpass.getpass("Set Administrator password: ")
 
 
 def before_tests():
