@@ -289,7 +289,7 @@ class TestUser(FrappeTestCase):
 		res1 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		res2 = c.session.post(url, data=data, verify=c.verify, headers=c.headers)
 		self.assertEqual(res1.status_code, 404)
-		self.assertEqual(res2.status_code, 417)
+		self.assertEqual(res2.status_code, 429)
 
 	def test_user_rename(self):
 		old_name = "test_user_rename@example.com"
