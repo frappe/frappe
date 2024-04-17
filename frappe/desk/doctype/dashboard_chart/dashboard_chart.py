@@ -44,7 +44,8 @@ def get_permission_query_conditions(user):
 	]
 
 	if allowed_doctypes:
-		doctype_condition = "`tabDashboard Chart`.`document_type` in ({allowed_doctypes})".format(
+		doctype_condition = """(`tabDashboard Chart`.`document_type` in ({allowed_doctypes}) OR
+					`tabDashboard Chart`.`parent_document_type` in ({allowed_doctypes}))""".format(
 			allowed_doctypes=",".join(allowed_doctypes)
 		)
 	if allowed_reports:
@@ -80,7 +81,7 @@ def has_permission(doc, ptype, user):
 			return True
 	else:
 		allowed_doctypes = frappe.permissions.get_doctypes_with_read()
-		if doc.document_type in allowed_doctypes:
+		if doc.document_type in allowed_doctypes or doc.parent_document_type in allowed_doctypes:
 			return True
 
 	return False
