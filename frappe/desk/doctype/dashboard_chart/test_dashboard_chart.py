@@ -55,6 +55,61 @@ class TestDashboardChart(FrappeTestCase):
 			self.assertEqual(result.get("labels")[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
+	def test_listview_permissions(self):
+		"Check client permissions query using reportview.get"
+		from frappe.desk.reportview import get
+
+		frappe.local.form_dict = {
+			"doctype": "Dashboard Chart",
+			"fields": [
+				"`tabDashboard Chart`.`name`",
+				"`tabDashboard Chart`.`owner`",
+				"`tabDashboard Chart`.`creation`",
+				"`tabDashboard Chart`.`modified`",
+				"`tabDashboard Chart`.`modified_by`",
+				"`tabDashboard Chart`.`_user_tags`",
+				"`tabDashboard Chart`.`_comments`",
+				"`tabDashboard Chart`.`_assign`",
+				"`tabDashboard Chart`.`_liked_by`",
+				"`tabDashboard Chart`.`docstatus`",
+				"`tabDashboard Chart`.`idx`",
+				"`tabDashboard Chart`.`chart_name`",
+				"`tabDashboard Chart`.`color`",
+			],
+			"filters": [],
+			"order_by": "`tabDashboard Chart`.`modified` desc",
+			"start": 0,
+			"page_length": 20,
+			"view": "List",
+			"group_by": "",
+			"with_comment_count": True,
+		}
+		result = get()
+		self.assertTrue(result.get("values"))
+
+	def test_dashboard_chart_group_by(self):
+		"Tests DocType based group by chart and permissions check"
+		from frappe.desk.doctype.dashboard_chart.dashboard_chart import has_permission
+
+		doc = frappe.get_doc(
+			doctype="Dashboard Chart",
+			chart_name="Test Dashboard Chart GroupBy",
+			chart_type="Group By",
+			document_type="DocField",
+			parent_document_type="DocType",
+			group_by_type="Sum",
+			group_by_based_on="fieldtype",
+			aggregate_function_based_on="columns",
+			filters_json="{}",
+		).insert()
+
+		result = get(chart_name="Test Dashboard Chart GroupBy", refresh=1)
+		try:
+			self.assertTrue(result.get("datasets")[0].get("values"))
+			self.assertTrue(has_permission(doc, "report", "Administrator"))
+		finally:
+			doc.delete()
+
 	def test_empty_dashboard_chart(self):
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart")
