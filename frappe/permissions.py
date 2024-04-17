@@ -451,7 +451,7 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 
 
 def get_doctypes_with_read():
-	return list({cstr(p.parent) for p in get_valid_perms() if p.parent})
+	return list(set(cstr(p.parent) for p in get_valid_perms() if p.read))
 
 
 def get_valid_perms(doctype=None, user=None):
@@ -461,8 +461,8 @@ def get_valid_perms(doctype=None, user=None):
 	perms = get_perms_for(roles)
 	custom_perms = get_perms_for(roles, "Custom DocPerm")
 
-	doctypes_with_custom_perms = get_doctypes_with_custom_docperms()
-	for p in perms:
+	doctypes_with_custom_perms = list(set(p.parent for p in custom_perms if p.parent))
+	for p in perms:  # assumes only single entry per parent per role
 		if p.parent not in doctypes_with_custom_perms:
 			custom_perms.append(p)
 
@@ -531,13 +531,6 @@ def get_perms_for(roles, perm_doctype="DocPerm"):
 	"""Get perms for given roles"""
 	filters = {"permlevel": 0, "docstatus": 0, "role": ["in", roles]}
 	return frappe.get_all(perm_doctype, fields=["*"], filters=filters)
-
-
-def get_doctypes_with_custom_docperms():
-	"""Return all the doctypes with Custom Docperms."""
-
-	doctypes = frappe.get_all("Custom DocPerm", fields=["parent"], distinct=1)
-	return [d.parent for d in doctypes]
 
 
 def add_user_permission(
