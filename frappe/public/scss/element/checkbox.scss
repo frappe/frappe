@@ -54,11 +54,6 @@ input[type="checkbox"] {
 		border: none;
 		pointer-events: none;
 	}
-
-	@media (max-width: 995px) {
-		width: calc(var(--checkbox-size) * 1.25) !important;
-		height: calc(var(--checkbox-size) * 1.25);
-	}
 }
 
 /* The switch - the box around the slider */
