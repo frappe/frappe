@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-16 11:06\n"
+"PO-Revision-Date: 2024-04-17 08:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2523,7 +2523,7 @@ msgstr ""
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Appreciation"
-msgstr ""
+msgstr "Takdir"
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:111
 msgid "Approval Required"
@@ -11693,12 +11693,12 @@ msgstr ""
 
 #: public/js/frappe/widgets/base_widget.js:159
 msgid "Expand"
-msgstr ""
+msgstr "Genişlet"
 
 #: public/js/frappe/form/controls/code.js:147
 msgctxt "Enlarge code field."
 msgid "Expand"
-msgstr ""
+msgstr "Genişlet"
 
 #: public/js/frappe/views/reports/query_report.js:1965
 #: public/js/frappe/views/treeview.js:125
@@ -11713,7 +11713,7 @@ msgstr "Deneysel"
 #: website/doctype/help_article/help_article.json
 msgctxt "Help Article"
 msgid "Expert"
-msgstr ""
+msgstr "Uzman"
 
 #. Label of a Datetime field in DocType 'OAuth Authorization Code'
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
@@ -11802,17 +11802,17 @@ msgstr ""
 
 #: custom/doctype/customize_form/customize_form.js:242
 msgid "Export Customizations"
-msgstr ""
+msgstr "Özelleştirmeleri Dışarı Aktar"
 
 #: public/js/frappe/data_import/data_exporter.js:14
 msgid "Export Data"
-msgstr ""
+msgstr "Dışarı Aktar"
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgctxt "Data Export"
 msgid "Export Data"
-msgstr ""
+msgstr "Dışarı Aktar"
 
 #: core/doctype/data_import/data_import.js:86
 #: public/js/frappe/data_import/import_preview.js:195
@@ -11832,7 +11832,7 @@ msgstr ""
 #: public/js/frappe/views/reports/report_utils.js:227
 msgctxt "Export report"
 msgid "Export Report: {0}"
-msgstr ""
+msgstr "Raporu Dışarı Aktar: {0}"
 
 #: public/js/frappe/data_import/data_exporter.js:26
 msgid "Export Type"
@@ -12964,7 +12964,7 @@ msgstr ""
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Font"
-msgstr ""
+msgstr "Yazı Tipi"
 
 #. Label of a Data field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
@@ -12976,25 +12976,25 @@ msgstr ""
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
 msgid "Font Size"
-msgstr ""
+msgstr "Yazı Boyutu"
 
 #. Label of a Float field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Font Size"
-msgstr ""
+msgstr "Yazı Boyutu"
 
 #. Label of a Data field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Font Size"
-msgstr ""
+msgstr "Yazı Boyutu"
 
 #. Label of a Section Break field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Fonts"
-msgstr ""
+msgstr "Yazı Tipleri"
 
 #. Label of a Text Editor field in DocType 'About Us Settings'
 #: website/doctype/about_us_settings/about_us_settings.json
@@ -13846,7 +13846,7 @@ msgstr ""
 #: desk/page/user_profile/user_profile_controller.js:68
 #: public/js/frappe/form/toolbar.js:767
 msgid "Go"
-msgstr ""
+msgstr "Git"
 
 #: public/js/frappe/widgets/onboarding_widget.js:246
 #: public/js/frappe/widgets/onboarding_widget.js:326
@@ -13855,7 +13855,7 @@ msgstr ""
 
 #: desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
-msgstr ""
+msgstr "Bildirim Ayarları Listesine Git"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
@@ -13869,7 +13869,7 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.js:18
 msgid "Go to Workspace"
-msgstr ""
+msgstr "Çalışma Alanına Git"
 
 #: public/js/frappe/form/form.js:143
 msgid "Go to next record"
@@ -13892,7 +13892,7 @@ msgstr ""
 #: core/doctype/doctype/doctype.js:55
 #: custom/doctype/client_script/client_script.js:10
 msgid "Go to {0}"
-msgstr ""
+msgstr "{0} Sayfasına Git"
 
 #: core/doctype/data_import/data_import.js:92
 #: core/doctype/doctype/doctype.js:59
@@ -13900,7 +13900,7 @@ msgstr ""
 #: custom/doctype/doctype_layout/doctype_layout.js:42
 #: workflow/doctype/workflow/workflow.js:44
 msgid "Go to {0} List"
-msgstr ""
+msgstr "{0} Listesine Git"
 
 #: core/doctype/page/page.js:11
 msgid "Go to {0} Page"
@@ -13921,7 +13921,7 @@ msgstr ""
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Google Analytics ID"
-msgstr ""
+msgstr "Google Analytics Kimliği"
 
 #. Label of a Check field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -13932,14 +13932,14 @@ msgstr ""
 #. Name of a DocType
 #: integrations/doctype/google_calendar/google_calendar.json
 msgid "Google Calendar"
-msgstr ""
+msgstr "Google Takvim"
 
 #. Label of a Section Break field in DocType 'Event'
 #. Label of a Link field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Google Calendar"
-msgstr ""
+msgstr "Google Takvim"
 
 #. Label of a Section Break field in DocType 'Google Calendar'
 #. Label of a Link in the Integrations Workspace
@@ -13947,7 +13947,7 @@ msgstr ""
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Google Calendar"
 msgid "Google Calendar"
-msgstr ""
+msgstr "Google Takvim"
 
 #: integrations/doctype/google_calendar/google_calendar.py:776
 msgid "Google Calendar - Contact / email not found. Did not add attendee for -<br>{0}"
@@ -14002,14 +14002,14 @@ msgstr ""
 #. Name of a DocType
 #: integrations/doctype/google_contacts/google_contacts.json
 msgid "Google Contacts"
-msgstr ""
+msgstr "Google Kişiler"
 
 #. Label of a Section Break field in DocType 'Contact'
 #. Label of a Link field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Google Contacts"
-msgstr ""
+msgstr "Google Kişiler"
 
 #. Label of a Section Break field in DocType 'Google Contacts'
 #. Label of a Link in the Integrations Workspace
@@ -14017,7 +14017,7 @@ msgstr ""
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Google Contacts"
 msgid "Google Contacts"
-msgstr ""
+msgstr "Google Kişiler"
 
 #: integrations/doctype/google_contacts/google_contacts.py:137
 msgid "Google Contacts - Could not sync contacts from Google Contacts {0}, error code {1}."
@@ -14100,13 +14100,13 @@ msgstr ""
 #. Name of a DocType
 #: integrations/doctype/google_settings/google_settings.json
 msgid "Google Settings"
-msgstr ""
+msgstr "Google Ayarları"
 
 #. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Google Settings"
 msgid "Google Settings"
-msgstr ""
+msgstr "Google Ayarları"
 
 #: utils/csvutils.py:201
 msgid "Google Sheets URL is invalid or not publicly accessible."
@@ -14560,13 +14560,13 @@ msgstr "Yardım Makaleleri"
 #. Name of a DocType
 #: website/doctype/help_category/help_category.json
 msgid "Help Category"
-msgstr ""
+msgstr "Yardım Kategorisi"
 
 #. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "Help Category"
 msgid "Help Category"
-msgstr ""
+msgstr "Yardım Kategorisi"
 
 #: public/js/frappe/ui/toolbar/navbar.html:85
 msgid "Help Dropdown"
@@ -15512,13 +15512,13 @@ msgstr "Resim"
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Image Field"
-msgstr ""
+msgstr "Resim Alanı"
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Image Field"
-msgstr ""
+msgstr "Resim Alanı"
 
 #. Label of a Float field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
@@ -15556,7 +15556,7 @@ msgstr ""
 
 #: public/js/frappe/views/image/image_view.js:13
 msgid "Images"
-msgstr ""
+msgstr "Resimler"
 
 #: core/doctype/user/user.js:356
 msgid "Impersonate"
@@ -15666,7 +15666,7 @@ msgstr ""
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "Import Type"
-msgstr ""
+msgstr "İçe Aktarma Türü"
 
 #. Label of a HTML field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -15822,13 +15822,13 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "In Standard Filter"
-msgstr ""
+msgstr "Standart Filtre"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "In Standard Filter"
-msgstr ""
+msgstr "Standart Filtre"
 
 #. Description of the Onboarding Step 'Generate Custom Reports'
 #: custom/onboarding_step/report_builder/report_builder.json
@@ -15839,14 +15839,14 @@ msgstr ""
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "In points. Default is 9."
-msgstr ""
+msgstr "Points ölçü birimini kullanılır. Varsayılan 9'dur."
 
 #. Description of the 'Allow Login After Fail' (Int) field in DocType 'System
 #. Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "In seconds"
-msgstr ""
+msgstr "Saniye"
 
 #: core/doctype/recorder/recorder_list.js:209
 msgid "Inactive"
@@ -15858,19 +15858,19 @@ msgstr ""
 
 #: email/doctype/email_account/email_account_list.js:19
 msgid "Inbox"
-msgstr ""
+msgstr "Gelen Kutusu"
 
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Inbox"
-msgstr ""
+msgstr "Gelen Kutusu"
 
 #. Name of a role
 #: core/doctype/communication/communication.json
 #: email/doctype/email_account/email_account.json
 msgid "Inbox User"
-msgstr ""
+msgstr "Gelen Kutusu Kullanıcısı"
 
 #. Label of a Check field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -16386,7 +16386,7 @@ msgstr ""
 
 #: utils/verified_command.py:48 www/update-password.html:151
 msgid "Invalid Link"
-msgstr ""
+msgstr "Geçersiz Bağlantı"
 
 #: www/login.py:112
 msgid "Invalid Login Token"
@@ -16428,7 +16428,7 @@ msgstr ""
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
-msgstr ""
+msgstr "Geçersiz Şifre"
 
 #: utils/__init__.py:108
 msgid "Invalid Phone Number"
@@ -16580,29 +16580,29 @@ msgstr ""
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Is Calendar and Gantt"
-msgstr ""
+msgstr "Takvim & Gantt"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Is Calendar and Gantt"
-msgstr ""
+msgstr "Takvim & Gantt"
 
 #: core/doctype/doctype/doctype_list.js:49
 msgid "Is Child Table"
-msgstr ""
+msgstr "Alt Tablo"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Is Child Table"
-msgstr ""
+msgstr "Alt Tablo"
 
 #. Label of a Check field in DocType 'DocType Link'
 #: core/doctype/doctype_link/doctype_link.json
 msgctxt "DocType Link"
 msgid "Is Child Table"
-msgstr ""
+msgstr "Alt Tablo"
 
 #. Label of a Check field in DocType 'Module Onboarding'
 #: desk/doctype/module_onboarding/module_onboarding.json
@@ -16626,13 +16626,13 @@ msgstr ""
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Is Custom"
-msgstr ""
+msgstr "Özel"
 
 #. Label of a Check field in DocType 'User Document Type'
 #: core/doctype/user_document_type/user_document_type.json
 msgctxt "User Document Type"
 msgid "Is Custom"
-msgstr ""
+msgstr "Özel"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
@@ -16672,7 +16672,7 @@ msgstr ""
 #: core/doctype/file/file.json
 msgctxt "File"
 msgid "Is Folder"
-msgstr ""
+msgstr "Klasör"
 
 #: public/js/frappe/list/list_filter.js:43
 msgid "Is Global"
@@ -16682,7 +16682,7 @@ msgstr ""
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Is Hidden"
-msgstr ""
+msgstr "Gizli"
 
 #. Label of a Check field in DocType 'File'
 #: core/doctype/file/file.json
@@ -16706,7 +16706,7 @@ msgstr ""
 #: contacts/doctype/contact_email/contact_email.json
 msgctxt "Contact Email"
 msgid "Is Primary"
-msgstr ""
+msgstr "Birincil"
 
 #. Label of a Check field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
