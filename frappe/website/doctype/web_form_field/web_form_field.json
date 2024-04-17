@@ -147,11 +147,7 @@
  ],
  "istable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2022-11-21 17:41:52.139191",
-=======
  "modified": "2024-04-15 16:11:58.469820",
->>>>>>> bb68908fe9 (refactor: web form link logic (#25951))
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Form Field",
