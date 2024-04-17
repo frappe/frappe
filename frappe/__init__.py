@@ -90,7 +90,7 @@ class _dict(dict):
 
 
 def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
-	"""Returns translated string in current lang, if exists.
+	"""Return translated string in current lang, if exists.
 	Usage:
 	        _('Change')
 	        _('Change', context='Coins')
@@ -125,8 +125,61 @@ def _(msg: str, lang: str | None = None, context: str | None = None) -> str:
 	return translated_string or non_translated_string
 
 
-def as_unicode(text: str, encoding: str = "utf-8") -> str:
-	"""Convert to unicode if required"""
+def _lt(msg: str, lang: str | None = None, context: str | None = None):
+	"""Lazily translate a string.
+
+
+	This function returns a "lazy string" which when casted to string via some operation applies
+	translation first before casting.
+
+	This is only useful for translating strings in global scope or anything that potentially runs
+	before `frappe.init()`
+
+	Note: Result is not guaranteed to equivalent to pure strings for all operations.
+	"""
+	return _LazyTranslate(msg, lang, context)
+
+
+@functools.total_ordering
+class _LazyTranslate:
+	__slots__ = ("msg", "lang", "context")
+
+	def __init__(self, msg: str, lang: str | None = None, context: str | None = None) -> None:
+		self.msg = msg
+		self.lang = lang
+		self.context = context
+
+	@property
+	def value(self) -> str:
+		return _(str(self.msg), self.lang, self.context)
+
+	def __str__(self):
+		return self.value
+
+	def __add__(self, other):
+		if isinstance(other, str | _LazyTranslate):
+			return self.value + str(other)
+		raise NotImplementedError
+
+	def __radd__(self, other):
+		if isinstance(other, str | _LazyTranslate):
+			return str(other) + self.value
+		return NotImplementedError
+
+	def __repr__(self) -> str:
+		return f"'{self.value}'"
+
+	# NOTE: it's required to override these methods and raise error as default behaviour will
+	# return `False` in all cases.
+	def __eq__(self, other):
+		raise NotImplementedError
+
+	def __lt__(self, other):
+		raise NotImplementedError
+
+
+def as_unicode(text, encoding: str = "utf-8") -> str:
+	"""Convert to unicode if required."""
 	if isinstance(text, str):
 		return text
 	elif text is None:
@@ -135,16 +188,6 @@ def as_unicode(text: str, encoding: str = "utf-8") -> str:
 		return str(text, encoding)
 	else:
 		return str(text)
-
-
-def get_lang_dict(fortype: str, name: str | None = None) -> dict[str, str]:
-	"""Returns the translated language dict for the given type and name.
-
-	:param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
-	:param name: name of the document for which assets are to be returned."""
-	from frappe.translate import get_dict
-
-	return get_dict(fortype, name)
 
 
 def set_user_lang(user: str, user_language: str | None = None) -> None:
