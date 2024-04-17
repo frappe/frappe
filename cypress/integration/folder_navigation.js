@@ -64,8 +64,8 @@ context("Folder Navigation", () => {
 		cy.visit("/app/file/view/home/Attachments/Test%20Folder");
 
 		cy.wait(500);
-		cy.get(".list-row-container").eq(0).should("contain.text", "72402.jpg");
-		cy.get(".list-row-checkbox").eq(0).click();
+		cy.get(".list-row-container").eq(1).should("contain.text", "72402.jpg");
+		cy.get(".list-row-checkbox").eq(1).click();
 
 		cy.intercept({
 			method: "POST",
