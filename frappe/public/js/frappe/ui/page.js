@@ -626,7 +626,8 @@ frappe.ui.Page = class Page {
 			this.menu_btn_group.removeClass("hide").addClass("hidden-xl");
 		}
 		const allowed_actions = ["Toogle%20whatsapp"];
-		if (!hide_button) {
+		const regex = /\/project\//;
+		if (!hide_button && regex.test(window.location.pathname)) {
 			const container_custom_actions = document.getElementById("custom_actions");
 			container_custom_actions.classList.remove("hidden-xs", "hidden-md");
 			
@@ -644,7 +645,7 @@ frappe.ui.Page = class Page {
 			setTimeout(()=> {
 				const buttons = container_custom_actions.querySelectorAll('.btn.btn-default.ellipsis');
 				buttons.forEach(button => {
-					if (!allowed_actions.includes(button.dataset.label)) {
+					if (button.dataset.label && !allowed_actions.includes(button.dataset.label)) {
 						buttonsToRemove.push(button);
 						button.parentNode.removeChild(button);
 					}
