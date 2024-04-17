@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-17 08:30\n"
+"PO-Revision-Date: 2024-04-17 10:25\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -789,13 +789,13 @@ msgstr ""
 #. Name of a DocType
 #: website/doctype/about_us_settings/about_us_settings.json
 msgid "About Us Settings"
-msgstr "Hakkımızda Ayarları"
+msgstr ""
 
 #. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "About Us Settings"
 msgid "About Us Settings"
-msgstr "Hakkımızda Ayarları"
+msgstr ""
 
 #. Name of a DocType
 #: website/doctype/about_us_team_member/about_us_team_member.json
@@ -1736,19 +1736,19 @@ msgstr "Puanları Atanan Kullanıcılara Paylaştır"
 
 #: templates/includes/oauth_confirmation.html:15
 msgid "Allow"
-msgstr "İzin Ver"
+msgstr ""
 
 #. Option for the 'Sign ups' (Select) field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Allow"
-msgstr "İzin Ver"
+msgstr ""
 
 #. Label of a Link field in DocType 'User Permission'
 #: core/doctype/user_permission/user_permission.json
 msgctxt "User Permission"
 msgid "Allow"
-msgstr "İzin Ver"
+msgstr ""
 
 #: website/doctype/website_settings/website_settings.py:160
 msgid "Allow API Indexing Access"
@@ -3173,25 +3173,25 @@ msgstr "Otomatik"
 #. Name of a DocType
 #: email/doctype/auto_email_report/auto_email_report.json
 msgid "Auto Email Report"
-msgstr "Otomatik E-Posta Raporu"
+msgstr ""
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgctxt "Auto Email Report"
 msgid "Auto Email Report"
-msgstr "Otomatik E-Posta Raporu"
+msgstr ""
 
 #. Label of a Data field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Auto Name"
-msgstr "Otomatik İsim"
+msgstr ""
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Auto Name"
-msgstr "Otomatik İsim"
+msgstr ""
 
 #. Name of a DocType
 #: automation/doctype/auto_repeat/auto_repeat.json
@@ -4199,13 +4199,13 @@ msgstr ""
 #. Name of a DocType
 #: desk/doctype/bulk_update/bulk_update.json
 msgid "Bulk Update"
-msgstr "Toplu Güncelleme"
+msgstr ""
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgctxt "Bulk Update"
 msgid "Bulk Update"
-msgstr "Toplu Güncelleme"
+msgstr ""
 
 #: model/workflow.py:246
 msgid "Bulk approval only support up to 500 documents."
@@ -6404,13 +6404,13 @@ msgstr "Bize Ulaşın"
 #. Name of a DocType
 #: website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Contact Us Settings"
-msgstr "İletişim Ayarları"
+msgstr ""
 
 #. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "Contact Us Settings"
 msgid "Contact Us Settings"
-msgstr "İletişim Ayarları"
+msgstr ""
 
 #. Description of the 'Query Options' (Small Text) field in DocType 'Contact Us
 #. Settings'
@@ -6624,20 +6624,20 @@ msgstr ""
 #: public/js/frappe/ui/group_by/group_by.js:316
 #: workflow/doctype/workflow/workflow.js:162
 msgid "Count"
-msgstr "Sayı"
+msgstr ""
 
 #. Option for the 'Chart Type' (Select) field in DocType 'Dashboard Chart'
 #. Option for the 'Group By Type' (Select) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Count"
-msgstr "Sayı"
+msgstr ""
 
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Count"
-msgstr "Sayı"
+msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:538
 msgid "Count Customizations"
@@ -6899,7 +6899,7 @@ msgstr ""
 #: public/js/frappe/model/meta.js:198 public/js/frappe/model/model.js:125
 #: public/js/frappe/views/dashboard/dashboard_view.js:478
 msgid "Created On"
-msgstr "Oluşturulma Zamanı"
+msgstr ""
 
 #: public/js/frappe/desk.js:497 public/js/frappe/views/treeview.js:376
 msgid "Creating {0}"
@@ -7051,81 +7051,81 @@ msgstr ""
 #: core/doctype/user_type/user_type_list.js:7
 #: public/js/frappe/form/reminders.js:20
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Option for the 'Chart Type' (Select) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Label of a Check field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocType Action'
 #: core/doctype/doctype_action/doctype_action.json
 msgctxt "DocType Action"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocType Link'
 #: core/doctype/doctype_link/doctype_link.json
 msgctxt "DocType Link"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocType State'
 #: core/doctype/doctype_state/doctype_state.json
 msgctxt "DocType State"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Option for the 'For Document Event' (Select) field in DocType 'Energy Point
 #. Rule'
 #: social/doctype/energy_point_rule/energy_point_rule.json
 msgctxt "Energy Point Rule"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Option for the 'Directory Server' (Select) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Label of a Check field in DocType 'Module Def'
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Custom"
-msgstr "Özel"
+msgstr ""
 
 #. Label of a Check field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
@@ -7621,32 +7621,32 @@ msgstr ""
 #: desk/doctype/dashboard/dashboard.json
 #: public/js/frappe/ui/toolbar/search_utils.js:562
 msgid "Dashboard"
-msgstr "Gösterge Paneli"
+msgstr ""
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "Dashboard"
 msgid "Dashboard"
-msgstr "Gösterge Paneli"
+msgstr ""
 
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Dashboard"
-msgstr "Gösterge Paneli"
+msgstr ""
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Dashboard"
-msgstr "Gösterge Paneli"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Dashboard"
-msgstr "Gösterge Paneli"
+msgstr ""
 
 #. Name of a DocType
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -9882,7 +9882,7 @@ msgstr "İndir"
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json desk/page/backups/backups.js:4
 msgid "Download Backups"
-msgstr "Yedekleri İndir"
+msgstr ""
 
 #: templates/emails/download_data.html:6
 msgid "Download Data"
@@ -10218,7 +10218,7 @@ msgstr "Formatı Düzenle"
 
 #: public/js/frappe/form/quick_entry.js:280
 msgid "Edit Full Form"
-msgstr "Tam Sayfa Düzenle"
+msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder_field.html:26
 msgid "Edit HTML"
@@ -10540,13 +10540,13 @@ msgstr "E-posta Adresleri"
 #. Name of a DocType
 #: email/doctype/email_domain/email_domain.json
 msgid "Email Domain"
-msgstr "E-posta Etki Alanı"
+msgstr ""
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgctxt "Email Domain"
 msgid "Email Domain"
-msgstr "E-posta Etki Alanı"
+msgstr ""
 
 #. Name of a DocType
 #: email/doctype/email_flag_queue/email_flag_queue.json
@@ -11806,13 +11806,13 @@ msgstr "Özelleştirmeleri Dışarı Aktar"
 
 #: public/js/frappe/data_import/data_exporter.js:14
 msgid "Export Data"
-msgstr "Dışarı Aktar"
+msgstr ""
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgctxt "Data Export"
 msgid "Export Data"
-msgstr "Dışarı Aktar"
+msgstr ""
 
 #: core/doctype/data_import/data_import.js:86
 #: public/js/frappe/data_import/import_preview.js:195
@@ -13900,7 +13900,7 @@ msgstr "{0} Sayfasına Git"
 #: custom/doctype/doctype_layout/doctype_layout.js:42
 #: workflow/doctype/workflow/workflow.js:44
 msgid "Go to {0} List"
-msgstr "{0} Listesine Git"
+msgstr ""
 
 #: core/doctype/page/page.js:11
 msgid "Go to {0} Page"
@@ -14516,7 +14516,7 @@ msgstr "Başlık"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Heatmap"
-msgstr "Isı Haritası"
+msgstr ""
 
 #: templates/emails/new_user.html:2
 msgid "Hello"
@@ -15666,7 +15666,7 @@ msgstr ""
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "Import Type"
-msgstr "İçe Aktarma Türü"
+msgstr ""
 
 #. Label of a HTML field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
