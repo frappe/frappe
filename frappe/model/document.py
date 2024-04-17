@@ -848,7 +848,9 @@ class Document(BaseDocument):
 				self._action = "submit"
 				self.check_permission("submit")
 			elif self.docstatus.is_cancelled():
-				self.check_permission("write")
+				raise frappe.DocstatusTransitionError(
+					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
+				)
 			else:
 				raise frappe.ValidationError(_("Invalid docstatus"), self.docstatus)
 
@@ -1058,10 +1060,14 @@ class Document(BaseDocument):
 
 	@frappe.whitelist()
 	def discard(self):
-		"""Discard the draft document. Sets `docstatus` = 2, then saves."""
+		"""Discard the draft document. Sets `docstatus` = 2 with db_set."""
 		self.check_if_locked()
 		self.set_user_and_timestamp()
-		self.check_if_latest()
+
+		if not self.docstatus == DocStatus.draft():
+			raise frappe.ValidationError(_("Only draft documents can be discarded"), self.docstatus)
+
+		self.check_permission("write")
 
 		self.run_method("before_discard")
 		self.db_set("docstatus", DocStatus.cancelled())
