@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-17 09:17\n"
+"PO-Revision-Date: 2024-04-17 10:00\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -29846,7 +29846,7 @@ msgstr ""
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Slideshow"
-msgstr ""
+msgstr "Slayt Gösterisi"
 
 #. Label of a Table field in DocType 'Website Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
@@ -30881,13 +30881,13 @@ msgstr ""
 #: website/doctype/blog_settings/blog_settings.json
 msgctxt "Blog Settings"
 msgid "Subtitle"
-msgstr ""
+msgstr "Alt yazı"
 
 #. Label of a Data field in DocType 'Module Onboarding'
 #: desk/doctype/module_onboarding/module_onboarding.json
 msgctxt "Module Onboarding"
 msgid "Subtitle"
-msgstr ""
+msgstr "Alt yazı"
 
 #: core/doctype/data_import/data_import.js:470
 #: desk/doctype/bulk_update/bulk_update.js:31
