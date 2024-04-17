@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-16 11:06\n"
+"PO-Revision-Date: 2024-04-17 08:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -8476,7 +8476,7 @@ msgstr "انکار"
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Department"
-msgstr "بخش"
+msgstr "دپارتمان"
 
 #: www/attribution.html:28
 msgid "Dependencies"
@@ -8637,7 +8637,7 @@ msgstr "توضیحات برای اطلاع کاربر از هر اقدامی ک�
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Designation"
-msgstr "تعیین"
+msgstr "نقش سازمانی"
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
@@ -27676,19 +27676,19 @@ msgstr "نیروی فروش"
 #. Name of a DocType
 #: contacts/doctype/salutation/salutation.json
 msgid "Salutation"
-msgstr "سلام"
+msgstr "عنوان پیشوند"
 
 #. Label of a Link field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Salutation"
-msgstr "سلام"
+msgstr "عنوان پیشوند"
 
 #. Label of a Data field in DocType 'Salutation'
 #: contacts/doctype/salutation/salutation.json
 msgctxt "Salutation"
 msgid "Salutation"
-msgstr "سلام"
+msgstr "عنوان پیشوند"
 
 #: integrations/doctype/webhook/webhook.py:112
 msgid "Same Field is entered more than once"
