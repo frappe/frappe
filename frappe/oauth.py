@@ -11,7 +11,7 @@ from oauthlib.openid import RequestValidator
 
 import frappe
 from frappe.auth import LoginManager
-from frappe.utils.data import get_system_timezone, now_datetime
+from frappe.utils.data import cstr, get_system_timezone, now_datetime
 
 
 class OAuthWebRequestValidator(RequestValidator):
@@ -29,8 +29,10 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Is the client allowed to use the supplied redirect_uri? i.e. has
 		# the client previously registered this EXACT redirect uri.
 
-		redirect_uris = frappe.db.get_value("OAuth Client", client_id, "redirect_uris").split(
-			get_url_delimiter()
+		redirect_uris = (
+			cstr(frappe.db.get_value("OAuth Client", client_id, "redirect_uris"))
+			.strip()
+			.split(get_url_delimiter())
 		)
 
 		if redirect_uri in redirect_uris:
