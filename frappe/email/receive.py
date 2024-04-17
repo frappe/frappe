@@ -3,6 +3,7 @@
 
 import datetime
 import email
+import email.charset
 import email.utils
 import imaplib
 import json
@@ -37,6 +38,13 @@ from frappe.utils import (
 )
 from frappe.utils.html_utils import clean_email_html
 from frappe.utils.user import is_system_user
+
+# use alias charset for python unknown charset
+email.charset.ALIASES.update(
+	{
+		"windows-874": "cp874",
+	}
+)
 
 # fix due to a python bug in poplib that limits it to 2048
 poplib._MAXLINE = 1_00_000
@@ -408,11 +416,20 @@ class Email:
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
+<<<<<<< HEAD
 		if _subject[0][1]:
 			self.subject = safe_decode(self.subject, _subject[0][1])
 		else:
 			# assume that the encoding is utf-8
 			self.subject = safe_decode(self.subject)[:140]
+=======
+		charset = _subject[0][1]
+
+		if charset:
+			# Encoding is known by decode_header (might also be unknown-8bit)
+			charset = email.charset.ALIASES.get(charset, charset)
+			self.subject = safe_decode(self.subject, charset)
+>>>>>>> 69f9db6751 (fix: unknown charset windows-874 problem on incoming mail)
 
 		if not self.subject:
 			self.subject = "No Subject"
@@ -507,7 +524,7 @@ class Email:
 
 	def get_payload(self, part):
 		charset = self.get_charset(part)
-
+		charset = email.charset.ALIASES.get(charset, charset)
 		try:
 			return str(part.get_payload(decode=True), str(charset), "ignore")
 		except LookupError:
