@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-17 10:26\n"
+"PO-Revision-Date: 2024-04-17 10:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -700,7 +700,7 @@ msgstr "Accès API"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "API Access"
-msgstr "Accès API"
+msgstr ""
 
 #. Label of a Data field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
@@ -756,7 +756,7 @@ msgstr "Méthode API"
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
 msgctxt "Push Notification Settings"
 msgid "API Secret"
-msgstr "Secret API"
+msgstr ""
 
 #. Label of a Password field in DocType 'User'
 #: core/doctype/user/user.json
@@ -835,13 +835,13 @@ msgstr "Journal d&#39;accès"
 #: core/workspace/users/users.json
 msgctxt "Access Log"
 msgid "Access Log"
-msgstr "Journal d&#39;accès"
+msgstr ""
 
 #. Linked DocType in User's connections
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Access Log"
-msgstr "Journal d&#39;accès"
+msgstr ""
 
 #. Label of a Data field in DocType 'OAuth Bearer Token'
 #: integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
@@ -1074,13 +1074,13 @@ msgstr "Historique d'activité"
 #: core/workspace/build/build.json core/workspace/users/users.json
 msgctxt "Activity Log"
 msgid "Activity Log"
-msgstr "Historique d'activité"
+msgstr ""
 
 #. Linked DocType in User's connections
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Activity Log"
-msgstr "Historique d'activité"
+msgstr ""
 
 #: core/page/permission_manager/permission_manager.js:476
 #: email/doctype/email_group/email_group.js:60
@@ -1230,7 +1230,7 @@ msgstr "Ajouter une Signature"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Add Signature"
-msgstr "Ajouter une Signature"
+msgstr ""
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
@@ -1384,7 +1384,7 @@ msgstr "Autorisations supplémentaires"
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Additional Permissions"
-msgstr "Autorisations supplémentaires"
+msgstr ""
 
 #. Name of a DocType
 #: contacts/doctype/address/address.json
@@ -1448,7 +1448,7 @@ msgstr "Titre de l'Adresse"
 #: website/doctype/contact_us_settings/contact_us_settings.json
 msgctxt "Contact Us Settings"
 msgid "Address Title"
-msgstr "Titre de l'Adresse"
+msgstr ""
 
 #: contacts/doctype/address/address.py:72
 msgid "Address Title is mandatory."
@@ -1525,7 +1525,7 @@ msgstr "Avancé"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Advanced"
-msgstr "Avancé"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'User Permission'
 #: core/doctype/user_permission/user_permission.json
@@ -1606,7 +1606,7 @@ msgstr "Fonction d&#39;agrégation basée sur"
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Aggregate Function Based On"
-msgstr "Fonction d&#39;agrégation basée sur"
+msgstr ""
 
 #: desk/doctype/dashboard_chart/dashboard_chart.py:399
 msgid "Aggregate Function field is required to create a dashboard chart"
@@ -1764,7 +1764,7 @@ msgstr "Autoriser la répétition automatique"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Allow Auto Repeat"
-msgstr "Autoriser la répétition automatique"
+msgstr ""
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
@@ -1776,7 +1776,7 @@ msgstr "Autoriser la Modification en Masse"
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Allow Bulk Edit"
-msgstr "Autoriser la Modification en Masse"
+msgstr ""
 
 #. Label of a Check field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -1855,7 +1855,7 @@ msgstr "Autoriser l&#39;importation (via l&#39;outil d&#39;importation de donné
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Allow Import (via Data Import Tool)"
-msgstr "Autoriser l&#39;importation (via l&#39;outil d&#39;importation de données)"
+msgstr ""
 
 #. Label of a Check field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -1919,7 +1919,7 @@ msgstr "Autoriser l'Impression si Brouillon"
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Allow Print for Draft"
-msgstr "Autoriser l'Impression si Brouillon"
+msgstr ""
 
 #. Label of a Check field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
@@ -1944,7 +1944,7 @@ msgstr "Autoriser les Rôles"
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgctxt "Role Permission for Page and Report"
 msgid "Allow Roles"
-msgstr "Autoriser les Rôles"
+msgstr ""
 
 #. Label of a Check field in DocType 'Workflow Transition'
 #: workflow/doctype/workflow_transition/workflow_transition.json
@@ -1975,7 +1975,7 @@ msgstr "Autoriser la création de documents par e-mail"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Allow document creation via Email"
-msgstr "Autoriser la création de documents par e-mail"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -1993,13 +1993,13 @@ msgstr "Autoriser dans les entrées rapides"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Allow in Quick Entry"
-msgstr "Autoriser dans les entrées rapides"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Allow in Quick Entry"
-msgstr "Autoriser dans les entrées rapides"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -2011,13 +2011,13 @@ msgstr "Autoriser à la Validation"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Allow on Submit"
-msgstr "Autoriser à la Validation"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Allow on Submit"
-msgstr "Autoriser à la Validation"
+msgstr ""
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -2143,13 +2143,13 @@ msgstr "Nouv. version"
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Amend"
-msgstr "Nouv. version"
+msgstr ""
 
 #. Label of a Check field in DocType 'User Document Type'
 #: core/doctype/user_document_type/user_document_type.json
 msgctxt "User Document Type"
 msgid "Amend"
-msgstr "Nouv. version"
+msgstr ""
 
 #. Option for the 'Action' (Select) field in DocType 'Amended Document Naming
 #. Settings'
@@ -2163,7 +2163,7 @@ msgstr "Modifier le compteur"
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
 msgid "Amend Counter"
-msgstr "Modifier le compteur"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/amended_document_naming_settings/amended_document_naming_settings.json
@@ -2285,7 +2285,7 @@ msgstr "Application"
 #: website/doctype/website_theme_ignore_app/website_theme_ignore_app.json
 msgctxt "Website Theme Ignore App"
 msgid "App"
-msgstr "Application"
+msgstr ""
 
 #. Label of a Data field in DocType 'Dropbox Settings'
 #: integrations/doctype/dropbox_settings/dropbox_settings.json
@@ -2317,7 +2317,7 @@ msgstr "ID de l'application"
 
 #: public/js/frappe/ui/toolbar/navbar.html:9
 msgid "App Logo"
-msgstr "Logo de l'application"
+msgstr ""
 
 #. Label of a Attach Image field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -2333,25 +2333,25 @@ msgstr "Nom de l'App"
 #: desk/doctype/changelog_feed/changelog_feed.json
 msgctxt "Changelog Feed"
 msgid "App Name"
-msgstr "Nom de l'App"
+msgstr ""
 
 #. Label of a Select field in DocType 'Module Def'
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "App Name"
-msgstr "Nom de l'App"
+msgstr ""
 
 #. Label of a Data field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "App Name"
-msgstr "Nom de l'App"
+msgstr ""
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "App Name"
-msgstr "Nom de l'App"
+msgstr ""
 
 #. Label of a Password field in DocType 'Dropbox Settings'
 #: integrations/doctype/dropbox_settings/dropbox_settings.json
@@ -2377,7 +2377,7 @@ msgstr "Ajouter des e-mails au dossier envoyé"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Append Emails to Sent Folder"
-msgstr "Ajouter des e-mails au dossier envoyé"
+msgstr ""
 
 #. Label of a Link field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -2389,7 +2389,7 @@ msgstr "Ajouter A"
 #: email/doctype/imap_folder/imap_folder.json
 msgctxt "IMAP Folder"
 msgid "Append To"
-msgstr "Ajouter A"
+msgstr ""
 
 #: email/doctype/email_account/email_account.py:183
 msgid "Append To can be one of {0}"
@@ -2428,7 +2428,7 @@ msgstr "Nom de l&#39;application"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Application Name"
-msgstr "Nom de l&#39;application"
+msgstr ""
 
 #. Label of a Data field in DocType 'Installed Application'
 #: core/doctype/installed_application/installed_application.json
@@ -2498,7 +2498,7 @@ msgstr "Appliquer cette règle si l'Utilisateur est le Responsable"
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Apply this rule if the User is the Owner"
-msgstr "Appliquer cette règle si l'Utilisateur est le Responsable"
+msgstr ""
 
 #. Description of the 'Apply Only Once' (Check) field in DocType 'Energy Point
 #. Rule'
@@ -2684,7 +2684,7 @@ msgstr "Attribué"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Assigned"
-msgstr "Attribué"
+msgstr ""
 
 #: desk/report/todo/todo.py:41
 msgid "Assigned By"
@@ -2694,7 +2694,7 @@ msgstr "Attribué Par"
 #: desk/doctype/todo/todo.json
 msgctxt "ToDo"
 msgid "Assigned By"
-msgstr "Attribué Par"
+msgstr ""
 
 #. Label of a Read Only field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
@@ -2733,7 +2733,7 @@ msgstr "Affectation Terminée"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Assignment Completed"
-msgstr "Affectation Terminée"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Assignment Rule'
 #. Label of a Table field in DocType 'Assignment Rule'
@@ -2752,19 +2752,19 @@ msgstr "Règle d&#39;assignation"
 #: automation/workspace/tools/tools.json
 msgctxt "Assignment Rule"
 msgid "Assignment Rule"
-msgstr "Règle d&#39;assignation"
+msgstr ""
 
 #. Linked DocType in DocType's connections
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Assignment Rule"
-msgstr "Règle d&#39;assignation"
+msgstr ""
 
 #. Label of a Link field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
 msgctxt "ToDo"
 msgid "Assignment Rule"
-msgstr "Règle d&#39;assignation"
+msgstr ""
 
 #. Name of a DocType
 #: automation/doctype/assignment_rule_day/assignment_rule_day.json
@@ -2806,7 +2806,7 @@ msgstr "Affectations"
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "Assignments"
-msgstr "Affectations"
+msgstr ""
 
 #: public/js/frappe/form/grid_row.js:650
 msgid "At least one column is required to show in the grid."
@@ -2828,25 +2828,25 @@ msgstr "Attacher"
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Attach"
-msgstr "Attacher"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Attach"
-msgstr "Attacher"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Attach"
-msgstr "Attacher"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Attach"
-msgstr "Attacher"
+msgstr ""
 
 #: public/js/frappe/views/communication.js:143
 msgid "Attach Document Print"
@@ -2862,25 +2862,25 @@ msgstr "Joindre l'Image"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Attach Image"
-msgstr "Joindre l'Image"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Attach Image"
-msgstr "Joindre l'Image"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Attach Image"
-msgstr "Joindre l'Image"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Attach Image"
-msgstr "Joindre l'Image"
+msgstr ""
 
 #. Label of a Attach field in DocType 'Package Import'
 #: core/doctype/package_import/package_import.json
@@ -2954,7 +2954,7 @@ msgstr "Taille Maximale de la Pièce jointe (MB)"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Attachment Limit (MB)"
-msgstr "Taille Maximale de la Pièce jointe (MB)"
+msgstr ""
 
 #: core/doctype/file/file.py:320
 #: public/js/frappe/form/sidebar/attachments.js:36
@@ -2977,7 +2977,7 @@ msgstr "Pièce jointe retirée"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Attachment Removed"
-msgstr "Pièce jointe retirée"
+msgstr ""
 
 #: core/doctype/file/utils.py:37
 #: email/doctype/newsletter/templates/newsletter.html:47
@@ -3037,13 +3037,13 @@ msgstr "Authentification"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Authentication"
-msgstr "Authentification"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Push Notification Settings'
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
 msgctxt "Push Notification Settings"
 msgid "Authentication"
-msgstr "Authentification"
+msgstr ""
 
 #: www/qrcode.html:19
 msgid "Authentication Apps you can use are: "
@@ -3069,25 +3069,25 @@ msgstr "Code d'Autorisation"
 #: integrations/doctype/google_contacts/google_contacts.json
 msgctxt "Google Contacts"
 msgid "Authorization Code"
-msgstr "Code d'Autorisation"
+msgstr ""
 
 #. Label of a Data field in DocType 'Google Drive'
 #: integrations/doctype/google_drive/google_drive.json
 msgctxt "Google Drive"
 msgid "Authorization Code"
-msgstr "Code d'Autorisation"
+msgstr ""
 
 #. Label of a Data field in DocType 'OAuth Authorization Code'
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgctxt "OAuth Authorization Code"
 msgid "Authorization Code"
-msgstr "Code d'Autorisation"
+msgstr ""
 
 #. Option for the 'Grant Type' (Select) field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "Authorization Code"
-msgstr "Code d'Autorisation"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'Connected App'
 #: integrations/doctype/connected_app/connected_app.json
@@ -3152,7 +3152,7 @@ msgstr "Automatique"
 #: integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
 msgctxt "OAuth Provider Settings"
 msgid "Auto"
-msgstr "Automatique"
+msgstr ""
 
 #. Name of a DocType
 #: email/doctype/auto_email_report/auto_email_report.json
@@ -3347,13 +3347,13 @@ msgstr "Moyenne"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Average"
-msgstr "Moyenne"
+msgstr ""
 
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Average"
-msgstr "Moyenne"
+msgstr ""
 
 #: public/js/frappe/ui/group_by/group_by.js:330
 msgid "Average of {0}"
@@ -3508,7 +3508,7 @@ msgstr "Couleur d’Arrière-plan"
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Background Color"
-msgstr "Couleur d’Arrière-plan"
+msgstr ""
 
 #. Label of a Attach Image field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
@@ -3524,7 +3524,7 @@ msgstr "Travaux en Arrière-plan"
 #: core/workspace/build/build.json
 msgctxt "RQ Job"
 msgid "Background Jobs"
-msgstr "Travaux en Arrière-plan"
+msgstr ""
 
 #. Label of a Autocomplete field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -3589,7 +3589,7 @@ msgstr "Fréquence de Sauvegarde"
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgctxt "S3 Backup Settings"
 msgid "Backup Frequency"
-msgstr "Fréquence de Sauvegarde"
+msgstr ""
 
 #: desk/page/backups/backups.py:98
 msgid "Backup job is already queued. You will receive an email with the download link"
@@ -3646,7 +3646,7 @@ msgstr "Image de la bannière"
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Banner Image"
-msgstr "Image de la bannière"
+msgstr ""
 
 #. Description of the 'Banner HTML' (Code) field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -3822,13 +3822,13 @@ msgstr "Biographie"
 #: website/doctype/blogger/blogger.json
 msgctxt "Blogger"
 msgid "Bio"
-msgstr "Biographie"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Bio"
-msgstr "Biographie"
+msgstr ""
 
 #. Label of a Date field in DocType 'User'
 #: core/doctype/user/user.json
@@ -3855,7 +3855,7 @@ msgstr "Bloquer les Modules"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Block Modules"
-msgstr "Bloquer les Modules"
+msgstr ""
 
 #. Label of a Check field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -3881,13 +3881,13 @@ msgstr "Catégorie du Blog"
 #: website/workspace/website/website.json
 msgctxt "Blog Category"
 msgid "Blog Category"
-msgstr "Catégorie du Blog"
+msgstr ""
 
 #. Label of a Link field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Blog Category"
-msgstr "Catégorie du Blog"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -3910,20 +3910,20 @@ msgstr "Article de Blog"
 #: website/doctype/blog_category/blog_category.json
 msgctxt "Blog Category"
 msgid "Blog Post"
-msgstr "Article de Blog"
+msgstr ""
 
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "Blog Post"
 msgid "Blog Post"
-msgstr "Article de Blog"
+msgstr ""
 
 #. Linked DocType in Blogger's connections
 #: website/doctype/blogger/blogger.json
 msgctxt "Blogger"
 msgid "Blog Post"
-msgstr "Article de Blog"
+msgstr ""
 
 #. Name of a DocType
 #: website/doctype/blog_settings/blog_settings.json
@@ -3949,20 +3949,20 @@ msgstr "Blogueur"
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Blogger"
-msgstr "Blogueur"
+msgstr ""
 
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "Blogger"
 msgid "Blogger"
-msgstr "Blogueur"
+msgstr ""
 
 #. Linked DocType in User's connections
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Blogger"
-msgstr "Blogueur"
+msgstr ""
 
 #. Subtitle of the Module Onboarding 'Website'
 #: website/module_onboarding/website/website.json
@@ -3991,13 +3991,13 @@ msgstr "Audacieux"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Bold"
-msgstr "Audacieux"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Bold"
-msgstr "Audacieux"
+msgstr ""
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
@@ -4096,7 +4096,7 @@ msgstr "Fil d’Ariane (Breadcrumbs)"
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Breadcrumbs"
-msgstr "Fil d’Ariane (Breadcrumbs)"
+msgstr ""
 
 #: website/doctype/blog_post/templates/blog_post_list.html:18
 #: website/doctype/blog_post/templates/blog_post_list.html:21
@@ -4117,7 +4117,7 @@ msgstr "Navigateur"
 #: website/doctype/web_page_view/web_page_view.json
 msgctxt "Web Page View"
 msgid "Browser"
-msgstr "Navigateur"
+msgstr ""
 
 #. Label of a Data field in DocType 'Web Page View'
 #: website/doctype/web_page_view/web_page_view.json
@@ -4217,13 +4217,13 @@ msgstr "Bouton"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Button"
-msgstr "Bouton"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Button"
-msgstr "Bouton"
+msgstr ""
 
 #. Label of a Check field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
@@ -4418,13 +4418,13 @@ msgstr "Calendrier"
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Calendar"
-msgstr "Calendrier"
+msgstr ""
 
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Calendar"
-msgstr "Calendrier"
+msgstr ""
 
 #. Label of a Data field in DocType 'Google Calendar'
 #: integrations/doctype/google_calendar/google_calendar.json
@@ -4441,7 +4441,7 @@ msgstr "Vue du calendrier"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Calendar View"
-msgstr "Vue du calendrier"
+msgstr ""
 
 #: contacts/doctype/contact/contact.js:55
 msgid "Call"
@@ -4451,7 +4451,7 @@ msgstr "Appeler"
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Call"
-msgstr "Appeler"
+msgstr ""
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -4557,43 +4557,43 @@ msgstr "Annuler"
 #: public/js/frappe/list/list_view.js:1930
 msgctxt "Button in list view actions menu"
 msgid "Cancel"
-msgstr "Annuler"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Cancel"
-msgstr "Annuler"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Cancel"
-msgstr "Annuler"
+msgstr ""
 
 #. Option for the 'For Document Event' (Select) field in DocType 'Energy Point
 #. Rule'
 #: social/doctype/energy_point_rule/energy_point_rule.json
 msgctxt "Energy Point Rule"
 msgid "Cancel"
-msgstr "Annuler"
+msgstr ""
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Cancel"
-msgstr "Annuler"
+msgstr ""
 
 #: public/js/frappe/ui/messages.js:68
 msgctxt "Secondary button in warning dialog"
 msgid "Cancel"
-msgstr "Annuler"
+msgstr ""
 
 #. Label of a Check field in DocType 'User Document Type'
 #: core/doctype/user_document_type/user_document_type.json
 msgctxt "User Document Type"
 msgid "Cancel"
-msgstr "Annuler"
+msgstr ""
 
 #: public/js/frappe/form/form.js:955
 msgid "Cancel All"
@@ -4945,7 +4945,7 @@ msgstr "Centre"
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Center"
-msgstr "Centre"
+msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:16
 msgid "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
@@ -4969,7 +4969,7 @@ msgstr ""
 #: tests/test_translate.py:98
 msgctxt "Coins"
 msgid "Change"
-msgstr ""
+msgstr "la monnaie"
 
 #. Label of a Data field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -5041,7 +5041,7 @@ msgstr "Nom du graphique"
 #: desk/doctype/workspace_chart/workspace_chart.json
 msgctxt "Workspace Chart"
 msgid "Chart Name"
-msgstr "Nom du graphique"
+msgstr ""
 
 #. Label of a Code field in DocType 'Dashboard'
 #: desk/doctype/dashboard/dashboard.json
@@ -5053,7 +5053,7 @@ msgstr "Options de graphique"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Chart Options"
-msgstr "Options de graphique"
+msgstr ""
 
 #. Label of a Link field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -5069,7 +5069,7 @@ msgstr "Type de graphique"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Chart Type"
-msgstr "Type de graphique"
+msgstr ""
 
 #. Label of a Table field in DocType 'Dashboard'
 #: desk/doctype/dashboard/dashboard.json
@@ -5081,7 +5081,7 @@ msgstr "Graphiques"
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Charts"
-msgstr "Graphiques"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #. Option for the 'Communication Type' (Select) field in DocType
@@ -5101,37 +5101,37 @@ msgstr "Vérifier"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Check"
-msgstr "Vérifier"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Check"
-msgstr "Vérifier"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
 #: core/doctype/report_column/report_column.json
 msgctxt "Report Column"
 msgid "Check"
-msgstr "Vérifier"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Filter'
 #: core/doctype/report_filter/report_filter.json
 msgctxt "Report Filter"
 msgid "Check"
-msgstr "Vérifier"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Check"
-msgstr "Vérifier"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Check"
-msgstr "Vérifier"
+msgstr ""
 
 #: integrations/doctype/webhook/webhook.py:98
 msgid "Check Request URL"
@@ -5215,7 +5215,7 @@ msgstr "Les tables enfants sont affichées sous forme de grille dans d&#39;autre
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Child Tables are shown as a Grid in other DocTypes"
-msgstr "Les tables enfants sont affichées sous forme de grille dans d&#39;autres DocTypes"
+msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:619
 msgid "Choose Existing Card or create New Card"
@@ -5398,7 +5398,7 @@ msgstr "Identifiants du Client"
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Client Credentials"
-msgstr "Identifiants du Client"
+msgstr ""
 
 #. Label of a Data field in DocType 'Google Settings'
 #: integrations/doctype/google_settings/google_settings.json
@@ -5435,31 +5435,31 @@ msgstr "Script client"
 #: core/workspace/build/build.json
 msgctxt "Client Script"
 msgid "Client Script"
-msgstr "Script client"
+msgstr ""
 
 #. Linked DocType in DocType's connections
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Client Script"
-msgstr "Script client"
+msgstr ""
 
 #. Label of a Code field in DocType 'DocType Layout'
 #: custom/doctype/doctype_layout/doctype_layout.json
 msgctxt "DocType Layout"
 msgid "Client Script"
-msgstr "Script client"
+msgstr ""
 
 #. Linked DocType in Module Def's connections
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Client Script"
-msgstr "Script client"
+msgstr ""
 
 #. Label of a Code field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Client Script"
-msgstr "Script client"
+msgstr ""
 
 #. Label of a Password field in DocType 'Connected App'
 #: integrations/doctype/connected_app/connected_app.json
@@ -5576,7 +5576,7 @@ msgstr "Réduire"
 #: public/js/frappe/form/controls/code.js:146
 msgctxt "Shrink code field."
 msgid "Collapse"
-msgstr "Réduire"
+msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:1964
 #: public/js/frappe/views/treeview.js:110
@@ -5593,13 +5593,13 @@ msgstr "Réductible"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Collapsible"
-msgstr "Réductible"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Collapsible"
-msgstr "Réductible"
+msgstr ""
 
 #. Label of a Code field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -5611,7 +5611,7 @@ msgstr "Réductible Dépends de"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Collapsible Depends On"
-msgstr "Réductible Dépends de"
+msgstr ""
 
 #. Label of a Code field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -5735,25 +5735,25 @@ msgstr "Saut de Colonne"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Column Break"
-msgstr "Saut de Colonne"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Column Break"
-msgstr "Saut de Colonne"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Column Break"
-msgstr "Saut de Colonne"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Column Break"
-msgstr "Saut de Colonne"
+msgstr ""
 
 #: core/doctype/data_export/exporter.py:140
 msgid "Column Labels:"
@@ -5767,7 +5767,7 @@ msgstr "Nom de la Colonne"
 #: desk/doctype/kanban_board_column/kanban_board_column.json
 msgctxt "Kanban Board Column"
 msgid "Column Name"
-msgstr "Nom de la Colonne"
+msgstr ""
 
 #: desk/doctype/kanban_board/kanban_board.py:45
 msgid "Column Name cannot be empty"
@@ -5795,26 +5795,26 @@ msgstr "Colonnes"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Columns"
-msgstr "Colonnes"
+msgstr ""
 
 #. Label of a Int field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Columns"
-msgstr "Colonnes"
+msgstr ""
 
 #. Label of a Table field in DocType 'Kanban Board'
 #: desk/doctype/kanban_board/kanban_board.json
 msgctxt "Kanban Board"
 msgid "Columns"
-msgstr "Colonnes"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Report'
 #. Label of a Table field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Columns"
-msgstr "Colonnes"
+msgstr ""
 
 #. Label of a HTML Editor field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
@@ -5848,7 +5848,7 @@ msgstr "Commentaire"
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Comment"
-msgstr "Commentaire"
+msgstr ""
 
 #. Option for the 'Communication Type' (Select) field in DocType
 #. 'Communication'
@@ -5856,7 +5856,7 @@ msgstr "Commentaire"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Comment"
-msgstr "Commentaire"
+msgstr ""
 
 #. Label of a Data field in DocType 'Comment'
 #: core/doctype/comment/comment.json
@@ -5880,7 +5880,7 @@ msgstr "Type de Commentaire"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Comment Type"
-msgstr "Type de Commentaire"
+msgstr ""
 
 #: desk/form/utils.py:58
 msgid "Comment can only be edited by the owner"
@@ -6212,7 +6212,7 @@ msgstr "Confirmer"
 #: public/js/frappe/ui/messages.js:31
 msgctxt "Title of confirmation dialog"
 msgid "Confirm"
-msgstr "Confirmer"
+msgstr ""
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:92
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:100
@@ -6408,38 +6408,38 @@ msgstr "Contenu"
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Content"
-msgstr "Contenu"
+msgstr ""
 
 #. Label of a Text Editor field in DocType 'Help Article'
 #: website/doctype/help_article/help_article.json
 msgctxt "Help Article"
 msgid "Content"
-msgstr "Contenu"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Content"
-msgstr "Contenu"
+msgstr ""
 
 #. Label of a Text Editor field in DocType 'Note'
 #: desk/doctype/note/note.json
 msgctxt "Note"
 msgid "Content"
-msgstr "Contenu"
+msgstr ""
 
 #. Label of a Tab Break field in DocType 'Web Page'
 #. Label of a Section Break field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Content"
-msgstr "Contenu"
+msgstr ""
 
 #. Label of a Long Text field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Content"
-msgstr "Contenu"
+msgstr ""
 
 #. Label of a HTML Editor field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -6495,7 +6495,7 @@ msgstr "Le contexte"
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Context"
-msgstr "Le contexte"
+msgstr ""
 
 #. Label of a Code field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
@@ -6616,7 +6616,7 @@ msgstr "Filtre de comptage"
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Count Filter"
-msgstr "Filtre de comptage"
+msgstr ""
 
 #. Label of a Int field in DocType 'Document Naming Rule'
 #: core/doctype/document_naming_rule/document_naming_rule.json
@@ -6759,7 +6759,7 @@ msgstr "Créer Nouveau(elle)"
 #: public/js/frappe/list/list_view.js:486
 msgctxt "Create a new document from list view"
 msgid "Create New"
-msgstr "Créer Nouveau(elle)"
+msgstr ""
 
 #: core/doctype/doctype/doctype_list.js:83
 msgid "Create New DocType"
@@ -6828,7 +6828,7 @@ msgstr ""
 
 #: public/js/frappe/views/file/file_view.js:318
 msgid "Created"
-msgstr "Créé"
+msgstr ""
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
@@ -6840,7 +6840,7 @@ msgstr "Créé"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Created"
-msgstr "Créé"
+msgstr ""
 
 #. Label of a Datetime field in DocType 'Submission Queue'
 #: core/doctype/submission_queue/submission_queue.json
@@ -6900,7 +6900,7 @@ msgstr "Format Cron"
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "Cron Format"
-msgstr "Format Cron"
+msgstr ""
 
 #: core/doctype/scheduled_job_type/scheduled_job_type.py:60
 msgid "Cron format is required for job types with Cron frequency."
@@ -7115,7 +7115,7 @@ msgstr "CSS Personnalisé"
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Custom CSS"
-msgstr "CSS Personnalisé"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
@@ -7156,19 +7156,19 @@ msgstr "Champ Personnalisé"
 #: core/workspace/build/build.json
 msgctxt "Custom Field"
 msgid "Custom Field"
-msgstr "Champ Personnalisé"
+msgstr ""
 
 #. Linked DocType in DocType's connections
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Custom Field"
-msgstr "Champ Personnalisé"
+msgstr ""
 
 #. Linked DocType in Module Def's connections
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Custom Field"
-msgstr "Champ Personnalisé"
+msgstr ""
 
 #: custom/doctype/custom_field/custom_field.py:217
 msgid "Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account."
@@ -7323,19 +7323,19 @@ msgstr "Personnalisation"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Customization"
-msgstr "Personnalisation"
+msgstr ""
 
 #. Group in Module Def's connections
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Customization"
-msgstr "Personnalisation"
+msgstr ""
 
 #. Label of a Tab Break field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Customization"
-msgstr "Personnalisation"
+msgstr ""
 
 #. Success message of the Module Onboarding 'Customization'
 #: custom/module_onboarding/customization/customization.json
@@ -7364,7 +7364,7 @@ msgstr "Personnaliser"
 #: public/js/frappe/list/list_view.js:1705
 msgctxt "Button in list view menu"
 msgid "Customize"
-msgstr "Personnaliser"
+msgstr ""
 
 #: custom/doctype/customize_form/customize_form.js:89
 msgid "Customize Child Table"
@@ -7386,7 +7386,7 @@ msgstr "Personnaliser le formulaire"
 #: core/workspace/build/build.json
 msgctxt "Customize Form"
 msgid "Customize Form"
-msgstr "Personnaliser le formulaire"
+msgstr ""
 
 #: custom/doctype/customize_form/customize_form.js:100
 msgid "Customize Form - {0}"
@@ -7616,7 +7616,7 @@ msgstr "Tableau de bord - indicateur"
 #: core/workspace/build/build.json
 msgctxt "Dashboard Chart"
 msgid "Dashboard Chart"
-msgstr "Tableau de bord - indicateur"
+msgstr ""
 
 #. Name of a DocType
 #: desk/doctype/dashboard_chart_field/dashboard_chart_field.json
@@ -7666,73 +7666,73 @@ msgstr "Données"
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Label of a Code field in DocType 'Deleted Document'
 #: core/doctype/deleted_document/deleted_document.json
 msgctxt "Deleted Document"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
 #: core/doctype/report_column/report_column.json
 msgctxt "Report Column"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Filter'
 #: core/doctype/report_filter/report_filter.json
 msgctxt "Report Filter"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Label of a Long Text field in DocType 'Transaction Log'
 #: core/doctype/transaction_log/transaction_log.json
 msgctxt "Transaction Log"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Label of a Code field in DocType 'Version'
 #: core/doctype/version/version.json
 msgctxt "Version"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Label of a Table field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #. Label of a Code field in DocType 'Webhook Request Log'
 #: integrations/doctype/webhook_request_log/webhook_request_log.json
 msgctxt "Webhook Request Log"
 msgid "Data"
-msgstr "Données"
+msgstr ""
 
 #: public/js/frappe/form/controls/data.js:58
 msgid "Data Clipped"
@@ -7752,7 +7752,7 @@ msgstr "Importation de données"
 #: core/doctype/data_import_log/data_import_log.json
 msgctxt "Data Import Log"
 msgid "Data Import"
-msgstr "Importation de données"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/data_import_log/data_import_log.json
@@ -7863,7 +7863,7 @@ msgstr "Format de Date"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Date Format"
-msgstr "Format de Date"
+msgstr ""
 
 #: desk/page/leaderboard/leaderboard.js:165
 msgid "Date Range"
@@ -7893,31 +7893,31 @@ msgstr "Date/Heure"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Datetime"
-msgstr "Date/Heure"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Datetime"
-msgstr "Date/Heure"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
 #: core/doctype/report_column/report_column.json
 msgctxt "Report Column"
 msgid "Datetime"
-msgstr "Date/Heure"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Filter'
 #: core/doctype/report_filter/report_filter.json
 msgctxt "Report Filter"
 msgid "Datetime"
-msgstr "Date/Heure"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Datetime"
-msgstr "Date/Heure"
+msgstr ""
 
 #: public/js/frappe/views/calendar/calendar.js:271
 msgid "Day"
@@ -8054,7 +8054,7 @@ msgstr "Entrant par Défaut"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Default Incoming"
-msgstr "Entrant par Défaut"
+msgstr ""
 
 #. Label of a Check field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
@@ -8084,7 +8084,7 @@ msgstr "Sortant par Défaut"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Default Outgoing"
-msgstr "Sortant par Défaut"
+msgstr ""
 
 #. Label of a Data field in DocType 'Portal Settings'
 #: website/doctype/portal_settings/portal_settings.json
@@ -8102,7 +8102,7 @@ msgstr "Format d'Impression par Défaut"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Default Print Format"
-msgstr "Format d'Impression par Défaut"
+msgstr ""
 
 #. Label of a Link field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
@@ -8335,21 +8335,21 @@ msgstr "Supprimé"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Deleted"
-msgstr "Supprimé"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgctxt "Personal Data Deletion Request"
 msgid "Deleted"
-msgstr "Supprimé"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Step'
 #: website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgctxt "Personal Data Deletion Step"
 msgid "Deleted"
-msgstr "Supprimé"
+msgstr ""
 
 #. Label of a Data field in DocType 'Deleted Document'
 #: core/doctype/deleted_document/deleted_document.json
@@ -8434,7 +8434,7 @@ msgstr "Dépend De"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Depends On"
-msgstr "Dépend De"
+msgstr ""
 
 #: public/js/frappe/ui/filters/filter.js:32
 msgid "Descendants Of"
@@ -8862,7 +8862,7 @@ msgstr "Ignorer"
 #: website/doctype/web_form/templates/web_form.html:41
 msgctxt "Button in web form"
 msgid "Discard"
-msgstr "Ignorer"
+msgstr ""
 
 #: public/js/frappe/web_form/web_form.js:184
 msgid "Discard?"
@@ -8887,7 +8887,7 @@ msgstr "Rejeter"
 #: public/js/frappe/widgets/onboarding_widget.js:577
 msgctxt "Stop showing the onboarding widget."
 msgid "Dismiss"
-msgstr "Rejeter"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
@@ -8899,7 +8899,7 @@ msgstr "Afficher"
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Display"
-msgstr "Afficher"
+msgstr ""
 
 #. Label of a Code field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
@@ -9095,7 +9095,7 @@ msgstr "Action DocType"
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
 msgid "DocType Action"
-msgstr "Action DocType"
+msgstr ""
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #. Label of a Select field in DocType 'Server Script'
@@ -9123,7 +9123,7 @@ msgstr "Lien DocType"
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
 msgid "DocType Link"
-msgstr "Lien DocType"
+msgstr ""
 
 #: core/doctype/doctype/doctype_list.js:10
 msgid "DocType Name"
@@ -9269,7 +9269,7 @@ msgstr "Document Suivre"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Document Follow"
-msgstr "Document Suivre"
+msgstr ""
 
 #: desk/form/document_follow.py:84
 msgid "Document Follow Notification"
@@ -9422,13 +9422,13 @@ msgstr "États du Document"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Document States"
-msgstr "États du Document"
+msgstr ""
 
 #. Label of a Table field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Document States"
-msgstr "États du Document"
+msgstr ""
 
 #: model/meta.py:46 public/js/frappe/model/meta.js:199
 #: public/js/frappe/model/model.js:137
@@ -9680,7 +9680,7 @@ msgstr "URL de la documentation"
 #: desk/doctype/module_onboarding/module_onboarding.json
 msgctxt "Module Onboarding"
 msgid "Documentation URL"
-msgstr "URL de la documentation"
+msgstr ""
 
 #: public/js/frappe/form/templates/form_dashboard.html:17
 msgid "Documents"
@@ -9759,7 +9759,7 @@ msgstr "Ne pas Remplacer le Statut"
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Don't Override Status"
-msgstr "Ne pas Remplacer le Statut"
+msgstr ""
 
 #. Label of a Check field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -9881,7 +9881,7 @@ msgstr "Paramètres Dropbox"
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Dropbox Settings"
 msgid "Dropbox Settings"
-msgstr "Paramètres Dropbox"
+msgstr ""
 
 #: integrations/doctype/dropbox_settings/dropbox_settings.py:347
 msgid "Dropbox Setup"
@@ -9995,7 +9995,7 @@ msgstr "Filtres dynamiques JSON"
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Dynamic Filters JSON"
-msgstr "Filtres dynamiques JSON"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
@@ -10012,31 +10012,31 @@ msgstr "Lien Dynamique"
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Dynamic Link"
-msgstr "Lien Dynamique"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Dynamic Link"
-msgstr "Lien Dynamique"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Dynamic Link"
-msgstr "Lien Dynamique"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
 #: core/doctype/report_column/report_column.json
 msgctxt "Report Column"
 msgid "Dynamic Link"
-msgstr "Lien Dynamique"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Filter'
 #: core/doctype/report_filter/report_filter.json
 msgctxt "Report Filter"
 msgid "Dynamic Link"
-msgstr "Lien Dynamique"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
@@ -10120,7 +10120,7 @@ msgstr "Modifier le DocType"
 #: public/js/frappe/list/list_view.js:1732
 msgctxt "Button in list view menu"
 msgid "Edit DocType"
-msgstr "Modifier le DocType"
+msgstr ""
 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:42
 #: workflow/page/workflow_builder/workflow_builder.js:42
@@ -10174,13 +10174,13 @@ msgstr "Modifier les valeurs"
 #: website/doctype/web_page_block/web_page_block.json
 msgctxt "Web Page Block"
 msgid "Edit Values"
-msgstr "Modifier les valeurs"
+msgstr ""
 
 #. Label of a Button field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Edit Values"
-msgstr "Modifier les valeurs"
+msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:814
 msgid "Edit Workspace"
@@ -10215,13 +10215,13 @@ msgstr "Grille Éditable"
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Editable Grid"
-msgstr "Grille Éditable"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Editable Grid"
-msgstr "Grille Éditable"
+msgstr ""
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "Editing Row"
@@ -10433,7 +10433,7 @@ msgstr "Adresse Email"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Email Addresses"
-msgstr "Adresse Email"
+msgstr ""
 
 #. Name of a DocType
 #: email/doctype/email_domain/email_domain.json
@@ -10489,7 +10489,7 @@ msgstr "Membre du Groupe Email"
 #: email/doctype/email_group/email_group.json
 msgctxt "Email Group"
 msgid "Email Group Member"
-msgstr "Membre du Groupe Email"
+msgstr ""
 
 #. Label of a Data field in DocType 'Contact Email'
 #: contacts/doctype/contact_email/contact_email.json
@@ -10501,13 +10501,13 @@ msgstr "Identifiant Email"
 #: email/doctype/email_rule/email_rule.json
 msgctxt "Email Rule"
 msgid "Email ID"
-msgstr "Identifiant Email"
+msgstr ""
 
 #. Label of a Data field in DocType 'User Email'
 #: core/doctype/user_email/user_email.json
 msgctxt "User Email"
 msgid "Email ID"
-msgstr "Identifiant Email"
+msgstr ""
 
 #. Label of a Table field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
@@ -10694,19 +10694,19 @@ msgstr "Activer"
 #: integrations/doctype/google_contacts/google_contacts.json
 msgctxt "Google Contacts"
 msgid "Enable"
-msgstr "Activer"
+msgstr ""
 
 #. Label of a Check field in DocType 'Google Drive'
 #: integrations/doctype/google_drive/google_drive.json
 msgctxt "Google Drive"
 msgid "Enable"
-msgstr "Activer"
+msgstr ""
 
 #. Label of a Check field in DocType 'Google Settings'
 #: integrations/doctype/google_settings/google_settings.json
 msgctxt "Google Settings"
 msgid "Enable"
-msgstr "Activer"
+msgstr ""
 
 #: automation/doctype/auto_repeat/auto_repeat.py:117
 msgid "Enable Allow Auto Repeat for the doctype {0} in Customize Form"
@@ -10768,7 +10768,7 @@ msgstr "Activer Entrant"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Enable Incoming"
-msgstr "Activer Entrant"
+msgstr ""
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -10784,13 +10784,13 @@ msgstr "Activer Sortant"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Enable Outgoing"
-msgstr "Activer Sortant"
+msgstr ""
 
 #. Label of a Check field in DocType 'User Email'
 #: core/doctype/user_email/user_email.json
 msgctxt "User Email"
 msgid "Enable Outgoing"
-msgstr "Activer Sortant"
+msgstr ""
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -10872,7 +10872,7 @@ msgstr "Autoriser l'Authentification à Double Facteurs"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Enable Two Factor Auth"
-msgstr "Autoriser l'Authentification à Double Facteurs"
+msgstr ""
 
 #. Title of an Onboarding Step
 #: website/onboarding_step/enable_website_tracking/enable_website_tracking.json
@@ -11131,7 +11131,7 @@ msgstr "Journal Energy Point"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Energy Point Log"
-msgstr "Journal Energy Point"
+msgstr ""
 
 #. Name of a DocType
 #: social/doctype/energy_point_rule/energy_point_rule.json
@@ -11142,7 +11142,7 @@ msgstr "Règle de point d&#39;énergie"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Energy Point Rule"
-msgstr "Règle de point d&#39;énergie"
+msgstr ""
 
 #. Name of a DocType
 #: social/doctype/energy_point_settings/energy_point_settings.json
@@ -11163,7 +11163,7 @@ msgstr "Points d&#39;énergie"
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "Energy Points"
-msgstr "Points d&#39;énergie"
+msgstr ""
 
 #. Label of a Data field in DocType 'Submission Queue'
 #: core/doctype/submission_queue/submission_queue.json
@@ -11392,13 +11392,13 @@ msgstr "Événement"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Event"
-msgstr "Événement"
+msgstr ""
 
 #. Option for the 'Event Category' (Select) field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Event"
-msgstr "Événement"
+msgstr ""
 
 #. Label of a Select field in DocType 'Event'
 #: desk/doctype/event/event.json
@@ -11421,7 +11421,7 @@ msgstr "Participants à l&#39;événement"
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Event Participants"
-msgstr "Participants à l&#39;événement"
+msgstr ""
 
 #. Label of a Check field in DocType 'Notification Settings'
 #: desk/doctype/notification_settings/notification_settings.json
@@ -11444,7 +11444,7 @@ msgstr "Type d'Événement"
 #: core/doctype/recorder/recorder.json
 msgctxt "Recorder"
 msgid "Event Type"
-msgstr "Type d'Événement"
+msgstr ""
 
 #: public/js/frappe/ui/notifications/notifications.js:56
 msgid "Events"
@@ -11462,7 +11462,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/set_sharing.html:11
 msgid "Everyone"
-msgstr "Tout le monde"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocShare'
 #: core/doctype/docshare/docshare.json
@@ -11559,7 +11559,7 @@ msgstr "Exécuter"
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "Execute"
-msgstr "Exécuter"
+msgstr ""
 
 #: desk/doctype/system_console/system_console.js:10
 msgid "Execute Console script"
@@ -11586,7 +11586,7 @@ msgstr "Développer"
 #: public/js/frappe/form/controls/code.js:147
 msgctxt "Enlarge code field."
 msgid "Expand"
-msgstr "Développer"
+msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:1964
 #: public/js/frappe/views/treeview.js:114
@@ -11613,7 +11613,7 @@ msgstr "Date d'Expiration"
 #: integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 msgctxt "OAuth Bearer Token"
 msgid "Expiration time"
-msgstr "Date d'Expiration"
+msgstr ""
 
 #. Label of a Date field in DocType 'Note'
 #: desk/doctype/note/note.json
@@ -11637,7 +11637,7 @@ msgstr "Expire Dans"
 #: integrations/doctype/token_cache/token_cache.json
 msgctxt "Token Cache"
 msgid "Expires In"
-msgstr "Expire Dans"
+msgstr ""
 
 #. Label of a Date field in DocType 'Document Share Key'
 #: core/doctype/document_share_key/document_share_key.json
@@ -11662,19 +11662,19 @@ msgstr "Exporter"
 #: public/js/frappe/list/list_view.js:2006
 msgctxt "Button in list view actions menu"
 msgid "Export"
-msgstr "Exporter"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Export"
-msgstr "Exporter"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Export"
-msgstr "Exporter"
+msgstr ""
 
 #: public/js/frappe/data_import/data_exporter.js:244
 msgid "Export 1 record"
@@ -11936,7 +11936,7 @@ msgstr "En vedette"
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Featured"
-msgstr "En vedette"
+msgstr ""
 
 #: public/js/frappe/form/templates/form_sidebar.html:33
 msgid "Feedback"
@@ -11966,13 +11966,13 @@ msgstr "Récupérer depuis le champ"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Fetch From"
-msgstr "Récupérer depuis le champ"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Fetch From"
-msgstr "Récupérer depuis le champ"
+msgstr ""
 
 #: website/doctype/website_slideshow/website_slideshow.js:15
 msgid "Fetch Images"
@@ -12100,7 +12100,7 @@ msgstr "Champ à vérifier"
 
 #: templates/form_grid/fields.html:40
 msgid "Field Type"
-msgstr "Type de Champ"
+msgstr ""
 
 #. Label of a Select field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -12341,13 +12341,13 @@ msgstr "Fichier"
 #: automation/workspace/tools/tools.json
 msgctxt "File"
 msgid "File"
-msgstr "Fichier"
+msgstr ""
 
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "File"
-msgstr "Fichier"
+msgstr ""
 
 #: core/doctype/file/utils.py:128
 msgid "File '{0}' not found"
@@ -12363,7 +12363,7 @@ msgstr "Sauvegarde de fichier"
 #: integrations/doctype/google_drive/google_drive.json
 msgctxt "Google Drive"
 msgid "File Backup"
-msgstr "Sauvegarde de fichier"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
@@ -12395,19 +12395,19 @@ msgstr "Type de fichier"
 #: core/doctype/access_log/access_log.json
 msgctxt "Access Log"
 msgid "File Type"
-msgstr "Type de fichier"
+msgstr ""
 
 #. Label of a Select field in DocType 'Data Export'
 #: core/doctype/data_export/data_export.json
 msgctxt "Data Export"
 msgid "File Type"
-msgstr "Type de fichier"
+msgstr ""
 
 #. Label of a Data field in DocType 'File'
 #: core/doctype/file/file.json
 msgctxt "File"
 msgid "File Type"
-msgstr "Type de fichier"
+msgstr ""
 
 #. Label of a Code field in DocType 'File'
 #: core/doctype/file/file.json
@@ -12454,7 +12454,7 @@ msgstr "Fichiers"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Files"
-msgstr "Fichiers"
+msgstr ""
 
 #: core/doctype/prepared_report/prepared_report.js:8
 #: desk/doctype/dashboard_chart/dashboard_chart.js:305
@@ -12498,7 +12498,7 @@ msgstr "Nom du filtre"
 #: desk/doctype/list_filter/list_filter.json
 msgctxt "List Filter"
 msgid "Filter Name"
-msgstr "Nom du filtre"
+msgstr ""
 
 #. Label of a HTML field in DocType 'Prepared Report'
 #: core/doctype/prepared_report/prepared_report.json
@@ -12605,7 +12605,7 @@ msgstr "Filtres JSON"
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Filters JSON"
-msgstr "Filtres JSON"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
@@ -12714,31 +12714,31 @@ msgstr "Nombre Réel"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Float"
-msgstr "Nombre Réel"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Float"
-msgstr "Nombre Réel"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
 #: core/doctype/report_column/report_column.json
 msgctxt "Report Column"
 msgid "Float"
-msgstr "Nombre Réel"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Filter'
 #: core/doctype/report_filter/report_filter.json
 msgctxt "Report Filter"
 msgid "Float"
-msgstr "Nombre Réel"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Float"
-msgstr "Nombre Réel"
+msgstr ""
 
 #. Label of a Select field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -12756,25 +12756,25 @@ msgstr "Pli"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Fold"
-msgstr "Pli"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Fold"
-msgstr "Pli"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Column'
 #: core/doctype/report_column/report_column.json
 msgctxt "Report Column"
 msgid "Fold"
-msgstr "Pli"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Report Filter'
 #: core/doctype/report_filter/report_filter.json
 msgctxt "Report Filter"
 msgid "Fold"
-msgstr "Pli"
+msgstr ""
 
 #: core/doctype/doctype/doctype.py:1411
 msgid "Fold can not be at the end of the form"
@@ -12865,13 +12865,13 @@ msgstr "Taille de la Police"
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Font Size"
-msgstr "Taille de la Police"
+msgstr ""
 
 #. Label of a Data field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Font Size"
-msgstr "Taille de la Police"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -12889,25 +12889,25 @@ msgstr "Pied de Page"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Footer"
-msgstr "Pied de Page"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Footer"
-msgstr "Pied de Page"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #: website/doctype/web_template/web_template.json
 msgctxt "Web Template"
 msgid "Footer"
-msgstr "Pied de Page"
+msgstr ""
 
 #. Label of a Tab Break field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Footer"
-msgstr "Pied de Page"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -13035,19 +13035,19 @@ msgstr "Pour l\\'Utilisateur"
 #: desk/doctype/list_filter/list_filter.json
 msgctxt "List Filter"
 msgid "For User"
-msgstr "Pour l\\'Utilisateur"
+msgstr ""
 
 #. Label of a Link field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
 msgctxt "Notification Log"
 msgid "For User"
-msgstr "Pour l\\'Utilisateur"
+msgstr ""
 
 #. Label of a Data field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "For User"
-msgstr "Pour l\\'Utilisateur"
+msgstr ""
 
 #. Label of a Dynamic Link field in DocType 'User Permission'
 #: core/doctype/user_permission/user_permission.json
@@ -13117,7 +13117,7 @@ msgstr "Forcer"
 #: core/doctype/package_import/package_import.json
 msgctxt "Package Import"
 msgid "Force"
-msgstr "Forcer"
+msgstr ""
 
 #. Label of a Check field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -13219,13 +13219,13 @@ msgstr "Paramètres de formulaire"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Form Settings"
-msgstr "Paramètres de formulaire"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Role'
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Form Settings"
-msgstr "Paramètres de formulaire"
+msgstr ""
 
 #. Name of a DocType
 #: desk/doctype/form_tour/form_tour.json
@@ -13505,7 +13505,7 @@ msgstr "Une fonction"
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Function"
-msgstr "Une fonction"
+msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:678
 msgid "Function Based On"
@@ -13618,13 +13618,13 @@ msgstr "Géolocalisation"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Geolocation"
-msgstr "Géolocalisation"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Geolocation"
-msgstr "Géolocalisation"
+msgstr ""
 
 #: email/doctype/notification/notification.js:170
 msgid "Get Alerts for Today"
@@ -13826,7 +13826,7 @@ msgstr "Google Agenda"
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Google Calendar"
-msgstr "Google Agenda"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Google Calendar'
 #. Label of a Link in the Integrations Workspace
@@ -13834,7 +13834,7 @@ msgstr "Google Agenda"
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Google Calendar"
 msgid "Google Calendar"
-msgstr "Google Agenda"
+msgstr ""
 
 #: integrations/doctype/google_calendar/google_calendar.py:784
 msgid "Google Calendar - Contact / email not found. Did not add attendee for -<br>{0}"
@@ -13880,7 +13880,7 @@ msgstr "Identifiant Google Agenda"
 #: integrations/doctype/google_calendar/google_calendar.json
 msgctxt "Google Calendar"
 msgid "Google Calendar ID"
-msgstr "Identifiant Google Agenda"
+msgstr ""
 
 #: integrations/doctype/google_calendar/google_calendar.py:167
 msgid "Google Calendar has been configured."
@@ -13993,7 +13993,7 @@ msgstr "Paramètres Google"
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Google Settings"
 msgid "Google Settings"
-msgstr "Paramètres Google"
+msgstr ""
 
 #: utils/csvutils.py:201
 msgid "Google Sheets URL is invalid or not publicly accessible."
@@ -14213,13 +14213,13 @@ msgstr "Éditeur HTML"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "HTML Editor"
-msgstr "Éditeur HTML"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "HTML Editor"
-msgstr "Éditeur HTML"
+msgstr ""
 
 #. Label of a HTML Editor field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
@@ -14301,19 +14301,19 @@ msgstr "En-Tête"
 #: core/doctype/sms_parameter/sms_parameter.json
 msgctxt "SMS Parameter"
 msgid "Header"
-msgstr "En-Tête"
+msgstr ""
 
 #. Label of a HTML Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Header"
-msgstr "En-Tête"
+msgstr ""
 
 #. Label of a HTML Editor field in DocType 'Website Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
 msgctxt "Website Slideshow"
 msgid "Header"
-msgstr "En-Tête"
+msgstr ""
 
 #. Label of a HTML Editor field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
@@ -14357,7 +14357,7 @@ msgstr "En-Têtes"
 #: integrations/doctype/webhook_request_log/webhook_request_log.json
 msgctxt "Webhook Request Log"
 msgid "Headers"
-msgstr "En-Têtes"
+msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:602
 msgid "Heading"
@@ -14367,31 +14367,31 @@ msgstr "Titre"
 #: website/doctype/contact_us_settings/contact_us_settings.json
 msgctxt "Contact Us Settings"
 msgid "Heading"
-msgstr "Titre"
+msgstr ""
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Heading"
-msgstr "Titre"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Heading"
-msgstr "Titre"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Heading"
-msgstr "Titre"
+msgstr ""
 
 #. Label of a Data field in DocType 'Website Slideshow Item'
 #: website/doctype/website_slideshow_item/website_slideshow_item.json
 msgctxt "Website Slideshow Item"
 msgid "Heading"
-msgstr "Titre"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -14430,7 +14430,7 @@ msgstr "Article d’Aide"
 #: website/workspace/website/website.json
 msgctxt "Help Article"
 msgid "Help Article"
-msgstr "Article d’Aide"
+msgstr ""
 
 #. Label of a Int field in DocType 'Help Category'
 #: website/doctype/help_category/help_category.json
@@ -14447,11 +14447,11 @@ msgstr "Catégorie d’Aide"
 #: website/workspace/website/website.json
 msgctxt "Help Category"
 msgid "Help Category"
-msgstr "Catégorie d’Aide"
+msgstr ""
 
 #: public/js/frappe/ui/toolbar/navbar.html:85
 msgid "Help Dropdown"
-msgstr "Aide déroulante"
+msgstr ""
 
 #. Label of a Table field in DocType 'Navbar Settings'
 #: core/doctype/navbar_settings/navbar_settings.json
@@ -14503,7 +14503,7 @@ msgstr "Bonjour {0}"
 
 #: printing/page/print_format_builder/print_format_builder_field.html:3
 msgid "Hidden"
-msgstr "Caché"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -14515,49 +14515,49 @@ msgstr "Caché"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Hidden"
-msgstr "Caché"
+msgstr ""
 
 #. Label of a Check field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Hidden"
-msgstr "Caché"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Hidden"
-msgstr "Caché"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocType Action'
 #: core/doctype/doctype_action/doctype_action.json
 msgctxt "DocType Action"
 msgid "Hidden"
-msgstr "Caché"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocType Link'
 #: core/doctype/doctype_link/doctype_link.json
 msgctxt "DocType Link"
 msgid "Hidden"
-msgstr "Caché"
+msgstr ""
 
 #. Label of a Check field in DocType 'Navbar Item'
 #: core/doctype/navbar_item/navbar_item.json
 msgctxt "Navbar Item"
 msgid "Hidden"
-msgstr "Caché"
+msgstr ""
 
 #. Label of a Check field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Hidden"
-msgstr "Caché"
+msgstr ""
 
 #. Label of a Check field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Hidden"
-msgstr "Caché"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -14576,7 +14576,7 @@ msgstr "Cacher"
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
 msgid "Hide"
-msgstr "Cacher"
+msgstr ""
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
@@ -14594,13 +14594,13 @@ msgstr "Masquer la bordure"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Hide Border"
-msgstr "Masquer la bordure"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Hide Border"
-msgstr "Masquer la bordure"
+msgstr ""
 
 #. Label of a Check field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -14624,7 +14624,7 @@ msgstr "Masquer la Copie"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Hide Copy"
-msgstr "Masquer la Copie"
+msgstr ""
 
 #. Label of a Check field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -14642,13 +14642,13 @@ msgstr "Masquer les jours"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Hide Days"
-msgstr "Masquer les jours"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Hide Days"
-msgstr "Masquer les jours"
+msgstr ""
 
 #: core/doctype/user_permission/user_permission_list.js:96
 msgid "Hide Descendants"
@@ -14695,13 +14695,13 @@ msgstr "Masquer les secondes"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Hide Seconds"
-msgstr "Masquer les secondes"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Hide Seconds"
-msgstr "Masquer les secondes"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -14804,7 +14804,7 @@ msgstr "Page d’Accueil"
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Home Page"
-msgstr "Page d’Accueil"
+msgstr ""
 
 #. Label of a Code field in DocType 'User'
 #: core/doctype/user/user.json
@@ -14853,7 +14853,7 @@ msgstr "Toutes les heures"
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "Hourly Long"
-msgstr "Toutes les heures"
+msgstr ""
 
 #. Description of the 'Password Reset Link Generation Limit' (Int) field in
 #. DocType 'System Settings'
@@ -14912,13 +14912,13 @@ msgstr "Dossier IMAP à récupérer"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "IMAP Folder"
-msgstr "Dossier IMAP à récupérer"
+msgstr ""
 
 #. Label of a Table field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "IMAP Folder"
-msgstr "Dossier IMAP à récupérer"
+msgstr ""
 
 #. Label of a Data field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
@@ -14942,61 +14942,61 @@ msgstr "Icône"
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Icon"
-msgstr "Icône"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Icon"
-msgstr "Icône"
+msgstr ""
 
 #. Label of a Data field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Icon"
-msgstr "Icône"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Icon"
-msgstr "Icône"
+msgstr ""
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Icon"
-msgstr "Icône"
+msgstr ""
 
 #. Label of a Data field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Icon"
-msgstr "Icône"
+msgstr ""
 
 #. Label of a Select field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "Icon"
-msgstr "Icône"
+msgstr ""
 
 #. Label of a Icon field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Icon"
-msgstr "Icône"
+msgstr ""
 
 #. Label of a Data field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Icon"
-msgstr "Icône"
+msgstr ""
 
 #. Label of a Data field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Icon"
-msgstr "Icône"
+msgstr ""
 
 #. Description of the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -15035,7 +15035,7 @@ msgstr "Si Cochée le statut du flux de travail ne remplacera pas le statut de l
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "If Checked workflow status will not override status in list view"
-msgstr "Si Cochée le statut du flux de travail ne remplacera pas le statut de la vue en liste"
+msgstr ""
 
 #: core/doctype/doctype/doctype.py:1712 public/js/frappe/roles_editor.js:65
 msgid "If Owner"
@@ -15159,7 +15159,7 @@ msgstr "Si port non standard (par exemple, POP3: 995/110, IMAP: 993/143)"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "If non-standard port (e.g. POP3: 995/110, IMAP: 993/143)"
-msgstr "Si port non standard (par exemple, POP3: 995/110, IMAP: 993/143)"
+msgstr ""
 
 #. Description of the 'Currency Precision' (Select) field in DocType 'System
 #. Settings'
@@ -15221,7 +15221,7 @@ msgstr "Si l'utilisateur est le responsable"
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "If user is the owner"
-msgstr "Si l'utilisateur est le responsable"
+msgstr ""
 
 #: core/doctype/data_export/exporter.py:204
 msgid "If you are updating, please select \"Overwrite\" else existing rows will not be deleted."
@@ -15269,13 +15269,13 @@ msgstr "Ignorer les Autorisations des Utilisateurs"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Ignore User Permissions"
-msgstr "Ignorer les Autorisations des Utilisateurs"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Ignore User Permissions"
-msgstr "Ignorer les Autorisations des Utilisateurs"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -15287,13 +15287,13 @@ msgstr "Ignorer le Filtre XSS"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Ignore XSS Filter"
-msgstr "Ignorer le Filtre XSS"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Ignore XSS Filter"
-msgstr "Ignorer le Filtre XSS"
+msgstr ""
 
 #. Description of the 'Attachment Limit (MB)' (Int) field in DocType 'Email
 #. Account'
@@ -15307,7 +15307,7 @@ msgstr "Ignorer les pièces jointes supérieures à cette taille"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Ignore attachments over this size"
-msgstr "Ignorer les pièces jointes supérieures à cette taille"
+msgstr ""
 
 #. Label of a Table field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
@@ -15392,7 +15392,7 @@ msgstr "Champ d'Image"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Image Field"
-msgstr "Champ d'Image"
+msgstr ""
 
 #. Label of a Float field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
@@ -15608,7 +15608,7 @@ msgstr "Dans le Filtre"
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "In Filter"
-msgstr "Dans le Filtre"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -15620,13 +15620,13 @@ msgstr "Dans la Recherche Globale"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "In Global Search"
-msgstr "Dans la Recherche Globale"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "In Global Search"
-msgstr "Dans la Recherche Globale"
+msgstr ""
 
 #: core/doctype/doctype/doctype.js:96
 msgid "In Grid View"
@@ -15646,19 +15646,19 @@ msgstr "En Vue en Liste"
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "In List View"
-msgstr "En Vue en Liste"
+msgstr ""
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "In List View"
-msgstr "En Vue en Liste"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "In List View"
-msgstr "En Vue en Liste"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -15670,13 +15670,13 @@ msgstr "En aperçu"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "In Preview"
-msgstr "En aperçu"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "In Preview"
-msgstr "En aperçu"
+msgstr ""
 
 #: core/doctype/data_import/data_import.js:42
 msgid "In Progress"
@@ -15702,7 +15702,7 @@ msgstr "Dans Filtre Standard"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "In Standard Filter"
-msgstr "Dans Filtre Standard"
+msgstr ""
 
 #. Description of the Onboarding Step 'Generate Custom Reports'
 #: custom/onboarding_step/report_builder/report_builder.json
@@ -15738,7 +15738,7 @@ msgstr "Boîte de réception"
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Inbox"
-msgstr "Boîte de réception"
+msgstr ""
 
 #. Name of a role
 #: core/doctype/communication/communication.json
@@ -15796,7 +15796,7 @@ msgstr "Serveur de Courriel Entrant"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Incoming Server"
-msgstr "Serveur de Courriel Entrant"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
@@ -15950,7 +15950,7 @@ msgstr "Insérer Après"
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Insert After"
-msgstr "Insérer Après"
+msgstr ""
 
 #: custom/doctype/custom_field/custom_field.py:248
 msgid "Insert After cannot be set as {0}"
@@ -16003,7 +16003,7 @@ msgstr "Applications installées"
 #: core/doctype/installed_applications/installed_applications.json
 msgctxt "Installed Applications"
 msgid "Installed Applications"
-msgstr "Applications installées"
+msgstr ""
 
 #: core/doctype/installed_applications/installed_applications.js:18
 #: public/js/frappe/ui/toolbar/about.js:8
@@ -16096,13 +16096,13 @@ msgstr "Intégrations"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Integrations"
-msgstr "Intégrations"
+msgstr ""
 
 #. Label of a Tab Break field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Integrations"
-msgstr "Intégrations"
+msgstr ""
 
 #. Description of the 'Delivery Status' (Select) field in DocType
 #. 'Communication'
@@ -16119,7 +16119,7 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile_sidebar.html:37
 msgid "Interests"
-msgstr "Intérêts"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'User'
 #: core/doctype/user/user.json
@@ -16466,13 +16466,13 @@ msgstr "Est Table Enfant"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Is Child Table"
-msgstr "Est Table Enfant"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocType Link'
 #: core/doctype/doctype_link/doctype_link.json
 msgctxt "DocType Link"
 msgid "Is Child Table"
-msgstr "Est Table Enfant"
+msgstr ""
 
 #. Label of a Check field in DocType 'Module Onboarding'
 #: desk/doctype/module_onboarding/module_onboarding.json
@@ -16484,7 +16484,7 @@ msgstr "Est complet"
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
 msgid "Is Complete"
-msgstr "Est complet"
+msgstr ""
 
 #. Label of a Check field in DocType 'Email Flag Queue'
 #: email/doctype/email_flag_queue/email_flag_queue.json
@@ -16612,7 +16612,7 @@ msgstr "Est public"
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Is Public"
-msgstr "Est public"
+msgstr ""
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -16644,13 +16644,13 @@ msgstr "Est Seul"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Is Single"
-msgstr "Est Seul"
+msgstr ""
 
 #. Label of a Check field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
 msgid "Is Single"
-msgstr "Est Seul"
+msgstr ""
 
 #. Label of a Check field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
@@ -16674,49 +16674,49 @@ msgstr "Est Standard"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Is Standard"
-msgstr "Est Standard"
+msgstr ""
 
 #. Label of a Check field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Is Standard"
-msgstr "Est Standard"
+msgstr ""
 
 #. Label of a Check field in DocType 'Navbar Item'
 #: core/doctype/navbar_item/navbar_item.json
 msgctxt "Navbar Item"
 msgid "Is Standard"
-msgstr "Est Standard"
+msgstr ""
 
 #. Label of a Check field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Is Standard"
-msgstr "Est Standard"
+msgstr ""
 
 #. Label of a Check field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Is Standard"
-msgstr "Est Standard"
+msgstr ""
 
 #. Label of a Select field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Is Standard"
-msgstr "Est Standard"
+msgstr ""
 
 #. Label of a Check field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
 msgctxt "User Type"
 msgid "Is Standard"
-msgstr "Est Standard"
+msgstr ""
 
 #. Label of a Check field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Is Standard"
-msgstr "Est Standard"
+msgstr ""
 
 #: core/doctype/doctype/doctype_list.js:25
 msgid "Is Submittable"
@@ -16726,7 +16726,7 @@ msgstr "Est Validable"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Is Submittable"
-msgstr "Est Validable"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -17001,7 +17001,7 @@ msgstr "Nom du Tableau Kanban"
 #: desk/doctype/kanban_board/kanban_board.json
 msgctxt "Kanban Board"
 msgid "Kanban Board Name"
-msgstr "Nom du Tableau Kanban"
+msgstr ""
 
 #: public/js/frappe/views/kanban/kanban_view.js:262
 msgctxt "Button in kanban view menu"
@@ -17212,7 +17212,7 @@ msgstr "Paramètres LDAP"
 #: integrations/workspace/integrations/integrations.json
 msgctxt "LDAP Settings"
 msgid "LDAP Settings"
-msgstr "Paramètres LDAP"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -17875,13 +17875,13 @@ msgstr "Comme"
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Like"
-msgstr "Comme"
+msgstr ""
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Like"
-msgstr "Comme"
+msgstr ""
 
 #. Label of a Int field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
@@ -18026,13 +18026,13 @@ msgstr "DocType du Lien"
 #: core/doctype/communication_link/communication_link.json
 msgctxt "Communication Link"
 msgid "Link DocType"
-msgstr "DocType du Lien"
+msgstr ""
 
 #. Label of a Link field in DocType 'DocType Link'
 #: core/doctype/doctype_link/doctype_link.json
 msgctxt "DocType Link"
 msgid "Link DocType"
-msgstr "DocType du Lien"
+msgstr ""
 
 #. Label of a Link field in DocType 'Dynamic Link'
 #: core/doctype/dynamic_link/dynamic_link.json
@@ -18067,13 +18067,13 @@ msgstr "Nom du Lien"
 #: core/doctype/communication_link/communication_link.json
 msgctxt "Communication Link"
 msgid "Link Name"
-msgstr "Nom du Lien"
+msgstr ""
 
 #. Label of a Dynamic Link field in DocType 'Dynamic Link'
 #: core/doctype/dynamic_link/dynamic_link.json
 msgctxt "Dynamic Link"
 msgid "Link Name"
-msgstr "Nom du Lien"
+msgstr ""
 
 #. Label of a Read Only field in DocType 'Communication Link'
 #: core/doctype/communication_link/communication_link.json
@@ -18085,7 +18085,7 @@ msgstr "Titre du Lien"
 #: core/doctype/dynamic_link/dynamic_link.json
 msgctxt "Dynamic Link"
 msgid "Link Title"
-msgstr "Titre du Lien"
+msgstr ""
 
 #. Label of a Dynamic Link field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
@@ -18097,7 +18097,7 @@ msgstr "Lié à"
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Link To"
-msgstr "Lié à"
+msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:325
 msgid "Link To in Row"
@@ -18139,7 +18139,7 @@ msgstr "Lié"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Linked"
-msgstr "Lié"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -18197,13 +18197,13 @@ msgstr "Liste"
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "List"
-msgstr "Liste"
+msgstr ""
 
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "List"
-msgstr "Liste"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -18237,19 +18237,19 @@ msgstr "Paramètres de liste"
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "List Settings"
-msgstr "Paramètres de liste"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Role'
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "List Settings"
-msgstr "Paramètres de liste"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "List Settings"
-msgstr "Paramètres de liste"
+msgstr ""
 
 #. Name of a DocType
 #: desk/doctype/list_view_settings/list_view_settings.json
@@ -18270,7 +18270,7 @@ msgstr "Liste comme [{ \"label\": _ ( \"Jobs\"), \"route\": \"emplois\"}]"
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
-msgstr "Liste comme [{ \"label\": _ ( \"Jobs\"), \"route\": \"emplois\"}]"
+msgstr ""
 
 #. Description of a DocType
 #: core/doctype/patch_log/patch_log.json
@@ -18403,13 +18403,13 @@ msgstr "Connexion"
 #: core/doctype/activity_log/activity_log.json
 msgctxt "Activity Log"
 msgid "Login"
-msgstr "Connexion"
+msgstr ""
 
 #. Label of a Tab Break field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Login"
-msgstr "Connexion"
+msgstr ""
 
 #. Label of a Int field in DocType 'User'
 #: core/doctype/user/user.json
@@ -18554,7 +18554,7 @@ msgstr "Journaux"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Logs"
-msgstr "Journaux"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/logs_to_clear/logs_to_clear.json
@@ -18577,13 +18577,13 @@ msgstr "Texte Long"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Long Text"
-msgstr "Texte Long"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Long Text"
-msgstr "Texte Long"
+msgstr ""
 
 #: public/js/frappe/widgets/onboarding_widget.js:322
 msgid "Looks like you didn't change the value"
@@ -18936,7 +18936,7 @@ msgstr "Nombre Max de Pièces Jointes"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Max Attachments"
-msgstr "Nombre Max de Pièces Jointes"
+msgstr ""
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -19186,7 +19186,7 @@ msgstr "ID de Message"
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Message ID"
-msgstr "ID de Message"
+msgstr ""
 
 #. Label of a Data field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
@@ -19316,31 +19316,31 @@ msgstr "Méthode"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Method"
-msgstr "Méthode"
+msgstr ""
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Method"
-msgstr "Méthode"
+msgstr ""
 
 #. Label of a Data field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Method"
-msgstr "Méthode"
+msgstr ""
 
 #. Label of a Select field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
 msgctxt "Recorder"
 msgid "Method"
-msgstr "Méthode"
+msgstr ""
 
 #. Label of a Data field in DocType 'Scheduled Job Type'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 msgctxt "Scheduled Job Type"
 msgid "Method"
-msgstr "Méthode"
+msgstr ""
 
 #: desk/doctype/number_card/number_card.py:70
 msgid "Method is required to create a number card"
@@ -19373,7 +19373,7 @@ msgstr "Étape importante"
 #: automation/workspace/tools/tools.json
 msgctxt "Milestone"
 msgid "Milestone"
-msgstr "Étape importante"
+msgstr ""
 
 #. Name of a DocType
 #: automation/doctype/milestone_tracker/milestone_tracker.json
@@ -19655,7 +19655,7 @@ msgstr "Nom du Module"
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Module Name"
-msgstr "Nom du Module"
+msgstr ""
 
 #. Name of a DocType
 #: desk/doctype/module_onboarding/module_onboarding.json
@@ -19666,7 +19666,7 @@ msgstr "Intégration du module"
 #: core/workspace/build/build.json
 msgctxt "Module Onboarding"
 msgid "Module Onboarding"
-msgstr "Intégration du module"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/module_profile/module_profile.json
@@ -19833,7 +19833,7 @@ msgstr "Long mensuel"
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "Monthly Long"
-msgstr "Long mensuel"
+msgstr ""
 
 #: desk/page/user_profile/user_profile_controller.js:402
 msgid "Monthly Rank"
@@ -19976,7 +19976,7 @@ msgstr "Doit être de type \"Joindre l'Image\""
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Must be of type \"Attach Image\""
-msgstr "Doit être de type \"Joindre l'Image\""
+msgstr ""
 
 #: desk/query_report.py:200
 msgid "Must have report permission to access this report."
@@ -20098,13 +20098,13 @@ msgstr "Nom"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Naming"
-msgstr "Nom"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Document Naming Rule'
 #: core/doctype/document_naming_rule/document_naming_rule.json
 msgctxt "Document Naming Rule"
 msgid "Naming"
-msgstr "Nom"
+msgstr ""
 
 #. Description of the 'Auto Name' (Data) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -20171,7 +20171,7 @@ msgstr "Paramètres de la barre de navigation"
 #: core/workspace/build/build.json
 msgctxt "Navbar Settings"
 msgid "Navbar Settings"
-msgstr "Paramètres de la barre de navigation"
+msgstr ""
 
 #. Label of a Link field in DocType 'Website Settings'
 #. Label of a Section Break field in DocType 'Website Settings'
@@ -20326,7 +20326,7 @@ msgstr "Nouveau Nom"
 #: core/doctype/deleted_document/deleted_document.json
 msgctxt "Deleted Document"
 msgid "New Name"
-msgstr "Nouveau Nom"
+msgstr ""
 
 #: email/doctype/email_group/email_group.js:67
 msgid "New Newsletter"
@@ -20541,7 +20541,7 @@ msgstr "Jeton de synchronisation suivant"
 #: integrations/doctype/google_contacts/google_contacts.json
 msgctxt "Google Contacts"
 msgid "Next Sync Token"
-msgstr "Jeton de synchronisation suivant"
+msgstr ""
 
 #: public/js/frappe/form/workflow.js:45
 msgid "Next actions"
@@ -20611,13 +20611,13 @@ msgstr "Aucune Copie"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "No Copy"
-msgstr "Aucune Copie"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "No Copy"
-msgstr "Aucune Copie"
+msgstr ""
 
 #: core/doctype/data_export/exporter.py:162
 #: email/doctype/auto_email_report/auto_email_report.py:288
@@ -20947,13 +20947,13 @@ msgstr "Non négatif"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Non Negative"
-msgstr "Non négatif"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Non Negative"
-msgstr "Non négatif"
+msgstr ""
 
 #. Option for the 'Backup Frequency' (Select) field in DocType 'S3 Backup
 #. Settings'
@@ -21060,13 +21060,13 @@ msgstr "Non Envoyé"
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Not Sent"
-msgstr "Non Envoyé"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Email Queue Recipient'
 #: email/doctype/email_queue_recipient/email_queue_recipient.json
 msgctxt "Email Queue Recipient"
 msgid "Not Sent"
-msgstr "Non Envoyé"
+msgstr ""
 
 #: public/js/frappe/list/list_sidebar_group_by.js:219
 msgid "Not Set"
@@ -21075,7 +21075,7 @@ msgstr "Non Défini"
 #: public/js/frappe/ui/filters/filter.js:568
 msgctxt "Field value is not set"
 msgid "Not Set"
-msgstr "Non Défini"
+msgstr ""
 
 #: utils/csvutils.py:77
 msgid "Not a valid Comma Separated Value (CSV File)"
@@ -21179,7 +21179,7 @@ msgstr "Remarque: par défaut, les e-mails pour les sauvegardes ayant échoué s
 #: integrations/doctype/google_drive/google_drive.json
 msgctxt "Google Drive"
 msgid "Note: By default emails for failed backups are sent."
-msgstr "Remarque: par défaut, les e-mails pour les sauvegardes ayant échoué sont envoyés."
+msgstr ""
 
 #: public/js/frappe/utils/utils.js:790
 msgid "Note: Changing the Page Name will break previous URL to this page."
@@ -21407,7 +21407,7 @@ msgstr "Cartes numériques"
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Number Cards"
-msgstr "Cartes numériques"
+msgstr ""
 
 #. Label of a Select field in DocType 'Currency'
 #: geo/doctype/currency/currency.json
@@ -21419,7 +21419,7 @@ msgstr "Format Numérique"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Number Format"
-msgstr "Format Numérique"
+msgstr ""
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -21473,7 +21473,7 @@ msgstr "Nombre de colonnes pour un champ dans une vue en Liste ou en Grille (Tot
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Number of columns for a field in a List View or a Grid (Total Columns should be less than 11)"
-msgstr "Nombre de colonnes pour un champ dans une vue en Liste ou en Grille (Total des colonnes doit être inférieur à 11)"
+msgstr ""
 
 #. Description of the 'Document Share Key Expiry (in Days)' (Int) field in
 #. DocType 'System Settings'
@@ -21528,7 +21528,7 @@ msgstr "Paramètres du Fournisseur OAuth"
 #: integrations/workspace/integrations/integrations.json
 msgctxt "OAuth Provider Settings"
 msgid "OAuth Provider Settings"
-msgstr "Paramètres du Fournisseur OAuth"
+msgstr ""
 
 #. Name of a DocType
 #: integrations/doctype/oauth_scope/oauth_scope.json
@@ -21673,7 +21673,7 @@ msgstr "Étape d&#39;intégration"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Onboarding Step"
-msgstr "Étape d&#39;intégration"
+msgstr ""
 
 #. Name of a DocType
 #: desk/doctype/onboarding_step_map/onboarding_step_map.json
@@ -21692,7 +21692,7 @@ msgstr "Une fois validé, les documents à valider ne peuvent plus être modifi�
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended."
-msgstr "Une fois validé, les documents à valider ne peuvent plus être modifiés. Ils ne peuvent être annulés et modifiés (Nouv. version)."
+msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:35
 msgid "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
@@ -22146,7 +22146,7 @@ msgstr "Serveur de Courriel Sortant"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Outgoing Server"
-msgstr "Serveur de Courriel Sortant"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
@@ -22174,13 +22174,13 @@ msgstr "Sortie"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "Output"
-msgstr "Sortie"
+msgstr ""
 
 #. Label of a Code field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "Output"
-msgstr "Sortie"
+msgstr ""
 
 #: desk/page/user_profile/user_profile.html:6
 #: public/js/frappe/form/templates/form_dashboard.html:5
@@ -22375,7 +22375,7 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Page Builder"
-msgstr "Générateur de pages"
+msgstr ""
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
@@ -22529,7 +22529,7 @@ msgstr "Champ parent (arbre)"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Parent Field (Tree)"
-msgstr "Champ parent (arbre)"
+msgstr ""
 
 #: core/doctype/doctype/doctype.py:914
 msgid "Parent Field must be a valid fieldname"
@@ -22597,7 +22597,7 @@ msgstr "Les Participants"
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Participants"
-msgstr "Les Participants"
+msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
@@ -22615,38 +22615,38 @@ msgstr "Mot de Passe"
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Password"
-msgstr "Mot de Passe"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Password"
-msgstr "Mot de Passe"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Password"
-msgstr "Mot de Passe"
+msgstr ""
 
 #. Label of a Password field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Password"
-msgstr "Mot de Passe"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'System Settings'
 #. Label of a Tab Break field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Password"
-msgstr "Mot de Passe"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Password"
-msgstr "Mot de Passe"
+msgstr ""
 
 #: core/doctype/user/user.py:1039
 msgid "Password Email Sent"
@@ -22730,7 +22730,7 @@ msgstr "Correctif"
 #: core/doctype/patch_log/patch_log.json
 msgctxt "Patch Log"
 msgid "Patch"
-msgstr "Correctif"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/patch_log/patch_log.json
@@ -22840,13 +22840,13 @@ msgstr "Pourcent"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Percent"
-msgstr "Pourcent"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Percent"
-msgstr "Pourcent"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -22870,7 +22870,7 @@ msgstr "Niveau d'Autorisation"
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Perm Level"
-msgstr "Niveau d'Autorisation"
+msgstr ""
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -22907,7 +22907,7 @@ msgstr "Niveau d'Autorisation"
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Permission Level"
-msgstr "Niveau d'Autorisation"
+msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:22
 msgid "Permission Levels"
@@ -22934,7 +22934,7 @@ msgstr "Règles d'Autorisation"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Permission Rules"
-msgstr "Règles d'Autorisation"
+msgstr ""
 
 #. Label of a Select field in DocType 'Permission Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
@@ -22953,37 +22953,37 @@ msgstr "Autorisations"
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Permissions"
-msgstr "Autorisations"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Permissions"
-msgstr "Autorisations"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Permissions"
-msgstr "Autorisations"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Permissions"
-msgstr "Autorisations"
+msgstr ""
 
 #. Label of a Table field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Permissions"
-msgstr "Autorisations"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Permissions"
-msgstr "Autorisations"
+msgstr ""
 
 #: core/doctype/doctype/doctype.py:1783 core/doctype/doctype/doctype.py:1793
 msgid "Permissions Error"
@@ -23610,7 +23610,7 @@ msgstr "Paramètres du Portail"
 #: website/workspace/website/website.json
 msgctxt "Portal Settings"
 msgid "Portal Settings"
-msgstr "Paramètres du Portail"
+msgstr ""
 
 #: public/js/frappe/form/print_utils.js:29
 msgid "Portrait"
@@ -23676,19 +23676,19 @@ msgstr "Précision"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Precision"
-msgstr "Précision"
+msgstr ""
 
 #. Label of a Select field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Precision"
-msgstr "Précision"
+msgstr ""
 
 #. Label of a Select field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Precision"
-msgstr "Précision"
+msgstr ""
 
 #: core/doctype/doctype/doctype.py:1361
 msgid "Precision should be between 1 and 6"
@@ -23720,7 +23720,7 @@ msgstr "Préfixe"
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
 msgid "Prefix"
-msgstr "Préfixe"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/prepared_report/prepared_report.json
@@ -23731,7 +23731,7 @@ msgstr "Rapport préparé"
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Prepared Report"
-msgstr "Rapport préparé"
+msgstr ""
 
 #. Name of a role
 #: core/doctype/prepared_report/prepared_report.json
@@ -23844,7 +23844,7 @@ msgstr "Précedent"
 #: public/js/frappe/ui/slides.js:351
 msgctxt "Go to previous slide"
 msgid "Previous"
-msgstr "Précedent"
+msgstr ""
 
 #: public/js/frappe/form/toolbar.js:289
 msgid "Previous Document"
@@ -24046,13 +24046,13 @@ msgstr "Cacher à l'Impression"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Print Hide"
-msgstr "Cacher à l'Impression"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Print Hide"
-msgstr "Cacher à l'Impression"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -24064,13 +24064,13 @@ msgstr "Cacher à l’Impression si Aucune Valeur"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Print Hide If No Value"
-msgstr "Cacher à l’Impression si Aucune Valeur"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Print Hide If No Value"
-msgstr "Cacher à l’Impression si Aucune Valeur"
+msgstr ""
 
 #: public/js/frappe/views/communication.js:156
 msgid "Print Language"
@@ -24140,13 +24140,13 @@ msgstr "Largeur d'Impression"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Print Width"
-msgstr "Largeur d'Impression"
+msgstr ""
 
 #. Label of a Data field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Print Width"
-msgstr "Largeur d'Impression"
+msgstr ""
 
 #. Description of the 'Print Width' (Data) field in DocType 'Customize Form
 #. Field'
@@ -24238,19 +24238,19 @@ msgstr "Privé"
 #: desk/doctype/custom_html_block/custom_html_block.json
 msgctxt "Custom HTML Block"
 msgid "Private"
-msgstr "Privé"
+msgstr ""
 
 #. Option for the 'Event Type' (Select) field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Private"
-msgstr "Privé"
+msgstr ""
 
 #. Label of a Check field in DocType 'Kanban Board'
 #: desk/doctype/kanban_board/kanban_board.json
 msgctxt "Kanban Board"
 msgid "Private"
-msgstr "Privé"
+msgstr ""
 
 #. Description of the 'Auto Reply Message' (Text Editor) field in DocType
 #. 'Email Account'
@@ -24293,7 +24293,7 @@ msgstr ""
 #: core/doctype/version/version_view.html:37
 #: core/doctype/version/version_view.html:74
 msgid "Property"
-msgstr "Propriété"
+msgstr ""
 
 #. Label of a Data field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
@@ -24311,7 +24311,7 @@ msgstr "La propriété dépend"
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Property Depends On"
-msgstr "La propriété dépend"
+msgstr ""
 
 #. Name of a DocType
 #: custom/doctype/property_setter/property_setter.json
@@ -24322,7 +24322,7 @@ msgstr "Initialisateur de Propriété"
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Property Setter"
-msgstr "Initialisateur de Propriété"
+msgstr ""
 
 #. Description of a DocType
 #: custom/doctype/property_setter/property_setter.json
@@ -24358,13 +24358,13 @@ msgstr "Nom du fournisseur"
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Provider Name"
-msgstr "Nom du fournisseur"
+msgstr ""
 
 #. Label of a Data field in DocType 'Token Cache'
 #: integrations/doctype/token_cache/token_cache.json
 msgctxt "Token Cache"
 msgid "Provider Name"
-msgstr "Nom du fournisseur"
+msgstr ""
 
 #: desk/doctype/note/note_list.js:6 public/js/frappe/views/interaction.js:78
 #: public/js/frappe/views/workspace/workspace.js:624
@@ -24400,7 +24400,7 @@ msgstr "Publier"
 #: core/doctype/package_release/package_release.json
 msgctxt "Package Release"
 msgid "Publish"
-msgstr "Publier"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
@@ -24418,49 +24418,49 @@ msgstr "Publié"
 #: website/doctype/blog_category/blog_category.json
 msgctxt "Blog Category"
 msgid "Published"
-msgstr "Publié"
+msgstr ""
 
 #. Label of a Check field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Published"
-msgstr "Publié"
+msgstr ""
 
 #. Label of a Check field in DocType 'Comment'
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Published"
-msgstr "Publié"
+msgstr ""
 
 #. Label of a Check field in DocType 'Help Article'
 #: website/doctype/help_article/help_article.json
 msgctxt "Help Article"
 msgid "Published"
-msgstr "Publié"
+msgstr ""
 
 #. Label of a Check field in DocType 'Help Category'
 #: website/doctype/help_category/help_category.json
 msgctxt "Help Category"
 msgid "Published"
-msgstr "Publié"
+msgstr ""
 
 #. Label of a Check field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Published"
-msgstr "Publié"
+msgstr ""
 
 #. Label of a Check field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Published"
-msgstr "Publié"
+msgstr ""
 
 #. Label of a Check field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Published"
-msgstr "Publié"
+msgstr ""
 
 #. Label of a Date field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -24612,7 +24612,7 @@ msgstr "Requête"
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Query"
-msgstr "Requête"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Report'
 #: core/doctype/report/report.json
@@ -24645,7 +24645,7 @@ msgstr "Rapport de Requête"
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Query Report"
-msgstr "Rapport de Requête"
+msgstr ""
 
 #: utils/safe_exec.py:414
 msgid "Query must be of SELECT or read-only WITH type."
@@ -24870,7 +24870,7 @@ msgstr "Commandes brutes"
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
 msgid "Raw Commands"
-msgstr "Commandes brutes"
+msgstr ""
 
 #. Label of a Code field in DocType 'Unhandled Email'
 #: email/doctype/unhandled_email/unhandled_email.json
@@ -24888,7 +24888,7 @@ msgstr "Impression brute"
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Raw Printing"
-msgstr "Impression brute"
+msgstr ""
 
 #: printing/page/print/print.js:165
 msgid "Raw Printing Setting"
@@ -24920,43 +24920,43 @@ msgstr "Lire"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Read"
-msgstr "Lire"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Read"
-msgstr "Lire"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Read"
-msgstr "Lire"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocShare'
 #: core/doctype/docshare/docshare.json
 msgctxt "DocShare"
 msgid "Read"
-msgstr "Lire"
+msgstr ""
 
 #. Option for the 'Action' (Select) field in DocType 'Email Flag Queue'
 #: email/doctype/email_flag_queue/email_flag_queue.json
 msgctxt "Email Flag Queue"
 msgid "Read"
-msgstr "Lire"
+msgstr ""
 
 #. Label of a Check field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
 msgctxt "Notification Log"
 msgid "Read"
-msgstr "Lire"
+msgstr ""
 
 #. Label of a Check field in DocType 'User Document Type'
 #: core/doctype/user_document_type/user_document_type.json
 msgctxt "User Document Type"
 msgid "Read"
-msgstr "Lire"
+msgstr ""
 
 #: public/js/form_builder/form_builder.bundle.js:83
 msgid "Read Only"
@@ -24999,13 +24999,13 @@ msgstr "La lecture seule dépend de"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Read Only Depends On"
-msgstr "La lecture seule dépend de"
+msgstr ""
 
 #. Label of a Code field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Read Only Depends On"
-msgstr "La lecture seule dépend de"
+msgstr ""
 
 #. Label of a Code field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -25309,7 +25309,7 @@ msgstr "Référence DocType"
 #: core/doctype/submission_queue/submission_queue.json
 msgctxt "Submission Queue"
 msgid "Reference DocType"
-msgstr "Référence DocType"
+msgstr ""
 
 #: email/doctype/email_unsubscribe/email_unsubscribe.py:26
 msgid "Reference DocType and Reference Name are required"
@@ -25325,7 +25325,7 @@ msgstr "DocName de la Référence"
 #: core/doctype/submission_queue/submission_queue.json
 msgctxt "Submission Queue"
 msgid "Reference Docname"
-msgstr "DocName de la Référence"
+msgstr ""
 
 #: core/doctype/communication/communication.js:143
 #: core/report/transaction_log_report/transaction_log_report.py:88
@@ -25591,13 +25591,13 @@ msgstr "Responsable de la Référence"
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Reference Owner"
-msgstr "Responsable de la Référence"
+msgstr ""
 
 #. Label of a Read Only field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Reference Owner"
-msgstr "Responsable de la Référence"
+msgstr ""
 
 #. Label of a Data field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
@@ -25609,13 +25609,13 @@ msgstr "Rapport de référence"
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
 msgid "Reference Report"
-msgstr "Rapport de référence"
+msgstr ""
 
 #. Label of a Data field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Reference Report"
-msgstr "Rapport de référence"
+msgstr ""
 
 #. Label of a Link field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
@@ -25645,7 +25645,7 @@ msgstr "Référent"
 #: website/doctype/web_page_view/web_page_view.json
 msgctxt "Web Page View"
 msgid "Referrer"
-msgstr "Référent"
+msgstr ""
 
 #: printing/page/print/print.js:73 public/js/frappe/desk.js:133
 #: public/js/frappe/form/form.js:1131
@@ -25765,7 +25765,7 @@ msgstr "Reconnecté"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Relinked"
-msgstr "Reconnecté"
+msgstr ""
 
 #. Label of a standard navbar item
 #. Type: Action
@@ -25796,7 +25796,7 @@ msgstr "Se Souvenir de la Dernière Valeur Sélectionnée"
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Remember Last Selected Value"
-msgstr "Se Souvenir de la Dernière Valeur Sélectionnée"
+msgstr ""
 
 #: public/js/frappe/form/reminders.js:33
 msgid "Remind At"
@@ -25962,7 +25962,7 @@ msgstr "Répondre"
 #: website/doctype/discussion_reply/discussion_reply.json
 msgctxt "Discussion Reply"
 msgid "Reply"
-msgstr "Répondre"
+msgstr ""
 
 #: core/doctype/communication/communication.js:62
 msgid "Reply All"
@@ -26056,13 +26056,13 @@ msgstr "Éditeur de Rapports"
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Report Builder"
-msgstr "Éditeur de Rapports"
+msgstr ""
 
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Report Builder"
-msgstr "Éditeur de Rapports"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/report_column/report_column.json
@@ -26100,13 +26100,13 @@ msgstr "Cacher le Rapport"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Report Hide"
-msgstr "Cacher le Rapport"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Report Hide"
-msgstr "Cacher le Rapport"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
@@ -26128,31 +26128,31 @@ msgstr "Nom du Rapport"
 #: core/doctype/access_log/access_log.json
 msgctxt "Access Log"
 msgid "Report Name"
-msgstr "Nom du Rapport"
+msgstr ""
 
 #. Label of a Link field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Report Name"
-msgstr "Nom du Rapport"
+msgstr ""
 
 #. Label of a Link field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Report Name"
-msgstr "Nom du Rapport"
+msgstr ""
 
 #. Label of a Data field in DocType 'Prepared Report'
 #: core/doctype/prepared_report/prepared_report.json
 msgctxt "Prepared Report"
 msgid "Report Name"
-msgstr "Nom du Rapport"
+msgstr ""
 
 #. Label of a Data field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Report Name"
-msgstr "Nom du Rapport"
+msgstr ""
 
 #: desk/doctype/number_card/number_card.py:66
 msgid "Report Name, Report Field and Fucntion are required to create a number card"
@@ -26468,13 +26468,13 @@ msgstr "Réponse"
 #: integrations/doctype/integration_request/integration_request.json
 msgctxt "Integration Request"
 msgid "Response"
-msgstr "Réponse"
+msgstr ""
 
 #. Label of a Code field in DocType 'Webhook Request Log'
 #: integrations/doctype/webhook_request_log/webhook_request_log.json
 msgctxt "Webhook Request Log"
 msgid "Response"
-msgstr "Réponse"
+msgstr ""
 
 #. Label of a Code field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
@@ -26531,19 +26531,19 @@ msgstr "Restreindre au domaine"
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Restrict To Domain"
-msgstr "Restreindre au domaine"
+msgstr ""
 
 #. Label of a Link field in DocType 'Page'
 #: core/doctype/page/page.json
 msgctxt "Page"
 msgid "Restrict To Domain"
-msgstr "Restreindre au domaine"
+msgstr ""
 
 #. Label of a Link field in DocType 'Role'
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Restrict To Domain"
-msgstr "Restreindre au domaine"
+msgstr ""
 
 #. Label of a Link field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -26555,7 +26555,7 @@ msgstr "Restreindre au Domaine"
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Restrict to Domain"
-msgstr "Restreindre au Domaine"
+msgstr ""
 
 #. Description of the 'Restrict IP' (Small Text) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -26611,7 +26611,7 @@ msgstr "Revenir"
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Revert"
-msgstr "Revenir"
+msgstr ""
 
 #. Label of a Link field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
@@ -26648,7 +26648,7 @@ msgstr "Niveaux de révision"
 
 #: desk/page/user_profile/user_profile_controller.js:402
 msgid "Review Points"
-msgstr "Points d&#39;examen"
+msgstr ""
 
 #. Label of a Int field in DocType 'Review Level'
 #: social/doctype/review_level/review_level.json
@@ -26708,18 +26708,18 @@ msgstr "Droit"
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Right"
-msgstr "Droit"
+msgstr ""
 
 #. Option for the 'Text Align' (Select) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Right"
-msgstr "Droit"
+msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:484
 msgctxt "alignment"
 msgid "Right"
-msgstr "Droit"
+msgstr ""
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -26750,68 +26750,68 @@ msgstr "Rôle"
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #. Label of a Table field in DocType 'Custom Role'
 #: core/doctype/custom_role/custom_role.json
 msgctxt "Custom Role"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #. Label of a Link field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #. Label of a Link field in DocType 'Has Role'
 #: core/doctype/has_role/has_role.json
 msgctxt "Has Role"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #. Label of a Link field in DocType 'Onboarding Permission'
 #: desk/doctype/onboarding_permission/onboarding_permission.json
 msgctxt "Onboarding Permission"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #. Label of a Link field in DocType 'Portal Menu Item'
 #: website/doctype/portal_menu_item/portal_menu_item.json
 msgctxt "Portal Menu Item"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #. Label of a Link field in DocType 'Review Level'
 #: social/doctype/review_level/review_level.json
 msgctxt "Review Level"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #. Label of a Link in the Users Workspace
 #. Label of a shortcut in the Users Workspace
 #: core/workspace/users/users.json
 msgctxt "Role"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #. Label of a Link field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
 msgctxt "ToDo"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #. Label of a Link field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
 msgctxt "User Type"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #. Label of a Link field in DocType 'Workflow Action Permitted Role'
 #: workflow/doctype/workflow_action_permitted_role/workflow_action_permitted_role.json
 msgctxt "Workflow Action Permitted Role"
 msgid "Role"
-msgstr "Rôle"
+msgstr ""
 
 #: core/doctype/role/role.js:8
 msgid "Role 'All' will be given to all system + website users."
@@ -26831,7 +26831,7 @@ msgstr "Nom du Rôle"
 #: core/doctype/role_profile/role_profile.json
 msgctxt "Role Profile"
 msgid "Role Name"
-msgstr "Nom du Rôle"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
@@ -26842,7 +26842,7 @@ msgstr "Autorisation du Rôle pour la Page et le Rapport"
 #: core/workspace/users/users.json
 msgctxt "Role Permission for Page and Report"
 msgid "Role Permission for Page and Report"
-msgstr "Autorisation du Rôle pour la Page et le Rapport"
+msgstr ""
 
 #: public/js/frappe/roles_editor.js:102
 msgid "Role Permissions"
@@ -26852,7 +26852,7 @@ msgstr "Autorisations du Rôle"
 #: core/doctype/user_document_type/user_document_type.json
 msgctxt "User Document Type"
 msgid "Role Permissions"
-msgstr "Autorisations du Rôle"
+msgstr ""
 
 #. Label of a Link in the Users Workspace
 #: core/page/permission_manager/permission_manager.js:4
@@ -26863,7 +26863,7 @@ msgstr "Gestionnaire d’Autorisations du Rôle"
 #: public/js/frappe/list/list_view.js:1691
 msgctxt "Button in list view menu"
 msgid "Role Permissions Manager"
-msgstr "Gestionnaire d’Autorisations du Rôle"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/role_profile/role_profile.json
@@ -26874,13 +26874,13 @@ msgstr "Profil de rôle"
 #: core/workspace/users/users.json
 msgctxt "Role Profile"
 msgid "Role Profile"
-msgstr "Profil de rôle"
+msgstr ""
 
 #. Label of a Link field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Role Profile"
-msgstr "Profil de rôle"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
@@ -26892,7 +26892,7 @@ msgstr "Rôle et Niveau"
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Role and Level"
-msgstr "Rôle et Niveau"
+msgstr ""
 
 #: core/doctype/user/user.py:314
 msgid "Role has been set as per the user type {0}"
@@ -26907,44 +26907,44 @@ msgstr "Rôles"
 #: desk/doctype/custom_html_block/custom_html_block.json
 msgctxt "Custom HTML Block"
 msgid "Roles"
-msgstr "Rôles"
+msgstr ""
 
 #. Label of a Table field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Roles"
-msgstr "Rôles"
+msgstr ""
 
 #. Label of a Table field in DocType 'Page'
 #: core/doctype/page/page.json
 msgctxt "Page"
 msgid "Roles"
-msgstr "Rôles"
+msgstr ""
 
 #. Label of a Table field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Roles"
-msgstr "Rôles"
+msgstr ""
 
 #. Label of a Table field in DocType 'Role Permission for Page and Report'
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgctxt "Role Permission for Page and Report"
 msgid "Roles"
-msgstr "Rôles"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Roles"
-msgstr "Rôles"
+msgstr ""
 
 #. Label of a Table field in DocType 'Workspace'
 #. Label of a Tab Break field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Roles"
-msgstr "Rôles"
+msgstr ""
 
 #. Label of a Tab Break field in DocType 'User'
 #: core/doctype/user/user.json
@@ -26962,7 +26962,7 @@ msgstr "Rôles Assignés"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Roles Assigned"
-msgstr "Rôles Assignés"
+msgstr ""
 
 #. Label of a HTML field in DocType 'Role Profile'
 #: core/doctype/role_profile/role_profile.json
@@ -26974,7 +26974,7 @@ msgstr "Rôles HTML"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Roles HTML"
-msgstr "Rôles HTML"
+msgstr ""
 
 #. Label of a HTML field in DocType 'Role Permission for Page and Report'
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
@@ -27096,7 +27096,7 @@ msgstr "Histoire de la route"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Route History"
-msgstr "Histoire de la route"
+msgstr ""
 
 #. Label of a Table field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -27170,7 +27170,7 @@ msgstr "Ligne {0} : Il n’est pas autorisé d’activer Autoriser à la Validat
 
 #: core/doctype/version/version_view.html:32
 msgid "Rows Added"
-msgstr "Lignes Ajoutées"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Audit Trail'
 #: core/doctype/audit_trail/audit_trail.json
@@ -27180,7 +27180,7 @@ msgstr "Lignes Ajoutées"
 
 #: core/doctype/version/version_view.html:32
 msgid "Rows Removed"
-msgstr "Lignes Supprimées"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Audit Trail'
 #: core/doctype/audit_trail/audit_trail.json
@@ -27198,7 +27198,7 @@ msgstr "Règle"
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Rule"
-msgstr "Règle"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Document Naming Rule'
 #: core/doctype/document_naming_rule/document_naming_rule.json
@@ -27263,7 +27263,7 @@ msgstr "Paramètres de sauvegarde S3"
 #: integrations/workspace/integrations/integrations.json
 msgctxt "S3 Backup Settings"
 msgid "S3 Backup Settings"
-msgstr "Paramètres de sauvegarde S3"
+msgstr ""
 
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.js:18
 msgid "S3 Backup complete!"
@@ -27545,7 +27545,7 @@ msgstr "En Cours d'Enregistrement"
 #: public/js/frappe/form/save.js:9
 msgctxt "Freeze message while saving a document"
 msgid "Saving"
-msgstr "En Cours d'Enregistrement"
+msgstr ""
 
 #: custom/doctype/customize_form/customize_form.js:388
 msgid "Saving Customization..."
@@ -27622,7 +27622,7 @@ msgstr "Journal des travaux planifiés"
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 msgctxt "Scheduled Job Type"
 msgid "Scheduled Job Log"
-msgstr "Journal des travaux planifiés"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -27633,13 +27633,13 @@ msgstr "Type de travail planifié"
 #: core/workspace/build/build.json
 msgctxt "Scheduled Job Type"
 msgid "Scheduled Job Type"
-msgstr "Type de travail planifié"
+msgstr ""
 
 #. Linked DocType in Server Script's connections
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "Scheduled Job Type"
-msgstr "Type de travail planifié"
+msgstr ""
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
@@ -27842,7 +27842,7 @@ msgstr "Champs de recherche"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Search Fields"
-msgstr "Champs de recherche"
+msgstr ""
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:175
 msgid "Search Help"
@@ -27910,25 +27910,25 @@ msgstr "Saut de section"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Section Break"
-msgstr "Saut de section"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Section Break"
-msgstr "Saut de section"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Section Break"
-msgstr "Saut de section"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Section Break"
-msgstr "Saut de section"
+msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:421
 msgid "Section Heading"
@@ -27976,31 +27976,31 @@ msgstr "Vu"
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Seen"
-msgstr "Vu"
+msgstr ""
 
 #. Label of a Check field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Seen"
-msgstr "Vu"
+msgstr ""
 
 #. Label of a Check field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Seen"
-msgstr "Vu"
+msgstr ""
 
 #. Label of a Check field in DocType 'Error Log'
 #: core/doctype/error_log/error_log.json
 msgctxt "Error Log"
 msgid "Seen"
-msgstr "Vu"
+msgstr ""
 
 #. Label of a Check field in DocType 'Notification Settings'
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "Seen"
-msgstr "Vu"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Note'
 #: desk/doctype/note/note.json
@@ -28114,7 +28114,7 @@ msgstr "Sélectionnez Dashboard"
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Select Dashboard"
-msgstr "Sélectionnez Dashboard"
+msgstr ""
 
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -28375,7 +28375,7 @@ msgstr "Envoyer Après"
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Send After"
-msgstr "Envoyer Après"
+msgstr ""
 
 #. Label of a Select field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -28412,7 +28412,7 @@ msgstr "Envoyer un email pour une sauvegarde réussie"
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgctxt "S3 Backup Settings"
 msgid "Send Email for Successful Backup"
-msgstr "Envoyer un email pour une sauvegarde réussie"
+msgstr ""
 
 #. Label of a Check field in DocType 'Google Drive'
 #: integrations/doctype/google_drive/google_drive.json
@@ -28460,7 +28460,7 @@ msgstr "Envoyer des Notifications À"
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgctxt "S3 Backup Settings"
 msgid "Send Notifications To"
-msgstr "Envoyer des Notifications À"
+msgstr ""
 
 #: email/doctype/auto_email_report/auto_email_report.js:21
 msgid "Send Now"
@@ -28624,7 +28624,7 @@ msgstr "Email d&#39;expéditeur"
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Sender Email"
-msgstr "Email d&#39;expéditeur"
+msgstr ""
 
 #. Label of a Data field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -28788,26 +28788,26 @@ msgstr "Script de serveur"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Server Script"
-msgstr "Script de serveur"
+msgstr ""
 
 #. Linked DocType in Module Def's connections
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Server Script"
-msgstr "Script de serveur"
+msgstr ""
 
 #. Label of a Link field in DocType 'Scheduled Job Type'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 msgctxt "Scheduled Job Type"
 msgid "Server Script"
-msgstr "Script de serveur"
+msgstr ""
 
 #. Label of a Link in the Build Workspace
 #. Label of a shortcut in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "Server Script"
 msgid "Server Script"
-msgstr "Script de serveur"
+msgstr ""
 
 #: utils/safe_exec.py:78
 msgid "Server Scripts are disabled. Please enable server scripts from bench configuration."
@@ -28853,7 +28853,7 @@ msgstr "Session par défaut"
 #: core/doctype/session_default_settings/session_default_settings.json
 msgctxt "Session Default Settings"
 msgid "Session Defaults"
-msgstr "Session par défaut"
+msgstr ""
 
 #: public/js/frappe/ui/toolbar/toolbar.js:306
 msgid "Session Defaults Saved"
@@ -29012,19 +29012,19 @@ msgstr "Définir la précision non standard pour un champ Flottant ou Devise"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Set non-standard precision for a Float or Currency field"
-msgstr "Définir la précision non standard pour un champ Flottant ou Devise"
+msgstr ""
 
 #. Description of the 'Precision' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Set non-standard precision for a Float or Currency field"
-msgstr "Définir la précision non standard pour un champ Flottant ou Devise"
+msgstr ""
 
 #. Description of the 'Precision' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Set non-standard precision for a Float or Currency field"
-msgstr "Définir la précision non standard pour un champ Flottant ou Devise"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -29145,7 +29145,7 @@ msgstr "Configuration"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Setup"
-msgstr "Configuration"
+msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:27
 msgid "Setup > Customize Form"
@@ -29177,7 +29177,7 @@ msgstr "Configuration Terminée"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Setup Complete"
-msgstr "Configuration Terminée"
+msgstr ""
 
 #. Title of an Onboarding Step
 #: custom/onboarding_step/role_permissions/role_permissions.json
@@ -29197,7 +29197,7 @@ msgstr "Paramétrage des masques de numérotation"
 
 #: public/js/frappe/form/templates/form_sidebar.html:110
 msgid "Share"
-msgstr "Partager"
+msgstr ""
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
@@ -29209,19 +29209,19 @@ msgstr "Partager"
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Share"
-msgstr "Partager"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocShare'
 #: core/doctype/docshare/docshare.json
 msgctxt "DocShare"
 msgid "Share"
-msgstr "Partager"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
 msgctxt "Notification Log"
 msgid "Share"
-msgstr "Partager"
+msgstr ""
 
 #: public/js/frappe/form/sidebar/share.js:107
 msgid "Share With"
@@ -29245,7 +29245,7 @@ msgstr "Partagé"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Shared"
-msgstr "Partagé"
+msgstr ""
 
 #: desk/form/assign_to.py:129
 msgid "Shared with the following Users with Read access:{0}"
@@ -29279,7 +29279,7 @@ msgstr "Modèles de clavier courts sont faciles à deviner"
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "Shortcuts"
-msgstr "Raccourcis"
+msgstr ""
 
 #. Label of a Table field in DocType 'Workspace'
 #. Label of a Tab Break field in DocType 'Workspace'
@@ -29334,19 +29334,19 @@ msgstr "Afficher le tableau de bord"
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Show Dashboard"
-msgstr "Afficher le tableau de bord"
+msgstr ""
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Show Dashboard"
-msgstr "Afficher le tableau de bord"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Show Dashboard"
-msgstr "Afficher le tableau de bord"
+msgstr ""
 
 #. Label of a Button field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
@@ -29456,7 +29456,7 @@ msgstr "Afficher l&#39;aperçu Popup"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Show Preview Popup"
-msgstr "Afficher l&#39;aperçu Popup"
+msgstr ""
 
 #. Label of a Check field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
@@ -29477,7 +29477,7 @@ msgstr "Afficher le rapport"
 #: core/doctype/access_log/access_log.json
 msgctxt "Access Log"
 msgid "Show Report"
-msgstr "Afficher le rapport"
+msgstr ""
 
 #: public/js/frappe/list/list_filter.js:15
 #: public/js/frappe/list/list_filter.js:87
@@ -29500,7 +29500,7 @@ msgstr "Afficher la Barre Latérale"
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Show Sidebar"
-msgstr "Afficher la Barre Latérale"
+msgstr ""
 
 #: public/js/frappe/list/list_sidebar.html:66
 #: public/js/frappe/list/list_view.js:1607
@@ -29752,7 +29752,7 @@ msgstr "Types Simples ont un seul enregistrement aucunes tables associées. Les 
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
-msgstr "Types Simples ont un seul enregistrement aucunes tables associées. Les valeurs sont stockées dans tabSingles"
+msgstr ""
 
 #: database/database.py:247
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
@@ -29777,7 +29777,7 @@ msgstr "Passer autorisation"
 #: integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
 msgctxt "OAuth Provider Settings"
 msgid "Skip Authorization"
-msgstr "Passer autorisation"
+msgstr ""
 
 #: public/js/frappe/widgets/onboarding_widget.js:337
 msgid "Skip Step"
@@ -29840,7 +29840,7 @@ msgstr "URL de Webhook Slack"
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Slack Webhook URL"
 msgid "Slack Webhook URL"
-msgstr "URL de Webhook Slack"
+msgstr ""
 
 #. Label of a Link field in DocType 'Web Page'
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
@@ -29876,25 +29876,25 @@ msgstr "Petit Texte"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Small Text"
-msgstr "Petit Texte"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Small Text"
-msgstr "Petit Texte"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Small Text"
-msgstr "Petit Texte"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Small Text"
-msgstr "Petit Texte"
+msgstr ""
 
 #. Label of a Currency field in DocType 'Currency'
 #: geo/doctype/currency/currency.json
@@ -29933,7 +29933,7 @@ msgstr "Clé de connexion sociale"
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Social Login Key"
 msgid "Social Login Key"
-msgstr "Clé de connexion sociale"
+msgstr ""
 
 #. Label of a Select field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
@@ -30054,7 +30054,7 @@ msgstr "Texte Source"
 #: core/doctype/translation/translation.json
 msgctxt "Translation"
 msgid "Source Text"
-msgstr "Texte Source"
+msgstr ""
 
 #: public/js/frappe/views/workspace/blocks/spacer.js:23
 msgid "Spacer"
@@ -30334,13 +30334,13 @@ msgstr "États"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "States"
-msgstr "États"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "States"
-msgstr "États"
+msgstr ""
 
 #. Label of a Table field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
@@ -30363,7 +30363,7 @@ msgstr "Statistiques"
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Stats"
-msgstr "Statistiques"
+msgstr ""
 
 #. Label of a Select field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
@@ -30541,7 +30541,7 @@ msgstr "Pas"
 #: desk/doctype/module_onboarding/module_onboarding.json
 msgctxt "Module Onboarding"
 msgid "Steps"
-msgstr "Pas"
+msgstr ""
 
 #: www/qrcode.html:11
 msgid "Steps to verify your login"
@@ -30709,13 +30709,13 @@ msgstr "Champ de sujet"
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Subject Field"
-msgstr "Champ de sujet"
+msgstr ""
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Subject Field"
-msgstr "Champ de sujet"
+msgstr ""
 
 #: core/doctype/doctype/doctype.py:1884
 msgid "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"
@@ -30941,7 +30941,7 @@ msgstr "Message de Réussite"
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Success Message"
-msgstr "Message de Réussite"
+msgstr ""
 
 #. Label of a Data field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -31033,13 +31033,13 @@ msgstr "Somme"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Sum"
-msgstr "Somme"
+msgstr ""
 
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Sum"
-msgstr "Somme"
+msgstr ""
 
 #: public/js/frappe/ui/group_by/group_by.js:328
 msgid "Sum of {0}"
@@ -31116,7 +31116,7 @@ msgstr "Synchronisation"
 #: integrations/doctype/google_contacts/google_contacts.json
 msgctxt "Google Contacts"
 msgid "Sync"
-msgstr "Synchronisation"
+msgstr ""
 
 #: integrations/doctype/google_calendar/google_calendar.js:28
 msgid "Sync Calendar"
@@ -31447,13 +31447,13 @@ msgstr "Tableau MultiSelect"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Table MultiSelect"
-msgstr "Tableau MultiSelect"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Table MultiSelect"
-msgstr "Tableau MultiSelect"
+msgstr ""
 
 #: custom/doctype/customize_form/customize_form.js:229
 msgid "Table Trimmed"
@@ -31530,7 +31530,7 @@ msgstr "Membres de l'Équipe"
 #: website/doctype/about_us_settings/about_us_settings.json
 msgctxt "About Us Settings"
 msgid "Team Members"
-msgstr "Membres de l'Équipe"
+msgstr ""
 
 #. Label of a Data field in DocType 'About Us Settings'
 #: website/doctype/about_us_settings/about_us_settings.json
@@ -31623,25 +31623,25 @@ msgstr "Texte"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Text"
-msgstr "Texte"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Text"
-msgstr "Texte"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Text"
-msgstr "Texte"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Text"
-msgstr "Texte"
+msgstr ""
 
 #. Label of a Select field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
@@ -31671,19 +31671,19 @@ msgstr "Éditeur de Texte"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Text Editor"
-msgstr "Éditeur de Texte"
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Text Editor"
-msgstr "Éditeur de Texte"
+msgstr ""
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Text Editor"
-msgstr "Éditeur de Texte"
+msgstr ""
 
 #: templates/emails/password_reset.html:5
 msgid "Thank you"
@@ -31954,7 +31954,7 @@ msgstr "Thème"
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Theme"
-msgstr "Thème"
+msgstr ""
 
 #: public/js/frappe/ui/theme_switcher.js:130
 msgid "Theme Changed"
@@ -32470,19 +32470,19 @@ msgstr "Fuseau Horaire"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Time Zone"
-msgstr "Fuseau Horaire"
+msgstr ""
 
 #. Label of a Autocomplete field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Time Zone"
-msgstr "Fuseau Horaire"
+msgstr ""
 
 #. Label of a Data field in DocType 'Web Page View'
 #: website/doctype/web_page_view/web_page_view.json
 msgctxt "Web Page View"
 msgid "Time Zone"
-msgstr "Fuseau Horaire"
+msgstr ""
 
 #. Label of a Text field in DocType 'Country'
 #: geo/doctype/country/country.json
@@ -32587,7 +32587,7 @@ msgstr "Période"
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Timespan"
-msgstr "Période"
+msgstr ""
 
 #: core/report/transaction_log_report/transaction_log_report.py:112
 msgid "Timestamp"
@@ -32597,13 +32597,13 @@ msgstr "Horodatage"
 #: core/doctype/access_log/access_log.json
 msgctxt "Access Log"
 msgid "Timestamp"
-msgstr "Horodatage"
+msgstr ""
 
 #. Label of a Datetime field in DocType 'Transaction Log'
 #: core/doctype/transaction_log/transaction_log.json
 msgctxt "Transaction Log"
 msgid "Timestamp"
-msgstr "Horodatage"
+msgstr ""
 
 #: core/doctype/doctype/boilerplate/controller_list.html:14
 #: core/doctype/doctype/boilerplate/controller_list.html:23
@@ -32749,7 +32749,7 @@ msgstr "Champ Titre"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Title Field"
-msgstr "Champ Titre"
+msgstr ""
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -32806,7 +32806,7 @@ msgstr "Tâche à Faire"
 #: automation/workspace/tools/tools.json
 msgctxt "ToDo"
 msgid "To Do"
-msgstr "Tâche à Faire"
+msgstr ""
 
 #: public/js/frappe/form/sidebar/review.js:50
 msgid "To User"
@@ -32961,7 +32961,7 @@ msgstr "Afficher/Cacher la barre latérale"
 #: public/js/frappe/list/list_view.js:1722
 msgctxt "Button in list view menu"
 msgid "Toggle Sidebar"
-msgstr "Afficher/Cacher la barre latérale"
+msgstr ""
 
 #. Label of a standard navbar item
 #. Type: Action
@@ -33120,7 +33120,7 @@ msgstr "Total d'Abonnés"
 #: email/doctype/newsletter_email_group/newsletter_email_group.json
 msgctxt "Newsletter Email Group"
 msgid "Total Subscribers"
-msgstr "Total d'Abonnés"
+msgstr ""
 
 #. Label of a Int field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
@@ -33171,7 +33171,7 @@ msgstr "Suivre les Modifications"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Track Changes"
-msgstr "Suivre les Modifications"
+msgstr ""
 
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -33207,7 +33207,7 @@ msgstr "Suivi des vues"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Track Views"
-msgstr "Suivi des vues"
+msgstr ""
 
 #. Description of the 'Track Email Status' (Check) field in DocType 'Email
 #. Account'
@@ -33265,13 +33265,13 @@ msgstr "Traduisible"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Translatable"
-msgstr "Traduisible"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Translatable"
-msgstr "Traduisible"
+msgstr ""
 
 #. Label of a Check field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -33320,7 +33320,7 @@ msgstr "Arbre"
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Tree"
-msgstr "Arbre"
+msgstr ""
 
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -33419,7 +33419,7 @@ msgstr "Authentification à Double Facteur"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Two Factor Authentication"
-msgstr "Authentification à Double Facteur"
+msgstr ""
 
 #. Label of a Select field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -33799,7 +33799,7 @@ msgstr "Non Partagé"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Unshared"
-msgstr "Non Partagé"
+msgstr ""
 
 #: email/queue.py:66
 msgid "Unsubscribe"
@@ -33941,7 +33941,7 @@ msgstr "Mettre à Jour la valeur"
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Update Value"
-msgstr "Mettre à Jour la valeur"
+msgstr ""
 
 #: public/js/frappe/list/bulk_operations.js:324
 msgid "Update {0} records"
@@ -33956,13 +33956,13 @@ msgstr "Mis à Jour"
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Updated"
-msgstr "Mis à Jour"
+msgstr ""
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Updated"
-msgstr "Mis à Jour"
+msgstr ""
 
 #: desk/doctype/bulk_update/bulk_update.js:32
 msgid "Updated Successfully"
@@ -33989,7 +33989,7 @@ msgstr "Réactualisation"
 #: public/js/frappe/form/save.js:11
 msgctxt "Freeze message while updating a document"
 msgid "Updating"
-msgstr "Réactualisation"
+msgstr ""
 
 #: email/doctype/email_queue/email_queue.py:427
 msgid "Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."
@@ -34086,7 +34086,7 @@ msgstr "Utiliser IMAP"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Use IMAP"
-msgstr "Utiliser IMAP"
+msgstr ""
 
 #. Label of a Check field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
@@ -34110,7 +34110,7 @@ msgstr "Utiliser SSL"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Use SSL"
-msgstr "Utiliser SSL"
+msgstr ""
 
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -34122,7 +34122,7 @@ msgstr "Utiliser le STARTTLS"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Use STARTTLS"
-msgstr "Utiliser le STARTTLS"
+msgstr ""
 
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -34134,7 +34134,7 @@ msgstr "Utiliser TLS"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Use TLS"
-msgstr "Utiliser TLS"
+msgstr ""
 
 #: utils/password_strength.py:34
 msgid "Use a few words, avoid common phrases."
@@ -34492,7 +34492,7 @@ msgstr "Autorisation de l'Utilisateur"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "User Permission"
-msgstr "Autorisation de l'Utilisateur"
+msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:30
 #: public/js/frappe/views/reports/query_report.js:1789
@@ -34503,13 +34503,13 @@ msgstr "Autorisations des Utilisateurs"
 #: public/js/frappe/list/list_view.js:1680
 msgctxt "Button in list view menu"
 msgid "User Permissions"
-msgstr "Autorisations des Utilisateurs"
+msgstr ""
 
 #. Label of a Link in the Users Workspace
 #: core/workspace/users/users.json
 msgctxt "User Permission"
 msgid "User Permissions"
-msgstr "Autorisations des Utilisateurs"
+msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:32
 msgid "User Permissions are used to limit users to specific records."
@@ -34559,13 +34559,13 @@ msgstr "Type d'Utilisateur"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "User Type"
-msgstr "Type d'Utilisateur"
+msgstr ""
 
 #. Label of a shortcut in the Users Workspace
 #: core/workspace/users/users.json
 msgctxt "User Type"
 msgid "User Type"
-msgstr "Type d'Utilisateur"
+msgstr ""
 
 #. Name of a DocType
 #: core/doctype/user_type_module/user_type_module.json
@@ -34681,13 +34681,13 @@ msgstr "Nom d'Utilisateur"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Username"
-msgstr "Nom d'Utilisateur"
+msgstr ""
 
 #. Label of a Data field in DocType 'User Social Login'
 #: core/doctype/user_social_login/user_social_login.json
 msgctxt "User Social Login"
 msgid "Username"
-msgstr "Nom d'Utilisateur"
+msgstr ""
 
 #: core/doctype/user/user.py:652
 msgid "Username {0} already exists"
@@ -35031,7 +35031,7 @@ msgstr "Paramètres d'Affichage"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "View Settings"
-msgstr "Paramètres d'Affichage"
+msgstr ""
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
@@ -35198,20 +35198,20 @@ msgstr "Formulaire Web"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Web Form"
-msgstr "Formulaire Web"
+msgstr ""
 
 #. Linked DocType in Module Def's connections
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Web Form"
-msgstr "Formulaire Web"
+msgstr ""
 
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "Web Form"
 msgid "Web Form"
-msgstr "Formulaire Web"
+msgstr ""
 
 #. Name of a DocType
 #: website/doctype/web_form_field/web_form_field.json
@@ -35238,14 +35238,14 @@ msgstr "Page Web"
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Web Page"
-msgstr "Page Web"
+msgstr ""
 
 #. Label of a Link in the Website Workspace
 #. Label of a shortcut in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "Web Page"
 msgid "Web Page"
-msgstr "Page Web"
+msgstr ""
 
 #. Name of a DocType
 #: website/doctype/web_page_block/web_page_block.json
@@ -35275,13 +35275,13 @@ msgstr "Modèle Web"
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Web Template"
-msgstr "Modèle Web"
+msgstr ""
 
 #. Label of a Link field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
 msgctxt "Web Page Block"
 msgid "Web Template"
-msgstr "Modèle Web"
+msgstr ""
 
 #. Name of a DocType
 #: website/doctype/web_template_field/web_template_field.json
@@ -35336,7 +35336,7 @@ msgstr "Données Webhook"
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "Webhook Data"
-msgstr "Données Webhook"
+msgstr ""
 
 #. Name of a DocType
 #: integrations/doctype/webhook_header/webhook_header.json
@@ -35442,7 +35442,7 @@ msgstr "Site Web Route Meta"
 #: website/workspace/website/website.json
 msgctxt "Website Route Meta"
 msgid "Website Route Meta"
-msgstr "Site Web Route Meta"
+msgstr ""
 
 #. Name of a DocType
 #: website/doctype/website_route_redirect/website_route_redirect.json
@@ -35491,19 +35491,19 @@ msgstr "Barre Latérale du Site Web"
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Website Sidebar"
-msgstr "Barre Latérale du Site Web"
+msgstr ""
 
 #. Label of a Link field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Website Sidebar"
-msgstr "Barre Latérale du Site Web"
+msgstr ""
 
 #. Label of a Link in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "Website Sidebar"
 msgid "Website Sidebar"
-msgstr "Barre Latérale du Site Web"
+msgstr ""
 
 #. Name of a DocType
 #: website/doctype/website_sidebar_item/website_sidebar_item.json
@@ -35519,7 +35519,7 @@ msgstr "Diaporama du Site web"
 #: website/workspace/website/website.json
 msgctxt "Website Slideshow"
 msgid "Website Slideshow"
-msgstr "Diaporama du Site web"
+msgstr ""
 
 #. Name of a DocType
 #: website/doctype/website_slideshow_item/website_slideshow_item.json
@@ -35698,7 +35698,7 @@ msgstr "Longue semaine"
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "Weekly Long"
-msgstr "Longue semaine"
+msgstr ""
 
 #: desk/page/setup_wizard/setup_wizard.js:372
 msgid "Welcome"
@@ -35714,7 +35714,7 @@ msgstr "Modèle d&#39;e-mail de bienvenue"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Welcome Email Template"
-msgstr "Modèle d&#39;e-mail de bienvenue"
+msgstr ""
 
 #. Label of a Data field in DocType 'Email Group'
 #: email/doctype/email_group/email_group.json
@@ -35773,11 +35773,11 @@ msgstr "À quelle vue du DocType associé ce raccourci doit-il vous amener?"
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Which view of the associated DocType should this shortcut take you to?"
-msgstr "À quelle vue du DocType associé ce raccourci doit-il vous amener?"
+msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:8
 msgid "Width"
-msgstr "Largeur"
+msgstr ""
 
 #. Label of a Data field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -35789,25 +35789,25 @@ msgstr "Largeur"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Width"
-msgstr "Largeur"
+msgstr ""
 
 #. Label of a Select field in DocType 'Dashboard Chart Link'
 #: desk/doctype/dashboard_chart_link/dashboard_chart_link.json
 msgctxt "Dashboard Chart Link"
 msgid "Width"
-msgstr "Largeur"
+msgstr ""
 
 #. Label of a Data field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Width"
-msgstr "Largeur"
+msgstr ""
 
 #. Label of a Int field in DocType 'Report Column'
 #: core/doctype/report_column/report_column.json
 msgctxt "Report Column"
 msgid "Width"
-msgstr "Largeur"
+msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
@@ -36108,19 +36108,19 @@ msgstr "Écrire"
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Write"
-msgstr "Écrire"
+msgstr ""
 
 #. Label of a Check field in DocType 'DocShare'
 #: core/doctype/docshare/docshare.json
 msgctxt "DocShare"
 msgid "Write"
-msgstr "Écrire"
+msgstr ""
 
 #. Label of a Check field in DocType 'User Document Type'
 #: core/doctype/user_document_type/user_document_type.json
 msgctxt "User Document Type"
 msgid "Write"
-msgstr "Écrire"
+msgstr ""
 
 #: model/base_document.py:851
 msgid "Wrong Fetch From value"
@@ -36160,7 +36160,7 @@ msgstr "Champ Y"
 #: desk/doctype/dashboard_chart_field/dashboard_chart_field.json
 msgctxt "Dashboard Chart Field"
 msgid "Y Field"
-msgstr "Champ Y"
+msgstr ""
 
 #. Option for the 'Service' (Select) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -37015,7 +37015,7 @@ msgstr "calendrier"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "calendar"
-msgstr "calendrier"
+msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -37621,7 +37621,7 @@ msgstr "liste"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "list"
-msgstr "liste"
+msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -37927,7 +37927,7 @@ msgstr "Imprimer"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "print"
-msgstr "Imprimer"
+msgstr ""
 
 #. Label of a HTML field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
@@ -38123,7 +38123,7 @@ msgstr "part"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "share"
-msgstr "part"
+msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
