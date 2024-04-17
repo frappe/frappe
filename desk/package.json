@@ -19,6 +19,10 @@
 		"autoprefixer": "^10.4.2",
 		"postcss": "^8.4.5",
 		"tailwindcss": "^3.0.15",
-		"vite": "^2.7.2"
+		"vite": "^2.7.2",
+		"eslint": "^8.39.0",
+		"eslint-plugin-vue": "^9.11.0",
+		"prettier": "^2.8.8",
+		"prettier-plugin-tailwindcss": "^0.1.8"
 	}
 }

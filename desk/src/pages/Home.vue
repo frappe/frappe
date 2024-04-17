@@ -1,5 +1,5 @@
 <template>
-	<div class="max-w-3xl py-12 mx-auto">
+	<div class="mx-auto max-w-3xl py-12">
 		<Button icon-left="code" @click="$resources.ping.fetch" :loading="$resources.ping.loading">
 			Click to send 'ping' request
 		</Button>
