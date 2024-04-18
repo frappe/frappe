@@ -9,7 +9,8 @@ Metrics:
 - [x] Email queue flush and pull
 - [x] Error logs status
 - [x] Database - storage usage and top tables, version
-- [ ] Storage - files usage
+- [x] Cache
+- [x] Storage - files usage
 - [ ] Backups
 - [ ] Log cleanup status
 - [ ] User - new users, sessions stats, failed login attempts
@@ -20,6 +21,7 @@ Metrics:
 
 """
 
+import os
 from collections import defaultdict
 
 import frappe
@@ -42,6 +44,7 @@ class SystemHealthReport(Document):
 		from frappe.types import DF
 
 		background_workers: DF.Table[SystemHealthWorkers]
+		backups_size: DF.Float
 		binary_logging: DF.Data | None
 		bufferpool_size: DF.Data | None
 		cache_keys: DF.Int
@@ -51,7 +54,10 @@ class SystemHealthReport(Document):
 		db_storage_usage: DF.Float
 		failed_emails: DF.Int
 		handled_emails: DF.Int
+		onsite_backups: DF.Int
 		pending_emails: DF.Int
+		private_files_size: DF.Float
+		public_files_size: DF.Float
 		queue_status: DF.Table[SystemHealthQueue]
 		scheduler_status: DF.Data | None
 		socketio_ping_check: DF.Literal["Fail", "Pass"]
@@ -74,6 +80,7 @@ class SystemHealthReport(Document):
 		self.fetch_errors()
 		self.fetch_database_details()
 		self.fetch_cache_details()
+		self.fetch_storage_details()
 
 	def fetch_background_workers(self):
 		self.scheduler_status = get_scheduler_status().get("status")
@@ -156,6 +163,29 @@ class SystemHealthReport(Document):
 	def fetch_cache_details(self):
 		self.cache_keys = len(frappe.cache.get_keys(""))
 		self.cache_memory_usage = frappe.cache.execute_command("INFO", "MEMORY").get("used_memory_human")
+
+	@classmethod
+	def get_directory_size(cls, *path):
+		folder = os.path.abspath(frappe.get_site_path(*path))
+		# Copied as is from agent
+		total_size = os.path.getsize(folder)
+		for item in os.listdir(folder):
+			itempath = os.path.join(folder, item)
+
+			if not os.path.islink(itempath):
+				if os.path.isfile(itempath):
+					total_size += os.path.getsize(itempath)
+				elif os.path.isdir(itempath):
+					total_size += cls.get_directory_size(itempath)
+		return total_size / (1024 * 1024)
+
+	def fetch_storage_details(self):
+		from frappe.desk.page.backups.backups import get_context
+
+		self.backups_size = self.get_directory_size("private", "backups")
+		self.private_files_size = self.get_directory_size("private", "files")
+		self.public_files_size = self.get_directory_size("public", "files")
+		self.onsite_backups = len(get_context({}).get("files", []))
 
 	def db_update(self):
 		raise NotImplementedError

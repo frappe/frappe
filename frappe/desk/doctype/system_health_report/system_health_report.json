@@ -41,7 +41,14 @@
   "binary_logging",
   "cache_tab",
   "cache_keys",
-  "cache_memory_usage"
+  "cache_memory_usage",
+  "storage_tab",
+  "storage_usage_column",
+  "public_files_size",
+  "private_files_size",
+  "backups_column",
+  "onsite_backups",
+  "backups_size"
  ],
  "fields": [
   {
@@ -227,6 +234,41 @@
    "fieldname": "cache_memory_usage",
    "fieldtype": "Data",
    "label": "Memory Usage"
+  },
+  {
+   "fieldname": "storage_tab",
+   "fieldtype": "Tab Break",
+   "label": "Storage and Backups"
+  },
+  {
+   "fieldname": "backups_size",
+   "fieldtype": "Float",
+   "label": "Backups (MB)"
+  },
+  {
+   "fieldname": "private_files_size",
+   "fieldtype": "Float",
+   "label": "Private Files (MB)"
+  },
+  {
+   "fieldname": "public_files_size",
+   "fieldtype": "Float",
+   "label": "Public Files (MB)"
+  },
+  {
+   "fieldname": "storage_usage_column",
+   "fieldtype": "Column Break",
+   "label": "Storage Usage"
+  },
+  {
+   "fieldname": "backups_column",
+   "fieldtype": "Column Break",
+   "label": "Backups"
+  },
+  {
+   "fieldname": "onsite_backups",
+   "fieldtype": "Int",
+   "label": "Number of onsite backups"
   }
  ],
  "hide_toolbar": 1,
@@ -234,7 +276,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-18 19:58:14.550430",
+ "modified": "2024-04-18 20:15:04.989641",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
