@@ -24,7 +24,12 @@
   "failed_emails",
   "incoming_emails_last_7_days_column",
   "handled_emails",
-  "unhandled_emails"
+  "unhandled_emails",
+  "errors_tab",
+  "errors_generated_in_last_1_day_section",
+  "total_errors",
+  "top_errors",
+  "column_break_keyz"
  ],
  "fields": [
   {
@@ -132,6 +137,30 @@
    "fieldname": "handled_emails",
    "fieldtype": "Int",
    "label": "Handled Emails"
+  },
+  {
+   "fieldname": "errors_tab",
+   "fieldtype": "Tab Break",
+   "label": "Errors"
+  },
+  {
+   "fieldname": "errors_generated_in_last_1_day_section",
+   "fieldtype": "Section Break",
+   "label": "Errors generated in last 1 day"
+  },
+  {
+   "fieldname": "total_errors",
+   "fieldtype": "Int",
+   "label": "Total Errors"
+  },
+  {
+   "fieldname": "top_errors",
+   "fieldtype": "Code",
+   "label": "Top Errors"
+  },
+  {
+   "fieldname": "column_break_keyz",
+   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -139,7 +168,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-18 18:50:33.486009",
+ "modified": "2024-04-18 19:11:38.645528",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
