@@ -12,5 +12,6 @@ frappe.ui.form.on("System Health Report", {
 			);
 		});
 		frappe.realtime.emit("ping");
+		frm.disable_save();
 	},
 });
