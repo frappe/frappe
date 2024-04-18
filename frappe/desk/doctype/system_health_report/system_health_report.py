@@ -24,6 +24,7 @@ from collections import defaultdict
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils.background_jobs import get_queue, get_queue_list
 from frappe.utils.scheduler import get_scheduler_status
 
 
@@ -34,10 +35,12 @@ class SystemHealthReport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.desk.doctype.system_health_queue.system_health_queue import SystemHealthQueue
 		from frappe.desk.doctype.system_health_workers.system_health_workers import SystemHealthWorkers
 		from frappe.types import DF
 
 		background_workers: DF.Table[SystemHealthWorkers]
+		queue_status: DF.Table[SystemHealthQueue]
 		scheduler_status: DF.Data | None
 		total_background_workers: DF.Int
 	# end: auto-generated types
@@ -66,6 +69,16 @@ class SystemHealthReport(Document):
 					"queues": queue_type,
 					"failed_jobs": sum(w.failed_job_count for w in workers),
 					"utilization": sum(w.utilization_percent for w in workers) / len(workers),
+				},
+			)
+
+		for queue in get_queue_list():
+			q = get_queue(queue)
+			self.append(
+				"queue_status",
+				{
+					"queue": queue,
+					"pending_jobs": q.count,
 				},
 			)
 
