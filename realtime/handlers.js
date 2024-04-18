@@ -26,6 +26,10 @@ function frappe_handlers(socket) {
 		});
 	};
 
+	socket.on("ping", () => {
+		socket.emit("pong");
+	});
+
 	socket.on("doctype_subscribe", function (doctype) {
 		socket.has_permission(doctype).then(() => {
 			socket.join(doctype_room(doctype));
