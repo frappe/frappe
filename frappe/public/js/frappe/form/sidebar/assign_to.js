@@ -139,6 +139,26 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 
 		me.dialog.set_value("assign_to", assign_to);
 	}
+	user_group_list() {
+		let me = this;
+		let user_group_members = [];
+
+		let user_group = me.dialog.get_value("assign_to_user_group");
+		me.dialog.set_value("assign_to_me", 0);
+
+		if (user_group) {
+			frappe.db.get_list("User Group Member", {
+				parent_doctype:"User Group",
+				filters:{"parent":user_group}, 
+				fields:["user"]})
+			.then(group_members => {
+				for(let member in group_members){
+					user_group_members.push(group_members[member].user)
+				}
+				me.dialog.set_value("assign_to", user_group_members);
+			})	
+		}
+	}	
 	set_description_from_doc() {
 		let me = this;
 
@@ -157,6 +177,19 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				default: 0,
 				onchange: () => me.assign_to_me(),
 			},
+			{
+				fieldtype: "Column Break",
+			},
+			{
+				label: __("Assign To User Group"),
+				fieldtype: "Link",
+				fieldname: "assign_to_user_group",
+				options: "User Group",
+				onchange: () => me.user_group_list(),
+			},
+			{
+				fieldtype: "Section Break",
+			},			
 			{
 				fieldtype: "MultiSelectPills",
 				fieldname: "assign_to",
