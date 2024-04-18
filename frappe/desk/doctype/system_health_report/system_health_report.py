@@ -48,7 +48,9 @@ class SystemHealthReport(Document):
 		scheduler_status: DF.Data | None
 		socketio_ping_check: DF.Literal["Fail", "Pass"]
 		socketio_transport_mode: DF.Literal["Polling", "Websocket"]
+		top_errors: DF.Code | None
 		total_background_workers: DF.Int
+		total_errors: DF.Int
 		total_outgoing_emails: DF.Int
 		unhandled_emails: DF.Int
 	# end: auto-generated types
@@ -60,6 +62,7 @@ class SystemHealthReport(Document):
 		super(Document, self).__init__({})
 		self.fetch_background_workers()
 		self.fetch_email_stats()
+		self.fetch_errors()
 
 	def fetch_background_workers(self):
 		self.scheduler_status = get_scheduler_status().get("status")
@@ -92,7 +95,7 @@ class SystemHealthReport(Document):
 			)
 
 	def fetch_email_stats(self):
-		threshold = add_to_date(None, days=-1, as_datetime=True)
+		threshold = add_to_date(None, days=-7, as_datetime=True)
 		filters = {"creation": (">", threshold), "modified": (">", threshold)}
 		self.total_outgoing_emails = frappe.db.count("Email Queue", filters)
 		self.pending_emails = frappe.db.count("Email Queue", {"status": "Not Sent", **filters})
@@ -102,6 +105,26 @@ class SystemHealthReport(Document):
 			"Communication",
 			{"sent_or_received": "Received", "communication_type": "Communication", **filters},
 		)
+
+	def fetch_errors(self):
+		from terminaltables import AsciiTable
+
+		threshold = add_to_date(None, days=-1, as_datetime=True)
+		filters = {"creation": (">", threshold), "modified": (">", threshold)}
+		self.total_errors = frappe.db.count("Error Log", filters)
+
+		top_errors = frappe.db.sql(
+			"""select method, count(*) as occurance
+			from `tabError Log`
+			where modified > %(threshold)s and creation > %(threshold)s
+			group by method
+			order by occurance desc
+			limit 5""",
+			{"threshold": threshold},
+			as_list=True,
+		)
+		if top_errors:
+			self.top_errors = AsciiTable([["Error Title", "Count"], *top_errors]).table
 
 	def db_update(self):
 		raise NotImplementedError
