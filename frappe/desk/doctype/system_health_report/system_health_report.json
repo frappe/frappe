@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "beta": 1,
  "creation": "2024-04-18 16:59:15.088271",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -29,7 +30,15 @@
   "errors_generated_in_last_1_day_section",
   "total_errors",
   "top_errors",
-  "column_break_keyz"
+  "database_tab",
+  "database",
+  "database_version",
+  "db_storage_usage",
+  "column_break_auhv",
+  "top_db_tables",
+  "mariadb_variables_section",
+  "bufferpool_size",
+  "binary_logging"
  ],
  "fields": [
   {
@@ -45,8 +54,7 @@
   },
   {
    "fieldname": "background_jobs_section",
-   "fieldtype": "Section Break",
-   "label": "Background Jobs"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "scheduler_status",
@@ -159,8 +167,48 @@
    "label": "Top Errors"
   },
   {
-   "fieldname": "column_break_keyz",
+   "fieldname": "database_tab",
+   "fieldtype": "Tab Break",
+   "label": "Database"
+  },
+  {
+   "fieldname": "database",
+   "fieldtype": "Data",
+   "label": "Database"
+  },
+  {
+   "fieldname": "db_storage_usage",
+   "fieldtype": "Float",
+   "label": "Storage Usage (MB)"
+  },
+  {
+   "fieldname": "column_break_auhv",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "top_db_tables",
+   "fieldtype": "Table",
+   "options": "System Health DB Table"
+  },
+  {
+   "fieldname": "database_version",
+   "fieldtype": "Data",
+   "label": "Database Version"
+  },
+  {
+   "fieldname": "mariadb_variables_section",
+   "fieldtype": "Section Break",
+   "label": "MariaDB Variables"
+  },
+  {
+   "fieldname": "bufferpool_size",
+   "fieldtype": "Data",
+   "label": "Bufferpool Size"
+  },
+  {
+   "fieldname": "binary_logging",
+   "fieldtype": "Data",
+   "label": "Binary Logging"
   }
  ],
  "hide_toolbar": 1,
@@ -168,7 +216,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-18 19:11:38.645528",
+ "modified": "2024-04-18 19:39:55.039759",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
