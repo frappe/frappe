@@ -44,6 +44,8 @@ class SystemHealthReport(Document):
 		background_workers: DF.Table[SystemHealthWorkers]
 		binary_logging: DF.Data | None
 		bufferpool_size: DF.Data | None
+		cache_keys: DF.Int
+		cache_memory_usage: DF.Data | None
 		database: DF.Data | None
 		database_version: DF.Data | None
 		db_storage_usage: DF.Float
@@ -71,6 +73,7 @@ class SystemHealthReport(Document):
 		self.fetch_email_stats()
 		self.fetch_errors()
 		self.fetch_database_details()
+		self.fetch_cache_details()
 
 	def fetch_background_workers(self):
 		self.scheduler_status = get_scheduler_status().get("status")
@@ -149,6 +152,10 @@ class SystemHealthReport(Document):
 		if frappe.db.db_type == "mariadb":
 			self.bufferpool_size = frappe.db.sql("show variables like 'innodb_buffer_pool_size'")[0][1]
 			self.binary_logging = frappe.db.sql("show variables like 'log_bin'")[0][1]
+
+	def fetch_cache_details(self):
+		self.cache_keys = len(frappe.cache.get_keys(""))
+		self.cache_memory_usage = frappe.cache.execute_command("INFO", "MEMORY").get("used_memory_human")
 
 	def db_update(self):
 		raise NotImplementedError
