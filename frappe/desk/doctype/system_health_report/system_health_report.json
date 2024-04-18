@@ -14,10 +14,10 @@
   "queue_status",
   "column_break_wjoz",
   "background_workers",
-  "realtime_tab",
-  "socketio_ping_check",
-  "column_break_hgay",
-  "socketio_transport_mode",
+  "errors_tab",
+  "errors_generated_in_last_1_day_section",
+  "total_errors",
+  "top_errors",
   "emails_tab",
   "outgoing_emails_column",
   "total_outgoing_emails",
@@ -26,10 +26,6 @@
   "incoming_emails_last_7_days_column",
   "handled_emails",
   "unhandled_emails",
-  "errors_tab",
-  "errors_generated_in_last_1_day_section",
-  "total_errors",
-  "top_errors",
   "database_tab",
   "database",
   "database_version",
@@ -48,7 +44,20 @@
   "private_files_size",
   "backups_column",
   "onsite_backups",
-  "backups_size"
+  "backups_size",
+  "users_tab",
+  "total_users",
+  "column_break_yfwd",
+  "new_users",
+  "security_and_sessions_section",
+  "failed_logins",
+  "column_break_ybhh",
+  "active_sessions",
+  "last_10_active_users",
+  "realtime_tab",
+  "socketio_ping_check",
+  "column_break_hgay",
+  "socketio_transport_mode"
  ],
  "fields": [
   {
@@ -269,6 +278,49 @@
    "fieldname": "onsite_backups",
    "fieldtype": "Int",
    "label": "Number of onsite backups"
+  },
+  {
+   "fieldname": "users_tab",
+   "fieldtype": "Tab Break",
+   "label": "Users"
+  },
+  {
+   "fieldname": "total_users",
+   "fieldtype": "Int",
+   "label": "Total Users"
+  },
+  {
+   "fieldname": "column_break_yfwd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "new_users",
+   "fieldtype": "Int",
+   "label": "New Users (Last 30 days)"
+  },
+  {
+   "fieldname": "security_and_sessions_section",
+   "fieldtype": "Section Break",
+   "label": "Security and Sessions"
+  },
+  {
+   "fieldname": "failed_logins",
+   "fieldtype": "Int",
+   "label": "Failed Logins (Last 30 days)"
+  },
+  {
+   "fieldname": "active_sessions",
+   "fieldtype": "Int",
+   "label": "Active Sessions"
+  },
+  {
+   "fieldname": "column_break_ybhh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_10_active_users",
+   "fieldtype": "Code",
+   "label": "Last 10 active users"
   }
  ],
  "hide_toolbar": 1,
@@ -276,7 +328,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-18 20:15:04.989641",
+ "modified": "2024-04-18 20:41:48.420334",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",

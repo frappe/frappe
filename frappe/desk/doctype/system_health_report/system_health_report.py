@@ -4,17 +4,15 @@
 Basic system health check report to see how everything on site is functioning in one single page.
 
 Metrics:
-- [x] Background jobs, workers and scheduler summary, queue stats
-- [x] SocketIO works (using basic ping test)
-- [x] Email queue flush and pull
-- [x] Error logs status
-- [x] Database - storage usage and top tables, version
-- [x] Cache
-- [x] Storage - files usage
-- [ ] Backups
-- [ ] Log cleanup status
-- [ ] User - new users, sessions stats, failed login attempts
-- [ ] Updates / Security updates ?
+- Background jobs, workers and scheduler summary, queue stats
+- SocketIO works (using basic ping test)
+- Email queue flush and pull
+- Error logs status
+- Database - storage usage and top tables, version
+- Cache
+- Storage - files usage
+- Backups
+- User - new users, sessions stats, failed login attempts
 
 
 
@@ -43,6 +41,7 @@ class SystemHealthReport(Document):
 		from frappe.desk.doctype.system_health_workers.system_health_workers import SystemHealthWorkers
 		from frappe.types import DF
 
+		active_sessions: DF.Int
 		background_workers: DF.Table[SystemHealthWorkers]
 		backups_size: DF.Float
 		binary_logging: DF.Data | None
@@ -53,7 +52,10 @@ class SystemHealthReport(Document):
 		database_version: DF.Data | None
 		db_storage_usage: DF.Float
 		failed_emails: DF.Int
+		failed_logins: DF.Int
 		handled_emails: DF.Int
+		last_10_active_users: DF.Code | None
+		new_users: DF.Int
 		onsite_backups: DF.Int
 		pending_emails: DF.Int
 		private_files_size: DF.Float
@@ -67,6 +69,7 @@ class SystemHealthReport(Document):
 		total_background_workers: DF.Int
 		total_errors: DF.Int
 		total_outgoing_emails: DF.Int
+		total_users: DF.Int
 		unhandled_emails: DF.Int
 	# end: auto-generated types
 
@@ -81,6 +84,7 @@ class SystemHealthReport(Document):
 		self.fetch_database_details()
 		self.fetch_cache_details()
 		self.fetch_storage_details()
+		self.fetch_user_stats()
 
 	def fetch_background_workers(self):
 		self.scheduler_status = get_scheduler_status().get("status")
@@ -186,6 +190,30 @@ class SystemHealthReport(Document):
 		self.private_files_size = self.get_directory_size("private", "files")
 		self.public_files_size = self.get_directory_size("public", "files")
 		self.onsite_backups = len(get_context({}).get("files", []))
+
+	def fetch_user_stats(self):
+		threshold = add_to_date(None, days=-30, as_datetime=True)
+		self.total_users = frappe.db.count("User", {"enabled": 1})
+		self.new_users = frappe.db.count("User", {"enabled": 1, "creation": (">", threshold)})
+		self.failed_logins = frappe.db.count(
+			"Activity Log",
+			{
+				"operation": "login",
+				"status": "Failed",
+				"creation": (">", threshold),
+				"modified": (">", threshold),
+			},
+		)
+		self.active_sessions = frappe.db.count("Sessions")
+		self.last_10_active_users = "\n".join(
+			frappe.get_all(
+				"User",
+				{"enabled": 1},
+				order_by="last_active desc",
+				limit=10,
+				pluck="name",
+			)
+		)
 
 	def db_update(self):
 		raise NotImplementedError
