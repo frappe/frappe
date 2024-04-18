@@ -38,7 +38,10 @@
   "top_db_tables",
   "mariadb_variables_section",
   "bufferpool_size",
-  "binary_logging"
+  "binary_logging",
+  "cache_tab",
+  "cache_keys",
+  "cache_memory_usage"
  ],
  "fields": [
   {
@@ -209,6 +212,21 @@
    "fieldname": "binary_logging",
    "fieldtype": "Data",
    "label": "Binary Logging"
+  },
+  {
+   "fieldname": "cache_tab",
+   "fieldtype": "Tab Break",
+   "label": "Cache"
+  },
+  {
+   "fieldname": "cache_keys",
+   "fieldtype": "Int",
+   "label": "Number of keys"
+  },
+  {
+   "fieldname": "cache_memory_usage",
+   "fieldtype": "Data",
+   "label": "Memory Usage"
   }
  ],
  "hide_toolbar": 1,
@@ -216,7 +234,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-18 19:39:55.039759",
+ "modified": "2024-04-18 19:58:14.550430",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
