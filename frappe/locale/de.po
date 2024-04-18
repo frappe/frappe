@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-17 10:13\n"
+"PO-Revision-Date: 2024-04-18 10:55\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -3008,11 +3008,11 @@ msgstr "Mindestens eine Spalte muss im Raster angezeigt werden."
 
 #: website/doctype/web_form/web_form.js:63
 msgid "Atleast one field is required in Web Form Fields Table"
-msgstr ""
+msgstr "Mindestens ein Feld ist in der Tabelle der Webformularfelder erforderlich"
 
 #: core/doctype/data_export/data_export.js:44
 msgid "Atleast one field of Parent Document Type is mandatory"
-msgstr ""
+msgstr "Mindestens ein Feld des übergeordneten Dokumenttyps ist obligatorisch"
 
 #: public/js/frappe/form/controls/attach.js:5
 msgid "Attach"
@@ -12829,7 +12829,7 @@ msgstr "Filter sind über <code>filters</code> zugänglich.<br><br> Ausgabe als 
 
 #: public/js/frappe/ui/filters/filter_list.js:133
 msgid "Filters {0}"
-msgstr ""
+msgstr "Filter {0}"
 
 #: public/js/frappe/views/reports/report_view.js:1351
 msgid "Filters:"
@@ -13512,7 +13512,7 @@ msgstr "Frappe-Framework"
 
 #: public/js/frappe/list/list_sidebar.js:275
 msgid "Frappe Insights"
-msgstr ""
+msgstr "Frappe Insights"
 
 #: public/js/frappe/ui/theme_switcher.js:59
 msgid "Frappe Light"
@@ -16573,7 +16573,7 @@ msgstr "Ungültiger Filter: {0}"
 
 #: model/utils/__init__.py:68
 msgid "Invalid include path"
-msgstr ""
+msgstr "Ungültiger Einbindungs-Pfand"
 
 #: desk/doctype/dashboard/dashboard.py:67
 #: desk/doctype/dashboard_chart/dashboard_chart.py:413
@@ -25037,7 +25037,7 @@ msgstr "Anfragen begrenzen"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Rate limit for email link login"
-msgstr ""
+msgstr "Ratenbegrenzung für die Anmeldung per E-Mail-Link"
 
 #. Label of a Int field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -31237,19 +31237,19 @@ msgstr "Erfolgreich aktualisiert {0}"
 
 #: core/doctype/data_import/data_import.js:149
 msgid "Successfully {0} 1 record."
-msgstr ""
+msgstr "Erfolgreich 1 Datensatz {0}."
 
 #: core/doctype/data_import/data_import.js:156
 msgid "Successfully {0} {1} record out of {2}. Click on Export Errored Rows, fix the errors and import again."
-msgstr ""
+msgstr "Erfolgreich {1} Datensätze von {2} {0}. Klicken Sie auf fehlgeschlagene Zeilen exportieren, beheben Sie die Fehler und importieren Sie diese erneut."
 
 #: core/doctype/data_import/data_import.js:161
 msgid "Successfully {0} {1} records out of {2}. Click on Export Errored Rows, fix the errors and import again."
-msgstr ""
+msgstr "Erfolgreich {1} Datensätze von {2} {0}. Klicken Sie auf fehlgeschlagene Zeilen exportieren, beheben Sie die Fehler und importieren Sie diese erneut."
 
 #: core/doctype/data_import/data_import.js:151
 msgid "Successfully {0} {1} records."
-msgstr ""
+msgstr "Erfolgreich {1} Datensätze {0}."
 
 #: core/doctype/user/user.py:685
 msgid "Suggested Username: {0}"
@@ -33128,7 +33128,7 @@ msgstr "Um Ihre autorisierten Drittanbieter-Apps zu verwalten"
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "To print output use <code>log(text)</code>"
-msgstr ""
+msgstr "Um die Ausgabe zu drucken, verwenden Sie <code>log(text)</code>"
 
 #: core/doctype/user_type/user_type.py:295
 msgid "To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
@@ -34767,7 +34767,7 @@ msgstr "Benutzerberechtigungen werden verwendet, um Benutzer auf bestimmte Daten
 
 #: core/doctype/user_permission/user_permission_list.js:124
 msgid "User Permissions created sucessfully"
-msgstr ""
+msgstr "Benutzerberechtigungen erfolgreich erstellt"
 
 #. Label of a shortcut in the Users Workspace
 #: core/workspace/users/users.json
@@ -36702,7 +36702,7 @@ msgstr "Sie können eine der folgenden Optionen auswählen,"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "You can set a high value here if multiple users will be logging in from the same network."
-msgstr ""
+msgstr "Sie können hier einen hohen Wert einstellen, wenn sich mehrere Benutzer über dasselbe Netzwerk anmelden."
 
 #: desk/query_report.py:336
 msgid "You can try changing the filters of your report."
@@ -38087,7 +38087,7 @@ msgstr "eine(r/s) von"
 
 #: utils/data.py:1363
 msgid "only."
-msgstr ""
+msgstr "."
 
 #: public/js/frappe/utils/utils.js:407 www/login.html:87
 msgid "or"
