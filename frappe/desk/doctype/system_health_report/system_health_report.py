@@ -5,8 +5,8 @@ Basic system health check report to see how everything on site is functioning in
 
 Metrics:
 - [x] Background jobs, workers and scheduler summary, queue stats
-- [ ] SocketIO works (using basic ping test)
-- [ ] Email queue flush and pull
+- [x] SocketIO works (using basic ping test)
+- [x] Email queue flush and pull
 - [ ] Error logs status
 - [ ] Database - storage usage and top tables, version
 - [ ] Storage - files usage
@@ -25,6 +25,7 @@ from collections import defaultdict
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queue, get_queue_list
+from frappe.utils.data import add_to_date
 from frappe.utils.scheduler import get_scheduler_status
 
 
@@ -40,11 +41,16 @@ class SystemHealthReport(Document):
 		from frappe.types import DF
 
 		background_workers: DF.Table[SystemHealthWorkers]
+		failed_emails: DF.Int
+		handled_emails: DF.Int
+		pending_emails: DF.Int
 		queue_status: DF.Table[SystemHealthQueue]
 		scheduler_status: DF.Data | None
 		socketio_ping_check: DF.Literal["Fail", "Pass"]
 		socketio_transport_mode: DF.Literal["Polling", "Websocket"]
 		total_background_workers: DF.Int
+		total_outgoing_emails: DF.Int
+		unhandled_emails: DF.Int
 	# end: auto-generated types
 
 	def db_insert(self, *args, **kwargs):
@@ -53,6 +59,7 @@ class SystemHealthReport(Document):
 	def load_from_db(self):
 		super(Document, self).__init__({})
 		self.fetch_background_workers()
+		self.fetch_email_stats()
 
 	def fetch_background_workers(self):
 		self.scheduler_status = get_scheduler_status().get("status")
@@ -83,6 +90,18 @@ class SystemHealthReport(Document):
 					"pending_jobs": q.count,
 				},
 			)
+
+	def fetch_email_stats(self):
+		threshold = add_to_date(None, days=-1, as_datetime=True)
+		filters = {"creation": (">", threshold), "modified": (">", threshold)}
+		self.total_outgoing_emails = frappe.db.count("Email Queue", filters)
+		self.pending_emails = frappe.db.count("Email Queue", {"status": "Not Sent", **filters})
+		self.failed_emails = frappe.db.count("Email Queue", {"status": "Error", **filters})
+		self.unhandled_emails = frappe.db.count("Unhandled Email", filters)
+		self.handled_emails = frappe.db.count(
+			"Communication",
+			{"sent_or_received": "Received", "communication_type": "Communication", **filters},
+		)
 
 	def db_update(self):
 		raise NotImplementedError

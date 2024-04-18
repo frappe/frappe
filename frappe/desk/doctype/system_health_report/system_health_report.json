@@ -16,7 +16,15 @@
   "realtime_tab",
   "socketio_ping_check",
   "column_break_hgay",
-  "socketio_transport_mode"
+  "socketio_transport_mode",
+  "emails_tab",
+  "outgoing_emails_column",
+  "total_outgoing_emails",
+  "pending_emails",
+  "failed_emails",
+  "incoming_emails_last_7_days_column",
+  "handled_emails",
+  "unhandled_emails"
  ],
  "fields": [
   {
@@ -84,6 +92,46 @@
    "fieldtype": "Select",
    "label": "SocketIO Transport Mode",
    "options": "Polling\nWebsocket"
+  },
+  {
+   "fieldname": "emails_tab",
+   "fieldtype": "Tab Break",
+   "label": "Emails"
+  },
+  {
+   "fieldname": "outgoing_emails_column",
+   "fieldtype": "Column Break",
+   "label": "Outgoing Emails (Last 7 days)"
+  },
+  {
+   "fieldname": "failed_emails",
+   "fieldtype": "Int",
+   "label": "Failed Emails"
+  },
+  {
+   "fieldname": "total_outgoing_emails",
+   "fieldtype": "Int",
+   "label": "Total Outgoing Emails"
+  },
+  {
+   "fieldname": "pending_emails",
+   "fieldtype": "Int",
+   "label": "Pending Emails"
+  },
+  {
+   "fieldname": "incoming_emails_last_7_days_column",
+   "fieldtype": "Column Break",
+   "label": "Incoming Emails (Last 7 days)"
+  },
+  {
+   "fieldname": "unhandled_emails",
+   "fieldtype": "Int",
+   "label": "Unhandled Emails"
+  },
+  {
+   "fieldname": "handled_emails",
+   "fieldtype": "Int",
+   "label": "Handled Emails"
   }
  ],
  "hide_toolbar": 1,
@@ -91,7 +139,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-18 18:11:05.830332",
+ "modified": "2024-04-18 18:50:33.486009",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
