@@ -246,6 +246,24 @@ def upload_file():
 		).save(ignore_permissions=ignore_permissions)
 
 
+<<<<<<< HEAD
+=======
+def check_write_permission(doctype: str | None = None, name: str | None = None):
+	check_doctype = doctype and not name
+	if doctype and name:
+		try:
+			doc = frappe.get_doc(doctype, name)
+			doc.check_permission("write")
+		except frappe.DoesNotExistError:
+			# doc has not been inserted yet, name is set to "new-some-doctype"
+			# If doc inserts fine then only this attachment will be linked see file/utils.py:relink_mismatched_files
+			return
+
+	if check_doctype:
+		frappe.has_permission(doctype, "write", throw=True)
+
+
+>>>>>>> 3c2bf77c81 (fix: Avoid permission check on unsaved doc (#26027))
 @frappe.whitelist(allow_guest=True)
 def download_file(file_url: str):
 	"""
