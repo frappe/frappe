@@ -124,7 +124,6 @@ def get_pages_from_path(start, app, app_path):
 						os.path.join(basepath, fname), app, start, basepath, app_path, fname
 					)
 					pages[page_info.route] = page_info
-					# print frappe.as_json(pages[-1])
 
 	return pages
 
