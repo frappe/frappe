@@ -4,6 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "background_jobs_tab",
   "background_jobs_section",
   "scheduler_status",
   "column_break_klex",
@@ -11,7 +12,11 @@
   "section_break_djoz",
   "queue_status",
   "column_break_wjoz",
-  "background_workers"
+  "background_workers",
+  "realtime_tab",
+  "socketio_ping_check",
+  "column_break_hgay",
+  "socketio_transport_mode"
  ],
  "fields": [
   {
@@ -52,6 +57,33 @@
   {
    "fieldname": "column_break_wjoz",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "background_jobs_tab",
+   "fieldtype": "Tab Break",
+   "label": "Background Jobs"
+  },
+  {
+   "fieldname": "realtime_tab",
+   "fieldtype": "Tab Break",
+   "label": "Realtime"
+  },
+  {
+   "default": "Fail",
+   "fieldname": "socketio_ping_check",
+   "fieldtype": "Select",
+   "label": "SocketIO Ping Check",
+   "options": "Fail\nPass"
+  },
+  {
+   "fieldname": "column_break_hgay",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "socketio_transport_mode",
+   "fieldtype": "Select",
+   "label": "SocketIO Transport Mode",
+   "options": "Polling\nWebsocket"
   }
  ],
  "hide_toolbar": 1,
@@ -59,7 +91,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-18 17:44:06.856892",
+ "modified": "2024-04-18 18:11:05.830332",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",

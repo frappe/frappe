@@ -4,7 +4,7 @@
 Basic system health check report to see how everything on site is functioning in one single page.
 
 Metrics:
-- [ ] Background jobs, workers and scheduler summary, queue stats
+- [x] Background jobs, workers and scheduler summary, queue stats
 - [ ] SocketIO works (using basic ping test)
 - [ ] Email queue flush and pull
 - [ ] Error logs status
@@ -42,6 +42,8 @@ class SystemHealthReport(Document):
 		background_workers: DF.Table[SystemHealthWorkers]
 		queue_status: DF.Table[SystemHealthQueue]
 		scheduler_status: DF.Data | None
+		socketio_ping_check: DF.Literal["Fail", "Pass"]
+		socketio_transport_mode: DF.Literal["Polling", "Websocket"]
 		total_background_workers: DF.Int
 	# end: auto-generated types
 
