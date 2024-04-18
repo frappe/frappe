@@ -6,7 +6,11 @@
  "field_order": [
   "background_jobs_section",
   "scheduler_status",
+  "column_break_klex",
   "total_background_workers",
+  "section_break_djoz",
+  "queue_status",
+  "column_break_wjoz",
   "background_workers"
  ],
  "fields": [
@@ -30,6 +34,24 @@
    "fieldname": "scheduler_status",
    "fieldtype": "Data",
    "label": "Scheduler Status"
+  },
+  {
+   "fieldname": "queue_status",
+   "fieldtype": "Table",
+   "label": "Queue Status",
+   "options": "System Health Queue"
+  },
+  {
+   "fieldname": "column_break_klex",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_djoz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_wjoz",
+   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -37,7 +59,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-18 17:32:01.054494",
+ "modified": "2024-04-18 17:44:06.856892",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
