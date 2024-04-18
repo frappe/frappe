@@ -20,8 +20,11 @@ Metrics:
 
 """
 
+from collections import defaultdict
+
 import frappe
 from frappe.model.document import Document
+from frappe.utils.scheduler import get_scheduler_status
 
 
 class SystemHealthReport(Document):
@@ -31,8 +34,12 @@ class SystemHealthReport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.desk.doctype.system_health_workers.system_health_workers import SystemHealthWorkers
 		from frappe.types import DF
 
+		background_workers: DF.Table[SystemHealthWorkers]
+		scheduler_status: DF.Data | None
+		total_background_workers: DF.Int
 	# end: auto-generated types
 
 	def db_insert(self, *args, **kwargs):
@@ -40,6 +47,27 @@ class SystemHealthReport(Document):
 
 	def load_from_db(self):
 		super(Document, self).__init__({})
+		self.fetch_background_workers()
+
+	def fetch_background_workers(self):
+		self.scheduler_status = get_scheduler_status().get("status")
+		workers = frappe.get_all("RQ Worker")
+		self.total_background_workers = len(workers)
+		queue_summary = defaultdict(list)
+
+		for worker in workers:
+			queue_summary[worker.queue_type].append(worker)
+
+		for queue_type, workers in queue_summary.items():
+			self.append(
+				"background_workers",
+				{
+					"count": len(workers),
+					"queues": queue_type,
+					"failed_jobs": sum(w.failed_job_count for w in workers),
+					"utilization": sum(w.utilization_percent for w in workers) / len(workers),
+				},
+			)
 
 	def db_update(self):
 		raise NotImplementedError
