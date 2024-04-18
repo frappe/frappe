@@ -2551,7 +2551,12 @@ def validate_and_sanitize_search_inputs(fn):
 
 
 def _register_fault_handler():
-	faulthandler.register(signal.SIGUSR1)
+	import io
+	import sys
+
+	# Some libraries monkey patch stderr, we need actual fd
+	if isinstance(sys.stderr, io.TextIOWrapper):
+		faulthandler.register(signal.SIGUSR1, file=sys.stderr)
 
 
 from frappe.utils.error import log_error
