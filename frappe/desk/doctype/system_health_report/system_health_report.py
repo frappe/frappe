@@ -7,8 +7,8 @@ Metrics:
 - [x] Background jobs, workers and scheduler summary, queue stats
 - [x] SocketIO works (using basic ping test)
 - [x] Email queue flush and pull
-- [ ] Error logs status
-- [ ] Database - storage usage and top tables, version
+- [x] Error logs status
+- [x] Database - storage usage and top tables, version
 - [ ] Storage - files usage
 - [ ] Backups
 - [ ] Log cleanup status
@@ -36,11 +36,17 @@ class SystemHealthReport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.desk.doctype.system_health_db_table.system_health_db_table import SystemHealthDBTable
 		from frappe.desk.doctype.system_health_queue.system_health_queue import SystemHealthQueue
 		from frappe.desk.doctype.system_health_workers.system_health_workers import SystemHealthWorkers
 		from frappe.types import DF
 
 		background_workers: DF.Table[SystemHealthWorkers]
+		binary_logging: DF.Data | None
+		bufferpool_size: DF.Data | None
+		database: DF.Data | None
+		database_version: DF.Data | None
+		db_storage_usage: DF.Float
 		failed_emails: DF.Int
 		handled_emails: DF.Int
 		pending_emails: DF.Int
@@ -48,6 +54,7 @@ class SystemHealthReport(Document):
 		scheduler_status: DF.Data | None
 		socketio_ping_check: DF.Literal["Fail", "Pass"]
 		socketio_transport_mode: DF.Literal["Polling", "Websocket"]
+		top_db_tables: DF.Table[SystemHealthDBTable]
 		top_errors: DF.Code | None
 		total_background_workers: DF.Int
 		total_errors: DF.Int
@@ -63,6 +70,7 @@ class SystemHealthReport(Document):
 		self.fetch_background_workers()
 		self.fetch_email_stats()
 		self.fetch_errors()
+		self.fetch_database_details()
 
 	def fetch_background_workers(self):
 		self.scheduler_status = get_scheduler_status().get("status")
@@ -125,6 +133,22 @@ class SystemHealthReport(Document):
 		)
 		if top_errors:
 			self.top_errors = AsciiTable([["Error Title", "Count"], *top_errors]).table
+
+	def fetch_database_details(self):
+		from frappe.core.report.database_storage_usage_by_tables.database_storage_usage_by_tables import (
+			execute as db_report,
+		)
+
+		_cols, data = db_report()
+		self.database = frappe.db.db_type
+		self.db_storage_usage = sum(table.size for table in data)
+		for row in data[:5]:
+			self.append("top_db_tables", row)
+		self.database_version = frappe.db.sql("select version()")[0][0]
+
+		if frappe.db.db_type == "mariadb":
+			self.bufferpool_size = frappe.db.sql("show variables like 'innodb_buffer_pool_size'")[0][1]
+			self.binary_logging = frappe.db.sql("show variables like 'log_bin'")[0][1]
 
 	def db_update(self):
 		raise NotImplementedError
