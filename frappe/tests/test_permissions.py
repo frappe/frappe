@@ -7,7 +7,7 @@ import frappe.defaults
 import frappe.model.meta
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
-from frappe.core.page.permission_manager.permission_manager import reset, update
+from frappe.core.page.permission_manager.permission_manager import add, remove, reset, update
 from frappe.desk.form.load import getdoc
 from frappe.permissions import (
 	add_permission,
@@ -745,4 +745,26 @@ class TestPermissions(FrappeTestCase):
 
 		with self.set_user("test@example.com"):
 			self.assertNotIn(doctype, get_doctypes_with_read())
+<<<<<<< HEAD
 >>>>>>> a1bb734079 (fix: filter select perm in get_doctypes_with_read)
+=======
+
+	def test_overrides_work_as_expected(self):
+		"""custom docperms should completely override standard ones"""
+		standard_role = "Desk User"
+		custom_role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+		with self.set_user("Administrator"):
+			doctype = new_doctype(permissions=[{"role": standard_role, "read": 1}]).insert().name
+
+		with self.set_user("test@example.com"):
+			self.assertIn(doctype, get_doctypes_with_read())
+
+		with self.set_user("Administrator"):
+			# Allow perm to some other role and remove standard role
+			add(doctype, custom_role, 0)
+			remove(doctype, standard_role, 0)
+
+		with self.set_user("test@example.com"):
+			# No one has this role, so user shouldn't have permission.
+			self.assertNotIn(doctype, get_doctypes_with_read())
+>>>>>>> 3f707f1ae1 (test: add test for custom docperm behaviour)
