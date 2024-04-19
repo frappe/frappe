@@ -62,7 +62,8 @@ frappe.ui.form.on("System Health Report", {
 		};
 
 		const style = document.createElement("style");
-		style.innerText = ".health-check-failed { border: 1px solid var(--error-border); }";
+		style.innerText =
+			".health-check-failed { border: 1px solid var(--error-border) !important; }";
 		document.head.appendChild(style);
 
 		const update_fields = () => {
