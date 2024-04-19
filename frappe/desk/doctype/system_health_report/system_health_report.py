@@ -55,14 +55,20 @@ class SystemHealthReport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.desk.doctype.system_health_db_table.system_health_db_table import SystemHealthDBTable
-		from frappe.desk.doctype.system_health_queue.system_health_queue import SystemHealthQueue
-		from frappe.desk.doctype.system_health_workers.system_health_workers import SystemHealthWorkers
+		from frappe.desk.doctype.system_health_report_queue.system_health_report_queue import (
+			SystemHealthReportQueue,
+		)
+		from frappe.desk.doctype.system_health_report_tables.system_health_report_tables import (
+			SystemHealthReportTables,
+		)
+		from frappe.desk.doctype.system_health_report_workers.system_health_report_workers import (
+			SystemHealthReportWorkers,
+		)
 		from frappe.types import DF
 
 		active_sessions: DF.Int
 		background_jobs_check: DF.Data | None
-		background_workers: DF.Table[SystemHealthWorkers]
+		background_workers: DF.Table[SystemHealthReportWorkers]
 		backups_size: DF.Float
 		binary_logging: DF.Data | None
 		bufferpool_size: DF.Data | None
@@ -80,12 +86,12 @@ class SystemHealthReport(Document):
 		pending_emails: DF.Int
 		private_files_size: DF.Float
 		public_files_size: DF.Float
-		queue_status: DF.Table[SystemHealthQueue]
+		queue_status: DF.Table[SystemHealthReportQueue]
 		scheduler_status: DF.Data | None
 		socketio_ping_check: DF.Literal["Fail", "Pass"]
 		socketio_transport_mode: DF.Literal["Polling", "Websocket"]
 		test_job_id: DF.Data | None
-		top_db_tables: DF.Table[SystemHealthDBTable]
+		top_db_tables: DF.Table[SystemHealthReportTables]
 		top_errors: DF.Code | None
 		total_background_workers: DF.Int
 		total_errors: DF.Int

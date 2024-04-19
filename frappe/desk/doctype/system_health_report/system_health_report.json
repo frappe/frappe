@@ -69,7 +69,7 @@
    "fieldname": "background_workers",
    "fieldtype": "Table",
    "label": "Background Workers",
-   "options": "System Health Workers"
+   "options": "System Health Report Workers"
   },
   {
    "fieldname": "total_background_workers",
@@ -91,7 +91,7 @@
    "fieldname": "queue_status",
    "fieldtype": "Table",
    "label": "Queue Status",
-   "options": "System Health Queue"
+   "options": "System Health Report Queue"
   },
   {
    "fieldname": "column_break_klex",
@@ -194,7 +194,7 @@
   {
    "fieldname": "top_db_tables",
    "fieldtype": "Table",
-   "options": "System Health DB Table"
+   "options": "System Health Report Tables"
   },
   {
    "fieldname": "database_version",
@@ -355,7 +355,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-19 14:12:44.949141",
+ "modified": "2024-04-19 15:48:13.172247",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
