@@ -162,7 +162,7 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 					onmouseout="this.classList.remove('btn-default')"
 				>
 					<svg class="es-icon es-line  icon-sm" style="" aria-hidden="true">
-						<use class="" href="#es-line-copy"></use>
+						<use class="" href="#es-line-copy-light"></use>
 					</svg>
 				</button>`
 			);
