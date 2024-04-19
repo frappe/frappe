@@ -72,6 +72,7 @@
    "options": "System Health Report Workers"
   },
   {
+   "documentation_url": "/app/rq-worker",
    "fieldname": "total_background_workers",
    "fieldtype": "Int",
    "label": "Total Background Workers"
@@ -83,6 +84,7 @@
    "label": "Background Jobs"
   },
   {
+   "documentation_url": "/app/rq-job",
    "fieldname": "scheduler_status",
    "fieldtype": "Data",
    "label": "Scheduler Status"
@@ -133,6 +135,7 @@
    "label": "Outgoing Emails (Last 7 days)"
   },
   {
+   "documentation_url": "/app/email-queue?status=Error",
    "fieldname": "failed_emails",
    "fieldtype": "Int",
    "label": "Failed Emails"
@@ -143,6 +146,7 @@
    "label": "Total Outgoing Emails"
   },
   {
+   "documentation_url": "/app/email-queue?status=Not+Sent",
    "fieldname": "pending_emails",
    "fieldtype": "Int",
    "label": "Pending Emails"
@@ -153,11 +157,13 @@
    "label": "Incoming Emails (Last 7 days)"
   },
   {
+   "documentation_url": "/app/unhandled-email",
    "fieldname": "unhandled_emails",
    "fieldtype": "Int",
    "label": "Unhandled Emails"
   },
   {
+   "documentation_url": "/app/communication?communication_type=Communication&sent_or_received=Received",
    "fieldname": "handled_emails",
    "fieldtype": "Int",
    "label": "Handled Emails"
@@ -168,6 +174,7 @@
    "label": "Errors generated in last 1 day"
   },
   {
+   "documentation_url": "/app/error-log",
    "fieldname": "total_errors",
    "fieldtype": "Int",
    "label": "Total Errors"
@@ -192,8 +199,10 @@
    "fieldtype": "Column Break"
   },
   {
+   "documentation_url": "/app/query-report/Database Storage Usage By Tables",
    "fieldname": "top_db_tables",
    "fieldtype": "Table",
+   "label": "Storage Usage By Table",
    "options": "System Health Report Tables"
   },
   {
@@ -250,11 +259,13 @@
    "fieldtype": "Column Break"
   },
   {
+   "documentation_url": "/app/backups",
    "fieldname": "onsite_backups",
    "fieldtype": "Int",
    "label": "Number of onsite backups"
   },
   {
+   "documentation_url": "/app/user",
    "fieldname": "total_users",
    "fieldtype": "Int",
    "label": "Total Users"
@@ -269,6 +280,7 @@
    "label": "New Users (Last 30 days)"
   },
   {
+   "documentation_url": "/app/activity-log?status=Failed&operation=Login",
    "fieldname": "failed_logins",
    "fieldtype": "Int",
    "label": "Failed Logins (Last 30 days)"
@@ -339,6 +351,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "documentation_url": "/app/rq-job",
    "fieldname": "background_jobs_check",
    "fieldtype": "Data",
    "label": "Background Jobs Check"
@@ -355,7 +368,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-19 15:48:13.172247",
+ "modified": "2024-04-19 16:36:01.698178",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
