@@ -152,6 +152,25 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		let doc = this.doc || (this.frm && this.frm.doc);
 		let display_value = frappe.format(value, this.df, { no_icon: true, inline: true }, doc);
 		this.disp_area && $(this.disp_area).html(display_value);
+
+		if (this.df.fieldtype === "Code") {
+			this.button = $(
+				`<button
+					class="btn icon-btn"
+					style="position: absolute; top: 5px; right: 5px;"
+					onmouseover="this.classList.add('btn-default')"
+					onmouseout="this.classList.remove('btn-default')"
+				>
+					<svg class="es-icon es-line  icon-sm" style="" aria-hidden="true">
+						<use class="" href="#es-line-copy"></use>
+					</svg>
+				</button>`
+			);
+			this.button.appendTo($(this.disp_area));
+			this.button.on("click", () => {
+				frappe.utils.copy_to_clipboard(value);
+			});
+		}
 	}
 	set_label(label) {
 		if (label) this.df.label = label;
