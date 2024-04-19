@@ -14,19 +14,7 @@
   "queue_status",
   "column_break_wjoz",
   "background_workers",
-  "errors_tab",
-  "errors_generated_in_last_1_day_section",
-  "total_errors",
-  "top_errors",
-  "emails_tab",
-  "outgoing_emails_column",
-  "total_outgoing_emails",
-  "pending_emails",
-  "failed_emails",
-  "incoming_emails_last_7_days_column",
-  "handled_emails",
-  "unhandled_emails",
-  "database_tab",
+  "database_section",
   "database",
   "database_version",
   "db_storage_usage",
@@ -34,30 +22,44 @@
   "top_db_tables",
   "mariadb_variables_section",
   "bufferpool_size",
+  "column_break_vztw",
   "binary_logging",
-  "cache_tab",
+  "cache_section",
   "cache_keys",
+  "column_break_ccov",
   "cache_memory_usage",
-  "storage_tab",
-  "storage_usage_column",
-  "public_files_size",
-  "private_files_size",
-  "backups_column",
-  "onsite_backups",
-  "backups_size",
-  "users_tab",
-  "total_users",
-  "column_break_yfwd",
-  "new_users",
-  "security_and_sessions_section",
-  "failed_logins",
-  "column_break_ybhh",
-  "active_sessions",
-  "last_10_active_users",
-  "realtime_tab",
+  "realtime_socketio_section",
   "socketio_ping_check",
   "column_break_hgay",
-  "socketio_transport_mode"
+  "socketio_transport_mode",
+  "section_break_ryki",
+  "storage_usage_column",
+  "public_files_size",
+  "column_break_jnkt",
+  "private_files_size",
+  "backups_section",
+  "backups_column",
+  "onsite_backups",
+  "column_break_luox",
+  "backups_size",
+  "users_section",
+  "total_users",
+  "new_users",
+  "failed_logins",
+  "active_sessions",
+  "column_break_yfwd",
+  "last_10_active_users",
+  "section_break_udjs",
+  "outgoing_emails_column",
+  "total_outgoing_emails",
+  "pending_emails",
+  "failed_emails",
+  "incoming_emails_last_7_days_column",
+  "handled_emails",
+  "unhandled_emails",
+  "errors_generated_in_last_1_day_section",
+  "total_errors",
+  "top_errors"
  ],
  "fields": [
   {
@@ -73,7 +75,9 @@
   },
   {
    "fieldname": "background_jobs_section",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Background Jobs"
   },
   {
    "fieldname": "scheduler_status",
@@ -101,12 +105,7 @@
   {
    "fieldname": "background_jobs_tab",
    "fieldtype": "Tab Break",
-   "label": "Background Jobs"
-  },
-  {
-   "fieldname": "realtime_tab",
-   "fieldtype": "Tab Break",
-   "label": "Realtime"
+   "label": "Report"
   },
   {
    "default": "Fail",
@@ -124,11 +123,6 @@
    "fieldtype": "Select",
    "label": "SocketIO Transport Mode",
    "options": "Polling\nWebsocket"
-  },
-  {
-   "fieldname": "emails_tab",
-   "fieldtype": "Tab Break",
-   "label": "Emails"
   },
   {
    "fieldname": "outgoing_emails_column",
@@ -166,11 +160,6 @@
    "label": "Handled Emails"
   },
   {
-   "fieldname": "errors_tab",
-   "fieldtype": "Tab Break",
-   "label": "Errors"
-  },
-  {
    "fieldname": "errors_generated_in_last_1_day_section",
    "fieldtype": "Section Break",
    "label": "Errors generated in last 1 day"
@@ -184,11 +173,6 @@
    "fieldname": "top_errors",
    "fieldtype": "Code",
    "label": "Top Errors"
-  },
-  {
-   "fieldname": "database_tab",
-   "fieldtype": "Tab Break",
-   "label": "Database"
   },
   {
    "fieldname": "database",
@@ -230,11 +214,6 @@
    "label": "Binary Logging"
   },
   {
-   "fieldname": "cache_tab",
-   "fieldtype": "Tab Break",
-   "label": "Cache"
-  },
-  {
    "fieldname": "cache_keys",
    "fieldtype": "Int",
    "label": "Number of keys"
@@ -243,11 +222,6 @@
    "fieldname": "cache_memory_usage",
    "fieldtype": "Data",
    "label": "Memory Usage"
-  },
-  {
-   "fieldname": "storage_tab",
-   "fieldtype": "Tab Break",
-   "label": "Storage and Backups"
   },
   {
    "fieldname": "backups_size",
@@ -266,23 +240,16 @@
   },
   {
    "fieldname": "storage_usage_column",
-   "fieldtype": "Column Break",
-   "label": "Storage Usage"
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "backups_column",
-   "fieldtype": "Column Break",
-   "label": "Backups"
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "onsite_backups",
    "fieldtype": "Int",
    "label": "Number of onsite backups"
-  },
-  {
-   "fieldname": "users_tab",
-   "fieldtype": "Tab Break",
-   "label": "Users"
   },
   {
    "fieldname": "total_users",
@@ -299,11 +266,6 @@
    "label": "New Users (Last 30 days)"
   },
   {
-   "fieldname": "security_and_sessions_section",
-   "fieldtype": "Section Break",
-   "label": "Security and Sessions"
-  },
-  {
    "fieldname": "failed_logins",
    "fieldtype": "Int",
    "label": "Failed Logins (Last 30 days)"
@@ -314,13 +276,60 @@
    "label": "Active Sessions"
   },
   {
-   "fieldname": "column_break_ybhh",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "last_10_active_users",
    "fieldtype": "Code",
    "label": "Last 10 active users"
+  },
+  {
+   "fieldname": "section_break_udjs",
+   "fieldtype": "Section Break",
+   "label": "Emails"
+  },
+  {
+   "fieldname": "database_section",
+   "fieldtype": "Section Break",
+   "label": "Database"
+  },
+  {
+   "fieldname": "cache_section",
+   "fieldtype": "Section Break",
+   "label": "Cache"
+  },
+  {
+   "fieldname": "column_break_ccov",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ryki",
+   "fieldtype": "Section Break",
+   "label": "File Storage"
+  },
+  {
+   "fieldname": "column_break_vztw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jnkt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "backups_section",
+   "fieldtype": "Section Break",
+   "label": "Backups"
+  },
+  {
+   "fieldname": "column_break_luox",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "users_section",
+   "fieldtype": "Section Break",
+   "label": "Users"
+  },
+  {
+   "fieldname": "realtime_socketio_section",
+   "fieldtype": "Section Break",
+   "label": "Realtime (SocketIO)"
   }
  ],
  "hide_toolbar": 1,
@@ -328,7 +337,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-18 20:41:48.420334",
+ "modified": "2024-04-19 14:04:05.484592",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
