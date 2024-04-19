@@ -55,6 +55,9 @@ class SystemHealthReport(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.desk.doctype.system_health_report_errors.system_health_report_errors import (
+			SystemHealthReportErrors,
+		)
 		from frappe.desk.doctype.system_health_report_queue.system_health_report_queue import (
 			SystemHealthReportQueue,
 		)
@@ -92,7 +95,7 @@ class SystemHealthReport(Document):
 		socketio_transport_mode: DF.Literal["Polling", "Websocket"]
 		test_job_id: DF.Data | None
 		top_db_tables: DF.Table[SystemHealthReportTables]
-		top_errors: DF.Code | None
+		top_errors: DF.Table[SystemHealthReportErrors]
 		total_background_workers: DF.Int
 		total_errors: DF.Int
 		total_outgoing_emails: DF.Int
@@ -167,24 +170,22 @@ class SystemHealthReport(Document):
 
 	@health_check("Errors")
 	def fetch_errors(self):
-		from terminaltables import AsciiTable
-
 		threshold = add_to_date(None, days=-1, as_datetime=True)
 		filters = {"creation": (">", threshold), "modified": (">", threshold)}
 		self.total_errors = frappe.db.count("Error Log", filters)
 
 		top_errors = frappe.db.sql(
-			"""select method, count(*) as occurance
+			"""select method as title, count(*) as occurrences
 			from `tabError Log`
 			where modified > %(threshold)s and creation > %(threshold)s
 			group by method
-			order by occurance desc
+			order by occurrences desc
 			limit 5""",
 			{"threshold": threshold},
-			as_list=True,
+			as_dict=True,
 		)
-		if top_errors:
-			self.top_errors = AsciiTable([["Error Title", "Count"], *top_errors]).table
+		for row in top_errors:
+			self.append("top_errors", row)
 
 	@health_check("Database")
 	def fetch_database_details(self):
@@ -221,15 +222,15 @@ class SystemHealthReport(Document):
 					total_size += os.path.getsize(itempath)
 				elif os.path.isdir(itempath):
 					total_size += cls.get_directory_size(itempath)
-		return total_size / (1024 * 1024)
+		return total_size
 
 	@health_check("Storage")
 	def fetch_storage_details(self):
 		from frappe.desk.page.backups.backups import get_context
 
-		self.backups_size = self.get_directory_size("private", "backups")
-		self.private_files_size = self.get_directory_size("private", "files")
-		self.public_files_size = self.get_directory_size("public", "files")
+		self.backups_size = self.get_directory_size("private", "backups") / (1024 * 1024)
+		self.private_files_size = self.get_directory_size("private", "files") / (1024 * 1024)
+		self.public_files_size = self.get_directory_size("public", "files") / (1024 * 1024)
 		self.onsite_backups = len(get_context({}).get("files", []))
 
 	@health_check("Users")

@@ -62,7 +62,8 @@
   "unhandled_emails",
   "errors_generated_in_last_1_day_section",
   "total_errors",
-  "top_errors"
+  "top_errors",
+  "column_break_fzke"
  ],
  "fields": [
   {
@@ -171,18 +172,19 @@
   {
    "fieldname": "errors_generated_in_last_1_day_section",
    "fieldtype": "Section Break",
-   "label": "Errors generated in last 1 day"
+   "label": "Errors"
   },
   {
    "documentation_url": "/app/error-log",
    "fieldname": "total_errors",
    "fieldtype": "Int",
-   "label": "Total Errors"
+   "label": "Total Errors (last 1 day)"
   },
   {
    "fieldname": "top_errors",
-   "fieldtype": "Code",
-   "label": "Top Errors"
+   "fieldtype": "Table",
+   "label": "Top Errors",
+   "options": "System Health Report Errors"
   },
   {
    "fieldname": "database",
@@ -361,6 +363,10 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "Test Job ID"
+  },
+  {
+   "fieldname": "column_break_fzke",
+   "fieldtype": "Column Break"
   }
  ],
  "hide_toolbar": 1,
@@ -368,7 +374,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-19 16:36:01.698178",
+ "modified": "2024-04-19 17:12:37.889872",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
