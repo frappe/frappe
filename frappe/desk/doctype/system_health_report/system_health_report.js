@@ -56,6 +56,9 @@ frappe.ui.form.on("System Health Report", {
 				val > 3 &&
 				frm.doc.total_outgoing_emails > 3 &&
 				val / frm.doc.total_outgoing_emails > 0.1,
+			"queue_status.pending_jobs": (val) => val > 50,
+			"background_workers.utilization": (val) => val > 70,
+			"background_workers.failed_jobs": (val) => val > 50,
 		};
 
 		const style = document.createElement("style");
@@ -65,9 +68,18 @@ frappe.ui.form.on("System Health Report", {
 		const update_fields = () => {
 			Object.entries(conditions).forEach(([field, condition]) => {
 				try {
-					let is_bad = condition(frm.doc[field]);
-					let df = frm.fields_dict[field];
-					$(df.disp_area).toggleClass("health-check-failed", is_bad);
+					if (field.includes(".")) {
+						let [table, fieldname] = field.split(".");
+
+						frm.fields_dict[table].grid.grid_rows.forEach((row) => {
+							let is_bad = condition(row.doc[fieldname]);
+							$(row.columns[fieldname]).toggleClass("health-check-failed", is_bad);
+						});
+					} else {
+						let is_bad = condition(frm.doc[field]);
+						let df = frm.fields_dict[field];
+						$(df.disp_area).toggleClass("health-check-failed", is_bad);
+					}
 				} catch (e) {
 					console.log("Failed to evaluated", e);
 				}
@@ -75,6 +87,6 @@ frappe.ui.form.on("System Health Report", {
 		};
 
 		update_fields();
-		const interval = setInterval(update_fields, 1000);
+		setInterval(update_fields, 1000);
 	},
 });
