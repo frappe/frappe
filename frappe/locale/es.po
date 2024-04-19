@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-17 10:44\n"
+"PO-Revision-Date: 2024-04-19 11:01\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -2573,7 +2573,7 @@ msgstr "Columnas archivados"
 
 #: public/js/frappe/list/list_view.js:1863
 msgid "Are you sure you want to clear the assignments?"
-msgstr ""
+msgstr "¿Está seguro de que desea borrar las asignaciones?"
 
 #: public/js/frappe/form/grid.js:269
 msgid "Are you sure you want to delete all rows?"
@@ -5308,7 +5308,7 @@ msgstr "Borrar y Agregar plantilla"
 #: public/js/frappe/list/list_view.js:1860
 msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
-msgstr ""
+msgstr "Borrar Asignación"
 
 #: public/js/frappe/ui/keyboard.js:284
 msgid "Clear Cache and Reload"
