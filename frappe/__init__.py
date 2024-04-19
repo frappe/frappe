@@ -2456,9 +2456,22 @@ def safe_encode(param, encoding="utf-8"):
 	return param
 
 
-def safe_decode(param, encoding="utf-8"):
+def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
+	"""
+	Method to safely decode data into a string
+
+	:param param: The data to be decoded
+	:param encoding: The encoding to decode into
+	:param fallback_map: A fallback map to reference in case of a LookupError
+	:return:
+	"""
 	try:
 		param = param.decode(encoding)
+	except LookupError:
+		try:
+			param = param.decode((fallback_map or {}).get(encoding, "utf-8"))
+		except Exception:
+			pass
 	except Exception:
 		pass
 	return param
