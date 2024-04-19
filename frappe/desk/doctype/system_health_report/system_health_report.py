@@ -19,14 +19,33 @@ Metrics:
 
 """
 
+import functools
 import os
 from collections import defaultdict
+from collections.abc import Callable
 
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queue, get_queue_list
 from frappe.utils.data import add_to_date
 from frappe.utils.scheduler import get_scheduler_status
+
+
+def health_check(step: str):
+	assert isinstance(step, str), "Invalid usage of decorator, Usage: @health_check('step name')"
+
+	def suppress_exception(func: Callable):
+		@functools.wraps(func)
+		def wrapper(*args, **kwargs):
+			try:
+				return func(*args, **kwargs)
+			except Exception as e:
+				# nosemgrep
+				frappe.msgprint(f"System Health check step {step} failed: {e}", alert=True)
+
+		return wrapper
+
+	return suppress_exception
 
 
 class SystemHealthReport(Document):
@@ -80,7 +99,13 @@ class SystemHealthReport(Document):
 
 	def load_from_db(self):
 		super(Document, self).__init__({})
-		self.fetch_background_workers()
+
+		# Each method loads a section of health report
+		# They should be written in a manner they are least likely to fail and if they do fail,
+		# they should indicate that in UI.
+		# This is best done by initializing fields with values that indicate that we haven't yet
+		# fetched the values.
+		self.fetch_background_jobs()
 		self.fetch_email_stats()
 		self.fetch_errors()
 		self.fetch_database_details()
@@ -88,7 +113,8 @@ class SystemHealthReport(Document):
 		self.fetch_storage_details()
 		self.fetch_user_stats()
 
-	def fetch_background_workers(self):
+	@health_check("Background Jobs")
+	def fetch_background_jobs(self):
 		self.test_job_id = frappe.enqueue("frappe.ping", at_front=True).id
 		self.background_jobs_check = "queued"
 		self.scheduler_status = get_scheduler_status().get("status")
@@ -120,6 +146,7 @@ class SystemHealthReport(Document):
 				},
 			)
 
+	@health_check("Emails")
 	def fetch_email_stats(self):
 		threshold = add_to_date(None, days=-7, as_datetime=True)
 		filters = {"creation": (">", threshold), "modified": (">", threshold)}
@@ -132,6 +159,7 @@ class SystemHealthReport(Document):
 			{"sent_or_received": "Received", "communication_type": "Communication", **filters},
 		)
 
+	@health_check("Errors")
 	def fetch_errors(self):
 		from terminaltables import AsciiTable
 
@@ -152,6 +180,7 @@ class SystemHealthReport(Document):
 		if top_errors:
 			self.top_errors = AsciiTable([["Error Title", "Count"], *top_errors]).table
 
+	@health_check("Database")
 	def fetch_database_details(self):
 		from frappe.core.report.database_storage_usage_by_tables.database_storage_usage_by_tables import (
 			execute as db_report,
@@ -168,6 +197,7 @@ class SystemHealthReport(Document):
 			self.bufferpool_size = frappe.db.sql("show variables like 'innodb_buffer_pool_size'")[0][1]
 			self.binary_logging = frappe.db.sql("show variables like 'log_bin'")[0][1]
 
+	@health_check("Cache")
 	def fetch_cache_details(self):
 		self.cache_keys = len(frappe.cache.get_keys(""))
 		self.cache_memory_usage = frappe.cache.execute_command("INFO", "MEMORY").get("used_memory_human")
@@ -187,6 +217,7 @@ class SystemHealthReport(Document):
 					total_size += cls.get_directory_size(itempath)
 		return total_size / (1024 * 1024)
 
+	@health_check("Storage")
 	def fetch_storage_details(self):
 		from frappe.desk.page.backups.backups import get_context
 
@@ -195,6 +226,7 @@ class SystemHealthReport(Document):
 		self.public_files_size = self.get_directory_size("public", "files")
 		self.onsite_backups = len(get_context({}).get("files", []))
 
+	@health_check("Users")
 	def fetch_user_stats(self):
 		threshold = add_to_date(None, days=-30, as_datetime=True)
 		self.total_users = frappe.db.count("User", {"enabled": 1})
@@ -239,7 +271,7 @@ class SystemHealthReport(Document):
 
 
 @frappe.whitelist()
-def get_job_status(job_id: str):
+def get_job_status(job_id: str | None = None):
 	frappe.only_for("System Manager")
 	try:
 		return frappe.get_doc("RQ Job", job_id).status
