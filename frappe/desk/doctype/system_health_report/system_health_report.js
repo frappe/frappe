@@ -44,7 +44,7 @@ frappe.ui.form.on("System Health Report", {
 			socketio_transport_mode: (val) => val != "websocket",
 			onsite_backups: (val) => val == 0,
 			failed_logins: (val) => val > frm.doc.total_users,
-			total_errors: (val) => val > 100,
+			total_errors: (val) => val > 50,
 			// 5% excluding very small numbers
 			unhandled_emails: (val) =>
 				val > 3 && frm.doc.handled_emails > 3 && val / frm.doc.handled_emails > 0.05,
