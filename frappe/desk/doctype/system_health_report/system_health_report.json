@@ -10,6 +10,9 @@
   "scheduler_status",
   "column_break_klex",
   "total_background_workers",
+  "column_break_mney",
+  "background_jobs_check",
+  "test_job_id",
   "section_break_djoz",
   "queue_status",
   "column_break_wjoz",
@@ -330,6 +333,21 @@
    "fieldname": "realtime_socketio_section",
    "fieldtype": "Section Break",
    "label": "Realtime (SocketIO)"
+  },
+  {
+   "fieldname": "column_break_mney",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "background_jobs_check",
+   "fieldtype": "Data",
+   "label": "Background Jobs Check"
+  },
+  {
+   "fieldname": "test_job_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Test Job ID"
   }
  ],
  "hide_toolbar": 1,
@@ -337,7 +355,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-19 14:04:05.484592",
+ "modified": "2024-04-19 14:12:44.949141",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
