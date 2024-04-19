@@ -42,6 +42,7 @@ class SystemHealthReport(Document):
 		from frappe.types import DF
 
 		active_sessions: DF.Int
+		background_jobs_check: DF.Data | None
 		background_workers: DF.Table[SystemHealthWorkers]
 		backups_size: DF.Float
 		binary_logging: DF.Data | None
@@ -64,6 +65,7 @@ class SystemHealthReport(Document):
 		scheduler_status: DF.Data | None
 		socketio_ping_check: DF.Literal["Fail", "Pass"]
 		socketio_transport_mode: DF.Literal["Polling", "Websocket"]
+		test_job_id: DF.Data | None
 		top_db_tables: DF.Table[SystemHealthDBTable]
 		top_errors: DF.Code | None
 		total_background_workers: DF.Int
@@ -87,6 +89,8 @@ class SystemHealthReport(Document):
 		self.fetch_user_stats()
 
 	def fetch_background_workers(self):
+		self.test_job_id = frappe.enqueue("frappe.ping", at_front=True).id
+		self.background_jobs_check = "queued"
 		self.scheduler_status = get_scheduler_status().get("status")
 		workers = frappe.get_all("RQ Worker")
 		self.total_background_workers = len(workers)
@@ -232,3 +236,12 @@ class SystemHealthReport(Document):
 	@staticmethod
 	def get_stats(**kwargs):
 		raise NotImplementedError
+
+
+@frappe.whitelist()
+def get_job_status(job_id: str):
+	frappe.only_for("System Manager")
+	try:
+		return frappe.get_doc("RQ Job", job_id).status
+	except Exception:
+		frappe.clear_messages()
