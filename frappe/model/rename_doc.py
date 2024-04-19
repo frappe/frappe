@@ -463,7 +463,12 @@ def get_link_fields(doctype: str) -> list[dict]:
 			.inner_join(dt)
 			.on(df.parent == dt.name)
 			.select(df.parent, df.fieldname, dt.issingle.as_("issingle"))
-			.where((df.options == doctype) & (df.fieldtype == "Link") & (df.is_virtual == 0 or dt.is_virutal == 0))
+			.where(
+				(df.options == doctype)
+				& (df.fieldtype == "Link")
+				& (df.is_virtual == 0)
+				& (dt.is_virutal == 0)
+			)
 			.run(as_dict=True)
 		)
 
