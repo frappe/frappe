@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-19 11:02\n"
+"PO-Revision-Date: 2024-04-20 11:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -25723,29 +25723,29 @@ msgstr "Referentni naziv dokumenta"
 #: core/doctype/error_log/error_log.json
 msgctxt "Error Log"
 msgid "Reference DocType"
-msgstr ""
+msgstr "Referentni DocType"
 
 #. Label of a Link field in DocType 'Submission Queue'
 #: core/doctype/submission_queue/submission_queue.json
 msgctxt "Submission Queue"
 msgid "Reference DocType"
-msgstr ""
+msgstr "Referentni DocType"
 
 #: email/doctype/email_unsubscribe/email_unsubscribe.py:26
 msgid "Reference DocType and Reference Name are required"
-msgstr ""
+msgstr "Referentni DocType i Referentni naziv su obavezni"
 
 #. Label of a Dynamic Link field in DocType 'Discussion Topic'
 #: website/doctype/discussion_topic/discussion_topic.json
 msgctxt "Discussion Topic"
 msgid "Reference Docname"
-msgstr ""
+msgstr "Referentni naziv dokumenta"
 
 #. Label of a Dynamic Link field in DocType 'Submission Queue'
 #: core/doctype/submission_queue/submission_queue.json
 msgctxt "Submission Queue"
 msgid "Reference Docname"
-msgstr ""
+msgstr "Referentni naziv dokumenta"
 
 #: core/doctype/communication/communication.js:143
 #: core/report/transaction_log_report/transaction_log_report.py:88
@@ -26005,37 +26005,37 @@ msgstr ""
 #: core/doctype/activity_log/activity_log.json
 msgctxt "Activity Log"
 msgid "Reference Owner"
-msgstr ""
+msgstr "Referentni vlasnik"
 
 #. Label of a Data field in DocType 'Comment'
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Reference Owner"
-msgstr ""
+msgstr "Referentni vlasnik"
 
 #. Label of a Read Only field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Reference Owner"
-msgstr ""
+msgstr "Referentni vlasnik"
 
 #. Label of a Data field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Reference Report"
-msgstr ""
+msgstr "Referentni izvještaj"
 
 #. Label of a Link field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
 msgid "Reference Report"
-msgstr ""
+msgstr "Referentni izvještaj"
 
 #. Label of a Data field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Reference Report"
-msgstr ""
+msgstr "Referentni izvještaj"
 
 #. Label of a Link field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
@@ -26045,27 +26045,27 @@ msgstr ""
 
 #: social/doctype/energy_point_rule/energy_point_rule.py:145
 msgid "Reference document has been cancelled"
-msgstr ""
+msgstr "Referentni dokument je poništen"
 
 #. Label of a Dynamic Link field in DocType 'View Log'
 #: core/doctype/view_log/view_log.json
 msgctxt "View Log"
 msgid "Reference name"
-msgstr ""
+msgstr "Referentni naziv"
 
 #: templates/emails/auto_reply.html:3
 msgid "Reference: {0} {1}"
-msgstr ""
+msgstr "Referenca: {0} {1}"
 
 #: website/report/website_analytics/website_analytics.js:37
 msgid "Referrer"
-msgstr ""
+msgstr "Preporučilac"
 
 #. Label of a Data field in DocType 'Web Page View'
 #: website/doctype/web_page_view/web_page_view.json
 msgctxt "Web Page View"
 msgid "Referrer"
-msgstr ""
+msgstr "Preporučilac"
 
 #: printing/page/print/print.js:73 public/js/frappe/desk.js:133
 #: public/js/frappe/form/form.js:1138
@@ -26080,7 +26080,7 @@ msgstr ""
 
 #: core/page/dashboard_view/dashboard_view.js:177
 msgid "Refresh All"
-msgstr ""
+msgstr "Osvježi sve"
 
 #. Label of a Button field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -26121,16 +26121,16 @@ msgstr ""
 #: public/js/frappe/list/list_view.js:506
 msgctxt "Document count in list view"
 msgid "Refreshing"
-msgstr ""
+msgstr "Osvježavanje"
 
 #: core/doctype/system_settings/system_settings.js:52
 #: core/doctype/user/user.js:350 desk/page/setup_wizard/setup_wizard.js:204
 msgid "Refreshing..."
-msgstr ""
+msgstr "Osvježavanje..."
 
 #: core/doctype/user/user.py:1019
 msgid "Registered but disabled"
-msgstr ""
+msgstr "Registrovan, ali onemogućen"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -26146,122 +26146,122 @@ msgstr ""
 
 #: integrations/doctype/push_notification_settings/push_notification_settings.py:30
 msgid "Relay Server URL missing"
-msgstr ""
+msgstr "Nedostaje URL relejnog servera"
 
 #. Label of a Section Break field in DocType 'Push Notification Settings'
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
 msgctxt "Push Notification Settings"
 msgid "Relay Settings"
-msgstr ""
+msgstr "Postavke releja"
 
 #. Group in Package's connections
 #: core/doctype/package/package.json
 msgctxt "Package"
 msgid "Release"
-msgstr ""
+msgstr "Izdanje"
 
 #. Label of a Markdown Editor field in DocType 'Package Release'
 #: core/doctype/package_release/package_release.json
 msgctxt "Package Release"
 msgid "Release Notes"
-msgstr ""
+msgstr "Bilješke o izdanju"
 
 #: core/doctype/communication/communication.js:48
 #: core/doctype/communication/communication.js:159
 msgid "Relink"
-msgstr ""
+msgstr "Ponovno povezivanje"
 
 #: core/doctype/communication/communication.js:138
 msgid "Relink Communication"
-msgstr ""
+msgstr "Ponovno povezivanje komunikacije"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Relinked"
-msgstr ""
+msgstr "Ponovno povezano"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Relinked"
-msgstr ""
+msgstr "Ponovno povezano"
 
 #. Label of a standard navbar item
 #. Type: Action
 #: custom/doctype/customize_form/customize_form.js:120 hooks.py
 #: public/js/frappe/form/toolbar.js:408
 msgid "Reload"
-msgstr ""
+msgstr "Ponovo učitaj"
 
 #: public/js/frappe/form/controls/attach.js:16
 msgid "Reload File"
-msgstr ""
+msgstr "Ponovo učitaj datoteku"
 
 #: public/js/frappe/list/base_list.js:242
 msgid "Reload List"
-msgstr ""
+msgstr "Ponovno učitaj listu"
 
 #: public/js/frappe/views/reports/query_report.js:99
 msgid "Reload Report"
-msgstr ""
+msgstr "Ponovno učitaj izvještaj"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Remember Last Selected Value"
-msgstr ""
+msgstr "Zapamti posljednju odabranu vrijednost"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Remember Last Selected Value"
-msgstr ""
+msgstr "Zapamti posljednju odabranu vrijednost"
 
 #: public/js/frappe/form/reminders.js:33
 msgid "Remind At"
-msgstr ""
+msgstr "Podsjeti na"
 
 #. Label of a Datetime field in DocType 'Reminder'
 #: automation/doctype/reminder/reminder.json
 msgctxt "Reminder"
 msgid "Remind At"
-msgstr ""
+msgstr "Podsjeti na"
 
 #: public/js/frappe/form/toolbar.js:436
 msgid "Remind Me"
-msgstr ""
+msgstr "Podsjeti me"
 
 #: public/js/frappe/form/reminders.js:13
 msgid "Remind Me In"
-msgstr ""
+msgstr "Podsjeti me za"
 
 #. Name of a DocType
 #: automation/doctype/reminder/reminder.json
 msgid "Reminder"
-msgstr ""
+msgstr "Podsjetnik"
 
 #: automation/doctype/reminder/reminder.py:39
 msgid "Reminder cannot be created in past."
-msgstr ""
+msgstr "Podsjetnik se ne može kreirati u prošlosti."
 
 #: public/js/frappe/form/reminders.js:96
 msgid "Reminder set at {0}"
-msgstr ""
+msgstr "Podsjetnik postavljen na {0}"
 
 #: public/js/frappe/form/templates/form_sidebar.html:14
 #: public/js/frappe/ui/filters/edit_filter.html:4
 #: public/js/frappe/ui/group_by/group_by.html:4
 msgid "Remove"
-msgstr ""
+msgstr "Ukloni"
 
 #: core/doctype/rq_job/rq_job_list.js:8
 msgid "Remove Failed Jobs"
-msgstr ""
+msgstr "Ukloni neuspjele poslove"
 
 #: printing/page/print_format_builder/print_format_builder.js:488
 msgid "Remove Field"
-msgstr ""
+msgstr "Ukloni polje"
 
 #: printing/page/print_format_builder/print_format_builder.js:427
 msgid "Remove Section"
@@ -26269,15 +26269,15 @@ msgstr "Ukloni odjeljak"
 
 #: custom/doctype/customize_form/customize_form.js:138
 msgid "Remove all customizations?"
-msgstr ""
+msgstr "Ukloniti sve prilagodbe?"
 
 #: public/js/frappe/utils/datatable.js:9
 msgid "Remove column"
-msgstr ""
+msgstr "Ukloni kolonu"
 
 #: core/doctype/file/file.py:155
 msgid "Removed {0}"
-msgstr ""
+msgstr "Uklonjeno {0}"
 
 #: custom/doctype/custom_field/custom_field.js:137
 #: public/js/frappe/form/toolbar.js:234 public/js/frappe/form/toolbar.js:238
@@ -26289,15 +26289,15 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.js:116
 #: custom/doctype/custom_field/custom_field.js:136
 msgid "Rename Fieldname"
-msgstr ""
+msgstr "Preimenuj naziv polja"
 
 #: public/js/frappe/model/model.js:739
 msgid "Rename {0}"
-msgstr ""
+msgstr "Preimenuj {0}"
 
 #: core/doctype/doctype/doctype.py:691
 msgid "Renamed files and replaced code in controllers, please check!"
-msgstr ""
+msgstr "Preimenovane datoteke i zamijenjen kod u kontrolerima, provjerite!"
 
 #: core/doctype/communication/communication.js:43 desk/doctype/todo/todo.js:36
 msgid "Reopen"
@@ -26305,37 +26305,37 @@ msgstr ""
 
 #: public/js/frappe/form/toolbar.js:479
 msgid "Repeat"
-msgstr ""
+msgstr "Ponovi"
 
 #. Label of a Check field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Repeat Header and Footer"
-msgstr ""
+msgstr "Ponovite zaglavlje i podnožje"
 
 #. Label of a Select field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Repeat On"
-msgstr ""
+msgstr "Ponavljanje uključeno"
 
 #. Label of a Date field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Repeat Till"
-msgstr ""
+msgstr "Ponovi do"
 
 #. Label of a Int field in DocType 'Auto Repeat'
 #: automation/doctype/auto_repeat/auto_repeat.json
 msgctxt "Auto Repeat"
 msgid "Repeat on Day"
-msgstr ""
+msgstr "Ponovi na dan"
 
 #. Label of a Table field in DocType 'Auto Repeat'
 #: automation/doctype/auto_repeat/auto_repeat.json
 msgctxt "Auto Repeat"
 msgid "Repeat on Days"
-msgstr ""
+msgstr "Ponovite na dane"
 
 #. Label of a Check field in DocType 'Auto Repeat'
 #: automation/doctype/auto_repeat/auto_repeat.json
@@ -26791,11 +26791,11 @@ msgstr ""
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Requires any valid fdn path. i.e. ou=users,dc=example,dc=com"
-msgstr ""
+msgstr "Zahtijeva bilo koju važeću fdn putanju. tj. ou=users,dc=example,dc=com"
 
 #: core/doctype/communication/communication.js:279
 msgid "Res: {0}"
-msgstr ""
+msgstr "Res: {0}"
 
 #: desk/doctype/form_tour/form_tour.js:101
 #: desk/doctype/global_search_settings/global_search_settings.js:19
@@ -26806,202 +26806,202 @@ msgstr ""
 
 #: custom/doctype/customize_form/customize_form.js:136
 msgid "Reset All Customizations"
-msgstr ""
+msgstr "Poništi sve prilagođavanja"
 
 #: public/js/print_format_builder/print_format_builder.bundle.js:21
 #: public/js/workflow_builder/workflow_builder.bundle.js:37
 msgid "Reset Changes"
-msgstr ""
+msgstr "Poništi promjene"
 
 #: public/js/frappe/widgets/chart_widget.js:305
 msgid "Reset Chart"
-msgstr ""
+msgstr "Resetuj grafikon"
 
 #: public/js/frappe/views/dashboard/dashboard_view.js:38
 msgid "Reset Dashboard Customizations"
-msgstr ""
+msgstr "Resetujte prilagođavanja nadzorne ploče"
 
 #: public/js/frappe/list/list_settings.js:227
 msgid "Reset Fields"
-msgstr ""
+msgstr "Resetuj polja"
 
 #: core/doctype/user/user.js:165 core/doctype/user/user.js:168
 msgid "Reset LDAP Password"
-msgstr ""
+msgstr "Resetuj LDAP lozinku"
 
 #: custom/doctype/customize_form/customize_form.js:128
 msgid "Reset Layout"
-msgstr ""
+msgstr "Resetuj izgled"
 
 #: core/doctype/user/user.js:216
 msgid "Reset OTP Secret"
-msgstr ""
+msgstr "Resetuj OTP tajnu"
 
 #: core/doctype/user/user.js:149 www/login.html:179 www/me.html:35
 #: www/me.html:44 www/update-password.html:3 www/update-password.html:9
 msgid "Reset Password"
-msgstr ""
+msgstr "Resetuj Lozinku"
 
 #. Label of a Data field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Reset Password Key"
-msgstr ""
+msgstr "Resetuj ključ lozinke"
 
 #. Label of a Duration field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Reset Password Link Expiry Duration"
-msgstr ""
+msgstr "Poništi vrijeme trajanja veze za lozinku"
 
 #. Label of a Link field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Reset Password Template"
-msgstr ""
+msgstr "Resetuj šablon lozinke"
 
 #: core/page/permission_manager/permission_manager.js:109
 msgid "Reset Permissions for {0}?"
-msgstr ""
+msgstr "Resetovati dozvole za {0}?"
 
 #: public/js/frappe/utils/datatable.js:8
 msgid "Reset sorting"
-msgstr ""
+msgstr "Resetuj sortiranje"
 
 #: www/me.html:36
 msgid "Reset the password for your account"
-msgstr ""
+msgstr "Resetuj lozinku za svoj nalog"
 
 #: public/js/frappe/form/grid_row.js:410
 msgid "Reset to default"
-msgstr ""
+msgstr "Vrati na zadano"
 
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.js:19
 msgid "Reset to defaults"
-msgstr ""
+msgstr "Vrati na zadane postavke"
 
 #: templates/emails/password_reset.html:3
 msgid "Reset your password"
-msgstr ""
+msgstr "Resetuj lozinku"
 
 #. Label of a Text Editor field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
 msgctxt "Email Template"
 msgid "Response"
-msgstr ""
+msgstr "Odgovor"
 
 #. Label of a Section Break field in DocType 'Integration Request'
 #: integrations/doctype/integration_request/integration_request.json
 msgctxt "Integration Request"
 msgid "Response"
-msgstr ""
+msgstr "Odgovor"
 
 #. Label of a Code field in DocType 'Webhook Request Log'
 #: integrations/doctype/webhook_request_log/webhook_request_log.json
 msgctxt "Webhook Request Log"
 msgid "Response"
-msgstr ""
+msgstr "Odgovor"
 
 #. Label of a Code field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
 msgctxt "Email Template"
 msgid "Response "
-msgstr ""
+msgstr "Odgovor "
 
 #. Label of a Select field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "Response Type"
-msgstr ""
+msgstr "Vrsta odgovora"
 
 #: public/js/frappe/ui/notifications/notifications.js:407
 msgid "Rest of the day"
-msgstr ""
+msgstr "Ostatak dana"
 
 #: core/doctype/deleted_document/deleted_document.js:11
 #: core/doctype/deleted_document/deleted_document_list.js:48
 msgid "Restore"
-msgstr ""
+msgstr "Vrati"
 
 #: core/page/permission_manager/permission_manager.js:503
 msgid "Restore Original Permissions"
-msgstr ""
+msgstr "Vratite originalne dozvole"
 
 #: website/doctype/portal_settings/portal_settings.js:20
 msgid "Restore to default settings?"
-msgstr ""
+msgstr "Vratiti na zadane postavke?"
 
 #. Label of a Check field in DocType 'Deleted Document'
 #: core/doctype/deleted_document/deleted_document.json
 msgctxt "Deleted Document"
 msgid "Restored"
-msgstr ""
+msgstr "Vraćeno"
 
 #: core/doctype/deleted_document/deleted_document.py:74
 msgid "Restoring Deleted Document"
-msgstr ""
+msgstr "Vraćanje izbrisanog dokumenta"
 
 #. Label of a Small Text field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Restrict IP"
-msgstr ""
+msgstr "Ograniči IP"
 
 #. Label of a Link field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Restrict To Domain"
-msgstr ""
+msgstr "Ograniči na domenu"
 
 #. Label of a Link field in DocType 'Module Def'
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Restrict To Domain"
-msgstr ""
+msgstr "Ograniči na domenu"
 
 #. Label of a Link field in DocType 'Page'
 #: core/doctype/page/page.json
 msgctxt "Page"
 msgid "Restrict To Domain"
-msgstr ""
+msgstr "Ograniči na domenu"
 
 #. Label of a Link field in DocType 'Role'
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Restrict To Domain"
-msgstr ""
+msgstr "Ograniči na domenu"
 
 #. Label of a Link field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Restrict to Domain"
-msgstr ""
+msgstr "Ograniči na domenu"
 
 #. Label of a Link field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Restrict to Domain"
-msgstr ""
+msgstr "Ograniči na domenu"
 
 #. Description of the 'Restrict IP' (Small Text) field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)"
-msgstr ""
+msgstr "Ograničite korisnika samo sa ove IP adrese. Više IP adresa može se dodati odvajanjem zarezima. Također prihvaća djelomične IP adrese poput (111.111.111)"
 
 #: public/js/frappe/list/list_view.js:174
 msgctxt "Title of message showing restrictions in list view"
 msgid "Restrictions"
-msgstr ""
+msgstr "Ograničenja"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:356
 #: public/js/frappe/ui/toolbar/awesome_bar.js:371
 msgid "Result"
-msgstr ""
+msgstr "Rezultat"
 
 #: email/doctype/email_queue/email_queue_list.js:27
 msgid "Resume Sending"
-msgstr ""
+msgstr "Nastavi slanje"
 
 #: core/doctype/data_import/data_import.js:110
 #: desk/page/setup_wizard/setup_wizard.js:285
@@ -27016,44 +27016,44 @@ msgstr ""
 
 #: email/doctype/email_queue/email_queue_list.js:47
 msgid "Retry Sending"
-msgstr ""
+msgstr "Ponovi slanje"
 
 #: www/qrcode.html:15
 msgid "Return to the Verification screen and enter the code displayed by your authentication app"
-msgstr ""
+msgstr "Vratite se na ekran za provjeru i unesite kod koji prikazuje vaša aplikacija za autentifikaciju"
 
 #. Label of a Check field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Reverse Icon Color"
-msgstr ""
+msgstr "Obrni boje ikone"
 
 #: social/doctype/energy_point_log/energy_point_log.js:10
 #: social/doctype/energy_point_log/energy_point_log.js:15
 msgid "Revert"
-msgstr ""
+msgstr "Vrati"
 
 #. Option for the 'Type' (Select) field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Revert"
-msgstr ""
+msgstr "Vrati"
 
 #. Label of a Link field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Revert Of"
-msgstr ""
+msgstr "Vraćanje"
 
 #. Label of a Check field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Reverted"
-msgstr ""
+msgstr "Vraćeno"
 
 #: database/schema.py:159
 msgid "Reverting length to {0} for '{1}' in '{2}'. Setting the length as {3} will cause truncation of data."
-msgstr ""
+msgstr "Vraćanje dužine na {0} za '{1}' u '{2}'. Postavljanje dužine kao {3} će uzrokovati skraćivanje podataka."
 
 #. Option for the 'Type' (Select) field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
@@ -27064,23 +27064,23 @@ msgstr ""
 #. Name of a DocType
 #: social/doctype/review_level/review_level.json
 msgid "Review Level"
-msgstr ""
+msgstr "Nivo pregleda"
 
 #. Label of a Table field in DocType 'Energy Point Settings'
 #: social/doctype/energy_point_settings/energy_point_settings.json
 msgctxt "Energy Point Settings"
 msgid "Review Levels"
-msgstr ""
+msgstr "Nivoi pregleda"
 
 #: desk/page/user_profile/user_profile_controller.js:402
 msgid "Review Points"
-msgstr ""
+msgstr "Pregled bodova"
 
 #. Label of a Int field in DocType 'Review Level'
 #: social/doctype/review_level/review_level.json
 msgctxt "Review Level"
 msgid "Review Points"
-msgstr ""
+msgstr "Pregled bodova"
 
 #: public/js/frappe/form/templates/form_sidebar.html:87
 msgid "Reviews"
@@ -27090,39 +27090,39 @@ msgstr ""
 #: integrations/doctype/connected_app/connected_app.json
 msgctxt "Connected App"
 msgid "Revocation URI"
-msgstr ""
+msgstr "URI opoziva"
 
 #: www/third_party_apps.html:45
 msgid "Revoke"
-msgstr ""
+msgstr "Opozovi"
 
 #. Option for the 'Status' (Select) field in DocType 'OAuth Bearer Token'
 #: integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 msgctxt "OAuth Bearer Token"
 msgid "Revoked"
-msgstr ""
+msgstr "Opozvano"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Rich Text"
-msgstr ""
+msgstr "Rich Text"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Rich Text"
-msgstr ""
+msgstr "Rich Text"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Rich Text"
-msgstr ""
+msgstr "Rich Text"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Rich Text"
-msgstr ""
+msgstr "Rich Text"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -27690,53 +27690,53 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Run scheduled jobs only if checked"
-msgstr ""
+msgstr "Pokreni planirane poslove samo ako je označeno"
 
 #. Name of a DocType
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "S3 Backup Settings"
-msgstr ""
+msgstr "S3 Backup Settings"
 
 #. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgctxt "S3 Backup Settings"
 msgid "S3 Backup Settings"
-msgstr ""
+msgstr "S3 Backup Settings"
 
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.js:18
 msgid "S3 Backup complete!"
-msgstr ""
+msgstr "S3 Backup završen!"
 
 #. Label of a Section Break field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgctxt "S3 Backup Settings"
 msgid "S3 Bucket Details"
-msgstr ""
+msgstr "S3 Bucket detalji"
 
 #. Option for the 'Type' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #. Option for the 'Two Factor Authentication method' (Select) field in DocType
 #. 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #. Label of a Small Text field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
 msgctxt "SMS Settings"
 msgid "SMS Gateway URL"
-msgstr ""
+msgstr "URL SMS pristupnika"
 
 #. Name of a DocType
 #: core/doctype/sms_log/sms_log.json
@@ -27746,7 +27746,7 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/sms_parameter/sms_parameter.json
 msgid "SMS Parameter"
-msgstr ""
+msgstr "SMS parametar"
 
 #. Name of a DocType
 #: core/doctype/sms_settings/sms_settings.json
@@ -27761,66 +27761,66 @@ msgstr ""
 
 #: core/doctype/sms_settings/sms_settings.py:110
 msgid "SMS sent to following numbers: {0}"
-msgstr ""
+msgstr "SMS poslat na sljedeće brojeve: {0}"
 
 #: templates/includes/login/login.js:377
 msgid "SMS was not sent. Please contact Administrator."
-msgstr ""
+msgstr "SMS nije poslan. Molimo kontaktirajte administratora."
 
 #: email/doctype/email_account/email_account.py:189
 msgid "SMTP Server is required"
-msgstr ""
+msgstr "Potreban je SMTP server"
 
 #. Description of the 'Enable Outgoing' (Check) field in DocType 'Email
 #. Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "SMTP Settings for outgoing emails"
-msgstr ""
+msgstr "SMTP postavke za odlaznu e-poštu"
 
 #. Option for the 'Type' (Select) field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "SQL"
-msgstr ""
+msgstr "SQL"
 
 #. Description of the 'Condition' (Small Text) field in DocType 'Bulk Update'
 #: desk/doctype/bulk_update/bulk_update.json
 msgctxt "Bulk Update"
 msgid "SQL Conditions. Example: status=\"Open\""
-msgstr ""
+msgstr "SQL uvjeti. Primjer: status=\"Otvoreno\""
 
 #: core/doctype/recorder/recorder.js:36
 msgid "SQL Explain"
-msgstr ""
+msgstr "SQL objasni"
 
 #. Label of a HTML field in DocType 'Recorder Query'
 #: core/doctype/recorder_query/recorder_query.json
 msgctxt "Recorder Query"
 msgid "SQL Explain"
-msgstr ""
+msgstr "SQL objasni"
 
 #. Label of a HTML field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "SQL Output"
-msgstr ""
+msgstr "SQL izlaz"
 
 #. Label of a Table field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
 msgctxt "Recorder"
 msgid "SQL Queries"
-msgstr ""
+msgstr "SQL upiti"
 
 #. Label of a Select field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "SSL/TLS Mode"
-msgstr ""
+msgstr "SSL/TLS način rada"
 
 #: public/js/frappe/color_picker/color_picker.js:20
 msgid "SWATCHES"
-msgstr ""
+msgstr "SWATCHES"
 
 #. Name of a role
 #: contacts/doctype/contact/contact.json
@@ -27843,7 +27843,7 @@ msgstr ""
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Salesforce"
-msgstr ""
+msgstr "Salesforce"
 
 #. Name of a DocType
 #: contacts/doctype/salutation/salutation.json
@@ -27864,13 +27864,13 @@ msgstr ""
 
 #: integrations/doctype/webhook/webhook.py:112
 msgid "Same Field is entered more than once"
-msgstr ""
+msgstr "Isto polje se unosi više puta"
 
 #. Label of a HTML field in DocType 'Client Script'
 #: custom/doctype/client_script/client_script.json
 msgctxt "Client Script"
 msgid "Sample"
-msgstr ""
+msgstr "Uzorak"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #: automation/doctype/assignment_rule_day/assignment_rule_day.json
@@ -27935,82 +27935,82 @@ msgstr ""
 
 #: core/doctype/user/user.js:321
 msgid "Save API Secret: {0}"
-msgstr ""
+msgstr "Sačuvaj tajnu API-ja: {0}"
 
 #: workflow/doctype/workflow/workflow.js:143
 msgid "Save Anyway"
-msgstr ""
+msgstr "Svejedno spremi"
 
 #: public/js/frappe/views/reports/report_view.js:1311
 #: public/js/frappe/views/reports/report_view.js:1636
 msgid "Save As"
-msgstr ""
+msgstr "Spremi kao"
 
 #: public/js/frappe/views/dashboard/dashboard_view.js:62
 msgid "Save Customizations"
-msgstr ""
+msgstr "Spremi prilagođavanja"
 
 #: public/js/frappe/list/list_sidebar.html:73
 msgid "Save Filter"
-msgstr ""
+msgstr "Spremi filter"
 
 #: public/js/frappe/views/reports/query_report.js:1806
 msgid "Save Report"
-msgstr ""
+msgstr "Spremi izvještaj"
 
 #: public/js/frappe/views/kanban/kanban_view.js:94
 msgid "Save filters"
-msgstr ""
+msgstr "Spremi filtere"
 
 #. Label of a Check field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Save on Completion"
-msgstr ""
+msgstr "Spremi na završetku"
 
 #: public/js/frappe/form/form_tour.js:289
 msgid "Save the document."
-msgstr ""
+msgstr "Spremi dokument."
 
 #: desk/form/save.py:46 model/rename_doc.py:106
 #: printing/page/print_format_builder/print_format_builder.js:845
 #: public/js/frappe/form/toolbar.js:260
 #: public/js/frappe/views/kanban/kanban_board.bundle.js:917
 msgid "Saved"
-msgstr ""
+msgstr "Spremljeno"
 
 #: public/js/frappe/list/list_settings.js:40
 #: public/js/frappe/views/kanban/kanban_settings.js:47
 #: public/js/frappe/views/workspace/workspace.js:510
 msgid "Saving"
-msgstr ""
+msgstr "Spremanje"
 
 #: public/js/frappe/form/save.js:9
 msgctxt "Freeze message while saving a document"
 msgid "Saving"
-msgstr ""
+msgstr "Spremanje"
 
 #: custom/doctype/customize_form/customize_form.js:388
 msgid "Saving Customization..."
-msgstr ""
+msgstr "Spremanje prilagođavanja..."
 
 #: desk/doctype/module_onboarding/module_onboarding.js:8
 msgid "Saving this will export this document as well as the steps linked here as json."
-msgstr ""
+msgstr "Spremanjem ovoga izvest ćete ovaj dokument kao i korake povezane ovdje kao json."
 
 #: public/js/form_builder/store.js:233
 #: public/js/print_format_builder/store.js:36
 #: public/js/workflow_builder/store.js:73
 msgid "Saving..."
-msgstr ""
+msgstr "Spremanje..."
 
 #: public/js/frappe/scanner/index.js:72
 msgid "Scan QRCode"
-msgstr ""
+msgstr "Skeniraj QRCode"
 
 #: www/qrcode.html:14
 msgid "Scan the QR Code and enter the resulting code displayed."
-msgstr ""
+msgstr "Skenirajte QR kod i unesite prikazani rezultirajući kod."
 
 #: email/doctype/newsletter/newsletter.js:125
 msgid "Schedule"
@@ -28018,21 +28018,21 @@ msgstr ""
 
 #: email/doctype/newsletter/newsletter.js:106
 msgid "Schedule Newsletter"
-msgstr ""
+msgstr "Zakaži bilten"
 
 #: public/js/frappe/views/communication.js:85
 msgid "Schedule Send At"
-msgstr ""
+msgstr "Raspored slanja na"
 
 #: email/doctype/newsletter/newsletter.js:70
 msgid "Schedule sending"
-msgstr ""
+msgstr "Zakažite slanje"
 
 #. Label of a Check field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Schedule sending at a later time"
-msgstr ""
+msgstr "Zakažite slanje za kasnije"
 
 #: email/doctype/newsletter/newsletter_list.js:7
 msgid "Scheduled"
@@ -28054,61 +28054,61 @@ msgstr ""
 #: core/doctype/scheduled_job_log/scheduled_job_log.json
 msgctxt "Scheduled Job Log"
 msgid "Scheduled Job"
-msgstr ""
+msgstr "Planirani posao"
 
 #. Name of a DocType
 #: core/doctype/scheduled_job_log/scheduled_job_log.json
 msgid "Scheduled Job Log"
-msgstr ""
+msgstr "Dnevnik planiranih poslova"
 
 #. Linked DocType in Scheduled Job Type's connections
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 msgctxt "Scheduled Job Type"
 msgid "Scheduled Job Log"
-msgstr ""
+msgstr "Dnevnik planiranih poslova"
 
 #. Name of a DocType
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 msgid "Scheduled Job Type"
-msgstr ""
+msgstr "Tip planiranog posla"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "Scheduled Job Type"
 msgid "Scheduled Job Type"
-msgstr ""
+msgstr "Tip planiranog posla"
 
 #. Linked DocType in Server Script's connections
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "Scheduled Job Type"
-msgstr ""
+msgstr "Tip planiranog posla"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "Scheduled Job Log"
 msgid "Scheduled Jobs Logs"
-msgstr ""
+msgstr "Dnevnici zakazanih poslova"
 
 #. Label of a Section Break field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Scheduled Sending"
-msgstr ""
+msgstr "Planirano slanje"
 
 #. Label of a Int field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Scheduled To Send"
-msgstr ""
+msgstr "Zakazano za slanje"
 
 #: core/doctype/server_script/server_script.py:281
 msgid "Scheduled execution for script {0} has updated"
-msgstr ""
+msgstr "Zakazano izvršenje za skriptu {0} je ažurirano"
 
 #: email/doctype/auto_email_report/auto_email_report.js:26
 msgid "Scheduled to send"
-msgstr ""
+msgstr "Zakazano za slanje"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -28147,31 +28147,31 @@ msgstr ""
 #: integrations/doctype/connected_app/connected_app.json
 msgctxt "Connected App"
 msgid "Scopes"
-msgstr ""
+msgstr "Opsezi"
 
 #. Label of a Text field in DocType 'OAuth Authorization Code'
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgctxt "OAuth Authorization Code"
 msgid "Scopes"
-msgstr ""
+msgstr "Opsezi"
 
 #. Label of a Text field in DocType 'OAuth Bearer Token'
 #: integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 msgctxt "OAuth Bearer Token"
 msgid "Scopes"
-msgstr ""
+msgstr "Opsezi"
 
 #. Label of a Text field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "Scopes"
-msgstr ""
+msgstr "Opsezi"
 
 #. Label of a Table field in DocType 'Token Cache'
 #: integrations/doctype/token_cache/token_cache.json
 msgctxt "Token Cache"
 msgid "Scopes"
-msgstr ""
+msgstr "Opsezi"
 
 #. Label of a Code field in DocType 'Client Script'
 #: custom/doctype/client_script/client_script.json
@@ -28617,193 +28617,193 @@ msgstr ""
 
 #: public/js/frappe/data_import/data_exporter.js:146
 msgid "Select Fields To Insert"
-msgstr ""
+msgstr "Odaberite polja za umetanje"
 
 #: public/js/frappe/data_import/data_exporter.js:147
 msgid "Select Fields To Update"
-msgstr ""
+msgstr "Odaberite polja za ažuriranje"
 
 #: public/js/frappe/list/list_sidebar_group_by.js:21
 msgid "Select Filters"
-msgstr ""
+msgstr "Odaberite Filtere"
 
 #: desk/doctype/event/event.py:96
 msgid "Select Google Calendar to which event should be synced."
-msgstr ""
+msgstr "Odaberite Google kalendar s kojim događaj treba sinhronizirati."
 
 #: contacts/doctype/contact/contact.py:76
 msgid "Select Google Contacts to which contact should be synced."
-msgstr ""
+msgstr "Odaberite Google kontakte s kojima treba sinhronizirati kontakt."
 
 #: public/js/frappe/ui/group_by/group_by.html:10
 msgid "Select Group By..."
-msgstr ""
+msgstr "Odaberi Grupiraj prema..."
 
 #: public/js/frappe/list/list_view_select.js:185
 msgid "Select Kanban"
-msgstr ""
+msgstr "Odaberi Kanban"
 
 #: desk/page/setup_wizard/setup_wizard.js:379
 msgid "Select Language"
-msgstr ""
+msgstr "Odaberi jezik"
 
 #. Label of a Select field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Select List View"
-msgstr ""
+msgstr "Odaberi prikaz liste"
 
 #: public/js/frappe/data_import/data_exporter.js:157
 msgid "Select Mandatory"
-msgstr ""
+msgstr "Odaberi obavezno"
 
 #: custom/doctype/customize_form/customize_form.js:280
 msgid "Select Module"
-msgstr ""
+msgstr "Odaberi modul"
 
 #: printing/page/print/print.js:175 printing/page/print/print.js:582
 msgid "Select Network Printer"
-msgstr ""
+msgstr "Odaberi mrežni štampač"
 
 #. Label of a Link field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Select Page"
-msgstr ""
+msgstr "Odaberi stranicu"
 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:68
 #: public/js/frappe/views/communication.js:148
 msgid "Select Print Format"
-msgstr ""
+msgstr "Odaberit format štampanja"
 
 #: printing/page/print_format_builder/print_format_builder.js:82
 msgid "Select Print Format to Edit"
-msgstr ""
+msgstr "Odaberi format štampanja za uređivanje"
 
 #. Label of a Link field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Select Report"
-msgstr ""
+msgstr "Odaberi izvještaj"
 
 #: printing/page/print_format_builder/print_format_builder.js:623
 msgid "Select Table Columns for {0}"
-msgstr ""
+msgstr "Odaberi kolone tabele za {0}"
 
 #: desk/page/setup_wizard/setup_wizard.js:396
 msgid "Select Time Zone"
-msgstr ""
+msgstr "Odaberi vremensku zonu"
 
 #. Label of a Autocomplete field in DocType 'Document Naming Settings'
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
 msgid "Select Transaction"
-msgstr ""
+msgstr "Odaberi transakciju"
 
 #: workflow/page/workflow_builder/workflow_builder.js:68
 msgid "Select Workflow"
-msgstr ""
+msgstr "Odaberi radni tok"
 
 #. Label of a Link field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Select Workspace"
-msgstr ""
+msgstr "Odaberi radni prostor"
 
 #: website/doctype/website_settings/website_settings.js:23
 msgid "Select a Brand Image first."
-msgstr ""
+msgstr "Prvo odaberite sliku robne marke."
 
 #: printing/page/print_format_builder/print_format_builder.js:108
 msgid "Select a DocType to make a new format"
-msgstr ""
+msgstr "Odaberite DocType da napravite novi format"
 
 #: integrations/doctype/webhook/webhook.py:133
 msgid "Select a document to check if it meets conditions."
-msgstr ""
+msgstr "Odaberite dokument da provjerite da li ispunjava uslove."
 
 #: integrations/doctype/webhook/webhook.py:145
 msgid "Select a document to preview request data"
-msgstr ""
+msgstr "Odaberite dokument za pregled podataka zahtjeva"
 
 #: public/js/frappe/views/treeview.js:342
 msgid "Select a group node first."
-msgstr ""
+msgstr "Prvo odaberite čvor grupe."
 
 #: core/doctype/doctype/doctype.py:1899
 msgid "Select a valid Sender Field for creating documents from Email"
-msgstr ""
+msgstr "Odaberite važeće polje pošiljatelja za kreiranje dokumenata iz e-pošte"
 
 #: core/doctype/doctype/doctype.py:1883
 msgid "Select a valid Subject field for creating documents from Email"
-msgstr ""
+msgstr "Odaberite važeće polje Predmet za kreiranje dokumenata iz e-pošte"
 
 #: public/js/frappe/form/form_tour.js:315
 msgid "Select an Image"
-msgstr ""
+msgstr "Odaberite sliku"
 
 #: printing/page/print_format_builder/print_format_builder_start.html:2
 msgid "Select an existing format to edit or start a new format."
-msgstr ""
+msgstr "Odaberite postojeći format za uređivanje ili započnite novi format."
 
 #. Description of the 'Brand Image' (Attach Image) field in DocType 'Website
 #. Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Select an image of approx width 150px with a transparent background for best results."
-msgstr ""
+msgstr "Odaberite sliku približne širine 150px sa prozirnom pozadinom za najbolje rezultate."
 
 #: public/js/frappe/list/bulk_operations.js:35
 msgid "Select atleast 1 record for printing"
-msgstr ""
+msgstr "Odaberite najmanje 1 zapis za štampanje"
 
 #: core/doctype/success_action/success_action.js:18
 msgid "Select atleast 2 actions"
-msgstr ""
+msgstr "Odaberite najmanje 2 radnje"
 
 #: public/js/frappe/list/list_view.js:1224
 msgctxt "Description of a list view shortcut"
 msgid "Select list item"
-msgstr ""
+msgstr "Odaberi stavku liste"
 
 #: public/js/frappe/list/list_view.js:1176
 #: public/js/frappe/list/list_view.js:1192
 msgctxt "Description of a list view shortcut"
 msgid "Select multiple list items"
-msgstr ""
+msgstr "Odaberi više stavki liste"
 
 #: public/js/frappe/views/calendar/calendar.js:175
 msgid "Select or drag across time slots to create a new event."
-msgstr ""
+msgstr "Odaberite ili prevucite preko vremenskih intervala da kreirate novi događaj."
 
 #: public/js/frappe/list/bulk_operations.js:209
 msgid "Select records for assignment"
-msgstr ""
+msgstr "Odaberite zapise za dodjelu"
 
 #: public/js/frappe/list/bulk_operations.js:230
 msgid "Select records for removing assignment"
-msgstr ""
+msgstr "Odaberite zapise za uklanjanje zadatka"
 
 #. Description of the 'Insert After' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Select the label after which you want to insert new field."
-msgstr ""
+msgstr "Odaberite oznaku nakon koje želite umetnuti novo polje."
 
 #: public/js/frappe/utils/diffview.js:102
 msgid "Select two versions to view the diff."
-msgstr ""
+msgstr "Odaberite dvije verzije da vidite razliku."
 
 #: public/js/frappe/form/link_selector.js:24
 #: public/js/frappe/form/multi_select_dialog.js:79
 #: public/js/frappe/form/multi_select_dialog.js:279
 #: public/js/frappe/list/list_view_select.js:153
 msgid "Select {0}"
-msgstr ""
+msgstr "Odaberi {0}"
 
 #: model/workflow.py:117
 msgid "Self approval is not allowed"
-msgstr ""
+msgstr "Samoodobrenje nije dozvoljeno"
 
 #: email/doctype/newsletter/newsletter.js:66
 #: email/doctype/newsletter/newsletter.js:74
@@ -28816,62 +28816,62 @@ msgstr ""
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Send After"
-msgstr ""
+msgstr "Pošalji poslije"
 
 #. Label of a Datetime field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Send After"
-msgstr ""
+msgstr "Pošalji poslije"
 
 #. Label of a Select field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Send Alert On"
-msgstr ""
+msgstr "Pošalji upozorenje uključeno"
 
 #. Label of a Check field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Send Email Alert"
-msgstr ""
+msgstr "Pošalji upozorenje e-poštom"
 
 #. Label of a Datetime field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Send Email At"
-msgstr ""
+msgstr "Pošalji e-poštu na"
 
 #. Description of the 'Send Print as PDF' (Check) field in DocType 'Print
 #. Settings'
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Send Email Print Attachments as PDF (Recommended)"
-msgstr ""
+msgstr "Pošalji e-poštom štampanje priloga kao PDF (preporučeno)"
 
 #. Label of a Check field in DocType 'Dropbox Settings'
 #: integrations/doctype/dropbox_settings/dropbox_settings.json
 msgctxt "Dropbox Settings"
 msgid "Send Email for Successful Backup"
-msgstr ""
+msgstr "Pošalji e-poštu za uspješno sigurnosno kopiranje"
 
 #. Label of a Check field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgctxt "S3 Backup Settings"
 msgid "Send Email for Successful Backup"
-msgstr ""
+msgstr "Pošalji e-poštu za uspješno sigurnosno kopiranje"
 
 #. Label of a Check field in DocType 'Google Drive'
 #: integrations/doctype/google_drive/google_drive.json
 msgctxt "Google Drive"
 msgid "Send Email for Successful backup"
-msgstr ""
+msgstr "Pošalji e-poštu za uspješno sigurnosno kopiranje"
 
 #. Label of a Check field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Send Me A Copy of Outgoing Emails"
-msgstr ""
+msgstr "Pošalji mi kopiju odlazne e-pošte"
 
 #. Label of a Data field in DocType 'Google Drive'
 #: integrations/doctype/google_drive/google_drive.json
@@ -29284,7 +29284,7 @@ msgstr ""
 
 #: public/js/frappe/request.js:243 public/js/frappe/request.js:251
 msgid "Server was too busy to process this request. Please try again."
-msgstr ""
+msgstr "Server je bio prezauzet za obradu ovog zahtjeva. Molimo pokušajte ponovo."
 
 #. Label of a Select field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -29301,119 +29301,119 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/session_default/session_default.json
 msgid "Session Default"
-msgstr ""
+msgstr "Sesija zadano"
 
 #. Name of a DocType
 #: core/doctype/session_default_settings/session_default_settings.json
 msgid "Session Default Settings"
-msgstr ""
+msgstr "Zadane postavke sesije"
 
 #. Label of a standard navbar item
 #. Type: Action
 #: hooks.py public/js/frappe/ui/toolbar/toolbar.js:331
 msgid "Session Defaults"
-msgstr ""
+msgstr "Sesije zadano"
 
 #. Label of a Table field in DocType 'Session Default Settings'
 #: core/doctype/session_default_settings/session_default_settings.json
 msgctxt "Session Default Settings"
 msgid "Session Defaults"
-msgstr ""
+msgstr "Sesije zadano"
 
 #: public/js/frappe/ui/toolbar/toolbar.js:316
 msgid "Session Defaults Saved"
-msgstr ""
+msgstr "Zadane postavke sesije su spremljene"
 
 #: app.py:344
 msgid "Session Expired"
-msgstr ""
+msgstr "Sesija je istekla"
 
 #. Label of a Data field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Session Expiry (idle timeout)"
-msgstr ""
+msgstr "Istek sesije (vremensko ograničenje mirovanja)"
 
 #: core/doctype/system_settings/system_settings.py:112
 msgid "Session Expiry must be in format {0}"
-msgstr ""
+msgstr "Istek sesije mora biti u formatu {0}"
 
 #: public/js/frappe/ui/filters/filter.js:569
 msgctxt "Field value is set"
 msgid "Set"
-msgstr ""
+msgstr "Postavi"
 
 #. Label of a Button field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Set Banner from Image"
-msgstr ""
+msgstr "Postavi baner sa slike"
 
 #: public/js/frappe/views/reports/query_report.js:199
 msgid "Set Chart"
-msgstr ""
+msgstr "Potavi grafikon"
 
 #. Description of the 'Chart Options' (Code) field in DocType 'Dashboard'
 #: desk/doctype/dashboard/dashboard.json
 msgctxt "Dashboard"
 msgid "Set Default Options for all charts on this Dashboard (Ex: \"colors\": [\"#d1d8dd\", \"#ff5858\"])"
-msgstr ""
+msgstr "Postavite zadane opcije za sve grafikone na ovoj upravljačkoj ploči (npr. \"colors\": [\"#d1d8dd\", \"#ff5858\"])"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:467
 #: desk/doctype/number_card/number_card.js:361
 msgid "Set Dynamic Filters"
-msgstr ""
+msgstr "Postavi dinamičke filtere"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:381
 #: desk/doctype/number_card/number_card.js:277
 #: website/doctype/web_form/web_form.js:269
 msgid "Set Filters"
-msgstr ""
+msgstr "Postavi filtere"
 
 #: public/js/frappe/widgets/chart_widget.js:395
 #: public/js/frappe/widgets/quick_list_widget.js:102
 msgid "Set Filters for {0}"
-msgstr ""
+msgstr "Postavi filtere za {0}"
 
 #: core/doctype/user_type/user_type.py:91
 msgid "Set Limit"
-msgstr ""
+msgstr "Postavi ograničenje"
 
 #. Description of the 'Setup Series for transactions' (Section Break) field in
 #. DocType 'Document Naming Settings'
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
 msgid "Set Naming Series options on your transactions."
-msgstr ""
+msgstr "Postavi opcije serije imenovanja za svoje transakcije."
 
 #. Label of a Password field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Set New Password"
-msgstr ""
+msgstr "Postavi novu lozinku"
 
 #: desk/page/backups/backups.js:8
 msgid "Set Number of Backups"
-msgstr ""
+msgstr "Postavi broj sigurnosnih kopija"
 
 #: www/update-password.html:9
 msgid "Set Password"
-msgstr ""
+msgstr "Postavi lozinku"
 
 #: custom/doctype/customize_form/customize_form.js:112
 msgid "Set Permissions"
-msgstr ""
+msgstr "Postavi dozvole"
 
 #: printing/page/print_format_builder/print_format_builder.js:471
 msgid "Set Properties"
-msgstr ""
+msgstr "Postavi svojstva"
 
 #. Label of a Section Break field in DocType 'Notification'
 #. Label of a Select field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Set Property After Alert"
-msgstr ""
+msgstr "Postavi svojstvo nakon upozorenja"
 
 #: public/js/frappe/form/link_selector.js:207
 #: public/js/frappe/form/link_selector.js:208
@@ -29424,78 +29424,78 @@ msgstr ""
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgctxt "Role Permission for Page and Report"
 msgid "Set Role For"
-msgstr ""
+msgstr "Postavi ulogu za"
 
 #: core/doctype/user/user.js:126
 #: core/page/permission_manager/permission_manager.js:65
 msgid "Set User Permissions"
-msgstr ""
+msgstr "Postavi korisničke dozvole"
 
 #. Label of a Small Text field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
 msgid "Set Value"
-msgstr ""
+msgstr "Postavi vrijednost"
 
 #: public/js/frappe/file_uploader/file_uploader.bundle.js:72
 #: public/js/frappe/file_uploader/file_uploader.bundle.js:124
 msgid "Set all private"
-msgstr ""
+msgstr "Postavi sve privatno"
 
 #: public/js/frappe/file_uploader/file_uploader.bundle.js:72
 msgid "Set all public"
-msgstr ""
+msgstr "Postavi sve javno"
 
 #: printing/doctype/print_format/print_format.js:49
 msgid "Set as Default"
-msgstr ""
+msgstr "Postavi kao zadano"
 
 #: website/doctype/website_theme/website_theme.js:33
 msgid "Set as Default Theme"
-msgstr ""
+msgstr "Postavi kao zadanu temu"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Set by user"
-msgstr ""
+msgstr "Postavio korisnik"
 
 #. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Set by user"
-msgstr ""
+msgstr "Postavio korisnik"
 
 #. Description of the 'Precision' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Set non-standard precision for a Float or Currency field"
-msgstr ""
+msgstr "Postavi nestandardnu preciznost za Float ili Valuta polje"
 
 #. Description of the 'Precision' (Select) field in DocType 'Customize Form
 #. Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Set non-standard precision for a Float or Currency field"
-msgstr ""
+msgstr "Postavi nestandardnu preciznost za Float ili Valuta polje"
 
 #. Description of the 'Precision' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Set non-standard precision for a Float or Currency field"
-msgstr ""
+msgstr "Postavi nestandardnu preciznost za Float ili Valuta polje"
 
 #. Description of the 'Precision' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Set non-standard precision for a Float or Currency field"
-msgstr ""
+msgstr "Postavi nestandardnu preciznost za Float ili Valuta polje"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Set only once"
-msgstr ""
+msgstr "Postavi samo jednom"
 
 #. Description of the 'Filters Configuration' (Code) field in DocType 'Number
 #. Card'
@@ -29519,7 +29519,24 @@ msgid "Set the filters here. For example:\n"
 "\treqd: 1\n"
 "}]\n"
 "</code></pre>"
-msgstr ""
+msgstr "Postavi filtere ovdje. Na primjer:\n"
+"<pre class=\"small text-muted\"><code>\n"
+"[{\n"
+"\tfieldname: \"company\",\n"
+"\tlabel: __(\"Company\"),\n"
+"\tfieldtype: \"Link\",\n"
+"\toptions: \"Company\",\n"
+"\tdefault: frappe.defaults.get_user_default(\"Company\"),\n"
+"\treqd: 1\n"
+"},\n"
+"{\n"
+"\tfieldname: \"account\",\n"
+"\tlabel: __(\"Account\"),\n"
+"\tfieldtype: \"Link\",\n"
+"\toptions: \"Account\",\n"
+"\treqd: 1\n"
+"}]\n"
+"</code></pre>"
 
 #. Description of the 'Method' (Data) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
