@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-17 10:13\n"
+"PO-Revision-Date: 2024-04-20 11:29\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -2588,7 +2588,7 @@ msgstr "¿Realmente quieres descartar los cambios?"
 
 #: public/js/frappe/views/reports/query_report.js:895
 msgid "Are you sure you want to generate a new report?"
-msgstr ""
+msgstr "¿Está seguro de que desea generar un nuevo informe?"
 
 #: public/js/frappe/form/toolbar.js:110
 msgid "Are you sure you want to merge {0} with {1}?"
@@ -2620,7 +2620,7 @@ msgstr "¿Está seguro de que desea restablecer todas las personalizaciones?"
 
 #: workflow/doctype/workflow/workflow.js:125
 msgid "Are you sure you want to save this document?"
-msgstr ""
+msgstr "¿Está seguro de que desea guardar este documento?"
 
 #: email/doctype/newsletter/newsletter.js:60
 msgid "Are you sure you want to send this newsletter now?"
@@ -2818,7 +2818,7 @@ msgstr "Asignación para {0} {1}"
 
 #: desk/doctype/todo/todo.py:61
 msgid "Assignment of {0} removed by {1}"
-msgstr ""
+msgstr "Asignación de {0} eliminada por {1}"
 
 #: public/js/frappe/form/sidebar/assign_to.js:227
 msgid "Assignments"
@@ -3167,14 +3167,14 @@ msgstr "Autorizado"
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Auto"
-msgstr ""
+msgstr "Auto"
 
 #. Option for the 'Skip Authorization' (Select) field in DocType 'OAuth
 #. Provider Settings'
 #: integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
 msgctxt "OAuth Provider Settings"
 msgid "Auto"
-msgstr ""
+msgstr "Auto"
 
 #. Name of a DocType
 #: email/doctype/auto_email_report/auto_email_report.json
@@ -4179,7 +4179,7 @@ msgstr "Construir {0}"
 
 #: templates/includes/footer/footer_powered.html:1
 msgid "Built on {0}"
-msgstr ""
+msgstr "Construido en {0}"
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
@@ -6359,7 +6359,7 @@ msgstr ""
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Constraints"
-msgstr ""
+msgstr "Restricciones"
 
 #. Name of a DocType
 #: contacts/doctype/contact/contact.json
@@ -12652,7 +12652,7 @@ msgstr "Los filtros serán accesibles a través de <code>filters</code>. <br><br
 
 #: public/js/frappe/ui/filters/filter_list.js:133
 msgid "Filters {0}"
-msgstr ""
+msgstr "Filtros {0}"
 
 #: public/js/frappe/views/reports/report_view.js:1351
 msgid "Filters:"
@@ -13333,7 +13333,7 @@ msgstr "Frappe Framework"
 
 #: public/js/frappe/list/list_sidebar.js:275
 msgid "Frappe Insights"
-msgstr ""
+msgstr "Frappe Insights"
 
 #: public/js/frappe/ui/theme_switcher.js:59
 msgid "Frappe Light"
@@ -13466,7 +13466,7 @@ msgstr "Del usuario"
 
 #: public/js/frappe/utils/diffview.js:31
 msgid "From version"
-msgstr ""
+msgstr "Desde la versión"
 
 #. Option for the 'Width' (Select) field in DocType 'Dashboard Chart Link'
 #: desk/doctype/dashboard_chart_link/dashboard_chart_link.json
@@ -14424,7 +14424,7 @@ msgstr "Mapa de calor"
 
 #: templates/emails/new_user.html:2
 msgid "Hello"
-msgstr ""
+msgstr "Hola"
 
 #: public/js/frappe/form/templates/form_sidebar.html:40
 #: public/js/frappe/form/workflow.js:23
@@ -14629,7 +14629,7 @@ msgstr "Ocultar borde"
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgctxt "Form Tour Step"
 msgid "Hide Buttons"
-msgstr ""
+msgstr "Ocultar botones"
 
 #. Label of a Check field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -14685,7 +14685,7 @@ msgstr ""
 
 #: www/error.html:41 www/error.html:56
 msgid "Hide Error"
-msgstr ""
+msgstr "Ocultar error"
 
 #. Label of a Check field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -16167,7 +16167,7 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile_sidebar.html:22
 msgid "Intro"
-msgstr ""
+msgstr "Intro"
 
 #. Label of a Data field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
@@ -19666,7 +19666,7 @@ msgstr "Módulo Def"
 #: core/doctype/module_profile/module_profile.json
 msgctxt "Module Profile"
 msgid "Module HTML"
-msgstr ""
+msgstr "Módulo HTML"
 
 #. Label of a Data field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -19724,7 +19724,7 @@ msgstr "Módulo para Exportar"
 
 #: modules/utils.py:269
 msgid "Module {} not found"
-msgstr ""
+msgstr "Módulo {} no encontrado"
 
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
@@ -31058,7 +31058,7 @@ msgstr ""
 
 #: core/doctype/data_import/data_import.js:151
 msgid "Successfully {0} {1} records."
-msgstr ""
+msgstr "Registros {0} {1} exitosos."
 
 #: core/doctype/user/user.py:685
 msgid "Suggested Username: {0}"
@@ -32922,7 +32922,7 @@ msgstr ""
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "To print output use <code>log(text)</code>"
-msgstr ""
+msgstr "Para imprimir la salida use <code>log(text)</code>"
 
 #: core/doctype/user_type/user_type.py:295
 msgid "To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
@@ -37878,7 +37878,7 @@ msgstr "uno de"
 
 #: utils/data.py:1363
 msgid "only."
-msgstr ""
+msgstr "solo."
 
 #: public/js/frappe/utils/utils.js:407 www/login.html:87
 msgid "or"
