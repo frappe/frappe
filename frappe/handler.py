@@ -138,6 +138,7 @@ def uploadfile():
 						"attached_to_name": frappe.form_dict.docname,
 						"attached_to_doctype": frappe.form_dict.doctype,
 						"attached_to_field": frappe.form_dict.docfield,
+						"folder": frappe.form_dict.folder or "Home",
 						"file_url": frappe.form_dict.file_url,
 						"file_name": frappe.form_dict.filename,
 						"is_private": frappe.utils.cint(frappe.form_dict.is_private),
