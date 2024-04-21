@@ -34,7 +34,7 @@
 
 		<script>
 			if (!window.frappe) window.frappe = {}
-			frappe.boot = JSON.parse({{ boot }})
+			window.frappe.boot = JSON.parse({{ boot }})
 
 			window.csrf_token = "{{ csrf_token }}"
 		</script>

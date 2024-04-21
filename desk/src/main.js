@@ -35,7 +35,7 @@ if (import.meta.env.DEV) {
 		url: "/api/method/frappe.www.desk.get_context_for_dev",
 	}).then((values) => {
 		if (!window.frappe) window.frappe = {}
-		window.frappe.boot = values
+		window.frappe.boot = JSON.parse(values)
 		app.mount("#app")
 	})
 } else {
