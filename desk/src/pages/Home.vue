@@ -1,35 +1,11 @@
 <template>
-	<div class="mx-auto max-w-3xl py-12">
-		<Button icon-left="code" @click="$resources.ping.fetch" :loading="$resources.ping.loading">
-			Click to send 'ping' request
-		</Button>
-		<div>
-			{{ $resources.ping.data }}
-		</div>
-		<pre>{{ $resources.ping }}</pre>
-
-		<Button @click="showDialog = true">Open Dialog</Button>
-		<Dialog title="Title" v-model="showDialog"> Dialog content </Dialog>
-	</div>
+	<header class="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-5 py-2.5">
+		<router-link to="/" class="flex cursor-pointer">
+			<AppLogo class="h-7 w-7" />
+		</router-link>
+	</header>
 </template>
 
-<script>
-import { Dialog } from "frappe-ui"
-
-export default {
-	name: "Home",
-	data() {
-		return {
-			showDialog: false,
-		}
-	},
-	resources: {
-		ping: {
-			url: "ping",
-		},
-	},
-	components: {
-		Dialog,
-	},
-}
+<script setup>
+import AppLogo from "@/components/icons/AppLogo.vue"
 </script>
