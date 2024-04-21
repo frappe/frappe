@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-17 10:13\n"
+"PO-Revision-Date: 2024-04-21 11:44\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -72,11 +72,11 @@ msgstr "&lt;head&gt; HTML"
 
 #: public/js/form_builder/store.js:206
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
-msgstr "«در جستجوی سراسری» برای فیلد {0} از نوع {1} مجاز نیست"
+msgstr "در جستجوی سراسری برای فیلد {0} از نوع {1} مجاز نیست"
 
 #: core/doctype/doctype/doctype.py:1315
 msgid "'In Global Search' not allowed for type {0} in row {1}"
-msgstr "«در جستجوی سراسری» برای نوع {0} در ردیف {1} مجاز نیست"
+msgstr "در جستجوی سراسری برای نوع {0} در ردیف {1} مجاز نیست"
 
 #: public/js/form_builder/store.js:198
 msgid "'In List View' is not allowed for field {0} of type {1}"
@@ -16974,34 +16974,34 @@ msgstr "کانبان"
 #. Name of a DocType
 #: desk/doctype/kanban_board/kanban_board.json
 msgid "Kanban Board"
-msgstr "هیئت کانبان"
+msgstr "نمودار کانبان"
 
 #. Linked DocType in DocType's connections
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Kanban Board"
-msgstr "هیئت کانبان"
+msgstr "نمودار کانبان"
 
 #. Label of a Link field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Kanban Board"
-msgstr "هیئت کانبان"
+msgstr "نمودار کانبان"
 
 #. Name of a DocType
 #: desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Kanban Board Column"
-msgstr "ستون هیئت کانبان"
+msgstr "ستون نمودار کانبان"
 
 #: public/js/frappe/views/kanban/kanban_view.js:385
 msgid "Kanban Board Name"
-msgstr "نام هیئت مدیره کانبان"
+msgstr "نام نمودار کانبان"
 
 #. Label of a Data field in DocType 'Kanban Board'
 #: desk/doctype/kanban_board/kanban_board.json
 msgctxt "Kanban Board"
 msgid "Kanban Board Name"
-msgstr "نام هیئت مدیره کانبان"
+msgstr "نام نمودار کانبان"
 
 #: public/js/frappe/views/kanban/kanban_view.js:262
 msgctxt "Button in kanban view menu"
@@ -20309,7 +20309,7 @@ msgstr "پوشه جدید"
 
 #: public/js/frappe/views/kanban/kanban_view.js:341
 msgid "New Kanban Board"
-msgstr "هیئت کانبان جدید"
+msgstr "نمودار کانبان جدید"
 
 #: desk/doctype/notification_log/notification_log.py:156
 msgid "New Mention on {0}"
@@ -23657,7 +23657,7 @@ msgstr ""
 #: website/doctype/blog_category/blog_category.json
 msgctxt "Blog Category"
 msgid "Posts"
-msgstr "پست ها"
+msgstr "پست‌ها"
 
 #: website/doctype/blog_post/blog_post.py:258
 msgid "Posts by {0}"
@@ -29140,7 +29140,7 @@ msgstr ""
 #: public/js/frappe/ui/toolbar/search_utils.js:567
 #: website/workspace/website/website.json
 msgid "Setup"
-msgstr "برپایی"
+msgstr "تنظیمات"
 
 #. Option for the 'Show in Module Section' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -32098,7 +32098,7 @@ msgstr "این Doctype حاوی فیلدهای مکان نیست"
 
 #: public/js/frappe/views/kanban/kanban_view.js:388
 msgid "This Kanban Board will be private"
-msgstr "این هیئت کانبان خصوصی خواهد بود"
+msgstr "این نمودار کانبان خصوصی خواهد بود"
 
 #: custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"
@@ -37279,7 +37279,7 @@ msgstr ""
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "email"
-msgstr ""
+msgstr "ایمیل"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:305
 msgid "email inbox"
@@ -37928,7 +37928,7 @@ msgstr ""
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "print"
-msgstr ""
+msgstr "چاپ"
 
 #. Label of a HTML field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
