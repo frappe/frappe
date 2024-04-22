@@ -1,7 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-import io
 import os
 import re
 
@@ -69,12 +68,10 @@ def evaluate_dynamic_routes(rules, path):
 		urls = route_map.bind_to_environ(frappe.local.request.environ)
 		try:
 			endpoint, args = urls.match("/" + path)
-			path = endpoint
 			if args:
 				# don't cache when there's a query string!
 				frappe.local.no_cache = 1
 				frappe.local.form_dict.update(args)
-
 		except NotFound:
 			pass
 
