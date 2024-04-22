@@ -126,6 +126,9 @@ def web_logout():
 
 @frappe.whitelist()
 def uploadfile():
+	deprecation_warning(
+		"uploadfile is deprecated and will be removed in v16. Use upload_file instead.",
+	)
 	ret = None
 	check_write_permission(frappe.form_dict.doctype, frappe.form_dict.docname)
 
