@@ -97,8 +97,8 @@ Last comment: {{ comments[-1].comment }} by {{ comments[-1].by }}
 &lt;h4&gt;Details&lt;/h4&gt;
 
 &lt;ul&gt;
-&lt;li&gt;Customer: {{ doc.customer }}
-&lt;li&gt;Amount: {{ doc.grand_total }}
+&lt;li&gt;Customer: {{ doc.customer }}&lt;/li&gt;
+&lt;li&gt;Amount: {{ doc.grand_total }}&lt;/li&gt;
 &lt;/ul&gt;
 </pre>
 			`;
