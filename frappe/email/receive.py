@@ -412,27 +412,11 @@ class Email:
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
-<<<<<<< HEAD
-<<<<<<< HEAD
-		if _subject[0][1]:
-			self.subject = safe_decode(self.subject, _subject[0][1])
+		if charset := _subject[0][1]:
+			self.subject = safe_decode(self.subject, charset, ALTERNATE_CHARSET_MAP)
 		else:
 			# assume that the encoding is utf-8
 			self.subject = safe_decode(self.subject)[:140]
-=======
-		charset = _subject[0][1]
-=======
->>>>>>> 441379e7a8 (refactor: don't modify email library's dictionary)
-
-		if charset := _subject[0][1]:
-			# Encoding is known by decode_header (might also be unknown-8bit)
-<<<<<<< HEAD
-			charset = email.charset.ALIASES.get(charset, charset)
-			self.subject = safe_decode(self.subject, charset)
->>>>>>> 69f9db6751 (fix: unknown charset windows-874 problem on incoming mail)
-=======
-			self.subject = safe_decode(self.subject, charset, ALTERNATE_CHARSET_MAP)
->>>>>>> 441379e7a8 (refactor: don't modify email library's dictionary)
 
 		if not self.subject:
 			self.subject = "No Subject"
