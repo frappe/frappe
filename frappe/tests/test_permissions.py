@@ -711,33 +711,6 @@ class TestPermissions(FrappeTestCase):
 		self.assertNotIn("test1@example.com", users)
 		self.assertIn("test2@example.com", users)
 		self.assertIn("test3@example.com", users)
-<<<<<<< HEAD
-=======
-
-	def test_automatic_permissions(self):
-		def assertHasRole(*roles: str | tuple[str, ...]):
-			for role in roles:
-				self.assertIn(role, frappe.get_roles())
-
-		frappe.set_user("Administrator")
-		assertHasRole(*AUTOMATIC_ROLES)
-
-		frappe.set_user("Guest")
-		assertHasRole(GUEST_ROLE)
-
-		website_user = frappe.db.get_value(
-			"User",
-			{"user_type": "Website User", "enabled": 1, "name": ("not in", AUTOMATIC_ROLES)},
-		)
-		frappe.set_user(website_user)
-		assertHasRole(GUEST_ROLE, ALL_USER_ROLE)
-
-		system_user = frappe.db.get_value(
-			"User",
-			{"user_type": "System User", "enabled": 1, "name": ("not in", AUTOMATIC_ROLES)},
-		)
-		frappe.set_user(system_user)
-		assertHasRole(GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE)
 
 	def test_get_doctypes_with_read(self):
 		with self.set_user("Administrator"):
@@ -745,14 +718,11 @@ class TestPermissions(FrappeTestCase):
 
 		with self.set_user("test@example.com"):
 			self.assertNotIn(doctype, get_doctypes_with_read())
-<<<<<<< HEAD
->>>>>>> a1bb734079 (fix: filter select perm in get_doctypes_with_read)
-=======
 
 	def test_overrides_work_as_expected(self):
 		"""custom docperms should completely override standard ones"""
 		standard_role = "Desk User"
-		custom_role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+		custom_role = frappe.get_doc(doctype="Role", role_name=frappe.generate_hash()).insert().name
 		with self.set_user("Administrator"):
 			doctype = new_doctype(permissions=[{"role": standard_role, "read": 1}]).insert().name
 
@@ -767,4 +737,3 @@ class TestPermissions(FrappeTestCase):
 		with self.set_user("test@example.com"):
 			# No one has this role, so user shouldn't have permission.
 			self.assertNotIn(doctype, get_doctypes_with_read())
->>>>>>> 3f707f1ae1 (test: add test for custom docperm behaviour)
