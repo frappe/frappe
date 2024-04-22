@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-21 11:44\n"
+"PO-Revision-Date: 2024-04-22 11:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -1889,7 +1889,7 @@ msgstr "Cijeli dan"
 
 #: website/doctype/website_slideshow/website_slideshow.py:43
 msgid "All Images attached to Website Slideshow should be public"
-msgstr "Sve slike priložene prezentaciji web stranice trebaju biti javne"
+msgstr "Sve slike priložene dijaprojekciji web stranice trebaju biti javne"
 
 #: public/js/frappe/data_import/data_exporter.js:29
 msgid "All Records"
@@ -21212,94 +21212,94 @@ msgstr ""
 
 #: contacts/doctype/address/address.py:249
 msgid "No default Address Template found. Please create a new one from Setup > Printing and Branding > Address Template."
-msgstr ""
+msgstr "Nije pronađen zadani šablon adrese. Molimo kreirajte novi iz Postavljanje > Štampanje i brendiranje > Šablon adrese."
 
 #: public/js/frappe/ui/toolbar/search.js:71
 msgid "No documents found tagged with {0}"
-msgstr ""
+msgstr "Nije pronađen nijedan dokument označen sa {0}"
 
 #: public/js/frappe/views/inbox/inbox_view.js:21
 msgid "No email account associated with the User. Please add an account under User > Email Inbox."
-msgstr ""
+msgstr "Nijedan račun e-pošte nije povezan s korisnikom. Dodajte račun pod Korisnik > Pristigla pošta."
 
 #: core/doctype/data_import/data_import.js:484
 msgid "No failed logs"
-msgstr ""
+msgstr "Nema neuspjelih dnevnika"
 
 #: public/js/frappe/views/kanban/kanban_view.js:368
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
-msgstr ""
+msgstr "Nisu pronađena polja koja se mogu koristiti kao Kanban kolona. Koristite obrazac za prilagođavanje da dodate prilagođeno polje tipa \"Odaberi\"."
 
 #: utils/file_manager.py:143
 msgid "No file attached"
-msgstr ""
+msgstr "Nema priložene datoteke"
 
 #: public/js/frappe/list/list_sidebar_group_by.js:134
 msgid "No filters found"
-msgstr ""
+msgstr "Nije pronađen nijedan filter"
 
 #: public/js/frappe/ui/filters/filter_list.js:298
 msgid "No filters selected"
-msgstr ""
+msgstr "Nijedan filter nije odabran"
 
 #: desk/form/utils.py:101
 msgid "No further records"
-msgstr ""
+msgstr "Nema daljnjih zapisa"
 
 #: templates/includes/search_template.html:49
 msgid "No matching records. Search something new"
-msgstr ""
+msgstr "Nema podudarnih zapisa. Traži nešto novo"
 
 #: public/js/frappe/web_form/web_form_list.js:161
 msgid "No more items to display"
-msgstr ""
+msgstr "Nema više stavki za prikaz"
 
 #: utils/password_strength.py:45
 msgid "No need for symbols, digits, or uppercase letters."
-msgstr ""
+msgstr "Nema potrebe za simbolima, ciframa ili velikim slovima."
 
 #: integrations/doctype/google_contacts/google_contacts.py:195
 msgid "No new Google Contacts synced."
-msgstr ""
+msgstr "Nema sinhroniziranih novih Google kontakata."
 
 #: public/js/frappe/ui/toolbar/navbar.html:47
 msgid "No new notifications"
-msgstr ""
+msgstr "Nema novih obavijesti"
 
 #: printing/page/print_format_builder/print_format_builder.js:415
 msgid "No of Columns"
-msgstr ""
+msgstr "Broj kolona"
 
 #. Label of a Int field in DocType 'SMS Log'
 #: core/doctype/sms_log/sms_log.json
 msgctxt "SMS Log"
 msgid "No of Requested SMS"
-msgstr ""
+msgstr "Broj traženih SMS-ova"
 
 #. Label of a Int field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "No of Rows (Max 500)"
-msgstr ""
+msgstr "Broj redova (Max. 500)"
 
 #. Label of a Int field in DocType 'SMS Log'
 #: core/doctype/sms_log/sms_log.json
 msgctxt "SMS Log"
 msgid "No of Sent SMS"
-msgstr ""
+msgstr "Broj poslanih SMS-ova"
 
 #: __init__.py:1124 client.py:109 client.py:151
 msgid "No permission for {0}"
-msgstr ""
+msgstr "Nema dozvole za {0}"
 
 #: public/js/frappe/form/form.js:1079
 msgctxt "{0} = verb, {1} = object"
 msgid "No permission to '{0}' {1}"
-msgstr ""
+msgstr "Nema dozvole za '{0}' {1}"
 
 #: model/db_query.py:927
 msgid "No permission to read {0}"
-msgstr ""
+msgstr "Nema dozvole za čitanje {0}"
 
 #: share.py:220
 msgid "No permission to {0} {1} {2}"
@@ -22019,7 +22019,7 @@ msgstr "Office 365"
 
 #: core/doctype/server_script/server_script.js:33
 msgid "Official Documentation"
-msgstr ""
+msgstr "Službena dokumentacija"
 
 #. Label of a Int field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -22065,13 +22065,13 @@ msgstr "O autorizaciji plaćanja"
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "On Payment Failed"
-msgstr ""
+msgstr "U slučaju neuspjelog plaćanja"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "On Payment Paid"
-msgstr ""
+msgstr "Plaćeno po uplati"
 
 #. Description of the 'Is Dynamic URL?' (Check) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -22081,7 +22081,7 @@ msgstr "Kada označite ovu opciju, URL će se tretirati kao niz jinja šablona"
 
 #: public/js/frappe/views/communication.js:951
 msgid "On {0}, {1} wrote:"
-msgstr ""
+msgstr "{0}, {1} je napisao:"
 
 #. Label of a Check field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
@@ -22132,7 +22132,7 @@ msgstr "Jednom podneseni dokumenti koji se podnose se ne mogu mijenjati. Mogu se
 
 #: core/page/permission_manager/permission_manager_help.html:35
 msgid "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
-msgstr ""
+msgstr "Nakon što ovo postavite, korisnici će moći pristupiti samo dokumentima (npr. Blog Post) gdje postoji veza (npr. Blogger)."
 
 #: www/complete_signup.html:7
 msgid "One Last Step"
@@ -22246,7 +22246,7 @@ msgstr "Dozvoljeni su samo {0} izvještaja poslatih e-poštom po korisniku."
 
 #: templates/includes/login/login.js:292
 msgid "Oops! Something went wrong."
-msgstr ""
+msgstr "Ups! Nešto je pošlo po zlu."
 
 #: core/doctype/deleted_document/deleted_document.js:7
 msgid "Open"
@@ -22294,7 +22294,7 @@ msgstr "Otvorite Awesomebar"
 
 #: public/js/frappe/form/templates/timeline_message_box.html:67
 msgid "Open Communication"
-msgstr ""
+msgstr "Otvori komunikaciju"
 
 #: templates/emails/new_notification.html:10
 msgid "Open Document"
@@ -22322,7 +22322,7 @@ msgstr "Otvori postavke"
 
 #: public/js/frappe/ui/toolbar/about.js:8
 msgid "Open Source Applications for the Web"
-msgstr ""
+msgstr "Aplikacije otvorenog koda za Web"
 
 #. Label of a Check field in DocType 'Top Bar Item'
 #: website/doctype/top_bar_item/top_bar_item.json
@@ -22343,11 +22343,11 @@ msgstr "Otvori modul ili alat"
 #: public/js/frappe/list/list_view.js:1210
 msgctxt "Description of a list view shortcut"
 msgid "Open list item"
-msgstr ""
+msgstr "Otvorite stavku liste"
 
 #: www/qrcode.html:13
 msgid "Open your authentication app on your mobile phone."
-msgstr ""
+msgstr "Otvorite aplikaciju za autentifikaciju na svom mobilnom telefonu."
 
 #: desk/doctype/todo/todo_list.js:17
 #: public/js/frappe/form/templates/form_links.html:18
@@ -22360,25 +22360,25 @@ msgstr ""
 #: public/js/frappe/ui/toolbar/search_utils.js:327
 #: social/doctype/energy_point_log/energy_point_log_list.js:23
 msgid "Open {0}"
-msgstr ""
+msgstr "Otvori {0}"
 
 #. Label of a Data field in DocType 'Connected App'
 #: integrations/doctype/connected_app/connected_app.json
 msgctxt "Connected App"
 msgid "OpenID Configuration"
-msgstr ""
+msgstr "OpenID konfiguracija"
 
 #. Option for the 'Directory Server' (Select) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "OpenLDAP"
-msgstr ""
+msgstr "OpenLDAP"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Opened"
-msgstr ""
+msgstr "Otvoreno"
 
 #. Label of a Select field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
@@ -22388,43 +22388,43 @@ msgstr ""
 
 #: utils/data.py:2065
 msgid "Operator must be one of {0}"
-msgstr ""
+msgstr "Operator mora biti jedan od {0}"
 
 #: core/doctype/file/file.js:24
 msgid "Optimize"
-msgstr ""
+msgstr "Optimizuj"
 
 #: core/doctype/file/file.js:89
 msgid "Optimizing image..."
-msgstr ""
+msgstr "Optimiziranje slike..."
 
 #: custom/doctype/custom_field/custom_field.js:100
 msgid "Option 1"
-msgstr ""
+msgstr "Opcija 1"
 
 #: custom/doctype/custom_field/custom_field.js:102
 msgid "Option 2"
-msgstr ""
+msgstr "Opcija 2"
 
 #: custom/doctype/custom_field/custom_field.js:104
 msgid "Option 3"
-msgstr ""
+msgstr "Opcija 3"
 
 #: core/doctype/doctype/doctype.py:1593
 msgid "Option {0} for field {1} is not a child table"
-msgstr ""
+msgstr "Opcija {0} za polje {1} nije podređena tabela"
 
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: email/doctype/notification_recipient/notification_recipient.json
 msgctxt "Notification Recipient"
 msgid "Optional: Always send to these ids. Each Email Address on a new row"
-msgstr ""
+msgstr "Opciono: uvijek šaljite na ove Id-ove. Svaka adresa e-pošte u novom redu"
 
 #. Description of the 'Condition' (Code) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Optional: The alert will be sent if this expression is true"
-msgstr ""
+msgstr "Opciono: Upozorenje će biti poslano ako je ovaj izraz tačan"
 
 #: templates/form_grid/fields.html:43
 msgid "Options"
@@ -22474,25 +22474,25 @@ msgstr ""
 
 #: core/doctype/doctype/doctype.py:1333
 msgid "Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"
-msgstr ""
+msgstr "Opcije Vrsta polja 'Dinamička veza' mora upućivati na drugo polje veze s opcijama kao 'DocType'"
 
 #. Label of a HTML field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Options Help"
-msgstr ""
+msgstr "Opcije Pomoć"
 
 #: core/doctype/doctype/doctype.py:1615
 msgid "Options for Rating field can range from 3 to 10"
-msgstr ""
+msgstr "Opcije za polje za ocjenu mogu se kretati od 3 do 10"
 
 #: custom/doctype/custom_field/custom_field.js:96
 msgid "Options for select. Each option on a new line."
-msgstr ""
+msgstr "Opcije za odabir. Svaka opcija u novom redu."
 
 #: core/doctype/doctype/doctype.py:1350
 msgid "Options for {0} must be set before setting the default value."
-msgstr ""
+msgstr "Opcije za {0} moraju se postaviti prije postavljanja zadane vrijednosti."
 
 #: public/js/form_builder/store.js:182
 msgid "Options is required for field {0} of type {1}"
@@ -26681,7 +26681,7 @@ msgstr "Izvještaj {0}"
 
 #: desk/reportview.py:343
 msgid "Report {0} deleted"
-msgstr ""
+msgstr "Izvještaj {0} izbrisan"
 
 #: desk/query_report.py:50
 msgid "Report {0} is disabled"
@@ -27596,17 +27596,17 @@ msgstr "Red # {0}: korisnik koji nije administrator ne može postaviti ulogu {1}
 
 #: model/base_document.py:893
 msgid "Row #{0}:"
-msgstr ""
+msgstr "Red #{0}:"
 
 #: core/doctype/doctype/doctype.py:492
 msgid "Row #{}: Fieldname is required"
-msgstr ""
+msgstr "Red #{}: Naziv polja je obavezan"
 
 #. Label of a Data field in DocType 'Transaction Log'
 #: core/doctype/transaction_log/transaction_log.json
 msgctxt "Transaction Log"
 msgid "Row Index"
-msgstr ""
+msgstr "Indeks reda"
 
 #. Label of a Code field in DocType 'Data Import Log'
 #: core/doctype/data_import_log/data_import_log.json
@@ -28434,7 +28434,7 @@ msgstr ""
 #: public/js/frappe/form/form.js:1172
 #: website/doctype/contact_us_settings/contact_us_settings.js:4
 msgid "See on Website"
-msgstr ""
+msgstr "Vidi na web stranici"
 
 #: website/doctype/web_form/templates/web_form.html:150
 msgctxt "Button in web form"
@@ -29815,7 +29815,7 @@ msgstr "Prečice"
 #: public/js/frappe/widgets/base_widget.js:178
 #: templates/includes/login/login.js:86 www/login.html:30
 msgid "Show"
-msgstr ""
+msgstr "Prikaži"
 
 #. Label of a Check field in DocType 'Blog Settings'
 #: website/doctype/blog_settings/blog_settings.json
@@ -30142,144 +30142,144 @@ msgstr "Prikaži naslov u prozoru pretraživača kao \"Prefiks - naslov\""
 
 #: public/js/frappe/widgets/onboarding_widget.js:148
 msgid "Show {0} List"
-msgstr ""
+msgstr "Prikaži {0} listu"
 
 #: public/js/frappe/views/reports/report_view.js:470
 msgid "Showing only Numeric fields from Report"
-msgstr ""
+msgstr "Prikazuju se samo numerička polja iz izvještaja"
 
 #: public/js/frappe/data_import/import_preview.js:149
 msgid "Showing only first {0} rows out of {1}"
-msgstr ""
+msgstr "Prikaz se samo prvih {0} redova od {1}"
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Sidebar"
-msgstr ""
+msgstr "Bočna traka"
 
 #. Label of a Table field in DocType 'Website Sidebar'
 #: website/doctype/website_sidebar/website_sidebar.json
 msgctxt "Website Sidebar"
 msgid "Sidebar Items"
-msgstr ""
+msgstr "Stavke bočne trake"
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Sidebar Settings"
-msgstr ""
+msgstr "Postavke bočne trake"
 
 #. Label of a Section Break field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Sidebar and Comments"
-msgstr ""
+msgstr "Bočna traka i komentari"
 
 #. Label of a Section Break field in DocType 'Email Group'
 #: email/doctype/email_group/email_group.json
 msgctxt "Email Group"
 msgid "Sign Up and Confirmation"
-msgstr ""
+msgstr "Prijava i potvrda"
 
 #: core/doctype/user/user.py:1012
 msgid "Sign Up is disabled"
-msgstr ""
+msgstr "Prijava je onemogućena"
 
 #: templates/signup.html:16 www/login.html:120 www/login.html:136
 #: www/update-password.html:35
 msgid "Sign up"
-msgstr ""
+msgstr "Prijavi se"
 
 #. Label of a Select field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Sign ups"
-msgstr ""
+msgstr "Prijave"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Signature"
-msgstr ""
+msgstr "Potpis"
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Signature"
-msgstr ""
+msgstr "Potpis"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Signature"
-msgstr ""
+msgstr "Potpis"
 
 #. Label of a Section Break field in DocType 'Email Account'
 #. Label of a Text Editor field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Signature"
-msgstr ""
+msgstr "Potpis"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Signature"
-msgstr ""
+msgstr "Potpis"
 
 #: www/login.html:148
 msgid "Signup Disabled"
-msgstr ""
+msgstr "Prijava je onemogućena"
 
 #: www/login.html:149
 msgid "Signups have been disabled for this website."
-msgstr ""
+msgstr "Prijave su onemogućene za ovu web stranicu."
 
 #. Description of the 'Unassign Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgctxt "Assignment Rule"
 msgid "Simple Python Expression, Example: Status in (\"Closed\", \"Cancelled\")"
-msgstr ""
+msgstr "Jednostavan Python izraz, primjer: status u (\"Zatvoreno\", \"Otkazano\")"
 
 #. Description of the 'Close Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgctxt "Assignment Rule"
 msgid "Simple Python Expression, Example: Status in (\"Invalid\")"
-msgstr ""
+msgstr "Jednostavan Python izraz, primjer: status u (\"Nevažeći\")"
 
 #. Description of the 'Assign Condition' (Code) field in DocType 'Assignment
 #. Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgctxt "Assignment Rule"
 msgid "Simple Python Expression, Example: status == 'Open' and type == 'Bug'"
-msgstr ""
+msgstr "Jednostavan Python izraz, primjer: status == 'Otvoren' i tip == 'Bug'"
 
 #. Label of a Int field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Simultaneous Sessions"
-msgstr ""
+msgstr "Simultane sesije"
 
 #: custom/doctype/customize_form/customize_form.py:122
 msgid "Single DocTypes cannot be customized."
-msgstr ""
+msgstr "Pojedinačni tipovi dokumenata se ne mogu prilagoditi."
 
 #: core/doctype/doctype/doctype_list.js:67
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
-msgstr ""
+msgstr "Pojedinačni tipovi imaju samo jedan zapis bez pridruženih tablica. Vrijednosti se pohranjuju u tabSingles"
 
 #. Description of the 'Is Single' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
-msgstr ""
+msgstr "Pojedinačni tipovi imaju samo jedan zapis bez pridruženih tablica. Vrijednosti se pohranjuju u tabSingles"
 
 #: database/database.py:249
 msgid "Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
-msgstr ""
+msgstr "Stranica radi u načinu samo za čitanje radi održavanja ili ažuriranja stranice, ova radnja se trenutno ne može izvršiti. Molimo pokušajte ponovo kasnije."
 
 #: public/js/frappe/views/file/file_view.js:318
 msgid "Size"
@@ -30288,23 +30288,23 @@ msgstr ""
 #: public/js/frappe/widgets/onboarding_widget.js:82
 #: public/js/onboarding_tours/onboarding_tours.js:18
 msgid "Skip"
-msgstr ""
+msgstr "Preskoči"
 
 #. Label of a Check field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "Skip Authorization"
-msgstr ""
+msgstr "Preskoči autorizaciju"
 
 #. Label of a Select field in DocType 'OAuth Provider Settings'
 #: integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
 msgctxt "OAuth Provider Settings"
 msgid "Skip Authorization"
-msgstr ""
+msgstr "Preskoči autorizaciju"
 
 #: public/js/frappe/widgets/onboarding_widget.js:337
 msgid "Skip Step"
-msgstr ""
+msgstr "Preskoči korak"
 
 #. Label of a Check field in DocType 'Patch Log'
 #: core/doctype/patch_log/patch_log.json
@@ -30314,19 +30314,19 @@ msgstr ""
 
 #: core/doctype/data_import/importer.py:914
 msgid "Skipping Duplicate Column {0}"
-msgstr ""
+msgstr "Preskakanje duple kolone {0}"
 
 #: core/doctype/data_import/importer.py:939
 msgid "Skipping Untitled Column"
-msgstr ""
+msgstr "Preskakanje kolone bez naslova"
 
 #: core/doctype/data_import/importer.py:925
 msgid "Skipping column {0}"
-msgstr ""
+msgstr "Preskakanje kolone {0}"
 
 #: modules/utils.py:171
 msgid "Skipping fixture syncing for doctype {0} from file {1}"
-msgstr ""
+msgstr "Preskakanje sinhronizacije fiksiranja za tip dokumenta {0} iz datoteke {1}"
 
 #: core/doctype/data_import/data_import.js:39
 msgid "Skipping {0} of {1}, {2}"
@@ -30336,149 +30336,149 @@ msgstr ""
 #: website/doctype/contact_us_settings/contact_us_settings.json
 msgctxt "Contact Us Settings"
 msgid "Skype"
-msgstr ""
+msgstr "Skype"
 
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Slack"
-msgstr ""
+msgstr "Slack"
 
 #. Label of a Link field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Slack Channel"
-msgstr ""
+msgstr "Slack kanal"
 
 #: integrations/doctype/slack_webhook_url/slack_webhook_url.py:65
 msgid "Slack Webhook Error"
-msgstr ""
+msgstr "Slack Webhook greška"
 
 #. Name of a DocType
 #: integrations/doctype/slack_webhook_url/slack_webhook_url.json
 msgid "Slack Webhook URL"
-msgstr ""
+msgstr "Slack Webhook URL"
 
 #. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Slack Webhook URL"
 msgid "Slack Webhook URL"
-msgstr ""
+msgstr "Slack Webhook URL"
 
 #. Label of a Link field in DocType 'Web Page'
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Slideshow"
-msgstr ""
+msgstr "Dijaprojekcija"
 
 #. Label of a Table field in DocType 'Website Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
 msgctxt "Website Slideshow"
 msgid "Slideshow Items"
-msgstr ""
+msgstr "Stavke dijaprojekcije"
 
 #. Label of a Data field in DocType 'Website Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
 msgctxt "Website Slideshow"
 msgid "Slideshow Name"
-msgstr ""
+msgstr "Naziv dijaprojekcije"
 
 #. Description of a DocType
 #: website/doctype/website_slideshow/website_slideshow.json
 msgid "Slideshow like display for the website"
-msgstr ""
+msgstr "Prikaz dijaprojekcije za web stranicu"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Small Text"
-msgstr ""
+msgstr "Mali tekst"
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Small Text"
-msgstr ""
+msgstr "Mali tekst"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Small Text"
-msgstr ""
+msgstr "Mali tekst"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Small Text"
-msgstr ""
+msgstr "Mali tekst"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Template Field'
 #: website/doctype/web_template_field/web_template_field.json
 msgctxt "Web Template Field"
 msgid "Small Text"
-msgstr ""
+msgstr "Mali tekst"
 
 #. Label of a Currency field in DocType 'Currency'
 #: geo/doctype/currency/currency.json
 msgctxt "Currency"
 msgid "Smallest Currency Fraction Value"
-msgstr ""
+msgstr "Najmanja vrijednost frakcije valute"
 
 #. Description of the 'Smallest Currency Fraction Value' (Currency) field in
 #. DocType 'Currency'
 #: geo/doctype/currency/currency.json
 msgctxt "Currency"
 msgid "Smallest circulating fraction unit (coin). For e.g. 1 cent for USD and it should be entered as 0.01"
-msgstr ""
+msgstr "Jedinica najmanjih frakcija u opticaju (kovanica). Za npr. 1 cent za USD i treba ga unijeti kao 0,01"
 
 #: printing/doctype/letter_head/letter_head.js:32
 msgid "Snippet and more variables:  {0}"
-msgstr ""
+msgstr "Isječak i više varijabli:  {0}"
 
 #. Name of a DocType
 #: website/doctype/social_link_settings/social_link_settings.json
 msgid "Social Link Settings"
-msgstr ""
+msgstr "Postavke društvenih veza"
 
 #. Label of a Select field in DocType 'Social Link Settings'
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "Social Link Type"
-msgstr ""
+msgstr "Vrsta društvene veze"
 
 #. Name of a DocType
 #: integrations/doctype/social_login_key/social_login_key.json
 msgid "Social Login Key"
-msgstr ""
+msgstr "Ključ za prijavu na društvenim mrežama"
 
 #. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Social Login Key"
 msgid "Social Login Key"
-msgstr ""
+msgstr "Ključ za prijavu na društvenim mrežama"
 
 #. Label of a Select field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Social Login Provider"
-msgstr ""
+msgstr "Davatelj prijave putem društvenih mreža"
 
 #. Label of a Table field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Social Logins"
-msgstr ""
+msgstr "Prijave na društvenim mrežama"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Soft-Bounced"
-msgstr ""
+msgstr "Mekano odbijeno"
 
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:4
 msgid "Some columns might get cut off when printing to PDF. Try to keep number of columns under 10."
-msgstr ""
+msgstr "Neke kolone mogu biti odsječene prilikom ispisa u PDF. Pokušajte zadržati broj kolona ispod 10."
 
 #: public/js/frappe/desk.js:20
 msgid "Some of the features might not work in your browser. Please update your browser to the latest version."
@@ -32379,7 +32379,7 @@ msgstr ""
 #: integrations/doctype/google_calendar/google_calendar.json
 msgctxt "Google Calendar"
 msgid "The name that will appear in Google Calendar"
-msgstr ""
+msgstr "Naziv koji će se pojaviti u Google kalendaru"
 
 #. Description of the 'Track Steps' (Check) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -32858,7 +32858,7 @@ msgstr "Ovo će biti prikazano korisniku u dijalogu nakon usmjeravanja na izvje�
 
 #: www/third_party_apps.html:21
 msgid "This will log out {0} from all other devices"
-msgstr ""
+msgstr "Ovo će odjaviti {0} sa svih drugih uređaja"
 
 #: templates/emails/delete_data_confirmation.html:3
 msgid "This will permanently remove your data."
@@ -33424,95 +33424,95 @@ msgstr "Za štampanje izlaza koristite <code>print(text)</code>"
 
 #: core/doctype/user_type/user_type.py:295
 msgid "To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
-msgstr ""
+msgstr "Za postavljanje uloge {0} u korisniku {1}, postavite polje {2} kao {3} u jednom od {4} zapisa."
 
 #: integrations/doctype/google_calendar/google_calendar.js:8
 msgid "To use Google Calendar, enable {0}."
-msgstr ""
+msgstr "Da koristite Google kalendar, omogućite {0}."
 
 #: integrations/doctype/google_contacts/google_contacts.js:8
 msgid "To use Google Contacts, enable {0}."
-msgstr ""
+msgstr "Da koristite Google kontakte, omogućite {0}."
 
 #: integrations/doctype/google_drive/google_drive.js:8
 msgid "To use Google Drive, enable {0}."
-msgstr ""
+msgstr "Da koristite Google Drive, omogućite {0}."
 
 #. Description of the 'Enable Google indexing' (Check) field in DocType
 #. 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "To use Google Indexing, enable <a href=\"/app/google-settings\">Google Settings</a>."
-msgstr ""
+msgstr "Da koristite Google indeksiranje, omogućite <a href=\"/app/google-settings\">Google postavke</a>."
 
 #. Description of the 'Slack Channel' (Link) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "To use Slack Channel, add a <a href=\"#List/Slack%20Webhook%20URL/List\">Slack Webhook URL</a>."
-msgstr ""
+msgstr "Da biste koristili Slack kanal, dodajte <a href=\"#List/Slack%20Webhook%20URL/List\">Slack Webhook URL</a>."
 
 #: public/js/frappe/utils/diffview.js:44
 msgid "To version"
-msgstr ""
+msgstr "Do verzije"
 
 #. Name of a DocType
 #. Name of a report
 #: desk/doctype/todo/todo.json desk/report/todo/todo.json
 msgid "ToDo"
-msgstr ""
+msgstr "Uraditi"
 
 #. Label of a shortcut in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgctxt "ToDo"
 msgid "ToDo"
-msgstr ""
+msgstr "Uraditi"
 
 #. Linked DocType in User's connections
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "ToDo"
-msgstr ""
+msgstr "Uraditi"
 
 #: public/js/frappe/form/controls/date.js:58
 #: public/js/frappe/views/calendar/calendar.js:268
 msgid "Today"
-msgstr ""
+msgstr "Danas"
 
 #: public/js/frappe/views/reports/report_view.js:1493
 msgid "Toggle Chart"
-msgstr ""
+msgstr "Prebaci grafikon"
 
 #. Label of a standard navbar item
 #. Type: Action
 #: hooks.py
 msgid "Toggle Full Width"
-msgstr ""
+msgstr "Prebaci punu širinu"
 
 #: public/js/frappe/views/file/file_view.js:33
 msgid "Toggle Grid View"
-msgstr ""
+msgstr "Uključi prikaz mreže"
 
 #: public/js/frappe/ui/page.js:193 public/js/frappe/ui/page.js:195
 #: public/js/frappe/views/reports/report_view.js:1497
 msgid "Toggle Sidebar"
-msgstr ""
+msgstr "Prebaci bočnu traku"
 
 #: public/js/frappe/list/list_view.js:1722
 msgctxt "Button in list view menu"
 msgid "Toggle Sidebar"
-msgstr ""
+msgstr "Prebaci bočnu traku"
 
 #. Label of a standard navbar item
 #. Type: Action
 #: hooks.py
 msgid "Toggle Theme"
-msgstr ""
+msgstr "Prebaci temu"
 
 #. Option for the 'Response Type' (Select) field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "Token"
-msgstr ""
+msgstr "Token"
 
 #. Name of a DocType
 #: integrations/doctype/token_cache/token_cache.json
