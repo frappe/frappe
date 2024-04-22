@@ -107,11 +107,7 @@ def get_pages_from_path(start, app, app_path):
 	pages = {}
 	start_path = os.path.join(app_path, start)
 	if os.path.exists(start_path):
-		for basepath, _folders, files in os.walk(start_path):
-			# add missing __init__.py
-			if "__init__.py" not in files and frappe.conf.get("developer_mode"):
-				open(os.path.join(basepath, "__init__.py"), "a").close()
-
+		for basepath, folders, files in os.walk(start_path):  # noqa: B007
 			for fname in files:
 				fname = frappe.utils.cstr(fname)
 				if "." not in fname:
@@ -126,7 +122,6 @@ def get_pages_from_path(start, app, app_path):
 						os.path.join(basepath, fname), app, start, basepath, app_path, fname
 					)
 					pages[page_info.route] = page_info
-					# print frappe.as_json(pages[-1])
 
 	return pages
 
