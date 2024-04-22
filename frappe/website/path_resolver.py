@@ -1,6 +1,7 @@
 import re
 
 import click
+import werkzeug.routing.exceptions
 from werkzeug.routing import Rule
 
 import frappe
@@ -42,7 +43,11 @@ class PathResolver:
 			for handler in frappe.get_hooks("website_path_resolver"):
 				endpoint = frappe.get_attr(handler)(self.path)
 		else:
-			endpoint = resolve_path(self.path)
+			try:
+				endpoint = resolve_path(self.path)
+			except werkzeug.routing.exceptions.RequestRedirect as e:
+				frappe.flags.redirect_location = e.new_url
+				return frappe.flags.redirect_location, RedirectPage(e.new_url, e.code)
 
 		# WARN: Hardcoded for better performance
 		if endpoint == "app":
