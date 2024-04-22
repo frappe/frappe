@@ -44,6 +44,10 @@ poplib._MAXLINE = 1_00_000
 THREAD_ID_PATTERN = re.compile(r"(?<=\[)[\w/-]+")
 WORDS_PATTERN = re.compile(r"\w+")
 
+ALTERNATE_CHARSET_MAP = {
+	"windows-874": "cp874",
+}
+
 
 class EmailSizeExceededError(frappe.ValidationError):
 	pass
@@ -408,8 +412,8 @@ class Email:
 		"""Parse and decode `Subject` header."""
 		_subject = decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
-		if _subject[0][1]:
-			self.subject = safe_decode(self.subject, _subject[0][1])
+		if charset := _subject[0][1]:
+			self.subject = safe_decode(self.subject, charset, ALTERNATE_CHARSET_MAP)
 		else:
 			# assume that the encoding is utf-8
 			self.subject = safe_decode(self.subject)[:140]
@@ -507,11 +511,15 @@ class Email:
 
 	def get_payload(self, part):
 		charset = self.get_charset(part)
-
 		try:
 			return str(part.get_payload(decode=True), str(charset), "ignore")
 		except LookupError:
-			return part.get_payload()
+			try:
+				return str(
+					part.get_payload(decode=True), ALTERNATE_CHARSET_MAP.get(charset, "utf-8"), "ignore"
+				)
+			except Exception:
+				return part.get_payload()
 
 	def get_attachment(self, part):
 		# charset = self.get_charset(part)
