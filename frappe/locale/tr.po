@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-17 10:13\n"
+"PO-Revision-Date: 2024-04-22 11:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -108,7 +108,7 @@ msgstr ""
 
 #: public/js/frappe/views/kanban/kanban_settings.js:111
 msgid "+ Add / Remove Fields"
-msgstr ""
+msgstr "+ Alanları Ekle / Çıkar"
 
 #. Description of the 'Doc Status' (Select) field in DocType 'Workflow Document
 #. State'
@@ -1101,7 +1101,7 @@ msgstr ""
 
 #: public/js/frappe/form/grid_row.js:430
 msgid "Add / Remove Columns"
-msgstr ""
+msgstr "Stünları Ekle / Çıkar"
 
 #: core/doctype/user_permission/user_permission_list.js:4
 msgid "Add / Update"
@@ -1219,7 +1219,7 @@ msgstr "Rol Ekle"
 
 #: public/js/frappe/form/grid.js:63
 msgid "Add Row"
-msgstr ""
+msgstr "Satır Ekle"
 
 #: public/js/frappe/views/communication.js:121
 msgid "Add Signature"
@@ -1285,7 +1285,7 @@ msgstr ""
 
 #: public/js/frappe/ui/filters/filter_list.js:297
 msgid "Add a Filter"
-msgstr ""
+msgstr "Yeni Filtre"
 
 #: core/page/permission_manager/permission_manager_help.html:9
 msgid "Add a New Role"
@@ -1347,7 +1347,7 @@ msgstr ""
 
 #: public/js/frappe/views/kanban/kanban_column.html:20
 msgid "Add {0}"
-msgstr ""
+msgstr "{0} Ekle"
 
 #. Description of the '&lt;head&gt; HTML' (Code) field in DocType 'Website
 #. Settings'
@@ -4342,7 +4342,7 @@ msgstr ""
 
 #: public/js/frappe/color_picker/color_picker.js:20
 msgid "COLOR PICKER"
-msgstr ""
+msgstr "Renç Seçici"
 
 #. Label of a Section Break field in DocType 'Custom HTML Block'
 #: desk/doctype/custom_html_block/custom_html_block.json
@@ -4512,22 +4512,22 @@ msgstr ""
 #: public/js/frappe/form/templates/set_sharing.html:4
 #: public/js/frappe/form/templates/set_sharing.html:50
 msgid "Can Read"
-msgstr ""
+msgstr "Okuma"
 
 #: public/js/frappe/form/templates/set_sharing.html:7
 #: public/js/frappe/form/templates/set_sharing.html:53
 msgid "Can Share"
-msgstr ""
+msgstr "Paylaşma"
 
 #: public/js/frappe/form/templates/set_sharing.html:6
 #: public/js/frappe/form/templates/set_sharing.html:52
 msgid "Can Submit"
-msgstr ""
+msgstr "Gönderme"
 
 #: public/js/frappe/form/templates/set_sharing.html:5
 #: public/js/frappe/form/templates/set_sharing.html:51
 msgid "Can Write"
-msgstr ""
+msgstr "Yazma"
 
 #: custom/doctype/custom_field/custom_field.py:359
 msgid "Can not rename as column {0} is already present on DocType."
@@ -5274,7 +5274,7 @@ msgstr ""
 
 #: public/js/frappe/ui/filters/filter_list.js:297
 msgid "Clear Filters"
-msgstr ""
+msgstr "Filtreleri Temizle"
 
 #. Label of a Int field in DocType 'Logs To Clear'
 #: core/doctype/logs_to_clear/logs_to_clear.json
@@ -5296,7 +5296,7 @@ msgstr ""
 
 #: public/js/frappe/views/dashboard/dashboard_view.js:193
 msgid "Click On Customize to add your first widget"
-msgstr ""
+msgstr "İlk Bileşeni eklemek için Özelleştir'e tıklayın."
 
 #: website/doctype/web_form/templates/web_form.html:144
 msgid "Click here"
@@ -5304,7 +5304,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/form_sidebar.html:26
 msgid "Click here to post bugs and suggestions"
-msgstr ""
+msgstr "Hataları ve önerileri göndermek için tıklayın."
 
 #: email/doctype/newsletter/newsletter.py:335
 msgid "Click here to verify"
@@ -6543,7 +6543,7 @@ msgstr "Panoya kopyalandı."
 
 #: public/js/frappe/form/templates/timeline_message_box.html:83
 msgid "Copy Link"
-msgstr ""
+msgstr "Bağlantıyı Kopyala"
 
 #: public/js/frappe/request.js:615
 msgid "Copy error to clipboard"
@@ -8288,7 +8288,7 @@ msgstr ""
 
 #: public/js/frappe/form/grid.js:63
 msgid "Delete All"
-msgstr ""
+msgstr "Tümünü Sil"
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.js:10
 msgid "Delete Data"
@@ -10128,7 +10128,7 @@ msgstr "Düzenle"
 
 #: public/js/frappe/list/list_sidebar_group_by.js:55
 msgid "Edit Filters"
-msgstr ""
+msgstr "Filtreleri Düzenle"
 
 #: printing/doctype/print_format/print_format.js:28
 msgid "Edit Format"
@@ -10140,7 +10140,7 @@ msgstr "Tam Sayfa Düzenle"
 
 #: printing/page/print_format_builder/print_format_builder_field.html:26
 msgid "Edit HTML"
-msgstr ""
+msgstr "HTML Düzenle"
 
 #: printing/page/print_format_builder/print_format_builder.js:602
 #: printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -10224,7 +10224,7 @@ msgstr "Düzenlenebilir Tablo"
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "Editing Row"
-msgstr ""
+msgstr "Satır Düzenleme"
 
 #: public/js/print_format_builder/print_format_builder.bundle.js:14
 #: public/js/workflow_builder/workflow_builder.bundle.js:20
@@ -12469,7 +12469,7 @@ msgstr "Filtre"
 
 #: public/js/frappe/list/list_sidebar.html:35
 msgid "Filter By"
-msgstr ""
+msgstr "Filtre"
 
 #. Label of a Section Break field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
@@ -15939,7 +15939,7 @@ msgstr ""
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "Insert Above"
-msgstr ""
+msgstr "Yukarı Ekle"
 
 #: public/js/frappe/views/reports/query_report.js:1729
 msgid "Insert After"
@@ -15961,7 +15961,7 @@ msgstr ""
 
 #: public/js/frappe/form/grid_row_form.js:42
 msgid "Insert Below"
-msgstr ""
+msgstr "Aşağıya Ekle"
 
 #: public/js/frappe/views/reports/report_view.js:360
 msgid "Insert Column Before {0}"
@@ -17480,7 +17480,7 @@ msgstr ""
 
 #: email/doctype/notification/notification.js:31
 msgid "Last Modified Date"
-msgstr ""
+msgstr "Son Değiştirilme Tarihi"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:242
 #: public/js/frappe/views/dashboard/dashboard_view.js:479
@@ -18307,7 +18307,7 @@ msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:74
 msgid "Loading Filters..."
-msgstr ""
+msgstr "Filtreler Yükleniyor..."
 
 #: core/doctype/data_import/data_import.js:262
 msgid "Loading import file..."
@@ -18594,7 +18594,7 @@ msgstr ""
 
 #: public/js/frappe/ui/notifications/notifications.js:315
 msgid "Looks like you haven’t received any notifications."
-msgstr ""
+msgstr "Henüz yeni bir bildirim almadınız."
 
 #: core/doctype/server_script/server_script_list.js:18
 msgid "Loving Frappe Framework?"
@@ -19836,7 +19836,7 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile_controller.js:402
 msgid "Monthly Rank"
-msgstr ""
+msgstr "Aylık Sıralama"
 
 #: public/js/frappe/form/link_selector.js:39
 #: public/js/frappe/form/multi_select_dialog.js:43
@@ -20271,7 +20271,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/contact_list.html:90
 msgid "New Contact"
-msgstr ""
+msgstr "Yeni Kişi"
 
 #: printing/page/print/print.js:295 printing/page/print/print.js:342
 msgid "New Custom Print Format"
@@ -20351,7 +20351,7 @@ msgstr ""
 #: core/doctype/version/version_view.html:14
 #: core/doctype/version/version_view.html:76
 msgid "New Value"
-msgstr ""
+msgstr "Yeni Değer"
 
 #: workflow/page/workflow_builder/workflow_builder.js:61
 msgid "New Workflow Name"
@@ -20632,11 +20632,11 @@ msgstr ""
 #: desk/page/user_profile/user_profile.html:22
 #: desk/page/user_profile/user_profile.html:33
 msgid "No Data to Show"
-msgstr ""
+msgstr "Gösterilecek Veri Yok"
 
 #: public/js/frappe/widgets/quick_list_widget.js:131
 msgid "No Data..."
-msgstr ""
+msgstr "Veri Yok..."
 
 #: public/js/frappe/views/inbox/inbox_view.js:176
 msgid "No Email Account"
@@ -20690,7 +20690,7 @@ msgstr ""
 
 #: public/js/frappe/ui/notifications/notifications.js:315
 msgid "No New notifications"
-msgstr ""
+msgstr "Yeni Bildirim Yok"
 
 #: core/doctype/doctype/doctype.py:1692
 msgid "No Permissions Specified"
@@ -20746,15 +20746,15 @@ msgstr ""
 
 #: public/js/frappe/ui/notifications/notifications.js:435
 msgid "No Upcoming Events"
-msgstr ""
+msgstr "Yaklaşan Etkinlik Yok"
 
 #: desk/page/user_profile/user_profile_controller.js:441
 msgid "No activities to show"
-msgstr ""
+msgstr "Gösterilecek aktivite bulunamadı."
 
 #: public/js/frappe/form/templates/address_list.html:37
 msgid "No address added yet."
-msgstr ""
+msgstr "Henüz adres eklenmemiş."
 
 #: email/doctype/notification/notification.js:180
 msgid "No alerts for today"
@@ -27508,7 +27508,7 @@ msgstr ""
 
 #: public/js/frappe/list/list_sidebar.html:73
 msgid "Save Filter"
-msgstr ""
+msgstr "Filtreyi Kaydet"
 
 #: public/js/frappe/views/reports/query_report.js:1805
 msgid "Save Report"
@@ -37113,7 +37113,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/timeline_message_box.html:33
 msgid "commented"
-msgstr ""
+msgstr "yorum yaptı"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -38572,7 +38572,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:882
 msgid "{0} Reports"
-msgstr ""
+msgstr "{0} Raporları"
 
 #: public/js/frappe/list/list_settings.js:32
 #: public/js/frappe/views/kanban/kanban_settings.js:26
