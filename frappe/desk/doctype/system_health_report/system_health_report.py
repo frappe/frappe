@@ -13,10 +13,6 @@ Metrics:
 - Storage - files usage
 - Backups
 - User - new users, sessions stats, failed login attempts
-
-
-
-
 """
 
 import functools
