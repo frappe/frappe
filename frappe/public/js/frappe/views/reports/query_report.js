@@ -1522,12 +1522,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.make_access_log("Export", file_format);
 
 				let filters = this.get_filter_values(true);
-				if (frappe.urllib.get_dict("prepared_report_name")) {
-					filters = Object.assign(
-						frappe.urllib.get_dict("prepared_report_name"),
-						filters
-					);
-				}
 				let boolean_labels = { 1: __("Yes"), 0: __("No") };
 				let applied_filters = Object.fromEntries(
 					Object.entries(filters).map(([key, value]) => [
@@ -1537,6 +1531,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 							: value,
 					])
 				);
+				let query_params = this.get_query_params();
+				if ("prepared_report_name" in query_params) {
+					filters = Object.assign(
+						{ prepared_report_name: query_params["prepared_report_name"] },
+						filters
+					);
+				}
 
 				const visible_idx = this.datatable?.bodyRenderer.visibleRowIndices || [];
 				if (visible_idx.length + 1 === this.data?.length) {
