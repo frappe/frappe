@@ -59,11 +59,16 @@ frappe.ui.form.on("System Health Report", {
 			"queue_status.pending_jobs": (val) => val > 50,
 			"background_workers.utilization": (val) => val > 70,
 			"background_workers.failed_jobs": (val) => val > 50,
+			"top_errors.occurrences": (val) => val > 10,
+			"failing_scheduled_jobs.failure_rate": (val) => val > 10,
 		};
 
 		const style = document.createElement("style");
-		style.innerText =
-			".health-check-failed { border: 1px solid var(--error-border) !important; }";
+		style.innerText = `.health-check-failed {
+				font-weight: bold;
+				color: var(--text-colour);
+				background-color: var(--bg-red);
+			}`;
 		document.head.appendChild(style);
 
 		const update_fields = () => {

@@ -27,6 +27,7 @@ from collections.abc import Callable
 import frappe
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queue, get_queue_list
+from frappe.utils.caching import redis_cache
 from frappe.utils.data import add_to_date
 from frappe.utils.scheduler import get_scheduler_status
 
@@ -41,7 +42,7 @@ def health_check(step: str):
 				return func(*args, **kwargs)
 			except Exception as e:
 				# nosemgrep
-				frappe.msgprint(f"System Health check step {step} failed: {e}", alert=True)
+				frappe.msgprint(f"System Health check step {frappe.bold(step)} failed: {e}", alert=True)
 
 		return wrapper
 
@@ -112,6 +113,7 @@ class SystemHealthReport(Document):
 
 	def load_from_db(self):
 		super(Document, self).__init__({})
+		frappe.only_for("System Manager")
 
 		# Each method loads a section of health report
 		# They should be written in a manner they are least likely to fail and if they do fail,
@@ -240,28 +242,13 @@ class SystemHealthReport(Document):
 		self.cache_keys = len(frappe.cache.get_keys(""))
 		self.cache_memory_usage = frappe.cache.execute_command("INFO", "MEMORY").get("used_memory_human")
 
-	@classmethod
-	def get_directory_size(cls, *path):
-		folder = os.path.abspath(frappe.get_site_path(*path))
-		# Copied as is from agent
-		total_size = os.path.getsize(folder)
-		for item in os.listdir(folder):
-			itempath = os.path.join(folder, item)
-
-			if not os.path.islink(itempath):
-				if os.path.isfile(itempath):
-					total_size += os.path.getsize(itempath)
-				elif os.path.isdir(itempath):
-					total_size += cls.get_directory_size(itempath)
-		return total_size
-
 	@health_check("Storage")
 	def fetch_storage_details(self):
 		from frappe.desk.page.backups.backups import get_context
 
-		self.backups_size = self.get_directory_size("private", "backups") / (1024 * 1024)
-		self.private_files_size = self.get_directory_size("private", "files") / (1024 * 1024)
-		self.public_files_size = self.get_directory_size("public", "files") / (1024 * 1024)
+		self.backups_size = get_directory_size("private", "backups") / (1024 * 1024)
+		self.private_files_size = get_directory_size("private", "files") / (1024 * 1024)
+		self.public_files_size = get_directory_size("public", "files") / (1024 * 1024)
 		self.onsite_backups = len(get_context({}).get("files", []))
 
 	@health_check("Users")
@@ -315,3 +302,23 @@ def get_job_status(job_id: str | None = None):
 		return frappe.get_doc("RQ Job", job_id).status
 	except Exception:
 		frappe.clear_messages()
+
+
+@redis_cache(ttl=5 * 60)
+def get_directory_size(*path):
+	return _get_directory_size(*path)
+
+
+def _get_directory_size(*path):
+	folder = os.path.abspath(frappe.get_site_path(*path))
+	# Copied as is from agent
+	total_size = os.path.getsize(folder)
+	for item in os.listdir(folder):
+		itempath = os.path.join(folder, item)
+
+		if not os.path.islink(itempath):
+			if os.path.isfile(itempath):
+				total_size += os.path.getsize(itempath)
+			elif os.path.isdir(itempath):
+				total_size += _get_directory_size(itempath)
+	return total_size
