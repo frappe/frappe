@@ -58,6 +58,9 @@ class SystemHealthReport(Document):
 		from frappe.desk.doctype.system_health_report_errors.system_health_report_errors import (
 			SystemHealthReportErrors,
 		)
+		from frappe.desk.doctype.system_health_report_failing_jobs.system_health_report_failing_jobs import (
+			SystemHealthReportFailingJobs,
+		)
 		from frappe.desk.doctype.system_health_report_queue.system_health_report_queue import (
 			SystemHealthReportQueue,
 		)
@@ -82,6 +85,7 @@ class SystemHealthReport(Document):
 		db_storage_usage: DF.Float
 		failed_emails: DF.Int
 		failed_logins: DF.Int
+		failing_scheduled_jobs: DF.Table[SystemHealthReportFailingJobs]
 		handled_emails: DF.Int
 		last_10_active_users: DF.Code | None
 		new_users: DF.Int
@@ -115,6 +119,7 @@ class SystemHealthReport(Document):
 		# This is best done by initializing fields with values that indicate that we haven't yet
 		# fetched the values.
 		self.fetch_background_jobs()
+		self.fetch_scheduler()
 		self.fetch_email_stats()
 		self.fetch_errors()
 		self.fetch_database_details()
@@ -154,6 +159,32 @@ class SystemHealthReport(Document):
 					"pending_jobs": q.count,
 				},
 			)
+
+	@health_check("Scheduler")
+	def fetch_scheduler(self):
+		lower_threshold = add_to_date(None, days=-7, as_datetime=True)
+		# Exclude "maybe" curently executing job
+		upper_threshold = add_to_date(None, minutes=-30, as_datetime=True)
+		self.scheduler_status = get_scheduler_status().get("status")
+		failing_jobs = frappe.db.sql(
+			"""
+			select scheduled_job_type,
+				   avg(CASE WHEN status != 'Complete' THEN 1 ELSE 0 END) * 100 as failure_rate
+			from `tabScheduled Job Log`
+			where
+				creation > %(lower_threshold)s
+				and modified > %(lower_threshold)s
+				and creation < %(upper_threshold)s
+			group by scheduled_job_type
+			having failure_rate > 0
+			order by failure_rate desc
+			limit 5""",
+			{"lower_threshold": lower_threshold, "upper_threshold": upper_threshold},
+			as_dict=True,
+		)
+
+		for job in failing_jobs:
+			self.append("failing_scheduled_jobs", job)
 
 	@health_check("Emails")
 	def fetch_email_stats(self):
