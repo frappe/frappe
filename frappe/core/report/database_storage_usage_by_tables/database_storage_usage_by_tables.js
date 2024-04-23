@@ -17,8 +17,8 @@ frappe.query_reports["Database Storage Usage By Tables"] = {
 							options: "DocType",
 						},
 					],
-					size: "small", // small, large, extra-large
-					primary_action_label: "Submit",
+					size: "small",
+					primary_action_label: "Optimize",
 					primary_action(values) {
 						frappe.call({
 							method: "frappe.core.report.database_storage_usage_by_tables.database_storage_usage_by_tables.optimize_doctype",
