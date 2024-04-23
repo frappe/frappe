@@ -663,7 +663,7 @@ def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=Fals
 		)
 
 	link_options, filters = [], {}
-	if not allow_read_on_all_link_options:
+	if web_form.login_required and not allow_read_on_all_link_options:
 		filters = {"owner": frappe.session.user}
 
 	fields = ["name as value"]
