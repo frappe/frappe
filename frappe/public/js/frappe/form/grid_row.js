@@ -730,12 +730,20 @@ export default class GridRow {
 	}
 
 	set_dependant_property(df) {
-		if (df.mandatory_depends_on) {
-			df.reqd = !!this.evaluate_depends_on_value(df.mandatory_depends_on);
+		if (
+			!df.reqd &&
+			df.mandatory_depends_on &&
+			this.evaluate_depends_on_value(df.mandatory_depends_on)
+		) {
+			df.reqd = 1;
 		}
 
-		if (df.read_only_depends_on) {
-			df.read_only = !!this.evaluate_depends_on_value(df.read_only_depends_on);
+		if (
+			!df.read_only &&
+			df.read_only_depends_on &&
+			this.evaluate_depends_on_value(df.read_only_depends_on)
+		) {
+			df.read_only = 1;
 		}
 	}
 
@@ -987,13 +995,6 @@ export default class GridRow {
 				if (frappe.ui.form.editable_row !== me) {
 					var out = me.toggle_editable_row();
 				}
-
-				// Set dependant property for current row
-				Object.keys(me.columns).forEach((column) => {
-					me.set_dependant_property(me.columns[column].df);
-				});
-				me.render_row(true);
-
 				var col = this;
 				let first_input_field = $(col).find('input[type="Text"]:first');
 				let input_in_focus = false;
