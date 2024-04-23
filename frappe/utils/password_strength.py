@@ -5,7 +5,7 @@ from zxcvbn import zxcvbn
 from zxcvbn.scoring import ALL_UPPER, START_UPPER
 
 import frappe
-from frappe import _
+from frappe import _, _lt
 
 
 def test_password_strength(password, user_inputs=None):
@@ -31,8 +31,8 @@ def test_password_strength(password, user_inputs=None):
 default_feedback = {
 	"warning": "",
 	"suggestions": [
-		_("Use a few words, avoid common phrases."),
-		_("No need for symbols, digits, or uppercase letters."),
+		_lt("Use a few words, avoid common phrases."),
+		_lt("No need for symbols, digits, or uppercase letters."),
 	],
 }
 

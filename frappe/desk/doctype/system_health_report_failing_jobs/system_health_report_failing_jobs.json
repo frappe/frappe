@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-04-22 11:45:32.923379",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "scheduled_job_type",
+  "failure_rate"
+ ],
+ "fields": [
+  {
+   "fieldname": "scheduled_job_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Scheduled Job Type",
+   "options": "Scheduled Job Type"
+  },
+  {
+   "fieldname": "failure_rate",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Failure Rate"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_virtual": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-04-22 11:46:53.574720",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "System Health Report Failing Jobs",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

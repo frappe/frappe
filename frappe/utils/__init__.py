@@ -230,7 +230,7 @@ def validate_url(
 	        bool: if `txt` represents a valid URL
 	"""
 	url = urlparse(txt)
-	is_valid = bool(url.netloc)
+	is_valid = bool(url.netloc) or (txt and txt.startswith("/"))
 
 	# Handle scheme validation
 	if isinstance(valid_schemes, str):
