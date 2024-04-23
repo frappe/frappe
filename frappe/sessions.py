@@ -210,7 +210,15 @@ class Session:
 
 		else:
 			if self.user:
+				self.validate_user()
 				self.start()
+
+	def validate_user(self):
+		if not frappe.get_cached_value("User", self.user, "enabled"):
+			frappe.throw(
+				_("User {0} is disabled. Please contact your System Manager.").format(self.user),
+				frappe.ValidationError,
+			)
 
 	def start(self):
 		"""start a new session"""
