@@ -1075,6 +1075,7 @@ class Document(BaseDocument):
 
 		self.run_method("before_discard")
 		self.db_set("docstatus", DocStatus.cancelled())
+		delattr(self, "_action")
 		self.run_method("on_discard")
 
 	@frappe.whitelist()

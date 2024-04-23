@@ -836,7 +836,6 @@ frappe.ui.form.Form = class FrappeForm {
 	discard(btn, callback, on_error) {
 		const me = this;
 		return new Promise((resolve) => {
-			// this.validate_form_action("Discard") // ?
 			frappe.confirm(__("Discard {0}", [this.docname]), function () {
 				me.script_manager.trigger("before_discard").then(function () {
 					return me._discard(btn, callback, on_error, false); // ?
