@@ -6,6 +6,7 @@ import json
 import os
 import re
 import shutil
+from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
 import frappe
@@ -32,7 +33,7 @@ from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
 from frappe.query_builder.functions import Concat
-from frappe.utils import cint, flt, is_a_property, random_string
+from frappe.utils import cint, flt, get_datetime, is_a_property, random_string
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -1014,6 +1015,24 @@ class DocType(Document):
 			)
 
 		validate_route_conflict(self.doctype, self.name)
+
+	@frappe.whitelist()
+	def check_pending_migration(self) -> bool:
+		"""Checks if all migrations are applied on doctype."""
+		if self.is_new() or self.custom:
+			return
+
+		file = Path(get_file_path(frappe.scrub(self.module), self.doctype, self.name))
+		content = json.loads(file.read_text())
+		if content.get("modified") and get_datetime(self.modified) != get_datetime(content.get("modified")):
+			frappe.msgprint(
+				_(
+					"This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
+				),
+				alert=True,
+				indicator="yellow",
+			)
+			return True
 
 
 def validate_series(dt, autoname=None, name=None):

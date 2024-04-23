@@ -1026,20 +1026,17 @@ class DatabaseQuery:
 			self._fetch_shared_documents = True
 			self.match_filters.append(match_filters)
 
-	def get_permission_query_conditions(self):
+	def get_permission_query_conditions(self) -> str:
 		conditions = []
-		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.doctype, [])
-		if condition_methods:
-			for method in condition_methods:
-				c = frappe.call(frappe.get_attr(method), self.user)
-				if c:
-					conditions.append(c)
+		hooks = frappe.get_hooks("permission_query_conditions", {})
+		condition_methods = hooks.get(self.doctype, []) + hooks.get("*", [])
+		for method in condition_methods:
+			if c := frappe.call(frappe.get_attr(method), self.user, doctype=self.doctype):
+				conditions.append(c)
 
-		permision_script_name = get_server_script_map().get("permission_query", {}).get(self.doctype)
-		if permision_script_name:
-			script = frappe.get_doc("Server Script", permision_script_name)
-			condition = script.get_permission_query_conditions(self.user)
-			if condition:
+		if permission_script_name := get_server_script_map().get("permission_query", {}).get(self.doctype):
+			script = frappe.get_doc("Server Script", permission_script_name)
+			if condition := script.get_permission_query_conditions(self.user):
 				conditions.append(condition)
 
 		return " and ".join(conditions) if conditions else ""

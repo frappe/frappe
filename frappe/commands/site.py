@@ -10,6 +10,7 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
+from frappe.utils import CallbackManager
 
 
 @click.command("new-site")
@@ -868,11 +869,13 @@ def backup(
 
 	verbose = verbose or context.verbose
 	exit_code = 0
+	rollback_callback = None
 
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
+			rollback_callback = CallbackManager()
 			odb = scheduled_backup(
 				ignore_files=not with_files,
 				backup_path=backup_path,
@@ -887,12 +890,16 @@ def backup(
 				verbose=verbose,
 				force=True,
 				old_backup_metadata=old_backup_metadata,
+				rollback_callback=rollback_callback,
 			)
 		except Exception:
 			click.secho(
 				f"Backup failed for Site {site}. Database or site_config.json may be corrupted",
 				fg="red",
 			)
+			if rollback_callback:
+				rollback_callback.run()
+				rollback_callback = None
 			if verbose:
 				print(frappe.get_traceback(with_context=True))
 			exit_code = 1

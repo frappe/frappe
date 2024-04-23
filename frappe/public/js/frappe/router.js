@@ -177,13 +177,12 @@ frappe.router = {
 		// /app/user/user-001 = ["Form", "User", "user-001"]
 		// /app/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
 
-		let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
-
 		if (frappe.workspaces[route[0]]) {
 			// public workspace
 			route = ["Workspaces", frappe.workspaces[route[0]].title];
 		} else if (route[0] == "private") {
 			// private workspace
+			let private_workspace = route[1] && `${route[1]}-${frappe.user.name.toLowerCase()}`;
 			if (!frappe.workspaces[private_workspace] && localStorage.new_workspace) {
 				let new_workspace = JSON.parse(localStorage.new_workspace);
 				if (frappe.router.slug(new_workspace.title) === route[1]) {
@@ -464,26 +463,26 @@ frappe.router = {
 			return "/app/" + path_string;
 		}
 
-		// Workspace
+		// Resolution order
+		// 1. User's default workspace in user doctype
+		// 2. Private home
+		// 3. Public home
+		// 4. First workspace in list
 		let private_home = `home-${frappe.user.name.toLowerCase()}`;
-		let default_page = null;
-		if (frappe.boot.user.default_workspace) {
-			default_page = frappe.router.slug(frappe.boot.user.default_workspace.name);
-		} else if (frappe.workspaces[private_home]) {
-			default_page = private_home;
-		} else if (frappe.workspaces["home"]) {
-			default_page = "home";
-		} else {
-			// Fallback to first workspace
-			default_page = Object.keys(frappe.workspaces)[0];
-		}
+		let default_workspace = frappe.router.slug(frappe.boot.user.default_workspace?.name || "");
 
-		if (frappe.workspaces[default_page]?.public == false) {
-			default_page = "private/" + default_page;
-		}
+		let workspace =
+			frappe.workspaces[default_workspace] ||
+			frappe.workspaces[private_home] ||
+			frappe.workspaces["home"] ||
+			Object.values(frappe.workspaces)[0];
 
-		if (default_page) {
-			return "/app/" + default_page;
+		if (workspace) {
+			return (
+				"/app/" +
+				(workspace.public ? "" : "private/") +
+				frappe.router.slug(workspace.title)
+			);
 		}
 
 		return "/app";
