@@ -20,6 +20,7 @@ import json
 import os
 import re
 import signal
+import sys
 import traceback
 import warnings
 from collections.abc import Callable
@@ -541,9 +542,7 @@ def log(msg: str) -> None:
 	"""Add to `debug_log`
 
 	:param msg: Message."""
-	if not request:
-		print(repr(msg))
-
+	print(msg, file=sys.stderr)
 	debug_log.append(as_unicode(msg))
 
 
@@ -583,7 +582,6 @@ def msgprint(
 	:param realtime: Publish message immediately using websocket.
 	"""
 	import inspect
-	import sys
 
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
@@ -2565,7 +2563,6 @@ def validate_and_sanitize_search_inputs(fn):
 
 def _register_fault_handler():
 	import io
-	import sys
 
 	# Some libraries monkey patch stderr, we need actual fd
 	if isinstance(sys.stderr, io.TextIOWrapper):
