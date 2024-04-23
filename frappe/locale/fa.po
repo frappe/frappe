@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-21 11:44\n"
+"PO-Revision-Date: 2024-04-23 11:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -33430,7 +33430,7 @@ msgstr "روش احراز هویت دو عاملی"
 
 #: public/js/frappe/views/file/file_view.js:318
 msgid "Type"
-msgstr "تایپ کنید"
+msgstr "نوع"
 
 #. Label of a Select field in DocType 'Communication'
 #: core/doctype/communication/communication.json
