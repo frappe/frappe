@@ -32,11 +32,11 @@ frappe.query_reports["Database Storage Usage By Tables"] = {
 							},
 							callback: function (r) {
 								if (!r.exec) {
-									frappe.msgprint({
-										title: __("Success"),
-										message: __("Table optimized successfully"),
-										indicator: "green",
-									});
+									frappe.show_alert(
+										__(
+											`${values.doctype_name} has been added to queue for optimization`
+										)
+									);
 								}
 							},
 						});

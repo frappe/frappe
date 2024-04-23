@@ -42,6 +42,12 @@ def execute(filters=None):
 
 @frappe.whitelist()
 def optimize_doctype(doctype_name: str):
+	frappe.enqueue(
+		optimize_doctype_job, queue="long", job_name=f"optimize {doctype_name}", doctype_name=doctype_name
+	)
+
+
+def optimize_doctype_job(doctype_name: str):
 	from frappe.utils import get_table_name
 
 	doctype_table = get_table_name(doctype_name, wrap_in_backticks=True)
@@ -50,4 +56,4 @@ def optimize_doctype(doctype_name: str):
 	else:
 		query = f"VACUUM (ANALYZE) {doctype_table};"
 
-	return frappe.db.sql(query)
+	frappe.db.sql(query)
