@@ -809,11 +809,12 @@ class Document(BaseDocument):
 
 		self.load_doc_before_save(raise_exception=True)
 
-		self._action = "save"
-		previous = self._doc_before_save
+		if not hasattr(self, "_action"):
+			self._action = "save"
 
+		previous = self._doc_before_save
 		# previous is None for new document insert
-		if not previous:
+		if not previous and self._action != "discard":
 			self.check_docstatus_transition(0)
 			return
 
@@ -825,7 +826,7 @@ class Document(BaseDocument):
 				raise_exception=frappe.TimestampMismatchError,
 			)
 
-		if not self.meta.issingle:
+		if not self.meta.issingle and self._action != "discard":
 			self.check_docstatus_transition(previous.docstatus)
 
 	def check_docstatus_transition(self, to_docstatus):
@@ -1061,8 +1062,11 @@ class Document(BaseDocument):
 	@frappe.whitelist()
 	def discard(self):
 		"""Discard the draft document. Sets `docstatus` = 2 with db_set."""
+		self._action = "discard"
+
 		self.check_if_locked()
 		self.set_user_and_timestamp()
+		self.check_if_latest()
 
 		if not self.docstatus == DocStatus.draft():
 			raise frappe.ValidationError(_("Only draft documents can be discarded"), self.docstatus)
