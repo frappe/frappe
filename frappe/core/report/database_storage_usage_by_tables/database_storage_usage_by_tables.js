@@ -15,6 +15,11 @@ frappe.query_reports["Database Storage Usage By Tables"] = {
 							fieldname: "doctype_name",
 							fieldtype: "Link",
 							options: "DocType",
+							get_query: function () {
+								return {
+									filters: { issingle: ["=", false], is_virtual: ["=", false] },
+								};
+							},
 						},
 					],
 					size: "small",
