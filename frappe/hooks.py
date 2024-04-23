@@ -525,6 +525,12 @@ standard_help_items = [
 		"is_standard": 1,
 	},
 	{
+		"item_label": "System Health",
+		"item_type": "Route",
+		"route": "/app/system-health-report",
+		"is_standard": 1,
+	},
+	{
 		"item_label": "Frappe Support",
 		"item_type": "Route",
 		"route": "https://frappe.io/support",

@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 def make_home_folder() -> None:
 	home = frappe.get_doc(
-		{"doctype": "File", "is_folder": 1, "is_home_folder": 1, "file_name": _("Home")}
+		{"doctype": "File", "is_folder": 1, "is_home_folder": 1, "file_name": "Home"}
 	).insert(ignore_if_duplicate=True)
 
 	frappe.get_doc(
@@ -34,7 +34,7 @@ def make_home_folder() -> None:
 			"folder": home.name,
 			"is_folder": 1,
 			"is_attachments_folder": 1,
-			"file_name": _("Attachments"),
+			"file_name": "Attachments",
 		}
 	).insert(ignore_if_duplicate=True)
 
@@ -361,15 +361,15 @@ def attach_files_to_document(doc: "Document", event) -> None:
 
 
 def relink_files(doc, fieldname, temp_doc_name):
-	if not temp_doc_name:
-		return
-	from frappe.utils.data import add_to_date, now_datetime
-
 	"""
 	Relink files attached to incorrect document name to the new document name
 	by check if file with temp name exists that was created in last 60 minutes
 	"""
-	mislinked_file = frappe.db.exists(
+	if not temp_doc_name:
+		return
+	from frappe.utils.data import add_to_date, now_datetime
+
+	mislinked_file = frappe.db.get_value(
 		"File",
 		{
 			"file_url": doc.get(fieldname),
@@ -382,7 +382,7 @@ def relink_files(doc, fieldname, temp_doc_name):
 			),
 		},
 	)
-	"""If file exists, attach it to the new docname"""
+	# If file exists, attach it to the new docname
 	if mislinked_file:
 		frappe.db.set_value(
 			"File",

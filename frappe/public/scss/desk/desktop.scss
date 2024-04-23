@@ -636,6 +636,16 @@ body {
 			@include get_textstyle("lg", "semibold");
 			color: var(--text-color) !important;
 		}
+
+		@include media-breakpoint-down(md) {
+			padding: 1px 8px;
+
+			.link-item {
+				&:first-child {
+					margin-top: 5px;
+				}
+			}
+		}
 	}
 
 	&.number-widget-box {
@@ -1264,6 +1274,10 @@ body {
 					height: 100%;
 					padding: 7px;
 
+					@include media-breakpoint-down(md) {
+						padding: 7px 3px;
+					}
+
 					& > div {
 						height: 100%;
 					}
@@ -1405,6 +1419,13 @@ body {
 						&:focus {
 							outline: none;
 						}
+
+						@include media-breakpoint-down(md) {
+							&.spacer {
+								height: 0 !important;
+								padding: 0 7px;
+							}
+						}
 					}
 				}
 			}
@@ -1485,7 +1506,7 @@ body {
 				max-width: 930px;
 			}
 		}
-		@media (max-width: 995px) {
+		@include media-breakpoint-down(md) {
 			.ce-toolbar__content {
 				max-width: 760px;
 			}

@@ -24,6 +24,7 @@
             <th>{{ _("Description") }}</th>
             <td>{{ app_info.description }}</td>
         </tr>
+        {% if app_info["dependencies"] %}
         <tr>
             <th>{{ _("Dependencies") }}</th>
             <td>
@@ -50,6 +51,8 @@
                     </tbody>
                 </table>
             </td>
+        </tr>
+        {% endif %}
     </table>
 </section>
 {% endfor %}
@@ -65,13 +68,13 @@
             var author_cell = license_cell.nextElementSibling;
             if (type_cell.innerText === "JavaScript") {
                 get_info_from_npm(name).then((info) => {
-                    license_cell.innerText = info.license;
+                    license_cell.innerText = info.license?.slice(0, 50);
                     author_cell.innerText = info.author;
                 });
             }
             else if (type_cell.innerText === "Python") {
                 get_info_from_pypi(name).then((info) => {
-                    license_cell.innerText = info.license;
+                    license_cell.innerText = info.license?.slice(0, 50);
                     author_cell.innerText = info.author;
                 });
             }
