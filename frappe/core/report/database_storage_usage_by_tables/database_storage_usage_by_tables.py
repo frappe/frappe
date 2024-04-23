@@ -42,6 +42,7 @@ def execute(filters=None):
 
 @frappe.whitelist()
 def optimize_doctype(doctype_name: str):
+	frappe.only_for("System Manager")
 	frappe.enqueue(
 		optimize_doctype_job, queue="long", job_name=f"optimize {doctype_name}", doctype_name=doctype_name
 	)
