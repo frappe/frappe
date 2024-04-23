@@ -467,7 +467,7 @@ def get_link_fields(doctype: str) -> list[dict]:
 				(df.options == doctype)
 				& (df.fieldtype == "Link")
 				& (df.is_virtual == 0)
-				& (dt.is_virutal == 0)
+				& (dt.is_virtual == 0)
 			)
 			.run(as_dict=True)
 		)
