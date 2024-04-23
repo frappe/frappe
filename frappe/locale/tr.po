@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-22 11:41\n"
+"PO-Revision-Date: 2024-04-23 11:38\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -868,7 +868,7 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Account"
-msgstr ""
+msgstr "Hesap"
 
 #. Label of a Section Break field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -5351,13 +5351,13 @@ msgstr "Düzenlemek için tabloya tıklayın"
 #: desk/doctype/dashboard_chart/dashboard_chart.js:502
 #: desk/doctype/number_card/number_card.js:396
 msgid "Click to Set Dynamic Filters"
-msgstr ""
+msgstr "Dinamik Filtreleri Ayarlamak için Tıklayın"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:372
 #: desk/doctype/number_card/number_card.js:270
 #: website/doctype/web_form/web_form.js:252
 msgid "Click to Set Filters"
-msgstr ""
+msgstr "Filtreleri Ayarlamak İçin Tıklayın"
 
 #: public/js/frappe/list/list_view.js:679
 msgid "Click to sort by {0}"
@@ -5774,7 +5774,7 @@ msgstr ""
 
 #: public/js/frappe/form/grid_row.js:430
 msgid "Column Width"
-msgstr ""
+msgstr "Sütun Genişliği"
 
 #: public/js/frappe/form/grid_row.js:614
 msgid "Column width cannot be zero."
@@ -10187,7 +10187,7 @@ msgstr ""
 
 #: desk/doctype/note/note.js:11
 msgid "Edit mode"
-msgstr ""
+msgstr "Düzenleme Modu"
 
 #: printing/page/print_format_builder/print_format_builder.js:713
 msgid "Edit to add content"
@@ -20794,7 +20794,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/contact_list.html:85
 msgid "No contacts added yet."
-msgstr ""
+msgstr "Henüz kişi eklenmedi."
 
 #: automation/doctype/auto_repeat/auto_repeat.py:427
 msgid "No contacts linked to document"
@@ -20822,7 +20822,7 @@ msgstr ""
 
 #: public/js/frappe/views/kanban/kanban_view.js:368
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
-msgstr ""
+msgstr "Kanban Sütunu olarak kullanılabilecek alanlar bulunamadı. \"Seçim\" türüne yeni bir Özel Alan eklemek için Özelleştirme Formunu kullanın."
 
 #: utils/file_manager.py:144
 msgid "No file attached"
@@ -20830,7 +20830,7 @@ msgstr ""
 
 #: public/js/frappe/list/list_sidebar_group_by.js:134
 msgid "No filters found"
-msgstr ""
+msgstr "Filtre bulunamadı"
 
 #: public/js/frappe/ui/filters/filter_list.js:297
 msgid "No filters selected"
@@ -20909,7 +20909,7 @@ msgstr ""
 
 #: public/js/frappe/form/controls/multiselect_list.js:226
 msgid "No values to show"
-msgstr ""
+msgstr "Gösterilecek Veri Yok"
 
 #: website/web_template/discussions/discussions.html:2
 msgid "No {0}"
@@ -20917,11 +20917,11 @@ msgstr ""
 
 #: public/js/frappe/list/list_view_select.js:157
 msgid "No {0} Found"
-msgstr ""
+msgstr "{0} Bulunamadı"
 
 #: public/js/frappe/web_form/web_form_list.js:233
 msgid "No {0} found"
-msgstr ""
+msgstr "{0} bulunamadı."
 
 #: public/js/frappe/list/list_view.js:468
 msgid "No {0} found with matching filters. Clear filters to see all {0}."
@@ -22103,7 +22103,7 @@ msgstr ""
 #: core/doctype/version/version_view.html:13
 #: core/doctype/version/version_view.html:75
 msgid "Original Value"
-msgstr ""
+msgstr "Orijinal Değer"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -23398,7 +23398,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:1106
 msgid "Please select X and Y fields"
-msgstr ""
+msgstr "Lütfen X ve Y alanlarını seçin"
 
 #: utils/__init__.py:115
 msgid "Please select a country code for field {1}."
@@ -23751,7 +23751,7 @@ msgstr ""
 
 #: public/js/frappe/ui/keyboard.js:138
 msgid "Press Alt Key to trigger additional shortcuts in Menu and Sidebar"
-msgstr ""
+msgstr "Menü ve Kenar Çubuğunda ek kısayolları tetiklemek için Alt Tuşuna basın"
 
 #: public/js/frappe/list/list_filter.js:134
 msgid "Press Enter to save"
@@ -24758,7 +24758,7 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager_help.html:3
 msgid "Quick Help for Setting Permissions"
-msgstr ""
+msgstr "İzinleri Ayarlamak için Hızlı Yardım"
 
 #. Label of a Code field in DocType 'Workspace Quick List'
 #: desk/doctype/workspace_quick_list/workspace_quick_list.json
@@ -24811,7 +24811,7 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile_controller.js:402
 msgid "Rank"
-msgstr ""
+msgstr "Sıralama"
 
 #. Label of a Section Break field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -25037,7 +25037,7 @@ msgstr ""
 
 #: desk/doctype/note/note.js:10
 msgid "Read mode"
-msgstr ""
+msgstr "Okuma Modu"
 
 #: utils/safe_exec.py:79
 msgid "Read the documentation to know more"
@@ -25114,7 +25114,7 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile.html:39
 msgid "Recent Activity"
-msgstr ""
+msgstr "Son Aktiviteler"
 
 #: utils/password_strength.py:117
 msgid "Recent years are easy to guess."
@@ -25700,7 +25700,7 @@ msgstr ""
 #: public/js/frappe/list/list_view.js:506
 msgctxt "Document count in list view"
 msgid "Refreshing"
-msgstr ""
+msgstr "Yenileniyor"
 
 #: core/doctype/system_settings/system_settings.js:52
 #: core/doctype/user/user.js:356 desk/page/setup_wizard/setup_wizard.js:204
@@ -25775,7 +25775,7 @@ msgstr ""
 
 #: public/js/frappe/form/controls/attach.js:16
 msgid "Reload File"
-msgstr ""
+msgstr "Dosyayı Yeniden Yükle"
 
 #: public/js/frappe/list/base_list.js:241
 msgid "Reload List"
@@ -25832,7 +25832,7 @@ msgstr ""
 #: public/js/frappe/ui/filters/edit_filter.html:4
 #: public/js/frappe/ui/group_by/group_by.html:4
 msgid "Remove"
-msgstr ""
+msgstr "Kaldır"
 
 #: core/doctype/rq_job/rq_job_list.js:8
 msgid "Remove Failed Jobs"
@@ -27376,7 +27376,7 @@ msgstr ""
 
 #: public/js/frappe/color_picker/color_picker.js:20
 msgid "SWATCHES"
-msgstr ""
+msgstr "Renk Örnekleri"
 
 #. Name of a role
 #: contacts/doctype/contact/contact.json
@@ -27877,7 +27877,7 @@ msgstr ""
 
 #: public/js/frappe/ui/toolbar/navbar.html:30
 msgid "Search or type a command ({0})"
-msgstr ""
+msgstr "Arama yapın veya komut yazın ({0})"
 
 #: templates/includes/search_box.html:8
 msgid "Search results for"
@@ -27947,7 +27947,7 @@ msgstr ""
 
 #: public/js/frappe/ui/notifications/notifications.js:309
 msgid "See all Activity"
-msgstr ""
+msgstr "Tüm Aktiviteleri Göster"
 
 #: public/js/frappe/views/reports/query_report.js:788
 msgid "See all past reports."
@@ -28074,7 +28074,7 @@ msgstr ""
 #: public/js/frappe/data_import/data_exporter.js:148
 #: public/js/frappe/form/controls/multicheck.js:166
 msgid "Select All"
-msgstr ""
+msgstr "Tümünü Seç"
 
 #: public/js/frappe/views/communication.js:165
 #: public/js/frappe/views/communication.js:586
@@ -28193,7 +28193,7 @@ msgstr ""
 
 #: public/js/frappe/ui/group_by/group_by.html:10
 msgid "Select Group By..."
-msgstr ""
+msgstr "Gruplandırma Ölçütü"
 
 #: public/js/frappe/list/list_view_select.js:185
 msgid "Select Kanban"
@@ -29228,7 +29228,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/set_sharing.html:49
 msgid "Share this document with"
-msgstr ""
+msgstr "Dökümanı Şu Kişiyle Paylaş"
 
 #: public/js/frappe/form/sidebar/share.js:45
 msgid "Share {0} with"
@@ -29618,7 +29618,7 @@ msgstr ""
 
 #: public/js/frappe/widgets/onboarding_widget.js:148
 msgid "Show {0} List"
-msgstr ""
+msgstr "{0} Listesini Göster"
 
 #: public/js/frappe/views/reports/report_view.js:471
 msgid "Showing only Numeric fields from Report"
@@ -31977,7 +31977,7 @@ msgstr ""
 
 #: public/js/frappe/ui/notifications/notifications.js:435
 msgid "There are no upcoming events for you."
-msgstr ""
+msgstr "Sizin için yaklaşan bir etkinlik bulunamadı."
 
 #: website/web_template/discussions/discussions.html:3
 msgid "There are no {0} for this {1}, why don't you start one!"
@@ -33510,7 +33510,7 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile.html:17
 msgid "Type Distribution"
-msgstr ""
+msgstr "Tür Dağılımı"
 
 #: public/js/frappe/form/controls/comment.js:78
 msgid "Type a reply / comment"
@@ -33786,7 +33786,7 @@ msgstr ""
 #: public/js/frappe/data_import/data_exporter.js:158
 #: public/js/frappe/form/controls/multicheck.js:166
 msgid "Unselect All"
-msgstr ""
+msgstr "Tüm Seçimi Kaldır"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
@@ -34536,7 +34536,7 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile_sidebar.html:52
 msgid "User Settings"
-msgstr ""
+msgstr "Kullanıcı Ayarları"
 
 #. Name of a DocType
 #: core/doctype/user_social_login/user_social_login.json
@@ -34949,7 +34949,7 @@ msgstr ""
 
 #: templates/includes/login/login.js:172
 msgid "Verifying..."
-msgstr ""
+msgstr "Doğrulanıyor..."
 
 #. Name of a DocType
 #: core/doctype/version/version.json
@@ -36616,7 +36616,7 @@ msgstr ""
 
 #: public/js/frappe/views/dashboard/dashboard_view.js:191
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
-msgstr ""
+msgstr "Henüz herhangi bir <b>Gösterge Tablosu</b> ve <b>Sayı Kartı</b> eklemediniz."
 
 #: public/js/frappe/list/list_view.js:472
 msgid "You haven't created a {0} yet"
