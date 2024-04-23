@@ -38,3 +38,16 @@ def execute(filters=None):
 		as_dict=1,
 	)
 	return COLUMNS, data
+
+
+@frappe.whitelist()
+def optimize_doctype(doctype_name: str):
+	from frappe.utils import get_table_name
+
+	doctype_table = get_table_name(doctype_name, wrap_in_backticks=True)
+	if frappe.db.db_type == "mariadb":
+		query = f"OPTIMIZE TABLE {doctype_table};"
+	else:
+		query = f"VACUUM (ANALYZE) {doctype_table};"
+
+	return frappe.db.sql(query)
