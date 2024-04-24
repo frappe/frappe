@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-23 11:38\n"
+"PO-Revision-Date: 2024-04-24 11:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1479,12 +1479,12 @@ msgstr "آدرس ها و مخاطبین"
 #. Description of a DocType
 #: custom/doctype/client_script/client_script.json
 msgid "Adds a custom client script to a DocType"
-msgstr ""
+msgstr "یک اسکریپت کلاینت سفارشی را به DocType اضافه می کند"
 
 #. Description of a DocType
 #: custom/doctype/custom_field/custom_field.json
 msgid "Adds a custom field to a DocType"
-msgstr ""
+msgstr "یک فیلد سفارشی به DocType اضافه می کند"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:552
 msgid "Administration"
@@ -2231,7 +2231,7 @@ msgstr "اجداد از"
 #: core/doctype/navbar_settings/navbar_settings.json
 msgctxt "Navbar Settings"
 msgid "Announcement Widget"
-msgstr ""
+msgstr "ویجت اعلامیه"
 
 #. Label of a Section Break field in DocType 'Navbar Settings'
 #: core/doctype/navbar_settings/navbar_settings.json
@@ -3318,7 +3318,7 @@ msgstr "پیوند خودکار فقط در صورتی فعال می شود که
 #. Description of a DocType
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgid "Automatically Assign Documents to Users"
-msgstr ""
+msgstr "تخصیص خودکار اسناد به کاربران"
 
 #. Label of a Int field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -4148,7 +4148,7 @@ msgstr "سطل {0} یافت نشد."
 #. Name of a Workspace
 #: core/workspace/build/build.json
 msgid "Build"
-msgstr ""
+msgstr "ساخت"
 
 #: workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
@@ -4156,7 +4156,7 @@ msgstr "ساخت {0}"
 
 #: templates/includes/footer/footer_powered.html:1
 msgid "Built on {0}"
-msgstr ""
+msgstr "ساخته شده در {0}"
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
@@ -4178,7 +4178,7 @@ msgstr "ویرایش انبوه {0}"
 
 #: public/js/frappe/list/bulk_operations.js:122
 msgid "Bulk PDF Export"
-msgstr ""
+msgstr "صادرات PDF انبوه"
 
 #. Name of a DocType
 #: desk/doctype/bulk_update/bulk_update.json
@@ -5003,7 +5003,7 @@ msgstr ""
 #. Name of a DocType
 #: desk/doctype/changelog_feed/changelog_feed.json
 msgid "Changelog Feed"
-msgstr ""
+msgstr "فید تغییرات"
 
 #: email/doctype/email_domain/email_domain.js:5
 msgid "Changing any setting will reflect on all the email accounts associated with this domain."
@@ -6330,7 +6330,7 @@ msgstr "گزارش کنسول"
 
 #: desk/doctype/console_log/console_log.py:24
 msgid "Console Logs can not be deleted"
-msgstr ""
+msgstr "گزارش های کنسول را نمی توان حذف کرد"
 
 #. Label of a Section Break field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -6378,7 +6378,7 @@ msgstr "مخاطب با Google Contacts همگام‌سازی شد."
 
 #: www/contact.html:4
 msgid "Contact Us"
-msgstr ""
+msgstr "با ما تماس بگیرید"
 
 #. Name of a DocType
 #: website/doctype/contact_us_settings/contact_us_settings.json
@@ -6711,7 +6711,7 @@ msgstr "ایجاد و ادامه"
 #. Title of an Onboarding Step
 #: website/onboarding_step/create_blogger/create_blogger.json
 msgid "Create Blogger"
-msgstr ""
+msgstr "بلاگر را ایجاد کنید"
 
 #: public/js/frappe/views/reports/query_report.js:186
 #: public/js/frappe/views/reports/query_report.js:231
@@ -6808,7 +6808,7 @@ msgstr "یک حساب {0} ایجاد کنید"
 #. Description of a DocType
 #: email/doctype/newsletter/newsletter.json
 msgid "Create and send emails to a specific group of subscribers periodically."
-msgstr ""
+msgstr "ایجاد و ارسال ایمیل برای گروه خاصی از مشترکین به صورت دوره ای."
 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
@@ -7294,7 +7294,7 @@ msgstr "ترجمه سفارشی"
 
 #: custom/doctype/custom_field/custom_field.py:372
 msgid "Custom field renamed to {0} successfully."
-msgstr ""
+msgstr "فیلد سفارشی با موفقیت به {0} تغییر نام داد."
 
 #: core/doctype/doctype/doctype_list.js:65
 msgid "Custom?"
@@ -19474,7 +19474,7 @@ msgstr "ماشه مدال"
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Models"
-msgstr ""
+msgstr "مدل‌ها"
 
 #: core/report/transaction_log_report/transaction_log_report.py:106
 #: social/doctype/energy_point_rule/energy_point_rule.js:43
@@ -20692,7 +20692,7 @@ msgstr "نامی برای {0} مشخص نشده است"
 
 #: public/js/frappe/ui/notifications/notifications.js:315
 msgid "No New notifications"
-msgstr "بدون اطلاعیه جدید"
+msgstr "بدون اعلان جدید"
 
 #: core/doctype/doctype/doctype.py:1692
 msgid "No Permissions Specified"
@@ -32882,7 +32882,7 @@ msgstr "برای مدیریت برنامه های شخص ثالث مجاز"
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "To print output use <code>log(text)</code>"
-msgstr ""
+msgstr "برای چاپ خروجی از <code>log(text)</code>استفاده کنید"
 
 #: core/doctype/user_type/user_type.py:295
 msgid "To set the role {0} in the user {1}, kindly set the {2} field as {3} in one of the {4} record."
@@ -34518,7 +34518,7 @@ msgstr "مجوزهای کاربر برای محدود کردن کاربران ب
 
 #: core/doctype/user_permission/user_permission_list.js:124
 msgid "User Permissions created sucessfully"
-msgstr ""
+msgstr "مجوزهای کاربر با موفقیت ایجاد شد"
 
 #. Label of a shortcut in the Users Workspace
 #: core/workspace/users/users.json
