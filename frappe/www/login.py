@@ -161,8 +161,12 @@ def login_via_key(key: str):
 	email = frappe.cache().get_value(cache_key)
 
 	if email:
+<<<<<<< HEAD
 		frappe.cache().delete_value(cache_key)
 
+=======
+		frappe.cache.delete_value(cache_key)
+>>>>>>> a73e65581d (fix: disabled user login from login via link feature (#26134))
 		frappe.local.login_manager.login_as(email)
 
 		redirect_post_login(
