@@ -5,10 +5,11 @@ import { createStore } from "vuex";
 frappe.provide("frappe.views");
 
 (function () {
+	let quotations_draft = 0
+	getDraftQuotations()
 	var method_prefix = "frappe.desk.doctype.kanban_board.kanban_board.";
 
 	let columns_unwatcher = null;
-
 	let store;
 	const init_store = () => {
 		store = createStore({
@@ -22,7 +23,7 @@ frappe.provide("frappe.views");
 				cur_list: {},
 				empty_state: true,
 				done_statuses: [ 'Completed', 'In pause', 'Cancelled', 'Quality check approved', 'No response from customer', 'Invoice paid', 'Awaiting pickup' ],
-				kanban_columns: []
+				kanban_columns: [],
 			},
 			mutations: {
 				update_state(state, obj) {
@@ -318,9 +319,11 @@ frappe.provide("frappe.views");
 				}
 			},
 		});
+		
 	}
 
 	frappe.views.KanbanBoard = function (opts) {
+
 		var self = {};
 		self.wrapper = opts.wrapper;
 		self.cur_list = opts.cur_list;
@@ -785,6 +788,7 @@ frappe.provide("frappe.views");
 	};
 
 	frappe.views.KanbanBoardCard = function (card, wrapper) {
+	
 		var self = {};
 
 		function init() {
@@ -806,7 +810,7 @@ frappe.provide("frappe.views");
 			};
 
 			self.$card = $(frappe.render_template("kanban_card", opts)).appendTo(wrapper);
-			if(card.border){
+			if(card.border.status){
 				self.$card.find(".kanban-card.content").css("border", "1px solid red");
 			}
 			if (!frappe.model.can_write(card.doctype)) {
@@ -839,10 +843,14 @@ frappe.provide("frappe.views");
 				`);
 			
 			}
-			if(card.border){
+			if(card.border.status){
+				let message = "At least 2 days since moved to parking."
+				if(card.border.column === "Quoted"){
+					message = "The quote was sent over a day ago."
+				}
 				fields.push(`
 				<div class="text-muted text-truncate">
-            		<span style="color: red; font-style: italic; font-size: xx-small">At least 2 days since moved to parking.</span>
+            		<span style="color: red; font-style: italic; font-size: xx-small"> ${message} </span>
         		</div>
 			`);
 			}
@@ -994,6 +1002,7 @@ frappe.provide("frappe.views");
 		if (doc) {
 			card = Object.assign({}, card, doc);
 		}
+
 		return {
 			doctype: state.doctype,
 			name: card.name,
@@ -1007,12 +1016,18 @@ frappe.provide("frappe.views");
 			comment_count: card.comment_count || comment_count,
 			color: card.color || null,
 			doc: doc || card,
-			border: set_border_color(card)
+			border: set_border_color(card),
 		};
 	}
 
 	function set_border_color(card) {
-		return card.status === 'In parking' && Number(card.queue_position) <= 5 && has_passed_two_days(card.parking_date);
+		const in_parking = card.status === 'In parking' && Number(card.queue_position) <= 5 && has_passed_two_days(card.parking_date);
+		const quotation = card.status === 'Quoted' && quotations_draft.find(quotation => quotation.parent == card.name)
+		let hass_passed_one_day_quotation = false
+		if(quotation){
+			hass_passed_one_day_quotation = has_passed_one_day(quotation.modified)
+		}
+		return {column: card.status, status: in_parking || hass_passed_one_day_quotation}
 	}
 
 	function has_passed_two_days(dateString) {
@@ -1024,6 +1039,29 @@ frappe.provide("frappe.views");
 		const daysPassed = Math.floor(difference / (1000 * 60 * 60 * 24));
 		return daysPassed >= 2;
 	 }
+
+	function has_passed_one_day(modifiedString) {
+		if(!modifiedString) return false
+		const modifiedDate = new Date(modifiedString);
+		const currentDate = new Date();
+		const differenceInMs = currentDate - modifiedDate;
+		const millisecondsInADay = 24 * 60 * 60 * 1000;
+		const differenceInDays = differenceInMs / millisecondsInADay;
+		return differenceInDays >= 1;
+	  }
+
+	async function getDraftQuotations() {
+		quotations_draft = []
+		const result = await frappe.db.get_list("Project Quotation",{
+			filters: { status: "Draft" },
+			fields: [ "name", "modified", "status", "parent"],
+			group_by: "parent",
+			order_by: "parent asc",
+			limit: 100
+		})
+		quotations_draft = result.length ? result : []
+		return result.length
+	  }	  
 
 	function prepare_columns(columns) {
 		return columns.map(function (col) {
