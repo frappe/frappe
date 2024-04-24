@@ -290,6 +290,7 @@ class Session:
 		if data:
 			self.data.update({"data": data, "user": data.user, "sid": self.sid})
 			self.user = data.user
+			self.validate_user()
 			validate_ip_address(self.user)
 		else:
 			self.start_as_guest()
