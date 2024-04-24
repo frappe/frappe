@@ -138,7 +138,7 @@ frappe.ui.Page = class Page {
 		this.actions_btn_group = this.page_actions.find(".actions-btn-group");
 
 		this.standard_actions = this.page_actions.find(".standard-actions");
-		this.custom_actions = this.page_actions.find(".custom-actions");
+		this.custom_actions = this.page_actions.find(".actions");
 
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 		this.inner_toolbar = this.custom_actions;
@@ -611,7 +611,7 @@ frappe.ui.Page = class Page {
 	 * @param {object} action - function to be called when button is clicked
 	 * @param {string} group - Label of the group button
 	 */
-	add_inner_button(label, action, group, type = "default", hide_button = true) {
+	add_inner_button(label, action, group, type = "default") {
 		var me = this;
 		let _action = function () {
 			let btn = $(this);
@@ -624,34 +624,6 @@ frappe.ui.Page = class Page {
 		menu_item.parent().addClass("hidden-xl");
 		if (this.menu_btn_group.hasClass("hide")) {
 			this.menu_btn_group.removeClass("hide").addClass("hidden-xl");
-		}
-		const allowed_actions = ["Toogle%20whatsapp"];
-		const regex = /\/project\//;
-		if (!hide_button && regex.test(window.location.pathname)) {
-			const container_custom_actions = document.getElementById("custom_actions");
-			container_custom_actions.classList.remove("hidden-xs", "hidden-md");
-			
-			const buttonsToRemove = [];
-			
-			// Delete inner-group-button
-			const innerGroupButtons = container_custom_actions.getElementsByClassName("inner-group-button");
-			while (innerGroupButtons.length > 0) {
-				const innerGroupButton = innerGroupButtons[0];
-				buttonsToRemove.push(innerGroupButton);
-				container_custom_actions.removeChild(innerGroupButton);
-			}
-			
-			// Delete button that not are inside allowed_actions array
-			setTimeout(()=> {
-				const buttons = container_custom_actions.querySelectorAll('.btn.btn-default.ellipsis');
-				buttons.forEach(button => {
-					if (button.dataset.label && !allowed_actions.includes(button.dataset.label)) {
-						buttonsToRemove.push(button);
-						button.parentNode.removeChild(button);
-					}
-				});
-			},500)
-			
 		}
 
 		if (group) {
