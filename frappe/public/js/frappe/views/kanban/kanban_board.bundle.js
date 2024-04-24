@@ -810,7 +810,7 @@ frappe.provide("frappe.views");
 			};
 
 			self.$card = $(frappe.render_template("kanban_card", opts)).appendTo(wrapper);
-			if(card.border.status){
+			if(card.border.message){
 				self.$card.find(".kanban-card.content").css("border", "1px solid red");
 			}
 			if (!frappe.model.can_write(card.doctype)) {
@@ -843,14 +843,10 @@ frappe.provide("frappe.views");
 				`);
 			
 			}
-			if(card.border.status){
-				let message = "At least 2 days since moved to parking."
-				if(card.border.column === "Quoted"){
-					message = "The quote was sent over a day ago."
-				}
+			if(card.border.message){
 				fields.push(`
 				<div class="text-muted text-truncate">
-            		<span style="color: red; font-style: italic; font-size: xx-small"> ${message} </span>
+            		<span style="color: red; font-style: italic; font-size: xx-small"> ${card.border.message} </span>
         		</div>
 			`);
 			}
@@ -1021,13 +1017,20 @@ frappe.provide("frappe.views");
 	}
 
 	function set_border_color(card) {
+		let message = false
 		const in_parking = card.status === 'In parking' && Number(card.queue_position) <= 5 && has_passed_two_days(card.parking_date);
 		const quotation = card.status === 'Quoted' && quotations_draft.find(quotation => quotation.parent == card.name)
 		let hass_passed_one_day_quotation = false
 		if(quotation){
 			hass_passed_one_day_quotation = has_passed_one_day(quotation.modified)
 		}
-		return {column: card.status, status: in_parking || hass_passed_one_day_quotation}
+		if(in_parking){
+			message = "At least 2 days since moved to parking."
+		}
+		if(hass_passed_one_day_quotation){
+			message = "The quote was sent over a day ago."
+		}
+		return {message}
 	}
 
 	function has_passed_two_days(dateString) {
