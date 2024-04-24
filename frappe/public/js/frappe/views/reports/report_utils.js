@@ -284,6 +284,10 @@ frappe.report_utils = {
 			.map((row) => {
 				return row
 					.map((col) => {
+						if (col === null) {
+							return "";
+						}
+
 						if (typeof col == "string" && col.includes('"')) {
 							col = col.replace(/"/g, '""');
 						}
