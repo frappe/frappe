@@ -460,7 +460,6 @@ frappe.views.BaseList = class BaseList {
 	}
 
 	get_args() {
-		console.log("========= page_length default ", this.page_length, " ==== page_length custom: ",this.getPageLength(this.page_length))
 		return {
 			doctype: this.doctype,
 			fields: this.get_fields(),
