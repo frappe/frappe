@@ -144,6 +144,8 @@ def prepare_filters(doctype, controller, kwargs):
 
 	if hasattr(controller, "website") and controller.website.get("condition_field"):
 		filters[controller.website["condition_field"]] = 1
+	elif meta.is_published_field:
+		filters[meta.is_published_field] = 1
 
 	if filters.pathname:
 		# resolve additional filters from path
