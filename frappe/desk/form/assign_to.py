@@ -4,6 +4,7 @@
 """assign/unassign to ToDo"""
 
 import json
+from typing import TYPE_CHECKING
 
 import frappe
 import frappe.share
@@ -15,6 +16,10 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title_html,
 )
 from frappe.desk.form.document_follow import follow_document
+from frappe.utils import nowdate
+
+if TYPE_CHECKING:
+	from frappe.model.document import Document
 
 
 class DuplicateToDoError(frappe.ValidationError):
@@ -39,7 +44,7 @@ def get(args=None):
 
 
 @frappe.whitelist()
-def add(args=None, *, ignore_permissions=False):
+def add(args=None, *, ignore_permissions=False, doc=None):
 	"""add in someone's to do list
 	args = {
 	        "assign_to": [],
@@ -55,63 +60,64 @@ def add(args=None, *, ignore_permissions=False):
 
 	users_with_duplicate_todo = []
 	shared_with_users = []
+	context_doc: "Document" = doc or frappe.get_cached_doc(args["doctype"], args["name"])
+	disable_document_sharing = frappe.get_system_settings("disable_document_sharing")
+
+	if not ignore_permissions:
+		context_doc.check_permission()
 
 	for assign_to in frappe.parse_json(args.get("assign_to")):
 		filters = {
-			"reference_type": args["doctype"],
-			"reference_name": args["name"],
-			"status": "Open",
+			"reference_type": context_doc.doctype,
+			"reference_name": context_doc.name,
 			"allocated_to": assign_to,
+			"status": "Open",
 		}
-		if not ignore_permissions:
-			frappe.get_doc(args["doctype"], args["name"]).check_permission()
 
-		if frappe.get_all("ToDo", filters=filters):
+		if frappe.db.exists("ToDo", filters):
 			users_with_duplicate_todo.append(assign_to)
 		else:
-			from frappe.utils import nowdate
-
-			if not args.get("description"):
-				args["description"] = _("Assignment for {0} {1}").format(args["doctype"], args["name"])
+			todo_description = args.get("description") or _("Assignment for {0} {1}").format(
+				context_doc.doctype, context_doc.name
+			)
 
 			d = frappe.get_doc(
 				{
 					"doctype": "ToDo",
 					"allocated_to": assign_to,
-					"reference_type": args["doctype"],
-					"reference_name": args["name"],
-					"description": args.get("description"),
+					"reference_type": context_doc.doctype,
+					"reference_name": context_doc.name,
+					"description": todo_description,
 					"priority": args.get("priority", "Medium"),
 					"status": "Open",
-					"date": args.get("date", nowdate()),
+					"date": args.get("date") or nowdate(),
 					"assigned_by": args.get("assigned_by", frappe.session.user),
 					"assignment_rule": args.get("assignment_rule"),
 				}
 			).insert(ignore_permissions=True)
 
 			# set assigned_to if field exists
-			if frappe.get_meta(args["doctype"]).get_field("assigned_to"):
-				frappe.db.set_value(args["doctype"], args["name"], "assigned_to", assign_to)
-
-			doc = frappe.get_doc(args["doctype"], args["name"])
+			if context_doc.meta.get_field("assigned_to"):
+				frappe.db.set_value(context_doc.doctype, context_doc.name, "assigned_to", assign_to)
 
 			# if assignee does not have permissions, share or inform
-			if not frappe.has_permission(doc=doc, user=assign_to):
-				if frappe.get_system_settings("disable_document_sharing"):
-					msg = _("User {0} is not permitted to access this document.").format(
-						frappe.bold(assign_to)
-					)
-					msg += "<br>" + _(
-						"As document sharing is disabled, please give them the required permissions before assigning."
+			if not context_doc.has_permission(user=assign_to):
+				if disable_document_sharing:
+					msg = (
+						_("User {0} is not permitted to access this document.").format(frappe.bold(assign_to))
+						+ "<br>"
+						+ _(
+							"As document sharing is disabled, please give them the required permissions before assigning."
+						)
 					)
 					frappe.throw(msg, title=_("Missing Permission"))
-				else:
-					frappe.share.add(doc.doctype, doc.name, assign_to)
-					shared_with_users.append(assign_to)
+
+				frappe.share.add(context_doc.doctype, context_doc.name, assign_to)
+				shared_with_users.append(assign_to)
 
 			# make this document followed by assigned user
 			if frappe.get_cached_value("User", assign_to, "follow_assigned_documents"):
-				follow_document(args["doctype"], args["name"], assign_to)
+				follow_document(context_doc.doctype, context_doc.name, assign_to)
 
 			# notify
 			notify_assignment(
@@ -223,7 +229,7 @@ def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled", ign
 		pass
 
 	# clear assigned_to if field exists
-	if frappe.get_meta(doctype).get_field("assigned_to") and status in ("Cancelled", "Closed"):
+	if status in ("Cancelled", "Closed") and frappe.get_meta(doctype).get_field("assigned_to"):
 		frappe.db.set_value(doctype, name, "assigned_to", None)
 
 	return get({"doctype": doctype, "name": name})
@@ -261,7 +267,7 @@ def notify_assignment(assigned_by, allocated_to, doc_type, doc_name, action="CLO
 	if not (assigned_by and allocated_to and doc_type and doc_name):
 		return
 
-	assigned_user = frappe.db.get_value("User", allocated_to, ["language", "enabled"], as_dict=True)
+	assigned_user = frappe.get_cached_value("User", allocated_to, ["language", "enabled"], as_dict=True)
 
 	# return if self assigned or user disabled
 	if assigned_by == allocated_to or not assigned_user.enabled:

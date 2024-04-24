@@ -89,54 +89,42 @@ class ToDo(Document):
 		if not (self.reference_type and self.reference_name):
 			return
 
-		try:
-			assignments = frappe.get_all(
-				"ToDo",
-				filters={
-					"reference_type": self.reference_type,
-					"reference_name": self.reference_name,
-					"status": ("not in", ("Cancelled", "Closed")),
-					"allocated_to": ("is", "set"),
-				},
-				pluck="allocated_to",
+		assignments = frappe.get_all(
+			"ToDo",
+			filters={
+				"reference_type": self.reference_type,
+				"reference_name": self.reference_name,
+				"status": ("not in", ("Cancelled", "Closed")),
+				"allocated_to": ("is", "set"),
+			},
+			pluck="allocated_to",
+			order_by="creation",
+		)
+
+		if frappe.get_meta(self.reference_type).issingle:
+			frappe.db.set_single_value(
+				self.reference_type,
+				"_assign",
+				json.dumps(assignments),
+				update_modified=False,
 			)
-			assignments.reverse()
-
-			if frappe.get_meta(self.reference_type).issingle:
-				frappe.db.set_single_value(
-					self.reference_type,
-					"_assign",
-					json.dumps(assignments),
-					update_modified=False,
-				)
-			else:
-				frappe.db.set_value(
-					self.reference_type,
-					self.reference_name,
-					"_assign",
-					json.dumps(assignments),
-					update_modified=False,
-				)
-
-		except Exception as e:
-			if frappe.db.is_table_missing(e) and frappe.flags.in_install:
-				# no table
-				return
-
-			elif frappe.db.is_missing_column(e):
-				from frappe.database.schema import add_column
-
-				add_column(self.reference_type, "_assign", "Text")
-				self.update_in_reference()
-
-			else:
-				raise
+		else:
+			frappe.db.set_value(
+				self.reference_type,
+				self.reference_name,
+				"_assign",
+				json.dumps(assignments),
+				update_modified=False,
+			)
 
 	@classmethod
 	def get_owners(cls, filters=None):
-		"""Return list of owners after applying filters on ToDos."""
-		rows = frappe.get_all(cls.DocType, filters=filters or {}, fields=["allocated_to"])
-		return [parse_addr(row.allocated_to)[1] for row in rows if row.allocated_to]
+		"""Returns list of owners after applying filters on todo's."""
+		return [
+			parse_addr(allocated_to)[1]
+			for allocated_to in frappe.get_all(cls.DocType, filters=filters or {}, pluck="allocated_to")
+			if allocated_to
+		]
 
 
 # NOTE: todo is viewable if a user is an owner, or set as assigned_to value, or has any role that is allowed to access ToDo doctype.

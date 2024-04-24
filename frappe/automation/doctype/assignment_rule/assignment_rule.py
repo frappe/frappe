@@ -62,34 +62,31 @@ class AssignmentRule(Document):
 				)
 			)
 
-	def apply_unassign(self, doc, assignments):
+	def apply_unassign(self, doc: Document, assignments: list[frappe._dict]):
 		if self.unassign_condition and self.name in [d.assignment_rule for d in assignments]:
 			return self.clear_assignment(doc)
 
 		return False
 
-	def apply_assign(self, doc):
+	def apply_assign(self, doc: Document):
 		if self.safe_eval("assign_condition", doc):
 			return self.do_assignment(doc)
 
-	def do_assignment(self, doc):
+	def do_assignment(self, doc: Document):
 		# clear existing assignment, to reassign
-		assign_to.clear(doc.get("doctype"), doc.get("name"), ignore_permissions=True)
+		assign_to.clear(doc.doctype, doc.name, ignore_permissions=True)
 
-		user = self.get_user(doc)
-
-		if user:
+		if user := self.get_user(doc):
 			assign_to.add(
 				dict(
 					assign_to=[user],
-					doctype=doc.get("doctype"),
-					name=doc.get("name"),
-					description=frappe.render_template(self.description, doc),
+					description=frappe.render_template(self.description, doc.as_dict()),
 					assignment_rule=self.name,
 					notify=True,
-					date=doc.get(self.due_date_based_on) if self.due_date_based_on else None,
+					date=getattr(doc, self.due_date_based_on) if self.due_date_based_on else None,
 				),
 				ignore_permissions=True,
+				doc=doc,
 			)
 
 			# set for reference in round robin
@@ -98,17 +95,15 @@ class AssignmentRule(Document):
 
 		return False
 
-	def clear_assignment(self, doc):
+	def clear_assignment(self, doc: Document):
 		"""Clear assignments"""
 		if self.safe_eval("unassign_condition", doc):
-			return assign_to.clear(doc.get("doctype"), doc.get("name"), ignore_permissions=True)
+			return assign_to.clear(doc.doctype, doc.name, ignore_permissions=True)
 
-	def close_assignments(self, doc):
+	def close_assignments(self, doc: Document):
 		"""Close assignments"""
 		if self.safe_eval("close_condition", doc):
-			return assign_to.close_all_assignments(
-				doc.get("doctype"), doc.get("name"), ignore_permissions=True
-			)
+			return assign_to.close_all_assignments(doc.doctype, doc.name, ignore_permissions=True)
 
 	def get_user(self, doc):
 		"""
@@ -165,10 +160,10 @@ class AssignmentRule(Document):
 		if frappe.db.exists("User", val):
 			return val
 
-	def safe_eval(self, fieldname, doc):
+	def safe_eval(self, fieldname, doc: Document):
 		try:
-			if self.get(fieldname):
-				return frappe.safe_eval(self.get(fieldname), None, doc)
+			if evaluation_condition := getattr(self, fieldname, None):
+				return frappe.safe_eval(evaluation_condition, None, doc.as_dict())
 		except Exception as e:
 			# when assignment fails, don't block the document as it may be
 			# a part of the email pulling
@@ -232,7 +227,7 @@ def reopen_closed_assignment(doc):
 	return bool(todo_list)
 
 
-def apply(doc=None, method=None, doctype=None, name=None):
+def apply(doc: Document, method: str | None = None, doctype: str | None = None, name: str | None = None):
 	doctype = doctype or doc.doctype
 
 	skip_assignment_rules = (
@@ -263,7 +258,6 @@ def apply(doc=None, method=None, doctype=None, name=None):
 	if not assignment_rule_docs:
 		return
 
-	doc = doc.as_dict()
 	assignments = get_assignments(doc)
 
 	clear = True  # are all assignments cleared
