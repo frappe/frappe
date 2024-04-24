@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-23 11:38\n"
+"PO-Revision-Date: 2024-04-24 11:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1260,7 +1260,7 @@ msgstr "Etiket Ekle"
 
 #: public/js/frappe/views/communication.js:418
 msgid "Add Template"
-msgstr ""
+msgstr "Şablon Ekle"
 
 #. Label of a Check field in DocType 'Report'
 #: core/doctype/report/report.json
@@ -5383,7 +5383,7 @@ msgstr "Filtreleri Ayarlamak İçin Tıklayın"
 
 #: public/js/frappe/list/list_view.js:679
 msgid "Click to sort by {0}"
-msgstr ""
+msgstr "Sıralama Yapmak İçin Tıklayın"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -13240,13 +13240,13 @@ msgstr ""
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Force Re-route to Default View"
-msgstr ""
+msgstr "Varsayılan Görünüme Yeniden Yönlendirmeyi Zorla"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Force Re-route to Default View"
-msgstr ""
+msgstr "Varsayılan Görünüme Yeniden Yönlendirmeyi Zorla"
 
 #. Label of a Check field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -13710,7 +13710,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:808
 msgid "Generate New Report"
-msgstr ""
+msgstr "Yeni Rapor Oluştur"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:368
 msgid "Generate Random Password"
@@ -16102,7 +16102,7 @@ msgstr ""
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "Insert New Records"
-msgstr ""
+msgstr "Yeni Kayıt Ekle"
 
 #. Label of a Check field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
@@ -16261,7 +16261,7 @@ msgstr ""
 
 #: public/js/frappe/request.js:232
 msgid "Internal Server Error"
-msgstr ""
+msgstr "Sunucu tarafında bazı hatalar oluştu. Lütfen sayfayı yenileyin."
 
 #. Description of a DocType
 #: core/doctype/docshare/docshare.json
@@ -20451,7 +20451,7 @@ msgstr ""
 
 #: printing/page/print/print.js:295 printing/page/print/print.js:342
 msgid "New Custom Print Format"
-msgstr ""
+msgstr "Yeni Yazdırma Formatı"
 
 #. Label of a Check field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -20466,7 +20466,7 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:26
 #: public/js/frappe/views/communication.js:23
 msgid "New Email"
-msgstr ""
+msgstr "Yeni E-posta"
 
 #: public/js/frappe/list/list_view_select.js:98
 #: public/js/frappe/views/inbox/inbox_view.js:177
@@ -20475,15 +20475,15 @@ msgstr ""
 
 #: public/js/frappe/form/footer/form_timeline.js:45
 msgid "New Event"
-msgstr ""
+msgstr "Yeni Etkinlik"
 
 #: public/js/frappe/views/file/file_view.js:94
 msgid "New Folder"
-msgstr ""
+msgstr "Yeni Klasör"
 
 #: public/js/frappe/views/kanban/kanban_view.js:341
 msgid "New Kanban Board"
-msgstr ""
+msgstr "Yeni Kanban Panosu"
 
 #: public/js/frappe/widgets/widget_dialog.js:62
 msgid "New Links"
@@ -20499,13 +20499,13 @@ msgstr ""
 
 #: public/js/frappe/form/toolbar.js:206 public/js/frappe/model/model.js:742
 msgid "New Name"
-msgstr ""
+msgstr "Yeni İsim"
 
 #. Label of a Read Only field in DocType 'Deleted Document'
 #: core/doctype/deleted_document/deleted_document.json
 msgctxt "Deleted Document"
 msgid "New Name"
-msgstr ""
+msgstr "Yeni İsim"
 
 #: email/doctype/email_group/email_group.js:67
 msgid "New Newsletter"
@@ -20538,7 +20538,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_view.js:1307
 msgid "New Report name"
-msgstr ""
+msgstr "Yeni Rapor İsmi"
 
 #: public/js/frappe/widgets/widget_dialog.js:60
 msgid "New Shortcut"
@@ -20555,7 +20555,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:1183
 msgid "New Workspace"
-msgstr ""
+msgstr "Yeni Çalışma Alanı"
 
 #: www/update-password.html:77
 msgid "New password cannot be same as old password"
@@ -20563,7 +20563,7 @@ msgstr ""
 
 #: utils/change_log.py:320
 msgid "New updates are available"
-msgstr ""
+msgstr "Yeni güncellemeler mevcut"
 
 #. Description of the 'Disable signups' (Check) field in DocType 'Website
 #. Settings'
@@ -20590,7 +20590,7 @@ msgstr ""
 #: public/js/frappe/widgets/widget_dialog.js:72
 #: website/doctype/web_form/web_form.py:309
 msgid "New {0}"
-msgstr ""
+msgstr "Yeni {0}"
 
 #: public/js/frappe/views/reports/query_report.js:392
 msgid "New {0} Created"
@@ -20607,11 +20607,11 @@ msgstr ""
 
 #: automation/doctype/auto_repeat/auto_repeat.py:374
 msgid "New {0}: {1}"
-msgstr ""
+msgstr "Yeni {0}: {1}"
 
 #: utils/change_log.py:312
 msgid "New {} releases for the following apps are available"
-msgstr ""
+msgstr "Aşağıdaki uygulamalar için yeni {} sürümler kullanıma sunuldu"
 
 #: core/doctype/user/user.py:806
 msgid "Newly created user {0} has no roles enabled."
@@ -20896,7 +20896,7 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager.js:192
 msgid "No Permissions set for this criteria."
-msgstr ""
+msgstr "Bu kriter için belirlenmiş izin yok."
 
 #: core/page/dashboard_view/dashboard_view.js:93
 msgid "No Permitted Charts"
@@ -20968,7 +20968,7 @@ msgstr ""
 
 #: model/rename_doc.py:364
 msgid "No changes made because old and new name are the same."
-msgstr ""
+msgstr "Eski ve yeni isim aynı olduğu için değişiklik yapılmadı."
 
 #: public/js/frappe/views/workspace/workspace.js:1488
 msgid "No changes made on the page"
@@ -21020,7 +21020,7 @@ msgstr ""
 
 #: public/js/frappe/views/kanban/kanban_view.js:368
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
-msgstr ""
+msgstr "Kanban Sütunu olarak kullanılabilecek alanlar bulunamadı. \"Seçim\" türünde yeni bir Özel Alan eklemek için Form Özelleştirmeyi kullanın."
 
 #: utils/file_manager.py:143
 msgid "No file attached"
@@ -21956,7 +21956,7 @@ msgstr ""
 
 #: core/doctype/report/report.py:72
 msgid "Only Administrator can save a standard report. Please rename and save."
-msgstr ""
+msgstr "Standart bir raporu yalnızca Yönetici kaydedebilir. Lütfen yeniden adlandırın ve kaydedin."
 
 #: recorder.py:309
 msgid "Only Administrator is allowed to use Recorder"
@@ -23583,7 +23583,7 @@ msgstr ""
 
 #: model/document.py:824
 msgid "Please refresh to get the latest document."
-msgstr ""
+msgstr "En son versiyonu almak için lütfen sayfayı yenileyin."
 
 #: printing/page/print/print.js:532
 msgid "Please remove the printer mapping in Printer Settings and try again."
@@ -25011,14 +25011,14 @@ msgstr "İzinleri Ayarlamak için Hızlı Yardım"
 #: desk/doctype/workspace_quick_list/workspace_quick_list.json
 msgctxt "Workspace Quick List"
 msgid "Quick List Filter"
-msgstr ""
+msgstr "Liste Filtresi"
 
 #. Label of a Tab Break field in DocType 'Workspace'
 #. Label of a Table field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Quick Lists"
-msgstr ""
+msgstr "Listeler"
 
 #: public/js/frappe/views/reports/report_utils.js:280
 msgid "Quoting must be between 0 and 3"
@@ -25906,7 +25906,7 @@ msgstr "Yenile"
 
 #: core/page/dashboard_view/dashboard_view.js:177
 msgid "Refresh All"
-msgstr ""
+msgstr "Tümünü Yenile"
 
 #. Label of a Button field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -25952,7 +25952,7 @@ msgstr "Yenileniyor"
 #: core/doctype/system_settings/system_settings.js:52
 #: core/doctype/user/user.js:350 desk/page/setup_wizard/setup_wizard.js:204
 msgid "Refreshing..."
-msgstr ""
+msgstr "Yenileniyor..."
 
 #: core/doctype/user/user.py:1019
 msgid "Registered but disabled"
@@ -25995,7 +25995,7 @@ msgstr ""
 #: core/doctype/communication/communication.js:48
 #: core/doctype/communication/communication.js:159
 msgid "Relink"
-msgstr ""
+msgstr "Bağlantıyı Yenile"
 
 #: core/doctype/communication/communication.js:138
 msgid "Relink Communication"
@@ -26018,7 +26018,7 @@ msgstr ""
 #: custom/doctype/customize_form/customize_form.js:120 hooks.py
 #: public/js/frappe/form/toolbar.js:408
 msgid "Reload"
-msgstr ""
+msgstr "Yeniden Yükle"
 
 #: public/js/frappe/form/controls/attach.js:16
 msgid "Reload File"
@@ -26026,11 +26026,11 @@ msgstr "Dosyayı Yeniden Yükle"
 
 #: public/js/frappe/list/base_list.js:242
 msgid "Reload List"
-msgstr ""
+msgstr "Listeyi Yeniden Yükle"
 
 #: public/js/frappe/views/reports/query_report.js:99
 msgid "Reload Report"
-msgstr ""
+msgstr "Raporu Yeniden Yükle"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
@@ -26119,7 +26119,7 @@ msgstr ""
 
 #: public/js/frappe/model/model.js:739
 msgid "Rename {0}"
-msgstr ""
+msgstr "Yeniden Adlandır"
 
 #: core/doctype/doctype/doctype.py:691
 msgid "Renamed files and replaced code in controllers, please check!"
@@ -26323,7 +26323,7 @@ msgstr ""
 
 #: core/doctype/report/report.py:145
 msgid "Report Document Error"
-msgstr ""
+msgstr "Doküman Hatasını Bildir"
 
 #. Name of a DocType
 #: core/doctype/report_filter/report_filter.json
@@ -26460,7 +26460,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_view.js:1280
 msgid "Report was not saved (there were errors)"
-msgstr ""
+msgstr "Rapor Kaydedilemedi (hatalar içeriyor)"
 
 #: public/js/frappe/views/reports/query_report.js:1849
 msgid "Report with more than 10 columns looks better in Landscape mode."
@@ -26499,7 +26499,7 @@ msgstr "Raporlar"
 
 #: patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
-msgstr "Raporlar &amp; Ana Veriler"
+msgstr "Raporlar &amp; Kayıtlar"
 
 #: public/js/frappe/views/reports/query_report.js:856
 msgid "Reports already in Queue"
@@ -27948,7 +27948,7 @@ msgstr "Zamanlayıcı Etkin Değil"
 
 #: utils/scheduler.py:196
 msgid "Scheduler can not be re-enabled when maintenance mode is active."
-msgstr ""
+msgstr "Bakım modu aktifken zamanlayıcı yeniden etkinleştirilemez."
 
 #: core/doctype/data_import/data_import.py:97
 msgid "Scheduler is inactive. Cannot import data."
@@ -28239,37 +28239,37 @@ msgstr ""
 
 #: core/doctype/error_log/error_log_list.js:5
 msgid "Seen"
-msgstr ""
+msgstr "Görüldü"
 
 #. Label of a Check field in DocType 'Comment'
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Seen"
-msgstr ""
+msgstr "Görüldü"
 
 #. Label of a Check field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Seen"
-msgstr ""
+msgstr "Görüldü"
 
 #. Label of a Check field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Seen"
-msgstr ""
+msgstr "Görüldü"
 
 #. Label of a Check field in DocType 'Error Log'
 #: core/doctype/error_log/error_log.json
 msgctxt "Error Log"
 msgid "Seen"
-msgstr ""
+msgstr "Görüldü"
 
 #. Label of a Check field in DocType 'Notification Settings'
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "Seen"
-msgstr ""
+msgstr "Görüldü"
 
 #. Label of a Section Break field in DocType 'Note'
 #: desk/doctype/note/note.json
@@ -29199,7 +29199,7 @@ msgstr ""
 #: public/js/frappe/widgets/chart_widget.js:395
 #: public/js/frappe/widgets/quick_list_widget.js:102
 msgid "Set Filters for {0}"
-msgstr ""
+msgstr "{0} İçin Filtreleri Ayarla"
 
 #: core/doctype/user_type/user_type.py:91
 msgid "Set Limit"
@@ -29216,7 +29216,7 @@ msgstr ""
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Set New Password"
-msgstr ""
+msgstr "Yeni Şifre Belirle"
 
 #: desk/page/backups/backups.js:8
 msgid "Set Number of Backups"
@@ -29957,7 +29957,7 @@ msgstr ""
 #: templates/signup.html:16 www/login.html:120 www/login.html:136
 #: www/update-password.html:35
 msgid "Sign up"
-msgstr ""
+msgstr "Yeni Kayıt"
 
 #. Label of a Select field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
@@ -30480,7 +30480,7 @@ msgstr ""
 
 #: core/doctype/role/role.py:51
 msgid "Standard roles cannot be renamed"
-msgstr ""
+msgstr "Standart roller yeniden adlandırılamaz."
 
 #: core/doctype/user_type/user_type.py:60
 msgid "Standard user type {0} can not be deleted."
@@ -30543,7 +30543,7 @@ msgstr "Başlangıç Zamanı"
 
 #: templates/includes/comments/comments.html:8
 msgid "Start a new discussion"
-msgstr ""
+msgstr "Yeni bir soru sorun veya yorum yapın."
 
 #: core/doctype/data_export/exporter.py:22
 msgid "Start entering data below this line"
@@ -31031,7 +31031,7 @@ msgstr ""
 #: social/doctype/energy_point_log/energy_point_log.js:39
 #: social/doctype/energy_point_settings/energy_point_settings.js:47
 msgid "Submit"
-msgstr "Gönder/İşle"
+msgstr "Gönder"
 
 #: public/js/frappe/list/list_view.js:1981
 msgctxt "Button in list view actions menu"
@@ -32040,7 +32040,7 @@ msgstr ""
 
 #: public/js/frappe/desk.js:127
 msgid "The application has been updated to a new version, please refresh this page"
-msgstr ""
+msgstr "Uygulama yeni bir versiyona yükseltildi, lütfen sayfayı yenileyin."
 
 #. Description of the 'Application Name' (Data) field in DocType 'System
 #. Settings'
@@ -32322,7 +32322,7 @@ msgstr ""
 
 #: www/error.py:16
 msgid "There was an error building this page"
-msgstr ""
+msgstr "Bu sayfayı oluştururken bir hata oluştu."
 
 #: public/js/frappe/views/kanban/kanban_view.js:180
 msgid "There was an error saving filters"
@@ -32504,7 +32504,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:2013
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
-msgstr ""
+msgstr "Bu bir arka plan raporudur. Lütfen uygun filtreleri ayarlayın ve ardından yeni bir tane oluşturun."
 
 #: utils/password_strength.py:158
 msgid "This is a top-10 common password."
@@ -33994,7 +33994,7 @@ msgstr ""
 
 #: www/error.py:15
 msgid "Uncaught Server Exception"
-msgstr ""
+msgstr "Beklenmeyen Sunucu Hatası"
 
 #: public/js/frappe/form/toolbar.js:93
 msgid "Unchanged"
@@ -34457,7 +34457,7 @@ msgstr ""
 
 #: printing/page/print/print.js:279
 msgid "Use the new Print Format Builder"
-msgstr ""
+msgstr "Yeni Yazdırma Formatı Oluşturucuyu Kullan"
 
 #. Description of the 'Title Field' (Data) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -34673,7 +34673,7 @@ msgstr ""
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "User Cannot Create"
-msgstr ""
+msgstr "Kullanıcı Oluşturamaz"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -35277,7 +35277,7 @@ msgstr ""
 
 #: public/js/frappe/desk.js:131
 msgid "Version Updated"
-msgstr ""
+msgstr "Yeni Versiyon Yüklendi"
 
 #. Label of a Data field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
@@ -35315,7 +35315,7 @@ msgstr ""
 #: public/js/frappe/views/treeview.js:467
 #: public/js/frappe/widgets/quick_list_widget.js:245
 msgid "View List"
-msgstr ""
+msgstr "Liste Görünümü"
 
 #. Name of a DocType
 #: core/doctype/view_log/view_log.json
@@ -36395,7 +36395,7 @@ msgstr ""
 #. Name of a DocType
 #: desk/doctype/workspace_quick_list/workspace_quick_list.json
 msgid "Workspace Quick List"
-msgstr ""
+msgstr "Çalışma Alanı Listesi"
 
 #. Name of a DocType
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
@@ -36949,7 +36949,7 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:149
 #: public/js/frappe/form/sidebar/form_sidebar.js:95
 msgid "You last edited this"
-msgstr ""
+msgstr "Düzenlediniz"
 
 #: public/js/frappe/widgets/widget_dialog.js:347
 msgid "You must add atleast one link."
@@ -38333,7 +38333,7 @@ msgstr ""
 
 #: model/rename_doc.py:214
 msgid "renamed from {0} to {1}"
-msgstr ""
+msgstr "Önceki değer {0}, {1} olacak şekilde yeniden adlandırıldı."
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -39294,7 +39294,7 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:150
 #: public/js/frappe/form/sidebar/form_sidebar.js:96
 msgid "{0} last edited this"
-msgstr ""
+msgstr "{0} düzenlendi."
 
 #: core/doctype/activity_log/feed.py:13
 msgid "{0} logged in"
