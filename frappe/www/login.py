@@ -167,7 +167,6 @@ def login_via_key(key: str):
 
 	if email:
 		frappe.cache.delete_value(cache_key)
-
 		frappe.local.login_manager.login_as(email)
 
 		redirect_post_login(
