@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-23 11:38\n"
+"PO-Revision-Date: 2024-04-24 11:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -72,11 +72,11 @@ msgstr "&lt;head&gt; HTML"
 
 #: public/js/form_builder/store.js:206
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
-msgstr "«در جستجوی سراسری» برای فیلد {0} از نوع {1} مجاز نیست"
+msgstr "در جستجوی سراسری برای فیلد {0} از نوع {1} مجاز نیست"
 
 #: core/doctype/doctype/doctype.py:1321
 msgid "'In Global Search' not allowed for type {0} in row {1}"
-msgstr "«در جستجوی سراسری» برای نوع {0} در ردیف {1} مجاز نیست"
+msgstr "در جستجوی سراسری برای نوع {0} در ردیف {1} مجاز نیست"
 
 #: public/js/form_builder/store.js:198
 msgid "'In List View' is not allowed for field {0} of type {1}"
@@ -1480,12 +1480,12 @@ msgstr "آدرس ها و مخاطبین"
 #. Description of a DocType
 #: custom/doctype/client_script/client_script.json
 msgid "Adds a custom client script to a DocType"
-msgstr ""
+msgstr "یک اسکریپت کلاینت سفارشی را به DocType اضافه می کند"
 
 #. Description of a DocType
 #: custom/doctype/custom_field/custom_field.json
 msgid "Adds a custom field to a DocType"
-msgstr ""
+msgstr "یک فیلد سفارشی به DocType اضافه می کند"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:552
 msgid "Administration"
@@ -2232,7 +2232,7 @@ msgstr "اجداد از"
 #: core/doctype/navbar_settings/navbar_settings.json
 msgctxt "Navbar Settings"
 msgid "Announcement Widget"
-msgstr ""
+msgstr "ویجت اعلامیه"
 
 #. Label of a Section Break field in DocType 'Navbar Settings'
 #: core/doctype/navbar_settings/navbar_settings.json
@@ -3152,11 +3152,11 @@ msgstr "مجاز"
 
 #: www/attribution.html:20
 msgid "Authors"
-msgstr ""
+msgstr "نویسندگان"
 
 #: www/attribution.html:36
 msgid "Authors / Maintainers"
-msgstr ""
+msgstr "نویسندگان / نگهداران"
 
 #. Option for the 'Type' (Select) field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
@@ -3335,7 +3335,7 @@ msgstr "پیوند خودکار فقط در صورتی فعال می شود که
 #. Description of a DocType
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgid "Automatically Assign Documents to Users"
-msgstr ""
+msgstr "تخصیص خودکار اسناد به کاربران"
 
 #. Label of a Int field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -4165,7 +4165,7 @@ msgstr "سطل {0} یافت نشد."
 #. Name of a Workspace
 #: core/workspace/build/build.json
 msgid "Build"
-msgstr ""
+msgstr "ساخت"
 
 #: workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
@@ -4173,7 +4173,7 @@ msgstr "ساخت {0}"
 
 #: templates/includes/footer/footer_powered.html:1
 msgid "Built on {0}"
-msgstr ""
+msgstr "ساخته شده در {0}"
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
@@ -4195,7 +4195,7 @@ msgstr "ویرایش انبوه {0}"
 
 #: public/js/frappe/list/bulk_operations.js:122
 msgid "Bulk PDF Export"
-msgstr ""
+msgstr "صادرات PDF انبوه"
 
 #. Name of a DocType
 #: desk/doctype/bulk_update/bulk_update.json
@@ -5020,7 +5020,7 @@ msgstr ""
 #. Name of a DocType
 #: desk/doctype/changelog_feed/changelog_feed.json
 msgid "Changelog Feed"
-msgstr ""
+msgstr "فید تغییرات"
 
 #: email/doctype/email_domain/email_domain.js:5
 msgid "Changing any setting will reflect on all the email accounts associated with this domain."
@@ -5450,38 +5450,38 @@ msgstr "اطلاعات مشتری"
 #: custom/doctype/client_script/client_script.json
 #: website/doctype/web_page/web_page.js:103
 msgid "Client Script"
-msgstr "اسکریپت مشتری"
+msgstr "اسکریپت کلاینت"
 
 #. Label of a Link in the Build Workspace
 #. Label of a shortcut in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "Client Script"
 msgid "Client Script"
-msgstr "اسکریپت مشتری"
+msgstr "اسکریپت کلاینت"
 
 #. Linked DocType in DocType's connections
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Client Script"
-msgstr "اسکریپت مشتری"
+msgstr "اسکریپت کلاینت"
 
 #. Label of a Code field in DocType 'DocType Layout'
 #: custom/doctype/doctype_layout/doctype_layout.json
 msgctxt "DocType Layout"
 msgid "Client Script"
-msgstr "اسکریپت مشتری"
+msgstr "اسکریپت کلاینت"
 
 #. Linked DocType in Module Def's connections
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Client Script"
-msgstr "اسکریپت مشتری"
+msgstr "اسکریپت کلاینت"
 
 #. Label of a Code field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Client Script"
-msgstr "اسکریپت مشتری"
+msgstr "اسکریپت کلاینت"
 
 #. Label of a Password field in DocType 'Connected App'
 #: integrations/doctype/connected_app/connected_app.json
@@ -6352,7 +6352,7 @@ msgstr "گزارش کنسول"
 
 #: desk/doctype/console_log/console_log.py:24
 msgid "Console Logs can not be deleted"
-msgstr ""
+msgstr "گزارش های کنسول را نمی توان حذف کرد"
 
 #. Label of a Section Break field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -6400,7 +6400,7 @@ msgstr "مخاطب با Google Contacts همگام‌سازی شد."
 
 #: www/contact.html:4
 msgid "Contact Us"
-msgstr ""
+msgstr "با ما تماس بگیرید"
 
 #. Name of a DocType
 #: website/doctype/contact_us_settings/contact_us_settings.json
@@ -6577,7 +6577,7 @@ msgstr "در کلیپ بورد کپی شد."
 
 #: website/doctype/web_form/web_form.js:29
 msgid "Copy Embed Code"
-msgstr ""
+msgstr "کد جاسازی را کپی کنید"
 
 #: public/js/frappe/form/templates/timeline_message_box.html:83
 msgid "Copy Link"
@@ -6749,7 +6749,7 @@ msgstr "ایجاد و ادامه"
 #. Title of an Onboarding Step
 #: website/onboarding_step/create_blogger/create_blogger.json
 msgid "Create Blogger"
-msgstr ""
+msgstr "بلاگر را ایجاد کنید"
 
 #: public/js/frappe/views/reports/query_report.js:186
 #: public/js/frappe/views/reports/query_report.js:231
@@ -6846,7 +6846,7 @@ msgstr "یک حساب {0} ایجاد کنید"
 #. Description of a DocType
 #: email/doctype/newsletter/newsletter.json
 msgid "Create and send emails to a specific group of subscribers periodically."
-msgstr ""
+msgstr "ایجاد و ارسال ایمیل برای گروه خاصی از مشترکین به صورت دوره ای."
 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:34
 msgid "Create or Edit Print Format"
@@ -6908,7 +6908,7 @@ msgstr "ایجاد {0}"
 
 #: desk/doctype/dashboard_chart_source/dashboard_chart_source.py:41
 msgid "Creation of this document is only permitted in developer mode."
-msgstr ""
+msgstr "ایجاد این سند فقط در حالت توسعه دهنده مجاز است."
 
 #. Option for the 'Type' (Select) field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
@@ -7336,7 +7336,7 @@ msgstr "ترجمه سفارشی"
 
 #: custom/doctype/custom_field/custom_field.py:373
 msgid "Custom field renamed to {0} successfully."
-msgstr ""
+msgstr "فیلد سفارشی با موفقیت به {0} تغییر نام داد."
 
 #: core/doctype/doctype/doctype_list.js:82
 msgid "Custom?"
@@ -9347,7 +9347,7 @@ msgstr "دنبال سند"
 
 #: desk/form/document_follow.py:84
 msgid "Document Follow Notification"
-msgstr "اطلاعیه پیگیری سند"
+msgstr "اعلان پیگیری سند"
 
 #. Label of a Data field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
@@ -11460,11 +11460,11 @@ msgstr "خطایی در {0} رخ داده است"
 
 #: public/js/frappe/form/script_manager.js:187
 msgid "Error in Client Script"
-msgstr "خطا در اسکریپت مشتری"
+msgstr "خطا در اسکریپت کلاینت"
 
 #: public/js/frappe/form/script_manager.js:241
 msgid "Error in Client Script."
-msgstr "خطا در اسکریپت مشتری."
+msgstr "خطا در اسکریپت کلاینت."
 
 #: printing/doctype/letter_head/letter_head.js:21
 msgid "Error in Header/Footer Script"
@@ -17122,17 +17122,17 @@ msgstr "نمودار کانبان"
 #. Name of a DocType
 #: desk/doctype/kanban_board_column/kanban_board_column.json
 msgid "Kanban Board Column"
-msgstr "ستون هیئت کانبان"
+msgstr "ستون نمودار کانبان"
 
 #: public/js/frappe/views/kanban/kanban_view.js:385
 msgid "Kanban Board Name"
-msgstr "نام هیئت مدیره کانبان"
+msgstr "نام نمودار کانبان"
 
 #. Label of a Data field in DocType 'Kanban Board'
 #: desk/doctype/kanban_board/kanban_board.json
 msgctxt "Kanban Board"
 msgid "Kanban Board Name"
-msgstr "نام هیئت مدیره کانبان"
+msgstr "نام نمودار کانبان"
 
 #: public/js/frappe/views/kanban/kanban_view.js:262
 msgctxt "Button in kanban view menu"
@@ -18721,7 +18721,7 @@ msgstr "لاگ ها"
 #. Name of a DocType
 #: core/doctype/logs_to_clear/logs_to_clear.json
 msgid "Logs To Clear"
-msgstr "سیاهههای مربوط به پاک کردن"
+msgstr "لاگ‌های مربوط به پاک کردن"
 
 #. Label of a Table field in DocType 'Log Settings'
 #: core/doctype/log_settings/log_settings.json
@@ -19642,7 +19642,7 @@ msgstr "ماشه مدال"
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Models"
-msgstr ""
+msgstr "مدل‌ها"
 
 #: core/report/transaction_log_report/transaction_log_report.py:106
 #: social/doctype/energy_point_rule/energy_point_rule.js:43
@@ -20485,7 +20485,7 @@ msgstr "پوشه جدید"
 
 #: public/js/frappe/views/kanban/kanban_view.js:341
 msgid "New Kanban Board"
-msgstr "هیئت کانبان جدید"
+msgstr "نمودار کانبان جدید"
 
 #: public/js/frappe/widgets/widget_dialog.js:62
 msgid "New Links"
@@ -20515,7 +20515,7 @@ msgstr "خبرنامه جدید"
 
 #: desk/doctype/notification_log/notification_log.py:155
 msgid "New Notification"
-msgstr "اطلاعیه جدید"
+msgstr "اعلان جدید"
 
 #: public/js/frappe/widgets/widget_dialog.js:64
 msgid "New Number Card"
@@ -20890,7 +20890,7 @@ msgstr "نامی برای {0} مشخص نشده است"
 
 #: public/js/frappe/ui/notifications/notifications.js:315
 msgid "No New notifications"
-msgstr "بدون اطلاعیه جدید"
+msgstr "بدون اعلان جدید"
 
 #: core/doctype/doctype/doctype.py:1700
 msgid "No Permissions Specified"
@@ -21533,13 +21533,13 @@ msgstr "اعلان ارسال شد به"
 #: public/js/frappe/ui/notifications/notifications.js:50
 #: public/js/frappe/ui/notifications/notifications.js:187
 msgid "Notifications"
-msgstr "اطلاعیه"
+msgstr "اعلان‌ها"
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Notifications"
-msgstr "اطلاعیه"
+msgstr "اعلان‌ها"
 
 #: public/js/frappe/ui/notifications/notifications.js:299
 msgid "Notifications Disabled"
@@ -23890,7 +23890,7 @@ msgstr ""
 #: website/doctype/blog_category/blog_category.json
 msgctxt "Blog Category"
 msgid "Posts"
-msgstr "پست ها"
+msgstr "پست‌ها"
 
 #: website/doctype/blog_post/blog_post.py:258
 msgid "Posts by {0}"
@@ -29432,7 +29432,7 @@ msgstr ""
 #: public/js/frappe/ui/toolbar/search_utils.js:567
 #: website/workspace/website/website.json
 msgid "Setup"
-msgstr "برپایی"
+msgstr "تنظیمات"
 
 #. Option for the 'Show in Module Section' (Select) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -31626,7 +31626,7 @@ msgstr "اطلاع رسانی سیستم"
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "System Notifications"
-msgstr "اطلاعیه های سیستم"
+msgstr "اعلان های سیستم"
 
 #. Label of a Check field in DocType 'Page'
 #: core/doctype/page/page.json
@@ -32394,7 +32394,7 @@ msgstr "این Doctype حاوی فیلدهای مکان نیست"
 
 #: public/js/frappe/views/kanban/kanban_view.js:388
 msgid "This Kanban Board will be private"
-msgstr "این هیئت کانبان خصوصی خواهد بود"
+msgstr "این نمودار کانبان خصوصی خواهد بود"
 
 #: custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"
@@ -37603,7 +37603,7 @@ msgstr ""
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "email"
-msgstr ""
+msgstr "ایمیل"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:305
 msgid "email inbox"
@@ -38248,7 +38248,7 @@ msgstr ""
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "print"
-msgstr ""
+msgstr "چاپ"
 
 #. Label of a HTML field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
