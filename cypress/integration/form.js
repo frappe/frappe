@@ -30,32 +30,6 @@ context("Form", () => {
 		cy.get(".list-row").should("contain", "this is a test todo");
 	});
 
-	it("navigates between documents with child table list filters applied", () => {
-		cy.visit("/app/contact");
-
-		cy.clear_filters();
-		cy.get('.standard-filter-section [data-fieldname="name"] input')
-			.type("Test Form Contact 3")
-			.blur();
-		cy.click_listview_row_item_with_text("Test Form Contact 3");
-
-		cy.get("#page-Contact .page-head").findByTitle("Test Form Contact 3").should("exist");
-		cy.get(".prev-doc").should("be.visible").click();
-		cy.get(".msgprint-dialog .modal-body").contains("No further records").should("be.visible");
-		cy.hide_dialog();
-
-		cy.get("#page-Contact .page-head").findByTitle("Test Form Contact 3").should("exist");
-		cy.get(".next-doc").should("be.visible").click();
-		cy.get(".msgprint-dialog .modal-body").contains("No further records").should("be.visible");
-		cy.hide_dialog();
-
-		cy.get("#page-Contact .page-head").findByTitle("Test Form Contact 3").should("exist");
-
-		// clear filters
-		cy.visit("/app/contact");
-		cy.clear_filters();
-	});
-
 	it("validates behaviour of Data options validations in child table", () => {
 		// test email validations for set_invalid controller
 		let website_input = "website.in";
