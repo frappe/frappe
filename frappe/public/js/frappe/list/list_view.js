@@ -1005,10 +1005,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	apply_styles_basedon_dropdown() {
-		if ($('.list-actions').length > 0 && $('.inner-group-button').length > 0) {
+		if ($(".list-actions").length > 0 && $(".inner-group-button").length > 0) {
 			$('.list-row .level-left, .list-row-head .level-left').css({
-				'flex': '2',
-				'min-width': '72%'
+				flex: "2",
+				"min-width": "72%",
 			});
 		}
 	}
