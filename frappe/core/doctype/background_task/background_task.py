@@ -1,5 +1,6 @@
 # Copyright (c) 2024, Frappe Technologies and contributors
 # For license information, please see license.txt
+import http
 import traceback
 from collections.abc import Callable
 from typing import Any
@@ -67,15 +68,24 @@ def enqueue_task(
 		at_front=at_front,
 		**kwargs,
 	)
+
+	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
 	return {"task_id": job.id.split("::")[-1]}
 
 
 @frappe.whitelist(methods=["POST"])
 def stop_task(task_id: str):
-	if task := frappe.get_doc("Background Task", {"task_id": task_id}, for_update=True):
+	"""
+	Method to stop a task
+
+	:param task_id: Task ID
+	"""
+	task: BackgroundTask | None = frappe.get_doc("Background Task", {"task_id": task_id})
+	if task:
 		task.stop()
 		return "Stopped task"
-	return "Task with the given ID not found"
+	frappe.local.response["http_status_code"] = http.HTTPStatus.NOT_FOUND
+	return "Task not found"
 
 
 def enqueue(
@@ -117,14 +127,7 @@ def enqueue(
 
 	task_id = create_job_id()
 
-	try:
-		q = get_queue(queue)
-	except ConnectionError:
-		if frappe.local.flags.in_migrate:
-			# If redis is not available during migration, execute the job directly
-			print(f"Redis queue is unreachable: Executing {method} synchronously")
-			return frappe.call(method, **kwargs)
-		raise
+	q = get_queue(queue)
 
 	if not timeout:
 		timeout = get_queues_timeout().get(queue) or 300
@@ -136,6 +139,7 @@ def enqueue(
 		"event": event,
 		"job_name": frappe.cstr(method),
 		"kwargs": kwargs,
+		"task_id": task_id,
 	}
 
 	def enqueue_call():
@@ -153,13 +157,14 @@ def enqueue(
 			job_id=task_id,
 		)
 
-	doc = frappe.new_doc(
+	doc: BackgroundTask = frappe.new_doc(
 		"Background Task",
 		task_id=task_id.split("::")[-1],
 		user=frappe.session.user,
 		status="Queued",
 		method=frappe.utils.method_to_string(method),
 	)
+
 	if on_success:
 		doc.success_callback = frappe.utils.method_to_string(on_success)
 
@@ -190,10 +195,12 @@ def success_callback(job: Job, connection: Redis, result: Any) -> None:
 	"""Callback function to update the status of the job to "Completed"."""
 	frappe.init(site=job.meta["site"])
 	frappe.connect()
-	doc = frappe.get_doc("Background Task", {"task_id": job.id.split("::")[-1]}, for_update=True)
+	task_id = job.id.split("::")[-1]
+	doc = frappe.get_doc("Background Task", {"task_id": task_id}, for_update=True)
 	doc.status = "Completed"
 	doc.result = result
 	doc.save()
+
 	if doc.success_callback:
 		frappe.call(doc.success_callback, job, connection, result)
 
@@ -213,18 +220,19 @@ def failure_callback(job: Job, connection: Redis, *exc_info) -> None:
 	"""Callback function to update the status of the job to "Failed"."""
 	frappe.init(site=job.meta["site"])
 	frappe.connect()
-	doc = frappe.get_doc("Background Task", {"task_id": job.id.split("::")[-1]}, for_update=True)
+	task_id = job.id.split("::")[-1]
+	doc = frappe.get_doc("Background Task", {"task_id": task_id}, for_update=True)
 	doc.status = "Failed"
 	doc.result = "".join(traceback.format_exception(*exc_info))
 	doc.save()
-	from frappe.utils.background_jobs import truncate_failed_registry
 
 	if doc.failure_callback:
 		frappe.call(doc.failure_callback, job, connection, *exc_info)
 	else:
+		from frappe.utils.background_jobs import truncate_failed_registry
+
 		frappe.call(truncate_failed_registry, job, connection, *exc_info)
-	if failure_callback := job._kwargs.get("on_failure", truncate_failed_registry):
-		failure_callback(job, connection, *exc_info)
+
 	frappe.utils.notify_user(
 		frappe.session.user,
 		"Alert",
@@ -241,9 +249,11 @@ def stopped_callback(job: Job, connection: Redis) -> None:
 	"""Callback function to update the status of the job to "Stopped"."""
 	frappe.init(site=job.meta["site"])
 	frappe.connect()
-	doc = frappe.get_doc("Background Task", {"task_id": job.id.split("::")[-1]}, for_update=True)
+	task_id = job.id.split("::")[-1]
+	doc = frappe.get_doc("Background Task", {"task_id": task_id}, for_update=True)
 	doc.status = "Stopped"
 	doc.save()
+
 	if doc.stopped_callback:
 		frappe.call(doc.stopped_callback, job, connection)
 	frappe.utils.notify_user(

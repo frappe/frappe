@@ -209,6 +209,7 @@ def execute_job(
 	user: str | None = None,
 	is_async: bool = True,
 	retry: int = 0,
+	task_id: str | None = None,
 ):
 	"""
 	Executes job in a worker, performs commit/rollback and logs if there is any error
@@ -221,8 +222,9 @@ def execute_job(
 	:param user: User who triggered the job
 	:param is_async: If is_async=False, the method is executed immediately, else via a worker
 	:param retry: Number of times the job has been retried
-	:return: Return value of the method
+	:param task_id: Optional task ID
 
+	:return: Return value of the method
 	"""
 	retval = None
 
@@ -255,6 +257,14 @@ def execute_job(
 
 	for before_job_task in frappe.get_hooks("before_job"):
 		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
+
+	# Set task to started
+	if task_id:
+		frappe.db.begin()
+		frappe.db.set_value(
+			"Background Task", {"task_id": task_id.split("::")[-1]}, "status", "In Progress", debug=True
+		)
+		frappe.db.commit()
 
 	try:
 		retval = method(**kwargs)
