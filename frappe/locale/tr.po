@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-24 11:41\n"
+"PO-Revision-Date: 2024-04-25 12:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1173,7 +1173,7 @@ msgstr ""
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Add Custom Tags"
-msgstr ""
+msgstr "Özel Etiket Ekle"
 
 #: public/js/frappe/widgets/widget_dialog.js:159
 #: public/js/frappe/widgets/widget_dialog.js:688
@@ -1184,7 +1184,7 @@ msgstr "Filtreleri Ekle"
 #: website/doctype/web_page_block/web_page_block.json
 msgctxt "Web Page Block"
 msgid "Add Gray Background"
-msgstr ""
+msgstr "Gri Arka Plan Ekle"
 
 #: public/js/frappe/ui/group_by/group_by.js:230
 #: public/js/frappe/ui/group_by/group_by.js:415
@@ -1207,7 +1207,7 @@ msgstr ""
 #: email/doctype/email_group/email_group.json
 msgctxt "Email Group"
 msgid "Add Query Parameters"
-msgstr ""
+msgstr "Sorgu Parametreleri Ekle"
 
 #: public/js/frappe/form/sidebar/review.js:45
 msgid "Add Review"
@@ -1235,13 +1235,13 @@ msgstr "İmza Ekle"
 #: website/doctype/web_page_block/web_page_block.json
 msgctxt "Web Page Block"
 msgid "Add Space at Bottom"
-msgstr ""
+msgstr "Alt Kısma Boşluk Ekle"
 
 #. Label of a Check field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
 msgctxt "Web Page Block"
 msgid "Add Space at Top"
-msgstr ""
+msgstr "Üst Kısma Boşluk Ekle"
 
 #: email/doctype/email_group/email_group.js:38
 #: email/doctype/email_group/email_group.js:59
@@ -1271,7 +1271,7 @@ msgstr "Tüm Satırları Ekle"
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Add Unsubscribe Link"
-msgstr ""
+msgstr "Abonelikten Çıkma Bağlantısı Ekle"
 
 #: core/doctype/user_permission/user_permission_list.js:6
 msgid "Add User Permissions"
@@ -1281,7 +1281,7 @@ msgstr "Kullanıcı İzinleri Ekle"
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Add Video Conferencing"
-msgstr ""
+msgstr "Video Konferans Ekle"
 
 #: public/js/frappe/ui/filters/filter_list.js:297
 msgid "Add a Filter"
@@ -1377,13 +1377,13 @@ msgstr ""
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Additional Permissions"
-msgstr ""
+msgstr "Ek İzinler"
 
 #. Label of a Section Break field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Additional Permissions"
-msgstr ""
+msgstr "Ek İzinler"
 
 #. Name of a DocType
 #: contacts/doctype/address/address.json
@@ -1541,7 +1541,7 @@ msgstr "Gelişmiş Arama"
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "Advanced Settings"
-msgstr ""
+msgstr "Gelişmiş Ayarlar"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -1955,7 +1955,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Allow Sending Usage Data for Improving Applications"
-msgstr ""
+msgstr "Uygulamaları İyileştirmek İçin Kullanım Verilerinin Gönderilmesine İzin Ver"
 
 #. Description of the 'Allow Self Approval' (Check) field in DocType 'Workflow
 #. Transition'
@@ -2043,7 +2043,7 @@ msgstr "Zorunlu alanlar doldurulmazsa kaydetmeye izin ver"
 
 #: desk/page/setup_wizard/setup_wizard.js:413
 msgid "Allow sending usage data for improving applications"
-msgstr ""
+msgstr "Uygulamaları iyileştirmek için kullanım verilerinin gönderilmesine izin ver"
 
 #. Description of the 'Login After' (Int) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -2062,7 +2062,7 @@ msgstr "Kullanıcının yalnızca bu saatten önce giriş yapmasına izin ver. (
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Allow users to log in without a password, using a login link sent to their email"
-msgstr ""
+msgstr "Kullanıcıların, e-postalarına gönderilen oturum açma bağlantısını kullanarak parola olmadan oturum açmalarına izin ver"
 
 #. Label of a Link field in DocType 'Workflow Transition'
 #: workflow/doctype/workflow_transition/workflow_transition.json
@@ -2074,7 +2074,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Allowed File Extensions"
-msgstr ""
+msgstr "İzin Verilen Dosya Uzantıları"
 
 #. Label of a Check field in DocType 'User'
 #: core/doctype/user/user.json
@@ -2421,13 +2421,13 @@ msgstr "Uygulama Logosu"
 #: core/doctype/installed_application/installed_application.json
 msgctxt "Installed Application"
 msgid "Application Name"
-msgstr ""
+msgstr "Uygulama Adı"
 
 #. Label of a Data field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Application Name"
-msgstr ""
+msgstr "Uygulama Adı"
 
 #. Label of a Data field in DocType 'Installed Application'
 #: core/doctype/installed_application/installed_application.json
@@ -2626,7 +2626,7 @@ msgstr ""
 
 #: desk/form/assign_to.py:104
 msgid "As document sharing is disabled, please give them the required permissions before assigning."
-msgstr ""
+msgstr "Doküman paylaşımı devre dışı olduğundan lütfen atamadan önce onlara gerekli izinleri verin."
 
 #: templates/emails/account_deletion_notification.html:3
 msgid "As per your request, your account and data on {0} associated with email {1} has been permanently deleted"
@@ -3564,7 +3564,7 @@ msgstr ""
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgctxt "S3 Backup Settings"
 msgid "Backup Files"
-msgstr ""
+msgstr "Yedek Dosyaları"
 
 #. Label of a Data field in DocType 'Google Drive'
 #: integrations/doctype/google_drive/google_drive.json
@@ -4614,37 +4614,37 @@ msgstr "{0} belge iptal edilsin mi?"
 #: desk/form/save.py:59 public/js/frappe/model/indicator.js:78
 #: public/js/frappe/ui/filters/filter.js:500
 msgid "Cancelled"
-msgstr ""
+msgstr "İptal edildi"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Cancelled"
-msgstr ""
+msgstr "İptal edildi"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Cancelled"
-msgstr ""
+msgstr "İptal edildi"
 
 #. Option for the 'Status' (Select) field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Cancelled"
-msgstr ""
+msgstr "İptal edildi"
 
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
 #: integrations/doctype/integration_request/integration_request.json
 msgctxt "Integration Request"
 msgid "Cancelled"
-msgstr ""
+msgstr "İptal edildi"
 
 #. Option for the 'Status' (Select) field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
 msgctxt "ToDo"
 msgid "Cancelled"
-msgstr ""
+msgstr "İptal edildi"
 
 #: core/doctype/deleted_document/deleted_document.py:51
 msgid "Cancelled Document restored as Draft"
@@ -5010,7 +5010,7 @@ msgstr ""
 
 #: core/doctype/system_settings/system_settings.js:62
 msgid "Changing rounding method on site with data can result in unexpected behaviour."
-msgstr ""
+msgstr "Sitedeki yuvarlama yöntemini verilerle değiştirmek, beklenmeyen hatalarla sonuçlanabilir."
 
 #. Label of a Select field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -6043,37 +6043,37 @@ msgstr ""
 
 #: core/doctype/doctype/boilerplate/controller_list.html:31 utils/goal.py:117
 msgid "Completed"
-msgstr ""
+msgstr "Tamamlandı"
 
 #. Option for the 'Status' (Select) field in DocType 'Auto Repeat'
 #: automation/doctype/auto_repeat/auto_repeat.json
 msgctxt "Auto Repeat"
 msgid "Completed"
-msgstr ""
+msgstr "Tamamlandı"
 
 #. Option for the 'Status' (Select) field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Completed"
-msgstr ""
+msgstr "Tamamlandı"
 
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
 #: integrations/doctype/integration_request/integration_request.json
 msgctxt "Integration Request"
 msgid "Completed"
-msgstr ""
+msgstr "Tamamlandı"
 
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'
 #: core/doctype/prepared_report/prepared_report.json
 msgctxt "Prepared Report"
 msgid "Completed"
-msgstr ""
+msgstr "Tamamlandı"
 
 #. Option for the 'Status' (Select) field in DocType 'Workflow Action'
 #: workflow/doctype/workflow_action/workflow_action.json
 msgctxt "Workflow Action"
 msgid "Completed"
-msgstr ""
+msgstr "Tamamlandı"
 
 #. Label of a Link field in DocType 'Workflow Action'
 #: workflow/doctype/workflow_action/workflow_action.json
@@ -7968,7 +7968,7 @@ msgstr ""
 
 #: templates/emails/administrator_logged_in.html:1
 msgid "Dear System Manager,"
-msgstr ""
+msgstr "Sayın Sistem Yöneticisi,"
 
 #: templates/emails/account_deletion_notification.html:1
 #: templates/emails/delete_data_confirmation.html:1
@@ -8715,7 +8715,7 @@ msgstr "Sayıyı Gösterme"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Disable Document Sharing"
-msgstr ""
+msgstr "Döküman Paylaşımını Devre Dışı Bırak"
 
 #. Label of a Check field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -9683,7 +9683,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/form_dashboard.html:17
 msgid "Documents"
-msgstr ""
+msgstr "Dokümanlar"
 
 #: core/doctype/deleted_document/deleted_document_list.js:25
 msgid "Documents restored successfully"
@@ -10555,7 +10555,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Email Retry Limit"
-msgstr ""
+msgstr "E-posta Yeniden Deneme Limiti"
 
 #. Name of a DocType
 #: email/doctype/email_rule/email_rule.json
@@ -11512,7 +11512,7 @@ msgstr "Örnek: 00001"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours."
-msgstr ""
+msgstr "Örnek: Bunu 24:00 olarak ayarlamak, 24:00 saat boyunca aktif olmayan bir kullanıcının oturumunu kapatacaktır."
 
 #. Description of the 'Description' (Small Text) field in DocType 'Assignment
 #. Rule'
@@ -11913,7 +11913,7 @@ msgstr ""
 
 #: core/doctype/data_import/data_import.js:470
 msgid "Failure"
-msgstr ""
+msgstr "Başarısız"
 
 #. Label of a Attach field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -11959,19 +11959,19 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Fetch From"
-msgstr ""
+msgstr "Şuradan Getir"
 
 #. Label of a Small Text field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Fetch From"
-msgstr ""
+msgstr "Şuradan Getir"
 
 #. Label of a Small Text field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Fetch From"
-msgstr ""
+msgstr "Şuradan Getir"
 
 #: website/doctype/website_slideshow/website_slideshow.js:15
 msgid "Fetch Images"
@@ -12285,7 +12285,7 @@ msgstr ""
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Fields separated by comma (,) will be included in the \"Search By\" list of Search dialog box"
-msgstr ""
+msgstr "Virgülle ayrılmış alanlar, arama çubuğunda \"Arama Ölçütü\" listesine eklenir."
 
 #. Label of a Data field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -12447,13 +12447,13 @@ msgstr ""
 #: automation/workspace/tools/tools.json
 msgctxt "File"
 msgid "Files"
-msgstr ""
+msgstr "Dosyalar"
 
 #. Label of a Tab Break field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Files"
-msgstr ""
+msgstr "Dosyalar"
 
 #: core/doctype/prepared_report/prepared_report.js:8
 #: desk/doctype/dashboard_chart/dashboard_chart.js:305
@@ -13028,25 +13028,25 @@ msgstr ""
 #: core/doctype/user_permission/user_permission_list.js:10
 #: core/doctype/user_permission/user_permission_list.js:148
 msgid "For User"
-msgstr ""
+msgstr "Kullanıcı"
 
 #. Label of a Link field in DocType 'List Filter'
 #: desk/doctype/list_filter/list_filter.json
 msgctxt "List Filter"
 msgid "For User"
-msgstr ""
+msgstr "Kullanıcı"
 
 #. Label of a Link field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
 msgctxt "Notification Log"
 msgid "For User"
-msgstr ""
+msgstr "Kullanıcı"
 
 #. Label of a Data field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "For User"
-msgstr ""
+msgstr "Kullanıcı"
 
 #. Label of a Dynamic Link field in DocType 'User Permission'
 #: core/doctype/user_permission/user_permission.json
@@ -13057,7 +13057,7 @@ msgstr ""
 #: public/js/frappe/views/reports/query_report.js:1975
 #: public/js/frappe/views/reports/report_view.js:96
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
-msgstr ""
+msgstr "Karşılaştırmak için >5, <10 veya =324 kullanın. Örneğin 5-10 arasındaki değerleri göstermek için, 5:10 kullanın."
 
 #: core/page/permission_manager/permission_manager_help.html:19
 msgid "For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment."
@@ -13071,7 +13071,7 @@ msgstr ""
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "For example: {} Open"
-msgstr ""
+msgstr "Örnek: {} Aktif"
 
 #. Description of the 'Client Script' (Code) field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -13084,11 +13084,11 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "For more information, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">click here</a>."
-msgstr ""
+msgstr "Daha Fazla Bilgi İçin, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">Tıklayın</a>."
 
 #: integrations/doctype/google_settings/google_settings.js:7
 msgid "For more information, {0}."
-msgstr ""
+msgstr "Daha fazla bilgi için, {0}."
 
 #. Description of the 'Email To' (Small Text) field in DocType 'Auto Email
 #. Report'
@@ -13144,7 +13144,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Force User to Reset Password"
-msgstr ""
+msgstr "Kullanıcıyı Şifresini Değiştirmesi İçin Zorla"
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -13154,7 +13154,7 @@ msgstr ""
 
 #: www/login.html:35
 msgid "Forgot Password?"
-msgstr ""
+msgstr "Şifremi Unuttum"
 
 #: printing/page/print/print.js:83
 msgid "Form"
@@ -13212,19 +13212,19 @@ msgstr ""
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Form Settings"
-msgstr ""
+msgstr "Form Ayarları"
 
 #. Label of a Section Break field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Form Settings"
-msgstr ""
+msgstr "Form Ayarları"
 
 #. Label of a Section Break field in DocType 'Role'
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Form Settings"
-msgstr ""
+msgstr "Form Ayarları"
 
 #. Name of a DocType
 #: desk/doctype/form_tour/form_tour.json
@@ -13313,7 +13313,7 @@ msgstr ""
 
 #: public/js/frappe/ui/theme_switcher.js:59
 msgid "Frappe Light"
-msgstr ""
+msgstr "Açık Tema"
 
 #. Label of a standard help item
 #. Type: Action
@@ -13448,7 +13448,7 @@ msgstr ""
 #: desk/doctype/dashboard_chart_link/dashboard_chart_link.json
 msgctxt "Dashboard Chart Link"
 msgid "Full"
-msgstr ""
+msgstr "Tam"
 
 #: desk/page/setup_wizard/setup_wizard.js:464 templates/signup.html:4
 msgid "Full Name"
@@ -13498,13 +13498,13 @@ msgstr ""
 #: public/js/frappe/views/reports/query_report.js:245
 #: public/js/frappe/widgets/widget_dialog.js:671
 msgid "Function"
-msgstr ""
+msgstr "Fonksiyon"
 
 #. Label of a Select field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Function"
-msgstr ""
+msgstr "Fonksiyon"
 
 #: public/js/frappe/widgets/widget_dialog.js:678
 msgid "Function Based On"
@@ -13592,7 +13592,7 @@ msgstr "Özel Raporlar Oluşturun"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Generate Keys"
-msgstr ""
+msgstr "Anahtar Oluştur"
 
 #: public/js/frappe/views/reports/query_report.js:807
 msgid "Generate New Report"
@@ -13641,7 +13641,7 @@ msgstr ""
 
 #: website/doctype/web_form/web_form.js:83
 msgid "Get Fields"
-msgstr ""
+msgstr "Alanları Getir"
 
 #: printing/doctype/letter_head/letter_head.js:32
 msgid "Get Header and Footer wkhtmltopdf variables"
@@ -13664,7 +13664,7 @@ msgstr ""
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
 msgid "Get a preview of generated names with a series."
-msgstr ""
+msgstr "Yeni isimlendirme serisinin önizlemesini buradan görebilirsiniz."
 
 #: public/js/frappe/list/list_sidebar.js:273
 msgid "Get more insights with"
@@ -13717,11 +13717,11 @@ msgstr ""
 #. Name of a DocType
 #: desk/doctype/global_search_settings/global_search_settings.json
 msgid "Global Search Settings"
-msgstr ""
+msgstr "Genel Arama Ayarları"
 
 #: public/js/frappe/ui/keyboard.js:121
 msgid "Global Shortcuts"
-msgstr ""
+msgstr "Genel Kısayollar"
 
 #. Label of a Check field in DocType 'Email Unsubscribe'
 #: email/doctype/email_unsubscribe/email_unsubscribe.json
@@ -13794,7 +13794,7 @@ msgstr ""
 
 #: utils/goal.py:115 utils/goal.py:122
 msgid "Goal"
-msgstr ""
+msgstr "Hedef"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -14450,13 +14450,13 @@ msgstr "Yardım Kategorisi"
 
 #: public/js/frappe/ui/toolbar/navbar.html:85
 msgid "Help Dropdown"
-msgstr ""
+msgstr "Yardım Menüsü"
 
 #. Label of a Table field in DocType 'Navbar Settings'
 #: core/doctype/navbar_settings/navbar_settings.json
 msgctxt "Navbar Settings"
 msgid "Help Dropdown"
-msgstr ""
+msgstr "Yardım Menüsü"
 
 #. Label of a HTML field in DocType 'Document Naming Settings'
 #: core/doctype/document_naming_settings/document_naming_settings.json
@@ -14466,13 +14466,13 @@ msgstr ""
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:138
 msgid "Help on Search"
-msgstr ""
+msgstr "Arama Yardımı"
 
 #. Description of the 'Content' (Text Editor) field in DocType 'Note'
 #: desk/doctype/note/note.json
 msgctxt "Note"
 msgid "Help: To link to another record in the system, use \"/app/note/[Note Name]\" as the Link URL. (don't use \"http://\")"
-msgstr ""
+msgstr "Sistemdeki başka bir kayda bağlanmak için Bağlantı URL'si olarak \"/app/note/[Not Adı]\" kullanın. (\"http://\" kullanmayın)"
 
 #. Label of a Int field in DocType 'Help Article'
 #: website/doctype/help_article/help_article.json
@@ -14587,19 +14587,19 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Hide Border"
-msgstr ""
+msgstr "Kenarları Gizle"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Hide Border"
-msgstr ""
+msgstr "Kenarları Gizle"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Hide Border"
-msgstr ""
+msgstr "Kenarları Gizle"
 
 #. Label of a Check field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -14741,7 +14741,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Hide footer in auto email reports"
-msgstr ""
+msgstr "Otomatik E-posta Raporlarında Alt Bilgiyi Gizle"
 
 #. Label of a Check field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -14773,7 +14773,7 @@ msgstr ""
 
 #: www/update-password.html:274
 msgid "Hint: Include symbols, numbers and capital letters in the password"
-msgstr ""
+msgstr "İpucu: Parolaya semboller, sayılar ve büyük harfler ekleyin."
 
 #: core/doctype/file/utils.py:28 public/js/frappe/views/file/file_view.js:67
 #: public/js/frappe/views/file/file_view.js:88
@@ -14797,13 +14797,13 @@ msgstr ""
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Home Page"
-msgstr ""
+msgstr "Ana Sayfa"
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Home Page"
-msgstr ""
+msgstr "Ana Sayfa"
 
 #. Label of a Code field in DocType 'User'
 #: core/doctype/user/user.json
@@ -14846,20 +14846,20 @@ msgstr ""
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
 msgctxt "Scheduled Job Type"
 msgid "Hourly Long"
-msgstr ""
+msgstr "Saatlik Uzun"
 
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "Hourly Long"
-msgstr ""
+msgstr "Saatlik Uzun"
 
 #. Description of the 'Password Reset Link Generation Limit' (Int) field in
 #. DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Hourly rate limit for generating password reset links"
-msgstr ""
+msgstr "Şifre sıfırlama bağlantıları oluşturmak için saatlik limit."
 
 #. Description of the 'Number Format' (Select) field in DocType 'Currency'
 #: geo/doctype/currency/currency.json
@@ -14935,67 +14935,67 @@ msgstr ""
 #: public/js/frappe/views/workspace/workspace.js:971
 #: public/js/frappe/views/workspace/workspace.js:1216
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Label of a Data field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Label of a Data field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Label of a Select field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Label of a Icon field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Label of a Data field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Label of a Data field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Icon"
-msgstr ""
+msgstr "Simge"
 
 #. Description of the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -15020,7 +15020,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User"
-msgstr ""
+msgstr "Kısıtlı Kullanıcı İzni Uygula işaretliyse ve kullanıcıya bir DocType için Kullanıcı İzni tanımlanmışsa, bağlantının değerinin boş olduğu tüm belgeler o Kullanıcıya gösterilmeyecektir."
 
 #. Description of the 'Don't Override Status' (Check) field in DocType
 #. 'Workflow'
@@ -15048,7 +15048,7 @@ msgstr ""
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "If checked, all other workflows become inactive."
-msgstr ""
+msgstr "İşaretlenirse, diğer tüm iş akışları devre dışı kalır."
 
 #. Description of the 'Show Absolute Values' (Check) field in DocType 'Print
 #. Format'
@@ -15068,7 +15068,7 @@ msgstr ""
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "If disabled, this role will be removed from all users."
-msgstr ""
+msgstr "Devre dışı bırakılırsa, bu rol tüm kullanıcılardan kaldırılacaktır."
 
 #. Description of the 'Bypass Restricted IP Address Check If Two Factor Auth
 #. Enabled' (Check) field in DocType 'User'
@@ -15214,13 +15214,13 @@ msgstr ""
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "If user is the owner"
-msgstr ""
+msgstr "Kullanıcı Sahibiyse"
 
 #. Label of a Check field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "If user is the owner"
-msgstr ""
+msgstr "Kullanıcı Sahibiyse"
 
 #: core/doctype/data_export/exporter.py:204
 msgid "If you are updating, please select \"Overwrite\" else existing rows will not be deleted."
@@ -15262,51 +15262,51 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Ignore User Permissions"
-msgstr ""
+msgstr "Kullanıcı İzinlerini Yoksay"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Ignore User Permissions"
-msgstr ""
+msgstr "Kullanıcı İzinlerini Yoksay"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Ignore User Permissions"
-msgstr ""
+msgstr "Kullanıcı İzinlerini Yoksay"
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Ignore XSS Filter"
-msgstr ""
+msgstr "XSS Filtresini Yoksay"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Ignore XSS Filter"
-msgstr ""
+msgstr "XSS Filtresini Yoksay"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Ignore XSS Filter"
-msgstr ""
+msgstr "XSS Filtresini Yoksay"
 
 #. Description of the 'Attachment Limit (MB)' (Int) field in DocType 'Email
 #. Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Ignore attachments over this size"
-msgstr ""
+msgstr "Bu boyutun üzerindeki dosya eklerini yoksay."
 
 #. Description of the 'Attachment Limit (MB)' (Int) field in DocType 'Email
 #. Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Ignore attachments over this size"
-msgstr ""
+msgstr "Bu boyutun üzerindeki dosya eklerini yoksay."
 
 #. Label of a Table field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
@@ -15500,13 +15500,13 @@ msgstr ""
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "Import File"
-msgstr ""
+msgstr "Dosyayı İçe Aktar"
 
 #. Label of a Section Break field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "Import File Errors and Warnings"
-msgstr ""
+msgstr "Dosya Hatalarını ve Uyarılarını İçe Aktar"
 
 #. Label of a Section Break field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -15549,7 +15549,7 @@ msgstr ""
 
 #: public/js/frappe/views/file/file_view.js:117
 msgid "Import Zip"
-msgstr ""
+msgstr "Zip Yükle"
 
 #. Label of a Data field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -15583,14 +15583,14 @@ msgstr ""
 
 #: public/js/frappe/ui/filters/filter.js:20
 msgid "In"
-msgstr ""
+msgstr "İçerir"
 
 #. Description of the 'Force User to Reset Password' (Int) field in DocType
 #. 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "In Days"
-msgstr ""
+msgstr "Günde"
 
 #. Description of the Onboarding Step 'Setup Limited Access for a User'
 #: custom/onboarding_step/role_permissions/role_permissions.json
@@ -15601,31 +15601,31 @@ msgstr ""
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "In Filter"
-msgstr ""
+msgstr "Filtre"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "In Filter"
-msgstr ""
+msgstr "Filtre"
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "In Global Search"
-msgstr ""
+msgstr "Genel Arama"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "In Global Search"
-msgstr ""
+msgstr "Genel Arama"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "In Global Search"
-msgstr ""
+msgstr "Genel Arama"
 
 #: core/doctype/doctype/doctype.js:96
 msgid "In Grid View"
@@ -15639,25 +15639,25 @@ msgstr ""
 
 #: core/doctype/doctype/doctype.js:97
 msgid "In List View"
-msgstr ""
+msgstr "Liste Görünümünde Göster"
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "In List View"
-msgstr ""
+msgstr "Liste Görünümünde Göster"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "In List View"
-msgstr ""
+msgstr "Liste Görünümünde Göster"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "In List View"
-msgstr ""
+msgstr "Liste Görünümünde Göster"
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -15783,7 +15783,7 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Incoming (POP/IMAP) Settings"
-msgstr ""
+msgstr "Gelen (POP/IMAP) Ayarları"
 
 #. Label of a Data field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -15843,31 +15843,31 @@ msgstr ""
 #: public/js/frappe/model/model.js:124
 #: public/js/frappe/views/reports/report_view.js:939
 msgid "Index"
-msgstr ""
+msgstr "Dizin"
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Index"
-msgstr ""
+msgstr "Dizin"
 
 #. Label of a Check field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Index"
-msgstr ""
+msgstr "Dizin"
 
 #. Label of a Int field in DocType 'Recorder Query'
 #: core/doctype/recorder_query/recorder_query.json
 msgctxt "Recorder Query"
 msgid "Index"
-msgstr ""
+msgstr "Dizin"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Index Web Pages for Search"
-msgstr ""
+msgstr "Sayfaları Arama İçin İndeksle"
 
 #. Label of a Data field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -15897,7 +15897,7 @@ msgstr ""
 #: public/js/frappe/views/workspace/workspace.js:978
 #: public/js/frappe/views/workspace/workspace.js:1222
 msgid "Indicator color"
-msgstr ""
+msgstr "Gösterge Rengi"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
@@ -15965,7 +15965,7 @@ msgstr "Aşağıya Ekle"
 
 #: public/js/frappe/views/reports/report_view.js:360
 msgid "Insert Column Before {0}"
-msgstr ""
+msgstr "{0} Sütunundan Önce Ekle"
 
 #: public/js/frappe/form/controls/markdown_editor.js:82
 msgid "Insert Image in Markdown"
@@ -15991,18 +15991,18 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/installed_application/installed_application.json
 msgid "Installed Application"
-msgstr ""
+msgstr "Yüklü Uygulama"
 
 #. Name of a DocType
 #: core/doctype/installed_applications/installed_applications.json
 msgid "Installed Applications"
-msgstr ""
+msgstr "Yüklü Uygulamalar"
 
 #. Label of a Table field in DocType 'Installed Applications'
 #: core/doctype/installed_applications/installed_applications.json
 msgctxt "Installed Applications"
 msgid "Installed Applications"
-msgstr ""
+msgstr "Yüklü Uygulamalar"
 
 #: core/doctype/installed_applications/installed_applications.js:18
 #: public/js/frappe/ui/toolbar/about.js:8
@@ -16194,7 +16194,7 @@ msgstr ""
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgctxt "OAuth Authorization Code"
 msgid "Invalid"
-msgstr ""
+msgstr "Geçersiz"
 
 #: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:769
 #: public/js/frappe/form/layout.js:782
@@ -18048,7 +18048,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Link Field Results Limit"
-msgstr ""
+msgstr "Bağlantı Alanı Sonuç Limiti"
 
 #. Label of a Data field in DocType 'DocType Link'
 #: core/doctype/doctype_link/doctype_link.json
@@ -18434,7 +18434,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Login Methods"
-msgstr ""
+msgstr "Giriş Yöntemleri"
 
 #. Label of a Section Break field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -18494,7 +18494,7 @@ msgstr ""
 
 #: www/login.html:106
 msgid "Login with Email Link"
-msgstr ""
+msgstr "E-posta Linki ile Giriş"
 
 #: www/login.html:46
 msgid "Login with LDAP"
@@ -18504,7 +18504,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Login with email link"
-msgstr ""
+msgstr "E-posta Linki ile Giriş"
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -18941,7 +18941,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Max File Size (MB)"
-msgstr ""
+msgstr "Maksimum Dosya Boyutu (MB)"
 
 #. Label of a Data field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
@@ -20676,7 +20676,7 @@ msgstr ""
 
 #: public/js/workflow_builder/store.js:51
 msgid "No Label"
-msgstr ""
+msgstr "Etiket Yok"
 
 #: printing/page/print/print.js:682 printing/page/print/print.js:764
 #: public/js/frappe/list/bulk_operations.js:90
@@ -23226,7 +23226,7 @@ msgstr ""
 
 #: templates/emails/password_reset.html:2
 msgid "Please click on the following link to set your new password"
-msgstr ""
+msgstr "Yeni şifrenizi belirlemek için lütfen aşağıdaki bağlantıya tıklayın"
 
 #: integrations/doctype/dropbox_settings/dropbox_settings.py:343
 msgid "Please close this window"
@@ -23258,7 +23258,7 @@ msgstr ""
 
 #: core/doctype/system_settings/system_settings.py:155
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
-msgstr ""
+msgstr "Kullanıcı adı/şifre tabanlı girişi devre dışı bırakmadan önce lütfen en az bir Sosyal Giriş Anahtarını veya LDAP'yi veya E-posta Bağlantısıyla Giriş Yapın'ı etkinleştirin."
 
 #: desk/doctype/notification_log/notification_log.js:45
 #: email/doctype/auto_email_report/auto_email_report.js:17
@@ -24339,7 +24339,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG"
-msgstr ""
+msgstr "Dosya yüklemeleri için izin verilen dosya uzantılarının bir listesini belirleyin. Her satırda izin verilen bir dosya türü bulunmalıdır. Ayarlanmadığı takdirde tüm dosya uzantılarına izin verilir. Örnek: <br>CSV<br>JPG<br>PNG"
 
 #. Label of a Data field in DocType 'User Social Login'
 #: core/doctype/user_social_login/user_social_login.json
@@ -26431,7 +26431,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Reset Password Template"
-msgstr ""
+msgstr "Şifre Sıfırlama Şablonu"
 
 #: core/page/permission_manager/permission_manager.js:109
 msgid "Reset Permissions for {0}?"
@@ -26455,7 +26455,7 @@ msgstr ""
 
 #: templates/emails/password_reset.html:3
 msgid "Reset your password"
-msgstr ""
+msgstr "Şifrenizi Sıfırlayın"
 
 #. Label of a Text Editor field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
@@ -26999,7 +26999,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Rounding Method"
-msgstr ""
+msgstr "Yuvarlama Yöntemi"
 
 #. Label of a Data field in DocType 'Blog Category'
 #: website/doctype/blog_category/blog_category.json
@@ -27111,11 +27111,11 @@ msgstr ""
 
 #: model/base_document.py:723 model/base_document.py:764 model/document.py:610
 msgid "Row"
-msgstr ""
+msgstr "Satır"
 
 #: core/doctype/version/version_view.html:73
 msgid "Row #"
-msgstr ""
+msgstr "Satır #"
 
 #: core/doctype/doctype/doctype.py:1780 core/doctype/doctype/doctype.py:1790
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
@@ -28866,7 +28866,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Session Expiry (idle timeout)"
-msgstr ""
+msgstr "Oturum Sona Erme"
 
 #: core/doctype/system_settings/system_settings.py:112
 msgid "Session Expiry must be in format {0}"
@@ -28952,7 +28952,7 @@ msgstr ""
 #: public/js/frappe/form/link_selector.js:207
 #: public/js/frappe/form/link_selector.js:208
 msgid "Set Quantity"
-msgstr ""
+msgstr "Miktarı Ayarla"
 
 #. Label of a Select field in DocType 'Role Permission for Page and Report'
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
@@ -29264,7 +29264,7 @@ msgstr ""
 #: contacts/doctype/address/address.json
 msgctxt "Address"
 msgid "Shop"
-msgstr ""
+msgstr "Mağaza"
 
 #. Label of a Data field in DocType 'Blogger'
 #: website/doctype/blogger/blogger.json
@@ -30560,7 +30560,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Store Attached PDF Document"
-msgstr ""
+msgstr "Eklenen PDF Belgesini Sakla"
 
 #. Description of the 'Last Known Versions' (Text) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -31547,7 +31547,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Telemetry"
-msgstr ""
+msgstr "Telemetri"
 
 #. Label of a Code field in DocType 'Address Template'
 #: contacts/doctype/address_template/address_template.json
@@ -31686,7 +31686,7 @@ msgstr ""
 
 #: templates/emails/password_reset.html:5
 msgid "Thank you"
-msgstr ""
+msgstr "Teşekkürler"
 
 #: www/contact.py:37
 msgid "Thank you for reaching out to us. We will get back to you at the earliest.\n\n\n"
@@ -31837,7 +31837,7 @@ msgstr ""
 
 #: templates/emails/login_with_email_link.html:21
 msgid "The link will expire in {0} minutes"
-msgstr ""
+msgstr "Bağlantının süresi {0} dakika içinde dolacak."
 
 #: www/login.py:179
 msgid "The link you trying to login is invalid or expired."
@@ -33146,7 +33146,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_view.js:1154
 msgid "Totals Row"
-msgstr ""
+msgstr "Toplam Satır"
 
 #. Label of a Data field in DocType 'Error Log'
 #: core/doctype/error_log/error_log.json
@@ -33748,7 +33748,7 @@ msgstr ""
 
 #: utils/data.py:1052
 msgid "Unknown Rounding Method: {}"
-msgstr ""
+msgstr "Bilinmeyen Yuvarlama Yöntemi: {}"
 
 #: auth.py:295
 msgid "Unknown User"
@@ -33848,11 +33848,11 @@ msgstr ""
 
 #: public/js/frappe/views/file/file_view.js:132
 msgid "Unzipped {0} files"
-msgstr ""
+msgstr "Sıkıştırılmamış {0} dosya"
 
 #: public/js/frappe/views/file/file_view.js:125
 msgid "Unzipping files..."
-msgstr ""
+msgstr "Dosyalar açılıyor..."
 
 #: desk/doctype/event/event.py:255
 msgid "Upcoming Events for Today"
@@ -33979,7 +33979,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Updates"
-msgstr ""
+msgstr "Güncellemeler"
 
 #: utils/response.py:316
 msgid "Updating"
@@ -35132,7 +35132,7 @@ msgstr ""
 #: contacts/doctype/address/address.json
 msgctxt "Address"
 msgid "Warehouse"
-msgstr ""
+msgstr "Depo"
 
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -35750,7 +35750,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "When sending document using email, store the PDF on Communication. Warning: This can increase your storage usage."
-msgstr ""
+msgstr "Belgeyi e-posta kullanarak gönderirken PDF dosyasını saklayın. Uyarı: Bu, depolama alanı kullanımınızı artırabilir."
 
 #. Description of the 'Force Web Capture Mode for Uploads' (Check) field in
 #. DocType 'System Settings'
