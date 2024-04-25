@@ -4,6 +4,7 @@
 import base64
 import datetime
 import re
+import time
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Optional
 
@@ -263,12 +264,8 @@ def make_autoname(key="", doctype="", doc="", *, ignore_validate=False):
 	                DE/09/01/00001 where 09 is the year, 01 is the month and 00001 is the series
 	"""
 	if key == "hash":
-<<<<<<< HEAD
-		return frappe.generate_hash(length=10)
-=======
 		# Makeshift "ULID": first 4 chars are based on timestamp, other 6 are random
 		return _get_timestamp_prefix() + _generate_random_string(6)
->>>>>>> adf24b24d4 (perf: use base32 space for random names instead of base16 (#25497))
 
 	series = NamingSeries(key)
 	return series.generate_next_name(doc, ignore_validate=ignore_validate)
