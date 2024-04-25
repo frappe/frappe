@@ -9,7 +9,7 @@ def extract(*args, **kwargs):
 	Reuse the babel_extract function from jinja2.ext, but handle our own implementation of `_()`.
 	To handle JS microtemplates, parse all code again using regex."""
 	fileobj = args[0] or kwargs["fileobj"]
-	print(fileobj.name)
+
 	code = fileobj.read().decode("utf-8")
 
 	for lineno, funcname, messages, comments in babel_extract(*args, **kwargs):
