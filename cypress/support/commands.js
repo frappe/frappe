@@ -32,7 +32,7 @@ Cypress.Commands.add("login", (email, password) => {
 		email = Cypress.config("testUser") || "Administrator";
 	}
 	if (!password) {
-		password = Cypress.env("adminPassword");
+		password = Cypress.env("adminPassword") || "admin";
 	}
 	// cy.session clears all localStorage on new login, so we need to retain the last route
 	const session_last_route = window.localStorage.getItem("session_last_route");
