@@ -14,6 +14,8 @@ from frappe.model.naming import (
 	parse_naming_series,
 	revert_series_if_last,
 )
+from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase, patch_hooks
 from frappe.utils import now_datetime, nowdate, nowtime
 
@@ -375,6 +377,15 @@ class TestNaming(FrappeTestCase):
 
 		name = parse_naming_series(series, doc=webhook)
 		self.assertTrue(name.startswith("KOOH---"), f"incorrect name generated {name}")
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_hash_collision(self):
+		doctype = new_doctype(autoname="hash").insert().name
+		name = frappe.generate_hash()
+		for _ in range(10):
+			frappe.flags.in_import = True
+			frappe.new_doc(doctype).update({"name": name}).insert()
+		frappe.flags.pop("in_import", None)
 
 	def test_custom_parser(self):
 		# check naming with custom parser
