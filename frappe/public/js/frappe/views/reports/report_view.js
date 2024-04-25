@@ -1584,6 +1584,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 							if (data.file_format == "CSV") {
 								args.csv_delimiter = data.csv_delimiter;
 								args.csv_quoting = data.csv_quoting;
+								args.csv_decimal_sep = data.csv_decimal_sep;
 							}
 
 							if (this.add_totals_row) {

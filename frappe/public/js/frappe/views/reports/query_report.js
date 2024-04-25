@@ -1519,6 +1519,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				include_filters,
 				csv_delimiter,
 				csv_quoting,
+				csv_decimal_sep,
 			}) => {
 				this.make_access_log("Export", file_format);
 
@@ -1551,6 +1552,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					visible_idx,
 					csv_delimiter,
 					csv_quoting,
+					csv_decimal_sep,
 					include_indentation,
 					include_filters,
 				};
