@@ -991,7 +991,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 			if (button_actions) {
 				dropdown_button = `
-					<div class="inner-group-button mr-2" data-name="${doc.name}" data-label="${this.settings.dropdown_button.get_label}">
+				<div class="inner-group-button mr-2" data-name="${doc.name}" data-label="${
+					this.settings.dropdown_button.get_label
+				}">
 						<button type="button" class="btn btn-xs btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 							${this.settings.dropdown_button.get_label}
 							${frappe.utils.icon("select", "xs")}
@@ -1006,7 +1008,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	apply_styles_basedon_dropdown() {
 		if ($(".list-actions").length > 0 && $(".inner-group-button").length > 0) {
-			$('.list-row .level-left, .list-row-head .level-left').css({
+			$(".list-row .level-left, .list-row-head .level-left").css({
 				flex: "2",
 				"min-width": "72%",
 			});
