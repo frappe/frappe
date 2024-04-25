@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-24 11:41\n"
+"PO-Revision-Date: 2024-04-25 12:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -573,7 +573,7 @@ msgstr ">="
 #. Description of the Onboarding Step 'Custom Document Types'
 #: custom/onboarding_step/custom_doctype/custom_doctype.json
 msgid "A DocType (Document Type) is used to insert forms in ERPNext. Forms such as Customer, Orders, and Invoices are Doctypes in the backend. You can also create new DocTypes to create new forms in ERPNext as per your business needs."
-msgstr "یک DocType (نوع سند) برای درج فرم ها در ERPNext استفاده می شود. فرم هایی مانند مشتری، سفارشات و فاکتورها در باطن Doctypes هستند. همچنین می‌توانید DocType‌های جدیدی برای ایجاد فرم‌های جدید در ERPNext بر اساس نیازهای کسب‌وکار خود ایجاد کنید."
+msgstr ""
 
 #: core/doctype/doctype/doctype.py:1015
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
@@ -713,7 +713,7 @@ msgstr "نقطه پایانی API"
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "API Endpoint Args"
-msgstr ""
+msgstr "API Endpoint Args"
 
 #. Label of a Data field in DocType 'Google Settings'
 #. Label of a Section Break field in DocType 'Google Settings'
@@ -882,14 +882,14 @@ msgstr "تنظیمات حذف اکانت"
 #: automation/doctype/auto_repeat/auto_repeat.json
 #: contacts/doctype/contact/contact.json geo/doctype/currency/currency.json
 msgid "Accounts Manager"
-msgstr "مدیر حساب ها"
+msgstr ""
 
 #. Name of a role
 #: automation/doctype/auto_repeat/auto_repeat.json
 #: contacts/doctype/address/address.json contacts/doctype/contact/contact.json
 #: geo/doctype/currency/currency.json
 msgid "Accounts User"
-msgstr "کاربر حساب ها"
+msgstr ""
 
 #: email/doctype/email_group/email_group.js:34
 #: email/doctype/email_group/email_group.js:63
@@ -2238,7 +2238,7 @@ msgstr "ویجت اعلامیه"
 #: core/doctype/navbar_settings/navbar_settings.json
 msgctxt "Navbar Settings"
 msgid "Announcements"
-msgstr ""
+msgstr "اطلاعیه ها"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -3009,7 +3009,7 @@ msgstr "تلاش برای اتصال به سینی QZ..."
 
 #: public/js/frappe/form/print_utils.js:105
 msgid "Attempting to launch QZ Tray..."
-msgstr "تلاش برای راه اندازی QZ Tray..."
+msgstr "تلاش برای راه‌اندازی QZ Tray..."
 
 #: www/attribution.html:9
 msgid "Attribution"
@@ -3485,19 +3485,19 @@ msgstr "B9"
 
 #: public/js/frappe/views/communication.js:79
 msgid "BCC"
-msgstr ""
+msgstr "BCC"
 
 #. Label of a Code field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "BCC"
-msgstr ""
+msgstr "BCC"
 
 #. Label of a Code field in DocType 'Notification Recipient'
 #: email/doctype/notification_recipient/notification_recipient.json
 msgctxt "Notification Recipient"
 msgid "BCC"
-msgstr ""
+msgstr "BCC"
 
 #: public/js/frappe/widgets/onboarding_widget.js:186
 msgid "Back"
@@ -3763,7 +3763,7 @@ msgstr "قبل از درج"
 #: core/doctype/server_script/server_script.json
 msgctxt "Server Script"
 msgid "Before Print"
-msgstr ""
+msgstr "قبل از چاپ"
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -3984,7 +3984,7 @@ msgstr "وبلاگ نویس"
 #. Subtitle of the Module Onboarding 'Website'
 #: website/module_onboarding/website/website.json
 msgid "Blogs, Website View Tracking, and more."
-msgstr ""
+msgstr "وبلاگ ها، ردیابی مشاهده وب سایت و موارد دیگر."
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #: core/doctype/doctype_state/doctype_state.json
@@ -4330,7 +4330,7 @@ msgstr "در صورت فعال بودن تأیید اعتبار دو عاملی�
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "C5E"
-msgstr ""
+msgstr "C5E"
 
 #: templates/print_formats/standard_macros.html:212
 msgid "CANCELLED"
@@ -4338,19 +4338,19 @@ msgstr "لغو شد"
 
 #: public/js/frappe/views/communication.js:73
 msgid "CC"
-msgstr ""
+msgstr "CC"
 
 #. Label of a Code field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "CC"
-msgstr ""
+msgstr "CC"
 
 #. Label of a Code field in DocType 'Notification Recipient'
 #: email/doctype/notification_recipient/notification_recipient.json
 msgctxt "Notification Recipient"
 msgid "CC"
-msgstr ""
+msgstr "CC"
 
 #. Label of a Data field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
@@ -6271,7 +6271,7 @@ msgstr "تایید شده"
 
 #: public/js/frappe/widgets/onboarding_widget.js:530
 msgid "Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target=\"_blank\" href=\"{0}\">here</a>."
-msgstr "بابت تکمیل راه اندازی ماژول تبریک می گویم. اگر می‌خواهید بیشتر بدانید، می‌توانید به مستندات <a target=\"_blank\" href=\"{0}\">اینجا</a> مراجعه کنید."
+msgstr "بابت تکمیل راه‌اندازی ماژول تبریک می گویم. اگر می‌خواهید بیشتر بدانید، می‌توانید به مستندات <a target=\"_blank\" href=\"{0}\">اینجا</a> مراجعه کنید."
 
 #: integrations/doctype/connected_app/connected_app.js:25
 msgid "Connect to {}"
@@ -7382,7 +7382,7 @@ msgstr "سفارشی سازی"
 #. Success message of the Module Onboarding 'Customization'
 #: custom/module_onboarding/customization/customization.json
 msgid "Customization onboarding is all done!"
-msgstr ""
+msgstr "سفارشی‌سازی نصب تمام شده است!"
 
 #: public/js/frappe/views/workspace/workspace.js:522
 msgid "Customizations Discarded"
@@ -7488,7 +7488,7 @@ msgstr "نزولی"
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "DLE"
-msgstr ""
+msgstr "DLE"
 
 #: templates/print_formats/standard_macros.html:207
 msgid "DRAFT"
@@ -8247,7 +8247,7 @@ msgstr "نمای پیش فرض"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Default Workspace"
-msgstr ""
+msgstr "فضای کاری پیش فرض"
 
 #: core/doctype/doctype/doctype.py:1343
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
@@ -8291,12 +8291,12 @@ msgstr "پیش فرض ها به روز شد"
 #. Description of a DocType
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Defines actions on states and the next step and allowed roles."
-msgstr ""
+msgstr "اقدامات مربوط به ایالت ها و مرحله بعدی و نقش های مجاز را تعریف می کند."
 
 #. Description of a DocType
 #: workflow/doctype/workflow/workflow.json
 msgid "Defines workflow states and rules for a document."
-msgstr ""
+msgstr "وضعیت ها و قوانین گردش کار را برای یک سند تعریف می کند."
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -9048,12 +9048,12 @@ msgstr "DocField"
 #. Name of a DocType
 #: core/doctype/docperm/docperm.json
 msgid "DocPerm"
-msgstr ""
+msgstr "DocPerm"
 
 #. Name of a DocType
 #: core/doctype/docshare/docshare.json
 msgid "DocShare"
-msgstr ""
+msgstr "DocShare"
 
 #: workflow/doctype/workflow/workflow.js:264
 msgid "DocStatus of the following states have changed:<br><strong>{0}</strong><br>\n"
@@ -9231,7 +9231,7 @@ msgstr "DocType فقط توسط Administrator قابل تغییر نام است"
 #. Description of a DocType
 #: core/doctype/doctype/doctype.json
 msgid "DocType is a Table / Form in the application."
-msgstr ""
+msgstr "DocType یک جدول / فرم در برنامه است."
 
 #: integrations/doctype/webhook/webhook.py:82
 msgid "DocType must be Submittable for the selected Doc Event"
@@ -9369,7 +9369,7 @@ msgstr "پیوندهای اسناد"
 
 #: core/doctype/doctype/doctype.py:1178
 msgid "Document Links Row #{0}: Could not find field {1} in {2} DocType"
-msgstr "پیوندهای سند ردیف شماره {0}: فیلد {1} در {2} DocType یافت نشد"
+msgstr "پیوندهای سند ردیف #{0}: فیلد {1} در {2} DocType یافت نشد"
 
 #: core/doctype/doctype/doctype.py:1198
 msgid "Document Links Row #{0}: Invalid doctype or fieldname."
@@ -9377,7 +9377,7 @@ msgstr "پیوندهای سند ردیف #{0}: نوع سند یا نام فیل�
 
 #: core/doctype/doctype/doctype.py:1161
 msgid "Document Links Row #{0}: Parent DocType is mandatory for internal links"
-msgstr "ردیف پیوندهای سند شماره {0}: نوع DocType برای پیوندهای داخلی اجباری است"
+msgstr ""
 
 #: core/doctype/doctype/doctype.py:1167
 msgid "Document Links Row #{0}: Table Fieldname is mandatory for internal links"
@@ -9959,7 +9959,7 @@ msgstr "تنظیمات دراپ باکس"
 
 #: integrations/doctype/dropbox_settings/dropbox_settings.py:347
 msgid "Dropbox Setup"
-msgstr "راه اندازی دراپ باکس"
+msgstr "راه‌اندازی دراپ باکس"
 
 #. Label of a Section Break field in DocType 'Navbar Settings'
 #: core/doctype/navbar_settings/navbar_settings.json
@@ -10647,7 +10647,7 @@ msgstr "فلاشینگ صف ایمیل به دلیل خرابی های زیاد 
 #. Description of a DocType
 #: email/doctype/email_queue/email_queue.json
 msgid "Email Queue records."
-msgstr ""
+msgstr "رکوردهای صف ایمیل"
 
 #. Label of a HTML field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
@@ -11434,7 +11434,7 @@ msgstr "گزارش خطا"
 #: core/workspace/build/build.json
 msgctxt "Error Log"
 msgid "Error Logs"
-msgstr ""
+msgstr "لاگ‌های خطا"
 
 #. Label of a Text field in DocType 'Prepared Report'
 #: core/doctype/prepared_report/prepared_report.json
@@ -11561,7 +11561,7 @@ msgstr "نوع رویداد"
 
 #: public/js/frappe/ui/notifications/notifications.js:56
 msgid "Events"
-msgstr ""
+msgstr "مناسبت ها"
 
 #: desk/doctype/event/event.py:261
 msgid "Events in Today's Calendar"
@@ -11633,7 +11633,7 @@ msgstr "مثال: با تنظیم این ساعت روی 24:00، اگر کارب
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgctxt "Assignment Rule"
 msgid "Example: {{ subject }}"
-msgstr "مثال: {{ موضوع }}"
+msgstr ""
 
 #. Option for the 'File Type' (Select) field in DocType 'Data Export'
 #: core/doctype/data_export/data_export.json
@@ -11866,7 +11866,7 @@ msgstr "{0} رکورد را صادر کنید"
 
 #: custom/doctype/customize_form/customize_form.js:263
 msgid "Exported permissions will be force-synced on every migrate overriding any other customization."
-msgstr ""
+msgstr "مجوزهای صادر شده در هر مهاجرتی که هر سفارشی سازی دیگری را لغو می کند، به اجبار همگام سازی می شود."
 
 #. Label of a Data field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
@@ -12023,7 +12023,7 @@ msgstr "ایمیل اعلان ارسال نشد"
 
 #: desk/page/setup_wizard/setup_wizard.py:23
 msgid "Failed to update global settings"
-msgstr ""
+msgstr "تنظیمات جهانی به روز نشد"
 
 #: core/doctype/data_import/data_import.js:465
 msgid "Failure"
@@ -13203,7 +13203,7 @@ msgstr "برای راهنمایی به <a href=\"https://frappeframework.com/doc
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "For more information, <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">click here</a>."
-msgstr "برای اطلاعات بیشتر، <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">اینجا را کلیک کنید< /a>."
+msgstr "برای اطلاعات بیشتر، <a class=\"text-muted\" href=\"https://erpnext.com/docs/user/manual/en/setting-up/email/linking-emails-to-document\">اینجا را کلیک کنید</a>."
 
 #: integrations/doctype/google_settings/google_settings.js:7
 msgid "For more information, {0}."
@@ -13635,7 +13635,7 @@ msgstr "گره های بیشتر را فقط می توان تحت گره های 
 
 #: core/doctype/communication/communication.js:291
 msgid "Fw: {0}"
-msgstr ""
+msgstr "Fw: {0}"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
@@ -13783,7 +13783,7 @@ msgstr "پیش نمایش نام های تولید شده را با یک سری 
 
 #: public/js/frappe/list/list_sidebar.js:273
 msgid "Get more insights with"
-msgstr ""
+msgstr "دریافت اطلاعات بیشتر با"
 
 #. Description of the 'Email Threads on Assigned Document' (Check) field in
 #. DocType 'Notification Settings'
@@ -15561,25 +15561,25 @@ msgstr "تصاویر"
 
 #: core/doctype/user/user.js:356
 msgid "Impersonate"
-msgstr ""
+msgstr "جعل هویت"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
 msgctxt "Activity Log"
 msgid "Impersonate"
-msgstr ""
+msgstr "جعل هویت"
 
 #: core/doctype/user/user.js:383
 msgid "Impersonate as {0}"
-msgstr ""
+msgstr "جعل هویت به عنوان {0}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:233
 msgid "Impersonated by {0}"
-msgstr ""
+msgstr "جعل هویت توسط {0}"
 
 #: public/js/frappe/ui/toolbar/navbar.html:22
 msgid "Impersonating {0}"
-msgstr ""
+msgstr "جعل هویت {0}"
 
 #: core/doctype/log_settings/log_settings.py:57
 msgid "Implement `clear_old_logs` method to enable auto error clearing."
@@ -16246,13 +16246,13 @@ msgstr "اینتر"
 
 #: desk/page/user_profile/user_profile_sidebar.html:37
 msgid "Interests"
-msgstr "منافع"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Interests"
-msgstr "منافع"
+msgstr ""
 
 #. Option for the 'Level' (Select) field in DocType 'Help Article'
 #: website/doctype/help_article/help_article.json
@@ -16267,7 +16267,7 @@ msgstr "خطای سرور داخلی"
 #. Description of a DocType
 #: core/doctype/docshare/docshare.json
 msgid "Internal record of document shares"
-msgstr ""
+msgstr "سابقه داخلی سهام اسناد"
 
 #: desk/page/user_profile/user_profile_sidebar.html:22
 msgid "Intro"
@@ -17142,12 +17142,12 @@ msgstr "تنظیمات کانبان"
 #. Description of a DocType
 #: core/doctype/activity_log/activity_log.json
 msgid "Keep track of all update feeds"
-msgstr ""
+msgstr "تمام فیدهای به روز رسانی را پیگیری کنید"
 
 #. Description of a DocType
 #: core/doctype/communication/communication.json
 msgid "Keeps track of all communications"
-msgstr ""
+msgstr "تمام ارتباطات را پیگیری می کند"
 
 #. Label of a Data field in DocType 'DefaultValue'
 #: core/doctype/defaultvalue/defaultvalue.json
@@ -17218,7 +17218,7 @@ msgstr "ویرایشگر پایگاه دانش"
 #: public/js/frappe/utils/number_systems.js:49
 msgctxt "Number system"
 msgid "L"
-msgstr ""
+msgstr "L"
 
 #. Label of a Section Break field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -17857,7 +17857,7 @@ msgstr "بیا شروع کنیم"
 #. Title of the Module Onboarding 'Website'
 #: website/module_onboarding/website/website.json
 msgid "Let's Set Up Your Website."
-msgstr "بیایید وب سایت خود را راه اندازی کنیم."
+msgstr "بیایید وب سایت خود را راه‌اندازی کنیم."
 
 #: utils/password_strength.py:111
 msgid "Let's avoid repeated words and characters"
@@ -18436,7 +18436,7 @@ msgstr "فهرست به عنوان [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}
 #. Description of a DocType
 #: core/doctype/patch_log/patch_log.json
 msgid "List of patches executed"
-msgstr ""
+msgstr "لیست پچ های اجرا شده"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:542
 msgid "Lists"
@@ -18761,7 +18761,7 @@ msgstr "به نظر می رسد هیچ اعلانی دریافت نکرده ای
 
 #: core/doctype/server_script/server_script_list.js:18
 msgid "Loving Frappe Framework?"
-msgstr ""
+msgstr "آیا چارچوب فراپه را دوست دارید؟"
 
 #: public/js/frappe/form/sidebar/assign_to.js:190
 msgid "Low"
@@ -19547,13 +19547,13 @@ msgstr "نقطه عطف"
 #. Name of a DocType
 #: automation/doctype/milestone_tracker/milestone_tracker.json
 msgid "Milestone Tracker"
-msgstr ""
+msgstr "Milestone Tracker"
 
 #. Label of a Link field in DocType 'Milestone'
 #: automation/doctype/milestone/milestone.json
 msgctxt "Milestone"
 msgid "Milestone Tracker"
-msgstr ""
+msgstr "Milestone Tracker"
 
 #. Option for the 'Function' (Select) field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
@@ -20184,7 +20184,7 @@ msgstr "تنظیمات من"
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "MyISAM"
-msgstr ""
+msgstr "MyISAM"
 
 #: workflow/doctype/workflow/workflow.js:19
 msgid "NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
@@ -20231,7 +20231,7 @@ msgstr "نام"
 
 #: integrations/doctype/webhook/webhook.js:29
 msgid "Name (Doc Name)"
-msgstr ""
+msgstr "نام (نام سند)"
 
 #: desk/utils.py:22
 msgid "Name already taken, please set a new name"
@@ -20922,7 +20922,7 @@ msgstr "هیچ چاپگری در دسترس نیست."
 
 #: core/doctype/rq_worker/rq_worker_list.js:3
 msgid "No RQ Workers connected. Try restarting the bench."
-msgstr "هیچ RQ Worker متصل نیست. نیمکت را دوباره راه اندازی کنید."
+msgstr "هیچ RQ Worker متصل نیست. نیمکت را دوباره راه‌اندازی کنید."
 
 #: public/js/frappe/form/link_selector.js:135
 msgid "No Results"
@@ -21422,7 +21422,7 @@ msgstr "توجه: جلسات متعدد در مورد دستگاه تلفن هم
 
 #: core/doctype/user/user.js:371
 msgid "Note: This will be shared with user."
-msgstr ""
+msgstr "توجه: این با کاربر به اشتراک گذاشته خواهد شد."
 
 #: website/web_form/request_to_delete_data/request_to_delete_data.js:8
 msgid "Note: Your request for account deletion will be fulfilled within {0} hours."
@@ -21434,7 +21434,7 @@ msgstr "یادداشت:"
 
 #: public/js/frappe/ui/notifications/notifications.js:485
 msgid "Nothing New"
-msgstr ""
+msgstr "چیز جدیدی نیست"
 
 #: public/js/frappe/form/undo_manager.js:43
 msgid "Nothing left to redo"
@@ -22436,7 +22436,7 @@ msgstr "PDF"
 
 #: utils/print_format.py:146 utils/print_format.py:190
 msgid "PDF Generation in Progress"
-msgstr ""
+msgstr "نسخه PDF در حال انجام است"
 
 #. Label of a Float field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -22478,7 +22478,7 @@ msgstr "چاپ PDF از طریق \"Raw Print\" پشتیبانی نمی شود."
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "PID"
-msgstr ""
+msgstr "PID"
 
 #. Option for the 'Method' (Select) field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
@@ -22691,7 +22691,7 @@ msgstr "صفحه یافت نشد"
 #. Description of a DocType
 #: website/doctype/web_page/web_page.json
 msgid "Page to show on the website\n"
-msgstr ""
+msgstr "صفحه برای نمایش در وب سایت\n"
 
 #: public/js/frappe/views/workspace/workspace.js:1310
 msgid "Page with title {0} already exist."
@@ -23019,7 +23019,7 @@ msgstr "مسیر فایل کلید خصوصی"
 
 #: website/path_resolver.py:197
 msgid "Path {0} it not a valid path"
-msgstr ""
+msgstr "مسیر {0} یک مسیر معتبر نیست"
 
 #. Label of a Int field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -23761,7 +23761,7 @@ msgstr "لطفا آدرس ایمیل خود را تایید کنید"
 
 #: utils/password.py:201
 msgid "Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
-msgstr ""
+msgstr "لطفاً برای اطلاعات بیشتر به https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key مراجعه کنید."
 
 #. Label of a Select field in DocType 'Energy Point Settings'
 #: social/doctype/energy_point_settings/energy_point_settings.json
@@ -24223,7 +24223,7 @@ msgstr "فرمت ساز چاپ"
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "Print Format Builder (New)"
-msgstr ""
+msgstr "فرمت ساز چاپ (جدید)"
 
 #. Label of a Check field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
@@ -24259,7 +24259,7 @@ msgstr "قالب چاپ {0} غیرفعال است"
 #. Description of the Onboarding Step 'Customize Print Formats'
 #: custom/onboarding_step/print_format/print_format.json
 msgid "Print Formats allow you can define looks for documents when printed or converted to PDF. You can also create a custom Print Format using drag-and-drop tools."
-msgstr ""
+msgstr "قالب‌های چاپی به شما این امکان را می‌دهند که هنگام چاپ یا تبدیل به PDF، ظاهر اسناد را تعریف کنید. همچنین می توانید با استفاده از ابزارهای کشیدن و رها کردن، یک قالب چاپ سفارشی ایجاد کنید."
 
 #. Name of a DocType
 #: printing/doctype/print_heading/print_heading.json
@@ -24565,7 +24565,7 @@ msgstr "تنظیم کننده اموال"
 #. Description of a DocType
 #: custom/doctype/property_setter/property_setter.json
 msgid "Property Setter overrides a standard DocType or Field property"
-msgstr ""
+msgstr "Property Setter یک ویژگی DocType یا Field استاندارد را لغو می کند"
 
 #. Label of a Data field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
@@ -24752,13 +24752,13 @@ msgstr "مدیر خرید"
 #. Name of a role
 #: contacts/doctype/contact/contact.json
 msgid "Purchase Master Manager"
-msgstr "مدیر ارشد را خریداری کنید"
+msgstr ""
 
 #. Name of a role
 #: contacts/doctype/address/address.json contacts/doctype/contact/contact.json
 #: geo/doctype/currency/currency.json
 msgid "Purchase User"
-msgstr "خرید کاربر"
+msgstr "کاربر خرید"
 
 #. Option for the 'Color' (Select) field in DocType 'DocType State'
 #: core/doctype/doctype_state/doctype_state.json
@@ -24775,18 +24775,18 @@ msgstr "رنگ بنفش"
 #. Name of a DocType
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
 msgid "Push Notification Settings"
-msgstr ""
+msgstr "تنظیمات Push Notification"
 
 #. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgctxt "Push Notification Settings"
 msgid "Push Notification Settings"
-msgstr ""
+msgstr "تنظیمات Push Notification"
 
 #. Label of a Card Break in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgid "Push Notifications"
-msgstr ""
+msgstr "Push Notifications"
 
 #. Label of a Check field in DocType 'Google Calendar'
 #: integrations/doctype/google_calendar/google_calendar.json
@@ -24820,7 +24820,7 @@ msgstr "کد QR برای تأیید ورود"
 
 #: public/js/frappe/form/print_utils.js:204
 msgid "QZ Tray Failed: "
-msgstr ""
+msgstr " سینی QZ ناموفق بود:"
 
 #: public/js/frappe/utils/common.js:401
 msgid "Quarterly"
@@ -25974,7 +25974,7 @@ msgstr "رد شد"
 
 #: integrations/doctype/push_notification_settings/push_notification_settings.py:30
 msgid "Relay Server URL missing"
-msgstr ""
+msgstr "URL سرور رله وجود ندارد"
 
 #. Label of a Section Break field in DocType 'Push Notification Settings'
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
@@ -25986,7 +25986,7 @@ msgstr "تنظیمات رله"
 #: core/doctype/package/package.json
 msgctxt "Package"
 msgid "Release"
-msgstr ""
+msgstr "انتشار"
 
 #. Label of a Markdown Editor field in DocType 'Package Release'
 #: core/doctype/package_release/package_release.json
@@ -26510,12 +26510,12 @@ msgstr "گزارش‌ها از قبل در صف هستند"
 #. Description of a DocType
 #: core/doctype/user/user.json
 msgid "Represents a User in the system."
-msgstr ""
+msgstr "نشان دهنده یک کاربر در سیستم است."
 
 #. Description of a DocType
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Represents the states allowed in one document and role assigned to change the state."
-msgstr ""
+msgstr "نشان دهنده ایالت های مجاز در یک سند و نقش تعیین شده برای تغییر وضعیت است."
 
 #: www/me.html:66
 msgid "Request Account Deletion"
@@ -26734,7 +26734,7 @@ msgstr "واکنش"
 #: email/doctype/email_template/email_template.json
 msgctxt "Email Template"
 msgid "Response "
-msgstr ""
+msgstr "واکنش "
 
 #. Label of a Select field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
@@ -26991,7 +26991,7 @@ msgstr "مرکز راست"
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Robots.txt"
-msgstr ""
+msgstr "Robots.txt"
 
 #. Name of a DocType
 #: core/doctype/role/role.json core/doctype/user_type/user_type.py:109
@@ -27374,7 +27374,7 @@ msgstr "تغییر مسیرها"
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Route: Example \"/app\""
-msgstr ""
+msgstr "مسیر: مثال \"/app\""
 
 #: model/base_document.py:731 model/base_document.py:772 model/document.py:616
 msgid "Row"
@@ -28057,7 +28057,7 @@ msgstr "نوع اسکریپت"
 #. Description of a DocType
 #: website/doctype/website_script/website_script.json
 msgid "Script to attach to all web pages."
-msgstr ""
+msgstr "اسکریپت برای پیوست کردن به تمام صفحات وب."
 
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
@@ -28149,7 +28149,7 @@ msgstr "جستجو در یک نوع سند"
 
 #: public/js/frappe/ui/toolbar/navbar.html:30
 msgid "Search or type a command ({0})"
-msgstr ""
+msgstr "جستجو یا تایپ یک فرمان ({0})"
 
 #: templates/includes/search_box.html:8
 msgid "Search results for"
@@ -29372,7 +29372,7 @@ msgstr "تنظیم اسناد جستجوی سراسری"
 
 #: desk/page/setup_wizard/setup_wizard.js:273
 msgid "Setting up your system"
-msgstr "راه اندازی سیستم شما"
+msgstr "راه‌اندازی سیستم شما"
 
 #. Label of a Card Break in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
@@ -29416,17 +29416,17 @@ msgstr "کشویی تنظیمات"
 #. Description of a DocType
 #: website/doctype/contact_us_settings/contact_us_settings.json
 msgid "Settings for Contact Us Page"
-msgstr ""
+msgstr "تنظیمات صفحه تماس با ما"
 
 #. Description of a DocType
 #: website/doctype/about_us_settings/about_us_settings.json
 msgid "Settings for the About Us Page"
-msgstr ""
+msgstr "تنظیمات صفحه درباره ما"
 
 #. Description of a DocType
 #: website/doctype/blog_settings/blog_settings.json
 msgid "Settings to control blog categories and interactions like comments and likes"
-msgstr ""
+msgstr "تنظیمات برای کنترل دسته‌های وبلاگ و تعاملات مانند نظرات و لایک‌ها"
 
 #. Label of a Card Break in the Website Workspace
 #: public/js/frappe/ui/toolbar/search_utils.js:567
@@ -29442,20 +29442,20 @@ msgstr "برپایی"
 
 #: core/page/permission_manager/permission_manager_help.html:27
 msgid "Setup > Customize Form"
-msgstr "راه اندازی > سفارشی کردن فرم"
+msgstr "راه‌اندازی > سفارشی کردن فرم"
 
 #: core/page/permission_manager/permission_manager_help.html:8
 msgid "Setup > User"
-msgstr "راه اندازی > کاربر"
+msgstr "راه‌اندازی > کاربر"
 
 #: core/page/permission_manager/permission_manager_help.html:33
 msgid "Setup > User Permissions"
-msgstr "راه اندازی > مجوزهای کاربر"
+msgstr "راه‌اندازی > مجوزهای کاربر"
 
 #. Title of an Onboarding Step
 #: custom/onboarding_step/workflows/workflows.json
 msgid "Setup Approval Workflows"
-msgstr ""
+msgstr "تنظیم گردش کار تایید"
 
 #: public/js/frappe/views/reports/query_report.js:1676
 #: public/js/frappe/views/reports/report_view.js:1607
@@ -29464,29 +29464,29 @@ msgstr "تنظیم ایمیل خودکار"
 
 #: desk/page/setup_wizard/setup_wizard.js:204
 msgid "Setup Complete"
-msgstr "راه اندازی کامل شد"
+msgstr "راه‌اندازی کامل شد"
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Setup Complete"
-msgstr "راه اندازی کامل شد"
+msgstr "راه‌اندازی کامل شد"
 
 #. Title of an Onboarding Step
 #: custom/onboarding_step/role_permissions/role_permissions.json
 msgid "Setup Limited Access for a User"
-msgstr ""
+msgstr "راه‌اندازی دسترسی محدود برای یک کاربر"
 
 #. Title of an Onboarding Step
 #: custom/onboarding_step/naming_series/naming_series.json
 msgid "Setup Naming Series"
-msgstr ""
+msgstr "راه‌اندازی سری نامگذاری"
 
 #. Label of a Section Break field in DocType 'Document Naming Settings'
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
 msgid "Setup Series for transactions"
-msgstr "راه اندازی سری برای تراکنش ها"
+msgstr "راه‌اندازی سری برای تراکنش ها"
 
 #: public/js/frappe/form/templates/form_sidebar.html:110
 msgid "Share"
@@ -30157,7 +30157,7 @@ msgstr "نام نمایش اسلاید"
 #. Description of a DocType
 #: website/doctype/website_slideshow/website_slideshow.json
 msgid "Slideshow like display for the website"
-msgstr ""
+msgstr "نمایش اسلاید مانند نمایش برای وب سایت"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -30494,7 +30494,7 @@ msgstr "جدول رده بندی"
 
 #: core/doctype/server_script/server_script_list.js:20
 msgid "Star us on GitHub"
-msgstr ""
+msgstr "ما را در GitHub ستاره دار کنید"
 
 #: core/doctype/recorder/recorder_list.js:87 printing/page/print/print.js:296
 #: printing/page/print/print.js:343
@@ -30861,7 +30861,7 @@ msgstr "متوقف شد"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Store Attached PDF Document"
-msgstr ""
+msgstr "سند PDF پیوست شده را ذخیره کنید"
 
 #. Description of the 'Last Known Versions' (Text) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -31477,7 +31477,7 @@ msgstr "فیلدهای تولید شده سیستم را نمی توان تغی�
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "System Logs"
-msgstr ""
+msgstr "گزارش های سیستم"
 
 #. Name of a role
 #: automation/doctype/assignment_rule/assignment_rule.json
@@ -31626,7 +31626,7 @@ msgstr "اطلاع رسانی سیستم"
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "System Notifications"
-msgstr "اعلان های سیستم"
+msgstr "اعلان‌های سیستم"
 
 #. Label of a Check field in DocType 'Page'
 #: core/doctype/page/page.json
@@ -31750,7 +31750,7 @@ msgstr "جدول MultiSelect"
 
 #: custom/doctype/customize_form/customize_form.js:229
 msgid "Table Trimmed"
-msgstr ""
+msgstr "جدول بریده شده"
 
 #: public/js/frappe/form/grid.js:1138
 msgid "Table updated"
@@ -31904,7 +31904,7 @@ msgstr "ایمیل آزمایشی به {0} ارسال شد"
 
 #: core/doctype/file/test_file.py:361
 msgid "Test_Folder"
-msgstr ""
+msgstr "Test_Folder"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -32077,7 +32077,7 @@ msgstr "نظر نمی تواند خالی باشد"
 
 #: public/js/frappe/list/list_view.js:630
 msgid "The count shown is an estimated count. Click here to see the accurate count."
-msgstr ""
+msgstr "تعداد نشان داده شده یک تعداد تخمینی است. برای مشاهده شمارش دقیق اینجا کلیک کنید."
 
 #: public/js/frappe/views/interaction.js:301
 msgid "The document could not be correctly assigned"
@@ -32283,7 +32283,7 @@ msgstr "هیچ {0} برای این {1} وجود ندارد، چرا یکی را 
 
 #: public/js/frappe/views/reports/query_report.js:892
 msgid "There are {0} with the same filters already in the queue:"
-msgstr ""
+msgstr "{0} با فیلترهای مشابه از قبل در صف وجود دارد:"
 
 #: website/doctype/web_form/web_form.js:81
 #: website/doctype/web_form/web_form.js:317
@@ -32304,7 +32304,7 @@ msgstr "هیچ داده ای برای صادرات وجود ندارد"
 
 #: public/js/frappe/ui/notifications/notifications.js:485
 msgid "There is nothing new to show you right now."
-msgstr ""
+msgstr "در حال حاضر چیز جدیدی برای نشان دادن شما وجود ندارد."
 
 #: core/doctype/file/file.py:571 utils/file_manager.py:372
 msgid "There is some problem with the file url: {0}"
@@ -32312,7 +32312,7 @@ msgstr "آدرس فایل مشکلی دارد: {0}"
 
 #: public/js/frappe/views/reports/query_report.js:889
 msgid "There is {0} with the same filters already in the queue:"
-msgstr ""
+msgstr "{0} با فیلترهای مشابه از قبل در صف وجود دارد:"
 
 #: core/page/permission_manager/permission_manager.py:155
 msgid "There must be atleast one permission rule."
@@ -32398,7 +32398,7 @@ msgstr "این نمودار کانبان خصوصی خواهد بود"
 
 #: custom/doctype/customize_form/customize_form.js:220
 msgid "This action is irreversible. Do you wish to continue?"
-msgstr ""
+msgstr "این عمل برگشت ناپذیر است. آیا مایل هستید ادامه دهید؟"
 
 #: __init__.py:1016
 msgid "This action is only allowed for {}"
@@ -32422,7 +32422,7 @@ msgstr "در صورت تنظیم این نمودار برای همه کاربر�
 
 #: custom/doctype/customize_form/customize_form.js:212
 msgid "This doctype has no orphan fields to trim"
-msgstr ""
+msgstr "این doctype هیچ زمینه یتیمی برای اصلاح ندارد"
 
 #: core/doctype/doctype/doctype.py:1035
 msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
@@ -32434,7 +32434,7 @@ msgstr "این سند به شما امکان ویرایش فیلدهای محد�
 
 #: model/delete_doc.py:112
 msgid "This document can not be deleted right now as it's being modified by another user. Please try again after some time."
-msgstr ""
+msgstr "این سند در حال حاضر قابل حذف نیست زیرا توسط کاربر دیگری در حال تغییر است. لطفا بعد از مدتی دوباره امتحان کنید."
 
 #: social/doctype/energy_point_log/energy_point_log.py:90
 msgid "This document cannot be reverted"
@@ -32454,7 +32454,7 @@ msgstr "این سند قبلاً اصلاح شده است، شما نمی توا
 
 #: model/document.py:1546
 msgid "This document is currently locked and queued for execution. Please try again after some time."
-msgstr ""
+msgstr "این سند در حال حاضر قفل شده و در صف اجرا قرار دارد. لطفا بعد از مدتی دوباره امتحان کنید."
 
 #: templates/emails/auto_repeat_fail.html:7
 msgid "This email is autogenerated"
@@ -33436,7 +33436,7 @@ msgstr "کل زمان کار"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Total number of emails to sync in initial sync process "
-msgstr ""
+msgstr "تعداد کل ایمیل هایی که در فرآیند همگام سازی اولیه باید همگام شوند "
 
 #: public/js/frappe/views/reports/report_view.js:1178
 msgid "Totals"
@@ -33513,12 +33513,14 @@ msgctxt "Email Account"
 msgid "Track if your email has been opened by the recipient.\n"
 "<br>\n"
 "Note: If you're sending to multiple recipients, even if 1 recipient reads the email, it'll be considered \"Opened\""
-msgstr ""
+msgstr "پیگیری کنید که آیا ایمیل شما توسط گیرنده باز شده است.\n"
+"<br>\n"
+"توجه: اگر برای چندین گیرنده ارسال می کنید، حتی اگر 1 گیرنده ایمیل را بخواند، \"باز شده\" در نظر گرفته می شود"
 
 #. Description of a DocType
 #: automation/doctype/milestone_tracker/milestone_tracker.json
 msgid "Track milestones for any document"
-msgstr ""
+msgstr "ردیابی نقاط عطف برای هر سند"
 
 #: public/js/frappe/utils/utils.js:1757
 msgid "Tracking URL generated and copied to clipboard"
@@ -33641,7 +33643,7 @@ msgstr "اقدام اولیه را آغاز کنید"
 
 #: tests/test_translate.py:54
 msgid "Trigger caching"
-msgstr ""
+msgstr "راه‌اندازی حافظه پنهان"
 
 #. Description of the 'Trigger Method' (Data) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
@@ -33651,7 +33653,7 @@ msgstr "راه‌اندازی در روش‌های معتبری مانند \"bef
 
 #: custom/doctype/customize_form/customize_form.js:144
 msgid "Trim Table"
-msgstr ""
+msgstr "میز را اصلاح کنید"
 
 #: public/js/frappe/widgets/onboarding_widget.js:323
 msgid "Try Again"
@@ -33665,7 +33667,7 @@ msgstr "یک سری نامگذاری را امتحان کنید"
 
 #: printing/page/print/print.js:189 printing/page/print/print.js:195
 msgid "Try the new Print Designer"
-msgstr ""
+msgstr "Print Designer جدید را امتحان کنید"
 
 #: utils/password_strength.py:106
 msgid "Try to avoid repeated words and characters"
@@ -33732,79 +33734,79 @@ msgstr "نوع"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Data field in DocType 'Console Log'
 #: desk/doctype/console_log/console_log.json
 msgctxt "Console Log"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
 msgctxt "Notification Log"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'Web Template'
 #: website/doctype/web_template/web_template.json
 msgctxt "Web Template"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
 msgctxt "Workspace Link"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #. Label of a Select field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Type"
-msgstr "نوع"
+msgstr "تایپ کنید"
 
 #: desk/page/user_profile/user_profile.html:17
 msgid "Type Distribution"
@@ -33848,31 +33850,31 @@ msgstr "تور رابط کاربری"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "UID"
-msgstr ""
+msgstr "UID"
 
 #. Label of a Data field in DocType 'Email Flag Queue'
 #: email/doctype/email_flag_queue/email_flag_queue.json
 msgctxt "Email Flag Queue"
 msgid "UID"
-msgstr ""
+msgstr "UID"
 
 #. Label of a Data field in DocType 'Unhandled Email'
 #: email/doctype/unhandled_email/unhandled_email.json
 msgctxt "Unhandled Email"
 msgid "UID"
-msgstr ""
+msgstr "UID"
 
 #. Label of a Int field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "UIDNEXT"
-msgstr ""
+msgstr "UIDNEXT"
 
 #. Label of a Data field in DocType 'IMAP Folder'
 #: email/doctype/imap_folder/imap_folder.json
 msgctxt "IMAP Folder"
 msgid "UIDNEXT"
-msgstr ""
+msgstr "UIDNEXT"
 
 #. Label of a Data field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -34304,7 +34306,7 @@ msgstr "اگر به‌درستی انجام نشود، به‌روزرسانی �
 
 #: desk/page/setup_wizard/setup_wizard.py:22
 msgid "Updating global settings"
-msgstr ""
+msgstr "به روز رسانی تنظیمات جهانی"
 
 #: core/doctype/document_naming_settings/document_naming_settings.js:59
 msgid "Updating naming series options"
@@ -34359,7 +34361,7 @@ msgstr "در حال آپلود در Google Drive"
 #, python-format
 msgctxt "Onboarding Step"
 msgid "Use % for any non empty value."
-msgstr ""
+msgstr "از % برای هر مقدار غیر خالی استفاده کنید."
 
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -34658,12 +34660,12 @@ msgstr "کاربر «{0}» قبلاً نقش «{1}» را دارد"
 #. Name of a DocType
 #: core/doctype/report/user_activity_report.json
 msgid "User Activity Report"
-msgstr ""
+msgstr "گزارش فعالیت کاربر"
 
 #. Name of a DocType
 #: core/doctype/report/user_activity_report_without_sort.json
 msgid "User Activity Report Without Sort"
-msgstr ""
+msgstr "گزارش فعالیت کاربر بدون مرتب سازی"
 
 #. Label of a Data field in DocType 'Web Page View'
 #: website/doctype/web_page_view/web_page_view.json
@@ -34752,7 +34754,7 @@ msgstr "ویژگی User ID"
 #. Description of a DocType
 #: website/doctype/blogger/blogger.json
 msgid "User ID of a Blogger"
-msgstr ""
+msgstr "شناسه کاربری یک بلاگر"
 
 #. Label of a Link field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
@@ -34768,7 +34770,7 @@ msgstr "فیلد شناسه کاربری"
 
 #: core/doctype/user_type/user_type.py:287
 msgid "User Id Field is mandatory in the user type {0}"
-msgstr "فیلد User ID در نوع کاربری {0} اجباری است"
+msgstr "فیلد User Id در نوع کاربری {0} اجباری است"
 
 #. Label of a Attach Image field in DocType 'User'
 #: core/doctype/user/user.json
@@ -34965,7 +34967,7 @@ msgstr "کاربر {0} درخواست حذف داده ها را داده است"
 
 #: core/doctype/user/user.py:1372
 msgid "User {0} impersonated as {1}"
-msgstr ""
+msgstr "کاربر {0} جعل هویت به عنوان {1}"
 
 #: utils/oauth.py:265
 msgid "User {0} is disabled"
@@ -35036,7 +35038,7 @@ msgstr "استفاده از این کنسول ممکن است به مهاجما�
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "Utilization %"
-msgstr ""
+msgstr "استفاده %"
 
 #. Option for the 'Validity' (Select) field in DocType 'OAuth Authorization
 #. Code'
@@ -35467,7 +35469,7 @@ msgstr "هشدار"
 
 #: custom/doctype/customize_form/customize_form.js:217
 msgid "Warning: DATA LOSS IMMINENT! Proceeding will permanently delete following database columns from doctype {0}:"
-msgstr ""
+msgstr "هشدار: از دست دادن اطلاعات قریب الوقوع! ادامه، ستون های پایگاه داده زیر را برای همیشه از doctype {0} حذف می کند:"
 
 #: public/js/frappe/model/meta.js:179
 msgid "Warning: Unable to find {0} in any table related to {1}"
@@ -35507,7 +35509,7 @@ msgstr "ما درخواستی از شما دریافت کرده‌ایم برا�
 
 #: www/contact.py:48
 msgid "We've received your query!"
-msgstr ""
+msgstr "ما درخواست شما را دریافت کردیم!"
 
 #: public/js/frappe/form/controls/password.js:88
 msgid "Weak"
@@ -36061,7 +36063,7 @@ msgstr "به {0} خوش آمدید"
 
 #: public/js/frappe/ui/notifications/notifications.js:62
 msgid "What's New"
-msgstr ""
+msgstr "چه خبر"
 
 #. Description of the 'Allow Guests to Upload Files' (Check) field in DocType
 #. 'System Settings'
@@ -36075,7 +36077,7 @@ msgstr "وقتی فعال باشد، به مهمانان اجازه می‌ده�
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "When sending document using email, store the PDF on Communication. Warning: This can increase your storage usage."
-msgstr ""
+msgstr "هنگام ارسال سند با استفاده از ایمیل، PDF را در Communication ذخیره کنید. هشدار: این می تواند میزان استفاده از فضای ذخیره سازی شما را افزایش دهد."
 
 #. Description of the 'Force Web Capture Mode for Uploads' (Check) field in
 #. DocType 'System Settings'
@@ -36148,7 +36150,7 @@ msgstr "فیلتر عجایب"
 #: core/doctype/report_filter/report_filter.json
 msgctxt "Report Filter"
 msgid "Will add \"%\" before and after the query"
-msgstr ""
+msgstr "\"%\" را قبل و بعد از پرسمان اضافه می کند"
 
 #. Description of the 'Short Name' (Data) field in DocType 'Blogger'
 #: website/doctype/blogger/blogger.json
@@ -36328,7 +36330,7 @@ msgstr "انتقال گردش کار"
 #. Description of a DocType
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Workflow state represents the current state of a document."
-msgstr ""
+msgstr "وضعیت گردش کار نشان دهنده وضعیت فعلی یک سند است."
 
 #: public/js/workflow_builder/store.js:83
 msgid "Workflow updated successfully"
@@ -36337,7 +36339,7 @@ msgstr ""
 #. Description of the Onboarding Step 'Setup Approval Workflows'
 #: custom/onboarding_step/workflows/workflows.json
 msgid "Workflows allow you to define custom rules for the approval process of a particular document in ERPNext. You can also set complex Workflow Rules and set approval conditions."
-msgstr ""
+msgstr "گردش کار به شما اجازه می دهد تا قوانین سفارشی را برای فرآیند تأیید یک سند خاص در ERPNext تعریف کنید. همچنین می توانید قوانین پیچیده گردش کار را تنظیم کنید و شرایط تأیید را تنظیم کنید."
 
 #. Name of a DocType
 #: desk/doctype/workspace/workspace.json
@@ -36500,7 +36502,7 @@ msgstr "یاهو میل"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Yandex.Mail"
-msgstr ""
+msgstr "Yandex.Mail"
 
 #. Label of a Data field in DocType 'Company History'
 #: website/doctype/company_history/company_history.json
@@ -36721,7 +36723,7 @@ msgstr "همچنین می توانید لینک زیر را در مرورگر خ
 
 #: templates/emails/download_data.html:9
 msgid "You can also copy-paste this "
-msgstr ""
+msgstr "شما همچنین می توانید این را کپی پیست کنید"
 
 #: templates/emails/delete_data_confirmation.html:11
 msgid "You can also copy-paste this {0} to your browser"
@@ -36741,7 +36743,7 @@ msgstr "پس از کاوش در این صفحه می‌توانید به نصب 
 
 #: core/doctype/user/user.py:600
 msgid "You can disable the user instead of deleting it."
-msgstr ""
+msgstr "می توانید به جای حذف کاربر، آن را غیرفعال کنید."
 
 #: core/doctype/file/file.py:684
 msgid "You can increase the limit from System Settings."
@@ -36757,7 +36759,7 @@ msgstr "شما فقط می توانید تصاویر را در فیلدهای Ma
 
 #: public/js/frappe/list/bulk_operations.js:41
 msgid "You can only print upto {0} documents at a time"
-msgstr ""
+msgstr "هر بار فقط می توانید حداکثر {0} سند را چاپ کنید"
 
 #: core/doctype/user_type/user_type.py:103
 msgid "You can only set the 3 custom doctypes in the Document Types table."
@@ -36785,7 +36787,7 @@ msgstr "برای تنظیم سطوح فیلدها می توانید از Customi
 
 #: public/js/frappe/form/link_selector.js:30
 msgid "You can use wildcard %"
-msgstr ""
+msgstr "می توانید از علامت ٪ استفاده کنید"
 
 #: custom/doctype/customize_form/customize_form.py:386
 msgid "You can't set 'Options' for field {0}"
@@ -36902,7 +36904,7 @@ msgstr "شما {0} امتیاز کسب کردید"
 
 #: templates/emails/new_message.html:1
 msgid "You have a new message from: "
-msgstr ""
+msgstr " شما یک پیام جدید دارید از:"
 
 #: handler.py:123
 msgid "You have been successfully logged out"
@@ -37062,7 +37064,7 @@ msgstr "اسم شما"
 
 #: public/js/frappe/list/bulk_operations.js:123
 msgid "Your PDF is ready for download"
-msgstr ""
+msgstr "PDF شما برای دانلود آماده است"
 
 #: patches/v14_0/update_workspace2.py:34
 msgid "Your Shortcuts"
@@ -37139,7 +37141,7 @@ msgstr "کد تأیید شما {0} است"
 #. Success message of the Module Onboarding 'Website'
 #: website/module_onboarding/website/website.json
 msgid "Your website is all set up!"
-msgstr ""
+msgstr "وب سایت شما کاملاً راه‌اندازی شده است!"
 
 #: utils/data.py:1499
 msgid "Zero"
@@ -37156,7 +37158,7 @@ msgstr "صفر به معنای ارسال سوابق به روز شده در ه�
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "_doctype"
-msgstr ""
+msgstr "_doctype"
 
 #. Label of a Link field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -37186,7 +37188,7 @@ msgstr "تنظیم کنید"
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "after_insert"
-msgstr ""
+msgstr "after_insert"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -37217,7 +37219,7 @@ msgstr "تراز-راست"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "amend"
-msgstr ""
+msgstr "اصلاح"
 
 #: public/js/frappe/utils/utils.js:396 utils/data.py:1507
 msgid "and"
@@ -37353,7 +37355,7 @@ msgstr "دوربین"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "cancel"
-msgstr ""
+msgstr "لغو"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -37446,7 +37448,7 @@ msgstr "نظر داد"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "create"
-msgstr ""
+msgstr "ايجاد كردن"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -37473,19 +37475,19 @@ msgstr "داشبورد"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "dd-mm-yyyy"
-msgstr ""
+msgstr "dd-mm-yyyy"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "dd.mm.yyyy"
-msgstr ""
+msgstr "dd.mm.yyyy"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "dd/mm/yyyy"
-msgstr ""
+msgstr "dd-mm-yyyy"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -37596,7 +37598,7 @@ msgstr "بیرون انداختن"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "email"
-msgstr ""
+msgstr "ایمیل"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
@@ -37631,7 +37633,7 @@ msgstr "علامت تعجب"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "export"
-msgstr ""
+msgstr "صادرات"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -37656,7 +37658,7 @@ msgstr "فیس بوک"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "facetime-video"
-msgstr ""
+msgstr "facetime-video"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -37669,7 +37671,7 @@ msgstr "ناموفق"
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "fairlogin"
-msgstr ""
+msgstr "fairlogin"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -37791,7 +37793,7 @@ msgstr "خاکستری"
 
 #: utils/backups.py:380
 msgid "gzip not found in PATH! This is required to take a backup."
-msgstr ""
+msgstr "gzip در PATH یافت نشد! این برای تهیه نسخه پشتیبان لازم است."
 
 #: public/js/frappe/utils/utils.js:1118
 msgctxt "Hours (Field: Duration)"
@@ -37826,7 +37828,7 @@ msgstr "دست بالا"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "hdd"
-msgstr ""
+msgstr "hdd"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -37861,7 +37863,7 @@ msgstr "آیکون"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "import"
-msgstr ""
+msgstr "درون‌ریزی"
 
 #. Description of the 'Read Time' (Int) field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
@@ -37901,7 +37903,7 @@ msgstr "مورب"
 
 #: templates/signup.html:11 www/login.html:10
 msgid "jane@example.com"
-msgstr ""
+msgstr "jane@example.com"
 
 #: public/js/frappe/utils/pretty_date.js:46
 msgid "just now"
@@ -37952,7 +37954,7 @@ msgstr "فهرست"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "list-alt"
-msgstr ""
+msgstr "list-alt"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38022,13 +38024,13 @@ msgstr "علامت منفی"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "mm-dd-yyyy"
-msgstr ""
+msgstr "mm-dd-yyyy"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "mm/dd/yyyy"
-msgstr ""
+msgstr "mm/dd/yyyy"
 
 #. Option for the 'Type' (Select) field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -38124,7 +38126,7 @@ msgstr "پیر_والد"
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_cancel"
-msgstr ""
+msgstr "on_cancel"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -38136,25 +38138,25 @@ msgstr "در تغییر"
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_submit"
-msgstr ""
+msgstr "on_submit"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_trash"
-msgstr ""
+msgstr "on_trash"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_update"
-msgstr ""
+msgstr "on_update"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_update_after_submit"
-msgstr ""
+msgstr "on_update_after_submit"
 
 #: model/document.py:1347
 msgid "one of"
@@ -38242,7 +38244,7 @@ msgstr "علامت جمع"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "print"
-msgstr ""
+msgstr "چاپ"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38266,7 +38268,7 @@ msgstr "رنگ بنفش"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "qrcode"
-msgstr ""
+msgstr "qrcode"
 
 #. Option for the 'Type' (Select) field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
@@ -38297,7 +38299,7 @@ msgstr "تصادفی"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "read"
-msgstr ""
+msgstr "خواندن"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -38348,7 +38350,7 @@ msgstr "تکرار"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "report"
-msgstr ""
+msgstr "گزارش"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38431,7 +38433,7 @@ msgstr "جستجو کردن"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "select"
-msgstr ""
+msgstr "انتخاب"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -38558,7 +38560,7 @@ msgstr "مقدار رشته، یعنی {0} یا uid={0},ou=users,dc=example,dc=c
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "submit"
-msgstr ""
+msgstr "ارسال"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38608,13 +38610,13 @@ msgstr "هفتم"
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "th-large"
-msgstr ""
+msgstr "th-large"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "th-list"
-msgstr ""
+msgstr "th-list"
 
 #: public/js/frappe/form/controls/data.js:35
 msgid "this form"
@@ -38673,7 +38675,7 @@ msgstr "بارگذاری"
 
 #: public/js/frappe/ui/filters/filter.js:340
 msgid "use % as wildcard"
-msgstr ""
+msgstr "از % به عنوان حروف استفاده کنید"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38780,7 +38782,7 @@ msgstr "دیروز"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "yyyy-mm-dd"
-msgstr ""
+msgstr "yyyy-mm-dd"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
@@ -38804,12 +38806,12 @@ msgstr "{0} ${skip_list ? \"\" : نوع}"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:198
 msgid "{0} ${type}"
-msgstr ""
+msgstr "{0} ${type}"
 
 #: public/js/frappe/data_import/data_exporter.js:79
 #: public/js/frappe/views/gantt/gantt_view.js:54
 msgid "{0} ({1})"
-msgstr ""
+msgstr "{0} ({1})"
 
 #: public/js/frappe/data_import/data_exporter.js:76
 msgid "{0} ({1}) (1 row mandatory)"
@@ -38817,12 +38819,12 @@ msgstr "{0} ({1}) (1 ردیف اجباری)"
 
 #: public/js/frappe/views/gantt/gantt_view.js:53
 msgid "{0} ({1}) - {2}%"
-msgstr ""
+msgstr "{0} ({1}) - {2}%"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:348
 #: public/js/frappe/ui/toolbar/awesome_bar.js:351
 msgid "{0} = {1}"
-msgstr ""
+msgstr "{0}: {1}"
 
 #: public/js/frappe/views/calendar/calendar.js:30
 msgid "{0} Calendar"
@@ -39341,7 +39343,8 @@ msgstr "{0} باید منحصر به فرد باشد"
 #: core/doctype/language/language.py:42
 msgid "{0} must begin and end with a letter and can only contain letters,\n"
 "\t\t\t\thyphen or underscore."
-msgstr ""
+msgstr "{0} باید با یک حرف شروع و پایان یابد و فقط می تواند شامل حروف، خط فاصله\n"
+"\t\t\t\tیا زیرخط باشد."
 
 #: workflow/doctype/workflow/workflow.py:91
 msgid "{0} not a valid State"
@@ -39644,7 +39647,7 @@ msgstr "{0}: نام فیلد را نمی توان روی کلمه کلیدی ر�
 #: contacts/doctype/contact/contact.js:83
 #: public/js/frappe/views/workspace/workspace.js:169
 msgid "{0}: {1}"
-msgstr ""
+msgstr "{0}: {1}"
 
 #: workflow/doctype/workflow_action/workflow_action.py:167
 msgid "{0}: {1} is set to state {2}"
@@ -39709,13 +39712,13 @@ msgstr "{} یک رشته تاریخ معتبر نیست."
 
 #: commands/utils.py:539
 msgid "{} not found in PATH! This is required to access the console."
-msgstr ""
+msgstr "{} در PATH یافت نشد! این برای دسترسی به کنسول مورد نیاز است."
 
 #: database/db_manager.py:82
 msgid "{} not found in PATH! This is required to restore the database."
-msgstr ""
+msgstr "{} در PATH یافت نشد! این برای بازیابی پایگاه داده لازم است."
 
 #: utils/backups.py:447
 msgid "{} not found in PATH! This is required to take a backup."
-msgstr ""
+msgstr "{} در PATH یافت نشد! این مورد برای تهیه نسخه پشتیبان لازم است."
 
