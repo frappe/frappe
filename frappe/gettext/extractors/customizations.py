@@ -8,6 +8,7 @@ EXCLUDE_SELECT_OPTIONS = [
 	"minimum_password_score",
 ]
 
+
 def extract(fileobj, *args, **kwargs):
 	"""
 	Extract messages from DocType JSON files. To be used to babel extractor
@@ -37,7 +38,10 @@ def extract(fileobj, *args, **kwargs):
 
 		if description := field.get("description"):
 			messages.append(
-				(description, f"Description of the '{_label}' ({fieldtype}) field in Customization of DocType '{doctype}'")
+				(
+					description,
+					f"Description of the '{_label}' ({fieldtype}) field in Customization of DocType '{doctype}'",
+				)
 			)
 
 		if message := field.get("options"):
@@ -59,7 +63,10 @@ def extract(fileobj, *args, **kwargs):
 				)
 			elif fieldtype == "HTML":
 				messages.append(
-					(message, f"Content of the '{_label}' ({fieldtype}) field in Customization of DocType '{doctype}'")
+					(
+						message,
+						f"Content of the '{_label}' ({fieldtype}) field in Customization of DocType '{doctype}'",
+					)
 				)
 
 	# By using "pgettext" as the function name we can supply the doctype as context

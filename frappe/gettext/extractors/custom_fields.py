@@ -8,6 +8,7 @@ EXCLUDE_SELECT_OPTIONS = [
 	"minimum_password_score",
 ]
 
+
 def extract(fileobj, *args, **kwargs):
 	"""
 	Extract messages from DocType JSON files. To be used to babel extractor
@@ -15,7 +16,7 @@ def extract(fileobj, *args, **kwargs):
 	:rtype: `iterator`
 	"""
 	data = json.load(fileobj)
-	
+
 	if not isinstance(data, list):
 		return
 
@@ -37,7 +38,10 @@ def extract(fileobj, *args, **kwargs):
 
 		if description := field.get("description"):
 			messages.append(
-				(description, f"Description of the '{_label}' ({fieldtype}) Custom Field in DocType '{doctype}'")
+				(
+					description,
+					f"Description of the '{_label}' ({fieldtype}) Custom Field in DocType '{doctype}'",
+				)
 			)
 
 		if message := field.get("options"):
