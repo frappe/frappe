@@ -44,3 +44,12 @@ def extract(fileobj, *args, **kwargs):
 		)
 		for shortcut in data.get("shortcuts", [])
 	)
+	yield from (
+		(
+			None,
+			"pgettext",
+			(shortcut.get("link_to") if shortcut.get("type") == "DocType" else None, shortcut.get("format")),
+			[f"Count format of shortcut in the {workspace_name} Workspace"],
+		)
+		for shortcut in data.get("shortcuts", [])
+	)
