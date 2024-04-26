@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-25 12:23\n"
+"PO-Revision-Date: 2024-04-26 13:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -3852,7 +3852,7 @@ msgstr "Baner je iznad gornje trake menija."
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Bar"
-msgstr ""
+msgstr "Traka"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -34805,30 +34805,30 @@ msgstr "Korisničke oznake"
 #. Name of a DocType
 #: core/doctype/user_type/user_type.json core/doctype/user_type/user_type.py:82
 msgid "User Type"
-msgstr ""
+msgstr "Tip korisnika"
 
 #. Label of a Link field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "User Type"
-msgstr ""
+msgstr "Tip korisnika"
 
 #. Label of a shortcut in the Users Workspace
 #: core/workspace/users/users.json
 msgctxt "User Type"
 msgid "User Type"
-msgstr ""
+msgstr "Tip korisnika"
 
 #. Name of a DocType
 #: core/doctype/user_type_module/user_type_module.json
 msgid "User Type Module"
-msgstr ""
+msgstr "Modul tipa korisnika"
 
 #. Label of a Table field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
 msgctxt "User Type"
 msgid "User Type Module"
-msgstr ""
+msgstr "Modul tipa korisnika"
 
 #. Description of the 'Allow Login using Mobile Number' (Check) field in
 #. DocType 'System Settings'
@@ -36548,19 +36548,19 @@ msgstr "Vi"
 
 #: public/js/frappe/form/footer/form_timeline.js:462
 msgid "You Liked"
-msgstr ""
+msgstr "Svidjelo vam se"
 
 #: public/js/frappe/dom.js:424
 msgid "You are connected to internet."
-msgstr ""
+msgstr "Povezani ste na internet."
 
 #: public/js/frappe/ui/toolbar/navbar.html:21
 msgid "You are impersonating as another user."
-msgstr ""
+msgstr "Predstavljate se kao neki drugi korisnik."
 
 #: permissions.py:403
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in field {3}"
-msgstr ""
+msgstr "Nije vam dozvoljen pristup ovom {0} zapisu jer je povezan sa {1} '{2}' u polju {3}"
 
 #: permissions.py:392
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
@@ -36653,51 +36653,51 @@ msgstr "Također možete kopirati i zalijepiti ovo {0} u svoj pretraživač"
 
 #: core/page/permission_manager/permission_manager_help.html:17
 msgid "You can change Submitted documents by cancelling them and then, amending them."
-msgstr ""
+msgstr "Podnesene dokumente možete promijeniti tako što ćete ih poništiti, a zatim ih izmijeniti."
 
 #: public/js/frappe/logtypes.js:21
 msgid "You can change the retention policy from {0}."
-msgstr ""
+msgstr "Politiku zadržavanja možete promijeniti u {0}."
 
 #: public/js/frappe/widgets/onboarding_widget.js:199
 msgid "You can continue with the onboarding after exploring this page"
-msgstr ""
+msgstr "Možete nastaviti s uključenjem nakon što istražite ovu stranicu"
 
 #: core/doctype/user/user.py:564
 msgid "You can disable the user instead of deleting it."
-msgstr ""
+msgstr "Možete onemogućiti korisnika umjesto da ga izbrišete."
 
 #: core/doctype/file/file.py:683
 msgid "You can increase the limit from System Settings."
-msgstr ""
+msgstr "Ograničenje možete povećati u Sistemske postavke."
 
 #: utils/synchronization.py:48
 msgid "You can manually remove the lock if you think it's safe: {}"
-msgstr ""
+msgstr "Možete ručno ukloniti zaključavanje ako mislite da je sigurno: {}"
 
 #: public/js/frappe/form/controls/markdown_editor.js:75
 msgid "You can only insert images in Markdown fields"
-msgstr ""
+msgstr "Slike možete umetnuti samo u polja Markdown"
 
 #: public/js/frappe/list/bulk_operations.js:41
 msgid "You can only print upto {0} documents at a time"
-msgstr ""
+msgstr "Možete odštampati najviše {0} dokumenata odjednom"
 
 #: core/doctype/user_type/user_type.py:103
 msgid "You can only set the 3 custom doctypes in the Document Types table."
-msgstr ""
+msgstr "Možete postaviti samo 3 prilagođena tipa dokumenata u tabeli Tipovi dokumenata."
 
 #: handler.py:225
 msgid "You can only upload JPG, PNG, PDF, TXT or Microsoft documents."
-msgstr ""
+msgstr "Možete učitati samo JPG, PNG, PDF, TXT ili Microsoft dokumente."
 
 #: core/doctype/data_export/exporter.py:199
 msgid "You can only upload upto 5000 records in one go. (may be less in some cases)"
-msgstr ""
+msgstr "Možete učitati do 5000 zapisa u jednom potezu. (može biti manje u nekim slučajevima)"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "You can select one from the following,"
-msgstr ""
+msgstr "Možete odabrati jedan od sljedećih,"
 
 #. Description of the 'Rate limit for email link login' (Int) field in DocType
 #. 'System Settings'
@@ -36708,11 +36708,11 @@ msgstr ""
 
 #: desk/query_report.py:336
 msgid "You can try changing the filters of your report."
-msgstr ""
+msgstr "Možete pokušati promijeniti filtere vašeg izvještaja."
 
 #: core/page/permission_manager/permission_manager_help.html:27
 msgid "You can use Customize Form to set levels on fields."
-msgstr ""
+msgstr "Možete koristiti Prilagodi obrazac za postavljanje nivoa na poljima."
 
 #: public/js/frappe/form/link_selector.js:30
 msgid "You can use wildcard %"
@@ -36869,7 +36869,7 @@ msgstr "Niste vidjeli {0}"
 
 #: public/js/frappe/views/dashboard/dashboard_view.js:191
 msgid "You haven't added any Dashboard Charts or Number Cards yet."
-msgstr ""
+msgstr "Još niste dodali grafikon nadrzorne ploče ili kartice s brojevima."
 
 #: public/js/frappe/list/list_view.js:472
 msgid "You haven't created a {0} yet"
@@ -36877,274 +36877,274 @@ msgstr ""
 
 #: rate_limiter.py:149
 msgid "You hit the rate limit because of too many requests. Please try after sometime."
-msgstr ""
+msgstr "Dosegli ste ograničenje zbog previše zahtjeva. Molimo pokušajte nakon nekog vremena."
 
 #: public/js/frappe/form/footer/form_timeline.js:149
 #: public/js/frappe/form/sidebar/form_sidebar.js:95
 msgid "You last edited this"
-msgstr ""
+msgstr "Zadnji put ste uređivali ovo"
 
 #: public/js/frappe/widgets/widget_dialog.js:314
 msgid "You must add atleast one link."
-msgstr ""
+msgstr "Morate dodati barem jednu vezu."
 
 #: website/doctype/web_form/web_form.py:667
 msgid "You must be logged in to use this form."
-msgstr ""
+msgstr "Morate biti prijavljeni da biste koristili ovaj obrazac."
 
 #: website/doctype/web_form/web_form.py:501
 msgid "You must login to submit this form"
-msgstr ""
+msgstr "Morate se prijaviti da pošaljete ovaj obrazac"
 
 #: desk/doctype/workspace/workspace.py:73
 msgid "You need to be Workspace Manager to edit this document"
-msgstr ""
+msgstr "Morate biti upravitelj radnog prostora da biste uređivali ovaj dokument"
 
 #: website/doctype/web_form/web_form.py:90
 msgid "You need to be in developer mode to edit a Standard Web Form"
-msgstr ""
+msgstr "Morate biti u modu programera da biste uredili standardni web obrazac"
 
 #: utils/response.py:259
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
-msgstr ""
+msgstr "Morate biti prijavljeni i imati ulogu upravitelja sistema da biste mogli pristupiti sigurnosnim kopijama."
 
 #: www/me.py:13 www/third_party_apps.py:10
 msgid "You need to be logged in to access this page"
-msgstr ""
+msgstr "Morate biti prijavljeni da biste pristupili ovoj stranici"
 
 #: website/doctype/web_form/web_form.py:158
 msgid "You need to be logged in to access this {0}."
-msgstr ""
+msgstr "Morate biti prijavljeni da biste pristupili ovom {0}."
 
 #: public/js/frappe/widgets/links_widget.js:63
 msgid "You need to create these first: "
-msgstr ""
+msgstr "Prvo morate kreirati ove: "
 
 #: www/login.html:73
 msgid "You need to enable JavaScript for your app to work."
-msgstr ""
+msgstr "Morate omogućiti JavaScript da bi vaša aplikacija radila."
 
 #: core/doctype/docshare/docshare.py:61
 msgid "You need to have \"Share\" permission"
-msgstr ""
+msgstr "Morate imati dozvolu \"Dijeli\""
 
 #: utils/print_format.py:259
 msgid "You need to install pycups to use this feature!"
-msgstr ""
+msgstr "Morate instalirati pycups da biste koristili ovu funkciju!"
 
 #: email/doctype/email_account/email_account.py:145
 msgid "You need to set one IMAP folder for {0}"
-msgstr ""
+msgstr "Morate postaviti jednu IMAP fasciklu za {0}"
 
 #: model/rename_doc.py:377
 msgid "You need write permission to rename"
-msgstr ""
+msgstr "Za preimenovanje vam je potrebna dozvola za pisanje"
 
 #: client.py:458
 msgid "You need {0} permission to fetch values from {1} {2}"
-msgstr ""
+msgstr "Trebate {0} dozvolu da dohvatite vrijednosti iz {1} {2}"
 
 #: public/js/frappe/form/footer/form_timeline.js:418
 msgctxt "Form timeline"
 msgid "You removed attachment {0}"
-msgstr ""
+msgstr "Uklonili ste prilog {0}"
 
 #: public/js/frappe/widgets/onboarding_widget.js:525
 msgid "You seem good to go!"
-msgstr ""
+msgstr "Izgleda da ste spremni!"
 
 #: public/js/frappe/list/bulk_operations.js:30
 msgid "You selected Draft or Cancelled documents"
-msgstr ""
+msgstr "Izabrali ste nacrt ili poništene dokumente"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:48
 msgctxt "Form timeline"
 msgid "You submitted this document"
-msgstr ""
+msgstr "Vi ste podnijeli ovaj dokument"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:35
 msgctxt "Form timeline"
 msgid "You submitted this document {0}"
-msgstr ""
+msgstr "Podnijeli ste ovaj dokument {0}"
 
 #: public/js/frappe/form/sidebar/document_follow.js:144
 msgid "You unfollowed this document"
-msgstr ""
+msgstr "Prestali ste pratiti ovaj dokument"
 
 #: public/js/frappe/form/footer/form_timeline.js:182
 msgid "You viewed this"
-msgstr ""
+msgstr "Gledali ste ovo"
 
 #: desk/page/setup_wizard/setup_wizard.js:385
 msgid "Your Country"
-msgstr ""
+msgstr "Vaša država"
 
 #: desk/page/setup_wizard/setup_wizard.js:377
 msgid "Your Language"
-msgstr ""
+msgstr "Vaš jezik"
 
 #: templates/includes/comments/comments.html:21
 msgid "Your Name"
-msgstr ""
+msgstr "Vaše ime"
 
 #: public/js/frappe/list/bulk_operations.js:123
 msgid "Your PDF is ready for download"
-msgstr ""
+msgstr "Vaš PDF je spreman za preuzimanje"
 
 #: patches/v14_0/update_workspace2.py:34
 msgid "Your Shortcuts"
-msgstr ""
+msgstr "Vaše prečice"
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:141
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:147
 msgid "Your account has been deleted"
-msgstr ""
+msgstr "Vaš račun je izbrisan"
 
 #: auth.py:476
 msgid "Your account has been locked and will resume after {0} seconds"
-msgstr ""
+msgstr "Vaš račun je zaključan i nastavit će se nakon {0} sekundi"
 
 #: desk/form/assign_to.py:262
 msgid "Your assignment on {0} {1} has been removed by {2}"
-msgstr ""
+msgstr "Vaš zadatak na {0} {1} je uklonio {2}"
 
 #: core/doctype/file/file.js:66
 msgid "Your browser does not support the audio element."
-msgstr ""
+msgstr "Vaš pretraživač ne podržava audio element."
 
 #: core/doctype/file/file.js:48
 msgid "Your browser does not support the video element."
-msgstr ""
+msgstr "Vaš pretraživač ne podržava video element."
 
 #: templates/pages/integrations/gcalendar-success.html:11
 msgid "Your connection request to Google Calendar was successfully accepted"
-msgstr ""
+msgstr "Vaš zahtjev za povezivanje sa Google kalendarom je uspješno prihvaćen"
 
 #: www/contact.html:35
 msgid "Your email address"
-msgstr ""
+msgstr "Vaša adresa e-pošte"
 
 #: public/js/frappe/web_form/web_form.js:424
 msgid "Your form has been successfully updated"
-msgstr ""
+msgstr "Vaš obrazac je uspješno ažuriran"
 
 #: templates/emails/new_user.html:6
 msgid "Your login id is"
-msgstr ""
+msgstr "Vaš Id za prijavu je"
 
 #: www/update-password.html:165
 msgid "Your new password has been set successfully."
-msgstr ""
+msgstr "Vaša nova lozinka je uspješno postavljena."
 
 #: www/update-password.html:145
 msgid "Your old password is incorrect."
-msgstr ""
+msgstr "Vaša stara lozinka nije tačna."
 
 #. Description of the 'Email Footer Address' (Small Text) field in DocType
 #. 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Your organization name and address for the email footer."
-msgstr ""
+msgstr "Ime vaše organizacije i adresa za podnožje e-pošte."
 
 #: templates/emails/auto_reply.html:2
 msgid "Your query has been received. We will reply back shortly. If you have any additional information, please reply to this mail."
-msgstr ""
+msgstr "Vaš upit je primljen. Odgovorit ćemo vam uskoro. Ako imate dodatnih informacija, odgovorite na ovu poruku e-pošte."
 
 #: app.py:345
 msgid "Your session has expired, please login again to continue."
-msgstr ""
+msgstr "Vaša sesija je istekla, prijavite se ponovo da nastavite."
 
 #: public/js/frappe/ui/toolbar/navbar.html:16
 msgid "Your site is undergoing maintenance or being updated."
-msgstr ""
+msgstr "Vaša je stranica u toku održavanja ili ažuriranja."
 
 #: templates/emails/verification_code.html:1
 msgid "Your verification code is {0}"
-msgstr ""
+msgstr "Vaš verifikacioni kod je {0}"
 
 #. Success message of the Module Onboarding 'Website'
 #: website/module_onboarding/website/website.json
 msgid "Your website is all set up!"
-msgstr ""
+msgstr "Vaša web stranica je spremna!"
 
 #: utils/data.py:1352
 msgid "Zero"
-msgstr ""
+msgstr "Nula"
 
 #. Description of the 'Only Send Records Updated in Last X Hours' (Int) field
 #. in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Zero means send records updated at anytime"
-msgstr ""
+msgstr "Nula znači slanje zapisa ažuriranih u bilo koje vrijeme"
 
 #. Label of a Link field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "_doctype"
-msgstr ""
+msgstr "_doctype"
 
 #. Label of a Link field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "_report"
-msgstr ""
+msgstr "_report"
 
 #: database/database.py:324
 msgid "`as_iterator` only works with `as_list=True` or `as_dict=True`"
-msgstr ""
+msgstr "`as_iterator` radi samo sa `as_list=True` ili `as_dict=True`"
 
 #: utils/background_jobs.py:93
 msgid "`job_id` paramater is required for deduplication."
-msgstr ""
+msgstr "Paramater `job_id` je potreban za deduplikaciju."
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:219
 msgid "added rows for {0}"
-msgstr ""
+msgstr "dodao redove za {0}"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "adjust"
-msgstr ""
+msgstr "prilagodi"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "after_insert"
-msgstr ""
+msgstr "nakon_umetanja"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "align-center"
-msgstr ""
+msgstr "poravnaj-centriraj"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "align-justify"
-msgstr ""
+msgstr "poravnaj-blok"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "align-left"
-msgstr ""
+msgstr "poravnaj-lijevo"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "align-right"
-msgstr ""
+msgstr "poravnaj-desno"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "amend"
-msgstr ""
+msgstr "dopuni"
 
 #: public/js/frappe/utils/utils.js:410 utils/data.py:1360
 msgid "and"
@@ -37154,892 +37154,892 @@ msgstr ""
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "arrow-down"
-msgstr ""
+msgstr "strelica-dole"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "arrow-left"
-msgstr ""
+msgstr "strelica-lijevo"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "arrow-right"
-msgstr ""
+msgstr "strelica-desno"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "arrow-up"
-msgstr ""
+msgstr "strelica gore"
 
 #: public/js/frappe/ui/sort_selector.html:5
 #: public/js/frappe/ui/sort_selector.js:48
 msgid "ascending"
-msgstr ""
+msgstr "uzlazno"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "asterisk"
-msgstr ""
+msgstr "zvjezdica"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "backward"
-msgstr ""
+msgstr "unazad"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "ban-circle"
-msgstr ""
+msgstr "zabrana-krug"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "barcode"
-msgstr ""
+msgstr "barkod"
 
 #: model/document.py:1339
 msgid "beginning with"
-msgstr ""
+msgstr "počevši od"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "bell"
-msgstr ""
+msgstr "zvono"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "blue"
-msgstr ""
+msgstr "plava"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "bold"
-msgstr ""
+msgstr "podebljano"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "book"
-msgstr ""
+msgstr "knjiga"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "bookmark"
-msgstr ""
+msgstr "knjižna oznaka"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "briefcase"
-msgstr ""
+msgstr "aktovka"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "bullhorn"
-msgstr ""
+msgstr "megafon"
 
 #: public/js/frappe/form/workflow.js:35
 msgid "by Role"
-msgstr ""
+msgstr "po ulozi"
 
 #. Label of a Code field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
 msgctxt "Recorder"
 msgid "cProfile Output"
-msgstr ""
+msgstr "izlaz cProfil"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:286
 msgid "calendar"
-msgstr ""
+msgstr "kalendar"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "calendar"
-msgstr ""
+msgstr "kalendar"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "camera"
-msgstr ""
+msgstr "kamera"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "cancel"
-msgstr ""
+msgstr "otkazati"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "canceled"
-msgstr ""
+msgstr "otkazano"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "certificate"
-msgstr ""
+msgstr "certifikat"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "check"
-msgstr ""
+msgstr "provjeri"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "chevron-down"
-msgstr ""
+msgstr "chevron-dole"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "chevron-left"
-msgstr ""
+msgstr "chevron-levo"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "chevron-right"
-msgstr ""
+msgstr "chevron-desno"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "chevron-up"
-msgstr ""
+msgstr "chevron-gore"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "circle-arrow-down"
-msgstr ""
+msgstr "krug-strelica-dolje"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "circle-arrow-left"
-msgstr ""
+msgstr "krug-strelica-lijevo"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "circle-arrow-right"
-msgstr ""
+msgstr "krug-strelica-desno"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "circle-arrow-up"
-msgstr ""
+msgstr "krug-strelica-gore"
 
 #: templates/includes/list/filters.html:19
 msgid "clear"
-msgstr ""
+msgstr "očisti"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "cog"
-msgstr ""
+msgstr "cog"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "comment"
-msgstr ""
+msgstr "komentar"
 
 #: public/js/frappe/form/templates/timeline_message_box.html:33
 msgid "commented"
-msgstr ""
+msgstr "komentarisao"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "create"
-msgstr ""
+msgstr "kreiraj"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "cyan"
-msgstr ""
+msgstr "cijan"
 
 #: public/js/frappe/utils/utils.js:1128
 msgctxt "Days (Field: Duration)"
 msgid "d"
-msgstr ""
+msgstr "d"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "darkgrey"
-msgstr ""
+msgstr "tamno siva"
 
 #: core/page/dashboard_view/dashboard_view.js:65
 msgid "dashboard"
-msgstr ""
+msgstr "nadzorna ploča"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "dd-mm-yyyy"
-msgstr ""
+msgstr "dd/mm/gggg"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "dd.mm.yyyy"
-msgstr ""
+msgstr "dd.mm.gggg"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "dd/mm/yyyy"
-msgstr ""
+msgstr "dd/mm/gggg"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "default"
-msgstr ""
+msgstr "zadano"
 
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "default"
-msgstr ""
+msgstr "zadano"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "deferred"
-msgstr ""
+msgstr "odloženo"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "delete"
-msgstr ""
+msgstr "izbriši"
 
 #: public/js/frappe/ui/sort_selector.html:5
 #: public/js/frappe/ui/sort_selector.js:48
 msgid "descending"
-msgstr ""
+msgstr "silazno"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:152
 msgid "document type..., e.g. customer"
-msgstr ""
+msgstr "vrsta dokumenta..., npr. kupac"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "download"
-msgstr ""
+msgstr "preuzmi"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "download-alt"
-msgstr ""
+msgstr "preuzmi-alt"
 
 #. Description of the 'Email Account Name' (Data) field in DocType 'Email
 #. Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "e.g. \"Support\", \"Sales\", \"Jerry Yang\""
-msgstr ""
+msgstr "npr. \"Podrška\", \"Prodaja\", \"Jerry Yang\""
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:172
 msgid "e.g. (55 + 434) / 4 or =Math.sin(Math.PI/2)..."
-msgstr ""
+msgstr "npr. (55 + 434) / 4 ili =Math.sin(Math.PI/2)..."
 
 #. Description of the 'Incoming Server' (Data) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "e.g. pop.gmail.com / imap.gmail.com"
-msgstr ""
+msgstr "npr. pop.gmail.com / imap.gmail.com"
 
 #. Description of the 'Incoming Server' (Data) field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "e.g. pop.gmail.com / imap.gmail.com"
-msgstr ""
+msgstr "npr. pop.gmail.com / imap.gmail.com"
 
 #. Description of the 'Default Incoming' (Check) field in DocType 'Email
 #. Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "e.g. replies@yourcomany.com. All replies will come to this inbox."
-msgstr ""
+msgstr "npr. replies@yourcomany.com. Svi odgovori će stići u ovaj inbox."
 
 #. Description of the 'Outgoing Server' (Data) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "e.g. smtp.gmail.com"
-msgstr ""
+msgstr "npr. smtp.gmail.com"
 
 #. Description of the 'Outgoing Server' (Data) field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "e.g. smtp.gmail.com"
-msgstr ""
+msgstr "npr. smtp.gmail.com"
 
 #: custom/doctype/custom_field/custom_field.js:98
 msgid "e.g.:"
-msgstr ""
+msgstr "npr.:"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "edit"
-msgstr ""
+msgstr "uredi"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "eject"
-msgstr ""
+msgstr "izbaci"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "email"
-msgstr ""
+msgstr "e-pošta"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "email"
-msgstr ""
+msgstr "e-pošta"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:305
 msgid "email inbox"
-msgstr ""
+msgstr "prijemno sanduče e-pošte"
 
 #: permissions.py:397 permissions.py:408
 #: public/js/frappe/form/controls/link.js:484
 msgid "empty"
-msgstr ""
+msgstr "isprazniti"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "envelope"
-msgstr ""
+msgstr "koverta"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "exclamation-sign"
-msgstr ""
+msgstr "uzvičnik-znak"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "export"
-msgstr ""
+msgstr "izvoz"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "eye-close"
-msgstr ""
+msgstr "zatvoriti oči"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "eye-open"
-msgstr ""
+msgstr "otvoriti-oči"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "facebook"
-msgstr ""
+msgstr "facebook"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "facetime-video"
-msgstr ""
+msgstr "facetime-video"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "failed"
-msgstr ""
+msgstr "neuspješno"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "fairlogin"
-msgstr ""
+msgstr "fairlogin"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "fast-backward"
-msgstr ""
+msgstr "brzo-nazad"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "fast-forward"
-msgstr ""
+msgstr "brzo-naprijed"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "file"
-msgstr ""
+msgstr "datoteka"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "film"
-msgstr ""
+msgstr "film"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "filter"
-msgstr ""
+msgstr "filter"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "finished"
-msgstr ""
+msgstr "završeno"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "fire"
-msgstr ""
+msgstr "vatra"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "flag"
-msgstr ""
+msgstr "zastavica"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "folder-close"
-msgstr ""
+msgstr "fascikla-zatvori"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "folder-open"
-msgstr ""
+msgstr "fascikla-otvori"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "font"
-msgstr ""
+msgstr "font"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "forward"
-msgstr ""
+msgstr "proslijediti"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "fullscreen"
-msgstr ""
+msgstr "fullscreen"
 
 #: public/js/frappe/utils/energy_point_utils.js:61
 msgid "gained by {0} via automatic rule {1}"
-msgstr ""
+msgstr "dobijen {0} putem automatskog pravila {1}"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "gift"
-msgstr ""
+msgstr "poklon"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "glass"
-msgstr ""
+msgstr "staklo"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "globe"
-msgstr ""
+msgstr "globus"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "gray"
-msgstr ""
+msgstr "sivo"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "green"
-msgstr ""
+msgstr "zeleno"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "grey"
-msgstr ""
+msgstr "siva"
 
 #: utils/backups.py:382
 msgid "gzip not found in PATH! This is required to take a backup."
-msgstr ""
+msgstr "gzip nije pronađen u PATH! Ovo je potrebno za izradu sigurnosne kopije."
 
 #: public/js/frappe/utils/utils.js:1132
 msgctxt "Hours (Field: Duration)"
 msgid "h"
-msgstr ""
+msgstr "h"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "hand-down"
-msgstr ""
+msgstr "ruka-dole"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "hand-left"
-msgstr ""
+msgstr "ruka-lijevo"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "hand-right"
-msgstr ""
+msgstr "ruka-desno"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "hand-up"
-msgstr ""
+msgstr "ruka-gore"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "hdd"
-msgstr ""
+msgstr "hdd"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "headphones"
-msgstr ""
+msgstr "slušalice"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "heart"
-msgstr ""
+msgstr "srce"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "home"
-msgstr ""
+msgstr "dom"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:296
 msgid "hub"
-msgstr ""
+msgstr "čvorište"
 
 #. Label of a Data field in DocType 'Page'
 #: core/doctype/page/page.json
 msgctxt "Page"
 msgid "icon"
-msgstr ""
+msgstr "ikona"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "import"
-msgstr ""
+msgstr "uvoz"
 
 #. Description of the 'Read Time' (Int) field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "in minutes"
-msgstr ""
+msgstr "u minutama"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "inbox"
-msgstr ""
+msgstr "inbox"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "indent-left"
-msgstr ""
+msgstr "uvlačenje-lijevo"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "indent-right"
-msgstr ""
+msgstr "uvlačenje-desno"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "info-sign"
-msgstr ""
+msgstr "info-znak"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "italic"
-msgstr ""
+msgstr "kurziv"
 
 #: templates/signup.html:11 www/login.html:10
 msgid "jane@example.com"
-msgstr ""
+msgstr "jane@example.com"
 
 #: public/js/frappe/utils/pretty_date.js:46
 msgid "just now"
-msgstr ""
+msgstr "upravo sada"
 
 #: desk/desktop.py:255 desk/query_report.py:281
 msgid "label"
-msgstr ""
+msgstr "oznaka"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "leaf"
-msgstr ""
+msgstr "list"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "light-blue"
-msgstr ""
+msgstr "svijetlo-plava"
 
 #. Option for the 'Type' (Select) field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "link"
-msgstr ""
+msgstr "veza"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "linkedin"
-msgstr ""
+msgstr "linkedin"
 
 #. Option for the 'Type' (Select) field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "list"
-msgstr ""
+msgstr "lista"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "list"
-msgstr ""
+msgstr "lista"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "list-alt"
-msgstr ""
+msgstr "lista-alt"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "lock"
-msgstr ""
+msgstr "zaključati"
 
 #: www/third_party_apps.html:41
 msgid "logged in"
-msgstr ""
+msgstr "prijavljen"
 
 #: website/doctype/web_form/web_form.js:352
 msgid "login_required"
-msgstr ""
+msgstr "prijava_potrebna"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "long"
-msgstr ""
+msgstr "dugo"
 
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "long"
-msgstr ""
+msgstr "dugo"
 
 #: public/js/frappe/utils/utils.js:1136
 msgctxt "Minutes (Field: Duration)"
 msgid "m"
-msgstr ""
+msgstr "m"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "magnet"
-msgstr ""
+msgstr "magnet"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "map-marker"
-msgstr ""
+msgstr "karta-oznaka"
 
 #: model/rename_doc.py:212
 msgid "merged {0} into {1}"
-msgstr ""
+msgstr "spojeno {0} u {1}"
 
 #: website/doctype/blog_post/templates/blog_post.html:25
 #: website/doctype/blog_post/templates/blog_post_row.html:36
 msgid "min read"
-msgstr ""
+msgstr "min čitanja"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "minus"
-msgstr ""
+msgstr "minus"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "minus-sign"
-msgstr ""
+msgstr "znak minus"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "mm-dd-yyyy"
-msgstr ""
+msgstr "mm-dd-gggg"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "mm/dd/yyyy"
-msgstr ""
+msgstr "mm/dd/gggg"
 
 #. Option for the 'Type' (Select) field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "module"
-msgstr ""
+msgstr "modul"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:167
 msgid "module name..."
-msgstr ""
+msgstr "naziv modula..."
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "move"
-msgstr ""
+msgstr "pokret"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "music"
-msgstr ""
+msgstr "muzika"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:160
 msgid "new"
-msgstr ""
+msgstr "novi"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:147
 msgid "new type of document"
-msgstr ""
+msgstr "nova vrsta dokumenta"
 
 #. Label of a Int field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "no failed attempts"
-msgstr ""
+msgstr "nema neuspjelih pokušaja"
 
 #. Label of a Data field in DocType 'OAuth Authorization Code'
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgctxt "OAuth Authorization Code"
 msgid "nonce"
-msgstr ""
+msgstr "jednokratno"
 
 #: model/document.py:1338
 msgid "none of"
-msgstr ""
+msgstr "nijedan od"
 
 #. Label of a Check field in DocType 'Reminder'
 #: automation/doctype/reminder/reminder.json
 msgctxt "Reminder"
 msgid "notified"
-msgstr ""
+msgstr "obaviješten"
 
 #: public/js/frappe/utils/pretty_date.js:25
 msgid "now"
-msgstr ""
+msgstr "sad"
 
 #: public/js/frappe/form/grid_pagination.js:116
 msgid "of"
-msgstr ""
+msgstr "od"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "off"
-msgstr ""
+msgstr "isključen"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "ok"
-msgstr ""
+msgstr "ok"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "ok-circle"
-msgstr ""
+msgstr "ok-krug"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "ok-sign"
-msgstr ""
+msgstr "ok-znak"
 
 #. Label of a Data field in DocType 'File'
 #: core/doctype/file/file.json
@@ -38051,41 +38051,41 @@ msgstr ""
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_cancel"
-msgstr ""
+msgstr "na_otkazivanju"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_change"
-msgstr ""
+msgstr "obaviješten"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_submit"
-msgstr ""
+msgstr "na_podnošenju"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_trash"
-msgstr ""
+msgstr "na_smeću"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_update"
-msgstr ""
+msgstr "na_ažuriranju"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_update_after_submit"
-msgstr ""
+msgstr "na_ažuriranju_nakon_podnošenja"
 
 #: model/document.py:1337
 msgid "one of"
-msgstr ""
+msgstr "jedan od"
 
 #: utils/data.py:1363
 msgid "only."
@@ -38099,631 +38099,631 @@ msgstr ""
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "orange"
-msgstr ""
+msgstr "narandžasta"
 
 #. Option for the 'Type' (Select) field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "page"
-msgstr ""
+msgstr "stranica"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "pause"
-msgstr ""
+msgstr "pauza"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "pencil"
-msgstr ""
+msgstr "olovka"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "picture"
-msgstr ""
+msgstr "slika"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "pink"
-msgstr ""
+msgstr "roze"
 
 #. Option for the 'Code challenge method' (Select) field in DocType 'OAuth
 #. Authorization Code'
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgctxt "OAuth Authorization Code"
 msgid "plain"
-msgstr ""
+msgstr "običan"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "plane"
-msgstr ""
+msgstr "ravan"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "play"
-msgstr ""
+msgstr "pusti"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "play-circle"
-msgstr ""
+msgstr "pusti-krug"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "plus"
-msgstr ""
+msgstr "plus"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "plus-sign"
-msgstr ""
+msgstr "plus-znak"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "print"
-msgstr ""
+msgstr "štampaj"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "print"
-msgstr ""
+msgstr "štampaj"
 
 #. Label of a HTML field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "processlist"
-msgstr ""
+msgstr "spisak procesa"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "purple"
-msgstr ""
+msgstr "ljubičasta"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "qrcode"
-msgstr ""
+msgstr "qrcode"
 
 #. Option for the 'Type' (Select) field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "query-report"
-msgstr ""
+msgstr "upit-izvještaj"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "question-sign"
-msgstr ""
+msgstr "upitnik-znak"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "queued"
-msgstr ""
+msgstr "u redu čekanja"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "random"
-msgstr ""
+msgstr "nasumično"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "read"
-msgstr ""
+msgstr "čitaj"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "red"
-msgstr ""
+msgstr "crveno"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "refresh"
-msgstr ""
+msgstr "osvježi"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "remove"
-msgstr ""
+msgstr "ukloni"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "remove-circle"
-msgstr ""
+msgstr "ukloni-krug"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "remove-sign"
-msgstr ""
+msgstr "ukloni-znak"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:221
 msgid "removed rows for {0}"
-msgstr ""
+msgstr "uklonjeni redovi za {0}"
 
 #: model/rename_doc.py:214
 msgid "renamed from {0} to {1}"
-msgstr ""
+msgstr "preimenovan iz {0} u {1}"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "repeat"
-msgstr ""
+msgstr "ponovi"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "report"
-msgstr ""
+msgstr "izvještaj"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "resize-full"
-msgstr ""
+msgstr "resize-puni"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "resize-horizontal"
-msgstr ""
+msgstr "resize-horizontalno"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "resize-small"
-msgstr ""
+msgstr "resize-mali"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "resize-vertical"
-msgstr ""
+msgstr "resize-vertikalno"
 
 #. Label of a HTML field in DocType 'Custom Role'
 #: core/doctype/custom_role/custom_role.json
 msgctxt "Custom Role"
 msgid "response"
-msgstr ""
+msgstr "odgovor"
 
 #: core/doctype/deleted_document/deleted_document.py:60
 msgid "restored {0} as {1}"
-msgstr ""
+msgstr "vraćeno {0} kao {1}"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "retweet"
-msgstr ""
+msgstr "retweet"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "road"
-msgstr ""
+msgstr "put"
 
 #: public/js/frappe/utils/utils.js:1140
 msgctxt "Seconds (Field: Duration)"
 msgid "s"
-msgstr ""
+msgstr "s"
 
 #. Option for the 'Code challenge method' (Select) field in DocType 'OAuth
 #. Authorization Code'
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgctxt "OAuth Authorization Code"
 msgid "s256"
-msgstr ""
+msgstr "s256"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "scheduled"
-msgstr ""
+msgstr "zakazano"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "screenshot"
-msgstr ""
+msgstr "screenshot"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "search"
-msgstr ""
+msgstr "traži"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "select"
-msgstr ""
+msgstr "odaberi"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "share"
-msgstr ""
+msgstr "dijeli"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "share"
-msgstr ""
+msgstr "dijeli"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "share-alt"
-msgstr ""
+msgstr "djeli-alt"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "shopping-cart"
-msgstr ""
+msgstr "korpa"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "short"
-msgstr ""
+msgstr "kratko"
 
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "short"
-msgstr ""
+msgstr "kratko"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "signal"
-msgstr ""
+msgstr "signal"
 
 #: public/js/frappe/widgets/number_card_widget.js:282
 msgid "since last month"
-msgstr ""
+msgstr "od prošlog mjeseca"
 
 #: public/js/frappe/widgets/number_card_widget.js:281
 msgid "since last week"
-msgstr ""
+msgstr "od prosle sedmice"
 
 #: public/js/frappe/widgets/number_card_widget.js:283
 msgid "since last year"
-msgstr ""
+msgstr "od prosle godine"
 
 #: public/js/frappe/widgets/number_card_widget.js:280
 msgid "since yesterday"
-msgstr ""
+msgstr "od jučer"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "star"
-msgstr ""
+msgstr "zvjezdica"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "star-empty"
-msgstr ""
+msgstr "zvijezda-prazna"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "started"
-msgstr ""
+msgstr "pokrenut"
 
 #: desk/page/setup_wizard/setup_wizard.js:194
 msgid "starting the setup..."
-msgstr ""
+msgstr "počinje postavljanje..."
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "step-backward"
-msgstr ""
+msgstr "korak-unazad"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "step-forward"
-msgstr ""
+msgstr "korak-naprijed"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "stop"
-msgstr ""
+msgstr "stop"
 
 #. Description of the 'Group Object Class' (Data) field in DocType 'LDAP
 #. Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "string value, i.e. group"
-msgstr ""
+msgstr "string vrijednost, tj. grupa"
 
 #. Description of the 'LDAP Group Member attribute' (Data) field in DocType
 #. 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "string value, i.e. member"
-msgstr ""
+msgstr "string vrijednost, tj. član"
 
 #. Description of the 'Custom Group Search' (Data) field in DocType 'LDAP
 #. Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "string value, i.e. {0} or uid={0},ou=users,dc=example,dc=com"
-msgstr ""
+msgstr "vrijednost stringa, tj. {0} ili uid={0},ou=korisnici,dc=primjer,dc=com"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "submit"
-msgstr ""
+msgstr "podnesi"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "tag"
-msgstr ""
+msgstr "oznaka"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:162
 msgid "tag name..., e.g. #tag"
-msgstr ""
+msgstr "naziv oznake..., npr. #tag"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "tags"
-msgstr ""
+msgstr "oznake"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "tasks"
-msgstr ""
+msgstr "zadatci"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:157
 msgid "text in document type"
-msgstr ""
+msgstr "tekst u vrsti dokumenta"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "text-height"
-msgstr ""
+msgstr "visina teksta"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "text-width"
-msgstr ""
+msgstr "širina teksta"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "th"
-msgstr ""
+msgstr "th"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "th-large"
-msgstr ""
+msgstr "th-veliko"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "th-list"
-msgstr ""
+msgstr "th-lista"
 
 #: public/js/frappe/form/controls/data.js:35
 msgid "this form"
-msgstr ""
+msgstr "ovaj obrazac"
 
 #: tests/test_translate.py:157
 msgid "this shouldn't break"
-msgstr ""
+msgstr "ovo ne bi trebalo da se pokvari"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "thumbs-down"
-msgstr ""
+msgstr "palci dole"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "thumbs-up"
-msgstr ""
+msgstr "palci gore"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "time"
-msgstr ""
+msgstr "vrijeme"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "tint"
-msgstr ""
+msgstr "boji"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "trash"
-msgstr ""
+msgstr "otpad"
 
 #. Option for the 'Social Link Type' (Select) field in DocType 'Social Link
 #. Settings'
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "twitter"
-msgstr ""
+msgstr "twitter"
 
 #: public/js/frappe/change_log.html:7
 msgid "updated to {0}"
-msgstr ""
+msgstr "ažurirano na {0}"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "upload"
-msgstr ""
+msgstr "učitaj"
 
 #: public/js/frappe/ui/filters/filter.js:338
 msgid "use % as wildcard"
-msgstr ""
+msgstr "koristite % kao zamjenski znak"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "user"
-msgstr ""
+msgstr "korisnik"
 
 #: public/js/frappe/ui/filters/filter.js:337
 msgid "values separated by commas"
-msgstr ""
+msgstr "vrijednosti odvojene zarezima"
 
 #. Label of a HTML field in DocType 'Audit Trail'
 #: core/doctype/audit_trail/audit_trail.json
 msgctxt "Audit Trail"
 msgid "version_table"
-msgstr ""
+msgstr "tabela_verzije"
 
 #: automation/doctype/assignment_rule/assignment_rule.py:380
 msgid "via Assignment Rule"
-msgstr ""
+msgstr "preko pravila dodjele"
 
 #: core/doctype/data_import/importer.py:267
 #: core/doctype/data_import/importer.py:288
 msgid "via Data Import"
-msgstr ""
+msgstr "putem uvoza podataka"
 
 #. Description of the 'Add Video Conferencing' (Check) field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "via Google Meet"
-msgstr ""
+msgstr "putem Google Meeta"
 
 #: email/doctype/notification/notification.py:215
 msgid "via Notification"
-msgstr ""
+msgstr "putem Obavijesti"
 
 #: public/js/frappe/utils/energy_point_utils.js:46
 msgid "via automatic rule {0} on {1}"
-msgstr ""
+msgstr "preko automatskog pravila {0} na {1}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:17
 msgid "via {0}"
-msgstr ""
+msgstr "preko {0}"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "volume-down"
-msgstr ""
+msgstr "smanjivanje jačine zvuka"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "volume-off"
-msgstr ""
+msgstr "jačina zvuka isključena"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "volume-up"
-msgstr ""
+msgstr "povećanje jačine zvuka"
 
 #: templates/includes/oauth_confirmation.html:5
 msgid "wants to access the following details from your account"
-msgstr ""
+msgstr "želi pristupiti sljedećim detaljima vašeg računa"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "warning-sign"
-msgstr ""
+msgstr "znak upozorenja"
 
 #. Description of the 'Popover Element' (Check) field in DocType 'Form Tour
 #. Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgctxt "Form Tour Step"
 msgid "when clicked on element it will focus popover if present."
-msgstr ""
+msgstr "kada se klikne na element, on će fokusirati skočni prozor ako postoji."
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "wrench"
-msgstr ""
+msgstr "ključ"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "write"
-msgstr ""
+msgstr "pisati"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "yellow"
-msgstr ""
+msgstr "žuta"
 
 #: public/js/frappe/utils/pretty_date.js:58
 msgid "yesterday"
-msgstr ""
+msgstr "juče"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "yyyy-mm-dd"
-msgstr ""
+msgstr "gggg-mm-dd"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "zoom-in"
-msgstr ""
+msgstr "uvećaj"
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "zoom-out"
-msgstr ""
+msgstr "smanji"
 
 #: desk/doctype/event/event.js:87
 msgid "{0}"
@@ -38731,37 +38731,37 @@ msgstr ""
 
 #: public/js/frappe/ui/toolbar/search_utils.js:193
 msgid "{0} ${skip_list ? \"\" : type}"
-msgstr ""
+msgstr "{0} ${skip_list ? \"\" : type}"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:198
 msgid "{0} ${type}"
-msgstr ""
+msgstr "{0} ${type}"
 
 #: public/js/frappe/data_import/data_exporter.js:79
 #: public/js/frappe/views/gantt/gantt_view.js:54
 msgid "{0} ({1})"
-msgstr ""
+msgstr "{0} ({1})"
 
 #: public/js/frappe/data_import/data_exporter.js:76
 msgid "{0} ({1}) (1 row mandatory)"
-msgstr ""
+msgstr "{0} ({1}) (1 red obavezan)"
 
 #: public/js/frappe/views/gantt/gantt_view.js:53
 msgid "{0} ({1}) - {2}%"
-msgstr ""
+msgstr "{0} ({1}) - {2}%"
 
 #: public/js/frappe/ui/toolbar/awesome_bar.js:337
 #: public/js/frappe/ui/toolbar/awesome_bar.js:340
 msgid "{0} = {1}"
-msgstr ""
+msgstr "{0} = {1}"
 
 #: public/js/frappe/views/calendar/calendar.js:30
 msgid "{0} Calendar"
-msgstr ""
+msgstr "{0} Kalendar"
 
 #: public/js/frappe/views/reports/report_view.js:540
 msgid "{0} Chart"
-msgstr ""
+msgstr "{0} Grafikon"
 
 #: core/page/dashboard_view/dashboard_view.js:67
 #: public/js/frappe/ui/toolbar/search_utils.js:347
@@ -38769,104 +38769,104 @@ msgstr ""
 #: public/js/frappe/utils/utils.js:944
 #: public/js/frappe/views/dashboard/dashboard_view.js:10
 msgid "{0} Dashboard"
-msgstr ""
+msgstr "{0} Nadzorna ploča"
 
 #: public/js/frappe/form/grid_row.js:457
 #: public/js/frappe/list/list_settings.js:224
 #: public/js/frappe/views/kanban/kanban_settings.js:178
 msgid "{0} Fields"
-msgstr ""
+msgstr "{0} Polja"
 
 #: integrations/doctype/google_calendar/google_calendar.py:363
 msgid "{0} Google Calendar Events synced."
-msgstr ""
+msgstr "{0} Događaji Google kalendara su sinhronizovani."
 
 #: integrations/doctype/google_contacts/google_contacts.py:195
 msgid "{0} Google Contacts synced."
-msgstr ""
+msgstr "{0} Google kontakti su sinhronizovani."
 
 #: public/js/frappe/form/footer/form_timeline.js:463
 msgid "{0} Liked"
-msgstr ""
+msgstr "{0} Se svidjelo"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:83
 #: public/js/frappe/ui/toolbar/search_utils.js:84
 #: public/js/frappe/utils/utils.js:938
 #: public/js/frappe/widgets/chart_widget.js:317 www/list.html:4 www/list.html:8
 msgid "{0} List"
-msgstr ""
+msgstr "{0} Lista"
 
 #: public/js/frappe/utils/pretty_date.js:37
 msgid "{0} M"
-msgstr ""
+msgstr "{0} M"
 
 #: public/js/frappe/views/map/map_view.js:14
 msgid "{0} Map"
-msgstr ""
+msgstr "{0} Karta"
 
 #: public/js/frappe/utils/utils.js:941
 msgid "{0} Modules"
-msgstr ""
+msgstr "{0} Moduli"
 
 #: public/js/frappe/form/quick_entry.js:118
 msgid "{0} Name"
-msgstr ""
+msgstr "{0} Naziv"
 
 #: model/base_document.py:1041
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
-msgstr ""
+msgstr "{0} Nije dozvoljeno mijenjati {1} nakon podnošenja iz {2} u {3}"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:95
 #: public/js/frappe/ui/toolbar/search_utils.js:96
 #: public/js/frappe/utils/utils.js:935
 #: public/js/frappe/widgets/chart_widget.js:325
 msgid "{0} Report"
-msgstr ""
+msgstr "{0} Izvještaj"
 
 #: public/js/frappe/views/reports/query_report.js:882
 msgid "{0} Reports"
-msgstr ""
+msgstr "{0} Izvještaji"
 
 #: public/js/frappe/list/list_settings.js:32
 #: public/js/frappe/views/kanban/kanban_settings.js:26
 msgid "{0} Settings"
-msgstr ""
+msgstr "{0} Postavke"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:87
 #: public/js/frappe/ui/toolbar/search_utils.js:88
 #: public/js/frappe/views/treeview.js:128
 msgid "{0} Tree"
-msgstr ""
+msgstr "{0} Stablo"
 
 #: public/js/frappe/list/base_list.js:208
 msgid "{0} View"
-msgstr ""
+msgstr "{0} Pogledaj"
 
 #: public/js/frappe/form/footer/form_timeline.js:126
 #: public/js/frappe/form/sidebar/form_sidebar.js:86
 msgid "{0} Web page views"
-msgstr ""
+msgstr "{0} Pregledi web stranica"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:91
 #: public/js/frappe/ui/toolbar/search_utils.js:92
 msgid "{0} Workspace"
-msgstr ""
+msgstr "{0} Radni prostor"
 
 #: public/js/frappe/form/link_selector.js:225
 msgid "{0} added"
-msgstr ""
+msgstr "{0} dodano"
 
 #: public/js/frappe/form/controls/data.js:203
 msgid "{0} already exists. Select another name"
-msgstr ""
+msgstr "{0} već postoji. Odaberite drugo ime"
 
 #: email/doctype/email_unsubscribe/email_unsubscribe.py:36
 msgid "{0} already unsubscribed"
-msgstr ""
+msgstr "{0} je već odjavljen"
 
 #: email/doctype/email_unsubscribe/email_unsubscribe.py:49
 msgid "{0} already unsubscribed for {1} {2}"
-msgstr ""
+msgstr "{0} je već otkazan za {1} {2}"
 
 #: utils/data.py:1514
 msgid "{0} and {1}"
@@ -38874,254 +38874,254 @@ msgstr ""
 
 #: public/js/frappe/utils/energy_point_utils.js:38
 msgid "{0} appreciated on {1}"
-msgstr ""
+msgstr "{0} cijenjen na {1}"
 
 #: social/doctype/energy_point_log/energy_point_log.py:126
 #: social/doctype/energy_point_log/energy_point_log.py:163
 msgid "{0} appreciated your work on {1} with {2} point"
-msgstr ""
+msgstr "{0} cijeni tvoj rad na {1} sa {2} bod"
 
 #: social/doctype/energy_point_log/energy_point_log.py:128
 #: social/doctype/energy_point_log/energy_point_log.py:165
 msgid "{0} appreciated your work on {1} with {2} points"
-msgstr ""
+msgstr "{0} cijeni tvoj rad na {1} sa {2} bodova"
 
 #: public/js/frappe/utils/energy_point_utils.js:53
 msgid "{0} appreciated {1}"
-msgstr ""
+msgstr "{0} cijeni {1}"
 
 #: public/js/frappe/form/sidebar/review.js:148
 msgid "{0} appreciation point for {1}"
-msgstr ""
+msgstr "{0} bod zahvalnosti za {1}"
 
 #: public/js/frappe/form/sidebar/review.js:150
 msgid "{0} appreciation points for {1}"
-msgstr ""
+msgstr "{0} bodovi zahvalnosti za {1}"
 
 #: public/js/frappe/form/sidebar/form_sidebar_users.js:72
 msgid "{0} are currently {1}"
-msgstr ""
+msgstr "{0} su trenutno {1}"
 
 #: printing/doctype/print_format/print_format.py:89
 msgid "{0} are required"
-msgstr ""
+msgstr "{0} su obavezni"
 
 #: desk/form/assign_to.py:269
 msgid "{0} assigned a new task {1} {2} to you"
-msgstr ""
+msgstr "{0} vam je dodijelio novi zadatak {1} {2}"
 
 #: desk/doctype/todo/todo.py:47
 msgid "{0} assigned {1}: {2}"
-msgstr ""
+msgstr "{0} dodijeljen {1}: {2}"
 
 #: public/js/frappe/form/footer/form_timeline.js:414
 msgctxt "Form timeline"
 msgid "{0} attached {1}"
-msgstr ""
+msgstr "{0} priloženo {1}"
 
 #: core/doctype/system_settings/system_settings.py:142
 msgid "{0} can not be more than {1}"
-msgstr ""
+msgstr "{0} ne može biti više od {1}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:77
 msgid "{0} cancelled this document"
-msgstr ""
+msgstr "{0} je otkazao ovaj dokument"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:68
 msgctxt "Form timeline"
 msgid "{0} cancelled this document {1}"
-msgstr ""
+msgstr "{0} je otkazao ovaj dokument {1}"
 
 #: public/js/form_builder/store.js:190
 msgid "{0} cannot be hidden and mandatory without any default value"
-msgstr ""
+msgstr "{0} ne može biti skriven i obavezan bez ikakve zadane vrijednosti"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:124
 msgid "{0} changed the value of {1}"
-msgstr ""
+msgstr "{0} promijenio vrijednost {1}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:115
 msgid "{0} changed the value of {1} {2}"
-msgstr ""
+msgstr "{0} promijenio vrijednost {1} {2}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:186
 msgid "{0} changed the values for {1}"
-msgstr ""
+msgstr "{0} promijenio je vrijednosti za {1}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:177
 msgid "{0} changed the values for {1} {2}"
-msgstr ""
+msgstr "{0} promijenio vrijednosti za {1} {2}"
 
 #: public/js/frappe/form/footer/form_timeline.js:443
 msgctxt "Form timeline"
 msgid "{0} changed {1} to {2}"
-msgstr ""
+msgstr "{0} promijenjeno {1} u {2}"
 
 #: website/doctype/blog_post/blog_post.py:376
 msgid "{0} comments"
-msgstr ""
+msgstr "{0} komentara"
 
 #: public/js/frappe/views/interaction.js:261
 msgid "{0} created successfully"
-msgstr ""
+msgstr "{0} je uspješno kreiran"
 
 #: public/js/frappe/form/footer/form_timeline.js:139
 #: public/js/frappe/form/sidebar/form_sidebar.js:107
 msgid "{0} created this"
-msgstr ""
+msgstr "{0} je kreirao ovo"
 
 #: public/js/frappe/form/sidebar/review.js:154
 msgid "{0} criticism point for {1}"
-msgstr ""
+msgstr "{0} tačka kritike za {1}"
 
 #: public/js/frappe/form/sidebar/review.js:156
 msgid "{0} criticism points for {1}"
-msgstr ""
+msgstr "{0} tački kritike za {1}"
 
 #: public/js/frappe/utils/energy_point_utils.js:41
 msgid "{0} criticized on {1}"
-msgstr ""
+msgstr "{0} kritikovan za {1}"
 
 #: social/doctype/energy_point_log/energy_point_log.py:132
 #: social/doctype/energy_point_log/energy_point_log.py:170
 msgid "{0} criticized your work on {1} with {2} point"
-msgstr ""
+msgstr "{0} je kritikovao vaš rad na {1} s {2} bod"
 
 #: social/doctype/energy_point_log/energy_point_log.py:134
 #: social/doctype/energy_point_log/energy_point_log.py:172
 msgid "{0} criticized your work on {1} with {2} points"
-msgstr ""
+msgstr "{0} je kritikovao vaš rad na {1} s {2} boda"
 
 #: public/js/frappe/utils/energy_point_utils.js:56
 msgid "{0} criticized {1}"
-msgstr ""
+msgstr "{0} kritikovao {1}"
 
 #: public/js/frappe/utils/pretty_date.js:33
 msgid "{0} d"
-msgstr ""
+msgstr "{0} d"
 
 #: public/js/frappe/utils/pretty_date.js:60
 msgid "{0} days ago"
-msgstr ""
+msgstr "prije {0} dana"
 
 #: website/doctype/website_settings/website_settings.py:96
 #: website/doctype/website_settings/website_settings.py:116
 msgid "{0} does not exist in row {1}"
-msgstr ""
+msgstr "{0} ne postoji u redu {1}"
 
 #: database/mariadb/schema.py:120 database/postgres/schema.py:154
 msgid "{0} field cannot be set as unique in {1}, as there are non-unique existing values"
-msgstr ""
+msgstr "Polje {0} ne može se postaviti kao jedinstveno u {1}, budući da postoje nejedinstvene vrijednosti"
 
 #: core/doctype/data_import/importer.py:1024
 msgid "{0} format could not be determined from the values in this column. Defaulting to {1}."
-msgstr ""
+msgstr "{0} format nije mogao biti određen iz vrijednosti u ovoj koloni. Zadano na {1}."
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:97
 msgid "{0} from {1} to {2}"
-msgstr ""
+msgstr "{0} od {1} do {2}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:157
 msgid "{0} from {1} to {2} in row #{3}"
-msgstr ""
+msgstr "{0} od {1} do {2} u redu #{3}"
 
 #: social/doctype/energy_point_log/energy_point_log.py:120
 msgid "{0} gained {1} point for {2} {3}"
-msgstr ""
+msgstr "{0} je dobio {1} bod za {2} {3}"
 
 #: templates/emails/energy_points_summary.html:8
 msgid "{0} gained {1} points"
-msgstr ""
+msgstr "{0} je dobio {1} boda"
 
 #: social/doctype/energy_point_log/energy_point_log.py:122
 msgid "{0} gained {1} points for {2} {3}"
-msgstr ""
+msgstr "{0} je dobio {1} boda za {2} {3}"
 
 #: templates/emails/energy_points_summary.html:23
 msgid "{0} gave {1} points"
-msgstr ""
+msgstr "{0} je dao {1} boda"
 
 #: public/js/frappe/utils/pretty_date.js:29
 msgid "{0} h"
-msgstr ""
+msgstr "{0} h"
 
 #: core/doctype/user_permission/user_permission.py:77
 msgid "{0} has already assigned default value for {1}."
-msgstr ""
+msgstr "{0} je već dodijelio zadanu vrijednost za {1}."
 
 #: email/doctype/newsletter/newsletter.py:380
 msgid "{0} has been successfully added to the Email Group."
-msgstr ""
+msgstr "{0} je uspješno dodan u grupu e-pošte."
 
 #: email/queue.py:123
 msgid "{0} has left the conversation in {1} {2}"
-msgstr ""
+msgstr "{0} je napustio razgovor u {1} {2}"
 
 #: __init__.py:2443
 msgid "{0} has no versions tracked."
-msgstr ""
+msgstr "{0} nema praćenih verzija."
 
 #: public/js/frappe/utils/pretty_date.js:54
 msgid "{0} hours ago"
-msgstr ""
+msgstr "prije {0} sati"
 
 #: website/doctype/web_form/templates/web_form.html:145
 msgid "{0} if you are not redirected within {1} seconds"
-msgstr ""
+msgstr "{0} ako ne budete preusmjereni unutar {1} sekundi"
 
 #: website/doctype/website_settings/website_settings.py:102
 #: website/doctype/website_settings/website_settings.py:122
 msgid "{0} in row {1} cannot have both URL and child items"
-msgstr ""
+msgstr "{0} u redu {1} ne može imati i URL i podređene stavke"
 
 #: core/doctype/doctype/doctype.py:909
 msgid "{0} is a mandatory field"
-msgstr ""
+msgstr "{0} je obavezno polje"
 
 #: core/doctype/file/file.py:502
 msgid "{0} is a not a valid zip file"
-msgstr ""
+msgstr "{0} nije važeća zip datoteka"
 
 #: core/doctype/doctype/doctype.py:1567
 msgid "{0} is an invalid Data field."
-msgstr ""
+msgstr "{0} je nevažeće polje podataka."
 
 #: automation/doctype/auto_repeat/auto_repeat.py:148
 msgid "{0} is an invalid email address in 'Recipients'"
-msgstr ""
+msgstr "{0} je nevažeća adresa e-pošte u 'Primatelji'"
 
 #: public/js/frappe/views/reports/report_view.js:1392
 msgid "{0} is between {1} and {2}"
-msgstr ""
+msgstr "{0} je između {1} i {2}"
 
 #: public/js/frappe/form/sidebar/form_sidebar_users.js:41
 #: public/js/frappe/form/sidebar/form_sidebar_users.js:69
 msgid "{0} is currently {1}"
-msgstr ""
+msgstr "{0} je trenutno {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1361
 msgid "{0} is equal to {1}"
-msgstr ""
+msgstr "{0} je jednako {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1381
 msgid "{0} is greater than or equal to {1}"
-msgstr ""
+msgstr "{0} je veće ili jednako {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1371
 msgid "{0} is greater than {1}"
-msgstr ""
+msgstr "{0} je veće od {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1386
 msgid "{0} is less than or equal to {1}"
-msgstr ""
+msgstr "{0} je manje ili jednako {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1376
 msgid "{0} is less than {1}"
-msgstr ""
+msgstr "{0} je manje od {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1411
 msgid "{0} is like {1}"
-msgstr ""
+msgstr "{0} je kao {1}"
 
 #: email/doctype/email_account/email_account.py:174
 msgid "{0} is mandatory"
@@ -39129,79 +39129,79 @@ msgstr ""
 
 #: core/doctype/document_naming_rule/document_naming_rule.py:50
 msgid "{0} is not a field of doctype {1}"
-msgstr ""
+msgstr "{0} nije polje tipa dokumenta {1}"
 
 #: www/printview.py:342
 msgid "{0} is not a raw printing format."
-msgstr ""
+msgstr "{0} nije sirovi format za štampanje."
 
 #: public/js/frappe/views/calendar/calendar.js:82
 msgid "{0} is not a valid Calendar. Redirecting to default Calendar."
-msgstr ""
+msgstr "{0} nije važeći kalendar. Preusmjeravanje na zadani kalendar."
 
 #: core/doctype/scheduled_job_type/scheduled_job_type.py:65
 msgid "{0} is not a valid Cron expression."
-msgstr ""
+msgstr "{0} nije važeći Cron izraz."
 
 #: public/js/frappe/form/controls/dynamic_link.js:27
 msgid "{0} is not a valid DocType for Dynamic Link"
-msgstr ""
+msgstr "{0} nije važeća vrsta dokumenta za dinamičku vezu"
 
 #: email/doctype/email_group/email_group.py:131 utils/__init__.py:188
 msgid "{0} is not a valid Email Address"
-msgstr ""
+msgstr "{0} nije važeća adresa e-pošte"
 
 #: utils/__init__.py:156
 msgid "{0} is not a valid Name"
-msgstr ""
+msgstr "{0} nije važeće Ime"
 
 #: utils/__init__.py:136
 msgid "{0} is not a valid Phone Number"
-msgstr ""
+msgstr "{0} nije ispravan broj telefona"
 
 #: model/workflow.py:182
 msgid "{0} is not a valid Workflow State. Please update your Workflow and try again."
-msgstr ""
+msgstr "{0} nije važeće stanje radnog toka. Molimo ažurirajte svoj radni tok i pokušajte ponovo."
 
 #: permissions.py:786
 msgid "{0} is not a valid parent DocType for {1}"
-msgstr ""
+msgstr "{0} nije važeći nadređeni DocType za {1}"
 
 #: permissions.py:806
 msgid "{0} is not a valid parentfield for {1}"
-msgstr ""
+msgstr "{0} nije važeće nadređeno polje za {1}"
 
 #: email/doctype/auto_email_report/auto_email_report.py:115
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
-msgstr ""
+msgstr "{0} nije važeći format izvještaja. Format izvještaja bi trebao biti jedan od sljedećih {1}"
 
 #: core/doctype/file/file.py:482
 msgid "{0} is not a zip file"
-msgstr ""
+msgstr "{0} nije zip datoteka"
 
 #: public/js/frappe/views/reports/report_view.js:1366
 msgid "{0} is not equal to {1}"
-msgstr ""
+msgstr "{0} nije jednako {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1413
 msgid "{0} is not like {1}"
-msgstr ""
+msgstr "{0} nije kao {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1407
 msgid "{0} is not one of {1}"
-msgstr ""
+msgstr "{0} nije jedno od {1}"
 
 #: public/js/frappe/views/reports/report_view.js:1417
 msgid "{0} is not set"
-msgstr ""
+msgstr "{0} nije postavljeno"
 
 #: printing/doctype/print_format/print_format.py:165
 msgid "{0} is now default print format for {1} doctype"
-msgstr ""
+msgstr "{0} je sada podrazumijevani format štampanja za {1} tip dokumenta"
 
 #: public/js/frappe/views/reports/report_view.js:1400
 msgid "{0} is one of {1}"
-msgstr ""
+msgstr "{0} je jedan od {1}"
 
 #: email/doctype/email_account/email_account.py:275 model/naming.py:199
 #: printing/doctype/print_format/print_format.py:92 utils/csvutils.py:131
@@ -39210,439 +39210,440 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_view.js:1416
 msgid "{0} is set"
-msgstr ""
+msgstr "{0} je postavljeno"
 
 #: public/js/frappe/views/reports/report_view.js:1395
 msgid "{0} is within {1}"
-msgstr ""
+msgstr "{0} je unutar {1}"
 
 #: public/js/frappe/list/list_view.js:1597
 msgid "{0} items selected"
-msgstr ""
+msgstr "{0} stavke odabrane"
 
 #: core/doctype/user/user.py:1349
 msgid "{0} just impersonated as you. They gave this reason: {1}"
-msgstr ""
+msgstr "{0} samo se predstavljao kao ti. Naveli su ovaj razlog: {1}"
 
 #: public/js/frappe/form/footer/form_timeline.js:150
 #: public/js/frappe/form/sidebar/form_sidebar.js:96
 msgid "{0} last edited this"
-msgstr ""
+msgstr "{0} je zadnji put uredio ovo"
 
 #: core/doctype/activity_log/feed.py:13
 msgid "{0} logged in"
-msgstr ""
+msgstr "{0} prijavljen"
 
 #: core/doctype/activity_log/feed.py:19
 msgid "{0} logged out: {1}"
-msgstr ""
+msgstr "{0} odjavljen: {1}"
 
 #: public/js/frappe/utils/pretty_date.js:27
 msgid "{0} m"
-msgstr ""
+msgstr "{0} m"
 
 #: desk/notifications.py:375
 msgid "{0} mentioned you in a comment in {1} {2}"
-msgstr ""
+msgstr "{0} vas je spomenuo u komentaru u {1} {2}"
 
 #: public/js/frappe/utils/pretty_date.js:50
 msgid "{0} minutes ago"
-msgstr ""
+msgstr "prije {0} minuta"
 
 #: public/js/frappe/utils/pretty_date.js:68
 msgid "{0} months ago"
-msgstr ""
+msgstr "prije {0} mjeseci"
 
 #: model/document.py:1593
 msgid "{0} must be after {1}"
-msgstr ""
+msgstr "{0} mora biti iza {1}"
 
 #: utils/csvutils.py:136
 msgid "{0} must be one of {1}"
-msgstr ""
+msgstr "{0} mora biti jedan od {1}"
 
 #: model/base_document.py:782
 msgid "{0} must be set first"
-msgstr ""
+msgstr "{0} se mora prvo postaviti"
 
 #: model/base_document.py:640
 msgid "{0} must be unique"
-msgstr ""
+msgstr "{0} mora biti jedinstven"
 
 #: core/doctype/language/language.py:43
 msgid "{0} must begin and end with a letter and can only contain letters,\n"
 "\t\t\t\thyphen or underscore."
-msgstr ""
+msgstr "{0} mora početi i završavati slovom i može sadržavati samo slova,\n"
+"\t\t\t\tcrticu ili donju crtu."
 
 #: workflow/doctype/workflow/workflow.py:91
 msgid "{0} not a valid State"
-msgstr ""
+msgstr "{0} nije važeća država"
 
 #: model/rename_doc.py:380
 msgid "{0} not allowed to be renamed"
-msgstr ""
+msgstr "{0} nije dozvoljeno preimenovati"
 
 #: desk/doctype/desktop_icon/desktop_icon.py:365
 msgid "{0} not found"
-msgstr ""
+msgstr "{0} nije pronađen"
 
 #: core/doctype/report/report.py:413 public/js/frappe/list/list_view.js:988
 msgid "{0} of {1}"
-msgstr ""
+msgstr "{0} od {1}"
 
 #: public/js/frappe/list/list_view.js:990
 msgid "{0} of {1} ({2} rows with children)"
-msgstr ""
+msgstr "{0} od {1} ({2} redovi sa potomcima)"
 
 #: email/doctype/newsletter/newsletter.js:205
 msgid "{0} of {1} sent"
-msgstr ""
+msgstr "{0} od {1} poslano"
 
 #: utils/data.py:1510
 msgid "{0} or {1}"
-msgstr ""
+msgstr "{0} ili {1}"
 
 #: core/doctype/user_permission/user_permission_list.js:177
 msgid "{0} record deleted"
-msgstr ""
+msgstr "{0} zapis je obrisan"
 
 #: public/js/frappe/logtypes.js:22
 msgid "{0} records are not automatically deleted."
-msgstr ""
+msgstr "{0} zapisi se ne brišu automatski."
 
 #: public/js/frappe/logtypes.js:29
 msgid "{0} records are retained for {1} days."
-msgstr ""
+msgstr "{0} zapisi se čuvaju {1} dana."
 
 #: core/doctype/user_permission/user_permission_list.js:179
 msgid "{0} records deleted"
-msgstr ""
+msgstr "{0} zapisi su izbrisani"
 
 #: public/js/frappe/data_import/data_exporter.js:228
 msgid "{0} records will be exported"
-msgstr ""
+msgstr "{0} zapisi će biti izvezeni"
 
 #: public/js/frappe/form/footer/form_timeline.js:419
 msgctxt "Form timeline"
 msgid "{0} removed attachment {1}"
-msgstr ""
+msgstr "{0} uklonio prilog {1}"
 
 #: desk/doctype/todo/todo.py:57
 msgid "{0} removed their assignment."
-msgstr ""
+msgstr "{0} je uklonio njihov zadatak."
 
 #: social/doctype/energy_point_log/energy_point_log.py:139
 #: social/doctype/energy_point_log/energy_point_log.py:178
 msgid "{0} reverted your point on {1}"
-msgstr ""
+msgstr "{0} je vratio vašu tačku na {1}"
 
 #: social/doctype/energy_point_log/energy_point_log.py:141
 #: social/doctype/energy_point_log/energy_point_log.py:180
 msgid "{0} reverted your points on {1}"
-msgstr ""
+msgstr "{0} je vratio vaše bodove na {1}"
 
 #: public/js/frappe/utils/energy_point_utils.js:44
 #: public/js/frappe/utils/energy_point_utils.js:59
 msgid "{0} reverted {1}"
-msgstr ""
+msgstr "{0} vraćeno {1}"
 
 #: public/js/frappe/roles_editor.js:61
 msgid "{0} role does not have permission on any doctype"
-msgstr ""
+msgstr "{0} uloga nema dozvolu ni za jednu vrstu dokumenta"
 
 #: desk/query_report.py:580
 msgid "{0} saved successfully"
-msgstr ""
+msgstr "{0} je uspješno sačuvano"
 
 #: desk/doctype/todo/todo.py:43
 msgid "{0} self assigned this task: {1}"
-msgstr ""
+msgstr "{0} je sam sebi dodijelio ovaj zadatak: {1}"
 
 #: share.py:233
 msgid "{0} shared a document {1} {2} with you"
-msgstr ""
+msgstr "{0} dijeli dokument {1} {2} s vama"
 
 #: core/doctype/docshare/docshare.py:76
 msgid "{0} shared this document with everyone"
-msgstr ""
+msgstr "{0} je podijelio ovaj dokument sa svima"
 
 #: core/doctype/docshare/docshare.py:79
 msgid "{0} shared this document with {1}"
-msgstr ""
+msgstr "{0} dijeli ovaj dokument sa {1}"
 
 #: core/doctype/doctype/doctype.py:316
 msgid "{0} should be indexed because it's referred in dashboard connections"
-msgstr ""
+msgstr "{0} treba indeksirati jer se poziva na konekcije na upravljačkoj ploči"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:137
 msgid "{0} should not be same as {1}"
-msgstr ""
+msgstr "{0} ne bi trebalo biti isto kao {1}"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:51
 msgid "{0} submitted this document"
-msgstr ""
+msgstr "{0} je podnio ovaj dokument"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:42
 msgctxt "Form timeline"
 msgid "{0} submitted this document {1}"
-msgstr ""
+msgstr "{0} je podnio ovaj dokument {1}"
 
 #: email/doctype/email_group/email_group.py:62
 #: email/doctype/email_group/email_group.py:133
 msgid "{0} subscribers added"
-msgstr ""
+msgstr "{0} pretplatnika je dodano"
 
 #: email/queue.py:68
 msgid "{0} to stop receiving emails of this type"
-msgstr ""
+msgstr "{0} da prestanete primati e-poruke ove vrste"
 
 #: public/js/frappe/form/controls/date_range.js:46
 #: public/js/frappe/form/controls/date_range.js:62
 #: public/js/frappe/form/formatters.js:234
 msgid "{0} to {1}"
-msgstr ""
+msgstr "{0} do {1}"
 
 #: core/doctype/docshare/docshare.py:88
 msgid "{0} un-shared this document with {1}"
-msgstr ""
+msgstr "{0} je prekinuo dijeljenje ovog dokumenta sa {1}"
 
 #: custom/doctype/customize_form/customize_form.py:249
 msgid "{0} updated"
-msgstr ""
+msgstr "{0} ažurirano"
 
 #: public/js/frappe/form/controls/multiselect_list.js:162
 msgid "{0} values selected"
-msgstr ""
+msgstr "{0} vrijednosti odabrane"
 
 #: public/js/frappe/form/footer/form_timeline.js:183
 msgid "{0} viewed this"
-msgstr ""
+msgstr "{0} je pogledao ovo"
 
 #: public/js/frappe/utils/pretty_date.js:35
 msgid "{0} w"
-msgstr ""
+msgstr "{0} w"
 
 #: public/js/frappe/utils/pretty_date.js:64
 msgid "{0} weeks ago"
-msgstr ""
+msgstr "prije {0} sedmica"
 
 #: public/js/frappe/utils/pretty_date.js:39
 msgid "{0} y"
-msgstr ""
+msgstr "{0} y"
 
 #: public/js/frappe/utils/pretty_date.js:72
 msgid "{0} years ago"
-msgstr ""
+msgstr "{0} godina"
 
 #: public/js/frappe/form/link_selector.js:219
 msgid "{0} {1} added"
-msgstr ""
+msgstr "{0} {1} dodano"
 
 #: public/js/frappe/utils/dashboard_utils.js:270
 msgid "{0} {1} added to Dashboard {2}"
-msgstr ""
+msgstr "{0} {1} dodan na nadzornu ploču {2}"
 
 #: model/base_document.py:573 model/rename_doc.py:110
 msgid "{0} {1} already exists"
-msgstr ""
+msgstr "{0} {1} već postoji"
 
 #: model/base_document.py:884
 msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
-msgstr ""
+msgstr "{0} {1} ne može biti \"{2}\". Trebao bi biti jedan od \"{3}\""
 
 #: utils/nestedset.py:341
 msgid "{0} {1} cannot be a leaf node as it has children"
-msgstr ""
+msgstr "{0} {1} ne može biti list čvor jer ima potomke"
 
 #: model/rename_doc.py:371
 msgid "{0} {1} does not exist, select a new target to merge"
-msgstr ""
+msgstr "{0} {1} ne postoji, odaberite novi cilj za spajanje"
 
 #: public/js/frappe/form/form.js:927
 msgid "{0} {1} is linked with the following submitted documents: {2}"
-msgstr ""
+msgstr "{0} {1} je povezan sa sljedećim podesenim dokumentima: {2}"
 
 #: model/document.py:173 permissions.py:553
 msgid "{0} {1} not found"
-msgstr ""
+msgstr "{0} {1} nije pronađeno"
 
 #: model/delete_doc.py:244
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
-msgstr ""
+msgstr "{0} {1}: Podenseni zapis se ne može izbrisati. Prvo morate {2} otkazati {3}."
 
 #: model/base_document.py:1002
 msgid "{0}, Row {1}"
-msgstr ""
+msgstr "{0}, red {1}"
 
 #: model/base_document.py:1007
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
-msgstr ""
+msgstr "{0}: '{1}' ({3}) će biti skraćen, jer je maksimalni dozvoljeni broj znakova {2}"
 
 #: core/doctype/doctype/doctype.py:1749
 msgid "{0}: Cannot set Amend without Cancel"
-msgstr ""
+msgstr "{0}: Ne može se postaviti Izmjena bez Otkaži"
 
 #: core/doctype/doctype/doctype.py:1767
 msgid "{0}: Cannot set Assign Amend if not Submittable"
-msgstr ""
+msgstr "{0}: Nije moguće postaviti Dodijeli izmjenu ako se ne može podnijeti"
 
 #: core/doctype/doctype/doctype.py:1765
 msgid "{0}: Cannot set Assign Submit if not Submittable"
-msgstr ""
+msgstr "{0}: Ne može se postaviti Dodijeli podnošenje ako se ne može podnijeti"
 
 #: core/doctype/doctype/doctype.py:1744
 msgid "{0}: Cannot set Cancel without Submit"
-msgstr ""
+msgstr "{0}: Nije moguće postaviti Odustani bez Podnesi"
 
 #: core/doctype/doctype/doctype.py:1751
 msgid "{0}: Cannot set Import without Create"
-msgstr ""
+msgstr "{0}: Nije moguće postaviti Uvoz bez Kreiraj"
 
 #: core/doctype/doctype/doctype.py:1747
 msgid "{0}: Cannot set Submit, Cancel, Amend without Write"
-msgstr ""
+msgstr "{0}: Nije moguće podesiti Podnesi, Otkaži, Izmijeni bez Piši"
 
 #: core/doctype/doctype/doctype.py:1771
 msgid "{0}: Cannot set import as {1} is not importable"
-msgstr ""
+msgstr "{0}: Nije moguće postaviti uvoz jer {1} nije uvozan"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:394
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
-msgstr ""
+msgstr "{0}: nije uspjelo prilaganje novog ponavljajućeg dokumenta. Da biste omogućili prilaganje dokumenta u e-poruci obavijesti o automatskom ponavljanju, omogućite {1} u postavkama ispisa"
 
 #: core/doctype/doctype/doctype.py:1387
 msgid "{0}: Field '{1}' cannot be set as Unique as it has non-unique values"
-msgstr ""
+msgstr "{0}: Polje '{1}' ne može se postaviti kao jedinstveno jer ima nejedinstvene vrijednosti"
 
 #: core/doctype/doctype/doctype.py:1295
 msgid "{0}: Field {1} in row {2} cannot be hidden and mandatory without default"
-msgstr ""
+msgstr "{0}: Polje {1} u redu {2} ne može biti skriveno i obavezno bez zadanog"
 
 #: core/doctype/doctype/doctype.py:1254
 msgid "{0}: Field {1} of type {2} cannot be mandatory"
-msgstr ""
+msgstr "{0}: Polje {1} tipa {2} ne može biti obavezno"
 
 #: core/doctype/doctype/doctype.py:1242
 msgid "{0}: Fieldname {1} appears multiple times in rows {2}"
-msgstr ""
+msgstr "{0}: Ime polja {1} se pojavljuje više puta u redovima {2}"
 
 #: core/doctype/doctype/doctype.py:1374
 msgid "{0}: Fieldtype {1} for {2} cannot be unique"
-msgstr ""
+msgstr "{0}: Tip polja {1} za {2} ne može biti jedinstven"
 
 #: core/doctype/doctype/doctype.py:1704
 msgid "{0}: No basic permissions set"
-msgstr ""
+msgstr "{0}: Nisu postavljene osnovne dozvole"
 
 #: core/doctype/doctype/doctype.py:1718
 msgid "{0}: Only one rule allowed with the same Role, Level and {1}"
-msgstr ""
+msgstr "{0}: Dozvoljeno je samo jedno pravilo sa istom ulogom, nivoom i {1}"
 
 #: core/doctype/doctype/doctype.py:1276
 msgid "{0}: Options must be a valid DocType for field {1} in row {2}"
-msgstr ""
+msgstr "{0}: Opcije moraju biti važeći DocType za polje {1} u redu {2}"
 
 #: core/doctype/doctype/doctype.py:1265
 msgid "{0}: Options required for Link or Table type field {1} in row {2}"
-msgstr ""
+msgstr "{0}: Potrebne su opcije za polje vrste veze ili tabele {1} u redu {2}"
 
 #: core/doctype/doctype/doctype.py:1283
 msgid "{0}: Options {1} must be the same as doctype name {2} for the field {3}"
-msgstr ""
+msgstr "{0}: Opcije {1} moraju biti iste kao naziv tipa dokumenta {2} za polje {3}"
 
 #: public/js/frappe/form/workflow.js:45
 msgid "{0}: Other permission rules may also apply"
-msgstr ""
+msgstr "{0}: Mogu se primjenjivati i druga pravila o dozvolama"
 
 #: core/doctype/doctype/doctype.py:1733
 msgid "{0}: Permission at level 0 must be set before higher levels are set"
-msgstr ""
+msgstr "{0}: Dozvola na nivou 0 mora biti postavljena prije postavljanja viših nivoa"
 
 #: public/js/frappe/form/controls/data.js:50
 msgid "{0}: You can increase the limit for the field if required via {1}"
-msgstr ""
+msgstr "{0}: Možete povećati ograničenje za polje ako je potrebno preko {1}"
 
 #: core/doctype/doctype/doctype.py:1229
 msgid "{0}: fieldname cannot be set to reserved keyword {1}"
-msgstr ""
+msgstr "{0}: naziv polja ne može se postaviti na rezerviranu ključnu riječ {1}"
 
 #: contacts/doctype/address/address.js:35
 #: contacts/doctype/contact/contact.js:83
 #: public/js/frappe/views/workspace/workspace.js:169
 msgid "{0}: {1}"
-msgstr ""
+msgstr "{0}: {1}"
 
 #: workflow/doctype/workflow_action/workflow_action.py:167
 msgid "{0}: {1} is set to state {2}"
-msgstr ""
+msgstr "{0}: {1} je postavljeno na stanje {2}"
 
 #: public/js/frappe/views/reports/query_report.js:1204
 msgid "{0}: {1} vs {2}"
-msgstr ""
+msgstr "{0}: {1} protiv {2}"
 
 #: core/doctype/doctype/doctype.py:1395
 msgid "{0}:Fieldtype {1} for {2} cannot be indexed"
-msgstr ""
+msgstr "{0}:Tip polja {1} za {2} ne može se indeksirati"
 
 #: public/js/frappe/utils/datatable.js:12
 msgid "{count} cell copied"
-msgstr ""
+msgstr "{count} ćelija kopirana"
 
 #: public/js/frappe/utils/datatable.js:13
 msgid "{count} cells copied"
-msgstr ""
+msgstr "{count} ćelija kopirano"
 
 #: public/js/frappe/utils/datatable.js:16
 msgid "{count} row selected"
-msgstr ""
+msgstr "{count} red odabran"
 
 #: public/js/frappe/utils/datatable.js:17
 msgid "{count} rows selected"
-msgstr ""
+msgstr "{count} redova odabrano"
 
 #: core/doctype/doctype/doctype.py:1449
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
-msgstr ""
+msgstr "{{{0}}} nije važeći obrazac naziva polja. Trebalo bi da bude {{field_name}}."
 
 #: public/js/frappe/form/form.js:510
 msgid "{} Complete"
-msgstr ""
+msgstr "{} Završeno"
 
 #: utils/data.py:2154
 msgid "{} Invalid python code on line {}"
-msgstr ""
+msgstr "{} Nevažeći python kod na liniji {}"
 
 #: utils/data.py:2163
 msgid "{} Possibly invalid python code. <br>{}"
-msgstr ""
+msgstr "{} Možda nevažeći python kod. <br>{}"
 
 #: core/doctype/log_settings/log_settings.py:55
 msgid "{} does not support automated log clearing."
-msgstr ""
+msgstr "{} ne podržava automatsko brisanje dnevnika."
 
 #: core/doctype/audit_trail/audit_trail.py:32
 #: core/doctype/audit_trail/audit_trail.py:36
 msgid "{} field cannot be empty."
-msgstr ""
+msgstr "Polje {} ne može biti prazno."
 
 #: email/doctype/email_account/email_account.py:198
 #: email/doctype/email_account/email_account.py:206
 msgid "{} has been disabled. It can only be enabled if {} is checked."
-msgstr ""
+msgstr "{} je onemogućen. Može se omogućiti samo ako je označeno {}."
 
 #: utils/data.py:101
 msgid "{} is not a valid date string."
-msgstr ""
+msgstr "{} nije ispravan datumski niz."
 
 #: commands/utils.py:527
 msgid "{} not found in PATH! This is required to access the console."
-msgstr ""
+msgstr "{} nije pronađeno u PATH! Ovo je potrebno za pristup konzoli."
 
 #: database/db_manager.py:81
 msgid "{} not found in PATH! This is required to restore the database."
-msgstr ""
+msgstr "{} nije pronađeno u PATH! Ovo je potrebno za vraćanje baze podataka."
 
 #: utils/backups.py:448
 msgid "{} not found in PATH! This is required to take a backup."
-msgstr ""
+msgstr "{} nije pronađeno u PATH! Ovo je potrebno za izradu sigurnosne kopije."
 
