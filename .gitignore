@@ -2,7 +2,6 @@
 *.py~
 *.comp.js
 *.DS_Store
-locale
 .wnf-lang-status
 *.swp
 *.egg-info
@@ -71,7 +70,6 @@ coverage.xml
 
 # Translations
 *.mo
-*.pot
 
 # Django stuff:
 *.log
