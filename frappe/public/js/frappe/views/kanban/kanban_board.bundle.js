@@ -1060,7 +1060,8 @@ frappe.provide("frappe.views");
 			fields: [ "name", "modified", "status", "parent"],
 			group_by: "parent",
 			order_by: "parent asc",
-			limit: 100
+			limit: 100,
+			ip:1
 		})
 		quotations_draft = result.length ? result : []
 		return result.length

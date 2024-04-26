@@ -129,6 +129,8 @@ def execute(doctype, *args, **kwargs):
             kwargs["order_by"] = kwargs["order_by"].replace(
                 "`tabProject`.`queue_position`", "queue_position"
             )
+    kwargs["ignore_permissions"] = kwargs.get("ip", False) == "1"
+    kwargs.pop("ip", None)
     return DatabaseQuery(doctype).execute(*args, **kwargs)
 
 
