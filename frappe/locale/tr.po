@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-25 12:23\n"
+"PO-Revision-Date: 2024-04-26 13:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -803,15 +803,15 @@ msgstr ""
 
 #: core/doctype/data_import/data_import.js:27
 msgid "About {0} minute remaining"
-msgstr ""
+msgstr "Yaklaşık {0} dakika kaldı"
 
 #: core/doctype/data_import/data_import.js:28
 msgid "About {0} minutes remaining"
-msgstr ""
+msgstr "Yaklaşık {0} dakika kaldı"
 
 #: core/doctype/data_import/data_import.js:25
 msgid "About {0} seconds remaining"
-msgstr ""
+msgstr "Yaklaşık {0} saniye kaldı"
 
 #. Label of a Data field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -1092,12 +1092,12 @@ msgstr "Aktivite Günlüğü"
 #: public/js/frappe/views/reports/query_report.js:293
 #: public/js/frappe/widgets/widget_dialog.js:30
 msgid "Add"
-msgstr ""
+msgstr "Ekle"
 
 #: public/js/frappe/list/list_view.js:266
 msgctxt "Primary action in list view"
 msgid "Add"
-msgstr ""
+msgstr "Ekle"
 
 #: public/js/frappe/form/grid_row.js:430
 msgid "Add / Remove Columns"
@@ -1626,7 +1626,7 @@ msgstr "Uyarılar ve Bildirimler"
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Align"
-msgstr ""
+msgstr "Hizala"
 
 #. Label of a Check field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
@@ -3691,13 +3691,13 @@ msgstr ""
 
 #: printing/page/print/print.js:273 printing/page/print/print.js:327
 msgid "Based On"
-msgstr ""
+msgstr "Buna göre"
 
 #. Label of a Link field in DocType 'Language'
 #: core/doctype/language/language.json
 msgctxt "Language"
 msgid "Based On"
-msgstr ""
+msgstr "Buna göre"
 
 #. Option for the 'Rule' (Select) field in DocType 'Assignment Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
@@ -4938,13 +4938,13 @@ msgstr ""
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Center"
-msgstr ""
+msgstr "Ortala"
 
 #. Option for the 'Text Align' (Select) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Center"
-msgstr ""
+msgstr "Ortala"
 
 #: core/page/permission_manager/permission_manager_help.html:16
 msgid "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
@@ -5487,7 +5487,7 @@ msgstr ""
 #: core/doctype/communication/communication.js:39 desk/doctype/todo/todo.js:23
 #: public/js/frappe/ui/messages.js:245 website/js/bootstrap-4.js:24
 msgid "Close"
-msgstr ""
+msgstr "Kapat"
 
 #. Label of a Code field in DocType 'Assignment Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
@@ -5624,97 +5624,97 @@ msgstr ""
 #: public/js/frappe/widgets/widget_dialog.js:662
 #: website/doctype/color/color.json
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Color field in DocType 'Color'
 #: website/doctype/color/color.json
 msgctxt "Color"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Color field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Color field in DocType 'Dashboard Chart Field'
 #: desk/doctype/dashboard_chart_field/dashboard_chart_field.json
 msgctxt "Dashboard Chart Field"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Data field in DocType 'Desktop Icon'
 #: desk/doctype/desktop_icon/desktop_icon.json
 msgctxt "Desktop Icon"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Select field in DocType 'DocType State'
 #: core/doctype/doctype_state/doctype_state.json
 msgctxt "DocType State"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Color field in DocType 'Event'
 #: desk/doctype/event/event.json
 msgctxt "Event"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Color field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Color field in DocType 'Social Link Settings'
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Color field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
 msgctxt "ToDo"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #. Label of a Color field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgctxt "Workspace Shortcut"
 msgid "Color"
-msgstr ""
+msgstr "Renk"
 
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:7
 msgid "Column"
@@ -6020,13 +6020,13 @@ msgstr ""
 
 #: www/complete_signup.html:21
 msgid "Complete"
-msgstr ""
+msgstr "Tamamla"
 
 #. Option for the 'Status' (Select) field in DocType 'Scheduled Job Log'
 #: core/doctype/scheduled_job_log/scheduled_job_log.json
 msgctxt "Scheduled Job Log"
 msgid "Complete"
-msgstr ""
+msgstr "Tamamla"
 
 #: public/js/frappe/form/sidebar/assign_to.js:176
 msgid "Complete By"
@@ -6683,25 +6683,25 @@ msgstr ""
 #: public/js/frappe/views/workspace/workspace.js:1228
 #: workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
-msgstr ""
+msgstr "Oluştur"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Create"
-msgstr ""
+msgstr "Oluştur"
 
 #. Label of a Check field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Create"
-msgstr ""
+msgstr "Oluştur"
 
 #. Label of a Check field in DocType 'User Document Type'
 #: core/doctype/user_document_type/user_document_type.json
 msgctxt "User Document Type"
 msgid "Create"
-msgstr ""
+msgstr "Oluştur"
 
 #: core/doctype/doctype/doctype_list.js:85
 msgid "Create & Continue"
@@ -8059,7 +8059,7 @@ msgstr ""
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Default Letter Head"
-msgstr ""
+msgstr "Varsayılan Antetli Kağıt"
 
 #. Option for the 'Action' (Select) field in DocType 'Amended Document Naming
 #. Settings'
@@ -11195,7 +11195,7 @@ msgstr "Form Türünü Girin"
 #: public/js/frappe/ui/messages.js:94
 msgctxt "Title of prompt dialog"
 msgid "Enter Value"
-msgstr ""
+msgstr "Değer Girin"
 
 #: public/js/frappe/form/form_tour.js:58
 msgid "Enter a name for this {0}"
@@ -11251,61 +11251,61 @@ msgstr "Eşittir"
 #: desk/page/backups/backups.js:35 model/base_document.py:715
 #: model/base_document.py:721 public/js/frappe/ui/messages.js:22
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
 #. Label of a Code field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #. Label of a Code field in DocType 'Email Queue Recipient'
 #: email/doctype/email_queue_recipient/email_queue_recipient.json
 msgctxt "Email Queue Recipient"
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #. Label of a Code field in DocType 'Error Log'
 #: core/doctype/error_log/error_log.json
 msgctxt "Error Log"
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #. Label of a Code field in DocType 'Integration Request'
 #: integrations/doctype/integration_request/integration_request.json
 msgctxt "Integration Request"
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'
 #: core/doctype/prepared_report/prepared_report.json
 msgctxt "Prepared Report"
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #: public/js/frappe/web_form/web_form.js:240
 msgctxt "Title of error message in web form"
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #. Label of a Text field in DocType 'Webhook Request Log'
 #: integrations/doctype/webhook_request_log/webhook_request_log.json
 msgctxt "Webhook Request Log"
 msgid "Error"
-msgstr ""
+msgstr "Hata"
 
 #: www/error.html:34
 msgid "Error Code: {0}"
@@ -11314,7 +11314,7 @@ msgstr "Hata Kodu: {0}"
 #. Name of a DocType
 #: core/doctype/error_log/error_log.json
 msgid "Error Log"
-msgstr ""
+msgstr "Hata Günlüğü"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
@@ -11354,7 +11354,7 @@ msgstr ""
 
 #: printing/doctype/letter_head/letter_head.js:21
 msgid "Error in Header/Footer Script"
-msgstr ""
+msgstr "Üstbilgi/Altbilgi Kodunda Hata"
 
 #: email/doctype/notification/notification.py:391
 #: email/doctype/notification/notification.py:507
@@ -12946,7 +12946,7 @@ msgstr ""
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Footer Image"
-msgstr ""
+msgstr "Alt Bilgi Resmi"
 
 #. Label of a Section Break field in DocType 'Website Settings'
 #. Label of a Table field in DocType 'Website Settings'
@@ -14294,31 +14294,31 @@ msgstr "Hesabınız Varsa Giriş Yapın"
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Header"
-msgstr ""
+msgstr "Başlık"
 
 #. Label of a Check field in DocType 'SMS Parameter'
 #: core/doctype/sms_parameter/sms_parameter.json
 msgctxt "SMS Parameter"
 msgid "Header"
-msgstr ""
+msgstr "Başlık"
 
 #. Label of a HTML Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Header"
-msgstr ""
+msgstr "Başlık"
 
 #. Label of a HTML Editor field in DocType 'Website Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
 msgctxt "Website Slideshow"
 msgid "Header"
-msgstr ""
+msgstr "Başlık"
 
 #. Label of a HTML Editor field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Header HTML"
-msgstr ""
+msgstr "Başlık HTML"
 
 #: printing/doctype/letter_head/letter_head.py:61
 msgid "Header HTML set from attachment {0}"
@@ -15397,7 +15397,7 @@ msgstr "Resim Alanı"
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Image Height"
-msgstr ""
+msgstr "Resim Yüksekliği"
 
 #. Label of a Attach field in DocType 'About Us Team Member'
 #: website/doctype/about_us_team_member/about_us_team_member.json
@@ -15409,7 +15409,7 @@ msgstr ""
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Image Width"
-msgstr ""
+msgstr "Resim Genişliği"
 
 #: core/doctype/doctype/doctype.py:1467
 msgid "Image field must be a valid fieldname"
@@ -17752,13 +17752,13 @@ msgstr ""
 #: public/js/frappe/form/templates/print_layout.html:16
 #: public/js/frappe/list/bulk_operations.js:51
 msgid "Letter Head"
-msgstr ""
+msgstr "Antetli Kağıt"
 
 #. Label of a Link field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Letter Head"
-msgstr ""
+msgstr "Antetli Kağıt"
 
 #. Label of a Select field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
@@ -17770,13 +17770,13 @@ msgstr ""
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Letter Head Image"
-msgstr ""
+msgstr "Antetli Kağıt Resmi"
 
 #. Label of a Data field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Letter Head Name"
-msgstr ""
+msgstr "Antetli Kağıt İsmi"
 
 #: printing/doctype/letter_head/letter_head.js:30
 msgid "Letter Head Scripts"
@@ -20682,7 +20682,7 @@ msgstr "Etiket Yok"
 #: public/js/frappe/list/bulk_operations.js:90
 #: public/js/frappe/list/bulk_operations.js:140 utils/weasyprint.py:52
 msgid "No Letterhead"
-msgstr ""
+msgstr "Antetli Kağıt Yok"
 
 #: model/naming.py:430
 msgid "No Name Specified for {0}"
@@ -24162,7 +24162,7 @@ msgstr ""
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Print with letterhead"
-msgstr ""
+msgstr "Antetli Kağıda Yazdır"
 
 #: printing/page/print/print.js:810
 msgid "Printer"
@@ -26242,13 +26242,13 @@ msgstr ""
 
 #: public/js/frappe/ui/toolbar/search_utils.js:547
 msgid "Reports"
-msgstr ""
+msgstr "Raporlar"
 
 #. Label of a Section Break field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Reports"
-msgstr ""
+msgstr "Raporlar"
 
 #: patches/v14_0/update_workspace2.py:50
 msgid "Reports & Masters"
@@ -35848,7 +35848,7 @@ msgstr ""
 
 #: public/js/frappe/form/print_utils.js:13
 msgid "With Letter head"
-msgstr ""
+msgstr "Antetli Kağıt ile"
 
 #: workflow/doctype/workflow/workflow.js:140
 msgid "Worflow States Don't Exist"
