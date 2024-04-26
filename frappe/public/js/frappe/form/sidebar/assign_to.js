@@ -157,7 +157,7 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 					me.dialog.set_value("assign_to", user_group_members);
 				});
 		}
-	}	
+	}
 	set_description_from_doc() {
 		let me = this;
 
@@ -182,7 +182,7 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				fieldname: "assign_to_user_group",
 				options: "User Group",
 				onchange: () => me.user_group_list(),
-			},			
+			},
 			{
 				fieldtype: "MultiSelectPills",
 				fieldname: "assign_to",
