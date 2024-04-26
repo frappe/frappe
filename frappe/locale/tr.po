@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-25 12:23\n"
+"PO-Revision-Date: 2024-04-26 13:41\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -804,15 +804,15 @@ msgstr ""
 
 #: core/doctype/data_import/data_import.js:27
 msgid "About {0} minute remaining"
-msgstr ""
+msgstr "Yaklaşık {0} dakika kaldı"
 
 #: core/doctype/data_import/data_import.js:28
 msgid "About {0} minutes remaining"
-msgstr ""
+msgstr "Yaklaşık {0} dakika kaldı"
 
 #: core/doctype/data_import/data_import.js:25
 msgid "About {0} seconds remaining"
-msgstr ""
+msgstr "Yaklaşık {0} saniye kaldı"
 
 #. Label of a Data field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -1627,7 +1627,7 @@ msgstr "Uyarılar ve Bildirimler"
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Align"
-msgstr ""
+msgstr "Hizala"
 
 #. Label of a Check field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
@@ -4955,13 +4955,13 @@ msgstr ""
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Center"
-msgstr ""
+msgstr "Ortala"
 
 #. Option for the 'Text Align' (Select) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Center"
-msgstr ""
+msgstr "Ortala"
 
 #: core/page/permission_manager/permission_manager_help.html:16
 msgid "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
@@ -11467,7 +11467,7 @@ msgstr ""
 
 #: printing/doctype/letter_head/letter_head.js:21
 msgid "Error in Header/Footer Script"
-msgstr ""
+msgstr "Üstbilgi/Altbilgi Kodunda Hata"
 
 #: email/doctype/notification/notification.py:394
 #: email/doctype/notification/notification.py:510
@@ -13064,7 +13064,7 @@ msgstr ""
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Footer Image"
-msgstr ""
+msgstr "Alt Bilgi Resmi"
 
 #. Label of a Section Break field in DocType 'Website Settings'
 #. Label of a Table field in DocType 'Website Settings'
@@ -14414,31 +14414,31 @@ msgstr "Hesabınız Varsa Giriş Yapın"
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Header"
-msgstr ""
+msgstr "Başlık"
 
 #. Label of a Check field in DocType 'SMS Parameter'
 #: core/doctype/sms_parameter/sms_parameter.json
 msgctxt "SMS Parameter"
 msgid "Header"
-msgstr ""
+msgstr "Başlık"
 
 #. Label of a HTML Editor field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Header"
-msgstr ""
+msgstr "Başlık"
 
 #. Label of a HTML Editor field in DocType 'Website Slideshow'
 #: website/doctype/website_slideshow/website_slideshow.json
 msgctxt "Website Slideshow"
 msgid "Header"
-msgstr ""
+msgstr "Başlık"
 
 #. Label of a HTML Editor field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Header HTML"
-msgstr ""
+msgstr "Başlık HTML"
 
 #: printing/doctype/letter_head/letter_head.py:63
 msgid "Header HTML set from attachment {0}"
@@ -15524,7 +15524,7 @@ msgstr "Resim Alanı"
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Image Height"
-msgstr ""
+msgstr "Resim Yüksekliği"
 
 #. Label of a Attach field in DocType 'About Us Team Member'
 #: website/doctype/about_us_team_member/about_us_team_member.json
@@ -15536,7 +15536,7 @@ msgstr ""
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Image Width"
-msgstr ""
+msgstr "Resim Genişliği"
 
 #: core/doctype/doctype/doctype.py:1473
 msgid "Image field must be a valid fieldname"
@@ -17903,13 +17903,13 @@ msgstr ""
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Letter Head Image"
-msgstr ""
+msgstr "Antetli Kağıt Resmi"
 
 #. Label of a Data field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Letter Head Name"
-msgstr ""
+msgstr "Antetli Kağıt İsmi"
 
 #: printing/doctype/letter_head/letter_head.js:30
 msgid "Letter Head Scripts"
@@ -20880,7 +20880,7 @@ msgstr "Etiket Yok"
 #: public/js/frappe/list/bulk_operations.js:90
 #: public/js/frappe/list/bulk_operations.js:140 utils/weasyprint.py:52
 msgid "No Letterhead"
-msgstr ""
+msgstr "Antetli Kağıt Yok"
 
 #: model/naming.py:472
 msgid "No Name Specified for {0}"
@@ -24399,7 +24399,7 @@ msgstr ""
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Print with letterhead"
-msgstr ""
+msgstr "Antetli Kağıda Yazdır"
 
 #: printing/page/print/print.js:810
 msgid "Printer"
@@ -36171,7 +36171,7 @@ msgstr ""
 
 #: public/js/frappe/form/print_utils.js:13
 msgid "With Letter head"
-msgstr ""
+msgstr "Antetli Kağıt ile"
 
 #: workflow/doctype/workflow/workflow.js:140
 msgid "Worflow States Don't Exist"
