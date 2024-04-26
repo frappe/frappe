@@ -44,13 +44,17 @@ def get():
                 [["Project", "_assign", "like", f"%{frappe.session.data.user}%"]]
             )
         response = findData(filters=done_status_filters)
+
         for status in done_statuses:
             filters = [["Project", "status", "=", status]]
             if frappe.session.data.user != "Administrator":
                 filters.extend([["Project", "_assign", "like", f"%{frappe.session.data.user}%"]])
             result = findData(filters=filters, page_length=10)
             if len(result):
-                response["values"].extend(result["values"])
+                if len(response):
+                    response["values"].extend(result["values"])
+                else:
+                    response = result
         return response
     else:
         filters = []

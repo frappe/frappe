@@ -120,7 +120,6 @@ class DatabaseQuery:
         parent_doctype=None,
     ) -> list:
 
-        print({"ignore_permissions": ignore_permissions})
         if not ignore_permissions:
             self.check_read_permission(self.doctype, parent_doctype=parent_doctype)
 
