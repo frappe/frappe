@@ -12,7 +12,6 @@ import frappe
 from frappe import _, safe_decode
 from frappe.utils import cint, cstr, encode, get_files_path, random_string, strip
 from frappe.utils.file_manager import safe_b64decode
-from frappe.utils.image import optimize_image
 
 if TYPE_CHECKING:
 	from PIL.ImageFile import ImageFile
@@ -236,8 +235,6 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 		if b"," in content:
 			content = content.split(b",")[1]
 		content = safe_b64decode(content)
-
-		content = optimize_image(content, mtype)
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
