@@ -352,6 +352,21 @@ def toggle_visible_pdf(soup):
 		tag.extract()
 
 
+@frappe.whitelist()
+def is_wkhtmltopdf_valid():
+	is_wkhtmltopdf_valid = frappe.cache.hget("is_wkhtmltopdf_valid", None)
+
+	if not is_wkhtmltopdf_valid:
+		try:
+			res = subprocess.check_output(["wkhtmltopdf", "--version"])
+			is_wkhtmltopdf_valid = True if "qt" in res.decode("utf-8").lower() else False
+			frappe.cache.hset("is_wkhtmltopdf_valid", None, is_wkhtmltopdf_valid)
+		except Exception:
+			pass
+
+	return is_wkhtmltopdf_valid
+
+
 def get_wkhtmltopdf_version():
 	wkhtmltopdf_version = frappe.cache.hget("wkhtmltopdf_version", None)
 
