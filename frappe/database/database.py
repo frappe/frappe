@@ -430,7 +430,7 @@ class Database:
 		if query and is_query_type(query, ("commit", "rollback")):
 			self.transaction_writes = 0
 
-		if query[:6].lower() in ("update", "insert", "delete"):
+		if query.lstrip()[:6].lower() in ("update", "insert", "delete"):
 			self.transaction_writes += 1
 			if self.transaction_writes > self.MAX_WRITES_PER_TRANSACTION:
 				if self.auto_commit_on_many_writes:
