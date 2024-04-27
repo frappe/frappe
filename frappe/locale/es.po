@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-26 13:41\n"
+"PO-Revision-Date: 2024-04-27 13:51\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -8112,13 +8112,13 @@ msgstr ""
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Default Email Template"
-msgstr ""
+msgstr "Plantilla de Correo predeterminado"
 
 #. Label of a Link field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Default Email Template"
-msgstr ""
+msgstr "Plantilla de Correo predeterminado"
 
 #: email/doctype/email_account/email_account_list.js:13
 msgid "Default Inbox"
@@ -16604,13 +16604,13 @@ msgstr "Es carpeta Archivos adjuntos"
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Is Calendar and Gantt"
-msgstr ""
+msgstr "Es Calendario y Gantt"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Is Calendar and Gantt"
-msgstr ""
+msgstr "Es Calendario y Gantt"
 
 #: core/doctype/doctype/doctype_list.js:49
 msgid "Is Child Table"
@@ -29849,13 +29849,13 @@ msgstr "Mostrar título"
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Show Title in Link Fields"
-msgstr ""
+msgstr "Mostrar Título en Campos de Enlace"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Show Title in Link Fields"
-msgstr ""
+msgstr "Mostrar Título en Campos de Enlace"
 
 #: public/js/frappe/views/reports/report_view.js:1450
 msgid "Show Totals"
