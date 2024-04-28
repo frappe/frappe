@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-26 13:41\n"
+"PO-Revision-Date: 2024-04-28 13:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -1389,7 +1389,7 @@ msgstr "Dodaj grupu"
 
 #: public/js/frappe/form/grid.js:63
 msgid "Add Multiple"
-msgstr ""
+msgstr "Dodaj višestruko"
 
 #: core/page/permission_manager/permission_manager.js:439
 msgid "Add New Permission Rule"
