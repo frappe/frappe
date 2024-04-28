@@ -1,5 +1,5 @@
 <template>
-	<div class="bg-white antialiased">
+	<div class="flex w-full flex-col items-center bg-white antialiased">
 		<router-view />
 		<IconsTimeless />
 		<IconsEspresso />
