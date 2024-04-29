@@ -3,9 +3,7 @@ import json
 EXCLUDE_SELECT_OPTIONS = [
 	"naming_series",
 	"number_format",
-	"float_precision",
-	"currency_precision",
-	"minimum_password_score",
+	"icon",  # primarily for the Workflow State doctype
 ]
 
 
@@ -54,9 +52,6 @@ def extract(fileobj, *args, **kwargs):
 					continue
 
 				select_options = [option for option in message.split("\n") if option and not option.isdigit()]
-
-				if select_options and "icon" in select_options[0]:
-					continue
 
 				messages.extend(
 					(
