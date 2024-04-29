@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from "vue-router"
 import { session } from "@/data/session"
 import { user } from "@/data/user"
 
+import Module from "@/pages/Module.vue"
+
 const routes = [
 	{
 		path: "/",
@@ -13,6 +15,11 @@ const routes = [
 		name: "Login",
 		component: () => import("@/pages/Login.vue"),
 	},
+	{
+		path: "/:module",
+		name: "Module",
+		component: Module,
+	},
 ]
 
 let router = createRouter({
@@ -21,7 +28,7 @@ let router = createRouter({
 })
 
 router.beforeEach(async (to, _, next) => {
-	const isLoggedIn = session.isLoggedIn
+	let isLoggedIn = session.isLoggedIn
 
 	try {
 		await user.promise

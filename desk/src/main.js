@@ -13,6 +13,8 @@ import {
 	resourcesPlugin,
 } from "frappe-ui"
 
+import Icon from "@/components/Icon.vue"
+
 import { session } from "@/data/session"
 import { user } from "@/data/user"
 
@@ -26,6 +28,7 @@ app.use(resourcesPlugin)
 app.component("Button", Button)
 app.component("FormControl", FormControl)
 app.component("ErrorMessage", ErrorMessage)
+app.component("Icon", Icon)
 
 app.provide("$session", session)
 app.provide("$user", user)

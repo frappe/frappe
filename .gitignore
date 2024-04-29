@@ -15,6 +15,7 @@ node_modules
 .kdev4/
 *.kdev4
 *debug.log
+frappe/public/desk
 frappe/www/desk.html
 
 # Not Recommended, but will remove once webpack ready
