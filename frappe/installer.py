@@ -809,8 +809,6 @@ def get_old_backup_version(sql_file_path: str) -> Version | None:
 	if match := re.search(r"Frappe (\d+\.\d+\.\d+)", header[0]):
 		return Version(match[1])
 
-	return Version(backup_version) if match else None
-
 
 def get_backup_version(sql_file_path: str) -> Version | None:
 	"""Return the frappe version used to create the specified database dump."""
