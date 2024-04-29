@@ -84,6 +84,7 @@ def build_response(response_type=None):
 		"page": as_page,
 		"redirect": redirect,
 		"binary": as_binary,
+		"custom": as_custom,
 	}
 
 	return response_type_map[frappe.response.get("type") or response_type]()
@@ -155,6 +156,27 @@ def as_binary():
 	filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
 	response.headers.add("Content-Disposition", None, filename=filename)
 	response.data = frappe.response["filecontent"]
+	return response
+
+
+def as_custom():
+	response = Response()
+	if status_code := frappe.local.response.get("http_status_code"):
+		response.status_code = status_code
+	if headers := frappe.response.get("headers"):
+		for key, value in headers:
+			response.headers.add(key, value)
+	if mimetype := frappe.response.get("content_type"):
+		response.mimetype = mimetype
+	if filename := frappe.response.get("filename"):
+		filename = filename.encode("utf-8").decode("unicode-escape", "ignore")
+		response.headers.add(
+			"Content-Disposition",
+			frappe.response.get("display_content_as", "attachment"),
+			filename=filename,
+		)
+	if filecontent := frappe.response.get("filecontent"):
+		response.data = filecontent
 	return response
 
 
