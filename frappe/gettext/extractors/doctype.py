@@ -3,9 +3,6 @@ import json
 EXCLUDE_SELECT_OPTIONS = [
 	"naming_series",
 	"number_format",
-	"float_precision",
-	"currency_precision",
-	"minimum_password_score",
 ]
 
 
