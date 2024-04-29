@@ -99,7 +99,7 @@ def _new_site(
 			mariadb_user_host_login_scope=mariadb_user_host_login_scope,
 		)
 
-		apps_to_install = ["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps) or [])
+		apps_to_install = ["frappe"] + (frappe.conf.get("install_apps") or []) + (list(install_apps or []))
 
 		for app in apps_to_install:
 			# NOTE: not using force here for 2 reasons:
