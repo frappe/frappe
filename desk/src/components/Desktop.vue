@@ -1,7 +1,7 @@
 <template>
 	<div class="my-12 w-full max-w-5xl">
 		<div
-			class="grid grid-cols-3 justify-between gap-y-13 md:grid-cols-4 lg:grid-cols-[repeat(6,_60px)]"
+			class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-[repeat(6,_60px)] justify-between gap-y-13"
 		>
 			<template v-for="item in desktopModules.data?.pages">
 				<!-- Module Link -->
