@@ -5,6 +5,10 @@
 				<router-link to="/" class="flex cursor-pointer">
 					<AppLogo class="h-7 w-7" />
 				</router-link>
+
+				<div class="flex flex-row items-center justify-center">
+					<AwesomeBar />
+				</div>
 			</div>
 		</div>
 	</header>
@@ -13,5 +17,6 @@
 
 <script setup>
 import AppLogo from "@/components/icons/AppLogo.vue"
+import AwesomeBar from "@/components/AwesomeBar.vue"
 import Desktop from "@/components/Desktop.vue"
 </script>
