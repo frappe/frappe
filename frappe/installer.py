@@ -808,6 +808,7 @@ def get_old_backup_version(sql_file_path: str) -> Version | None:
 	header = get_db_dump_header(sql_file_path).split("\n")
 	if match := re.search(r"Frappe (\d+\.\d+\.\d+)", header[0]):
 		return Version(match[1])
+	return None
 
 
 def get_backup_version(sql_file_path: str) -> Version | None:
