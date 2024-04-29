@@ -8,31 +8,6 @@ from frappe.permissions import SYSTEM_USER_ROLE
 
 
 class OAuthClient(Document):
-<<<<<<< HEAD
-=======
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
-
-	from typing import TYPE_CHECKING
-
-	if TYPE_CHECKING:
-		from frappe.integrations.doctype.oauth_client_role.oauth_client_role import OAuthClientRole
-		from frappe.types import DF
-
-		allowed_roles: DF.TableMultiSelect[OAuthClientRole]
-		app_name: DF.Data
-		client_id: DF.Data | None
-		client_secret: DF.Data | None
-		default_redirect_uri: DF.Data
-		grant_type: DF.Literal["Authorization Code", "Implicit"]
-		redirect_uris: DF.Text | None
-		response_type: DF.Literal["Code", "Token"]
-		scopes: DF.Text
-		skip_authorization: DF.Check
-		user: DF.Link | None
-	# end: auto-generated types
-
->>>>>>> ae4eb87458 (feat: Limit OAuth Client by roles)
 	def validate(self):
 		self.client_id = self.name
 		if not self.client_secret:
