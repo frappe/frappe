@@ -250,8 +250,17 @@ frappe.views.Calendar = class Calendar {
 	setup_options(defaults) {
 		var me = this;
 		defaults.meridiem = "false";
+		let lang = frappe.boot.lang;
+		if (lang == "ar") {
+			// arabic doesn't work with fullcalendar - doesn't show anything.
+			lang = "en";
+		}
 		this.cal_options = {
+<<<<<<< HEAD
 			locale: frappe.boot.user.language || "en",
+=======
+			locale: lang,
+>>>>>>> e4ed1b98e4 (fix(ar): render fullcalendar in english (#26207))
 			header: {
 				left: "prev, title, next",
 				right: "today, month, agendaWeek, agendaDay",
