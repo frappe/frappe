@@ -124,11 +124,7 @@
   }
  ],
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-07-17 07:06:35.765981",
-=======
  "modified": "2024-04-29 12:07:07.946980",
->>>>>>> ae4eb87458 (feat: Limit OAuth Client by roles)
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Client",
