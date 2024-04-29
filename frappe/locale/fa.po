@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-17 14:32+0553\n"
-"PO-Revision-Date: 2024-04-27 13:51\n"
+"PO-Revision-Date: 2024-04-29 13:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -6673,7 +6673,7 @@ msgstr "شهرستان"
 #: public/js/frappe/utils/number_systems.js:45
 msgctxt "Number system"
 msgid "Cr"
-msgstr ""
+msgstr "Cr"
 
 #: core/doctype/communication/communication.js:117
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:46
@@ -24511,7 +24511,7 @@ msgstr "مدیر خرید"
 #. Name of a role
 #: contacts/doctype/contact/contact.json
 msgid "Purchase Master Manager"
-msgstr ""
+msgstr "مدیر ارشد خرید"
 
 #. Name of a role
 #: contacts/doctype/address/address.json contacts/doctype/contact/contact.json
@@ -36584,7 +36584,7 @@ msgstr "شما {0} امتیاز کسب کردید"
 
 #: templates/emails/new_message.html:1
 msgid "You have a new message from: "
-msgstr " شما یک پیام جدید دارید از:"
+msgstr "شما یک پیام جدید دارید از: "
 
 #: handler.py:123
 msgid "You have been successfully logged out"
@@ -37163,7 +37163,7 @@ msgstr "dd.mm.yyyy"
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "dd/mm/yyyy"
-msgstr "dd-mm-yyyy"
+msgstr "dd/mm/yyyy"
 
 #. Option for the 'Queue' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -38973,7 +38973,7 @@ msgstr "{0} مورد انتخاب شد"
 
 #: core/doctype/user/user.py:1349
 msgid "{0} just impersonated as you. They gave this reason: {1}"
-msgstr "{0} به عنوان شما جعل شده است. این دلیل را آوردند: {1}"
+msgstr "{0} به عنوان شما جعل هویت کرده است. این دلیل را آوردند: {1}"
 
 #: public/js/frappe/form/footer/form_timeline.js:150
 #: public/js/frappe/form/sidebar/form_sidebar.js:96
