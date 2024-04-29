@@ -30,7 +30,10 @@ from frappe.model.utils.link_count import flush_local_link_count
 from frappe.monitor import get_trace_id
 from frappe.query_builder.functions import Count
 from frappe.utils import cast as cast_fieldtype
+<<<<<<< HEAD
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
+=======
+>>>>>>> dd82ab415c (fix: add missing impl for is_column_missing (#26225))
 from frappe.utils.deprecations import deprecated, deprecation_warning
 
 if TYPE_CHECKING:
@@ -1310,8 +1313,9 @@ class Database:
 		raise NotImplementedError
 
 	@staticmethod
+	@deprecated
 	def is_column_missing(e):
-		raise NotImplementedError
+		return frappe.db.is_missing_column(e)
 
 	def get_descendants(self, doctype, name):
 		"""Return descendants of the group node in tree"""
