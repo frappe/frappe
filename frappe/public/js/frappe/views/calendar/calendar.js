@@ -245,18 +245,13 @@ frappe.views.Calendar = class Calendar {
 
 	get_system_datetime(date) {
 		date._offset = moment(date).tz(frappe.sys_defaults.time_zone)._offset;
-		return frappe.datetime.convert_to_system_tz(date);
+		return frappe.datetime.convert_to_system_tz(moment(date).locale("en"));
 	}
 	setup_options(defaults) {
 		var me = this;
 		defaults.meridiem = "false";
-		let lang = frappe.boot.lang;
-		if (lang == "ar") {
-			// arabic doesn't work with fullcalendar - doesn't show anything.
-			lang = "en";
-		}
 		this.cal_options = {
-			locale: lang,
+			locale: frappe.boot.lang,
 			header: {
 				left: "prev, title, next",
 				right: "today, month, agendaWeek, agendaDay",
