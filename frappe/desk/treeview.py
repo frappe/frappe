@@ -42,7 +42,7 @@ def get_children(doctype, parent="", **filters):
 
 
 def _get_children(doctype, parent="", ignore_permissions=False):
-	parent_field = "parent_" + doctype.lower().replace(" ", "_")
+	parent_field = "parent_" + frappe.scrub(doctype)
 	filters = [[f"ifnull(`{parent_field}`,'')", "=", parent], ["docstatus", "<", 2]]
 
 	meta = frappe.get_meta(doctype)
@@ -72,7 +72,7 @@ def make_tree_args(**kwarg):
 	kwarg.pop("cmd", None)
 
 	doctype = kwarg["doctype"]
-	parent_field = "parent_" + doctype.lower().replace(" ", "_")
+	parent_field = "parent_" + frappe.scrub(doctype)
 
 	if kwarg["is_root"] == "false":
 		kwarg["is_root"] = False
