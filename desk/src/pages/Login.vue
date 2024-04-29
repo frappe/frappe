@@ -53,7 +53,6 @@
 			v-else
 			class="mx-auto w-full bg-white px-4 py-8 sm:mt-6 sm:w-96 sm:rounded-lg sm:px-8 sm:shadow-xl"
 		>
-
 			<div class="text-p-base text-gray-700">
 				<p>
 					We have sent an email to <span class="font-semibold">{{ email }}</span
