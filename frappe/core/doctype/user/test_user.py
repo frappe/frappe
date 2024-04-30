@@ -464,8 +464,8 @@ def test_user(
 	try:
 		first_name = first_name or frappe.generate_hash()
 		email = email or (first_name + "@example.com")
-		user: User = frappe.new_doc(
-			"User",
+		user: User = frappe.get_doc(
+			doctype="User",
 			send_welcome_email=0,
 			email=email,
 			first_name=first_name,
