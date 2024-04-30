@@ -42,13 +42,8 @@ def get_children(doctype, parent="", include_disabled=False, **filters):
 	return _get_children(doctype, parent, include_disabled=include_disabled)
 
 
-<<<<<<< HEAD
 def _get_children(doctype, parent="", ignore_permissions=False, include_disabled=False):
-	parent_field = "parent_" + doctype.lower().replace(" ", "_")
-=======
-def _get_children(doctype, parent="", ignore_permissions=False):
 	parent_field = "parent_" + frappe.scrub(doctype)
->>>>>>> 7d25aedaaf (fix: Treeview DB lookup should perform the same preperation operations as method update_nsm in file nestedset.py (#26199))
 	filters = [[f"ifnull(`{parent_field}`,'')", "=", parent], ["docstatus", "<", 2]]
 	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
 		filters.append(["disabled", "=", False])
