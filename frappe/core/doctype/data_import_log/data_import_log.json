@@ -59,11 +59,7 @@
  ],
  "in_create": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2021-12-29 11:19:19.646076",
-=======
  "modified": "2024-04-29 18:44:17.050909",
->>>>>>> 774f5cc1c6 (fix(Data Import): don't rely on permission for Data Import Log (#26228))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Log",
@@ -82,13 +78,8 @@
    "write": 1
   }
  ],
-<<<<<<< HEAD
- "sort_field": "modified",
- "sort_order": "DESC"
-=======
  "read_only": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
->>>>>>> 774f5cc1c6 (fix(Data Import): don't rely on permission for Data Import Log (#26228))
 }
