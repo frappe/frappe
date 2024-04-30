@@ -357,12 +357,10 @@ def toggle_visible_pdf(soup):
 @redis_cache(ttl=60 * 60)
 def is_wkhtmltopdf_valid():
 	try:
-		res = subprocess.check_output(["wkhtmltopdf", "--version"])
-		is_wkhtmltopdf_valid = "qt" in res.decode("utf-8").lower()
+		output = subprocess.check_output(["wkhtmltopdf", "--version"])
+		return "qt" in output.decode("utf-8").lower()
 	except Exception:
 		return False
-
-	return is_wkhtmltopdf_valid
 
 
 def get_wkhtmltopdf_version():
