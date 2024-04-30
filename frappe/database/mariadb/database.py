@@ -532,7 +532,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		from pymysql.cursors import SSCursor
 
 		try:
-			if not self._cursor:
+			if not self._conn:
 				self.connect()
 
 			original_cursor = self._cursor
