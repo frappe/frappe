@@ -260,14 +260,14 @@ function delete_column(with_children) {
 const options = computed(() => {
 	let groups = [
 		{
-			group: "Section",
+			group: __("Section"),
 			items: [
 				{ label: __("Add section below"), onClick: add_section_below },
 				{ label: __("Remove section"), onClick: remove_section },
 			],
 		},
 		{
-			group: "Column",
+			group: __("Column"),
 			items: [{ label: __("Add column"), onClick: add_column }],
 		},
 	];
