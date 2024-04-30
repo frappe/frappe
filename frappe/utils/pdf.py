@@ -360,7 +360,7 @@ def is_wkhtmltopdf_valid():
 		res = subprocess.check_output(["wkhtmltopdf", "--version"])
 		is_wkhtmltopdf_valid = "qt" in res.decode("utf-8").lower()
 	except Exception:
-		pass
+		return False
 
 	return is_wkhtmltopdf_valid
 
