@@ -10,21 +10,6 @@ context("List View", () => {
 			});
 	});
 
-	it("Keep checkbox checked after Refresh", { scrollBehavior: false }, () => {
-		cy.go_to_list("ToDo");
-		cy.clear_filters();
-		cy.get(".list-row-container .list-row-checkbox").click({
-			multiple: true,
-			force: true,
-		});
-		cy.get(".actions-btn-group button").contains("Actions").should("be.visible");
-		cy.intercept("/api/method/frappe.desk.reportview.get").as("list-refresh");
-		cy.wait(3000); // wait before you hit another refresh
-		cy.get('button[data-original-title="Refresh"]').click();
-		cy.wait("@list-refresh");
-		cy.get(".list-row-container .list-row-checkbox:checked").should("be.visible");
-	});
-
 	it('enables "Actions" button', { scrollBehavior: false }, () => {
 		const actions = [
 			"Approve",

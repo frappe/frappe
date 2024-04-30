@@ -178,28 +178,51 @@ export default class Grid {
 
 	setup_check() {
 		this.wrapper.on("click", ".grid-row-check", (e) => {
-			var $check = $(e.currentTarget);
-			if ($check.parents(".grid-heading-row:first").length !== 0) {
-				// select all?
-				var checked = $check.prop("checked");
-				$check
-					.parents(".form-grid:first")
-					.find(".grid-row-check")
-					.prop("checked", checked);
+			const $check = $(e.currentTarget);
+			const checked = $check.prop("checked");
+			const is_select_all = $check.parents(".grid-heading-row:first").length !== 0;
+			const docname = $check.parents(".grid-row:first")?.attr("data-name");
 
-				// set all
+			if (is_select_all) {
+				// (un)check all visible checkboxes
+				this.form_grid.find(".grid-row-check").prop("checked", checked);
+
+				// set following rows as checked in model
 				let result_length = this.grid_pagination.get_result_length();
 				let page_index = this.grid_pagination.page_index;
 				let page_length = this.grid_pagination.page_length;
-				for (var ri = (page_index - 1) * page_length; ri < result_length; ri++) {
-					this.grid_rows[ri].doc.__checked = checked ? 1 : 0;
+				for (let ri = (page_index - 1) * page_length; ri < result_length; ri++) {
+					this.grid_rows[ri].select(checked);
 				}
-			} else {
-				var docname = $check.parents(".grid-row:first").attr("data-name");
-				this.grid_rows_by_docname[docname].select($check.prop("checked"));
+			} else if (docname) {
+				if (e.shiftKey && this.last_checked_docname) {
+					this.check_range(docname, this.last_checked_docname, checked);
+				}
+				this.grid_rows_by_docname[docname].select(checked);
+				this.last_checked_docname = docname;
 			}
 			this.refresh_remove_rows_button();
 		});
+	}
+
+	/**
+	 * Checks or unchecks all checkboxes between two rows (included), given their docnames.
+	 * Rows are only checked only if both parameters are valid docnames.
+	 * @param {string} docname1
+	 * @param {string} docname2
+	 */
+	check_range(docname1, docname2, checked = true) {
+		const row_1 = this.grid_rows_by_docname[docname1];
+		const row_2 = this.grid_rows_by_docname[docname2];
+		const index_1 = this.grid_rows.indexOf(row_1);
+		const index_2 = this.grid_rows.indexOf(row_2);
+		if (index_1 === -1 || index_2 === -1) return;
+		const [start, end] = [index_1, index_2].sort((a, b) => a - b);
+		const rows = this.grid_rows.slice(start, end + 1);
+		for (const row of rows) {
+			row.select(checked);
+			row.row_check?.find(".grid-row-check").prop("checked", checked);
+		}
 	}
 
 	delete_rows() {
@@ -391,10 +414,12 @@ export default class Grid {
 		this.make_head();
 
 		if (!this.grid_rows) {
+			/** @type {GridRow[]} */
 			this.grid_rows = [];
 		}
 
 		this.truncate_rows();
+		/** @type {Record<string, GridRow>} */
 		this.grid_rows_by_docname = {};
 
 		this.grid_pagination.update_page_numbers();
@@ -758,7 +783,7 @@ export default class Grid {
 	}
 
 	set_value(fieldname, value, doc) {
-		if (this.display_status !== "None" && doc.name && this.grid_rows_by_docname[doc.name]) {
+		if (this.display_status !== "None" && doc?.name && this.grid_rows_by_docname[doc.name]) {
 			this.grid_rows_by_docname[doc.name].refresh_field(fieldname, value);
 		}
 	}

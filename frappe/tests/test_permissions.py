@@ -5,14 +5,16 @@
 import frappe
 import frappe.defaults
 import frappe.model.meta
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
-from frappe.core.page.permission_manager.permission_manager import reset, update
+from frappe.core.page.permission_manager.permission_manager import add, remove, reset, update
 from frappe.desk.form.load import getdoc
 from frappe.permissions import (
 	add_permission,
 	add_user_permission,
 	clear_user_permissions_for_doctype,
 	get_doc_permissions,
+	get_doctypes_with_read,
 	remove_user_permission,
 	update_permission_property,
 )
@@ -709,3 +711,10 @@ class TestPermissions(FrappeTestCase):
 		self.assertNotIn("test1@example.com", users)
 		self.assertIn("test2@example.com", users)
 		self.assertIn("test3@example.com", users)
+
+	def test_get_doctypes_with_read(self):
+		with self.set_user("Administrator"):
+			doctype = new_doctype(permissions=[{"select": 1, "role": "_Test Role", "read": 0}]).insert().name
+
+		with self.set_user("test@example.com"):
+			self.assertNotIn(doctype, get_doctypes_with_read())

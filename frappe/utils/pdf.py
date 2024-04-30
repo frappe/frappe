@@ -230,7 +230,7 @@ def _get_base64_image(src):
 		path = parsed_url.path
 		query = parse_qs(parsed_url.query)
 		mime_type = mimetypes.guess_type(path)[0]
-		if not mime_type.startswith("image/"):
+		if mime_type is None or not mime_type.startswith("image/"):
 			return
 		filename = query.get("fid") and query["fid"][0] or None
 		file = find_file_by_url(path, name=filename)

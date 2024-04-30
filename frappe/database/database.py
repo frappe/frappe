@@ -1310,8 +1310,9 @@ class Database:
 		raise NotImplementedError
 
 	@staticmethod
+	@deprecated
 	def is_column_missing(e):
-		raise NotImplementedError
+		return frappe.db.is_missing_column(e)
 
 	def get_descendants(self, doctype, name):
 		"""Return descendants of the group node in tree"""

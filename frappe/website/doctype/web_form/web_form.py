@@ -591,48 +591,30 @@ def get_in_list_view_fields(doctype):
 	return [get_field_df(f) for f in fields]
 
 
-@frappe.whitelist(allow_guest=True)
 def get_link_options(web_form_name, doctype, allow_read_on_all_link_options=False):
-	web_form_doc = frappe.get_doc("Web Form", web_form_name)
-	doctype_validated = False
-	limited_to_user = False
-	if web_form_doc.login_required:
-		# check if frappe session user is not guest or admin
-		if frappe.session.user != "Guest":
-			doctype_validated = True
+	web_form: WebForm = frappe.get_doc("Web Form", web_form_name)
 
-			if not allow_read_on_all_link_options:
-				limited_to_user = True
-		else:
-			frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
+	if web_form.login_required and frappe.session.user == "Guest":
+		frappe.throw(_("You must be logged in to use this form."), frappe.PermissionError)
 
-	else:
-		for field in web_form_doc.web_form_fields:
-			if field.options == doctype:
-				doctype_validated = True
-				break
-
-	if doctype_validated:
-		link_options, filters = [], {}
-
-		if limited_to_user:
-			filters = {"owner": frappe.session.user}
-
-		fields = ["name as value"]
-
-		meta = frappe.get_meta(doctype)
-
-		if meta.title_field and meta.show_title_field_in_link:
-			fields.append(f"{meta.title_field} as label")
-
-		link_options = frappe.get_all(doctype, filters, fields)
-
-		if meta.title_field and meta.show_title_field_in_link:
-			return json.dumps(link_options, default=str)
-		else:
-			return "\n".join([doc.value for doc in link_options])
-
-	else:
-		raise frappe.PermissionError(
-			_("You don't have permission to access the {0} DocType.").format(doctype)
+	if not web_form.published or not any(f for f in web_form.web_form_fields if f.options == doctype):
+		frappe.throw(
+			_("You don't have permission to access the {0} DocType.").format(doctype), frappe.PermissionError
 		)
+
+	link_options, filters = [], {}
+	if web_form.login_required and not allow_read_on_all_link_options:
+		filters = {"owner": frappe.session.user}
+
+	fields = ["name as value"]
+
+	meta = frappe.get_meta(doctype)
+	if meta.title_field and meta.show_title_field_in_link:
+		fields.append(f"{meta.title_field} as label")
+
+	link_options = frappe.get_all(doctype, filters, fields)
+
+	if meta.title_field and meta.show_title_field_in_link:
+		return json.dumps(link_options, default=str)
+	else:
+		return "\n".join([str(doc.value) for doc in link_options])

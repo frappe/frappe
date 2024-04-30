@@ -39,13 +39,8 @@ frappe.ui.form.on("Prepared Report", {
 
 		if (frm.doc.status == "Completed") {
 			frm.page.set_primary_action(__("Show Report"), () => {
-				frappe.set_route(
-					"query-report",
-					frm.doc.report_name,
-					frappe.utils.make_query_string({
-						prepared_report_name: frm.doc.name,
-					})
-				);
+				frappe.route_options = { prepared_report_name: frm.doc.name };
+				frappe.set_route("query-report", frm.doc.report_name);
 			});
 		}
 	},
