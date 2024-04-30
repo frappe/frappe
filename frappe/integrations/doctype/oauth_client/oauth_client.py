@@ -4,7 +4,6 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.permissions import SYSTEM_USER_ROLE
 
 
 class OAuthClient(Document):
@@ -30,7 +29,7 @@ class OAuthClient(Document):
 
 	def add_default_role(self):
 		if not self.allowed_roles:
-			self.append("allowed_roles", {"role": SYSTEM_USER_ROLE})
+			self.append("allowed_roles", {"role": "All"})
 
 	def user_has_allowed_role(self) -> bool:
 		"""Returns true if session user is allowed to use this client."""
