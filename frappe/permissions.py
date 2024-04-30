@@ -27,8 +27,16 @@ rights = (
 	"share",
 )
 
+GUEST_ROLE = "Guest"
+ALL_USER_ROLE = "All"  # This includes website users too.
+SYSTEM_USER_ROLE = "Desk User"
+ADMIN_ROLE = "Administrator"
 
-<<<<<<< HEAD
+
+# These roles are automatically assigned based on user type
+AUTOMATIC_ROLES = (GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE, ADMIN_ROLE)
+
+
 def check_admin_or_system_manager(user=None):
 	from frappe.utils.commands import warn
 
@@ -43,16 +51,6 @@ def check_admin_or_system_manager(user=None):
 
 	if ("System Manager" not in frappe.get_roles(user)) and (user != "Administrator"):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
-=======
-GUEST_ROLE = "Guest"
-ALL_USER_ROLE = "All"  # This includes website users too.
-SYSTEM_USER_ROLE = "Desk User"
-ADMIN_ROLE = "Administrator"
-
-
-# These roles are automatically assigned based on user type
-AUTOMATIC_ROLES = (GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE, ADMIN_ROLE)
->>>>>>> 1b406edd54 (feat: `Desk User` role)
 
 
 def print_has_permission_check_logs(func):
@@ -447,25 +445,17 @@ def get_roles(user=None, with_standard=True):
 			roles = (
 				frappe.qb.from_(table)
 				.where(
-<<<<<<< HEAD
 					(table.parenttype == "User")
 					& (table.parent == user)
-					& (table.role.notin(["All", "Guest"]))
-=======
-					(table.parenttype == "User") & (table.parent == user) & (table.role.notin(AUTOMATIC_ROLES))
->>>>>>> 1b406edd54 (feat: `Desk User` role)
+					& (table.role.notin(AUTOMATIC_ROLES))
 				)
 				.select(table.role)
 				.run(pluck=True)
 			)
-<<<<<<< HEAD
-			return [*roles, "All", "Guest"]
-=======
 			roles += [ALL_USER_ROLE, GUEST_ROLE]
 			if is_system_user(user):
 				roles.append(SYSTEM_USER_ROLE)
 			return roles
->>>>>>> 1b406edd54 (feat: `Desk User` role)
 
 	roles = frappe.cache().hget("roles", user, get)
 

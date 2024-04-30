@@ -255,33 +255,17 @@ def add_all_roles_to(name):
 	user = frappe.get_doc("User", name)
 	for role in frappe.db.sql("""select name from tabRole"""):
 		if role[0] not in [
-			"Administrator",
-			"Guest",
-			"All",
 			"Customer",
 			"Supplier",
 			"Partner",
 			"Employee",
+			*AUTOMATIC_ROLES,
 		]:
 			d = user.append("roles")
 			d.role = role[0]
 	user.save()
 
 
-<<<<<<< HEAD
-=======
-def _get_default_roles() -> set[str]:
-	skip_roles = {
-		"Administrator",
-		"Customer",
-		"Supplier",
-		"Partner",
-		"Employee",
-	}.union(AUTOMATIC_ROLES)
-	return set(frappe.get_all("Role", pluck="name")) - skip_roles
-
-
->>>>>>> 1b406edd54 (feat: `Desk User` role)
 def disable_future_access():
 	frappe.db.set_default("desktop:home_page", "workspace")
 	frappe.db.set_single_value("System Settings", "setup_complete", 1)

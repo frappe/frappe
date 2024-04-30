@@ -1622,15 +1622,9 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 		if doctype.custom:
 			if d.role in AUTOMATIC_ROLES:
 				frappe.throw(
-<<<<<<< HEAD
 					_(
 						"Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
-					).format(d.idx, frappe.bold(_("All"))),
-=======
-					_("Row # {0}: Non administrator user can not set the role {1} to the custom doctype").format(
-						d.idx, frappe.bold(_(d.role))
-					),
->>>>>>> 1b406edd54 (feat: `Desk User` role)
+					).format(d.idx, frappe.bold(_(d.role))),
 					title=_("Permissions Error"),
 				)
 
