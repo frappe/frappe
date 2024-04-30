@@ -52,23 +52,17 @@ def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
 
-	if user == "Administrator":
+	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return
 
-	roles = frappe.get_roles(user)
-	if "System Manager" in roles:
-		return None
-
+	module_not_set = " ifnull(`tabDashboard`.`module`, '') = '' "
 	allowed_modules = [
 		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
 	]
-	module_condition = (
-		"`tabDashboard`.`module` in ({allowed_modules}) or `tabDashboard`.`module` is NULL".format(
-			allowed_modules=",".join(allowed_modules)
-		)
-	)
+	if not allowed_modules:
+		return module_not_set
 
-	return module_condition
+	return f" `tabDashboard`.`module` in ({','.join(allowed_modules)}) or {module_not_set} "
 
 
 @frappe.whitelist()
