@@ -1,6 +1,9 @@
 context("FileUploader", () => {
 	before(() => {
 		cy.login();
+	});
+
+	beforeEach(() => {
 		cy.visit("/app");
 	});
 
@@ -10,7 +13,11 @@ context("FileUploader", () => {
 			.then((frappe) => {
 				new frappe.ui.FileUploader();
 			});
+<<<<<<< HEAD
 		cy.wait(1000);
+=======
+		cy.wait(500);
+>>>>>>> 9567efe20b (test: file uploader flaky test (#26254))
 	}
 
 	it("upload dialog api works", () => {
