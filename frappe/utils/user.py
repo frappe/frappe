@@ -9,7 +9,7 @@ import frappe.share
 from frappe import _dict
 from frappe.boot import get_allowed_reports
 from frappe.core.doctype.domain_settings.domain_settings import get_active_modules
-from frappe.permissions import get_roles, get_valid_perms
+from frappe.permissions import AUTOMATIC_ROLES, get_roles, get_valid_perms
 from frappe.query_builder import DocType, Order
 from frappe.query_builder.functions import Concat_ws
 
@@ -354,7 +354,7 @@ def add_system_manager(
 	roles = frappe.get_all(
 		"Role",
 		fields=["name"],
-		filters={"name": ["not in", ("Administrator", "Guest", "All")]},
+		filters={"name": ["not in", AUTOMATIC_ROLES]},
 	)
 	roles = [role.name for role in roles]
 	user.add_roles(*roles)
@@ -383,6 +383,8 @@ def is_website_user(username: str | None = None) -> str | None:
 
 
 def is_system_user(username: str | None = None) -> str | None:
+	# TODO: Depracate this. Inefficient, incorrect. This function is meant to be used in emails only.
+	# Problem: Filters on email instead of PK, implicitly filters out disabled users.
 	return frappe.db.get_value(
 		"User",
 		{
@@ -390,6 +392,7 @@ def is_system_user(username: str | None = None) -> str | None:
 			"enabled": 1,
 			"user_type": "System User",
 		},
+		cache=True,
 	)
 
 
