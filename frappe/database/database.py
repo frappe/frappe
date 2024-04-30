@@ -30,10 +30,7 @@ from frappe.model.utils.link_count import flush_local_link_count
 from frappe.monitor import get_trace_id
 from frappe.query_builder.functions import Count
 from frappe.utils import cast as cast_fieldtype
-<<<<<<< HEAD
 from frappe.utils import cint, get_datetime, get_table_name, getdate, now, sbool
-=======
->>>>>>> dd82ab415c (fix: add missing impl for is_column_missing (#26225))
 from frappe.utils.deprecations import deprecated, deprecation_warning
 
 if TYPE_CHECKING:
