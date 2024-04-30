@@ -228,3 +228,4 @@ execute:frappe.delete_doc_if_exists("Workspace", "Customization")
 frappe.patches.v15_0.set_file_type
 frappe.core.doctype.data_import.patches.remove_stale_docfields_from_legacy_version
 frappe.patches.v15_0.sanitize_workspace_titles
+frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
