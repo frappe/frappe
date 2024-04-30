@@ -59,20 +59,10 @@ def get_permission_query_conditions(user):
 	allowed_modules = [
 		frappe.db.escape(module.get("module_name")) for module in get_modules_from_all_apps_for_user()
 	]
-<<<<<<< HEAD
-	module_condition = (
-		"`tabDashboard`.`module` in ({allowed_modules}) or `tabDashboard`.`module` is NULL".format(
-			allowed_modules=",".join(allowed_modules)
-		)
-	)
-=======
 	if not allowed_modules:
 		return module_not_set
 
 	return f" `tabDashboard`.`module` in ({','.join(allowed_modules)}) or {module_not_set} "
->>>>>>> f244f3c76f (fix: perm query for dashboard (#26239))
-
-	return module_condition
 
 
 @frappe.whitelist()
