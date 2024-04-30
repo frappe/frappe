@@ -85,6 +85,7 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 			f.write(frappe.as_json(custom))
 
 		frappe.msgprint(_("Customizations for <b>{0}</b> exported to:<br>{1}").format(doctype, path))
+		return path
 
 
 def sync_customizations(app=None):
