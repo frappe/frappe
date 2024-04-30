@@ -181,8 +181,8 @@ class SystemHealthReport(Document):
 
 	@health_check("Cache")
 	def fetch_cache_details(self):
-		self.cache_keys = len(frappe.cache.get_keys(""))
-		self.cache_memory_usage = frappe.cache.execute_command("INFO", "MEMORY").get("used_memory_human")
+		self.cache_keys = len(frappe.cache().get_keys(""))
+		self.cache_memory_usage = frappe.cache().execute_command("INFO", "MEMORY").get("used_memory_human")
 
 	@health_check("Storage")
 	def fetch_storage_details(self):
