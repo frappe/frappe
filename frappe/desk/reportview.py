@@ -32,14 +32,29 @@ def getDoneStatuses(statuses):
     return [item[3] for item in statuses]
 
 
+def is_user_allowed():
+    if not frappe.session.user:
+        return False
+    user_roles = frappe.get_roles(frappe.session.user)
+    allowed_roles = [
+        "Administrator",
+        "System Manager",
+        "Sales Manager",
+        "Projects Manager",
+    ]  # list of the user roles can see all projects without assign
+    return any(role in allowed_roles for role in user_roles)
+
+
 @frappe.whitelist()
 @frappe.read_only()
 def get():
     args = get_form_params()
     done_status_filters = getDoneStatusesFilter()
     done_statuses = getDoneStatuses(done_status_filters)
+
+    # Se cambia la validación para verificar si el usuario está en la lista de usuarios permitidos
     if len(args["filters"]) == 0 and args["doctype"] == "Project" and args["page_length"] == "0":
-        if frappe.session.data.user != "Administrator":
+        if not is_user_allowed():
             done_status_filters.extend(
                 [["Project", "_assign", "like", f"%{frappe.session.data.user}%"]]
             )
@@ -47,7 +62,7 @@ def get():
 
         for status in done_statuses:
             filters = [["Project", "status", "=", status]]
-            if frappe.session.data.user != "Administrator":
+            if not is_user_allowed():
                 filters.extend([["Project", "_assign", "like", f"%{frappe.session.data.user}%"]])
             result = findData(filters=filters, page_length=10)
             if len(result):
@@ -58,7 +73,7 @@ def get():
         return response
     else:
         filters = []
-        if (frappe.session.data.user != "Administrator") and args["doctype"] == "Project":
+        if not is_user_allowed() and args["doctype"] == "Project":
             args["filters"].extend(
                 [["Project", "_assign", "like", f"%{frappe.session.data.user}%"]]
             )

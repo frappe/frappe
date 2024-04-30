@@ -1061,7 +1061,7 @@ frappe.provide("frappe.views");
 			group_by: "parent",
 			order_by: "parent asc",
 			limit: 100,
-			ip:1
+			ip:1 // ignore permissions
 		})
 		quotations_draft = result.length ? result : []
 		return result.length
