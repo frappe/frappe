@@ -604,11 +604,9 @@ frappe.ui.form.PrintView = class {
 		});
 	}
 	async is_wkhtmltopdf_valid() {
-		const is_valid = await frappe.call({
-			method: "frappe.utils.pdf.is_wkhtmltopdf_valid",
-		});
+		const is_valid = await frappe.xcall("frappe.utils.pdf.is_wkhtmltopdf_valid");
 		// function returns true or false
-		if (is_valid.message) return;
+		if (is_valid) return;
 		frappe.msgprint({
 			title: __("Invalid wkhtmltopdf version"),
 			message:

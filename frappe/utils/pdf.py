@@ -18,6 +18,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.utils import scrub_urls
+from frappe.utils.caching import redis_cache
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
 PDF_CONTENT_ERRORS = [
@@ -353,16 +354,13 @@ def toggle_visible_pdf(soup):
 
 
 @frappe.whitelist()
+@redis_cache(ttl=60 * 60)
 def is_wkhtmltopdf_valid():
-	is_wkhtmltopdf_valid = frappe.cache.hget("is_wkhtmltopdf_valid", None)
-
-	if not is_wkhtmltopdf_valid:
-		try:
-			res = subprocess.check_output(["wkhtmltopdf", "--version"])
-			is_wkhtmltopdf_valid = True if "qt" in res.decode("utf-8").lower() else False
-			frappe.cache.hset("is_wkhtmltopdf_valid", None, is_wkhtmltopdf_valid)
-		except Exception:
-			pass
+	try:
+		res = subprocess.check_output(["wkhtmltopdf", "--version"])
+		is_wkhtmltopdf_valid = "qt" in res.decode("utf-8").lower()
+	except Exception:
+		pass
 
 	return is_wkhtmltopdf_valid
 
