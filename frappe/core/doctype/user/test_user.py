@@ -11,6 +11,7 @@ from werkzeug.http import parse_cookie
 import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
+	User,
 	handle_password_test_fail,
 	reset_password,
 	sign_up,
@@ -475,7 +476,7 @@ def test_user(
 	try:
 		first_name = first_name or frappe.generate_hash()
 		email = email or (first_name + "@example.com")
-		user = frappe.new_doc(
+		user: User = frappe.new_doc(
 			"User",
 			send_welcome_email=0,
 			email=email,

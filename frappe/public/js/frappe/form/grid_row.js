@@ -176,6 +176,7 @@ export default class GridRow {
 				// renumber and refresh
 				let data = me.grid.get_data();
 				data.move(me.doc.idx - 1, values.move_to - 1);
+				me.frm.dirty();
 
 				// renum idx
 				for (let i = 0; i < data.length; i++) {

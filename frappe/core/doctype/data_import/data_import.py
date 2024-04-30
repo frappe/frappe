@@ -226,6 +226,20 @@ def get_import_status(data_import_name):
 	return import_status
 
 
+@frappe.whitelist()
+def get_import_logs(data_import: str):
+	doc = frappe.get_doc("Data Import", data_import)
+	doc.check_permission("read")
+
+	return frappe.get_all(
+		"Data Import Log",
+		fields=["success", "docname", "messages", "exception", "row_indexes"],
+		filters={"data_import": data_import},
+		limit_page_length=5000,
+		order_by="log_index",
+	)
+
+
 def import_file(doctype, file_path, import_type, submit_after_import=False, console=False):
 	"""
 	Import documents in from CSV or XLSX using data import.
