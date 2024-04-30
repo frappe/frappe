@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-26 13:41\n"
+"PO-Revision-Date: 2024-04-30 15:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -16354,7 +16354,7 @@ msgstr "Geçersiz kimlik bilgileri"
 
 #: utils/data.py:125 utils/data.py:289
 msgid "Invalid Date"
-msgstr ""
+msgstr "Geçersiz Tarih"
 
 #: www/list.py:85
 msgid "Invalid DocType"
@@ -28625,7 +28625,7 @@ msgstr ""
 #: public/js/frappe/form/multi_select_dialog.js:279
 #: public/js/frappe/list/list_view_select.js:153
 msgid "Select {0}"
-msgstr ""
+msgstr "{0} Seçimi"
 
 #: model/workflow.py:117
 msgid "Self approval is not allowed"
