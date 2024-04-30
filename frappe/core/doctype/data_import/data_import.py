@@ -191,6 +191,9 @@ def get_import_status(data_import_name):
 
 @frappe.whitelist()
 def get_import_logs(data_import: str):
+	if not isinstance(data_import, str):
+		raise ValueError("data_import must be a string")
+
 	doc = frappe.get_doc("Data Import", data_import)
 	doc.check_permission("read")
 
