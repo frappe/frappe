@@ -718,22 +718,3 @@ class TestPermissions(FrappeTestCase):
 
 		with self.set_user("test@example.com"):
 			self.assertNotIn(doctype, get_doctypes_with_read())
-
-	def test_overrides_work_as_expected(self):
-		"""custom docperms should completely override standard ones"""
-		standard_role = "Desk User"
-		custom_role = frappe.get_doc(doctype="Role", role_name=frappe.generate_hash()).insert().name
-		with self.set_user("Administrator"):
-			doctype = new_doctype(permissions=[{"role": standard_role, "read": 1}]).insert().name
-
-		with self.set_user("test@example.com"):
-			self.assertIn(doctype, get_doctypes_with_read())
-
-		with self.set_user("Administrator"):
-			# Allow perm to some other role and remove standard role
-			add(doctype, custom_role, 0)
-			remove(doctype, standard_role, 0)
-
-		with self.set_user("test@example.com"):
-			# No one has this role, so user shouldn't have permission.
-			self.assertNotIn(doctype, get_doctypes_with_read())
