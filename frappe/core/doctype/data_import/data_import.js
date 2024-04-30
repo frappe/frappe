@@ -497,7 +497,7 @@ frappe.ui.form.on("Data Import", {
 	show_import_log(frm) {
 		frm.toggle_display("import_log_section", false);
 
-		if (frm.import_in_progress) {
+		if (frm.is_new() || frm.import_in_progress) {
 			return;
 		}
 
