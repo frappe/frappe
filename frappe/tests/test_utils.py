@@ -67,6 +67,7 @@ from frappe.utils.data import (
 	get_url_to_form,
 	get_year_ending,
 	getdate,
+	guess_date_format,
 	now_datetime,
 	nowtime,
 	pretty_date,
@@ -552,6 +553,54 @@ class TestDiffUtils(FrappeTestCase):
 
 
 class TestDateUtils(FrappeTestCase):
+	def test_guess_format(self):
+		# some tests will fail, if date under 2031, e.g: 2024-04-23
+		# for example, for %d-%m-%y, it will return 23-04-24, however, this can be also parsed as %y-%m-%d.
+		# This is an issue that cannot be handled automatically, no matter how we try, as it completely depends on the user's input.
+		# Defining an explicit value which surely recognizes
+
+		test_date_obj = datetime(2035, 12, 25, 12, 30, 45)
+
+		test_date_formats = {
+			"%d/%b/%y": test_date_obj.strftime("%d/%b/%y"),
+			"%d-%m-%Y": test_date_obj.strftime("%d-%m-%Y"),
+			"%Y-%m-%d": test_date_obj.strftime("%Y-%m-%d"),
+			"%d-%m-%y": test_date_obj.strftime("%d-%m-%y"),
+			"%m-%d-%y": test_date_obj.strftime("%m-%d-%y"),
+			"%y-%m-%d": test_date_obj.strftime("%y-%m-%d"),
+			"%y-%b-%d": test_date_obj.strftime("%y-%b-%d"),
+			"%Y/%m/%d": test_date_obj.strftime("%Y/%m/%d"),
+			"%d/%m/%y": test_date_obj.strftime("%d/%m/%y"),
+			"%m/%d/%y": test_date_obj.strftime("%m/%d/%y"),
+			"%y/%m/%d": test_date_obj.strftime("%y/%m/%d"),
+			"%m.%d.%Y": test_date_obj.strftime("%m.%d.%Y"),
+			"%Y.%m.%d": test_date_obj.strftime("%Y.%m.%d"),
+			"%d.%m.%y": test_date_obj.strftime("%d.%m.%y"),
+			"%m.%d.%y": test_date_obj.strftime("%m.%d.%y"),
+			"%y.%m.%d": test_date_obj.strftime("%y.%m.%d"),
+			"%d %b %Y": test_date_obj.strftime("%d %b %Y"),
+			"%d %B %Y": test_date_obj.strftime("%d %B %Y"),
+			"%Y.%m.%d.": test_date_obj.strftime("%Y.%m.%d."),
+		}
+
+		test_time_formats = {
+			"%H:%M:%S.%f": test_date_obj.strftime("%H:%M:%S.%f"),
+			"%H:%M:%S": test_date_obj.strftime("%H:%M:%S"),
+			"%H:%M": test_date_obj.strftime("%H:%M"),
+			"%I:%M:%S.%f %p": test_date_obj.strftime("%I:%M:%S.%f %p"),
+			"%I:%M:%S %p": test_date_obj.strftime("%I:%M:%S %p"),
+			"%I:%M %p": test_date_obj.strftime("%I:%M %p"),
+		}
+
+		# Test formatdate with various default date formats set
+		for valid_format, date_str in test_date_formats.items():
+			frappe.db.set_default("date_format", valid_format)
+			guessed_date = guess_date_format(date_str)
+			self.assertEqual(guessed_date, valid_format)
+		for valid_format, date_str in test_time_formats.items():
+			frappe.db.set_default("time_format", valid_format)
+			self.assertEqual(guess_date_format(date_str), valid_format)
+
 	def test_first_day_of_week(self):
 		# Monday as start of the week
 		with patch.object(frappe.utils.data, "get_first_day_of_the_week", return_value="Monday"):
