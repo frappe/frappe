@@ -19,13 +19,27 @@ import functools
 import os
 from collections import defaultdict
 from collections.abc import Callable
+from contextlib import contextmanager
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils.background_jobs import get_queue, get_queue_list
+from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import add_to_date
 from frappe.utils.scheduler import get_scheduler_status
+
+
+@contextmanager
+def no_wait(func):
+	"Disable tenacity waiting on some function"
+	from tenacity import stop_after_attempt
+
+	try:
+		original_stop = func.retry.stop
+		func.retry.stop = stop_after_attempt(1)
+		yield
+	finally:
+		func.retry.stop = original_stop
 
 
 def health_check(step: str):
@@ -37,8 +51,11 @@ def health_check(step: str):
 			try:
 				return func(*args, **kwargs)
 			except Exception as e:
+				frappe.log(frappe.get_traceback())
 				# nosemgrep
-				frappe.msgprint(f"System Health check step {frappe.bold(step)} failed: {e}", alert=True)
+				frappe.msgprint(
+					f"System Health check step {frappe.bold(step)} failed: {e}", alert=True, indicator="red"
+				)
 
 		return wrapper
 
@@ -126,7 +143,10 @@ class SystemHealthReport(Document):
 		self.fetch_user_stats()
 
 	@health_check("Background Jobs")
+	@no_wait(get_redis_conn)
 	def fetch_background_jobs(self):
+		self.background_jobs_check = "failed"
+		# This just checks connection life
 		self.test_job_id = frappe.enqueue("frappe.ping", at_front=True).id
 		self.background_jobs_check = "queued"
 		self.scheduler_status = get_scheduler_status().get("status")
@@ -292,6 +312,7 @@ class SystemHealthReport(Document):
 
 
 @frappe.whitelist()
+@no_wait(get_redis_conn)
 def get_job_status(job_id: str | None = None):
 	frappe.only_for("System Manager")
 	try:
