@@ -13,7 +13,7 @@ context("List View", () => {
 	it("Keep checkbox checked after Refresh", { scrollBehavior: false }, () => {
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
-		cy.get(".list-header-subject > .list-subject > .list-check-all").click();
+		cy.get(".list-header-subject .list-subject .list-check-all").click();
 		cy.get("button[data-original-title='Reload List']").click();
 		cy.get(".list-row-container .list-row-checkbox:checked").should("be.visible");
 	});
@@ -22,21 +22,19 @@ context("List View", () => {
 		const actions = [
 			"Approve",
 			"Reject",
-			"Edit",
 			"Export",
 			"Assign To",
 			"Clear Assignment",
 			"Apply Assignment Rule",
 			"Add Tags",
 			"Print",
-			"Delete",
 		];
 		cy.go_to_list("ToDo");
 		cy.clear_filters();
-		cy.get(".list-header-subject > .list-subject > .list-check-all").click();
+		cy.get(".list-header-subject .list-subject .list-check-all").click();
 		cy.findByRole("button", { name: "Actions" }).click();
 		cy.get(".dropdown-menu li:visible .dropdown-item")
-			.should("have.length", 10)
+			.should("have.length", 8)
 			.each((el, index) => {
 				cy.wrap(el).contains(actions[index]);
 			})

@@ -5,8 +5,9 @@
 import frappe
 import frappe.defaults
 import frappe.model.meta
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user_permission.user_permission import clear_user_permissions
-from frappe.core.page.permission_manager.permission_manager import reset, update
+from frappe.core.page.permission_manager.permission_manager import add, remove, reset, update
 from frappe.desk.form.load import getdoc
 from frappe.permissions import (
 	ALL_USER_ROLE,
@@ -17,6 +18,7 @@ from frappe.permissions import (
 	add_user_permission,
 	clear_user_permissions_for_doctype,
 	get_doc_permissions,
+	get_doctypes_with_read,
 	remove_user_permission,
 	update_permission_property,
 )
@@ -421,13 +423,6 @@ class TestPermissions(FrappeTestCase):
 		clear_user_permissions_for_doctype("Salutation")
 		clear_user_permissions_for_doctype("Contact")
 
-	def test_user_permissions_not_applied_if_user_can_edit_user_permissions(self):
-		add_user_permission("Blogger", "_Test Blogger 1", "test1@example.com")
-
-		# test1@example.com has rights to create user permissions
-		# so it should not matter if explicit user permissions are not set
-		self.assertTrue(frappe.get_doc("Blogger", "_Test Blogger").has_permission("read"))
-
 	def test_user_permission_is_not_applied_if_user_roles_does_not_have_permission(self):
 		add_user_permission("Blog Post", "-test-blog-post-1", "test3@example.com")
 		frappe.set_user("test3@example.com")
@@ -743,3 +738,29 @@ class TestPermissions(FrappeTestCase):
 		)
 		frappe.set_user(system_user)
 		assertHasRole(GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE)
+
+	def test_get_doctypes_with_read(self):
+		with self.set_user("Administrator"):
+			doctype = new_doctype(permissions=[{"select": 1, "role": "_Test Role", "read": 0}]).insert().name
+
+		with self.set_user("test@example.com"):
+			self.assertNotIn(doctype, get_doctypes_with_read())
+
+	def test_overrides_work_as_expected(self):
+		"""custom docperms should completely override standard ones"""
+		standard_role = "Desk User"
+		custom_role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+		with self.set_user("Administrator"):
+			doctype = new_doctype(permissions=[{"role": standard_role, "read": 1}]).insert().name
+
+		with self.set_user("test@example.com"):
+			self.assertIn(doctype, get_doctypes_with_read())
+
+		with self.set_user("Administrator"):
+			# Allow perm to some other role and remove standard role
+			add(doctype, custom_role, 0)
+			remove(doctype, standard_role, 0)
+
+		with self.set_user("test@example.com"):
+			# No one has this role, so user shouldn't have permission.
+			self.assertNotIn(doctype, get_doctypes_with_read())

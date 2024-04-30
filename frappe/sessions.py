@@ -82,8 +82,6 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 		# we should just ignore it till database is back up again.
 		return
 
-	frappe.cache.hdel("session", sid)
-	frappe.cache.hdel("last_db_session_update", sid)
 	if sid and not user:
 		table = frappe.qb.DocType("Sessions")
 		user_details = frappe.qb.from_(table).where(table.sid == sid).select(table.user).run(as_dict=True)
@@ -93,6 +91,9 @@ def delete_session(sid=None, user=None, reason="Session Expired"):
 	logout_feed(user, reason)
 	frappe.db.delete("Sessions", {"sid": sid})
 	frappe.db.commit()
+
+	frappe.cache.hdel("session", sid)
+	frappe.cache.hdel("last_db_session_update", sid)
 
 
 def clear_all_sessions(reason=None):
@@ -209,7 +210,15 @@ class Session:
 
 		else:
 			if self.user:
+				self.validate_user()
 				self.start()
+
+	def validate_user(self):
+		if not frappe.get_cached_value("User", self.user, "enabled"):
+			frappe.throw(
+				_("User {0} is disabled. Please contact your System Manager.").format(self.user),
+				frappe.ValidationError,
+			)
 
 	def start(self):
 		"""start a new session"""
@@ -281,6 +290,7 @@ class Session:
 		if data:
 			self.data.update({"data": data, "user": data.user, "sid": self.sid})
 			self.user = data.user
+			self.validate_user()
 			validate_ip_address(self.user)
 		else:
 			self.start_as_guest()
@@ -359,7 +369,7 @@ class Session:
 
 	def update(self, force=False):
 		"""extend session expiry"""
-		if frappe.session["user"] == "Guest" or frappe.form_dict.cmd == "logout":
+		if frappe.session.user == "Guest":
 			return
 
 		now = frappe.utils.now()

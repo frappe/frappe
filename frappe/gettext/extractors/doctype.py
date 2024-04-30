@@ -1,5 +1,11 @@
 import json
 
+EXCLUDE_SELECT_OPTIONS = [
+	"naming_series",
+	"number_format",
+	"icon",  # primarily for the Workflow State doctype
+]
+
 
 def extract(fileobj, *args, **kwargs):
 	"""
@@ -26,13 +32,14 @@ def extract(fileobj, *args, **kwargs):
 
 	for field in fields:
 		fieldtype = field.get("fieldtype")
+		fieldname = field.get("fieldname")
 		label = field.get("label")
 
 		if label:
 			messages.append((label, f"Label of a {fieldtype} field in DocType '{doctype}'"))
 			_label = label
 		else:
-			_label = field.get("fieldname")
+			_label = fieldname
 
 		if description := field.get("description"):
 			messages.append(
@@ -41,10 +48,10 @@ def extract(fileobj, *args, **kwargs):
 
 		if message := field.get("options"):
 			if fieldtype == "Select":
-				select_options = [option for option in message.split("\n") if option and not option.isdigit()]
-
-				if select_options and "icon" in select_options[0]:
+				if fieldname in EXCLUDE_SELECT_OPTIONS:
 					continue
+
+				select_options = [option for option in message.split("\n") if option and not option.isdigit()]
 
 				messages.extend(
 					(

@@ -20,6 +20,7 @@ import json
 import os
 import re
 import signal
+import sys
 import traceback
 import warnings
 from collections.abc import Callable
@@ -541,9 +542,7 @@ def log(msg: str) -> None:
 	"""Add to `debug_log`
 
 	:param msg: Message."""
-	if not request:
-		print(repr(msg))
-
+	print(msg, file=sys.stderr)
 	debug_log.append(as_unicode(msg))
 
 
@@ -583,7 +582,6 @@ def msgprint(
 	:param realtime: Publish message immediately using websocket.
 	"""
 	import inspect
-	import sys
 
 	msg = safe_decode(msg)
 	out = _dict(message=msg)
@@ -2501,9 +2499,22 @@ def safe_encode(param, encoding="utf-8"):
 	return param
 
 
-def safe_decode(param, encoding="utf-8"):
+def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
+	"""
+	Method to safely decode data into a string
+
+	:param param: The data to be decoded
+	:param encoding: The encoding to decode into
+	:param fallback_map: A fallback map to reference in case of a LookupError
+	:return:
+	"""
 	try:
 		param = param.decode(encoding)
+	except LookupError:
+		try:
+			param = param.decode((fallback_map or {}).get(encoding, "utf-8"))
+		except Exception:
+			pass
 	except Exception:
 		pass
 	return param
@@ -2551,7 +2562,11 @@ def validate_and_sanitize_search_inputs(fn):
 
 
 def _register_fault_handler():
-	faulthandler.register(signal.SIGUSR1)
+	import io
+
+	# Some libraries monkey patch stderr, we need actual fd
+	if isinstance(sys.stderr, io.TextIOWrapper):
+		faulthandler.register(signal.SIGUSR1, file=sys.stderr)
 
 
 from frappe.utils.error import log_error

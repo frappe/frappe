@@ -32,7 +32,7 @@ from frappe.monitor import get_trace_id
 from frappe.query_builder.functions import Count
 from frappe.utils import CallbackManager, cint, get_datetime, get_table_name, getdate, now, sbool
 from frappe.utils import cast as cast_fieldtype
-from frappe.utils.deprecations import deprecation_warning
+from frappe.utils.deprecations import deprecated, deprecation_warning
 
 if TYPE_CHECKING:
 	from psycopg2 import connection as PostgresConnection
@@ -1244,6 +1244,7 @@ class Database:
 		raise NotImplementedError
 
 	@staticmethod
+	@deprecated
 	def is_column_missing(e):
 		return frappe.db.is_missing_column(e)
 

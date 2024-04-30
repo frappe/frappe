@@ -1779,13 +1779,7 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 
 	port = frappe.conf.http_port or frappe.conf.webserver_port
 
-	if (
-		not frappe.conf.restart_supervisor_on_update
-		and not frappe.conf.restart_systemd_on_update
-		and host_name
-		and not url_contains_port(host_name)
-		and port
-	):
+	if host_name and not url_contains_port(host_name) and port:
 		host_name = host_name + ":" + str(port)
 
 	return urljoin(host_name, uri) if uri else host_name

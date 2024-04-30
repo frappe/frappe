@@ -216,6 +216,7 @@ class UserPermissions:
 			[
 				"creation",
 				"desk_theme",
+				"code_editor_type",
 				"document_follow_notify",
 				"email",
 				"email_signature",
@@ -235,8 +236,12 @@ class UserPermissions:
 			self.build_permissions()
 
 		if d.get("default_workspace"):
-			public = frappe.get_cached_value("Workspace", d.default_workspace, "public")
-			d.default_workspace = {"name": d.default_workspace, "public": public}
+			workspace = frappe.get_cached_doc("Workspace", d.default_workspace)
+			d.default_workspace = {
+				"name": workspace.name,
+				"public": workspace.public,
+				"title": workspace.title,
+			}
 
 		d.name = self.name
 		d.onboarding_status = frappe.parse_json(d.onboarding_status)

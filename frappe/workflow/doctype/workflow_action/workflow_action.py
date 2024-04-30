@@ -438,10 +438,26 @@ def get_common_email_args(doc):
 		subject = _("Workflow Action") + f" on {doctype}: {docname}"
 		response = get_link_to_form(doctype, docname, f"{doctype}: {docname}")
 
+	print_format = doc.meta.default_print_format
+	lang = doc.get("language") or (
+		frappe.get_cached_value("Print Format", print_format, "default_print_language")
+		if print_format
+		else None
+	)
+
 	return {
 		"template": "workflow_action",
 		"header": "Workflow Action",
-		"attachments": [frappe.attach_print(doctype, docname, file_name=docname, doc=doc)],
+		"attachments": [
+			frappe.attach_print(
+				doctype,
+				docname,
+				file_name=docname,
+				doc=doc,
+				lang=lang,
+				print_format=print_format,
+			)
+		],
 		"subject": subject,
 		"message": response,
 	}
