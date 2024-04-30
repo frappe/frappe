@@ -27,7 +27,7 @@ frappe.views.TreeFactory = class TreeFactory extends frappe.views.Factory {
 
 	on_show() {
 		/**
-		 * When the the treeview is visited using the previous button,
+		 * When the treeview is visited using the previous button,
 		 * the framework just show the treeview element that is hidden.
 		 * Due to this, the data of the tree can be old.
 		 * To deal with this, the tree will be refreshed whenever the

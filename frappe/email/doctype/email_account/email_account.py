@@ -347,7 +347,7 @@ class EmailAccount(Document):
 
 	def is_exists_in_db(self):
 		"""Some of the Email Accounts we create from configs and those doesn't exists in DB.
-		This is is to check the specific email account exists in DB or not.
+		This is to check the specific email account exists in DB or not.
 		"""
 		return self.find_one_by_filters(name=self.name)
 

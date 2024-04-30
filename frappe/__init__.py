@@ -1684,7 +1684,7 @@ def get_hooks(
 
 
 def append_hook(target, key, value):
-	"""appends a hook to the the target dict.
+	"""appends a hook to the target dict.
 
 	If the hook key, exists, it will make it a key.
 

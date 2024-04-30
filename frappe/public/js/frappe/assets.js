@@ -85,7 +85,7 @@ class AssetManager {
 	}
 
 	execute(items, callback) {
-		// this is virtual page load, only get the the source
+		// this is virtual page load, only get the source
 		let me = this;
 
 		const version_string =

@@ -31,7 +31,7 @@ class DomainSettings(Document):
 
 	def on_update(self):
 		for i, d in enumerate(self.active_domains):
-			# set the flag to update the the desktop icons of all domains
+			# set the flag to update the desktop icons of all domains
 			if i >= 1:
 				frappe.flags.keep_desktop_icons = True
 			domain = frappe.get_doc("Domain", d.domain)
