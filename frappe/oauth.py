@@ -20,10 +20,11 @@ class OAuthWebRequestValidator(RequestValidator):
 		# Simple validity check, does client exist? Not banned?
 		cli_id = frappe.db.get_value("OAuth Client", {"name": client_id})
 		if cli_id:
-			request.client = frappe.get_doc("OAuth Client", client_id).as_dict()
-			return True
-		else:
-			return False
+			client = frappe.get_doc("OAuth Client", client_id)
+			if client.user_has_allowed_role():
+				request.client = client.as_dict()
+				return True
+		return False
 
 	def validate_redirect_uri(self, client_id, redirect_uri, request, *args, **kwargs):
 		# Is the client allowed to use the supplied redirect_uri? i.e. has
