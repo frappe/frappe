@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import json
 import time
+from contextlib import contextmanager
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
@@ -456,19 +457,6 @@ class TestUser(FrappeTestCase):
 		)
 
 
-<<<<<<< HEAD
-=======
-class TestImpersonation(FrappeAPITestCase):
-	def test_impersonation(self):
-		with test_user(roles=["System Manager"], commit=True) as user:
-			self.post(
-				self.method("frappe.core.doctype.user.user.impersonate"),
-				{"user": user.name, "reason": "test", "sid": self.sid},
-			)
-			resp = self.get(self.method("frappe.auth.get_logged_user"))
-			self.assertEqual(resp.json["message"], user.name)
-
-
 @contextmanager
 def test_user(
 	*, first_name: str | None = None, email: str | None = None, roles: list[str], commit=False, **kwargs
@@ -491,7 +479,6 @@ def test_user(
 		commit and frappe.db.commit()
 
 
->>>>>>> f244f3c76f (fix: perm query for dashboard (#26239))
 def delete_contact(user):
 	frappe.db.delete("Contact", {"email_id": user})
 	frappe.db.delete("Contact Email", {"email_id": user})
