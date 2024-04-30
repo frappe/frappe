@@ -741,7 +741,6 @@ class TestPermissions(FrappeTestCase):
 		frappe.set_user(system_user)
 		assertHasRole(GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE)
 
-    
 	def test_get_doctypes_with_read(self):
 		with self.set_user("Administrator"):
 			doctype = new_doctype(permissions=[{"select": 1, "role": "_Test Role", "read": 0}]).insert().name
