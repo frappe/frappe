@@ -216,12 +216,19 @@ class BaseDocument:
 		if isinstance(key, dict):
 			return _filter(self.get_all_children(), key, limit=limit)
 
-		if filters:
-			if isinstance(filters, dict):
+		if filters is not None:
+			if filters and isinstance(filters, dict):
 				return _filter(self.__dict__.get(key, []), filters, limit=limit)
 
-			# perhaps you wanted to set a default instead
-			default = filters
+			if default is None:
+				# perhaps you wanted to set a default instead
+				import inspect
+
+				frm = inspect.stack()[1]
+				file = "/".join(frm.filename.split("/")[6:])
+				code = "".join(frm.code_context).strip()
+				frappe.log(f"Warning: doc.get filters used as default: {file}[{frm.lineno}]: {code}")
+				default = filters
 
 		value = self.__dict__.get(key, default)
 
