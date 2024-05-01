@@ -593,8 +593,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		let filters = {};
 		link_filters.forEach((filter) => {
 			let [_, fieldname, operator, value] = filter;
-			value = String(value).replace(/%/g, "");
-			if (value.startsWith("eval:")) {
+			if (operator === "like") {
+				value = String(value).replace(/%/g, "");
+			}
+
+			if (value?.startsWith?.("eval:")) {
+				value = String(value).replace(/%/g, "");
+				// console.log(typeof value, value)
 				// get the value to calculate
 				value = value.split("eval:")[1];
 				let context = {
@@ -603,6 +608,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					frappe,
 				};
 				value = frappe.utils.eval(value, context);
+				console.log(typeof value, value);
 			}
 			filters[fieldname] = [operator, value];
 		});
