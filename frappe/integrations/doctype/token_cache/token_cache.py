@@ -34,8 +34,10 @@ class TokenCache(Document):
 
 		self.token_type = token_type
 		self.access_token = cstr(data.get("access_token", ""))
-		self.refresh_token = cstr(data.get("refresh_token", ""))
 		self.expires_in = cint(data.get("expires_in", 0))
+
+		if "refresh_token" in data:
+			self.refresh_token = cstr(data.get("refresh_token"))
 
 		new_scopes = data.get("scope")
 		if new_scopes:
