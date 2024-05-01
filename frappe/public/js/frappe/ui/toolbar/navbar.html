@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <header class="navbar navbar-expand sticky-top" role="navigation">
 	<div class="container">
 		<a class="navbar-brand navbar-home" href="/app">
@@ -35,6 +36,24 @@
 						onclick="return false;">
 						<span class="notifications-seen">
 							<svg class="icon icon-md"><use href="#icon-notification"></use></svg>
+=======
+<div class="sticky-top">
+	<header class="navbar navbar-expand" role="navigation">
+		<div class="container">
+			<a class="navbar-brand navbar-home" href="/app">
+				<img
+					class="app-logo"
+					src="{{ frappe.boot.app_logo_url }}"
+					alt="{{ __("App Logo") }}"
+				>
+			</a>
+			<ul class="nav navbar-nav d-none d-sm-flex" id="navbar-breadcrumbs"></ul>
+			<div class="collapse navbar-collapse justify-content-end">
+				<form class="form-inline fill-width justify-content-end" role="search" onsubmit="return false;">
+					{% if (frappe.boot.read_only) { %}
+						<span class="indicator-pill yellow no-indicator-dot read-only-banner" title="{%= __("Your site is undergoing maintenance or being updated.") %}">
+							{%= __("Read Only Mode") %}
+>>>>>>> 02ea846cd4 (fix: automatic logo width (#26273))
 						</span>
 						<span class="notifications-unseen">
 							<svg class="icon icon-md"><use href="#icon-notification-with-indicator"></use></svg>
