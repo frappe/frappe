@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-30 15:47\n"
+"PO-Revision-Date: 2024-05-01 15:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -28099,7 +28099,7 @@ msgstr "arama"
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Search Bar"
-msgstr ""
+msgstr "Arama Çubuğu"
 
 #. Label of a Data field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -28121,7 +28121,7 @@ msgstr ""
 #: desk/doctype/global_search_settings/global_search_settings.json
 msgctxt "Global Search Settings"
 msgid "Search Priorities"
-msgstr ""
+msgstr "Arama Öncelikleri"
 
 #: www/search.py:14
 msgid "Search Results for"
@@ -29524,19 +29524,19 @@ msgstr "Dökümanı Şu Kişiyle Paylaş"
 
 #: public/js/frappe/form/sidebar/share.js:45
 msgid "Share {0} with"
-msgstr ""
+msgstr "{0} ile Paylaş"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Shared"
-msgstr ""
+msgstr "Paylaşıldı"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Shared"
-msgstr ""
+msgstr "Paylaşıldı"
 
 #: desk/form/assign_to.py:129
 msgid "Shared with the following Users with Read access:{0}"
@@ -29599,7 +29599,7 @@ msgstr ""
 
 #: public/js/frappe/form/templates/form_sidebar.html:78
 msgid "Show All"
-msgstr ""
+msgstr "Tümünü Göster"
 
 #. Label of a Check field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -29615,7 +29615,7 @@ msgstr ""
 #: geo/doctype/currency/currency.json
 msgctxt "Currency"
 msgid "Show Currency Symbol on Right Side"
-msgstr ""
+msgstr "Para Birimi Sembolünü Sağ Tarafta Göster"
 
 #: desk/doctype/dashboard/dashboard.js:6
 msgid "Show Dashboard"
@@ -29647,7 +29647,7 @@ msgstr "Belgeyi Göster"
 
 #: www/error.html:41 www/error.html:59
 msgid "Show Error"
-msgstr ""
+msgstr "Hatayı Göster"
 
 #: public/js/frappe/form/layout.js:553
 msgid "Show Fieldname (click to copy on clipboard)"
@@ -29712,7 +29712,7 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile_controller.js:472
 msgid "Show More Activity"
-msgstr ""
+msgstr "Daha Fazla Etkinlik Göster"
 
 #. Label of a Check field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -29753,11 +29753,11 @@ msgstr ""
 #: desk/doctype/system_console/system_console.json
 msgctxt "System Console"
 msgid "Show Processlist"
-msgstr ""
+msgstr "İşlem Listesini Göster"
 
 #: core/doctype/error_log/error_log.js:9
 msgid "Show Related Errors"
-msgstr ""
+msgstr "İlgili Hataları Göster"
 
 #: core/doctype/prepared_report/prepared_report.js:43
 #: core/doctype/report/report.js:13
@@ -29779,7 +29779,7 @@ msgstr ""
 #: printing/doctype/print_format/print_format.json
 msgctxt "Print Format"
 msgid "Show Section Headings"
-msgstr ""
+msgstr "Bölüm Başlıklarını Göster"
 
 #. Label of a Check field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -29802,7 +29802,7 @@ msgstr ""
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Show Title"
-msgstr ""
+msgstr "Başlığı Göster"
 
 #. Label of a Check field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -29830,7 +29830,7 @@ msgstr "Geri İzlemeyi Göster"
 
 #: public/js/frappe/data_import/import_preview.js:200
 msgid "Show Warnings"
-msgstr ""
+msgstr "Uyarıları Göster"
 
 #: public/js/frappe/views/calendar/calendar.js:185
 msgid "Show Weekends"
@@ -29848,11 +29848,11 @@ msgstr ""
 
 #: public/js/frappe/form/footer/form_timeline.js:67
 msgid "Show all activity"
-msgstr ""
+msgstr "Tüm etkinlikleri göster"
 
 #: website/doctype/blog_post/templates/blog_post_list.html:24
 msgid "Show all blogs"
-msgstr ""
+msgstr "Tüm blogları göster"
 
 #. Label of a Small Text field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
@@ -29930,7 +29930,7 @@ msgstr ""
 #: website/doctype/website_sidebar/website_sidebar.json
 msgctxt "Website Sidebar"
 msgid "Sidebar Items"
-msgstr ""
+msgstr "Kenar Çubuğu Öğeleri"
 
 #. Label of a Section Break field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -29942,17 +29942,17 @@ msgstr ""
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Sidebar and Comments"
-msgstr ""
+msgstr "Kenar Çubuğu ve Yorumlar"
 
 #. Label of a Section Break field in DocType 'Email Group'
 #: email/doctype/email_group/email_group.json
 msgctxt "Email Group"
 msgid "Sign Up and Confirmation"
-msgstr ""
+msgstr "Kayıt ve Doğrulama"
 
 #: core/doctype/user/user.py:1012
 msgid "Sign Up is disabled"
-msgstr ""
+msgstr "Kaydolma devre dışı bırakıldı"
 
 #: templates/signup.html:16 www/login.html:120 www/login.html:136
 #: www/update-password.html:35
@@ -30056,19 +30056,19 @@ msgstr "Boyut"
 #: public/js/frappe/widgets/onboarding_widget.js:82
 #: public/js/onboarding_tours/onboarding_tours.js:18
 msgid "Skip"
-msgstr ""
+msgstr "Geç"
 
 #. Label of a Check field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "Skip Authorization"
-msgstr ""
+msgstr "Yetkilendirmeyi Geç"
 
 #. Label of a Select field in DocType 'OAuth Provider Settings'
 #: integrations/doctype/oauth_provider_settings/oauth_provider_settings.json
 msgctxt "OAuth Provider Settings"
 msgid "Skip Authorization"
-msgstr ""
+msgstr "Yetkilendirmeyi Geç"
 
 #: public/js/frappe/widgets/onboarding_widget.js:337
 msgid "Skip Step"
@@ -30892,13 +30892,13 @@ msgstr ""
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Style"
-msgstr ""
+msgstr "Stil"
 
 #. Label of a Select field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
 msgctxt "Workflow State"
 msgid "Style"
-msgstr ""
+msgstr "Stil"
 
 #. Label of a Section Break field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
@@ -30916,13 +30916,13 @@ msgstr ""
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Stylesheet"
-msgstr ""
+msgstr "Stil Dosyası"
 
 #. Description of the 'Fraction' (Data) field in DocType 'Currency'
 #: geo/doctype/currency/currency.json
 msgctxt "Currency"
 msgid "Sub-currency. For e.g. \"Cent\""
-msgstr ""
+msgstr "Alt para birimi. Örneğin \"Kuruş\""
 
 #. Description of the 'Subdomain' (Small Text) field in DocType 'Website
 #. Settings'
@@ -30935,7 +30935,7 @@ msgstr ""
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Subdomain"
-msgstr ""
+msgstr "Alt Alan Adı"
 
 #: public/js/frappe/views/communication.js:107
 #: public/js/frappe/views/inbox/inbox_view.js:63
@@ -31164,11 +31164,11 @@ msgstr ""
 #: public/js/frappe/form/save.js:10
 msgctxt "Freeze message while submitting a document"
 msgid "Submitting"
-msgstr ""
+msgstr "Gönderiliyor"
 
 #: desk/doctype/bulk_update/bulk_update.py:89
 msgid "Submitting {0}"
-msgstr ""
+msgstr "{0} Gönderiliyor"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -32242,14 +32242,14 @@ msgstr ""
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Theme"
-msgstr ""
+msgstr "Tema"
 
 #. Label of a Data field in DocType 'Website Theme'
 #. Label of a Code field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Theme"
-msgstr ""
+msgstr "Tema"
 
 #: public/js/frappe/ui/theme_switcher.js:130
 msgid "Theme Changed"
@@ -32558,7 +32558,7 @@ msgstr ""
 
 #: utils/goal.py:109
 msgid "This month"
-msgstr ""
+msgstr "Bu Ay"
 
 #: email/doctype/newsletter/newsletter.js:223
 msgid "This newsletter is scheduled to be sent on {0}"
@@ -32865,7 +32865,7 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "Timeout"
-msgstr ""
+msgstr "Zaman Aşımı"
 
 #. Label of a Check field in DocType 'Dashboard Chart Source'
 #: desk/doctype/dashboard_chart_source/dashboard_chart_source.json
@@ -32886,19 +32886,19 @@ msgstr ""
 
 #: core/report/transaction_log_report/transaction_log_report.py:112
 msgid "Timestamp"
-msgstr ""
+msgstr "Zaman Bilgisi"
 
 #. Label of a Datetime field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
 msgctxt "Access Log"
 msgid "Timestamp"
-msgstr ""
+msgstr "Zaman Bilgisi"
 
 #. Label of a Datetime field in DocType 'Transaction Log'
 #: core/doctype/transaction_log/transaction_log.json
 msgctxt "Transaction Log"
 msgid "Timestamp"
-msgstr ""
+msgstr "Zaman Bilgisi"
 
 #: core/doctype/doctype/boilerplate/controller_list.html:14
 #: core/doctype/doctype/boilerplate/controller_list.html:23
@@ -34854,7 +34854,7 @@ msgstr ""
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "User Tags"
-msgstr ""
+msgstr "Kullanıcı Etiketleri"
 
 #. Name of a DocType
 #: core/doctype/user_type/user_type.json core/doctype/user_type/user_type.py:82
@@ -34900,11 +34900,11 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile_controller.js:26
 msgid "User does not exist"
-msgstr ""
+msgstr "Kullanıcı bulunamadı"
 
 #: templates/includes/login/login.js:293
 msgid "User does not exist."
-msgstr ""
+msgstr "Kullanıcı bulunamadı."
 
 #: core/doctype/user_type/user_type.py:82
 msgid "User does not have permission to create the new {0}"
@@ -34938,7 +34938,7 @@ msgstr ""
 
 #: core/doctype/user/user.py:540
 msgid "User {0} cannot be deleted"
-msgstr ""
+msgstr "Kullanıcı {0} silinemez"
 
 #: core/doctype/user/user.py:279
 msgid "User {0} cannot be disabled"
@@ -35041,7 +35041,7 @@ msgstr ""
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgctxt "OAuth Authorization Code"
 msgid "Valid"
-msgstr ""
+msgstr "Geçerli"
 
 #: templates/includes/login/login.js:53 templates/includes/login/login.js:66
 msgid "Valid Login id required."
@@ -35273,7 +35273,7 @@ msgstr "Doğrulanıyor..."
 #. Name of a DocType
 #: core/doctype/version/version.json
 msgid "Version"
-msgstr ""
+msgstr "Versiyon"
 
 #: public/js/frappe/desk.js:131
 msgid "Version Updated"
@@ -35283,7 +35283,7 @@ msgstr "Yeni Versiyon Yüklendi"
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
 msgid "Video URL"
-msgstr ""
+msgstr "Video Linki"
 
 #. Label of a Select field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -35294,7 +35294,7 @@ msgstr "Göster"
 #: core/doctype/success_action/success_action.js:58
 #: public/js/frappe/form/success_action.js:89
 msgid "View All"
-msgstr ""
+msgstr "Tümünü Göster"
 
 #: public/js/frappe/form/toolbar.js:507
 msgid "View Audit Trail"
@@ -35373,7 +35373,7 @@ msgstr ""
 
 #: core/doctype/file/file.js:31
 msgid "View file"
-msgstr ""
+msgstr "Dosyayı Göster"
 
 #: templates/emails/auto_email_report.html:60
 msgid "View report in your browser"
@@ -36342,25 +36342,25 @@ msgstr ""
 #: public/js/frappe/ui/toolbar/search_utils.js:557
 #: public/js/frappe/views/workspace/workspace.js:10
 msgid "Workspace"
-msgstr ""
+msgstr "Çalışma Alanı"
 
 #. Linked DocType in Module Def's connections
 #: core/doctype/module_def/module_def.json
 msgctxt "Module Def"
 msgid "Workspace"
-msgstr ""
+msgstr "Çalışma Alanı"
 
 #. Label of a Section Break field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Workspace"
-msgstr ""
+msgstr "Çalışma Alanı"
 
 #. Label of a Link in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "Workspace"
 msgid "Workspace"
-msgstr ""
+msgstr "Çalışma Alanı"
 
 #: public/js/frappe/router.js:193
 msgid "Workspace <b>{0}</b> does not exist"
