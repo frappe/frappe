@@ -598,8 +598,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			}
 
 			if (value?.startsWith?.("eval:")) {
-				value = String(value).replace(/%/g, "");
-				// console.log(typeof value, value)
 				// get the value to calculate
 				value = value.split("eval:")[1];
 				let context = {
