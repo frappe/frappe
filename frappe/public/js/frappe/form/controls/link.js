@@ -606,7 +606,6 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					frappe,
 				};
 				value = frappe.utils.eval(value, context);
-				console.log(typeof value, value);
 			}
 			filters[fieldname] = [operator, value];
 		});
