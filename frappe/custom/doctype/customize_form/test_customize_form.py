@@ -62,7 +62,7 @@ class TestCustomizeForm(FrappeTestCase):
 
 		self.assertEqual(len(d.get("fields")), len(frappe.get_doc("DocType", d.doc_type).fields) + 1)
 		self.assertEqual(d.get("fields")[-1].fieldname, self.field.fieldname)
-		self.assertEqual(d.get("fields", {"fieldname": "event_type"})[0].in_list_view, 1)
+		self.assertEqual(d.get("fields", filters={"fieldname": "event_type"})[0].in_list_view, 1)
 
 		return d
 
@@ -98,7 +98,7 @@ class TestCustomizeForm(FrappeTestCase):
 			None,
 		)
 
-		repeat_this_event_field = d.get("fields", {"fieldname": "repeat_this_event"})[0]
+		repeat_this_event_field = d.get("fields", filters={"fieldname": "repeat_this_event"})[0]
 		repeat_this_event_field.reqd = 1
 		d.run_method("save_customization")
 		self.assertEqual(
@@ -110,7 +110,7 @@ class TestCustomizeForm(FrappeTestCase):
 			"1",
 		)
 
-		repeat_this_event_field = d.get("fields", {"fieldname": "repeat_this_event"})[0]
+		repeat_this_event_field = d.get("fields", filters={"fieldname": "repeat_this_event"})[0]
 		repeat_this_event_field.reqd = 0
 		d.run_method("save_customization")
 		self.assertEqual(
@@ -126,14 +126,14 @@ class TestCustomizeForm(FrappeTestCase):
 		d = self.get_customize_form("Event")
 		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "reqd"), 0)
 
-		custom_field = d.get("fields", {"fieldname": self.field.fieldname})[0]
+		custom_field = d.get("fields", filters={"fieldname": self.field.fieldname})[0]
 		custom_field.reqd = 1
 		custom_field.no_copy = 1
 		d.run_method("save_customization")
 		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "reqd"), 1)
 		self.assertEqual(frappe.db.get_value("Custom Field", self.field.name, "no_copy"), 1)
 
-		custom_field = d.get("fields", {"is_custom_field": True})[0]
+		custom_field = d.get("fields", filters={"is_custom_field": True})[0]
 		custom_field.reqd = 0
 		custom_field.no_copy = 0
 		d.run_method("save_customization")
@@ -169,7 +169,7 @@ class TestCustomizeForm(FrappeTestCase):
 
 	def test_save_customization_remove_field(self):
 		d = self.get_customize_form("Event")
-		custom_field = d.get("fields", {"fieldname": self.field.fieldname})[0]
+		custom_field = d.get("fields", filters={"fieldname": self.field.fieldname})[0]
 		d.get("fields").remove(custom_field)
 		d.run_method("save_customization")
 
@@ -183,29 +183,29 @@ class TestCustomizeForm(FrappeTestCase):
 		d.doc_type = "Event"
 		d.run_method("reset_to_defaults")
 
-		self.assertEqual(d.get("fields", {"fieldname": "repeat_this_event"})[0].in_list_view, 0)
+		self.assertEqual(d.get("fields", filters={"fieldname": "repeat_this_event"})[0].in_list_view, 0)
 
 		frappe.local.test_objects["Property Setter"] = []
 		make_test_records_for_doctype("Property Setter")
 
 	def test_set_allow_on_submit(self):
 		d = self.get_customize_form("Event")
-		d.get("fields", {"fieldname": "subject"})[0].allow_on_submit = 1
-		d.get("fields", {"fieldname": "custom_test_field"})[0].allow_on_submit = 1
+		d.get("fields", filters={"fieldname": "subject"})[0].allow_on_submit = 1
+		d.get("fields", filters={"fieldname": "custom_test_field"})[0].allow_on_submit = 1
 		d.run_method("save_customization")
 
 		d = self.get_customize_form("Event")
 
 		# don't allow for standard fields
-		self.assertEqual(d.get("fields", {"fieldname": "subject"})[0].allow_on_submit or 0, 0)
+		self.assertEqual(d.get("fields", filters={"fieldname": "subject"})[0].allow_on_submit or 0, 0)
 
 		# allow for custom field
-		self.assertEqual(d.get("fields", {"fieldname": "custom_test_field"})[0].allow_on_submit, 1)
+		self.assertEqual(d.get("fields", filters={"fieldname": "custom_test_field"})[0].allow_on_submit, 1)
 
 	def test_title_field_pattern(self):
 		d = self.get_customize_form("Web Form")
 
-		df = d.get("fields", {"fieldname": "title"})[0]
+		df = d.get("fields", filters={"fieldname": "title"})[0]
 
 		# invalid fieldname
 		df.default = """{doc_type} - {introduction_test}"""
@@ -235,7 +235,7 @@ class TestCustomizeForm(FrappeTestCase):
 		d = self.get_customize_form("Notification Log")
 
 		new_document_length = 255
-		document_name = d.get("fields", {"fieldname": "document_name"})[0]
+		document_name = d.get("fields", filters={"fieldname": "document_name"})[0]
 		document_name.length = new_document_length
 		d.run_method("save_customization")
 

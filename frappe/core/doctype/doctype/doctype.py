@@ -725,7 +725,7 @@ class DocType(Document):
 
 	def preserve_naming_series_options_in_property_setter(self):
 		"""Preserve naming_series as property setter if it does not exist"""
-		naming_series = self.get("fields", {"fieldname": "naming_series"})
+		naming_series = self.get("fields", filters={"fieldname": "naming_series"})
 
 		if not naming_series:
 			return
@@ -1048,11 +1048,11 @@ def validate_series(dt, autoname=None, name=None):
 	if not name:
 		name = dt.name
 
-	if not autoname and dt.get("fields", {"fieldname": "naming_series"}):
+	if not autoname and dt.get("fields", filters={"fieldname": "naming_series"}):
 		dt.autoname = "naming_series:"
 	elif dt.autoname and dt.autoname.startswith("naming_series:"):
 		fieldname = dt.autoname.split("naming_series:", 1)[0] or "naming_series"
-		if not dt.get("fields", {"fieldname": fieldname}):
+		if not dt.get("fields", filters={"fieldname": fieldname}):
 			frappe.throw(
 				_("Fieldname called {0} must exist to enable autonaming").format(frappe.bold(fieldname)),
 				title=_("Field Missing"),
@@ -1468,7 +1468,7 @@ def validate_fields(meta: Meta):
 		if not meta.image_field:
 			return
 
-		df = meta.get("fields", {"fieldname": meta.image_field})
+		df = meta.get("fields", filters={"fieldname": meta.image_field})
 		if not df:
 			frappe.throw(_("Image field must be a valid fieldname"), InvalidFieldNameError)
 		if df[0].fieldtype != "Attach Image":
@@ -1500,7 +1500,7 @@ def validate_fields(meta: Meta):
 		if meta.timeline_field not in fieldname_list:
 			frappe.throw(_("Timeline field must be a valid fieldname"), InvalidFieldNameError)
 
-		df = meta.get("fields", {"fieldname": meta.timeline_field})[0]
+		df = meta.get("fields", filters={"fieldname": meta.timeline_field})[0]
 		if df.fieldtype not in ("Link", "Dynamic Link"):
 			frappe.throw(_("Timeline field must be a Link or Dynamic Link"), InvalidFieldNameError)
 

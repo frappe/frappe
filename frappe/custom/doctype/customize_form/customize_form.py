@@ -266,7 +266,7 @@ class CustomizeForm(Document):
 
 		# docfield
 		for df in self.get("fields"):
-			meta_df = meta.get("fields", {"fieldname": df.fieldname})
+			meta_df = meta.get("fields", filters={"fieldname": df.fieldname})
 			if not meta_df or not is_standard_or_system_generated_field(meta_df[0]):
 				continue
 
@@ -484,7 +484,7 @@ class CustomizeForm(Document):
 
 	def update_in_custom_field(self, df, i):
 		meta = frappe.get_meta(self.doc_type)
-		meta_df = meta.get("fields", {"fieldname": df.fieldname})
+		meta_df = meta.get("fields", filters={"fieldname": df.fieldname})
 		if not meta_df or is_standard_or_system_generated_field(meta_df[0]):
 			# not a custom field
 			return
@@ -520,7 +520,7 @@ class CustomizeForm(Document):
 			df.fieldname for df in self.get("fields")
 		}
 		for fieldname in fields_to_remove:
-			df = meta.get("fields", {"fieldname": fieldname})[0]
+			df = meta.get("fields", filters={"fieldname": fieldname})[0]
 			if not is_standard_or_system_generated_field(df):
 				frappe.delete_doc("Custom Field", df.name)
 

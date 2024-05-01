@@ -31,7 +31,7 @@ class TestToDo(FrappeTestCase):
 		frappe.db.delete("ToDo")
 
 		todo_meta = frappe.get_doc("DocType", "ToDo")
-		todo_meta.get("fields", dict(fieldname="assigned_by_full_name"))[0].fetch_from = ""
+		todo_meta.get("fields", filters=dict(fieldname="assigned_by_full_name"))[0].fetch_from = ""
 		todo_meta.save()
 
 		frappe.clear_cache(doctype="ToDo")
@@ -40,7 +40,7 @@ class TestToDo(FrappeTestCase):
 		self.assertFalse(todo.assigned_by_full_name)
 
 		todo_meta = frappe.get_doc("DocType", "ToDo")
-		todo_meta.get("fields", dict(fieldname="assigned_by_full_name"))[
+		todo_meta.get("fields", filters=dict(fieldname="assigned_by_full_name"))[
 			0
 		].fetch_from = "assigned_by.full_name"
 		todo_meta.save()
@@ -112,7 +112,7 @@ class TestToDo(FrappeTestCase):
 
 		# Allow user changes
 		todo_meta = frappe.get_doc("DocType", "ToDo")
-		field = todo_meta.get("fields", dict(fieldname="assigned_by_full_name"))[0]
+		field = todo_meta.get("fields", filters=dict(fieldname="assigned_by_full_name"))[0]
 		field.fetch_from = "assigned_by.full_name"
 		field.fetch_if_empty = 1
 		todo_meta.save()
@@ -129,7 +129,7 @@ class TestToDo(FrappeTestCase):
 		self.assertEqual(todo.assigned_by_full_name, "Admin")
 
 		# Overwrite user changes
-		todo.meta.get("fields", dict(fieldname="assigned_by_full_name"))[0].fetch_if_empty = 0
+		todo.meta.get("fields", filters=dict(fieldname="assigned_by_full_name"))[0].fetch_if_empty = 0
 		todo.meta.save()
 
 		todo.reload()

@@ -437,7 +437,7 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 				d.fieldname
 				for d in linkmeta.get(
 					"fields",
-					{
+					filters={
 						"in_list_view": 1,
 						"fieldtype": ["not in", ("Image", "HTML", "Button", *frappe.model.table_fields)],
 					},

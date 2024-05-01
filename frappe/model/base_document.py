@@ -212,16 +212,20 @@ class BaseDocument:
 	def get_db_value(self, key):
 		return frappe.db.get_value(self.doctype, self.name, key)
 
-	def get(self, key, filters=None, limit=None, default=None):
+	def get(self, key, default=None, limit=None, filters=None):
 		if isinstance(key, dict):
 			return _filter(self.get_all_children(), key, limit=limit)
 
-		if filters:
-			if isinstance(filters, dict):
-				return _filter(self.__dict__.get(key, []), filters, limit=limit)
+		if filters is not None:
+			return _filter(self.__dict__.get(key, []), filters, limit=limit)
 
-			# perhaps you wanted to set a default instead
-			default = filters
+		if default and isinstance(default, dict):
+			from frappe.utils.deprecations import deprecation_warning
+
+			deprecation_warning("Please use the doc.get `filters` keyword argument.")
+
+			filters = default
+			return _filter(self.__dict__.get(key, []), filters, limit=limit)
 
 		value = self.__dict__.get(key, default)
 
@@ -759,7 +763,7 @@ class BaseDocument:
 
 		missing = []
 
-		for df in self.meta.get("fields", {"reqd": ("=", 1)}):
+		for df in self.meta.get("fields", filters={"reqd": ("=", 1)}):
 			if self.get(df.fieldname) in (None, []) or not has_content(df):
 				missing.append((df.fieldname, get_msg(df)))
 
@@ -784,7 +788,9 @@ class BaseDocument:
 		invalid_links = []
 		cancelled_links = []
 
-		for df in self.meta.get_link_fields() + self.meta.get("fields", {"fieldtype": ("=", "Dynamic Link")}):
+		for df in self.meta.get_link_fields() + self.meta.get(
+			"fields", filters={"fieldtype": ("=", "Dynamic Link")}
+		):
 			docname = self.get(df.fieldname)
 
 			if docname:
@@ -944,7 +950,7 @@ class BaseDocument:
 		if frappe.flags.in_import or self.is_new() or self.flags.ignore_validate_constants:
 			return
 
-		constants = [d.fieldname for d in self.meta.get("fields", {"set_only_once": ("=", 1)})]
+		constants = [d.fieldname for d in self.meta.get("fields", filters={"set_only_once": ("=", 1)})]
 		if constants:
 			values = frappe.db.get_value(self.doctype, self.name, constants, as_dict=True)
 
@@ -1119,7 +1125,7 @@ class BaseDocument:
 		if self.flags.ignore_save_passwords is True:
 			return
 
-		for df in self.meta.get("fields", {"fieldtype": ("=", "Password")}):
+		for df in self.meta.get("fields", filters={"fieldtype": ("=", "Password")}):
 			if self.flags.ignore_save_passwords and df.fieldname in self.flags.ignore_save_passwords:
 				continue
 			new_password = self.get(df.fieldname)
@@ -1290,7 +1296,7 @@ class BaseDocument:
 		from frappe.core.doctype.file.utils import extract_images_from_doc
 
 		if self.doctype != "DocType":
-			for df in self.meta.get("fields", {"fieldtype": ("=", "Text Editor")}):
+			for df in self.meta.get("fields", filters={"fieldtype": ("=", "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
 
 

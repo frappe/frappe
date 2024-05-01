@@ -724,7 +724,7 @@ class DatabaseQuery:
 			f.update(get_additional_filter_field(additional_filters_config, f, f.value))
 
 		meta = frappe.get_meta(f.doctype)
-		df = meta.get("fields", {"fieldname": f.fieldname})
+		df = meta.get("fields", filters={"fieldname": f.fieldname})
 		df = df[0] if df else None
 
 		# primary key is never nullable, modified is usually indexed by default and always present

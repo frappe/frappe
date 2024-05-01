@@ -150,9 +150,9 @@ def search_widget(
 			if not meta.translated_doctype and (f == "name" or (fmeta and fmeta.fieldtype in field_types)):
 				or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
 
-	if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
+	if meta.get("fields", filters={"fieldname": "enabled", "fieldtype": "Check"}):
 		filters.append([doctype, "enabled", "=", 1])
-	if meta.get("fields", {"fieldname": "disabled", "fieldtype": "Check"}):
+	if meta.get("fields", filters={"fieldname": "disabled", "fieldtype": "Check"}):
 		filters.append([doctype, "disabled", "!=", 1])
 
 	# format a list of fields combining search fields and filter fields

@@ -1908,7 +1908,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	import copy
 
 	def remove_no_copy_fields(d):
-		for df in d.meta.get("fields", {"no_copy": 1}):
+		for df in d.meta.get("fields", filters={"no_copy": 1}):
 			if hasattr(d, df.fieldname):
 				d.set(df.fieldname, None)
 

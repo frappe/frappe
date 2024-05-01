@@ -88,7 +88,7 @@ class WebsiteSettings(Document):
 		"""validate url in top bar items"""
 		for top_bar_item in self.get("top_bar_items"):
 			if top_bar_item.parent_label:
-				parent_label_item = self.get("top_bar_items", {"label": top_bar_item.parent_label})
+				parent_label_item = self.get("top_bar_items", filters={"label": top_bar_item.parent_label})
 
 				if not parent_label_item:
 					# invalid item
@@ -108,7 +108,7 @@ class WebsiteSettings(Document):
 		"""validate url in top bar items"""
 		for footer_item in self.get("footer_items"):
 			if footer_item.parent_label:
-				parent_label_item = self.get("footer_items", {"label": footer_item.parent_label})
+				parent_label_item = self.get("footer_items", filters={"label": footer_item.parent_label})
 
 				if not parent_label_item:
 					# invalid item

@@ -300,7 +300,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 	is created.
 	"""
 
-	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
+	attach_fields = doc.meta.get("fields", filters={"fieldtype": ["in", ["Attach", "Attach Image"]]})
 
 	for df in attach_fields:
 		# this method runs in on_update hook of all documents
@@ -394,7 +394,7 @@ def relink_files(doc, fieldname, temp_doc_name):
 def relink_mismatched_files(doc: "Document") -> None:
 	if not doc.get("__temporary_name", None):
 		return
-	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
+	attach_fields = doc.meta.get("fields", filters={"fieldtype": ["in", ["Attach", "Attach Image"]]})
 	for df in attach_fields:
 		if doc.get(df.fieldname):
 			relink_files(doc, df.fieldname, doc.__temporary_name)
