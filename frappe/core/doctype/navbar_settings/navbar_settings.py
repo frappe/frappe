@@ -19,7 +19,6 @@ class NavbarSettings(Document):
 		announcement_widget: DF.TextEditor | None
 		app_logo: DF.AttachImage | None
 		help_dropdown: DF.Table[NavbarItem]
-		logo_width: DF.Int
 		settings_dropdown: DF.Table[NavbarItem]
 	# end: auto-generated types
 
