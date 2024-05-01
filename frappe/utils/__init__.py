@@ -1171,7 +1171,7 @@ class CallbackManager:
 
 
 class Truthy:
-	def __init__(self, value=UNSET, context=UNSET):
+	def __init__(self, value=True, context=UNSET):
 		self.value = value
 		self.context = context
 
