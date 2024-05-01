@@ -5,6 +5,7 @@ context("FileUploader", () => {
 
 	beforeEach(() => {
 		cy.visit("/app");
+		cy.wait(2000); // workspace can load async and clear active dialog
 	});
 
 	function open_upload_dialog() {
@@ -13,7 +14,7 @@ context("FileUploader", () => {
 			.then((frappe) => {
 				new frappe.ui.FileUploader();
 			});
-		cy.wait(1000);
+		cy.wait(500);
 	}
 
 	it("upload dialog api works", () => {
