@@ -326,7 +326,14 @@ frappe.ui.GroupBy = class {
 			if (this.aggregate_function === "sum") {
 				docfield.label = __("Sum of {0}", [__(docfield.label)]);
 			} else {
+<<<<<<< HEAD
 				docfield.label = __("Average of {0}", [__(docfield.label)]);
+=======
+				if (docfield.fieldtype == "Int") {
+					docfield.fieldtype = "Float"; // average of ints can be a float
+				}
+				docfield.label = __("Average of {0}", [__(docfield.label, null, docfield.parent)]);
+>>>>>>> 8bd40b38e1 (fix: reportview average of ints should be float (#26284))
 			}
 		}
 
