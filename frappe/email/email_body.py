@@ -301,6 +301,8 @@ class EMail:
 
 	def set_in_reply_to(self, in_reply_to):
 		"""Used to send the Message-Id of a received email back as In-Reply-To"""
+		if in_reply_to and not in_reply_to.strip().startswith("<"):
+			in_reply_to = "<" + in_reply_to + ">"
 		self.set_header("In-Reply-To", in_reply_to)
 
 	def make(self):
