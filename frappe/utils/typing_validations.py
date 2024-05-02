@@ -119,7 +119,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		elif any(isinstance(x, ForwardRef | str) for x in getattr(current_arg_type, "__args__", [])):
 			continue
 		# ignore unittest.mock objects
-		elif isinstance(current_arg_value, mock.AsyncMock | mock.MagicMock | mock.Mock):
+		elif isinstance(current_arg_value, mock.Mock):
 			continue
 
 		# allow slack for Frappe types
