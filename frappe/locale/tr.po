@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-05-01 15:45\n"
+"PO-Revision-Date: 2024-05-02 15:59\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -26900,13 +26900,13 @@ msgstr ""
 
 #: desk/page/user_profile/user_profile_controller.js:402
 msgid "Review Points"
-msgstr ""
+msgstr "İnceleme Puanı"
 
 #. Label of a Int field in DocType 'Review Level'
 #: social/doctype/review_level/review_level.json
 msgctxt "Review Level"
 msgid "Review Points"
-msgstr ""
+msgstr "İnceleme Puanı"
 
 #: public/js/frappe/form/templates/form_sidebar.html:87
 msgid "Reviews"
@@ -26930,25 +26930,25 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Rich Text"
-msgstr ""
+msgstr "Zengin Metin"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Rich Text"
-msgstr ""
+msgstr "Zengin Metin"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Rich Text"
-msgstr ""
+msgstr "Zengin Metin"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Rich Text"
-msgstr ""
+msgstr "Zengin Metin"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -26996,74 +26996,74 @@ msgstr ""
 #: core/page/permission_manager/permission_manager.js:212
 #: core/page/permission_manager/permission_manager.js:450
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Link field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Table field in DocType 'Custom Role'
 #: core/doctype/custom_role/custom_role.json
 msgctxt "Custom Role"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Link field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Link field in DocType 'Has Role'
 #: core/doctype/has_role/has_role.json
 msgctxt "Has Role"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Link field in DocType 'Onboarding Permission'
 #: desk/doctype/onboarding_permission/onboarding_permission.json
 msgctxt "Onboarding Permission"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Link field in DocType 'Portal Menu Item'
 #: website/doctype/portal_menu_item/portal_menu_item.json
 msgctxt "Portal Menu Item"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Link field in DocType 'Review Level'
 #: social/doctype/review_level/review_level.json
 msgctxt "Review Level"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Link in the Users Workspace
 #. Label of a shortcut in the Users Workspace
 #: core/workspace/users/users.json
 msgctxt "Role"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Link field in DocType 'ToDo'
 #: desk/doctype/todo/todo.json
 msgctxt "ToDo"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Link field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
 msgctxt "User Type"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #. Label of a Link field in DocType 'Workflow Action Permitted Role'
 #: workflow/doctype/workflow_action_permitted_role/workflow_action_permitted_role.json
 msgctxt "Workflow Action Permitted Role"
 msgid "Role"
-msgstr ""
+msgstr "Rol"
 
 #: core/doctype/role/role.js:8
 msgid "Role 'All' will be given to all system + website users."
@@ -27077,24 +27077,24 @@ msgstr ""
 #: core/doctype/role/role.json
 msgctxt "Role"
 msgid "Role Name"
-msgstr ""
+msgstr "Rol İsmi"
 
 #. Label of a Data field in DocType 'Role Profile'
 #: core/doctype/role_profile/role_profile.json
 msgctxt "Role Profile"
 msgid "Role Name"
-msgstr ""
+msgstr "Rol İsmi"
 
 #. Name of a DocType
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgid "Role Permission for Page and Report"
-msgstr ""
+msgstr "Sayfa ve Raporlar için İzinler"
 
 #. Label of a Link in the Users Workspace
 #: core/workspace/users/users.json
 msgctxt "Role Permission for Page and Report"
 msgid "Role Permission for Page and Report"
-msgstr ""
+msgstr "Sayfa ve Raporlar için İzinler"
 
 #: public/js/frappe/roles_editor.js:103
 msgid "Role Permissions"
@@ -27110,35 +27110,35 @@ msgstr ""
 #: core/page/permission_manager/permission_manager.js:4
 #: core/workspace/users/users.json
 msgid "Role Permissions Manager"
-msgstr ""
+msgstr "Rol İzinlerini Yönet"
 
 #: public/js/frappe/list/list_view.js:1691
 msgctxt "Button in list view menu"
 msgid "Role Permissions Manager"
-msgstr ""
+msgstr "Rol İzinlerini Yönet"
 
 #. Name of a DocType
 #: core/doctype/role_profile/role_profile.json
 msgid "Role Profile"
-msgstr ""
+msgstr "Rol Profili"
 
 #. Label of a Link in the Users Workspace
 #: core/workspace/users/users.json
 msgctxt "Role Profile"
 msgid "Role Profile"
-msgstr ""
+msgstr "Rol Profili"
 
 #. Label of a Link field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Role Profile"
-msgstr ""
+msgstr "Rol Profili"
 
 #. Label of a Link field in DocType 'User Role Profile'
 #: core/doctype/user_role_profile/user_role_profile.json
 msgctxt "User Role Profile"
 msgid "Role Profile"
-msgstr ""
+msgstr "Rol Profili"
 
 #. Label of a Table MultiSelect field in DocType 'User'
 #: core/doctype/user/user.json
@@ -27164,57 +27164,57 @@ msgstr ""
 
 #: core/page/permission_manager/permission_manager.js:59
 msgid "Roles"
-msgstr ""
+msgstr "Roller"
 
 #. Label of a Section Break field in DocType 'Custom HTML Block'
 #. Label of a Table field in DocType 'Custom HTML Block'
 #: desk/doctype/custom_html_block/custom_html_block.json
 msgctxt "Custom HTML Block"
 msgid "Roles"
-msgstr ""
+msgstr "Roller"
 
 #. Label of a Table field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Roles"
-msgstr ""
+msgstr "Roller"
 
 #. Label of a Table field in DocType 'Page'
 #: core/doctype/page/page.json
 msgctxt "Page"
 msgid "Roles"
-msgstr ""
+msgstr "Roller"
 
 #. Label of a Table field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Roles"
-msgstr ""
+msgstr "Roller"
 
 #. Label of a Table field in DocType 'Role Permission for Page and Report'
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
 msgctxt "Role Permission for Page and Report"
 msgid "Roles"
-msgstr ""
+msgstr "Roller"
 
 #. Label of a Section Break field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Roles"
-msgstr ""
+msgstr "Roller"
 
 #. Label of a Table field in DocType 'Workspace'
 #. Label of a Tab Break field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Roles"
-msgstr ""
+msgstr "Roller"
 
 #. Label of a Tab Break field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Roles & Permissions"
-msgstr ""
+msgstr "Roller & İzinler"
 
 #. Label of a Table field in DocType 'Role Profile'
 #: core/doctype/role_profile/role_profile.json
@@ -27354,13 +27354,13 @@ msgstr "Rota"
 #. Name of a DocType
 #: desk/doctype/route_history/route_history.json
 msgid "Route History"
-msgstr ""
+msgstr "Dolaşım Geçmişi"
 
 #. Linked DocType in User's connections
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Route History"
-msgstr ""
+msgstr "Dolaşım Geçmişi"
 
 #. Label of a Table field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -27426,7 +27426,7 @@ msgstr ""
 
 #: custom/doctype/customize_form/customize_form.py:349
 msgid "Row {0}: Not allowed to disable Mandatory for standard fields"
-msgstr ""
+msgstr "Satır {0}: Standart alanlar devre dışı bırakılamaz."
 
 #: custom/doctype/customize_form/customize_form.py:338
 msgid "Row {0}: Not allowed to enable Allow on Submit for standard fields"
@@ -27456,25 +27456,25 @@ msgstr ""
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgctxt "Assignment Rule"
 msgid "Rule"
-msgstr ""
+msgstr "Kural"
 
 #. Label of a Link field in DocType 'Energy Point Log'
 #: social/doctype/energy_point_log/energy_point_log.json
 msgctxt "Energy Point Log"
 msgid "Rule"
-msgstr ""
+msgstr "Kural"
 
 #. Label of a Section Break field in DocType 'Document Naming Rule'
 #: core/doctype/document_naming_rule/document_naming_rule.json
 msgctxt "Document Naming Rule"
 msgid "Rule Conditions"
-msgstr ""
+msgstr "Kural Koşulları"
 
 #. Label of a Data field in DocType 'Energy Point Rule'
 #: social/doctype/energy_point_rule/energy_point_rule.json
 msgctxt "Energy Point Rule"
 msgid "Rule Name"
-msgstr ""
+msgstr "Kural İsmi"
 
 #: permissions.py:651
 msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
@@ -27503,7 +27503,7 @@ msgstr ""
 #: core/doctype/document_naming_rule/document_naming_rule.json
 msgctxt "Document Naming Rule"
 msgid "Rules with higher priority number will be applied first."
-msgstr ""
+msgstr "Öncelik numarası daha yüksek olan kurallar önce uygulanacaktır."
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -27521,13 +27521,13 @@ msgstr ""
 #. Name of a DocType
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgid "S3 Backup Settings"
-msgstr ""
+msgstr "S3 Yedekleme Ayarları"
 
 #. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgctxt "S3 Backup Settings"
 msgid "S3 Backup Settings"
-msgstr ""
+msgstr "S3 Yedekleme Ayarları"
 
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.js:18
 msgid "S3 Backup complete!"
@@ -27602,7 +27602,7 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "SMTP Settings for outgoing emails"
-msgstr ""
+msgstr "Giden E-postalar için SMTP Ayarları"
 
 #. Option for the 'Type' (Select) field in DocType 'System Console'
 #: desk/doctype/system_console/system_console.json
@@ -27770,7 +27770,7 @@ msgstr ""
 #: public/js/frappe/views/reports/report_view.js:1311
 #: public/js/frappe/views/reports/report_view.js:1636
 msgid "Save As"
-msgstr ""
+msgstr "Farklı Kaydet"
 
 #: public/js/frappe/views/dashboard/dashboard_view.js:62
 msgid "Save Customizations"
