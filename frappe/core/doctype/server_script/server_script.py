@@ -42,6 +42,8 @@ class ServerScript(Document):
 			"After Submit",
 			"Before Cancel",
 			"After Cancel",
+			"Before Discard",
+			"After Discard",
 			"Before Delete",
 			"After Delete",
 			"Before Save (Submitted Document)",

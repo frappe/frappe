@@ -12,7 +12,10 @@ function frappe_handlers(socket) {
 	socket.has_permission = (doctype, name) => {
 		return new Promise((resolve) => {
 			socket
-				.frappe_request("/api/method/frappe.realtime.has_permission", { doctype, name })
+				.frappe_request("/api/method/frappe.realtime.has_permission", {
+					doctype,
+					name: name || "",
+				})
 				.then((res) => res.json())
 				.then(({ message }) => {
 					if (message) {
@@ -22,6 +25,10 @@ function frappe_handlers(socket) {
 				.catch((err) => console.log("Can't check permissions", err));
 		});
 	};
+
+	socket.on("ping", () => {
+		socket.emit("pong");
+	});
 
 	socket.on("doctype_subscribe", function (doctype) {
 		socket.has_permission(doctype).then(() => {

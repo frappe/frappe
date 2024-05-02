@@ -58,9 +58,8 @@
   }
  ],
  "in_create": 1,
- "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-23 16:02:17.334396",
+ "modified": "2024-04-29 18:44:17.050909",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Data Import Log",
@@ -79,6 +78,7 @@
    "write": 1
   }
  ],
+ "read_only": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []

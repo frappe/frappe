@@ -157,7 +157,7 @@ class User(Document):
 			self.password_strength_test()
 
 		if self.name not in STANDARD_USERS:
-			self.validate_email_type(self.email)
+			self.email = self.name
 			self.validate_email_type(self.name)
 		self.add_system_manager_role()
 		self.move_role_profile_name_to_role_profiles()

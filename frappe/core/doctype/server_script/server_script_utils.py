@@ -15,6 +15,8 @@ EVENT_MAP = {
 	"on_submit": "After Submit",
 	"before_cancel": "Before Cancel",
 	"on_cancel": "After Cancel",
+	"before_discard": "Before Discard",
+	"on_discard": "After Discard",
 	"on_trash": "Before Delete",
 	"after_delete": "After Delete",
 	"before_update_after_submit": "Before Save (Submitted Document)",

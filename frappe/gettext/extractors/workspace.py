@@ -39,8 +39,26 @@ def extract(fileobj, *args, **kwargs):
 		(
 			None,
 			"pgettext",
+			(link.get("link_to") if link.get("link_type") == "DocType" else None, link.get("description")),
+			[f"Description of a {link.get('type')} in the {workspace_name} Workspace"],
+		)
+		for link in data.get("links", [])
+	)
+	yield from (
+		(
+			None,
+			"pgettext",
 			(shortcut.get("link_to") if shortcut.get("type") == "DocType" else None, shortcut.get("label")),
 			[f"Label of a shortcut in the {workspace_name} Workspace"],
+		)
+		for shortcut in data.get("shortcuts", [])
+	)
+	yield from (
+		(
+			None,
+			"pgettext",
+			(shortcut.get("link_to") if shortcut.get("type") == "DocType" else None, shortcut.get("format")),
+			[f"Count format of shortcut in the {workspace_name} Workspace"],
 		)
 		for shortcut in data.get("shortcuts", [])
 	)

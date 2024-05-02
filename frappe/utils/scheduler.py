@@ -15,6 +15,7 @@ import time
 from typing import NoReturn
 
 import setproctitle
+from croniter import CroniterBadCronError
 
 # imports - module imports
 import frappe
@@ -42,7 +43,7 @@ def start_scheduler() -> NoReturn:
 	"""Run enqueue_events_for_all_sites based on scheduler tick.
 	Specify scheduler_interval in seconds in common_site_config.json"""
 
-	tick = cint(frappe.get_conf().scheduler_tick_interval) or 60
+	tick = get_scheduler_tick()
 	set_niceness()
 
 	with filelock("scheduler_process", timeout=1, is_global=True):
@@ -100,8 +101,13 @@ def enqueue_events() -> list[str] | None:
 		enqueued_jobs = []
 		for job_type in frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*"):
 			job_type = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
-			if job_type.enqueue():
-				enqueued_jobs.append(job_type.method)
+			try:
+				if job_type.enqueue():
+					enqueued_jobs.append(job_type.method)
+			except CroniterBadCronError:
+				frappe.logger("scheduler").error(
+					f"Invalid Job on {frappe.local.site} - {job_type.name}", exc_info=True
+				)
 
 		return enqueued_jobs
 
@@ -206,3 +212,7 @@ def get_scheduler_status():
 	if is_scheduler_inactive():
 		return {"status": "inactive"}
 	return {"status": "active"}
+
+
+def get_scheduler_tick() -> int:
+	return cint(frappe.get_conf().scheduler_tick_interval) or 60

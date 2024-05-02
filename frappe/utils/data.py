@@ -1777,9 +1777,12 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 	if not uri and full_address:
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
-	port = frappe.conf.http_port or frappe.conf.webserver_port
+	port = frappe.conf.http_port
+	if not port and frappe.conf.developer_mode:
+		port = frappe.conf.webserver_port
 
 	if (
+		# XXX: This config is used as proxy for "is production mode enabled?"
 		not frappe.conf.restart_supervisor_on_update
 		and not frappe.conf.restart_systemd_on_update
 		and host_name
