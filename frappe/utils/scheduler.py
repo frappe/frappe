@@ -14,6 +14,12 @@ import random
 import time
 from typing import NoReturn
 
+<<<<<<< HEAD
+=======
+import setproctitle
+from croniter import CroniterBadCronError
+
+>>>>>>> b0aaeb5096 (fix: Dont let one invalid cron fail scheduler)
 # imports - module imports
 import frappe
 from frappe.utils import cint, get_datetime, get_sites, now_datetime
@@ -90,8 +96,13 @@ def enqueue_events(site: str) -> list[str] | None:
 		enqueued_jobs = []
 		for job_type in frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*"):
 			job_type = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
-			if job_type.enqueue():
-				enqueued_jobs.append(job_type.method)
+			try:
+				if job_type.enqueue():
+					enqueued_jobs.append(job_type.method)
+			except CroniterBadCronError:
+				frappe.logger("scheduler").error(
+					f"Invalid Job on {frappe.local.site} - {job_type.name}", exc_info=True
+				)
 
 		return enqueued_jobs
 

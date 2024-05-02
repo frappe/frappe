@@ -117,7 +117,7 @@ class ScheduledJobType(Document):
 		}
 
 		if not self.cron_format:
-			self.cron_format = CRON_MAP[self.frequency]
+			self.cron_format = CRON_MAP.get(self.frequency)
 
 		# If this is a cold start then last_execution will not be set.
 		# Creation is set as fallback because if very old fallback is set job might trigger
