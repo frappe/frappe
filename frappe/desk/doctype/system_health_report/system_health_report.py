@@ -51,68 +51,6 @@ def health_check(step: str):
 
 
 class SystemHealthReport(Document):
-<<<<<<< HEAD
-=======
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
-
-	from typing import TYPE_CHECKING
-
-	if TYPE_CHECKING:
-		from frappe.desk.doctype.system_health_report_errors.system_health_report_errors import (
-			SystemHealthReportErrors,
-		)
-		from frappe.desk.doctype.system_health_report_failing_jobs.system_health_report_failing_jobs import (
-			SystemHealthReportFailingJobs,
-		)
-		from frappe.desk.doctype.system_health_report_queue.system_health_report_queue import (
-			SystemHealthReportQueue,
-		)
-		from frappe.desk.doctype.system_health_report_tables.system_health_report_tables import (
-			SystemHealthReportTables,
-		)
-		from frappe.desk.doctype.system_health_report_workers.system_health_report_workers import (
-			SystemHealthReportWorkers,
-		)
-		from frappe.types import DF
-
-		active_sessions: DF.Int
-		background_jobs_check: DF.Data | None
-		background_workers: DF.Table[SystemHealthReportWorkers]
-		backups_size: DF.Float
-		binary_logging: DF.Data | None
-		bufferpool_size: DF.Data | None
-		cache_keys: DF.Int
-		cache_memory_usage: DF.Data | None
-		database: DF.Data | None
-		database_version: DF.Data | None
-		db_storage_usage: DF.Float
-		failed_emails: DF.Int
-		failed_logins: DF.Int
-		failing_scheduled_jobs: DF.Table[SystemHealthReportFailingJobs]
-		handled_emails: DF.Int
-		last_10_active_users: DF.Code | None
-		new_users: DF.Int
-		oldest_unscheduled_job: DF.Link | None
-		onsite_backups: DF.Int
-		pending_emails: DF.Int
-		private_files_size: DF.Float
-		public_files_size: DF.Float
-		queue_status: DF.Table[SystemHealthReportQueue]
-		scheduler_status: DF.Data | None
-		socketio_ping_check: DF.Literal["Fail", "Pass"]
-		socketio_transport_mode: DF.Literal["Polling", "Websocket"]
-		test_job_id: DF.Data | None
-		top_db_tables: DF.Table[SystemHealthReportTables]
-		top_errors: DF.Table[SystemHealthReportErrors]
-		total_background_workers: DF.Int
-		total_errors: DF.Int
-		total_outgoing_emails: DF.Int
-		total_users: DF.Int
-		unhandled_emails: DF.Int
-	# end: auto-generated types
-
->>>>>>> b2ef2cd506 (feat: show oldest unscheduled job in health report)
 	def db_insert(self, *args, **kwargs):
 		raise NotImplementedError
 
