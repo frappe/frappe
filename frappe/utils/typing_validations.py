@@ -3,6 +3,7 @@ from functools import lru_cache, wraps
 from inspect import _empty, isclass, signature
 from types import EllipsisType
 from typing import ForwardRef, TypeVar, Union
+from unittest import mock
 
 from pydantic import ConfigDict
 
@@ -77,8 +78,8 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 	"""
 	Validate the types of the arguments passed to a function with the type annotations
 	defined on the function.
-
 	"""
+
 	if not (args or kwargs) or not func.__annotations__:
 		return args, kwargs
 
@@ -116,6 +117,9 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		if isinstance(current_arg_type, ForwardRef | str):
 			continue
 		elif any(isinstance(x, ForwardRef | str) for x in getattr(current_arg_type, "__args__", [])):
+			continue
+		# ignore unittest.mock objects
+		elif isinstance(current_arg_value, mock.Mock):
 			continue
 
 		# allow slack for Frappe types
