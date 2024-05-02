@@ -420,6 +420,10 @@ before_request = [
 	"frappe.rate_limiter.apply",
 ]
 
+after_request = [
+	"frappe.desk.doctype.notification_log.notification_log.flush_system_notifications",
+]
+
 # Background Job Hooks
 before_job = [
 	"frappe.recorder.record",
@@ -437,6 +441,7 @@ after_job = [
 	"frappe.monitor.stop",
 	"frappe.utils.file_lock.release_document_locks",
 	"frappe.utils.background_jobs.flush_telemetry",
+	"frappe.desk.doctype.notification_log.notification_log.flush_system_notifications",
 ]
 
 extend_bootinfo = [

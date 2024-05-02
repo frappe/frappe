@@ -292,6 +292,7 @@ def init(site: str, sites_path: str = ".", new_site: bool = False, force=False) 
 	local.role_permissions = {}
 	local.valid_columns = {}
 	local.new_doc_templates = {}
+	local.system_notifications_queue = []
 
 	local.jenv = None
 	local.jloader = None
