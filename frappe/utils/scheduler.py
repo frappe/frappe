@@ -14,12 +14,8 @@ import random
 import time
 from typing import NoReturn
 
-<<<<<<< HEAD
-=======
-import setproctitle
 from croniter import CroniterBadCronError
 
->>>>>>> b0aaeb5096 (fix: Dont let one invalid cron fail scheduler)
 # imports - module imports
 import frappe
 from frappe.utils import cint, get_datetime, get_sites, now_datetime
