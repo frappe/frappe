@@ -1,4 +1,5 @@
 import frappe
+from frappe.query_builder import Order
 
 
 @frappe.whitelist()
@@ -15,12 +16,14 @@ def get_current_user_info() -> dict:
 @frappe.whitelist()
 def get_links_for_workspace(workspace: str) -> dict[list]:
 	"""Returns doctypes that are allowed to be shown in the workspace"""
-	workspace_links = frappe.get_all(
-		"Workspace Link",
-		{"parent": workspace, "type": "Link"},
-		["link_type", "link_to", "label"],
-		order_by="link_to asc",
-	)
+	WorkspaceLink = frappe.qb.DocType("Workspace Link")
+	workspace_links = (
+		frappe.qb.from_(WorkspaceLink)
+		.select("link_type", "link_to", "label")
+		.distinct()
+		.where((WorkspaceLink.parent == workspace) & (WorkspaceLink.type == "Link"))
+		.orderby(WorkspaceLink.label, order=Order.asc)
+	).run(as_dict=True)
 
 	links = {
 		"Document Types": [],
