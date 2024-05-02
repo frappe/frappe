@@ -6,6 +6,10 @@ from random import choice
 from threading import Thread
 from time import time
 from unittest.mock import patch
+<<<<<<< HEAD
+=======
+from urllib.parse import urlencode, urljoin
+>>>>>>> 65b3c42635 (fix: only redirect to same domain (#26304))
 
 import requests
 from filetype import guess_mime
@@ -402,3 +406,42 @@ class TestResponse(FrappeAPITestCase):
 
 		self.assertEqual(self.get(file.unique_url, {"sid": self.sid}).text, test_content)
 		self.assertEqual(self.get(file.file_url, {"sid": self.sid}).text, test_content)
+<<<<<<< HEAD
+=======
+
+	def test_login_redirects(self):
+		expected_redirects = {
+			"/app/user": "/app/user",
+			"/app/user?enabled=1": "/app/user?enabled=1",
+			"http://example.com": "/app",  # No external redirect
+			"https://google.com": "/app",
+			"http://localhost:8000": "/app",
+			"http://localhost/app": "http://localhost/app",
+		}
+		for redirect, expected_redirect in expected_redirects.items():
+			response = self.get(f"/login?{urlencode({'redirect-to':redirect})}", {"sid": self.sid})
+			self.assertEqual(response.location, expected_redirect)
+
+
+def generate_admin_keys():
+	from frappe.core.doctype.user.user import generate_keys
+
+	generate_keys("Administrator")
+	frappe.db.commit()
+
+
+@frappe.whitelist()
+def test(*, fail=False, handled=True, message="Failed"):
+	if fail:
+		if handled:
+			frappe.throw(message)
+		else:
+			1 / 0
+	else:
+		frappe.msgprint(message)
+
+
+@frappe.whitelist(allow_guest=True)
+def test_array(data):
+	return data
+>>>>>>> 65b3c42635 (fix: only redirect to same domain (#26304))
