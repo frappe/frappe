@@ -1263,6 +1263,8 @@ class TestRounding(FrappeTestCase):
 
 class TestArgumentTypingValidations(FrappeTestCase):
 	def test_validate_argument_types(self):
+		from unittest.mock import AsyncMock, MagicMock, Mock
+
 		from frappe.core.doctype.doctype.doctype import DocType
 		from frappe.utils.typing_validations import (
 			FrappeTypeError,
@@ -1279,6 +1281,10 @@ class TestArgumentTypingValidations(FrappeTestCase):
 
 		@validate_argument_types
 		def test_doctypes(a: DocType | dict):
+			return a
+
+		@validate_argument_types
+		def test_mocks(a: str):
 			return a
 
 		self.assertEqual(test_simple_types(True, 2.0, True), (1, 2.0, True))
@@ -1303,6 +1309,13 @@ class TestArgumentTypingValidations(FrappeTestCase):
 		self.assertEqual(test_doctypes(doctype.as_dict()), doctype.as_dict())
 		with self.assertRaises(FrappeTypeError):
 			test_doctypes("a")
+
+		self.assertEqual(test_mocks("Hello World"), "Hello World")
+		for obj in (AsyncMock, MagicMock, Mock):
+			obj_instance = obj()
+			self.assertEqual(test_mocks(obj_instance), obj_instance)
+		with self.assertRaises(FrappeTypeError):
+			test_mocks(1)
 
 
 class TestChangeLog(FrappeTestCase):
