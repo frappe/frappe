@@ -26,11 +26,12 @@ from collections.abc import Callable
 from contextlib import contextmanager
 
 import frappe
+from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import add_to_date
-from frappe.utils.scheduler import get_scheduler_status
+from frappe.utils.scheduler import get_scheduler_status, get_scheduler_tick
 
 
 @contextmanager
@@ -107,6 +108,7 @@ class SystemHealthReport(Document):
 		handled_emails: DF.Int
 		last_10_active_users: DF.Code | None
 		new_users: DF.Int
+		oldest_unscheduled_job: DF.Link | None
 		onsite_backups: DF.Int
 		pending_emails: DF.Int
 		private_files_size: DF.Float
@@ -207,6 +209,18 @@ class SystemHealthReport(Document):
 
 		for job in failing_jobs:
 			self.append("failing_scheduled_jobs", job)
+
+		threshold = add_to_date(None, seconds=-30 * get_scheduler_tick(), as_datetime=True)
+		for job_type in frappe.get_all(
+			"Scheduled Job Type",
+			filters={"stopped": 0, "last_execution": ("<", threshold)},
+			fields="*",
+			order_by="last_execution asc",
+		):
+			job_type: ScheduledJobType = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
+			if job_type.is_event_due():
+				self.oldest_unscheduled_job = job_type.name
+				break
 
 	@health_check("Emails")
 	def fetch_email_stats(self):
