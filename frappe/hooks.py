@@ -37,6 +37,7 @@ app_include_js = [
 app_include_css = [
 	"desk.bundle.css",
 	"report.bundle.css",
+	"/assets/sovisindia/css/sovisindia_theme.css"
 ]
 app_include_icons = [
 	"frappe/icons/timeless/icons.svg",

@@ -12,11 +12,14 @@ def download_pdf(doctype, name, print_format, letterhead=None):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("print")
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
-	pdf = generator.render_pdf()
 
-	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
+
+
+	pdf = generator.get_main_html()
+
+	frappe.local.response.filename = "{name}.html".format(name=name.replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = pdf
-	frappe.local.response.type = "pdf"
+	frappe.local.response.type = "html"
 
 
 def get_html(doctype, name, print_format, letterhead=None):

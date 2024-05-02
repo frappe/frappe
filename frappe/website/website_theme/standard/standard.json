@@ -1,4 +1,5 @@
 {
+ "background_color": "Red",
  "button_gradients": 0,
  "button_rounded_corners": 1,
  "button_shadows": 0,
@@ -9,12 +10,13 @@
  "doctype": "Website Theme",
  "font_properties": "wght:400;500;600;700;800",
  "idx": 28,
- "modified": "2020-06-15 13:10:16.618476",
+ "ignored_apps": [],
+ "modified": "2024-04-16 19:55:34.815177",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Standard",
  "owner": "Administrator",
  "theme": "Standard",
- "theme_scss": "$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: true;\n\n// Bootstrap Variable Overrides\n\n\n@import \"frappe/public/scss/website\";\n\n\n\n// Custom Theme\n",
- "theme_url": "/assets/css/standard_style.css"
+ "theme_scss": "$body-bg: #ff0000;$enable-shadows: false;\n$enable-gradients: false;\n$enable-rounded: true;\n\n// Bootstrap Variable Overrides\n\n\n// Import themes from installed apps\n@import \"frappe/public/scss/website.bundle\";\n@import \"erpnext/public/scss/website\";\n\n\n\n// Custom Theme\n\n\n:root {\n\t\n\t--bg-color: #{$body-bg};\n\t}\n",
+ "theme_url": "/files/website_theme/standard_style.css"
 }

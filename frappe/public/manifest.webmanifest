@@ -1,0 +1,47 @@
+{
+    "id": "erp.sovis.in",
+    "theme_color": "#133c55",
+    "background_color": "#133c55",
+    "display": "standalone",
+    "scope": "/app",
+    "start_url": "/app",
+    "name": "Sovis India",
+    "short_name": "Sovis India",
+    "description": "ERPNext",
+    "icons": [
+        {
+            "src": "./images/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "./images/icon-256x256.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "./images/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png"
+        },
+        {
+            "src": "./images/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "./images/screenshot-wide.png",
+            "type": "image/png",
+            "sizes": "1920x1080",
+            "form_factor": "wide"
+        },
+        {
+            "src": "./images/screenshot-narrow.png",
+            "type": "image/png",
+            "sizes": "1170x2532",
+            "form_factor": "narrow"
+        }
+    ]
+}

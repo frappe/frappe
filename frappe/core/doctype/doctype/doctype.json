@@ -21,6 +21,7 @@
   "editable_grid",
   "quick_entry",
   "cb01",
+  "display_name",
   "track_changes",
   "track_seen",
   "track_views",
@@ -161,6 +162,12 @@
   {
    "fieldname": "cb01",
    "fieldtype": "Column Break"
+  },
+  {
+    "description": "If filled, display name of DocType will be shown along with real name",
+    "fieldname": "display_name",
+    "fieldtype": "Data",
+    "label": "Display Name"
   },
   {
    "default": "0",

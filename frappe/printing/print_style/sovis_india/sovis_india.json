@@ -1,0 +1,14 @@
+{
+ "creation": "2024-04-20 19:34:16.814748",
+ "css": ".print-format {\n\t margin: 0 !important;\n\t padding: 0 !important;\n\t \n }\n\n table {\n\t width: 100%;\n\t font-size: 14px;\n}\n\n td[data-compressed], th[data-compressed], tr[data-compressed] td, tr[data-compressed] th, table[data-compressed] td, table[data-compressed] th {\n\t padding: 3px 6px !important;\n}\n [no-break] {\n\t white-space: nowrap;\n}\n [dib] {\n\t display: inline-block;\n}\n [bl] {\n\t border-left: 2px solid black;\n}\n [br] {\n\t border-right: 2px solid black;\n}\n [bt] {\n\t border-top: 2px solid black;\n}\n [bb] {\n\t border-bottom: 2px solid black;\n}\n [tc] {\n\t text-align: center;\n}\n [tr] {\n\t text-align: right;\n}\n [tl] {\n\t text-align: left;\n}",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Print Style",
+ "idx": 0,
+ "modified": "2024-04-20 19:37:04.475043",
+ "modified_by": "Administrator",
+ "name": "Sovis India",
+ "owner": "Administrator",
+ "print_style_name": "Sovis India",
+ "standard": 1
+}

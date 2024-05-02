@@ -16,6 +16,7 @@ export default class ShortcutWidget extends Widget {
 			format: this.format,
 			link_to: this.link_to,
 			doc_view: this.doc_view,
+			options: this.options,
 			color: this.color,
 			restrict_to_domain: this.restrict_to_domain,
 			stats_filter: this.stats_filter,
@@ -58,7 +59,14 @@ export default class ShortcutWidget extends Widget {
 				return;
 			}
 
-			frappe.set_route(route);
+			if (this.type == "DocType" && this.doc_view == "New") {
+				frappe.new_doc(this.link_to, {
+					'payment_type': 'Receive',
+					'party_type': 'Supplier'
+				})
+			} else {	
+				frappe.set_route(route);
+			}
 		});
 	}
 
