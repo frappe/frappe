@@ -15,6 +15,7 @@ import time
 from typing import NoReturn
 
 import setproctitle
+from croniter import CroniterBadCronError
 
 # imports - module imports
 import frappe
@@ -100,8 +101,13 @@ def enqueue_events() -> list[str] | None:
 		enqueued_jobs = []
 		for job_type in frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*"):
 			job_type = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
-			if job_type.enqueue():
-				enqueued_jobs.append(job_type.method)
+			try:
+				if job_type.enqueue():
+					enqueued_jobs.append(job_type.method)
+			except CroniterBadCronError:
+				frappe.logger("scheduler").error(
+					f"Invalid Job on {frappe.local.site} - {job_type.name}", exc_info=True
+				)
 
 		return enqueued_jobs
 
