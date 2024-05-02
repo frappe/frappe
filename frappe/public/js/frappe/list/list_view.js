@@ -976,30 +976,28 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let dropdown_button = "";
 		if (this.settings.dropdown_button) {
 			let button_actions = "";
-			let button_idx = 0;
-			for (let button of this.settings.dropdown_button.buttons) {
+			this.settings.dropdown_button.buttons.forEach((button, index) => {
 				if (!button.show || button.show(doc)) {
-					button.idx = button_idx++;
 					let description = button.get_description ? button.get_description(doc) : "";
 					button_actions += `
-						<a class="dropdown-item" href="#" onclick="return false;" data-idx="${doc._idx}" button-idx="${button.idx}" title="${description}">
+						<a class="dropdown-item" href="#" onclick="return false;" data-idx="${doc._idx}" button-idx="${index}" title="${description}">
 							${button.get_label}
 						</a>
 					`;
 				}
-			}
+			});
 
 			if (button_actions) {
 				dropdown_button = `
 				<div class="inner-group-button mr-2" data-name="${doc.name}" data-label="${
 					this.settings.dropdown_button.get_label
 				}">
-						<button type="button" class="btn btn-xs btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-							${this.settings.dropdown_button.get_label}
-							${frappe.utils.icon("select", "xs")}
-						</button>
-						<div role="menu" class="dropdown-menu">${button_actions}</div>
-					</div>
+					<button type="button" class="btn btn-xs btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						${this.settings.dropdown_button.get_label}
+						${frappe.utils.icon("select", "xs")}
+					</button>
+					<div role="menu" class="dropdown-menu">${button_actions}</div>
+				</div>
 				`;
 			}
 		}
@@ -1396,11 +1394,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.$result.on("click", ".inner-group-button .dropdown-item", (e) => {
 			const $button = $(e.currentTarget);
 			const doc = this.data[$button.attr("data-idx")];
-			const btn_idx = $button.attr("button-idx");
-			const action = this.settings.dropdown_button.buttons.find(
-				(b) => b.idx == btn_idx
-			).action;
-			action(doc);
+			const btn_idx = parseInt($button.attr("button-idx"), 10);
+			const button = this.settings.dropdown_button.buttons[btn_idx];
+
+			if (button && button.action) {
+				button.action(doc);
+			}
 
 			e.stopPropagation();
 			return false;
