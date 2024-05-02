@@ -280,7 +280,7 @@ def get_communication_data(
 			C.sender, C.sender_full_name, C.cc, C.bcc,
 			C.creation AS creation, C.subject, C.delivery_status,
 			C._liked_by, C.reference_doctype, C.reference_name,
-			C.read_by_recipient, C.rating, C.recipients
+			C.read_by_recipient, C.rating, C.recipients, C.message_id
 		"""
 
 	conditions = ""

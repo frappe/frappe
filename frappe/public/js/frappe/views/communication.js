@@ -795,6 +795,7 @@ frappe.views.CommunicationComposer = class {
 				print_letterhead: me.is_print_letterhead_checked(),
 				send_after: form_values.send_after ? form_values.send_after : null,
 				print_language: form_values.print_language,
+				in_reply_to: me.in_reply_to,
 			},
 			btn,
 			callback(r) {

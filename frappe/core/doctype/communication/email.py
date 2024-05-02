@@ -49,6 +49,7 @@ def make(
 	send_after=None,
 	print_language=None,
 	now=False,
+	in_reply_to=None,
 	**kwargs,
 ) -> dict[str, str]:
 	"""Make a new communication. Checks for email permissions for specified Document.
@@ -106,6 +107,7 @@ def make(
 		send_after=send_after,
 		print_language=print_language,
 		now=now,
+		in_reply_to=in_reply_to,
 	)
 
 
@@ -134,6 +136,7 @@ def _make(
 	send_after=None,
 	print_language=None,
 	now=False,
+	in_reply_to=None,
 ) -> dict[str, str]:
 	"""Internal method to make a new communication that ignores Permission checks."""
 
@@ -189,6 +192,7 @@ def _make(
 			print_letterhead=print_letterhead,
 			print_language=print_language,
 			now=now,
+			in_reply_to=in_reply_to,
 		)
 
 	emails_not_sent_to = comm.exclude_emails_list(include_sender=send_me_a_copy)

@@ -318,6 +318,7 @@ class CommunicationEmailMixin:
 		is_inbound_mail_communcation=None,
 		print_language=None,
 		now=False,
+		in_reply_to=None,
 	):
 		if input_dict := self.sendmail_input_dict(
 			print_html=print_html,
@@ -327,4 +328,4 @@ class CommunicationEmailMixin:
 			is_inbound_mail_communcation=is_inbound_mail_communcation,
 			print_language=print_language,
 		):
-			frappe.sendmail(now=now, **input_dict)
+			frappe.sendmail(now=now, in_reply_to=in_reply_to, **input_dict)
