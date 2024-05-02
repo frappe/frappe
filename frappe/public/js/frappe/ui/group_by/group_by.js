@@ -326,6 +326,9 @@ frappe.ui.GroupBy = class {
 			if (this.aggregate_function === "sum") {
 				docfield.label = __("Sum of {0}", [__(docfield.label)]);
 			} else {
+				if (docfield.fieldtype == "Int") {
+					docfield.fieldtype = "Float"; // average of ints can be a float
+				}
 				docfield.label = __("Average of {0}", [__(docfield.label)]);
 			}
 		}
