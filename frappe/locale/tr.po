@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-05-02 15:59\n"
+"PO-Revision-Date: 2024-05-03 15:56\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -3395,13 +3395,13 @@ msgstr ""
 #: core/doctype/user_email/user_email.json
 msgctxt "User Email"
 msgid "Awaiting Password"
-msgstr ""
+msgstr "Şifre Bekleniyor"
 
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Awaiting password"
-msgstr ""
+msgstr "Şifre Bekleniyor"
 
 #: public/js/frappe/widgets/onboarding_widget.js:200
 msgid "Awesome Work"
@@ -3552,7 +3552,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Background Workers"
-msgstr ""
+msgstr "Arkaplan Görevleri"
 
 #: integrations/doctype/google_drive/google_drive.py:170
 msgid "Backing up Data."
@@ -9765,7 +9765,7 @@ msgstr ""
 
 #: core/doctype/deleted_document/deleted_document_list.js:33
 msgid "Documents that failed to restore"
-msgstr ""
+msgstr "Geri yüklenemeyen belgeler"
 
 #: core/doctype/deleted_document/deleted_document_list.js:29
 msgid "Documents that were already restored"
@@ -11347,7 +11347,7 @@ msgstr ""
 
 #: public/js/frappe/ui/messages.js:332
 msgid "Enter your password"
-msgstr ""
+msgstr "Şifrenizi Girin"
 
 #: contacts/report/addresses_and_contacts/addresses_and_contacts.js:22
 msgid "Entity Name"
@@ -15682,7 +15682,7 @@ msgstr "Zip Yükle"
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "Import from Google Sheets"
-msgstr ""
+msgstr "Google E-Tablolar'dan içe aktar"
 
 #: core/doctype/data_import/importer.py:605
 msgid "Import template should be of type .csv, .xlsx or .xls"
@@ -16730,19 +16730,19 @@ msgstr ""
 #: core/doctype/file/file.json
 msgctxt "File"
 msgid "Is Private"
-msgstr ""
+msgstr "Özel"
 
 #. Label of a Check field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Is Public"
-msgstr ""
+msgstr "Herkese Açık"
 
 #. Label of a Check field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Is Public"
-msgstr ""
+msgstr "Herkese Açık"
 
 #. Label of a Data field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -16768,19 +16768,19 @@ msgstr ""
 
 #: core/doctype/doctype/doctype_list.js:64
 msgid "Is Single"
-msgstr ""
+msgstr "Tek"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Is Single"
-msgstr ""
+msgstr "Tek"
 
 #. Label of a Check field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgctxt "Onboarding Step"
 msgid "Is Single"
-msgstr ""
+msgstr "Tek"
 
 #. Label of a Check field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
@@ -16798,55 +16798,55 @@ msgstr ""
 #: desk/doctype/dashboard/dashboard.json
 msgctxt "Dashboard"
 msgid "Is Standard"
-msgstr ""
+msgstr "Standart"
 
 #. Label of a Check field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Is Standard"
-msgstr ""
+msgstr "Standart"
 
 #. Label of a Check field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Is Standard"
-msgstr ""
+msgstr "Standart"
 
 #. Label of a Check field in DocType 'Navbar Item'
 #: core/doctype/navbar_item/navbar_item.json
 msgctxt "Navbar Item"
 msgid "Is Standard"
-msgstr ""
+msgstr "Standart"
 
 #. Label of a Check field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Is Standard"
-msgstr ""
+msgstr "Standart"
 
 #. Label of a Check field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 msgctxt "Number Card"
 msgid "Is Standard"
-msgstr ""
+msgstr "Standart"
 
 #. Label of a Select field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Is Standard"
-msgstr ""
+msgstr "Standart"
 
 #. Label of a Check field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
 msgctxt "User Type"
 msgid "Is Standard"
-msgstr ""
+msgstr "Standart"
 
 #. Label of a Check field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Is Standard"
-msgstr ""
+msgstr "Standart"
 
 #: core/doctype/doctype/doctype_list.js:39
 msgid "Is Submittable"
@@ -16880,7 +16880,7 @@ msgstr ""
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Is Table"
-msgstr ""
+msgstr "Tablo"
 
 #. Label of a Check field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -16892,7 +16892,7 @@ msgstr ""
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Is Tree"
-msgstr ""
+msgstr "Ağaç Yapısı"
 
 #. Label of a Data field in DocType 'Web Page View'
 #: website/doctype/web_page_view/web_page_view.json
@@ -16904,19 +16904,19 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Is Virtual"
-msgstr ""
+msgstr "Sanal"
 
 #. Label of a Check field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Is Virtual"
-msgstr ""
+msgstr "Sanal"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Is Virtual"
-msgstr ""
+msgstr "Sanal"
 
 #: core/doctype/file/utils.py:157 utils/file_manager.py:311
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
@@ -18545,7 +18545,7 @@ msgstr ""
 #. Type: Action
 #: hooks.py website/doctype/website_settings/website_settings.py:182
 msgid "Log out"
-msgstr ""
+msgstr "Çıkış"
 
 #: handler.py:123
 msgid "Logged Out"
@@ -18558,19 +18558,19 @@ msgstr ""
 #: templates/includes/navbar/navbar_login.html:24
 #: website/page_renderers/not_permitted_page.py:22 www/login.html:42
 msgid "Login"
-msgstr ""
+msgstr "Giriş"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
 msgctxt "Activity Log"
 msgid "Login"
-msgstr ""
+msgstr "Giriş"
 
 #. Label of a Tab Break field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Login"
-msgstr ""
+msgstr "Giriş"
 
 #. Label of a Int field in DocType 'User'
 #: core/doctype/user/user.json
@@ -18682,7 +18682,7 @@ msgstr ""
 #: core/doctype/navbar_settings/navbar_settings.json
 msgctxt "Navbar Settings"
 msgid "Logo Width"
-msgstr ""
+msgstr "Logo Genişliği"
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
@@ -20650,7 +20650,7 @@ msgstr ""
 
 #: email/doctype/newsletter/newsletter.py:130
 msgid "Newsletter has already been sent"
-msgstr ""
+msgstr "Bülten zaten gönderildi"
 
 #: email/doctype/newsletter/newsletter.py:149
 msgid "Newsletter must be published to send webview link in email"
@@ -23395,7 +23395,7 @@ msgstr ""
 
 #: core/doctype/sms_settings/sms_settings.py:84
 msgid "Please Update SMS Settings"
-msgstr ""
+msgstr "Lütfen SMS Ayarlarını Güncelleyin"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:570
 msgid "Please add a subject to your email"
@@ -26087,15 +26087,15 @@ msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:488
 msgid "Remove Field"
-msgstr ""
+msgstr "Alan Kaldır"
 
 #: printing/page/print_format_builder/print_format_builder.js:427
 msgid "Remove Section"
-msgstr ""
+msgstr "Bölümü Kaldır"
 
 #: custom/doctype/customize_form/customize_form.js:138
 msgid "Remove all customizations?"
-msgstr ""
+msgstr "Tüm özelleştirmeler kaldırılsın mı?"
 
 #: public/js/frappe/utils/datatable.js:9
 msgid "Remove column"
@@ -26202,17 +26202,17 @@ msgstr "Yanıtlandı"
 #: core/doctype/communication/communication.js:57
 #: public/js/frappe/form/footer/form_timeline.js:550
 msgid "Reply"
-msgstr ""
+msgstr "Yanıtla"
 
 #. Label of a Text Editor field in DocType 'Discussion Reply'
 #: website/doctype/discussion_reply/discussion_reply.json
 msgctxt "Discussion Reply"
 msgid "Reply"
-msgstr ""
+msgstr "Yanıtla"
 
 #: core/doctype/communication/communication.js:62
 msgid "Reply All"
-msgstr ""
+msgstr "Tümünü Yanıtla"
 
 #. Name of a DocType
 #: core/doctype/report/report.json public/js/frappe/request.js:610
@@ -27543,20 +27543,20 @@ msgstr ""
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #. Option for the 'Two Factor Authentication method' (Select) field in DocType
 #. 'System Settings'
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 #. Label of a Small Text field in DocType 'SMS Settings'
 #: core/doctype/sms_settings/sms_settings.json
@@ -27577,13 +27577,13 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/sms_settings/sms_settings.json
 msgid "SMS Settings"
-msgstr ""
+msgstr "SMS Ayarları"
 
 #. Label of a Link in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgctxt "SMS Settings"
 msgid "SMS Settings"
-msgstr ""
+msgstr "SMS Ayarları"
 
 #: core/doctype/sms_settings/sms_settings.py:110
 msgid "SMS sent to following numbers: {0}"
@@ -32226,7 +32226,7 @@ msgstr ""
 
 #: public/js/frappe/form/controls/data.js:24
 msgid "The value you pasted was {0} characters long. Max allowed characters is {1}."
-msgstr ""
+msgstr "Yapıştırdığınız değer {0} karakter uzunluğunda. İzin verilen maksimum karakter {1}."
 
 #. Description of the 'Condition' (Small Text) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -32440,7 +32440,7 @@ msgstr ""
 
 #: www/confirm_workflow_action.html:8
 msgid "This document has been modified after the email was sent."
-msgstr ""
+msgstr "Bu belge, e-posta gönderildikten sonra değiştirildi."
 
 #: social/doctype/energy_point_log/energy_point_log.js:8
 msgid "This document has been reverted"
@@ -33421,7 +33421,7 @@ msgstr ""
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Total Views"
-msgstr ""
+msgstr "Toplam Görüntüleme"
 
 #. Label of a Duration field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -35250,7 +35250,7 @@ msgstr ""
 
 #: twofactor.py:248
 msgid "Verification code has been sent to your registered email address."
-msgstr ""
+msgstr "Doğrulama kodu kayıtlı e-posta adresinize gönderildi."
 
 #. Option for the 'Contribution Status' (Select) field in DocType 'Translation'
 #: core/doctype/translation/translation.json
@@ -38984,7 +38984,7 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:414
 msgctxt "Form timeline"
 msgid "{0} attached {1}"
-msgstr ""
+msgstr "{0} {1} dosyasını ekledi."
 
 #: core/doctype/system_settings/system_settings.py:142
 msgid "{0} can not be more than {1}"
@@ -39376,7 +39376,7 @@ msgstr ""
 
 #: core/doctype/user_permission/user_permission_list.js:177
 msgid "{0} record deleted"
-msgstr ""
+msgstr "{0} kayıt silindi"
 
 #: public/js/frappe/logtypes.js:22
 msgid "{0} records are not automatically deleted."
@@ -39388,11 +39388,11 @@ msgstr ""
 
 #: core/doctype/user_permission/user_permission_list.js:179
 msgid "{0} records deleted"
-msgstr ""
+msgstr "{0} kayıt silindi"
 
 #: public/js/frappe/data_import/data_exporter.js:228
 msgid "{0} records will be exported"
-msgstr ""
+msgstr "{0} kayıt dışa aktarılacak"
 
 #: public/js/frappe/form/footer/form_timeline.js:419
 msgctxt "Form timeline"
@@ -39424,7 +39424,7 @@ msgstr ""
 
 #: desk/query_report.py:580
 msgid "{0} saved successfully"
-msgstr ""
+msgstr "{0} başarıyla kaydedildi"
 
 #: desk/doctype/todo/todo.py:44
 msgid "{0} self assigned this task: {1}"
