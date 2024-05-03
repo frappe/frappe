@@ -46,6 +46,14 @@ from frappe.utils import (
 	validate_phone_number_with_country_code,
 	validate_url,
 )
+<<<<<<< HEAD
+=======
+from frappe.utils.change_log import (
+	check_release_on_github,
+	get_source_url,
+	parse_github_url,
+)
+>>>>>>> 5ca14bb171 (feat: FC specific update notifications)
 from frappe.utils.data import (
 	add_to_date,
 	add_years,
@@ -1245,6 +1253,55 @@ class TestArgumentTypingValidations(FrappeTestCase):
 		with self.assertRaises(FrappeTypeError):
 			test_doctypes("a")
 
+<<<<<<< HEAD
+=======
+		self.assertEqual(test_mocks("Hello World"), "Hello World")
+		for obj in (AsyncMock, MagicMock, Mock):
+			obj_instance = obj()
+			self.assertEqual(test_mocks(obj_instance), obj_instance)
+		with self.assertRaises(FrappeTypeError):
+			test_mocks(1)
+
+
+class TestChangeLog(FrappeTestCase):
+	def test_check_release_on_github(self):
+		from semantic_version import Version
+
+		version, owner = check_release_on_github("frappe", "frappe")
+		if version is None:
+			return
+
+		self.assertIsInstance(version, Version)
+		self.assertEqual(owner, "frappe")
+
+		self.assertRaises(ValueError, check_release_on_github, owner=None, repo=None)
+		self.assertRaises(ValueError, check_release_on_github, owner=None, repo="frappe")
+		self.assertRaises(ValueError, check_release_on_github, owner="frappe", repo=None)
+
+	def test_get_remote_url(self):
+		self.assertIsInstance(get_source_url("frappe"), str)
+
+	def test_parse_github_url(self):
+		# using erpnext as repo in order to be different from the owner
+		owner, repo = parse_github_url("https://github.com/frappe/erpnext.git")
+		self.assertEqual(owner, "frappe")
+		self.assertEqual(repo, "erpnext")
+
+		owner, repo = parse_github_url("https://github.com/frappe/erpnext")
+		self.assertEqual(owner, "frappe")
+		self.assertEqual(repo, "erpnext")
+
+		owner, repo = parse_github_url("git@github.com:frappe/erpnext.git")
+		self.assertEqual(owner, "frappe")
+		self.assertEqual(repo, "erpnext")
+
+		owner, repo = parse_github_url("https://gitlab.com/gitlab-org/gitlab")
+		self.assertIsNone(owner)
+		self.assertIsNone(repo)
+
+		self.assertRaises(ValueError, parse_github_url, remote_url=None)
+
+>>>>>>> 5ca14bb171 (feat: FC specific update notifications)
 
 class TestCrypto(FrappeTestCase):
 	def test_hashing(self):
