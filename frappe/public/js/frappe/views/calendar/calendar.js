@@ -245,7 +245,7 @@ frappe.views.Calendar = class Calendar {
 
 	get_system_datetime(date) {
 		date._offset = moment(date).tz(frappe.sys_defaults.time_zone)._offset;
-		return frappe.datetime.convert_to_system_tz(date);
+		return frappe.datetime.convert_to_system_tz(moment(date).locale("en"));
 	}
 	setup_options(defaults) {
 		var me = this;

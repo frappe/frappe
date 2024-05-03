@@ -1617,6 +1617,12 @@ class Document(BaseDocument):
 
 		DocTags(self.doctype).add(self.name, tag)
 
+	def remove_tag(self, tag):
+		"""Remove a Tag to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+
+		DocTags(self.doctype).remove(self.name, tag)
+
 	def get_tags(self):
 		"""Return a list of Tags attached to this document"""
 		from frappe.desk.doctype.tag.tag import DocTags
@@ -1731,8 +1737,9 @@ def _document_values_generator(
 
 @frappe.whitelist()
 def unlock_document(doctype: str | None = None, name: str | None = None, args=None):
+	# Backward compatibility
 	if not doctype and not name and args:
-		# Backward compatibility
+		args = json.loads(args)
 		doctype = str(args["doctype"])
 		name = str(args["name"])
 	frappe.get_doc(doctype, name).unlock()

@@ -18,6 +18,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.utils import cstr, scrub_urls
+from frappe.utils.caching import redis_cache
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
 PDF_CONTENT_ERRORS = [
@@ -350,6 +351,16 @@ def toggle_visible_pdf(soup):
 	for tag in soup.find_all(attrs={"class": "hidden-pdf"}):
 		# remove tag from html
 		tag.extract()
+
+
+@frappe.whitelist()
+@redis_cache(ttl=60 * 60)
+def is_wkhtmltopdf_valid():
+	try:
+		output = subprocess.check_output(["wkhtmltopdf", "--version"])
+		return "qt" in output.decode("utf-8").lower()
+	except Exception:
+		return False
 
 
 def get_wkhtmltopdf_version():
