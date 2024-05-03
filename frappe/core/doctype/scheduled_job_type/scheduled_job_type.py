@@ -91,7 +91,7 @@ class ScheduledJobType(Document):
 		}
 
 		if not self.cron_format:
-			self.cron_format = CRON_MAP[self.frequency]
+			self.cron_format = CRON_MAP.get(self.frequency)
 
 		# If this is a cold start then last_execution will not be set.
 		# Creation is set as fallback because if very old fallback is set job might trigger
@@ -129,9 +129,8 @@ class ScheduledJobType(Document):
 	def update_scheduler_log(self, status):
 		if not self.create_log:
 			# self.get_next_execution will work properly iff self.last_execution is properly set
-			if self.frequency == "All" and status == "Start":
-				self.db_set("last_execution", now_datetime(), update_modified=False)
-				frappe.db.commit()
+			self.db_set("last_execution", now_datetime(), update_modified=False)
+			frappe.db.commit()
 			return
 		if not self.scheduler_log:
 			self.scheduler_log = frappe.get_doc(

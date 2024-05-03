@@ -75,7 +75,7 @@ class User(Document):
 			self.password_strength_test()
 
 		if self.name not in STANDARD_USERS:
-			self.validate_email_type(self.email)
+			self.email = self.name
 			self.validate_email_type(self.name)
 		self.add_system_manager_role()
 		self.populate_role_profile_roles()
@@ -699,7 +699,10 @@ def get_all_roles(arg=None):
 
 	roles = frappe.get_all(
 		"Role",
-		filters={"name": ("not in", "Administrator,Guest,All"), "disabled": 0},
+		filters={
+			"name": ("not in", frappe.permissions.AUTOMATIC_ROLES),
+			"disabled": 0,
+		},
 		or_filters={"ifnull(restrict_to_domain, '')": "", "restrict_to_domain": ("in", active_domains)},
 		order_by="name",
 	)

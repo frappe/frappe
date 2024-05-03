@@ -12,6 +12,24 @@
  "document_type": "Document",
  "editable_grid": 1,
  "engine": "InnoDB",
+ "field_order": [
+  "client_id",
+  "app_name",
+  "user",
+  "allowed_roles",
+  "cb_1",
+  "client_secret",
+  "skip_authorization",
+  "sb_1",
+  "scopes",
+  "cb_3",
+  "redirect_uris",
+  "default_redirect_uri",
+  "sb_advanced",
+  "grant_type",
+  "cb_2",
+  "response_type"
+ ],
  "fields": [
   {
    "allow_bulk_edit": 0,
@@ -465,6 +483,12 @@
    "search_index": 0,
    "set_only_once": 0,
    "unique": 0
+  },
+  {
+   "fieldname": "allowed_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Allowed Roles",
+   "options": "OAuth Client Role"
   }
  ],
  "has_web_view": 0,
@@ -478,7 +502,7 @@
  "istable": 0,
  "max_attachments": 0,
  "links": [],
- "modified": "2023-07-17 07:06:35.765981",
+ "modified": "2024-04-29 12:07:07.946980",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Client",
@@ -513,6 +537,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "title_field": "app_name",
- "track_changes": 1,
- "track_seen": 0
+ "track_changes": 1
 }

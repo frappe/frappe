@@ -85,6 +85,7 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 			f.write(frappe.as_json(custom))
 
 		frappe.msgprint(_("Customizations for <b>{0}</b> exported to:<br>{1}").format(doctype, path))
+		return path
 
 
 def sync_customizations(app=None):
@@ -104,6 +105,8 @@ def sync_customizations(app=None):
 						with open(os.path.join(folder, fname)) as f:
 							data = json.loads(f.read())
 						if data.get("sync_on_migrate"):
+							sync_customizations_for_doctype(data, folder, fname)
+						elif frappe.flags.in_install and app:
 							sync_customizations_for_doctype(data, folder, fname)
 
 
@@ -125,23 +128,34 @@ def sync_customizations_for_doctype(data, folder, filename: str = ""):
 					doc = frappe.get_doc(data)
 					doc.db_insert()
 
-			if custom_doctype != "Custom Field":
-				frappe.db.delete(custom_doctype, {doctype_fieldname: doc_type})
+			match custom_doctype:
+				case "Custom Field":
+					for d in data[key]:
+						field = frappe.db.get_value(
+							"Custom Field", {"dt": doc_type, "fieldname": d["fieldname"]}
+						)
+						if not field:
+							d["owner"] = "Administrator"
+							_insert(d)
+						else:
+							custom_field = frappe.get_doc("Custom Field", field)
+							custom_field.flags.ignore_validate = True
+							custom_field.update(d)
+							custom_field.db_update()
+				case "Property Setter":
+					# Property setter implement their own deduplication, we can just sync them as is
+					for d in data[key]:
+						if d.get("doc_type") == doc_type:
+							d["doctype"] = "Property Setter"
+							doc = frappe.get_doc(d)
+							doc.flags.validate_fields_for_doctype = False
+							doc.insert()
+				case "Custom DocPerm":
+					# TODO/XXX: Docperm have no "sync" as of now. They get OVERRIDDEN on sync.
+					frappe.db.delete("Custom DocPerm", {"parent": doc_type})
 
-				for d in data[key]:
-					_insert(d)
-
-			else:
-				for d in data[key]:
-					field = frappe.db.get_value("Custom Field", {"dt": doc_type, "fieldname": d["fieldname"]})
-					if not field:
-						d["owner"] = "Administrator"
+					for d in data[key]:
 						_insert(d)
-					else:
-						custom_field = frappe.get_doc("Custom Field", field)
-						custom_field.flags.ignore_validate = True
-						custom_field.update(d)
-						custom_field.db_update()
 
 		for doc_type in doctypes:
 			# only sync the parent doctype and child doctype if there isn't any other child table json file

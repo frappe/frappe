@@ -6,6 +6,7 @@ from random import choice
 from threading import Thread
 from time import time
 from unittest.mock import patch
+from urllib.parse import urlencode, urljoin
 
 import requests
 from filetype import guess_mime
@@ -402,3 +403,16 @@ class TestResponse(FrappeAPITestCase):
 
 		self.assertEqual(self.get(file.unique_url, {"sid": self.sid}).text, test_content)
 		self.assertEqual(self.get(file.file_url, {"sid": self.sid}).text, test_content)
+
+	def test_login_redirects(self):
+		expected_redirects = {
+			"/app/user": "/app/user",
+			"/app/user?enabled=1": "/app/user?enabled=1",
+			"http://example.com": "/app",  # No external redirect
+			"https://google.com": "/app",
+			"http://localhost:8000": "/app",
+			"http://localhost/app": "http://localhost/app",
+		}
+		for redirect, expected_redirect in expected_redirects.items():
+			response = self.get(f"/login?{urlencode({'redirect-to':redirect})}", {"sid": self.sid})
+			self.assertEqual(response.location, expected_redirect)

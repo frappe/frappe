@@ -27,6 +27,15 @@ rights = (
 	"share",
 )
 
+GUEST_ROLE = "Guest"
+ALL_USER_ROLE = "All"  # This includes website users too.
+SYSTEM_USER_ROLE = "Desk User"
+ADMIN_ROLE = "Administrator"
+
+
+# These roles are automatically assigned based on user type
+AUTOMATIC_ROLES = (GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE, ADMIN_ROLE)
+
 
 def check_admin_or_system_manager(user=None):
 	from frappe.utils.commands import warn
@@ -387,7 +396,7 @@ def has_controller_permissions(doc, ptype, user=None):
 
 
 def get_doctypes_with_read():
-	return list({cstr(p.parent) for p in get_valid_perms() if p.parent})
+	return list({cstr(p.parent) for p in get_valid_perms() if p.parent and p.read})
 
 
 def get_valid_perms(doctype=None, user=None):
@@ -426,7 +435,7 @@ def get_roles(user=None, with_standard=True):
 		user = frappe.session.user
 
 	if user == "Guest" or not user:
-		return ["Guest"]
+		return [GUEST_ROLE]
 
 	def get():
 		if user == "Administrator":
@@ -438,18 +447,21 @@ def get_roles(user=None, with_standard=True):
 				.where(
 					(table.parenttype == "User")
 					& (table.parent == user)
-					& (table.role.notin(["All", "Guest"]))
+					& (table.role.notin(AUTOMATIC_ROLES))
 				)
 				.select(table.role)
 				.run(pluck=True)
 			)
-			return [*roles, "All", "Guest"]
+			roles += [ALL_USER_ROLE, GUEST_ROLE]
+			if is_system_user(user):
+				roles.append(SYSTEM_USER_ROLE)
+			return roles
 
 	roles = frappe.cache().hget("roles", user, get)
 
 	# filter standard if required
 	if not with_standard:
-		roles = [r for r in roles if r not in ["All", "Guest", "Administrator"]]
+		roles = [r for r in roles if r not in AUTOMATIC_ROLES]
 
 	return roles
 
@@ -777,3 +789,7 @@ def has_child_permission(
 		user=user,
 		raise_exception=raise_exception,
 	)
+
+
+def is_system_user(user: str | None = None) -> bool:
+	return frappe.get_cached_value("User", user or frappe.session.user, "user_type") == "System User"

@@ -12,6 +12,7 @@ class OAuthClient(Document):
 		if not self.client_secret:
 			self.client_secret = frappe.generate_hash(length=10)
 		self.validate_grant_and_response()
+		self.add_default_role()
 
 	def validate_grant_and_response(self):
 		if (
@@ -25,3 +26,12 @@ class OAuthClient(Document):
 					"Combination of Grant Type (<code>{0}</code>) and Response Type (<code>{1}</code>) not allowed"
 				).format(self.grant_type, self.response_type)
 			)
+
+	def add_default_role(self):
+		if not self.allowed_roles:
+			self.append("allowed_roles", {"role": "All"})
+
+	def user_has_allowed_role(self) -> bool:
+		"""Returns true if session user is allowed to use this client."""
+		allowed_roles = {d.role for d in self.allowed_roles}
+		return bool(allowed_roles & set(frappe.get_roles()))

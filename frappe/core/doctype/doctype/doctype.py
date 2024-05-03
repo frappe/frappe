@@ -30,6 +30,7 @@ from frappe.model.document import Document
 from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
+from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
 from frappe.query_builder.functions import Concat
 from frappe.utils import cint, is_a_property, random_string
 from frappe.website.utils import clear_cache
@@ -1560,7 +1561,7 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			)
 
 	def check_level_zero_is_set(d):
-		if cint(d.permlevel) > 0 and d.role != "All":
+		if cint(d.permlevel) > 0 and d.role not in (ALL_USER_ROLE, SYSTEM_USER_ROLE):
 			has_zero_perm = False
 			for p in permissions:
 				if p.role == d.role and (p.permlevel or 0) == 0 and p != d:
@@ -1619,11 +1620,11 @@ def validate_permissions(doctype, for_remove=False, alert=False):
 			return
 
 		if doctype.custom:
-			if d.role == "All":
+			if d.role in AUTOMATIC_ROLES:
 				frappe.throw(
 					_(
 						"Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
-					).format(d.idx, frappe.bold(_("All"))),
+					).format(d.idx, frappe.bold(_(d.role))),
 					title=_("Permissions Error"),
 				)
 
@@ -1673,8 +1674,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 				m.custom = 1
 			m.insert()
 
-		default_roles = ["Administrator", "Guest", "All"]
-		roles = [p.role for p in doc.get("permissions") or []] + default_roles
+		roles = [p.role for p in doc.get("permissions") or []] + list(AUTOMATIC_ROLES)
 
 		for role in list(set(roles)):
 			if frappe.db.table_exists("Role", cached=False) and not frappe.db.exists("Role", role):
