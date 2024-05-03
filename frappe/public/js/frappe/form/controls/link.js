@@ -596,7 +596,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			if (operator === "like") {
 				value = String(value).replace(/%/g, "");
 			}
-			
+
 			if (value?.startsWith?.("eval:")) {
 				value = value.split("eval:")[1];
 				let context = {
