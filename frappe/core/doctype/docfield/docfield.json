@@ -23,6 +23,7 @@
   "options",
   "sort_options",
   "show_dashboard",
+  "link_filters",
   "defaults_section",
   "default",
   "column_break_6",
@@ -561,6 +562,11 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
+  },
+  {
+   "fieldname": "link_filters",
+   "fieldtype": "JSON",
+   "label": "Link Filters"
   }
  ],
  "idx": 1,
