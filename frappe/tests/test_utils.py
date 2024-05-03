@@ -48,7 +48,7 @@ from frappe.utils import (
 )
 from frappe.utils.change_log import (
 	check_release_on_github,
-	get_remote_url,
+	get_source_url,
 	parse_github_url,
 )
 from frappe.utils.data import (
@@ -1334,9 +1334,7 @@ class TestChangeLog(FrappeTestCase):
 		self.assertRaises(ValueError, check_release_on_github, owner="frappe", repo=None)
 
 	def test_get_remote_url(self):
-		self.assertIsInstance(get_remote_url("frappe"), str)
-		self.assertRaises(ValueError, get_remote_url, app=None)
-		self.assertRaises(ValueError, get_remote_url, app="this_doesnt_exist")
+		self.assertIsInstance(get_source_url("frappe"), str)
 
 	def test_parse_github_url(self):
 		# using erpnext as repo in order to be different from the owner

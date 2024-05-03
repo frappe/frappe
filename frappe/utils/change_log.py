@@ -10,6 +10,7 @@ from semantic_version import Version
 import frappe
 from frappe import _, safe_decode
 from frappe.utils import cstr
+from frappe.utils.frappecloud import on_frappecloud
 
 
 def get_change_log(user=None):
@@ -166,7 +167,7 @@ def check_for_update():
 	apps = get_versions()
 
 	for app in apps:
-		remote_url = get_remote_url(app)
+		remote_url = get_source_url(app)
 		if not remote_url:
 			continue
 
@@ -200,6 +201,7 @@ def check_for_update():
 				break
 
 	add_message_to_redis(updates)
+	return updates
 
 
 def has_app_update_notifications() -> bool:
@@ -258,26 +260,11 @@ def parse_github_url(remote_url: str) -> tuple[str, str] | tuple[None, None]:
 	return (match[1], match[2]) if match else (None, None)
 
 
-def get_remote_url(app: str) -> str | None:
+def get_source_url(app: str) -> str | None:
 	"""Get the remote URL of the app."""
-	if not app:
-		raise ValueError("App cannot be empty")
-
-	if app not in frappe.get_installed_apps(_ensure_on_bench=True):
-		raise ValueError("This app is not installed")
-
-	app_path = frappe.get_app_path(app, "..")
-	try:
-		# Check if repo has a remote URL
-		remote_url = subprocess.check_output(f"cd {app_path} && git ls-remote --get-url", shell=True)
-	except subprocess.CalledProcessError:
-		# Some apps may not have git initialized or not hosted somewhere
-		return None
-
-	if isinstance(remote_url, bytes):
-		remote_url = remote_url.decode()
-
-	return remote_url
+	pyproject = get_pyproject(app)
+	if remote_url := pyproject.get("project", {}).get("urls", {}).get("Repository"):
+		return remote_url.rstrip("/")
 
 
 def add_message_to_redis(update_json):
@@ -306,12 +293,13 @@ def show_update_popup():
 			release_links = ""
 			for app in updates[update_type]:
 				app = frappe._dict(app)
-				release_links += "<b>{title}</b>: <a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'>v{available_version}</a><br>".format(
-					available_version=app.available_version,
-					org_name=app.org_name,
-					app_name=app.app_name,
-					title=app.title,
-				)
+				release_links += f"""
+					<b>{app.title}</b>:
+						<a href='https://github.com/{app.org_name}/{app.app_name}/releases/tag/v{app.available_version}'
+							target="_blank">
+							v{app.available_version}
+						</a><br>
+					"""
 			if release_links:
 				message = _("New {} releases for the following apps are available").format(_(update_type))
 				update_message += (
@@ -320,6 +308,37 @@ def show_update_popup():
 					)
 				)
 
+	primary_action = None
+	if on_frappecloud():
+		primary_action = {
+			"label": _("Update from Frappe Cloud"),
+			"client_action": "window.open",
+			"args": f"https://frappecloud.com/dashboard/sites/{frappe.local.site}",
+		}
+
 	if update_message:
-		frappe.msgprint(update_message, title=_("New updates are available"), indicator="green")
+		frappe.msgprint(
+			update_message,
+			title=_("New updates are available"),
+			indicator="green",
+			primary_action=primary_action,
+		)
 		frappe.cache.srem("update-user-set", user)
+
+
+def get_pyproject(app: str) -> dict | None:
+	pyproject_path = frappe.get_app_path(app, "..", "pyproject.toml")
+
+	if not os.path.exists(pyproject_path):
+		return None
+
+	try:
+		from tomli import load
+	except ImportError:
+		try:
+			from tomllib import load
+		except ImportError:
+			return None
+
+	with open(pyproject_path, "rb") as f:
+		return load(f)
