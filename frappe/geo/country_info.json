@@ -497,7 +497,7 @@
   "currency_fraction_units": 100,
   "currency_name": "Canadian Dollar",
   "currency_symbol": "$",
-  "date_format": "mm-dd-yyyy",
+  "date_format": "yyyy-mm-dd",
   "number_format": "#,###.##",
   "timezones": [
    "America/Atikokan",
