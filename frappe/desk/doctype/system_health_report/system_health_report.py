@@ -23,13 +23,28 @@ import functools
 import os
 from collections import defaultdict
 from collections.abc import Callable
+from contextlib import contextmanager
 
 import frappe
+from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
 from frappe.model.document import Document
-from frappe.utils.background_jobs import get_queue, get_queue_list
+from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import add_to_date
-from frappe.utils.scheduler import get_scheduler_status
+from frappe.utils.scheduler import get_scheduler_status, get_scheduler_tick
+
+
+@contextmanager
+def no_wait(func):
+	"Disable tenacity waiting on some function"
+	from tenacity import stop_after_attempt
+
+	try:
+		original_stop = func.retry.stop
+		func.retry.stop = stop_after_attempt(1)
+		yield
+	finally:
+		func.retry.stop = original_stop
 
 
 def health_check(step: str):
@@ -41,8 +56,11 @@ def health_check(step: str):
 			try:
 				return func(*args, **kwargs)
 			except Exception as e:
+				frappe.log(frappe.get_traceback())
 				# nosemgrep
-				frappe.msgprint(f"System Health check step {frappe.bold(step)} failed: {e}", alert=True)
+				frappe.msgprint(
+					f"System Health check step {frappe.bold(step)} failed: {e}", alert=True, indicator="red"
+				)
 
 		return wrapper
 
@@ -90,6 +108,7 @@ class SystemHealthReport(Document):
 		handled_emails: DF.Int
 		last_10_active_users: DF.Code | None
 		new_users: DF.Int
+		oldest_unscheduled_job: DF.Link | None
 		onsite_backups: DF.Int
 		pending_emails: DF.Int
 		private_files_size: DF.Float
@@ -130,7 +149,10 @@ class SystemHealthReport(Document):
 		self.fetch_user_stats()
 
 	@health_check("Background Jobs")
+	@no_wait(get_redis_conn)
 	def fetch_background_jobs(self):
+		self.background_jobs_check = "failed"
+		# This just checks connection life
 		self.test_job_id = frappe.enqueue("frappe.ping", at_front=True).id
 		self.background_jobs_check = "queued"
 		self.scheduler_status = get_scheduler_status().get("status")
@@ -187,6 +209,18 @@ class SystemHealthReport(Document):
 
 		for job in failing_jobs:
 			self.append("failing_scheduled_jobs", job)
+
+		threshold = add_to_date(None, seconds=-30 * get_scheduler_tick(), as_datetime=True)
+		for job_type in frappe.get_all(
+			"Scheduled Job Type",
+			filters={"stopped": 0, "last_execution": ("<", threshold)},
+			fields="*",
+			order_by="last_execution asc",
+		):
+			job_type: ScheduledJobType = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
+			if job_type.is_event_due():
+				self.oldest_unscheduled_job = job_type.name
+				break
 
 	@health_check("Emails")
 	def fetch_email_stats(self):
@@ -296,6 +330,7 @@ class SystemHealthReport(Document):
 
 
 @frappe.whitelist()
+@no_wait(get_redis_conn)
 def get_job_status(job_id: str | None = None):
 	frappe.only_for("System Manager")
 	try:

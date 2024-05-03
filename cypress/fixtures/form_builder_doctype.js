@@ -11,6 +11,12 @@ export default {
 			label: "Data 3",
 		},
 		{
+			fieldname: "gender",
+			fieldtype: "Link",
+			label: "Gender",
+			options: "Gender",
+		},
+		{
 			fieldname: "tab",
 			fieldtype: "Tab Break",
 			label: "Tab 2",

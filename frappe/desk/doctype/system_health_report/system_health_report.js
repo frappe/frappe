@@ -56,6 +56,7 @@ frappe.ui.form.on("System Health Report", {
 				val > 3 &&
 				frm.doc.total_outgoing_emails > 3 &&
 				val / frm.doc.total_outgoing_emails > 0.1,
+			oldest_unscheduled_job: (val) => !!val,
 			"queue_status.pending_jobs": (val) => val > 50,
 			"background_workers.utilization": (val) => val > 70,
 			"background_workers.failed_jobs": (val) => val > 50,
@@ -72,6 +73,9 @@ frappe.ui.form.on("System Health Report", {
 		document.head.appendChild(style);
 
 		const update_fields = () => {
+			if (!frappe.get_route().includes(frm.doc.name)) {
+				clearInterval(interval);
+			}
 			Object.entries(conditions).forEach(([field, condition]) => {
 				try {
 					if (field.includes(".")) {
@@ -93,6 +97,6 @@ frappe.ui.form.on("System Health Report", {
 		};
 
 		update_fields();
-		setInterval(update_fields, 1000);
+		const interval = setInterval(update_fields, 1000);
 	},
 });
