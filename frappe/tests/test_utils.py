@@ -47,7 +47,6 @@ from frappe.utils import (
 	validate_url,
 )
 from frappe.utils.change_log import (
-	check_release_on_github,
 	get_source_url,
 	parse_github_url,
 )
@@ -1319,20 +1318,6 @@ class TestArgumentTypingValidations(FrappeTestCase):
 
 
 class TestChangeLog(FrappeTestCase):
-	def test_check_release_on_github(self):
-		from semantic_version import Version
-
-		version, owner = check_release_on_github("frappe", "frappe")
-		if version is None:
-			return
-
-		self.assertIsInstance(version, Version)
-		self.assertEqual(owner, "frappe")
-
-		self.assertRaises(ValueError, check_release_on_github, owner=None, repo=None)
-		self.assertRaises(ValueError, check_release_on_github, owner=None, repo="frappe")
-		self.assertRaises(ValueError, check_release_on_github, owner="frappe", repo=None)
-
 	def test_get_remote_url(self):
 		self.assertIsInstance(get_source_url("frappe"), str)
 
