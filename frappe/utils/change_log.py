@@ -196,9 +196,20 @@ def check_for_update():
 	add_message_to_redis(updates)
 
 
+<<<<<<< HEAD
 def parse_latest_non_beta_release(response):
 	"""
 	Parses the response JSON for all the releases and returns the latest non prerelease
+=======
+def has_app_update_notifications() -> bool:
+	return bool(frappe.cache.sismember("update-user-set", frappe.session.user))
+
+
+def parse_latest_non_beta_release(response: list) -> list | None:
+	"""Parse the response JSON for all the releases and return the latest non prerelease.
+
+	Args:
+>>>>>>> 330a1b2044 (fix: update notifier never running)
 
 	Parameters
 	response (list): response object returned by github
