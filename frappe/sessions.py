@@ -210,7 +210,15 @@ class Session:
 
 		else:
 			if self.user:
+				self.validate_user()
 				self.start()
+
+	def validate_user(self):
+		if not frappe.get_cached_value("User", self.user, "enabled"):
+			frappe.throw(
+				_("User {0} is disabled. Please contact your System Manager.").format(self.user),
+				frappe.ValidationError,
+			)
 
 	def start(self):
 		"""start a new session"""
@@ -274,6 +282,7 @@ class Session:
 		if data:
 			self.data.update({"data": data, "user": data.user, "sid": self.sid})
 			self.user = data.user
+			self.validate_user()
 			validate_ip_address(self.user)
 		else:
 			self.start_as_guest()
