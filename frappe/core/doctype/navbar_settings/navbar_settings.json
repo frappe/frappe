@@ -56,11 +56,7 @@
  ],
  "issingle": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2024-03-18 13:54:44.498352",
-=======
  "modified": "2024-05-01 14:09:54.587137",
->>>>>>> 02ea846cd4 (fix: automatic logo width (#26273))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Navbar Settings",
