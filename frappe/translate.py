@@ -927,49 +927,6 @@ def get_translations(source_text):
 	)
 
 
-@frappe.whitelist()
-def get_messages(language, start=0, page_length=100, search_text=""):
-	from frappe.frappeclient import FrappeClient
-
-	translator = FrappeClient(get_translator_url())
-	return translator.post_api("translator.api.get_strings_for_translation", params=locals())
-
-
-@frappe.whitelist()
-def get_source_additional_info(source, language=""):
-	from frappe.frappeclient import FrappeClient
-
-	translator = FrappeClient(get_translator_url())
-	return translator.post_api("translator.api.get_source_additional_info", params=locals())
-
-
-@frappe.whitelist()
-def get_contributions(language):
-	return frappe.get_all(
-		"Translation",
-		fields=["*"],
-		filters={
-			"contributed": 1,
-		},
-	)
-
-
-@frappe.whitelist()
-def get_contribution_status(message_id):
-	from frappe.frappeclient import FrappeClient
-
-	doc = frappe.get_doc("Translation", message_id)
-	translator = FrappeClient(get_translator_url())
-	return translator.get_api(
-		"translator.api.get_contribution_status",
-		params={"translation_id": doc.contribution_docname},
-	)
-
-
-def get_translator_url():
-	return frappe.get_hooks()["translator_url"][0]
-
-
 @frappe.whitelist(allow_guest=True)
 def get_all_languages(with_language_name: bool = False) -> list:
 	"""Return all enabled language codes ar, ch etc."""
