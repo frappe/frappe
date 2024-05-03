@@ -50,7 +50,7 @@ from .utils.jinja import (
 )
 from .utils.lazy_loader import lazy_import
 
-__version__ = "15.24.1"
+__version__ = "15.25.0"
 __title__ = "Frappe Framework"
 
 controllers = {}
@@ -500,7 +500,7 @@ def print_sql(enable: bool = True) -> None:
 
 
 def log(msg: str) -> None:
-	"""Add to `debug_log`.
+	"""Add to `debug_log`
 
 	:param msg: Message."""
 	if not request:
