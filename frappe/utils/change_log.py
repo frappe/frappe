@@ -4,8 +4,9 @@
 import json
 import os
 import subprocess  # nosec
+from contextlib import suppress
 
-from semantic_version import Version
+from semantic_version import SimpleSpec, Version
 
 import frappe
 from frappe import _, safe_decode
@@ -201,6 +202,7 @@ def check_for_update():
 						org_name=org_name,
 						app_name=app,
 						title=apps[app]["title"],
+						security_issues=security_issues_count(owner, repo, instance_version, github_version),
 					)
 				)
 				break
@@ -292,6 +294,32 @@ def check_release_on_github(app: str):
 	return None, None
 
 
+def security_issues_count(owner: str, repo: str, current_version: Version, target_version: Version) -> int:
+	import requests
+
+	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/security-advisories")
+	if not r.ok:
+		return 0
+	advisories = r.json()
+
+	def applicable(advisory) -> bool:
+		# Current version is in vulnerable range
+		# Target version is not in vulnerabe range
+		for vuln in advisory["vulnerabilities"]:
+			with suppress(Exception):
+				vulnerable_range = SimpleSpec(vuln["vulnerable_version_range"].replace(" ", ""))
+				patch_version = Version(vuln["patched_versions"].replace(" ", ""))
+				if (
+					current_version in vulnerable_range
+					and target_version not in vulnerable_range
+					# XXX: this is not 100% correct, but works for frappe
+					and current_version.major == patch_version.major
+				):
+					return True
+
+	return len([sa for sa in advisories if applicable(sa)])
+
+
 def parse_github_url(remote_url: str) -> tuple[str, str] | tuple[None, None]:
 	"""Parse the remote URL to get the owner and repo name."""
 	import re
@@ -339,12 +367,22 @@ def show_update_popup():
 			release_links = ""
 			for app in updates[update_type]:
 				app = frappe._dict(app)
+				security_msg = ""
+				if app.security_issues:
+					security_msg = (
+						_("Contains {0} security fixes")
+						if app.security_issues > 1
+						else _("Contains {0} security fix")
+					)
+					security_msg = security_msg.format(frappe.bold(app.security_issues))
+					security_msg = f"""( <a href='https://github.com/{app.org_name}/{app.app_name}/security/advisories'
+						 target='_blank'>{security_msg}</a> )"""
 				release_links += f"""
 					<b>{app.title}</b>:
 						<a href='https://github.com/{app.org_name}/{app.app_name}/releases/tag/v{app.available_version}'
 							target="_blank">
 							v{app.available_version}
-						</a><br>
+						</a> {security_msg}<br>
 					"""
 			if release_links:
 				message = _("New {} releases for the following apps are available").format(_(update_type))
