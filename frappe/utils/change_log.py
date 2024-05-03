@@ -202,6 +202,10 @@ def check_for_update():
 	add_message_to_redis(updates)
 
 
+def has_app_update_notifications() -> bool:
+	return bool(frappe.cache.sismember("update-user-set", frappe.session.user))
+
+
 def parse_latest_non_beta_release(response: list) -> list | None:
 	"""Parse the response JSON for all the releases and return the latest non prerelease.
 

@@ -23,7 +23,7 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
 from frappe.utils import add_user_info, cstr, get_system_timezone
-from frappe.utils.change_log import get_versions
+from frappe.utils.change_log import get_versions, has_app_update_notifications
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
@@ -108,6 +108,7 @@ def get_bootinfo():
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.changelog_feed = get_changelog_feed_items()
+	bootinfo.has_app_updates = has_app_update_notifications()
 
 	return bootinfo
 
