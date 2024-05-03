@@ -877,7 +877,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			column_html = this.settings.formatters[fieldname](value, df, doc);
 		} else {
 			column_html = {
-				Subject: this.get_subject_element(doc).innerHTML,
+				Subject: this.get_subject_element(doc, value_display).innerHTML,
 				Field: field_html(),
 			}[col.type];
 		}
@@ -1025,7 +1025,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return div.innerHTML;
 	}
 
-	get_subject_element(doc) {
+	get_subject_element(doc, title) {
 		const ef = this._element_factory;
 		const div = document.createElement("div");
 		const checkboxspan = ef.get_checkboxspan_element();
@@ -1038,15 +1038,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		div.appendChild(checkboxspan).appendChild(ef.get_checkbox_element(doc.name));
 		div.appendChild(ellipsisSpan).appendChild(
-			ef.get_link_element(doc.name, this.get_form_link(doc), this.get_subject_text(doc))
+			ef.get_link_element(
+				doc.name,
+				this.get_form_link(doc),
+				this.get_subject_text(doc, title)
+			)
 		);
 
 		return div;
 	}
 
-	get_subject_text(doc) {
+	get_subject_text(doc, title) {
 		const subject_field = this.columns[0].df;
-		let value = doc[subject_field.fieldname];
+		let value = title || doc[subject_field.fieldname];
 		if (this.settings.formatters && this.settings.formatters[subject_field.fieldname]) {
 			let formatter = this.settings.formatters[subject_field.fieldname];
 			value = formatter(value, subject_field, doc);
@@ -2010,7 +2014,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		};
 
 		// bulk edit
-		if (has_editable_fields(doctype)) {
+		if (has_editable_fields(doctype) && !frappe.model.has_workflow(doctype)) {
 			actions_menu_items.push(bulk_edit());
 		}
 
@@ -2043,7 +2047,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		// bulk delete
-		if (frappe.model.can_delete(doctype)) {
+		if (frappe.model.can_delete(doctype) && !frappe.model.has_workflow(doctype)) {
 			actions_menu_items.push(bulk_delete());
 		}
 

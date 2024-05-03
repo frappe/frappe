@@ -2,7 +2,8 @@
 # License: MIT. See LICENSE
 
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from random import randint
 
 import click
 from croniter import CroniterBadCronError, croniter
@@ -116,14 +117,19 @@ class ScheduledJobType(Document):
 		}
 
 		if not self.cron_format:
-			self.cron_format = CRON_MAP[self.frequency]
+			self.cron_format = CRON_MAP.get(self.frequency)
 
 		# If this is a cold start then last_execution will not be set.
 		# Creation is set as fallback because if very old fallback is set job might trigger
 		# immediately, even when it's meant to be daily.
 		# A dynamic fallback like current time might miss the scheduler interval and job will never start.
 		last_execution = get_datetime(self.last_execution or self.creation)
-		return croniter(self.cron_format, last_execution).get_next(datetime)
+		next_execution = croniter(self.cron_format, last_execution).get_next(datetime)
+
+		jitter = 0
+		if "Long" in self.frequency:
+			jitter = randint(1, 600)
+		return next_execution + timedelta(seconds=jitter)
 
 	def execute(self):
 		self.scheduler_log = None
@@ -149,15 +155,16 @@ class ScheduledJobType(Document):
 	def update_scheduler_log(self, status):
 		if not self.create_log:
 			# self.get_next_execution will work properly iff self.last_execution is properly set
-			if self.frequency == "All" and status == "Start":
-				self.db_set("last_execution", now_datetime(), update_modified=False)
-				frappe.db.commit()
+			self.db_set("last_execution", now_datetime(), update_modified=False)
+			frappe.db.commit()
 			return
 		if not self.scheduler_log:
 			self.scheduler_log = frappe.get_doc(
 				dict(doctype="Scheduled Job Log", scheduled_job_type=self.name)
 			).insert(ignore_permissions=True)
 		self.scheduler_log.db_set("status", status)
+		if frappe.debug_log:
+			self.scheduler_log.db_set("debug_log", "\n".join(frappe.debug_log))
 		if status == "Failed":
 			self.scheduler_log.db_set("details", frappe.get_traceback(with_context=True))
 		if status == "Start":

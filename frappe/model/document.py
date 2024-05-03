@@ -1386,6 +1386,7 @@ class Document(BaseDocument):
 		"""Returns Desk URL for this document."""
 		return get_absolute_url(self.doctype, self.name)
 
+	@frappe.whitelist()
 	def add_comment(
 		self,
 		comment_type="Comment",
@@ -1615,6 +1616,12 @@ class Document(BaseDocument):
 		from frappe.desk.doctype.tag.tag import DocTags
 
 		DocTags(self.doctype).add(self.name, tag)
+
+	def remove_tag(self, tag):
+		"""Remove a Tag to this document"""
+		from frappe.desk.doctype.tag.tag import DocTags
+
+		DocTags(self.doctype).remove(self.name, tag)
 
 	def get_tags(self):
 		"""Return a list of Tags attached to this document"""

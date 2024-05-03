@@ -219,10 +219,13 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 				) {
 					html += '<br><span class="small">' + __(d.description) + "</span>";
 				}
-				return $("<li></li>")
+				return $(`<div role="option">`)
+					.on("click", (event) => {
+						me.awesomplete.select(event.currentTarget, event.currentTarget);
+					})
 					.data("item.autocomplete", d)
 					.prop("aria-selected", "false")
-					.html(`<a><p title="${frappe.utils.escape_html(_label)}">${html}</p></a>`)
+					.html(`<p title="${frappe.utils.escape_html(_label)}">${html}</p>`)
 					.get(0);
 			},
 			sort: function () {

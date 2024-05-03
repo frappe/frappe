@@ -100,17 +100,22 @@ frappe.ui.Tags = class {
 	}
 
 	get_tag(label) {
-		let $tag = frappe.get_data_pill(label, label, (target, pill_wrapper) => {
-			this.removeTag(target);
-			pill_wrapper.closest(".form-tag-row").remove();
-		});
-
+		let colored = true;
+		let $tag = frappe.get_data_pill(
+			label,
+			label,
+			(target, pill_wrapper) => {
+				this.removeTag(target);
+				pill_wrapper.closest(".form-tag-row").remove();
+			},
+			null,
+			colored
+		);
 		if (this.onTagClick) {
 			$tag.on("click", ".pill-label", () => {
 				this.onTagClick(label);
 			});
 		}
-
 		return $tag;
 	}
 };

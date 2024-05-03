@@ -9,6 +9,7 @@
   "client_id",
   "app_name",
   "user",
+  "allowed_roles",
   "cb_1",
   "client_secret",
   "skip_authorization",
@@ -114,10 +115,16 @@
    "in_standard_filter": 1,
    "label": "Response Type",
    "options": "Code\nToken"
+  },
+  {
+   "fieldname": "allowed_roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Allowed Roles",
+   "options": "OAuth Client Role"
   }
  ],
  "links": [],
- "modified": "2023-07-17 07:06:35.765981",
+ "modified": "2024-04-29 12:07:07.946980",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "OAuth Client",

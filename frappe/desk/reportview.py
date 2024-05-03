@@ -513,6 +513,16 @@ def delete_bulk(doctype, items):
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
 		delete_bulk(doctype, undeleted_items)
+	elif undeleted_items:
+		frappe.msgprint(
+			_("Failed to delete {0} documents: {1}").format(len(undeleted_items), ", ".join(undeleted_items)),
+			realtime=True,
+			title=_("Bulk Operation Failed"),
+		)
+	else:
+		frappe.msgprint(
+			_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
+		)
 
 
 @frappe.whitelist()

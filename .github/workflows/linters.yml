@@ -31,25 +31,6 @@ jobs:
           npm install @commitlint/cli @commitlint/config-conventional
           npx commitlint --verbose --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
 
-  docs-required:
-    name: 'Documentation Required'
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: 'Setup Environment'
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - uses: actions/checkout@v4
-
-      - name: Validate Docs
-        env:
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          pip install requests --quiet
-          python $GITHUB_WORKSPACE/.github/helper/documentation.py $PR_NUMBER
-
   linter:
     name: 'Semgrep Rules'
     runs-on: ubuntu-latest
