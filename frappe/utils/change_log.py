@@ -164,6 +164,9 @@ def get_app_last_commit_ref(app):
 
 
 def check_for_update():
+	if frappe.get_system_settings("disable_system_update_notification"):
+		return
+
 	updates = frappe._dict(major=[], minor=[], patch=[])
 	apps = get_versions()
 
@@ -306,6 +309,8 @@ def add_message_to_redis(update_json):
 
 @frappe.whitelist()
 def show_update_popup():
+	if frappe.get_system_settings("disable_system_update_notification"):
+		return
 	user = frappe.session.user
 
 	update_info = frappe.cache.get_value("update-info")
@@ -365,18 +370,12 @@ def show_update_popup():
 
 
 def get_pyproject(app: str) -> dict | None:
+	from tomli import load
+
 	pyproject_path = frappe.get_app_path(app, "..", "pyproject.toml")
 
 	if not os.path.exists(pyproject_path):
 		return None
-
-	try:
-		from tomli import load
-	except ImportError:
-		try:
-			from tomllib import load
-		except ImportError:
-			return None
 
 	with open(pyproject_path, "rb") as f:
 		return load(f)

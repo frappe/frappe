@@ -436,11 +436,7 @@ frappe.Application = class Application {
 	}
 
 	show_update_available() {
-		if (
-			!frappe.boot.has_app_updates ||
-			cint(frappe.boot.sysdefaults.disable_system_update_notification)
-		)
-			return;
+		if (!frappe.boot.has_app_updates) return;
 		frappe.xcall("frappe.utils.change_log.show_update_popup");
 	}
 
