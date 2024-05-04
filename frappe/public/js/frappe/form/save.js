@@ -39,20 +39,20 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 		}
 	};
 
-	var remove_empty_rows = function() {
+	var remove_empty_rows = function () {
 		const docs = frappe.model.get_all_docs(frm.doc);
 		const tables = docs.filter((d) => {
-		  return frappe.model.is_table(d.doctype);
+			return frappe.model.is_table(d.doctype);
 		});
 		let modified_table_fields = [];
 		tables.forEach((doc) => {
-		  if (locals[doc.doctype][doc.name].__unedited) {
-			frappe.model.clear_doc(doc.doctype, doc.name);
-			modified_table_fields.push(doc.parentfield);
-		  }
+			if (locals[doc.doctype][doc.name].__unedited) {
+				frappe.model.clear_doc(doc.doctype, doc.name);
+				modified_table_fields.push(doc.parentfield);
+			}
 		});
 		modified_table_fields.forEach((field) => {
-		  frm.refresh_field(field);
+			frm.refresh_field(field);
 		});
 	};
 
