@@ -131,7 +131,7 @@ def get_versions():
 
 
 def get_app_branch(app):
-	"""Returns branch of an app"""
+	"""Return branch of an app."""
 	try:
 		with open(os.devnull, "wb") as null_stream:
 			result = subprocess.check_output(
@@ -171,10 +171,6 @@ def check_for_update():
 	apps = get_versions()
 
 	for app in apps:
-<<<<<<< HEAD
-		app_details = check_release_on_github(app)
-		if not app_details:
-=======
 		remote_url = get_source_url(app)
 		if not remote_url:
 			continue
@@ -183,17 +179,7 @@ def check_for_update():
 		if not owner or not repo:
 			continue
 
-<<<<<<< HEAD
-		github_version, org_name = check_release_on_github(owner, repo)
-		if not github_version or not org_name:
->>>>>>> 5ca14bb171 (feat: FC specific update notifications)
-			continue
-
-		github_version, org_name = app_details
-=======
->>>>>>> 45026aed37 (feat: give higher priority to minor versions)
 		# Get local instance's current version or the app
-
 		branch_version = (
 			apps[app]["branch_version"].split(" ", 1)[0] if apps[app].get("branch_version", "") else ""
 		)
@@ -224,11 +210,6 @@ def check_for_update():
 	return updates
 
 
-<<<<<<< HEAD
-def parse_latest_non_beta_release(response):
-	"""
-	Parses the response JSON for all the releases and returns the latest non prerelease
-=======
 def has_app_update_notifications() -> bool:
 	return bool(frappe.cache.sismember("update-user-set", frappe.session.user))
 
@@ -237,13 +218,10 @@ def parse_latest_non_beta_release(response: list, current_version: Version) -> l
 	"""Parse the response JSON for all the releases and return the latest non prerelease.
 
 	Args:
->>>>>>> 330a1b2044 (fix: update notifier never running)
 
-	Parameters
 	response (list): response object returned by github
 
-	Returns
-	json   : json object pertaining to the latest non-beta release
+	Return a json object pertaining to the latest non-beta release
 	"""
 	version_list = [
 		release.get("tag_name").strip("v") for release in response if not release.get("prerelease")
@@ -259,50 +237,17 @@ def parse_latest_non_beta_release(response: list, current_version: Version) -> l
 	return None
 
 
-<<<<<<< HEAD
-def check_release_on_github(app: str):
-	"""
-	Check the latest release for a given Frappe application hosted on Github.
-
-	Args:
-	        app (str): The name of the Frappe application.
-
-	Returns:
-	        tuple(Version, str): The semantic version object of the latest release and the
-	                organization name, if the application exists, otherwise None.
-	"""
-
-=======
 def check_release_on_github(
 	owner: str, repo: str, current_version: Version
 ) -> tuple[Version, str] | tuple[None, None]:
 	"""Check the latest release for a repo URL on GitHub."""
->>>>>>> 45026aed37 (feat: give higher priority to minor versions)
 	import requests
-	from giturlparse import parse
-	from giturlparse.parser import ParserError
 
-	try:
-		# Check if repo remote is on github
-		remote_url = subprocess.check_output(f"cd ../apps/{app} && git ls-remote --get-url", shell=True)
-	except subprocess.CalledProcessError:
-		# Passing this since some apps may not have git initialized in them
-		return
+	if not owner:
+		raise ValueError("Owner cannot be empty")
 
-	if isinstance(remote_url, bytes):
-		remote_url = remote_url.decode()
-
-	try:
-		parsed_url = parse(remote_url)
-	except ParserError:
-		# Invalid URL
-		return
-
-	if parsed_url.resource != "github.com":
-		return
-
-	owner = parsed_url.owner
-	repo = parsed_url.name
+	if not repo:
+		raise ValueError("Repo cannot be empty")
 
 	# Get latest version from GitHub
 	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
@@ -311,8 +256,6 @@ def check_release_on_github(
 		if latest_non_beta_release:
 			return Version(latest_non_beta_release), owner
 
-<<<<<<< HEAD
-=======
 	return None, None
 
 
@@ -361,7 +304,6 @@ def get_source_url(app: str) -> str | None:
 	if remote_url := pyproject.get("project", {}).get("urls", {}).get("Repository"):
 		return remote_url.rstrip("/")
 
->>>>>>> 5ca14bb171 (feat: FC specific update notifications)
 
 def add_message_to_redis(update_json):
 	# "update-message" will store the update message string

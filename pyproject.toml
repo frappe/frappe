@@ -74,11 +74,7 @@ dependencies = [
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.0.4",
     "typing_extensions>=4.6.1,<5",
-<<<<<<< HEAD
-=======
     "tomli~=2.0.1",
-    "uuid-utils~=0.6.1",
->>>>>>> 5ca14bb171 (feat: FC specific update notifications)
     "xlrd~=2.0.1",
     "zxcvbn~=4.4.28",
     "markdownify~=0.11.6",
