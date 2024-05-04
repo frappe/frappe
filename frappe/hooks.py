@@ -546,3 +546,10 @@ default_log_clearing_doctypes = {
 	"Activity Log": 90,
 	"Route History": 90,
 }
+
+# These keys will not be erased when doing frappe.clear_cache()
+persistent_cache_keys = [
+	"update-user-set",
+	"update-info",
+	"insert_queue_for_*",  # Deferred Insert
+]
