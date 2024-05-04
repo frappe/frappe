@@ -204,7 +204,11 @@ def generate_csrf_token():
 
 
 class Session:
+<<<<<<< HEAD
 	__slots__ = ("user", "device", "user_type", "full_name", "data", "time_diff", "sid")
+=======
+	__slots__ = ("user", "user_type", "full_name", "data", "time_diff", "sid", "_update_in_cache")
+>>>>>>> 7fe9cc4f09 (perf: Don't update session in cache after every request (#26308))
 
 	def __init__(self, user, resume=False, full_name=None, user_type=None):
 		self.sid = cstr(frappe.form_dict.get("sid") or unquote(frappe.request.cookies.get("sid", "Guest")))
@@ -214,6 +218,7 @@ class Session:
 		self.full_name = full_name
 		self.data = frappe._dict({"data": frappe._dict({})})
 		self.time_diff = None
+		self._update_in_cache = False
 
 		# set local session
 		frappe.local.session = self.data
@@ -333,6 +338,7 @@ class Session:
 
 		data = self.get_session_data_from_cache()
 		if not data:
+			self._update_in_cache = True
 			data = self.get_session_data_from_db()
 		return data
 
@@ -393,15 +399,17 @@ class Session:
 
 	def update(self, force=False):
 		"""extend session expiry"""
+<<<<<<< HEAD
 		if frappe.session["user"] == "Guest" or frappe.form_dict.cmd == "logout":
+=======
+
+		if frappe.session.user == "Guest":
+>>>>>>> 7fe9cc4f09 (perf: Don't update session in cache after every request (#26308))
 			return
 
 		now = frappe.utils.now()
 
 		Sessions = frappe.qb.DocType("Sessions")
-
-		self.data["data"]["last_updated"] = now
-		self.data["data"]["lang"] = str(frappe.lang)
 
 		# update session in db
 		last_updated = frappe.cache().hget("last_db_session_update", self.sid)
@@ -410,6 +418,8 @@ class Session:
 		# database persistence is secondary, don't update it too often
 		updated_in_db = False
 		if (force or (time_diff is None) or (time_diff > 600)) and not frappe.flags.read_only:
+			self.data.data.last_updated = now
+			self.data.data.lang = str(frappe.lang)
 			# update sessions table
 			(
 				frappe.qb.update(Sessions)
@@ -421,11 +431,18 @@ class Session:
 			frappe.db.set_value("User", frappe.session.user, "last_active", now, update_modified=False)
 
 			frappe.db.commit()
+<<<<<<< HEAD
 			frappe.cache().hset("last_db_session_update", self.sid, now)
 
 			updated_in_db = True
 
 		frappe.cache().hset("session", self.sid, self.data)
+=======
+			updated_in_db = True
+
+			frappe.cache.hset("last_db_session_update", self.sid, now)
+			frappe.cache.hset("session", self.sid, self.data)
+>>>>>>> 7fe9cc4f09 (perf: Don't update session in cache after every request (#26308))
 
 		return updated_in_db
 

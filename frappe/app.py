@@ -385,7 +385,6 @@ def sync_database(rollback: bool) -> bool:
 	# update session
 	if session := getattr(frappe.local, "session_obj", None):
 		if session.update():
-			frappe.db.commit()
 			rollback = False
 
 	update_comments_in_parent_after_request()
