@@ -20,6 +20,7 @@ from frappe import _
 from frappe.cache_manager import clear_user_cache
 from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
+from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date
 
 
@@ -169,6 +170,7 @@ def get():
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
 	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
 	bootinfo["navbar_settings"] = frappe.get_cached_doc("Navbar Settings")
+	bootinfo.has_app_updates = has_app_update_notifications()
 
 	return bootinfo
 
