@@ -265,6 +265,7 @@ $.extend(frappe.model, {
 
 		var child = frappe.model.get_new_doc(doctype, parent_doc, parentfield);
 		child.idx = idx;
+		child.__unedited = true;
 
 		// renum for fraction
 		if (idx !== cint(idx)) {

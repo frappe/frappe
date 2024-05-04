@@ -827,7 +827,6 @@ export default class Grid {
 				if (copy_doc) {
 					d = this.duplicate_row(d, copy_doc);
 				}
-				d.__unedited = true;
 				this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 				this.refresh();
 			} else {

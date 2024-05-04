@@ -16,6 +16,7 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 	var freeze_message = working_label ? __(working_label) : "";
 
 	var save = function () {
+		remove_empty_rows();
 		$(frm.wrapper).addClass("validated-form");
 		if ((action !== "Save" || frm.is_dirty()) && check_mandatory()) {
 			_call({
@@ -36,6 +37,23 @@ frappe.ui.form.save = function (frm, action, callback, btn) {
 				frappe.show_alert({ message: __("No changes in document"), indicator: "orange" });
 			$(btn).prop("disabled", false);
 		}
+	};
+
+	var remove_empty_rows = function() {
+		const docs = frappe.model.get_all_docs(frm.doc);
+		const tables = docs.filter((d) => {
+		  return frappe.model.is_table(d.doctype);
+		});
+		let modified_table_fields = [];
+		tables.forEach((doc) => {
+		  if (locals[doc.doctype][doc.name].__unedited) {
+			frappe.model.clear_doc(doc.doctype, doc.name);
+			modified_table_fields.push(doc.parentfield);
+		  }
+		});
+		modified_table_fields.forEach((field) => {
+		  frm.refresh_field(field);
+		});
 	};
 
 	var cancel = function () {
