@@ -416,7 +416,7 @@ def get_workspace_sidebar_items():
 	has_access = "Workspace Manager" in frappe.get_roles()
 
 	# don't get domain restricted pages
-	blocked_modules = frappe.get_doc("User", frappe.session.user).get_blocked_modules()
+	blocked_modules = frappe.get_cached_doc("User", frappe.session.user).get_blocked_modules()
 	blocked_modules.append("Dummy Module")
 
 	# adding None to allowed_domains to include pages without domain restriction
