@@ -353,7 +353,6 @@ frappe.ui.form.on("DocType Link", {
 	links_remove: function (frm, doctype, name) {
 		let parent_doc = locals[parenttype][parent];
 		frm.doc.links = parent_doc.links;
-		frm.refresh_fields('links');
 	}
 });
 
@@ -375,7 +374,6 @@ frappe.ui.form.on("DocType Action", {
 	actions_remove: function (frm, doctype, name) {
 		let parent_doc = locals[parenttype][parent];
 		frm.doc.actions = parent_doc.actions;
-		frm.refresh_fields('actions');
 	}
 });
 
@@ -397,7 +395,6 @@ frappe.ui.form.on("DocType State", {
 	states_remove: function (frm, doctype, name) {
 		let parent_doc = locals[parenttype][parent];
 		frm.doc.states = parent_doc.states;
-		frm.refresh_fields('states');
 	}
 });
 
