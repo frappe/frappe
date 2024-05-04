@@ -167,7 +167,7 @@
    "label": "Configuration"
   },
   {
-   "description": "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected. ",
+   "description": "Controls whether new users can sign up using this Social Login Key. If unset, Website Settings is respected.",
    "fieldname": "sign_ups",
    "fieldtype": "Select",
    "label": "Sign ups",
