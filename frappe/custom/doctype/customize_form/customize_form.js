@@ -351,6 +351,7 @@ frappe.ui.form.on("DocType Link", {
 		f.custom = 1;
 	},
 	links_remove: function (frm, doctype, name) {
+		// replicate the changed rows from the browser's copy of the parent doc to the current 'Customize Form' doc
 		let parent_doc = locals[parenttype][parent];
 		frm.doc.links = parent_doc.links;
 	}
@@ -372,6 +373,7 @@ frappe.ui.form.on("DocType Action", {
 		f.custom = 1;
 	},
 	actions_remove: function (frm, doctype, name) {
+		// replicate the changed rows from the browser's copy of the parent doc to the current 'Customize Form' doc
 		let parent_doc = locals[parenttype][parent];
 		frm.doc.actions = parent_doc.actions;
 	}
@@ -393,6 +395,7 @@ frappe.ui.form.on("DocType State", {
 		f.custom = 1;
 	},
 	states_remove: function (frm, doctype, name) {
+		// replicate the changed rows from the browser's copy of the parent doc to the current 'Customize Form' doc
 		let parent_doc = locals[parenttype][parent];
 		frm.doc.states = parent_doc.states;
 	}
