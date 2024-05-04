@@ -1049,7 +1049,11 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 		frappe.cache_manager.clear_user_cache(user)
 	else:  # everything
 		# Delete ALL keys associated with this site.
-		frappe.cache.delete_keys("")
+		keys_to_delete = set(frappe.cache.get_keys(""))
+		for key in frappe.get_hooks("persistent_cache_keys"):
+			keys_to_delete.difference_update(frappe.cache.get_keys(key))
+		frappe.cache.delete_value(list(keys_to_delete), make_keys=False)
+
 		reset_metadata_version()
 		local.cache = {}
 		local.new_doc_templates = {}

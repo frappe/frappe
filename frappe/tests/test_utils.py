@@ -47,8 +47,7 @@ from frappe.utils import (
 	validate_url,
 )
 from frappe.utils.change_log import (
-	check_release_on_github,
-	get_remote_url,
+	get_source_url,
 	parse_github_url,
 )
 from frappe.utils.data import (
@@ -1319,24 +1318,8 @@ class TestArgumentTypingValidations(FrappeTestCase):
 
 
 class TestChangeLog(FrappeTestCase):
-	def test_check_release_on_github(self):
-		from semantic_version import Version
-
-		version, owner = check_release_on_github("frappe", "frappe")
-		if version is None:
-			return
-
-		self.assertIsInstance(version, Version)
-		self.assertEqual(owner, "frappe")
-
-		self.assertRaises(ValueError, check_release_on_github, owner=None, repo=None)
-		self.assertRaises(ValueError, check_release_on_github, owner=None, repo="frappe")
-		self.assertRaises(ValueError, check_release_on_github, owner="frappe", repo=None)
-
 	def test_get_remote_url(self):
-		self.assertIsInstance(get_remote_url("frappe"), str)
-		self.assertRaises(ValueError, get_remote_url, app=None)
-		self.assertRaises(ValueError, get_remote_url, app="this_doesnt_exist")
+		self.assertIsInstance(get_source_url("frappe"), str)
 
 	def test_parse_github_url(self):
 		# using erpnext as repo in order to be different from the owner
