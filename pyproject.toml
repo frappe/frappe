@@ -37,7 +37,6 @@ dependencies = [
     "cryptography~=42.0.0",
     "cssutils~=2.9.0",
     "email-reply-parser~=0.5.12",
-    "git-url-parse~=1.2.2",
     "gunicorn~=22.0.0",
     "html5lib~=1.1",
     "ipython~=8.15.0",
