@@ -183,18 +183,26 @@ def check_for_update():
 		if not owner or not repo:
 			continue
 
+<<<<<<< HEAD
 		github_version, org_name = check_release_on_github(owner, repo)
 		if not github_version or not org_name:
 >>>>>>> 5ca14bb171 (feat: FC specific update notifications)
 			continue
 
 		github_version, org_name = app_details
+=======
+>>>>>>> 45026aed37 (feat: give higher priority to minor versions)
 		# Get local instance's current version or the app
 
 		branch_version = (
 			apps[app]["branch_version"].split(" ", 1)[0] if apps[app].get("branch_version", "") else ""
 		)
 		instance_version = Version(branch_version or apps[app].get("version"))
+
+		github_version, org_name = check_release_on_github(owner, repo, instance_version)
+		if not github_version or not org_name:
+			continue
+
 		# Compare and popup update message
 		for update_type in updates:
 			if github_version.__dict__[update_type] > instance_version.__dict__[update_type]:
@@ -225,7 +233,7 @@ def has_app_update_notifications() -> bool:
 	return bool(frappe.cache.sismember("update-user-set", frappe.session.user))
 
 
-def parse_latest_non_beta_release(response: list) -> list | None:
+def parse_latest_non_beta_release(response: list, current_version: Version) -> list | None:
 	"""Parse the response JSON for all the releases and return the latest non prerelease.
 
 	Args:
@@ -241,12 +249,17 @@ def parse_latest_non_beta_release(response: list) -> list | None:
 		release.get("tag_name").strip("v") for release in response if not release.get("prerelease")
 	]
 
+	def prioritize_minor_update(v: str) -> Version:
+		target = Version(v)
+		return (current_version.major == target.major, target)
+
 	if version_list:
-		return sorted(version_list, key=Version, reverse=True)[0]
+		return sorted(version_list, key=prioritize_minor_update, reverse=True)[0]
 
 	return None
 
 
+<<<<<<< HEAD
 def check_release_on_github(app: str):
 	"""
 	Check the latest release for a given Frappe application hosted on Github.
@@ -259,6 +272,12 @@ def check_release_on_github(app: str):
 	                organization name, if the application exists, otherwise None.
 	"""
 
+=======
+def check_release_on_github(
+	owner: str, repo: str, current_version: Version
+) -> tuple[Version, str] | tuple[None, None]:
+	"""Check the latest release for a repo URL on GitHub."""
+>>>>>>> 45026aed37 (feat: give higher priority to minor versions)
 	import requests
 	from giturlparse import parse
 	from giturlparse.parser import ParserError
@@ -288,7 +307,7 @@ def check_release_on_github(app: str):
 	# Get latest version from GitHub
 	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
 	if r.ok:
-		latest_non_beta_release = parse_latest_non_beta_release(r.json())
+		latest_non_beta_release = parse_latest_non_beta_release(r.json(), current_version)
 		if latest_non_beta_release:
 			return Version(latest_non_beta_release), owner
 
