@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-30 15:47\n"
+"PO-Revision-Date: 2024-05-05 16:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -32506,7 +32506,7 @@ msgstr "این بالاتر از نمایش اسلاید است."
 
 #: public/js/frappe/views/reports/query_report.js:2013
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
-msgstr "این یک گزارش پیشینه است. لطفا فیلترهای مناسب را تنظیم کنید و سپس فیلتر جدیدی ایجاد کنید."
+msgstr "این یک گزارش پس زمینه است. لطفا فیلترهای مناسب را تنظیم کنید و سپس گزارش جدیدی ایجاد کنید."
 
 #: utils/password_strength.py:158
 msgid "This is a top-10 common password."
