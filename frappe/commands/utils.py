@@ -1084,6 +1084,7 @@ def get_version(output):
 	from frappe.utils.change_log import get_app_branch
 	from frappe.utils.commands import render_table
 
+	print('ver 1')
 	frappe.init("")
 	data = []
 

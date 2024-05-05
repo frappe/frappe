@@ -4458,10 +4458,10 @@ Are you sure you want to save this document?,您确定要保存此文档吗？,
 Refresh All,全部刷新,
 "Level 0 is for document level permissions, higher levels for field level permissions.",级别0用于文档级别权限，更高级别用于字段级别权限。,
 Website Analytics,网站分析,
-d,d,Days (Field: Duration)
-h,H,Hours (Field: Duration)
-m,米,Minutes (Field: Duration)
-s,s,Seconds (Field: Duration)
+d,天,Days (Field: Duration)
+h,小时,Hours (Field: Duration)
+m,分,Minutes (Field: Duration)
+s,秒,Seconds (Field: Duration)
 Less,减,
 Not a valid DocType view:,无效的DocType视图：,
 Unknown View,未知视图,
