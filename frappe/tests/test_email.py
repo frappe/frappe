@@ -368,9 +368,7 @@ class TestEmailIntegrationTest(FrappeTestCase):
 
 	@classmethod
 	def get_last_sent_emails(cls):
-		return requests.get(
-			f"{cls.SMTP4DEV_WEB}/api/Messages?sortColumn=receivedDate&sortIsDescending=true"
-		).json()
+		return requests.get(f"{cls.SMTP4DEV_WEB}/api/Messages").json().get("results")
 
 	@classmethod
 	def get_message(cls, message_id):
@@ -394,7 +392,7 @@ class TestEmailIntegrationTest(FrappeTestCase):
 		for sent_mail in sent_mails:
 			self.assertEqual(sent_mail["from"], sender)
 			self.assertEqual(sent_mail["subject"], subject)
-		self.assertSetEqual(set(recipients.split(",")), {m["to"] for m in sent_mails})
+		self.assertSetEqual(set(recipients.split(",")), {m["to"][0] for m in sent_mails})
 
 	@run_only_if(db_type_is.MARIADB)
 	@change_settings("System Settings", store_attached_pdf_document=1)
