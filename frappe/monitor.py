@@ -113,17 +113,10 @@ class Monitor:
 			traceback.print_exc()
 
 	def store(self):
-<<<<<<< HEAD
-		if frappe.cache().llen(MONITOR_REDIS_KEY) > MONITOR_MAX_ENTRIES:
-			frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
 		serialized = json.dumps(self.data, sort_keys=True, default=str, separators=(",", ":"))
-		frappe.cache().rpush(MONITOR_REDIS_KEY, serialized)
-=======
-		serialized = json.dumps(self.data, sort_keys=True, default=str, separators=(",", ":"))
-		length = frappe.cache.rpush(MONITOR_REDIS_KEY, serialized)
+		length = frappe.cache().rpush(MONITOR_REDIS_KEY, serialized)
 		if cint(length) > MONITOR_MAX_ENTRIES:
-			frappe.cache.ltrim(MONITOR_REDIS_KEY, 1, -1)
->>>>>>> 724d886f88 (perf: Reduce 1 redis call while dumping monitor logs (#26337))
+			frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
 
 
 def flush():
