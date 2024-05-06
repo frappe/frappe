@@ -10,6 +10,7 @@ from datetime import datetime
 import rq
 
 import frappe
+from frappe.utils.data import cint
 
 MONITOR_REDIS_KEY = "monitor-transactions"
 MONITOR_MAX_ENTRIES = 1000000
@@ -112,10 +113,10 @@ class Monitor:
 			traceback.print_exc()
 
 	def store(self):
-		if frappe.cache().llen(MONITOR_REDIS_KEY) > MONITOR_MAX_ENTRIES:
-			frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
 		serialized = json.dumps(self.data, sort_keys=True, default=str, separators=(",", ":"))
-		frappe.cache().rpush(MONITOR_REDIS_KEY, serialized)
+		length = frappe.cache().rpush(MONITOR_REDIS_KEY, serialized)
+		if cint(length) > MONITOR_MAX_ENTRIES:
+			frappe.cache().ltrim(MONITOR_REDIS_KEY, 1, -1)
 
 
 def flush():
