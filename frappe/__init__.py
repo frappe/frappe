@@ -36,7 +36,7 @@ from frappe.query_builder import (
 	patch_query_aggregation,
 	patch_query_execute,
 )
-from frappe.utils.caching import request_cache
+from frappe.utils.caching import request_cache, site_cache
 from frappe.utils.data import cint, cstr, sbool
 
 # Local application imports
@@ -385,6 +385,7 @@ def connect_replica() -> bool:
 	return True
 
 
+@site_cache(ttl=5 * 60)
 def get_site_config(sites_path: str | None = None, site_path: str | None = None) -> dict[str, Any]:
 	"""Return `site_config.json` combined with `sites/common_site_config.json`.
 	`site_config` is a set of site wide settings like database name, password, email etc."""
