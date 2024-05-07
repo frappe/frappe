@@ -72,6 +72,10 @@ io.on("connection", function (socket) {
 		socket.leave(get_doctype_room(socket, doctype));
 	});
 
+	socket.on("ping", () => {
+		socket.emit("pong");
+	});
+
 	socket.on("task_subscribe", function (task_id) {
 		var room = get_task_room(socket, task_id);
 		socket.join(room);

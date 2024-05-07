@@ -128,10 +128,10 @@ class RedisWrapper(redis.Redis):
 				pass
 
 	def lpush(self, key, value):
-		super().lpush(self.make_key(key), value)
+		return super().lpush(self.make_key(key), value)
 
 	def rpush(self, key, value):
-		super().rpush(self.make_key(key), value)
+		return super().rpush(self.make_key(key), value)
 
 	def lpop(self, key):
 		return super().lpop(self.make_key(key))
@@ -175,7 +175,10 @@ class RedisWrapper(redis.Redis):
 
 	def exists(self, *names: str, user=None, shared=None) -> int:
 		names = [self.make_key(n, user=user, shared=shared) for n in names]
-		return super().exists(*names)
+		try:
+			return super().exists(*names)
+		except redis.exceptions.ConnectionError:
+			return 0
 
 	def hgetall(self, name):
 		value = super().hgetall(self.make_key(name))
