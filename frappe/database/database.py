@@ -1105,7 +1105,7 @@ class Database:
 		"""Return True if at least one row exists."""
 		return frappe.get_all(doctype, limit=1, order_by=None, as_list=True)
 
-	def exists(self, dt, dn=None, cache=False):
+	def exists(self, dt, dn=None, cache=False, *, debug=False):
 		"""Return the document name of a matching document, or None.
 
 		Note: `cache` only works if `dt` and `dn` are of type `str`.
@@ -1138,7 +1138,7 @@ class Database:
 			dt = dt.copy()  # don't modify the original dict
 			dt, dn = dt.pop("doctype"), dt
 
-		return self.get_value(dt, dn, ignore=True, cache=cache, order_by=None)
+		return self.get_value(dt, dn, ignore=True, cache=cache, order_by=None, debug=debug)
 
 	def count(self, dt, filters=None, debug=False, cache=False, distinct: bool = True):
 		"""Return `COUNT(*)` for given DocType and filters."""
