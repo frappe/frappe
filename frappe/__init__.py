@@ -1717,34 +1717,37 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 	"""
 	if include_all_apps:
 		local.app_modules = cache.get_value("app_modules")
-		local.module_app = cache.get_value("module_app")
 	else:
 		local.app_modules = cache.get_value("installed_app_modules")
-		local.module_app = cache.get_value("module_installed_app")
 
-	if not (local.app_modules and local.module_app):
-		local.module_app, local.app_modules = {}, {}
+	if not local.app_modules:
+		local.app_modules = {}
 		if include_all_apps:
 			apps = get_all_apps(with_internal_apps=True)
 		else:
 			apps = get_installed_apps(_ensure_on_bench=True)
+
 		for app in apps:
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
-				if module in local.module_app:
-					print(
-						f"WARNING: module `{module}` found in apps `{local.module_app[module]}` and `{app}`"
-					)
-				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
 		if include_all_apps:
 			cache.set_value("app_modules", local.app_modules)
-			cache.set_value("module_app", local.module_app)
 		else:
 			cache.set_value("installed_app_modules", local.app_modules)
-			cache.set_value("module_installed_app", local.module_app)
+
+	# Init module_app (reverse mapping)
+	local.module_app = {}
+	for app, modules in local.app_modules.items():
+		for module in modules:
+			if module in local.module_app:
+				warnings.warn(
+					f"WARNING: module `{module}` found in apps `{local.module_app[module]}` and `{app}`",
+					stacklevel=1,
+				)
+			local.module_app[module] = app
 
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
