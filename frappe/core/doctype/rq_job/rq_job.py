@@ -12,6 +12,7 @@ from rq.queue import Queue
 
 import frappe
 from frappe import _
+from frappe.database.utils import DefaultOrderBy
 from frappe.model.document import Document
 from frappe.utils import (
 	cint,
@@ -79,7 +80,7 @@ class RQJob(Document):
 
 	@staticmethod
 	def get_list(filters=None, fields=None, start=0, page_length=20, order_by="creation desc", as_list=False):
-		if order_by:
+		if order_by and order_by != DefaultOrderBy:
 			*_, sort_key, sort_order = order_by.rsplit(" ", maxsplit=1)
 			sort_key = sort_key.removeprefix("`tabRQ Job`.").strip("`")
 			order_desc = "desc" in sort_order.lower()
