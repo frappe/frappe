@@ -76,14 +76,33 @@ class RQJob(Document):
 		return self._job_obj
 
 	@staticmethod
-	def get_list(filters=None, start=0, page_length=20, order_by="creation desc"):
-		matched_job_ids = RQJob.get_matching_job_ids(filters=filters)[start : start + page_length]
+	def get_list(filters=None, fields=None, start=0, page_length=20, order_by="creation desc", as_list=False):
+		if order_by:
+			*_, sort_key, sort_order = order_by.rsplit(" ", maxsplit=1)
+			sort_key = sort_key.removeprefix("`tabRQ Job`.").strip("`")
+			order_desc = "desc" in sort_order.lower()
+		else:
+			sort_key = "creation"
+			order_desc = True
+
+		matched_job_ids = RQJob.get_matching_job_ids(filters=filters)
 
 		conn = get_redis_conn()
 		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job]
+		sorted_jobs = sorted(jobs, key=lambda j: j[sort_key], reverse=order_desc)[start : start + page_length]
 
-		order_desc = "desc" in order_by
-		return sorted(jobs, key=lambda j: j.creation, reverse=order_desc)
+		# Dont remove fields if as_list is True
+		if fields and as_list:
+			fields = tuple(f.removeprefix("`RQ Job`.").strip("`") for f in fields)
+			for job_dict in sorted_jobs:
+				for key in list(job_dict):
+					if key not in fields + frappe.model.default_fields:
+						job_dict.pop(key)
+
+		if as_list:
+			return list(list(j.values()) for j in sorted_jobs)
+
+		return sorted_jobs
 
 	@staticmethod
 	def get_matching_job_ids(filters) -> list[str]:
