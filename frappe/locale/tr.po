@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-05-03 15:56\n"
+"PO-Revision-Date: 2024-05-07 17:05\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -17188,7 +17188,7 @@ msgstr ""
 #. Type: Action
 #: hooks.py public/js/frappe/ui/keyboard.js:129
 msgid "Keyboard Shortcuts"
-msgstr ""
+msgstr "Klavye Kısayolları"
 
 #: public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
@@ -29680,7 +29680,7 @@ msgstr ""
 
 #: public/js/frappe/ui/keyboard.js:231
 msgid "Show Keyboard Shortcuts"
-msgstr ""
+msgstr "Klavye Kısayollarını Göster"
 
 #: public/js/frappe/views/kanban/kanban_settings.js:30
 msgid "Show Labels"
