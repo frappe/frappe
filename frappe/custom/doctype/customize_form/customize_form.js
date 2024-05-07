@@ -335,6 +335,8 @@ frappe.ui.form.on("Customize Form Field", {
 	},
 });
 
+let parenttype, parent;		// used in the form events for the child tables: links, actions and states
+
 // can't delete standard links
 frappe.ui.form.on("DocType Link", {
 	before_links_remove: function (frm, doctype, name) {
