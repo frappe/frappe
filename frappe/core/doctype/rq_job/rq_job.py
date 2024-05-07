@@ -3,6 +3,7 @@
 
 import functools
 import re
+from functools import partial
 
 from rq.command import send_stop_job_command
 from rq.exceptions import InvalidJobOperation, NoSuchJobError
@@ -23,6 +24,7 @@ from frappe.utils.background_jobs import get_queues, get_redis_conn
 
 QUEUES = ["default", "long", "short"]
 JOB_STATUSES = ["queued", "started", "failed", "finished", "deferred", "scheduled", "canceled"]
+_NOT_AVAILABLE = ""
 
 
 def check_permissions(method):
@@ -89,7 +91,9 @@ class RQJob(Document):
 
 		conn = get_redis_conn()
 		jobs = [serialize_job(job) for job in Job.fetch_many(job_ids=matched_job_ids, connection=conn) if job]
-		sorted_jobs = sorted(jobs, key=lambda j: j[sort_key], reverse=order_desc)[start : start + page_length]
+
+		sort_comparator = partial(rq_comparator, sort_key=sort_key)
+		sorted_jobs = sorted(jobs, key=sort_comparator, reverse=order_desc)[start : start + page_length]
 
 		# Dont remove fields if as_list is True
 		if fields and as_list:
@@ -178,9 +182,9 @@ def serialize_job(job: Job) -> frappe._dict:
 		queue=job.origin.rsplit(":", 1)[1],
 		job_name=job_name,
 		status=job.get_status(),
-		started_at=convert_utc_to_system_timezone(job.started_at) if job.started_at else "",
-		ended_at=convert_utc_to_system_timezone(job.ended_at) if job.ended_at else "",
-		time_taken=(job.ended_at - job.started_at).total_seconds() if job.ended_at else "",
+		started_at=convert_utc_to_system_timezone(job.started_at) if job.started_at else _NOT_AVAILABLE,
+		ended_at=convert_utc_to_system_timezone(job.ended_at) if job.ended_at else _NOT_AVAILABLE,
+		time_taken=(job.ended_at - job.started_at).total_seconds() if job.ended_at else _NOT_AVAILABLE,
 		exc_info=exc_info,
 		arguments=frappe.as_json(job.kwargs),
 		timeout=job.timeout,
@@ -248,6 +252,12 @@ def get_all_queued_jobs():
 		jobs.extend(q.get_jobs())
 
 	return [job for job in jobs if for_current_site(job)]
+
+
+def rq_comparator(job: frappe._dict, sort_key: str):
+	if (val := job[sort_key]) != _NOT_AVAILABLE:
+		return val
+	return -1
 
 
 @frappe.whitelist()
