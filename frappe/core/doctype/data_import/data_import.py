@@ -60,7 +60,7 @@ class DataImport(Document):
 
 	def set_delimiters_flag(self):
 		if self.import_file:
-			frappe.flags.delimiter_options = self.delimiter_options
+			frappe.flags.delimiter_options = self.delimiter_options or ","
 
 	def validate_doctype(self):
 		if self.reference_doctype in BLOCKED_DOCTYPES:
