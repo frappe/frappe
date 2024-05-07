@@ -6,17 +6,11 @@ app_name = "frappe"
 app_title = "Frappe Framework"
 app_publisher = "Frappe Technologies"
 app_description = "Full stack web framework with Python, Javascript, MariaDB, Redis, Node"
-source_link = "https://github.com/frappe/frappe"
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
-
 develop_version = "15.x.x-develop"
 
 app_email = "developers@frappe.io"
-
-docs_app = "frappe_docs"
-
-translator_url = "https://translate.erpnext.com"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
@@ -248,7 +242,6 @@ scheduler_events = {
 	],
 	"daily_long": [
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_daily",
-		"frappe.utils.change_log.check_for_update",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_daily",
 		"frappe.email.doctype.auto_email_report.auto_email_report.send_daily",
 		"frappe.integrations.doctype.google_drive.google_drive.daily_backup",
@@ -257,6 +250,7 @@ scheduler_events = {
 		"frappe.integrations.doctype.dropbox_settings.dropbox_settings.take_backups_weekly",
 		"frappe.integrations.doctype.s3_backup_settings.s3_backup_settings.take_backups_weekly",
 		"frappe.desk.form.document_follow.send_weekly_updates",
+		"frappe.utils.change_log.check_for_update",
 		"frappe.social.doctype.energy_point_log.energy_point_log.send_weekly_summary",
 		"frappe.integrations.doctype.google_drive.google_drive.weekly_backup",
 		"frappe.desk.doctype.changelog_feed.changelog_feed.fetch_changelog_feed",
@@ -546,3 +540,10 @@ default_log_clearing_doctypes = {
 	"Activity Log": 90,
 	"Route History": 90,
 }
+
+# These keys will not be erased when doing frappe.clear_cache()
+persistent_cache_keys = [
+	"update-user-set",
+	"update-info",
+	"insert_queue_for_*",  # Deferred Insert
+]

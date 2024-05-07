@@ -20,6 +20,7 @@ from frappe import _
 from frappe.cache_manager import clear_user_cache
 from frappe.query_builder import Order
 from frappe.utils import cint, cstr, get_assets_json
+from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date
 
 
@@ -169,6 +170,7 @@ def get():
 	bootinfo["desk_theme"] = frappe.db.get_value("User", frappe.session.user, "desk_theme") or "Light"
 	bootinfo["user"]["impersonated_by"] = frappe.session.data.get("impersonated_by")
 	bootinfo["navbar_settings"] = frappe.get_cached_doc("Navbar Settings")
+	bootinfo.has_app_updates = has_app_update_notifications()
 
 	return bootinfo
 
@@ -210,7 +212,15 @@ class Session:
 
 		else:
 			if self.user:
+				self.validate_user()
 				self.start()
+
+	def validate_user(self):
+		if not frappe.get_cached_value("User", self.user, "enabled"):
+			frappe.throw(
+				_("User {0} is disabled. Please contact your System Manager.").format(self.user),
+				frappe.ValidationError,
+			)
 
 	def start(self):
 		"""start a new session"""
@@ -274,6 +284,7 @@ class Session:
 		if data:
 			self.data.update({"data": data, "user": data.user, "sid": self.sid})
 			self.user = data.user
+			self.validate_user()
 			validate_ip_address(self.user)
 		else:
 			self.start_as_guest()

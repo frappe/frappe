@@ -24,6 +24,7 @@
   "no_copy",
   "allow_in_quick_entry",
   "translatable",
+  "link_filters",
   "column_break_7",
   "default",
   "precision",
@@ -472,6 +473,11 @@
    "fieldname": "sort_options",
    "fieldtype": "Check",
    "label": "Sort Options"
+  },
+  {
+   "fieldname": "link_filters",
+   "fieldtype": "JSON",
+   "label": "Link Filters"
   }
  ],
  "idx": 1,
