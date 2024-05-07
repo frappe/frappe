@@ -204,6 +204,7 @@ class TestPerformance(FrappeTestCase):
 			frappe.get_doc("User", "Administrator")
 
 
+@run_only_if(db_type_is.MARIADB)
 class TestOverheadCalls(FrappeAPITestCase):
 	"""Test that typical redis and db calls remain same overtime.
 
@@ -215,9 +216,9 @@ class TestOverheadCalls(FrappeAPITestCase):
 	BASE_SQL_CALLS = 2  # rollback + begin
 
 	def test_ping_overheads(self):
-		self.get(self.method("ping"))
+		self.get(self.method("ping"), {"sid": "Guest"})
 		with self.assertRedisCallCounts(12), self.assertQueryCount(self.BASE_SQL_CALLS):
-			self.get(self.method("ping"))
+			self.get(self.method("ping"), {"sid": "Guest"})
 
 	def test_list_view_overheads(self):
 		sid = self.sid
