@@ -32,7 +32,8 @@ if typing.TYPE_CHECKING:
 
 
 DATE_FORMAT = "%Y-%m-%d"
-TIME_FORMAT = "%H:%M:%S.%f"
+# TIME_FORMAT = "%H:%M:%S.%f"
+TIME_FORMAT = "%H:%M:%S"
 DATETIME_FORMAT = f"{DATE_FORMAT} {TIME_FORMAT}"
 TIMEDELTA_DAY_PATTERN = re.compile(
 	r"(?P<days>[-\d]+) day[s]*, (?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>\d[\.\d+]*)"

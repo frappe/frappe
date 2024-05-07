@@ -82,6 +82,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_defaults() {
 		super.setup_defaults();
+        console.log("this.settings:", this.settings)
 
 		this.view = "List";
 		// initialize with saved order by
@@ -364,6 +365,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			type: "Tag",
 		});
 
+
 		// 2nd column: Status indicator
 		if (frappe.has_indicator(this.doctype)) {
 			// indicator
@@ -373,6 +375,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		const fields_in_list_view = this.get_fields_in_list_view();
+
 		// Add rest from in_list_view docfields
 		this.columns = this.columns.concat(
 			fields_in_list_view
@@ -390,10 +393,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					df,
 				}))
 		);
+        // console.log("this.list_view_settings:", this.list_view_settings)
 
 		if (this.list_view_settings.fields) {
 			this.columns = this.reorder_listview_fields();
 		}
+        // console.log("has5:", this.columns)
 
 		// limit max to 8 columns if no total_fields is set in List View Settings
 		// Screen with low density no of columns 4
@@ -422,6 +427,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 			});
 		}
+        // console.log("this.columns:", this.columns)
 	}
 
 	reorder_listview_fields() {
@@ -438,7 +444,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				let field = fields[fld];
 				let column = this.columns[col];
 
-				if (column.type == "Status" && field.fieldname == "status_field") {
+				// if (column.type == "Status" && field.fieldname == "status_field") {
+                if (column.type == "Status" && (field.fieldname == "status" || field.fieldname == "status_field")) {
 					fields_order.push(column);
 					break;
 				} else if (column.type == "Field" && field.fieldname === column.df.fieldname) {
