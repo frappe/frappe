@@ -24,6 +24,7 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 )
 from frappe.utils import add_user_info, cstr, get_system_timezone
 from frappe.utils.change_log import get_versions
+from frappe.utils.frappecloud import on_frappecloud
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
@@ -444,7 +445,7 @@ def get_marketplace_apps():
 	apps = []
 	cache_key = "frappe_marketplace_apps"
 
-	if frappe.conf.developer_mode:
+	if frappe.conf.developer_mode or not on_frappecloud():
 		return apps
 
 	def get_apps_from_fc():

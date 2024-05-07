@@ -29,7 +29,10 @@ def make_request(method: str, url: str, auth=None, headers=None, data=None, json
 		else:
 			return
 	except Exception as exc:
-		frappe.log_error()
+		if frappe.flags.integration_request_doc:
+			frappe.flags.integration_request_doc.log_error()
+		else:
+			frappe.log_error()
 		raise exc
 
 
