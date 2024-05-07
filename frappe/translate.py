@@ -125,6 +125,7 @@ def get_parent_language(lang: str) -> str:
 def get_user_lang(user: str | None = None) -> str:
 	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
 	user = user or frappe.session.user
+<<<<<<< HEAD
 	lang = frappe.cache().hget("lang", user)
 
 	if not lang:
@@ -139,6 +140,16 @@ def get_user_lang(user: str | None = None) -> str:
 		frappe.cache().hset("lang", user, lang)
 
 	return lang
+=======
+
+	# User.language => Session Defaults => frappe.local.lang => 'en'
+	return (
+		frappe.get_cached_value("User", user, "language")
+		or frappe.db.get_default("lang")
+		or frappe.local.lang
+		or "en"
+	)
+>>>>>>> c17eb87c70 (perf: Reuse cached user for `get_user_lang` (#26350))
 
 
 def get_lang_code(lang: str) -> str | None:
