@@ -115,7 +115,7 @@ class ServerScript(Document):
 		if self.script_type != "Scheduler Event" or (
 			(previous_script_type := self.has_value_changed("script_type"))
 			# True will be sent if its a new record
-			and previous_script_type not in (True, "Scheduler Event")
+			and previous_script_type.value not in (True, "Scheduler Event")
 		):
 			return
 
