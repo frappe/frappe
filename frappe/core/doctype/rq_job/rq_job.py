@@ -106,6 +106,10 @@ class RQJob(Document):
 		self.job.delete()
 
 	@check_permissions
+	def requeue(self):
+		self.job.requeue()
+
+	@check_permissions
 	def stop_job(self):
 		try:
 			send_stop_job_command(connection=get_redis_conn(), job_id=self.job_id)
@@ -230,3 +234,8 @@ def get_all_queued_jobs():
 @frappe.whitelist()
 def stop_job(job_id):
 	frappe.get_doc("RQ Job", job_id).stop_job()
+
+
+@frappe.whitelist()
+def requeue_job(job_id):
+	frappe.get_doc("RQ Job", job_id).requeue()

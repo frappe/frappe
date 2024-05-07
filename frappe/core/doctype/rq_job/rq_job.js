@@ -28,5 +28,13 @@ frappe.ui.form.on("RQ Job", {
 				);
 			});
 		}
+
+		if (frm.doc.status === "failed") {
+			frm.add_custom_button(__("Requeue Job"), () => {
+				frappe.xcall("frappe.core.doctype.rq_job.rq_job.requeue_job", {
+					job_id: frm.doc.name,
+				});
+			});
+		}
 	},
 });
