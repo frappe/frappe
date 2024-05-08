@@ -1,0 +1,16 @@
+{
+ "color": "#7C7C7C",
+ "creation": "2024-05-08 17:03:39.617702",
+ "custom": 0,
+ "docstatus": 0,
+ "doctype": "Desktop Item",
+ "icon": "tool",
+ "idx": 0,
+ "label": "Tools",
+ "link_type": "Module",
+ "modified": "2024-05-08 18:33:17.296575",
+ "modified_by": "Administrator",
+ "module": "Automation",
+ "name": "Tools",
+ "owner": "Administrator"
+}

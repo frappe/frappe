@@ -1,0 +1,16 @@
+{
+ "color": "#F0B58B",
+ "creation": "2024-05-08 17:03:39.611623",
+ "custom": 0,
+ "docstatus": 0,
+ "doctype": "Desktop Item",
+ "icon": "users",
+ "idx": 0,
+ "label": "Users",
+ "link_type": "Module",
+ "modified": "2024-05-08 18:41:00.237733",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Users",
+ "owner": "Administrator"
+}

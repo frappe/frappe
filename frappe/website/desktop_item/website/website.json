@@ -1,0 +1,16 @@
+{
+ "color": "#EB9091",
+ "creation": "2024-05-08 17:03:39.624367",
+ "custom": 0,
+ "docstatus": 0,
+ "doctype": "Desktop Item",
+ "icon": "website",
+ "idx": 0,
+ "label": "Website",
+ "link_type": "Module",
+ "modified": "2024-05-08 18:28:16.538258",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Website",
+ "owner": "Administrator"
+}

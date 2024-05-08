@@ -1,0 +1,16 @@
+{
+ "color": "#267A94",
+ "creation": "2024-05-08 17:03:39.543086",
+ "custom": 0,
+ "docstatus": 0,
+ "doctype": "Desktop Item",
+ "icon": "dashboard-list",
+ "idx": 0,
+ "label": "Build",
+ "link_type": "Module",
+ "modified": "2024-05-08 19:03:05.920735",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Build",
+ "owner": "Administrator"
+}
