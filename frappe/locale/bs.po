@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-28 13:59\n"
+"PO-Revision-Date: 2024-05-08 17:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -8312,7 +8312,7 @@ msgstr "Zadani dolazni"
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Default Letter Head"
-msgstr "Zadano zaglavlje pisma"
+msgstr "Zadani memorandum"
 
 #. Option for the 'Action' (Select) field in DocType 'Amended Document Naming
 #. Settings'
@@ -18088,13 +18088,13 @@ msgstr "Pismo"
 #: public/js/frappe/form/templates/print_layout.html:16
 #: public/js/frappe/list/bulk_operations.js:51
 msgid "Letter Head"
-msgstr "Zaglavlje pisma"
+msgstr ""
 
 #. Label of a Link field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Letter Head"
-msgstr "Zaglavlje pisma"
+msgstr ""
 
 #. Label of a Select field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
