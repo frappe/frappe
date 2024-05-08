@@ -88,7 +88,7 @@ def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=Non
 		return
 
 	rows = []
-	wb1 = load_workbook(filename=filename, read_only=True, data_only=True)
+	wb1 = load_workbook(filename=filename, data_only=True)
 	ws1 = wb1.active
 	for row in ws1.iter_rows():
 		tmp_list = []
