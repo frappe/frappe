@@ -46,6 +46,10 @@ from frappe.utils import (
 	validate_phone_number_with_country_code,
 	validate_url,
 )
+from frappe.utils.change_log import (
+	get_source_url,
+	parse_github_url,
+)
 from frappe.utils.data import (
 	add_to_date,
 	add_years,
@@ -1032,13 +1036,13 @@ class TestTypingValidations(FrappeTestCase):
 class TestTBSanitization(FrappeTestCase):
 	def test_traceback_sanitzation(self):
 		try:
-			password = "42"  # noqa: F841
-			args = {"password": "42", "pwd": "42", "safe": "safe_value"}
-			args = frappe._dict({"password": "42", "pwd": "42", "safe": "safe_value"})  # noqa: F841
+			password = frappe.generate_hash()
+			args = {"password": "42", "pwd": password, "safe": "safe_value"}
+			args = frappe._dict({"password": "42", "pwd": password, "safe": "safe_value"})  # noqa: F841
 			raise Exception
 		except Exception:
 			traceback = frappe.get_traceback(with_context=True)
-			self.assertNotIn("42", traceback)
+			self.assertNotIn(password, traceback)
 			self.assertIn("********", traceback)
 			self.assertIn("password =", traceback)
 			self.assertIn("safe_value", traceback)
@@ -1244,6 +1248,31 @@ class TestArgumentTypingValidations(FrappeTestCase):
 		self.assertEqual(test_doctypes(doctype.as_dict()), doctype.as_dict())
 		with self.assertRaises(FrappeTypeError):
 			test_doctypes("a")
+
+
+class TestChangeLog(FrappeTestCase):
+	def test_get_remote_url(self):
+		self.assertIsInstance(get_source_url("frappe"), str)
+
+	def test_parse_github_url(self):
+		# using erpnext as repo in order to be different from the owner
+		owner, repo = parse_github_url("https://github.com/frappe/erpnext.git")
+		self.assertEqual(owner, "frappe")
+		self.assertEqual(repo, "erpnext")
+
+		owner, repo = parse_github_url("https://github.com/frappe/erpnext")
+		self.assertEqual(owner, "frappe")
+		self.assertEqual(repo, "erpnext")
+
+		owner, repo = parse_github_url("git@github.com:frappe/erpnext.git")
+		self.assertEqual(owner, "frappe")
+		self.assertEqual(repo, "erpnext")
+
+		owner, repo = parse_github_url("https://gitlab.com/gitlab-org/gitlab")
+		self.assertIsNone(owner)
+		self.assertIsNone(repo)
+
+		self.assertRaises(ValueError, parse_github_url, remote_url=None)
 
 
 class TestCrypto(FrappeTestCase):

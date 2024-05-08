@@ -81,7 +81,7 @@ class MariaDBTable(DBTable):
 			if not frappe.db.get_column_index(self.table_name, col.fieldname, unique=False)
 		]
 
-		if self.meta.sort_field == "creation" and frappe.db.get_column_index(
+		if self.meta.sort_field == "creation" and not frappe.db.get_column_index(
 			self.table_name, "creation", unique=False
 		):
 			add_index_query.append("ADD INDEX `creation`(`creation`)")

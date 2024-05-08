@@ -37,7 +37,6 @@ dependencies = [
     "cryptography~=42.0.0",
     "cssutils~=2.9.0",
     "email-reply-parser~=0.5.12",
-    "git-url-parse~=1.2.2",
     "gunicorn~=22.0.0",
     "html5lib~=1.1",
     "ipython~=8.15.0",
@@ -74,6 +73,7 @@ dependencies = [
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.0.4",
     "typing_extensions>=4.6.1,<5",
+    "tomli~=2.0.1",
     "xlrd~=2.0.1",
     "zxcvbn~=4.4.28",
     "markdownify~=0.11.6",
@@ -86,6 +86,11 @@ dependencies = [
     "google-auth~=1.29.0",
     "posthog~=3.0.1",
 ]
+
+[project.urls]
+Homepage = "https://frappeframework.com/"
+Repository = "https://github.com/frappe/frappe.git"
+"Bug Reports" = "https://github.com/frappe/frappe/issues"
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]

@@ -122,7 +122,7 @@ class ToDo(Document):
 				# no table
 				return
 
-			elif frappe.db.is_column_missing(e):
+			elif frappe.db.is_missing_column(e):
 				from frappe.database.schema import add_column
 
 				add_column(self.reference_type, "_assign", "Text")
