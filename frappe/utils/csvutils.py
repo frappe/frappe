@@ -51,7 +51,7 @@ def read_csv_content(fcontent):
 
 		if not decoded:
 			frappe.msgprint(
-				_("Unknown file encoding. Tried [%s]." % ", ".join(FILE_ENCODING_OPTIONS)),
+				_("Unknown file encoding. Tried to use: {0}").format(", ".join(FILE_ENCODING_OPTIONS)),
 				raise_exception=True,
 			)
 
@@ -70,7 +70,9 @@ def read_csv_content(fcontent):
 	except csv.Error:
 		# if sniff fails, show alert on user interface. Fall back to use default dialect (excel)
 		frappe.msgprint(
-			_("Delimiter detection failed. Try enable Custom delimiters and adjust Delimiter options."),
+			_(
+				"Delimiter detection failed. Try to enable custom delimiters and adjust the delimiter options as per your data."
+			),
 			indicator="orange",
 			alert=True,
 		)
