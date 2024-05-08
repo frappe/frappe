@@ -9,6 +9,7 @@ import requests
 
 import frappe
 from frappe import _, msgprint
+from frappe.core.doctype.file.file import FILE_ENCODING_OPTIONS
 from frappe.utils import cint, comma_or, cstr, flt
 
 
@@ -40,7 +41,7 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent):
 	if not isinstance(fcontent, str):
 		decoded = False
-		for encoding in ["utf-8-sig", "utf-8", "windows-1250", "windows-1252"]:
+		for encoding in FILE_ENCODING_OPTIONS:
 			try:
 				fcontent = str(fcontent, encoding)
 				decoded = True
@@ -50,7 +51,7 @@ def read_csv_content(fcontent):
 
 		if not decoded:
 			frappe.msgprint(
-				_("Unknown file encoding. Tried utf-8-sig, utf-8, windows-1250, windows-1252."),
+				_("Unknown file encoding. Tried [%s]." % ", ".join(FILE_ENCODING_OPTIONS)),
 				raise_exception=True,
 			)
 

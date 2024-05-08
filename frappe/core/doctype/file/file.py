@@ -31,6 +31,7 @@ from .utils import *
 exclude_from_linked_with = True
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 URL_PREFIXES = ("http://", "https://")
+FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
 
 
 class File(Document):
@@ -533,11 +534,11 @@ class File(Document):
 		file_path = self.get_full_path()
 
 		if encodings is None:
-			encodings = ["utf-8-sig", "utf-8", "windows-1250", "windows-1252"]
+			encodings = FILE_ENCODING_OPTIONS
+			# looping will not result in slowdown, as the content usually utf8 / utf-8-sig so first iteration will work most of the time
 		# read file with proper encoding
 		with open(file_path, mode="rb") as f:
 			self._content = f.read()
-
 			for encoding in encodings:
 				try:
 					# for plain text files
