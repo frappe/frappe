@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-05-07 17:05\n"
+"PO-Revision-Date: 2024-05-08 17:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -4164,7 +4164,7 @@ msgstr ""
 #. Name of a Workspace
 #: core/workspace/build/build.json
 msgid "Build"
-msgstr ""
+msgstr "Geliştir"
 
 #: workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
@@ -5740,7 +5740,7 @@ msgstr "Renk"
 
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:7
 msgid "Column"
-msgstr ""
+msgstr "Sütun"
 
 #: desk/doctype/kanban_board/kanban_board.py:84
 msgid "Column <b>{0}</b> already exist."
@@ -9761,7 +9761,7 @@ msgstr "Dokümanlar"
 
 #: core/doctype/deleted_document/deleted_document_list.js:25
 msgid "Documents restored successfully"
-msgstr ""
+msgstr "Belgeler başarıyla geri yüklendi"
 
 #: core/doctype/deleted_document/deleted_document_list.js:33
 msgid "Documents that failed to restore"
@@ -12633,7 +12633,7 @@ msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder_sidebar.html:3
 msgid "Filter..."
-msgstr ""
+msgstr "Filtre..."
 
 #. Label of a Data field in DocType 'Personal Data Deletion Step'
 #: website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
@@ -17745,7 +17745,7 @@ msgstr ""
 #. Label of an action in the Onboarding Step 'Generate Custom Reports'
 #: custom/onboarding_step/report_builder/report_builder.json
 msgid "Learn more about Report Builders"
-msgstr ""
+msgstr "Rapor Oluşturucuları hakkında daha fazla bilgi edinin"
 
 #. Label of an action in the Onboarding Step 'Custom Document Types'
 #: custom/onboarding_step/custom_doctype/custom_doctype.json
@@ -22603,13 +22603,13 @@ msgstr "Sayfa Sonu"
 
 #: website/doctype/web_page/web_page.js:92
 msgid "Page Builder"
-msgstr ""
+msgstr "Sayfa Oluşturucu"
 
 #. Option for the 'Content Type' (Select) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
 msgctxt "Web Page"
 msgid "Page Builder"
-msgstr ""
+msgstr "Sayfa Oluşturucu"
 
 #. Label of a Table field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
@@ -22647,7 +22647,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:1510
 msgid "Page Saved Successfully"
-msgstr ""
+msgstr "Sayfa Başarıyla Kaydedildi"
 
 #. Label of a Section Break field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -28679,19 +28679,19 @@ msgstr ""
 #: integrations/doctype/dropbox_settings/dropbox_settings.json
 msgctxt "Dropbox Settings"
 msgid "Send Email for Successful Backup"
-msgstr ""
+msgstr "Başarılı Yedekleme için E-posta Gönder"
 
 #. Label of a Check field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
 msgctxt "S3 Backup Settings"
 msgid "Send Email for Successful Backup"
-msgstr ""
+msgstr "Başarılı Yedekleme için E-posta Gönder"
 
 #. Label of a Check field in DocType 'Google Drive'
 #: integrations/doctype/google_drive/google_drive.json
 msgctxt "Google Drive"
 msgid "Send Email for Successful backup"
-msgstr ""
+msgstr "Başarılı yedekleme için E-posta Gönder"
 
 #. Label of a Check field in DocType 'User'
 #: core/doctype/user/user.json
@@ -31304,7 +31304,7 @@ msgstr ""
 
 #: core/doctype/data_import/data_import.js:437
 msgid "Successfully updated {0}"
-msgstr ""
+msgstr "{0} Başarıyla Güncellendi"
 
 #: core/doctype/data_import/data_import.js:149
 msgid "Successfully updated {0} out of {1} records."
@@ -31635,13 +31635,13 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/system_settings/system_settings.json
 msgid "System Settings"
-msgstr ""
+msgstr "Sistem Ayarları"
 
 #. Label of a shortcut in the Build Workspace
 #: core/workspace/build/build.json
 msgctxt "System Settings"
 msgid "System Settings"
-msgstr ""
+msgstr "Sistem Ayarları"
 
 #. Description of the 'Allow Roles' (Table MultiSelect) field in DocType
 #. 'Module Onboarding'
@@ -34267,7 +34267,7 @@ msgstr ""
 
 #: desk/doctype/bulk_update/bulk_update.js:32
 msgid "Updated Successfully"
-msgstr ""
+msgstr "Başarıyla Güncellendi"
 
 #: public/js/frappe/desk.js:420
 msgid "Updated To A New Version 🎉"
@@ -34275,7 +34275,7 @@ msgstr ""
 
 #: public/js/frappe/list/bulk_operations.js:342
 msgid "Updated successfully"
-msgstr ""
+msgstr "Başarıyla Güncellendi"
 
 #. Label of a Tab Break field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -34310,7 +34310,7 @@ msgstr ""
 
 #: public/js/frappe/form/toolbar.js:126
 msgid "Updating related fields..."
-msgstr ""
+msgstr "İlgili Alanlar Güncelleniyor..."
 
 #: desk/doctype/bulk_update/bulk_update.py:96
 msgid "Updating {0}"
@@ -34345,7 +34345,7 @@ msgstr ""
 
 #: integrations/doctype/google_drive/google_drive.py:201
 msgid "Uploading successful."
-msgstr ""
+msgstr "Yükleme başarılı."
 
 #: integrations/doctype/google_drive/google_drive.js:16
 msgid "Uploading to Google Drive"
@@ -34818,7 +34818,7 @@ msgstr ""
 
 #: core/doctype/user_permission/user_permission_list.js:124
 msgid "User Permissions created successfully"
-msgstr ""
+msgstr "Kullanıcı İzinleri başarıyla oluşturuldu"
 
 #. Label of a shortcut in the Users Workspace
 #: core/workspace/users/users.json
@@ -36408,15 +36408,15 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:1276
 msgid "Workspace {0} Created Successfully"
-msgstr ""
+msgstr "{0} Çalışma Alanı Başarıyla Oluşturuldu"
 
 #: public/js/frappe/views/workspace/workspace.js:905
 msgid "Workspace {0} Deleted Successfully"
-msgstr ""
+msgstr "{0} Çalışma Alanı Başarıyla Silindi"
 
 #: public/js/frappe/views/workspace/workspace.js:683
 msgid "Workspace {0} Edited Successfully"
-msgstr ""
+msgstr "{0} Çalışma Alanı Başarıyla Düzenlendi"
 
 #. Option for the 'View' (Select) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
