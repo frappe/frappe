@@ -88,7 +88,10 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 		users = [user.strip() for user in users.split(",") if user.strip()]
 	users = list(set(users))
 
-	frappe.local.system_notifications_queue.append((doc, users))
+	if frappe.flags.in_test:
+		make_notification_log(doc, users)
+	else:
+		frappe.local.system_notifications_queue.append((doc, users))
 
 
 def flush_system_notifications():
@@ -102,11 +105,15 @@ def flush_system_notifications():
 
 def make_notification_logs(notifications: list[tuple[str, list[str]]]):
 	for doc, users in notifications:
-		for user in _get_user_ids(users):
-			if user != doc.from_user or doc.type == "Energy Point" or doc.type == "Alert":
-				notification = frappe.new_doc("Notification Log").update(doc)
-				notification.for_user = user
-				notification.insert(ignore_permissions=True)
+		make_notification_log(doc, users)
+
+
+def make_notification_log(doc: dict, users: list[str]):
+	for user in _get_user_ids(users):
+		if user != doc.from_user or doc.type == "Energy Point" or doc.type == "Alert":
+			notification = frappe.new_doc("Notification Log").update(doc)
+			notification.for_user = user
+			notification.insert(ignore_permissions=True)
 
 
 def _get_user_ids(user_emails):
