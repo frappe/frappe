@@ -1,6 +1,8 @@
 import frappe
 from frappe.query_builder import Order
 
+from frappe.config import get_modules_from_all_apps_for_user
+
 
 @frappe.whitelist()
 def get_current_user_info() -> dict:
@@ -14,29 +16,22 @@ def get_current_user_info() -> dict:
 
 
 @frappe.whitelist()
-def get_links_for_workspace(workspace: str) -> dict[list]:
-	"""Returns doctypes that are allowed to be shown in the workspace"""
-	WorkspaceLink = frappe.qb.DocType("Workspace Link")
-	workspace_links = (
-		frappe.qb.from_(WorkspaceLink)
-		.select("link_type", "link_to", "label")
-		.distinct()
-		.where((WorkspaceLink.parent == workspace) & (WorkspaceLink.type == "Link"))
-		.orderby(WorkspaceLink.label, order=Order.asc)
+def get_desktop_items() -> list[dict]:
+	"""Returns desktop items for the current user"""
+	modules = get_modules_from_all_apps_for_user()
+	module_names = {module.get("module_name"): module.get("app") for module in modules}
+
+	DesktopItem = frappe.qb.DocType("Desktop Item")
+	desktop_items = (
+		frappe.qb.from_(DesktopItem)
+		.select("name", "label", "icon", "color", "link_type", "url", "module")
+		.where(
+			((DesktopItem.link_type == "Module") & (DesktopItem.module.isin(list(module_names.keys()))))
+			| (DesktopItem.link_type == "URL")
+		)
 	).run(as_dict=True)
 
-	links = {
-		"Document Types": [],
-		"Reports": [],
-		"Pages": [],
-	}
+	for item in desktop_items:
+		item["app"] = module_names.get(item.get("module"))
 
-	for item in workspace_links:
-		if item.link_type == "DocType":
-			links["Document Types"].append(item)
-		elif item.link_type == "Report":
-			links["Reports"].append(item)
-		elif item.link_type == "Page":
-			links["Pages"].append(item)
-
-	return links
+	return sorted(desktop_items, key=lambda x: (x.get("app"), x.get("name")))
