@@ -535,13 +535,13 @@ class File(Document):
 
 		if encodings is None:
 			encodings = FILE_ENCODING_OPTIONS
-			# looping will not result in slowdown, as the content usually utf8 / utf-8-sig so first iteration will work most of the time
-		# read file with proper encoding
 		with open(file_path, mode="rb") as f:
 			self._content = f.read()
+			# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
+			# encoded so the first iteration will be enough most of the time
 			for encoding in encodings:
 				try:
-					# for plain text files
+					# read file with proper encoding
 					self._content = self._content.decode(encoding)
 					break
 				except UnicodeDecodeError:
