@@ -5,6 +5,7 @@ frappe.ui.AddressAutocompleteDialog = class AddressAutocompleteDialog {
 		this.title = opts?.title || __("New Address");
 		this.link_doctype = opts?.link_doctype;
 		this.link_name = opts?.link_name;
+		this.after_insert = opts?.after_insert;
 		this.dialog = this._get_dialog();
 	}
 
@@ -24,17 +25,37 @@ frappe.ui.AddressAutocompleteDialog = class AddressAutocompleteDialog {
 			],
 			primary_action_label: __("Save Address"),
 			primary_action: () => {
+				// Insert the address into the database
 				dialog.hide();
-				// TODO: save the selected address to the database
+
+				const address = this.parse_selected_value();
+				address["doctype"] = "Address";
+				address["links"] = [
+					{
+						link_doctype: this.link_doctype,
+						link_name: this.link_name,
+					},
+				];
+				frappe.db.insert(address).then((doc) => {
+					this.after_insert && this.after_insert(doc);
+				});
 			},
 			secondary_action_label: __("Edit Address"),
 			secondary_action: () => {
+				// Open the address in the form view
 				dialog.hide();
-				// TODO: open the selected address in the address form
+
+				const address = this.parse_selected_value();
+				frappe.new_doc("Address", address);
 			},
 		});
 
 		return dialog;
+	}
+
+	parse_selected_value() {
+		const data = this.dialog.get_values();
+		return JSON.parse(data.search);
 	}
 
 	show() {
