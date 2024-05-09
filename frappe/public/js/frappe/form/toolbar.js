@@ -310,6 +310,16 @@ frappe.ui.form.Toolbar = class Toolbar {
 		const allow_print_for_draft = cint(print_settings.allow_print_for_draft);
 		const allow_print_for_cancelled = cint(print_settings.allow_print_for_cancelled);
 
+		if (is_submittable && docstatus == 0 && !this.has_workflow()) {
+			this.page.add_menu_item(
+				__("Discard"),
+				function () {
+					me.frm._discard();
+				},
+				true
+			);
+		}
+
 		if (
 			!is_submittable ||
 			docstatus == 1 ||
@@ -584,9 +594,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 	}
 	has_workflow() {
 		if (this._has_workflow === undefined)
-			this._has_workflow = frappe.get_list("Workflow", {
-				document_type: this.frm.doctype,
-			}).length;
+			this._has_workflow = frappe.model.has_workflow(this.frm.doctype);
 		return this._has_workflow;
 	}
 	get_docstatus() {

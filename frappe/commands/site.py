@@ -924,11 +924,13 @@ def backup(
 
 	verbose = verbose or context.verbose
 	exit_code = 0
+	rollback_callback = None
 
 	for site in context.sites:
 		try:
 			frappe.init(site=site)
 			frappe.connect()
+			rollback_callback = CallbackManager()
 			odb = scheduled_backup(
 				ignore_files=not with_files,
 				backup_path=backup_path,
@@ -943,12 +945,16 @@ def backup(
 				verbose=verbose,
 				force=True,
 				old_backup_metadata=old_backup_metadata,
+				rollback_callback=rollback_callback,
 			)
 		except Exception:
 			click.secho(
 				f"Backup failed for Site {site}. Database or site_config.json may be corrupted",
 				fg="red",
 			)
+			if rollback_callback:
+				rollback_callback.run()
+				rollback_callback = None
 			if verbose:
 				print(frappe.get_traceback(with_context=True))
 			exit_code = 1
@@ -1325,7 +1331,10 @@ def start_ngrok(context, bind_tls, use_default_authtoken):
 
 		ngrok.set_auth_token(ngrok_authtoken)
 
-	port = frappe.conf.http_port or frappe.conf.webserver_port
+	port = frappe.conf.http_port
+	if not port and frappe.conf.developer_mode:
+		port = frappe.conf.webserver_port
+
 	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls)
 	print(f"Public URL: {tunnel.public_url}")
 	print("Inspect logs at http://127.0.0.1:4040")

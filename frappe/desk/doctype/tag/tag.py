@@ -28,7 +28,7 @@ def check_user_tags(dt):
 		doctype = DocType(dt)
 		frappe.qb.from_(doctype).select(doctype._user_tags).limit(1).run()
 	except Exception as e:
-		if frappe.db.is_column_missing(e):
+		if frappe.db.is_missing_column(e):
 			DocTags(dt).setup()
 
 
@@ -118,7 +118,7 @@ class DocTags:
 			doc = frappe.get_doc(self.dt, dn)
 			update_tags(doc, tags)
 		except Exception as e:
-			if frappe.db.is_column_missing(e):
+			if frappe.db.is_missing_column(e):
 				if not tags:
 					# no tags, nothing to do
 					return

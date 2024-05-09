@@ -97,6 +97,10 @@ class MariaDBExceptionUtil:
 			and isinstance(e, pymysql.IntegrityError)
 		)
 
+	@staticmethod
+	def is_interface_error(e: pymysql.Error):
+		return isinstance(e, pymysql.InterfaceError)
+
 
 class MariaDBConnectionUtil:
 	def get_connection(self):
@@ -528,6 +532,9 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 		from pymysql.cursors import SSCursor
 
 		try:
+			if not self._conn:
+				self.connect()
+
 			original_cursor = self._cursor
 			new_cursor = self._cursor = self._conn.cursor(SSCursor)
 			yield

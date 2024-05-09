@@ -87,16 +87,24 @@ def import_controller(doctype):
 
 	module_path = None
 	class_overrides = frappe.get_hooks("override_doctype_class")
+
+	module = load_doctype_module(doctype, module_name)
+	classname = doctype.replace(" ", "").replace("-", "")
+	class_ = getattr(module, classname, None)
+
 	if class_overrides and class_overrides.get(doctype):
 		import_path = class_overrides[doctype][-1]
-		module_path, classname = import_path.rsplit(".", 1)
-		module = frappe.get_module(module_path)
+		module_path, custom_classname = import_path.rsplit(".", 1)
+		custom_module = frappe.get_module(module_path)
+		custom_class_ = getattr(custom_module, custom_classname, None)
+		if not issubclass(custom_class_, class_):
+			original_class_path = frappe.bold(f"{class_.__module__}.{class_.__name__}")
+			frappe.throw(
+				f"{doctype}: {frappe.bold(import_path)} must be a subclass of {original_class_path}",
+				title=_("Invalid Override"),
+			)
+		class_ = custom_class_
 
-	else:
-		module = load_doctype_module(doctype, module_name)
-		classname = doctype.replace(" ", "").replace("-", "")
-
-	class_ = getattr(module, classname, None)
 	if class_ is None:
 		raise ImportError(
 			doctype
@@ -569,8 +577,8 @@ class BaseDocument:
 			if frappe.db.is_primary_key_violation(e):
 				if self.meta.autoname == "hash":
 					# hash collision? try again
-					frappe.flags.retry_count = (frappe.flags.retry_count or 0) + 1
-					if frappe.flags.retry_count > 5 and not frappe.flags.in_test:
+					self.flags.retry_count = (self.flags.retry_count or 0) + 1
+					if self.flags.retry_count > 5:
 						raise
 					self.name = None
 					self.db_insert()

@@ -236,3 +236,4 @@ frappe.patches.v15_0.migrate_role_profile_to_table_multi_select
 frappe.patches.v15_0.migrate_session_data
 frappe.custom.doctype.property_setter.patches.remove_invalid_fetch_from_expressions
 frappe.patches.v16_0.switch_default_sort_order
+frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client

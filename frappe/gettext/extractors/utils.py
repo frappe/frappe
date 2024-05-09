@@ -44,6 +44,9 @@ def extract_messages_from_code(code):
 	except (TemplateError, ImportError, InvalidIncludePath, OSError) as e:
 		if isinstance(e, InvalidIncludePath) and hasattr(frappe.local, "message_log"):
 			frappe.clear_last_message()
+	except RuntimeError:
+		# code depends on locals
+		pass
 
 	messages = []
 

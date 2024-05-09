@@ -195,7 +195,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	validate_section() {
 		if (this.allow_incomplete) return true;
 
-		let fields = $(`.form-page:eq(${this.current_section}) .form-control`);
+		let fields = $(`${this.get_page(this.current_section)} .form-control`);
 		let errors = [];
 		let invalid_values = [];
 
@@ -205,7 +205,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 			field = this.fields_dict[fieldname];
 
-			if (field.get_value) {
+			if (field && field.get_value) {
 				let value = field.get_value();
 				if (
 					field.df.reqd &&
@@ -306,8 +306,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	is_next_section_empty(section) {
 		if (section + 1 > this.page_breaks.length + 1) return true;
 
-		let _section = $(`.form-page:eq(${section + 1})`);
-		let visible_controls = _section.find(".frappe-control:not(.hide-control)");
+		let _page = $(`${this.get_page(section + 1)}`);
+		let visible_controls = _page.find(".frappe-control:not(.hide-control)");
 
 		return !visible_controls.length ? true : false;
 	}
@@ -315,8 +315,8 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	is_previous_section_empty(section) {
 		if (section - 1 > this.page_breaks.length + 1) return true;
 
-		let _section = $(`.form-page:eq(${section - 1})`);
-		let visible_controls = _section.find(".frappe-control:not(.hide-control)");
+		let _page = $(`${this.get_page(section - 1)}`);
+		let visible_controls = _page.find(".frappe-control:not(.hide-control)");
 
 		return !visible_controls.length ? true : false;
 	}
@@ -335,14 +335,18 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		this.current_section == 0 ? $(".btn-previous").hide() : $(".btn-previous").show();
 	}
 
+	get_page(idx) {
+		return idx > 0 ? `.page-break:eq(${idx - 1})` : `.form-page:eq(${idx})`;
+	}
+
 	show_form_page() {
-		$(`.form-page:eq(${this.current_section})`).show();
+		$(this.get_page(this.current_section)).show();
 	}
 
 	hide_form_pages() {
 		for (let idx = 0; idx <= this.page_breaks.length; idx++) {
 			if (idx !== this.current_section) {
-				$(`.form-page:eq(${idx})`).hide();
+				$(this.get_page(idx)).hide();
 			}
 		}
 	}

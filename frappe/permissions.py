@@ -438,10 +438,8 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 	if not user:
 		user = frappe.session.user
 
-	methods = frappe.get_hooks("has_permission").get(doc.doctype, [])
-
-	if not methods:
-		return True
+	hooks = frappe.get_hooks("has_permission")
+	methods = hooks.get(doc.doctype, []) + hooks.get("*", [])
 
 	for method in reversed(methods):
 		controller_permission = frappe.call(method, doc=doc, ptype=ptype, user=user, debug=debug)
@@ -453,7 +451,7 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 
 
 def get_doctypes_with_read():
-	return list({cstr(p.parent) for p in get_valid_perms() if p.parent})
+	return list({cstr(p.parent) for p in get_valid_perms() if p.parent and p.read})
 
 
 def get_valid_perms(doctype=None, user=None):
