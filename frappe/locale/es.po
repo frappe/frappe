@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-04-30 15:47\n"
+"PO-Revision-Date: 2024-05-09 18:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -6600,7 +6600,7 @@ msgstr "Copiado al portapapeles."
 
 #: website/doctype/web_form/web_form.js:29
 msgid "Copy Embed Code"
-msgstr ""
+msgstr "Copiar código incrustado"
 
 #: public/js/frappe/form/templates/timeline_message_box.html:83
 msgid "Copy Link"
@@ -7268,11 +7268,11 @@ msgstr "Formato Personalizado"
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Custom Group Search"
-msgstr ""
+msgstr "Búsqueda de grupo personalizada"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:121
 msgid "Custom Group Search if filled needs to contain the user placeholder {0}, eg uid={0},ou=users,dc=example,dc=com"
-msgstr ""
+msgstr "Búsqueda de grupo personalizada si se rellena necesita contener el marcador de posición de usuario {0}, por ejemplo uid={0},ou=users,dc=example,dc=com"
 
 #: printing/page/print_format_builder/print_format_builder.js:190
 #: printing/page/print_format_builder/print_format_builder.js:720
@@ -7292,19 +7292,19 @@ msgstr "Ayuda HTML personalizada"
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:113
 msgid "Custom LDAP Directoy Selected, please ensure 'LDAP Group Member attribute' and 'Group Object Class' are entered"
-msgstr ""
+msgstr "Directorio LDAP personalizado seleccionado, asegúrese de ingresar el 'Atributo de miembro del grupo LDAP' y la 'Clase de objeto de grupo'"
 
 #. Label of a Data field in DocType 'Web Form Field'
 #: website/doctype/web_form_field/web_form_field.json
 msgctxt "Web Form Field"
 msgid "Custom Label"
-msgstr ""
+msgstr "Etiqueta personalizada"
 
 #. Label of a Data field in DocType 'Web Form List Column'
 #: website/doctype/web_form_list_column/web_form_list_column.json
 msgctxt "Web Form List Column"
 msgid "Custom Label"
-msgstr ""
+msgstr "Etiqueta personalizada"
 
 #. Label of a Table field in DocType 'Portal Settings'
 #: website/doctype/portal_settings/portal_settings.json
@@ -7933,13 +7933,13 @@ msgstr "Formato de Fecha"
 
 #: desk/page/leaderboard/leaderboard.js:165
 msgid "Date Range"
-msgstr ""
+msgstr "Rango de Fechas"
 
 #. Label of a Section Break field in DocType 'Audit Trail'
 #: core/doctype/audit_trail/audit_trail.json
 msgctxt "Audit Trail"
 msgid "Date Range"
-msgstr ""
+msgstr "Rango de Fechas"
 
 #. Label of a Section Break field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -8309,7 +8309,7 @@ msgstr "Predeterminados"
 
 #: email/doctype/email_account/email_account.py:220
 msgid "Defaults Updated"
-msgstr ""
+msgstr "Valores predeterminados actualizados"
 
 #. Description of a DocType
 #: workflow/doctype/workflow_transition/workflow_transition.json
@@ -9014,7 +9014,7 @@ msgstr "La visualización depende de (JS)"
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Do Not Create New User "
-msgstr ""
+msgstr "No crear nuevo usuario "
 
 #. Description of the 'Do Not Create New User ' (Check) field in DocType 'LDAP
 #. Settings'
@@ -9214,13 +9214,13 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/doctype_link/doctype_link.json
 msgid "DocType Link"
-msgstr ""
+msgstr "Enlace DocType"
 
 #. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
 msgid "DocType Link"
-msgstr ""
+msgstr "Enlace DocType"
 
 #: core/doctype/doctype/doctype_list.js:22
 msgid "DocType Name"
@@ -9262,15 +9262,15 @@ msgstr "DocType debe ser Enviable para el evento de Documento Seleccionado"
 
 #: client.py:421
 msgid "DocType must be a string"
-msgstr ""
+msgstr "DocType debe ser una cadena"
 
 #: public/js/form_builder/store.js:154
 msgid "DocType must have atleast one field"
-msgstr ""
+msgstr "DocType debe tener al menos un campo"
 
 #: core/doctype/log_settings/log_settings.py:58
 msgid "DocType not supported by Log Settings."
-msgstr ""
+msgstr "DocType no soportado por la configuración del registro."
 
 #. Description of the 'Document Type' (Link) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
@@ -9392,11 +9392,11 @@ msgstr "Enlaces de documentos"
 
 #: core/doctype/doctype/doctype.py:1178
 msgid "Document Links Row #{0}: Could not find field {1} in {2} DocType"
-msgstr ""
+msgstr "Fila de enlaces de documento #{0}: no se pudo encontrar el campo {1} en {2} DocType"
 
 #: core/doctype/doctype/doctype.py:1198
 msgid "Document Links Row #{0}: Invalid doctype or fieldname."
-msgstr ""
+msgstr "Fila de enlaces de documento #{0}: doctype o nombre de campo no válido."
 
 #: core/doctype/doctype/doctype.py:1161
 msgid "Document Links Row #{0}: Parent DocType is mandatory for internal links"
@@ -10812,7 +10812,7 @@ msgstr "Los Correos Electrónicos se enviarán con las próximas acciones de flu
 
 #: website/doctype/web_form/web_form.js:34
 msgid "Embed code copied"
-msgstr ""
+msgstr "Código integrado copiado"
 
 #. Label of a Check field in DocType 'Google Calendar'
 #: integrations/doctype/google_calendar/google_calendar.json
@@ -12046,7 +12046,7 @@ msgstr "Error al enviar el correo de notificación"
 
 #: desk/page/setup_wizard/setup_wizard.py:23
 msgid "Failed to update global settings"
-msgstr ""
+msgstr "No se pudo actualizar la configuración global"
 
 #: core/doctype/data_import/data_import.js:465
 msgid "Failure"
@@ -12226,7 +12226,7 @@ msgstr "Nombre de Campo"
 
 #: public/js/print_format_builder/utils.js:69
 msgid "Field Template"
-msgstr ""
+msgstr "Plantilla de Campo"
 
 #. Label of a Select field in DocType 'Energy Point Rule'
 #: social/doctype/energy_point_rule/energy_point_rule.json
@@ -12246,7 +12246,7 @@ msgstr "Tipo de campo"
 
 #: desk/reportview.py:182
 msgid "Field not permitted in query"
-msgstr ""
+msgstr "Campo no permitido en consulta"
 
 #. Description of the 'Workflow State Field' (Data) field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
@@ -12329,7 +12329,7 @@ msgstr "Nombre de campo '{0}' en conflicto con un {1} del nombre {2} en {3}"
 
 #: core/doctype/doctype/doctype.py:1057
 msgid "Fieldname called {0} must exist to enable autonaming"
-msgstr ""
+msgstr "El nombre de campo llamado {0} debe existir para habilitar el nombre automático"
 
 #: database/schema.py:125 database/schema.py:356
 msgid "Fieldname is limited to 64 characters ({0})"
@@ -12417,7 +12417,7 @@ msgstr "Campos Multicheck"
 
 #: core/doctype/file/file.py:404
 msgid "Fields `file_name` or `file_url` must be set for File"
-msgstr ""
+msgstr "Los campos `file_name` o `file_url` deben establecerse para Archivo"
 
 #: model/db_query.py:138
 msgid "Fields must be a list or tuple when as_list is enabled"
@@ -17750,7 +17750,7 @@ msgstr "Tabla de líderes"
 #. Label of an action in the Onboarding Step 'Customize Print Formats'
 #: custom/onboarding_step/print_format/print_format.json
 msgid "Learn about Standard and Custom Print Formats"
-msgstr ""
+msgstr "Aprende sobre formatos estándar y personalizados de impresión"
 
 #. Title of an Onboarding Step
 #: website/onboarding_step/web_page_tour/web_page_tour.json
@@ -17760,7 +17760,7 @@ msgstr ""
 #. Label of an action in the Onboarding Step 'Create Custom Fields'
 #: custom/onboarding_step/custom_field/custom_field.json
 msgid "Learn how to add Custom Fields"
-msgstr ""
+msgstr "Aprenda cómo agregar Campos Personalizados"
 
 #: website/web_template/section_with_features/section_with_features.html:26
 msgid "Learn more"
@@ -17774,7 +17774,7 @@ msgstr ""
 #. Label of an action in the Onboarding Step 'Custom Document Types'
 #: custom/onboarding_step/custom_doctype/custom_doctype.json
 msgid "Learn more about creating new DocTypes"
-msgstr ""
+msgstr "Aprenda más sobre la creación de nuevos DocTypes"
 
 #. Description of the 'Repeat Till' (Date) field in DocType 'Event'
 #: desk/doctype/event/event.json
@@ -18744,13 +18744,13 @@ msgstr "Registros"
 #. Name of a DocType
 #: core/doctype/logs_to_clear/logs_to_clear.json
 msgid "Logs To Clear"
-msgstr ""
+msgstr "Registros a borrar"
 
 #. Label of a Table field in DocType 'Log Settings'
 #: core/doctype/log_settings/log_settings.json
 msgctxt "Log Settings"
 msgid "Logs to Clear"
-msgstr ""
+msgstr "Registros a borrar"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -22765,7 +22765,7 @@ msgstr ""
 #: desk/doctype/form_tour_step/form_tour_step.json
 msgctxt "Form Tour Step"
 msgid "Parent Element Selector"
-msgstr ""
+msgstr "Selector de elemento padre"
 
 #. Label of a Select field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -22801,7 +22801,7 @@ msgstr "Falta padre"
 #: desk/doctype/workspace/workspace.json
 msgctxt "Workspace"
 msgid "Parent Page"
-msgstr ""
+msgstr "Página Padre"
 
 #: core/doctype/data_export/exporter.py:24
 msgid "Parent Table"
@@ -22827,7 +22827,7 @@ msgstr ""
 #: website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgctxt "Personal Data Deletion Step"
 msgid "Partial"
-msgstr ""
+msgstr "Parcial"
 
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -23530,7 +23530,7 @@ msgstr "Habilite las ventanas emergentes en su navegador"
 
 #: integrations/google_oauth.py:53
 msgid "Please enable {} before continuing."
-msgstr ""
+msgstr "Habilite {} antes de continuar."
 
 #: utils/oauth.py:186
 msgid "Please ensure that your profile has an email address"
@@ -23722,7 +23722,7 @@ msgstr "Defina el valor de los filtros en la tabla Filtro de informes."
 
 #: model/naming.py:565
 msgid "Please set the document name"
-msgstr ""
+msgstr "Por favor, establezca el nombre del documento"
 
 #: desk/doctype/dashboard/dashboard.py:122
 msgid "Please set the following documents in this Dashboard as standard first."
@@ -23754,7 +23754,7 @@ msgstr "Por favor, especifique"
 
 #: permissions.py:771
 msgid "Please specify a valid parent DocType for {0}"
-msgstr ""
+msgstr "Por favor, especifique un DocType padre válido para {0}"
 
 #: email/doctype/notification/notification.py:87
 msgid "Please specify which date field must be checked"
@@ -25486,13 +25486,13 @@ msgstr "Redireccionar URL"
 #: email/doctype/email_group/email_group.json
 msgctxt "Email Group"
 msgid "Redirect to this URL after successful confirmation."
-msgstr ""
+msgstr "Redirigir a esta URL tras una confirmación satisfactoria."
 
 #. Label of a Tab Break field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Redirects"
-msgstr ""
+msgstr "Redirección"
 
 #: sessions.py:143
 msgid "Redis cache server not running. Please contact Administrator / Tech support"
@@ -26589,7 +26589,7 @@ msgstr ""
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "Request Method"
-msgstr ""
+msgstr "Método de solicitud"
 
 #. Label of a Select field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -26621,7 +26621,7 @@ msgstr "URL de Solicitud"
 #: core/doctype/sms_log/sms_log.json
 msgctxt "SMS Log"
 msgid "Requested Numbers"
-msgstr ""
+msgstr "Números solicitados"
 
 #. Label of a Select field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -26634,14 +26634,14 @@ msgstr "Requerir certificado de confianza"
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Requires any valid fdn path. i.e. ou=groups,dc=example,dc=com"
-msgstr ""
+msgstr "Requiere cualquier ruta fdn válida. es decir, ou=grupos,dc=ejemplo,dc=com"
 
 #. Description of the 'LDAP search path for Users' (Data) field in DocType
 #. 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Requires any valid fdn path. i.e. ou=users,dc=example,dc=com"
-msgstr ""
+msgstr "Requiere cualquier ruta fdn válida. es decir ou=users,dc=example,dc=com"
 
 #: core/doctype/communication/communication.js:279
 msgid "Res: {0}"
@@ -30475,7 +30475,7 @@ msgstr "Estándar"
 
 #: model/delete_doc.py:78
 msgid "Standard DocType can not be deleted."
-msgstr ""
+msgstr "No se puede eliminar DocType estándar."
 
 #: core/doctype/doctype/doctype.py:225
 msgid "Standard DocType cannot have default print format, use Customize Form"
@@ -30495,11 +30495,11 @@ msgstr "El estilo de impresión estándar no se puede cambiar. Duplicar por favo
 
 #: desk/reportview.py:333
 msgid "Standard Reports cannot be deleted"
-msgstr ""
+msgstr "Los informes estándar no se pueden eliminar"
 
 #: desk/reportview.py:304
 msgid "Standard Reports cannot be edited"
-msgstr ""
+msgstr "Los informes estándar no se pueden editar"
 
 #. Label of a Section Break field in DocType 'Portal Settings'
 #: website/doctype/portal_settings/portal_settings.json
