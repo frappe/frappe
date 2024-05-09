@@ -969,7 +969,11 @@ class BaseDocument:
 
 		frappe.throw(
 			_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(
+<<<<<<< HEAD
 				reference, _(df.label), max_length, value
+=======
+				reference, frappe.bold(_(df.label, context=df.parent)), max_length, value
+>>>>>>> 53517630ae (fix: Increase folder link field size (#26381))
 			),
 			frappe.CharacterLengthExceededError,
 			title=_("Value too big"),
