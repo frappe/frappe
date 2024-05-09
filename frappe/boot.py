@@ -109,6 +109,9 @@ def get_bootinfo():
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.marketplace_apps = get_marketplace_apps()
 	bootinfo.changelog_feed = get_changelog_feed_items()
+	bootinfo.address_autocomplete_enabled = frappe.db.get_single_value(
+		"Address Autocomplete Settings", "enabled"
+	)
 
 	return bootinfo
 
