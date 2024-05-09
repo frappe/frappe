@@ -19,7 +19,7 @@
   {
    "fieldname": "api_key",
    "fieldtype": "Password",
-   "label": "Api Key",
+   "label": "API Key",
    "mandatory_depends_on": "enabled"
   },
   {
@@ -31,7 +31,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2024-05-09 21:40:38.625256",
+ "modified": "2024-05-09 22:13:41.223754",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Address Autocomplete Settings",
