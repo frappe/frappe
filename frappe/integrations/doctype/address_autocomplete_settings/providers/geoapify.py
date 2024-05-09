@@ -13,7 +13,7 @@ class GeoapifyProvider:
 		params = {
 			"text": query,
 			"apiKey": self.api_key,
-			"limit": 20,
+			"limit": 5,
 			"format": "json",
 			"lang": self.lang,
 		}
@@ -21,7 +21,6 @@ class GeoapifyProvider:
 		response.raise_for_status()
 
 		results = response.json()["results"]
-		# TODO: need to return the full address data here, as value or extra data
 		return [
 			{
 				"label": result["formatted"],
