@@ -11,6 +11,7 @@ from semantic_version import SimpleSpec, Version
 import frappe
 from frappe import _, safe_decode
 from frappe.utils import cstr
+from frappe.utils.caching import redis_cache
 from frappe.utils.frappecloud import on_frappecloud
 
 
@@ -250,22 +251,16 @@ def check_release_on_github(
 		raise ValueError("Repo cannot be empty")
 
 	# Get latest version from GitHub
-	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
-	if r.ok:
-		latest_non_beta_release = parse_latest_non_beta_release(r.json(), current_version)
-		if latest_non_beta_release:
-			return Version(latest_non_beta_release), owner
+	releases = _get_latest_releases(owner, repo)
+	latest_non_beta_release = parse_latest_non_beta_release(releases, current_version)
+	if latest_non_beta_release:
+		return Version(latest_non_beta_release), owner
 
 	return None, None
 
 
 def security_issues_count(owner: str, repo: str, current_version: Version, target_version: Version) -> int:
-	import requests
-
-	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/security-advisories")
-	if not r.ok:
-		return 0
-	advisories = r.json()
+	advisories = _get_security_issues(owner, repo)
 
 	def applicable(advisory) -> bool:
 		# Current version is in vulnerable range
@@ -283,6 +278,28 @@ def security_issues_count(owner: str, repo: str, current_version: Version, targe
 					return True
 
 	return len([sa for sa in advisories if applicable(sa)])
+
+
+@redis_cache(ttl=6 * 24 * 60 * 60, shared=True)
+def _get_latest_releases(owner, repo):
+	import requests
+
+	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
+	if not r.ok:
+		return []
+
+	return r.json()
+
+
+@redis_cache(ttl=6 * 24 * 60 * 60, shared=True)
+def _get_security_issues(owner, repo):
+	import requests
+
+	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/security-advisories")
+	if not r.ok:
+		return []
+
+	return r.json()
 
 
 def parse_github_url(remote_url: str) -> tuple[str, str] | tuple[None, None]:
