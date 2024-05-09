@@ -107,6 +107,7 @@
    "fieldtype": "Link",
    "hidden": 1,
    "label": "Folder",
+   "length": 255,
    "options": "File",
    "read_only": 1
   },
@@ -189,7 +190,7 @@
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2024-03-23 16:03:25.814224",
+ "modified": "2024-05-09 11:46:42.917146",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",
