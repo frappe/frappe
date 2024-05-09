@@ -1,3 +1,5 @@
+import json
+
 import requests
 
 
@@ -23,7 +25,15 @@ class GeoapifyProvider:
 		return [
 			{
 				"label": result["formatted"],
-				"value": result["place_id"],
+				"value": json.dumps(
+					{
+						"address_line1": result.get("address_line1"),
+						"city": result.get("city"),
+						"state": result.get("state"),
+						"pincode": result.get("postcode"),
+						"country": result.get("country"),
+					}
+				),
 			}
 			for result in results
 		]
