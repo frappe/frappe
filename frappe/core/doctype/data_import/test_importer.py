@@ -65,7 +65,8 @@ class TestImporter(FrappeTestCase):
 
 		data_import = self.get_importer_semicolon(doctype_name, import_file)
 		doc = data_import.get_preview_from_template().get("data", [{}])
-		# if semicolon delimiter detection fails, and falls back to comma, detected colum number will be 2 (+1 id) instead of
+		# if semicolon delimiter detection fails, and falls back to comma,
+		# colum number will be less than 15 -> 2 (+1 id)
 		self.assertLessEqual(len(doc[0]), 15)
 
 	def test_data_import_preview(self):
@@ -112,7 +113,6 @@ class TestImporter(FrappeTestCase):
 			"Title is required",
 		)
 
-	#
 	def test_data_import_update(self):
 		existing_doc = frappe.get_doc(
 			doctype=doctype_name,
@@ -162,7 +162,7 @@ class TestImporter(FrappeTestCase):
 		data_import.import_type = "Insert New Records" if not update else "Update Existing Records"
 		data_import.reference_doctype = doctype
 		data_import.import_file = import_file.file_url
-		# deliberatly overwrite default delimiter options here, causing to fail when parsing ;
+		# deliberately overwrite default delimiter options here, causing to fail when parsing `;`
 		data_import.delimiter_options = ","
 		data_import.insert()
 		frappe.db.commit()  # nosemgrep
