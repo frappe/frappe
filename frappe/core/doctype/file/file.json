@@ -189,11 +189,7 @@
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-07-26 14:03:49.456951",
-=======
  "modified": "2024-05-09 11:46:42.917146",
->>>>>>> 53517630ae (fix: Increase folder link field size (#26381))
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",
