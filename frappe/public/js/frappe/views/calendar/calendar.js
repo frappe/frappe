@@ -208,38 +208,41 @@ frappe.views.Calendar = class Calendar {
 		});
 	}
 	set_css() {
+		const viewButtons =
+			".fc-dayGridMonth-button, .fc-dayGridWeek-button, .fc-dayGridDay-button, .fc-today-button";
+		const fcViewButtonClasses = "fc-button fc-button-primary fc-button-active";
+
+		// remove fc-button styles
 		this.$wrapper
 			.find("button.fc-button")
-			.removeClass("fc-button")
-			.removeClass("fc-button-primary")
+			.removeClass(fcViewButtonClasses)
 			.addClass("btn btn-default");
 
-		this.$wrapper
-			.find(".fc-dayGridMonth-button, .fc-dayGridWeek-button, .fc-dayGridDay-button")
-			.wrapAll('<div class="btn-group" />');
+		// group all view buttons
+		this.$wrapper.find(viewButtons).wrapAll('<div class="btn-group" />');
 
 		// add icons
 		this.$wrapper
-			.find(".fc-prev-button span")
+			.find(`.fc-prev-button span`)
 			.attr("class", "")
 			.html(frappe.utils.icon("left"));
-
-		this.$wrapper.find(".fc-prev-button").css("margin-right", 5 + "px");
-
 		this.$wrapper
-			.find(".fc-next-button span")
+			.find(`.fc-next-button span`)
 			.attr("class", "")
 			.html(frappe.utils.icon("right"));
-
 		this.$wrapper.find(".fc-today-button").prepend(frappe.utils.icon("today"));
 
-		this.$wrapper.find(".fc-day-number").wrap('<div class="fc-day"></div>');
-
+		// v6.x of fc has weird behaviour which removes all the custom classes
+		// on header buttons on click, event below re-adds all the classes
 		var btn_group = this.$wrapper.find(".fc-button-group");
 		btn_group.find(".fc-button-active").addClass("active");
 
 		btn_group.find(".btn").on("click", function () {
-			btn_group.find(".btn").removeClass("active");
+			btn_group
+				.find(viewButtons)
+				.removeClass(`active ${fcViewButtonClasses}`)
+				.addClass("btn btn-default");
+
 			$(this).addClass("active");
 		});
 	}
@@ -254,9 +257,10 @@ frappe.views.Calendar = class Calendar {
 			plugins: [dayGridPlugin, listPlugin, timeGridPlugin, interactionPlugin],
 			initialView: defaults.initialView || "dayGridMonth",
 			locale: frappe.boot.lang,
+			firstDay: 1,
 			headerToolbar: {
-				left: "prev,next",
-				center: "title",
+				left: "prev,title,next",
+				center: "",
 				right: "today,dayGridMonth,dayGridWeek,dayGridDay",
 			},
 			editable: true,
@@ -264,7 +268,7 @@ frappe.views.Calendar = class Calendar {
 			selectable: true,
 			selectMirror: true,
 			forceEventDuration: true,
-			displayEventTime: false,
+			displayEventTime: true,
 			weekends: defaults.weekends,
 			nowIndicator: true,
 			themeSystem: null,
