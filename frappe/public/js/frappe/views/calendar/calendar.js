@@ -245,7 +245,7 @@ frappe.views.Calendar = class Calendar {
 	}
 
 	get_system_datetime(date) {
-		return frappe.datetime.convert_to_system_tz(new Date(date));
+		return frappe.datetime.convert_to_system_tz(date);
 	}
 	setup_options(defaults) {
 		var me = this;
@@ -278,7 +278,7 @@ frappe.views.Calendar = class Calendar {
 				return frappe.call({
 					method: me.get_events_method || "frappe.desk.calendar.get_events",
 					type: "GET",
-					args: me.get_args(info.startStr, info.endStr),
+					args: me.get_args(info.start, info.end),
 					callback: function (r) {
 						var events = r.message || [];
 						events = me.prepare_events(events);
@@ -301,27 +301,26 @@ frappe.views.Calendar = class Calendar {
 				me.update_event(info.event, info.revert);
 			},
 			select: function (info) {
-				if (info.view.type === "dayGridMonth" && info.end - info.start === 86400000) {
+				const seconds = info.end - info.start;
+				const allDay = seconds === 86400000;
+
+				if (info.view.type === "dayGridMonth" && allDay) {
 					// detect single day click in month view
 					return;
 				}
 
 				var event = frappe.model.get_new_doc(me.doctype);
 
-				event[me.field_map.start] = me.get_system_datetime(info.startStr);
+				event[me.field_map.start] = me.get_system_datetime(info.start);
+				if (me.field_map.end) event[me.field_map.end] = me.get_system_datetime(info.end);
 
-				if (me.field_map.end)
-					event[me.field_map.end] = me.get_system_datetime(info.endStr);
-
-				if (me.field_map.allDay) {
-					var all_day = info.start._ambigTime && info.end._ambigTime ? 1 : 0;
-
-					event[me.field_map.allDay] = all_day;
-
-					if (all_day)
-						event[me.field_map.end] = me.get_system_datetime(
-							moment(info.endStr).subtract(1, "s")
-						);
+				if (seconds >= 86400000) {
+					if (allDay) {
+						// all-day click
+						event[me.field_map.allDay] = 1;
+					}
+					// incase of all day or multiple day events -1 sec
+					event[me.field_map.end] = me.get_system_datetime(info.end - 1);
 				}
 
 				frappe.set_route("Form", me.doctype, event.name);
@@ -434,7 +433,7 @@ frappe.views.Calendar = class Calendar {
 	}
 	update_event(event, revertFunc) {
 		var me = this;
-		frappe.model.remove_from_locals(me.doctype, event.name);
+		frappe.model.remove_from_locals(me.doctype, event.id);
 		return frappe.call({
 			method: me.update_event_method || "frappe.desk.calendar.update_event",
 			args: me.get_update_args(event),
@@ -452,7 +451,7 @@ frappe.views.Calendar = class Calendar {
 	get_update_args(event) {
 		var me = this;
 		var args = {
-			name: event[this.field_map.id],
+			name: event.id,
 		};
 
 		args[this.field_map.start] = me.get_system_datetime(event.start);
@@ -466,11 +465,8 @@ frappe.views.Calendar = class Calendar {
 			}
 
 			args[this.field_map.end] = me.get_system_datetime(event.end);
-
 			if (args[this.field_map.allDay]) {
-				args[this.field_map.end] = me.get_system_datetime(
-					moment(event.end).subtract(1, "s")
-				);
+				args[this.field_map.end] = me.get_system_datetime(new Date(event.end - 1000));
 			}
 		}
 
@@ -482,10 +478,9 @@ frappe.views.Calendar = class Calendar {
 	fix_end_date_for_event_render(event) {
 		if (event.allDay) {
 			// We use inclusive end dates. This workaround fixes the rendering of events
-			event.start = event.start ? $.fullCalendar.moment(event.start).stripTime() : null;
-			event.end = event.end
-				? $.fullCalendar.moment(event.end).add(1, "day").stripTime()
-				: null;
+			let start = new Date(new Date(event.start).setHours(0, 0, 0, 0));
+			event.start = event.start ? start : null;
+			event.end = event.end ? start.setDate(start.getDate() + 1) : null;
 		}
 	}
 };
