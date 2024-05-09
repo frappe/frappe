@@ -230,7 +230,8 @@ frappe.views.Calendar = class Calendar {
 			.find(`.fc-next-button span`)
 			.attr("class", "")
 			.html(frappe.utils.icon("right"));
-		this.$wrapper.find(".fc-today-button").prepend(frappe.utils.icon("today"));
+		if (this.$wrapper.find(".fc-today-button svg").length == 0)
+			this.$wrapper.find(".fc-today-button").prepend(frappe.utils.icon("today"));
 
 		// v6.x of fc has weird behaviour which removes all the custom classes
 		// on header buttons on click, event below re-adds all the classes
@@ -248,7 +249,7 @@ frappe.views.Calendar = class Calendar {
 	}
 
 	get_system_datetime(date) {
-		return frappe.datetime.convert_to_system_tz(date);
+		return frappe.datetime.convert_to_system_tz(date, true);
 	}
 	setup_options(defaults) {
 		var me = this;
@@ -326,7 +327,6 @@ frappe.views.Calendar = class Calendar {
 					// incase of all day or multiple day events -1 sec
 					event[me.field_map.end] = me.get_system_datetime(info.end - 1);
 				}
-
 				frappe.set_route("Form", me.doctype, event.name);
 			},
 			dateClick: function (info) {
@@ -346,6 +346,13 @@ frappe.views.Calendar = class Calendar {
 
 					me.$wrapper.find(".date-clicked").removeClass("date-clicked");
 					$date_cell.addClass("date-clicked");
+
+					// explicitly remove the fc primary button styling that is append on view change
+					// from month -> day
+					$("#fc-calendar-wrapper")
+						.find("button.fc-button")
+						.removeClass("fc-button fc-button-primary fc-button-active")
+						.addClass("btn btn-default");
 				}
 				return false;
 			},
@@ -406,7 +413,6 @@ frappe.views.Calendar = class Calendar {
 				d.end = frappe.datetime.add_days(d.start, 1);
 			}
 
-			me.fix_end_date_for_event_render(d);
 			me.prepare_colors(d);
 
 			d.title = frappe.utils.html2text(d.title);
@@ -460,8 +466,9 @@ frappe.views.Calendar = class Calendar {
 
 		args[this.field_map.start] = me.get_system_datetime(event.start);
 
-		if (this.field_map.allDay)
-			args[this.field_map.allDay] = event.start._ambigTime && event.end._ambigTime ? 1 : 0;
+		if (this.field_map.allDay) {
+			args[this.field_map.allDay] = event.end - event.start === 86400000 ? 1 : 0;
+		}
 
 		if (this.field_map.end) {
 			if (!event.end) {
@@ -477,14 +484,5 @@ frappe.views.Calendar = class Calendar {
 		args.doctype = event.doctype || this.doctype;
 
 		return { args: args, field_map: this.field_map };
-	}
-
-	fix_end_date_for_event_render(event) {
-		if (event.allDay) {
-			// We use inclusive end dates. This workaround fixes the rendering of events
-			let start = new Date(new Date(event.start).setHours(0, 0, 0, 0));
-			event.start = event.start ? start : null;
-			event.end = event.end ? start.setDate(start.getDate() + 1) : null;
-		}
 	}
 };
