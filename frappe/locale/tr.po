@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-05-08 17:12\n"
+"PO-Revision-Date: 2024-05-09 18:22\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2492,13 +2492,13 @@ msgstr ""
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Apply this rule if the User is the Owner"
-msgstr ""
+msgstr "Kullanıcı Sahibi ise bu kuralı uygulayın"
 
 #. Description of the 'If user is the owner' (Check) field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Apply this rule if the User is the Owner"
-msgstr ""
+msgstr "Kullanıcı Sahibi ise bu kuralı uygulayın"
 
 #. Description of the 'Apply Only Once' (Check) field in DocType 'Energy Point
 #. Rule'
@@ -5407,7 +5407,7 @@ msgstr "Client"
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Client Code"
-msgstr ""
+msgstr "Kullanıcı Kodu"
 
 #. Label of a Section Break field in DocType 'Connected App'
 #: integrations/doctype/connected_app/connected_app.json
@@ -15159,7 +15159,7 @@ msgstr ""
 
 #: core/doctype/doctype/doctype.py:1720 public/js/frappe/roles_editor.js:66
 msgid "If Owner"
-msgstr ""
+msgstr "Sahibiyle"
 
 #: core/page/permission_manager/permission_manager_help.html:25
 msgid "If a Role does not have access at Level 0, then higher levels are meaningless."
