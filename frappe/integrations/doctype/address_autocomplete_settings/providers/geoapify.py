@@ -3,7 +3,7 @@ import json
 import requests
 
 
-class GeoapifyProvider:
+class Geoapify:
 	def __init__(self, api_key: str, lang: str | None = None):
 		self.api_key = api_key
 		self.lang = lang

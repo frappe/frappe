@@ -2,9 +2,10 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 
-from .providers.geoapify import GeoapifyProvider
+from .providers.geoapify import Geoapify
 
 
 class AddressAutocompleteSettings(Document):
@@ -34,7 +35,9 @@ def autocomplete(txt: str) -> list[dict]:
 		return []
 
 	if settings.provider == "Geoapify":
-		provider = GeoapifyProvider(settings.get_password("api_key"), frappe.local.lang)
-		return provider.autocomplete(txt)
+		AutocompleteProvider = Geoapify
+	else:
+		frappe.throw(_("This address autocomplete provider is not supported yet."))
 
-	frappe.throw("Invalid provider")
+	provider = AutocompleteProvider(settings.get_password("api_key"), frappe.local.lang)
+	return provider.autocomplete(txt)
