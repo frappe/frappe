@@ -1,12 +1,6 @@
 // Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-import { Calendar as FullCalendar } from "@fullcalendar/core";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import listPlugin from "@fullcalendar/list";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
-
 frappe.provide("frappe.views.calendar");
 frappe.provide("frappe.views.calendars");
 
@@ -34,7 +28,7 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 	setup_defaults() {
 		return super.setup_defaults().then(() => {
 			this.page_title = __("{0} Calendar", [this.page_title]);
-			this.calendar_settings = frappe.views.calendar[this.doctype] || {};
+			this.calendar_settings = frappe.views.Calendar[this.doctype] || {};
 			this.calendar_name = frappe.get_route()[3];
 		});
 	}
@@ -105,6 +99,10 @@ frappe.views.CalendarView = class CalendarView extends frappe.views.ListView {
 			}
 		});
 	}
+
+	get required_libs() {
+		return "calendar.bundle.js";
+	}
 };
 
 frappe.views.Calendar = class Calendar {
@@ -170,7 +168,7 @@ frappe.views.Calendar = class Calendar {
 		);
 		this.footnote_area.css({ "border-top": "0px" });
 
-		this.fullCalendar = new FullCalendar(this.$cal[0], this.cal_options);
+		this.fullCalendar = new frappe.FullCalendar(this.$cal[0], this.cal_options);
 		this.fullCalendar.render();
 
 		this.set_css();
@@ -200,7 +198,6 @@ frappe.views.Calendar = class Calendar {
 
 		me.$wrapper.on("click", ".btn-weekend", function () {
 			me.cal_options.weekends = !me.cal_options.weekends;
-			//me.fullCalendar("option", "weekends", );
 			me.fullCalendar.setOption("weekends", me.cal_options.weekends);
 			me.set_localStorage_option("cal_weekends", me.cal_options.weekends);
 			me.set_css();
@@ -255,7 +252,7 @@ frappe.views.Calendar = class Calendar {
 		var me = this;
 		defaults.meridiem = "false";
 		this.cal_options = {
-			plugins: [dayGridPlugin, listPlugin, timeGridPlugin, interactionPlugin],
+			plugins: frappe.FullCalendar.Plugins,
 			initialView: defaults.initialView || "dayGridMonth",
 			locale: frappe.boot.lang,
 			firstDay: 1,
