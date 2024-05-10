@@ -198,11 +198,11 @@ def get_translation_dict_from_file(path, lang, app, throw=False) -> dict[str, st
 				translation_map[key] = strip(item[1])
 			elif len(item) in [2, 3]:
 				translation_map[item[0]] = strip(item[1])
-			elif item:
-				msg = f"Bad translation in '{app}' for language '{lang}': {cstr(item)}"
-				frappe.log_error(message=msg, title="Error in translation file")
-				if throw:
-					frappe.throw(msg, title="Error in translation file")
+			# elif item:
+			# 	msg = f"Bad translation in '{app}' for language '{lang}': {cstr(item)}"
+			# 	frappe.log_error(message=msg, title="Error in translation file")
+			# 	if throw:
+			# 		frappe.throw(msg, title="Error in translation file")
 
 	return translation_map
 
