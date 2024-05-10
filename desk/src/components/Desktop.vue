@@ -6,7 +6,7 @@
 			<template v-for="item in desktopItems.data">
 				<!-- Module Link -->
 				<router-link
-					:to="{ name: 'Module', params: { module: item.module.toLowerCase() } }"
+					:to="{ name: 'Module', params: { module: item.module_slug } }"
 					class="mt-5 flex flex-col items-center justify-center gap-3"
 				>
 					<div

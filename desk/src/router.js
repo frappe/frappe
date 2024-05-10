@@ -2,8 +2,6 @@ import { createRouter, createWebHistory } from "vue-router"
 import { session } from "@/data/session"
 import { user } from "@/data/user"
 
-import Module from "@/pages/Module.vue"
-
 const routes = [
 	{
 		path: "/",
@@ -18,7 +16,7 @@ const routes = [
 	{
 		path: "/:module",
 		name: "Module",
-		component: Module,
+		component: () => import("@/pages/Module.vue"),
 	},
 ]
 
