@@ -184,7 +184,7 @@ class TestRedisCache(FrappeAPITestCase):
 		frappe.clear_cache()
 		calculate_area(10)
 		self.assertEqual(function_call_count, 2)
-	
+
 	def test_user_cache(self):
 		function_call_count = 0
 		PI = 3.1415

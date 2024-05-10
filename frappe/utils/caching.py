@@ -138,7 +138,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 	args:
 	        ttl: time to expiry in seconds, defaults to 1 hour
 	        user: `true` should cache be specific to session user.
-			shared: `true` should cache be shared across sites
+	        shared: `true` should cache be shared across sites
 	"""
 
 	def wrapper(func: Callable | None = None) -> Callable:
