@@ -136,6 +136,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Calla
 	args:
 	        ttl: time to expiry in seconds, defaults to 1 hour
 	        user: `true` should cache be specific to session user.
+	        shared: `true` should cache be shared across sites
 	"""
 
 	def wrapper(func: Callable | None = None) -> Callable:
@@ -149,6 +150,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Calla
 
 		@wraps(func)
 		def redis_cache_wrapper(*args, **kwargs):
+<<<<<<< HEAD
 			func_call_key = func_key + str(__generate_request_cache_key(args, kwargs))
 			if frappe.cache().exists(func_call_key):
 				return frappe.cache().get_value(func_call_key, user=user)
@@ -157,6 +159,15 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Calla
 				ttl = getattr(func, "ttl", 3600)
 				frappe.cache().set_value(func_call_key, val, expires_in_sec=ttl, user=user)
 				return val
+=======
+			func_call_key = func_key + "::" + str(__generate_request_cache_key(args, kwargs))
+			if frappe.cache.exists(func_call_key, user=user, shared=shared):
+				return frappe.cache.get_value(func_call_key, user=user, shared=shared)
+			val = func(*args, **kwargs)
+			ttl = getattr(func, "ttl", 3600)
+			frappe.cache.set_value(func_call_key, val, expires_in_sec=ttl, user=user, shared=shared)
+			return val
+>>>>>>> fb2753fcaf (fix: pass user and shared params when checking for cache keys (#26402))
 
 		return redis_cache_wrapper
 
