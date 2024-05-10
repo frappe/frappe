@@ -6,33 +6,35 @@ from frappe.model.document import Document
 from frappe.modules.export_file import delete_folder, export_to_files
 
 
-class DesktopItem(Document):
+class ModuleSidebar(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.desk.doctype.module_sidebar_item.module_sidebar_item import ModuleSidebarItem
+		from frappe.desk.doctype.module_sidebar_workspace.module_sidebar_workspace import (
+			ModuleSidebarWorkspace,
+		)
 		from frappe.types import DF
 
-		color: DF.Color | None
 		custom: DF.Check
-		label: DF.Data
-		link_type: DF.Literal["Module", "URL"]
-		module: DF.Link | None
-		url: DF.Data | None
+		for_user: DF.Link | None
+		items: DF.Table[ModuleSidebarItem]
+		module: DF.Link
+		workspaces: DF.Table[ModuleSidebarWorkspace]
 	# end: auto-generated types
 
 	def on_update(self):
 		if frappe.conf.developer_mode and not self.custom:
-			if self.module:
-				export_to_files(record_list=[["Desktop Item", self.name]], record_module=self.module)
+			export_to_files(record_list=[["Module Sidebar", self.name]], record_module=self.module)
 
-			if self.has_value_changed("label") or self.has_value_changed("module"):
+			if self.has_value_changed("module"):
 				previous = self.get_doc_before_save()
 				if previous and previous.get("module") and previous.get("label"):
-					delete_folder(previous.get("module"), "Desktop Item", previous.get("label"))
+					delete_folder(previous.get("module"), "Module Sidebar", previous.get("label"))
 
 	def after_delete(self):
 		if frappe.conf.developer_mode and self.module and not self.custom:
-			delete_folder(self.module, "Desktop Item", self.label)
+			delete_folder(self.module, "Module Sidebar", self.label)

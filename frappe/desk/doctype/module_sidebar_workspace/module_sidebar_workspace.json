@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-05-10 14:36:55.687932",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "workspace",
+  "label",
+  "column_break_nljx",
+  "icon"
+ ],
+ "fields": [
+  {
+   "fieldname": "workspace",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Workspace",
+   "options": "Workspace",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "workspace.icon",
+   "fetch_if_empty": 1,
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "in_list_view": 1,
+   "label": "Icon"
+  },
+  {
+   "fieldname": "column_break_nljx",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-05-10 15:03:06.444791",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Module Sidebar Workspace",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
