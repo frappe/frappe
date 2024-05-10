@@ -82,8 +82,9 @@ def execute_cmd(cmd, from_async=False):
 		is_whitelisted(method)
 		is_valid_http_method(method)
   
-	print("在handler.execute_cmd中, 执行cmd:\n", cmd)
-	# print(f"\t在execute_cmd中, frappe.call()执行{ method= }\n\t\t{frappe.form_dict= }")
+	# print("在handler.execute_cmd中, 执行 method:\n", method)
+	print("在handler.execute_cmd中, 执行cmd: ", cmd)
+	# print(f"frappe.form_dict:\n  {frappe.form_dict}")
 	return frappe.call(method, **frappe.form_dict)
 
 

@@ -177,7 +177,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 
 		if (client_script) {
 			new Function(client_script)();
-            console.log("script_manager 获取: ", client_script)
+            // console.log("script_manager 获取: ", client_script)
 		}
 
 		if (!this.frm.doctype_layout && doctype.__custom_js) {

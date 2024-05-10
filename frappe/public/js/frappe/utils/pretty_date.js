@@ -1,6 +1,9 @@
 function prettyDate(date, mini) {
 	if (!date) return "";
+	if (date == "undefined") return "";
 
+    // console.log('prettyDate typeof date= ', typeof date);
+    // console.log('prettyDate date= ', date);
 	if (typeof date == "string") {
 		date = frappe.datetime.convert_to_user_tz(date);
 		date = new Date(
