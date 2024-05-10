@@ -1,66 +1,91 @@
 <template>
 	<div
-		class="relative flex h-full max-h-screen min-h-screen w-64 flex-col overflow-auto bg-gray-50 p-4"
+		class="relative flex h-full max-h-screen min-h-screen w-60 flex-col overflow-auto bg-gray-50 p-2"
 	>
-		<router-link class="mb-2 flex items-center gap-2" :to="{ name: 'Home' }">
-			<AppLogo class="h-6 w-6" />
-			<span class="text-xl font-semibold text-gray-800">Frappe</span>
+		<router-link
+			class="mb-2 flex items-center gap-2 rounded p-2 hover:bg-gray-200"
+			:to="{ name: 'Home' }"
+			v-if="desktopItem"
+		>
+			<div class="rounded-sm p-1" :style="`background-color: ${desktopItem.color}`">
+				<Icon :name="desktopItem?.icon" class="h-5 w-5 text-white" />
+			</div>
+			<span class="text-xl font-bold text-gray-800">{{ desktopItem?.label }}</span>
 		</router-link>
 
-		<div v-for="group in sidebarLinks.data" :key="group.linkType">
-			<!-- Link Group - DocTypes/Reports/Pages -->
-			<div v-if="group.items.length" class="mt-5">
-				<div class="flex items-center gap-1">
-					<FeatherIcon
-						@click="group.opened = !group.opened"
-						:name="group.opened ? 'chevron-down' : 'chevron-right'"
-						class="h-4 w-4 font-semibold text-gray-600"
-					/>
-					<div class="flex items-center gap-1 text-base font-semibold text-gray-600">
-						{{ group.linkType }}
-					</div>
-				</div>
-
-				<!-- Link Group Items -->
-				<div v-if="group.opened" class="mt-2 flex flex-col pl-5">
-					<div
-						v-for="item in group.items"
-						:key="item.link_to"
-						class="cursor-pointer truncate border-l-2 px-2 py-1.5 text-base text-gray-800 hover:border-gray-900 hover:text-gray-900"
-					>
+		<!-- Workspaces -->
+		<div class="mt-4 flex flex-col" v-if="sidebar.data?.workspaces">
+			<div v-for="item in sidebar.data?.workspaces" :key="item.name">
+				<div class="flex cursor-pointer items-center gap-2 rounded py-1 px-2 hover:bg-gray-200">
+					<Icon :name="item.icon" class="h-5 w-5 text-gray-700" />
+					<div class="flex items-center gap-1 text-base text-gray-700">
 						{{ item.label }}
 					</div>
 				</div>
+			</div>
+		</div>
+
+		<!-- Sections, Links, Spacers -->
+		<div class="mt-4 flex flex-col" v-if="sidebar.data?.sections">
+			<div v-for="item in sidebar.data?.sections" :key="item.name">
+				<ModuleSidebarLink v-if="item.type === 'Link'" :link="item" />
+
+				<div v-else-if="item.type === 'Spacer'" class="h-5"></div>
+
+				<template v-else-if="item.type === 'Section Break' && item.links.length">
+					<div class="mt-5 flex items-center gap-2 px-2" :class="item.opened ? 'mb-3' : ''">
+						<FeatherIcon
+							@click="item.opened = !item.opened"
+							:name="item.opened ? 'chevron-down' : 'chevron-right'"
+							class="h-4 w-4 font-semibold text-gray-600"
+						/>
+						<div class="flex items-center gap-1 text-sm uppercase text-gray-700">
+							{{ item.label }}
+						</div>
+					</div>
+
+					<ModuleSidebarLink
+						v-if="item.opened"
+						v-for="link in item.links"
+						:key="link.name"
+						:link="link"
+					/>
+				</template>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { watch } from "vue"
+import { ref, watch } from "vue"
 import { useRoute } from "vue-router"
 import { createResource, FeatherIcon } from "frappe-ui"
 
-import AppLogo from "@/components/icons/AppLogo.vue"
+import { getDesktopItem } from "@/data/desktop"
+import Icon from "@/components/Icon.vue"
+import ModuleSidebarLink from "@/components/ModuleSidebarLink.vue"
 
 const route = useRoute()
+const desktopItem = ref(null)
 
-const sidebarLinks = createResource({
-	url: "frappe.api.desk.get_links_for_workspace",
-	transform: (data) => {
-		return Object.entries(data).map(([linkType, items]) => ({
-			linkType,
-			items,
-			opened: true,
-		}))
+const sidebar = createResource({
+	url: "frappe.api.desk.get_module_sidebar",
+	transform(data) {
+		data.sections.forEach((item) => {
+			if (item.type === "Section Break") {
+				item.opened = true
+			}
+		})
+		return data
 	},
 })
 
 watch(
 	() => route.params.module,
-	(module) => {
+	async (module) => {
 		if (!module) return
-		sidebarLinks.submit({ workspace: module.toLowerCase() })
+		desktopItem.value = await getDesktopItem(module)
+		sidebar.submit({ module: desktopItem.value.module })
 	},
 	{ immediate: true }
 )

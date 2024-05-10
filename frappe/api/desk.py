@@ -35,3 +35,34 @@ def get_desktop_items() -> list[dict]:
 		item["app"] = module_names.get(item.get("module"))
 
 	return sorted(desktop_items, key=lambda x: (x.get("app"), x.get("name")))
+
+
+@frappe.whitelist()
+def get_module_sidebar(module: str) -> dict:
+	"""Returns user specfic/global sidebar for a module"""
+	sidebar = frappe.db.exists("Module Sidebar", {"module": module, "for_user": frappe.session.user})
+
+	if not sidebar:
+		sidebar = frappe.db.exists("Module Sidebar", {"module": module, "for_user": ("is", "Not Set")})
+
+	doc = frappe.get_cached_doc("Module Sidebar", sidebar)
+
+	sections = []
+	current_section = None
+
+	for item in doc.items:
+		item = item.as_dict()
+		if item.type == "Spacer":
+			sections.append(item)
+			current_section = None
+		elif item.type == "Section Break":
+			current_section = frappe._dict(item)
+			current_section["links"] = []
+			sections.append(current_section)
+		elif item.type == "Link":
+			if current_section:
+				current_section["links"].append(item)
+			else:
+				sections.append(item)
+
+	return frappe._dict({"workspaces": doc.workspaces, "sections": sections})
