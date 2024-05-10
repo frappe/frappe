@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-05-09 18:22\n"
+"PO-Revision-Date: 2024-05-10 19:16\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -10794,25 +10794,25 @@ msgstr ""
 #: integrations/doctype/google_calendar/google_calendar.json
 msgctxt "Google Calendar"
 msgid "Enable"
-msgstr ""
+msgstr "Etkinleştir"
 
 #. Label of a Check field in DocType 'Google Contacts'
 #: integrations/doctype/google_contacts/google_contacts.json
 msgctxt "Google Contacts"
 msgid "Enable"
-msgstr ""
+msgstr "Etkinleştir"
 
 #. Label of a Check field in DocType 'Google Drive'
 #: integrations/doctype/google_drive/google_drive.json
 msgctxt "Google Drive"
 msgid "Enable"
-msgstr ""
+msgstr "Etkinleştir"
 
 #. Label of a Check field in DocType 'Google Settings'
 #: integrations/doctype/google_settings/google_settings.json
 msgctxt "Google Settings"
 msgid "Enable"
-msgstr ""
+msgstr "Etkinleştir"
 
 #: automation/doctype/auto_repeat/auto_repeat.py:117
 msgid "Enable Allow Auto Repeat for the doctype {0} in Customize Form"
@@ -10914,7 +10914,7 @@ msgstr ""
 #: printing/doctype/print_settings/print_settings.json
 msgctxt "Print Settings"
 msgid "Enable Print Server"
-msgstr ""
+msgstr "Yazdırma Sunucusunu Etkinleştir"
 
 #. Label of a Check field in DocType 'Push Notification Settings'
 #: integrations/doctype/push_notification_settings/push_notification_settings.json
@@ -10964,11 +10964,11 @@ msgstr ""
 #: website/doctype/blog_settings/blog_settings.json
 msgctxt "Blog Settings"
 msgid "Enable Social Sharing"
-msgstr ""
+msgstr "Sosyal Medya Paylaşımını Etkinleştir"
 
 #: website/doctype/website_settings/website_settings.js:139
 msgid "Enable Tracking Page Views"
-msgstr ""
+msgstr "Sayfa Görüntülemelerini İzlemeyi Etkinleştir"
 
 #: twofactor.py:449
 msgid "Enable Two Factor Auth"
