@@ -86,7 +86,7 @@ window.comment_when = function (datetime, mini) {
 		'" title="' +
 		timestamp +
 		'">' +
-		prettyDate(datetime, mini) +
+		timestamp +
 		"</span>"
 	);
 };
