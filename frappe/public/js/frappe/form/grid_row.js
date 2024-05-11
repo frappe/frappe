@@ -1438,8 +1438,7 @@ export default class GridRow {
 		if (field) {
 			// the below if statement is added to factor in the exception when this.doc is undefined -
 			// - after row removals via customize_form.js on links, actions and states child-tables
-			if (this.doc)
-				field.docname = this.doc.name;
+			if (this.doc) field.docname = this.doc.name;
 			field.refresh();
 		}
 
