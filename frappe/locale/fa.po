@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-05-06 16:33\n"
+"PO-Revision-Date: 2024-05-11 20:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5593,12 +5593,12 @@ msgstr "روش چالش کد"
 #: public/js/frappe/form/form_tour.js:270
 #: public/js/frappe/widgets/base_widget.js:159
 msgid "Collapse"
-msgstr "سقوط - فروپاشی"
+msgstr "جمع شدن"
 
 #: public/js/frappe/form/controls/code.js:146
 msgctxt "Shrink code field."
 msgid "Collapse"
-msgstr "سقوط - فروپاشی"
+msgstr "جمع شدن"
 
 #: public/js/frappe/views/reports/query_report.js:1965
 #: public/js/frappe/views/treeview.js:121
@@ -21236,7 +21236,7 @@ msgstr "به هیچ رکوردی مرتبط نیست"
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Not Nullable"
-msgstr ""
+msgstr "غیرقابل تهی"
 
 #: __init__.py:1020 app.py:353 desk/calendar.py:26 geo/utils.py:97
 #: public/js/frappe/web_form/webform_script.js:15
