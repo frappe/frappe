@@ -29,6 +29,10 @@ type_code_block_template = """{start_block}
 
 from typing import TYPE_CHECKING
 
+@staticmethod
+def get_doctype_name():
+{indent}return "{doctype}"
+
 if TYPE_CHECKING:
 {imports}
 
@@ -112,6 +116,8 @@ class TypeExporter:
 				end_block=end_block,
 				fields=textwrap.indent(fields_code_block, self.indent),
 				imports=textwrap.indent(imports, self.indent),
+				indent=self.indent,
+				doctype=self.doctype,
 			),
 			self.indent,
 		)
