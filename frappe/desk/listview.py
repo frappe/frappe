@@ -63,8 +63,8 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 	if not frappe.get_meta(doctype).has_field(field) and not is_default_field(field):
 		raise ValueError("Field does not belong to doctype")
 	
-	meta_field = frappe.get_meta(doctype).get_field(field) # get field info
-	if (meta_field is not None) and (meta_field.fieldtype == "Link"): # if field is link
+	meta_field = frappe.get_meta(doctype).get_field(field)  # get field info
+	if (meta_field is not None) and (meta_field.fieldtype == "Link"):  # if field is link
 		# get list (count, name)
 		raw_list = frappe.get_list(
 			doctype,
@@ -73,7 +73,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 			fields=["count(*) as count", f"`{field}` as name"],
 			order_by="count desc",
 			limit=50,
-			)
+		)
 		# get title field name
 		title_field = frappe.get_meta(meta_field.options).get_title_field()
 		# add title to items
