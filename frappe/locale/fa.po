@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-04-14 10:31+0000\n"
-"PO-Revision-Date: 2024-05-11 20:03\n"
+"PO-Revision-Date: 2024-05-12 20:23\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -38132,7 +38132,7 @@ msgstr "on_cancel"
 #: integrations/doctype/webhook/webhook.json
 msgctxt "Webhook"
 msgid "on_change"
-msgstr "در تغییر"
+msgstr "on_change"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
