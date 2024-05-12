@@ -3,6 +3,7 @@ import { createResource } from "frappe-ui"
 export const desktopItems = createResource({
 	url: "frappe.api.desk.get_desktop_items",
 	auto: true,
+	cache: "desktopItems",
 	transform: (data) => {
 		return data.map((item) => {
 			const slug = item.module.toLowerCase().replace(/ /g, "-")
