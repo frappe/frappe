@@ -222,7 +222,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		} else if (fieldtype && fieldtype == "Check") {
 			label = field.name == "0" ? __("No") : __("Yes");
 		} else if (fieldtype && fieldtype == "Link") {
-			label  = __(field.title);
+			label = __(field.title);
 		} else {
 			label = __(field.name);
 		}
