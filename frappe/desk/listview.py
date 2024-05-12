@@ -64,7 +64,7 @@ def get_group_by_count(doctype: str, current_filters: str, field: str) -> list[d
 		raise ValueError("Field does not belong to doctype")
 	
 	meta_field = frappe.get_meta(doctype).get_field(field) # get field info
-	if meta_field.fieldtype == "Link": # if field is link
+	if (meta_field != None) and (meta_field.fieldtype == "Link"): # if field is link
 		# get list (count, name)
 		raw_list = frappe.get_list(
 			doctype,
