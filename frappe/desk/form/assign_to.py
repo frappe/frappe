@@ -139,7 +139,7 @@ def add(args=None, *, ignore_permissions=False, doc=None):
 		user_list = format_message_for_assign_to(users_with_duplicate_todo)
 		frappe.msgprint(_("Already in the following Users ToDo list:{0}").format(user_list, alert=True))
 
-	return get(args)
+	return get(args | {"doctype": context_doc.doctype, "name": context_doc.name})
 
 
 @frappe.whitelist()
