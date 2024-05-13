@@ -199,7 +199,8 @@
 			height: 37px !important;
 		}
 
-		.form-control {
+		.form-control,
+		.ql-editor {
 			border-radius: 0px;
 			border: 0px;
 			padding-top: 8px;
@@ -268,6 +269,14 @@
 
 	.grid-static-col[data-fieldtype="Text Editor"] {
 		overflow: hidden;
+		margin: 0 !important;
+
+		.ql-editor {
+			overflow-y: auto !important;
+			min-height: 0 !important;
+			max-height: unset !important;
+			line-height: 1.3 !important;
+		}
 	}
 }
 
