@@ -897,7 +897,7 @@ class TestBenchBuild(BaseTestCommands):
 			self.assertEqual(result.exception, None)
 
 		CURRENT_SIZE = 3.3  # MB
-		JS_ASSET_THRESHOLD = 0.05
+		JS_ASSET_THRESHOLD = 0.01
 
 		hooks = frappe.get_hooks()
 		default_bundle = hooks["app_include_js"]
