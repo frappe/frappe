@@ -92,6 +92,8 @@ def enqueue_create_notification(users: list[str] | str, doc: dict):
 		make_notification_log(doc, users)
 	else:
 		frappe.local.system_notifications_queue.append((doc, users))
+		if flush_system_notifications not in frappe.db.after_commit._functions:
+			frappe.db.after_commit(flush_system_notifications)
 
 
 def flush_system_notifications():

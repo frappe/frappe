@@ -372,8 +372,6 @@ class TestNotification(FrappeTestCase):
 			user.reload()
 			user.birth_date = frappe.utils.getdate(user.birth_date)
 			user.save()
-			# To emulate after job/request execution
-			frappe.call("frappe.desk.doctype.notification_log.notification_log.flush_system_notifications")
 			self.assertEqual(1, frappe.db.count("Notification Log", {"subject": n.subject}))
 
 	@classmethod
