@@ -185,6 +185,34 @@ class TestRedisCache(FrappeAPITestCase):
 		calculate_area(10)
 		self.assertEqual(function_call_count, 2)
 
+	def test_user_cache(self):
+		function_call_count = 0
+		PI = 3.1415
+		ENGINEERING_PI = _E = 3
+
+		@redis_cache(user=True)
+		def calculate_area(radius: float) -> float:
+			nonlocal function_call_count
+			PI_APPROX = ENGINEERING_PI if frappe.session.user == "Engineer" else PI
+			function_call_count += 1
+			return PI_APPROX * radius**2
+
+		with self.set_user("Engineer"):
+			self.assertEqual(calculate_area(1), ENGINEERING_PI)
+			self.assertEqual(function_call_count, 1)
+
+		with self.set_user("Mathematician"):
+			self.assertEqual(calculate_area(1), PI)
+			self.assertEqual(function_call_count, 2)
+
+		with self.set_user("Engineer"):
+			self.assertEqual(calculate_area(1), ENGINEERING_PI)
+			self.assertEqual(function_call_count, 2)
+
+		with self.set_user("Mathematician"):
+			self.assertEqual(calculate_area(1), PI)
+			self.assertEqual(function_call_count, 2)
+
 
 class TestDocumentCache(FrappeAPITestCase):
 	TEST_DOCTYPE = "User"

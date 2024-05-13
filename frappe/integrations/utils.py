@@ -19,6 +19,8 @@ def make_request(method: str, url: str, auth=None, headers=None, data=None, json
 		response = frappe.flags.integration_request = s.request(
 			method, url, data=data, auth=auth, headers=headers, json=json, params=params
 		)
+		response.raise_for_status()
+
 		content_type = response.headers.get("content-type")
 		if content_type == "text/plain; charset=utf-8":
 			return parse_qs(response.text)
@@ -29,7 +31,10 @@ def make_request(method: str, url: str, auth=None, headers=None, data=None, json
 		else:
 			return
 	except Exception as exc:
-		frappe.log_error()
+		if frappe.flags.integration_request_doc:
+			frappe.flags.integration_request_doc.log_error()
+		else:
+			frappe.log_error()
 		raise exc
 
 
