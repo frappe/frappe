@@ -109,13 +109,13 @@ frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.Contro
 	}
 };
 
-frappe.ui.form.add_options = function (input, options_list, sort, dt, df) {
+frappe.ui.form.add_options = function (input, options_list, sort, doctype, fieldname) {
 	let $select = $(input);
 	if (!Array.isArray(options_list)) {
 		return $select;
 	}
 
-	let options = options_list.map((raw_option) => parse_option(raw_option, dt, df));
+	let options = options_list.map((raw_option) => parse_option(raw_option, doctype, fieldname));
 	if (sort) {
 		options = options.sort((a, b) => cstr(a.label).localeCompare(cstr(b.label)));
 	}
@@ -156,14 +156,16 @@ frappe.ui.form.add_options = function (input, options_list, sort, dt, df) {
 	};
 })(jQuery);
 
-function parse_option(v, dt, df) {
+function parse_option(v, doctype, fieldname) {
 	let value = null;
 	let label = null;
 	let is_disabled = false;
 	let is_selected = false;
 
 	if (!is_null(v)) {
-		let translation_context = dt ? dt + (df ? " (Field: " + df + ")" : null) : null;
+		let translation_context = doctype
+			? doctype + (fieldname ? " (Field: " + fieldname + ")" : null)
+			: null;
 
 		const is_value_null = is_null(v.value);
 		const is_label_null = is_null(v.label);
