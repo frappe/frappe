@@ -75,7 +75,13 @@ frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.Contro
 		if (this.$input) {
 			var selected = this.$input.find(":selected").val();
 			this.$input.empty();
-			frappe.ui.form.add_options(this.$input, options || [], this.df.sort_options);
+			frappe.ui.form.add_options(
+				this.$input,
+				options || [],
+				this.df.sort_options,
+				this.df.context || this.df.parent || this.doctype,
+				this.df.fieldname
+			);
 
 			if (value === undefined && selected) {
 				this.$input.val(selected);
@@ -103,13 +109,13 @@ frappe.ui.form.ControlSelect = class ControlSelect extends frappe.ui.form.Contro
 	}
 };
 
-frappe.ui.form.add_options = function (input, options_list, sort) {
+frappe.ui.form.add_options = function (input, options_list, sort, dt, df) {
 	let $select = $(input);
 	if (!Array.isArray(options_list)) {
 		return $select;
 	}
 
-	let options = options_list.map((raw_option) => parse_option(raw_option));
+	let options = options_list.map((raw_option) => parse_option(raw_option, dt, df));
 	if (sort) {
 		options = options.sort((a, b) => cstr(a.label).localeCompare(cstr(b.label)));
 	}
@@ -150,13 +156,15 @@ frappe.ui.form.add_options = function (input, options_list, sort) {
 	};
 })(jQuery);
 
-function parse_option(v) {
+function parse_option(v, dt, df) {
 	let value = null;
 	let label = null;
 	let is_disabled = false;
 	let is_selected = false;
 
 	if (!is_null(v)) {
+		let translation_context = dt ? dt + (df ? " (Field: " + df + ")" : null) : null;
+
 		const is_value_null = is_null(v.value);
 		const is_label_null = is_null(v.label);
 		is_disabled = Boolean(v.disabled);
@@ -164,10 +172,12 @@ function parse_option(v) {
 
 		if (is_value_null && is_label_null && typeof v !== "object") {
 			value = v;
-			label = __(v);
+			label = __(v, null, translation_context);
 		} else {
 			value = is_value_null ? "" : v.value;
-			label = is_label_null ? __(value) : __(v.label);
+			label = is_label_null
+				? __(value, null, translation_context)
+				: __(v.label, null, translation_context);
 		}
 	}
 
