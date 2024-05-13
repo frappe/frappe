@@ -446,6 +446,9 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 		test_records = frappe.get_test_records(doctype)
 
 	for doc in test_records:
+		if not reset:
+			frappe.db.savepoint("creating_test_record")
+
 		if not doc.get("doctype"):
 			doc["doctype"] = doctype
 
@@ -461,7 +464,7 @@ def make_test_objects(doctype, test_records=None, verbose=None, reset=False, com
 			d.set_new_name()
 
 		if frappe.db.exists(d.doctype, d.name) and not reset:
-			frappe.db.rollback()
+			frappe.db.rollback(save_point="creating_test_record")
 			# do not create test records, if already exists
 			continue
 
