@@ -1178,6 +1178,9 @@ class Truthy:
 	def __bool__(self):
 		return True
 
+	def __eq__(self, other: object) -> bool:
+		return True == other  # noqa: E712
+
 	def __repr__(self) -> str:
 		_val = "UNSET" if self.value is UNSET else self.value
 		_ctx = "UNSET" if self.context is UNSET else self.context
