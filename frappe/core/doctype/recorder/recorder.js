@@ -12,6 +12,16 @@ frappe.ui.form.on("Recorder", {
 		frm.fields_dict.sql_queries.grid.grid_pagination.page_length = 500;
 		refresh_field("sql_queries");
 		frm.trigger("format_grid");
+		frm.add_custom_button(__("Suggest Optimizations"), () => {
+			frappe.xcall("frappe.core.doctype.recorder.recorder.optimize", {
+				recorder_id: frm.doc.name,
+			});
+		});
+
+		frappe.realtime.on("recorder-analysis-complete", () => {
+			frm.reload_doc();
+			setTimeout(() => frm.scroll_to_field("suggested_indexes"), 1500);
+		});
 	},
 
 	setup_sort: function (frm) {
@@ -25,6 +35,7 @@ frappe.ui.form.on("Recorder", {
 				frm._sort_order[field] = -1 * sort_order; // reverse for next click
 				grid.refresh();
 				frm.trigger("setup_sort"); // grid creates new elements again, resetup listeners.
+				frm.trigger("format_grid");
 			});
 		});
 	},
