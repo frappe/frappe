@@ -1101,12 +1101,6 @@ export default class GridRow {
 			parent = column.field_area,
 			df = column.df;
 
-		// no text editor in grid
-		if (df.fieldtype == "Text Editor") {
-			df = Object.assign({}, df);
-			df.fieldtype = "Text";
-		}
-
 		var field = frappe.ui.form.make_control({
 			df: df,
 			parent: parent,
