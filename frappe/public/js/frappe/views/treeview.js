@@ -180,13 +180,8 @@ frappe.views.TreeView = class TreeView {
 			args: me.args,
 			callback: function (r) {
 				if (r.message) {
-					if (r.message.length == 1) {
-						me.root_label = r.message[0]["value"];
-						me.root_value = me.root_label;
-					} else {
-						me.root_label = me.doctype;
-						me.root_value = "";
-					}
+					me.root_label = me.doctype;
+					me.root_value = "";
 					me.make_tree();
 				}
 			},
