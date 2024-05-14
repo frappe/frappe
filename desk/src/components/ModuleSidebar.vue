@@ -22,6 +22,7 @@
 				v-for="item in sidebar.data?.workspaces"
 				:key="item.name"
 				:link="item"
+				:module="moduleSlug"
 				:isCollapsed="isCollapsed"
 			/>
 		</div>
@@ -29,7 +30,12 @@
 		<!-- Sections, Links, Spacers -->
 		<div class="mt-4 flex flex-col" v-if="sidebar.data?.sections">
 			<div v-for="item in sidebar.data?.sections" :key="item.name">
-				<ModuleSidebarLink v-if="item.type === 'Link'" :link="item" :isCollapsed="isCollapsed" />
+				<ModuleSidebarLink
+					v-if="item.type === 'Link'"
+					:link="item"
+					:isCollapsed="isCollapsed"
+					:module="moduleSlug"
+				/>
 
 				<div v-else-if="item.type === 'Spacer'" class="h-5"></div>
 
@@ -39,7 +45,7 @@
 						<FeatherIcon
 							@click="item.opened = !item.opened"
 							:name="item.opened ? 'chevron-down' : 'chevron-right'"
-							class="h-4 w-4 font-semibold text-gray-600"
+							class="h-4 w-4 cursor-pointer font-semibold text-gray-600"
 						/>
 						<div class="flex items-center gap-1 text-sm uppercase text-gray-700">
 							{{ item.label }}
@@ -51,6 +57,7 @@
 							v-for="link in item.links"
 							:key="link.name"
 							:link="link"
+							:module="moduleSlug"
 							:isCollapsed="isCollapsed"
 						/>
 					</template>
@@ -83,8 +90,10 @@ import Icon from "@/components/Icon.vue"
 import ModuleSidebarLink from "@/components/ModuleSidebarLink.vue"
 
 import { getDesktopItem } from "@/data/desktop"
+import { slug } from "@/utils/router"
 
 const route = useRoute()
+const moduleSlug = ref("")
 const desktopItem = ref(null)
 const isCollapsed = ref(false)
 
@@ -100,12 +109,34 @@ const sidebar = createResource({
 	},
 })
 
+const workspaceModule = createResource({
+	url: "frappe.api.desk.get_workspace_module",
+})
+
+async function getSidebar(module) {
+	// TODO: handle route to show slug
+	desktopItem.value = await getDesktopItem(module)
+	sidebar.submit({ module: desktopItem.value.module })
+}
+
 watch(
-	() => route.params.module,
-	async (module) => {
+	() => route.params?.module,
+	(module) => {
 		if (!module) return
-		desktopItem.value = await getDesktopItem(module)
-		sidebar.submit({ module: desktopItem.value.module })
+		moduleSlug.value = module
+		getSidebar(module)
+	},
+	{ immediate: true }
+)
+
+watch(
+	() => route.params?.name,
+	async (name) => {
+		if (name) {
+			await workspaceModule.submit({ workspace: name })
+			moduleSlug.value = slug(workspaceModule.data)
+			getSidebar(moduleSlug.value)
+		}
 	},
 	{ immediate: true }
 )

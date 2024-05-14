@@ -1,7 +1,6 @@
 import frappe
-from frappe.query_builder import Order
-
 from frappe.config import get_modules_from_all_apps_for_user
+from frappe.query_builder import Order
 
 
 @frappe.whitelist()
@@ -49,6 +48,15 @@ def get_module_sidebar(module: str) -> dict:
 
 	sections = []
 	current_section = None
+	# first link in the sidebar
+	module_home = None
+
+	if doc.workspaces:
+		module_home = frappe._dict(
+			{
+				"workspace": doc.workspaces[0].workspace,
+			}
+		)
 
 	for item in doc.items:
 		item = item.as_dict()
@@ -65,4 +73,18 @@ def get_module_sidebar(module: str) -> dict:
 			else:
 				sections.append(item)
 
-	return frappe._dict({"workspaces": doc.workspaces, "sections": sections})
+			if not module_home:
+				module_home = item
+
+	return frappe._dict(
+		{
+			"workspaces": doc.workspaces,
+			"sections": sections,
+			"module_home": module_home,
+		}
+	)
+
+
+@frappe.whitelist()
+def get_workspace_module(workspace: str) -> str:
+	return frappe.db.get_value("Workspace", workspace, "module")

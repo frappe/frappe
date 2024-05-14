@@ -18,6 +18,39 @@ const routes = [
 		name: "Module",
 		component: () => import("@/pages/Module.vue"),
 	},
+	{
+		path: "/workspace/:name",
+		name: "Workspace",
+		component: () => import("@/pages/Workspace.vue"),
+	},
+	{
+		// /desk/item/id
+		// /desk/:doctype/:id
+		path: "/:module/form/:doctype/:id",
+		name: "Form",
+		component: () => import("@/pages/Form.vue"),
+	},
+	{
+		// TODO: reaching a doctype should be easy: /desk/item -> /desk/item/view/list
+		path: "/:module/list/:id",
+		name: "List",
+		component: () => import("@/pages/List.vue"),
+	},
+	{
+		path: "/:module/report/:id",
+		name: "Report",
+		component: () => import("@/pages/Report.vue"),
+	},
+	{
+		path: "/:module/page/:id",
+		name: "Page",
+		component: () => import("@/pages/Page.vue"),
+	},
+	{
+		path: "/:module/dashboard/:id",
+		name: "Dashboard",
+		component: () => import("@/pages/Dashboard.vue"),
+	},
 ]
 
 let router = createRouter({

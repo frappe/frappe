@@ -1,4 +1,5 @@
 import { createResource } from "frappe-ui"
+import { slug } from "@/utils/router"
 
 export const desktopItems = createResource({
 	url: "frappe.api.desk.get_desktop_items",
@@ -6,10 +7,21 @@ export const desktopItems = createResource({
 	cache: "desktopItems",
 	transform: (data) => {
 		return data.map((item) => {
-			const slug = item.module.toLowerCase().replace(/ /g, "-")
-			item.module_slug = slug
+			item.module_slug = slug(item.module)
 			return item
 		})
+	},
+})
+
+export const sidebar = createResource({
+	url: "frappe.api.desk.get_module_sidebar",
+	transform(data) {
+		data.sections.forEach((item) => {
+			if (item.type === "Section Break") {
+				item.opened = true
+			}
+		})
+		return data
 	},
 })
 
