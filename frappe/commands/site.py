@@ -535,6 +535,7 @@ def add_db_index(context, doctype, column):
 		raise SiteNotSpecifiedError
 
 
+<<<<<<< HEAD
 @click.command("describe-database-table")
 @click.option("--doctype", help="DocType to describe")
 @click.option(
@@ -631,6 +632,8 @@ def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
 	}
 
 
+=======
+>>>>>>> b169f8780a (feat: Add identified index from UI)
 @click.command("add-system-manager")
 @click.argument("email")
 @click.option("--first-name")
@@ -1540,7 +1543,6 @@ commands = [
 	add_system_manager,
 	add_user_for_sites,
 	add_db_index,
-	describe_database_table,
 	backup,
 	drop_site,
 	install_app,

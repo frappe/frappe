@@ -1,11 +1,13 @@
 # Copyright (c) 2023, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import json
 from collections import Counter, defaultdict
 
 import frappe
 from frappe import _
 from frappe.core.doctype.recorder.db_optimizer import DBOptimizer, DBTable
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.model.document import Document
 from frappe.recorder import RECORDER_REQUEST_HASH
 from frappe.recorder import get as get_recorder_data
@@ -120,6 +122,34 @@ def serialize_request(request):
 
 
 @frappe.whitelist()
+def add_indexes(indexes):
+	frappe.only_for("Administrator")
+	indexes = json.loads(indexes)
+
+	for index in indexes:
+		frappe.enqueue(_add_index, table=index["table"], column=index["column"])
+	frappe.msgprint(_("Enqueued creation of indexes"), alert=True)
+
+
+def _add_index(table, column):
+	doctype = get_doctype_name(table)
+	frappe.db.add_index(doctype, [column])
+	make_property_setter(
+		doctype,
+		column,
+		property="search_index",
+		value="1",
+		property_type="Check",
+		for_doctype=False,  # Applied on docfield
+	)
+	frappe.msgprint(
+		_("Index created successfully on column {0} of doctype {1}").format(column, doctype),
+		alert=True,
+		realtime=True,
+	)
+
+
+@frappe.whitelist()
 def optimize(recorder_id: str):
 	frappe.only_for("Administrator")
 	frappe.enqueue(_optimize, recorder_id=recorder_id, queue="long")
@@ -158,14 +188,18 @@ def _optimize(recorder_id):
 	]
 
 	if not suggested_indexes:
-		frappe.msgprint(_("No optimization suggestions."), realtime=True)
+		frappe.msgprint(
+			_("No automatic optimization suggestions available."),
+			title=_("No Suggestions"),
+			realtime=True,
+		)
 		return
 
-	frappe.msgprint(_("Query analysis complete. Check suggested indexes."), realtime=True, alert=True)
 	data = frappe.cache.hget(RECORDER_REQUEST_HASH, record.name)
 	data["suggested_indexes"] = [{"table": idx[0][0], "column": idx[0][1]} for idx in suggested_indexes]
 	frappe.cache.hset(RECORDER_REQUEST_HASH, record.name, data)
-	frappe.publish_realtime("recorder-analysis-complete")
+	frappe.publish_realtime("recorder-analysis-complete", user=frappe.session.user)
+	frappe.msgprint(_("Query analysis complete. Check suggested indexes."), realtime=True, alert=True)
 
 
 def _optimize_query(query):
