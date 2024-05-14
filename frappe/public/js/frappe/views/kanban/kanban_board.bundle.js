@@ -6,7 +6,9 @@ frappe.provide("frappe.views");
 
 (function () {
 	let quotations_draft = 0
+	let unread_conversations = []
 	getDraftQuotations()
+
 	var method_prefix = "frappe.desk.doctype.kanban_board.kanban_board.";
 
 	let columns_unwatcher = null;
@@ -323,7 +325,7 @@ frappe.provide("frappe.views");
 	}
 
 	frappe.views.KanbanBoard = function (opts) {
-
+		
 		var self = {};
 		self.wrapper = opts.wrapper;
 		self.cur_list = opts.cur_list;
@@ -349,7 +351,8 @@ frappe.provide("frappe.views");
 			make_columns()
 		}
 
-		function init() {
+		async function init() {
+			await getUnreadConversations()
 			init_store();
 			store.dispatch("init", opts);
 			columns_unwatcher && columns_unwatcher();
@@ -813,6 +816,9 @@ frappe.provide("frappe.views");
 			if(card.border.message){
 				self.$card.find(".kanban-card.content").css("border", "1px solid red");
 			}
+			if(card.conversation) {
+				self.$card.find(".kanban-card.content").css("border", "1px solid #128c7e");
+			}
 			if (!frappe.model.can_write(card.doctype)) {
 				// Undraggable card without 'write' access to reference doctype
 				self.$card.find(".kanban-card-body").css("cursor", "default");
@@ -878,6 +884,9 @@ frappe.provide("frappe.views");
 				${cur_list.get_like_html(card)}
 			`;
 
+			if (card.conversation){
+				html += '<i class="fa-brands fa-whatsapp" style="width: 14px; color: #128c7e"></i>'
+			}
 			html += getPartsIcons()
 			html += getSoftwareIcons()
 			html += getLoanCarIcons()
@@ -1013,7 +1022,12 @@ frappe.provide("frappe.views");
 			color: card.color || null,
 			doc: doc || card,
 			border: set_border_color(card),
+			conversation: hasconversationUnread(card)
 		};
+	}
+
+	function hasconversationUnread(card) {
+		return unread_conversations.find((el) => el.from === card.custom_customers_phone_number)
 	}
 
 	function set_border_color(card) {
@@ -1053,9 +1067,17 @@ frappe.provide("frappe.views");
 		return differenceInDays >= 1;
 	  }
 
+	async function getUnreadConversations() {
+		console.log('feching')
+		unread_conversations = await frappe.db.get_list('Conversation', {
+			filters: {seen: 0},
+			fields: ["name", "from"],
+			ip: 1
+		})
+	}
+
 	async function getDraftQuotations() {
-		quotations_draft = []
-		const result = await frappe.db.get_list("Project Quotation",{
+		quotations_draft = await frappe.db.get_list("Project Quotation",{
 			filters: { status: "Draft" },
 			fields: [ "name", "modified", "status", "parent"],
 			group_by: "parent",
@@ -1063,9 +1085,7 @@ frappe.provide("frappe.views");
 			limit: 100,
 			ip:1 // ignore permissions
 		})
-		quotations_draft = result.length ? result : []
-		return result.length
-	  }	  
+	}	  
 
 	function prepare_columns(columns) {
 		return columns.map(function (col) {
