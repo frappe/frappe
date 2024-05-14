@@ -9,6 +9,9 @@ frappe.ui.form.on("Recorder", {
 		frm.disable_save();
 		frm._sort_order = {};
 		frm.trigger("setup_sort");
+		frm.fields_dict.sql_queries.grid.grid_pagination.page_length = 500;
+		refresh_field("sql_queries");
+		frm.trigger("format_grid");
 	},
 
 	setup_sort: function (frm) {
@@ -24,6 +27,21 @@ frappe.ui.form.on("Recorder", {
 				frm.trigger("setup_sort"); // grid creates new elements again, resetup listeners.
 			});
 		});
+	},
+
+	/// Format duration and copy cells
+	format_grid(frm) {
+		const max_duration = Math.max(20, ...frm.doc.sql_queries.map((d) => d.duration));
+
+		const heatmap = (table, field, max) => {
+			frm.fields_dict[table].grid.grid_rows.forEach((row) => {
+				const percent = Math.round((row.doc[field] / max) * 100);
+				$(row.columns[field]).css({
+					"background-color": `color-mix(in srgb, var(--bg-red) ${percent}%, var(--bg-color))`,
+				});
+			});
+		};
+		heatmap("sql_queries", "duration", max_duration);
 	},
 });
 
