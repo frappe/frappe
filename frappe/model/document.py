@@ -21,7 +21,7 @@ from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.types import DF
-from frappe.utils import compare, cstr, date_diff, file_lock, flt, now
+from frappe.utils import Truthy, compare, cstr, date_diff, file_lock, flt, now
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.global_search import update_global_search
 
@@ -468,7 +468,7 @@ class Document(BaseDocument):
 		previous = self.get_doc_before_save()
 
 		if not previous:
-			return True
+			return Truthy(context="New Document")
 
 		previous_value = previous.get(fieldname)
 		current_value = self.get(fieldname)
@@ -480,7 +480,10 @@ class Document(BaseDocument):
 		elif isinstance(previous_value, timedelta):
 			current_value = get_timedelta(current_value)
 
-		return previous_value != current_value
+		if previous_value != current_value:
+			return Truthy(value=previous_value)
+
+		return False
 
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""

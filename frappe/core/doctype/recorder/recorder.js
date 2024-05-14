@@ -9,6 +9,39 @@ frappe.ui.form.on("Recorder", {
 		frm.disable_save();
 		frm._sort_order = {};
 		frm.trigger("setup_sort");
+		frm.fields_dict.sql_queries.grid.grid_pagination.page_length = 500;
+		refresh_field("sql_queries");
+		frm.trigger("format_grid");
+		frm.add_custom_button(__("Suggest Optimizations"), () => {
+			frappe.xcall("frappe.core.doctype.recorder.recorder.optimize", {
+				recorder_id: frm.doc.name,
+			});
+		});
+
+		frappe.realtime.on("recorder-analysis-complete", () => {
+			frm.reload_doc();
+			setTimeout(() => frm.scroll_to_field("suggested_indexes"), 1500);
+		});
+
+		let index_grid = frm.fields_dict.suggested_indexes.grid;
+		index_grid.wrapper.find(".grid-footer").toggle(true);
+		index_grid.toggle_checkboxes(true);
+		index_grid.df.cannot_delete_rows = true;
+		index_grid.add_custom_button(__("Add Indexes"), function () {
+			let indexes_to_add = index_grid.get_selected_children().map((row) => {
+				return {
+					column: row.column,
+					table: row.table,
+				};
+			});
+			if (!indexes_to_add.length) {
+				frappe.toast(__("You need to select indexes you want to add first."));
+				return;
+			}
+			frappe.xcall("frappe.core.doctype.recorder.recorder.add_indexes", {
+				indexes: indexes_to_add,
+			});
+		});
 	},
 
 	setup_sort: function (frm) {
@@ -22,8 +55,24 @@ frappe.ui.form.on("Recorder", {
 				frm._sort_order[field] = -1 * sort_order; // reverse for next click
 				grid.refresh();
 				frm.trigger("setup_sort"); // grid creates new elements again, resetup listeners.
+				frm.trigger("format_grid");
 			});
 		});
+	},
+
+	/// Format duration and copy cells
+	format_grid(frm) {
+		const max_duration = Math.max(20, ...frm.doc.sql_queries.map((d) => d.duration));
+
+		const heatmap = (table, field, max) => {
+			frm.fields_dict[table].grid.grid_rows.forEach((row) => {
+				const percent = Math.round((row.doc[field] / max) * 100);
+				$(row.columns[field]).css({
+					"background-color": `color-mix(in srgb, var(--bg-red) ${percent}%, var(--bg-color))`,
+				});
+			});
+		};
+		heatmap("sql_queries", "duration", max_duration);
 	},
 });
 
