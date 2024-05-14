@@ -11,7 +11,7 @@ from frappe.utils import get_url_to_form
 
 @frappe.whitelist()
 def update_follow(doctype, doc_name, following):
-	if following:
+	if frappe.sbool(following):
 		return follow_document(doctype, doc_name, frappe.session.user)
 	else:
 		return unfollow_document(doctype, doc_name, frappe.session.user)

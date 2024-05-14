@@ -969,7 +969,7 @@ class BaseDocument:
 
 		frappe.throw(
 			_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(
-				reference, _(df.label), max_length, value
+				reference, frappe.bold(_(df.label)), max_length, value
 			),
 			frappe.CharacterLengthExceededError,
 			title=_("Value too big"),
