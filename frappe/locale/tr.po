@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-05 09:33+0000\n"
-"PO-Revision-Date: 2024-05-13 21:03\n"
+"PO-Revision-Date: 2024-05-14 21:30\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -4244,7 +4244,7 @@ msgstr "Geliştir"
 #. Description of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Build your own reports, print formats, and dashboards. Create personalized workspaces for easier navigation"
-msgstr ""
+msgstr "Raporlar, Yazdırma Formatları ve Gösterge Panelleri oluşturun. Daha kolay gezinme için kişiselleştirilmiş Çalışma Alanları oluşturun."
 
 #: workflow/doctype/workflow/workflow_list.js:18
 msgid "Build {0}"
