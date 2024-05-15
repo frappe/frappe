@@ -176,13 +176,13 @@
    "description": "If your CSV uses a different delimiter, add that character here, ensuring no spaces or additional characters are included.",
    "fieldname": "delimiter_options",
    "fieldtype": "Data",
-   "label": "Delimiter options"
+   "label": "Delimiter Options"
   },
   {
    "default": "0",
    "fieldname": "custom_delimiters",
    "fieldtype": "Check",
-   "label": "Custom delimiters"
+   "label": "Custom Delimiters"
   }
  ],
  "hide_toolbar": 1,

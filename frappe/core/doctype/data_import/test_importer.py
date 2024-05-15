@@ -66,7 +66,7 @@ class TestImporter(FrappeTestCase):
 		data_import = self.get_importer_semicolon(doctype_name, import_file)
 		doc = data_import.get_preview_from_template().get("data", [{}])
 		# if semicolon delimiter detection fails, and falls back to comma,
-		# colum number will be less than 15 -> 2 (+1 id)
+		# column number will be less than 15 -> 2 (+1 id)
 		self.assertLessEqual(len(doc[0]), 15)
 
 	def test_data_import_preview(self):
