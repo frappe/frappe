@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-05 09:33+0000\n"
-"PO-Revision-Date: 2024-05-14 21:30\n"
+"PO-Revision-Date: 2024-05-15 21:31\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -4804,7 +4804,7 @@ msgstr ""
 
 #: public/js/frappe/list/bulk_operations.js:264
 msgid "Cannot cancel {0}."
-msgstr ""
+msgstr "{0} iptal edilemez."
 
 #: model/document.py:853
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
@@ -14041,7 +14041,7 @@ msgstr ""
 #. Name of a DocType
 #: desk/doctype/global_search_doctype/global_search_doctype.json
 msgid "Global Search DocType"
-msgstr ""
+msgstr "Genel DocType Araması"
 
 #: desk/doctype/global_search_settings/global_search_settings.js:24
 msgid "Global Search Document Types Reset."
@@ -17232,7 +17232,7 @@ msgstr ""
 
 #: templates/signup.html:5
 msgid "Jane Doe"
-msgstr ""
+msgstr "İsim Soyisim"
 
 #. Label of a Code field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
@@ -18328,7 +18328,7 @@ msgstr ""
 #: desk/doctype/changelog_feed/changelog_feed.json
 msgctxt "Changelog Feed"
 msgid "Link"
-msgstr ""
+msgstr "Bağlantı"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -22261,7 +22261,7 @@ msgstr ""
 
 #: core/doctype/page/page.py:67
 msgid "Only Administrator can edit"
-msgstr ""
+msgstr "Yalnızca Yönetici düzenleyebilir"
 
 #: core/doctype/report/report.py:72
 msgid "Only Administrator can save a standard report. Please rename and save."
@@ -24739,19 +24739,19 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Print Width"
-msgstr ""
+msgstr "Baskı Genişliği"
 
 #. Label of a Data field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Print Width"
-msgstr ""
+msgstr "Baskı Genişliği"
 
 #. Label of a Data field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Print Width"
-msgstr ""
+msgstr "Baskı Genişliği"
 
 #. Description of the 'Print Width' (Data) field in DocType 'Customize Form
 #. Field'
@@ -28589,7 +28589,7 @@ msgstr ""
 
 #: public/js/frappe/ui/toolbar/search.js:210
 msgid "Searching ..."
-msgstr ""
+msgstr "Arama Yapılıyor..."
 
 #. Option for the 'Type' (Select) field in DocType 'Web Template'
 #: website/doctype/web_template/web_template.json
@@ -33760,7 +33760,7 @@ msgstr ""
 #. Type: Action
 #: hooks.py
 msgid "Toggle Full Width"
-msgstr ""
+msgstr "Geniş Görünüm"
 
 #: public/js/frappe/views/file/file_view.js:33
 msgid "Toggle Grid View"
@@ -36684,37 +36684,37 @@ msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:8
 msgid "Width"
-msgstr ""
+msgstr "Genişlik"
 
 #. Label of a Data field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Width"
-msgstr ""
+msgstr "Genişlik"
 
 #. Label of a Data field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Width"
-msgstr ""
+msgstr "Genişlik"
 
 #. Label of a Select field in DocType 'Dashboard Chart Link'
 #: desk/doctype/dashboard_chart_link/dashboard_chart_link.json
 msgctxt "Dashboard Chart Link"
 msgid "Width"
-msgstr ""
+msgstr "Genişlik"
 
 #. Label of a Data field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Width"
-msgstr ""
+msgstr "Genişlik"
 
 #. Label of a Int field in DocType 'Report Column'
 #: core/doctype/report_column/report_column.json
 msgctxt "Report Column"
 msgid "Width"
-msgstr ""
+msgstr "Genişlik"
 
 #: printing/page/print_format_builder/print_format_builder_column_selector.html:2
 msgid "Widths can be set in px or %."
@@ -38078,7 +38078,7 @@ msgstr ""
 
 #: templates/signup.html:11 www/login.html:10
 msgid "jane@example.com"
-msgstr ""
+msgstr "eposta@ornek.com.tr"
 
 #: public/js/frappe/utils/pretty_date.js:46
 msgid "just now"
@@ -38636,7 +38636,7 @@ msgstr ""
 #: public/js/frappe/utils/utils.js:924
 #: public/js/frappe/widgets/chart_widget.js:317 www/list.html:4 www/list.html:8
 msgid "{0} List"
-msgstr ""
+msgstr "{0} Listesi"
 
 #: public/js/frappe/utils/pretty_date.js:37
 msgid "{0} M"
@@ -38663,7 +38663,7 @@ msgstr ""
 #: public/js/frappe/utils/utils.js:921
 #: public/js/frappe/widgets/chart_widget.js:325
 msgid "{0} Report"
-msgstr ""
+msgstr "{0} Raporu"
 
 #: public/js/frappe/views/reports/query_report.js:884
 msgid "{0} Reports"
