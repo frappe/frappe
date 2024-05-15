@@ -27,6 +27,8 @@ class DataImport(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		custom_delimiters: DF.Check
+		delimiter_options: DF.Data | None
 		google_sheets_url: DF.Data | None
 		import_file: DF.Attach | None
 		import_type: DF.Literal["", "Insert New Records", "Update Existing Records"]
@@ -50,10 +52,15 @@ class DataImport(Document):
 			self.template_options = ""
 			self.template_warnings = ""
 
+		self.set_delimiters_flag()
 		self.validate_doctype()
 		self.validate_import_file()
 		self.validate_google_sheets_url()
 		self.set_payload_count()
+
+	def set_delimiters_flag(self):
+		if self.import_file:
+			frappe.flags.delimiter_options = self.delimiter_options or ","
 
 	def validate_doctype(self):
 		if self.reference_doctype in BLOCKED_DOCTYPES:
@@ -79,6 +86,7 @@ class DataImport(Document):
 	def get_preview_from_template(self, import_file=None, google_sheets_url=None):
 		if import_file:
 			self.import_file = import_file
+			self.set_delimiters_flag()
 
 		if google_sheets_url:
 			self.google_sheets_url = google_sheets_url
