@@ -11,12 +11,8 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.model.document import Document
 from frappe.recorder import RECORDER_REQUEST_HASH
 from frappe.recorder import get as get_recorder_data
-<<<<<<< HEAD
-from frappe.utils import cint, evaluate_filters, make_filter_dict
-=======
 from frappe.utils import cint, cstr, evaluate_filters, get_table_name
 from frappe.utils.caching import redis_cache
->>>>>>> 4e251e9b0b (feat(recorder): Suggest query index)
 
 
 class Recorder(Document):
