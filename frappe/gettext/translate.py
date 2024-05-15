@@ -299,9 +299,6 @@ def get_translations_from_mo(lang, app):
 			if m.context:
 				context = m.context.decode()  # context is encoded as bytes
 				translations[f"{key}:{context}"] = m.string
-				if m.id not in translations:
-					# better a translation with context than no translation
-					translations[m.id] = m.string
 			else:
 				translations[m.id] = m.string
 	return translations
