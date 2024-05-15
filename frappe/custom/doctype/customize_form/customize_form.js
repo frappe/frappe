@@ -356,7 +356,7 @@ frappe.ui.form.on("DocType Link", {
 		// replicate the changed rows from the browser's copy of the parent doc to the current 'Customize Form' doc
 		let parent_doc = locals[parenttype][parent];
 		frm.doc.links = parent_doc.links;
-	}
+	},
 });
 
 // can't delete standard actions
@@ -378,7 +378,7 @@ frappe.ui.form.on("DocType Action", {
 		// replicate the changed rows from the browser's copy of the parent doc to the current 'Customize Form' doc
 		let parent_doc = locals[parenttype][parent];
 		frm.doc.actions = parent_doc.actions;
-	}
+	},
 });
 
 // can't delete standard states
@@ -400,7 +400,7 @@ frappe.ui.form.on("DocType State", {
 		// replicate the changed rows from the browser's copy of the parent doc to the current 'Customize Form' doc
 		let parent_doc = locals[parenttype][parent];
 		frm.doc.states = parent_doc.states;
-	}
+	},
 });
 
 frappe.customize_form.save_customization = function (frm) {
