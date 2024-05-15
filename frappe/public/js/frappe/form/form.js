@@ -1842,6 +1842,7 @@ frappe.ui.form.Form = class FrappeForm {
 				email: p.email,
 			};
 		});
+		this.refresh_fields();
 	}
 
 	trigger(event, doctype, docname) {
