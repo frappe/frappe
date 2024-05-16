@@ -45,7 +45,7 @@ frappe.views.Workspace = class Workspace {
 			"purple",
 			"light-blue",
 		];
-
+        console.log("进入 workspace init", this);
 		this.prepare_container();
 		this.setup_pages();
 		this.register_awesomebar_shortcut();
@@ -269,6 +269,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	show() {
+        // console.log("进入 workspace show");
 		if (!this.all_pages) {
 			// pages not yet loaded, call again after a bit
 			setTimeout(() => this.show(), 100);
@@ -320,12 +321,15 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	get_data(page) {
+        // console.log("进入 workspace get_data(page)", page);
+
 		return frappe
 			.call("frappe.desk.desktop.get_desktop_page", {
 				page: page,
 			})
 			.then((data) => {
-				this.page_data = data.message;
+                // console.log("进入 workspace get_datya call get_desktop_page", data);
+                this.page_data = data.message;
 
 				// caching page data
 				this.pages[page.name] && delete this.pages[page.name];
@@ -335,6 +339,7 @@ frappe.views.Workspace = class Workspace {
 				if (this.page_data.charts && this.page_data.charts.items.length === 0) return;
 
 				return frappe.dashboard_utils.get_dashboard_settings().then((settings) => {
+                    // console.log("frappe.dashboard_utils.get_dashboard_settings().then(settings)", settings);
 					if (settings) {
 						let chart_config = settings.chart_config
 							? JSON.parse(settings.chart_config)
@@ -377,6 +382,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	async show_page(page) {
+        // console.log("进入 workspace show_page", page);
 		if (!this.body.find("#editorjs")[0]) {
 			this.$page = $(`
 				<div id="editorjs" class="desk-page page-main-content"></div>
@@ -428,6 +434,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	prepare_editorjs() {
+        // console.log("进入 workspace prepare_editorjs", this.editor);
 		if (this.editor) {
 			this.editor.isReady.then(() => {
 				this.editor.configuration.tools.chart.config.page_data = this.page_data;
@@ -1381,6 +1388,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	initialize_editorjs(blocks) {
+        // console.log("进入 workspace initialize_editorjs(blocks) ", blocks);
 		this.tools = {
 			header: {
 				class: this.blocks["header"],

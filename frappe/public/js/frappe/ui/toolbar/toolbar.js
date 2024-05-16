@@ -211,7 +211,7 @@ frappe.ui.toolbar.Toolbar = class {
                     localStorage.setItem("barcode_msg_type", values.message_type);
                     me.sendup_barcode(values);
                 },
-                
+
                 secondary_action_label: __("Scan QR"),
                 secondary_action(values) {
                     new frappe.ui.Scanner({
@@ -221,8 +221,8 @@ frappe.ui.toolbar.Toolbar = class {
                             // console.log("set_secondary_action on_scan", values, data)
                             // 这儿直接上传
                             values = {
-                                 "scan_barcode": data.decodedText,
-                                 "message_type": "摄像头扫描"
+								"scan_barcode": data.decodedText,
+								"message_type": "摄像头扫描"
                             };
                             me.sendup_barcode(values);
                         }

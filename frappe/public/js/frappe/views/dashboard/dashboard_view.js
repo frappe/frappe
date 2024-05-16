@@ -85,6 +85,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	make_dashboard() {
+        console.log("进入0  make_dashboard", this)
+
 		if (this.dashboard_settings) {
 			this.charts = this.dashboard_settings.charts;
 			this.number_cards = this.dashboard_settings.number_cards;
@@ -147,6 +149,7 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	render_number_cards() {
+        console.log("进入number_cards render", this.number_cards)
 		this.number_card_group = new frappe.widget.WidgetGroup({
 			container: this.$dashboard_wrapper,
 			type: "number_card",

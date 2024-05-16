@@ -5,7 +5,8 @@ frappe.provide("frappe.utils");
 export default class NumberCardWidget extends Widget {
 	constructor(opts) {
 		opts.shadow = true;
-        this.uom = opts.uom || "T";
+        // console.log("NumberCardWidget", opts);
+        // this.uom = opts.uom || "T";
 		super(opts);
 	}
 
@@ -250,7 +251,7 @@ export default class NumberCardWidget extends Widget {
 		const style_attr = this.card_doc.color ? `style="color: ${this.card_doc.color};"` : "";
 
 		$(this.body).html(`<div class="widget-content">
-			<div class="number" ${style_attr}>${this.formatted_number}uom${this.uom}</div>
+			<div class="number" ${style_attr}>${this.formatted_number}</div>
 			</div>`);
 	}
 
