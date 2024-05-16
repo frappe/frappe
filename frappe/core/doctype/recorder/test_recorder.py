@@ -88,7 +88,7 @@ class TestQueryOptimization(FrappeTestCase):
 			join `tabHas Role` r
 			on r.parent = u.name
 			where email='xyz'
-			and creation > '2023'
+			and modified > '2023'
 			and bio like '%xyz%'
 			"""
 		)
