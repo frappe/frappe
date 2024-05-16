@@ -62,7 +62,7 @@ frappe.ui.FilterGroup = class {
 	}
 
 	set_popover_events() {
-		$(document.body).on("click", (e) => {
+		$(document.body).on("mousedown", (e) => {
 			if (this.wrapper && this.wrapper.is(":visible")) {
 				const in_datepicker =
 					$(e.target).is(".datepicker--cell") ||
