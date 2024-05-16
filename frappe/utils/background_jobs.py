@@ -260,11 +260,14 @@ def execute_job(
 
 	# Set task to started
 	if task_id:
-		frappe.db.begin()
 		frappe.db.set_value(
-			"Background Task", {"task_id": task_id.split("::")[-1]}, "status", "In Progress", debug=True
+			"Background Task",
+			{"task_id": task_id.split("::")[-1]},
+			"status",
+			"In Progress",
 		)
 		frappe.db.commit()
+		frappe.job.task_id = task_id
 
 	try:
 		retval = method(**kwargs)
