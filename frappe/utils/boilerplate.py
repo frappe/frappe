@@ -577,6 +577,11 @@ jobs:
       - name: Clone
         uses: actions/checkout@v2
 
+      - name: Find tests
+        run: |
+          echo "Finding tests"
+          grep -rn "def test" > /dev/null
+
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
