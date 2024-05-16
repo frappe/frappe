@@ -57,6 +57,13 @@ def enqueue_task(
 	if kwargs is None:
 		kwargs = {}
 
+	# Ensure that the method to be queued exists
+	try:
+		frappe.get_attr(method)
+	except ImportError:
+		frappe.local.response["http_status_code"] = http.HTTPStatus.BAD_REQUEST
+		return f"Method {method} not found"
+
 	job = enqueue(
 		method=method,
 		queue=queue,
