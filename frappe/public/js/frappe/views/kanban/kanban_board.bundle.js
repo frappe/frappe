@@ -1,8 +1,30 @@
 // TODO: Refactor for better UX
 
 import { createStore } from "vuex";
-
 frappe.provide("frappe.views");
+
+const ProjectStatusOptions = {
+    InQueue: "In queue",
+    InParking: "In parking",
+    PreDiagnose: "Pre-diagnose",
+    Diagnosed: "Diagnosed",
+    Quoted: "Quoted",
+    QuoteApproved: "Quote approved",
+    InRepair: "In repair",
+    RepairReady: "Repair ready",
+    QualityCheckApproved: "Quality check approved",
+    FullyTestedAdapted: "Fully-tested/adapted",
+    InvoicePaid: "Invoice paid",
+    AwaitingPickup: "Awaiting pickup",
+    Completed: "Completed",
+    Cancelled: "Cancelled",
+    InPause: "In pause",
+    NoResponseFromCustomer: "No response from customer",
+    RequestCallback: "Request a callback",
+    RemoteDiagnose: "Remote diagnose",
+    SoftShowroom: "Soft. showroom",
+    SoftInternally: "Soft. internally"
+  };
 
 (function () {
 	let quotations_draft = 0
@@ -822,10 +844,15 @@ frappe.provide("frappe.views");
 		function get_doc_content(card) {
 			let fields = [];
 			const render_fields = [...cur_list.board.fields]
-			if (card.column === 'Request a callback'){
+			if (card.column === ProjectStatusOptions.RequestCallback){
 				render_fields.push(...['customer','callback_date', 'callback_time'])
 			}
-			if(card.column == 'In parking' || card.column == 'In queue'){
+			if (card.column === ProjectStatusOptions.RemoteDiagnose){
+				render_fields.push(...['remote_diagnostic_date', 'remote_diagnostic_time'])
+				console.log(card.doc)
+				console.log(render_fields);
+			}
+			if(card.column == ProjectStatusOptions.InParking || card.column == ProjectStatusOptions.InQueue){
 				render_fields.push(...['bring_car_date'])
 			}
 			
