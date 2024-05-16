@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-05 09:33+0000\n"
-"PO-Revision-Date: 2024-05-15 21:31\n"
+"PO-Revision-Date: 2024-05-16 21:53\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -23391,7 +23391,7 @@ msgstr "Bekliyor"
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgctxt "Personal Data Deletion Request"
 msgid "Pending Approval"
-msgstr ""
+msgstr "Onay Bekleyen"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
@@ -23403,7 +23403,7 @@ msgstr ""
 #: desk/doctype/system_health_report_queue/system_health_report_queue.json
 msgctxt "System Health Report Queue"
 msgid "Pending Jobs"
-msgstr ""
+msgstr "Bekleyen İşler"
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
