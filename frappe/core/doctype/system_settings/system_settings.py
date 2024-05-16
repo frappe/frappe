@@ -32,6 +32,7 @@ class SystemSettings(Document):
 		bypass_2fa_for_retricted_ip_users: DF.Check
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
 		country: DF.Link | None
+		csv_delimiter: DF.Literal[",", ";", "\\t"]
 		currency_precision: DF.Literal["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 		date_format: DF.Literal[
 			"yyyy-mm-dd", "dd-mm-yyyy", "dd/mm/yyyy", "dd.mm.yyyy", "mm/dd/yyyy", "mm-dd-yyyy"
@@ -82,7 +83,6 @@ class SystemSettings(Document):
 		]
 		otp_issuer_name: DF.Data | None
 		password_reset_limit: DF.Int
-		rate_limit_email_link_login: DF.Int
 		reset_password_link_expiry_duration: DF.Duration | None
 		reset_password_template: DF.Link | None
 		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]

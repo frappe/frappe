@@ -65,7 +65,8 @@ frappe.markdown = function (txt) {
 };
 
 frappe.tools.to_csv = function (data) {
-	var res = [];
+	let strDelimiter = frappe.boot.sysdefaults.csv_delimiter || ",";
+	let res = [];
 	$.each(data, function (i, row) {
 		row = $.map(row, function (col) {
 			if (col === null || col === undefined) col = "";
@@ -73,7 +74,7 @@ frappe.tools.to_csv = function (data) {
 				? '"' + $("<i>").html(col.replace(/"/g, '""')).text() + '"'
 				: col;
 		});
-		res.push(row.join(","));
+		res.push(row.join(strDelimiter));
 	});
 	return res.join("\n");
 };

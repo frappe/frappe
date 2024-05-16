@@ -708,7 +708,7 @@ Object.assign(frappe.utils, {
 	csv_to_array: function (strData, strDelimiter) {
 		// Check to see if the delimiter is defined. If not,
 		// then default to comma.
-		strDelimiter = strDelimiter || ",";
+		strDelimiter = strDelimiter || frappe.boot.sysdefaults.csv_delimiter || ",";
 
 		// Create a regular expression to parse the CSV values.
 		var objPattern = new RegExp(
