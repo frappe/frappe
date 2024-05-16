@@ -21,6 +21,7 @@ frappe.ui.toolbar.Toolbar = class {
 		this.setup_notifications();
 		this.setup_help();
 		this.setup_announcement_widget();
+        this.setup_scanner();
 		this.make();
 	}
 
@@ -175,6 +176,79 @@ frappe.ui.toolbar.Toolbar = class {
 			this.notifications = new frappe.ui.Notifications();
 		}
 	}
+
+    setup_scanner() {
+        let me = this;
+        this.scanner = $("#scanner-btn");
+        this.scanner.attr("title", __("Scan QR"));
+        this.scanner.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+
+        this.scanner.on("click", () => {
+            console.log("scanner click")
+            let msg_type = localStorage.getItem("barcode_msg_type") || "测试二维码";
+            let d = new frappe.ui.Dialog({
+                title: '上传二维码',
+                fields: [
+                    {
+                        "fieldname": "scan_barcode",
+                        "label": __("Scan QR"),
+                        "fieldtype": "Small Text",
+                        "options": "Barcode",
+                        "mandatory": 1,
+                    },
+                    {
+                        "fieldname": "message_type",
+                        "label": __("Message Type"),
+                        "fieldtype": "Data",
+                        "default": msg_type,
+                    },
+                ],
+                size: 'small',
+                primary_action_label: '上传',
+                primary_action(values) {
+                    d.hide();
+                    console.log("values", values);
+                    localStorage.setItem("barcode_msg_type", values.message_type);
+                    me.sendup_barcode(values);
+                },
+                
+                secondary_action_label: __("Scan QR"),
+                secondary_action(values) {
+                    new frappe.ui.Scanner({
+                        dialog: true, // open camera scanner in a dialog
+                        multiple: false, // stop after scanning one value
+                        on_scan(data) {
+                            // console.log("set_secondary_action on_scan", values, data)
+                            // 这儿直接上传
+                            values = {
+                                 "scan_barcode": data.decodedText,
+                                 "message_type": "摄像头扫描"
+                            };
+                            me.sendup_barcode(values);
+                        }
+                    });
+                }
+            })
+            d.show();
+        })
+    }
+
+    sendup_barcode(values) {
+        // console.log("sendup_barcode values", values)
+        frappe.call({
+            method: "bbl_app.bbl_app.doctype.temp_barcode.temp_barcode.sendup_barcode",
+            args: values
+        }).then(r => {
+            // console.log("sendup_barcode r", r)
+            if (r.message) {
+                frappe.show_alert({
+                    message: __("上传成功"),
+                    indicator: "green"
+                });
+                // frappe.set_route("Form", "Temp Barcode", r.message);
+            }
+        })
+    }
 };
 
 $.extend(frappe.ui.toolbar, {
