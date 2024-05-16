@@ -202,7 +202,7 @@ def success_callback(job: Job, connection: Redis, result: Any) -> None:
 	"""Callback function to update the status of the job to "Completed"."""
 	frappe.init(site=job.meta["site"])
 	frappe.connect()
-	task_id = job.id.split("::")[-1]
+	task_id = strip_site_from_task_id(job.id)
 	doc = frappe.get_doc("Background Task", {"task_id": task_id}, for_update=True)
 	doc.status = "Completed"
 	doc.result = result
@@ -227,7 +227,7 @@ def failure_callback(job: Job, connection: Redis, *exc_info) -> None:
 	"""Callback function to update the status of the job to "Failed"."""
 	frappe.init(site=job.meta["site"])
 	frappe.connect()
-	task_id = job.id.split("::")[-1]
+	task_id = strip_site_from_task_id(job.id)
 	doc = frappe.get_doc("Background Task", {"task_id": task_id}, for_update=True)
 	doc.status = "Failed"
 	doc.result = "".join(traceback.format_exception(*exc_info))
@@ -256,7 +256,7 @@ def stopped_callback(job: Job, connection: Redis) -> None:
 	"""Callback function to update the status of the job to "Stopped"."""
 	frappe.init(site=job.meta["site"])
 	frappe.connect()
-	task_id = job.id.split("::")[-1]
+	task_id = strip_site_from_task_id(job.id)
 	doc = frappe.get_doc("Background Task", {"task_id": task_id}, for_update=True)
 	doc.status = "Stopped"
 	doc.save()
@@ -273,3 +273,29 @@ def stopped_callback(job: Job, connection: Redis) -> None:
 	)
 	frappe.db.commit()
 	frappe.destroy()
+
+
+def publish_task_progress(task_id: str, message: str, progress: float):
+	"""
+	Show the progress of a task
+
+	:param task_id: Task ID
+	"""
+	frappe.publish_realtime(
+		"background_task",
+		message={
+			"message": message,
+			"progress": progress,
+			"background_task_id": strip_site_from_task_id(task_id),
+		},
+	)
+
+
+def strip_site_from_task_id(task_id: str) -> str:
+	"""
+	Task IDs are in the format `${site}::${task_id}`. This function strips the site from the task ID.
+
+	:param task_id: The full task ID
+	:return: The task ID without the site prefix
+	"""
+	return task_id.split("::")[-1]

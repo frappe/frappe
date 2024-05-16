@@ -18,4 +18,11 @@ frappe.ui.form.on("Background Task", {
 			});
 		}
 	},
+	setup(frm) {
+		frappe.realtime.on("background_task", (data) => {
+			if (data.background_task_id === frm.doc.task_id) {
+				frm.dashboard.show_progress(__("Task Progress"), data.progress, data.message);
+			}
+		});
+	},
 });

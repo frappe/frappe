@@ -2325,6 +2325,20 @@ def publish_realtime(*args, **kwargs):
 	return frappe.realtime.publish_realtime(*args, **kwargs)
 
 
+def publish_task_progress(message: str, progress: float):
+	"""
+	Publish task progress to the user
+	:param message: Message for the user
+	:return: Nothing
+	"""
+	from frappe.core.doctype.background_task.background_task import publish_task_progress
+
+	if frappe.job and frappe.job.task_id:
+		publish_task_progress(frappe.job.task_id, message, progress)
+	else:
+		print(f"Task progress: {message=}, {progress=}")
+
+
 def local_cache(namespace, key, generator, regenerate_if_none=False):
 	"""A key value store for caching within a request
 
