@@ -24,13 +24,17 @@ class BackgroundTask(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		at_front: DF.Check
 		failure_callback: DF.Code | None
+		kwargs: DF.Code | None
 		method: DF.Data | None
+		queue: DF.Data | None
 		result: DF.Code | None
 		status: DF.Literal["Queued", "In Progress", "Completed", "Failed", "Stopped"]
 		stopped_callback: DF.Code | None
 		success_callback: DF.Code | None
 		task_id: DF.Data
+		timeout: DF.Int
 		user: DF.Link | None
 	# end: auto-generated types
 
@@ -40,6 +44,20 @@ class BackgroundTask(Document):
 			send_stop_job_command(connection=get_redis_conn(), job_id=f"{frappe.local.site}::{self.task_id}")
 		except InvalidJobOperation:
 			frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
+
+	def retry(self) -> Job:
+		"""Retry the task"""
+		return enqueue(
+			method=self.method,
+			queue=self.queue,
+			timeout=self.timeout,
+			event=self.task_id,
+			on_success=self.success_callback,
+			on_failure=self.failure_callback,
+			on_stopped=self.stopped_callback,
+			at_front=bool(self.at_front),
+			kwargs=frappe.parse_json(self.kwargs),
+		)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -95,6 +113,21 @@ def stop_task(task_id: str):
 	return "Task not found"
 
 
+@frappe.whitelist(methods=["POST"])
+def retry_task(task_id: str):
+	"""
+	Method to retry a task
+
+	:param task_id: The task's ID
+	:return: The new task's ID
+	"""
+	task: BackgroundTask | None = frappe.get_doc("Background Task", {"task_id": task_id})
+	if task:
+		return task.retry()
+	frappe.local.response["http_status_code"] = http.HTTPStatus.NOT_FOUND
+	return "Task not found"
+
+
 def enqueue(
 	method: str | Callable,
 	queue: str = "default",
@@ -112,7 +145,7 @@ def enqueue(
 
 	:param method: method string or method object
 	:param queue: should be either long, default or short
-	:param timeout: should be set according to the functions
+	:param timeout: should be set according to the enqueued method's runtime
 	:param event: this is passed to enable clearing of jobs from queues
 	:param enqueue_after_commit: if True, enqueue after the current transaction is committed
 	:param on_success: Success callback
@@ -170,6 +203,10 @@ def enqueue(
 		user=frappe.session.user,
 		status="Queued",
 		method=frappe.utils.method_to_string(method),
+		queue=queue,
+		timeout=timeout,
+		kwargs=frappe.as_json(kwargs),
+		at_front=at_front,
 	)
 
 	if on_success:

@@ -9,6 +9,10 @@
   "status",
   "user",
   "method",
+  "queue",
+  "timeout",
+  "at_front",
+  "kwargs",
   "result",
   "success_callback",
   "failure_callback",
@@ -71,11 +75,36 @@
    "fieldtype": "Code",
    "label": "Stopped Callback",
    "read_only": 1
+  },
+  {
+   "fieldname": "queue",
+   "fieldtype": "Data",
+   "label": "Queue",
+   "read_only": 1
+  },
+  {
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Timeout",
+   "read_only": 1
+  },
+  {
+   "fieldname": "kwargs",
+   "fieldtype": "Code",
+   "label": "Miscellaneous Keyword Arguments",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "at_front",
+   "fieldtype": "Check",
+   "label": "Add to the front of the queue",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-02-27 13:52:49.741902",
+ "modified": "2024-05-17 16:15:15.424074",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Background Task",

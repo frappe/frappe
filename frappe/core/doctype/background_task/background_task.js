@@ -16,6 +16,18 @@ frappe.ui.form.on("Background Task", {
 					},
 				});
 			});
+		} else {
+			frm.add_custom_button("Retry Task", () => {
+				frappe.call({
+					method: "frappe.core.doctype.background_task.background_task.retry_task",
+					args: {
+						task_id: frm.doc.task_id,
+					},
+					callback: (r) => {
+						frappe.toast("Requeued Task");
+					},
+				});
+			});
 		}
 	},
 	setup(frm) {
