@@ -482,7 +482,7 @@ def execute_in_shell(cmd, verbose=False, low_priority=False, check_exit_code=Fal
 			print(out)
 
 	if failed:
-		raise Exception("Command failed")
+		raise frappe.CommandFailedError("Command failed", out.decode(), err.decode())
 
 	return err, out
 
