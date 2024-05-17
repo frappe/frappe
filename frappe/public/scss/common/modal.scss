@@ -306,3 +306,24 @@ body.modal-open[style^="padding-right"] {
 		margin-right: var(--margin-md);
 	}
 }
+
+// Stack minimized modals
+@for $i from 1 through 5 {
+	// 5n + 1, 5n + 2, ...
+	body > .modal:nth-child(5n + #{$i} of .show.modal-minimize) {
+		--minimized-modal-index: #{$i};
+	}
+}
+.modal-minimize ~ .modal-minimize {
+	.modal-dialog {
+		bottom: calc(44px * (var(--minimized-modal-index) - 1));
+	}
+	.modal-header {
+		border-bottom: 0px;
+	}
+	.modal-content {
+		// Rounded chip style
+		border-radius: var(--border-radius-md);
+		overflow: hidden;
+	}
+}
