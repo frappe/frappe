@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-05 09:33+0000\n"
-"PO-Revision-Date: 2024-05-16 21:53\n"
+"PO-Revision-Date: 2024-05-17 22:08\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -788,7 +788,7 @@ msgstr "Hakkında"
 
 #: www/about.html:11 www/about.html:18
 msgid "About Us"
-msgstr ""
+msgstr "Hakkımızda"
 
 #. Name of a DocType
 #: website/doctype/about_us_settings/about_us_settings.json
@@ -1347,11 +1347,11 @@ msgstr "Gösterge Paneline Ekle"
 
 #: public/js/frappe/form/sidebar/assign_to.js:98
 msgid "Add to ToDo"
-msgstr ""
+msgstr "Yapılacaklara Ekle"
 
 #: website/doctype/website_slideshow/website_slideshow.js:32
 msgid "Add to table"
-msgstr ""
+msgstr "Tabloya ekle"
 
 #: public/js/frappe/form/footer/form_timeline.js:97
 msgid "Add to this activity by mailing to {0}"
@@ -1520,7 +1520,7 @@ msgstr "Yönetici"
 
 #: core/doctype/user/user.py:1215
 msgid "Administrator Logged In"
-msgstr ""
+msgstr "Yönetici Giriş Yaptı"
 
 #: core/doctype/user/user.py:1209
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
@@ -2565,11 +2565,11 @@ msgstr ""
 #: desk/doctype/kanban_board_column/kanban_board_column.json
 msgctxt "Kanban Board Column"
 msgid "Archived"
-msgstr ""
+msgstr "Arşivlendi"
 
 #: public/js/frappe/views/kanban/kanban_board.bundle.js:495
 msgid "Archived Columns"
-msgstr ""
+msgstr "Arşivlenmiş Sütunlar"
 
 #: public/js/frappe/list/list_view.js:1867
 msgid "Are you sure you want to clear the assignments?"
@@ -2634,7 +2634,7 @@ msgstr ""
 #: core/doctype/document_naming_rule/document_naming_rule.js:16
 #: core/doctype/user_permission/user_permission_list.js:165
 msgid "Are you sure?"
-msgstr ""
+msgstr "Emin misiniz?"
 
 #. Label of a Code field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
@@ -2742,7 +2742,7 @@ msgstr ""
 
 #: public/js/frappe/form/sidebar/assign_to.js:241
 msgid "Assigning..."
-msgstr ""
+msgstr "Atanıyor..."
 
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
@@ -2754,13 +2754,13 @@ msgstr ""
 #: core/doctype/comment/comment.json
 msgctxt "Comment"
 msgid "Assignment Completed"
-msgstr ""
+msgstr "Atama Tamamlandı"
 
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Assignment Completed"
-msgstr ""
+msgstr "Atama Tamamlandı"
 
 #. Label of a Section Break field in DocType 'Assignment Rule'
 #. Label of a Table field in DocType 'Assignment Rule'
@@ -3545,19 +3545,19 @@ msgstr ""
 #: website/doctype/social_link_settings/social_link_settings.json
 msgctxt "Social Link Settings"
 msgid "Background Color"
-msgstr ""
+msgstr "Arkaplan Rengi"
 
 #. Label of a Link field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Background Color"
-msgstr ""
+msgstr "Arkaplan Rengi"
 
 #. Label of a Attach Image field in DocType 'Web Page Block'
 #: website/doctype/web_page_block/web_page_block.json
 msgctxt "Web Page Block"
 msgid "Background Image"
-msgstr ""
+msgstr "Arkaplan Resmi"
 
 #: public/js/frappe/ui/toolbar/toolbar.js:178
 msgid "Background Jobs"
@@ -3610,7 +3610,7 @@ msgstr ""
 #. Label of a Card Break in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgid "Backup"
-msgstr ""
+msgstr "Yedekleme"
 
 #. Label of a Section Break field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -3620,7 +3620,7 @@ msgstr "Yedekleme Ayrıntıları"
 
 #: desk/page/backups/backups.js:26
 msgid "Backup Encryption Key"
-msgstr ""
+msgstr "Yedekleme Şifreleme Anahtarı"
 
 #. Label of a Check field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -3632,13 +3632,13 @@ msgstr "Yedek Dosyaları"
 #: integrations/doctype/google_drive/google_drive.json
 msgctxt "Google Drive"
 msgid "Backup Folder ID"
-msgstr ""
+msgstr "Yedekleme Klasörü ID"
 
 #. Label of a Data field in DocType 'Google Drive'
 #: integrations/doctype/google_drive/google_drive.json
 msgctxt "Google Drive"
 msgid "Backup Folder Name"
-msgstr ""
+msgstr "Yedekleme Klasörü Adı"
 
 #. Label of a Select field in DocType 'Dropbox Settings'
 #: integrations/doctype/dropbox_settings/dropbox_settings.json
@@ -4196,13 +4196,13 @@ msgstr ""
 
 #: website/report/website_analytics/website_analytics.js:36
 msgid "Browser"
-msgstr ""
+msgstr "Tarayıcı"
 
 #. Label of a Data field in DocType 'Web Page View'
 #: website/doctype/web_page_view/web_page_view.json
 msgctxt "Web Page View"
 msgid "Browser"
-msgstr ""
+msgstr "Tarayıcı"
 
 #. Label of a Data field in DocType 'Web Page View'
 #: website/doctype/web_page_view/web_page_view.json
@@ -4315,19 +4315,19 @@ msgstr ""
 #: custom/doctype/custom_field/custom_field.json
 msgctxt "Custom Field"
 msgid "Button"
-msgstr ""
+msgstr "Buton"
 
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Button"
-msgstr ""
+msgstr "Buton"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "Button"
-msgstr ""
+msgstr "Buton"
 
 #. Label of a Check field in DocType 'Website Theme'
 #: website/doctype/website_theme/website_theme.json
@@ -4764,7 +4764,7 @@ msgstr ""
 #: public/js/frappe/form/save.js:13
 msgctxt "Freeze message while cancelling a document"
 msgid "Cancelling"
-msgstr ""
+msgstr " İptal Ediliyor"
 
 #: desk/form/linked_with.py:375
 msgid "Cancelling documents"
