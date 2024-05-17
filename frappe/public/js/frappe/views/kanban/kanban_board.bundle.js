@@ -30,7 +30,6 @@ const ProjectStatusOptions = {
 	let quotations_draft = 0
 	let unread_conversations = []
 	getDraftQuotations()
-
 	var method_prefix = "frappe.desk.doctype.kanban_board.kanban_board.";
 
 	let columns_unwatcher = null;
@@ -347,7 +346,7 @@ const ProjectStatusOptions = {
 	}
 
 	frappe.views.KanbanBoard = function (opts) {
-		
+
 		var self = {};
 		self.wrapper = opts.wrapper;
 		self.cur_list = opts.cur_list;
@@ -855,8 +854,6 @@ const ProjectStatusOptions = {
 			}
 			if (card.column === ProjectStatusOptions.RemoteDiagnose){
 				render_fields.push(...['remote_diagnostic_date', 'remote_diagnostic_time'])
-				console.log(card.doc)
-				console.log(render_fields);
 			}
 			if(card.column == ProjectStatusOptions.InParking || card.column == ProjectStatusOptions.InQueue){
 				render_fields.push(...['bring_car_date'])
@@ -914,6 +911,7 @@ const ProjectStatusOptions = {
 			if (card.conversation){
 				html += '<i class="fa-brands fa-whatsapp" style="width: 14px; color: #128c7e"></i>'
 			}
+
 			html += getPartsIcons()
 			html += getSoftwareIcons()
 			html += getLoanCarIcons()
@@ -1094,8 +1092,7 @@ const ProjectStatusOptions = {
 		return differenceInDays >= 1;
 	  }
 
-	async function getUnreadConversations() {
-		console.log('feching')
+	  async function getUnreadConversations() {
 		unread_conversations = await frappe.db.get_list('Conversation', {
 			filters: {seen: 0},
 			fields: ["name", "from"],
@@ -1112,7 +1109,7 @@ const ProjectStatusOptions = {
 			limit: 100,
 			ip:1 // ignore permissions
 		})
-	}	  
+	  }	  
 
 	function prepare_columns(columns) {
 		return columns.map(function (col) {
