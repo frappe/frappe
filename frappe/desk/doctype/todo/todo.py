@@ -83,7 +83,7 @@ class ToDo(Document):
 				self.reference_type,
 				self.reference_name,
 				"_assign",
-				json.dumps(assignments),
+				json.dumps(assignments) if assignments else "",
 				update_modified=False,
 			)
 
