@@ -32,9 +32,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			</button>`
 		);
 		this.copy_button.on("click", () => {
-			frappe.utils.copy_to_clipboard(
-				frappe.model.get_value(this.doctype, this.docname, this.df.fieldname)
-			);
+			frappe.utils.copy_to_clipboard(this.get_model_value() || this.get_value());
 		});
 		this.copy_button.appendTo(this.$wrapper);
 	}
