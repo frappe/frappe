@@ -1,0 +1,75 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-05-16 22:16:35.037810",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "settings_section",
+  "label",
+  "column_break_tvbd",
+  "document_type",
+  "columns_section",
+  "columns"
+ ],
+ "fields": [
+  {
+   "fieldname": "settings_section",
+   "fieldtype": "Section Break",
+   "label": "Settings"
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Label"
+  },
+  {
+   "fieldname": "column_break_tvbd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "label": "DocType",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "columns_section",
+   "fieldtype": "Section Break",
+   "label": "Columns"
+  },
+  {
+   "fieldname": "columns",
+   "fieldtype": "JSON",
+   "label": "Columns"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-05-17 14:19:58.072369",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "View Config",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "label, document_type",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "label",
+ "translated_doctype": 1
+}
