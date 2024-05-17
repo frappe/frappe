@@ -66,7 +66,7 @@ def validate_template(html):
 	try:
 		jenv.from_string(html)
 	except TemplateSyntaxError as e:
-		frappe.throw(frappe._(f"Syntax error in template as line {e.lineno}: {e.message}"))
+		frappe.throw(f"Syntax error in template as line {e.lineno}: {e.message}")
 
 
 def render_template(template, context, is_path=None, safe_render=True):
