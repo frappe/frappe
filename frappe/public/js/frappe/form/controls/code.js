@@ -6,10 +6,10 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 
 	make_wrapper() {
 		super.make_wrapper();
-		this.set_copy_button();
+		this.setup_copy_button();
 	}
 
-	set_copy_button() {
+	setup_copy_button() {
 		if (this.df.fieldtype === "Code" && this.get_status() !== "Write") {
 			this.button = $(
 				`<button
