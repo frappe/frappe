@@ -10,12 +10,7 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 	}
 
 	set_copy_button() {
-		if (!this.frm?.doc) {
-			return;
-		}
-
-		const codeField = this.df.fieldtype === "Code";
-		if ((codeField && this.df.read_only === 1) || (codeField && this.frm.doc.docstatus > 0)) {
+		if (this.df.fieldtype === "Code" && this.get_status() !== "Write") {
 			this.button = $(
 				`<button
 					class="btn icon-btn"
