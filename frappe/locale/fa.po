@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-05 09:33+0000\n"
-"PO-Revision-Date: 2024-05-13 21:03\n"
+"PO-Revision-Date: 2024-05-18 22:06\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -30714,7 +30714,7 @@ msgstr "مشکلی پیش آمد."
 
 #: public/js/frappe/views/pageview.js:114
 msgid "Sorry! I could not find what you were looking for."
-msgstr "متاسف! من نتونستم چیزی که دنبالش بودی رو پیدا کنم."
+msgstr "متاسفم! من نتونستم چیزی که دنبالش بودی رو پیدا کنم."
 
 #: public/js/frappe/views/pageview.js:122
 msgid "Sorry! You are not permitted to view this page."
