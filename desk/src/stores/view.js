@@ -10,6 +10,4 @@ export const config_settings = createResource({
             config_name: config_name.value,
         }
     }
-})
-
-export const config_updated = ref(false);   
+});

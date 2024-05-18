@@ -4,6 +4,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.core.doctype.doctype.doctype import get_fields_not_allowed_in_list_view
+import json
 
 class ViewConfig(Document):
 	# begin: auto-generated types
@@ -41,3 +42,10 @@ def get_doctype_fields(doctype):
 			continue
 		doctype_fields.append({"label": field.label, "value": field.fieldname, "type": field.fieldtype})
 	return doctype_fields
+
+@frappe.whitelist()
+def update_config(config_name, new_config):
+	new_config = frappe._dict(new_config)
+	config = frappe.get_doc("View Config", config_name)
+	config.columns = json.dumps(frappe.parse_json(new_config.columns))
+	config.save()

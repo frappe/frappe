@@ -1,0 +1,44 @@
+<template>
+    <div class="flex justify-between">
+        <div></div>
+        <div class="flex gap-2">
+            <div v-if="config_updated"
+                class="flex items-center gap-2 border-r pr-2"
+            >
+                <Button :label="'Save Changes'" @click="emit('updateConfigSettings')"/>
+            </div>
+            <template v-if="options.showColumnSettings">
+                <ListColumnSettings v-model="config.columns" :allColumns="config.allColumns"/>
+            </template>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, watch, computed, defineEmits, defineModel  } from 'vue';
+import ListColumnSettings from '@/components/ListColumnSettings.vue';
+
+const emit = defineEmits(['updateConfigSettings']);
+
+const config = defineModel();
+const oldConfig = ref({});
+
+const props = defineProps({
+    options: {
+        type: Object,
+        default: {}
+    }
+});
+
+watch(
+    config.value,
+    (config) => {
+        if (!config) return;
+        oldConfig.value = JSON.parse(JSON.stringify(config));
+    },
+    { once: true, immediate: true }
+);
+
+const config_updated = computed(() => JSON.stringify(oldConfig.value) != JSON.stringify(config.value));
+
+</script>
