@@ -140,13 +140,3 @@ def capture_exception(message: str | None = None) -> None:
 
 	except Exception:
 		frappe.logger().error("Failed to capture exception", exc_info=True)
-		pass
-
-
-def add_bootinfo(bootinfo):
-	"""Called from hook, sends DSN so client side can setup error monitoring."""
-	if not frappe.get_system_settings("enable_telemetry"):
-		return
-
-	if sentry_dsn := os.getenv("FRAPPE_SENTRY_DSN"):
-		bootinfo.sentry_dsn = sentry_dsn
