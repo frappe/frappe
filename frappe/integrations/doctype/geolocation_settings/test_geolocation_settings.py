@@ -5,5 +5,5 @@
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestAddressAutocompleteSettings(FrappeTestCase):
+class TestGeolocationSettings(FrappeTestCase):
 	pass

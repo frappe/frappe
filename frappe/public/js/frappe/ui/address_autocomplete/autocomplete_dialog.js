@@ -20,7 +20,7 @@ frappe.ui.AddressAutocompleteDialog = class AddressAutocompleteDialog {
 					label: __("Search"),
 					reqd: 1,
 					get_query:
-						"frappe.integrations.doctype.address_autocomplete_settings.address_autocomplete_settings.autocomplete",
+						"frappe.integrations.doctype.geolocation_settings.geolocation_settings.autocomplete",
 				},
 			],
 			primary_action_label: __("Save Address"),

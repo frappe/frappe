@@ -4,7 +4,7 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "enabled",
+  "enable_address_autocompletion",
   "provider",
   "api_key"
  ],
@@ -13,28 +13,28 @@
    "fieldname": "provider",
    "fieldtype": "Select",
    "label": "Provider",
-   "mandatory_depends_on": "enabled",
+   "mandatory_depends_on": "enable_address_autocompletion",
    "options": "Geoapify"
   },
   {
    "fieldname": "api_key",
    "fieldtype": "Password",
    "label": "API Key",
-   "mandatory_depends_on": "enabled"
+   "mandatory_depends_on": "enable_address_autocompletion"
   },
   {
    "default": "0",
-   "fieldname": "enabled",
+   "fieldname": "enable_address_autocompletion",
    "fieldtype": "Check",
-   "label": "Enabled"
+   "label": "Enable Address Autocompletion"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2024-05-09 22:13:41.223754",
+ "modified": "2024-05-19 20:43:49.711209",
  "modified_by": "Administrator",
  "module": "Integrations",
- "name": "Address Autocomplete Settings",
+ "name": "Geolocation Settings",
  "owner": "Administrator",
  "permissions": [
   {

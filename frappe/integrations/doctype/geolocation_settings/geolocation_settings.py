@@ -8,7 +8,7 @@ from frappe.model.document import Document
 from .providers.geoapify import Geoapify
 
 
-class AddressAutocompleteSettings(Document):
+class GeolocationSettings(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -18,7 +18,7 @@ class AddressAutocompleteSettings(Document):
 		from frappe.types import DF
 
 		api_key: DF.Password | None
-		enabled: DF.Check
+		enable_address_autocompletion: DF.Check
 		provider: DF.Literal["Geoapify"]
 	# end: auto-generated types
 
@@ -30,14 +30,14 @@ def autocomplete(txt: str) -> list[dict]:
 	if not txt:
 		return []
 
-	settings = frappe.get_single("Address Autocomplete Settings")
-	if not settings.enabled:
+	settings = frappe.get_single("Geolocation Settings")
+	if not settings.enable_address_autocompletion:
 		return []
 
 	if settings.provider == "Geoapify":
-		AutocompleteProvider = Geoapify
+		GeolocationProvider = Geoapify
 	else:
-		frappe.throw(_("This address autocomplete provider is not supported yet."))
+		frappe.throw(_("This geolocation provider is not supported yet."))
 
-	provider = AutocompleteProvider(settings.get_password("api_key"), frappe.local.lang)
+	provider = GeolocationProvider(settings.get_password("api_key"), frappe.local.lang)
 	return provider.autocomplete(txt)

@@ -66,7 +66,7 @@ function new_record(doctype, frm) {
 		fieldname: "name",
 	};
 
-	if (frappe.boot.address_autocomplete_enabled === 1 && doctype === "Address") {
+	if (frappe.boot.enable_address_autocompletion === 1 && doctype === "Address") {
 		new frappe.ui.AddressAutocompleteDialog({
 			title: __("New Address"),
 			link_doctype: frm.doc.doctype,
