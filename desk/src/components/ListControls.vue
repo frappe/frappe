@@ -5,7 +5,8 @@
             <div v-if="config_updated"
                 class="flex items-center gap-2 border-r pr-2"
             >
-                <Button :label="'Save Changes'" @click="emit('updateConfigSettings')"/>
+                <Button :label="'Cancel'" @click="cancelChanges"/>
+                <Button :label="'Save Changes'" @click="saveChanges"/>
             </div>
             <template v-if="options.showColumnSettings">
                 <ListColumnSettings v-model="config.columns" :allColumns="config.allColumns"/>
@@ -41,4 +42,13 @@ watch(
 
 const config_updated = computed(() => JSON.stringify(oldConfig.value) != JSON.stringify(config.value));
 
+const saveChanges = () => {
+    emit('updateConfigSettings');
+    // TODO: find a better way to update computed value so 'save changes' doesn't show up after DB update
+    oldConfig.value = JSON.parse(JSON.stringify(config.value));
+}
+
+const cancelChanges = () => {
+    config.value = JSON.parse(JSON.stringify(oldConfig.value));
+}
 </script>
