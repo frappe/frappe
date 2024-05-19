@@ -9,7 +9,7 @@ class Geoapify:
 		self.lang = lang
 		self.base_url = "https://api.geoapify.com"
 
-	def autocomplete(self, query: str) -> list[dict]:
+	def autocomplete(self, query: str):
 		params = {
 			"text": query,
 			"apiKey": self.api_key,
@@ -21,8 +21,8 @@ class Geoapify:
 		response.raise_for_status()
 
 		results = response.json()["results"]
-		return [
-			{
+		for result in results:
+			yield {
 				"label": result["formatted"],
 				"value": json.dumps(
 					{
@@ -34,5 +34,3 @@ class Geoapify:
 					}
 				),
 			}
-			for result in results
-		]

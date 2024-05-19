@@ -35,9 +35,8 @@ def autocomplete(txt: str) -> list[dict]:
 		return []
 
 	if settings.provider == "Geoapify":
-		GeolocationProvider = Geoapify
+		provider = Geoapify(settings.get_password("api_key"), frappe.local.lang)
 	else:
 		frappe.throw(_("This geolocation provider is not supported yet."))
 
-	provider = GeolocationProvider(settings.get_password("api_key"), frappe.local.lang)
-	return provider.autocomplete(txt)
+	return list(provider.autocomplete(txt))
