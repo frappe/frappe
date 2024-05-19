@@ -127,6 +127,10 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			});
 	}
 
+	get $backdrop() {
+		return $(this.$wrapper.data("bs.modal")?._backdrop);
+	}
+
 	set_modal_size() {
 		if (!this.fields) {
 			this.size = "";
@@ -241,7 +245,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		this.$wrapper.removeClass("modal-minimize");
 
 		if (this.minimizable && this.is_minimized) {
-			$(".modal-backdrop").toggle();
+			this.$backdrop.show();
 			this.is_minimized = false;
 		}
 
@@ -256,7 +260,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	hide() {
 		if (this.animate && this.animation_speed === "slow") {
 			this.$wrapper.addClass("slow");
-			$(".modal-backdrop").addClass("slow");
+			this.$backdrop.addClass("slow");
 		}
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
@@ -279,7 +283,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	toggle_minimize() {
-		$(".modal-backdrop").toggle();
+		this.$backdrop.toggle();
 		let modal = this.$wrapper.closest(".modal").toggleClass("modal-minimize");
 		modal.attr("tabindex") ? modal.removeAttr("tabindex") : modal.attr("tabindex", -1);
 		this.is_minimized = !this.is_minimized;

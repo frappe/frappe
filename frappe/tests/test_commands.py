@@ -892,12 +892,12 @@ class TestAddNewUser(BaseTestCommands):
 
 class TestBenchBuild(BaseTestCommands):
 	def test_build_assets_size_check(self):
-		with cli(frappe.commands.utils.build, "--force --production") as result:
+		with cli(frappe.commands.utils.build, "--force --production --app frappe") as result:
 			self.assertEqual(result.exit_code, 0)
 			self.assertEqual(result.exception, None)
 
-		CURRENT_SIZE = 3.5  # MB
-		JS_ASSET_THRESHOLD = 0.1
+		CURRENT_SIZE = 3.3  # MB
+		JS_ASSET_THRESHOLD = 0.01
 
 		hooks = frappe.get_hooks()
 		default_bundle = hooks["app_include_js"]
@@ -924,15 +924,6 @@ class TestDBUtils(BaseTestCommands):
 		self.assertTrue(frappe.db.has_index("tabUser", index_name))
 		meta = frappe.get_meta("User", cached=False)
 		self.assertTrue(meta.get_field(field).search_index)
-
-	@run_only_if(db_type_is.MARIADB)
-	def test_describe_table(self):
-		self.execute("bench --site {site} describe-database-table --doctype User", {})
-		self.assertIn("user_type", self.stdout)
-
-		# Ensure that output is machine parseable
-		stats = json.loads(self.stdout)
-		self.assertIn("total_rows", stats)
 
 
 class TestSchedulerUtils(BaseTestCommands):

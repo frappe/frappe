@@ -11,6 +11,7 @@ from semantic_version import SimpleSpec, Version
 import frappe
 from frappe import _, safe_decode
 from frappe.utils import cstr
+from frappe.utils.caching import redis_cache
 from frappe.utils.frappecloud import on_frappecloud
 
 
@@ -211,7 +212,7 @@ def check_for_update():
 
 
 def has_app_update_notifications() -> bool:
-	return bool(frappe.cache.sismember("update-user-set", frappe.session.user))
+	return bool(frappe.cache.sismember("changelog-update-user-set", frappe.session.user))
 
 
 def parse_latest_non_beta_release(response: list, current_version: Version) -> list | None:
@@ -250,22 +251,16 @@ def check_release_on_github(
 		raise ValueError("Repo cannot be empty")
 
 	# Get latest version from GitHub
-	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
-	if r.ok:
-		latest_non_beta_release = parse_latest_non_beta_release(r.json(), current_version)
-		if latest_non_beta_release:
-			return Version(latest_non_beta_release), owner
+	releases = _get_latest_releases(owner, repo)
+	latest_non_beta_release = parse_latest_non_beta_release(releases, current_version)
+	if latest_non_beta_release:
+		return Version(latest_non_beta_release), owner
 
 	return None, None
 
 
 def security_issues_count(owner: str, repo: str, current_version: Version, target_version: Version) -> int:
-	import requests
-
-	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/security-advisories")
-	if not r.ok:
-		return 0
-	advisories = r.json()
+	advisories = _get_security_issues(owner, repo)
 
 	def applicable(advisory) -> bool:
 		# Current version is in vulnerable range
@@ -283,6 +278,28 @@ def security_issues_count(owner: str, repo: str, current_version: Version, targe
 					return True
 
 	return len([sa for sa in advisories if applicable(sa)])
+
+
+@redis_cache(ttl=6 * 24 * 60 * 60, shared=True)
+def _get_latest_releases(owner, repo):
+	import requests
+
+	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
+	if not r.ok:
+		return []
+
+	return r.json()
+
+
+@redis_cache(ttl=6 * 24 * 60 * 60, shared=True)
+def _get_security_issues(owner, repo):
+	import requests
+
+	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/security-advisories")
+	if not r.ok:
+		return []
+
+	return r.json()
 
 
 def parse_github_url(remote_url: str) -> tuple[str, str] | tuple[None, None]:
@@ -307,11 +324,11 @@ def get_source_url(app: str) -> str | None:
 
 def add_message_to_redis(update_json):
 	# "update-message" will store the update message string
-	# "update-user-set" will be a set of users
-	frappe.cache.set_value("update-info", json.dumps(update_json))
+	# "changelog-update-user-set" will be a set of users
+	frappe.cache.set_value("changelog-update-info", json.dumps(update_json))
 	user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
 	system_managers = [user for user in user_list if "System Manager" in frappe.get_roles(user)]
-	frappe.cache.sadd("update-user-set", *system_managers)
+	frappe.cache.sadd("changelog-update-user-set", *system_managers)
 
 
 @frappe.whitelist()
@@ -320,7 +337,7 @@ def show_update_popup():
 		return
 	user = frappe.session.user
 
-	update_info = frappe.cache.get_value("update-info")
+	update_info = frappe.cache.get_value("changelog-update-info")
 	if not update_info:
 		return
 
@@ -328,7 +345,7 @@ def show_update_popup():
 
 	# Check if user is int the set of users to send update message to
 	update_message = ""
-	if frappe.cache.sismember("update-user-set", user):
+	if frappe.cache.sismember("changelog-update-user-set", user):
 		for update_type in updates:
 			release_links = ""
 			for app in updates[update_type]:
@@ -373,7 +390,7 @@ def show_update_popup():
 			indicator="green",
 			primary_action=primary_action,
 		)
-		frappe.cache.srem("update-user-set", user)
+		frappe.cache.srem("changelog-update-user-set", user)
 
 
 def get_pyproject(app: str) -> dict | None:

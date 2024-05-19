@@ -125,6 +125,8 @@ class LoginManager:
 				self.set_user_info()
 
 	def login(self):
+		self.run_trigger("before_login")
+
 		if frappe.get_system_settings("disable_user_pass_login"):
 			frappe.throw(_("Login with username and password is not allowed."), frappe.AuthenticationError)
 

@@ -82,6 +82,8 @@ def make_tree_args(**kwarg):
 	if kwarg["is_root"] == "true":
 		kwarg["is_root"] = True
 
-	kwarg.update({parent_field: kwarg.get("parent") or kwarg.get(parent_field)})
+	parent = kwarg.get("parent") or kwarg.get(parent_field)
+	if doctype != parent:
+		kwarg.update({parent_field: parent})
 
 	return frappe._dict(kwarg)

@@ -442,7 +442,6 @@ after_job = [
 extend_bootinfo = [
 	"frappe.utils.telemetry.add_bootinfo",
 	"frappe.core.doctype.user_permission.user_permission.send_user_permissions",
-	"frappe.utils.sentry.add_bootinfo",
 ]
 
 get_changelog_feed = "frappe.desk.doctype.changelog_feed.changelog_feed.get_feed"
@@ -549,7 +548,7 @@ default_log_clearing_doctypes = {
 
 # These keys will not be erased when doing frappe.clear_cache()
 persistent_cache_keys = [
-	"update-user-set",
-	"update-info",
+	"changelog-*",  # version update notifications
 	"insert_queue_for_*",  # Deferred Insert
+	"recorder-*",  # Recorder
 ]
