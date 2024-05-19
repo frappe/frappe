@@ -17,6 +17,7 @@ import Icon from "@/components/Icon.vue"
 
 import { session } from "@/data/session"
 import { user } from "@/data/user"
+import permissions from "@/data/permissions"
 
 let app = createApp(App)
 
@@ -32,6 +33,7 @@ app.component("Icon", Icon)
 
 app.provide("$session", session)
 app.provide("$user", user)
+app.provide("$permissions", permissions)
 
 if (import.meta.env.DEV) {
 	frappeRequest({

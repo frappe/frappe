@@ -15,6 +15,18 @@ def get_current_user_info() -> dict:
 
 
 @frappe.whitelist()
+def get_permissions_for_current_user() -> dict:
+	from frappe.desk.desktop import get_workspace_sidebar_items
+
+	workspaces = get_workspace_sidebar_items().get("pages")
+	allow_workspaces = [workspace.get("name") for workspace in workspaces]
+
+	user = frappe.get_user().load_user()
+	user.allow_workspaces = allow_workspaces
+	return user
+
+
+@frappe.whitelist()
 def get_desktop_items() -> list[dict]:
 	"""Returns desktop items for the current user"""
 	modules = get_modules_from_all_apps_for_user()

@@ -22,7 +22,7 @@
 				v-for="item in sidebar.data?.workspaces"
 				:key="item.name"
 				:link="item"
-				:module="moduleSlug"
+				:module="module"
 				:isCollapsed="isCollapsed"
 			/>
 		</div>
@@ -34,7 +34,7 @@
 					v-if="item.type === 'Link'"
 					:link="item"
 					:isCollapsed="isCollapsed"
-					:module="moduleSlug"
+					:module="module"
 				/>
 
 				<div v-else-if="item.type === 'Spacer'" class="h-5"></div>
@@ -57,7 +57,7 @@
 							v-for="link in item.links"
 							:key="link.name"
 							:link="link"
-							:module="moduleSlug"
+							:module="module"
 							:isCollapsed="isCollapsed"
 						/>
 					</template>
@@ -82,62 +82,28 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue"
-import { useRoute } from "vue-router"
-import { createResource, FeatherIcon } from "frappe-ui"
+import { ref } from "vue"
+import { FeatherIcon } from "frappe-ui"
 
 import Icon from "@/components/Icon.vue"
 import ModuleSidebarLink from "@/components/ModuleSidebarLink.vue"
 
-import { getDesktopItem } from "@/data/desktop"
-import { slug } from "@/utils/router"
+import { getDesktopItem, sidebar } from "@/data/desktop"
 
-const route = useRoute()
-const moduleSlug = ref("")
-const desktopItem = ref(null)
-const isCollapsed = ref(false)
-
-const sidebar = createResource({
-	url: "frappe.api.desk.get_module_sidebar",
-	transform(data) {
-		data.sections.forEach((item) => {
-			if (item.type === "Section Break") {
-				item.opened = true
-			}
-		})
-		return data
+const props = defineProps({
+	module: {
+		type: String,
+		required: true,
 	},
 })
 
-const workspaceModule = createResource({
-	url: "frappe.api.desk.get_workspace_module",
-})
+const desktopItem = ref(null)
+const isCollapsed = ref(false)
 
 async function getSidebar(module) {
 	// TODO: handle route to show slug
 	desktopItem.value = await getDesktopItem(module)
 	sidebar.submit({ module: desktopItem.value.module })
 }
-
-watch(
-	() => route.params?.module,
-	(module) => {
-		if (!module) return
-		moduleSlug.value = module
-		getSidebar(module)
-	},
-	{ immediate: true }
-)
-
-watch(
-	() => route.params?.name,
-	async (name) => {
-		if (name) {
-			await workspaceModule.submit({ workspace: name })
-			moduleSlug.value = slug(workspaceModule.data)
-			getSidebar(moduleSlug.value)
-		}
-	},
-	{ immediate: true }
-)
+getSidebar(props.module)
 </script>

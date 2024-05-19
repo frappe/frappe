@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router"
 import { session } from "@/data/session"
 import { user } from "@/data/user"
+import { permissionsResource } from "@/data/permissions"
 
 const routes = [
 	{
@@ -65,6 +66,10 @@ router.beforeEach(async (to, _, next) => {
 		await user.promise
 	} catch (error) {
 		isLoggedIn = false
+	}
+
+	if (isLoggedIn && !permissionsResource?.data?.can_read) {
+		await permissionsResource.reload()
 	}
 
 	if (to.name === "Login" && isLoggedIn) {

@@ -17,7 +17,7 @@
 import { Tooltip } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 import { computed } from "vue"
-import { getRoute } from "@/utils/router"
+import { getRoute } from "@/utils/routing"
 
 const props = defineProps({
 	link: {

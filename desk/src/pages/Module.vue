@@ -1,6 +1,6 @@
 <script>
 import { sidebar } from "@/data/desktop"
-import { getRoute } from "@/utils/router"
+import { getRoute } from "@/utils/routing"
 
 export default {
 	name: "Module",
