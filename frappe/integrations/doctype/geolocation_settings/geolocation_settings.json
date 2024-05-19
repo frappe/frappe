@@ -6,6 +6,7 @@
  "field_order": [
   "enable_address_autocompletion",
   "provider",
+  "base_url",
   "api_key"
  ],
  "fields": [
@@ -14,24 +15,33 @@
    "fieldtype": "Select",
    "label": "Provider",
    "mandatory_depends_on": "enable_address_autocompletion",
-   "options": "Geoapify"
+   "options": "Geoapify\nNomatim"
   },
   {
+   "depends_on": "eval: doc.provider === \"Geoapify\"",
    "fieldname": "api_key",
    "fieldtype": "Password",
    "label": "API Key",
-   "mandatory_depends_on": "enable_address_autocompletion"
+   "mandatory_depends_on": "eval: doc.enable_address_autocompletion && doc.provider === \"Geoapify\""
   },
   {
    "default": "0",
    "fieldname": "enable_address_autocompletion",
    "fieldtype": "Check",
    "label": "Enable Address Autocompletion"
+  },
+  {
+   "depends_on": "eval: doc.provider === \"Nomatim\"",
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Base URL",
+   "mandatory_depends_on": "eval: doc.provider === \"Nomatim\" && doc.enable_address_autocompletion",
+   "options": "URL"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2024-05-19 20:43:49.711209",
+ "modified": "2024-05-19 22:00:01.118978",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Geolocation Settings",
