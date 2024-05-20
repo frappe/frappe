@@ -101,6 +101,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 
 		$(this.input_area).find(".awesomplete ul").css("min-width", "100%");
 
+<<<<<<< HEAD
 		this.init_option_cache();
 
 		this.$input.on(
@@ -117,6 +118,15 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 				}
 			}, 500)
 		);
+=======
+		this.$input.on("input", (e) => {
+			if (this.get_query || this.df.get_query) {
+				this.execute_query_if_exists(e.target.value);
+			} else {
+				this.awesomplete.list = this.get_data();
+			}
+		});
+>>>>>>> 12d18fa46c (perf: undebounce autocomplete)
 
 		this.$input.on("focus", () => {
 			if (!this.$input.val()) {
