@@ -1192,10 +1192,10 @@ fastq@^1.6.0:
   dependencies:
     reusify "^1.0.4"
 
-feather-icons@^4.28.0:
-  version "4.28.0"
-  resolved "https://registry.yarnpkg.com/feather-icons/-/feather-icons-4.28.0.tgz#e1892a401fe12c4559291770ff6e68b0168e760f"
-  integrity sha512-gRdqKESXRBUZn6Nl0VBq2wPHKRJgZz7yblrrc2lYsS6odkNFDnA4bqvrlEVRUPjE1tFax+0TdbJKZ31ziJuzjg==
+feather-icons@^4.28.0, feather-icons@^4.29.2:
+  version "4.29.2"
+  resolved "https://registry.yarnpkg.com/feather-icons/-/feather-icons-4.29.2.tgz#b03a47588a1c400f215e884504db1c18860d89f8"
+  integrity sha512-0TaCFTnBTVCz6U+baY2UJNKne5ifGh7sMG4ZC2LoBWCZdIyPa+y6UiR4lEYGws1JOFWdee8KAsAIvu0VcXqiqA==
   dependencies:
     classnames "^2.2.5"
     core-js "^3.1.3"

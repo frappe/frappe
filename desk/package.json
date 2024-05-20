@@ -9,7 +9,7 @@
 		"serve": "vite preview"
 	},
 	"dependencies": {
-		"feather-icons": "^4.28.0",
+		"feather-icons": "^4.29.2",
 		"frappe-ui": "^0.1.51",
 		"vue": "^3.4.12",
 		"vue-router": "^4.2.2",
