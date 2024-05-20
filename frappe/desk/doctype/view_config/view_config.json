@@ -7,6 +7,7 @@
  "field_order": [
   "settings_section",
   "label",
+  "icon",
   "column_break_tvbd",
   "document_type",
   "columns_section",
@@ -42,11 +43,16 @@
    "fieldname": "columns",
    "fieldtype": "JSON",
    "label": "Columns"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "label": "Icon"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-17 14:19:58.072369",
+ "modified": "2024-05-20 01:35:46.926525",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "View Config",

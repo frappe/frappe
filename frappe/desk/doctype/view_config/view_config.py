@@ -15,7 +15,9 @@ class ViewConfig(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-
+		columns: DF.JSON | None
+		document_type: DF.Link | None
+		label: DF.Data | None
 	# end: auto-generated types
 
 	pass
@@ -26,12 +28,12 @@ def get_config(config_name):
 
 	doctype_fields = get_doctype_fields(config.document_type)
 	
-	return {
+	config_dict = config.as_dict()
+	config_dict.update({
 		"columns": frappe.parse_json(config.columns),
-		"document_type": config.document_type,
-		"label": config.label,
 		"doctype_fields": doctype_fields
-	}
+	})
+	return config_dict
 
 def get_doctype_fields(doctype):
 	meta = frappe.get_meta(doctype)
@@ -49,3 +51,9 @@ def update_config(config_name, new_config):
 	config = frappe.get_doc("View Config", config_name)
 	config.columns = json.dumps(frappe.parse_json(new_config.columns))
 	config.save()
+
+
+@frappe.whitelist()
+def get_views_for_doctype(doctype):
+	views = frappe.get_all("View Config", filters={"document_type": doctype}, fields=["name", "label", "icon"])
+	return views

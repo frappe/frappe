@@ -4,18 +4,36 @@
         showTooltip: false,
         resizeColumn: true,
         showColumnSettings: true,
-    }" @update="handleUpdateConfig" />
+    }" @update="handleUpdateConfig">
+        <template #customControls>
+            <div v-if="config_settings.data" class="flex items-center gap-2">
+                <Dropdown :placement="'right'" :options="viewsDropdownOptions">
+                    <template #default="{ open }">
+                        <Button :label="config_settings.data?.label">
+                            <template #prefix>
+                                <FeatherIcon :name="config_settings.data?.icon" class="h-4" />
+                            </template>
+                            <template #suffix>
+                                <FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 text-gray-600" />
+                            </template>
+                        </Button>
+                    </template>
+                </Dropdown>
+            </div>
+        </template>
+    </ListView>
     </div>
 </template>
 
 <script setup>
 import { config_name, config_settings } from '@/stores/view';
-import { createResource } from 'frappe-ui';
-import { ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { createResource, FeatherIcon, Dropdown, call } from 'frappe-ui';
+import { ref, watch, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import ListView from '@/components/ListView.vue';
 
 const route = useRoute();
+const router = useRouter();
 
 const list = createResource({
     url: `frappe.client.get_list`,
@@ -53,5 +71,53 @@ const updateConfigResource = createResource({
 const handleUpdateConfig = async(config) => {
     updateConfigResource.submit({ config_name: config_name.value, new_config: config });
 };
+
+// TODO: add default view routes
+const defaultViews = [
+    {
+        label: 'Report',
+        icon: 'table'
+    },
+    {
+        label: 'Kanban',
+        icon: 'grid'
+    },
+    {
+        label: 'Dashboard',
+        icon: 'pie-chart'
+    }
+];
+
+const viewsDropdownOptions = computed(() => {
+    let _views = [
+        {
+            group: 'Default Views',
+            items: defaultViews,
+        },
+    ]
+
+    let saved_views = [];
+    if (config_settings.data?.document_type) {
+        call('frappe.desk.doctype.view_config.view_config.get_views_for_doctype', {
+            doctype: config_settings.data.document_type
+        }).then((res) => {
+            res.map((v) => {
+                v.name != config_name.value && saved_views.push({
+                    label: v.label,
+                    icon: v.icon,
+                    onClick: () => {
+                        router.push({ query: { config: v.name } });
+                    }
+                });
+            });
+
+            saved_views.length && _views.push({
+                group: 'Saved Views',
+                items: saved_views,
+            });
+        });
+    }
+    return _views;
+});
 
 </script>

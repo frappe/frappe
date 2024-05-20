@@ -1,6 +1,6 @@
 <template>
-    <div class="flex justify-between">
-        <div></div>
+    <div class="flex justify-end gap-4 items-center">
+        <slot name="customControls"><div></div></slot>
         <div class="flex gap-2">
             <div v-if="config_updated"
                 class="flex items-center gap-2 border-r pr-2"
