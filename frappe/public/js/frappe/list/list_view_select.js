@@ -181,7 +181,6 @@ frappe.views.ListViewSelect = class ListViewSelect {
 	}
 
 	setup_kanban_switcher(kanbans) {
-		if(this.doctype !== "Project"){
 			const kanban_switcher = this.page.add_custom_button_group(
 				__("Select Kanban"),
 				null,
@@ -206,7 +205,6 @@ frappe.views.ListViewSelect = class ListViewSelect {
 					true
 				);
 			}
-		}
 	}
 
 	get_page_name() {
