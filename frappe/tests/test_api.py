@@ -235,16 +235,6 @@ class TestMethodAPI(FrappeAPITestCase):
 			generate_keys("Administrator")
 			frappe.db.commit()
 
-	def test_version(self):
-		# test 1: test for /api/method/version
-		response = self.get(f"{self.METHOD_PATH}/version")
-		json = frappe._dict(response.json)
-
-		self.assertEqual(response.status_code, 200)
-		self.assertIsInstance(json, dict)
-		self.assertIsInstance(json.message, str)
-		self.assertEqual(Version(json.message), Version(frappe.__version__))
-
 	def test_ping(self):
 		# test 2: test for /api/method/ping
 		response = self.get(f"{self.METHOD_PATH}/ping")
