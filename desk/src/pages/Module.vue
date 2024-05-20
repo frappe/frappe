@@ -2,6 +2,7 @@
 import { sidebar } from "@/data/desktop"
 import { getRoute } from "@/utils/routing"
 
+// intermediate component to find and redirect to the module home from the sidebar
 export default {
 	name: "Module",
 	async beforeRouteEnter(to, _, next) {

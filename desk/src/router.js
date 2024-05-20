@@ -15,27 +15,33 @@ const routes = [
 		component: () => import("@/pages/Login.vue"),
 	},
 	{
-		path: "/:module",
-		name: "Module",
-		component: () => import("@/pages/Module.vue"),
-	},
-	{
-		path: "/workspace/:name",
+		path: "/workspace/:workspace",
 		name: "Workspace",
 		component: () => import("@/pages/Workspace.vue"),
 	},
 	{
-		// /desk/item/id
-		// /desk/:doctype/:id
-		path: "/:module/form/:doctype/:id",
-		name: "Form",
-		component: () => import("@/pages/Form.vue"),
+		path: "/module/:module",
+		name: "Module",
+		component: () => import("@/pages/Module.vue"),
 	},
 	{
-		// TODO: reaching a doctype should be easy: /desk/item -> /desk/item/view/list
-		path: "/:module/list/:id",
-		name: "List",
-		component: () => import("@/pages/List.vue"),
+		path: "/:doctype",
+		name: "ListView",
+		component: () => import("@/pages/doctype_views/ListView.vue"),
+	},
+	{
+		path: "/:doctype/view/list",
+		redirect: { name: "ListView" },
+	},
+	{
+		path: "/:doctype/view/report",
+		name: "ReportView",
+		component: () => import("@/pages/doctype_views/ReportView.vue"),
+	},
+	{
+		path: "/:doctype/:id",
+		name: "Form",
+		component: () => import("@/pages/Form.vue"),
 	},
 	{
 		path: "/:module/report/:id",

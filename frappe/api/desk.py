@@ -19,8 +19,13 @@ def get_permissions_for_current_user() -> dict:
 	from frappe.desk.desktop import get_workspace_sidebar_items
 
 	workspaces = get_workspace_sidebar_items().get("pages")
-	allow_workspaces = [workspace.get("name") for workspace in workspaces]
-
+	allow_workspaces = [
+		{
+			"name": workspace.get("name"),
+			"module": workspace.get("module"),
+		}
+		for workspace in workspaces
+	]
 	user = frappe.get_user().load_user()
 	user.allow_workspaces = allow_workspaces
 	return user
@@ -95,8 +100,3 @@ def get_module_sidebar(module: str) -> dict:
 			"module_home": module_home,
 		}
 	)
-
-
-@frappe.whitelist()
-def get_workspace_module(workspace: str) -> str:
-	return frappe.db.get_value("Workspace", workspace, "module")

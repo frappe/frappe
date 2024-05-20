@@ -11,15 +11,12 @@ export const permissionsResource = createResource({
 	url: "frappe.api.desk.get_permissions_for_current_user",
 	transform(data) {
 		data.allow_modules.forEach((module) => (modulesBySlug[slug(module)] = module))
-		data.allow_workspaces.forEach((workspace) => (workspacesBySlug[slug(workspace)] = workspace))
-		data.can_read.forEach((doctype) => (doctypesBySlug[slug(doctype)] = doctype))
+		data.allow_workspaces.forEach(
+			(workspace) => (workspacesBySlug[slug(workspace.name)] = workspace)
+		)
+		Object.values(data.doctype_map).forEach((doctype) => {
+			doctypesBySlug[slug(doctype.name)] = doctype
+		})
 		return data
 	},
 })
-
-export default {
-	permissionsResource,
-	modulesBySlug,
-	doctypesBySlug,
-	workspacesBySlug,
-}

@@ -27,10 +27,10 @@ export const sidebar = createResource({
 	},
 })
 
-export async function getDesktopItem(slug) {
+export async function getDesktopItem(module) {
 	if (!desktopItems.fetched) {
 		await desktopItems.fetch()
 	}
 
-	return desktopItems.data.find((item) => item.module_slug === slug)
+	return desktopItems.data.find((item) => item.module === module)
 }

@@ -101,9 +101,8 @@ const desktopItem = ref(null)
 const isCollapsed = ref(false)
 
 async function getSidebar(module) {
-	// TODO: handle route to show slug
 	desktopItem.value = await getDesktopItem(module)
-	sidebar.submit({ module: desktopItem.value.module })
+	sidebar.submit({ module: module })
 }
 getSidebar(props.module)
 </script>

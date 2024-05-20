@@ -5,19 +5,18 @@ export function slug(name) {
 export function getRoute(link, module) {
 	// TODO: handle single doctypes - shouldn't be a list
 	if (link.workspace) {
-		return { name: "Workspace", params: { name: slug(link.workspace) } }
+		return { name: "Workspace", params: { workspace: slug(link.workspace) } }
 	} else if (link.link_type === "DocType") {
 		return {
-			name: "List",
+			name: "ListView",
 			params: {
-				module: module,
-				id: slug(link.link_to),
+				doctype: slug(link.link_to),
 			},
 		}
 	} else if (["Page", "Report", "Dashboard"].includes(link.link_type)) {
 		return {
 			name: link.link_type,
-			params: { module: module, id: slug(link.link_to) },
+			params: { module: slug(module), id: slug(link.link_to) },
 		}
 	}
 }
