@@ -209,7 +209,7 @@ frappe.ui.form.ScriptManager = class ScriptManager {
 					"Date",
 					"Select",
 					"Duration",
-					"Time"
+					"Time",
 				].includes(df.fieldtype) ||
 				df.read_only == 1 ||
 				df.is_virtual == 1;
