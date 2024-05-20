@@ -48,16 +48,9 @@ class RequestContext:
 
 # If gc.freeze is done then importing modules before forking allows us to share the memory
 if frappe._tune_gc:
-	import gettext
-
-	import babel
-	import babel.messages
+	import babel.dates
 	import bleach
-<<<<<<< HEAD
-=======
 	import num2words
-	import pydantic
->>>>>>> 445e1dbd6b (perf: num2words, babel, gettext, sentry imports (#26475))
 
 	import frappe.boot
 	import frappe.client

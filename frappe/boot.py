@@ -4,8 +4,6 @@
 bootstrap client session
 """
 
-import os
-
 import frappe
 import frappe.defaults
 import frappe.desk.desk_page
@@ -108,9 +106,6 @@ def get_bootinfo():
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.subscription_conf = add_subscription_conf()
-
-	if sentry_dsn := get_sentry_dsn():
-		bootinfo.sentry_dsn = sentry_dsn
 
 	return bootinfo
 
@@ -449,10 +444,3 @@ def add_subscription_conf():
 		return frappe.conf.subscription
 	except Exception:
 		return ""
-
-
-def get_sentry_dsn():
-	if not frappe.get_system_settings("enable_telemetry"):
-		return
-
-	return os.getenv("FRAPPE_SENTRY_DSN")
