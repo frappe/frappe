@@ -17,23 +17,23 @@
 		</router-link>
 
 		<!-- Workspaces -->
-		<div class="mt-4 flex flex-col" v-if="sidebar.data?.workspaces">
+		<nav class="mt-4 flex flex-col space-y-0.5" v-if="sidebar.data?.workspaces">
 			<ModuleSidebarLink
 				v-for="item in sidebar.data?.workspaces"
 				:key="item.name"
 				:link="item"
 				:isCollapsed="isCollapsed"
 			/>
-		</div>
+		</nav>
 
 		<!-- Sections, Links, Spacers -->
-		<div class="mt-4 flex flex-col" v-if="sidebar.data?.sections">
-			<div v-for="item in sidebar.data?.sections" :key="item.name">
+		<nav class="mt-4 flex flex-col space-y-0.5" v-if="sidebar.data?.sections">
+			<template v-for="item in sidebar.data?.sections" :key="item.name">
 				<ModuleSidebarLink v-if="item.type === 'Link'" :link="item" :isCollapsed="isCollapsed" />
 
 				<div v-else-if="item.type === 'Spacer'" class="h-5"></div>
 
-				<template v-else-if="item.type === 'Section Break' && item.links.length">
+				<div v-else-if="item.type === 'Section Break' && item.links.length">
 					<div v-if="isCollapsed" class="mx-2 my-2 h-1 border-b"></div>
 					<div v-else class="mt-5 flex items-center gap-2 px-2" :class="item.opened ? 'mb-3' : ''">
 						<FeatherIcon
@@ -46,17 +46,17 @@
 						</div>
 					</div>
 
-					<template v-if="item.opened">
+					<nav v-if="item.opened" class="flex flex-col space-y-0.5">
 						<ModuleSidebarLink
 							v-for="link in item.links"
 							:key="link.name"
 							:link="link"
 							:isCollapsed="isCollapsed"
 						/>
-					</template>
-				</template>
-			</div>
-		</div>
+					</nav>
+				</div>
+			</template>
+		</nav>
 
 		<div class="sticky bottom-0 my-1 mt-auto flex flex-col items-start gap-1 bg-gray-50 py-2">
 			<button
