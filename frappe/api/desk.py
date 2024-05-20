@@ -97,6 +97,7 @@ def get_module_sidebar(module: str) -> dict:
 		{
 			"workspaces": doc.workspaces,
 			"sections": sections,
+			"module": module,
 			"module_home": module_home,
 		}
 	)

@@ -22,7 +22,6 @@
 				v-for="item in sidebar.data?.workspaces"
 				:key="item.name"
 				:link="item"
-				:module="module"
 				:isCollapsed="isCollapsed"
 			/>
 		</div>
@@ -30,12 +29,7 @@
 		<!-- Sections, Links, Spacers -->
 		<div class="mt-4 flex flex-col" v-if="sidebar.data?.sections">
 			<div v-for="item in sidebar.data?.sections" :key="item.name">
-				<ModuleSidebarLink
-					v-if="item.type === 'Link'"
-					:link="item"
-					:isCollapsed="isCollapsed"
-					:module="module"
-				/>
+				<ModuleSidebarLink v-if="item.type === 'Link'" :link="item" :isCollapsed="isCollapsed" />
 
 				<div v-else-if="item.type === 'Spacer'" class="h-5"></div>
 
@@ -57,7 +51,6 @@
 							v-for="link in item.links"
 							:key="link.name"
 							:link="link"
-							:module="module"
 							:isCollapsed="isCollapsed"
 						/>
 					</template>
