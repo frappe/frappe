@@ -356,7 +356,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					var maxDecimalPlaces = 0;
 					if (numbers) {
 						maxDecimalPlaces = Math.max(
-							...numbers.map(num => getDecimalPlaces(parseFloat(num)))
+							...numbers.map((num) => getDecimalPlaces(parseFloat(num)))
 						);
 					}
 
