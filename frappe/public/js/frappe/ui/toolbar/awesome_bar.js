@@ -355,7 +355,9 @@ frappe.search.AwesomeBar = class AwesomeBar {
 					var numbers = txt.match(/[+-]?([0-9]*[.])?[0-9]+/g);
 					var maxDecimalPlaces = 0;
 					if (numbers) {
-						maxDecimalPlaces = Math.max(...numbers.map(num => getDecimalPlaces(parseFloat(num))));
+						maxDecimalPlaces = Math.max(
+							...numbers.map(num => getDecimalPlaces(parseFloat(num)))
+						);
 					}
 
 					// Use a default precision of 2 decimal places if no decimal places are found
@@ -373,7 +375,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 						match: rounded_val,
 						index: 80,
 						default: "Calculator",
-						onclick: function() {
+						onclick: function () {
 							frappe.msgprint(formatted_value, __("Result123"));
 						},
 					});
