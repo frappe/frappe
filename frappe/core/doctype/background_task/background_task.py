@@ -309,8 +309,10 @@ def publish_task_progress(task_id: str, message: str, progress: float):
 
 	:param task_id: Task ID
 	"""
+	task = frappe.get_doc("Background Task", {"task_id": strip_site_from_task_id(task_id)})
 	frappe.publish_realtime(
 		"background_task",
+		user=task.user,
 		message={
 			"message": message,
 			"progress": progress,
