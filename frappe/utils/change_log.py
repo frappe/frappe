@@ -256,10 +256,50 @@ def check_release_on_github(app: str):
 
 	# Get latest version from GitHub
 	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
+<<<<<<< HEAD
 	if r.ok:
 		latest_non_beta_release = parse_latest_non_beta_release(r.json())
 		if latest_non_beta_release:
 			return Version(latest_non_beta_release), owner
+=======
+	if not r.ok:
+		return []
+
+	return r.json()
+
+
+@redis_cache(ttl=6 * 24 * 60 * 60, shared=True)
+def _get_security_issues(owner, repo):
+	import requests
+
+	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/security-advisories")
+	if not r.ok:
+		return []
+
+	return r.json()
+
+
+def parse_github_url(remote_url: str) -> tuple[str, str] | tuple[None, None]:
+	"""Parse the remote URL to get the owner and repo name."""
+	import re
+
+	if not remote_url:
+		raise ValueError("Remote URL cannot be empty")
+
+	pattern = r"github\.com[:/](.+)\/([^\.]+)"
+	match = re.search(pattern, remote_url)
+
+	return (match[1], match[2]) if match else (None, None)
+
+
+def get_source_url(app: str) -> str | None:
+	"""Get the remote URL of the app."""
+	pyproject = get_pyproject(app)
+	if not pyproject:
+		return
+	if remote_url := pyproject.get("project", {}).get("urls", {}).get("Repository"):
+		return remote_url.rstrip("/")
+>>>>>>> c973d08fe2 (fix: ignore apps without pyproject (#26498))
 
 
 def add_message_to_redis(update_json):
