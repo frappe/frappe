@@ -6,6 +6,7 @@ no_cache = 1
 
 import json
 import re
+from urllib.parse import urlencode
 
 import frappe
 import frappe.sessions
@@ -18,11 +19,13 @@ CLOSING_SCRIPT_TAG_PATTERN = re.compile(r"</script\>")
 
 def get_context(context):
 	if frappe.session.user == "Guest":
-		frappe.throw(_("Log in to access this page."), frappe.PermissionError)
+		frappe.response["status_code"] = 403
+		frappe.msgprint(_("Log in to access this page."))
+		frappe.redirect(f"/login?{urlencode({'redirect-to': frappe.request.path})}")
+
 	elif frappe.db.get_value("User", frappe.session.user, "user_type", order_by=None) == "Website User":
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
-	hooks = frappe.get_hooks()
 	try:
 		boot = frappe.sessions.get()
 	except Exception as e:
@@ -42,6 +45,7 @@ def get_context(context):
 	boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
 	boot_json = json.dumps(boot_json)
 
+	hooks = frappe.get_hooks()
 	include_js = hooks.get("app_include_js", []) + frappe.conf.get("app_include_js", [])
 	include_css = hooks.get("app_include_css", []) + frappe.conf.get("app_include_css", [])
 	include_icons = hooks.get("app_include_icons", [])
