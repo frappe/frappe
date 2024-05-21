@@ -16,7 +16,8 @@
   "result",
   "success_callback",
   "failure_callback",
-  "stopped_callback"
+  "stopped_callback",
+  "original_task"
  ],
  "fields": [
   {
@@ -100,11 +101,19 @@
    "fieldtype": "Check",
    "label": "Add to the front of the queue",
    "read_only": 1
+  },
+  {
+   "description": "The original task that this was re-queued from",
+   "fieldname": "original_task",
+   "fieldtype": "Link",
+   "label": "Original Task",
+   "options": "Background Task",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-17 16:15:15.424074",
+ "modified": "2024-05-21 13:01:57.384175",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Background Task",

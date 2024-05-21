@@ -28,6 +28,7 @@ class BackgroundTask(Document):
 		failure_callback: DF.Code | None
 		kwargs: DF.Code | None
 		method: DF.Data | None
+		original_task: DF.Link | None
 		queue: DF.Data | None
 		result: DF.Code | None
 		status: DF.Literal["Queued", "In Progress", "Completed", "Failed", "Stopped"]
@@ -65,12 +66,12 @@ def enqueue_task(
 	method: str,
 	queue: str = "default",
 	timeout: int | None = None,
-	event: str | None = None,
 	on_success: str | None = None,
 	on_failure: str | None = None,
 	on_stopped: str | None = None,
 	at_front: bool = False,
 	kwargs: dict | None = None,
+	original_task: str | None = None,
 ):
 	if kwargs is None:
 		kwargs = {}
@@ -86,11 +87,11 @@ def enqueue_task(
 		method=method,
 		queue=queue,
 		timeout=timeout,
-		event=event,
 		on_success=on_success,
 		on_failure=on_failure,
 		on_stopped=on_stopped,
 		at_front=at_front,
+		original_task=original_task,
 		**kwargs,
 	)
 
@@ -132,12 +133,12 @@ def enqueue(
 	method: str | Callable,
 	queue: str = "default",
 	timeout: int | None = None,
-	event: str | None = None,
 	enqueue_after_commit: bool = False,
 	on_success: Callable | str | None = None,
 	on_failure: Callable | str | None = None,
 	on_stopped: Callable | str | None = None,
 	at_front: bool = False,
+	original_task: str | None = None,
 	**kwargs,
 ) -> Job | Any | None:
 	"""
@@ -146,13 +147,13 @@ def enqueue(
 	:param method: method string or method object
 	:param queue: should be either long, default or short
 	:param timeout: should be set according to the enqueued method's runtime
-	:param event: this is passed to enable clearing of jobs from queues
 	:param enqueue_after_commit: if True, enqueue after the current transaction is committed
 	:param on_success: Success callback
 	:param on_failure: Failure callback
 	:param on_stopped: Stopped callback
 	:param at_front: Enqueue the job at the front of the queue or not
 	:param kwargs: keyword arguments to be passed to the method
+	:param original_task: Original task's name, if this is being re-tried
 	:return: Job object normally, if executing now then the result of the method, nothing if enqueueing after commit
 	"""
 
@@ -176,7 +177,6 @@ def enqueue(
 	queue_args = meta | {
 		"user": frappe.session.user,
 		"method": method,
-		"event": event,
 		"job_name": frappe.cstr(method),
 		"kwargs": kwargs,
 		"task_id": task_id,
@@ -217,6 +217,9 @@ def enqueue(
 
 	if on_stopped:
 		doc.stopped_callback = frappe.utils.method_to_string(on_stopped)
+
+	if original_task:
+		doc.original_task = original_task
 
 	doc.insert(ignore_permissions=True)
 	frappe.utils.notify_user(
