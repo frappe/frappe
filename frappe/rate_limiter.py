@@ -144,7 +144,8 @@ def rate_limit(
 			value = frappe.cache().incrby(cache_key, 1)
 			if value > _limit:
 				frappe.throw(
-					_("You hit the rate limit because of too many requests. Please try after sometime.")
+					_("You hit the rate limit because of too many requests. Please try after sometime."),
+					frappe.RateLimitExceededError,
 				)
 
 			return frappe.call(fun, **frappe.form_dict or kwargs)

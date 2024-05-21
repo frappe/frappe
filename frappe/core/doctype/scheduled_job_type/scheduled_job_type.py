@@ -101,7 +101,7 @@ class ScheduledJobType(Document):
 		next_execution = croniter(self.cron_format, last_execution).get_next(datetime)
 
 		jitter = 0
-		if self.frequency in ("Hourly Long", "Daily Long"):
+		if "Long" in self.frequency:
 			jitter = randint(1, 600)
 		return next_execution + timedelta(seconds=jitter)
 
