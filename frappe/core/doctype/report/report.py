@@ -146,7 +146,7 @@ class Report(Document):
 
 		check_safe_sql_query(self.query)
 
-		result = [list(t) for t in frappe.db.sql(self.query, filters)]
+		result = frappe.db.sql(self.query, filters, as_dict=1)
 		columns = self.get_columns() or [cstr(c[0]) for c in frappe.db.get_description()]
 
 		return [columns, result]
