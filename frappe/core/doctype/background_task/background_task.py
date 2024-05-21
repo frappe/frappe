@@ -46,20 +46,6 @@ class BackgroundTask(Document):
 		except InvalidJobOperation:
 			frappe.msgprint(_("Job is not running."), title=_("Invalid Operation"))
 
-	def retry(self) -> Job:
-		"""Retry the task"""
-		return enqueue(
-			method=self.method,
-			queue=self.queue,
-			timeout=self.timeout,
-			event=self.task_id,
-			on_success=self.success_callback,
-			on_failure=self.failure_callback,
-			on_stopped=self.stopped_callback,
-			at_front=bool(self.at_front),
-			kwargs=frappe.parse_json(self.kwargs),
-		)
-
 
 @frappe.whitelist(methods=["POST"])
 def enqueue_task(
@@ -70,11 +56,13 @@ def enqueue_task(
 	on_failure: str | None = None,
 	on_stopped: str | None = None,
 	at_front: bool = False,
-	kwargs: dict | None = None,
+	kwargs: str | None = None,
 	original_task: str | None = None,
 ):
 	if kwargs is None:
 		kwargs = {}
+	else:
+		kwargs = frappe.parse_json(kwargs)
 
 	# Ensure that the method to be queued exists
 	try:
@@ -110,21 +98,6 @@ def stop_task(task_id: str):
 	if task:
 		task.stop()
 		return "Stopped task"
-	frappe.local.response["http_status_code"] = http.HTTPStatus.NOT_FOUND
-	return "Task not found"
-
-
-@frappe.whitelist(methods=["POST"])
-def retry_task(task_id: str):
-	"""
-	Method to retry a task
-
-	:param task_id: The task's ID
-	:return: The new task's ID
-	"""
-	task: BackgroundTask | None = frappe.get_doc("Background Task", {"task_id": task_id})
-	if task:
-		return task.retry()
 	frappe.local.response["http_status_code"] = http.HTTPStatus.NOT_FOUND
 	return "Task not found"
 
