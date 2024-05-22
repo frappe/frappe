@@ -19,9 +19,15 @@ dependencies = [
     "PyJWT~=2.4.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
+<<<<<<< HEAD
     "PyMySQL==1.0.3",
     "PyPDF2~=2.1.0",
     "PyPika~=0.48.9",
+=======
+    "PyMySQL==1.1.1",
+    "pypdf~=3.17.0",
+    "PyPika==0.48.9",
+>>>>>>> ba199f8e4b (--- (#26520))
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.1",
     "RestrictedPython~=6.2",
