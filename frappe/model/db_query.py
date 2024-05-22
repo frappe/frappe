@@ -740,7 +740,7 @@ class DatabaseQuery:
 		meta = frappe.get_meta(f.doctype)
 
 		# primary key is never nullable, modified is usually indexed by default and always present
-		can_be_null = f.fieldname not in ("name", "modified")
+		can_be_null = f.fieldname not in ("name", "modified", "creation")
 
 		# prepare in condition
 		if f.operator.lower() in NestedSetHierarchy:
@@ -807,12 +807,20 @@ class DatabaseQuery:
 
 			if f.operator.lower() in ("previous", "next", "timespan"):
 				date_range = get_date_range(f.operator.lower(), f.value)
-				f.operator = "Between"
+				f.operator = "between"
 				f.value = date_range
 				fallback = f"'{FallBackDateTimeStr}'"
 
+			if f.operator.lower() in (">", ">=") and (
+				f.fieldname in ("creation", "modified")
+				or (df and (df.fieldtype == "Date" or df.fieldtype == "Datetime"))
+			):
+				# Null values can never be greater than any non-null value
+				can_be_null = False
+
 			if f.operator in (">", "<", ">=", "<=") and (f.fieldname in ("creation", "modified")):
 				value = cstr(f.value)
+				can_be_null = False
 				fallback = f"'{FallBackDateTimeStr}'"
 
 			elif f.operator.lower() in ("between") and (
@@ -820,6 +828,17 @@ class DatabaseQuery:
 				or (df and (df.fieldtype == "Date" or df.fieldtype == "Datetime"))
 			):
 				escape = False
+				# Between operator never needs to check for null
+				# Explanation: Consider SQL -> `COLUMN between X and Y`
+				# Actual computation:
+				#     for row in rows:
+				#     if Y > row.COLUMN > X:
+				#         yield row
+
+				# Since Y and X can't be null, null value in column will never match filter, so
+				# coalesce is extra cost that prevents index usage
+				can_be_null = False
+
 				value = get_between_date_filter(f.value, df)
 				fallback = f"'{FallBackDateTimeStr}'"
 

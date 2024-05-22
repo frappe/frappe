@@ -1075,6 +1075,15 @@ class TestReportview(FrappeTestCase):
 		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", (""))}, run=0))
 		self.assertNotIn("ifnull", frappe.get_all("User", {"name": ("in", ())}, run=0))
 
+	def test_coalesce_with_datetime_ops(self):
+		self.assertNotIn("ifnull", frappe.get_all("User", {"last_active": (">", "2022-01-01")}, run=0))
+		self.assertNotIn("ifnull", frappe.get_all("User", {"creation": ("<", "2022-01-01")}, run=0))
+		self.assertNotIn(
+			"ifnull",
+			frappe.get_all("User", {"last_active": ("between", ("2022-01-01", "2023-01-01"))}, run=0),
+		)
+		self.assertIn("ifnull", frappe.get_all("User", {"last_active": ("<", "2022-01-01")}, run=0))
+
 	def test_ambiguous_linked_tables(self):
 		from frappe.desk.reportview import get
 
