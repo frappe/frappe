@@ -22,8 +22,22 @@ class ViewConfig(Document):
 
 	pass
 
+def get_default_config(doctype):
+	meta = frappe.get_meta(doctype)
+	columns = []
+	for field in meta.fields:
+		if field.in_list_view:
+			columns.append({"label": field.label, "key": field.fieldname, "type": field.fieldtype, "width": "10rem"})
+	return {
+		"label": "List",
+		"columns": columns,
+		"doctype_fields": get_doctype_fields(doctype)
+	}
+
 @frappe.whitelist()
-def get_config(config_name):
+def get_config(config_name=None, is_default=True):
+	if is_default:
+		return get_default_config(config_name)
 	config = frappe.get_doc("View Config", config_name)
 
 	doctype_fields = get_doctype_fields(config.document_type)

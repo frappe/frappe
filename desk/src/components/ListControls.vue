@@ -32,20 +32,18 @@ const props = defineProps({
 });
 
 watch(
-    config.value,
+    config,
     (config) => {
         if (!config) return;
         oldConfig.value = JSON.parse(JSON.stringify(config));
     },
-    { once: true, immediate: true }
+    { immediate: true }
 );
 
 const config_updated = computed(() => JSON.stringify(oldConfig.value) != JSON.stringify(config.value));
 
 const saveChanges = () => {
     emit('updateConfigSettings');
-    // TODO: find a better way to update computed value so 'save changes' doesn't show up after DB update
-    oldConfig.value = JSON.parse(JSON.stringify(config.value));
 }
 
 const cancelChanges = () => {
