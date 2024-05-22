@@ -11,12 +11,16 @@ import click
 import frappe
 import frappe.utils
 
+from bbl_api.utils import print_blue_pp
+
+
 click.disable_unicode_literals_warning = True
 
 
 def main():
 	commands = get_app_groups()
 	commands.update({"get-frappe-commands": get_frappe_commands, "get-frappe-help": get_frappe_help})
+	# print(commands)
 	click.Group(commands=commands)(prog_name="bench")
 
 
@@ -83,6 +87,7 @@ def get_app_commands(app: str) -> dict:
 		return ret
 	for command in getattr(app_command_module, "commands", []):
 		ret[command.name] = command
+	# print_blue_pp(ret)
 	return ret
 
 
@@ -108,7 +113,8 @@ def get_apps():
 
 
 if __name__ == "__main__":
-	if not frappe._dev_server:
-		warnings.simplefilter("ignore")
+	# print('frappe main')
+	# if not frappe._dev_server:
+	# 	warnings.simplefilter("ignore")
 
 	main()

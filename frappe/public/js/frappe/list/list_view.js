@@ -8,6 +8,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const route = frappe.get_route();
 		const doctype = route[1];
 
+        // console.log("load_last_view", route)
 		if (route.length === 2) {
 			const user_settings = frappe.get_user_settings(doctype);
 			const last_view = user_settings.last_view;
@@ -82,6 +83,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	setup_defaults() {
 		super.setup_defaults();
+        // console.log("this.settings:", this.settings)
 
 		this.view = "List";
 		// initialize with saved order by
@@ -92,8 +94,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.menu_items = this.menu_items.concat(this.get_menu_items());
 
 		// set filters from view_user_settings or list_settings
-		if (Array.isArray(this.view_user_settings.filters)) {
-			// Priority 1: view_user_settings
+		if (Array.isArray(this.view_user_settings.filters) && this.view_user_settings.filters.length > 0) {
+            // Priority 1: view_user_settings
+            // console.log("有 view_user_settings", this.view_user_settings)
 			const saved_filters = this.view_user_settings.filters;
 			this.filters = this.validate_filters(saved_filters);
 		} else {
@@ -106,7 +109,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			});
 		}
 
+        // // todo wtt 改为并用过滤，以后找到后端过滤方法后改回（不用改）
+        // this.filters = this.filters.concat(
+        //     (this.settings.filters || []).map((f) => {
+        //         if (f.length === 3) {
+        //             f = [this.doctype, f[0], f[1], f[2]];
+        //         }
+        //         return f;
+        //     })
+        // );
+
+        
+
 		if (this.view_name == "List") this.toggle_paging = true;
+
+        // console.log("this.filters", this.filters)
 
 		this.patch_refresh_and_load_lib();
 		return this.get_list_view_settings();
@@ -364,6 +381,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			type: "Tag",
 		});
 
+
 		// 2nd column: Status indicator
 		if (frappe.has_indicator(this.doctype)) {
 			// indicator
@@ -373,6 +391,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		const fields_in_list_view = this.get_fields_in_list_view();
+
 		// Add rest from in_list_view docfields
 		this.columns = this.columns.concat(
 			fields_in_list_view
@@ -390,6 +409,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					df,
 				}))
 		);
+        // console.log("this.list_view_settings:", this.list_view_settings)
 
 		if (this.list_view_settings.fields) {
 			this.columns = this.reorder_listview_fields();
@@ -422,6 +442,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 			});
 		}
+        // console.log("this.columns:", this.columns)
 	}
 
 	reorder_listview_fields() {
@@ -438,7 +459,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				let field = fields[fld];
 				let column = this.columns[col];
 
-				if (column.type == "Status" && field.fieldname == "status_field") {
+				// if (column.type == "Status" && field.fieldname == "status_field") {
+                if (column.type == "Status" && (field.fieldname == "status" || field.fieldname == "status_field")) {
 					fields_order.push(column);
 					break;
 				} else if (column.type == "Field" && field.fieldname === column.df.fieldname) {
@@ -521,6 +543,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	before_refresh() {
+        // console.log('before_refresh this', this, this.filters)
 		if (frappe.route_options && this.filter_area) {
 			this.filters = this.parse_filters_from_route_options();
 			frappe.route_options = null;

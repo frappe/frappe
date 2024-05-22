@@ -192,3 +192,5 @@ cypress/videos
 
 # JetBrains IDEs
 .idea/
+
+*.lock

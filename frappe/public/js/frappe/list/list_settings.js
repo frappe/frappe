@@ -119,6 +119,7 @@ export default class ListSettings {
 						</div>
 						<div class="col-10" style="padding-left:0px;">
 							${__(me.fields[idx].label, null, me.doctype)}
+
 						</div>
 						<div class="col-1 ${can_remove}">
 							<a class="text-muted remove-field" data-fieldname="${me.fields[idx].fieldname}">
@@ -140,6 +141,7 @@ export default class ListSettings {
 				<p class="help-box small text-muted">
 					<a class="add-new-fields text-muted">
 						${__("+ Add / Remove Fields")}
+
 					</a>
 				</p>
 			</div>
@@ -265,6 +267,7 @@ export default class ListSettings {
 					if (field) {
 						me.fields.push({
 							label: __(field.label, null, me.doctype),
+
 							fieldname: field.fieldname,
 						});
 					}
@@ -321,6 +324,7 @@ export default class ListSettings {
 			) {
 				me.fields.push({
 					label: __(field.label, null, me.doctype),
+
 					fieldname: field.fieldname,
 				});
 			}
@@ -340,6 +344,7 @@ export default class ListSettings {
 
 			me.subject_field = {
 				label: __(field.label, null, me.doctype),
+
 				fieldname: field.fieldname,
 			};
 		}
@@ -366,6 +371,7 @@ export default class ListSettings {
 			if (!frappe.model.no_value_type.includes(field.fieldtype)) {
 				multiselect_fields.push({
 					label: __(field.label, null, field.doctype),
+
 					value: field.fieldname,
 					checked: fields.includes(field.fieldname),
 				});

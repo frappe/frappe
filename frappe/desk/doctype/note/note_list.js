@@ -8,4 +8,19 @@ frappe.listview_settings["Note"] = {
 			return [__("Private"), "gray", "public,=,No"];
 		}
 	},
+
+    button: {
+        show(doc) {
+            return doc.reference_name;
+        },
+        get_label() {
+            return 'View';
+        },
+        get_description(doc) {
+            return __('View {0}', [`${doc.reference_type} ${doc.reference_name}`])
+        },
+        action(doc) {
+            frappe.set_route('Form', doc.reference_type, doc.reference_name);
+        }
+    },
 };

@@ -83,6 +83,7 @@ def get_form_params():
 	data = frappe._dict(frappe.local.form_dict)
 	clean_params(data)
 	validate_args(data)
+	# print(f'form_dict: {data}')
 	return data
 
 

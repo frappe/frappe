@@ -35,6 +35,19 @@
 					</div>
 				</form>
 				<ul class="navbar-nav">
+                    <li class="nav-item dropdown dropdown-mobile scanner">
+						<button
+							class="btn-reset nav-link"
+                            id = "scanner-btn"
+							aria-haspopup="true"
+							aria-expanded="false"
+						>
+                            <span>
+                                <svg class="es-icon icon-sm"><use href="#icon-scan"></use></svg>
+                            </span>
+						</button>
+					</li>
+
 					<li class="nav-item dropdown dropdown-notifications dropdown-mobile hidden">
 						<button
 							class="btn-reset nav-link notifications-icon text-muted"
@@ -63,6 +76,7 @@
 							</div>
 						</div>
 					</li>
+
 					<li class="nav-item dropdown dropdown-message dropdown-mobile hidden">
 						<button
 							class="btn-reset nav-link notifications-icon text-muted"
@@ -81,7 +95,7 @@
 							class="btn-reset nav-link"
 							data-toggle="dropdown"
 							aria-controls="toolbar-help"
-							aria-label="{{ __("Help Dropdown") }}"
+							aria-label="{{ __('Help Dropdown') }}"
 						>
 							<span>
 								{{ __("Help") }}
