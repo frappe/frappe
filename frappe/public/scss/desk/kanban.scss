@@ -105,10 +105,6 @@
 					margin: 0;
 				}
 			}
-
-			&:hover {
-				cursor: pointer;
-			}
 		}
 
 		.kanban-column-title {
@@ -123,6 +119,7 @@
 			.kanban-title {
 				@include get_textstyle("lg", "semibold");
 				margin-left: var(--margin-sm);
+				cursor: grab;
 			}
 		}
 
