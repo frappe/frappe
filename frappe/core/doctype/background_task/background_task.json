@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "beta": 1,
  "creation": "2024-02-23 13:12:36.222147",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -135,7 +136,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-22 17:03:44.254741",
+ "modified": "2024-05-22 17:04:55.032180",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Background Task",
@@ -154,7 +155,7 @@
    "write": 1
   }
  ],
- "sort_field": "modified",
+ "sort_field": "creation",
  "sort_order": "DESC",
  "states": []
 }
