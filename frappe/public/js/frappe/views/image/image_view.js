@@ -207,29 +207,31 @@ frappe.views.GalleryView = class GalleryView {
 		}
 
 		return new Promise((resolve) => {
-			const items = this.items.map(function (i) {
-				const query = 'img[data-name="' + i._name + '"]';
-				let el = me.wrapper.find(query).get(0);
+			const items = this.items
+				.filter((i) => i.image !== null)
+				.map(function (i) {
+					const query = 'img[data-name="' + i._name + '"]';
+					let el = me.wrapper.find(query).get(0);
 
-				let width, height;
-				if (el) {
-					width = el.naturalWidth;
-					height = el.naturalHeight;
-				}
+					let width, height;
+					if (el) {
+						width = el.naturalWidth;
+						height = el.naturalHeight;
+					}
 
-				if (!el) {
-					el = me.wrapper.find('.image-field[data-name="' + i._name + '"]').get(0);
-					width = el.getBoundingClientRect().width;
-					height = el.getBoundingClientRect().height;
-				}
+					if (!el) {
+						el = me.wrapper.find('.image-field[data-name="' + i._name + '"]').get(0);
+						width = el.getBoundingClientRect().width;
+						height = el.getBoundingClientRect().height;
+					}
 
-				return {
-					src: i._image_url,
-					name: i.name,
-					width: width,
-					height: height,
-				};
-			});
+					return {
+						src: i._image_url,
+						name: i.name,
+						width: width,
+						height: height,
+					};
+				});
 			this.pswp_items = items;
 			resolve();
 		});
