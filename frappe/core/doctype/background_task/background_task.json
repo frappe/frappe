@@ -17,7 +17,10 @@
   "success_callback",
   "failure_callback",
   "stopped_callback",
-  "original_task"
+  "original_task",
+  "task_start",
+  "task_end",
+  "task_runtime"
  ],
  "fields": [
   {
@@ -109,11 +112,30 @@
    "label": "Original Task",
    "options": "Background Task",
    "read_only": 1
+  },
+  {
+   "fieldname": "task_start",
+   "fieldtype": "Datetime",
+   "label": "Start",
+   "read_only": 1
+  },
+  {
+   "fieldname": "task_end",
+   "fieldtype": "Datetime",
+   "label": "End",
+   "read_only": 1
+  },
+  {
+   "fieldname": "task_runtime",
+   "fieldtype": "Duration",
+   "is_virtual": 1,
+   "label": "Task Runtime",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-21 13:01:57.384175",
+ "modified": "2024-05-22 17:03:44.254741",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Background Task",

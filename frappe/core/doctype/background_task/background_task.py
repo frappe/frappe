@@ -34,10 +34,17 @@ class BackgroundTask(Document):
 		status: DF.Literal["Queued", "In Progress", "Completed", "Failed", "Stopped"]
 		stopped_callback: DF.Code | None
 		success_callback: DF.Code | None
+		task_end: DF.Datetime | None
 		task_id: DF.Data
+		task_runtime: DF.Duration | None
+		task_start: DF.Datetime | None
 		timeout: DF.Int
 		user: DF.Link | None
 	# end: auto-generated types
+
+	@property
+	def task_runtime(self):
+		return ((self.task_end or frappe.utils.now_datetime()) - self.task_start).total_seconds()
 
 	def stop(self):
 		"""Stop the task"""
@@ -220,6 +227,7 @@ def success_callback(job: Job, connection: Redis, result: Any) -> None:
 	try:
 		doc.status = "Completed"
 		doc.result = result
+		doc.task_end = frappe.utils.now_datetime()
 		doc.save()
 
 		if doc.success_callback:
@@ -236,7 +244,11 @@ def success_callback(job: Job, connection: Redis, result: Any) -> None:
 	except Exception:
 		frappe.db.rollback()
 		doc.log_error("Error in success callback")
-		frappe.db.set_value("Background Task", {"task_id": task_id}, "status", "Completed")
+		frappe.db.set_value(
+			"Background Task",
+			{"task_id": task_id},
+			{"status": "Completed", "task_end": frappe.utils.now_datetime()},
+		)
 	frappe.db.commit()
 	frappe.destroy()
 
@@ -250,6 +262,7 @@ def failure_callback(job: Job, connection: Redis, *exc_info) -> None:
 	try:
 		doc.status = "Failed"
 		doc.result = "".join(traceback.format_exception(*exc_info))
+		doc.task_end = frappe.utils.now()
 		doc.save()
 
 		if doc.failure_callback:
@@ -270,7 +283,11 @@ def failure_callback(job: Job, connection: Redis, *exc_info) -> None:
 	except Exception:
 		frappe.db.rollback()
 		doc.log_error("Error in failure callback")
-		frappe.db.set_value("Background Task", {"task_id": task_id}, "status", "Failed")
+		frappe.db.set_value(
+			"Background Task",
+			{"task_id": task_id},
+			{"status": "Failed", "task_end": frappe.utils.now_datetime()},
+		)
 	frappe.db.commit()
 	frappe.destroy()
 
@@ -283,6 +300,7 @@ def stopped_callback(job: Job, connection: Redis) -> None:
 	doc = frappe.get_doc("Background Task", {"task_id": task_id}, for_update=True)
 	try:
 		doc.status = "Stopped"
+		doc.task_end = frappe.utils.now()
 		doc.save()
 
 		if doc.stopped_callback:
@@ -298,7 +316,11 @@ def stopped_callback(job: Job, connection: Redis) -> None:
 	except Exception:
 		frappe.db.rollback()
 		doc.log_error("Error in stopped callback")
-		frappe.db.set_value("Background Task", {"task_id": task_id}, "status", "Stopped")
+		frappe.db.set_value(
+			"Background Task",
+			{"task_id": task_id},
+			{"status": "Stopped", "task_end": frappe.utils.now_datetime()},
+		)
 	frappe.db.commit()
 	frappe.destroy()
 

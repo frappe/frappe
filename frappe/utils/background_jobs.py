@@ -263,8 +263,7 @@ def execute_job(
 		frappe.db.set_value(
 			"Background Task",
 			{"task_id": task_id.split("::")[-1]},
-			"status",
-			"In Progress",
+			{"status": "In Progress", "task_start": frappe.utils.now_datetime()},
 		)
 		frappe.db.commit()
 		frappe.job.task_id = task_id
