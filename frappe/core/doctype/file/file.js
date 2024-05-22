@@ -82,7 +82,14 @@ frappe.ui.form.on("File", {
 		if (frm.doc.file_name) {
 			file_url = file_url.replace(/#/g, "%23");
 		}
-		window.open(file_url);
+
+		// create temporary link element to simulate a download click
+		var link = document.createElement("a");
+		link.href = file_url;
+		link.download = frm.doc.file_name;
+		link.style.display = "none";
+		link.click();
+		link.remove();
 	},
 
 	optimize: function (frm) {
