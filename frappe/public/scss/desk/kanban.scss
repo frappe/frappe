@@ -39,7 +39,7 @@
 			@include transition();
 
 			color: var(--text-light);
-			background-color: var(--kanban-new-card-bg);
+			background-color: var(--bg-color);
 			height: 27px;
 			font-size: var(--text-md);
 			margin-bottom: var(--margin-sm);
