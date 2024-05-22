@@ -123,6 +123,9 @@ def get_headers(sms_settings=None):
 
 
 def send_request(gateway_url, params, headers=None, use_post=False, use_json=False):
+	if frappe.are_sms_muted():
+		return
+		
 	import requests
 
 	if not headers:
