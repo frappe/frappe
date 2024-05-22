@@ -12,7 +12,13 @@ frappe.ui.form.on("Module Sidebar Item", {
 		const row = locals[cdt][cdn];
 
 		if (row.link_to) {
-			frappe.model.set_value(cdt, cdn, "label", row.link_to);
+			if (row.link_type === "Page") {
+				frappe.db.get_value("Page", { name: row.link_to }, "title", (r) => {
+					frappe.model.set_value(cdt, cdn, "label", r.title);
+				});
+			} else {
+				frappe.model.set_value(cdt, cdn, "label", row.link_to);
+			}
 		}
 	},
 });

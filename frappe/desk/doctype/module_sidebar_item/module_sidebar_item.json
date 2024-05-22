@@ -3,6 +3,7 @@
  "allow_rename": 1,
  "creation": "2024-05-09 19:22:36.077582",
  "doctype": "DocType",
+ "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "type",
@@ -77,7 +78,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-05-11 23:27:00.796764",
+ "modified": "2024-05-22 20:39:13.647367",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Module Sidebar Item",

@@ -3,6 +3,7 @@
  "allow_rename": 1,
  "creation": "2024-05-10 14:36:55.687932",
  "doctype": "DocType",
+ "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "workspace",
@@ -42,7 +43,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-05-10 15:03:06.444791",
+ "modified": "2024-05-22 20:39:23.631841",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Module Sidebar Workspace",
