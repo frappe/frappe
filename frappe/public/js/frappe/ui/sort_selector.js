@@ -199,11 +199,22 @@ frappe.ui.SortSelector = class SortSelector {
 		// build string like: `tabSales Invoice`.subject, `tabSales Invoice`.name desc
 		const table_name = "`tab" + this.doctype + "`";
 		const sort_by = `${table_name}.${this.sort_by}`;
+
+		let child_tables =
+			this.listview?.fields.map((f) => f[1]).filter((f) => f !== this.listview?.doctype) ||
+			[];
+
+		let first_child_table = child_tables[0];
+		let child_table_sort = "";
+		if (child_tables[0]) {
+			child_table_sort = ", `tab" + child_tables[0] + "`.idx asc";
+		}
+
 		if (!["name", "creation", "modified"].includes(this.sort_by)) {
 			// add name column for deterministic ordering
-			return `${sort_by} ${this.sort_order}, ${table_name}.name ${this.sort_order}`;
+			return `${sort_by} ${this.sort_order}, ${table_name}.name ${this.sort_order} ${child_table_sort}`;
 		} else {
-			return `${sort_by} ${this.sort_order}`;
+			return `${sort_by} ${this.sort_order} ${child_table_sort}`;
 		}
 	}
 };

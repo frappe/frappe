@@ -107,6 +107,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			doctype: this.doctype,
 			args: this.order_by,
 			onchange: this.on_sort_change.bind(this),
+			listview: this,
 		});
 
 		//Setup groupby for reports
