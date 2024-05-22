@@ -31,8 +31,8 @@
 		max-width: 260px;
 		border-radius: var(--border-radius);
 		padding: var(--padding-md);
-		min-height: calc(100vh - 250px);
-		max-height: calc(100vh - var(--navbar-height) - var(--page-bottom-margin) - 80px);
+		min-height: calc(100vh - 150px);
+		margin: 0.5em 0.25em 0.5em 0.25em;
 
 		.add-card {
 			@include flex(flex, center, center, null);
