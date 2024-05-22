@@ -43,7 +43,6 @@ frappe.ui.Page = class Page {
 		this.add_main_section();
 		this.setup_scroll_handler();
 		this.setup_sidebar_toggle();
-		configInterval()
 	}
 
 	setup_scroll_handler() {
@@ -937,19 +936,13 @@ frappe.ui.Page = class Page {
 	}
 };
 
-function configInterval(){
-	setInterval(()=>isProjectKanbanView(), 3000)
-}
-
 function isProjectKanbanView(){
-	const url = window.location.href;
-	const regex = /\/app\/project\/view\/kanban\//;
+	const url = window.location.pathname;
+	const pathToCheck = "/app/project/view/kanban/";
 	const element = document.getElementById("btn_collapse_filters_area")
-	if (regex.test(url)) {
-		element.style.display = "block"
+	if (url.includes(pathToCheck)) {
 		return true
 	} else {
-		element.style.display = "none"
 		return false;
 	}
 }

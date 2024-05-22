@@ -204,6 +204,24 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 			const exists = document.querySelector('div[id*="Kanban"] div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end #queue-freeze')
 			if (!exists){
 				const container = document.querySelector('div.no-list-sidebar div.page-head.flex > div > div > div.flex.col.page-actions.justify-content-end')
+				
+				
+				const custom_button_filter = document.createElement('button');
+				custom_button_filter.setAttribute('id', 'btn_collapse_filters_area');
+				custom_button_filter.setAttribute('style', 'height: 2rem;');
+				custom_button_filter.classList.add('btn', 'btn-primary', 'btn-sm');
+				custom_button_filter.setAttribute('type', 'button');
+				custom_button_filter.setAttribute('data-toggle', 'collapse');
+				custom_button_filter.setAttribute('data-target', '#collapse_filters_area');
+				custom_button_filter.setAttribute('aria-expanded', 'false');
+				custom_button_filter.setAttribute('aria-controls', 'collapse_filters_area');
+				custom_button_filter.innerText = 'Filters';
+				container.append(custom_button_filter)
+				// const addProjectButton = container.querySelector('.primary-action');
+            	// container.insertBefore(custom_button_filter, addProjectButton);
+				
+				
+				
 				const input = document.createElement('input')
 				const label = document.createElement('label')
 				label.setAttribute('style', 'margin: 0')
@@ -221,6 +239,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 						frappe.msgprint(__('Status updated successfully'));
 					})
 				})
+
 			}
 		}, 1500);
 	}
