@@ -183,6 +183,7 @@ frappe.views.BaseList = class BaseList {
 		this.set_breadcrumbs();
 	}
 
+
 	set_title() {
 		this.page.set_title(this.page_title);
 	}
