@@ -2,16 +2,10 @@ import "./index.css"
 
 import { createApp } from "vue"
 import router from "./router"
+import "./setResourceFetcher"
 import App from "./App.vue"
 
-import {
-	Button,
-	FormControl,
-	ErrorMessage,
-	setConfig,
-	frappeRequest,
-	resourcesPlugin,
-} from "frappe-ui"
+import { Button, FormControl, ErrorMessage, frappeRequest, resourcesPlugin } from "frappe-ui"
 
 import Icon from "@/components/Icon.vue"
 
@@ -19,8 +13,6 @@ import { session } from "@/data/session"
 import { user } from "@/data/user"
 
 let app = createApp(App)
-
-setConfig("resourceFetcher", frappeRequest)
 
 app.use(router)
 app.use(resourcesPlugin)

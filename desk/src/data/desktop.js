@@ -1,12 +1,10 @@
 import { createResource } from "frappe-ui"
 import { slug, getRoute } from "@/utils/routing"
 
-// FIXME: first request fails with resourceFetcher - calls desk/api/method instead of /api/method
 export const desktopItems = createResource({
 	url: "frappe.api.desk.get_desktop_items",
 	initialData: [],
 	auto: true,
-	cache: "desktopItems",
 	transform: (data) => {
 		return data.map((item) => {
 			item.module_slug = slug(item.module)
