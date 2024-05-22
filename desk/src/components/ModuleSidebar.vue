@@ -35,11 +35,15 @@
 
 				<div v-else-if="item.type === 'Section Break' && item.links.length">
 					<div v-if="isCollapsed" class="mx-2 my-2 h-1 border-b"></div>
-					<div v-else class="mt-5 flex items-center gap-2 px-2" :class="item.opened ? 'mb-3' : ''">
+					<div
+						v-else
+						@click="item.opened = !item.opened"
+						class="mt-5 flex cursor-pointer items-center gap-2 px-2"
+						:class="item.opened ? 'mb-3' : ''"
+					>
 						<FeatherIcon
-							@click="item.opened = !item.opened"
 							:name="item.opened ? 'chevron-down' : 'chevron-right'"
-							class="h-4 w-4 cursor-pointer font-semibold text-gray-600"
+							class="h-4 w-4 font-semibold text-gray-600"
 						/>
 						<div class="flex items-center gap-1 text-sm uppercase text-gray-700">
 							{{ item.label }}

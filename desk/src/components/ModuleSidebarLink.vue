@@ -9,7 +9,7 @@
 			]"
 		>
 			<Icon :name="link.icon" class="h-5 w-5 text-gray-700" />
-			<div v-if="!isCollapsed" class="flex items-center gap-1 text-base text-gray-700">
+			<div v-if="!isCollapsed" class="flex items-center gap-1 truncate text-base text-gray-700">
 				{{ link.label }}
 			</div>
 		</router-link>
