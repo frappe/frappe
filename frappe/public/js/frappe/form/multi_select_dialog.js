@@ -16,6 +16,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 		this.fields = this.get_fields();
 
 		this.make();
+
+		this.selected_fields = new Set();
 	}
 
 	get_fields() {
@@ -337,12 +339,25 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			if (!$(e.target).is(":checkbox") && !$(e.target).is("a")) {
 				$(this).find(":checkbox").trigger("click");
 			}
+			let name = $(this).attr("data-item-name").trim();
+			if ($(this).find(":checkbox").is(":checked")) {
+				me.selected_fields.add(name);
+			} else {
+				me.selected_fields.delete(name);
+			}
 		});
 
 		this.$results.on("click", ".list-item--head :checkbox", (e) => {
-			this.$results
-				.find(".list-item-container .list-row-check")
-				.prop("checked", $(e.target).is(":checked"));
+			let checked = $(e.target).is(":checked");
+			this.$results.find(".list-item-container .list-row-check").each(function () {
+				$(this).prop("checked", checked);
+				const name = $(this).closest(".list-item-container").attr("data-item-name").trim();
+				if (checked) {
+					me.selected_fields.add(name);
+				} else {
+					me.selected_fields.delete(name);
+				}
+			});
 		});
 
 		this.$parent.find(".input-with-feedback").on("change", () => {
@@ -510,12 +525,12 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	empty_list() {
 		// Store all checked items
-		let checked = this.get_checked_items().map((item) => {
-			return {
+		let checked = this.results
+			.filter((result) => this.selected_fields.has(result.name))
+			.map((item) => ({
 				...item,
 				checked: true,
-			};
-		});
+			}));
 
 		// Remove **all** items
 		this.$results.find(".list-item-container").remove();

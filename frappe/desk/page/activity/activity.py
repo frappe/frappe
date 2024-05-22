@@ -31,7 +31,7 @@ def get_feed(start, page_length):
 				`tabActivity Log`
 		UNION
 			select name, owner, modified, creation, '0', comment_type,
-				reference_doctype, reference_name, link_doctype, link_name, '',
+				reference_doctype, reference_name, '' as link_doctype, '' as link_name, '',
 				'Comment', '', content
 			from
 				`tabComment`

@@ -15,6 +15,7 @@ frappe.ui.Notifications = class Notifications {
 		this.body = this.dropdown_list.find(".notification-list-body");
 		this.panel_events = this.dropdown_list.find(".panel-events");
 		this.panel_notifications = this.dropdown_list.find(".panel-notifications");
+		this.panel_changelog_feed = this.dropdown_list.find(".panel-changelog-feed");
 
 		this.user = frappe.session.user;
 
@@ -52,10 +53,16 @@ frappe.ui.Notifications = class Notifications {
 				el: this.panel_notifications,
 			},
 			{
-				label: __("Today's Events"),
+				label: __("Events"),
 				id: "todays_events",
 				view: EventsView,
 				el: this.panel_events,
+			},
+			{
+				label: __("What's New"),
+				id: "changelog_feed",
+				view: ChangelogFeedView,
+				el: this.panel_changelog_feed,
 			},
 		];
 
@@ -435,6 +442,56 @@ class EventsView extends BaseNotificationsView {
 			`;
 		}
 
+		this.container.html(html);
+	}
+}
+
+class ChangelogFeedView extends BaseNotificationsView {
+	make() {
+		this.render_changelog_feed_html(frappe.boot.changelog_feed || []);
+	}
+
+	render_changelog_feed_html(changelog_feed) {
+		let html = "";
+		if (changelog_feed.length) {
+			this.container.empty();
+			const get_changelog_feed_html = (changelog_feed_item) => {
+				const timestamp = frappe.datetime.prettyDate(
+					changelog_feed_item.posting_timestamp
+				);
+				const message_html = `<div class="message">
+							<div>${changelog_feed_item.title}</div>
+							<div class="notification-timestamp text-muted">
+							${changelog_feed_item.app_title} | ${timestamp}
+							</div>
+						</div>`;
+
+				const item_html = `<a class="recent-item notification-item"
+								href="${changelog_feed_item.link}"
+								data-name="${changelog_feed_item.title}"
+								target="_blank" rel="noopener noreferrer"
+							>
+							<div class="notification-body">
+								${message_html}
+							</div>
+							</div>
+						</a>`;
+
+				return item_html;
+			};
+			html = changelog_feed.map(get_changelog_feed_html).join("");
+		} else {
+			html = `<div class="notification-null-state">
+						<div class="text-center">
+							<img src="/assets/frappe/images/ui-states/notification-empty-state.svg" alt="Generic Empty State" class="null-state">
+							<div class="title">${__("Nothing New")}</div>
+							<div class="subtitle">
+								${__("There is nothing new to show you right now.")}
+							</div>
+						</div>
+					</div>
+					`;
+		}
 		this.container.html(html);
 	}
 }

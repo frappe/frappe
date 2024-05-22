@@ -111,11 +111,6 @@ def throw_permission_error():
 
 
 @frappe.whitelist(allow_guest=True)
-def version():
-	return frappe.__version__
-
-
-@frappe.whitelist(allow_guest=True)
 def logout():
 	frappe.local.login_manager.logout()
 	frappe.db.commit()

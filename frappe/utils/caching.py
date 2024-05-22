@@ -130,12 +130,13 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	return time_cache_wrapper
 
 
-def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Callable:
+def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: bool = False) -> Callable:
 	"""Decorator to cache method calls and its return values in Redis
 
 	args:
 	        ttl: time to expiry in seconds, defaults to 1 hour
 	        user: `true` should cache be specific to session user.
+	        shared: `true` should cache be shared across sites
 	"""
 
 	def wrapper(func: Callable | None = None) -> Callable:
@@ -149,14 +150,13 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None) -> Calla
 
 		@wraps(func)
 		def redis_cache_wrapper(*args, **kwargs):
-			func_call_key = func_key + str(__generate_request_cache_key(args, kwargs))
-			if frappe.cache().exists(func_call_key):
-				return frappe.cache().get_value(func_call_key, user=user)
-			else:
-				val = func(*args, **kwargs)
-				ttl = getattr(func, "ttl", 3600)
-				frappe.cache().set_value(func_call_key, val, expires_in_sec=ttl, user=user)
-				return val
+			func_call_key = func_key + "::" + str(__generate_request_cache_key(args, kwargs))
+			if frappe.cache().exists(func_call_key, user=user, shared=shared):
+				return frappe.cache().get_value(func_call_key, user=user, shared=shared)
+			val = func(*args, **kwargs)
+			ttl = getattr(func, "ttl", 3600)
+			frappe.cache().set_value(func_call_key, val, expires_in_sec=ttl, user=user, shared=shared)
+			return val
 
 		return redis_cache_wrapper
 
