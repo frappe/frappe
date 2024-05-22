@@ -2572,8 +2572,8 @@ def _register_fault_handler():
 	import io
 
 	# Some libraries monkey patch stderr, we need actual fd
-	if isinstance(sys.stderr, io.TextIOWrapper):
-		faulthandler.register(signal.SIGUSR1, file=sys.stderr)
+	if isinstance(sys.__stderr__, io.TextIOWrapper):
+		faulthandler.register(signal.SIGUSR1, file=sys.__stderr__)
 
 
 from frappe.utils.error import log_error
