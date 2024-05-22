@@ -2143,7 +2143,9 @@ def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> s
 
 def are_emails_muted():
 	return flags.mute_emails or cint(conf.get("mute_emails"))
-
+	
+def are_sms_muted():
+	return flags.mute_sms or cint(conf.get("mute_sms"))
 
 def get_test_records(doctype):
 	"""Return list of objects from `test_records.json` in the given doctype's folder."""
