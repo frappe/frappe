@@ -140,7 +140,7 @@ frappe.ui.Page = class Page {
 		this.standard_actions = this.page_actions.find(".standard-actions");
 		this.custom_actions = this.page_actions.find(".actions");
 
-		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
+		this.page_form = isProjectKanbanView() ? $('<div id="collapse_filters_area" class="page-form row hide collapse"></div>').prependTo(this.main) : $('<div class="page-form row hide"></div>').prependTo(this.main)
 		this.inner_toolbar = this.custom_actions;
 		this.icon_group = this.page_actions.find(".page-icon-group");
 
@@ -783,7 +783,7 @@ frappe.ui.Page = class Page {
 	}
 
 	add_custom_button_group(label, icon, parent) {
-		let dropdown_label = `<span class="hidden-xs">
+		let dropdown_label = `<span class="">
 			<span class="custom-btn-group-label">${__(label)}</span>
 			${frappe.utils.icon("select", "xs")}
 		</span>`;
@@ -935,3 +935,15 @@ frappe.ui.Page = class Page {
 		this.wrapper.trigger("view-change");
 	}
 };
+
+function isProjectKanbanView(){
+	document.getElementById("btn_collapse_filters_area").style.display = "block"
+	const url = window.location.href;
+	const regex = /\/app\/project\/view\/kanban\//;
+	if (regex.test(url)) {
+		return true
+	} else {
+		document.getElementById("btn_collapse_filters_area").style.display = "none"
+		return false;
+	}
+}

@@ -447,18 +447,6 @@ frappe.views.BaseList = class BaseList {
 		return this.filter_area ? this.filter_area.get().map((filter) => filter.slice(0, 4)) : [];
 	}
 
-	getPageLength(page_length){
-		const url = window.location.href;
-		const regex = /\/app\/project\/view\/kanban\//;
-		if (regex.test(url) && page_length === 0) {
-			return 200; // default pagination
-		} else if (isNaN(page_length)) {
-			return 0;
-		} else {
-			return page_length;
-		}
-	}
-
 	get_args() {
 		return {
 			doctype: this.doctype,
@@ -466,7 +454,7 @@ frappe.views.BaseList = class BaseList {
 			filters: this.get_filters_for_args(),
 			order_by: this.sort_selector && this.sort_selector.get_sql_string(),
 			start: this.start,
-			page_length: this.page_length, //this.getPageLength(this.page_length),
+			page_length: this.page_length,
 			view: this.view,
 			group_by: this.get_group_by(),
 		};
@@ -591,7 +579,6 @@ class FilterArea {
 	constructor(list_view) {
 		this.list_view = list_view;
 		this.list_view.page.page_form.append(`<div class="standard-filter-section flex"></div>`);
-
 		const filter_area = this.list_view.hide_page_form
 			? this.list_view.page.custom_actions
 			: this.list_view.page.page_form;
@@ -606,13 +593,8 @@ class FilterArea {
 	}
 
 	setup() {
-		// const url = window.location.href;
-		// const regex = /\/app\/project\/view\/kanban\//;
 		if (!this.list_view.hide_page_form) this.make_standard_filters();
 			this.make_filter_list();
-		console.log("setup page length on kanban: ", false)
-		// if(this.list_view.doctype === "Project" && regex.test(url))
-		// 	this.make_items_per_page_selector();
 	}
 
 	get() {
