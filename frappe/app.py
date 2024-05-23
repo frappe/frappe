@@ -290,11 +290,11 @@ def set_cors_headers(response):
 
 
 def make_form_dict(request: Request):
-	import json
+	import orjson
 
 	request_data = request.get_data(as_text=True)
 	if request_data and request.is_json:
-		args = json.loads(request_data)
+		args = orjson.loads(request_data)
 	else:
 		args = {}
 		args.update(request.args or {})

@@ -16,7 +16,6 @@ import functools
 import gc
 import importlib
 import inspect
-import json
 import os
 import re
 import signal
@@ -27,6 +26,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, overload
 
 import click
+import orjson
 from werkzeug.local import Local, release_local
 
 import frappe
@@ -1612,7 +1612,7 @@ def get_installed_apps(*, _ensure_on_bench=False) -> list[str]:
 	if not db:
 		connect()
 
-	installed = json.loads(db.get_global("installed_apps") or "[]")
+	installed = orjson.loads(db.get_global("installed_apps") or "[]")
 
 	if _ensure_on_bench:
 		all_apps = cache.get_value("all_apps", get_all_apps)
@@ -1770,7 +1770,7 @@ def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
 def get_file_json(path):
 	"""Read a file and return parsed JSON object."""
 	with open(path) as f:
-		return json.load(f)
+		return orjson.loads(f.read())
 
 
 def read_file(path, raise_not_found=False):
@@ -2119,26 +2119,25 @@ def as_json(obj: dict | list, indent=1, separators=None, ensure_ascii=True) -> s
 	if separators is None:
 		separators = (",", ": ")
 
+	options = orjson.OPT_SORT_KEYS
+	if indent:
+		options |= orjson.OPT_INDENT_2
+
 	try:
-		return json.dumps(
+		return orjson.dumps(
 			obj,
-			indent=indent,
-			sort_keys=True,
+			option=options,
 			default=json_handler,
-			separators=separators,
-			ensure_ascii=ensure_ascii,
-		)
+		).decode()
 	except TypeError:
 		# this would break in case the keys are not all os "str" type - as defined in the JSON
 		# adding this to ensure keys are sorted (expected behaviour)
 		sorted_obj = dict(sorted(obj.items(), key=lambda kv: str(kv[0])))
-		return json.dumps(
+		return orjson.dumps(
 			sorted_obj,
-			indent=indent,
+			option=options,
 			default=json_handler,
-			separators=separators,
-			ensure_ascii=ensure_ascii,
-		)
+		).decode()
 
 
 def are_emails_muted():
@@ -2154,7 +2153,7 @@ def get_test_records(doctype):
 	)
 	if os.path.exists(path):
 		with open(path) as f:
-			return json.loads(f.read())
+			return orjson.loads(f.read())
 	else:
 		return []
 

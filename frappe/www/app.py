@@ -4,9 +4,10 @@ import os
 
 no_cache = 1
 
-import json
 import re
 from urllib.parse import urlencode
+
+import orjson
 
 import frappe
 import frappe.sessions
@@ -43,7 +44,7 @@ def get_context(context):
 
 	# TODO: Find better fix
 	boot_json = CLOSING_SCRIPT_TAG_PATTERN.sub("", boot_json)
-	boot_json = json.dumps(boot_json)
+	boot_json = orjson.dumps(boot_json).decode()
 
 	hooks = frappe.get_hooks()
 	include_js = hooks.get("app_include_js", []) + frappe.conf.get("app_include_js", [])

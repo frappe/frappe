@@ -3,14 +3,13 @@
 
 import datetime
 import decimal
-import json
 import mimetypes
 import os
 import sys
-import uuid
 from typing import TYPE_CHECKING
 from urllib.parse import quote
 
+import orjson
 import werkzeug.utils
 from werkzeug.exceptions import Forbidden, NotFound
 from werkzeug.local import LocalProxy
@@ -135,7 +134,7 @@ def as_json():
 		del frappe.local.response["http_status_code"]
 
 	response.mimetype = "application/json"
-	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(",", ":"))
+	response.data = orjson.dumps(frappe.local.response, default=json_handler).decode()
 	return response
 
 
@@ -179,13 +178,15 @@ def _make_logs_v1():
 	if frappe.error_log and allow_traceback:
 		if source := guess_exception_source(frappe.local.error_log and frappe.local.error_log[0]["exc"]):
 			response["_exc_source"] = source
-		response["exc"] = json.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log])
+		response["exc"] = orjson.dumps([frappe.utils.cstr(d["exc"]) for d in frappe.local.error_log]).decode()
 
 	if frappe.local.message_log:
-		response["_server_messages"] = json.dumps([json.dumps(d) for d in frappe.local.message_log])
+		response["_server_messages"] = orjson.dumps(
+			[orjson.dumps(d).decode() for d in frappe.local.message_log]
+		).decode()
 
 	if frappe.debug_log:
-		response["_debug_messages"] = json.dumps(frappe.local.debug_log)
+		response["_debug_messages"] = orjson.dumps(frappe.local.debug_log).decode()
 
 	if frappe.flags.error_message:
 		response["_error_message"] = frappe.flags.error_message
@@ -206,10 +207,7 @@ def json_handler(obj):
 	from collections.abc import Iterable
 	from re import Match
 
-	if isinstance(obj, datetime.date | datetime.datetime | datetime.time):
-		return str(obj)
-
-	elif isinstance(obj, datetime.timedelta):
+	if isinstance(obj, datetime.timedelta):
 		return format_timedelta(obj)
 
 	elif isinstance(obj, decimal.Decimal):
@@ -220,6 +218,7 @@ def json_handler(obj):
 
 	elif isinstance(obj, frappe.model.document.BaseDocument):
 		return obj.as_dict(no_nulls=True)
+
 	elif isinstance(obj, Iterable):
 		return list(obj)
 
@@ -231,9 +230,6 @@ def json_handler(obj):
 
 	elif callable(obj):
 		return repr(obj)
-
-	elif isinstance(obj, uuid.UUID):
-		return str(obj)
 
 	else:
 		raise TypeError(f"""Object of type {type(obj)} with value of {obj!r} is not JSON serializable""")

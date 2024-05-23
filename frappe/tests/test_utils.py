@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import io
-import json
 import os
 import sys
 from datetime import date, datetime, time, timedelta
@@ -12,6 +11,7 @@ from io import StringIO
 from mimetypes import guess_type
 from unittest.mock import patch
 
+import orjson
 import pytz
 from hypothesis import given
 from hypothesis import strategies as st
@@ -750,14 +750,14 @@ class TestResponse(FrappeTestCase):
 
 		BAD_OBJECT = {"Enum": TEST}
 
-		processed_object = json.loads(json.dumps(GOOD_OBJECT, default=json_handler))
+		processed_object = orjson.loads(orjson.dumps(GOOD_OBJECT, default=json_handler).decode())
 
 		self.assertTrue(all([isinstance(x, str) for x in processed_object["time_types"]]))
 		self.assertTrue(all([isinstance(x, float) for x in processed_object["float"]]))
 		self.assertTrue(all([isinstance(x, list | str) for x in processed_object["iter"]]))
 		self.assertIsInstance(processed_object["string"], str)
 		with self.assertRaises(TypeError):
-			json.dumps(BAD_OBJECT, default=json_handler)
+			orjson.dumps(BAD_OBJECT, default=json_handler)
 
 
 class TestTimeDeltaUtils(FrappeTestCase):
