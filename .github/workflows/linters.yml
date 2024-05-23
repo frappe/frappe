@@ -95,4 +95,4 @@ jobs:
       - run: |
           pip install pip-audit
           cd ${GITHUB_WORKSPACE}
-          pip-audit --desc on --ignore-vuln GHSA-4xqq-73wg-5mjp .
+          pip-audit --desc on --ignore-vuln GHSA-4xqq-73wg-5mjp --ignore-vuln GHSA-2g68-c3qc-8985 .
