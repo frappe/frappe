@@ -279,9 +279,6 @@ class User(Document):
 		if not cint(self.enabled) and self.name in STANDARD_USERS:
 			frappe.throw(_("User {0} cannot be disabled").format(self.name))
 
-		if not cint(self.enabled):
-			self.a_system_manager_should_exist()
-
 		# clear sessions if disabled
 		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
@@ -528,19 +525,10 @@ class User(Document):
 			retry=3,
 		)
 
-	def a_system_manager_should_exist(self):
-		if self.is_system_manager_disabled():
-			return
-
-		if not self.get_other_system_managers():
-			throw(_("There should remain at least one System Manager"))
-
 	def on_trash(self):
 		frappe.clear_cache(user=self.name)
 		if self.name in STANDARD_USERS:
 			throw(_("User {0} cannot be deleted").format(self.name))
-
-		self.a_system_manager_should_exist()
 
 		# disable the user and log him/her out
 		self.enabled = 0
