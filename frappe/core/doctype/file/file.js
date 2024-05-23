@@ -88,8 +88,10 @@ frappe.ui.form.on("File", {
 		link.href = file_url;
 		link.download = frm.doc.file_name;
 		link.style.display = "none";
+
+		document.body.appendChild(link);
 		link.click();
-		link.remove();
+		document.body.removeChild(link);
 	},
 
 	optimize: function (frm) {
