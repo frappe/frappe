@@ -15,6 +15,7 @@
 
 .kanban {
 	display: flex;
+	gap: 0.5em;
 	overflow-y: hidden;
 
 	-ms-overflow-style: none; /* IE and Edge */
@@ -31,7 +32,6 @@
 		border-radius: var(--border-radius);
 		padding: var(--padding-md);
 		min-height: calc(100vh - 150px);
-		margin: 0.5em 0.25em 0.5em 0.25em;
 
 		.add-card {
 			@include flex(flex, center, center, null);
