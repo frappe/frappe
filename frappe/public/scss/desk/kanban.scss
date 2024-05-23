@@ -27,8 +27,7 @@
 	.kanban-column {
 		@include transition();
 
-		flex: 0 0 260px;
-		max-width: 260px;
+		flex: 1 0 260px;
 		border-radius: var(--border-radius);
 		padding: var(--padding-md);
 		min-height: calc(100vh - 150px);
