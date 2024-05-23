@@ -25,9 +25,11 @@ let docfield_df = computed(() => {
 			df.fieldtype = "Fetch From";
 		}
 
+		const selected_fieldtype = store.form.selected_field.fieldtype;
 		if (
 			["fetch_from", "fetch_if_empty"].includes(df.fieldname) &&
-			in_list(frappe.model.no_value_type, store.form.selected_field.fieldtype)
+			(in_list(frappe.model.no_value_type, selected_fieldtype) ||
+				selected_fieldtype === "Link")
 		) {
 			return false;
 		}
