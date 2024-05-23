@@ -1266,6 +1266,8 @@ def validate_fields(meta: Meta):
 			return
 
 		if d.fieldtype in ("Link", *table_fields):
+			d.fetch_from = None
+
 			if not d.options:
 				frappe.throw(
 					_("{0}: Options required for Link or Table type field {1} in row {2}").format(
