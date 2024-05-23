@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-19 09:33+0000\n"
-"PO-Revision-Date: 2024-05-20 22:24\n"
+"PO-Revision-Date: 2024-05-23 00:39\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -10938,7 +10938,7 @@ msgstr "E-posta şablonu"
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "Email Threads on Assigned Document"
-msgstr ""
+msgstr "Atanan Belgedeki Konuları E-postayla Gönder"
 
 #. Label of a Small Text field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
@@ -11763,7 +11763,7 @@ msgstr "Etkinlik Türü"
 
 #: public/js/frappe/ui/notifications/notifications.js:56
 msgid "Events"
-msgstr ""
+msgstr "Etkinlikler"
 
 #: desk/doctype/event/event.py:261
 msgid "Events in Today's Calendar"
@@ -13001,11 +13001,11 @@ msgstr ""
 
 #: public/js/frappe/ui/filters/filter_list.js:133
 msgid "Filters {0}"
-msgstr ""
+msgstr "Filtreler {0}"
 
 #: public/js/frappe/views/reports/report_view.js:1350
 msgid "Filters:"
-msgstr ""
+msgstr "Filtreler:"
 
 #: public/js/frappe/ui/toolbar/search_utils.js:572
 msgid "Find '{0}' in ..."
@@ -14044,7 +14044,7 @@ msgstr ""
 #: desk/doctype/notification_settings/notification_settings.json
 msgctxt "Notification Settings"
 msgid "Get notified when an email is received on any of the documents assigned to you."
-msgstr ""
+msgstr "Size atanan belgelerden herhangi biriyle ilgili bir e-posta alındığında bildirim alın."
 
 #. Description of the 'User Image' (Attach Image) field in DocType 'User'
 #: core/doctype/user/user.json
@@ -21425,7 +21425,7 @@ msgstr ""
 
 #: model/db_query.py:927
 msgid "No permission to read {0}"
-msgstr ""
+msgstr "Okuma {0} izni yok"
 
 #: share.py:220
 msgid "No permission to {0} {1} {2}"
@@ -21532,15 +21532,15 @@ msgstr ""
 
 #: public/js/frappe/ui/filters/filter.js:36
 msgid "Not Ancestors Of"
-msgstr ""
+msgstr "Aynı Kaynaktan Değil"
 
 #: public/js/frappe/ui/filters/filter.js:34
 msgid "Not Descendants Of"
-msgstr ""
+msgstr "Aynı Kategoride Değil"
 
 #: public/js/frappe/ui/filters/filter.js:17
 msgid "Not Equals"
-msgstr ""
+msgstr "Eşit Değil"
 
 #: app.py:367 www/404.html:3
 msgid "Not Found"
@@ -21554,11 +21554,11 @@ msgstr ""
 
 #: public/js/frappe/ui/filters/filter.js:21
 msgid "Not In"
-msgstr ""
+msgstr "İçermez"
 
 #: public/js/frappe/ui/filters/filter.js:19
 msgid "Not Like"
-msgstr ""
+msgstr "Benzer Değil"
 
 #: public/js/frappe/form/linked_with.js:45
 msgid "Not Linked to any record"
@@ -21766,7 +21766,7 @@ msgstr ""
 
 #: public/js/frappe/ui/notifications/notifications.js:485
 msgid "Nothing New"
-msgstr ""
+msgstr "Yeni Bir Şey Yok"
 
 #: public/js/frappe/form/undo_manager.js:43
 msgid "Nothing left to redo"
@@ -27958,7 +27958,7 @@ msgstr "Kural İsmi"
 
 #: permissions.py:651
 msgid "Rule for this doctype, role, permlevel and if-owner combination already exists."
-msgstr ""
+msgstr "Bu belge türüne ilişkin kural, rol, izin düzeyi ve eğer sahibiyle birleşimi zaten mevcut."
 
 #. Group in DocType's connections
 #: core/doctype/doctype/doctype.json
@@ -29658,7 +29658,7 @@ msgstr ""
 #: public/js/frappe/ui/filters/filter.js:569
 msgctxt "Field value is set"
 msgid "Set"
-msgstr ""
+msgstr "Ayarla"
 
 #. Label of a Button field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -32889,7 +32889,7 @@ msgstr ""
 
 #: public/js/frappe/ui/notifications/notifications.js:485
 msgid "There is nothing new to show you right now."
-msgstr ""
+msgstr "Şu anda size gösterecek yeni bir şey yok."
 
 #: core/doctype/file/file.py:578 utils/file_manager.py:372
 msgid "There is some problem with the file url: {0}"
@@ -33467,13 +33467,13 @@ msgstr ""
 #: desk/page/leaderboard/leaderboard.js:123
 #: public/js/frappe/ui/filters/filter.js:28
 msgid "Timespan"
-msgstr ""
+msgstr "Zaman Aralığında"
 
 #. Label of a Select field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgctxt "Dashboard Chart"
 msgid "Timespan"
-msgstr ""
+msgstr "Zaman Aralığında"
 
 #: core/report/transaction_log_report/transaction_log_report.py:112
 msgid "Timestamp"
@@ -35567,7 +35567,7 @@ msgstr ""
 
 #: core/doctype/user_permission/user_permission.py:60
 msgid "User permission already exists"
-msgstr ""
+msgstr "Kullanıcı izni zaten mevcut"
 
 #: www/login.py:155
 msgid "User with email address {0} does not exist"
@@ -36723,7 +36723,7 @@ msgstr "Hoşgeldiniz {0}"
 
 #: public/js/frappe/ui/notifications/notifications.js:62
 msgid "What's New"
-msgstr ""
+msgstr "Yenilikler"
 
 #. Description of the 'Allow Guests to Upload Files' (Check) field in DocType
 #. 'System Settings'
@@ -37544,19 +37544,19 @@ msgstr ""
 
 #: website/doctype/web_form/web_form.py:663
 msgid "You don't have permission to access the {0} DocType."
-msgstr ""
+msgstr "{0} isimli DocType erişimi için izniniz yok."
 
 #: utils/response.py:270 utils/response.py:274
 msgid "You don't have permission to access this file"
-msgstr ""
+msgstr "Bu dosyaya erişmek için gerekli izinlere sahip değilsiniz"
 
 #: desk/query_report.py:45
 msgid "You don't have permission to get a report on: {0}"
-msgstr ""
+msgstr "{0} Raporunu almak için izniniz yok."
 
 #: website/doctype/web_form/web_form.py:168
 msgid "You don't have the permissions to access this document"
-msgstr ""
+msgstr "Bu belgeye erişmek için gerekli izinlere sahip değilsiniz"
 
 #: social/doctype/energy_point_log/energy_point_log.py:156
 msgid "You gained {0} point"
@@ -38565,7 +38565,7 @@ msgstr ""
 
 #: public/js/frappe/ui/filters/filter.js:339
 msgid "values separated by commas"
-msgstr ""
+msgstr "Değerler virgül ile ayrılır."
 
 #. Label of a HTML field in DocType 'Audit Trail'
 #: core/doctype/audit_trail/audit_trail.json
