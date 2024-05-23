@@ -395,20 +395,6 @@ class User(Document):
 
 		return link
 
-	def get_other_system_managers(self):
-		user_doctype = DocType("User").as_("user")
-		user_role_doctype = DocType("Has Role").as_("user_role")
-		return (
-			frappe.qb.from_(user_doctype)
-			.from_(user_role_doctype)
-			.select(user_doctype.name)
-			.where(user_role_doctype.role == "System Manager")
-			.where(user_doctype.enabled == 1)
-			.where(user_role_doctype.parent == user_doctype.name)
-			.where(user_role_doctype.parent.notin(["Administrator", self.name]))
-			.limit(1)
-		).run()
-
 	def get_fullname(self):
 		"""get first_name space last_name"""
 		return (self.first_name or "") + (self.first_name and " " or "") + (self.last_name or "")
