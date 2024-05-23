@@ -286,9 +286,6 @@ class User(Document):
 		# toggle notifications based on the user's status
 		toggle_notifications(self.name, enable=cint(self.enabled), ignore_permissions=True)
 
-	def is_system_manager_disabled(self):
-		return frappe.db.get_value("Role", {"name": "System Manager"}, ["disabled"])
-
 	def email_new_password(self, new_password=None):
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
