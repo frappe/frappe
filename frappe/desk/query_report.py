@@ -512,7 +512,7 @@ def get_data_for_custom_field(doctype, field, names=None):
 	filters = {}
 	if names:
 		if isinstance(names, str | bytearray):
-			names = frappe.json.loads(names)
+			names = json.loads(names)
 		filters.update({"name": ["in", names]})
 
 	return frappe._dict(frappe.get_list(doctype, filters=filters, fields=["name", field], as_list=1))
