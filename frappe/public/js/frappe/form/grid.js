@@ -833,9 +833,10 @@ export default class Grid {
 					acc[d.fieldname] = d.default;
 					return acc;
 				}, {});
-				let idx = this.df.data.length + 1;
-				this.df.data.push({ idx: idx, __islocal: true, ...defaults });
-				this.df.on_add_row && this.df.on_add_row(idx);
+
+				const row_idx = this.df.data.length + 1;
+				this.df.data.push({ idx: row_idx, __islocal: true, ...defaults });
+				this.df.on_add_row && this.df.on_add_row(row_idx);
 				this.refresh();
 			}
 
