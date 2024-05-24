@@ -11,7 +11,9 @@
   "column_break_tvbd",
   "document_type",
   "columns_section",
-  "columns"
+  "columns",
+  "filters_section",
+  "filters"
  ],
  "fields": [
   {
@@ -48,11 +50,21 @@
    "fieldname": "icon",
    "fieldtype": "Icon",
    "label": "Icon"
+  },
+  {
+   "fieldname": "filters_section",
+   "fieldtype": "Section Break",
+   "label": "Filters"
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "JSON",
+   "label": "Filters"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-20 01:35:46.926525",
+ "modified": "2024-05-20 14:46:45.781147",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "View Config",

@@ -3,7 +3,7 @@
         <template #target>
             <Button :label="'Columns'">
                 <template #prefix>
-                    <FeatherIcon name="columns" class="h-4" />
+                    <FeatherIcon name="columns" class="h-3.5" />
                 </template>
             </Button>
         </template>

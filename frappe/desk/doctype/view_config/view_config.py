@@ -31,7 +31,8 @@ def get_default_config(doctype):
 	return {
 		"label": "List",
 		"columns": columns,
-		"doctype_fields": get_doctype_fields(doctype)
+		"doctype_fields": get_doctype_fields(doctype),
+		"filters": [],
 	}
 
 @frappe.whitelist()
@@ -45,7 +46,8 @@ def get_config(config_name=None, is_default=True):
 	config_dict = config.as_dict()
 	config_dict.update({
 		"columns": frappe.parse_json(config.columns),
-		"doctype_fields": doctype_fields
+		"doctype_fields": get_doctype_fields(config.document_type),
+		"filters": frappe.parse_json(config.filters),
 	})
 	return config_dict
 
@@ -53,10 +55,10 @@ def get_doctype_fields(doctype):
 	meta = frappe.get_meta(doctype)
 	not_allowed_in_list_view = get_fields_not_allowed_in_list_view(meta)
 	doctype_fields = []
-	for field in meta.fields:
-		if field.fieldtype in not_allowed_in_list_view:
+	for field in meta.fields + frappe.model.std_fields:
+		if field.get("fieldtype") in not_allowed_in_list_view:
 			continue
-		doctype_fields.append({"label": field.label, "value": field.fieldname, "type": field.fieldtype})
+		doctype_fields.append({"label": field.get("label"), "value": field.get("fieldname"), "type": field.get("fieldtype")})
 	return doctype_fields
 
 @frappe.whitelist()
