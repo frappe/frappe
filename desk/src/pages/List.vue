@@ -4,24 +4,36 @@
         showTooltip: false,
         resizeColumn: true,
         showColumnSettings: true,
-    }" @update="handleUpdateConfig">
-        <template #customControls>
-            <div v-if="config_settings.data" class="flex items-center gap-2">
-                <Dropdown :placement="'right'" :options="viewsDropdownOptions">
-                    <template #default="{ open }">
-                        <Button :label="config_settings.data?.label">
-                            <template #prefix>
-                                <FeatherIcon :name="config_settings.data?.icon || 'list'" class="h-3.5" />
-                            </template>
-                            <template #suffix>
-                                <FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 text-gray-600" />
-                            </template>
-                        </Button>
-                    </template>
-                </Dropdown>
-            </div>
-        </template>
-    </ListView>
+        showFilters: true,
+        emptyState: {
+            title: 'No records found',
+            description: 'Create a new record to get started',
+            button: {
+                label: `New ${route.params.doctype}`,
+                onClick: () => {
+                    //add route to create new record
+                }
+            },
+        },
+    }" @update="handleUpdateConfig" @filterChange="handleFilterChange">
+            <template #customControls>
+                <div class="flex items-center gap-2">
+                    <Dropdown :placement="'right'" :options="viewsDropdownOptions">
+                        <template #default="{ open }">
+                            <Button :label="config_settings.data?.label">
+                                <template #prefix>
+                                    <FeatherIcon :name="config_settings.data?.icon || 'list'" class="h-3.5" />
+                                </template>
+                                <template #suffix>
+                                    <FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'"
+                                        class="h-3.5 text-gray-600" />
+                                </template>
+                            </Button>
+                        </template>
+                    </Dropdown>
+                </div>
+            </template>
+        </ListView>
     </div>
 </template>
 
@@ -41,7 +53,7 @@ const list = createResource({
         return {
             doctype: route.params.doctype,
             fields: ['*'],
-            filters: [],
+            filters: filters.value,
             limit: 20,
             start: 0,
             sort_by: 'creation',
@@ -52,14 +64,45 @@ const list = createResource({
 
 const list_config = ref({});
 
-const loadList = async() => {
-    await config_settings.fetch();
+const loadList = async (config) => {
     await list.fetch();
-    list_config.value = { rows: list.data, rowKey: "name", columns: config_settings.data.columns, allColumns: config_settings.data.doctype_fields };
+    list_config.value = {
+        rows: list.data,
+        rowKey: "name",
+        columns: config.columns,
+        fields: config.doctype_fields,
+        filters: getParsedFilters(),
+    };
 }
 
-watch(() => route.query.config, async(query_config) => {
-    if (!query_config){
+const filters = computed(() => {
+    if (route.query) {
+        let filters = {};
+        for (let key in route.query) {
+            if (key == 'config')
+                continue;
+            filters[key] = JSON.parse(route.query[key]);
+        }
+        return filters;
+    }
+    // show config filters if no query params
+    return config_settings.data.filters;
+});
+
+const getParsedFilters = () => {
+    let parsedFilters = [];
+    filters.value && Object.entries(filters.value).map(([field, filter]) => {
+        parsedFilters.push({
+            field: field,
+            operator: filter[0],
+            value: filter[1]
+        });
+    });
+    return parsedFilters;
+}
+
+watch(() => route.query.config, async (query_config) => {
+    if (!query_config) {
         isDefaultConfig.value = true;
         config_name.value = route.params.doctype;
     }
@@ -76,7 +119,7 @@ const updateConfigResource = createResource({
     method: 'POST',
 });
 
-const handleUpdateConfig = async(config) => {
+const handleUpdateConfig = async (config) => {
     updateConfigResource.submit({ config_name: config_name.value, new_config: config });
     loadList(config);
 };
@@ -128,5 +171,11 @@ const viewsDropdownOptions = computed(() => {
     }
     return _views;
 });
+
+const handleFilterChange = async (filter) => {
+    router.replace({ query: { ...route.query, [filter.field]: JSON.stringify([filter.operator, filter.value]) } });
+    await list.fetch();
+    list_config.value.rows = list.data;
+};
 
 </script>

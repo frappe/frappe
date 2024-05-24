@@ -1,5 +1,5 @@
 <template>
-    <div class="flex justify-end gap-4 items-center">
+    <div class="flex justify-end gap-2 items-center">
         <slot name="customControls"><div></div></slot>
         <div class="flex gap-2">
             <div v-if="config_updated"
