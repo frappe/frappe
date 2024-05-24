@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-19 09:33+0000\n"
-"PO-Revision-Date: 2024-05-23 00:39\n"
+"PO-Revision-Date: 2024-05-24 00:45\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -4282,11 +4282,11 @@ msgstr ""
 
 #: desk/reportview.py:524
 msgid "Bulk Operation Failed"
-msgstr ""
+msgstr "Toplu İşlem Başarısız Oldu"
 
 #: desk/reportview.py:528
 msgid "Bulk Operation Successful"
-msgstr ""
+msgstr "Toplu İşlem Başarılı"
 
 #: public/js/frappe/list/bulk_operations.js:122
 msgid "Bulk PDF Export"
@@ -4880,7 +4880,7 @@ msgstr ""
 
 #: public/js/frappe/list/bulk_operations.js:185
 msgid "Cannot delete {0}"
-msgstr ""
+msgstr "{0} silinemiyor"
 
 #: utils/nestedset.py:296
 msgid "Cannot delete {0} as it has child nodes"
@@ -12211,7 +12211,7 @@ msgstr ""
 
 #: desk/reportview.py:522
 msgid "Failed to delete {0} documents: {1}"
-msgstr ""
+msgstr "{0} belge silinemedi: {1}"
 
 #: core/doctype/rq_job/rq_job_list.js:33
 msgid "Failed to enable scheduler: {0}"
@@ -19388,7 +19388,7 @@ msgstr ""
 #: desk/doctype/bulk_update/bulk_update.json
 msgctxt "Bulk Update"
 msgid "Max 500 records at a time"
-msgstr ""
+msgstr "Tek seferde en fazla 500 kayıt."
 
 #. Label of a Int field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
@@ -27306,13 +27306,13 @@ msgstr ""
 #: core/doctype/data_import/data_import.js:110
 #: desk/page/setup_wizard/setup_wizard.js:285
 msgid "Retry"
-msgstr ""
+msgstr "Yeniden Dene"
 
 #. Label of a Int field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
 msgctxt "Email Queue"
 msgid "Retry"
-msgstr ""
+msgstr "Yeniden Dene"
 
 #: email/doctype/email_queue/email_queue_list.js:47
 msgid "Retry Sending"
@@ -32362,7 +32362,7 @@ msgstr ""
 #: public/js/frappe/model/model.js:133
 #: public/js/frappe/ui/toolbar/awesome_bar.js:171
 msgid "Tags"
-msgstr ""
+msgstr "Etiketler"
 
 #: integrations/doctype/google_drive/google_drive.js:29
 msgid "Take Backup"
