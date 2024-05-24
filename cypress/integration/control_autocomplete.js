@@ -1,11 +1,13 @@
 context("Control Autocomplete", () => {
 	before(() => {
 		cy.login();
-		cy.visit("/app/website");
+		cy.visit("/app");
 	});
 
 	function get_dialog_with_autocomplete(options) {
-		cy.visit("/app/website");
+		cy.visit("/app");
+		cy.wait(1000); // wait for the workspace to load
+
 		return cy.dialog({
 			title: "Autocomplete",
 			fields: [
@@ -22,16 +24,14 @@ context("Control Autocomplete", () => {
 	it("should set the valid value", () => {
 		get_dialog_with_autocomplete().as("dialog");
 
-		cy.get(".frappe-control[data-fieldname=autocomplete] input").focus().as("input");
-		cy.wait(1000);
-		cy.get("@input").type("2", { delay: 300 });
+		cy.get(".frappe-control[data-fieldname=autocomplete] input").as("input");
+		cy.get("@input").focus();
 		cy.get(".frappe-control[data-fieldname=autocomplete]")
 			.findByRole("listbox")
 			.should("be.visible");
-		cy.get(".frappe-control[data-fieldname=autocomplete] input").type("{enter}", {
-			delay: 300,
-		});
-		cy.get(".frappe-control[data-fieldname=autocomplete] input").blur();
+		cy.get("@input").type("2", { delay: 300 }).type("{enter}", { delay: 300 });
+		cy.wait(500);
+		cy.get("@input").blur();
 		cy.get("@dialog").then((dialog) => {
 			let value = dialog.get_value("autocomplete");
 			expect(value).to.eq("Option 2");
@@ -46,15 +46,12 @@ context("Control Autocomplete", () => {
 		];
 		get_dialog_with_autocomplete(options_with_label).as("dialog");
 
-		cy.get(".frappe-control[data-fieldname=autocomplete] input").focus().as("input");
+		cy.get(".frappe-control[data-fieldname=autocomplete] input").as("input");
+		cy.get("@input").focus();
 		cy.get(".frappe-control[data-fieldname=autocomplete]")
 			.findByRole("listbox")
 			.should("be.visible");
-		cy.get("@input").type("2", { delay: 300 });
-		cy.get(".frappe-control[data-fieldname=autocomplete] input").type("{enter}", {
-			delay: 300,
-		});
-		cy.get(".frappe-control[data-fieldname=autocomplete] input").blur();
+		cy.get("@input").type("2{enter}", { delay: 300 }).blur();
 		cy.get("@dialog").then((dialog) => {
 			let value = dialog.get_value("autocomplete");
 			expect(value).to.eq("option_2");
