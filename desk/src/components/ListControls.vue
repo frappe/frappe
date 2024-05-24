@@ -8,8 +8,11 @@
                 <Button :label="'Cancel'" @click="cancelChanges"/>
                 <Button :label="'Save Changes'" @click="saveChanges"/>
             </div>
+            <template v-if="options.showFilters">
+                <ListFilter v-model="config.filters" :allFilterableFields="config.fields" @update="(f) => emit('filterChange', f)"/>
+            </template>
             <template v-if="options.showColumnSettings">
-                <ListColumnSettings v-model="config.columns" :allColumns="config.allColumns"/>
+                <ListColumnSettings v-model="config.columns" :allColumns="config.fields"/>
             </template>
         </div>
     </div>
@@ -18,8 +21,9 @@
 <script setup>
 import { ref, watch, computed, defineEmits, defineModel  } from 'vue';
 import ListColumnSettings from '@/components/ListColumnSettings.vue';
+import ListFilter from '@/components/ListFilter.vue';
 
-const emit = defineEmits(['updateConfigSettings']);
+const emit = defineEmits(['updateConfigSettings', 'filterChange']);
 
 const config = defineModel();
 const oldConfig = ref({});
