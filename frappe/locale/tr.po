@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-19 09:33+0000\n"
-"PO-Revision-Date: 2024-05-24 00:45\n"
+"PO-Revision-Date: 2024-05-25 01:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2084,7 +2084,7 @@ msgstr "Kullanıcının yalnızca bu saatten önce giriş yapmasına izin ver. (
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Allow users to log in without a password, using a login link sent to their email"
-msgstr "Kullanıcıların, e-postalarına gönderilen oturum açma bağlantısını kullanarak parola olmadan oturum açmalarına izin ver"
+msgstr "Kullanıcıların, e-postalarına gönderilen oturum açma bağlantısını kullanarak parola olmadan oturum açmalarına izin verir."
 
 #. Label of a Link field in DocType 'Workflow Transition'
 #: workflow/doctype/workflow_transition/workflow_transition.json
@@ -2609,7 +2609,7 @@ msgstr ""
 
 #: core/doctype/rq_job/rq_job_list.js:25
 msgid "Are you sure you want to re-enable scheduler?"
-msgstr ""
+msgstr "Zamanlayıcıyı yeniden etkinleştirmek istediğinizden emin misiniz?"
 
 #: core/doctype/communication/communication.js:163
 msgid "Are you sure you want to relink this communication to {0}?"
@@ -2617,7 +2617,7 @@ msgstr ""
 
 #: core/doctype/rq_job/rq_job_list.js:10
 msgid "Are you sure you want to remove all failed jobs?"
-msgstr ""
+msgstr "Başarısız olan tüm işleri kaldırmak istediğinizden emin misiniz?"
 
 #: public/js/frappe/list/list_filter.js:109
 msgid "Are you sure you want to remove the {0} filter?"
@@ -2644,7 +2644,7 @@ msgstr "Emin misiniz?"
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "Arguments"
-msgstr ""
+msgstr "Parametreler"
 
 #. Option for the 'Font' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -7165,7 +7165,7 @@ msgstr "Şimdiki"
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "Current Job ID"
-msgstr ""
+msgstr "Mevcut İş ID"
 
 #. Label of a Int field in DocType 'Document Naming Settings'
 #: core/doctype/document_naming_settings/document_naming_settings.json
@@ -11143,7 +11143,7 @@ msgstr ""
 
 #: core/doctype/rq_job/rq_job_list.js:23
 msgid "Enable Scheduler"
-msgstr ""
+msgstr "Zamanlayıcıyı Etkinleştir"
 
 #. Label of a Check field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -11295,7 +11295,7 @@ msgstr "Etkin"
 
 #: core/doctype/rq_job/rq_job_list.js:29
 msgid "Enabled Scheduler"
-msgstr ""
+msgstr "Zamanlayıcıyı Etkinleştir"
 
 #: email/doctype/email_account/email_account.py:927
 msgid "Enabled email inbox for user {0}"
@@ -11395,13 +11395,13 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "Ended At"
-msgstr ""
+msgstr "Bitiş"
 
 #. Label of a Datetime field in DocType 'Submission Queue'
 #: core/doctype/submission_queue/submission_queue.json
 msgctxt "Submission Queue"
 msgid "Ended At"
-msgstr ""
+msgstr "Bitiş"
 
 #. Label of a Data field in DocType 'S3 Backup Settings'
 #: integrations/doctype/s3_backup_settings/s3_backup_settings.json
@@ -12165,7 +12165,7 @@ msgstr ""
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "Failed Job Count"
-msgstr ""
+msgstr "Başarısız İş Sayısı"
 
 #. Label of a Int field in DocType 'System Health Report Workers'
 #: desk/doctype/system_health_report_workers/system_health_report_workers.json
@@ -12215,7 +12215,7 @@ msgstr "{0} belge silinemedi: {1}"
 
 #: core/doctype/rq_job/rq_job_list.js:33
 msgid "Failed to enable scheduler: {0}"
-msgstr ""
+msgstr "Zamanlayıcı etkinleştirilemedi: {0}"
 
 #: integrations/doctype/webhook/webhook.py:139
 msgid "Failed to evaluate conditions: {}"
@@ -13511,7 +13511,7 @@ msgstr ""
 
 #: core/doctype/rq_job/rq_job.js:13
 msgid "Force Stop job"
-msgstr ""
+msgstr "İşi Durdurmaya Zorla"
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -15552,7 +15552,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "If not set, the currency precision will depend on number format"
-msgstr ""
+msgstr "Eğer belirtilmezse, döviz yuvarlaması sayı formatına göre yapılacak."
 
 #. Description of the 'Roles' (Table) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -16694,7 +16694,7 @@ msgstr ""
 
 #: core/doctype/rq_job/rq_job.py:113
 msgid "Invalid Operation"
-msgstr ""
+msgstr "Geçersiz İşlem"
 
 #: core/doctype/doctype/doctype.py:1596 core/doctype/doctype/doctype.py:1605
 msgid "Invalid Option"
@@ -17348,27 +17348,27 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "Job Info"
-msgstr ""
+msgstr "İş Detayı"
 
 #. Label of a Data field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "Job Name"
-msgstr ""
+msgstr "İş Adı"
 
 #. Label of a Section Break field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "Job Status"
-msgstr ""
+msgstr "İş Durumu"
 
 #: core/doctype/rq_job/rq_job.js:24
 msgid "Job Stopped Successfully"
-msgstr ""
+msgstr "İş Başarıyla Durduruldu"
 
 #: core/doctype/rq_job/rq_job.py:113
 msgid "Job is not running."
-msgstr ""
+msgstr "İş çalışmıyor."
 
 #: desk/doctype/event/event.js:55
 msgid "Join video conference with {0}"
@@ -18965,7 +18965,7 @@ msgstr ""
 
 #: www/login.html:106
 msgid "Login with Email Link"
-msgstr "E-posta Linki ile Giriş"
+msgstr "E-posta Bağlantısı ile Giriş"
 
 #: www/login.html:46
 msgid "Login with LDAP"
@@ -18975,7 +18975,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Login with email link"
-msgstr "E-posta Linki ile Giriş"
+msgstr "E-posta Bağlantısı ile Giriş"
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -20171,7 +20171,7 @@ msgstr ""
 #: core/doctype/module_profile/module_profile.json
 msgctxt "Module Profile"
 msgid "Module Profile Name"
-msgstr ""
+msgstr "Modül Profil Adı"
 
 #: desk/doctype/module_onboarding/module_onboarding.py:69
 msgid "Module onboarding progress reset"
@@ -24175,7 +24175,7 @@ msgstr ""
 
 #: utils/password.py:201
 msgid "Please visit https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key for more information."
-msgstr ""
+msgstr "Daha fazla bilgi için lütfen https://frappecloud.com/docs/sites/migrate-an-existing-site#encryption-key adresini ziyaret edin."
 
 #. Label of a Select field in DocType 'Energy Point Settings'
 #: social/doctype/energy_point_settings/energy_point_settings.json
@@ -25340,13 +25340,13 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "Queue"
-msgstr ""
+msgstr "Kuyruk"
 
 #. Label of a Data field in DocType 'System Health Report Queue'
 #: desk/doctype/system_health_report_queue/system_health_report_queue.json
 msgctxt "System Health Report Queue"
 msgid "Queue"
-msgstr ""
+msgstr "Kuyruk"
 
 #. Label of a Table field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
@@ -25490,7 +25490,7 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/rq_job/rq_job.json
 msgid "RQ Job"
-msgstr ""
+msgstr "RQ İşi"
 
 #. Name of a DocType
 #: core/doctype/rq_worker/rq_worker.json
@@ -26551,7 +26551,7 @@ msgstr "Kaldır"
 
 #: core/doctype/rq_job/rq_job_list.js:8
 msgid "Remove Failed Jobs"
-msgstr ""
+msgstr "Başarısız İşleri Kaldır"
 
 #: printing/page/print_format_builder/print_format_builder.js:488
 msgid "Remove Field"
@@ -28447,11 +28447,11 @@ msgstr "Zamanlayıcı etkin değil. Veri alınamıyor."
 
 #: core/doctype/rq_job/rq_job_list.js:19
 msgid "Scheduler: Active"
-msgstr ""
+msgstr "Zamanlayıcı: Aktif"
 
 #: core/doctype/rq_job/rq_job_list.js:21
 msgid "Scheduler: Inactive"
-msgstr ""
+msgstr "Zamanlayıcı: Aktif Değil"
 
 #. Label of a Data field in DocType 'OAuth Scope'
 #: integrations/doctype/oauth_scope/oauth_scope.json
@@ -29649,7 +29649,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.json
 msgctxt "System Settings"
 msgid "Session Expiry (idle timeout)"
-msgstr "Oturum Sona Erme"
+msgstr "Oturum Sonlanma Süresi"
 
 #: core/doctype/system_settings/system_settings.py:112
 msgid "Session Expiry must be in format {0}"
@@ -31078,7 +31078,7 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "Started At"
-msgstr ""
+msgstr "Başlangıç"
 
 #: desk/page/setup_wizard/setup_wizard.js:274
 msgid "Starting Frappe ..."
@@ -31788,7 +31788,7 @@ msgstr ""
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "Successful Job Count"
-msgstr ""
+msgstr "Başarılı İş Sayısı"
 
 #: model/workflow.py:299
 msgid "Successful Transactions"
@@ -33111,7 +33111,7 @@ msgstr ""
 
 #: core/doctype/rq_job/rq_job.js:9
 msgid "This is a virtual doctype and data is cleared periodically."
-msgstr ""
+msgstr "Bu sanal bir DocType'tır ve veriler periyodik olarak temizlenir."
 
 #: templates/emails/auto_reply.html:5
 msgid "This is an automatically generated reply"
@@ -33223,7 +33223,7 @@ msgstr ""
 
 #: core/doctype/rq_job/rq_job.js:15
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
-msgstr ""
+msgstr "Bu işi hemen sonlandırmak tehlikeli olabilir, emin misiniz? "
 
 #: core/doctype/user/user.py:1244
 msgid "Throttled"
@@ -33340,7 +33340,7 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "Time Taken"
-msgstr ""
+msgstr "Geçen Süre"
 
 #. Label of a Int field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -34290,7 +34290,7 @@ msgstr ""
 
 #: printing/page/print/print.js:189 printing/page/print/print.js:195
 msgid "Try the new Print Designer"
-msgstr ""
+msgstr "Yeni Yazdırma Tasarımcısını Deneyin"
 
 #: utils/password_strength.py:106
 msgid "Try to avoid repeated words and characters"
@@ -37907,7 +37907,7 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "canceled"
-msgstr ""
+msgstr "i̇ptal edildi"
 
 #: templates/includes/list/filters.html:19
 msgid "clear"
@@ -37967,19 +37967,19 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "default"
-msgstr ""
+msgstr "varsayılan"
 
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "default"
-msgstr ""
+msgstr "varsayılan"
 
 #. Option for the 'Status' (Select) field in DocType 'RQ Job'
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "deferred"
-msgstr ""
+msgstr "ertelendi"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -38090,7 +38090,7 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "failed"
-msgstr ""
+msgstr "başarısız oldu"
 
 #. Option for the 'Social Login Provider' (Select) field in DocType 'Social
 #. Login Key'
@@ -38103,7 +38103,7 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "finished"
-msgstr ""
+msgstr "bitti"
 
 #: public/js/frappe/utils/energy_point_utils.js:61
 msgid "gained by {0} via automatic rule {1}"
@@ -38208,13 +38208,13 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "long"
-msgstr ""
+msgstr "uzun"
 
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "long"
-msgstr ""
+msgstr "uzun"
 
 #: public/js/frappe/utils/utils.js:1122
 msgctxt "Minutes (Field: Duration)"
@@ -38394,7 +38394,7 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "queued"
-msgstr ""
+msgstr "sıraya alındı"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -38450,7 +38450,7 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "scheduled"
-msgstr ""
+msgstr "zamanlandı"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -38470,13 +38470,13 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "short"
-msgstr ""
+msgstr "kısa"
 
 #. Option for the 'Queue Type(s)' (Select) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgctxt "RQ Worker"
 msgid "short"
-msgstr ""
+msgstr "kısa"
 
 #: public/js/frappe/widgets/number_card_widget.js:282
 msgid "since last month"
@@ -38498,7 +38498,7 @@ msgstr ""
 #: core/doctype/rq_job/rq_job.json
 msgctxt "RQ Job"
 msgid "started"
-msgstr ""
+msgstr "başladı"
 
 #: desk/page/setup_wizard/setup_wizard.js:194
 msgid "starting the setup..."
@@ -39278,7 +39278,7 @@ msgstr ""
 
 #: public/js/frappe/roles_editor.js:62
 msgid "{0} role does not have permission on any doctype"
-msgstr ""
+msgstr "{0} rolünün herhangi bir DocType üzerinde izni yok."
 
 #: desk/query_report.py:580
 msgid "{0} saved successfully"
@@ -39538,7 +39538,7 @@ msgstr ""
 #: website/workspace/website/website.json
 msgctxt "Blogger"
 msgid "{} Active"
-msgstr ""
+msgstr "{} Aktif"
 
 #: public/js/frappe/form/form.js:517
 msgid "{} Complete"
@@ -39556,13 +39556,13 @@ msgstr ""
 #: website/workspace/website/website.json
 msgctxt "Blog Post"
 msgid "{} Published"
-msgstr ""
+msgstr "{} Yayınlandı"
 
 #. Count format of shortcut in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "Web Page"
 msgid "{} Published"
-msgstr ""
+msgstr "{} Yayınlandı"
 
 #: core/doctype/log_settings/log_settings.py:55
 msgid "{} does not support automated log clearing."
