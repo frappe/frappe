@@ -73,21 +73,50 @@
 </template>
 
 <script setup>
-import NestedPopover from '@/components/NestedPopover.vue';
 import { Autocomplete, FeatherIcon, FormControl } from 'frappe-ui';
-import Draggable from 'vuedraggable';
 import { computed, ref, watch } from 'vue';
+import NestedPopover from '@/components/Controls/NestedPopover.vue';
+import Draggable from 'vuedraggable';
 
 const props = defineProps({
     allColumns: {
         type: Array,
         default: [],
     },
-})
+});
+
+const fields = computed(() => {
+    let allFields = props.allColumns;
+    if (!allFields) return [];
+
+    return allFields.filter((field) => {
+        return !columns.value.find((column) => column.key === field.value);
+    })
+});
 
 const columns = defineModel();
 
-const oldValues = ref({});
+// Reset Column Changes
+
+const oldColumns = ref({});
+
+watch(
+    columns.value,
+    (cols) => {
+        if (!cols) return;
+        oldColumns.value = JSON.parse(JSON.stringify(cols));
+    },
+    { once: true, immediate: true }
+);
+
+const columnsUpdated = computed(() => JSON.stringify(oldColumns.value) != JSON.stringify(columns.value));
+
+function reset(close) {
+    columns.value = Array.from(oldColumns.value);
+    close();
+}
+
+// Add / Remove Columns
 
 function addColumn(c) {
     let _column = {
@@ -99,35 +128,11 @@ function addColumn(c) {
     columns.value.push(_column);
 }
 
-const fields = computed(() => {
-    let allFields = props.allColumns;
-    if (!allFields) return [];
-
-    return allFields.filter((field) => {
-        return !columns.value.find((column) => column.key === field.value);
-    })
-});
-
-
 function removeColumn(c) {
     columns.value = columns.value.filter((column) => column.key !== c.key);
 }
 
-function reset(close) {
-    columns.value = Array.from(oldValues.value.columns);
-    close();
-}
-
-watch(
-    columns.value,
-    (columns) => {
-        if (!columns) return;
-        oldValues.value.columns = JSON.parse(JSON.stringify(columns));
-    },
-    { once: true, immediate: true }
-);
-
-const columnsUpdated = computed(() => JSON.stringify(oldValues.value.columns) != JSON.stringify(columns.value));
+// Edit Columns
 
 const edit = ref(false);
 

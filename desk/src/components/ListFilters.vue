@@ -5,10 +5,10 @@
                 <template #prefix>
                     <FeatherIcon name="filter" class="h-3.5" />
                 </template>
-                <template v-if="filters.length" #suffix>
+                <template v-if="filters?.length" #suffix>
                     <div
                         class="flex h-5 w-5 items-center justify-center rounded bg-gray-900 pt-[1px] text-2xs font-medium text-white">
-                        {{ filters.length }}
+                        {{ filters?.length }}
                     </div>
                 </template>
             </Button>
@@ -16,7 +16,7 @@
         <template #body="{ close }">
             <div class="my-2 rounded-lg border border-gray-100 bg-white shadow-xl">
                 <div class="w-[32rem] p-2">
-                    <div v-if="filters.length" v-for="(filter, i) in filters" id="filter-list"
+                    <div v-if="filters?.length" v-for="(filter, i) in filters" id="filter-list"
                         class="mb-3 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
                             <div class="w-13 pl-2 text-end text-base text-gray-600">
@@ -33,7 +33,7 @@
                             </div>
                             <div id="value" class="w-[9rem]">
                                 <component :is="getValSelect(filter)" v-model="filter.value"
-                                    @change="updateValue(filter)" />
+                                    @change="$parent.$emit('updateFilter', filter)" />
                             </div>
                         </div>
                         <Button variant="ghost" icon="x" @click="filters.splice(i, 1)" />
@@ -42,19 +42,9 @@
                         {{ 'Empty - Choose a field to filter by' }}
                     </div>
                     <div class="flex items-center justify-between gap-2">
-                        <Autocomplete :body-classes="'w-[29rem]'" :options="allFilterableFields"
-                            @update:model-value="(option) => addFilter(option)">
-                            <template #target="{ togglePopover }">
-                                <Button class="!text-gray-600" variant="ghost" @click="togglePopover()"
-                                    :label="'Add Filter'">
-                                    <template #prefix>
-                                        <FeatherIcon name="plus" class="h-4" />
-                                    </template>
-                                </Button>
-                            </template>
-                        </Autocomplete>
-                        <Button v-if="filters.length" class="!text-gray-600" variant="ghost" :label="'Clear'"
-                            @click="clearFilters(close)" />
+                        <div></div>
+                        <Button v-if="filters?.length" class="!text-gray-600" variant="ghost" :label="'Clear'"
+                            @click="filters = []" />
                     </div>
                 </div>
             </div>
@@ -63,12 +53,12 @@
 </template>
 
 <script setup>
-import DatePicker from '@/components/Controls/DatePicker.vue'
-import DatetimePicker from '@/components/Controls/DatetimePicker.vue'
-import DateRangePicker from '@/components/Controls/DateRangePicker.vue'
-import Link from '@/components/Controls/Link.vue'
+import DatePicker from '@/components/Controls/DatePicker.vue';
+import DatetimePicker from '@/components/Controls/DatetimePicker.vue';
+import DateRangePicker from '@/components/Controls/DateRangePicker.vue';
+import Link from '@/components/Controls/Link.vue';
 
-import NestedPopover from './NestedPopover.vue';
+import NestedPopover from '@/components/Controls/NestedPopover.vue';
 import { Button, FeatherIcon, Autocomplete, FormControl } from 'frappe-ui';
 import { h } from 'vue';
 
@@ -79,7 +69,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['update']);
+const emit = defineEmits(['updateFilter']);
 
 const filters = defineModel();
 
@@ -311,9 +301,5 @@ function getValSelect(f) {
     } else {
         return h(FormControl, { type: 'text' })
     }
-}
-
-function updateValue(filter){
-    emit('update', filter);
 }
 </script>
