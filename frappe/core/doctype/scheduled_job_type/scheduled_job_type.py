@@ -71,8 +71,9 @@ class ScheduledJobType(Document):
 				enqueue(
 					"frappe.core.doctype.scheduled_job_type.scheduled_job_type.run_scheduled_job",
 					queue=self.get_queue_name(),
-					job_type=self.method,
+					job_type=self.method,  # Not actually used, kept for logging
 					job_id=self.rq_job_id,
+					scheduled_job_type=self.name,
 				)
 				return True
 			else:
@@ -93,7 +94,7 @@ class ScheduledJobType(Document):
 	@property
 	def rq_job_id(self):
 		"""Unique ID created to deduplicate jobs with single RQ call."""
-		return f"scheduled_job::{self.method}"
+		return f"scheduled_job::{self.name}"
 
 	@property
 	def next_execution(self):
@@ -188,10 +189,10 @@ def execute_event(doc: str):
 	return doc
 
 
-def run_scheduled_job(job_type: str):
+def run_scheduled_job(scheduled_job_type: str, job_type: str | None = None):
 	"""This is a wrapper function that runs a hooks.scheduler_events method"""
 	try:
-		frappe.get_doc("Scheduled Job Type", dict(method=job_type)).execute()
+		frappe.get_doc("Scheduled Job Type", scheduled_job_type).execute()
 	except Exception:
 		print(frappe.get_traceback())
 
