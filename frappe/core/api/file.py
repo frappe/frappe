@@ -115,6 +115,18 @@ def move_file(file_list: list[File | dict] | str, new_parent: str, old_parent: s
 	frappe.get_doc("File", old_parent).save()
 	frappe.get_doc("File", new_parent).save()
 
+def custom_move_file(file_list: list[File | dict] | str, new_parent: str, old_parent: str) -> None:
+	if isinstance(file_list, str):
+		file_list = json.loads(file_list)
+
+	# will check for permission on each file & update parent
+	for file_obj in file_list:
+		setup_folder_path(file_obj.get("name"), new_parent)
+
+	# recalculate sizes
+	frappe.get_doc("File", old_parent).save(ignore_permissions=True)
+	frappe.get_doc("File", new_parent).save(ignore_permissions=True)
+
 
 @frappe.whitelist()
 def zip_files(files: str):
