@@ -8,17 +8,16 @@ Events:
 	weekly
 """
 
-# imports - standard imports
 import os
 import random
 import time
 from typing import NoReturn
 
 from croniter import CroniterBadCronError
+from filelock import FileLock, Timeout
 
-# imports - module imports
 import frappe
-from frappe.utils import cint, get_datetime, get_sites, now_datetime
+from frappe.utils import cint, get_bench_path, get_datetime, get_sites, now_datetime
 from frappe.utils.background_jobs import set_niceness
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -33,6 +32,13 @@ def cprint(*args, **kwargs):
 		pass
 
 
+<<<<<<< HEAD
+=======
+def _proctitle(message):
+	setproctitle.setthreadtitle(f"frappe-scheduler: {message}")
+
+
+>>>>>>> f7ff829ea7 (perf: Merge worker and scheduler)
 def start_scheduler() -> NoReturn:
 	"""Run enqueue_events_for_all_sites based on scheduler tick.
 	Specify scheduler_interval in seconds in common_site_config.json"""
@@ -40,7 +46,21 @@ def start_scheduler() -> NoReturn:
 	tick = get_scheduler_tick()
 	set_niceness()
 
+<<<<<<< HEAD
 	while True:
+=======
+	lock_path = os.path.abspath(os.path.join(get_bench_path(), "config", "scheduler_process"))
+
+	try:
+		lock = FileLock(lock_path)
+		lock.acquire(blocking=False)
+	except Timeout:
+		frappe.logger("scheduler").debug("Scheduler already running")
+		return
+
+	while True:
+		_proctitle("idle")
+>>>>>>> f7ff829ea7 (perf: Merge worker and scheduler)
 		time.sleep(tick)
 		enqueue_events_for_all_sites()
 
