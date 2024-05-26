@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-19 09:33+0000\n"
-"PO-Revision-Date: 2024-05-25 01:12\n"
+"PO-Revision-Date: 2024-05-26 01:16\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -3252,7 +3252,7 @@ msgstr ""
 
 #: automation/doctype/auto_repeat/auto_repeat.py:437
 msgid "Auto Repeat Document Creation Failed"
-msgstr ""
+msgstr "Otomatik Tekrar Belge Oluşturma Başarısız"
 
 #: automation/doctype/auto_repeat/auto_repeat.js:115
 msgid "Auto Repeat Schedule"
@@ -3264,7 +3264,7 @@ msgstr ""
 
 #: automation/doctype/auto_repeat/auto_repeat.py:440
 msgid "Auto Repeat failed for {0}"
-msgstr ""
+msgstr "{0} için Otomatik Tekrarlama başarısız oldu"
 
 #. Label of a Section Break field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -3280,7 +3280,7 @@ msgstr ""
 
 #: automation/doctype/assignment_rule/assignment_rule.py:175
 msgid "Auto assignment failed: {0}"
-msgstr ""
+msgstr "Otomatik atama başarısız oldu: {0}"
 
 #. Label of a Check field in DocType 'User'
 #: core/doctype/user/user.json
@@ -12189,12 +12189,12 @@ msgstr ""
 
 #: integrations/doctype/ldap_settings/ldap_settings.py:358
 msgid "Failed to change password."
-msgstr ""
+msgstr "Parola değiştirme başarısız oldu."
 
 #: desk/page/setup_wizard/setup_wizard.js:220
 #: desk/page/setup_wizard/setup_wizard.py:36
 msgid "Failed to complete setup"
-msgstr ""
+msgstr "Kurulum tamamlanamadı"
 
 #: integrations/doctype/webhook/webhook.py:151
 msgid "Failed to compute request body: {}"
@@ -12203,7 +12203,7 @@ msgstr ""
 #: printing/doctype/network_printer_settings/network_printer_settings.py:46
 #: printing/doctype/network_printer_settings/network_printer_settings.py:48
 msgid "Failed to connect to server"
-msgstr ""
+msgstr "Sunucuya bağlanılamadı"
 
 #: auth.py:658
 msgid "Failed to decode token, please provide a valid base64-encoded token."
@@ -12251,11 +12251,11 @@ msgstr ""
 
 #: email/doctype/email_queue/email_queue.py:280
 msgid "Failed to send email with subject:"
-msgstr ""
+msgstr "Konuyu içeren e-posta gönderilemedi:"
 
 #: desk/doctype/notification_log/notification_log.py:41
 msgid "Failed to send notification email"
-msgstr ""
+msgstr "Bildirim e-postası gönderilemedi"
 
 #: desk/page/setup_wizard/setup_wizard.py:23
 msgid "Failed to update global settings"
@@ -27316,7 +27316,7 @@ msgstr "Yeniden Dene"
 
 #: email/doctype/email_queue/email_queue_list.js:47
 msgid "Retry Sending"
-msgstr ""
+msgstr "Tekrar Gönder"
 
 #: www/qrcode.html:15
 msgid "Return to the Verification screen and enter the code displayed by your authentication app"
