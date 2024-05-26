@@ -100,7 +100,9 @@ class TestRQJob(FrappeTestCase):
 			for q in ["default", "short"]:
 				frappe.enqueue(self.BG_JOB, sleep=1, queue=q)
 
-		_, stderr = execute_in_shell("bench worker --queue short,default --burst", check_exit_code=True)
+		_, stderr = execute_in_shell(
+			"bench worker --queue short,default --burst --no-scheduler", check_exit_code=True
+		)
 		self.assertIn("quitting", cstr(stderr))
 
 	@timeout

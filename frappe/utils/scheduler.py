@@ -62,10 +62,6 @@ def start_scheduler() -> NoReturn:
 def enqueue_events_for_all_sites() -> None:
 	"""Loop through sites and enqueue events that are not already queued"""
 
-	if os.path.exists(os.path.join(".", ".restarting")):
-		# Don't add task to queue if webserver is in restart mode
-		return
-
 	with frappe.init_site():
 		sites = get_sites()
 

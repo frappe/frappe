@@ -278,7 +278,10 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 
 class FrappeWorker(Worker):
-	def work(self, *args, **kwargs):
+	_run_frappe_scheduler = True
+
+	def work(self, *args, no_scheduler=False, **kwargs):
+		self._run_frappe_scheduler = not no_scheduler
 		self.start_frappe_scheduler()
 		return super().work(*args, **kwargs)
 
@@ -288,9 +291,10 @@ class FrappeWorker(Worker):
 		return super().run_maintenance_tasks(*args, **kwargs)
 
 	def start_frappe_scheduler(self):
-		from frappe.utils.scheduler import start_scheduler
+		if self._run_frappe_scheduler:
+			from frappe.utils.scheduler import start_scheduler
 
-		Thread(target=start_scheduler, daemon=True).start()
+			Thread(target=start_scheduler, daemon=True).start()
 
 
 def start_worker(
@@ -334,6 +338,7 @@ def start_worker(
 		date_format="%Y-%m-%d %H:%M:%S",
 		log_format="%(asctime)s,%(msecs)03d %(message)s",
 		dequeue_strategy=strategy,
+		no_scheduler=no_scheduler,
 	)
 
 
