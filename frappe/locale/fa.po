@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-19 09:33+0000\n"
-"PO-Revision-Date: 2024-05-20 22:24\n"
+"PO-Revision-Date: 2024-05-26 01:16\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1210,7 +1210,7 @@ msgstr ""
 
 #: public/js/frappe/form/grid.js:63
 msgid "Add Multiple"
-msgstr "چندگانه اضافه کنید"
+msgstr "افزودن چندگانه"
 
 #: core/page/permission_manager/permission_manager.js:439
 msgid "Add New Permission Rule"
@@ -5391,7 +5391,7 @@ msgstr ""
 
 #: public/js/frappe/ui/keyboard.js:284
 msgid "Clear Cache and Reload"
-msgstr "کش را پاک کنید و بارگذاری مجدد کنید"
+msgstr "پاک کردن کش و بارگذاری مجدد"
 
 #: core/doctype/error_log/error_log_list.js:12
 msgid "Clear Error Logs"
@@ -10391,16 +10391,16 @@ msgstr "ویرایش بلوک سفارشی"
 
 #: printing/page/print_format_builder/print_format_builder.js:719
 msgid "Edit Custom HTML"
-msgstr "HTML سفارشی را ویرایش کنید"
+msgstr "ویرایش HTML سفارشی"
 
 #: public/js/frappe/form/toolbar.js:556
 msgid "Edit DocType"
-msgstr "DocType را ویرایش کنید"
+msgstr "ویرایش DocType"
 
 #: public/js/frappe/list/list_view.js:1736
 msgctxt "Button in list view menu"
 msgid "Edit DocType"
-msgstr "DocType را ویرایش کنید"
+msgstr "ویرایش DocType"
 
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:42
 #: workflow/page/workflow_builder/workflow_builder.js:42
@@ -10421,7 +10421,7 @@ msgstr "ویرایش فرم کامل"
 
 #: printing/page/print_format_builder/print_format_builder_field.html:26
 msgid "Edit HTML"
-msgstr "HTML را ویرایش کنید"
+msgstr "ویرایش HTML"
 
 #: printing/page/print_format_builder/print_format_builder.js:602
 #: printing/page/print_format_builder/print_format_builder_layout.html:8
@@ -10438,7 +10438,7 @@ msgstr "ویرایش کارت شماره"
 
 #: public/js/frappe/widgets/widget_dialog.js:46
 msgid "Edit Onboarding"
-msgstr ""
+msgstr "ویرایش Onboarding"
 
 #: public/js/print_format_builder/print_format_builder.bundle.js:24
 msgid "Edit Print Format"
@@ -22451,7 +22451,7 @@ msgstr "باز"
 
 #: public/js/frappe/ui/keyboard.js:205
 msgid "Open Awesomebar"
-msgstr "Awesomebar را باز کنید"
+msgstr "باز کردن Awesomebar"
 
 #: public/js/frappe/form/templates/timeline_message_box.html:67
 msgid "Open Communication"
@@ -22479,7 +22479,7 @@ msgstr "سند مرجع را باز کنید"
 
 #: public/js/frappe/ui/keyboard.js:223
 msgid "Open Settings"
-msgstr "تنظیمات را باز کنید"
+msgstr "باز کردن تنظیمات"
 
 #: public/js/frappe/ui/toolbar/about.js:8
 msgid "Open Source Applications for the Web"
@@ -29717,7 +29717,7 @@ msgstr "تعداد بک آپ ها را تنظیم کنید"
 
 #: www/update-password.html:9
 msgid "Set Password"
-msgstr "قراردادن رمز عبور"
+msgstr "تنظیم رمز عبور"
 
 #: custom/doctype/customize_form/customize_form.js:112
 msgid "Set Permissions"
