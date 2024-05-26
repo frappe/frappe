@@ -19,6 +19,7 @@ from filelock import FileLock, Timeout
 import frappe
 from frappe.utils import cint, get_bench_path, get_datetime, get_sites, now_datetime
 from frappe.utils.background_jobs import set_niceness
+from frappe.utils.caching import redis_cache
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -106,7 +107,9 @@ def enqueue_events_for_site(site: str) -> None:
 def enqueue_events(site: str) -> list[str] | None:
 	if schedule_jobs_based_on_activity():
 		enqueued_jobs = []
-		for job_type in frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*"):
+		all_jobs = frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*")
+		random.shuffle(all_jobs)
+		for job_type in all_jobs:
 			job_type = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
 			try:
 				if job_type.enqueue():
@@ -163,6 +166,7 @@ def disable_scheduler():
 	toggle_scheduler(False)
 
 
+@redis_cache(ttl=60 * 60)
 def schedule_jobs_based_on_activity(check_time=None):
 	"""Returns True for active sites defined by Activity Log
 	Returns True for inactive sites once in 24 hours"""
