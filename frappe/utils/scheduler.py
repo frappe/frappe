@@ -8,7 +8,6 @@ Events:
 	weekly
 """
 
-# imports - standard imports
 import os
 import random
 import time
@@ -16,12 +15,11 @@ from typing import NoReturn
 
 import setproctitle
 from croniter import CroniterBadCronError
+from filelock import FileLock, Timeout
 
-# imports - module imports
 import frappe
-from frappe.utils import cint, get_datetime, get_sites, now_datetime
+from frappe.utils import cint, get_bench_path, get_datetime, get_sites, now_datetime
 from frappe.utils.background_jobs import set_niceness
-from frappe.utils.synchronization import filelock
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -36,7 +34,7 @@ def cprint(*args, **kwargs):
 
 
 def _proctitle(message):
-	setproctitle.setproctitle(f"frappe-scheduler: {message}")
+	setproctitle.setthreadtitle(f"frappe-scheduler: {message}")
 
 
 def start_scheduler() -> NoReturn:
@@ -46,11 +44,19 @@ def start_scheduler() -> NoReturn:
 	tick = get_scheduler_tick()
 	set_niceness()
 
-	with filelock("scheduler_process", timeout=1, is_global=True):
-		while True:
-			_proctitle("idle")
-			time.sleep(tick)
-			enqueue_events_for_all_sites()
+	lock_path = os.path.abspath(os.path.join(get_bench_path(), "config", "scheduler_process"))
+
+	try:
+		lock = FileLock(lock_path)
+		lock.acquire(blocking=False)
+	except Timeout:
+		frappe.logger("scheduler").debug("Scheduler already running")
+		return
+
+	while True:
+		_proctitle("idle")
+		time.sleep(tick)
+		enqueue_events_for_all_sites()
 
 
 def enqueue_events_for_all_sites() -> None:
