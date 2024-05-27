@@ -33,7 +33,7 @@ frappe.ready(function() {
 			},
 			callback: function(r) {
 				if (!r.exc) {
-					frappe.msgprint('{{ _("Thank you for your message") }}');
+					frappe.msgprint('{{ _("Thank you for your message") }}', '{{ _("Message Sent") }}');
 				}
 				$(':input').val('');
 			},
