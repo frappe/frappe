@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-19 09:33+0000\n"
-"PO-Revision-Date: 2024-05-26 01:16\n"
+"PO-Revision-Date: 2024-05-27 01:27\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -4841,7 +4841,7 @@ msgstr "نمی توان یک {0} در برابر سند فرزند ایجاد ک
 
 #: desk/doctype/workspace/workspace.py:252
 msgid "Cannot create private workspace of other users"
-msgstr "نمی توان فضای کاری خصوصی سایر کاربران ایجاد کرد"
+msgstr "نمی توان محیط کار خصوصی از سایر کاربران ایجاد کرد"
 
 #: core/doctype/file/file.py:152
 msgid "Cannot delete Home and Attachments folders"
@@ -4853,11 +4853,11 @@ msgstr "نمی توان حذف یا لغو کرد زیرا {0} {1} با {2} {3} 
 
 #: desk/doctype/workspace/workspace.py:411
 msgid "Cannot delete private workspace of other users"
-msgstr "نمی توان فضای کاری خصوصی کاربران دیگر را حذف کرد"
+msgstr "نمی توان محیط کار خصوصی کاربران دیگر را حذف کرد"
 
 #: desk/doctype/workspace/workspace.py:404
 msgid "Cannot delete public workspace without Workspace Manager role"
-msgstr "بدون نقش مدیر فضای کاری نمی توان فضای کاری عمومی را حذف کرد"
+msgstr "بدون نقش مدیر محیط کار نمی توان محیط کار عمومی را حذف کرد"
 
 #: custom/doctype/customize_form/customize_form.js:358
 msgid "Cannot delete standard action. You can hide it if you want"
@@ -4969,7 +4969,7 @@ msgstr "نمی توان {0} را ارسال کرد."
 
 #: desk/doctype/workspace/workspace.py:345
 msgid "Cannot update private workspace of other users"
-msgstr "نمی توان فضای کاری خصوصی سایر کاربران را به روز کرد"
+msgstr "نمی توان محیط کار خصوصی سایر کاربران را به روز کرد"
 
 #: desk/doctype/bulk_update/bulk_update.js:26
 #: public/js/frappe/list/bulk_operations.js:336
@@ -6945,7 +6945,7 @@ msgstr "ایجاد ایمیل کاربر"
 
 #: public/js/frappe/views/workspace/workspace.js:476
 msgid "Create Workspace"
-msgstr "ایجاد فضای کاری"
+msgstr "ایجاد محیط کار"
 
 #: printing/page/print_format_builder/print_format_builder_start.html:16
 msgid "Create a New Format"
@@ -8416,7 +8416,7 @@ msgstr "نمای پیش فرض"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Default Workspace"
-msgstr "فضای کاری پیش فرض"
+msgstr "محیط کار پیش فرض"
 
 #: core/doctype/doctype/doctype.py:1343
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
@@ -8525,7 +8525,7 @@ msgstr "صفحه کانبان را حذف کنید"
 
 #: public/js/frappe/views/workspace/workspace.js:835
 msgid "Delete Workspace"
-msgstr "فضای کاری را حذف کنید"
+msgstr "محیط کار را حذف کنید"
 
 #: public/js/frappe/views/reports/query_report.js:864
 msgid "Delete and Generate New"
@@ -10199,7 +10199,7 @@ msgstr "نام تکراری"
 #: public/js/frappe/views/workspace/workspace.js:558
 #: public/js/frappe/views/workspace/workspace.js:820
 msgid "Duplicate Workspace"
-msgstr "فضای کاری تکراری"
+msgstr "محیط کار تکراری"
 
 #: public/js/frappe/form/form.js:207
 msgid "Duplicate current row"
@@ -10484,7 +10484,7 @@ msgstr "ویرایش مقادیر"
 
 #: public/js/frappe/views/workspace/workspace.js:814
 msgid "Edit Workspace"
-msgstr "ویرایش فضای کاری"
+msgstr "ویرایش محیط کار"
 
 #: desk/doctype/note/note.js:11
 msgid "Edit mode"
@@ -15111,7 +15111,7 @@ msgstr "پنهان کردن تعطیلات آخر هفته"
 
 #: public/js/frappe/views/workspace/workspace.js:826
 msgid "Hide Workspace"
-msgstr "فضای کاری را مخفی کنید"
+msgstr "محیط کار را مخفی کنید"
 
 #. Description of the 'Hide Descendants' (Check) field in DocType 'User
 #. Permission'
@@ -15209,7 +15209,7 @@ msgstr "صفحه اصلی / پوشه آزمایشی 1 / پوشه آزمایشی 
 
 #: core/doctype/file/test_file.py:332
 msgid "Home/Test Folder 2"
-msgstr "صفحه اصلی/پوشه تست 2"
+msgstr "Home/Test Folder 2"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #: core/doctype/scheduled_job_type/scheduled_job_type.json
@@ -20701,11 +20701,11 @@ msgstr "تنظیمات ناوبری"
 
 #: desk/doctype/workspace/workspace.py:297
 msgid "Need Workspace Manager role to edit private workspace of other users"
-msgstr "برای ویرایش فضای کاری خصوصی سایر کاربران به نقش مدیر فضای کاری نیاز دارید"
+msgstr "برای ویرایش محیط کار خصوصی سایر کاربران به نقش مدیر محیط کار نیاز دارید"
 
 #: desk/doctype/workspace/workspace.py:341
 msgid "Need Workspace Manager role to hide/unhide public workspaces"
-msgstr "برای مخفی کردن/آشکار کردن فضاهای کاری عمومی به نقش مدیر فضای کاری نیاز دارید"
+msgstr "برای مخفی کردن/آشکار کردن فضاهای کاری عمومی به نقش مدیر محیط کار نیاز دارید"
 
 #: model/document.py:634
 msgid "Negative Value"
@@ -20883,7 +20883,7 @@ msgstr "نام گردش کار جدید"
 
 #: public/js/frappe/views/workspace/workspace.js:1183
 msgid "New Workspace"
-msgstr "فضای کاری جدید"
+msgstr "محیط کار جدید"
 
 #: www/update-password.html:77
 msgid "New password cannot be same as old password"
@@ -33017,7 +33017,7 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.js:23
 msgid "This document allows you to edit limited fields. For all kinds of workspace customization, use the Edit button located on the workspace page"
-msgstr "این سند به شما امکان ویرایش فیلدهای محدود را می دهد. برای انواع سفارشی سازی فضای کاری، از دکمه ویرایش واقع در صفحه فضای کاری استفاده کنید"
+msgstr "این سند به شما امکان ویرایش فیلدهای محدود را می دهد. برای انواع سفارشی سازی محیط کار، از دکمه ویرایش واقع در صفحه محیط کار استفاده کنید"
 
 #: model/delete_doc.py:112
 msgid "This document can not be deleted right now as it's being modified by another user. Please try again after some time."
@@ -34657,7 +34657,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:567
 msgid "Unhide Workspace"
-msgstr "نمایش فضای کاری"
+msgstr "نمایش محیط کار"
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -36154,7 +36154,7 @@ msgstr "تماشای ویدیو"
 
 #: desk/doctype/workspace/workspace.js:38
 msgid "We do not allow editing of this document. Simply click the Edit button on the workspace page to make your workspace editable and customize it as you wish"
-msgstr "ما اجازه ویرایش این سند را نمی دهیم. به سادگی روی دکمه ویرایش در صفحه فضای کاری کلیک کنید تا فضای کاری شما قابل ویرایش باشد و آن را به دلخواه شخصی سازی کنید."
+msgstr "ما اجازه ویرایش این سند را نمی دهیم. به سادگی روی دکمه ویرایش در صفحه محیط کار کلیک کنید تا محیط کار شما قابل ویرایش باشد و آن را به دلخواه شخصی سازی کنید."
 
 #: templates/emails/delete_data_confirmation.html:2
 msgid "We have received a request for deletion of {0} data associated with: {1}"
@@ -36715,7 +36715,7 @@ msgstr "URL خوش آمدید"
 #. Name of a Workspace
 #: core/workspace/welcome_workspace/welcome_workspace.json desk/desktop.py:470
 msgid "Welcome Workspace"
-msgstr "فضای کاری خوش آمدید"
+msgstr "محیط کار خوش آمدید"
 
 #: core/doctype/user/user.py:398
 msgid "Welcome email sent"
@@ -37032,55 +37032,55 @@ msgstr "فضای کار"
 
 #: public/js/frappe/router.js:193
 msgid "Workspace <b>{0}</b> does not exist"
-msgstr "فضای کاری <b>{0}</b> وجود ندارد"
+msgstr "محیط کار <b>{0}</b> وجود ندارد"
 
 #. Name of a DocType
 #: desk/doctype/workspace_chart/workspace_chart.json
 msgid "Workspace Chart"
-msgstr "نمودار فضای کاری"
+msgstr "نمودار محیط کار"
 
 #. Name of a DocType
 #: desk/doctype/workspace_custom_block/workspace_custom_block.json
 msgid "Workspace Custom Block"
-msgstr "بلوک سفارشی فضای کاری"
+msgstr "بلوک سفارشی محیط کار"
 
 #. Name of a DocType
 #: desk/doctype/workspace_link/workspace_link.json
 msgid "Workspace Link"
-msgstr "پیوند فضای کاری"
+msgstr "پیوند محیط کار"
 
 #. Name of a role
 #: desk/doctype/custom_html_block/custom_html_block.json
 #: desk/doctype/workspace/workspace.json
 msgid "Workspace Manager"
-msgstr "مدیر فضای کاری"
+msgstr "مدیر محیط کار"
 
 #. Name of a DocType
 #: desk/doctype/workspace_number_card/workspace_number_card.json
 msgid "Workspace Number Card"
-msgstr "کارت شماره فضای کاری"
+msgstr "کارت شماره محیط کار"
 
 #. Name of a DocType
 #: desk/doctype/workspace_quick_list/workspace_quick_list.json
 msgid "Workspace Quick List"
-msgstr "فهرست سریع فضای کاری"
+msgstr "فهرست سریع محیط کار"
 
 #. Name of a DocType
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Workspace Shortcut"
-msgstr "میانبر فضای کاری"
+msgstr "میانبر محیط کار"
 
 #: desk/doctype/workspace/workspace.py:281
 msgid "Workspace not found"
-msgstr "فضای کاری پیدا نشد"
+msgstr "محیط کار پیدا نشد"
 
 #: public/js/frappe/views/workspace/workspace.js:1276
 msgid "Workspace {0} Created Successfully"
-msgstr "فضای کاری {0} با موفقیت ایجاد شد"
+msgstr "محیط کار {0} با موفقیت ایجاد شد"
 
 #: public/js/frappe/views/workspace/workspace.js:905
 msgid "Workspace {0} Deleted Successfully"
-msgstr "فضای کاری {0} با موفقیت حذف شد"
+msgstr "محیط کار {0} با موفقیت حذف شد"
 
 #: public/js/frappe/views/workspace/workspace.js:683
 msgid "Workspace {0} Edited Successfully"
@@ -37637,7 +37637,7 @@ msgstr "برای ارسال این فرم باید وارد شوید"
 
 #: desk/doctype/workspace/workspace.py:73
 msgid "You need to be Workspace Manager to edit this document"
-msgstr "برای ویرایش این سند باید مدیر فضای کاری باشید"
+msgstr "برای ویرایش این سند باید مدیر محیط کار باشید"
 
 #: www/attribution.py:14
 msgid "You need to be a system user to access this page."
@@ -38779,7 +38779,7 @@ msgstr "{0} بازدید از صفحه وب"
 #: public/js/frappe/ui/toolbar/search_utils.js:91
 #: public/js/frappe/ui/toolbar/search_utils.js:92
 msgid "{0} Workspace"
-msgstr "{0} فضای کاری"
+msgstr "{0} محیط کار"
 
 #: public/js/frappe/form/link_selector.js:225
 msgid "{0} added"
