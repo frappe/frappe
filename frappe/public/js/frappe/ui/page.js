@@ -140,7 +140,7 @@ frappe.ui.Page = class Page {
 		this.standard_actions = this.page_actions.find(".standard-actions");
 		this.custom_actions = this.page_actions.find(".actions");
 
-		this.page_form = isProjectKanbanView() ? $('<div id="collapse_filters_area" class="page-form row hide collapse"></div>').prependTo(this.main) : $('<div class="page-form row hide"></div>').prependTo(this.main)
+		this.page_form = $('<div id="collapse_filters_area" class="page-form row hide collapse"></div>').prependTo(this.main)
 		this.inner_toolbar = this.custom_actions;
 		this.icon_group = this.page_actions.find(".page-icon-group");
 
@@ -800,11 +800,13 @@ frappe.ui.Page = class Page {
 		}
 
 		let custom_btn_group = $(`
-			<div class="custom-btn-group">
-				<button type="button" class="btn btn-default btn-sm ellipsis" data-toggle="dropdown" aria-expanded="false">
-					${dropdown_label}
-				</button>
-				<ul class="dropdown-menu" role="menu"></ul>
+			<div class="filter-selector">
+				<div class="custom-btn-group m-xs">
+					<button type="button" class="btn btn-default btn-sm ellipsis" data-toggle="dropdown" aria-expanded="false">
+						${dropdown_label}
+					</button>
+					<ul class="dropdown-menu" role="menu"></ul>
+				</div>
 			</div>
 		`);
 
@@ -935,14 +937,3 @@ frappe.ui.Page = class Page {
 		this.wrapper.trigger("view-change");
 	}
 };
-
-function isProjectKanbanView(){
-	const url = window.location.pathname;
-	const pathToCheck = "/app/project/view/kanban/";
-	const element = document.getElementById("btn_collapse_filters_area")
-	if (url.includes(pathToCheck)) {
-		return true
-	} else {
-		return false;
-	}
-}

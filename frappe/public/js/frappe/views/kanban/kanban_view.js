@@ -208,7 +208,6 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 				
 				const custom_button_filter = document.createElement('button');
 				custom_button_filter.setAttribute('id', 'btn_collapse_filters_area');
-				custom_button_filter.setAttribute('style', 'height: 2rem;');
 				custom_button_filter.classList.add('btn', 'btn-primary', 'btn-sm');
 				custom_button_filter.setAttribute('type', 'button');
 				custom_button_filter.setAttribute('data-toggle', 'collapse');

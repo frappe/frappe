@@ -838,7 +838,7 @@ const ProjectStatusOptions = {
 				self.$card.find(".kanban-card.content").css("border", "1px solid red");
 			}
 			if(card.conversation) {
-				self.$card.find(".kanban-card.content").css("border", "1px solid #128c7e");
+				self.$card.find(".kanban-card.content").css("border", "1px solid #FFA500");
 			}
 			if (!frappe.model.can_write(card.doctype)) {
 				// Undraggable card without 'write' access to reference doctype
@@ -909,7 +909,7 @@ const ProjectStatusOptions = {
 			`;
 
 			if (card.conversation){
-				html += '<i class="fa-brands fa-whatsapp" style="width: 14px; color: #128c7e"></i>'
+				html += '<i class="fa-brands fa-whatsapp" style="width: 15px; color: #FFA500"></i>'
 			}
 
 			html += getPartsIcons()

@@ -73,6 +73,7 @@
 		min-width: 40px;
 	}
 	.custom-btn-group {
+		margin: var(--margin-xs);
 		display: inline-flex;
 	}
 
@@ -195,4 +196,8 @@
 .page-only-label {
 	margin-top: var(--margin-xs);
 	text-align: center;
+}
+
+.m-xs{
+	margin: var(--margin-xs);
 }
