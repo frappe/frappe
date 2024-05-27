@@ -257,7 +257,13 @@ function updateSidebarItem(item, action) {
 		draftSidebarItems.value.sections.splice(index, 1)
 	} else if (action === "duplicate") {
 		const index = getItemIndex(item)
-		draftSidebarItems.value.sections.splice(index + 1, 0, { ...item })
+		const newItem = {
+			...item,
+			label: `${item.label} Copy`,
+			name: `${item.name}_copy`,
+			index: index + 1,
+		}
+		draftSidebarItems.value.sections.splice(index + 1, 0, newItem)
 	}
 }
 
