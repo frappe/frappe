@@ -144,7 +144,7 @@ class Exporter:
 					value = format_duration(flt(value), df.hide_days)
 
 				if df.fieldtype == "Text Editor":
-					value = frappe.utils.strip_html(value)
+					value = frappe.core.utils.html2text(value)
 				row[i] = value
 		return rows
 
