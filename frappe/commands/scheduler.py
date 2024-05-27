@@ -199,6 +199,7 @@ def start_scheduler():
 	help="Dequeuing strategy to use",
 )
 <<<<<<< HEAD
+<<<<<<< HEAD
 def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None):
 	"""Start a backgrond worker"""
 =======
@@ -206,6 +207,9 @@ def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=F
 def start_worker(
 	queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None, no_scheduler=False
 ):
+=======
+def start_worker(queue, quiet=False, rq_username=None, rq_password=None, burst=False, strategy=None):
+>>>>>>> d13178755b (refactor: keep scheduler+worker behaviour to workerpool)
 	"""Start a background worker"""
 >>>>>>> 433e7281f7 (feat: make running scheduler with worker optional)
 	from frappe.utils.background_jobs import start_worker
@@ -217,7 +221,6 @@ def start_worker(
 		rq_password=rq_password,
 		burst=burst,
 		strategy=strategy,
-		no_scheduler=no_scheduler,
 	)
 
 
