@@ -58,7 +58,7 @@ def get_doctype_fields(doctype):
 	for field in meta.fields + frappe.model.std_fields:
 		if field.get("fieldtype") in not_allowed_in_list_view:
 			continue
-		doctype_fields.append({"label": field.get("label"), "value": field.get("fieldname"), "type": field.get("fieldtype")})
+		doctype_fields.append({"label": field.get("label"), "value": field.get("fieldname"), "type": field.get("fieldtype"), "options": field.get("options")})
 	return doctype_fields
 
 @frappe.whitelist()

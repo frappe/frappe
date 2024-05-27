@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-1.5">
     <label class="block" :class="labelClasses" v-if="attrs.label">
-      {{ __(attrs.label) }}
+      {{ attrs.label }}
     </label>
     <Autocomplete
       ref="autocomplete"
@@ -33,7 +33,7 @@
           <Button
             variant="ghost"
             class="w-full !justify-start"
-            :label="__('Create New')"
+            :label="'Create New'"
             @click="attrs.onCreate(value, close)"
           >
             <template #prefix>
@@ -45,7 +45,7 @@
           <Button
             variant="ghost"
             class="w-full !justify-start"
-            :label="__('Clear')"
+            :label="'Clear'"
             @click="() => clearValue(close)"
           >
             <template #prefix>
@@ -60,7 +60,7 @@
 
 <script setup>
 import { watchDebounced } from '@vueuse/core'
-import { createResource, Autocomplete } from 'frappe-ui'
+import { createResource, Autocomplete, FeatherIcon } from 'frappe-ui'
 import { useAttrs, computed, ref } from 'vue'
 
 const props = defineProps({

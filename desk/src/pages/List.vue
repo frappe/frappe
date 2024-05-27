@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-5 m-5">
+    <div class="flex flex-col gap-4 m-5">
         <div class="flex justify-between items-center">
             <div>
             </div>
@@ -25,10 +25,10 @@
                         <Button :label="'Save'" @click="saveChangesToView" />
                     </template>
                 </div>
-                <ListControls v-model="listConfig" :options="listControlOptions" @updateFilter="handleFilterChange"/>
+                <ListControls v-model="listConfig" :options="listControlOptions" @updateFilter="handleFilterChange" />
             </div>
         </div>
-        <div v-if="list.data">
+        <div v-if="list.data?.length">
             <ListView :rows="list.data" rowKey="name" :columns="listConfig.columns" :options="listOptions" />
         </div>
     </div>
@@ -49,11 +49,31 @@ const router = useRouter();
 const viewsDropdownOptions = computed(() => {
     let options = [
         {
+            group: 'View Actions',
+            items: [
+                {
+                    label: 'Add',
+                    icon: 'plus-square',
+                },
+                {
+                    label: 'Rename',
+                    icon: 'edit-3',
+                },
+                {
+                    label: 'Delete',
+                    icon: 'trash',
+                }
+            ]
+        },
+        {
             group: 'Default Views',
             items: [
                 {
                     label: 'List',
-                    icon: 'list'
+                    icon: 'list',
+                    onClick: () => {
+                        router.push({ query: { view: null } });
+                    }
                 },
                 {
                     label: 'Report',
@@ -80,7 +100,7 @@ const viewsDropdownOptions = computed(() => {
                     label: v.label,
                     icon: v.icon,
                     onClick: () => {
-                        router.push({ query: { config: v.name } });
+                        router.push({ query: { view: v.name } });
                     }
                 });
             });
@@ -125,7 +145,7 @@ const loadConfig = async (query_config) => {
     listConfig.value = {
         columns: config_settings.data.columns,
         fields: config_settings.data.doctype_fields,
-        filters: getParsedFilters(),
+        filters: filters.value,
     };
     oldConfig.value = JSON.parse(JSON.stringify(listConfig.value));
 };
@@ -145,7 +165,7 @@ const list = createResource({
     }
 });
 
-watch(() => route.query.config, async (query_config) => {
+watch(() => route.query.view, async (query_config) => {
     await loadConfig(query_config);
     await list.fetch();
 }, { immediate: true });
@@ -166,13 +186,27 @@ const cancelChanges = () => {
 
 // Handle filters from URL query params
 
+
+const getParsedFilter = (key, filter) => {
+    let f = JSON.parse(filter);
+    return [key, f[0], f[1]];
+}
+
+
 const filters = computed(() => {
-    let filters = {};
+    let filters = [];
     if (route.query) {
         for (let key in route.query) {
-            if (key == 'config')
+            if (key == 'view')
                 continue;
-            filters[key] = JSON.parse(route.query[key]);
+
+            if (typeof (route.query[key]) == 'string')
+                filters.push(getParsedFilter(key, route.query[key]));
+            else {
+                route.query[key].forEach((v) => {
+                    filters.push(getParsedFilter(key, v));
+                });
+            }
         }
     }
     if (filters.length)
@@ -181,20 +215,17 @@ const filters = computed(() => {
     return config_settings.data.filters;
 });
 
-const getParsedFilters = () => {
-    let parsedFilters = [];
-    filters.value && Object.entries(filters.value).map(([field, filter]) => {
-        parsedFilters.push({
-            field: field,
-            operator: filter[0],
-            value: filter[1]
-        });
+const handleFilterChange = async () => {
+    let q = {};
+    listConfig.value.filters.map((f) => {
+        let fieldname = f[0];
+        let value = JSON.stringify([f[1], f[2]]);
+        if (q[fieldname])
+            q[fieldname].push(value);
+        else
+            q[fieldname] = [value];
     });
-    return parsedFilters;
-}
-
-const handleFilterChange = async (filter) => {
-    router.replace({ query: { ...route.query, [filter.field]: JSON.stringify([filter.operator, filter.value]) } });
+    router.replace({ query: q });
     await list.fetch();
 };
 

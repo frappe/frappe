@@ -15,36 +15,42 @@
         </template>
         <template #body="{ close }">
             <div class="my-2 rounded-lg border border-gray-100 bg-white shadow-xl">
-                <div class="w-[32rem] p-2">
+                <div class="w-[30rem] p-2">
                     <div v-if="filters?.length" v-for="(filter, i) in filters" id="filter-list"
                         class="mb-3 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
-                            <div class="w-13 pl-2 text-end text-base text-gray-600">
-                                {{ i == 0 ? 'Where' : 'And' }}
-                            </div>
                             <div id="fieldname" class="w-[9rem]">
-                                <Autocomplete :body-classes="'w-[15rem]'" :modelValue="filter.field"
+                                <Autocomplete :body-classes="'w-[15rem]'" :modelValue="filter[0]"
                                     :options="allFilterableFields"
-                                    @update:model-value="(option) => filter.field = option.value" />
+                                    @update:model-value="(option) => updateField(option, filter)" />
                             </div>
-                            <div id="operator" class="w-[6rem]">
-                                <FormControl type="select" v-model="filter.operator"
-                                    :options="getOperators(filter.field)" @change="filter.value = ''" />
+                            <div id="operator" class="w-[7rem]">
+                                <FormControl type="select" v-model="filter[1]" :options="getOperators(filter[0])"
+                                    @change="filter[2] = ''" />
                             </div>
-                            <div id="value" class="w-[9rem]">
-                                <component :is="getValSelect(filter)" v-model="filter.value"
-                                    @change="$parent.$emit('updateFilter', filter)" />
+                            <div id="value" class="w-[10rem]">
+                                <component :is="getValSelect(filter, close)" v-model="filter[2]"
+                                    @change="(v) => updateValue(v, filter)" />
                             </div>
                         </div>
-                        <Button variant="ghost" icon="x" @click="filters.splice(i, 1)" />
+                        <Button :class="'h-3.5'" variant="ghost" icon="x" @click="removeFilter(i)"/>
                     </div>
                     <div v-else class="mb-3 flex h-7 items-center px-3 text-sm text-gray-600">
                         {{ 'Empty - Choose a field to filter by' }}
                     </div>
                     <div class="flex items-center justify-between gap-2">
-                        <div></div>
-                        <Button v-if="filters?.length" class="!text-gray-600" variant="ghost" :label="'Clear'"
-                            @click="filters = []" />
+                        <Autocomplete :body-classes="'w-[29rem]'" :options="allFilterableFields"
+                            @update:model-value="(option) => addFilter(option)">
+                            <template #target="{ togglePopover }">
+                                <Button class="!text-gray-600" variant="ghost" @click="togglePopover()" :label="'Add'">
+                                    <template #prefix>
+                                        <FeatherIcon name="plus" class="h-3.5" />
+                                    </template>
+                                </Button>
+                            </template>
+                        </Autocomplete>
+                        <Button v-if="filters?.length" class="!text-gray-600 h-3.5" variant="ghost" icon="trash"
+                            @click="clearFilters" />
                     </div>
                 </div>
             </div>
@@ -60,7 +66,7 @@ import Link from '@/components/Controls/Link.vue';
 
 import NestedPopover from '@/components/Controls/NestedPopover.vue';
 import { Button, FeatherIcon, Autocomplete, FormControl } from 'frappe-ui';
-import { h } from 'vue';
+import { h, getCurrentInstance } from 'vue';
 
 const props = defineProps({
     allFilterableFields: {
@@ -68,9 +74,6 @@ const props = defineProps({
         default: [],
     },
 });
-
-const emit = defineEmits(['updateFilter']);
-
 const filters = defineModel();
 
 const getFieldType = (fieldname) => {
@@ -249,10 +252,11 @@ const timespanOptionsList = [
     },
 ]
 
-function getValSelect(f) {
-    const { field, operator } = f;
+function getValSelect(f, close) {
+    const field = f[0];
+    const operator = f[1];
     const fieldtype = getFieldType(field);
-    const options = props.allFilterableFields.find((f) => f.value === field).options;
+    const options = props.allFilterableFields.find((f) => f.value == field).options;
     if (operator == 'is') {
         return h(FormControl, {
             type: 'select',
@@ -289,17 +293,48 @@ function getValSelect(f) {
         if (fieldtype == 'Dynamic Link') {
             return h(FormControl, { type: 'text' })
         }
-        return h(Link, { class: 'form-control', doctype: options, value: f.value })
+        return h(Link, { class: 'form-control', doctype: options, value: f[2] })
     } else if (typeNumber.includes(fieldtype)) {
         return h(FormControl, { type: 'number' })
     } else if (typeDate.includes(fieldtype) && operator == 'between') {
-        return h(DateRangePicker, { value: f.value })
+        return h(DateRangePicker, { value: f[2]})
     } else if (typeDate.includes(fieldtype)) {
         return h(fieldtype == 'Date' ? DatePicker : DatetimePicker, {
-            value: f.value,
+            value: f[2],
         })
     } else {
         return h(FormControl, { type: 'text' })
     }
 }
+
+const updateField = (option, filter) => {
+    filter[0] = option.value;
+    filter[1] = '';
+    filter[2] = '';
+};
+const instance = getCurrentInstance();
+
+function updateValue(value, filter) {
+    value = value.target ? value.target.value : value;
+    if (filter[1] === 'between') {
+        filter[2] = [value.split(',')[0], value.split(',')[1]]
+    } else {
+        filter[2] = value
+    }
+    instance.parent.emit('updateFilter');
+};
+
+const addFilter = (option) => {
+    filters.value.push([option.value, '', '']);
+};
+
+const removeFilter = (index) => {
+    filters.value.splice(index, 1);
+    instance.parent.emit('updateFilter');
+};
+
+const clearFilters = () => {
+    filters.value = [];
+    instance.parent.emit('updateFilter');
+};
 </script>

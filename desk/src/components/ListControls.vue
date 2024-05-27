@@ -1,9 +1,9 @@
 <template>
-    <template v-if="options.showFilters">
-        <ListFilters v-model="config.filters" :allFilterableFields="config.fields" />
-    </template>
     <template v-if="options.showColumnSettings && config.columns">
         <ListColumnSettings v-model="config.columns" :allColumns="config.fields" />
+    </template>
+    <template v-if="options.showFilters">
+        <ListFilters v-model="config.filters" :allFilterableFields="config.fields"/>
     </template>
 </template>
 

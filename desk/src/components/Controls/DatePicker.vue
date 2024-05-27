@@ -46,7 +46,7 @@
             "
           />
           <Button
-            :label="__('Today')"
+            :label="'Today'"
             class="text-sm"
             @click="selectDate(getDate()) || togglePopover()"
           />
@@ -60,7 +60,7 @@
               v-for="(d, i) in ['su', 'mo', 'tu', 'we', 'th', 'fr', 'sa']"
               :key="i"
             >
-              {{ __(d) }}
+              {{ d }}
             </div>
           </div>
           <div
@@ -86,13 +86,13 @@
                 }
               "
             >
-              {{ __(date.getDate()) }}
+              {{ date.getDate() }}
             </div>
           </div>
         </div>
         <div class="flex justify-end p-1">
           <Button
-            :label="__('Clear')"
+            :label="'Clear'"
             class="text-sm"
             @click="
               () => {
@@ -169,11 +169,9 @@ export default {
     },
     formatMonth() {
       let date = this.getDate(this.currentYear, this.currentMonth - 1, 1)
-      let month = __(
-        date.toLocaleString('en-US', {
-          month: 'long',
-        })
-      )
+      let month = date.toLocaleString('en-US', {
+        month: 'long',
+      })
       return `${month}, ${date.getFullYear()}`
     },
   },
