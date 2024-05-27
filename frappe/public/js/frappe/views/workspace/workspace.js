@@ -473,9 +473,10 @@ frappe.views.Workspace = class Workspace {
 			"es-line-edit"
 		);
 		// need to add option for icons in inner buttons as well
-		this.page.add_inner_button(__("Create Workspace"), () => {
-			this.initialize_new_page();
-		});
+		if (frappe.model.can_create("Workspace"))
+			this.page.add_inner_button(__("Create Workspace"), () => {
+				this.initialize_new_page();
+			});
 	}
 
 	initialize_editorjs_undo() {
