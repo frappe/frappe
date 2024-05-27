@@ -200,8 +200,8 @@ def run_scheduled_job(scheduled_job_type: str, job_type: str | None = None):
 def sync_jobs(hooks: dict | None = None):
 	frappe.reload_doc("core", "doctype", "scheduled_job_type")
 	scheduler_events = hooks or frappe.get_hooks("scheduler_events")
-	all_events = insert_events(scheduler_events)
-	clear_events(all_events)
+	insert_events(scheduler_events)
+	clear_events(scheduler_events)
 
 
 def insert_events(scheduler_events: dict) -> list:
@@ -262,12 +262,19 @@ def insert_single_event(frequency: str, event: str, cron_format: str | None = No
 			doc.insert()
 
 
-def clear_events(all_events: list):
-	for event in frappe.get_all("Scheduled Job Type", fields=["name", "method", "server_script"]):
-		is_server_script = event.server_script
-		is_defined_in_hooks = event.method in all_events
+def clear_events(scheduler_events: dict):
+	def event_exists(event) -> bool:
+		if event.server_script:
+			return True
 
-		if not (is_defined_in_hooks or is_server_script):
+		freq = frappe.scrub(event.frequency)
+		if freq == "cron":
+			return event.method in scheduler_events.get(freq, {}).get(event.cron_format, [])
+		else:
+			return event.method in scheduler_events.get(freq, [])
+
+	for event in frappe.get_all("Scheduled Job Type", fields=["*"]):
+		if not event_exists(event):
 			frappe.delete_doc("Scheduled Job Type", event.name)
 
 
