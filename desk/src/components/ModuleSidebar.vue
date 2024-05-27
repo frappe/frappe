@@ -103,18 +103,7 @@
 
 		<div class="sticky bottom-0 my-1 mt-auto flex items-end gap-2 bg-gray-50 py-2">
 			<template v-if="isEditing">
-				<Button
-					variant="outline"
-					class="w-full"
-					@click="
-						() => {
-							draftSidebarItems = []
-							isEditing = false
-						}
-					"
-				>
-					Discard
-				</Button>
+				<Button variant="outline" class="w-full" @click="isEditing = false"> Discard </Button>
 				<Button
 					variant="solid"
 					class="w-full"
@@ -253,8 +242,8 @@ const sidebarResource = createResource({
 })
 
 function enableEditMode() {
+	draftSidebarItems.value = JSON.parse(JSON.stringify(sidebar.data))
 	isEditing.value = true
-	draftSidebarItems.value = Object.assign({}, sidebar.data)
 }
 
 function updateSidebarItem(item, action) {
