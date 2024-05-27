@@ -371,6 +371,7 @@ global_search_doctypes = {
 
 override_whitelisted_methods = {
 	# Legacy File APIs
+	"frappe.utils.file_manager.download_file": "download_file",
 	"frappe.core.doctype.file.file.download_file": "download_file",
 	"frappe.core.doctype.file.file.unzip_file": "frappe.core.api.file.unzip_file",
 	"frappe.core.doctype.file.file.get_attached_images": "frappe.core.api.file.get_attached_images",
