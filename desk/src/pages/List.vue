@@ -3,27 +3,38 @@
         <div class="flex justify-between items-center">
             <div>
             </div>
-            <div class="flex gap-4" v-if="config_settings.data">
-                <Dropdown :placement="'right'" :options="viewsDropdownOptions">
-                    <template #default="{ open }">
-                        <Button :label="config_settings.data.label">
-                            <template #prefix>
-                                <FeatherIcon :name="config_settings.data.icon || 'list'" class="h-3.5 text-gray-600" />
-                            </template>
-                            <template #suffix>
-                                <FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-3.5 text-gray-600" />
+            <div class="flex gap-2" v-if="config_settings.data">
+                <div class="flex gap-0">
+                    <Dropdown :placement="'right'" :options="viewsDropdownOptions">
+                        <template #default="{ open }">
+                            <Button :class="configUpdated ? 'rounded-none rounded-l bg-gray-50' : ''" :label="config_settings.data.label">
+                                <template #prefix>
+                                    <FeatherIcon :name="config_settings.data.icon || 'list'" class="h-3.5 text-gray-600" />
+                                </template>
+                            </Button>
+                        </template>
+                    </Dropdown>
+                    <div v-if="configUpdated" class="flex items-center">
+                        <Button class="rounded-none border-x" variant="subtle" @click="cancelChanges">
+                            <template #default>
+                                <FeatherIcon name="delete" class="h-3.5"></FeatherIcon>
                             </template>
                         </Button>
-                    </template>
-                </Dropdown>
-                <div v-if="configUpdated" class="flex items-center gap-2 border-r pr-2">
-                    <Button :label="'Cancel'" @click="cancelChanges" />
-                    <template v-if="isDefaultConfig">
-                        <Button :label="'Create View'" />
-                    </template>
-                    <template v-else>
-                        <Button :label="'Save'" @click="saveChangesToView" />
-                    </template>
+                        <template v-if="isDefaultConfig">
+                            <Button class="rounded-none rounded-r" variant="subtle">
+                                <template #default>
+                                    <FeatherIcon name="save" class="h-3.5"></FeatherIcon>
+                                </template>
+                            </Button>
+                        </template>
+                        <template v-else>
+                            <Button class="rounded-none rounded-r" variant="subtle">
+                                <template #default>
+                                    <FeatherIcon name="save" class="h-3.5"></FeatherIcon>
+                                </template>
+                            </Button>
+                        </template>
+                    </div>
                 </div>
                 <ListControls v-model="listConfig" :options="listControlOptions" @updateFilter="handleFilterChange" />
             </div>
