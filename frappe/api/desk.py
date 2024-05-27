@@ -99,5 +99,53 @@ def get_module_sidebar(module: str) -> dict:
 			"sections": sections,
 			"module": module,
 			"module_home": module_home,
+			"name": doc.name,
 		}
 	)
+
+
+@frappe.whitelist()
+def save_module_sidebar(name: str, workspaces: list[dict], sections: list[dict]) -> None:
+	"""Update module sidebar"""
+	doc = frappe.get_doc("Module Sidebar", name)
+	doc.workspaces = []
+	doc.items = []
+
+	def append_item(item):
+		doc.append(
+			"items",
+			{
+				"type": item.get("type"),
+				"label": item.get("label"),
+				"icon": item.get("icon"),
+				"link_type": item.get("link_type"),
+				"link_to": item.get("link_to"),
+			},
+		)
+
+	for workspace in workspaces:
+		doc.append(
+			"workspaces",
+			{
+				"workspace": workspace.get("workspace"),
+				"icon": workspace.get("icon"),
+				"label": workspace.get("label"),
+			},
+		)
+
+	for section in sections:
+		if section.get("type") in ["Link", "Spacer"]:
+			append_item(section)
+
+		elif section.get("type") == "Section Break":
+			doc.append(
+				"items",
+				{
+					"type": "Section Break",
+					"label": section.get("label"),
+				},
+			)
+			for item in section.get("links"):
+				append_item(item)
+
+	doc.save()
