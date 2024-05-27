@@ -236,7 +236,6 @@ const desktopItem = ref(null)
 const isCollapsed = ref(false)
 const isEditing = ref(false)
 const draftSidebarItems = ref([])
-
 const showDialog = ref(false)
 const dialogItem = ref({})
 const dialogAction = ref("")
@@ -250,14 +249,8 @@ const sidebarItems = computed(() => {
 })
 
 const sidebarResource = createResource({
-	url: "frappe.api.desk.save_module_sidebar",
+	url: "frappe.desk.doctype.module_sidebar.module_sidebar.save_module_sidebar",
 })
-
-async function getSidebar(module) {
-	desktopItem.value = await getDesktopItem(module)
-	sidebar.submit({ module: module })
-}
-getSidebar(props.module)
 
 function enableEditMode() {
 	isEditing.value = true
@@ -279,16 +272,17 @@ function updateSidebarItem(item, action) {
 	}
 }
 
-async function updateSidebar() {
-	await sidebarResource
+function updateSidebar() {
+	sidebarResource
 		.submit({
 			name: sidebar.data.name,
 			sections: draftSidebarItems.value.sections,
 			workspaces: draftSidebarItems.value.workspaces,
 		})
-		.then(() => {
+		.then(async () => {
 			draftSidebarItems.value = []
 			isEditing.value = false
+			await getSidebar(props.module)
 		})
 }
 
@@ -301,4 +295,10 @@ function showItemDialog(item, action) {
 	dialogAction.value = action
 	showDialog.value = true
 }
+
+async function getSidebar(module) {
+	desktopItem.value = await getDesktopItem(module)
+	sidebar.submit({ module: module })
+}
+getSidebar(props.module)
 </script>

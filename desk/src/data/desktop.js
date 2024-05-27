@@ -14,7 +14,7 @@ export const desktopItems = createResource({
 })
 
 export const sidebar = createResource({
-	url: "frappe.api.desk.get_module_sidebar",
+	url: "frappe.desk.doctype.module_sidebar.module_sidebar.get_module_sidebar",
 	transform(data) {
 		data.workspaces.forEach((workspace) => {
 			workspace.route_to = getRoute(workspace, data.module)

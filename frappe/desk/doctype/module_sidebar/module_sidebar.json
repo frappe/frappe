@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "prompt",
  "creation": "2024-05-09 19:11:06.595030",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -63,11 +62,10 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-10 14:39:32.169550",
+ "modified": "2024-05-27 17:45:24.928167",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Module Sidebar",
- "naming_rule": "Set by user",
  "owner": "Administrator",
  "permissions": [
   {
