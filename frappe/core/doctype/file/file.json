@@ -189,7 +189,7 @@
  "icon": "fa fa-file",
  "idx": 1,
  "links": [],
- "modified": "2024-05-26 09:47:41.438860",
+ "modified": "2024-05-28 16:41:38.743030",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "File",
@@ -213,6 +213,12 @@
    "delete": 1,
    "read": 1,
    "role": "All",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Customer",
    "write": 1
   }
  ],
