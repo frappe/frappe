@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-05-19 09:33+0000\n"
-"PO-Revision-Date: 2024-05-27 01:27\n"
+"POT-Creation-Date: 2024-05-26 09:33+0000\n"
+"PO-Revision-Date: 2024-05-28 01:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -946,7 +946,7 @@ msgstr "اقدام / مسیر"
 msgid "Action Complete"
 msgstr "اقدام کامل شد"
 
-#: model/document.py:1710
+#: model/document.py:1717
 msgid "Action Failed"
 msgstr "اقدام ناموفق بود"
 
@@ -1230,7 +1230,7 @@ msgstr "افزودن پارامترهای پرس و جو"
 msgid "Add Review"
 msgstr "افزودن نظر"
 
-#: core/doctype/user/user.py:811
+#: core/doctype/user/user.py:753
 msgid "Add Roles"
 msgstr "اضافه کردن نقش ها"
 
@@ -1386,10 +1386,6 @@ msgstr "اضافه شد {0}"
 msgid "Added {0} ({1})"
 msgstr "اضافه شده {0} ({1})"
 
-#: core/doctype/user/user.py:308
-msgid "Adding System Manager to this User as there must be atleast one System Manager"
-msgstr "افزودن مدیر سیستم به این کاربر زیرا باید حداقل یک مدیر سیستم وجود داشته باشد"
-
 #. Label of a Section Break field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
@@ -1523,11 +1519,11 @@ msgstr "مدیریت"
 msgid "Administrator"
 msgstr "مدیر"
 
-#: core/doctype/user/user.py:1215
+#: core/doctype/user/user.py:1157
 msgid "Administrator Logged In"
 msgstr "مدیر وارد شده است"
 
-#: core/doctype/user/user.py:1209
+#: core/doctype/user/user.py:1151
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "سرپرست از طریق آدرس IP {2} به {0} در {1} دسترسی پیدا کرد."
 
@@ -2121,7 +2117,7 @@ msgstr ""
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr "اجازه دادن به DocType، DocType. مراقب باش!"
 
-#: core/doctype/user/user.py:1018
+#: core/doctype/user/user.py:960
 msgid "Already Registered"
 msgstr "قبلا ثبت شده است"
 
@@ -4281,11 +4277,11 @@ msgstr "ویرایش انبوه"
 msgid "Bulk Edit {0}"
 msgstr "ویرایش انبوه {0}"
 
-#: desk/reportview.py:524
+#: desk/reportview.py:525
 msgid "Bulk Operation Failed"
 msgstr ""
 
-#: desk/reportview.py:528
+#: desk/reportview.py:529
 msgid "Bulk Operation Successful"
 msgstr ""
 
@@ -4783,7 +4779,7 @@ msgstr "لغو اسناد"
 msgid "Cancelling {0}"
 msgstr "در حال لغو {0}"
 
-#: core/doctype/prepared_report/prepared_report.py:252
+#: core/doctype/prepared_report/prepared_report.py:254
 msgid "Cannot Download Report due to insufficient permissions"
 msgstr "به دلیل مجوزهای ناکافی، نمی توان گزارش را دانلود کرد"
 
@@ -4815,11 +4811,11 @@ msgstr "قبل از ارسال نمی توان لغو کرد. انتقال {0} �
 msgid "Cannot cancel {0}."
 msgstr "نمی توان {0} را لغو کرد."
 
-#: model/document.py:856
+#: model/document.py:863
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr "نمی توان وضعیت docstatus را از 0 (پیش نویس) به 2 (لغو) تغییر داد"
 
-#: model/document.py:870
+#: model/document.py:877
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr "نمی توان وضعیت docstatus را از 1 (ارائه شده) به 0 (پیش نویس) تغییر داد"
 
@@ -4903,7 +4899,7 @@ msgstr "نمودارهای استاندارد را نمی توان ویرایش 
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr "نمی توان یک گزارش استاندارد را ویرایش کرد. لطفا کپی کنید و یک گزارش جدید ایجاد کنید"
 
-#: model/document.py:876
+#: model/document.py:883
 msgid "Cannot edit cancelled document"
 msgstr "نمی توان سند لغو شده را ویرایش کرد"
 
@@ -4931,7 +4927,7 @@ msgstr "محتویات فایل یک پوشه را نمی توان دریافت 
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr "نمی توان چندین چاپگر را به یک قالب چاپی نگاشت کرد."
 
-#: model/document.py:944
+#: model/document.py:951
 msgid "Cannot link cancelled document: {0}"
 msgstr "پیوند سند لغو شده امکان پذیر نیست: {0}"
 
@@ -4976,11 +4972,11 @@ msgstr "نمی توان محیط کار خصوصی سایر کاربران را 
 msgid "Cannot update {0}"
 msgstr "نمی توان {0} را به روز کرد"
 
-#: model/db_query.py:1103
+#: model/db_query.py:1122
 msgid "Cannot use sub-query in order by"
 msgstr "نمی توان از پرس و جو فرعی به ترتیب استفاده کرد"
 
-#: model/db_query.py:1121
+#: model/db_query.py:1140
 msgid "Cannot use {0} in order/group by"
 msgstr "نمی توان از {0} به ترتیب/گروه بندی بر اساس استفاده کرد"
 
@@ -5703,7 +5699,7 @@ msgstr "روش چالش کد"
 msgid "Collapse"
 msgstr "جمع شدن"
 
-#: public/js/frappe/form/controls/code.js:179
+#: public/js/frappe/form/controls/code.js:183
 msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "جمع شدن"
@@ -5958,7 +5954,7 @@ msgctxt "Access Log"
 msgid "Columns / Fields"
 msgstr "ستون ها / فیلدها"
 
-#: public/js/frappe/views/kanban/kanban_view.js:394
+#: public/js/frappe/views/kanban/kanban_view.js:397
 msgid "Columns based on"
 msgstr "ستون ها بر اساس"
 
@@ -6147,7 +6143,7 @@ msgstr "نام شرکت"
 msgid "Compare Versions"
 msgstr "مقایسه نسخه ها"
 
-#: core/doctype/server_script/server_script.py:150
+#: core/doctype/server_script/server_script.py:153
 msgid "Compilation warning"
 msgstr "هشدار تالیف"
 
@@ -6169,7 +6165,7 @@ msgstr "کامل"
 msgid "Complete By"
 msgstr "تکمیل توسط"
 
-#: core/doctype/user/user.py:475 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:426 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr "ثبت نام کامل"
 
@@ -6534,11 +6530,11 @@ msgctxt "Contact Us Settings"
 msgid "Contact options, like \"Sales Query, Support Query\" etc each on a new line or separated by commas."
 msgstr "گزینه‌های تماس، مانند «پرسمان فروش، درخواست پشتیبانی» و غیره هر کدام در یک خط جدید یا با کاما از هم جدا شده‌اند."
 
-#: utils/change_log.py:358
+#: utils/change_log.py:360
 msgid "Contains {0} security fix"
 msgstr ""
 
-#: utils/change_log.py:356
+#: utils/change_log.py:358
 msgid "Contains {0} security fixes"
 msgstr ""
 
@@ -6735,7 +6731,7 @@ msgstr ""
 msgid "Could not connect to outgoing email server"
 msgstr "به سرور ایمیل خروجی متصل نشد"
 
-#: model/document.py:940
+#: model/document.py:947
 msgid "Could not find {0}"
 msgstr "{0} پیدا نشد"
 
@@ -7562,7 +7558,7 @@ msgstr "داشبورد را سفارشی کنید"
 #. Name of a DocType
 #: automation/doctype/auto_repeat/auto_repeat.js:33
 #: custom/doctype/customize_form/customize_form.json
-#: public/js/frappe/views/kanban/kanban_view.js:340
+#: public/js/frappe/views/kanban/kanban_view.js:343
 msgid "Customize Form"
 msgstr "سفارشی کردن فرم"
 
@@ -8598,11 +8594,11 @@ msgctxt "Deleted Document"
 msgid "Deleted Name"
 msgstr "نام حذف شده"
 
-#: desk/reportview.py:528
+#: desk/reportview.py:529
 msgid "Deleted all documents successfully"
 msgstr ""
 
-#: desk/reportview.py:506
+#: desk/reportview.py:507
 msgid "Deleting {0}"
 msgstr "در حال حذف {0}"
 
@@ -9641,7 +9637,7 @@ msgstr "شرایط قانون نامگذاری سند"
 msgid "Document Naming Settings"
 msgstr "تنظیمات نامگذاری سند"
 
-#: model/document.py:1572
+#: model/document.py:1579
 msgid "Document Queued"
 msgstr "سند در صف قرار گرفت"
 
@@ -9888,7 +9884,7 @@ msgctxt "User Type"
 msgid "Document Types and Permissions"
 msgstr "انواع اسناد و مجوزها"
 
-#: core/doctype/submission_queue/submission_queue.py:163 model/document.py:1774
+#: core/doctype/submission_queue/submission_queue.py:163 model/document.py:1781
 msgid "Document Unlocked"
 msgstr "قفل سند باز شد"
 
@@ -10682,7 +10678,7 @@ msgctxt "Email Account"
 msgid "Email Account Name"
 msgstr "نام حساب ایمیل"
 
-#: core/doctype/user/user.py:744
+#: core/doctype/user/user.py:686
 msgid "Email Account added multiple times"
 msgstr "حساب ایمیل چندین بار اضافه شده است"
 
@@ -11659,7 +11655,7 @@ msgstr "خطایی در {0} رخ داده است"
 msgid "Error in Client Script"
 msgstr "خطا در اسکریپت کلاینت"
 
-#: public/js/frappe/form/script_manager.js:241
+#: public/js/frappe/form/script_manager.js:242
 msgid "Error in Client Script."
 msgstr "خطا در اسکریپت کلاینت."
 
@@ -11685,7 +11681,7 @@ msgstr "خطا هنگام اتصال به حساب ایمیل {0}"
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "خطا هنگام ارزیابی اعلان {0}. لطفا قالب خود را اصلاح کنید."
 
-#: model/document.py:826
+#: model/document.py:833
 msgid "Error: Document has been modified after you have opened it"
 msgstr "خطا: سند پس از باز کردن آن اصلاح شد"
 
@@ -11899,7 +11895,7 @@ msgstr "اجرایی"
 msgid "Expand"
 msgstr "بسط دادن"
 
-#: public/js/frappe/form/controls/code.js:180
+#: public/js/frappe/form/controls/code.js:184
 msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "بسط دادن"
@@ -12210,7 +12206,7 @@ msgstr "اتصال به سرور ممکن نشد"
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "رمزگشایی رمز انجام نشد، لطفاً یک رمز رمزگذاری شده معتبر base64 ارائه دهید."
 
-#: desk/reportview.py:522
+#: desk/reportview.py:523
 msgid "Failed to delete {0} documents: {1}"
 msgstr ""
 
@@ -12236,7 +12232,7 @@ msgstr "پیش نمایش سری ایجاد نشد"
 
 #: handler.py:76
 msgid "Failed to get method for command {0} with {1}"
-msgstr "روش برای فرمان {0} با {1} دریافت نشد"
+msgstr "Failed to get method for command {0} with {1}"
 
 #: api/v2.py:48
 msgid "Failed to get method {0} with {1}"
@@ -12990,7 +12986,7 @@ msgstr "بخش فیلترها"
 msgid "Filters applied for {0}"
 msgstr "فیلترهای اعمال شده برای {0}"
 
-#: public/js/frappe/views/kanban/kanban_view.js:186
+#: public/js/frappe/views/kanban/kanban_view.js:189
 msgid "Filters saved"
 msgstr "فیلترها ذخیره شدند"
 
@@ -15267,7 +15263,7 @@ msgstr "این ارز چگونه باید فرمت شود؟ اگر تنظیم ن
 msgid "ID"
 msgstr "شناسه"
 
-#: desk/reportview.py:435 public/js/frappe/views/reports/report_view.js:917
+#: desk/reportview.py:436 public/js/frappe/views/reports/report_view.js:917
 msgctxt "Label of name column in report"
 msgid "ID"
 msgstr "شناسه"
@@ -15716,7 +15712,7 @@ msgstr "رمز دسترسی غیر قانونی لطفا دوباره تلاش �
 msgid "Illegal Document Status for {0}"
 msgstr "وضعیت سند غیرقانونی برای {0}"
 
-#: model/db_query.py:443 model/db_query.py:446 model/db_query.py:1106
+#: model/db_query.py:443 model/db_query.py:446 model/db_query.py:1125
 msgid "Illegal SQL Query"
 msgstr "Query SQL غیر قانونی"
 
@@ -15823,7 +15819,7 @@ msgstr "فیلد تصویر باید از نوع Attach Image باشد"
 msgid "Image link '{0}' is not valid"
 msgstr "پیوند تصویر \"{0}\" معتبر نیست"
 
-#: core/doctype/file/file.js:91
+#: core/doctype/file/file.js:100
 msgid "Image optimized"
 msgstr "تصویر بهینه شده است"
 
@@ -16243,11 +16239,11 @@ msgstr "کاربر یا رمز عبور نادرست"
 msgid "Incorrect Verification code"
 msgstr "کد تأیید نادرست"
 
-#: model/document.py:1387
+#: model/document.py:1394
 msgid "Incorrect value in row {0}: {1} must be {2} {3}"
 msgstr "مقدار نادرست در ردیف {0}: {1} باید {2} {3} باشد"
 
-#: model/document.py:1391
+#: model/document.py:1398
 msgid "Incorrect value: {0} must be {1} {2}"
 msgstr "مقدار نادرست: {0} باید {1} {2} باشد"
 
@@ -16443,11 +16439,11 @@ msgstr "سطح مجوز ناکافی برای {0}"
 msgid "Insufficient Permission for {0}"
 msgstr "مجوز ناکافی برای {0}"
 
-#: desk/reportview.py:339
+#: desk/reportview.py:340
 msgid "Insufficient Permissions for deleting Report"
 msgstr "مجوزهای ناکافی برای حذف گزارش"
 
-#: desk/reportview.py:310
+#: desk/reportview.py:311
 msgid "Insufficient Permissions for editing Report"
 msgstr "مجوزهای ناکافی برای ویرایش گزارش"
 
@@ -16717,7 +16713,7 @@ msgstr ""
 msgid "Invalid Parameters."
 msgstr "پارامترهای نامعتبر"
 
-#: core/doctype/user/user.py:1230 www/update-password.html:121
+#: core/doctype/user/user.py:1172 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -16764,7 +16760,7 @@ msgstr "تابع تجمیع نامعتبر است"
 msgid "Invalid column"
 msgstr "ستون نامعتبر است"
 
-#: model/document.py:859 model/document.py:873
+#: model/document.py:866 model/document.py:880
 msgid "Invalid docstatus"
 msgstr "docstatus نامعتبر است"
 
@@ -17420,7 +17416,7 @@ msgstr "نمودار کانبان"
 msgid "Kanban Board Column"
 msgstr "ستون نمودار کانبان"
 
-#: public/js/frappe/views/kanban/kanban_view.js:385
+#: public/js/frappe/views/kanban/kanban_view.js:388
 msgid "Kanban Board Name"
 msgstr "نام نمودار کانبان"
 
@@ -17430,7 +17426,7 @@ msgctxt "Kanban Board"
 msgid "Kanban Board Name"
 msgstr "نام نمودار کانبان"
 
-#: public/js/frappe/views/kanban/kanban_view.js:262
+#: public/js/frappe/views/kanban/kanban_view.js:265
 msgctxt "Button in kanban view menu"
 msgid "Kanban Settings"
 msgstr "تنظیمات کانبان"
@@ -18847,7 +18843,7 @@ msgstr "لاگ تنظیمات کاربر"
 msgid "Log Settings"
 msgstr "تنظیمات لاگ"
 
-#: www/app.py:21
+#: www/app.py:23
 msgid "Log in to access this page."
 msgstr "برای دسترسی به این صفحه وارد شوید."
 
@@ -18964,7 +18960,7 @@ msgstr "برای شروع یک بحث جدید وارد شوید"
 msgid "Login to {0}"
 msgstr "ورود به {0}"
 
-#: www/login.html:106
+#: www/login.html:106 www/login.html:190
 msgid "Login with Email Link"
 msgstr "با لینک ایمیل وارد شوید"
 
@@ -20707,7 +20703,7 @@ msgstr "برای ویرایش محیط کار خصوصی سایر کاربران
 msgid "Need Workspace Manager role to hide/unhide public workspaces"
 msgstr "برای مخفی کردن/آشکار کردن فضاهای کاری عمومی به نقش مدیر محیط کار نیاز دارید"
 
-#: model/document.py:634
+#: model/document.py:641
 msgid "Negative Value"
 msgstr "ارزش منفی"
 
@@ -20803,7 +20799,7 @@ msgstr "رویداد جدید"
 msgid "New Folder"
 msgstr "پوشه جدید"
 
-#: public/js/frappe/views/kanban/kanban_view.js:341
+#: public/js/frappe/views/kanban/kanban_view.js:344
 msgid "New Kanban Board"
 msgstr "نمودار کانبان جدید"
 
@@ -20889,7 +20885,7 @@ msgstr "محیط کار جدید"
 msgid "New password cannot be same as old password"
 msgstr "رمز عبور جدید نمی تواند مشابه رمز عبور قدیمی باشد"
 
-#: utils/change_log.py:389
+#: utils/change_log.py:391
 msgid "New updates are available"
 msgstr "به روز رسانی های جدید در دسترس هستند"
 
@@ -20937,11 +20933,11 @@ msgstr "{0} {1} جدید ایجاد شد"
 msgid "New {0}: {1}"
 msgstr "{0} جدید: {1}"
 
-#: utils/change_log.py:371
+#: utils/change_log.py:373
 msgid "New {} releases for the following apps are available"
 msgstr "نسخه‌های جدید {} برای برنامه‌های زیر در دسترس هستند"
 
-#: core/doctype/user/user.py:807
+#: core/doctype/user/user.py:749
 msgid "Newly created user {0} has no roles enabled."
 msgstr "کاربر تازه ایجاد شده {0} هیچ نقشی فعال ندارد."
 
@@ -21258,11 +21254,11 @@ msgstr "هیچ نتیجه ای"
 msgid "No Results found"
 msgstr "نتیجه ای پیدا نشد"
 
-#: core/doctype/user/user.py:808
+#: core/doctype/user/user.py:750
 msgid "No Roles Specified"
 msgstr "هیچ نقشی مشخص نشده است"
 
-#: public/js/frappe/views/kanban/kanban_view.js:341
+#: public/js/frappe/views/kanban/kanban_view.js:344
 msgid "No Select Field Found"
 msgstr "فیلد انتخابی یافت نشد"
 
@@ -21270,7 +21266,7 @@ msgstr "فیلد انتخابی یافت نشد"
 msgid "No Suggestions"
 msgstr ""
 
-#: desk/reportview.py:594
+#: desk/reportview.py:595
 msgid "No Tags"
 msgstr "بدون برچسب"
 
@@ -21354,7 +21350,7 @@ msgstr "هیچ حساب ایمیلی با کاربر مرتبط نیست. لطف
 msgid "No failed logs"
 msgstr "گزارش های ناموفق وجود ندارد"
 
-#: public/js/frappe/views/kanban/kanban_view.js:368
+#: public/js/frappe/views/kanban/kanban_view.js:371
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
 msgstr "هیچ فیلدی یافت نشد که بتوان از آن به عنوان ستون Kanban استفاده کرد. از فرم سفارشی برای افزودن یک فیلد سفارشی از نوع \"انتخاب\" استفاده کنید."
 
@@ -21425,7 +21421,7 @@ msgctxt "{0} = verb, {1} = object"
 msgid "No permission to '{0}' {1}"
 msgstr "بدون مجوز برای \"{0}\" {1}"
 
-#: model/db_query.py:927
+#: model/db_query.py:946
 msgid "No permission to read {0}"
 msgstr "بدون اجازه خواندن {0}"
 
@@ -21523,7 +21519,7 @@ msgctxt "Recorder Query"
 msgid "Normalized Query"
 msgstr "پرس و جو عادی شده"
 
-#: core/doctype/user/user.py:1013 templates/includes/login/login.js:258
+#: core/doctype/user/user.py:955 templates/includes/login/login.js:258
 #: utils/oauth.py:265
 msgid "Not Allowed"
 msgstr "مجاز نیست"
@@ -21592,7 +21588,7 @@ msgstr "منتشر نشده"
 
 #: public/js/frappe/form/toolbar.js:260 public/js/frappe/form/toolbar.js:748
 #: public/js/frappe/model/indicator.js:28
-#: public/js/frappe/views/kanban/kanban_view.js:167
+#: public/js/frappe/views/kanban/kanban_view.js:170
 #: public/js/frappe/views/reports/report_view.js:173
 #: public/js/print_format_builder/print_format_builder.bundle.js:39
 #: website/doctype/web_form/templates/web_form.html:75
@@ -22362,7 +22358,7 @@ msgctxt "S3 Backup Settings"
 msgid "Only change this if you want to use other S3 compatible object storage backends."
 msgstr "فقط در صورتی این مورد را تغییر دهید که می‌خواهید از سایر پشتیبان‌های ذخیره‌سازی اشیاء سازگار با S3 استفاده کنید."
 
-#: model/document.py:1075
+#: model/document.py:1082
 msgid "Only draft documents can be discarded"
 msgstr ""
 
@@ -22381,11 +22377,11 @@ msgstr "فقط فیلدهای اجباری برای رکوردهای جدید ض
 msgid "Only one {0} can be set as primary."
 msgstr "فقط یک {0} را می توان به عنوان اصلی تنظیم کرد."
 
-#: desk/reportview.py:336
+#: desk/reportview.py:337
 msgid "Only reports of type Report Builder can be deleted"
 msgstr "فقط گزارش هایی از نوع Report Builder قابل حذف هستند"
 
-#: desk/reportview.py:307
+#: desk/reportview.py:308
 msgid "Only reports of type Report Builder can be edited"
 msgstr "فقط گزارش‌هایی از نوع Report Builder قابل ویرایش هستند"
 
@@ -22556,7 +22552,7 @@ msgstr "اپراتور باید یکی از {0} باشد"
 msgid "Optimize"
 msgstr "بهینه سازی کنید"
 
-#: core/doctype/file/file.js:89
+#: core/doctype/file/file.js:98
 msgid "Optimizing image..."
 msgstr "بهینه سازی تصویر..."
 
@@ -23274,11 +23270,11 @@ msgctxt "Web Form Field"
 msgid "Password"
 msgstr "کلمه عبور"
 
-#: core/doctype/user/user.py:1076
+#: core/doctype/user/user.py:1018
 msgid "Password Email Sent"
 msgstr "رمز عبور ایمیل ارسال شد"
 
-#: core/doctype/user/user.py:455
+#: core/doctype/user/user.py:406
 msgid "Password Reset"
 msgstr "تنظیم مجدد رمز عبور"
 
@@ -23314,7 +23310,7 @@ msgstr "رمز عبور در حساب ایمیل گم شده است"
 msgid "Password not found for {0} {1} {2}"
 msgstr "رمز عبور برای {0} {1} {2} یافت نشد"
 
-#: core/doctype/user/user.py:1075
+#: core/doctype/user/user.py:1017
 msgid "Password reset instructions have been sent to your email"
 msgstr "دستورالعمل های بازنشانی رمز عبور به ایمیل شما ارسال شده است"
 
@@ -23326,7 +23322,7 @@ msgstr "مجموعه رمز عبور"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "اندازه رمز عبور از حداکثر اندازه مجاز بیشتر است"
 
-#: core/doctype/user/user.py:871
+#: core/doctype/user/user.py:813
 msgid "Password size exceeded the maximum allowed size."
 msgstr "اندازه رمز عبور از حداکثر اندازه مجاز بیشتر است."
 
@@ -23819,7 +23815,7 @@ msgstr "لطفا یک موضوع به ایمیل خود اضافه کنید"
 msgid "Please add a valid comment."
 msgstr "لطفا یک نظر معتبر اضافه کنید."
 
-#: core/doctype/user/user.py:1058
+#: core/doctype/user/user.py:1000
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "لطفاً از سرپرست خود بخواهید ثبت نام شما را تأیید کند"
 
@@ -23851,7 +23847,7 @@ msgstr "لطفاً مقادیر فیلتر تنظیم شده برای نمودا
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "لطفاً مقدار تنظیم شده \"Fetch From\" را برای فیلد {0} بررسی کنید"
 
-#: core/doctype/user/user.py:1056
+#: core/doctype/user/user.py:998
 msgid "Please check your email for verification"
 msgstr "لطفا ایمیل خود را برای تایید بررسی کنید"
 
@@ -23999,7 +23995,7 @@ msgstr "لطفا برای ارسال نظر وارد شوید."
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr "لطفاً مطمئن شوید که اسناد ارتباطی مرجع به صورت دایره ای پیوند داده نشده اند."
 
-#: model/document.py:828
+#: model/document.py:835
 msgid "Please refresh to get the latest document."
 msgstr "لطفاً برای دریافت آخرین سند، بازخوانی کنید."
 
@@ -24071,7 +24067,7 @@ msgstr "لطفاً یک فیلتر تاریخ معتبر انتخاب کنید"
 msgid "Please select applicable Doctypes"
 msgstr "لطفاً Doctypes قابل اجرا را انتخاب کنید"
 
-#: model/db_query.py:1118
+#: model/db_query.py:1137
 msgid "Please select atleast 1 column from {0} to sort/group"
 msgstr "لطفاً حداقل 1 ستون از {0} برای مرتب‌سازی/گروه‌بندی انتخاب کنید"
 
@@ -24138,7 +24134,7 @@ msgstr "لطفا ابتدا یک پیام تنظیم کنید"
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr "لطفاً حساب ایمیل پیش فرض را از تنظیمات > حساب ایمیل تنظیم کنید"
 
-#: core/doctype/user/user.py:406
+#: core/doctype/user/user.py:371
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "لطفاً حساب ایمیل خروجی پیش‌فرض را از تنظیمات > حساب ایمیل تنظیم کنید"
 
@@ -24952,7 +24948,7 @@ msgstr "مشخصات"
 msgid "Progress"
 msgstr "پیش رفتن"
 
-#: public/js/frappe/views/kanban/kanban_view.js:405
+#: public/js/frappe/views/kanban/kanban_view.js:408
 msgid "Project"
 msgstr "پروژه"
 
@@ -26424,7 +26420,7 @@ msgstr "تازه کردن"
 msgid "Refreshing..."
 msgstr "تازه کردن..."
 
-#: core/doctype/user/user.py:1020
+#: core/doctype/user/user.py:962
 msgid "Registered but disabled"
 msgstr "ثبت شده اما غیرفعال است"
 
@@ -26926,7 +26922,7 @@ msgstr "گزارش شروع شد، برای مشاهده وضعیت کلیک ک�
 msgid "Report limit reached"
 msgstr "به حد مجاز گزارش رسیده است"
 
-#: core/doctype/prepared_report/prepared_report.py:210
+#: core/doctype/prepared_report/prepared_report.py:212
 msgid "Report timed out."
 msgstr "زمان گزارش تمام شد."
 
@@ -26947,7 +26943,7 @@ msgstr "گزارش با بیش از 10 ستون در حالت افقی بهتر 
 msgid "Report {0}"
 msgstr "گزارش {0}"
 
-#: desk/reportview.py:343
+#: desk/reportview.py:344
 msgid "Report {0} deleted"
 msgstr "گزارش {0} حذف شد"
 
@@ -26955,7 +26951,7 @@ msgstr "گزارش {0} حذف شد"
 msgid "Report {0} is disabled"
 msgstr "گزارش {0} غیرفعال است"
 
-#: desk/reportview.py:320
+#: desk/reportview.py:321
 msgid "Report {0} saved"
 msgstr "گزارش {0} ذخیره شد"
 
@@ -27640,7 +27636,7 @@ msgctxt "DocPerm"
 msgid "Role and Level"
 msgstr "نقش و سطح"
 
-#: core/doctype/user/user.py:351
+#: core/doctype/user/user.py:316
 msgid "Role has been set as per the user type {0}"
 msgstr "نقش بر اساس نوع کاربری {0} تنظیم شده است"
 
@@ -27856,7 +27852,7 @@ msgctxt "Role"
 msgid "Route: Example \"/app\""
 msgstr "مسیر: مثال \"/app\""
 
-#: model/base_document.py:739 model/base_document.py:780 model/document.py:619
+#: model/base_document.py:739 model/base_document.py:780 model/document.py:626
 msgid "Row"
 msgstr "ردیف"
 
@@ -28217,7 +28213,7 @@ msgstr "شنبه"
 #: public/js/frappe/utils/common.js:443
 #: public/js/frappe/views/kanban/kanban_settings.js:45
 #: public/js/frappe/views/kanban/kanban_settings.js:189
-#: public/js/frappe/views/kanban/kanban_view.js:340
+#: public/js/frappe/views/kanban/kanban_view.js:343
 #: public/js/frappe/views/reports/query_report.js:1803
 #: public/js/frappe/views/reports/report_view.js:1640
 #: public/js/frappe/views/workspace/workspace.js:498
@@ -28409,7 +28405,7 @@ msgctxt "Newsletter"
 msgid "Scheduled To Send"
 msgstr "برنامه ریزی شده برای ارسال"
 
-#: core/doctype/server_script/server_script.py:141
+#: core/doctype/server_script/server_script.py:144
 msgid "Scheduled execution for script {0} has updated"
 msgstr "اجرای برنامه ریزی شده برای اسکریپت {0} به روز شده است"
 
@@ -30443,7 +30439,7 @@ msgctxt "Email Group"
 msgid "Sign Up and Confirmation"
 msgstr "ثبت نام و تایید"
 
-#: core/doctype/user/user.py:1013
+#: core/doctype/user/user.py:955
 msgid "Sign Up is disabled"
 msgstr "ثبت نام غیرفعال است"
 
@@ -30888,7 +30884,7 @@ msgctxt "Website Settings"
 msgid "Splash Image"
 msgstr "تصویر اسپلش"
 
-#: desk/reportview.py:382 public/js/frappe/web_form/web_form_list.js:175
+#: desk/reportview.py:383 public/js/frappe/web_form/web_form_list.js:175
 #: templates/print_formats/standard_macros.html:44
 msgid "Sr"
 msgstr "پدر"
@@ -30963,11 +30959,11 @@ msgstr "قالب استاندارد چاپ را نمی توان به روز کر
 msgid "Standard Print Style cannot be changed. Please duplicate to edit."
 msgstr "سبک چاپ استاندارد قابل تغییر نیست. لطفا برای ویرایش کپی کنید"
 
-#: desk/reportview.py:333
+#: desk/reportview.py:334
 msgid "Standard Reports cannot be deleted"
 msgstr "گزارش های استاندارد را نمی توان حذف کرد"
 
-#: desk/reportview.py:304
+#: desk/reportview.py:305
 msgid "Standard Reports cannot be edited"
 msgstr "گزارش های استاندارد قابل ویرایش نیستند"
 
@@ -31843,7 +31839,7 @@ msgctxt "Recorder"
 msgid "Suggested Indexes"
 msgstr ""
 
-#: core/doctype/user/user.py:728
+#: core/doctype/user/user.py:670
 msgid "Suggested Username: {0}"
 msgstr "نام کاربری پیشنهادی: {0}"
 
@@ -32337,7 +32333,7 @@ msgstr "جدول بریده شده"
 msgid "Table updated"
 msgstr "جدول به روز شد"
 
-#: model/document.py:1401
+#: model/document.py:1408
 msgid "Table {0} cannot be empty"
 msgstr "جدول {0} نمی تواند خالی باشد"
 
@@ -32475,7 +32471,7 @@ msgstr "هشدارهای الگو"
 msgid "Templates"
 msgstr "قالب ها"
 
-#: core/doctype/user/user.py:1024
+#: core/doctype/user/user.py:966
 msgid "Temporarily Disabled"
 msgstr "موقتا غیر فعال می باشد"
 
@@ -32770,11 +32766,11 @@ msgid "The project number obtained from Google Cloud Console under <a href=\"htt
 "</a>"
 msgstr ""
 
-#: core/doctype/user/user.py:984
+#: core/doctype/user/user.py:926
 msgid "The reset password link has been expired"
 msgstr "پیوند بازنشانی رمز عبور منقضی شده است"
 
-#: core/doctype/user/user.py:986
+#: core/doctype/user/user.py:928
 msgid "The reset password link has either been used before or is invalid"
 msgstr "پیوند بازنشانی رمز عبور یا قبلا استفاده شده است یا نامعتبر است"
 
@@ -32905,15 +32901,11 @@ msgstr "{0} با فیلترهای مشابه از قبل در صف وجود دا
 msgid "There must be atleast one permission rule."
 msgstr "حداقل یک قانون مجوز باید وجود داشته باشد."
 
-#: core/doctype/user/user.py:536
-msgid "There should remain at least one System Manager"
-msgstr "باید حداقل یک مدیر سیستم باقی بماند"
-
 #: www/error.py:16
 msgid "There was an error building this page"
 msgstr "در ساخت این صفحه خطایی روی داد"
 
-#: public/js/frappe/views/kanban/kanban_view.js:180
+#: public/js/frappe/views/kanban/kanban_view.js:183
 msgid "There was an error saving filters"
 msgstr "هنگام ذخیره فیلترها خطایی روی داد"
 
@@ -32979,7 +32971,7 @@ msgstr "این Doctype شامل فیلدهای طول و عرض جغرافیای
 msgid "This Doctype does not contain location fields"
 msgstr "این Doctype حاوی فیلدهای مکان نیست"
 
-#: public/js/frappe/views/kanban/kanban_view.js:388
+#: public/js/frappe/views/kanban/kanban_view.js:391
 msgid "This Kanban Board will be private"
 msgstr "این نمودار کانبان خصوصی خواهد بود"
 
@@ -33043,7 +33035,7 @@ msgstr ""
 msgid "This document is already amended, you cannot ammend it again"
 msgstr "این سند قبلاً اصلاح شده است، شما نمی توانید دوباره آن را اصلاح کنید"
 
-#: model/document.py:1569
+#: model/document.py:1576
 msgid "This document is currently locked and queued for execution. Please try again after some time."
 msgstr "این سند در حال حاضر قفل شده و در صف اجرا قرار دارد. لطفا بعد از مدتی دوباره امتحان کنید."
 
@@ -33227,7 +33219,7 @@ msgstr "با این کار این تور بازنشانی می شود و به ه
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr " این کار بلافاصله کار را خاتمه می دهد و ممکن است خطرناک باشد، مطمئن هستید؟"
 
-#: core/doctype/user/user.py:1244
+#: core/doctype/user/user.py:1186
 msgid "Throttled"
 msgstr "گاز گرفت"
 
@@ -33914,7 +33906,7 @@ msgstr "درخواست های خیلی زیاد"
 msgid "Too many changes to database in single action."
 msgstr "تغییرات بسیار زیادی در پایگاه داده در یک اقدام واحد."
 
-#: core/doctype/user/user.py:1025
+#: core/doctype/user/user.py:967
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "کاربران زیادی اخیرا ثبت نام کرده اند، بنابراین ثبت نام غیرفعال است. لطفا یک ساعت دیگر دوباره امتحان کنید"
 
@@ -34881,7 +34873,7 @@ msgctxt "Workflow Document State"
 msgid "Update Value"
 msgstr "به روز رسانی ارزش"
 
-#: utils/change_log.py:381
+#: utils/change_log.py:383
 msgid "Update from Frappe Cloud"
 msgstr ""
 
@@ -35581,7 +35573,7 @@ msgstr "کاربری با آدرس ایمیل {0} وجود ندارد"
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr "کاربر با ایمیل: {0} در سیستم وجود ندارد. لطفاً از \"System Administrator\" بخواهید که کاربر را برای شما ایجاد کند."
 
-#: core/doctype/user/user.py:541
+#: core/doctype/user/user.py:485
 msgid "User {0} cannot be deleted"
 msgstr "کاربر {0} قابل حذف نیست"
 
@@ -35589,7 +35581,7 @@ msgstr "کاربر {0} قابل حذف نیست"
 msgid "User {0} cannot be disabled"
 msgstr "کاربر {0} را نمی توان غیرفعال کرد"
 
-#: core/doctype/user/user.py:610
+#: core/doctype/user/user.py:552
 msgid "User {0} cannot be renamed"
 msgstr "کاربر {0} را نمی توان تغییر نام داد"
 
@@ -35606,7 +35598,7 @@ msgstr "کاربر {0} دسترسی doctype از طریق مجوز نقش برا
 msgid "User {0} has requested for data deletion"
 msgstr "کاربر {0} درخواست حذف داده ها را داده است"
 
-#: core/doctype/user/user.py:1373
+#: core/doctype/user/user.py:1315
 msgid "User {0} impersonated as {1}"
 msgstr "کاربر {0} جعل هویت به عنوان {1}"
 
@@ -35644,7 +35636,7 @@ msgctxt "User Social Login"
 msgid "Username"
 msgstr "نام کاربری"
 
-#: core/doctype/user/user.py:695
+#: core/doctype/user/user.py:637
 msgid "Username {0} already exists"
 msgstr "نام کاربری {0} از قبل وجود دارد"
 
@@ -35826,15 +35818,15 @@ msgctxt "Notification"
 msgid "Value To Be Set"
 msgstr "ارزش تنظیم شود"
 
-#: model/base_document.py:965 model/document.py:675
+#: model/base_document.py:965 model/document.py:682
 msgid "Value cannot be changed for {0}"
 msgstr "مقدار برای {0} قابل تغییر نیست"
 
-#: model/document.py:621
+#: model/document.py:628
 msgid "Value cannot be negative for"
 msgstr "ارزش نمی تواند منفی باشد"
 
-#: model/document.py:625
+#: model/document.py:632
 msgid "Value cannot be negative for {0}: {1}"
 msgstr "مقدار نمی تواند برای {0} منفی باشد: {1}"
 
@@ -36717,11 +36709,11 @@ msgstr "URL خوش آمدید"
 msgid "Welcome Workspace"
 msgstr "محیط کار خوش آمدید"
 
-#: core/doctype/user/user.py:398
+#: core/doctype/user/user.py:363
 msgid "Welcome email sent"
 msgstr "ایمیل خوش آمدگویی ارسال شد"
 
-#: core/doctype/user/user.py:473
+#: core/doctype/user/user.py:424
 msgid "Welcome to {0}"
 msgstr "به {0} خوش آمدید"
 
@@ -37352,7 +37344,7 @@ msgstr "شما به اینترنت متصل نیستید. بعد از مدتی �
 msgid "You are not permitted to access this page without login."
 msgstr "بدون ورود به سیستم اجازه دسترسی به این صفحه را ندارید."
 
-#: www/app.py:23
+#: www/app.py:27
 msgid "You are not permitted to access this page."
 msgstr "شما اجازه دسترسی به این صفحه را ندارید."
 
@@ -37409,7 +37401,7 @@ msgstr "می توانید خط مشی حفظ را از {0} تغییر دهید."
 msgid "You can continue with the onboarding after exploring this page"
 msgstr "پس از کاوش در این صفحه می‌توانید به نصب ادامه دهید"
 
-#: core/doctype/user/user.py:601
+#: core/doctype/user/user.py:543
 msgid "You can disable the user instead of deleting it."
 msgstr "می توانید به جای حذف کاربر، آن را غیرفعال کنید."
 
@@ -37876,7 +37868,7 @@ msgstr "و"
 msgid "ascending"
 msgstr "صعودی"
 
-#: model/document.py:1372
+#: model/document.py:1379
 msgid "beginning with"
 msgstr "شروع با"
 
@@ -38131,7 +38123,7 @@ msgctxt "Workspace"
 msgid "grey"
 msgstr "خاکستری"
 
-#: utils/backups.py:378
+#: utils/backups.py:387
 msgid "gzip not found in PATH! This is required to take a backup."
 msgstr "gzip در PATH یافت نشد! این برای تهیه نسخه پشتیبان لازم است."
 
@@ -38276,7 +38268,7 @@ msgctxt "OAuth Authorization Code"
 msgid "nonce"
 msgstr "هیچ"
 
-#: model/document.py:1371
+#: model/document.py:1378
 msgid "none of"
 msgstr "هیچکدام از"
 
@@ -38336,7 +38328,7 @@ msgctxt "Webhook"
 msgid "on_update_after_submit"
 msgstr "on_update_after_submit"
 
-#: model/document.py:1370
+#: model/document.py:1377
 msgid "one of"
 msgstr "یکی از"
 
@@ -39149,7 +39141,7 @@ msgstr "{0} در محدوده {1} است"
 msgid "{0} items selected"
 msgstr "{0} مورد انتخاب شد"
 
-#: core/doctype/user/user.py:1382
+#: core/doctype/user/user.py:1324
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} به عنوان شما جعل شده است. این دلیل را آوردند: {1}"
 
@@ -39182,7 +39174,7 @@ msgstr "{0} دقیقه قبل"
 msgid "{0} months ago"
 msgstr "{0} ماه پیش"
 
-#: model/document.py:1626
+#: model/document.py:1633
 msgid "{0} must be after {1}"
 msgstr "{0} باید بعد از {1} باشد"
 
@@ -39594,7 +39586,7 @@ msgstr "{} در PATH یافت نشد! این برای دسترسی به کنسو
 msgid "{} not found in PATH! This is required to restore the database."
 msgstr "{} در PATH یافت نشد! این برای بازیابی پایگاه داده لازم است."
 
-#: utils/backups.py:445
+#: utils/backups.py:454
 msgid "{} not found in PATH! This is required to take a backup."
 msgstr "{} در PATH یافت نشد! این مورد برای تهیه نسخه پشتیبان لازم است."
 
