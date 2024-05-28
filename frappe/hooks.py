@@ -201,6 +201,7 @@ scheduler_events = {
 			"frappe.twofactor.delete_all_barcodes_for_users",
 			"frappe.email.doctype.email_account.email_account.notify_unreplied",
 			"frappe.utils.global_search.sync_global_search",
+			"frappe.deferred_insert.save_to_db",
 		],
 		# 10 minutes
 		"0/10 * * * *": [
@@ -224,7 +225,6 @@ scheduler_events = {
 		"frappe.model.utils.link_count.update_link_count",
 		"frappe.model.utils.user_settings.sync_user_settings",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
-		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
