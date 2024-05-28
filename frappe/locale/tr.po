@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-05-19 09:33+0000\n"
-"PO-Revision-Date: 2024-05-26 01:16\n"
+"POT-Creation-Date: 2024-05-26 09:33+0000\n"
+"PO-Revision-Date: 2024-05-28 01:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -945,7 +945,7 @@ msgstr "Aksiyon / Rota"
 msgid "Action Complete"
 msgstr ""
 
-#: model/document.py:1710
+#: model/document.py:1717
 msgid "Action Failed"
 msgstr ""
 
@@ -1229,7 +1229,7 @@ msgstr "Sorgu Parametreleri Ekle"
 msgid "Add Review"
 msgstr ""
 
-#: core/doctype/user/user.py:811
+#: core/doctype/user/user.py:753
 msgid "Add Roles"
 msgstr "Rol Ekle"
 
@@ -1385,10 +1385,6 @@ msgstr "{0} Eklendi"
 msgid "Added {0} ({1})"
 msgstr "Eklenen {0} ({1})"
 
-#: core/doctype/user/user.py:308
-msgid "Adding System Manager to this User as there must be atleast one System Manager"
-msgstr ""
-
 #. Label of a Section Break field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
@@ -1522,11 +1518,11 @@ msgstr "Yönetim"
 msgid "Administrator"
 msgstr "Yönetici"
 
-#: core/doctype/user/user.py:1215
+#: core/doctype/user/user.py:1157
 msgid "Administrator Logged In"
 msgstr "Yönetici Giriş Yaptı"
 
-#: core/doctype/user/user.py:1209
+#: core/doctype/user/user.py:1151
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr ""
 
@@ -2120,7 +2116,7 @@ msgstr ""
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr ""
 
-#: core/doctype/user/user.py:1018
+#: core/doctype/user/user.py:960
 msgid "Already Registered"
 msgstr ""
 
@@ -2577,7 +2573,7 @@ msgstr "Arşivlenmiş Sütunlar"
 
 #: public/js/frappe/list/list_view.js:1867
 msgid "Are you sure you want to clear the assignments?"
-msgstr ""
+msgstr "Atamaları temizlemek istediğinizen emin misiniz?"
 
 #: public/js/frappe/form/grid.js:269
 msgid "Are you sure you want to delete all rows?"
@@ -4280,11 +4276,11 @@ msgstr "Toplu Düzenleme"
 msgid "Bulk Edit {0}"
 msgstr ""
 
-#: desk/reportview.py:524
+#: desk/reportview.py:525
 msgid "Bulk Operation Failed"
 msgstr "Toplu İşlem Başarısız Oldu"
 
-#: desk/reportview.py:528
+#: desk/reportview.py:529
 msgid "Bulk Operation Successful"
 msgstr "Toplu İşlem Başarılı"
 
@@ -4782,7 +4778,7 @@ msgstr "Belgeler İptal Ediliyor"
 msgid "Cancelling {0}"
 msgstr "{0} İptal Ediliyor"
 
-#: core/doctype/prepared_report/prepared_report.py:252
+#: core/doctype/prepared_report/prepared_report.py:254
 msgid "Cannot Download Report due to insufficient permissions"
 msgstr ""
 
@@ -4814,11 +4810,11 @@ msgstr ""
 msgid "Cannot cancel {0}."
 msgstr "{0} iptal edilemez."
 
-#: model/document.py:856
+#: model/document.py:863
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr ""
 
-#: model/document.py:870
+#: model/document.py:877
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr ""
 
@@ -4902,7 +4898,7 @@ msgstr ""
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr ""
 
-#: model/document.py:876
+#: model/document.py:883
 msgid "Cannot edit cancelled document"
 msgstr ""
 
@@ -4930,7 +4926,7 @@ msgstr ""
 msgid "Cannot have multiple printers mapped to a single print format."
 msgstr ""
 
-#: model/document.py:944
+#: model/document.py:951
 msgid "Cannot link cancelled document: {0}"
 msgstr ""
 
@@ -4964,7 +4960,7 @@ msgstr ""
 
 #: public/js/frappe/list/bulk_operations.js:261
 msgid "Cannot submit {0}."
-msgstr ""
+msgstr "{0} gönderilemiyor."
 
 #: desk/doctype/workspace/workspace.py:345
 msgid "Cannot update private workspace of other users"
@@ -4975,11 +4971,11 @@ msgstr ""
 msgid "Cannot update {0}"
 msgstr ""
 
-#: model/db_query.py:1103
+#: model/db_query.py:1122
 msgid "Cannot use sub-query in order by"
 msgstr ""
 
-#: model/db_query.py:1121
+#: model/db_query.py:1140
 msgid "Cannot use {0} in order/group by"
 msgstr ""
 
@@ -5386,7 +5382,7 @@ msgstr ""
 #: public/js/frappe/list/list_view.js:1864
 msgctxt "Button in list view actions menu"
 msgid "Clear Assignment"
-msgstr ""
+msgstr "Atamayı Temizle"
 
 #: public/js/frappe/ui/keyboard.js:284
 msgid "Clear Cache and Reload"
@@ -5702,7 +5698,7 @@ msgstr ""
 msgid "Collapse"
 msgstr "Daralt"
 
-#: public/js/frappe/form/controls/code.js:179
+#: public/js/frappe/form/controls/code.js:183
 msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "Daralt"
@@ -5957,7 +5953,7 @@ msgctxt "Access Log"
 msgid "Columns / Fields"
 msgstr "Sütunlar / Alanlar"
 
-#: public/js/frappe/views/kanban/kanban_view.js:394
+#: public/js/frappe/views/kanban/kanban_view.js:397
 msgid "Columns based on"
 msgstr "Sütun Ayarlaması"
 
@@ -6146,7 +6142,7 @@ msgstr "Firma Adı"
 msgid "Compare Versions"
 msgstr ""
 
-#: core/doctype/server_script/server_script.py:150
+#: core/doctype/server_script/server_script.py:153
 msgid "Compilation warning"
 msgstr ""
 
@@ -6168,7 +6164,7 @@ msgstr "Tamamla"
 msgid "Complete By"
 msgstr ""
 
-#: core/doctype/user/user.py:475 templates/emails/new_user.html:10
+#: core/doctype/user/user.py:426 templates/emails/new_user.html:10
 msgid "Complete Registration"
 msgstr ""
 
@@ -6533,11 +6529,11 @@ msgctxt "Contact Us Settings"
 msgid "Contact options, like \"Sales Query, Support Query\" etc each on a new line or separated by commas."
 msgstr ""
 
-#: utils/change_log.py:358
+#: utils/change_log.py:360
 msgid "Contains {0} security fix"
 msgstr ""
 
-#: utils/change_log.py:356
+#: utils/change_log.py:358
 msgid "Contains {0} security fixes"
 msgstr ""
 
@@ -6734,7 +6730,7 @@ msgstr ""
 msgid "Could not connect to outgoing email server"
 msgstr ""
 
-#: model/document.py:940
+#: model/document.py:947
 msgid "Could not find {0}"
 msgstr "{0} bulunamadı."
 
@@ -7561,7 +7557,7 @@ msgstr "Gösterge Paneli Özelleştir"
 #. Name of a DocType
 #: automation/doctype/auto_repeat/auto_repeat.js:33
 #: custom/doctype/customize_form/customize_form.json
-#: public/js/frappe/views/kanban/kanban_view.js:340
+#: public/js/frappe/views/kanban/kanban_view.js:343
 msgid "Customize Form"
 msgstr "Formu Özelleştir"
 
@@ -8597,11 +8593,11 @@ msgctxt "Deleted Document"
 msgid "Deleted Name"
 msgstr ""
 
-#: desk/reportview.py:528
+#: desk/reportview.py:529
 msgid "Deleted all documents successfully"
 msgstr ""
 
-#: desk/reportview.py:506
+#: desk/reportview.py:507
 msgid "Deleting {0}"
 msgstr "{0} Siliniyor"
 
@@ -9211,7 +9207,7 @@ msgstr ""
 
 #: public/js/frappe/form/form.js:952
 msgid "Do you want to cancel all linked documents?"
-msgstr ""
+msgstr "Bağlantılı tüm Dökümanları iptal etmek istiyor musunuz?"
 
 #. Label of a Select field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -9640,7 +9636,7 @@ msgstr ""
 msgid "Document Naming Settings"
 msgstr ""
 
-#: model/document.py:1572
+#: model/document.py:1579
 msgid "Document Queued"
 msgstr ""
 
@@ -9887,7 +9883,7 @@ msgctxt "User Type"
 msgid "Document Types and Permissions"
 msgstr ""
 
-#: core/doctype/submission_queue/submission_queue.py:163 model/document.py:1774
+#: core/doctype/submission_queue/submission_queue.py:163 model/document.py:1781
 msgid "Document Unlocked"
 msgstr ""
 
@@ -10681,7 +10677,7 @@ msgctxt "Email Account"
 msgid "Email Account Name"
 msgstr "E-posta Hesap Adı"
 
-#: core/doctype/user/user.py:744
+#: core/doctype/user/user.py:686
 msgid "Email Account added multiple times"
 msgstr ""
 
@@ -11658,7 +11654,7 @@ msgstr ""
 msgid "Error in Client Script"
 msgstr ""
 
-#: public/js/frappe/form/script_manager.js:241
+#: public/js/frappe/form/script_manager.js:242
 msgid "Error in Client Script."
 msgstr ""
 
@@ -11684,7 +11680,7 @@ msgstr ""
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr ""
 
-#: model/document.py:826
+#: model/document.py:833
 msgid "Error: Document has been modified after you have opened it"
 msgstr "Hata: Döküman siz açtıktan sonra değiştirildi."
 
@@ -11898,7 +11894,7 @@ msgstr ""
 msgid "Expand"
 msgstr "Genişlet"
 
-#: public/js/frappe/form/controls/code.js:180
+#: public/js/frappe/form/controls/code.js:184
 msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "Genişlet"
@@ -12209,7 +12205,7 @@ msgstr "Sunucuya bağlanılamadı"
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr ""
 
-#: desk/reportview.py:522
+#: desk/reportview.py:523
 msgid "Failed to delete {0} documents: {1}"
 msgstr "{0} belge silinemedi: {1}"
 
@@ -12989,7 +12985,7 @@ msgstr "Filtre Seçimi"
 msgid "Filters applied for {0}"
 msgstr "Filtreler {0} için Uygulandı"
 
-#: public/js/frappe/views/kanban/kanban_view.js:186
+#: public/js/frappe/views/kanban/kanban_view.js:189
 msgid "Filters saved"
 msgstr ""
 
@@ -13285,7 +13281,7 @@ msgstr ""
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Footer \"Powered By\""
-msgstr ""
+msgstr "Alt Bilgi \"Tarafından desteklenmektedir\""
 
 #. Label of a Select field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
@@ -15266,7 +15262,7 @@ msgstr ""
 msgid "ID"
 msgstr "ID"
 
-#: desk/reportview.py:435 public/js/frappe/views/reports/report_view.js:917
+#: desk/reportview.py:436 public/js/frappe/views/reports/report_view.js:917
 msgctxt "Label of name column in report"
 msgid "ID"
 msgstr "ID"
@@ -15715,7 +15711,7 @@ msgstr ""
 msgid "Illegal Document Status for {0}"
 msgstr ""
 
-#: model/db_query.py:443 model/db_query.py:446 model/db_query.py:1106
+#: model/db_query.py:443 model/db_query.py:446 model/db_query.py:1125
 msgid "Illegal SQL Query"
 msgstr ""
 
@@ -15822,7 +15818,7 @@ msgstr ""
 msgid "Image link '{0}' is not valid"
 msgstr ""
 
-#: core/doctype/file/file.js:91
+#: core/doctype/file/file.js:100
 msgid "Image optimized"
 msgstr ""
 
@@ -16242,11 +16238,11 @@ msgstr ""
 msgid "Incorrect Verification code"
 msgstr ""
 
-#: model/document.py:1387
+#: model/document.py:1394
 msgid "Incorrect value in row {0}: {1} must be {2} {3}"
 msgstr ""
 
-#: model/document.py:1391
+#: model/document.py:1398
 msgid "Incorrect value: {0} must be {1} {2}"
 msgstr ""
 
@@ -16442,11 +16438,11 @@ msgstr ""
 msgid "Insufficient Permission for {0}"
 msgstr ""
 
-#: desk/reportview.py:339
+#: desk/reportview.py:340
 msgid "Insufficient Permissions for deleting Report"
 msgstr ""
 
-#: desk/reportview.py:310
+#: desk/reportview.py:311
 msgid "Insufficient Permissions for editing Report"
 msgstr ""
 
@@ -16716,7 +16712,7 @@ msgstr ""
 msgid "Invalid Parameters."
 msgstr ""
 
-#: core/doctype/user/user.py:1230 www/update-password.html:121
+#: core/doctype/user/user.py:1172 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -16763,7 +16759,7 @@ msgstr ""
 msgid "Invalid column"
 msgstr ""
 
-#: model/document.py:859 model/document.py:873
+#: model/document.py:866 model/document.py:880
 msgid "Invalid docstatus"
 msgstr ""
 
@@ -16916,7 +16912,7 @@ msgstr ""
 #: email/doctype/email_flag_queue/email_flag_queue.json
 msgctxt "Email Flag Queue"
 msgid "Is Completed"
-msgstr ""
+msgstr "Tamamlandı"
 
 #. Label of a Check field in DocType 'Role'
 #: core/doctype/role/role.json
@@ -17419,7 +17415,7 @@ msgstr "Kanban Kurulu"
 msgid "Kanban Board Column"
 msgstr ""
 
-#: public/js/frappe/views/kanban/kanban_view.js:385
+#: public/js/frappe/views/kanban/kanban_view.js:388
 msgid "Kanban Board Name"
 msgstr ""
 
@@ -17429,7 +17425,7 @@ msgctxt "Kanban Board"
 msgid "Kanban Board Name"
 msgstr ""
 
-#: public/js/frappe/views/kanban/kanban_view.js:262
+#: public/js/frappe/views/kanban/kanban_view.js:265
 msgctxt "Button in kanban view menu"
 msgid "Kanban Settings"
 msgstr ""
@@ -18846,7 +18842,7 @@ msgstr ""
 msgid "Log Settings"
 msgstr ""
 
-#: www/app.py:21
+#: www/app.py:23
 msgid "Log in to access this page."
 msgstr ""
 
@@ -18963,7 +18959,7 @@ msgstr ""
 msgid "Login to {0}"
 msgstr ""
 
-#: www/login.html:106
+#: www/login.html:106 www/login.html:190
 msgid "Login with Email Link"
 msgstr "E-posta Bağlantısı ile Giriş"
 
@@ -18991,7 +18987,7 @@ msgstr ""
 #: core/doctype/activity_log/activity_log.json
 msgctxt "Activity Log"
 msgid "Logout"
-msgstr ""
+msgstr "Çıkış"
 
 #: core/doctype/user/user.js:183
 msgid "Logout All Sessions"
@@ -20705,7 +20701,7 @@ msgstr ""
 msgid "Need Workspace Manager role to hide/unhide public workspaces"
 msgstr ""
 
-#: model/document.py:634
+#: model/document.py:641
 msgid "Negative Value"
 msgstr ""
 
@@ -20801,7 +20797,7 @@ msgstr "Yeni Etkinlik"
 msgid "New Folder"
 msgstr "Yeni Klasör"
 
-#: public/js/frappe/views/kanban/kanban_view.js:341
+#: public/js/frappe/views/kanban/kanban_view.js:344
 msgid "New Kanban Board"
 msgstr "Yeni Kanban Panosu"
 
@@ -20887,7 +20883,7 @@ msgstr "Yeni Çalışma Alanı"
 msgid "New password cannot be same as old password"
 msgstr ""
 
-#: utils/change_log.py:389
+#: utils/change_log.py:391
 msgid "New updates are available"
 msgstr "Yeni güncellemeler mevcut"
 
@@ -20935,11 +20931,11 @@ msgstr ""
 msgid "New {0}: {1}"
 msgstr "Yeni {0}: {1}"
 
-#: utils/change_log.py:371
+#: utils/change_log.py:373
 msgid "New {} releases for the following apps are available"
 msgstr "Aşağıdaki uygulamalar için yeni {} sürümler kullanıma sunuldu"
 
-#: core/doctype/user/user.py:807
+#: core/doctype/user/user.py:749
 msgid "Newly created user {0} has no roles enabled."
 msgstr ""
 
@@ -21256,11 +21252,11 @@ msgstr ""
 msgid "No Results found"
 msgstr ""
 
-#: core/doctype/user/user.py:808
+#: core/doctype/user/user.py:750
 msgid "No Roles Specified"
 msgstr ""
 
-#: public/js/frappe/views/kanban/kanban_view.js:341
+#: public/js/frappe/views/kanban/kanban_view.js:344
 msgid "No Select Field Found"
 msgstr ""
 
@@ -21268,7 +21264,7 @@ msgstr ""
 msgid "No Suggestions"
 msgstr ""
 
-#: desk/reportview.py:594
+#: desk/reportview.py:595
 msgid "No Tags"
 msgstr ""
 
@@ -21352,7 +21348,7 @@ msgstr ""
 msgid "No failed logs"
 msgstr ""
 
-#: public/js/frappe/views/kanban/kanban_view.js:368
+#: public/js/frappe/views/kanban/kanban_view.js:371
 msgid "No fields found that can be used as a Kanban Column. Use the Customize Form to add a Custom Field of type \"Select\"."
 msgstr "Kanban Sütunu olarak kullanılabilecek alanlar bulunamadı. \"Seçim\" türünde yeni bir Özel Alan eklemek için Form Özelleştirmeyi kullanın."
 
@@ -21423,7 +21419,7 @@ msgctxt "{0} = verb, {1} = object"
 msgid "No permission to '{0}' {1}"
 msgstr ""
 
-#: model/db_query.py:927
+#: model/db_query.py:946
 msgid "No permission to read {0}"
 msgstr "Okuma {0} izni yok"
 
@@ -21478,7 +21474,7 @@ msgstr ""
 #: public/js/form_builder/utils.js:117 public/js/frappe/form/grid_row.js:253
 msgctxt "Title of the 'row number' column"
 msgid "No."
-msgstr ""
+msgstr "Hayır."
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -21521,7 +21517,7 @@ msgctxt "Recorder Query"
 msgid "Normalized Query"
 msgstr ""
 
-#: core/doctype/user/user.py:1013 templates/includes/login/login.js:258
+#: core/doctype/user/user.py:955 templates/includes/login/login.js:258
 #: utils/oauth.py:265
 msgid "Not Allowed"
 msgstr "İzin verilmedi"
@@ -21590,7 +21586,7 @@ msgstr ""
 
 #: public/js/frappe/form/toolbar.js:260 public/js/frappe/form/toolbar.js:748
 #: public/js/frappe/model/indicator.js:28
-#: public/js/frappe/views/kanban/kanban_view.js:167
+#: public/js/frappe/views/kanban/kanban_view.js:170
 #: public/js/frappe/views/reports/report_view.js:173
 #: public/js/print_format_builder/print_format_builder.bundle.js:39
 #: website/doctype/web_form/templates/web_form.html:75
@@ -22151,7 +22147,7 @@ msgstr ""
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "Off"
-msgstr ""
+msgstr "Kapalı"
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: contacts/doctype/address/address.json
@@ -22360,7 +22356,7 @@ msgctxt "S3 Backup Settings"
 msgid "Only change this if you want to use other S3 compatible object storage backends."
 msgstr ""
 
-#: model/document.py:1075
+#: model/document.py:1082
 msgid "Only draft documents can be discarded"
 msgstr ""
 
@@ -22379,11 +22375,11 @@ msgstr ""
 msgid "Only one {0} can be set as primary."
 msgstr ""
 
-#: desk/reportview.py:336
+#: desk/reportview.py:337
 msgid "Only reports of type Report Builder can be deleted"
 msgstr ""
 
-#: desk/reportview.py:307
+#: desk/reportview.py:308
 msgid "Only reports of type Report Builder can be edited"
 msgstr ""
 
@@ -22554,7 +22550,7 @@ msgstr ""
 msgid "Optimize"
 msgstr ""
 
-#: core/doctype/file/file.js:89
+#: core/doctype/file/file.js:98
 msgid "Optimizing image..."
 msgstr ""
 
@@ -23272,11 +23268,11 @@ msgctxt "Web Form Field"
 msgid "Password"
 msgstr ""
 
-#: core/doctype/user/user.py:1076
+#: core/doctype/user/user.py:1018
 msgid "Password Email Sent"
 msgstr ""
 
-#: core/doctype/user/user.py:455
+#: core/doctype/user/user.py:406
 msgid "Password Reset"
 msgstr ""
 
@@ -23312,7 +23308,7 @@ msgstr ""
 msgid "Password not found for {0} {1} {2}"
 msgstr ""
 
-#: core/doctype/user/user.py:1075
+#: core/doctype/user/user.py:1017
 msgid "Password reset instructions have been sent to your email"
 msgstr ""
 
@@ -23324,7 +23320,7 @@ msgstr ""
 msgid "Password size exceeded the maximum allowed size"
 msgstr ""
 
-#: core/doctype/user/user.py:871
+#: core/doctype/user/user.py:813
 msgid "Password size exceeded the maximum allowed size."
 msgstr ""
 
@@ -23817,7 +23813,7 @@ msgstr ""
 msgid "Please add a valid comment."
 msgstr ""
 
-#: core/doctype/user/user.py:1058
+#: core/doctype/user/user.py:1000
 msgid "Please ask your administrator to verify your sign-up"
 msgstr ""
 
@@ -23849,7 +23845,7 @@ msgstr ""
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr ""
 
-#: core/doctype/user/user.py:1056
+#: core/doctype/user/user.py:998
 msgid "Please check your email for verification"
 msgstr ""
 
@@ -23997,7 +23993,7 @@ msgstr ""
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr ""
 
-#: model/document.py:828
+#: model/document.py:835
 msgid "Please refresh to get the latest document."
 msgstr "En son versiyonu almak için lütfen sayfayı yenileyin."
 
@@ -24069,7 +24065,7 @@ msgstr ""
 msgid "Please select applicable Doctypes"
 msgstr ""
 
-#: model/db_query.py:1118
+#: model/db_query.py:1137
 msgid "Please select atleast 1 column from {0} to sort/group"
 msgstr ""
 
@@ -24136,7 +24132,7 @@ msgstr ""
 msgid "Please setup default Email Account from Settings > Email Account"
 msgstr ""
 
-#: core/doctype/user/user.py:406
+#: core/doctype/user/user.py:371
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr ""
 
@@ -24950,7 +24946,7 @@ msgstr "Profil"
 msgid "Progress"
 msgstr ""
 
-#: public/js/frappe/views/kanban/kanban_view.js:405
+#: public/js/frappe/views/kanban/kanban_view.js:408
 msgid "Project"
 msgstr "Proje"
 
@@ -26422,7 +26418,7 @@ msgstr "Yenileniyor"
 msgid "Refreshing..."
 msgstr "Yenileniyor..."
 
-#: core/doctype/user/user.py:1020
+#: core/doctype/user/user.py:962
 msgid "Registered but disabled"
 msgstr ""
 
@@ -26924,7 +26920,7 @@ msgstr ""
 msgid "Report limit reached"
 msgstr ""
 
-#: core/doctype/prepared_report/prepared_report.py:210
+#: core/doctype/prepared_report/prepared_report.py:212
 msgid "Report timed out."
 msgstr ""
 
@@ -26945,7 +26941,7 @@ msgstr ""
 msgid "Report {0}"
 msgstr ""
 
-#: desk/reportview.py:343
+#: desk/reportview.py:344
 msgid "Report {0} deleted"
 msgstr ""
 
@@ -26953,7 +26949,7 @@ msgstr ""
 msgid "Report {0} is disabled"
 msgstr ""
 
-#: desk/reportview.py:320
+#: desk/reportview.py:321
 msgid "Report {0} saved"
 msgstr ""
 
@@ -27638,7 +27634,7 @@ msgctxt "DocPerm"
 msgid "Role and Level"
 msgstr ""
 
-#: core/doctype/user/user.py:351
+#: core/doctype/user/user.py:316
 msgid "Role has been set as per the user type {0}"
 msgstr ""
 
@@ -27854,7 +27850,7 @@ msgctxt "Role"
 msgid "Route: Example \"/app\""
 msgstr ""
 
-#: model/base_document.py:739 model/base_document.py:780 model/document.py:619
+#: model/base_document.py:739 model/base_document.py:780 model/document.py:626
 msgid "Row"
 msgstr "Satır"
 
@@ -28215,7 +28211,7 @@ msgstr "Cumartesi"
 #: public/js/frappe/utils/common.js:443
 #: public/js/frappe/views/kanban/kanban_settings.js:45
 #: public/js/frappe/views/kanban/kanban_settings.js:189
-#: public/js/frappe/views/kanban/kanban_view.js:340
+#: public/js/frappe/views/kanban/kanban_view.js:343
 #: public/js/frappe/views/reports/query_report.js:1803
 #: public/js/frappe/views/reports/report_view.js:1640
 #: public/js/frappe/views/workspace/workspace.js:498
@@ -28407,7 +28403,7 @@ msgctxt "Newsletter"
 msgid "Scheduled To Send"
 msgstr ""
 
-#: core/doctype/server_script/server_script.py:141
+#: core/doctype/server_script/server_script.py:144
 msgid "Scheduled execution for script {0} has updated"
 msgstr ""
 
@@ -30441,7 +30437,7 @@ msgctxt "Email Group"
 msgid "Sign Up and Confirmation"
 msgstr "Kayıt ve Doğrulama"
 
-#: core/doctype/user/user.py:1013
+#: core/doctype/user/user.py:955
 msgid "Sign Up is disabled"
 msgstr "Kaydolma devre dışı bırakıldı"
 
@@ -30886,7 +30882,7 @@ msgctxt "Website Settings"
 msgid "Splash Image"
 msgstr ""
 
-#: desk/reportview.py:382 public/js/frappe/web_form/web_form_list.js:175
+#: desk/reportview.py:383 public/js/frappe/web_form/web_form_list.js:175
 #: templates/print_formats/standard_macros.html:44
 msgid "Sr"
 msgstr "Sr"
@@ -30961,11 +30957,11 @@ msgstr ""
 msgid "Standard Print Style cannot be changed. Please duplicate to edit."
 msgstr ""
 
-#: desk/reportview.py:333
+#: desk/reportview.py:334
 msgid "Standard Reports cannot be deleted"
 msgstr ""
 
-#: desk/reportview.py:304
+#: desk/reportview.py:305
 msgid "Standard Reports cannot be edited"
 msgstr ""
 
@@ -31654,7 +31650,7 @@ msgstr ""
 #: public/js/frappe/list/list_view.js:1990
 msgctxt "Title of confirmation dialog"
 msgid "Submit {0} documents?"
-msgstr ""
+msgstr "{0} belge gönderilsin mi?"
 
 #: public/js/frappe/model/indicator.js:95
 #: public/js/frappe/ui/filters/filter.js:501
@@ -31841,7 +31837,7 @@ msgctxt "Recorder"
 msgid "Suggested Indexes"
 msgstr ""
 
-#: core/doctype/user/user.py:728
+#: core/doctype/user/user.py:670
 msgid "Suggested Username: {0}"
 msgstr ""
 
@@ -32335,7 +32331,7 @@ msgstr ""
 msgid "Table updated"
 msgstr ""
 
-#: model/document.py:1401
+#: model/document.py:1408
 msgid "Table {0} cannot be empty"
 msgstr ""
 
@@ -32473,7 +32469,7 @@ msgstr ""
 msgid "Templates"
 msgstr ""
 
-#: core/doctype/user/user.py:1024
+#: core/doctype/user/user.py:966
 msgid "Temporarily Disabled"
 msgstr ""
 
@@ -32768,11 +32764,11 @@ msgid "The project number obtained from Google Cloud Console under <a href=\"htt
 "</a>"
 msgstr ""
 
-#: core/doctype/user/user.py:984
+#: core/doctype/user/user.py:926
 msgid "The reset password link has been expired"
 msgstr ""
 
-#: core/doctype/user/user.py:986
+#: core/doctype/user/user.py:928
 msgid "The reset password link has either been used before or is invalid"
 msgstr ""
 
@@ -32903,15 +32899,11 @@ msgstr ""
 msgid "There must be atleast one permission rule."
 msgstr ""
 
-#: core/doctype/user/user.py:536
-msgid "There should remain at least one System Manager"
-msgstr ""
-
 #: www/error.py:16
 msgid "There was an error building this page"
 msgstr "Bu sayfayı oluştururken bir hata oluştu."
 
-#: public/js/frappe/views/kanban/kanban_view.js:180
+#: public/js/frappe/views/kanban/kanban_view.js:183
 msgid "There was an error saving filters"
 msgstr ""
 
@@ -32977,7 +32969,7 @@ msgstr ""
 msgid "This Doctype does not contain location fields"
 msgstr ""
 
-#: public/js/frappe/views/kanban/kanban_view.js:388
+#: public/js/frappe/views/kanban/kanban_view.js:391
 msgid "This Kanban Board will be private"
 msgstr ""
 
@@ -33041,7 +33033,7 @@ msgstr ""
 msgid "This document is already amended, you cannot ammend it again"
 msgstr ""
 
-#: model/document.py:1569
+#: model/document.py:1576
 msgid "This document is currently locked and queued for execution. Please try again after some time."
 msgstr ""
 
@@ -33225,7 +33217,7 @@ msgstr ""
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "Bu işi hemen sonlandırmak tehlikeli olabilir, emin misiniz? "
 
-#: core/doctype/user/user.py:1244
+#: core/doctype/user/user.py:1186
 msgid "Throttled"
 msgstr ""
 
@@ -33912,7 +33904,7 @@ msgstr ""
 msgid "Too many changes to database in single action."
 msgstr ""
 
-#: core/doctype/user/user.py:1025
+#: core/doctype/user/user.py:967
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr ""
 
@@ -34877,7 +34869,7 @@ msgctxt "Workflow Document State"
 msgid "Update Value"
 msgstr ""
 
-#: utils/change_log.py:381
+#: utils/change_log.py:383
 msgid "Update from Frappe Cloud"
 msgstr ""
 
@@ -35577,7 +35569,7 @@ msgstr ""
 msgid "User with email: {0} does not exist in the system. Please ask 'System Administrator' to create the user for you."
 msgstr ""
 
-#: core/doctype/user/user.py:541
+#: core/doctype/user/user.py:485
 msgid "User {0} cannot be deleted"
 msgstr "Kullanıcı {0} silinemez"
 
@@ -35585,7 +35577,7 @@ msgstr "Kullanıcı {0} silinemez"
 msgid "User {0} cannot be disabled"
 msgstr ""
 
-#: core/doctype/user/user.py:610
+#: core/doctype/user/user.py:552
 msgid "User {0} cannot be renamed"
 msgstr ""
 
@@ -35602,7 +35594,7 @@ msgstr ""
 msgid "User {0} has requested for data deletion"
 msgstr ""
 
-#: core/doctype/user/user.py:1373
+#: core/doctype/user/user.py:1315
 msgid "User {0} impersonated as {1}"
 msgstr ""
 
@@ -35640,7 +35632,7 @@ msgctxt "User Social Login"
 msgid "Username"
 msgstr ""
 
-#: core/doctype/user/user.py:695
+#: core/doctype/user/user.py:637
 msgid "Username {0} already exists"
 msgstr ""
 
@@ -35822,15 +35814,15 @@ msgctxt "Notification"
 msgid "Value To Be Set"
 msgstr ""
 
-#: model/base_document.py:965 model/document.py:675
+#: model/base_document.py:965 model/document.py:682
 msgid "Value cannot be changed for {0}"
 msgstr ""
 
-#: model/document.py:621
+#: model/document.py:628
 msgid "Value cannot be negative for"
 msgstr ""
 
-#: model/document.py:625
+#: model/document.py:632
 msgid "Value cannot be negative for {0}: {1}"
 msgstr ""
 
@@ -36713,11 +36705,11 @@ msgstr ""
 msgid "Welcome Workspace"
 msgstr ""
 
-#: core/doctype/user/user.py:398
+#: core/doctype/user/user.py:363
 msgid "Welcome email sent"
 msgstr "Hoşgeldiniz e-posta gönderimi yapılır"
 
-#: core/doctype/user/user.py:473
+#: core/doctype/user/user.py:424
 msgid "Welcome to {0}"
 msgstr "Hoşgeldiniz {0}"
 
@@ -37348,7 +37340,7 @@ msgstr ""
 msgid "You are not permitted to access this page without login."
 msgstr ""
 
-#: www/app.py:23
+#: www/app.py:27
 msgid "You are not permitted to access this page."
 msgstr ""
 
@@ -37405,7 +37397,7 @@ msgstr ""
 msgid "You can continue with the onboarding after exploring this page"
 msgstr ""
 
-#: core/doctype/user/user.py:601
+#: core/doctype/user/user.py:543
 msgid "You can disable the user instead of deleting it."
 msgstr ""
 
@@ -37872,7 +37864,7 @@ msgstr "ve"
 msgid "ascending"
 msgstr ""
 
-#: model/document.py:1372
+#: model/document.py:1379
 msgid "beginning with"
 msgstr ""
 
@@ -38127,7 +38119,7 @@ msgctxt "Workspace"
 msgid "grey"
 msgstr ""
 
-#: utils/backups.py:378
+#: utils/backups.py:387
 msgid "gzip not found in PATH! This is required to take a backup."
 msgstr ""
 
@@ -38272,7 +38264,7 @@ msgctxt "OAuth Authorization Code"
 msgid "nonce"
 msgstr ""
 
-#: model/document.py:1371
+#: model/document.py:1378
 msgid "none of"
 msgstr ""
 
@@ -38332,7 +38324,7 @@ msgctxt "Webhook"
 msgid "on_update_after_submit"
 msgstr ""
 
-#: model/document.py:1370
+#: model/document.py:1377
 msgid "one of"
 msgstr ""
 
@@ -39145,7 +39137,7 @@ msgstr ""
 msgid "{0} items selected"
 msgstr ""
 
-#: core/doctype/user/user.py:1382
+#: core/doctype/user/user.py:1324
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr ""
 
@@ -39178,7 +39170,7 @@ msgstr ""
 msgid "{0} months ago"
 msgstr ""
 
-#: model/document.py:1626
+#: model/document.py:1633
 msgid "{0} must be after {1}"
 msgstr ""
 
@@ -39589,7 +39581,7 @@ msgstr ""
 msgid "{} not found in PATH! This is required to restore the database."
 msgstr ""
 
-#: utils/backups.py:445
+#: utils/backups.py:454
 msgid "{} not found in PATH! This is required to take a backup."
 msgstr ""
 
