@@ -2,11 +2,15 @@ context("Workspace 2.0", () => {
 	before(() => {
 		cy.visit("/login");
 		cy.login();
-		cy.set_value("DocType", "Workspace", { in_create: false });
 	});
 
 	it("Navigate to page from sidebar", () => {
 		cy.visit("/app/build");
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				frappe.boot.user.can_create.push("Workspace");
+			});
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get('.sidebar-item-container[item-name="Website"]').first().click();
 		cy.location("pathname").should("eq", "/app/website");

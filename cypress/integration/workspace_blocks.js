@@ -17,6 +17,12 @@ context("Workspace Blocks", () => {
 		}).as("new_page");
 
 		cy.visit("/app/website");
+		cy.window()
+			.its("frappe")
+			.then((frappe) => {
+				frappe.boot.user.can_create.push("Workspace");
+			});
+
 		cy.get(".codex-editor__redactor .ce-block");
 		cy.get('.custom-actions button[data-label="Create%20Workspace"]').click();
 		cy.fill_field("title", "Test Block Page", "Data");
