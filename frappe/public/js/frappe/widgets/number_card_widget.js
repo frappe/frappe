@@ -224,9 +224,14 @@ export default class NumberCardWidget extends Widget {
 
 		const symbol = number_parts[1] || "";
 		number_parts[0] = window.convert_old_to_new_number_format(number_parts[0]);
+<<<<<<< HEAD
 		const formatted_number = $(frappe.format(number_parts[0], df)).text();
 
 		this.formatted_number = formatted_number + " " + __(symbol);
+=======
+		const formatted_number = frappe.format(number_parts[0], df, null, doc);
+		this.formatted_number = $(formatted_number).text() || formatted_number + " " + __(symbol);
+>>>>>>> 7695a0d2ec (fix(number_card): ensure value is returned)
 	}
 
 	render_number() {
