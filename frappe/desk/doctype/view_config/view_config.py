@@ -66,6 +66,7 @@ def update_config(config_name, new_config):
 	new_config = frappe._dict(new_config)
 	config = frappe.get_doc("View Config", config_name)
 	config.columns = json.dumps(frappe.parse_json(new_config.columns))
+	config.filters = json.dumps(frappe.parse_json(new_config.filters))
 	config.save()
 
 

@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-4 m-5">
+    <div class="flex flex-col h-[41.5rem] gap-4 my-4 mx-5">
         <div class="flex justify-between items-center">
             <div>
             </div>
@@ -7,33 +7,43 @@
                 <div class="flex gap-0">
                     <Dropdown :placement="'right'" :options="viewsDropdownOptions">
                         <template #default="{ open }">
-                            <Button :class="configUpdated ? 'rounded-none rounded-l bg-gray-50' : ''" :label="config_settings.data.label">
+                            <Button :class="configUpdated ? 'rounded-none rounded-l' : ''"
+                                :label="config_settings.data.label">
                                 <template #prefix>
-                                    <FeatherIcon :name="config_settings.data.icon || 'list'" class="h-3.5 text-gray-600" />
+                                    <FeatherIcon :name="config_settings.data.icon || 'list'"
+                                        class="h-3.5 text-gray-600" />
                                 </template>
                             </Button>
                         </template>
                     </Dropdown>
                     <div v-if="configUpdated" class="flex items-center">
-                        <Button class="rounded-none border-x" variant="subtle" @click="cancelChanges">
-                            <template #default>
-                                <FeatherIcon name="delete" class="h-3.5"></FeatherIcon>
-                            </template>
-                        </Button>
-                        <template v-if="isDefaultConfig">
-                            <Button class="rounded-none rounded-r" variant="subtle">
+                        <Tooltip text="Discard Changes" :hover-delay="1">
+                            <Button class="rounded-none border-x border-gray-300" variant="subtle"
+                                @click="cancelChanges">
                                 <template #default>
-                                    <FeatherIcon name="save" class="h-3.5"></FeatherIcon>
+                                    <FeatherIcon name="rotate-ccw" class="h-3"></FeatherIcon>
                                 </template>
                             </Button>
+                        </Tooltip>
+                        <template v-if="isDefaultConfig">
+                            <Tooltip text="Create View" :hover-delay="0.4">
+                                <Button class="rounded-none rounded-r" variant="subtle" @click="modalMode = 'Create' ; showModal = true;">
+                                    <template #default>
+                                        <FeatherIcon name="save" class="h-3.5"></FeatherIcon>
+                                    </template>
+                                </Button>
+                            </Tooltip>
                         </template>
                         <template v-else>
-                            <Button class="rounded-none rounded-r" variant="subtle">
-                                <template #default>
-                                    <FeatherIcon name="save" class="h-3.5"></FeatherIcon>
-                                </template>
-                            </Button>
+                            <Tooltip text="Save Changes" :hover-delay="0.4">
+                                <Button class="rounded-none rounded-r" variant="subtle" @click="updateView()">
+                                    <template #default>
+                                        <FeatherIcon name="save" class="h-3.5"></FeatherIcon>
+                                    </template>
+                                </Button>
+                            </Tooltip>
                         </template>
+
                     </div>
                 </div>
                 <ListControls v-model="listConfig" :options="listControlOptions" @updateFilter="handleFilterChange" />
@@ -43,11 +53,45 @@
             <ListView :rows="list.data" rowKey="name" :columns="listConfig.columns" :options="listOptions" />
         </div>
     </div>
+    <Dialog v-model="showModal" :options="{
+                title: ` ${ modalMode } View `,
+                actions: [
+                    {
+                        label: modalMode,
+                        variant: 'solid',
+                        onClick: () => {
+                            if (modalMode == 'Create')
+                                createView()
+                            else if (modalMode == 'Save')
+                                renameView()
+                            else
+                                deleteView()
+                        },
+                    },
+                ],
+                size: 'sm'
+            }">
+        <template #body-content>
+            <template v-if="modalMode == 'Create'">
+                <FormControl :type="'text'" size="md" variant="subtle" label="View Name" v-model="newViewName" />
+            </template>
+            <template v-else-if="modalMode == 'Save'">
+                <FormControl :type="'text'" size="md" variant="subtle" label="View Name"
+                    v-model="config_settings.data.label" />
+            </template>
+            <template v-else>
+                <div class="text-base">
+                    Are you sure you want to delete this view?
+                </div>
+            </template>
+        </template>
+    </Dialog>
 </template>
 
 <script setup>
+
 import { config_name, config_settings, isDefaultConfig } from '@/stores/view';
-import { createResource, FeatherIcon, Dropdown, call } from 'frappe-ui';
+import { createResource, FeatherIcon, Dropdown, call, Tooltip, Dialog, FormControl } from 'frappe-ui';
 import { ref, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -58,49 +102,56 @@ const route = useRoute();
 const router = useRouter();
 
 const viewsDropdownOptions = computed(() => {
-    let options = [
-        {
-            group: 'View Actions',
-            items: [
-                {
-                    label: 'Add',
-                    icon: 'plus-square',
-                },
-                {
-                    label: 'Rename',
-                    icon: 'edit-3',
-                },
-                {
-                    label: 'Delete',
-                    icon: 'trash',
+    let options = [];
+    !isDefaultConfig.value && options.push({
+        group: 'View Actions',
+        items: [
+            {
+                label: 'Duplicate',
+                icon: 'copy',
+            },
+            {
+                label: 'Rename',
+                icon: 'edit-3',
+                onClick: () => {
+                    modalMode.value = 'Save';
+                    showModal.value = true;
                 }
-            ]
-        },
-        {
-            group: 'Default Views',
-            items: [
-                {
-                    label: 'List',
-                    icon: 'list',
-                    onClick: () => {
-                        router.push({ query: { view: null } });
-                    }
-                },
-                {
-                    label: 'Report',
-                    icon: 'table'
-                },
-                {
-                    label: 'Kanban',
-                    icon: 'grid'
-                },
-                {
-                    label: 'Dashboard',
-                    icon: 'pie-chart'
+            },
+            {
+                label: 'Delete',
+                icon: 'trash',
+                onClick: () => {
+                    modalMode.value = 'Delete';
+                    showModal.value = true;
                 }
-            ]
-        }
-    ];
+            }
+        ]
+    });
+    options.push({
+        group: 'Default Views',
+        items: [
+            {
+                label: 'List',
+                icon: 'list',
+                onClick: () => {
+                    router.push({ query: { view: null } });
+                }
+            },
+            {
+                label: 'Report',
+                icon: 'table'
+            },
+            {
+                label: 'Kanban',
+                icon: 'grid'
+            },
+            {
+                label: 'Dashboard',
+                icon: 'pie-chart'
+            }
+        ]
+    });
     let saved_views = [];
     if (route.params.doctype) {
         call('frappe.desk.doctype.view_config.view_config.get_views_for_doctype', {
@@ -159,6 +210,7 @@ const loadConfig = async (query_config) => {
         filters: filters.value,
     };
     oldConfig.value = JSON.parse(JSON.stringify(listConfig.value));
+    debugger;
 };
 
 const list = createResource({
@@ -166,8 +218,8 @@ const list = createResource({
     makeParams() {
         return {
             doctype: route.params.doctype,
-            fields: ['*'],
-            filters: filters.value,
+            fields: listColumns.value,
+            filters: listConfig.value.filters,
             limit: 20,
             start: 0,
             sort_by: 'creation',
@@ -176,19 +228,71 @@ const list = createResource({
     }
 });
 
+const listColumns = computed(() => {
+    return listConfig.value.columns?.map((col) => col.key) || [];
+});
+
 watch(() => route.query.view, async (query_config) => {
     await loadConfig(query_config);
     await list.fetch();
 }, { immediate: true });
+
+watch(() => listColumns.value.length, async () => {
+    await list.fetch();
+}, { immediate: true });
+
+const createConfigResource = createResource({
+    url: 'frappe.client.insert',
+    method: 'POST',
+    makeParams: () => {
+        return {
+            doc: {
+                doctype: 'View Config',
+                document_type: route.params.doctype,
+                columns: JSON.stringify(listConfig.value.columns),
+                filters: JSON.stringify(listConfig.value.filters),
+                label: newViewName.value,
+            }
+        }
+    }
+});
 
 const updateConfigResource = createResource({
     url: 'frappe.desk.doctype.view_config.view_config.update_config',
     method: 'POST',
 });
 
-const saveChangesToView = () => {
-    updateConfigResource.submit({ config_name: config_name.value, new_config: listConfig.value });
-    loadList(config);
+const showModal = ref(false);
+const modalMode = ref('');
+const newViewName = ref('');
+
+const createView = async () => {
+    showModal.value = false;
+    let doc = await createConfigResource.submit();
+    router.push({ query: { view: doc.name } });
+    await loadConfig(doc.name);
+    await list.fetch();
+}
+
+const updateView = async () => {
+    await updateConfigResource.submit({ config_name: config_name.value, new_config: listConfig.value });
+    await list.fetch();
+}
+
+const deleteView = async () => {
+    await call('frappe.client.delete', { doctype: "View Config", name: config_name.value });
+    showModal.value = false;
+    router.replace({ query: {} });
+}
+
+const renameView = async () => {
+    showModal.value = false;
+    await call('frappe.client.set_value', {
+        doctype: "View Config",
+        name: config_name.value,
+        fieldname: "label",
+        value: config_settings.data.label
+    });
 }
 
 const cancelChanges = () => {
@@ -230,7 +334,9 @@ const handleFilterChange = async () => {
     let q = {};
     listConfig.value.filters.map((f) => {
         let fieldname = f[0];
-        let value = JSON.stringify([f[1], f[2]]);
+        let fieldtype = listConfig.value.fields.find((field) => field.value == fieldname).type;
+        let val = (fieldtype == "Check") ? f[2] == "true" : f[2];
+        let value = JSON.stringify([f[1], val]);
         if (q[fieldname])
             q[fieldname].push(value);
         else
@@ -239,5 +345,4 @@ const handleFilterChange = async () => {
     router.replace({ query: q });
     await list.fetch();
 };
-
 </script>

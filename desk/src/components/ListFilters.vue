@@ -49,8 +49,12 @@
                                 </Button>
                             </template>
                         </Autocomplete>
-                        <Button v-if="filters?.length" class="!text-gray-600 h-3.5" variant="ghost" icon="trash"
-                            @click="clearFilters" />
+                        <Button v-if="filters?.length" class="!text-gray-600 h-3.5" variant="ghost" :label="'Clear'"
+                            @click="clearFilters">
+                            <template #prefix>
+                                <FeatherIcon name="trash" class="h-3.5" />
+                            </template>
+                        </Button>
                     </div>
                 </div>
             </div>
