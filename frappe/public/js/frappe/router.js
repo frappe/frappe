@@ -17,7 +17,10 @@ frappe.route_hooks = {};
 
 $(window).on("hashchange", function (e) {
 	// v1 style routing, route is in hash
-	if (window.location.hash && !frappe.router.is_app_route(e.currentTarget.pathname)) {
+	if (
+		window.location.hash.includes("/") &&
+		!frappe.router.is_app_route(e.currentTarget.pathname)
+	) {
 		let sub_path = frappe.router.get_sub_path(window.location.hash);
 		frappe.router.push_state(sub_path);
 		return false;
