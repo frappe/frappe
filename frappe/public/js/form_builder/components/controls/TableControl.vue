@@ -16,9 +16,16 @@ let table_columns = computedAsync(async () => {
 
 function open_new_child_doctype_dialog() {
 	let is_custom = props.isCustomizeForm;
-	frappe.model.with_doctype("DocType").then(() => {
-		frappe.listview_settings["DocType"].new_doctype_dialog({ is_child: 1, is_custom });
-	});
+	let new_window = window.open("/app/doctype", "_blank");
+	new_window.onload = () => {
+		// set timeout to ensure that frappe is initialized
+		setTimeout(() => {
+			new_window.frappe.listview_settings["DocType"].new_doctype_dialog({
+				is_child: 1,
+				is_custom,
+			});
+		});
+	};
 }
 </script>
 
