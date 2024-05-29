@@ -24,7 +24,7 @@ function open_new_child_doctype_dialog() {
 				is_child: 1,
 				is_custom,
 			});
-		});
+		}, 10);
 	};
 }
 </script>
