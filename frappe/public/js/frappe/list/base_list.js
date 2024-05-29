@@ -762,6 +762,10 @@ class FilterArea {
 		}
 		return frappe.run_serially(promises).then(() => {
 			this.trigger_refresh = true;
+			if (promises.length === 0) {
+				// refresh if there are no standard fields
+				this.debounced_refresh_list_view();
+			}
 		});
 	}
 
