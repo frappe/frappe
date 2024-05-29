@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-26 09:33+0000\n"
-"PO-Revision-Date: 2024-05-28 01:35\n"
+"PO-Revision-Date: 2024-05-29 02:15\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -120,7 +120,7 @@ msgstr "+ Alanları Ekle / Çıkar"
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "0 - Draft; 1 - Submitted; 2 - Cancelled"
-msgstr ""
+msgstr "0 - Taslak; 1 - Gönderildi; 2 -İptal Edildi"
 
 #. Description of the 'Priority' (Int) field in DocType 'Web Page'
 #: website/doctype/web_page/web_page.json
@@ -546,7 +546,19 @@ msgid "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
 "<li>frappe.utils.now</li>\n"
 "</ul>\n"
 "<p>Example: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
-msgstr ""
+msgstr "<pre><code>doc.grand_total &gt; 0</code></pre>\n\n"
+"<p>Koşullar basit Python ile yazılmalıdır. Lütfen yalnızca formda bulunan özellikleri kullanın.</p>\n"
+"<p>İzin verilen fonksiyonlar:\n"
+"</p><ul>\n"
+"<li>frappe.db.get_value</li>\n"
+"<li>frappe.db.get_list</li>\n"
+"<li>frappe.session</li>\n"
+"<li>frappe.utils.now_datetime</li>\n"
+"<li>frappe.utils.get_datetime</li>\n"
+"<li>frappe.utils.add_to_date</li>\n"
+"<li>frappe.utils.now</li>\n"
+"</ul>\n"
+"<p>Örnek: </p><pre><code>doc.creation &gt; frappe.utils.add_to_date(frappe.utils.now_datetime(), days=-5, as_string=True, as_datetime=True) </code></pre><p></p>"
 
 #: custom/doctype/custom_field/custom_field.js:39
 msgid "<strong>Warning:</strong> This field is system generated and may be overwritten by a future update. Modify it using {0} instead."
@@ -1733,7 +1745,7 @@ msgstr ""
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "All possible Workflow States and roles of the workflow. Docstatus Options: 0 is \"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\""
-msgstr ""
+msgstr "İş akışının tüm olası İş Akışı Durumları ve rolleri. Docstatus Seçenekleri: 0 \"Kaydedildi\", 1 \"Gönderildi\" ve 2 \"İptal Edildi\""
 
 #: utils/password_strength.py:183
 msgid "All-uppercase is almost as easy to guess as all-lowercase."
@@ -1967,7 +1979,7 @@ msgstr "Rollere İzin Ver"
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgctxt "Workflow Transition"
 msgid "Allow Self Approval"
-msgstr ""
+msgstr "Kendi Kendini Onaylamaya İzin Ver"
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -1980,7 +1992,7 @@ msgstr "Uygulamaları İyileştirmek İçin Kullanım Verilerinin Gönderilmesin
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgctxt "Workflow Transition"
 msgid "Allow approval for creator of the document"
-msgstr ""
+msgstr "Belgeyi oluşturan kişinin onayına izin ver"
 
 #. Label of a Check field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -2086,7 +2098,7 @@ msgstr "Kullanıcıların, e-postalarına gönderilen oturum açma bağlantısı
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgctxt "Workflow Transition"
 msgid "Allowed"
-msgstr ""
+msgstr "İzin Verilen"
 
 #. Label of a Small Text field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -2104,13 +2116,13 @@ msgstr "Alıntılara İzin Ver"
 #: core/doctype/user_type/user_type.json
 msgctxt "User Type"
 msgid "Allowed Modules"
-msgstr ""
+msgstr "İzin Verilen Modüller"
 
 #. Label of a Table MultiSelect field in DocType 'OAuth Client'
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "Allowed Roles"
-msgstr ""
+msgstr "İzin Verilen Roller"
 
 #: public/js/frappe/form/form.js:1250
 msgid "Allowing DocType, DocType. Be careful!"
@@ -3044,7 +3056,7 @@ msgstr ""
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Audience"
-msgstr ""
+msgstr "Hedef Kitle"
 
 #. Name of a report
 #: custom/report/audit_system_hooks/audit_system_hooks.json
@@ -3426,7 +3438,7 @@ msgstr ""
 #: core/doctype/user_email/user_email.json
 msgctxt "User Email"
 msgid "Awaiting Password"
-msgstr "Şifre Bekleniyor"
+msgstr "Şifreyi Bekle"
 
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -4366,7 +4378,7 @@ msgstr ""
 #: website/doctype/web_page/web_page.js:111
 #: website/doctype/web_page/web_page.js:118
 msgid "By default the title is used as meta title, adding a value here will override it."
-msgstr ""
+msgstr "Varsayılan olarak başlık meta başlık olarak kullanılır, buraya bir değer eklemek bunu geçersiz kılacaktır."
 
 #. Description of the 'Send Email for Successful Backup' (Check) field in
 #. DocType 'S3 Backup Settings'
@@ -5121,7 +5133,7 @@ msgstr ""
 
 #: email/doctype/email_domain/email_domain.js:5
 msgid "Changing any setting will reflect on all the email accounts associated with this domain."
-msgstr ""
+msgstr "Herhangi bir ayarın değiştirilmesi, bu etki alanıyla ilişkili tüm e-posta hesaplarını etkileyecektir."
 
 #: core/doctype/system_settings/system_settings.js:62
 msgid "Changing rounding method on site with data can result in unexpected behaviour."
@@ -5309,7 +5321,7 @@ msgstr ""
 
 #: www/list.py:85
 msgid "Child DocTypes are not allowed"
-msgstr ""
+msgstr "Alt DocType'lara izin verilmiyor"
 
 #. Label of a Data field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -5440,7 +5452,7 @@ msgstr ""
 
 #: templates/emails/data_deletion_approval.html:2
 msgid "Click on the link below to approve the request"
-msgstr ""
+msgstr "Talebi onaylamak için aşağıdaki bağlantıya tıklayın"
 
 #: templates/emails/new_user.html:7
 msgid "Click on the link below to complete your registration and set a new password"
@@ -6944,7 +6956,7 @@ msgstr "Yeni Çalışma Alanı"
 
 #: printing/page/print_format_builder/print_format_builder_start.html:16
 msgid "Create a New Format"
-msgstr ""
+msgstr "Yeni Bir Format Oluştur"
 
 #: public/js/frappe/form/reminders.js:9
 msgid "Create a Reminder"
@@ -6986,7 +6998,7 @@ msgstr "Yazdırma Formatı Oluştur veya Düzenle"
 
 #: workflow/page/workflow_builder/workflow_builder.js:34
 msgid "Create or Edit Workflow"
-msgstr ""
+msgstr "İş Akışı Oluşturun veya Düzenleyin"
 
 #: public/js/frappe/list/list_view.js:479
 msgid "Create your first {0}"
@@ -6994,7 +7006,7 @@ msgstr "{0} Oluştur"
 
 #: workflow/doctype/workflow/workflow.js:16
 msgid "Create your workflow visually using the Workflow Builder."
-msgstr ""
+msgstr "İş Akışı Oluşturucu'yu kullanarak iş akışınızı görsel olarak oluşturun."
 
 #: public/js/frappe/views/file/file_view.js:337
 msgid "Created"
@@ -7025,7 +7037,7 @@ msgstr ""
 
 #: workflow/doctype/workflow/workflow.py:65
 msgid "Created Custom Field {0} in {1}"
-msgstr ""
+msgstr "{0} özel alanı {1} için oluşturuldu."
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:241
 #: email/doctype/notification/notification.js:30 model/meta.py:46
@@ -7352,7 +7364,7 @@ msgstr "Özel Alan"
 
 #: custom/doctype/custom_field/custom_field.py:218
 msgid "Custom Field {0} is created by the Administrator and can only be deleted through the Administrator account."
-msgstr ""
+msgstr "Özel Alan {0} Yönetici tarafından oluşturulur ve yalnızca Yönetici hesabı aracılığıyla silinebilir."
 
 #. Subtitle of the Module Onboarding 'Customization'
 #: custom/module_onboarding/customization/customization.json
@@ -8455,12 +8467,12 @@ msgstr ""
 #. Description of a DocType
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Defines actions on states and the next step and allowed roles."
-msgstr ""
+msgstr "Durumlara ilişkin eylemleri, sonraki adımı ve izin verilen rolleri tanımlar."
 
 #. Description of a DocType
 #: workflow/doctype/workflow/workflow.json
 msgid "Defines workflow states and rules for a document."
-msgstr ""
+msgstr "Bir belge için iş akışı durumlarını ve kurallarını tanımlar."
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -8914,7 +8926,7 @@ msgstr ""
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc."
-msgstr ""
+msgstr "Bu belgenin bulunabileceği farklı \"Durumlar\". \"Açık\", \"Onay Bekliyor\" vb. gibi."
 
 #. Label of a Int field in DocType 'Document Naming Rule'
 #: core/doctype/document_naming_rule/document_naming_rule.json
@@ -9225,7 +9237,7 @@ msgstr ""
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Doc Status"
-msgstr ""
+msgstr "Belge Durumu"
 
 #. Name of a DocType
 #: core/doctype/docfield/docfield.json
@@ -9446,7 +9458,7 @@ msgstr ""
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "DocType on which this Workflow is applicable."
-msgstr ""
+msgstr "Bu İş Akışının geçerli olduğu DocType."
 
 #: public/js/frappe/views/kanban/kanban_settings.js:4
 msgid "DocType required"
@@ -9992,12 +10004,12 @@ msgstr "Domain"
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Domain Name"
-msgstr ""
+msgstr "Etki Alanı Adı"
 
 #. Name of a DocType
 #: core/doctype/domain_settings/domain_settings.json
 msgid "Domain Settings"
-msgstr ""
+msgstr "Etki Alanı Ayarları"
 
 #. Label of a HTML field in DocType 'Domain Settings'
 #: core/doctype/domain_settings/domain_settings.json
@@ -10020,13 +10032,13 @@ msgstr ""
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Don't Override Status"
-msgstr ""
+msgstr "Durumu Geçersiz Kılma"
 
 #. Label of a Check field in DocType 'Workflow Document State'
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Don't Override Status"
-msgstr ""
+msgstr "Durumu Geçersiz Kılma"
 
 #. Label of a Check field in DocType 'Data Import'
 #: core/doctype/data_import/data_import.json
@@ -10121,7 +10133,7 @@ msgstr "Taslak"
 #: public/js/frappe/views/workspace/workspace.js:576
 #: public/js/frappe/widgets/base_widget.js:33
 msgid "Drag"
-msgstr ""
+msgstr "Sürükle"
 
 #: printing/page/print_format_builder/print_format_builder_layout.html:3
 msgid "Drag elements from the sidebar to add. Drag them back to trash."
@@ -10496,7 +10508,7 @@ msgstr ""
 
 #: workflow/doctype/workflow/workflow.js:18
 msgid "Edit your workflow visually using the Workflow Builder."
-msgstr ""
+msgstr "İş Akışı Oluşturucu'yu kullanarak iş akışınızı görsel olarak düzenleyin."
 
 #: public/js/frappe/views/reports/report_view.js:647
 #: public/js/frappe/widgets/widget_dialog.js:52
@@ -10526,7 +10538,7 @@ msgstr "Satır Düzenleme"
 #: public/js/print_format_builder/print_format_builder.bundle.js:14
 #: public/js/workflow_builder/workflow_builder.bundle.js:20
 msgid "Editing {0}"
-msgstr ""
+msgstr "{0} Düzenleniyor"
 
 #. Description of the 'SMS Gateway URL' (Small Text) field in DocType 'SMS
 #. Settings'
@@ -10940,7 +10952,7 @@ msgstr "Atanan Belgedeki Konuları E-postayla Gönder"
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Email To"
-msgstr ""
+msgstr "E-posta Alıcısı"
 
 #. Name of a DocType
 #: email/doctype/email_unsubscribe/email_unsubscribe.json
@@ -10977,7 +10989,7 @@ msgstr ""
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Emails will be sent with next possible workflow actions"
-msgstr ""
+msgstr "E-postalar bir sonraki olası iş akışı eylemleriyle birlikte gönderilecektir"
 
 #: website/doctype/web_form/web_form.js:34
 msgid "Embed code copied"
@@ -12473,7 +12485,7 @@ msgstr ""
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)"
-msgstr ""
+msgstr "İşlemin İş Akışı Durumunu gösteren alan (alan mevcut değilse, gizli yeni bir Özel Alan oluşturulur)"
 
 #. Label of a Select field in DocType 'Milestone Tracker'
 #: automation/doctype/milestone_tracker/milestone_tracker.json
@@ -12844,7 +12856,7 @@ msgstr "Filtre"
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Filter Data"
-msgstr ""
+msgstr "Veri Filtresi"
 
 #. Label of a HTML field in DocType 'Data Export'
 #: core/doctype/data_export/data_export.json
@@ -13221,7 +13233,7 @@ msgstr "Yazı Tipi"
 #: website/doctype/website_theme/website_theme.json
 msgctxt "Website Theme"
 msgid "Font Properties"
-msgstr ""
+msgstr "Yazı Tipi Özellikleri"
 
 #. Label of a Int field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
@@ -13464,7 +13476,7 @@ msgstr "Daha fazla bilgi için, {0}."
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "For multiple addresses, enter the address on different line. e.g. test@test.com ⏎ test1@test.com"
-msgstr ""
+msgstr "Birden fazla adres için adresi farklı satırlara girin. örneğin test@test.com ⏎ test1@test.com"
 
 #: core/doctype/data_export/exporter.py:197
 msgid "For updating, you can update only selective columns."
@@ -13787,7 +13799,7 @@ msgstr "Başlama Tarihi"
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "From Date Field"
-msgstr ""
+msgstr "Başlangıç Tarihi Alanı"
 
 #: public/js/frappe/views/reports/query_report.js:1690
 msgid "From Document Type"
@@ -14116,7 +14128,7 @@ msgstr ""
 
 #: public/js/workflow_builder/workflow_builder.bundle.js:41
 msgid "Go to Workflow"
-msgstr ""
+msgstr "İş Akışına Git"
 
 #: desk/doctype/workspace/workspace.js:18
 msgid "Go to Workspace"
@@ -15410,14 +15422,14 @@ msgstr "Kısıtlı Kullanıcı İzni Uygula işaretliyse ve kullanıcıya bir Do
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "If Checked workflow status will not override status in list view"
-msgstr ""
+msgstr "İşaretliyse iş akışı durumu liste görünümündeki durumu geçersiz kılmaz"
 
 #. Description of the 'Don't Override Status' (Check) field in DocType
 #. 'Workflow Document State'
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "If Checked workflow status will not override status in list view"
-msgstr ""
+msgstr "İşaretliyse iş akışı durumu liste görünümündeki durumu geçersiz kılmaz"
 
 #: core/doctype/doctype/doctype.py:1720 public/js/frappe/roles_editor.js:66
 msgid "If Owner"
@@ -16101,7 +16113,7 @@ msgstr "Standart Filtre"
 #. Description of the Onboarding Step 'Generate Custom Reports'
 #: custom/onboarding_step/report_builder/report_builder.json
 msgid "In each module, you will find a host of single-click reports, ranging from financial statements to sales and purchase analytics and stock tracking reports. If a required new report is not available out-of-the-box, you can create custom reports in ERPNext by pulling values from the same multiple ERPNext tables.\n"
-msgstr ""
+msgstr "Her modülde, finansal tablolardan satış ve satın alma analizlerine ve stok izleme raporlarına kadar tek tıklamayla kullanılabilen bir dizi rapor bulacaksınız. Gerekli yeni bir rapor kullanıma hazır değilse, ERPNext'te aynı birden fazla ERPNext tablosundan değerleri çekerek özel raporlar oluşturabilirsiniz.\n"
 
 #. Description of the 'Font Size' (Float) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -16164,7 +16176,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:1507
 msgid "Include filters"
-msgstr ""
+msgstr "Filtreleri dahil et"
 
 #: public/js/frappe/views/reports/query_report.js:1499
 msgid "Include indentation"
@@ -16196,19 +16208,19 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Incoming Server"
-msgstr ""
+msgstr "Gelen Sunucu"
 
 #. Label of a Data field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Incoming Server"
-msgstr ""
+msgstr "Gelen Sunucu"
 
 #. Label of a Section Break field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Incoming Settings"
-msgstr ""
+msgstr "Gelen Sunucu Ayarları"
 
 #: email/doctype/email_domain/email_domain.py:32
 msgid "Incoming email account not correct"
@@ -18029,7 +18041,7 @@ msgstr ""
 #. Title of an Onboarding Step
 #: website/onboarding_step/web_page_tour/web_page_tour.json
 msgid "Learn about Web Pages"
-msgstr ""
+msgstr "Web Sayfaları Hakkında daha fazla bilgi"
 
 #. Label of an action in the Onboarding Step 'Create Custom Fields'
 #: custom/onboarding_step/custom_field/custom_field.json
@@ -19474,7 +19486,7 @@ msgstr ""
 
 #: model/rename_doc.py:674
 msgid "Maximum {0} rows allowed"
-msgstr ""
+msgstr "İzin verilen en fazla satır sayısı {0}"
 
 #: public/js/frappe/list/list_sidebar_group_by.js:221
 msgid "Me"
@@ -19766,23 +19778,23 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.js:117
 msgid "Meta Title"
-msgstr ""
+msgstr "Meta Başlık"
 
 #. Label of a Data field in DocType 'Blog Post'
 #: website/doctype/blog_post/blog_post.json
 msgctxt "Blog Post"
 msgid "Meta Title"
-msgstr ""
+msgstr "Meta Başlık"
 
 #. Label of a Data field in DocType 'Web Form'
 #: website/doctype/web_form/web_form.json
 msgctxt "Web Form"
 msgid "Meta Title"
-msgstr ""
+msgstr "Meta Başlık"
 
 #: website/doctype/web_page/web_page.js:110
 msgid "Meta title for SEO"
-msgstr ""
+msgstr "SEO için meta başlık"
 
 #. Label of a Data field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
@@ -19904,7 +19916,7 @@ msgstr ""
 
 #: email/doctype/auto_email_report/auto_email_report.py:129
 msgid "Missing Filters Required"
-msgstr ""
+msgstr "Eksik Filtreler Gerekli"
 
 #: desk/form/assign_to.py:107
 msgid "Missing Permission"
@@ -20502,7 +20514,7 @@ msgstr ""
 
 #: workflow/doctype/workflow/workflow.js:19
 msgid "NOTE: If you add states or transitions in the table, it will be reflected in the Workflow Builder but you will have to position them manually. Also Workflow Builder is currently in <b>BETA</b>."
-msgstr ""
+msgstr "NOT: Tabloya durumlar veya geçişler eklerseniz, bunlar İş Akışı Oluşturucu'ya yansıtılacaktır ancak bunları manuel olarak konumlandırmanız gerekecektir. Ayrıca İş Akışı Oluşturucu şu anda <b>BETA</b> aşamasındadır."
 
 #. Description of the 'LDAP Group Field' (Data) field in DocType 'LDAP
 #. Settings'
@@ -20561,7 +20573,7 @@ msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:117
 msgid "Name of the new Print Format"
-msgstr ""
+msgstr "Yeni Yazdırma Formatının Adı"
 
 #: model/naming.py:490
 msgid "Name of {0} cannot be {1}"
@@ -20873,7 +20885,7 @@ msgstr "Yeni Değer"
 
 #: workflow/page/workflow_builder/workflow_builder.js:61
 msgid "New Workflow Name"
-msgstr ""
+msgstr "Yeni İş Akışı Adı"
 
 #: public/js/frappe/views/workspace/workspace.js:1183
 msgid "New Workspace"
@@ -21004,7 +21016,7 @@ msgstr "Sonraki"
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Next Action Email Template"
-msgstr ""
+msgstr "Sonraki Eylem E-posta Şablonu"
 
 #. Label of a HTML field in DocType 'Success Action'
 #: core/doctype/success_action/success_action.json
@@ -21042,7 +21054,7 @@ msgstr ""
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgctxt "Workflow Transition"
 msgid "Next State"
-msgstr ""
+msgstr "Sonraki Durum"
 
 #. Label of a Code field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
@@ -21503,7 +21515,7 @@ msgstr "Yok"
 
 #: public/js/frappe/form/workflow.js:36
 msgid "None: End of Workflow"
-msgstr ""
+msgstr "Yok: İş Akışı Sonu"
 
 #. Label of a Int field in DocType 'Recorder Query'
 #: core/doctype/recorder_query/recorder_query.json
@@ -21524,7 +21536,7 @@ msgstr "İzin verilmedi"
 
 #: templates/includes/login/login.js:260
 msgid "Not Allowed: Disabled User"
-msgstr ""
+msgstr "İzin Verilmedi: Devre Dışı Bırakılmış Kullanıcı"
 
 #: public/js/frappe/ui/filters/filter.js:36
 msgid "Not Ancestors Of"
@@ -21632,7 +21644,7 @@ msgstr ""
 
 #: model/workflow.py:114
 msgid "Not a valid Workflow Action"
-msgstr ""
+msgstr "Geçerli bir İş Akışı Eylemi değil"
 
 #: templates/includes/login/login.js:256
 msgid "Not a valid user"
@@ -22303,7 +22315,7 @@ msgstr ""
 
 #: client.py:213
 msgid "Only 200 inserts allowed in one request"
-msgstr ""
+msgstr "Bir istekte yalnızca 200 girişe izin verilir"
 
 #: email/doctype/email_queue/email_queue.py:81
 msgid "Only Administrator can delete Email Queue"
@@ -22319,13 +22331,13 @@ msgstr "Standart bir raporu yalnızca Yönetici kaydedebilir. Lütfen yeniden ad
 
 #: recorder.py:309
 msgid "Only Administrator is allowed to use Recorder"
-msgstr ""
+msgstr "Kaydediciyi yalnızca Yönetici kullanabilir"
 
 #. Label of a Link field in DocType 'Workflow Document State'
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Only Allow Edit For"
-msgstr ""
+msgstr "Düzenleme Yetkisi"
 
 #: core/doctype/doctype/doctype.py:1575
 msgid "Only Options allowed for Data field are:"
@@ -22732,7 +22744,7 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Outgoing (SMTP) Settings"
-msgstr ""
+msgstr "Giden (SMTP) Ayarları"
 
 #. Label of a Column Break field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
@@ -22744,19 +22756,19 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Outgoing Server"
-msgstr ""
+msgstr "Giden Sunucu"
 
 #. Label of a Data field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Outgoing Server"
-msgstr ""
+msgstr "Giden Sunucu"
 
 #. Label of a Section Break field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Outgoing Settings"
-msgstr ""
+msgstr "Giden Sunucu Ayarları"
 
 #: email/doctype/email_domain/email_domain.py:33
 msgid "Outgoing email account not correct"
@@ -23052,7 +23064,7 @@ msgstr ""
 #: website/doctype/about_us_settings/about_us_settings.json
 msgctxt "About Us Settings"
 msgid "Page Title"
-msgstr ""
+msgstr "Sayfa Başlığı"
 
 #: public/js/frappe/list/bulk_operations.js:79
 msgid "Page Width (in mm)"
@@ -23078,7 +23090,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:1310
 msgid "Page with title {0} already exist."
-msgstr ""
+msgstr "{0} başlıklı sayfa zaten mevcut."
 
 #: public/html/print_template.html:25
 #: public/js/frappe/views/reports/print_tree.html:89
@@ -24102,7 +24114,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/query_report.js:1324
 msgid "Please set filters"
-msgstr ""
+msgstr "Lütfen filtreleri ayarların"
 
 #: email/doctype/auto_email_report/auto_email_report.py:251
 msgid "Please set filters value in Report Filter table."
@@ -24134,7 +24146,7 @@ msgstr ""
 
 #: core/doctype/user/user.py:371
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
-msgstr ""
+msgstr "Lütfen Ayarlar > E-posta Hesabı bölümünden varsayılan giden E-posta Hesabını ayarlayın"
 
 #: public/js/frappe/model/model.js:800
 msgid "Please specify"
@@ -26804,7 +26816,7 @@ msgstr ""
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Report Filters"
-msgstr ""
+msgstr "Rapor Filtreleri"
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -26905,7 +26917,7 @@ msgstr ""
 #: desk/doctype/dashboard_chart/dashboard_chart.js:208
 #: desk/doctype/number_card/number_card.js:191
 msgid "Report has no data, please modify the filters or change the Report Name"
-msgstr ""
+msgstr "Raporda veri yok, lütfen filtreleri veya Rapor Adını değiştirin"
 
 #: desk/doctype/dashboard_chart/dashboard_chart.js:196
 #: desk/doctype/number_card/number_card.js:186
@@ -27107,7 +27119,7 @@ msgstr ""
 #: public/js/print_format_builder/print_format_builder.bundle.js:21
 #: public/js/workflow_builder/workflow_builder.bundle.js:37
 msgid "Reset Changes"
-msgstr ""
+msgstr "Değişiklikleri Sıfırla"
 
 #: public/js/frappe/widgets/chart_widget.js:305
 msgid "Reset Chart"
@@ -27966,14 +27978,14 @@ msgstr ""
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Rules defining transition of state in the workflow."
-msgstr ""
+msgstr "İş akışında durum geçişini tanımlayan kurallar."
 
 #. Description of the 'Transition Rules' (Section Break) field in DocType
 #. 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Rules for how states are transitions, like next state and which role is allowed to change state etc."
-msgstr ""
+msgstr "Bir sonraki durum ve hangi rolün durumu değiştirmesine izin verildiği gibi durum geçişlerinin nasıl yapıldığına ilişkin kurallar."
 
 #. Description of the 'Priority' (Int) field in DocType 'Document Naming Rule'
 #: core/doctype/document_naming_rule/document_naming_rule.json
@@ -28991,7 +29003,7 @@ msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:82
 msgid "Select Print Format to Edit"
-msgstr ""
+msgstr "Düzenlemek için Baskı Formatını Seçin"
 
 #. Label of a Link field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -29015,7 +29027,7 @@ msgstr ""
 
 #: workflow/page/workflow_builder/workflow_builder.js:68
 msgid "Select Workflow"
-msgstr ""
+msgstr "İş Akışını Seçin"
 
 #. Label of a Link field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -29029,7 +29041,7 @@ msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:108
 msgid "Select a DocType to make a new format"
-msgstr ""
+msgstr "Yeni bir format oluşturmak için bir DocType seçin"
 
 #: integrations/doctype/webhook/webhook.py:133
 msgid "Select a document to check if it meets conditions."
@@ -29057,7 +29069,7 @@ msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder_start.html:2
 msgid "Select an existing format to edit or start a new format."
-msgstr ""
+msgstr "Düzenlemek için mevcut bir formatı seçin veya yeni bir format oluşturun."
 
 #. Description of the 'Brand Image' (Attach Image) field in DocType 'Website
 #. Settings'
@@ -29087,7 +29099,7 @@ msgstr ""
 
 #: public/js/frappe/views/calendar/calendar.js:167
 msgid "Select or drag across time slots to create a new event."
-msgstr ""
+msgstr "Yeni bir etkinlik oluşturmak için zaman aralıklarını seçin veya sürükleyin."
 
 #: public/js/frappe/list/bulk_operations.js:209
 msgid "Select records for assignment"
@@ -29116,7 +29128,7 @@ msgstr "{0} Seçimi"
 
 #: model/workflow.py:117
 msgid "Self approval is not allowed"
-msgstr ""
+msgstr "Kendi kendini onaylamaya izin verilmiyor"
 
 #: email/doctype/newsletter/newsletter.js:66
 #: email/doctype/newsletter/newsletter.js:74
@@ -29330,7 +29342,7 @@ msgstr ""
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Send only if there is any data"
-msgstr ""
+msgstr "Yalnızca herhangi bir veri varsa gönder"
 
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -29719,7 +29731,7 @@ msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:471
 msgid "Set Properties"
-msgstr ""
+msgstr "Özellikleri Ayarla"
 
 #. Label of a Section Break field in DocType 'Notification'
 #. Label of a Select field in DocType 'Notification'
@@ -32852,7 +32864,7 @@ msgstr ""
 
 #: workflow/doctype/workflow/workflow.js:125
 msgid "There are documents which have workflow states that do not exist in this Workflow. It is recommended that you add these states to the Workflow and change their states before removing these states."
-msgstr ""
+msgstr "Bu İş Akışında bulunmayan iş akışı durumlarına sahip belgeler var. Bu durumları kaldırmadan önce bu durumları İş Akışına eklemeniz ve durumlarını değiştirmeniz önerilir."
 
 #: public/js/frappe/ui/notifications/notifications.js:435
 msgid "There are no upcoming events for you."
@@ -33165,7 +33177,7 @@ msgstr ""
 
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.py:118
 msgid "This request has not yet been approved by the user."
-msgstr ""
+msgstr "Bu talep henüz kullanıcı tarafından onaylanmadı."
 
 #: templates/includes/navbar/navbar_items.html:95
 msgid "This site is in read only mode, full functionality will be restored soon."
@@ -33177,7 +33189,7 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.js:71
 msgid "This title will be used as the title of the webpage as well as in meta tags"
-msgstr ""
+msgstr "Bu başlık, web sayfasının başlığı ve meta etiketlerinde kullanılacaktır"
 
 #: public/js/frappe/form/controls/base_input.js:120
 msgid "This value is fetched from {0}'s {1} field"
@@ -33647,7 +33659,7 @@ msgstr ""
 
 #: website/doctype/web_page/web_page.js:70
 msgid "Title of the page"
-msgstr ""
+msgstr "Sayfa başlığı"
 
 #: public/js/frappe/views/communication.js:53
 #: public/js/frappe/views/inbox/inbox_view.js:70
@@ -33680,7 +33692,7 @@ msgstr "Bitiş Tarihi"
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "To Date Field"
-msgstr ""
+msgstr "Bitiş Tarihi Alanı"
 
 #: desk/doctype/todo/todo_list.js:6
 msgid "To Do"
@@ -33735,7 +33747,7 @@ msgstr ""
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "To begin the date range at the start of the chosen period. For example, if 'Year' is selected as the period, the report will start from January 1st of the current year."
-msgstr ""
+msgstr "Tarih aralığını seçilen dönemin başlangıcından başlatmak için, dönem olarak 'Yıl' seçilirse, rapor yılın ilk günü olan 1 Ocak tarihinden itibaren başlar."
 
 #: automation/doctype/auto_repeat/auto_repeat.js:35
 msgid "To configure Auto Repeat, enable \"Allow Auto Repeat\" from {0}."
@@ -34161,7 +34173,7 @@ msgstr ""
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Transition Rules"
-msgstr ""
+msgstr "Geçiş Kuralları"
 
 #. Label of a Table field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
@@ -34824,7 +34836,7 @@ msgstr ""
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Update Field"
-msgstr ""
+msgstr "Alanı Güncelle"
 
 #: core/doctype/installed_applications/installed_applications.js:6
 #: core/doctype/installed_applications/installed_applications.js:13
@@ -34998,7 +35010,7 @@ msgstr ""
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Use First Day of Period"
-msgstr ""
+msgstr "Dönemin İlk Gününü Kullan"
 
 #. Label of a Check field in DocType 'Email Template'
 #: email/doctype/email_template/email_template.json
@@ -35046,13 +35058,13 @@ msgstr ""
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Use STARTTLS"
-msgstr ""
+msgstr "STARTTLS Kullan"
 
 #. Label of a Check field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
 msgctxt "Email Domain"
 msgid "Use STARTTLS"
-msgstr ""
+msgstr "STARTTLS Kullan"
 
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -35980,7 +35992,7 @@ msgstr ""
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "View Properties (via Customize Form)"
-msgstr ""
+msgstr "Özellikleri Görüntüle (Formu Özelleştir)"
 
 #: social/doctype/energy_point_log/energy_point_log_list.js:20
 msgid "View Ref"
@@ -36583,7 +36595,7 @@ msgstr "Haftalık"
 #: email/doctype/auto_email_report/auto_email_report.json
 msgctxt "Auto Email Report"
 msgid "Weekdays"
-msgstr ""
+msgstr "Hafta İçi"
 
 #: public/js/frappe/utils/common.js:399
 #: website/report/website_analytics/website_analytics.js:24
@@ -36880,7 +36892,7 @@ msgstr "İş Akışı"
 #: workflow/doctype/workflow_action/workflow_action.json
 #: workflow/doctype/workflow_action/workflow_action.py:438
 msgid "Workflow Action"
-msgstr ""
+msgstr "İş Akışı Eylemi"
 
 #. Name of a DocType
 #. Description of a DocType
@@ -36892,79 +36904,79 @@ msgstr ""
 #: workflow/doctype/workflow_action_master/workflow_action_master.json
 msgctxt "Workflow Action Master"
 msgid "Workflow Action Name"
-msgstr ""
+msgstr "İş Akışı Eylem Adı"
 
 #. Name of a DocType
 #: workflow/doctype/workflow_action_permitted_role/workflow_action_permitted_role.json
 msgid "Workflow Action Permitted Role"
-msgstr ""
+msgstr "İş Akışı Eylemine İzin Verilen Rol"
 
 #. Description of the 'Is Optional State' (Check) field in DocType 'Workflow
 #. Document State'
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Workflow Action is not created for optional states"
-msgstr ""
+msgstr "İsteğe bağlı durumlar için İş Akışı Eylemi oluşturulmaz"
 
 #: public/js/workflow_builder/store.js:129
 #: workflow/doctype/workflow/workflow.js:25
 #: workflow/page/workflow_builder/workflow_builder.js:4
 msgid "Workflow Builder"
-msgstr ""
+msgstr "İş Akışı Oluşturucu"
 
 #. Label of a Data field in DocType 'Workflow Document State'
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgctxt "Workflow Document State"
 msgid "Workflow Builder ID"
-msgstr ""
+msgstr "İş Akışı Oluşturucu ID"
 
 #. Label of a Data field in DocType 'Workflow Transition'
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgctxt "Workflow Transition"
 msgid "Workflow Builder ID"
-msgstr ""
+msgstr "İş Akışı Oluşturucu ID"
 
 #: workflow/doctype/workflow/workflow.js:11
 msgid "Workflow Builder allows you to create workflows visually. You can drag and drop states and link them to create transitions. Also you can update thieir properties from the sidebar."
-msgstr ""
+msgstr "İş Akışı Oluşturucu, iş akışlarını görsel olarak oluşturmanızı sağlar. Durumları sürükleyip bırakabilir ve geçişler oluşturmak için bunları bağlayabilirsiniz. Ayrıca özelliklerini kenar çubuğundan güncelleyebilirsiniz."
 
 #. Label of a JSON field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Workflow Data"
-msgstr ""
+msgstr "İş Akışı Verileri"
 
 #. Name of a DocType
 #: workflow/doctype/workflow_document_state/workflow_document_state.json
 msgid "Workflow Document State"
-msgstr ""
+msgstr "İş Akışı Belge Durumu"
 
 #. Label of a Data field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Workflow Name"
-msgstr ""
+msgstr "İş Akışı Adı"
 
 #. Name of a DocType
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Workflow State"
-msgstr ""
+msgstr "İş Akışı Durumu"
 
 #. Label of a Data field in DocType 'Workflow Action'
 #: workflow/doctype/workflow_action/workflow_action.json
 msgctxt "Workflow Action"
 msgid "Workflow State"
-msgstr ""
+msgstr "İş Akışı Durumu"
 
 #. Label of a Data field in DocType 'Workflow'
 #: workflow/doctype/workflow/workflow.json
 msgctxt "Workflow"
 msgid "Workflow State Field"
-msgstr ""
+msgstr "İş Akışı Durum Alanı"
 
 #: model/workflow.py:61
 msgid "Workflow State not set"
-msgstr ""
+msgstr "İş Akışı Durumu ayarlanmamış"
 
 #: model/workflow.py:197 model/workflow.py:205
 msgid "Workflow State transition not allowed from {0} to {1}"
@@ -36972,26 +36984,26 @@ msgstr ""
 
 #: model/workflow.py:320
 msgid "Workflow Status"
-msgstr ""
+msgstr "İş Akışı Durumu"
 
 #. Name of a DocType
 #: workflow/doctype/workflow_transition/workflow_transition.json
 msgid "Workflow Transition"
-msgstr ""
+msgstr "İş Akışı Geçişi"
 
 #. Description of a DocType
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Workflow state represents the current state of a document."
-msgstr ""
+msgstr "İş akışı durumu, bir belgenin geçerli durumunu temsil eder."
 
 #: public/js/workflow_builder/store.js:83
 msgid "Workflow updated successfully"
-msgstr ""
+msgstr "İş akışı başarıyla güncellendi"
 
 #. Description of the Onboarding Step 'Setup Approval Workflows'
 #: custom/onboarding_step/workflows/workflows.json
 msgid "Workflows allow you to define custom rules for the approval process of a particular document in ERPNext. You can also set complex Workflow Rules and set approval conditions."
-msgstr ""
+msgstr "İş akışları, ERPNext'te belirli bir belgenin onay süreci için özel kurallar tanımlamanıza olanak tanır. Ayrıca karmaşık İş Akışı Kuralları ayarlayabilir ve onay koşullarını belirleyebilirsiniz."
 
 #. Name of a DocType
 #: desk/doctype/workspace/workspace.json
@@ -37367,7 +37379,7 @@ msgstr ""
 
 #: printing/page/print_format_builder/print_format_builder.js:741
 msgid "You can add dynamic properties from the document by using Jinja templating."
-msgstr ""
+msgstr "Belgeye dinamik özellikler eklemek için Jinja şablonu kullanabilirsiniz."
 
 #: printing/doctype/letter_head/letter_head.js:32
 msgid "You can also access wkhtmltopdf variables (valid only in PDF print):"
@@ -37435,7 +37447,7 @@ msgstr ""
 
 #: desk/query_report.py:336
 msgid "You can try changing the filters of your report."
-msgstr ""
+msgstr "Raporunuzun filtrelerini değiştirmeyi deneyebilirsiniz."
 
 #: core/page/permission_manager/permission_manager_help.html:27
 msgid "You can use Customize Form to set levels on fields."
@@ -39078,7 +39090,7 @@ msgstr ""
 
 #: model/workflow.py:182
 msgid "{0} is not a valid Workflow State. Please update your Workflow and try again."
-msgstr ""
+msgstr "{0} geçerli bir İş Akışı Durumu değil. Lütfen İş Akışınızı güncelleyin ve tekrar deneyin."
 
 #: permissions.py:784
 msgid "{0} is not a valid parent DocType for {1}"
