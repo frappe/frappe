@@ -564,6 +564,10 @@ class User(Document):
 			frappe.throw(_("You can disable the user instead of deleting it."), frappe.LinkExistsError)
 
 	def before_rename(self, old_name, new_name, merge=False):
+		# if merging, delete the old user notification settings
+		if merge:
+			frappe.delete_doc("Notification Settings", old_name, ignore_permissions=True)
+
 		frappe.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)
 
