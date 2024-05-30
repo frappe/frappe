@@ -27,7 +27,7 @@
                         </Tooltip>
                         <template v-if="isDefaultConfig">
                             <Tooltip text="Create View" :hover-delay="0.5">
-                                <Button class="rounded-none rounded-r" variant="subtle" @click="modalMode = 'Create' ; showModal = true;">
+                                <Button class="rounded-none rounded-r" variant="subtle" @click="viewModalMode = 'Create'; showViewActionsModal = true;">
                                     <template #default>
                                         <FeatherIcon name="save" class="h-3.5"></FeatherIcon>
                                     </template>
@@ -53,39 +53,7 @@
             <ListView :rows="list.data" rowKey="name" :columns="listConfig.columns" :options="listOptions" />
         </div>
     </div>
-    <Dialog v-model="showModal" :options="{
-                title: ` ${ modalMode } View `,
-                actions: [
-                    {
-                        label: modalMode,
-                        variant: 'solid',
-                        onClick: () => {
-                            if (modalMode == 'Create')
-                                createView()
-                            else if (modalMode == 'Save')
-                                renameView()
-                            else
-                                deleteView()
-                        },
-                    },
-                ],
-                size: 'sm'
-            }">
-        <template #body-content>
-            <template v-if="modalMode == 'Create'">
-                <FormControl :type="'text'" size="md" variant="subtle" label="View Name" v-model="newViewName" />
-            </template>
-            <template v-else-if="modalMode == 'Save'">
-                <FormControl :type="'text'" size="md" variant="subtle" label="View Name"
-                    v-model="config_settings.data.label" />
-            </template>
-            <template v-else>
-                <div class="text-base">
-                    Are you sure you want to delete this view?
-                </div>
-            </template>
-        </template>
-    </Dialog>
+    <ViewActionsModal v-model="showViewActionsModal" :listConfig="listConfig" :mode="viewModalMode" @updateQueryParams="handleUpdateQueryParams"/>
 </template>
 
 <script setup>
@@ -97,6 +65,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { ListView } from 'frappe-ui';
 import ListControls from '@/components/ListControls.vue';
+import ViewActionsModal from '@/components/ViewActionsModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -114,16 +83,16 @@ const viewsDropdownOptions = computed(() => {
                 label: 'Rename',
                 icon: 'edit-3',
                 onClick: () => {
-                    modalMode.value = 'Save';
-                    showModal.value = true;
+                    viewModalMode.value = 'Save';
+                    showViewActionsModal.value = true;
                 }
             },
             {
                 label: 'Delete',
                 icon: 'trash',
                 onClick: () => {
-                    modalMode.value = 'Delete';
-                    showModal.value = true;
+                    viewModalMode.value = 'Delete';
+                    showViewActionsModal.value = true;
                 }
             }
         ]
@@ -242,59 +211,16 @@ watch(() => listConfig.value, async () => {
     await list.fetch();
 }, { deep: true, immediate: true });
 
-const createConfigResource = createResource({
-    url: 'frappe.client.insert',
-    method: 'POST',
-    makeParams: () => {
-        return {
-            doc: {
-                doctype: 'View Config',
-                document_type: route.params.doctype,
-                columns: JSON.stringify(listConfig.value.columns),
-                filters: JSON.stringify(listConfig.value.filters),
-                label: newViewName.value,
-            }
-        }
-    }
-});
-
 const updateConfigResource = createResource({
     url: 'frappe.desk.doctype.view_config.view_config.update_config',
     method: 'POST',
 });
-
-const showModal = ref(false);
-const modalMode = ref('');
-const newViewName = ref('');
-
-const createView = async () => {
-    showModal.value = false;
-    let doc = await createConfigResource.submit();
-    router.push({ query: { view: doc.name } });
-    await loadConfig(doc.name);
-    await list.fetch();
-}
 
 const updateView = async () => {
     await updateConfigResource.submit({ config_name: config_name.value, new_config: listConfig.value });
     await list.fetch();
 }
 
-const deleteView = async () => {
-    await call('frappe.client.delete', { doctype: "View Config", name: config_name.value });
-    showModal.value = false;
-    router.replace({ query: {} });
-}
-
-const renameView = async () => {
-    showModal.value = false;
-    await call('frappe.client.set_value', {
-        doctype: "View Config",
-        name: config_name.value,
-        fieldname: "label",
-        value: config_settings.data.label
-    });
-}
 
 const cancelChanges = () => {
     listConfig.value = JSON.parse(JSON.stringify(oldConfig.value));
@@ -344,4 +270,11 @@ const handleFilterChange = async () => {
     router.replace({ query: q });
     await list.fetch();
 };
+
+const showViewActionsModal = ref(false);
+const viewModalMode = ref('');
+
+const handleUpdateQueryParams = (query) => {
+    router.replace({ query: query });
+}
 </script>
