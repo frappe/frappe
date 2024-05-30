@@ -37,7 +37,7 @@
 		</Dropdown>
 
 		<!-- Workspaces -->
-		<nav class="mt-4 flex flex-col space-y-0.5" v-if="sidebarItems?.workspaces">
+		<nav class="mt-4 flex flex-col space-y-1" v-if="sidebarItems?.workspaces">
 			<ModuleSidebarItem
 				v-for="item in sidebarItems?.workspaces"
 				type="Link"
@@ -49,7 +49,7 @@
 		</nav>
 
 		<!-- Sections, Links, Spacers -->
-		<nav class="mt-4 flex flex-col space-y-0.5" v-if="sidebarItems?.sections">
+		<nav class="mt-4 flex flex-col space-y-1" v-if="sidebarItems?.sections">
 			<ModuleSidebarItem
 				v-for="item in sidebarItems?.sections"
 				:key="item.name"

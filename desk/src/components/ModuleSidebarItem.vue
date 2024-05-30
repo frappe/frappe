@@ -51,7 +51,7 @@
 			<ModuleSidebarItemMenu :item="item" />
 		</div>
 
-		<nav v-if="item.opened" class="flex flex-col space-y-0.5">
+		<nav v-if="item.opened" class="flex flex-col space-y-1">
 			<ModuleSidebarItem
 				v-for="link in item.links"
 				type="Link"
