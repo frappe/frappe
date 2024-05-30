@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-26 09:33+0000\n"
-"PO-Revision-Date: 2024-05-29 02:15\n"
+"PO-Revision-Date: 2024-05-30 02:11\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -2689,7 +2689,7 @@ msgstr "Ata"
 
 #: public/js/frappe/form/sidebar/assign_to.js:180
 msgid "Assign To User Group"
-msgstr ""
+msgstr "Kullanıcı Grubuna Ata"
 
 #. Label of a Section Break field in DocType 'Assignment Rule'
 #: automation/doctype/assignment_rule/assignment_rule.json
