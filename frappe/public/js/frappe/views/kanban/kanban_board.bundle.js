@@ -53,7 +53,6 @@ frappe.provide("frappe.views");
 				var state = context.state;
 				var _cards = cards
 					.map((card) => prepare_card(card, state))
-					.concat(state.cards)
 					.uniqBy((card) => card.name);
 
 				context.commit("update_state", {
