@@ -1,5 +1,7 @@
 <template>
-	<div class="invisible ml-auto flex items-center gap-1.5 text-gray-600 group-hover/item:visible">
+	<div
+		class="invisible ml-auto flex items-center gap-1.5 text-gray-600 group-hover/item:visible has-[.active-item]:visible"
+	>
 		<button
 			class="flex cursor-grabbing items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
 		>
@@ -9,7 +11,7 @@
 			<template v-slot="{ open }">
 				<button
 					class="flex items-center rounded-sm p-0.5 text-gray-700 hover:bg-gray-300"
-					:class="open ? '!visible' : ''"
+					:class="open ? 'active-item' : ''"
 				>
 					<FeatherIcon name="more-horizontal" class="h-4 w-4" />
 				</button>
