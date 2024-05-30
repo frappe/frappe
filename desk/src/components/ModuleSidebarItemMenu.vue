@@ -6,9 +6,14 @@
 			<Icon name="drag-sm" class="h-3 w-3" />
 		</button>
 		<Dropdown :options="itemActionMenu">
-			<button class="flex items-center rounded-sm p-0.5 text-gray-700 hover:bg-gray-300">
-				<FeatherIcon name="more-horizontal" class="h-4 w-4" />
-			</button>
+			<template v-slot="{ open }">
+				<button
+					class="flex items-center rounded-sm p-0.5 text-gray-700 hover:bg-gray-300"
+					:class="open ? '!visible' : ''"
+				>
+					<FeatherIcon name="more-horizontal" class="h-4 w-4" />
+				</button>
+			</template>
 		</Dropdown>
 	</div>
 </template>
