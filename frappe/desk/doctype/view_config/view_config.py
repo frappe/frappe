@@ -17,7 +17,10 @@ class ViewConfig(Document):
 
 		columns: DF.JSON | None
 		document_type: DF.Link | None
+		filters: DF.JSON | None
 		label: DF.Data | None
+		sort_field: DF.Data | None
+		sort_order: DF.Literal["ASC", "DESC"]
 	# end: auto-generated types
 
 	pass
@@ -28,11 +31,23 @@ def get_default_config(doctype):
 	for field in meta.fields:
 		if field.in_list_view:
 			columns.append({"label": field.label, "key": field.fieldname, "type": field.fieldtype, "width": "10rem"})
+
+	if f := meta.get_field(meta.sort_field):
+		if not f.in_list_view:
+			columns.append({"label": f.label, "key": f.fieldname, "type": f.fieldtype, "width": "10rem"})
+	else:
+		for f in frappe.model.std_fields:
+			f = frappe._dict(f)
+			if f.fieldname == meta.sort_field:
+				columns.append({"label": f.label, "key": f.fieldname, "type": f.fieldtype, "width": "10rem"})
+				break
 	return {
 		"label": "List",
 		"columns": columns,
 		"doctype_fields": get_doctype_fields(doctype),
 		"filters": [],
+		"sort_field": meta.sort_field,
+		"sort_order": meta.sort_order
 	}
 
 @frappe.whitelist()

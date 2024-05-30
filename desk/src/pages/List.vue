@@ -17,7 +17,7 @@
                         </template>
                     </Dropdown>
                     <div v-if="configUpdated" class="flex items-center">
-                        <Tooltip text="Discard Changes" :hover-delay="1">
+                        <Tooltip text="Discard Changes" :hover-delay="0.5">
                             <Button class="rounded-none border-x border-gray-300" variant="subtle"
                                 @click="cancelChanges">
                                 <template #default>
@@ -26,7 +26,7 @@
                             </Button>
                         </Tooltip>
                         <template v-if="isDefaultConfig">
-                            <Tooltip text="Create View" :hover-delay="0.4">
+                            <Tooltip text="Create View" :hover-delay="0.5">
                                 <Button class="rounded-none rounded-r" variant="subtle" @click="modalMode = 'Create' ; showModal = true;">
                                     <template #default>
                                         <FeatherIcon name="save" class="h-3.5"></FeatherIcon>
@@ -35,7 +35,7 @@
                             </Tooltip>
                         </template>
                         <template v-else>
-                            <Tooltip text="Save Changes" :hover-delay="0.4">
+                            <Tooltip text="Save Changes" :hover-delay="0.5">
                                 <Button class="rounded-none rounded-r" variant="subtle" @click="updateView()">
                                     <template #default>
                                         <FeatherIcon name="save" class="h-3.5"></FeatherIcon>
@@ -179,6 +179,7 @@ const viewsDropdownOptions = computed(() => {
 const listControlOptions = {
     showColumnSettings: true,
     showFilters: true,
+    showSortSelector: true,
 };
 
 const listOptions = {
@@ -208,38 +209,38 @@ const loadConfig = async (query_config) => {
         columns: config_settings.data.columns,
         fields: config_settings.data.doctype_fields,
         filters: filters.value,
+        sort: [config_settings.data.sort_field, config_settings.data.sort_order],
     };
     oldConfig.value = JSON.parse(JSON.stringify(listConfig.value));
-    debugger;
 };
+
+const sort = computed(() => {
+    if (!listConfig.value.sort) 
+        return 'modified DESC';
+    return  `${listConfig.value.sort[0]} ${listConfig.value.sort[1]}`;
+});
 
 const list = createResource({
     url: `frappe.client.get_list`,
     makeParams() {
         return {
             doctype: route.params.doctype,
-            fields: listColumns.value,
+            fields: listConfig.value.columns?.map((col) => col.key),
             filters: listConfig.value.filters,
             limit: 20,
             start: 0,
-            sort_by: 'creation',
-            sort_order: 'desc',
+            order_by: sort.value,
         }
     }
 });
 
-const listColumns = computed(() => {
-    return listConfig.value.columns?.map((col) => col.key) || [];
-});
-
 watch(() => route.query.view, async (query_config) => {
     await loadConfig(query_config);
-    await list.fetch();
 }, { immediate: true });
 
-watch(() => listColumns.value.length, async () => {
+watch(() => listConfig.value, async () => {
     await list.fetch();
-}, { immediate: true });
+}, { deep: true, immediate: true });
 
 const createConfigResource = createResource({
     url: 'frappe.client.insert',
@@ -301,12 +302,10 @@ const cancelChanges = () => {
 
 // Handle filters from URL query params
 
-
 const getParsedFilter = (key, filter) => {
     let f = JSON.parse(filter);
     return [key, f[0], f[1]];
 }
-
 
 const filters = computed(() => {
     let filters = [];

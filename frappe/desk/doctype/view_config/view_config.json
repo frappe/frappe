@@ -10,6 +10,10 @@
   "icon",
   "column_break_tvbd",
   "document_type",
+  "sort_section",
+  "sort_field",
+  "column_break_ztzx",
+  "sort_order",
   "columns_section",
   "columns",
   "filters_section",
@@ -60,11 +64,31 @@
    "fieldname": "filters",
    "fieldtype": "JSON",
    "label": "Filters"
+  },
+  {
+   "fieldname": "sort_field",
+   "fieldtype": "Data",
+   "label": "Sort Field"
+  },
+  {
+   "fieldname": "sort_section",
+   "fieldtype": "Section Break",
+   "label": "Sort"
+  },
+  {
+   "fieldname": "column_break_ztzx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Select",
+   "label": "Sort Order",
+   "options": "ASC\nDESC"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-20 14:46:45.781147",
+ "modified": "2024-05-29 13:40:20.570538",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "View Config",
