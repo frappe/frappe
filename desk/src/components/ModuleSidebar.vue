@@ -27,7 +27,7 @@
 					<div class="rounded-sm p-1" :style="`background-color: ${desktopItem.color}`">
 						<Icon :name="desktopItem?.icon" class="h-5 w-5 text-white" />
 					</div>
-					<span v-if="!isCollapsed" class="text-xl font-bold text-gray-800">
+					<span v-if="!isCollapsed" class="truncate text-xl font-bold text-gray-800">
 						{{ desktopItem?.label }}
 					</span>
 
@@ -38,58 +38,26 @@
 
 		<!-- Workspaces -->
 		<nav class="mt-4 flex flex-col space-y-0.5" v-if="sidebarItems?.workspaces">
-			<ModuleSidebarLink
+			<ModuleSidebarItem
 				v-for="item in sidebarItems?.workspaces"
+				type="Link"
 				:key="item.name"
-				:link="item"
+				:item="item"
 				:isCollapsed="isCollapsed"
 				:isEditing="isEditing"
-				@updateSidebarItem="updateSidebarItem"
 			/>
 		</nav>
 
 		<!-- Sections, Links, Spacers -->
 		<nav class="mt-4 flex flex-col space-y-0.5" v-if="sidebarItems?.sections">
-			<template v-for="item in sidebarItems?.sections" :key="item.name">
-				<ModuleSidebarLink
-					v-if="item.type === 'Link'"
-					:link="item"
-					:isCollapsed="isCollapsed"
-					:isEditing="isEditing"
-					@updateSidebarItem="updateSidebarItem"
-				/>
-
-				<div v-else-if="item.type === 'Spacer'" class="h-5"></div>
-
-				<div v-else-if="item.type === 'Section Break' && item.links?.length">
-					<div v-if="isCollapsed" class="mx-2 my-2 h-1 border-b"></div>
-					<div
-						v-else
-						@click="item.opened = !item.opened"
-						class="mt-5 flex cursor-pointer items-center gap-2 px-2"
-						:class="item.opened ? 'mb-3' : ''"
-					>
-						<FeatherIcon
-							:name="item.opened ? 'chevron-down' : 'chevron-right'"
-							class="h-4 w-4 font-semibold text-gray-600"
-						/>
-						<div class="flex items-center gap-1 text-sm uppercase text-gray-700">
-							{{ item.label }}
-						</div>
-					</div>
-
-					<nav v-if="item.opened" class="flex flex-col space-y-0.5">
-						<ModuleSidebarLink
-							v-for="link in item.links"
-							:key="link.name"
-							:link="link"
-							:isCollapsed="isCollapsed"
-							:isEditing="isEditing"
-							@updateSidebarItem="updateSidebarItem"
-						/>
-					</nav>
-				</div>
-			</template>
+			<ModuleSidebarItem
+				v-for="item in sidebarItems?.sections"
+				:key="item.name"
+				:type="item.type"
+				:item="item"
+				:isCollapsed="isCollapsed"
+				:isEditing="isEditing"
+			/>
 		</nav>
 
 		<button
@@ -206,11 +174,11 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue"
+import { computed, ref, provide } from "vue"
 import { Dropdown, FeatherIcon, Dialog, FormControl, createResource } from "frappe-ui"
 
 import Icon from "@/components/Icon.vue"
-import ModuleSidebarLink from "@/components/ModuleSidebarLink.vue"
+import ModuleSidebarItem from "@/components/ModuleSidebarItem.vue"
 
 import { getDesktopItem, sidebar } from "@/data/desktop"
 
@@ -228,6 +196,8 @@ const draftSidebarItems = ref([])
 const showDialog = ref(false)
 const dialogItem = ref({})
 const dialogAction = ref("")
+
+provide("updateSidebarItem", updateSidebarItem)
 
 const sidebarItems = computed(() => {
 	if (isEditing.value) {
