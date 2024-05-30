@@ -14,13 +14,12 @@
 				isActive && !isEditing ? 'bg-white shadow-sm' : 'hover:bg-gray-200',
 				isEditing ? 'group/item' : '',
 			]"
-			v-bind="$attrs"
 		>
 			<Icon :name="item.icon || 'folder-normal'" class="h-5 w-5 text-gray-700" />
 			<div v-if="!isCollapsed" class="flex items-center gap-1 truncate text-base text-gray-700">
 				{{ item.label }}
 			</div>
-			<ModuleSidebarItemMenu :item="item" />
+			<ModuleSidebarItemMenu :item="item" v-if="!isCollapsed" />
 		</router-link>
 	</Tooltip>
 
