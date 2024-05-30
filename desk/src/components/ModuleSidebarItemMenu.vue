@@ -32,6 +32,7 @@ const itemActionMenu = [
 		label: "Edit",
 		icon: "edit",
 		onClick: () => updateSidebarItem(props.item, "edit"),
+		condition: () => props.item.type !== "Spacer",
 	},
 	{
 		label: "Duplicate",
