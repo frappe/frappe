@@ -6,6 +6,7 @@
 		<!-- Sidebar Menu -->
 		<Dropdown
 			v-if="desktopItem"
+			class="w-56"
 			:options="[
 				{
 					label: 'Back to Home',
@@ -21,8 +22,8 @@
 		>
 			<template v-slot="{ open }">
 				<button
-					class="mb-1 flex w-[14rem] items-center gap-2 rounded p-2"
-					:class="open ? 'bg-white shadow-sm' : 'hover:bg-gray-200'"
+					class="mb-1 flex items-center gap-2 rounded p-2"
+					:class="[open ? 'bg-white shadow-sm' : 'hover:bg-gray-200', isCollapsed ? '' : 'w-56']"
 				>
 					<div class="rounded-sm p-1" :style="`background-color: ${desktopItem.color}`">
 						<Icon :name="desktopItem?.icon" class="h-5 w-5 text-white" />
@@ -31,7 +32,11 @@
 						{{ desktopItem?.label }}
 					</span>
 
-					<FeatherIcon name="chevron-down" class="ml-auto h-4 w-4 text-gray-600" />
+					<FeatherIcon
+						v-if="!isCollapsed"
+						name="chevron-down"
+						class="ml-auto h-4 w-4 text-gray-600"
+					/>
 				</button>
 			</template>
 		</Dropdown>

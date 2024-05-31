@@ -19,7 +19,7 @@
 			<div v-if="!isCollapsed" class="flex items-center gap-1 truncate text-base text-gray-700">
 				{{ item.label }}
 			</div>
-			<ModuleSidebarItemMenu :item="item" v-if="!isCollapsed" />
+			<ModuleSidebarItemMenu :item="item" v-if="!isCollapsed && showEditMenu" />
 		</router-link>
 	</Tooltip>
 
