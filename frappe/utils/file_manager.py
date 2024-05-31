@@ -67,50 +67,6 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	return f
 
 
-def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, df=None):
-	if decode:
-		if isinstance(content, str):
-			content = content.encode("utf-8")
-
-		if b"," in content:
-			content = content.split(b",")[1]
-		content = safe_b64decode(content)
-
-	file_size = check_max_file_size(content)
-	content_hash = get_content_hash(content)
-	content_type = mimetypes.guess_type(fname)[0]
-	fname = get_file_name(fname, content_hash[-6:])
-	file_data = get_file_data_from_hash(content_hash, is_private=is_private)
-	if not file_data:
-		call_hook_method("before_write_file", file_size=file_size)
-
-		write_file_method = get_hook_method("write_file", fallback=save_file_on_filesystem)
-		file_data = write_file_method(fname, content, content_type=content_type, is_private=is_private)
-		file_data = copy(file_data)
-
-	file_data.update(
-		{
-			"doctype": "File",
-			"attached_to_doctype": dt,
-			"attached_to_name": dn,
-			"attached_to_field": df,
-			"folder": folder,
-			"file_size": file_size,
-			"content_hash": content_hash,
-			"is_private": is_private,
-		}
-	)
-
-	f = frappe.get_doc(file_data)
-	f.flags.ignore_permissions = True
-	try:
-		f.insert()
-	except frappe.DuplicateEntryError:
-		return frappe.get_doc("File", f.duplicate_entry)
-
-	return f
-
-
 def get_file_data_from_hash(content_hash, is_private=0):
 	for name in frappe.get_all(
 		"File", {"content_hash": content_hash, "is_private": is_private}, pluck="name"

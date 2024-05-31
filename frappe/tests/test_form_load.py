@@ -5,7 +5,6 @@ from frappe.core.page.permission_manager.permission_manager import add, reset, u
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.form.load import get_docinfo, getdoc, getdoctype
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils.file_manager import save_file
 
 test_dependencies = ["Blog Category", "Blogger"]
 
@@ -163,8 +162,14 @@ class TestFormLoad(FrappeTestCase):
 		note.add_tag("test_tag")
 		note.add_tag("more_tag")
 
-		# empty attachment
-		save_file("test_file", b"", note.doctype, note.name, decode=True)
+		file_doc = frappe.new_doc("File")
+		file_doc.file_name = "test_file"
+		file_doc.attached_to_doctype = note.doctype
+		file_doc.attached_to_name = note.name
+		file_doc.content = b"dummy"
+		file_doc.decode = False
+		file_doc.is_private = False
+		file_doc.insert(ignore_permissions=True)
 
 		frappe.get_doc(
 			{
