@@ -1,67 +1,69 @@
 <template>
-	<Tooltip
-		placement="right"
-		:text="item.label"
-		:hover-delay="0.1"
-		:disabled="!isCollapsed"
-		v-if="type === 'Link'"
-	>
-		<router-link
-			:to="item.route_to"
-			class="flex cursor-pointer items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
-			:class="[
-				isCollapsed ? 'justify-center' : '',
-				isActive && !isEditing ? 'bg-white shadow-sm' : 'hover:bg-gray-200',
-				isEditing ? 'group/item has-[.active-item]:bg-gray-200' : '',
-			]"
+	<div>
+		<Tooltip
+			placement="right"
+			:text="item.label"
+			:hover-delay="0.1"
+			:disabled="!isCollapsed"
+			v-if="type === 'Link'"
 		>
-			<Icon :name="item.icon || 'folder-normal'" class="h-5 w-5 text-gray-700" />
-			<div v-if="!isCollapsed" class="flex items-center gap-1 truncate text-base text-gray-700">
-				{{ item.label }}
+			<router-link
+				:to="item.route_to"
+				class="flex cursor-pointer items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
+				:class="[
+					isCollapsed ? 'justify-center' : '',
+					isActive && !isEditing ? 'bg-white shadow-sm' : 'hover:bg-gray-200',
+					isEditing ? 'group/item has-[.active-item]:bg-gray-200' : '',
+				]"
+			>
+				<Icon :name="item.icon || 'folder-normal'" class="h-5 w-5 text-gray-700" />
+				<div v-if="!isCollapsed" class="flex items-center gap-1 truncate text-base text-gray-700">
+					{{ item.label }}
+				</div>
+				<ModuleSidebarItemMenu :item="item" v-if="!isCollapsed && showEditMenu" />
+			</router-link>
+		</Tooltip>
+
+		<template v-else-if="type === 'Spacer'">
+			<div
+				v-if="isEditing"
+				class="group/item ml-2 flex min-h-6 items-center justify-center rounded border-dashed border-gray-400 px-2 text-xs uppercase text-gray-600 hover:border has-[.active-item]:border"
+			>
+				<ModuleSidebarItemMenu :item="item" />
 			</div>
-			<ModuleSidebarItemMenu :item="item" v-if="!isCollapsed && showEditMenu" />
-		</router-link>
-	</Tooltip>
+			<div v-else class="h-5"></div>
+		</template>
 
-	<template v-else-if="type === 'Spacer'">
-		<div
-			v-if="isEditing"
-			class="group/item ml-2 flex min-h-6 items-center justify-center rounded border-dashed border-gray-400 px-2 text-xs uppercase text-gray-600 hover:border has-[.active-item]:border"
-		>
-			<ModuleSidebarItemMenu :item="item" />
-		</div>
-		<div v-else class="h-5"></div>
-	</template>
-
-	<div v-else-if="type === 'Section Break' && item.links?.length">
-		<div v-if="isCollapsed" class="mx-2 my-2 h-1 border-b"></div>
-		<div
-			v-else
-			@click="item.opened = !item.opened"
-			class="group/item mt-5 flex cursor-pointer items-center gap-2 px-2"
-			:class="item.opened ? 'mb-3' : ''"
-		>
-			<FeatherIcon
-				:name="item.opened ? 'chevron-down' : 'chevron-right'"
-				class="h-4 w-4 font-semibold text-gray-600"
-			/>
-			<div class="flex items-center gap-1 text-sm uppercase text-gray-700">
-				{{ item.label }}
+		<div v-else-if="type === 'Section Break' && item.links?.length">
+			<div v-if="isCollapsed" class="mx-2 my-2 h-1 border-b"></div>
+			<div
+				v-else
+				@click="item.opened = !item.opened"
+				class="group/item mt-5 flex cursor-pointer items-center gap-2 px-2"
+				:class="item.opened ? 'mb-3' : ''"
+			>
+				<FeatherIcon
+					:name="item.opened ? 'chevron-down' : 'chevron-right'"
+					class="h-4 w-4 font-semibold text-gray-600"
+				/>
+				<div class="flex items-center gap-1 text-sm uppercase text-gray-700">
+					{{ item.label }}
+				</div>
+				<ModuleSidebarItemMenu :item="item" />
 			</div>
-			<ModuleSidebarItemMenu :item="item" />
-		</div>
 
-		<nav v-if="item.opened" class="flex flex-col space-y-1">
-			<ModuleSidebarItem
-				v-for="link in item.links"
-				type="Link"
-				:key="link.name"
-				:item="link"
-				:isCollapsed="isCollapsed"
-				:isEditing="isEditing"
-				:showEditMenu="false"
-			/>
-		</nav>
+			<nav v-if="item.opened" class="flex flex-col space-y-1">
+				<ModuleSidebarItem
+					v-for="link in item.links"
+					type="Link"
+					:key="link.name"
+					:item="link"
+					:isCollapsed="isCollapsed"
+					:isEditing="isEditing"
+					:showEditMenu="false"
+				/>
+			</nav>
+		</div>
 	</div>
 </template>
 
