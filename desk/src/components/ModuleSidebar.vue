@@ -43,26 +43,44 @@
 
 		<!-- Workspaces -->
 		<nav class="mt-4 flex flex-col space-y-1" v-if="sidebarItems?.workspaces">
-			<ModuleSidebarItem
-				v-for="item in sidebarItems?.workspaces"
-				type="Link"
-				:key="item.name"
-				:item="item"
-				:isCollapsed="isCollapsed"
-				:isEditing="isEditing"
-			/>
+			<Draggable
+				class="w-full"
+				v-model="sidebarItems.workspaces"
+				group="workspaces"
+				item-key="name"
+				:disable="!isEditing"
+				handle=".drag-handler"
+			>
+				<template #item="{ element: item }">
+					<ModuleSidebarItem
+						type="Link"
+						:item="item"
+						:isCollapsed="isCollapsed"
+						:isEditing="isEditing"
+					/>
+				</template>
+			</Draggable>
 		</nav>
 
 		<!-- Sections, Links, Spacers -->
 		<nav class="mt-4 flex flex-col space-y-1" v-if="sidebarItems?.sections">
-			<ModuleSidebarItem
-				v-for="item in sidebarItems?.sections"
-				:key="item.name"
-				:type="item.type"
-				:item="item"
-				:isCollapsed="isCollapsed"
-				:isEditing="isEditing"
-			/>
+			<Draggable
+				class="w-full"
+				v-model="sidebarItems.sections"
+				group="items"
+				item-key="name"
+				:disable="!isEditing"
+				handle=".drag-handler"
+			>
+				<template #item="{ element: item }">
+					<ModuleSidebarItem
+						:type="item.type"
+						:item="item"
+						:isCollapsed="isCollapsed"
+						:isEditing="isEditing"
+					/>
+				</template>
+			</Draggable>
 		</nav>
 
 		<button
@@ -181,6 +199,7 @@
 <script setup>
 import { computed, ref, provide } from "vue"
 import { Dropdown, FeatherIcon, Dialog, FormControl, createResource } from "frappe-ui"
+import Draggable from "vuedraggable"
 
 import Icon from "@/components/Icon.vue"
 import ModuleSidebarItem from "@/components/ModuleSidebarItem.vue"
@@ -204,12 +223,17 @@ const dialogAction = ref("")
 
 provide("updateSidebarItem", updateSidebarItem)
 
-const sidebarItems = computed(() => {
-	if (isEditing.value) {
-		return draftSidebarItems.value
-	} else {
-		return sidebar.data
-	}
+const sidebarItems = computed({
+	get: () => {
+		if (isEditing.value) {
+			return draftSidebarItems.value
+		} else {
+			return sidebar.data
+		}
+	},
+	set: (value) => {
+		draftSidebarItems.value = value
+	},
 })
 
 const sidebarResource = createResource({
@@ -253,8 +277,8 @@ function updateSidebar() {
 		})
 		.then(async () => {
 			draftSidebarItems.value = []
-			isEditing.value = false
 			await getSidebar(props.module)
+			isEditing.value = false
 		})
 }
 

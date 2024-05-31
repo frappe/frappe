@@ -5,7 +5,7 @@
 		<button
 			class="flex cursor-grabbing items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
 		>
-			<Icon name="drag-sm" class="h-3 w-3" />
+			<Icon name="drag-sm" class="drag-handler h-3 w-3" />
 		</button>
 		<Dropdown :options="itemActionMenu">
 			<template v-slot="{ open }">
