@@ -67,19 +67,6 @@ def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	return f
 
 
-def get_uploaded_content():
-	# should not be unicode when reading a file, hence using frappe.form
-	if "filedata" in frappe.form_dict:
-		if "," in frappe.form_dict.filedata:
-			frappe.form_dict.filedata = frappe.form_dict.filedata.rsplit(",", 1)[1]
-		frappe.uploaded_content = safe_b64decode(frappe.form_dict.filedata)
-		frappe.uploaded_filename = frappe.form_dict.filename
-		return frappe.uploaded_filename, frappe.uploaded_content
-	else:
-		frappe.msgprint(_("No file attached"))
-		return None, None
-
-
 def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, df=None):
 	if decode:
 		if isinstance(content, str):
