@@ -38,38 +38,6 @@ def get_file_url(file_data_name):
 	return data.file_url or data.file_name
 
 
-def upload():
-	# get record details
-	dt = frappe.form_dict.doctype
-	dn = frappe.form_dict.docname
-	file_url = frappe.form_dict.file_url
-	filename = frappe.form_dict.filename
-	frappe.form_dict.is_private = cint(frappe.form_dict.is_private)
-
-	if not filename and not file_url:
-		frappe.msgprint(_("Please select a file or url"), raise_exception=True)
-
-	file_doc = get_file_doc()
-
-	comment = {}
-	if dt and dn:
-		file_url = file_doc.file_url.replace("#", "%23") if file_doc.file_name else file_doc.file_url
-		icon = ' <i class="fa fa-lock text-warning"></i>' if file_doc.is_private else ""
-		file_name = file_doc.file_name or file_doc.file_url
-		comment = frappe.get_doc(dt, dn).add_comment(
-			"Attachment",
-			f"<a href='{file_url}' target='_blank'>{file_name}</a>{icon}",
-		)
-
-	return {
-		"name": file_doc.name,
-		"file_name": file_doc.file_name,
-		"file_url": file_doc.file_url,
-		"is_private": file_doc.is_private,
-		"comment": comment.as_dict() if comment else {},
-	}
-
-
 def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
 	"""Return File object (Document) from given parameters or `form_dict`."""
 	r = frappe.form_dict
