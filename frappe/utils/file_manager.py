@@ -38,14 +38,6 @@ def get_file_url(file_data_name):
 	return data.file_url or data.file_name
 
 
-def save_uploaded(dt, dn, folder, is_private, df=None):
-	fname, content = get_uploaded_content()
-	if content:
-		return save_file(fname, content, dt, dn, folder, is_private=is_private, df=df)
-	else:
-		raise Exception
-
-
 def save_url(file_url, filename, dt, dn, folder, is_private, df=None):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
