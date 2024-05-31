@@ -229,9 +229,11 @@ function updateSidebarItem(item, action) {
 		const index = getItemIndex(item)
 		const newItem = {
 			...item,
-			label: `${item.label} Copy`,
 			name: `${item.name}_copy`,
 			index: index + 1,
+		}
+		if (newItem.type !== "Spacer") {
+			newItem.label = `${newItem.label} Copy`
 		}
 		draftSidebarItems.value.sections.splice(index + 1, 0, newItem)
 	}
