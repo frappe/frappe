@@ -254,9 +254,15 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 	else:
 		title = "`tabAddress`.city"
 
+	# Get additional search fields
+	if searchfields:
+		extra_query_fields = ",".join([f"`tabAddress`.{field}" for field in searchfields])
+	else:
+		extra_query_fields = "`tabAddress`.country"
+
 	return frappe.db.sql(
 		"""select
-			`tabAddress`.name, {title}, `tabAddress`.country
+			`tabAddress`.name, {title}, {extra_query_fields}
 		from
 			`tabAddress`
 		join `tabDynamic Link`
@@ -279,6 +285,7 @@ def address_query(doctype, txt, searchfield, start, page_len, filters):
 			search_condition=search_condition,
 			condition=condition or "",
 			title=title,
+			extra_query_fields=extra_query_fields,
 		),
 		{
 			"txt": "%" + txt + "%",
