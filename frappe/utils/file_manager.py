@@ -38,30 +38,6 @@ def get_file_url(file_data_name):
 	return data.file_url or data.file_name
 
 
-def get_file_doc(dt=None, dn=None, folder=None, is_private=None, df=None):
-	"""Return File object (Document) from given parameters or `form_dict`."""
-	r = frappe.form_dict
-
-	if dt is None:
-		dt = r.doctype
-	if dn is None:
-		dn = r.docname
-	if df is None:
-		df = r.docfield
-	if folder is None:
-		folder = r.folder
-	if is_private is None:
-		is_private = r.is_private
-
-	if r.filedata:
-		file_doc = save_uploaded(dt, dn, folder, is_private, df)
-
-	elif r.file_url:
-		file_doc = save_url(r.file_url, r.filename, dt, dn, folder, is_private, df)
-
-	return file_doc
-
-
 def save_uploaded(dt, dn, folder, is_private, df=None):
 	fname, content = get_uploaded_content()
 	if content:
