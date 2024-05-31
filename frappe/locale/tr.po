@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-26 09:33+0000\n"
-"PO-Revision-Date: 2024-05-30 02:11\n"
+"PO-Revision-Date: 2024-05-31 02:35\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -37497,7 +37497,7 @@ msgstr ""
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:183
 msgid "You changed the values for {0}"
-msgstr ""
+msgstr "{0} için değerleri değiştirdiniz"
 
 #: public/js/frappe/form/footer/version_timeline_content_builder.js:172
 msgid "You changed the values for {0} {1}"
