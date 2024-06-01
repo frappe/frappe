@@ -550,7 +550,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		if (frappe.model.can_create("DocType")) {
-			if (frappe.boot.developer_mode === 1 && !is_doctype_form) {
+			if (frappe.boot.developer_mode && !is_doctype_form) {
 				// edit doctype
 				this.page.add_menu_item(
 					__("Edit DocType"),
