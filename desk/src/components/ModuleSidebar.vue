@@ -123,6 +123,7 @@
 	<Dialog
 		:options="{
 			title: dialogAction === 'edit' ? 'Edit Link' : 'Add Link',
+			size: '2xl',
 			actions: [
 				{
 					label: 'Save',
@@ -152,6 +153,36 @@
 					label="Type"
 					v-model="dialogItem.type"
 				/>
+
+				<template v-if="dialogItem.type === 'Section Break'">
+					<FormControl type="text" size="sm" label="Label" v-model="dialogItem.label" />
+					<ChildTable
+						label="Links"
+						:fields="[
+							{
+								label: 'Link Type',
+								fieldname: 'link_type',
+							},
+							{
+								label: 'Link To',
+								fieldname: 'link_to',
+								onChange: (value, index) => {
+									dialogItem.links[index].label = value
+								},
+							},
+							{
+								label: 'Icon',
+								fieldname: 'icon',
+							},
+							{
+								label: 'Label',
+								fieldname: 'label',
+							},
+						]"
+						:rows="dialogItem.links"
+					/>
+				</template>
+
 				<FormControl
 					type="select"
 					v-if="dialogItem.type === 'Link'"
@@ -203,6 +234,7 @@ import Draggable from "vuedraggable"
 
 import Icon from "@/components/Icon.vue"
 import ModuleSidebarItem from "@/components/ModuleSidebarItem.vue"
+import ChildTable from "@/components/form_controls/ChildTable.vue"
 
 import { getDesktopItem, sidebar } from "@/data/desktop"
 
@@ -287,7 +319,7 @@ function getItemIndex(item) {
 }
 
 function showItemDialog(item, action) {
-	dialogItem.value = { ...item }
+	dialogItem.value = JSON.parse(JSON.stringify(item))
 	dialogAction.value = action
 	showDialog.value = true
 }

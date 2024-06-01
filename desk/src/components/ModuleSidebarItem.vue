@@ -20,7 +20,7 @@
 				<div v-if="!isCollapsed" class="flex items-center gap-1 truncate text-base text-gray-700">
 					{{ item.label }}
 				</div>
-				<ModuleSidebarItemMenu :item="item" v-if="!isCollapsed && showEditMenu" />
+				<ModuleSidebarItemMenu :item="item" v-if="showEditMenu" />
 			</router-link>
 		</Tooltip>
 
@@ -49,7 +49,7 @@
 				<div class="flex items-center gap-1 text-sm uppercase text-gray-700">
 					{{ item.label }}
 				</div>
-				<ModuleSidebarItemMenu :item="item" />
+				<ModuleSidebarItemMenu :item="item" v-if="showEditMenu" />
 			</div>
 
 			<nav v-if="item.opened" class="flex flex-col space-y-1">
@@ -60,7 +60,7 @@
 					:item="link"
 					:isCollapsed="isCollapsed"
 					:isEditing="isEditing"
-					:showEditMenu="false"
+					:hideEditMenu="true"
 				/>
 			</nav>
 		</div>
@@ -93,15 +93,19 @@ const props = defineProps({
 		required: false,
 		default: false,
 	},
-	showEditMenu: {
+	hideEditMenu: {
 		type: Boolean,
 		required: false,
-		default: true,
+		default: false,
 	},
 })
 
 const router = useRouter()
 const route = useRoute()
+
+const showEditMenu = computed(() => {
+	return props.isEditing && !props.isCollapsed && !props.hideEditMenu && props.type !== "Spacer"
+})
 
 const isActive = computed(() => {
 	const linkRoute = router.resolve(props.item.route_to)
