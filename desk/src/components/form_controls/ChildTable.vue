@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col">
-		<div class="mb-1.5 text-xs text-gray-600">{{ label }}</div>
+		<div v-if="label" class="mb-1.5 text-xs text-gray-600">{{ label }}</div>
 
 		<div class="min-w-full rounded border border-gray-100">
 			<!-- Header -->
@@ -36,8 +36,9 @@
 						:type="field.type"
 						variant="outline"
 						size="md"
-						v-model="row[field.key]"
+						v-model="row[field.fieldname]"
 						class="text-sm text-gray-800"
+						@change="(e) => field.onChange && field.onChange(e.target.value, index)"
 					/>
 				</div>
 				<button @click="" class="flex justify-center">
@@ -47,7 +48,7 @@
 		</div>
 
 		<div class="mt-2 flex flex-row">
-			<Button size="sm" label="Add Row" />
+			<Button size="sm" label="Add Row" @click="addRow" />
 		</div>
 	</div>
 </template>
@@ -58,7 +59,7 @@ import { FormControl, FeatherIcon } from "frappe-ui"
 const props = defineProps({
 	label: {
 		type: String,
-		required: true,
+		required: false,
 	},
 	fields: {
 		type: Array,
@@ -69,6 +70,14 @@ const props = defineProps({
 		required: true,
 	},
 })
+
+const addRow = () => {
+	const newRow = {}
+	props.fields.forEach((field) => {
+		newRow[field.key] = ""
+	})
+	props.rows.push(newRow)
+}
 </script>
 
 <style>
