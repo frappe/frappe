@@ -38,21 +38,22 @@
 			<div v-if="isCollapsed" class="mx-2 my-2 h-1 border-b"></div>
 			<div
 				v-else
-				@click="item.opened = !item.opened"
-				class="group/item mt-5 flex cursor-pointer items-center gap-2 px-2"
+				class="group/item mt-5 flex items-center gap-2 px-2"
 				:class="item.opened ? 'mb-3' : ''"
 			>
-				<FeatherIcon
-					:name="item.opened ? 'chevron-down' : 'chevron-right'"
-					class="h-4 w-4 font-semibold text-gray-600"
-				/>
-				<div class="flex items-center gap-1 text-sm uppercase text-gray-700">
-					{{ item.label }}
+				<div @click="item.opened = !item.opened" class="flex cursor-pointer items-center gap-2">
+					<FeatherIcon
+						:name="item.opened ? 'chevron-down' : 'chevron-right'"
+						class="h-4 w-4 font-semibold text-gray-600"
+					/>
+					<div class="flex items-center gap-1 text-sm uppercase text-gray-700">
+						{{ item.label }}
+					</div>
 				</div>
 				<ModuleSidebarItemMenu :item="item" v-if="showEditMenu" />
 			</div>
 
-			<nav v-if="item.opened" class="flex flex-col space-y-1">
+			<nav v-if="item.opened" class="flex flex-col space-y-0.5">
 				<ModuleSidebarItem
 					v-for="link in item.links"
 					type="Link"
