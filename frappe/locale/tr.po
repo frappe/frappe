@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-26 09:33+0000\n"
-"PO-Revision-Date: 2024-05-31 02:35\n"
+"PO-Revision-Date: 2024-06-01 03:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -3347,7 +3347,7 @@ msgstr ""
 #. Description of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Automate processes and extend standard functionality using scripts and background jobs"
-msgstr ""
+msgstr "Komut dosyaları ve arka plan işleri kullanarak süreçleri otomatikleştirin ve standart işlevleri genişletin"
 
 #. Option for the 'Communication Type' (Select) field in DocType
 #. 'Communication'
@@ -3971,7 +3971,7 @@ msgstr ""
 #: website/doctype/blog_post/templates/blog_post_list.html:11
 #: website/workspace/website/website.json
 msgid "Blog"
-msgstr ""
+msgstr "Blog"
 
 #. Name of a DocType
 #: website/doctype/blog_category/blog_category.json
@@ -4908,7 +4908,7 @@ msgstr ""
 
 #: core/doctype/report/report.py:69
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
-msgstr ""
+msgstr "Standart bir raporu düzenleyemezsiniz. Lütfen bir kopyasını veya yeni bir rapor oluşturun."
 
 #: model/document.py:883
 msgid "Cannot edit cancelled document"
@@ -6119,7 +6119,7 @@ msgstr ""
 #: core/workspace/build/build.json
 msgctxt "Communication"
 msgid "Communication Logs"
-msgstr ""
+msgstr "İletişim Günlükleri"
 
 #. Label of a Select field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -6913,7 +6913,7 @@ msgstr "Özel Alanlar Oluşturun"
 
 #: public/js/frappe/views/workspace/workspace.js:936
 msgid "Create Duplicate"
-msgstr ""
+msgstr "Kopya Oluştur"
 
 #. Option for the 'Action' (Select) field in DocType 'Onboarding Step'
 #: desk/doctype/onboarding_step/onboarding_step.json
@@ -8423,7 +8423,7 @@ msgstr "Varsayılan Görünüm"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Default Workspace"
-msgstr ""
+msgstr "Varsayılan Çalışma Alanı"
 
 #: core/doctype/doctype/doctype.py:1343
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
@@ -8532,7 +8532,7 @@ msgstr "Kanban Panosunu Sil"
 
 #: public/js/frappe/views/workspace/workspace.js:835
 msgid "Delete Workspace"
-msgstr ""
+msgstr "Çalışma Alanını Sil"
 
 #: public/js/frappe/views/reports/query_report.js:864
 msgid "Delete and Generate New"
@@ -8597,7 +8597,7 @@ msgstr "Silinmiş Belge"
 #: automation/workspace/tools/tools.json
 msgctxt "Deleted Document"
 msgid "Deleted Documents"
-msgstr ""
+msgstr "Silinen Belgeler"
 
 #. Label of a Data field in DocType 'Deleted Document'
 #: core/doctype/deleted_document/deleted_document.json
@@ -10206,7 +10206,7 @@ msgstr ""
 #: public/js/frappe/views/workspace/workspace.js:558
 #: public/js/frappe/views/workspace/workspace.js:820
 msgid "Duplicate Workspace"
-msgstr ""
+msgstr "Çalışma Alanını Çoğalt"
 
 #: public/js/frappe/form/form.js:207
 msgid "Duplicate current row"
@@ -10214,7 +10214,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:1001
 msgid "Duplicate of {0} named as {1} is created successfully"
-msgstr ""
+msgstr "{1} olarak adlandırılan {0} kopyası başarıyla oluşturuldu"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -10441,7 +10441,7 @@ msgstr ""
 
 #: public/js/frappe/widgets/widget_dialog.js:44
 msgid "Edit Number Card"
-msgstr ""
+msgstr "Veri Kartını Düzenle"
 
 #: public/js/frappe/widgets/widget_dialog.js:46
 msgid "Edit Onboarding"
@@ -10491,7 +10491,7 @@ msgstr "Değerleri Düzenle"
 
 #: public/js/frappe/views/workspace/workspace.js:814
 msgid "Edit Workspace"
-msgstr ""
+msgstr "Çalışma Alanını Düzenle"
 
 #: desk/doctype/note/note.js:11
 msgid "Edit mode"
@@ -14358,7 +14358,7 @@ msgstr ""
 #. Label of a Card Break in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgid "Google Services"
-msgstr ""
+msgstr "Google Servisleri"
 
 #. Name of a DocType
 #: integrations/doctype/google_settings/google_settings.json
@@ -15118,7 +15118,7 @@ msgstr "Hafta Sonlarını Gizle"
 
 #: public/js/frappe/views/workspace/workspace.js:826
 msgid "Hide Workspace"
-msgstr ""
+msgstr "Çalışma Alanını Gizle"
 
 #. Description of the 'Hide Descendants' (Check) field in DocType 'User
 #. Permission'
@@ -20707,11 +20707,11 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.py:297
 msgid "Need Workspace Manager role to edit private workspace of other users"
-msgstr ""
+msgstr "Diğer kullanıcıların özel çalışma alanlarını düzenlemek için Çalışma Alanı Yöneticisi rolü gerekli."
 
 #: desk/doctype/workspace/workspace.py:341
 msgid "Need Workspace Manager role to hide/unhide public workspaces"
-msgstr ""
+msgstr "Genel çalışma alanlarını gizlemek/göstermek için Çalışma Alanı Yöneticisi rolü gerekli."
 
 #: model/document.py:641
 msgid "Negative Value"
@@ -22351,11 +22351,11 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.js:36
 msgid "Only Workspace Manager can edit public workspaces"
-msgstr ""
+msgstr "Yalnızca Çalışma Alanı Yöneticisi genel çalışma alanlarını düzenleyebilir."
 
 #: public/js/frappe/views/workspace/workspace.js:547
 msgid "Only Workspace Manager can sort or edit this page"
-msgstr ""
+msgstr "Bu sayfayı yalnızca Çalışma Alanı Yöneticisi sıralayabilir veya düzenleyebilir"
 
 #: modules/utils.py:64
 msgid "Only allowed to export customizations in developer mode"
@@ -29033,7 +29033,7 @@ msgstr "İş Akışını Seçin"
 #: desk/doctype/form_tour/form_tour.json
 msgctxt "Form Tour"
 msgid "Select Workspace"
-msgstr ""
+msgstr "Çalışma Alanını Seçin"
 
 #: website/doctype/website_settings/website_settings.js:23
 msgid "Select a Brand Image first."
@@ -34657,7 +34657,7 @@ msgstr ""
 
 #: public/js/frappe/views/workspace/workspace.js:567
 msgid "Unhide Workspace"
-msgstr ""
+msgstr "Çalışma Alanını Göster"
 
 #. Label of a Check field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -35474,7 +35474,7 @@ msgstr ""
 #: integrations/doctype/ldap_group_mapping/ldap_group_mapping.json
 msgctxt "LDAP Group Mapping"
 msgid "User Role"
-msgstr ""
+msgstr "Kullanıcı Rolü"
 
 #. Name of a DocType
 #: core/doctype/user_role_profile/user_role_profile.json
@@ -36154,7 +36154,7 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.js:38
 msgid "We do not allow editing of this document. Simply click the Edit button on the workspace page to make your workspace editable and customize it as you wish"
-msgstr ""
+msgstr "Bu belgenin düzenlenmesine izin verilmiyor. Çalışma alanınızı düzenlenebilir hale getirmek ve istediğiniz gibi özelleştirmek için çalışma alanı sayfasındaki Düzenle düğmesine tıklamanız yeterlidir."
 
 #: templates/emails/delete_data_confirmation.html:2
 msgid "We have received a request for deletion of {0} data associated with: {1}"
@@ -37032,7 +37032,7 @@ msgstr "Çalışma Alanı"
 
 #: public/js/frappe/router.js:193
 msgid "Workspace <b>{0}</b> does not exist"
-msgstr ""
+msgstr "Çalışma Alanı <b>{0}</b> mevcut değil"
 
 #. Name of a DocType
 #: desk/doctype/workspace_chart/workspace_chart.json
@@ -37068,11 +37068,11 @@ msgstr "Çalışma Alanı Listesi"
 #. Name of a DocType
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 msgid "Workspace Shortcut"
-msgstr ""
+msgstr "Çalışma Alanı Kısayolu"
 
 #: desk/doctype/workspace/workspace.py:281
 msgid "Workspace not found"
-msgstr ""
+msgstr "Çalışma alanı bulunamadı"
 
 #: public/js/frappe/views/workspace/workspace.js:1276
 msgid "Workspace {0} Created Successfully"
@@ -37637,7 +37637,7 @@ msgstr ""
 
 #: desk/doctype/workspace/workspace.py:73
 msgid "You need to be Workspace Manager to edit this document"
-msgstr ""
+msgstr "Bu belgeyi düzenlemek için Çalışma Alanı Yöneticisi olmanız gerekir"
 
 #: www/attribution.py:14
 msgid "You need to be a system user to access this page."
@@ -38779,7 +38779,7 @@ msgstr ""
 #: public/js/frappe/ui/toolbar/search_utils.js:91
 #: public/js/frappe/ui/toolbar/search_utils.js:92
 msgid "{0} Workspace"
-msgstr ""
+msgstr "{0} Çalışma Alanı"
 
 #: public/js/frappe/form/link_selector.js:225
 msgid "{0} added"
