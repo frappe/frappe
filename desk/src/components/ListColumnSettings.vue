@@ -74,9 +74,11 @@
 
 <script setup>
 import { Autocomplete, FeatherIcon, FormControl } from 'frappe-ui';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, getCurrentInstance } from 'vue';
 import NestedPopover from '@/components/Controls/NestedPopover.vue';
 import Draggable from 'vuedraggable';
+
+const instance = getCurrentInstance();
 
 const props = defineProps({
     allColumns: {
@@ -126,6 +128,7 @@ function addColumn(c) {
         width: '10rem',
     }
     columns.value.push(_column);
+    instance.parent.emit('update');
 }
 
 function removeColumn(c) {

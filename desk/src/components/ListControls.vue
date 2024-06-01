@@ -18,7 +18,7 @@ import ListSortSelector from '@/components/ListSortSelector.vue';
 
 const config = defineModel();
 
-const emit = defineEmits(['updateFilter']);
+const emit = defineEmits(['update']);
 
 const props = defineProps({
     options: {

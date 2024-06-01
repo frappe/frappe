@@ -54,8 +54,6 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(["updateQueryParams"]);
-
 const route = useRoute();
 
 const newViewName = ref('');
@@ -81,14 +79,11 @@ const createConfigResource = createResource({
 const createView = async () => {
     show.value = false;
     let doc = await createConfigResource.submit();
-    let query = { view: doc.name };
-    emit('updateQueryParams', query);
 }
 
 const deleteView = async () => {
     show.value = false;
     await call('frappe.client.delete', { doctype: "View Config", name: config_name.value });
-    emit('updateQueryParams', {});
 }
 
 const renameView = async () => {
