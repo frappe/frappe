@@ -8,7 +8,6 @@ Events:
 	weekly
 """
 
-# imports - standard imports
 import os
 import random
 import time
@@ -16,12 +15,12 @@ from typing import NoReturn
 
 import setproctitle
 from croniter import CroniterBadCronError
+from filelock import FileLock, Timeout
 
-# imports - module imports
 import frappe
-from frappe.utils import cint, get_datetime, get_sites, now_datetime
+from frappe.utils import cint, get_bench_path, get_datetime, get_sites, now_datetime
 from frappe.utils.background_jobs import set_niceness
-from frappe.utils.synchronization import filelock
+from frappe.utils.caching import redis_cache
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -36,7 +35,7 @@ def cprint(*args, **kwargs):
 
 
 def _proctitle(message):
-	setproctitle.setproctitle(f"frappe-scheduler: {message}")
+	setproctitle.setthreadtitle(f"frappe-scheduler: {message}")
 
 
 def start_scheduler() -> NoReturn:
@@ -46,19 +45,23 @@ def start_scheduler() -> NoReturn:
 	tick = get_scheduler_tick()
 	set_niceness()
 
-	with filelock("scheduler_process", timeout=1, is_global=True):
-		while True:
-			_proctitle("idle")
-			time.sleep(tick)
-			enqueue_events_for_all_sites()
+	lock_path = os.path.abspath(os.path.join(get_bench_path(), "config", "scheduler_process"))
+
+	try:
+		lock = FileLock(lock_path)
+		lock.acquire(blocking=False)
+	except Timeout:
+		frappe.logger("scheduler").debug("Scheduler already running")
+		return
+
+	while True:
+		_proctitle("idle")
+		time.sleep(tick)
+		enqueue_events_for_all_sites()
 
 
 def enqueue_events_for_all_sites() -> None:
 	"""Loop through sites and enqueue events that are not already queued"""
-
-	if os.path.exists(os.path.join(".", ".restarting")):
-		# Don't add task to queue if webserver is in restart mode
-		return
 
 	with frappe.init_site():
 		sites = get_sites()
@@ -99,7 +102,9 @@ def enqueue_events_for_site(site: str) -> None:
 def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
 		enqueued_jobs = []
-		for job_type in frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*"):
+		all_jobs = frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*")
+		random.shuffle(all_jobs)
+		for job_type in all_jobs:
 			job_type = frappe.get_doc(doctype="Scheduled Job Type", **job_type)
 			try:
 				if job_type.enqueue():
@@ -156,6 +161,7 @@ def disable_scheduler():
 	toggle_scheduler(False)
 
 
+@redis_cache(ttl=60 * 60)
 def schedule_jobs_based_on_activity(check_time=None):
 	"""Return True for active sites as defined by `Activity Log`.
 	Also return True for inactive sites once every 24 hours based on `Scheduled Job Log`."""

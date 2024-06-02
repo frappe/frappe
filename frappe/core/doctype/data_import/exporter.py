@@ -118,7 +118,6 @@ class Exporter:
 		for doc in data:
 			rows = []
 			rows = self.add_data_row(self.doctype, None, doc, rows, 0)
-
 			if table_fields:
 				# add child table data
 				for f in table_fields:
@@ -144,6 +143,8 @@ class Exporter:
 				if df.fieldtype == "Duration":
 					value = format_duration(flt(value), df.hide_days)
 
+				if df.fieldtype == "Text Editor":
+					value = frappe.core.utils.html2text(value)
 				row[i] = value
 		return rows
 

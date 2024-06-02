@@ -220,6 +220,7 @@ def create_or_update_user(args):  # nosemgrep
 			}
 		)
 		user.append_roles(*_get_default_roles())
+		user.append_roles("System Manager")
 		user.flags.no_welcome_mail = True
 		user.insert()
 

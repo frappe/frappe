@@ -112,24 +112,27 @@ class ServerScript(Document):
 
 	def sync_scheduled_job_type(self):
 		"""Create or update Scheduled Job Type documents for Scheduler Event Server Scripts"""
-		if self.script_type != "Scheduler Event" or (
-			(previous_script_type := self.has_value_changed("script_type"))
-			# True will be sent if its a new record
-			and previous_script_type.value not in (True, "Scheduler Event")
+
+		def get_scheduled_job() -> "ScheduledJobType":
+			if scheduled_script := frappe.db.get_value("Scheduled Job Type", {"server_script": self.name}):
+				return frappe.get_doc("Scheduled Job Type", scheduled_script)
+			else:
+				return frappe.get_doc({"doctype": "Scheduled Job Type", "server_script": self.name})
+
+		previous_script_type = self.get_value_before_save("script_type")
+		if previous_script_type != self.script_type and previous_script_type == "Scheduler Event":
+			get_scheduled_job().update({"stopped": 1}).save()
+			return
+
+		if self.script_type != "Scheduler Event" or not (
+			self.has_value_changed("event_frequency")
+			or self.has_value_changed("cron_format")
+			or self.has_value_changed("disabled")
+			or self.has_value_changed("script_type")
 		):
 			return
 
-		if scheduled_script := frappe.db.get_value("Scheduled Job Type", {"server_script": self.name}):
-			scheduled_job_type: "ScheduledJobType" = frappe.get_doc("Scheduled Job Type", scheduled_script)
-		else:
-			scheduled_job_type: "ScheduledJobType" = frappe.get_doc(
-				{
-					"doctype": "Scheduled Job Type",
-					"server_script": self.name,
-				}
-			)
-
-		scheduled_job_type.update(
+		get_scheduled_job().update(
 			{
 				"method": frappe.scrub(f"{self.name}-{self.event_frequency}"),
 				"frequency": self.event_frequency,
@@ -138,7 +141,7 @@ class ServerScript(Document):
 			}
 		).save()
 
-		frappe.msgprint(_("Scheduled execution for script {0} has updated").format(self.name))
+		frappe.msgprint(_("Scheduled execution for script {0} has updated").format(self.name), alert=True)
 
 	def check_if_compilable_in_restricted_context(self):
 		"""Check compilation errors and send them back as warnings."""
