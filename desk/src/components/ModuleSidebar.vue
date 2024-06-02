@@ -122,7 +122,7 @@
 
 	<Dialog
 		:options="{
-			title: dialogAction === 'edit' ? 'Edit Link' : 'Add Link',
+			title: dialogAction === 'edit' ? 'Edit Sidebar Item' : 'Add Sidebar Item',
 			size: '2xl',
 			actions: [
 				{

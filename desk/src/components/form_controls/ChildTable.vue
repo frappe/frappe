@@ -19,32 +19,36 @@
 			</div>
 
 			<!-- Rows -->
-			<div
-				v-for="(row, index) in rows"
-				:key="row.name"
-				class="grid-row grid items-center border-b border-gray-100 bg-white last:rounded-b last:border-b-0"
-				:style="{
-					gridTemplateColumns:
-						'1fr ' + fields.map((col) => (col.width || 2) + 'fr').join(' ') + ' 1fr',
-				}"
-			>
-				<div class="flex h-full justify-center border-r p-2 text-sm text-gray-800">
-					{{ index + 1 }}
+			<template v-if="tableRows.length">
+				<div
+					v-for="(row, index) in tableRows"
+					:key="row.name"
+					class="grid-row grid items-center border-b border-gray-100 bg-white last:rounded-b last:border-b-0"
+					:style="{
+						gridTemplateColumns:
+							'1fr ' + fields.map((col) => (col.width || 2) + 'fr').join(' ') + ' 1fr',
+					}"
+				>
+					<div class="flex h-full justify-center border-r p-2 text-sm text-gray-800">
+						{{ index + 1 }}
+					</div>
+					<div class="border-r border-gray-100" v-for="field in fields" :key="field.name">
+						<FormControl
+							:type="field.type"
+							variant="outline"
+							size="md"
+							v-model="row[field.fieldname]"
+							class="text-sm text-gray-800"
+							@change="(e) => field.onChange && field.onChange(e.target.value, index)"
+						/>
+					</div>
+					<button @click="" class="flex justify-center">
+						<FeatherIcon name="edit-2" class="h-3 w-3 text-gray-800" />
+					</button>
 				</div>
-				<div class="border-r border-gray-100" v-for="field in fields" :key="field.name">
-					<FormControl
-						:type="field.type"
-						variant="outline"
-						size="md"
-						v-model="row[field.fieldname]"
-						class="text-sm text-gray-800"
-						@change="(e) => field.onChange && field.onChange(e.target.value, index)"
-					/>
-				</div>
-				<button @click="" class="flex justify-center">
-					<FeatherIcon name="edit-2" class="h-3 w-3 text-gray-800" />
-				</button>
-			</div>
+			</template>
+
+			<div v-else class="flex flex-col items-center rounded p-5 text-sm text-gray-600">No Data</div>
 		</div>
 
 		<div class="mt-2 flex flex-row">
@@ -54,6 +58,7 @@
 </template>
 
 <script setup>
+import { ref } from "vue"
 import { FormControl, FeatherIcon } from "frappe-ui"
 
 const props = defineProps({
@@ -67,16 +72,19 @@ const props = defineProps({
 	},
 	rows: {
 		type: Array,
-		required: true,
+		required: false,
+		default: [],
 	},
 })
+
+const tableRows = ref(props.rows)
 
 const addRow = () => {
 	const newRow = {}
 	props.fields.forEach((field) => {
 		newRow[field.key] = ""
 	})
-	props.rows.push(newRow)
+	tableRows.value.push(newRow)
 }
 </script>
 
