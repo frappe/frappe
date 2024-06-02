@@ -1,8 +1,8 @@
-import frappe
 import json
-import frappe.sessions
 import re
 
+import frappe
+import frappe.sessions
 from frappe.website.utils import get_boot_data
 
 SCRIPT_TAG_PATTERN = re.compile(r"\<script[^<]*\</script\>")

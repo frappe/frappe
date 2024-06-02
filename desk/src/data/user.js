@@ -1,3 +1,4 @@
+import router from "@/router"
 import { createResource } from "frappe-ui"
 
 export const user = createResource({

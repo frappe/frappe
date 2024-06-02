@@ -42,6 +42,11 @@ const itemActionMenu = [
 		condition: () => props.item.type !== "Spacer",
 	},
 	{
+		label: "Add Item Below",
+		icon: "plus",
+		onClick: () => updateSidebarItem(props.item, "addBelow"),
+	},
+	{
 		label: "Duplicate",
 		icon: "copy",
 		onClick: () => updateSidebarItem(props.item, "duplicate"),
@@ -50,11 +55,6 @@ const itemActionMenu = [
 		label: "Delete",
 		icon: "trash",
 		onClick: () => updateSidebarItem(props.item, "delete"),
-	},
-	{
-		label: "Add Item Below",
-		icon: "plus",
-		onClick: () => updateSidebarItem(props.item, "addBelow"),
 	},
 ]
 </script>
