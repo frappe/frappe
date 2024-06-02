@@ -12,9 +12,9 @@
 
 <script setup>
 import { defineModel } from "vue"
-import ListColumnSettings from "@/components/ListColumnSettings.vue"
-import ListFilters from "@/components/ListFilters.vue"
-import ListSortSelector from "@/components/ListSortSelector.vue"
+import ListColumnSettings from "@/components/List/ListColumnSettings.vue"
+import ListFilters from "@/components/List/ListFilters.vue"
+import ListSortSelector from "@/components/List/ListSortSelector.vue"
 
 const config = defineModel()
 

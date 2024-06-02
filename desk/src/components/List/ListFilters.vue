@@ -95,8 +95,8 @@
 </template>
 
 <script setup>
-import ListFilterValue from "@/components/ListFilterValue.vue"
-import NestedPopover from "@/components/Controls/NestedPopover.vue"
+import ListFilterValue from "@/components/List/ListFilterValue.vue"
+import NestedPopover from "@/components/controls/NestedPopover.vue"
 
 import { Button, FeatherIcon, Autocomplete, FormControl } from "frappe-ui"
 import { getCurrentInstance } from "vue"

@@ -85,7 +85,7 @@
 				/>
 			</div>
 		</div>
-		<ViewActionsModal
+		<ViewSwitcher
 			v-model="showViewActionsModal"
 			:listConfig="listConfig"
 			:mode="viewModalMode"
@@ -100,8 +100,8 @@ import { ref, computed, onBeforeMount } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import { ListView } from "frappe-ui"
-import ListControls from "@/components/ListControls.vue"
-import ViewActionsModal from "@/components/ViewActionsModal.vue"
+import ListControls from "@/components/List/ListControls.vue"
+import ViewSwitcher from "@/components/ViewSwitcher.vue"
 
 const route = useRoute()
 const router = useRouter()

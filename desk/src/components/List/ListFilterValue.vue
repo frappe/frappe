@@ -36,10 +36,10 @@
 import { ref, watch } from "vue"
 import { FormControl } from "frappe-ui"
 
-import DatePicker from "@/components/Controls/DatePicker.vue"
-import DatetimePicker from "@/components/Controls/DatetimePicker.vue"
-import DateRangePicker from "@/components/Controls/DateRangePicker.vue"
-import Link from "@/components/Controls/Link.vue"
+import DatePicker from "@/components/controls/DatePicker.vue"
+import DatetimePicker from "@/components/controls/DatetimePicker.vue"
+import DateRangePicker from "@/components/controls/DateRangePicker.vue"
+import Link from "@/components/controls/Link.vue"
 
 const props = defineProps({
 	fieldtype: {

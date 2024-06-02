@@ -130,7 +130,7 @@
 <script setup>
 import { Autocomplete, FeatherIcon, FormControl } from "frappe-ui"
 import { computed, ref, watch, getCurrentInstance } from "vue"
-import NestedPopover from "@/components/Controls/NestedPopover.vue"
+import NestedPopover from "@/components/controls/NestedPopover.vue"
 import Draggable from "vuedraggable"
 
 const instance = getCurrentInstance()
