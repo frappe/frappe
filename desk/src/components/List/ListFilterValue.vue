@@ -1,35 +1,36 @@
 <template>
-	<template v-if="['is', 'timespan'].includes(operator)">
-		<FormControl type="select" :options="optionsList[operator]" v-model="value" />
-	</template>
-
-	<template v-else-if="['Check', 'Select'].includes(fieldtype)">
-		<FormControl type="select" :options="optionsList[fieldtype]" v-model="value" />
-	</template>
-
-	<template v-else-if="typeNumber.includes(fieldtype)">
-		<FormControl type="number" v-model="value" />
-	</template>
-	<template v-else-if="typeDate.includes(fieldtype) && operator == 'between'">
-		<DateRangePicker :value="value" @change="(range) => (value = range)" />
-	</template>
-	<template v-else-if="fieldtype == 'Date'">
-		<DatePicker :value="value" @change="(date) => (value = date)" />
-	</template>
-	<template v-else-if="fieldtype == 'Datetime'">
-		<DatetimePicker :value="value" @change="(date) => (value = date)" />
-	</template>
-	<template v-else-if="fieldtype == 'Link'">
-		<Link
-			:doctype="options[0]"
-			:value="value"
-			:class="'form-control'"
-			@change="(val) => (value = val)"
-		/>
-	</template>
-	<template v-else>
-		<FormControl type="text" v-model="value" />
-	</template>
+	<Link
+		v-if="fieldtype == 'Link'"
+		:doctype="options[0]"
+		:value="value"
+		:class="'form-control'"
+		@change="(val) => (value = val)"
+	/>
+	<DateRangePicker
+		v-else-if="dateTypes.includes(fieldtype) && operator == 'between'"
+		:value="value"
+		@change="(range) => (value = range)"
+	/>
+	<DatePicker v-else-if="fieldtype == 'Date'" :value="value" @change="(date) => (value = date)" />
+	<DatetimePicker
+		v-else-if="fieldtype == 'Datetime'"
+		:value="value"
+		@change="(date) => (value = date)"
+	/>
+	<FormControl
+		v-else-if="['is', 'timespan'].includes(operator)"
+		type="select"
+		:options="optionsList[operator]"
+		v-model="value"
+	/>
+	<FormControl
+		v-else-if="['Check', 'Select'].includes(fieldtype)"
+		type="select"
+		:options="optionsList[fieldtype]"
+		v-model="value"
+	/>
+	<FormControl v-else-if="numberTypes.includes(fieldtype)" type="number" v-model="value" />
+	<FormControl v-else type="text" v-model="value" />
 </template>
 
 <script setup>
@@ -168,6 +169,6 @@ const optionsList = {
 	Select: props.options,
 }
 
-const typeNumber = ["Float", "Int", "Currency", "Percent"]
-const typeDate = ["Date", "Datetime"]
+const numberTypes = ["Float", "Int", "Currency", "Percent"]
+const dateTypes = ["Date", "Datetime"]
 </script>

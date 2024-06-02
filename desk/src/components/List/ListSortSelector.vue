@@ -1,27 +1,28 @@
 <template>
-	<div v-if="sort" class="flex w-[12rem] rounded">
-		<div class="w-[2rem]">
-			<Tooltip :text="sort[1]" :hover-delay="0.5">
-				<div>
-					<Button class="w-full rounded-none rounded-l border bg-gray-100" @click="toggleSortOrder">
-						<template #icon>
-							<Icon
-								:name="sort[1] == 'ASC' ? 'sort-ascending' : 'sort-descending'"
-								class="h-3.5 w-3.5"
-							>
-							</Icon>
-						</template>
-					</Button>
-				</div>
-			</Tooltip>
-		</div>
+	<div v-if="sort" class="flex rounded">
+		<Tooltip :text="sort[1]" :hover-delay="0.5">
+			<div>
+				<Button
+					class="w-full rounded-none rounded-l border bg-gray-100 p-1.5"
+					@click="toggleSortOrder"
+				>
+					<template #icon>
+						<Icon
+							:name="sort[1] == 'ASC' ? 'sort-ascending' : 'sort-descending'"
+							class="h-3.5 w-3.5"
+						>
+						</Icon>
+					</template>
+				</Button>
+			</div>
+		</Tooltip>
 		<Dropdown :options="sortOptions">
 			<template v-slot="{ open }">
 				<Button
 					variant="ghost"
-					class="flex w-[10rem] items-center justify-between gap-1 rounded-l-none border border border-l-0 hover:bg-inherit"
+					class="flex items-center justify-between gap-1 rounded-l-none border border border-l-0 hover:bg-inherit"
 				>
-					<div class="max-w-[7.5rem] truncate">{{ sortField }}</div>
+					<div class="truncate">{{ sortField }}</div>
 					<template #suffix>
 						<FeatherIcon :name="open ? 'chevron-up' : 'chevron-down'" class="h-4 w-4" />
 					</template>

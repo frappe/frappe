@@ -16,7 +16,7 @@
 		</template>
 		<template #body="{ close }">
 			<div class="my-2 rounded-lg border border-gray-100 bg-white shadow-xl">
-				<div class="w-[30rem] p-2">
+				<div class="p-2">
 					<div
 						v-if="filters?.length"
 						v-for="({ fieldname, fieldtype, operator, value, options }, i) in filters"

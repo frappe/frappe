@@ -1,13 +1,21 @@
 <template>
-	<template v-if="options.showColumnSettings && config.columns">
-		<ListColumnSettings v-model="config.columns" :allColumns="config.fields" />
-	</template>
-	<template v-if="options.showFilters">
-		<ListFilters v-model="config.filters" :allFilterableFields="config.fields" />
-	</template>
-	<template v-if="options.showSortSelector">
-		<ListSortSelector v-model="config.sort" :allSortableFields="config.columns" />
-	</template>
+	<div class="flex gap-2">
+		<ListFilters
+			v-if="options.showFilters"
+			v-model="config.filters"
+			:allFilterableFields="config.fields"
+		/>
+		<ListColumnSettings
+			v-if="options.showColumnSettings && config.columns"
+			v-model="config.columns"
+			:allColumns="config.fields"
+		/>
+		<ListSortSelector
+			v-if="options.showSortSelector"
+			v-model="config.sort"
+			:allSortableFields="config.columns"
+		/>
+	</div>
 </template>
 
 <script setup>

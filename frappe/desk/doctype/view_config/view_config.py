@@ -42,7 +42,7 @@ def get_default_config(doctype):
 				columns.append(get_column_dict(f))
 				break
 	return {
-		"label": "List",
+		"label": "List View",
 		"columns": columns,
 		"doctype_fields": get_doctype_fields(doctype),
 		"filters": [],

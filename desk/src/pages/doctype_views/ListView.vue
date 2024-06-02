@@ -2,10 +2,9 @@
 	<template v-if="listConfig">
 		<div class="mx-5 my-4 flex h-[41.5rem] flex-col gap-4">
 			<div class="flex items-center justify-between">
-				<div></div>
-				<div class="flex gap-2" v-if="config_settings.data">
+				<div class="flex w-full justify-between gap-2" v-if="config_settings.data">
 					<div class="flex gap-0">
-						<Dropdown :placement="'right'" :options="viewsDropdownOptions">
+						<Dropdown :options="viewDropdownOptions">
 							<template #default="{ open }">
 								<Button
 									:class="configUpdated ? 'rounded-none rounded-l' : ''"
@@ -14,6 +13,12 @@
 									<template #prefix>
 										<FeatherIcon
 											:name="config_settings.data.icon || 'list'"
+											class="h-3.5 text-gray-600"
+										/>
+									</template>
+									<template #suffix>
+										<FeatherIcon
+											:name="open ? 'chevron-up' : 'chevron-down'"
 											class="h-3.5 text-gray-600"
 										/>
 									</template>
@@ -76,37 +81,35 @@
 					</template>
 				</div>
 			</div>
-			<div v-if="list.data?.length">
+			<div v-if="listResource.data?.length">
 				<ListView
-					:rows="list.data"
+					:rows="listResource.data"
 					rowKey="name"
 					:columns="listConfig.columns"
 					:options="listOptions"
 				/>
 			</div>
 		</div>
-		<ViewSwitcher
-			v-model="showViewActionsModal"
-			:listConfig="listConfig"
-			:mode="viewModalMode"
-		/>
+		<ViewSwitcher v-model="showViewActionsModal" :listConfig="listConfig" :mode="viewModalMode" />
 	</template>
 </template>
 
 <script setup>
 import { config_name, config_settings, isDefaultConfig } from "@/stores/view"
 import { call, createResource, FeatherIcon, Dropdown, Tooltip } from "frappe-ui"
-import { ref, computed, onBeforeMount } from "vue"
+import { ref, computed, onBeforeMount, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import { ListView } from "frappe-ui"
 import ListControls from "@/components/List/ListControls.vue"
 import ViewSwitcher from "@/components/ViewSwitcher.vue"
 
+import { doctypesBySlug } from "@/data/permissions"
+
 const route = useRoute()
 const router = useRouter()
 
-const viewsDropdownOptions = computed(() => {
+const viewDropdownOptions = computed(() => {
 	let options = []
 	!isDefaultConfig.value &&
 		options.push({
@@ -138,7 +141,7 @@ const viewsDropdownOptions = computed(() => {
 		group: "Default Views",
 		items: [
 			{
-				label: "List",
+				label: "List View",
 				icon: "list",
 				onClick: async () => {
 					await router.replace({ query: { view: null } })
@@ -146,15 +149,15 @@ const viewsDropdownOptions = computed(() => {
 				},
 			},
 			{
-				label: "Report",
+				label: "Report View",
 				icon: "table",
 			},
 			{
-				label: "Kanban",
+				label: "Kanban View",
 				icon: "grid",
 			},
 			{
-				label: "Dashboard",
+				label: "Dashboard View",
 				icon: "pie-chart",
 			},
 		],
@@ -199,8 +202,8 @@ const listOptions = {
 	rowHeight: 40,
 }
 
+const doctype = ref("")
 const listConfig = ref({})
-
 const oldConfig = ref({})
 
 const configUpdated = computed(
@@ -209,18 +212,18 @@ const configUpdated = computed(
 
 // Display list based on default or saved view
 
-onBeforeMount(async () => {
+async function renderList() {
 	let query_config = route.query.view
 	await loadConfig(query_config)
 	await addViewFiltersToQueryParams(query_config)
 	await createConfigObj()
-	await list.fetch()
-})
+	await listResource.fetch()
+}
 
 const loadConfig = async (query_config) => {
 	if (!query_config) {
 		isDefaultConfig.value = true
-		config_name.value = route.params.doctype
+		config_name.value = doctype.value
 	} else {
 		isDefaultConfig.value = false
 		config_name.value = query_config
@@ -249,11 +252,11 @@ const createConfigObj = async () => {
 	oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
 }
 
-const list = createResource({
+const listResource = createResource({
 	url: `frappe.client.get_list`,
 	makeParams() {
 		return {
-			doctype: route.params.doctype,
+			doctype: doctype.value,
 			fields: listConfig.value.columns?.map((col) => col.key),
 			filters: queryFilters.value,
 			limit: 20,
@@ -316,7 +319,7 @@ const queryFilters = computed(
 // Refresh list - on update of sort, columns, filters
 
 const handleUpdateControls = async () => {
-	await list.fetch()
+	await listResource.fetch()
 }
 
 // View Actions
@@ -324,7 +327,7 @@ const handleUpdateControls = async () => {
 const cancelChanges = async () => {
 	router.push({ query: { view: route.query.view } })
 	await loadConfig(route.query.view)
-	await list.fetch()
+	await listResource.fetch()
 }
 
 const updateView = async () => {
@@ -338,4 +341,13 @@ const updateView = async () => {
 
 const showViewActionsModal = ref(false)
 const viewModalMode = ref("")
+
+watch(
+	() => route.params.doctype,
+	() => {
+		doctype.value = doctypesBySlug[route.params.doctype]?.name
+		renderList()
+	},
+	{ immediate: true }
+)
 </script>

@@ -28,6 +28,7 @@ const routes = [
 		path: "/:doctype",
 		name: "ListView",
 		component: () => import("@/pages/doctype_views/ListView.vue"),
+		params: true,
 	},
 	{
 		path: "/:doctype/view/list",
