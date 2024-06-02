@@ -1,0 +1,16 @@
+{
+ "color": "#70B6F0",
+ "creation": "2024-05-08 17:03:39.604679",
+ "custom": 0,
+ "docstatus": 0,
+ "doctype": "Desktop Item",
+ "icon": "integration",
+ "idx": 0,
+ "label": "Integrations",
+ "link_type": "Module",
+ "modified": "2024-05-08 18:24:16.823334",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "Integrations",
+ "owner": "Administrator"
+}

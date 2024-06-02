@@ -1,0 +1,32 @@
+<template>
+	<div class="flex flex-row">
+		<ModuleSidebar v-if="module" :module="module" />
+		<div class="flex grow flex-col">
+			<Navbar />
+			<router-view />
+		</div>
+	</div>
+</template>
+
+<script setup>
+import { ref, watchEffect } from "vue"
+import { useRoute } from "vue-router"
+import { doctypesBySlug, workspacesBySlug, modulesBySlug } from "@/data/permissions"
+
+import ModuleSidebar from "@/components/ModuleSidebar.vue"
+import Navbar from "@/components/Navbar.vue"
+
+const route = useRoute()
+const module = ref("")
+
+// set module based on route. Using watchEffect since this needs to track multiple route params
+watchEffect(() => {
+	if (route.params?.module) {
+		module.value = modulesBySlug[route.params.module]
+	} else if (route.params?.doctype) {
+		module.value = doctypesBySlug[route.params.doctype].module
+	} else if (route.params?.workspace && !module.value) {
+		module.value = workspacesBySlug[route.params.workspace].module
+	}
+})
+</script>

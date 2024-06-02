@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-05-09 19:11:06.595030",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "module",
+  "custom",
+  "column_break_jixq",
+  "for_user",
+  "section_break_qrra",
+  "workspaces",
+  "section_break_wcnx",
+  "items"
+ ],
+ "fields": [
+  {
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Module Sidebar Item"
+  },
+  {
+   "default": "0",
+   "fieldname": "custom",
+   "fieldtype": "Check",
+   "label": "Custom"
+  },
+  {
+   "fieldname": "column_break_jixq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_wcnx",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "for_user",
+   "fieldtype": "Link",
+   "label": "For User",
+   "options": "User"
+  },
+  {
+   "fieldname": "section_break_qrra",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "workspaces",
+   "fieldtype": "Table",
+   "label": "Workspaces",
+   "options": "Module Sidebar Workspace"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-05-27 17:46:24.928167",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Module Sidebar",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

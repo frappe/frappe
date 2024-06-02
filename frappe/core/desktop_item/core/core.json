@@ -1,0 +1,16 @@
+{
+ "color": "#2a4a69",
+ "creation": "2024-05-06 00:57:32.851658",
+ "custom": 0,
+ "docstatus": 0,
+ "doctype": "Desktop Item",
+ "icon": "quality-3",
+ "idx": 0,
+ "label": "Core",
+ "link_type": "Module",
+ "modified": "2024-05-08 15:59:01.172418",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Core",
+ "owner": "Administrator"
+}

@@ -267,6 +267,7 @@ class UserPermissions:
 		):
 			d[key] = list(set(getattr(self, key)))
 
+		d.doctype_map = {dt: self.doctype_map[dt] for dt in d["can_read"]}
 		d.all_reports = self.get_all_reports()
 		return d
 

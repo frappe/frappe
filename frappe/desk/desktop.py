@@ -393,8 +393,11 @@ def get_desktop_page(page):
 	Return:
 	        dict: dictionary of cards, charts and shortcuts to be displayed on website
 	"""
+	if isinstance(page, str):
+		page = loads(page)
+
 	try:
-		workspace = Workspace(loads(page))
+		workspace = Workspace(page)
 		workspace.build_workspace()
 		return {
 			"charts": workspace.charts,
