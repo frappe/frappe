@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-26 09:33+0000\n"
-"PO-Revision-Date: 2024-05-30 02:11\n"
+"PO-Revision-Date: 2024-06-02 03:12\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2111,7 +2111,7 @@ msgstr "ماژول های مجاز"
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "Allowed Roles"
-msgstr ""
+msgstr "نقش های مجاز"
 
 #: public/js/frappe/form/form.js:1250
 msgid "Allowing DocType, DocType. Be careful!"
@@ -2556,7 +2556,7 @@ msgstr "تایید لازم است"
 #: public/js/frappe/utils/number_systems.js:41
 msgctxt "Number system"
 msgid "Ar"
-msgstr "آر"
+msgstr "Ar"
 
 #: public/js/frappe/views/kanban/kanban_column.html:14
 msgid "Archive"
@@ -3446,7 +3446,7 @@ msgstr "عالی است، حالا سعی کنید خودتان یک ورودی 
 #: public/js/frappe/utils/number_systems.js:9
 msgctxt "Number system"
 msgid "B"
-msgstr "ب"
+msgstr "B"
 
 #. Option for the 'PDF Page Size' (Select) field in DocType 'Print Settings'
 #: printing/doctype/print_settings/print_settings.json
@@ -4279,11 +4279,11 @@ msgstr "ویرایش انبوه {0}"
 
 #: desk/reportview.py:525
 msgid "Bulk Operation Failed"
-msgstr ""
+msgstr "عملیات انبوه ناموفق بود"
 
 #: desk/reportview.py:529
 msgid "Bulk Operation Successful"
-msgstr ""
+msgstr "عملیات انبوه با موفقیت انجام شد"
 
 #: public/js/frappe/list/bulk_operations.js:122
 msgid "Bulk PDF Export"
@@ -4513,7 +4513,7 @@ msgstr "URL CTA"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Cache"
-msgstr ""
+msgstr "حافظه پنهان"
 
 #: sessions.py:32
 msgid "Cache Cleared"
@@ -5686,7 +5686,7 @@ msgstr "چالش کد"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Code Editor Type"
-msgstr ""
+msgstr "نوع ویرایشگر کد"
 
 #. Label of a Select field in DocType 'OAuth Authorization Code'
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
@@ -6108,7 +6108,7 @@ msgstr "لینک ارتباط"
 #: core/workspace/build/build.json
 msgctxt "Communication"
 msgid "Communication Logs"
-msgstr ""
+msgstr "لاگ های ارتباطی"
 
 #. Label of a Select field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -6532,11 +6532,11 @@ msgstr "گزینه‌های تماس، مانند «پرسمان فروش، در
 
 #: utils/change_log.py:360
 msgid "Contains {0} security fix"
-msgstr ""
+msgstr "حاوی {0} اصلاح امنیتی است"
 
 #: utils/change_log.py:358
 msgid "Contains {0} security fixes"
-msgstr ""
+msgstr "حاوی {0} اصلاحات امنیتی است"
 
 #: public/js/frappe/utils/utils.js:1729
 #: website/report/website_analytics/website_analytics.js:41
@@ -7302,7 +7302,7 @@ msgstr "پیکربندی سفارشی"
 #: core/doctype/data_import/data_import.json
 msgctxt "Data Import"
 msgid "Custom Delimiters"
-msgstr ""
+msgstr "جداکننده های سفارشی"
 
 #. Name of a DocType
 #: core/doctype/custom_docperm/custom_docperm.json
@@ -7963,7 +7963,7 @@ msgstr "داده های موجود در جدول وجود ندارد"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Database"
-msgstr ""
+msgstr "پایگاه داده"
 
 #. Label of a Select field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -7998,7 +7998,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Database Version"
-msgstr ""
+msgstr "نسخه پایگاه داده"
 
 #: desk/report/todo/todo.py:38 email/doctype/newsletter/newsletter.js:109
 #: public/js/frappe/views/interaction.js:80
@@ -8198,7 +8198,7 @@ msgstr ""
 
 #: public/js/frappe/views/reports/report_utils.js:300
 msgid "Decimal Separator must be a single character"
-msgstr ""
+msgstr "جداکننده اعشاری باید یک کاراکتر باشد"
 
 #: templates/form_grid/fields.html:30
 msgid "Default"
@@ -8596,7 +8596,7 @@ msgstr "نام حذف شده"
 
 #: desk/reportview.py:529
 msgid "Deleted all documents successfully"
-msgstr ""
+msgstr "تمام اسناد با موفقیت حذف شد"
 
 #: desk/reportview.py:507
 msgid "Deleting {0}"
@@ -8933,7 +8933,7 @@ msgstr "سرور دایرکتوری"
 #: desk/doctype/list_view_settings/list_view_settings.json
 msgctxt "List View Settings"
 msgid "Disable Auto Refresh"
-msgstr "Refresh خودکار را غیرفعال کنید"
+msgstr "غیر فعال کردن Refresh خودکار"
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -8957,7 +8957,7 @@ msgstr "غیرفعال کردن نظرات"
 #: website/doctype/contact_us_settings/contact_us_settings.json
 msgctxt "Contact Us Settings"
 msgid "Disable Contact Us Page"
-msgstr ""
+msgstr "غیرفعال کردن صفحه تماس با ما"
 
 #. Label of a Check field in DocType 'List View Settings'
 #: desk/doctype/list_view_settings/list_view_settings.json
@@ -9363,7 +9363,7 @@ msgstr ""
 #: custom/doctype/property_setter/property_setter.json
 msgctxt "Property Setter"
 msgid "DocType Action"
-msgstr ""
+msgstr "اقدام DocType"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #. Label of a Select field in DocType 'Server Script'
@@ -10968,7 +10968,7 @@ msgstr "ایمیل با {0} تأیید نشده است"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Emails"
-msgstr ""
+msgstr "ایمیل ها"
 
 #: email/queue.py:137
 msgid "Emails are muted"
@@ -10982,7 +10982,7 @@ msgstr "ایمیل‌ها با اقدامات بعدی ممکن در گردش ک
 
 #: website/doctype/web_form/web_form.js:34
 msgid "Embed code copied"
-msgstr ""
+msgstr "کد جاسازی کپی شد"
 
 #. Label of a Check field in DocType 'Google Calendar'
 #: integrations/doctype/google_calendar/google_calendar.json
@@ -11693,7 +11693,7 @@ msgstr "خطا: مقدار از دست رفته برای {0}: {1}"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Errors"
-msgstr ""
+msgstr "خطاها"
 
 #. Name of a DocType
 #: desk/doctype/event/event.json
@@ -12156,7 +12156,7 @@ msgstr "ناموفق"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Failed Emails"
-msgstr ""
+msgstr "ایمیل های ناموفق"
 
 #. Label of a Int field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -12174,7 +12174,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Failed Logins (Last 30 days)"
-msgstr ""
+msgstr "ورودهای ناموفق (30 روز گذشته)"
 
 #: model/workflow.py:298
 msgid "Failed Transactions"
@@ -12272,7 +12272,7 @@ msgstr "شکست"
 #: desk/doctype/system_health_report_failing_jobs/system_health_report_failing_jobs.json
 msgctxt "System Health Report Failing Jobs"
 msgid "Failure Rate"
-msgstr ""
+msgstr "میزان شکست"
 
 #. Label of a Attach field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -14015,7 +14015,7 @@ msgstr "متغیرهای Header و Footer wkhtmltopdf را دریافت کنید
 
 #: public/js/frappe/form/multi_select_dialog.js:87
 msgid "Get Items"
-msgstr "موارد را دریافت کنید"
+msgstr "دریافت آیتم‌ها"
 
 #: integrations/doctype/connected_app/connected_app.js:6
 msgid "Get OpenID Configuration"
@@ -16191,7 +16191,7 @@ msgstr "تنظیمات ورودی (POP/IMAP)."
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Incoming Emails (Last 7 days)"
-msgstr ""
+msgstr "ایمیل های دریافتی (7 روز گذشته)"
 
 #. Label of a Data field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -17380,7 +17380,7 @@ msgstr "پرش به فیلد"
 #: public/js/frappe/utils/number_systems.js:53
 msgctxt "Number system"
 msgid "K"
-msgstr "ک"
+msgstr "K"
 
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
@@ -17486,7 +17486,7 @@ msgstr "میانبرهای صفحه کلید"
 #: public/js/frappe/utils/number_systems.js:37
 msgctxt "Number system"
 msgid "Kh"
-msgstr "خ"
+msgstr "Kh"
 
 #. Label of a Card Break in the Website Workspace
 #: website/doctype/help_article/help_article.py:80
@@ -19075,7 +19075,7 @@ msgstr "کم"
 #: public/js/frappe/utils/number_systems.js:13
 msgctxt "Number system"
 msgid "M"
-msgstr "م"
+msgstr "M"
 
 #. Option for the 'License Type' (Select) field in DocType 'Package'
 #: core/doctype/package/package.json
@@ -19532,7 +19532,7 @@ msgstr "اعضا"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Memory Usage"
-msgstr ""
+msgstr "استفاده از حافظه"
 
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
@@ -20765,7 +20765,7 @@ msgstr "تماس جدید"
 
 #: public/js/frappe/widgets/widget_dialog.js:70
 msgid "New Custom Block"
-msgstr ""
+msgstr "بلوک سفارشی جدید"
 
 #: printing/page/print/print.js:295 printing/page/print/print.js:342
 msgid "New Custom Print Format"
@@ -20839,7 +20839,7 @@ msgstr "کارت شماره جدید"
 
 #: public/js/frappe/widgets/widget_dialog.js:66
 msgid "New Onboarding"
-msgstr ""
+msgstr "آشناسازی جدید"
 
 #: core/doctype/user/user.js:171 www/update-password.html:19
 msgid "New Password"
@@ -20866,7 +20866,7 @@ msgstr "میانبر جدید"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "New Users (Last 30 days)"
-msgstr ""
+msgstr "کاربران جدید (30 روز گذشته)"
 
 #: core/doctype/version/version_view.html:14
 #: core/doctype/version/version_view.html:76
@@ -21264,7 +21264,7 @@ msgstr "فیلد انتخابی یافت نشد"
 
 #: core/doctype/recorder/recorder.py:187
 msgid "No Suggestions"
-msgstr ""
+msgstr "بدون پیشنهاد"
 
 #: desk/reportview.py:595
 msgid "No Tags"
@@ -22728,7 +22728,7 @@ msgstr "دیگر"
 #: email/doctype/email_account/email_account.json
 msgctxt "Email Account"
 msgid "Outgoing (SMTP)"
-msgstr ""
+msgstr "خروجی (SMTP)"
 
 #. Label of a Section Break field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -22740,7 +22740,7 @@ msgstr "تنظیمات خروجی (SMTP)."
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Outgoing Emails (Last 7 days)"
-msgstr ""
+msgstr "ایمیل های خروجی (7 روز گذشته)"
 
 #. Label of a Data field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -22848,7 +22848,7 @@ msgstr "تولید PDF به دلیل پیوندهای تصویر شکسته ان
 
 #: printing/page/print/print.js:613
 msgid "PDF generation may not work as expected."
-msgstr ""
+msgstr "تولید PDF ممکن است آنطور که انتظار می رود کار نکند."
 
 #: printing/page/print/print.js:531
 msgid "PDF printing via \"Raw Print\" is not supported."
@@ -25058,7 +25058,7 @@ msgstr "عمومی"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Public Files (MB)"
-msgstr ""
+msgstr "فایل های عمومی (MB)"
 
 #: website/doctype/blog_post/blog_post.js:36
 #: website/doctype/web_form/web_form.js:86
@@ -25892,7 +25892,7 @@ msgstr "قرمز"
 #: website/doctype/website_route_redirect/website_route_redirect.json
 msgctxt "Website Route Redirect"
 msgid "Redirect HTTP Status"
-msgstr ""
+msgstr "Redirect HTTP Status"
 
 #. Label of a Data field in DocType 'Connected App'
 #: integrations/doctype/connected_app/connected_app.json
@@ -31064,7 +31064,7 @@ msgstr "فرمت جدید را شروع کنید"
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgctxt "LDAP Settings"
 msgid "StartTLS"
-msgstr ""
+msgstr "StartTLS"
 
 #. Option for the 'Status' (Select) field in DocType 'Prepared Report'
 #: core/doctype/prepared_report/prepared_report.json
@@ -31831,7 +31831,7 @@ msgstr "{0} رکورد از {1} رکورد با موفقیت به روز شد."
 
 #: core/doctype/recorder/recorder.js:15
 msgid "Suggest Optimizations"
-msgstr ""
+msgstr "پیشنهاد بهینه‌سازی"
 
 #. Label of a Table field in DocType 'Recorder'
 #: core/doctype/recorder/recorder.json
@@ -32005,17 +32005,17 @@ msgstr "فیلدهای تولید شده سیستم را نمی توان تغی�
 #. Type: Action
 #: hooks.py
 msgid "System Health"
-msgstr ""
+msgstr "سلامت سیستم"
 
 #. Name of a DocType
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "System Health Report"
-msgstr ""
+msgstr "گزارش سلامت سیستم"
 
 #. Name of a DocType
 #: desk/doctype/system_health_report_errors/system_health_report_errors.json
 msgid "System Health Report Errors"
-msgstr ""
+msgstr "خطاهای گزارش سلامت سیستم"
 
 #. Name of a DocType
 #: desk/doctype/system_health_report_failing_jobs/system_health_report_failing_jobs.json
@@ -32220,7 +32220,7 @@ msgstr "مدیران سیستم به طور پیش فرض مجاز هستند"
 #: public/js/frappe/utils/number_systems.js:5
 msgctxt "Number system"
 msgid "T"
-msgstr "تی"
+msgstr "T"
 
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
@@ -32784,7 +32784,7 @@ msgstr "نقش {0} باید یک نقش سفارشی باشد."
 
 #: core/doctype/audit_trail/audit_trail.py:46
 msgid "The selected document {0} is not a {1}."
-msgstr ""
+msgstr "سند انتخاب شده {0} یک {1} نیست."
 
 #: utils/response.py:317
 msgid "The system is being updated. Please refresh again after a few moments."
@@ -33833,7 +33833,7 @@ msgstr "تغییر نمودار"
 #. Type: Action
 #: hooks.py
 msgid "Toggle Full Width"
-msgstr "عرض کامل را تغییر دهید"
+msgstr "تغییر وضعیت عرض کامل"
 
 #: public/js/frappe/views/file/file_view.js:33
 msgid "Toggle Grid View"
@@ -33842,12 +33842,12 @@ msgstr "نمای شبکه ای را تغییر دهید"
 #: public/js/frappe/ui/page.js:193 public/js/frappe/ui/page.js:195
 #: public/js/frappe/views/reports/report_view.js:1497
 msgid "Toggle Sidebar"
-msgstr "نوار کناری را تغییر دهید"
+msgstr "تغییر وضعیت نوار کناری"
 
 #: public/js/frappe/list/list_view.js:1726
 msgctxt "Button in list view menu"
 msgid "Toggle Sidebar"
-msgstr "نوار کناری را تغییر دهید"
+msgstr "تغییر وضعیت نوار کناری"
 
 #. Label of a standard navbar item
 #. Type: Action
@@ -34036,7 +34036,7 @@ msgstr "کل مشترکین"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Total Users"
-msgstr ""
+msgstr "مجموع کاربران"
 
 #. Label of a Int field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
@@ -34875,7 +34875,7 @@ msgstr "به روز رسانی ارزش"
 
 #: utils/change_log.py:383
 msgid "Update from Frappe Cloud"
-msgstr ""
+msgstr "به روز رسانی از Frappe Cloud"
 
 #: public/js/frappe/list/bulk_operations.js:345
 msgid "Update {0} records"
@@ -36546,7 +36546,7 @@ msgstr "لینک تصویر تم وب سایت"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Websocket"
-msgstr ""
+msgstr "Websocket"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #: automation/doctype/assignment_rule_day/assignment_rule_day.json
@@ -38043,7 +38043,7 @@ msgstr "به عنوان مثال:"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "emacs"
-msgstr ""
+msgstr "emacs"
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -38600,13 +38600,13 @@ msgstr "از طریق {0}"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "vim"
-msgstr ""
+msgstr "vim"
 
 #. Option for the 'Code Editor Type' (Select) field in DocType 'User'
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "vscode"
-msgstr ""
+msgstr "vscode"
 
 #: templates/includes/oauth_confirmation.html:5
 msgid "wants to access the following details from your account"
@@ -38621,7 +38621,7 @@ msgstr "هنگامی که بر روی عنصر کلیک کنید، در صورت
 
 #: printing/page/print/print.js:619
 msgid "wkhtmltopdf 0.12.x (with patched qt)."
-msgstr ""
+msgstr "wkhtmltopdf 0.12.x (with patched qt)."
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
@@ -39535,7 +39535,7 @@ msgstr "{{{0}}} یک الگوی نام فیلد معتبر نیست. باید {{
 #: website/workspace/website/website.json
 msgctxt "Blogger"
 msgid "{} Active"
-msgstr ""
+msgstr "{} فعال"
 
 #: public/js/frappe/form/form.js:517
 msgid "{} Complete"
@@ -39553,13 +39553,13 @@ msgstr "{} احتمالاً کد پایتون نامعتبر است. <br>{}"
 #: website/workspace/website/website.json
 msgctxt "Blog Post"
 msgid "{} Published"
-msgstr ""
+msgstr "{} منتشر شده"
 
 #. Count format of shortcut in the Website Workspace
 #: website/workspace/website/website.json
 msgctxt "Web Page"
 msgid "{} Published"
-msgstr ""
+msgstr "{} منتشر شده"
 
 #: core/doctype/log_settings/log_settings.py:55
 msgid "{} does not support automated log clearing."
