@@ -16,12 +16,12 @@
 		</template>
 		<template #body="{ close }">
 			<div class="my-2 rounded-lg border border-gray-100 bg-white shadow-xl">
-				<div class="p-2">
+				<div class="p-3">
 					<div
 						v-if="filters?.length"
 						v-for="({ fieldname, fieldtype, operator, value, options }, i) in filters"
 						id="filter-list"
-						class="mb-3 flex items-center justify-between gap-2"
+						class="mb-3 flex items-center gap-2"
 					>
 						<div class="flex items-center gap-2">
 							<div class="w-[9rem]">
@@ -52,11 +52,11 @@
 								></ListFilterValue>
 							</div>
 						</div>
-						<Button :class="'h-3.5'" variant="ghost" icon="x" @click="removeFilter(i)" />
+						<button icon="x" @click="removeFilter(i)">
+							<FeatherIcon name="x" class="h-3.5" />
+						</button>
 					</div>
-					<div v-else class="my-3 px-3 text-sm text-gray-600">
-						{{ "No filters added." }}
-					</div>
+					<div v-else class="my-3 min-w-[30rem] pl-3 text-sm text-gray-500">No filters added.</div>
 					<div class="flex items-center justify-between gap-2">
 						<Autocomplete
 							:body-classes="'w-[29rem]'"
@@ -68,24 +68,21 @@
 									class="!text-gray-600"
 									variant="ghost"
 									@click="togglePopover()"
-									:label="'Add'"
+									label="Add Filter"
 								>
 									<template #prefix>
-										<FeatherIcon name="plus" class="h-3.5" />
+										<FeatherIcon name="plus" class="h-3" />
 									</template>
 								</Button>
 							</template>
 						</Autocomplete>
 						<Button
 							v-if="filters?.length"
-							class="h-3.5 !text-gray-600"
+							class="ml-auto !text-gray-600"
 							variant="ghost"
-							:label="'Clear'"
+							label="Clear All"
 							@click="clearFilters"
 						>
-							<template #prefix>
-								<FeatherIcon name="trash" class="h-3.5" />
-							</template>
 						</Button>
 					</div>
 				</div>

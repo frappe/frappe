@@ -1,6 +1,6 @@
 <template>
 	<div v-if="sort" class="flex rounded">
-		<Tooltip :text="sort[1]" :hover-delay="0.5">
+		<Tooltip :text="sort[1] == 'ASC' ? 'ascending' : 'descending'" :hover-delay="0.5">
 			<div>
 				<Button
 					class="w-full rounded-none rounded-l border bg-gray-100 p-1.5"
@@ -19,8 +19,8 @@
 		<Dropdown :options="sortOptions">
 			<template v-slot="{ open }">
 				<Button
-					variant="ghost"
-					class="flex items-center justify-between gap-1 rounded-l-none border border border-l-0 hover:bg-inherit"
+					variant="subtle"
+					class="flex items-center justify-between gap-1 rounded-l-none border border-l-0"
 				>
 					<div class="truncate">{{ sortField }}</div>
 					<template #suffix>
