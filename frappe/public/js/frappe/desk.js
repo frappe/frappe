@@ -42,6 +42,7 @@ frappe.Application = class Application {
 		this.add_browser_class();
 		this.setup_energy_point_listeners();
 		this.setup_copy_doc_listener();
+		this.setup_broadcast_listeners();
 
 		frappe.ui.keys.setup();
 
@@ -150,6 +151,11 @@ frappe.Application = class Application {
 
 		// REDESIGN-TODO: Fix preview popovers
 		this.link_preview = new frappe.ui.LinkPreview();
+
+		frappe.broadcast.emit("boot", {
+			csrf_token: frappe.csrf_token,
+			user: frappe.session.user,
+		});
 	}
 
 	set_route() {
@@ -509,6 +515,33 @@ frappe.Application = class Application {
 				}
 			} catch (e) {
 				//
+			}
+		});
+	}
+
+	/// Setup event listeners for events across browser tabs / web workers.
+	setup_broadcast_listeners() {
+		// booted in another tab -> refresh csrf to avoid invalid requests.
+		frappe.broadcast.on("boot", ({ csrf_token, user }) => {
+			if (user && user != frappe.session.user) {
+				frappe.msgprint({
+					message: __(
+						"You've logged in as another user from another tab. Refresh this page to continue using system."
+					),
+					title: __("User Changed"),
+					primary_action: {
+						label: __("Refresh"),
+						action: () => {
+							window.location.reload();
+						},
+					},
+				});
+				return;
+			}
+
+			if (csrf_token) {
+				// If user re-logged in then their other tabs won't be usable without this update.
+				frappe.csrf_token = csrf_token;
 			}
 		});
 	}
