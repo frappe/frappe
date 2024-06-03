@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-05-26 09:33+0000\n"
-"PO-Revision-Date: 2024-05-26 09:33+0000\n"
+"POT-Creation-Date: 2024-06-02 09:33+0000\n"
+"PO-Revision-Date: 2024-06-02 09:33+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -903,7 +903,7 @@ msgctxt "Social Login Key"
 msgid "Access Token URL"
 msgstr ""
 
-#: auth.py:455
+#: auth.py:466
 msgid "Access not allowed from this IP Address"
 msgstr ""
 
@@ -978,8 +978,8 @@ msgctxt "DocType Action"
 msgid "Action / Route"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:310
-#: public/js/frappe/widgets/onboarding_widget.js:381
+#: public/js/frappe/widgets/onboarding_widget.js:305
+#: public/js/frappe/widgets/onboarding_widget.js:376
 msgid "Action Complete"
 msgstr ""
 
@@ -1267,7 +1267,7 @@ msgstr ""
 msgid "Add Review"
 msgstr ""
 
-#: core/doctype/user/user.py:753
+#: core/doctype/user/user.py:757
 msgid "Add Roles"
 msgstr ""
 
@@ -1556,11 +1556,11 @@ msgstr ""
 msgid "Administrator"
 msgstr ""
 
-#: core/doctype/user/user.py:1157
+#: core/doctype/user/user.py:1161
 msgid "Administrator Logged In"
 msgstr ""
 
-#: core/doctype/user/user.py:1151
+#: core/doctype/user/user.py:1155
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr ""
 
@@ -1755,7 +1755,7 @@ msgstr ""
 msgid "All Records"
 msgstr ""
 
-#: public/js/frappe/form/form.js:2205
+#: public/js/frappe/form/form.js:2224
 msgid "All Submissions"
 msgstr ""
 
@@ -2154,7 +2154,7 @@ msgstr ""
 msgid "Allowing DocType, DocType. Be careful!"
 msgstr ""
 
-#: core/doctype/user/user.py:960
+#: core/doctype/user/user.py:964
 msgid "Already Registered"
 msgstr ""
 
@@ -2605,7 +2605,7 @@ msgctxt "Kanban Board Column"
 msgid "Archived"
 msgstr ""
 
-#: public/js/frappe/views/kanban/kanban_board.bundle.js:495
+#: public/js/frappe/views/kanban/kanban_board.bundle.js:494
 msgid "Archived Columns"
 msgstr ""
 
@@ -3472,11 +3472,11 @@ msgctxt "Email Account"
 msgid "Awaiting password"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:200
+#: public/js/frappe/widgets/onboarding_widget.js:195
 msgid "Awesome Work"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:358
+#: public/js/frappe/widgets/onboarding_widget.js:353
 msgid "Awesome, now try making an entry yourself"
 msgstr ""
 
@@ -3567,7 +3567,7 @@ msgctxt "Notification Recipient"
 msgid "BCC"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:186
+#: public/js/frappe/widgets/onboarding_widget.js:181
 msgid "Back"
 msgstr ""
 
@@ -4136,7 +4136,7 @@ msgstr ""
 msgid "Both DocType and Name required"
 msgstr ""
 
-#: templates/includes/login/login.js:97
+#: templates/includes/login/login.js:92
 msgid "Both login and password required"
 msgstr ""
 
@@ -4311,7 +4311,7 @@ msgstr ""
 msgid "Bulk Edit"
 msgstr ""
 
-#: public/js/frappe/form/grid.js:1157
+#: public/js/frappe/form/grid.js:1160
 msgid "Bulk Edit {0}"
 msgstr ""
 
@@ -6422,7 +6422,7 @@ msgstr ""
 msgid "Confirmed"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:530
+#: public/js/frappe/widgets/onboarding_widget.js:525
 msgid "Congratulations on completing the module setup. If you want to learn more you can refer to the documentation <a target=\"_blank\" href=\"{0}\">here</a>."
 msgstr ""
 
@@ -6697,14 +6697,14 @@ msgctxt "Web Page"
 msgid "Context Script"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:209
-#: public/js/frappe/widgets/onboarding_widget.js:237
-#: public/js/frappe/widgets/onboarding_widget.js:277
-#: public/js/frappe/widgets/onboarding_widget.js:317
-#: public/js/frappe/widgets/onboarding_widget.js:366
-#: public/js/frappe/widgets/onboarding_widget.js:388
-#: public/js/frappe/widgets/onboarding_widget.js:428
-#: public/js/frappe/widgets/onboarding_widget.js:536
+#: public/js/frappe/widgets/onboarding_widget.js:204
+#: public/js/frappe/widgets/onboarding_widget.js:232
+#: public/js/frappe/widgets/onboarding_widget.js:272
+#: public/js/frappe/widgets/onboarding_widget.js:312
+#: public/js/frappe/widgets/onboarding_widget.js:361
+#: public/js/frappe/widgets/onboarding_widget.js:383
+#: public/js/frappe/widgets/onboarding_widget.js:423
+#: public/js/frappe/widgets/onboarding_widget.js:531
 msgid "Continue"
 msgstr ""
 
@@ -9195,7 +9195,7 @@ msgstr ""
 msgid "Dismiss"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:577
+#: public/js/frappe/widgets/onboarding_widget.js:572
 msgctxt "Stop showing the onboarding widget."
 msgid "Dismiss"
 msgstr ""
@@ -9237,7 +9237,7 @@ msgctxt "LDAP Settings"
 msgid "Do not create new user if user with email does not exist in the system"
 msgstr ""
 
-#: public/js/frappe/form/grid.js:1162
+#: public/js/frappe/form/grid.js:1165
 msgid "Do not edit headers which are preset in the template"
 msgstr ""
 
@@ -9693,10 +9693,10 @@ msgstr ""
 msgid "Document Restored"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:359
-#: public/js/frappe/widgets/onboarding_widget.js:401
-#: public/js/frappe/widgets/onboarding_widget.js:420
-#: public/js/frappe/widgets/onboarding_widget.js:439
+#: public/js/frappe/widgets/onboarding_widget.js:354
+#: public/js/frappe/widgets/onboarding_widget.js:396
+#: public/js/frappe/widgets/onboarding_widget.js:415
+#: public/js/frappe/widgets/onboarding_widget.js:434
 msgid "Document Saved"
 msgstr ""
 
@@ -10393,7 +10393,7 @@ msgstr ""
 #: public/js/frappe/views/workspace/workspace.js:813
 #: public/js/frappe/widgets/base_widget.js:64
 #: public/js/frappe/widgets/chart_widget.js:298
-#: public/js/frappe/widgets/number_card_widget.js:331
+#: public/js/frappe/widgets/number_card_widget.js:330
 #: templates/discussions/reply_card.html:29
 #: templates/discussions/reply_section.html:29
 #: workflow/page/workflow_builder/workflow_builder.js:46
@@ -10455,7 +10455,7 @@ msgstr ""
 msgid "Edit Format"
 msgstr ""
 
-#: public/js/frappe/form/quick_entry.js:280
+#: public/js/frappe/form/quick_entry.js:283
 msgid "Edit Full Form"
 msgstr ""
 
@@ -10722,7 +10722,7 @@ msgctxt "Email Account"
 msgid "Email Account Name"
 msgstr ""
 
-#: core/doctype/user/user.py:686
+#: core/doctype/user/user.py:690
 msgid "Email Account added multiple times"
 msgstr ""
 
@@ -11530,7 +11530,7 @@ msgstr ""
 msgid "Enter Client Id and Client Secret in Google Settings."
 msgstr ""
 
-#: templates/includes/login/login.js:359
+#: templates/includes/login/login.js:347
 msgid "Enter Code displayed in OTP App."
 msgstr ""
 
@@ -12249,7 +12249,7 @@ msgstr ""
 msgid "Failed to connect to server"
 msgstr ""
 
-#: auth.py:658
+#: auth.py:669
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr ""
 
@@ -12600,7 +12600,7 @@ msgstr ""
 msgid "Fieldname called {0} must exist to enable autonaming"
 msgstr ""
 
-#: database/schema.py:125 database/schema.py:356
+#: database/schema.py:125 database/schema.py:361
 msgid "Fieldname is limited to 64 characters ({0})"
 msgstr ""
 
@@ -12616,7 +12616,7 @@ msgstr ""
 msgid "Fieldname {0} appears multiple times"
 msgstr ""
 
-#: database/schema.py:346
+#: database/schema.py:351
 msgid "Fieldname {0} cannot have special characters like {1}"
 msgstr ""
 
@@ -12878,7 +12878,7 @@ msgstr ""
 #: desk/doctype/number_card/number_card.js:205
 #: desk/doctype/number_card/number_card.js:333
 #: email/doctype/auto_email_report/auto_email_report.js:90
-#: public/js/frappe/list/base_list.js:878
+#: public/js/frappe/list/base_list.js:882
 #: public/js/frappe/ui/filters/filter_list.js:134
 #: website/doctype/web_form/web_form.js:197
 msgid "Filter"
@@ -14149,8 +14149,8 @@ msgstr ""
 msgid "Go"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:246
-#: public/js/frappe/widgets/onboarding_widget.js:326
+#: public/js/frappe/widgets/onboarding_widget.js:241
+#: public/js/frappe/widgets/onboarding_widget.js:321
 msgid "Go Back"
 msgstr ""
 
@@ -14999,7 +14999,7 @@ msgstr ""
 #: public/js/frappe/views/workspace/workspace.js:825
 #: public/js/frappe/widgets/base_widget.js:46
 #: public/js/frappe/widgets/base_widget.js:178
-#: templates/includes/login/login.js:83
+#: templates/includes/login/login.js:78
 msgid "Hide"
 msgstr ""
 
@@ -16476,7 +16476,7 @@ msgctxt "Letter Head"
 msgid "Instructions"
 msgstr ""
 
-#: templates/includes/login/login.js:262
+#: templates/includes/login/login.js:257
 msgid "Instructions Emailed"
 msgstr ""
 
@@ -16658,7 +16658,7 @@ msgid "Invalid"
 msgstr ""
 
 #: public/js/form_builder/utils.js:221 public/js/frappe/form/grid_row.js:770
-#: public/js/frappe/form/layout.js:785
+#: public/js/frappe/form/layout.js:793
 msgid "Invalid \"depends_on\" expression"
 msgstr ""
 
@@ -16726,7 +16726,7 @@ msgstr ""
 msgid "Invalid Login Token"
 msgstr ""
 
-#: templates/includes/login/login.js:291
+#: templates/includes/login/login.js:286
 msgid "Invalid Login. Try again."
 msgstr ""
 
@@ -16762,7 +16762,7 @@ msgstr ""
 msgid "Invalid Parameters."
 msgstr ""
 
-#: core/doctype/user/user.py:1172 www/update-password.html:121
+#: core/doctype/user/user.py:1176 www/update-password.html:121
 #: www/update-password.html:142 www/update-password.html:144
 #: www/update-password.html:245
 msgid "Invalid Password"
@@ -18192,12 +18192,12 @@ msgstr ""
 msgid "Less"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:439
+#: public/js/frappe/widgets/onboarding_widget.js:434
 msgid "Let us continue with the onboarding"
 msgstr ""
 
 #: public/js/frappe/views/workspace/blocks/onboarding.js:94
-#: public/js/frappe/widgets/onboarding_widget.js:602
+#: public/js/frappe/widgets/onboarding_widget.js:597
 msgid "Let's Get Started"
 msgstr ""
 
@@ -18214,10 +18214,10 @@ msgstr ""
 msgid "Let's set up your account"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:268
-#: public/js/frappe/widgets/onboarding_widget.js:309
-#: public/js/frappe/widgets/onboarding_widget.js:380
-#: public/js/frappe/widgets/onboarding_widget.js:419
+#: public/js/frappe/widgets/onboarding_widget.js:263
+#: public/js/frappe/widgets/onboarding_widget.js:304
+#: public/js/frappe/widgets/onboarding_widget.js:375
+#: public/js/frappe/widgets/onboarding_widget.js:414
 msgid "Let's take you back to onboarding"
 msgstr ""
 
@@ -18985,7 +18985,7 @@ msgstr ""
 msgid "Login is required to see web form list view. Enable {0} to see list settings"
 msgstr ""
 
-#: templates/includes/login/login.js:70
+#: templates/includes/login/login.js:65
 msgid "Login link sent to your email"
 msgstr ""
 
@@ -19095,7 +19095,7 @@ msgctxt "DocField"
 msgid "Long Text"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:322
+#: public/js/frappe/widgets/onboarding_widget.js:317
 msgid "Looks like you didn't change the value"
 msgstr ""
 
@@ -20988,7 +20988,7 @@ msgstr ""
 msgid "New {} releases for the following apps are available"
 msgstr ""
 
-#: core/doctype/user/user.py:749
+#: core/doctype/user/user.py:753
 msgid "Newly created user {0} has no roles enabled."
 msgstr ""
 
@@ -21305,7 +21305,7 @@ msgstr ""
 msgid "No Results found"
 msgstr ""
 
-#: core/doctype/user/user.py:750
+#: core/doctype/user/user.py:754
 msgid "No Roles Specified"
 msgstr ""
 
@@ -21570,12 +21570,12 @@ msgctxt "Recorder Query"
 msgid "Normalized Query"
 msgstr ""
 
-#: core/doctype/user/user.py:955 templates/includes/login/login.js:258
+#: core/doctype/user/user.py:959 templates/includes/login/login.js:253
 #: utils/oauth.py:265
 msgid "Not Allowed"
 msgstr ""
 
-#: templates/includes/login/login.js:260
+#: templates/includes/login/login.js:255
 msgid "Not Allowed: Disabled User"
 msgstr ""
 
@@ -21687,7 +21687,7 @@ msgstr ""
 msgid "Not a valid Workflow Action"
 msgstr ""
 
-#: templates/includes/login/login.js:256
+#: templates/includes/login/login.js:251
 msgid "Not a valid user"
 msgstr ""
 
@@ -21735,7 +21735,7 @@ msgstr ""
 #: core/doctype/system_settings/system_settings.py:209 handler.py:109
 #: public/js/frappe/request.js:157 public/js/frappe/request.js:167
 #: public/js/frappe/request.js:172
-#: public/js/frappe/views/kanban/kanban_board.bundle.js:68
+#: public/js/frappe/views/kanban/kanban_board.bundle.js:67
 #: website/doctype/web_form/web_form.py:615 website/js/website.js:97
 msgid "Not permitted"
 msgstr ""
@@ -22186,7 +22186,7 @@ msgstr ""
 msgid "OTP Secret has been reset. Re-registration will be required on next login."
 msgstr ""
 
-#: templates/includes/login/login.js:363
+#: templates/includes/login/login.js:351
 msgid "OTP setup using OTP App was not completed. Please contact Administrator."
 msgstr ""
 
@@ -22320,7 +22320,7 @@ msgstr ""
 msgid "Onboarding Step Map"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:269
+#: public/js/frappe/widgets/onboarding_widget.js:264
 msgid "Onboarding complete"
 msgstr ""
 
@@ -22452,7 +22452,7 @@ msgstr ""
 msgid "Only {0} emailed reports are allowed per user."
 msgstr ""
 
-#: templates/includes/login/login.js:292
+#: templates/includes/login/login.js:287
 msgid "Oops! Something went wrong."
 msgstr ""
 
@@ -23321,7 +23321,7 @@ msgctxt "Web Form Field"
 msgid "Password"
 msgstr ""
 
-#: core/doctype/user/user.py:1018
+#: core/doctype/user/user.py:1022
 msgid "Password Email Sent"
 msgstr ""
 
@@ -23361,7 +23361,7 @@ msgstr ""
 msgid "Password not found for {0} {1} {2}"
 msgstr ""
 
-#: core/doctype/user/user.py:1017
+#: core/doctype/user/user.py:1021
 msgid "Password reset instructions have been sent to your email"
 msgstr ""
 
@@ -23373,7 +23373,7 @@ msgstr ""
 msgid "Password size exceeded the maximum allowed size"
 msgstr ""
 
-#: core/doctype/user/user.py:813
+#: core/doctype/user/user.py:817
 msgid "Password size exceeded the maximum allowed size."
 msgstr ""
 
@@ -23866,7 +23866,7 @@ msgstr ""
 msgid "Please add a valid comment."
 msgstr ""
 
-#: core/doctype/user/user.py:1000
+#: core/doctype/user/user.py:1004
 msgid "Please ask your administrator to verify your sign-up"
 msgstr ""
 
@@ -23898,7 +23898,7 @@ msgstr ""
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr ""
 
-#: core/doctype/user/user.py:998
+#: core/doctype/user/user.py:1002
 msgid "Please check your email for verification"
 msgstr ""
 
@@ -24560,7 +24560,7 @@ msgctxt "Transaction Log"
 msgid "Previous Hash"
 msgstr ""
 
-#: public/js/frappe/form/form.js:2197
+#: public/js/frappe/form/form.js:2216
 msgid "Previous Submission"
 msgstr ""
 
@@ -25421,7 +25421,7 @@ msgctxt "DocType"
 msgid "Queue in Background (BETA)"
 msgstr ""
 
-#: utils/background_jobs.py:470
+#: utils/background_jobs.py:490
 msgid "Queue should be one of {0}"
 msgstr ""
 
@@ -26417,7 +26417,7 @@ msgstr ""
 #: public/js/frappe/views/reports/query_report.js:1630
 #: public/js/frappe/views/treeview.js:475
 #: public/js/frappe/widgets/chart_widget.js:290
-#: public/js/frappe/widgets/number_card_widget.js:324
+#: public/js/frappe/widgets/number_card_widget.js:323
 msgid "Refresh"
 msgstr ""
 
@@ -26471,7 +26471,7 @@ msgstr ""
 msgid "Refreshing..."
 msgstr ""
 
-#: core/doctype/user/user.py:962
+#: core/doctype/user/user.py:966
 msgid "Registered but disabled"
 msgstr ""
 
@@ -28118,7 +28118,7 @@ msgstr ""
 msgid "SMS sent to following numbers: {0}"
 msgstr ""
 
-#: templates/includes/login/login.js:377
+#: templates/includes/login/login.js:365
 msgid "SMS was not sent. Please contact Administrator."
 msgstr ""
 
@@ -28323,7 +28323,7 @@ msgstr ""
 #: desk/form/save.py:46 model/rename_doc.py:106
 #: printing/page/print_format_builder/print_format_builder.js:845
 #: public/js/frappe/form/toolbar.js:260
-#: public/js/frappe/views/kanban/kanban_board.bundle.js:917
+#: public/js/frappe/views/kanban/kanban_board.bundle.js:916
 msgid "Saved"
 msgstr ""
 
@@ -28486,7 +28486,7 @@ msgctxt "System Health Report"
 msgid "Scheduler Status"
 msgstr ""
 
-#: utils/scheduler.py:202
+#: utils/scheduler.py:208
 msgid "Scheduler can not be re-enabled when maintenance mode is active."
 msgstr ""
 
@@ -29367,7 +29367,7 @@ msgctxt "Contact Us Settings"
 msgid "Send enquiries to this email address"
 msgstr ""
 
-#: templates/includes/login/login.js:73 www/login.html:210
+#: templates/includes/login/login.js:68 www/login.html:210
 msgid "Send login link"
 msgstr ""
 
@@ -30124,7 +30124,7 @@ msgstr ""
 
 #: public/js/frappe/widgets/base_widget.js:46
 #: public/js/frappe/widgets/base_widget.js:178
-#: templates/includes/login/login.js:86 www/login.html:30
+#: templates/includes/login/login.js:81 www/login.html:30
 msgid "Show"
 msgstr ""
 
@@ -30192,7 +30192,7 @@ msgstr ""
 msgid "Show Error"
 msgstr ""
 
-#: public/js/frappe/form/layout.js:553
+#: public/js/frappe/form/layout.js:561
 msgid "Show Fieldname (click to copy on clipboard)"
 msgstr ""
 
@@ -30493,7 +30493,7 @@ msgctxt "Email Group"
 msgid "Sign Up and Confirmation"
 msgstr ""
 
-#: core/doctype/user/user.py:955
+#: core/doctype/user/user.py:959
 msgid "Sign Up is disabled"
 msgstr ""
 
@@ -30619,7 +30619,7 @@ msgctxt "OAuth Provider Settings"
 msgid "Skip Authorization"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:337
+#: public/js/frappe/widgets/onboarding_widget.js:332
 msgid "Skip Step"
 msgstr ""
 
@@ -30821,7 +30821,7 @@ msgstr ""
 msgid "Something went wrong during the token generation. Click on {0} to generate a new one."
 msgstr ""
 
-#: templates/includes/login/login.js:294
+#: templates/includes/login/login.js:289
 msgid "Something went wrong."
 msgstr ""
 
@@ -31598,7 +31598,7 @@ msgid "Submission Queue"
 msgstr ""
 
 #: core/doctype/user_permission/user_permission_list.js:138
-#: public/js/frappe/form/quick_entry.js:198
+#: public/js/frappe/form/quick_entry.js:201
 #: public/js/frappe/form/sidebar/review.js:116
 #: public/js/frappe/ui/capture.js:307
 #: social/doctype/energy_point_log/energy_point_log.js:39
@@ -31695,7 +31695,7 @@ msgctxt "Auto Repeat"
 msgid "Submit on Creation"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:400
+#: public/js/frappe/widgets/onboarding_widget.js:395
 msgid "Submit this document to complete this step."
 msgstr ""
 
@@ -31764,10 +31764,10 @@ msgstr ""
 #: core/doctype/data_import/data_import.js:459
 #: desk/doctype/bulk_update/bulk_update.js:31
 #: desk/doctype/desktop_icon/desktop_icon.py:446
-#: public/js/frappe/form/grid.js:1139
+#: public/js/frappe/form/grid.js:1142
 #: public/js/frappe/views/translation_manager.js:21
-#: templates/includes/login/login.js:231 templates/includes/login/login.js:237
-#: templates/includes/login/login.js:270 templates/includes/login/login.js:278
+#: templates/includes/login/login.js:226 templates/includes/login/login.js:232
+#: templates/includes/login/login.js:265 templates/includes/login/login.js:273
 #: templates/pages/integrations/gcalendar-success.html:9
 #: workflow/doctype/workflow_action/workflow_action.py:166
 msgid "Success"
@@ -31893,7 +31893,7 @@ msgctxt "Recorder"
 msgid "Suggested Indexes"
 msgstr ""
 
-#: core/doctype/user/user.py:670
+#: core/doctype/user/user.py:674
 msgid "Suggested Username: {0}"
 msgstr ""
 
@@ -32383,7 +32383,7 @@ msgstr ""
 msgid "Table Trimmed"
 msgstr ""
 
-#: public/js/frappe/form/grid.js:1138
+#: public/js/frappe/form/grid.js:1141
 msgid "Table updated"
 msgstr ""
 
@@ -32525,7 +32525,7 @@ msgstr ""
 msgid "Templates"
 msgstr ""
 
-#: core/doctype/user/user.py:966
+#: core/doctype/user/user.py:970
 msgid "Temporarily Disabled"
 msgstr ""
 
@@ -32653,7 +32653,7 @@ msgstr ""
 msgid "The Auto Repeat for this document has been disabled."
 msgstr ""
 
-#: public/js/frappe/form/grid.js:1161
+#: public/js/frappe/form/grid.js:1164
 msgid "The CSV format is case sensitive"
 msgstr ""
 
@@ -32827,11 +32827,11 @@ msgid ""
 "</a>"
 msgstr ""
 
-#: core/doctype/user/user.py:926
+#: core/doctype/user/user.py:930
 msgid "The reset password link has been expired"
 msgstr ""
 
-#: core/doctype/user/user.py:928
+#: core/doctype/user/user.py:932
 msgid "The reset password link has either been used before or is invalid"
 msgstr ""
 
@@ -33282,7 +33282,7 @@ msgstr ""
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr ""
 
-#: core/doctype/user/user.py:1186
+#: core/doctype/user/user.py:1190
 msgid "Throttled"
 msgstr ""
 
@@ -33975,7 +33975,7 @@ msgstr ""
 msgid "Too many changes to database in single action."
 msgstr ""
 
-#: core/doctype/user/user.py:967
+#: core/doctype/user/user.py:971
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr ""
 
@@ -34342,7 +34342,7 @@ msgstr ""
 msgid "Trim Table"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:323
+#: public/js/frappe/widgets/onboarding_widget.js:318
 msgid "Try Again"
 msgstr ""
 
@@ -35608,7 +35608,7 @@ msgstr ""
 msgid "User does not exist"
 msgstr ""
 
-#: templates/includes/login/login.js:293
+#: templates/includes/login/login.js:288
 msgid "User does not exist."
 msgstr ""
 
@@ -35650,7 +35650,7 @@ msgstr ""
 msgid "User {0} cannot be disabled"
 msgstr ""
 
-#: core/doctype/user/user.py:552
+#: core/doctype/user/user.py:556
 msgid "User {0} cannot be renamed"
 msgstr ""
 
@@ -35667,7 +35667,7 @@ msgstr ""
 msgid "User {0} has requested for data deletion"
 msgstr ""
 
-#: core/doctype/user/user.py:1315
+#: core/doctype/user/user.py:1319
 msgid "User {0} impersonated as {1}"
 msgstr ""
 
@@ -35705,7 +35705,7 @@ msgctxt "User Social Login"
 msgid "Username"
 msgstr ""
 
-#: core/doctype/user/user.py:637
+#: core/doctype/user/user.py:641
 msgid "Username {0} already exists"
 msgstr ""
 
@@ -35765,11 +35765,11 @@ msgctxt "OAuth Authorization Code"
 msgid "Valid"
 msgstr ""
 
-#: templates/includes/login/login.js:53 templates/includes/login/login.js:66
+#: templates/includes/login/login.js:48 templates/includes/login/login.js:61
 msgid "Valid Login id required."
 msgstr ""
 
-#: templates/includes/login/login.js:40
+#: templates/includes/login/login.js:35
 msgid "Valid email and name required"
 msgstr ""
 
@@ -35966,7 +35966,7 @@ msgstr ""
 msgid "Verification Link"
 msgstr ""
 
-#: templates/includes/login/login.js:391
+#: templates/includes/login/login.js:379
 msgid "Verification code email not sent. Please contact Administrator."
 msgstr ""
 
@@ -35988,7 +35988,7 @@ msgstr ""
 msgid "Verify Password"
 msgstr ""
 
-#: templates/includes/login/login.js:172
+#: templates/includes/login/login.js:167
 msgid "Verifying..."
 msgstr ""
 
@@ -37091,7 +37091,7 @@ msgctxt "Workspace"
 msgid "Workspace"
 msgstr ""
 
-#: public/js/frappe/router.js:193
+#: public/js/frappe/router.js:179
 msgid "Workspace <b>{0}</b> does not exist"
 msgstr ""
 
@@ -37373,7 +37373,7 @@ msgstr ""
 msgid "You are not allowed to access this {0} record because it is linked to {1} '{2}' in row {3}, field {4}"
 msgstr ""
 
-#: public/js/frappe/views/kanban/kanban_board.bundle.js:69
+#: public/js/frappe/views/kanban/kanban_board.bundle.js:68
 msgid "You are not allowed to create columns"
 msgstr ""
 
@@ -37466,7 +37466,7 @@ msgstr ""
 msgid "You can change the retention policy from {0}."
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:199
+#: public/js/frappe/widgets/onboarding_widget.js:194
 msgid "You can continue with the onboarding after exploring this page"
 msgstr ""
 
@@ -37757,7 +37757,7 @@ msgctxt "Form timeline"
 msgid "You removed attachment {0}"
 msgstr ""
 
-#: public/js/frappe/widgets/onboarding_widget.js:525
+#: public/js/frappe/widgets/onboarding_widget.js:520
 msgid "You seem good to go!"
 msgstr ""
 
@@ -37812,7 +37812,7 @@ msgstr ""
 msgid "Your account has been deleted"
 msgstr ""
 
-#: auth.py:476
+#: auth.py:487
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr ""
 
@@ -37907,7 +37907,7 @@ msgstr ""
 msgid "`as_iterator` only works with `as_list=True` or `as_dict=True`"
 msgstr ""
 
-#: utils/background_jobs.py:105
+#: utils/background_jobs.py:106
 msgid "`job_id` paramater is required for deduplication."
 msgstr ""
 
@@ -38543,19 +38543,19 @@ msgctxt "RQ Worker"
 msgid "short"
 msgstr ""
 
-#: public/js/frappe/widgets/number_card_widget.js:282
+#: public/js/frappe/widgets/number_card_widget.js:281
 msgid "since last month"
 msgstr ""
 
-#: public/js/frappe/widgets/number_card_widget.js:281
+#: public/js/frappe/widgets/number_card_widget.js:280
 msgid "since last week"
 msgstr ""
 
-#: public/js/frappe/widgets/number_card_widget.js:283
+#: public/js/frappe/widgets/number_card_widget.js:282
 msgid "since last year"
 msgstr ""
 
-#: public/js/frappe/widgets/number_card_widget.js:280
+#: public/js/frappe/widgets/number_card_widget.js:279
 msgid "since yesterday"
 msgstr ""
 
@@ -39210,7 +39210,7 @@ msgstr ""
 msgid "{0} items selected"
 msgstr ""
 
-#: core/doctype/user/user.py:1324
+#: core/doctype/user/user.py:1328
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr ""
 
