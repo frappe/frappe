@@ -9,7 +9,7 @@
 		>
 			<router-link
 				:to="item.route_to"
-				class="flex cursor-pointer items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
+				class="flex cursor-grabbing items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
 				:class="[
 					isCollapsed ? 'justify-center' : '',
 					isActive && !isEditing ? 'bg-white shadow-sm' : 'hover:bg-gray-200',
@@ -27,7 +27,7 @@
 		<template v-else-if="type === 'Spacer'">
 			<div
 				v-if="isEditing"
-				class="group/item ml-2 flex min-h-6 items-center justify-center rounded border-dashed border-gray-400 px-2 text-xs uppercase text-gray-600 hover:border has-[.active-item]:border"
+				class="group/item ml-2 flex min-h-6 cursor-grabbing items-center justify-center rounded border-dashed border-gray-400 px-2 text-xs uppercase text-gray-600 hover:border has-[.active-item]:border"
 			>
 				<ModuleSidebarItemMenu :item="item" />
 			</div>
@@ -41,7 +41,7 @@
 				class="group/item mt-5 flex items-center gap-2 px-2"
 				:class="item.opened ? 'mb-3' : ''"
 			>
-				<div @click="item.opened = !item.opened" class="flex cursor-pointer items-center gap-2">
+				<div @click="item.opened = !item.opened" class="flex cursor-grabbing items-center gap-2">
 					<FeatherIcon
 						:name="item.opened ? 'chevron-down' : 'chevron-right'"
 						class="h-4 w-4 font-semibold text-gray-600"

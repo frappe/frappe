@@ -49,7 +49,6 @@
 				group="workspaces"
 				item-key="name"
 				:disable="!isEditing"
-				handle=".drag-handler"
 			>
 				<template #item="{ element: item }">
 					<ModuleSidebarItem
@@ -70,7 +69,6 @@
 				group="items"
 				item-key="name"
 				:disable="!isEditing"
-				handle=".drag-handler"
 			>
 				<template #item="{ element: item }">
 					<ModuleSidebarItem
