@@ -1509,13 +1509,6 @@ def bypass_patch(context, patch_name: str, yes: bool):
 	"""Bypass a patch permanently instead of migrating using the --skip-failing flag."""
 	from frappe.modules.patch_handler import update_patch_log
 
-	# Check that patch exists
-	# try:
-	# 	frappe.get_module(patch_name)
-	# except Exception:
-	# 	click.secho(f"Patch {patch_name!r} does not exist", fg="red")
-	# 	sys.exit(1)
-
 	if not context.sites:
 		raise SiteNotSpecifiedError
 
