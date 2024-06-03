@@ -53,7 +53,7 @@ class Contact(Document):
 
 		# concat party name if reqd
 		for link in self.links:
-			self.name = self.name + "-" + link.link_name.strip()
+			self.name = self.name + "-" + cstr(link.link_name).strip()
 			break
 
 		if frappe.db.exists("Contact", self.name):
