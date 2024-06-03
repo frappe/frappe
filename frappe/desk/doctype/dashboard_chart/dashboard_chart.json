@@ -289,11 +289,7 @@
   }
  ],
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-09-18 13:41:05.263676",
-=======
  "modified": "2024-06-03 13:29:57.960271",
->>>>>>> b1193675dd (fix: don't copy "Standard" on dashboard chart (#26649))
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",
