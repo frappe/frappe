@@ -154,7 +154,7 @@
 
 				<template v-if="dialogItem.type === 'Section Break'">
 					<FormControl type="text" size="sm" label="Label" v-model="dialogItem.label" />
-					<ChildTable
+					<Grid
 						label="Links"
 						:fields="[
 							{
@@ -232,7 +232,7 @@ import Draggable from "vuedraggable"
 
 import Icon from "@/components/Icon.vue"
 import ModuleSidebarItem from "@/components/ModuleSidebarItem.vue"
-import ChildTable from "@/components/form_controls/ChildTable.vue"
+import Grid from "@/components/form_controls/Grid.vue"
 
 import { getDesktopItem, sidebar } from "@/data/desktop"
 
