@@ -20,32 +20,34 @@
 
 			<!-- Rows -->
 			<template v-if="tableRows.length">
-				<div
-					v-for="(row, index) in tableRows"
-					:key="row.name"
-					class="grid-row grid items-center border-b border-gray-100 bg-white last:rounded-b last:border-b-0"
-					:style="{
-						gridTemplateColumns:
-							'1fr ' + fields.map((col) => (col.width || 2) + 'fr').join(' ') + ' 1fr',
-					}"
-				>
-					<div class="flex h-full justify-center border-r p-2 text-sm text-gray-800">
-						{{ index + 1 }}
-					</div>
-					<div class="border-r border-gray-100" v-for="field in fields" :key="field.name">
-						<FormControl
-							:type="field.type"
-							variant="outline"
-							size="md"
-							v-model="row[field.fieldname]"
-							class="text-sm text-gray-800"
-							@change="(e) => field.onChange && field.onChange(e.target.value, index)"
-						/>
-					</div>
-					<button @click="" class="flex justify-center">
-						<FeatherIcon name="edit-2" class="h-3 w-3 text-gray-800" />
-					</button>
-				</div>
+				<Draggable class="w-full" v-model="tableRows" group="rows" item-key="name">
+					<template #item="{ element: row, index }">
+						<div
+							class="grid-row grid cursor-pointer items-center border-b border-gray-100 bg-white last:rounded-b last:border-b-0"
+							:style="{
+								gridTemplateColumns:
+									'1fr ' + fields.map((col) => (col.width || 2) + 'fr').join(' ') + ' 1fr',
+							}"
+						>
+							<div class="flex h-full justify-center border-r p-2 text-sm text-gray-800">
+								{{ index + 1 }}
+							</div>
+							<div class="border-r border-gray-100" v-for="field in fields" :key="field.name">
+								<FormControl
+									:type="field.type"
+									variant="outline"
+									size="md"
+									v-model="row[field.fieldname]"
+									class="text-sm text-gray-800"
+									@change="(e) => field.onChange && field.onChange(e.target.value, index)"
+								/>
+							</div>
+							<button @click="" class="flex justify-center">
+								<FeatherIcon name="edit-2" class="h-3 w-3 text-gray-800" />
+							</button>
+						</div>
+					</template>
+				</Draggable>
 			</template>
 
 			<div v-else class="flex flex-col items-center rounded p-5 text-sm text-gray-600">No Data</div>
@@ -58,8 +60,9 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
+import { defineModel } from "vue"
 import { FormControl, FeatherIcon } from "frappe-ui"
+import Draggable from "vuedraggable"
 
 const props = defineProps({
 	label: {
@@ -70,14 +73,8 @@ const props = defineProps({
 		type: Array,
 		required: true,
 	},
-	rows: {
-		type: Array,
-		required: false,
-		default: [],
-	},
 })
-
-const tableRows = ref(props.rows)
+const tableRows = defineModel("rows", { type: Array, default: [] })
 
 const addRow = () => {
 	const newRow = {}

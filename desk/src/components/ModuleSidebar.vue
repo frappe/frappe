@@ -177,7 +177,7 @@
 								fieldname: 'label',
 							},
 						]"
-						:rows="dialogItem.links"
+						v-model:rows="dialogItem.links"
 					/>
 				</template>
 
