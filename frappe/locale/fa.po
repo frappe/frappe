@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-05-26 09:33+0000\n"
-"PO-Revision-Date: 2024-06-02 03:12\n"
+"PO-Revision-Date: 2024-06-03 03:42\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -5334,7 +5334,7 @@ msgstr "جداول Child به صورت Grid در سایر DocType ها نشان 
 
 #: public/js/frappe/widgets/widget_dialog.js:653
 msgid "Choose Existing Card or create New Card"
-msgstr "کارت موجود را انتخاب کنید یا کارت جدید ایجاد کنید"
+msgstr "انتخاب کارت موجود یا ایجاد کارت جدید"
 
 #: public/js/frappe/views/workspace/workspace.js:1396
 msgid "Choose a block or continue typing"
@@ -6882,7 +6882,7 @@ msgstr "بلاگر را ایجاد کنید"
 #: public/js/frappe/views/reports/query_report.js:187
 #: public/js/frappe/views/reports/query_report.js:232
 msgid "Create Card"
-msgstr "کارت ایجاد کنید"
+msgstr "ایجاد کارت"
 
 #: public/js/frappe/views/reports/query_report.js:285
 #: public/js/frappe/views/reports/query_report.js:1115
@@ -14378,7 +14378,7 @@ msgstr "پیش نمایش Google Snippet"
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "Grant Type"
-msgstr "نوع کمک هزینه"
+msgstr "نوع اعطاء"
 
 #: public/js/frappe/form/dashboard.js:34
 #: public/js/frappe/form/templates/form_dashboard.html:10
@@ -38290,7 +38290,7 @@ msgstr "از"
 #: core/doctype/file/file.json
 msgctxt "File"
 msgid "old_parent"
-msgstr "پیر_والد"
+msgstr "old_parent"
 
 #. Option for the 'Doc Event' (Select) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
