@@ -160,6 +160,7 @@
 							{
 								label: 'Link Type',
 								fieldname: 'link_type',
+								width: 1.5,
 							},
 							{
 								label: 'Link To',
@@ -167,59 +168,62 @@
 								onChange: (value, index) => {
 									dialogItem.links[index].label = value
 								},
+								width: 2,
 							},
 							{
 								label: 'Icon',
 								fieldname: 'icon',
+								width: 1.5,
 							},
 							{
 								label: 'Label',
 								fieldname: 'label',
+								width: 2,
 							},
 						]"
 						v-model:rows="dialogItem.links"
 					/>
 				</template>
 
-				<FormControl
-					type="select"
-					v-if="dialogItem.type === 'Link'"
-					:options="['DocType', 'Page', 'Report', 'Dashboard', 'URL']"
-					size="sm"
-					label="Link Type"
-					v-model="dialogItem.link_type"
-				/>
-				<FormControl
-					v-if="dialogItem.type === 'Link'"
-					type="Autocomplete"
-					size="sm"
-					label="Link To"
-					v-model="dialogItem.link_to"
-					@change="dialogItem.label = dialogItem.link_to"
-				/>
-				<FormControl
-					v-if="dialogItem.link_type === 'URL'"
-					type="text"
-					size="sm"
-					label="URL"
-					v-model="dialogItem.url"
-				/>
-				<div class="flex space-x-2" v-if="dialogItem.type === 'Link'">
+				<template v-else-if="dialogItem.type === 'Link'">
 					<FormControl
-						class="w-full"
-						type="Icon"
+						type="select"
+						:options="['DocType', 'Page', 'Report', 'Dashboard', 'URL']"
 						size="sm"
-						label="Icon"
-						v-model="dialogItem.icon"
+						label="Link Type"
+						v-model="dialogItem.link_type"
 					/>
 					<FormControl
-						class="w-full"
+						type="Autocomplete"
+						size="sm"
+						label="Link To"
+						v-model="dialogItem.link_to"
+						@change="dialogItem.label = dialogItem.link_to"
+					/>
+					<FormControl
+						v-if="dialogItem.link_type === 'URL'"
 						type="text"
 						size="sm"
-						label="Label"
-						v-model="dialogItem.label"
+						label="URL"
+						v-model="dialogItem.url"
 					/>
-				</div>
+					<div class="flex space-x-2">
+						<FormControl
+							class="w-full"
+							type="Icon"
+							size="sm"
+							label="Icon"
+							v-model="dialogItem.icon"
+						/>
+						<FormControl
+							class="w-full"
+							type="text"
+							size="sm"
+							label="Label"
+							v-model="dialogItem.label"
+						/>
+					</div>
+				</template>
 			</div>
 		</template>
 	</Dialog>
