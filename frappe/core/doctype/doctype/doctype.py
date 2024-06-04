@@ -903,7 +903,7 @@ class DocType(Document):
 					no_copy=1,
 					print_hide=1,
 				)
-				create_custom_field(self.name, df)
+				create_custom_field(self.name, df, ignore_validate=True)
 
 	def validate_nestedset(self):
 		if not self.get("is_tree"):
