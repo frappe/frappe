@@ -13,7 +13,7 @@
 
 			<template #body>
 				<div
-					class="mt-2 flex max-h-72 max-w-64 flex-col overflow-y-auto rounded bg-white pb-3 shadow hide-scrollbar"
+					class="mt-2 flex max-h-72 max-w-64 flex-col overflow-y-auto rounded bg-white pb-3 shadow-xl hide-scrollbar"
 				>
 					<div class="sticky top-0 z-10 bg-white p-3">
 						<FormControl
