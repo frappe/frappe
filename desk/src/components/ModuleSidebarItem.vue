@@ -9,11 +9,13 @@
 		>
 			<router-link
 				:to="item.route_to"
-				class="flex cursor-grabbing items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
+				class="flex items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
 				:class="[
 					isCollapsed ? 'justify-center' : '',
 					isActive && !isEditing ? 'bg-white shadow-sm' : 'hover:bg-gray-200',
-					isEditing ? 'group/item has-[.active-item]:bg-gray-200' : '',
+					isEditing
+						? 'group/item cursor-grabbing has-[.active-item]:bg-gray-200'
+						: 'cursor-pointer',
 				]"
 			>
 				<Icon :name="item.icon || 'folder-normal'" class="h-5 w-5 text-gray-700" />
@@ -41,7 +43,11 @@
 				class="group/item mt-5 flex items-center gap-2 px-2"
 				:class="item.opened ? 'mb-3' : ''"
 			>
-				<div @click="item.opened = !item.opened" class="flex cursor-grabbing items-center gap-2">
+				<div
+					@click="item.opened = !item.opened"
+					class="flex items-center gap-2"
+					:class="isEditing ? 'cursor-grabbing' : 'cursor-pointer'"
+				>
 					<FeatherIcon
 						:name="item.opened ? 'chevron-down' : 'chevron-right'"
 						class="h-4 w-4 font-semibold text-gray-600"
