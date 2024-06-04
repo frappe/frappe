@@ -192,13 +192,26 @@
 						size="sm"
 						label="Link Type"
 						v-model="dialogItem.link_type"
+						@change="
+							() => {
+								dialogItem.link_to = ''
+								dialogItem.label = ''
+							}
+						"
 					/>
 					<FormControl
-						type="Autocomplete"
+						v-if="dialogItem.link_type === 'URL'"
+						type="text"
 						size="sm"
-						label="Link To"
+						label="URL"
+						v-model="dialogItem.url"
+					/>
+					<Link
+						v-else
+						:doctype="dialogItem.link_type"
 						v-model="dialogItem.link_to"
-						@change="dialogItem.label = dialogItem.link_to"
+						label="Link To"
+						@change="(v) => (dialogItem.label = v?.value)"
 					/>
 					<FormControl
 						v-if="dialogItem.link_type === 'URL'"
@@ -236,7 +249,8 @@ import Draggable from "vuedraggable"
 
 import Icon from "@/components/Icon.vue"
 import ModuleSidebarItem from "@/components/ModuleSidebarItem.vue"
-import Grid from "@/components/form_controls/Grid.vue"
+import Link from "@/components/FormControls/Link.vue"
+import Grid from "@/components/FormControls/Grid.vue"
 
 import { getDesktopItem, sidebar } from "@/data/desktop"
 
