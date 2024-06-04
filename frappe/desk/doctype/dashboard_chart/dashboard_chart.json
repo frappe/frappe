@@ -243,6 +243,7 @@
    "fieldname": "is_standard",
    "fieldtype": "Check",
    "label": "Is Standard",
+   "no_copy": 1,
    "read_only_depends_on": "eval: !frappe.boot.developer_mode"
   },
   {
@@ -288,7 +289,7 @@
   }
  ],
  "links": [],
- "modified": "2023-09-18 13:41:05.263676",
+ "modified": "2024-06-03 13:29:57.960271",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Dashboard Chart",

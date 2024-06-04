@@ -129,6 +129,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:!doc.is_virtual",
    "fieldname": "in_list_view",
    "fieldtype": "Check",
    "label": "In List View"
@@ -477,7 +478,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-10-25 06:55:50.718441",
+ "modified": "2024-05-28 15:56:39.171633",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Customize Form Field",
