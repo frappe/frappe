@@ -23,7 +23,18 @@ class ErrorLog(Document):
 		seen: DF.Check
 		trace_id: DF.Data | None
 
+<<<<<<< HEAD
 	# end: auto-generated types
+=======
+	def validate(self):
+		self.method = str(self.method)
+		self.error = str(self.error)
+
+		if len(self.method) > 140:
+			self.error = f"{self.method}\n{self.error}"
+			self.method = self.method[:140]
+
+>>>>>>> 5a8e00af38 (fix(Error Log): Truncate title and convert text to string (#26675))
 	def onload(self):
 		if not self.seen and not frappe.flags.read_only:
 			self.db_set("seen", 1, update_modified=0)
