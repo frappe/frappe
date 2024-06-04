@@ -1,6 +1,6 @@
 <template>
 	<div class="flex flex-col gap-1.5">
-		<span class="block text-xs text-gray-600">
+		<span v-if="props.label" class="block text-xs text-gray-600">
 			{{ props.label }}
 		</span>
 		<Autocomplete
@@ -29,7 +29,7 @@ const props = defineProps({
 	},
 	label: {
 		type: String,
-		required: true,
+		required: false,
 	},
 	filters: {
 		type: Object,

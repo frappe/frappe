@@ -160,11 +160,18 @@
 							{
 								label: 'Link Type',
 								fieldname: 'link_type',
+								fieldtype: 'select',
+								options: ['DocType', 'Page', 'Report', 'Dashboard', 'URL'],
+								onChange: (_value, index) => {
+									dialogItem.links[index].link_to = ''
+									dialogItem.links[index].label = ''
+								},
 								width: 1.5,
 							},
 							{
 								label: 'Link To',
 								fieldname: 'link_to',
+								fieldtype: 'Link',
 								onChange: (value, index) => {
 									dialogItem.links[index].label = value
 								},
@@ -296,7 +303,7 @@ function enableEditMode() {
 function updateSidebarItem(item, action) {
 	if (action === "addBelow") {
 		const index = getItemIndex(item)
-		showItemDialog({ type: "Link", index: index }, "add")
+		showItemDialog({ type: "Link", link_type: "DocType", index: index }, "add")
 	} else if (action === "edit") {
 		showItemDialog(item, "edit")
 	} else if (action === "delete") {
