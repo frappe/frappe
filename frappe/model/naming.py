@@ -4,11 +4,7 @@
 import base64
 import datetime
 import re
-<<<<<<< HEAD
-from collections import defaultdict
-=======
 import time
->>>>>>> 072385301b (perf: use base32 space for random names instead of base16 (backport #25497) (#25546))
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Optional
 
