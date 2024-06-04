@@ -49,7 +49,6 @@ def get_bootinfo():
 
 	if frappe.session["user"] != "Guest":
 		bootinfo.user_info = get_user_info()
-		bootinfo.sid = frappe.session["sid"]
 
 	bootinfo.modules = {}
 	bootinfo.module_list = []

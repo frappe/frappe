@@ -194,11 +194,16 @@ doc_events = {
 
 scheduler_events = {
 	"cron": {
+		# 15 minutes
 		"0/15 * * * *": [
 			"frappe.oauth.delete_oauth2_data",
 			"frappe.website.doctype.web_page.web_page.check_publish_status",
 			"frappe.twofactor.delete_all_barcodes_for_users",
+			"frappe.email.doctype.email_account.email_account.notify_unreplied",
+			"frappe.utils.global_search.sync_global_search",
+			"frappe.deferred_insert.save_to_db",
 		],
+		# 10 minutes
 		"0/10 * * * *": [
 			"frappe.email.doctype.email_account.email_account.pull",
 		],
@@ -213,8 +218,6 @@ scheduler_events = {
 	},
 	"all": [
 		"frappe.email.queue.flush",
-		"frappe.email.doctype.email_account.email_account.notify_unreplied",
-		"frappe.utils.global_search.sync_global_search",
 		"frappe.monitor.flush",
 		"frappe.automation.doctype.reminder.reminder.send_reminders",
 	],
@@ -222,7 +225,6 @@ scheduler_events = {
 		"frappe.model.utils.link_count.update_link_count",
 		"frappe.model.utils.user_settings.sync_user_settings",
 		"frappe.desk.page.backups.backups.delete_downloadable_backups",
-		"frappe.deferred_insert.save_to_db",
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.integrations.doctype.google_calendar.google_calendar.sync",
 		"frappe.email.doctype.newsletter.newsletter.send_scheduled_email",
@@ -546,4 +548,5 @@ persistent_cache_keys = [
 	"changelog-*",  # version update notifications
 	"insert_queue_for_*",  # Deferred Insert
 	"recorder-*",  # Recorder
+	"global_search_queue",
 ]
