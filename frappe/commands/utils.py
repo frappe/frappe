@@ -917,12 +917,12 @@ def run_ui_tests(
 		click.secho("Installing Cypress...", fg="yellow")
 		packages = " ".join(
 			[
-				"cypress@^13",
-				"@4tw/cypress-drag-drop@^2",
-				"cypress-real-events",
-				"@testing-library/cypress@^10",
+				"cypress@13.10.0",
+				"@4tw/cypress-drag-drop@2.2.5",
+				"cypress-real-events@1.12.0",
+				"@testing-library/cypress@10.0.1",
 				"@testing-library/dom@8.17.1",
-				"@cypress/code-coverage@^3",
+				"@cypress/code-coverage@3.12.39",
 			]
 		)
 		frappe.commands.popen(f"yarn add {packages} --no-lockfile", raise_err=True)
