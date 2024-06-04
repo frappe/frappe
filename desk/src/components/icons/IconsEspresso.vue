@@ -1,5 +1,5 @@
 <template>
-	<svg xmlns="http://www.w3.org/2000/svg" style="display: none">
+	<svg xmlns="http://www.w3.org/2000/svg" style="display: none" id="icons-espresso">
 		<defs>
 			<symbol id="es-line-add-people" fill="none" viewBox="0 0 16 16">
 				<g class="es-line-add-people" clip-path="url(#a)">

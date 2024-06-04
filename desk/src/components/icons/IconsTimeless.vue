@@ -1,6 +1,6 @@
 <template>
 	<svg
-		id="frappe-symbols"
+		id="icons-timeless"
 		aria-hidden="true"
 		style="position: absolute; width: 0; height: 0; overflow: hidden"
 		class="d-block"
@@ -482,6 +482,8 @@
 			<path
 				fill-rule="evenodd"
 				clip-rule="evenodd"
+				stroke="currentColor"
+				fill="currentColor"
 				d="M4.146 11.217a.5.5 0 1 0 .708.708l3.182-3.182 3.181 3.182a.5.5 0 1 0 .708-.708l-3.182-3.18 3.182-3.182a.5.5 0 1 0-.708-.708l-3.18 3.181-3.183-3.182a.5.5 0 0 0-.708.708l3.182 3.182-3.182 3.181z"
 				stroke-width="0"
 			></path>
@@ -2699,7 +2701,7 @@
 			stroke="none"
 			id="icon-add-round"
 		>
-			<rect width="24" height="24" rx="12" fill="var(--primary)" />
+			<rect width="24" height="24" rx="12" fill="currentColor" />
 			<path
 				d="M12 7V17"
 				stroke="white"
@@ -2723,8 +2725,8 @@
 					y2="24"
 					gradientUnits="userSpaceOnUse"
 				>
-					<stop stop-color="var(--primary)" />
-					<stop offset="1" stop-color="var(--primary)" />
+					<stop stop-color="currentColor" />
+					<stop offset="1" stop-color="currentColor" />
 				</linearGradient>
 			</defs>
 		</symbol>
