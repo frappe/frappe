@@ -8,6 +8,33 @@ from frappe.query_builder.functions import Now
 
 
 class ErrorLog(Document):
+<<<<<<< HEAD
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		error: DF.Code | None
+		method: DF.Data | None
+		reference_doctype: DF.Link | None
+		reference_name: DF.Data | None
+		seen: DF.Check
+		trace_id: DF.Data | None
+	# end: auto-generated types
+
+	def validate(self):
+		self.method = str(self.method)
+		self.error = str(self.error)
+
+		if len(self.method) > 140:
+			self.error = f"{self.method}\n{self.error}"
+			self.method = self.method[:140]
+
+>>>>>>> 5a8e00af38 (fix(Error Log): Truncate title and convert text to string (#26675))
 	def onload(self):
 		if not self.seen and not frappe.flags.read_only:
 			self.db_set("seen", 1, update_modified=0)
