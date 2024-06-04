@@ -24,7 +24,7 @@
 				<div
 					class="inline-flex h-full items-center border-r p-2 text-base text-gray-800"
 					v-for="field in fields"
-					:key="field.name"
+					:key="field.fieldname"
 				>
 					{{ field.label }}
 				</div>
@@ -52,7 +52,7 @@
 							>
 								{{ index + 1 }}
 							</div>
-							<div class="border-r border-gray-100" v-for="field in fields" :key="field.name">
+							<div class="border-r border-gray-100" v-for="field in fields" :key="field.fieldname">
 								<Link
 									v-if="field.fieldtype === 'Link'"
 									:doctype="row.link_type"
@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { defineModel, reactive, computed } from "vue"
+import { reactive, computed } from "vue"
 import { FormControl, FeatherIcon, Checkbox } from "frappe-ui"
 import Draggable from "vuedraggable"
 
@@ -154,7 +154,7 @@ const toggleSelectRow = (row) => {
 const addRow = () => {
 	const newRow = {}
 	props.fields.forEach((field) => {
-		newRow[field.key] = ""
+		newRow[field.fieldname] = ""
 	})
 	newRow.name = getRandom(10)
 	tableRows.value.push(newRow)

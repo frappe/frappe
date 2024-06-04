@@ -81,7 +81,7 @@ const reloadOptions = debounce((searchTextVal) => {
 watch(
 	() => props.doctype,
 	() => {
-		if (props.doctype === options.doctype) return
+		if (!props.doctype || props.doctype === options.doctype) return
 		reloadOptions("")
 	},
 	{ immediate: true }
