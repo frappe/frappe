@@ -8,11 +8,13 @@ Events:
 	weekly
 """
 
+import datetime
 import os
 import random
 import time
 from typing import NoReturn
 
+import pytz
 import setproctitle
 from croniter import CroniterBadCronError
 from filelock import FileLock, Timeout
@@ -23,6 +25,7 @@ from frappe.utils.background_jobs import set_niceness
 from frappe.utils.caching import redis_cache
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+DEFAULT_SCHEDULER_TICK = 4 * 60
 
 
 def cprint(*args, **kwargs):
@@ -56,8 +59,24 @@ def start_scheduler() -> NoReturn:
 
 	while True:
 		_proctitle("idle")
-		time.sleep(tick)
+		time.sleep(sleep_duration(tick))
 		enqueue_events_for_all_sites()
+
+
+def sleep_duration(tick):
+	if tick != DEFAULT_SCHEDULER_TICK:
+		# Assuming user knows what they want.
+		return tick
+
+	# Sleep until next multiple of tick.
+	# This makes scheduler aligned with real clock,
+	# so event scheduled at 12:00 happen at 12:00 and not 12:00:35.
+	minutes = tick // 60
+	now = datetime.datetime.now(pytz.UTC)
+	left_minutes = minutes - now.minute % minutes
+	next_execution = now.replace(second=0) + datetime.timedelta(minutes=left_minutes)
+
+	return (next_execution - now).total_seconds()
 
 
 def enqueue_events_for_all_sites() -> None:
@@ -221,4 +240,5 @@ def get_scheduler_status():
 
 
 def get_scheduler_tick() -> int:
-	return cint(frappe.get_conf().scheduler_tick_interval) or 60
+	conf = frappe.get_conf()
+	return cint(conf.scheduler_tick_interval) or DEFAULT_SCHEDULER_TICK
