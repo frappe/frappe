@@ -180,6 +180,7 @@
 							{
 								label: 'Icon',
 								fieldname: 'icon',
+								fieldtype: 'Icon',
 								width: 1.5,
 							},
 							{
@@ -228,13 +229,7 @@
 						v-model="dialogItem.url"
 					/>
 					<div class="flex space-x-2">
-						<FormControl
-							class="w-full"
-							type="Icon"
-							size="sm"
-							label="Icon"
-							v-model="dialogItem.icon"
-						/>
+						<IconPicker size="sm" label="Icon" v-model="dialogItem.icon" />
 						<FormControl
 							class="w-full"
 							type="text"
@@ -258,6 +253,7 @@ import Icon from "@/components/Icon.vue"
 import ModuleSidebarItem from "@/components/ModuleSidebarItem.vue"
 import Link from "@/components/FormControls/Link.vue"
 import Grid from "@/components/FormControls/Grid.vue"
+import IconPicker from "@/components/FormControls/IconPicker.vue"
 
 import { getDesktopItem, sidebar } from "@/data/desktop"
 

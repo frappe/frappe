@@ -60,6 +60,12 @@
 									class="text-sm text-gray-800"
 									@change="(e) => field.onChange && field.onChange(e, index)"
 								/>
+								<IconPicker
+									v-else-if="field.fieldtype === 'Icon'"
+									size="sm"
+									v-model="row[field.fieldname]"
+									@change="(e) => field.onChange && field.onChange(e, index)"
+								/>
 								<FormControl
 									v-else
 									:type="field.fieldtype"
@@ -102,6 +108,7 @@ import { FormControl, FeatherIcon, Checkbox } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import Link from "@/components/FormControls/Link.vue"
+import IconPicker from "@/components/FormControls/IconPicker.vue"
 
 import { getRandom } from "@/utils"
 
