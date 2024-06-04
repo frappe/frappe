@@ -84,7 +84,7 @@
 		<button
 			v-if="isEditing && !isCollapsed"
 			class="ml-2 mt-5 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-700"
-			@click="showItemDialog({ type: 'Link' }, 'add')"
+			@click="showItemDialog({ type: 'Link', link_type: 'DocType' }, 'add')"
 		>
 			<FeatherIcon name="plus" class="h-4 w-4" />
 			Add Sidebar Item
@@ -175,7 +175,7 @@
 								onChange: (value, index) => {
 									dialogItem.links[index].label = value
 								},
-								width: 2,
+								width: 2.25,
 							},
 							{
 								label: 'Icon',

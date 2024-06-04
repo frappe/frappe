@@ -6,10 +6,7 @@
 			<!-- Header -->
 			<div
 				class="grid items-center rounded-t-sm bg-gray-100"
-				:style="{
-					gridTemplateColumns:
-						'0.75fr 0.75fr ' + fields.map((col) => (col.width || 2) + 'fr').join(' ') + ' 0.75fr',
-				}"
+				:style="{ gridTemplateColumns: gridTemplateColumns }"
 			>
 				<div class="border-r p-2 text-center">
 					<Checkbox
@@ -40,12 +37,7 @@
 					<template #item="{ element: row, index }">
 						<div
 							class="grid-row grid cursor-pointer items-center border-b border-gray-100 bg-white last:rounded-b last:border-b-0"
-							:style="{
-								gridTemplateColumns:
-									'0.75fr 0.75fr ' +
-									fields.map((col) => (col.width || 2) + 'fr').join(' ') +
-									' 0.75fr',
-							}"
+							:style="{ gridTemplateColumns: gridTemplateColumns }"
 						>
 							<div class="border-r p-2 text-center">
 								<Checkbox
@@ -125,6 +117,16 @@ const props = defineProps({
 })
 const tableRows = defineModel("rows", { type: Array, default: [] })
 const selectedRows = reactive(new Set())
+
+const gridTemplateColumns = computed(() => {
+	// for the checkbox & sr no. columns
+	let columns = "0.75fr 0.75fr"
+	columns += " " + props.fields.map((col) => `minmax(0, ${col.width || 2}fr)`).join(" ")
+	// for the edit button column
+	columns += " 0.75fr"
+
+	return columns
+})
 
 const allRowsSelected = computed(() => {
 	if (!tableRows.value.length) return false
