@@ -31,7 +31,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Indicator",
-   "options": "Blue\nCyan\nGray\nGreen\nLight Blue\nOrange\nPink\nPurple\nRed\nRed\nYellow"
+   "options": "Blue\nCyan\nGray\nGreen\nLight Blue\nOrange\nPink\nPurple\nRed\nYellow"
   },
   {
    "fieldname": "order",

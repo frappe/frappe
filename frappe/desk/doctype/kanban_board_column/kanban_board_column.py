@@ -15,6 +15,7 @@ class KanbanBoardColumn(Document):
 
 		column_name: DF.Data | None
 		indicator: DF.Literal[
+<<<<<<< HEAD
 			"Blue",
 			"Cyan",
 			"Gray",
@@ -26,6 +27,9 @@ class KanbanBoardColumn(Document):
 			"Red",
 			"Red",
 			"Yellow",
+=======
+			"Blue", "Cyan", "Gray", "Green", "Light Blue", "Orange", "Pink", "Purple", "Red", "Yellow"
+>>>>>>> 3d7381da5d (fix: Red was defined twice. (#26658))
 		]
 		order: DF.Code | None
 		parent: DF.Data
