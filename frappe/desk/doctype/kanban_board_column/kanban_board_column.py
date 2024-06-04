@@ -15,7 +15,7 @@ class KanbanBoardColumn(Document):
 
 		column_name: DF.Data | None
 		indicator: DF.Literal[
-			"Blue", "Cyan", "Gray", "Green", "Light Blue", "Orange", "Pink", "Purple", "Red", "Red", "Yellow"
+			"Blue", "Cyan", "Gray", "Green", "Light Blue", "Orange", "Pink", "Purple", "Red", "Yellow"
 		]
 		order: DF.Code | None
 		parent: DF.Data
