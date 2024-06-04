@@ -870,8 +870,10 @@ class DocType(Document):
 	def make_amendable(self):
 		"""If is_submittable is set, add amended_from docfields."""
 		if self.is_submittable:
-			docfield_exists = [f for f in self.fields if f.fieldname == "amended_from"]
-			if not docfield_exists:
+			docfield = [f for f in self.fields if f.fieldname == "amended_from"]
+			if docfield:
+				docfield[0].options = self.name
+			else:
 				self.append(
 					"fields",
 					{
