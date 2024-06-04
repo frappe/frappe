@@ -8,6 +8,7 @@ from shutil import which
 import click
 
 import frappe
+import frappe.commands
 from frappe.commands import get_site, pass_context
 from frappe.coverage import CodeCoverage
 from frappe.exceptions import SiteNotSpecifiedError
@@ -924,7 +925,7 @@ def run_ui_tests(
 				"@cypress/code-coverage@^3",
 			]
 		)
-		frappe.commands.popen(f"yarn add {packages} --no-lockfile")
+		frappe.commands.popen(f"yarn add {packages} --no-lockfile", raise_err=True)
 
 	# run for headless mode
 	run_or_open = "run --browser chrome" if headless else "open"
