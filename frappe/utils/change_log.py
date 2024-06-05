@@ -318,6 +318,8 @@ def parse_github_url(remote_url: str) -> tuple[str, str] | tuple[None, None]:
 def get_source_url(app: str) -> str | None:
 	"""Get the remote URL of the app."""
 	pyproject = get_pyproject(app)
+	if not pyproject:
+		return
 	if remote_url := pyproject.get("project", {}).get("urls", {}).get("Repository"):
 		return remote_url.rstrip("/")
 

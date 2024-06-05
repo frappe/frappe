@@ -115,6 +115,11 @@ def delete_doc(doctype: str, name: str):
 	return "ok"
 
 
+def get_meta(doctype: str):
+	frappe.only_for("All")
+	return frappe.get_meta(doctype)
+
+
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	"""Get a document from DB and execute method on it.
 
@@ -188,6 +193,6 @@ url_rules = [
 		endpoint=execute_doc_method,
 	),
 	# Collection level APIs
-	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=frappe.get_meta),
+	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=get_meta),
 	Rule("/doctype/<doctype>/count", methods=["GET"], endpoint=count),
 ]

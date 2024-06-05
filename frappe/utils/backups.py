@@ -354,12 +354,21 @@ class BackupGenerator:
 			else:
 				cmd_string = "tar -cf {0} {1}"
 
-			frappe.utils.execute_in_shell(
-				cmd_string.format(backup_path, files_path),
-				verbose=self.verbose,
-				low_priority=True,
-				check_exit_code=True,
-			)
+			try:
+				frappe.utils.execute_in_shell(
+					cmd_string.format(backup_path, files_path),
+					verbose=self.verbose,
+					low_priority=True,
+					check_exit_code=True,
+				)
+			except frappe.CommandFailedError as e:
+				if e.err and "file changed as we read it" in e.err:
+					click.secho(
+						"Ignoring `tar: file changed as we read it` to prevent backup failure",
+						fg="red",
+					)
+				else:
+					raise e
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf
