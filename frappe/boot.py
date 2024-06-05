@@ -113,14 +113,10 @@ def get_bootinfo():
 
 def get_letter_heads():
 	letter_heads = {}
-<<<<<<< HEAD
-	for letter_head in frappe.get_all("Letter Head", fields=["name", "content", "footer"]):
-=======
 
 	if not frappe.has_permission("Letter Head"):
 		return letter_heads
 	for letter_head in frappe.get_list("Letter Head", fields=["name", "content", "footer"]):
->>>>>>> 63a13d0aff (fix: Skip letter heads if no permission (#26689))
 		letter_heads.setdefault(
 			letter_head.name, {"header": letter_head.content, "footer": letter_head.footer}
 		)
