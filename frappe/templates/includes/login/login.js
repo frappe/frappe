@@ -9,6 +9,10 @@ window.login = {};
 window.verify = {};
 
 login.bind_events = function () {
+	$(window).on("hashchange", function () {
+		login.route();
+	});
+
 	$(".form-login").on("submit", function (event) {
 		event.preventDefault();
 		var args = {};
