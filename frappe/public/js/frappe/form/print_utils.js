@@ -13,11 +13,11 @@ frappe.ui.get_print_settings = function (pdf, callback, letter_head, pick_column
 			label: __("With Letter head"),
 		},
 		{
-			fieldtype: "Select",
+			fieldtype: "Link",
 			fieldname: "letter_head",
 			label: __("Letter Head"),
 			depends_on: "with_letter_head",
-			options: Object.keys(frappe.boot.letter_heads),
+			options: "Letter Head",
 			default: letter_head || default_letter_head,
 		},
 		{
