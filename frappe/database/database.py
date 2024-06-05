@@ -1268,7 +1268,7 @@ class Database:
 
 	def delete(self, doctype: str, filters: dict | list | None = None, debug=False, **kwargs):
 		"""Delete rows from a table in site which match the passed filters. This
-		does trigger DocType hooks. Simply runs a DELETE query in the database.
+		does not trigger DocType hooks. Simply runs a DELETE query in the database.
 
 		Doctype name can be passed directly, it will be pre-pended with `tab`.
 		"""

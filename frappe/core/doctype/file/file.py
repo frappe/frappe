@@ -31,6 +31,7 @@ from .utils import *
 exclude_from_linked_with = True
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 URL_PREFIXES = ("http://", "https://")
+FILE_ENCODING_OPTIONS = ("utf-8-sig", "utf-8", "windows-1250", "windows-1252")
 
 
 class File(Document):
@@ -515,10 +516,11 @@ class File(Document):
 	def exists_on_disk(self):
 		return os.path.exists(self.get_full_path())
 
-	def get_content(self) -> bytes:
+	def get_content(self, encodings=None) -> bytes | str:
 		if self.is_folder:
 			frappe.throw(_("Cannot get file contents of a Folder"))
 
+		# if doc was just created, content field is already populated, return it as-is
 		if self.get("content"):
 			self._content = self.content
 			if self.decode:
@@ -531,15 +533,20 @@ class File(Document):
 			self.validate_file_url()
 		file_path = self.get_full_path()
 
-		# read the file
+		if encodings is None:
+			encodings = FILE_ENCODING_OPTIONS
 		with open(file_path, mode="rb") as f:
 			self._content = f.read()
-			try:
-				# for plain text files
-				self._content = self._content.decode()
-			except UnicodeDecodeError:
-				# for .png, .jpg, etc
-				pass
+			# looping will not result in slowdown, as the content is usually utf-8 or utf-8-sig
+			# encoded so the first iteration will be enough most of the time
+			for encoding in encodings:
+				try:
+					# read file with proper encoding
+					self._content = self._content.decode(encoding)
+					break
+				except UnicodeDecodeError:
+					# for .png, .jpg, etc
+					continue
 
 		return self._content
 
