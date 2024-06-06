@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-05 03:59\n"
+"PO-Revision-Date: 2024-06-06 04:02\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Bosnian\n"
 "MIME-Version: 1.0\n"
@@ -2754,7 +2754,7 @@ msgstr "Ar"
 
 #: public/js/frappe/views/kanban/kanban_column.html:14
 msgid "Archive"
-msgstr ""
+msgstr "Arhiva"
 
 #. Option for the 'Status' (Select) field in DocType 'Kanban Board Column'
 #: desk/doctype/kanban_board_column/kanban_board_column.json
@@ -4438,7 +4438,7 @@ msgstr "Veličina međuspremnika"
 #. Name of a Workspace
 #: core/workspace/build/build.json
 msgid "Build"
-msgstr "Izdradnja"
+msgstr "Izgradnja"
 
 #. Description of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
@@ -10152,7 +10152,7 @@ msgstr "URL dokumentacije"
 
 #: public/js/frappe/form/templates/form_dashboard.html:17
 msgid "Documents"
-msgstr ""
+msgstr "Dokumenti"
 
 #: core/doctype/deleted_document/deleted_document_list.js:25
 msgid "Documents restored successfully"
@@ -10293,7 +10293,7 @@ msgstr "Link za preuzimanje"
 
 #: public/js/frappe/list/bulk_operations.js:125
 msgid "Download PDF"
-msgstr ""
+msgstr "Preuzmi PDF"
 
 #: public/js/frappe/views/reports/query_report.js:767
 msgid "Download Report"
@@ -14149,7 +14149,7 @@ msgstr "Spol"
 
 #: www/contact.html:29
 msgid "General"
-msgstr ""
+msgstr "Općenito"
 
 #. Title of an Onboarding Step
 #: custom/onboarding_step/report_builder/report_builder.json
@@ -16627,7 +16627,7 @@ msgstr "Instalirane aplikacije"
 #: printing/doctype/letter_head/letter_head.json
 msgctxt "Letter Head"
 msgid "Instructions"
-msgstr ""
+msgstr "Instrukcije"
 
 #: templates/includes/login/login.js:257
 msgid "Instructions Emailed"
@@ -18386,13 +18386,13 @@ msgstr "Pismo"
 #: public/js/frappe/form/templates/print_layout.html:16
 #: public/js/frappe/list/bulk_operations.js:51
 msgid "Letter Head"
-msgstr ""
+msgstr "Memorandum"
 
 #. Label of a Link field in DocType 'Report'
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Letter Head"
-msgstr ""
+msgstr "Memorandum"
 
 #. Label of a Select field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
@@ -34162,7 +34162,7 @@ msgstr "Nedavno se prijavilo previše korisnika, pa je registracija onemogućena
 #. Label of a Card Break in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgid "Tools"
-msgstr ""
+msgstr "Alati"
 
 #. Option for the 'Position' (Select) field in DocType 'Form Tour Step'
 #: desk/doctype/form_tour_step/form_tour_step.json
