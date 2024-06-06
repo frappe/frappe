@@ -10,6 +10,7 @@
   "icon",
   "column_break_tvbd",
   "document_type",
+  "custom",
   "sort_section",
   "sort_field",
   "column_break_ztzx",
@@ -47,7 +48,7 @@
   },
   {
    "fieldname": "columns",
-   "fieldtype": "JSON",
+   "fieldtype": "Code",
    "label": "Columns"
   },
   {
@@ -84,11 +85,17 @@
    "fieldtype": "Select",
    "label": "Sort Order",
    "options": "ASC\nDESC"
+  },
+  {
+   "default": "0",
+   "fieldname": "custom",
+   "fieldtype": "Check",
+   "label": "Custom"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-29 13:40:20.570538",
+ "modified": "2024-06-04 12:52:55.833039",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "View Config",
