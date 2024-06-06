@@ -1571,10 +1571,10 @@ def validate_fields(meta: Meta):
 		source_field, _target_field = field.fetch_from.split(".", maxsplit=1)
 
 		if source_field == field.fieldname:
-			msg = _("{0} contains invalid fetch from expression, fetch from can't be recursive.").format(
-				_(field.label)
+			msg = _("{0} contains an invalid Fetch From expression, Fetch From can't be self-referential.").format(
+				_(field.label, context=field.parent)
 			)
-			frappe.throw(msg, title=_("Recusrive Fetch From"))
+			frappe.throw(msg, title=_("Recursive Fetch From"))
 
 	def validate_data_field_type(docfield):
 		if docfield.get("is_virtual"):
