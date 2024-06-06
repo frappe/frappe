@@ -675,7 +675,7 @@ class DatabaseQuery:
 
 				if wrap_grave_quotes(table) in self.query_tables:
 					permitted_child_table_fields = get_permitted_fields(
-						doctype=ch_doctype, parenttype=self.doctype
+						doctype=ch_doctype, parenttype=self.doctype, ignore_virtual=True
 					)
 					if column in permitted_child_table_fields or column in optional_fields:
 						continue
