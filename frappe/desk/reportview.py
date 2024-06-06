@@ -212,10 +212,15 @@ def update_wildcard_field_param(data):
 	if (isinstance(data.fields, str) and data.fields == "*") or (
 		isinstance(data.fields, list | tuple) and len(data.fields) == 1 and data.fields[0] == "*"
 	):
+<<<<<<< HEAD
 		if frappe.get_system_settings("apply_perm_level_on_api_calls"):
 			data.fields = get_permitted_fields(data.doctype, parenttype=data.parenttype)
 		else:
 			data.fields = frappe.db.get_table_columns(data.doctype)
+=======
+		parent_type = data.parenttype or data.parent_doctype
+		data.fields = get_permitted_fields(data.doctype, parenttype=parent_type, ignore_virtual=True)
+>>>>>>> 820a6edae8 (fix: Skip virtual fields in all select queries (#26700))
 		return True
 
 	return False
