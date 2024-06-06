@@ -105,7 +105,7 @@ export default class ListSettings {
 			if (idx == parseInt(total_fields)) {
 				break;
 			}
-			//idx 0 is for name field and idx 1 is for tags field
+			//idx 0 is the subject field and idx 1 is the tags field these fields
 			let is_sortable = idx == 0 || idx == 1 ? `` : `sortable`;
 			let show_sortable_handle = idx == 0 || idx == 1 ? `hide` : ``;
 			let can_remove = idx == 0 || idx == 1 || is_status_field(me.fields[idx]) ? `hide` : ``;
