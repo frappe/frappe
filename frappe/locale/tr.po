@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-06 04:02\n"
+"PO-Revision-Date: 2024-06-07 04:36\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -1116,12 +1116,12 @@ msgstr "Aktivite Günlüğü"
 #: public/js/frappe/views/reports/query_report.js:294
 #: public/js/frappe/widgets/widget_dialog.js:30
 msgid "Add"
-msgstr "Ekle"
+msgstr "Yeni"
 
 #: public/js/frappe/list/list_view.js:266
 msgctxt "Primary action in list view"
 msgid "Add"
-msgstr "Ekle"
+msgstr "Yeni"
 
 #: public/js/frappe/form/grid_row.js:431
 msgid "Add / Remove Columns"
@@ -22948,7 +22948,7 @@ msgstr ""
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
 msgid "Packages"
-msgstr ""
+msgstr "Paketler"
 
 #. Description of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
@@ -24122,7 +24122,7 @@ msgstr ""
 
 #: model/naming.py:565
 msgid "Please set the document name"
-msgstr ""
+msgstr "Lütfen belge adını ayarlayın"
 
 #: desk/doctype/dashboard/dashboard.py:120
 msgid "Please set the following documents in this Dashboard as standard first."
