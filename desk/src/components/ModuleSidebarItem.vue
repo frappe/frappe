@@ -41,7 +41,7 @@
 			<div
 				v-else
 				class="group/item mt-5 flex items-center gap-2 px-2"
-				:class="item.opened ? 'mb-3' : ''"
+				:class="item.opened ? 'mb-2' : ''"
 			>
 				<div
 					@click="item.opened = !item.opened"

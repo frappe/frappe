@@ -174,7 +174,6 @@ const deleteRows = () => {
 </script>
 
 <style>
-/* TODO: get rid of forced styles for fields rendered inside grid */
 /* For Input fields */
 .grid-row input:not([type="checkbox"]) {
 	border: none;
