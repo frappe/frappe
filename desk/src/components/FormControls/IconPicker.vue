@@ -1,9 +1,12 @@
 <template>
 	<div class="flex flex-col">
 		<div v-if="label" class="mb-1.5 text-xs text-gray-600">{{ label }}</div>
-		<Popover transition="default">
+		<Popover class="w-full" transition="default" @open="setFocus">
 			<template #target="{ togglePopover, isOpen }">
-				<Button @click="togglePopover()" class="flex w-28 items-center !justify-start gap-1">
+				<Button
+					@click="togglePopover()"
+					class="flex w-full items-center !justify-start gap-1 truncate text-nowrap"
+				>
 					<template #prefix v-if="modelValue">
 						<Icon :name="modelValue" class="h-4 w-4 text-gray-700" />
 					</template>
@@ -17,13 +20,28 @@
 					class="mt-2 flex max-h-72 max-w-64 flex-col overflow-y-auto rounded bg-white pb-3 shadow-xl hide-scrollbar"
 				>
 					<div class="sticky top-0 z-10 bg-white p-3">
-						<FormControl
-							type="text"
-							placeholder="Search for icons..."
-							v-model="searchText"
-							:debounce="200"
-							autocomplete="off"
-						/>
+						<div class="relative w-full">
+							<TextInput
+								ref="searchInput"
+								type="text"
+								placeholder="Search for icons..."
+								v-model="searchText"
+								:debounce="200"
+								autocomplete="off"
+							/>
+							<button
+								class="absolute right-0 top-0 inline-flex h-7 w-7 items-center justify-center"
+								@click="
+									() => {
+										searchText = ''
+										modelValue = ''
+										setFocus()
+									}
+								"
+							>
+								<FeatherIcon name="x" class="w-4" />
+							</button>
+						</div>
 					</div>
 					<div class="grid grid-cols-8 items-center px-3">
 						<button
@@ -43,10 +61,9 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue"
-import { Popover } from "frappe-ui"
+import { computed, nextTick, ref } from "vue"
+import { Popover, FeatherIcon, TextInput } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
-import FormControl from "frappe-ui/src/components/FormControl.vue"
 
 const props = defineProps({
 	label: {
@@ -64,6 +81,7 @@ const modelValue = defineModel("modelValue", {
 	type: String,
 	default: "",
 })
+const searchInput = ref("")
 const searchText = ref("")
 
 const icons = computed(() => {
@@ -78,4 +96,8 @@ const icons = computed(() => {
 	})
 	return iconList
 })
+
+const setFocus = () => {
+	nextTick(() => searchInput.value?.el.focus())
+}
 </script>
