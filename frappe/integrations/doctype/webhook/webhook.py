@@ -15,7 +15,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queues_timeout
 from frappe.utils.jinja import validate_template
-from frappe.utils.safe_exec import get_safe_globals, safe_exec
+from frappe.utils.safe_exec import get_safe_globals, is_safe_exec_enabled, safe_exec
 
 WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
 
@@ -182,7 +182,7 @@ def enqueue_webhook(doc, webhook) -> None:
 			)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
-			if webhook.script:
+			if webhook.script and is_safe_exec_enabled():
 				try:
 					doc.reload()
 					safe_exec(

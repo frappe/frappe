@@ -230,7 +230,8 @@
    "description": "You have access to the document (<code>doc</code>) and response (<code>resp</code>) objects",
    "fieldname": "script",
    "fieldtype": "Code",
-   "label": "Script"
+   "label": "Script",
+   "options": "Python"
   }
  ],
  "links": [
@@ -239,7 +240,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-06-07 08:03:22.859202",
+ "modified": "2024-06-07 09:55:36.764760",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

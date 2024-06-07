@@ -85,6 +85,33 @@ frappe.ui.form.on("Webhook", {
 			"background_jobs_queue",
 			"frappe.integrations.doctype.webhook.webhook.get_all_queues"
 		);
+		frappe
+			.call("frappe.core.doctype.server_script.server_script.get_autocompletion_items")
+			.then((r) => r.message)
+			.then((items) => {
+				frm.set_df_property("script", "autocompletions", items);
+			});
+
+		frm.trigger("check_safe_exec");
+	},
+
+	check_safe_exec(frm) {
+		frappe.xcall("frappe.core.doctype.server_script.server_script.enabled").then((enabled) => {
+			if (enabled === false) {
+				frm.set_df_property("script", "hidden", true);
+				let docs_link =
+					"https://frappeframework.com/docs/user/en/desk/scripting/server-script";
+				let docs = `<a href=${docs_link}>${__("Official Documentation")}</a>`;
+
+				frm.dashboard.clear_comment();
+				let msg = __("Response processing feature is not available on this site.") + " ";
+				msg += __(
+					"To enable reponse processing (via Server Scripts feature), read the {0}.",
+					[docs]
+				);
+				frm.dashboard.add_comment(msg, "yellow", true);
+			}
+		});
 	},
 
 	request_structure: (frm) => {
