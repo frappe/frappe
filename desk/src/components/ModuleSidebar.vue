@@ -219,7 +219,7 @@
 						:doctype="dialogItem.link_type"
 						v-model="dialogItem.link_to"
 						label="Link To"
-						@change="(v) => (dialogItem.label = v?.value)"
+						@update:modelValue="() => (dialogItem.label = dialogItem.link_to)"
 					/>
 					<FormControl
 						v-if="dialogItem.link_type === 'URL'"
