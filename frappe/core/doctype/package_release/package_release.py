@@ -122,5 +122,8 @@ class PackageRelease(Document):
 			attached_to_name=self.name,
 		)
 
+		# Set path to tarball
+		self.path = file.file_url
+
 		file.flags.ignore_duplicate_entry_error = True
 		file.insert()
