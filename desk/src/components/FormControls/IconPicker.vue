@@ -7,7 +7,8 @@
 					<template #prefix v-if="modelValue">
 						<Icon :name="modelValue" class="h-4 w-4 text-gray-700" />
 					</template>
-					{{ modelValue }}
+					<span v-if="modelValue">{{ modelValue }}</span>
+					<span v-else class="text-base leading-5 text-gray-500">{{ placeholder }}</span>
 				</Button>
 			</template>
 
@@ -51,6 +52,11 @@ const props = defineProps({
 	label: {
 		type: String,
 		required: false,
+	},
+	placeholder: {
+		type: String,
+		required: false,
+		default: "Select Icon",
 	},
 })
 
