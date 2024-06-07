@@ -1,22 +1,22 @@
 <template>
 	<NestedPopover>
 		<template #target>
-			<Button :label="'Columns'">
+			<Button label="Columns">
 				<template #prefix>
 					<FeatherIcon name="columns" class="h-3.5" />
 				</template>
 			</Button>
 		</template>
 		<template #body="{ close }">
-			<div class="my-2 w-[15rem] rounded-lg border border-gray-100 bg-white p-1.5 shadow-xl">
+			<div class="borderborder-gray-100 my-2 w-[15rem] rounded-lg bg-white p-1.5 shadow-xl">
 				<div v-if="!edit">
-					<Draggable :list="columns" item-key="key" class="list-group">
+					<Draggable :list="columns" item-key="key">
 						<template #item="{ element }">
 							<div
 								class="flex cursor-grab items-center justify-between gap-6 rounded px-2 py-1.5 text-base text-gray-800 hover:bg-gray-100"
 							>
 								<div class="flex items-center gap-2">
-									<Icon :name="'es-line-drag'" class="h-2.5 w-2.5 text-gray-600" />
+									<Icon name="es-line-drag" class="h-2.5 w-2.5 text-gray-600" />
 									<div>{{ element.label }}</div>
 								</div>
 								<div class="flex cursor-pointer items-center gap-1">
@@ -50,11 +50,11 @@
 							</template>
 						</Autocomplete>
 						<Button
-							v-if="columnsUpdated"
+							v-if="isDefaultConfig && isDefaultOverriden"
 							class="w-full !justify-start !text-gray-600"
 							variant="ghost"
-							@click="reset(close)"
-							:label="'Reset Changes'"
+							@click="resetToDefault(close)"
+							label="Reset To Default"
 						>
 							<template #prefix>
 								<svg
@@ -82,44 +82,42 @@
 						</Button>
 					</div>
 				</div>
-				<div v-else>
-					<div
-						class="flex flex-col items-center justify-between gap-2 rounded px-2 py-1.5 text-base text-gray-800"
-					>
-						<div class="flex flex-col items-center gap-3">
-							<FormControl
-								type="text"
-								size="md"
-								:label="'Label'"
-								v-model="column.label"
-								class="w-full"
-								:placeholder="'First Name'"
-							/>
-							<FormControl
-								type="text"
-								size="md"
-								:label="'Width'"
-								class="w-full"
-								v-model="column.width"
-								placeholder="10rem"
-								:description="'Width can be in number, pixel or rem (eg. 3, 30px, 10rem)'"
-								:debounce="500"
-							/>
-						</div>
-						<div class="flex w-full gap-2 border-t pt-2">
-							<Button
-								variant="subtle"
-								:label="'Cancel'"
-								class="w-full flex-1"
-								@click="cancelUpdate"
-							/>
-							<Button
-								variant="solid"
-								:label="'Update'"
-								class="w-full flex-1"
-								@click="updateColumn(column)"
-							/>
-						</div>
+				<div
+					v-else
+					class="flex flex-col items-center justify-between gap-2 rounded px-2 py-1.5 text-base text-gray-800"
+				>
+					<div class="flex flex-col items-center gap-3">
+						<FormControl
+							type="text"
+							size="md"
+							:label="'Label'"
+							v-model="column.label"
+							class="w-full"
+						/>
+						<FormControl
+							type="text"
+							size="md"
+							:label="'Width'"
+							class="w-full"
+							v-model="column.width"
+							placeholder="10rem"
+							:description="'Width can be in number, pixel or rem (eg. 3, 30px, 10rem)'"
+							:debounce="500"
+						/>
+					</div>
+					<div class="flex w-full gap-2 border-t pt-2">
+						<Button
+							variant="subtle"
+							:label="'Cancel'"
+							class="w-full flex-1"
+							@click="cancelUpdate(column.key)"
+						/>
+						<Button
+							variant="solid"
+							:label="'Update'"
+							class="w-full flex-1"
+							@click="updateColumn(column)"
+						/>
 					</div>
 				</div>
 			</div>
@@ -128,7 +126,9 @@
 </template>
 
 <script setup>
-import { Autocomplete, FeatherIcon, FormControl } from "frappe-ui"
+import { isEqual } from "lodash"
+import { config_settings, isDefaultConfig } from "@/stores/view"
+import { Autocomplete, FeatherIcon, FormControl, call } from "frappe-ui"
 import { computed, ref, watch, getCurrentInstance } from "vue"
 import NestedPopover from "@/components/controls/NestedPopover.vue"
 import Draggable from "vuedraggable"
@@ -166,12 +166,13 @@ watch(
 	{ once: true, immediate: true }
 )
 
-const columnsUpdated = computed(
-	() => JSON.stringify(oldColumns.value) != JSON.stringify(columns.value)
-)
+const columnsUpdated = computed(() => !isEqual(columns.value, oldColumns.value))
 
-function reset(close) {
-	columns.value = Array.from(oldColumns.value)
+const resetToDefault = async (close) => {
+	await call("frappe.desk.doctype.view_config.view_config.reset_default_config", {
+		doctype: config_name.value,
+	})
+	instance.parent.emit("reload")
 	close()
 }
 
@@ -183,6 +184,7 @@ function addColumn(c) {
 		type: c.type,
 		key: c.value,
 		width: "10rem",
+		options: c.options,
 	}
 	columns.value.push(_column)
 	instance.parent.emit("update")
@@ -197,7 +199,6 @@ function removeColumn(c) {
 const edit = ref(false)
 
 const column = ref({
-	old: {},
 	label: "",
 	key: "",
 	width: "10rem",
@@ -205,8 +206,7 @@ const column = ref({
 
 const editColumn = (c) => {
 	edit.value = true
-	column.value = c
-	column.value.old = { ...c }
+	column.value = { ...c }
 }
 
 const updateColumn = (c) => {
@@ -214,16 +214,22 @@ const updateColumn = (c) => {
 	let index = columns.value.findIndex((column) => column.key === c.key)
 	columns.value[index].label = c.label
 	columns.value[index].width = c.width
-
-	if (columns.value[index].old) {
-		delete columns.value[index].old
-	}
 }
 
-const cancelUpdate = () => {
+const cancelUpdate = (key) => {
 	edit.value = false
-	column.value.label = column.value.old.label
-	column.value.width = column.value.old.width
-	delete column.value.old
+	let index = columns.value.findIndex((column) => column.key === key)
+	column.value.label = columns.value[index].label
+	column.value.width = columns.value[index].width
 }
+
+watch(
+	() => columnsUpdated.value,
+	() => {
+		if (isDefaultConfig.value && columnsUpdated.value) {
+			instance.parent.emit("updateDefaultConfig")
+		}
+	},
+	{ immediate: true }
+)
 </script>
