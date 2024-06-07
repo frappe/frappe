@@ -31,6 +31,8 @@
   "sb_webhook_data",
   "webhook_data",
   "webhook_json",
+  "webhook_response_section",
+  "script",
   "preview_tab",
   "preview_document",
   "column_break_26",
@@ -218,6 +220,17 @@
    "fieldname": "background_jobs_queue",
    "fieldtype": "Autocomplete",
    "label": "Background Jobs Queue"
+  },
+  {
+   "fieldname": "webhook_response_section",
+   "fieldtype": "Section Break",
+   "label": "Webhook Response"
+  },
+  {
+   "description": "You have access to the document (<code>doc</code>) and response (<code>resp</code>) objects",
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "label": "Script"
   }
  ],
  "links": [
@@ -226,7 +239,7 @@
    "link_fieldname": "webhook"
   }
  ],
- "modified": "2024-03-23 16:04:03.108172",
+ "modified": "2024-06-07 08:03:22.859202",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Webhook",

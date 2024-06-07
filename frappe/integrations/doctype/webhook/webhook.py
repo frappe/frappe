@@ -15,7 +15,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils.background_jobs import get_queues_timeout
 from frappe.utils.jinja import validate_template
-from frappe.utils.safe_exec import get_safe_globals
+from frappe.utils.safe_exec import get_safe_globals, safe_exec
 
 WEBHOOK_SECRET_HEADER = "X-Frappe-Webhook-Signature"
 
@@ -42,6 +42,7 @@ class Webhook(Document):
 		request_method: DF.Literal["POST", "PUT", "DELETE"]
 		request_structure: DF.Literal["", "Form URL-Encoded", "JSON"]
 		request_url: DF.SmallText
+		script: DF.Code | None
 		timeout: DF.Int
 		webhook_data: DF.Table[WebhookData]
 		webhook_docevent: DF.Literal[
@@ -181,6 +182,20 @@ def enqueue_webhook(doc, webhook) -> None:
 			)
 			r.raise_for_status()
 			frappe.logger().debug({"webhook_success": r.text})
+			if webhook.script:
+				try:
+					doc.reload()
+					safe_exec(
+						webhook.script,
+						_locals={"doc": doc, "resp": r},
+						restrict_commit_rollback=True,
+						script_filename=webhook.name,
+					)
+					frappe.db.commit()
+				except Exception as e:
+					webhook.log_error("Response processing failed")
+					frappe.logger().debug({"webhook_response_processing_error": e})
+					pass
 			log_request(webhook.name, doc.name, request_url, headers, data, r)
 			break
 
