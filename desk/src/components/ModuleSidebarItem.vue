@@ -7,7 +7,8 @@
 			:disabled="!isCollapsed"
 			v-if="type === 'Link'"
 		>
-			<router-link
+			<component
+				:is="item.route_to ? 'router-link' : 'div'"
 				:to="item.route_to"
 				class="flex items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
 				:class="[
@@ -23,7 +24,7 @@
 					{{ item.label }}
 				</div>
 				<ModuleSidebarItemMenu :item="item" v-if="showEditMenu" />
-			</router-link>
+			</component>
 		</Tooltip>
 
 		<template v-else-if="type === 'Spacer'">

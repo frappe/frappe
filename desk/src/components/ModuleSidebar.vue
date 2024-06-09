@@ -141,6 +141,7 @@
 			],
 		}"
 		v-model="showDialog"
+		@after-leave="resetDialogItem"
 	>
 		<template #body-content>
 			<div class="space-y-4">
@@ -269,7 +270,12 @@ const isCollapsed = ref(false)
 const isEditing = ref(false)
 const draftSidebarItems = ref([])
 const showDialog = ref(false)
-const dialogItem = ref({})
+const dialogItem = ref({
+	type: "Link",
+	link_type: "DocType",
+	label: "",
+	links: [],
+})
 const dialogAction = ref("")
 
 provide("updateSidebarItem", updateSidebarItem)
@@ -333,12 +339,21 @@ function updateSidebar() {
 		})
 }
 
+function resetDialogItem() {
+	dialogItem.value = {
+		type: "Link",
+		link_type: "DocType",
+		label: "",
+		links: [],
+	}
+}
+
 function getItemIndex(item) {
 	return draftSidebarItems.value.sections.findIndex((section) => section.name === item.name)
 }
 
 function showItemDialog(item, action) {
-	dialogItem.value = JSON.parse(JSON.stringify(item))
+	Object.assign(dialogItem.value, JSON.parse(JSON.stringify(item)))
 	dialogAction.value = action
 	showDialog.value = true
 }
