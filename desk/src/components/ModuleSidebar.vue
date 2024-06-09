@@ -187,6 +187,7 @@
 							{
 								label: 'Label',
 								fieldname: 'label',
+								fieldtype: 'Text',
 								width: 2,
 							},
 						]"
@@ -221,13 +222,6 @@
 						v-model="dialogItem.link_to"
 						label="Link To"
 						@update:modelValue="() => (dialogItem.label = dialogItem.link_to)"
-					/>
-					<FormControl
-						v-if="dialogItem.link_type === 'URL'"
-						type="text"
-						size="sm"
-						label="URL"
-						v-model="dialogItem.url"
 					/>
 					<div class="flex space-x-2">
 						<IconPicker size="sm" label="Icon" v-model="dialogItem.icon" />

@@ -58,13 +58,13 @@
 									:doctype="row.link_type"
 									v-model="row[field.fieldname]"
 									class="text-sm text-gray-800"
-									@change="(e) => field.onChange && field.onChange(e, index)"
+									@update:modelValue="(e) => field.onChange && field.onChange(e, index)"
 								/>
 								<IconPicker
 									v-else-if="field.fieldtype === 'Icon'"
 									size="sm"
 									v-model="row[field.fieldname]"
-									@change="(e) => field.onChange && field.onChange(e, index)"
+									@update:modelValue="(e) => field.onChange && field.onChange(e, index)"
 								/>
 								<FormControl
 									v-else
