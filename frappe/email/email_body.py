@@ -24,6 +24,7 @@ from frappe.utils import (
 from frappe.utils.pdf import get_pdf
 
 EMBED_PATTERN = re.compile("""embed=["'](.*?)["']""")
+DATAURL_PATTERN = re.compile("""src=["']data:(image[/].+?);base64,(.*?)["']""", flags=re.IGNORECASE)
 
 
 def get_email(
@@ -191,30 +192,31 @@ class EMail:
 	def set_part_html(self, message, inline_images):
 		from email.mime.text import MIMEText
 
-		has_inline_images = EMBED_PATTERN.search(message)
+		if inline_images is None:
+			inline_images = []
 
-		if has_inline_images:
-			# process inline images
-			message, _inline_images = replace_filename_with_cid(message)
+		message, atts = replace_img_dataurl_with_cid(message)
+		inline_images.extend(atts)
+		message, atts = replace_filename_with_cid(message)
+		inline_images.extend(atts)
 
+		final = MIMEText(message, "html", "utf-8", policy=policy.SMTP)
+		if inline_images:
 			# prepare parts
 			msg_related = MIMEMultipart("related", policy=policy.SMTP)
+			msg_related.attach(final)
 
-			html_part = MIMEText(message, "html", "utf-8", policy=policy.SMTP)
-			msg_related.attach(html_part)
-
-			for image in _inline_images:
+			for image in inline_images:
 				self.add_attachment(
 					image.get("filename"),
 					image.get("filecontent"),
+					content_type=image.get("content_type"),
 					content_id=image.get("content_id"),
 					parent=msg_related,
 					inline=True,
 				)
-
-			self.msg_alternative.attach(msg_related)
-		else:
-			self.msg_alternative.attach(MIMEText(message, "html", "utf-8", policy=policy.SMTP))
+			final = msg_related
+		self.msg_alternative.attach(final)
 
 	def set_html_as_text(self, html):
 		"""Set plain text from HTML"""
@@ -485,6 +487,39 @@ def get_footer(email_account, footer=None):
 	footer += frappe.utils.jinja.get_email_from_template("email_footer", args)[0]
 
 	return footer
+
+
+def replace_img_dataurl_with_cid(message):
+	"""Replaces <img src="data:image/png;base64,data..." ...> with
+	<img src="cid:content_id" ...>
+	return the modified message and list of image attachments
+	"""
+	from base64 import b64decode
+
+	attachments = []
+
+	while True:
+		match = DATAURL_PATTERN.search(message)
+		if not match:
+			break
+		# group 0: whole src attribute
+		mime_type = match.group(1)
+		base64_data = match.group(2)
+
+		tmp1, sep, ext = mime_type.partition("/")
+		content_id = random_string(10)
+
+		attachments.append(
+			{
+				"filename": f"{content_id}.{ext}",
+				"filecontent": b64decode(base64_data, validate=True),
+				"content_type": mime_type,
+				"content_id": content_id,
+			}
+		)
+		message = re.sub(re.escape(match.group(0)), f'src="cid:{content_id}"', message)
+
+	return (message, attachments)
 
 
 def replace_filename_with_cid(message):
