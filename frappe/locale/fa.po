@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-07 04:36\n"
+"PO-Revision-Date: 2024-06-09 06:14\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1352,7 +1352,7 @@ msgstr "به داشبورد اضافه کنید"
 
 #: public/js/frappe/form/sidebar/assign_to.js:98
 msgid "Add to ToDo"
-msgstr "به ToDo اضافه کنید"
+msgstr "افزودن به لیست انجام کارها"
 
 #: website/doctype/website_slideshow/website_slideshow.js:32
 msgid "Add to table"
@@ -2123,7 +2123,7 @@ msgstr "قبلا ثبت شده است"
 
 #: desk/form/assign_to.py:134
 msgid "Already in the following Users ToDo list:{0}"
-msgstr "در حال حاضر در لیست کارهای کاربران زیر:{0}"
+msgstr "در حال حاضر در لیست انجام کارهای کاربران زیر:{0}"
 
 #: public/js/frappe/views/reports/report_view.js:835
 msgid "Also adding the dependent currency field {0}"
@@ -4605,19 +4605,19 @@ msgstr "دوربین"
 #: public/js/frappe/utils/utils.js:1714
 #: website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
-msgstr "پویش"
+msgstr "کمپین"
 
 #. Label of a Link field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgctxt "Newsletter"
 msgid "Campaign"
-msgstr "پویش"
+msgstr "کمپین"
 
 #. Label of a Data field in DocType 'Web Page View'
 #: website/doctype/web_page_view/web_page_view.json
 msgctxt "Web Page View"
 msgid "Campaign"
-msgstr "پویش"
+msgstr "کمپین"
 
 #. Label of a Small Text field in DocType 'Marketing Campaign'
 #: website/doctype/marketing_campaign/marketing_campaign.json
@@ -26657,13 +26657,13 @@ msgstr "تکرار می شود {0}"
 #: core/doctype/communication/communication.json
 msgctxt "Communication"
 msgid "Replied"
-msgstr "پاسخ داد"
+msgstr "پاسخ داده شده"
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
 msgctxt "Contact"
 msgid "Replied"
-msgstr "پاسخ داد"
+msgstr "پاسخ داده شده"
 
 #: core/doctype/communication/communication.js:57
 #: public/js/frappe/form/footer/form_timeline.js:550
@@ -33686,13 +33686,13 @@ msgstr "فیلد به تاریخ"
 
 #: desk/doctype/todo/todo_list.js:6
 msgid "To Do"
-msgstr "انجام دادن"
+msgstr "لیست انجام کار"
 
 #. Label of a Link in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgctxt "ToDo"
 msgid "To Do"
-msgstr "انجام دادن"
+msgstr "لیست انجام کار"
 
 #: public/js/frappe/form/sidebar/review.js:50
 msgid "To User"
@@ -33806,19 +33806,19 @@ msgstr "به نسخه"
 #. Name of a report
 #: desk/doctype/todo/todo.json desk/report/todo/todo.json
 msgid "ToDo"
-msgstr "انجام دادن"
+msgstr "لیست انجام کار"
 
 #. Label of a shortcut in the Tools Workspace
 #: automation/workspace/tools/tools.json
 msgctxt "ToDo"
 msgid "ToDo"
-msgstr "انجام دادن"
+msgstr "لیست انجام کار"
 
 #. Linked DocType in User's connections
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "ToDo"
-msgstr "انجام دادن"
+msgstr "لیست انجام کار"
 
 #: public/js/frappe/form/controls/date.js:58
 #: public/js/frappe/views/calendar/calendar.js:274
@@ -35847,7 +35847,7 @@ msgstr "مقدار {0} نمی تواند یک لیست باشد"
 #: automation/doctype/assignment_rule/assignment_rule.json
 msgctxt "Assignment Rule"
 msgid "Value from this field will be set as the due date in the ToDo"
-msgstr "مقدار از این فیلد به عنوان سررسید در ToDo تنظیم می شود"
+msgstr "مقدار از این فیلد به عنوان سررسید در لیست انجام کارها تنظیم می شود"
 
 #: model/base_document.py:741
 msgid "Value missing for"
