@@ -80,9 +80,15 @@ class Workspace(Document):
 		except Exception:
 			frappe.throw(_("Content data shoud be a list"))
 
+<<<<<<< HEAD
 		for d in self.get("links"):
 			if d.link_type == "Report" and d.is_query_report != 1:
 				d.report_ref_doctype = frappe.get_value("Report", d.link_to, "ref_doctype")
+=======
+		for d in self.get('links'):
+			if d.link_type == "Report" and d.is_query_report != 1:
+				d.report_ref_doctype = frappe.get_value("Report", d.link_to, 'ref_doctype')
+>>>>>>> b4c4dbb418 (fix: redirect report builder from workspace)
 
 	def clear_cache(self):
 		super().clear_cache()

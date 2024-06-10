@@ -1311,8 +1311,12 @@ Object.assign(frappe.utils, {
 				if (item.is_query_report) {
 					route = "query-report/" + item.name;
 				} else if (!item.is_query_report && item.report_ref_doctype) {
+<<<<<<< HEAD
 					route =
 						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
+=======
+					route = frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
+>>>>>>> b4c4dbb418 (fix: redirect report builder from workspace)
 				} else {
 					route = "/report/" + item.name;
 				}
