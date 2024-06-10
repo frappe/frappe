@@ -21,7 +21,7 @@ import { useRoute } from "vue-router"
 import { Breadcrumbs } from "frappe-ui"
 
 import AwesomeBar from "@/components/AwesomeBar.vue"
-import AppLogo from "@/components/icons/AppLogo.vue"
+import AppLogo from "@/components/Icons/AppLogo.vue"
 
 import { useBreadcrumbs } from "@/composables/breadcrumbs"
 
