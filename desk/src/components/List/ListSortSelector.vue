@@ -1,20 +1,15 @@
 <template>
-	<div v-if="sort" class="flex rounded">
+	<div v-if="sort" class="flex">
 		<Tooltip :text="sort[1] == 'ASC' ? 'ascending' : 'descending'" :hover-delay="0.5">
-			<div>
-				<Button
-					class="w-full rounded-none rounded-l border bg-gray-100 p-1.5"
-					@click="toggleSortOrder"
-				>
-					<template #icon>
-						<Icon
-							:name="sort[1] == 'ASC' ? 'sort-ascending' : 'sort-descending'"
-							class="h-3.5 w-3.5"
-						>
-						</Icon>
-					</template>
-				</Button>
-			</div>
+			<Button
+				class="w-full rounded-none rounded-l border bg-gray-100 p-1.5"
+				@click="toggleSortOrder"
+			>
+				<template #icon>
+					<Icon :name="sort[1] == 'ASC' ? 'sort-ascending' : 'sort-descending'" class="h-3.5 w-3.5">
+					</Icon>
+				</template>
+			</Button>
 		</Tooltip>
 		<Dropdown :options="sortOptions">
 			<template v-slot="{ open }">

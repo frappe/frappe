@@ -60,7 +60,7 @@
 
 <script setup>
 import { onBeforeMount } from "vue"
-import { guess_colour } from "@/utils/formatter"
+import { guess_colour } from "@/utils/list_formatters"
 import { Badge, Checkbox, Avatar } from "frappe-ui"
 import dayjs from "dayjs"
 import relativeTime from "dayjs/plugin/relativeTime"

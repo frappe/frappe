@@ -1,7 +1,7 @@
 <template>
 	<NestedPopover>
 		<template #target>
-			<Button :label="'Filter'">
+			<Button label="Filter">
 				<template #prefix>
 					<FeatherIcon name="filter" class="h-3.5" />
 				</template>
@@ -15,76 +15,71 @@
 			</Button>
 		</template>
 		<template #body="{ close }">
-			<div class="my-2 rounded-lg border border-gray-100 bg-white shadow-xl">
-				<div class="p-3">
-					<div
-						v-if="filters?.length"
-						v-for="({ fieldname, fieldtype, operator, value, options }, i) in filters"
-						id="filter-list"
-						class="mb-3 flex items-center gap-2"
-					>
-						<div class="flex items-center gap-2">
-							<div class="w-[9rem]">
-								<Autocomplete
-									:body-classes="'w-[15rem]'"
-									:model-value="fieldname"
-									:options="allFilterableFields"
-									@update:model-value="(option) => updateField(option, i)"
-								/>
-							</div>
-							<div class="w-[7rem]">
-								<FormControl
-									type="select"
-									:model-value="operator"
-									:options="getOperators(i)"
-									@update:model-value="(option) => updateOperator(option, i)"
-								/>
-							</div>
-							<div class="w-[10rem]">
-								<!-- Added :key to correctly re-render dynamic child component -->
-								<ListFilterValue
-									:fieldtype="fieldtype"
-									:operator="operator"
-									:value="value"
-									:options="options"
-									@update="(val) => updateValue(val, i)"
-									:key="fieldname"
-								></ListFilterValue>
-							</div>
-						</div>
-						<button icon="x" @click="removeFilter(i)">
-							<FeatherIcon name="x" class="h-3.5" />
-						</button>
-					</div>
-					<div v-else class="my-3 min-w-[30rem] pl-3 text-sm text-gray-500">No filters added.</div>
-					<div class="flex items-center justify-between gap-2">
+			<div class="rounded-lg border border-gray-100 bg-white p-4 shadow-xl">
+				<div
+					v-if="filters?.length"
+					v-for="({ fieldname, fieldtype, operator, value, options }, i) in filters"
+					class="mb-3 flex items-center gap-2"
+				>
+					<div class="w-[9rem]">
 						<Autocomplete
-							:body-classes="'w-[29rem]'"
+							:body-classes="'w-[15rem]'"
+							:model-value="fieldname"
 							:options="allFilterableFields"
-							@update:model-value="(option) => addFilter(option)"
-						>
-							<template #target="{ togglePopover }">
-								<Button
-									class="!text-gray-600"
-									variant="ghost"
-									@click="togglePopover()"
-									label="Add Filter"
-								>
-									<template #prefix>
-										<FeatherIcon name="plus" class="h-3" />
-									</template>
-								</Button>
-							</template>
-						</Autocomplete>
-						<Button
-							v-if="filters?.length"
-							class="ml-auto !text-gray-600"
-							variant="ghost"
-							label="Clear All"
-							@click="clearFilters"
-						>
-						</Button>
+							@update:model-value="(option) => updateField(option, i)"
+						/>
 					</div>
+					<div class="w-[7rem]">
+						<FormControl
+							type="select"
+							:model-value="operator"
+							:options="getOperators(i)"
+							@update:model-value="(option) => updateOperator(option, i)"
+						/>
+					</div>
+					<!-- Added :key to correctly re-render dynamic child component -->
+					<div class="w-[10rem]">
+						<ListFilterValue
+							:fieldtype="fieldtype"
+							:operator="operator"
+							:value="value"
+							:options="options"
+							@update="(val) => updateValue(val, i)"
+							:key="fieldname"
+						/>
+					</div>
+					<button icon="x" @click="removeFilter(i)">
+						<FeatherIcon name="x" class="h-3.5" />
+					</button>
+				</div>
+				<div v-else class="my-3 min-w-[30rem] pl-3 text-sm text-gray-500">No filters added.</div>
+				<div class="flex items-center justify-between gap-2">
+					<Autocomplete
+						:body-classes="'w-[29rem]'"
+						:options="allFilterableFields"
+						@update:model-value="(option) => addFilter(option)"
+					>
+						<template #target="{ togglePopover }">
+							<Button
+								class="!text-gray-600"
+								variant="ghost"
+								@click="togglePopover()"
+								label="Add Filter"
+							>
+								<template #prefix>
+									<FeatherIcon name="plus" class="h-3" />
+								</template>
+							</Button>
+						</template>
+					</Autocomplete>
+					<Button
+						v-if="filters?.length"
+						class="ml-auto !text-gray-600"
+						variant="ghost"
+						label="Clear All"
+						@click="clearFilters(close)"
+					>
+					</Button>
 				</div>
 			</div>
 		</template>
@@ -220,9 +215,9 @@ const addFilter = (option) => {
 	filters.value.push({
 		fieldname: option.value,
 		fieldtype: getFieldType(option.value),
-		options: getSelectOptions(option.value),
 		operator: "",
 		value: "",
+		options: getSelectOptions(option.value),
 	})
 }
 
@@ -231,9 +226,10 @@ const removeFilter = (index) => {
 	updateFiltersInQuery()
 }
 
-const clearFilters = () => {
+const clearFilters = (close) => {
 	filters.value.splice(0, filters.value.length)
 	updateFiltersInQuery()
+	close
 }
 
 // Update filter options on change of filter field
