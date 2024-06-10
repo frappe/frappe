@@ -1320,8 +1320,12 @@ Object.assign(frappe.utils, {
 >>>>>>> b4c4dbb418 (fix: redirect report builder from workspace)
 =======
 					route = 
+<<<<<<< HEAD
 							frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
 >>>>>>> 0de30c897d (fix: redirect report builder from workspace)
+=======
+						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
+>>>>>>> 533f235343 (fix: redirect report builder from workspace)
 				} else {
 					route = "/report/" + item.name;
 				}
