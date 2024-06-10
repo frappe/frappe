@@ -211,6 +211,7 @@ class SendMailContext:
 		self.sent_to_atleast_one_recipient = any(
 			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
 		)
+		self.email_account_doc = None
 
 	def fetch_smtp_server(self):
 		self.email_account_doc = self.queue_doc.get_email_account(raise_error=True)
@@ -290,9 +291,32 @@ class SendMailContext:
 		message = self.include_attachments(message)
 		return message
 
+<<<<<<< HEAD
 	def get_tracker_str(self) -> str:
 		if frappe.conf.use_ssl and self.email_account_doc.track_email_status:
 			tracker_url_html = f'<img src="{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"/>'
+=======
+	def get_tracker_str(self, recipient_email) -> str:
+		tracker_url = ""
+		if self.queue_doc.get("email_read_tracker_url"):
+			email_read_tracker_url = self.queue_doc.email_read_tracker_url
+			params = {
+				"recipient_email": recipient_email,
+				"reference_name": self.queue_doc.reference_name,
+				"reference_doctype": self.queue_doc.reference_doctype,
+			}
+			tracker_url = get_url(f"{email_read_tracker_url}?{get_signed_params(params)}")
+
+		elif (
+			self.email_account_doc
+			and self.email_account_doc.track_email_status
+			and self.queue_doc.communication
+		):
+			tracker_url = f"{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"
+
+		if tracker_url:
+			tracker_url_html = f'<img src="{tracker_url}"/>'
+>>>>>>> a65c6215e9 (fix: Email tracking without "use_ssl" (#26718))
 			return quopri.encodestring(tracker_url_html.encode()).decode()
 		return ""
 
