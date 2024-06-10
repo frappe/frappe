@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import AppLogo from "@/components/icons/AppLogo.vue"
+import AppLogo from "@/components/Icons/AppLogo.vue"
 
 const props = defineProps({
 	title: {

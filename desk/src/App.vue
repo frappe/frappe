@@ -11,8 +11,8 @@
 
 <script setup>
 import ModuleShell from "@/components/ModuleShell.vue"
-import IconsTimeless from "@/components/icons/IconsTimeless.vue"
-import IconsEspresso from "@/components/icons/IconsEspresso.vue"
+import IconsTimeless from "@/components/Icons/IconsTimeless.vue"
+import IconsEspresso from "@/components/Icons/IconsEspresso.vue"
 
 import { inject } from "vue"
 

@@ -7,13 +7,16 @@
 			:disabled="!isCollapsed"
 			v-if="type === 'Link'"
 		>
-			<router-link
+			<component
+				:is="item.route_to ? 'router-link' : 'div'"
 				:to="item.route_to"
-				class="flex cursor-pointer items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
+				class="flex items-center gap-2 truncate rounded px-2 py-1 transition duration-300 ease-in-out"
 				:class="[
 					isCollapsed ? 'justify-center' : '',
 					isActive && !isEditing ? 'bg-white shadow-sm' : 'hover:bg-gray-200',
-					isEditing ? 'group/item has-[.active-item]:bg-gray-200' : '',
+					isEditing
+						? 'group/item cursor-grabbing has-[.active-item]:bg-gray-200'
+						: 'cursor-pointer',
 				]"
 			>
 				<Icon :name="item.icon || 'folder-normal'" class="h-5 w-5 text-gray-700" />
@@ -21,13 +24,13 @@
 					{{ item.label }}
 				</div>
 				<ModuleSidebarItemMenu :item="item" v-if="showEditMenu" />
-			</router-link>
+			</component>
 		</Tooltip>
 
 		<template v-else-if="type === 'Spacer'">
 			<div
 				v-if="isEditing"
-				class="group/item ml-2 flex min-h-6 items-center justify-center rounded border-dashed border-gray-400 px-2 text-xs uppercase text-gray-600 hover:border has-[.active-item]:border"
+				class="group/item ml-2 flex min-h-6 cursor-grabbing items-center justify-center rounded border-dashed border-gray-400 px-2 text-xs uppercase text-gray-600 hover:border has-[.active-item]:border"
 			>
 				<ModuleSidebarItemMenu :item="item" />
 			</div>
@@ -39,9 +42,13 @@
 			<div
 				v-else
 				class="group/item mt-5 flex items-center gap-2 px-2"
-				:class="item.opened ? 'mb-3' : ''"
+				:class="item.opened ? 'mb-2' : ''"
 			>
-				<div @click="item.opened = !item.opened" class="flex cursor-pointer items-center gap-2">
+				<div
+					@click="item.opened = !item.opened"
+					class="flex items-center gap-2"
+					:class="isEditing ? 'cursor-grabbing' : 'cursor-pointer'"
+				>
 					<FeatherIcon
 						:name="item.opened ? 'chevron-down' : 'chevron-right'"
 						class="h-4 w-4 font-semibold text-gray-600"

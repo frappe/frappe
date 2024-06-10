@@ -5,12 +5,12 @@
 		<button
 			class="flex cursor-grabbing items-center rounded-sm p-1 text-gray-700 hover:bg-gray-300"
 		>
-			<Icon name="drag-sm" class="drag-handler h-3 w-3" />
+			<Icon name="drag-sm" class="h-3 w-3" />
 		</button>
 		<Dropdown :options="itemActionMenu">
 			<template v-slot="{ open }">
 				<button
-					class="flex items-center rounded-sm p-0.5 text-gray-700 hover:bg-gray-300"
+					class="flex cursor-pointer items-center rounded-sm p-0.5 text-gray-700 hover:bg-gray-300"
 					:class="open ? 'active-item' : ''"
 				>
 					<FeatherIcon name="more-horizontal" class="h-4 w-4" />

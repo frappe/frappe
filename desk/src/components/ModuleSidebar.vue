@@ -49,7 +49,6 @@
 				group="workspaces"
 				item-key="name"
 				:disable="!isEditing"
-				handle=".drag-handler"
 			>
 				<template #item="{ element: item }">
 					<ModuleSidebarItem
@@ -70,7 +69,6 @@
 				group="items"
 				item-key="name"
 				:disable="!isEditing"
-				handle=".drag-handler"
 			>
 				<template #item="{ element: item }">
 					<ModuleSidebarItem
@@ -86,7 +84,7 @@
 		<button
 			v-if="isEditing && !isCollapsed"
 			class="ml-2 mt-5 flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-700"
-			@click="showItemDialog({ type: 'Link' }, 'add')"
+			@click="showItemDialog({ type: 'Link', link_type: 'DocType' }, 'add')"
 		>
 			<FeatherIcon name="plus" class="h-4 w-4" />
 			Add Sidebar Item
@@ -143,6 +141,7 @@
 			],
 		}"
 		v-model="showDialog"
+		@after-leave="resetDialogItem"
 	>
 		<template #body-content>
 			<div class="space-y-4">
@@ -156,72 +155,85 @@
 
 				<template v-if="dialogItem.type === 'Section Break'">
 					<FormControl type="text" size="sm" label="Label" v-model="dialogItem.label" />
-					<ChildTable
+					<Grid
 						label="Links"
 						:fields="[
 							{
 								label: 'Link Type',
 								fieldname: 'link_type',
+								fieldtype: 'select',
+								options: ['DocType', 'Page', 'Report', 'Dashboard', 'URL'],
+								onChange: (_value, index) => {
+									dialogItem.links[index].link_to = ''
+									dialogItem.links[index].label = ''
+								},
+								width: 1.5,
 							},
 							{
 								label: 'Link To',
 								fieldname: 'link_to',
+								fieldtype: 'Link',
 								onChange: (value, index) => {
 									dialogItem.links[index].label = value
 								},
+								width: 2.25,
 							},
 							{
 								label: 'Icon',
 								fieldname: 'icon',
+								fieldtype: 'Icon',
+								width: 1.5,
 							},
 							{
 								label: 'Label',
 								fieldname: 'label',
+								fieldtype: 'Text',
+								width: 2,
 							},
 						]"
-						:rows="dialogItem.links"
+						v-model:rows="dialogItem.links"
 					/>
 				</template>
 
-				<FormControl
-					type="select"
-					v-if="dialogItem.type === 'Link'"
-					:options="['DocType', 'Page', 'Report', 'Dashboard', 'URL']"
-					size="sm"
-					label="Link Type"
-					v-model="dialogItem.link_type"
-				/>
-				<FormControl
-					v-if="dialogItem.type === 'Link'"
-					type="Autocomplete"
-					size="sm"
-					label="Link To"
-					v-model="dialogItem.link_to"
-					@change="dialogItem.label = dialogItem.link_to"
-				/>
-				<FormControl
-					v-if="dialogItem.link_type === 'URL'"
-					type="text"
-					size="sm"
-					label="URL"
-					v-model="dialogItem.url"
-				/>
-				<div class="flex space-x-2" v-if="dialogItem.type === 'Link'">
+				<template v-else-if="dialogItem.type === 'Link'">
 					<FormControl
-						class="w-full"
-						type="Icon"
+						type="select"
+						:options="['DocType', 'Page', 'Report', 'Dashboard', 'URL']"
 						size="sm"
-						label="Icon"
-						v-model="dialogItem.icon"
+						label="Link Type"
+						v-model="dialogItem.link_type"
+						@change="
+							() => {
+								dialogItem.link_to = ''
+								dialogItem.label = ''
+							}
+						"
 					/>
 					<FormControl
-						class="w-full"
+						v-if="dialogItem.link_type === 'URL'"
 						type="text"
 						size="sm"
-						label="Label"
-						v-model="dialogItem.label"
+						label="URL"
+						v-model="dialogItem.url"
 					/>
-				</div>
+					<Link
+						v-else
+						:doctype="dialogItem.link_type"
+						v-model="dialogItem.link_to"
+						label="Link To"
+						@update:modelValue="() => (dialogItem.label = dialogItem.link_to)"
+					/>
+					<div class="flex space-x-2">
+						<IconPicker size="sm" label="Icon" v-model="dialogItem.icon" />
+						<FormControl
+							class="w-full"
+							type="text"
+							size="sm"
+							label="Label"
+							v-model="dialogItem.label"
+						/>
+					</div>
+				</template>
 			</div>
 		</template>
 	</Dialog>
@@ -234,7 +246,9 @@ import Draggable from "vuedraggable"
 
 import Icon from "@/components/Icon.vue"
 import ModuleSidebarItem from "@/components/ModuleSidebarItem.vue"
-import ChildTable from "@/components/form_controls/ChildTable.vue"
+import Link from "@/components/FormControls/Link.vue"
+import Grid from "@/components/FormControls/Grid.vue"
+import IconPicker from "@/components/FormControls/IconPicker.vue"
 
 import { getDesktopItem, sidebar } from "@/data/desktop"
 
@@ -250,7 +264,12 @@ const isCollapsed = ref(false)
 const isEditing = ref(false)
 const draftSidebarItems = ref([])
 const showDialog = ref(false)
-const dialogItem = ref({})
+const dialogItem = ref({
+	type: "Link",
+	link_type: "DocType",
+	label: "",
+	links: [],
+})
 const dialogAction = ref("")
 
 provide("updateSidebarItem", updateSidebarItem)
@@ -280,7 +299,7 @@ function enableEditMode() {
 function updateSidebarItem(item, action) {
 	if (action === "addBelow") {
 		const index = getItemIndex(item)
-		showItemDialog({ type: "Link", index: index }, "add")
+		showItemDialog({ type: "Link", link_type: "DocType", index: index }, "add")
 	} else if (action === "edit") {
 		showItemDialog(item, "edit")
 	} else if (action === "delete") {
@@ -314,12 +333,21 @@ function updateSidebar() {
 		})
 }
 
+function resetDialogItem() {
+	dialogItem.value = {
+		type: "Link",
+		link_type: "DocType",
+		label: "",
+		links: [],
+	}
+}
+
 function getItemIndex(item) {
 	return draftSidebarItems.value.sections.findIndex((section) => section.name === item.name)
 }
 
 function showItemDialog(item, action) {
-	dialogItem.value = JSON.parse(JSON.stringify(item))
+	Object.assign(dialogItem.value, JSON.parse(JSON.stringify(item)))
 	dialogAction.value = action
 	showDialog.value = true
 }
