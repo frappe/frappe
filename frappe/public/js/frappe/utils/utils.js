@@ -1313,6 +1313,7 @@ Object.assign(frappe.utils, {
 =======
 				} else if (!item.is_query_report && item.report_ref_doctype) {
 <<<<<<< HEAD
+<<<<<<< HEAD
 					route = frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
 >>>>>>> b4c4dbb418 (fix: redirect report builder from workspace)
 =======
@@ -1321,6 +1322,9 @@ Object.assign(frappe.utils, {
 							frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
 >>>>>>> 0de30c897d (fix: redirect report builder from workspace)
 =======
+=======
+					route =
+>>>>>>> 017b89ec1a (fix: redirect report builder from workspace)
 						frappe.router.slug(item.report_ref_doctype) + "/view/report/" + item.name;
 >>>>>>> 533f235343 (fix: redirect report builder from workspace)
 				} else {
