@@ -204,7 +204,8 @@ def connect_replica():
 	local.replica_db = get_db(host=local.conf.replica_host, user=user, password=password, port=port)
 
 	# swap db connections
-	local.primary_db = local.db
+	local.db.close()
+	local.primary_db = get_db()
 	local.db = local.replica_db
 
 def get_site_config(sites_path=None, site_path=None):
