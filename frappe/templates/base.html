@@ -87,21 +87,17 @@
 		) }}
 	{%- endblock -%}
 
+	<div id="all-symbols" style="display:none"></div>
+	{%- for path in web_include_icons -%}
+	{{ include_icons(path) }}
+	{%- endfor -%}
+
 	{% block base_scripts %}
 	<!-- js should be loaded in body! -->
-	<div id="all-symbols" style="display:none"></div>
 	<script>
 		frappe.boot = {{ boot }}
 		// for backward compatibility of some libs
 		frappe.sys_defaults = frappe.boot.sysdefaults;
-		{%- for path in web_include_icons -%}
-		fetch(`/assets/{{ path }}?v=${window._version_number}`, {credentials: "same-origin"})
-			.then((r) => r.text())
-			.then((svg) => {
-				let svg_container = document.getElementById("all-symbols");
-				svg_container.insertAdjacentHTML("beforeend", svg);
-			});
-		{%- endfor -%}
 	</script>
 	{{ include_script('frappe-web.bundle.js') }}
 	{% endblock %}
