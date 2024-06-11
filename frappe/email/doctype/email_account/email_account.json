@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:email_account_name",
- "creation": "2014-09-11 12:04:34.163728",
+ "creation": "2024-06-11 16:39:01.323289",
  "doctype": "DocType",
  "document_type": "Setup",
  "engine": "InnoDB",
@@ -15,6 +15,11 @@
   "column_break_3",
   "domain",
   "service",
+  "frappe_mail_site",
+  "authentication_section",
+  "api_key",
+  "column_break_ghqa",
+  "api_secret",
   "authentication_column",
   "auth_method",
   "authorize_api_access",
@@ -50,19 +55,21 @@
   "notify_if_unreplied",
   "unreplied_for_mins",
   "send_notification_to",
-  "outgoing_smtp_tab",
-  "outgoing_mail_settings",
-  "column_break_bidn",
-  "use_tls",
-  "use_ssl_for_outgoing",
-  "smtp_server",
-  "smtp_port",
-  "column_break_38",
+  "outgoing_tab",
+  "section_break_nesl",
+  "column_break_y6hx",
+  "column_break_h5pd",
   "default_outgoing",
   "always_use_account_email_id_as_sender",
   "always_use_account_name_as_sender_name",
   "send_unsubscribe_message",
   "track_email_status",
+  "outgoing_mail_settings",
+  "use_tls",
+  "use_ssl_for_outgoing",
+  "smtp_server",
+  "smtp_port",
+  "column_break_38",
   "no_smtp_authentication",
   "signature_section",
   "add_signature",
@@ -289,6 +296,7 @@
    "mandatory_depends_on": "notify_if_unreplied"
   },
   {
+   "depends_on": "eval: doc.service != \"Frappe Mail\"",
    "fieldname": "outgoing_mail_settings",
    "fieldtype": "Section Break",
    "hide_days": 1,
@@ -533,6 +541,7 @@
    "label": "Brand Logo"
   },
   {
+   "depends_on": "eval: doc.service != \"Frappe Mail\"",
    "fieldname": "authentication_column",
    "fieldtype": "Section Break",
    "label": "Authentication"
@@ -624,20 +633,58 @@
    "label": "Incoming (POP/IMAP)"
   },
   {
-   "depends_on": "enable_outgoing",
-   "fieldname": "outgoing_smtp_tab",
-   "fieldtype": "Tab Break",
-   "label": "Outgoing (SMTP)"
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key",
+   "mandatory_depends_on": "eval: doc.service == \"Frappe Mail\""
   },
   {
-   "fieldname": "column_break_bidn",
+   "fieldname": "api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret",
+   "mandatory_depends_on": "eval: doc.service == \"Frappe Mail\""
+  },
+  {
+   "depends_on": "eval: doc.service == \"Frappe Mail\"",
+   "fieldname": "authentication_section",
+   "fieldtype": "Section Break",
+   "label": "Authentication"
+  },
+  {
+   "fieldname": "column_break_ghqa",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "https://frappemail.com",
+   "depends_on": "eval: doc.service == \"Frappe Mail\"",
+   "fieldname": "frappe_mail_site",
+   "fieldtype": "Data",
+   "label": "Frappe Mail Site",
+   "mandatory_depends_on": "eval: doc.service == \"Frappe Mail\""
+  },
+  {
+   "depends_on": "enable_outgoing",
+   "fieldname": "outgoing_tab",
+   "fieldtype": "Tab Break",
+   "label": "Outgoing"
+  },
+  {
+   "fieldname": "section_break_nesl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_y6hx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_h5pd",
    "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-06-10 18:18:08.403133",
+ "modified": "2024-06-11 16:54:22.255325",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

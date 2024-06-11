@@ -61,6 +61,8 @@ class EmailAccount(Document):
 		add_signature: DF.Check
 		always_use_account_email_id_as_sender: DF.Check
 		always_use_account_name_as_sender_name: DF.Check
+		api_key: DF.Data | None
+		api_secret: DF.Password | None
 		append_emails_to_sent_folder: DF.Check
 		append_to: DF.Link | None
 		ascii_encode_password: DF.Check
@@ -84,6 +86,7 @@ class EmailAccount(Document):
 		enable_incoming: DF.Check
 		enable_outgoing: DF.Check
 		footer: DF.TextEditor | None
+		frappe_mail_site: DF.Data | None
 		imap_folder: DF.Table[IMAPFolder]
 		incoming_port: DF.Data | None
 		initial_sync_count: DF.Literal["100", "250", "500"]
@@ -152,7 +155,11 @@ class EmailAccount(Document):
 			self.awaiting_password = 0
 			self.password = None
 
-		if not frappe.local.flags.in_install and not self.awaiting_password:
+		if (
+			not frappe.local.flags.in_install
+			and not self.awaiting_password
+			and not self.service == "Frappe Mail"
+		):
 			if validate_oauth or self.password or self.smtp_server in ("127.0.0.1", "localhost"):
 				if self.enable_incoming:
 					self.get_incoming_server()
