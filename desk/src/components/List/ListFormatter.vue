@@ -79,7 +79,7 @@ const props = defineProps({
 		required: true,
 	},
 	titleField: {
-		type: String,
+		type: Array,
 		required: false,
 	},
 })

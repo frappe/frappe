@@ -127,10 +127,11 @@
 
 <script setup>
 import { isEqual } from "lodash"
-import { config_settings, isDefaultConfig } from "@/stores/view"
+import { isDefaultConfig, isDefaultOverriden, config_name } from "@/stores/view"
 import { Autocomplete, FeatherIcon, FormControl, call } from "frappe-ui"
 import { computed, ref, watch, getCurrentInstance } from "vue"
-import NestedPopover from "@/components/controls/NestedPopover.vue"
+import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
+
 import Draggable from "vuedraggable"
 
 const instance = getCurrentInstance()
@@ -170,7 +171,7 @@ const columnsUpdated = computed(() => !isEqual(columns.value, oldColumns.value))
 
 const resetToDefault = async (close) => {
 	await call("frappe.desk.doctype.view_config.view_config.reset_default_config", {
-		doctype: config_name.value,
+		config_name: config_name.value,
 	})
 	instance.parent.emit("reload")
 	close()
@@ -187,7 +188,6 @@ function addColumn(c) {
 		options: c.options,
 	}
 	columns.value.push(_column)
-	instance.parent.emit("update")
 }
 
 function removeColumn(c) {
@@ -227,8 +227,8 @@ watch(
 	() => columnsUpdated.value,
 	() => {
 		if (isDefaultConfig.value && columnsUpdated.value) {
-			instance.parent.emit("updateDefaultConfig")
-		}
+			instance.parent.emit("update")
+		} else instance.parent.emit("fetch")
 	},
 	{ immediate: true }
 )

@@ -88,7 +88,7 @@
 
 <script setup>
 import ListFilterValue from "@/components/List/ListFilterValue.vue"
-import NestedPopover from "@/components/controls/NestedPopover.vue"
+import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
 
 import { Button, FeatherIcon, Autocomplete, FormControl } from "frappe-ui"
 import { getCurrentInstance } from "vue"
@@ -278,7 +278,7 @@ const updateFiltersInQuery = async () => {
 		else q[fieldname] = [value]
 	})
 	await router.replace({ query: q })
-	instance.parent.emit("update")
+	instance.parent.emit("fetch")
 }
 
 const getFilterValue = (filter) => {

@@ -23,13 +23,13 @@
 				v-if="listConfig.fields"
 				v-model="listConfig"
 				:options="listControlOptions"
-				@update="handleUpdate"
+				@update="updateConfig"
+				@fetch="fetchList"
 				@reload="renderList"
-				@updateDefaultConfig="handleUpdateDefault"
 			/>
 		</div>
 		<ListView
-			v-if="listResource.data"
+			v-if="listResource.data?.length"
 			:rows="listResource.data"
 			rowKey="name"
 			:columns="listConfig.columns"
@@ -40,10 +40,14 @@
 					:item="item"
 					:row="row"
 					:column="column"
-					:titleField="listConfig.title_field"
+					:titleField="listConfig.titleField"
 				/>
 			</template>
 		</ListView>
+		<div v-else class="my-4 flex h-full flex-col items-center justify-center gap-4">
+			<span class="text-xl font-semibold">No records found</span>
+			<Button variant="solid" size="md" :label="'Create New ' + doctype" />
+		</div>
 	</div>
 
 	<ListFooter
@@ -65,7 +69,13 @@
 
 <script setup>
 import { isEqual } from "lodash"
-import { doctype, config_name, config_settings, isDefaultConfig } from "@/stores/view"
+import {
+	doctype,
+	config_name,
+	config_settings,
+	isDefaultConfig,
+	isDefaultOverriden,
+} from "@/stores/view"
 import { call, createResource, FeatherIcon, Dropdown, ListFooter } from "frappe-ui"
 import { ref, computed, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
@@ -240,7 +250,7 @@ const createConfigObj = async () => {
 		fields: config_settings.data.doctype_fields,
 		filters: currentFilters.value,
 		sort: [config_settings.data.sort_field, config_settings.data.sort_order],
-		title_field: config_settings.data.title_field,
+		titleField: config_settings.data.title_field,
 	}
 	oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
 }
@@ -324,7 +334,7 @@ const cancelChanges = async () => {
 const updateView = async () => {
 	call("frappe.desk.doctype.view_config.view_config.update_config", {
 		config_name: config_name.value,
-		new_config: listConfig.value,
+		config: listConfig.value,
 		filters: queryFilters.value,
 	}).then(() => {
 		oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
@@ -367,19 +377,19 @@ watch(
 	}
 )
 
-const handleUpdate = async () => {
+const updateConfig = async () => {
+	if (isDefaultConfig.value) {
+		await updateDefaultConfig()
+		oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
+	}
 	await fetchList()
-	if (isDefaultConfig.value) handleUpdateDefault()
 }
 
-const handleUpdateDefault = async () => {
-	if (config_settings.data.from_meta)
-		await call("frappe.desk.doctype.view_config.view_config.update_default_config", {
-			doctype: doctype.value,
-			config: listConfig.value,
-		}).then(() => {
-			;(oldConfig.value.columns = listConfig.value.columns),
-				(oldConfig.value.sort = listConfig.value.sort)
-		})
+const updateDefaultConfig = async () => {
+	await call("frappe.desk.doctype.view_config.view_config.update_config", {
+		doctype: doctype.value,
+		config: listConfig.value,
+		config_name: config_name.value,
+	})
 }
 </script>

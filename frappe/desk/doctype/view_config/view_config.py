@@ -89,34 +89,24 @@ def get_views_for_doctype(doctype):
 	return frappe.get_all("View Config", filters={"document_type": doctype, "custom": 1}, fields=["name", "label", "icon"], order_by="modified desc", limit=6)
 
 @frappe.whitelist()
-def update_config(config_name, new_config, filters):
-	new_config = frappe._dict(new_config)
-	config = frappe.get_doc("View Config", config_name)
-	config.columns = json.dumps(frappe.parse_json(new_config.columns))
-	config.filters = json.dumps(frappe.parse_json(filters))
-	config.sort_field = new_config.sort_field
-	config.sort_order = new_config.sort_order
-	config.save()
-
-@frappe.whitelist()
-def update_default_config(doctype, config):
-	columns = config.get("columns")
-	new_cols = json.dumps(frappe.parse_json(columns))
-	if doc := frappe.db.exists("View Config", {"document_type": doctype, "custom": 0}):
-		return frappe.db.set_value("View Config", doc, "columns", new_cols)
-	doc = frappe.new_doc("View Config")
-	doc.label = "List View"
-	doc.document_type = doctype
-	doc.custom = 0
-	doc.columns = new_cols
-	doc.sort_field = sort[0]
-	doc.sort_order = sort[1]
+def update_config(config, doctype=None, config_name=None, filters=None):
+	config = frappe._dict(config)
+	if config_name:
+		doc = frappe.get_doc("View Config", config_name)
+	else:
+		doc = frappe.new_doc("View Config")
+		doc.label = "List View"
+		doc.document_type = doctype
+		doc.custom = 0
+	doc.filters = json.dumps(filters) if filters else ''
+	doc.columns = json.dumps(config.columns)
+	doc.sort_field = config.sort[0]
+	doc.sort_order = config.sort[1]
 	return doc.save()
 
 @frappe.whitelist()
-def reset_default_config(doctype):
-	if doc := frappe.db.exists("View Config", {"document_type": doctype, "custom": 0}):
-		frappe.delete_doc("View Config", doc)
+def reset_default_config(config_name):
+	return frappe.delete_doc("View Config", config_name)
 
 @frappe.whitelist()
 def get_link_title_field(doctype, name):
