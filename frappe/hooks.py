@@ -43,8 +43,11 @@ doctype_js = {
 }
 
 web_include_js = ["website_script.js"]
-
 web_include_css = []
+web_include_icons = [
+	"frappe/icons/timeless/icons.svg",
+	"frappe/icons/espresso/icons.svg",
+]
 
 email_css = ["email.bundle.css"]
 
