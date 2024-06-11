@@ -211,6 +211,7 @@ class SendMailContext:
 		self.sent_to_atleast_one_recipient = any(
 			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
 		)
+		self.email_account_doc = None
 
 	def fetch_smtp_server(self):
 		self.email_account_doc = self.queue_doc.get_email_account(raise_error=True)
@@ -291,7 +292,11 @@ class SendMailContext:
 		return message
 
 	def get_tracker_str(self) -> str:
-		if frappe.conf.use_ssl and self.email_account_doc.track_email_status:
+		if (
+			self.email_account_doc
+			and self.email_account_doc.track_email_status
+			and self.queue_doc.communication
+		):
 			tracker_url_html = f'<img src="{get_url()}/api/method/frappe.core.doctype.communication.email.mark_email_as_seen?name={self.queue_doc.communication}"/>'
 			return quopri.encodestring(tracker_url_html.encode()).decode()
 		return ""

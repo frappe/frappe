@@ -1401,9 +1401,21 @@ def validate_fields(meta):
 					options_list.append(_option)
 			field.options = "\n".join(options_list)
 
-	def scrub_fetch_from(field):
-		if hasattr(field, "fetch_from") and field.fetch_from:
-			field.fetch_from = field.fetch_from.strip("\n").strip()
+	def validate_fetch_from(field):
+		if not field.get("fetch_from"):
+			return
+
+		field.fetch_from = field.fetch_from.strip()
+
+		if "." not in field.fetch_from:
+			return
+		source_field, _target_field = field.fetch_from.split(".", maxsplit=1)
+
+		if source_field == field.fieldname:
+			msg = _(
+				"{0} contains an invalid Fetch From expression, Fetch From can't be self-referential."
+			).format(_(field.label, context=field.parent))
+			frappe.throw(msg, title=_("Recursive Fetch From"))
 
 	def validate_data_field_type(docfield):
 		if docfield.get("is_virtual"):
@@ -1468,7 +1480,7 @@ def validate_fields(meta):
 		check_unique_and_text(meta.get("name"), d)
 		check_table_multiselect_option(d)
 		scrub_options_in_select(d)
-		scrub_fetch_from(d)
+		validate_fetch_from(d)
 		validate_data_field_type(d)
 
 		if not frappe.flags.in_migrate:
