@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-09 06:14\n"
+"PO-Revision-Date: 2024-06-11 07:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -12584,52 +12584,52 @@ msgstr "نام فیلد {0} محدود شده است"
 #: public/js/frappe/list/list_settings.js:132
 #: public/js/frappe/views/kanban/kanban_settings.js:111
 msgid "Fields"
-msgstr "زمینه های"
+msgstr "فیلدها"
 
 #. Label of a Section Break field in DocType 'Customize Form'
 #. Label of a Table field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Fields"
-msgstr "زمینه های"
+msgstr "فیلدها"
 
 #. Label of a Table field in DocType 'DocType'
 #. Label of a Section Break field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Fields"
-msgstr "زمینه های"
+msgstr "فیلدها"
 
 #. Label of a Table field in DocType 'DocType Layout'
 #: custom/doctype/doctype_layout/doctype_layout.json
 msgctxt "DocType Layout"
 msgid "Fields"
-msgstr "زمینه های"
+msgstr "فیلدها"
 
 #. Label of a Code field in DocType 'Kanban Board'
 #: desk/doctype/kanban_board/kanban_board.json
 msgctxt "Kanban Board"
 msgid "Fields"
-msgstr "زمینه های"
+msgstr "فیلدها"
 
 #. Label of a HTML field in DocType 'List View Settings'
 #. Label of a Code field in DocType 'List View Settings'
 #: desk/doctype/list_view_settings/list_view_settings.json
 msgctxt "List View Settings"
 msgid "Fields"
-msgstr "زمینه های"
+msgstr "فیلدها"
 
 #. Label of a Small Text field in DocType 'Personal Data Deletion Step'
 #: website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 msgctxt "Personal Data Deletion Step"
 msgid "Fields"
-msgstr "زمینه های"
+msgstr "فیلدها"
 
 #. Label of a Table field in DocType 'Web Template'
 #: website/doctype/web_template/web_template.json
 msgctxt "Web Template"
 msgid "Fields"
-msgstr "زمینه های"
+msgstr "فیلدها"
 
 #. Label of a HTML field in DocType 'Data Export'
 #: core/doctype/data_export/data_export.json
@@ -30045,7 +30045,7 @@ msgstr "آدرس حمل و نقل"
 #: contacts/doctype/address/address.json
 msgctxt "Address"
 msgid "Shop"
-msgstr "خرید کنید"
+msgstr "فروشگاه"
 
 #. Label of a Data field in DocType 'Blogger'
 #: website/doctype/blogger/blogger.json
