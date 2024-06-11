@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-07 04:36\n"
+"PO-Revision-Date: 2024-06-11 07:26\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -8607,7 +8607,7 @@ msgstr ""
 
 #: desk/reportview.py:529
 msgid "Deleted all documents successfully"
-msgstr ""
+msgstr "Tüm belgeler başarıyla silindi"
 
 #: desk/reportview.py:507
 msgid "Deleting {0}"
@@ -9030,7 +9030,7 @@ msgstr ""
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Disable signups"
-msgstr ""
+msgstr "Yeni Kayıtlara İzin Verme"
 
 #: core/doctype/user/user_list.js:14
 #: public/js/frappe/form/templates/address_list.html:29
@@ -12043,7 +12043,7 @@ msgstr "Raporu Dışarı Aktar: {0}"
 
 #: public/js/frappe/data_import/data_exporter.js:26
 msgid "Export Type"
-msgstr ""
+msgstr "Dışa Aktarma Türü"
 
 #: public/js/frappe/views/reports/report_view.js:1561
 msgid "Export all matching rows?"
@@ -20904,7 +20904,7 @@ msgstr "Yeni güncellemeler mevcut"
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "New users will have to be manually registered by system managers."
-msgstr ""
+msgstr "Yeni kullanıcıların sistem yöneticileri tarafından manuel olarak kaydedilmesi gerekecektir."
 
 #. Description of the 'Set Value' (Small Text) field in DocType 'Property
 #. Setter'
@@ -24820,7 +24820,7 @@ msgstr "Baskı Genişliği"
 #: custom/doctype/customize_form_field/customize_form_field.json
 msgctxt "Customize Form Field"
 msgid "Print Width of the field, if the field is a column in a table"
-msgstr ""
+msgstr "Alan tablodaki bir sütunsa, alanın Yazdırma Genişliği"
 
 #: public/js/frappe/form/form.js:169
 msgid "Print document"
@@ -25227,7 +25227,7 @@ msgstr "Anlık Bildirim Ayarları"
 #. Label of a Card Break in the Integrations Workspace
 #: integrations/workspace/integrations/integrations.json
 msgid "Push Notifications"
-msgstr ""
+msgstr "Anlık Bildirimler"
 
 #. Label of a Check field in DocType 'Google Calendar'
 #: integrations/doctype/google_calendar/google_calendar.json
@@ -26955,7 +26955,7 @@ msgstr ""
 
 #: desk/reportview.py:344
 msgid "Report {0} deleted"
-msgstr ""
+msgstr "{0} Raporu silindi"
 
 #: desk/query_report.py:50
 msgid "Report {0} is disabled"
@@ -27229,7 +27229,7 @@ msgstr ""
 #: core/doctype/deleted_document/deleted_document.js:11
 #: core/doctype/deleted_document/deleted_document_list.js:48
 msgid "Restore"
-msgstr ""
+msgstr "Geri Yükle"
 
 #: core/page/permission_manager/permission_manager.js:503
 msgid "Restore Original Permissions"
@@ -27910,7 +27910,7 @@ msgstr ""
 
 #: core/doctype/data_import/data_import.js:367
 msgid "Row {0}"
-msgstr ""
+msgstr "Satır {0}"
 
 #: custom/doctype/customize_form/customize_form.py:349
 msgid "Row {0}: Not allowed to disable Mandatory for standard fields"
@@ -28942,11 +28942,11 @@ msgstr ""
 
 #: public/js/frappe/data_import/data_exporter.js:146
 msgid "Select Fields To Insert"
-msgstr ""
+msgstr "Eklenecek Alanları Seçin"
 
 #: public/js/frappe/data_import/data_exporter.js:147
 msgid "Select Fields To Update"
-msgstr ""
+msgstr "Güncellenecek Alanları Seçin"
 
 #: public/js/frappe/list/list_sidebar_group_by.js:21
 msgid "Select Filters"
@@ -30363,7 +30363,7 @@ msgstr ""
 #: website/doctype/website_settings/website_settings.json
 msgctxt "Website Settings"
 msgid "Show footer on login"
-msgstr ""
+msgstr "Giriş Sayfasında Altbilgiyi Göster"
 
 #. Description of the 'Show Full Form?' (Check) field in DocType 'Onboarding
 #. Step'
@@ -30501,7 +30501,7 @@ msgstr ""
 
 #: www/login.html:149
 msgid "Signups have been disabled for this website."
-msgstr ""
+msgstr "Bu web sitesi için kayıtlar devre dışı bırakıldı."
 
 #. Description of the 'Unassign Condition' (Code) field in DocType 'Assignment
 #. Rule'
