@@ -15,15 +15,6 @@ frappe.route_options = null;
 frappe.open_in_new_tab = false;
 frappe.route_hooks = {};
 
-$(window).on("hashchange", function (e) {
-	// v1 style routing, route is in hash
-	if (window.location.hash && !frappe.router.is_app_route(e.currentTarget.pathname)) {
-		let sub_path = frappe.router.get_sub_path(window.location.hash);
-		frappe.router.push_state(sub_path);
-		return false;
-	}
-});
-
 window.addEventListener("popstate", (e) => {
 	// forward-back button, just re-render based on current route
 	frappe.router.route();
@@ -56,11 +47,6 @@ $("body").on("click", "a", function (e) {
 		href === "#" // hash is home
 	) {
 		return;
-	}
-
-	if (href && href.startsWith("#")) {
-		// target startswith "#", this is a v1 style route, so remake it.
-		return override(target_element.hash);
 	}
 
 	if (frappe.router.is_app_route(target_element.pathname)) {
@@ -523,13 +509,8 @@ frappe.router = {
 
 	get_sub_path_string(route) {
 		// return clean sub_path from hash or url
-		// supports both v1 and v2 routing
 		if (!route) {
 			route = window.location.pathname;
-			if (route.includes("app#")) {
-				// to support v1
-				route = window.location.hash;
-			}
 		}
 
 		return this.strip_prefix(route);

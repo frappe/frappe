@@ -77,7 +77,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 			this.frm.perm[0].write &&
 			!this.frm.doc.__islocal &&
 			doc_field.fieldtype === "Data" &&
-			!doc_field.read_only
+			!doc_field.read_only &&
+			!doc_field.set_only_once
 		) {
 			return true;
 		} else {
@@ -550,7 +551,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 
 		if (frappe.model.can_create("DocType")) {
-			if (frappe.boot.developer_mode === 1 && !is_doctype_form) {
+			if (frappe.boot.developer_mode && !is_doctype_form) {
 				// edit doctype
 				this.page.add_menu_item(
 					__("Edit DocType"),

@@ -422,7 +422,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 		from frappe.database.mariadb.database import MariaDBDatabase
 
 		return {
-			"mariadb": MariaDBDatabase.default_port,  # 3306
+			"mariadb": MariaDBDatabase.default_port,
 			"postgres": 5432,
 		}[db_type]
 
@@ -435,7 +435,7 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	config["db_type"] = os.environ.get("FRAPPE_DB_TYPE") or config.get("db_type") or "mariadb"
 	config["db_socket"] = os.environ.get("FRAPPE_DB_SOCKET") or config.get("db_socket")
 	config["db_host"] = os.environ.get("FRAPPE_DB_HOST") or config.get("db_host") or "127.0.0.1"
-	config["db_port"] = (
+	config["db_port"] = int(
 		os.environ.get("FRAPPE_DB_PORT") or config.get("db_port") or db_default_ports(config["db_type"])
 	)
 

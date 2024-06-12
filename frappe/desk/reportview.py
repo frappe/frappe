@@ -217,7 +217,7 @@ def update_wildcard_field_param(data):
 		isinstance(data.fields, list | tuple) and len(data.fields) == 1 and data.fields[0] == "*"
 	):
 		parent_type = data.parenttype or data.parent_doctype
-		data.fields = get_permitted_fields(data.doctype, parenttype=parent_type)
+		data.fields = get_permitted_fields(data.doctype, parenttype=parent_type, ignore_virtual=True)
 		return True
 
 	return False
