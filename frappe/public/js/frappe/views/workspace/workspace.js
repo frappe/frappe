@@ -98,7 +98,7 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	get_pages() {
-		return frappe.xcall("frappe.desk.desktop.get_workspace_sidebar_items");
+		return frappe.xcall("frappe.desk.desktop.get_workspace_sidebar_items", null, "GET");
 	}
 
 	show() {
@@ -123,8 +123,13 @@ frappe.views.Workspace = class Workspace {
 
 	get_data(page) {
 		return frappe
-			.call("frappe.desk.desktop.get_desktop_page", {
-				page: page,
+			.call({
+				method: "frappe.desk.desktop.get_desktop_page",
+				args: {
+					// send sorted min requirements to increase chance of cache hit
+					page: { name: page.name, title: page.title, public: page.public },
+				},
+				type: "GET",
 			})
 			.then((data) => {
 				this.page_data = data.message;
