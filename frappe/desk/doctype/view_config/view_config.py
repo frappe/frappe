@@ -98,7 +98,8 @@ def update_config(config, doctype=None, config_name=None, filters=None):
 		doc.label = "List View"
 		doc.document_type = doctype
 		doc.custom = 0
-	doc.filters = json.dumps(filters) if filters else ''
+	if filters:
+		doc.filters = json.dumps(filters)
 	doc.columns = json.dumps(config.columns)
 	doc.sort_field = config.sort[0]
 	doc.sort_order = config.sort[1]

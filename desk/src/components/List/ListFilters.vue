@@ -93,6 +93,7 @@ import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue
 import { Button, FeatherIcon, Autocomplete, FormControl } from "frappe-ui"
 import { getCurrentInstance } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { linkTypes, numberTypes, stringTypes, dateTypes } from "@/stores/list_filter"
 
 const props = defineProps({
 	allFilterableFields: {
@@ -105,19 +106,12 @@ const filters = defineModel()
 
 // Set up operator options for different fieldtypes
 
-const typeCheck = ["Check"]
-const typeLink = ["Link", "Dynamic Link"]
-const typeNumber = ["Float", "Int", "Currency", "Percent"]
-const typeSelect = ["Select"]
-const typeString = ["Data", "Long Text", "Small Text", "Text Editor", "Text"]
-const typeDate = ["Date", "Datetime"]
-
 const getOperators = (index) => {
 	let f = filters.value[index]
 	let fieldname = f.fieldname
 	let fieldtype = f.fieldtype
 	let options = []
-	if (typeString.includes(fieldtype)) {
+	if (stringTypes.includes(fieldtype)) {
 		options.push(
 			...[
 				{ label: "Equals", value: "=" },
@@ -138,7 +132,7 @@ const getOperators = (index) => {
 			{ label: "Is", value: "is" },
 		]
 	}
-	if (typeNumber.includes(fieldtype)) {
+	if (numberTypes.includes(fieldtype)) {
 		options.push(
 			...[
 				{ label: "Equals", value: "=" },
@@ -155,7 +149,7 @@ const getOperators = (index) => {
 			]
 		)
 	}
-	if (typeSelect.includes(fieldtype)) {
+	if (fieldtype == "Select") {
 		options.push(
 			...[
 				{ label: "Equals", value: "=" },
@@ -166,7 +160,7 @@ const getOperators = (index) => {
 			]
 		)
 	}
-	if (typeLink.includes(fieldtype)) {
+	if (linkTypes.includes(fieldtype)) {
 		options.push(
 			...[
 				{ label: "Equals", value: "=" },
@@ -179,7 +173,7 @@ const getOperators = (index) => {
 			]
 		)
 	}
-	if (typeCheck.includes(fieldtype)) {
+	if (fieldtype == "Check") {
 		options.push(...[{ label: "Equals", value: "=" }])
 	}
 	if (["Duration"].includes(fieldtype)) {
@@ -193,7 +187,7 @@ const getOperators = (index) => {
 			]
 		)
 	}
-	if (typeDate.includes(fieldtype)) {
+	if (dateTypes.includes(fieldtype)) {
 		options.push(
 			...[
 				{ label: "Is", value: "is" },
