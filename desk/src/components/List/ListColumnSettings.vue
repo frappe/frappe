@@ -188,6 +188,7 @@ function addColumn(c) {
 		options: c.options,
 	}
 	columns.value.push(_column)
+	instance.parent.emit("fetch")
 }
 
 function removeColumn(c) {
@@ -222,14 +223,4 @@ const cancelUpdate = (key) => {
 	column.value.label = columns.value[index].label
 	column.value.width = columns.value[index].width
 }
-
-watch(
-	() => columnsUpdated.value,
-	() => {
-		if (isDefaultConfig.value && columnsUpdated.value) {
-			instance.parent.emit("update")
-		} else instance.parent.emit("fetch")
-	},
-	{ immediate: true }
-)
 </script>

@@ -272,7 +272,7 @@ const updateFiltersInQuery = async () => {
 		else q[fieldname] = [value]
 	})
 	await router.replace({ query: q })
-	instance.parent.emit("fetch")
+	instance.parent.emit("fetch", { updateCount: true })
 }
 
 const getFilterValue = (filter) => {

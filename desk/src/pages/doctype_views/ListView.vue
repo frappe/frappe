@@ -23,8 +23,7 @@
 				v-if="listConfig.fields"
 				v-model="listConfig"
 				:options="listControlOptions"
-				@update="updateConfig"
-				@fetch="fetchList"
+				@fetch="(updateCount) => fetchList(updateCount)"
 				@reload="renderList"
 			/>
 		</div>
@@ -85,6 +84,7 @@ import ListControls from "@/components/List/ListControls.vue"
 import ListFormatter from "@/components/List/ListFormatter.vue"
 import ViewActions from "@/components/ViewActions.vue"
 import { doctypesBySlug } from "@/data/permissions"
+import { watchDebounced } from "@vueuse/core"
 
 const route = useRoute()
 const router = useRouter()
@@ -255,8 +255,8 @@ const createConfigObj = async () => {
 	oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
 }
 
-const fetchList = async () => {
-	await updateTotalCount()
+const fetchList = async (updateCount) => {
+	if (updateCount) await updateTotalCount()
 	await listResource.fetch()
 }
 
@@ -377,19 +377,20 @@ watch(
 	}
 )
 
-const updateConfig = async () => {
-	if (isDefaultConfig.value) {
-		await updateDefaultConfig()
-		oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
-	}
-	await fetchList()
-}
+watchDebounced(
+	() => [JSON.stringify(listConfig.value.columns), JSON.stringify(listConfig.value.sort)],
+	async () => {
+		if (!listConfig.value.columns || !listConfig.value.sort) return
 
-const updateDefaultConfig = async () => {
-	await call("frappe.desk.doctype.view_config.view_config.update_config", {
-		doctype: doctype.value,
-		config: listConfig.value,
-		config_name: config_name.value,
-	})
-}
+		if (isDefaultConfig.value && configUpdated.value) {
+			await call("frappe.desk.doctype.view_config.view_config.update_config", {
+				doctype: doctype.value,
+				config: listConfig.value,
+				config_name: config_name.value,
+			})
+			oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
+		}
+	},
+	{ debounce: 1000, maxWait: 1000 }
+)
 </script>

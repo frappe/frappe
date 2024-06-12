@@ -52,7 +52,7 @@ const sortOptions = computed(() => {
 			label: field.label,
 			onClick: () => {
 				sort.value[0] = field.key
-				instance.parent.emit("update")
+				instance.parent.emit("fetch")
 			},
 		}
 	})
@@ -62,6 +62,6 @@ const instance = getCurrentInstance()
 
 const toggleSortOrder = () => {
 	sort.value[1] = sort.value[1] == "ASC" ? "DESC" : "ASC"
-	instance.parent.emit("update")
+	instance.parent.emit("fetch")
 }
 </script>
