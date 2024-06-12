@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-11 07:26\n"
+"PO-Revision-Date: 2024-06-12 07:58\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -23158,7 +23158,7 @@ msgstr "برچسب والد"
 
 #: core/doctype/doctype/doctype.py:1164
 msgid "Parent Missing"
-msgstr "پدر و مادر گم شده است"
+msgstr "والد گم شده است"
 
 #. Label of a Data field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
@@ -37918,7 +37918,7 @@ msgstr "نظر داد"
 #: core/doctype/permission_inspector/permission_inspector.json
 msgctxt "Permission Inspector"
 msgid "create"
-msgstr "ايجاد كردن"
+msgstr "ایجاد كردن"
 
 #. Option for the 'Indicator Color' (Select) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
