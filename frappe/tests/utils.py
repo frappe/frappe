@@ -226,14 +226,15 @@ class FrappeTestCase(unittest.TestCase):
 			frappe.connect()
 
 	@contextmanager
-	def freeze_time(self, time_to_freeze, *args, **kwargs):
+	def freeze_time(self, time_to_freeze, is_utc=False, *args, **kwargs):
 		from freezegun import freeze_time
 
-		# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
-		timezone = pytz.timezone(get_system_timezone())
-		fake_time_with_tz = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
+		if not is_utc:
+			# Freeze time expects UTC or tzaware objects. We have neither, so convert to UTC.
+			timezone = pytz.timezone(get_system_timezone())
+			time_to_freeze = timezone.localize(get_datetime(time_to_freeze)).astimezone(pytz.utc)
 
-		with freeze_time(fake_time_with_tz, *args, **kwargs):
+		with freeze_time(time_to_freeze, *args, **kwargs):
 			yield
 
 

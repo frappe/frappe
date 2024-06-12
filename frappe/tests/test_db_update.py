@@ -163,6 +163,17 @@ class TestDBUpdate(FrappeTestCase):
 		self.assertIn(varchar, frappe.db.get_column_type(doctype.name, "name"))
 		doc.reload()  # ensure that docs are still accesible
 
+	def test_uuid_link_field(self):
+		uuid_doctype = new_doctype().update({"autoname": "UUID"}).insert()
+		self.assertEqual(frappe.db.get_column_type(uuid_doctype.name, "name"), "uuid")
+
+		link = "link_field"
+		referring_doctype = new_doctype(
+			fields=[{"fieldname": link, "fieldtype": "Link", "options": uuid_doctype.name}]
+		).insert()
+
+		self.assertEqual(frappe.db.get_column_type(referring_doctype.name, link), "uuid")
+
 
 def get_fieldtype_from_def(field_def):
 	fieldtuple = frappe.db.type_map.get(field_def.fieldtype, ("", 0))

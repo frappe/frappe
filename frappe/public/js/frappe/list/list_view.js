@@ -1730,7 +1730,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			shortcut: "Ctrl+K",
 		});
 
-		if (frappe.user.has_role("System Manager") && frappe.boot.developer_mode === 1) {
+		if (frappe.user.has_role("System Manager") && frappe.boot.developer_mode) {
 			// edit doctype
 			items.push({
 				label: __("Edit DocType", null, "Button in list view menu"),
