@@ -376,7 +376,7 @@ frappe.get_modal = function (title, content) {
 };
 
 frappe.is_online = function () {
-	if (frappe.boot.developer_mode == 1) {
+	if (frappe.boot.developer_mode) {
 		// always online in developer_mode
 		return true;
 	}
