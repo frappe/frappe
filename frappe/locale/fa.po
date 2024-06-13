@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-12 07:58\n"
+"PO-Revision-Date: 2024-06-13 08:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -25952,7 +25952,7 @@ msgstr "انجام دوباره آخرین کنش"
 #: core/doctype/report/report.json
 msgctxt "Report"
 msgid "Ref DocType"
-msgstr ""
+msgstr "DocType مرجع"
 
 #: desk/doctype/form_tour/form_tour.js:38
 msgid "Referance Doctype and Dashboard Name both can't be used at the same time."
