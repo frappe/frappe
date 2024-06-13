@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-12 07:58\n"
+"PO-Revision-Date: 2024-06-13 08:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -3632,7 +3632,7 @@ msgstr "Arkaplan Görevleri"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Background Jobs Check"
-msgstr ""
+msgstr "Arka Plan İşleri Kontrolü"
 
 #. Label of a Autocomplete field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -3732,7 +3732,7 @@ msgstr "Yedekler"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Backups (MB)"
-msgstr ""
+msgstr "Yedeklemeler (MB)"
 
 #: core/doctype/scheduled_job_type/scheduled_job_type.py:64
 msgid "Bad Cron Expression"
@@ -4287,7 +4287,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Bufferpool Size"
-msgstr ""
+msgstr "Ara Bellek Havuzu Boyutu"
 
 #. Name of a Workspace
 #: core/workspace/build/build.json
@@ -4561,7 +4561,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Cache"
-msgstr ""
+msgstr "Önbellek"
 
 #: sessions.py:32
 msgid "Cache Cleared"
@@ -8014,7 +8014,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Database"
-msgstr ""
+msgstr "Veri Tabanı"
 
 #. Label of a Select field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -8049,7 +8049,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Database Version"
-msgstr ""
+msgstr "Veri Tabanı Sürümü"
 
 #: desk/report/todo/todo.py:38 email/doctype/newsletter/newsletter.js:109
 #: public/js/frappe/views/interaction.js:80
@@ -11019,7 +11019,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Emails"
-msgstr ""
+msgstr "E-postalar"
 
 #: email/queue.py:137
 msgid "Emails are muted"
@@ -11744,7 +11744,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Errors"
-msgstr ""
+msgstr "Hatalar"
 
 #. Name of a DocType
 #: desk/doctype/event/event.json
@@ -12207,7 +12207,7 @@ msgstr "Başarısız"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Failed Emails"
-msgstr ""
+msgstr "Başarısız E-postalar"
 
 #. Label of a Int field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -12219,13 +12219,13 @@ msgstr "Başarısız İş Sayısı"
 #: desk/doctype/system_health_report_workers/system_health_report_workers.json
 msgctxt "System Health Report Workers"
 msgid "Failed Jobs"
-msgstr ""
+msgstr "Başarısız İşler"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Failed Logins (Last 30 days)"
-msgstr ""
+msgstr "Başarısız Girişler (Son 30 gün)"
 
 #: model/workflow.py:298
 msgid "Failed Transactions"
@@ -12313,7 +12313,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Failing Scheduled Jobs (last 7 days)"
-msgstr ""
+msgstr "Başarısız Zamanlanmış İşler (Son 7 Gün)"
 
 #: core/doctype/data_import/data_import.js:459
 msgid "Failure"
@@ -12323,7 +12323,7 @@ msgstr "Başarısız"
 #: desk/doctype/system_health_report_failing_jobs/system_health_report_failing_jobs.json
 msgctxt "System Health Report Failing Jobs"
 msgid "Failure Rate"
-msgstr ""
+msgstr "Başarısızlık Oranı"
 
 #. Label of a Attach field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -12805,7 +12805,7 @@ msgstr "Dosya Boyutu"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "File Storage"
-msgstr ""
+msgstr "Dosya Depolama"
 
 #: public/js/frappe/data_import/data_exporter.js:19
 msgid "File Type"
@@ -13437,14 +13437,16 @@ msgstr "Örnek: {} Aktif"
 msgctxt "Customize Form Field"
 msgid "For Links, enter the DocType as range.\n"
 "For Select, enter list of Options, each on a new line."
-msgstr ""
+msgstr "For Select, enter list of Options, each on a new line.\n"
+"Seçim için, her bir satıra bir seçenek olacak şekilde listeyi girin."
 
 #. Description of the 'Options' (Small Text) field in DocType 'DocField'
 #: core/doctype/docfield/docfield.json
 msgctxt "DocField"
 msgid "For Links, enter the DocType as range.\n"
 "For Select, enter list of Options, each on a new line."
-msgstr ""
+msgstr "For Select, enter list of Options, each on a new line.\n"
+"Seçim için, her bir satıra bir seçenek olacak şekilde listeyi girin."
 
 #: core/doctype/user_permission/user_permission_list.js:10
 #: core/doctype/user_permission/user_permission_list.js:148
@@ -14690,7 +14692,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Handled Emails"
-msgstr ""
+msgstr "İşlenen E-postalar"
 
 #. Label of a Check field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -16242,7 +16244,7 @@ msgstr "Gelen (POP/IMAP) Ayarları"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Incoming Emails (Last 7 days)"
-msgstr ""
+msgstr "Gelen E-postalar (Son 7 gün)"
 
 #. Label of a Data field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -17917,7 +17919,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Last 10 active users"
-msgstr ""
+msgstr "Son 10 Aktif Kullanıcı"
 
 #. Label of a Datetime field in DocType 'User'
 #: core/doctype/user/user.json
@@ -19349,7 +19351,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "MariaDB Variables"
-msgstr ""
+msgstr "MariaDB Değişkenleri"
 
 #: public/js/frappe/ui/notifications/notifications.js:45
 msgid "Mark all as read"
@@ -19582,7 +19584,7 @@ msgstr "Üyeler"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Memory Usage"
-msgstr ""
+msgstr "Bellek Kullanımı"
 
 #. Option for the 'Type' (Select) field in DocType 'Notification Log'
 #: desk/doctype/notification_log/notification_log.json
@@ -20673,7 +20675,7 @@ msgstr "İsimlendirme Kuralı"
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
 msgid "Naming Series"
-msgstr "Adlandırma Serisi"
+msgstr "İsimlendirme Serisi"
 
 #: model/naming.py:259
 msgid "Naming Series mandatory"
@@ -20916,7 +20918,7 @@ msgstr "Yeni Kısayol"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "New Users (Last 30 days)"
-msgstr ""
+msgstr "Yeni Kullanıcılar (Son 30 gün)"
 
 #: core/doctype/version/version_view.html:14
 #: core/doctype/version/version_view.html:76
@@ -22084,13 +22086,13 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Number of keys"
-msgstr ""
+msgstr "Anahtar Sayısı"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Number of onsite backups"
-msgstr ""
+msgstr "Yerinde Yedekleme Sayısı"
 
 #. Option for the 'Method' (Select) field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -22193,7 +22195,7 @@ msgstr ""
 #: desk/doctype/system_health_report_errors/system_health_report_errors.json
 msgctxt "System Health Report Errors"
 msgid "Occurrences"
-msgstr ""
+msgstr "Tekrarlama Sayısı"
 
 #. Option for the 'SSL/TLS Mode' (Select) field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
@@ -22249,7 +22251,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Oldest Unscheduled Job"
-msgstr ""
+msgstr "Planlanmamış En Eski İş"
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
@@ -22790,7 +22792,7 @@ msgstr "Giden (SMTP) Ayarları"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Outgoing Emails (Last 7 days)"
-msgstr ""
+msgstr "Giden E-postalar (Son 7 gün)"
 
 #. Label of a Data field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
@@ -23499,7 +23501,7 @@ msgstr "Onay Bekleyen"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Pending Emails"
-msgstr ""
+msgstr "Bekleyen E-postalar"
 
 #. Label of a Int field in DocType 'System Health Report Queue'
 #: desk/doctype/system_health_report_queue/system_health_report_queue.json
@@ -24963,7 +24965,7 @@ msgstr "Özel"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Private Files (MB)"
-msgstr ""
+msgstr "Özel Dosyalar (MB)"
 
 #. Description of the 'Auto Reply Message' (Text Editor) field in DocType
 #. 'Email Account'
@@ -25108,7 +25110,7 @@ msgstr "Herkese Açık"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Public Files (MB)"
-msgstr ""
+msgstr "Genel Dosyalar (MB)"
 
 #: website/doctype/blog_post/blog_post.js:36
 #: website/doctype/web_form/web_form.js:86
@@ -25400,7 +25402,7 @@ msgstr "Kuyruk"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Queue Status"
-msgstr ""
+msgstr "Kuyruk Durumu"
 
 #. Label of a Select field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -25412,13 +25414,13 @@ msgstr ""
 #: custom/doctype/customize_form/customize_form.json
 msgctxt "Customize Form"
 msgid "Queue in Background (BETA)"
-msgstr ""
+msgstr "Arka Plan Kuyruğu (Beta)"
 
 #. Label of a Check field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgctxt "DocType"
 msgid "Queue in Background (BETA)"
-msgstr ""
+msgstr "Arka Plan Kuyruğu (Beta)"
 
 #: utils/background_jobs.py:490
 msgid "Queue should be one of {0}"
@@ -25486,7 +25488,7 @@ msgstr ""
 #: desk/doctype/system_health_report_workers/system_health_report_workers.json
 msgctxt "System Health Report Workers"
 msgid "Queues"
-msgstr ""
+msgstr "Kuyruk"
 
 #: email/doctype/newsletter/newsletter.js:90
 msgid "Queuing emails..."
@@ -25799,7 +25801,7 @@ msgstr "Beni oku"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Realtime (SocketIO)"
-msgstr ""
+msgstr "Gerçek Zamanlı (Socket.IO)"
 
 #: public/js/frappe/form/sidebar/review.js:85
 #: social/doctype/energy_point_log/energy_point_log.js:20
@@ -28467,7 +28469,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Scheduler"
-msgstr ""
+msgstr "Zamanlayıcı"
 
 #. Option for the 'Script Type' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
@@ -28483,7 +28485,7 @@ msgstr "Zamanlayıcı Etkin Değil"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Scheduler Status"
-msgstr ""
+msgstr "Zamanlayıcı Durumu"
 
 #: utils/scheduler.py:208
 msgid "Scheduler can not be re-enabled when maintenance mode is active."
@@ -30787,13 +30789,13 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "SocketIO Ping Check"
-msgstr ""
+msgstr "Socket.IO Ping Kontrolü"
 
 #. Label of a Select field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "SocketIO Transport Mode"
-msgstr ""
+msgstr "Socket.IO Aktarım Modu"
 
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #: core/doctype/communication/communication.json
@@ -31416,13 +31418,13 @@ msgstr "Durduruldu"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Storage Usage (MB)"
-msgstr ""
+msgstr "Depolama Kullanımı (MB)"
 
 #. Label of a Table field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Storage Usage By Table"
-msgstr ""
+msgstr "Tabloya Göre Depolama Kullanımı"
 
 #. Label of a Check field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
@@ -32060,17 +32062,17 @@ msgstr ""
 #. Name of a DocType
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "System Health Report"
-msgstr ""
+msgstr "Sistem Sağlığı"
 
 #. Name of a DocType
 #: desk/doctype/system_health_report_errors/system_health_report_errors.json
 msgid "System Health Report Errors"
-msgstr ""
+msgstr "Sistem Sağlık Raporu Hataları"
 
 #. Name of a DocType
 #: desk/doctype/system_health_report_failing_jobs/system_health_report_failing_jobs.json
 msgid "System Health Report Failing Jobs"
-msgstr ""
+msgstr "Sistem Sağlığı Başarısız İşler"
 
 #. Name of a DocType
 #: desk/doctype/system_health_report_queue/system_health_report_queue.json
@@ -32080,12 +32082,12 @@ msgstr ""
 #. Name of a DocType
 #: desk/doctype/system_health_report_tables/system_health_report_tables.json
 msgid "System Health Report Tables"
-msgstr ""
+msgstr "Sistem Sağlığı Tabloları"
 
 #. Name of a DocType
 #: desk/doctype/system_health_report_workers/system_health_report_workers.json
 msgid "System Health Report Workers"
-msgstr ""
+msgstr "Sistem Sağlığı İşleri"
 
 #. Label of a Card Break in the Build Workspace
 #: core/workspace/build/build.json
@@ -33999,7 +34001,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Top Errors"
-msgstr ""
+msgstr "En Önemli Hatalar"
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
@@ -34046,13 +34048,13 @@ msgstr "Toplam"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Total Background Workers"
-msgstr ""
+msgstr "Toplam Arkaplan Görevleri"
 
 #. Label of a Int field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Total Errors (last 1 day)"
-msgstr ""
+msgstr "Toplam Hatalar (Son 1 Gün)"
 
 #: public/js/frappe/ui/capture.js:259
 msgid "Total Images"
@@ -34062,7 +34064,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Total Outgoing Emails"
-msgstr ""
+msgstr "Toplam Giden E-postalar"
 
 #. Label of a Int field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
@@ -34086,7 +34088,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Total Users"
-msgstr ""
+msgstr "Toplam Kullanıcı"
 
 #. Label of a Int field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
@@ -34693,7 +34695,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Unhandled Emails"
-msgstr ""
+msgstr "İşlenmeyen E-postalar"
 
 #: public/js/frappe/views/workspace/workspace.js:567
 msgid "Unhide Workspace"
@@ -35524,7 +35526,7 @@ msgstr ""
 #. Name of a DocType
 #: core/doctype/user_select_document_type/user_select_document_type.json
 msgid "User Select Document Type"
-msgstr ""
+msgstr "Kullanıcı Belge Türü Seçimi"
 
 #: desk/page/user_profile/user_profile_sidebar.html:52
 msgid "User Settings"
@@ -35603,7 +35605,7 @@ msgstr ""
 #: core/doctype/document_naming_settings/document_naming_settings.json
 msgctxt "Document Naming Settings"
 msgid "User must always select"
-msgstr ""
+msgstr "Kullanıcı Her Zaman Seçmeli"
 
 #: model/delete_doc.py:235
 msgid "User not allowed to delete {0}: {1}"
@@ -35729,7 +35731,7 @@ msgstr ""
 #: desk/doctype/system_health_report_workers/system_health_report_workers.json
 msgctxt "System Health Report Workers"
 msgid "Utilization"
-msgstr ""
+msgstr "Kullanım"
 
 #. Label of a Percent field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
@@ -36176,7 +36178,7 @@ msgstr ""
 #: core/doctype/document_naming_rule/document_naming_rule.json
 msgctxt "Document Naming Rule"
 msgid "Warning: Updating counter may lead to document name conflicts if not done properly"
-msgstr ""
+msgstr "Uyarı: Sayacın güncellenmesi düzgün yapılmazsa belge adı çakışmalarına yol açabilir"
 
 #: website/doctype/help_article/templates/help_article.html:24
 msgid "Was this article helpful?"
