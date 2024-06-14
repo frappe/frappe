@@ -38,6 +38,7 @@ function authenticate_with_frappe(socket, next) {
 		auth_req = auth_req.set("Authorization", authorization_header);
 	}
 
+<<<<<<< HEAD
 	auth_req
 		.type("form")
 		.then((res) => {
@@ -45,6 +46,28 @@ function authenticate_with_frappe(socket, next) {
 			socket.user_type = res.body.message.user_type;
 			socket.sid = cookies.sid;
 			socket.authorization_header = authorization_header;
+=======
+		let headers = {};
+		 if (socket.authorization_header) {
+			headers["Authorization"] = socket.authorization_header;
+		} else if (socket.sid) {
+			headers["Cookie"] = `sid=${socket.sid}`;
+		}
+
+		return fetch(get_url(socket, path), {
+			...opts,
+			headers,
+		});
+	};
+
+	socket
+		.frappe_request("/api/method/frappe.realtime.get_user_info")
+		.then((res) => res.json())
+		.then(({ message }) => {
+			socket.user = message.user;
+			socket.user_type = message.user_type;
+			socket.installed_apps = message.installed_apps;
+>>>>>>> 525f5b7131 (fix(socketio): pass auth token if available instead of cookie)
 			next();
 		})
 		.catch((e) => {
