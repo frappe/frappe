@@ -1347,10 +1347,19 @@ Object.assign(frappe.utils, {
 
 		// return number if total digits is lesser than min_length
 		const len = String(number).match(/\d/g).length;
-		if (len < min_length) return number.toString();
+		if (len < min_length) {
+			return number.toString();
+		}
 
 		const number_system = this.get_number_system(country);
 		let x = Math.abs(Math.round(number));
+
+		// if rounding was sufficient to get below min_length, return the rounded number
+		const x_string = x.toString();
+		if (x_string.length < min_length) {
+			return x_string;
+		}
+
 		for (const map of number_system) {
 			if (x >= map.divisor) {
 				let result = number / map.divisor;
