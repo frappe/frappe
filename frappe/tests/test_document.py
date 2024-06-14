@@ -141,6 +141,15 @@ class TestDocument(FrappeTestCase):
 		self.assertFalse(d.has_value_changed("creation"))
 		self.assertFalse(d.has_value_changed("event_type"))
 
+	def test_value_change_child_table(self):
+		d = self.test_insert()
+		d.append("event_participants", {"reference_doctype": "Contact", "reference_docname": "Test Contact"})
+		d.save()
+		d.load_doc_before_save()
+		self.assertFalse(d.event_participants[0].has_value_changed("reference_docname"))
+		d.event_participants[0].reference_docname = ""
+		self.assertTrue(d.event_participants[0].has_value_changed("reference_docname"))
+
 	def test_mandatory(self):
 		# TODO: recheck if it is OK to force delete
 		frappe.delete_doc_if_exists("User", "test_mandatory@example.com", 1)

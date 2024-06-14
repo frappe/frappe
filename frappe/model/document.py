@@ -458,8 +458,15 @@ class Document(BaseDocument):
 			d: Document
 			d.db_update()
 
-	def get_doc_before_save(self) -> "Document":
-		return getattr(self, "_doc_before_save", None)
+	def get_doc_before_save(self) -> "Document | None":
+		if doc_before_save := getattr(self, "_doc_before_save", None):
+			return doc_before_save
+		if self.parent_doc and self.get("parentfield") and self.get("name"):
+			if parent_before_save := self.parent_doc.get_doc_before_save():
+				prev = parent_before_save.get(
+					self.get("parentfield"), filters={"name": self.get("name")}, limit=1
+				)
+				return prev[0] if prev else None
 
 	def has_value_changed(self, fieldname):
 		"""Return True if value has changed before and after saving."""
