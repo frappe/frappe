@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-13 08:24\n"
+"PO-Revision-Date: 2024-06-14 08:32\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -5440,7 +5440,7 @@ msgstr "Önbelleği Temizle ve Yeniden Yükle"
 
 #: core/doctype/error_log/error_log_list.js:12
 msgid "Clear Error Logs"
-msgstr ""
+msgstr "Hata Günlüklerini Temizle"
 
 #: public/js/frappe/ui/filters/filter_list.js:298
 msgid "Clear Filters"
@@ -11678,7 +11678,7 @@ msgstr "Hata Günlüğü"
 #: core/workspace/build/build.json
 msgctxt "Error Log"
 msgid "Error Logs"
-msgstr ""
+msgstr "Hata Günlükleri"
 
 #. Label of a Text field in DocType 'Prepared Report'
 #: core/doctype/prepared_report/prepared_report.json
@@ -12064,7 +12064,7 @@ msgstr "Dışarı Aktar"
 #: core/doctype/data_import/data_import.js:86
 #: public/js/frappe/data_import/import_preview.js:195
 msgid "Export Errored Rows"
-msgstr ""
+msgstr "Hatalı Satırları Dışa Aktar"
 
 #. Label of a Data field in DocType 'Access Log'
 #: core/doctype/access_log/access_log.json
@@ -12177,7 +12177,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Fail"
-msgstr ""
+msgstr "Başarısız"
 
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #: core/doctype/activity_log/activity_log.json
@@ -15097,7 +15097,7 @@ msgstr ""
 
 #: www/error.html:41 www/error.html:56
 msgid "Hide Error"
-msgstr ""
+msgstr "Hatayı Gizle"
 
 #. Label of a Check field in DocType 'Website Settings'
 #: website/doctype/website_settings/website_settings.json
@@ -19062,13 +19062,13 @@ msgstr ""
 #. Label of a Card Break in the Users Workspace
 #: core/workspace/users/users.json
 msgid "Logs"
-msgstr ""
+msgstr "Kayıtlar"
 
 #. Group in User's connections
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Logs"
-msgstr ""
+msgstr "Kayıtlar"
 
 #. Name of a DocType
 #: core/doctype/logs_to_clear/logs_to_clear.json
@@ -22602,7 +22602,7 @@ msgstr ""
 #: core/doctype/file/file.js:24
 #: core/report/database_storage_usage_by_tables/database_storage_usage_by_tables.js:8
 msgid "Optimize"
-msgstr ""
+msgstr "Optimize Et"
 
 #: core/doctype/file/file.js:98
 msgid "Optimizing image..."
@@ -23271,7 +23271,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Pass"
-msgstr ""
+msgstr "Başarılı"
 
 #. Option for the 'Status' (Select) field in DocType 'Contact'
 #: contacts/doctype/contact/contact.json
@@ -30598,7 +30598,7 @@ msgstr "Boyut"
 #: desk/doctype/system_health_report_tables/system_health_report_tables.json
 msgctxt "System Health Report Tables"
 msgid "Size (MB)"
-msgstr ""
+msgstr "Boyut (MB)"
 
 #: public/js/frappe/widgets/onboarding_widget.js:82
 #: public/js/onboarding_tours/onboarding_tours.js:18
@@ -32057,7 +32057,7 @@ msgstr ""
 #. Type: Action
 #: hooks.py
 msgid "System Health"
-msgstr ""
+msgstr "Sistem Sağlığı"
 
 #. Name of a DocType
 #: desk/doctype/system_health_report/system_health_report.json
@@ -32077,7 +32077,7 @@ msgstr "Sistem Sağlığı Başarısız İşler"
 #. Name of a DocType
 #: desk/doctype/system_health_report_queue/system_health_report_queue.json
 msgid "System Health Report Queue"
-msgstr ""
+msgstr "Sistem Sağlığı Kuyruğu"
 
 #. Name of a DocType
 #: desk/doctype/system_health_report_tables/system_health_report_tables.json
@@ -32531,7 +32531,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Test Job ID"
-msgstr ""
+msgstr "Test İş ID"
 
 #: email/doctype/newsletter/newsletter.py:94
 msgid "Test email sent to {0}"
@@ -33009,7 +33009,7 @@ msgstr ""
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Third Party Authentication"
-msgstr ""
+msgstr "Üçüncü Taraf Kimlik Doğrulama"
 
 #: geo/doctype/currency/currency.js:8
 msgid "This Currency is disabled. Enable to use in transactions"
@@ -36596,7 +36596,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Websocket"
-msgstr ""
+msgstr "Web Soketi"
 
 #. Option for the 'Day' (Select) field in DocType 'Assignment Rule Day'
 #: automation/doctype/assignment_rule_day/assignment_rule_day.json
@@ -38244,7 +38244,7 @@ msgstr ""
 
 #: www/third_party_apps.html:41
 msgid "logged in"
-msgstr ""
+msgstr "giriş yaptı"
 
 #: website/doctype/web_form/web_form.js:362
 msgid "login_required"
@@ -39202,7 +39202,7 @@ msgstr "{0} düzenlendi."
 
 #: core/doctype/activity_log/feed.py:13
 msgid "{0} logged in"
-msgstr ""
+msgstr "{0} giriş yaptı"
 
 #: core/doctype/activity_log/feed.py:19
 msgid "{0} logged out: {1}"
