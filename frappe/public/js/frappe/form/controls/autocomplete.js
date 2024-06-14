@@ -98,7 +98,7 @@ frappe.ui.form.ControlAutocomplete = class ControlAutoComplete extends frappe.ui
 				} else {
 					this.awesomplete.list = this.get_data();
 				}
-			}, 500)
+			}, 100)
 		);
 
 		this.$input.on("focus", () => {
