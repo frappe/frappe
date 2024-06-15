@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-13 08:24\n"
+"PO-Revision-Date: 2024-06-15 09:00\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -2331,7 +2331,7 @@ msgstr "شناسه مشتری برنامه"
 #: integrations/doctype/oauth_client/oauth_client.json
 msgctxt "OAuth Client"
 msgid "App Client Secret"
-msgstr "راز مشتری برنامه"
+msgstr ""
 
 #. Label of a Data field in DocType 'Google Settings'
 #: integrations/doctype/google_settings/google_settings.json
@@ -5096,7 +5096,7 @@ msgstr "تغییر برچسب (از طریق ترجمه سفارشی)"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Change Password"
-msgstr "رمز عبور را تغییر دهید"
+msgstr "تغییر رمز عبور"
 
 #: public/js/print_format_builder/print_format_builder.bundle.js:27
 msgid "Change Print Format"
@@ -5585,19 +5585,19 @@ msgstr "اسکریپت کلاینت"
 #: integrations/doctype/connected_app/connected_app.json
 msgctxt "Connected App"
 msgid "Client Secret"
-msgstr "راز مشتری"
+msgstr ""
 
 #. Label of a Password field in DocType 'Google Settings'
 #: integrations/doctype/google_settings/google_settings.json
 msgctxt "Google Settings"
 msgid "Client Secret"
-msgstr "راز مشتری"
+msgstr ""
 
 #. Label of a Password field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
 msgctxt "Social Login Key"
 msgid "Client Secret"
-msgstr "راز مشتری"
+msgstr ""
 
 #. Label of a Section Break field in DocType 'Social Login Key'
 #: integrations/doctype/social_login_key/social_login_key.json
@@ -15518,7 +15518,7 @@ msgstr "در صورت فعال بودن، هر بار که کاربران وار
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "If left empty, the default workspace will be the last visited workspace"
-msgstr ""
+msgstr "اگر خالی بماند، محیط کاری پیش فرض آخرین محیط کاری بازدید شده خواهد بود"
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
@@ -19004,7 +19004,7 @@ msgstr "خروج از همه جلسات با بازنشانی رمز عبور"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Logout From All Devices After Changing Password"
-msgstr "پس از تغییر رمز عبور از همه دستگاه ها خارج شوید"
+msgstr "خروج از همه دستگاه ها پس از تغییر رمز عبور"
 
 #. Label of a Card Break in the Users Workspace
 #: core/workspace/users/users.json
@@ -29744,7 +29744,7 @@ msgstr "تنظیم نقش برای"
 #: core/doctype/user/user.js:126
 #: core/page/permission_manager/permission_manager.js:65
 msgid "Set User Permissions"
-msgstr "مجوزهای کاربر را تنظیم کنید"
+msgstr ""
 
 #. Label of a Small Text field in DocType 'Property Setter'
 #: custom/doctype/property_setter/property_setter.json
