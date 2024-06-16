@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-15 09:00\n"
+"PO-Revision-Date: 2024-06-16 09:20\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -4667,48 +4667,48 @@ msgstr "نمی توان نام {0} را به {1} تغییر داد زیرا {0} 
 #: core/doctype/doctype/doctype_list.js:130
 #: public/js/frappe/form/reminders.js:54
 msgid "Cancel"
-msgstr "لغو کنید"
+msgstr "لغو"
 
 #: public/js/frappe/list/list_view.js:1958
 msgctxt "Button in list view actions menu"
 msgid "Cancel"
-msgstr "لغو کنید"
+msgstr "لغو"
 
 #. Label of a Check field in DocType 'Custom DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 msgctxt "Custom DocPerm"
 msgid "Cancel"
-msgstr "لغو کنید"
+msgstr "لغو"
 
 #. Label of a Check field in DocType 'DocPerm'
 #: core/doctype/docperm/docperm.json
 msgctxt "DocPerm"
 msgid "Cancel"
-msgstr "لغو کنید"
+msgstr "لغو"
 
 #. Option for the 'For Document Event' (Select) field in DocType 'Energy Point
 #. Rule'
 #: social/doctype/energy_point_rule/energy_point_rule.json
 msgctxt "Energy Point Rule"
 msgid "Cancel"
-msgstr "لغو کنید"
+msgstr "لغو"
 
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
 #: email/doctype/notification/notification.json
 msgctxt "Notification"
 msgid "Cancel"
-msgstr "لغو کنید"
+msgstr "لغو"
 
 #: public/js/frappe/ui/messages.js:68
 msgctxt "Secondary button in warning dialog"
 msgid "Cancel"
-msgstr "لغو کنید"
+msgstr "لغو"
 
 #. Label of a Check field in DocType 'User Document Type'
 #: core/doctype/user_document_type/user_document_type.json
 msgctxt "User Document Type"
 msgid "Cancel"
-msgstr "لغو کنید"
+msgstr "لغو"
 
 #: public/js/frappe/form/form.js:973
 msgid "Cancel All"
@@ -29733,7 +29733,7 @@ msgstr "ویژگی بعد از هشدار را تنظیم کنید"
 #: public/js/frappe/form/link_selector.js:207
 #: public/js/frappe/form/link_selector.js:208
 msgid "Set Quantity"
-msgstr "مقدار را تنظیم کنید"
+msgstr "تنظیم مقدار"
 
 #. Label of a Select field in DocType 'Role Permission for Page and Report'
 #: core/doctype/role_permission_for_page_and_report/role_permission_for_page_and_report.json
@@ -31004,7 +31004,7 @@ msgstr "ما را در GitHub ستاره دار کنید"
 #: core/doctype/recorder/recorder_list.js:87 printing/page/print/print.js:296
 #: printing/page/print/print.js:343
 msgid "Start"
-msgstr "شروع کنید"
+msgstr "شروع"
 
 #: public/js/frappe/utils/common.js:409
 msgid "Start Date"
@@ -31036,7 +31036,7 @@ msgstr "فیلد تاریخ شروع"
 
 #: core/doctype/data_import/data_import.js:110
 msgid "Start Import"
-msgstr "واردات را شروع کنید"
+msgstr "شروع واردات"
 
 #: core/doctype/recorder/recorder_list.js:201
 msgid "Start Recording"
