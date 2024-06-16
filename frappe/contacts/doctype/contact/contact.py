@@ -218,6 +218,24 @@ def download_vcard(contact: str):
 	frappe.response["type"] = "binary"
 
 
+@frappe.whitelist()
+def download_vcards(contacts: str):
+	"""Download vCard for the contact"""
+	from frappe.utils.data import now
+
+	vcards = []
+	for contact_id in frappe.parse_json(contacts):
+		contact = frappe.get_doc("Contact", contact_id)
+		vcard = contact.get_vcard()
+		vcards.append(vcard.serialize())
+
+	timestamp = now()[:19]  # remove milliseconds
+
+	frappe.response["filename"] = f"{timestamp} Contacts.vcf"
+	frappe.response["filecontent"] = "\n".join(vcards).encode("utf-8")
+	frappe.response["type"] = "binary"
+
+
 def get_default_contact(doctype, name):
 	"""Return default contact for the given doctype, name."""
 	out = frappe.db.sql(
