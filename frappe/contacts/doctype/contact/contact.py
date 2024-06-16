@@ -167,6 +167,56 @@ class Contact(Document):
 	def _get_full_name(self) -> str:
 		return get_full_name(self.first_name, self.middle_name, self.last_name, self.company_name)
 
+	def get_vcard(self):
+		from vobject import vCard
+		from vobject.vcard import Name
+
+		vcard = vCard()
+		vcard.add("fn").value = self.full_name
+
+		name = Name()
+		if self.first_name:
+			name.given = self.first_name
+
+		if self.last_name:
+			name.family = self.last_name
+
+		if self.middle_name:
+			name.additional = self.middle_name
+
+		vcard.add("n").value = name
+
+		if self.designation:
+			vcard.add("title").value = self.designation
+
+		for row in self.email_ids:
+			email = vcard.add("email")
+			email.value = row.email_id
+			if row.is_primary:
+				email.type_param = "pref"
+
+		for row in self.phone_nos:
+			tel = vcard.add("tel")
+			tel.value = row.phone
+			if row.is_primary_phone:
+				tel.type_param = "home"
+
+			if row.is_primary_mobile_no:
+				tel.type_param = "cell"
+
+		return vcard
+
+
+@frappe.whitelist()
+def download_vcard(contact: str):
+	"""Download vCard for the contact"""
+	contact = frappe.get_doc("Contact", contact)
+	vcard = contact.get_vcard()
+
+	frappe.response["filename"] = f"{contact.name}.vcf"
+	frappe.response["filecontent"] = vcard.serialize().encode("utf-8")
+	frappe.response["type"] = "binary"
+
 
 def get_default_contact(doctype, name):
 	"""Return default contact for the given doctype, name."""
