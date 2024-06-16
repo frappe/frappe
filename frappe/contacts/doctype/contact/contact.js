@@ -93,6 +93,17 @@ frappe.ui.form.on("Contact", {
 				);
 			}
 		}
+
+		if (!frm.is_dirty()) {
+			frm.page.add_menu_item(__("Download vCard"), function () {
+				window.open(
+					`/api/method/frappe.contacts.doctype.contact.contact.download_vcard?contact=${encodeURIComponent(
+						frm.doc.name
+					)}`,
+					"_blank"
+				);
+			});
+		}
 	},
 	validate: function (frm) {
 		// clear linked customer / supplier / sales partner on saving...

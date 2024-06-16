@@ -86,6 +86,7 @@ dependencies = [
     "google-auth-oauthlib~=0.4.4",
     "google-auth~=1.29.0",
     "posthog~=3.0.1",
+    "vobject~=0.9.7",
 ]
 
 [project.urls]
