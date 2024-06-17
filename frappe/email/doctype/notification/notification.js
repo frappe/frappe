@@ -34,8 +34,8 @@ frappe.notification = {
 					{ value: "modified", label: `modified (${__("Last Modified Date")})` },
 				]);
 			};
-
 			let get_receiver_fields = function (
+				fields,
 				is_extra_receiver_field = (_) => {
 					return false;
 				}
@@ -47,7 +47,8 @@ frappe.notification = {
 				let is_receiver_field = function (df) {
 					return (
 						is_extra_receiver_field(df) ||
-						(df.options == "User" && df.fieldtype == "Link")
+						(df.options == "User" && df.fieldtype == "Link") ||
+						(df.options == "Customer" && df.fieldtype == "Link")
 					);
 				};
 				let extract_receiver_field = function (df) {
