@@ -96,4 +96,65 @@ const filterOptions = {
 	],
 }
 
-export { numberTypes, dateTypes, linkTypes, stringTypes, filterOptions }
+const filterOperators = {
+	string: [
+		{ label: "Equals", value: "=" },
+		{ label: "Not Equals", value: "!=" },
+		{ label: "Like", value: "like" },
+		{ label: "Not Like", value: "not like" },
+		{ label: "In", value: "in" },
+		{ label: "Not In", value: "not in" },
+		{ label: "Is", value: "is" },
+	],
+	number: [
+		{ label: "Equals", value: "=" },
+		{ label: "Not Equals", value: "!=" },
+		{ label: "Like", value: "like" },
+		{ label: "Not Like", value: "not like" },
+		{ label: "In", value: "in" },
+		{ label: "Not In", value: "not in" },
+		{ label: "Is", value: "is" },
+		{ label: "<", value: "<" },
+		{ label: ">", value: ">" },
+		{ label: "<=", value: "<=" },
+		{ label: ">=", value: ">=" },
+	],
+	select: [
+		{ label: "Equals", value: "=" },
+		{ label: "Not Equals", value: "!=" },
+		{ label: "In", value: "in" },
+		{ label: "Not In", value: "not in" },
+		{ label: "Is", value: "is" },
+	],
+	link: [
+		{ label: "Equals", value: "=" },
+		{ label: "Not Equals", value: "!=" },
+		{ label: "Like", value: "like" },
+		{ label: "Not Like", value: "not like" },
+		{ label: "In", value: "in" },
+		{ label: "Not In", value: "not in" },
+		{ label: "Is", value: "is" },
+	],
+	check: [
+		{ label: "Equals", value: "=" },
+		{ label: "Not Equals", value: "!=" },
+	],
+	date: [
+		{ label: "Equals", value: "=" },
+		{ label: ">", value: ">" },
+		{ label: "<", value: "<" },
+		{ label: ">=", value: ">=" },
+		{ label: "<=", value: "<=" },
+		{ label: "Between", value: "between" },
+		{ label: "Timespan", value: "timespan" },
+	],
+	duration: [
+		{ label: "Like", value: "like" },
+		{ label: "Not Like", value: "not like" },
+		{ label: "In", value: "in" },
+		{ label: "Not In", value: "not in" },
+		{ label: "Is", value: "is" },
+	],
+}
+
+export { numberTypes, dateTypes, linkTypes, stringTypes, filterOptions, filterOperators }

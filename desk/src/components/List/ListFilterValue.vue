@@ -1,10 +1,5 @@
 <template>
-	<Link
-		v-if="fieldtype == 'Link'"
-		:doctype="options[0]"
-		v-model="modelValue"
-		:class="'form-control'"
-	/>
+	<Link v-if="fieldtype == 'Link'" :doctype="options[0]" v-model="modelValue" />
 	<DateRangePicker
 		v-else-if="dateTypes.includes(fieldtype) && operator == 'between'"
 		v-model="modelValue"

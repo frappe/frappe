@@ -26,7 +26,7 @@
 							:body-classes="'w-[15rem]'"
 							:model-value="fieldname"
 							:options="allFilterableFields"
-							@update:model-value="(option) => updateField(option, i)"
+							@update:model-value="(val) => updateField(val, i)"
 						/>
 					</div>
 					<div class="w-[7rem]">
@@ -34,7 +34,7 @@
 							type="select"
 							:model-value="operator"
 							:options="getOperators(i)"
-							@update:model-value="(option) => updateOperator(option, i)"
+							@update:model-value="(val) => updateOperator(val, i)"
 						/>
 					</div>
 					<div class="w-[10rem]">
@@ -43,7 +43,7 @@
 							:operator="operator"
 							v-model="filters[i].value"
 							:options="options"
-							@change="(val) => updateValue(val, operator, i)"
+							@update:model-value="(val) => updateValue(val, operator, i)"
 						/>
 					</div>
 					<button icon="x" @click="removeFilter(i)">
@@ -55,7 +55,7 @@
 					<Autocomplete
 						:body-classes="'w-[29rem]'"
 						:options="allFilterableFields"
-						@update:model-value="(option) => addFilter(option)"
+						@update:model-value="(field) => addFilter(field)"
 					>
 						<template #target="{ togglePopover }">
 							<Button
@@ -91,7 +91,13 @@ import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue
 import { Button, FeatherIcon, Autocomplete, FormControl } from "frappe-ui"
 import { getCurrentInstance } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { linkTypes, numberTypes, stringTypes, dateTypes } from "@/data/constants/filters"
+import {
+	linkTypes,
+	numberTypes,
+	stringTypes,
+	dateTypes,
+	filterOperators,
+} from "@/data/constants/filters"
 
 const props = defineProps({
 	allFilterableFields: {
@@ -106,110 +112,32 @@ const filters = defineModel()
 
 const getOperators = (index) => {
 	let f = filters.value[index]
-	let fieldname = f.fieldname
 	let fieldtype = f.fieldtype
-	let options = []
+
 	if (stringTypes.includes(fieldtype)) {
-		options.push(
-			...[
-				{ label: "Equals", value: "=" },
-				{ label: "Not Equals", value: "!=" },
-				{ label: "Like", value: "like" },
-				{ label: "Not Like", value: "not like" },
-				{ label: "In", value: "in" },
-				{ label: "Not In", value: "not in" },
-				{ label: "Is", value: "is" },
-			]
-		)
+		return filterOperators["string"]
+	} else if (numberTypes.includes(fieldtype)) {
+		return filterOperators["number"]
+	} else if (linkTypes.includes(fieldtype)) {
+		return filterOperators["link"]
+	} else if (dateTypes.includes(fieldtype)) {
+		return filterOperators["date"]
+	} else if (["Select", "Check", "Duration"].includes(fieldtype)) {
+		return filterOperators[fieldtype.toLowerCase()]
 	}
-	if (fieldname === "_assign") {
-		// TODO: make equals and not equals work
-		options = [
-			{ label: "Like", value: "like" },
-			{ label: "Not Like", value: "not like" },
-			{ label: "Is", value: "is" },
-		]
-	}
-	if (numberTypes.includes(fieldtype)) {
-		options.push(
-			...[
-				{ label: "Equals", value: "=" },
-				{ label: "Not Equals", value: "!=" },
-				{ label: "Like", value: "like" },
-				{ label: "Not Like", value: "not like" },
-				{ label: "In", value: "in" },
-				{ label: "Not In", value: "not in" },
-				{ label: "Is", value: "is" },
-				{ label: "<", value: "<" },
-				{ label: ">", value: ">" },
-				{ label: "<=", value: "<=" },
-				{ label: ">=", value: ">=" },
-			]
-		)
-	}
-	if (fieldtype == "Select") {
-		options.push(
-			...[
-				{ label: "Equals", value: "=" },
-				{ label: "Not Equals", value: "!=" },
-				{ label: "In", value: "in" },
-				{ label: "Not In", value: "not in" },
-				{ label: "Is", value: "is" },
-			]
-		)
-	}
-	if (linkTypes.includes(fieldtype)) {
-		options.push(
-			...[
-				{ label: "Equals", value: "=" },
-				{ label: "Not Equals", value: "!=" },
-				{ label: "Like", value: "like" },
-				{ label: "Not Like", value: "not like" },
-				{ label: "In", value: "in" },
-				{ label: "Not In", value: "not in" },
-				{ label: "Is", value: "is" },
-			]
-		)
-	}
-	if (fieldtype == "Check") {
-		options.push(...[{ label: "Equals", value: "=" }])
-	}
-	if (["Duration"].includes(fieldtype)) {
-		options.push(
-			...[
-				{ label: "Like", value: "like" },
-				{ label: "Not Like", value: "not like" },
-				{ label: "In", value: "in" },
-				{ label: "Not In", value: "not in" },
-				{ label: "Is", value: "is" },
-			]
-		)
-	}
-	if (dateTypes.includes(fieldtype)) {
-		options.push(
-			...[
-				{ label: "Equals", value: "=" },
-				{ label: ">", value: ">" },
-				{ label: "<", value: "<" },
-				{ label: ">=", value: ">=" },
-				{ label: "<=", value: "<=" },
-				{ label: "Between", value: "between" },
-				{ label: "Timespan", value: "timespan" },
-			]
-		)
-	}
-	return options
+
+	return []
 }
 
 // Filter Operations
 
-const addFilter = (option) => {
+const addFilter = (field) => {
 	filters.value.push({
-		fieldname: option.value,
-		fieldtype: getFieldType(option.value),
+		fieldname: field.value,
+		fieldtype: field.type,
 		operator: "",
 		value: "",
-		options: getSelectOptions(option.value),
+		options: field.options || [],
 	})
 }
 
@@ -226,26 +154,18 @@ const clearFilters = (close) => {
 
 // Update filter options on change of filter field
 
-const getFieldType = (fieldname) => {
-	return props.allFilterableFields.find((f) => f.value === fieldname).type || ""
-}
-
-const getSelectOptions = (fieldname) => {
-	return props.allFilterableFields.find((f) => f.value === fieldname).options?.split("\n") || []
-}
-
-const updateField = (option, index) => {
+const updateField = (field, index) => {
 	filters.value[index] = {
-		fieldname: option.value,
-		fieldtype: getFieldType(option.value),
-		options: getSelectOptions(option.value),
+		fieldname: field.value,
+		fieldtype: field.type,
+		options: field.options || [],
 		operator: "",
 		value: "",
 	}
 }
 
-const updateOperator = (option, index) => {
-	filters.value[index] = { ...filters.value[index], operator: option, value: "" }
+const updateOperator = (operator, index) => {
+	filters.value[index] = { ...filters.value[index], operator: operator, value: "" }
 }
 
 const updateValue = (value, operator, index) => {
