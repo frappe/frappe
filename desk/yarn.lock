@@ -1254,10 +1254,10 @@ fraction.js@^4.1.2:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-4.1.2.tgz#13e420a92422b6cf244dff8690ed89401029fbe8"
   integrity sha512-o2RiJQ6DZaR/5+Si0qJUIy637QMRudSi9kU/FFzx9EZazrIdnBgpU+3sEWCxAVhH2RtxW2Oz+T4p2o8uOPVcgA==
 
-frappe-ui@^0.1.51:
-  version "0.1.51"
-  resolved "https://registry.yarnpkg.com/frappe-ui/-/frappe-ui-0.1.51.tgz#7bc1b3198c12214b7aaf2ecc6444682b13664014"
-  integrity sha512-pa0496yTjdHTs0NsE6gZ0UXvaOOlyvlT7KvDUNjLcpt32Vet6J3/SluMjJp1X8l0AK1oFQEAl/7ab97MGg0zAQ==
+frappe-ui@^0.1.62:
+  version "0.1.62"
+  resolved "https://registry.yarnpkg.com/frappe-ui/-/frappe-ui-0.1.62.tgz#a143266250f61e3dbd78fd5193c46a82666cb309"
+  integrity sha512-pLlSb8V2Jm0pQY+vQ/L0ESaBAYG8wEP4/o23Rf3z+yWX16eL72F0BAaOMDdpx5xd9yF7pPwK3qg/qVmS2S8YOw==
   dependencies:
     "@headlessui/vue" "^1.7.14"
     "@popperjs/core" "^2.11.2"
@@ -1283,6 +1283,7 @@ frappe-ui@^0.1.51:
     "@vueuse/core" "^10.4.1"
     feather-icons "^4.28.0"
     idb-keyval "^6.2.0"
+    prettier "^3.3.2"
     radix-vue "^1.5.3"
     showdown "^2.1.0"
     socket.io-client "^4.5.1"
@@ -1874,6 +1875,11 @@ prettier@^2.8.8:
   version "2.8.8"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.8.tgz#e8c5d7e98a4305ffe3de2e1fc4aca1a71c28b1da"
   integrity sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==
+
+prettier@^3.3.2:
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.3.2.tgz#03ff86dc7c835f2d2559ee76876a3914cec4a90a"
+  integrity sha512-rAVeHYMcv8ATV5d508CFdn+8/pHPpXeIid1DdrPwXnaAdH7cqjVbpJaT5eq4yRAFU/lsbwYwSF/n5iNrdJHPQA==
 
 prosemirror-changeset@^2.2.1:
   version "2.2.1"
