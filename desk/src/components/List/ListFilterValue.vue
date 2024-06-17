@@ -14,13 +14,13 @@
 	<FormControl
 		v-else-if="['is', 'timespan'].includes(operator)"
 		type="select"
-		:options="optionsList[operator]"
+		:options="filterOptions[operator]"
 		v-model="modelValue"
 	/>
 	<FormControl
 		v-else-if="['Check', 'Select'].includes(fieldtype)"
 		type="select"
-		:options="optionsList[fieldtype]"
+		:options="props.options || filterOptions[fieldtype.toLowerCase()]"
 		v-model="modelValue"
 	/>
 	<FormControl v-else-if="numberTypes.includes(fieldtype)" type="number" v-model="modelValue" />
@@ -28,14 +28,8 @@
 </template>
 
 <script setup>
-import {
-	numberTypes,
-	dateTypes,
-	timespanOptionsList,
-	checkOptionsList,
-	isOptionsList,
-} from "@/stores/list_filter"
 import { FormControl, DatePicker, DateTimePicker, DateRangePicker } from "frappe-ui"
+import { numberTypes, dateTypes, filterOptions } from "@/data/constants/filters"
 
 import Link from "@/components/FormControls/Link.vue"
 
@@ -58,11 +52,4 @@ const modelValue = defineModel("modelValue", {
 	type: String,
 	default: "",
 })
-
-const optionsList = {
-	timespan: timespanOptionsList,
-	is: isOptionsList,
-	Check: checkOptionsList,
-	Select: props.options,
-}
 </script>

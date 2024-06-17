@@ -11,14 +11,17 @@
 			</Button>
 		</template>
 	</Dropdown>
-	<Dialog class="pb-0" v-model="showViewActionsModal" :options="{ size: 'sm' }">
+
+	<Dialog class="pb-0" v-model="showDialog" :options="{ size: 'sm' }">
 		<template #body>
 			<div class="flex flex-col gap-4 p-5">
+				<!-- Dialog Title -->
 				<div class="flex items-center justify-between">
-					<div class="text-md font-semibold text-gray-900">{{ viewModalMode }}</div>
-					<FeatherIcon name="x" class="h-4 cursor-pointer" @click="showViewActionsModal = false" />
+					<div class="text-md font-semibold text-gray-900">{{ dialogAction }}</div>
+					<FeatherIcon name="x" class="h-4 cursor-pointer" @click="showDialog = false" />
 				</div>
-				<div v-if="viewModalMode == 'Save View As'">
+
+				<div v-if="dialogAction == 'Save View As'">
 					<div class="flex flex-col gap-4">
 						<FormControl
 							:type="'text'"
@@ -34,7 +37,8 @@
 						</Button>
 					</div>
 				</div>
-				<div v-else-if="viewModalMode == 'Save'">
+
+				<div v-else-if="dialogAction == 'Save'">
 					<div class="flex flex-col gap-4">
 						<FormControl
 							:type="'text'"
@@ -50,6 +54,8 @@
 						</Button>
 					</div>
 				</div>
+
+				<!-- Delete -->
 				<div v-else>
 					<div class="flex flex-col gap-4">
 						<div class="text-base">Are you sure you want to delete this view?</div>
@@ -87,8 +93,8 @@ const props = defineProps({
 	},
 })
 
-const viewModalMode = ref("")
-const showViewActionsModal = ref(false)
+const showDialog = ref(false)
+const dialogAction = ref("")
 const newViewName = ref("")
 
 const route = useRoute()
@@ -114,19 +120,19 @@ const createConfigResource = createResource({
 })
 
 const createView = async () => {
-	showViewActionsModal.value = false
+	showDialog.value = false
 	let doc = await createConfigResource.submit()
 	await router.replace({ query: { view: doc.name } })
 }
 
 const deleteView = async () => {
-	showViewActionsModal.value = false
+	showDialog.value = false
 	await call("frappe.client.delete", { doctype: "View Config", name: configName.value })
 	await router.replace({ query: {} })
 }
 
 const renameView = async () => {
-	showViewActionsModal.value = false
+	showDialog.value = false
 	await call("frappe.client.set_value", {
 		doctype: "View Config",
 		name: configName.value,
@@ -145,34 +151,24 @@ const updateView = async () => {
 	})
 }
 
-const viewSwitcherOptions = computed(() => {
-	let options = []
-
-	if (isDefaultConfig.value)
+const getActions = () => {
+	let actions = []
+	if (isDefaultConfig.value) {
 		configUpdated.value &&
-			options.push({
-				group: "View Actions",
-				items: [
-					{
-						label: "Save As",
-						icon: "plus",
-						onClick: () => {
-							viewModalMode.value = "Save View As"
-							showViewActionsModal.value = true
-						},
-					},
-				],
+			actions.push({
+				label: "Save As",
+				icon: "plus",
+				onClick: () => {
+					dialogAction.value = "Save View As"
+					showDialog.value = true
+				},
 			})
-	else {
-		let actions = []
-
+	} else {
 		configUpdated.value &&
 			actions.push({
 				label: "Save Changes",
 				icon: "save",
-				onClick: () => {
-					updateView()
-				},
+				onClick: () => updateView(),
 			})
 
 		actions.push(
@@ -180,53 +176,49 @@ const viewSwitcherOptions = computed(() => {
 				label: "Rename",
 				icon: "edit-3",
 				onClick: () => {
-					viewModalMode.value = "Save"
-					showViewActionsModal.value = true
+					dialogAction.value = "Save"
+					showDialog.value = true
 				},
 			},
 			{
 				label: "Delete",
 				icon: "trash",
 				onClick: () => {
-					viewModalMode.value = "Delete"
-					showViewActionsModal.value = true
+					dialogAction.value = "Delete"
+					showDialog.value = true
 				},
 			}
 		)
-
-		actions.length &&
-			options.push({
-				group: "View Actions",
-				items: actions,
-			})
 	}
+	return actions
+}
 
-	options.push({
-		group: "Default Views",
-		items: [
-			{
-				label: "List View",
-				icon: "list",
-				onClick: async () => {
-					await router.replace({ query: {} })
-				},
+const getDefaultViews = () => {
+	return [
+		{
+			label: "List View",
+			icon: "list",
+			onClick: async () => {
+				await router.replace({ query: {} })
 			},
-			{
-				label: "Report View",
-				icon: "table",
-			},
-			{
-				label: "Kanban View",
-				icon: "grid",
-			},
-			{
-				label: "Dashboard View",
-				icon: "pie-chart",
-			},
-		],
-	})
+		},
+		{
+			label: "Report View",
+			icon: "table",
+		},
+		{
+			label: "Kanban View",
+			icon: "grid",
+		},
+		{
+			label: "Dashboard View",
+			icon: "pie-chart",
+		},
+	]
+}
 
-	let savedViews = doctypeSavedViews.value
+const getSavedViews = () => {
+	return doctypeSavedViews.value
 		.filter((view) => view.name != configName.value)
 		.map((view) => {
 			return {
@@ -237,24 +229,45 @@ const viewSwitcherOptions = computed(() => {
 				},
 			}
 		})
+}
 
-	savedViews.length &&
+const viewSwitcherOptions = computed(() => {
+	const options = []
+
+	const actions = getActions()
+	if (actions.length) {
+		options.push({
+			group: "View Actions",
+			items: actions,
+		})
+	}
+
+	options.push({
+		group: "Default Views",
+		items: getDefaultViews(),
+	})
+
+	const savedViews = getSavedViews()
+	if (savedViews.length) {
 		options.push({
 			group: "Saved Views",
 			items: savedViews,
 		})
 
-	doctypeSavedViews.value.length > 5 &&
-		options.push({
-			group: "More Views",
-			hideLabel: true,
-			items: [
-				{
-					label: "More Views",
-					onClick: () => {},
-				},
-			],
-		})
+		if (savedViews.length > 5) {
+			options.push({
+				group: "More Views",
+				hideLabel: true,
+				items: [
+					{
+						label: "More Views",
+						onClick: () => {},
+					},
+				],
+			})
+		}
+	}
+
 	return options
 })
 </script>

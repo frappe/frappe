@@ -91,7 +91,7 @@ import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue
 import { Button, FeatherIcon, Autocomplete, FormControl } from "frappe-ui"
 import { getCurrentInstance } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { linkTypes, numberTypes, stringTypes, dateTypes } from "@/stores/list_filter"
+import { linkTypes, numberTypes, stringTypes, dateTypes } from "@/data/constants/filters"
 
 const props = defineProps({
 	allFilterableFields: {
