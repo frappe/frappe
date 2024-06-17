@@ -57,9 +57,9 @@ def get_config(doctype, config_name=None, is_default=True):
 	config_dict.update({
 		"columns": frappe.parse_json(config_dict.get("columns")),
 		"filters": frappe.parse_json(config_dict.get("filters")),
-		"doctype_fields": get_doctype_fields(doctype),
-		"saved_views": get_views_for_doctype(doctype),
-		"title_field": get_title_field(doctype),
+		"fields": get_doctype_fields(doctype),
+		"views": get_views_for_doctype(doctype),
+		"titleField": get_title_field(doctype),
 	})
 
 	return config_dict
@@ -119,11 +119,14 @@ def get_link_title_field(doctype, name):
 @frappe.whitelist()
 def get_list(doctype, cols, filters, limit, start, order_by):
 	fields = [col.get("key") for col in cols] + [get_title_field(doctype)[1]]
+	list_rows = frappe.get_list(doctype, fields=fields, filters=filters, limit=limit, start=start, order_by=order_by)
+	return get_list_rows(cols, list_rows)
+	
+def get_list_rows(cols, list_rows):
 	link_fields = []
 	for field in cols:
 		if field.get("type") == "Link":
 			link_fields.append(field)
-	list_rows = frappe.get_list(doctype, fields=fields, filters=filters, limit=limit, start=start, order_by=order_by)
 	for row in list_rows:
 		for link_field in link_fields:
 			dt = link_field.get("options")

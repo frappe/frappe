@@ -127,7 +127,7 @@
 
 <script setup>
 import { isEqual } from "lodash"
-import { isDefaultConfig, isDefaultOverriden, config_name } from "@/stores/view"
+import { isDefaultConfig, isDefaultOverriden, configName } from "@/stores/view"
 import { Autocomplete, FeatherIcon, FormControl, call } from "frappe-ui"
 import { computed, ref, watch, getCurrentInstance } from "vue"
 import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
@@ -171,7 +171,7 @@ const columnsUpdated = computed(() => !isEqual(columns.value, oldColumns.value))
 
 const resetToDefault = async (close) => {
 	await call("frappe.desk.doctype.view_config.view_config.reset_default_config", {
-		config_name: config_name.value,
+		config_name: configName.value,
 	})
 	instance.parent.emit("reload")
 	close()

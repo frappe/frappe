@@ -1,27 +1,9 @@
 <template>
 	<div class="mx-5 my-4 flex h-[41rem] max-w-[1340px] flex-col gap-4">
-		<div v-if="config_settings.data" class="overflow-x-none flex w-full justify-between gap-2">
-			<Dropdown :options="viewDropdownOptions">
-				<template #default="{ open }">
-					<Button :label="config_settings.data.label">
-						<template #prefix>
-							<FeatherIcon
-								:name="config_settings.data.icon || 'list'"
-								class="h-3.5 text-gray-600"
-							/>
-						</template>
-						<template #suffix>
-							<FeatherIcon
-								:name="open ? 'chevron-up' : 'chevron-down'"
-								class="h-3.5 text-gray-600"
-							/>
-						</template>
-					</Button>
-				</template>
-			</Dropdown>
+		<div v-if="configSettings.data" class="overflow-x-none flex w-full justify-between gap-2">
+			<ViewSwitcher :queryFilters="queryFilters" />
 			<ListControls
 				v-if="listConfig.fields"
-				v-model="listConfig"
 				:options="listControlOptions"
 				@fetch="(updateCount) => fetchList(updateCount)"
 				@reload="renderList"
@@ -58,145 +40,36 @@
 		}"
 		@loadMore="handleLoadMore"
 	/>
-	<ViewActions
-		v-model="showViewActionsModal"
-		:listConfig="listConfig"
-		:queryFilters="queryFilters"
-		:mode="viewModalMode"
-	/>
 </template>
 
 <script setup>
-import { isEqual } from "lodash"
-import {
-	doctype,
-	config_name,
-	config_settings,
-	isDefaultConfig,
-	isDefaultOverriden,
-} from "@/stores/view"
-import { call, createResource, FeatherIcon, Dropdown, ListFooter } from "frappe-ui"
 import { ref, computed, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { watchDebounced } from "@vueuse/core"
 
-import { ListView } from "frappe-ui"
+import { call, createResource, ListView, ListFooter } from "frappe-ui"
+
 import ListControls from "@/components/List/ListControls.vue"
 import ListFormatter from "@/components/List/ListFormatter.vue"
-import ViewActions from "@/components/ViewActions.vue"
+import ViewSwitcher from "@/components/ViewSwitcher.vue"
+
 import { doctypesBySlug } from "@/data/permissions"
-import { watchDebounced } from "@vueuse/core"
+
+import {
+	doctype,
+	configName,
+	configSettings,
+	isDefaultConfig,
+	listConfig,
+	oldConfig,
+	configUpdated,
+} from "@/stores/view"
 
 const route = useRoute()
 const router = useRouter()
-
-const doctypeSavedViews = ref([])
-
-const viewDropdownOptions = computed(() => {
-	let options = []
-
-	if (isDefaultConfig.value)
-		configUpdated.value &&
-			options.push({
-				group: "View Actions",
-				items: [
-					{
-						label: "Save As",
-						icon: "plus",
-						onClick: () => {
-							viewModalMode.value = "Save View As"
-							showViewActionsModal.value = true
-						},
-					},
-				],
-			})
-	else {
-		configUpdated.value &&
-			options.push({
-				group: "View Actions",
-				items: [
-					{
-						label: "Save Changes",
-						icon: "save",
-						onClick: () => {
-							updateView()
-						},
-					},
-				],
-			})
-
-		options.push({
-			group: "View Actions",
-			items: [
-				{
-					label: "Rename",
-					icon: "edit-3",
-					onClick: () => {
-						viewModalMode.value = "Save"
-						showViewActionsModal.value = true
-					},
-				},
-				{
-					label: "Delete",
-					icon: "trash",
-					onClick: () => {
-						viewModalMode.value = "Delete"
-						showViewActionsModal.value = true
-					},
-				},
-			],
-		})
-	}
-
-	options.push({
-		group: "Default Views",
-		items: [
-			{
-				label: "List View",
-				icon: "list",
-				onClick: async () => {
-					await router.replace({ query: {} })
-				},
-			},
-			{
-				label: "Report View",
-				icon: "table",
-			},
-			{
-				label: "Kanban View",
-				icon: "grid",
-			},
-			{
-				label: "Dashboard View",
-				icon: "pie-chart",
-			},
-		],
-	})
-	doctypeSavedViews.value.length &&
-		options.push({
-			group: "Saved Views",
-			items: doctypeSavedViews.value.map((view) => {
-				return {
-					label: view.label,
-					icon: view.icon || "list",
-					onClick: async () => {
-						await router.replace({ query: { view: view.name } })
-					},
-				}
-			}),
-		})
-	doctypeSavedViews.value.length > 5 &&
-		options.push({
-			group: "More Views",
-			hideLabel: true,
-			items: [
-				{
-					label: "More Views",
-					onClick: () => {},
-				},
-			],
-		})
-	return options
-})
+const pageLength = ref(20)
+const rowCount = ref(20)
+const totalCount = ref(0)
 
 const listControlOptions = {
 	showColumnSettings: true,
@@ -211,32 +84,25 @@ const listOptions = {
 	rowHeight: 47,
 }
 
-const listConfig = ref({})
-const oldConfig = ref({})
-
-const configUpdated = computed(() => !isEqual(listConfig.value, oldConfig.value))
-
 // Display list based on default or saved view
 
 const renderList = async () => {
-	let view = route.query.view
-	await loadConfig(view)
-	await addViewFiltersToQueryParams(view)
+	configName.value = route.query.view
+	await loadConfig()
+	await addSavedFilters()
 	await createConfigObj()
 	await fetchList()
 }
 
-const loadConfig = async (query_config) => {
-	isDefaultConfig.value = !query_config
-	config_name.value = query_config
-	await config_settings.fetch()
-	doctypeSavedViews.value = config_settings.data.saved_views
+const loadConfig = async () => {
+	isDefaultConfig.value = configName.value == null
+	await configSettings.fetch()
 }
 
-const addViewFiltersToQueryParams = async (query_config) => {
-	if (query_config == null) return
-	let query_params = { view: query_config }
-	config_settings.data.filters?.map((f) => {
+const addSavedFilters = async () => {
+	if (isDefaultConfig.value) return
+	let query_params = { view: configName.value }
+	configSettings.data.filters?.map((f) => {
 		let fieldname = f[0]
 		if (query_params[fieldname]) query_params[fieldname].push(JSON.stringify([f[1], f[2] + ""]))
 		else query_params[fieldname] = [JSON.stringify([f[1], f[2] + ""])]
@@ -246,11 +112,9 @@ const addViewFiltersToQueryParams = async (query_config) => {
 
 const createConfigObj = async () => {
 	listConfig.value = {
-		columns: config_settings.data.columns,
-		fields: config_settings.data.doctype_fields,
+		...configSettings.data,
 		filters: currentFilters.value,
-		sort: [config_settings.data.sort_field, config_settings.data.sort_order],
-		titleField: config_settings.data.title_field,
+		sort: [configSettings.data.sort_field, configSettings.data.sort_order],
 	}
 	oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
 }
@@ -281,14 +145,11 @@ const currentSort = computed(() => [listConfig.value.sort[0], listConfig.value.s
 const querySort = computed(() => `${currentSort.value.join(" ")}`)
 
 const getFieldType = (fieldname) => {
-	return config_settings.data?.doctype_fields.find((f) => f.value === fieldname).type || ""
+	return configSettings.data?.fields.find((f) => f.value === fieldname).type || ""
 }
 
 const getSelectOptions = (fieldname) => {
-	return (
-		config_settings.data?.doctype_fields.find((f) => f.value === fieldname).options?.split("\n") ||
-		[]
-	)
+	return configSettings.data?.fields.find((f) => f.value === fieldname).options?.split("\n") || []
 }
 
 const getParsedFilter = (key, filter) => {
@@ -323,40 +184,7 @@ const queryFilters = computed(
 	() => currentFilters.value.map((f) => [f.fieldname, f.operator, f.value]) || []
 )
 
-// View Actions
-
-const cancelChanges = async () => {
-	router.push({ query: { view: route.query.view } })
-	await loadConfig(route.query.view)
-	await listResource.fetch()
-}
-
-const updateView = async () => {
-	call("frappe.desk.doctype.view_config.view_config.update_config", {
-		config_name: config_name.value,
-		config: listConfig.value,
-		filters: queryFilters.value,
-	}).then(() => {
-		oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
-	})
-}
-
-watch(
-	() => (route.params.doctype, route.query.view),
-	async () => {
-		doctype.value = doctypesBySlug[route.params.doctype]?.name
-		await renderList(doctype.value, route.query.view)
-	},
-	{ immediate: true }
-)
-
-const showViewActionsModal = ref(false)
-const viewModalMode = ref("")
-
-const pageLength = ref(20)
-const rowCount = ref(20)
-const totalCount = ref(0)
-
+// Footer actions
 const updateTotalCount = async () => {
 	totalCount.value = await call("frappe.client.get_count", {
 		doctype: doctype.value,
@@ -368,6 +196,15 @@ const handleLoadMore = async () => {
 	rowCount.value += pageLength.value
 	await fetchList()
 }
+
+watch(
+	() => (route.params.doctype, route.query.view),
+	async () => {
+		doctype.value = doctypesBySlug[route.params.doctype]?.name
+		await renderList(doctype.value, route.query.view)
+	},
+	{ immediate: true }
+)
 
 watch(
 	() => pageLength.value,
@@ -383,11 +220,12 @@ watchDebounced(
 		if (!listConfig.value.columns || !listConfig.value.sort) return
 
 		if (isDefaultConfig.value && configUpdated.value) {
-			await call("frappe.desk.doctype.view_config.view_config.update_config", {
+			let res = await call("frappe.desk.doctype.view_config.view_config.update_config", {
 				doctype: doctype.value,
 				config: listConfig.value,
-				config_name: config_name.value,
+				config_name: configName.value,
 			})
+			configName.value = res.name
 			oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
 		}
 	},
