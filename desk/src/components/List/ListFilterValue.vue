@@ -1,11 +1,5 @@
 <template>
-	<Link
-		v-if="fieldtype == 'Link'"
-		:doctype="options[0]"
-		:value="value"
-		:class="'form-control'"
-		@change="(val) => (value = val)"
-	/>
+	<Link v-if="fieldtype == 'Link'" :doctype="options[0]" v-model="value" :class="'form-control'" />
 	<DateRangePicker
 		v-else-if="dateTypes.includes(fieldtype) && operator == 'between'"
 		:value="value"
@@ -46,7 +40,7 @@ import { FormControl, DatePicker } from "frappe-ui"
 
 import DatetimePicker from "@/components/Controls/DatetimePicker.vue"
 import DateRangePicker from "@/components/Controls/DateRangePicker.vue"
-import Link from "@/components/Controls/Link.vue"
+import Link from "@/components/FormControls/Link.vue"
 
 const props = defineProps({
 	fieldtype: {
