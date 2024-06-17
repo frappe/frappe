@@ -29,10 +29,7 @@
 
 <script setup>
 import { computed, defineModel, getCurrentInstance } from "vue"
-import { Button } from "frappe-ui"
 import { Dropdown, FeatherIcon, Tooltip } from "frappe-ui"
-
-const sort = defineModel()
 
 const props = defineProps({
 	allSortableFields: {
@@ -40,6 +37,7 @@ const props = defineProps({
 		default: [],
 	},
 })
+const sort = defineModel()
 
 const sortField = computed(() => {
 	const field = props.allSortableFields.find((field) => field.key === sort.value[0])

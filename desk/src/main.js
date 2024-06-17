@@ -12,6 +12,8 @@ import Icon from "@/components/Icon.vue"
 import { session } from "@/data/session"
 import { user } from "@/data/user"
 
+import dayjs from "@/utils/dayjs"
+
 let app = createApp(App)
 
 app.use(router)
@@ -24,6 +26,7 @@ app.component("Icon", Icon)
 
 app.provide("$session", session)
 app.provide("$user", user)
+app.provide("$dayjs", dayjs)
 
 if (import.meta.env.DEV) {
 	frappeRequest({

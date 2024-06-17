@@ -1,5 +1,5 @@
 <template>
-	<div class="mx-5 my-4 flex h-[41rem] max-w-[1340px] flex-col gap-4">
+	<div class="mx-5 my-4 flex h-[42.5rem] max-w-[1340px] flex-col gap-4">
 		<div v-if="configSettings.data" class="overflow-x-none flex w-full justify-between gap-2">
 			<ViewSwitcher :queryFilters="queryFilters" />
 			<ListControls
@@ -25,14 +25,16 @@
 				/>
 			</template>
 		</ListView>
+
+		<!-- Empty State -->
 		<div v-else class="my-4 flex h-full flex-col items-center justify-center gap-4">
 			<span class="text-xl font-semibold">No records found</span>
-			<Button variant="solid" size="md" :label="'Create New ' + doctype" />
+			<Button variant="solid" size="md" :label="`Create New ${doctype}`" />
 		</div>
 	</div>
 
 	<ListFooter
-		class="border-t px-5 py-2"
+		class="border-t px-5 py-2.5"
 		v-model="pageLength"
 		:options="{
 			rowCount: listResource.data?.length,
@@ -119,13 +121,13 @@ const createConfigObj = async () => {
 	oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
 }
 
-const fetchList = async (updateCount) => {
+const fetchList = async (updateCount = true) => {
 	if (updateCount) await updateTotalCount()
 	await listResource.fetch()
 }
 
 const listResource = createResource({
-	url: `frappe.desk.doctype.view_config.view_config.get_list`,
+	url: "frappe.desk.doctype.view_config.view_config.get_list",
 	makeParams() {
 		return {
 			doctype: doctype.value,

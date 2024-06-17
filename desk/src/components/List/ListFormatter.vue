@@ -23,13 +23,7 @@
 			size="md"
 			:label="item ? 'Enabled' : 'Disabled'"
 		></Badge>
-		<Badge
-			v-else
-			:variant="'outline'"
-			:theme="guess_colour(item, (_colour = true))"
-			size="md"
-			:label="item"
-		></Badge>
+		<Badge v-else :variant="'outline'" :theme="guessColour(item)" size="md" :label="item"></Badge>
 	</template>
 	<Badge
 		v-else-if="column.key == 'disabled'"
@@ -59,11 +53,9 @@
 </template>
 
 <script setup>
-import { onBeforeMount } from "vue"
-import { guess_colour } from "@/utils/list_formatters"
+import { inject } from "vue"
+import { guessColour } from "@/utils/listFormatters"
 import { Badge, Checkbox, Avatar } from "frappe-ui"
-import dayjs from "dayjs"
-import relativeTime from "dayjs/plugin/relativeTime"
 
 const props = defineProps({
 	row: {
@@ -84,7 +76,5 @@ const props = defineProps({
 	},
 })
 
-onBeforeMount(() => {
-	dayjs.extend(relativeTime)
-})
+const dayjs = inject("$dayjs")
 </script>
