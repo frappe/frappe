@@ -1,30 +1,30 @@
 <template>
-	<Link v-if="fieldtype == 'Link'" :doctype="options[0]" v-model="value" :class="'form-control'" />
+	<Link
+		v-if="fieldtype == 'Link'"
+		:doctype="options[0]"
+		v-model="modelValue"
+		:class="'form-control'"
+	/>
 	<DateRangePicker
 		v-else-if="dateTypes.includes(fieldtype) && operator == 'between'"
-		:value="value"
-		@change="(range) => (value = range)"
+		v-model="modelValue"
 	/>
-	<DatePicker v-else-if="fieldtype == 'Date'" :value="value" @change="(date) => (value = date)" />
-	<DatetimePicker
-		v-else-if="fieldtype == 'Datetime'"
-		:value="value"
-		@change="(date) => (value = date)"
-	/>
+	<DatePicker v-else-if="fieldtype == 'Date'" v-model="modelValue" />
+	<DateTimePicker v-else-if="fieldtype == 'Datetime'" v-model="modelValue" />
 	<FormControl
 		v-else-if="['is', 'timespan'].includes(operator)"
 		type="select"
 		:options="optionsList[operator]"
-		v-model="value"
+		v-model="modelValue"
 	/>
 	<FormControl
 		v-else-if="['Check', 'Select'].includes(fieldtype)"
 		type="select"
 		:options="optionsList[fieldtype]"
-		v-model="value"
+		v-model="modelValue"
 	/>
-	<FormControl v-else-if="numberTypes.includes(fieldtype)" type="number" v-model="value" />
-	<FormControl v-else type="text" v-model="value" />
+	<FormControl v-else-if="numberTypes.includes(fieldtype)" type="number" v-model="modelValue" />
+	<FormControl v-else type="text" v-model="modelValue" />
 </template>
 
 <script setup>
@@ -35,11 +35,8 @@ import {
 	checkOptionsList,
 	isOptionsList,
 } from "@/stores/list_filter"
-import { ref, watch } from "vue"
-import { FormControl, DatePicker } from "frappe-ui"
+import { FormControl, DatePicker, DateTimePicker, DateRangePicker } from "frappe-ui"
 
-import DatetimePicker from "@/components/Controls/DatetimePicker.vue"
-import DateRangePicker from "@/components/Controls/DateRangePicker.vue"
 import Link from "@/components/FormControls/Link.vue"
 
 const props = defineProps({
@@ -51,23 +48,17 @@ const props = defineProps({
 		type: String,
 		required: true,
 	},
-	value: {
-		type: String,
-		required: true,
-	},
 	options: {
-		type: [Array],
+		type: Array,
 		required: true,
 	},
 })
 
-const value = ref(props.value)
-
-const emit = defineEmits(["update"])
-
-watch(value, (value) => {
-	emit("update", value)
+const modelValue = defineModel("modelValue", {
+	type: String,
+	default: "",
 })
+
 const optionsList = {
 	timespan: timespanOptionsList,
 	is: isOptionsList,

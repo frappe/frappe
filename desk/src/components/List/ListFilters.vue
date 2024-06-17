@@ -37,15 +37,13 @@
 							@update:model-value="(option) => updateOperator(option, i)"
 						/>
 					</div>
-					<!-- Added :key to correctly re-render dynamic child component -->
 					<div class="w-[10rem]">
 						<ListFilterValue
 							:fieldtype="fieldtype"
 							:operator="operator"
-							:value="value"
+							v-model="filters[i].value"
 							:options="options"
-							@update="(val) => updateValue(val, i)"
-							:key="fieldname"
+							@change="(val) => updateValue(val, operator, i)"
 						/>
 					</div>
 					<button icon="x" @click="removeFilter(i)">
@@ -190,7 +188,7 @@ const getOperators = (index) => {
 	if (dateTypes.includes(fieldtype)) {
 		options.push(
 			...[
-				{ label: "Is", value: "is" },
+				{ label: "Equals", value: "=" },
 				{ label: ">", value: ">" },
 				{ label: "<", value: "<" },
 				{ label: ">=", value: ">=" },
@@ -250,9 +248,12 @@ const updateOperator = (option, index) => {
 	filters.value[index] = { ...filters.value[index], operator: option, value: "" }
 }
 
-const updateValue = (value, index) => {
+const updateValue = (value, operator, index) => {
 	let filter = filters.value[index]
 	let val = value.target ? value.target.value : value
+	if (operator === "between") {
+		val = val.split(",").map((v) => v.trim())
+	}
 	filter.value = val
 	updateFiltersInQuery()
 }
