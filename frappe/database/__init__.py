@@ -111,6 +111,7 @@ def get_command(
 					"--single-transaction",
 					"--quick",
 					"--lock-tables=false",
+					"--routines",
 				]
 			)
 		else:
