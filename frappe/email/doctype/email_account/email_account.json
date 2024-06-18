@@ -32,8 +32,11 @@
   "login_id_is_different",
   "login_id",
   "incoming_popimap_tab",
-  "mailbox_settings",
+  "section_break_uc6h",
   "default_incoming",
+  "column_break_uynb",
+  "attachment_limit",
+  "mailbox_settings",
   "use_imap",
   "use_ssl",
   "validate_ssl_certificate",
@@ -41,7 +44,6 @@
   "email_server",
   "incoming_port",
   "column_break_18",
-  "attachment_limit",
   "email_sync_option",
   "initial_sync_count",
   "section_break_25",
@@ -169,6 +171,7 @@
    "options": "\nFrappe Mail\nGMail\nSendgrid\nSparkPost\nYahoo Mail\nOutlook.com\nYandex.Mail"
   },
   {
+   "depends_on": "eval: doc.service != \"Frappe Mail\"",
    "fieldname": "mailbox_settings",
    "fieldtype": "Section Break",
    "hide_days": 1,
@@ -630,7 +633,7 @@
    "depends_on": "enable_incoming",
    "fieldname": "incoming_popimap_tab",
    "fieldtype": "Tab Break",
-   "label": "Incoming (POP/IMAP)"
+   "label": "Incoming"
   },
   {
    "fieldname": "api_key",
@@ -679,12 +682,20 @@
   {
    "fieldname": "column_break_h5pd",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_uc6h",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_uynb",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-06-11 16:54:22.255325",
+ "modified": "2024-06-18 19:24:11.767869",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

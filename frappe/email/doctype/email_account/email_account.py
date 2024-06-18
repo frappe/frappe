@@ -12,6 +12,7 @@ import frappe
 from frappe import _, are_emails_muted, safe_encode
 from frappe.desk.form import assign_to
 from frappe.email.doctype.email_domain.email_domain import EMAIL_DOMAIN_FIELDS
+from frappe.email.frappemail import FrappeMail
 from frappe.email.receive import EmailServer, InboundMail, SentEmailInInboxError
 from frappe.email.smtp import SMTPServer
 from frappe.email.utils import get_port
@@ -132,6 +133,9 @@ class EmailAccount(Document):
 
 		if self.email_id:
 			validate_email_address(self.email_id, True)
+
+		if self.service == "Frappe Mail" and self.use_imap:
+			self.use_imap = 0
 
 		if self.login_id_is_different:
 			if not self.login_id:
@@ -595,25 +599,34 @@ class EmailAccount(Document):
 		if not self.enable_incoming:
 			return []
 
-		email_sync_rule = self.build_email_sync_rule()
 		try:
-			email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
-			if self.use_imap:
-				# process all given imap folder
-				for folder in self.imap_folder:
-					if email_server.select_imap_folder(folder.folder_name):
-						email_server.settings["uid_validity"] = folder.uidvalidity
-						messages = email_server.get_messages(folder=f'"{folder.folder_name}"') or {}
-						process_mail(messages, folder.append_to)
-			else:
-				# process the pop3 account
-				messages = email_server.get_messages() or {}
+			if self.service == "Frappe Mail":
+				fm_client = FrappeMail(
+					self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret")
+				)
+				messages = fm_client.pull(self.email_id)
 				process_mail(messages)
-			# close connection to mailserver
-			email_server.logout()
+			else:
+				email_sync_rule = self.build_email_sync_rule()
+				email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)
+				if self.use_imap:
+					# process all given imap folder
+					for folder in self.imap_folder:
+						if email_server.select_imap_folder(folder.folder_name):
+							email_server.settings["uid_validity"] = folder.uidvalidity
+							messages = email_server.get_messages(folder=f'"{folder.folder_name}"') or {}
+							process_mail(messages, folder.append_to)
+				else:
+					# process the pop3 account
+					messages = email_server.get_messages() or {}
+					process_mail(messages)
+
+				# close connection to mailserver
+				email_server.logout()
 		except Exception:
 			self.log_error(title=_("Error while connecting to email account {0}").format(self.name))
 			return []
+
 		return mails
 
 	def handle_bad_emails(self, uid, raw, reason):

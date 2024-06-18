@@ -7,7 +7,6 @@ import traceback
 from contextlib import suppress
 from email.parser import Parser
 from email.policy import SMTP
-from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _, safe_encode, task
@@ -15,9 +14,9 @@ from frappe.core.utils import html2text
 from frappe.database.database import savepoint
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
+from frappe.email.frappemail import FrappeMail
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
 from frappe.email.smtp import SMTPServer
-from frappe.frappeclient import FrappeClient
 from frappe.model.document import Document
 from frappe.query_builder import DocType, Interval
 from frappe.query_builder.functions import Now
@@ -35,9 +34,6 @@ from frappe.utils import (
 )
 from frappe.utils.deprecations import deprecated
 from frappe.utils.verified_command import get_signed_params
-
-if TYPE_CHECKING:
-	from requests import Response
 
 
 class EmailQueue(Document):
@@ -175,7 +171,7 @@ class EmailQueue(Document):
 					method(self, self.sender, recipient.recipient, message)
 				elif not frappe.flags.in_test or frappe.flags.testing_email:
 					if ctx.email_account_doc.service == "Frappe Mail":
-						ctx.frappe_mail.send(
+						ctx.fm_client.send(
 							sender=self.sender,
 							recipients=recipient.recipient,
 							message=message.decode("utf-8"),
@@ -253,7 +249,12 @@ class SendMailContext:
 		self.email_account_doc = self.queue_doc.get_email_account(raise_error=True)
 
 		if self.email_account_doc.service == "Frappe Mail":
-			self.frappe_mail = FrappeMail(self.email_account_doc)
+			site = self.email_account_doc.frappe_mail_site
+			mailbox = self.email_account_doc.email_id
+			api_key = self.email_account_doc.api_key
+			api_secret = self.email_account_doc.get_password("api_secret")
+			self.fm_client = FrappeMail(site, mailbox, api_key, api_secret)
+
 		elif not self.smtp_server:
 			self.smtp_server = self.email_account_doc.get_smtp_server()
 
@@ -816,46 +817,3 @@ class QueueBuilder:
 			d["recipients"] = self.final_recipients()
 
 		return d
-
-
-class FrappeMail:
-	def __init__(self, email_account: "EmailAccount") -> None:
-		self.client = self.get_client(email_account)
-		self.frappe_mail_site = email_account.frappe_mail_site
-
-	@staticmethod
-	def get_client(email_account: "EmailAccount") -> FrappeClient:
-		"""Returns FrappeClient object for the given email account."""
-
-		if hasattr(frappe.local, "frappe_mail_clients"):
-			if client := frappe.local.frappe_mail_clients.get(email_account.name):
-				return client
-		else:
-			frappe.local.frappe_mail_clients = {}
-
-		url = email_account.frappe_mail_site
-		api_key = email_account.api_key
-		api_secret = email_account.get_password("api_secret")
-
-		client = FrappeClient(url, api_key=api_key, api_secret=api_secret)
-		frappe.local.frappe_mail_clients[email_account.name] = client
-
-		return client
-
-	def request(
-		self,
-		method: str,
-		endpoint: str,
-		data: dict | None = None,
-		timeout: int | tuple[int, int] = (60, 120),
-	) -> "Response":
-		url = f"{self.frappe_mail_site}/{endpoint}"
-		response = self.client.session.request(
-			method=method, url=url, headers=self.client.headers, json=data, timeout=timeout
-		)
-		return response
-
-	def send(self, sender: str, recipients: str, message: str):
-		endpoint = "outbound/send-raw"
-		data = {"from": sender, "to": recipients, "raw_message": message}
-		self.request("POST", endpoint, data)
