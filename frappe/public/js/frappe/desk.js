@@ -489,7 +489,7 @@ frappe.Application = class Application {
 		$(document.activeElement).blur();
 		// wait for possible JS validations triggered after blur (it might change primary button)
 		setTimeout(() => {
-			if (window.cur_dialog && cur_dialog.display) {
+			if (window.cur_dialog && cur_dialog.display && !cur_dialog.is_minimized) {
 				// trigger primary
 				cur_dialog.get_primary_btn().trigger("click");
 			} else if (cur_frm && cur_frm.page.btn_primary.is(":visible")) {
