@@ -3,6 +3,7 @@
 import frappe
 from frappe import _
 from frappe.contacts.address_and_contact import set_link_title
+from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -211,7 +212,10 @@ class Contact(Document):
 def download_vcard(contact: str):
 	"""Download vCard for the contact"""
 	contact = frappe.get_doc("Contact", contact)
+	contact.check_permission()
+
 	vcard = contact.get_vcard()
+	make_access_log(doctype="Contact", document=contact.name, file_type="vcf")
 
 	frappe.response["filename"] = f"{contact.name}.vcf"
 	frappe.response["filecontent"] = vcard.serialize().encode("utf-8")
@@ -223,11 +227,18 @@ def download_vcards(contacts: str):
 	"""Download vCard for the contact"""
 	from frappe.utils.data import now
 
+	contact_ids = frappe.parse_json(contacts)
+
 	vcards = []
-	for contact_id in frappe.parse_json(contacts):
+	for contact_id in contact_ids:
 		contact = frappe.get_doc("Contact", contact_id)
+		contact.check_permission()
 		vcard = contact.get_vcard()
 		vcards.append(vcard.serialize())
+
+	# Separate loop in order to avoid access logs for errored exports
+	for contact_id in contact_ids:
+		make_access_log(doctype="Contact", document=contact_id, file_type="vcf")
 
 	timestamp = now()[:19]  # remove milliseconds
 
