@@ -469,7 +469,11 @@ def get_workspace_sidebar_items():
 		pages = [frappe.get_doc("Workspace", "Welcome Workspace").as_dict()]
 		pages[0]["label"] = _("Welcome Workspace")
 
-	return {"pages": pages, "has_access": has_access}
+	return {
+		"pages": pages,
+		"has_access": has_access,
+		"has_create_access": frappe.has_permission(doctype="Workspace", ptype="create"),
+	}
 
 
 def get_table_with_counts():
