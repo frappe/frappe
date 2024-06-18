@@ -159,8 +159,8 @@ const getParsedFilter = (key, filter) => {
 	return {
 		fieldname: key,
 		fieldtype: getFieldType(key),
-		operator: f[0],
-		value: f[1],
+		operator: f.constructor === Array ? f[0] : "=",
+		value: f.constructor === Array ? f[1] : f,
 		options: getSelectOptions(key),
 	}
 }
@@ -171,12 +171,11 @@ const currentFilters = computed(() => {
 		for (let key in route.query) {
 			if (key == "view") continue
 
-			if (typeof route.query[key] == "string") filters.push(getParsedFilter(key, route.query[key]))
-			else {
+			if (route.query[key].constructor === Array) {
 				route.query[key].forEach((v) => {
 					filters.push(getParsedFilter(key, v))
 				})
-			}
+			} else filters.push(getParsedFilter(key, route.query[key]))
 		}
 	}
 	return filters

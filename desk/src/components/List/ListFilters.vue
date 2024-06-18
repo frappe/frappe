@@ -14,6 +14,7 @@
 				</template>
 			</Button>
 		</template>
+
 		<template #body="{ close }">
 			<div class="rounded-lg border border-gray-100 bg-white p-4 shadow-xl">
 				<div
@@ -50,7 +51,10 @@
 						<FeatherIcon name="x" class="h-3.5" />
 					</button>
 				</div>
+
 				<div v-else class="my-3 min-w-[30rem] pl-3 text-sm text-gray-500">No filters added.</div>
+
+				<!-- Filter Actions -->
 				<div class="flex items-center justify-between gap-2">
 					<Autocomplete
 						:body-classes="'w-[29rem]'"
@@ -108,8 +112,6 @@ const props = defineProps({
 
 const filters = defineModel()
 
-// Set up operator options for different fieldtypes
-
 const getOperators = (index) => {
 	let f = filters.value[index]
 	let fieldtype = f.fieldtype
@@ -128,8 +130,6 @@ const getOperators = (index) => {
 
 	return []
 }
-
-// Filter Operations
 
 const addFilter = (field) => {
 	filters.value.push({
@@ -151,8 +151,6 @@ const clearFilters = (close) => {
 	updateFiltersInQuery()
 	close
 }
-
-// Update filter options on change of filter field
 
 const updateField = (field, index) => {
 	filters.value[index] = {
@@ -178,8 +176,6 @@ const updateValue = (value, operator, index) => {
 	updateFiltersInQuery()
 }
 
-// Update filters in query params
-
 const route = useRoute()
 const router = useRouter()
 const instance = getCurrentInstance()
@@ -188,18 +184,20 @@ const updateFiltersInQuery = async () => {
 	let q = { view: route.query.view }
 	filters.value.map((f) => {
 		let fieldname = f.fieldname
-		let value = JSON.stringify([f.operator, getFilterValue(f)])
-		if (q[fieldname]) q[fieldname].push(value)
-		else q[fieldname] = [value]
+		if (f.operator == "=") {
+			if (q[fieldname]) {
+				q[fieldname] = [q[fieldname], JSON.stringify(getFilterValue(f))]
+			} else q[fieldname] = JSON.stringify(getFilterValue(f))
+		} else {
+			let value = JSON.stringify([f.operator, getFilterValue(f)])
+			if (q[fieldname]) q[fieldname].push(value)
+			else q[fieldname] = [value]
+		}
 	})
 	await router.replace({ query: q })
 	instance.parent.emit("fetch", { updateCount: true })
 }
 
-const getFilterValue = (filter) => {
-	if (filter.fieldtype == "Check") {
-		return filter.value == "true"
-	}
-	return filter.value
-}
+const getFilterValue = (filter) =>
+	filter.fieldtype == "Check" ? filter.value == "true" : filter.value
 </script>
