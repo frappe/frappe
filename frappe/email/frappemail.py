@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from urllib.parse import urljoin
 
 import frappe
 from frappe.frappeclient import FrappeClient
@@ -24,7 +25,7 @@ class FrappeMail:
 		self.client = self.get_client(site, mailbox, api_key, api_secret)
 
 	@staticmethod
-	def get_client(site: str, mailbox: str, api_key: str, api_secret: str) -> FrappeClient:
+	def get_client(site: str, mailbox: str, api_key: str, api_secret: str) -> "FrappeClient":
 		"""Returns FrappeClient object for the given email account."""
 
 		if hasattr(frappe.local, "frappe_mail_clients"):
@@ -51,7 +52,7 @@ class FrappeMail:
 	) -> "Response":
 		"""Makes a HTTP request to the Frappe Mail API."""
 
-		url = f"{self.site}/{endpoint}"
+		url = urljoin(self.site, endpoint)
 		headers = headers or {}
 		headers.update(self.client.headers)
 		response = self.client.session.request(
