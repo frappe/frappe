@@ -7,6 +7,15 @@ if TYPE_CHECKING:
 	from requests import Response
 
 
+class FrappeMailException(Exception):
+	"""Exception raised for errors in the Frappe Mail API."""
+
+	def __init__(self, message: str, status_code: int) -> None:
+		self.message = message
+		self.status_code = status_code
+		super().__init__(message)
+
+
 class FrappeMail:
 	"""Class to interact with the Frappe Mail API."""
 
@@ -38,6 +47,7 @@ class FrappeMail:
 		json: dict | None = None,
 		headers: dict[str, str] | None = None,
 		timeout: int | tuple[int, int] = (60, 120),
+		raise_exception: bool = True,
 	) -> "Response":
 		"""Makes a HTTP request to the Frappe Mail API."""
 
@@ -47,6 +57,10 @@ class FrappeMail:
 		response = self.client.session.request(
 			method=method, url=url, params=params, data=data, json=json, headers=headers, timeout=timeout
 		)
+
+		if not response.ok and raise_exception:
+			raise FrappeMailException(response.text, response.status_code)
+
 		return response
 
 	def send(self, sender: str, recipients: str, message: str) -> None:
