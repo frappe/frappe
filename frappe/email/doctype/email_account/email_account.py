@@ -135,8 +135,14 @@ class EmailAccount(Document):
 		if self.email_id:
 			validate_email_address(self.email_id, True)
 
-		if self.service == "Frappe Mail" and self.use_imap:
-			self.use_imap = 0
+		if self.service == "Frappe Mail":
+			if self.use_imap:
+				self.use_imap = 0
+
+			fm_client = FrappeMail(
+				self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret")
+			)
+			fm_client.validate(for_inbound=self.enable_incoming, for_outbound=self.enable_outgoing)
 
 		if self.login_id_is_different:
 			if not self.login_id:
@@ -605,7 +611,7 @@ class EmailAccount(Document):
 				fm_client = FrappeMail(
 					self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret")
 				)
-				messages = fm_client.pull(self.email_id, last_synced_at=self.last_synced_at)
+				messages = fm_client.pull(last_synced_at=self.last_synced_at)
 				process_mail(messages)
 				self.db_set("last_synced_at", messages["last_synced_at"], update_modified=False)
 			else:

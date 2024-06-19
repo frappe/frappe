@@ -22,11 +22,12 @@ class FrappeMail:
 
 	def __init__(self, site: str, mailbox: str, api_key: str, api_secret: str) -> None:
 		self.site = site
+		self.mailbox = mailbox
 		self.client = self.get_client(site, mailbox, api_key, api_secret)
 
 	@staticmethod
 	def get_client(site: str, mailbox: str, api_key: str, api_secret: str) -> "FrappeClient":
-		"""Returns FrappeClient object for the given email account."""
+		"""Returns a FrappeClient instance."""
 
 		if hasattr(frappe.local, "frappe_mail_clients"):
 			if client := frappe.local.frappe_mail_clients.get(mailbox):
@@ -64,6 +65,20 @@ class FrappeMail:
 
 		return response
 
+	def validate(self, for_outbound: bool = False, for_inbound: bool = False) -> None:
+		"""Validates the mailbox for inbound and outbound emails."""
+
+		endpoint = "auth/validate"
+		data = {"mailbox": self.mailbox, "for_outbound": for_outbound, "for_inbound": for_inbound}
+		response = self.request("POST", endpoint=endpoint, data=data, raise_exception=False)
+
+		if not response.ok:
+			if exception := response.json().get("exception"):
+				if exception == "frappe.exceptions.AuthenticationError":
+					exception += ": Invalid API Key or Secret"
+
+				frappe.throw(title="Frappe Mail", msg=exception)
+
 	def send(self, sender: str, recipients: str, message: str) -> None:
 		"""Sends an email using the Frappe Mail API."""
 
@@ -71,13 +86,11 @@ class FrappeMail:
 		json_data = {"from": sender, "to": recipients, "raw_message": message}
 		self.request("POST", endpoint=endpoint, json=json_data)
 
-	def pull(
-		self, mailbox: str, limit: int = 50, last_synced_at: str | None = None
-	) -> dict[str, list[str] | str]:
-		"""Returns the emails for the given mailbox."""
+	def pull(self, limit: int = 50, last_synced_at: str | None = None) -> dict[str, list[str] | str]:
+		"""Pulls emails from the mailbox using the Frappe Mail API."""
 
 		endpoint = "inbound/pull"
-		data = {"mailbox": mailbox, "limit": limit, "last_synced_at": last_synced_at}
+		data = {"mailbox": self.mailbox, "limit": limit, "last_synced_at": last_synced_at}
 		headers = {"X-Site": frappe.utils.get_url()}
 		response = self.request("GET", endpoint=endpoint, data=data, headers=headers).json()["message"]
 
