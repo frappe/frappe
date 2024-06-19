@@ -14,20 +14,20 @@ import git
 import requests
 
 import frappe
-from frappe.utils.change_log import get_app_branch
 from frappe.utils.boilerplate_templates import (
 	PATCH_TEMPLATE,
-	init_template,
-	pyproject_template,
-	hooks_template,
-	gitignore_template,
 	github_workflow_template,
+	gitignore_template,
+	hooks_template,
+	init_template,
+	linter_workflow_template,
 	patches_template,
 	precommit_template,
-	linter_workflow_template,
-	readme_template,
+	pyproject_template,
 	readme_ci_section,
+	readme_template,
 )
+from frappe.utils.change_log import get_app_branch
 
 APP_TITLE_PATTERN = re.compile(r"^(?![\W])[^\d_\s][\w -]+$", flags=re.UNICODE)
 
