@@ -1222,7 +1222,7 @@ def get_enabled_users():
 		enabled_users = frappe.get_all("User", filters={"enabled": "1"}, pluck="name")
 		return enabled_users
 
-	return frappe.cache.get_value("enabled_users", _get_enabled_users)
+	return frappe.cache().get_value("enabled_users", _get_enabled_users)
 
 
 @frappe.whitelist(methods=["POST"])

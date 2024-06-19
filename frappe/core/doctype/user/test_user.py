@@ -6,8 +6,6 @@ from contextlib import contextmanager
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
-from werkzeug.http import parse_cookie
-
 import frappe
 import frappe.exceptions
 from frappe.core.doctype.user.user import (
@@ -462,7 +460,7 @@ class TestUser(FrappeTestCase):
 
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
-		with test_user(roles=["System Manager"]) as user:
+		with test_user(roles=["System Manager"], commit=True) as user:
 			self.post(
 				"/api/method/frappe.core.doctype.user.user.impersonate",
 				{"user": user.name, "reason": "test", "sid": self.sid},
@@ -478,7 +476,7 @@ def test_user(
 	try:
 		first_name = first_name or frappe.generate_hash()
 		email = email or (first_name + "@example.com")
-		user = frappe.get_doc(
+		user: User = frappe.get_doc(
 			doctype="User",
 			send_welcome_email=0,
 			email=email,
