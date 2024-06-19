@@ -1,12 +1,14 @@
 import { computed } from "vue"
+import { RouteLocationNormalized } from "vue-router"
 import { workspacesBySlug, doctypesBySlug, modulesBySlug, reportsBySlug } from "@/data/permissions"
 
-export function useBreadcrumbs(route) {
+import { Breadcrumb } from "@/types"
+
+export function useBreadcrumbs(route: RouteLocationNormalized) {
 	const breadcrumbs = computed(() => {
 		if (route.name === "Home") return []
 
-		const items = [{ label: "Home", route: { name: "Home" } }]
-
+		const items: Breadcrumb[] = [{ label: "Home", route: { name: "Home" } }]
 		switch (route.name) {
 			case "Workspace":
 				setWorkspaceBreadcrumb(items)
@@ -31,7 +33,7 @@ export function useBreadcrumbs(route) {
 		return items
 	})
 
-	function setModuleBreadcrumb(items, module = "") {
+	function setModuleBreadcrumb(items: Breadcrumb[], module: string = "") {
 		const moduleName = module || modulesBySlug[route.params.module]
 		items.push({
 			label: moduleName,
@@ -44,7 +46,7 @@ export function useBreadcrumbs(route) {
 		})
 	}
 
-	function setWorkspaceBreadcrumb(items) {
+	function setWorkspaceBreadcrumb(items: Breadcrumb[]) {
 		const workspace = workspacesBySlug[route.params.workspace]
 		setModuleBreadcrumb(items, workspace.module)
 
@@ -59,7 +61,7 @@ export function useBreadcrumbs(route) {
 		})
 	}
 
-	function setListBreadcrumb(items) {
+	function setListBreadcrumb(items: Breadcrumb[]) {
 		const doctype = doctypesBySlug[route.params.doctype]
 		setModuleBreadcrumb(items, doctype.module)
 
@@ -74,7 +76,7 @@ export function useBreadcrumbs(route) {
 		})
 	}
 
-	function setFormBreadcrumb(items) {
+	function setFormBreadcrumb(items: Breadcrumb[]) {
 		setListBreadcrumb(items)
 		items.push({
 			label: route.params.id,
@@ -88,7 +90,7 @@ export function useBreadcrumbs(route) {
 		})
 	}
 
-	function setReportBreadcrumb(items) {
+	function setReportBreadcrumb(items: Breadcrumb[]) {
 		const report = reportsBySlug[route.params.id]
 		setModuleBreadcrumb(items)
 
