@@ -36,6 +36,7 @@
   "default_incoming",
   "column_break_uynb",
   "attachment_limit",
+  "last_synced_at",
   "mailbox_settings",
   "use_imap",
   "use_ssl",
@@ -690,12 +691,19 @@
   {
    "fieldname": "column_break_uynb",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.service == \"Frappe Mail\"",
+   "fieldname": "last_synced_at",
+   "fieldtype": "Datetime",
+   "label": "Last Synced At",
+   "read_only": 1
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-06-18 19:24:11.767869",
+ "modified": "2024-06-19 11:50:56.886640",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

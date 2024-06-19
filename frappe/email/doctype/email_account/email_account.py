@@ -91,6 +91,7 @@ class EmailAccount(Document):
 		imap_folder: DF.Table[IMAPFolder]
 		incoming_port: DF.Data | None
 		initial_sync_count: DF.Literal["100", "250", "500"]
+		last_synced_at: DF.Datetime | None
 		login_id: DF.Data | None
 		login_id_is_different: DF.Check
 		no_failed: DF.Int
@@ -604,8 +605,9 @@ class EmailAccount(Document):
 				fm_client = FrappeMail(
 					self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret")
 				)
-				messages = fm_client.pull(self.email_id)
+				messages = fm_client.pull(self.email_id, last_synced_at=self.last_synced_at)
 				process_mail(messages)
+				self.db_set("last_synced_at", messages["last_synced_at"], update_modified=False)
 			else:
 				email_sync_rule = self.build_email_sync_rule()
 				email_server = self.get_incoming_server(in_receive=True, email_sync_rule=email_sync_rule)

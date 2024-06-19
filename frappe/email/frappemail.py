@@ -56,12 +56,14 @@ class FrappeMail:
 		json_data = {"from": sender, "to": recipients, "raw_message": message}
 		self.request("POST", endpoint=endpoint, json=json_data)
 
-	def pull(self, mailbox: str, limit: int = 50) -> dict[str, list]:
+	def pull(
+		self, mailbox: str, limit: int = 50, last_synced_at: str | None = None
+	) -> dict[str, list[str] | str]:
 		"""Returns the emails for the given mailbox."""
 
 		endpoint = "inbound/pull"
-		data = {"mailbox": mailbox, "limit": limit}
+		data = {"mailbox": mailbox, "limit": limit, "last_synced_at": last_synced_at}
 		headers = {"X-Site": frappe.utils.get_url()}
-		response = self.request("GET", endpoint=endpoint, data=data, headers=headers)
+		response = self.request("GET", endpoint=endpoint, data=data, headers=headers).json()["message"]
 
-		return {"latest_messages": response.json().get("message", [])}
+		return {"latest_messages": response["mails"], "last_synced_at": response["last_synced_at"]}
