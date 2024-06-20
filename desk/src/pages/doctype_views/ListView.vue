@@ -106,10 +106,13 @@ const addSavedFilters = async () => {
 	let query_params = { view: configName.value }
 	configSettings.data.filters?.map((f) => {
 		let fieldname = f[0]
-		if (query_params[fieldname]) query_params[fieldname].push(JSON.stringify([f[1], f[2] + ""]))
-		else query_params[fieldname] = [JSON.stringify([f[1], f[2] + ""])]
+		if (query_params[fieldname]) {
+			query_params[fieldname].push(JSON.stringify([f[1], f[2]]))
+		} else {
+			query_params[fieldname] = [JSON.stringify([f[1], f[2]])]
+		}
 	})
-	await router.push({ query: query_params })
+	await router.replace({ query: query_params })
 }
 
 const createConfigObj = async () => {
