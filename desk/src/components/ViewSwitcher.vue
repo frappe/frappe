@@ -83,6 +83,7 @@
 import { useRoute, useRouter } from "vue-router"
 import { ref, computed } from "vue"
 import { call, createResource, Dropdown, Dialog, ErrorMessage } from "frappe-ui"
+import { cloneObject } from "@/utils"
 
 import {
 	configName,
@@ -153,7 +154,7 @@ const updateView = async () => {
 		config: listConfig.value,
 		filters: props.queryFilters,
 	}).then(() => {
-		oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
+		oldConfig.value = cloneObject(listConfig.value)
 	})
 }
 

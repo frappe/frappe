@@ -118,6 +118,7 @@ import { isDefaultConfig, isDefaultOverriden, configName } from "@/stores/view"
 import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
 
 import IconReset from "@/components/Icons/IconReset.vue"
+import { cloneObject } from "@/utils"
 
 const instance = getCurrentInstance()
 
@@ -144,7 +145,7 @@ watch(
 	columns.value,
 	(cols) => {
 		if (!cols) return
-		oldColumns.value = JSON.parse(JSON.stringify(cols))
+		oldColumns.value = cloneObject(cols)
 	},
 	{ once: true, immediate: true }
 )

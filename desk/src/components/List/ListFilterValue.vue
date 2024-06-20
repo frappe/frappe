@@ -15,7 +15,7 @@
 	<FormControl
 		v-else-if="['Check', 'Select'].includes(fieldtype)"
 		type="select"
-		:options="options.length ? options : filterOptions[fieldtype.toLowerCase()]"
+		:options="filterOptions[fieldtype.toLowerCase()] || options"
 		v-model="modelValue"
 	/>
 	<FormControl v-else-if="numberTypes.includes(fieldtype)" type="number" v-model="modelValue" />

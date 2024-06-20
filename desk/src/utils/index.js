@@ -8,3 +8,7 @@ export function getRandom(len) {
 
 	return text
 }
+
+export function cloneObject(obj) {
+	return JSON.parse(JSON.stringify(obj))
+}

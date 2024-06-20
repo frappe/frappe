@@ -1,5 +1,5 @@
 <template>
-	<div class="mx-5 my-4 flex h-[42.5rem] flex-col gap-4">
+	<div class="mx-5 my-4 flex h-[41rem] flex-col gap-4">
 		<div v-if="configSettings.data" class="overflow-x-none flex w-full justify-between gap-2">
 			<ViewSwitcher :queryFilters="queryFilters" />
 			<ListControls
@@ -56,6 +56,8 @@ import ListFormatter from "@/components/List/ListFormatter.vue"
 import ViewSwitcher from "@/components/ViewSwitcher.vue"
 
 import { doctypesBySlug } from "@/data/permissions"
+import { cloneObject } from "@/utils"
+import { getFilterQuery } from "@/utils/list"
 
 import {
 	doctype,
@@ -66,7 +68,6 @@ import {
 	oldConfig,
 	configUpdated,
 } from "@/stores/view"
-import { getFilterQuery } from "@/utils/list"
 
 const route = useRoute()
 const router = useRouter()
@@ -122,7 +123,7 @@ const createConfigObj = async () => {
 		filters: currentFilters.value,
 		sort: [configSettings.data.sort_field, configSettings.data.sort_order],
 	}
-	oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
+	oldConfig.value = cloneObject(listConfig.value)
 }
 
 const fetchList = async (updateCount = true) => {
@@ -231,7 +232,8 @@ watchDebounced(
 				config_name: configName.value,
 			})
 			configName.value = res.name
-			oldConfig.value = JSON.parse(JSON.stringify(listConfig.value))
+			oldConfig.value.columns = cloneObject(listConfig.value.columns)
+			oldConfig.value.sort = cloneObject(listConfig.value.sort)
 		}
 	},
 	{ debounce: 1000, maxWait: 1000 }
