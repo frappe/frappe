@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-02 09:33+0000\n"
-"PO-Revision-Date: 2024-06-14 08:32\n"
+"PO-Revision-Date: 2024-06-20 11:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Turkish\n"
 "MIME-Version: 1.0\n"
@@ -28345,7 +28345,7 @@ msgstr ""
 
 #: desk/doctype/module_onboarding/module_onboarding.js:8
 msgid "Saving this will export this document as well as the steps linked here as json."
-msgstr ""
+msgstr "Belge ve burada bağlantısı verilen adımlar da json olarak dışarı aktaracaktır."
 
 #: public/js/form_builder/store.js:233
 #: public/js/print_format_builder/store.js:36
