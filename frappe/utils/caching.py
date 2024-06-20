@@ -6,11 +6,13 @@ import json
 from collections import defaultdict
 from collections.abc import Callable
 from functools import wraps
+from typing import TypeVar
 
 import pytz
 
 import frappe
 
+Fn = TypeVar("Fn", bound=Callable)
 _SITE_CACHE = defaultdict(lambda: defaultdict(dict))
 
 
@@ -21,7 +23,7 @@ def __generate_request_cache_key(args: tuple, kwargs: dict):
 	return hash((args, frozenset(kwargs.items())))
 
 
-def request_cache(func: Callable) -> Callable:
+def request_cache(func):
 	"""Decorator to cache function calls mid-request. Cache is stored in
 	frappe.local.request_cache. The cache only persists for the current request
 	and is cleared when the request is over. The function is called just once
@@ -63,7 +65,7 @@ def request_cache(func: Callable) -> Callable:
 	return wrapper
 
 
-def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
+def site_cache(ttl: int | Fn | None = None, maxsize: int | None = None) -> Fn:
 	"""Decorator to cache method calls across requests. The cache is stored in
 	frappe.utils.caching._SITE_CACHE. The cache persists on the parent process.
 	It offers a light-weight cache for the current process without the additional
@@ -87,7 +89,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	        calculate_pi(10) # will calculate value
 	"""
 
-	def time_cache_wrapper(func: Callable | None = None) -> Callable:
+	def time_cache_wrapper(func: Fn | None = None):
 		func_key = f"{func.__module__}.{func.__name__}"
 
 		def clear_cache():
@@ -132,7 +134,7 @@ def site_cache(ttl: int | None = None, maxsize: int | None = None) -> Callable:
 	return time_cache_wrapper
 
 
-def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: bool = False) -> Callable:
+def redis_cache(ttl: int | Fn | None = 3600, user: str | bool | None = None, shared: bool = False) -> Fn:
 	"""Decorator to cache method calls and its return values in Redis
 
 	args:
@@ -141,7 +143,7 @@ def redis_cache(ttl: int | None = 3600, user: str | bool | None = None, shared: 
 	        shared: `true` should cache be shared across sites
 	"""
 
-	def wrapper(func: Callable | None = None) -> Callable:
+	def wrapper(func: Fn | None = None):
 		func_key = f"{func.__module__}.{func.__qualname__}"
 
 		def clear_cache():
