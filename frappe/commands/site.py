@@ -1501,6 +1501,33 @@ def add_new_user(
 		update_password(user=user.name, pwd=password)
 
 
+@click.command("bypass-patch")
+@click.argument("patch_name")
+@click.option("--yes", "-y", is_flag=True, default=False, help="Pass --yes to skip confirmation")
+@pass_context
+def bypass_patch(context, patch_name: str, yes: bool):
+	"""Bypass a patch permanently instead of migrating using the --skip-failing flag."""
+	from frappe.modules.patch_handler import update_patch_log
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	if not yes:
+		click.confirm(
+			f"This will bypass the patch {patch_name!r} forever and register it as successful.\nAre you sure you want to continue?",
+			abort=True,
+		)
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+		try:
+			update_patch_log(patch_name)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+
 commands = [
 	add_system_manager,
 	add_user_for_sites,
@@ -1535,4 +1562,5 @@ commands = [
 	trim_tables,
 	trim_database,
 	clear_log_table,
+	bypass_patch,
 ]

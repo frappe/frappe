@@ -19,6 +19,10 @@ frappe.ui.form.ControlCode = class ControlCode extends frappe.ui.form.ControlTex
 			return; // Don't show copy button in write mode
 		}
 
+		if (this.copy_button) {
+			return;
+		}
+
 		this.copy_button = $(
 			`<button
 				class="btn icon-btn"

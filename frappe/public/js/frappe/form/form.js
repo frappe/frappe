@@ -2131,14 +2131,33 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 		});
 	}
+
 	set_active_tab(tab) {
-		if (!this.active_tab_map) {
-			this.active_tab_map = {};
+		const previous_tab_name = this.active_tab_map?.[this.docname]?.df?.fieldname || "";
+		const next_tab_name = tab?.df?.fieldname || "";
+		const has_changed = previous_tab_name !== next_tab_name;
+
+		// A change is always detected on first render, because next_tab_name is always set (= fieldname)
+		// but the previous_tab_name is always empty.
+
+		if (!has_changed) {
+			return; // No change in tab, don't trigger on_tab_change, don't update URL hash
 		}
+
+		this.active_tab_map ??= {};
 		this.active_tab_map[this.docname] = tab;
+
+		// Update URL hash to reflect the active tab
+		const new_hash = next_tab_name.replace("__details", "");
+		const url = new URL(window.location.href);
+		url.hash = new_hash;
+		if (url.href !== window.location.href) {
+			history.replaceState(null, null, url);
+		}
 
 		this.script_manager.trigger("on_tab_change");
 	}
+
 	get_active_tab() {
 		return this.active_tab_map && this.active_tab_map[this.docname];
 	}
