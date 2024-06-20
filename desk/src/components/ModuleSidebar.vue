@@ -107,7 +107,7 @@
 				v-else
 				class="flex w-full gap-2 rounded p-2 text-sm uppercase text-gray-700 hover:bg-gray-200"
 				:class="isCollapsed ? 'justify-center' : ''"
-				@click="isCollapsed = !isCollapsed"
+				@click="emit('toggleSidebar')"
 			>
 				<FeatherIcon
 					:name="isCollapsed ? 'arrow-right' : 'arrow-left'"
@@ -257,10 +257,15 @@ const props = defineProps({
 		type: String,
 		required: true,
 	},
+	isCollapsed: {
+		type: Boolean,
+		default: false,
+	},
 })
 
+const emit = defineEmits(["toggleSidebar"])
+
 const desktopItem = ref(null)
-const isCollapsed = ref(false)
 const isEditing = ref(false)
 const draftSidebarItems = ref([])
 const showDialog = ref(false)

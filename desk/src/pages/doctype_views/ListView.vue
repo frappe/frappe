@@ -1,5 +1,5 @@
 <template>
-	<div class="mx-5 my-4 flex h-[42.5rem] max-w-[1340px] flex-col gap-4">
+	<div class="mx-5 my-4 flex h-[42.5rem] flex-col gap-4">
 		<div v-if="configSettings.data" class="overflow-x-none flex w-full justify-between gap-2">
 			<ViewSwitcher :queryFilters="queryFilters" />
 			<ListControls

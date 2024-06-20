@@ -1,7 +1,12 @@
 <template>
 	<div class="flex flex-row">
-		<ModuleSidebar v-if="module" :module="module" />
-		<div class="flex grow flex-col">
+		<ModuleSidebar
+			v-if="module"
+			:isCollapsed="isSidebarCollapsed"
+			:module="module"
+			@toggleSidebar="isSidebarCollapsed = !isSidebarCollapsed"
+		/>
+		<div class="flex flex-col" :class="isSidebarCollapsed ? 'w-[1380px]' : 'w-[1200px]'">
 			<Navbar />
 			<router-view />
 		</div>
@@ -18,6 +23,7 @@ import Navbar from "@/components/Navbar.vue"
 
 const route = useRoute()
 const module = ref("")
+const isSidebarCollapsed = ref(false)
 
 // set module based on route. Using watchEffect since this needs to track multiple route params
 watchEffect(() => {
