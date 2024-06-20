@@ -348,7 +348,7 @@ function getItemIndex(item: ModuleSidebarLink) {
 	return draftSidebarItems.value.sections.findIndex((section) => section.name === item.name)
 }
 
-function showItemDialog(item: ModuleSidebarLink, action: "add" | "edit") {
+function showItemDialog(item: Partial<ModuleSidebarLink>, action: "add" | "edit") {
 	Object.assign(dialogItem.value, JSON.parse(JSON.stringify(item)))
 	dialogAction.value = action
 	showDialog.value = true
