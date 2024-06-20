@@ -1,3 +1,25 @@
+const getFilterValue = (filter) =>
+	filter.fieldtype == "Check" ? filter.value == "true" : filter.value
+
+export function getFilterQuery(filters) {
+	const q = {}
+	filters.map((f) => {
+		const fieldname = f.fieldname
+		const operator = f.operator
+		const value = getFilterValue(f)
+		if (operator == "=" && !q[fieldname]) {
+			q[fieldname] = JSON.stringify(value)
+		} else if (!q[fieldname]) {
+			q[fieldname] = [JSON.stringify([operator, value])]
+		} else if (q[fieldname].constructor === Array) {
+			q[fieldname].push(JSON.stringify([operator, value]))
+		} else {
+			q[fieldname] = [q[fieldname], JSON.stringify([operator, value])]
+		}
+	})
+	return q
+}
+
 const hasWords = (list, item) => list.some((word) => item.includes(word))
 
 export function guessColour(text) {

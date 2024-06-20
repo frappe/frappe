@@ -66,6 +66,7 @@ import {
 	oldConfig,
 	configUpdated,
 } from "@/stores/view"
+import { getFilterQuery } from "@/utils/list"
 
 const route = useRoute()
 const router = useRouter()
@@ -104,14 +105,14 @@ const loadConfig = async () => {
 const addSavedFilters = async () => {
 	if (isDefaultConfig.value) return
 	let query_params = { view: configName.value }
-	configSettings.data.filters?.map((f) => {
-		let fieldname = f[0]
-		if (query_params[fieldname]) {
-			query_params[fieldname].push(JSON.stringify([f[1], f[2]]))
-		} else {
-			query_params[fieldname] = [JSON.stringify([f[1], f[2]])]
+	let savedFilters = configSettings.data.filters.map((f) => {
+		return {
+			fieldname: f[0],
+			operator: f[1],
+			value: f[2],
 		}
 	})
+	Object.assign(query_params, getFilterQuery(savedFilters))
 	await router.replace({ query: query_params })
 }
 

@@ -92,7 +92,7 @@
 import ListFilterValue from "@/components/List/ListFilterValue.vue"
 import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
 
-import { Button, FeatherIcon, Autocomplete, FormControl } from "frappe-ui"
+import { Autocomplete } from "frappe-ui"
 import { getCurrentInstance } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import {
@@ -102,6 +102,7 @@ import {
 	dateTypes,
 	filterOperators,
 } from "@/data/constants/filters"
+import { getFilterQuery } from "@/utils/list"
 
 const props = defineProps({
 	allFilterableFields: {
@@ -182,22 +183,8 @@ const instance = getCurrentInstance()
 
 const updateFiltersInQuery = async () => {
 	let q = { view: route.query.view }
-	filters.value.map((f) => {
-		let fieldname = f.fieldname
-		if (f.operator == "=" && !q[fieldname]) {
-			q[fieldname] = JSON.stringify(getFilterValue(f))
-		} else if (!q[fieldname]) {
-			q[fieldname] = [JSON.stringify([f.operator, getFilterValue(f)])]
-		} else if (q[fieldname].constructor === Array) {
-			q[fieldname].push(JSON.stringify([f.operator, getFilterValue(f)]))
-		} else {
-			q[fieldname] = [q[fieldname], JSON.stringify([f.operator, getFilterValue(f)])]
-		}
-	})
+	Object.assign(q, getFilterQuery(filters.value))
 	await router.replace({ query: q })
 	instance.parent.emit("fetch", { updateCount: true })
 }
-
-const getFilterValue = (filter) =>
-	filter.fieldtype == "Check" ? filter.value == "true" : filter.value
 </script>

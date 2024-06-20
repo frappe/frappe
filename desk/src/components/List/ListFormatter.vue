@@ -54,7 +54,7 @@
 
 <script setup>
 import { inject } from "vue"
-import { guessColour } from "@/utils/listFormatters"
+import { guessColour } from "@/utils/list"
 import { Badge, Checkbox, Avatar } from "frappe-ui"
 
 const props = defineProps({
