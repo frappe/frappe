@@ -89,7 +89,7 @@ class FrappeMail:
 	def pull(self, limit: int = 50, last_synced_at: str | None = None) -> dict[str, list[str] | str]:
 		"""Pulls emails from the mailbox using the Frappe Mail API."""
 
-		endpoint = "inbound/pull"
+		endpoint = "inbound/pull-raw"
 		data = {"mailbox": self.mailbox, "limit": limit, "last_synced_at": last_synced_at}
 		headers = {"X-Site": frappe.utils.get_url()}
 		response = self.request("GET", endpoint=endpoint, data=data, headers=headers).json()["message"]
