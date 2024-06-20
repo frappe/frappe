@@ -22,7 +22,7 @@
 
 <script setup>
 import { inject } from "vue"
-import { FeatherIcon, Dropdown } from "frappe-ui"
+import { Dropdown } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 
 const props = defineProps({

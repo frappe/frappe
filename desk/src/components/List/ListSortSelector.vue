@@ -29,7 +29,7 @@
 
 <script setup>
 import { computed, defineModel, getCurrentInstance } from "vue"
-import { Dropdown, FeatherIcon, Tooltip } from "frappe-ui"
+import { Dropdown, Tooltip } from "frappe-ui"
 
 const props = defineProps({
 	allSortableFields: {

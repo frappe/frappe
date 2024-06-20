@@ -74,7 +74,7 @@
 <script setup>
 import { useRoute, useRouter } from "vue-router"
 import { ref, computed } from "vue"
-import { call, createResource, FeatherIcon, Dropdown, Dialog } from "frappe-ui"
+import { call, createResource, Dropdown, Dialog } from "frappe-ui"
 
 import {
 	configName,

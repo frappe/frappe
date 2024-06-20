@@ -23,7 +23,7 @@
 </template>
 
 <script setup>
-import { FormControl, DatePicker, DateTimePicker, DateRangePicker } from "frappe-ui"
+import { DatePicker, DateTimePicker, DateRangePicker } from "frappe-ui"
 import { numberTypes, dateTypes, filterOptions } from "@/data/constants/filters"
 
 import Link from "@/components/FormControls/Link.vue"

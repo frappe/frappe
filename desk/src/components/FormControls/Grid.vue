@@ -104,7 +104,7 @@
 
 <script setup>
 import { reactive, computed } from "vue"
-import { FormControl, FeatherIcon, Checkbox } from "frappe-ui"
+import { Checkbox } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import Link from "@/components/FormControls/Link.vue"

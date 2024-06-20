@@ -241,7 +241,7 @@
 
 <script setup>
 import { computed, ref, provide } from "vue"
-import { Dropdown, FeatherIcon, Dialog, FormControl, createResource } from "frappe-ui"
+import { Dropdown, Dialog, createResource } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import Icon from "@/components/Icon.vue"

@@ -62,7 +62,7 @@
 
 <script setup>
 import { computed, nextTick, ref } from "vue"
-import { Popover, FeatherIcon, TextInput } from "frappe-ui"
+import { Popover, TextInput } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 
 const props = defineProps({

@@ -15,7 +15,6 @@
 
 <script setup>
 import { Combobox, ComboboxInput } from "@headlessui/vue"
-import { FeatherIcon } from "frappe-ui"
 import { computed } from "vue"
 
 const searchShortcut = computed(() =>

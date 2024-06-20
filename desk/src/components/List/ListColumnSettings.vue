@@ -111,7 +111,7 @@
 
 <script setup>
 import { computed, ref, watch, getCurrentInstance } from "vue"
-import { Autocomplete, FeatherIcon, FormControl, call } from "frappe-ui"
+import { Autocomplete, call } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import { isDefaultConfig, isDefaultOverriden, configName } from "@/stores/view"
