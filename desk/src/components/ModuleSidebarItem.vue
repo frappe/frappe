@@ -76,19 +76,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, PropType } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 import ModuleSidebarItemMenu from "@/components/ModuleSidebarItemMenu.vue"
+import { ModuleSidebarItemType, ModuleSidebarLink } from "@/types"
 
 const props = defineProps({
 	type: {
-		type: String,
+		type: String as PropType<ModuleSidebarItemType>,
 		required: true,
 	},
 	item: {
-		type: Object,
+		type: Object as PropType<ModuleSidebarLink>,
 		required: true,
 	},
 	isCollapsed: {
@@ -116,6 +117,7 @@ const showEditMenu = computed(() => {
 })
 
 const isActive = computed(() => {
+	if (!props.item.route_to) return false
 	const linkRoute = router.resolve(props.item.route_to)
 	// Check if the current route is the same as the link route, with optional trailing slash
 	return route.path.match(new RegExp(`^${linkRoute.path}(/|$)`))

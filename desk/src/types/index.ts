@@ -58,12 +58,15 @@ export interface DesktopItem {
 	module_slug?: string
 }
 
+export type ModuleSidebarItemType = "Link" | "Section Break" | "Spacer"
+export type ModuleSidebarLinkType = "DocType" | "Page" | "Report" | "Dashboard" | "URL"
+export type UpdateSidebarItemAction = "addBelow" | "edit" | "delete" | "duplicate"
 export interface ModuleSidebarLink {
-	type: "Link" | "Section Break" | "Spacer"
+	type: ModuleSidebarItemType
 	name: string
 	label: string
 	icon: string
-	link_type: "DocType" | "Page" | "Report" | "Dashboard" | "URL"
+	link_type: ModuleSidebarLinkType
 	link_to: string
 	route_to?: Route
 	workspace?: string

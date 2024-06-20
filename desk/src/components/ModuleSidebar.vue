@@ -251,7 +251,8 @@ import Grid from "@/components/FormControls/Grid.vue"
 import IconPicker from "@/components/FormControls/IconPicker.vue"
 
 import { getDesktopItem, sidebar } from "@/data/desktop"
-import { DesktopItem, ModuleSidebar, ModuleSidebarLink } from "@/types"
+import { DesktopItem, ModuleSidebar, ModuleSidebarLink, UpdateSidebarItemAction } from "@/types"
+import { updateSidebarItemFnKey } from "@/types/injectionKeys"
 
 const props = defineProps({
 	module: {
@@ -282,7 +283,7 @@ const showDialog = ref(false)
 const dialogItem = ref({} as ModuleSidebarLink)
 const dialogAction = ref("")
 
-provide("updateSidebarItem", updateSidebarItem)
+provide(updateSidebarItemFnKey, updateSidebarItem)
 
 const sidebarItems = computed({
 	get: () => {
@@ -306,10 +307,7 @@ function enableEditMode() {
 	isEditing.value = true
 }
 
-function updateSidebarItem(
-	item: ModuleSidebarLink,
-	action: "addBelow" | "edit" | "delete" | "duplicate"
-) {
+function updateSidebarItem(item: ModuleSidebarLink, action: UpdateSidebarItemAction): void {
 	if (action === "addBelow") {
 		const index = getItemIndex(item)
 		showItemDialog({ type: "Link", link_type: "DocType", index: index }, "add")
