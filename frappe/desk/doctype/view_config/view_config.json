@@ -95,10 +95,11 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-06-04 12:52:55.833039",
+ "modified": "2024-06-20 15:35:30.703567",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "View Config",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {

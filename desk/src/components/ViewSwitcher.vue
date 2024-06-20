@@ -30,7 +30,15 @@
 							placeholder="View Name"
 							v-model="newViewName"
 						/>
-						<Button variant="solid" label="Save" @click="createView">
+						<ErrorMessage
+							class="ml-1"
+							:message="
+								createConfigResource.error?.exc_type === 'DuplicateEntryError'
+									? `A view with the name <b>${createConfigResource.params.doc.label}</b> already exists.`
+									: createConfigResource.error?.messages
+							"
+						/>
+						<Button variant="solid" label="Save" @click="createConfigResource.submit()">
 							<template #prefix>
 								<FeatherIcon name="save" class="h-3.5" />
 							</template>
@@ -74,7 +82,7 @@
 <script setup>
 import { useRoute, useRouter } from "vue-router"
 import { ref, computed } from "vue"
-import { call, createResource, Dropdown, Dialog } from "frappe-ui"
+import { call, createResource, Dropdown, Dialog, ErrorMessage } from "frappe-ui"
 
 import {
 	configName,
@@ -117,13 +125,12 @@ const createConfigResource = createResource({
 			},
 		}
 	},
+	onSuccess: async (doc) => {
+		showDialog.value = false
+		newViewName.value = ""
+		await router.replace({ query: { view: doc.name } })
+	},
 })
-
-const createView = async () => {
-	showDialog.value = false
-	let doc = await createConfigResource.submit()
-	await router.replace({ query: { view: doc.name } })
-}
 
 const deleteView = async () => {
 	showDialog.value = false
@@ -133,12 +140,11 @@ const deleteView = async () => {
 
 const renameView = async () => {
 	showDialog.value = false
-	await call("frappe.client.set_value", {
-		doctype: "View Config",
-		name: configName.value,
-		fieldname: "label",
-		value: configSettings.data.label,
+	const viewSlug = await call("frappe.desk.doctype.view_config.view_config.rename_config", {
+		config_name: configName.value,
+		new_name: configSettings.data.label,
 	})
+	router.replace({ query: { view: viewSlug } })
 }
 
 const updateView = async () => {

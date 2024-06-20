@@ -1,5 +1,5 @@
 <template>
-	<Link v-if="fieldtype == 'Link'" :doctype="options.split('\n')[0]" v-model="modelValue" />
+	<Link v-if="fieldtype == 'Link'" :doctype="options[0]" v-model="modelValue" />
 	<DateRangePicker
 		v-else-if="dateTypes.includes(fieldtype) && operator == 'between'"
 		v-model="modelValue"
@@ -15,7 +15,7 @@
 	<FormControl
 		v-else-if="['Check', 'Select'].includes(fieldtype)"
 		type="select"
-		:options="props.options.length || filterOptions[fieldtype.toLowerCase()]"
+		:options="options.length ? options : filterOptions[fieldtype.toLowerCase()]"
 		v-model="modelValue"
 	/>
 	<FormControl v-else-if="numberTypes.includes(fieldtype)" type="number" v-model="modelValue" />

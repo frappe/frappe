@@ -155,7 +155,7 @@ const getFieldType = (fieldname) => {
 }
 
 const getSelectOptions = (fieldname) => {
-	return configSettings.data?.fields.find((f) => f.value === fieldname).options?.split("\n") || []
+	return configSettings.data?.fields.find((f) => f.value === fieldname).options || []
 }
 
 const getParsedFilter = (key, filter) => {
@@ -206,7 +206,7 @@ watch(
 	() => (route.params.doctype, route.query.view),
 	async () => {
 		doctype.value = doctypesBySlug[route.params.doctype]?.name
-		await renderList(doctype.value, route.query.view)
+		await renderList()
 	},
 	{ immediate: true }
 )
