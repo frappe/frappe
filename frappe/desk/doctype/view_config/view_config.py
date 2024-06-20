@@ -1,11 +1,13 @@
 # Copyright (c) 2024, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import json
+
 import frappe
 from frappe.core.doctype.doctype.doctype import get_fields_not_allowed_in_list_view
 from frappe.desk.utils import slug
 from frappe.model.document import Document
-import json
+
 
 class ViewConfig(Document):
 	# begin: auto-generated types
@@ -29,6 +31,7 @@ class ViewConfig(Document):
 		self.name = slug(self.label)
 
 	pass
+
 
 def get_default_config(doctype):
 	if doc := frappe.db.exists("View Config", {"document_type": doctype, "custom": 0}):
@@ -54,19 +57,25 @@ def get_default_config(doctype):
 		"sort_order": meta.sort_order,
 	}
 
+
 @frappe.whitelist()
 def get_config(doctype, config_name=None, is_default=True):
-	config_dict = get_default_config(doctype) if is_default else frappe.get_doc("View Config", config_name).as_dict()
+	config_dict = (
+		get_default_config(doctype) if is_default else frappe.get_doc("View Config", config_name).as_dict()
+	)
 
-	config_dict.update({
-		"columns": frappe.parse_json(config_dict.get("columns")),
-		"filters": frappe.parse_json(config_dict.get("filters")),
-		"fields": get_doctype_fields(doctype),
-		"views": get_views_for_doctype(doctype),
-		"titleField": get_title_field(doctype),
-	})
+	config_dict.update(
+		{
+			"columns": frappe.parse_json(config_dict.get("columns")),
+			"filters": frappe.parse_json(config_dict.get("filters")),
+			"fields": get_doctype_fields(doctype),
+			"views": get_views_for_doctype(doctype),
+			"titleField": get_title_field(doctype),
+		}
+	)
 
 	return config_dict
+
 
 def get_doctype_fields(doctype):
 	meta = frappe.get_meta(doctype)
@@ -75,14 +84,17 @@ def get_doctype_fields(doctype):
 	for field in meta.fields + frappe.model.std_fields:
 		if field.get("fieldtype") in not_allowed_in_list_view:
 			continue
-		options = field.get("options") or ''
-		doctype_fields.append({
-			"label": field.get("label"),
-			"value": field.get("fieldname"),
-			"type": field.get("fieldtype"),
-			"options": options.split('\n')
-		})
+		options = field.get("options") or ""
+		doctype_fields.append(
+			{
+				"label": field.get("label"),
+				"value": field.get("fieldname"),
+				"type": field.get("fieldtype"),
+				"options": options.split("\n"),
+			}
+		)
 	return doctype_fields
+
 
 def get_column_dict(field):
 	field = frappe._dict(field)
@@ -91,12 +103,20 @@ def get_column_dict(field):
 		"key": field.fieldname,
 		"type": field.fieldtype,
 		"options": field.options,
-		"width": "10rem"
+		"width": "10rem",
 	}
+
 
 @frappe.whitelist()
 def get_views_for_doctype(doctype):
-	return frappe.get_all("View Config", filters={"document_type": doctype, "custom": 1}, fields=["name", "label", "icon"], order_by="modified desc", limit=6)
+	return frappe.get_all(
+		"View Config",
+		filters={"document_type": doctype, "custom": 1},
+		fields=["name", "label", "icon"],
+		order_by="modified desc",
+		limit=6,
+	)
+
 
 @frappe.whitelist()
 def update_config(config, doctype=None, config_name=None, filters=None):
@@ -115,9 +135,11 @@ def update_config(config, doctype=None, config_name=None, filters=None):
 	doc.sort_order = config.sort[1]
 	return doc.save()
 
+
 @frappe.whitelist()
 def reset_default_config(config_name):
 	return frappe.delete_doc("View Config", config_name)
+
 
 @frappe.whitelist()
 def get_link_title_field(doctype, name):
@@ -126,11 +148,15 @@ def get_link_title_field(doctype, name):
 		return name
 	return frappe.get_value(doctype, name, meta.title_field) or name
 
+
 @frappe.whitelist()
 def get_list(doctype, cols, filters, limit, start, order_by):
 	fields = [col.get("key") for col in cols] + [get_title_field(doctype)[1]]
-	list_rows = frappe.get_list(doctype, fields=fields, filters=filters, limit=limit, start=start, order_by=order_by)
+	list_rows = frappe.get_list(
+		doctype, fields=fields, filters=filters, limit=limit, start=start, order_by=order_by
+	)
 	return get_list_rows(cols, list_rows)
+
 
 def get_list_rows(cols, list_rows):
 	link_fields = []
@@ -144,10 +170,12 @@ def get_list_rows(cols, list_rows):
 			row[key] = get_link_title_field(dt, row[key])
 	return list_rows
 
+
 @frappe.whitelist()
 def get_title_field(doctype):
 	meta = frappe.get_meta(doctype)
-	return [meta.title_field, meta.image_field or '']
+	return [meta.title_field, meta.image_field or ""]
+
 
 @frappe.whitelist()
 def rename_config(config_name, new_name):
