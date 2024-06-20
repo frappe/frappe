@@ -163,9 +163,11 @@
 								fieldname: 'link_type',
 								fieldtype: 'select',
 								options: ['DocType', 'Page', 'Report', 'Dashboard', 'URL'],
-								onChange: (_value, index) => {
-									dialogItem.links[index].link_to = ''
-									dialogItem.links[index].label = ''
+								onChange: (_value: string, index: number) => {
+									if (dialogItem?.links) {
+										dialogItem.links[index].link_to = ''
+										dialogItem.links[index].label = ''
+									}
 								},
 								width: 1.5,
 							},
@@ -173,8 +175,9 @@
 								label: 'Link To',
 								fieldname: 'link_to',
 								fieldtype: 'Link',
-								onChange: (value, index) => {
-									dialogItem.links[index].label = value
+								onChange: (value: string, index: number) => {
+									if (dialogItem?.links)
+										dialogItem.links[index].label = value
 								},
 								width: 2.25,
 							},
@@ -268,9 +271,12 @@ const emptySidebarItems = {
 	sections: [],
 }
 
-const emptySidebarLink = {
+const emptySidebarLink: ModuleSidebarLink = {
 	type: "Link",
 	link_type: "DocType",
+	link_to: "",
+	name: "",
+	icon: "",
 	label: "",
 	links: [],
 }
@@ -280,7 +286,7 @@ const isCollapsed = ref(false)
 const isEditing = ref(false)
 const draftSidebarItems = ref<ModuleSidebar>(emptySidebarItems)
 const showDialog = ref(false)
-const dialogItem = ref({} as ModuleSidebarLink)
+const dialogItem = ref<ModuleSidebarLink>({ ...emptySidebarLink })
 const dialogAction = ref("")
 
 provide(updateSidebarItemFnKey, updateSidebarItem)
