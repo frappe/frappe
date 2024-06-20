@@ -139,6 +139,9 @@ class EmailAccount(Document):
 			if self.use_imap:
 				self.use_imap = 0
 
+			if not self.always_use_account_email_id_as_sender:
+				self.always_use_account_email_id_as_sender = 1
+
 			fm_client = FrappeMail(
 				self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret")
 			)

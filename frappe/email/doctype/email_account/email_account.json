@@ -673,14 +673,6 @@
    "label": "Outgoing"
   },
   {
-   "fieldname": "section_break_nesl",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_y6hx",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "column_break_h5pd",
    "fieldtype": "Column Break"
   },
@@ -696,14 +688,21 @@
    "depends_on": "eval: doc.service == \"Frappe Mail\"",
    "fieldname": "last_synced_at",
    "fieldtype": "Datetime",
-   "label": "Last Synced At",
-   "read_only": 1
+   "label": "Last Synced At"
+  },
+  {
+   "fieldname": "section_break_nesl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_y6hx",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-06-19 11:50:56.886640",
+ "modified": "2024-06-20 16:29:23.704289",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
