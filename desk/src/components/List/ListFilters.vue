@@ -184,8 +184,9 @@ const updateFiltersInQuery = async () => {
 	let q = { view: route.query.view }
 	filters.value.map((f) => {
 		let fieldname = f.fieldname
-		if (f.operator == "=" && !q[fieldname]) q[fieldname] = JSON.stringify(getFilterValue(f))
-		if (!q[fieldname]) {
+		if (f.operator == "=" && !q[fieldname]) {
+			q[fieldname] = JSON.stringify(getFilterValue(f))
+		} else if (!q[fieldname]) {
 			q[fieldname] = [JSON.stringify([f.operator, getFilterValue(f)])]
 		} else if (q[fieldname].constructor === Array) {
 			q[fieldname].push(JSON.stringify([f.operator, getFilterValue(f)]))
