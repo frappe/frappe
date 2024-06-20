@@ -16,10 +16,10 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AppLogo from "@/components/Icons/AppLogo.vue"
 
-const props = defineProps({
+defineProps({
 	title: {
 		type: String,
 		default: "Login",

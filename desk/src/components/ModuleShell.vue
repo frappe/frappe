@@ -8,10 +8,10 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watchEffect } from "vue"
 import { useRoute } from "vue-router"
-import { doctypesBySlug, workspacesBySlug, modulesBySlug } from "@/data/permissions"
+import { doctypesBySlug, workspacesBySlug, modulesBySlug } from "@/data/permissions.ts"
 
 import ModuleSidebar from "@/components/ModuleSidebar.vue"
 import Navbar from "@/components/Navbar.vue"
@@ -24,9 +24,9 @@ watchEffect(() => {
 	if (route.params?.module) {
 		module.value = modulesBySlug[route.params.module]
 	} else if (route.params?.doctype) {
-		module.value = doctypesBySlug[route.params.doctype].module
+		module.value = doctypesBySlug[route.params.doctype]?.module
 	} else if (route.params?.workspace && !module.value) {
-		module.value = workspacesBySlug[route.params.workspace].module
+		module.value = workspacesBySlug[route.params.workspace]?.module
 	}
 })
 </script>

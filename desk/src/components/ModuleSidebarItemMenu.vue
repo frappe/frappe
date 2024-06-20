@@ -20,7 +20,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from "vue"
 import { FeatherIcon, Dropdown } from "frappe-ui"
 import Icon from "@/components/Icon.vue"

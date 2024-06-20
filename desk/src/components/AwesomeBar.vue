@@ -13,7 +13,7 @@
 	</Combobox>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Combobox, ComboboxInput } from "@headlessui/vue"
 import { FeatherIcon } from "frappe-ui"
 import { computed } from "vue"

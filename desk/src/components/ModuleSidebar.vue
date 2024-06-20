@@ -5,7 +5,7 @@
 	>
 		<!-- Sidebar Menu -->
 		<Dropdown
-			v-if="desktopItem"
+			v-if="desktopItem && Object.keys(desktopItem).length > 0"
 			class="w-56"
 			:options="[
 				{
@@ -26,7 +26,7 @@
 					:class="[open ? 'bg-white shadow-sm' : 'hover:bg-gray-200', isCollapsed ? '' : 'w-56']"
 				>
 					<div class="rounded-sm p-1" :style="`background-color: ${desktopItem.color}`">
-						<Icon :name="desktopItem?.icon" class="h-5 w-5 text-white" />
+						<Icon :name="desktopItem.icon" class="h-5 w-5 text-white" />
 					</div>
 					<span v-if="!isCollapsed" class="truncate text-xl font-bold text-gray-800">
 						{{ desktopItem?.label }}
@@ -141,7 +141,7 @@
 			],
 		}"
 		v-model="showDialog"
-		@after-leave="resetDialogItem"
+		@after-leave="dialogItem = emptySidebarLink"
 	>
 		<template #body-content>
 			<div class="space-y-4">
@@ -239,7 +239,7 @@
 	</Dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, provide } from "vue"
 import { Dropdown, FeatherIcon, Dialog, FormControl, createResource } from "frappe-ui"
 import Draggable from "vuedraggable"
@@ -251,6 +251,7 @@ import Grid from "@/components/FormControls/Grid.vue"
 import IconPicker from "@/components/FormControls/IconPicker.vue"
 
 import { getDesktopItem, sidebar } from "@/data/desktop"
+import { DesktopItem, ModuleSidebar, ModuleSidebarLink } from "@/types"
 
 const props = defineProps({
 	module: {
@@ -259,17 +260,26 @@ const props = defineProps({
 	},
 })
 
-const desktopItem = ref(null)
-const isCollapsed = ref(false)
-const isEditing = ref(false)
-const draftSidebarItems = ref([])
-const showDialog = ref(false)
-const dialogItem = ref({
+const emptySidebarItems = {
+	name: "",
+	module: "",
+	workspaces: [],
+	sections: [],
+}
+
+const emptySidebarLink = {
 	type: "Link",
 	link_type: "DocType",
 	label: "",
 	links: [],
-})
+}
+
+const desktopItem = ref<DesktopItem | null>(null)
+const isCollapsed = ref(false)
+const isEditing = ref(false)
+const draftSidebarItems = ref<ModuleSidebar>(emptySidebarItems)
+const showDialog = ref(false)
+const dialogItem = ref({} as ModuleSidebarLink)
 const dialogAction = ref("")
 
 provide("updateSidebarItem", updateSidebarItem)
@@ -296,7 +306,10 @@ function enableEditMode() {
 	isEditing.value = true
 }
 
-function updateSidebarItem(item, action) {
+function updateSidebarItem(
+	item: ModuleSidebarLink,
+	action: "addBelow" | "edit" | "delete" | "duplicate"
+) {
 	if (action === "addBelow") {
 		const index = getItemIndex(item)
 		showItemDialog({ type: "Link", link_type: "DocType", index: index }, "add")
@@ -327,32 +340,23 @@ function updateSidebar() {
 			workspaces: draftSidebarItems.value.workspaces,
 		})
 		.then(async () => {
-			draftSidebarItems.value = []
+			draftSidebarItems.value = { ...emptySidebarItems }
 			await getSidebar(props.module)
 			isEditing.value = false
 		})
 }
 
-function resetDialogItem() {
-	dialogItem.value = {
-		type: "Link",
-		link_type: "DocType",
-		label: "",
-		links: [],
-	}
-}
-
-function getItemIndex(item) {
+function getItemIndex(item: ModuleSidebarLink) {
 	return draftSidebarItems.value.sections.findIndex((section) => section.name === item.name)
 }
 
-function showItemDialog(item, action) {
+function showItemDialog(item: ModuleSidebarLink, action: "add" | "edit") {
 	Object.assign(dialogItem.value, JSON.parse(JSON.stringify(item)))
 	dialogAction.value = action
 	showDialog.value = true
 }
 
-async function getSidebar(module) {
+async function getSidebar(module: string) {
 	desktopItem.value = await getDesktopItem(module)
 	sidebar.submit({ module: module })
 }

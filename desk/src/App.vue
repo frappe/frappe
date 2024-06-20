@@ -1,7 +1,7 @@
 <template>
 	<div class="bg-white antialiased">
-		<router-view v-if="['Login', 'Home'].includes($route.name)" />
-		<ModuleShell v-else-if="session.isLoggedIn" />
+		<router-view v-if="route.name === 'Home' || route.name === 'Login'" />
+		<ModuleShell v-else-if="session?.isLoggedIn" />
 
 		<!-- For global use -->
 		<IconsTimeless />
@@ -9,12 +9,15 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import ModuleShell from "@/components/ModuleShell.vue"
 import IconsTimeless from "@/components/Icons/IconsTimeless.vue"
 import IconsEspresso from "@/components/Icons/IconsEspresso.vue"
 
 import { inject } from "vue"
+import { useRoute } from "vue-router"
+import { Session } from "@/types"
 
-const session = inject("$session")
+const session = inject<Session>("$session")
+const route = useRoute()
 </script>
