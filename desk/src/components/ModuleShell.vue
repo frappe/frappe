@@ -11,22 +11,23 @@
 <script setup lang="ts">
 import { ref, watchEffect } from "vue"
 import { useRoute } from "vue-router"
-import { doctypesBySlug, workspacesBySlug, modulesBySlug } from "@/data/permissions.ts"
+import { doctypesBySlug, workspacesBySlug, modulesBySlug } from "@/data/permissions"
 
 import ModuleSidebar from "@/components/ModuleSidebar.vue"
 import Navbar from "@/components/Navbar.vue"
+import { useRouteParamsAsStrings } from "@/composables/router"
 
-const route = useRoute()
+const routeParams = useRouteParamsAsStrings()
 const module = ref("")
 
 // set module based on route. Using watchEffect since this needs to track multiple route params
 watchEffect(() => {
-	if (route.params?.module) {
-		module.value = modulesBySlug[route.params.module]
-	} else if (route.params?.doctype) {
-		module.value = doctypesBySlug[route.params.doctype]?.module
-	} else if (route.params?.workspace && !module.value) {
-		module.value = workspacesBySlug[route.params.workspace]?.module
+	if (routeParams?.module) {
+		module.value = modulesBySlug[routeParams.module]
+	} else if (routeParams?.doctype) {
+		module.value = doctypesBySlug[routeParams.doctype]?.module
+	} else if (routeParams?.workspace && !module.value) {
+		module.value = workspacesBySlug[routeParams.workspace]?.module
 	}
 })
 </script>

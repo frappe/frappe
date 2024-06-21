@@ -1,10 +1,12 @@
 import { computed } from "vue"
 import { RouteLocationNormalized } from "vue-router"
 import { workspacesBySlug, doctypesBySlug, modulesBySlug, reportsBySlug } from "@/data/permissions"
+import { useRouteParamsAsStrings } from "@/composables/router"
 
 import { Breadcrumb } from "@/types"
 
 export function useBreadcrumbs(route: RouteLocationNormalized) {
+	const routeParams = useRouteParamsAsStrings()
 	const breadcrumbs = computed(() => {
 		if (route.name === "Home") return []
 
@@ -34,7 +36,7 @@ export function useBreadcrumbs(route: RouteLocationNormalized) {
 	})
 
 	function setModuleBreadcrumb(items: Breadcrumb[], module: string = "") {
-		const moduleName = module || modulesBySlug[route.params.module]
+		const moduleName = module || modulesBySlug[routeParams.module]
 		items.push({
 			label: moduleName,
 			route: {
@@ -47,7 +49,7 @@ export function useBreadcrumbs(route: RouteLocationNormalized) {
 	}
 
 	function setWorkspaceBreadcrumb(items: Breadcrumb[]) {
-		const workspace = workspacesBySlug[route.params.workspace]
+		const workspace = workspacesBySlug[routeParams.workspace]
 		setModuleBreadcrumb(items, workspace.module)
 
 		items.push({
@@ -62,7 +64,7 @@ export function useBreadcrumbs(route: RouteLocationNormalized) {
 	}
 
 	function setListBreadcrumb(items: Breadcrumb[]) {
-		const doctype = doctypesBySlug[route.params.doctype]
+		const doctype = doctypesBySlug[routeParams.doctype]
 		setModuleBreadcrumb(items, doctype.module)
 
 		items.push({
@@ -70,7 +72,7 @@ export function useBreadcrumbs(route: RouteLocationNormalized) {
 			route: {
 				name: "ListView",
 				params: {
-					doctype: route.params.doctype,
+					doctype: routeParams.doctype,
 				},
 			},
 		})
@@ -79,19 +81,19 @@ export function useBreadcrumbs(route: RouteLocationNormalized) {
 	function setFormBreadcrumb(items: Breadcrumb[]) {
 		setListBreadcrumb(items)
 		items.push({
-			label: route.params.id,
+			label: routeParams.id,
 			route: {
 				name: "Form",
 				params: {
-					doctype: route.params.doctype,
-					name: route.params.id,
+					doctype: routeParams.doctype,
+					name: routeParams.id,
 				},
 			},
 		})
 	}
 
 	function setReportBreadcrumb(items: Breadcrumb[]) {
-		const report = reportsBySlug[route.params.id]
+		const report = reportsBySlug[routeParams.id]
 		setModuleBreadcrumb(items)
 
 		items.push({
@@ -99,8 +101,8 @@ export function useBreadcrumbs(route: RouteLocationNormalized) {
 			route: {
 				name: "Report",
 				params: {
-					module: route.params.module,
-					id: route.params.id,
+					module: routeParams.module,
+					id: routeParams.id,
 				},
 			},
 		})

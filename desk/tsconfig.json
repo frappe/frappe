@@ -9,7 +9,6 @@
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
-		"allowImportingTsExtensions": true,
 		"forceConsistentCasingInFileNames": true,
 		"useDefineForClassFields": true,
 		"resolveJsonModule": true,
