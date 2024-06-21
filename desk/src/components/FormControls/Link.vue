@@ -34,7 +34,7 @@ const props = withDefaults(
 
 const emit = defineEmits(["update:modelValue"])
 
-const autocompleteRef = ref(null) as unknown as typeof Autocomplete
+const autocompleteRef = ref<InstanceType<typeof Autocomplete>>(null)
 const searchText = ref("")
 
 const value = computed({

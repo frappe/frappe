@@ -13,7 +13,7 @@ export type Route = {
 	params?: Record<string, string>
 }
 
-export interface Breadcrumb {
+export type Breadcrumb = {
 	label: string
 	route: Route
 }

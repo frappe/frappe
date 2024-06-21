@@ -74,7 +74,7 @@ const modelValue = defineModel("modelValue", {
 	type: String,
 	default: "",
 })
-const searchInput = ref("") as unknown as typeof TextInput
+const searchInput = ref<InstanceType<typeof TextInput>>("")
 const searchText = ref("")
 
 const icons = computed(() => {
