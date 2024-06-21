@@ -10,7 +10,6 @@
 
 <script setup lang="ts">
 import { ref, watchEffect } from "vue"
-import { useRoute } from "vue-router"
 import { doctypesBySlug, workspacesBySlug, modulesBySlug } from "@/data/permissions"
 
 import ModuleSidebar from "@/components/ModuleSidebar.vue"

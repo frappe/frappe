@@ -20,12 +20,12 @@ export const permissionsResource: Resource = createResource({
 			workspacesBySlug[slug(workspace.name)] = workspace
 		})
 		if (typeof data.doctype_map === "object") {
-			;(Object.values(data.doctype_map) as DocType[]).forEach((doctype: DocType) => {
+			(Object.values(data.doctype_map) as DocType[]).forEach((doctype: DocType) => {
 				doctypesBySlug[slug(doctype.name)] = doctype
 			})
 		}
 		if (typeof data.all_reports === "object") {
-			;(Object.values(data.all_reports) as Report[]).forEach((report: Report) => {
+			(Object.values(data.all_reports) as Report[]).forEach((report: Report) => {
 				reportsBySlug[slug(report.title)] = report
 			})
 		}
