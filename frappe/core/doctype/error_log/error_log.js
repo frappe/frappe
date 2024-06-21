@@ -12,7 +12,7 @@ frappe.ui.form.on("Error Log", {
 					reference_name: frm.doc.reference_name,
 				});
 			});
-			frm.add_custom_button(__(frm.doc.reference_name), function () {
+			frm.add_custom_button(__("Open reference document"), function () {
 				frappe.set_route("Form", frm.doc.reference_doctype, frm.doc.reference_name);
 			});
 		}
