@@ -48,7 +48,7 @@ function authenticate_with_frappe(socket, next) {
 			socket.authorization_header = authorization_header;
 =======
 		let headers = {};
-		 if (socket.authorization_header) {
+		if (socket.authorization_header) {
 			headers["Authorization"] = socket.authorization_header;
 		} else if (socket.sid) {
 			headers["Cookie"] = `sid=${socket.sid}`;
