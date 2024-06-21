@@ -141,7 +141,7 @@
 			],
 		}"
 		v-model="showDialog"
-		@after-leave="dialogItem = emptySidebarLink"
+		@after-leave="dialogItem = { ...emptySidebarLink }"
 	>
 		<template #body-content>
 			<div class="space-y-4">
@@ -284,7 +284,7 @@ const emptySidebarLink: ModuleSidebarLink = {
 const desktopItem = ref<DesktopItem | null>(null)
 const isCollapsed = ref(false)
 const isEditing = ref(false)
-const draftSidebarItems = ref<ModuleSidebar>(emptySidebarItems)
+const draftSidebarItems = ref<ModuleSidebar>({ ...emptySidebarItems })
 const showDialog = ref(false)
 const dialogItem = ref<ModuleSidebarLink>({ ...emptySidebarLink })
 const dialogAction = ref("")
