@@ -161,7 +161,7 @@
 							{
 								label: 'Link Type',
 								fieldname: 'link_type',
-								fieldtype: 'select',
+								fieldtype: 'Select',
 								options: ['DocType', 'Page', 'Report', 'Dashboard', 'URL'],
 								onChange: (_value: string, index: number) => {
 									if (dialogItem?.links) {

@@ -11,8 +11,3 @@ export interface Resource {
 	promise: Promise<any>
 	error: string | null
 }
-
-export type AutocompleteValue = {
-	value: string
-	label: string
-}

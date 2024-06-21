@@ -68,13 +68,13 @@
 								/>
 								<FormControl
 									v-else
-									:type="field.fieldtype"
+									:type="field.fieldtype.toLowerCase()"
 									:options="field.options"
 									variant="outline"
 									size="md"
 									v-model="row[field.fieldname]"
 									class="text-sm text-gray-800"
-									@change="(e) => field.onChange && field.onChange(e.target.value, index)"
+									@change="(e: Event) => field.onChange && field.onChange((e.target as HTMLInputElement).value, index)"
 								/>
 							</div>
 							<button @click="" class="flex items-center justify-center">
@@ -102,8 +102,8 @@
 	</div>
 </template>
 
-<script setup>
-import { reactive, computed } from "vue"
+<script setup lang="ts">
+import { reactive, computed, PropType } from "vue"
 import { FormControl, FeatherIcon, Checkbox } from "frappe-ui"
 import Draggable from "vuedraggable"
 
@@ -111,6 +111,7 @@ import Link from "@/components/FormControls/Link.vue"
 import IconPicker from "@/components/FormControls/IconPicker.vue"
 
 import { getRandom } from "@/utils"
+import { GridColumn, GridRow } from "@/types/controls"
 
 const props = defineProps({
 	label: {
@@ -118,12 +119,12 @@ const props = defineProps({
 		required: false,
 	},
 	fields: {
-		type: Array,
+		type: Array as PropType<GridColumn[]>,
 		required: true,
 	},
 })
-const tableRows = defineModel("rows", { type: Array, default: [] })
-const selectedRows = reactive(new Set())
+const tableRows = defineModel("rows", { type: Array as PropType<GridRow[]>, default: [] })
+const selectedRows = reactive(new Set<string>())
 
 const gridTemplateColumns = computed(() => {
 	// for the checkbox & sr no. columns
@@ -142,15 +143,15 @@ const allRowsSelected = computed(() => {
 
 const showDeleteBtn = computed(() => selectedRows.size > 0)
 
-const toggleSelectAllRows = (iSelected) => {
+const toggleSelectAllRows = (iSelected: boolean) => {
 	if (iSelected) {
-		tableRows.value.forEach((row) => selectedRows.add(row.name))
+		tableRows.value.forEach((row: GridRow) => selectedRows.add(row.name))
 	} else {
 		selectedRows.clear()
 	}
 }
 
-const toggleSelectRow = (row) => {
+const toggleSelectRow = (row: GridRow) => {
 	if (selectedRows.has(row.name)) {
 		selectedRows.delete(row.name)
 	} else {
@@ -159,7 +160,7 @@ const toggleSelectRow = (row) => {
 }
 
 const addRow = () => {
-	const newRow = {}
+	const newRow = {} as GridRow
 	props.fields.forEach((field) => {
 		newRow[field.fieldname] = ""
 	})
@@ -168,7 +169,7 @@ const addRow = () => {
 }
 
 const deleteRows = () => {
-	tableRows.value = tableRows.value.filter((row) => !selectedRows.has(row.name))
+	tableRows.value = tableRows.value.filter((row: GridRow) => !selectedRows.has(row.name))
 	selectedRows.clear()
 }
 </script>
