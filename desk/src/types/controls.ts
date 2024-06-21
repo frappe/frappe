@@ -38,6 +38,11 @@ export type AutocompleteValue = {
 	label: string
 }
 
+export type SearchLinkOption = {
+	value: string
+	description: string
+}
+
 // Grid / Child Table
 export interface GridColumn {
 	label: string

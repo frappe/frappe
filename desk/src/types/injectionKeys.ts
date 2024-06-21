@@ -1,6 +1,6 @@
 import type { InjectionKey } from "vue"
-import type { ModuleSidebarLink, UpdateSidebarItemAction } from "@/types"
+import type { ModuleSidebarItem, UpdateSidebarItemAction } from "@/types"
 
 export const updateSidebarItemFnKey = Symbol("updateSidebarItem") as InjectionKey<
-	(item: ModuleSidebarLink, action: UpdateSidebarItemAction) => void
+	(item: ModuleSidebarItem, action: UpdateSidebarItemAction) => void
 >

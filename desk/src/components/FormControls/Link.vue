@@ -15,8 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { SearchLinkOption } from "@/types"
-import { AutocompleteValue } from "@/types/controls"
+import { AutocompleteValue, SearchLinkOption } from "@/types/controls"
 import { createResource, Autocomplete, debounce } from "frappe-ui"
 import { ref, computed, watch } from "vue"
 

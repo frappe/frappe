@@ -81,7 +81,7 @@ import { useRoute, useRouter } from "vue-router"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 import ModuleSidebarItemMenu from "@/components/ModuleSidebarItemMenu.vue"
-import { ModuleSidebarItemType, ModuleSidebarLink } from "@/types"
+import { ModuleSidebarItemType, ModuleSidebarItem } from "@/types"
 
 const props = defineProps({
 	type: {
@@ -89,7 +89,7 @@ const props = defineProps({
 		required: true,
 	},
 	item: {
-		type: Object as PropType<ModuleSidebarLink>,
+		type: Object as PropType<ModuleSidebarItem>,
 		required: true,
 	},
 	isCollapsed: {

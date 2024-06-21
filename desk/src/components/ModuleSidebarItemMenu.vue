@@ -25,10 +25,10 @@ import { inject } from "vue"
 import { FeatherIcon, Dropdown } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 
-import { ModuleSidebarLink } from "@/types"
+import { ModuleSidebarItem } from "@/types"
 import { updateSidebarItemFnKey } from "@/types/injectionKeys"
 
-const props = defineProps<{ item: ModuleSidebarLink }>()
+const props = defineProps<{ item: ModuleSidebarItem }>()
 
 const updateSidebarItem = inject(updateSidebarItemFnKey, () => {})
 

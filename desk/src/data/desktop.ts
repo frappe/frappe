@@ -1,7 +1,7 @@
 import { createResource } from "frappe-ui"
 import { slug, getRoute } from "@/utils/routing"
 import { Resource } from "@/types/frappeUI"
-import { DesktopItem, ModuleSidebar, ModuleSidebarLink } from "@/types"
+import { DesktopItem, ModuleSidebar, ModuleSidebarItem } from "@/types"
 
 export const desktopItems: Resource = createResource({
 	url: "frappe.api.desk.get_desktop_items",
@@ -18,14 +18,14 @@ export const desktopItems: Resource = createResource({
 export const sidebar: Resource = createResource({
 	url: "frappe.desk.doctype.module_sidebar.module_sidebar.get_module_sidebar",
 	transform(data: ModuleSidebar) {
-		data.workspaces.forEach((workspace: ModuleSidebarLink) => {
+		data.workspaces.forEach((workspace: ModuleSidebarItem) => {
 			workspace.route_to = getRoute(workspace, data.module)
 		})
 
 		data.sections.forEach((item) => {
 			if (item.type === "Section Break") {
 				item.opened = true
-				item.links?.forEach((link: ModuleSidebarLink) => {
+				item.links?.forEach((link: ModuleSidebarItem) => {
 					link.route_to = getRoute(link, data.module)
 				})
 			} else if (item.type === "Link") {

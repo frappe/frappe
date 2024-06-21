@@ -254,7 +254,12 @@ import Grid from "@/components/FormControls/Grid.vue"
 import IconPicker from "@/components/FormControls/IconPicker.vue"
 
 import { getDesktopItem, sidebar } from "@/data/desktop"
-import { DesktopItem, ModuleSidebar, ModuleSidebarLink, UpdateSidebarItemAction } from "@/types"
+import {
+	DesktopItem,
+	ModuleSidebar,
+	ModuleSidebarItem as IModuleSidebarItem,
+	UpdateSidebarItemAction,
+} from "@/types"
 import { updateSidebarItemFnKey } from "@/types/injectionKeys"
 
 const props = defineProps({
@@ -271,7 +276,7 @@ const emptySidebarItems = {
 	sections: [],
 }
 
-const emptySidebarLink: ModuleSidebarLink = {
+const emptySidebarLink: IModuleSidebarItem = {
 	type: "Link",
 	link_type: "DocType",
 	link_to: "",
@@ -286,7 +291,7 @@ const isCollapsed = ref(false)
 const isEditing = ref(false)
 const draftSidebarItems = ref<ModuleSidebar>({ ...emptySidebarItems })
 const showDialog = ref(false)
-const dialogItem = ref<ModuleSidebarLink>({ ...emptySidebarLink })
+const dialogItem = ref<IModuleSidebarItem>({ ...emptySidebarLink })
 const dialogAction = ref("")
 
 provide(updateSidebarItemFnKey, updateSidebarItem)
@@ -313,7 +318,7 @@ function enableEditMode() {
 	isEditing.value = true
 }
 
-function updateSidebarItem(item: ModuleSidebarLink, action: UpdateSidebarItemAction): void {
+function updateSidebarItem(item: IModuleSidebarItem, action: UpdateSidebarItemAction): void {
 	if (action === "addBelow") {
 		const index = getItemIndex(item)
 		showItemDialog({ type: "Link", link_type: "DocType", index: index }, "add")
@@ -350,11 +355,11 @@ function updateSidebar() {
 		})
 }
 
-function getItemIndex(item: ModuleSidebarLink) {
+function getItemIndex(item: IModuleSidebarItem) {
 	return draftSidebarItems.value.sections.findIndex((section) => section.name === item.name)
 }
 
-function showItemDialog(item: Partial<ModuleSidebarLink>, action: "add" | "edit") {
+function showItemDialog(item: Partial<IModuleSidebarItem>, action: "add" | "edit") {
 	Object.assign(dialogItem.value, JSON.parse(JSON.stringify(item)))
 	dialogAction.value = action
 	showDialog.value = true

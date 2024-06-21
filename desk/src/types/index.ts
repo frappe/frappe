@@ -7,11 +7,7 @@ export interface Session {
 	isLoggedIn: boolean
 }
 
-export type SearchLinkOption = {
-	value: string
-	description: string
-}
-
+// Routing
 export type Route = {
 	name: string
 	params?: Record<string, string>
@@ -47,6 +43,7 @@ export interface ReportMap {
 	[key: string]: Report
 }
 
+// Desktop
 export interface DesktopItem {
 	name: string
 	label: string
@@ -58,21 +55,27 @@ export interface DesktopItem {
 	module_slug?: string
 }
 
+// Module Sidebar
 export type ModuleSidebarItemType = "Link" | "Section Break" | "Spacer"
 export type ModuleSidebarLinkType = "DocType" | "Page" | "Report" | "Dashboard" | "URL"
 export type UpdateSidebarItemAction = "addBelow" | "edit" | "delete" | "duplicate"
-export interface ModuleSidebarLink {
+export interface ModuleSidebarItem {
 	type: ModuleSidebarItemType
 	name: string
 	label: string
 	icon: string
+	workspace?: string
+	/** link_type for type = Link */
 	link_type: ModuleSidebarLinkType
 	link_to: string
+	/** exact app route based on link_type & link_to */
 	route_to?: Route
-	workspace?: string
-	links?: ModuleSidebarLink[]
-	url?: string
+	/** section links for type = Section Break */
+	links?: ModuleSidebarItem[]
+	/** tracks if the section is opened for type = Section Break */
 	opened?: boolean
+	/** URL for link_type = URL */
+	url?: string
 	index?: number
 }
 
@@ -80,6 +83,6 @@ export interface ModuleSidebar {
 	name: string
 	module: string
 	module_home?: Route
-	workspaces: ModuleSidebarLink[]
-	sections: ModuleSidebarLink[]
+	workspaces: ModuleSidebarItem[]
+	sections: ModuleSidebarItem[]
 }
