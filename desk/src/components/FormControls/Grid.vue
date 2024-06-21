@@ -32,8 +32,8 @@
 			</div>
 
 			<!-- Rows -->
-			<template v-if="tableRows.length">
-				<Draggable class="w-full" v-model="tableRows" group="rows" item-key="name">
+			<template v-if="rows.length">
+				<Draggable class="w-full" v-model="rows" group="rows" item-key="name">
 					<template #item="{ element: row, index }">
 						<div
 							class="grid-row grid cursor-pointer items-center border-b border-gray-100 bg-white last:rounded-b last:border-b-0"
@@ -118,7 +118,7 @@ const props = defineProps<{
 	fields: GridColumn[]
 }>()
 
-const tableRows = defineModel("rows", { type: Array as PropType<GridRow[]>, default: [] })
+const rows = defineModel("rows", { type: Array as PropType<GridRow[]>, default: () => [] })
 const selectedRows = reactive(new Set<string>())
 
 const gridTemplateColumns = computed(() => {
@@ -132,15 +132,15 @@ const gridTemplateColumns = computed(() => {
 })
 
 const allRowsSelected = computed(() => {
-	if (!tableRows.value.length) return false
-	return tableRows.value.length === selectedRows.size
+	if (!rows.value.length) return false
+	return rows.value.length === selectedRows.size
 })
 
 const showDeleteBtn = computed(() => selectedRows.size > 0)
 
 const toggleSelectAllRows = (iSelected: boolean) => {
 	if (iSelected) {
-		tableRows.value.forEach((row: GridRow) => selectedRows.add(row.name))
+		rows.value.forEach((row: GridRow) => selectedRows.add(row.name))
 	} else {
 		selectedRows.clear()
 	}
@@ -160,11 +160,11 @@ const addRow = () => {
 		newRow[field.fieldname] = ""
 	})
 	newRow.name = getRandom(10)
-	tableRows.value.push(newRow)
+	rows.value.push(newRow)
 }
 
 const deleteRows = () => {
-	tableRows.value = tableRows.value.filter((row: GridRow) => !selectedRows.has(row.name))
+	rows.value = rows.value.filter((row: GridRow) => !selectedRows.has(row.name))
 	selectedRows.clear()
 }
 </script>

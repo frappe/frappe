@@ -6,7 +6,7 @@ export const user: Resource = createResource({
 	url: "frappe.api.desk.get_current_user_info",
 	cache: "frappe:user",
 	onError(error: any) {
-		if (error && error.exc_type === "AuthenticationError") {
+		if (error?.exc_type === "AuthenticationError") {
 			router.push({ name: "Login" })
 		}
 	},

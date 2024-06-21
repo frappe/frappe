@@ -19,11 +19,13 @@ export const permissionsResource: Resource = createResource({
 		data.allow_workspaces.forEach((workspace: Workspace) => {
 			workspacesBySlug[slug(workspace.name)] = workspace
 		})
+		// prettier-ignore
 		if (typeof data.doctype_map === "object") {
 			(Object.values(data.doctype_map) as DocType[]).forEach((doctype: DocType) => {
 				doctypesBySlug[slug(doctype.name)] = doctype
 			})
 		}
+		// prettier-ignore
 		if (typeof data.all_reports === "object") {
 			(Object.values(data.all_reports) as Report[]).forEach((report: Report) => {
 				reportsBySlug[slug(report.title)] = report
