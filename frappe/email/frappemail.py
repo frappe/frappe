@@ -1,8 +1,12 @@
+from datetime import datetime
 from typing import TYPE_CHECKING
 from urllib.parse import urljoin
 
+import pytz
+
 import frappe
 from frappe.frappeclient import FrappeClient
+from frappe.utils import convert_utc_to_system_timezone, get_datetime, get_datetime_str, get_system_timezone
 
 if TYPE_CHECKING:
 	from requests import Response
@@ -90,8 +94,24 @@ class FrappeMail:
 		"""Pulls emails from the mailbox using the Frappe Mail API."""
 
 		endpoint = "inbound/pull-raw"
+		if last_synced_at:
+			last_synced_at = convert_to_utc(last_synced_at)
+
 		data = {"mailbox": self.mailbox, "limit": limit, "last_synced_at": last_synced_at}
 		headers = {"X-Site": frappe.utils.get_url()}
 		response = self.request("GET", endpoint=endpoint, data=data, headers=headers).json()["message"]
+		last_synced_at = convert_utc_to_system_timezone(get_datetime(response["last_synced_at"]))
 
-		return {"latest_messages": response["mails"], "last_synced_at": response["last_synced_at"]}
+		return {"latest_messages": response["mails"], "last_synced_at": last_synced_at}
+
+
+def convert_to_utc(date_time: datetime | str, from_timezone: str | None = None) -> str:
+	"""Converts datetime to UTC timezone."""
+
+	dt = (
+		pytz.timezone(from_timezone or get_system_timezone())
+		.localize(get_datetime(date_time))
+		.astimezone(pytz.utc)
+	)
+
+	return get_datetime_str(dt)
