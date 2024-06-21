@@ -65,16 +65,9 @@ import { computed, nextTick, ref } from "vue"
 import { Popover, FeatherIcon, TextInput } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 
-defineProps({
-	label: {
-		type: String,
-		required: false,
-	},
-	placeholder: {
-		type: String,
-		required: false,
-		default: "Select Icon",
-	},
+withDefaults(defineProps<{ label?: string; placeholder?: string }>(), {
+	label: "",
+	placeholder: "Select Icon",
 })
 
 const modelValue = defineModel("modelValue", {

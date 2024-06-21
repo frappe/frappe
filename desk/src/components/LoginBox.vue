@@ -19,10 +19,5 @@
 <script setup lang="ts">
 import AppLogo from "@/components/Icons/AppLogo.vue"
 
-defineProps({
-	title: {
-		type: String,
-		default: "Login",
-	},
-})
+withDefaults(defineProps<{ title: string }>(), { title: "Login" })
 </script>

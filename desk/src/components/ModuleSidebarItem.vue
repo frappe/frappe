@@ -76,38 +76,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, PropType } from "vue"
+import { computed } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { Tooltip, FeatherIcon } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 import ModuleSidebarItemMenu from "@/components/ModuleSidebarItemMenu.vue"
-import { ModuleSidebarItemType, ModuleSidebarItem } from "@/types"
+import { ModuleSidebarItemType, ModuleSidebarItem as IModuleSidebarItem } from "@/types"
 
-const props = defineProps({
-	type: {
-		type: String as PropType<ModuleSidebarItemType>,
-		required: true,
-	},
-	item: {
-		type: Object as PropType<ModuleSidebarItem>,
-		required: true,
-	},
-	isCollapsed: {
-		type: Boolean,
-		required: false,
-		default: false,
-	},
-	isEditing: {
-		type: Boolean,
-		required: false,
-		default: false,
-	},
-	hideEditMenu: {
-		type: Boolean,
-		required: false,
-		default: false,
-	},
-})
+const props = withDefaults(
+	defineProps<{
+		type: ModuleSidebarItemType
+		item: IModuleSidebarItem
+		isCollapsed?: boolean
+		isEditing?: boolean
+		hideEditMenu?: boolean
+	}>(),
+	{
+		isCollapsed: false,
+		isEditing: false,
+		hideEditMenu: false,
+	}
+)
 
 const router = useRouter()
 const route = useRoute()

@@ -19,25 +19,18 @@ import { AutocompleteValue, SearchLinkOption } from "@/types/controls"
 import { createResource, Autocomplete, debounce } from "frappe-ui"
 import { ref, computed, watch } from "vue"
 
-const props = defineProps({
-	doctype: {
-		type: String,
-		required: true,
-	},
-	modelValue: {
-		type: String,
-		required: true,
-		default: "",
-	},
-	label: {
-		type: String,
-		required: false,
-	},
-	filters: {
-		type: Object,
-		default: {},
-	},
-})
+const props = withDefaults(
+	defineProps<{
+		doctype: string
+		modelValue: string
+		label?: string
+		filters?: Record<string, any>
+	}>(),
+	{
+		label: "",
+		filters: () => ({}),
+	}
+)
 
 const emit = defineEmits(["update:modelValue"])
 

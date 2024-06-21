@@ -113,16 +113,11 @@ import IconPicker from "@/components/FormControls/IconPicker.vue"
 import { getRandom } from "@/utils"
 import { GridColumn, GridRow } from "@/types/controls"
 
-const props = defineProps({
-	label: {
-		type: String,
-		required: false,
-	},
-	fields: {
-		type: Array as PropType<GridColumn[]>,
-		required: true,
-	},
-})
+const props = defineProps<{
+	label?: string
+	fields: GridColumn[]
+}>()
+
 const tableRows = defineModel("rows", { type: Array as PropType<GridRow[]>, default: [] })
 const selectedRows = reactive(new Set<string>())
 

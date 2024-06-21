@@ -262,12 +262,7 @@ import {
 } from "@/types"
 import { updateSidebarItemFnKey } from "@/types/injectionKeys"
 
-const props = defineProps({
-	module: {
-		type: String,
-		required: true,
-	},
-})
+const props = defineProps<{ module: string }>()
 
 const emptySidebarItems = {
 	name: "",
