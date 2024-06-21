@@ -471,6 +471,11 @@ def trigger_notifications(doc, method=None):
 				frappe.db.commit()
 
 
+@frappe.whitelist()
+def trigger_notification(doc, alert):
+	evaluate_alert(doc, alert, "Custom")
+
+
 def evaluate_alert(doc: Document, alert, event):
 	from jinja2 import TemplateError
 
