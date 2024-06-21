@@ -320,17 +320,21 @@ def get_context(context):
 			if option == "Phone" or option == "Mobile":
 				phone_no = d.get(field)
 				if not phone_no:
-					self.log_error(_("Field {0} on document {1} has no Mobile No set").format(field, d.name))
+					doc.log_error(
+						_("Notification: field {0} on document {1} has no Mobile No set").format(
+							field, d.name
+						)
+					)
 			elif option == "User":
 				user = d.get(field)
 				phone_no = frappe.get_value("User", user, "mobile_no")
 				if not phone_no:
-					self.log_error(_("User {0} has no Mobile No set").format(user))
+					doc.log_error(_("Notification: user {0} has no Mobile No set").format(user))
 			elif option == "Customer":
 				customer = d.get(field)
 				phone_no = frappe.get_value("Customer", customer, "mobile_no")
 				if not phone_no:
-					self.log_error(_("Customer {0} has no Mobile No set").format(customer))
+					doc.log_error(_("Notification: customer {0} has no Mobile No set").format(customer))
 			else:
 				frappe.throw(
 					_(
