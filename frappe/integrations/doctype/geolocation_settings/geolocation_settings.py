@@ -7,6 +7,7 @@ from frappe.model.document import Document
 from frappe.utils import get_url
 
 from .providers.geoapify import Geoapify
+from .providers.here import Here
 from .providers.nomatim import Nomatim
 
 
@@ -22,7 +23,7 @@ class GeolocationSettings(Document):
 		api_key: DF.Password | None
 		base_url: DF.Data | None
 		enable_address_autocompletion: DF.Check
-		provider: DF.Literal["Geoapify", "Nomatim"]
+		provider: DF.Literal["Geoapify", "Nomatim", "HERE"]
 	# end: auto-generated types
 
 	pass
@@ -45,6 +46,8 @@ def autocomplete(txt: str) -> list[dict]:
 			referer=get_url(),
 			lang=frappe.local.lang,
 		)
+	elif settings.provider == "HERE":
+		provider = Here(settings.get_password("api_key"), frappe.local.lang)
 	else:
 		frappe.throw(_("This geolocation provider is not supported yet."))
 
