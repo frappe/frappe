@@ -8,14 +8,14 @@
  "engine": "InnoDB",
  "field_order": [
   "account_section",
-  "email_id",
-  "email_account_name",
+  "service",
+  "frappe_mail_site",
+  "domain",
   "enable_incoming",
   "enable_outgoing",
   "column_break_3",
-  "domain",
-  "service",
-  "frappe_mail_site",
+  "email_id",
+  "email_account_name",
   "authentication_section",
   "api_key",
   "column_break_ghqa",
@@ -59,10 +59,8 @@
   "unreplied_for_mins",
   "send_notification_to",
   "outgoing_tab",
-  "section_break_nesl",
-  "column_break_y6hx",
-  "column_break_h5pd",
   "default_outgoing",
+  "column_break_h5pd",
   "always_use_account_email_id_as_sender",
   "always_use_account_name_as_sender_name",
   "send_unsubscribe_message",
@@ -689,20 +687,12 @@
    "fieldname": "last_synced_at",
    "fieldtype": "Datetime",
    "label": "Last Synced At"
-  },
-  {
-   "fieldname": "section_break_nesl",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "column_break_y6hx",
-   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-06-20 16:29:23.704289",
+ "modified": "2024-06-22 08:51:12.977896",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",
