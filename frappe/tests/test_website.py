@@ -167,18 +167,12 @@ class TestWebsite(FrappeTestCase):
 			dict(source=r"/testfrom", target=r"://testto1"),
 			dict(source=r"/testfromregex.*", target=r"://testto2"),
 			dict(source=r"/testsub/(.*)", target=r"://testto3/\1"),
-<<<<<<< HEAD
 			dict(source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True),
-=======
-			dict(
-				source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True
-			),
 			dict(
 				source="/test307",
 				target="/test",
 				redirect_http_status=307,
 			),
->>>>>>> c8816a8b6a (fix(tests): fix redirect tests by adding new field + add another test scenario)
 		]
 
 		website_settings = frappe.get_doc("Website Settings")
