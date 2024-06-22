@@ -151,6 +151,7 @@ def new_site(
 @click.option("--admin-password", help="Administrator password for new site")
 @click.option("--install-app", multiple=True, help="Install app after installation")
 @click.option("--with-public-files", help="Restores the public files of the site, given path to its tar file")
+@click.option("--skip-definer", default=False, is_flag=True, help="Omit DEFINER and SQL SECURITY clauses from view and stored program CREATE statements")
 @click.option(
 	"--with-private-files",
 	help="Restores the private files of the site, given path to its tar file",
@@ -176,6 +177,7 @@ def restore(
 	force=None,
 	with_public_files=None,
 	with_private_files=None,
+	skip_definer=False,
 ):
 	"Restore site database from an sql file"
 
@@ -197,6 +199,7 @@ def restore(
 			force=context.force or force,
 			with_public_files=with_public_files,
 			with_private_files=with_private_files,
+			skip_definer=skip_definer,
 		)
 
 
@@ -213,6 +216,7 @@ def _restore(
 	force=None,
 	with_public_files=None,
 	with_private_files=None,
+	skip_definer=False,
 ):
 	from frappe.installer import extract_files
 	from frappe.utils.backups import decrypt_backup, get_or_generate_backup_encryption_key
@@ -245,6 +249,7 @@ def _restore(
 				install_app,
 				admin_password,
 				force,
+				skip_definer,
 			)
 	else:
 		restore_backup(
@@ -256,6 +261,7 @@ def _restore(
 			install_app,
 			admin_password,
 			force,
+			skip_definer,
 		)
 
 	# Extract public and/or private files to the restored site, if user has given the path
@@ -296,6 +302,7 @@ def restore_backup(
 	install_app,
 	admin_password,
 	force,
+	skip_definer,
 ):
 	from pathlib import Path
 
@@ -339,6 +346,9 @@ def restore_backup(
 
 	# Validate the sql file
 	validate_database_sql(sql_file_path, _raise=not force)
+
+	if skip_definer :
+		err, out = frappe.utils.execute_in_shell(f" sed 's/\\sDEFINER=`[^`]*`@`[^`]*`//g' -i {sql_file_path}", check_exit_code=True)
 
 	try:
 		_new_site(
@@ -803,6 +813,8 @@ def use(site, sites_path="."):
 	help="Ignore excludes/includes set in config",
 )
 @click.option("--verbose", default=False, is_flag=True, help="Add verbosity")
+@click.option("--routines", default=False, is_flag=True, help="Add Database Procedures and functions")
+@click.option("--events", default=False, is_flag=True, help="Add Database Events")
 @click.option("--compress", default=False, is_flag=True, help="Compress private and public files")
 @click.option("--old-backup-metadata", default=False, is_flag=True, help="Use older backup metadata")
 @pass_context
@@ -816,6 +828,8 @@ def backup(
 	backup_path_conf=None,
 	ignore_backup_conf=False,
 	verbose=False,
+	routines=False,
+	events=False,
 	compress=False,
 	include="",
 	exclude="",
@@ -846,6 +860,8 @@ def backup(
 				exclude_doctypes=exclude,
 				compress=compress,
 				verbose=verbose,
+				routines=routines,
+				events=events,
 				force=True,
 				old_backup_metadata=old_backup_metadata,
 				rollback_callback=rollback_callback,
