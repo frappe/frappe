@@ -34,11 +34,11 @@ class Here:
 				"label": address["label"],
 				"value": json.dumps(
 					{
-						"address_line1": f'{address.get("street")} {address.get("houseNumber", "")}'.strip(),
-						"city": address.get("city"),
-						"state": address.get("state"),
-						"pincode": address.get("postalCode"),
-						"country": frappe_country,
+						"address_line1": f'{address.get("street", "")} {address.get("houseNumber", "")}'.strip(),
+						"city": address.get("city", ""),
+						"state": address.get("state", ""),
+						"pincode": address.get("postalCode", ""),
+						"country": frappe_country or "",
 					}
 				),
 			}

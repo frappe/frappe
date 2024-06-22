@@ -21,9 +21,32 @@ frappe.ui.AddressAutocompleteDialog = class AddressAutocompleteDialog {
 					reqd: 1,
 					get_query:
 						"frappe.integrations.doctype.geolocation_settings.geolocation_settings.autocomplete",
+					onchange: () => {
+						// Disable "Create Address" button if mandatory fields are missing
+						frappe.model.with_doctype("Address", () => {
+							const address = this.parse_selected_value();
+							const mandatory_fields = frappe
+								.get_meta("Address")
+								.fields.filter(
+									(field) =>
+										field.reqd &&
+										!field.default &&
+										field.fieldname !== "address_type"
+								);
+							const missing_fields = mandatory_fields.filter(
+								(field) => !address[field.fieldname]
+							);
+							const is_valid = missing_fields.length === 0;
+							if (is_valid) {
+								dialog.enable_primary_action();
+							} else {
+								dialog.disable_primary_action();
+							}
+						});
+					},
 				},
 			],
-			primary_action_label: __("Save Address"),
+			primary_action_label: __("Create Address"),
 			primary_action: () => {
 				// Insert the address into the database
 				dialog.hide();
@@ -40,7 +63,7 @@ frappe.ui.AddressAutocompleteDialog = class AddressAutocompleteDialog {
 					this.after_insert && this.after_insert(doc);
 				});
 			},
-			secondary_action_label: __("Edit Address"),
+			secondary_action_label: __("Edit Address in Form"),
 			secondary_action: () => {
 				// Open the address in the form view
 				dialog.hide();
