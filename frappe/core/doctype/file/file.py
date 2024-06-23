@@ -815,6 +815,10 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 			frappe.clear_last_message()
 			return False
 
+		meta = frappe.get_meta(doc.attached_to_doctype)
+		if doc.attached_to_field not in meta.get_permitted_fieldnames(user=frappe.session.user):
+			return False
+
 		if ptype in ["write", "create", "delete"]:
 			return ref_doc.has_permission("write", debug=debug, user=user)
 		else:
