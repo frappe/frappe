@@ -60,32 +60,25 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, nextTick, ref } from "vue"
 import { Popover, FeatherIcon, TextInput } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 
-const props = defineProps({
-	label: {
-		type: String,
-		required: false,
-	},
-	placeholder: {
-		type: String,
-		required: false,
-		default: "Select Icon",
-	},
+withDefaults(defineProps<{ label?: string; placeholder?: string }>(), {
+	label: "",
+	placeholder: "Select Icon",
 })
 
 const modelValue = defineModel("modelValue", {
 	type: String,
 	default: "",
 })
-const searchInput = ref("")
+const searchInput = ref<InstanceType<typeof TextInput>>("")
 const searchText = ref("")
 
 const icons = computed(() => {
-	const iconList = []
+	const iconList: string[] = []
 
 	const iconNodeList = searchText.value
 		? document.querySelectorAll(`#icons-timeless > symbol[id*="${searchText.value}"]`)

@@ -3,8 +3,9 @@ import { createResource } from "frappe-ui"
 import router from "@/router"
 
 import { user } from "@/data/user"
+import { Session } from "@/types"
 
-export function sessionUser() {
+export function sessionUser(): string | null {
 	let cookies = new URLSearchParams(document.cookie.split("; ").join("&"))
 	let _sessionUser = cookies.get("user_id")
 	if (_sessionUser === "Guest") {
@@ -14,16 +15,16 @@ export function sessionUser() {
 	return _sessionUser
 }
 
-export const session = reactive({
+export const session: Session = reactive({
 	login: createResource({
 		url: "login",
-		makeParams({ email, password }) {
+		makeParams({ email, password }: { email: string; password: string }) {
 			return {
 				usr: email,
 				pwd: password,
 			}
 		},
-		onSuccess(data) {
+		onSuccess(data: any) {
 			user.reload()
 
 			session.user = sessionUser()
