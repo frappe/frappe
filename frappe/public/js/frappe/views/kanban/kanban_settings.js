@@ -118,7 +118,7 @@ export default class KanbanSettings {
 				</div>
 				<p class="help-box small text-muted">
 					<a class="add-new-fields text-muted">
-						${__("+ Add / Remove Fields")}
+					        + ${__("Add / Remove Fields")}
 					</a>
 				</p>
 			</div>
