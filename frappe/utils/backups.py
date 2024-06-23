@@ -58,6 +58,8 @@ class BackupGenerator:
 		include_doctypes="",
 		exclude_doctypes="",
 		verbose=False,
+		routines=False,
+		events=False,
 		old_backup_metadata=False,
 		rollback_callback=None,
 	):
@@ -85,6 +87,8 @@ class BackupGenerator:
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
 		self.verbose = verbose
+		self.routines = routines
+		self.events = events
 		self.setup_backup_directory()
 		self.setup_backup_tables()
 		_verbose = verbose
@@ -448,6 +452,8 @@ class BackupGenerator:
 			db_name=self.db_name,
 			extra=extra,
 			dump=True,
+			routines=self.routines,
+			events=self.events,
 		)
 		if not bin:
 			frappe.throw(
@@ -568,6 +574,8 @@ def scheduled_backup(
 	compress=False,
 	force=False,
 	verbose=False,
+	routines=False,
+	events=False,
 	old_backup_metadata=False,
 	rollback_callback=None,
 ):
@@ -588,6 +596,8 @@ def scheduled_backup(
 		compress=compress,
 		force=force,
 		verbose=verbose,
+		routines=routines,
+		events=events,
 		old_backup_metadata=old_backup_metadata,
 		rollback_callback=rollback_callback,
 	)
@@ -607,6 +617,8 @@ def new_backup(
 	compress=False,
 	force=False,
 	verbose=False,
+	routines=False,
+	events=False,
 	old_backup_metadata=False,
 	rollback_callback=None,
 ):
@@ -628,6 +640,8 @@ def new_backup(
 		include_doctypes=include_doctypes,
 		exclude_doctypes=exclude_doctypes,
 		verbose=verbose,
+		routines=routines,
+		events=events,
 		compress_files=compress,
 		old_backup_metadata=old_backup_metadata,
 		rollback_callback=rollback_callback,
