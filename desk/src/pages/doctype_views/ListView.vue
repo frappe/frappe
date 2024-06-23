@@ -21,7 +21,7 @@
 					:item="item"
 					:row="row"
 					:column="column"
-					:titleField="listConfig.titleField"
+					:titleField="listConfig.title_field"
 				/>
 			</template>
 		</ListView>
@@ -164,8 +164,8 @@ const getParsedFilter = (key, filter) => {
 	return {
 		fieldname: key,
 		fieldtype: getFieldType(key),
-		operator: f.constructor === Array ? f[0] : "=",
-		value: f.constructor === Array ? f[1] : f,
+		operator: Array.isArray(f) ? f[0] : "=",
+		value: Array.isArray(f) ? f[1] : f,
 		options: getSelectOptions(key),
 	}
 }
@@ -176,7 +176,7 @@ const currentFilters = computed(() => {
 		for (let key in route.query) {
 			if (key == "view") continue
 
-			if (route.query[key].constructor === Array) {
+			if (Array.isArray(route.query[key])) {
 				route.query[key].forEach((v) => {
 					filters.push(getParsedFilter(key, v))
 				})

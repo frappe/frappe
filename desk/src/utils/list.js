@@ -4,14 +4,13 @@ const getFilterValue = (filter) =>
 export function getFilterQuery(filters) {
 	const q = {}
 	filters.map((f) => {
-		const fieldname = f.fieldname
-		const operator = f.operator
+		const { fieldname, operator } = f
 		const value = getFilterValue(f)
 		if (operator == "=" && !q[fieldname]) {
 			q[fieldname] = JSON.stringify(value)
 		} else if (!q[fieldname]) {
 			q[fieldname] = [JSON.stringify([operator, value])]
-		} else if (q[fieldname].constructor === Array) {
+		} else if (Array.isArray(q[fieldname])) {
 			q[fieldname].push(JSON.stringify([operator, value]))
 		} else {
 			q[fieldname] = [q[fieldname], JSON.stringify([operator, value])]
