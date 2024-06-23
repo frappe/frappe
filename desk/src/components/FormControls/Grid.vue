@@ -32,8 +32,8 @@
 			</div>
 
 			<!-- Rows -->
-			<template v-if="tableRows.length">
-				<Draggable class="w-full" v-model="tableRows" group="rows" item-key="name">
+			<template v-if="rows.length">
+				<Draggable class="w-full" v-model="rows" group="rows" item-key="name">
 					<template #item="{ element: row, index }">
 						<div
 							class="grid-row grid cursor-pointer items-center border-b border-gray-100 bg-white last:rounded-b last:border-b-0"
@@ -68,13 +68,13 @@
 								/>
 								<FormControl
 									v-else
-									:type="field.fieldtype"
+									:type="field.fieldtype.toLowerCase()"
 									:options="field.options"
 									variant="outline"
 									size="md"
 									v-model="row[field.fieldname]"
 									class="text-sm text-gray-800"
-									@change="(e) => field.onChange && field.onChange(e.target.value, index)"
+									@change="(e: Event) => field.onChange && field.onChange((e.target as HTMLInputElement).value, index)"
 								/>
 							</div>
 							<button @click="" class="flex items-center justify-center">
@@ -102,28 +102,24 @@
 	</div>
 </template>
 
-<script setup>
-import { reactive, computed } from "vue"
-import { Checkbox } from "frappe-ui"
+<script setup lang="ts">
+import { reactive, computed, PropType } from "vue"
+import { FormControl, Checkbox } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import Link from "@/components/FormControls/Link.vue"
 import IconPicker from "@/components/FormControls/IconPicker.vue"
 
 import { getRandom } from "@/utils"
+import { GridColumn, GridRow } from "@/types/controls"
 
-const props = defineProps({
-	label: {
-		type: String,
-		required: false,
-	},
-	fields: {
-		type: Array,
-		required: true,
-	},
-})
-const tableRows = defineModel("rows", { type: Array, default: [] })
-const selectedRows = reactive(new Set())
+const props = defineProps<{
+	label?: string
+	fields: GridColumn[]
+}>()
+
+const rows = defineModel("rows", { type: Array as PropType<GridRow[]>, default: () => [] })
+const selectedRows = reactive(new Set<string>())
 
 const gridTemplateColumns = computed(() => {
 	// for the checkbox & sr no. columns
@@ -136,21 +132,21 @@ const gridTemplateColumns = computed(() => {
 })
 
 const allRowsSelected = computed(() => {
-	if (!tableRows.value.length) return false
-	return tableRows.value.length === selectedRows.size
+	if (!rows.value.length) return false
+	return rows.value.length === selectedRows.size
 })
 
 const showDeleteBtn = computed(() => selectedRows.size > 0)
 
-const toggleSelectAllRows = (iSelected) => {
+const toggleSelectAllRows = (iSelected: boolean) => {
 	if (iSelected) {
-		tableRows.value.forEach((row) => selectedRows.add(row.name))
+		rows.value.forEach((row: GridRow) => selectedRows.add(row.name))
 	} else {
 		selectedRows.clear()
 	}
 }
 
-const toggleSelectRow = (row) => {
+const toggleSelectRow = (row: GridRow) => {
 	if (selectedRows.has(row.name)) {
 		selectedRows.delete(row.name)
 	} else {
@@ -159,16 +155,16 @@ const toggleSelectRow = (row) => {
 }
 
 const addRow = () => {
-	const newRow = {}
+	const newRow = {} as GridRow
 	props.fields.forEach((field) => {
 		newRow[field.fieldname] = ""
 	})
 	newRow.name = getRandom(10)
-	tableRows.value.push(newRow)
+	rows.value.push(newRow)
 }
 
 const deleteRows = () => {
-	tableRows.value = tableRows.value.filter((row) => !selectedRows.has(row.name))
+	rows.value = rows.value.filter((row: GridRow) => !selectedRows.has(row.name))
 	selectedRows.clear()
 }
 </script>

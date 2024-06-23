@@ -14,39 +14,37 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { AutocompleteValue, SearchLinkOption } from "@/types/controls"
 import { createResource, Autocomplete, debounce } from "frappe-ui"
 import { ref, computed, watch } from "vue"
 
-const props = defineProps({
-	doctype: {
-		type: String,
-		required: true,
-	},
-	modelValue: {
-		type: String,
-		required: true,
-		default: "",
-	},
-	label: {
-		type: String,
-		required: false,
-	},
-	filters: {
-		type: Object,
-		default: {},
-	},
-})
+const props = withDefaults(
+	defineProps<{
+		doctype: string
+		modelValue: string
+		label?: string
+		filters?: Record<string, any>
+	}>(),
+	{
+		label: "",
+		filters: () => ({}),
+	}
+)
 
 const emit = defineEmits(["update:modelValue"])
 
-const autocompleteRef = ref(null)
+const autocompleteRef = ref<InstanceType<typeof Autocomplete>>(null)
 const searchText = ref("")
 
 const value = computed({
 	get: () => props.modelValue,
-	set: (val) => {
-		emit("update:modelValue", val?.value || "")
+	set: (val: AutocompleteValue | string): void => {
+		if (typeof val === "string") {
+			emit("update:modelValue", val)
+		} else {
+			emit("update:modelValue", val?.value || "")
+		}
 	},
 })
 
@@ -58,7 +56,7 @@ const options = createResource({
 		filters: props.filters,
 	},
 	method: "POST",
-	transform: (data) => {
+	transform: (data: SearchLinkOption[]) => {
 		return data.map((doc) => {
 			return {
 				label: doc.value,
@@ -68,7 +66,7 @@ const options = createResource({
 	},
 })
 
-const reloadOptions = debounce((searchTextVal) => {
+const reloadOptions = debounce((searchTextVal: string) => {
 	options.update({
 		params: {
 			txt: searchTextVal,
@@ -89,7 +87,7 @@ watch(
 
 watch(
 	() => autocompleteRef.value?.query,
-	(val) => {
+	(val: string) => {
 		val = val || ""
 		if (searchText.value === val) return
 		searchText.value = val

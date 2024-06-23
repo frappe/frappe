@@ -40,8 +40,8 @@
 				</div>
 
 				<div class="mt-5 flex w-full flex-col gap-2">
-					<ErrorMessage :message="session.login.error || resetPassword.error" />
-					<Button variant="solid" :loading="session.login.loading">
+					<ErrorMessage :message="session?.login.error || resetPassword.error" />
+					<Button variant="solid" :loading="session?.login.loading">
 						{{ !forgotPassword ? "Login" : "Reset Password" }}
 					</Button>
 				</div>
@@ -63,42 +63,44 @@
 	</LoginBox>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, inject, watch } from "vue"
 import { useRoute } from "vue-router"
 
 import { createResource } from "frappe-ui"
 import LoginBox from "@/components/LoginBox.vue"
+import { Session } from "@/types"
+import { Resource } from "@/types/frappeUI"
 
 const email = ref(null)
 const password = ref(null)
 const resetPasswordEmailSent = ref(false)
 
 const route = useRoute()
-const session = inject("$session")
+const session = inject<Session>("$session")
 
-const forgotPassword = computed(() => route.query.forgot)
-const title = computed(() => (forgotPassword.value ? "Reset Password" : "Login to Frappe"))
+const forgotPassword = computed<boolean>(() => Boolean(route.query.forgot))
+const title = computed<string>(() => (forgotPassword.value ? "Reset Password" : "Login to Frappe"))
 
 watch(
 	() => forgotPassword.value,
 	(_val) => {
-		session.login.error = null
+		if (session) session.login.error = null
 		resetPassword.error = null
 		password.value = null
 	}
 )
 
-const resetPassword = createResource({
+const resetPassword: Resource = createResource({
 	url: "frappe.core.doctype.user.user.reset_password",
-	onSuccess: (_data) => {
+	onSuccess: (_data: any) => {
 		resetPasswordEmailSent.value = true
 	},
 })
 
 const loginOrResetPassword = async () => {
 	if (!forgotPassword.value) {
-		session.login.submit({
+		session?.login.submit({
 			email: email.value,
 			password: password.value,
 		})

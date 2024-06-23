@@ -4,15 +4,10 @@
 	</svg>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue"
 
-const props = defineProps({
-	name: {
-		type: String,
-		required: true,
-	},
-})
+const props = defineProps<{ name: string }>()
 
 const iconName = computed(() => {
 	const isEspresso = props.name.startsWith("es-")

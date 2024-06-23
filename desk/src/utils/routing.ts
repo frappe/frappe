@@ -1,8 +1,10 @@
-export function slug(name) {
+import { ModuleSidebarLink, Route } from "@/types"
+
+export function slug(name: string): string {
 	return name.toLowerCase().replace(/ /g, "-")
 }
 
-export function getRoute(link, module) {
+export function getRoute(link: ModuleSidebarLink, module: string): Route | undefined {
 	// TODO: handle single doctypes - shouldn't be a list
 	if (link.workspace) {
 		return { name: "Workspace", params: { workspace: slug(link.workspace) } }

@@ -1,4 +1,4 @@
-export function getRandom(len) {
+export function getRandom(len: number): string {
 	let text = ""
 	const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 

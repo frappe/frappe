@@ -20,19 +20,17 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { inject } from "vue"
 import { Dropdown } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 
-const props = defineProps({
-	item: {
-		type: Object,
-		required: true,
-	},
-})
+import { ModuleSidebarItem } from "@/types"
+import { updateSidebarItemFnKey } from "@/types/injectionKeys"
 
-const updateSidebarItem = inject("updateSidebarItem")
+const props = defineProps<{ item: ModuleSidebarItem }>()
+
+const updateSidebarItem = inject(updateSidebarItemFnKey, () => {})
 
 const itemActionMenu = [
 	{

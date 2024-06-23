@@ -36,10 +36,18 @@ app.provide("$session", session)
 app.provide("$user", user)
 app.provide("$dayjs", dayjs)
 
+declare global {
+	interface Window {
+		frappe: {
+			boot?: object
+		}
+	}
+}
+
 if (import.meta.env.DEV) {
 	frappeRequest({
 		url: "/api/method/frappe.www.desk.get_context_for_dev",
-	}).then((values) => {
+	}).then((values: string) => {
 		if (!window.frappe) window.frappe = {}
 		window.frappe.boot = JSON.parse(values)
 		app.mount("#app")

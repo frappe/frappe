@@ -24,7 +24,7 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { desktopItems } from "@/data/desktop"
 import Icon from "@/components/Icon.vue"
 </script>
