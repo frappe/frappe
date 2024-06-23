@@ -34,7 +34,7 @@
 						<FormControl
 							type="select"
 							:model-value="operator"
-							:options="getOperators(i)"
+							:options="getOperators(fieldtype)"
 							@update:model-value="(val) => updateOperator(val, i)"
 						/>
 					</div>
@@ -113,10 +113,7 @@ const props = defineProps({
 
 const filters = defineModel()
 
-const getOperators = (index) => {
-	let f = filters.value[index]
-	let fieldtype = f.fieldtype
-
+const getOperators = (fieldtype) => {
 	if (stringTypes.includes(fieldtype)) {
 		return filterOperators["string"]
 	} else if (numberTypes.includes(fieldtype)) {
@@ -136,7 +133,7 @@ const addFilter = (field) => {
 	filters.value.push({
 		fieldname: field.value,
 		fieldtype: field.type,
-		operator: "",
+		operator: getOperators(field.type)[0].value,
 		value: "",
 		options: field.options || [],
 	})
@@ -154,11 +151,14 @@ const clearFilters = (close) => {
 }
 
 const updateField = (field, index) => {
+	const newOperators = getOperators(field.type)
+	// If the current operator is available for the new field, keep it
+	const operator = newOperators.find((o) => o.value === filters.value[index].operator)
 	filters.value[index] = {
 		fieldname: field.value,
 		fieldtype: field.type,
 		options: field.options || [],
-		operator: "",
+		operator: operator.value || newOperators[0].value,
 		value: "",
 	}
 }
