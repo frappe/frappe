@@ -235,7 +235,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		});
 
 		if ("event_type" in interaction_values) {
-			interaction_values["event_type"] = form_values.public == 1 ? "Public" : "Private";
+			interaction_values["event_type"] = form_values.public == 1 ? __("Public") : __("Private");
 		}
 		if (interaction_values["doctype"] == "Event") {
 			interaction_values["event_participants"] = [
