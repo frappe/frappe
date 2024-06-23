@@ -103,7 +103,7 @@ class BaseTimeline {
 			timeline_item.append(
 				`<div class="timeline-load-more">
 					<button class="btn btn-default btn-sm btn-load-more">
-						<span>${item.content}</span>
+						<span>${__(item.content)}</span>
 					</button>
 				</div>`
 			);
