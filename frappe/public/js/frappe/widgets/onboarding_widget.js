@@ -130,8 +130,8 @@ export default class OnboardingWidget extends Widget {
 			} else {
 				$(
 					`<button class="btn btn-default btn-sm">${__(
-						step.action_label || step.action
-					)}</button>`
+						step.action_label) || __(step.action)
+					}</button>`
 				)
 					.appendTo(this.step_footer)
 					.on("click", () => actions[step.action](step));
@@ -139,8 +139,8 @@ export default class OnboardingWidget extends Widget {
 		};
 
 		const set_description = () => {
-			let content = step.description
-				? frappe.markdown(step.description)
+			let content = __(step.description)
+				? frappe.markdown(__(step.description))
 				: `<h1>${__(step.title)}</h1>`;
 
 			if (step.action === "Create Entry") {
@@ -169,7 +169,7 @@ export default class OnboardingWidget extends Widget {
 
 			$(
 				`<button class="btn btn-primary btn-sm">${__(
-					step.action_label || step.action
+					step.action_label) || __(step.action
 				)}</button>`
 			)
 				.appendTo(this.step_footer)
