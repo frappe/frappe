@@ -769,6 +769,16 @@ class TestBackups(BaseTestCommands):
 		self.execute("bench --site {site} backup --verbose")
 		self.assertEqual(self.returncode, 0)
 
+	def test_backup_routines(self):
+		"""Take a routines backup (--routines)"""
+		self.execute("bench --site {site} backup --routines")
+		self.assertEqual(self.returncode, 0)
+
+	def test_backup_events(self):
+		"""Take a events backup (--events)"""
+		self.execute("bench --site {site} backup --events")
+		self.assertEqual(self.returncode, 0)
+
 	def test_backup_only_specific_doctypes(self):
 		"""Take a backup with (include) backup options set in the site config `frappe.conf.backup.includes`"""
 		self.execute(
