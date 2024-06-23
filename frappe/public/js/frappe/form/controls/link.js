@@ -196,7 +196,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			},
 			data: function (item) {
 				return {
-					label: me.get_translated(item.label || item.value),
+					label: __(me.get_translated(item.label || item.value)),
 					value: item.value,
 				};
 			},
