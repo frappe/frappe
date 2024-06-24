@@ -110,7 +110,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, getCurrentInstance } from "vue"
+import { computed, ref, watch, inject } from "vue"
 import { Autocomplete, call } from "frappe-ui"
 import Draggable from "vuedraggable"
 
@@ -120,14 +120,15 @@ import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue
 import IconReset from "@/components/Icons/IconReset.vue"
 import { cloneObject } from "@/utils"
 
-const instance = getCurrentInstance()
-
 const props = defineProps({
 	allColumns: {
 		type: Array,
 		default: [],
 	},
 })
+
+const fetchList = inject("fetchList")
+const renderList = inject("renderList")
 
 const fields = computed(() => {
 	let allFields = props.allColumns
@@ -154,7 +155,7 @@ const resetToDefault = async (close) => {
 	await call("frappe.desk.doctype.view_config.view_config.reset_default_config", {
 		config_name: configName.value,
 	})
-	instance.parent.emit("reload")
+	renderList()
 	close()
 }
 
@@ -167,7 +168,7 @@ function addColumn(c) {
 		options: c.options,
 	}
 	columns.value.push(_column)
-	instance.parent.emit("fetch")
+	fetchList()
 }
 
 function removeColumn(c) {

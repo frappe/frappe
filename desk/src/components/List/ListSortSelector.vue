@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { computed, defineModel, getCurrentInstance } from "vue"
+import { computed, defineModel, inject } from "vue"
 import { Dropdown, Tooltip } from "frappe-ui"
 
 const props = defineProps({
@@ -37,6 +37,9 @@ const props = defineProps({
 		default: [],
 	},
 })
+
+const fetchList = inject("fetchList")
+
 const sort = defineModel()
 
 const sortField = computed(() => {
@@ -50,16 +53,14 @@ const sortOptions = computed(() => {
 			label: field.label,
 			onClick: () => {
 				sort.value[0] = field.key
-				instance.parent.emit("fetch")
+				fetchList()
 			},
 		}
 	})
 })
 
-const instance = getCurrentInstance()
-
 const toggleSortOrder = () => {
 	sort.value[1] = sort.value[1] == "ASC" ? "DESC" : "ASC"
-	instance.parent.emit("fetch")
+	fetchList()
 }
 </script>

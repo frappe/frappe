@@ -25,8 +25,6 @@ import ListSortSelector from "@/components/List/ListSortSelector.vue"
 
 import { listConfig } from "@/stores/view"
 
-const emit = defineEmits(["update", "reload", "fetch"])
-
 const props = defineProps({
 	options: {
 		type: Object,

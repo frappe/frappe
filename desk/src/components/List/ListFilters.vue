@@ -22,7 +22,7 @@
 					v-for="({ fieldname, fieldtype, operator, value, options }, i) in filters"
 					class="mb-3 flex items-center gap-2"
 				>
-					<div class="w-[9rem]">
+					<div class="w-36">
 						<Autocomplete
 							:body-classes="'w-[15rem]'"
 							:model-value="fieldname"
@@ -30,7 +30,7 @@
 							@update:model-value="(val) => updateField(val, i)"
 						/>
 					</div>
-					<div class="w-[7rem]">
+					<div class="w-28">
 						<FormControl
 							type="select"
 							:model-value="operator"
@@ -38,7 +38,7 @@
 							@update:model-value="(val) => updateOperator(val, i)"
 						/>
 					</div>
-					<div class="w-[10rem]">
+					<div class="w-40">
 						<ListFilterValue
 							:fieldtype="fieldtype"
 							:operator="operator"
@@ -93,7 +93,7 @@ import ListFilterValue from "@/components/List/ListFilterValue.vue"
 import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
 
 import { Autocomplete } from "frappe-ui"
-import { getCurrentInstance } from "vue"
+import { inject } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import {
 	linkTypes,
@@ -103,6 +103,8 @@ import {
 	filterOperators,
 } from "@/data/constants/filters"
 import { getFilterQuery } from "@/utils/list"
+
+const fetchList = inject("fetchList")
 
 const props = defineProps({
 	allFilterableFields: {
@@ -125,7 +127,6 @@ const getOperators = (fieldtype) => {
 	} else if (["Select", "Check", "Duration"].includes(fieldtype)) {
 		return filterOperators[fieldtype.toLowerCase()]
 	}
-
 	return []
 }
 
@@ -179,12 +180,11 @@ const updateValue = (value, operator, index) => {
 
 const route = useRoute()
 const router = useRouter()
-const instance = getCurrentInstance()
 
 const updateFiltersInQuery = async () => {
 	let q = { view: route.query.view }
 	Object.assign(q, getFilterQuery(filters.value))
 	await router.replace({ query: q })
-	instance.parent.emit("fetch", { updateCount: true })
+	fetchList(true)
 }
 </script>

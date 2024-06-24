@@ -2,12 +2,7 @@
 	<div class="mx-5 my-4 flex h-[41rem] flex-col gap-4">
 		<div v-if="configSettings.data" class="overflow-x-none flex w-full justify-between gap-2">
 			<ViewSwitcher :queryFilters="queryFilters" />
-			<ListControls
-				v-if="listConfig.fields"
-				:options="listControlOptions"
-				@fetch="(updateCount) => fetchList(updateCount)"
-				@reload="renderList"
-			/>
+			<ListControls v-if="listConfig.fields" :options="listControlOptions" />
 		</div>
 		<ListView
 			v-if="listResource.data?.length"
@@ -45,7 +40,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue"
+import { ref, computed, watch, provide } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { watchDebounced } from "@vueuse/core"
 
@@ -237,4 +232,7 @@ watchDebounced(
 	},
 	{ debounce: 1000, maxWait: 1000 }
 )
+
+provide("fetchList", fetchList)
+provide("renderList", renderList)
 </script>
