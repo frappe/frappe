@@ -72,20 +72,20 @@ if doc.allocated_to:
 # retreive payment session state
 ps = doc.flags.payment_session
 
-if ps.flags.status_changed_to in ps.flowstates.success:
-		if ps.changed: # could be an idempotent run
-        doc.set_as_paid()
+if ps.changed: # could be an idempotent run
+	if ps.flags.status_changed_to in ps.flowstates.success:
+		doc.set_as_paid()
 		# custom process return values
-    doc.flags.payment_result = {
-        "message": "Thank you for your payment",
-        "action": {"href": "https://shop.example.com", "label": "Return to shop"},
-    }
-if ps.flags.status_changed_to in ps.flowstates.pre_authorized:
-    # do something else
-if ps.flags.status_changed_to in ps.flowstates.processing:
-    # do something else
-if ps.flags.status_changed_to in ps.flowstates.declined:
-    # do something else
+		doc.flags.payment_result = {
+			"message": "Thank you for your payment",
+			"action": {"href": "https://shop.example.com", "label": "Return to shop"},
+		}
+	if ps.flags.status_changed_to in ps.flowstates.pre_authorized:
+		# do something else
+	if ps.flags.status_changed_to in ps.flowstates.processing:
+		# do something else
+	if ps.flags.status_changed_to in ps.flowstates.declined:
+		# do something else
 </code>
 </pre>
 <p>The <i>On Payment Failed</i> (<code>on_payment_failed</code>) event only transports the error message which the controller implementation had extracted from the transaction.</p>
