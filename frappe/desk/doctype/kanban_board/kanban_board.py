@@ -2,7 +2,8 @@
 # License: MIT. See LICENSE
 
 import json
-
+from urllib import request
+from frappe.integrations.utils import make_post_request
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -341,3 +342,11 @@ def save_settings(board_name: str, settings: str) -> Document:
     resp["fields"] = frappe.parse_json(resp["fields"])
 
     return resp
+
+@frappe.whitelist()
+def call_freeze_queue_position_message(aws_url):
+     return make_post_request(
+                f"{aws_url}queue/send-freeze-queue-position-message",
+                headers={"Content-Type": "application/json"},
+                data=json.dumps({}),
+            )
