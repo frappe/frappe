@@ -63,8 +63,7 @@ let field_df = computedAsync(async () => {
 watch(
 	() => props.value,
 	(value) => {
-		if(value)
-			[doctype.value, fieldname.value] = value.split(".") || ["", ""];
+		if(value) [doctype.value, fieldname.value] = value.split(".") || ["", ""];
 	},
 	{ immediate: true }
 );
