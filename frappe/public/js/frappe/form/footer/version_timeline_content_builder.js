@@ -198,8 +198,8 @@ function get_version_timeline_content(version_doc, frm) {
 			let parts = (data[key] || []).map(function (p) {
 				var df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
 
-				// exclude User doctype to show changes of `Roles` and `Allow Modules` tables 
-				const is_excluded = ["User"].includes(frm.doctype)
+				// exclude User doctype to show changes of `Roles` and `Allow Modules` tables
+				const is_excluded = ["User"].includes(frm.doctype);
 
 				if (df && (!df.hidden || is_excluded)) {
 					var field_display_status = frappe.perm.get_field_display_status(
@@ -208,7 +208,11 @@ function get_version_timeline_content(version_doc, frm) {
 						frm.perm
 					);
 
-					if (field_display_status === "Read" || field_display_status === "Write" || (df.hidden && is_excluded)) {
+					if (
+						field_display_status === "Read" ||
+						field_display_status === "Write" ||
+						(df.hidden && is_excluded)
+					) {
 						return __(frappe.meta.get_label(frm.doctype, p[0]));
 					}
 				}
