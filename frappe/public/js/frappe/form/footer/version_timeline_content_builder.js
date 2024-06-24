@@ -197,14 +197,18 @@ function get_version_timeline_content(version_doc, frm) {
 		if (data[key] && data[key].length) {
 			let parts = (data[key] || []).map(function (p) {
 				var df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
-				if (df && !df.hidden) {
+
+				// exclude User doctype to show changes of `Roles` and `Allow Modules` tables 
+				const is_excluded = ["User"].includes(frm.doctype)
+
+				if (df && (!df.hidden || is_excluded)) {
 					var field_display_status = frappe.perm.get_field_display_status(
 						df,
 						null,
 						frm.perm
 					);
 
-					if (field_display_status === "Read" || field_display_status === "Write") {
+					if (field_display_status === "Read" || field_display_status === "Write" || (df.hidden && is_excluded)) {
 						return __(frappe.meta.get_label(frm.doctype, p[0]));
 					}
 				}
