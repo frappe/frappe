@@ -135,21 +135,18 @@ class EmailAccount(Document):
 		if self.email_id:
 			validate_email_address(self.email_id, True)
 
-		if self.service == "Frappe Mail":
-			if self.use_imap:
-				self.use_imap = 0
-
-			if not self.always_use_account_email_id_as_sender:
-				self.always_use_account_email_id_as_sender = 1
-
-			frappe_mail_client = self.get_frappe_mail_client()
-			frappe_mail_client.validate(for_inbound=self.enable_incoming, for_outbound=self.enable_outgoing)
-
 		if self.login_id_is_different:
 			if not self.login_id:
 				frappe.throw(_("Login Id is required"))
 		else:
 			self.login_id = None
+
+		if self.service == "Frappe Mail":
+			self.use_imap = 0
+			self.always_use_account_email_id_as_sender = 1
+
+			if self.auth_method == "Basic" or self.get_oauth_token():
+				self.validate_frappe_mail_settings()
 
 		# validate the imap settings
 		if self.enable_incoming and self.use_imap and len(self.imap_folder) <= 0:
@@ -196,6 +193,12 @@ class EmailAccount(Document):
 					valid_doctypes = [d[0] for d in get_append_to()]
 					if folder.append_to not in valid_doctypes:
 						frappe.throw(_("Append To can be one of {0}").format(comma_or(valid_doctypes)))
+
+	@frappe.whitelist()
+	def validate_frappe_mail_settings(self):
+		if self.service == "Frappe Mail":
+			frappe_mail_client = self.get_frappe_mail_client()
+			frappe_mail_client.validate(for_inbound=self.enable_incoming, for_outbound=self.enable_outgoing)
 
 	def validate_smtp_conn(self):
 		if not self.smtp_server:
@@ -489,9 +492,11 @@ class EmailAccount(Document):
 
 		return account_details
 
-	def sendmail_config(self):
+	def get_access_token(self) -> str | None:
 		oauth_token = self.get_oauth_token()
+		return oauth_token.get_password("access_token") if oauth_token else None
 
+	def sendmail_config(self):
 		return {
 			"email_account": self.name,
 			"server": self.smtp_server,
@@ -501,7 +506,7 @@ class EmailAccount(Document):
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
 			"use_oauth": self.auth_method == "OAuth",
-			"access_token": oauth_token.get_password("access_token") if oauth_token else None,
+			"access_token": self.get_access_token(),
 		}
 
 	def get_smtp_server(self):
@@ -522,7 +527,20 @@ class EmailAccount(Document):
 
 	@functools.cached_property
 	def _frappe_mail_client(self):
-		return FrappeMail(self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret"))
+		if self.auth_method == "OAuth":
+			if access_token := self.get_access_token():
+				return FrappeMail(self.frappe_mail_site, self.email_id, access_token=access_token)
+
+			frappe.throw(
+				_("Please Authorize OAuth for Email Account {0}").format(
+					frappe.bold(self.email_account_name)
+				),
+				title=_("Frappe Mail OAuth Error"),
+			)
+		else:
+			return FrappeMail(
+				self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret")
+			)
 
 	def remove_unpicklable_values(self, state):
 		super().remove_unpicklable_values(state)
@@ -617,7 +635,7 @@ class EmailAccount(Document):
 		try:
 			if self.service == "Frappe Mail":
 				frappe_mail_client = self.get_frappe_mail_client()
-				messages = frappe_mail_client.pull(last_synced_at=self.last_synced_at)
+				messages = frappe_mail_client.pull_raw(last_synced_at=self.last_synced_at)
 				process_mail(messages)
 				self.db_set("last_synced_at", messages["last_synced_at"], update_modified=False)
 			else:

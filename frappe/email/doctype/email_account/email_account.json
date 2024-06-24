@@ -8,25 +8,24 @@
  "engine": "InnoDB",
  "field_order": [
   "account_section",
-  "service",
-  "frappe_mail_site",
-  "domain",
+  "email_id",
+  "email_account_name",
   "enable_incoming",
   "enable_outgoing",
   "column_break_3",
-  "email_id",
-  "email_account_name",
-  "authentication_section",
-  "api_key",
-  "column_break_ghqa",
-  "api_secret",
+  "service",
+  "domain",
+  "frappe_mail_site",
   "authentication_column",
   "auth_method",
   "authorize_api_access",
+  "validate_frappe_mail_settings",
   "password",
   "awaiting_password",
   "ascii_encode_password",
   "column_break_10",
+  "api_key",
+  "api_secret",
   "connected_app",
   "connected_user",
   "login_id_is_different",
@@ -100,6 +99,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval: doc.service != \"Frappe Mail\"",
    "fieldname": "login_id_is_different",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -115,7 +115,7 @@
    "label": "Alternative Email ID"
   },
   {
-   "depends_on": "eval: doc.auth_method === \"Basic\"",
+   "depends_on": "eval: doc.auth_method === \"Basic\" && doc.service != \"Frappe Mail\"",
    "fieldname": "password",
    "fieldtype": "Password",
    "hide_days": 1,
@@ -124,7 +124,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.auth_method === \"Basic\"",
+   "depends_on": "eval: doc.auth_method === \"Basic\" && doc.service != \"Frappe Mail\"",
    "fieldname": "awaiting_password",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -133,7 +133,7 @@
   },
   {
    "default": "0",
-   "depends_on": "eval: doc.auth_method === \"Basic\"",
+   "depends_on": "eval: doc.auth_method === \"Basic\" && doc.service != \"Frappe Mail\"",
    "fieldname": "ascii_encode_password",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -543,7 +543,6 @@
    "label": "Brand Logo"
   },
   {
-   "depends_on": "eval: doc.service != \"Frappe Mail\"",
    "fieldname": "authentication_column",
    "fieldtype": "Section Break",
    "label": "Authentication"
@@ -635,28 +634,6 @@
    "label": "Incoming"
   },
   {
-   "fieldname": "api_key",
-   "fieldtype": "Data",
-   "label": "API Key",
-   "mandatory_depends_on": "eval: doc.service == \"Frappe Mail\""
-  },
-  {
-   "fieldname": "api_secret",
-   "fieldtype": "Password",
-   "label": "API Secret",
-   "mandatory_depends_on": "eval: doc.service == \"Frappe Mail\""
-  },
-  {
-   "depends_on": "eval: doc.service == \"Frappe Mail\"",
-   "fieldname": "authentication_section",
-   "fieldtype": "Section Break",
-   "label": "Authentication"
-  },
-  {
-   "fieldname": "column_break_ghqa",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "https://frappemail.com",
    "depends_on": "eval: doc.service == \"Frappe Mail\"",
    "fieldname": "frappe_mail_site",
@@ -687,12 +664,32 @@
    "fieldname": "last_synced_at",
    "fieldtype": "Datetime",
    "label": "Last Synced At"
+  },
+  {
+   "depends_on": "eval: (doc.service == \"Frappe Mail\" && doc.auth_method != \"Basic\" && !doc.__islocal && !doc.__unsaved)",
+   "fieldname": "validate_frappe_mail_settings",
+   "fieldtype": "Button",
+   "label": "Validate Frappe Mail Settings"
+  },
+  {
+   "depends_on": "eval: doc.service == \"Frappe Mail\" && doc.auth_method == \"Basic\"",
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key",
+   "mandatory_depends_on": "eval: doc.service == \"Frappe Mail\" && doc.auth_method == \"Basic\""
+  },
+  {
+   "depends_on": "eval: doc.service == \"Frappe Mail\" && doc.auth_method == \"Basic\"",
+   "fieldname": "api_secret",
+   "fieldtype": "Password",
+   "label": "API Secret",
+   "mandatory_depends_on": "eval: doc.service == \"Frappe Mail\" && doc.auth_method == \"Basic\""
   }
  ],
  "icon": "fa fa-inbox",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-06-22 08:51:12.977896",
+ "modified": "2024-06-28 08:45:43.565934",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email Account",

@@ -5,33 +5,40 @@ from urllib.parse import urljoin
 import pytz
 
 import frappe
-from frappe.frappeclient import FrappeClient
+from frappe import _
+from frappe.frappeclient import FrappeClient, FrappeOAuth2Client
 from frappe.utils import convert_utc_to_system_timezone, get_datetime, get_datetime_str, get_system_timezone
 
 if TYPE_CHECKING:
 	from requests import Response
 
 
-class FrappeMailException(Exception):
-	"""Exception raised for errors in the Frappe Mail API."""
-
-	def __init__(self, message: str, status_code: int) -> None:
-		self.message = message
-		self.status_code = status_code
-		super().__init__(message)
-
-
 class FrappeMail:
 	"""Class to interact with the Frappe Mail API."""
 
-	def __init__(self, site: str, mailbox: str, api_key: str, api_secret: str) -> None:
+	def __init__(
+		self,
+		site: str,
+		mailbox: str,
+		api_key: str | None = None,
+		api_secret: str | None = None,
+		access_token: str | None = None,
+	) -> None:
 		self.site = site
 		self.mailbox = mailbox
-		self.client = self.get_client(site, mailbox, api_key, api_secret)
+		self.api_key = api_key
+		self.api_secret = api_secret
+		self.access_token = access_token
 
 	@staticmethod
-	def get_client(site: str, mailbox: str, api_key: str, api_secret: str) -> "FrappeClient":
-		"""Returns a FrappeClient instance."""
+	def get_client(
+		site: str,
+		mailbox: str,
+		api_key: str | None = None,
+		api_secret: str | None = None,
+		access_token: str | None = None,
+	) -> FrappeClient | FrappeOAuth2Client:
+		"""Returns a FrappeClient or FrappeOAuth2Client instance."""
 
 		if hasattr(frappe.local, "frappe_mail_clients"):
 			if client := frappe.local.frappe_mail_clients.get(mailbox):
@@ -39,7 +46,11 @@ class FrappeMail:
 		else:
 			frappe.local.frappe_mail_clients = {}
 
-		client = FrappeClient(url=site, api_key=api_key, api_secret=api_secret)
+		client = (
+			FrappeOAuth2Client(url=site, access_token=access_token)
+			if access_token
+			else FrappeClient(url=site, api_key=api_key, api_secret=api_secret)
+		)
 		frappe.local.frappe_mail_clients[mailbox] = client
 
 		return client
@@ -58,14 +69,26 @@ class FrappeMail:
 		"""Makes a HTTP request to the Frappe Mail API."""
 
 		url = urljoin(self.site, endpoint)
+		client = self.get_client(self.site, self.mailbox, self.api_key, self.api_secret, self.access_token)
+
 		headers = headers or {}
-		headers.update(self.client.headers)
-		response = self.client.session.request(
+		headers.update(client.headers)
+
+		response = client.session.request(
 			method=method, url=url, params=params, data=data, json=json, headers=headers, timeout=timeout
 		)
 
 		if not response.ok and raise_exception:
-			raise FrappeMailException(response.text, response.status_code)
+			error_msg = response.text
+			if response.status_code == 401:
+				if self.access_token:
+					error_msg = _("Authentication Error: Reauthorize OAuth for Email Account {0}.").format(
+						frappe.bold(self.mailbox)
+					)
+				else:
+					error_msg = _("Authentication Error: Invalid API Key or Secret")
+
+			frappe.throw(title=_("Frappe Mail"), msg=error_msg)
 
 		return response
 
@@ -77,20 +100,20 @@ class FrappeMail:
 		response = self.request("POST", endpoint=endpoint, data=data, raise_exception=False)
 
 		if not response.ok:
-			if exception := response.json().get("exception"):
-				if exception == "frappe.exceptions.AuthenticationError":
-					exception += ": Invalid API Key or Secret"
+			if error_msg := response.json().get("exception"):
+				if error_msg == "frappe.exceptions.AuthenticationError":
+					error_msg += ": Invalid API Key or Secret"
 
-				frappe.throw(title="Frappe Mail", msg=exception)
+				frappe.throw(title="Frappe Mail", msg=error_msg)
 
-	def send(self, sender: str, recipients: str, message: str) -> None:
+	def send_raw(self, sender: str, recipients: str, message: str) -> None:
 		"""Sends an email using the Frappe Mail API."""
 
 		endpoint = "outbound/send-raw"
 		json_data = {"from": sender, "to": recipients, "raw_message": message}
 		self.request("POST", endpoint=endpoint, json=json_data)
 
-	def pull(self, limit: int = 50, last_synced_at: str | None = None) -> dict[str, list[str] | str]:
+	def pull_raw(self, limit: int = 50, last_synced_at: str | None = None) -> dict[str, list[str] | str]:
 		"""Pulls emails from the mailbox using the Frappe Mail API."""
 
 		endpoint = "inbound/pull-raw"
