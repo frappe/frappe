@@ -33,7 +33,7 @@ class ViewConfig(Document):
 	pass
 
 
-def get_default_config(doctype):
+def get_default_config(doctype: str) -> dict:
 	if doc := frappe.db.exists("View Config", {"document_type": doctype, "custom": 0}):
 		return frappe.get_doc("View Config", doc).as_dict()
 	meta = frappe.get_meta(doctype)
@@ -59,7 +59,7 @@ def get_default_config(doctype):
 
 
 @frappe.whitelist()
-def get_config(doctype, config_name=None, is_default=True):
+def get_config(doctype: str, config_name=None, is_default=True) -> dict:
 	config_dict = (
 		get_default_config(doctype) if is_default else frappe.get_doc("View Config", config_name).as_dict()
 	)
@@ -77,7 +77,7 @@ def get_config(doctype, config_name=None, is_default=True):
 	return config_dict
 
 
-def get_doctype_fields(doctype):
+def get_doctype_fields(doctype: str) -> list[dict]:
 	meta = frappe.get_meta(doctype)
 	not_allowed_in_list_view = get_fields_not_allowed_in_list_view(meta)
 	doctype_fields = []
@@ -96,7 +96,7 @@ def get_doctype_fields(doctype):
 	return doctype_fields
 
 
-def get_column_dict(field):
+def get_column_dict(field: dict) -> dict:
 	field = frappe._dict(field)
 	return {
 		"label": field.label,
@@ -108,7 +108,7 @@ def get_column_dict(field):
 
 
 @frappe.whitelist()
-def get_views_for_doctype(doctype):
+def get_views_for_doctype(doctype: str) -> list[dict]:
 	return frappe.get_all(
 		"View Config",
 		filters={"document_type": doctype, "custom": 1},
@@ -119,7 +119,7 @@ def get_views_for_doctype(doctype):
 
 
 @frappe.whitelist()
-def update_config(config, doctype=None, config_name=None, filters=None):
+def update_config(config: dict, doctype=None, config_name=None, filters=None) -> dict:
 	config = frappe._dict(config)
 	if config_name:
 		doc = frappe.get_doc("View Config", config_name)
@@ -137,12 +137,12 @@ def update_config(config, doctype=None, config_name=None, filters=None):
 
 
 @frappe.whitelist()
-def reset_default_config(config_name):
-	return frappe.delete_doc("View Config", config_name)
+def reset_default_config(config_name: str) -> None:
+	frappe.delete_doc("View Config", config_name)
 
 
 @frappe.whitelist()
-def get_link_title_field(doctype, name):
+def get_link_title_field(doctype: str, name: str) -> str:
 	meta = frappe.get_meta(doctype)
 	if not meta.show_title_field_in_link:
 		return name
@@ -150,15 +150,15 @@ def get_link_title_field(doctype, name):
 
 
 @frappe.whitelist()
-def get_list(doctype, cols, filters, limit, start, order_by):
+def get_list(doctype: str, cols: list[dict], filters: list[list], limit: int, order_by: str) -> list[dict]:
 	fields = [col.get("key") for col in cols] + [get_title_field(doctype)[1]]
 	list_rows = frappe.get_list(
-		doctype, fields=fields, filters=filters, limit=limit, start=start, order_by=order_by
+		doctype, fields=fields, filters=filters, limit=limit, start=0, order_by=order_by
 	)
 	return get_list_rows(cols, list_rows)
 
 
-def get_list_rows(cols, list_rows):
+def get_list_rows(cols: list[dict], list_rows: list[dict]) -> list[dict]:
 	link_fields = [field for field in cols if field.get("type") == "Link"]
 	for row in list_rows:
 		for link_field in link_fields:
@@ -168,13 +168,13 @@ def get_list_rows(cols, list_rows):
 	return list_rows
 
 
-def get_title_field(doctype):
+def get_title_field(doctype: str) -> tuple[str, str]:
 	meta = frappe.get_meta(doctype)
 	return [meta.title_field, meta.image_field or ""]
 
 
 @frappe.whitelist()
-def rename_config(config_name, new_name):
+def rename_config(config_name: str, new_name: str) -> str:
 	configSlug = slug(new_name)
 	frappe.rename_doc("View Config", config_name, configSlug)
 	frappe.db.set_value("View Config", configSlug, "label", new_name)

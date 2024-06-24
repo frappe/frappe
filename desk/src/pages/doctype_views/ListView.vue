@@ -139,7 +139,6 @@ const listResource = createResource({
 			cols: listConfig.value.columns,
 			filters: queryFilters.value,
 			limit: rowCount.value,
-			start: 0,
 			order_by: querySort.value,
 		}
 	},
