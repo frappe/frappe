@@ -56,6 +56,9 @@ class ServerScript(Document):
 			"On Payment Authorization",
 			"On Payment Paid",
 			"On Payment Failed",
+			"On Payment Charge Processed",
+			"On Payment Mandate Charge Processed",
+			"On Payment Mandate Acquisition Processed",
 		]
 		enable_rate_limit: DF.Check
 		event_frequency: DF.Literal[
