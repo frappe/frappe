@@ -14,7 +14,6 @@ from frappe.core.utils import html2text
 from frappe.database.database import savepoint
 from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.email.email_body import add_attachment, get_email, get_formatted_html
-from frappe.email.frappemail import FrappeMail
 from frappe.email.queue import get_unsubcribed_url, get_unsubscribe_message
 from frappe.email.smtp import SMTPServer
 from frappe.model.document import Document
@@ -160,7 +159,7 @@ class EmailQueue(Document):
 			return
 
 		with SendMailContext(self, smtp_server_instance) as ctx:
-			ctx.fetch_smtp_server()
+			ctx.fetch_outgoing_server()
 			message = None
 			for recipient in self.recipients:
 				if recipient.is_mail_sent():
@@ -171,7 +170,7 @@ class EmailQueue(Document):
 					method(self, self.sender, recipient.recipient, message)
 				elif not frappe.flags.in_test or frappe.flags.testing_email:
 					if ctx.email_account_doc.service == "Frappe Mail":
-						ctx.fm_client.send(
+						ctx.frappe_mail_client.send(
 							sender=self.sender,
 							recipients=recipient.recipient,
 							message=message.decode("utf-8"),
@@ -245,16 +244,11 @@ class SendMailContext:
 			rec.recipient for rec in self.queue_doc.recipients if rec.is_mail_sent()
 		)
 
-	def fetch_smtp_server(self):
+	def fetch_outgoing_server(self):
 		self.email_account_doc = self.queue_doc.get_email_account(raise_error=True)
 
 		if self.email_account_doc.service == "Frappe Mail":
-			site = self.email_account_doc.frappe_mail_site
-			mailbox = self.email_account_doc.email_id
-			api_key = self.email_account_doc.api_key
-			api_secret = self.email_account_doc.get_password("api_secret")
-			self.fm_client = FrappeMail(site, mailbox, api_key, api_secret)
-
+			self.frappe_mail_client = self.email_account_doc.get_frappe_mail_client()
 		elif not self.smtp_server:
 			self.smtp_server = self.email_account_doc.get_smtp_server()
 

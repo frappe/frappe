@@ -142,10 +142,8 @@ class EmailAccount(Document):
 			if not self.always_use_account_email_id_as_sender:
 				self.always_use_account_email_id_as_sender = 1
 
-			fm_client = FrappeMail(
-				self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret")
-			)
-			fm_client.validate(for_inbound=self.enable_incoming, for_outbound=self.enable_outgoing)
+			frappe_mail_client = self.get_frappe_mail_client()
+			frappe_mail_client.validate(for_inbound=self.enable_incoming, for_outbound=self.enable_outgoing)
 
 		if self.login_id_is_different:
 			if not self.login_id:
@@ -519,6 +517,13 @@ class EmailAccount(Document):
 		config = self.sendmail_config()
 		return SMTPServer(**config)
 
+	def get_frappe_mail_client(self):
+		return self._frappe_mail_client
+
+	@functools.cached_property
+	def _frappe_mail_client(self):
+		return FrappeMail(self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret"))
+
 	def remove_unpicklable_values(self, state):
 		super().remove_unpicklable_values(state)
 		state.pop("_smtp_server_instance", None)
@@ -611,10 +616,8 @@ class EmailAccount(Document):
 
 		try:
 			if self.service == "Frappe Mail":
-				fm_client = FrappeMail(
-					self.frappe_mail_site, self.email_id, self.api_key, self.get_password("api_secret")
-				)
-				messages = fm_client.pull(last_synced_at=self.last_synced_at)
+				frappe_mail_client = self.get_frappe_mail_client()
+				messages = frappe_mail_client.pull(last_synced_at=self.last_synced_at)
 				process_mail(messages)
 				self.db_set("last_synced_at", messages["last_synced_at"], update_modified=False)
 			else:
