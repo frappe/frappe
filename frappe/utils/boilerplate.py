@@ -624,11 +624,11 @@ name: CI
 on:
   push:
     branches:
-      - develop
+      - {branch_name}
   pull_request:
 
 concurrency:
-  group: develop-{app_name}-${{{{ github.event.number }}}}
+  group: {branch_name}-{app_name}-${{{{ github.event.number }}}}
   cancel-in-progress: true
 
 jobs:
