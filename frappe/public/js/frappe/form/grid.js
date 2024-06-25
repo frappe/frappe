@@ -1222,7 +1222,7 @@ export default class Grid {
 		}
 
 		for (let row of this.grid_rows) {
-			let docfield = row.docfields.find((d) => d.fieldname === fieldname);
+			let docfield = row?.docfields?.find((d) => d.fieldname === fieldname);
 			if (docfield) {
 				docfield[property] = value;
 			} else {
