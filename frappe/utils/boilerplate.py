@@ -697,7 +697,9 @@ jobs:
             ${{{{ runner.os }}}}-yarn-
 
       - name: Install MariaDB Client
-        run: sudo apt-get install mariadb-client-10.6
+        run: |
+          sudo apt update
+		  sudo apt-get install mariadb-client-10.6
 
       - name: Setup
         run: |
