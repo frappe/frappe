@@ -699,7 +699,7 @@ jobs:
       - name: Install MariaDB Client
         run: |
           sudo apt update
-		  sudo apt-get install mariadb-client-10.6
+          sudo apt-get install mariadb-client-10.6
 
       - name: Setup
         run: |
