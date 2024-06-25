@@ -64,8 +64,7 @@ class RequestToken(Exception):
 
 
 class Redirect(Exception):
-	def __init__(self, http_status_code: int = 301):
-		self.http_status_code = http_status_code
+	http_status_code = 301
 
 
 class CSRFTokenError(Exception):
