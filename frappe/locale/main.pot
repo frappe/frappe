@@ -7,13 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-<<<<<<< HEAD
-"POT-Creation-Date: 2024-06-26 15:52+0000\n"
-"PO-Revision-Date: 2024-06-26 15:52+0000\n"
-=======
-"POT-Creation-Date: 2024-06-26 19:20+0053\n"
-"PO-Revision-Date: 2024-06-26 19:20+0053\n"
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+"POT-Creation-Date: 2024-06-26 19:49+0053\n"
+"PO-Revision-Date: 2024-06-26 19:49+0053\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -93,11 +88,7 @@ msgstr ""
 msgid "'Recipients' not specified"
 msgstr ""
 
-<<<<<<< HEAD
 #: utils/__init__.py:242
-=======
-#: utils/__init__.py:252
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "'{0}' is not a valid URL"
 msgstr ""
 
@@ -1395,15 +1386,6 @@ msgstr ""
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
-<<<<<<< HEAD
-msgctxt "Server Script"
-=======
-msgid "After Discard"
-msgstr ""
-
-#. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
-#: core/doctype/server_script/server_script.json
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "After Insert"
 msgstr ""
 
@@ -2181,7 +2163,7 @@ msgstr ""
 msgid "Are you sure you want to delete all rows?"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:899
+#: public/js/frappe/views/workspace/workspace.js:898
 msgid "Are you sure you want to delete page {0}?"
 msgstr ""
 
@@ -2517,19 +2499,9 @@ msgstr ""
 msgid "Attachment Removed"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/file/utils.py:37
-#: email/doctype/newsletter/templates/newsletter.html:47
-#: public/js/frappe/form/templates/form_sidebar.html:65
-#: website/doctype/web_form/templates/web_form.html:103
-msgid "Attachments"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Code field in DocType 'Email Queue'
 #. Label of a Table field in DocType 'Newsletter'
-#: email/doctype/email_queue/email_queue.json
+#: core/doctype/file/utils.py:37 email/doctype/email_queue/email_queue.json
 #: email/doctype/newsletter/newsletter.json
 #: email/doctype/newsletter/templates/newsletter.html:47
 #: public/js/frappe/form/templates/form_sidebar.html:65
@@ -2642,21 +2614,6 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Integration Request'
 #: integrations/doctype/integration_request/integration_request.json
 msgid "Authorized"
-msgstr ""
-
-<<<<<<< HEAD
-#. Option for the 'Type' (Select) field in DocType 'Energy Point Log'
-#: social/doctype/energy_point_log/energy_point_log.json
-msgctxt "Energy Point Log"
-msgid "Auto"
-=======
-#: www/attribution.html:20
-msgid "Authors"
-msgstr ""
-
-#: www/attribution.html:37
-msgid "Authors / Maintainers"
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgstr ""
 
 #. Option for the 'Skip Authorization' (Select) field in DocType 'OAuth
@@ -2964,13 +2921,9 @@ msgstr ""
 msgid "Background Image"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/ui/toolbar/toolbar.js:168
-=======
 #. Label of a Section Break field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
-#: public/js/frappe/ui/toolbar/toolbar.js:178
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: public/js/frappe/ui/toolbar/toolbar.js:168
 msgid "Background Jobs"
 msgstr ""
 
@@ -3160,15 +3113,6 @@ msgstr ""
 
 #. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
 #: core/doctype/server_script/server_script.json
-<<<<<<< HEAD
-msgctxt "Server Script"
-=======
-msgid "Before Discard"
-msgstr ""
-
-#. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
-#: core/doctype/server_script/server_script.json
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Before Insert"
 msgstr ""
 
@@ -3766,18 +3710,10 @@ msgstr ""
 msgid "Camera"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/utils/utils.js:1732
-#: website/report/website_analytics/website_analytics.js:39
-msgid "Campaign"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Link field in DocType 'Newsletter'
 #. Label of a Data field in DocType 'Web Page View'
 #: email/doctype/newsletter/newsletter.json
-#: public/js/frappe/utils/utils.js:1723
+#: public/js/frappe/utils/utils.js:1732
 #: website/doctype/web_page_view/web_page_view.json
 #: website/report/website_analytics/website_analytics.js:39
 msgid "Campaign"
@@ -3826,9 +3762,6 @@ msgstr ""
 msgid "Can't rename {0} to {1} because {0} doesn't exist."
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype_list.js:113
-=======
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
 #. Label of a Check field in DocType 'User Document Type'
@@ -3836,10 +3769,9 @@ msgstr ""
 #. Option for the 'For Document Event' (Select) field in DocType 'Energy Point
 #. Rule'
 #: core/doctype/custom_docperm/custom_docperm.json
-#: core/doctype/docperm/docperm.json core/doctype/doctype/doctype_list.js:130
+#: core/doctype/docperm/docperm.json core/doctype/doctype/doctype_list.js:113
 #: core/doctype/user_document_type/user_document_type.json
 #: email/doctype/notification/notification.json
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: public/js/frappe/form/reminders.js:54
 #: social/doctype/energy_point_rule/energy_point_rule.json
 msgid "Cancel"
@@ -3855,17 +3787,7 @@ msgctxt "Secondary button in warning dialog"
 msgid "Cancel"
 msgstr ""
 
-<<<<<<< HEAD
-#. Label of a Check field in DocType 'User Document Type'
-#: core/doctype/user_document_type/user_document_type.json
-msgctxt "User Document Type"
-msgid "Cancel"
-msgstr ""
-
 #: public/js/frappe/form/form.js:955
-=======
-#: public/js/frappe/form/form.js:973
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Cancel All"
 msgstr ""
 
@@ -3882,14 +3804,6 @@ msgctxt "Title of confirmation dialog"
 msgid "Cancel {0} documents?"
 msgstr ""
 
-<<<<<<< HEAD
-#: desk/form/save.py:59 public/js/frappe/model/indicator.js:78
-#: public/js/frappe/ui/filters/filter.js:500
-msgid "Cancelled"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Event'
@@ -3900,7 +3814,7 @@ msgstr ""
 #: desk/doctype/todo/todo.json desk/form/save.py:59
 #: integrations/doctype/integration_request/integration_request.json
 #: public/js/frappe/model/indicator.js:78
-#: public/js/frappe/ui/filters/filter.js:502
+#: public/js/frappe/ui/filters/filter.js:500
 msgid "Cancelled"
 msgstr ""
 
@@ -4289,16 +4203,9 @@ msgstr ""
 msgid "Chart Source"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/views/reports/report_view.js:475
-msgid "Chart Type"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Select field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
-#: public/js/frappe/views/reports/report_view.js:474
+#: public/js/frappe/views/reports/report_view.js:475
 msgid "Chart Type"
 msgstr ""
 
@@ -4402,15 +4309,8 @@ msgstr ""
 msgid "Child Table {0} for field {1}"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype_list.js:37
-msgid "Child Tables are shown as a Grid in other DocTypes"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Description of the 'Is Child Table' (Check) field in DocType 'DocType'
-#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:52
+#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:37
 msgid "Child Tables are shown as a Grid in other DocTypes"
 msgstr ""
 
@@ -4418,7 +4318,7 @@ msgstr ""
 msgid "Choose Existing Card or create New Card"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1399
+#: public/js/frappe/views/workspace/workspace.js:1398
 msgid "Choose a block or continue typing"
 msgstr ""
 
@@ -4676,14 +4576,6 @@ msgstr ""
 msgid "Code Challenge"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Label of a Select field in DocType 'User'
-#: core/doctype/user/user.json
-msgid "Code Editor Type"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Select field in DocType 'OAuth Authorization Code'
 #: integrations/doctype/oauth_authorization_code/oauth_authorization_code.json
 msgid "Code challenge method"
@@ -4738,11 +4630,6 @@ msgstr ""
 #. Label of a Color field in DocType 'ToDo'
 #. Label of a Color field in DocType 'Workspace Shortcut'
 #. Name of a DocType
-<<<<<<< HEAD
-#: public/js/frappe/views/reports/query_report.js:1155
-#: public/js/frappe/widgets/widget_dialog.js:510
-#: public/js/frappe/widgets/widget_dialog.js:662
-=======
 #. Label of a Color field in DocType 'Color'
 #. Label of a Color field in DocType 'Social Link Settings'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
@@ -4755,10 +4642,9 @@ msgstr ""
 #: desk/doctype/desktop_icon/desktop_icon.json desk/doctype/event/event.json
 #: desk/doctype/number_card/number_card.json desk/doctype/todo/todo.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: public/js/frappe/views/reports/query_report.js:1156
-#: public/js/frappe/widgets/widget_dialog.js:544
-#: public/js/frappe/widgets/widget_dialog.js:696
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: public/js/frappe/views/reports/query_report.js:1155
+#: public/js/frappe/widgets/widget_dialog.js:510
+#: public/js/frappe/widgets/widget_dialog.js:662
 #: website/doctype/color/color.json
 #: website/doctype/social_link_settings/social_link_settings.json
 #: website/doctype/web_form_field/web_form_field.json
@@ -4978,11 +4864,7 @@ msgstr ""
 msgid "Compare Versions"
 msgstr ""
 
-<<<<<<< HEAD
 #: core/doctype/server_script/server_script.py:139
-=======
-#: core/doctype/server_script/server_script.py:156
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Compilation warning"
 msgstr ""
 
@@ -5282,15 +5164,6 @@ msgstr ""
 msgid "Contains {0} security fixes"
 msgstr ""
 
-<<<<<<< HEAD
-#. Label of a Text Editor field in DocType 'Blog Post'
-#: website/doctype/blog_post/blog_post.json
-msgctxt "Blog Post"
-msgid "Content"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a HTML Editor field in DocType 'Comment'
 #. Label of a Text Editor field in DocType 'Note'
 #. Label of a Long Text field in DocType 'Workspace'
@@ -5299,25 +5172,12 @@ msgstr ""
 #. Label of a Text Editor field in DocType 'Help Article'
 #. Label of a Tab Break field in DocType 'Web Page'
 #. Label of a Section Break field in DocType 'Web Page'
-<<<<<<< HEAD
-#: website/doctype/web_page/web_page.json
-msgctxt "Web Page"
-msgid "Content"
-msgstr ""
-
-#. Label of a Long Text field in DocType 'Workspace'
-=======
-#. Label of a Data field in DocType 'Web Page View'
 #: core/doctype/comment/comment.json desk/doctype/note/note.json
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: desk/doctype/workspace/workspace.json
 #: email/doctype/newsletter/newsletter.json
-#: public/js/frappe/utils/utils.js:1738
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/help_article/help_article.json
 #: website/doctype/web_page/web_page.json
-#: website/doctype/web_page_view/web_page_view.json
-#: website/report/website_analytics/website_analytics.js:41
 msgid "Content"
 msgstr ""
 
@@ -5462,44 +5322,14 @@ msgstr ""
 msgid "Count"
 msgstr ""
 
-<<<<<<< HEAD
-#. Option for the 'Chart Type' (Select) field in DocType 'Dashboard Chart'
-#. Option for the 'Group By Type' (Select) field in DocType 'Dashboard Chart'
-#: desk/doctype/dashboard_chart/dashboard_chart.json
-msgctxt "Dashboard Chart"
-msgid "Count"
-msgstr ""
-
-#. Option for the 'Function' (Select) field in DocType 'Number Card'
-#: desk/doctype/number_card/number_card.json
-msgctxt "Number Card"
-msgid "Count"
-msgstr ""
-
-#. Label of a Int field in DocType 'System Health Report Workers'
-#: desk/doctype/system_health_report_workers/system_health_report_workers.json
-msgctxt "System Health Report Workers"
-msgid "Count"
-msgstr ""
-
 #: public/js/frappe/widgets/widget_dialog.js:504
 msgid "Count Customizations"
 msgstr ""
 
-#: public/js/frappe/widgets/widget_dialog.js:489
-msgid "Count Filter"
-msgstr ""
-
-=======
-#: public/js/frappe/widgets/widget_dialog.js:538
-msgid "Count Customizations"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Section Break field in DocType 'Workspace Shortcut'
 #. Label of a Code field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: public/js/frappe/widgets/widget_dialog.js:523
+#: public/js/frappe/widgets/widget_dialog.js:489
 msgid "Count Filter"
 msgstr ""
 
@@ -5521,11 +5351,7 @@ msgstr ""
 msgid "Country"
 msgstr ""
 
-<<<<<<< HEAD
 #: utils/__init__.py:116
-=======
-#: utils/__init__.py:126
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Country Code Required"
 msgstr ""
 
@@ -5549,51 +5375,20 @@ msgstr ""
 #. Label of a Check field in DocType 'DocPerm'
 #. Label of a Check field in DocType 'User Document Type'
 #: core/doctype/communication/communication.js:117
-<<<<<<< HEAD
-=======
 #: core/doctype/custom_docperm/custom_docperm.json
 #: core/doctype/docperm/docperm.json
 #: core/doctype/user_document_type/user_document_type.json
-#: desk/doctype/dashboard_chart_source/dashboard_chart_source.js:15
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: printing/page/print_format_builder_beta/print_format_builder_beta.js:46
 #: public/js/frappe/form/reminders.js:49
 #: public/js/frappe/views/file/file_view.js:112
 #: public/js/frappe/views/interaction.js:18
-<<<<<<< HEAD
 #: public/js/frappe/views/reports/query_report.js:1187
 #: public/js/frappe/views/workspace/workspace.js:1230
-=======
-#: public/js/frappe/views/reports/query_report.js:1188
-#: public/js/frappe/views/workspace/workspace.js:1231
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: workflow/page/workflow_builder/workflow_builder.js:46
 msgid "Create"
 msgstr ""
 
-<<<<<<< HEAD
-#. Label of a Check field in DocType 'Custom DocPerm'
-#: core/doctype/custom_docperm/custom_docperm.json
-msgctxt "Custom DocPerm"
-msgid "Create"
-msgstr ""
-
-#. Label of a Check field in DocType 'DocPerm'
-#: core/doctype/docperm/docperm.json
-msgctxt "DocPerm"
-msgid "Create"
-msgstr ""
-
-#. Label of a Check field in DocType 'User Document Type'
-#: core/doctype/user_document_type/user_document_type.json
-msgctxt "User Document Type"
-msgid "Create"
-msgstr ""
-
 #: core/doctype/doctype/doctype_list.js:85
-=======
-#: core/doctype/doctype/doctype_list.js:102
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Create & Continue"
 msgstr ""
 
@@ -5622,7 +5417,7 @@ msgstr ""
 msgid "Create Custom Fields"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:939
+#: public/js/frappe/views/workspace/workspace.js:938
 msgid "Create Duplicate"
 msgstr ""
 
@@ -5659,7 +5454,7 @@ msgstr ""
 msgid "Create User Email"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:479
+#: public/js/frappe/views/workspace/workspace.js:478
 msgid "Create Workspace"
 msgstr ""
 
@@ -5717,18 +5512,11 @@ msgstr ""
 msgid "Create your workflow visually using the Workflow Builder."
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/views/file/file_view.js:318
-msgid "Created"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Option for the 'Comment Type' (Select) field in DocType 'Comment'
 #. Option for the 'Comment Type' (Select) field in DocType 'Communication'
 #: core/doctype/comment/comment.json
 #: core/doctype/communication/communication.json
-#: public/js/frappe/views/file/file_view.js:337
+#: public/js/frappe/views/file/file_view.js:318
 msgid "Created"
 msgstr ""
 
@@ -5915,14 +5703,6 @@ msgstr ""
 msgid "Custom Configuration"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Label of a Check field in DocType 'Data Import'
-#: core/doctype/data_import/data_import.json
-msgid "Custom Delimiters"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Name of a DocType
 #: core/doctype/custom_docperm/custom_docperm.json
 msgid "Custom DocPerm"
@@ -6071,16 +5851,9 @@ msgstr ""
 msgid "Custom field renamed to {0} successfully."
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype_list.js:65
-msgid "Custom?"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Website Theme'
-#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:82
+#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:65
 #: website/doctype/website_theme/website_theme.json
 msgid "Custom?"
 msgstr ""
@@ -6102,7 +5875,7 @@ msgstr ""
 msgid "Customization onboarding is all done!"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:525
+#: public/js/frappe/views/workspace/workspace.js:524
 msgid "Customizations Discarded"
 msgstr ""
 
@@ -6460,11 +6233,6 @@ msgstr ""
 msgid "Date Format"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Label of a Section Break field in DocType 'Audit Trail'
-#: core/doctype/audit_trail/audit_trail.json
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: desk/page/leaderboard/leaderboard.js:165
 msgid "Date Range"
 msgstr ""
@@ -6497,18 +6265,11 @@ msgstr ""
 msgid "Datetime"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/views/calendar/calendar.js:271
-msgid "Day"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Select field in DocType 'Assignment Rule Day'
 #. Label of a Select field in DocType 'Auto Repeat Day'
 #: automation/doctype/assignment_rule_day/assignment_rule_day.json
 #: automation/doctype/auto_repeat_day/auto_repeat_day.json
-#: public/js/frappe/views/calendar/calendar.js:277
+#: public/js/frappe/views/calendar/calendar.js:271
 msgid "Day"
 msgstr ""
 
@@ -6558,25 +6319,6 @@ msgstr ""
 msgid "Debug Log"
 msgstr ""
 
-<<<<<<< HEAD
-#: templates/form_grid/fields.html:30
-msgid "Default"
-msgstr ""
-
-#. Label of a Small Text field in DocType 'Customize Form Field'
-#: custom/doctype/customize_form_field/customize_form_field.json
-msgctxt "Customize Form Field"
-msgid "Default"
-=======
-#: public/js/frappe/views/reports/report_utils.js:308
-msgid "Decimal Separator must be '.' when Quoting is set to Non-numeric"
-msgstr ""
-
-#: public/js/frappe/views/reports/report_utils.js:300
-msgid "Decimal Separator must be a single character"
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
-msgstr ""
-
 #. Label of a Small Text field in DocType 'DocField'
 #. Label of a Small Text field in DocType 'Report Filter'
 #. Label of a Small Text field in DocType 'Customize Form Field'
@@ -6613,16 +6355,9 @@ msgstr ""
 msgid "Default Inbox"
 msgstr ""
 
-<<<<<<< HEAD
-#: email/doctype/email_account/email_account.py:199
-msgid "Default Incoming"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
-#: email/doctype/email_account/email_account.py:201
+#: email/doctype/email_account/email_account.py:199
 msgid "Default Incoming"
 msgstr ""
 
@@ -6640,16 +6375,9 @@ msgstr ""
 msgid "Default Naming"
 msgstr ""
 
-<<<<<<< HEAD
-#: email/doctype/email_account/email_account.py:207
-msgid "Default Outgoing"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
-#: email/doctype/email_account/email_account.py:209
+#: email/doctype/email_account/email_account.py:207
 msgid "Default Outgoing"
 msgstr ""
 
@@ -6793,13 +6521,8 @@ msgstr ""
 #: public/js/frappe/form/footer/form_timeline.js:613
 #: public/js/frappe/form/grid.js:63 public/js/frappe/form/toolbar.js:423
 #: public/js/frappe/views/reports/report_view.js:1654
-<<<<<<< HEAD
 #: public/js/frappe/views/treeview.js:295
 #: public/js/frappe/views/workspace/workspace.js:836
-=======
-#: public/js/frappe/views/treeview.js:308
-#: public/js/frappe/views/workspace/workspace.js:837
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: templates/discussions/reply_card.html:35
 #: templates/discussions/reply_section.html:29
 msgid "Delete"
@@ -6826,7 +6549,7 @@ msgstr ""
 msgid "Delete Kanban Board"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:838
+#: public/js/frappe/views/workspace/workspace.js:837
 msgid "Delete Workspace"
 msgstr ""
 
@@ -6907,25 +6630,7 @@ msgstr ""
 msgid "Deletion Steps "
 msgstr ""
 
-<<<<<<< HEAD
 #: public/js/frappe/views/reports/report_utils.js:282
-=======
-#: core/doctype/page/page.py:108
-#: desk/doctype/dashboard_chart_source/dashboard_chart_source.py:47
-msgid "Deletion of this document is only permitted in developer mode."
-msgstr ""
-
-#. Label of a Data field in DocType 'Data Import'
-#: core/doctype/data_import/data_import.json
-msgid "Delimiter Options"
-msgstr ""
-
-#: utils/csvutils.py:73
-msgid "Delimiter detection failed. Try to enable custom delimiters and adjust the delimiter options as per your data."
-msgstr ""
-
-#: public/js/frappe/views/reports/report_utils.js:296
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Delimiter must be a single character"
 msgstr ""
 
@@ -6946,7 +6651,7 @@ msgid "Department"
 msgstr ""
 
 #. Label of a Data field in DocType 'Workspace Link'
-#: desk/doctype/workspace_link/workspace_link.json www/attribution.html:29
+#: desk/doctype/workspace_link/workspace_link.json
 msgid "Dependencies"
 msgstr ""
 
@@ -6965,14 +6670,6 @@ msgstr ""
 msgid "Descendants Of (inclusive)"
 msgstr ""
 
-<<<<<<< HEAD
-#: desk/report/todo/todo.py:39 public/js/frappe/form/reminders.js:44
-#: public/js/frappe/widgets/widget_dialog.js:227
-msgid "Description"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Small Text field in DocType 'Assignment Rule'
 #. Label of a Small Text field in DocType 'Reminder'
 #. Label of a Small Text field in DocType 'DocField'
@@ -7002,12 +6699,11 @@ msgstr ""
 #: desk/report/todo/todo.py:39
 #: printing/doctype/print_heading/print_heading.json
 #: public/js/frappe/form/reminders.js:44
-#: public/js/frappe/widgets/widget_dialog.js:260
+#: public/js/frappe/widgets/widget_dialog.js:227
 #: website/doctype/blog_category/blog_category.json
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_page/web_page.json
 #: website/doctype/website_slideshow_item/website_slideshow_item.json
-#: www/attribution.html:24
 msgid "Description"
 msgstr ""
 
@@ -7141,14 +6837,6 @@ msgstr ""
 msgid "Disable Comments"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Label of a Check field in DocType 'Contact Us Settings'
-#: website/doctype/contact_us_settings/contact_us_settings.json
-msgid "Disable Contact Us Page"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Check field in DocType 'List View Settings'
 #: desk/doctype/list_view_settings/list_view_settings.json
 msgid "Disable Count"
@@ -7238,7 +6926,7 @@ msgstr ""
 
 #: public/js/frappe/views/communication.js:30
 #: public/js/frappe/views/dashboard/dashboard_view.js:70
-#: public/js/frappe/views/workspace/workspace.js:516
+#: public/js/frappe/views/workspace/workspace.js:515
 #: public/js/frappe/web_form/web_form.js:187
 msgid "Discard"
 msgstr ""
@@ -7404,67 +7092,7 @@ msgctxt "DocType"
 msgid "DocType"
 msgstr ""
 
-<<<<<<< HEAD
-#. Group in Module Def's connections
-#. Linked DocType in Module Def's connections
-#: core/doctype/module_def/module_def.json
-msgctxt "Module Def"
-msgid "DocType"
-msgstr ""
-
-#. Label of a Link field in DocType 'Permission Inspector'
-#: core/doctype/permission_inspector/permission_inspector.json
-msgctxt "Permission Inspector"
-msgid "DocType"
-msgstr ""
-
-#. Label of a Link field in DocType 'Print Format'
-#: printing/doctype/print_format/print_format.json
-msgctxt "Print Format"
-msgid "DocType"
-msgstr ""
-
-#. Option for the 'Applied On' (Select) field in DocType 'Property Setter'
-#. Label of a Link field in DocType 'Property Setter'
-#: custom/doctype/property_setter/property_setter.json
-msgctxt "Property Setter"
-msgid "DocType"
-msgstr ""
-
-#. Label of a Link field in DocType 'Version'
-#: core/doctype/version/version.json
-msgctxt "Version"
-msgid "DocType"
-msgstr ""
-
-#. Label of a Link field in DocType 'Webhook'
-#: integrations/doctype/webhook/webhook.json
-msgctxt "Webhook"
-msgid "DocType"
-msgstr ""
-
-#. Option for the 'Link Type' (Select) field in DocType 'Workspace Link'
-#: desk/doctype/workspace_link/workspace_link.json
-msgctxt "Workspace Link"
-msgid "DocType"
-msgstr ""
-
-#. Label of a Link field in DocType 'Workspace Quick List'
-#: desk/doctype/workspace_quick_list/workspace_quick_list.json
-msgctxt "Workspace Quick List"
-msgid "DocType"
-msgstr ""
-
-#. Option for the 'Type' (Select) field in DocType 'Workspace Shortcut'
-#: desk/doctype/workspace_shortcut/workspace_shortcut.json
-msgctxt "Workspace Shortcut"
-msgid "DocType"
-msgstr ""
-
 #: core/doctype/doctype/doctype.py:1539
-=======
-#: core/doctype/doctype/doctype.py:1546
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field"
 msgstr ""
 
@@ -7568,16 +7196,9 @@ msgstr ""
 msgid "DocTypes can not be modified, please use {0} instead"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/widgets/widget_dialog.js:650
-msgid "Doctype"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Link field in DocType 'Document Follow'
 #: email/doctype/document_follow/document_follow.json
-#: public/js/frappe/widgets/widget_dialog.js:684
+#: public/js/frappe/widgets/widget_dialog.js:650
 msgid "Doctype"
 msgstr ""
 
@@ -7589,7 +7210,7 @@ msgstr ""
 msgid "Doctype required"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1317
+#: public/js/frappe/views/workspace/workspace.js:1316
 msgid "Doctype with same route already exist. Please choose different title."
 msgstr ""
 
@@ -7787,44 +7408,6 @@ msgstr ""
 #: core/page/permission_manager/permission_manager.js:49
 #: core/page/permission_manager/permission_manager.js:211
 #: core/page/permission_manager/permission_manager.js:443
-<<<<<<< HEAD
-#: public/js/frappe/roles_editor.js:65
-msgid "Document Type"
-msgstr ""
-
-#. Label of a Link field in DocType 'Assignment Rule'
-#: automation/doctype/assignment_rule/assignment_rule.json
-msgctxt "Assignment Rule"
-msgid "Document Type"
-msgstr ""
-
-#. Label of a Link field in DocType 'Bulk Update'
-#: desk/doctype/bulk_update/bulk_update.json
-msgctxt "Bulk Update"
-msgid "Document Type"
-msgstr ""
-
-#. Label of a Link field in DocType 'Dashboard Chart'
-#: desk/doctype/dashboard_chart/dashboard_chart.json
-msgctxt "Dashboard Chart"
-msgid "Document Type"
-msgstr ""
-
-#. Label of a Link field in DocType 'Data Import'
-#: core/doctype/data_import/data_import.json
-msgctxt "Data Import"
-msgid "Document Type"
-msgstr ""
-
-#. Label of a Link field in DocType 'DocShare'
-#: core/doctype/docshare/docshare.json
-msgctxt "DocShare"
-msgid "Document Type"
-msgstr ""
-
-#. Label of a Link field in DocType 'DocType Layout'
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: custom/doctype/doctype_layout/doctype_layout.json
 #: desk/doctype/bulk_update/bulk_update.json
 #: desk/doctype/dashboard_chart/dashboard_chart.json
@@ -7834,7 +7417,7 @@ msgstr ""
 #: desk/doctype/tag_link/tag_link.json
 #: email/doctype/notification/notification.json
 #: printing/doctype/print_format_field_template/print_format_field_template.json
-#: public/js/frappe/roles_editor.js:66
+#: public/js/frappe/roles_editor.js:65
 #: website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: workflow/doctype/workflow/workflow.json
 msgid "Document Type"
@@ -8075,7 +7658,7 @@ msgstr ""
 #: public/js/frappe/views/workspace/blocks/header.js:46
 #: public/js/frappe/views/workspace/blocks/paragraph.js:136
 #: public/js/frappe/views/workspace/blocks/spacer.js:44
-#: public/js/frappe/views/workspace/workspace.js:579
+#: public/js/frappe/views/workspace/workspace.js:578
 #: public/js/frappe/widgets/base_widget.js:33
 msgid "Drag"
 msgstr ""
@@ -8125,15 +7708,9 @@ msgid "Due Date Based On"
 msgstr ""
 
 #: public/js/frappe/form/grid_row_form.js:42
-<<<<<<< HEAD
 #: public/js/frappe/form/toolbar.js:377
 #: public/js/frappe/views/workspace/workspace.js:821
 #: public/js/frappe/views/workspace/workspace.js:988
-=======
-#: public/js/frappe/form/toolbar.js:388
-#: public/js/frappe/views/workspace/workspace.js:822
-#: public/js/frappe/views/workspace/workspace.js:989
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Duplicate"
 msgstr ""
 
@@ -8149,8 +7726,8 @@ msgstr ""
 msgid "Duplicate Name"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:561
-#: public/js/frappe/views/workspace/workspace.js:823
+#: public/js/frappe/views/workspace/workspace.js:560
+#: public/js/frappe/views/workspace/workspace.js:822
 msgid "Duplicate Workspace"
 msgstr ""
 
@@ -8158,7 +7735,7 @@ msgstr ""
 msgid "Duplicate current row"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1004
+#: public/js/frappe/views/workspace/workspace.js:1003
 msgid "Duplicate of {0} named as {1} is created successfully"
 msgstr ""
 
@@ -8249,7 +7826,7 @@ msgstr ""
 #: public/js/frappe/views/reports/query_report.js:814
 #: public/js/frappe/views/reports/query_report.js:1632
 #: public/js/frappe/views/workspace/workspace.js:460
-#: public/js/frappe/views/workspace/workspace.js:816
+#: public/js/frappe/views/workspace/workspace.js:815
 #: public/js/frappe/widgets/base_widget.js:64
 #: public/js/frappe/widgets/chart_widget.js:298
 #: public/js/frappe/widgets/number_card_widget.js:331
@@ -8331,15 +7908,6 @@ msgctxt "Button in web form"
 msgid "Edit Response"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/utils/web_template.js:5
-msgid "Edit Values"
-=======
-#: public/js/frappe/widgets/widget_dialog.js:40
-msgid "Edit Shortcut"
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
-msgstr ""
-
 #. Label of a Button field in DocType 'Web Page Block'
 #. Label of a Button field in DocType 'Website Settings'
 #: public/js/frappe/utils/web_template.js:5
@@ -8348,7 +7916,7 @@ msgstr ""
 msgid "Edit Values"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:817
+#: public/js/frappe/views/workspace/workspace.js:816
 msgid "Edit Workspace"
 msgstr ""
 
@@ -8373,22 +7941,9 @@ msgstr ""
 msgid "Edit {0}"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype_list.js:41
-msgid "Editable Grid"
-msgstr ""
-
-#. Label of a Check field in DocType 'Customize Form'
-#: custom/doctype/customize_form/customize_form.json
-msgctxt "Customize Form"
-msgid "Editable Grid"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Customize Form'
-#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:57
+#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:41
 #: custom/doctype/customize_form/customize_form.json
 msgid "Editable Grid"
 msgstr ""
@@ -8475,41 +8030,7 @@ msgctxt "Email Account"
 msgid "Email Account"
 msgstr ""
 
-<<<<<<< HEAD
-#. Linked DocType in Email Domain's connections
-#: email/doctype/email_domain/email_domain.json
-msgctxt "Email Domain"
-msgid "Email Account"
-msgstr ""
-
-#. Label of a Data field in DocType 'Email Flag Queue'
-#: email/doctype/email_flag_queue/email_flag_queue.json
-msgctxt "Email Flag Queue"
-msgid "Email Account"
-msgstr ""
-
-#. Label of a Link field in DocType 'Email Queue'
-#: email/doctype/email_queue/email_queue.json
-msgctxt "Email Queue"
-msgid "Email Account"
-msgstr ""
-
-#. Label of a Link field in DocType 'Unhandled Email'
-#: email/doctype/unhandled_email/unhandled_email.json
-msgctxt "Unhandled Email"
-msgid "Email Account"
-msgstr ""
-
-#. Label of a Link field in DocType 'User Email'
-#: core/doctype/user_email/user_email.json
-msgctxt "User Email"
-msgid "Email Account"
-msgstr ""
-
 #: email/doctype/email_account/email_account.py:314
-=======
-#: email/doctype/email_account/email_account.py:316
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Email Account Disabled."
 msgstr ""
 
@@ -8543,14 +8064,10 @@ msgstr ""
 msgid "Email Address whose Google Contacts are to be synced."
 msgstr ""
 
-#: email/doctype/email_group/email_group.js:43
-msgid "Email Addresses"
-msgstr ""
-
 #. Description of the 'Send Notification to' (Small Text) field in DocType
 #. 'Email Account'
 #: email/doctype/email_account/email_account.json
-msgctxt "Email Account"
+#: email/doctype/email_group/email_group.js:43
 msgid "Email Addresses"
 msgstr ""
 
@@ -8812,13 +8329,9 @@ msgstr ""
 msgid "Enable Google indexing"
 msgstr ""
 
-<<<<<<< HEAD
-#: email/doctype/email_account/email_account.py:200
-=======
 #. Label of a Check field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
-#: email/doctype/email_account/email_account.py:202
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: email/doctype/email_account/email_account.py:200
 msgid "Enable Incoming"
 msgstr ""
 
@@ -8827,15 +8340,11 @@ msgstr ""
 msgid "Enable Onboarding"
 msgstr ""
 
-<<<<<<< HEAD
-#: email/doctype/email_account/email_account.py:208
-=======
 #. Label of a Check field in DocType 'User Email'
 #. Label of a Check field in DocType 'Email Account'
 #: core/doctype/user_email/user_email.json
 #: email/doctype/email_account/email_account.json
-#: email/doctype/email_account/email_account.py:210
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: email/doctype/email_account/email_account.py:208
 msgid "Enable Outgoing"
 msgstr ""
 
@@ -8901,15 +8410,8 @@ msgstr ""
 msgid "Enable Tracking Page Views"
 msgstr ""
 
-<<<<<<< HEAD
-#: twofactor.py:450
-msgid "Enable Two Factor Auth"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Check field in DocType 'System Settings'
-#: core/doctype/system_settings/system_settings.json twofactor.py:449
+#: core/doctype/system_settings/system_settings.json twofactor.py:450
 msgid "Enable Two Factor Auth"
 msgstr ""
 
@@ -9032,18 +8534,9 @@ msgstr ""
 msgid "Encryption key is invalid! Please check site_config.json"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/utils/common.js:416
-msgid "End Date"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Date field in DocType 'Auto Repeat'
-#. Label of a Date field in DocType 'Audit Trail'
 #. Label of a Datetime field in DocType 'Web Page'
 #: automation/doctype/auto_repeat/auto_repeat.json
-#: core/doctype/audit_trail/audit_trail.json
 #: public/js/frappe/utils/common.js:416 website/doctype/web_page/web_page.json
 msgid "End Date"
 msgstr ""
@@ -9197,14 +8690,6 @@ msgstr ""
 msgid "Equals"
 msgstr ""
 
-<<<<<<< HEAD
-#: desk/page/backups/backups.js:35 model/base_document.py:715
-#: model/base_document.py:721 public/js/frappe/ui/messages.js:22
-msgid "Error"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #. Label of a Code field in DocType 'Error Log'
@@ -9222,7 +8707,7 @@ msgstr ""
 #: email/doctype/email_queue_recipient/email_queue_recipient.json
 #: integrations/doctype/integration_request/integration_request.json
 #: integrations/doctype/webhook_request_log/webhook_request_log.json
-#: model/base_document.py:731 model/base_document.py:737
+#: model/base_document.py:715 model/base_document.py:721
 #: public/js/frappe/ui/messages.js:22
 msgid "Error"
 msgstr ""
@@ -9855,45 +9340,7 @@ msgstr ""
 #: public/js/frappe/list/bulk_operations.js:276
 #: public/js/frappe/list/list_view_permission_restrictions.html:3
 #: public/js/frappe/views/reports/query_report.js:236
-<<<<<<< HEAD
 #: public/js/frappe/views/reports/query_report.js:1721
-msgid "Field"
-msgstr ""
-
-#. Label of a Select field in DocType 'Assignment Rule'
-#: automation/doctype/assignment_rule/assignment_rule.json
-msgctxt "Assignment Rule"
-msgid "Field"
-msgstr ""
-
-#. Label of a Select field in DocType 'Bulk Update'
-#: desk/doctype/bulk_update/bulk_update.json
-msgctxt "Bulk Update"
-msgid "Field"
-msgstr ""
-
-#. Label of a Select field in DocType 'Document Naming Rule Condition'
-#: core/doctype/document_naming_rule_condition/document_naming_rule_condition.json
-msgctxt "Document Naming Rule Condition"
-msgid "Field"
-msgstr ""
-
-#. Label of a Select field in DocType 'Number Card'
-#: desk/doctype/number_card/number_card.json
-msgctxt "Number Card"
-msgid "Field"
-msgstr ""
-
-#. Label of a Select field in DocType 'Onboarding Step'
-#: desk/doctype/onboarding_step/onboarding_step.json
-msgctxt "Onboarding Step"
-msgid "Field"
-msgstr ""
-
-#. Label of a Select field in DocType 'Web Form Field'
-=======
-#: public/js/frappe/views/reports/query_report.js:1724
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
@@ -10098,17 +9545,7 @@ msgctxt "File"
 msgid "File"
 msgstr ""
 
-<<<<<<< HEAD
-#. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
-#: desk/doctype/form_tour/form_tour.json
-msgctxt "Form Tour"
-msgid "File"
-msgstr ""
-
 #: core/doctype/file/utils.py:128
-=======
-#: core/doctype/file/utils.py:127
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "File '{0}' not found"
 msgstr ""
 
@@ -10767,24 +10204,11 @@ msgstr ""
 msgid "Form URL-Encoded"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/widgets/widget_dialog.js:533
-msgid "Format"
-msgstr ""
-
-#. Label of a Select field in DocType 'Auto Email Report'
-#: email/doctype/auto_email_report/auto_email_report.json
-msgctxt "Auto Email Report"
-msgid "Format"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Data field in DocType 'Workspace Shortcut'
 #. Label of a Select field in DocType 'Auto Email Report'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: email/doctype/auto_email_report/auto_email_report.json
-#: public/js/frappe/widgets/widget_dialog.js:567
+#: public/js/frappe/widgets/widget_dialog.js:533
 msgid "Format"
 msgstr ""
 
@@ -10936,18 +10360,10 @@ msgstr ""
 msgid "Full Width"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/views/reports/query_report.js:246
-#: public/js/frappe/widgets/widget_dialog.js:671
-msgid "Function"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Select field in DocType 'Number Card'
 #: desk/doctype/number_card/number_card.json
 #: public/js/frappe/views/reports/query_report.js:246
-#: public/js/frappe/widgets/widget_dialog.js:705
+#: public/js/frappe/widgets/widget_dialog.js:671
 msgid "Function"
 msgstr ""
 
@@ -11472,44 +10888,6 @@ msgstr ""
 msgid "HH:mm:ss"
 msgstr ""
 
-<<<<<<< HEAD
-#: printing/doctype/print_format/print_format.py:92
-#: website/doctype/web_page/web_page.js:92
-msgid "HTML"
-msgstr ""
-
-#. Option for the 'Format' (Select) field in DocType 'Auto Email Report'
-#: email/doctype/auto_email_report/auto_email_report.json
-msgctxt "Auto Email Report"
-msgid "HTML"
-msgstr ""
-
-#. Option for the 'Content Type' (Select) field in DocType 'Blog Post'
-#: website/doctype/blog_post/blog_post.json
-msgctxt "Blog Post"
-msgid "HTML"
-msgstr ""
-
-#. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
-#: custom/doctype/custom_field/custom_field.json
-msgctxt "Custom Field"
-msgid "HTML"
-msgstr ""
-
-#. Label of a Section Break field in DocType 'Custom HTML Block'
-#: desk/doctype/custom_html_block/custom_html_block.json
-msgctxt "Custom HTML Block"
-msgid "HTML"
-msgstr ""
-
-#. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
-#: custom/doctype/customize_form_field/customize_form_field.json
-msgctxt "Customize Form Field"
-msgid "HTML"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
@@ -11533,7 +10911,7 @@ msgstr ""
 #: email/doctype/notification/notification.json
 #: printing/doctype/letter_head/letter_head.json
 #: printing/doctype/print_format/print_format.json
-#: printing/doctype/print_format/print_format.py:91
+#: printing/doctype/print_format/print_format.py:92
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_page/web_page.js:92
@@ -11569,26 +10947,11 @@ msgstr ""
 msgid "Half"
 msgstr ""
 
-<<<<<<< HEAD
 #. Option for the 'Period' (Select) field in DocType 'Auto Email Report'
-#: email/doctype/auto_email_report/auto_email_report.json
-msgctxt "Auto Email Report"
-msgid "Half Yearly"
-msgstr ""
-
-#: public/js/frappe/utils/common.js:402
-msgid "Half-yearly"
-msgstr ""
-
-=======
-#. Option for the 'Repeat On' (Select) field in DocType 'Event'
-#. Option for the 'Period' (Select) field in DocType 'Auto Email Report'
-#: desk/doctype/event/event.json
 #: email/doctype/auto_email_report/auto_email_report.json
 msgid "Half Yearly"
 msgstr ""
 
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Option for the 'Frequency' (Select) field in DocType 'Auto Repeat'
 #: automation/doctype/auto_repeat/auto_repeat.json
 #: public/js/frappe/utils/common.js:402
@@ -11807,7 +11170,7 @@ msgstr ""
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
-#: public/js/frappe/views/workspace/workspace.js:828
+#: public/js/frappe/views/workspace/workspace.js:827
 #: public/js/frappe/widgets/base_widget.js:46
 #: public/js/frappe/widgets/base_widget.js:176
 #: templates/includes/login/login.js:83
@@ -11915,7 +11278,7 @@ msgstr ""
 msgid "Hide Weekends"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:829
+#: public/js/frappe/views/workspace/workspace.js:828
 msgid "Hide Workspace"
 msgstr ""
 
@@ -11958,12 +11321,8 @@ msgstr ""
 msgid "Hint: Include symbols, numbers and capital letters in the password"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/file/utils.py:28 public/js/frappe/views/file/file_view.js:67
-=======
 #. Label of a Tab Break field in DocType 'Website Settings'
-#: public/js/frappe/views/file/file_view.js:67
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: core/doctype/file/utils.py:28 public/js/frappe/views/file/file_view.js:67
 #: public/js/frappe/views/file/file_view.js:88
 #: public/js/frappe/views/pageview.js:153 templates/doc.html:19
 #: templates/includes/navbar/navbar.html:9
@@ -12094,9 +11453,9 @@ msgstr ""
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: integrations/doctype/social_login_key/social_login_key.json
-#: public/js/frappe/views/workspace/workspace.js:646
-#: public/js/frappe/views/workspace/workspace.js:974
-#: public/js/frappe/views/workspace/workspace.js:1219
+#: public/js/frappe/views/workspace/workspace.js:645
+#: public/js/frappe/views/workspace/workspace.js:973
+#: public/js/frappe/views/workspace/workspace.js:1218
 #: workflow/doctype/workflow_state/workflow_state.json
 msgid "Icon"
 msgstr ""
@@ -12307,14 +11666,6 @@ msgstr ""
 msgid "If you think this is unauthorized, please change the Administrator password."
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Description of the 'Delimiter Options' (Data) field in DocType 'Data Import'
-#: core/doctype/data_import/data_import.json
-msgid "If your CSV uses a different delimiter, add that character here, ensuring no spaces or additional characters are included."
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Description of the 'Source Text' (Code) field in DocType 'Translation'
 #: core/doctype/translation/translation.json
 msgid "If your data is in HTML, please copy paste the exact HTML code with the tags."
@@ -12373,38 +11724,22 @@ msgstr ""
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
 #. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
 #. Option for the 'Select List View' (Select) field in DocType 'Form Tour'
-#. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'Letter Head Based On' (Select) field in DocType 'Letter
 #. Head'
 #. Label of a Attach Image field in DocType 'Letter Head'
 #. Option for the 'Footer Based On' (Select) field in DocType 'Letter Head'
 #. Label of a Attach Image field in DocType 'Web Page'
 #. Label of a Attach field in DocType 'Website Slideshow Item'
-<<<<<<< HEAD
-#: website/doctype/website_slideshow_item/website_slideshow_item.json
-msgctxt "Website Slideshow Item"
-msgid "Image"
-msgstr ""
-
-#. Label of a Data field in DocType 'Customize Form'
-#: custom/doctype/customize_form/customize_form.json
-msgctxt "Customize Form"
-msgid "Image Field"
-msgstr ""
-
-=======
 #: contacts/doctype/contact/contact.json core/doctype/docfield/docfield.json
 #: custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
 #: desk/doctype/form_tour/form_tour.json
-#: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: printing/doctype/letter_head/letter_head.json
 #: website/doctype/web_page/web_page.json
 #: website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "Image"
 msgstr ""
 
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Data field in DocType 'DocType'
 #. Label of a Data field in DocType 'Customize Form'
 #: core/doctype/doctype/doctype.json
@@ -12447,15 +11782,8 @@ msgstr ""
 msgid "Images"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/user/user.js:362
-msgid "Impersonate"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
-#: core/doctype/activity_log/activity_log.json core/doctype/user/user.js:356
+#: core/doctype/activity_log/activity_log.json core/doctype/user/user.js:362
 msgid "Impersonate"
 msgstr ""
 
@@ -12726,14 +12054,6 @@ msgstr ""
 msgid "Include symbols, numbers and capital letters in the password"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Label of a Tab Break field in DocType 'Email Account'
-#: email/doctype/email_account/email_account.json
-msgid "Incoming (POP/IMAP)"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Section Break field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgid "Incoming (POP/IMAP) Settings"
@@ -12792,29 +12112,14 @@ msgstr ""
 msgid "Incorrect value: {0} must be {1} {2}"
 msgstr ""
 
-<<<<<<< HEAD
-#: model/meta.py:47 public/js/frappe/model/meta.js:200
-#: public/js/frappe/model/model.js:124
-#: public/js/frappe/views/reports/report_view.js:939
-msgid "Index"
-msgstr ""
-
-#. Label of a Check field in DocType 'Custom Field'
-#: custom/doctype/custom_field/custom_field.json
-msgctxt "Custom Field"
-msgid "Index"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Check field in DocType 'DocField'
 #. Label of a Int field in DocType 'Recorder Query'
 #. Label of a Check field in DocType 'Custom Field'
 #: core/doctype/docfield/docfield.json
 #: core/doctype/recorder_query/recorder_query.json
-#: custom/doctype/custom_field/custom_field.json model/meta.py:48
+#: custom/doctype/custom_field/custom_field.json model/meta.py:47
 #: public/js/frappe/model/meta.js:200 public/js/frappe/model/model.js:124
-#: public/js/frappe/views/reports/report_view.js:938
+#: public/js/frappe/views/reports/report_view.js:939
 msgid "Index"
 msgstr ""
 
@@ -12847,9 +12152,9 @@ msgstr ""
 msgid "Indicator Color"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:653
-#: public/js/frappe/views/workspace/workspace.js:981
-#: public/js/frappe/views/workspace/workspace.js:1225
+#: public/js/frappe/views/workspace/workspace.js:652
+#: public/js/frappe/views/workspace/workspace.js:980
+#: public/js/frappe/views/workspace/workspace.js:1224
 msgid "Indicator color"
 msgstr ""
 
@@ -12884,16 +12189,9 @@ msgstr ""
 msgid "Insert Above"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/views/reports/query_report.js:1727
-msgid "Insert After"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Select field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
-#: public/js/frappe/views/reports/query_report.js:1730
+#: public/js/frappe/views/reports/query_report.js:1727
 msgid "Insert After"
 msgstr ""
 
@@ -13191,11 +12489,7 @@ msgstr ""
 msgid "Invalid Password"
 msgstr ""
 
-<<<<<<< HEAD
 #: utils/__init__.py:109
-=======
-#: utils/__init__.py:119
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Invalid Phone Number"
 msgstr ""
 
@@ -13350,26 +12644,8 @@ msgid "Is Calendar and Gantt"
 msgstr ""
 
 #. Label of a Check field in DocType 'DocType'
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype.json
-msgctxt "DocType"
-msgid "Is Calendar and Gantt"
-msgstr ""
-
-#: core/doctype/doctype/doctype_list.js:34
-msgid "Is Child Table"
-msgstr ""
-
-#. Label of a Check field in DocType 'DocType'
-#: core/doctype/doctype/doctype.json
-msgctxt "DocType"
-msgid "Is Child Table"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Check field in DocType 'DocType Link'
-#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:49
+#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:34
 #: core/doctype/doctype_link/doctype_link.json
 msgid "Is Child Table"
 msgstr ""
@@ -13493,16 +12769,9 @@ msgstr ""
 msgid "Is Remote Request?"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype_list.js:48
-msgid "Is Single"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Check field in DocType 'DocType'
 #. Label of a Check field in DocType 'Onboarding Step'
-#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:64
+#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:48
 #: desk/doctype/onboarding_step/onboarding_step.json
 msgid "Is Single"
 msgstr ""
@@ -13536,15 +12805,8 @@ msgstr ""
 msgid "Is Standard"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype_list.js:25
-msgid "Is Submittable"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Check field in DocType 'DocType'
-#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:39
+#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:25
 msgid "Is Submittable"
 msgstr ""
 
@@ -13734,16 +12996,9 @@ msgstr ""
 msgid "Kanban Board Column"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/views/kanban/kanban_view.js:385
-msgid "Kanban Board Name"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Data field in DocType 'Kanban Board'
 #: desk/doctype/kanban_board/kanban_board.json
-#: public/js/frappe/views/kanban/kanban_view.js:388
+#: public/js/frappe/views/kanban/kanban_view.js:385
 msgid "Kanban Board Name"
 msgstr ""
 
@@ -14352,27 +13607,7 @@ msgstr ""
 #: core/doctype/custom_docperm/custom_docperm.json
 #: core/doctype/docperm/docperm.json
 #: core/page/permission_manager/permission_manager.js:213
-<<<<<<< HEAD
 #: public/js/frappe/roles_editor.js:65
-msgid "Level"
-msgstr ""
-
-#. Label of a Int field in DocType 'Custom DocPerm'
-#: core/doctype/custom_docperm/custom_docperm.json
-msgctxt "Custom DocPerm"
-msgid "Level"
-msgstr ""
-
-#. Label of a Int field in DocType 'DocPerm'
-#: core/doctype/docperm/docperm.json
-msgctxt "DocPerm"
-msgid "Level"
-msgstr ""
-
-#. Label of a Select field in DocType 'Help Article'
-=======
-#: public/js/frappe/roles_editor.js:66
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: website/doctype/help_article/help_article.json
 msgid "Level"
 msgstr ""
@@ -14387,7 +13622,7 @@ msgid "Level Name"
 msgstr ""
 
 #. Label of a Markdown Editor field in DocType 'Package'
-#: core/doctype/package/package.json www/attribution.html:36
+#: core/doctype/package/package.json
 msgid "License"
 msgstr ""
 
@@ -14614,14 +13849,6 @@ msgstr ""
 msgid "Linked With"
 msgstr ""
 
-<<<<<<< HEAD
-#: contacts/doctype/address/address.js:39
-#: contacts/doctype/contact/contact.js:87 public/js/frappe/form/toolbar.js:366
-msgid "Links"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Table field in DocType 'Address'
 #. Label of a Table field in DocType 'Contact'
 #. Label of a Table field in DocType 'DocType'
@@ -14631,7 +13858,7 @@ msgstr ""
 #: contacts/doctype/contact/contact.js:87 contacts/doctype/contact/contact.json
 #: core/doctype/doctype/doctype.json
 #: custom/doctype/customize_form/customize_form.json
-#: desk/doctype/workspace/workspace.json public/js/frappe/form/toolbar.js:377
+#: desk/doctype/workspace/workspace.json public/js/frappe/form/toolbar.js:366
 msgid "Links"
 msgstr ""
 
@@ -14665,9 +13892,6 @@ msgstr ""
 msgid "List Setting Message"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/list/list_view.js:1749
-=======
 #. Label of a Section Break field in DocType 'Role'
 #. Label of a Section Break field in DocType 'Customize Form'
 #. Label of a Section Break field in DocType 'Web Form'
@@ -14677,8 +13901,7 @@ msgstr ""
 msgid "List Settings"
 msgstr ""
 
-#: public/js/frappe/list/list_view.js:1753
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: public/js/frappe/list/list_view.js:1749
 msgctxt "Button in list view menu"
 msgid "List Settings"
 msgstr ""
@@ -14699,15 +13922,6 @@ msgstr ""
 msgid "List as [{\"label\": _(\"Jobs\"), \"route\":\"jobs\"}]"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Description of the 'Send Notification to' (Small Text) field in DocType
-#. 'Email Account'
-#: email/doctype/email_account/email_account.json
-msgid "List of email addresses, separated by comma or new line."
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Description of a DocType
 #: core/doctype/patch_log/patch_log.json
 msgid "List of patches executed"
@@ -15319,16 +14533,11 @@ msgstr ""
 msgid "Meaning of Submit, Cancel, Amend"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/form/sidebar/assign_to.js:220
-#: public/js/frappe/utils/utils.js:1740
-=======
 #. Option for the 'Priority' (Select) field in DocType 'ToDo'
 #. Label of a Data field in DocType 'Web Page View'
 #: desk/doctype/todo/todo.json public/js/frappe/form/sidebar/assign_to.js:220
-#: public/js/frappe/utils/utils.js:1731
+#: public/js/frappe/utils/utils.js:1740
 #: website/doctype/web_page_view/web_page_view.json
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: website/report/website_analytics/website_analytics.js:40
 msgid "Medium"
 msgstr ""
@@ -15376,20 +14585,9 @@ msgstr ""
 msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/data_import/data_import.js:488
-#: public/js/frappe/ui/messages.js:175
-#: public/js/frappe/views/communication.js:114 www/message.html:3
-#: www/message.html:25
-msgid "Message"
-msgstr ""
-
-=======
 #. Label of a Text field in DocType 'Auto Repeat'
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Text Editor field in DocType 'Activity Log'
 #. Label of a Text Editor field in DocType 'Communication'
-#. Label of a Small Text field in DocType 'SMS Log'
 #. Label of a Data field in DocType 'Success Action'
 #. Label of a Text Editor field in DocType 'Notification Log'
 #. Label of a Section Break field in DocType 'Auto Email Report'
@@ -15402,8 +14600,7 @@ msgstr ""
 #: automation/doctype/auto_repeat/auto_repeat.json
 #: core/doctype/activity_log/activity_log.json
 #: core/doctype/communication/communication.json
-#: core/doctype/data_import/data_import.js:483
-#: core/doctype/sms_log/sms_log.json
+#: core/doctype/data_import/data_import.js:488
 #: core/doctype/success_action/success_action.json
 #: desk/doctype/notification_log/notification_log.json
 #: email/doctype/auto_email_report/auto_email_report.json
@@ -15422,46 +14619,6 @@ msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr ""
 
-<<<<<<< HEAD
-#. Label of a Code field in DocType 'Email Queue'
-#: email/doctype/email_queue/email_queue.json
-msgctxt "Email Queue"
-msgid "Message"
-msgstr ""
-
-#. Label of a Text Editor field in DocType 'Newsletter'
-#: email/doctype/newsletter/newsletter.json
-msgctxt "Newsletter"
-msgid "Message"
-msgstr ""
-
-#. Label of a Section Break field in DocType 'Notification'
-#. Label of a Code field in DocType 'Notification'
-#: email/doctype/notification/notification.json
-msgctxt "Notification"
-msgid "Message"
-msgstr ""
-
-#. Label of a Text Editor field in DocType 'Notification Log'
-#: desk/doctype/notification_log/notification_log.json
-msgctxt "Notification Log"
-msgid "Message"
-msgstr ""
-
-#. Label of a Data field in DocType 'Success Action'
-#: core/doctype/success_action/success_action.json
-msgctxt "Success Action"
-msgid "Message"
-msgstr ""
-
-#. Label of a Text field in DocType 'Workflow Document State'
-#: workflow/doctype/workflow_document_state/workflow_document_state.json
-msgctxt "Workflow Document State"
-msgid "Message"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a HTML Editor field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgid "Message (HTML)"
@@ -15691,13 +14848,6 @@ msgstr ""
 msgid "Modified By"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype_list.js:17
-msgid "Module"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Data field in DocType 'Block Module'
 #. Label of a Link field in DocType 'DocType'
 #. Label of a Link field in DocType 'Page'
@@ -15717,7 +14867,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Web Template'
 #. Label of a Link field in DocType 'Website Theme'
 #: core/doctype/block_module/block_module.json
-#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:30
+#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:17
 #: core/doctype/page/page.json core/doctype/report/report.json
 #: core/doctype/user_type_module/user_type_module.json
 #: desk/doctype/dashboard/dashboard.json
@@ -16213,19 +15363,8 @@ msgstr ""
 msgid "Network Printer Settings"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/success_action/success_action.js:55
-#: core/page/dashboard_view/dashboard_view.js:173 desk/doctype/todo/todo.js:46
-#: public/js/frappe/form/success_action.js:77
-#: public/js/frappe/views/treeview.js:437
-#: website/doctype/web_form/templates/web_list.html:15 www/list.html:19
-msgid "New"
-msgstr ""
-
-=======
 #. Option for the 'DocType View' (Select) field in DocType 'Workspace Shortcut'
 #. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Option for the 'For Document Event' (Select) field in DocType 'Energy Point
 #. Rule'
 #: core/doctype/success_action/success_action.js:55
@@ -16233,7 +15372,7 @@ msgstr ""
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: email/doctype/notification/notification.json
 #: public/js/frappe/form/success_action.js:77
-#: public/js/frappe/views/treeview.js:450
+#: public/js/frappe/views/treeview.js:437
 #: social/doctype/energy_point_rule/energy_point_rule.json
 #: website/doctype/web_form/templates/web_list.html:15 www/list.html:19
 msgid "New"
@@ -16298,16 +15437,9 @@ msgstr ""
 msgid "New Message from Website Contact Page"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/form/toolbar.js:206 public/js/frappe/model/model.js:742
-msgid "New Name"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Read Only field in DocType 'Deleted Document'
 #: core/doctype/deleted_document/deleted_document.json
-#: public/js/frappe/form/toolbar.js:207 public/js/frappe/model/model.js:742
+#: public/js/frappe/form/toolbar.js:206 public/js/frappe/model/model.js:742
 msgid "New Name"
 msgstr ""
 
@@ -16346,7 +15478,7 @@ msgstr ""
 msgid "New Workflow Name"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1186
+#: public/js/frappe/views/workspace/workspace.js:1185
 msgid "New Workspace"
 msgstr ""
 
@@ -16728,7 +15860,7 @@ msgstr ""
 msgid "No changes made because old and new name are the same."
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1491
+#: public/js/frappe/views/workspace/workspace.js:1490
 msgid "No changes made on the page"
 msgstr ""
 
@@ -16820,29 +15952,12 @@ msgstr ""
 msgid "No of Columns"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Label of a Int field in DocType 'SMS Log'
-#: core/doctype/sms_log/sms_log.json
-msgid "No of Requested SMS"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Int field in DocType 'Auto Email Report'
 #: email/doctype/auto_email_report/auto_email_report.json
 msgid "No of Rows (Max 500)"
 msgstr ""
 
-<<<<<<< HEAD
 #: __init__.py:1089 client.py:109 client.py:151
-=======
-#. Label of a Int field in DocType 'SMS Log'
-#: core/doctype/sms_log/sms_log.json
-msgid "No of Sent SMS"
-msgstr ""
-
-#: __init__.py:1126 client.py:109 client.py:151
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "No permission for {0}"
 msgstr ""
 
@@ -16979,20 +16094,9 @@ msgstr ""
 msgid "Not Linked to any record"
 msgstr ""
 
-<<<<<<< HEAD
 #: __init__.py:982 app.py:357 desk/calendar.py:26 desk/treeview.py:19
 #: geo/utils.py:97 public/js/frappe/web_form/webform_script.js:15
 #: website/doctype/web_form/web_form.py:601
-=======
-#. Label of a Check field in DocType 'DocField'
-#: core/doctype/docfield/docfield.json
-msgid "Not Nullable"
-msgstr ""
-
-#: __init__.py:1018 app.py:357 desk/calendar.py:26 geo/utils.py:97
-#: public/js/frappe/web_form/webform_script.js:15
-#: website/doctype/web_form/web_form.py:602
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: website/page_renderers/not_permitted_page.py:20 www/login.py:181
 #: www/qrcode.py:22 www/qrcode.py:25 www/qrcode.py:37
 msgid "Not Permitted"
@@ -17318,17 +16422,10 @@ msgstr ""
 msgid "Number Card Name"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/widgets/widget_dialog.js:626
-msgid "Number Cards"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Tab Break field in DocType 'Workspace'
 #. Label of a Table field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
-#: public/js/frappe/widgets/widget_dialog.js:660
+#: public/js/frappe/widgets/widget_dialog.js:626
 msgid "Number Cards"
 msgstr ""
 
@@ -17556,34 +16653,6 @@ msgstr ""
 msgid "On Payment Authorization"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
-#: core/doctype/server_script/server_script.json
-msgid "On Payment Charge Processed"
-msgstr ""
-
-#. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
-#: core/doctype/server_script/server_script.json
-msgid "On Payment Failed"
-msgstr ""
-
-#. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
-#: core/doctype/server_script/server_script.json
-msgid "On Payment Mandate Acquisition Processed"
-msgstr ""
-
-#. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
-#: core/doctype/server_script/server_script.json
-msgid "On Payment Mandate Charge Processed"
-msgstr ""
-
-#. Option for the 'DocType Event' (Select) field in DocType 'Server Script'
-#: core/doctype/server_script/server_script.json
-msgid "On Payment Paid"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Description of the 'Is Dynamic URL?' (Check) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
 msgid "On checking this option, URL will be treated like a jinja template string"
@@ -17624,15 +16693,8 @@ msgstr ""
 msgid "Onboarding complete"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype_list.js:28
-msgid "Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended."
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Description of the 'Is Submittable' (Check) field in DocType 'DocType'
-#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:42
+#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:28
 msgid "Once submitted, submittable documents cannot be changed. They can only be Cancelled and Amended."
 msgstr ""
 
@@ -17652,7 +16714,7 @@ msgstr ""
 msgid "One of"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1326
+#: public/js/frappe/views/workspace/workspace.js:1325
 msgid "One of the child page with name {0} already exist in {1} Section. Please update the name of the child page first before moving"
 msgstr ""
 
@@ -17694,7 +16756,7 @@ msgstr ""
 msgid "Only Workspace Manager can edit public workspaces"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:550
+#: public/js/frappe/views/workspace/workspace.js:549
 msgid "Only Workspace Manager can sort or edit this page"
 msgstr ""
 
@@ -17987,14 +17049,6 @@ msgstr ""
 msgid "Other"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Label of a Tab Break field in DocType 'Email Account'
-#: email/doctype/email_account/email_account.json
-msgid "Outgoing (SMTP)"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Section Break field in DocType 'Email Account'
 #: email/doctype/email_account/email_account.json
 msgid "Outgoing (SMTP) Settings"
@@ -18115,19 +17169,11 @@ msgstr ""
 msgid "PUT"
 msgstr ""
 
-<<<<<<< HEAD
-#. Name of a DocType
-#: core/doctype/package/package.json
-msgid "Package"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Link field in DocType 'Module Def'
 #. Name of a DocType
 #. Label of a Link field in DocType 'Package Release'
 #: core/doctype/module_def/module_def.json core/doctype/package/package.json
-#: core/doctype/package_release/package_release.json www/attribution.html:34
+#: core/doctype/package_release/package_release.json
 msgid "Package"
 msgstr ""
 
@@ -18226,7 +17272,7 @@ msgstr ""
 msgid "Page Route"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1513
+#: public/js/frappe/views/workspace/workspace.js:1512
 msgid "Page Saved Successfully"
 msgstr ""
 
@@ -18270,7 +17316,7 @@ msgstr ""
 msgid "Page to show on the website\n"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1313
+#: public/js/frappe/views/workspace/workspace.js:1312
 msgid "Page with title {0} already exist."
 msgstr ""
 
@@ -18287,9 +17333,9 @@ msgid "Parameter"
 msgstr ""
 
 #: public/js/frappe/model/model.js:142
-#: public/js/frappe/views/workspace/workspace.js:620
-#: public/js/frappe/views/workspace/workspace.js:948
-#: public/js/frappe/views/workspace/workspace.js:1195
+#: public/js/frappe/views/workspace/workspace.js:619
+#: public/js/frappe/views/workspace/workspace.js:947
+#: public/js/frappe/views/workspace/workspace.js:1194
 msgid "Parent"
 msgstr ""
 
@@ -18319,15 +17365,8 @@ msgstr ""
 msgid "Parent Field"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype.py:909
-msgid "Parent Field (Tree)"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Data field in DocType 'DocType'
-#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype.py:916
+#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype.py:909
 msgid "Parent Field (Tree)"
 msgstr ""
 
@@ -18400,27 +17439,6 @@ msgstr ""
 msgid "Passive"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/user/user.js:165 core/doctype/user/user.js:212
-#: core/doctype/user/user.js:232 desk/page/setup_wizard/setup_wizard.js:474
-#: www/login.html:21
-msgid "Password"
-msgstr ""
-
-#. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
-#: custom/doctype/custom_field/custom_field.json
-msgctxt "Custom Field"
-msgid "Password"
-msgstr ""
-
-#. Option for the 'Type' (Select) field in DocType 'Customize Form Field'
-#: custom/doctype/customize_form_field/customize_form_field.json
-msgctxt "Customize Form Field"
-msgid "Password"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Label of a Section Break field in DocType 'System Settings'
 #. Label of a Tab Break field in DocType 'System Settings'
@@ -18430,8 +17448,8 @@ msgstr ""
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: core/doctype/docfield/docfield.json
 #: core/doctype/system_settings/system_settings.json
-#: core/doctype/user/user.js:158 core/doctype/user/user.js:205
-#: core/doctype/user/user.js:225 custom/doctype/custom_field/custom_field.json
+#: core/doctype/user/user.js:165 core/doctype/user/user.js:212
+#: core/doctype/user/user.js:232 custom/doctype/custom_field/custom_field.json
 #: custom/doctype/customize_form_field/customize_form_field.json
 #: desk/page/setup_wizard/setup_wizard.js:474
 #: email/doctype/email_account/email_account.json
@@ -18682,16 +17700,12 @@ msgstr ""
 #. Label of a Table field in DocType 'DocType'
 #. Label of a Section Break field in DocType 'System Settings'
 #. Label of a Card Break in the Users Workspace
-<<<<<<< HEAD
-#: core/doctype/user/user.js:140 core/doctype/user/user.js:149
-=======
 #. Label of a Section Break field in DocType 'Customize Form Field'
 #: core/doctype/custom_docperm/custom_docperm.json
 #: core/doctype/docfield/docfield.json core/doctype/docperm/docperm.json
 #: core/doctype/doctype/doctype.json
 #: core/doctype/system_settings/system_settings.json
-#: core/doctype/user/user.js:133 core/doctype/user/user.js:142
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: core/doctype/user/user.js:140 core/doctype/user/user.js:149
 #: core/page/permission_manager/permission_manager.js:214
 #: core/workspace/users/users.json
 #: custom/doctype/customize_form_field/customize_form_field.json
@@ -18778,11 +17792,7 @@ msgstr ""
 msgid "Phone No."
 msgstr ""
 
-<<<<<<< HEAD
 #: utils/__init__.py:108
-=======
-#: utils/__init__.py:118
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Phone Number {0} set in field {1} is not valid."
 msgstr ""
 
@@ -19075,11 +18085,7 @@ msgstr ""
 msgid "Please select X and Y fields"
 msgstr ""
 
-<<<<<<< HEAD
 #: utils/__init__.py:115
-=======
-#: utils/__init__.py:125
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Please select a country code for field {1}."
 msgstr ""
 
@@ -19493,17 +18499,10 @@ msgstr ""
 msgid "Primary Phone"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#: database/mariadb/schema.py:156 database/postgres/schema.py:199
-msgid "Primary key of doctype {0} can not be changed as there are existing values."
-msgstr ""
-
 #. Label of a Check field in DocType 'Custom DocPerm'
 #. Label of a Check field in DocType 'DocPerm'
 #: core/doctype/custom_docperm/custom_docperm.json
 #: core/doctype/docperm/docperm.json
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: core/doctype/success_action/success_action.js:56
 #: printing/page/print/print.js:65 public/js/frappe/form/success_action.js:81
 #: public/js/frappe/form/templates/print_layout.html:46
@@ -19847,9 +18846,9 @@ msgstr ""
 #: desk/doctype/event/event.json desk/doctype/note/note.json
 #: desk/doctype/note/note_list.js:6 desk/doctype/workspace/workspace.json
 #: public/js/frappe/views/interaction.js:78
-#: public/js/frappe/views/workspace/workspace.js:627
-#: public/js/frappe/views/workspace/workspace.js:955
-#: public/js/frappe/views/workspace/workspace.js:1201
+#: public/js/frappe/views/workspace/workspace.js:626
+#: public/js/frappe/views/workspace/workspace.js:954
+#: public/js/frappe/views/workspace/workspace.js:1200
 msgid "Public"
 msgstr ""
 
@@ -19997,37 +18996,14 @@ msgstr ""
 
 #. Option for the 'Frequency' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Time Interval' (Select) field in DocType 'Dashboard Chart'
-#. Option for the 'Repeat On' (Select) field in DocType 'Event'
 #. Option for the 'Period' (Select) field in DocType 'Auto Email Report'
 #: automation/doctype/auto_repeat/auto_repeat.json
 #: desk/doctype/dashboard_chart/dashboard_chart.json
-#: desk/doctype/event/event.json
 #: email/doctype/auto_email_report/auto_email_report.json
 #: public/js/frappe/utils/common.js:401
 msgid "Quarterly"
 msgstr ""
 
-<<<<<<< HEAD
-#. Option for the 'Period' (Select) field in DocType 'Auto Email Report'
-#: email/doctype/auto_email_report/auto_email_report.json
-msgctxt "Auto Email Report"
-msgid "Quarterly"
-msgstr ""
-
-#. Option for the 'Frequency' (Select) field in DocType 'Auto Repeat'
-#: automation/doctype/auto_repeat/auto_repeat.json
-msgctxt "Auto Repeat"
-msgid "Quarterly"
-msgstr ""
-
-#. Option for the 'Time Interval' (Select) field in DocType 'Dashboard Chart'
-#: desk/doctype/dashboard_chart/dashboard_chart.json
-msgctxt "Dashboard Chart"
-msgid "Quarterly"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Data field in DocType 'Recorder Query'
 #. Label of a Code field in DocType 'Report'
 #: core/doctype/recorder_query/recorder_query.json
@@ -20218,7 +19194,6 @@ msgstr ""
 
 #. Label of a Int field in DocType 'System Settings'
 #: core/doctype/system_settings/system_settings.json
-msgctxt "System Settings"
 msgid "Rate limit for email link login"
 msgstr ""
 
@@ -20235,16 +19210,9 @@ msgstr ""
 msgid "Rating"
 msgstr ""
 
-<<<<<<< HEAD
-#: printing/doctype/print_format/print_format.py:89
-msgid "Raw Commands"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Code field in DocType 'Print Format'
 #: printing/doctype/print_format/print_format.json
-#: printing/doctype/print_format/print_format.py:88
+#: printing/doctype/print_format/print_format.py:89
 msgid "Raw Commands"
 msgstr ""
 
@@ -21075,13 +20043,6 @@ msgstr ""
 msgid "Report Manager"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/views/reports/query_report.js:1808
-msgid "Report Name"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Data field in DocType 'Access Log'
 #. Label of a Data field in DocType 'Prepared Report'
 #. Label of a Data field in DocType 'Report'
@@ -21092,7 +20053,7 @@ msgstr ""
 #: core/doctype/report/report.json
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 #: desk/doctype/number_card/number_card.json
-#: public/js/frappe/views/reports/query_report.js:1811
+#: public/js/frappe/views/reports/query_report.js:1808
 msgid "Report Name"
 msgstr ""
 
@@ -21257,14 +20218,6 @@ msgstr ""
 msgid "Request URL"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Label of a Code field in DocType 'SMS Log'
-#: core/doctype/sms_log/sms_log.json
-msgid "Requested Numbers"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Select field in DocType 'LDAP Settings'
 #: integrations/doctype/ldap_settings/ldap_settings.json
 msgid "Require Trusted Certificate"
@@ -21634,16 +20587,9 @@ msgctxt "Role Permission for Page and Report"
 msgid "Role Permission for Page and Report"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/roles_editor.js:102
-msgid "Role Permissions"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Section Break field in DocType 'User Document Type'
 #: core/doctype/user_document_type/user_document_type.json
-#: public/js/frappe/roles_editor.js:103
+#: public/js/frappe/roles_editor.js:102
 msgid "Role Permissions"
 msgstr ""
 
@@ -21660,9 +20606,7 @@ msgstr ""
 
 #. Name of a DocType
 #. Label of a Link field in DocType 'User'
-#. Label of a Link field in DocType 'User Role Profile'
 #: core/doctype/role_profile/role_profile.json core/doctype/user/user.json
-#: core/doctype/user_role_profile/user_role_profile.json
 msgid "Role Profile"
 msgstr ""
 
@@ -21670,18 +20614,6 @@ msgstr ""
 #: core/workspace/users/users.json
 msgctxt "Role Profile"
 msgid "Role Profile"
-msgstr ""
-
-<<<<<<< HEAD
-#. Label of a Link field in DocType 'User'
-#: core/doctype/user/user.json
-msgctxt "User"
-msgid "Role Profile"
-=======
-#. Label of a Table MultiSelect field in DocType 'User'
-#: core/doctype/user/user.json
-msgid "Role Profiles"
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Custom DocPerm'
@@ -21988,7 +20920,6 @@ msgstr ""
 #. Description of the 'Enable Outgoing' (Check) field in DocType 'Email
 #. Account'
 #: email/doctype/email_account/email_account.json
-msgctxt "Email Account"
 msgid "SMTP Settings for outgoing emails"
 msgstr ""
 
@@ -22098,30 +21029,15 @@ msgstr ""
 #: public/js/frappe/views/kanban/kanban_view.js:340
 #: public/js/frappe/views/reports/query_report.js:1800
 #: public/js/frappe/views/reports/report_view.js:1640
-<<<<<<< HEAD
 #: public/js/frappe/views/workspace/workspace.js:500
 #: public/js/frappe/widgets/base_widget.js:140
-=======
-#: public/js/frappe/views/workspace/workspace.js:501
-#: public/js/frappe/widgets/base_widget.js:142
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: public/js/frappe/widgets/quick_list_widget.js:117
 #: public/js/print_format_builder/print_format_builder.bundle.js:15
 #: public/js/workflow_builder/workflow_builder.bundle.js:33
 msgid "Save"
 msgstr ""
 
-<<<<<<< HEAD
-#. Option for the 'Send Alert On' (Select) field in DocType 'Notification'
-#: email/doctype/notification/notification.json
-msgctxt "Notification"
-msgid "Save"
-msgstr ""
-
 #: core/doctype/user/user.js:327
-=======
-#: core/doctype/user/user.js:321
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Save API Secret: {0}"
 msgstr ""
 
@@ -22168,7 +21084,7 @@ msgstr ""
 
 #: public/js/frappe/list/list_settings.js:40
 #: public/js/frappe/views/kanban/kanban_settings.js:47
-#: public/js/frappe/views/workspace/workspace.js:513
+#: public/js/frappe/views/workspace/workspace.js:512
 msgid "Saving"
 msgstr ""
 
@@ -22271,11 +21187,7 @@ msgstr ""
 msgid "Scheduled To Send"
 msgstr ""
 
-<<<<<<< HEAD
 #: core/doctype/server_script/server_script.py:281
-=======
-#: core/doctype/server_script/server_script.py:147
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "Scheduled execution for script {0} has updated"
 msgstr ""
 
@@ -22604,15 +21516,8 @@ msgstr ""
 msgid "Select Date Range"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/doctype/index.js:170
-msgid "Select DocType"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Link field in DocType 'Web Form'
-#: public/js/frappe/doctype/index.js:171 website/doctype/web_form/web_form.json
+#: public/js/frappe/doctype/index.js:170 website/doctype/web_form/web_form.json
 msgid "Select DocType"
 msgstr ""
 
@@ -23047,27 +21952,11 @@ msgstr ""
 msgid "Sender Field should have Email in options"
 msgstr ""
 
-<<<<<<< HEAD
 #. Label of a Data field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
-msgctxt "Newsletter"
 msgid "Sender Name"
 msgstr ""
 
-#. Label of a Data field in DocType 'Customize Form'
-#: custom/doctype/customize_form/customize_form.json
-msgctxt "Customize Form"
-msgid "Sender Name Field"
-msgstr ""
-
-=======
-#. Label of a Data field in DocType 'SMS Log'
-#. Label of a Data field in DocType 'Newsletter'
-#: core/doctype/sms_log/sms_log.json email/doctype/newsletter/newsletter.json
-msgid "Sender Name"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Data field in DocType 'DocType'
 #. Label of a Data field in DocType 'Customize Form'
 #: core/doctype/doctype/doctype.json
@@ -23108,44 +21997,11 @@ msgstr ""
 msgid "Sent"
 msgstr ""
 
-<<<<<<< HEAD
-#. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
-#. Option for the 'Sent or Received' (Select) field in DocType 'Communication'
-#: core/doctype/communication/communication.json
-msgctxt "Communication"
-msgid "Sent"
-msgstr ""
-
-#. Option for the 'Status' (Select) field in DocType 'Email Queue'
-#: email/doctype/email_queue/email_queue.json
-msgctxt "Email Queue"
-msgid "Sent"
-msgstr ""
-
-#. Option for the 'Status' (Select) field in DocType 'Email Queue Recipient'
-#: email/doctype/email_queue_recipient/email_queue_recipient.json
-msgctxt "Email Queue Recipient"
-msgid "Sent"
-=======
-#. Label of a Date field in DocType 'SMS Log'
-#: core/doctype/sms_log/sms_log.json
-msgid "Sent On"
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
-msgstr ""
-
 #. Label of a Check field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgid "Sent Read Receipt"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Label of a Code field in DocType 'SMS Log'
-#: core/doctype/sms_log/sms_log.json
-msgid "Sent To"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Select field in DocType 'Communication'
 #: core/doctype/communication/communication.json
 msgid "Sent or Received"
@@ -23246,16 +22102,9 @@ msgstr ""
 
 #. Label of a standard navbar item
 #. Type: Action
-<<<<<<< HEAD
-#: hooks.py public/js/frappe/ui/toolbar/toolbar.js:321
-msgid "Session Defaults"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Table field in DocType 'Session Default Settings'
 #: core/doctype/session_default_settings/session_default_settings.json hooks.py
-#: public/js/frappe/ui/toolbar/toolbar.js:331
+#: public/js/frappe/ui/toolbar/toolbar.js:321
 msgid "Session Defaults"
 msgstr ""
 
@@ -23468,30 +22317,8 @@ msgstr ""
 #: core/doctype/doctype/doctype.json core/doctype/user/user.json
 #: integrations/workspace/integrations/integrations.json
 #: public/js/frappe/form/templates/print_layout.html:25
-<<<<<<< HEAD
 #: public/js/frappe/ui/toolbar/toolbar.js:279
 #: public/js/frappe/views/workspace/workspace.js:528
-msgid "Settings"
-msgstr ""
-
-#. Label of a Tab Break field in DocType 'DocType'
-#: core/doctype/doctype/doctype.json
-msgctxt "DocType"
-msgid "Settings"
-msgstr ""
-
-#. Label of a Tab Break field in DocType 'User'
-#. Group in User's connections
-#: core/doctype/user/user.json
-msgctxt "User"
-msgid "Settings"
-msgstr ""
-
-#. Label of a Tab Break field in DocType 'Web Form'
-=======
-#: public/js/frappe/ui/toolbar/toolbar.js:289
-#: public/js/frappe/views/workspace/workspace.js:529
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: website/doctype/web_form/web_form.json
 #: website/doctype/web_page/web_page.json
 msgid "Settings"
@@ -24000,15 +22827,8 @@ msgstr ""
 msgid "Single DocTypes cannot be customized."
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/doctype/doctype_list.js:51
-msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Description of the 'Is Single' (Check) field in DocType 'DocType'
-#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:67
+#: core/doctype/doctype/doctype.json core/doctype/doctype/doctype_list.js:51
 msgid "Single Types have only one record no tables associated. Values are stored in tabSingles"
 msgstr ""
 
@@ -24250,17 +23070,9 @@ msgstr ""
 msgid "Sort field {0} must be a valid fieldname"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/ui/toolbar/about.js:8 public/js/frappe/utils/utils.js:1726
-#: website/report/website_analytics/website_analytics.js:38
-msgid "Source"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Data field in DocType 'Web Page View'
 #. Label of a Small Text field in DocType 'Website Route Redirect'
-#: public/js/frappe/ui/toolbar/about.js:8 public/js/frappe/utils/utils.js:1715
+#: public/js/frappe/ui/toolbar/about.js:8 public/js/frappe/utils/utils.js:1726
 #: website/doctype/web_page_view/web_page_view.json
 #: website/doctype/website_route_redirect/website_route_redirect.json
 #: website/report/website_analytics/website_analytics.js:38
@@ -24397,18 +23209,9 @@ msgstr ""
 msgid "Start"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/utils/common.js:409
-msgid "Start Date"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Date field in DocType 'Auto Repeat'
-#. Label of a Date field in DocType 'Audit Trail'
 #. Label of a Datetime field in DocType 'Web Page'
 #: automation/doctype/auto_repeat/auto_repeat.json
-#: core/doctype/audit_trail/audit_trail.json
 #: public/js/frappe/utils/common.js:409 website/doctype/web_page/web_page.json
 msgid "Start Date"
 msgstr ""
@@ -24525,21 +23328,6 @@ msgstr ""
 msgid "Stats based on last week's performance (from {0} to {1})"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/data_import/data_import.js:488
-#: public/js/frappe/list/list_settings.js:356
-#: public/js/frappe/views/reports/report_view.js:909
-msgid "Status"
-msgstr ""
-
-#. Label of a Select field in DocType 'Activity Log'
-#: core/doctype/activity_log/activity_log.json
-msgctxt "Activity Log"
-msgid "Status"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Select field in DocType 'Auto Repeat'
 #. Label of a Select field in DocType 'Contact'
 #. Label of a Select field in DocType 'Activity Log'
@@ -24567,7 +23355,7 @@ msgstr ""
 #: contacts/doctype/contact/contact.json
 #: core/doctype/activity_log/activity_log.json
 #: core/doctype/communication/communication.json
-#: core/doctype/data_import/data_import.js:483
+#: core/doctype/data_import/data_import.js:488
 #: core/doctype/data_import/data_import.json
 #: core/doctype/prepared_report/prepared_report.json
 #: core/doctype/rq_job/rq_job.json core/doctype/rq_worker/rq_worker.json
@@ -24582,7 +23370,7 @@ msgstr ""
 #: integrations/doctype/integration_request/integration_request.json
 #: integrations/doctype/oauth_bearer_token/oauth_bearer_token.json
 #: public/js/frappe/list/list_settings.js:356
-#: public/js/frappe/views/reports/report_view.js:908
+#: public/js/frappe/views/reports/report_view.js:909
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 #: website/doctype/personal_data_deletion_step/personal_data_deletion_step.json
 #: workflow/doctype/workflow_action/workflow_action.json
@@ -24751,12 +23539,8 @@ msgstr ""
 #: core/doctype/docperm/docperm.json core/doctype/docshare/docshare.json
 #: core/doctype/user_document_type/user_document_type.json
 #: core/doctype/user_permission/user_permission_list.js:138
-<<<<<<< HEAD
-#: public/js/frappe/form/quick_entry.js:191
-=======
 #: email/doctype/notification/notification.json
-#: public/js/frappe/form/quick_entry.js:201
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: public/js/frappe/form/quick_entry.js:191
 #: public/js/frappe/form/sidebar/review.js:116
 #: public/js/frappe/ui/capture.js:299
 #: social/doctype/energy_point_log/energy_point_log.js:39
@@ -24866,18 +23650,14 @@ msgstr ""
 msgid "Subtitle"
 msgstr ""
 
-<<<<<<< HEAD
-#: core/doctype/data_import/data_import.js:464
-=======
 #. Option for the 'Status' (Select) field in DocType 'Activity Log'
 #. Option for the 'Status' (Select) field in DocType 'Data Import'
 #. Label of a Check field in DocType 'Data Import Log'
 #. Option for the 'Style' (Select) field in DocType 'Workflow State'
 #: core/doctype/activity_log/activity_log.json
-#: core/doctype/data_import/data_import.js:459
+#: core/doctype/data_import/data_import.js:464
 #: core/doctype/data_import/data_import.json
 #: core/doctype/data_import_log/data_import_log.json
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: desk/doctype/bulk_update/bulk_update.js:31
 #: desk/doctype/desktop_icon/desktop_icon.py:446
 #: public/js/frappe/form/grid.js:1137
@@ -26395,9 +25175,9 @@ msgstr ""
 #: desk/doctype/system_health_report_errors/system_health_report_errors.json
 #: desk/doctype/workspace/workspace.json
 #: email/doctype/email_group/email_group.json
-#: public/js/frappe/views/workspace/workspace.js:613
-#: public/js/frappe/views/workspace/workspace.js:942
-#: public/js/frappe/views/workspace/workspace.js:1189
+#: public/js/frappe/views/workspace/workspace.js:612
+#: public/js/frappe/views/workspace/workspace.js:941
+#: public/js/frappe/views/workspace/workspace.js:1188
 #: website/doctype/blog_category/blog_category.json
 #: website/doctype/blog_post/blog_post.json
 #: website/doctype/blog_settings/blog_settings.json
@@ -26998,13 +25778,6 @@ msgstr ""
 msgid "Two Factor Authentication method"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/views/file/file_view.js:318
-msgid "Type"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Select field in DocType 'Communication'
 #. Label of a Select field in DocType 'DocField'
 #. Label of a Select field in DocType 'Customize Form Field'
@@ -27029,9 +25802,9 @@ msgstr ""
 #: desk/doctype/system_console/system_console.json
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: public/js/frappe/views/file/file_view.js:337
+#: public/js/frappe/views/file/file_view.js:318
 #: social/doctype/energy_point_log/energy_point_log.json
-#: website/doctype/web_template/web_template.json www/attribution.html:35
+#: website/doctype/web_template/web_template.json
 msgid "Type"
 msgstr ""
 
@@ -27135,14 +25908,6 @@ msgstr ""
 msgid "URL to go to on clicking the slideshow image"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Option for the 'Naming Rule' (Select) field in DocType 'DocType'
-#: core/doctype/doctype/doctype.json
-msgid "UUID"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: core/doctype/document_naming_settings/document_naming_settings.py:67
 msgid "Unable to find DocType {0}"
 msgstr ""
@@ -27211,7 +25976,7 @@ msgstr ""
 msgid "Unhandled Emails"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:570
+#: public/js/frappe/views/workspace/workspace.js:569
 msgid "Unhide Workspace"
 msgstr ""
 
@@ -27332,7 +26097,7 @@ msgstr ""
 #: printing/page/print_format_builder/print_format_builder.js:670
 #: printing/page/print_format_builder/print_format_builder.js:757
 #: public/js/frappe/form/grid_row.js:404
-#: public/js/frappe/views/workspace/workspace.js:661
+#: public/js/frappe/views/workspace/workspace.js:660
 msgid "Update"
 msgstr ""
 
@@ -27341,7 +26106,7 @@ msgstr ""
 msgid "Update Amendment Naming"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:610
+#: public/js/frappe/views/workspace/workspace.js:609
 msgid "Update Details"
 msgstr ""
 
@@ -28026,16 +26791,6 @@ msgstr ""
 msgid "Validate Field"
 msgstr ""
 
-<<<<<<< HEAD
-=======
-#. Label of a Check field in DocType 'Email Account'
-#. Label of a Check field in DocType 'Email Domain'
-#: email/doctype/email_account/email_account.json
-#: email/doctype/email_domain/email_domain.json
-msgid "Validate SSL Certificate"
-msgstr ""
-
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #: public/js/frappe/web_form/web_form.js:360
 msgid "Validation Error"
 msgstr ""
@@ -28062,15 +26817,10 @@ msgstr ""
 #: desk/doctype/number_card/number_card.js:205
 #: desk/doctype/number_card/number_card.js:336
 #: email/doctype/auto_email_report/auto_email_report.js:92
-<<<<<<< HEAD
-#: public/js/frappe/list/bulk_operations.js:285
-#: public/js/frappe/list/bulk_operations.js:347
-=======
 #: integrations/doctype/query_parameters/query_parameters.json
 #: integrations/doctype/webhook_header/webhook_header.json
-#: public/js/frappe/list/bulk_operations.js:306
-#: public/js/frappe/list/bulk_operations.js:368
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: public/js/frappe/list/bulk_operations.js:285
+#: public/js/frappe/list/bulk_operations.js:347
 #: public/js/frappe/list/list_view_permission_restrictions.html:4
 #: website/doctype/web_form/web_form.js:197
 #: website/doctype/website_meta_tag/website_meta_tag.json
@@ -28843,14 +27593,10 @@ msgstr ""
 msgid "When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number."
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/widgets/widget_dialog.js:445
-=======
 #. Description of the 'DocType View' (Select) field in DocType 'Workspace
 #. Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
-#: public/js/frappe/widgets/widget_dialog.js:479
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: public/js/frappe/widgets/widget_dialog.js:445
 msgid "Which view of the associated DocType should this shortcut take you to?"
 msgstr ""
 
@@ -29101,15 +27847,15 @@ msgstr ""
 msgid "Workspace not found"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:1279
+#: public/js/frappe/views/workspace/workspace.js:1278
 msgid "Workspace {0} Created Successfully"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:908
+#: public/js/frappe/views/workspace/workspace.js:907
 msgid "Workspace {0} Deleted Successfully"
 msgstr ""
 
-#: public/js/frappe/views/workspace/workspace.js:686
+#: public/js/frappe/views/workspace/workspace.js:685
 msgid "Workspace {0} Edited Successfully"
 msgstr ""
 
@@ -29155,16 +27901,9 @@ msgstr ""
 msgid "Y Axis Fields"
 msgstr ""
 
-<<<<<<< HEAD
-#: public/js/frappe/views/reports/query_report.js:1147
-msgid "Y Field"
-msgstr ""
-
-=======
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 #. Label of a Select field in DocType 'Dashboard Chart Field'
 #: desk/doctype/dashboard_chart_field/dashboard_chart_field.json
-#: public/js/frappe/views/reports/query_report.js:1148
+#: public/js/frappe/views/reports/query_report.js:1147
 msgid "Y Field"
 msgstr ""
 
@@ -29398,7 +28137,6 @@ msgstr ""
 #. Description of the 'Rate limit for email link login' (Int) field in DocType
 #. 'System Settings'
 #: core/doctype/system_settings/system_settings.json
-msgctxt "System Settings"
 msgid "You can set a high value here if multiple users will be logging in from the same network."
 msgstr ""
 
@@ -29805,7 +28543,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "adjust"
 msgstr ""
 
@@ -29816,25 +28553,21 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "align-center"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "align-justify"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "align-left"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "align-right"
 msgstr ""
 
@@ -29850,25 +28583,21 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "arrow-down"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "arrow-left"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "arrow-right"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "arrow-up"
 msgstr ""
 
@@ -29879,25 +28608,21 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "asterisk"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "backward"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "ban-circle"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "barcode"
 msgstr ""
 
@@ -29907,7 +28632,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "bell"
 msgstr ""
 
@@ -29918,31 +28642,26 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "bold"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "book"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "bookmark"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "briefcase"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "bullhorn"
 msgstr ""
 
@@ -29955,19 +28674,14 @@ msgstr ""
 msgid "cProfile Output"
 msgstr ""
 
+#. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: public/js/frappe/ui/toolbar/search_utils.js:286
+#: workflow/doctype/workflow_state/workflow_state.json
 msgid "calendar"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
-msgid "calendar"
-msgstr ""
-
-#. Option for the 'Icon' (Select) field in DocType 'Workflow State'
-#: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "camera"
 msgstr ""
 
@@ -29984,61 +28698,51 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "certificate"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "check"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "chevron-down"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "chevron-left"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "chevron-right"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "chevron-up"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "circle-arrow-down"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "circle-arrow-left"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "circle-arrow-right"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "circle-arrow-up"
 msgstr ""
 
@@ -30048,13 +28752,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "cog"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "comment"
 msgstr ""
 
@@ -30130,13 +28832,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "download"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "download-alt"
 msgstr ""
 
@@ -30174,22 +28874,14 @@ msgstr ""
 msgid "e.g.:"
 msgstr ""
 
-<<<<<<< HEAD
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "edit"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "eject"
-=======
-#. Option for the 'Code Editor Type' (Select) field in DocType 'User'
-#: core/doctype/user/user.json
-msgid "emacs"
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgstr ""
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
@@ -30212,13 +28904,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "envelope"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "exclamation-sign"
 msgstr ""
 
@@ -30230,13 +28920,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "eye-close"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "eye-open"
 msgstr ""
 
@@ -30248,7 +28936,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "facetime-video"
 msgstr ""
 
@@ -30265,31 +28952,26 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "fast-backward"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "fast-forward"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "file"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "film"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "filter"
 msgstr ""
 
@@ -30300,43 +28982,36 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "fire"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "flag"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "folder-close"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "folder-open"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "font"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "forward"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "fullscreen"
 msgstr ""
 
@@ -30346,19 +29021,16 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "gift"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "glass"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "globe"
 msgstr ""
 
@@ -30388,49 +29060,41 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "hand-down"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "hand-left"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "hand-right"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "hand-up"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "hdd"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "headphones"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "heart"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "home"
 msgstr ""
 
@@ -30456,31 +29120,26 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "inbox"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "indent-left"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "indent-right"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "info-sign"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "italic"
 msgstr ""
 
@@ -30498,7 +29157,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "leaf"
 msgstr ""
 
@@ -30519,25 +29177,19 @@ msgid "linkedin"
 msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Desktop Icon'
+#. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: desk/doctype/desktop_icon/desktop_icon.json
+#: workflow/doctype/workflow_state/workflow_state.json
 msgid "list"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
-msgid "list"
-msgstr ""
-
-#. Option for the 'Icon' (Select) field in DocType 'Workflow State'
-#: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "list-alt"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "lock"
 msgstr ""
 
@@ -30562,13 +29214,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "magnet"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "map-marker"
 msgstr ""
 
@@ -30583,13 +29233,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "minus"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "minus-sign"
 msgstr ""
 
@@ -30614,13 +29262,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "move"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "music"
 msgstr ""
 
@@ -30661,25 +29307,21 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "off"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "ok"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "ok-circle"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "ok-sign"
 msgstr ""
 
@@ -30722,15 +29364,11 @@ msgstr ""
 msgid "one of"
 msgstr ""
 
-<<<<<<< HEAD
 #: utils/data.py:1357
 msgid "only."
 msgstr ""
 
-#: public/js/frappe/utils/utils.js:407 www/login.html:87 www/login.py:105
-=======
-#: public/js/frappe/utils/utils.js:393 www/login.html:87
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
+#: public/js/frappe/utils/utils.js:407 www/login.html:87
 msgid "or"
 msgstr ""
 
@@ -30746,19 +29384,16 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "pause"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "pencil"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "picture"
 msgstr ""
 
@@ -30775,43 +29410,34 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "plane"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "play"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "play-circle"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "plus"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "plus-sign"
 msgstr ""
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
-#: core/doctype/permission_inspector/permission_inspector.json
-msgid "print"
-msgstr ""
-
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
+#: core/doctype/permission_inspector/permission_inspector.json
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "print"
 msgstr ""
 
@@ -30827,7 +29453,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "qrcode"
 msgstr ""
 
@@ -30838,7 +29463,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "question-sign"
 msgstr ""
 
@@ -30849,7 +29473,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "random"
 msgstr ""
 
@@ -30866,25 +29489,21 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "refresh"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "remove"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "remove-circle"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "remove-sign"
 msgstr ""
 
@@ -30898,7 +29517,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "repeat"
 msgstr ""
 
@@ -30910,25 +29528,21 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "resize-full"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "resize-horizontal"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "resize-small"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "resize-vertical"
 msgstr ""
 
@@ -30943,13 +29557,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "retweet"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "road"
 msgstr ""
 
@@ -30971,13 +29583,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "screenshot"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "search"
 msgstr ""
 
@@ -30989,25 +29599,19 @@ msgstr ""
 
 #. Option for the 'Permission Type' (Select) field in DocType 'Permission
 #. Inspector'
+#. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: core/doctype/permission_inspector/permission_inspector.json
+#: workflow/doctype/workflow_state/workflow_state.json
 msgid "share"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
-msgid "share"
-msgstr ""
-
-#. Option for the 'Icon' (Select) field in DocType 'Workflow State'
-#: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "share-alt"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "shopping-cart"
 msgstr ""
 
@@ -31019,7 +29623,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "signal"
 msgstr ""
 
@@ -31041,13 +29644,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "star"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "star-empty"
 msgstr ""
 
@@ -31062,19 +29663,16 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "step-backward"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "step-forward"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "stop"
 msgstr ""
 
@@ -31104,7 +29702,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "tag"
 msgstr ""
 
@@ -31114,13 +29711,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "tags"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "tasks"
 msgstr ""
 
@@ -31130,31 +29725,26 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "text-height"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "text-width"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "th"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "th-large"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "th-list"
 msgstr ""
 
@@ -31168,31 +29758,26 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "thumbs-down"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "thumbs-up"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "time"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "tint"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "trash"
 msgstr ""
 
@@ -31208,7 +29793,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "upload"
 msgstr ""
 
@@ -31218,7 +29802,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "user"
 msgstr ""
 
@@ -31257,33 +29840,19 @@ msgstr ""
 msgid "via {0}"
 msgstr ""
 
-<<<<<<< HEAD
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "volume-down"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "volume-off"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "volume-up"
-=======
-#. Option for the 'Code Editor Type' (Select) field in DocType 'User'
-#: core/doctype/user/user.json
-msgid "vim"
-msgstr ""
-
-#. Option for the 'Code Editor Type' (Select) field in DocType 'User'
-#: core/doctype/user/user.json
-msgid "vscode"
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgstr ""
 
 #: templates/includes/oauth_confirmation.html:5
@@ -31292,7 +29861,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "warning-sign"
 msgstr ""
 
@@ -31308,7 +29876,6 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "wrench"
 msgstr ""
 
@@ -31334,13 +29901,11 @@ msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "zoom-in"
 msgstr ""
 
 #. Option for the 'Icon' (Select) field in DocType 'Workflow State'
 #: workflow/doctype/workflow_state/workflow_state.json
-msgctxt "Workflow State"
 msgid "zoom-out"
 msgstr ""
 
@@ -31770,7 +30335,6 @@ msgstr ""
 msgid "{0} is not a valid DocType for Dynamic Link"
 msgstr ""
 
-<<<<<<< HEAD
 #: email/doctype/email_group/email_group.py:131 utils/__init__.py:188
 msgid "{0} is not a valid Email Address"
 msgstr ""
@@ -31780,17 +30344,6 @@ msgid "{0} is not a valid Name"
 msgstr ""
 
 #: utils/__init__.py:136
-=======
-#: email/doctype/email_group/email_group.py:131 utils/__init__.py:199
-msgid "{0} is not a valid Email Address"
-msgstr ""
-
-#: utils/__init__.py:167
-msgid "{0} is not a valid Name"
-msgstr ""
-
-#: utils/__init__.py:146
->>>>>>> 7d20ab10e5 (fix: remove DocType as translation context)
 msgid "{0} is not a valid Phone Number"
 msgstr ""
 
