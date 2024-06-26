@@ -46,8 +46,10 @@ def run_server_script_for_doc_event(doc, event):
 	if scripts:
 		# run all scripts for this doctype + event
 		for script_name in scripts:
-			frappe.get_cached_doc("Server Script", script_name).execute_doc(doc)
-
+			try:
+				frappe.get_cached_doc("Server Script", script_name).execute_doc(doc)
+			except Exception as e:
+				frappe.log_error(f"Exception during execution of Server Script", str(e), "Server Script", script_name)
 
 def get_server_script_map():
 	# fetch cached server script methods
