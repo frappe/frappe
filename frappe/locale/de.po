@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-16 09:34+0000\n"
-"PO-Revision-Date: 2024-06-25 14:04\n"
+"PO-Revision-Date: 2024-06-26 14:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -8615,7 +8615,7 @@ msgstr "Standardansicht"
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "Default Workspace"
-msgstr ""
+msgstr "Standardarbeitsbereich"
 
 #: core/doctype/doctype/doctype.py:1345
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
@@ -15726,7 +15726,7 @@ msgstr "Wenn aktiviert, werden die Benutzer jedes Mal benachrichtigt, wenn sie s
 #: core/doctype/user/user.json
 msgctxt "User"
 msgid "If left empty, the default workspace will be the last visited workspace"
-msgstr ""
+msgstr "Bleibt das Feld leer, ist der Standardarbeitsbereich der zuletzt besuchte Arbeitsbereich"
 
 #. Description of the 'Port' (Data) field in DocType 'Email Domain'
 #: email/doctype/email_domain/email_domain.json
@@ -33110,7 +33110,7 @@ msgstr "Für Sie stehen keine Veranstaltungen an."
 
 #: website/web_template/discussions/discussions.html:3
 msgid "There are no {0} for this {1}, why don't you start one!"
-msgstr ""
+msgstr "Es gibt keine {0} für diese {1}, warum starten Sie nicht eine!"
 
 #: public/js/frappe/views/reports/query_report.js:893
 msgid "There are {0} with the same filters already in the queue:"
@@ -35592,11 +35592,11 @@ msgstr "Benutzerdetails"
 #. Name of a DocType
 #: core/doctype/user_document_type/user_document_type.json
 msgid "User Document Type"
-msgstr ""
+msgstr "Benutzer DocType"
 
 #: core/doctype/user_type/user_type.py:97
 msgid "User Document Types Limit Exceeded"
-msgstr ""
+msgstr "Benutzer DocType Limit überschritten"
 
 #. Name of a DocType
 #: core/doctype/user_email/user_email.json
@@ -35772,13 +35772,13 @@ msgstr "Benutzertyp"
 #. Name of a DocType
 #: core/doctype/user_type_module/user_type_module.json
 msgid "User Type Module"
-msgstr ""
+msgstr "Benutzertyp-Modul"
 
 #. Label of a Table field in DocType 'User Type'
 #: core/doctype/user_type/user_type.json
 msgctxt "User Type"
 msgid "User Type Module"
-msgstr ""
+msgstr "Benutzertyp-Modul"
 
 #. Description of the 'Allow Login using Mobile Number' (Check) field in
 #. DocType 'System Settings'
@@ -37686,7 +37686,7 @@ msgstr "Sie können nur bis zu {0} Dokumente auf einmal drucken"
 
 #: core/doctype/user_type/user_type.py:103
 msgid "You can only set the 3 custom doctypes in the Document Types table."
-msgstr ""
+msgstr "Sie können nur die 3 benutzerdefinierten DocTypes in der Tabelle Document Types einstellen."
 
 #: handler.py:186
 msgid "You can only upload JPG, PNG, PDF, TXT or Microsoft documents."
