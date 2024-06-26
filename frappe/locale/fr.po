@@ -4969,7 +4969,7 @@ msgstr "Changement"
 #: tests/test_translate.py:98
 msgctxt "Coins"
 msgid "Change"
-msgstr "Changement"
+msgstr "la monnaie"
 
 #. Label of a Data field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
