@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-06-16 09:34+0000\n"
-"PO-Revision-Date: 2024-06-16 09:34+0000\n"
+"POT-Creation-Date: 2024-06-23 09:33+0000\n"
+"PO-Revision-Date: 2024-06-23 09:33+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -20518,7 +20518,7 @@ msgctxt "DocType"
 msgid "Must be of type \"Attach Image\""
 msgstr ""
 
-#: desk/query_report.py:200
+#: desk/query_report.py:203
 msgid "Must have report permission to access this report."
 msgstr ""
 
@@ -21387,7 +21387,7 @@ msgstr ""
 msgid "No contacts linked to document"
 msgstr ""
 
-#: desk/query_report.py:335
+#: desk/query_report.py:338
 msgid "No data to export"
 msgstr ""
 
@@ -21633,7 +21633,7 @@ msgstr ""
 msgid "Not Permitted"
 msgstr ""
 
-#: desk/query_report.py:510
+#: desk/query_report.py:513
 msgid "Not Permitted to read {0}"
 msgstr ""
 
@@ -22557,6 +22557,10 @@ msgstr ""
 #: public/js/frappe/list/list_view.js:1214
 msgctxt "Description of a list view shortcut"
 msgid "Open list item"
+msgstr ""
+
+#: core/doctype/error_log/error_log.js:15
+msgid "Open reference document"
 msgstr ""
 
 #: www/qrcode.html:13
@@ -24448,7 +24452,7 @@ msgstr ""
 msgid "Prepared Report User"
 msgstr ""
 
-#: desk/query_report.py:298
+#: desk/query_report.py:301
 msgid "Prepared report render failed"
 msgstr ""
 
@@ -26987,7 +26991,7 @@ msgstr ""
 msgid "Report timed out."
 msgstr ""
 
-#: desk/query_report.py:565
+#: desk/query_report.py:568
 msgid "Report updated successfully"
 msgstr ""
 
@@ -27008,7 +27012,7 @@ msgstr ""
 msgid "Report {0} deleted"
 msgstr ""
 
-#: desk/query_report.py:50
+#: desk/query_report.py:53
 msgid "Report {0} is disabled"
 msgstr ""
 
@@ -34066,7 +34070,7 @@ msgctxt "Discussion Reply"
 msgid "Topic"
 msgstr ""
 
-#: desk/query_report.py:501 public/js/frappe/views/reports/print_grid.html:45
+#: desk/query_report.py:504 public/js/frappe/views/reports/print_grid.html:45
 #: public/js/frappe/views/reports/report_view.js:1474
 msgid "Total"
 msgstr ""
@@ -37520,7 +37524,7 @@ msgstr ""
 msgid "You can select one from the following,"
 msgstr ""
 
-#: desk/query_report.py:336
+#: desk/query_report.py:339
 msgid "You can try changing the filters of your report."
 msgstr ""
 
@@ -37617,7 +37621,7 @@ msgstr ""
 msgid "You do not have permissions to cancel all linked documents."
 msgstr ""
 
-#: desk/query_report.py:39
+#: desk/query_report.py:42
 msgid "You don't have access to Report: {0}"
 msgstr ""
 
@@ -37629,7 +37633,7 @@ msgstr ""
 msgid "You don't have permission to access this file"
 msgstr ""
 
-#: desk/query_report.py:45
+#: desk/query_report.py:48
 msgid "You don't have permission to get a report on: {0}"
 msgstr ""
 
@@ -38246,7 +38250,7 @@ msgstr ""
 msgid "just now"
 msgstr ""
 
-#: desk/desktop.py:255 desk/query_report.py:281
+#: desk/desktop.py:255 desk/query_report.py:284
 msgid "label"
 msgstr ""
 
@@ -39364,7 +39368,7 @@ msgstr ""
 msgid "{0} role does not have permission on any doctype"
 msgstr ""
 
-#: desk/query_report.py:580
+#: desk/query_report.py:583
 msgid "{0} saved successfully"
 msgstr ""
 
