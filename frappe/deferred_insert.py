@@ -11,8 +11,11 @@ if TYPE_CHECKING:
 
 queue_prefix = "insert_queue_for_"
 
+TYPE_UNION_DICT_DOCUMENT = list[Union[dict, "Document"]]
+FAILED_RECORDS = list[Union[dict, "Document"]]
 
-def deferred_insert(doctype: str, records: list[Union[dict, "Document"]] | str):
+
+def deferred_insert(doctype: str, records: TYPE_UNION_DICT_DOCUMENT | str):
 	if isinstance(records, dict | list):
 		_records = json.dumps(records)
 	else:
@@ -27,28 +30,34 @@ def deferred_insert(doctype: str, records: list[Union[dict, "Document"]] | str):
 
 def save_to_db():
 	queue_keys = frappe.cache.get_keys(queue_prefix)
+	# TODO: can this be async?
 	for key in queue_keys:
-		record_count = 0
 		queue_key = get_key_name(key)
 		doctype = get_doctype_name(key)
-		while frappe.cache.llen(queue_key) > 0 and record_count <= 500:
-			records = frappe.cache.lpop(queue_key)
-			records = json.loads(records.decode("utf-8"))
-			if isinstance(records, dict):
-				record_count += 1
-				insert_record(records, doctype)
-				continue
-			for record in records:
-				record_count += 1
-				insert_record(record, doctype)
+		while cache_size := frappe.cache.llen(queue_key):
+			records = frappe.cache.lpop(queue_key, count=cache_size)
+			records: TYPE_UNION_DICT_DOCUMENT = json.loads(records.decode("utf-8"))
+			if failed_records := insert_records(records, doctype):
+				frappe.cache.rpush(queue_key, json.dumps(failed_records))
+
+
+def insert_records(records: TYPE_UNION_DICT_DOCUMENT, doctype: str) -> FAILED_RECORDS:
+	"""Inserts records into the database else collects records in order upon failure."""
+	failed_records = []
+	pending_records = [records] if isinstance(records, dict) else records
+	for record in pending_records:
+		try:
+			insert_record(record, doctype)
+		# TODO: refactor to explicit exceptions from generic exception.
+		except Exception as e:
+			frappe.logger().error(f"Error while inserting deferred {doctype} record: {e}")
+			failed_records += [record]
+	return failed_records
 
 
 def insert_record(record: Union[dict, "Document"], doctype: str):
-	try:
-		record.update({"doctype": doctype})
-		frappe.get_doc(record).insert()
-	except Exception as e:
-		frappe.logger().error(f"Error while inserting deferred {doctype} record: {e}")
+	record.update({"doctype": doctype})
+	frappe.get_doc(record).insert()
 
 
 def get_key_name(key: str) -> str:
