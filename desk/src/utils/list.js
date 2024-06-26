@@ -7,6 +7,8 @@ export function getFilterQuery(filters) {
 		const { fieldname, operator } = f
 		const value = getFilterValue(f)
 
+		if (!value) return
+
 		// No previous filters exist on the field
 		// for equals operator, initialize query param as a string
 		if (operator == "=" && !q[fieldname]) {

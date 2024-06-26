@@ -262,7 +262,8 @@ import {
 } from "@/types"
 import { updateSidebarItemFnKey } from "@/types/injectionKeys"
 
-const props = defineProps<{ module: string }>()
+const props = defineProps<{ module: string; isCollapsed: boolean }>()
+const emit = defineEmits(["toggleSidebar"])
 
 const emptySidebarItems = {
 	name: "",
@@ -282,7 +283,6 @@ const emptySidebarLink: IModuleSidebarItem = {
 }
 
 const desktopItem = ref<DesktopItem | null>(null)
-const isCollapsed = ref(false)
 const isEditing = ref(false)
 const draftSidebarItems = ref<ModuleSidebar>({ ...emptySidebarItems })
 const showDialog = ref(false)

@@ -1,5 +1,17 @@
 <template>
-	<Link v-if="fieldtype == 'Link'" :doctype="options[0]" v-model="modelValue" />
+	<Link
+		v-if="fieldtype == 'Link' && ['in', 'not in'].includes(operator)"
+		:multiple="true"
+		:doctype="options[0]"
+		:modelValue="modelValue"
+		@update:modelValue="(val) => (modelValue = val)"
+	/>
+	<Link
+		v-else-if="fieldtype == 'Link'"
+		:doctype="options[0]"
+		:modelValue="modelValue"
+		@update:modelValue="(val) => (modelValue = val)"
+	/>
 	<DateRangePicker
 		v-else-if="dateTypes.includes(fieldtype) && operator == 'between'"
 		v-model="modelValue"
