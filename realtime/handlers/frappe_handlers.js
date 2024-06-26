@@ -12,6 +12,10 @@ function frappe_handlers(realtime, socket) {
 		socket.join(SITE_ROOM);
 	}
 
+	socket.on("ping", () => {
+		socket.emit("pong");
+	});
+
 	socket.on("doctype_subscribe", function (doctype) {
 		can_subscribe_doctype({
 			socket,

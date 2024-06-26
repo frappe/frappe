@@ -27,6 +27,7 @@ import frappe
 from frappe.frappeclient import FrappeClient
 from frappe.model.base_document import get_controller
 from frappe.query_builder.utils import db_type_is
+from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import cint
@@ -128,7 +129,7 @@ class TestPerformance(FrappeTestCase):
 		"""Ideally should be ran against gunicorn worker, though I have not seen any difference
 		when using werkzeug's run_simple for synchronous requests."""
 
-		EXPECTED_RPS = 50  # measured on GHA
+		EXPECTED_RPS = 120  # measured on GHA
 		FAILURE_THREASHOLD = 0.1
 
 		req_count = 1000
@@ -196,3 +197,40 @@ class TestPerformance(FrappeTestCase):
 	def test_no_cyclic_references(self):
 		doc = frappe.get_doc("User", "Administrator")
 		self.assertEqual(sys.getrefcount(doc), 2)  # Note: This always returns +1
+
+	def test_get_doc_cache_calls(self):
+		frappe.get_doc("User", "Administrator")
+		with self.assertRedisCallCounts(1):
+			frappe.get_doc("User", "Administrator")
+
+
+@run_only_if(db_type_is.MARIADB)
+class TestOverheadCalls(FrappeAPITestCase):
+	"""Test that typical redis and db calls remain same overtime.
+
+	If this tests fail on your PR, make sure you're not introducing something in hot-path of these
+	endpoints. Only update values if you're really sure that's the right call.
+	Every call increase here is an actual increase in cost!
+	"""
+
+	BASE_SQL_CALLS = 2  # rollback + begin
+
+	def test_ping_overheads(self):
+		self.get(self.method("ping"), {"sid": "Guest"})
+		with self.assertRedisCallCounts(13), self.assertQueryCount(self.BASE_SQL_CALLS):
+			self.get(self.method("ping"), {"sid": "Guest"})
+
+	def test_list_view_overheads(self):
+		sid = self.sid
+		self.get(self.resource("ToDo"), {"sid": sid})
+		self.get(self.resource("ToDo"), {"sid": sid})
+		with self.assertRedisCallCounts(24), self.assertQueryCount(self.BASE_SQL_CALLS + 1):
+			self.get(self.resource("ToDo"), {"sid": sid})
+
+	def test_get_doc_overheads(self):
+		sid = self.sid
+		tables = len(frappe.get_meta("User").get_table_fields())
+		self.get(self.resource("User", "Administrator"), {"sid": sid})
+		self.get(self.resource("User", "Administrator"), {"sid": sid})
+		with self.assertRedisCallCounts(19), self.assertQueryCount(self.BASE_SQL_CALLS + 1 + tables):
+			self.get(self.resource("User", "Administrator"), {"sid": sid})

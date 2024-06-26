@@ -500,7 +500,7 @@ def print_sql(enable: bool = True) -> None:
 
 
 def log(msg: str) -> None:
-	"""Add to `debug_log`.
+	"""Add to `debug_log`
 
 	:param msg: Message."""
 	if not request:
@@ -1013,7 +1013,11 @@ def clear_cache(user: str | None = None, doctype: str | None = None):
 		frappe.cache_manager.clear_user_cache(user)
 	else:  # everything
 		# Delete ALL keys associated with this site.
-		frappe.cache.delete_keys("")
+		keys_to_delete = set(frappe.cache.get_keys(""))
+		for key in frappe.get_hooks("persistent_cache_keys"):
+			keys_to_delete.difference_update(frappe.cache.get_keys(key))
+		frappe.cache.delete_value(list(keys_to_delete), make_keys=False)
+
 		reset_metadata_version()
 		local.cache = {}
 		local.new_doc_templates = {}
@@ -1673,34 +1677,37 @@ def setup_module_map(include_all_apps: bool = True) -> None:
 	"""
 	if include_all_apps:
 		local.app_modules = cache.get_value("app_modules")
-		local.module_app = cache.get_value("module_app")
 	else:
 		local.app_modules = cache.get_value("installed_app_modules")
-		local.module_app = cache.get_value("module_installed_app")
 
-	if not (local.app_modules and local.module_app):
-		local.module_app, local.app_modules = {}, {}
+	if not local.app_modules:
+		local.app_modules = {}
 		if include_all_apps:
 			apps = get_all_apps(with_internal_apps=True)
 		else:
 			apps = get_installed_apps(_ensure_on_bench=True)
+
 		for app in apps:
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				module = scrub(module)
-				if module in local.module_app:
-					print(
-						f"WARNING: module `{module}` found in apps `{local.module_app[module]}` and `{app}`"
-					)
-				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
 		if include_all_apps:
 			cache.set_value("app_modules", local.app_modules)
-			cache.set_value("module_app", local.module_app)
 		else:
 			cache.set_value("installed_app_modules", local.app_modules)
-			cache.set_value("module_installed_app", local.module_app)
+
+	# Init module_app (reverse mapping)
+	local.module_app = {}
+	for app, modules in local.app_modules.items():
+		for module in modules:
+			if module in local.module_app:
+				warnings.warn(
+					f"WARNING: module `{module}` found in apps `{local.module_app[module]}` and `{app}`",
+					stacklevel=1,
+				)
+			local.module_app[module] = app
 
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
@@ -2456,9 +2463,22 @@ def safe_encode(param, encoding="utf-8"):
 	return param
 
 
-def safe_decode(param, encoding="utf-8"):
+def safe_decode(param, encoding="utf-8", fallback_map: dict | None = None):
+	"""
+	Method to safely decode data into a string
+
+	:param param: The data to be decoded
+	:param encoding: The encoding to decode into
+	:param fallback_map: A fallback map to reference in case of a LookupError
+	:return:
+	"""
 	try:
 		param = param.decode(encoding)
+	except LookupError:
+		try:
+			param = param.decode((fallback_map or {}).get(encoding, "utf-8"))
+		except Exception:
+			pass
 	except Exception:
 		pass
 	return param
@@ -2506,7 +2526,12 @@ def validate_and_sanitize_search_inputs(fn):
 
 
 def _register_fault_handler():
-	faulthandler.register(signal.SIGUSR1)
+	import io
+	import sys
+
+	# Some libraries monkey patch stderr, we need actual fd
+	if isinstance(sys.__stderr__, io.TextIOWrapper):
+		faulthandler.register(signal.SIGUSR1, file=sys.__stderr__)
 
 
 from frappe.utils.error import log_error

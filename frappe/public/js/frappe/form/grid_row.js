@@ -176,6 +176,7 @@ export default class GridRow {
 				// renumber and refresh
 				let data = me.grid.get_data();
 				data.move(me.doc.idx - 1, values.move_to - 1);
+				me.frm.dirty();
 
 				// renum idx
 				for (let i = 0; i < data.length; i++) {
@@ -504,7 +505,7 @@ export default class GridRow {
 			);
 			if (selectedColumn && !selectedColumn.hidden && show_field(selectedColumn.fieldtype)) {
 				fields.push({
-					label: selectedColumn.label,
+					label: __(selectedColumn.label, null, this.grid.doctype),
 					value: selectedColumn.fieldname,
 					checked: true,
 				});
@@ -519,7 +520,7 @@ export default class GridRow {
 				show_field(column.fieldtype)
 			) {
 				fields.push({
-					label: column.label,
+					label: __(column.label, null, this.grid.doctype),
 					value: column.fieldname,
 					checked: false,
 				});
@@ -1435,7 +1436,9 @@ export default class GridRow {
 		let field = this.on_grid_fields_dict[fieldname];
 		// reset field value
 		if (field) {
-			field.docname = this.doc.name;
+			// the below if statement is added to factor in the exception when this.doc is undefined -
+			// - after row removals via customize_form.js on links, actions and states child-tables
+			if (this.doc) field.docname = this.doc.name;
 			field.refresh();
 		}
 

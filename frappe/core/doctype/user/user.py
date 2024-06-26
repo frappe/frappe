@@ -152,7 +152,7 @@ class User(Document):
 			self.password_strength_test()
 
 		if self.name not in STANDARD_USERS:
-			self.validate_email_type(self.email)
+			self.email = self.name
 			self.validate_email_type(self.name)
 		self.add_system_manager_role()
 		self.populate_role_profile_roles()
@@ -564,6 +564,10 @@ class User(Document):
 			frappe.throw(_("You can disable the user instead of deleting it."), frappe.LinkExistsError)
 
 	def before_rename(self, old_name, new_name, merge=False):
+		# if merging, delete the old user notification settings
+		if merge:
+			frappe.delete_doc("Notification Settings", old_name, ignore_permissions=True)
+
 		frappe.clear_cache(user=old_name)
 		self.validate_rename(old_name, new_name)
 

@@ -29,9 +29,6 @@ def get_context(context):
 	files = [x for x in os.listdir(path) if os.path.isfile(os.path.join(path, x))]
 	backup_limit = get_scheduled_backup_limit()
 
-	if len(files) > backup_limit:
-		cleanup_old_backups(path, files, backup_limit)
-
 	files = [
 		(
 			"/backups/" + _file,

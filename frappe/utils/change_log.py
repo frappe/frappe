@@ -4,12 +4,15 @@
 import json
 import os
 import subprocess  # nosec
+from contextlib import suppress
 
-from semantic_version import Version
+from semantic_version import SimpleSpec, Version
 
 import frappe
 from frappe import _, safe_decode
 from frappe.utils import cstr
+from frappe.utils.caching import redis_cache
+from frappe.utils.frappecloud import on_frappecloud
 
 
 def get_change_log(user=None):
@@ -129,7 +132,7 @@ def get_versions():
 
 
 def get_app_branch(app):
-	"""Returns branch of an app"""
+	"""Return branch of an app."""
 	try:
 		with open(os.devnull, "wb") as null_stream:
 			result = subprocess.check_output(
@@ -162,21 +165,31 @@ def get_app_last_commit_ref(app):
 
 
 def check_for_update():
+	if frappe.get_system_settings("disable_system_update_notification"):
+		return
+
 	updates = frappe._dict(major=[], minor=[], patch=[])
 	apps = get_versions()
 
 	for app in apps:
-		app_details = check_release_on_github(app)
-		if not app_details:
+		remote_url = get_source_url(app)
+		if not remote_url:
 			continue
 
-		github_version, org_name = app_details
-		# Get local instance's current version or the app
+		owner, repo = parse_github_url(remote_url)
+		if not owner or not repo:
+			continue
 
+		# Get local instance's current version or the app
 		branch_version = (
 			apps[app]["branch_version"].split(" ", 1)[0] if apps[app].get("branch_version", "") else ""
 		)
 		instance_version = Version(branch_version or apps[app].get("version"))
+
+		github_version, org_name = check_release_on_github(owner, repo, instance_version)
+		if not github_version or not org_name:
+			continue
+
 		# Compare and popup update message
 		for update_type in updates:
 			if github_version.__dict__[update_type] > instance_version.__dict__[update_type]:
@@ -187,6 +200,7 @@ def check_for_update():
 						org_name=org_name,
 						app_name=app,
 						title=apps[app]["title"],
+						security_issues=security_issues_count(owner, repo, instance_version, github_version),
 					)
 				)
 				break
@@ -194,88 +208,138 @@ def check_for_update():
 				break
 
 	add_message_to_redis(updates)
+	return updates
 
 
-def parse_latest_non_beta_release(response):
-	"""
-	Parses the response JSON for all the releases and returns the latest non prerelease
+def has_app_update_notifications() -> bool:
+	return bool(frappe.cache.sismember("changelog-update-user-set", frappe.session.user))
 
-	Parameters
+
+def parse_latest_non_beta_release(response: list, current_version: Version) -> list | None:
+	"""Parse the response JSON for all the releases and return the latest non prerelease.
+
+	Args:
+
 	response (list): response object returned by github
 
-	Returns
-	json   : json object pertaining to the latest non-beta release
+	Return a json object pertaining to the latest non-beta release
 	"""
 	version_list = [
 		release.get("tag_name").strip("v") for release in response if not release.get("prerelease")
 	]
 
+	def prioritize_minor_update(v: str) -> Version:
+		target = Version(v)
+		return (current_version.major == target.major, target)
+
 	if version_list:
-		return sorted(version_list, key=Version, reverse=True)[0]
+		return sorted(version_list, key=prioritize_minor_update, reverse=True)[0]
 
 	return None
 
 
-def check_release_on_github(app: str):
-	"""
-	Check the latest release for a given Frappe application hosted on Github.
-
-	Args:
-	        app (str): The name of the Frappe application.
-
-	Returns:
-	        tuple(Version, str): The semantic version object of the latest release and the
-	                organization name, if the application exists, otherwise None.
-	"""
-
+def check_release_on_github(
+	owner: str, repo: str, current_version: Version
+) -> tuple[Version, str] | tuple[None, None]:
+	"""Check the latest release for a repo URL on GitHub."""
 	import requests
-	from giturlparse import parse
-	from giturlparse.parser import ParserError
 
-	try:
-		# Check if repo remote is on github
-		remote_url = subprocess.check_output(f"cd ../apps/{app} && git ls-remote --get-url", shell=True)
-	except subprocess.CalledProcessError:
-		# Passing this since some apps may not have git initialized in them
-		return
+	if not owner:
+		raise ValueError("Owner cannot be empty")
 
-	if isinstance(remote_url, bytes):
-		remote_url = remote_url.decode()
-
-	try:
-		parsed_url = parse(remote_url)
-	except ParserError:
-		# Invalid URL
-		return
-
-	if parsed_url.resource != "github.com":
-		return
-
-	owner = parsed_url.owner
-	repo = parsed_url.name
+	if not repo:
+		raise ValueError("Repo cannot be empty")
 
 	# Get latest version from GitHub
+	releases = _get_latest_releases(owner, repo)
+	latest_non_beta_release = parse_latest_non_beta_release(releases, current_version)
+	if latest_non_beta_release:
+		return Version(latest_non_beta_release), owner
+
+	return None, None
+
+
+def security_issues_count(owner: str, repo: str, current_version: Version, target_version: Version) -> int:
+	advisories = _get_security_issues(owner, repo)
+
+	def applicable(advisory) -> bool:
+		# Current version is in vulnerable range
+		# Target version is not in vulnerabe range
+		for vuln in advisory["vulnerabilities"]:
+			with suppress(Exception):
+				vulnerable_range = SimpleSpec(vuln["vulnerable_version_range"].replace(" ", ""))
+				patch_version = Version(vuln["patched_versions"].replace(" ", ""))
+				if (
+					current_version in vulnerable_range
+					and target_version not in vulnerable_range
+					# XXX: this is not 100% correct, but works for frappe
+					and current_version.major == patch_version.major
+				):
+					return True
+
+	return len([sa for sa in advisories if applicable(sa)])
+
+
+@redis_cache(ttl=6 * 24 * 60 * 60, shared=True)
+def _get_latest_releases(owner, repo):
+	import requests
+
 	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases")
-	if r.ok:
-		latest_non_beta_release = parse_latest_non_beta_release(r.json())
-		if latest_non_beta_release:
-			return Version(latest_non_beta_release), owner
+	if not r.ok:
+		return []
+
+	return r.json()
+
+
+@redis_cache(ttl=6 * 24 * 60 * 60, shared=True)
+def _get_security_issues(owner, repo):
+	import requests
+
+	r = requests.get(f"https://api.github.com/repos/{owner}/{repo}/security-advisories")
+	if not r.ok:
+		return []
+
+	return r.json()
+
+
+def parse_github_url(remote_url: str) -> tuple[str, str] | tuple[None, None]:
+	"""Parse the remote URL to get the owner and repo name."""
+	import re
+
+	if not remote_url:
+		raise ValueError("Remote URL cannot be empty")
+
+	pattern = r"github\.com[:/](.+)\/([^\.]+)"
+	match = re.search(pattern, remote_url)
+
+	return (match[1], match[2]) if match else (None, None)
+
+
+def get_source_url(app: str) -> str | None:
+	"""Get the remote URL of the app."""
+	pyproject = get_pyproject(app)
+	if not pyproject:
+		return
+	if remote_url := pyproject.get("project", {}).get("urls", {}).get("Repository"):
+		return remote_url.rstrip("/")
 
 
 def add_message_to_redis(update_json):
 	# "update-message" will store the update message string
-	# "update-user-set" will be a set of users
-	frappe.cache.set_value("update-info", json.dumps(update_json))
+	# "changelog-update-user-set" will be a set of users
+	frappe.cache.set_value("changelog-update-info", json.dumps(update_json))
 	user_list = [x.name for x in frappe.get_all("User", filters={"enabled": True})]
 	system_managers = [user for user in user_list if "System Manager" in frappe.get_roles(user)]
-	frappe.cache.sadd("update-user-set", *system_managers)
+	frappe.cache.sadd("changelog-update-user-set", *system_managers)
 
 
 @frappe.whitelist()
 def show_update_popup():
+	if frappe.get_system_settings("disable_system_update_notification"):
+		return
 	user = frappe.session.user
 
-	update_info = frappe.cache.get_value("update-info")
+	update_info = frappe.cache.get_value("changelog-update-info")
 	if not update_info:
 		return
 
@@ -283,17 +347,28 @@ def show_update_popup():
 
 	# Check if user is int the set of users to send update message to
 	update_message = ""
-	if frappe.cache.sismember("update-user-set", user):
+	if frappe.cache.sismember("changelog-update-user-set", user):
 		for update_type in updates:
 			release_links = ""
 			for app in updates[update_type]:
 				app = frappe._dict(app)
-				release_links += "<b>{title}</b>: <a href='https://github.com/{org_name}/{app_name}/releases/tag/v{available_version}'>v{available_version}</a><br>".format(
-					available_version=app.available_version,
-					org_name=app.org_name,
-					app_name=app.app_name,
-					title=app.title,
-				)
+				security_msg = ""
+				if app.security_issues:
+					security_msg = (
+						_("Contains {0} security fixes")
+						if app.security_issues > 1
+						else _("Contains {0} security fix")
+					)
+					security_msg = security_msg.format(frappe.bold(app.security_issues))
+					security_msg = f"""( <a href='https://github.com/{app.org_name}/{app.app_name}/security/advisories'
+						 target='_blank'>{security_msg}</a> )"""
+				release_links += f"""
+					<b>{app.title}</b>:
+						<a href='https://github.com/{app.org_name}/{app.app_name}/releases/tag/v{app.available_version}'
+							target="_blank">
+							v{app.available_version}
+						</a> {security_msg}<br>
+					"""
 			if release_links:
 				message = _("New {} releases for the following apps are available").format(_(update_type))
 				update_message += (
@@ -302,6 +377,31 @@ def show_update_popup():
 					)
 				)
 
+	primary_action = None
+	if on_frappecloud():
+		primary_action = {
+			"label": _("Update from Frappe Cloud"),
+			"client_action": "window.open",
+			"args": f"https://frappecloud.com/dashboard/sites/{frappe.local.site}",
+		}
+
 	if update_message:
-		frappe.msgprint(update_message, title=_("New updates are available"), indicator="green")
-		frappe.cache.srem("update-user-set", user)
+		frappe.msgprint(
+			update_message,
+			title=_("New updates are available"),
+			indicator="green",
+			primary_action=primary_action,
+		)
+		frappe.cache.srem("changelog-update-user-set", user)
+
+
+def get_pyproject(app: str) -> dict | None:
+	from tomli import load
+
+	pyproject_path = frappe.get_app_path(app, "..", "pyproject.toml")
+
+	if not os.path.exists(pyproject_path):
+		return None
+
+	with open(pyproject_path, "rb") as f:
+		return load(f)

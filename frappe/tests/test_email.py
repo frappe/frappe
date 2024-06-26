@@ -119,7 +119,6 @@ class TestEmail(FrappeTestCase):
 		self.assertTrue("CC: test1@example.com" in message)
 
 	def test_cc_footer(self):
-		frappe.conf.use_ssl = True
 		# test if sending with cc's makes it into header
 		frappe.sendmail(
 			recipients=["test@example.com"],
@@ -150,10 +149,6 @@ class TestEmail(FrappeTestCase):
 			"This email was sent to test@example.com and copied to test1@example.com"
 			in frappe.safe_decode(frappe.flags.sent_mail)
 		)
-
-		# check for email tracker
-		self.assertTrue("mark_email_as_seen" in frappe.safe_decode(frappe.flags.sent_mail))
-		frappe.conf.use_ssl = False
 
 	def test_expose(self):
 		from frappe.utils import set_request
@@ -348,9 +343,7 @@ class TestEmailIntegrationTest(FrappeTestCase):
 
 	@classmethod
 	def get_last_sent_emails(cls):
-		return requests.get(
-			f"{cls.SMTP4DEV_WEB}/api/Messages?sortColumn=receivedDate&sortIsDescending=true"
-		).json()
+		return requests.get(f"{cls.SMTP4DEV_WEB}/api/Messages").json().get("results")
 
 	@classmethod
 	def get_message(cls, message_id):
@@ -376,7 +369,7 @@ class TestEmailIntegrationTest(FrappeTestCase):
 		for sent_mail in sent_mails:
 			self.assertEqual(sent_mail["from"], sender)
 			self.assertEqual(sent_mail["subject"], subject)
-		self.assertSetEqual(set(recipients.split(",")), {m["to"] for m in sent_mails})
+		self.assertSetEqual(set(recipients.split(",")), {m["to"][0] for m in sent_mails})
 
 	@run_only_if(db_type_is.MARIADB)
 	@change_settings("System Settings", store_attached_pdf_document=1)

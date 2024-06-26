@@ -64,7 +64,8 @@ class RequestToken(Exception):
 
 
 class Redirect(Exception):
-	http_status_code = 301
+	def __init__(self, http_status_code: int = 301):
+		self.http_status_code = http_status_code
 
 
 class CSRFTokenError(Exception):
@@ -299,3 +300,10 @@ class InvalidKeyError(ValidationError):
 	http_status_code = 401
 	title = "Invalid Key"
 	message = "The document key is invalid"
+
+
+class CommandFailedError(Exception):
+	def __init__(self, message: str, out: str, err: str):
+		super().__init__(message)
+		self.out = out
+		self.err = err

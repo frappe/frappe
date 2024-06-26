@@ -273,6 +273,9 @@ frappe.ui.form.on("Number Card", {
 		}
 
 		table.on("click", () => {
+			if (!frappe.boot.developer_mode && frm.doc.is_standard) {
+				frappe.throw(__("Cannot edit filters for standard number cards"));
+			}
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Filters"),
 				fields: fields.filter((f) => !is_dynamic_filter(f)),
@@ -319,7 +322,7 @@ frappe.ui.form.on("Number Card", {
 	},
 
 	render_dynamic_filters_table(frm) {
-		if (!frappe.boot.developer_mode || !frm.doc.is_standard || frm.doc.type == "Custom") {
+		if (frm.doc.type == "Custom") {
 			return;
 		}
 
@@ -357,6 +360,9 @@ frappe.ui.form.on("Number Card", {
 		);
 
 		frm.dynamic_filter_table.on("click", () => {
+			if (!frappe.boot.developer_mode && frm.doc.is_standard) {
+				frappe.throw(__("Cannot edit filters for standard number cards"));
+			}
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Dynamic Filters"),
 				fields: fields,

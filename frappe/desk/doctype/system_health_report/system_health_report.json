@@ -1,0 +1,418 @@
+{
+ "actions": [],
+ "beta": 1,
+ "creation": "2024-04-18 16:59:15.088271",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "background_jobs_tab",
+  "background_jobs_section",
+  "total_background_workers",
+  "column_break_klex",
+  "background_jobs_check",
+  "test_job_id",
+  "section_break_djoz",
+  "queue_status",
+  "column_break_wjoz",
+  "background_workers",
+  "scheduler_section",
+  "scheduler_status",
+  "column_break_bxog",
+  "oldest_unscheduled_job",
+  "section_break_vpuw",
+  "failing_scheduled_jobs",
+  "database_section",
+  "database",
+  "database_version",
+  "db_storage_usage",
+  "column_break_auhv",
+  "top_db_tables",
+  "mariadb_variables_section",
+  "bufferpool_size",
+  "column_break_vztw",
+  "binary_logging",
+  "cache_section",
+  "cache_keys",
+  "column_break_ccov",
+  "cache_memory_usage",
+  "realtime_socketio_section",
+  "socketio_ping_check",
+  "column_break_hgay",
+  "socketio_transport_mode",
+  "section_break_ryki",
+  "storage_usage_column",
+  "public_files_size",
+  "column_break_jnkt",
+  "private_files_size",
+  "backups_section",
+  "backups_column",
+  "onsite_backups",
+  "column_break_luox",
+  "backups_size",
+  "users_section",
+  "total_users",
+  "new_users",
+  "failed_logins",
+  "active_sessions",
+  "column_break_yfwd",
+  "last_10_active_users",
+  "section_break_udjs",
+  "outgoing_emails_column",
+  "total_outgoing_emails",
+  "pending_emails",
+  "failed_emails",
+  "incoming_emails_last_7_days_column",
+  "handled_emails",
+  "unhandled_emails",
+  "errors_generated_in_last_1_day_section",
+  "total_errors",
+  "top_errors",
+  "column_break_fzke"
+ ],
+ "fields": [
+  {
+   "fieldname": "background_workers",
+   "fieldtype": "Table",
+   "label": "Background Workers",
+   "options": "System Health Report Workers"
+  },
+  {
+   "documentation_url": "/app/rq-worker",
+   "fieldname": "total_background_workers",
+   "fieldtype": "Int",
+   "label": "Total Background Workers"
+  },
+  {
+   "fieldname": "background_jobs_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Background Jobs"
+  },
+  {
+   "documentation_url": "/app/rq-job",
+   "fieldname": "scheduler_status",
+   "fieldtype": "Data",
+   "label": "Scheduler Status"
+  },
+  {
+   "fieldname": "queue_status",
+   "fieldtype": "Table",
+   "label": "Queue Status",
+   "options": "System Health Report Queue"
+  },
+  {
+   "fieldname": "column_break_klex",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_djoz",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_wjoz",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "background_jobs_tab",
+   "fieldtype": "Tab Break",
+   "label": "Report"
+  },
+  {
+   "default": "Fail",
+   "fieldname": "socketio_ping_check",
+   "fieldtype": "Select",
+   "label": "SocketIO Ping Check",
+   "options": "Fail\nPass"
+  },
+  {
+   "fieldname": "column_break_hgay",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "socketio_transport_mode",
+   "fieldtype": "Select",
+   "label": "SocketIO Transport Mode",
+   "options": "Polling\nWebsocket"
+  },
+  {
+   "fieldname": "outgoing_emails_column",
+   "fieldtype": "Column Break",
+   "label": "Outgoing Emails (Last 7 days)"
+  },
+  {
+   "documentation_url": "/app/email-queue?status=Error",
+   "fieldname": "failed_emails",
+   "fieldtype": "Int",
+   "label": "Failed Emails"
+  },
+  {
+   "fieldname": "total_outgoing_emails",
+   "fieldtype": "Int",
+   "label": "Total Outgoing Emails"
+  },
+  {
+   "documentation_url": "/app/email-queue?status=Not+Sent",
+   "fieldname": "pending_emails",
+   "fieldtype": "Int",
+   "label": "Pending Emails"
+  },
+  {
+   "fieldname": "incoming_emails_last_7_days_column",
+   "fieldtype": "Column Break",
+   "label": "Incoming Emails (Last 7 days)"
+  },
+  {
+   "documentation_url": "/app/unhandled-email",
+   "fieldname": "unhandled_emails",
+   "fieldtype": "Int",
+   "label": "Unhandled Emails"
+  },
+  {
+   "documentation_url": "/app/communication?communication_type=Communication&sent_or_received=Received",
+   "fieldname": "handled_emails",
+   "fieldtype": "Int",
+   "label": "Handled Emails"
+  },
+  {
+   "fieldname": "errors_generated_in_last_1_day_section",
+   "fieldtype": "Section Break",
+   "label": "Errors"
+  },
+  {
+   "documentation_url": "/app/error-log",
+   "fieldname": "total_errors",
+   "fieldtype": "Int",
+   "label": "Total Errors (last 1 day)"
+  },
+  {
+   "fieldname": "top_errors",
+   "fieldtype": "Table",
+   "label": "Top Errors",
+   "options": "System Health Report Errors"
+  },
+  {
+   "fieldname": "database",
+   "fieldtype": "Data",
+   "label": "Database"
+  },
+  {
+   "fieldname": "db_storage_usage",
+   "fieldtype": "Float",
+   "label": "Storage Usage (MB)"
+  },
+  {
+   "fieldname": "column_break_auhv",
+   "fieldtype": "Column Break"
+  },
+  {
+   "documentation_url": "/app/query-report/Database Storage Usage By Tables",
+   "fieldname": "top_db_tables",
+   "fieldtype": "Table",
+   "label": "Storage Usage By Table",
+   "options": "System Health Report Tables"
+  },
+  {
+   "fieldname": "database_version",
+   "fieldtype": "Data",
+   "label": "Database Version"
+  },
+  {
+   "fieldname": "mariadb_variables_section",
+   "fieldtype": "Section Break",
+   "label": "MariaDB Variables"
+  },
+  {
+   "fieldname": "bufferpool_size",
+   "fieldtype": "Data",
+   "label": "Bufferpool Size"
+  },
+  {
+   "fieldname": "binary_logging",
+   "fieldtype": "Data",
+   "label": "Binary Logging"
+  },
+  {
+   "fieldname": "cache_keys",
+   "fieldtype": "Int",
+   "label": "Number of keys"
+  },
+  {
+   "fieldname": "cache_memory_usage",
+   "fieldtype": "Data",
+   "label": "Memory Usage"
+  },
+  {
+   "fieldname": "backups_size",
+   "fieldtype": "Float",
+   "label": "Backups (MB)"
+  },
+  {
+   "fieldname": "private_files_size",
+   "fieldtype": "Float",
+   "label": "Private Files (MB)"
+  },
+  {
+   "fieldname": "public_files_size",
+   "fieldtype": "Float",
+   "label": "Public Files (MB)"
+  },
+  {
+   "fieldname": "storage_usage_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "backups_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "documentation_url": "/app/backups",
+   "fieldname": "onsite_backups",
+   "fieldtype": "Int",
+   "label": "Number of onsite backups"
+  },
+  {
+   "documentation_url": "/app/user",
+   "fieldname": "total_users",
+   "fieldtype": "Int",
+   "label": "Total Users"
+  },
+  {
+   "fieldname": "column_break_yfwd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "new_users",
+   "fieldtype": "Int",
+   "label": "New Users (Last 30 days)"
+  },
+  {
+   "documentation_url": "/app/activity-log?status=Failed&operation=Login",
+   "fieldname": "failed_logins",
+   "fieldtype": "Int",
+   "label": "Failed Logins (Last 30 days)"
+  },
+  {
+   "fieldname": "active_sessions",
+   "fieldtype": "Int",
+   "label": "Active Sessions"
+  },
+  {
+   "fieldname": "last_10_active_users",
+   "fieldtype": "Code",
+   "label": "Last 10 active users"
+  },
+  {
+   "fieldname": "section_break_udjs",
+   "fieldtype": "Section Break",
+   "label": "Emails"
+  },
+  {
+   "fieldname": "database_section",
+   "fieldtype": "Section Break",
+   "label": "Database"
+  },
+  {
+   "fieldname": "cache_section",
+   "fieldtype": "Section Break",
+   "label": "Cache"
+  },
+  {
+   "fieldname": "column_break_ccov",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ryki",
+   "fieldtype": "Section Break",
+   "label": "File Storage"
+  },
+  {
+   "fieldname": "column_break_vztw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jnkt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "backups_section",
+   "fieldtype": "Section Break",
+   "label": "Backups"
+  },
+  {
+   "fieldname": "column_break_luox",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "users_section",
+   "fieldtype": "Section Break",
+   "label": "Users"
+  },
+  {
+   "fieldname": "realtime_socketio_section",
+   "fieldtype": "Section Break",
+   "label": "Realtime (SocketIO)"
+  },
+  {
+   "documentation_url": "/app/rq-job",
+   "fieldname": "background_jobs_check",
+   "fieldtype": "Data",
+   "label": "Background Jobs Check"
+  },
+  {
+   "fieldname": "test_job_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Test Job ID"
+  },
+  {
+   "fieldname": "column_break_fzke",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "scheduler_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Scheduler"
+  },
+  {
+   "fieldname": "failing_scheduled_jobs",
+   "fieldtype": "Table",
+   "label": "Failing Scheduled Jobs (last 7 days)",
+   "options": "System Health Report Failing Jobs"
+  },
+  {
+   "fieldname": "column_break_bxog",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "oldest_unscheduled_job",
+   "fieldtype": "Link",
+   "label": "Oldest Unscheduled Job",
+   "options": "Scheduled Job Type"
+  },
+  {
+   "fieldname": "section_break_vpuw",
+   "fieldtype": "Section Break"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "is_virtual": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-05-02 13:32:16.495750",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "System Health Report",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "print": 1,
+   "read": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

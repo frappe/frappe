@@ -216,7 +216,8 @@ def update_wildcard_field_param(data):
 	if (isinstance(data.fields, str) and data.fields == "*") or (
 		isinstance(data.fields, list | tuple) and len(data.fields) == 1 and data.fields[0] == "*"
 	):
-		data.fields = get_permitted_fields(data.doctype, parenttype=data.parenttype)
+		parent_type = data.parenttype or data.parent_doctype
+		data.fields = get_permitted_fields(data.doctype, parenttype=parent_type, ignore_virtual=True)
 		return True
 
 	return False
@@ -513,6 +514,16 @@ def delete_bulk(doctype, items):
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
 		delete_bulk(doctype, undeleted_items)
+	elif undeleted_items:
+		frappe.msgprint(
+			_("Failed to delete {0} documents: {1}").format(len(undeleted_items), ", ".join(undeleted_items)),
+			realtime=True,
+			title=_("Bulk Operation Failed"),
+		)
+	else:
+		frappe.msgprint(
+			_("Deleted all documents successfully"), realtime=True, title=_("Bulk Operation Successful")
+		)
 
 
 @frappe.whitelist()
