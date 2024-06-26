@@ -84,7 +84,7 @@ frappe.ui.form.ControlMultiSelect = class ControlMultiSelect extends (
 		const values = this.get_values() || [];
 
 		// return values which are not already selected
-		if (data) data.filter((d) => !values.includes(d));
+		if (data) data = data.filter((d) => !values.includes(d.value));
 		return data;
 	}
 
