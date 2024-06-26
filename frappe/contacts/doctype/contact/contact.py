@@ -228,6 +228,8 @@ def download_vcard(contact: str):
 @frappe.whitelist()
 def download_vcards(contacts: str):
 	"""Download vCard for the contact"""
+	import json
+
 	from frappe.utils.data import now
 
 	contact_ids = frappe.parse_json(contacts)
@@ -239,9 +241,11 @@ def download_vcards(contacts: str):
 		vcard = contact.get_vcard()
 		vcards.append(vcard.serialize())
 
-	# Separate loop in order to avoid access logs for errored exports
-	for contact_id in contact_ids:
-		make_access_log(doctype="Contact", document=contact_id, file_type="vcf")
+	make_access_log(
+		doctype="Contact",
+		filters=json.dumps([["name", "in", contact_ids]], ensure_ascii=False, indent="\t"),
+		file_type="vcf",
+	)
 
 	timestamp = now()[:19]  # remove milliseconds
 
