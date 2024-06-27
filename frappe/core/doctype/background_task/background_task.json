@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:task_id",
  "beta": 1,
  "creation": "2024-02-23 13:12:36.222147",
  "doctype": "DocType",
@@ -15,9 +16,6 @@
   "at_front",
   "kwargs",
   "result",
-  "success_callback",
-  "failure_callback",
-  "stopped_callback",
   "original_task",
   "task_start",
   "task_end",
@@ -32,7 +30,7 @@
    "not_nullable": 1,
    "read_only": 1,
    "reqd": 1,
-   "search_index": 1
+   "unique": 1
   },
   {
    "fieldname": "status",
@@ -61,24 +59,6 @@
    "fieldname": "method",
    "fieldtype": "Data",
    "label": "Method",
-   "read_only": 1
-  },
-  {
-   "fieldname": "success_callback",
-   "fieldtype": "Code",
-   "label": "Success Callback",
-   "read_only": 1
-  },
-  {
-   "fieldname": "failure_callback",
-   "fieldtype": "Code",
-   "label": "Failure Callback",
-   "read_only": 1
-  },
-  {
-   "fieldname": "stopped_callback",
-   "fieldtype": "Code",
-   "label": "Stopped Callback",
    "read_only": 1
   },
   {
@@ -134,12 +114,14 @@
    "read_only": 1
   }
  ],
+ "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-05-22 17:04:55.032180",
+ "modified": "2024-06-03 17:04:47.894246",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Background Task",
+ "naming_rule": "Expression (old style)",
  "owner": "Administrator",
  "permissions": [
   {

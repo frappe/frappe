@@ -149,8 +149,9 @@ def enqueue(
 	else:
 		method_name = method
 
-	queue_args = {
-		"site": frappe.local.site,
+	meta = {"site": frappe.local.site}
+
+	queue_args = meta | {
 		"user": frappe.session.user,
 		"method": method,
 		"event": event,
@@ -168,7 +169,7 @@ def enqueue(
 			on_failure=Callback(func=on_failure) if on_failure else None,
 			timeout=timeout,
 			kwargs=queue_args,
-			meta=queue_args,
+			meta=meta,
 			at_front=at_front,
 			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
@@ -255,18 +256,18 @@ def execute_job(
 		after_job=CallbackManager(),
 	)
 
-	for before_job_task in frappe.get_hooks("before_job"):
-		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
-
 	# Set task to started
 	if task_id:
 		frappe.db.set_value(
 			"Background Task",
-			{"task_id": task_id.split("::")[-1]},
+			task_id,
 			{"status": "In Progress", "task_start": frappe.utils.now_datetime()},
 		)
 		frappe.db.commit()
 		frappe.job.task_id = task_id
+
+	for before_job_task in frappe.get_hooks("before_job"):
+		frappe.call(before_job_task, method=method_name, kwargs=kwargs, transaction_type="job")
 
 	try:
 		retval = method(**kwargs)
