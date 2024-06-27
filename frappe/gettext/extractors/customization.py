@@ -4,8 +4,8 @@ from .utils import EXCLUDE_SELECT_OPTIONS, extract_messages_from_docfield, extra
 
 
 def extract(fileobj, *args, **kwargs):
-	"""
-	Extract messages from DocType JSON files. To be used to babel extractor
+	"""Extract messages from `custom/{doctype}.json` files. To be used by babel extractor.
+
 	:param fileobj: the file-like object the messages should be extracted from
 	:rtype: `iterator`
 	"""
