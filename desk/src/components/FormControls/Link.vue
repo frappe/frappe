@@ -6,11 +6,10 @@
 		<Autocomplete
 			ref="autocompleteRef"
 			size="sm"
-			:modelValue="selectedOptions"
+			v-model="value"
 			:placeholder="`Select ${doctype}`"
 			:options="options.data"
-			:multiple="props.multiple"
-			@update:modelValue="(val: AutocompleteValue | AutocompleteValue[]) => updateSelectedOptions(val)"
+			:label="label"
 		/>
 	</div>
 </template>
@@ -18,18 +17,16 @@
 <script setup lang="ts">
 import { AutocompleteValue, SearchLinkOption } from "@/types/controls"
 import { createResource, Autocomplete, debounce } from "frappe-ui"
-import { ref, watch } from "vue"
+import { ref, computed, watch } from "vue"
 
 const props = withDefaults(
 	defineProps<{
 		doctype: string
+		modelValue: string
 		label?: string
 		filters?: Record<string, any>
-		multiple?: boolean
-		modelValue: string
 	}>(),
 	{
-		multiple: false,
 		label: "",
 		filters: () => ({}),
 	}
@@ -40,34 +37,25 @@ const emit = defineEmits(["update:modelValue"])
 const autocompleteRef = ref<InstanceType<typeof Autocomplete>>(null)
 const searchText = ref("")
 
-const selectedOptions = ref<AutocompleteValue[] | string>(
-	props.multiple
-		? props.modelValue.length
-			? props.modelValue.split(",").map((v) => ({ label: v, value: v }))
-			: []
-		: props.modelValue
-)
-
-const updateSelectedOptions = (val: AutocompleteValue | AutocompleteValue[]) => {
-	if (Array.isArray(val)) {
-		val = val.filter((v) => v.value != "")
-		selectedOptions.value = val
-		emit("update:modelValue", val.map((v) => v.value).join(","))
-	} else {
-		selectedOptions.value = val.value
-		emit("update:modelValue", val.value)
-	}
-}
+const value = computed({
+	get: () => props.modelValue,
+	set: (val: AutocompleteValue | string): void => {
+		if (typeof val === "string") {
+			emit("update:modelValue", val)
+		} else {
+			emit("update:modelValue", val?.value || "")
+		}
+	},
+})
 
 const options = createResource({
 	url: "frappe.desk.search.search_link",
-	makeParams() {
-		return {
-			doctype: props.doctype,
-			txt: searchText.value,
-			filters: props.filters,
-		}
+	params: {
+		doctype: props.doctype,
+		txt: searchText.value,
+		filters: props.filters,
 	},
+	method: "POST",
 	transform: (data: SearchLinkOption[]) => {
 		return data.map((doc) => {
 			return {
@@ -78,7 +66,13 @@ const options = createResource({
 	},
 })
 
-const reloadOptions = debounce(() => {
+const reloadOptions = debounce((searchTextVal: string) => {
+	options.update({
+		params: {
+			txt: searchTextVal,
+			doctype: props.doctype,
+		},
+	})
 	options.reload()
 }, 300)
 
@@ -86,7 +80,7 @@ watch(
 	() => props.doctype,
 	() => {
 		if (!props.doctype || props.doctype === options.doctype) return
-		reloadOptions()
+		reloadOptions("")
 	},
 	{ immediate: true }
 )
@@ -97,7 +91,7 @@ watch(
 		val = val || ""
 		if (searchText.value === val) return
 		searchText.value = val
-		reloadOptions()
+		reloadOptions(val)
 	},
 	{ immediate: true }
 )

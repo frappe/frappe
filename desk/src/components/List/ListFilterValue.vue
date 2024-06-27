@@ -1,17 +1,10 @@
 <template>
-	<Link
+	<MultiSelectLink
 		v-if="fieldtype == 'Link' && ['in', 'not in'].includes(operator)"
-		:multiple="true"
 		:doctype="options[0]"
-		:modelValue="modelValue"
-		@update:modelValue="(val) => (modelValue = val)"
+		v-model="modelValue"
 	/>
-	<Link
-		v-else-if="fieldtype == 'Link'"
-		:doctype="options[0]"
-		:modelValue="modelValue"
-		@update:modelValue="(val) => (modelValue = val)"
-	/>
+	<Link v-else-if="fieldtype == 'Link'" :doctype="options[0]" v-model="modelValue" />
 	<DateRangePicker
 		v-else-if="dateTypes.includes(fieldtype) && operator == 'between'"
 		v-model="modelValue"
@@ -39,6 +32,7 @@ import { DatePicker, DateTimePicker, DateRangePicker } from "frappe-ui"
 import { numberTypes, dateTypes, filterOptions } from "@/data/constants/filters"
 
 import Link from "@/components/FormControls/Link.vue"
+import MultiSelectLink from "../FormControls/MultiSelectLink.vue"
 
 const props = defineProps({
 	fieldtype: {
