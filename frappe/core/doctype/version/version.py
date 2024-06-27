@@ -147,6 +147,18 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 				new_value = new.get_formatted(df.fieldname) if new_value else new_value
 
 			if old_value != new_value:
+				doctype = new.doctype or old.doctype
+				if doctype:
+					meta = frappe.get_meta(doctype)
+					
+					# Show title field value if field is Link and show_title_field_in_link is True
+					if (field_meta := meta.get_field(df.fieldname)) and field_meta.fieldtype == "Link":
+						link_meta = frappe.get_meta(field_meta.options)
+						if link_meta.show_title_field_in_link:
+							title_field = link_meta.get_title_field()
+							old_title_val = frappe.get_value(field_meta.options, old_value, title_field)
+							new_title_val = frappe.get_value(field_meta.options, new_value, title_field)
+							out.changed.append((df.fieldname, old_title_val, new_title_val))
 				out.changed.append((df.fieldname, old_value, new_value))
 
 	# name & docstatus
