@@ -9,7 +9,7 @@
 		</template>
 
 		<template #body="{ close }">
-			<div class="borderborder-gray-100 my-2 w-[15rem] rounded-lg bg-white p-1.5 shadow-xl">
+			<div class="my-2 w-60 rounded-lg border border-gray-100 bg-white p-1.5 shadow-xl">
 				<div v-if="!edit">
 					<Draggable :list="columns" item-key="key">
 						<template #item="{ element }">
@@ -34,7 +34,7 @@
 
 					<div class="mt-1.5 flex flex-col gap-1 border-t pt-1.5">
 						<Autocomplete
-							:body-classes="'w-[14rem]'"
+							:body-classes="'w-56'"
 							:options="fields"
 							@update:modelValue="(e) => addColumn(e)"
 						>

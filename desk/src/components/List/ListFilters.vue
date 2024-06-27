@@ -24,7 +24,7 @@
 				>
 					<div class="w-36">
 						<Autocomplete
-							:body-classes="'w-[15rem]'"
+							:body-classes="'w-60'"
 							:model-value="fieldname"
 							:options="allFilterableFields"
 							@update:model-value="(val) => updateField(val, i)"
@@ -57,7 +57,7 @@
 				<!-- Filter Actions -->
 				<div class="flex items-center justify-between gap-2">
 					<Autocomplete
-						:body-classes="'w-[29rem]'"
+						:body-classes="'w-[29rem] '"
 						:options="allFilterableFields"
 						@update:model-value="(field) => addFilter(field)"
 					>
