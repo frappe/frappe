@@ -28,7 +28,7 @@ const modelValue = defineModel("modelValue", {
 	default: "",
 })
 
-const selectedOptions = ref<AutocompleteValue[]>()
+const selectedOptions = ref<AutocompleteValue[] | string[]>()
 
 const updateSelectedOptions = (val: AutocompleteValue[]) => {
 	if (!val) return
@@ -60,7 +60,7 @@ watch(
 		if (!props.doctype || props.doctype === options.doctype) return
 		options.fetch()
 		if (modelValue.value) {
-			selectedOptions.value = modelValue.value.split(",").map((v) => ({ label: v, value: v }))
+			selectedOptions.value = modelValue.value.split(",")
 		}
 	},
 	{ immediate: true }
