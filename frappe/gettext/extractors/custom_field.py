@@ -11,7 +11,8 @@ EXCLUDE_SELECT_OPTIONS = [
 
 def extract(fileobj, *args, **kwargs):
 	"""
-	Extract messages from DocType JSON files. To be used to babel extractor
+	Extract messages from Custom Field fixtures. To be used by babel extractor.
+
 	:param fileobj: the file-like object the messages should be extracted from
 	:rtype: `iterator`
 	"""
@@ -21,30 +22,29 @@ def extract(fileobj, *args, **kwargs):
 		return
 
 	messages = []
-	fields = data
 
-	for field in fields:
-		print(field)
-		fieldtype = field.get("fieldtype")
-		fieldname = field.get("fieldname")
-		label = field.get("label")
-		doctype = field.get("dt")
+	for custom_field in data:
+		print(custom_field)
+		fieldtype = custom_field.get("fieldtype")
+		fieldname = custom_field.get("fieldname")
+		label = custom_field.get("label")
+		doctype = custom_field.get("dt")
 
 		if label:
-			messages.append((label, f"Label of a {fieldtype} Custom Field in DocType '{doctype}'"))
+			messages.append((label, f"Label of the '{fieldname}' ({fieldtype}) field in DocType '{doctype}'"))
 			_label = label
 		else:
 			_label = fieldname
 
-		if description := field.get("description"):
+		if description := custom_field.get("description"):
 			messages.append(
 				(
 					description,
-					f"Description of the '{_label}' ({fieldtype}) Custom Field in DocType '{doctype}'",
+					f"Description of the '{_label}' ({fieldtype}) field in DocType '{doctype}'",
 				)
 			)
 
-		if message := field.get("options"):
+		if message := custom_field.get("options"):
 			if fieldtype == "Select":
 				if fieldname in EXCLUDE_SELECT_OPTIONS:
 					continue
@@ -57,14 +57,13 @@ def extract(fileobj, *args, **kwargs):
 				messages.extend(
 					(
 						option,
-						f"Option for the '{_label}' ({fieldtype}) Custom Field in DocType '{doctype}'",
+						f"Option for the '{_label}' ({fieldtype}) field in DocType '{doctype}'",
 					)
 					for option in select_options
 				)
 			elif fieldtype == "HTML":
 				messages.append(
-					(message, f"Content of the '{_label}' ({fieldtype}) Custom Field in DocType '{doctype}'")
+					(message, f"Content of the '{_label}' ({fieldtype}) field in DocType '{doctype}'")
 				)
 
-	# By using "pgettext" as the function name we can supply the doctype as context
-	yield from ((None, "pgettext", (doctype, message), [comment]) for message, comment in messages)
+	yield from ((None, "_", message, [comment]) for message, comment in messages)
