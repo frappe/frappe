@@ -27,6 +27,15 @@ TRANSLATE_PATTERN = re.compile(
 	r"\s*\)"  # Closing function call ignore leading whitespace/newlines
 )
 
+EXCLUDE_SELECT_OPTIONS = [
+	"naming_series",
+	"number_format",
+	"float_precision",
+	"currency_precision",
+	"minimum_password_score",
+	"icon",
+]
+
 
 def extract_messages_from_code(code):
 	"""

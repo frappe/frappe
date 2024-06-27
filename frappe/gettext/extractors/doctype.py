@@ -1,10 +1,6 @@
 import json
 
-EXCLUDE_SELECT_OPTIONS = [
-	"naming_series",
-	"number_format",
-	"icon",  # primarily for the Workflow State doctype
-]
+from .utils import EXCLUDE_SELECT_OPTIONS
 
 
 def extract(fileobj, *args, **kwargs):
