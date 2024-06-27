@@ -10,13 +10,14 @@ from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 
 import frappe
+from frappe.utils import cint
 from frappe.utils.html_utils import unescape_html
 
 ILLEGAL_CHARACTERS_RE = re.compile(r"[\000-\010]|[\013-\014]|[\016-\037]")
 
 
 # return xlsx file object
-def make_xlsx(data, sheet_name, wb=None, column_widths=None):
+def make_xlsx(data, sheet_name, wb=None, column_widths=None, indentation_details=None):
 	column_widths = column_widths or []
 	if wb is None:
 		wb = openpyxl.Workbook(write_only=True)
@@ -29,6 +30,24 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None):
 
 	row1 = ws.row_dimensions[1]
 	row1.font = Font(name="Calibri", bold=True)
+
+	# for grouping the data in excel
+	if indentation_details:
+		start_grouping = 2
+		# update start_grouping when you have Include filters checkbox marked
+		for range, item in enumerate(data):
+			if not item:
+				start_grouping = start_grouping + range + 1
+				break
+
+		sorted_indentation = sorted(indentation_details.items(), key=lambda detail: detail[1])
+		for range, indent in sorted_indentation:
+			indent_row_start, indent_row_end = range.split("-")
+			ws.row_dimensions.group(
+				cint(indent_row_start) + start_grouping,
+				cint(indent_row_end) + start_grouping,
+				outline_level=indent,
+			)
 
 	for row in data:
 		clean_row = []
