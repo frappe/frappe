@@ -624,11 +624,11 @@ name: CI
 on:
   push:
     branches:
-      - develop
+      - {branch_name}
   pull_request:
 
 concurrency:
-  group: develop-{app_name}-${{{{ github.event.number }}}}
+  group: {branch_name}-{app_name}-${{{{ github.event.number }}}}
   cancel-in-progress: true
 
 jobs:
@@ -658,6 +658,11 @@ jobs:
     steps:
       - name: Clone
         uses: actions/checkout@v3
+
+      - name: Find tests
+        run: |
+          echo "Finding tests"
+          grep -rn "def test" > /dev/null
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -692,7 +697,9 @@ jobs:
             ${{{{ runner.os }}}}-yarn-
 
       - name: Install MariaDB Client
-        run: sudo apt-get install mariadb-client-10.6
+        run: |
+          sudo apt update
+          sudo apt-get install mariadb-client-10.6
 
       - name: Setup
         run: |

@@ -482,6 +482,16 @@ class Document(BaseDocument):
 
 		return previous_value != current_value
 
+	def get_value_before_save(self, fieldname):
+		"""Returns value of a field before saving
+
+		Note: This function only works in save context like doc.save, doc.submit.
+		"""
+		previous = self.get_doc_before_save()
+		if not previous:
+			return
+		return previous.get(fieldname)
+
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
 
@@ -809,11 +819,12 @@ class Document(BaseDocument):
 
 		self.load_doc_before_save(raise_exception=True)
 
-		self._action = "save"
-		previous = self._doc_before_save
+		if not hasattr(self, "_action"):
+			self._action = "save"
 
+		previous = self._doc_before_save
 		# previous is None for new document insert
-		if not previous:
+		if not previous and self._action != "discard":
 			self.check_docstatus_transition(0)
 			return
 
@@ -825,7 +836,7 @@ class Document(BaseDocument):
 				raise_exception=frappe.TimestampMismatchError,
 			)
 
-		if not self.meta.issingle:
+		if not self.meta.issingle and self._action != "discard":
 			self.check_docstatus_transition(previous.docstatus)
 
 	def check_docstatus_transition(self, to_docstatus):
@@ -1057,6 +1068,25 @@ class Document(BaseDocument):
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
+
+	@frappe.whitelist()
+	def discard(self):
+		"""Discard the draft document. Sets `docstatus` = 2 with db_set."""
+		self._action = "discard"
+
+		self.check_if_locked()
+		self.set_user_and_timestamp()
+		self.check_if_latest()
+
+		if not self.docstatus == DocStatus.draft():
+			raise frappe.ValidationError(_("Only draft documents can be discarded"), self.docstatus)
+
+		self.check_permission("write")
+
+		self.run_method("before_discard")
+		self.db_set("docstatus", DocStatus.cancelled())
+		delattr(self, "_action")
+		self.run_method("on_discard")
 
 	@frappe.whitelist()
 	def rename(self, name: str, merge=False, force=False, validate_rename=True):

@@ -3,9 +3,7 @@ import json
 EXCLUDE_SELECT_OPTIONS = [
 	"naming_series",
 	"number_format",
-	"float_precision",
-	"currency_precision",
-	"minimum_password_score",
+	"icon",  # primarily for the Workflow State doctype
 ]
 
 
@@ -55,9 +53,6 @@ def extract(fileobj, *args, **kwargs):
 
 				select_options = [option for option in message.split("\n") if option and not option.isdigit()]
 
-				if select_options and "icon" in select_options[0]:
-					continue
-
 				messages.extend(
 					(
 						option,
@@ -78,7 +73,7 @@ def extract(fileobj, *args, **kwargs):
 			messages.append((link_doctype, f"Linked DocType in {doctype}'s connections"))
 
 	# By using "pgettext" as the function name we can supply the doctype as context
-	yield from ((None, "pgettext", (doctype, message), [comment]) for message, comment in messages)
+	yield from ((None, "_", message, [comment]) for message, comment in messages)
 
 	# Role names do not get context because they are used with multiple doctypes
 	yield from (

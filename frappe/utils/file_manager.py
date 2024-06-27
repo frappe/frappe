@@ -396,27 +396,6 @@ def get_file_name(fname, optional_suffix):
 
 
 @frappe.whitelist()
-def download_file(file_url):
-	"""
-	Download file using token and REST API. Valid session or
-	token is required to download private files.
-
-	Method : GET
-	Endpoint : frappe.utils.file_manager.download_file
-	URL Params : file_name = /path/to/file relative to site path
-	"""
-	file_doc = frappe.get_doc("File", {"file_url": file_url})
-	file_doc.check_permission("read")
-	path = os.path.join(get_files_path(), os.path.basename(file_url))
-
-	with open(path, "rb") as fileobj:
-		filedata = fileobj.read()
-	frappe.local.response.filename = os.path.basename(file_url)
-	frappe.local.response.filecontent = filedata
-	frappe.local.response.type = "download"
-
-
-@frappe.whitelist()
 def add_attachments(doctype, name, attachments):
 	"""Add attachments to the given DocType"""
 	if isinstance(attachments, str):

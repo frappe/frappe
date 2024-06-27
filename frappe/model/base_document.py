@@ -87,16 +87,24 @@ def import_controller(doctype):
 
 	module_path = None
 	class_overrides = frappe.get_hooks("override_doctype_class")
+
+	module = load_doctype_module(doctype, module_name)
+	classname = doctype.replace(" ", "").replace("-", "")
+	class_ = getattr(module, classname, None)
+
 	if class_overrides and class_overrides.get(doctype):
 		import_path = class_overrides[doctype][-1]
-		module_path, classname = import_path.rsplit(".", 1)
-		module = frappe.get_module(module_path)
+		module_path, custom_classname = import_path.rsplit(".", 1)
+		custom_module = frappe.get_module(module_path)
+		custom_class_ = getattr(custom_module, custom_classname, None)
+		if not issubclass(custom_class_, class_):
+			original_class_path = frappe.bold(f"{class_.__module__}.{class_.__name__}")
+			frappe.throw(
+				f"{doctype}: {frappe.bold(import_path)} must be a subclass of {original_class_path}",
+				title=_("Invalid Override"),
+			)
+		class_ = custom_class_
 
-	else:
-		module = load_doctype_module(doctype, module_name)
-		classname = doctype.replace(" ", "").replace("-", "")
-
-	class_ = getattr(module, classname, None)
 	if class_ is None:
 		raise ImportError(
 			doctype
@@ -795,13 +803,14 @@ class BaseDocument:
 				# that are mapped as link_fieldname.source_fieldname in Options of
 				# Readonly or Data or Text type fields
 
+				meta = frappe.get_meta(doctype)
 				fields_to_fetch = [
 					_df
 					for _df in self.meta.get_fields_to_fetch(df.fieldname)
 					if not _df.get("fetch_if_empty")
 					or (_df.get("fetch_if_empty") and not self.get(_df.fieldname))
 				]
-				if not frappe.get_meta(doctype).get("is_virtual"):
+				if not meta.get("is_virtual"):
 					if not fields_to_fetch:
 						# cache a single value type
 						values = _dict(name=frappe.db.get_value(doctype, docname, "name", cache=True))
@@ -819,10 +828,10 @@ class BaseDocument:
 							or empty_values
 						)
 
-				if getattr(frappe.get_meta(doctype), "issingle", 0):
+				if getattr(meta, "issingle", 0):
 					values.name = doctype
 
-				if frappe.get_meta(doctype).get("is_virtual"):
+				if meta.get("is_virtual"):
 					values = frappe.get_doc(doctype, docname).as_dict()
 
 				if values:
@@ -832,7 +841,8 @@ class BaseDocument:
 						if self.is_new() or not self.docstatus.is_submitted() or _df.allow_on_submit:
 							self.set_fetch_from_value(doctype, _df, values)
 
-					notify_link_count(doctype, docname)
+					if not meta.istable:
+						notify_link_count(doctype, docname)
 
 					if not values.name:
 						invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
@@ -1019,7 +1029,7 @@ class BaseDocument:
 
 		frappe.throw(
 			_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(
-				reference, _(df.label, context=df.parent), max_length, value
+				reference, frappe.bold(_(df.label, context=df.parent)), max_length, value
 			),
 			frappe.CharacterLengthExceededError,
 			title=_("Value too big"),

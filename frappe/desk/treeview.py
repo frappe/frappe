@@ -43,7 +43,7 @@ def get_children(doctype, parent="", include_disabled=False, **filters):
 
 
 def _get_children(doctype, parent="", ignore_permissions=False, include_disabled=False):
-	parent_field = "parent_" + doctype.lower().replace(" ", "_")
+	parent_field = "parent_" + frappe.scrub(doctype)
 	filters = [[f"ifnull(`{parent_field}`,'')", "=", parent], ["docstatus", "<", 2]]
 	if frappe.db.has_column(doctype, "disabled") and not include_disabled:
 		filters.append(["disabled", "=", False])
@@ -75,13 +75,15 @@ def make_tree_args(**kwarg):
 	kwarg.pop("cmd", None)
 
 	doctype = kwarg["doctype"]
-	parent_field = "parent_" + doctype.lower().replace(" ", "_")
+	parent_field = "parent_" + frappe.scrub(doctype)
 
 	if kwarg["is_root"] == "false":
 		kwarg["is_root"] = False
 	if kwarg["is_root"] == "true":
 		kwarg["is_root"] = True
 
-	kwarg.update({parent_field: kwarg.get("parent") or kwarg.get(parent_field)})
+	parent = kwarg.get("parent") or kwarg.get(parent_field)
+	if doctype != parent:
+		kwarg.update({parent_field: parent})
 
 	return frappe._dict(kwarg)

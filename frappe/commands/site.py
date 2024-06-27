@@ -587,103 +587,6 @@ def add_db_index(context, doctype, column):
 		raise SiteNotSpecifiedError
 
 
-@click.command("describe-database-table")
-@click.option("--doctype", help="DocType to describe")
-@click.option(
-	"--column",
-	multiple=True,
-	help="Explicitly fetch accurate cardinality from table data. This can be quite slow on large tables.",
-)
-@pass_context
-def describe_database_table(context, doctype, column):
-	"""Describes various statistics about the table.
-
-	This is useful to build integration like
-	This includes:
-	1. Schema
-	2. Indexes
-	3. stats - total count of records
-	4. if column is specified then extra stats are generated for column:
-	        Distinct values count in column
-	"""
-	import json
-
-	for site in context.sites:
-		frappe.init(site=site)
-		frappe.connect()
-		try:
-			data = _extract_table_stats(doctype, column)
-			# NOTE: Do not print anything else in this to avoid clobbering the output.
-			print(json.dumps(data, indent=2))
-		finally:
-			frappe.destroy()
-
-	if not context.sites:
-		raise SiteNotSpecifiedError
-
-
-def _extract_table_stats(doctype: str, columns: list[str]) -> dict:
-	from frappe.utils import cint, cstr, get_table_name
-
-	def sql_bool(val):
-		return cstr(val).lower() in ("yes", "1", "true")
-
-	table = get_table_name(doctype, wrap_in_backticks=True)
-
-	schema = []
-	for field in frappe.db.sql(f"describe {table}", as_dict=True):
-		schema.append(
-			{
-				"column": field["Field"],
-				"type": field["Type"],
-				"is_nullable": sql_bool(field["Null"]),
-				"default": field["Default"],
-			}
-		)
-
-	def update_cardinality(column, value):
-		for col in schema:
-			if col["column"] == column:
-				col["cardinality"] = value
-				break
-
-	indexes = []
-	for idx in frappe.db.sql(f"show index from {table}", as_dict=True):
-		indexes.append(
-			{
-				"unique": not sql_bool(idx["Non_unique"]),
-				"cardinality": idx["Cardinality"],
-				"name": idx["Key_name"],
-				"sequence": idx["Seq_in_index"],
-				"nullable": sql_bool(idx["Null"]),
-				"column": idx["Column_name"],
-				"type": idx["Index_type"],
-			}
-		)
-		if idx["Seq_in_index"] == 1:
-			update_cardinality(idx["Column_name"], idx["Cardinality"])
-
-	total_rows = cint(
-		frappe.db.sql(
-			f"""select table_rows
-			   from  information_schema.tables
-			   where table_name = 'tab{doctype}'"""
-		)[0][0]
-	)
-
-	# fetch accurate cardinality for columns by query. WARN: This can take a lot of time.
-	for column in columns:
-		cardinality = frappe.db.sql(f"select count(distinct {column}) from {table}")[0][0]
-		update_cardinality(column, cardinality)
-
-	return {
-		"table_name": table.strip("`"),
-		"total_rows": total_rows,
-		"schema": schema,
-		"indexes": indexes,
-	}
-
-
 @click.command("add-system-manager")
 @click.argument("email")
 @click.option("--first-name")
@@ -1331,7 +1234,10 @@ def start_ngrok(context, bind_tls, use_default_authtoken):
 
 		ngrok.set_auth_token(ngrok_authtoken)
 
-	port = frappe.conf.http_port or frappe.conf.webserver_port
+	port = frappe.conf.http_port
+	if not port and frappe.conf.developer_mode:
+		port = frappe.conf.webserver_port
+
 	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls)
 	print(f"Public URL: {tunnel.public_url}")
 	print("Inspect logs at http://127.0.0.1:4040")
@@ -1595,11 +1501,37 @@ def add_new_user(
 		update_password(user=user.name, pwd=password)
 
 
+@click.command("bypass-patch")
+@click.argument("patch_name")
+@click.option("--yes", "-y", is_flag=True, default=False, help="Pass --yes to skip confirmation")
+@pass_context
+def bypass_patch(context, patch_name: str, yes: bool):
+	"""Bypass a patch permanently instead of migrating using the --skip-failing flag."""
+	from frappe.modules.patch_handler import update_patch_log
+
+	if not context.sites:
+		raise SiteNotSpecifiedError
+
+	if not yes:
+		click.confirm(
+			f"This will bypass the patch {patch_name!r} forever and register it as successful.\nAre you sure you want to continue?",
+			abort=True,
+		)
+
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+		try:
+			update_patch_log(patch_name)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+
 commands = [
 	add_system_manager,
 	add_user_for_sites,
 	add_db_index,
-	describe_database_table,
 	backup,
 	drop_site,
 	install_app,
@@ -1630,4 +1562,5 @@ commands = [
 	trim_tables,
 	trim_database,
 	clear_log_table,
+	bypass_patch,
 ]

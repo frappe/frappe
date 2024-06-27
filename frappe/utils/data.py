@@ -366,16 +366,9 @@ def get_eta(from_time: DateTimeLikeObject, percent_complete) -> str:
 	return str(datetime.timedelta(seconds=(100 - percent_complete) / percent_complete * diff))
 
 
-def _get_system_timezone():
-	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
-
-
 def get_system_timezone() -> str:
 	"""Return the system timezone."""
-	if frappe.local.flags.in_test:
-		return _get_system_timezone()
-
-	return frappe.cache.get_value("time_zone", _get_system_timezone)
+	return frappe.get_system_settings("time_zone") or "Asia/Kolkata"  # Default to India ?!
 
 
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
@@ -1777,9 +1770,12 @@ def get_url(uri: str | None = None, full_address: bool = False) -> str:
 	if not uri and full_address:
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
-	port = frappe.conf.http_port or frappe.conf.webserver_port
+	port = frappe.conf.http_port
+	if not port and frappe.conf.developer_mode:
+		port = frappe.conf.webserver_port
 
 	if (
+		# XXX: This config is used as proxy for "is production mode enabled?"
 		not frappe.conf.restart_supervisor_on_update
 		and not frappe.conf.restart_systemd_on_update
 		and host_name

@@ -3,6 +3,7 @@
 
 from functools import partial
 from types import FunctionType, MethodType, ModuleType
+from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _
@@ -15,6 +16,9 @@ from frappe.utils.safe_exec import (
 	is_safe_exec_enabled,
 	safe_exec,
 )
+
+if TYPE_CHECKING:
+	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
 
 
 class ServerScript(Document):
@@ -42,6 +46,8 @@ class ServerScript(Document):
 			"After Submit",
 			"Before Cancel",
 			"After Cancel",
+			"Before Discard",
+			"After Discard",
 			"Before Delete",
 			"After Delete",
 			"Before Save (Submitted Document)",
@@ -50,6 +56,9 @@ class ServerScript(Document):
 			"On Payment Authorization",
 			"On Payment Paid",
 			"On Payment Failed",
+			"On Payment Charge Processed",
+			"On Payment Mandate Charge Processed",
+			"On Payment Mandate Acquisition Processed",
 		]
 		enable_rate_limit: DF.Check
 		event_frequency: DF.Literal[
@@ -75,12 +84,10 @@ class ServerScript(Document):
 
 	def validate(self):
 		frappe.only_for("Script Manager", True)
-		self.sync_scheduled_jobs()
-		self.clear_scheduled_events()
 		self.check_if_compilable_in_restricted_context()
 
 	def on_update(self):
-		self.sync_scheduler_events()
+		self.sync_scheduled_job_type()
 
 	def clear_cache(self):
 		frappe.cache.delete_value("server_script_map")
@@ -90,7 +97,10 @@ class ServerScript(Document):
 		frappe.cache.delete_value("server_script_map")
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
-				frappe.delete_doc("Scheduled Job Type", job.name)
+				scheduled_job_type: "ScheduledJobType" = frappe.get_doc("Scheduled Job Type", job.name)
+				scheduled_job_type.stopped = True
+				scheduled_job_type.server_script = None
+				scheduled_job_type.save()
 
 	def get_code_fields(self):
 		return {"script": "py"}
@@ -103,33 +113,38 @@ class ServerScript(Document):
 			fields=["name", "stopped"],
 		)
 
-	def sync_scheduled_jobs(self):
-		"""Sync Scheduled Job Type statuses if Server Script's disabled status is changed"""
-		if self.script_type != "Scheduler Event" or not self.has_value_changed("disabled"):
+	def sync_scheduled_job_type(self):
+		"""Create or update Scheduled Job Type documents for Scheduler Event Server Scripts"""
+
+		def get_scheduled_job() -> "ScheduledJobType":
+			if scheduled_script := frappe.db.get_value("Scheduled Job Type", {"server_script": self.name}):
+				return frappe.get_doc("Scheduled Job Type", scheduled_script)
+			else:
+				return frappe.get_doc({"doctype": "Scheduled Job Type", "server_script": self.name})
+
+		previous_script_type = self.get_value_before_save("script_type")
+		if previous_script_type != self.script_type and previous_script_type == "Scheduler Event":
+			get_scheduled_job().update({"stopped": 1}).save()
 			return
 
-		for scheduled_job in self.scheduled_jobs:
-			if bool(scheduled_job.stopped) != bool(self.disabled):
-				job = frappe.get_doc("Scheduled Job Type", scheduled_job.name)
-				job.stopped = self.disabled
-				job.save()
+		if self.script_type != "Scheduler Event" or not (
+			self.has_value_changed("event_frequency")
+			or self.has_value_changed("cron_format")
+			or self.has_value_changed("disabled")
+			or self.has_value_changed("script_type")
+		):
+			return
 
-	def sync_scheduler_events(self):
-		"""Create or update Scheduled Job Type documents for Scheduler Event Server Scripts"""
-		if not self.disabled and self.event_frequency and self.script_type == "Scheduler Event":
-			cron_format = self.cron_format if self.event_frequency == "Cron" else None
-			setup_scheduler_events(
-				script_name=self.name, frequency=self.event_frequency, cron_format=cron_format
-			)
+		get_scheduled_job().update(
+			{
+				"method": frappe.scrub(f"{self.name}-{self.event_frequency}"),
+				"frequency": self.event_frequency,
+				"cron_format": self.cron_format,
+				"stopped": self.disabled,
+			}
+		).save()
 
-	def clear_scheduled_events(self):
-		"""Deletes existing scheduled jobs by Server Script if self.event_frequency or self.cron_format has changed"""
-		if (
-			self.script_type == "Scheduler Event"
-			and (self.has_value_changed("event_frequency") or self.has_value_changed("cron_format"))
-		) or (self.has_value_changed("script_type") and self.script_type != "Scheduler Event"):
-			for scheduled_job in self.scheduled_jobs:
-				frappe.delete_doc("Scheduled Job Type", scheduled_job.name, delete_permanently=1)
+		frappe.msgprint(_("Scheduled execution for script {0} has updated").format(self.name), alert=True)
 
 	def check_if_compilable_in_restricted_context(self):
 		"""Check compilation errors and send them back as warnings."""
@@ -245,43 +260,7 @@ class ServerScript(Document):
 		return items
 
 
-def setup_scheduler_events(script_name: str, frequency: str, cron_format: str | None = None):
-	"""Creates or Updates Scheduled Job Type documents based on the specified script name and frequency
-
-	Args:
-	        script_name (str): Name of the Server Script document
-	        frequency (str): Event label compatible with the Frappe scheduler
-	"""
-	method = frappe.scrub(f"{script_name}-{frequency}")
-	scheduled_script = frappe.db.get_value("Scheduled Job Type", {"method": method})
-
-	if not scheduled_script:
-		frappe.get_doc(
-			{
-				"doctype": "Scheduled Job Type",
-				"method": method,
-				"frequency": frequency,
-				"server_script": script_name,
-				"cron_format": cron_format,
-			}
-		).insert()
-
-		frappe.msgprint(_("Enabled scheduled execution for script {0}").format(script_name))
-
-	else:
-		doc = frappe.get_doc("Scheduled Job Type", scheduled_script)
-
-		if doc.frequency == frequency:
-			return
-
-		doc.frequency = frequency
-		doc.cron_format = cron_format
-		doc.save()
-
-		frappe.msgprint(_("Scheduled execution for script {0} has updated").format(script_name))
-
-
-def execute_api_server_script(script=None, *args, **kwargs):
+def execute_api_server_script(script: ServerScript, *args, **kwargs):
 	# These are only added for compatibility with rate limiter.
 	del args
 	del kwargs

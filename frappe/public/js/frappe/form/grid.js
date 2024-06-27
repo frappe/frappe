@@ -838,7 +838,10 @@ export default class Grid {
 					acc[d.fieldname] = d.default;
 					return acc;
 				}, {});
-				this.df.data.push({ idx: this.df.data.length + 1, __islocal: true, ...defaults });
+
+				const row_idx = this.df.data.length + 1;
+				this.df.data.push({ idx: row_idx, __islocal: true, ...defaults });
+				this.df.on_add_row && this.df.on_add_row(row_idx);
 				this.refresh();
 			}
 
@@ -1224,7 +1227,7 @@ export default class Grid {
 		}
 
 		for (let row of this.grid_rows) {
-			let docfield = row.docfields.find((d) => d.fieldname === fieldname);
+			let docfield = row?.docfields?.find((d) => d.fieldname === fieldname);
 			if (docfield) {
 				docfield[property] = value;
 			} else {

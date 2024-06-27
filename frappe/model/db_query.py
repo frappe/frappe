@@ -669,7 +669,7 @@ class DatabaseQuery:
 
 				if wrap_grave_quotes(table) in self.query_tables:
 					permitted_child_table_fields = get_permitted_fields(
-						doctype=ch_doctype, parenttype=self.doctype
+						doctype=ch_doctype, parenttype=self.doctype, ignore_virtual=True
 					)
 					if column in permitted_child_table_fields or column in optional_fields:
 						continue
@@ -728,7 +728,7 @@ class DatabaseQuery:
 		df = df[0] if df else None
 
 		# primary key is never nullable, modified is usually indexed by default and always present
-		can_be_null = f.fieldname not in ("name", "modified")
+		can_be_null = f.fieldname not in ("name", "modified", "creation")
 
 		value = None
 
@@ -810,12 +810,20 @@ class DatabaseQuery:
 
 			if f.operator.lower() in ("previous", "next", "timespan"):
 				date_range = get_date_range(f.operator.lower(), f.value)
-				f.operator = "Between"
+				f.operator = "between"
 				f.value = date_range
 				fallback = f"'{FallBackDateTimeStr}'"
 
+			if f.operator.lower() in (">", ">=") and (
+				f.fieldname in ("creation", "modified")
+				or (df and (df.fieldtype == "Date" or df.fieldtype == "Datetime"))
+			):
+				# Null values can never be greater than any non-null value
+				can_be_null = False
+
 			if f.operator in (">", "<", ">=", "<=") and (f.fieldname in ("creation", "modified")):
 				value = cstr(f.value)
+				can_be_null = False
 				fallback = f"'{FallBackDateTimeStr}'"
 
 			elif f.operator.lower() in ("between") and (
@@ -823,6 +831,17 @@ class DatabaseQuery:
 				or (df and (df.fieldtype == "Date" or df.fieldtype == "Datetime"))
 			):
 				escape = False
+				# Between operator never needs to check for null
+				# Explanation: Consider SQL -> `COLUMN between X and Y`
+				# Actual computation:
+				#     for row in rows:
+				#     if Y > row.COLUMN > X:
+				#         yield row
+
+				# Since Y and X can't be null, null value in column will never match filter, so
+				# coalesce is extra cost that prevents index usage
+				can_be_null = False
+
 				value = get_between_date_filter(f.value, df)
 				fallback = f"'{FallBackDateTimeStr}'"
 

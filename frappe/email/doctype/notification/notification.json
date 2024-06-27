@@ -231,7 +231,8 @@
    "fieldname": "message",
    "fieldtype": "Code",
    "ignore_xss_filter": 1,
-   "label": "Message"
+   "label": "Message",
+   "options": "Jinja"
   },
   {
    "fieldname": "message_examples",
@@ -291,7 +292,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-03-23 16:03:31.519921",
+ "modified": "2024-06-17 04:03:22.591781",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",

@@ -22,7 +22,7 @@ export default class Tab {
 					href="#${id}"
 					role="tab"
 					aria-controls="${id}">
-						${__(this.label)}
+						${__(this.label, null, this.doctype)}
 				</a>
 			</li>
 		`).appendTo(this.tab_link_container);
@@ -76,6 +76,7 @@ export default class Tab {
 	add_field(fieldobj) {
 		fieldobj.tab = this;
 	}
+
 	replace_field(fieldobj) {
 		fieldobj.tab = this;
 	}
@@ -96,7 +97,7 @@ export default class Tab {
 
 	setup_listeners() {
 		this.tab_link.find(".nav-link").on("shown.bs.tab", () => {
-			this?.frm.set_active_tab?.(this);
+			this.frm?.set_active_tab?.(this);
 		});
 	}
 }

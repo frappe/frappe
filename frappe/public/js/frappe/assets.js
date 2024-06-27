@@ -91,6 +91,7 @@ class AssetManager {
 		const version_string =
 			frappe.boot.developer_mode || window.dev_server ? Date.now() : window._version_number;
 
+		let fetched_assets = {};
 		async function fetch_item(path) {
 			// Add the version to the URL to bust the cache for non-bundled assets
 			let url = new URL(path, window.location.origin);
@@ -99,13 +100,16 @@ class AssetManager {
 				url.searchParams.append("v", version_string);
 			}
 			const response = await fetch(url.toString());
-			const body = await response.text();
-			me.eval_assets(path, body);
+			fetched_assets[path] = await response.text();
 		}
 
 		frappe.dom.freeze();
 		const fetch_promises = items.map(fetch_item);
 		Promise.all(fetch_promises).then(() => {
+			items.forEach((path) => {
+				let body = fetched_assets[path];
+				me.eval_assets(path, body);
+			});
 			frappe.dom.unfreeze();
 			callback?.();
 		});

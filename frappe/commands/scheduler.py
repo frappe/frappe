@@ -174,8 +174,11 @@ def purge_jobs(site=None, queue=None, event=None):
 @click.command("schedule")
 def start_scheduler():
 	"""Start scheduler process which is responsible for enqueueing the scheduled job types."""
+	import time
+
 	from frappe.utils.scheduler import start_scheduler
 
+	time.sleep(0.5)  # Delayed start. TODO: find better way to handle this.
 	start_scheduler()
 
 
@@ -222,12 +225,7 @@ def start_worker_pool(queue, quiet=False, num_workers=2, burst=False):
 	"""Start a pool of background workers"""
 	from frappe.utils.background_jobs import start_worker_pool
 
-	start_worker_pool(
-		queue=queue,
-		quiet=quiet,
-		burst=burst,
-		num_workers=num_workers,
-	)
+	start_worker_pool(queue=queue, quiet=quiet, burst=burst, num_workers=num_workers)
 
 
 @click.command("ready-for-migration")

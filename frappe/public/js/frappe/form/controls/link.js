@@ -596,8 +596,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		let filters = {};
 		link_filters.forEach((filter) => {
 			let [_, fieldname, operator, value] = filter;
-			value = String(value).replace(/%/g, "");
-			if (value.startsWith("eval:")) {
+			if (value?.startsWith?.("eval:")) {
 				// get the value to calculate
 				value = value.split("eval:")[1];
 				let context = {

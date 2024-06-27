@@ -413,6 +413,14 @@ frappe.ui.form.Layout = class Layout {
 	}
 
 	set_tab_as_active() {
+		// Set active tab based on hash
+		const tab_from_hash = window.location.hash.replace("#", "");
+		const tab = this.tabs.find((tab) => tab.df.fieldname === tab_from_hash);
+		if (tab) {
+			tab.set_active();
+			return;
+		}
+
 		let frm_active_tab = this.frm?.get_active_tab?.();
 		if (frm_active_tab) {
 			frm_active_tab.set_active();
@@ -629,7 +637,10 @@ frappe.ui.form.Layout = class Layout {
 					// show grid row (if exists)
 					field.grid.grid_rows[0].show_form();
 					return true;
-				} else if (!frappe.model.no_value_type.includes(field.df.fieldtype)) {
+				} else if (
+					field.df.fieldtype === "Table MultiSelect" ||
+					!frappe.model.no_value_type.includes(field.df.fieldtype)
+				) {
 					this.set_focus(field);
 					return true;
 				}

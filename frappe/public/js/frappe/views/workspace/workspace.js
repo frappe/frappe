@@ -68,6 +68,7 @@ frappe.views.Workspace = class Workspace {
 		this.cached_pages = $.extend(true, {}, this.sidebar_pages);
 		this.all_pages = this.sidebar_pages.pages;
 		this.has_access = this.sidebar_pages.has_access;
+		this.has_create_access = this.sidebar_pages.has_create_access;
 
 		this.all_pages.forEach((page) => {
 			page.is_editable = !page.public || this.has_access;
@@ -454,28 +455,30 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		this.clear_page_actions();
-
-		this.page.set_secondary_action(
-			__("Edit"),
-			async () => {
-				if (!this.editor || !this.editor.readOnly) return;
-				this.is_read_only = false;
-				this.toggle_hidden_workspaces(true);
-				await this.editor.readOnly.toggle();
-				this.editor.isReady.then(() => {
-					this.body.addClass("edit-mode");
-					this.initialize_editorjs_undo();
-					this.setup_customization_buttons(current_page);
-					this.show_sidebar_actions();
-					this.make_blocks_sortable();
-				});
-			},
-			"es-line-edit"
-		);
+		if (current_page.is_editable) {
+			this.page.set_secondary_action(
+				__("Edit"),
+				async () => {
+					if (!this.editor || !this.editor.readOnly) return;
+					this.is_read_only = false;
+					this.toggle_hidden_workspaces(true);
+					await this.editor.readOnly.toggle();
+					this.editor.isReady.then(() => {
+						this.body.addClass("edit-mode");
+						this.initialize_editorjs_undo();
+						this.setup_customization_buttons(current_page);
+						this.show_sidebar_actions();
+						this.make_blocks_sortable();
+					});
+				},
+				"es-line-edit"
+			);
+		}
 		// need to add option for icons in inner buttons as well
-		this.page.add_inner_button(__("Create Workspace"), () => {
-			this.initialize_new_page();
-		});
+		if (this.has_create_access)
+			this.page.add_inner_button(__("Create Workspace"), () => {
+				this.initialize_new_page(true);
+			});
 	}
 
 	initialize_editorjs_undo() {

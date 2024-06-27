@@ -15,6 +15,7 @@
 
 .kanban {
 	display: flex;
+	gap: 0.5em;
 	overflow-y: hidden;
 
 	-ms-overflow-style: none; /* IE and Edge */
@@ -27,19 +28,17 @@
 	.kanban-column {
 		@include transition();
 
-		flex: 0 0 260px;
-		max-width: 260px;
+		flex: 1 0 260px;
 		border-radius: var(--border-radius);
 		padding: var(--padding-md);
-		min-height: calc(100vh - 250px);
-		max-height: calc(100vh - var(--navbar-height) - var(--page-bottom-margin) - 80px);
+		min-height: calc(100vh - 150px);
 
 		.add-card {
 			@include flex(flex, center, center, null);
 			@include transition();
 
 			color: var(--text-light);
-			background-color: var(--kanban-new-card-bg);
+			background-color: var(--bg-color);
 			height: 27px;
 			font-size: var(--text-md);
 			margin-bottom: var(--margin-sm);
@@ -105,10 +104,6 @@
 					margin: 0;
 				}
 			}
-
-			&:hover {
-				cursor: pointer;
-			}
 		}
 
 		.kanban-column-title {
@@ -123,6 +118,7 @@
 			.kanban-title {
 				@include get_textstyle("lg", "semibold");
 				margin-left: var(--margin-sm);
+				cursor: grab;
 			}
 		}
 
@@ -182,7 +178,7 @@
 
 					.kanban-card-body {
 						cursor: grab;
-						padding: var(--padding-sm);
+						padding: var(--padding-md);
 
 						.kanban-title-area {
 							margin-bottom: 12px;

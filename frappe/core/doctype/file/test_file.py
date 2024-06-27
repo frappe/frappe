@@ -1,7 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
-import json
 import os
 import shutil
 import tempfile
@@ -111,7 +110,7 @@ class TestBase64File(FrappeTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
 		self.test_content = base64.b64encode(test_content1.encode("utf-8"))
-		_file: "File" = frappe.get_doc(
+		_file: frappe.Document = frappe.get_doc(
 			{
 				"doctype": "File",
 				"file_name": "test_base64.txt",
@@ -125,7 +124,7 @@ class TestBase64File(FrappeTestCase):
 		self.saved_file_url = _file.file_url
 
 	def test_saved_content(self):
-		_file = frappe.get_doc("File", {"file_url": self.saved_file_url})
+		_file: frappe.Document = frappe.get_doc("File", {"file_url": self.saved_file_url})
 		content = _file.get_content()
 		self.assertEqual(content, test_content1)
 
@@ -254,6 +253,25 @@ class TestSameContent(FrappeTestCase):
 		self.assertRaises(frappe.exceptions.AttachmentLimitReached, file2.insert)
 		limit_property.delete()
 		frappe.clear_cache(doctype="ToDo")
+
+	def test_utf8_bom_content_decoding(self):
+		utf8_bom_content = test_content1.encode("utf-8-sig")
+		_file: frappe.Document = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "utf8bom.txt",
+				"attached_to_doctype": self.attached_to_doctype1,
+				"attached_to_name": self.attached_to_docname1,
+				"content": utf8_bom_content,
+				"decode": False,
+			}
+		)
+		_file.save()
+		saved_file = frappe.get_doc("File", _file.name)
+		file_content_decoded = saved_file.get_content(encodings=["utf-8"])
+		self.assertEqual(file_content_decoded[0], "\ufeff")
+		file_content_properly_decoded = saved_file.get_content(encodings=["utf-8-sig", "utf-8"])
+		self.assertEqual(file_content_properly_decoded, test_content1)
 
 
 class TestFile(FrappeTestCase):

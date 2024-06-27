@@ -47,8 +47,7 @@ from frappe.utils import (
 	validate_url,
 )
 from frappe.utils.change_log import (
-	check_release_on_github,
-	get_remote_url,
+	get_source_url,
 	parse_github_url,
 )
 from frappe.utils.data import (
@@ -1263,6 +1262,8 @@ class TestRounding(FrappeTestCase):
 
 class TestArgumentTypingValidations(FrappeTestCase):
 	def test_validate_argument_types(self):
+		from unittest.mock import AsyncMock, MagicMock, Mock
+
 		from frappe.core.doctype.doctype.doctype import DocType
 		from frappe.utils.typing_validations import (
 			FrappeTypeError,
@@ -1279,6 +1280,10 @@ class TestArgumentTypingValidations(FrappeTestCase):
 
 		@validate_argument_types
 		def test_doctypes(a: DocType | dict):
+			return a
+
+		@validate_argument_types
+		def test_mocks(a: str):
 			return a
 
 		self.assertEqual(test_simple_types(True, 2.0, True), (1, 2.0, True))
@@ -1304,26 +1309,17 @@ class TestArgumentTypingValidations(FrappeTestCase):
 		with self.assertRaises(FrappeTypeError):
 			test_doctypes("a")
 
+		self.assertEqual(test_mocks("Hello World"), "Hello World")
+		for obj in (AsyncMock, MagicMock, Mock):
+			obj_instance = obj()
+			self.assertEqual(test_mocks(obj_instance), obj_instance)
+		with self.assertRaises(FrappeTypeError):
+			test_mocks(1)
+
 
 class TestChangeLog(FrappeTestCase):
-	def test_check_release_on_github(self):
-		from semantic_version import Version
-
-		version, owner = check_release_on_github("frappe", "frappe")
-		if version is None:
-			return
-
-		self.assertIsInstance(version, Version)
-		self.assertEqual(owner, "frappe")
-
-		self.assertRaises(ValueError, check_release_on_github, owner=None, repo=None)
-		self.assertRaises(ValueError, check_release_on_github, owner=None, repo="frappe")
-		self.assertRaises(ValueError, check_release_on_github, owner="frappe", repo=None)
-
 	def test_get_remote_url(self):
-		self.assertIsInstance(get_remote_url("frappe"), str)
-		self.assertRaises(ValueError, get_remote_url, app=None)
-		self.assertRaises(ValueError, get_remote_url, app="this_doesnt_exist")
+		self.assertIsInstance(get_source_url("frappe"), str)
 
 	def test_parse_github_url(self):
 		# using erpnext as repo in order to be different from the owner

@@ -184,7 +184,7 @@
 			opacity: 0;
 			font-size: $font-size-lg;
 			position: absolute;
-			background: var(--gray-300);
+			background: var(--gray-400);
 			border-radius: $border-radius;
 
 			.icon {
@@ -192,11 +192,6 @@
 					stroke: $text-color;
 				}
 			}
-
-			// show zoom button on mobile devices
-			// @media (max-width: $screen-xs) {
-			// 	opacity: 0.5
-			// }
 		}
 	}
 }
@@ -209,10 +204,6 @@
 .pswp--svg .pswp__button--arrow--left,
 .pswp--svg .pswp__button--arrow--right {
 	background: none !important;
-}
-
-.pswp__bg {
-	background-color: #fff !important;
 }
 
 .pswp__more-items {

@@ -17,6 +17,9 @@
   "background_workers",
   "scheduler_section",
   "scheduler_status",
+  "column_break_bxog",
+  "oldest_unscheduled_job",
+  "section_break_vpuw",
   "failing_scheduled_jobs",
   "database_section",
   "database",
@@ -368,6 +371,7 @@
   {
    "fieldname": "scheduler_section",
    "fieldtype": "Section Break",
+   "hide_border": 1,
    "label": "Scheduler"
   },
   {
@@ -375,6 +379,20 @@
    "fieldtype": "Table",
    "label": "Failing Scheduled Jobs (last 7 days)",
    "options": "System Health Report Failing Jobs"
+  },
+  {
+   "fieldname": "column_break_bxog",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "oldest_unscheduled_job",
+   "fieldtype": "Link",
+   "label": "Oldest Unscheduled Job",
+   "options": "Scheduled Job Type"
+  },
+  {
+   "fieldname": "section_break_vpuw",
+   "fieldtype": "Section Break"
   }
  ],
  "hide_toolbar": 1,
@@ -382,7 +400,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-22 11:47:52.194784",
+ "modified": "2024-05-02 13:32:16.495750",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "System Health Report",
