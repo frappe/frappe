@@ -1312,8 +1312,20 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		raise && this.toggle_message(false);
 
+<<<<<<< HEAD
 		const filters = this.filters
 			.filter((f) => f.get_value())
+=======
+		return this.filters
+			.filter((f) => {
+				const filter_value = f.get_value();
+				if (typeof filter_value === "object") {
+					return filter_value.length > 0;
+				} else {
+					return filter_value;
+				}
+			})
+>>>>>>> c1d1a3bab1 (fix: don't add empty multiselect to filters object)
 			.map((f) => {
 				var v = f.get_value();
 				// hidden fields dont have $input
