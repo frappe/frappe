@@ -150,7 +150,7 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 				doctype = new.doctype or old.doctype
 				if doctype:
 					meta = frappe.get_meta(doctype)
-					
+
 					# Show title field value if field is Link and show_title_field_in_link is True
 					if (field_meta := meta.get_field(df.fieldname)) and field_meta.fieldtype == "Link":
 						link_meta = frappe.get_meta(field_meta.options)
