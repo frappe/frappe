@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.core.doctype.data_import.data_import import import_doc
 from frappe.desk.doctype.global_search_settings.global_search_settings import (
 	update_global_search_doctypes,
 )
@@ -19,6 +20,8 @@ def install():
 	update_genders()
 	update_salutations()
 	update_global_search_doctypes()
+	update_marketing_sources()
+	update_marketing_medium()
 	setup_email_linking()
 	sync_dashboards()
 	add_unsubscribe()
@@ -54,6 +57,16 @@ def update_salutations():
 		doc = frappe.new_doc("Salutation")
 		doc.salutation = salutation
 		doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+
+def update_marketing_sources():
+	file_path = frappe.get_app_path("frappe", "desk", "page", "setup_wizard", "marketing_source.json")
+	import_doc(file_path)
+
+
+def update_marketing_medium():
+	file_path = frappe.get_app_path("frappe", "desk", "page", "setup_wizard", "marketing_medium.json")
+	import_doc(file_path)
 
 
 def setup_email_linking():

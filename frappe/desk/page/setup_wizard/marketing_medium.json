@@ -1,0 +1,90 @@
+[
+  {
+    "description": "While not always used as a UTM parameter, this can represent traffic from organic search results.",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:43.974551",
+    "name": "Search",
+    "slug": "sr"
+  },
+  {
+    "description": "This medium is used for paid search advertising campaigns where you pay each time someone clicks on your ad. It's typically associated with platforms like Google Ads or Bing Ads",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:44.009914",
+    "name": "SearchP",
+    "slug": "srp"
+  },
+  {
+    "description": "This medium is used for organic (unpaid) social media traffic. It covers posts, shares, or profile links from platforms like Facebook, Twitter, LinkedIn, or Instagram.",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:44.012238",
+    "name": "Social",
+    "slug": "so"
+  },
+  {
+    "description": "Used to distinguish paid social media advertising from organic social media traffic.",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:44.014442",
+    "name": "SocialP",
+    "slug": "sop"
+  },
+  {
+    "description": "Used for traffic coming from email marketing campaigns. This could include newsletters, promotional emails, or transactional emails.",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:44.016562",
+    "name": "Email",
+    "slug": "em"
+  },
+  {
+    "description": "This medium is used for display advertising, which includes banner ads, rich media ads, or other visual advertisements placed on websites.",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:44.018674",
+    "name": "Display",
+    "slug": "disp"
+  },
+  {
+    "description": "Used for traffic coming from (third party) affiliate marketing programs where partners promote your products or services with typically a cash based reward structure.",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:44.020831",
+    "name": "Affiliate",
+    "slug": "aff"
+  },
+  {
+    "description": "This medium is used for traffic coming from customer who promote your products and services to people they know or from partners based on trust, excluding paid placements.",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:44.023047",
+    "name": "Referral",
+    "slug": "ref"
+  },
+  {
+    "description": "This medium is used when your content is republished on other websites or platforms.",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:44.025255",
+    "name": "Content Syndication",
+    "slug": "cs"
+  },
+  {
+    "description": "For traffic coming from mobile push notifications.",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:44.027317",
+    "name": "Push",
+    "slug": "push"
+  },
+  {
+    "description": "For traffic coming from text message marketing.",
+    "docstatus": 0,
+    "doctype": "Marketing Medium",
+    "modified": "2024-06-28 15:18:44.029381",
+    "name": "SMS",
+    "slug": "sms"
+  }
+]

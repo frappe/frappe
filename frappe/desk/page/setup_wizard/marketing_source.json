@@ -1,0 +1,90 @@
+[
+ {
+  "description": "Search engine and various Google services.\nMore specific sources:\n- ggl-organic\n- ggl-ads\n- ggl-display\n- ggl-shopping\n- youtube",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.049094",
+  "name": "Google",
+  "slug": "ggl"
+ },
+ {
+  "description": "Social media platform for personal and business networking.\nMore specific sources:\n- fb-organic\n- fb-ads\n- fb-groups\n- fb-marketplace",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.428719",
+  "name": "Facebook",
+  "slug": "fb"
+ },
+ {
+  "description": "Visual-focused social media platform.\nMore specific sources:\n- ig-organic\n- ig-ads\n- ig-stories\n- ig-reels",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.431362",
+  "name": "Instagram",
+  "slug": "ig"
+ },
+ {
+  "description": "Professional networking and career-oriented social media platform.\nMore specific sources:\n- lkdn-organic\n- lkdn-ads\n- lkdn-inmail\n- lkdn-groups",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.434039",
+  "name": "Linkedin",
+  "slug": "lkdn"
+ },
+ {
+  "description": "Regular email communications to subscribers.\nMore specific sources:\n- news-weekly\n- news-monthly\n- news-product-updates\n- news-industry-news",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.441777",
+  "name": "Newsletter",
+  "slug": "news"
+ },
+ {
+  "description": "Collaborative marketing efforts with other businesses or individuals.\nMore specific sources:\n- partn-affiliate\n- partn-co-marketing\n- partn-event\n- partn-referral",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.444363",
+  "name": "Partner",
+  "slug": "partn"
+ },
+ {
+  "description": "Company's own website or web properties.\nMore specific sources:\n- web-homepage\n- web-blog\n- web-product-page\n- web-landing-page",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.446768",
+  "name": "Website",
+  "slug": "web"
+ },
+ {
+  "description": "Push notifications or alerts sent to users.\nMore specific sources:\n- notif-mobile-app\n- notif-browser\n- notif-sms\n- notif-desktop",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.449352",
+  "name": "Notification",
+  "slug": "notif"
+ },
+ {
+  "description": "Direct communication channels with customers.\nMore specific sources:\n- convo-livechat\n- convo-chatbot\n- convo-phone\n- convo-whatsapp",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.451978",
+  "name": "Conversation",
+  "slug": "convo"
+ },
+ {
+  "description": "Follow-up communications to re-engage users.\nMore specific sources:\n- rem-abandoned-cart\n- rem-appointment\n- rem-subscription-renewal\n- rem-product-restock",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.454425",
+  "name": "Reminder",
+  "slug": "rem"
+ },
+ {
+  "description": "Promotional campaigns or special offers.\nMore specific sources:\n- promo-seasonal-sale\n- promo-flash-sale\n- promo-new-product-launch\n- promo-loyalty-program",
+  "docstatus": 0,
+  "doctype": "Marketing Source",
+  "modified": "2024-06-28 15:20:38.456842",
+  "name": "Promo",
+  "slug": "promo"
+ }
+]
