@@ -1312,10 +1312,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		raise && this.toggle_message(false);
 
-<<<<<<< HEAD
-		const filters = this.filters
-			.filter((f) => f.get_value())
-=======
 		return this.filters
 			.filter((f) => {
 				const filter_value = f.get_value();
@@ -1325,7 +1321,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					return filter_value;
 				}
 			})
->>>>>>> c1d1a3bab1 (fix: don't add empty multiselect to filters object)
 			.map((f) => {
 				var v = f.get_value();
 				// hidden fields dont have $input
@@ -1342,7 +1337,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				Object.assign(acc, f);
 				return acc;
 			}, {});
-		return filters;
 	}
 
 	get_filter(fieldname) {
@@ -1468,13 +1462,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			.map((fieldname) => {
 				const docfield = frappe.query_report.get_filter(fieldname).df;
 				const value = applied_filters[fieldname];
-<<<<<<< HEAD
-				return `<h6>${__(docfield.label)}: ${frappe.format(value, docfield)}</h6>`;
-=======
 				return `<div class="filter-row">
 					<b>${__(docfield.label, null, docfield.parent)}:</b> ${frappe.format(value, docfield)}
 				</div>`;
->>>>>>> ff70fece72 (fix: layout of printed report filters)
 			})
 			.join("");
 
