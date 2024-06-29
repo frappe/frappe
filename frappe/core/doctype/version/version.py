@@ -156,7 +156,13 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 
 						# Show title field value if field is Link and show_title_field_in_link is True
 						if link_meta.show_title_field_in_link and ((title_field := link_meta.get_title_field()) != "name"):
-							old_title_val, new_title_val = frappe.db.get_values(field_meta.options, {"name": ("in", (old_value, new_value))}, title_field, pluck=True)
+							old_title_val, new_title_val = "", ""
+							result = frappe.db.get_values(field_meta.options, {"name": ("in", (old_value, new_value))}, ["name", title_field])
+							for r in result:
+								if r[0] == old_value:
+									old_title_val = r[1]
+								elif r[0] == new_value:
+									new_title_val = r[1]
 							out.changed.append((df.fieldname, old_title_val, new_title_val))
 							continue
 				out.changed.append((df.fieldname, old_value, new_value))
