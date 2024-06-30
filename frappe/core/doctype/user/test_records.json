@@ -79,8 +79,36 @@
   ]
  },
  {
+  "doctype": "User",
+  "email": "testpassword@example.com",
+  "enabled": 1,
+  "first_name": "_Test",
+  "new_password": "Eastern_43A1W",
+  "roles": [
+   {
+    "doctype": "Has Role",
+    "parentfield": "roles",
+    "role": "System Manager"
+   }
+  ]
+ },
+ {
+   "doctype": "User",
+   "email": "deskuser@example.com",
+   "enabled": 1,
+   "first_name": "_Test",
+   "new_password": "Eastern_43A1W",
+   "roles": [
+    {
+     "doctype": "Has Role",
+     "parentfield": "roles",
+     "role": "_Test Role"
+    }
+   ]
+  },
+  {
     "doctype": "User",
-    "email": "testpassword@example.com",
+    "email": "deskuser2@example.com",
     "enabled": 1,
     "first_name": "_Test",
     "new_password": "Eastern_43A1W",
@@ -88,7 +116,7 @@
      {
       "doctype": "Has Role",
       "parentfield": "roles",
-      "role": "System Manager"
+      "role": "_Test Role 2"
      }
     ]
    }
