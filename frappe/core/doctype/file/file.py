@@ -799,6 +799,12 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 	if user == "Administrator":
 		return True
 
+	if doc.attached_to_doctype:
+		# if file is attached via Attach field with restrictions, it must not be leaked even if marked public
+		meta = frappe.get_meta(doc.attached_to_doctype)
+		if doc.attached_to_field and doc.attached_to_field not in meta.get_permitted_fieldnames(user=user, permission_type=ptype):
+			return False
+
 	if not doc.is_private and ptype in ("read", "select"):
 		return True
 
@@ -813,10 +819,6 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 			ref_doc = frappe.get_doc(attached_to_doctype, attached_to_name)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
-			return False
-
-		meta = frappe.get_meta(doc.attached_to_doctype)
-		if doc.attached_to_field not in meta.get_permitted_fieldnames(user=frappe.session.user):
 			return False
 
 		if ptype in ["write", "create", "delete"]:
