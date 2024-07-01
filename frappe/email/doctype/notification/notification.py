@@ -315,38 +315,41 @@ def get_context(context):
 		)
 
 	def send_sms(self, doc, context):
-		def get_phone_no(d, field):
-			option = d.meta.get_field(field).options.strip()
-			if option == "Phone" or option == "Mobile":
-				phone_no = d.get(field)
-				if not phone_no:
-					doc.log_error(
-						_("Notification: field {0} on document {1} has no Mobile No set").format(
-							field, d.name
-						)
-					)
-			elif option == "User":
-				user = d.get(field)
-				phone_no = frappe.get_value("User", user, "mobile_no")
-				if not phone_no:
-					doc.log_error(_("Notification: user {0} has no Mobile No set").format(user))
-			elif option == "Customer":
-				customer = d.get(field)
-				phone_no = frappe.get_value("Customer", customer, "mobile_no")
-				if not phone_no:
-					doc.log_error(_("Notification: customer {0} has no Mobile No set").format(customer))
-			else:
-				frappe.throw(
-					_(
-						"Field {0} on document {1} is neither a Mobile No data field nor a Customer or User link"
-					).format(field, d.name)
-				)
-			return phone_no
-
 		send_sms(
-			receiver_list=self.get_receiver_list(doc, context, "mobile_no", get_phone_no),
+			receiver_list=self.get_receiver_list(doc, context, "mobile_no", self.get_mobile_no),
 			msg=frappe.utils.strip_html_tags(frappe.render_template(self.message, context)),
 		)
+
+	@staticmethod
+	def get_mobile_no(doc, field):
+		option = doc.meta.get_field(field).options.strip()
+		# users may sometimes register mobile numbers under Phone type fields
+		if option == "Phone" or option == "Mobile":
+			mobile_no = doc.get(field)
+			if not mobile_no:
+				doc.log_error(
+					_("Notification: document {0} has no {1} number set (field: {2})").format(
+						field, doc.name, option, field
+					)
+				)
+		# but on user & customer it's expected to be set on the proper field
+		elif option == "User":
+			user = doc.get(field)
+			mobile_no = frappe.get_value("User", user, "mobile_no")
+			if not mobile_no:
+				doc.log_error(_("Notification: user {0} has no Mobile number set").format(user))
+		elif option == "Customer":
+			customer = doc.get(field)
+			mobile_no = frappe.get_value("Customer", customer, "mobile_no")
+			if not mobile_no:
+				doc.log_error(_("Notification: customer {0} has no Mobile number set").format(customer))
+		else:
+			frappe.throw(
+				_(
+					"Field {0} on document {1} is neither a Mobile number field nor a Customer or User link"
+				).format(field, doc.name)
+			)
+		return mobile_no
 
 	def get_list_of_recipients(self, doc, context):
 		recipients = []
@@ -387,8 +390,10 @@ def get_context(context):
 
 		return list(set(recipients)), list(set(cc)), list(set(bcc))
 
-	def get_receiver_list(self, doc, context, user_field, field_extractor_func):
+	def get_receiver_list(self, doc, context, field_on_user="mobile_no", recipient_extractor_func=None):
 		"""return receiver list based on the doc field and role specified"""
+		if not recipient_extractor_func:
+			recipient_extractor_func = self.get_mobile_no
 		receiver_list = []
 		for recipient in self.recipients:
 			if recipient.condition:
@@ -397,7 +402,7 @@ def get_context(context):
 
 			# For sending messages to the owner's mobile phone number
 			if recipient.receiver_by_document_field == "owner":
-				receiver_list += get_user_info([dict(user_name=doc.get("owner"))], user_field)
+				receiver_list += get_user_info([dict(user_name=doc.get("owner"))], field_on_user)
 			# For sending messages to the number specified in the receiver field
 			elif recipient.receiver_by_document_field:
 				data_field, child_field = _parse_receiver_by_document_field(
@@ -405,17 +410,17 @@ def get_context(context):
 				)
 				if child_field:
 					for d in doc.get(child_field):
-						if recv := field_extractor_func(d, data_field):
+						if recv := recipient_extractor_func(d, data_field):
 							receiver_list.append(recv)
 				# field from current doc
 				else:
-					if recv := field_extractor_func(doc, data_field):
+					if recv := recipient_extractor_func(doc, data_field):
 						receiver_list.append(recv)
 
 			# For sending messages to specified role
 			if recipient.receiver_by_role:
 				receiver_list += get_info_based_on_role(
-					recipient.receiver_by_role, user_field, ignore_permissions=True
+					recipient.receiver_by_role, field_on_user, ignore_permissions=True
 				)
 
 		return list(set(receiver_list))
