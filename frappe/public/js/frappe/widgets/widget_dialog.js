@@ -440,13 +440,8 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Select",
 				fieldname: "doc_view",
-<<<<<<< HEAD
-				label: "DocType View",
-				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban",
-=======
 				label: __("DocType View"),
-				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban\nImage",
->>>>>>> 6443b21e13 (fix: make field labels translatable in Widget Dialog (#26919))
+				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban",
 				description: __(
 					"Which view of the associated DocType should this shortcut take you to?"
 				),
