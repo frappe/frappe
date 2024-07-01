@@ -270,20 +270,6 @@ class CardDialog extends WidgetDialog {
 						},
 					},
 					{
-<<<<<<< HEAD
-=======
-						fieldname: "label",
-						fieldtype: "Data",
-						in_list_view: 1,
-						label: __("Label"),
-					},
-					{
-						fieldname: "icon",
-						fieldtype: "Icon",
-						label: "Icon",
-					},
-					{
->>>>>>> 6443b21e13 (fix: make field labels translatable in Widget Dialog (#26919))
 						fieldname: "column_break_7",
 						fieldtype: "Column Break",
 					},
@@ -440,12 +426,8 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Data",
 				fieldname: "url",
-<<<<<<< HEAD
-				label: "URL",
-				options: "URL",
-=======
 				label: __("URL"),
->>>>>>> 6443b21e13 (fix: make field labels translatable in Widget Dialog (#26919))
+				options: "URL",
 				default: "",
 				depends_on: (s) => s.type == "URL",
 				mandatory_depends_on: (s) => s.type == "URL",
@@ -453,13 +435,8 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Select",
 				fieldname: "doc_view",
-<<<<<<< HEAD
-				label: "DocType View",
-				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban",
-=======
 				label: __("DocType View"),
-				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban\nImage",
->>>>>>> 6443b21e13 (fix: make field labels translatable in Widget Dialog (#26919))
+				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban",
 				description: __(
 					"Which view of the associated DocType should this shortcut take you to?"
 				),
