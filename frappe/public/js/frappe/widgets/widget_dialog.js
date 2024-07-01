@@ -101,7 +101,7 @@ class ChartDialog extends WidgetDialog {
 			{
 				fieldtype: "Link",
 				fieldname: "chart_name",
-				label: "Chart Name",
+				label: __("Chart Name"),
 				options: "Dashboard Chart",
 				reqd: 1,
 			},
@@ -128,7 +128,7 @@ class QuickListDialog extends WidgetDialog {
 			{
 				fieldtype: "Link",
 				fieldname: "document_type",
-				label: "DocType",
+				label: __("DocType"),
 				options: "DocType",
 				reqd: 1,
 				onchange: () => {
@@ -151,7 +151,7 @@ class QuickListDialog extends WidgetDialog {
 			{
 				fieldtype: "Data",
 				fieldname: "label",
-				label: "Label",
+				label: __("Label"),
 			},
 			{
 				fieldtype: "Section Break",
@@ -200,7 +200,7 @@ class OnboardingDialog extends WidgetDialog {
 			{
 				fieldtype: "Link",
 				fieldname: "onboarding_name",
-				label: "Onboarding Name",
+				label: __("Onboarding Name"),
 				options: "Module Onboarding",
 				reqd: 1,
 			},
@@ -246,7 +246,7 @@ class CardDialog extends WidgetDialog {
 						fieldname: "link_type",
 						fieldtype: "Select",
 						in_list_view: 1,
-						label: "Link Type",
+						label: __("Link Type"),
 						reqd: 1,
 						options: ["DocType", "Page", "Report"],
 					},
@@ -254,7 +254,7 @@ class CardDialog extends WidgetDialog {
 						fieldname: "link_to",
 						fieldtype: "Dynamic Link",
 						in_list_view: 1,
-						label: "Link To",
+						label: __("Link To"),
 						reqd: 1,
 						get_options: (df) => {
 							return df.doc.link_type;
@@ -270,31 +270,45 @@ class CardDialog extends WidgetDialog {
 						},
 					},
 					{
+<<<<<<< HEAD
+=======
+						fieldname: "label",
+						fieldtype: "Data",
+						in_list_view: 1,
+						label: __("Label"),
+					},
+					{
+						fieldname: "icon",
+						fieldtype: "Icon",
+						label: "Icon",
+					},
+					{
+>>>>>>> 6443b21e13 (fix: make field labels translatable in Widget Dialog (#26919))
 						fieldname: "column_break_7",
 						fieldtype: "Column Break",
 					},
 					{
 						fieldname: "dependencies",
 						fieldtype: "Data",
-						label: "Dependencies",
+						label: __("Dependencies"),
 					},
 					{
 						fieldname: "only_for",
 						fieldtype: "Link",
-						label: "Only for",
+						label: __("Only for"),
 						options: "Country",
 					},
 					{
 						default: "0",
 						fieldname: "onboard",
 						fieldtype: "Check",
-						label: "Onboard",
+						label: __("Onboard"),
 					},
 					{
 						default: "0",
 						fieldname: "is_query_report",
 						fieldtype: "Check",
-						label: "Is Query Report",
+						label: __("Is Query Report"),
 					},
 				],
 			},
@@ -357,7 +371,7 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Select",
 				fieldname: "type",
-				label: "Type",
+				label: __("Type"),
 				reqd: 1,
 				options: "DocType\nReport\nPage\nDashboard\nURL",
 				onchange: () => {
@@ -379,7 +393,7 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Data",
 				fieldname: "label",
-				label: "Label",
+				label: __("Label"),
 			},
 			{
 				fieldtype: "Column Break",
@@ -388,7 +402,7 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Dynamic Link",
 				fieldname: "link_to",
-				label: "Link To",
+				label: __("Link To"),
 				options: "type",
 				onchange: () => {
 					const doctype = this.dialog.get_value("link_to");
@@ -426,8 +440,12 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Data",
 				fieldname: "url",
+<<<<<<< HEAD
 				label: "URL",
 				options: "URL",
+=======
+				label: __("URL"),
+>>>>>>> 6443b21e13 (fix: make field labels translatable in Widget Dialog (#26919))
 				default: "",
 				depends_on: (s) => s.type == "URL",
 				mandatory_depends_on: (s) => s.type == "URL",
@@ -435,8 +453,13 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Select",
 				fieldname: "doc_view",
+<<<<<<< HEAD
 				label: "DocType View",
 				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban",
+=======
+				label: __("DocType View"),
+				options: "List\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban\nImage",
+>>>>>>> 6443b21e13 (fix: make field labels translatable in Widget Dialog (#26919))
 				description: __(
 					"Which view of the associated DocType should this shortcut take you to?"
 				),
@@ -467,7 +490,7 @@ class ShortcutDialog extends WidgetDialog {
 			{
 				fieldtype: "Link",
 				fieldname: "kanban_board",
-				label: "Kanban Board",
+				label: __("Kanban Board"),
 				options: "Kanban Board",
 				depends_on: () => {
 					let doc_view = this.dialog?.get_value("doc_view");
