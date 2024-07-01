@@ -94,7 +94,10 @@ class Notification(Document):
 			return _("Yes")
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
-			return _("Yes") if frappe.safe_eval(self.condition, eval_locals=get_context(doc)) else _("No")
+			context = get_context(doc)
+			if self.is_standard:
+				self.load_standard_properties(context)
+			return _("Yes") if frappe.safe_eval(self.condition, eval_locals=context) else _("No")
 		except Exception as e:
 			frappe.local.message_log = []
 			return _("Failed to evaluate conditions: {}").format(e)
@@ -107,6 +110,8 @@ class Notification(Document):
 			context.update({"alert": self, "comments": None})
 			if doc.get("_comments"):
 				context["comments"] = json.loads(doc.get("_comments"))
+			if self.is_standard:
+				self.load_standard_properties(context)
 			msg = frappe.render_template(self.message, context)
 			if self.channel == "SMS":
 				return frappe.utils.strip_html_tags(msg)
@@ -122,6 +127,8 @@ class Notification(Document):
 			context.update({"alert": self, "comments": None})
 			if doc.get("_comments"):
 				context["comments"] = json.loads(doc.get("_comments"))
+			if self.is_standard:
+				self.load_standard_properties(context)
 			if not self.subject:
 				return _("No subject")
 			if "{" in self.subject:
