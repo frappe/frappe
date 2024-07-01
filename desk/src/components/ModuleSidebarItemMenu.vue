@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { inject } from "vue"
-import { FeatherIcon, Dropdown } from "frappe-ui"
+import { Dropdown } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 
 import { ModuleSidebarItem } from "@/types"

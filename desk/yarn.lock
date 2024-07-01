@@ -937,6 +937,11 @@ csstype@^3.1.3:
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.3.tgz#d80ff294d114fb0e6ac500fbf85b60137d7eff81"
   integrity sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==
 
+dayjs@^1.11.11:
+  version "1.11.11"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.11.tgz#dfe0e9d54c5f8b68ccf8ca5f72ac603e7e5ed59e"
+  integrity sha512-okzr3f11N6WuqYtZSvm+F776mB41wRZMhKP+hc34YdW+KmtYYK9iqvHSwo2k9FEH3fhGXvOPV6yz2IcSrfRUDg==
+
 debug@^4.3.1, debug@^4.3.2, debug@^4.3.4, debug@~4.3.1, debug@~4.3.2:
   version "4.3.4"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz#1319f6579357f2338d3337d2cdd4914bb5dcc865"
@@ -1192,10 +1197,10 @@ fastq@^1.6.0:
   dependencies:
     reusify "^1.0.4"
 
-feather-icons@^4.28.0:
-  version "4.28.0"
-  resolved "https://registry.yarnpkg.com/feather-icons/-/feather-icons-4.28.0.tgz#e1892a401fe12c4559291770ff6e68b0168e760f"
-  integrity sha512-gRdqKESXRBUZn6Nl0VBq2wPHKRJgZz7yblrrc2lYsS6odkNFDnA4bqvrlEVRUPjE1tFax+0TdbJKZ31ziJuzjg==
+feather-icons@^4.28.0, feather-icons@^4.29.2:
+  version "4.29.2"
+  resolved "https://registry.yarnpkg.com/feather-icons/-/feather-icons-4.29.2.tgz#b03a47588a1c400f215e884504db1c18860d89f8"
+  integrity sha512-0TaCFTnBTVCz6U+baY2UJNKne5ifGh7sMG4ZC2LoBWCZdIyPa+y6UiR4lEYGws1JOFWdee8KAsAIvu0VcXqiqA==
   dependencies:
     classnames "^2.2.5"
     core-js "^3.1.3"
@@ -1249,10 +1254,10 @@ fraction.js@^4.1.2:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-4.1.2.tgz#13e420a92422b6cf244dff8690ed89401029fbe8"
   integrity sha512-o2RiJQ6DZaR/5+Si0qJUIy637QMRudSi9kU/FFzx9EZazrIdnBgpU+3sEWCxAVhH2RtxW2Oz+T4p2o8uOPVcgA==
 
-frappe-ui@^0.1.51:
-  version "0.1.51"
-  resolved "https://registry.yarnpkg.com/frappe-ui/-/frappe-ui-0.1.51.tgz#7bc1b3198c12214b7aaf2ecc6444682b13664014"
-  integrity sha512-pa0496yTjdHTs0NsE6gZ0UXvaOOlyvlT7KvDUNjLcpt32Vet6J3/SluMjJp1X8l0AK1oFQEAl/7ab97MGg0zAQ==
+frappe-ui@^0.1.62:
+  version "0.1.62"
+  resolved "https://registry.yarnpkg.com/frappe-ui/-/frappe-ui-0.1.62.tgz#a143266250f61e3dbd78fd5193c46a82666cb309"
+  integrity sha512-pLlSb8V2Jm0pQY+vQ/L0ESaBAYG8wEP4/o23Rf3z+yWX16eL72F0BAaOMDdpx5xd9yF7pPwK3qg/qVmS2S8YOw==
   dependencies:
     "@headlessui/vue" "^1.7.14"
     "@popperjs/core" "^2.11.2"
@@ -1278,6 +1283,7 @@ frappe-ui@^0.1.51:
     "@vueuse/core" "^10.4.1"
     feather-icons "^4.28.0"
     idb-keyval "^6.2.0"
+    prettier "^3.3.2"
     radix-vue "^1.5.3"
     showdown "^2.1.0"
     socket.io-client "^4.5.1"
@@ -1869,6 +1875,11 @@ prettier@^2.8.8:
   version "2.8.8"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.8.tgz#e8c5d7e98a4305ffe3de2e1fc4aca1a71c28b1da"
   integrity sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==
+
+prettier@^3.3.2:
+  version "3.3.2"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.3.2.tgz#03ff86dc7c835f2d2559ee76876a3914cec4a90a"
+  integrity sha512-rAVeHYMcv8ATV5d508CFdn+8/pHPpXeIid1DdrPwXnaAdH7cqjVbpJaT5eq4yRAFU/lsbwYwSF/n5iNrdJHPQA==
 
 prosemirror-changeset@^2.2.1:
   version "2.2.1"

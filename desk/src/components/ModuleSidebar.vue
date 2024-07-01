@@ -107,7 +107,7 @@
 				v-else
 				class="flex w-full gap-2 rounded p-2 text-sm uppercase text-gray-700 hover:bg-gray-200"
 				:class="isCollapsed ? 'justify-center' : ''"
-				@click="isCollapsed = !isCollapsed"
+				@click="emit('toggleSidebar')"
 			>
 				<FeatherIcon
 					:name="isCollapsed ? 'arrow-right' : 'arrow-left'"
@@ -244,7 +244,7 @@
 
 <script setup lang="ts">
 import { computed, ref, provide } from "vue"
-import { Dropdown, FeatherIcon, Dialog, FormControl, createResource } from "frappe-ui"
+import { Dropdown, Dialog, createResource } from "frappe-ui"
 import Draggable from "vuedraggable"
 
 import Icon from "@/components/Icon.vue"
@@ -262,7 +262,8 @@ import {
 } from "@/types"
 import { updateSidebarItemFnKey } from "@/types/injectionKeys"
 
-const props = defineProps<{ module: string }>()
+const props = defineProps<{ module: string; isCollapsed: boolean }>()
+const emit = defineEmits(["toggleSidebar"])
 
 const emptySidebarItems = {
 	name: "",
@@ -282,7 +283,6 @@ const emptySidebarLink: IModuleSidebarItem = {
 }
 
 const desktopItem = ref<DesktopItem | null>(null)
-const isCollapsed = ref(false)
 const isEditing = ref(false)
 const draftSidebarItems = ref<ModuleSidebar>({ ...emptySidebarItems })
 const showDialog = ref(false)

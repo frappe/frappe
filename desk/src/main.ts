@@ -5,12 +5,21 @@ import router from "./router"
 import "./setResourceFetcher"
 import App from "./App.vue"
 
-import { Button, FormControl, ErrorMessage, frappeRequest, resourcesPlugin } from "frappe-ui"
+import {
+	Button,
+	FormControl,
+	ErrorMessage,
+	FeatherIcon,
+	frappeRequest,
+	resourcesPlugin,
+} from "frappe-ui"
 
 import Icon from "@/components/Icon.vue"
 
 import { session } from "@/data/session"
 import { user } from "@/data/user"
+
+import dayjs from "@/utils/dayjs"
 
 let app = createApp(App)
 
@@ -21,8 +30,11 @@ app.component("Button", Button)
 app.component("FormControl", FormControl)
 app.component("ErrorMessage", ErrorMessage)
 app.component("Icon", Icon)
+app.component("FeatherIcon", FeatherIcon)
+
 app.provide("$session", session)
 app.provide("$user", user)
+app.provide("$dayjs", dayjs)
 
 declare global {
 	interface Window {

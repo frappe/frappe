@@ -52,3 +52,6 @@ de9ac897482013f5464a05f3c171da0072619c3a
 
 # some new ruff rules
 48cf19d7e997896d12aee7c7d97f73c8df217204
+
+# format vue files with prettier
+0a90d6a51ab8ddc893ded53d3f6f5ce427742622

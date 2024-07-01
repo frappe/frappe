@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref } from "vue"
-import { Popover, FeatherIcon, TextInput } from "frappe-ui"
+import { Popover, TextInput } from "frappe-ui"
 import Icon from "@/components/Icon.vue"
 
 withDefaults(defineProps<{ label?: string; placeholder?: string }>(), {
