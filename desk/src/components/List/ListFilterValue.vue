@@ -32,7 +32,7 @@ import { DatePicker, DateTimePicker, DateRangePicker } from "frappe-ui"
 import { numberTypes, dateTypes, filterOptions } from "@/data/constants/filters"
 
 import Link from "@/components/FormControls/Link.vue"
-import MultiSelectLink from "../FormControls/MultiSelectLink.vue"
+import MultiSelectLink from "@/components/FormControls/MultiSelectLink.vue"
 
 const props = defineProps({
 	fieldtype: {
