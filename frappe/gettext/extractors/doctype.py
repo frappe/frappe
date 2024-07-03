@@ -78,7 +78,7 @@ def extract(fileobj, *args, **kwargs):
 			messages.append((link_doctype, f"Linked DocType in {doctype}'s connections"))
 
 	# By using "pgettext" as the function name we can supply the doctype as context
-	yield from ((None, "pgettext", (doctype, message), [comment]) for message, comment in messages)
+	yield from ((None, "_", message, [comment]) for message, comment in messages)
 
 	# Role names do not get context because they are used with multiple doctypes
 	yield from (

@@ -167,6 +167,7 @@ frappe.ui.form.Form = class FrappeForm {
 			shortcut: "ctrl+p",
 			action: () => this.print_doc(),
 			description: __("Print document"),
+			condition: () => frappe.model.can_print(this.doctype, this) && !this.meta.issingle,
 		});
 
 		let grid_shortcut_keys = [
@@ -1759,6 +1760,7 @@ frappe.ui.form.Form = class FrappeForm {
 				email: p.email,
 			};
 		});
+		this.refresh_fields();
 	}
 
 	trigger(event, doctype, docname) {

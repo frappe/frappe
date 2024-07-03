@@ -286,7 +286,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				fields: [
 					{
 						fieldname: "dashboard_chart_name",
-						label: "Chart Name",
+						label: __("Chart Name"),
 						fieldtype: "Data",
 					},
 					dashboard_field,
@@ -1329,7 +1329,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		raise && this.toggle_message(false);
 
 		return this.filters
-			.filter((f) => f.get_value())
+			.filter((f) => {
+				const filter_value = f.get_value();
+				if (typeof filter_value === "object") {
+					return filter_value.length > 0;
+				} else {
+					return filter_value;
+				}
+			})
 			.map((f) => {
 				var v = f.get_value();
 				// hidden fields dont have $input
@@ -1472,16 +1479,23 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_filters_html_for_print() {
 		const applied_filters = this.get_filter_values();
-		return Object.keys(applied_filters)
+		const filter_html = Object.keys(applied_filters)
 			.map((fieldname) => {
 				const docfield = frappe.query_report.get_filter(fieldname).df;
 				const value = applied_filters[fieldname];
-				return `<h6>${__(docfield.label, null, docfield.parent)}: ${frappe.format(
-					value,
-					docfield
-				)}</h6>`;
+				return `<div class="filter-row">
+					<b>${__(docfield.label, null, docfield.parent)}:</b> ${frappe.format(value, docfield)}
+				</div>`;
 			})
 			.join("");
+
+		return `<div>${filter_html}</div>
+			<style>
+				.filter-row div {
+					/* prevent newline + right alignment of number fields */
+					display: inline-block;
+				}
+			</style>`;
 	}
 
 	export_report() {
