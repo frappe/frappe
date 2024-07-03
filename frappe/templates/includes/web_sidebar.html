@@ -2,7 +2,7 @@
 <li class="{{ 'sidebar-group' if item.group_title else 'sidebar-item' }}">
 	{%- if item.group_title -%}
 
-	<h6>{{ item.group_title }}</h6>
+	<h6>{{ _(item.group_title) }}</h6>
 	{{ render_sidebar_items(item.group_items) }}
 
 	{%- else -%}
@@ -11,12 +11,12 @@
 	{%- set item_route = item.route[1:] if item.route[0] == '/' else item.route -%}
 	<a href="{{ item.route }}" class="{{ 'active' if pathname == item_route else '' }}"
 		{% if item.target %}target="{{ item.target }}" {% endif %}>
-		{{ _(item.title or item.label) }}
+		{{ _(item.title) or _(item.label) }}
 	</a>
 	{% else %}
 	<form action='{{ item.route }}' class="mr-4">
 		<input name='q' class='form-control' type='text' style="outline: none"
-			placeholder="{{ _(item.title or item.label) }}">
+			placeholder="{{ _(item.title) or _(item.label) }}">
 	</form>
 	{% endif %}
 
@@ -47,7 +47,7 @@
 <div class="web-sidebar">
 	{% if sidebar_title %}
 	<li class="title">
-		{{ sidebar_title }}
+		{{ _(sidebar_title) }}
 	</li>
 	{% endif %}
 	<div class="sidebar-items">
