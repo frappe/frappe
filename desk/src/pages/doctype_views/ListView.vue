@@ -72,6 +72,7 @@ import {
 	ListFilter,
 	ListFilterOperator,
 	isValidFilterOperator,
+	QueryFilter,
 } from "@/types/list"
 
 const route = useRoute()
@@ -196,7 +197,7 @@ const currentFilters = computed(() => {
 	return filters
 })
 
-const queryFilters = computed(
+const queryFilters = computed<QueryFilter[]>(
 	() => currentFilters.value.map((f) => [f.fieldname, f.operator, f.value]) || []
 )
 

@@ -41,6 +41,8 @@ type ListFilter = {
 	options: string[]
 }
 
+type QueryFilter = [string, ListFilterOperator, string]
+
 type SavedView = {
 	name: string
 	label: string
@@ -69,6 +71,7 @@ export {
 	ListRow,
 	ListColumn,
 	ListFilter,
+	QueryFilter,
 	ListFilterOperator,
 	SavedView,
 	ListConfiguration,
