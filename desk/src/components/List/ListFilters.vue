@@ -26,7 +26,7 @@
 						<Autocomplete
 							:body-classes="'w-60'"
 							:model-value="fieldname"
-							:options="allFilterableFields"
+							:options="filterableFields"
 							@update:model-value="(val) => updateField(val, i)"
 						/>
 					</div>
@@ -58,7 +58,7 @@
 				<div class="flex items-center justify-between gap-2">
 					<Autocomplete
 						:body-classes="'w-[29rem] '"
-						:options="allFilterableFields"
+						:options="filterableFields"
 						@update:model-value="(field) => addFilter(field)"
 					>
 						<template #target="{ togglePopover }">
@@ -93,7 +93,7 @@ import ListFilterValue from "@/components/List/ListFilterValue.vue"
 import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
 
 import { Autocomplete } from "frappe-ui"
-import { inject } from "vue"
+import { computed, inject } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import {
 	linkTypes,
@@ -111,6 +111,15 @@ const props = defineProps({
 		type: Array,
 		default: [],
 	},
+})
+
+const filterableFields = computed(() => {
+	return props.allFilterableFields.map((field) => {
+		return {
+			...field,
+			value: field.key,
+		}
+	})
 })
 
 const filters = defineModel()

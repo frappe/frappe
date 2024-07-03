@@ -106,7 +106,7 @@ def get_doctype_fields(meta: dict) -> list[dict]:
 		doctype_fields.append(
 			{
 				"label": field.get("label"),
-				"value": field.get("fieldname"),
+				"key": field.get("fieldname"),
 				"type": field.get("fieldtype"),
 				"options": options.split("\n"),
 			}

@@ -64,15 +64,20 @@ import {
 	configUpdated,
 } from "@/stores/view"
 
-import { ListFilter, isValidFilterOperator, QueryParamDict } from "@/types/list"
-import { FieldTypes as DocFieldType } from "@/types/controls"
-import { Resource } from "@/types/frappeUI"
-import { ListFilterOperator } from "@/types/list"
 import { useRouteParamsAsStrings } from "@/composables/router"
+import { FieldTypes as DocFieldType } from "@/types/controls"
+import {
+	ListResource,
+	QueryParamDict,
+	ListFilter,
+	ListFilterOperator,
+	isValidFilterOperator,
+} from "@/types/list"
 
 const route = useRoute()
-const routeParams = useRouteParamsAsStrings()
 const router = useRouter()
+const routeParams = useRouteParamsAsStrings()
+
 const pageLength = ref(20)
 const rowCount = ref(20)
 const totalCount = ref(0)
@@ -107,10 +112,10 @@ const loadConfig = async () => {
 
 const addSavedFilters = async () => {
 	if (isDefaultConfig.value) return
-	let query_params: QueryParamDict = { view: configName.value }
+	let queryParams: QueryParamDict = { view: configName.value }
 	let savedFilters = configSettings.data.filters
-	Object.assign(query_params, getFilterQuery(savedFilters))
-	await router.replace({ query: query_params })
+	Object.assign(queryParams, getFilterQuery(savedFilters))
+	await router.replace({ query: queryParams })
 }
 
 const createConfigObj = async () => {
@@ -126,13 +131,12 @@ const fetchList = async (updateCount = true) => {
 	await listResource.fetch()
 }
 
-const listResource: Resource = createResource({
+const listResource: ListResource = createResource({
 	url: "frappe.desk.doctype.view_config.view_config.get_list",
 	makeParams() {
-		if (!listConfig.value) return {}
 		return {
 			doctype: doctype.value,
-			cols: listConfig.value.columns,
+			cols: listConfig.value?.columns,
 			filters: queryFilters.value,
 			limit: rowCount.value,
 			order_by: querySort.value,
@@ -158,17 +162,19 @@ const getSelectOptions = (fieldname: string): string[] => {
 
 const getParsedFilter = (key: string, filter: string): ListFilter | undefined => {
 	let f: string | string[] = JSON.parse(filter)
+	let fieldtype = getFieldType(key)
+	if (!fieldtype) return
 	if (Array.isArray(f) && !isValidFilterOperator(f[0])) return
 	return {
 		fieldname: key,
-		fieldtype: getFieldType(key),
+		fieldtype: fieldtype,
 		operator: Array.isArray(f) ? (f[0] as ListFilterOperator) : "=",
 		value: Array.isArray(f) ? f[1] : f,
 		options: getSelectOptions(key),
 	}
 }
 
-const currentFilters = computed<ListFilter[]>(() => {
+const currentFilters = computed(() => {
 	let filters: ListFilter[] = []
 	let query = route.query as QueryParamDict
 	if (query) {

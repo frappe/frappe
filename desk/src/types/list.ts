@@ -1,3 +1,4 @@
+import { Resource } from "@/types/frappeUI"
 import { FieldTypes as DocFieldType } from "./controls"
 
 type QueryParamDict = Record<string, string | string[]>
@@ -10,6 +11,7 @@ type ListField = {
 }
 
 type ListColumn = { width: string } & ListField
+type ListRow = Record<string, any>
 
 const validOperators = [
 	"=",
@@ -33,7 +35,7 @@ const isValidFilterOperator = (operator: any): operator is ListFilterOperator =>
 
 type ListFilter = {
 	fieldname: string
-	fieldtype: DocFieldType | ""
+	fieldtype: DocFieldType
 	operator: ListFilterOperator
 	value: string
 	options: string[]
@@ -57,13 +59,19 @@ type ListConfiguration = {
 	views: SavedView[]
 } & SavedView
 
+type ListResource = Omit<Resource, "data"> & {
+	data: ListRow[]
+}
+
 export {
 	QueryParamDict,
 	ListField,
+	ListRow,
 	ListColumn,
 	ListFilter,
 	ListFilterOperator,
 	SavedView,
 	ListConfiguration,
+	ListResource,
 	isValidFilterOperator,
 }
