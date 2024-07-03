@@ -3,7 +3,7 @@
 
 from collections import Counter
 from email.utils import getaddresses
-from urllib.parse import unquote
+from urllib.parse import unquote_plus
 
 from bs4 import BeautifulSoup
 
@@ -609,16 +609,16 @@ def parse_email(email_strings):
 				detail, user = local_part.rsplit("--", 1)
 
 			document_parts = None
-			if detail and "+" in detail:
-				document_parts = detail.split("+", 1)
-			elif detail:
+			if detail and "=" in detail:
 				document_parts = detail.split("=", 1)
+			elif detail and "+" in detail:
+				document_parts = detail.split("+", 1)
 
 			if not document_parts or not len(document_parts) != 2:
 				continue
 
-			doctype = unquote(document_parts[0])
-			docname = unquote(document_parts[1])
+			doctype = unquote_plus(document_parts[0])
+			docname = unquote_plus(document_parts[1])
 			yield doctype, docname
 
 
