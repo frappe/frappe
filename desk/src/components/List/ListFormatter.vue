@@ -26,7 +26,7 @@
 		<Badge
 			v-else
 			:variant="'outline'"
-			:theme="guessColour(item.toString())"
+			:theme="guessColour(item as string)"
 			size="md"
 			:label="item"
 		></Badge>

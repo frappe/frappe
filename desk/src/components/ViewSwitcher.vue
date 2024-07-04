@@ -1,5 +1,5 @@
 <template>
-	<Dropdown :options="viewSwitcherOptions">
+	<Dropdown v-if="configSettings.data" :options="viewSwitcherOptions">
 		<template #default="{ open }">
 			<Button :label="configSettings.data.label">
 				<template #prefix>

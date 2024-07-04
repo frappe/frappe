@@ -74,7 +74,7 @@ import {
 	isValidFilterOperator,
 	QueryFilter,
 } from "@/types/list"
-import { fetchListFnKey } from "@/types/injectionKeys"
+import { fetchListFnKey, renderListFnKey } from "@/types/injectionKeys"
 
 const route = useRoute()
 const router = useRouter()
@@ -252,5 +252,5 @@ watchDebounced(
 )
 
 provide(fetchListFnKey, fetchList)
-provide("renderList", renderList)
+provide(renderListFnKey, renderList)
 </script>
