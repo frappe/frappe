@@ -425,7 +425,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 					schema=sql.Identifier(self.db_schema),
 					table=sql.Identifier("tab" + doctype),
 					constraint=sql.Identifier(constraint_name),
-					fields=sql.SQL(", ").join(map(sql.Identifier, fields)),
+					fields=sql.SQL(", ").join(sql.Identifier(field) for field in fields),
 				)
 				.as_string(self._conn)
 			)
