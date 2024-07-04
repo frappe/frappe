@@ -664,7 +664,7 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	refresh_fields() {
-		this.layout.refresh(this.doc);
+		this?.layout?.refresh(this.doc);
 		this.layout.primary_button = this.$wrapper.find(".btn-primary");
 
 		// cleanup activities after refresh
