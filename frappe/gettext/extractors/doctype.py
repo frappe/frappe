@@ -1,10 +1,6 @@
 import json
 
-EXCLUDE_SELECT_OPTIONS = [
-	"naming_series",
-	"number_format",
-	"icon",  # primarily for the Workflow State doctype
-]
+from .utils import extract_messages_from_docfield, extract_messages_from_links
 
 
 def extract(fileobj, *args, **kwargs):
@@ -27,53 +23,13 @@ def extract(fileobj, *args, **kwargs):
 		yield None, "_", doctype_description, ["Description of a DocType"]
 
 	messages = []
-	fields = data.get("fields", [])
-	links = data.get("links", [])
 
-	for field in fields:
-		fieldtype = field.get("fieldtype")
-		fieldname = field.get("fieldname")
-		label = field.get("label")
+	for field in data.get("fields", []):
+		messages.extend(extract_messages_from_docfield(doctype, field))
 
-		if label:
-			messages.append((label, f"Label of a {fieldtype} field in DocType '{doctype}'"))
-			_label = label
-		else:
-			_label = fieldname
+	messages.extend(extract_messages_from_links(doctype, data.get("links", [])))
 
-		if description := field.get("description"):
-			messages.append(
-				(description, f"Description of the '{_label}' ({fieldtype}) field in DocType '{doctype}'")
-			)
-
-		if message := field.get("options"):
-			if fieldtype == "Select":
-				if fieldname in EXCLUDE_SELECT_OPTIONS:
-					continue
-
-				select_options = [option for option in message.split("\n") if option and not option.isdigit()]
-
-				messages.extend(
-					(
-						option,
-						f"Option for the '{_label}' ({fieldtype}) field in DocType '{doctype}'",
-					)
-					for option in select_options
-				)
-			elif fieldtype == "HTML":
-				messages.append(
-					(message, f"Content of the '{_label}' ({fieldtype}) field in DocType '{doctype}'")
-				)
-
-	for link in links:
-		if group := link.get("group"):
-			messages.append((group, f"Group in {doctype}'s connections"))
-
-		if link_doctype := link.get("link_doctype"):
-			messages.append((link_doctype, f"Linked DocType in {doctype}'s connections"))
-
-	# By using "pgettext" as the function name we can supply the doctype as context
-	yield from ((None, "pgettext", (doctype, message), [comment]) for message, comment in messages)
+	yield from ((None, "_", message, [comment]) for message, comment in messages)
 
 	# Role names do not get context because they are used with multiple doctypes
 	yield from (
