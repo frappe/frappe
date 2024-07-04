@@ -341,12 +341,8 @@ def export_query():
 		return
 
 	format_duration_fields(data)
-	xlsx_data, column_widths, indentation_details = build_xlsx_data(
-		data,
-		visible_idx,
-		include_indentation,
-		include_filters=include_filters,
-		file_format_type=file_format_type,
+	xlsx_data, column_widths = build_xlsx_data(
+		data, visible_idx, include_indentation, include_filters=include_filters
 	)
 
 	if file_format_type == "CSV":
@@ -354,6 +350,10 @@ def export_query():
 		file_extension = "csv"
 	elif file_format_type == "Excel":
 		from frappe.utils.xlsxutils import make_xlsx
+
+		indentation_details = (
+			get_indentation_detail(data.result, visible_idx) if cint(include_indentation) else None
+		)
 
 		file_extension = "xlsx"
 		content = make_xlsx(
@@ -374,14 +374,7 @@ def format_duration_fields(data: frappe._dict) -> None:
 				row[index] = format_duration(row[index])
 
 
-def build_xlsx_data(
-	data,
-	visible_idx,
-	include_indentation,
-	include_filters=False,
-	ignore_visible_idx=False,
-	file_format_type=None,
-):
+def build_xlsx_data(data, visible_idx, include_indentation, include_filters=False, ignore_visible_idx=False):
 	EXCEL_TYPES = (
 		str,
 		bool,
@@ -403,9 +396,6 @@ def build_xlsx_data(
 
 	result = []
 	column_widths = []
-	indent_ranges = {}
-	indent_stack = []
-	excel_row_index = 0
 
 	if cint(include_filters):
 		filter_data = []
@@ -456,30 +446,43 @@ def build_xlsx_data(
 
 			result.append(row_data)
 
-			# to calculate indentation group for excel
-			if isinstance(row, dict) and cint(include_indentation) and file_format_type == "Excel":
-				indent = row.get("indent", 0)
-				if indent_stack and indent_stack[-1][0] < indent:
-					indent_stack.append((indent, excel_row_index))
-					excel_row_index = excel_row_index + 1
-					continue
+	return result, column_widths
 
-				while indent_stack and indent_stack[-1][0] > indent:
-					start_indent, start_idx = indent_stack.pop()
-					indent_ranges[f"{start_idx}-{excel_row_index-1}"] = start_indent
 
-				if not indent_stack or indent_stack[-1][0] != indent:
-					indent_stack.append((indent, excel_row_index))
-				excel_row_index = excel_row_index + 1
+def get_indentation_detail(data, visible_idx):
+	indentation_details = {}
+	indent_stack = []
+	excel_row_index = 0
+	ignore_visible_idx = False
+
+	if len(visible_idx) == len(data) or not visible_idx:
+		ignore_visible_idx = True
+	else:
+		visible_idx = set(visible_idx)
+
+	for row_idx, row in enumerate(data):
+		# only pick up rows that are visible in the report
+		if (not ignore_visible_idx and row_idx not in visible_idx) or not isinstance(row, dict):
+			continue
+		indent = row.get("indent", 0)
+
+		if indent_stack and indent_stack[-1][0] < indent:
+			indent_stack.append((indent, excel_row_index))
+
+		while indent_stack and indent_stack[-1][0] > indent:
+			start_indent, start_idx = indent_stack.pop()
+			indentation_details[f"{start_idx}-{excel_row_index-1}"] = start_indent
+
+		if not indent_stack:
+			indent_stack.append((indent, excel_row_index))
+
+		excel_row_index = excel_row_index + 1
 
 	while indent_stack:
 		start_indent, start_idx = indent_stack.pop()
-		indent_ranges[f"{start_idx}-{excel_row_index-1}"] = start_indent
+		indentation_details[f"{start_idx}-{excel_row_index-1}"] = start_indent
 
-	if file_format_type is not None:
-		return result, column_widths, indent_ranges
-	else:
-		return result, column_widths
+	return sorted(indentation_details.items(), key=lambda detail: detail[1])
 
 
 def add_total_row(result, columns, meta=None, is_tree=False, parent_field=None):

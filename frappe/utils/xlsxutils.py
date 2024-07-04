@@ -33,21 +33,7 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None, indentation_details
 
 	# for grouping the data in excel
 	if indentation_details:
-		start_grouping = 2
-		# update start_grouping when you have Include filters checkbox marked
-		for range, item in enumerate(data):
-			if not item:
-				start_grouping = start_grouping + range + 1
-				break
-
-		sorted_indentation = sorted(indentation_details.items(), key=lambda detail: detail[1])
-		for range, indent in sorted_indentation:
-			indent_row_start, indent_row_end = range.split("-")
-			ws.row_dimensions.group(
-				cint(indent_row_start) + start_grouping,
-				cint(indent_row_end) + start_grouping,
-				outline_level=indent,
-			)
+		add_dimension_details(data, indentation_details, ws)
 
 	for row in data:
 		clean_row = []
@@ -68,6 +54,23 @@ def make_xlsx(data, sheet_name, wb=None, column_widths=None, indentation_details
 	xlsx_file = BytesIO()
 	wb.save(xlsx_file)
 	return xlsx_file
+
+
+def add_dimension_details(data, indentation_details, ws):
+	start_grouping = 2
+	# update start_grouping when you have Include filters checkbox marked
+	for range, item in enumerate(data):
+		if not item:
+			start_grouping = start_grouping + range + 1
+			break
+
+	for range, indent in indentation_details:
+		indent_row_start, indent_row_end = range.split("-")
+		ws.row_dimensions.group(
+			cint(indent_row_start) + start_grouping,
+			cint(indent_row_end) + start_grouping,
+			outline_level=indent,
+		)
 
 
 def handle_html(data):
