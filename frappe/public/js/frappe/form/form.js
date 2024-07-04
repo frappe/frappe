@@ -418,7 +418,7 @@ frappe.ui.form.Form = class FrappeForm {
 			// read only (workflow)
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 			if (this.read_only) {
-				this.set_read_only(true);
+				this.set_read_only();
 				frappe.show_alert(__("This form is not editable due to a Workflow."));
 			}
 
@@ -671,6 +671,10 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	refresh_fields() {
+		if (this.layout === undefined) {
+			return;
+		}
+
 		this.layout.refresh(this.doc);
 		this.layout.primary_button = this.$wrapper.find(".btn-primary");
 
@@ -1843,6 +1847,7 @@ frappe.ui.form.Form = class FrappeForm {
 				email: p.email,
 			};
 		});
+		this.refresh_fields();
 	}
 
 	trigger(event, doctype, docname) {
