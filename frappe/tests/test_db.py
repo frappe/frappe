@@ -1079,3 +1079,42 @@ class TestSqlIterator(FrappeTestCase):
 	def test_unbuffered_cursor(self):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()
+
+
+class TestDbConnectWithEnvCredentials(FrappeTestCase):
+	def test_connect_fails_with_wrong_credentials_by_env(self) -> None:
+		import os
+
+		# with wrong db name
+		os.environ["DB_NAME"] = "dbiq"
+
+		frappe.connect()
+		self.assertRaises(frappe.db.OperationalError, frappe.db.connect)
+
+		# with wrong host
+		del os.environ["DB_NAME"]
+		os.environ["DB_HOST"] = "iqx.local"
+
+		frappe.connect()
+		self.assertRaises(frappe.db.OperationalError, frappe.db.connect)
+
+		# with wrong user name
+		del os.environ["DB_HOST"]
+		os.environ["DB_USER"] = "uname"
+
+		frappe.connect()
+		self.assertRaises(frappe.db.OperationalError, frappe.db.connect)
+
+		# with wrong password
+		del os.environ["DB_USER"]
+		os.environ["DB_PASSWORD"] = "pass"
+
+		frappe.connect()
+		self.assertRaises(frappe.db.OperationalError, frappe.db.connect)
+
+		# now with configured settings without any influences from env
+		del os.environ["DB_PASSWORD"]
+
+		# finally connect should work without any error (when no wrong credentials are given via ENV)
+		frappe.connect()
+		frappe.db.connect()
