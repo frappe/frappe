@@ -18,6 +18,8 @@ from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
 FORMATS = {"HTML": ".html", "Markdown": ".md", "Plain Text": ".txt"}
+FORBIDDEN_DOCUMENT_TYPES = frozenset(("Email Queue",))
+DATE_BASED_EVENTS = frozenset(("Days Before", "Days After"))
 
 
 class Notification(Document):
@@ -27,9 +29,7 @@ class Notification(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.email.doctype.notification_recipient.notification_recipient import (
-			NotificationRecipient,
-		)
+		from frappe.email.doctype.notification_recipient.notification_recipient import NotificationRecipient
 		from frappe.types import DF
 
 		attach_print: DF.Check
@@ -90,7 +90,7 @@ class Notification(Document):
 		if self.event == "Value Change" and not self.value_changed:
 			frappe.throw(_("Please specify which value field must be checked"))
 
-		self.validate_forbidden_types()
+		self.validate_forbidden_document_types()
 		self.validate_condition()
 		self.validate_standard()
 		frappe.cache.hdel("notifications", self.document_type)
@@ -130,12 +130,16 @@ def get_context(context):
 			except Exception:
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
-	def validate_forbidden_types(self):
-		forbidden_document_types = ("Email Queue",)
-		if self.document_type in forbidden_document_types or frappe.get_meta(self.document_type).istable:
-			# currently notifications don't work on child tables as events are not fired for each record of child table
-
-			frappe.throw(_("Cannot set Notification on Document Type {0}").format(self.document_type))
+	def validate_forbidden_document_types(self):
+		if self.document_type in FORBIDDEN_DOCUMENT_TYPES or (
+			frappe.get_meta(self.document_type).istable and self.event not in DATE_BASED_EVENTS
+		):
+			# only date based events are allowed for child tables
+			frappe.throw(
+				_("Cannot set Notification with event {0} on Document Type {1}").format(
+					_(self.event), _(self.document_type)
+				)
+			)
 
 	def get_documents_for_today(self):
 		"""get list of documents that will be triggered today"""
