@@ -1,11 +1,11 @@
 <template>
-	<div v-if="listConfig" class="mx-5 my-4 flex h-[41rem] flex-col gap-4">
+	<div class="mx-5 my-4 flex h-[41rem] flex-col gap-4">
 		<div class="overflow-x-none flex w-full justify-between gap-2">
 			<ViewSwitcher :queryFilters="queryFilters" />
-			<ListControls v-if="listConfig.fields" :options="listControlOptions" />
+			<ListControls :options="listControlOptions" />
 		</div>
 		<ListView
-			v-if="listResource.data?.length"
+			v-if="listConfig && listResource.data?.length"
 			:rows="listResource.data"
 			rowKey="name"
 			:columns="listConfig.columns"
@@ -16,7 +16,7 @@
 					:item="item"
 					:row="row"
 					:column="column"
-					:titleField="listConfig.title_field"
+					:titleField="listConfig?.title_field"
 				/>
 			</template>
 		</ListView>
@@ -74,6 +74,7 @@ import {
 	isValidFilterOperator,
 	QueryFilter,
 } from "@/types/list"
+import { fetchListFnKey } from "@/types/injectionKeys"
 
 const route = useRoute()
 const router = useRouter()
@@ -250,6 +251,6 @@ watchDebounced(
 	{ debounce: 1000, maxWait: 1000 }
 )
 
-provide("fetchList", fetchList)
+provide(fetchListFnKey, fetchList)
 provide("renderList", renderList)
 </script>

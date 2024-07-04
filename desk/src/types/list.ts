@@ -43,6 +43,8 @@ type ListFilter = {
 
 type QueryFilter = [string, ListFilterOperator, string]
 
+type ListSort = [string, "ASC" | "DESC"]
+
 type SavedView = {
 	name: string
 	label: string
@@ -54,7 +56,7 @@ type ListConfiguration = {
 	custom: boolean
 	columns: ListColumn[]
 	filters: ListFilter[]
-	sort: [string, "ASC" | "DESC"]
+	sort: ListSort
 	from_meta: boolean
 	fields: ListField[]
 	title_field: [string, string]
@@ -72,6 +74,7 @@ export {
 	ListColumn,
 	ListFilter,
 	QueryFilter,
+	ListSort,
 	ListFilterOperator,
 	SavedView,
 	ListConfiguration,

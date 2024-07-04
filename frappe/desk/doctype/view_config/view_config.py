@@ -69,7 +69,7 @@ def get_config(doctype: str, config_name=None, is_default=True) -> dict:
 	config_dict.update(
 		{
 			"columns": frappe.parse_json(config_dict.get("columns")),
-			"filters": get_filters(config_dict.get("filters"), meta),
+			"filters": get_filters(config_dict.get("filters") or [], meta),
 			"fields": get_doctype_fields(meta),
 			"views": get_views_for_doctype(doctype),
 			"title_field": get_title_field(meta),
@@ -143,7 +143,7 @@ def update_config(config: dict, doctype=None, config_name=None, filters=None) ->
 		doc = frappe.get_doc("View Config", config_name)
 	else:
 		doc = frappe.new_doc("View Config")
-		doc.label = "List View"
+		doc.label = doctype + " List View"
 		doc.document_type = doctype
 		doc.custom = 0
 	if filters:
@@ -173,6 +173,8 @@ def get_list(doctype: str, cols: list[dict], filters: list[list], limit: int, or
 	list_rows = frappe.get_list(
 		doctype, fields=fields, filters=filters, limit=limit, start=0, order_by=order_by
 	)
+	if not list_rows:
+		return []
 	return get_list_rows(cols, list_rows)
 
 
