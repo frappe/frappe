@@ -339,11 +339,11 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 			"Instead, explicitly invoke frappe.init(site) with the right config prior to calling frappe.connect(), if necessary."
 		)
 
-	db_name = db_name or os.getenv('DB_NAME') or local.conf.db_name or local.conf.db_user
-	user = os.getenv('DB_USER') or local.conf.db_user or db_name
-	host = os.getenv('DB_HOST') or local.conf.db_host
-	port = os.getenv('DB_PORT') or local.conf.db_port
-	password = os.getenv('DB_PASSWORD') or local.conf.db_password
+	db_name = db_name or os.getenv("DB_NAME") or local.conf.db_name or local.conf.db_user
+	user = os.getenv("DB_USER") or local.conf.db_user or db_name
+	host = os.getenv("DB_HOST") or local.conf.db_host
+	port = os.getenv("DB_PORT") or local.conf.db_port
+	password = os.getenv("DB_PASSWORD") or local.conf.db_password
 
 	assert user, "site must be fully initialized, db_user missing"
 	assert db_name, "site must be fully initialized, db_name missing"
