@@ -241,8 +241,8 @@ def get_context(context):
 
 		notification_doc = {
 			"type": "Alert",
-			"document_type": doc.doctype,
-			"document_name": doc.name,
+			"document_type": get_reference_doctype(doc),
+			"document_name": get_reference_name(doc),
 			"subject": subject,
 			"from_user": doc.modified_by or doc.owner,
 			"email_content": frappe.render_template(self.message, context),
@@ -274,8 +274,8 @@ def get_context(context):
 		# No need to add if it is already a communication.
 		if doc.doctype != "Communication":
 			communication = make_communication(
-				doctype=doc.doctype,
-				name=doc.name,
+				doctype=get_reference_doctype(doc),
+				name=get_reference_name(doc),
 				content=message,
 				subject=subject,
 				sender=sender,
@@ -298,8 +298,8 @@ def get_context(context):
 			cc=cc,
 			bcc=bcc,
 			message=message,
-			reference_doctype=doc.doctype,
-			reference_name=doc.name,
+			reference_doctype=get_reference_doctype(doc),
+			reference_name=get_reference_name(doc),
 			attachments=attachments,
 			expose_recipients="header",
 			print_letterhead=((attachments and attachments[0].get("print_letterhead")) or False),
@@ -310,8 +310,8 @@ def get_context(context):
 		send_slack_message(
 			webhook_url=self.slack_webhook_url,
 			message=frappe.render_template(self.message, context),
-			reference_doctype=doc.doctype,
-			reference_name=doc.name,
+			reference_doctype=get_reference_doctype(doc),
+			reference_name=get_reference_name(doc),
 		)
 
 	def send_sms(self, doc, context):
@@ -547,3 +547,11 @@ def get_emails_from_template(template, context):
 
 	emails = frappe.render_template(template, context) if "{" in template else template
 	return filter(None, emails.replace(",", "\n").split("\n"))
+
+
+def get_reference_doctype(doc):
+	return doc.parenttype if doc.meta.istable else doc.doctype
+
+
+def get_reference_name(doc):
+	return doc.parent if doc.meta.istable else doc.name
