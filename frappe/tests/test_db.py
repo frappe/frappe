@@ -1080,6 +1080,7 @@ class TestSqlIterator(FrappeTestCase):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()
 
+
 class ExtFrappeTestCase(FrappeTestCase):
 	def assertSqlException(self):
 		class SqlExceptionContextManager:
@@ -1099,6 +1100,7 @@ class ExtFrappeTestCase(FrappeTestCase):
 
 		return SqlExceptionContextManager(self)
 
+
 @run_only_if(db_type_is.POSTGRES)
 class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
 	test_table_name = "TestSchemaTable"
@@ -1107,11 +1109,12 @@ class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
 		if rollback:
 			frappe.db.rollback()
 
-
-		if frappe.db.sql("""SELECT 1
+		if frappe.db.sql(
+			"""SELECT 1
 													FROM information_schema.schemata
 												WHERE schema_name = 'alt_schema'
-									 		limit 1 """):
+									 		limit 1 """
+		):
 			self.cleanup()
 
 		frappe.db.sql(
@@ -1146,14 +1149,15 @@ class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
 		self.cleanup()
 
 	def cleanup(self) -> None:
-		frappe.db.sql(f"""
-										DROP TABLE "public"."tab{self.test_table_name}";
-										DROP TABLE "alt_schema"."tab{self.test_table_name}";
-										DROP TABLE "alt_schema"."tab{self.test_table_name}_2";
-										DROP TABLE "alt_schema"."tabUser";
-										DROP SCHEMA "alt_schema" CASCADE;
-										""")
-										# DROP USER u_alt_schema;
+		frappe.db.sql(
+			f"""
+				DROP TABLE "public"."tab{self.test_table_name}";
+				DROP TABLE "alt_schema"."tab{self.test_table_name}";
+				DROP TABLE "alt_schema"."tab{self.test_table_name}_2";
+				DROP TABLE "alt_schema"."tabUser";
+				DROP SCHEMA "alt_schema" CASCADE;
+				"""
+		)
 
 	def test_get_tables(self) -> None:
 		tables = frappe.db.get_tables(cached=False)
@@ -1172,7 +1176,7 @@ class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
 		self.assertEqual(columns, ["col_a", "col_b"])
 
 		frappe.conf["db_schema"] = "alt_schema"
-		frappe.cache.delete_key("table_columns") # remove table columns cache for next try from alt_schema
+		frappe.cache.delete_key("table_columns")  # remove table columns cache for next try from alt_schema
 
 		# should have received the columns of the table from alt_schema
 		columns = frappe.db.get_table_columns(self.test_table_name)
@@ -1220,7 +1224,7 @@ class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
 
 	def test_get_table_columns_description(self):
 		# should only return the columns of the table in the default public schema
-		columns = frappe.db.get_table_columns_description(f'tab{self.test_table_name}')
+		columns = frappe.db.get_table_columns_description(f"tab{self.test_table_name}")
 
 		self.assertTrue(any([col for col in columns if col["name"] == "col_a"]))
 		self.assertTrue(any([col for col in columns if col["name"] == "col_b"]))
@@ -1238,12 +1242,20 @@ class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
 	def test_search_path(self):
 		# by default the the public schema tables should be addressed by search path
 		rows = frappe.db.sql(f'select * from "tab{self.test_table_name}"')
-		self.assertEqual(rows, [("a", "b",)]) # there should be a single row in the public table
+		self.assertEqual(
+			rows,
+			[
+				(
+					"a",
+					"b",
+				)
+			],
+		)  # there should be a single row in the public table
 
 		# when schema is changed to alt_schema, the alt_schema tables should be addressed by search path
 		frappe.conf["db_schema"] = "alt_schema"
 		frappe.db.connect()
 		rows = frappe.db.sql(f'select * from "tab{self.test_table_name}"')
-		self.assertEqual(rows, []) # there are no records in the alt_schema table
+		self.assertEqual(rows, [])  # there are no records in the alt_schema table
 
 		del frappe.conf["db_schema"]

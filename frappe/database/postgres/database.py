@@ -2,6 +2,7 @@ import re
 
 import psycopg2
 import psycopg2.extensions
+from psycopg2 import sql
 from psycopg2.errorcodes import (
 	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
 	DEADLOCK_DETECTED,
@@ -20,7 +21,6 @@ from psycopg2.errors import (
 	SyntaxError,
 )
 from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ
-from psycopg2 import sql
 
 import frappe
 from frappe.database.database import Database
@@ -172,7 +172,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	@property
 	def db_schema(self):
-		return re.sub(r'["\']', '', frappe.conf.get("db_schema", "public"))
+		return re.sub(r'["\']', "", frappe.conf.get("db_schema", "public"))
 
 	def connect(self):
 		super().connect()
@@ -240,7 +240,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			from information_schema.tables
 			where table_catalog=%s
 				and table_type = 'BASE TABLE'
-				and table_schema=%s""", (self.cur_db_name, self.db_schema)
+				and table_schema=%s""",
+				(self.cur_db_name, self.db_schema),
 			)
 		]
 
@@ -253,7 +254,10 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			columns = (
 				frappe.qb.from_(information_schema.columns)
 				.select(information_schema.columns.column_name)
-				.where((information_schema.columns.table_name == table) & (information_schema.columns.table_schema == self.db_schema))
+				.where(
+					(information_schema.columns.table_name == table)
+					& (information_schema.columns.table_schema == self.db_schema)
+				)
 				.run(pluck=True)
 			)
 
@@ -379,7 +383,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return self.sql(
 			"""SELECT 1 FROM pg_indexes WHERE tablename=%s
 			and schemaname = %s
-			and indexname=%s limit 1""", (table_name, self.db_schema, index_name)
+			and indexname=%s limit 1""",
+			(table_name, self.db_schema, index_name),
 		)
 
 	def add_index(self, doctype: str, fields: list, index_name: str | None = None):
@@ -389,7 +394,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		index_name = index_name or self.get_index_name(fields)
 		fields_str = '", "'.join(re.sub(r"\(.*\)", "", field) for field in fields)
 
-		self.sql_ddl(f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}" ("{fields_str}")')
+		self.sql_ddl(
+			f'CREATE INDEX IF NOT EXISTS "{index_name}" ON "{self.db_schema}"."{table_name}" ("{fields_str}")'
+		)
 
 	def add_unique(self, doctype, fields, constraint_name=None):
 		if isinstance(fields, str):
@@ -410,11 +417,17 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			self.commit()
 
 			self.sql(
-				sql.SQL("""ALTER TABLE {schema}.{table}
-					ADD CONSTRAINT {constraint} UNIQUE ({fields})""").format(schema=sql.Identifier(self.db_schema),
-																														 			table=sql.Identifier('tab' + doctype),
-																																	constraint=sql.Identifier(constraint_name),
-																																	fields=sql.SQL(', ').join(map(sql.Identifier, fields))).as_string(self._conn)
+				sql.SQL(
+					"""ALTER TABLE {schema}.{table}
+					ADD CONSTRAINT {constraint} UNIQUE ({fields})"""
+				)
+				.format(
+					schema=sql.Identifier(self.db_schema),
+					table=sql.Identifier("tab" + doctype),
+					constraint=sql.Identifier(constraint_name),
+					fields=sql.SQL(", ").join(map(sql.Identifier, fields)),
+				)
+				.as_string(self._conn)
 			)
 
 	def get_table_columns_description(self, table_name):
