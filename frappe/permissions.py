@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 import copy
 import functools
+from collections.abc import Callable
+from typing import Any, TypeVar, overload
 
 import frappe
 import frappe.share
@@ -32,9 +34,144 @@ ALL_USER_ROLE = "All"  # This includes website users too.
 SYSTEM_USER_ROLE = "Desk User"
 ADMIN_ROLE = "Administrator"
 
+logger = frappe.logger("frappe.permissions")
 
 # These roles are automatically assigned based on user type
 AUTOMATIC_ROLES = (GUEST_ROLE, ALL_USER_ROLE, SYSTEM_USER_ROLE, ADMIN_ROLE)
+
+# Global state to store permission requirements per function
+FUNC_CLOSURE_PERMISSION_REQUIREMENTS = {}
+
+
+def get_func_id(func):
+	"""
+	Generate a unique identifier for a function or method.
+	Args:
+	        func: The function or method to identify.
+	Returns:
+	        str: A unique identifier string for the function.
+	"""
+	return f"{func.__module__ or '<unknown>'}.{func.__qualname__}"
+
+
+# Type variable for the decorated function
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+@overload
+def requires_permission(doctype: str, permission_type: str) -> Callable[[F], F]:
+	...
+
+
+@overload
+def requires_permission(permissions: list[tuple[str, str]]) -> Callable[[F], F]:
+	...
+
+
+def requires_permission(*args: str | list[tuple[str, str]]) -> Callable[[F], F]:
+	"""
+	Decorator to specify permission requirements for a method in Frappe.
+
+	This decorator allows you to define one or more permission requirements for a method.
+	It can be used in multiple ways to specify permissions, providing flexibility in how
+	you define your access control.
+
+	Args:
+	        *args: Variable length argument list. Can be:
+	            - Two strings: (doctype, permission_type)
+	            - A list of tuples: [(doctype1, permission_type1), (doctype2, permission_type2), ...]
+
+	Usage:
+	        1. Single permission requirement:
+	           @requires_permission("MyDocType", "read")
+	           def my_method():
+	               pass
+
+	        2. Multiple permission requirements using multiple decorators:
+	           @requires_permission("MyDocType", "read")
+	           @requires_permission("OtherDocType", "write")
+	           def my_method():
+	               pass
+
+	        3. Multiple permission requirements using a list:
+	           @requires_permission([("MyDocType", "read"), ("OtherDocType", "write")])
+	           def my_method():
+	               pass
+
+	Behavior:
+	        - The decorator checks all specified permissions before allowing method execution.
+	        - If any permission check fails, a frappe.PermissionError is raised.
+	        - Permissions are checked in the order they are specified.
+	        - The 'whitelist_permissions' flag can be used to bypass permission checks at runtime.
+
+	Runtime Usage:
+	        def my_method():
+	            pass
+
+	        # Normal execution with permission checks
+	        my_method()
+
+	        # Whitelist declared permission checks
+	        my_method(whitelist_permissions=True)
+
+	Logging:
+	        - Permission checks, grants, and bypasses are logged for auditing purposes.
+
+	Notes:
+	        - This decorator uses global state (FUNC_CLOSURE_PERMISSION_REQUIREMENTS) to store requirements.
+	        - Be cautious when using 'whitelist_permissions' it bypasses all declared permissions.
+
+	Returns:
+	        function: The wrapped function with permission checking logic.
+
+	Raises:
+	        frappe.PermissionError: If the user doesn't have the required permissions.
+	"""
+
+	def decorator(func: F) -> F:
+		func_id = get_func_id(func)
+		if func_id not in FUNC_CLOSURE_PERMISSION_REQUIREMENTS:
+			FUNC_CLOSURE_PERMISSION_REQUIREMENTS[func_id] = set()
+
+		if len(args) == 1 and isinstance(args[0], list):
+			FUNC_CLOSURE_PERMISSION_REQUIREMENTS[func_id].update(set(args[0]))
+		else:
+			FUNC_CLOSURE_PERMISSION_REQUIREMENTS[func_id].add(args)
+
+		@functools.wraps(func)
+		def wrapper(*func_args, whitelist_permissions: bool = False, **func_kwargs):
+			if whitelist_permissions:
+				logger.debug(
+					f"Permissions Whitelisted: User {frappe.session.user} accessed {func_id} with whitelist_permissions flag"
+				)
+			else:
+				no_permission_messages = []
+				for doctype, permission_type in FUNC_CLOSURE_PERMISSION_REQUIREMENTS[func_id]:
+					if not has_permission(doctype, permission_type):
+						logger.warning(
+							f"Permission Denied: User {frappe.session.user} accessed {func_id} which requires permission to {permission_type} {doctype}"
+						)
+						no_permission_messages.append(
+							_("No {0} permission for {1}").format(permission_type, doctype)
+						)
+				if no_permission_messages:
+					frappe.throw(
+						no_permission_messages,
+						frappe.PermissionError,
+						as_list=True,
+						title=_("Inappropriate Security Context"),
+					)
+				logger.debug(f"All Permissions Granted: User {frappe.session.user} accessed {func_id}")
+
+			frappe.flags.whitelisted_permissions = FUNC_CLOSURE_PERMISSION_REQUIREMENTS[func_id]
+			result = func(*func_args, **func_kwargs)
+			frappe.flags.whitelisted_permissions = None
+
+			return result
+
+		return wrapper
+
+	return decorator
 
 
 def print_has_permission_check_logs(func):
@@ -125,6 +262,15 @@ def has_permission(
 		)
 
 	meta = frappe.get_meta(doctype)
+
+	if frappe.flags.whitelisted_permissions and (doctype, ptype) in frappe.flags.whitelisted_permissions:
+		if ptype == "submit" and not cint(meta.is_submittable):
+			push_perm_check_log(_("Document Type is not submittable"), debug=debug)
+			return False
+		if ptype == "import" and not cint(meta.allow_import):
+			push_perm_check_log(_("Document Type is not importable"), debug=debug)
+			return False
+		return True
 
 	if doc:
 		if isinstance(doc, str | int):
