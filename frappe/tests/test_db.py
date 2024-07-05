@@ -1082,6 +1082,12 @@ class TestSqlIterator(FrappeTestCase):
 
 
 class TestDbConnectWithEnvCredentials(FrappeTestCase):
+	current_site = frappe.local.site
+
+	def tearDown(self):
+		frappe.init(self.current_site, force=True)
+		frappe.connect()
+
 	def test_connect_fails_with_wrong_credentials_by_env(self) -> None:
 		import contextlib
 		import os
@@ -1102,11 +1108,9 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 				else:
 					del os.environ[key]
 
-		current_site = frappe.local.site
-
 		# with wrong db name
 		with set_env_variable("FRAPPE_DB_NAME", "dbiq"):
-			frappe.init(current_site, force=True)
+			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
 			with self.assertRaises(Exception) as cm:
@@ -1116,7 +1120,7 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 
 		# with wrong host
 		with set_env_variable("FRAPPE_DB_HOST", "iqx.local"):
-			frappe.init(current_site, force=True)
+			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
 			with self.assertRaises(Exception) as cm:
@@ -1126,7 +1130,7 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 
 		# with wrong user name
 		with set_env_variable("FRAPPE_DB_USER", "uname"):
-			frappe.init(current_site, force=True)
+			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
 			with self.assertRaises(Exception) as cm:
@@ -1136,7 +1140,7 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 
 		# with wrong password
 		with set_env_variable("FRAPPE_DB_PASSWORD", "pass"):
-			frappe.init(current_site, force=True)
+			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
 			with self.assertRaises(Exception) as cm:
@@ -1148,7 +1152,7 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 
 		# with wrong password
 		with set_env_variable("FRAPPE_DB_PORT", "1111"):
-			frappe.init(current_site, force=True)
+			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
 			with self.assertRaises(Exception) as cm:
@@ -1159,7 +1163,7 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 		# TODO: possible after pg schema isluation fixes (PR 27000)
 		# # with wrong postgres schema
 		# with set_env_variable("FRAPPE_DB_PG_SCHEMA", "pg_schema"):
-		# 	frappe.init(current_site, force=True)
+		# 	frappe.init(self.current_site, force=True)
 		# 	frappe.connect()
 
 		# 	if frappe.conf.get("db_type") == db_type_is.POSTGRES.value:
@@ -1170,6 +1174,6 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 
 		# now with configured settings without any influences from env
 		# finally connect should work without any error (when no wrong credentials are given via ENV)
-		frappe.init(current_site, force=True)
+		frappe.init(self.current_site, force=True)
 		frappe.connect()
 		frappe.db.connect()
