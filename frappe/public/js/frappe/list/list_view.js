@@ -857,7 +857,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			column_html = this.settings.formatters[fieldname](value, df, doc);
 		} else {
 			column_html = {
-				Subject: this.get_subject_html(doc),
+				Subject: this.get_subject_html(doc, value_display),
 				Field: field_html(),
 			}[col.type];
 		}
@@ -1011,9 +1011,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		return div.innerHTML;
 	}
 
-	get_subject_html(doc) {
+	get_subject_html(doc, title) {
 		let subject_field = this.columns[0].df;
-		let value = doc[subject_field.fieldname];
+		let value = title || doc[subject_field.fieldname];
 		if (this.settings.formatters && this.settings.formatters[subject_field.fieldname]) {
 			let formatter = this.settings.formatters[subject_field.fieldname];
 			value = formatter(value, subject_field, doc);
