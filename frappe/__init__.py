@@ -339,23 +339,17 @@ def connect(site: str | None = None, db_name: str | None = None, set_admin_as_us
 			"Instead, explicitly invoke frappe.init(site) with the right config prior to calling frappe.connect(), if necessary."
 		)
 
-	db_name = db_name or os.getenv("DB_NAME") or local.conf.db_name or local.conf.db_user
-	user = os.getenv("DB_USER") or local.conf.db_user or db_name
-	host = os.getenv("DB_HOST") or local.conf.db_host
-	port = os.getenv("DB_PORT") or local.conf.db_port
-	password = os.getenv("DB_PASSWORD") or local.conf.db_password
-
-	assert user, "site must be fully initialized, db_user missing"
-	assert db_name, "site must be fully initialized, db_name missing"
-	assert password, "site must be fully initialized, db_password missing"
+	assert db_name or local.conf.db_user, "site must be fully initialized, db_user missing"
+	assert db_name or local.conf.db_name, "site must be fully initialized, db_name missing"
+	assert local.conf.db_password, "site must be fully initialized, db_password missing"
 
 	local.db = get_db(
 		socket=local.conf.db_socket,
-		host=host,
-		port=port,
-		user=user,
-		password=password,
-		cur_db_name=db_name,
+		host=local.conf.db_host,
+		port=local.conf.db_port,
+		user=local.conf.db_user or db_name,
+		password=local.conf.db_password,
+		cur_db_name=local.conf.db_name or db_name,
 	)
 	if set_admin_as_user:
 		set_user("Administrator")
@@ -447,6 +441,15 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 
 	# Set the user as database name if not set in config
 	config["db_user"] = os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
+
+	# vice versa for dbname if not defined
+	config["db_name"] = os.environ.get("FRAPPE_DB_NAME") or config.get("db_name") or config["db_user"]
+
+	# read password
+	config["db_password"] = os.environ.get("FRAPPE_DB_PASSWORD") or config.get("db_password")
+
+	if config["db_type"] == "postgres":
+		config["db_schema"] = os.environ.get("FRAPPE_DB_PG_SCHEMA") or config.get("db_schema")
 
 	# Allow externally extending the config with hooks
 	if extra_config := config.get("extra_config"):
