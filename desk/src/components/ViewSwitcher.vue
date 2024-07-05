@@ -1,7 +1,7 @@
 <template>
 	<Dropdown v-if="configSettings.data" :options="viewSwitcherOptions">
 		<template #default="{ open }">
-			<Button :label="configSettings.data.label">
+			<Button :label="isDefaultConfig ? 'List View' : configSettings.data.label">
 				<template #prefix>
 					<FeatherIcon :name="configSettings.data.icon || 'list'" class="h-3.5 text-gray-600" />
 				</template>

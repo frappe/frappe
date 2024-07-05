@@ -128,8 +128,8 @@ const createConfigObj = async () => {
 	oldConfig.value = cloneObject(listConfig.value)
 }
 
-const fetchList = async (updateCount = true) => {
-	if (updateCount) await updateTotalCount()
+const fetchList = async (updateCount = false) => {
+	updateCount && (await updateTotalCount())
 	await listResource.fetch()
 }
 
@@ -198,9 +198,13 @@ const currentFilters = computed(() => {
 	return filters
 })
 
-const queryFilters = computed<QueryFilter[]>(
-	() => currentFilters.value.map((f) => [f.fieldname, f.operator, f.value]) || []
-)
+const queryFilters = computed<QueryFilter[]>(() => {
+	if (!currentFilters.value) return []
+	return currentFilters.value.map((f) => {
+		let val = f.operator === "between" ? f.value.split(",") : f.value
+		return [f.fieldname, f.operator, val]
+	})
+})
 
 // Footer actions
 const updateTotalCount = async () => {

@@ -1,3 +1,5 @@
+import { FilterOperatorOption } from "@/types/list"
+
 const numberTypes = ["Float", "Int", "Currency", "Percent"]
 const dateTypes = ["Date", "Datetime"]
 const linkTypes = ["Link", "Dynamic Link"]
@@ -96,7 +98,7 @@ const filterOptions = {
 	],
 }
 
-const filterOperators = {
+const filterOperators: Record<string, FilterOperatorOption[]> = {
 	string: [
 		{ label: "Equals", value: "=" },
 		{ label: "Not Equals", value: "!=" },

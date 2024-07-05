@@ -41,7 +41,7 @@ type ListFilter = {
 	options: string[]
 }
 
-type QueryFilter = [string, ListFilterOperator, string]
+type QueryFilter = [string, ListFilterOperator, string | string[]]
 
 type ListSort = [string, "ASC" | "DESC"]
 
@@ -67,6 +67,8 @@ type ListResource = Omit<Resource, "data"> & {
 	data: ListRow[]
 }
 
+type FilterOperatorOption = { label: string; value: ListFilterOperator }
+
 export {
 	QueryParamDict,
 	ListField,
@@ -79,5 +81,6 @@ export {
 	SavedView,
 	ListConfiguration,
 	ListResource,
+	FilterOperatorOption,
 	isValidFilterOperator,
 }
