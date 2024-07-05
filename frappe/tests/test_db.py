@@ -1085,6 +1085,7 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 	def test_connect_fails_with_wrong_credentials_by_env(self) -> None:
 		import contextlib
 		import os
+		import re
 
 		@contextlib.contextmanager
 		def set_env_variable(key, value):
@@ -1111,7 +1112,7 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 			with self.assertRaises(Exception) as cm:
 				frappe.db.connect()
 
-			self.assertTrue('database "dbiq"' in str(cm.exception))
+			self.assertTrue(re.search(r"database [\"']dbiq[\"']", str(cm.exception)))
 
 		# with wrong host
 		with set_env_variable("FRAPPE_DB_HOST", "iqx.local"):
@@ -1121,7 +1122,7 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 			with self.assertRaises(Exception) as cm:
 				frappe.db.connect()
 
-			self.assertTrue('host name "iqx.local"' in str(cm.exception))
+			self.assertTrue(re.search(r"(host name|server on) [\"']iqx.local[\"']", str(cm.exception)))
 
 		# with wrong user name
 		with set_env_variable("FRAPPE_DB_USER", "uname"):
@@ -1131,7 +1132,7 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 			with self.assertRaises(Exception) as cm:
 				frappe.db.connect()
 
-			self.assertTrue('user "uname"' in str(cm.exception))
+			self.assertTrue(re.search(r"user [\"']uname[\"']", str(cm.exception)))
 
 		# with wrong password
 		with set_env_variable("FRAPPE_DB_PASSWORD", "pass"):
@@ -1141,7 +1142,9 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 			with self.assertRaises(Exception) as cm:
 				frappe.db.connect()
 
-			self.assertTrue("password authentication failed" in str(cm.exception))
+			self.assertTrue(
+				re.search(r"(password authentication failed|Access denied for)", str(cm.exception))
+			)
 
 		# with wrong password
 		with set_env_variable("FRAPPE_DB_PORT", "1111"):
@@ -1151,7 +1154,7 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 			with self.assertRaises(Exception) as cm:
 				frappe.db.connect()
 
-			self.assertTrue("port 1111 failed" in str(cm.exception))
+			self.assertTrue(re.search("(port 1111 failed|Errno 111)", str(cm.exception)))
 
 		# TODO: possible after pg schema isluation fixes (PR 27000)
 		# # with wrong postgres schema
