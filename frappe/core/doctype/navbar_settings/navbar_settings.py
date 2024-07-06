@@ -16,9 +16,9 @@ class NavbarSettings(Document):
 		from frappe.core.doctype.navbar_item.navbar_item import NavbarItem
 		from frappe.types import DF
 
+		announcement_widget: DF.TextEditor | None
 		app_logo: DF.AttachImage | None
 		help_dropdown: DF.Table[NavbarItem]
-		logo_width: DF.Int
 		settings_dropdown: DF.Table[NavbarItem]
 	# end: auto-generated types
 
