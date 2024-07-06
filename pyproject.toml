@@ -75,6 +75,7 @@ dependencies = [
     "typing_extensions>=4.6.1,<5",
     "tomli~=2.0.1",
     "uuid-utils~=0.6.1",
+    "urllib3>=2.0.3",
     "xlrd~=2.0.1",
     "zxcvbn~=4.4.28",
     "markdownify~=0.11.6",
