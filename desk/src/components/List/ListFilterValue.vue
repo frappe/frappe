@@ -27,30 +27,18 @@
 	<FormControl v-else type="text" v-model="modelValue" />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { DatePicker, DateTimePicker, DateRangePicker } from "frappe-ui"
 import { numberTypes, dateTypes, filterOptions } from "@/data/constants/filters"
 
 import Link from "@/components/FormControls/Link.vue"
 import MultiSelectLink from "@/components/FormControls/MultiSelectLink.vue"
 
-const props = defineProps({
-	fieldtype: {
-		type: String,
-		required: true,
-	},
-	operator: {
-		type: String,
-		required: true,
-	},
-	options: {
-		type: Array,
-		required: true,
-	},
-})
+defineProps<{
+	fieldtype: string
+	operator: string
+	options: string[]
+}>()
 
-const modelValue = defineModel("modelValue", {
-	type: String,
-	default: "",
-})
+const modelValue = defineModel<string>({ required: true })
 </script>

@@ -4,12 +4,12 @@
 		v-model="selectedOptions"
 		:options="options.data"
 		:multiple="true"
-		@update:modelValue="(val: AutocompleteValue[]) => updateSelectedOptions(val)"
+		@update:modelValue="(val: SelectOption[]) => updateSelectedOptions(val)"
 	/>
 </template>
 
 <script setup lang="ts">
-import { AutocompleteValue, SearchLinkOption } from "@/types/controls"
+import { SelectOption, SearchLinkOption } from "@/types/controls"
 import { createResource, Autocomplete } from "frappe-ui"
 import { ref, watch } from "vue"
 
@@ -28,9 +28,9 @@ const modelValue = defineModel("modelValue", {
 	default: "",
 })
 
-const selectedOptions = ref<AutocompleteValue[] | string[]>()
+const selectedOptions = ref<SelectOption[] | string[]>()
 
-const updateSelectedOptions = (val: AutocompleteValue[]) => {
+const updateSelectedOptions = (val: SelectOption[]) => {
 	if (!val) return
 	modelValue.value = val.map((v) => v.value).join(",")
 }

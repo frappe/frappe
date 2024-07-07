@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { AutocompleteValue, SearchLinkOption } from "@/types/controls"
+import { SelectOption, SearchLinkOption } from "@/types/controls"
 import { createResource, Autocomplete, debounce } from "frappe-ui"
 import { ref, computed, watch } from "vue"
 
@@ -39,7 +39,7 @@ const searchText = ref("")
 
 const value = computed({
 	get: () => props.modelValue,
-	set: (val: AutocompleteValue | string): void => {
+	set: (val: SelectOption | string): void => {
 		if (typeof val === "string") {
 			emit("update:modelValue", val)
 		} else {

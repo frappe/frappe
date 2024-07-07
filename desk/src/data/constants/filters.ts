@@ -1,11 +1,12 @@
 import { FilterOperatorOption } from "@/types/list"
+import { SelectOption } from "@/types/controls"
 
 const numberTypes = ["Float", "Int", "Currency", "Percent"]
 const dateTypes = ["Date", "Datetime"]
 const linkTypes = ["Link", "Dynamic Link"]
 const stringTypes = ["Data", "Long Text", "Small Text", "Text Editor", "Text"]
 
-const filterOptions = {
+const filterOptions: Record<string, SelectOption[]> = {
 	timespan: [
 		{
 			label: "Last Week",

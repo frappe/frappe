@@ -33,7 +33,7 @@ export type FieldTypes =
 	| "Rating"
 	| "Icon"
 
-export type AutocompleteValue = {
+export type SelectOption = {
 	value: string
 	label: string
 }
