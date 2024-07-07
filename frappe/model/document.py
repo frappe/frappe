@@ -4,6 +4,8 @@ import hashlib
 import json
 import time
 from collections.abc import Generator, Iterable
+from contextlib import contextmanager
+from functools import wraps
 from typing import TYPE_CHECKING, Any, Literal, Optional, TypeAlias, Union, overload
 
 from werkzeug.exceptions import NotFound
@@ -89,6 +91,38 @@ def get_doc(*args, **kwargs):
 		return controller(*args, **kwargs)
 
 	raise ImportError(doctype)
+
+
+@contextmanager
+def read_only_document():
+	# Store original methods
+	original_methods = {
+		"save": Document.save,
+		"_save": Document._save,
+		"insert": Document.insert,
+		"delete": Document.delete,
+		"submit": Document.submit,
+		"cancel": Document.cancel,
+		"db_set": Document.db_set,
+	}
+
+	def read_only_method(func):
+		@wraps(func)
+		def wrapper(*args, **kwargs):
+			raise frappe.DatabaseModificationError(f"Cannot call {func.__name__} in read-only document mode")
+
+		return wrapper
+
+	# Replace methods with read-only versions
+	for method_name, method in original_methods.items():
+		setattr(Document, method_name, read_only_method(method))
+
+	try:
+		yield
+	finally:
+		# Restore original methods
+		for method_name, method in original_methods.items():
+			setattr(Document, method_name, method)
 
 
 class Document(BaseDocument):
