@@ -249,9 +249,11 @@ class Document(BaseDocument):
 
 		# All methods use @frappe.require_permission, handling whitelist_permissions
 		if hasattr(self, from_converter_method):
-			getattr(self, from_converter_method)(source_doc, whitelist_permissions=whitelist_permissions)
+			with read_only_document():
+				getattr(self, from_converter_method)(source_doc, whitelist_permissions=whitelist_permissions)
 		elif hasattr(source_doc, into_converter_method):
-			getattr(source_doc, into_converter_method)(self, whitelist_permissions=whitelist_permissions)
+			with read_only_document():
+				getattr(source_doc, into_converter_method)(self, whitelist_permissions=whitelist_permissions)
 		else:
 			frappe.throw(
 				_(
@@ -292,9 +294,11 @@ class Document(BaseDocument):
 
 		# All methods use @frappe.require_permission, handling whitelist_permissions
 		if hasattr(self, into_converter_method):
-			getattr(self, into_converter_method)(new_doc, whitelist_permissions=whitelist_permissions)
+			with read_only_document():
+				getattr(self, into_converter_method)(new_doc, whitelist_permissions=whitelist_permissions)
 		elif hasattr(new_doc, from_converter_method):
-			getattr(new_doc, from_converter_method)(self, whitelist_permissions=whitelist_permissions)
+			with read_only_document():
+				getattr(new_doc, from_converter_method)(self, whitelist_permissions=whitelist_permissions)
 		else:
 			frappe.throw(
 				_(
