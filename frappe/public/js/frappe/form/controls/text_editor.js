@@ -196,7 +196,7 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 	}
 
 	get_quill_options() {
-		return {
+		const options = {
 			modules: {
 				toolbar: this.get_toolbar_options(),
 				table: true,
@@ -206,6 +206,14 @@ frappe.ui.form.ControlTextEditor = class ControlTextEditor extends frappe.ui.for
 			},
 			theme: "snow",
 		};
+
+		// In a grid row where space is constrained, hide the toolbar.
+		if (this.grid_row) {
+			options.theme = null;
+			options.modules.toolbar = [];
+		}
+
+		return options;
 	}
 
 	get_mention_options() {
