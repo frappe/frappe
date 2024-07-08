@@ -1,10 +1,10 @@
-import { ListFilter, QueryParamDict } from "@/types/list"
+import { RouteQuery, ListFilter } from "@/types/list"
 
 const getFilterValue = (filter: ListFilter): string | boolean =>
 	filter.fieldtype == "Check" ? filter.value == "true" : filter.value
 
-export function getFilterQuery(filters: ListFilter[]): QueryParamDict {
-	const q: QueryParamDict = {}
+export function getFilterQuery(filters: ListFilter[]): RouteQuery {
+	const q: RouteQuery = {}
 	filters.map((f) => {
 		const { fieldname, operator } = f
 		const value = getFilterValue(f)

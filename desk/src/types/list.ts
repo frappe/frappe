@@ -1,7 +1,7 @@
 import { Resource } from "@/types/frappeUI"
 import { FieldTypes as DocFieldType } from "./controls"
 
-type QueryParamDict = Record<string, string | string[]>
+type RouteQuery = Record<string, string | string[]>
 
 type ListField = {
 	key: string
@@ -40,8 +40,7 @@ type ListFilter = {
 	value: string
 	options: string[]
 }
-
-type QueryFilter = [string, ListFilterOperator, string | string[]]
+type ListQueryFilter = [string, ListFilterOperator, string | string[]]
 
 type ListSort = [string, "ASC" | "DESC"]
 
@@ -70,14 +69,14 @@ type ListResource = Omit<Resource, "data"> & {
 type FilterOperatorOption = { label: string; value: ListFilterOperator }
 
 export {
-	QueryParamDict,
+	RouteQuery,
 	ListField,
 	ListRow,
 	ListColumn,
-	ListFilter,
-	QueryFilter,
-	ListSort,
 	ListFilterOperator,
+	ListFilter,
+	ListQueryFilter,
+	ListSort,
 	SavedView,
 	ListConfiguration,
 	ListResource,

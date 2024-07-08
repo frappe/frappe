@@ -60,9 +60,11 @@
 
 <script setup lang="ts">
 import { inject } from "vue"
-import { guessColour } from "@/utils/list"
 import { Badge, Checkbox, Avatar } from "frappe-ui"
-import { ListRow, ListColumn } from "@/types/list"
+
+import { guessColour } from "@/utils/list"
+
+import { ListColumn, ListRow } from "@/types/list"
 
 defineProps<{
 	row: ListRow

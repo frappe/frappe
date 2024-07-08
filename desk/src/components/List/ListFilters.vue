@@ -89,12 +89,14 @@
 </template>
 
 <script setup lang="ts">
-import ListFilterValue from "@/components/List/ListFilterValue.vue"
-import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
-
-import { Autocomplete } from "frappe-ui"
 import { computed, inject } from "vue"
 import { useRouter } from "vue-router"
+
+import { Autocomplete } from "frappe-ui"
+import ListFilterValue from "@/components/List/ListFilterValue.vue"
+// @ts-ignore
+import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
+
 import {
 	linkTypes,
 	numberTypes,
@@ -102,23 +104,28 @@ import {
 	dateTypes,
 	filterOperators,
 } from "@/data/constants/filters"
+import { configName, isDefaultConfig } from "@/stores/view"
 import { getFilterQuery } from "@/utils/list"
 
-import { FieldTypes as DocFieldType } from "@/types/controls"
-import { ListField, ListFilter, FilterOperatorOption, QueryParamDict } from "@/types/list"
 import { fetchListFnKey } from "@/types/injectionKeys"
-import { ListFilterOperator } from "@/types/list"
-import { configName, isDefaultConfig } from "@/stores/view"
+import { FieldTypes as DocFieldType } from "@/types/controls"
+import {
+	RouteQuery,
+	ListField,
+	ListFilterOperator,
+	ListFilter,
+	FilterOperatorOption,
+} from "@/types/list"
+
+type FilterFieldOption = ListField & { value: string }
+
+const fetchList = inject(fetchListFnKey) as (updateCount: boolean) => Promise<void>
 
 const props = defineProps<{
 	allFilterableFields: ListField[]
 }>()
 
 const filters = defineModel<ListFilter[]>({ required: true })
-
-const fetchList = inject(fetchListFnKey) as (updateCount: boolean) => Promise<void>
-
-type FilterFieldOption = ListField & { value: string }
 
 const filterableFields = computed<FilterFieldOption[]>(() => {
 	return props.allFilterableFields.map((field) => {
@@ -189,7 +196,7 @@ const updateValue = (value: string, index: number) => {
 const router = useRouter()
 
 const updateFiltersInQuery = async () => {
-	let queryParams: QueryParamDict = {}
+	let queryParams: RouteQuery = {}
 	if (!isDefaultConfig.value) queryParams.view = configName.value
 	Object.assign(queryParams, getFilterQuery(filters.value))
 	await router.replace({ query: queryParams })

@@ -64,17 +64,17 @@ import {
 	configUpdated,
 } from "@/stores/view"
 
+import { fetchListFnKey, renderListFnKey } from "@/types/injectionKeys"
 import { useRouteParamsAsStrings } from "@/composables/router"
 import { FieldTypes as DocFieldType } from "@/types/controls"
 import {
-	ListResource,
-	QueryParamDict,
-	ListFilter,
+	RouteQuery,
 	ListFilterOperator,
+	ListFilter,
+	ListQueryFilter,
+	ListResource,
 	isValidFilterOperator,
-	QueryFilter,
 } from "@/types/list"
-import { fetchListFnKey, renderListFnKey } from "@/types/injectionKeys"
 
 const route = useRoute()
 const router = useRouter()
@@ -114,7 +114,7 @@ const loadConfig = async () => {
 
 const addSavedFilters = async () => {
 	if (isDefaultConfig.value) return
-	let queryParams: QueryParamDict = { view: configName.value }
+	let queryParams: RouteQuery = { view: configName.value }
 	let savedFilters = configSettings.data.filters
 	Object.assign(queryParams, getFilterQuery(savedFilters))
 	await router.replace({ query: queryParams })
@@ -178,7 +178,7 @@ const getParsedFilter = (key: string, filter: string): ListFilter | undefined =>
 
 const currentFilters = computed(() => {
 	let filters: ListFilter[] = []
-	let query = route.query as QueryParamDict
+	let query = route.query as RouteQuery
 	if (query) {
 		for (let key in query) {
 			if (key == "view") continue
@@ -198,7 +198,7 @@ const currentFilters = computed(() => {
 	return filters
 })
 
-const queryFilters = computed<QueryFilter[]>(() => {
+const queryFilters = computed<ListQueryFilter[]>(() => {
 	if (!currentFilters.value) return []
 	return currentFilters.value.map((f) => {
 		let val = f.operator === "between" ? f.value.split(",") : f.value

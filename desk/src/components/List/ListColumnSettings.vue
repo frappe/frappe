@@ -111,24 +111,25 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, inject } from "vue"
-import { Autocomplete, call } from "frappe-ui"
 import Draggable from "vuedraggable"
 
-import { isDefaultConfig, isDefaultOverriden, configName } from "@/stores/view"
+import { Autocomplete, call } from "frappe-ui"
+import IconReset from "@/components/Icons/IconReset.vue"
 // @ts-ignore
 import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
 
-import IconReset from "@/components/Icons/IconReset.vue"
+import { isDefaultConfig, isDefaultOverriden, configName } from "@/stores/view"
 import { cloneObject } from "@/utils"
-import { ListColumn, ListField } from "@/types/list"
+
 import { fetchListFnKey, renderListFnKey } from "@/types/injectionKeys"
+import { ListField, ListColumn } from "@/types/list"
+
+const fetchList = inject(fetchListFnKey, async () => {})
+const renderList = inject(renderListFnKey, async () => {})
 
 const props = defineProps<{
 	allColumns: ListField[]
 }>()
-
-const fetchList = inject(fetchListFnKey, async () => {})
-const renderList = inject(renderListFnKey, async () => {})
 
 const columns = defineModel<ListColumn[]>({ required: true })
 const oldColumns = ref<ListColumn[]>()

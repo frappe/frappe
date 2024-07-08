@@ -80,11 +80,12 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router"
 import { ref, computed } from "vue"
-import { call, createResource, Dropdown, Dialog, ErrorMessage } from "frappe-ui"
-import { cloneObject } from "@/utils"
+import { useRouter } from "vue-router"
 
+import { call, createResource, Dropdown, Dialog, ErrorMessage } from "frappe-ui"
+
+import { cloneObject } from "@/utils"
 import {
 	configName,
 	configSettings,
@@ -97,7 +98,7 @@ import {
 
 import { Resource } from "@/types/frappeUI"
 import { useRouteParamsAsStrings } from "@/composables/router"
-import { QueryFilter, QueryParamDict } from "@/types/list"
+import { RouteQuery, ListQueryFilter } from "@/types/list"
 
 type ViewSwitcherItem = {
 	label: string
@@ -105,11 +106,11 @@ type ViewSwitcherItem = {
 	onClick: () => void
 }
 
-type ViewSwitcherOptions = {
+type ViewSwitcherOption = {
 	group: string
 	items: ViewSwitcherItem[]
 	hideLabel?: boolean
-}[]
+}
 
 type createConfigParams = {
 	params: {
@@ -122,7 +123,7 @@ type createConfigParams = {
 }
 
 const props = defineProps<{
-	queryFilters: QueryFilter[]
+	queryFilters: ListQueryFilter[]
 }>()
 
 const showDialog = ref(false)
@@ -184,7 +185,7 @@ const updateView = async () => {
 }
 
 const redirectToView = async (viewName?: string) => {
-	let queryParams: QueryParamDict = {}
+	let queryParams: RouteQuery = {}
 	// Redirect to default view if viewName is not provided
 	if (viewName) queryParams.view = viewName
 	await router.replace({ query: queryParams })
@@ -271,7 +272,7 @@ const getSavedViews = (): ViewSwitcherItem[] => {
 }
 
 const viewSwitcherOptions = computed(() => {
-	const options: ViewSwitcherOptions = []
+	const options: ViewSwitcherOption[] = []
 
 	const actions = getActions()
 	if (actions.length) {

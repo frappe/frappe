@@ -29,15 +29,17 @@
 
 <script setup lang="ts">
 import { computed, defineModel, inject } from "vue"
+
 import { Dropdown, Tooltip } from "frappe-ui"
-import { ListColumn, ListSort } from "@/types/list"
+
 import { fetchListFnKey } from "@/types/injectionKeys"
+import { ListColumn, ListSort } from "@/types/list"
+
+const fetchList = inject(fetchListFnKey, async () => {})
 
 const props = defineProps<{
 	allSortableFields: ListColumn[]
 }>()
-
-const fetchList = inject(fetchListFnKey, async () => {})
 
 const sort = defineModel<ListSort>({ required: true })
 
