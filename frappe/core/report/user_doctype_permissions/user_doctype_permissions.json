@@ -1,0 +1,26 @@
+{
+ "add_total_row": 0,
+ "columns": [],
+ "creation": "2024-07-08 14:48:59.993530",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letterhead": null,
+ "modified": "2024-07-08 15:56:56.975098",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "User Doctype Permissions",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "User",
+ "report_name": "User Doctype Permissions",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ]
+}
