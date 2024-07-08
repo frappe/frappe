@@ -448,10 +448,6 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	# read password
 	config["db_password"] = os.environ.get("FRAPPE_DB_PASSWORD") or config.get("db_password")
 
-	# TODO: possible after pg schema isluation fixes (PR 27000)
-	# if config["db_type"] == "postgres":
-	# 	config["db_schema"] = os.environ.get("FRAPPE_DB_PG_SCHEMA") or config.get("db_schema")
-
 	# Allow externally extending the config with hooks
 	if extra_config := config.get("extra_config"):
 		if isinstance(extra_config, str):

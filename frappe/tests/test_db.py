@@ -1160,18 +1160,6 @@ class TestDbConnectWithEnvCredentials(FrappeTestCase):
 
 			self.assertTrue(re.search("(port 1111 failed|Errno 111)", str(cm.exception)))
 
-		# TODO: possible after pg schema isluation fixes (PR 27000)
-		# # with wrong postgres schema
-		# with set_env_variable("FRAPPE_DB_PG_SCHEMA", "pg_schema"):
-		# 	frappe.init(self.current_site, force=True)
-		# 	frappe.connect()
-
-		# 	if frappe.conf.get("db_type") == db_type_is.POSTGRES.value:
-		# 		self.assertEqual(frappe.conf.get("db_schema"), "pg_schema")
-		# 	else:
-		# 		# for mariadb this env should not have any effect
-		# 		self.assertIsNone(frappe.conf.get("db_schema"))
-
 		# now with configured settings without any influences from env
 		# finally connect should work without any error (when no wrong credentials are given via ENV)
 		frappe.init(self.current_site, force=True)
