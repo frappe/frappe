@@ -71,9 +71,8 @@ def get_data(user):
 
 	result = []
 	sorted_keys = sorted(agg_perms.keys(), key=lambda x: _(x[0]))
-	for key in sorted_keys:
-		perm = agg_perms[key]
-		dt, if_owner = key
+	for dt, if_owner in sorted_keys:
+		perm = agg_perms[(dt, if_owner)]
 		row = [dt, if_owner]
 		row.extend(perm[perm_type] for perm_type in PERM_TYPES)
 		result.append(row)
