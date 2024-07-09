@@ -59,11 +59,9 @@ class DbManager:
 		pv = find_executable("pv")
 
 		if pv:
-			pipe = f"{pv} {source} |"
-			source = ""
+			pipe = rf"{pv} {source} | sed '/\/\*!999999\\- enable the sandbox mode \*\//d' |"
 		else:
-			pipe = ""
-			source = f"< {source}"
+			pipe = rf"cat {source} | sed '/\/\*!999999\\- enable the sandbox mode \*\//d' |"
 
 		if pipe:
 			print("Restoring Database file...")
@@ -71,15 +69,15 @@ class DbManager:
 		command = (
 			"{pipe} mysql -u {user} -p{password} -h{host} "
 			+ ("-P{port}" if frappe.db.port else "")
-			+ " {target} {source}"
+			+ " {target}"
 		)
+
 		command = command.format(
 			pipe=pipe,
 			user=esc(user),
 			password=esc(password),
 			host=esc(frappe.db.host),
 			target=esc(target),
-			source=source,
 			port=frappe.db.port,
 		)
 
