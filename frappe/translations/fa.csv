@@ -149,8 +149,8 @@ New Address,آدرس جدید,
 New Contact,تماس جدید,
 Next,بعد,
 No Data,بدون اطلاعات,
-No address added yet.,بدون آدرس اضافه نشده است.,
-No contacts added yet.,بدون اطلاعات تماس اضافه نشده است.,
+No address added yet.,هنوز آدرسی اضافه نشده است.,
+No contacts added yet.,هنوز اطلاعات تماسی اضافه نشده است.,
 No items found.,موردی یافت نشد.,
 None,هیچی,
 Not Permitted,غیر مجاز,
@@ -616,7 +616,7 @@ Cent,در صد,
 "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",اسناد خاص، مانند یک فاکتور، نباید تغییر کنند یک بار نهایی است. وضعیت نهایی برای چنین اسناد ارائه شده نامیده می شود. شما می توانید محدود است که نقش می توانید تایید کنید.,
 Chain Integrity,یکپارچگی زنجیره,
 Chaining Hash,هش چینی,
-Change Label (via Custom Translation),تغییر برچسب (از طریق سفارشی ترجمه),
+Change Label (via Custom Translation),تغییر برچسب (از طریق ترجمه سفارشی‌شده),
 Change Password,تغییر رمز عبور,
 "Change field properties (hide, readonly, permission etc.)",خواص تغییر درست (مخفی، فقط خواندنی، اجازه و غیره),
 Channel,کانال,
@@ -689,8 +689,8 @@ Communication Type,نوع ارتباطات,
 Company History,تاریخچه شرکت,
 Company Introduction,معرفی شرکت,
 Compiled Successfully,با موفقیت گردآوری شد,
-Complete By,کامل توسط,
-Complete Registration,ثبت نام کامل,
+Complete By,تکمیل توسط,
+Complete Registration,تکمیل ثبت نام,
 Complete Setup,راه اندازی کامل,
 Compose Email,نوشتن ایمیل,
 Condition Detail,جزئیات وضعیت,
@@ -727,12 +727,12 @@ Count,شمردن,
 Country Name,نام کشور,
 County,شهرستان,
 Create Chart,نمودار را ایجاد کنید,
-Create New,ایجاد جدید,
+Create New,ثبت جدید,
 Create Post,ایجاد پست,
 Create User Email,ایجاد کاربر ایمیل,
 Create a New Format,ایجاد یک قالب جدید,
 Create a new record,یک رکورد جدید ایجاد کنید,
-Create a new {0},ایجاد {0} جدید,
+Create a new {0},ثبت {0} جدید,
 Create and Send Newsletters,ایجاد و ارسال خبرنامه,
 Create and manage newsletter,خبرنامه را ایجاد و مدیریت کنید,
 Created,ایجاد شده,
@@ -923,7 +923,7 @@ Dropbox Setup,راه اندازی Dropbox به,
 Dropbox access is approved!,دسترسی به Dropbox تأیید می شود!,
 Dropbox backup settings,تنظیمات پشتیبان گیری Dropbox,
 Duplicate Filter Name,نام فیلتر تکراری,
-Dynamic Link,پیوند پویا,
+Dynamic Link,لینک پویا,
 Dynamic Report Filters,فیلترهای گزارش پویا,
 ESC,خروج,
 Edit Auto Email Report Settings,ویرایش خودکار تنظیمات گزارش ایمیل,
@@ -994,14 +994,14 @@ Energy Point Rule,قانون نقطه انرژی,
 Energy Point Settings,تنظیمات نقطه انرژی,
 Energy Points,نقاط انرژی,
 Enter Email Recipient(s),را وارد کنید ایمیل دریافت کننده (بازدید کنندگان),
-Enter Form Type,را وارد کنید فرم نوع,
+Enter Form Type,نوع فرم را وارد کنید,
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to ""Customize Form"".",فیلد مقدار پیش فرض (کلید) و ارزش های را وارد کنید. اگر شما اضافه چندین مقدار را برای یک میدان، یکی از اولین برداشت خواهد شد. این پیش فرض نیز استفاده می شود را به مجموعه &quot;مسابقه&quot; قوانین اجازه. برای دیدن لیستی از فیلدها، به &quot;فرم سفارشی&quot; بروید.,
 Enter folder name,نام پوشه را وارد کنید,
 "Enter keys to enable login via Facebook, Google, GitHub.",کلید را وارد کنید برای فعال کردن ورود از طریق فیس بوک، گوگل، گیتهاب.,
 Enter python module or select connector type,ماژول پایتون را وارد کنید یا نوع اتصال را انتخاب کنید,
 "Enter static url parameters here (Eg. sender=ERPNext, username=ERPNext, password=1234 etc.)",پارامترهای URL شخص را اینجا وارد کنید (به عنوان مثال فرستنده = ERPNext، نام کاربری = ERPNext و رمز = 1234 و غیره),
-Enter url parameter for message,پارامتر URL برای پیام را وارد کنید,
-Enter url parameter for receiver nos,پارامتر آدرس را وارد کنید برای گیرنده NOS,
+Enter url parameter for message,پارامتر آدرس (URL) را برای پیام وارد کنید,
+Enter url parameter for receiver nos,پارامتر آدرس را وارد کنید برای شماره گیرنده,
 Enter your password,رمز عبور خود را وارد کنید,
 Entity Name,نام شخصیت,
 Equals,برابر,
@@ -1068,7 +1068,7 @@ Fieldname {0} conflicting with meta object,FIELDNAME {0} متضاد با شی م
 Fields Multicheck,فیلدهای چندگانه,
 "Fields separated by comma (,) will be included in the ""Search By"" list of Search dialog box",فیلدهای از هم جدا شده با کاما (،) در لیست &quot;جستجو بر اساس&quot; صفحه جستجو قرار خواهند گرفت.,
 Fieldtype,Fieldtype,
-Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype می تواند از عوض نمی شوند {0} به {1} در ردیف {2},
+Fieldtype cannot be changed from {0} to {1} in row {2},نوع فیلد در ردیف {2} نمی‌تواند از {0} به {1} عوض شود,
 File '{0}' not found,فایل {0} &quot;یافت نشد,
 File Backup,پشتیبان فایل,
 File Name,نام پرونده,
@@ -1126,7 +1126,7 @@ Footer will display correctly only in PDF,پاورقی درست به صورت PD
 For Document Type,برای نوع سند,
 "For Links, enter the DocType as range.\nFor Select, enter list of Options, each on a new line.",برای لینک ها، وارد DOCTYPE به عنوان محدوده. برای انتخاب، لیست وارد کنید از گزینه ها، که هر کدام در یک خط جدید.,
 For User,برای کاربر,
-For Value,برای ارزش,
+For Value,برای مقدار متغییر,
 "For currency {0}, the minimum transaction amount should be {1}",برای ارز {0} حداقل مبلغ معامله باید {1} باشد,
 For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,برای مثال اگر شما لغو و اصلاح INV004 آن را تبدیل به یک INV004-1 سند جدید. این کمک می کند تا شما را به پیگیری هر اصلاح.,
 "For example: If you want to include the document ID, use {0}",به عنوان مثال: اگر می خواهید شامل ID سند، استفاده از {0},
@@ -1173,8 +1173,8 @@ Global Unsubscribe,کلی لغو عضویت,
 Go to the document,به سند بروید,
 Go to this URL after completing the form (only for Guest users),بعد از تکمیل فرم به این نشانی اینترنتی بروید (فقط برای کاربران مهمان),
 Go to {0},برو به {0},
-Go to {0} List,به {0} لیست بروید,
-Go to {0} Page,برو به {0} صفحه,
+Go to {0} List,به لیست {0} بروید,
+Go to {0} Page,برو به صفحه {0},
 Google,گوگل,
 Google Analytics ID,شناسه Google Analytics,
 Google Calendar ID,شناسه تقویم گوگل,
@@ -1251,7 +1251,7 @@ If Owner,اگر مالک,
 "If enabled, users will be notified every time they login. If not enabled, users will only be notified once.",اگر فعال باشد، کاربران اطلاع داده خواهد شد در هر زمان آنها برای ورود اگر فعال نیست، کاربران فقط یک بار اعلام شده است.,
 If non standard port (e.g. 587),اگر پورت های غیر استاندارد (به عنوان مثال 587),
 "If non standard port (e.g. 587). If on Google Cloud, try port 2525.",اگر پورت غیر استاندارد (به عنوان مثال 587). اگر در Google Cloud، پورت 2525 را امتحان کنید.,
-"If not set, the currency precision will depend on number format",اگر تنظیم نشود، دقت ارز در قالب شماره بستگی دارد,
+"If not set, the currency precision will depend on number format",اگر تنظیم نشود، دقت ارز به قالب شماره بستگی دارد,
 If the condition is satisfied user will be rewarded with the points. eg. doc.status == 'Closed'\n,اگر شرط راضی باشد کاربر با امتیاز پاداش می گیرد. به عنوان مثال. doc.status == &#39;بسته&#39;,
 "If the user has any role checked, then the user becomes a ""System User"". ""System User"" has access to the desktop",اگر کاربر هر نقش بررسی است، پس از آن کاربر یک &quot;سیستم کاربر&quot; می شود. &quot;سیستم کاربر&quot; دسترسی به دسکتاپ است,
 "If these instructions where not helpful, please add in your suggestions on GitHub Issues.",اگر این دستورالعمل که در آن مفید نیست، لطفا پیشنهادات خود را اضافه کنید در مسائل گیتهاب.,
@@ -1259,7 +1259,7 @@ If the condition is satisfied user will be rewarded with the points. eg. doc.sta
 If user is the owner,اگر کاربر مالک است,
 "If you are updating, please select ""Overwrite"" else existing rows will not be deleted.",اگر شما در حال به روز رسانی، لطفا انتخاب کنید &quot;رونویسی&quot; ردیف دیگری موجود پاک نخواهد شد.,
 If you are updating/overwriting already created records.,اگر شما به روزرسانی / رونویسی ثبت قبلا ایجاد شده است.,
-"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",اگر شما در حال آپلود رکورد جدید &quot;نامگذاری سری&quot; اجباری می شود، در صورت وجود.,
+"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",اگر شما در حال آپلود رکورد جدید &quot;سری‌های شناسه‌گذاری&quot; اجباری می شود، در صورت وجود.,
 "If you are uploading new records, leave the ""name"" (ID) column blank.",اگر شما در حال آپلود رکورد جدید، ترک &quot;نام&quot; (ID) ستون خالی.,
 If you don't want to create any new records while updating the older records.,اگر نمیخواهید در هنگام به روز رسانی سوابق قدیمی، سوابق جدیدی ایجاد کنید.,
 "If you set this, this Item will come in a drop-down under the selected parent.",اگر شما این مجموعه، این آیتم را در یک منوی کشویی زیر انتخاب پدر و مادر آمده است.,
@@ -1352,7 +1352,7 @@ Invalid fieldname '{0}' in autoname,FIELDNAME نامعتبر &#39;{0} در auton
 Invalid file path: {0},مسیر فایل نامعتبر: {0},
 Invalid login or password,ورود یا رمز ورود نامعتبر,
 Invalid module path,مسیر ماژول نامعتبر است,
-Invalid naming series (. missing),سری نامگذاری نامعتبر (. از دست رفته),
+Invalid naming series (. missing),سری شناسه‌گذاری نامعتبر (. از دست رفته),
 Invalid payment gateway credentials,اعتبار دروازه پرداخت نامعتبر,
 Invalid recipient address,آدرس گیرنده نامعتبر,
 Invalid {0} condition,{0} نامعتبر است,
@@ -1535,7 +1535,7 @@ Merge with existing,ادغام با موجود,
 Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,ادغام بین تنها گروه به گروه و یا برگ گره به گره برگ,
 Message Count,تعداد پیام ها,
 Message ID,پیام ID,
-Message Parameter,پیام پارامتر,
+Message Parameter,پارامتر پیام,
 Message Preview,پیش نمایش پیام,
 Message clipped,پیام قطع شد,
 Message not setup,پیام تنظیم نشده است,
@@ -1585,7 +1585,7 @@ Name of {0} cannot be {1},نام {0} نمی تواند {1},
 Names and surnames by themselves are easy to guess.,نام و نام خانوادگی خود به خود به راحتی حدس زده.,
 Naming,نامگذاری,
 "Naming Options:\n<ol><li><b>field:[fieldname]</b> - By Field</li><li><b>naming_series:</b> - By Naming Series (field called naming_series must be present</li><li><b>Prompt</b> - Prompt user for a name</li><li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####</li>\n<li><b>format:EXAMPLE-{MM}morewords{fieldname1}-{fieldname2}-{#####}</b> - Replace all braced words (fieldnames, date words (DD, MM, YY), series) with their value. Outside braces, any characters can be used.</li></ol>","گزینه های نامگذاری: <ol style=""""><li style=""""> <b>فیلد: [نام فیلد]</b> - توسط فیلد </li><li style=""""> <b>naming_series:</b> - با نام سری (فیلد به نام naming_series باید حضور داشته باشد </li><li style=""""> <b>اعلان</b> - کاربر سریع برای یک نام </li><li style=""""> <b>[سری]</b> - سری توسط پیشوند (با یک نقطه جداگانه)؛ برای مثال PRE. ##### </li><li style=""""> <b>فرمت: EXAMPLE- {MM} بیشترwords {fieldname1} - {fieldname2} - {#####}</b> - همه کلمات با نام <b>مستعار (نامهای فیلدی</b> ، کلمات تاریخی (DD، MM، YY، سری) را با ارزش خود جایگزین کنید. بیس بال، هر شخصیت می تواند مورد استفاده قرار گیرد. </li></ol>",
-Naming Series mandatory,نامگذاری سری اجباری,
+Naming Series mandatory,شناسه‌گذاری سری اجباری,
 Nested set error. Please contact the Administrator.,خطا مجموعه ای تو در تو. لطفا با مدیر تماس بگیرید.,
 New Activity,فعالیت جدید,
 New Chat,گپ جدید,
@@ -1753,7 +1753,7 @@ Option 2,انتخاب 2,
 Option 3,انتخاب 3,
 Optional: Always send to these ids. Each Email Address on a new row,اختیاری: همیشه به این شناسه را ارسال کنید. هر آدرس ایمیل در یک ردیف جدید,
 Optional: The alert will be sent if this expression is true,اختیاری: هشدار ارسال خواهد شد اگر این عبارت درست است,
-Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',نوع گزینه ها &quot;پویا لینک از فیلد باید به دیگری درست لینک با گزینه به عنوان&quot; DOCTYPE &quot;اشاره,
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',گزینه‌های نوع فیلد 'پ' باید به یک فیلد لینک دیگر با گزینه‌های 'DocType' اشاره داشته باشند.,
 Options Help,گزینه های راهنما,
 Options for select. Each option on a new line.,گزینه برای انتخاب. هر گزینه را در یک خط جدید است.,
 Options not set for link field {0},گزینه ها برای درست تنظیم نشده لینک {0},
@@ -1834,7 +1834,7 @@ Plant,گیاه,
 Please Duplicate this Website Theme to customize.,لطفا تکراری این موضوع به وب سایت سفارشی.,
 Please Enter Your Password to Continue,لطفا رمز عبور خود را به ادامه را وارد کنید,
 Please Install the ldap3 library via pip to use ldap functionality.,لطفاً برای استفاده از قابلیت ldap ، کتابخانه ldap3 را از طریق پیپ نصب کنید.,
-Please Update SMS Settings,لطفا تنظیمات SMS به روز رسانی,
+Please Update SMS Settings,لطفا تنظیمات پیامک را به روز رسانی کنید,
 Please add a subject to your email,لطفا یک موضوع را به ایمیل خود اضافه کنید,
 Please ask your administrator to verify your sign-up,لطفا با مدیر خود را بپرسید به منظور بررسی خود را ثبت نام,
 Please attach a file first.,لطفا ابتدا یک فایل ضمیمه کنید.,
@@ -1855,7 +1855,7 @@ Please enter Client ID before social login is enabled,لطفا قبل از ور�
 Please enter Client Secret before social login is enabled,لطفا قبل از ورود به سیستم اجتماعی، راز مشتری را وارد کنید,
 Please enter Redirect URL,لطفا URL تغییر مسیر را وارد کنید,
 Please enter the password,لطفا رمز عبور را وارد,
-Please enter valid mobile nos,لطفا NOS تلفن همراه معتبر وارد کنید,
+Please enter valid mobile nos,لطفا شماره تلفن همراه معتبر وارد کنید,
 Please enter values for App Access Key and App Secret Key,لطفا ارزش برای برنامه کلید دسترسی و برنامه راز های کلیدی را وارد کنید,
 Please make sure that there are no empty columns in the file.,لطفا مطمئن شوید که هیچ ستون خالی در فایل وجود دارد.,
 Please make sure the Reference Communication Docs are not circularly linked.,لطفا اطمینان حاصل کنید که اسناد ارتباطی مرجع به طور پیوسته مرتبط نیستند.,
@@ -1987,7 +1987,7 @@ Read Only,فقط خواندنی,
 Read by Recipient,خوانده شده توسط گیرنده,
 Read by Recipient On,خوانده شده توسط گیرنده در,
 Rebuild,بازسازی,
-Receiver Parameter,گیرنده پارامتر,
+Receiver Parameter,پارامتر گیرنده,
 Recent years are easy to guess.,در سال های اخیر به راحتی حدس زده.,
 Recipient,گیرنده,
 Recipient Unsubscribed,گیرنده اشتراک لغو,
@@ -2119,7 +2119,7 @@ Run scheduled jobs only if checked,اجرای شغل برنامه ریزی شد�
 S3 Backup Settings,S3 تنظیمات پشتیبان گیری,
 S3 Backup complete!,S3 پشتیبان گیری کامل,
 SMS,پیامک,
-SMS Gateway URL,URL SMS دروازه,
+SMS Gateway URL,آدرس دروازه (Gateway) پیامک,
 SMS Parameter,پارامتر SMS,
 SMS Settings,تنظیمات SMS,
 SMS sent to following numbers: {0},SMS با شماره های زیر ارسال گردید: {0},
@@ -2134,8 +2134,8 @@ Save As,ذخیره به عنوان,
 Save Filter,ذخیره فیلتر,
 Save Report,ذخیره گزارش,
 Save filters,فیلترها را ذخیره کنید,
-Saving,پس انداز,
-Saving...,در حال ذخیره کردن...,
+Saving,ذخیره سازی,
+Saving...,در حال ذخیره سازی...,
 Scan the QR Code and enter the resulting code displayed.,اسکن کد QR و کد نتیجه نمایش داده شده را وارد کنید.,
 Scopes,حوزه,
 Script,خط,
@@ -2257,7 +2257,7 @@ Settings for Contact Us Page,تنظیمات برای تماس با ما صفحه
 Settings for Contact Us Page.,تنظیمات برای تماس با ما صفحه.,
 Settings for OAuth Provider,تنظیمات برای ارائه OAuth تأیید,
 Settings for the About Us Page,تنظیمات برای درباره ما صفحه,
-Setup Auto Email,راه اندازی خودکار ایمیل,
+Setup Auto Email,راه اندازی ایمیل خودکار,
 Setup Complete,راه اندازی کامل,
 Setup Notifications based on various criteria.,اعلان های راه اندازی بر اساس معیارهای مختلف,
 Setup Reports to be emailed at regular intervals,گزارش راه اندازی در فواصل منظم ایمیل فرستاده شود,
@@ -2509,12 +2509,12 @@ Timeline DocType,DOCTYPE جدول زمانی,
 Timeline Field,جدول زمانی درست,
 Timeline Links,پیوندهای زمانی,
 Timeline Name,نام گاهشمار,
-Timeline field must be a Link or Dynamic Link,درست گاهشمار باید یک لینک و یا لینک پویا,
+Timeline field must be a Link or Dynamic Link,درست گاه شمار باید یک لینک و یا لینک پویا,
 Timeline field must be a valid fieldname,درست گاهشمار باید یک FIELDNAME معتبر باشد,
 Timeseries,سری زمانی,
 Timestamp,برچسب زمان,
 Title Case,عنوان مورد,
-Title Field,عنوان درست,
+Title Field,عنوان فیلد,
 Title Prefix,عنوان پیشوند,
 Title field must be a valid fieldname,عنوان درست باید fieldname معتبر باشد,
 To Date Field,به قسمت Date,
@@ -2628,7 +2628,7 @@ Use TLS,استفاده از TLS,
 "Use a few words, avoid common phrases.",استفاده از چند کلمه، جلوگیری از عبارات رایج است.,
 Use of sub-query or function is restricted,استفاده از زیر پرس و جو یا تابع محدود شده است,
 Use socketio to upload file,از فایل socketio برای آپلود استفاده کنید,
-Use this fieldname to generate title,با استفاده از این fieldname برای تولید عنوان,
+Use this fieldname to generate title,استفاده از این نام فیلد برای تولید عنوان,
 User '{0}' already has the role '{1}',کاربر &#39;{0}&#39; در حال حاضر نقش دارد: &#39;{1}&#39;,
 User Cannot Create,کاربر نمی تواند ایجاد,
 User Cannot Search,کاربر نمی تواند جستجو,
@@ -3191,8 +3191,6 @@ Callback URL,URL پاسخ به تماس,
 Cancel All Documents,همه اسناد را لغو کنید,
 Cancelling documents,لغو اسناد,
 Cannot match column {0} with any field,ستون {0} با هیچ فیلدی مطابقت ندارد,
-The following values do not exist for {0}: {1},این مقادیر برای {0} وجود ندارد: {1},
-Row has more values than columns, ردیف بیش از ستون‌ها مقدار دارد.,
 Change,تغییر,
 Change User,تغییر کاربر,
 Check the Error Log for more information: {0},برای اطلاعات بیشتر ورود به سیستم خطا را بررسی کنید: {0,
@@ -3219,8 +3217,8 @@ Core Modules {0} cannot be searched in Global Search.,ماژول های اصلی
 Could not create Razorpay order. Please contact Administrator,سفارش Razorpay ایجاد نشد. لطفا با سرپرست تماس بگیرید,
 Could not create razorpay order,سفارش ریش تراپ امکان پذیر نیست,
 Create Log,ورود به سیستم,
-Create your first {0},اولین {0} خود را ایجاد کنید,
-Created {0} records successfully.,سوابق با موفقیت {0 Cre ایجاد شد.,
+Create your first {0},اولین {0} خود را ثبت کنید,
+Created {0} records successfully.,{0} سابقه با موفقیت ایجاد شد.,
 Cron,کرون,
 Cron Format,قالب کرون,
 Daily Events should finish on the Same Day.,رویدادهای روزانه باید در همان روز به پایان برسد.,
@@ -3402,7 +3400,7 @@ Main Section (Markdown),بخش اصلی (Markdown),
 Maintains a log of every event consumed along with the status of the sync and a Resync button in case sync fails.,ثبت هر رویدادی که به همراه وضعیت همگام سازی مصرف می شود و یک دکمه Resync در همگام سازی پرونده از بین می رود.,
 Make all attachments private,همه پیوست ها را خصوصی کنید,
 Mandatory Depends On,اجباری شدنش بستگی دارد به,
-Map Columns,ستون های نقشه,
+Map Columns,تطبیق ستون‌ها,
 Map columns from {0} to fields in {1},تطبیق ستون‌ها از {0} به فیلدها در {1},
 Mapping column {0} to field {1},تظبیق دادن ستون {0} به فیلد {1},
 Mark all as Read,همه را به عنوان خوانده شده علامت بزن,
@@ -3412,7 +3410,7 @@ Me,من,
 Mention,اشاره,
 Modules,ماژول,
 Monthly Long,ماهانه طولانی,
-Naming Series,نامگذاری سری,
+Naming Series,سری‌های شناسه‌گذاری,
 Navigate Home,حرکت به صفحه اصلی,
 Navigate list down,لیست را به پایین بروید,
 Navigate list up,پیمایش لیست کنید,
@@ -3611,7 +3609,7 @@ User does not exist,کاربر وجود ندارد,
 User {0} has requested for data deletion,کاربر {0} برای حذف داده ها درخواست کرده است,
 Users assigned to the reference document will get points.,کاربران اختصاص یافته به سند مرجع امتیاز دریافت می کنند.,
 Value must be one of {0},ارزش باید یکی از {0 باشد,
-Value {0} missing for {1},مقدار {0} برای {1} وجود ندارد.,
+Value {0} missing for {1},ارزش {0} برای 1 {از دست رفته,
 Verification,تایید,
 Verification Code,کد تایید,
 Verification code email not sent. Please contact Administrator.,ایمیل تأیید صحت ارسال نشده است. لطفا با سرپرست تماس بگیرید.,
@@ -3730,7 +3728,7 @@ Message,پیام,
 Missing Values Required,از دست رفتن ارزش های مورد نیاز,
 Mobile No,موبایل بدون,
 Month,ماه,
-Name,نام,
+Name,نام(شناسه),
 Newsletter,عضویت در خبرنامه,
 Not Allowed,ممنوع,
 Note,یادداشت,
@@ -3776,7 +3774,7 @@ Thursday,پنج شنبه,
 Title,عنوان,
 Total,کل,
 Totals,مجموع,
-Tuesday,سهشنبه,
+Tuesday,سه شنبه,
 Type,نوع,
 Update,به‌روزرسانی,
 User {0} is disabled,کاربر {0} غیر فعال است,
@@ -3817,7 +3815,7 @@ JavaScript,جاوا اسکریپت,
 LDAP Settings,تنظیمات LDAP,
 Left,چپ,
 Like,پسندیدن,
-Link,ارتباط دادن,
+Link,لینک,
 Logged in,وارد شده,
 New,جدید,
 Not Found,پیدا نشد,
@@ -4259,12 +4257,12 @@ Hide Seconds,ثانیه ها را مخفی کنید,
 Hide Border,مرز را پنهان کنید,
 Index Web Pages for Search,صفحه های وب را برای جستجو فهرست کنید,
 Action / Route,اقدام / مسیر,
-Document Naming Rule,قانون نامگذاری سند,
+Document Naming Rule,قانون شناسه‌گذاری سند,
 Rule Conditions,شرایط قانون,
 Digits,رقم,
 Example: 00001,مثال: 00001,
 Counter,پیشخوان,
-Document Naming Rule Condition,شرایط نامگذاری سند,
+Document Naming Rule Condition,شرایط شناسه‌گذاری سند,
 Installed Application,برنامه نصب شده,
 Application Name,نام نرم افزار,
 Application Version,نسخه برنامه,
@@ -4586,7 +4584,7 @@ Already in the following Users ToDo list:{0},قبلاً در لیست ToDo کا�
 Your assignment on {0} {1} has been removed by {2},تکلیف شما در {0} {1} توسط {2} حذف شده است,
 Invalid Credentials,گواهی نامه نامعتبر,
 Print UOM after Quantity,UOM را بعد از Quantity چاپ کنید,
-Uncaught Server Exception,استثنای سرور گیر نیافته,
+Uncaught Server Exception,خطای غیرمنتظره‌ی سرور رخ داده است,
 There was an error building this page,هنگام ساخت این صفحه خطایی روی داد,
 Hide Traceback,ردیابی را مخفی کنید,
 Value from this field will be set as the due date in the ToDo,مقدار از این قسمت به عنوان تاریخ سررسید در ToDo تنظیم خواهد شد,
@@ -4751,11 +4749,11 @@ Public Transport,حمل و نقل عمومی,
 Request Data,درخواست داده,
 Steps,مراحل,
 Reference DocType,DOCTYPE مرجع,
-Select Transaction,انتخاب معامله,
+Select Transaction,انتخاب تراکنش,
 Help HTML,راهنما HTML,
 Series List for this Transaction,فهرست سری ها برای این تراکنش,
-User must always select,کاربر همیشه باید انتخاب کنید,
-Check this if you want to force the user to select a series before saving. There will be no default if you check this.,بررسی این اگر شما می خواهید به زور کاربر برای انتخاب یک سری قبل از ذخیره. خواهد شد وجود ندارد به طور پیش فرض اگر شما این تیک بزنید.,
+User must always select,کاربر همیشه باید گزینه‌ای را انتخاب کند,
+Check this if you want to force the user to select a series before saving. There will be no default if you check this.,اگر می خواهید کاربر را مجبور کنید قبل از ذخیره سری مورد نظر خود را انتخاب کند، این گزینه را انتخاب کنید. در این صورت هیچ مقدار پیش‌فرضی وجود نخواهد داشت.,
 Prefix,پیشوند,
 This is the number of the last created transaction with this prefix,این تعداد از آخرین معامله ایجاد شده با این پیشوند است,
 Update Series Number,به‌روزرسانی سری شماره,
@@ -4855,7 +4853,7 @@ Add a Filter,افزودن فیلتر,
 {0} changed value of {1},{0} مقدار {1} را تغییر داد,
 {0} created this,{0} این را ایجاد کرده است,
 You created this,شما این را ایجاد کردید,
-Edit Full Form,ویرایش فرم کامل,
+Edit Full Form,ویرایش کامل فرم,
 Frappe School,مدرسه فراپه,
 Create New Kanban Board,ایجاد یک بورد کانبان جدید,
 Type a reply / comment,یک پاسخ / نظر بنویسید,
@@ -4900,11 +4898,11 @@ Reset All Customizations,تنظیم مجدد همه شخصی‌سازی‌ها,
 Set by user,تنظیم توسط کاربر,
 By fieldname,توسط نام فیلد,
 By script,توسط کد اسکریپت,
-Naming Rule,شرایط نام گذاری,
+Naming Rule,شرایط شناسه‌گذاری,
 Saving Customization...,ذخیره شخصی‌سازی,
 Reload List,بارگزاری مجدد لیست,
 Add Tags,افزودن برچسب‌ها,
-By "Naming Series" field,توسط "سری‌های نام‌گذاری" فیلد,
+By "Naming Series" field,توسط فیلد"سری‌های شناسه‌گذاری" 
 Customize Child Table,شخصی‌سازی جدول زیرمجموعه,
 Default Email Template,قالب پیشفرض ایمیل,
 Sender Name Field,فیلد نام ارسال کننده,
@@ -4952,3 +4950,26 @@ Get notified when an email is received on any of the documents assigned to you.,
 Email Threads on Assigned Document,موضوعات ایمیل درباره اسناد اختصاص داده شده,
 First Day of the Week,اولین روز هفته,
 Rounding Method,روش گرد کردن,
+Stock Entry,ورودی انبار,
+Filters ,فیلترها ,
+Reset the password for your account,بازیابی رمز عبور برای اکانت شما,
+Manage third party apps,مدیریت برنامه‌های شخص ثالث,
+To manage your authorized third party apps,برای مدیریت برنامه‌های شخص ثالث مجاز,
+Manage your apps,مدیریت برنامه‌های شما,
+Show Title in Link Fields,نمایش عنوان، در فیلدهای لینک شده,
+Only If Creator,فقط اگر ایجاد کننده بود,
+All possible Workflow States and roles of the workflow. Docstatus Options: 0 is "Saved", 1 is "Submitted" and 2 is "Cancelled",تمام وضعیت‌ها و نقش‌های ممکن در گردش کار و گزینه‌های وضعیت سند: 0 برای 'ذخیره شده'، 1 برای 'ارسال شده' و 2 برای 'لغو شده'.,
+Newly created user {} has no roles enabled.,کاربر جدید {} هیچ نقش فعالی ندارد,
+No Roles Specified,نقشی تعریف نشده است,
+User {}: Removed Employee role as there is no mapped employee.,کاربر {}: نقش کارمند را از آنجا که نظیرسازی نشده بود حذف کرد.,
+Show all activity,نمایش همه فعالیت‌ها,
+You changed the value of {} from {} to {},شما مقدار {} را از {} به {} تغییر دادید,
+See all Activity,مشاهده همه فعالیت‌ها,
+Customize Form,شخصی‌سازی فرم,
+For Links, enter the DocType as range. For Select, enter list of Options, each on a new line.,برای لینک‌ها، نوع سند (داک تایپ) را به عنوان دامنه وارد کنید. برای انتخاب، فهرستی از گزینه‌ها را وارد کنید، هر یک در یک خط جدید.,
+Series Updated for {},سری‌ها برای {} به روز شدند,
+Work Order cannot be created for following reason: <br> {0},دستور کار به دلیل زیر نمی‌تواند ایجاد شود: <br> {0},
+Disable Comment Count,غیرفعال‌سازی تعداد نظرات,
+Connection Lost,اتصال به اینترنت از دست رفت,
+You changed the value of {0},شما تغییر دادید مقدار {0},
+from {0} to {1} ,از {0} به {1},
