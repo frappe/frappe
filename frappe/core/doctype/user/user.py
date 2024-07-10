@@ -539,6 +539,9 @@ class User(Document):
 		# Remove user link from Workflow Action
 		frappe.db.set_value("Workflow Action", {"user": self.name}, "user", None)
 
+		# Delete user's List Filters
+		frappe.db.delete("List Filter", {"for_user": self.name})
+
 		# Ask user to disable instead if document is still linked
 		try:
 			check_if_doc_is_linked(self)
