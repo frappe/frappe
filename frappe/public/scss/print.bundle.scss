@@ -46,3 +46,8 @@
 		overflow-wrap: anywhere;
 	}
 }
+
+/* prevent newline and right alignment of number fields in printed report filters */
+.filter-row div {
+	display: inline-block;
+}

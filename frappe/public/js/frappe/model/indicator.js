@@ -97,7 +97,7 @@ frappe.get_indicator = function (doc, doctype, show_workflow_state) {
 
 	// based on status
 	if (doc.status) {
-		return [__(doc.status), frappe.utils.guess_colour(doc.status)];
+		return [__(doc.status), frappe.utils.guess_colour(doc.status), "status,=," + doc.status];
 	}
 
 	// based on enabled
