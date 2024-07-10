@@ -536,6 +536,9 @@ class User(Document):
 		# Delete EPS data
 		frappe.db.delete("Energy Point Log", {"user": self.name})
 
+		# Remove user link from Workflow Action
+		frappe.db.set_value("Workflow Action", {"user": self.name}, "user", None)
+
 		# Ask user to disable instead if document is still linked
 		try:
 			check_if_doc_is_linked(self)
