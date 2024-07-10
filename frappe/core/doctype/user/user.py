@@ -542,6 +542,15 @@ class User(Document):
 		# Delete user's List Filters
 		frappe.db.delete("List Filter", {"for_user": self.name})
 
+		# Remove user from Note's Seen By table
+		seen_notes = frappe.get_all("Note", filters=[["Note Seen By", "user", "=", self.name]], pluck="name")
+		for note_id in seen_notes:
+			note = frappe.get_doc("Note", note_id)
+			for row in note.seen_by:
+				if row.user == self.name:
+					note.remove(row)
+			note.save(ignore_permissions=True)
+
 		# Ask user to disable instead if document is still linked
 		try:
 			check_if_doc_is_linked(self)
