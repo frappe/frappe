@@ -5,7 +5,7 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 	}
 
 	validate(value) {
-		if(!value) {
+		if (!value) {
 			return null;
 		}
 		return super.validate(value);
