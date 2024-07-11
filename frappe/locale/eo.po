@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-06-30 09:33+0000\n"
-"PO-Revision-Date: 2024-07-02 15:49\n"
+"POT-Creation-Date: 2024-07-07 09:33+0000\n"
+"PO-Revision-Date: 2024-07-10 16:24\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Esperanto\n"
 "MIME-Version: 1.0\n"
@@ -1003,8 +1003,8 @@ msgid "Add Child"
 msgstr "crwdns90826:0crwdne90826:0"
 
 #: public/js/frappe/views/kanban/kanban_board.html:4
-#: public/js/frappe/views/reports/query_report.js:1696
-#: public/js/frappe/views/reports/query_report.js:1699
+#: public/js/frappe/views/reports/query_report.js:1681
+#: public/js/frappe/views/reports/query_report.js:1684
 #: public/js/frappe/views/reports/report_view.js:324
 #: public/js/frappe/views/reports/report_view.js:349
 msgid "Add Column"
@@ -3719,6 +3719,7 @@ msgstr "crwdns128570:0crwdne128570:0"
 
 #. Name of a DocType
 #: desk/doctype/calendar_view/calendar_view.json
+#: public/js/frappe/list/base_list.js:208
 msgid "Calendar View"
 msgstr "crwdns91974:0crwdne91974:0"
 
@@ -3895,7 +3896,7 @@ msgstr "crwdns92056:0crwdne92056:0"
 msgid "Cannot Remove"
 msgstr "crwdns92058:0crwdne92058:0"
 
-#: model/base_document.py:1072
+#: model/base_document.py:1073
 msgid "Cannot Update After Submit"
 msgstr "crwdns92060:0crwdne92060:0"
 
@@ -3983,7 +3984,7 @@ msgstr "crwdns92100:0{0}crwdne92100:0"
 msgid "Cannot delete {0}"
 msgstr "crwdns92102:0{0}crwdne92102:0"
 
-#: utils/nestedset.py:296
+#: utils/nestedset.py:299
 msgid "Cannot delete {0} as it has child nodes"
 msgstr "crwdns92104:0{0}crwdne92104:0"
 
@@ -3991,7 +3992,7 @@ msgstr "crwdns92104:0{0}crwdne92104:0"
 msgid "Cannot edit Standard Dashboards"
 msgstr "crwdns92106:0crwdne92106:0"
 
-#: email/doctype/notification/notification.py:121
+#: email/doctype/notification/notification.py:122
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
 msgstr "crwdns92108:0crwdne92108:0"
 
@@ -4060,7 +4061,7 @@ msgstr "crwdns92136:0crwdne92136:0"
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
 msgstr "crwdns110830:0crwdne110830:0"
 
-#: email/doctype/notification/notification.py:137
+#: email/doctype/notification/notification.py:138
 msgid "Cannot set Notification on Document Type {0}"
 msgstr "crwdns92138:0{0}crwdne92138:0"
 
@@ -4234,6 +4235,8 @@ msgstr "crwdns128610:0crwdne128610:0"
 #. Label of the chart_name (Link) field in DocType 'Workspace Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 #: desk/doctype/workspace_chart/workspace_chart.json
+#: public/js/frappe/views/reports/query_report.js:289
+#: public/js/frappe/widgets/widget_dialog.js:137
 msgid "Chart Name"
 msgstr "crwdns128612:0crwdne128612:0"
 
@@ -4650,7 +4653,7 @@ msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "crwdns92402:0crwdne92402:0"
 
-#: public/js/frappe/views/reports/query_report.js:1979
+#: public/js/frappe/views/reports/query_report.js:1964
 #: public/js/frappe/views/treeview.js:121
 msgid "Collapse All"
 msgstr "crwdns92404:0crwdne92404:0"
@@ -6179,6 +6182,10 @@ msgstr "crwdns128842:0crwdne128842:0"
 msgid "Dashboard Settings"
 msgstr "crwdns93118:0crwdne93118:0"
 
+#: public/js/frappe/list/base_list.js:205
+msgid "Dashboard View"
+msgstr "crwdns142844:0crwdne142844:0"
+
 #. Label of the tab_break_2 (Tab Break) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgid "Dashboards"
@@ -6760,7 +6767,8 @@ msgid "Department"
 msgstr "crwdns128922:0crwdne128922:0"
 
 #. Label of the dependencies (Data) field in DocType 'Workspace Link'
-#: desk/doctype/workspace_link/workspace_link.json www/attribution.html:29
+#: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/widgets/widget_dialog.js:318 www/attribution.html:29
 msgid "Dependencies"
 msgstr "crwdns112688:0crwdne112688:0"
 
@@ -7219,6 +7227,7 @@ msgstr "crwdns93582:0{0}crwdne93582:0"
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: integrations/doctype/webhook/webhook.json
 #: printing/doctype/print_format/print_format.json
+#: public/js/frappe/widgets/widget_dialog.js:164
 #: website/doctype/website_slideshow/website_slideshow.js:18
 msgid "DocType"
 msgstr "crwdns93584:0crwdne93584:0"
@@ -7277,6 +7286,7 @@ msgstr "crwdns93632:0crwdne93632:0"
 
 #. Label of the doc_view (Select) field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
+#: public/js/frappe/widgets/widget_dialog.js:477
 msgid "DocType View"
 msgstr "crwdns128992:0crwdne128992:0"
 
@@ -7800,7 +7810,7 @@ msgstr "crwdns129042:0crwdne129042:0"
 msgid "Download Your Data"
 msgstr "crwdns93896:0crwdne93896:0"
 
-#: contacts/doctype/contact/contact.js:93
+#: contacts/doctype/contact/contact.js:98
 msgid "Download vCard"
 msgstr "crwdns140790:0crwdne140790:0"
 
@@ -7988,7 +7998,7 @@ msgstr "crwdns93972:0crwdne93972:0"
 #: public/js/frappe/form/templates/contact_list.html:7
 #: public/js/frappe/form/toolbar.js:681
 #: public/js/frappe/views/reports/query_report.js:815
-#: public/js/frappe/views/reports/query_report.js:1649
+#: public/js/frappe/views/reports/query_report.js:1634
 #: public/js/frappe/views/workspace/workspace.js:460
 #: public/js/frappe/views/workspace/workspace.js:816
 #: public/js/frappe/widgets/base_widget.js:64
@@ -8965,9 +8975,9 @@ msgstr "crwdns94422:0crwdne94422:0"
 msgid "Error in Header/Footer Script"
 msgstr "crwdns110924:0crwdne110924:0"
 
-#: email/doctype/notification/notification.py:394
-#: email/doctype/notification/notification.py:510
-#: email/doctype/notification/notification.py:516
+#: email/doctype/notification/notification.py:395
+#: email/doctype/notification/notification.py:511
+#: email/doctype/notification/notification.py:517
 msgid "Error in Notification"
 msgstr "crwdns94424:0crwdne94424:0"
 
@@ -8979,7 +8989,7 @@ msgstr "crwdns94426:0{0}crwdnd94426:0{1}crwdne94426:0"
 msgid "Error while connecting to email account {0}"
 msgstr "crwdns94428:0{0}crwdne94428:0"
 
-#: email/doctype/notification/notification.py:507
+#: email/doctype/notification/notification.py:508
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "crwdns94430:0{0}crwdne94430:0"
 
@@ -9136,7 +9146,7 @@ msgstr "crwdns94494:0crwdne94494:0"
 msgid "Executing..."
 msgstr "crwdns94496:0crwdne94496:0"
 
-#: public/js/frappe/views/reports/query_report.js:1993
+#: public/js/frappe/views/reports/query_report.js:1978
 msgid "Execution Time: {0} sec"
 msgstr "crwdns94498:0{0}crwdne94498:0"
 
@@ -9154,7 +9164,7 @@ msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "crwdns94504:0crwdne94504:0"
 
-#: public/js/frappe/views/reports/query_report.js:1979
+#: public/js/frappe/views/reports/query_report.js:1964
 #: public/js/frappe/views/treeview.js:125
 msgid "Expand All"
 msgstr "crwdns94506:0crwdne94506:0"
@@ -9210,7 +9220,7 @@ msgstr "crwdns129232:0crwdne129232:0"
 #: core/doctype/docperm/docperm.json core/doctype/recorder/recorder_list.js:37
 #: public/js/frappe/data_import/data_exporter.js:91
 #: public/js/frappe/data_import/data_exporter.js:242
-#: public/js/frappe/views/reports/query_report.js:1684
+#: public/js/frappe/views/reports/query_report.js:1669
 #: public/js/frappe/views/reports/report_view.js:1550
 msgid "Export"
 msgstr "crwdns94526:0crwdne94526:0"
@@ -9551,7 +9561,7 @@ msgstr "crwdns94660:0crwdne94660:0"
 #: public/js/frappe/list/bulk_operations.js:297
 #: public/js/frappe/list/list_view_permission_restrictions.html:3
 #: public/js/frappe/views/reports/query_report.js:236
-#: public/js/frappe/views/reports/query_report.js:1738
+#: public/js/frappe/views/reports/query_report.js:1723
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
@@ -9859,7 +9869,7 @@ msgstr "crwdns94824:0crwdne94824:0"
 #: desk/doctype/number_card/number_card.js:205
 #: desk/doctype/number_card/number_card.js:336
 #: email/doctype/auto_email_report/auto_email_report.js:90
-#: public/js/frappe/list/base_list.js:882
+#: public/js/frappe/list/base_list.js:890
 #: public/js/frappe/ui/filters/filter_list.js:134
 #: website/doctype/web_form/web_form.js:197
 msgid "Filter"
@@ -10295,7 +10305,7 @@ msgstr "crwdns95024:0crwdne95024:0"
 msgid "For Value"
 msgstr "crwdns129392:0crwdne129392:0"
 
-#: public/js/frappe/views/reports/query_report.js:1990
+#: public/js/frappe/views/reports/query_report.js:1975
 #: public/js/frappe/views/reports/report_view.js:96
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 msgstr "crwdns95034:0crwdne95034:0"
@@ -10542,7 +10552,7 @@ msgstr "crwdns95156:0crwdne95156:0"
 msgid "From Date Field"
 msgstr "crwdns129430:0crwdne129430:0"
 
-#: public/js/frappe/views/reports/query_report.js:1704
+#: public/js/frappe/views/reports/query_report.js:1689
 msgid "From Document Type"
 msgstr "crwdns95162:0crwdne95162:0"
 
@@ -10637,6 +10647,10 @@ msgstr "crwdns129446:0crwdne129446:0"
 #: public/js/frappe/views/gantt/gantt_view.js:10
 msgid "Gantt"
 msgstr "crwdns95208:0crwdne95208:0"
+
+#: public/js/frappe/list/base_list.js:206
+msgid "Gantt View"
+msgstr "crwdns142846:0crwdne142846:0"
 
 #. Label of the gender (Link) field in DocType 'Contact'
 #. Name of a DocType
@@ -12009,6 +12023,10 @@ msgstr "crwdns129686:0crwdne129686:0"
 msgid "Image Link"
 msgstr "crwdns129688:0crwdne129688:0"
 
+#: public/js/frappe/list/base_list.js:209
+msgid "Image View"
+msgstr "crwdns142848:0crwdne142848:0"
+
 #. Label of the image_width (Float) field in DocType 'Letter Head'
 #. Label of the footer_image_width (Float) field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
@@ -12280,6 +12298,10 @@ msgstr "crwdns95966:0crwdne95966:0"
 msgid "Inbox User"
 msgstr "crwdns95970:0crwdne95970:0"
 
+#: public/js/frappe/list/base_list.js:210
+msgid "Inbox View"
+msgstr "crwdns142850:0crwdne142850:0"
+
 #. Label of the include_name_field (Check) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgid "Include Name Field"
@@ -12299,11 +12321,11 @@ msgstr "crwdns95976:0crwdne95976:0"
 msgid "Include Web View Link in Email"
 msgstr "crwdns129732:0crwdne129732:0"
 
-#: public/js/frappe/views/reports/query_report.js:1521
+#: public/js/frappe/views/reports/query_report.js:1506
 msgid "Include filters"
 msgstr "crwdns95980:0crwdne95980:0"
 
-#: public/js/frappe/views/reports/query_report.js:1513
+#: public/js/frappe/views/reports/query_report.js:1498
 msgid "Include indentation"
 msgstr "crwdns95982:0crwdne95982:0"
 
@@ -12459,7 +12481,7 @@ msgstr "crwdns110970:0crwdne110970:0"
 
 #. Label of the insert_after (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
-#: public/js/frappe/views/reports/query_report.js:1744
+#: public/js/frappe/views/reports/query_report.js:1729
 msgid "Insert After"
 msgstr "crwdns96046:0crwdne96046:0"
 
@@ -12666,7 +12688,7 @@ msgstr "crwdns96132:0{0}crwdne96132:0"
 msgid "Invalid \"mandatory_depends_on\" expression"
 msgstr "crwdns96134:0crwdne96134:0"
 
-#: utils/nestedset.py:177
+#: utils/nestedset.py:178
 msgid "Invalid Action"
 msgstr "crwdns96136:0crwdne96136:0"
 
@@ -13037,6 +13059,7 @@ msgstr "crwdns96308:0crwdne96308:0"
 
 #. Label of the is_query_report (Check) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/widgets/widget_dialog.js:336
 msgid "Is Query Report"
 msgstr "crwdns129828:0crwdne129828:0"
 
@@ -13140,7 +13163,7 @@ msgstr "crwdns129850:0crwdne129850:0"
 msgid "Item Type"
 msgstr "crwdns129852:0crwdne129852:0"
 
-#: utils/nestedset.py:228
+#: utils/nestedset.py:229
 msgid "Item cannot be added to its own descendants"
 msgstr "crwdns96372:0crwdne96372:0"
 
@@ -13265,6 +13288,7 @@ msgstr "crwdns129880:0crwdne129880:0"
 #. Label of the kanban_board (Link) field in DocType 'Workspace Shortcut'
 #: desk/doctype/kanban_board/kanban_board.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
+#: public/js/frappe/widgets/widget_dialog.js:509
 msgid "Kanban Board"
 msgstr "crwdns96432:0crwdne96432:0"
 
@@ -13283,6 +13307,10 @@ msgstr "crwdns96440:0crwdne96440:0"
 msgctxt "Button in kanban view menu"
 msgid "Kanban Settings"
 msgstr "crwdns96444:0crwdne96444:0"
+
+#: public/js/frappe/list/base_list.js:207
+msgid "Kanban View"
+msgstr "crwdns142852:0crwdne142852:0"
 
 #. Description of a DocType
 #: core/doctype/activity_log/activity_log.json
@@ -13529,7 +13557,10 @@ msgstr "crwdns96524:0{0}crwdne96524:0"
 #: desk/doctype/workspace_quick_list/workspace_quick_list.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: printing/page/print_format_builder/print_format_builder.js:474
+#: public/js/frappe/widgets/widget_dialog.js:187
 #: public/js/frappe/widgets/widget_dialog.js:255
+#: public/js/frappe/widgets/widget_dialog.js:304
+#: public/js/frappe/widgets/widget_dialog.js:421
 #: public/js/frappe/widgets/widget_dialog.js:645
 #: public/js/frappe/widgets/widget_dialog.js:678
 #: templates/form_grid/fields.html:37
@@ -14096,6 +14127,8 @@ msgstr "crwdns130038:0crwdne130038:0"
 #. Label of the link_to (Dynamic Link) field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
+#: public/js/frappe/widgets/widget_dialog.js:285
+#: public/js/frappe/widgets/widget_dialog.js:430
 msgid "Link To"
 msgstr "crwdns130040:0crwdne130040:0"
 
@@ -14105,6 +14138,7 @@ msgstr "crwdns110990:0crwdne110990:0"
 
 #. Label of the link_type (Select) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/widgets/widget_dialog.js:277
 msgid "Link Type"
 msgstr "crwdns130042:0crwdne130042:0"
 
@@ -14148,7 +14182,7 @@ msgstr "crwdns96840:0crwdne96840:0"
 #. Label of the links (Table) field in DocType 'Customize Form'
 #. Label of the links (Table) field in DocType 'Workspace'
 #: contacts/doctype/address/address.js:39 contacts/doctype/address/address.json
-#: contacts/doctype/contact/contact.js:87 contacts/doctype/contact/contact.json
+#: contacts/doctype/contact/contact.js:92 contacts/doctype/contact/contact.json
 #: core/doctype/doctype/doctype.json
 #: custom/doctype/customize_form/customize_form.json
 #: desk/doctype/workspace/workspace.json public/js/frappe/form/toolbar.js:377
@@ -14201,6 +14235,10 @@ msgctxt "Button in list view menu"
 msgid "List Settings"
 msgstr "crwdns96868:0crwdne96868:0"
 
+#: public/js/frappe/list/base_list.js:203
+msgid "List View"
+msgstr "crwdns142854:0crwdne142854:0"
+
 #. Name of a DocType
 #: desk/doctype/list_view_settings/list_view_settings.json
 msgid "List View Settings"
@@ -14237,7 +14275,7 @@ msgstr "crwdns96884:0crwdne96884:0"
 msgid "Load Balancing"
 msgstr "crwdns130066:0crwdne130066:0"
 
-#: public/js/frappe/list/base_list.js:378
+#: public/js/frappe/list/base_list.js:386
 #: website/doctype/blog_post/templates/blog_post_list.html:50
 #: website/doctype/help_article/templates/help_article_list.html:30
 msgid "Load More"
@@ -14251,7 +14289,7 @@ msgstr "crwdns96890:0crwdne96890:0"
 #: core/page/permission_manager/permission_manager.js:165
 #: public/js/frappe/form/controls/multicheck.js:13
 #: public/js/frappe/form/linked_with.js:13
-#: public/js/frappe/list/base_list.js:490
+#: public/js/frappe/list/base_list.js:498
 #: public/js/frappe/list/list_view.js:335 public/js/frappe/ui/listing.html:16
 #: public/js/frappe/views/reports/query_report.js:1017
 msgid "Loading"
@@ -14279,7 +14317,7 @@ msgstr "crwdns110996:0crwdne110996:0"
 #: public/js/frappe/views/kanban/kanban_board.html:11
 #: public/js/frappe/widgets/chart_widget.js:50
 #: public/js/frappe/widgets/number_card_widget.js:174
-#: public/js/frappe/widgets/quick_list_widget.js:126
+#: public/js/frappe/widgets/quick_list_widget.js:128
 msgid "Loading..."
 msgstr "crwdns96898:0crwdne96898:0"
 
@@ -14664,6 +14702,10 @@ msgstr "crwdns130124:0crwdne130124:0"
 msgid "Map Columns"
 msgstr "crwdns97072:0crwdne97072:0"
 
+#: public/js/frappe/list/base_list.js:212
+msgid "Map View"
+msgstr "crwdns142856:0crwdne142856:0"
+
 #: public/js/frappe/data_import/import_preview.js:290
 msgid "Map columns from {0} to fields in {1}"
 msgstr "crwdns111002:0{0}crwdnd111002:0{1}crwdne111002:0"
@@ -14893,7 +14935,7 @@ msgstr "crwdns97168:0crwdne97168:0"
 msgid "Merge with existing"
 msgstr "crwdns97170:0crwdne97170:0"
 
-#: utils/nestedset.py:304
+#: utils/nestedset.py:307
 msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
 msgstr "crwdns97172:0crwdne97172:0"
 
@@ -15048,6 +15090,10 @@ msgstr "crwdns97252:0crwdne97252:0"
 #: email/doctype/notification/notification.json
 msgid "Method"
 msgstr "crwdns130200:0crwdne130200:0"
+
+#: __init__.py:936
+msgid "Method Not Allowed"
+msgstr "crwdns142858:0crwdne142858:0"
 
 #: desk/doctype/number_card/number_card.py:70
 msgid "Method is required to create a number card"
@@ -15440,7 +15486,7 @@ msgstr "crwdns130234:0crwdne130234:0"
 msgid "Mozilla doesn't support :has() so you can pass parent selector here as workaround"
 msgstr "crwdns130236:0crwdne130236:0"
 
-#: utils/nestedset.py:328
+#: utils/nestedset.py:331
 msgid "Multiple root nodes not allowed."
 msgstr "crwdns97478:0crwdne97478:0"
 
@@ -15674,7 +15720,7 @@ msgstr "crwdns97574:0crwdne97574:0"
 msgid "Negative Value"
 msgstr "crwdns97576:0crwdne97576:0"
 
-#: utils/nestedset.py:93
+#: utils/nestedset.py:94
 msgid "Nested set error. Please contact the Administrator."
 msgstr "crwdns97578:0crwdne97578:0"
 
@@ -16021,7 +16067,7 @@ msgstr "crwdns130294:0crwdne130294:0"
 #: public/js/form_builder/utils.js:341
 #: public/js/frappe/form/controls/link.js:475
 #: public/js/frappe/list/list_sidebar_group_by.js:223
-#: public/js/frappe/views/reports/query_report.js:1541
+#: public/js/frappe/views/reports/query_report.js:1526
 #: website/doctype/help_article/templates/help_article.html:26
 msgid "No"
 msgstr "crwdns97696:0crwdne97696:0"
@@ -16065,7 +16111,7 @@ msgstr "crwdns97718:0crwdne97718:0"
 msgid "No Data to Show"
 msgstr "crwdns111038:0crwdne111038:0"
 
-#: public/js/frappe/widgets/quick_list_widget.js:131
+#: public/js/frappe/widgets/quick_list_widget.js:133
 msgid "No Data..."
 msgstr "crwdns111040:0crwdne111040:0"
 
@@ -16532,7 +16578,7 @@ msgstr "crwdns97892:0crwdne97892:0"
 msgid "Not allowed for {0}: {1}"
 msgstr "crwdns97894:0{0}crwdnd97894:0{1}crwdne97894:0"
 
-#: email/doctype/notification/notification.py:391
+#: email/doctype/notification/notification.py:392
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
 msgstr "crwdns97896:0{0}crwdnd97896:0{0}crwdne97896:0"
 
@@ -16651,7 +16697,7 @@ msgstr "crwdns97940:0crwdne97940:0"
 msgid "Nothing left to undo"
 msgstr "crwdns97942:0crwdne97942:0"
 
-#: public/js/frappe/list/base_list.js:362
+#: public/js/frappe/list/base_list.js:370
 #: public/js/frappe/views/reports/query_report.js:105
 #: templates/includes/list/list.html:7
 #: website/doctype/blog_post/templates/blog_post_list.html:41
@@ -17057,8 +17103,13 @@ msgstr "crwdns111096:0{0}crwdnd111096:0{1}crwdne111096:0"
 
 #. Label of the onboard (Check) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/widgets/widget_dialog.js:330
 msgid "Onboard"
 msgstr "crwdns130402:0crwdne130402:0"
+
+#: public/js/frappe/widgets/widget_dialog.js:236
+msgid "Onboarding Name"
+msgstr "crwdns142860:0crwdne142860:0"
 
 #. Name of a DocType
 #: desk/doctype/onboarding_permission/onboarding_permission.json
@@ -17167,6 +17218,7 @@ msgstr "crwdns127690:0crwdne127690:0"
 
 #. Label of the only_for (Link) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/widgets/widget_dialog.js:323
 msgid "Only for"
 msgstr "crwdns130412:0crwdne130412:0"
 
@@ -17516,7 +17568,7 @@ msgstr "crwdns130460:0crwdne130460:0"
 
 #: printing/page/print/print.js:71
 #: public/js/frappe/form/templates/print_layout.html:44
-#: public/js/frappe/views/reports/query_report.js:1669
+#: public/js/frappe/views/reports/query_report.js:1654
 msgid "PDF"
 msgstr "crwdns98288:0crwdne98288:0"
 
@@ -17908,8 +17960,8 @@ msgid "Password not found for {0} {1} {2}"
 msgstr "crwdns98464:0{0}crwdnd98464:0{1}crwdnd98464:0{2}crwdne98464:0"
 
 #: core/doctype/user/user.py:1021
-msgid "Password reset instructions have been sent to your email"
-msgstr "crwdns98466:0crwdne98466:0"
+msgid "Password reset instructions have been sent to {}'s email"
+msgstr "crwdns142862:0crwdne142862:0"
 
 #: www/update-password.html:164
 msgid "Password set"
@@ -18308,7 +18360,7 @@ msgstr "crwdns98646:0crwdne98646:0"
 msgid "Please check the filter values set for Dashboard Chart: {}"
 msgstr "crwdns98648:0crwdne98648:0"
 
-#: model/base_document.py:872
+#: model/base_document.py:873
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "crwdns98650:0{0}crwdne98650:0"
 
@@ -18610,11 +18662,11 @@ msgstr "crwdns98790:0crwdne98790:0"
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "crwdns98792:0{0}crwdne98792:0"
 
-#: email/doctype/notification/notification.py:87
+#: email/doctype/notification/notification.py:88
 msgid "Please specify which date field must be checked"
 msgstr "crwdns98794:0crwdne98794:0"
 
-#: email/doctype/notification/notification.py:90
+#: email/doctype/notification/notification.py:91
 msgid "Please specify which value field must be checked"
 msgstr "crwdns98796:0crwdne98796:0"
 
@@ -18947,7 +18999,7 @@ msgstr "crwdns112704:0{0}crwdne112704:0"
 #: public/js/frappe/form/templates/print_layout.html:46
 #: public/js/frappe/form/toolbar.js:332 public/js/frappe/form/toolbar.js:344
 #: public/js/frappe/list/bulk_operations.js:87
-#: public/js/frappe/views/reports/query_report.js:1655
+#: public/js/frappe/views/reports/query_report.js:1640
 #: public/js/frappe/views/reports/report_view.js:1460
 #: public/js/frappe/views/treeview.js:469 www/printview.html:18
 msgid "Print"
@@ -19809,7 +19861,7 @@ msgstr "crwdns99328:0crwdne99328:0"
 msgid "Rebuild Tree"
 msgstr "crwdns99330:0crwdne99330:0"
 
-#: utils/nestedset.py:176
+#: utils/nestedset.py:177
 msgid "Rebuilding of tree is not supported for {}"
 msgstr "crwdns99332:0crwdne99332:0"
 
@@ -20167,7 +20219,7 @@ msgstr "crwdns99526:0crwdne99526:0"
 #: public/js/frappe/desk.js:533 public/js/frappe/form/form.js:1196
 #: public/js/frappe/form/templates/print_layout.html:6
 #: public/js/frappe/list/base_list.js:66
-#: public/js/frappe/views/reports/query_report.js:1644
+#: public/js/frappe/views/reports/query_report.js:1629
 #: public/js/frappe/views/treeview.js:475
 #: public/js/frappe/widgets/chart_widget.js:290
 #: public/js/frappe/widgets/number_card_widget.js:324
@@ -20265,7 +20317,7 @@ msgstr "crwdns99566:0crwdne99566:0"
 msgid "Reload File"
 msgstr "crwdns111162:0crwdne111162:0"
 
-#: public/js/frappe/list/base_list.js:242
+#: public/js/frappe/list/base_list.js:250
 msgid "Reload List"
 msgstr "crwdns99568:0crwdne99568:0"
 
@@ -20534,7 +20586,7 @@ msgstr "crwdns99694:0crwdne99694:0"
 #: core/doctype/report/report.json
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 #: desk/doctype/number_card/number_card.json
-#: public/js/frappe/views/reports/query_report.js:1825
+#: public/js/frappe/views/reports/query_report.js:1810
 msgid "Report Name"
 msgstr "crwdns99696:0crwdne99696:0"
 
@@ -20556,6 +20608,10 @@ msgstr "crwdns130836:0crwdne130836:0"
 #: email/doctype/auto_email_report/auto_email_report.json
 msgid "Report Type"
 msgstr "crwdns130838:0crwdne130838:0"
+
+#: public/js/frappe/list/base_list.js:204
+msgid "Report View"
+msgstr "crwdns142864:0crwdne142864:0"
 
 #: core/doctype/doctype/doctype.py:1780
 msgid "Report cannot be set for Single types"
@@ -20591,7 +20647,7 @@ msgstr "crwdns99730:0crwdne99730:0"
 msgid "Report was not saved (there were errors)"
 msgstr "crwdns99732:0crwdne99732:0"
 
-#: public/js/frappe/views/reports/query_report.js:1863
+#: public/js/frappe/views/reports/query_report.js:1848
 msgid "Report with more than 10 columns looks better in Landscape mode."
 msgstr "crwdns99734:0crwdne99734:0"
 
@@ -21177,7 +21233,7 @@ msgstr "crwdns130922:0crwdne130922:0"
 msgid "Roles can be set for users from their User page."
 msgstr "crwdns111176:0crwdne111176:0"
 
-#: utils/nestedset.py:277
+#: utils/nestedset.py:280
 msgid "Root {0} cannot be deleted"
 msgstr "crwdns100012:0{0}crwdne100012:0"
 
@@ -21250,7 +21306,7 @@ msgstr "crwdns111178:0crwdne111178:0"
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
 msgstr "crwdns100056:0{0}crwdnd100056:0{1}crwdne100056:0"
 
-#: model/base_document.py:903
+#: model/base_document.py:904
 msgid "Row #{0}:"
 msgstr "crwdns100058:0#{0}crwdne100058:0"
 
@@ -21534,11 +21590,11 @@ msgstr "crwdns130978:0crwdne130978:0"
 #: public/js/frappe/views/kanban/kanban_settings.js:45
 #: public/js/frappe/views/kanban/kanban_settings.js:189
 #: public/js/frappe/views/kanban/kanban_view.js:343
-#: public/js/frappe/views/reports/query_report.js:1817
+#: public/js/frappe/views/reports/query_report.js:1802
 #: public/js/frappe/views/reports/report_view.js:1640
 #: public/js/frappe/views/workspace/workspace.js:501
 #: public/js/frappe/widgets/base_widget.js:142
-#: public/js/frappe/widgets/quick_list_widget.js:117
+#: public/js/frappe/widgets/quick_list_widget.js:119
 #: public/js/print_format_builder/print_format_builder.bundle.js:15
 #: public/js/workflow_builder/workflow_builder.bundle.js:33
 msgid "Save"
@@ -21565,7 +21621,7 @@ msgstr "crwdns100180:0crwdne100180:0"
 msgid "Save Filter"
 msgstr "crwdns111194:0crwdne111194:0"
 
-#: public/js/frappe/views/reports/query_report.js:1820
+#: public/js/frappe/views/reports/query_report.js:1805
 msgid "Save Report"
 msgstr "crwdns100182:0crwdne100182:0"
 
@@ -22689,7 +22745,7 @@ msgid "Set Filters"
 msgstr "crwdns100696:0crwdne100696:0"
 
 #: public/js/frappe/widgets/chart_widget.js:395
-#: public/js/frappe/widgets/quick_list_widget.js:102
+#: public/js/frappe/widgets/quick_list_widget.js:104
 msgid "Set Filters for {0}"
 msgstr "crwdns100698:0{0}crwdne100698:0"
 
@@ -22902,7 +22958,7 @@ msgstr "crwdns111218:0crwdne111218:0"
 msgid "Setup Approval Workflows"
 msgstr "crwdns100772:0crwdne100772:0"
 
-#: public/js/frappe/views/reports/query_report.js:1690
+#: public/js/frappe/views/reports/query_report.js:1675
 #: public/js/frappe/views/reports/report_view.js:1618
 msgid "Setup Auto Email"
 msgstr "crwdns100774:0crwdne100774:0"
@@ -24936,7 +24992,7 @@ msgid "The Client ID obtained from the Google Cloud Console under <a href=\"http
 "</a>"
 msgstr "crwdns131442:0crwdne131442:0"
 
-#: email/doctype/notification/notification.py:130
+#: email/doctype/notification/notification.py:131
 msgid "The Condition '{0}' is invalid"
 msgstr "crwdns101636:0{0}crwdne101636:0"
 
@@ -25390,7 +25446,7 @@ msgstr "crwdns131482:0crwdne131482:0"
 msgid "This goes above the slideshow."
 msgstr "crwdns131484:0crwdne131484:0"
 
-#: public/js/frappe/views/reports/query_report.js:2027
+#: public/js/frappe/views/reports/query_report.js:2012
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
 msgstr "crwdns101812:0crwdne101812:0"
 
@@ -26249,6 +26305,10 @@ msgstr "crwdns131624:0crwdne131624:0"
 msgid "Tree"
 msgstr "crwdns131626:0crwdne131626:0"
 
+#: public/js/frappe/list/base_list.js:211
+msgid "Tree View"
+msgstr "crwdns142866:0crwdne142866:0"
+
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgid "Tree structures are implemented using Nested Set"
@@ -26354,6 +26414,7 @@ msgstr "crwdns131640:0crwdne131640:0"
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: public/js/frappe/views/file/file_view.js:337
+#: public/js/frappe/widgets/widget_dialog.js:399
 #: social/doctype/energy_point_log/energy_point_log.json
 #: website/doctype/web_template/web_template.json www/attribution.html:35
 msgid "Type"
@@ -26435,6 +26496,7 @@ msgstr "crwdns131652:0crwdne131652:0"
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: integrations/doctype/integration_request/integration_request.json
 #: integrations/doctype/webhook_request_log/webhook_request_log.json
+#: public/js/frappe/widgets/widget_dialog.js:469
 #: website/doctype/top_bar_item/top_bar_item.json
 #: website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "URL"
@@ -27111,7 +27173,7 @@ msgid "User Permission"
 msgstr "crwdns102624:0crwdne102624:0"
 
 #: core/page/permission_manager/permission_manager_help.html:30
-#: public/js/frappe/views/reports/query_report.js:1804
+#: public/js/frappe/views/reports/query_report.js:1789
 #: public/js/frappe/views/reports/report_view.js:1666
 msgid "User Permissions"
 msgstr "crwdns102628:0crwdne102628:0"
@@ -27429,7 +27491,7 @@ msgstr "crwdns131784:0crwdne131784:0"
 msgid "Value To Be Set"
 msgstr "crwdns131786:0crwdne131786:0"
 
-#: model/base_document.py:965 model/document.py:682
+#: model/base_document.py:966 model/document.py:682
 msgid "Value cannot be changed for {0}"
 msgstr "crwdns102750:0{0}crwdne102750:0"
 
@@ -27472,7 +27534,7 @@ msgstr "crwdns102766:0{0}crwdne102766:0"
 msgid "Value to Validate"
 msgstr "crwdns131790:0crwdne131790:0"
 
-#: model/base_document.py:1035
+#: model/base_document.py:1036
 msgid "Value too big"
 msgstr "crwdns102770:0crwdne102770:0"
 
@@ -27571,7 +27633,7 @@ msgid "View Full Log"
 msgstr "crwdns111324:0crwdne111324:0"
 
 #: public/js/frappe/views/treeview.js:463
-#: public/js/frappe/widgets/quick_list_widget.js:245
+#: public/js/frappe/widgets/quick_list_widget.js:247
 msgid "View List"
 msgstr "crwdns102808:0crwdne102808:0"
 
@@ -28453,7 +28515,7 @@ msgstr "crwdns127790:0crwdne127790:0"
 msgid "Write"
 msgstr "crwdns131894:0crwdne131894:0"
 
-#: model/base_document.py:875
+#: model/base_document.py:876
 msgid "Wrong Fetch From value"
 msgstr "crwdns103194:0crwdne103194:0"
 
@@ -28540,7 +28602,7 @@ msgstr "crwdns131908:0crwdne131908:0"
 #: public/js/form_builder/utils.js:336
 #: public/js/frappe/form/controls/link.js:475
 #: public/js/frappe/list/list_sidebar_group_by.js:223
-#: public/js/frappe/views/reports/query_report.js:1541
+#: public/js/frappe/views/reports/query_report.js:1526
 #: website/doctype/help_article/templates/help_article.html:25
 msgid "Yes"
 msgstr "crwdns103238:0crwdne103238:0"
@@ -29753,7 +29815,7 @@ msgstr "crwdns104008:0crwdne104008:0"
 msgid "via Google Meet"
 msgstr "crwdns132068:0crwdne132068:0"
 
-#: email/doctype/notification/notification.py:215
+#: email/doctype/notification/notification.py:216
 msgid "via Notification"
 msgstr "crwdns104012:0crwdne104012:0"
 
@@ -29896,7 +29958,7 @@ msgstr "crwdns104080:0{0}crwdne104080:0"
 msgid "{0} Name"
 msgstr "crwdns104082:0{0}crwdne104082:0"
 
-#: model/base_document.py:1065
+#: model/base_document.py:1066
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr "crwdns104084:0{0}crwdnd104084:0{1}crwdnd104084:0{2}crwdnd104084:0{3}crwdne104084:0"
 
@@ -29921,10 +29983,6 @@ msgstr "crwdns104088:0{0}crwdne104088:0"
 #: public/js/frappe/views/treeview.js:139
 msgid "{0} Tree"
 msgstr "crwdns104090:0{0}crwdne104090:0"
-
-#: public/js/frappe/list/base_list.js:209
-msgid "{0} View"
-msgstr "crwdns104092:0{0}crwdne104092:0"
 
 #: public/js/frappe/form/footer/form_timeline.js:126
 #: public/js/frappe/form/sidebar/form_sidebar.js:86
@@ -30539,11 +30597,11 @@ msgstr "crwdns104370:0{0}crwdnd104370:0{1}crwdnd104370:0{2}crwdne104370:0"
 msgid "{0} {1} already exists"
 msgstr "crwdns104372:0{0}crwdnd104372:0{1}crwdne104372:0"
 
-#: model/base_document.py:908
+#: model/base_document.py:909
 msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
 msgstr "crwdns104374:0{0}crwdnd104374:0{1}crwdnd104374:0{2}crwdnd104374:0{3}crwdne104374:0"
 
-#: utils/nestedset.py:337
+#: utils/nestedset.py:340
 msgid "{0} {1} cannot be a leaf node as it has children"
 msgstr "crwdns104376:0{0}crwdnd104376:0{1}crwdne104376:0"
 
@@ -30563,11 +30621,11 @@ msgstr "crwdns104382:0{0}crwdnd104382:0{1}crwdne104382:0"
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr "crwdns104384:0{0}crwdnd104384:0{1}crwdnd104384:0{2}crwdnd104384:0{3}crwdne104384:0"
 
-#: model/base_document.py:1026
+#: model/base_document.py:1027
 msgid "{0}, Row {1}"
 msgstr "crwdns104386:0{0}crwdnd104386:0{1}crwdne104386:0"
 
-#: model/base_document.py:1031
+#: model/base_document.py:1032
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr "crwdns104388:0{0}crwdnd104388:0{1}crwdnd104388:0{3}crwdnd104388:0{2}crwdne104388:0"
 
@@ -30660,7 +30718,7 @@ msgid "{0}: fieldname cannot be set to reserved keyword {1}"
 msgstr "crwdns104430:0{0}crwdnd104430:0{1}crwdne104430:0"
 
 #: contacts/doctype/address/address.js:35
-#: contacts/doctype/contact/contact.js:83
+#: contacts/doctype/contact/contact.js:88
 #: public/js/frappe/views/workspace/workspace.js:170
 msgid "{0}: {1}"
 msgstr "crwdns104432:0{0}crwdnd104432:0{1}crwdne104432:0"

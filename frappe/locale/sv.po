@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-30 09:33+0000\n"
-"PO-Revision-Date: 2024-07-02 15:49\n"
+"PO-Revision-Date: 2024-07-07 15:47\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -4354,7 +4354,7 @@ msgstr "Ändra"
 #: tests/test_translate.py:99
 msgctxt "Coins"
 msgid "Change"
-msgstr "Ändra"
+msgstr "Växel"
 
 #. Label of the label (Data) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -13048,7 +13048,7 @@ msgstr "Ogiltiga begäran argument"
 
 #: integrations/doctype/connected_app/connected_app.py:173
 msgid "Invalid state."
-msgstr "Ogiltig status."
+msgstr "Ogiltigt tillstånd."
 
 #: core/doctype/data_import/importer.py:423
 msgid "Invalid template file for import"
@@ -28569,7 +28569,7 @@ msgstr "Arbetsflöde Tillstånd inte angiven"
 
 #: model/workflow.py:197 model/workflow.py:205
 msgid "Workflow State transition not allowed from {0} to {1}"
-msgstr "Arbetsflöde Övergång inte tillåten från {0} till {1}"
+msgstr "Arbetsflöde Tillstånd Övergång inte tillåten från {0} till {1}"
 
 #: model/workflow.py:320
 msgid "Workflow Status"
@@ -30595,7 +30595,7 @@ msgstr "{0} måste börja och sluta med bokstav och får bara innehålla bokstä
 
 #: workflow/doctype/workflow/workflow.py:91
 msgid "{0} not a valid State"
-msgstr "{0} inte en giltig Tillstånd"
+msgstr "{0} är inte giltig Tillstånd"
 
 #: model/rename_doc.py:380
 msgid "{0} not allowed to be renamed"
