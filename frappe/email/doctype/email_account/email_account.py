@@ -862,6 +862,8 @@ def pull_emails(email_account: str) -> None:
 
 	if job_name not in queued_jobs:
 		pull_from_email_account(email_account)
+	else:
+		frappe.msgprint(_("Emails are already being pulled from this account."))
 
 
 def pull_from_email_account(email_account):

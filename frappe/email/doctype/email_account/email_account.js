@@ -157,13 +157,15 @@ frappe.ui.form.on("Email Account", {
 
 		if (!frm.is_dirty() && frm.doc.enable_incoming) {
 			frm.add_custom_button(__("Pull Emails"), () => {
-				frappe.dom.freeze(__('Pulling emails...'));
+				frappe.dom.freeze(__("Pulling emails..."));
 				frm.call({
 					method: "pull_emails",
 					args: { email_account: frm.doc.name },
-				}).then(() => {
+				}).then((r) => {
 					frappe.dom.unfreeze();
-					frappe.show_alert({ message: __("Emails Pulled"), indicator: "green" });
+					if (!(r._server_messages && r._server_messages.length)) {
+						frappe.show_alert({ message: __("Emails Pulled"), indicator: "green" });
+					}
 				});
 			});
 		}
