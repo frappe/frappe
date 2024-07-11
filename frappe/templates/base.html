@@ -34,6 +34,14 @@
 		{%- endif %}
 	{%- endblock -%}
 
+	{% if boot.lang == "eo" %}
+	<script type="text/javascript">
+		var _jipt = [];
+		_jipt.push(['project', 'frappe']);
+	</script>
+	<script type="text/javascript" src="https://cdn.crowdin.com/jipt/jipt.js"></script>
+	{% endif %}
+
 	<script>
 		window.frappe = {};
 		frappe.ready_events = [];

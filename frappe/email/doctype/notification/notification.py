@@ -3,6 +3,7 @@
 
 import json
 import os
+from collections import namedtuple
 
 import frappe
 from frappe import _
@@ -514,10 +515,11 @@ def evaluate_alert(doc: Document, alert, event):
 
 
 def get_context(doc):
+	Frappe = namedtuple("frappe", ["utils"])
 	return {
 		"doc": doc,
 		"nowdate": nowdate,
-		"frappe": frappe._dict(utils=get_safe_globals().get("frappe").get("utils")),
+		"frappe": Frappe(utils=get_safe_globals().get("frappe").get("utils")),
 	}
 
 

@@ -478,22 +478,21 @@ def get_link_fields(doctype: str) -> list[dict]:
 		custom_fields = (
 			frappe.qb.from_(cf)
 			.select(cf.dt.as_("parent"), cf.fieldname, cf_issingle)
-			.where((cf.options == doctype) & (cf.fieldtype == "Link") & (cf.dt.notin(virtual_doctypes)))
-			.run(as_dict=True)
+			.where((cf.options == doctype) & (cf.fieldtype == "Link"))
 		)
+		if virtual_doctypes:
+			custom_fields = custom_fields.where(cf.dt.notin(virtual_doctypes))
+		custom_fields = custom_fields.run(as_dict=True)
 
 		ps_issingle = frappe.qb.from_(dt).select(dt.issingle).where(dt.name == ps.doc_type).as_("issingle")
 		property_setter_fields = (
 			frappe.qb.from_(ps)
 			.select(ps.doc_type.as_("parent"), ps.field_name.as_("fieldname"), ps_issingle)
-			.where(
-				(ps.property == "options")
-				& (ps.value == doctype)
-				& (ps.field_name.notnull())
-				& (ps.doc_type.notin(virtual_doctypes))
-			)
-			.run(as_dict=True)
+			.where((ps.property == "options") & (ps.value == doctype) & (ps.field_name.notnull()))
 		)
+		if virtual_doctypes:
+			property_setter_fields = property_setter_fields.where(ps.doc_type.notin(virtual_doctypes))
+		property_setter_fields = property_setter_fields.run(as_dict=True)
 
 		frappe.flags.link_fields[doctype] = standard_fields + custom_fields + property_setter_fields
 
