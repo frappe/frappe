@@ -605,16 +605,19 @@ def parse_email(email_strings):
 			user, detail = None, None
 			if "+" in local_part:
 				user, detail = local_part.split("+", 1)
-			if "--" in local_part:
+			elif "--" in local_part:
 				detail, user = local_part.rsplit("--", 1)
 
+			if not detail:
+				continue
+
 			document_parts = None
-			if detail and "=" in detail:
+			if "=" in detail:
 				document_parts = detail.split("=", 1)
-			elif detail and "+" in detail:
+			elif "+" in detail:
 				document_parts = detail.split("+", 1)
 
-			if not document_parts or not len(document_parts) != 2:
+			if not document_parts or len(document_parts) != 2:
 				continue
 
 			doctype = unquote_plus(document_parts[0])
