@@ -170,23 +170,6 @@ frappe.ui.form.on("Notification", {
 		frappe.set_route("Form", "Customize Form");
 	},
 	event: function (frm) {
-<<<<<<< HEAD
-		if (in_list(["Days Before", "Days After"], frm.doc.event)) {
-			frm.add_custom_button(__("Get Alerts for Today"), function () {
-				frappe.call({
-					method: "frappe.email.doctype.notification.notification.get_documents_for_today",
-					args: {
-						notification: frm.doc.name,
-					},
-					callback: function (r) {
-						if (r.message && r.message.length > 0) {
-							frappe.msgprint(r.message.toString());
-						} else {
-							frappe.msgprint(__("No alerts for today"));
-						}
-					},
-				});
-=======
 		if (!DATE_BASED_EVENTS.includes(frm.doc.event) || frm.is_new()) return;
 
 		frm.add_custom_button(__("Get Alerts for Today"), function () {
@@ -202,7 +185,6 @@ frappe.ui.form.on("Notification", {
 						frappe.msgprint(__("No alerts for today"));
 					}
 				},
->>>>>>> b193cde7c0 (feat: allow creating `Days Before / After` notifications for child table (#26982))
 			});
 		});
 	},

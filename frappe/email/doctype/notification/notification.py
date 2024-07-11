@@ -23,55 +23,6 @@ DATE_BASED_EVENTS = frozenset(("Days Before", "Days After"))
 
 
 class Notification(Document):
-<<<<<<< HEAD
-=======
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
-
-	from typing import TYPE_CHECKING
-
-	if TYPE_CHECKING:
-		from frappe.email.doctype.notification_recipient.notification_recipient import NotificationRecipient
-		from frappe.types import DF
-
-		attach_print: DF.Check
-		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
-		condition: DF.Code | None
-		date_changed: DF.Literal[None]
-		days_in_advance: DF.Int
-		document_type: DF.Link
-		enabled: DF.Check
-		event: DF.Literal[
-			"",
-			"New",
-			"Save",
-			"Submit",
-			"Cancel",
-			"Days After",
-			"Days Before",
-			"Value Change",
-			"Method",
-			"Custom",
-		]
-		is_standard: DF.Check
-		message: DF.Code | None
-		message_type: DF.Literal["Markdown", "HTML", "Plain Text"]
-		method: DF.Data | None
-		module: DF.Link | None
-		print_format: DF.Link | None
-		property_value: DF.Data | None
-		recipients: DF.Table[NotificationRecipient]
-		send_system_notification: DF.Check
-		send_to_all_assignees: DF.Check
-		sender: DF.Link | None
-		sender_email: DF.Data | None
-		set_property_after_alert: DF.Literal[None]
-		slack_webhook_url: DF.Link | None
-		subject: DF.Data | None
-		value_changed: DF.Literal[None]
-	# end: auto-generated types
-
->>>>>>> b193cde7c0 (feat: allow creating `Days Before / After` notifications for child table (#26982))
 	def onload(self):
 		"""load message"""
 		if self.is_standard:
@@ -271,32 +222,6 @@ def get_context(context):
 		message = frappe.render_template(self.message, context)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
-<<<<<<< HEAD
-=======
-
-		communication = None
-		# Add mail notification to communication list
-		# No need to add if it is already a communication.
-		if doc.doctype != "Communication":
-			communication = make_communication(
-				doctype=get_reference_doctype(doc),
-				name=get_reference_name(doc),
-				content=message,
-				subject=subject,
-				sender=sender,
-				recipients=recipients,
-				communication_medium="Email",
-				send_email=False,
-				attachments=attachments,
-				cc=cc,
-				bcc=bcc,
-				communication_type="Automated Message",
-			).get("name")
-			# set the outgoing email account because we did in fact send it via sendmail above
-			comm = frappe.get_doc("Communication", communication)
-			comm.get_outgoing_email_account()
-
->>>>>>> b193cde7c0 (feat: allow creating `Days Before / After` notifications for child table (#26982))
 		frappe.sendmail(
 			recipients=recipients,
 			subject=subject,

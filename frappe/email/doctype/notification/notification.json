@@ -290,11 +290,7 @@
  "icon": "fa fa-envelope",
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-11-17 08:48:25.616203",
-=======
  "modified": "2024-07-04 05:53:40.595130",
->>>>>>> b193cde7c0 (feat: allow creating `Days Before / After` notifications for child table (#26982))
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Notification",
