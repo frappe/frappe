@@ -18,9 +18,60 @@ from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
 
 FORMATS = {"HTML": ".html", "Markdown": ".md", "Plain Text": ".txt"}
+FORBIDDEN_DOCUMENT_TYPES = frozenset(("Email Queue",))
+DATE_BASED_EVENTS = frozenset(("Days Before", "Days After"))
 
 
 class Notification(Document):
+<<<<<<< HEAD
+=======
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.email.doctype.notification_recipient.notification_recipient import NotificationRecipient
+		from frappe.types import DF
+
+		attach_print: DF.Check
+		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
+		condition: DF.Code | None
+		date_changed: DF.Literal[None]
+		days_in_advance: DF.Int
+		document_type: DF.Link
+		enabled: DF.Check
+		event: DF.Literal[
+			"",
+			"New",
+			"Save",
+			"Submit",
+			"Cancel",
+			"Days After",
+			"Days Before",
+			"Value Change",
+			"Method",
+			"Custom",
+		]
+		is_standard: DF.Check
+		message: DF.Code | None
+		message_type: DF.Literal["Markdown", "HTML", "Plain Text"]
+		method: DF.Data | None
+		module: DF.Link | None
+		print_format: DF.Link | None
+		property_value: DF.Data | None
+		recipients: DF.Table[NotificationRecipient]
+		send_system_notification: DF.Check
+		send_to_all_assignees: DF.Check
+		sender: DF.Link | None
+		sender_email: DF.Data | None
+		set_property_after_alert: DF.Literal[None]
+		slack_webhook_url: DF.Link | None
+		subject: DF.Data | None
+		value_changed: DF.Literal[None]
+	# end: auto-generated types
+
+>>>>>>> b193cde7c0 (feat: allow creating `Days Before / After` notifications for child table (#26982))
 	def onload(self):
 		"""load message"""
 		if self.is_standard:
@@ -42,7 +93,7 @@ class Notification(Document):
 		if self.event == "Value Change" and not self.value_changed:
 			frappe.throw(_("Please specify which value field must be checked"))
 
-		self.validate_forbidden_types()
+		self.validate_forbidden_document_types()
 		self.validate_condition()
 		self.validate_standard()
 		frappe.cache().hdel("notifications", self.document_type)
@@ -82,12 +133,16 @@ def get_context(context):
 			except Exception:
 				frappe.throw(_("The Condition '{0}' is invalid").format(self.condition))
 
-	def validate_forbidden_types(self):
-		forbidden_document_types = ("Email Queue",)
-		if self.document_type in forbidden_document_types or frappe.get_meta(self.document_type).istable:
-			# currently notifications don't work on child tables as events are not fired for each record of child table
-
-			frappe.throw(_("Cannot set Notification on Document Type {0}").format(self.document_type))
+	def validate_forbidden_document_types(self):
+		if self.document_type in FORBIDDEN_DOCUMENT_TYPES or (
+			frappe.get_meta(self.document_type).istable and self.event not in DATE_BASED_EVENTS
+		):
+			# only date based events are allowed for child tables
+			frappe.throw(
+				_("Cannot set Notification with event {0} on Document Type {1}").format(
+					_(self.event), _(self.document_type)
+				)
+			)
 
 	def get_documents_for_today(self):
 		"""get list of documents that will be triggered today"""
@@ -189,8 +244,8 @@ def get_context(context):
 
 		notification_doc = {
 			"type": "Alert",
-			"document_type": doc.doctype,
-			"document_name": doc.name,
+			"document_type": get_reference_doctype(doc),
+			"document_name": get_reference_name(doc),
 			"subject": subject,
 			"from_user": doc.modified_by or doc.owner,
 			"email_content": frappe.render_template(self.message, context),
@@ -216,6 +271,32 @@ def get_context(context):
 		message = frappe.render_template(self.message, context)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
+<<<<<<< HEAD
+=======
+
+		communication = None
+		# Add mail notification to communication list
+		# No need to add if it is already a communication.
+		if doc.doctype != "Communication":
+			communication = make_communication(
+				doctype=get_reference_doctype(doc),
+				name=get_reference_name(doc),
+				content=message,
+				subject=subject,
+				sender=sender,
+				recipients=recipients,
+				communication_medium="Email",
+				send_email=False,
+				attachments=attachments,
+				cc=cc,
+				bcc=bcc,
+				communication_type="Automated Message",
+			).get("name")
+			# set the outgoing email account because we did in fact send it via sendmail above
+			comm = frappe.get_doc("Communication", communication)
+			comm.get_outgoing_email_account()
+
+>>>>>>> b193cde7c0 (feat: allow creating `Days Before / After` notifications for child table (#26982))
 		frappe.sendmail(
 			recipients=recipients,
 			subject=subject,
@@ -223,8 +304,8 @@ def get_context(context):
 			cc=cc,
 			bcc=bcc,
 			message=message,
-			reference_doctype=doc.doctype,
-			reference_name=doc.name,
+			reference_doctype=get_reference_doctype(doc),
+			reference_name=get_reference_name(doc),
 			attachments=attachments,
 			expose_recipients="header",
 			print_letterhead=((attachments and attachments[0].get("print_letterhead")) or False),
@@ -252,8 +333,8 @@ def get_context(context):
 		send_slack_message(
 			webhook_url=self.slack_webhook_url,
 			message=frappe.render_template(self.message, context),
-			reference_doctype=doc.doctype,
-			reference_name=doc.name,
+			reference_doctype=get_reference_doctype(doc),
+			reference_name=get_reference_name(doc),
 		)
 
 	def send_sms(self, doc, context):
@@ -490,3 +571,11 @@ def get_emails_from_template(template, context):
 
 	emails = frappe.render_template(template, context) if "{" in template else template
 	return filter(None, emails.replace(",", "\n").split("\n"))
+
+
+def get_reference_doctype(doc):
+	return doc.parenttype if doc.meta.istable else doc.doctype
+
+
+def get_reference_name(doc):
+	return doc.parent if doc.meta.istable else doc.name
