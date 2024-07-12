@@ -1743,16 +1743,10 @@ def bulk_insert(
 	}
 
 	for child_table in doctype_meta.get_table_fields():
-		valid_column_map[child_table.options] = frappe.get_meta(child_table.options).get_valid_columns()
-		values_map[child_table.options] = _document_values_generator(
-			[
-				ch_doc
-				for ch_doc in (
-					child_docs for doc in documents for child_docs in doc.get(child_table.fieldname)
-				)
-			],
-			valid_column_map[child_table.options],
-		)
+		valid_columns = frappe.get_meta(child_table.options).get_valid_columns()
+		valid_column_map[child_table.options] = valid_columns
+		child_docs = [child_doc for doc in documents for child_doc in doc.get(child_table.fieldname)]
+		values_map[child_table.options] = _document_values_generator(child_docs, valid_columns)
 
 	for dt, docs in values_map.items():
 		frappe.db.bulk_insert(
