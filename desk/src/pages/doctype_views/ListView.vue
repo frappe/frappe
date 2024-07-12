@@ -66,7 +66,7 @@ import {
 
 import { fetchListFnKey, renderListFnKey } from "@/types/injectionKeys"
 import { useRouteParamsAsStrings } from "@/composables/router"
-import { FieldTypes as DocFieldType } from "@/types/controls"
+import { FieldTypes } from "@/types/controls"
 import {
 	RouteQuery,
 	ListFilterOperator,
@@ -154,7 +154,7 @@ const currentSort = computed(() =>
 
 const querySort = computed(() => `${currentSort.value.join(" ")}`)
 
-const getFieldType = (fieldname: string): DocFieldType | "" => {
+const getFieldType = (fieldname: string): FieldTypes | "" => {
 	return configSettings.data?.fields.find((f) => f.key === fieldname)?.type || ""
 }
 

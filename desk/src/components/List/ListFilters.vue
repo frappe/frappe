@@ -108,7 +108,7 @@ import { configName, isDefaultConfig } from "@/stores/view"
 import { getFilterQuery } from "@/utils/list"
 
 import { fetchListFnKey } from "@/types/injectionKeys"
-import { FieldTypes as DocFieldType } from "@/types/controls"
+import { FieldTypes } from "@/types/controls"
 import {
 	RouteQuery,
 	ListField,
@@ -136,7 +136,7 @@ const filterableFields = computed<FilterFieldOption[]>(() => {
 	})
 })
 
-const getOperatorKey = (fieldtype: DocFieldType): string => {
+const getOperatorKey = (fieldtype: FieldTypes): string => {
 	if (stringTypes.includes(fieldtype)) return "string"
 	else if (numberTypes.includes(fieldtype)) return "number"
 	else if (linkTypes.includes(fieldtype)) return "link"
@@ -144,7 +144,7 @@ const getOperatorKey = (fieldtype: DocFieldType): string => {
 	else return fieldtype.toLowerCase()
 }
 
-const getOperators = (fieldtype: DocFieldType): FilterOperatorOption[] =>
+const getOperators = (fieldtype: FieldTypes): FilterOperatorOption[] =>
 	filterOperators[getOperatorKey(fieldtype)] || []
 
 const addFilter = (field: FilterFieldOption) => {

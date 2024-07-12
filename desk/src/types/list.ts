@@ -1,12 +1,12 @@
 import { Resource } from "@/types/frappeUI"
-import { FieldTypes as DocFieldType } from "./controls"
+import { FieldTypes } from "./controls"
 
 type RouteQuery = Record<string, string | string[]>
 
 type ListField = {
 	key: string
 	label: string
-	type: DocFieldType
+	type: FieldTypes
 	options: string[]
 }
 
@@ -35,7 +35,7 @@ const isValidFilterOperator = (operator: any): operator is ListFilterOperator =>
 
 type ListFilter = {
 	fieldname: string
-	fieldtype: DocFieldType
+	fieldtype: FieldTypes
 	operator: ListFilterOperator
 	value: string
 	options: string[]
