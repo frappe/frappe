@@ -2,6 +2,7 @@ import hashlib
 import mimetypes
 import os
 import re
+from binascii import Error as BinasciiError
 from io import BytesIO
 from typing import TYPE_CHECKING, Optional
 from urllib.parse import unquote
@@ -234,7 +235,12 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 			content = content.encode("utf-8")
 		if b"," in content:
 			content = content.split(b",")[1]
-		content = safe_b64decode(content)
+
+		try:
+			content = safe_b64decode(content)
+		except BinasciiError:
+			frappe.flags.has_dataurl = True
+			return '<img src=""'
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
@@ -269,8 +275,14 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 
 	if content and isinstance(content, str):
 		content = re.sub(r'<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
+		content = content.replace('<img src="">', get_broken_image_replacement())
 
 	return content
+
+
+def get_broken_image_replacement() -> str:
+	msg = _("The image at this position could not be parsed.")
+	return f"<span>{msg}</span>"
 
 
 def get_random_filename(content_type: str | None = None) -> str:
