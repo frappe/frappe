@@ -122,7 +122,7 @@ frappe.PermissionEngine = class PermissionEngine {
 		// show standard permissions
 		let $d = $(d.wrapper)
 			.find(".frappe-confirm-message")
-			.append("<hr><h5>${__("Standard Permissions")}:</h5><br>");
+			.append(`<hr><h5>${__("Standard Permissions")}:</h5><br>`);
 		let $wrapper = $("<p></p>").appendTo($d);
 		data.message.forEach((d) => {
 			let rights = this.rights
