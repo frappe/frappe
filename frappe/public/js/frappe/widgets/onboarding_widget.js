@@ -129,8 +129,8 @@ export default class OnboardingWidget extends Widget {
 					.on("click", toggle_video);
 			} else {
 				$(
-					`<button class="btn btn-default btn-sm">${__(
-						step.action_label) || __(step.action)
+					`<button class="btn btn-default btn-sm">${
+						__(step.action_label) || __(step.action)
 					}</button>`
 				)
 					.appendTo(this.step_footer)
@@ -168,9 +168,9 @@ export default class OnboardingWidget extends Widget {
 			});
 
 			$(
-				`<button class="btn btn-primary btn-sm">${__(
-					step.action_label) || __(step.action
-				)}</button>`
+				`<button class="btn btn-primary btn-sm">${
+					__(step.action_label) || __(step.action)
+				}</button>`
 			)
 				.appendTo(this.step_footer)
 				.on("click", () => {
