@@ -137,7 +137,11 @@ frappe.ui.form.FormTour = class FormTour {
 		return {
 			element,
 			name,
-			popover: { title: __(title), description: __(description), position: frappe.router.slug(position || "Bottom") },
+			popover: {
+				title: __(title),
+				description: __(description),
+				position: frappe.router.slug(position || "Bottom"),
+			},
 			onNext: on_next,
 			onPrevious: on_prev,
 		};
