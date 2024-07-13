@@ -141,7 +141,8 @@ export default class ChartWidget extends Widget {
 		} else {
 			filters = [
 				{
-					label: __(this.chart_settings.time_interval) || __(this.chart_doc.time_interval),
+					label:
+						__(this.chart_settings.time_interval) || __(this.chart_doc.time_interval),
 					options: ["Yearly", "Quarterly", "Monthly", "Weekly", "Daily"],
 					icon: "calendar",
 					class: "time-interval-filter",
@@ -473,7 +474,9 @@ export default class ChartWidget extends Widget {
 				${actions
 					.map(
 						(action) =>
-							`<li><a class="dropdown-item" data-action="${action.action}">${__(action.label)}</a></li>`
+							`<li><a class="dropdown-item" data-action="${action.action}">${__(
+								action.label
+							)}</a></li>`
 					)
 					.join("")}
 			</ul>
