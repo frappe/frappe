@@ -240,7 +240,9 @@ frappe.msgprint = function (msg, title, is_minimizable) {
 
 	if (data.secondary_action) {
 		frappe.msg_dialog.set_secondary_action(data.secondary_action.action);
-		frappe.msg_dialog.set_secondary_action_label(__(data.secondary_action.label) || __("Close"));
+		frappe.msg_dialog.set_secondary_action_label(
+			__(data.secondary_action.label) || __("Close")
+		);
 	}
 
 	if (data.message == null) {
