@@ -115,7 +115,7 @@ def get_docinfo(doc=None, doctype=None, name=None, user=None):
 		{
 			"doctype": doc.doctype,
 			"name": doc.name,
-			"attachments": get_attachments(doc.doctype, doc.name),
+			"attachments": get_attachments(doc.doctype, doc.name, user=user),
 			"communications": communications_except_auto_messages,
 			"automated_messages": automated_messages,
 			"versions": get_versions(doc),
@@ -249,12 +249,26 @@ def get_milestones(doctype, name):
 	)
 
 
-def get_attachments(dt, dn):
-	return frappe.get_all(
+def get_attachments(dt, dn, user=None):
+	all_attachments = frappe.get_all(
 		"File",
-		fields=["name", "file_name", "file_url", "is_private"],
 		filters={"attached_to_name": dn, "attached_to_doctype": dt},
+		pluck="name",
 	)
+	visible_attachments = []
+	for attachment in all_attachments:
+		file_doc = frappe.get_doc("File", attachment)
+		if not has_permission(file_doc, "read", user=user):
+			continue
+		visible_attachments.append(
+			{
+				"name": file_doc.name,
+				"file_name": file_doc.file_name,
+				"file_url": file_doc.file_url,
+				"is_private": file_doc.is_private,
+			}
+		)
+	return visible_attachments
 
 
 def get_versions(doc: "Document") -> list[dict]:
