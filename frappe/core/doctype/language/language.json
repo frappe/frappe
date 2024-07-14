@@ -51,11 +51,7 @@
  "icon": "fa fa-globe",
  "in_create": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2023-04-13 13:48:38.127995",
-=======
  "modified": "2024-06-06 18:25:01.010821",
->>>>>>> f58b28865e (fix: Avoid renaming language or changing title manually)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Language",
