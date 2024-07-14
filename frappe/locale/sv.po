@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-07-07 09:33+0000\n"
-"PO-Revision-Date: 2024-07-13 17:16\n"
+"PO-Revision-Date: 2024-07-14 17:15\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -16120,7 +16120,7 @@ msgstr "Ny {0}: {1}"
 
 #: utils/change_log.py:373
 msgid "New {} releases for the following apps are available"
-msgstr "Nya {} utgåvor för följande appar finns tillgängliga"
+msgstr "Nya {} versioner för följande appar finns tillgängliga"
 
 #: core/doctype/user/user.py:753
 msgid "Newly created user {0} has no roles enabled."
