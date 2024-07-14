@@ -7,7 +7,6 @@ frappe._ = function (txt, replace, context = null) {
 	if (typeof txt != "string") return txt;
 
 	txt = txt.trim();
-
 	let translated_text = "";
 
 	let key = txt; // txt.replace(/\n/g, "");
