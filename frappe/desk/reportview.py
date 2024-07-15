@@ -377,7 +377,13 @@ def export_query():
 		ret = append_totals_row(ret)
 
 	data = [[_("Sr"), *get_labels(db_query.fields, doctype)]]
-	data.extend([i + 1, *list(row)] for i, row in enumerate(ret))
+	if frappe.local.lang == "en":
+		data.extend([i + 1, *list(row)] for i, row in enumerate(ret))
+	else:
+		for i, row in enumerate(ret):
+			data.append([i + 1] + list(map(_, row)))
+	
+	
 	data = handle_duration_fieldtype_values(doctype, data, db_query.fields)
 
 	if file_format_type == "CSV":
