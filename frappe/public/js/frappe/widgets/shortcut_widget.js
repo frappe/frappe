@@ -85,7 +85,7 @@ export default class ShortcutWidget extends Widget {
 	}
 
 	set_count(count) {
-		this.format = __(this.format.replace(/{}/g, "").trim());
+		let translate_format = __(this.format.replace(/{}/g, "").trim());
 		const get_label = () => {
 			if (this.format) {
 				return this.format + " " + count;
