@@ -83,13 +83,17 @@ function get_version_timeline_content(version_doc, frm) {
 				}
 			} else {
 				const df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
-				if (df && !df.hidden) {
+				if (df && (!df.hidden || df.show_on_timeline)) {
 					const field_display_status = frappe.perm.get_field_display_status(
 						df,
 						null,
 						frm.perm
 					);
-					if (field_display_status === "Read" || field_display_status === "Write") {
+					if (
+						field_display_status === "Read" ||
+						field_display_status === "Write" ||
+						(df.hidden && df.show_on_timeline)
+					) {
 						parts.push(
 							__("{0} from {1} to {2}", [
 								__(df.label, null, df.parent),
@@ -142,14 +146,18 @@ function get_version_timeline_content(version_doc, frm) {
 						frm.docname
 					);
 
-				if (df && !df.hidden) {
+				if (df && (!df.hidden || df.show_on_timeline)) {
 					var field_display_status = frappe.perm.get_field_display_status(
 						df,
 						null,
 						frm.perm
 					);
 
-					if (field_display_status === "Read" || field_display_status === "Write") {
+					if (
+						field_display_status === "Read" ||
+						field_display_status === "Write" ||
+						(df.hidden && df.show_on_timeline)
+					) {
 						parts.push(
 							__("{0} from {1} to {2} in row #{3}", [
 								frappe.meta.get_label(frm.fields_dict[row[0]].grid.doctype, p[0]),
@@ -198,10 +206,7 @@ function get_version_timeline_content(version_doc, frm) {
 			let parts = (data[key] || []).map(function (p) {
 				var df = frappe.meta.get_docfield(frm.doctype, p[0], frm.docname);
 
-				// exclude User doctype to show changes of `Roles` and `Allow Modules` tables
-				const is_excluded = ["User"].includes(frm.doctype);
-
-				if (df && (!df.hidden || is_excluded)) {
+				if (df && (!df.hidden || df.show_on_timeline)) {
 					var field_display_status = frappe.perm.get_field_display_status(
 						df,
 						null,
@@ -211,7 +216,7 @@ function get_version_timeline_content(version_doc, frm) {
 					if (
 						field_display_status === "Read" ||
 						field_display_status === "Write" ||
-						(df.hidden && is_excluded)
+						(df.hidden && df.show_on_timeline)
 					) {
 						return __(frappe.meta.get_label(frm.doctype, p[0]));
 					}
