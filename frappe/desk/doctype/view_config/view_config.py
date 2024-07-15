@@ -143,7 +143,7 @@ def update_config(config: dict, doctype=None, config_name=None, filters=None) ->
 		doc = frappe.get_doc("View Config", config_name)
 	else:
 		doc = frappe.new_doc("View Config")
-		doc.label = doctype + " List View"
+		doc.label = f"{doctype} List View"
 		doc.document_type = doctype
 		doc.custom = 0
 	if filters:

@@ -104,7 +104,7 @@ const renderList = async () => {
 	await loadConfig()
 	await addSavedFilters()
 	await createConfigObj()
-	await fetchList()
+	await fetchList(true)
 }
 
 const loadConfig = async () => {
@@ -216,7 +216,7 @@ const updateTotalCount = async () => {
 
 const handleLoadMore = async () => {
 	rowCount.value += pageLength.value
-	await fetchList()
+	await fetchList(true)
 }
 
 watch(
@@ -232,7 +232,7 @@ watch(
 	() => pageLength.value,
 	async () => {
 		rowCount.value = pageLength.value
-		await fetchList()
+		await fetchList(true)
 	}
 )
 
