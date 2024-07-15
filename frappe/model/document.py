@@ -458,7 +458,7 @@ class Document(BaseDocument):
 			d: Document
 			d.db_update()
 
-	def get_doc_before_save(self) -> "Document":
+	def get_doc_before_save(self) -> "Self":
 		return getattr(self, "_doc_before_save", None)
 
 	def has_value_changed(self, fieldname):
