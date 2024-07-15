@@ -17,7 +17,7 @@ from frappe.core.api.file import (
 	unzip_file,
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-from frappe.core.doctype.file.utils import get_broken_image_replacement, get_extension
+from frappe.core.doctype.file.utils import get_extension
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase, change_settings
@@ -785,7 +785,7 @@ class TestFileUtils(FrappeTestCase):
 		self.assertFalse(
 			frappe.db.exists("File", {"attached_to_name": communication.name, "is_private": is_private})
 		)
-		self.assertIn(get_broken_image_replacement(), communication.content)
+		self.assertIn('<img src="#broken-image">', communication.content)
 
 	def test_create_new_folder(self):
 		folder = create_new_folder("test_folder", "Home")
