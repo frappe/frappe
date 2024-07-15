@@ -45,6 +45,7 @@ def get_report_doc(report_name):
 
 		# Follow whatever the custom report has set for prepared report field
 		doc.prepared_report = custom_report_doc.prepared_report
+		doc.disable_prepared_report = custom_report_doc.disable_prepared_report
 
 	if not doc.is_permitted():
 		frappe.throw(
