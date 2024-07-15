@@ -306,7 +306,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			value: __("Search for {0}", [txt]),
 			match: txt,
 			index: 100,
-			default: __("Search"),
+			default: "Search",
 			onclick: function () {
 				frappe.searchdialog.search.init_search(txt, "global_search");
 			},
