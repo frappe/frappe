@@ -240,7 +240,7 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 			content = safe_b64decode(content)
 		except BinasciiError:
 			frappe.flags.has_dataurl = True
-			return '<img src="#broken-image"'
+			return f'<img src="#broken-image" alt="{get_corrupted_image_msg()}"'
 
 		if "filename=" in headers:
 			filename = headers.split("filename=")[-1]
@@ -277,6 +277,10 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 		content = re.sub(r'<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 
 	return content
+
+
+def get_corrupted_image_msg():
+	return _("Image: Corrupted Data Stream")
 
 
 def get_random_filename(content_type: str | None = None) -> str:
