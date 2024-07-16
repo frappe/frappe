@@ -17,6 +17,7 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
+from frappe.core.doctype.file.utils import get_corrupted_image_msg
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
@@ -732,6 +733,26 @@ class TestFileUtils(FrappeTestCase):
 			frappe.db.exists("File", {"attached_to_name": communication.name, "is_private": is_private})
 		)
 		self.assertRegex(communication.content, r"<img src=\"(.*)/files/pix\.png(.*)\">")
+
+	def test_broken_image(self):
+		"""Ensure that broken inline images don't cause errors."""
+		is_private = not frappe.get_meta("Communication").make_attachments_public
+		communication = frappe.get_doc(
+			doctype="Communication",
+			communication_type="Communication",
+			communication_medium="Email",
+			content='<div class="ql-editor read-mode"><img src="data:image/png;filename=pix.png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CY="></div>',
+			recipients="to <to@test.com>",
+			cc=None,
+			bcc=None,
+			sender="sender@test.com",
+		).insert(ignore_permissions=True)
+
+		self.assertFalse(
+			frappe.db.exists("File", {"attached_to_name": communication.name, "is_private": is_private})
+		)
+		self.assertIn('src="#broken-image"', communication.content)
+		self.assertIn(f'alt="{get_corrupted_image_msg()}"', communication.content)
 
 	def test_create_new_folder(self):
 		folder = create_new_folder("test_folder", "Home")
