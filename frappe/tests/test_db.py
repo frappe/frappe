@@ -1080,6 +1080,7 @@ class TestSqlIterator(FrappeTestCase):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()
 
+
 class ExtFrappeTestCase(FrappeTestCase):
 	def assertSqlException(self):
 		class SqlExceptionContextManager:
@@ -1258,6 +1259,7 @@ class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
 		self.assertEqual(rows, [])  # there are no records in the alt_schema table
 
 		del frappe.conf["db_schema"]
+
 
 class TestDbConnectWithEnvCredentials(FrappeTestCase):
 	current_site = frappe.local.site
