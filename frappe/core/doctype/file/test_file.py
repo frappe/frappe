@@ -17,11 +17,7 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
-<<<<<<< HEAD
-=======
-from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
->>>>>>> 1fe0f6e20b (fix: handle invalid images in HTML (#27095))
+from frappe.core.doctype.file.utils import get_corrupted_image_msg
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
 from frappe.tests.utils import FrappeTestCase
