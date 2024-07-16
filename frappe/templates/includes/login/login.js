@@ -337,7 +337,7 @@ var request_otp = function (r) {
 	$('.login-content:visible').append(
 		`<div id="twofactor_div">
 			<form class="form-verify">
-				<div class="page-card-head">
+				<div class="page-card-head p-0">
 					<span class="indicator blue" data-text="Verification">{{ _("Verification") | e }}</span>
 				</div>
 				<div id="otp_div"></div>
