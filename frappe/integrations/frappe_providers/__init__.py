@@ -23,5 +23,5 @@ from frappe.integrations.frappe_providers.frappecloud import frappecloud_migrato
 # 		return False
 
 
-def migrate_to(context):
-	return frappecloud_migrator(context)
+def migrate_to():
+	return frappecloud_migrator()
