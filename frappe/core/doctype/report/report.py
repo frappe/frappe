@@ -345,7 +345,10 @@ class Report(Document):
 
 
 def is_prepared_report_disabled(report):
-	return frappe.db.get_value("Report", report, "disable_prepared_report") or 0
+	return (
+		frappe.db.get_value("Report", report, "disable_prepared_report")
+		and not frappe.db.get_value("Report", report, "prepared_report")
+	) or 0
 
 
 def get_report_module_dotted_path(module, report_name):
@@ -381,3 +384,4 @@ def get_group_by_column_label(args, meta):
 
 def enable_prepared_report(report: str):
 	frappe.db.set_value("Report", report, "prepared_report", 1)
+	frappe.db.set_value("Report", report, "disable_prepared_report", 0)

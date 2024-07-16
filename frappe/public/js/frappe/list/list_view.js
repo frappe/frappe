@@ -539,7 +539,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	toggle_result_area() {
 		super.toggle_result_area();
-		this.toggle_actions_menu_button(this.$result.find(".list-row-check:checked").length > 0);
+		this.toggle_actions_menu_button(
+			this.$result.find(".list-row-checkbox:checked").length > 0
+		);
 	}
 
 	toggle_actions_menu_button(toggle) {
