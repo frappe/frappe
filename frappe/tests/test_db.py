@@ -1080,7 +1080,6 @@ class TestSqlIterator(FrappeTestCase):
 		with frappe.db.unbuffered_cursor():
 			self.test_db_sql_iterator()
 
-
 class ExtFrappeTestCase(FrappeTestCase):
 	def assertSqlException(self):
 		class SqlExceptionContextManager:
@@ -1259,3 +1258,88 @@ class TestPostgresSchemaQueryIndependence(ExtFrappeTestCase):
 		self.assertEqual(rows, [])  # there are no records in the alt_schema table
 
 		del frappe.conf["db_schema"]
+
+class TestDbConnectWithEnvCredentials(FrappeTestCase):
+	current_site = frappe.local.site
+
+	def tearDown(self):
+		frappe.init(self.current_site, force=True)
+		frappe.connect()
+
+	def test_connect_fails_with_wrong_credentials_by_env(self) -> None:
+		import contextlib
+		import os
+		import re
+
+		@contextlib.contextmanager
+		def set_env_variable(key, value):
+			if orig_value_set := key in os.environ:
+				orig_value = os.environ.get(key)
+
+			os.environ[key] = value
+
+			try:
+				yield
+			finally:
+				if orig_value_set:
+					os.environ[key] = orig_value
+				else:
+					del os.environ[key]
+
+		# with wrong db name
+		with set_env_variable("FRAPPE_DB_NAME", "dbiq"):
+			frappe.init(self.current_site, force=True)
+			frappe.connect()
+
+			with self.assertRaises(Exception) as cm:
+				frappe.db.connect()
+
+			self.assertTrue(re.search(r"database [\"']dbiq[\"']", str(cm.exception)))
+
+		# with wrong host
+		with set_env_variable("FRAPPE_DB_HOST", "iqx.local"):
+			frappe.init(self.current_site, force=True)
+			frappe.connect()
+
+			with self.assertRaises(Exception) as cm:
+				frappe.db.connect()
+
+			self.assertTrue(re.search(r"(host name|server on) [\"']iqx.local[\"']", str(cm.exception)))
+
+		# with wrong user name
+		with set_env_variable("FRAPPE_DB_USER", "uname"):
+			frappe.init(self.current_site, force=True)
+			frappe.connect()
+
+			with self.assertRaises(Exception) as cm:
+				frappe.db.connect()
+
+			self.assertTrue(re.search(r"user [\"']uname[\"']", str(cm.exception)))
+
+		# with wrong password
+		with set_env_variable("FRAPPE_DB_PASSWORD", "pass"):
+			frappe.init(self.current_site, force=True)
+			frappe.connect()
+
+			with self.assertRaises(Exception) as cm:
+				frappe.db.connect()
+
+			self.assertTrue(
+				re.search(r"(password authentication failed|Access denied for)", str(cm.exception))
+			)
+
+		# with wrong password
+		with set_env_variable("FRAPPE_DB_PORT", "1111"):
+			frappe.init(self.current_site, force=True)
+			frappe.connect()
+
+			with self.assertRaises(Exception) as cm:
+				frappe.db.connect()
+
+			self.assertTrue(re.search("(port 1111 failed|Errno 111)", str(cm.exception)))
+
+		# now with configured settings without any influences from env
+		# finally connect should work without any error (when no wrong credentials are given via ENV)
+		frappe.init(self.current_site, force=True)
+		frappe.connect()
+		frappe.db.connect()

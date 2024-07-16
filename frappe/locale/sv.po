@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2024-06-30 09:33+0000\n"
-"PO-Revision-Date: 2024-07-02 15:49\n"
+"POT-Creation-Date: 2024-07-07 09:33+0000\n"
+"PO-Revision-Date: 2024-07-14 17:15\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -540,7 +540,7 @@ msgstr "<h4>E-post Svar Exempel</h4>\n\n"
 "- Kund: {{ customer }}\n"
 "- Belopp: {{ grand_total }}\n"
 "</pre>\n\n"
-"<h4>Hur man får fältnamn</h4>\n\n"
+"<h4>Hur hämtas fältnamn</h4>\n\n"
 "<p>Fältnamn som kan använda i e-post mall är fält i dokument som du skickar e-post meddelande från. Ta reda på fält namn för alla dokument via Inställningar &gt; Anpassa formulär vy och välja dokument typ (t.ex. Försäljning Faktura)</p>\n\n"
 "<h4>Mallar</h4>\n\n"
 "<p>Mallar kompileras med Jinja Templating Language. För att lära dig mer om Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">läs denna dokumentation.</a></p>\n"
@@ -1182,8 +1182,8 @@ msgid "Add Child"
 msgstr "Lägg till Underval"
 
 #: public/js/frappe/views/kanban/kanban_board.html:4
-#: public/js/frappe/views/reports/query_report.js:1696
-#: public/js/frappe/views/reports/query_report.js:1699
+#: public/js/frappe/views/reports/query_report.js:1681
+#: public/js/frappe/views/reports/query_report.js:1684
 #: public/js/frappe/views/reports/report_view.js:324
 #: public/js/frappe/views/reports/report_view.js:349
 msgid "Add Column"
@@ -1292,7 +1292,7 @@ msgstr "Lägg till Mall"
 #. Label of the add_total_row (Check) field in DocType 'Report'
 #: core/doctype/report/report.json
 msgid "Add Total Row"
-msgstr "Lägg till Totalt Rad"
+msgstr "Lägg till Totalt Antal Rader"
 
 #. Label of the add_unsubscribe_link (Check) field in DocType 'Email Queue'
 #: email/doctype/email_queue/email_queue.json
@@ -3154,7 +3154,7 @@ msgstr "Bakgrund Jobb"
 #. Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Background Jobs Check"
-msgstr "Bakgrund Jobb Koll"
+msgstr "Bakgrund Jobb Status"
 
 #. Label of the background_jobs_queue (Autocomplete) field in DocType 'Webhook'
 #: integrations/doctype/webhook/webhook.json
@@ -3407,7 +3407,7 @@ msgstr "Faktura Kontakt"
 #. Label of the binary_logging (Data) field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Binary Logging"
-msgstr "Fakturering Logg"
+msgstr "Binär Logg"
 
 #. Label of the bio (Small Text) field in DocType 'User'
 #. Label of the bio (Small Text) field in DocType 'About Us Team Member'
@@ -3899,6 +3899,7 @@ msgstr "Kalender Namn"
 
 #. Name of a DocType
 #: desk/doctype/calendar_view/calendar_view.json
+#: public/js/frappe/list/base_list.js:208
 msgid "Calendar View"
 msgstr "Kalender Vy"
 
@@ -4075,7 +4076,7 @@ msgstr "Kan inte Hämta Värden"
 msgid "Cannot Remove"
 msgstr "Kan inte Ta Bort"
 
-#: model/base_document.py:1072
+#: model/base_document.py:1073
 msgid "Cannot Update After Submit"
 msgstr "Kan inte Uppdatera efter Godkännande"
 
@@ -4163,7 +4164,7 @@ msgstr "Kan inte ta bort system skapad fält <strong>{0}</strong>. Dölj det ist
 msgid "Cannot delete {0}"
 msgstr "Kan inte radera {0}"
 
-#: utils/nestedset.py:296
+#: utils/nestedset.py:299
 msgid "Cannot delete {0} as it has child nodes"
 msgstr "Kan inte radera {0} eftersom det har underordnade noder"
 
@@ -4171,7 +4172,7 @@ msgstr "Kan inte radera {0} eftersom det har underordnade noder"
 msgid "Cannot edit Standard Dashboards"
 msgstr "Kan inte redigera standard översikt panel"
 
-#: email/doctype/notification/notification.py:121
+#: email/doctype/notification/notification.py:122
 msgid "Cannot edit Standard Notification. To edit, please disable this and duplicate it"
 msgstr "Kan inte redigera standard avisering. Kopiera och skapa ny"
 
@@ -4240,7 +4241,7 @@ msgstr "Kan inte ta bort ID fält"
 msgid "Cannot set 'Report' permission if 'Only If Creator' permission is set"
 msgstr "Kan inte ange \"Rapport\" behörighet om behörighet \"Endast om Ägare\" är angiven"
 
-#: email/doctype/notification/notification.py:137
+#: email/doctype/notification/notification.py:138
 msgid "Cannot set Notification on Document Type {0}"
 msgstr "Kan inte ange Avisering för DocType {0}"
 
@@ -4354,7 +4355,7 @@ msgstr "Ändra"
 #: tests/test_translate.py:99
 msgctxt "Coins"
 msgid "Change"
-msgstr "Ändra"
+msgstr "Växel"
 
 #. Label of the label (Data) field in DocType 'Customize Form'
 #: custom/doctype/customize_form/customize_form.json
@@ -4415,6 +4416,8 @@ msgstr "Diagram Inställningar"
 #. Label of the chart_name (Link) field in DocType 'Workspace Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 #: desk/doctype/workspace_chart/workspace_chart.json
+#: public/js/frappe/views/reports/query_report.js:289
+#: public/js/frappe/widgets/widget_dialog.js:137
 msgid "Chart Name"
 msgstr "Diagram Namn"
 
@@ -4831,7 +4834,7 @@ msgctxt "Shrink code field."
 msgid "Collapse"
 msgstr "Fäll In"
 
-#: public/js/frappe/views/reports/query_report.js:1979
+#: public/js/frappe/views/reports/query_report.js:1964
 #: public/js/frappe/views/treeview.js:121
 msgid "Collapse All"
 msgstr "Fäll In Alla"
@@ -6362,6 +6365,10 @@ msgstr "Översikt Panel Namn"
 msgid "Dashboard Settings"
 msgstr "Översikt Panel Inställningar"
 
+#: public/js/frappe/list/base_list.js:205
+msgid "Dashboard View"
+msgstr "Översikt Panel Vy"
+
 #. Label of the tab_break_2 (Tab Break) field in DocType 'Workspace'
 #: desk/doctype/workspace/workspace.json
 msgid "Dashboards"
@@ -6943,7 +6950,8 @@ msgid "Department"
 msgstr "Avdelning"
 
 #. Label of the dependencies (Data) field in DocType 'Workspace Link'
-#: desk/doctype/workspace_link/workspace_link.json www/attribution.html:29
+#: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/widgets/widget_dialog.js:318 www/attribution.html:29
 msgid "Dependencies"
 msgstr "Beroenden "
 
@@ -7405,6 +7413,7 @@ msgstr "Status för följande tillstånd är ändrad:<br><strong>{0}</strong><br
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: integrations/doctype/webhook/webhook.json
 #: printing/doctype/print_format/print_format.json
+#: public/js/frappe/widgets/widget_dialog.js:164
 #: website/doctype/website_slideshow/website_slideshow.js:18
 msgid "DocType"
 msgstr "DocType"
@@ -7463,6 +7472,7 @@ msgstr "DocType Tillstånd"
 
 #. Label of the doc_view (Select) field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
+#: public/js/frappe/widgets/widget_dialog.js:477
 msgid "DocType View"
 msgstr "DocType Vy"
 
@@ -7986,7 +7996,7 @@ msgstr "Ladda ner Mall"
 msgid "Download Your Data"
 msgstr "Ladda ner Data"
 
-#: contacts/doctype/contact/contact.js:93
+#: contacts/doctype/contact/contact.js:98
 msgid "Download vCard"
 msgstr "Ladda ner vCard"
 
@@ -8174,7 +8184,7 @@ msgstr "Varje dokument skapad i System kan ha unikt ID genererad för det, med d
 #: public/js/frappe/form/templates/contact_list.html:7
 #: public/js/frappe/form/toolbar.js:681
 #: public/js/frappe/views/reports/query_report.js:815
-#: public/js/frappe/views/reports/query_report.js:1649
+#: public/js/frappe/views/reports/query_report.js:1634
 #: public/js/frappe/views/workspace/workspace.js:460
 #: public/js/frappe/views/workspace/workspace.js:816
 #: public/js/frappe/widgets/base_widget.js:64
@@ -9152,9 +9162,9 @@ msgstr "Fel i Klient Skript."
 msgid "Error in Header/Footer Script"
 msgstr "Fel i Sidhuvud/Sidfot Skript"
 
-#: email/doctype/notification/notification.py:394
-#: email/doctype/notification/notification.py:510
-#: email/doctype/notification/notification.py:516
+#: email/doctype/notification/notification.py:395
+#: email/doctype/notification/notification.py:511
+#: email/doctype/notification/notification.py:517
 msgid "Error in Notification"
 msgstr "Fel i Avisering"
 
@@ -9166,7 +9176,7 @@ msgstr "Fel i Utskrift Format på rad {0}: {1}"
 msgid "Error while connecting to email account {0}"
 msgstr "Fel vid anslutning till E-post Konto {0}"
 
-#: email/doctype/notification/notification.py:507
+#: email/doctype/notification/notification.py:508
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "Fel vid test av Avisering {0}. Fixa Mall."
 
@@ -9324,7 +9334,7 @@ msgstr "Kör Konsol Skript"
 msgid "Executing..."
 msgstr "Kör..."
 
-#: public/js/frappe/views/reports/query_report.js:1993
+#: public/js/frappe/views/reports/query_report.js:1978
 msgid "Execution Time: {0} sec"
 msgstr "Exekvering Tid: {0} sek"
 
@@ -9342,7 +9352,7 @@ msgctxt "Enlarge code field."
 msgid "Expand"
 msgstr "Expandera"
 
-#: public/js/frappe/views/reports/query_report.js:1979
+#: public/js/frappe/views/reports/query_report.js:1964
 #: public/js/frappe/views/treeview.js:125
 msgid "Expand All"
 msgstr "Expandera Alla"
@@ -9398,7 +9408,7 @@ msgstr "Förfallo Tid för QR Kod Bild Sida"
 #: core/doctype/docperm/docperm.json core/doctype/recorder/recorder_list.js:37
 #: public/js/frappe/data_import/data_exporter.js:91
 #: public/js/frappe/data_import/data_exporter.js:242
-#: public/js/frappe/views/reports/query_report.js:1684
+#: public/js/frappe/views/reports/query_report.js:1669
 #: public/js/frappe/views/reports/report_view.js:1550
 msgid "Export"
 msgstr "Export"
@@ -9739,7 +9749,7 @@ msgstr "Hämtar standard Global Sökning dokument."
 #: public/js/frappe/list/bulk_operations.js:297
 #: public/js/frappe/list/list_view_permission_restrictions.html:3
 #: public/js/frappe/views/reports/query_report.js:236
-#: public/js/frappe/views/reports/query_report.js:1738
+#: public/js/frappe/views/reports/query_report.js:1723
 #: website/doctype/web_form_field/web_form_field.json
 #: website/doctype/web_form_list_column/web_form_list_column.json
 msgid "Field"
@@ -10047,7 +10057,7 @@ msgstr "Filer"
 #: desk/doctype/number_card/number_card.js:205
 #: desk/doctype/number_card/number_card.js:336
 #: email/doctype/auto_email_report/auto_email_report.js:90
-#: public/js/frappe/list/base_list.js:882
+#: public/js/frappe/list/base_list.js:890
 #: public/js/frappe/ui/filters/filter_list.js:134
 #: website/doctype/web_form/web_form.js:197
 msgid "Filter"
@@ -10483,7 +10493,7 @@ msgstr "För Användare"
 msgid "For Value"
 msgstr "För Värde"
 
-#: public/js/frappe/views/reports/query_report.js:1990
+#: public/js/frappe/views/reports/query_report.js:1975
 #: public/js/frappe/views/reports/report_view.js:96
 msgid "For comparison, use >5, <10 or =324. For ranges, use 5:10 (for values between 5 & 10)."
 msgstr "För jämförelse, använd >5, <10 eller = 324. För intervall, använd 5:10 (för värden mellan 5 och 10)."
@@ -10730,7 +10740,7 @@ msgstr "Från Datum"
 msgid "From Date Field"
 msgstr "Från Datum"
 
-#: public/js/frappe/views/reports/query_report.js:1704
+#: public/js/frappe/views/reports/query_report.js:1689
 msgid "From Document Type"
 msgstr "Från DocType"
 
@@ -10825,6 +10835,10 @@ msgstr "GNU General Public License"
 #: public/js/frappe/views/gantt/gantt_view.js:10
 msgid "Gantt"
 msgstr "Gantt"
+
+#: public/js/frappe/list/base_list.js:206
+msgid "Gantt View"
+msgstr "Gantt Vy"
 
 #. Label of the gender (Link) field in DocType 'Contact'
 #. Name of a DocType
@@ -12197,6 +12211,10 @@ msgstr "Bild Höjd"
 msgid "Image Link"
 msgstr "Bild Länk"
 
+#: public/js/frappe/list/base_list.js:209
+msgid "Image View"
+msgstr "Visa Bild"
+
 #. Label of the image_width (Float) field in DocType 'Letter Head'
 #. Label of the footer_image_width (Float) field in DocType 'Letter Head'
 #: printing/doctype/letter_head/letter_head.json
@@ -12468,6 +12486,10 @@ msgstr "Inkorg"
 msgid "Inbox User"
 msgstr "Inkorg Användare"
 
+#: public/js/frappe/list/base_list.js:210
+msgid "Inbox View"
+msgstr "Inkorg Vy"
+
 #. Label of the include_name_field (Check) field in DocType 'Form Tour'
 #: desk/doctype/form_tour/form_tour.json
 msgid "Include Name Field"
@@ -12487,11 +12509,11 @@ msgstr "Inkludera Tema från Appar"
 msgid "Include Web View Link in Email"
 msgstr "Inkludera Länk till Webbvy i E-post"
 
-#: public/js/frappe/views/reports/query_report.js:1521
+#: public/js/frappe/views/reports/query_report.js:1506
 msgid "Include filters"
 msgstr "Inkludera Filter"
 
-#: public/js/frappe/views/reports/query_report.js:1513
+#: public/js/frappe/views/reports/query_report.js:1498
 msgid "Include indentation"
 msgstr "Inkludera Fördjupning"
 
@@ -12647,7 +12669,7 @@ msgstr "Infoga \tOvan"
 
 #. Label of the insert_after (Select) field in DocType 'Custom Field'
 #: custom/doctype/custom_field/custom_field.json
-#: public/js/frappe/views/reports/query_report.js:1744
+#: public/js/frappe/views/reports/query_report.js:1729
 msgid "Insert After"
 msgstr "Infoga Efter"
 
@@ -12854,7 +12876,7 @@ msgstr "Ogiltig uttryck 'beroende på' i filter {0}"
 msgid "Invalid \"mandatory_depends_on\" expression"
 msgstr "Ogiltigt uttryck för \"obligatoriskt_beror_på\""
 
-#: utils/nestedset.py:177
+#: utils/nestedset.py:178
 msgid "Invalid Action"
 msgstr "Ogiltig åtgärd"
 
@@ -13048,7 +13070,7 @@ msgstr "Ogiltiga begäran argument"
 
 #: integrations/doctype/connected_app/connected_app.py:173
 msgid "Invalid state."
-msgstr "Ogiltig status."
+msgstr "Ogiltigt tillstånd."
 
 #: core/doctype/data_import/importer.py:423
 msgid "Invalid template file for import"
@@ -13225,6 +13247,7 @@ msgstr "Är Publicerad Fält måste vara giltig Fält Namn"
 
 #. Label of the is_query_report (Check) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/widgets/widget_dialog.js:336
 msgid "Is Query Report"
 msgstr "Är Dataförfråga Rapport"
 
@@ -13328,7 +13351,7 @@ msgstr "Artikel Titel"
 msgid "Item Type"
 msgstr "Artikel Typ"
 
-#: utils/nestedset.py:228
+#: utils/nestedset.py:229
 msgid "Item cannot be added to its own descendants"
 msgstr "Artikel kan inte läggas till egna undertyper"
 
@@ -13453,6 +13476,7 @@ msgstr "Anslag Tavla"
 #. Label of the kanban_board (Link) field in DocType 'Workspace Shortcut'
 #: desk/doctype/kanban_board/kanban_board.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
+#: public/js/frappe/widgets/widget_dialog.js:509
 msgid "Kanban Board"
 msgstr "Anslag Tavla"
 
@@ -13471,6 +13495,10 @@ msgstr "Anslag Tavla Namn"
 msgctxt "Button in kanban view menu"
 msgid "Kanban Settings"
 msgstr "Anslag Tavla Inställningar"
+
+#: public/js/frappe/list/base_list.js:207
+msgid "Kanban View"
+msgstr "Anslag Tavla Vy"
 
 #. Description of a DocType
 #: core/doctype/activity_log/activity_log.json
@@ -13717,7 +13745,10 @@ msgstr "LDAP Inställningar felaktiga. validering svar var: {0}"
 #: desk/doctype/workspace_quick_list/workspace_quick_list.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: printing/page/print_format_builder/print_format_builder.js:474
+#: public/js/frappe/widgets/widget_dialog.js:187
 #: public/js/frappe/widgets/widget_dialog.js:255
+#: public/js/frappe/widgets/widget_dialog.js:304
+#: public/js/frappe/widgets/widget_dialog.js:421
 #: public/js/frappe/widgets/widget_dialog.js:645
 #: public/js/frappe/widgets/widget_dialog.js:678
 #: templates/form_grid/fields.html:37
@@ -13848,7 +13879,7 @@ msgstr "Senaste Tilldelning Datum"
 #. Option for the 'Timespan' (Select) field in DocType 'Dashboard Chart'
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 msgid "Last Quarter"
-msgstr "Sista Kvartal"
+msgstr "Förra Kvartal"
 
 #. Label of the last_reset_password_key_generated_on (Datetime) field in
 #. DocType 'User'
@@ -14284,6 +14315,8 @@ msgstr "Länk Titel"
 #. Label of the link_to (Dynamic Link) field in DocType 'Workspace Shortcut'
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
+#: public/js/frappe/widgets/widget_dialog.js:285
+#: public/js/frappe/widgets/widget_dialog.js:430
 msgid "Link To"
 msgstr "Länk Till"
 
@@ -14293,6 +14326,7 @@ msgstr "Länk Till i Rad"
 
 #. Label of the link_type (Select) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/widgets/widget_dialog.js:277
 msgid "Link Type"
 msgstr "Länk Typ"
 
@@ -14336,7 +14370,7 @@ msgstr "Länkad Med"
 #. Label of the links (Table) field in DocType 'Customize Form'
 #. Label of the links (Table) field in DocType 'Workspace'
 #: contacts/doctype/address/address.js:39 contacts/doctype/address/address.json
-#: contacts/doctype/contact/contact.js:87 contacts/doctype/contact/contact.json
+#: contacts/doctype/contact/contact.js:92 contacts/doctype/contact/contact.json
 #: core/doctype/doctype/doctype.json
 #: custom/doctype/customize_form/customize_form.json
 #: desk/doctype/workspace/workspace.json public/js/frappe/form/toolbar.js:377
@@ -14389,6 +14423,10 @@ msgctxt "Button in list view menu"
 msgid "List Settings"
 msgstr "Lista Inställningar"
 
+#: public/js/frappe/list/base_list.js:203
+msgid "List View"
+msgstr "List Vy"
+
 #. Name of a DocType
 #: desk/doctype/list_view_settings/list_view_settings.json
 msgid "List View Settings"
@@ -14425,7 +14463,7 @@ msgstr "Listor"
 msgid "Load Balancing"
 msgstr "Last Balansering"
 
-#: public/js/frappe/list/base_list.js:378
+#: public/js/frappe/list/base_list.js:386
 #: website/doctype/blog_post/templates/blog_post_list.html:50
 #: website/doctype/help_article/templates/help_article_list.html:30
 msgid "Load More"
@@ -14439,7 +14477,7 @@ msgstr "Ladda Mer Korenspondens"
 #: core/page/permission_manager/permission_manager.js:165
 #: public/js/frappe/form/controls/multicheck.js:13
 #: public/js/frappe/form/linked_with.js:13
-#: public/js/frappe/list/base_list.js:490
+#: public/js/frappe/list/base_list.js:498
 #: public/js/frappe/list/list_view.js:335 public/js/frappe/ui/listing.html:16
 #: public/js/frappe/views/reports/query_report.js:1017
 msgid "Loading"
@@ -14467,7 +14505,7 @@ msgstr "Laddar versioner..."
 #: public/js/frappe/views/kanban/kanban_board.html:11
 #: public/js/frappe/widgets/chart_widget.js:50
 #: public/js/frappe/widgets/number_card_widget.js:174
-#: public/js/frappe/widgets/quick_list_widget.js:126
+#: public/js/frappe/widgets/quick_list_widget.js:128
 msgid "Loading..."
 msgstr "Laddar..."
 
@@ -14852,6 +14890,10 @@ msgstr "Mapp"
 msgid "Map Columns"
 msgstr "Mappa Kolumner"
 
+#: public/js/frappe/list/base_list.js:212
+msgid "Map View"
+msgstr "Mapp Vy"
+
 #: public/js/frappe/data_import/import_preview.js:290
 msgid "Map columns from {0} to fields in {1}"
 msgstr "Mappa Kolumner från {0} till fält i {1}"
@@ -15081,7 +15123,7 @@ msgstr "Meny"
 msgid "Merge with existing"
 msgstr "Slå samman med befintlig"
 
-#: utils/nestedset.py:304
+#: utils/nestedset.py:307
 msgid "Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
 msgstr "Sammanslafning är endast möjlig mellan grupp till grupp eller underordnad till underordnad"
 
@@ -15236,6 +15278,10 @@ msgstr "Meta Titel för SEO"
 #: email/doctype/notification/notification.json
 msgid "Method"
 msgstr "Sätt"
+
+#: __init__.py:936
+msgid "Method Not Allowed"
+msgstr "Metod ej Tillåten"
 
 #: desk/doctype/number_card/number_card.py:70
 msgid "Method is required to create a number card"
@@ -15628,7 +15674,7 @@ msgstr "Flytta till nästa steg när du klickar i det markerade området."
 msgid "Mozilla doesn't support :has() so you can pass parent selector here as workaround"
 msgstr "Mozilla stöder inte :has() så du kan skicka överordnad väljare här som lösning"
 
-#: utils/nestedset.py:328
+#: utils/nestedset.py:331
 msgid "Multiple root nodes not allowed."
 msgstr "Flera rot noder är inte tillåtna."
 
@@ -15866,7 +15912,7 @@ msgstr "Arbetsyta Ansvarig roll erfodras  för att dölja/visa publika arbetsyto
 msgid "Negative Value"
 msgstr "Negativ Värde"
 
-#: utils/nestedset.py:93
+#: utils/nestedset.py:94
 msgid "Nested set error. Please contact the Administrator."
 msgstr "Nested set fel. Kontakta Administratör."
 
@@ -16074,7 +16120,7 @@ msgstr "Ny {0}: {1}"
 
 #: utils/change_log.py:373
 msgid "New {} releases for the following apps are available"
-msgstr "Nya {} utgåvor för följande appar finns tillgängliga"
+msgstr "Nya {} versioner för följande appar finns tillgängliga"
 
 #: core/doctype/user/user.py:753
 msgid "Newly created user {0} has no roles enabled."
@@ -16213,7 +16259,7 @@ msgstr "Nästa på Klick"
 #: public/js/form_builder/utils.js:341
 #: public/js/frappe/form/controls/link.js:475
 #: public/js/frappe/list/list_sidebar_group_by.js:223
-#: public/js/frappe/views/reports/query_report.js:1541
+#: public/js/frappe/views/reports/query_report.js:1526
 #: website/doctype/help_article/templates/help_article.html:26
 msgid "No"
 msgstr "Nej"
@@ -16257,7 +16303,7 @@ msgstr "Ingen Data"
 msgid "No Data to Show"
 msgstr "Ingen Data att visa"
 
-#: public/js/frappe/widgets/quick_list_widget.js:131
+#: public/js/frappe/widgets/quick_list_widget.js:133
 msgid "No Data..."
 msgstr "Ingen Data..."
 
@@ -16724,7 +16770,7 @@ msgstr "Inte Aktiv"
 msgid "Not allowed for {0}: {1}"
 msgstr "Ej tillåtet för {0}: {1}"
 
-#: email/doctype/notification/notification.py:391
+#: email/doctype/notification/notification.py:392
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
 msgstr "Ej Tillåtet att bifoga {0} dokument, aktivera \"Tillåt Utskrift\" för {0} i Utskrift Inställningar"
 
@@ -16843,7 +16889,7 @@ msgstr "Inget mer att göra om"
 msgid "Nothing left to undo"
 msgstr "Inget mer att ångra"
 
-#: public/js/frappe/list/base_list.js:362
+#: public/js/frappe/list/base_list.js:370
 #: public/js/frappe/views/reports/query_report.js:105
 #: templates/includes/list/list.html:7
 #: website/doctype/blog_post/templates/blog_post_list.html:41
@@ -17047,7 +17093,7 @@ msgstr "Antal dagar efter vilka dokument Webb Vy länk delad i e-post kommer att
 #. Label of the cache_keys (Int) field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Number of keys"
-msgstr "Antal nycklar"
+msgstr "Antal Nycklar"
 
 #. Label of the onsite_backups (Int) field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
@@ -17249,8 +17295,13 @@ msgstr "{0}, {1} skrev"
 
 #. Label of the onboard (Check) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/widgets/widget_dialog.js:330
 msgid "Onboard"
 msgstr "Introduktion"
+
+#: public/js/frappe/widgets/widget_dialog.js:236
+msgid "Onboarding Name"
+msgstr "Introduktion Namn"
 
 #. Name of a DocType
 #: desk/doctype/onboarding_permission/onboarding_permission.json
@@ -17359,6 +17410,7 @@ msgstr "Endast utkast dokument kan förkastas"
 
 #. Label of the only_for (Link) field in DocType 'Workspace Link'
 #: desk/doctype/workspace_link/workspace_link.json
+#: public/js/frappe/widgets/widget_dialog.js:323
 msgid "Only for"
 msgstr "Endast för"
 
@@ -17658,7 +17710,7 @@ msgstr "Utgående (SMTP) Inställningar"
 #. Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Outgoing Emails (Last 7 days)"
-msgstr "Utgående E-post (sista 7 dagar)"
+msgstr "Utgående E-post (Senaste 7 dagar)"
 
 #. Label of the smtp_server (Data) field in DocType 'Email Account'
 #. Label of the smtp_server (Data) field in DocType 'Email Domain'
@@ -17708,7 +17760,7 @@ msgstr "PATCH"
 
 #: printing/page/print/print.js:71
 #: public/js/frappe/form/templates/print_layout.html:44
-#: public/js/frappe/views/reports/query_report.js:1669
+#: public/js/frappe/views/reports/query_report.js:1654
 msgid "PDF"
 msgstr "PDF"
 
@@ -18100,8 +18152,8 @@ msgid "Password not found for {0} {1} {2}"
 msgstr "Lösenord hittades inte för {0} {1} {2}"
 
 #: core/doctype/user/user.py:1021
-msgid "Password reset instructions have been sent to your email"
-msgstr "Lösenord Återställning instruktioner har skickats till din E-post"
+msgid "Password reset instructions have been sent to {}'s email"
+msgstr "Instruktioner för återställning av lösenord är skickade till {}'s e-post"
 
 #: www/update-password.html:164
 msgid "Password set"
@@ -18198,24 +18250,24 @@ msgstr "Pågående"
 #. Request'
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Approval"
-msgstr "Pågående Godkännande"
+msgstr "Godkännande Kö"
 
 #. Label of the pending_emails (Int) field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Pending Emails"
-msgstr "Pågående E-post"
+msgstr "E-post Kö"
 
 #. Label of the pending_jobs (Int) field in DocType 'System Health Report
 #. Queue'
 #: desk/doctype/system_health_report_queue/system_health_report_queue.json
 msgid "Pending Jobs"
-msgstr "Pågående Jobb"
+msgstr "Jobb Kö"
 
 #. Option for the 'Status' (Select) field in DocType 'Personal Data Deletion
 #. Request'
 #: website/doctype/personal_data_deletion_request/personal_data_deletion_request.json
 msgid "Pending Verification"
-msgstr "Pågående Verifiering"
+msgstr "Verifiering Kö"
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -18500,7 +18552,7 @@ msgstr "Kontrollera OpenID Configuration URL"
 msgid "Please check the filter values set for Dashboard Chart: {}"
 msgstr "Kontrollera filter värden angivna för Översikt Panel Diagram: {}"
 
-#: model/base_document.py:872
+#: model/base_document.py:873
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Kontrollera värde för uppsättning 'Hämta från' för fält {0}"
 
@@ -18802,11 +18854,11 @@ msgstr "Specificera"
 msgid "Please specify a valid parent DocType for {0}"
 msgstr "Ange giltig överordnad DocType för {0}"
 
-#: email/doctype/notification/notification.py:87
+#: email/doctype/notification/notification.py:88
 msgid "Please specify which date field must be checked"
 msgstr "Ange Datum Fält som måste kontrolleras"
 
-#: email/doctype/notification/notification.py:90
+#: email/doctype/notification/notification.py:91
 msgid "Please specify which value field must be checked"
 msgstr "Ange Värde Fält som måste kontrolleras"
 
@@ -19139,7 +19191,7 @@ msgstr "Primär nyckel för doctype {0} kan inte ändras eftersom det finns befi
 #: public/js/frappe/form/templates/print_layout.html:46
 #: public/js/frappe/form/toolbar.js:332 public/js/frappe/form/toolbar.js:344
 #: public/js/frappe/list/bulk_operations.js:87
-#: public/js/frappe/views/reports/query_report.js:1655
+#: public/js/frappe/views/reports/query_report.js:1640
 #: public/js/frappe/views/reports/report_view.js:1460
 #: public/js/frappe/views/treeview.js:469 www/printview.html:18
 msgid "Print"
@@ -20001,7 +20053,7 @@ msgstr "Uppdatera"
 msgid "Rebuild Tree"
 msgstr "Uppdatera Träd Vy"
 
-#: utils/nestedset.py:176
+#: utils/nestedset.py:177
 msgid "Rebuilding of tree is not supported for {}"
 msgstr "Uppdatering av Träd Vy stöds inte för {}"
 
@@ -20359,7 +20411,7 @@ msgstr "Referens"
 #: public/js/frappe/desk.js:533 public/js/frappe/form/form.js:1196
 #: public/js/frappe/form/templates/print_layout.html:6
 #: public/js/frappe/list/base_list.js:66
-#: public/js/frappe/views/reports/query_report.js:1644
+#: public/js/frappe/views/reports/query_report.js:1629
 #: public/js/frappe/views/treeview.js:475
 #: public/js/frappe/widgets/chart_widget.js:290
 #: public/js/frappe/widgets/number_card_widget.js:324
@@ -20457,7 +20509,7 @@ msgstr "Ladda om"
 msgid "Reload File"
 msgstr "Ladda om Fil"
 
-#: public/js/frappe/list/base_list.js:242
+#: public/js/frappe/list/base_list.js:250
 msgid "Reload List"
 msgstr "Ladda om Lista"
 
@@ -20726,7 +20778,7 @@ msgstr "Rapport Ansvarig"
 #: core/doctype/report/report.json
 #: desk/doctype/dashboard_chart/dashboard_chart.json
 #: desk/doctype/number_card/number_card.json
-#: public/js/frappe/views/reports/query_report.js:1825
+#: public/js/frappe/views/reports/query_report.js:1810
 msgid "Report Name"
 msgstr "Rapport Namn"
 
@@ -20748,6 +20800,10 @@ msgstr "Rapportera Referens DocType"
 #: email/doctype/auto_email_report/auto_email_report.json
 msgid "Report Type"
 msgstr "Rapport Typ"
+
+#: public/js/frappe/list/base_list.js:204
+msgid "Report View"
+msgstr "Rapport Vy"
 
 #: core/doctype/doctype/doctype.py:1780
 msgid "Report cannot be set for Single types"
@@ -20783,7 +20839,7 @@ msgstr "Rapport är uppdaterad"
 msgid "Report was not saved (there were errors)"
 msgstr "Rapport är inte sparad (det fanns fel)"
 
-#: public/js/frappe/views/reports/query_report.js:1863
+#: public/js/frappe/views/reports/query_report.js:1848
 msgid "Report with more than 10 columns looks better in Landscape mode."
 msgstr "Rapport med mer än 10 kolumner ser bättre ut i Liggande Läge."
 
@@ -21369,7 +21425,7 @@ msgstr "Roller HTML"
 msgid "Roles can be set for users from their User page."
 msgstr "Roller kan anges för användare från deras Användarsida."
 
-#: utils/nestedset.py:277
+#: utils/nestedset.py:280
 msgid "Root {0} cannot be deleted"
 msgstr "Root {0} kan inte raderas"
 
@@ -21442,7 +21498,7 @@ msgstr "Rad #"
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
 msgstr "Rad # {0}: Användare som inte är administratör kan inte ange roll {1} till anpassad Dokument Typ"
 
-#: model/base_document.py:903
+#: model/base_document.py:904
 msgid "Row #{0}:"
 msgstr "Rad # {0}:"
 
@@ -21726,11 +21782,11 @@ msgstr "Lördag"
 #: public/js/frappe/views/kanban/kanban_settings.js:45
 #: public/js/frappe/views/kanban/kanban_settings.js:189
 #: public/js/frappe/views/kanban/kanban_view.js:343
-#: public/js/frappe/views/reports/query_report.js:1817
+#: public/js/frappe/views/reports/query_report.js:1802
 #: public/js/frappe/views/reports/report_view.js:1640
 #: public/js/frappe/views/workspace/workspace.js:501
 #: public/js/frappe/widgets/base_widget.js:142
-#: public/js/frappe/widgets/quick_list_widget.js:117
+#: public/js/frappe/widgets/quick_list_widget.js:119
 #: public/js/print_format_builder/print_format_builder.bundle.js:15
 #: public/js/workflow_builder/workflow_builder.bundle.js:33
 msgid "Save"
@@ -21757,7 +21813,7 @@ msgstr "Spara Anpassningar"
 msgid "Save Filter"
 msgstr "Spara Filter "
 
-#: public/js/frappe/views/reports/query_report.js:1820
+#: public/js/frappe/views/reports/query_report.js:1805
 msgid "Save Report"
 msgstr "Spara Rapport"
 
@@ -22881,7 +22937,7 @@ msgid "Set Filters"
 msgstr "Ange Filter"
 
 #: public/js/frappe/widgets/chart_widget.js:395
-#: public/js/frappe/widgets/quick_list_widget.js:102
+#: public/js/frappe/widgets/quick_list_widget.js:104
 msgid "Set Filters for {0}"
 msgstr "Ange Filter för {0}"
 
@@ -23118,7 +23174,7 @@ msgstr "Inställningar > Användar Behörigheter"
 msgid "Setup Approval Workflows"
 msgstr "Ange Arbetsflöde för Godkännande "
 
-#: public/js/frappe/views/reports/query_report.js:1690
+#: public/js/frappe/views/reports/query_report.js:1675
 #: public/js/frappe/views/reports/report_view.js:1618
 msgid "Setup Auto Email"
 msgstr "Automatisk E-post Rapport"
@@ -25154,7 +25210,7 @@ msgid "The Client ID obtained from the Google Cloud Console under <a href=\"http
 "</a>"
 msgstr "Klient ID som erhållits från Google Cloud Console under <a href=\"https://console.cloud.google.com/apis/credentials\">\"API och tjänster\" &gt; \"Inloggningsuppgifter\"</a>"
 
-#: email/doctype/notification/notification.py:130
+#: email/doctype/notification/notification.py:131
 msgid "The Condition '{0}' is invalid"
 msgstr "Villkor '{0}' är ogiltig"
 
@@ -25613,7 +25669,7 @@ msgstr "Detta format används om land specifika format inte hittas"
 msgid "This goes above the slideshow."
 msgstr "Text ovanför Bildspel."
 
-#: public/js/frappe/views/reports/query_report.js:2027
+#: public/js/frappe/views/reports/query_report.js:2012
 msgid "This is a background report. Please set the appropriate filters and then generate a new one."
 msgstr "Detta är bakgrund rapport. Ange lämplig filter och skapa ny rapport."
 
@@ -26284,16 +26340,16 @@ msgstr "Totalt"
 #. Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Total Background Workers"
-msgstr "Totalt Bakgrund Tjänster"
+msgstr "Totalt Antal Bakgrund Tjänster"
 
 #. Label of the total_errors (Int) field in DocType 'System Health Report'
 #: desk/doctype/system_health_report/system_health_report.json
 msgid "Total Errors (last 1 day)"
-msgstr "Totalt Fel (sista dagen)"
+msgstr "Totalt Antal Fel (Senaste dag)"
 
 #: public/js/frappe/ui/capture.js:259
 msgid "Total Images"
-msgstr "Totalt Bilder"
+msgstr "Totalt Antal Bilder"
 
 #. Label of the total_outgoing_emails (Int) field in DocType 'System Health
 #. Report'
@@ -26322,18 +26378,18 @@ msgstr "Totalt Användare"
 #. Label of the total_views (Int) field in DocType 'Newsletter'
 #: email/doctype/newsletter/newsletter.json
 msgid "Total Views"
-msgstr "Totalt Visningar"
+msgstr "Totalt Antal Visningar"
 
 #. Label of the total_working_time (Duration) field in DocType 'RQ Worker'
 #: core/doctype/rq_worker/rq_worker.json
 msgid "Total Working Time"
-msgstr "Totalt Antal Arbetstimmar"
+msgstr "Totalt Antal Arbetade Timmar"
 
 #. Description of the 'Initial Sync Count' (Select) field in DocType 'Email
 #. Account'
 #: email/doctype/email_account/email_account.json
 msgid "Total number of emails to sync in initial sync process "
-msgstr "Totalt antal E-post meddelande som ska synkroniseras i första synkronisering behandling"
+msgstr "Totalt antal E-post meddelande som ska synkroniseras i första synkronisering "
 
 #: public/js/frappe/views/reports/report_view.js:1178
 msgid "Totals"
@@ -26341,7 +26397,7 @@ msgstr "Totals"
 
 #: public/js/frappe/views/reports/report_view.js:1153
 msgid "Totals Row"
-msgstr "Totalt Rad"
+msgstr "Totalt Antal Rader"
 
 #. Label of the trace_id (Data) field in DocType 'Error Log'
 #: core/doctype/error_log/error_log.json
@@ -26478,6 +26534,10 @@ msgstr "Skräp"
 msgid "Tree"
 msgstr "Träd Vy"
 
+#: public/js/frappe/list/base_list.js:211
+msgid "Tree View"
+msgstr "Träd Vy"
+
 #. Description of the 'Is Tree' (Check) field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
 msgid "Tree structures are implemented using Nested Set"
@@ -26583,6 +26643,7 @@ msgstr "Två Faktor Autentisering Sätt"
 #: desk/doctype/workspace_link/workspace_link.json
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: public/js/frappe/views/file/file_view.js:337
+#: public/js/frappe/widgets/widget_dialog.js:399
 #: social/doctype/energy_point_log/energy_point_log.json
 #: website/doctype/web_template/web_template.json www/attribution.html:35
 msgid "Type"
@@ -26665,6 +26726,7 @@ msgstr "URI för att ta emot behörighet kod när Användare tillåter tillgång
 #: desk/doctype/workspace_shortcut/workspace_shortcut.json
 #: integrations/doctype/integration_request/integration_request.json
 #: integrations/doctype/webhook_request_log/webhook_request_log.json
+#: public/js/frappe/widgets/widget_dialog.js:469
 #: website/doctype/top_bar_item/top_bar_item.json
 #: website/doctype/website_slideshow_item/website_slideshow_item.json
 msgid "URL"
@@ -27341,7 +27403,7 @@ msgid "User Permission"
 msgstr "Användare Behörighet"
 
 #: core/page/permission_manager/permission_manager_help.html:30
-#: public/js/frappe/views/reports/query_report.js:1804
+#: public/js/frappe/views/reports/query_report.js:1789
 #: public/js/frappe/views/reports/report_view.js:1666
 msgid "User Permissions"
 msgstr "Användare Behörigheter"
@@ -27659,7 +27721,7 @@ msgstr "Värde Ändrad"
 msgid "Value To Be Set"
 msgstr "Värde som ska Anges"
 
-#: model/base_document.py:965 model/document.py:682
+#: model/base_document.py:966 model/document.py:682
 msgid "Value cannot be changed for {0}"
 msgstr "Värde kan inte ändras för {0}"
 
@@ -27702,7 +27764,7 @@ msgstr "Värde måste vara ett av {0}"
 msgid "Value to Validate"
 msgstr "Värde att Validera"
 
-#: model/base_document.py:1035
+#: model/base_document.py:1036
 msgid "Value too big"
 msgstr "Värde för hög"
 
@@ -27801,7 +27863,7 @@ msgid "View Full Log"
 msgstr "Visa Full Logg"
 
 #: public/js/frappe/views/treeview.js:463
-#: public/js/frappe/widgets/quick_list_widget.js:245
+#: public/js/frappe/widgets/quick_list_widget.js:247
 msgid "View List"
 msgstr "Visa Lista"
 
@@ -28569,7 +28631,7 @@ msgstr "Arbetsflöde Tillstånd inte angiven"
 
 #: model/workflow.py:197 model/workflow.py:205
 msgid "Workflow State transition not allowed from {0} to {1}"
-msgstr "Arbetsflöde Övergång inte tillåten från {0} till {1}"
+msgstr "Arbetsflöde Tillstånd Övergång inte tillåten från {0} till {1}"
 
 #: model/workflow.py:320
 msgid "Workflow Status"
@@ -28683,7 +28745,7 @@ msgstr "Slutför"
 msgid "Write"
 msgstr "Skriva"
 
-#: model/base_document.py:875
+#: model/base_document.py:876
 msgid "Wrong Fetch From value"
 msgstr "Fel Hämtning Från Värde"
 
@@ -28770,7 +28832,7 @@ msgstr "Gul"
 #: public/js/form_builder/utils.js:336
 #: public/js/frappe/form/controls/link.js:475
 #: public/js/frappe/list/list_sidebar_group_by.js:223
-#: public/js/frappe/views/reports/query_report.js:1541
+#: public/js/frappe/views/reports/query_report.js:1526
 #: website/doctype/help_article/templates/help_article.html:25
 msgid "Yes"
 msgstr "Ja"
@@ -29983,7 +30045,7 @@ msgstr "via Data Import"
 msgid "via Google Meet"
 msgstr "via Google Meet"
 
-#: email/doctype/notification/notification.py:215
+#: email/doctype/notification/notification.py:216
 msgid "via Notification"
 msgstr "via Avisering"
 
@@ -30126,7 +30188,7 @@ msgstr "{0} Moduler"
 msgid "{0} Name"
 msgstr "{0} Namn"
 
-#: model/base_document.py:1065
+#: model/base_document.py:1066
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr "{0} Ej Tillåtet att ändra {1} efter godkännande från {2} till {3}"
 
@@ -30151,10 +30213,6 @@ msgstr "{0} Inställningar"
 #: public/js/frappe/views/treeview.js:139
 msgid "{0} Tree"
 msgstr "{0} Träd Vy"
-
-#: public/js/frappe/list/base_list.js:209
-msgid "{0} View"
-msgstr "{0} Vy"
 
 #: public/js/frappe/form/footer/form_timeline.js:126
 #: public/js/frappe/form/sidebar/form_sidebar.js:86
@@ -30595,7 +30653,7 @@ msgstr "{0} måste börja och sluta med bokstav och får bara innehålla bokstä
 
 #: workflow/doctype/workflow/workflow.py:91
 msgid "{0} not a valid State"
-msgstr "{0} inte en giltig Tillstånd"
+msgstr "{0} är inte giltig Tillstånd"
 
 #: model/rename_doc.py:380
 msgid "{0} not allowed to be renamed"
@@ -30770,11 +30828,11 @@ msgstr "{0} {1} är lagd till i Översikt Panel {2}"
 msgid "{0} {1} already exists"
 msgstr "{0} {1} finns redan"
 
-#: model/base_document.py:908
+#: model/base_document.py:909
 msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
 msgstr "{0} {1} kan inte vara \"{2}\". Det kan vara en av följande: \"{3}\""
 
-#: utils/nestedset.py:337
+#: utils/nestedset.py:340
 msgid "{0} {1} cannot be a leaf node as it has children"
 msgstr "{0} {1} kan inte vara undernod då den har undernoder"
 
@@ -30794,11 +30852,11 @@ msgstr "{0} {1} hittades inte"
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr "{0} {1}: Godkänd Post kan inte raderas. Du måste {2} Annullera {3} det först."
 
-#: model/base_document.py:1026
+#: model/base_document.py:1027
 msgid "{0}, Row {1}"
 msgstr "{0}, Rad {1}"
 
-#: model/base_document.py:1031
+#: model/base_document.py:1032
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr "{0}: {1} ({3}) kommer att förminskas då maximum tillåtna antal tecken är {2}"
 
@@ -30891,7 +30949,7 @@ msgid "{0}: fieldname cannot be set to reserved keyword {1}"
 msgstr "{0}: fältnamn kan inte anges för reserverad sökord {1}"
 
 #: contacts/doctype/address/address.js:35
-#: contacts/doctype/contact/contact.js:83
+#: contacts/doctype/contact/contact.js:88
 #: public/js/frappe/views/workspace/workspace.js:170
 msgid "{0}: {1}"
 msgstr "{0}: {1}"

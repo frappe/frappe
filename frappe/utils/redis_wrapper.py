@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import pickle
 import re
+from contextlib import suppress
 
 import redis
 from redis.commands.search import Search
@@ -62,14 +63,8 @@ class RedisWrapper(redis.Redis):
 		if not expires_in_sec:
 			frappe.local.cache[key] = val
 
-		try:
-			if expires_in_sec:
-				self.setex(name=key, time=expires_in_sec, value=pickle.dumps(val))
-			else:
-				self.set(key, pickle.dumps(val))
-
-		except redis.exceptions.ConnectionError:
-			return None
+		with suppress(redis.exceptions.ConnectionError):
+			self.set(name=key, value=pickle.dumps(val), ex=expires_in_sec)
 
 	def get_value(self, key, generator=None, user=None, expires=False, shared=False):
 		"""Return cache value. If not found and generator function is
