@@ -16,7 +16,6 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	toggle_notifications,
 )
 from frappe.desk.notifications import clear_notifications
-from frappe.model.delete_doc import check_if_doc_is_linked
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
@@ -557,11 +556,20 @@ class User(Document):
 		# Delete EPS data
 		frappe.db.delete("Energy Point Log", {"user": self.name})
 
-		# Ask user to disable instead if document is still linked
-		try:
-			check_if_doc_is_linked(self)
-		except frappe.LinkExistsError:
-			frappe.throw(_("You can disable the user instead of deleting it."), frappe.LinkExistsError)
+		# Remove user link from Workflow Action
+		frappe.db.set_value("Workflow Action", {"user": self.name}, "user", None)
+
+		# Delete user's List Filters
+		frappe.db.delete("List Filter", {"for_user": self.name})
+
+		# Remove user from Note's Seen By table
+		seen_notes = frappe.get_all("Note", filters=[["Note Seen By", "user", "=", self.name]], pluck="name")
+		for note_id in seen_notes:
+			note = frappe.get_doc("Note", note_id)
+			for row in note.seen_by:
+				if row.user == self.name:
+					note.remove(row)
+			note.save(ignore_permissions=True)
 
 	def before_rename(self, old_name, new_name, merge=False):
 		# if merging, delete the old user notification settings

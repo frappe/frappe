@@ -2,6 +2,7 @@ import hashlib
 import mimetypes
 import os
 import re
+from binascii import Error as BinasciiError
 from io import BytesIO
 from typing import TYPE_CHECKING, Optional
 from urllib.parse import unquote
@@ -235,7 +236,12 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 			content = content.encode("utf-8")
 		if b"," in content:
 			content = content.split(b",")[1]
-		content = safe_b64decode(content)
+
+		try:
+			content = safe_b64decode(content)
+		except BinasciiError:
+			frappe.flags.has_dataurl = True
+			return f'<img src="#broken-image" alt="{get_corrupted_image_msg()}"'
 
 		content = optimize_image(content, mtype)
 
@@ -274,6 +280,10 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 		content = re.sub(r'<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 
 	return content
+
+
+def get_corrupted_image_msg():
+	return _("Image: Corrupted Data Stream")
 
 
 def get_random_filename(content_type: str | None = None) -> str:
