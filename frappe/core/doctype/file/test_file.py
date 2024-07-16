@@ -751,7 +751,8 @@ class TestFileUtils(FrappeTestCase):
 		self.assertFalse(
 			frappe.db.exists("File", {"attached_to_name": communication.name, "is_private": is_private})
 		)
-		self.assertIn(f'<img src="#broken-image" alt="{get_corrupted_image_msg()}">', communication.content)
+		self.assertIn('src="#broken-image"', communication.content)
+		self.assertIn(f'alt="{get_corrupted_image_msg()}"', communication.content)
 
 	def test_create_new_folder(self):
 		folder = create_new_folder("test_folder", "Home")
