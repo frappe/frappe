@@ -51,10 +51,19 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 		raise Exception("Not developer mode")
 
 	custom = {
+<<<<<<< HEAD
 		"custom_fields": [],
 		"property_setters": [],
 		"custom_perms": [],
 		"links": [],
+=======
+		"custom_fields": frappe.get_all("Custom Field", fields="*", filters={"dt": doctype}, order_by="name"),
+		"property_setters": frappe.get_all(
+			"Property Setter", fields="*", filters={"doc_type": doctype}, order_by="name"
+		),
+		"custom_perms": [],
+		"links": frappe.get_all("DocType Link", fields="*", filters={"parent": doctype}, order_by="name"),
+>>>>>>> 806d13dbb9 (fix!: sort exported customizations by name for better diffs (#26927))
 		"doctype": doctype,
 		"sync_on_migrate": sync_on_migrate,
 	}
@@ -69,7 +78,9 @@ def export_customizations(module, doctype, sync_on_migrate=0, with_permissions=0
 	add(doctype)
 
 	if with_permissions:
-		custom["custom_perms"] = frappe.get_all("Custom DocPerm", fields="*", filters={"parent": doctype})
+		custom["custom_perms"] = frappe.get_all(
+			"Custom DocPerm", fields="*", filters={"parent": doctype}, order_by="name"
+		)
 
 	# also update the custom fields and property setters for all child tables
 	for d in frappe.get_meta(doctype).get_table_fields():
