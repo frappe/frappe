@@ -1669,6 +1669,11 @@ class Document(BaseDocument):
 
 		return DocTags(self.doctype).get_tags(self.name).split(",")[1:]
 
+	def has_tag(self, tag):
+		"""Check if given Tag is attached to this document"""
+
+		return tag in self.get_tags()
+
 	def deferred_insert(self) -> None:
 		"""Push the document to redis temporarily and insert later.
 
