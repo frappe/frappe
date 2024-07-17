@@ -26,6 +26,7 @@ dependencies = [
     "PyYAML~=6.0.1",
     "RestrictedPython~=7.0",
     "WeasyPrint==59.0",
+    "pydyf==0.10.0",
     "Werkzeug~=3.0.1",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.12.2",
