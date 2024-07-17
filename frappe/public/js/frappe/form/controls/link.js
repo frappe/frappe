@@ -164,6 +164,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 			localStorage.setItem("customer",  this.frm.doc.customer)
 			localStorage.setItem("mileage", this.frm.doc.client_mileage_state)
 			localStorage.setItem("plate", this.frm.doc.plate)
+			localStorage.setItem("description_title", this.frm.doc.description_title)
 		}
 
 		var doctype = this.get_options();
