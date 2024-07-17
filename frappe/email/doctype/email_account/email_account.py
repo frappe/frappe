@@ -466,10 +466,15 @@ class EmailAccount(Document):
 				frappe.db.rollback()
 			except Exception:
 				frappe.db.rollback()
-				self.log_error(title="EmailAccount.receive")
-				if self.use_imap:
-					self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
-				exceptions.append(frappe.get_traceback())
+				try:
+					self.log_error(title="EmailAccount.receive")
+					if self.use_imap:
+						self.handle_bad_emails(mail.uid, mail.raw_message, frappe.get_traceback())
+					exceptions.append(frappe.get_traceback())
+				except Exception:
+					frappe.db.rollback()
+				else:
+					frappe.db.commit()
 			else:
 				frappe.db.commit()
 
