@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
 "POT-Creation-Date: 2024-06-16 09:34+0000\n"
-"PO-Revision-Date: 2024-06-21 11:59\n"
+"PO-Revision-Date: 2024-06-26 14:03\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -6560,11 +6560,11 @@ msgstr "Opciones de contacto, como \"Consulta de ventas, Consulta de soporte\", 
 
 #: utils/change_log.py:360
 msgid "Contains {0} security fix"
-msgstr ""
+msgstr "Contiene {0} corrección de seguridad"
 
 #: utils/change_log.py:358
 msgid "Contains {0} security fixes"
-msgstr ""
+msgstr "Contiene {0} correcciones de seguridad"
 
 #: public/js/frappe/utils/utils.js:1738
 #: website/report/website_analytics/website_analytics.js:41
@@ -6753,7 +6753,7 @@ msgstr "Los módulos principales {0} no se pueden buscar en la búsqueda global.
 
 #: printing/page/print/print.js:617
 msgid "Correct version :"
-msgstr ""
+msgstr "Versión correcta:"
 
 #: email/smtp.py:78
 msgid "Could not connect to outgoing email server"
@@ -7991,7 +7991,7 @@ msgstr "Datos faltantes en la tabla"
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Database"
-msgstr ""
+msgstr "Base de Datos"
 
 #. Label of a Select field in DocType 'DocType'
 #: core/doctype/doctype/doctype.json
@@ -8026,7 +8026,7 @@ msgstr ""
 #: desk/doctype/system_health_report/system_health_report.json
 msgctxt "System Health Report"
 msgid "Database Version"
-msgstr ""
+msgstr "Versión de la base de datos"
 
 #: desk/report/todo/todo.py:38 email/doctype/newsletter/newsletter.js:109
 #: public/js/frappe/views/interaction.js:80

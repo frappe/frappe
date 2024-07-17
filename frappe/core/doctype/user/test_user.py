@@ -422,7 +422,7 @@ class TestUser(FrappeTestCase):
 			update_password(old_password, old_password=new_password)
 			self.assertEqual(
 				frappe.message_log[0].get("message"),
-				"Password reset instructions have been sent to your email",
+				f"Password reset instructions have been sent to {test_user.full_name}'s email",
 			)
 
 		sendmail.assert_called_once()

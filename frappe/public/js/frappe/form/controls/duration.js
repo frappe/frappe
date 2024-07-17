@@ -4,6 +4,13 @@ frappe.ui.form.ControlDuration = class ControlDuration extends frappe.ui.form.Co
 		this.make_picker();
 	}
 
+	validate(value) {
+		if (!value) {
+			return null;
+		}
+		return super.validate(value);
+	}
+
 	make_picker() {
 		this.inputs = [];
 		this.set_duration_options();

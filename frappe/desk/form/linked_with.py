@@ -421,99 +421,85 @@ def get_linked_docs(doctype: str, name: str, linkinfo: dict | None = None) -> di
 	if not linkinfo:
 		return results
 
-	for dt, link in linkinfo.items():
-		filters = []
-		link["doctype"] = dt
-		try:
-			link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
-		except Exception as e:
-			if isinstance(e, frappe.DoesNotExistError):
-				frappe.clear_last_message()
+	is_target_doctype_table = frappe.get_meta(doctype).istable
+
+	for linked_doctype, link_context in linkinfo.items():
+		linked_doctype_meta = frappe.get_meta(linked_doctype)
+
+		if linked_doctype_meta.issingle:
 			continue
-		linkmeta = link_meta_bundle[0]
 
-		if not linkmeta.get("issingle"):
-			fields = [
-				d.fieldname
-				for d in linkmeta.get(
-					"fields",
-					{
-						"in_list_view": 1,
-						"fieldtype": ["not in", ("Image", "HTML", "Button", *frappe.model.table_fields)],
-					},
-				)
-			] + ["name", "modified", "docstatus"]
+		filters = []
+		ret = None
+		parent_info = None
 
-			if link.get("add_fields"):
-				fields += link["add_fields"]
+		fields = [
+			d.fieldname
+			for d in linked_doctype_meta.get(
+				"fields",
+				{
+					"in_list_view": 1,
+					"fieldtype": ["not in", ("Image", "HTML", "Button", *frappe.model.table_fields)],
+				},
+			)
+		] + ["name", "modified", "docstatus"]
 
-			fields = [f"`tab{dt}`.`{sf.strip()}`" for sf in fields if sf and "`tab" not in sf]
+		if add_fields := link_context.get("add_fields"):
+			fields += add_fields
 
-			try:
-				if link.get("filters"):
-					ret = frappe.get_all(
-						doctype=dt, fields=fields, filters=link.get("filters"), order_by=None
-					)
+		fields = [f"`tab{linked_doctype}`.`{sf.strip()}`" for sf in fields if sf and "`tab" not in sf]
 
-				elif link.get("get_parent"):
-					ret = None
+		if filters_ctx := link_context.get("filters"):
+			ret = frappe.get_list(doctype=linked_doctype, fields=fields, filters=filters_ctx, order_by=None)
 
-					# check for child table
-					if not frappe.get_meta(doctype).istable:
-						continue
-
-					me = frappe.db.get_value(
-						doctype, name, ["parenttype", "parent"], as_dict=True, order_by=None
-					)
-					if me and me.parenttype == dt:
-						ret = frappe.get_all(
-							doctype=dt, fields=fields, filters=[[dt, "name", "=", me.parent]], order_by=None
-						)
-
-				elif link.get("child_doctype"):
-					or_filters = [
-						[link.get("child_doctype"), link_fieldnames, "=", name]
-						for link_fieldnames in link.get("fieldname")
-					]
-
-					# dynamic link
-					if link.get("doctype_fieldname"):
-						filters.append(
-							[link.get("child_doctype"), link.get("doctype_fieldname"), "=", doctype]
-						)
-
-					ret = frappe.get_all(
-						doctype=dt,
-						fields=fields,
-						filters=filters,
-						or_filters=or_filters,
-						distinct=True,
-						order_by=None,
-					)
-
-				else:
-					link_fieldnames = link.get("fieldname")
-					if link_fieldnames:
-						if isinstance(link_fieldnames, str):
-							link_fieldnames = [link_fieldnames]
-						or_filters = [[dt, fieldname, "=", name] for fieldname in link_fieldnames]
-						# dynamic link
-						if link.get("doctype_fieldname"):
-							filters.append([dt, link.get("doctype_fieldname"), "=", doctype])
-						ret = frappe.get_all(
-							doctype=dt, fields=fields, filters=filters, or_filters=or_filters, order_by=None
-						)
-
-					else:
-						ret = None
-
-			except frappe.PermissionError:
-				frappe.clear_last_message()
-
+		elif link_context.get("get_parent"):
+			# check for child table
+			if not is_target_doctype_table:
 				continue
 
-			if ret:
-				results[dt] = ret
+			parent_info = parent_info or frappe.db.get_value(
+				doctype, name, ["parenttype", "parent"], as_dict=True, order_by=None
+			)
+
+			if parent_info and parent_info.parenttype == linked_doctype:
+				ret = frappe.get_list(
+					doctype=linked_doctype,
+					fields=fields,
+					filters=[[linked_doctype, "name", "=", parent_info.parent]],
+					order_by=None,
+				)
+
+		elif child_doctype := link_context.get("child_doctype"):
+			or_filters = [
+				[child_doctype, link_fieldnames, "=", name] for link_fieldnames in link_context["fieldname"]
+			]
+
+			# dynamic link_context
+			if doctype_fieldname := link_context.get("doctype_fieldname"):
+				filters.append([child_doctype, doctype_fieldname, "=", doctype])
+
+			ret = frappe.get_list(
+				doctype=linked_doctype,
+				fields=fields,
+				filters=filters,
+				or_filters=or_filters,
+				distinct=True,
+				order_by=None,
+			)
+
+		elif link_fieldnames := link_context.get("fieldname"):
+			if isinstance(link_fieldnames, str):
+				link_fieldnames = [link_fieldnames]
+			or_filters = [[linked_doctype, fieldname, "=", name] for fieldname in link_fieldnames]
+			# dynamic link_context
+			if doctype_fieldname := link_context.get("doctype_fieldname"):
+				filters.append([linked_doctype, doctype_fieldname, "=", doctype])
+			ret = frappe.get_list(
+				doctype=linked_doctype, fields=fields, filters=filters, or_filters=or_filters, order_by=None
+			)
+
+		if ret:
+			results[linked_doctype] = ret
 
 	return results
 
