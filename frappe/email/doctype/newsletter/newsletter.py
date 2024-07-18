@@ -439,7 +439,11 @@ def newsletter_email_read(recipient_email=None, reference_doctype=None, referenc
 			).run()
 
 	except Exception:
-		doc.log_error(f"Unable to mark as viewed for {recipient_email}")
+		frappe.log_error(
+			title=f"Unable to mark as viewed for {recipient_email}",
+			reference_doctype="Newsletter",
+			reference_name=reference_name,
+		)
 
 	finally:
 		frappe.response.update(frappe.utils.get_imaginary_pixel_response())
