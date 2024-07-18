@@ -11,7 +11,7 @@
 	"dependencies": {
 		"dayjs": "^1.11.11",
 		"feather-icons": "^4.29.2",
-		"frappe-ui": "^0.1.62",
+		"frappe-ui": "^0.1.64",
 		"vue": "^3.4.12",
 		"vue-router": "^4.2.2",
 		"vuedraggable": "^4.1.0"
