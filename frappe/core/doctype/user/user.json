@@ -11,6 +11,7 @@
   "enabled",
   "request_a_callback_notification",
   "remote_diagnose_notification",
+  "whatsapp_notification",
   "phone_notification",
   "section_break_3",
   "email",
@@ -116,7 +117,8 @@
     "oldfieldname": "request_a_callback_notification",
     "oldfieldtype": "Check",
     "in_global_search": 1,
-   "in_standard_filter": 1
+    "in_list_view": 1,
+    "in_standard_filter": 0
    },
    {
     "default": "0",
@@ -126,7 +128,19 @@
     "oldfieldname": "remote_diagnose_notification",
     "oldfieldtype": "Check",
     "in_global_search": 1,
-   "in_standard_filter": 1
+    "in_list_view": 1,
+    "in_standard_filter": 0
+   },
+   {
+    "default": "0",
+    "fieldname": "whatsapp_notification",
+    "fieldtype": "Check",
+    "label": "Whatsapp notification",
+    "oldfieldname": "whatsapp_notification",
+    "oldfieldtype": "Check",
+    "in_global_search": 1,
+    "in_list_view": 1,
+    "in_standard_filter": 0
    },
    {
     "bold": 1,
