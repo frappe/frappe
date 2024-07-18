@@ -182,6 +182,12 @@ class User(Document):
 		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
 			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
+	def disable_email_fields_if_user_disabled(self):
+		if not self.enabled:
+			self.thread_notify = 0
+			self.send_me_a_copy = 0
+			self.allowed_in_mentions = 0
+
 	@frappe.whitelist()
 	def populate_role_profile_roles(self):
 		if not self.role_profiles:
@@ -284,6 +290,7 @@ class User(Document):
 
 		# toggle notifications based on the user's status
 		toggle_notifications(self.name, enable=cint(self.enabled), ignore_permissions=True)
+		self.disable_email_fields_if_user_disabled()
 
 	def email_new_password(self, new_password=None):
 		if new_password and not self.flags.in_insert:
