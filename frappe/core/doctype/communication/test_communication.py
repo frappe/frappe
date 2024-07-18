@@ -221,11 +221,20 @@ class TestCommunication(FrappeTestCase):
 	def test_parse_email(self):
 		to = "Jon Doe <jon.doe@example.org>"
 		cc = """=?UTF-8?Q?Max_Mu=C3=9F?= <max.muss@examle.org>,
-	erp+Customer+that%20company@example.org"""
+	erp+Customer=Plus%2BCompany@example.org,
+	erp+Customer+Space%20Company@example.org,
+	erp+Customer+Space+Company+Plus+Encoded@example.org"""
 		bcc = ""
 
 		results = list(parse_email([to, cc, bcc]))
-		self.assertEqual([("Customer", "that company")], results)
+		self.assertEqual(
+			[
+				("Customer", "Plus+Company"),
+				("Customer", "Space Company"),
+				("Customer", "Space Company Plus Encoded"),
+			],
+			results,
+		)
 
 		results = list(parse_email([to, bcc]))
 		self.assertEqual(results, [])
