@@ -93,15 +93,15 @@ def get_language(lang_list: list = None) -> str:
 			return parent_language
 
 	# fetch language from request headers
-	accept_language = list(frappe.request.accept_languages.values())
+	# accept_language = list(frappe.request.accept_languages.values())
 
-	for language in accept_language:
-		if language in lang_set:
-			return language
+	# for language in accept_language:
+	# 	if language in lang_set:
+	# 		return language
 
-		parent_language = get_parent_language(language)
-		if parent_language in lang_set:
-			return parent_language
+	# 	parent_language = get_parent_language(language)
+	# 	if parent_language in lang_set:
+	# 		return parent_language
 
 	# fallback to language set in System Settings or "en"
 	return frappe.db.get_default("lang") or "en"

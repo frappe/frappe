@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Built on Frappe. https://frappeframework.com/ -->
-<html lang="en">
+<html lang="{{ boot.lang }}" dir="{{ 'rtl' if is_rtl() else 'ltr' }}">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -10,7 +10,7 @@
 		{% include "templates/includes/meta_block.html" %}
 	{% endblock %}
 
-	<title>{% block title %}{{ title | striptags }}{% endblock %}</title>
+	<title>{% block title %}{{ _(title | striptags) }}{% endblock %}</title>
 
 	{% block favicon %}
 	<link
