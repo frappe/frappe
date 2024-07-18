@@ -92,10 +92,8 @@
 import { computed, inject } from "vue"
 import { useRouter } from "vue-router"
 
-import { Autocomplete } from "frappe-ui"
+import { Autocomplete, NestedPopover } from "frappe-ui"
 import ListFilterValue from "@/components/List/ListFilterValue.vue"
-// @ts-ignore
-import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
 
 import {
 	linkTypes,

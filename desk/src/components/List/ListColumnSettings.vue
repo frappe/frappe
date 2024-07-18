@@ -113,10 +113,8 @@
 import { computed, ref, watch, inject } from "vue"
 import Draggable from "vuedraggable"
 
-import { Autocomplete, call } from "frappe-ui"
+import { Autocomplete, NestedPopover, call } from "frappe-ui"
 import IconReset from "@/components/Icons/IconReset.vue"
-// @ts-ignore
-import NestedPopover from "frappe-ui/src/components/ListFilter/NestedPopover.vue"
 
 import { isDefaultConfig, isDefaultOverriden, configName } from "@/stores/view"
 import { cloneObject } from "@/utils"
