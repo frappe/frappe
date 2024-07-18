@@ -573,7 +573,7 @@ def add_preload_for_bundled_assets(response):
 
 	version = get_build_version()
 	links.extend(
-		f"</assets/{svg}?v={version}>; rel=preload; as=fetch; crossorigin"
+		f"<{svg}?v={version}>; rel=preload; as=fetch; crossorigin"
 		for svg in frappe.local.preload_assets["icons"]
 	)
 

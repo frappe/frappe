@@ -442,6 +442,12 @@ def get_site_config(sites_path: str | None = None, site_path: str | None = None)
 	# Set the user as database name if not set in config
 	config["db_user"] = os.environ.get("FRAPPE_DB_USER") or config.get("db_user") or config.get("db_name")
 
+	# vice versa for dbname if not defined
+	config["db_name"] = os.environ.get("FRAPPE_DB_NAME") or config.get("db_name") or config["db_user"]
+
+	# read password
+	config["db_password"] = os.environ.get("FRAPPE_DB_PASSWORD") or config.get("db_password")
+
 	# Allow externally extending the config with hooks
 	if extra_config := config.get("extra_config"):
 		if isinstance(extra_config, str):
