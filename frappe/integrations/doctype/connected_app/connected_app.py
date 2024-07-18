@@ -4,8 +4,8 @@
 import os
 from urllib.parse import urlencode, urljoin
 
-from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient
+from requests_oauthlib import OAuth2Session
 
 import frappe
 from frappe import _
@@ -160,16 +160,10 @@ class ConnectedApp(Document):
 			return token_cache
 
 		# Get a new Access token for the App
-		client = BackendApplicationClient(
-			client_id=self.client_id,
-			scope=self.get_scopes()
-		)
+		client = BackendApplicationClient(client_id=self.client_id, scope=self.get_scopes())
 		oauth_session = OAuth2Session(client=client)
 
-		token = oauth_session.fetch_token(
-			self.token_uri,
-			client_secret = self.get_password("client_secret")
-		)
+		token = oauth_session.fetch_token(self.token_uri, client_secret=self.get_password("client_secret"))
 
 		token_cache.update_data(token)
 		token_cache.save(ignore_permissions=True)

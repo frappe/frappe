@@ -101,7 +101,9 @@ class EmailAccount(Document):
 		password: DF.Password | None
 		send_notification_to: DF.SmallText | None
 		send_unsubscribe_message: DF.Check
-		service: DF.Literal["", "Frappe Mail", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"]
+		service: DF.Literal[
+			"", "Frappe Mail", "GMail", "Sendgrid", "SparkPost", "Yahoo Mail", "Outlook.com", "Yandex.Mail"
+		]
 		signature: DF.TextEditor | None
 		smtp_port: DF.Data | None
 		smtp_server: DF.Data | None
@@ -783,7 +785,7 @@ class EmailAccount(Document):
 				token = connected_app.get_backend_app_token()
 			else:
 				token = connected_app.get_active_token(self.connected_user)
-			
+
 			return token
 
 
@@ -883,8 +885,10 @@ def pull(now=False):
 	)
 
 	for email_account in email_accounts:
-		if email_account.auth_method == "OAuth" and not email_account.backend_app_flow and not has_token(
-			email_account.connected_app, email_account.connected_user
+		if (
+			email_account.auth_method == "OAuth"
+			and not email_account.backend_app_flow
+			and not has_token(email_account.connected_app, email_account.connected_user)
 		):
 			# don't try to pull from accounts which dont have access token (for Oauth)
 			continue
