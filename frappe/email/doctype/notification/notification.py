@@ -600,6 +600,7 @@ def get_reference_doctype(doc):
 def get_reference_name(doc):
 	return doc.parent if doc.meta.istable else doc.name
 
+
 def _parse_receiver_by_document_field(s):
 	fragments = s.split(",")
 	# fields from child table or linked doctype
