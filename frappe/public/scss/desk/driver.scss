@@ -58,6 +58,28 @@ div#driver-popover-item {
 	}
 }
 
+html[dir=rtl] div#driver-popover-item {
+	.driver-popover-tip.left {
+		right: -10px;
+		left: auto;
+
+		border-top-color: transparent;
+		border-right-color: transparent;
+		border-bottom-color: transparent;
+		border-left-color: var(--popover-bg);
+	}
+
+	.driver-popover-tip.right {
+		left: -10px;
+		right: auto;
+
+		border-top-color: transparent;
+		border-left-color: transparent;
+		border-bottom-color: transparent;
+		border-right-color: var(--popover-bg);
+	}
+}
+
 #driver-highlighted-element-stage {
 	background-color: var(--bg-color) !important;
 	border-radius: var(--border-radius) !important;

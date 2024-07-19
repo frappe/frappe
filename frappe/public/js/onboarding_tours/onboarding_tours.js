@@ -198,13 +198,23 @@ frappe.ui.OnboardingTour = class OnboardingTour {
 		if (popover_element || hide_buttons) {
 			showButtons = false;
 		}
+
+		// Changing the position in case of rtl
+		var fixed_position = position;
+		if (window.frappe.utils.is_rtl()) {
+			if (position === 'Left')
+				fixed_position = 'Right';
+			if (position === 'Right')
+				fixed_position = 'Left';
+		}
+
 		return {
 			element,
 			name,
 			popover: {
 				title,
 				description,
-				position: frappe.router.slug(position || "Bottom"),
+				position: frappe.router.slug(fixed_position || "Bottom"),
 			},
 			onNext: on_next,
 			step_info: step_info,
