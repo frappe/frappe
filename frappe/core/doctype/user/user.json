@@ -8,21 +8,21 @@
  "engine": "InnoDB",
  "field_order": [
   "user_details_tab",
-  "enabled",
   "section_break_3",
-  "email",
   "first_name",
   "middle_name",
+  "email",
+  "column_break_vces",
   "last_name",
-  "column_break0",
-  "full_name",
-  "username",
-  "column_break_11",
-  "language",
-  "time_zone",
-  "send_welcome_email",
-  "unsubscribed",
-  "user_image",
+  "mobile_no",
+  "location",
+  "recent_work_experience_section",
+  "table_pqum",
+  "tech_stack__skills_section",
+  "table_qkbg",
+  "upload_document_section",
+  "resume",
+  "cover_letter",
   "roles_permissions_tab",
   "sb1",
   "role_profile_name",
@@ -35,21 +35,27 @@
   "block_modules",
   "home_settings",
   "short_bio",
+  "full_name",
   "gender",
   "birth_date",
   "interest",
   "column_break_26",
+  "username",
   "phone",
-  "location",
   "bio",
-  "column_break_22",
-  "mobile_no",
   "settings_tab",
   "desk_settings_section",
   "mute_sounds",
   "desk_theme",
   "code_editor_type",
   "banner_image",
+  "column_break_11",
+  "language",
+  "time_zone",
+  "send_welcome_email",
+  "unsubscribed",
+  "user_image",
+  "enabled",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -173,13 +179,6 @@
    "no_copy": 1
   },
   {
-   "fieldname": "column_break0",
-   "fieldtype": "Column Break",
-   "oldfieldtype": "Column Break",
-   "print_width": "50%",
-   "width": "50%"
-  },
-  {
    "fieldname": "username",
    "fieldtype": "Data",
    "in_global_search": 1,
@@ -278,17 +277,13 @@
   {
    "fieldname": "location",
    "fieldtype": "Data",
-   "label": "Location",
+   "label": "Address",
    "no_copy": 1
   },
   {
    "fieldname": "banner_image",
    "fieldtype": "Attach Image",
    "label": "Banner Image"
-  },
-  {
-   "fieldname": "column_break_22",
-   "fieldtype": "Column Break"
   },
   {
    "fieldname": "interest",
@@ -734,6 +729,45 @@
    "fieldtype": "Select",
    "label": "Code Editor Type",
    "options": "vscode\nvim\nemacs"
+  },
+  {
+   "fieldname": "column_break_vces",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "recent_work_experience_section",
+   "fieldtype": "Section Break",
+   "label": "Recent Work Experience"
+  },
+  {
+   "fieldname": "table_pqum",
+   "fieldtype": "Table",
+   "options": "Work Experience"
+  },
+  {
+   "fieldname": "tech_stack__skills_section",
+   "fieldtype": "Section Break",
+   "label": "Tech Stack / Skills"
+  },
+  {
+   "fieldname": "table_qkbg",
+   "fieldtype": "Table",
+   "options": "Skills"
+  },
+  {
+   "fieldname": "upload_document_section",
+   "fieldtype": "Section Break",
+   "label": "Upload Document"
+  },
+  {
+   "fieldname": "resume",
+   "fieldtype": "Attach",
+   "label": "Resume"
+  },
+  {
+   "fieldname": "cover_letter",
+   "fieldtype": "Attach",
+   "label": "Cover Letter"
   }
  ],
  "icon": "fa fa-user",
@@ -796,7 +830,8 @@
    "link_fieldname": "user"
   }
  ],
- "modified": "2024-04-12 23:25:04.628007",
+ "make_attachments_public": 1,
+ "modified": "2024-07-19 13:53:05.729166",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",
@@ -828,11 +863,13 @@
  ],
  "quick_entry": 1,
  "route": "user",
- "search_fields": "full_name",
+ "search_fields": "email",
  "show_name_in_global_search": 1,
+ "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
- "title_field": "full_name",
- "track_changes": 1
+ "title_field": "email",
+ "track_changes": 1,
+ "translated_doctype": 1
 }

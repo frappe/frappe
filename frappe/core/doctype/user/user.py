@@ -46,6 +46,8 @@ class User(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from careers_hub.careers_hub.doctype.skills.skills import Skills
+		from careers_hub.careers_hub.doctype.work_experience.work_experience import WorkExperience
 		from frappe.core.doctype.block_module.block_module import BlockModule
 		from frappe.core.doctype.defaultvalue.defaultvalue import DefaultValue
 		from frappe.core.doctype.has_role.has_role import HasRole
@@ -63,6 +65,7 @@ class User(Document):
 		block_modules: DF.Table[BlockModule]
 		bypass_restrict_ip_check_if_2fa_enabled: DF.Check
 		code_editor_type: DF.Literal["vscode", "vim", "emacs"]
+		cover_letter: DF.Attach | None
 		default_workspace: DF.Link | None
 		defaults: DF.Table[DefaultValue]
 		desk_theme: DF.Literal["Light", "Dark", "Automatic"]
@@ -103,6 +106,7 @@ class User(Document):
 		redirect_url: DF.SmallText | None
 		reset_password_key: DF.Data | None
 		restrict_ip: DF.SmallText | None
+		resume: DF.Attach | None
 		role_profile_name: DF.Link | None
 		role_profiles: DF.TableMultiSelect[UserRoleProfile]
 		roles: DF.Table[HasRole]
@@ -110,6 +114,8 @@ class User(Document):
 		send_welcome_email: DF.Check
 		simultaneous_sessions: DF.Int
 		social_logins: DF.Table[UserSocialLogin]
+		table_pqum: DF.Table[WorkExperience]
+		table_qkbg: DF.Table[Skills]
 		thread_notify: DF.Check
 		time_zone: DF.Autocomplete | None
 		unsubscribed: DF.Check
