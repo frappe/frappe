@@ -59,6 +59,7 @@ def update_nsm(doc):
 	# set old parent
 	doc.set(old_parent_field, parent)
 	frappe.db.set_value(doc.doctype, doc.name, old_parent_field, parent or "", update_modified=False)
+	frappe.clear_document_cache(doc.doctype)
 
 	doc.reload()
 
@@ -255,6 +256,8 @@ def remove_subtree(doctype: str, name: str, throw=True):
 	table = frappe.qb.DocType(doctype)
 	frappe.qb.update(table).set(table.lft, table.lft - width).where(table.lft > rgt).run()
 	frappe.qb.update(table).set(table.rgt, table.rgt - width).where(table.rgt > rgt).run()
+
+	frappe.clear_document_cache(doctype)
 
 
 class NestedSet(Document):
