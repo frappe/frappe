@@ -118,7 +118,7 @@
     "oldfieldtype": "Check",
     "in_global_search": 1,
     "in_list_view": 1,
-    "in_standard_filter": 0
+    "in_standard_filter": 1
    },
    {
     "default": "0",
@@ -129,7 +129,7 @@
     "oldfieldtype": "Check",
     "in_global_search": 1,
     "in_list_view": 1,
-    "in_standard_filter": 0
+    "in_standard_filter": 1
    },
    {
     "default": "0",
@@ -140,7 +140,7 @@
     "oldfieldtype": "Check",
     "in_global_search": 1,
     "in_list_view": 1,
-    "in_standard_filter": 0
+    "in_standard_filter": 1
    },
    {
     "bold": 1,
