@@ -129,11 +129,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
-<<<<<<< HEAD
- "modified": "2021-03-16 00:32:24.414313",
-=======
  "modified": "2024-07-12 17:32:15.721862",
->>>>>>> cde3d0dfda (feat: Allow Setting email, share and print perms via User Type)
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User Document Type",

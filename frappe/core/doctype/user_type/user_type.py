@@ -117,14 +117,7 @@ class UserType(Document):
 		perms = ["read", "write", "create", "submit", "cancel", "amend", "delete", "print", "email", "share"]
 		for row in self.user_doctypes:
 			docperm = add_role_permissions(row.document_type, self.role)
-<<<<<<< HEAD
-
-			values = {perm: row.get(perm) or 0 for perm in perms}
-			for perm in ["print", "email", "share"]:
-				values[perm] = 1
-=======
 			values = {perm: row.get(perm, default=0) for perm in perms}
->>>>>>> cde3d0dfda (feat: Allow Setting email, share and print perms via User Type)
 
 			frappe.db.set_value("Custom DocPerm", docperm, values)
 
