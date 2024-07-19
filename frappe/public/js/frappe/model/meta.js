@@ -293,13 +293,19 @@ $.extend(frappe.meta, {
 		if (!doc && cur_frm) doc = cur_frm.doc;
 
 		if (df && df.options) {
-			if (doc && df.options.indexOf(":") != -1) {
+			if (df.options.indexOf(":") != -1) {
 				var options = df.options.split(":");
 				if (options.length == 3) {
-					// get reference record e.g. Company
-					var docname = doc[options[1]];
-					if (!docname && cur_frm) {
-						docname = cur_frm.doc[options[1]];
+					let docname = null;
+					if (doc) {
+						// get reference record e.g. Company
+						docname = doc[options[1]];
+						if (!docname && cur_frm) {
+							docname = cur_frm.doc[options[1]];
+						}
+					} else {
+						// Try to get default value, useful for cases like Company overridden in session defaults
+						docname = frappe.defaults.get_user_default(options[1]);
 					}
 					currency =
 						frappe.model.get_value(options[0], docname, options[2]) ||
