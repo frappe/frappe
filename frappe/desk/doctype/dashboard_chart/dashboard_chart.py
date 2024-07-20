@@ -288,7 +288,7 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 		if title_field.title_field:  # if has title_field
 			for item in data:  # replace chart labels from name to title value
 				item.name = frappe.get_value(group_by_field_field.options, item.name, title_field.title_field)
-			
+
 	if data:
 		return {
 			"labels": [item.get("name", "Not Specified") for item in data],
