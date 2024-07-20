@@ -172,7 +172,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	@property
 	def db_schema(self):
-		return re.sub(r'["\']', "", frappe.conf.get("db_schema", "public"))
+		return frappe.conf.get("db_schema", "public").replace("'", "").replace('"', "")
 
 	def connect(self):
 		super().connect()
@@ -247,22 +247,22 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def get_db_table_columns(self, table) -> list[str]:
 		"""Returns list of column names from given table."""
-		columns = frappe.cache.hget("table_columns", table)
-		if columns is None:
-			information_schema = frappe.qb.Schema("information_schema")
+		if (columns := frappe.cache.hget("table_columns", table)) is not None:
+			return columns
 
-			columns = (
-				frappe.qb.from_(information_schema.columns)
-				.select(information_schema.columns.column_name)
-				.where(
-					(information_schema.columns.table_name == table)
-					& (information_schema.columns.table_schema == self.db_schema)
-				)
-				.run(pluck=True)
+		information_schema = frappe.qb.Schema("information_schema")
+
+		columns = (
+			frappe.qb.from_(information_schema.columns)
+			.select(information_schema.columns.column_name)
+			.where(
+				(information_schema.columns.table_name == table)
+				& (information_schema.columns.table_schema == self.db_schema)
 			)
+			.run(pluck=True)
+		)
 
-			if columns:
-				frappe.cache.hset("table_columns", table, columns)
+		frappe.cache.hset("table_columns", table, columns)
 
 		return columns
 
