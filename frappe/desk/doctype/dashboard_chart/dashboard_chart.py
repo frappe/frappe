@@ -278,7 +278,7 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 		order_by="count desc",
 		ignore_ifnull=True,
 	)
-	
+
 	group_by_field_field = frappe.get_meta(doctype).get_field(
 		group_by_field
 	)  # get info about @group_by_field
